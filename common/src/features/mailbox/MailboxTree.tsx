@@ -2,12 +2,18 @@ import {
   ListItem,
   ListItemSkeleton,
   ListItemText,
-  ListSubheader,
   Nav
 } from '@linagora/twake-mui'
-import { useMemo, useState, type ReactElement, type ReactNode } from 'react'
+import {
+  useId,
+  useMemo,
+  useState,
+  type ReactElement,
+  type ReactNode
+} from 'react'
 import { useMatch } from 'react-router'
 
+import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -26,6 +32,7 @@ const SKELETON_ROWS = [1, 2, 3, 4, 5]
  */
 export function MailboxTree(): ReactElement {
   const { t } = useI18n()
+  const titleId = useId()
   const query = useMailboxes()
   const match = useMatch('/mailbox/:mailboxId/*')
   const selectedId = match?.params.mailboxId ?? null
@@ -68,15 +75,25 @@ export function MailboxTree(): ReactElement {
     ))
   }
 
+  // The title stays outside the tree: a tree only holds tree items
   return (
-    <Nav
-      role="tree"
-      aria-label={t('sidebar.folders')}
-      aria-busy={query.isPending}
-      subheader={<ListSubheader>{t('sidebar.folders')}</ListSubheader>}
-      data-testid="mailbox-tree"
-    >
-      {content}
-    </Nav>
+    <>
+      <SecondaryText
+        variant="subtitle2"
+        component="h2"
+        className="u-ph-1 u-pv-half"
+        data-testid="mailbox-tree-title"
+      >
+        <span id={titleId}>{t('sidebar.folders')}</span>
+      </SecondaryText>
+      <Nav
+        role="tree"
+        aria-labelledby={titleId}
+        aria-busy={query.isPending}
+        data-testid="mailbox-tree"
+      >
+        {content}
+      </Nav>
+    </>
   )
 }

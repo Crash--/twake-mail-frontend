@@ -54,7 +54,8 @@ Conventions:
 
 | `data-testid` | Element | Flutter key |
 |---|---|---|
-| `mailbox-tree` | the sidebar folder tree (`role="tree"`) | — |
+| `mailbox-tree` | the sidebar folder tree (`role="tree"`, named by `mailbox-tree-title`) | — |
+| `mailbox-tree-title` | the "Folders" heading above the tree | — |
 | `mailbox-item` | one folder row (`role="treeitem"`), with `data-mailbox-id`, `data-mailbox-role` (JMAP role, absent for personal folders), `aria-current="page"` when selected, `aria-expanded` when it has children | — (found by name in Patrol) |
 | `mailbox-item-name` | the folder name inside the row | — |
 | `mailbox-unread-count` | unread badge inside the row (absent when 0) | — |
@@ -70,7 +71,7 @@ Conventions:
 
 | `data-testid` | Element | Flutter key |
 |---|---|---|
-| `email-list` | the list (`role="list"` or `grid`) | — |
+| `email-list` | the list: a `table` named "Messages", column headers for screen readers only; each row holds one link (`[data-row-focus]`) that opens the email, the arrow keys move between rows | — |
 | `email-list-item` | one row, with `data-email-id`, `data-thread-id`, `data-unread="true"` when unread, `aria-selected` when selected | `EmailTileBuilder` |
 | `email-list-item-subject` | subject inside the row | — |
 | `email-list-item-sender` | sender inside the row | — |
@@ -78,6 +79,7 @@ Conventions:
 | `email-list-item-date` | date inside the row | — |
 | `unread-status-icon` | unread marker of the row | `UiKeys.unreadStatusIcon` |
 | `email-list-item-star` | star toggle (`aria-pressed`) | — |
+| `email-list-item-toggle-seen` | "Mark as read" / "Mark as unread", shown on row hover or focus | — |
 | `email-list-item-checkbox` | selection checkbox | `UiKeys.tabletEmailSelectionAvatar` |
 | `important-flag-icon` | "important" marker | `important_flag_icon` |
 | `empty-thread-view` | empty folder view | `UiKeys.emptyThreadView` |

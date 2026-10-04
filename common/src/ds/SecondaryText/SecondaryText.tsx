@@ -9,7 +9,7 @@ import type { ReactElement, ReactNode } from 'react'
 export interface SecondaryTextProps {
   children: ReactNode
   variant?: TypographyProps['variant']
-  component?: 'span' | 'p' | 'div'
+  component?: 'span' | 'p' | 'div' | 'h2' | 'h3'
   noWrap?: boolean
   className?: string
   'data-testid'?: string

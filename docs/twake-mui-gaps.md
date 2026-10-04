@@ -160,11 +160,13 @@ never silently ignored.
 
 ## Icons and twake-css
 
-`@linagora/twake-icons` has no text formatting icon (bold, italic,
-underline, strike, lists, quote, colour, alignment, size, clear formatting,
-undo, redo, insert image): the composer spike draws Material Icons paths
-(Apache-2.0, via `@mui/icons-material` MIT) with `SvgIcon` in
-`common/src/ds/RichTextEditor/editorIcons.tsx`. twake-icons should get them.
+`@linagora/twake-icons` has no text formatting icon: bold, italic,
+underline, strike, quote, text colour, alignment (left, centre, right,
+justify), text size, clear formatting, undo and redo. The editor draws them
+from Material Icons paths (Apache-2.0, via `@mui/icons-material` MIT) with
+`SvgIcon` in `common/src/ds/RichTextEditor/editorIcons.tsx`, and takes from
+twake-icons the ones it has: `List` (bulleted list), `Number` (numbered
+list), `Link` and `Image`. twake-icons should get the missing ones.
 
 Before the composer, every icon needed existed in `@linagora/twake-icons` (`Mail`,
 `MailText`, `TwakeText`, `Pen`, `Apps`, `Logout`, `Email`, `EmailOpen`,

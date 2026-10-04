@@ -5,6 +5,14 @@ import type {
   Mailbox
 } from 'jmap-client-ts'
 
+import {
+  collapseThreads,
+  filterWords,
+  markWords,
+  matchesFilter,
+  sortEmails
+} from './fakeEmailQuery'
+
 /**
  * An in-memory JMAP server answering the requests of the real jmap-client-ts
  * client, through its `fetch` option. Tests mock the network, not the client:
@@ -43,6 +51,14 @@ export type FakeEmail = Pick<
 > &
   Partial<Pick<Email, 'htmlBody' | 'attachments' | 'bodyValues' | 'sentAt'>>
 
+/** A contact of `TMailContact/autocomplete` (Linagora extension) */
+export interface FakeContact {
+  id: string
+  firstname: string
+  surname: string
+  emailAddress: string
+}
+
 export type FakeInvocation = [
   name: string,
   args: Record<string, unknown>,
@@ -59,6 +75,8 @@ export interface FakeJmapServer {
   fetch: FetchFunction
   mailboxes: Mailbox[]
   emails: FakeEmail[]
+  /** Contacts `TMailContact/autocomplete` answers with */
+  contacts: FakeContact[]
   /** Blob contents by blob id, served by the download endpoint */
   blobs: Map<string, string>
   /** API requests received, in order */
@@ -279,9 +297,13 @@ export function makeDefaultMailboxes(): Mailbox[] {
 
 export const FAKE_WEBSOCKET_URL = 'wss://jmap.example.com/jmap/ws'
 
-function makeSession(webSocket: boolean): Record<string, unknown> {
+function makeSession(
+  webSocket: boolean,
+  extraCapabilities: Readonly<Record<string, unknown>>
+): Record<string, unknown> {
   return {
     capabilities: {
+      ...extraCapabilities,
       ...(webSocket
         ? {
             'urn:ietf:params:jmap:websocket': {
@@ -303,7 +325,10 @@ function makeSession(webSocket: boolean): Record<string, unknown> {
         name: FAKE_USERNAME,
         isPersonal: true,
         isReadOnly: false,
-        accountCapabilities: { 'urn:ietf:params:jmap:mail': {} }
+        accountCapabilities: {
+          ...extraCapabilities,
+          'urn:ietf:params:jmap:mail': {}
+        }
       }
     },
     primaryAccounts: { 'urn:ietf:params:jmap:mail': FAKE_ACCOUNT_ID },
@@ -372,10 +397,6 @@ function referenceError(
   return null
 }
 
-function receivedAtDescending(left: FakeEmail, right: FakeEmail): number {
-  return right.receivedAt.localeCompare(left.receivedAt)
-}
-
 export function makeFakeJmapServer(
   init: {
     mailboxes?: Mailbox[]
@@ -384,12 +405,16 @@ export function makeFakeJmapServer(
     webSocket?: boolean
     /** Most objects a `/changes` response reports (`hasMoreChanges` beyond) */
     maxChanges?: number
+    /** Extra capabilities of the session and the account */
+    capabilities?: Record<string, unknown>
+    contacts?: FakeContact[]
   } = {}
 ): FakeJmapServer {
   const server: FakeJmapServer = {
     fetch: handleFetch,
     mailboxes: init.mailboxes ?? makeDefaultMailboxes(),
     emails: init.emails ?? [],
+    contacts: init.contacts ?? [],
     blobs: new Map(),
     requests: [],
     methodErrors: new Map(),
@@ -424,6 +449,7 @@ export function makeFakeJmapServer(
   const emailLog = new ChangeLog('state-email-', maxChanges)
   const mailboxLog = new ChangeLog('state-mailbox-', maxChanges)
   const advertisesWebSocket = init.webSocket ?? false
+  const extraCapabilities = init.capabilities ?? {}
   let held: { method: string | null; released: Promise<void> } | null = null
 
   function holdRequests(method?: string): () => void {
@@ -463,12 +489,12 @@ export function makeFakeJmapServer(
   }
 
   function queryEmails(args: Record<string, unknown>): unknown {
-    const filter = isRecord(args.filter) ? args.filter : {}
-    const inMailbox =
-      typeof filter.inMailbox === 'string' ? filter.inMailbox : null
-    const matching = server.emails
-      .filter(email => inMailbox === null || inMailbox in email.mailboxIds)
-      .sort(receivedAtDescending)
+    const found = sortEmails(
+      server.emails.filter(email => matchesFilter(email, args.filter)),
+      args.sort
+    )
+    const matching =
+      args.collapseThreads === true ? collapseThreads(found) : found
     const position = typeof args.position === 'number' ? args.position : 0
     const limit = typeof args.limit === 'number' ? args.limit : matching.length
     return {
@@ -479,6 +505,60 @@ export function makeFakeJmapServer(
       ids: matching.slice(position, position + limit).map(email => email.id),
       total: matching.length
     }
+  }
+
+  function getSnippets(args: Record<string, unknown>): unknown {
+    const ids = Array.isArray(args.emailIds) ? args.emailIds : []
+    const words = filterWords(args.filter)
+    const list = ids.flatMap(id => {
+      const email = server.emails.find(candidate => candidate.id === id)
+      return email
+        ? [
+            {
+              emailId: email.id,
+              subject: markWords(email.subject, words),
+              preview: markWords(email.preview, words)
+            }
+          ]
+        : []
+    })
+    const notFound = ids.filter(
+      id => !server.emails.some(email => email.id === id)
+    )
+    return { accountId: FAKE_ACCOUNT_ID, list, notFound }
+  }
+
+  function getThreads(args: Record<string, unknown>): unknown {
+    const ids = Array.isArray(args.ids) ? args.ids : []
+    const list = ids.flatMap(id => {
+      const emails = sortEmails(
+        server.emails.filter(email => email.threadId === id),
+        [{ property: 'receivedAt', isAscending: true }]
+      )
+      return emails.length > 0
+        ? [{ id, emailIds: emails.map(email => email.id) }]
+        : []
+    })
+    const notFound = ids.filter(
+      id => !server.emails.some(email => email.threadId === id)
+    )
+    return { accountId: FAKE_ACCOUNT_ID, state: emailLog.state, list, notFound }
+  }
+
+  function autocompleteContacts(args: Record<string, unknown>): unknown {
+    const text =
+      isRecord(args.filter) && typeof args.filter.text === 'string'
+        ? args.filter.text.toLowerCase()
+        : ''
+    const limit = typeof args.limit === 'number' ? args.limit : 10
+    const list = server.contacts
+      .filter(
+        contact =>
+          contact.emailAddress.toLowerCase().includes(text) ||
+          `${contact.firstname} ${contact.surname}`.toLowerCase().includes(text)
+      )
+      .slice(0, limit)
+    return { accountId: FAKE_ACCOUNT_ID, list }
   }
 
   function getEmails(args: Record<string, unknown>): unknown {
@@ -547,6 +627,12 @@ export function makeFakeJmapServer(
         return getMailboxes(args)
       case 'Email/query':
         return queryEmails(args)
+      case 'SearchSnippet/get':
+        return getSnippets(args)
+      case 'Thread/get':
+        return getThreads(args)
+      case 'TMailContact/autocomplete':
+        return autocompleteContacts(args)
       case 'Email/get':
         return getEmails(args)
       case 'Email/set':
@@ -620,7 +706,7 @@ export function makeFakeJmapServer(
     init?: RequestInit
   ): Promise<Response> {
     if (input === FAKE_SESSION_URL) {
-      return jsonResponse(makeSession(advertisesWebSocket))
+      return jsonResponse(makeSession(advertisesWebSocket, extraCapabilities))
     }
     if (input.startsWith(DOWNLOAD_PREFIX)) return handleDownload(input)
     if (input === FAKE_API_URL && typeof init?.body === 'string') {

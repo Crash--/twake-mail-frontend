@@ -3,8 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
 import type { AppListEntry } from '@common/config/config'
+import type { AuthService } from '@common/features/auth/types'
 import { FAKE_USERNAME } from '@common/testing/fakeJmapServer'
-import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
+import {
+  makeFakeBasicAuthService,
+  makeFakeOidcAuthService
+} from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { AppLayout } from './AppLayout'
@@ -16,7 +20,7 @@ const APPS: AppListEntry[] = [
 
 function renderLayout(
   apps: AppListEntry[] = APPS,
-  authService = makeFakeBasicAuthService()
+  authService: AuthService = makeFakeBasicAuthService()
 ): ReturnType<typeof renderWithProviders> {
   return renderWithProviders(<AppLayout apps={apps} />, {
     path: '/',
@@ -81,6 +85,22 @@ describe('AppLayout', () => {
     await userEvent.click(screen.getByTestId('logout-button'))
 
     expect(authService.logout).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows the username of the JMAP session when the SSO gave no email', async () => {
+    renderLayout(
+      APPS,
+      makeFakeOidcAuthService({
+        status: 'authenticated',
+        user: { email: null, name: null }
+      })
+    )
+
+    await userEvent.click(await screen.findByTestId('user-avatar'))
+
+    expect(screen.getByTestId('user-menu-identity')).toHaveTextContent(
+      FAKE_USERNAME
+    )
   })
 
   it('shows the username of the JMAP session in basic mode', async () => {

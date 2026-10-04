@@ -73,21 +73,36 @@ function isPendingLogin(value: unknown): value is PendingLogin {
   )
 }
 
+/** Claims of an ID token or of a userinfo response */
+type UserClaims = Readonly<Record<string, unknown>>
+
 function getStringClaim(
-  claims: client.IDToken | undefined,
+  claims: UserClaims | undefined,
   name: string
 ): string | null {
   const value = claims?.[name]
   return typeof value === 'string' && value !== '' ? value : null
 }
 
-function normalizeUser(claims: client.IDToken | undefined): AuthUser {
+function normalizeUser(claims: UserClaims | undefined): AuthUser {
   return {
     email: getStringClaim(claims, 'email'),
     name:
       getStringClaim(claims, 'name') ??
       getStringClaim(claims, 'preferred_username')
   }
+}
+
+/** What `primary` knows, completed by `fallback` */
+function mergeUsers(primary: AuthUser, fallback: AuthUser): AuthUser {
+  return {
+    email: primary.email ?? fallback.email,
+    name: primary.name ?? fallback.name
+  }
+}
+
+function isCompleteUser(user: AuthUser): boolean {
+  return user.email !== null && user.name !== null
 }
 
 function getErrorMessage(error: unknown): string {
@@ -164,7 +179,12 @@ export function createOidcAuthService(
     })
   }
 
-  function saveTokens(response: TokenResponse): void {
+  /**
+   * Saves the tokens and signs the user in. The user is read from the ID
+   * token, completed by `knownUser` (userinfo, or the user signed in before
+   * a refresh): a renewed ID token may carry fewer claims.
+   */
+  function saveTokens(response: TokenResponse, knownUser: AuthUser): void {
     const expiresIn = response.expiresIn()
     tokens = {
       accessToken: response.access_token,
@@ -173,14 +193,44 @@ export function createOidcAuthService(
       expiresAt:
         expiresIn === undefined ? null : dependencies.now() + expiresIn * 1000
     }
-    const previous = store.getState()
-    const claims = response.claims()
-    const user =
-      claims === undefined && previous.status === 'authenticated'
-        ? previous.user
-        : normalizeUser(claims)
+    const user = mergeUsers(normalizeUser(response.claims()), knownUser)
     store.setState({ status: 'authenticated', user })
     scheduleRefresh()
+  }
+
+  function getSignedInUser(): AuthUser {
+    const state = store.getState()
+    return state.status === 'authenticated'
+      ? state.user
+      : { email: null, name: null }
+  }
+
+  /**
+   * Who signed in, when the ID token does not say (LemonLDAP::NG puts the
+   * profile in userinfo only, depending on its configuration): asks the
+   * userinfo endpoint. Null fields when it cannot tell either.
+   */
+  async function fetchUserInfo(
+    configuration: client.Configuration,
+    response: TokenResponse
+  ): Promise<AuthUser> {
+    const claims = response.claims()
+    if (isCompleteUser(normalizeUser(claims))) return normalizeUser(claims)
+    try {
+      const userInfo = await client.fetchUserInfo(
+        configuration,
+        response.access_token,
+        claims?.sub ??
+          // No ID token to compare the subject with: the access token was
+          // just obtained from the token endpoint over TLS
+          // eslint-disable-next-line @typescript-eslint/no-deprecated
+          client.skipSubjectCheck
+      )
+      return normalizeUser(userInfo)
+    } catch (error) {
+      console.warn('[auth] Userinfo unavailable', getErrorMessage(error))
+      return { email: null, name: null }
+    }
   }
 
   async function startLogin(returnTo: string): Promise<StartLoginResult> {
@@ -246,7 +296,7 @@ export function createOidcAuthService(
           expectedState: pendingLogin.state
         }
       )
-      saveTokens(response)
+      saveTokens(response, await fetchUserInfo(configuration, response))
       return {
         ok: true,
         value: { returnTo: sanitizeReturnTo(pendingLogin.returnTo) }
@@ -271,7 +321,7 @@ export function createOidcAuthService(
       )
       // Signed out while the request was in flight
       if (tokens === null) return false
-      saveTokens(response)
+      saveTokens(response, getSignedInUser())
       return true
     } catch (error) {
       console.warn('[auth] Token refresh failed', getErrorMessage(error))

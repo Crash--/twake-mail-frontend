@@ -27,9 +27,12 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type ComponentProps,
+  type DragEvent,
   type KeyboardEvent,
+  type MouseEvent,
   type ReactElement
 } from 'react'
 
@@ -51,11 +54,18 @@ type TableBodyProps = ComponentProps<NonNullable<TableComponents['TableBody']>>
 type TableRowProps = ComponentProps<NonNullable<TableComponents['TableRow']>>
 type TableFootProps = ComponentProps<NonNullable<TableComponents['TableFoot']>>
 
+/** Where a row menu opens: at the pointer, or under the row (keyboard) */
+export type RowMenuAnchor =
+  { position: { left: number; top: number } } | { element: HTMLElement }
+
 interface ListTableSettings {
   label: string
   rowCount: number | null
   columns: readonly VirtualizedTableColumn[]
   getRowProps: ((row: VirtualizedTableRow) => RowAttributes) | null
+  onRowMenu: ((row: VirtualizedTableRow, anchor: RowMenuAnchor) => void) | null
+  onRowDragStart:
+    ((row: VirtualizedTableRow, event: DragEvent<HTMLElement>) => void) | null
   /** Reports the width of the scroller, null when nobody listens */
   onWidthChange: ((width: number) => void) | null
 }
@@ -65,6 +75,8 @@ const ListTableContext = createContext<ListTableSettings>({
   rowCount: null,
   columns: [],
   getRowProps: null,
+  onRowMenu: null,
+  onRowDragStart: null,
   onWidthChange: null
 })
 
@@ -214,12 +226,50 @@ const ListTableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
   }
 )
 
+/** The menu key, or Shift+F10: the keyboard way to a context menu */
+function isMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
+  return event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)
+}
+
 function ListTableRow({
   item,
   context,
   ...props
 }: TableRowProps): ReactElement {
-  const { getRowProps } = useContext(ListTableContext)
+  const { getRowProps, onRowMenu, onRowDragStart } =
+    useContext(ListTableContext)
+  // The menu key may also send a contextmenu event: open the menu once
+  const openedByKey = useRef(false)
+
+  const handleContextMenu = (event: MouseEvent<HTMLElement>): void => {
+    if (onRowMenu === null) return
+    event.preventDefault()
+    if (openedByKey.current) {
+      openedByKey.current = false
+      return
+    }
+    // A keyboard contextmenu event has no pointer position
+    if (event.clientX === 0 && event.clientY === 0) {
+      onRowMenu(item, { element: event.currentTarget })
+    } else {
+      onRowMenu(item, {
+        position: { left: event.clientX, top: event.clientY }
+      })
+    }
+  }
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>): void => {
+    if (onRowMenu === null || !isMenuKey(event)) return
+    event.preventDefault()
+    openedByKey.current = true
+    window.setTimeout(() => {
+      openedByKey.current = false
+    }, 0)
+    onRowMenu(item, { element: event.currentTarget })
+  }
+  const handleDragStart = (event: DragEvent<HTMLElement>): void => {
+    onRowDragStart?.(item, event)
+  }
+
   return (
     <TableRow
       {...props}
@@ -229,6 +279,12 @@ function ListTableRow({
       selected={context.isSelectedItem(item)}
       hover
       sx={ROW_SX}
+      {...(onRowMenu === null
+        ? {}
+        : { onContextMenu: handleContextMenu, onKeyDown: handleKeyDown })}
+      {...(onRowDragStart === null
+        ? {}
+        : { draggable: true, onDragStart: handleDragStart })}
     />
   )
 }
@@ -284,6 +340,16 @@ export interface VirtualizedListTableProps extends Omit<
   /** Attributes of the `tr` of a row: `data-*` ids and states, `aria-*` */
   getRowProps?: (row: VirtualizedTableRow) => RowAttributes
   /**
+   * Opens the menu of a row: right click (at the pointer), the menu key or
+   * Shift+F10 (under the row)
+   */
+  onRowMenu?: (row: VirtualizedTableRow, anchor: RowMenuAnchor) => void
+  /** Makes the rows draggable; set the dragged data on the event */
+  onRowDragStart?: (
+    row: VirtualizedTableRow,
+    event: DragEvent<HTMLElement>
+  ) => void
+  /**
    * Row to show and focus when the table mounts, e.g. the email the user
    * comes back from: its `RowLink` gets the focus, its position the scroll
    */
@@ -331,6 +397,8 @@ export function VirtualizedListTable({
   label,
   rowCount = null,
   getRowProps,
+  onRowMenu,
+  onRowDragStart,
   columns: wideColumns,
   compactColumns,
   compact = false,
@@ -355,9 +423,20 @@ export function VirtualizedListTable({
       rowCount,
       columns,
       getRowProps: getRowProps ?? null,
+      onRowMenu: onRowMenu ?? null,
+      onRowDragStart: onRowDragStart ?? null,
       onWidthChange: compactColumns === undefined ? null : handleWidthChange
     }),
-    [label, rowCount, columns, getRowProps, compactColumns, handleWidthChange]
+    [
+      label,
+      rowCount,
+      columns,
+      getRowProps,
+      onRowMenu,
+      onRowDragStart,
+      compactColumns,
+      handleWidthChange
+    ]
   )
   return (
     <ListTableContext.Provider value={settings}>

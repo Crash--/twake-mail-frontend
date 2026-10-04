@@ -246,6 +246,41 @@ describe('createPushSync', () => {
     unsubscribe()
   })
 
+  it('refetches only the lists whose state the server no longer knows', async () => {
+    const setup = await makeSetup({
+      emails: makeEmails(EMAIL_LIST_PAGE_SIZE * 2 + 5)
+    })
+    await loadInbox(setup, 2)
+    // A folder visited long ago, at a state the server cannot start from
+    const archiveKey = threadKeys.list(FAKE_ACCOUNT_ID, ARCHIVE)
+    const stale: EmailListPage = {
+      emails: [],
+      position: 0,
+      count: 0,
+      total: null,
+      isLast: false,
+      state: 'state-email-999'
+    }
+    setup.queryClient.setQueryData<EmailListData>(archiveKey, {
+      pages: [stale, { ...stale, position: 0 }],
+      pageParams: [0, 0]
+    })
+
+    setup.server.addEmail(
+      makeEmail({ id: 'new', receivedAt: '2026-09-02T00:00:00Z' })
+    )
+    await pushNow(setup)
+
+    expect(listedIds(setup)[0]).toBe('new')
+    expect(inboxData(setup).pages).toHaveLength(2)
+    expect(
+      setup.queryClient.getQueryData<EmailListData>(archiveKey)?.pages
+    ).toHaveLength(1)
+    expect(setup.queryClient.getQueryState(archiveKey)?.isInvalidated).toBe(
+      true
+    )
+  })
+
   it('refetches the first page when the changes never end', async () => {
     const setup = await makeSetup({ emails: makeEmails(3), maxChanges: 1 })
     await loadInbox(setup, 1)

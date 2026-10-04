@@ -6,7 +6,8 @@ import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { hasKeyword, SEEN } from './keywords'
 
 /**
- * Marks an unread email as read when it is opened, once per email.
+ * Marks an unread email as read when it is opened, once per email: marked
+ * unread while open, it stays unread.
  */
 export function useMarkAsReadOnOpen(
   email: Pick<Email, 'id' | 'mailboxIds' | 'keywords'>
@@ -16,14 +17,17 @@ export function useMarkAsReadOnOpen(
 
   useEffect(() => {
     // The ref keeps the effect, run twice in development, from sending two
-    // requests, and a failed request from being retried in a loop
-    if (markedEmailId.current === email.id || hasKeyword(email, SEEN)) return
+    // requests, a failed request from being retried in a loop, and an email
+    // the user marks unread while reading it from being read again
+    if (markedEmailId.current === email.id) return
     markedEmailId.current = email.id
-    void run({
-      action: 'markAsRead',
-      emails: [email],
-      mailboxId: null,
-      silent: true
-    })
+    if (!hasKeyword(email, SEEN)) {
+      void run({
+        action: 'markAsRead',
+        emails: [email],
+        mailboxId: null,
+        silent: true
+      })
+    }
   }, [email, run])
 }

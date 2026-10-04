@@ -771,6 +771,38 @@ export class JmapClient {
     }
   }
 
+  /**
+   * Destroys every email of the account, a page of ids at a time (`Email/query` then
+   * `Email/set` destroying its ids by back-reference), and returns how many went. Run when a
+   * test ends: the memory backend stops answering `Email/set` updates once it holds about 256
+   * messages in all (e2e/README.md, "Known backend quirks"), and deleting a user leaves its
+   * messages behind.
+   */
+  async destroyAllEmails(): Promise<number> {
+    const accountId = await this.accountId()
+    let destroyed = 0
+    for (;;) {
+      const responses = await this.request([
+        ['Email/query', { accountId, limit: 256 }, 'q'],
+        [
+          'Email/set',
+          {
+            accountId,
+            '#destroy': { resultOf: 'q', name: 'Email/query', path: '/ids' }
+          },
+          's'
+        ]
+      ])
+      const set = responses.find(([name]) => name === 'Email/set')?.[1]
+      const ids =
+        set !== undefined && Array.isArray(set.destroyed) ? set.destroyed : []
+      destroyed += ids.length
+      if (ids.length === 0) {
+        return destroyed
+      }
+    }
+  }
+
   /** Polls until an email with exactly this subject is in the mailbox (Inbox by default) */
   async waitForEmail(input: WaitForEmailInput): Promise<Email> {
     const timeout = input.timeout ?? 15_000

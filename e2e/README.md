@@ -153,7 +153,7 @@ test('MBX-05 switching folder shows that folder emails', async ({ page, user, jm
 | Fixture | What |
 |---|---|
 | `user` | A brand new account (`E2EUser`: `email`, `password`, `localPart`) |
-| `users` | `users.create({ prefix: 'alice', quota })` for more accounts, `users.createTeamMailbox({ members })` for a team mailbox; all deleted after the test |
+| `users` | `users.create({ prefix: 'alice', quota })` for more accounts, `users.createTeamMailbox({ members })` for a team mailbox; all deleted after the test, their emails (team mailboxes included) destroyed first |
 | `jmap` | JMAP client authenticated as `user` |
 | `jmapFor(other)` | JMAP client of another account, e.g. the sender of an email |
 | `webadmin` | WebAdmin client, for the rest |
@@ -330,9 +330,15 @@ checked to add Dex and the OIDC specs.
   `mailboxIds`, hence `onSuccessUpdateEmail` of `jmap.sendEmail`) never answers; creates,
   reads, queries and local delivery keep working. Measured: 150 messages fine, 300 stuck
   (still pending after 400 s); no thread busy nor blocked. Repro:
-  `tmail-backend-issues/memory-email-set-update-hang/repro.mjs`. The suite creates far fewer
-  messages per run, so a fresh stack is fine; but **never run the suite after the perf seed**:
-  `stop.sh`, then `start.sh` again. Not checked on the distributed backend.
+  `tmail-backend-issues/memory-email-set-update-hang/repro.mjs`. Destroying messages brings
+  the updates back, so the `users` fixture destroys the emails of every account it created
+  when the test ends (`JmapClient.destroyAllEmails`): the count stays at what the running tests
+  hold. **Never run the suite after the perf seed** all the same: `stop.sh`, then `start.sh`
+  again. Not checked on the distributed backend.
+- **An update of more than 3 ids with the same patch can change other messages** of the same
+  mailbox (memory image, `results-range-memory-1.0.21.2.txt` of the same repro: 4 drafts
+  flagged, all 10 changed). The specs act on at most 3 emails at once; a batch spec seeing
+  extra emails changed is this bug, not the app.
 - **Search on the memory image** (Lucene in memory):
   - a `text` (or `subject`) condition of more than three or four words, or
     whose words follow a `<`, finds nothing: the search specs type shorter,

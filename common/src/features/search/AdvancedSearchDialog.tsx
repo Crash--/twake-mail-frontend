@@ -11,6 +11,7 @@ import {
 } from '@linagora/twake-mui'
 import { useState, type FormEvent, type ReactElement } from 'react'
 
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -114,6 +115,17 @@ export function AdvancedSearchDialog({
   }
 
   const titleId = 'advanced-search-title'
+  const isPhone = useScreenSize() === 'mobile'
+  const clearButton = (
+    <Button
+      variant="text"
+      className="u-flex-shrink-0"
+      onClick={handleClear}
+      data-testid="advanced-search-clear-button"
+    >
+      {t('search.clearFilter')}
+    </Button>
+  )
 
   return (
     <Dialog
@@ -130,7 +142,19 @@ export function AdvancedSearchDialog({
         noValidate
         className="u-flex u-flex-column u-ov-hidden"
       >
-        <DialogTitle id={titleId}>{t('search.advanced')}</DialogTitle>
+        {isPhone ? (
+          // Three buttons do not fit under a phone screen: "Clear filter"
+          // goes up beside the title, out of its accessible name
+          <Box className="u-flex u-flex-items-center u-pr-1">
+            {/* DialogTitle does not shrink (flex: 0 0 auto) */}
+            <Box className="u-flex-auto">
+              <DialogTitle id={titleId}>{t('search.advanced')}</DialogTitle>
+            </Box>
+            {clearButton}
+          </Box>
+        ) : (
+          <DialogTitle id={titleId}>{t('search.advanced')}</DialogTitle>
+        )}
         <DialogContent>
           <Box className="u-flex u-flex-column u-pt-half">
             <TextField
@@ -334,13 +358,7 @@ export function AdvancedSearchDialog({
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button
-            variant="text"
-            onClick={handleClear}
-            data-testid="advanced-search-clear-button"
-          >
-            {t('search.clearFilter')}
-          </Button>
+          {isPhone ? null : clearButton}
           {/* Full screen on a phone: no backdrop nor Escape key to close it */}
           <Button
             variant="outlined"

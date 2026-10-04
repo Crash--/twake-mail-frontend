@@ -82,27 +82,44 @@ export interface SaveResult {
 }
 
 /**
- * Saves a draft: creates the new version and destroys the previous one in
- * the same `Email/set` (JMAP emails are immutable). tmail-flutter makes
- * three requests (create, destroy, get).
+ * Saves a draft. JMAP emails are immutable: create the new version, then,
+ * once it exists, read the blob ids of its inline images and destroy the
+ * previous version (tmail-flutter: create, destroy, get; three requests).
+ *
+ * - Not `create` and `destroy` in one call: tmail-backend destroys first.
+ * - Not in one request: a failed creation must not destroy the previous
+ *   version, and tmail-backend resolves neither `#creationId` nor
+ *   `/created/<id>/id` references in `Email/get`.
+ * - The new blob ids matter: the images of a reopened draft point at the
+ *   parts of that draft (`<emailId>_<partId>`), which die with it.
  */
 export async function saveDraft(
   client: JmapClient,
   accountId: string,
   email: EmailCreate,
-  previousId: string | null
+  previousId: string | null,
+  images: InlineImageStore
 ): Promise<SaveResult> {
-  const args = {
-    accountId,
-    create: { draft: email },
-    destroy: previousId ? [previousId] : null
-  }
-  const response = assertSetSucceeded(await client.call('Email/set', args))
-  const created = response.created?.draft
+  const created = assertSetSucceeded(
+    await client.call('Email/set', { accountId, create: { draft: email } })
+  ).created?.draft
   if (!created) throw new Error('Email/set created no draft')
+  const [saved] = await client.request(builder => [
+    builder.call('Email/get', {
+      accountId,
+      ids: [created.id],
+      properties: ['attachments'],
+      bodyProperties: ['blobId', 'cid', 'type', 'size', 'name']
+    }),
+    builder.call('Email/set', {
+      accountId,
+      destroy: previousId ? [previousId] : []
+    })
+  ])
+  images.rebase(saved.list[0]?.attachments ?? [])
   return {
     emailId: created.id,
-    requestBytes: new TextEncoder().encode(JSON.stringify(args)).length
+    requestBytes: new TextEncoder().encode(JSON.stringify(email)).length
   }
 }
 
@@ -120,11 +137,7 @@ export async function sendEmail(
   draftId: string | null
 ): Promise<string> {
   const [emailSet, submission] = await client.request(builder => [
-    builder.call('Email/set', {
-      accountId,
-      create: { message: email },
-      destroy: draftId ? [draftId] : null
-    }),
+    builder.call('Email/set', { accountId, create: { message: email } }),
     builder.call('EmailSubmission/set', {
       accountId,
       create: { submission: { identityId, emailId: '#message' } },
@@ -135,7 +148,9 @@ export async function sendEmail(
           'keywords/$draft': null
         }
       }
-    })
+    }),
+    // After the submission: the message may use blobs of the draft
+    builder.call('Email/set', { accountId, destroy: draftId ? [draftId] : [] })
   ])
   assertSetSucceeded(emailSet)
   assertSetSucceeded(submission)

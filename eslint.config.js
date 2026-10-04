@@ -198,6 +198,12 @@ export default defineConfig(
     }
   },
 
+  {
+    // twake-mui's VirtualizedTable needs a twake-i18n provider to render
+    files: ['common/src/ds/testing/**/*.{ts,tsx}'],
+    rules: { 'no-restricted-imports': ['error', UI_IMPORT_RESTRICTIONS] }
+  },
+
   ...tanstackQuery.configs['flat/recommended'],
 
   {

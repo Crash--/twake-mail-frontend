@@ -253,6 +253,11 @@ the maximum); `perf/instrument.js` timestamps the first row, the clicks and the 
 frame in the page, and records long tasks. `PERF_RUNS=1` and `PERF_SCROLL_TARGET=300` make a
 quick try. The method and the numbers are in [`docs/perf/phase0.md`](../docs/perf/phase0.md).
 
+`perf/transition.perf.ts` (`PERF-03`) measures opening and closing an email with its view
+transition, on a phone and a desktop, with and without reduced motion
+([`docs/perf/view-transitions.md`](../docs/perf/view-transitions.md)): `npx playwright test -c
+playwright.perf.config.ts perf/transition.perf.ts`.
+
 `perf/flutter.perf.ts` measures the same login and scroll on tmail-flutter web, as a
 reference, when `PERF_FLUTTER_URL` is set: serve `linagora/tmail-web` on a free port of
 `127.0.0.1` with an `env.file` whose `SERVER_URL` is the stack origin

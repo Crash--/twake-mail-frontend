@@ -93,11 +93,13 @@ Never store tokens or passwords in web storage, never log them.
 - `JmapClientProvider` creates one jmap-client-ts client per sign-in
   (`createClient` from the library, `makeJmapAuth` adapting the auth
   service); `useJmapClient()` returns it.
+- `JmapSessionProvider` loads the JMAP session before the mail screens;
+  `useJmapSession()` gives the session and the mail `accountId`.
 - Use the library types (`Mailbox`, `Email`…), narrowed with `Pick` to the
   `properties` a query asks for.
 - Tests talk to a fake JMAP server through the real client
   (`common/src/testing/fakeJmapServer.ts`, `renderWithProviders({
-  jmapServer })`), never to a mocked client.
+  jmapServer, withJmapSession })`), never to a mocked client.
 
 ## `@injected` modules
 

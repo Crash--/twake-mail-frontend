@@ -23,12 +23,12 @@ describe('AppRoutes', () => {
     expect(screen.getByTestId('sidebar')).toBeInTheDocument()
   })
 
-  it('opens an email of a mailbox', () => {
+  it('opens an email of a mailbox', async () => {
     renderWithProviders(<AppRoutes apps={[]} />, {
       route: '/mailbox/m1/email/e1'
     })
 
-    const page = screen.getByTestId('email-page')
+    const page = await screen.findByTestId('email-page')
     expect(page).toHaveAttribute('data-mailbox-id', 'm1')
     expect(page).toHaveAttribute('data-email-id', 'e1')
   })

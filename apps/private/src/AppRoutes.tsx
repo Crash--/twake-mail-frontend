@@ -5,6 +5,7 @@ import type { AppListEntry } from '@common/config/config'
 import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
+import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 import { AppLayout } from '@common/layout/AppLayout'
 
 import { EmailPage } from './features/mailbox/EmailPage'
@@ -26,7 +27,13 @@ export function AppRoutes({ apps }: AppRoutesProps): ReactElement {
       <Route path="/callback" element={<LoginCallbackPage />} />
       <Route path="/login" element={<BasicLoginPage />} />
       <Route element={<RequireAuth />}>
-        <Route element={<AppLayout apps={apps} />}>
+        <Route
+          element={
+            <JmapSessionProvider>
+              <AppLayout apps={apps} />
+            </JmapSessionProvider>
+          }
+        >
           <Route
             index
             element={<Navigate to={`/mailbox/${DEFAULT_MAILBOX_ID}`} replace />}

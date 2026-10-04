@@ -143,7 +143,8 @@ commit (`npm install jmap-client-ts@github:Crash--/jmap-client-ts#v2 -w
 
 One client is created per sign-in (`common/src/jmap/JmapClientProvider.tsx`),
 authenticated by the auth service (`makeJmapAuth.ts`: Bearer or Basic header,
-token renewal on 401).
+token renewal on 401). The JMAP session is loaded before the mail screens
+(`JmapSessionProvider.tsx`).
 
 ## Known issues
 

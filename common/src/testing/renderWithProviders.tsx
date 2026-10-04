@@ -13,6 +13,7 @@ import {
   JmapClientProvider,
   type JmapClientFactory
 } from '@common/jmap/JmapClientProvider'
+import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 
 import {
   FAKE_SESSION_URL,
@@ -34,6 +35,11 @@ export interface RenderOptions {
   lang?: SupportedLanguage
   /** JMAP server the real JMAP client talks to; a default one otherwise */
   jmapServer?: FakeJmapServer
+  /**
+   * Loads the JMAP session before rendering the element, as the app does for
+   * the mail screens (`useJmapSession`)
+   */
+  withJmapSession?: boolean
 }
 
 export interface RenderWithProvidersResult extends RenderResult {
@@ -55,13 +61,19 @@ export function renderWithProviders(
     routes,
     authService = makeFakeBasicAuthService(),
     lang = 'en',
-    jmapServer = makeFakeJmapServer()
+    jmapServer = makeFakeJmapServer(),
+    withJmapSession = false
   }: RenderOptions = {}
 ): RenderWithProvidersResult {
   const queryClient = makeQueryClient()
   queryClient.setDefaultOptions({ queries: { retry: false } })
   const createFakeClient: JmapClientFactory = options =>
     createClient({ ...options, fetch: jmapServer.fetch })
+  const element = withJmapSession ? (
+    <JmapSessionProvider>{ui}</JmapSessionProvider>
+  ) : (
+    ui
+  )
 
   const result = render(
     <AppProviders lang={lang} queryClient={queryClient}>
@@ -72,7 +84,7 @@ export function renderWithProviders(
         >
           <MemoryRouter initialEntries={[route]}>
             <Routes>
-              <Route path={path} element={ui}>
+              <Route path={path} element={element}>
                 {childRoutes}
               </Route>
               {routes}

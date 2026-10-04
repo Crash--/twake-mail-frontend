@@ -115,6 +115,33 @@ if [[ "${E2E_OIDC:-0}" == "1" ]]; then
   done
 fi
 
+# Right after start, James may still refuse the first authenticated requests (401): wait
+# until a throwaway account opens a session and reads its mailboxes through the browser
+# facing origin, a few times in a row, before handing the stack to the tests
+probe_id="$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
+PROBE_USER="probe-$probe_id@$DOMAIN"
+PROBE_PASSWORD="probe-$probe_id"
+curl -fsS -o /dev/null -X PUT "$WEBADMIN/users/$PROBE_USER" \
+  -H 'Content-Type: application/json' -d "{\"password\":\"$PROBE_PASSWORD\"}"
+probe_jmap() {
+  local session account
+  session="$(curl -fsS -u "$PROBE_USER:$PROBE_PASSWORD" "$PUBLIC_URL/jmap/session" 2>/dev/null)" || return 1
+  # primaryAccounts: "urn:ietf:params:jmap:mail":"<account id>" (the capability itself is an object)
+  account="$(grep -o '"urn:ietf:params:jmap:mail":"[^"]*"' <<<"$session" | head -1 | cut -d'"' -f4)"
+  [[ -n "$account" ]] || return 1
+  curl -fsS -u "$PROBE_USER:$PROBE_PASSWORD" -H 'Content-Type: application/json' \
+    -d "{\"using\":[\"urn:ietf:params:jmap:core\",\"urn:ietf:params:jmap:mail\"],\"methodCalls\":[[\"Mailbox/get\",{\"accountId\":\"$account\",\"ids\":null},\"c0\"]]}" \
+    "$PUBLIC_URL/jmap" 2>/dev/null | grep -q '\["Mailbox/get"'
+}
+successes=0
+echo -n "Waiting for authenticated JMAP"
+until (( successes >= 3 )); do
+  if (( SECONDS > deadline )); then echo; echo "authenticated JMAP not ready" >&2; exit 1; fi
+  if probe_jmap; then successes=$((successes + 1)); else successes=0; echo -n "."; sleep 1; fi
+done
+curl -fsS -o /dev/null -X DELETE "$WEBADMIN/users/$PROBE_USER"
+echo " ready"
+
 cat <<INFO
 e2e stack ready
   app + JMAP (browser) $PUBLIC_URL

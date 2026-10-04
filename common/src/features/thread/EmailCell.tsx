@@ -37,6 +37,7 @@ import { HighlightedText } from '@common/features/search/HighlightedText'
 
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData, EmailSnippet } from './queries'
+import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
 
 /**
@@ -57,11 +58,13 @@ export type EmailColumnId =
   | 'message'
   | 'compactActions'
 
-/** A row of the table: an email, and its snippet in search results */
+/**
+ * A row of the table: an email, its snippet in search results, and in a
+ * list of conversations the summary of the conversation it stands for
+ */
 export type EmailRowData = EmailListItemData & {
   snippet: EmailSnippet | null
-  /** Emails of its conversation, in a list of conversations */
-  threadSize: number | null
+  thread: ThreadSummary | null
 }
 
 /** The rows of the table are the emails themselves */
@@ -89,8 +92,9 @@ export interface EmailCellProps {
   getMailboxNames?: (email: EmailListItemData) => string | null
   /** Shows the recipients instead of the sender (Sent, Drafts…) */
   showRecipients: boolean
-  onToggleStar: (email: EmailListItemData) => void
-  onToggleSeen: (email: EmailListItemData) => void
+  /** On a conversation, these act on all its emails */
+  onToggleStar: (email: EmailRowData) => void
+  onToggleSeen: (email: EmailRowData) => void
   /** To the Trash, or deleted forever (after a confirmation) */
   onRemove: (email: EmailListItemData) => void
   /** Whether removing deletes forever (Trash, Spam, Drafts) */
@@ -136,12 +140,17 @@ export function EmailCell({
 
   if (!isEmailRow(row) || !column) return null
   const email = row
-  const isUnread = !hasKeyword(email, SEEN)
-  const isStarred = hasKeyword(email, FLAGGED)
+  const { thread } = email
+  // A conversation takes the state of all its emails
+  const isUnread = thread?.isUnread ?? !hasKeyword(email, SEEN)
+  const isStarred = thread?.isStarred ?? hasKeyword(email, FLAGGED)
+  const hasAttachment = thread?.hasAttachment ?? email.hasAttachment
   const emphasis = isUnread ? 'u-fw-bold' : ''
-  const correspondents = formatAddressNames(
-    showRecipients ? email.to : email.from
-  )
+  // Its participants ("Alice, Bob, Me") rather than the last sender
+  const correspondents =
+    thread !== null && !showRecipients
+      ? thread.participants.join(', ')
+      : formatAddressNames(showRecipients ? email.to : email.from)
 
   const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
   const handleToggleStar = (): void => {
@@ -268,8 +277,7 @@ export function EmailCell({
     />
   )
   const mailboxNames = getMailboxNames?.(email) ?? null
-  const threadSize =
-    email.threadSize !== null && email.threadSize > 1 ? email.threadSize : null
+  const threadSize = thread !== null && thread.count > 1 ? thread.count : null
   const threadCount =
     threadSize === null ? null : (
       <SecondaryText
@@ -277,7 +285,7 @@ export function EmailCell({
         className="u-flex-shrink-0 u-ml-half"
         data-testid="email-list-item-thread-count"
       >
-        <span aria-hidden="true">{threadSize}</span>
+        <span aria-hidden="true">{`(${threadSize})`}</span>
         <span className="u-visuallyhidden">
           {t('thread.messageCount', { smart_count: threadSize })}
         </span>
@@ -294,7 +302,7 @@ export function EmailCell({
         {t('search.inMailbox', { name: mailboxNames })}
       </SecondaryText>
     )
-  const attachmentIcon = email.hasAttachment ? (
+  const attachmentIcon = hasAttachment ? (
     <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
   ) : null
 
@@ -321,7 +329,7 @@ export function EmailCell({
               aria-hidden="true"
               data-testid="email-list-item-thread-count"
             >
-              {threadSize}
+              {`(${threadSize})`}
             </SecondaryText>
           )}
         </Typography>

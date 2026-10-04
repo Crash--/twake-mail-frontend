@@ -7,6 +7,7 @@ import { useState, type ReactElement } from 'react'
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
   FAKE_ACCOUNT_ID,
+  FAKE_USERNAME,
   makeEmail,
   makeFakeJmapServer,
   type FakeJmapServer
@@ -490,6 +491,58 @@ describe('EmailList', () => {
       .flatMap(request => request.methodCalls)
       .find(([name]) => name === 'Email/query')
     expect(query?.[1].collapseThreads).toBe(true)
+    window.localStorage.clear()
+  })
+
+  it('names a conversation by its participants, its size and its state', async () => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+    const server = makeFakeJmapServer({
+      emails: [
+        makeEmail({
+          id: 'first',
+          threadId: 'plan',
+          subject: 'Plan',
+          from: [{ name: 'Bob Dupont', email: 'bob@example.com' }],
+          keywords: { $seen: true, $flagged: true },
+          hasAttachment: true,
+          receivedAt: '2026-10-01T08:00:00Z'
+        }),
+        makeEmail({
+          id: 'mine',
+          threadId: 'plan',
+          subject: 'Re: Plan',
+          mailboxIds: { 'mailbox-sent': true },
+          from: [{ name: 'Alice Martin', email: FAKE_USERNAME }],
+          keywords: { $seen: true },
+          receivedAt: '2026-10-02T08:00:00Z'
+        }),
+        makeEmail({
+          id: 'last',
+          threadId: 'plan',
+          subject: 'Re: Plan',
+          from: [{ name: 'Carol Petit', email: 'carol@example.com' }],
+          receivedAt: '2026-10-03T08:00:00Z'
+        })
+      ]
+    })
+    renderList(server)
+
+    const row = await screen.findByTestId('email-list-item')
+    expect(row).toHaveAttribute('data-email-id', 'last')
+    expect(row).toHaveAttribute('data-unread', 'true')
+    expect(within(row).getByTestId('email-list-item-sender')).toHaveTextContent(
+      'Bob Dupont, Me, Carol Petit(3)'
+    )
+    expect(within(row).getByRole('link')).toHaveAccessibleName(
+      /^Unread, Starred, Bob Dupont, Me, Carol Petit, 3 messages, Re: Plan/
+    )
+    expect(
+      within(row).getByRole('img', { name: 'Attachment' })
+    ).toBeInTheDocument()
+    expect(within(row).getByRole('button', { name: 'Unstar' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
     window.localStorage.clear()
   })
 })

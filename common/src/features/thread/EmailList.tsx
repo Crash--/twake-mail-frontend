@@ -54,8 +54,10 @@ import {
 import {
   type EmailListData,
   type EmailListItemData,
-  type SearchRequest
+  type SearchRequest,
+  type ThreadMember
 } from './queries'
+import { summarizeThread, type ThreadSummary } from './threadSummary'
 import { useEmailListActions } from './useEmailListActions'
 import { useEmailListShortcuts } from './useEmailListShortcuts'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
@@ -77,20 +79,24 @@ const OVERSCAN_PX = 400
 
 /**
  * Every email of the pages, once (positions shift when mail arrives), with
- * its search snippet when the list holds search results, and the size of
- * its conversation when the list shows one row per conversation
+ * its search snippet when the list holds search results, and the summary
+ * of its conversation when the list shows one row per conversation
  */
-function flattenPages(data: EmailListData | undefined): EmailRowData[] {
+function flattenPages(
+  data: EmailListData | undefined,
+  summarize: (members: readonly ThreadMember[]) => ThreadSummary
+): EmailRowData[] {
   const seen = new Set<string>()
   return (data?.pages ?? []).flatMap(page =>
     page.emails.flatMap((email): EmailRowData[] => {
       if (seen.has(email.id)) return []
       seen.add(email.id)
+      const members = page.threads?.[email.threadId]
       return [
         {
           ...email,
           snippet: page.snippets?.[email.id] ?? null,
-          threadSize: page.threads?.[email.threadId]?.length ?? null
+          thread: members === undefined ? null : summarize(members)
         }
       ]
     })
@@ -108,7 +114,9 @@ function getRowProps(row: VirtualizedTableRow): RowAttributes {
     'data-email-id': row.id,
     'data-thread-id': row.threadId
   }
-  if (!hasKeyword(row, SEEN)) attributes['data-unread'] = 'true'
+  if (row.thread?.isUnread ?? !hasKeyword(row, SEEN)) {
+    attributes['data-unread'] = 'true'
+  }
   return attributes
 }
 
@@ -202,7 +210,15 @@ export function EmailList(props: EmailListProps): ReactElement {
     },
     [search, mailboxes.data, getMailboxName]
   )
-  const emails = useMemo(() => flattenPages(query.data), [query.data])
+  const { session } = useJmapSession()
+  const meLabel = t('thread.me')
+  const emails = useMemo(
+    () =>
+      flattenPages(query.data, members =>
+        summarizeThread(members, session.username, meLabel)
+      ),
+    [query.data, session.username, meLabel]
+  )
   const total = query.data?.pages[0]?.total ?? null
   const location = useLocation()
   const focusEmailId = readFocusEmailId(location.state)

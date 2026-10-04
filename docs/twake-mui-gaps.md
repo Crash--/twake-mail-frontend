@@ -26,6 +26,7 @@ Each `ds/` component says in its header whether it should go upstream.
 | Readable secondary text | Preview, dates, address lines, hints | `Typography` coloured Grey 900 at 80 % (5.4:1 on white) | `ds/SecondaryText` | Fix `text.secondary` in the theme (see "Accessibility") |
 | Email header | Subject, sender with avatar, To/Cc/Bcc lines, date of the reading view | `Typography`, `Avatar`, twake-css flex classes | `features/email/EmailView.tsx` | A message header component (identity, recipients, date, actions) |
 | Attachment chip | Attachments of an email: name, size, download | `Chip variant="outlined"` with `icon` and `endIcon`, named "Download <name> (<size>)" | `ds/AttachmentChip` | An attachment tile (file type icon, name, size, download and preview actions) |
+| Rich text editor (composer spike) | Composer body: formatting toolbar, link dialog, inline images, quoted email and signature kept as HTML blocks | TipTap 3 (MIT) with `RichTextToolbar` (APG toolbar, roving tabindex), `LinkDialog`, `HtmlBlock` (atom node, sandboxed iframe), `InlineImage`, `cleanPastedHtml` | `ds/RichTextEditor`, used by the DEBUG route `/spike/composer` | A `RichTextEditor` in twake-ui (Twake Chat and Docs need one too), or at least a `Toolbar` with roving focus and toggle/menu buttons; the editor ids (`rich-text-*-button`, `link-dialog-*`, `html-block-edit-*`) are still hard coded in the ds and must become props |
 | Sandboxed HTML viewer | Body of an email | A plain `iframe` (`sandbox`, `srcdoc`, `title`, height from its content) styled by a stylesheet inside the email document | `features/email/emailBody.ts` | Nothing expected from twake-mui, but the theme (fonts, colours) does not reach inside the iframe: the email document repeats a minimal style |
 
 ## VirtualizedTable
@@ -117,11 +118,18 @@ never silently ignored.
 | `Button variant="contained"` primary (sign in, new message) | `color-contrast` | White on #0a84ff, 3.64:1 at 15–16 px normal weight | A darker `primary.main` for filled buttons (4.5:1 with white needs about #0067d6) |
 | Selected `NavLink` (current folder) | `color-contrast` | #0a84ff on `action.selected` #e5e8eb, 2.96:1 | Darker selected text (`primary.dark`) |
 | `Nav` `subheader` | `aria-required-children`, `listitem` | A `ListSubheader` `li` inside a `role="tree"` list | Render the subheader outside the list. Worked around: heading outside the `Nav` |
+| Focused `TextField` label (composer spike link dialog) | `color-contrast` | #2684e3 on white, 3.82:1 | Same theme fix |
 | `VirtualizedTable` | (review) | No table name, header neither hideable nor hidden for screen readers only, rows not focusable, no row count | See "VirtualizedTable" above |
 
 ## Icons and twake-css
 
-Every icon needed so far exists in `@linagora/twake-icons` (`Mail`,
+`@linagora/twake-icons` has no text formatting icon (bold, italic,
+underline, strike, lists, quote, colour, alignment, size, clear formatting,
+undo, redo, insert image): the composer spike draws Material Icons paths
+(Apache-2.0, via `@mui/icons-material` MIT) with `SvgIcon` in
+`common/src/ds/RichTextEditor/editorIcons.tsx`. twake-icons should get them.
+
+Before the composer, every icon needed existed in `@linagora/twake-icons` (`Mail`,
 `MailText`, `TwakeText`, `Pen`, `Apps`, `Logout`, `Email`, `EmailOpen`,
 `Warning`, `File`, `Send`, `Paperplane`, `Trash`, `Note`, `Archive`, `Folder`,
 `Bottom`, `Right`, `Left`, `Star`, `StarOutline`, `CircleFilled`,

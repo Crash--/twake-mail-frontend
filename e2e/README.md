@@ -219,6 +219,36 @@ Limits, and how to lift them:
 
 ---
 
+## Performance (`perf/`)
+
+A separate Playwright project, `playwright.perf.config.ts`, out of the default suite and of
+CI: one worker, no retry, no trace nor video, `channel: 'chromium'` (the new headless mode, a
+full browser: the default headless shell stops producing frames during a scripted scroll).
+Run it against a **production build** on a **fresh stack**:
+
+```bash
+npm run build                                   # at the repo root
+./scripts/stop.sh && E2E_APP_DIR=../apps/private/dist ./scripts/start.sh
+npm run perf                                    # ~6 min, results in test-results/perf/results.json
+./scripts/stop.sh                               # the seeded stack is not fit for the suite, see below
+```
+
+Its global setup seeds a user once (`scripts/seed-perf.ts`: 5 000 emails in the Inbox, 500
+in "Perf folder", in about 30 s) and keeps its credentials in `perf/.perf-user.json` (git
+ignored) while the stack keeps it. `npm run perf:seed -- --inbox 2000 --other 0 --out
+/tmp/user.json` seeds another one by hand. `perf/mailbox.perf.ts` runs each measure 5 times
+in a fresh browser context and prints the median and the p95 (nearest rank: with 5 samples,
+the maximum); `perf/instrument.js` timestamps the first row, the clicks and the email body
+frame in the page, and records long tasks. `PERF_RUNS=1` and `PERF_SCROLL_TARGET=300` make a
+quick try. The method and the numbers are in [`docs/perf/phase0.md`](../docs/perf/phase0.md).
+
+`perf/flutter.perf.ts` measures the same login and scroll on tmail-flutter web, as a
+reference, when `PERF_FLUTTER_URL` is set: serve `linagora/tmail-web` on a free port of
+`127.0.0.1` with an `env.file` whose `SERVER_URL` is the stack origin
+(`http://127.0.0.1:18302/`), in its own compose project, and remove it afterwards.
+
+---
+
 ## Layout
 
 ```
@@ -235,6 +265,9 @@ e2e/
 │   ├── app-placeholder/      served when E2E_APP_DIR is not set
 │   └── .generated/           rendered config and keys (git ignored)
 ├── scripts/{start,stop}.sh
+├── scripts/seed-perf.ts      big mailbox for the performance measures
+├── playwright.perf.config.ts performance project (npm run perf)
+├── perf/                     performance measures, not run by default
 ├── fixtures/
 │   ├── eml/                  .eml files from tmail-flutter provisioning/integration_test/eml/
 │   └── files/                attachments
@@ -285,7 +318,8 @@ checked to add Dex and the OIDC specs.
   reads, queries and local delivery keep working. Measured: 150 messages fine, 300 stuck
   (still pending after 400 s); no thread busy nor blocked. Repro:
   `tmail-backend-issues/memory-email-set-update-hang/repro.mjs`. The suite creates far fewer
-  messages per run, so a fresh stack is fine. Not checked on the distributed backend.
+  messages per run, so a fresh stack is fine; but **never run the suite after the perf seed**:
+  `stop.sh`, then `start.sh` again. Not checked on the distributed backend.
 - Deleting a user (`DELETE /users/…`) removes the account (it can no longer authenticate,
   `INFRA-02`) but James does not purge its mailboxes; harmless here (memory backend, random
   addresses, `stop.sh` drops everything).

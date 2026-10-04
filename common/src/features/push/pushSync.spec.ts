@@ -544,10 +544,14 @@ describe('createPushSync', () => {
           .getQueryData<EmailListData>(key)
           ?.pages.flatMap(page => page.emails.map(email => email.id)) ?? []
       await until(() => rows().length === 2)
-      expect(
-        setup.queryClient.getQueryData<EmailListData>(key)?.pages[0]
-          ?.threadSizes
-      ).toEqual({ thread: 2, 'thread-alone': 1 })
+      const sizes = (): Record<string, number> =>
+        Object.fromEntries(
+          Object.entries(
+            setup.queryClient.getQueryData<EmailListData>(key)?.pages[0]
+              ?.threads ?? {}
+          ).map(([threadId, members]) => [threadId, members.length])
+        )
+      expect(sizes()).toEqual({ thread: 2, 'thread-alone': 1 })
 
       setup.server.addEmail(
         makeEmail({
@@ -559,10 +563,7 @@ describe('createPushSync', () => {
       await pushNow(setup)
 
       expect(rows()).toEqual(['t3', 'alone'])
-      expect(
-        setup.queryClient.getQueryData<EmailListData>(key)?.pages[0]
-          ?.threadSizes
-      ).toEqual({ thread: 3, 'thread-alone': 1 })
+      expect(sizes()).toEqual({ thread: 3, 'thread-alone': 1 })
       unsubscribe()
     })
   })

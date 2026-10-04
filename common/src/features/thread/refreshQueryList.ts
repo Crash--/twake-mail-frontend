@@ -4,14 +4,17 @@ import { hasSearchedWords } from '@common/features/search/queries'
 import { settle } from '@common/jmap/settle'
 
 import {
+  byReceivedAt,
   EMAIL_LIST_PAGE_SIZE,
   EMAIL_LIST_PROPERTIES,
   orderByIds,
+  THREAD_MEMBER_PROPERTIES,
   type EmailListData,
   type EmailListItemData,
   type EmailListPage,
   type EmailSnippet,
-  type SearchRequest
+  type SearchRequest,
+  type ThreadMember
 } from './queries'
 
 /** Largest window queried again; beyond, the list starts over */
@@ -21,10 +24,11 @@ export const MAX_REFRESHED_RESULTS = 256
  * Queries the loaded window of a list again (search results, conversations
  * of a mailbox), after changes the client cannot place: James has no
  * `Email/queryChanges`. One `Email/query` of the ids, then, when new ids
- * appear or the list shows conversations, one request with the `Email/get`
- * and `SearchSnippet/get` of the new ids and the `Thread/get` of the
- * conversations listed (their sizes). The emails already listed are kept
- * as they are (push patched them). Null when the window is too large.
+ * appear, one request with the `Email/get` and `SearchSnippet/get` of the
+ * new ids and, for conversations, the `Thread/get` of their threads and
+ * the `Email/get` of their members. The emails already listed are kept as
+ * they are, with their members (push patched them). Null when the window
+ * is too large.
  */
 export async function refreshQueryList(
   client: JmapClient,
@@ -56,16 +60,15 @@ export async function refreshQueryList(
   const snippets = new Map<string, EmailSnippet>(
     data.pages.flatMap(page => Object.entries(page.snippets ?? {}))
   )
-  const threadSizes = new Map<string, number>(
-    data.pages.flatMap(page => Object.entries(page.threadSizes ?? {}))
+  const threads = new Map<string, readonly ThreadMember[]>(
+    data.pages.flatMap(page => Object.entries(page.threads ?? {}))
   )
-  if (missing.length > 0 || collapseThreads) {
-    const listedThreadIds = [...new Set(loaded.map(email => email.threadId))]
+  if (missing.length > 0) {
     const calls: {
       current: {
         emails: PromiseLike<{ list: EmailListItemData[] }>
         snippets: PromiseLike<{ list: SearchSnippet[] }>
-        threads: PromiseLike<{ list: { id: string; emailIds: string[] }[] }>[]
+        members: PromiseLike<{ list: ThreadMember[] }> | null
       } | null
     } = { current: null }
     await client.requestSettled(builder => {
@@ -79,24 +82,33 @@ export async function refreshQueryList(
         filter: hasSearchedWords(filter) ? filter : null,
         emailIds: missing
       })
-      // The sizes of the conversations listed, and of the new ones
-      const threads = collapseThreads
-        ? [
-            builder.call('Thread/get', { accountId, ids: listedThreadIds }),
-            builder.call('Thread/get', {
-              accountId,
-              '#ids': emails.ref('/list/*/threadId')
-            })
-          ]
-        : []
-      calls.current = { emails, snippets, threads }
-      return [emails, snippets, ...threads]
+      // The members of the new conversations
+      const threadsOfNew = collapseThreads
+        ? builder.call('Thread/get', {
+            accountId,
+            '#ids': emails.ref('/list/*/threadId')
+          })
+        : null
+      const members = threadsOfNew
+        ? builder.call('Email/get', {
+            accountId,
+            '#ids': threadsOfNew.ref('/list/*/emailIds'),
+            properties: [...THREAD_MEMBER_PROPERTIES]
+          })
+        : null
+      calls.current = { emails, snippets, members }
+      return [
+        emails,
+        snippets,
+        ...(threadsOfNew && members ? [threadsOfNew, members] : [])
+      ]
     })
     if (calls.current === null) throw new Error('The request was not built')
-    const [emails, found, ...threadResults] = await Promise.all([
+    const { members } = calls.current
+    const [emails, found, membersResult] = await Promise.all([
       settle(calls.current.emails),
       settle(calls.current.snippets),
-      ...calls.current.threads.map(settle)
+      members === null ? null : settle(members)
     ])
     if (!emails.ok) throw emails.error
     for (const email of orderByIds(emails.value.list, missing)) {
@@ -107,10 +119,16 @@ export async function refreshQueryList(
         snippets.set(emailId, { subject, preview })
       }
     }
-    for (const threads of threadResults) {
-      if (!threads.ok) continue
-      for (const thread of threads.value.list) {
-        threadSizes.set(thread.id, thread.emailIds.length)
+    if (membersResult?.ok) {
+      const byThread = new Map<string, ThreadMember[]>()
+      for (const member of membersResult.value.list) {
+        byThread.set(member.threadId, [
+          ...(byThread.get(member.threadId) ?? []),
+          member
+        ])
+      }
+      for (const [threadId, list] of byThread) {
+        threads.set(threadId, [...list].sort(byReceivedAt))
       }
     }
   }
@@ -145,10 +163,10 @@ export async function refreshQueryList(
     return collapseThreads
       ? {
           ...page,
-          threadSizes: Object.fromEntries(
+          threads: Object.fromEntries(
             slice.map(email => [
               email.threadId,
-              threadSizes.get(email.threadId) ?? 1
+              threads.get(email.threadId) ?? [email]
             ])
           )
         }

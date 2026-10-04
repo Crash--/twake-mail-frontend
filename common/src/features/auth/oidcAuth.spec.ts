@@ -370,6 +370,27 @@ describe('createOidcAuthService', () => {
       )
     })
 
+    it('starts no login while leaving for the SSO logout', async () => {
+      const dependencies = makeDependencies()
+      const service = await signIn(dependencies)
+      mockedClient.buildAuthorizationUrl.mockClear()
+      // As RequireAuth does when the user becomes anonymous
+      const unsubscribe = service.subscribe(() => {
+        if (service.getState().status === 'anonymous') {
+          void service.startLogin('/mailbox/inbox')
+        }
+      })
+
+      await service.logout()
+      await jest.runAllTimersAsync()
+      unsubscribe()
+
+      expect(mockedClient.buildAuthorizationUrl).not.toHaveBeenCalled()
+      expect(dependencies.redirect).toHaveBeenLastCalledWith(
+        'https://sso.example.com/logout'
+      )
+    })
+
     it('falls back to the post-logout page when the SSO cannot end its session', async () => {
       const dependencies = makeDependencies()
       const service = await signIn(dependencies)

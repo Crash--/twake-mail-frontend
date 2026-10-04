@@ -33,7 +33,7 @@ export interface ComposerParams {
 export interface ComposerSetup {
   identities: Pick<
     Identity,
-    'id' | 'name' | 'email' | 'htmlSignature' | 'textSignature'
+    'id' | 'name' | 'email' | 'htmlSignature' | 'textSignature' | 'mayDelete'
   >[]
   mailboxIds: { drafts: string; sent: string }
   identityId: string | null
@@ -156,7 +156,14 @@ export async function loadComposerSetup(
     builder.call('Identity/get', {
       accountId,
       ids: null,
-      properties: ['id', 'name', 'email', 'htmlSignature', 'textSignature']
+      properties: [
+        'id',
+        'name',
+        'email',
+        'htmlSignature',
+        'textSignature',
+        'mayDelete'
+      ]
     }),
     builder.call('Mailbox/get', {
       accountId,
@@ -167,7 +174,11 @@ export async function loadComposerSetup(
   const drafts = mailboxes.list.find(mailbox => mailbox.role === 'drafts')
   const sent = mailboxes.list.find(mailbox => mailbox.role === 'sent')
   if (!drafts || !sent) throw new Error('No Drafts or Sent mailbox')
-  const identity = identities.list[0] ?? null
+  // The default identity is the one the server made (it cannot be deleted)
+  const identity =
+    identities.list.find(candidate => !candidate.mayDelete) ??
+    identities.list[0] ??
+    null
   const base = {
     identities: identities.list,
     mailboxIds: { drafts: drafts.id, sent: sent.id }

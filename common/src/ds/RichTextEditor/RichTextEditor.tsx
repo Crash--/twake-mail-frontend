@@ -48,6 +48,8 @@ export interface RichTextEditorProps {
   htmlBlock?: Partial<HtmlBlockOptions>
   /** More TipTap extensions (tables…) */
   extensions?: AnyExtension[]
+  /** Puts the caret at the start once created (a new message, a reply) */
+  autoFocus?: boolean
   /** The editor, once created: read and change the document through it */
   onReady?: (editor: Editor) => void
   onUpdate?: (editor: Editor) => void
@@ -130,6 +132,7 @@ export function RichTextEditor({
   onImageFiles,
   htmlBlock,
   extensions = [],
+  autoFocus = false,
   onReady,
   onUpdate,
   'data-testid': testId
@@ -157,6 +160,9 @@ export function RichTextEditor({
         codeBlock: false,
         heading: false,
         horizontalRule: false,
+        // Nothing is written after a signature or a quote by accident: the
+        // gap cursor still lets the user type there on purpose
+        trailingNode: false,
         link: {
           openOnClick: false,
           autolink: true,
@@ -178,6 +184,7 @@ export function RichTextEditor({
       ...extensions
     ],
     content,
+    autofocus: autoFocus ? 'start' : false,
     editorProps: {
       attributes: {
         id: editorId,

@@ -7,6 +7,7 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
+import { JmapSetError } from 'jmap-client-ts'
 import type { Editor } from '@tiptap/core'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useSearchParams } from 'react-router'
@@ -133,7 +134,8 @@ function SpikeComposerForm({
         client,
         accountId,
         email,
-        draftIdRef.current
+        draftIdRef.current,
+        images
       )
       draftIdRef.current = result.emailId
       setStats(previous => ({
@@ -145,7 +147,9 @@ function SpikeComposerForm({
       setStatus(t('composer.draftSaved'))
     })
     return savingRef.current.catch((error: unknown) => {
-      console.error(error)
+      console.error(
+        `${String(error)} ${error instanceof JmapSetError ? JSON.stringify(error.notCreated) : ''}`
+      )
     })
   }
 
@@ -301,6 +305,7 @@ function SpikeComposerForm({
             kind === 'quote' ? t('composer.quote.edit') : null
         }}
         extensions={approach === 'schema' ? schemaQuoteExtensions() : []}
+        autoFocus
         onReady={handleReady}
         onUpdate={scheduleSave}
         data-testid="composer-editor"
@@ -416,6 +421,10 @@ export function SpikeComposerPage(): ReactElement {
           approach={approach}
           storageKey={storageKey}
         />
+      ) : query.isError ? (
+        <Typography role="alert" data-testid="spike-error">
+          {t('common.errorOccurred')} {String(query.error)}
+        </Typography>
       ) : (
         <Typography role="status">{t('common.loading')}</Typography>
       )}

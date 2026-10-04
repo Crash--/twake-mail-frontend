@@ -158,6 +158,17 @@ export class InlineImageStore {
     )
   }
 
+  /** The parts of the saved draft: its images now live in these blobs */
+  rebase(
+    parts: readonly { cid: string | null; blobId: string | null }[]
+  ): void {
+    for (const part of parts) {
+      if (!part.cid || !part.blobId) continue
+      const image = this.#images.get(part.cid.replace(/^<|>$/g, ''))
+      if (image) image.blobId = part.blobId
+    }
+  }
+
   urlFor(cid: string): string | null {
     return this.#images.get(cid)?.url ?? null
   }

@@ -1,5 +1,12 @@
 import { infiniteQueryOptions, type InfiniteData } from '@tanstack/react-query'
-import type { Email, JmapClient } from 'jmap-client-ts'
+import type {
+  Email,
+  EmailComparator,
+  EmailFilterCondition,
+  Filter,
+  JmapClient,
+  SearchSnippet
+} from 'jmap-client-ts'
 
 import type { InfiniteQueryOptionsFor } from '@common/app/queryOptionsTypes'
 
@@ -39,11 +46,40 @@ export interface EmailListPage {
   isLast: boolean
   /** `Email` state the emails of the page are up to date with */
   state: string
+  /**
+   * Search results: the subject and preview of the emails with the matches
+   * marked (`SearchSnippet/get`), by email id
+   */
+  snippets?: Readonly<Record<string, EmailSnippet>>
 }
+
+/** The highlighted subject and preview of a search result */
+export type EmailSnippet = Pick<SearchSnippet, 'subject' | 'preview'>
 
 export type EmailListData = InfiniteData<EmailListPage, number>
 
 export type ThreadListKey = readonly ['thread', string, 'list', string]
+
+/** What a search asks the server: an `Email/query` filter and its order */
+export interface SearchRequest {
+  filter: Filter<EmailFilterCondition>
+  sort: readonly EmailComparator[]
+}
+
+/** The search request of a `threadKeys.search` key */
+export function isSearchRequest(value: unknown): value is SearchRequest {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'filter' in value &&
+    typeof value.filter === 'object' &&
+    value.filter !== null &&
+    'sort' in value &&
+    Array.isArray(value.sort)
+  )
+}
+
+export type SearchListKey = readonly ['thread', string, 'search', SearchRequest]
 
 /**
  * Keys of the email lists (thread view). Distinct from the `email` keys of
@@ -58,11 +94,17 @@ export const threadKeys = {
     ...threadKeys.all(accountId),
     'list',
     mailboxId
+  ],
+  /** The results of a search, also patched by push and the email actions */
+  search: (accountId: string, request: SearchRequest): SearchListKey => [
+    ...threadKeys.all(accountId),
+    'search',
+    request
   ]
 }
 
 /** Orders `emails` as `ids`: Email/get does not keep the order of the ids */
-function orderByIds(
+export function orderByIds(
   emails: EmailListItemData[],
   ids: readonly string[]
 ): EmailListItemData[] {
@@ -73,7 +115,8 @@ function orderByIds(
   })
 }
 
-async function fetchEmailListPage(
+/** One page of the emails of a mailbox: `Email/query` then `Email/get` */
+export async function fetchEmailListPage(
   client: JmapClient,
   accountId: string,
   mailboxId: string,

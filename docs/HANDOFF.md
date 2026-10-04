@@ -98,7 +98,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - rooks 8.4.0 (la 9 est ESM-only et casse Jest) ;
   - job CI React 18.
 
-## 4. État au soir du 2026-10-04 (après les lots 1 à 4)
+## 4. État au 2026-10-05 (après les lots 1 à 4 et le lot A de la phase 2)
 
 - **Méthode** : une branche par lot depuis `main`, vérifications sur clone propre (`npm ci`, lint, format, typecheck, tests, build) puis e2e, PR sur `Crash--/twake-mail-frontend`, merge une fois la CI verte, redéploiement devbox (`~/Sites/Linagora/twake-mail-react-devbox/deploy.sh`).
 - **Phase 0** (avant les lots) : design system `@/ds/`, liste sur `VirtualizedTable` (`ds/VirtualizedListTable` + `RowLink`), RGAA (jsx-a11y, axe dans les e2e avec `TWAKE_MUI_KNOWN_VIOLATIONS`, A11Y-01), perfs (`npm run perf`, `docs/perf/phase0.md`). Responsive (téléphone, tablette) mergé en PR #4 (projets Playwright `mobile` et `tablet`).
@@ -118,6 +118,13 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - contenu distant bloqué par défaut (images, `srcset`, fonds et `url()` CSS, polices, `@import`), avec un bandeau « Afficher » / « Toujours afficher pour cet expéditeur » (préférence en `localStorage`) ;
   - après déblocage : `referrerpolicy=no-referrer` et iframe chargée en `blob:`, car Chromium envoie l'origine pour les images CSS d'un iframe `srcdoc` ;
   - spec EML-29 avec `page.route`, sur desktop, mobile et tablette.
+- **Phase 2, lot A : actions sur les emails, sélection, dossiers** (PR #8, #10 et celle des dossiers) :
+  - **infrastructure** (PR #8) : `ds/ToastRegion` (régions live toujours présentes, polite ou alert, pause au survol, au focus et onglet caché, action « Annuler » ou « Réessayer ») et `useNotify` ; `useConfirm` ; service d'actions `features/emailActions/` : mise à jour optimiste par `patchEmailList` / `patchSearchList` (idempotente : le push du même changement ne réapplique rien, les compteurs repris du serveur sont absolus), `Email/set` en lots de `min(maxObjectsInSet, 50)` par patchs de chemins (`mailboxIds/<id>`, `keywords/<k>`), rollback par patch inverse des emails refusés (pas de restauration d'instantané, qui effacerait les patchs du push), annulation par l'opération inverse, toast d'erreur avec « Réessayer » ;
+  - **raccourcis** `c`, `/`, `j`, `k`, `e`, `#`, `s`, `u`, `z`, `?` (`features/shortcuts/`) : ignorés dans les champs, dialogues, menus et avec Ctrl/Alt/Meta (AltGr accepté pour `#` en AZERTY), listés par `?` et dans le menu du compte, désactivables (WCAG 2.1.4, préférence en `localStorage`) ;
+  - **correctifs hérités** : `staleTime` infini tant que le WebSocket est ouvert (30 s sinon) ; un `fetchNextPage` sans page suivante, déclenché par virtuoso au montage, marquait la liste fraîche et bloquait son rechargement ; plus de retrait de 44 px quand aucun dossier n'a d'enfant ; `start.sh` attend que des appels JMAP authentifiés réussissent ; les comptes de test détruisent leurs emails à la fin (bug #2684) ;
+  - **actions** (PR #10) : archiver, corbeille ou suppression définitive (Corbeille, Spam, Brouillons, avec confirmation), déplacer (`ds/FilterableListbox`, sélecteur filtrable), spam et non-spam, lu et non lu, étoile ; depuis la lecture (étoile, boutons, menu « Plus »), le survol d'une ligne, le clic droit, la touche menu ou Maj+F10 (`onRowMenu` de `ds/VirtualizedListTable`), la barre de sélection (cases, Maj+clic, Ctrl+A, tout le dossier par `Email/query` + `Email/get` en back-reference), le glisser-déposer vers l'arbre (`ds/DropTarget`) ; vider la Corbeille et le Spam (`Mailbox/clear` si la capability est là, sinon `Email/query` + `Email/set` destroy par back-reference ; sous-dossiers de la Corbeille détruits du plus profond au moins profond) ;
+  - **dossiers** : créer (avec l'emplacement), renommer, déplacer, supprimer avec sous-dossiers et emails, tout marquer comme lu, masquer et réafficher, depuis le « + » et le menu d'un dossier (⋮, clic droit, touche menu) ; validation des noms de tmail-flutter ; dossier virtuel « Favoris » (`/starred`) ; team mailboxes dans leur section, droits `myRights` respectés, Corbeille propre à chaque team mailbox ; la capability `urn:apache:james:params:jmap:mail:shares` part dans chaque requête si la session l'annonce (`withExtraCapabilities` sous `JmapSessionProvider`) ; `namespace` et `isSubscribed` lus avec les dossiers, et les propriétés que James omet (`role` d'un dossier personnel) normalisées à `null` ;
+  - e2e (Playwright, tags `@mobile` pour les projets téléphone et tablette) : KBD-01, KBD-02, EML-06, 07, 09, 10, 11, 12, 30, 31, MBX-08, 09, 13 (partie spam), 19 à 22, 26 à 30, 01, 02, 03, 06, 07 (partie réception), 10, 15.
 - **Devbox** : https://mail-react.twake.valmoriq.fr (Tailscale), à jour de `main`. Vérification Playwright rejouable (script hors dépôt, `~/tmp/devbox-check/run.sh`) : login SSO, nom et email, push à 1 000 mails, logout. Client OIDC `twake-mail-react` actif en live seulement (à ajouter par Quentin aux templates LemonLDAP).
 - **PR ouvertes ailleurs** : linagora/twake-ui#130 (React 19), linagora/cozy-libs#3165 (twake-i18n React 19). Issue linagora/tmail-backend#2682.
 - **Candidats issues tmail-backend (en attente d'accord)** :
@@ -125,7 +132,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - `Email/set` create+destroy détruit d'abord ;
   - pas de back-reference vers un créé dans `Email/get` ;
   - `Email/get` attachments+bodyValues → serverFail ;
-  - **image memory : tout `Email/set` en mise à jour ne répond plus après ~256 messages** (repro `~/Sites/Linagora/tmail-backend-issues/memory-email-set-update-hang/`). Ne jamais lancer la suite après le seed de perf sans `stop.sh` + `start.sh`.
+  - **image memory : `Email/set` en mise à jour** ([linagora/tmail-backend#2684](https://github.com/linagora/tmail-backend/issues/2684), ouverte) : blocage quand (messages des autres comptes) × (ids de la mise à jour) ≈ 256, et une mise à jour de plus de 3 ids au même patch touche tous les messages d'un compte rangés dans une seule boîte. Les comptes e2e détruisent leurs emails en fin de test ; les specs en lot gardent un message dans une seconde boîte. Ne jamais lancer la suite après le seed de perf sans `stop.sh` + `start.sh`.
   - Un état inconnu passé à `Email/changes` donne `invalidArguments`, pas `cannotCalculateChanges`.
 
 ## 5. Ce qu'il reste à faire
@@ -137,20 +144,26 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 - [ ] Mettre à jour le lockfile après chaque push sur `jmap-client-ts#v2`, puis `npm approve-scripts jmap-client-ts` (allowScripts épinglé sur le commit), sinon `npm ci` échoue.
 - [ ] Proposer à twake-ui les composants de `@/ds/` et les manques de `VirtualizedTable`. Demander à Quentin avant d'ouvrir les PR.
 - [ ] Problèmes ouverts des lots :
-  - `staleTime` reste à 30 s : une liste réaffichée après 30 s recharge toutes ses pages, alors que le push la tient à jour. Passer à `Infinity` tant que le WebSocket est ouvert ;
   - un email qui entre dans un dossier sous la fenêtre chargée n'est pas inséré : il arrive avec la page suivante ;
   - la fenêtre entre le chargement initial et la 1re ouverture du WebSocket n'est pas rattrapée (choix explicite) ;
   - expéditeurs de confiance en `localStorage` : à porter dans les settings JMAP Linagora (`Settings/set`) ;
   - le bloc citation du composer (`ds/RichTextEditor`, iframe `srcdoc`) garde les images distantes du mail cité et peut envoyer l'origine en referrer pour ses fonds CSS ;
-  - tiroir mobile : l'arbre des dossiers a un retrait gauche d'environ 44 px, car `IconSlot` réserve la place du bouton d'expansion même quand aucun dossier n'a d'enfant (`features/mailbox/MailboxTreeItem.tsx`) ;
-  - e2e : le premier test lancé juste après `start.sh` reçoit parfois un 401 de James (vu sur EML-01 et SPIKE-BACKEND), puis tout passe.
+  - e2e : le premier test lancé juste après `start.sh` recevait parfois un 401 de James ; `start.sh` attend désormais des appels authentifiés réussis, à surveiller dans les prochaines CI ;
+  - e2e, image memory : des `serverFail` (`ConcurrentModificationException`) à l'approvisionnement sous 2 workers, rattrapés par le retry de la CI ; RESP-05 aussi vu une fois en retry.
+- [ ] Problèmes ouverts du lot A de la phase 2 :
+  - `c` (composer) appelle le même gestionnaire que les boutons « Nouveau message », vide tant que le composer n'existe pas (phase 3) ;
+  - `/` ne déplie pas la recherche repliée des téléphones ;
+  - dossiers masqués : réaffichés par un bouton « Afficher les dossiers masqués » de l'arbre (tmail-flutter le fait dans Réglages > Visibilité des dossiers, page absente ici) ;
+  - en vue conversation (réglage « Thread » du lot B), la lecture n'a pas encore la barre d'actions de l'email seul ;
+  - « Déplacer le contenu du dossier », « Créer un filtre », la recherche dans l'arbre (MBX-04) et la récupération des emails supprimés (MBX-11 à 14) restent à faire ;
+  - l'envoi vers une team mailbox depuis l'interface (MBX-07) attend le composer.
 
 ### Phase 2 : lecture complète
-- Actions : archiver, supprimer, déplacer, spam, non-lu, sélection multiple, glisser-déposer, menu contextuel ; vider la corbeille et le spam (`Mailbox/clear`).
+- ~~Actions : archiver, supprimer, déplacer, spam, non-lu, sélection multiple, glisser-déposer, menu contextuel ; vider la corbeille et le spam (`Mailbox/clear`).~~ Fait (lot A).
 - Vue conversation (threads) ; recherche avec suggestions, filtres avancés, tri et surlignage (`SearchSnippet/get`).
-- Team mailboxes : capability `urn:apache:james:params:jmap:mail:shares`.
+- ~~Team mailboxes : capability `urn:apache:james:params:jmap:mail:shares`.~~ Fait (lot A).
 - Normalisation de la taille des images (EML-04), bouton de repli des citations (comme le web Flutter).
-- CRUD des dossiers.
+- ~~CRUD des dossiers.~~ Fait (lot A), sauf « Déplacer le contenu du dossier ».
 - Porter les specs correspondantes de `e2e/e2e.md` (MBX, EML, SRCH, THR).
 
 ### Phase 3 : composer (le plus risqué)

@@ -77,6 +77,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Mailbox/clear` when the server has it; emptying the Trash also deletes
   its subfolders
 
+- Folders: create (with the location), rename, move, delete with their
+  subfolders and emails, mark every email read, hide and show again, from
+  the "+" of the folder tree and a folder menu (⋮, right click, menu key
+  or Shift+F10), with tmail-flutter's name checks
+- Team mailboxes in their own section of the tree, their actions following
+  the rights of the user; the James shares capability is sent with every
+  request when the server has it
+- A "Starred" folder after the Inbox, listing the starred emails of every
+  folder
+
 ### Changed
 
 - Lists, folders and open emails are not refetched while push keeps them

@@ -14,6 +14,7 @@ import type { EmailAddress } from 'jmap-client-ts'
 import { useMemo, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
+import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { formatFullDate } from '@common/features/thread/formatListDate'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
@@ -47,7 +48,7 @@ function AddressLine({
   const { t } = useI18n()
   if (!addresses || addresses.length === 0) return null
   return (
-    <Typography variant="body2" color="textSecondary" data-testid={testId}>
+    <SecondaryText variant="body2" component="p" data-testid={testId}>
       {t(label)}:{' '}
       {addresses.map((address, index) => (
         <span key={`${address.email}-${index}`} title={address.email}>
@@ -55,7 +56,7 @@ function AddressLine({
           {formatAddress(address)}
         </span>
       ))}
-    </Typography>
+    </SecondaryText>
   )
 }
 
@@ -125,9 +126,7 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
                 <>
                   <span className="u-fw-bold">{formatAddressName(sender)}</span>
                   {sender.name ? (
-                    <Typography component="span" color="textSecondary">
-                      {` <${sender.email}>`}
-                    </Typography>
+                    <SecondaryText>{` <${sender.email}>`}</SecondaryText>
                   ) : null}
                 </>
               ) : null}
@@ -148,16 +147,15 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
               data-testid="email-view-bcc"
             />
           </Box>
-          <Typography
+          <SecondaryText
             variant="caption"
-            color="textSecondary"
             className="u-ml-1 u-flex-shrink-0"
             data-testid="email-view-date"
           >
             <time dateTime={email.receivedAt}>
               {formatFullDate(email.receivedAt, lang)}
             </time>
-          </Typography>
+          </SecondaryText>
         </Box>
         <AttachmentList attachments={attachments} />
         <Divider className="u-mv-1" />

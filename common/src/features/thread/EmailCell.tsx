@@ -18,6 +18,7 @@ import { useHref, useNavigate } from 'react-router'
 
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowLink } from '@/ds/RowLink/RowLink'
+import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
@@ -139,14 +140,12 @@ export function EmailCell({
           <span className={emphasis} data-testid="email-list-item-subject">
             {email.subject ?? ''}
           </span>
-          <Typography
-            component="span"
-            color="textSecondary"
+          <SecondaryText
             className="u-ml-half"
             data-testid="email-list-item-preview"
           >
             {email.preview}
-          </Typography>
+          </SecondaryText>
         </RowLink>
       )
     }
@@ -156,9 +155,8 @@ export function EmailCell({
       ) : null
     case 'date':
       return (
-        <Typography
+        <SecondaryText
           variant="caption"
-          color="textSecondary"
           noWrap
           data-testid="email-list-item-date"
         >
@@ -169,7 +167,7 @@ export function EmailCell({
           >
             {formatListDate(email.receivedAt, lang)}
           </time>
-        </Typography>
+        </SecondaryText>
       )
     case 'actions': {
       const seenLabel = t(isUnread ? 'email.markAsRead' : 'email.markAsUnread')

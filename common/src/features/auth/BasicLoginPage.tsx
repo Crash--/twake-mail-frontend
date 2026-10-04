@@ -15,6 +15,7 @@ import {
 import { Navigate, useLocation } from 'react-router'
 
 import { CenteredCard } from '@/ds/CenteredCard/CenteredCard'
+import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -119,9 +120,9 @@ function BasicLoginForm({
           <Typography variant="h4" component="h1" id={titleId}>
             {t('login.title')}
           </Typography>
-          <Typography variant="body2" color="textSecondary">
+          <SecondaryText variant="body2" component="p">
             {t('login.subtitle')}
-          </Typography>
+          </SecondaryText>
         </div>
         {loginError !== null ? (
           <Alert severity="error" data-testid="login-error">

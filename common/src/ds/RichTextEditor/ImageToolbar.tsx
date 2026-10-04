@@ -193,12 +193,16 @@ export function ImageToolbar({
   useLayoutEffect(() => {
     actionsRef.current.focusImageToolbar = () => {
       if (selectedImage(editor) === null) return false
-      // The toolbar shows once the state says the editor or it has the
-      // focus: wait for it to be in the page
       setHasFocus(true)
-      requestAnimationFrame(() => {
-        buttonRefs.current[activeIndex]?.focus()
-      })
+      const button = buttonRefs.current[activeIndex]
+      if (button?.isConnected) {
+        button.focus()
+      } else {
+        // Not shown yet: once the state says the editor or it has the focus
+        requestAnimationFrame(() => {
+          buttonRefs.current[activeIndex]?.focus()
+        })
+      }
       return true
     }
   })

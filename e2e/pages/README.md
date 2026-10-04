@@ -49,6 +49,13 @@ Conventions:
 | `logout-button` | Sign out item | — |
 | `app-grid-toggle-button` | app grid button | `UiKeys.toggleAppGridButton` |
 | `app-grid-list` | app grid panel | `UiKeys.listViewAppGrid` |
+| `mobile-mailbox-menu-button` | top bar button opening the folder drawer, below 1200 px | `UiKeys.mobileMailboxMenuButton` |
+| `mailbox-drawer` | the folder drawer (`role="dialog"` named "Navigation"), holding `mailbox-tree` | — |
+| `mailbox-drawer-close-button` | its close button | — |
+| `top-bar-folder-name` | name of the current folder in the top bar, on phones | — |
+| `search-open-button` | button unfolding the search over the top bar, on phones | — |
+| `search-back-button` | button folding it back (also the back button of the search, later) | `search_email_back_button` |
+| `compose-email-button` | "New message": in the sidebar on a desktop, a floating button below 1200 px | `UiKeys.composeEmailButton` |
 
 ### Folder tree (sidebar)
 
@@ -83,7 +90,6 @@ Conventions:
 | `email-list-item-checkbox` | selection checkbox | `UiKeys.tabletEmailSelectionAvatar` |
 | `important-flag-icon` | "important" marker | `important_flag_icon` |
 | `empty-thread-view` | empty folder view | `UiKeys.emptyThreadView` |
-| `compose-email-button` | "Compose" | `UiKeys.composeEmailButton` |
 | `quick-filter-attachments` / `quick-filter-unread` / `quick-filter-starred` | quick filters | `attachments_filter`, `unread_filter`, `starred_filter` |
 | `scroll-to-top-button` | floating "back to top" button | `ScrollToTopButtonWidget` |
 | `selection-toolbar` | toolbar shown when emails are selected | — |
@@ -100,6 +106,7 @@ Conventions:
 | `email-view-date` | received date | — |
 | `email-view-body` | the body, **a sandboxed iframe** (the page object enters it with `contentFrame()`) | — |
 | `email-view-back-button` | back to the list | `EmailViewBackButton` |
+| `email-view-empty` | "No email selected", beside the list from 900 to 1199 px | `EmailViewEmptyWidget` |
 | `attachment-item` | one attachment chip (name as text) | `AttachmentItemWidget` |
 | `download-all-attachments-button` | "Download all" | `UiKeys.downloadAllAttachmentsButton` |
 | `reply-email-button` / `reply-all-emails-button` / `reply-to-list-email-button` / `forward-email-button` | reply actions | same keys, kebab-cased |
@@ -124,7 +131,7 @@ Conventions:
 | `composer-more-button` + `composer-save-draft-item`, `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
 | `composer-attach-file-button` / `composer-attachment-item` | attachments | — |
 | `composer-identity-select` | From identity picker | `identities_list_menu_robot` |
-| `search-input` / `search-back-button` / `search-suggestion-item` | search bar | `search_email_text_field`, `search_email_back_button` |
+| `search-input` / `search-suggestion-item` | search bar (`search-input` is the field of the top bar already; `search-back-button` is listed with the shell) | `search_email_text_field` |
 | `search-filter-<filter>` (`date-time`, `sort-by`, `labels`, `has-attachment`) | quick search filters | `quick_search_filter_button_<filter>`, `dateTime_search_filter_button`… |
 | `advanced-search-button` / `advanced-search-submit-button` | advanced search | `UiKeys.openAdvancedSearchButton`, `UiKeys.advancedSearchSearchButton` |
 | `empty-search-view` | no result | `UiKeys.emptySearchEmailView` |

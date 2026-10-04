@@ -16,6 +16,13 @@ function traceMode(raw: string | undefined): TraceMode {
   return TRACE_MODES.find(mode => mode === raw) ?? 'retain-on-failure'
 }
 
+/**
+ * What the phone and tablet projects replay: the main path (log in, change
+ * folder, read, keyboard only) and the responsive scenarios. The rest of the
+ * suite tests behaviours that do not depend on the screen size.
+ */
+const RESPONSIVE_SPECS = /LOGIN-01|MBX-05|EML-01|A11Y-01|RESP-/
+
 function workers(raw: string | undefined): number | undefined {
   const parsed = Number(raw)
   if (raw !== undefined && Number.isInteger(parsed) && parsed > 0) {
@@ -60,6 +67,28 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] }
+    },
+    {
+      // An iPhone 12 to 15 sized screen, in Chromium
+      name: 'mobile',
+      grep: RESPONSIVE_SPECS,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: true
+      }
+    },
+    {
+      // An iPad Air sized screen, in Chromium
+      name: 'tablet',
+      grep: RESPONSIVE_SPECS,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 820, height: 1180 },
+        hasTouch: true,
+        isMobile: true
+      }
     }
   ]
 })

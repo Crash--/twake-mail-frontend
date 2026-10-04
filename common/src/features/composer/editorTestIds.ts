@@ -9,7 +9,9 @@ export const EDITOR_TEST_IDS: RichTextEditorTestIds = {
   toolbarButton: item => `rich-text-${item}-button`,
   linkTextInput: 'link-dialog-text-input',
   linkUrlInput: 'link-dialog-url-input',
-  linkApplyButton: 'link-dialog-apply-button'
+  linkApplyButton: 'link-dialog-apply-button',
+  imageToolbar: 'rich-text-image-toolbar',
+  imageButton: item => `rich-text-image-${item}-button`
 }
 
 /** The `data-testid` of the "edit the quoted message" button of a block */

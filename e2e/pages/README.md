@@ -183,6 +183,7 @@ Conventions:
 | `composer-editor` | rich text editor (contenteditable) | `mobile_editor` |
 | `rich-text-<item>-button` (`undo`, `redo`, `bold`, `italic`, `underline`, `strike`, `color`, `size`, `align`, `bullet-list`, `ordered-list`, `blockquote`, `link`, `image`, `clear-formatting`) | buttons of the formatting toolbar (Alt+F10) | — |
 | `link-dialog-text-input` / `link-dialog-url-input` / `link-dialog-apply-button` | the insert link dialog (Ctrl+K) | — |
+| `rich-text-image-toolbar` + `rich-text-image-<item>-button` (`small`, `medium`, `large`, `original`, `smaller`, `larger`, `remove`) | toolbar of the selected image (arrows select it, Enter opens it) | — |
 | `html-block-edit-<kind>` | "Edit the quoted message" (`kind` = `quote`) | — |
 | `composer-send-button` | send | `UiKeys.sendEmailButton` |
 | `composer-close-button` | close (saves a draft when dirty) | `UiKeys.closeComposerButton` |

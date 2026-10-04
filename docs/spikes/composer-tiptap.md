@@ -368,7 +368,9 @@ Flutter fait 21 000 lignes.
   `data-*`. Gmail et Outlook ignorent les `<style>` du corps de toute façon. C'est mieux que
   Flutter (fuite des styles sur toute la réponse) mais incomplet. La piste est d'inliner le CSS
   cité dans les attributs `style` à l'envoi (inliner type juice, MIT), à chiffrer.
-- **Redimensionnement d'image à la souris seulement** : il faut une alternative clavier (RGAA).
+- ~~**Redimensionnement d'image à la souris seulement**~~ : réglé en L1 par la barre d'image
+  (`ds/RichTextEditor/ImageToolbar`) : les flèches sélectionnent l'image, Entrée ouvre la barre
+  (25, 50, 75 %, taille d'origine, plus petite, plus grande, supprimer).
 - **Contraste du thème twake-mui** (3 échecs AA) : il faut une correction upstream. C'est
   documenté dans `docs/twake-mui-gaps.md`, et la spec axe filtre seulement ces trois cas.
 - ~~**`data-testid` codés en dur dans `@/ds/RichTextEditor`**~~ : réglé en L1 (prop `testIds`,

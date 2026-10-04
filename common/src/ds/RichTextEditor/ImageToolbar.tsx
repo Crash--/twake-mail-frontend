@@ -1,0 +1,336 @@
+// Upstream to twake-ui: with RichTextEditor. The keyboard alternative to the
+// resize handles of the images (RGAA 7.1: every function works without a
+// mouse).
+import {
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Paper,
+  Popper,
+  Tooltip,
+  Typography
+} from '@linagora/twake-mui'
+import { NodeSelection } from '@tiptap/pm/state'
+import { useEditorState, type Editor } from '@tiptap/react'
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  type MutableRefObject,
+  type ReactElement
+} from 'react'
+
+import { EditorIcon, type EditorIconName } from './editorIcons'
+import {
+  IMAGE_SIZE_PRESETS,
+  type EditorActions,
+  type ImageSizePreset,
+  type RichTextImageItemId,
+  type RichTextImageLabels
+} from './types'
+
+/** Change of width of "Smaller" and "Larger", in % of the image's own width */
+const SIZE_STEP = 10
+const MIN_PERCENT = 10
+const MIN_WIDTH = 40
+
+const PRESETS: readonly ImageSizePreset[] = [
+  'small',
+  'medium',
+  'large',
+  'original'
+]
+
+interface SelectedImage {
+  position: number
+  /** Width the image is shown at, null for its own width */
+  width: number | null
+}
+
+/** The image the selection holds, null when it holds something else */
+function selectedImage(editor: Editor): SelectedImage | null {
+  const { selection } = editor.state
+  if (
+    !(selection instanceof NodeSelection) ||
+    selection.node.type.name !== 'image'
+  ) {
+    return null
+  }
+  const width = Number(selection.node.attrs.width)
+  return {
+    position: selection.from,
+    width: Number.isFinite(width) && width > 0 ? width : null
+  }
+}
+
+function imageElement(
+  editor: Editor,
+  position: number
+): HTMLImageElement | null {
+  const dom = editor.view.nodeDOM(position)
+  if (dom instanceof HTMLImageElement) return dom
+  return dom instanceof HTMLElement ? dom.querySelector('img') : null
+}
+
+export interface ImageToolbarProps {
+  editor: Editor
+  labels: RichTextImageLabels
+  /** Lets the editor move the focus here (Enter on a selected image) */
+  actionsRef: MutableRefObject<EditorActions>
+  'data-testid'?: string
+  buttonTestId?: (item: RichTextImageItemId) => string
+}
+
+/**
+ * The toolbar of the selected image, next to it: sizes in % of the image's
+ * own width (as the resize handles, it writes `width` and `height`),
+ * smaller, larger, remove, and a status line saying the size.
+ *
+ * Keyboard: arrows select an image in the text, Enter moves the focus here;
+ * arrows (Home, End) move between the buttons; Escape or Tab go back to the
+ * text, the image still selected.
+ */
+export function ImageToolbar({
+  editor,
+  labels,
+  actionsRef,
+  'data-testid': testId,
+  buttonTestId
+}: ImageToolbarProps): ReactElement | null {
+  const image = useEditorState({
+    editor,
+    selector: ({ editor: current }) => selectedImage(current)
+  })
+  const isEditorFocused = useEditorState({
+    editor,
+    selector: ({ editor: current }) => current.isFocused
+  })
+  const [hasFocus, setHasFocus] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
+
+  const element = image === null ? null : imageElement(editor, image.position)
+  const naturalWidth = element?.naturalWidth ?? 0
+  const naturalHeight = element?.naturalHeight ?? 0
+  const shownWidth = image?.width ?? (naturalWidth > 0 ? naturalWidth : null)
+  const percent =
+    shownWidth !== null && naturalWidth > 0
+      ? Math.round((shownWidth / naturalWidth) * 100)
+      : null
+
+  const resize = (nextPercent: number): void => {
+    if (image === null || naturalWidth === 0) return
+    const bounded = Math.min(Math.max(nextPercent, MIN_PERCENT), 100)
+    const width = Math.max(
+      Math.round((naturalWidth * bounded) / 100),
+      MIN_WIDTH
+    )
+    const height = Math.round((width * naturalHeight) / naturalWidth)
+    editor
+      .chain()
+      .command(({ tr }) => {
+        tr.setNodeAttribute(image.position, 'width', width)
+        tr.setNodeAttribute(image.position, 'height', height)
+        tr.setSelection(NodeSelection.create(tr.doc, image.position))
+        return true
+      })
+      .run()
+  }
+
+  const remove = (): void => {
+    editor.chain().focus().deleteSelection().run()
+  }
+
+  const items: {
+    id: RichTextImageItemId
+    /** Icon buttons have a tooltip; the others show their label */
+    icon: EditorIconName | null
+    label: string
+    pressed?: boolean
+    run: () => void
+    separatorBefore?: boolean
+  }[] = [
+    ...PRESETS.map(preset => ({
+      id: preset,
+      icon: null,
+      label: labels.sizes[preset],
+      pressed: percent === IMAGE_SIZE_PRESETS[preset],
+      run: () => resize(IMAGE_SIZE_PRESETS[preset])
+    })),
+    {
+      id: 'smaller',
+      icon: 'zoomOut',
+      label: labels.smaller,
+      separatorBefore: true,
+      run: () => resize((percent ?? 100) - SIZE_STEP)
+    },
+    {
+      id: 'larger',
+      icon: 'zoomIn',
+      label: labels.larger,
+      run: () => resize((percent ?? 100) + SIZE_STEP)
+    },
+    {
+      id: 'remove',
+      icon: 'delete',
+      label: labels.remove,
+      separatorBefore: true,
+      run: remove
+    }
+  ]
+
+  const focusItem = (index: number): void => {
+    const count = items.length
+    const next = ((index % count) + count) % count
+    setActiveIndex(next)
+    buttonRefs.current[next]?.focus()
+  }
+
+  useLayoutEffect(() => {
+    actionsRef.current.focusImageToolbar = () => {
+      if (selectedImage(editor) === null) return false
+      // The toolbar shows once the state says the editor or it has the
+      // focus: wait for it to be in the page
+      setHasFocus(true)
+      requestAnimationFrame(() => {
+        buttonRefs.current[activeIndex]?.focus()
+      })
+      return true
+    }
+  })
+
+  const backToText = (): void => {
+    setHasFocus(false)
+    editor.commands.focus()
+  }
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    const keys: Record<string, () => void> = {
+      ArrowRight: () => focusItem(activeIndex + 1),
+      ArrowLeft: () => focusItem(activeIndex - 1),
+      Home: () => focusItem(0),
+      End: () => focusItem(items.length - 1),
+      Escape: backToText,
+      Tab: backToText
+    }
+    const action = keys[event.key]
+    if (action) {
+      event.preventDefault()
+      // Not to the composer around the editor (Escape closes it)
+      event.stopPropagation()
+      action()
+    }
+  }
+
+  const handleClick = (run: () => void, index: number) => (): void => {
+    setActiveIndex(index)
+    run()
+  }
+
+  // Keep the image selected while clicking
+  const keepSelection = (event: MouseEvent<HTMLButtonElement>): void => {
+    event.preventDefault()
+  }
+
+  const handleBlur = (event: FocusEvent<HTMLDivElement>): void => {
+    if (
+      !(event.relatedTarget instanceof Node) ||
+      !event.currentTarget.contains(event.relatedTarget)
+    ) {
+      setHasFocus(false)
+    }
+  }
+
+  const open =
+    image !== null && element !== null && (isEditorFocused || hasFocus)
+
+  if (!open) return null
+
+  return (
+    <Popper
+      open
+      anchorEl={element}
+      placement="bottom-start"
+      // In the editor's tree: the focus trap of a dialog holding the editor
+      // keeps it
+      disablePortal
+      sx={{ zIndex: theme => theme.zIndex.modal + 1 }}
+    >
+      <Paper
+        elevation={4}
+        onFocus={() => setHasFocus(true)}
+        onBlur={handleBlur}
+        className="u-flex u-flex-items-center"
+        sx={{ gap: 0.25, px: 0.5, py: 0.25, mt: 0.5 }}
+      >
+        <Box
+          role="toolbar"
+          aria-label={labels.toolbar}
+          onKeyDown={handleKeyDown}
+          className="u-flex u-flex-items-center"
+          data-testid={testId}
+        >
+          {items.map((item, index) => (
+            <Box key={item.id} className="u-flex u-flex-items-center">
+              {item.separatorBefore ? (
+                <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+              ) : null}
+              {item.icon === null ? (
+                <Button
+                  ref={button => {
+                    buttonRefs.current[index] = button
+                  }}
+                  size="small"
+                  color="inherit"
+                  aria-pressed={item.pressed}
+                  tabIndex={index === activeIndex ? 0 : -1}
+                  onClick={handleClick(item.run, index)}
+                  onMouseDown={keepSelection}
+                  data-testid={buttonTestId?.(item.id)}
+                  sx={{
+                    minWidth: 0,
+                    color: item.pressed ? 'primary.main' : 'text.primary',
+                    bgcolor: item.pressed ? 'action.selected' : 'transparent'
+                  }}
+                >
+                  {item.label}
+                </Button>
+              ) : (
+                <Tooltip title={item.label}>
+                  <IconButton
+                    ref={button => {
+                      buttonRefs.current[index] = button
+                    }}
+                    size="small"
+                    aria-label={item.label}
+                    tabIndex={index === activeIndex ? 0 : -1}
+                    onClick={handleClick(item.run, index)}
+                    onMouseDown={keepSelection}
+                    data-testid={buttonTestId?.(item.id)}
+                    sx={{ color: 'text.secondary' }}
+                  >
+                    <EditorIcon name={item.icon} />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          ))}
+        </Box>
+        <Typography
+          role="status"
+          variant="caption"
+          color="textPrimary"
+          className="u-ph-half"
+        >
+          {shownWidth !== null && percent !== null
+            ? labels.sizeStatus(shownWidth, percent)
+            : ''}
+        </Typography>
+      </Paper>
+    </Popper>
+  )
+}

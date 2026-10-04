@@ -3,11 +3,14 @@
 // from it; the others are paths from Material Icons (@mui/icons-material,
 // MIT; Google Material Icons, Apache-2.0), drawn with the MUI SvgIcon.
 import {
+  Dash,
   Icon,
   Image,
   Link,
   List,
   Number as NumberIcon,
+  Plus,
+  Trash,
   type IconProps
 } from '@linagora/twake-icons'
 import { SvgIcon, type SvgIconProps } from '@linagora/twake-mui'
@@ -32,13 +35,19 @@ export type EditorIconName =
   | 'undo'
   | 'redo'
   | 'image'
+  | 'zoomIn'
+  | 'zoomOut'
+  | 'delete'
 
 /** The icons twake-icons has */
 const TWAKE_ICONS: Partial<Record<EditorIconName, IconProps['icon']>> = {
   bulletList: List,
   orderedList: NumberIcon,
   link: Link,
-  image: Image
+  image: Image,
+  zoomIn: Plus,
+  zoomOut: Dash,
+  delete: Trash
 }
 
 /** Material Icons paths of the others */

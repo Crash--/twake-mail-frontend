@@ -27,6 +27,10 @@ export class SearchPage {
   readonly showAllSuggestion: Locator
   readonly advancedButton: Locator
   readonly advancedDialog: Locator
+  readonly advancedSubmitButton: Locator
+  readonly advancedCancelButton: Locator
+  /** The live region of the field: number of suggestions, loading */
+  readonly status: Locator
   readonly results: Locator
   readonly resultsTitle: Locator
   readonly resultsBackButton: Locator
@@ -47,6 +51,13 @@ export class SearchPage {
     )
     this.advancedButton = page.getByTestId('advanced-search-button')
     this.advancedDialog = page.getByTestId('advanced-search-dialog')
+    this.advancedSubmitButton = page.getByTestId(
+      'advanced-search-submit-button'
+    )
+    this.advancedCancelButton = page.getByTestId(
+      'advanced-search-cancel-button'
+    )
+    this.status = page.getByTestId('search-bar').getByRole('status')
     this.results = page.getByTestId('search-results')
     this.resultsTitle = page.getByTestId('search-results-title')
     this.resultsBackButton = page.getByTestId('search-results-back-button')

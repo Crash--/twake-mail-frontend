@@ -311,6 +311,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/search.spec.ts`, on `chromium`, `mobile` and `tablet`. Read from the row toggle; archived through JMAP until the email actions land (phase 2, lot A), push showing the row in Archive. Passes in CI.
 - [x] `SRCH-14` On the dashboard, the search field is not focused on load, and a right-click (secondary mouse button) on it gives it focus. — `search/right_click_focus_search_field_test.dart` · tags: `web`
   - Spec: `tests/search.spec.ts`. Passes in CI.
+- [x] `SRCH-15` With an empty query, focusing the field shows the quick filters only: no empty listbox, the combobox collapsed (`aria-expanded="false"`, no `aria-controls`) and the live region saying the quick filters follow the field, also after typing then clearing; a quick filter picked there adds "Search with these filters", which runs it. The advanced search opened from the empty query has the picked filter checked, the "Folder" label above its value, its title and buttons in view (only the fields scroll), and a Cancel button that closes it without searching (the only way out of the full screen dialog on a phone). axe on the dropdown and on the dialog. — web app only, no Patrol test (issue #13)
+  - Spec: `tests/search.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 
 ## LBL — Labels (11)
 

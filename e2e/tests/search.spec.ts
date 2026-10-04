@@ -471,4 +471,84 @@ test.describe('SRCH search', () => {
 
     await expect(search.input).toBeFocused()
   })
+
+  test(
+    'SRCH-15 an empty query shows the quick filters alone, the advanced search fits the screen',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const subject = 'Starred with an empty query'
+      await jmap.sendEmail({ to: user.email, subject, text: 'quick filter' })
+      const email = await waitInInbox(jmap, subject)
+      await jmap.setKeywords(email.id, { $flagged: true })
+
+      await new LoginPage(page).loginAs(user)
+      const search = await new SearchPage(page).focusField()
+
+      // Only the quick filters: no empty listbox, the combobox collapsed
+      const expectQuickFiltersOnly = async (): Promise<void> => {
+        await expect(search.quickFilter('starred')).toBeVisible()
+        await expect(search.suggestions).toHaveCount(0)
+        await expect(search.input).toHaveAttribute('aria-expanded', 'false')
+        await expect(search.input).not.toHaveAttribute('aria-controls')
+        await expect(search.status).toHaveText(
+          'No suggestions. The quick filters follow the search field.'
+        )
+      }
+      await expectQuickFiltersOnly()
+      await expectNoA11yViolations(page)
+
+      await search.input.fill('quick')
+      await expect(search.showAllSuggestion).toBeVisible()
+      await search.input.fill('')
+      await expectQuickFiltersOnly()
+
+      // A filter picked under the empty field gets an option running it
+      await search.quickFilter('starred').click()
+      await expect(search.quickFilter('starred')).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+      await expect(search.showAllSuggestion).toHaveText(
+        'Search with these filters'
+      )
+      await expect(search.input).toHaveAttribute('aria-expanded', 'true')
+      await expectNoA11yViolations(page)
+
+      // The advanced search opened from there: the filter checked, the
+      // folder label above its value, title and buttons in view
+      await search.advancedButton.click()
+      const dialog = search.advancedDialog
+      await expect(dialog).toBeVisible()
+      await expect(
+        dialog.getByRole('checkbox', { name: 'Starred' })
+      ).toBeChecked()
+      await expect(
+        dialog.locator('label', { hasText: 'Folder' })
+      ).toHaveAttribute('data-shrink', 'true')
+      await expect(
+        dialog.getByRole('heading', { name: 'Advanced search' })
+      ).toBeInViewport()
+      await expect(search.advancedSubmitButton).toBeInViewport()
+      await expect(search.advancedCancelButton).toBeInViewport()
+      await expectNoA11yViolations(page)
+
+      // Cancel: the only way out of the full screen dialog on a phone
+      await search.advancedCancelButton.click()
+      await expect(dialog).toBeHidden()
+      await expect(search.results).toBeHidden()
+
+      await search.focusField()
+      await expect(search.quickFilter('starred')).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+      await search.showAllSuggestion.click()
+      await search.expectResults()
+      await expect(search.filterChip('starred')).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+      await expect(search.resultRow(subject).first()).toBeVisible()
+    }
+  )
 })

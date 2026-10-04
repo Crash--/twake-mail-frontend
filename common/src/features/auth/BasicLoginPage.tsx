@@ -1,8 +1,6 @@
 import {
   Alert,
-  Box,
   Button,
-  Paper,
   Stack,
   TextField,
   Typography
@@ -16,6 +14,7 @@ import {
 } from 'react'
 import { Navigate, useLocation } from 'react-router'
 
+import { CenteredCard } from '@/ds/CenteredCard/CenteredCard'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -106,74 +105,70 @@ function BasicLoginForm({
   }
 
   return (
-    <Box className="u-flex u-flex-items-center u-flex-justify-center u-h-100 u-p-1">
-      <Paper variant="outlined" className="u-w-100 u-maw-6 u-p-2">
-        <Stack
-          component="form"
-          spacing={2}
-          noValidate
-          aria-labelledby={titleId}
-          onSubmit={handleSubmit}
-          data-testid="login-form"
-        >
-          <AppTitle />
-          <div>
-            <Typography variant="h4" component="h1" id={titleId}>
-              {t('login.title')}
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              {t('login.subtitle')}
-            </Typography>
-          </div>
-          {loginError !== null ? (
-            <Alert severity="error" data-testid="login-error">
-              {t(LOGIN_ERROR_MESSAGES[loginError])}
-            </Alert>
-          ) : null}
-          <TextField
-            label={t('login.email')}
-            value={username}
-            onChange={handleUsernameChange}
-            autoComplete="username"
-            required
-            fullWidth
-            error={fieldErrors.username}
-            helperText={fieldErrors.username ? t('login.requiredEmail') : null}
-            slotProps={{
-              htmlInput: {
-                inputMode: 'email',
-                'data-testid': 'login-username-input'
-              }
-            }}
-          />
-          <TextField
-            label={t('login.password')}
-            type="password"
-            value={password}
-            onChange={handlePasswordChange}
-            autoComplete="current-password"
-            required
-            fullWidth
-            error={fieldErrors.password}
-            helperText={
-              fieldErrors.password ? t('login.requiredPassword') : null
+    <CenteredCard>
+      <Stack
+        component="form"
+        spacing={2}
+        noValidate
+        aria-labelledby={titleId}
+        onSubmit={handleSubmit}
+        data-testid="login-form"
+      >
+        <AppTitle />
+        <div>
+          <Typography variant="h4" component="h1" id={titleId}>
+            {t('login.title')}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            {t('login.subtitle')}
+          </Typography>
+        </div>
+        {loginError !== null ? (
+          <Alert severity="error" data-testid="login-error">
+            {t(LOGIN_ERROR_MESSAGES[loginError])}
+          </Alert>
+        ) : null}
+        <TextField
+          label={t('login.email')}
+          value={username}
+          onChange={handleUsernameChange}
+          autoComplete="username"
+          required
+          fullWidth
+          error={fieldErrors.username}
+          helperText={fieldErrors.username ? t('login.requiredEmail') : null}
+          slotProps={{
+            htmlInput: {
+              inputMode: 'email',
+              'data-testid': 'login-username-input'
             }
-            slotProps={{
-              htmlInput: { 'data-testid': 'login-password-input' }
-            }}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            size="large"
-            fullWidth
-            disabled={isSubmitting}
-            data-testid="login-submit-button"
-          >
-            {t('login.submit')}
-          </Button>
-        </Stack>
-      </Paper>
-    </Box>
+          }}
+        />
+        <TextField
+          label={t('login.password')}
+          type="password"
+          value={password}
+          onChange={handlePasswordChange}
+          autoComplete="current-password"
+          required
+          fullWidth
+          error={fieldErrors.password}
+          helperText={fieldErrors.password ? t('login.requiredPassword') : null}
+          slotProps={{
+            htmlInput: { 'data-testid': 'login-password-input' }
+          }}
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          fullWidth
+          disabled={isSubmitting}
+          data-testid="login-submit-button"
+        >
+          {t('login.submit')}
+        </Button>
+      </Stack>
+    </CenteredCard>
   )
 }

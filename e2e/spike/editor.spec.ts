@@ -76,9 +76,9 @@ test('SPIKE-A11Y the toolbar is a roving tabindex toolbar and the editor has no 
   await page.keyboard.press('Tab')
   await expect(composer.editor).toBeFocused()
 
-  // Escape goes to the toolbar (on the last used button), Escape comes back
+  // Alt+F10 goes to the toolbar (on the last used button), Escape comes back
   await page.keyboard.type('text')
-  await page.keyboard.press('Escape')
+  await page.keyboard.press('Alt+F10')
   await expect(undo).toBeFocused()
   await page.keyboard.press('ArrowRight')
   await page.keyboard.press('ArrowRight')
@@ -91,15 +91,15 @@ test('SPIKE-A11Y the toolbar is a roving tabindex toolbar and the editor has no 
   await page.keyboard.type('item')
   await page.keyboard.press('Tab')
   await expect(composer.editor).not.toBeFocused()
-  await composer.editor.click()
+  await composer.editor.getByText('item').click()
   await page.keyboard.press('End')
   await page.keyboard.press('Enter')
   await page.keyboard.type('nested')
   await page.keyboard.press('Tab')
   await expect(composer.editor).toBeFocused()
   expect(await composer.editorHtml()).toContain('<ul><li><p>nested</p></li></ul>')
-  // Escape, then Tab: out of the editor even inside a list
-  await page.keyboard.press('Escape')
+  // Alt+F10, then Shift+Tab: out of the editor even inside a list
+  await page.keyboard.press('Alt+F10')
   await page.keyboard.press('Shift+Tab')
   await expect(composer.subject).toBeFocused()
 

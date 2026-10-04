@@ -90,10 +90,7 @@ function createKeyboardExtension(actionsRef: ActionsRef): AnyExtension {
           actionsRef.current.openLinkDialog()
           return true
         },
-        Escape: () => {
-          actionsRef.current.focusToolbar()
-          return true
-        },
+        // Escape is left to what holds the editor (a dialog closes)
         'Alt-F10': () => {
           actionsRef.current.focusToolbar()
           return true
@@ -120,10 +117,11 @@ function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
  * A rich text editor with its toolbar.
  *
  * Keyboard: Tab leaves the editor (in a list, it indents the item first;
- * Shift+Tab outdents), Escape or Alt+F10 go to the toolbar and Escape comes
- * back, Ctrl/Cmd+K opens the link dialog, Ctrl+Shift+V pastes as plain
- * text. The editing area is a `textbox` (`aria-multiline`) named by
- * `labels.editor`, the help is read through `aria-describedby`.
+ * Shift+Tab outdents), Alt+F10 goes to the toolbar and Escape comes back,
+ * Ctrl/Cmd+K opens the link dialog, Ctrl+Shift+V pastes as plain text.
+ * Escape in the text is not handled: it reaches what holds the editor. The
+ * editing area is a `textbox` (`aria-multiline`) named by `labels.editor`,
+ * the help is read through `aria-describedby`.
  */
 export function RichTextEditor({
   labels,

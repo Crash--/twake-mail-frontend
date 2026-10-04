@@ -54,7 +54,7 @@ export interface RichTextToolbarProps {
   onOpenLinkDialog: () => void
   /** Null when the caller does not handle images */
   onPickImages: (() => void) | null
-  /** Lets the editor send the focus back here (Escape) */
+  /** Lets the editor send the focus here (Alt+F10) */
   actionsRef: MutableRefObject<EditorActions>
   buttonTestId?: (item: RichTextToolbarItemId) => string
 }
@@ -249,6 +249,8 @@ export function RichTextToolbar({
     const action = keys[event.key]
     if (action) {
       event.preventDefault()
+      // Escape here means back to the text, not closing what holds it
+      event.stopPropagation()
       action()
     }
   }

@@ -1,5 +1,6 @@
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { KeyboardEvent } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
@@ -8,7 +9,7 @@ import type { RichTextEditorLabels } from './types'
 
 const LABELS: RichTextEditorLabels = {
   editor: 'Message body',
-  keyboardHelp: 'Escape goes to the toolbar',
+  keyboardHelp: 'Alt+F10 goes to the toolbar',
   toolbar: 'Formatting options',
   undo: 'Undo',
   redo: 'Redo',
@@ -63,7 +64,7 @@ describe('RichTextEditor', () => {
 
     expect(editor).toHaveAttribute('aria-multiline', 'true')
     expect(editor).toHaveAttribute('data-testid', 'editor')
-    expect(editor).toHaveAccessibleDescription('Escape goes to the toolbar')
+    expect(editor).toHaveAccessibleDescription('Alt+F10 goes to the toolbar')
     expect(editor).toHaveTextContent('Hello')
   })
 
@@ -105,5 +106,37 @@ describe('RichTextEditor', () => {
         'true'
       )
     })
+  })
+
+  it('goes to the toolbar with Alt+F10 and leaves Escape in the text to its container', async () => {
+    const handleEscape = jest.fn()
+    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+      if (event.key === 'Escape') handleEscape()
+    }
+    renderDs(
+      <div role="presentation" onKeyDown={handleKeyDown}>
+        <RichTextEditor
+          labels={LABELS}
+          content="<p>Hello</p>"
+          colors={[{ value: null, label: 'Default' }]}
+          fontSizes={[{ value: null, label: 'Normal' }]}
+        />
+      </div>
+    )
+    const text = await screen.findByRole('textbox', { name: 'Message body' })
+    act(() => {
+      text.focus()
+    })
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(text).toHaveFocus()
+    })
+    expect(handleEscape).not.toHaveBeenCalled()
+
+    await userEvent.keyboard('{Escape}')
+    expect(handleEscape).toHaveBeenCalledTimes(1)
   })
 })

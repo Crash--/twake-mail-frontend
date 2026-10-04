@@ -9,7 +9,7 @@ import { assertSetSucceeded, type Email } from 'jmap-client-ts'
 
 import {
   mailboxKeys,
-  type MailboxSummary
+  type MailboxListData
 } from '@common/features/mailbox/queries'
 import { threadKeys, type EmailListData } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -49,18 +49,22 @@ function updateListKeywords(
 }
 
 function updateUnreadCounts(
-  mailboxes: MailboxSummary[] | undefined,
+  mailboxes: MailboxListData | undefined,
   { email, isSet }: SetKeywordVariables
-): MailboxSummary[] | undefined {
+): MailboxListData | undefined {
+  if (!mailboxes) return mailboxes
   const delta = isSet ? -1 : 1
-  return mailboxes?.map(mailbox =>
-    mailbox.id in email.mailboxIds
-      ? {
-          ...mailbox,
-          unreadEmails: Math.max(0, mailbox.unreadEmails + delta)
-        }
-      : mailbox
-  )
+  return {
+    ...mailboxes,
+    list: mailboxes.list.map(mailbox =>
+      mailbox.id in email.mailboxIds
+        ? {
+            ...mailbox,
+            unreadEmails: Math.max(0, mailbox.unreadEmails + delta)
+          }
+        : mailbox
+    )
+  }
 }
 
 function snapshot(
@@ -123,7 +127,7 @@ export function useSetKeyword(): UseMutationResult<
       )
       // The counters only move when the email really changes state
       if (keyword === SEEN && hasKeyword(email, SEEN) !== isSet) {
-        queryClient.setQueryData<MailboxSummary[]>(mailboxesKey, mailboxes =>
+        queryClient.setQueryData<MailboxListData>(mailboxesKey, mailboxes =>
           updateUnreadCounts(mailboxes, variables)
         )
       }

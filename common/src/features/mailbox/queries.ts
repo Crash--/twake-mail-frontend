@@ -27,6 +27,12 @@ export const MAILBOX_PROPERTIES = [
 
 export type MailboxSummary = Pick<Mailbox, (typeof MAILBOX_PROPERTIES)[number]>
 
+/** Every mailbox of the account, and the `Mailbox` state they are up to date with */
+export interface MailboxListData {
+  state: string
+  list: MailboxSummary[]
+}
+
 export type MailboxListKey = readonly ['mailbox', string, 'list']
 
 export const mailboxKeys = {
@@ -40,11 +46,14 @@ export const mailboxKeys = {
   ]
 }
 
-/** Every mailbox of the account (`Mailbox/get`), in no particular order */
+/**
+ * Every mailbox of the account (`Mailbox/get`), in no particular order, with
+ * their state: push patches them from `Mailbox/changes` (`features/push/`)
+ */
 export function mailboxesQueryOptions(
   client: JmapClient,
   accountId: string
-): QueryOptionsFor<MailboxSummary[], MailboxListKey> {
+): QueryOptionsFor<MailboxListData, MailboxListKey> {
   return queryOptions({
     queryKey: mailboxKeys.list(accountId),
     queryFn: async ({ signal }) => {
@@ -53,7 +62,7 @@ export function mailboxesQueryOptions(
         { accountId, ids: null, properties: [...MAILBOX_PROPERTIES] },
         { signal }
       )
-      return response.list
+      return { state: response.state, list: response.list }
     }
   })
 }

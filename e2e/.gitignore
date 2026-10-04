@@ -4,3 +4,4 @@ playwright-report/
 blob-report/
 .cache/
 docker/.generated/
+perf/.perf-user.json

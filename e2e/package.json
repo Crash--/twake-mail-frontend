@@ -13,7 +13,8 @@
     "test:infra": "playwright test tests/infra.spec.ts",
     "test:ui": "playwright test --ui",
     "report": "playwright show-report",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "perf:seed": "node --no-warnings scripts/seed-perf.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

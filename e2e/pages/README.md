@@ -176,7 +176,10 @@ Conventions:
 
 | `data-testid` | Element | Flutter key |
 |---|---|---|
-| `composer` | the composer dialog / pane | — |
+| `composer` | a composer window (`role="dialog"` named by its subject; `data-mode`: `normal`, `minimized`, `fullscreen`), the newest first; `composer-dock` holds them | — |
+| `composer-minimize-button` / `composer-fullscreen-button` | minimize (then "Show"), full screen (then "Exit fullscreen"), desktop only | `minimize`, `fullscreen` buttons of `desktop_app_bar_composer_widget` |
+| `composer-recipients-summary` | the recipient fields folded into one line (focus on the subject or the body), unfolds them | `RecipientsCollapsedComposerWidget` |
+| `composer-to-suggestions` (… `-cc-`, `-bcc-`, `-reply-to-`) | the contact suggestions of a field (`role="listbox"`) | — |
 | `composer-to-input` / `composer-cc-input` / `composer-bcc-input` / `composer-reply-to-input` | recipient inputs | `prefix_to_recipient_composer_widget`… |
 | `composer-to-field` (… `-cc-`, `-bcc-`, `-reply-to-`) + `recipient-chip` | recipient chips of a field | — |
 | `composer-show-cc-button` / `composer-show-bcc-button` / `composer-show-reply-to-button` | reveal hidden fields | `prefix_cc_recipient_expand_button`… |
@@ -188,9 +191,10 @@ Conventions:
 | `html-block-edit-<kind>` | "Edit the quoted message" (`kind` = `quote`) | — |
 | `composer-send-button` | send | `UiKeys.sendEmailButton` |
 | `composer-close-button` | close (saves a draft when dirty) | `UiKeys.closeComposerButton` |
-| `composer-more-button` + `composer-save-draft-item`, `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
+| `composer-more-button` + `composer-save-draft-item` (phase 3), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
 | `composer-attach-file-button` / `composer-attachment-item` | attachments | — |
-| `composer-identity-select` | From identity picker | `identities_list_menu_robot` |
+| `composer-identity-select` | From identity picker, shown with more than one identity | `identities_list_menu_robot` |
+| `confirm-dialog-alternative-button` | the third button of a choice (`useChoose`), e.g. "Discard changes" when closing a modified message | — |
 | `settings-menu-<section>` (`preferences`, `profiles`, `email-rules`, `language-region`) | settings navigation | `setting_preferences`, `setting_profiles`, `setting_email_rules`, `setting_language_region` |
 | `create-rule-button` / `email-rule-item` / `email-rule-edit-button` | email rules | `UiKeys.createRuleButton`, `editEmailRuleButton_<name>` |
 | `label-item` / `add-new-label-button` / `label-modal` / `label-name-input` / `label-save-button` | labels | `UiKeys.addNewLabelButton`, `create_new_label_modal`, `label_name_input_field`, `save_label_button_action` |

@@ -90,6 +90,29 @@ export class WebAdminClient {
     )
   }
 
+  /**
+   * Adds a contact to the address book of a domain, which
+   * `TMailContact/autocomplete` suggests to its users
+   */
+  async createDomainContact(
+    domain: string,
+    contact: { emailAddress: string; firstname: string; surname: string }
+  ): Promise<Response> {
+    return this.#call(
+      'POST',
+      `/domains/${encodeURIComponent(domain)}/contacts`,
+      contact
+    )
+  }
+
+  async deleteDomainContact(domain: string, email: string): Promise<Response> {
+    const localPart = email.split('@')[0] ?? email
+    return this.#call(
+      'DELETE',
+      `/domains/${encodeURIComponent(domain)}/contacts/${encodeURIComponent(localPart)}`
+    )
+  }
+
   async #call(method: string, path: string, body?: object): Promise<Response> {
     const response = await fetch(`${this.#baseUrl}${path}`, {
       method,

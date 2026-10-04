@@ -1,6 +1,6 @@
 # Spike composer : TipTap convient-il ? (2026-10-04)
 
-Branche `spike/composer` (worktree `twake-mail-frontend-spike-composer`), non poussée.
+Fusionné dans `main` (branche `feat/composer-foundation`) : le code du spike reste derrière `DEBUG`.
 Route de démo `/spike/composer` (visible seulement avec `DEBUG`), qui envoie de vrais mails
 sur une stack JMAP jetable.
 
@@ -390,16 +390,16 @@ Flutter fait 21 000 lignes.
 ## Rejouer le spike
 
 ```bash
-cd ~/Sites/Linagora/twake-mail-frontend-spike-composer
+cd ~/Sites/Linagora/twake-mail-frontend
 source ~/.nvm/nvm.sh && nvm use 24
 npm ci && npm run build
 cd e2e && npm ci
-./scripts/spike.sh start                 # projet twakemail-spike, 127.0.0.1:18500-18503
+./scripts/spike.sh start                 # stack e2e (twakemail-e2e) + DEBUG + tmail-web sur 18503
 ./scripts/spike.sh test --grep-invert PERF
 ./scripts/spike.sh test perf.spec.ts --workers 1
-./scripts/spike.sh stop
+./scripts/spike.sh stop                  # avant de relancer la suite e2e
 ```
 
-Démo manuelle : <http://127.0.0.1:18502/spike/composer>, avec un compte créé par
-`curl -X PUT http://127.0.0.1:18501/users/alice@example.com -H 'Content-Type: application/json' -d '{"password":"secret"}'`. Les
+Démo manuelle : <http://127.0.0.1:18302/spike/composer>, avec un compte créé par
+`curl -X PUT http://127.0.0.1:18301/users/alice@example.com -H 'Content-Type: application/json' -d '{"password":"secret"}'`. Les
 paramètres sont `?reply=<emailId>&mode=reply|forward&quote=atom|schema` et `?draft=<emailId>`.

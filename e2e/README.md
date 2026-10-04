@@ -268,6 +268,8 @@ e2e/
 ├── scripts/seed-perf.ts      big mailbox for the performance measures
 ├── playwright.perf.config.ts performance project (npm run perf)
 ├── perf/                     performance measures, not run by default
+├── spike/                    composer spike specs (playwright.spike.config.ts, scripts/spike.sh:
+│                             the e2e stack with DEBUG on and tmail-web on 18503), not run by default
 ├── fixtures/
 │   ├── eml/                  .eml files from tmail-flutter provisioning/integration_test/eml/
 │   └── files/                attachments

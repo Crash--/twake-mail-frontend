@@ -45,6 +45,42 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
   `e2e/pages/README.md` (derived from the tmail-flutter keys): use the id it
   lists, and never rename one without updating `e2e/`.
 
+## Accessibility (RGAA 4.1)
+
+The whole webmail must be accessible and comply with RGAA 4.1 (the French
+state standard, close to WCAG 2.1 AA). This is a requirement, not a polish
+step: a feature is not done until it is accessible.
+
+- **Keyboard**: everything works without a mouse (Tab, Shift+Tab, Enter,
+  Space, Escape, arrows where the pattern expects them), in a logical order,
+  with a visible focus.
+- **Focus management**: opening a view or a dialog moves the focus into it
+  (its heading or first control); closing it gives the focus back to what
+  opened it. Changing route moves the focus to the new main content.
+- **Semantics**: native elements first (`button`, `a`, `table`, headings,
+  landmarks), then ARIA, and then the complete pattern (`role`, states,
+  `aria-*` kept in sync).
+- **Names**: every control has an accessible name. Every icon button has an
+  `aria-label` and a tooltip with the same text.
+- **Contrast and colour**: AA contrast (4.5:1 text, 3:1 large text and UI
+  parts); no information carried by colour alone (an unread email is bold
+  and its row says "Unread"; starred is announced through `aria-pressed`
+  and the row name).
+- **Language and titles**: `<html lang>` follows the UI language; each view
+  sets its own `<title>` (`<view> - Twake Mail`).
+- **Frames**: the email body iframe has a `title`.
+- **Live regions**: notifications (snackbars, errors) and new emails arriving
+  by push are announced through a live region (`role="status"`,
+  `aria-live="polite"`; `role="alert"` for errors).
+- **Motion**: respect `prefers-reduced-motion` (no smooth scrolling or
+  animation when it is set).
+- **Tooling**: ESLint runs the jsx-a11y rules (`eslint-plugin-jsx-a11y-x`)
+  as errors; the end-to-end specs check each screen with axe
+  (`expectNoA11yViolations(page)`, WCAG 2.0/2.1 A and AA) and a spec drives
+  the main path with the keyboard only. A violation coming from twake-mui is
+  recorded in `docs/twake-mui-gaps.md`, never hidden.
+- `@/ds/` components are accessible by construction (see its README).
+
 ## Code rules
 
 Follow the Twake skills: `twake-react-conventions`,

@@ -21,7 +21,7 @@ function traceMode(raw: string | undefined): TraceMode {
  * folder, read, keyboard only) and the responsive scenarios. The rest of the
  * suite tests behaviours that do not depend on the screen size.
  */
-const RESPONSIVE_SPECS = /LOGIN-01|MBX-05|EML-01|A11Y-01|RESP-/
+const RESPONSIVE_SPECS = /LOGIN-01|MBX-05|EML-01|EML-29|A11Y-01|RESP-/
 
 function workers(raw: string | undefined): number | undefined {
   const parsed = Number(raw)

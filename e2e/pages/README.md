@@ -105,6 +105,8 @@ Conventions:
 | `email-view-from` / `email-view-to` / `email-view-cc` / `email-view-bcc` | address lines; each address is an `email-address` button | `InformationSenderAndReceiverBuilder` |
 | `email-view-date` | received date | — |
 | `email-view-body` | the body, **a sandboxed iframe** (the page object enters it with `contentFrame()`) | — |
+| `remote-content-banner` | "Remote images hidden", above the body when the email has remote images, backgrounds or fonts | — (web app only) |
+| `remote-content-show-button` / `remote-content-always-show-button` | show them for this email / always for this sender | — |
 | `email-view-back-button` | back to the list | `EmailViewBackButton` |
 | `email-view-empty` | "No email selected", beside the list from 900 to 1199 px | `EmailViewEmptyWidget` |
 | `attachment-item` | one attachment chip (name as text) | `AttachmentItemWidget` |

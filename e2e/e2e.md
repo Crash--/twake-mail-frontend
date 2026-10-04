@@ -59,6 +59,8 @@ the React app. One line per Patrol test, 116 lines.
 | `MISC` | Misc | 1 | 0 | 0 |
 | | **Total** | **116** | **24** | **6** |
 
+Plus `A11Y`, accessibility scenarios (RGAA 4.1) with no Patrol counterpart, at the end.
+
 Phase 0 of the React app (login, folder tree, email list, reading) is enough for `LOGIN-01`,
 `MBX-04` to `MBX-06`, `MBX-17`, `MBX-24`, `EML-01` to `EML-04` and `PUSH-01`, their data being
 seeded through JMAP. Everything else needs actions, the composer, search or settings.
@@ -304,3 +306,12 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 ## MISC — Misc (1)
 
 - [ ] `MISC-01` Opening Settings from the user avatar, clicking "Sign out" and confirming "Yes, log out" lands on the Twake welcome screen. — `misc/log_out_test.dart` · tags: `ios (default)`
+
+## A11Y — Accessibility (RGAA 4.1, no Patrol counterpart)
+
+Every spec of a screen also runs axe on it (`expectNoA11yViolations(page)`, `support/a11y.ts`:
+WCAG 2.0 / 2.1, A and AA); the violations of twake-mui itself are reported as annotations,
+listed in `docs/twake-mui-gaps.md`.
+
+- [ ] `A11Y-01` Without a mouse: log in, open the Sent folder then the Inbox from the tree, reach the list with Tab, move to the second email with the arrow keys and open it with Enter (the focus lands on its subject), go back with the back button (Shift+Tab, Enter): the focus returns to the row of that email. — no Patrol test
+  - Spec: `tests/a11y.spec.ts`. CI to confirm.

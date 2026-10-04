@@ -213,4 +213,20 @@ describe('SearchField', () => {
       'oldest'
     )
   })
+
+  it('shows only the quick filters under an empty field, collapsed', async () => {
+    await renderField(makeServer())
+
+    await userEvent.click(combobox())
+
+    expect(screen.getByRole('group', { name: 'Quick filters' })).toBeVisible()
+    expect(screen.queryByRole('listbox')).toBe(null)
+    expect(combobox()).toHaveAttribute('aria-expanded', 'false')
+    expect(combobox()).not.toHaveAttribute('aria-controls')
+    expect(
+      within(screen.getByTestId('search-bar')).getByRole('status')
+    ).toHaveTextContent(
+      'No suggestions. The quick filters follow the search field.'
+    )
+  })
 })

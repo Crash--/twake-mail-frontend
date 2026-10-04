@@ -277,7 +277,8 @@
     "searchFor": "Search for \"%{text}\"",
     "wordsHint": "Separate words with commas",
     "loading": "Loading suggestions",
-    "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions"
+    "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
+    "quickFiltersOnly": "No suggestions. The quick filters follow the search field."
   },
   "emailActions": {
     "toast": {

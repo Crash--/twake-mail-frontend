@@ -135,7 +135,6 @@ function BasicLoginForm({
             value={username}
             onChange={handleUsernameChange}
             autoComplete="username"
-            autoFocus
             required
             fullWidth
             error={fieldErrors.username}

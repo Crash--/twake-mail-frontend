@@ -419,7 +419,11 @@ export function EmailList(props: EmailListProps): ReactElement {
     <>
       {content}
       {/* Always mounted: a live region only announces changes */}
-      <Box role="status" className="u-visuallyhidden">
+      <Box
+        role="status"
+        className="u-visuallyhidden"
+        data-testid="new-emails-status"
+      >
         {newEmailCount > 0 ? (
           <span key={newEmailCount}>{t('push.newMessages')}</span>
         ) : null}

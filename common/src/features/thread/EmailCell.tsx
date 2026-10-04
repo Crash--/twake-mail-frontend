@@ -48,6 +48,8 @@ export type EmailColumnId =
 /** A row of the table: an email, and its snippet in search results */
 export type EmailRowData = EmailListItemData & {
   snippet: EmailSnippet | null
+  /** Emails of its conversation, in a list of conversations */
+  threadSize: number | null
 }
 
 /** The rows of the table are the emails themselves */
@@ -180,6 +182,21 @@ export function EmailCell({
     />
   )
   const mailboxNames = getMailboxNames?.(email) ?? null
+  const threadSize =
+    email.threadSize !== null && email.threadSize > 1 ? email.threadSize : null
+  const threadCount =
+    threadSize === null ? null : (
+      <SecondaryText
+        component="span"
+        className="u-flex-shrink-0 u-ml-half"
+        data-testid="email-list-item-thread-count"
+      >
+        <span aria-hidden="true">{threadSize}</span>
+        <span className="u-visuallyhidden">
+          {t('thread.messageCount', { smart_count: threadSize })}
+        </span>
+      </SecondaryText>
+    )
   const mailboxLabel =
     mailboxNames === null ? null : (
       <SecondaryText
@@ -209,6 +226,16 @@ export function EmailCell({
       return (
         <Typography noWrap data-testid="email-list-item-sender">
           <span className={emphasis}>{correspondents}</span>
+          {threadSize === null ? null : (
+            <SecondaryText
+              component="span"
+              className="u-ml-half"
+              aria-hidden="true"
+              data-testid="email-list-item-thread-count"
+            >
+              {threadSize}
+            </SecondaryText>
+          )}
         </Typography>
       )
     case 'subject': {
@@ -216,7 +243,10 @@ export function EmailCell({
       const context = [
         isUnread ? t('email.unread') : null,
         isStarred ? t('email.starred') : null,
-        correspondents
+        correspondents,
+        threadSize === null
+          ? null
+          : t('thread.messageCount', { smart_count: threadSize })
       ].filter(part => part !== null && part !== '')
       return (
         <RowLink
@@ -271,6 +301,7 @@ export function EmailCell({
             >
               <span className={emphasis}>{correspondents}</span>
             </Typography>
+            {threadCount}
             {attachmentIcon === null ? null : (
               <span className="u-flex u-flex-shrink-0 u-ml-half">
                 {attachmentIcon}

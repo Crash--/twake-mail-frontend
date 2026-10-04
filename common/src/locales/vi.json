@@ -89,7 +89,15 @@
       "date": "Ngày",
       "actions": "Hành động",
       "message": "Tin nhắn"
-    }
+    },
+    "messageCount": "%{smart_count} thư",
+    "messages": "Các thư trong hội thoại",
+    "actions": "Thao tác với hội thoại",
+    "newMessage": "Thư mới từ %{name}",
+    "empty": "Hội thoại này không còn tồn tại",
+    "archive": "Lưu trữ hội thoại",
+    "moveToTrash": "Chuyển hội thoại vào Thùng rác",
+    "markAsSpam": "Đánh dấu hội thoại là spam"
   },
   "push": {
     "newMessages": "Bạn có tin nhắn mới"

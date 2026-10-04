@@ -448,4 +448,36 @@ describe('EmailList', () => {
       )
     })
   })
+
+  it('shows one row per conversation with its size when threads are on', async () => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+    const server = makeFakeJmapServer({
+      emails: [
+        makeEmail({
+          id: 'first',
+          threadId: 'kick-off',
+          subject: 'Kick-off',
+          receivedAt: '2026-10-01T08:00:00Z'
+        }),
+        makeEmail({
+          id: 'reply',
+          threadId: 'kick-off',
+          subject: 'Re: Kick-off',
+          receivedAt: '2026-10-02T08:00:00Z'
+        }),
+        makeEmail({ id: 'other', subject: 'Lunch' })
+      ]
+    })
+    renderList(server)
+
+    const rows = await screen.findAllByTestId('email-list-item')
+    expect(rows).toHaveLength(2)
+    const conversation = screen.getByRole('link', { name: /Re: Kick-off/ })
+    expect(conversation).toHaveAccessibleName(/2 messages/)
+    const query = server.requests
+      .flatMap(request => request.methodCalls)
+      .find(([name]) => name === 'Email/query')
+    expect(query?.[1].collapseThreads).toBe(true)
+    window.localStorage.clear()
+  })
 })

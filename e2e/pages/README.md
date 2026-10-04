@@ -146,6 +146,7 @@ Conventions:
 | `advanced-search-button` | opens the advanced search | `UiKeys.openAdvancedSearchButton` |
 | `advanced-search-dialog` | the advanced search (`role="dialog"`); fields `advanced-search-{from,to,subject,text,not-words}-input`, `advanced-search-{folder,date,sort}-select`, checkboxes by label | `advanced_search_view` |
 | `advanced-search-submit-button` / `advanced-search-clear-button` | Search / Clear filter | `UiKeys.advancedSearchSearchButton`, `clear_filter_button` |
+| `advanced-search-cancel-button` | Cancel: closes the advanced search without searching (the only way out of the full screen dialog on a phone) | — |
 | `search-page` / `search-results` | the results screen (`/search?…`) and its list pane | — |
 | `search-results-title` / `search-results-back-button` | its heading (focused when it opens) and back to the mailboxes | `search_email_back_button` |
 | `search-filters-bar` | the filters above the results (`role="toolbar"`) | — |

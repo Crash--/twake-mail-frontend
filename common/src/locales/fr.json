@@ -42,7 +42,8 @@
     },
     "expand": "Développer",
     "collapse": "Réduire",
-    "emails": "Messages"
+    "emails": "Messages",
+    "starred": "Favoris"
   },
   "email": {
     "star": "Marquer comme favori",

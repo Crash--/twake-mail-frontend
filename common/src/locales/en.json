@@ -42,7 +42,8 @@
     },
     "expand": "Expand",
     "collapse": "Collapse",
-    "emails": "Messages"
+    "emails": "Messages",
+    "starred": "Starred"
   },
   "email": {
     "star": "Mark as starred",

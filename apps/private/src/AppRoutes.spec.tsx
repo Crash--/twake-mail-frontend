@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { makeEmail, makeFakeJmapServer } from '@common/testing/fakeJmapServer'
@@ -22,6 +22,19 @@ describe('AppRoutes', () => {
     )
     expect(screen.getByTestId('top-bar')).toBeInTheDocument()
     expect(screen.getByTestId('sidebar')).toBeInTheDocument()
+  })
+
+  it('opens the inbox instead of a mailbox of another account', async () => {
+    renderWithProviders(<AppRoutes apps={[]} />, {
+      route: '/mailbox/not-mine'
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mailbox-page')).toHaveAttribute(
+        'data-mailbox-id',
+        'mailbox-inbox'
+      )
+    })
   })
 
   it('opens an email of a mailbox', async () => {
@@ -80,7 +93,7 @@ describe('AppRoutes', () => {
       })
       return Promise.resolve({
         ok: true as const,
-        value: { returnTo: '/mailbox/m1' }
+        value: { returnTo: '/mailbox/mailbox-sent' }
       })
     })
     renderWithProviders(<AppRoutes apps={[]} />, {
@@ -88,9 +101,12 @@ describe('AppRoutes', () => {
       authService
     })
 
-    expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
+    expect(
+      await screen.findByRole('treeitem', { current: 'page' })
+    ).toHaveAttribute('data-mailbox-id', 'mailbox-sent')
+    expect(screen.getByTestId('mailbox-page')).toHaveAttribute(
       'data-mailbox-id',
-      'm1'
+      'mailbox-sent'
     )
     expect(authService.handleCallback).toHaveBeenCalledTimes(1)
   })

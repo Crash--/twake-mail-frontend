@@ -1,0 +1,17 @@
+# Build output
+build/
+dist/
+coverage/
+.tsbuild/
+
+# Lockfile
+package-lock.json
+
+# Markdown docs (formatting handled manually)
+*.md
+
+# Env files
+.env*
+
+# End-to-end tests live in their own package
+e2e/

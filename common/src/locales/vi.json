@@ -299,5 +299,10 @@
   },
   "settings": {
     "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại"
+  },
+  "mailboxPicker": {
+    "title": "Chuyển tới",
+    "search": "Thư mục tìm kiếm",
+    "empty": "Không có thư mục nào khớp với tìm kiếm"
   }
 }

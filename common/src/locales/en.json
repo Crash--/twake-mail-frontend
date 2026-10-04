@@ -299,5 +299,10 @@
   },
   "settings": {
     "threadToggle": "Enable thread"
+  },
+  "mailboxPicker": {
+    "title": "Move To",
+    "search": "Search folders",
+    "empty": "No folder matches your search"
   }
 }

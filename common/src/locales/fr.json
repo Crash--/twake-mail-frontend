@@ -299,5 +299,10 @@
   },
   "settings": {
     "threadToggle": "Activer les fils de discussion"
+  },
+  "mailboxPicker": {
+    "title": "Déplacer vers",
+    "search": "Rechercher dans les dossiers",
+    "empty": "Aucun dossier ne correspond à votre recherche"
   }
 }

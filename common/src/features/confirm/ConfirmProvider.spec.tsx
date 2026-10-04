@@ -1,11 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 
-import { useConfirm } from './ConfirmProvider'
+import { useChoose, useConfirm } from './ConfirmProvider'
 
 function Asker(): ReactElement {
   const confirm = useConfirm()
@@ -30,10 +30,32 @@ function Asker(): ReactElement {
   )
 }
 
+function Chooser(): ReactElement {
+  const choose = useChoose()
+  const [answer, setAnswer] = useState('none')
+  const handleAsk = (): void => {
+    void choose({
+      title: 'Save message',
+      message: 'Save this message to your drafts folder?',
+      confirmLabel: 'Save',
+      alternativeLabel: 'Discard changes'
+    }).then(setAnswer)
+  }
+  return (
+    <>
+      <button type="button" onClick={handleAsk}>
+        Close
+      </button>
+      <p>Answer: {answer}</p>
+    </>
+  )
+}
+
 function renderAsker(): void {
   render(
     <AppProviders lang="en" queryClient={makeQueryClient()}>
       <Asker />
+      <Chooser />
     </AppProviders>
   )
 }
@@ -55,5 +77,30 @@ describe('ConfirmProvider', () => {
     await userEvent.click(ask)
     await userEvent.keyboard('{Escape}')
     expect(await screen.findByText('Answer: false')).toBeVisible()
+  })
+
+  it('offers a choice, focused on the confirm button', async () => {
+    renderAsker()
+    const close = screen.getByRole('button', { name: 'Close' })
+
+    await userEvent.click(close)
+    expect(screen.getByRole('dialog', { name: 'Save message' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus()
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Discard changes' })
+    )
+    expect(await screen.findByText('Answer: alternative')).toBeVisible()
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+
+    await userEvent.click(close)
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByText('Answer: confirm')).toBeVisible()
+
+    await userEvent.click(close)
+    await userEvent.keyboard('{Escape}')
+    expect(await screen.findByText('Answer: cancel')).toBeVisible()
   })
 })

@@ -26,6 +26,7 @@ import { ImageToolbar } from './ImageToolbar'
 import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
 import { RichTextToolbar } from './RichTextToolbar'
+import { SmartTrailingBlock } from './smartTrailingBlock'
 import type {
   EditorActions,
   RichTextColor,
@@ -48,6 +49,11 @@ export interface RichTextEditorProps {
   onImageFiles?: (files: File[]) => Promise<InlineImageAttributes[]>
   /** How HtmlBlock nodes render (frame document, titles, edit button) */
   htmlBlock?: Partial<HtmlBlockOptions>
+  /**
+   * Kinds of the HtmlBlocks that end the message (signature, quote): the
+   * user writes above them (see SmartTrailingBlock)
+   */
+  footerBlockKinds?: readonly string[]
   /** More TipTap extensions (tables…) */
   extensions?: AnyExtension[]
   /** Puts the caret at the start once created (a new message, a reply) */
@@ -136,6 +142,7 @@ export function RichTextEditor({
   fontSizes,
   onImageFiles,
   htmlBlock,
+  footerBlockKinds = [],
   extensions = [],
   autoFocus = false,
   onReady,
@@ -166,8 +173,10 @@ export function RichTextEditor({
         codeBlock: false,
         heading: false,
         horizontalRule: false,
-        // Nothing is written after a signature or a quote by accident: the
-        // gap cursor still lets the user type there on purpose
+        // No paragraph always trailing the document: nothing is written
+        // after a signature or a quote by accident. SmartTrailingBlock
+        // gives one above them on demand, and the gap cursor still lets the
+        // user type between them on purpose
         trailingNode: false,
         link: {
           openOnClick: false,
@@ -181,6 +190,11 @@ export function RichTextEditor({
       TableKit.configure({ table: { resizable: false } }),
       InlineImage,
       HtmlBlock.configure(htmlBlock ?? {}),
+      SmartTrailingBlock.configure({
+        isFooter: node =>
+          node.type.name === HtmlBlock.name &&
+          footerBlockKinds.includes(String(node.attrs.kind))
+      }),
       // The extensions read the ref in event handlers only, never while
       // rendering: the compiler cannot see it through the TipTap options
       // eslint-disable-next-line react-hooks/refs

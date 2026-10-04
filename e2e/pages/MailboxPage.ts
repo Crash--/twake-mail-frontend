@@ -73,7 +73,9 @@ export class MailboxPage {
     this.mailboxPicker = page.getByTestId('mailbox-picker')
     this.mailboxNameDialog = page.getByTestId('mailbox-name-dialog')
     this.teamMailboxesSection = page.getByTestId('team-mailboxes-section')
-    this.showHiddenFoldersButton = page.getByTestId('show-hidden-folders-button')
+    this.showHiddenFoldersButton = page.getByTestId(
+      'show-hidden-folders-button'
+    )
   }
 
   /** True when the folders are in a drawer: phones and tablets */
@@ -180,7 +182,9 @@ export class MailboxPage {
   async submitFolderName(name: string): Promise<MailboxPage> {
     await expect(this.mailboxNameDialog).toBeVisible()
     await this.mailboxNameDialog.getByTestId('mailbox-name-input').fill(name)
-    await this.mailboxNameDialog.getByTestId('mailbox-name-submit-button').click()
+    await this.mailboxNameDialog
+      .getByTestId('mailbox-name-submit-button')
+      .click()
     await expect(this.mailboxNameDialog).toBeHidden()
     return this
   }
@@ -192,6 +196,23 @@ export class MailboxPage {
         .getByTestId('email-list-item-subject')
         .getByText(subject, { exact: true })
     })
+  }
+
+  /**
+   * Scrolls the list (virtualized: rows below are not rendered) until the
+   * row of an email shows
+   */
+  async scrollToEmail(subject: string): Promise<Locator> {
+    const row = this.emailRow(subject)
+    await this.emailList.hover()
+    await expect(async () => {
+      // Rendered rows (overscan) can scroll into view, the others come by
+      // scrolling the list
+      if (await row.isVisible()) await row.scrollIntoViewIfNeeded()
+      else await this.page.mouse.wheel(0, 600)
+      await expect(row).toBeInViewport({ timeout: 500 })
+    }).toPass()
+    return row
   }
 
   /** The link of a list row, which holds the focus of the row */
@@ -255,7 +276,9 @@ export class MailboxPage {
   /** Picks a folder in the open picker, after typing its name in the filter */
   async pickFolder(name: string): Promise<MailboxPage> {
     await expect(this.mailboxPicker).toBeVisible()
-    await this.mailboxPicker.getByTestId('mailbox-picker-search-input').fill(name)
+    await this.mailboxPicker
+      .getByTestId('mailbox-picker-search-input')
+      .fill(name)
     await this.mailboxPicker
       .getByRole('option', { name: new RegExp(`^${name}`) })
       .first()

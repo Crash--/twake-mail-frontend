@@ -263,6 +263,10 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/actions.spec.ts`. Passes in CI.
 - [x] `EML-31` In Spam, "Remove from spam" from the more menu of an open email puts it back in the Inbox ("Marked as not spam"). — web app only, no Patrol test
   - Spec: `tests/actions.spec.ts`. Passes in CI.
+- [x] `EML-32` Opening the oldest email of a scrolled list and going back each run one view transition (a slide on phones and tablets, a fade through wider); the subject takes the focus (axe on the email), then the row again, still in view; opening a search result runs one too. — web app only, no Patrol test (issue #12)
+  - Spec: `tests/transitions.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
+- [x] `EML-33` With `prefers-reduced-motion: reduce`, or in a browser without the View Transitions API, the same path runs no transition and keeps the focus and the scroll. — web app only, no Patrol test (issue #12)
+  - Spec: `tests/transitions.spec.ts`, reduced motion on `chromium`, `mobile` and `tablet`, without the API on `chromium`. Passes in CI.
 
 ## THR — Thread detail (3)
 

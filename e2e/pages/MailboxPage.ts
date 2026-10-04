@@ -46,6 +46,10 @@ export class MailboxPage {
   readonly confirmDialog: Locator
   /** The folder picker ("Move To") */
   readonly mailboxPicker: Locator
+  /** The dialog naming a folder, to create or rename it */
+  readonly mailboxNameDialog: Locator
+  readonly teamMailboxesSection: Locator
+  readonly showHiddenFoldersButton: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -67,6 +71,9 @@ export class MailboxPage {
     this.emptyTrashBanner = page.getByTestId('empty-trash-banner')
     this.confirmDialog = page.getByTestId('confirm-dialog')
     this.mailboxPicker = page.getByTestId('mailbox-picker')
+    this.mailboxNameDialog = page.getByTestId('mailbox-name-dialog')
+    this.teamMailboxesSection = page.getByTestId('team-mailboxes-section')
+    this.showHiddenFoldersButton = page.getByTestId('show-hidden-folders-button')
   }
 
   /** True when the folders are in a drawer: phones and tablets */
@@ -114,7 +121,8 @@ export class MailboxPage {
 
   /** The folder row: `mailbox-item` carrying `data-mailbox-role` / its name as text */
   folder(ref: FolderRef): Locator {
-    const items = this.folderTree.getByTestId('mailbox-item')
+    // The folders of the user, and the team mailboxes in their own tree
+    const items = this.page.getByTestId('mailbox-item')
     if ('role' in ref) {
       return items.and(this.page.locator(`[data-mailbox-role="${ref.role}"]`))
     }
@@ -156,7 +164,25 @@ export class MailboxPage {
     await this.showFolders()
     await this.folder(ref).hover()
     await this.folder(ref).getByTestId('mailbox-more-button').click()
-    return this.page.getByTestId('mailbox-context-menu')
+    const menu = this.page.getByTestId('mailbox-context-menu').getByRole('menu')
+    await expect(menu).toBeVisible()
+    return menu
+  }
+
+  /** Runs an action of a folder menu (`mailbox-action-<action>` items) */
+  async runFolderAction(ref: FolderRef, action: string): Promise<MailboxPage> {
+    const menu = await this.openFolderMenu(ref)
+    await menu.getByTestId(`mailbox-action-${action}`).click()
+    return this
+  }
+
+  /** Types a name in the open folder name dialog and submits it */
+  async submitFolderName(name: string): Promise<MailboxPage> {
+    await expect(this.mailboxNameDialog).toBeVisible()
+    await this.mailboxNameDialog.getByTestId('mailbox-name-input').fill(name)
+    await this.mailboxNameDialog.getByTestId('mailbox-name-submit-button').click()
+    await expect(this.mailboxNameDialog).toBeHidden()
+    return this
   }
 
   /** The list row of an email, by exact subject */

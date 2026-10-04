@@ -68,11 +68,15 @@ Conventions:
 | `mailbox-unread-count` | unread badge inside the row (absent when 0) | — |
 | `mailbox-expand-button` | expand / collapse arrow | — |
 | `mailbox-toggle-slot` | room of the expand arrow, only when some folder has subfolders | — |
-| `mailbox-more-button` | ⋮ button shown on hover | `UiKeys.mailboxMoreActionButton` |
-| `mailbox-context-menu` | folder actions menu (⋮ or right-click) | — |
+| `mailbox-more-button` | ⋮ button shown on hover or focus (always on touch screens), named "Actions on <folder>" | `UiKeys.mailboxMoreActionButton` |
+| `mailbox-context-menu` | folder actions menu (⋮, right click, menu key or Shift+F10); items `mailbox-action-<action>`: `new-subfolder`, `mark-as-read`, `empty-trash`, `empty-spam`, `move`, `rename`, `hide`, `show`, `delete` | — |
 | `add-new-folder-button` | "+" new folder in the "Folders" header | `UiKeys.addNewFolderButton` |
+| `show-hidden-folders-button` | toggle listing the hidden folders (`aria-pressed`), shown when some are hidden | — (Settings > Folder visibility in tmail-flutter) |
+| `mailbox-item-hidden` | "hidden" beside a hidden folder listed on demand (the row has `data-hidden="true"`) | — |
+| `mailbox-name-dialog` / `mailbox-name-input` / `mailbox-name-location-button` / `mailbox-name-submit-button` / `mailbox-name-cancel-button` | the dialog naming a folder to create or rename it, and where it goes | `create_new_mailbox_*` |
 | `mailbox-search-button` | magnifier in the "Folders" header | `UiKeys.mailboxSearchButton` |
-| `team-mailboxes-section` | "Team mailboxes" group | — |
+| `team-mailboxes-section` | "Team-mailboxes" heading and tree, after the folders of the user | — |
+| `mailbox-item` with `data-mailbox-role="favorite"` | the Starred virtual folder (`/starred`), after the Inbox | `favorite` folder |
 | `quota-indicator` | used / total storage | — |
 
 ### Email list (thread view)

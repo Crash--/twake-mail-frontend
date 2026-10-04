@@ -78,24 +78,30 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 ## MBX — Mailbox and folders (25)
 
 - [ ] `MBX-01` Clicking the sidebar "+" (new folder) button, entering "crud personal folder" and confirming "Create folder" makes the new personal folder appear in the sidebar. — `mailbox/create_personal_folder_test.dart` · tags: `web` `android` `ios`
+  - Spec: `tests/folders.spec.ts` (the "+" of the "Folders" heading, then the folder opens).
 - [ ] `MBX-02` From Inbox's folder menu, create subfolder "crud sub folder" (it opens and its name shows), rename it to "renamed sub folder", move it under Archive (Archive now has a child), then delete it with confirmation (Archive has no children any more). — `mailbox/create_rename_move_and_delete_mailbox_test.dart` · tags: `ios (default)`
   - Web port: every folder action is opened by long-pressing the sidebar folder. Web equivalent: hover → folder "more" (⋮) button or right-click on the folder → New subfolder / Rename / Move / Delete; port it through the folder/row context menu (⋮ on hover, or right-click).
+  - Spec: `tests/folders.spec.ts` (the folder menu: ⋮ on hover or focus, right click, menu key or Shift+F10).
 - [ ] `MBX-03` Creating subfolder "hidden sub folder" under Inbox from Inbox's folder menu, then choosing "Hide folder" on it, leaves Inbox with no children in the sidebar (and Inbox still reachable). — `mailbox/create_and_hide_sub_folder_test.dart` · tags: `ios (default)`
   - Web port: long press on the sidebar folder (and a native swipe to close the drawer). Web equivalent: hover ⋮ / right-click → New subfolder, then Hide folder; port it through the folder/row context menu (⋮ on hover, or right-click).
+  - Spec: `tests/folders.spec.ts`.
 - [ ] `MBX-04` Opening the sidebar folder search (magnifier in the "Folders" section header) and typing "Inbox" shows the Inbox folder in the search results. — `mailbox/search_mailbox_inbox_test.dart` · tags: `ios (default)`
 - [x] `MBX-05` With one email sent to self (lands in Sent) and one sent with Trash as its "sent" folder, clicking Sent shows exactly one "sent subject" row and clicking Trash shows "trash subject". — `mailbox/switch_mailbox_test.dart` · tags: `ios (default)`
   - Spec: `tests/mailbox.spec.ts`. Passes in CI.
 - [ ] `MBX-06` On a fresh account with no starred mail, the Favorites (Starred) folder is listed in the sidebar and opening it shows the empty-thread view. — `mailbox/display_empty_view_for_favorite_folder_test.dart` · tags: `ios (default)`
   - Data: relies on bob's restored mailbox having no starred email (backend reset between tests).
+  - Spec: `tests/folders.spec.ts`, also run on the `mobile` and `tablet` projects (the virtual folder is `/starred`, `data-mailbox-role="favorite"`).
 - [ ] `MBX-07` The team mailbox "bob-guests" is listed in the sidebar; composing an email to bob-guests@example.com and sending shows the "Message has been sent successfully" toast, and the email appears in the team mailbox's INBOX after expanding it. — `mailbox/team_mailbox_receive_email_test.dart` · tags: `ios (default)`
   - Data: team mailbox `bob-guests@example.com` with members bob and alice, created by `provisioning.sh` (Twake/James team-mailbox extension).
-- [ ] `MBX-08` With an email provisioned in Trash, opening Trash shows the "empty trash" banner and the email; clicking "Empty trash now" shows the confirmation dialog, and "Delete all" leaves the empty-thread view. — `mailbox/empty_trash_test.dart` · tags: `ios (default)`
-  - Spec: `tests/actions.spec.ts` (`Mailbox/clear` when the server has it, `Email/query` + `Email/set` destroy by back-reference otherwise).
-- [ ] `MBX-09` With a subfolder created under Trash and an email in Trash, emptying Trash via the banner + confirm removes the subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_banner_test.dart` · tags: `web` `android` `ios`
+  - Spec: `tests/folders.spec.ts`, the receiving part only (named "MBX-07 (receiving part)"): the email is sent to the team address through JMAP; sending it from the composer waits for phase 3, so the line stays unticked.
+- [x] `MBX-08` With an email provisioned in Trash, opening Trash shows the "empty trash" banner and the email; clicking "Empty trash now" shows the confirmation dialog, and "Delete all" leaves the empty-thread view. — `mailbox/empty_trash_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts` (`Mailbox/clear` when the server has it, `Email/query` + `Email/set` destroy by back-reference otherwise). Passes in CI.
+- [x] `MBX-09` With a subfolder created under Trash and an email in Trash, emptying Trash via the banner + confirm removes the subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_banner_test.dart` · tags: `web` `android` `ios`
   - Data: Trash subfolder "Trash subfolder banner test" created via JMAP `Mailbox/set` before the UI run.
-  - Spec: `tests/actions.spec.ts`.
+  - Spec: `tests/actions.spec.ts`. Passes in CI.
 - [ ] `MBX-10` Same setup as MBX-09, but emptying via the Trash folder context menu ("Empty trash" → "Delete") removes the Trash subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_context_menu_test.dart` · tags: `web` `android` `ios`
   - Data: Trash subfolder "Trash subfolder context menu test" created via JMAP. On web the robot opens the menu by hovering the folder and clicking its ⋮ (more-action) button.
+  - Spec: `tests/folders.spec.ts`.
 - [ ] `MBX-11` With an email in Trash, emptying Trash via the banner hides the banner; then "Recover deleted messages" on Trash → "Restore" brings the email back into a "Recovered" folder where it is visible. — `mailbox/empty_and_recover_trash_test.dart` · tags: `ios (default)`
   - Web port: "Recover deleted messages" is opened by long-pressing Trash (the banner part is web-native). Web equivalent: Trash folder hover ⋮ / right-click → Recover deleted messages; port it through the folder/row context menu (⋮ on hover, or right-click).
   - Data: needs the server's deleted-messages vault (James) for the restore into "Recovered".
@@ -111,6 +117,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Data: deleted-messages vault.
 - [ ] `MBX-15` With an unread email in Inbox (Inbox shows an unread badge), choosing "Mark as read" from Inbox's folder menu removes the Inbox unread badge. — `mailbox/mark_mailbox_as_read_test.dart` · tags: `ios (default)`
   - Web port: long press on Inbox. Web equivalent: Inbox hover ⋮ / right-click → Mark as read; port it through the folder/row context menu (⋮ on hover, or right-click).
+  - Spec: `tests/folders.spec.ts`, also run on the `mobile` and `tablet` projects.
 - [ ] `MBX-16` With 40 emails provisioned in Inbox, choosing "Move folder content" → Templates from Inbox's folder menu moves them all: Templates lists them and Inbox shows the empty-thread view. — `mailbox/move_folder_content_test.dart` · tags: `ios (default)`
   - Web port: long press on Inbox. Web equivalent: Inbox hover ⋮ / right-click → Move folder content → destination picker; port it through the folder/row context menu (⋮ on hover, or right-click).
 - [x] `MBX-17` The Inbox unread counter goes up by 1 in real time when a new email arrives, and back down when that email is marked read by another client (JMAP `Email/set`), without any manual refresh. — `mailbox/mailbox_count_real_time_update_test.dart` · tags: `ios (default)`
@@ -118,29 +125,33 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Data: relies on server push (JMAP WebSocket/state change); the "other client" update is a direct JMAP call.
 - [ ] `MBX-18` The used quota shown in the sidebar increases after an email with a .txt attachment is sent to self and the quota is reloaded. — `mailbox/quota_count_test.dart` · tags: `ios (default)`
   - Data: bob quota (200 messages / 50 MB) set by `provisioning.sh`; the test reads the used quota from the controller and triggers `reloadQuota()` programmatically (no UI refresh), so on web reload the page or wait for the push update.
-- [ ] `MBX-19` Selecting an email and choosing More → "Move to" → Templates moves it to Templates (visible there); selecting another and clicking "Move to trash" moves it to Trash (visible there). — `mailbox/mailbox_move_email_test.dart` · tags: `ios (default)`
+- [x] `MBX-19` Selecting an email and choosing More → "Move to" → Templates moves it to Templates (visible there); selecting another and clicking "Move to trash" moves it to Trash (visible there). — `mailbox/mailbox_move_email_test.dart` · tags: `ios (default)`
   - Web port: selection is entered by long-pressing the email row. Web equivalent: row checkbox selection + selection toolbar, or right-click on the email → Move to / Move to trash (drag-and-drop to a folder is another web path); port it through the folder/row context menu (⋮ on hover, or right-click).
-  - Spec: `tests/actions.spec.ts`. Web port: the "Move" and "Move to trash" buttons of the selection toolbar, "Templates" a folder created by the spec (James creates none).
-- [ ] `MBX-20` Selecting a single unread email and clicking the selection toolbar's "Mark as read" shows the email as read in the list. — `mailbox/mark_single_selected_email_as_read_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts`. Web port: the "Move" and "Move to trash" buttons of the selection toolbar, "Templates" a folder created by the spec (James creates none). Passes in CI.
+- [x] `MBX-20` Selecting a single unread email and clicking the selection toolbar's "Mark as read" shows the email as read in the list. — `mailbox/mark_single_selected_email_as_read_test.dart` · tags: `ios (default)`
   - Web port: selection by long press on the email row. Web equivalent: checkbox selection → toolbar Mark as read, or right-click → Mark as read; port it through the folder/row context menu (⋮ on hover, or right-click).
-  - Spec: `tests/actions.spec.ts`, also run on the `mobile` and `tablet` projects.
-- [ ] `MBX-21` Selecting a single email and choosing More → "Mark as starred" shows the email as starred in the list. — `mailbox/mark_single_selected_email_as_star_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts`, also run on the `mobile` and `tablet` projects. Passes in CI.
+- [x] `MBX-21` Selecting a single email and choosing More → "Mark as starred" shows the email as starred in the list. — `mailbox/mark_single_selected_email_as_star_test.dart` · tags: `ios (default)`
   - Web port: selection by long press on the email row. Web equivalent: checkbox selection → toolbar star, or right-click → Star; port it through the folder/row context menu (⋮ on hover, or right-click).
-  - Spec: `tests/actions.spec.ts`. Web port: the "Star" button of the selection toolbar.
-- [ ] `MBX-22` Selecting a single email and choosing More → "Move to spam" moves it out of Inbox; it is listed in the Spam folder. — `mailbox/mark_single_selected_email_as_spam_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts`. Web port: the "Star" button of the selection toolbar. Passes in CI.
+- [x] `MBX-22` Selecting a single email and choosing More → "Move to spam" moves it out of Inbox; it is listed in the Spam folder. — `mailbox/mark_single_selected_email_as_spam_test.dart` · tags: `ios (default)`
   - Web port: selection by long press on the email row. Web equivalent: checkbox selection → toolbar spam action, or right-click → Mark as spam; port it through the folder/row context menu (⋮ on hover, or right-click).
-  - Spec: `tests/actions.spec.ts`. Web port: the "Mark as spam" button of the selection toolbar.
+  - Spec: `tests/actions.spec.ts`. Web port: the "Mark as spam" button of the selection toolbar. Passes in CI.
 - [ ] `MBX-23` With 4 emails (one unread, one marked read and one starred via JMAP, one with a .txt attachment), the thread quick filter "Attachments" shows the attachment email, "Unread" shows the unread email and "Starred" shows the starred email. — `mailbox/quick_filter_test.dart` · tags: `ios (default)`
   - Data: only positive assertions (the expected email is visible); the test never checks that the other emails are filtered out, so a port should add that.
 - [ ] `MBX-24` With 16 emails in Inbox, scrolling to the oldest email shows the "scroll to top" floating button, and clicking it scrolls back to the top and hides the button. — `mailbox/scroll_list_email_in_mailbox_and_back_to_top_test.dart` · tags: `ios (default)`
 - [ ] `MBX-25` An email that arrived without the list being refreshed is not shown until a pull-to-refresh (fling down) on the list, after which it appears. — `mailbox/pull_to_refresh_test.dart` · tags: `ios (default)`
   - N/A web: pull-to-refresh gesture. Web equivalent: none as written (new mail arrives via push, covered by MBX-17 / PUSH-01).
-- [ ] `MBX-26` Five emails (each with its copy in Sent: tmail-backend#2684 needs messages in two mailboxes); checking the fifth then Shift+clicking the second selects four ("4 selected"), "Mark as read" in the selection toolbar sends them in one `Email/set`, leaves the first unread, and the toolbar goes. — web app only, no Patrol test
-  - Spec: `tests/actions.spec.ts`.
-- [ ] `MBX-27` A right click on a row opens its actions menu at the pointer (axe), "Archive message" archives it; Shift+F10 on the focused row of another opens the same menu, focused on its first item, and "Move to trash" from the keyboard trashes it. — web app only, no Patrol test (no right click in tmail-flutter)
-  - Spec: `tests/actions.spec.ts`.
-- [ ] `MBX-28` Two checked rows dragged onto a folder of the tree move there (the keyboard way is "Move message"). — web app only, no Patrol test
-  - Spec: `tests/actions.spec.ts`.
+- [x] `MBX-26` Five emails (each with its copy in Sent: tmail-backend#2684 needs messages in two mailboxes); checking the fifth then Shift+clicking the second selects four ("4 selected"), "Mark as read" in the selection toolbar sends them in one `Email/set`, leaves the first unread, and the toolbar goes. — web app only, no Patrol test
+  - Spec: `tests/actions.spec.ts`. Passes in CI.
+- [x] `MBX-27` A right click on a row opens its actions menu at the pointer (axe), "Archive message" archives it; Shift+F10 on the focused row of another opens the same menu, focused on its first item, and "Move to trash" from the keyboard trashes it. — web app only, no Patrol test (no right click in tmail-flutter)
+  - Spec: `tests/actions.spec.ts`. Passes in CI.
+- [x] `MBX-28` Two checked rows dragged onto a folder of the tree move there (the keyboard way is "Move message"). — web app only, no Patrol test
+  - Spec: `tests/actions.spec.ts`. Passes in CI.
+- [ ] `MBX-29` A folder hidden from its menu leaves the tree; "Show hidden folders" lists it again, marked hidden, and "Show folder", reached with Shift+F10 on it (axe on the menu), shows it for good. — web app only, no Patrol test (tmail-flutter shows hidden folders from Settings > Folder visibility)
+  - Spec: `tests/folders.spec.ts`.
+- [ ] `MBX-30` A member of a team mailbox gets, on its root, only the actions the server rights allow (`myRights`: no rename, no delete; hide). — web app only, no Patrol test
+  - Spec: `tests/folders.spec.ts`.
 
 ## CMP — Composer (26)
 
@@ -204,20 +215,20 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Data: images point to `https://example.com/image.jpg` (no network needed, only the DOM attributes are checked).
 - [ ] `EML-05` After composing and sending to self an email with an inline image inserted from a file (editor content holds a `data:image/…;base64` + `cid:` image), opening the received email renders the inline image, with exactly one `cid` reference in the displayed HTML. — `email_detailed/view_inline_image_test.dart` · tags: `ios (default)`
   - Data: PNG generated from a base64 constant (`ImageResources.base64`).
-- [ ] `EML-06` Opening a self-sent email and choosing More (⋯) > "Archive message" moves it: after going back and opening the Archive folder, the email is listed there. — `email_detailed/archive_email_test.dart` · tags: `ios (default)`
-  - Spec: `tests/actions.spec.ts`, also run on the `mobile` and `tablet` projects.
-- [ ] `EML-07` Opening a self-sent email and choosing More (⋯) > "Move to trash" closes the email view and the email is listed in the Trash folder. — `email_detailed/delete_email_test.dart` · tags: `ios (default)`
-  - Spec: `tests/actions.spec.ts`, also run on the `mobile` and `tablet` projects.
+- [x] `EML-06` Opening a self-sent email and choosing More (⋯) > "Archive message" moves it: after going back and opening the Archive folder, the email is listed there. — `email_detailed/archive_email_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts`, also run on the `mobile` and `tablet` projects. Passes in CI.
+- [x] `EML-07` Opening a self-sent email and choosing More (⋯) > "Move to trash" closes the email view and the email is listed in the Trash folder. — `email_detailed/delete_email_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts`, also run on the `mobile` and `tablet` projects. Passes in CI.
 - [ ] `EML-08` With "thread" mode enabled in Settings > Preferences, opening a self-sent email and clicking the "delete thread" button shows the "Moved to Trash" toast. — `email_detailed/delete_thread_to_trash_test.dart` · tags: `ios (default)`
   - Data: requires toggling the thread (conversation) preference first; only the toast is asserted, not the Trash content.
-- [ ] `EML-09` Opening a self-sent email and choosing More (⋯) > "Mark as spam" closes the email view and the email is listed in the Spam folder. — `email_detailed/mark_as_spam_email_test.dart` · tags: `ios (default)`
-  - Spec: `tests/actions.spec.ts`.
-- [ ] `EML-10` In an opened self-sent email, the More (⋯) menu offers "Starred"; selecting it makes the menu offer "Not starred" instead, and selecting that restores the "Starred" option (star/unstar round-trip). — `email_detailed/mark_as_star_email_test.dart` · tags: `ios (default)`
-  - Spec: `tests/actions.spec.ts` ("Star" / "Unstar").
-- [ ] `EML-11` Opening a self-sent email (which marks it read) and choosing More (⋯) > "Mark as unread" closes the email view and the email's list row shows the unread indicator again. — `email_detailed/mark_as_unread_email_test.dart` · tags: `ios (default)`
-  - Spec: `tests/actions.spec.ts`.
-- [ ] `EML-12` Opening a self-sent email and choosing More (⋯) > "Move message", then picking the Templates folder in the destination picker, removes the email from the Inbox list and lists it in Templates. — `email_detailed/move_email_to_folder_test.dart` · tags: `ios (default)`
-  - Spec: `tests/actions.spec.ts`; "Templates" is a folder created by the spec.
+- [x] `EML-09` Opening a self-sent email and choosing More (⋯) > "Mark as spam" closes the email view and the email is listed in the Spam folder. — `email_detailed/mark_as_spam_email_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts`. Passes in CI.
+- [x] `EML-10` In an opened self-sent email, the More (⋯) menu offers "Starred"; selecting it makes the menu offer "Not starred" instead, and selecting that restores the "Starred" option (star/unstar round-trip). — `email_detailed/mark_as_star_email_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts` ("Star" / "Unstar"). Passes in CI.
+- [x] `EML-11` Opening a self-sent email (which marks it read) and choosing More (⋯) > "Mark as unread" closes the email view and the email's list row shows the unread indicator again. — `email_detailed/mark_as_unread_email_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts`. Passes in CI.
+- [x] `EML-12` Opening a self-sent email and choosing More (⋯) > "Move message", then picking the Templates folder in the destination picker, removes the email from the Inbox list and lists it in Templates. — `email_detailed/move_email_to_folder_test.dart` · tags: `ios (default)`
+  - Spec: `tests/actions.spec.ts`; "Templates" is a folder created by the spec. Passes in CI.
 - [ ] `EML-13` Given a self-sent email with one .txt attachment, tapping the attachment exports/previews it natively and, after navigating back, the email view is still shown with no lingering "Preparing to export" loading dialog. — `email_detailed/export_attachment_test.dart` · tags: `ios (default)`
   - Web port: relies on the native export flow (download to a temp file then open the OS previewer/share sheet) and the system back gesture. Web equivalent: clicking an attachment downloads it or opens the in-app previewer; port as a web variant: clicking the attachment chip triggers a download (`page.waitForEvent('download')`) / preview and no "Preparing to export" dialog stays on screen.
   - Data: .txt attachment created on the fly ("attachment content").
@@ -248,10 +259,10 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 - [x] `EML-29` Remote images of an email (img, CSS background) are not requested until the user clicks "Show" in the "Remote images hidden" banner; "Always show for this sender" then shows them right away in the other emails of that sender. — web app only, no Patrol test (tmail-flutter always loads remote images).
   - Spec: `tests/email.spec.ts`, also run on the `mobile` and `tablet` projects. The remote host is served by `page.route`, which counts the requests.
-- [ ] `EML-30` In the Trash, "Delete permanently" from the more menu of an open email asks first ("Delete message forever"); confirming closes the email and destroys it on the server. — web app only, no Patrol test (Patrol covers the delete forever dialog nowhere)
-  - Spec: `tests/actions.spec.ts`.
-- [ ] `EML-31` In Spam, "Remove from spam" from the more menu of an open email puts it back in the Inbox ("Marked as not spam"). — web app only, no Patrol test
-  - Spec: `tests/actions.spec.ts`.
+- [x] `EML-30` In the Trash, "Delete permanently" from the more menu of an open email asks first ("Delete message forever"); confirming closes the email and destroys it on the server. — web app only, no Patrol test (Patrol covers the delete forever dialog nowhere)
+  - Spec: `tests/actions.spec.ts`. Passes in CI.
+- [x] `EML-31` In Spam, "Remove from spam" from the more menu of an open email puts it back in the Inbox ("Marked as not spam"). — web app only, no Patrol test
+  - Spec: `tests/actions.spec.ts`. Passes in CI.
 
 ## THR — Thread detail (3)
 

@@ -26,13 +26,14 @@ import type {
   EditorActions,
   RichTextColor,
   RichTextEditorLabels,
-  RichTextFontSize
+  RichTextFontSize,
+  RichTextToolbarItemId
 } from './types'
 
 type MenuName = 'color' | 'size' | 'align'
 
 interface ToolbarItem {
-  id: string
+  id: RichTextToolbarItemId
   icon: EditorIconName
   label: string
   /** Toggle buttons expose aria-pressed */
@@ -55,6 +56,7 @@ export interface RichTextToolbarProps {
   onPickImages: (() => void) | null
   /** Lets the editor send the focus back here (Escape) */
   actionsRef: MutableRefObject<EditorActions>
+  buttonTestId?: (item: RichTextToolbarItemId) => string
 }
 
 const ALIGNMENTS = ['left', 'center', 'right', 'justify'] as const
@@ -81,7 +83,8 @@ export function RichTextToolbar({
   editorId,
   onOpenLinkDialog,
   onPickImages,
-  actionsRef
+  actionsRef,
+  buttonTestId
 }: RichTextToolbarProps): ReactElement {
   const state = useEditorState({
     editor,
@@ -204,7 +207,7 @@ export function RichTextToolbar({
     ...(onPickImages
       ? [
           {
-            id: 'image',
+            id: 'image' as const,
             icon: 'image' as const,
             label: labels.insertImage,
             run: onPickImages
@@ -301,7 +304,7 @@ export function RichTextToolbar({
               onClick={handleClick(item, index)}
               // Keep the editor selection while clicking
               onMouseDown={event => event.preventDefault()}
-              data-testid={`rich-text-${item.id}-button`}
+              data-testid={buttonTestId?.(item.id)}
               sx={{
                 opacity: item.disabled ? 0.4 : 1,
                 color: item.pressed ? 'primary.main' : 'text.secondary',

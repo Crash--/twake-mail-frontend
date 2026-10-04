@@ -26,6 +26,8 @@ export interface HtmlBlockOptions {
   frameTitle: (kind: string) => string
   /** Label of the button that turns the block into editable content, null for none */
   editLabel: (kind: string) => string | null
+  /** `data-testid` of that button */
+  editTestId: (kind: string) => string | undefined
 }
 
 declare module '@tiptap/core' {
@@ -72,7 +74,8 @@ export const HtmlBlock = Node.create<HtmlBlockOptions>({
     return {
       buildFrameDocument: (html: string) => html,
       frameTitle: (kind: string) => kind,
-      editLabel: () => null
+      editLabel: () => null,
+      editTestId: () => undefined
     }
   },
 

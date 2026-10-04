@@ -104,7 +104,7 @@ export function HtmlBlockView({
             size="small"
             variant="text"
             onClick={handleEdit}
-            data-testid={`html-block-edit-${kind}`}
+            data-testid={options.editTestId(kind)}
           >
             {editLabel}
           </Button>

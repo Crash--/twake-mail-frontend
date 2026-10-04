@@ -29,6 +29,7 @@ import type {
   EditorActions,
   RichTextColor,
   RichTextEditorLabels,
+  RichTextEditorTestIds,
   RichTextFontSize
 } from './types'
 
@@ -53,7 +54,7 @@ export interface RichTextEditorProps {
   /** The editor, once created: read and change the document through it */
   onReady?: (editor: Editor) => void
   onUpdate?: (editor: Editor) => void
-  'data-testid'?: string
+  testIds?: RichTextEditorTestIds
 }
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
@@ -135,7 +136,7 @@ export function RichTextEditor({
   autoFocus = false,
   onReady,
   onUpdate,
-  'data-testid': testId
+  testIds = {}
 }: RichTextEditorProps): ReactElement {
   const editorId = useId()
   const helpId = useId()
@@ -192,7 +193,7 @@ export function RichTextEditor({
         'aria-multiline': 'true',
         'aria-label': labels.editor,
         'aria-describedby': helpId,
-        ...(testId ? { 'data-testid': testId } : {})
+        ...(testIds.editor ? { 'data-testid': testIds.editor } : {})
       },
       transformPastedHTML: cleanPastedHtml
     },
@@ -260,6 +261,7 @@ export function RichTextEditor({
         onOpenLinkDialog={openLinkDialog}
         onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
         actionsRef={actionsRef}
+        buttonTestId={testIds.toolbarButton}
       />
       <Box
         id={helpId}
@@ -325,6 +327,9 @@ export function RichTextEditor({
         onApply={applyLink}
         onRemove={removeLink}
         onClose={closeLinkDialog}
+        textInputTestId={testIds.linkTextInput}
+        urlInputTestId={testIds.linkUrlInput}
+        applyButtonTestId={testIds.linkApplyButton}
       />
     </Box>
   )

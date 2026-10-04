@@ -20,8 +20,19 @@
     "folders": "Folders"
   },
   "mailbox": {
-    "inbox": "Inbox",
-    "empty": "There are no emails in your current folder"
+    "empty": "There are no emails in your current folder",
+    "roles": {
+      "inbox": "Inbox",
+      "drafts": "Drafts",
+      "sent": "Sent",
+      "trash": "Trash",
+      "junk": "Spam",
+      "templates": "Templates",
+      "archive": "Archive",
+      "outbox": "Outbox"
+    },
+    "expand": "Expand",
+    "collapse": "Collapse"
   },
   "email": {
     "noneSelected": "No email selected",

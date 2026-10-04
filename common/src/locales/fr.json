@@ -20,8 +20,19 @@
     "folders": "Dossiers"
   },
   "mailbox": {
-    "inbox": "Boîte de réception",
-    "empty": "Il n'y a aucun message dans ce dossier"
+    "empty": "Il n'y a aucun message dans ce dossier",
+    "roles": {
+      "inbox": "Boîte de réception",
+      "drafts": "Brouillons",
+      "sent": "Envoyés",
+      "trash": "Corbeille",
+      "junk": "Indésirables",
+      "templates": "Modèles",
+      "archive": "Archives",
+      "outbox": "Boîte d'envoi"
+    },
+    "expand": "Développer",
+    "collapse": "Réduire"
   },
   "email": {
     "noneSelected": "Aucun message sélectionné",

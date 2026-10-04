@@ -20,8 +20,19 @@
     "folders": "Thư mục"
   },
   "mailbox": {
-    "inbox": "Hộp thư đến",
-    "empty": "Không có thư nào ở thư mục hiện tại"
+    "empty": "Không có thư nào ở thư mục hiện tại",
+    "roles": {
+      "inbox": "Hộp thư đến",
+      "drafts": "Thư nháp",
+      "sent": "Đã gửi",
+      "trash": "Thùng rác",
+      "junk": "Thư rác",
+      "templates": "Mẫu",
+      "archive": "Lưu trữ",
+      "outbox": "Hộp thư đi"
+    },
+    "expand": "Mở rộng",
+    "collapse": "Đóng"
   },
   "email": {
     "noneSelected": "Chưa có email được lựa chọn",

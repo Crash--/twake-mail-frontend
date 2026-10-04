@@ -1,7 +1,8 @@
 import { Icon, Pen } from '@linagora/twake-icons'
-import { Box, Button, ListSubheader, Nav, Sidebar } from '@linagora/twake-mui'
+import { Box, Button, Sidebar } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { useI18n } from '@common/i18n/useI18n'
 
 /**
@@ -24,13 +25,7 @@ export function MailSidebar(): ReactElement {
         </Button>
       </Box>
       <Box className="u-flex-auto u-ov-auto u-mt-1">
-        {/* TODO: mailbox tree, fed by Mailbox/get through jmap-client-ts */}
-        <Nav
-          role="tree"
-          aria-label={t('sidebar.folders')}
-          subheader={<ListSubheader>{t('sidebar.folders')}</ListSubheader>}
-          data-testid="mailbox-tree"
-        />
+        <MailboxTree />
       </Box>
     </Sidebar>
   )

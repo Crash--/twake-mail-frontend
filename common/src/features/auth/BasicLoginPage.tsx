@@ -16,6 +16,7 @@ import { Navigate, useLocation } from 'react-router'
 
 import { CenteredCard } from '@/ds/CenteredCard/CenteredCard'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -67,6 +68,7 @@ function BasicLoginForm({
   service: BasicAuthService
 }): ReactElement {
   const { t } = useI18n()
+  useDocumentTitle(t('login.title'))
   const titleId = useId()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')

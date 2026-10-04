@@ -14,8 +14,9 @@ import type { EmailAddress } from 'jmap-client-ts'
 import { useEffect, useMemo, useRef, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
 import { formatFullDate } from '@common/features/thread/formatListDate'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
@@ -95,6 +96,7 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
     part => !part.cid || !referencedCids.has(normalizeCid(part.cid))
   )
   const backLabel = t('common.back')
+  useDocumentTitle(email.subject ?? '')
   const subjectRef = useRef<HTMLHeadingElement>(null)
 
   // The list the email replaces is gone: the focus moves to the subject,

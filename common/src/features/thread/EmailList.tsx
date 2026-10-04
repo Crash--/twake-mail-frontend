@@ -23,7 +23,9 @@ import {
   type RowAttributes
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
+import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { useSetKeyword } from '@common/features/email/useSetKeyword'
+import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -100,8 +102,11 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
   const { t } = useI18n()
   const query = useEmailList(mailboxId)
   const mailboxes = useMailboxes()
-  const role =
-    mailboxes.data?.find(mailbox => mailbox.id === mailboxId)?.role ?? null
+  const mailbox =
+    mailboxes.data?.find(candidate => candidate.id === mailboxId) ?? null
+  const role = mailbox?.role ?? null
+  const getMailboxName = useMailboxName()
+  useDocumentTitle(mailbox === null ? null : getMailboxName(mailbox))
   const showRecipients = role !== null && RECIPIENT_ROLES.includes(role)
   const emails = useMemo(() => flattenPages(query.data), [query.data])
   const total = query.data?.pages[0]?.total ?? null

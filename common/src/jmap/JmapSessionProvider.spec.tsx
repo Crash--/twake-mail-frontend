@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ReactElement } from 'react'
+import { useEffect, useState, type ReactElement } from 'react'
 
 import {
   FAKE_ACCOUNT_ID,
@@ -10,7 +10,9 @@ import {
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
+import { useJmapClient } from './JmapClientProvider'
 import { JmapSessionProvider, useJmapSession } from './JmapSessionProvider'
+import { SHARES_CAPABILITY } from './queries'
 
 function SessionSummary(): ReactElement {
   const { session, accountId } = useJmapSession()
@@ -57,5 +59,33 @@ describe('JmapSessionProvider', () => {
     expect(
       await screen.findByText(`${FAKE_USERNAME} / ${FAKE_ACCOUNT_ID}`)
     ).toBeVisible()
+  })
+
+  it('sends the team mailbox capability in every request of the mail screens', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: { [SHARES_CAPABILITY]: {} }
+    })
+    function Mailboxes(): ReactElement {
+      const client = useJmapClient()
+      const { accountId } = useJmapSession()
+      const [count, setCount] = useState<number | null>(null)
+      useEffect(() => {
+        void client
+          .call('Mailbox/get', { accountId, ids: null })
+          .then(response => {
+            setCount(response.list.length)
+          })
+      }, [client, accountId])
+      return <p>{count === null ? 'Loading' : `${count} mailboxes`}</p>
+    }
+    renderWithProviders(
+      <JmapSessionProvider>
+        <Mailboxes />
+      </JmapSessionProvider>,
+      { jmapServer: server }
+    )
+
+    expect(await screen.findByText(/mailboxes$/)).toBeVisible()
+    expect(server.requests[0]?.using).toContain(SHARES_CAPABILITY)
   })
 })

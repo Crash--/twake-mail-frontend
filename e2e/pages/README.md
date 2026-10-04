@@ -142,6 +142,21 @@ Conventions:
 | `email-list-item-mailbox` | the folders of a result, in its row | `mailboxContain` |
 | `empty-search-view` | no result | `UiKeys.emptySearchEmailView` |
 
+## Phase 2 — conversations (`ConversationPage`)
+
+| `data-testid` | Element | Flutter key |
+|---|---|---|
+| `thread-setting-toggle` | "Enable thread" in the account menu (`menuitemcheckbox`, `aria-checked`), until the settings screens exist | `ValueKey(AppLocalizations().thread)` |
+| `email-list-item-thread-count` | number of messages of a conversation row (absent for one email) | — |
+| `conversation-view` | an email shown with its conversation | `ThreadDetailView` |
+| `conversation-subject` / `conversation-count` | its subject (`h1`, focused when it opens) and "N messages" | — |
+| `conversation` | the messages (`ol` named "Messages of the conversation") | — |
+| `conversation-message` | a message (`data-expanded`) | `ThreadDetailCollapsedEmail`, `EmailView` |
+| `conversation-message-toggle` | its header, a button (`aria-expanded`); ArrowUp / ArrowDown / Home / End move between them | — |
+| `conversation-message-from` / `conversation-message-to` / `conversation-message-preview` / `conversation-message-unread` | sender, recipients (expanded), preview (collapsed), unread marker | — |
+| `conversation-toggle-seen` / `conversation-toggle-star` | mark the conversation read or unread, star or unstar it (`aria-pressed`) | `thread_detail_app_bar` buttons |
+| `email-view-back-button` / `email-view-body` | back to the list, the body of an expanded message | same ids as the reading view |
+
 ## Later phases (planned, used by `ComposerPage` already)
 
 | `data-testid` | Element | Flutter key |

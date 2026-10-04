@@ -48,7 +48,7 @@ the React app. One line per Patrol test, 116 lines.
 | `CMP` | Composer | 26 | 7 | 3 |
 | `ATT` | Attachments | 2 | 1 | 0 |
 | `EML` | Reading and acting on an email | 27 | 0 | 1 |
-| `THR` | Thread detail | 1 | 0 | 0 |
+| `THR` | Thread detail | 3 | 0 | 0 |
 | `SRCH` | Search | 14 | 10 | 0 |
 | `LBL` | Labels | 11 | 0 | 0 |
 | `SET` | Settings | 3 | 1 | 0 |
@@ -230,10 +230,15 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `EML-29` Remote images of an email (img, CSS background) are not requested until the user clicks "Show" in the "Remote images hidden" banner; "Always show for this sender" then shows them right away in the other emails of that sender. — web app only, no Patrol test (tmail-flutter always loads remote images).
   - Spec: `tests/email.spec.ts`, also run on the `mobile` and `tablet` projects. The remote host is served by `page.route`, which counts the requests.
 
-## THR — Thread detail (1)
+## THR — Thread detail (3)
 
 - [ ] `THR-01` With the "Thread" option switched on in Settings > Preferences, opening the provisioned email "Reply thread" (via search), replying with body "reply thread detail" and sending makes a new collapsed message whose preview contains that text appear in the open thread detail view (real-time update). — `thread_detail/thread_detail_reply_real_time_update_test.dart` · tags: `ios (default)`
   - Data: `provisioning/integration_test/eml/reply_email/reply-thread.eml` (in bob's backup.zip).
+  - Spec: `tests/thread.spec.ts`, also on `mobile` and `tablet`. The "Thread" setting is in the account menu until the settings screens exist; the reply is filed in Sent through JMAP (`In-Reply-To`, `References`) until the composer lands (phase 3).
+- [ ] `THR-02` With the "Thread" setting on, a mailbox lists one row per conversation (its newest email) with the number of its messages; opening it shows every message, the oldest first, the unread and the last ones expanded and the others collapsed (one line of preview), the unread ones marked read; ArrowUp / ArrowDown / Home / End move between the messages and Enter expands one. — web app, no Patrol test (tmail-flutter web collapses the list only with `FORCE_EMAIL_QUERY`, and has no message count).
+  - Spec: `tests/thread.spec.ts`, also on `mobile` and `tablet`.
+- [ ] `THR-03` The conversation actions star, then mark unread, every message of the conversation, in one request. — web app; tmail-flutter has these thread-level actions (ADR 0068) without a dedicated test.
+  - Spec: `tests/thread.spec.ts`.
 
 ## SRCH — Search (14)
 

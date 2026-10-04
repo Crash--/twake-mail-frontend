@@ -7,3 +7,4 @@ export {
   type QuickSearchFilter,
   type SearchFilterChip
 } from './SearchPage'
+export { ConversationPage } from './ConversationPage'

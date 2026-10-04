@@ -50,6 +50,11 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 const AUTOSAVE_DELAY_MS = 1500
 
+/** The quote keeps the remote images of the quoted email */
+function buildQuoteDocument(content: string): string {
+  return buildEmailDocument(content, { allowRemoteContent: true })
+}
+
 interface DraftStats {
   saves: number
   lastBytes: number
@@ -247,7 +252,7 @@ function SpikeComposerForm({
         toEmailHtml,
         htmlToText,
         sanitizeQuotedHtml,
-        buildEmailDocument,
+        buildEmailDocument: buildQuoteDocument,
         resolveCidSources,
         urlFor: (cid: string) => images.urlFor(cid)
       }
@@ -295,7 +300,7 @@ function SpikeComposerForm({
         onImageFiles={handleImageFiles}
         htmlBlock={{
           buildFrameDocument: html =>
-            buildEmailDocument(
+            buildQuoteDocument(
               `<div data-html-block="quote">${resolveCidSources(html, cid =>
                 images.urlFor(cid)
               )}</div>`

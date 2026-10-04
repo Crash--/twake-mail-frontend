@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-import { normalizeCid } from './emailBody'
+import { normalizeCid } from './sanitizeEmailHtml'
 
 export interface InlineImages {
   /** Object URL of each downloaded image, by Content-ID */

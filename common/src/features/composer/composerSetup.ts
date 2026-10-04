@@ -2,9 +2,9 @@ import type { Email, EmailBodyPart, Identity, JmapClient } from 'jmap-client-ts'
 
 import {
   joinHtmlValues,
-  normalizeCid,
   plainTextToHtml
 } from '@common/features/email/emailBody'
+import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 
 import { fromEmailHtml } from './emailHtml'
 import type { InlineImageStore } from './InlineImageStore'

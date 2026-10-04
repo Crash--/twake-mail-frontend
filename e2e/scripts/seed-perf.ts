@@ -10,6 +10,13 @@
  *
  *   npm run perf:seed                                  # 5000 + 500, credentials in perf/.perf-user.json
  *   npm run perf:seed -- --inbox 2000 --other 0 --out /tmp/user.json
+ *   npm run perf:seed -- --threads                     # 30 % of the emails reply to an older one
+ *
+ * With `threads`, about 30 % of the emails are replies (`Re:` subject, `In-Reply-To` and
+ * `References` of an older email of the same mailbox), created once the others are indexed:
+ * conversations of 1 to a few emails. The memory backend finds the email replied to through
+ * its search index, which misses long subjects (e2e/README.md): every subject is then short,
+ * `Topic <index>`.
  *
  * Needs the stack (scripts/start.sh), and leaves it unfit for the e2e suite (README, "Known
  * backend quirks"). Standalone on purpose (fetch only, no import): Node 24 runs it as is, and
@@ -28,11 +35,15 @@ export interface PerfUser {
   otherCount: number
   /** Milliseconds the provisioning took */
   seedMs: number
+  /** Some emails reply to others: conversations */
+  threads?: boolean
 }
 
 export interface SeedOptions {
   inbox?: number
   other?: number
+  /** Makes about 30 % of the emails replies to older ones */
+  threads?: boolean
   jmapUrl?: string
   webadminUrl?: string
   domain?: string
@@ -137,13 +148,27 @@ async function webadmin(url: string, method: string, body?: unknown): Promise<vo
   if (!response.ok) throw new Error(`${method} ${url}: ${response.status} ${await response.text()}`)
 }
 
+/** The Message-ID of a seeded email, to reply to it */
+export function seededMessageId(seed: number, index: number): string {
+  return `perf-${seed}-${index}@example.org`
+}
+
+/** The share of seeded emails that reply to an older one, with `threads` */
+const REPLY_SHARE = 0.3
+
+/** The subject of a seeded email with `threads`, short enough for the memory search */
+export function threadSubject(index: number): string {
+  return `Topic ${index}`
+}
+
 function makeEmail(
   index: number,
   mailboxId: string,
   receivedAt: Date,
   to: string,
   attachmentBlobId: string,
-  random: () => number
+  random: () => number,
+  seed: number
 ): Record<string, unknown> {
   const first = FIRST_NAMES[Math.floor(random() * FIRST_NAMES.length)]
   const last = LAST_NAMES[Math.floor(random() * LAST_NAMES.length)]
@@ -159,6 +184,7 @@ function makeEmail(
     mailboxIds: { [mailboxId]: true },
     keywords,
     receivedAt: receivedAt.toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    messageId: [seededMessageId(seed, index)],
     subject,
     from: [{ name: `${first} ${last}`, email: `${first}.${last}@example.org`.normalize('NFD').replace(/[^\x00-\x7f]/g, '').toLowerCase() }],
     to: [{ email: to }],
@@ -181,16 +207,66 @@ async function createEmails(
   count: number,
   to: string,
   attachmentBlobId: string,
-  seed: number
+  seed: number,
+  threads = false
 ): Promise<void> {
   const random = makeRandom(seed)
   // Most recent first, 5 to 95 minutes apart: 5 000 emails span about six months
   const emails: Record<string, unknown>[] = []
   let date = Date.now() - 60_000
   for (let index = 0; index < count; index += 1) {
-    emails.push(makeEmail(index, mailboxId, new Date(date), to, attachmentBlobId, random))
+    emails.push(makeEmail(index, mailboxId, new Date(date), to, attachmentBlobId, random, seed))
     date -= (5 + Math.floor(random() * 90)) * 60_000
   }
+  // Replies to an older email (a higher index) that is no reply itself, created last
+  const replies: Record<string, unknown>[] = []
+  const isReply = new Set<number>()
+  if (threads) {
+    emails.forEach((email, index) => {
+      email.subject = threadSubject(index)
+    })
+    for (let index = 0; index < count; index += 1) {
+      // Every thousandth email starts a conversation: the push measures reply to them
+      if (random() >= REPLY_SHARE || index % 1000 === 0) continue
+      const rootIndex = index + 1 + Math.floor(random() * 30)
+      const root = emails[rootIndex]
+      if (root === undefined || isReply.has(rootIndex)) continue
+      isReply.add(index)
+      const rootId = seededMessageId(seed, rootIndex)
+      Object.assign(emails[index] ?? {}, {
+        subject: `Re: ${String(root.subject)}`,
+        'header:In-Reply-To:asMessageIds': [rootId],
+        'header:References:asMessageIds': [rootId]
+      })
+    }
+    for (const index of [...isReply].sort((a, b) => b - a)) {
+      const reply = emails[index]
+      if (reply !== undefined) replies.push(reply)
+    }
+  }
+  const roots = emails.filter((_email, index) => !isReply.has(index))
+  await createInBatches(client, accountId, roots)
+  if (replies.length > 0) {
+    await waitIndexed(client, accountId, String(roots[roots.length - 1]?.subject))
+  }
+  await createInBatches(client, accountId, replies)
+}
+
+/** Waits until the search finds the email with `subject` (the index is asynchronous) */
+async function waitIndexed(client: SeedClient, accountId: string, subject: string): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const result = await client.call('Email/query', { accountId, filter: { subject }, limit: 1 })
+    if (Array.isArray(result.ids) && result.ids.length > 0) return
+    await new Promise(resolve => setTimeout(resolve, 500))
+  }
+  throw new Error(`The search does not find "${subject}"`)
+}
+
+async function createInBatches(
+  client: SeedClient,
+  accountId: string,
+  emails: Record<string, unknown>[]
+): Promise<void> {
   const batches: Record<string, unknown>[][] = []
   for (let start = 0; start < emails.length; start += BATCH_SIZE) {
     batches.push(emails.slice(start, start + BATCH_SIZE))
@@ -248,8 +324,9 @@ export async function seedPerfUser(options: SeedOptions = {}): Promise<PerfUser>
   ])
   const attachmentBlobId = await client.upload(accountId, attachment, 'application/pdf')
 
-  await createEmails(client, accountId, inbox.id, inboxCount, email, attachmentBlobId, 1)
-  await createEmails(client, accountId, otherId, otherCount, email, attachmentBlobId, 2)
+  const threads = options.threads ?? false
+  await createEmails(client, accountId, inbox.id, inboxCount, email, attachmentBlobId, 1, threads)
+  await createEmails(client, accountId, otherId, otherCount, email, attachmentBlobId, 2, threads)
 
   return {
     email,
@@ -258,8 +335,42 @@ export async function seedPerfUser(options: SeedOptions = {}): Promise<PerfUser>
     otherMailboxId: otherId,
     inboxCount,
     otherCount,
-    seedMs: Date.now() - started
+    seedMs: Date.now() - started,
+    threads
   }
+}
+
+/**
+ * A reply to the email `rootIndex` of the Inbox of a perf user seeded with `threads`, as if it
+ * had just arrived: its conversation comes up to the top of the list
+ */
+export async function createInboxReply(
+  user: Pick<PerfUser, 'email' | 'password' | 'inboxId'>,
+  rootIndex: number,
+  jmapUrl: string = process.env.E2E_JMAP_URL ?? 'http://127.0.0.1:18300'
+): Promise<string> {
+  const client = new SeedClient(jmapUrl, user.email, user.password)
+  const accountId = await client.accountId()
+  const rootId = seededMessageId(1, rootIndex)
+  const result = await client.call('Email/set', {
+    accountId,
+    create: {
+      pushed: {
+        mailboxIds: { [user.inboxId]: true },
+        keywords: {},
+        subject: `Re: ${threadSubject(rootIndex)}`,
+        'header:In-Reply-To:asMessageIds': [rootId],
+        'header:References:asMessageIds': [rootId],
+        from: [{ name: 'Push Sender', email: 'push.sender@example.org' }],
+        to: [{ email: user.email }],
+        bodyValues: { text: { value: 'Just replied' } },
+        textBody: [{ partId: 'text', type: 'text/plain' }]
+      }
+    }
+  })
+  const created = isRecord(result.created) && isRecord(result.created.pushed) ? result.created.pushed.id : null
+  if (typeof created !== 'string') throw new Error(`Email/set failed: ${JSON.stringify(result)}`)
+  return created
 }
 
 /**
@@ -319,7 +430,8 @@ if (isMain) {
   const other = readArgument('other')
   seedPerfUser({
     inbox: inbox === undefined ? undefined : Number(inbox),
-    other: other === undefined ? undefined : Number(other)
+    other: other === undefined ? undefined : Number(other),
+    threads: process.argv.includes('--threads')
   })
     .then(user => {
       mkdirSync(path.dirname(out), { recursive: true })

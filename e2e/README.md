@@ -242,7 +242,8 @@ e2e/
 │   ├── env.ts                environment variables
 │   └── global-setup.ts       fails fast when the stack is down
 ├── pages/                    page objects + README.md (the data-testid contract)
-└── tests/                    the specs (infra.spec.ts: harness smoke tests, no UI)
+└── tests/                    the specs (infra.spec.ts: harness smoke tests, no UI; login,
+                              mailbox, email, push: phase 0)
 ```
 
 ---

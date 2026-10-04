@@ -90,6 +90,11 @@ export class MailboxPage {
       })
   }
 
+  /** Star toggle of a list row (`aria-pressed` when starred) */
+  emailRowStar(subject: string): Locator {
+    return this.emailRow(subject).getByTestId('email-list-item-star')
+  }
+
   async openEmail(subject: string): Promise<EmailPage> {
     await this.emailRow(subject).click()
     const email = new EmailPage(this.page)

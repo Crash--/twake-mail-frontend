@@ -16,7 +16,8 @@ the React app. One line per Patrol test, 116 lines.
   ```
 
   `npx playwright test -g MBX-01` then runs exactly that scenario.
-- **Tick the box** when the spec exists **and passes in CI** — not before.
+- **Tick the box** when the spec exists **and passes in CI** — not before. Phase 0 entries
+  ticked before the first CI run say so ("CI to confirm").
 - Each line says what the Patrol test asserts (read from the scenario, not from its name), the
   source file (relative to `integration_test/tests/`) and its Patrol tags. A test without a
   `tags:` argument gets the `TestBase` default, `[ios]`: it never ran on web, which is why most
@@ -67,7 +68,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 ## LOGIN — Login (1)
 
-- [ ] `LOGIN-01` Logging in with basic auth (email + password; on mobile after "Use company server" → username → server URL) as the provisioned user lands on the thread (email list) view. — `login/login_with_basic_auth_test.dart` · tags: `web` `android` `ios`
+- [x] `LOGIN-01` Logging in with basic auth (email + password; on mobile after "Use company server" → username → server URL) as the provisioned user lands on the thread (email list) view. — `login/login_with_basic_auth_test.dart` · tags: `web` `android` `ios`
+  - Spec: `tests/login.spec.ts`. Passes locally against the stack, CI to confirm.
   - Data: the only test that does NOT seed credentials into app storage (every other test starts already logged in as bob@example.com); uses `USERNAME`, `BASIC_AUTH_URL`, `BASIC_AUTH_EMAIL`, `PASSWORD` dart-defines.
 
 ## MBX — Mailbox and folders (25)
@@ -78,7 +80,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [ ] `MBX-03` Creating subfolder "hidden sub folder" under Inbox from Inbox's folder menu, then choosing "Hide folder" on it, leaves Inbox with no children in the sidebar (and Inbox still reachable). — `mailbox/create_and_hide_sub_folder_test.dart` · tags: `ios (default)`
   - Web port: long press on the sidebar folder (and a native swipe to close the drawer). Web equivalent: hover ⋮ / right-click → New subfolder, then Hide folder; port it through the folder/row context menu (⋮ on hover, or right-click).
 - [ ] `MBX-04` Opening the sidebar folder search (magnifier in the "Folders" section header) and typing "Inbox" shows the Inbox folder in the search results. — `mailbox/search_mailbox_inbox_test.dart` · tags: `ios (default)`
-- [ ] `MBX-05` With one email sent to self (lands in Sent) and one sent with Trash as its "sent" folder, clicking Sent shows exactly one "sent subject" row and clicking Trash shows "trash subject". — `mailbox/switch_mailbox_test.dart` · tags: `ios (default)`
+- [x] `MBX-05` With one email sent to self (lands in Sent) and one sent with Trash as its "sent" folder, clicking Sent shows exactly one "sent subject" row and clicking Trash shows "trash subject". — `mailbox/switch_mailbox_test.dart` · tags: `ios (default)`
+  - Spec: `tests/mailbox.spec.ts`. Passes locally against the stack, CI to confirm.
 - [ ] `MBX-06` On a fresh account with no starred mail, the Favorites (Starred) folder is listed in the sidebar and opening it shows the empty-thread view. — `mailbox/display_empty_view_for_favorite_folder_test.dart` · tags: `ios (default)`
   - Data: relies on bob's restored mailbox having no starred email (backend reset between tests).
 - [ ] `MBX-07` The team mailbox "bob-guests" is listed in the sidebar; composing an email to bob-guests@example.com and sending shows the "Message has been sent successfully" toast, and the email appears in the team mailbox's INBOX after expanding it. — `mailbox/team_mailbox_receive_email_test.dart` · tags: `ios (default)`
@@ -104,7 +107,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Web port: long press on Inbox. Web equivalent: Inbox hover ⋮ / right-click → Mark as read; port it through the folder/row context menu (⋮ on hover, or right-click).
 - [ ] `MBX-16` With 40 emails provisioned in Inbox, choosing "Move folder content" → Templates from Inbox's folder menu moves them all: Templates lists them and Inbox shows the empty-thread view. — `mailbox/move_folder_content_test.dart` · tags: `ios (default)`
   - Web port: long press on Inbox. Web equivalent: Inbox hover ⋮ / right-click → Move folder content → destination picker; port it through the folder/row context menu (⋮ on hover, or right-click).
-- [ ] `MBX-17` The Inbox unread counter goes up by 1 in real time when a new email arrives, and back down when that email is marked read by another client (JMAP `Email/set`), without any manual refresh. — `mailbox/mailbox_count_real_time_update_test.dart` · tags: `ios (default)`
+- [x] `MBX-17` The Inbox unread counter goes up by 1 in real time when a new email arrives, and back down when that email is marked read by another client (JMAP `Email/set`), without any manual refresh. — `mailbox/mailbox_count_real_time_update_test.dart` · tags: `ios (default)`
+  - Spec: `tests/mailbox.spec.ts`. Passes locally against the stack, CI to confirm.
   - Data: relies on server push (JMAP WebSocket/state change); the "other client" update is a direct JMAP call.
 - [ ] `MBX-18` The used quota shown in the sidebar increases after an email with a .txt attachment is sent to self and the quota is reloaded. — `mailbox/quota_count_test.dart` · tags: `ios (default)`
   - Data: bob quota (200 messages / 50 MB) set by `provisioning.sh`; the test reads the used quota from the controller and triggers `reloadQuota()` programmatically (no UI refresh), so on web reload the page or wait for the push update.
@@ -174,9 +178,11 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 ## EML — Reading and acting on an email (27)
 
-- [ ] `EML-01` Given a self-sent email whose body is a single short "Lorem ipsum…" sentence, opening it from the Inbox list renders that full sentence in the email body viewer. — `email_detailed/display_email_with_short_content_test.dart` · tags: `ios (default)`
+- [x] `EML-01` Given a self-sent email whose body is a single short "Lorem ipsum…" sentence, opening it from the Inbox list renders that full sentence in the email body viewer. — `email_detailed/display_email_with_short_content_test.dart` · tags: `ios (default)`
+  - Spec: `tests/email.spec.ts`. Passes locally against the stack, CI to confirm.
 - [ ] `EML-02` Given a self-sent email with a very long plain body (hundreds of "Lorem ipsum" sentences), opening it renders the body and the reading pane scrolls all the way down to the end-of-content divider, at which point the subject header has scrolled out of view. — `email_detailed/display_and_scroll_email_with_long_content_test.dart` · tags: `ios (default)`
-- [ ] `EML-03` Given a self-sent email whose body is `<script>alert("XSSRobot")</script>`, opening it shows no alert dialog (no "XSSRobot"/"says"/"OK" text) and the sanitized rendered HTML no longer contains the script payload. — `email_detailed/display_email_with_xss_content_test.dart` · tags: `ios (default)`
+- [x] `EML-03` Given a self-sent email whose body is `<script>alert("XSSRobot")</script>`, opening it shows no alert dialog (no "XSSRobot"/"says"/"OK" text) and the sanitized rendered HTML no longer contains the script payload. — `email_detailed/display_email_with_xss_content_test.dart` · tags: `ios (default)`
+  - Spec: `tests/email.spec.ts`. Passes locally against the stack, CI to confirm.
   - Data: in Playwright, assert with `page.on('dialog')` never firing and the body iframe containing no `<script>`.
 - [ ] `EML-04` Given a self-sent HTML email with 12 `<img>` tags using oversize (2000px) or normal (100px) dimensions via `style`, `width/height` attributes or both, the rendered body normalizes every image to `max-width:100%; display:inline; height:…`, strips width/height attributes from oversize images, and keeps them (plus the 100px style width) on normal-size images. — `email_detailed/deformed_inlined_image_test.dart` · tags: `ios (default)`
   - Data: images point to `https://example.com/image.jpg` (no network needed, only the DOM attributes are checked).
@@ -215,6 +221,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - N/A web: long-press shortcut is a touch gesture. Web equivalent: click the address > "Copy email address" in the dialog, covered by EML-24.
 - [ ] `EML-26` Clicking the sender address in an opened email and choosing "Compose email" opens a new composer whose To field contains exactly that address. — `email_detailed/email_address_dialog/compose_email_from_email_address_test.dart` · tags: `ios (default)`
 - [ ] `EML-27` Clicking the sender address in an opened email and choosing "Create a rule with this email address" opens the rule (filter) creator with the condition input pre-filled with that address. — `email_detailed/email_address_dialog/create_rule_with_email_address_test.dart` · tags: `ios (default)`
+- [x] `EML-28` Opening an unread email marks it read: its row loses the unread marker, the Inbox counter goes down, and the email has `$seen` on the server. — web app only, no Patrol test (Patrol relies on it implicitly in EML-11)
+  - Spec: `tests/email.spec.ts`. Passes locally against the stack, CI to confirm.
 
 ## THR — Thread detail (1)
 
@@ -284,7 +292,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 ## PUSH — Real-time updates (1)
 
-- [ ] `PUSH-01` An email sent to self appears in the list without a manual refresh, unread and unstarred; when another client marks it read and then starred (direct JMAP `Email/set`), the row updates live to read and then to starred. — `web_socket/web_socket_test.dart` · tags: `ios (default)`
+- [x] `PUSH-01` An email sent to self appears in the list without a manual refresh, unread and unstarred; when another client marks it read and then starred (direct JMAP `Email/set`), the row updates live to read and then to starred. — `web_socket/web_socket_test.dart` · tags: `ios (default)`
+  - Spec: `tests/push.spec.ts`. Passes locally against the stack, CI to confirm.
   - Data: requires JMAP WebSocket push from the server.
 
 ## APPGRID — App grid (1)

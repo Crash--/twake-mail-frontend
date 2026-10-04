@@ -133,7 +133,9 @@ export const TMAIL_WEB_URL = 'http://127.0.0.1:18503/'
 export async function openInTmailWeb(
   browser: Browser,
   reader: Credentials,
-  shot: string
+  shot: string,
+  /** Where tmail-web drew the "•••" toggle of a collapsed quote, to expand it */
+  expandQuoteAt: { x: number; y: number } | null = null
 ): Promise<void> {
   const context = await browser.newContext({ viewport: { width: 1280, height: 1400 } })
   const page = await context.newPage()
@@ -146,6 +148,10 @@ export async function openInTmailWeb(
   await page.waitForTimeout(10000)
   await page.mouse.click(700, 178)
   await page.waitForTimeout(8000)
+  if (expandQuoteAt) {
+    await page.mouse.click(expandQuoteAt.x, expandQuoteAt.y)
+    await page.waitForTimeout(3000)
+  }
   await page.screenshot({ path: `/tmp/twake-mail-shots/spike-composer-${shot}.png` })
   await context.close()
 }

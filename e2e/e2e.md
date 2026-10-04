@@ -232,13 +232,13 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 ## THR — Thread detail (3)
 
-- [ ] `THR-01` With the "Thread" option switched on in Settings > Preferences, opening the provisioned email "Reply thread" (via search), replying with body "reply thread detail" and sending makes a new collapsed message whose preview contains that text appear in the open thread detail view (real-time update). — `thread_detail/thread_detail_reply_real_time_update_test.dart` · tags: `ios (default)`
+- [x] `THR-01` With the "Thread" option switched on in Settings > Preferences, opening the provisioned email "Reply thread" (via search), replying with body "reply thread detail" and sending makes a new collapsed message whose preview contains that text appear in the open thread detail view (real-time update). — `thread_detail/thread_detail_reply_real_time_update_test.dart` · tags: `ios (default)`
   - Data: `provisioning/integration_test/eml/reply_email/reply-thread.eml` (in bob's backup.zip).
-  - Spec: `tests/thread.spec.ts`, also on `mobile` and `tablet`. The "Thread" setting is in the account menu until the settings screens exist; the reply is filed in Sent through JMAP (`In-Reply-To`, `References`) until the composer lands (phase 3).
-- [ ] `THR-02` With the "Thread" setting on, a mailbox lists one row per conversation (its newest email) with the number of its messages; opening it shows every message, the oldest first, the unread and the last ones expanded and the others collapsed (one line of preview), the unread ones marked read; ArrowUp / ArrowDown / Home / End move between the messages and Enter expands one. — web app, no Patrol test (tmail-flutter web collapses the list only with `FORCE_EMAIL_QUERY`, and has no message count).
-  - Spec: `tests/thread.spec.ts`, also on `mobile` and `tablet`.
-- [ ] `THR-03` The conversation actions star, then mark unread, every message of the conversation, in one request. — web app; tmail-flutter has these thread-level actions (ADR 0068) without a dedicated test.
-  - Spec: `tests/thread.spec.ts`.
+  - Spec: `tests/thread.spec.ts`, also on `mobile` and `tablet`. The "Thread" setting is in the account menu until the settings screens exist; the reply is filed in Sent through JMAP (`In-Reply-To`, `References`) until the composer lands (phase 3). Passes in CI.
+- [x] `THR-02` With the "Thread" setting on, a mailbox lists one row per conversation (its newest email) with the number of its messages; opening it shows every message, the oldest first, the unread and the last ones expanded and the others collapsed (one line of preview), the unread ones marked read; ArrowUp / ArrowDown / Home / End move between the messages and Enter expands one. — web app, no Patrol test (tmail-flutter web collapses the list only with `FORCE_EMAIL_QUERY`, and has no message count).
+  - Spec: `tests/thread.spec.ts`, also on `mobile` and `tablet`. Passes in CI.
+- [x] `THR-03` The conversation actions star, then mark unread, every message of the conversation, in one request. — web app; tmail-flutter has these thread-level actions (ADR 0068) without a dedicated test.
+  - Spec: `tests/thread.spec.ts`. Passes in CI.
 
 ## SRCH — Search (14)
 

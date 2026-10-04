@@ -65,7 +65,9 @@ The James configuration is copied from tmail-flutter `backend-docker/` (`docker/
 `jmap.properties` is rendered by `start.sh` from `jmap.properties.template`, and the JWT keys
 are generated as in `scripts/patrol-web-integration-test-with-docker.sh`, all into
 `docker/.generated/` (git ignored). `start.sh` waits for the James healthcheck, creates the
-`example.com` domain and checks that JMAP answers through the proxy.
+`example.com` domain, checks that JMAP answers through the proxy, then waits until a throwaway
+account opens a session and reads its mailboxes three times in a row: right after start, James
+may still answer 401 to the first authenticated requests.
 
 **App configuration.** nginx serves `/.env.js` from [`docker/app-env.js`](docker/app-env.js),
 whatever `.env.js` the build holds: basic auth, JMAP session on the origin of the app

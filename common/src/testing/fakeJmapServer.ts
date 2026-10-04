@@ -63,10 +63,11 @@ export interface FakeJmapServer {
   /** Answers every call of these methods with a JMAP error of that type */
   methodErrors: Map<string, string>
   /**
-   * Holds the API requests until the returned function is called, to observe
-   * the screen while a request is in flight.
+   * Holds the API requests calling `method` (all of them without it) until
+   * the returned function is called, to observe the screen while a request
+   * is in flight.
    */
-  holdRequests: () => () => void
+  holdRequests: (method?: string) => () => void
   /** Names of the methods called so far, request after request */
   calledMethods: () => string[]
 }
@@ -279,17 +280,26 @@ export function makeFakeJmapServer(
         request.methodCalls.map(([name]) => name)
       )
   }
-  let held: Promise<void> | null = null
+  let held: { method: string | null; released: Promise<void> } | null = null
 
-  function holdRequests(): () => void {
+  function holdRequests(method?: string): () => void {
     let release = (): void => undefined
-    held = new Promise(resolve => {
+    const released = new Promise<void>(resolve => {
       release = () => {
         held = null
         resolve()
       }
     })
+    held = { method: method ?? null, released }
     return release
+  }
+
+  function isHeld(request: FakeJmapRequest): boolean {
+    if (!held) return false
+    const { method } = held
+    return (
+      method === null || request.methodCalls.some(([name]) => name === method)
+    )
   }
 
   function getMailboxes(args: Record<string, unknown>): unknown {
@@ -445,7 +455,7 @@ export function makeFakeJmapServer(
     if (input === FAKE_API_URL && typeof init?.body === 'string') {
       const request = parseRequest(JSON.parse(init.body))
       server.requests.push(request)
-      if (held) await held
+      if (held && isHeld(request)) await held.released
       return respond(request)
     }
     return new Response('Not found', { status: 404 })

@@ -31,6 +31,7 @@ import {
 import type { EmailDetail } from './queries'
 import { useEmail } from './useEmail'
 import { useInlineImageUrls } from './useInlineImageUrls'
+import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
 
 interface AddressLineProps {
   label: TranslationKey
@@ -65,6 +66,7 @@ interface EmailContentProps {
 
 function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
   const { t, lang } = useI18n()
+  useMarkAsReadOnOpen(email)
   const sender = email.from?.[0] ?? null
   const html = useMemo(
     () => joinHtmlValues(email.htmlBody, email.bodyValues),

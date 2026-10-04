@@ -2,6 +2,9 @@ import { QueryClient } from '@tanstack/react-query'
 
 const MAX_QUERY_RETRIES = 2
 
+/** How long fetched data counts as fresh, without push (ms) */
+export const DEFAULT_STALE_TIME = 30_000
+
 function getHttpStatus(error: unknown): number | null {
   if (typeof error !== 'object' || error === null || !('status' in error)) {
     return null
@@ -27,7 +30,7 @@ export function makeQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 30_000,
+        staleTime: DEFAULT_STALE_TIME,
         retry: shouldRetryQuery,
         refetchOnWindowFocus: false
       },

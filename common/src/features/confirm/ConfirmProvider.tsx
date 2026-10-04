@@ -3,8 +3,8 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
-  DialogTitle
+  DialogTitle,
+  Typography
 } from '@linagora/twake-mui'
 import {
   createContext,
@@ -92,13 +92,17 @@ export function ConfirmProvider({
       >
         <DialogTitle id={titleId}>{pending?.title}</DialogTitle>
         <DialogContent>
-          <DialogContentText id={messageId}>
+          {/* Not DialogContentText: text.secondary is below AA contrast
+              (docs/twake-mui-gaps.md) */}
+          <Typography id={messageId} color="textPrimary">
             {pending?.message}
-          </DialogContentText>
+          </Typography>
         </DialogContent>
         <DialogActions>
+          {/* Inherit: primary text on white is below AA contrast */}
           <Button
             variant="outlined"
+            color="inherit"
             onClick={handleCancel}
             autoFocus
             data-testid="confirm-dialog-cancel-button"

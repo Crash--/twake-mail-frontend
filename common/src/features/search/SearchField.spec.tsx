@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { useLocation } from 'react-router'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { CONTACT_AUTOCOMPLETE_CAPABILITY } from '@common/jmap/linagoraMethods'
 import {
   FAKE_USERNAME,
@@ -264,5 +265,30 @@ describe('SearchField', () => {
     expect(screen.getByTestId('location')).toHaveTextContent(
       '/mailbox/mailbox-inbox'
     )
+  })
+
+  it('puts "Clear filter" beside the title of the advanced search on a phone', async () => {
+    mockViewport({ width: 390 })
+    try {
+      await renderField(makeServer())
+      await userEvent.click(combobox())
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Advanced search' })
+      )
+
+      // Named by its title alone
+      const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
+      const clear = within(dialog).getByRole('button', { name: 'Clear filter' })
+      const heading = within(dialog).getByRole('heading', {
+        name: 'Advanced search'
+      })
+      // In the title row, not in the actions at the bottom
+      expect(heading.parentElement?.parentElement).toBe(clear.parentElement)
+      expect(
+        within(dialog).getByRole('button', { name: 'Cancel' })
+      ).toBeVisible()
+    } finally {
+      resetViewport()
+    }
   })
 })

@@ -8,7 +8,13 @@ import {
   Stack,
   TextField
 } from '@linagora/twake-mui'
-import { useId, useState, type FormEvent, type ReactElement } from 'react'
+import {
+  useId,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactElement
+} from 'react'
 
 import type { RichTextLinkDialogLabels } from './types'
 
@@ -43,6 +49,7 @@ export function LinkDialog({
   onClose
 }: LinkDialogProps): ReactElement {
   const titleId = useId()
+  const urlRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState(initialValue.text)
   const [url, setUrl] = useState(initialValue.url)
   const [opened, setOpened] = useState(open)
@@ -69,6 +76,8 @@ export function LinkDialog({
       size="small"
       // The editor gets the focus back itself once the link is applied
       disableRestoreFocus
+      // Once in place: a menu closing at the same time would take it back
+      slotProps={{ transition: { onEntered: () => urlRef.current?.focus() } }}
     >
       <form onSubmit={handleSubmit} noValidate>
         <DialogTitle id={titleId}>{labels.title}</DialogTitle>
@@ -89,7 +98,7 @@ export function LinkDialog({
               value={url}
               onChange={event => setUrl(event.target.value)}
               type="url"
-              autoFocus
+              inputRef={urlRef}
               required
               fullWidth
               size="small"

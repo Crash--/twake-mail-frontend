@@ -149,3 +149,23 @@ export function findMailboxIdByRole(
 ): string | null {
   return mailboxes.find(mailbox => mailbox.role === role)?.id ?? null
 }
+
+/**
+ * The path of a mailbox, from the top level, as tmail-flutter shows it in
+ * its toasts: `Archive`, `Work/Clients`
+ */
+export function mailboxPath(
+  mailboxes: readonly MailboxSummary[],
+  mailboxId: string,
+  getName: (mailbox: MailboxSummary) => string
+): string {
+  const byId = new Map(mailboxes.map(mailbox => [mailbox.id, mailbox]))
+  const mailbox = byId.get(mailboxId)
+  if (mailbox === undefined) return ''
+  return [...findAncestorIds(mailboxes, mailboxId).reverse(), mailboxId]
+    .flatMap(id => {
+      const node = byId.get(id)
+      return node === undefined ? [] : [getName(node)]
+    })
+    .join('/')
+}

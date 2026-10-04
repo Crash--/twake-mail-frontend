@@ -11,14 +11,17 @@
     "back": "Назад",
     "close": "Закрыть",
     "cancel": "Отмена",
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "undo": "Отменить",
+    "connectionError": "Ошибка подключения"
   },
   "topbar": {
     "apps": "Перейти к приложениям",
     "account": "Управление аккаунтом",
     "logout": "Выйти",
     "search": "Поиск",
-    "showFolders": "Показать папки"
+    "showFolders": "Показать папки",
+    "searchPlaceholder": "Поиск по почте"
   },
   "sidebar": {
     "newMessage": "Новое сообщение",
@@ -242,5 +245,29 @@
     "wordsHint": "Разделяйте слова запятыми",
     "loading": "Загрузка подсказок",
     "suggestionCount": "%{smart_count} подсказка |||| %{smart_count} подсказки |||| %{smart_count} подсказок"
+  },
+  "emailActions": {
+    "toast": {
+      "movedTo": "Перемещено в %{destinationMailboxPath}",
+      "movedToTrash": "Перемещено в корзину",
+      "markedAsSpam": "Помечено как спам",
+      "markedAsNotSpam": "Убрать из спама",
+      "deletedForever": "Сообщение удалено навсегда",
+      "deletedForeverCount": "%{smart_count} сообщение удалено навсегда |||| %{smart_count} сообщения удалены навсегда |||| %{smart_count} сообщений удалено навсегда",
+      "markedMessagesAs": "Вы пометили сообщения как \"%{action}\"",
+      "markedMessageAs": "Сообщение было помечено как %{action}",
+      "read": "Прочитано",
+      "unread": "Не прочитано",
+      "starred": "Отмечено как избранное",
+      "unstarred": "Удалено из избранного",
+      "starredCount": "%{smart_count} сообщение добавлено в избранное |||| %{smart_count} сообщения добавлены в избранное |||| %{smart_count} сообщений добавлено в избранное",
+      "unstarredCount": "%{smart_count} сообщение убрано из избранного |||| %{smart_count} сообщения убраны из избранного |||| %{smart_count} сообщений убрано из избранного"
+    },
+    "deleteForever": {
+      "title": "Удалить сообщение навсегда",
+      "message": "Вы собираетесь безвозвратно удалить это сообщение. Вы хотите продолжить?",
+      "titleMany": "Удалить сообщения навсегда",
+      "messageMany": "Вы собираетесь безвозвратно удалить %{count} элементов из %{mailboxName}. Вы хотите продолжить?"
+    }
   }
 }

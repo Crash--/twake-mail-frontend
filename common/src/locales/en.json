@@ -11,14 +11,17 @@
     "back": "Back",
     "close": "Close",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "undo": "Undo",
+    "connectionError": "Connection error"
   },
   "topbar": {
     "apps": "Go to applications",
     "account": "Manage account",
     "logout": "Sign out",
     "search": "Search",
-    "showFolders": "Show folders"
+    "showFolders": "Show folders",
+    "searchPlaceholder": "Search mail"
   },
   "sidebar": {
     "newMessage": "New message",
@@ -242,5 +245,29 @@
     "wordsHint": "Separate words with commas",
     "loading": "Loading suggestions",
     "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions"
+  },
+  "emailActions": {
+    "toast": {
+      "movedTo": "Moved to %{destinationMailboxPath}",
+      "movedToTrash": "Moved to Trash",
+      "markedAsSpam": "Marked as spam",
+      "markedAsNotSpam": "Marked as not spam",
+      "deletedForever": "Message has been deleted forever",
+      "deletedForeverCount": "%{smart_count} message has been deleted forever |||| %{smart_count} messages have been deleted forever",
+      "markedMessagesAs": "You’ve marked messages as \"%{action}\"",
+      "markedMessageAs": "Message has been marked as %{action}",
+      "read": "Read",
+      "unread": "Unread",
+      "starred": "Mail has been starred",
+      "unstarred": "Mail has been unstarred",
+      "starredCount": "%{smart_count} message starred |||| %{smart_count} messages starred",
+      "unstarredCount": "%{smart_count} message unstarred |||| %{smart_count} messages unstarred"
+    },
+    "deleteForever": {
+      "title": "Delete message forever",
+      "message": "You are about to permanently delete this message. Do you want to continue?",
+      "titleMany": "Delete messages forever",
+      "messageMany": "You are about to permanently delete %{count} items in %{mailboxName}. Do you want to continue?"
+    }
   }
 }

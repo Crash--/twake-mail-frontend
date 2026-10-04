@@ -26,7 +26,7 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import { getMailboxIcon } from './mailboxDisplay'
 import {
-  buildMailboxTree,
+  buildMailboxSections,
   listVisibleMailboxes,
   mailboxPath
 } from './mailboxTree'
@@ -39,17 +39,33 @@ export interface PickMailboxOptions {
   title?: string
   /** Listed but not selectable, e.g. the folder the emails are in */
   disabledIds?: readonly string[]
+  /**
+   * A first option standing for the top level ("Personal folders"), for a
+   * folder to create or move: chosen, it resolves to `PICKED_ROOT`
+   */
+  rootLabel?: string
+  /** The personal folders only, not the team mailboxes */
+  personalOnly?: boolean
 }
 
-/** Asks for a folder; resolves to it, or null when the user closes */
+/** The top level, when `rootLabel` is given */
+export const PICKED_ROOT = 'root'
+
+/**
+ * Asks for a folder; resolves to it (`PICKED_ROOT` for the top level), or
+ * null when the user closes
+ */
 export type PickMailbox = (
   options?: PickMailboxOptions
-) => Promise<MailboxSummary | null>
+) => Promise<MailboxSummary | typeof PICKED_ROOT | null>
 
 const PickMailboxContext = createContext<PickMailbox | null>(null)
 
+/** Not a mailbox id: JMAP ids never hold a space */
+const ROOT_OPTION_ID = 'top level'
+
 interface PendingPick extends PickMailboxOptions {
-  resolve: (mailbox: MailboxSummary | null) => void
+  resolve: (mailbox: MailboxSummary | typeof PICKED_ROOT | null) => void
 }
 
 export interface MailboxPickerProviderProps {
@@ -59,8 +75,9 @@ export interface MailboxPickerProviderProps {
 /**
  * The folder picker, as tmail-flutter's destination picker: a dialog with
  * the tree of the folders and a field filtering them by name or path
- * (`ds/FilterableListbox`). `await pickMailbox()` resolves to the folder
- * chosen; the focus goes back to what opened it.
+ * (`ds/FilterableListbox`), the personal folders then the team mailboxes;
+ * hidden folders are not offered. `await pickMailbox()` resolves to the
+ * folder chosen; the focus goes back to what opened it.
  */
 export function MailboxPickerProvider({
   children
@@ -83,7 +100,7 @@ export function MailboxPickerProvider({
     []
   )
 
-  const close = (mailbox: MailboxSummary | null): void => {
+  const close = (mailbox: MailboxSummary | typeof PICKED_ROOT | null): void => {
     pendingRef.current?.resolve(mailbox)
     pendingRef.current = null
     setPending(null)
@@ -91,8 +108,11 @@ export function MailboxPickerProvider({
 
   const options = useMemo((): FilterableListboxOption[] => {
     const disabled = new Set(pending?.disabledIds ?? [])
-    return listVisibleMailboxes(buildMailboxTree(mailboxes), () => true).map(
-      ({ mailbox, level }) => ({
+    const { personal, team } = buildMailboxSections(mailboxes, false)
+    const trees =
+      pending?.personalOnly === true ? personal : [...personal, ...team]
+    const folders = listVisibleMailboxes(trees, () => true).map(
+      ({ mailbox, level }): FilterableListboxOption => ({
         id: mailbox.id,
         label: getName(mailbox),
         secondary: mailboxPath(mailboxes, mailbox.id, getName),
@@ -101,9 +121,20 @@ export function MailboxPickerProvider({
         disabled: disabled.has(mailbox.id)
       })
     )
+    const rootLabel = pending?.rootLabel
+    return rootLabel === undefined
+      ? folders
+      : [
+          { id: ROOT_OPTION_ID, label: rootLabel, secondary: rootLabel },
+          ...folders
+        ]
   }, [mailboxes, getName, pending])
 
   const handleSelect = (option: FilterableListboxOption): void => {
+    if (option.id === ROOT_OPTION_ID) {
+      close(PICKED_ROOT)
+      return
+    }
     close(mailboxes.find(mailbox => mailbox.id === option.id) ?? null)
   }
   const handleClose = (): void => {

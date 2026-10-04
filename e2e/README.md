@@ -45,7 +45,7 @@ npx playwright show-trace test-results/artifacts/<test>/trace.zip
 
 Three Playwright projects, all in Chromium: `chromium` (a desktop, the whole suite), `mobile`
 (390 × 844, touch) and `tablet` (820 × 1180, touch). The last two replay the main path
-(`LOGIN-01`, `MBX-05`, `EML-01`, `A11Y-01`) and the `RESP` specs only (`grep` in
+(`LOGIN-01`, `MBX-05`, `EML-01`, `A11Y-01`), the `RESP` specs and the search on a small screen (`SRCH-01`, `SRCH-03`, `SRCH-13`) only (`grep` in
 `playwright.config.ts`). Below 1200 px the folders are in a drawer: `MailboxPage` opens it when a
 method needs the tree (`showFolders`, `openFolder`, `expectFolderSelected`).
 
@@ -331,6 +331,18 @@ checked to add Dex and the OIDC specs.
   `tmail-backend-issues/memory-email-set-update-hang/repro.mjs`. The suite creates far fewer
   messages per run, so a fresh stack is fine; but **never run the suite after the perf seed**:
   `stop.sh`, then `start.sh` again. Not checked on the distributed backend.
+- **Search on the memory image** (Lucene in memory):
+  - a `text` (or `subject`) condition of more than three or four words, or
+    whose words follow a `<`, finds nothing: the search specs type shorter,
+    distinctive queries, and `waitForEmail` (a `subject` query) cannot wait
+    for long subjects (list the mailbox instead);
+  - `SearchSnippet/get` answers `serverFail` (a `NullPointerException` in
+    `LuceneSearchHighlighter.getHighlightAttachmentTextBody`) for some emails
+    with an attachment: the app then shows the results without highlights;
+  - under many parallel workers (16), uploads are sometimes lost
+    ("Attachment not found") and concurrent `Email/set` moves fail with a
+    `ConcurrentModificationException`; the suite is stable with the 2
+    workers of CI (`E2E_WORKERS=2`).
 - Deleting a user (`DELETE /users/…`) removes the account (it can no longer authenticate,
   `INFRA-02`) but James does not purge its mailboxes; harmless here (memory backend, random
   addresses, `stop.sh` drops everything).

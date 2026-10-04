@@ -250,7 +250,7 @@ describe('EmailList', () => {
     )
     expect(
       screen.getAllByRole('columnheader').map(header => header.textContent)
-    ).toEqual(['Status', 'Sender', 'Subject', 'Attachment', 'Date'])
+    ).toEqual(['Status', 'Sender', 'Subject', 'Attachment', 'Date', 'Actions'])
   })
 
   it('opens an email from the keyboard', async () => {
@@ -261,5 +261,31 @@ describe('EmailList', () => {
     await userEvent.keyboard('{ArrowDown}{Enter}')
 
     expect(screen.getByText('Opened e1 of mailbox-inbox')).toBeVisible()
+  })
+
+  it('marks an email as read, then unread, from its row actions', async () => {
+    const server = makeFakeJmapServer({
+      emails: [makeEmail({ id: 'new', subject: 'Fresh news' })]
+    })
+    renderList(server)
+    const row = await screen.findByTestId('email-list-item')
+
+    await userEvent.click(
+      within(row).getByRole('button', { name: 'Mark as read' })
+    )
+
+    expect(row).not.toHaveAttribute('data-unread')
+    await waitFor(() => {
+      expect(server.emails[0]?.keywords).toEqual({ $seen: true })
+    })
+
+    await userEvent.click(
+      within(row).getByRole('button', { name: 'Mark as unread' })
+    )
+
+    await waitFor(() => {
+      expect(server.emails[0]?.keywords).toEqual({})
+    })
+    expect(row).toHaveAttribute('data-unread', 'true')
   })
 })

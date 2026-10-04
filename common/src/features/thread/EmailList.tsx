@@ -133,6 +133,13 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
     [setKeyword]
   )
 
+  const handleToggleSeen = useCallback(
+    (email: EmailListItemData): void => {
+      setKeyword({ email, keyword: SEEN, isSet: !hasKeyword(email, SEEN) })
+    },
+    [setKeyword]
+  )
+
   // Stable, like the cell below: the rows of the table are memoized and
   // only render again when their email changes
   const columns = useMemo<(VirtualizedTableColumn & { id: EmailColumnId })[]>(
@@ -164,6 +171,13 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
         width: 104,
         textAlign: 'right',
         sortable: false
+      },
+      {
+        id: 'actions',
+        label: t('thread.columns.actions'),
+        width: 48,
+        sortable: false,
+        disablePadding: true
       }
     ],
     [t, showRecipients]
@@ -177,11 +191,12 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
             mailboxId={mailboxId}
             showRecipients={showRecipients}
             onToggleStar={handleToggleStar}
+            onToggleSeen={handleToggleSeen}
           />
         )
       }
     }),
-    [mailboxId, showRecipients, handleToggleStar]
+    [mailboxId, showRecipients, handleToggleStar, handleToggleSeen]
   )
 
   let content: ReactElement

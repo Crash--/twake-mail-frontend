@@ -49,6 +49,8 @@
     "attachments": "Attachments",
     "content": "Message content",
     "notFound": "This message no longer exists",
+    "markAsRead": "Mark as read",
+    "markAsUnread": "Mark as unread",
     "starred": "Starred"
   },
   "login": {
@@ -71,7 +73,8 @@
       "status": "Status",
       "sender": "Sender",
       "subject": "Subject",
-      "date": "Date"
+      "date": "Date",
+      "actions": "Actions"
     }
   }
 }

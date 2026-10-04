@@ -49,6 +49,8 @@
     "attachments": "Pièces jointes",
     "content": "Contenu du message",
     "notFound": "Ce message n'existe plus",
+    "markAsRead": "Marquer comme lu",
+    "markAsUnread": "Marquer comme non lu",
     "starred": "Favoris"
   },
   "login": {
@@ -71,7 +73,8 @@
       "status": "Statut",
       "sender": "Expéditeur",
       "subject": "Sujet",
-      "date": "Date"
+      "date": "Date",
+      "actions": "Actions"
     }
   }
 }

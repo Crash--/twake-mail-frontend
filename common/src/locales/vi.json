@@ -49,6 +49,8 @@
     "attachments": "Đính kèm",
     "content": "Nội dung thư",
     "notFound": "Thư này không còn tồn tại",
+    "markAsRead": "Đánh dấu đã đọc",
+    "markAsUnread": "Đánh dấu chưa đọc",
     "starred": "Quan trọng"
   },
   "login": {
@@ -71,7 +73,8 @@
       "status": "Trạng thái",
       "sender": "Người gửi",
       "subject": "Tiêu đề",
-      "date": "Ngày"
+      "date": "Ngày",
+      "actions": "Hành động"
     }
   }
 }

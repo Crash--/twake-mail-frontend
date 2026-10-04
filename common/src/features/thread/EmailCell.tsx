@@ -1,4 +1,11 @@
-import { Attachment, Icon, Star, StarOutline } from '@linagora/twake-icons'
+import {
+  Attachment,
+  Email as EmailIcon,
+  EmailOpen,
+  Icon,
+  Star,
+  StarOutline
+} from '@linagora/twake-icons'
 import {
   IconButton,
   Tooltip,
@@ -9,6 +16,7 @@ import {
 import type { ReactElement } from 'react'
 import { useHref, useNavigate } from 'react-router'
 
+import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowLink } from '@/ds/RowLink/RowLink'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { formatAddressNames } from '@common/features/email/addresses'
@@ -45,6 +53,7 @@ export interface EmailCellProps {
   /** Shows the recipients instead of the sender (Sent, Drafts…) */
   showRecipients: boolean
   onToggleStar: (email: EmailListItemData) => void
+  onToggleSeen: (email: EmailListItemData) => void
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -53,12 +62,13 @@ export interface EmailCellProps {
 /**
  * A cell of the email list, rendered according to its column: unread marker
  * and star, sender, subject and preview (the link opening the email, whose
- * name says it all), attachment and date.
+ * name says it all), attachment, date, and the actions shown on hover.
  */
 export function EmailCell({
   mailboxId,
   showRecipients,
   onToggleStar,
+  onToggleSeen,
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -161,6 +171,26 @@ export function EmailCell({
           </time>
         </Typography>
       )
+    case 'actions': {
+      const seenLabel = t(isUnread ? 'email.markAsRead' : 'email.markAsUnread')
+      const handleToggleSeen = (): void => {
+        onToggleSeen(email)
+      }
+      return (
+        <RowHoverActions>
+          <Tooltip title={seenLabel}>
+            <IconButton
+              size="small"
+              aria-label={seenLabel}
+              onClick={handleToggleSeen}
+              data-testid="email-list-item-toggle-seen"
+            >
+              <Icon icon={isUnread ? EmailOpen : EmailIcon} />
+            </IconButton>
+          </Tooltip>
+        </RowHoverActions>
+      )
+    }
     default:
       return null
   }

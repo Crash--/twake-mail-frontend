@@ -11,6 +11,9 @@ loaded, one new email costs 69 requests, 1.2 MB and 6 s before it shows,
 because every loaded page is refetched. Incremental updates (`Email/changes`)
 are the next thing to build.
 
+**Update:** done, see [`sync.md`](sync.md): the same push now costs 1 request,
+2 kB and 32 ms.
+
 ## Setup
 
 | | |

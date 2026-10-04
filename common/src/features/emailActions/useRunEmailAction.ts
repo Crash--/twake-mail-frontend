@@ -1,6 +1,9 @@
 import { useCallback } from 'react'
 
-import { usePickMailbox } from '@common/features/mailbox/MailboxPickerProvider'
+import {
+  PICKED_ROOT,
+  usePickMailbox
+} from '@common/features/mailbox/MailboxPickerProvider'
 
 import type { EmailActionId } from './emailActionItems'
 import type { TargetEmail } from './planEmailChanges'
@@ -40,7 +43,7 @@ export function useRunEmailAction(): (
         const destination = await pickMailbox({
           disabledIds: mailboxId === null ? [] : [mailboxId]
         })
-        if (destination === null) return false
+        if (destination === null || destination === PICKED_ROOT) return false
         return run({
           action: 'moveTo',
           emails,

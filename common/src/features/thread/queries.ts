@@ -41,6 +41,27 @@ export type EmailListItemData = Pick<
   (typeof EMAIL_LIST_PROPERTIES)[number]
 >
 
+/**
+ * What a list of conversations knows of every email of a listed thread:
+ * enough to tell its participants and its state (unread, starred,
+ * attachment), to find the email standing for it in a mailbox, and to act
+ * on all of them
+ */
+export const THREAD_MEMBER_PROPERTIES = [
+  'id',
+  'threadId',
+  'mailboxIds',
+  'keywords',
+  'receivedAt',
+  'from',
+  'hasAttachment'
+] as const
+
+export type ThreadMember = Pick<
+  Email,
+  (typeof THREAD_MEMBER_PROPERTIES)[number]
+>
+
 export interface EmailListPage {
   emails: EmailListItemData[]
   /** Position of the first email of the page in the query results */
@@ -61,10 +82,10 @@ export interface EmailListPage {
    */
   snippets?: Readonly<Record<string, EmailSnippet>>
   /**
-   * Lists of conversations: the number of emails of each thread listed, by
-   * thread id (`Thread/get`)
+   * Lists of conversations: every email of each thread listed, the oldest
+   * first, by thread id (`Thread/get`, then `Email/get` of their ids)
    */
-  threadSizes?: Readonly<Record<string, number>>
+  threads?: Readonly<Record<string, readonly ThreadMember[]>>
 }
 
 /** The highlighted subject and preview of a search result */
@@ -148,13 +169,25 @@ export function orderByIds(
   })
 }
 
-/** Number of emails of each thread, from `Thread/get` */
-function toThreadSizes(
-  threads: readonly { id: string; emailIds: readonly string[] }[]
-): Record<string, number> {
-  return Object.fromEntries(
-    threads.map(thread => [thread.id, thread.emailIds.length])
+/** Orders the members of a thread: the oldest first */
+export function byReceivedAt<T extends Pick<Email, 'receivedAt'>>(
+  left: T,
+  right: T
+): number {
+  return left.receivedAt.localeCompare(right.receivedAt)
+}
+
+/** The members of the threads `ids`, by thread id, the oldest first */
+export function groupThreadMembers(
+  threadIds: readonly string[],
+  members: readonly ThreadMember[]
+): Record<string, ThreadMember[]> {
+  const threads: Record<string, ThreadMember[]> = Object.fromEntries(
+    threadIds.map(id => [id, []])
   )
+  for (const member of members) threads[member.threadId]?.push(member)
+  for (const list of Object.values(threads)) list.sort(byReceivedAt)
+  return threads
 }
 
 function toSnippets(
@@ -169,7 +202,7 @@ interface ListCalls {
   query: PromiseLike<QueryResponse>
   emails: PromiseLike<{ state: string; list: EmailListItemData[] }>
   snippets: PromiseLike<{ list: SearchSnippet[] }> | null
-  threads: PromiseLike<{ list: { id: string; emailIds: string[] }[] }> | null
+  members: PromiseLike<{ list: ThreadMember[] }> | null
 }
 
 export interface ListPageOptions {
@@ -182,9 +215,10 @@ export interface ListPageOptions {
 /**
  * One page of an email list, in one JMAP request: `Email/query`, then the
  * `Email/get` of its ids and, through back-references, the
- * `SearchSnippet/get` of a search and the `Thread/get` of the threads of a
- * list showing one row per conversation (for their sizes). Snippets and
- * sizes are optional: a server failing on them still lists the emails.
+ * `SearchSnippet/get` of a search and, for a list showing one row per
+ * conversation, the `Thread/get` of the threads listed and the `Email/get`
+ * of all their emails (their members). Snippets and members are optional:
+ * a server failing on them still lists the emails.
  */
 export async function fetchListPage(
   client: JmapClient,
@@ -224,32 +258,40 @@ export async function fetchListPage(
             '#ids': emails.ref('/list/*/threadId')
           })
         : null
-      calls.current = { query, emails, snippets, threads }
+      const members = threads
+        ? builder.call('Email/get', {
+            accountId,
+            '#ids': threads.ref('/list/*/emailIds'),
+            properties: [...THREAD_MEMBER_PROPERTIES]
+          })
+        : null
+      calls.current = { query, emails, snippets, members }
       return [
         query,
         emails,
         ...(snippets ? [snippets] : []),
-        ...(threads ? [threads] : [])
+        ...(threads && members ? [threads, members] : [])
       ]
     },
     signal ? { signal } : {}
   )
   if (calls.current === null) throw new Error('The list request was not built')
-  const { query, emails, snippets, threads } = calls.current
-  const [queryResult, emailsResult, snippetsResult, threadsResult] =
+  const { query, emails, snippets, members } = calls.current
+  const [queryResult, emailsResult, snippetsResult, membersResult] =
     await Promise.all([
       settle(query),
       settle(emails),
       snippets === null ? null : settle(snippets),
-      threads === null ? null : settle(threads)
+      members === null ? null : settle(members)
     ])
   if (!queryResult.ok) throw queryResult.error
   if (!emailsResult.ok) throw emailsResult.error
   const { ids } = queryResult.value
   const total = queryResult.value.total ?? null
   const next = queryResult.value.position + ids.length
+  const listed = orderByIds(emailsResult.value.list, ids)
   return {
-    emails: orderByIds(emailsResult.value.list, ids),
+    emails: listed,
     position: queryResult.value.position,
     count: ids.length,
     total,
@@ -258,8 +300,13 @@ export async function fetchListPage(
     ...(snippetsResult?.ok
       ? { snippets: toSnippets(snippetsResult.value.list) }
       : {}),
-    ...(threadsResult?.ok
-      ? { threadSizes: toThreadSizes(threadsResult.value.list) }
+    ...(membersResult?.ok
+      ? {
+          threads: groupThreadMembers(
+            listed.map(email => email.threadId),
+            membersResult.value.list
+          )
+        }
       : {})
   }
 }
@@ -326,14 +373,6 @@ export const conversationKeys = {
     ...conversationKeys.all(accountId),
     threadId
   ]
-}
-
-/** Orders the emails of a conversation: the oldest first */
-export function byReceivedAt(
-  left: EmailListItemData,
-  right: EmailListItemData
-): number {
-  return left.receivedAt.localeCompare(right.receivedAt)
 }
 
 /**

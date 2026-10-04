@@ -90,7 +90,7 @@ function flattenPages(data: EmailListData | undefined): EmailRowData[] {
         {
           ...email,
           snippet: page.snippets?.[email.id] ?? null,
-          threadSize: page.threadSizes?.[email.threadId] ?? null
+          threadSize: page.threads?.[email.threadId]?.length ?? null
         }
       ]
     })

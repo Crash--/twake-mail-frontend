@@ -122,7 +122,8 @@ within 30 s.
 | 2 000 loaded: long tasks | 0 | 0 |
 | JS heap after GC, after the push | 19.3 MB | 19.3 MB |
 
-The push invalidates the email lists (`invalidateOnPush.ts`): TanStack Query
+The push invalidated the email lists (`invalidateOnPush.ts`, since replaced, see
+[`sync.md`](sync.md)): TanStack Query
 refetches every loaded page of an infinite query, **one after the other**
 (each page's position depends on the previous one), then swaps the data. So
 the new email shows only after the 67th page, and the cost grows linearly

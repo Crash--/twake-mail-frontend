@@ -5,16 +5,18 @@ version of [tmail-flutter](https://github.com/linagora/tmail-flutter). It is a
 standalone single-page application talking [JMAP](https://jmap.io) to
 [tmail-backend](https://github.com/linagora/tmail-backend) (Apache James).
 
-Status: skeleton. Authentication, configuration, layout and tooling are in
-place; mail features come next, on top of
-[jmap-client-ts](https://github.com/linagora/jmap-client-ts) v2.
+Status: phase 0. Sign-in (OIDC or basic), folder tree, email list and reading
+work against tmail-backend, kept up to date by JMAP push, on top of
+[jmap-client-ts](https://github.com/linagora/jmap-client-ts) v2. Composing,
+search, actions on emails and settings come next.
 
 ## Stack
 
 Rsbuild, React 18, TypeScript (strict), react-router 7,
 [`@linagora/twake-mui`](https://github.com/linagora/twake-ui) and
 `@linagora/twake-icons`, TanStack Query 5, `twake-i18n`, `openid-client` 6,
-Sentry, Jest 30 + Testing Library. Contributors and AI agents: read
+jmap-client-ts 2, DOMPurify, react-virtuoso, Sentry, Jest 30 + Testing
+Library, Playwright. Contributors and AI agents: read
 [AGENTS.md](AGENTS.md) first.
 
 ## Getting started
@@ -118,11 +120,15 @@ common/src/
   components/        shared screens (loader, errors)
   config/            runtime configuration
   features/auth/     OIDC and basic authentication, login pages, route guard
+  features/mailbox/  folder tree, default folder
+  features/thread/   email list of a folder
+  features/email/    reading view, keywords (read, starred)
+  features/push/     JMAP push over WebSocket
   features/<name>/   one folder per feature, with its queries.ts
   i18n/ locales/     translations (en, fr, ru, vi)
-  jmap/              JMAP client provider (contract of jmap-client-ts v2)
+  jmap/              JMAP client and session providers
   layout/            top bar, sidebar, app layout
-  testing/           test helpers (renderWithProviders, fakes)
+  testing/           test helpers (renderWithProviders, fake JMAP server)
 docs/                twake-mui gaps, translations
 scripts/             project scripts
 upgrade-instructions/ configuration changes per release
@@ -167,11 +173,41 @@ authenticated by the auth service (`makeJmapAuth.ts`: Bearer or Basic header,
 token renewal on 401). The JMAP session is loaded before the mail screens
 (`JmapSessionProvider.tsx`).
 
+## Mail features
+
+- **Folders** (`Mailbox/get`): nested under their parent, system folders
+  first in the order of tmail-flutter (inbox, drafts, outbox, sent, trash,
+  spam, templates, archive), then `sortOrder`, then name; translated names
+  for system folders, unread counters, collapsible levels. The app opens on
+  the inbox.
+- **Email list**: one JMAP request per page (`Email/query` sorted by
+  `receivedAt`, then `Email/get` of its ids by back-reference), loaded as
+  the end of a virtualized list comes into view; unread and starred state,
+  star toggle. The list is virtualized with react-virtuoso, which twake-mui
+  depends on but does not wrap for lists (see
+  [docs/twake-mui-gaps.md](docs/twake-mui-gaps.md)).
+- **Reading**: as tmail-flutter on desktop, the email replaces the list.
+  The HTML body is sanitized with DOMPurify, then shown in an iframe
+  sandboxed without `allow-scripts` and under a Content Security Policy
+  forbidding scripts; links open in a new tab (`noopener`). Inline `cid:`
+  images and attachments are downloaded with the session credentials. An
+  unread email is marked read when opened, the counters and the list being
+  updated before the server answers.
+- **Push**: a JMAP WebSocket (with the Linagora ticket when the server
+  offers it) refetches the folders and emails the server says changed, and
+  everything when the connection (re)opens.
+
 ## Known issues
 
 - `twake-i18n` imports every `date-fns` 2 locale and the whole of lodash,
   which makes the largest chunk of the bundle (about 170 kB gzipped).
 - The app is designed for desktop first; small screens come later.
+- Push refetches the whole folder list and every loaded page of the email
+  lists: incremental updates (`Mailbox/changes`, `Email/changes`,
+  `Email/queryChanges`) come later.
+- Team and shared mailboxes are not listed yet (`Mailbox/get` without the
+  James `shares` capability).
+- Remote images of an email are loaded as soon as it is opened.
 
 ## License
 

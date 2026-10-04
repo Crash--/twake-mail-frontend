@@ -2,6 +2,8 @@ import '@testing-library/jest-dom'
 
 import { TextDecoder, TextEncoder } from 'node:util'
 
+import { installObjectUrls } from './objectUrls'
+
 // jsdom lacks the encoding API that react-router uses
 Object.assign(globalThis, { TextDecoder, TextEncoder })
 
@@ -20,6 +22,9 @@ class ResizeObserverStub implements ResizeObserver {
 }
 
 globalThis.ResizeObserver = ResizeObserverStub
+
+// jsdom has no object URLs (email body frames, inline images)
+installObjectUrls()
 
 // jsdom has no layout either for ranges and points, which ProseMirror (the
 // rich text editor) reads to scroll the selection into view

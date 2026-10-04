@@ -324,21 +324,23 @@ checked to add Dex and the OIDC specs.
   With the view disabled, `Email/query` is always answered by the search index. A
   deployment enabling the view must register the listener, and keep the team mailbox gap in
   mind.
-- **Updates hang once the backend holds about 256 messages** (tmail-backend
-  `memory-1.0.21.2`, with the configuration of this stack or the image's own, email query
-  view on or off). Past that, in any account, every `Email/set` *update* (keywords,
-  `mailboxIds`, hence `onSuccessUpdateEmail` of `jmap.sendEmail`) never answers; creates,
-  reads, queries and local delivery keep working. Measured: 150 messages fine, 300 stuck
-  (still pending after 400 s); no thread busy nor blocked. Repro:
-  `tmail-backend-issues/memory-email-set-update-hang/repro.mjs`. Destroying messages brings
-  the updates back, so the `users` fixture destroys the emails of every account it created
-  when the test ends (`JmapClient.destroyAllEmails`): the count stays at what the running tests
-  hold. **Never run the suite after the perf seed** all the same: `stop.sh`, then `start.sh`
-  again. Not checked on the distributed backend.
-- **An update of more than 3 ids with the same patch can change other messages** of the same
-  mailbox (memory image, `results-range-memory-1.0.21.2.txt` of the same repro: 4 drafts
-  flagged, all 10 changed). The specs act on at most 3 emails at once; a batch spec seeing
-  extra emails changed is this bug, not the app.
+- **`Email/set` updates on the memory image**
+  ([linagora/tmail-backend#2684](https://github.com/linagora/tmail-backend/issues/2684); the
+  postgres and distributed backends are not affected, and neither is the app):
+  - *They hang* once (messages of the other accounts) × (ids of the update) reaches about 256:
+    every `Email/set` *update* (keywords, `mailboxIds`, hence `onSuccessUpdateEmail` of
+    `jmap.sendEmail`) never answers, while creates, reads, queries and local delivery keep
+    working. Repro: `tmail-backend-issues/memory-email-set-update-hang/repro.mjs`. Destroying
+    messages brings the updates back, so the `users` fixture destroys the emails of every
+    account it created when the test ends (`JmapClient.destroyAllEmails`): the count stays at
+    what the running tests hold. **Never run the suite after the perf seed** all the same:
+    `stop.sh`, then `start.sh` again.
+  - *They change other messages*: an update of more than 3 ids with the same patch applies to
+    **every** message of the account when they all sit in a single mailbox (4 of 10 drafts
+    flagged, all 10 changed and listed in `updated`). It does not happen once the account has
+    messages in two mailboxes. A spec acting on more than 3 emails at once must give its user a
+    message in another mailbox (an email sent to oneself also lands in Sent), with a comment
+    pointing to #2684; never work around it in the app.
 - **Search on the memory image** (Lucene in memory):
   - a `text` (or `subject`) condition of more than three or four words, or
     whose words follow a `<`, finds nothing: the search specs type shorter,

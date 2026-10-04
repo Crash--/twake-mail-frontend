@@ -361,14 +361,25 @@ function pickProperties(
   return picked
 }
 
+/** Reads a JSON pointer of a result reference, `*` mapping over arrays */
 function readPointer(value: unknown, path: string): unknown {
-  return path
-    .split('/')
-    .filter(segment => segment !== '')
-    .reduce<unknown>(
-      (current, segment) => (isRecord(current) ? current[segment] : undefined),
-      value
-    )
+  const read = (current: unknown, segments: readonly string[]): unknown => {
+    const [segment, ...rest] = segments
+    if (segment === undefined) return current
+    if (segment === '*') {
+      if (!Array.isArray(current)) return undefined
+      const items: unknown[] = current
+      return items.flatMap((item): unknown[] => {
+        const found = read(item, rest)
+        return Array.isArray(found) ? (found as unknown[]) : [found]
+      })
+    }
+    return read(isRecord(current) ? current[segment] : undefined, rest)
+  }
+  return read(
+    value,
+    path.split('/').filter(segment => segment !== '')
+  )
 }
 
 /** Replaces the `#name` back-references of `args` by the values they point at */

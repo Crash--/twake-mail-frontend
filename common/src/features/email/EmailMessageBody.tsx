@@ -1,0 +1,95 @@
+import { Divider, ListSkeleton } from '@linagora/twake-mui'
+import { useMemo, useState, type ReactElement } from 'react'
+
+import { AttachmentList } from './AttachmentList'
+import { EmailBodyFrame } from './EmailBodyFrame'
+import {
+  buildEmailDocument,
+  findReferencedCids,
+  joinHtmlValues,
+  renderBodyParts
+} from './emailBody'
+import type { EmailDetail } from './queries'
+import { RemoteContentBanner } from './RemoteContentBanner'
+import { normalizeCid } from './sanitizeEmailHtml'
+import { useTrustedSender } from './trustedSenders'
+import { useInlineImageUrls } from './useInlineImageUrls'
+
+export interface EmailMessageBodyProps {
+  email: EmailDetail
+  /**
+   * The remote content banner went away with its buttons: where the focus
+   * goes next
+   */
+  onRemoteContentShown: () => void
+}
+
+/**
+ * What an email says: its attachments, the remote content banner and the
+ * sanitized body, with its inline images. Remote content (images, fonts,
+ * backgrounds) tells the sender when and where the email is read: it waits
+ * for the user, unless the sender is trusted.
+ */
+export function EmailMessageBody({
+  email,
+  onRemoteContentShown
+}: EmailMessageBodyProps): ReactElement {
+  const sender = email.from?.[0] ?? null
+  const html = useMemo(
+    () => joinHtmlValues(email.htmlBody, email.bodyValues),
+    [email.htmlBody, email.bodyValues]
+  )
+  const referencedCids = useMemo(() => findReferencedCids(html), [html])
+  const inlineImages = useInlineImageUrls(email.attachments, referencedCids)
+  const trustedSender = useTrustedSender(sender?.email ?? null)
+  const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
+  const allowRemoteContent = isRemoteContentShown || trustedSender.isTrusted
+  const body = useMemo(() => {
+    if (inlineImages.isLoading) return null
+    const rendered = renderBodyParts(email.htmlBody, email.bodyValues, {
+      inlineImageUrls: inlineImages.urls,
+      allowRemoteContent
+    })
+    return {
+      document: buildEmailDocument(rendered.html, { allowRemoteContent }),
+      hasBlockedRemoteContent: rendered.blockedRemoteContent > 0
+    }
+  }, [
+    email.htmlBody,
+    email.bodyValues,
+    inlineImages.isLoading,
+    inlineImages.urls,
+    allowRemoteContent
+  ])
+  // Inline images are shown in the body, not listed as attachments
+  const attachments = email.attachments.filter(
+    part => !part.cid || !referencedCids.has(normalizeCid(part.cid))
+  )
+
+  const handleShowRemoteContent = (): void => {
+    setIsRemoteContentShown(true)
+    onRemoteContentShown()
+  }
+  const handleAlwaysShowRemoteContent = (): void => {
+    trustedSender.trust()
+    handleShowRemoteContent()
+  }
+
+  return (
+    <>
+      <AttachmentList attachments={attachments} />
+      <Divider className="u-mv-1" />
+      {body?.hasBlockedRemoteContent ? (
+        <RemoteContentBanner
+          onShow={handleShowRemoteContent}
+          onAlwaysShow={sender ? handleAlwaysShowRemoteContent : null}
+        />
+      ) : null}
+      {body === null ? (
+        <ListSkeleton count={3} />
+      ) : (
+        <EmailBodyFrame document={body.document} />
+      )}
+    </>
+  )
+}

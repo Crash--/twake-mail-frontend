@@ -2,7 +2,6 @@ import { EmailOpen, Icon, Left } from '@linagora/twake-icons'
 import {
   Avatar,
   Box,
-  Divider,
   Empty,
   getInitials,
   IconButton,
@@ -10,8 +9,7 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import type { EmailAddress } from 'jmap-client-ts'
-import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
+import { useEffect, useRef, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
@@ -20,51 +18,15 @@ import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
 import { formatFullDate } from '@common/features/thread/formatListDate'
-import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
+import { useI18n } from '@common/i18n/useI18n'
 
-import { formatAddress, formatAddressName } from './addresses'
-import { AttachmentList } from './AttachmentList'
-import { EmailBodyFrame } from './EmailBodyFrame'
-import {
-  buildEmailDocument,
-  findReferencedCids,
-  joinHtmlValues,
-  renderBodyParts
-} from './emailBody'
+import { AddressLine } from './AddressLine'
+import { formatAddressName } from './addresses'
+import { EmailMessageBody } from './EmailMessageBody'
 import type { EmailDetail } from './queries'
-import { RemoteContentBanner } from './RemoteContentBanner'
-import { normalizeCid } from './sanitizeEmailHtml'
-import { useTrustedSender } from './trustedSenders'
 import { useEmail } from './useEmail'
-import { useInlineImageUrls } from './useInlineImageUrls'
 import { useEmailViewShortcuts } from './useEmailViewShortcuts'
 import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
-
-interface AddressLineProps {
-  label: TranslationKey
-  addresses: readonly EmailAddress[] | null
-  'data-testid': string
-}
-
-function AddressLine({
-  label,
-  addresses,
-  'data-testid': testId
-}: AddressLineProps): ReactElement | null {
-  const { t } = useI18n()
-  if (!addresses || addresses.length === 0) return null
-  return (
-    <SecondaryText variant="body2" component="p" data-testid={testId}>
-      {t(label)}:{' '}
-      {addresses.map((address, index) => (
-        <span key={`${address.email}-${index}`} title={address.email}>
-          {index > 0 ? ', ' : null}
-          {formatAddress(address)}
-        </span>
-      ))}
-    </SecondaryText>
-  )
-}
 
 interface EmailContentProps {
   email: EmailDetail
@@ -75,38 +37,6 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
   const { t, lang } = useI18n()
   useMarkAsReadOnOpen(email)
   const sender = email.from?.[0] ?? null
-  const html = useMemo(
-    () => joinHtmlValues(email.htmlBody, email.bodyValues),
-    [email.htmlBody, email.bodyValues]
-  )
-  const referencedCids = useMemo(() => findReferencedCids(html), [html])
-  const inlineImages = useInlineImageUrls(email.attachments, referencedCids)
-  // Remote content tells the sender when and where the email is read: it
-  // waits for the user, unless the sender is trusted
-  const trustedSender = useTrustedSender(sender?.email ?? null)
-  const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
-  const allowRemoteContent = isRemoteContentShown || trustedSender.isTrusted
-  const body = useMemo(() => {
-    if (inlineImages.isLoading) return null
-    const rendered = renderBodyParts(email.htmlBody, email.bodyValues, {
-      inlineImageUrls: inlineImages.urls,
-      allowRemoteContent
-    })
-    return {
-      document: buildEmailDocument(rendered.html, { allowRemoteContent }),
-      hasBlockedRemoteContent: rendered.blockedRemoteContent > 0
-    }
-  }, [
-    email.htmlBody,
-    email.bodyValues,
-    inlineImages.isLoading,
-    inlineImages.urls,
-    allowRemoteContent
-  ])
-  // Inline images are shown in the body, not listed as attachments
-  const attachments = email.attachments.filter(
-    part => !part.cid || !referencedCids.has(normalizeCid(part.cid))
-  )
   const backLabel = t('common.back')
   useDocumentTitle(email.subject ?? '')
   const subjectRef = useRef<HTMLHeadingElement>(null)
@@ -118,13 +48,8 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
   }, [])
 
   // The banner goes away with its buttons: the focus goes back to the email
-  const handleShowRemoteContent = (): void => {
-    setIsRemoteContentShown(true)
+  const handleRemoteContentShown = (): void => {
     subjectRef.current?.focus()
-  }
-  const handleAlwaysShowRemoteContent = (): void => {
-    trustedSender.trust()
-    handleShowRemoteContent()
   }
 
   return (
@@ -197,19 +122,10 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
             </SecondaryText>
           }
         />
-        <AttachmentList attachments={attachments} />
-        <Divider className="u-mv-1" />
-        {body?.hasBlockedRemoteContent ? (
-          <RemoteContentBanner
-            onShow={handleShowRemoteContent}
-            onAlwaysShow={sender ? handleAlwaysShowRemoteContent : null}
-          />
-        ) : null}
-        {body === null ? (
-          <ListSkeleton count={3} />
-        ) : (
-          <EmailBodyFrame document={body.document} />
-        )}
+        <EmailMessageBody
+          email={email}
+          onRemoteContentShown={handleRemoteContentShown}
+        />
       </Box>
     </Box>
   )

@@ -10,10 +10,10 @@
     "reconnect": "Reconnect",
     "back": "Back",
     "close": "Close",
-    "cancel": "Cancel",
-    "delete": "Delete",
     "undo": "Undo",
-    "connectionError": "Connection error"
+    "connectionError": "Connection error",
+    "cancel": "Cancel",
+    "delete": "Delete"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -269,5 +269,24 @@
       "titleMany": "Delete messages forever",
       "messageMany": "You are about to permanently delete %{count} items in %{mailboxName}. Do you want to continue?"
     }
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "actions": {
+      "compose": "Open new message",
+      "archive": "Archive message",
+      "delete": "Delete message",
+      "markAsUnread": "Mark as unread",
+      "search": "Search",
+      "next": "Next message",
+      "previous": "Previous message",
+      "star": "Star or unstar",
+      "undo": "Undo the last action",
+      "help": "Show the keyboard shortcuts"
+    },
+    "enable": "Enable keyboard shortcuts",
+    "description": "Single-key shortcuts work outside text fields. Turn them off if they get in the way of your assistive technology.",
+    "key": "Key",
+    "action": "Action"
   }
 }

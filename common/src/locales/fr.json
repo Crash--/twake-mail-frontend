@@ -10,10 +10,10 @@
     "reconnect": "Se reconnecter",
     "back": "Retour",
     "close": "Fermer",
-    "cancel": "Annuler",
-    "delete": "Supprimer",
     "undo": "Annuler",
-    "connectionError": "Erreur de connexion"
+    "connectionError": "Erreur de connexion",
+    "cancel": "Annuler",
+    "delete": "Supprimer"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -269,5 +269,24 @@
       "titleMany": "Supprimer les messages pour toujours",
       "messageMany": "Vous allez supprimer définitivement %{count} éléments dans %{mailboxName}. Voulez-vous continuer ?"
     }
+  },
+  "shortcuts": {
+    "title": "Raccourcis clavier",
+    "actions": {
+      "compose": "Ouvrir un nouveau mail",
+      "archive": "Archiver le message",
+      "delete": "Supprimer le message",
+      "markAsUnread": "Marquer comme non lu",
+      "search": "Rechercher",
+      "next": "Message suivant",
+      "previous": "Message précédent",
+      "star": "Ajouter ou retirer des favoris",
+      "undo": "Annuler la dernière action",
+      "help": "Afficher les raccourcis clavier"
+    },
+    "enable": "Activer les raccourcis clavier",
+    "description": "Les raccourcis d'une seule touche fonctionnent hors des champs de saisie. Désactivez-les s'ils gênent votre aide technique.",
+    "key": "Touche",
+    "action": "Action"
   }
 }

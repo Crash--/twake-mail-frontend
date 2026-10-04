@@ -54,6 +54,7 @@ import {
   type EmailListItemData,
   type SearchRequest
 } from './queries'
+import { useEmailListShortcuts } from './useEmailListShortcuts'
 import { useNewEmailCount } from './useNewEmailCount'
 
 /** Folders whose list shows the recipients rather than the sender */
@@ -201,6 +202,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     [openEmailId]
   )
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
+  const scrollerRef = useEmailListShortcuts(emails, mailboxId, openEmailId)
   const { run: runEmailAction } = useEmailActions()
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
@@ -410,6 +412,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           endReached={handleEndReached}
           rangeChanged={handleRangeChanged}
           increaseViewportBy={OVERSCAN_PX}
+          scrollerRef={scrollerRef}
           componentsProps={componentsProps}
         />
         {isFetchingNextPage ? (

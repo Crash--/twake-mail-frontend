@@ -1,14 +1,16 @@
 import { Filter, Icon } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
-import { useMemo, useState, type ReactElement } from 'react'
+import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
 import {
   SearchCombobox,
+  type SearchComboboxActions,
   type SearchComboboxGroup,
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
 import { formatAddressNames } from '@common/features/email/addresses'
+import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -56,6 +58,8 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false)
   const suggestions = useSearchSuggestions(draft.text, draft, context, isOpen)
   const hasText = draft.text.trim() !== ''
+  const fieldActions = useRef<SearchComboboxActions>(null)
+  useShortcuts({ '/': () => fieldActions.current?.focus() })
 
   const runSearch = (filter: SearchFilter): void => {
     addRecentSearch(accountId, filter.text)
@@ -162,6 +166,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
   return (
     <>
       <SearchCombobox
+        actions={fieldActions}
         className="u-w-100 u-maw-7"
         value={draft.text}
         onChange={handleChange}

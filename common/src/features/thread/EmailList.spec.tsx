@@ -199,4 +199,31 @@ describe('EmailList', () => {
 
     expect(screen.getByText('Opened e0 of mailbox-inbox')).toBeVisible()
   })
+
+  it('stars and unstars an email', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(1) })
+    const release = server.holdRequests('Email/set')
+    renderList(server)
+    const star = await screen.findByTestId('email-list-item-star')
+    expect(star).toHaveAccessibleName('Mark as starred')
+
+    await userEvent.click(star)
+
+    expect(star).toHaveAttribute('aria-pressed', 'true')
+    expect(star).toHaveAccessibleName('Unstar')
+    release()
+    await waitFor(() => {
+      expect(server.emails[0]?.keywords).toEqual({
+        $seen: true,
+        $flagged: true
+      })
+    })
+
+    await userEvent.click(star)
+
+    await waitFor(() => {
+      expect(server.emails[0]?.keywords).toEqual({ $seen: true })
+    })
+    expect(star).toHaveAttribute('aria-pressed', 'false')
+  })
 })

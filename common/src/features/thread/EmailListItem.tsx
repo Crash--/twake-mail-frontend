@@ -27,7 +27,7 @@ export interface EmailListItemProps {
   mailboxId: string
   /** Shows the recipients instead of the sender (Sent, Drafts…) */
   showRecipients: boolean
-  onToggleStar?: (email: EmailListItemData) => void
+  onToggleStar: (email: EmailListItemData) => void
 }
 
 /**
@@ -54,7 +54,7 @@ export function EmailListItem({
   }
 
   const handleToggleStar = (): void => {
-    onToggleStar?.(email)
+    onToggleStar(email)
   }
 
   return (

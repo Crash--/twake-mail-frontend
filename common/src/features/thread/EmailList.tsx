@@ -5,6 +5,8 @@ import type { ListRange } from 'react-virtuoso'
 import { Virtuoso } from 'react-virtuoso'
 
 import { ErrorScreen } from '@common/components/ErrorScreen'
+import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
+import { useSetKeyword } from '@common/features/email/useSetKeyword'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -70,6 +72,7 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
   const showRecipients = role !== null && RECIPIENT_ROLES.includes(role)
   const emails = useMemo(() => flattenPages(query.data), [query.data])
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
+  const { mutate: setKeyword } = useSetKeyword()
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
 
   // Checked again after each page: the end of the list may still be in view
@@ -117,6 +120,14 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
     )
   }
 
+  const handleToggleStar = (email: EmailListItemData): void => {
+    setKeyword({
+      email,
+      keyword: FLAGGED,
+      isSet: !hasKeyword(email, FLAGGED)
+    })
+  }
+
   const handleRangeChanged = (range: ListRange): void => {
     setLastVisibleIndex(range.endIndex)
   }
@@ -137,6 +148,7 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
           email={email}
           mailboxId={mailboxId}
           showRecipients={showRecipients}
+          onToggleStar={handleToggleStar}
         />
       )}
     />

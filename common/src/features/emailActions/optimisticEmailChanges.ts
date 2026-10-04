@@ -6,6 +6,7 @@ import {
   mailboxKeys,
   type MailboxListData
 } from '@common/features/mailbox/queries'
+import { patchSearchList } from '@common/features/search/patchSearchList'
 import { patchEmailList } from '@common/features/thread/patchEmailList'
 import {
   threadKeys,
@@ -23,6 +24,11 @@ function listMailboxId(key: QueryKey, accountId: string): string | null {
     typeof mailboxId === 'string'
     ? mailboxId
     : null
+}
+
+function isSearchList(key: QueryKey, accountId: string): boolean {
+  const [feature, account, kind] = key
+  return feature === 'thread' && account === accountId && kind === 'search'
 }
 
 /**
@@ -84,8 +90,8 @@ function countIn(
 /**
  * Shows `changes` at once, before the server confirms them:
  *
- * - every loaded email list, through `patchEmailList`, as if push had
- *   brought them: an email leaving a folder is removed, one entering it is
+ * - every loaded email list, through `patchEmailList` (`patchSearchList`
+ *   for search results), as if push had brought them: an email leaving a folder is removed, one entering it is
  *   inserted where it sorts (when its row is known), keywords follow. The
  *   pages keep their JMAP state, so the push of the same change later
  *   finds the lists already right and changes nothing;
@@ -120,8 +126,23 @@ export function applyEmailChanges(
   for (const [key, data] of queryClient.getQueriesData<EmailListData>({
     queryKey: threadKeys.all(accountId)
   })) {
+    if (data === undefined) continue
     const mailboxId = listMailboxId(key, accountId)
-    if (mailboxId === null || data === undefined) continue
+    if (mailboxId === null) {
+      // Search results keep their emails where they are, in their new state
+      if (isSearchList(key, accountId)) {
+        queryClient.setQueryData<EmailListData>(key, current =>
+          current
+            ? patchSearchList(current, {
+                changed,
+                destroyed,
+                newStates: new Map()
+              }).data
+            : current
+        )
+      }
+      continue
+    }
     const gone = leaving
       .filter(email => !(mailboxId in email.mailboxIds))
       .map(email => email.id)

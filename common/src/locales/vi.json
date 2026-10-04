@@ -8,13 +8,16 @@
     "errorOccurred": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau.",
     "unknownError": "Lỗi không xác định, xin hãy thử lại",
     "reconnect": "Đăng nhập lại",
-    "back": "Quay lại"
+    "back": "Quay lại",
+    "close": "Đóng"
   },
   "topbar": {
     "searchPlaceholder": "Tìm kiếm thư",
     "apps": "Mở ứng dụng",
     "account": "Quản lý tài khoản",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "search": "Tìm kiếm",
+    "showFolders": "Hiển thị thư mục"
   },
   "sidebar": {
     "newMessage": "Tin nhắn mới",
@@ -156,5 +159,8 @@
       "text": "Phiên bản văn bản",
       "restored": "Đã khôi phục trình soạn thư sau khi tải lại"
     }
+  },
+  "layout": {
+    "navigation": "Điều hướng"
   }
 }

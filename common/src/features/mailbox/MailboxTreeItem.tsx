@@ -1,6 +1,5 @@
 import { Bottom, Icon, Right } from '@linagora/twake-icons'
 import {
-  Box,
   IconButton,
   NavIcon,
   NavItem,
@@ -12,6 +11,7 @@ import {
 import type { MouseEvent, ReactElement } from 'react'
 import { Link } from 'react-router'
 
+import { IconSlot } from '@/ds/IconSlot/IconSlot'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { getMailboxIcon } from './mailboxDisplay'
@@ -68,7 +68,7 @@ export function MailboxTreeItem({
       data-mailbox-id={mailbox.id}
       data-mailbox-role={mailbox.role ?? undefined}
     >
-      <Box className="u-flex u-flex-items-center u-flex-justify-center u-flex-shrink-0 u-w-2">
+      <IconSlot>
         {row.hasChildren ? (
           <Tooltip title={toggleLabel}>
             <IconButton
@@ -81,7 +81,7 @@ export function MailboxTreeItem({
             </IconButton>
           </Tooltip>
         ) : null}
-      </Box>
+      </IconSlot>
       <NavLink
         component={Link}
         to={`/mailbox/${encodeURIComponent(mailbox.id)}`}

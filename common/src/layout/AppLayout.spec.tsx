@@ -1,7 +1,8 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import type { AppListEntry } from '@common/config/config'
 import type { AuthService } from '@common/features/auth/types'
 import { FAKE_USERNAME } from '@common/testing/fakeJmapServer'
@@ -117,5 +118,73 @@ describe('AppLayout', () => {
     expect(screen.getByTestId('user-menu-identity')).toHaveTextContent(
       FAKE_USERNAME
     )
+  })
+
+  it('keeps the drawer, the menu button and the floating button off a desktop', async () => {
+    renderLayout()
+
+    await screen.findByTestId('top-bar')
+    expect(screen.getByTestId('sidebar')).toBeInTheDocument()
+    expect(screen.queryByTestId('mobile-mailbox-menu-button')).toBe(null)
+    expect(screen.getAllByTestId('compose-email-button')).toHaveLength(1)
+  })
+})
+
+describe('AppLayout on a phone', () => {
+  beforeEach(() => {
+    mockViewport({ width: 390, touch: true })
+  })
+  afterEach(resetViewport)
+
+  function renderPhoneLayout(): void {
+    renderWithProviders(<AppLayout apps={APPS} />, {
+      route: '/mailbox/mailbox-inbox',
+      path: '*',
+      withJmapSession: true,
+      childRoutes: (
+        <Route path="mailbox/:mailboxId" element={<p>Folder content</p>} />
+      )
+    })
+  }
+
+  it('shows the folder in the top bar, the folders behind a button', async () => {
+    renderPhoneLayout()
+
+    expect(await screen.findByTestId('top-bar-folder-name')).toHaveTextContent(
+      'Inbox'
+    )
+    expect(screen.queryByTestId('sidebar')).toBe(null)
+    expect(screen.queryByRole('tree')).toBe(null)
+    expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
+      'New message'
+    )
+  })
+
+  it('opens the folders in a drawer, closed once a folder is chosen', async () => {
+    renderPhoneLayout()
+
+    const menuButton = await screen.findByRole('button', {
+      name: 'Show folders'
+    })
+    await userEvent.click(menuButton)
+
+    const drawer = await screen.findByRole('dialog', { name: 'Navigation' })
+    const tree = within(drawer).getByRole('tree', { name: 'Folders' })
+    expect(
+      within(drawer).getByRole('img', { name: 'Twake Mail' })
+    ).toBeVisible()
+    // The app grid moves from the top bar to the drawer
+    expect(
+      within(drawer).getByRole('button', { name: 'Go to applications' })
+    ).toBeVisible()
+    expect(within(drawer).queryByTestId('compose-email-button')).toBe(null)
+
+    const sent = await within(tree).findByText('Sent')
+    await userEvent.click(sent)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    expect(screen.getByTestId('top-bar-folder-name')).toHaveTextContent('Sent')
   })
 })

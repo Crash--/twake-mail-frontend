@@ -8,13 +8,16 @@
     "errorOccurred": "Erreur ! Une erreur s'est produite. Veuillez réessayer plus tard.",
     "unknownError": "Une erreur s'est produite, veuillez réessayer",
     "reconnect": "Se reconnecter",
-    "back": "Retour"
+    "back": "Retour",
+    "close": "Fermer"
   },
   "topbar": {
     "searchPlaceholder": "Rechercher dans les courriers",
     "apps": "Accéder aux applications",
     "account": "Gérer le compte",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "search": "Rechercher",
+    "showFolders": "Afficher les dossiers"
   },
   "sidebar": {
     "newMessage": "Nouveau message",
@@ -156,5 +159,8 @@
       "text": "Alternative texte",
       "restored": "Composer restauré après rechargement"
     }
+  },
+  "layout": {
+    "navigation": "Navigation"
   }
 }

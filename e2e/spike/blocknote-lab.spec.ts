@@ -4,6 +4,8 @@ import path from 'node:path'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
+import { WCAG_AA_TAGS } from '../support/a11y'
+
 /**
  * Option C of the spike: BlockNote 0.55 (MPL-2.0) with its Ariakit UI, the lightest of its
  * replaceable UI layers, in a bare page (no twake-mui): accessibility, keyboard, HTML out
@@ -70,7 +72,7 @@ test('SPIKE-BLOCKNOTE accessibility, keyboard and HTML of BlockNote (Ariakit UI)
   const sideMenuButtons = await page.locator('.bn-side-menu button, .bn-side-menu [draggable]').count()
   await page.screenshot({ path: '/tmp/twake-mail-shots/spike-composer-blocknote-sidemenu.png' })
 
-  const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
+  const axe = await new AxeBuilder({ page }).withTags([...WCAG_AA_TAGS]).analyze()
 
   const html = await page.evaluate(async () =>
     (window as unknown as { bnEditor: Lab }).bnEditor.blocksToHTMLLossy()

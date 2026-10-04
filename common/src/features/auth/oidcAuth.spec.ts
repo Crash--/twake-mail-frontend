@@ -19,7 +19,9 @@ jest.mock('openid-client', () => ({
   buildAuthorizationUrl: jest.fn(),
   authorizationCodeGrant: jest.fn(),
   refreshTokenGrant: jest.fn(),
-  buildEndSessionUrl: jest.fn()
+  buildEndSessionUrl: jest.fn(),
+  fetchUserInfo: jest.fn(),
+  skipSubjectCheck: Symbol('skipSubjectCheck')
 }))
 
 const mockedClient = jest.mocked(client)
@@ -38,9 +40,14 @@ const CALLBACK_URL = new URL(
 
 type TokenResponse = Awaited<ReturnType<typeof client.refreshTokenGrant>>
 
+const FULL_PROFILE = { email: 'alice@example.com', name: 'Alice Martin' }
+
 function makeTokenResponse(
   accessToken: string,
-  { expiresIn = 300 }: { expiresIn?: number } = {}
+  {
+    expiresIn = 300,
+    profile = FULL_PROFILE
+  }: { expiresIn?: number; profile?: Record<string, string> } = {}
 ): TokenResponse {
   const response: client.TokenEndpointResponse = {
     access_token: accessToken,
@@ -57,8 +64,7 @@ function makeTokenResponse(
       aud: CONFIG.clientId,
       iat: 0,
       exp: 0,
-      email: 'alice@example.com',
-      name: 'Alice Martin'
+      ...profile
     })
   }
   return Object.assign(response, helpers)
@@ -344,6 +350,85 @@ describe('createOidcAuthService', () => {
       expect(dependencies.storage.getItem(PENDING_LOGIN_STORAGE_KEY)).toContain(
         '"returnTo":"/mailbox/inbox?page=2"'
       )
+    })
+  })
+
+  describe('user', () => {
+    it('reads the name and email from the ID token', async () => {
+      const service = await signIn(makeDependencies())
+
+      expect(service.getState()).toEqual({
+        status: 'authenticated',
+        user: FULL_PROFILE
+      })
+      expect(mockedClient.fetchUserInfo).not.toHaveBeenCalled()
+    })
+
+    it('asks userinfo for what the ID token does not say', async () => {
+      const service = createOidcAuthService(CONFIG, makeDependencies())
+      await service.startLogin('/')
+      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
+        makeTokenResponse('access-1', { profile: {} })
+      )
+      mockedClient.fetchUserInfo.mockResolvedValueOnce({
+        sub: 'alice',
+        email: 'alice@example.com',
+        name: 'Alice Martin'
+      })
+
+      await service.handleCallback(CALLBACK_URL)
+
+      expect(mockedClient.fetchUserInfo).toHaveBeenCalledWith(
+        configuration,
+        'access-1',
+        'alice'
+      )
+      expect(service.getState()).toEqual({
+        status: 'authenticated',
+        user: FULL_PROFILE
+      })
+    })
+
+    it('keeps that user when a renewed ID token says less', async () => {
+      const service = createOidcAuthService(CONFIG, makeDependencies())
+      await service.startLogin('/')
+      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
+        makeTokenResponse('access-1', { profile: {} })
+      )
+      mockedClient.fetchUserInfo.mockResolvedValueOnce({
+        sub: 'alice',
+        ...FULL_PROFILE
+      })
+      await service.handleCallback(CALLBACK_URL)
+      mockedClient.refreshTokenGrant.mockResolvedValueOnce(
+        makeTokenResponse('access-2', { profile: {} })
+      )
+
+      await service.refresh()
+
+      expect(service.getState()).toEqual({
+        status: 'authenticated',
+        user: FULL_PROFILE
+      })
+    })
+
+    it('signs in without a name nor an email when userinfo fails', async () => {
+      const service = createOidcAuthService(CONFIG, makeDependencies())
+      await service.startLogin('/')
+      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
+        makeTokenResponse('access-1', { profile: {} })
+      )
+      mockedClient.fetchUserInfo.mockRejectedValueOnce(new Error('timeout'))
+      jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+      await expect(service.handleCallback(CALLBACK_URL)).resolves.toEqual({
+        ok: true,
+        value: { returnTo: '/' }
+      })
+      expect(service.getState()).toEqual({
+        status: 'authenticated',
+        user: { email: null, name: null }
+      })
     })
   })
 

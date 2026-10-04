@@ -25,9 +25,12 @@ export function UserMenu(): ReactElement {
   const { session } = useJmapSession()
   const user =
     state.status === 'authenticated' ? state.user : { email: null, name: null }
-  // Basic mode only knows what the user typed: the JMAP session tells who
-  // the server authenticated
-  const email = service.mode === 'basic' ? session.username : user.email
+  // Basic mode only knows what the user typed, and the SSO may not tell the
+  // email: the JMAP session tells who the server authenticated
+  const email =
+    service.mode === 'basic'
+      ? session.username
+      : (user.email ?? session.username)
 
   const handleLogout = (): void => {
     service.logout().catch((error: unknown) => {

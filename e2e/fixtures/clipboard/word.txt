@@ -1,0 +1,8 @@
+Compte rendu de réunion
+Texte italique, souligné et noir.
+·	Premier point
+o	Sous-point
+·	Deuxième point
+
+1.	Étape un
+2.	Étape deux

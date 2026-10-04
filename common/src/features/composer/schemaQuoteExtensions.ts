@@ -1,5 +1,4 @@
 import { Extension, type AnyExtension } from '@tiptap/core'
-import { TableKit } from '@tiptap/extension-table'
 
 /**
  * Approach (a) of the spike: the quoted email parsed into the editor
@@ -54,6 +53,7 @@ const KeepPresentation = Extension.create({
   }
 })
 
+/** The editor has tables already (RichTextEditor) */
 export function schemaQuoteExtensions(): AnyExtension[] {
-  return [TableKit.configure({ table: { resizable: false } }), KeepPresentation]
+  return [KeepPresentation]
 }

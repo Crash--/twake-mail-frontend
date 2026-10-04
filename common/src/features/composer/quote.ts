@@ -110,8 +110,12 @@ function scopeSelector(selector: string, scope: string): string {
     .split(',')
     .map(part => {
       const trimmed = part.trim()
+      // `body` rules style the quoted body, not the header above it
       const rooted = trimmed.replace(/^(html|body|:root)(\s+|$)/i, '')
-      return rooted === '' ? scope : `${scope} ${rooted}`
+      if (rooted === trimmed) return `${scope} ${trimmed}`
+      return rooted === ''
+        ? `${scope} > blockquote`
+        : `${scope} > blockquote ${rooted}`
     })
     .join(', ')
 }

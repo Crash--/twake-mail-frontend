@@ -2,6 +2,12 @@
 // (nothing here knows about email): a block of foreign HTML the editor keeps
 // as is.
 import { Node, type CommandProps } from '@tiptap/core'
+import {
+  NodeSelection,
+  Plugin,
+  PluginKey,
+  TextSelection
+} from '@tiptap/pm/state'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 
 import { HtmlBlockView } from './HtmlBlockView'
@@ -106,6 +112,41 @@ export const HtmlBlock = Node.create<HtmlBlockOptions>({
 
   addNodeView() {
     return ReactNodeViewRenderer(HtmlBlockView)
+  },
+
+  addProseMirrorPlugins() {
+    const name = this.name
+    return [
+      new Plugin({
+        key: new PluginKey('htmlBlockTyping'),
+        props: {
+          // Typing on a selected block writes above it instead of
+          // replacing it: a click on a quote must not lose the quote.
+          // Delete and Backspace still remove it (and undo brings it back).
+          handleTextInput(view, _from, _to, text) {
+            const { selection } = view.state
+            if (
+              !(selection instanceof NodeSelection) ||
+              selection.node.type.name !== name
+            ) {
+              return false
+            }
+            const paragraph = view.state.schema.nodes.paragraph
+            if (!paragraph) return false
+            const position = selection.from
+            const tr = view.state.tr.insert(
+              position,
+              paragraph.create(null, view.state.schema.text(text))
+            )
+            tr.setSelection(
+              TextSelection.create(tr.doc, position + 1 + text.length)
+            )
+            view.dispatch(tr.scrollIntoView())
+            return true
+          }
+        }
+      })
+    ]
   },
 
   addCommands() {

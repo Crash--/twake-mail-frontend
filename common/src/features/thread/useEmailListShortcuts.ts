@@ -9,6 +9,7 @@ import {
   useEmailActions,
   type EmailActionName
 } from '@common/features/emailActions/useEmailActions'
+import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
 import { useRemoveEmails } from '@common/features/emailActions/useRemoveEmails'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 
@@ -44,7 +45,11 @@ export function useEmailListShortcuts(
   /** The folder shown, null for search results */
   mailboxId: string | null,
   openEmailId: string | null,
-  selection: EmailSelection
+  selection: EmailSelection,
+  /** The emails rows act on: all the emails of a conversation */
+  expandTargets: (
+    rows: readonly EmailListItemData[]
+  ) => TargetEmail[] = rows => [...rows]
 ): EmailListKeyboard {
   const scroller = useRef<HTMLElement | null>(null)
   const { run } = useEmailActions()
@@ -125,9 +130,11 @@ export function useEmailListShortcuts(
       action !== 'markAsUnread' && action !== 'star' && action !== 'unstar'
     // The row goes away: the focus moves on to the next one first
     if (leaves && !isSelection) focusRow(nextRowId(first.id))
-    void run({ action, emails: chosen, mailboxId }).then(done => {
-      if (done && isSelection) selection.clear()
-    })
+    void run({ action, emails: expandTargets(chosen), mailboxId }).then(
+      done => {
+        if (done && isSelection) selection.clear()
+      }
+    )
   }
 
   /** After the confirmation, if any: cancelling leaves the focus where it is */
@@ -137,7 +144,7 @@ export function useEmailListShortcuts(
     if (first === undefined) return
     const isSelection = selection.selected.length > 0
     const next = isSelection ? null : nextRowId(first.id)
-    if (!(await removeEmails(chosen, mailboxId))) return
+    if (!(await removeEmails(expandTargets(chosen), mailboxId))) return
     if (isSelection) {
       selection.clear()
       focusList()
@@ -163,9 +170,10 @@ export function useEmailListShortcuts(
       s: () => {
         const chosen = targets()
         if (chosen.length === 0) return
-        runOnTargets(
-          chosen.every(email => hasKeyword(email, FLAGGED)) ? 'unstar' : 'star'
-        )
+        // A conversation is starred when one of its emails is
+        const isStarred = (row: EmailListItemData): boolean =>
+          expandTargets([row]).some(email => hasKeyword(email, FLAGGED))
+        runOnTargets(chosen.every(isStarred) ? 'unstar' : 'star')
       },
       u: () => {
         runOnTargets('markAsUnread')

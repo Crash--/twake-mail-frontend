@@ -28,6 +28,11 @@ const PHONE_BUTTONS = 3
 
 export interface EmailListToolbarProps {
   selection: EmailSelection
+  /**
+   * The emails the selected rows act on (all the emails of a selected
+   * conversation): what the actions offered depend on
+   */
+  targets?: readonly TargetEmail[]
   /** Emails loaded in the list */
   loadedCount: number
   /** Emails of the whole list, null when unknown */
@@ -47,6 +52,7 @@ export interface EmailListToolbarProps {
  */
 export function EmailListToolbar({
   selection,
+  targets: selectedTargets = selection.selected,
   loadedCount,
   total,
   mailbox,
@@ -62,7 +68,7 @@ export function EmailListToolbar({
   const count = selection.isAllInFolder
     ? (total ?? loadedCount)
     : selection.selected.length
-  const items = availableEmailActions(selection.selected, mailbox, mailboxes)
+  const items = availableEmailActions(selectedTargets, mailbox, mailboxes)
   const buttons = isPhone ? items.slice(0, PHONE_BUTTONS) : items
   const isAllLoaded = selection.selected.length === loadedCount
   const canSelectFolder =

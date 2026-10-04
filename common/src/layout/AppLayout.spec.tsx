@@ -38,7 +38,7 @@ describe('AppLayout', () => {
     expect(await screen.findByRole('img', { name: 'Twake Mail' })).toBeVisible()
     expect(screen.getByTestId('search-input')).toHaveAttribute(
       'placeholder',
-      'Search mail'
+      'Search emails'
     )
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
       'New message'

@@ -12,7 +12,6 @@
     "close": "Close"
   },
   "topbar": {
-    "searchPlaceholder": "Search mail",
     "apps": "Go to applications",
     "account": "Manage account",
     "logout": "Sign out",
@@ -169,5 +168,77 @@
   },
   "layout": {
     "navigation": "Navigation"
+  },
+  "search": {
+    "placeholder": "Search emails",
+    "showingResultsFor": "Showing results for:",
+    "recent": "Recent",
+    "filters": {
+      "hasAttachment": "Has attachment",
+      "fromMe": "From me",
+      "starred": "Starred",
+      "unread": "Unread"
+    },
+    "dates": {
+      "last7Days": "Last 7 days",
+      "allTime": "All time",
+      "last30Days": "Last 30 days",
+      "last6Months": "Last 6 months",
+      "lastYear": "Last years",
+      "custom": "Custom range",
+      "range": "From %{startDate} to %{endDate}"
+    },
+    "fields": {
+      "from": "From",
+      "to": "To",
+      "subject": "Subject",
+      "text": "Has the words",
+      "notWords": "Doesn’t have",
+      "date": "Date",
+      "sort": "Sort by",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "folder": "Folder"
+    },
+    "scope": {
+      "default": "All email",
+      "everywhere": "All Email, trash & spam"
+    },
+    "submit": "Search",
+    "hints": {
+      "address": "Name or email address",
+      "subject": "Enter a subject",
+      "words": "Enter some suggestions"
+    },
+    "clearFilter": "Clear filter",
+    "advanced": "Advanced search",
+    "sort": {
+      "mostRecent": "Most recent",
+      "oldest": "Oldest",
+      "relevance": "Relevance",
+      "senderAscending": "Sender name: A - Z",
+      "senderDescending": "Sender name: Z - A",
+      "subjectAscending": "Subject: A - Z",
+      "subjectDescending": "Subject: Z - A",
+      "sizeAscending": "Size ascending",
+      "sizeDescending": "Size descending"
+    },
+    "empty": "No emails are matching your search",
+    "title": "Search",
+    "results": "Search results",
+    "inMailbox": "In %{name}",
+    "quickFilters": "Quick filters",
+    "filtersBar": "Search filters",
+    "suggestions": "Search suggestions",
+    "contacts": "Contacts",
+    "emails": "Messages",
+    "clear": "Clear search",
+    "backToMailbox": "Back to the mailbox",
+    "closeAdvanced": "Close the advanced search",
+    "removeFilter": "Remove the filter %{name}",
+    "searchFor": "Search for \"%{text}\"",
+    "wordsHint": "Separate words with commas",
+    "loading": "Loading suggestions",
+    "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions"
   }
 }

@@ -12,6 +12,8 @@ import { AppLayout } from '@common/layout/AppLayout'
 
 import { EmailPage } from './features/mailbox/EmailPage'
 import { MailboxPage } from './features/mailbox/MailboxPage'
+import { SearchEmailPage } from './features/search/SearchEmailPage'
+import { SearchPage } from './features/search/SearchPage'
 
 // The composer spike and its editor load on demand, in their own chunk
 const SpikeComposerPage = lazy(() =>
@@ -47,6 +49,9 @@ export function AppRoutes({
           <Route index element={<DefaultMailboxRedirect />} />
           <Route path="/mailbox/:mailboxId" element={<MailboxPage />}>
             <Route path="email/:emailId" element={<EmailPage />} />
+          </Route>
+          <Route path="/search" element={<SearchPage />}>
+            <Route path="email/:emailId" element={<SearchEmailPage />} />
           </Route>
           {debug ? (
             <Route

@@ -12,7 +12,6 @@
     "close": "Закрыть"
   },
   "topbar": {
-    "searchPlaceholder": "Поиск по почте",
     "apps": "Перейти к приложениям",
     "account": "Управление аккаунтом",
     "logout": "Выйти",
@@ -169,5 +168,77 @@
   },
   "layout": {
     "navigation": "Навигация"
+  },
+  "search": {
+    "placeholder": "Поиск по письмам",
+    "showingResultsFor": "Результаты по запросу:",
+    "recent": "Недавние",
+    "filters": {
+      "hasAttachment": "С вложением",
+      "fromMe": "От меня",
+      "starred": "Избранное",
+      "unread": "Не прочитано"
+    },
+    "dates": {
+      "last7Days": "Последние 7 дней",
+      "allTime": "За все время",
+      "last30Days": "Последние 30 дней",
+      "last6Months": "Последние 6 месяцев",
+      "lastYear": "Последние годы",
+      "custom": "Настроить диапазон",
+      "range": "С %{startDate} по %{endDate}"
+    },
+    "fields": {
+      "from": "От",
+      "to": "Кому",
+      "subject": "Тема",
+      "text": "Включает слова",
+      "notWords": "Не включает",
+      "date": "Дата",
+      "sort": "Сортировать по",
+      "startDate": "Дата начала",
+      "endDate": "Дата окончания",
+      "folder": "Папка"
+    },
+    "scope": {
+      "default": "Вся почта",
+      "everywhere": "Вся почта, корзина и спам"
+    },
+    "submit": "Поиск",
+    "hints": {
+      "address": "Имя или адрес электронной почты",
+      "subject": "Введите тему",
+      "words": "Введите предложения"
+    },
+    "clearFilter": "Сбросить фильтры",
+    "advanced": "Расширенный поиск",
+    "sort": {
+      "mostRecent": "Самые новые",
+      "oldest": "Самые старые",
+      "relevance": "Соответствие",
+      "senderAscending": "Имя отправителя: А - Я",
+      "senderDescending": "Имя отправителя: Я - А",
+      "subjectAscending": "Тема: А - Я",
+      "subjectDescending": "Тема: Я - А",
+      "sizeAscending": "Размер по возрастанию",
+      "sizeDescending": "Размер по убыванию"
+    },
+    "empty": "Нет писем, соответствующих вашему запросу",
+    "title": "Поиск",
+    "results": "Результаты поиска",
+    "inMailbox": "В папке %{name}",
+    "quickFilters": "Быстрые фильтры",
+    "filtersBar": "Фильтры поиска",
+    "suggestions": "Подсказки поиска",
+    "contacts": "Контакты",
+    "emails": "Сообщения",
+    "clear": "Очистить поиск",
+    "backToMailbox": "Вернуться к папке",
+    "closeAdvanced": "Закрыть расширенный поиск",
+    "removeFilter": "Удалить фильтр %{name}",
+    "searchFor": "Искать «%{text}»",
+    "wordsHint": "Разделяйте слова запятыми",
+    "loading": "Загрузка подсказок",
+    "suggestionCount": "%{smart_count} подсказка |||| %{smart_count} подсказки |||| %{smart_count} подсказок"
   }
 }

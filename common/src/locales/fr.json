@@ -12,7 +12,6 @@
     "close": "Fermer"
   },
   "topbar": {
-    "searchPlaceholder": "Rechercher dans les courriers",
     "apps": "Accéder aux applications",
     "account": "Gérer le compte",
     "logout": "Se déconnecter",
@@ -169,5 +168,77 @@
   },
   "layout": {
     "navigation": "Navigation"
+  },
+  "search": {
+    "placeholder": "Rechercher des messages",
+    "showingResultsFor": "Affichage des résultats pour :",
+    "recent": "Récent",
+    "filters": {
+      "hasAttachment": "Avec pièce jointe",
+      "fromMe": "De moi",
+      "starred": "Favoris",
+      "unread": "Non lu"
+    },
+    "dates": {
+      "last7Days": "Les 7 derniers jours",
+      "allTime": "Tout le temps",
+      "last30Days": "Les 30 derniers jours",
+      "last6Months": "Les 6 derniers mois",
+      "lastYear": "L'année dernière",
+      "custom": "Plage temporelle personnalisée",
+      "range": "Du %{startDate} au %{endDate}"
+    },
+    "fields": {
+      "from": "De",
+      "to": "À",
+      "subject": "Sujet",
+      "text": "Contient les mots",
+      "notWords": "Ne contient pas",
+      "date": "Date",
+      "sort": "Trier par",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "folder": "Dossier"
+    },
+    "scope": {
+      "default": "Tous les messages",
+      "everywhere": "Tous les messages, corbeille & spam"
+    },
+    "submit": "Rechercher",
+    "hints": {
+      "address": "Nom ou adresse e-mail",
+      "subject": "Entrer un sujet",
+      "words": "Entrez quelques mots"
+    },
+    "clearFilter": "Effacer les filtres",
+    "advanced": "Recherche avancée",
+    "sort": {
+      "mostRecent": "Le plus récent",
+      "oldest": "Le plus ancien",
+      "relevance": "Par pertinence",
+      "senderAscending": "Nom d'expéditeur : A - Z",
+      "senderDescending": "Nom d'expéditeur : Z - A",
+      "subjectAscending": "Sujet : A - Z",
+      "subjectDescending": "Sujet : Z - A",
+      "sizeAscending": "Par taille ascendante",
+      "sizeDescending": "Par taille descendante"
+    },
+    "empty": "Aucun message ne correspond à votre recherche",
+    "title": "Recherche",
+    "results": "Résultats de la recherche",
+    "inMailbox": "Dans %{name}",
+    "quickFilters": "Filtres rapides",
+    "filtersBar": "Filtres de recherche",
+    "suggestions": "Suggestions de recherche",
+    "contacts": "Contacts",
+    "emails": "Messages",
+    "clear": "Effacer la recherche",
+    "backToMailbox": "Retour à la boîte",
+    "closeAdvanced": "Fermer la recherche avancée",
+    "removeFilter": "Retirer le filtre %{name}",
+    "searchFor": "Rechercher « %{text} »",
+    "wordsHint": "Séparez les mots par des virgules",
+    "loading": "Chargement des suggestions",
+    "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions"
   }
 }

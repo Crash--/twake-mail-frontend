@@ -27,4 +27,16 @@ describe('SecondaryText', () => {
     const ratio = (1 + 0.05) / (luminance(onWhite) + 0.05)
     expect(ratio).toBeGreaterThanOrEqual(4.5)
   })
+
+  it('cuts the text after the given number of lines', () => {
+    renderDs(
+      <SecondaryText lines={2} data-testid="text">
+        A long preview
+      </SecondaryText>
+    )
+
+    const style = getComputedStyle(screen.getByTestId('text'))
+    expect(style.overflow).toBe('hidden')
+    expect(style.getPropertyValue('-webkit-line-clamp')).toBe('2')
+  })
 })

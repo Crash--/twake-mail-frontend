@@ -11,6 +11,8 @@ export interface SecondaryTextProps {
   variant?: TypographyProps['variant']
   component?: 'span' | 'p' | 'div' | 'h2' | 'h3'
   noWrap?: boolean
+  /** Cut after this many lines, with an ellipsis */
+  lines?: number
   className?: string
   'data-testid'?: string
 }
@@ -24,6 +26,7 @@ export function SecondaryText({
   variant,
   component = 'span',
   noWrap,
+  lines,
   className,
   'data-testid': testId
 }: SecondaryTextProps): ReactElement {
@@ -36,6 +39,14 @@ export function SecondaryText({
       data-testid={testId}
       sx={theme => ({
         color: alpha(theme.palette.grey[900], 0.8),
+        ...(lines === undefined
+          ? {}
+          : {
+              display: '-webkit-box',
+              overflow: 'hidden',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: lines
+            }),
         // The dark scheme of twake-mui has the same 64 % text.secondary
         ...theme.applyStyles('dark', {
           color: alpha(theme.palette.common.white, 0.8)

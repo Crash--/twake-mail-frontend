@@ -19,7 +19,9 @@ import { emptyFolder, type SubfoldersOutcome } from './emptyFolder'
 /** Default `maxCallsInRequest` of a JMAP server (RFC 8620 suggests 16) */
 const DEFAULT_MAX_CALLS = 16
 
-function maxCallsInRequest(capabilities: Record<string, unknown>): number {
+export function maxCallsInRequest(
+  capabilities: Record<string, unknown>
+): number {
   const core = capabilities['urn:ietf:params:jmap:core']
   return typeof core === 'object' &&
     core !== null &&

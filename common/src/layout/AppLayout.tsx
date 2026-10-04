@@ -8,6 +8,7 @@ import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
+import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
   ShortcutsProvider,
@@ -26,14 +27,16 @@ export interface AppLayoutProps {
  * Frame of the signed-in pages: top bar, sidebar, and the routed content.
  * Below the desktop size the sidebar is a drawer, closed as soon as the user
  * goes somewhere, and "New message" a floating button, hidden while an email
- * fills the screen. The keyboard shortcuts and the folder picker work in
- * all of it.
+ * fills the screen. The keyboard shortcuts, the folder picker and the
+ * folder actions work in all of it.
  */
 export function AppLayout(props: AppLayoutProps): ReactElement {
   return (
     <ShortcutsProvider>
       <MailboxPickerProvider>
-        <AppFrame {...props} />
+        <FolderActionsProvider>
+          <AppFrame {...props} />
+        </FolderActionsProvider>
       </MailboxPickerProvider>
     </ShortcutsProvider>
   )

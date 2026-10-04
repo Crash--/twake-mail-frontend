@@ -1,8 +1,9 @@
 import type { Email } from 'jmap-client-ts'
 import { useEffect, useRef } from 'react'
 
+import { useEmailActions } from '@common/features/emailActions/useEmailActions'
+
 import { hasKeyword, SEEN } from './keywords'
-import { useSetKeyword } from './useSetKeyword'
 
 /**
  * Marks an unread email as read when it is opened, once per email.
@@ -10,7 +11,7 @@ import { useSetKeyword } from './useSetKeyword'
 export function useMarkAsReadOnOpen(
   email: Pick<Email, 'id' | 'mailboxIds' | 'keywords'>
 ): void {
-  const { mutate: setKeyword } = useSetKeyword()
+  const { run } = useEmailActions()
   const markedEmailId = useRef<string | null>(null)
 
   useEffect(() => {
@@ -18,6 +19,11 @@ export function useMarkAsReadOnOpen(
     // requests, and a failed request from being retried in a loop
     if (markedEmailId.current === email.id || hasKeyword(email, SEEN)) return
     markedEmailId.current = email.id
-    setKeyword({ email, keyword: SEEN, isSet: true })
-  }, [email, setKeyword])
+    void run({
+      action: 'markAsRead',
+      emails: [email],
+      mailboxId: null,
+      silent: true
+    })
+  }, [email, run])
 }

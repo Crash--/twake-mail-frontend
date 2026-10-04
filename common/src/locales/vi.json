@@ -11,14 +11,17 @@
     "back": "Quay lại",
     "close": "Đóng",
     "cancel": "Hủy",
-    "delete": "Xoá"
+    "delete": "Xoá",
+    "undo": "Hoàn tác",
+    "connectionError": "Lỗi kết nối"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
     "account": "Quản lý tài khoản",
     "logout": "Đăng xuất",
     "search": "Tìm kiếm",
-    "showFolders": "Hiển thị thư mục"
+    "showFolders": "Hiển thị thư mục",
+    "searchPlaceholder": "Tìm kiếm thư"
   },
   "sidebar": {
     "newMessage": "Tin nhắn mới",
@@ -242,5 +245,29 @@
     "wordsHint": "Phân tách các từ bằng dấu phẩy",
     "loading": "Đang tải gợi ý",
     "suggestionCount": "%{smart_count} gợi ý"
+  },
+  "emailActions": {
+    "toast": {
+      "movedTo": "Đã chuyển đến %{destinationMailboxPath}",
+      "movedToTrash": "Đưa vào thùng rác",
+      "markedAsSpam": "Đã đánh dấu spam",
+      "markedAsNotSpam": "Đã đánh dấu không phải spam",
+      "deletedForever": "Tin nhắn đã bị xoá",
+      "deletedForeverCount": "%{smart_count} tin nhắn đã được xoá",
+      "markedMessagesAs": "Bạn vừa đánh dấu email là \"%{action}\"",
+      "markedMessageAs": "Tin nhắn được đánh dấu là %{action}",
+      "read": "Đã đọc",
+      "unread": "Chưa đọc",
+      "starred": "Thư đã được đánh dấu quan trọng",
+      "unstarred": "Thư đã được gỡ quan trọng",
+      "starredCount": "Đã gắn sao %{smart_count} thư",
+      "unstarredCount": "Đã gỡ sao %{smart_count} thư"
+    },
+    "deleteForever": {
+      "title": "Xoá tin nhắn vĩnh viễn",
+      "message": "Bạn đang xoá tin nhắn vĩnh viễn. Bạn có tiếp tục không?",
+      "titleMany": "Xoá tin nhắn vĩnh viễn",
+      "messageMany": "Bạn đang xoá vĩnh viễn %{count} tin nhắn trong %{mailboxName}. Bạn có tiếp tục không?"
+    }
   }
 }

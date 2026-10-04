@@ -124,7 +124,7 @@ describe('Marking an email as read when it is opened', () => {
     await openUnreadEmail()
     await waitFor(() => {
       expect(console.error).toHaveBeenCalledWith(
-        '[email] Cannot update the keywords',
+        '[email] Cannot change the emails',
         expect.anything()
       )
     })

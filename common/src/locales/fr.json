@@ -11,14 +11,17 @@
     "back": "Retour",
     "close": "Fermer",
     "cancel": "Annuler",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "undo": "Annuler",
+    "connectionError": "Erreur de connexion"
   },
   "topbar": {
     "apps": "Accéder aux applications",
     "account": "Gérer le compte",
     "logout": "Se déconnecter",
     "search": "Rechercher",
-    "showFolders": "Afficher les dossiers"
+    "showFolders": "Afficher les dossiers",
+    "searchPlaceholder": "Rechercher dans les courriers"
   },
   "sidebar": {
     "newMessage": "Nouveau message",
@@ -242,5 +245,29 @@
     "wordsHint": "Séparez les mots par des virgules",
     "loading": "Chargement des suggestions",
     "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions"
+  },
+  "emailActions": {
+    "toast": {
+      "movedTo": "Déplacé vers %{destinationMailboxPath}",
+      "movedToTrash": "Déplacé dans la Corbeille",
+      "markedAsSpam": "Marqué comme indésirable",
+      "markedAsNotSpam": "Retiré des indésirables",
+      "deletedForever": "Le message a été supprimé définitivement",
+      "deletedForeverCount": "%{smart_count} message a été supprimé définitivement |||| %{smart_count} messages ont été supprimés définitivement",
+      "markedMessagesAs": "Vous avez marqué les messages comme « %{action} »",
+      "markedMessageAs": "Le message a été marqué comme %{action}",
+      "read": "Lu",
+      "unread": "Non lu",
+      "starred": "Le mail a été marqué en favoris",
+      "unstarred": "Le mail a été retiré des favoris",
+      "starredCount": "%{smart_count} message ajouté aux favoris |||| %{smart_count} messages ajoutés aux favoris",
+      "unstarredCount": "%{smart_count} message retiré des favoris |||| %{smart_count} messages retirés des favoris"
+    },
+    "deleteForever": {
+      "title": "Supprimer le message pour toujours",
+      "message": "Vous êtes sur le point de supprimer définitivement ce message. Voulez-vous continuer ?",
+      "titleMany": "Supprimer les messages pour toujours",
+      "messageMany": "Vous allez supprimer définitivement %{count} éléments dans %{mailboxName}. Voulez-vous continuer ?"
+    }
   }
 }

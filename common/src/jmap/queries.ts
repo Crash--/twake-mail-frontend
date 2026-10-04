@@ -3,11 +3,23 @@ import { CAPABILITIES, type JmapClient, type Session } from 'jmap-client-ts'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 
+/**
+ * James extension giving access to shared and team mailboxes, with their
+ * `namespace`: tmail-flutter sends it in every request when the session
+ * has it
+ */
+export const SHARES_CAPABILITY = 'urn:apache:james:params:jmap:mail:shares'
+
 /** What the mail screens need from the JMAP session */
 export interface JmapSessionInfo {
   session: Session
   /** Primary account of the mail capability */
   accountId: string
+  /**
+   * Capabilities to add to the `using` of the mail requests, besides the
+   * ones of their methods (`extraCapabilities` of jmap-client-ts)
+   */
+  extraCapabilities: readonly string[]
 }
 
 export class NoMailAccountError extends Error {
@@ -27,7 +39,9 @@ async function fetchSessionInfo(client: JmapClient): Promise<JmapSessionInfo> {
   const session = await client.getSession()
   const accountId = session.primaryAccounts[CAPABILITIES.mail]
   if (accountId === undefined) throw new NoMailAccountError(session.username)
-  return { session, accountId }
+  const extraCapabilities =
+    SHARES_CAPABILITY in session.capabilities ? [SHARES_CAPABILITY] : []
+  return { session, accountId, extraCapabilities }
 }
 
 /**

@@ -31,7 +31,7 @@ import {
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
-import { useSetKeyword } from '@common/features/email/useSetKeyword'
+import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
@@ -201,7 +201,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     [openEmailId]
   )
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
-  const { mutate: setKeyword } = useSetKeyword()
+  const { run: runEmailAction } = useEmailActions()
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
 
@@ -243,20 +243,26 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   const handleToggleStar = useCallback(
     (email: EmailListItemData): void => {
-      setKeyword({
-        email,
-        keyword: FLAGGED,
-        isSet: !hasKeyword(email, FLAGGED)
+      void runEmailAction({
+        action: hasKeyword(email, FLAGGED) ? 'unstar' : 'star',
+        emails: [email],
+        mailboxId,
+        silent: true
       })
     },
-    [setKeyword]
+    [runEmailAction, mailboxId]
   )
 
   const handleToggleSeen = useCallback(
     (email: EmailListItemData): void => {
-      setKeyword({ email, keyword: SEEN, isSet: !hasKeyword(email, SEEN) })
+      void runEmailAction({
+        action: hasKeyword(email, SEEN) ? 'markAsUnread' : 'markAsRead',
+        emails: [email],
+        mailboxId,
+        silent: true
+      })
     },
-    [setKeyword]
+    [runEmailAction, mailboxId]
   )
 
   // Stable, like the cell below: the rows of the table are memoized and

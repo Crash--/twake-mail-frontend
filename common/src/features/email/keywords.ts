@@ -10,14 +10,3 @@ export function hasKeyword(
 ): boolean {
   return keyword in email.keywords
 }
-
-/** The keywords with `keyword` set or removed */
-export function withKeyword(
-  keywords: Record<string, true>,
-  keyword: EmailKeyword,
-  isSet: boolean
-): Record<string, true> {
-  if (isSet) return { ...keywords, [keyword]: true }
-  const { [keyword]: _removed, ...rest } = keywords
-  return rest
-}

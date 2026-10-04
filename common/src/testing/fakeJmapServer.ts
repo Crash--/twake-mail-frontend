@@ -20,7 +20,8 @@ import {
  *
  * Covers what the app uses: the session, `Mailbox/get`, `Mailbox/changes`,
  * `Email/query`, `Email/get` (with `#ids` back-references), `Email/changes`,
- * `Email/set` updates of keywords, and blob downloads. Changes made through
+ * `Email/set` updates of keywords and mailboxes (path patches, keeping the
+ * mailbox counters right) and destructions, and blob downloads. Changes made through
  * `Email/set` or the `addEmail`, `updateEmail`, `destroyEmail` and
  * `updateMailbox` helpers move the states and are reported by `/changes`;
  * direct edits of `emails` and `mailboxes` are not.
@@ -83,6 +84,11 @@ export interface FakeJmapServer {
   requests: FakeJmapRequest[]
   /** Answers every call of these methods with a JMAP error of that type */
   methodErrors: Map<string, string>
+  /**
+   * Refuses to update or destroy these emails (`notUpdated`, `notDestroyed`
+   * with that SetError type)
+   */
+  setErrors: Map<string, string>
   /**
    * Holds the API requests calling `method` (all of them without it) until
    * the returned function is called, to observe the screen while a request
@@ -299,7 +305,8 @@ export const FAKE_WEBSOCKET_URL = 'wss://jmap.example.com/jmap/ws'
 
 function makeSession(
   webSocket: boolean,
-  extraCapabilities: Readonly<Record<string, unknown>>
+  extraCapabilities: Readonly<Record<string, unknown>>,
+  maxObjectsInSet: number
 ): Record<string, unknown> {
   return {
     capabilities: {
@@ -316,7 +323,7 @@ function makeSession(
         maxSizeUpload: 20_000_000,
         maxCallsInRequest: 16,
         maxObjectsInGet: 500,
-        maxObjectsInSet: 500
+        maxObjectsInSet
       },
       'urn:ietf:params:jmap:mail': {}
     },
@@ -408,6 +415,8 @@ export function makeFakeJmapServer(
     /** Extra capabilities of the session and the account */
     capabilities?: Record<string, unknown>
     contacts?: FakeContact[]
+    /** `maxObjectsInSet` of the session, 500 by default */
+    maxObjectsInSet?: number
   } = {}
 ): FakeJmapServer {
   const server: FakeJmapServer = {
@@ -418,6 +427,7 @@ export function makeFakeJmapServer(
     blobs: new Map(),
     requests: [],
     methodErrors: new Map(),
+    setErrors: new Map(),
     holdRequests,
     calledMethods: () =>
       server.requests.flatMap(request =>
@@ -450,6 +460,7 @@ export function makeFakeJmapServer(
   const mailboxLog = new ChangeLog('state-mailbox-', maxChanges)
   const advertisesWebSocket = init.webSocket ?? false
   const extraCapabilities = init.capabilities ?? {}
+  const maxObjectsInSet = init.maxObjectsInSet ?? 500
   let held: { method: string | null; released: Promise<void> } | null = null
 
   function holdRequests(method?: string): () => void {
@@ -573,37 +584,77 @@ export function makeFakeJmapServer(
     return { accountId: FAKE_ACCOUNT_ID, state: emailLog.state, list, notFound }
   }
 
-  function setSeen(email: FakeEmail, seen: boolean): void {
-    if ('$seen' in email.keywords === seen) return
-    for (const mailbox of server.mailboxes) {
-      if (mailbox.id in email.mailboxIds) {
-        mailbox.unreadEmails += seen ? -1 : 1
-        mailboxLog.record(mailbox.id, 'updated')
+  /**
+   * Moves the counters of the mailboxes from `before` (the email as it was,
+   * null when created) to `after` (null when destroyed); only the mailboxes
+   * whose counters change are reported by `Mailbox/changes`
+   */
+  function recount(before: FakeEmail | null, after: FakeEmail | null): void {
+    const deltas = new Map<string, { total: number; unread: number }>()
+    const add = (email: FakeEmail | null, sign: 1 | -1): void => {
+      if (email === null) return
+      const isUnread = !('$seen' in email.keywords)
+      for (const id of Object.keys(email.mailboxIds)) {
+        const delta = deltas.get(id) ?? { total: 0, unread: 0 }
+        delta.total += sign
+        if (isUnread) delta.unread += sign
+        deltas.set(id, delta)
       }
+    }
+    add(before, -1)
+    add(after, 1)
+    for (const mailbox of server.mailboxes) {
+      const delta = deltas.get(mailbox.id)
+      if (delta === undefined || (delta.total === 0 && delta.unread === 0)) {
+        continue
+      }
+      mailbox.totalEmails = Math.max(0, mailbox.totalEmails + delta.total)
+      mailbox.unreadEmails = Math.max(0, mailbox.unreadEmails + delta.unread)
+      mailboxLog.record(mailbox.id, 'updated')
     }
   }
 
+  function setFlag(
+    map: Record<string, true>,
+    key: string,
+    value: unknown
+  ): Record<string, true> {
+    if (value === true) return { ...map, [key]: true }
+    const { [key]: _removed, ...rest } = map
+    return rest
+  }
+
   function updateEmail(email: FakeEmail, patch: Record<string, unknown>): void {
+    const before = { ...email }
     for (const [path, value] of Object.entries(patch)) {
-      const keyword = path.startsWith('keywords/') ? path.slice(9) : null
-      if (keyword === null) continue
-      if (keyword === '$seen') setSeen(email, value === true)
-      if (value === true) {
-        email.keywords = { ...email.keywords, [keyword]: true }
-      } else {
-        const { [keyword]: _removed, ...rest } = email.keywords
-        email.keywords = rest
+      if (path.startsWith('keywords/')) {
+        email.keywords = setFlag(email.keywords, path.slice(9), value)
+      } else if (path.startsWith('mailboxIds/')) {
+        email.mailboxIds = setFlag(email.mailboxIds, path.slice(11), value)
+      } else if (path === 'mailboxIds' && isRecord(value)) {
+        email.mailboxIds = Object.fromEntries(
+          Object.keys(value).map(id => [id, true as const])
+        )
       }
     }
+    recount(before, email)
   }
 
   function setEmails(args: Record<string, unknown>): unknown {
     const update = isRecord(args.update) ? args.update : {}
+    const destroy = Array.isArray(args.destroy) ? args.destroy : []
     const updated: Record<string, null> = {}
     const notUpdated: Record<string, unknown> = {}
+    const destroyed: string[] = []
+    const notDestroyed: Record<string, unknown> = {}
     const oldState = emailLog.state
     for (const [id, patch] of Object.entries(update)) {
       const email = server.emails.find(candidate => candidate.id === id)
+      const refusal = server.setErrors.get(id)
+      if (refusal !== undefined) {
+        notUpdated[id] = { type: refusal }
+        continue
+      }
       if (!email || !isRecord(patch)) {
         notUpdated[id] = { type: 'notFound' }
         continue
@@ -612,12 +663,27 @@ export function makeFakeJmapServer(
       emailLog.record(id, 'updated')
       updated[id] = null
     }
+    for (const id of destroy) {
+      if (typeof id !== 'string') continue
+      const email = server.emails.find(candidate => candidate.id === id)
+      const refusal = server.setErrors.get(id)
+      if (refusal !== undefined || !email) {
+        notDestroyed[id] = { type: refusal ?? 'notFound' }
+        continue
+      }
+      recount(email, null)
+      server.emails = server.emails.filter(candidate => candidate.id !== id)
+      emailLog.record(id, 'destroyed')
+      destroyed.push(id)
+    }
     return {
       accountId: FAKE_ACCOUNT_ID,
       oldState,
       newState: emailLog.state,
       updated,
-      notUpdated
+      notUpdated,
+      destroyed,
+      notDestroyed
     }
   }
 
@@ -706,7 +772,9 @@ export function makeFakeJmapServer(
     init?: RequestInit
   ): Promise<Response> {
     if (input === FAKE_SESSION_URL) {
-      return jsonResponse(makeSession(advertisesWebSocket, extraCapabilities))
+      return jsonResponse(
+        makeSession(advertisesWebSocket, extraCapabilities, maxObjectsInSet)
+      )
     }
     if (input.startsWith(DOWNLOAD_PREFIX)) return handleDownload(input)
     if (input === FAKE_API_URL && typeof init?.body === 'string') {

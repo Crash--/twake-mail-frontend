@@ -21,7 +21,9 @@ import {
  * Covers what the app uses: the session, `Mailbox/get`, `Mailbox/changes`,
  * `Email/query`, `Email/get` (with `#ids` back-references), `Email/changes`,
  * `Email/set` updates of keywords and mailboxes (path patches, keeping the
- * mailbox counters right) and destructions, and blob downloads. Changes made through
+ * mailbox counters right) and destructions, `Mailbox/set` (creations,
+ * renames, moves, subscriptions, destructions) and `Mailbox/clear`, and
+ * blob downloads. Changes made through
  * `Email/set` or the `addEmail`, `updateEmail`, `destroyEmail` and
  * `updateMailbox` helpers move the states and are reported by `/changes`;
  * direct edits of `emails` and `mailboxes` are not.
@@ -698,6 +700,122 @@ export function makeFakeJmapServer(
     }
   }
 
+  let createdMailboxes = 0
+
+  function setMailboxes(args: Record<string, unknown>): unknown {
+    const create = isRecord(args.create) ? args.create : {}
+    const update = isRecord(args.update) ? args.update : {}
+    const destroy = Array.isArray(args.destroy) ? args.destroy : []
+    const removeEmails = args.onDestroyRemoveEmails === true
+    const oldState = mailboxLog.state
+    const created: Record<string, unknown> = {}
+    const notCreated: Record<string, unknown> = {}
+    const updated: Record<string, null> = {}
+    const notUpdated: Record<string, unknown> = {}
+    const destroyed: string[] = []
+    const notDestroyed: Record<string, unknown> = {}
+    const refusal = (id: string): unknown => {
+      const type = server.setErrors.get(id)
+      return type === undefined ? null : { type }
+    }
+    for (const [key, value] of Object.entries(create)) {
+      if (!isRecord(value) || typeof value.name !== 'string') {
+        notCreated[key] = { type: 'invalidProperties' }
+        continue
+      }
+      createdMailboxes += 1
+      const id = `mailbox-created-${createdMailboxes}`
+      server.mailboxes.push(
+        makeMailbox({
+          id,
+          name: value.name,
+          parentId: typeof value.parentId === 'string' ? value.parentId : null,
+          isSubscribed: value.isSubscribed !== false
+        })
+      )
+      mailboxLog.record(id, 'created')
+      created[key] = { id }
+    }
+    for (const [id, patch] of Object.entries(update)) {
+      const mailbox = server.mailboxes.find(candidate => candidate.id === id)
+      const refused = refusal(id)
+      if (refused !== null || !mailbox || !isRecord(patch)) {
+        notUpdated[id] = refused ?? { type: 'notFound' }
+        continue
+      }
+      if (typeof patch.name === 'string') mailbox.name = patch.name
+      if ('parentId' in patch) {
+        mailbox.parentId =
+          typeof patch.parentId === 'string' ? patch.parentId : null
+      }
+      if (typeof patch.isSubscribed === 'boolean') {
+        mailbox.isSubscribed = patch.isSubscribed
+      }
+      mailboxLog.record(id, 'updated')
+      updated[id] = null
+    }
+    for (const id of destroy) {
+      if (typeof id !== 'string') continue
+      const mailbox = server.mailboxes.find(candidate => candidate.id === id)
+      const refused = refusal(id)
+      const hasChild = server.mailboxes.some(
+        candidate => candidate.parentId === id
+      )
+      const emails = server.emails.filter(email => id in email.mailboxIds)
+      if (refused !== null || !mailbox) {
+        notDestroyed[id] = refused ?? { type: 'notFound' }
+      } else if (hasChild) {
+        notDestroyed[id] = { type: 'mailboxHasChild' }
+      } else if (emails.length > 0 && !removeEmails) {
+        notDestroyed[id] = { type: 'mailboxHasEmail' }
+      } else {
+        for (const email of emails) {
+          const { [id]: _removed, ...rest } = email.mailboxIds
+          if (Object.keys(rest).length === 0) {
+            server.emails = server.emails.filter(other => other !== email)
+            emailLog.record(email.id, 'destroyed')
+          } else {
+            email.mailboxIds = rest
+            emailLog.record(email.id, 'updated')
+          }
+        }
+        server.mailboxes = server.mailboxes.filter(other => other !== mailbox)
+        mailboxLog.record(id, 'destroyed')
+        destroyed.push(id)
+      }
+    }
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      oldState,
+      newState: mailboxLog.state,
+      created,
+      notCreated,
+      updated,
+      notUpdated,
+      destroyed,
+      notDestroyed
+    }
+  }
+
+  /** `Mailbox/clear` of tmail-backend: destroys every email of a mailbox */
+  function clearMailbox(args: Record<string, unknown>): unknown {
+    const mailboxId = typeof args.mailboxId === 'string' ? args.mailboxId : ''
+    const refused = server.setErrors.get(mailboxId)
+    if (refused !== undefined) {
+      return { accountId: FAKE_ACCOUNT_ID, notCleared: { type: refused } }
+    }
+    const emails = server.emails.filter(email => mailboxId in email.mailboxIds)
+    for (const email of emails) {
+      recount(email, null)
+      server.emails = server.emails.filter(other => other !== email)
+      emailLog.record(email.id, 'destroyed')
+    }
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      totalDeletedMessagesCount: emails.length
+    }
+  }
+
   function answer(name: string, args: Record<string, unknown>): unknown {
     switch (name) {
       case 'Mailbox/get':
@@ -718,6 +836,10 @@ export function makeFakeJmapServer(
         return emailLog.changes(args) ?? { error: 'cannotCalculateChanges' }
       case 'Mailbox/changes':
         return mailboxLog.changes(args) ?? { error: 'cannotCalculateChanges' }
+      case 'Mailbox/set':
+        return setMailboxes(args)
+      case 'Mailbox/clear':
+        return clearMailbox(args)
       default:
         return null
     }

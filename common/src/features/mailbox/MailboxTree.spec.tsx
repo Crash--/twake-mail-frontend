@@ -126,4 +126,36 @@ describe('MailboxTree', () => {
     expect(folder('ACME')).toHaveAttribute('aria-current', 'page')
     expect(folder('ACME')).toHaveAttribute('aria-level', '3')
   })
+
+  it('keeps no room for an expand arrow when no folder has subfolders', async () => {
+    const jmapServer = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'work', name: 'Work' })
+      ]
+    })
+    renderWithProviders(<MailboxTree />, {
+      route: '/mailbox/mailbox-inbox',
+      path: '/mailbox/:mailboxId',
+      withJmapSession: true,
+      jmapServer
+    })
+
+    await screen.findAllByTestId('mailbox-item')
+
+    expect(screen.queryByTestId('mailbox-toggle-slot')).toBe(null)
+  })
+
+  it('aligns every folder on the expand arrows when one has subfolders', async () => {
+    renderTree()
+
+    await screen.findAllByTestId('mailbox-item')
+
+    expect(
+      within(folder('Inbox')).queryByTestId('mailbox-toggle-slot')
+    ).toBeInTheDocument()
+    expect(
+      within(folder('Work')).queryByTestId('mailbox-toggle-slot')
+    ).toBeInTheDocument()
+  })
 })

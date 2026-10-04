@@ -87,6 +87,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A "Starred" folder after the Inbox, listing the starred emails of every
   folder
 
+- Composer window, from "New message", its floating button or the `c` key:
+  up to three windows docked at the bottom of a desktop screen, minimized
+  or full screen, the whole screen on phones and tablets; closing a
+  modified message offers to save it as a draft
+- Recipient fields (To, Cc, Bcc, Reply to) with chips: pasted lists,
+  invalid addresses shown as such, keyboard editing, contact suggestions
+  (`TMailContact/autocomplete`); the identity to send from, with its
+  signature
+- Rich text body: formatting toolbar (Alt+F10), links (Ctrl+K), inline
+  images resized with the keyboard, clean paste from office suites
+
 ### Changed
 
 - Lists, folders and open emails are not refetched while push keeps them

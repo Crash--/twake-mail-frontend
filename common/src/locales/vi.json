@@ -202,7 +202,46 @@
       "html": "HTML gửi đi",
       "text": "Phiên bản văn bản",
       "restored": "Đã khôi phục trình soạn thư sau khi tải lại"
-    }
+    },
+    "fields": {
+      "to": "Đến",
+      "cc": "Cc",
+      "bcc": "Bcc",
+      "replyTo": "Reply to",
+      "from": "Từ",
+      "subject": "Tiêu đề"
+    },
+    "window": {
+      "minimize": "Thu nhỏ",
+      "fullscreen": "Toàn màn hình",
+      "exitFullscreen": "Thoát toàn màn hình",
+      "close": "Lưu và đóng",
+      "show": "Hiển thị"
+    },
+    "close": {
+      "title": "Lưu thư",
+      "message": "Lưu thư vào thư mục Nháp và đóng trình duyệt?",
+      "save": "Lưu",
+      "discard": "Huỷ bỏ thay đổi"
+    },
+    "draft": {
+      "saved": "Đã lưu bản nháp",
+      "saveFailed": "Lưu bản nháp thất bại.\nCó lỗi trong quá trình lưu bản nháp.",
+      "tooLarge": "Không thể lưu tin nhắn của bạn vào mục nháp, vì nó quá lớn.",
+      "overQuota": "Không thể lưu tin nhắn của bạn dưới dạng bản nháp vì nó vượt quá giới hạn dung lượng."
+    },
+    "newMessage": "Tin nhắn mới",
+    "more": "Tiếp",
+    "recipients": {
+      "suggestions": "Gợi ý liên hệ",
+      "invalid": "địa chỉ không hợp lệ",
+      "chipHelp": "Delete xóa địa chỉ, Enter để sửa.",
+      "removed": "Đã xóa %{address}",
+      "suggestionCount": "%{smart_count} gợi ý",
+      "summary": "Hiện tất cả người nhận:",
+      "others": "+%{smart_count}"
+    },
+    "limit": "Bạn có thể soạn %{smart_count} thư cùng lúc. Hãy đóng một thư để bắt đầu thư khác."
   },
   "layout": {
     "navigation": "Điều hướng"

@@ -12,6 +12,7 @@ import {
   useAuthState
 } from '@common/features/auth/AuthProvider'
 
+import { LINAGORA_METHOD_CAPABILITIES } from './linagoraMethods'
 import { makeJmapAuth } from './makeJmapAuth'
 
 /** `createClient` of jmap-client-ts, or a wrapper of it in tests */
@@ -43,7 +44,11 @@ export function JmapClientProvider({
   const client = useMemo(
     () =>
       status === 'authenticated'
-        ? createClient({ sessionUrl, auth: makeJmapAuth(authService) })
+        ? createClient({
+            sessionUrl,
+            auth: makeJmapAuth(authService),
+            methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+          })
         : null,
     [createClient, sessionUrl, authService, status]
   )

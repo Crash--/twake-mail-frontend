@@ -28,11 +28,13 @@ export function QuickSearchFilters({
   const isFromMe = filter.from.includes(ownAddress)
   const isLast7Days = filter.dateRange === 'last7Days'
 
+  // The chips keep a bottom margin for when they wrap: half a padding below
+  // them makes the space the same above and below
   return (
     <Box
       role="group"
       aria-label={t('search.quickFilters')}
-      className="u-flex u-flex-wrap u-p-1"
+      className="u-flex u-flex-wrap u-pt-1 u-ph-1 u-pb-half"
       data-testid="quick-search-filters"
     >
       <span className="u-mr-half u-mb-half">

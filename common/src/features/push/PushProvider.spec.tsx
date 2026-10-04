@@ -1,10 +1,13 @@
+import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { act, screen, waitFor, within } from '@testing-library/react'
 import type { WebSocketLike } from 'jmap-client-ts'
 
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
+import { EmailList } from '@common/features/thread/EmailList'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_WEBSOCKET_URL,
+  makeEmail,
   makeFakeJmapServer,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
@@ -41,6 +44,11 @@ class FakeWebSocket implements WebSocketLike {
     this.onopen?.(new Event('open'))
   }
 
+  /** The connection drops */
+  drop(): void {
+    this.onclose?.(new CloseEvent('close', { code: 1006 }))
+  }
+
   receive(message: unknown): void {
     this.onmessage?.(
       new MessageEvent('message', { data: JSON.stringify(message) })
@@ -65,6 +73,13 @@ function inboxUnreadCount(): string | null {
   )
 }
 
+function lastSocket(): FakeWebSocket {
+  const socket = FakeWebSocket.instances[FakeWebSocket.instances.length - 1]
+  if (!socket) throw new Error('No WebSocket opened')
+  return socket
+}
+
+/** The mailbox tree and the inbox list, under the push provider */
 async function renderWithPush(server: FakeJmapServer): Promise<{
   socket: FakeWebSocket
   result: ReturnType<typeof renderWithProviders>
@@ -72,23 +87,40 @@ async function renderWithPush(server: FakeJmapServer): Promise<{
   const result = renderWithProviders(
     <PushProvider WebSocket={FakeWebSocket}>
       <MailboxTree />
+      <VirtuosoMockContext.Provider
+        value={{ viewportHeight: 100_000, itemHeight: 56 }}
+      >
+        <EmailList mailboxId="mailbox-inbox" />
+      </VirtuosoMockContext.Provider>
     </PushProvider>,
-    { withJmapSession: true, jmapServer: server }
+    {
+      route: '/mailbox/mailbox-inbox',
+      path: '/mailbox/:mailboxId',
+      withJmapSession: true,
+      jmapServer: server
+    }
   )
   await screen.findAllByTestId('mailbox-item')
+  await screen.findByTestId('email-list-item')
   await waitFor(() => {
     expect(FakeWebSocket.instances).toHaveLength(1)
   })
-  const [socket] = FakeWebSocket.instances
-  if (!socket) throw new Error('No WebSocket opened')
+  const socket = lastSocket()
   act(() => {
     socket.open()
   })
   return { socket, result }
 }
 
-function mailboxGetCount(server: FakeJmapServer): number {
-  return server.calledMethods().filter(name => name === 'Mailbox/get').length
+function countCalls(server: FakeJmapServer, method: string): number {
+  return server.calledMethods().filter(name => name === method).length
+}
+
+function makeServer(): FakeJmapServer {
+  return makeFakeJmapServer({
+    webSocket: true,
+    emails: [makeEmail({ id: 'e1', subject: 'Already there' })]
+  })
 }
 
 describe('PushProvider', () => {
@@ -97,9 +129,7 @@ describe('PushProvider', () => {
   })
 
   it('subscribes to the Email and Mailbox changes', async () => {
-    const { socket } = await renderWithPush(
-      makeFakeJmapServer({ webSocket: true })
-    )
+    const { socket } = await renderWithPush(makeServer())
 
     expect(socket.url).toBe(FAKE_WEBSOCKET_URL)
     expect(socket.protocols).toBe('jmap')
@@ -109,60 +139,100 @@ describe('PushProvider', () => {
     })
   })
 
-  it('refetches the mailboxes when the server says they changed', async () => {
-    const server = makeFakeJmapServer({ webSocket: true })
+  it('reloads nothing when the channel first opens', async () => {
+    const server = makeServer()
+    await renderWithPush(server)
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
+
+    expect(countCalls(server, 'Mailbox/get')).toBe(1)
+    expect(countCalls(server, 'Email/query')).toBe(1)
+  })
+
+  it('updates the counters from the mailbox changes', async () => {
+    const server = makeServer()
     const { socket } = await renderWithPush(server)
     expect(inboxUnreadCount()).toBe('2')
 
-    const inbox = server.mailboxes.find(mailbox => mailbox.role === 'inbox')
-    if (inbox) inbox.unreadEmails = 7
+    server.updateMailbox('mailbox-inbox', { unreadEmails: 7 })
     act(() => {
-      socket.receive(stateChange(FAKE_ACCOUNT_ID, { Mailbox: 'm2' }))
+      socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
     })
 
     await waitFor(() => {
       expect(inboxUnreadCount()).toBe('7')
     })
+    expect(countCalls(server, 'Mailbox/changes')).toBe(1)
   })
 
-  it('refetches the email lists and emails on an Email change', async () => {
-    const server = makeFakeJmapServer({ webSocket: true })
-    const { socket, result } = await renderWithPush(server)
-    const invalidate = jest.spyOn(result.queryClient, 'invalidateQueries')
+  it('shows a pushed email without reloading the list', async () => {
+    const server = makeServer()
+    const { socket } = await renderWithPush(server)
+
+    server.addEmail(
+      makeEmail({
+        id: 'pushed',
+        subject: 'Pushed news',
+        receivedAt: '2026-10-05T08:00:00Z'
+      })
+    )
+    act(() => {
+      socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+    })
+
+    expect(await screen.findByText('Pushed news')).toBeVisible()
+    expect(countCalls(server, 'Email/query')).toBe(1)
+    expect(countCalls(server, 'Email/changes')).toBe(1)
+  })
+
+  it('catches up the changes made while the channel was down', async () => {
+    const server = makeServer()
+    const { socket } = await renderWithPush(server)
 
     act(() => {
-      socket.receive(stateChange(FAKE_ACCOUNT_ID, { Email: 'e2' }))
+      socket.drop()
+    })
+    server.addEmail(
+      makeEmail({
+        id: 'missed',
+        subject: 'Sent while offline',
+        receivedAt: '2026-10-05T08:00:00Z'
+      })
+    )
+    await waitFor(
+      () => {
+        expect(FakeWebSocket.instances).toHaveLength(2)
+      },
+      { timeout: 3000 }
+    )
+    act(() => {
+      lastSocket().open()
     })
 
-    expect(invalidate).toHaveBeenCalledWith({
-      queryKey: ['thread', FAKE_ACCOUNT_ID]
-    })
-    expect(invalidate).toHaveBeenCalledWith({
-      queryKey: ['email', FAKE_ACCOUNT_ID]
-    })
-    expect(invalidate).not.toHaveBeenCalledWith({
-      queryKey: ['mailbox', FAKE_ACCOUNT_ID]
-    })
+    expect(await screen.findByText('Sent while offline')).toBeVisible()
+    expect(countCalls(server, 'Email/query')).toBe(1)
   })
 
   it('ignores the changes of other accounts', async () => {
-    const server = makeFakeJmapServer({ webSocket: true })
+    const server = makeServer()
     const { socket } = await renderWithPush(server)
-    await waitFor(() => {
-      expect(mailboxGetCount(server)).toBe(2)
-    })
 
+    server.updateMailbox('mailbox-inbox', { unreadEmails: 7 })
     act(() => {
-      socket.receive(stateChange('another-account', { Mailbox: 'm2' }))
+      socket.receive(stateChange('another-account', server.states()))
+    })
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
     })
 
-    expect(mailboxGetCount(server)).toBe(2)
+    expect(countCalls(server, 'Mailbox/changes')).toBe(0)
+    expect(inboxUnreadCount()).toBe('2')
   })
 
   it('closes the channel when the session screens go away', async () => {
-    const { socket, result } = await renderWithPush(
-      makeFakeJmapServer({ webSocket: true })
-    )
+    const { socket, result } = await renderWithPush(makeServer())
 
     result.unmount()
 

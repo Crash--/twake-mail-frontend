@@ -8,18 +8,10 @@ import { useEffect, type ReactElement, type ReactNode } from 'react'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-import {
-  invalidateOnStateChange,
-  invalidatePushedData,
-  PUSHED_DATA_TYPES
-} from './invalidateOnPush'
+import { createPushSync, SYNCED_TYPES } from './pushSync'
 
 /** Keeps idle connections open through proxies that close silent sockets */
 const PING_INTERVAL_MS = 30_000
-
-function logInvalidationError(error: unknown): void {
-  console.error('[push] Cannot refresh the data', error)
-}
 
 export interface PushProviderProps {
   children: ReactNode
@@ -28,9 +20,11 @@ export interface PushProviderProps {
 }
 
 /**
- * Listens to the JMAP push channel (WebSocket) of the session and refetches
- * the mailboxes and emails the server says changed. The channel closes when
- * the session ends, as this provider unmounts with the signed-in screens.
+ * Listens to the JMAP push channel (WebSocket) of the session and brings the
+ * cached mailboxes and emails up to the states the server pushes, from their
+ * changes (`pushSync`). After a reconnection, it catches up the changes made
+ * while the channel was down. The channel closes when the session ends, as
+ * this provider unmounts with the signed-in screens.
  */
 export function PushProvider({
   children,
@@ -41,20 +35,23 @@ export function PushProvider({
   const queryClient = useQueryClient()
 
   useEffect(() => {
+    const sync = createPushSync(queryClient, client, accountId)
     const push = client.connectWebSocket({
-      dataTypes: PUSHED_DATA_TYPES,
+      dataTypes: [...SYNCED_TYPES],
       ping: { intervalMs: PING_INTERVAL_MS },
       ...(WebSocket ? { WebSocket } : {})
     })
+    // The data just loaded is up to date when the channel first opens
+    let hasBeenOpen = false
     const unsubscribers = [
       push.on('stateChange', change => {
-        invalidateOnStateChange(queryClient, accountId, change).catch(
-          logInvalidationError
-        )
+        const states = change.changed[accountId]
+        if (states) sync.stateChanged(states)
       }),
       push.on('status', status => {
         if (status !== 'open') return
-        invalidatePushedData(queryClient, accountId).catch(logInvalidationError)
+        if (hasBeenOpen) sync.catchUp()
+        hasBeenOpen = true
       }),
       push.on('error', error => {
         if (error instanceof JmapPushNotSupportedError) {
@@ -69,6 +66,7 @@ export function PushProvider({
         unsubscribe()
       })
       push.close()
+      sync.close()
     }
   }, [client, accountId, queryClient, WebSocket])
 

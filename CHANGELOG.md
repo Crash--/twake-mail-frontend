@@ -32,6 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Real-time updates through JMAP push over WebSocket
 - Development proxy to a JMAP server (`JMAP_PROXY_TARGET`)
 - End-to-end tests of login, folders, reading and push (Playwright)
+- Phones and tablets, with the breakpoints of tmail-flutter: below 1200 px
+  the folders open in a drawer from a menu button and "New message" is a
+  floating button; from 900 to 1199 px the list stays beside the email
+  being read; below 900 px the email replaces the list, with a back
+  button. Phones get a compact top bar (current folder, search behind a
+  button) and four-line list rows (sender and date, subject, preview).
+  Touch targets are at least 44 px, and every screen reflows down to
+  320 px without horizontal scrolling (RGAA 10.11)
+- End-to-end runs of the main path on phone (390 × 844) and tablet
+  (820 × 1180) screens, and reflow checks at 320 and 640 px
 
 ### Security
 

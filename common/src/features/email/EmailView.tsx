@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { ConversationView } from '@common/features/thread/ConversationView'
@@ -176,7 +177,8 @@ export function EmailView({
 
   const handleBack = (): void => {
     void navigate(backPath, {
-      state: { focusEmailId: emailId } satisfies EmailListLocationState
+      state: { focusEmailId: emailId } satisfies EmailListLocationState,
+      viewTransition: prepareViewTransition('backward')
     })
   }
 

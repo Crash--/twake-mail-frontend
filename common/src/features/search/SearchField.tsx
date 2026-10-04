@@ -9,6 +9,7 @@ import {
   type SearchComboboxGroup,
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
+import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { useI18n } from '@common/i18n/useI18n'
@@ -162,7 +163,8 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
       addRecentSearch(accountId, filter.text)
       const emailId = encodeURIComponent(option.id.slice(EMAIL_PREFIX.length))
       void navigate(
-        `/search/email/${emailId}?${toSearchParams(filter).toString()}`
+        `/search/email/${emailId}?${toSearchParams(filter).toString()}`,
+        { viewTransition: prepareViewTransition('forward') }
       )
     }
   }

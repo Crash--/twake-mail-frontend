@@ -2,6 +2,10 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router'
 
+import {
+  prepareViewTransition,
+  type ViewTransitionDirection
+} from '@/ds/ViewTransition/viewTransition'
 import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useRemoveEmails } from '@common/features/emailActions/useRemoveEmails'
@@ -96,23 +100,30 @@ export function useEmailViewShortcuts({
       state:
         focusEmailId === null
           ? null
-          : ({ focusEmailId } satisfies EmailListLocationState)
+          : ({ focusEmailId } satisfies EmailListLocationState),
+      viewTransition: prepareViewTransition('backward')
     })
   }, [isInMailbox, email, backPath, navigate])
 
-  const open = (id: string | null): void => {
+  // The next email comes in like an opened one, the previous one the other way
+  const open = (
+    id: string | null,
+    direction: ViewTransitionDirection
+  ): void => {
     if (id !== null && mailboxId !== null) {
-      void navigate(emailPath(mailboxId, id))
+      void navigate(emailPath(mailboxId, id), {
+        viewTransition: prepareViewTransition(direction)
+      })
     }
   }
 
   useShortcuts(
     {
       j: () => {
-        open(neighbors.nextId)
+        open(neighbors.nextId, 'forward')
       },
       k: () => {
-        open(neighbors.previousId)
+        open(neighbors.previousId, 'backward')
       },
       e: () => {
         if (email) void run({ action: 'archive', emails: [email], mailboxId })
@@ -134,7 +145,8 @@ export function useEmailViewShortcuts({
         void run({ action: 'markAsUnread', emails: [email], mailboxId })
         // As tmail-flutter: an email left unread is closed
         void navigate(backPath, {
-          state: { focusEmailId: email.id } satisfies EmailListLocationState
+          state: { focusEmailId: email.id } satisfies EmailListLocationState,
+          viewTransition: prepareViewTransition('backward')
         })
       }
     },

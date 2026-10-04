@@ -3,12 +3,15 @@ import { expect, type Locator, type Page } from '@playwright/test'
 import { ComposerPage } from './ComposerPage'
 
 export type EmailAction =
+  | 'mark-as-read'
   | 'mark-as-unread'
   | 'star'
   | 'unstar'
   | 'move'
   | 'move-to-trash'
+  | 'delete-permanently'
   | 'mark-as-spam'
+  | 'not-spam'
   | 'archive'
   | 'label-as'
 
@@ -91,10 +94,18 @@ export class EmailPage {
     return this.#composer()
   }
 
+  /** The "more" menu, open */
+  async openMoreMenu(): Promise<Locator> {
+    await this.moreButton.click()
+    const menu = this.page.getByTestId('email-view-menu').getByRole('menu')
+    await expect(menu).toBeVisible()
+    return menu
+  }
+
   /** Runs an action of the "more" menu (`email-action-<action>` items) */
   async runAction(action: EmailAction): Promise<EmailPage> {
-    await this.moreButton.click()
-    await this.page.getByTestId(`email-action-${action}`).click()
+    const menu = await this.openMoreMenu()
+    await menu.getByTestId(`email-action-${action}`).click()
     return this
   }
 

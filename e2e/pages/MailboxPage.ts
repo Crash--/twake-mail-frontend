@@ -39,6 +39,13 @@ export class MailboxPage {
   readonly toastUndoButton: Locator
   /** The list of the keyboard shortcuts (`?`, account menu) */
   readonly shortcutsDialog: Locator
+  /** Shown above the list while emails are selected */
+  readonly selectionToolbar: Locator
+  /** "Empty trash now" / "Delete all spam emails now" above the Trash / Spam list */
+  readonly emptyTrashBanner: Locator
+  readonly confirmDialog: Locator
+  /** The folder picker ("Move To") */
+  readonly mailboxPicker: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -56,6 +63,10 @@ export class MailboxPage {
     this.toast = page.getByTestId('toast')
     this.toastUndoButton = this.toast.getByTestId('toast-undo-button')
     this.shortcutsDialog = page.getByTestId('shortcuts-dialog')
+    this.selectionToolbar = page.getByTestId('selection-toolbar')
+    this.emptyTrashBanner = page.getByTestId('empty-trash-banner')
+    this.confirmDialog = page.getByTestId('confirm-dialog')
+    this.mailboxPicker = page.getByTestId('mailbox-picker')
   }
 
   /** True when the folders are in a drawer: phones and tablets */
@@ -160,6 +171,71 @@ export class MailboxPage {
   /** The link of a list row, which holds the focus of the row */
   emailRowLink(subject: string): Locator {
     return this.emailRow(subject).getByRole('link')
+  }
+
+  /** Selection checkbox of a list row: its root, over which the input lies */
+  emailRowCheckbox(subject: string): Locator {
+    return this.emailRow(subject).getByTestId('email-list-item-checkbox')
+  }
+
+  /** Checks a row; with `range`, every row from the last one checked (Shift) */
+  async selectEmail(
+    subject: string,
+    { range = false }: { range?: boolean } = {}
+  ): Promise<MailboxPage> {
+    await this.emailRowCheckbox(subject).click(
+      range ? { modifiers: ['Shift'] } : {}
+    )
+    await expect(this.selectionToolbar).toBeVisible()
+    return this
+  }
+
+  /** A button of the selection toolbar (`selected-email-action-<action>`) */
+  selectionAction(action: string): Locator {
+    return this.selectionToolbar.getByTestId(`selected-email-action-${action}`)
+  }
+
+  /** Runs an action of the selection toolbar, from its "More" menu when not a button */
+  async runSelectionAction(action: string): Promise<MailboxPage> {
+    const button = this.selectionAction(action)
+    if (await button.isVisible()) {
+      await button.click()
+    } else {
+      await this.selectionAction('more').click()
+      await this.page
+        .getByTestId('selection-toolbar-menu')
+        .getByTestId(`email-action-${action}`)
+        .click()
+    }
+    return this
+  }
+
+  /** The actions menu of a row: from its ⋮ button, or a right click */
+  async openEmailMenu(
+    subject: string,
+    { rightClick = false }: { rightClick?: boolean } = {}
+  ): Promise<Locator> {
+    if (rightClick) {
+      await this.emailRow(subject).click({ button: 'right' })
+    } else {
+      await this.emailRow(subject).hover()
+      await this.emailRow(subject).getByTestId('email-list-item-more').click()
+    }
+    const menu = this.page.getByTestId('email-context-menu').getByRole('menu')
+    await expect(menu).toBeVisible()
+    return menu
+  }
+
+  /** Picks a folder in the open picker, after typing its name in the filter */
+  async pickFolder(name: string): Promise<MailboxPage> {
+    await expect(this.mailboxPicker).toBeVisible()
+    await this.mailboxPicker.getByTestId('mailbox-picker-search-input').fill(name)
+    await this.mailboxPicker
+      .getByRole('option', { name: new RegExp(`^${name}`) })
+      .first()
+      .click()
+    await expect(this.mailboxPicker).toBeHidden()
+    return this
   }
 
   /** Star toggle of a list row (`aria-pressed` when starred) */

@@ -314,6 +314,7 @@ function SpikeComposerForm({
             kind === 'quote' ? t('composer.quote.edit') : null,
           editTestId: htmlBlockEditTestId
         }}
+        footerBlockKinds={['signature', 'quote']}
         extensions={approach === 'schema' ? schemaQuoteExtensions() : []}
         autoFocus
         onReady={handleReady}

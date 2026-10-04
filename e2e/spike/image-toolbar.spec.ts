@@ -63,3 +63,32 @@ test('SPIKE-IMAGE an inline image is resized and removed with the keyboard', asy
   await expect(toolbar).toBeHidden()
   await expect(composer.editor).toBeFocused()
 })
+
+test('SPIKE-TRAILING a click under a list ending the text gives a line above the signature', async ({
+  page,
+  user,
+  jmap
+}) => {
+  const accountId = await jmap.accountId()
+  const [identities] = await jmap.request([['Identity/get', { accountId, ids: null }, 'i']])
+  const identityId = (identities?.[1].list as { id: string }[])[0]?.id ?? ''
+  await jmap.request([
+    [
+      'Identity/set',
+      { accountId, update: { [identityId]: { htmlSignature: '<p>SIGNATURE_MARKER</p>' } } },
+      's'
+    ]
+  ])
+  const composer = await new SpikeComposer(page).open(user)
+  await expect.poll(() => composer.editorHtml()).toContain('SIGNATURE_MARKER')
+  await composer.editor.focus()
+  await composer.button('Bulleted list').click()
+  await page.keyboard.type('item')
+  expect(await composer.editorHtml()).toMatch(/<\/ul><div data-html-block="signature"/)
+
+  await composer.editor.getByText('SIGNATURE_MARKER').click()
+  await page.keyboard.type('after the list')
+  expect(await composer.editorHtml()).toMatch(
+    /<\/ul><p>after the list<\/p><div data-html-block="signature"/
+  )
+})

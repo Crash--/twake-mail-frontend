@@ -6,10 +6,12 @@ import {
   mailboxKeys,
   type MailboxListData
 } from '@common/features/mailbox/queries'
-import { patchSearchList } from '@common/features/search/patchSearchList'
 import { patchEmailList } from '@common/features/thread/patchEmailList'
+import { patchQueryList } from '@common/features/thread/patchQueryList'
 import {
+  conversationKeys,
   threadKeys,
+  type ConversationData,
   type EmailListData,
   type EmailListItemData
 } from '@common/features/thread/queries'
@@ -31,6 +33,20 @@ function isSearchList(key: QueryKey, accountId: string): boolean {
   return feature === 'thread' && account === accountId && kind === 'search'
 }
 
+/** The mailbox of a list of conversations (one row per thread) */
+function conversationListMailboxId(
+  key: QueryKey,
+  accountId: string
+): string | null {
+  const [feature, account, kind, mailboxId] = key
+  return feature === 'thread' &&
+    account === accountId &&
+    kind === 'threads' &&
+    typeof mailboxId === 'string'
+    ? mailboxId
+    : null
+}
+
 /**
  * The list rows of these emails, as cached by the loaded email lists: an
  * email moved into a list is inserted there from its row (an opened email
@@ -43,16 +59,19 @@ export function findListRows(
 ): Map<string, EmailListItemData> {
   const wanted = new Set(ids)
   const rows = new Map<string, EmailListItemData>()
+  const add = (email: EmailListItemData): void => {
+    if (wanted.has(email.id) && !rows.has(email.id)) rows.set(email.id, email)
+  }
   for (const [, data] of queryClient.getQueriesData<EmailListData>({
     queryKey: threadKeys.all(accountId)
   })) {
-    for (const page of data?.pages ?? []) {
-      for (const email of page.emails) {
-        if (wanted.has(email.id) && !rows.has(email.id)) {
-          rows.set(email.id, email)
-        }
-      }
-    }
+    for (const page of data?.pages ?? []) page.emails.forEach(add)
+  }
+  // The messages of the open conversations have the same properties
+  for (const [, data] of queryClient.getQueriesData<ConversationData>({
+    queryKey: conversationKeys.all(accountId)
+  })) {
+    data?.emails.forEach(add)
   }
   return rows
 }
@@ -90,8 +109,9 @@ function countIn(
 /**
  * Shows `changes` at once, before the server confirms them:
  *
- * - every loaded email list, through `patchEmailList` (`patchSearchList`
- *   for search results), as if push had brought them: an email leaving a folder is removed, one entering it is
+ * - every loaded email list, through `patchEmailList` (`patchQueryList`
+ *   for search results and lists of conversations), and the open
+ *   conversations, as if push had brought them: an email leaving a folder is removed, one entering it is
  *   inserted where it sorts (when its row is known), keywords follow. The
  *   pages keep their JMAP state, so the push of the same change later
  *   finds the lists already right and changes nothing;
@@ -129,15 +149,20 @@ export function applyEmailChanges(
     if (data === undefined) continue
     const mailboxId = listMailboxId(key, accountId)
     if (mailboxId === null) {
-      // Search results keep their emails where they are, in their new state
-      if (isSearchList(key, accountId)) {
+      // Search results keep their emails where they are, in their new state;
+      // conversations leave the folder they leave (push brings the email
+      // standing for them next)
+      const conversationsOf = conversationListMailboxId(key, accountId)
+      if (isSearchList(key, accountId) || conversationsOf !== null) {
         queryClient.setQueryData<EmailListData>(key, current =>
           current
-            ? patchSearchList(current, {
-                changed,
-                destroyed,
-                newStates: new Map()
-              }).data
+            ? patchQueryList(
+                current,
+                { changed, destroyed, newStates: new Map() },
+                conversationsOf === null
+                  ? {}
+                  : { mailboxId: conversationsOf, isCollapsed: true }
+              ).data
             : current
         )
       }
@@ -156,6 +181,31 @@ export function applyEmailChanges(
         : current
     )
   }
+
+  // The open conversations: their messages take their new state
+  const afterById = new Map(
+    changes.map(({ before, after }) => [before.id, after])
+  )
+  queryClient.setQueriesData<ConversationData>(
+    { queryKey: conversationKeys.all(accountId) },
+    data =>
+      data && {
+        ...data,
+        emails: data.emails.flatMap(email => {
+          if (!afterById.has(email.id)) return [email]
+          const after = afterById.get(email.id) ?? null
+          return after === null
+            ? []
+            : [
+                {
+                  ...email,
+                  mailboxIds: after.mailboxIds,
+                  keywords: after.keywords
+                }
+              ]
+        })
+      }
+  )
 
   for (const { before, after } of changes) {
     queryClient.setQueryData<EmailDetail | null>(

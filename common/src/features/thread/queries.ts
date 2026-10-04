@@ -1,14 +1,23 @@
-import { infiniteQueryOptions, type InfiniteData } from '@tanstack/react-query'
+import {
+  infiniteQueryOptions,
+  queryOptions,
+  type InfiniteData
+} from '@tanstack/react-query'
 import type {
   Email,
   EmailComparator,
   EmailFilterCondition,
   Filter,
   JmapClient,
+  QueryResponse,
   SearchSnippet
 } from 'jmap-client-ts'
 
-import type { InfiniteQueryOptionsFor } from '@common/app/queryOptionsTypes'
+import type {
+  InfiniteQueryOptionsFor,
+  QueryOptionsFor
+} from '@common/app/queryOptionsTypes'
+import { settle } from '@common/jmap/settle'
 
 /** Emails fetched per page of the list */
 export const EMAIL_LIST_PAGE_SIZE = 30
@@ -51,6 +60,11 @@ export interface EmailListPage {
    * marked (`SearchSnippet/get`), by email id
    */
   snippets?: Readonly<Record<string, EmailSnippet>>
+  /**
+   * Lists of conversations: the number of emails of each thread listed, by
+   * thread id (`Thread/get`)
+   */
+  threadSizes?: Readonly<Record<string, number>>
 }
 
 /** The highlighted subject and preview of a search result */
@@ -64,6 +78,8 @@ export type ThreadListKey = readonly ['thread', string, 'list', string]
 export interface SearchRequest {
   filter: Filter<EmailFilterCondition>
   sort: readonly EmailComparator[]
+  /** One row per conversation: its most recent email */
+  collapseThreads?: boolean
 }
 
 /** The search request of a `threadKeys.search` key */
@@ -81,6 +97,17 @@ export function isSearchRequest(value: unknown): value is SearchRequest {
 
 export type SearchListKey = readonly ['thread', string, 'search', SearchRequest]
 
+export type ConversationListKey = readonly ['thread', string, 'threads', string]
+
+export type ConversationKey = readonly ['conversation', string, string]
+
+/** The emails of a conversation, and the `Email` state they are at */
+export interface ConversationData {
+  state: string
+  /** Every email of the thread, the oldest first */
+  emails: EmailListItemData[]
+}
+
 /**
  * Keys of the email lists (thread view). Distinct from the `email` keys of
  * the reading view, so that a list refetch does not refetch the open email.
@@ -93,6 +120,12 @@ export const threadKeys = {
   list: (accountId: string, mailboxId: string): ThreadListKey => [
     ...threadKeys.all(accountId),
     'list',
+    mailboxId
+  ],
+  /** The conversations of a mailbox: one row per thread */
+  threads: (accountId: string, mailboxId: string): ConversationListKey => [
+    ...threadKeys.all(accountId),
+    'threads',
     mailboxId
   ],
   /** The results of a search, also patched by push and the email actions */
@@ -115,45 +148,143 @@ export function orderByIds(
   })
 }
 
-/** One page of the emails of a mailbox: `Email/query` then `Email/get` */
+/** Number of emails of each thread, from `Thread/get` */
+function toThreadSizes(
+  threads: readonly { id: string; emailIds: readonly string[] }[]
+): Record<string, number> {
+  return Object.fromEntries(
+    threads.map(thread => [thread.id, thread.emailIds.length])
+  )
+}
+
+function toSnippets(
+  list: readonly SearchSnippet[]
+): Record<string, EmailSnippet> {
+  return Object.fromEntries(
+    list.map(({ emailId, subject, preview }) => [emailId, { subject, preview }])
+  )
+}
+
+interface ListCalls {
+  query: PromiseLike<QueryResponse>
+  emails: PromiseLike<{ state: string; list: EmailListItemData[] }>
+  snippets: PromiseLike<{ list: SearchSnippet[] }> | null
+  threads: PromiseLike<{ list: { id: string; emailIds: string[] }[] }> | null
+}
+
+export interface ListPageOptions {
+  position: number
+  limit: number
+  /** Asks the server to mark the matches (`SearchSnippet/get`) */
+  withSnippets: boolean
+}
+
+/**
+ * One page of an email list, in one JMAP request: `Email/query`, then the
+ * `Email/get` of its ids and, through back-references, the
+ * `SearchSnippet/get` of a search and the `Thread/get` of the threads of a
+ * list showing one row per conversation (for their sizes). Snippets and
+ * sizes are optional: a server failing on them still lists the emails.
+ */
+export async function fetchListPage(
+  client: JmapClient,
+  accountId: string,
+  { filter, sort, collapseThreads = false }: SearchRequest,
+  { position, limit, withSnippets }: ListPageOptions,
+  signal?: AbortSignal
+): Promise<EmailListPage> {
+  // The calls of the request, to read each one, whether it failed or not
+  const calls: { current: ListCalls | null } = { current: null }
+  await client.requestSettled(
+    builder => {
+      const query = builder.call('Email/query', {
+        accountId,
+        filter,
+        sort: sort.length > 0 ? [...sort] : null,
+        position,
+        limit,
+        calculateTotal: true,
+        collapseThreads
+      })
+      const emails = builder.call('Email/get', {
+        accountId,
+        '#ids': query.ref('/ids'),
+        properties: [...EMAIL_LIST_PROPERTIES]
+      })
+      const snippets = withSnippets
+        ? builder.call('SearchSnippet/get', {
+            accountId,
+            filter,
+            '#emailIds': query.ref('/ids')
+          })
+        : null
+      const threads = collapseThreads
+        ? builder.call('Thread/get', {
+            accountId,
+            '#ids': emails.ref('/list/*/threadId')
+          })
+        : null
+      calls.current = { query, emails, snippets, threads }
+      return [
+        query,
+        emails,
+        ...(snippets ? [snippets] : []),
+        ...(threads ? [threads] : [])
+      ]
+    },
+    signal ? { signal } : {}
+  )
+  if (calls.current === null) throw new Error('The list request was not built')
+  const { query, emails, snippets, threads } = calls.current
+  const [queryResult, emailsResult, snippetsResult, threadsResult] =
+    await Promise.all([
+      settle(query),
+      settle(emails),
+      snippets === null ? null : settle(snippets),
+      threads === null ? null : settle(threads)
+    ])
+  if (!queryResult.ok) throw queryResult.error
+  if (!emailsResult.ok) throw emailsResult.error
+  const { ids } = queryResult.value
+  const total = queryResult.value.total ?? null
+  const next = queryResult.value.position + ids.length
+  return {
+    emails: orderByIds(emailsResult.value.list, ids),
+    position: queryResult.value.position,
+    count: ids.length,
+    total,
+    isLast: ids.length < limit || (total !== null && next >= total),
+    state: emailsResult.value.state,
+    ...(snippetsResult?.ok
+      ? { snippets: toSnippets(snippetsResult.value.list) }
+      : {}),
+    ...(threadsResult?.ok
+      ? { threadSizes: toThreadSizes(threadsResult.value.list) }
+      : {})
+  }
+}
+
+/** The order of a mailbox: the most recent first */
+export const MAILBOX_SORT: readonly EmailComparator[] = [
+  { property: 'receivedAt', isAscending: false }
+]
+
+/** One page of the emails of a mailbox, or of its conversations */
 export async function fetchEmailListPage(
   client: JmapClient,
   accountId: string,
   mailboxId: string,
   position: number,
-  signal: AbortSignal
+  signal: AbortSignal,
+  collapseThreads = false
 ): Promise<EmailListPage> {
-  const [query, emails] = await client.request(
-    builder => {
-      const queryCall = builder.call('Email/query', {
-        accountId,
-        filter: { inMailbox: mailboxId },
-        sort: [{ property: 'receivedAt', isAscending: false }],
-        position,
-        limit: EMAIL_LIST_PAGE_SIZE,
-        calculateTotal: true
-      })
-      const getCall = builder.call('Email/get', {
-        accountId,
-        '#ids': queryCall.ref('/ids'),
-        properties: [...EMAIL_LIST_PROPERTIES]
-      })
-      return [queryCall, getCall]
-    },
-    { signal }
+  return fetchListPage(
+    client,
+    accountId,
+    { filter: { inMailbox: mailboxId }, sort: MAILBOX_SORT, collapseThreads },
+    { position, limit: EMAIL_LIST_PAGE_SIZE, withSnippets: false },
+    signal
   )
-  const total = query.total ?? null
-  const next = query.position + query.ids.length
-  return {
-    emails: orderByIds(emails.list, query.ids),
-    position: query.position,
-    count: query.ids.length,
-    total,
-    isLast:
-      query.ids.length < EMAIL_LIST_PAGE_SIZE ||
-      (total !== null && next >= total),
-    state: emails.state
-  }
 }
 
 /** Position of the next page, undefined after the last one */
@@ -179,5 +310,63 @@ export function emailListQueryOptions(
       fetchEmailListPage(client, accountId, mailboxId, pageParam, signal),
     initialPageParam: 0,
     getNextPageParam: getNextPosition
+  })
+}
+
+/**
+ * Keys of the conversations (thread detail). Not under `thread`: their data
+ * is no list of pages; push and the keyword updates handle them apart.
+ */
+export const conversationKeys = {
+  all: (accountId: string): readonly ['conversation', string] => [
+    'conversation',
+    accountId
+  ],
+  detail: (accountId: string, threadId: string): ConversationKey => [
+    ...conversationKeys.all(accountId),
+    threadId
+  ]
+}
+
+/** Orders the emails of a conversation: the oldest first */
+export function byReceivedAt(
+  left: EmailListItemData,
+  right: EmailListItemData
+): number {
+  return left.receivedAt.localeCompare(right.receivedAt)
+}
+
+/**
+ * The emails of a conversation, the oldest first: `Thread/get`, then the
+ * `Email/get` of its emails, in one request. Push keeps it up to date.
+ */
+export function conversationQueryOptions(
+  client: JmapClient,
+  accountId: string,
+  threadId: string
+): QueryOptionsFor<ConversationData, ConversationKey> {
+  return queryOptions({
+    queryKey: conversationKeys.detail(accountId, threadId),
+    queryFn: async ({ signal }) => {
+      const [, emails] = await client.request(
+        builder => {
+          const thread = builder.call('Thread/get', {
+            accountId,
+            ids: [threadId]
+          })
+          const get = builder.call('Email/get', {
+            accountId,
+            '#ids': thread.ref('/list/*/emailIds'),
+            properties: [...EMAIL_LIST_PROPERTIES]
+          })
+          return [thread, get]
+        },
+        { signal }
+      )
+      return {
+        state: emails.state,
+        emails: [...emails.list].sort(byReceivedAt)
+      }
+    }
   })
 }

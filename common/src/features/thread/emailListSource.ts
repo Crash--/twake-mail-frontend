@@ -10,6 +10,7 @@ import {
   getNextPosition,
   threadKeys,
   type EmailListPage,
+  type ConversationListKey,
   type SearchListKey,
   type SearchRequest,
   type ThreadListKey
@@ -17,10 +18,15 @@ import {
 
 /** What an email list shows: the emails of a mailbox, or search results */
 export type EmailListSource =
-  | { kind: 'mailbox'; mailboxId: string }
+  | {
+      kind: 'mailbox'
+      mailboxId: string
+      /** One row per conversation, its most recent email */
+      collapseThreads?: boolean
+    }
   | { kind: 'search'; request: SearchRequest }
 
-export type EmailListKey = ThreadListKey | SearchListKey
+export type EmailListKey = ThreadListKey | ConversationListKey | SearchListKey
 
 /**
  * The pages of an email list, whatever it shows. Push keeps them up to date
@@ -33,9 +39,11 @@ export function emailListSourceQueryOptions(
 ): InfiniteQueryOptionsFor<EmailListPage, EmailListKey, number> {
   return infiniteQueryOptions({
     queryKey:
-      source.kind === 'mailbox'
-        ? threadKeys.list(accountId, source.mailboxId)
-        : threadKeys.search(accountId, source.request),
+      source.kind === 'search'
+        ? threadKeys.search(accountId, source.request)
+        : source.collapseThreads === true
+          ? threadKeys.threads(accountId, source.mailboxId)
+          : threadKeys.list(accountId, source.mailboxId),
     queryFn: ({ pageParam, signal }) =>
       source.kind === 'mailbox'
         ? fetchEmailListPage(
@@ -43,7 +51,8 @@ export function emailListSourceQueryOptions(
             accountId,
             source.mailboxId,
             pageParam,
-            signal
+            signal,
+            source.collapseThreads === true
           )
         : fetchSearchPage(
             client,

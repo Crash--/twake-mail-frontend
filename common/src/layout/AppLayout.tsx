@@ -1,12 +1,17 @@
 import { Pen } from '@linagora/twake-icons'
 import { Box, Content, Layout, Main } from '@linagora/twake-mui'
-import { useState, type ReactElement } from 'react'
+import { useCallback, useState, type ReactElement } from 'react'
 import { Outlet, useLocation, useMatch } from 'react-router'
 
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
+import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import {
+  ShortcutsProvider,
+  useShortcuts
+} from '@common/features/shortcuts/ShortcutsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { MailSidebar } from './MailSidebar'
@@ -20,10 +25,19 @@ export interface AppLayoutProps {
  * Frame of the signed-in pages: top bar, sidebar, and the routed content.
  * Below the desktop size the sidebar is a drawer, closed as soon as the user
  * goes somewhere, and "New message" a floating button, hidden while an email
- * fills the screen.
+ * fills the screen. The keyboard shortcuts work in all of it.
  */
-export function AppLayout({ apps }: AppLayoutProps): ReactElement {
+export function AppLayout(props: AppLayoutProps): ReactElement {
+  return (
+    <ShortcutsProvider>
+      <AppFrame {...props} />
+    </ShortcutsProvider>
+  )
+}
+
+function AppFrame({ apps }: AppLayoutProps): ReactElement {
   const { t } = useI18n()
+  const { undoLast } = useNotify()
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const location = useLocation()
@@ -47,6 +61,17 @@ export function AppLayout({ apps }: AppLayoutProps): ReactElement {
     setDrawerLocationKey(null)
   }
 
+  // TODO: open the composer once it exists (phase 3): both "New message"
+  // buttons and the `c` shortcut call this
+  const handleCompose = useCallback((): void => undefined, [])
+
+  useShortcuts({
+    c: handleCompose,
+    z: () => {
+      undoLast()
+    }
+  })
+
   return (
     <Box className="u-flex u-flex-column u-h-100">
       <TouchTargets />
@@ -62,6 +87,7 @@ export function AppLayout({ apps }: AppLayoutProps): ReactElement {
           apps={apps}
           isDrawerOpen={isDrawerOpen}
           onDrawerClose={handleCloseFolders}
+          onCompose={handleCompose}
         />
         <Main>
           <Content data-testid="main-content">
@@ -70,10 +96,10 @@ export function AppLayout({ apps }: AppLayoutProps): ReactElement {
         </Main>
       </Layout>
       {showComposeFab ? (
-        // TODO: open the composer once it exists
         <FloatingActionButton
           label={t('sidebar.newMessage')}
           icon={Pen}
+          onClick={handleCompose}
           data-testid="compose-email-button"
         />
       ) : null}

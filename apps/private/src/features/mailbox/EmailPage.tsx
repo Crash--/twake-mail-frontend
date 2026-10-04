@@ -13,6 +13,7 @@ export function EmailPage(): ReactElement {
     <EmailView
       key={emailId}
       emailId={emailId}
+      mailboxId={mailboxId}
       backPath={`/mailbox/${encodeURIComponent(mailboxId)}`}
     />
   )

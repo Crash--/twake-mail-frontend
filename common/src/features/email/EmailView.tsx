@@ -37,6 +37,7 @@ import { normalizeCid } from './sanitizeEmailHtml'
 import { useTrustedSender } from './trustedSenders'
 import { useEmail } from './useEmail'
 import { useInlineImageUrls } from './useInlineImageUrls'
+import { useEmailViewShortcuts } from './useEmailViewShortcuts'
 import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
 
 interface AddressLineProps {
@@ -218,16 +219,28 @@ export interface EmailViewProps {
   emailId: string
   /** The list the back button returns to: a mailbox, search results */
   backPath: string
+  /** The folder the email is open from; absent from search results */
+  mailboxId?: string
 }
 
 /**
  * An opened email: headers, attachments and body. Replaces the list, as in
  * tmail-flutter on desktop; the back button returns to the list.
  */
-export function EmailView({ emailId, backPath }: EmailViewProps): ReactElement {
+export function EmailView({
+  emailId,
+  backPath,
+  mailboxId
+}: EmailViewProps): ReactElement {
   const { t } = useI18n()
   const navigate = useNavigate()
   const query = useEmail(emailId)
+  useEmailViewShortcuts({
+    emailId,
+    email: query.data,
+    mailboxId: mailboxId ?? null,
+    backPath
+  })
 
   const handleBack = (): void => {
     void navigate(backPath, {

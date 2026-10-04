@@ -16,6 +16,7 @@ export interface MailSidebarProps {
   /** The drawer of the folders, below the desktop size */
   isDrawerOpen: boolean
   onDrawerClose: () => void
+  onCompose: () => void
 }
 
 /**
@@ -27,7 +28,8 @@ export interface MailSidebarProps {
 export function MailSidebar({
   apps,
   isDrawerOpen,
-  onDrawerClose
+  onDrawerClose,
+  onCompose
 }: MailSidebarProps): ReactElement {
   const { t } = useI18n()
   const screenSize = useScreenSize()
@@ -52,10 +54,10 @@ export function MailSidebar({
     >
       {screenSize === 'desktop' ? (
         <Box className="u-mh-1 u-mt-1">
-          {/* TODO: open the composer once it exists */}
           <Button
             variant="contained"
             fullWidth
+            onClick={onCompose}
             startIcon={<Icon icon={Pen} />}
             data-testid="compose-email-button"
           >

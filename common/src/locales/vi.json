@@ -10,10 +10,10 @@
     "reconnect": "Đăng nhập lại",
     "back": "Quay lại",
     "close": "Đóng",
-    "cancel": "Hủy",
-    "delete": "Xoá",
     "undo": "Hoàn tác",
-    "connectionError": "Lỗi kết nối"
+    "connectionError": "Lỗi kết nối",
+    "cancel": "Hủy",
+    "delete": "Xoá"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -269,5 +269,24 @@
       "titleMany": "Xoá tin nhắn vĩnh viễn",
       "messageMany": "Bạn đang xoá vĩnh viễn %{count} tin nhắn trong %{mailboxName}. Bạn có tiếp tục không?"
     }
+  },
+  "shortcuts": {
+    "title": "Phím tắt",
+    "actions": {
+      "compose": "Thư mới",
+      "archive": "Lưu trữ tin nhắn",
+      "delete": "Xoá thư",
+      "markAsUnread": "Đánh dấu chưa đọc",
+      "search": "Tìm kiếm",
+      "next": "Thư tiếp theo",
+      "previous": "Thư trước",
+      "star": "Gắn hoặc gỡ sao",
+      "undo": "Hoàn tác thao tác cuối",
+      "help": "Hiển thị phím tắt"
+    },
+    "enable": "Bật phím tắt",
+    "description": "Phím tắt một phím hoạt động bên ngoài ô nhập văn bản. Hãy tắt nếu chúng cản trở công nghệ hỗ trợ của bạn.",
+    "key": "Phím",
+    "action": "Thao tác"
   }
 }

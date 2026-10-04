@@ -1,3 +1,4 @@
+import { Help } from '@linagora/twake-icons'
 import type { ReactElement } from 'react'
 
 import { AccountMenu } from '@/ds/AccountMenu/AccountMenu'
@@ -5,6 +6,7 @@ import {
   useAuthService,
   useAuthState
 } from '@common/features/auth/AuthProvider'
+import { useOpenShortcutsHelp } from '@common/features/shortcuts/ShortcutsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -16,13 +18,15 @@ const TEST_IDS = {
 }
 
 /**
- * Avatar of the signed-in user, opening the account menu.
+ * Avatar of the signed-in user, opening the account menu: the keyboard
+ * shortcuts and sign out.
  */
 export function UserMenu(): ReactElement {
   const { t } = useI18n()
   const service = useAuthService()
   const state = useAuthState()
   const { session } = useJmapSession()
+  const openShortcutsHelp = useOpenShortcutsHelp()
   const user =
     state.status === 'authenticated' ? state.user : { email: null, name: null }
   // Basic mode only knows what the user typed, and the SSO may not tell the
@@ -45,6 +49,14 @@ export function UserMenu(): ReactElement {
       label={t('topbar.account')}
       logoutLabel={t('topbar.logout')}
       onLogout={handleLogout}
+      items={[
+        {
+          label: t('shortcuts.title'),
+          icon: Help,
+          onClick: openShortcutsHelp,
+          'data-testid': 'shortcuts-menu-item'
+        }
+      ]}
       testIds={TEST_IDS}
     />
   )

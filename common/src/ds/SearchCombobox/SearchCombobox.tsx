@@ -17,6 +17,7 @@ import {
 import {
   useEffect,
   useId,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -24,7 +25,8 @@ import {
   type FormEvent,
   type KeyboardEvent,
   type ReactElement,
-  type ReactNode
+  type ReactNode,
+  type Ref
 } from 'react'
 
 const POPUP_SX = { zIndex: 'modal' } as const
@@ -62,6 +64,11 @@ export interface SearchComboboxGroup {
   options: readonly SearchComboboxOption[]
 }
 
+/** What a parent can do to the field, e.g. on a keyboard shortcut */
+export interface SearchComboboxActions {
+  focus: () => void
+}
+
 export interface SearchComboboxProps {
   value: string
   onChange: (value: string) => void
@@ -85,6 +92,8 @@ export interface SearchComboboxProps {
   /** Called when the popup opens or closes */
   onOpenChange?: (isOpen: boolean) => void
   className?: string
+  /** Receives `SearchComboboxActions`, as MUI's `action` props */
+  actions?: Ref<SearchComboboxActions>
   testIds?: {
     input?: string
     clear?: string
@@ -124,6 +133,7 @@ export function SearchCombobox({
   status,
   onOpenChange,
   className,
+  actions,
   testIds = {},
   'data-testid': testId
 }: SearchComboboxProps): ReactElement {
@@ -132,6 +142,15 @@ export function SearchCombobox({
   const anchorRef = useRef<HTMLDivElement>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  useImperativeHandle(
+    actions,
+    () => ({
+      focus: () => {
+        inputRef.current?.focus()
+      }
+    }),
+    []
+  )
   const [isOpen, setIsOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [anchor, setAnchor] = useState<HTMLDivElement | null>(null)

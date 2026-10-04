@@ -6,6 +6,7 @@ import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
+import { PushProvider } from '@common/features/push/PushProvider'
 import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 import { AppLayout } from '@common/layout/AppLayout'
 
@@ -25,7 +26,9 @@ export function AppRoutes({ apps }: AppRoutesProps): ReactElement {
         <Route
           element={
             <JmapSessionProvider>
-              <AppLayout apps={apps} />
+              <PushProvider>
+                <AppLayout apps={apps} />
+              </PushProvider>
             </JmapSessionProvider>
           }
         >

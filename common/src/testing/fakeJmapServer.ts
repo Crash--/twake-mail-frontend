@@ -188,9 +188,19 @@ export function makeDefaultMailboxes(): Mailbox[] {
   ]
 }
 
-function makeSession(): Record<string, unknown> {
+export const FAKE_WEBSOCKET_URL = 'wss://jmap.example.com/jmap/ws'
+
+function makeSession(webSocket: boolean): Record<string, unknown> {
   return {
     capabilities: {
+      ...(webSocket
+        ? {
+            'urn:ietf:params:jmap:websocket': {
+              url: FAKE_WEBSOCKET_URL,
+              supportsPush: true
+            }
+          }
+        : {}),
       'urn:ietf:params:jmap:core': {
         maxSizeUpload: 20_000_000,
         maxCallsInRequest: 16,
@@ -265,7 +275,12 @@ function receivedAtDescending(left: FakeEmail, right: FakeEmail): number {
 }
 
 export function makeFakeJmapServer(
-  init: { mailboxes?: Mailbox[]; emails?: FakeEmail[] } = {}
+  init: {
+    mailboxes?: Mailbox[]
+    emails?: FakeEmail[]
+    /** Advertises push over WebSocket (without Linagora tickets) */
+    webSocket?: boolean
+  } = {}
 ): FakeJmapServer {
   const server: FakeJmapServer = {
     fetch: handleFetch,
@@ -280,6 +295,7 @@ export function makeFakeJmapServer(
         request.methodCalls.map(([name]) => name)
       )
   }
+  const advertisesWebSocket = init.webSocket ?? false
   let held: { method: string | null; released: Promise<void> } | null = null
 
   function holdRequests(method?: string): () => void {
@@ -450,7 +466,9 @@ export function makeFakeJmapServer(
     input: string,
     init?: RequestInit
   ): Promise<Response> {
-    if (input === FAKE_SESSION_URL) return jsonResponse(makeSession())
+    if (input === FAKE_SESSION_URL) {
+      return jsonResponse(makeSession(advertisesWebSocket))
+    }
     if (input.startsWith(DOWNLOAD_PREFIX)) return handleDownload(input)
     if (input === FAKE_API_URL && typeof init?.body === 'string') {
       const request = parseRequest(JSON.parse(init.body))

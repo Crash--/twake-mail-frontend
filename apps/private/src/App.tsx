@@ -1,7 +1,8 @@
 import { createClient } from 'jmap-client-ts'
 import { useState, type ReactElement } from 'react'
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary'
-import { BrowserRouter } from 'react-router'
+import { createBrowserRouter, createRoutesFromElements } from 'react-router'
+import { RouterProvider } from 'react-router/dom'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { AppProviders } from '@common/app/AppProviders'
@@ -14,7 +15,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { findPreferredLanguage } from '@common/i18n/languages'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
 
-import { AppRoutes } from './AppRoutes'
+import { appRouteElements } from './AppRoutes'
 
 function CrashScreen({ resetErrorBoundary }: FallbackProps): ReactElement {
   const { t } = useI18n()
@@ -44,6 +45,15 @@ export function App({ config }: AppProps): ReactElement {
   const [queryClient] = useState(makeQueryClient)
   const [authService] = useState(() => createAuthService(config))
   const [lang] = useState(() => findPreferredLanguage(config.defaultLanguage))
+  // A data router: navigations of its routes can run as view transitions
+  // (the `viewTransition` option of `navigate`)
+  const [router] = useState(() =>
+    createBrowserRouter(
+      createRoutesFromElements(
+        appRouteElements({ apps: config.appList, debug: config.debug })
+      )
+    )
+  )
 
   return (
     <AppProviders lang={lang} queryClient={queryClient} debug={config.debug}>
@@ -56,9 +66,7 @@ export function App({ config }: AppProps): ReactElement {
             createClient={createClient}
             sessionUrl={config.jmapSessionUrl}
           >
-            <BrowserRouter>
-              <AppRoutes apps={config.appList} debug={config.debug} />
-            </BrowserRouter>
+            <RouterProvider router={router} />
           </JmapClientProvider>
         </AuthProvider>
       </ErrorBoundary>

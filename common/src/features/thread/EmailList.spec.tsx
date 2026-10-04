@@ -2,7 +2,7 @@ import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, useParams } from 'react-router'
-import type { ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
@@ -162,6 +162,53 @@ describe('EmailList', () => {
       EMAIL_LIST_PAGE_SIZE,
       EMAIL_LIST_PAGE_SIZE * 2
     ])
+  })
+
+  it('reloads a list shown again once stale, even after its last page', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(3) })
+    function TogglableList(): ReactElement {
+      const [isShown, setIsShown] = useState(true)
+      const handleToggle = (): void => {
+        setIsShown(shown => !shown)
+      }
+      return (
+        <>
+          <button type="button" onClick={handleToggle}>
+            Toggle the list
+          </button>
+          {isShown ? <EmailList mailboxId="mailbox-inbox" /> : null}
+        </>
+      )
+    }
+    renderWithProviders(
+      <VirtuosoMockContext.Provider
+        value={{ viewportHeight: 100_000, itemHeight: 56 }}
+      >
+        <TogglableList />
+      </VirtuosoMockContext.Provider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    await screen.findAllByTestId('email-list-item')
+    const toggle = screen.getByRole('button', { name: 'Toggle the list' })
+
+    await userEvent.click(toggle)
+    const now = jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 60_000)
+    try {
+      await userEvent.click(toggle)
+
+      await waitFor(() => {
+        expect(
+          server.calledMethods().filter(name => name === 'Email/query')
+        ).toHaveLength(2)
+      })
+    } finally {
+      now.mockRestore()
+    }
   })
 
   it('shows the empty view for a mailbox without emails', async () => {

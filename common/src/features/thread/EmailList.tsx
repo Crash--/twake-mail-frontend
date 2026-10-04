@@ -11,6 +11,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement
 } from 'react'
@@ -205,9 +206,16 @@ export function EmailList(props: EmailListProps): ReactElement {
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
 
   // The table reports the end of the list again while a page loads, and
-  // may call a stale handler: never cancel the fetch in flight, and let the
-  // query ignore the call after the last page
+  // may call a stale handler: never cancel the fetch in flight, and read
+  // whether a page is left at the time of the call. After the last page, a
+  // call would not fetch but still mark the list fresh, and hold back the
+  // refetch of a stale list shown again
+  const hasNextPageRef = useRef(hasNextPage)
+  useEffect(() => {
+    hasNextPageRef.current = hasNextPage
+  }, [hasNextPage])
   const handleEndReached = useCallback((): void => {
+    if (!hasNextPageRef.current) return
     void fetchNextPage({ cancelRefetch: false })
   }, [fetchNextPage])
 

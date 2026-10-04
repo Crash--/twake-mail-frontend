@@ -13,8 +13,11 @@ tls.secret=james72laBalle
 jwt.publickeypem.url=file://conf/jwt_publickey
 jwt.privatekeypem.url=file://conf/jwt_privatekey
 
-# false, as in tmail-flutter backend-docker/ (unset there): with the projection enabled, an
-# Email/query on a team mailbox with only `inMailbox` + sort `receivedAt` returns no ids.
+# Must stay false (e2e/README.md, "Known backend quirks"): the memory image enables the email
+# query view but does not register PopulateEmailQueryViewListener in listeners.xml, so the
+# view stays empty and every Email/query `inMailbox` (or with `after` / `before`) sorted by
+# `receivedAt` descending returns no ids, in every mailbox. With false, Email/query is always
+# answered by the search index.
 view.email.query.enabled=false
 
 calendarEvent.reply.mailTemplateLocation=file://eml-template/

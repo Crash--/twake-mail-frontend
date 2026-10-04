@@ -257,11 +257,22 @@ checked to add Dex and the OIDC specs.
 
 ## Known backend quirks
 
-- `view.email.query.enabled` is `false`, as in tmail-flutter's `backend-docker/`. With the
-  projection on (the image default), an `Email/query` with only `inMailbox` and a `receivedAt`
-  sort on a **team mailbox** returns no ids. A production backend with the projection enabled
-  would show an empty team mailbox to a client querying that way: worth checking against the
-  real deployment.
+- `view.email.query.enabled` is `false` (`docker/james/jmap.properties.template`) and must
+  stay so. Two backend problems, reproduced by
+  `tmail-backend-issues/team-mailbox-email-query-view/repro.sh`:
+  - the memory image of tmail-backend enables the email query view
+    (`view.email.query.enabled=true`) but its `listeners.xml` does not register
+    `PopulateEmailQueryViewListener`: the view is never filled, and an `Email/query` with
+    `inMailbox` (alone or with `after` / `before`) sorted by `receivedAt` descending returns
+    **no ids, for every mailbox**, personal ones included. Registering the listener, as the
+    distributed and postgres sample configurations do, fixes it;
+  - the WebAdmin task `populateEmailQueryView` does not rebuild the view of **team
+    mailboxes**: with the view enabled, a team mailbox filled before the listener ran stays
+    empty to such a query.
+
+  With the view disabled, `Email/query` is always answered by the search index. A
+  deployment enabling the view must register the listener, and keep the team mailbox gap in
+  mind.
 - Deleting a user (`DELETE /users/…`) removes the account (it can no longer authenticate,
   `INFRA-02`) but James does not purge its mailboxes; harmless here (memory backend, random
   addresses, `stop.sh` drops everything).

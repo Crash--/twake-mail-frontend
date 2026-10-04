@@ -13,7 +13,7 @@ Each `ds/` component says in its header whether it should go upstream.
 | Component / variant | Intended usage | Used meanwhile | Where | Needed upstream |
 |---|---|---|---|---|
 | `AppTitle` (logotype) | Top bar, login card | Rebuilt from twake-icons (`Mail`, `TwakeText`, `MailText`), one `img` named by a `label` prop | `ds/AppTitle`, wrapped by the injectable `layout/AppTitle.tsx` | Export `Apptitle`: it exists in `dist/components/Apptitle` but not from the package entry point |
-| Top bar / app header | Logo, search, app grid, user menu above the `Layout` | `AppBar position="static" color="inherit" elevation={0}` + `Toolbar` | `layout/TopBar.tsx` | A top bar matching `Layout`/`Main` (`withTopBar`, 48 px reserved below `lg`), with title, centre and actions slots and its responsive behaviour. The Layout story fakes one with `Box` + `sx` |
+| Top bar / app header | Logo, search, app grid, user menu above the `Layout`; a menu button below the desktop size, the folder name and a folded search on phones | `AppBar position="static" color="inherit" elevation={0}` + `Toolbar` with title, search and actions slots, `IconButton`s for the menu and the search | `ds/AppTopBar`, filled by `layout/TopBar.tsx` | A top bar matching `Layout`/`Main` (`withTopBar`, 48 px reserved below `lg`), with title, centre and actions slots and its responsive behaviour (see "Responsive"). The Layout story fakes one with `Box` + `sx` |
 | App grid (app switcher) | Links to the other Twake apps from `appList.js` | `IconButton` + `Menu` of `MenuItem` links with the app icon | `ds/AppGridMenu` | An app grid popover (icons in a grid, like the Twake Workplace bar) |
 | Account menu | Avatar, identity, sign out | `IconButton` + `Avatar` + `Menu` with a `ListItem` header | `ds/AccountMenu` | An account menu with an identity header |
 | `SearchBar` labels | Top bar search | `SearchBar` | `layout/MailSearchBar.tsx` | The clear button label (`Clear search`) and the default input label (`Search`) are hard-coded in English: accept translated labels |
@@ -24,10 +24,15 @@ Each `ds/` component says in its header whether it should go upstream.
 | Message list | The email list: thousands of rows loaded page by page, one line per email | `VirtualizedTable` of twake-mui, as in Twake Contacts, through `VirtualizedListTable` with a `RowLink` per row and `RowHoverActions` | `ds/VirtualizedListTable`, `ds/RowLink`, `ds/RowHoverActions`; used by `features/thread/EmailList.tsx` and `EmailCell.tsx` | See "VirtualizedTable" below |
 | Unread dot | Unread marker of a list row | `CircleFilled` icon (8 px) in a `Typography color="primary"`, named by a `label` | `ds/StatusDot` | A status dot / badge without a number |
 | Readable secondary text | Preview, dates, address lines, hints | `Typography` coloured Grey 900 at 80 % (5.4:1 on white) | `ds/SecondaryText` | Fix `text.secondary` in the theme (see "Accessibility") |
-| Email header | Subject, sender with avatar, To/Cc/Bcc lines, date of the reading view | `Typography`, `Avatar`, twake-css flex classes | `features/email/EmailView.tsx` | A message header component (identity, recipients, date, actions) |
+| Email header | Subject, sender with avatar, To/Cc/Bcc lines, date of the reading view | `Typography`, `Avatar` in a CSS grid whose date goes under the recipients on phones, long addresses wrapping | `ds/MessageHeader`, filled by `features/email/EmailView.tsx` | A message header component (identity, recipients, date, actions) that reflows on narrow screens |
 | Attachment chip | Attachments of an email: name, size, download | `Chip variant="outlined"` with `icon` and `endIcon`, named "Download <name> (<size>)" | `ds/AttachmentChip` | An attachment tile (file type icon, name, size, download and preview actions) |
 | Rich text editor (composer spike) | Composer body: formatting toolbar, link dialog, inline images, quoted email and signature kept as HTML blocks | TipTap 3 (MIT) with `RichTextToolbar` (APG toolbar, roving tabindex), `LinkDialog`, `HtmlBlock` (atom node, sandboxed iframe), `InlineImage`, `cleanPastedHtml` | `ds/RichTextEditor`, used by the DEBUG route `/spike/composer` | A `RichTextEditor` in twake-ui (Twake Chat and Docs need one too), or at least a `Toolbar` with roving focus and toggle/menu buttons; the editor ids (`rich-text-*-button`, `link-dialog-*`, `html-block-edit-*`) are still hard coded in the ds and must become props |
 | Sandboxed HTML viewer | Body of an email | A plain `iframe` (`sandbox`, `srcdoc`, `title`, height from its content) styled by a stylesheet inside the email document | `features/email/emailBody.ts` | Nothing expected from twake-mui, but the theme (fonts, colours) does not reach inside the iframe: the email document repeats a minimal style |
+| Breakpoints | Phone, tablet and desktop layouts | `useMediaQuery` on 600, 900 and 1200 px (tmail-flutter `ResponsiveUtils`), named `mobile`, `tablet`, `tabletLarge`, `desktop` | `ds/useScreenSize` | See "Responsive": twake-mui's `useBreakpoints` and theme keys (md 769, lg 1024) are made for the Cozy bottom bar |
+| Navigation drawer | Folders below the desktop size | Temporary `Drawer` from the start edge, its paper a named `role="dialog"` with `aria-modal`, a header slot and a close button; twake-mui's desktop `Nav*` styles inside | `ds/NavigationDrawer`, `ds/ResponsiveSidebar` (twake-mui `Sidebar` on a desktop, the drawer below) | A `variant="drawer"` of `Sidebar`, and `Nav*` that stay vertical in it (see "Responsive") |
+| Touch targets | Icon buttons, list actions, tree toggles on touch screens and phones | `GlobalStyles` giving `IconButton`, `Button`, clickable `Chip`, `MenuItem` a 44 px minimum under `(pointer: coarse), (max-width: 599.95px)`; a 2rem / 44 px slot for the tree expand arrow | `ds/TouchTargets` (in `layout/AppLayout.tsx`), `ds/IconSlot` | The same rule in the theme overrides, and an icon slot in a nested `NavItem` |
+| Floating action button | "New message" on phones and tablets | `ExtendableFab` fixed at the bottom end (safe area included), label darkened to 5.3:1 | `ds/FloatingActionButton` | A placement prop on `ExtendableFab`, an AA label colour, and a scroll container to follow (it listens to `window`) |
+| List and detail | The email list and the open email: one at a time, or side by side from 900 to 1199 px | Two `Box` panes (list 375 px, as tmail-flutter), only the shown ones rendered, focus given back to the list when the detail closes beside it | `ds/ListDetailLayout`, used by `apps/private/src/features/mailbox/MailboxPage.tsx` | A master-detail layout |
 
 ## VirtualizedTable
 
@@ -87,6 +92,17 @@ What it adds, each a candidate for the PR below:
     ends in view (virtuoso only fires it when the last index changes while in
     view). The list also follows `rangeChanged` and asks for the next page
     while fewer than 10 rows are left below the visible ones.
+13. **No narrow mode.** Six columns do not fit a phone, nor the 375 px list
+    beside an open email. Wrapper: `compactColumns`, used while the table is
+    narrower than 600 px (a `ResizeObserver` on the scroller) or when
+    `compact` is set: Twake Mail swaps to an unread marker, a four-line
+    message cell (sender and date, subject, two lines of preview, in the
+    `RowLink`, `multiline`) and the star and read toggle stacked. Virtuoso
+    measures the taller rows by itself.
+14. **No room after the last row.** A floating button covers the end of the
+    list. Virtuoso's `fixedFooterContent` is sticky; the wrapper's
+    `TableFoot` drops that style and renders an `aria-hidden` spacer row of
+    `bottomInset` pixels (padding on the scroller is not scrollable).
 
 **Proposed twake-ui PR**, "feat(VirtualizedTable): list mode with row
 attributes, hidden header and row links":
@@ -102,7 +118,8 @@ attributes, hidden header and row links":
 - `focusedRowIndex` (initial scroll and focus), a `colgroup` from the column
   widths, a `MuiTableRow` theme rule for hover / focus-within actions;
 - `HeadCell` without `useExtendI18n` when no column is sortable (or sort
-  labels as props), and body cells in `text.primary`.
+  labels as props), and body cells in `text.primary`;
+- `compactColumns` (with a width threshold) and `bottomInset`.
 
 ## Accessibility (RGAA 4.1)
 
@@ -119,6 +136,9 @@ never silently ignored.
 | Selected `NavLink` (current folder) | `color-contrast` | #0a84ff on `action.selected` #e5e8eb, 2.96:1 | Darker selected text (`primary.dark`) |
 | `Nav` `subheader` | `aria-required-children`, `listitem` | A `ListSubheader` `li` inside a `role="tree"` list | Render the subheader outside the list. Worked around: heading outside the `Nav` |
 | Focused `TextField` label (composer spike link dialog) | `color-contrast` | #2684e3 on white, 3.82:1 | Same theme fix |
+| `ExtendableFab` `color="primary"` | `color-contrast` | `primary.dark` #006bd8 on `primary.light` #d2e9ff, 4.11:1 at 16 px | A darker label (#005ab7, 5.3:1). Worked around in `ds/FloatingActionButton` |
+| `IconButton size="small"`, `NavItem`, `Chip` | (review, WCAG 2.5.5) | 32, 36 and 32 px high on touch screens | 44 px on coarse pointers. Worked around with `ds/TouchTargets` |
+| `Drawer` | (review) | The paper has no role nor name: a screen reader does not know a panel opened | `role="dialog"`, `aria-modal` and a label on the temporary variant. Worked around in `ds/NavigationDrawer` |
 | `VirtualizedTable` | (review) | No table name, header neither hideable nor hidden for screen readers only, rows not focusable, no row count | See "VirtualizedTable" above |
 
 ## Icons and twake-css
@@ -144,6 +164,68 @@ twake-css:
   below its content: `u-ov-hidden` (or `u-ellipsis`) does it as a side
   effect.
 
-Note for the responsive phase: below `lg`, `Main` reserves a 48 px block for
-a top bar it expects to be fixed over the layout; the static `AppBar` used
-here would then be counted twice.
+## Responsive
+
+twake-mui's responsive behaviour is the one of Cozy apps: a few destinations
+in a bottom tab bar and a top bar fixed over the page below `lg` (1024 px).
+A mail client follows tmail-flutter instead (`ResponsiveUtils`): folders in a
+drawer below 1200 px, list and email side by side from 900 to 1199 px, one
+view at a time below 900 px. What Twake Mail does, and what twake-ui would
+need:
+
+1. **Breakpoints.** The theme keys are sm 544, md 769, lg 1024, xl 1201, and
+   `useBreakpoints` (exported) reads them. Twake Calendar's
+   `useScreenSizeDetection` uses lg as the desktop limit; tmail-flutter uses
+   600 / 900 / 1200. `ds/useScreenSize` reads explicit media queries on the
+   tmail-flutter values, and treats a browser without `matchMedia` (jsdom) as
+   a desktop. Upstream: screen size helpers that take the app's limits.
+2. **`Layout` and `Main` reserve room for chrome Twake Mail does not have.**
+   Below `lg`, `Main` with `withTopBar` draws a 48 px block for a top bar
+   fixed over the layout, and `Layout`/`Main` subtract `--sidebarHeight`
+   (52 px, the bottom bar). Twake Mail's top bar is in the flow and its
+   sidebar becomes a drawer: `layout/AppLayout.tsx` passes
+   `withTopBar={false}` and, below 1200 px, `monoColumn` (no two-pane
+   background, no `Content` margin). Upstream: a top bar component that owns
+   that reservation, and a `Layout` that knows about a drawer sidebar.
+3. **`Sidebar` becomes a bottom tab bar below `lg`** (`position: fixed`,
+   52 px). Twake Mail renders twake-mui's `Sidebar` from 1200 px only and a
+   modal drawer below (`ds/ResponsiveSidebar`, `ds/NavigationDrawer`).
+   Upstream: `<Sidebar variant="drawer" open onClose>`.
+4. **`Nav`, `NavItem`, `NavLink`, `NavIcon`, `NavText` switch to bottom tabs
+   below `lg` whatever their container** (centred 11-12 px labels, items
+   side by side). Inside the drawer they must stay a vertical list:
+   `ds/NavigationDrawer` wraps its content in a nested `ThemeProvider` whose
+   `breakpoints.down/between/only/not` never match and `up` always does
+   (MUI's function form, which keeps the CSS variables of the outer theme).
+   Upstream: a `variant` (or a context set by `Sidebar`) choosing the
+   vertical style, instead of the viewport.
+5. **No top bar** (see "Components"): `ds/AppTopBar` has the desktop, tablet
+   and phone arrangements of Twake Calendar's three `Menubar`s in one
+   component, with the search folded behind a button on phones (focus moved
+   into it, Escape and back give it back to the button).
+6. **Touch targets.** `IconButton size="small"` is 32 px, `NavItem` 36 px,
+   `Chip` 32 px. `ds/TouchTargets` raises them to 44 px on touch screens and
+   phones; the drawer rows are 44 px high. Upstream: theme overrides under
+   `(pointer: coarse)`.
+7. **`ExtendableFab`** has no placement, listens to the scroll of `window`
+   (an app whose content scrolls in a container never sees it shrink) and
+   fails AA contrast in `primary` (see "Accessibility").
+8. **`VirtualizedTable` has no narrow mode nor end inset** (items 13 and 14
+   of "VirtualizedTable").
+9. **No master-detail layout**: `ds/ListDetailLayout`.
+
+Not a twake-mui gap, but for the record: the email body iframe keeps the
+sender's layout; a newsletter wider than the screen scrolls horizontally
+inside its frame (content that needs two dimensions, an exception of RGAA
+10.11), the page itself does not.
+
+**Proposed twake-ui PRs**, in order of value:
+
+- "feat(Sidebar): drawer variant below a breakpoint", with `Nav*` keeping
+  their vertical style inside it (items 3 and 4);
+- "feat: TopBar component" with title, centre and actions slots, a menu
+  button and a folding search, owning the room `Main` reserves (items 2 and
+  5);
+- "feat(theme): 44 px touch targets on coarse pointers" (item 6) and the
+  `ExtendableFab` contrast fix (item 7);
+- the `VirtualizedTable` narrow mode, with the list mode PR above (item 8).

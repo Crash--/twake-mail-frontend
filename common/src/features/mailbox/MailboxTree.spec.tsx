@@ -57,6 +57,7 @@ describe('MailboxTree', () => {
 
     expect(folderNames()).toEqual([
       'Boîte de réception',
+      'Favoris',
       'Brouillons',
       'Envoyés',
       'Corbeille',

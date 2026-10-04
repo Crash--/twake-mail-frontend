@@ -26,7 +26,8 @@
   },
   "sidebar": {
     "newMessage": "Nouveau message",
-    "folders": "Dossiers"
+    "folders": "Dossiers",
+    "teamMailboxes": "Team-mailboxes"
   },
   "mailbox": {
     "empty": "Il n'y a aucun message dans ce dossier",
@@ -331,7 +332,9 @@
   "mailboxPicker": {
     "title": "Déplacer vers",
     "search": "Rechercher dans les dossiers",
-    "empty": "Aucun dossier ne correspond à votre recherche"
+    "empty": "Aucun dossier ne correspond à votre recherche",
+    "personalFolders": "Dossiers personnels",
+    "allFolders": "Tous les dossiers"
   },
   "emptyFolder": {
     "trashBanner": "Tous les messages de la Corbeille seront supprimés si vous atteignez la limite de stockage.",
@@ -348,5 +351,61 @@
     "subfoldersFailed": "Échec de la suppression des sous-dossiers de la corbeille",
     "trashFailed": "Échec du vidage de la corbeille",
     "spamFailed": "Le nettoyage du dossier spam a échoué"
+  },
+  "folders": {
+    "menu": {
+      "newSubfolder": "Nouveau sous-dossier",
+      "move": "Déplacer le dossier",
+      "rename": "Renommer le dossier",
+      "hide": "Cacher le dossier",
+      "show": "Afficher le dossier",
+      "delete": "Supprimer le dossier",
+      "emptySpam": "Supprimer tous les indésirables",
+      "emptyTrash": "Vider la corbeille",
+      "button": "Actions sur %{name}",
+      "label": "Actions sur le dossier"
+    },
+    "newFolder": "Nouveau dossier",
+    "create": {
+      "title": "Créer un nouveau dossier",
+      "name": "Nom du dossier",
+      "placeholder": "Entrez le nom du dossier",
+      "location": "Sélectionnez l'emplacement du dossier",
+      "submit": "Créer le dossier",
+      "success": "Vous avez créé avec succès le dossier %{folderName}",
+      "failure": "Échec de la création d'un nouveau dossier"
+    },
+    "rename": {
+      "submit": "Renommer",
+      "failure": "Échec du renommage du dossier"
+    },
+    "validation": {
+      "required": "Le nom du dossier est obligatoire",
+      "spaces": "Ce champ ne peut pas contenir uniquement des espaces",
+      "taken": "Ce nom de dossier est déjà pris",
+      "sameName": "Il y a déjà un dossier avec le même nom",
+      "characters": "Le nom du dossier ne peut pas contenir de caractères spéciaux"
+    },
+    "delete": {
+      "title": "Suppression des dossiers",
+      "message": "Le dossier \"%{nameMailbox}\" et tous les sous-dossiers et messages qu'il contient seront supprimés et ne pourront pas être récupérés. Voulez-vous poursuivre la suppression ?",
+      "success": "Dossiers supprimés",
+      "failure": "Échec de la suppression des dossiers"
+    },
+    "markAsRead": {
+      "success": "Vous avez marqué tous les messages dans \"%{mailboxName}\" comme lus",
+      "partial": "Vous avez marqué %{count} messages dans \"%{mailboxName}\" comme lus",
+      "failure": "Le dossier \"%{folderName}\" n'a pas pu être marqué comme lu"
+    },
+    "hide": {
+      "success": "Ce dossier a été masqué dans votre dossier principal"
+    },
+    "hidden": {
+      "show": "Afficher les dossiers masqués",
+      "label": "masqué"
+    },
+    "show": {
+      "success": "Ce dossier est de nouveau affiché"
+    }
   }
 }

@@ -26,7 +26,8 @@
   },
   "sidebar": {
     "newMessage": "Tin nhắn mới",
-    "folders": "Thư mục"
+    "folders": "Thư mục",
+    "teamMailboxes": "Hộp thư nhóm"
   },
   "mailbox": {
     "empty": "Không có thư nào ở thư mục hiện tại",
@@ -331,7 +332,9 @@
   "mailboxPicker": {
     "title": "Chuyển tới",
     "search": "Thư mục tìm kiếm",
-    "empty": "Không có thư mục nào khớp với tìm kiếm"
+    "empty": "Không có thư mục nào khớp với tìm kiếm",
+    "personalFolders": "Thư mục cá nhân",
+    "allFolders": "Tất cả thư mục"
   },
   "emptyFolder": {
     "trashBanner": "Tất cả tin nhắn trong Thùng rác sẽ bị xoá bỏ khi bộ nhớ của bạn hết dung lượng.",
@@ -348,5 +351,61 @@
     "subfoldersFailed": "Xoá các thư mục con trong Thùng rác không thành công",
     "trashFailed": "Xoá thư rác thất bại",
     "spamFailed": "Dọn dẹp thư mục Spam không thành công"
+  },
+  "folders": {
+    "menu": {
+      "newSubfolder": "Thêm thư mục con",
+      "move": "Di chuyển thư mục",
+      "rename": "Đổi tên thư mục",
+      "hide": "Ẩn thư mục",
+      "show": "Hiển thị thư mục",
+      "delete": "Xoá thư mục",
+      "emptySpam": "Xóa tất cả tin nhắn rác",
+      "emptyTrash": "Làm trống thùng rác",
+      "button": "Thao tác với %{name}",
+      "label": "Thao tác với thư mục"
+    },
+    "newFolder": "Thư mục mới",
+    "create": {
+      "title": "Tạo thư mục mới",
+      "name": "Tên thư mục",
+      "placeholder": "Nhập tên thư mục",
+      "location": "Chọn vị trí thư mục",
+      "submit": "Tạo thư mục",
+      "success": "Bạn đã tạo thành công thư mục %{folderName}",
+      "failure": "Tạo thư mục mới thất bại"
+    },
+    "rename": {
+      "submit": "Đổi tên",
+      "failure": "Lỗi sửa tên thư mục"
+    },
+    "validation": {
+      "required": "Tên thư mục là bắt buộc",
+      "spaces": "Dữ liệu không hợp lệ",
+      "taken": "Tên thư mục đã tồn tại",
+      "sameName": "Thư mục đã tồn tại",
+      "characters": "Tên thư mục không thể chứa kí tự đặc biệt"
+    },
+    "delete": {
+      "title": "Xoá thư mục",
+      "message": "Thư mục\"%{nameMailbox}\" cùng với tất cả thư mục con và tin nhắn bên trong sẽ bị xoá và không thể phục hồi. Bạn có muốn tiếp tục xoá?",
+      "success": "Xoá thư mục thành công",
+      "failure": "Xoá thư mục thất bại"
+    },
+    "markAsRead": {
+      "success": "Bạn đã đánh dấu tất cả tin nhắn trong thư mục \"%{mailboxName}\" là đã đọc",
+      "partial": "Bạn đã đánh dấu %{count} tin nhắn trong thư mục \"%{mailboxName}\" là đã đọc",
+      "failure": "Không thể đánh dấu thư mục \"%{folderName}\" là đã đọc"
+    },
+    "hide": {
+      "success": "Thư mục này đã được ẩn khỏi thư mục chính của bạn"
+    },
+    "hidden": {
+      "show": "Hiển thị thư mục ẩn",
+      "label": "đã ẩn"
+    },
+    "show": {
+      "success": "Thư mục này đã được hiển thị lại"
+    }
   }
 }

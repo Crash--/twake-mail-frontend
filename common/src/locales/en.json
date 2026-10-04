@@ -26,7 +26,8 @@
   },
   "sidebar": {
     "newMessage": "New message",
-    "folders": "Folders"
+    "folders": "Folders",
+    "teamMailboxes": "Team-mailboxes"
   },
   "mailbox": {
     "empty": "There are no emails in your current folder",
@@ -331,7 +332,9 @@
   "mailboxPicker": {
     "title": "Move To",
     "search": "Search folders",
-    "empty": "No folder matches your search"
+    "empty": "No folder matches your search",
+    "personalFolders": "Personal folders",
+    "allFolders": "All folders"
   },
   "emptyFolder": {
     "trashBanner": "All messages in Trash will be deleted if you reach limited storage.",
@@ -348,5 +351,61 @@
     "subfoldersFailed": "Failed to delete subfolders in Trash",
     "trashFailed": "Empty trash folder failed",
     "spamFailed": "Empty spam folder failed"
+  },
+  "folders": {
+    "menu": {
+      "newSubfolder": "New subfolder",
+      "move": "Move folder",
+      "rename": "Rename folder",
+      "hide": "Hide folder",
+      "show": "Show folder",
+      "delete": "Delete folder",
+      "emptySpam": "Delete all spam emails",
+      "emptyTrash": "Empty Trash",
+      "button": "Actions on %{name}",
+      "label": "Folder actions"
+    },
+    "newFolder": "New folder",
+    "create": {
+      "title": "Create a New Folder",
+      "name": "Folder Name",
+      "placeholder": "Enter the folder name",
+      "location": "Select the folder location",
+      "submit": "Create folder",
+      "success": "You successfully created %{folderName} folder",
+      "failure": "Create new folder failure"
+    },
+    "rename": {
+      "submit": "Rename",
+      "failure": "Rename folder failure"
+    },
+    "validation": {
+      "required": "Name of folder is required",
+      "spaces": "This field cannot contain only spaces",
+      "taken": "This folder name is already taken",
+      "sameName": "There is already folder with the same name",
+      "characters": "Folder name cannot contain special characters"
+    },
+    "delete": {
+      "title": "Delete folders",
+      "message": "\"%{nameMailbox}\" folder and all of the sub-folders and messages it contains will be deleted and won't be able to recover. Do you want to continue to delete?",
+      "success": "Folders deleted",
+      "failure": "Delete folders failure"
+    },
+    "markAsRead": {
+      "success": "You’ve marked all messages in \"%{mailboxName}\" as read",
+      "partial": "You’ve marked %{count} messages in \"%{mailboxName}\" as read",
+      "failure": "Folder \"%{folderName}\" could not be marked as read"
+    },
+    "hide": {
+      "success": "This folder has been hidden from your primary folder"
+    },
+    "hidden": {
+      "show": "Show hidden folders",
+      "label": "hidden"
+    },
+    "show": {
+      "success": "This folder is shown again"
+    }
   }
 }

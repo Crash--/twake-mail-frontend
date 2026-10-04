@@ -266,7 +266,8 @@
     "searchFor": "Искать «%{text}»",
     "wordsHint": "Разделяйте слова запятыми",
     "loading": "Загрузка подсказок",
-    "suggestionCount": "%{smart_count} подсказка |||| %{smart_count} подсказки |||| %{smart_count} подсказок"
+    "suggestionCount": "%{smart_count} подсказка |||| %{smart_count} подсказки |||| %{smart_count} подсказок",
+    "quickFiltersOnly": "Нет подсказок. Быстрые фильтры находятся после поля поиска."
   },
   "emailActions": {
     "toast": {

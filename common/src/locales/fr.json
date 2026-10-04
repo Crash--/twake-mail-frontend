@@ -266,7 +266,8 @@
     "searchFor": "Rechercher « %{text} »",
     "wordsHint": "Séparez les mots par des virgules",
     "loading": "Chargement des suggestions",
-    "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions"
+    "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
+    "quickFiltersOnly": "Aucune suggestion. Les filtres rapides suivent le champ de recherche."
   },
   "emailActions": {
     "toast": {

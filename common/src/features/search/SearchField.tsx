@@ -161,6 +161,12 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
   }
 
   const count = groups.reduce((sum, group) => sum + group.options.length, 0)
+  const status = ((): string => {
+    if (suggestions.isLoading) return t('search.loading')
+    // Only the quick filters are shown: say so rather than "0 suggestions"
+    if (count === 0 && !hasText) return t('search.quickFiltersOnly')
+    return t('search.suggestionCount', { smart_count: count })
+  })()
   const advancedLabel = t('search.advanced')
 
   return (
@@ -184,11 +190,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
         label={t('search.placeholder')}
         listLabel={t('search.suggestions')}
         clearLabel={t('search.clear')}
-        status={
-          suggestions.isLoading
-            ? t('search.loading')
-            : t('search.suggestionCount', { smart_count: count })
-        }
+        status={status}
         endActions={
           <Tooltip title={advancedLabel}>
             <IconButton

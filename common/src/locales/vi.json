@@ -266,7 +266,8 @@
     "searchFor": "Tìm \"%{text}\"",
     "wordsHint": "Phân tách các từ bằng dấu phẩy",
     "loading": "Đang tải gợi ý",
-    "suggestionCount": "%{smart_count} gợi ý"
+    "suggestionCount": "%{smart_count} gợi ý",
+    "quickFiltersOnly": "Không có gợi ý. Các bộ lọc nhanh nằm sau ô tìm kiếm."
   },
   "emailActions": {
     "toast": {

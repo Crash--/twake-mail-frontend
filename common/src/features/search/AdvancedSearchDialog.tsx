@@ -188,6 +188,9 @@ export function AdvancedSearchDialog({
               margin="dense"
               slotProps={{
                 select: { native: true },
+                // A native select always shows a value, even the empty one
+                // of the default folder: the label stays above it
+                inputLabel: { shrink: true },
                 htmlInput: { 'data-testid': 'advanced-search-folder-select' }
               }}
             >
@@ -214,6 +217,9 @@ export function AdvancedSearchDialog({
               margin="dense"
               slotProps={{
                 select: { native: true },
+                // A native select always shows a value, even the empty one
+                // of the default folder: the label stays above it
+                inputLabel: { shrink: true },
                 htmlInput: { 'data-testid': 'advanced-search-date-select' }
               }}
             >
@@ -274,6 +280,9 @@ export function AdvancedSearchDialog({
               margin="dense"
               slotProps={{
                 select: { native: true },
+                // A native select always shows a value, even the empty one
+                // of the default folder: the label stays above it
+                inputLabel: { shrink: true },
                 htmlInput: { 'data-testid': 'advanced-search-sort-select' }
               }}
             >

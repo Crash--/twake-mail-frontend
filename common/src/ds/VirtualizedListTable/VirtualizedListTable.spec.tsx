@@ -3,9 +3,11 @@ import {
   type VirtualizedTableColumn,
   type VirtualizedTableRow
 } from '@linagora/twake-mui'
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
+
+import type { VirtualizedListTableProps } from './VirtualizedListTable'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
@@ -42,7 +44,14 @@ function NameCell({
   )
 }
 
-function renderTable(onEndReached = jest.fn()): ReturnType<typeof renderDs> {
+const COMPACT_COLUMNS: VirtualizedTableColumn[] = [
+  { id: 'name', label: 'File', sortable: false }
+]
+
+function renderTable(
+  onEndReached = jest.fn(),
+  props: Partial<VirtualizedListTableProps> = {}
+): ReturnType<typeof renderDs> {
   return renderDs(
     <VirtuosoMockContext.Provider
       value={{ viewportHeight: 10_000, itemHeight: 40 }}
@@ -60,6 +69,7 @@ function renderTable(onEndReached = jest.fn()): ReturnType<typeof renderDs> {
         endReached={onEndReached}
         componentsProps={{ rowContent: { children: <NameCell /> } }}
         data-testid="files"
+        {...props}
       />
     </VirtuosoMockContext.Provider>
   )
@@ -113,5 +123,69 @@ describe('VirtualizedListTable', () => {
     await waitFor(() => {
       expect(onEndReached).toHaveBeenCalledWith(2)
     })
+  })
+
+  it('switches to the compact columns when it is narrow', async () => {
+    // Reports widths for the scroller only: virtuoso observes its rows too
+    let reportWidth: (width: number) => void = () => undefined
+    class ResizeObserverMock implements ResizeObserver {
+      readonly #callback: ResizeObserverCallback
+      constructor(callback: ResizeObserverCallback) {
+        this.#callback = callback
+      }
+      observe(target: Element): void {
+        if (!target.classList.contains('MuiTableContainer-root')) return
+        reportWidth = width => {
+          this.#callback(
+            [{ target, contentRect: { width } } as ResizeObserverEntry],
+            this
+          )
+        }
+        reportWidth(1024)
+      }
+      unobserve(): void {
+        // nothing to stop
+      }
+      disconnect(): void {
+        // nothing to stop
+      }
+    }
+    const stub = globalThis.ResizeObserver
+    globalThis.ResizeObserver = ResizeObserverMock
+    renderTable(jest.fn(), { compactColumns: COMPACT_COLUMNS })
+    globalThis.ResizeObserver = stub
+    const headers = (): (string | null)[] =>
+      screen.getAllByRole('columnheader').map(header => header.textContent)
+    expect(headers()).toEqual(['Name', 'Size'])
+
+    act(() => {
+      reportWidth(390)
+    })
+
+    await waitFor(() => {
+      expect(headers()).toEqual(['File'])
+    })
+    act(() => {
+      reportWidth(800)
+    })
+    await waitFor(() => {
+      expect(headers()).toEqual(['Name', 'Size'])
+    })
+  })
+
+  it('uses the compact columns when asked to, whatever the width', () => {
+    renderTable(jest.fn(), { compactColumns: COMPACT_COLUMNS, compact: true })
+
+    expect(
+      screen.getAllByRole('columnheader').map(header => header.textContent)
+    ).toEqual(['File'])
+  })
+
+  it('leaves room after the last row, hidden to screen readers', () => {
+    const { container } = renderTable(jest.fn(), { bottomInset: 88 })
+
+    const spacer = container.querySelector('tfoot')
+    expect(spacer).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getAllByRole('row')).toHaveLength(ROWS.length + 1)
   })
 })

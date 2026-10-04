@@ -29,6 +29,7 @@ import {
   toEmailHtml
 } from '@common/features/composer/emailHtml'
 import { InlineImageStore } from '@common/features/composer/InlineImageStore'
+import { sanitizeQuotedHtml } from '@common/features/composer/quote'
 import { schemaQuoteExtensions } from '@common/features/composer/schemaQuoteExtensions'
 import {
   replaceSignature,
@@ -236,7 +237,17 @@ function SpikeComposerForm({
   const handleReady = (editor: Editor): void => {
     editorRef.current = editor
     // For the spike specs (perf, HTML): the route only exists with DEBUG
-    Object.assign(window, { spikeEditor: editor })
+    Object.assign(window, {
+      spikeEditor: editor,
+      spikeTools: {
+        toEmailHtml,
+        htmlToText,
+        sanitizeQuotedHtml,
+        buildEmailDocument,
+        resolveCidSources,
+        urlFor: (cid: string) => images.urlFor(cid)
+      }
+    })
   }
 
   return (
@@ -358,7 +369,8 @@ export function SpikeComposerPage(): ReactElement {
   const [images] = useState(() => new InlineImageStore(client, accountId))
   const approach: QuoteApproach =
     params.get('quote') === 'schema' ? 'schema' : 'atom'
-  const storageKey = snapshotKey(accountId, 'spike')
+  // One composer per URL: a reload restores the composer of that URL
+  const storageKey = snapshotKey(accountId, `spike?${params.toString()}`)
   const composerParams = {
     sourceId: params.get('reply'),
     mode:

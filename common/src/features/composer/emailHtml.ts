@@ -212,7 +212,9 @@ function collectLines(node: Node, context: TextContext, out: string[]): void {
   if (tag === 'BLOCKQUOTE') {
     newLine()
     const inner: string[] = ['']
-    collectLines(node, { listCounters: [] }, inner)
+    for (const child of Array.from(node.childNodes)) {
+      collectLines(child, { listCounters: [] }, inner)
+    }
     const lines = trimEmptyLines(inner).map(line =>
       line === '' ? '>' : `> ${line}`
     )

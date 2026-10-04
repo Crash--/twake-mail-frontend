@@ -48,7 +48,11 @@ function HtmlBlockFrame({
       width="100%"
       height={height}
       onLoad={handleLoad}
-      sx={{ display: 'block', border: 0 }}
+      // A preview: a click selects the block in the editor instead of
+      // putting the focus in a document where typing goes nowhere; screen
+      // readers still read it
+      tabIndex={-1}
+      sx={{ display: 'block', border: 0, pointerEvents: 'none' }}
     />
   )
 }

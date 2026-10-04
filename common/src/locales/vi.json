@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "Twake Mail"
+  },
+  "common": {
+    "retry": "Thử lại",
+    "loading": "Đang tiến hành ...",
+    "errorOccurred": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau.",
+    "unknownError": "Lỗi không xác định, xin hãy thử lại",
+    "reconnect": "Đăng nhập lại"
+  },
+  "topbar": {
+    "searchPlaceholder": "Tìm kiếm thư",
+    "apps": "Mở ứng dụng",
+    "account": "Quản lý tài khoản",
+    "logout": "Đăng xuất"
+  },
+  "sidebar": {
+    "newMessage": "Tin nhắn mới",
+    "folders": "Thư mục"
+  },
+  "mailbox": {
+    "inbox": "Hộp thư đến",
+    "empty": "Không có thư nào ở thư mục hiện tại"
+  },
+  "email": {
+    "noneSelected": "Chưa có email được lựa chọn",
+    "placeholder": "Thư sẽ được hiển thị ở đây"
+  },
+  "login": {
+    "title": "Đăng nhập",
+    "subtitle": "Điền thông tin đăng nhập",
+    "submit": "Đăng nhập",
+    "requiredEmail": "Thiếu địa chỉ email",
+    "requiredPassword": "Thiếu mật khẩu",
+    "badCredentials": "Tài khoản không hợp lệ",
+    "connectionError": "Lỗi kết nối",
+    "email": "Email",
+    "password": "Mật khẩu"
+  },
+  "config": {
+    "title": "Twake Mail chưa được cấu hình",
+    "description": "Tệp cấu hình (.env.js) bị thiếu hoặc không hợp lệ. Vui lòng liên hệ quản trị viên."
+  }
+}

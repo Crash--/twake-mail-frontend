@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "Twake Mail"
+  },
+  "common": {
+    "retry": "Réessayer",
+    "loading": "Chargement... Veuillez patienter !",
+    "errorOccurred": "Erreur ! Une erreur s'est produite. Veuillez réessayer plus tard.",
+    "unknownError": "Une erreur s'est produite, veuillez réessayer",
+    "reconnect": "Se reconnecter"
+  },
+  "topbar": {
+    "searchPlaceholder": "Rechercher dans les courriers",
+    "apps": "Accéder aux applications",
+    "account": "Gérer le compte",
+    "logout": "Se déconnecter"
+  },
+  "sidebar": {
+    "newMessage": "Nouveau message",
+    "folders": "Dossiers"
+  },
+  "mailbox": {
+    "inbox": "Boîte de réception",
+    "empty": "Il n'y a aucun message dans ce dossier"
+  },
+  "email": {
+    "noneSelected": "Aucun message sélectionné",
+    "placeholder": "Le message s'affichera ici"
+  },
+  "login": {
+    "title": "Se connecter",
+    "subtitle": "Entrez vos identifiants pour vous connecter",
+    "submit": "Se connecter",
+    "requiredEmail": "Une adresse e-mail est requise",
+    "requiredPassword": "Mot de passe requis",
+    "badCredentials": "Identifiants invalides",
+    "connectionError": "Erreur de connexion",
+    "email": "E-mail",
+    "password": "Mot de passe"
+  },
+  "config": {
+    "title": "Twake Mail n'est pas configuré",
+    "description": "La configuration d'exécution (.env.js) est absente ou invalide. Contactez votre administrateur."
+  }
+}

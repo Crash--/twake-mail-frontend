@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "Twake Mail"
+  },
+  "common": {
+    "retry": "Retry",
+    "loading": "Loading... Please wait!",
+    "errorOccurred": "Error! An error occurred. Please try again later.",
+    "unknownError": "Unknown error occurred, please try again",
+    "reconnect": "Reconnect"
+  },
+  "topbar": {
+    "searchPlaceholder": "Search mail",
+    "apps": "Go to applications",
+    "account": "Manage account",
+    "logout": "Sign out"
+  },
+  "sidebar": {
+    "newMessage": "New message",
+    "folders": "Folders"
+  },
+  "mailbox": {
+    "inbox": "Inbox",
+    "empty": "There are no emails in your current folder"
+  },
+  "email": {
+    "noneSelected": "No email selected",
+    "placeholder": "The message will be displayed here"
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Enter your credentials to sign in",
+    "submit": "Sign In",
+    "requiredEmail": "Email is required",
+    "requiredPassword": "Password is required",
+    "badCredentials": "Bad credentials",
+    "connectionError": "Connection error",
+    "email": "Email",
+    "password": "Password"
+  },
+  "config": {
+    "title": "Twake Mail is not configured",
+    "description": "The runtime configuration (.env.js) is missing or invalid. Contact your administrator."
+  }
+}

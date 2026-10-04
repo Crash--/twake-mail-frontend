@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto'
 
 import { env } from './env'
+import { JmapClient } from './jmap'
 import { type Quota, WebAdminClient, WebAdminError } from './webadmin'
 
 /** An account created for one test and deleted after it */
@@ -94,7 +95,10 @@ export class E2EUserFactory {
     return teamMailbox
   }
 
-  /** Deletes every team mailbox and account created by this factory. Already gone is fine. */
+  /**
+   * Deletes every team mailbox and account created by this factory, and the emails of those
+   * accounts. Already gone is fine.
+   */
   async cleanup(): Promise<string[]> {
     const failures: string[] = []
     const ignoreNotFound = async (
@@ -109,6 +113,17 @@ export class E2EUserFactory {
             `${what}: ${error instanceof Error ? error.message : String(error)}`
           )
         }
+      }
+    }
+    // James keeps the messages of deleted users and team mailboxes: destroy them first,
+    // the team ones through their members (DEFAULT_USING has the shares capability)
+    for (const user of this.#users) {
+      try {
+        await JmapClient.forUser(user).destroyAllEmails()
+      } catch (error: unknown) {
+        failures.push(
+          `${user.email} emails: ${error instanceof Error ? error.message : String(error)}`
+        )
       }
     }
     for (const teamMailbox of this.#teamMailboxes.splice(0)) {

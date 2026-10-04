@@ -92,4 +92,20 @@ describe('ListDetailLayout', () => {
       expect(screen.getByRole('button', { name: 'Hello Alice' })).toHaveFocus()
     })
   })
+
+  it.each([
+    [390, 'list-detail-pane'],
+    [1024, 'list-detail-item'],
+    [1440, 'list-detail-pane']
+  ])(
+    'names what slides in a view transition on a %i px screen',
+    (width, name) => {
+      mockViewport({ width })
+
+      renderDs(<Mailbox initiallyOpen />)
+
+      const pane = screen.getByRole('button', { name: 'Back' }).parentElement
+      expect(pane).toHaveStyle({ viewTransitionName: name })
+    }
+  )
 })

@@ -8,13 +8,16 @@
     "errorOccurred": "Error! An error occurred. Please try again later.",
     "unknownError": "Unknown error occurred, please try again",
     "reconnect": "Reconnect",
-    "back": "Back"
+    "back": "Back",
+    "close": "Close"
   },
   "topbar": {
     "searchPlaceholder": "Search mail",
     "apps": "Go to applications",
     "account": "Manage account",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "search": "Search",
+    "showFolders": "Show folders"
   },
   "sidebar": {
     "newMessage": "New message",
@@ -156,5 +159,8 @@
       "text": "Text alternative",
       "restored": "Composer restored after reload"
     }
+  },
+  "layout": {
+    "navigation": "Navigation"
   }
 }

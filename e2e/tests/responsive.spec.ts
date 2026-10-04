@@ -108,11 +108,13 @@ test.describe('RESP responsive layout', () => {
     await expect(page.getByTestId('search-input')).toBeFocused()
     await expectNoA11yViolations(page)
 
-    // Escape closes the suggestions first, then folds the search
+    // Escape closes the suggestions (the quick filters alone under an
+    // empty field) first, then folds the search
     const input = page.getByTestId('search-input')
-    await expect(input).toHaveAttribute('aria-expanded', 'true')
+    const quickFilters = page.getByTestId('quick-search-filters')
+    await expect(quickFilters).toBeVisible()
     await page.keyboard.press('Escape')
-    await expect(input).toHaveAttribute('aria-expanded', 'false')
+    await expect(quickFilters).toBeHidden()
     await expect(input).toBeFocused()
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('search-input')).toBeHidden()

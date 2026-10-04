@@ -51,6 +51,23 @@ describe('AppLayout', () => {
     ).toBeVisible()
   })
 
+  it('opens the composer from "New message" and with the c key', async () => {
+    renderLayout()
+
+    await userEvent.click(await screen.findByTestId('compose-email-button'))
+    expect(
+      await screen.findByRole('dialog', { name: 'New message' })
+    ).toBeVisible()
+
+    await userEvent.click(screen.getByTestId('main-content'))
+    await userEvent.keyboard('c')
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole('dialog', { name: 'New message' })
+      ).toHaveLength(2)
+    })
+  })
+
   it('lists the other applications in the app grid', async () => {
     renderLayout()
 

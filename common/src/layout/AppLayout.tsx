@@ -1,12 +1,16 @@
 import { Pen } from '@linagora/twake-icons'
 import { Box, Content, Layout, Main } from '@linagora/twake-mui'
-import { useCallback, useState, type ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 import { Outlet, useLocation, useMatch } from 'react-router'
 
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
+import {
+  ComposerProvider,
+  useComposer
+} from '@common/features/composer/ComposerProvider'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -27,15 +31,17 @@ export interface AppLayoutProps {
  * Frame of the signed-in pages: top bar, sidebar, and the routed content.
  * Below the desktop size the sidebar is a drawer, closed as soon as the user
  * goes somewhere, and "New message" a floating button, hidden while an email
- * fills the screen. The keyboard shortcuts, the folder picker and the
- * folder actions work in all of it.
+ * fills the screen. The keyboard shortcuts, the folder picker, the
+ * folder actions and the composers work in all of it.
  */
 export function AppLayout(props: AppLayoutProps): ReactElement {
   return (
     <ShortcutsProvider>
       <MailboxPickerProvider>
         <FolderActionsProvider>
-          <AppFrame {...props} />
+          <ComposerProvider>
+            <AppFrame {...props} />
+          </ComposerProvider>
         </FolderActionsProvider>
       </MailboxPickerProvider>
     </ShortcutsProvider>
@@ -68,9 +74,11 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
     setDrawerLocationKey(null)
   }
 
-  // TODO: open the composer once it exists (phase 3): both "New message"
-  // buttons and the `c` shortcut call this
-  const handleCompose = useCallback((): void => undefined, [])
+  const { openComposer } = useComposer()
+  // Both "New message" buttons and the `c` shortcut
+  const handleCompose = (): void => {
+    openComposer()
+  }
 
   useShortcuts({
     c: handleCompose,

@@ -202,7 +202,46 @@
       "html": "HTML envoyé",
       "text": "Alternative texte",
       "restored": "Composer restauré après rechargement"
-    }
+    },
+    "fields": {
+      "to": "À",
+      "cc": "Copie à",
+      "bcc": "Copie cachée à",
+      "replyTo": "Répondre à",
+      "from": "De",
+      "subject": "Sujet"
+    },
+    "window": {
+      "minimize": "Minimiser",
+      "fullscreen": "Plein écran",
+      "exitFullscreen": "Quitter le plein écran",
+      "close": "Enregistrer et fermer",
+      "show": "Afficher"
+    },
+    "close": {
+      "title": "Enregistrer le message",
+      "message": "Enregistrer ce message dans votre dossier Brouillons et fermer l'éditeur de messages ?",
+      "save": "Sauvegarder",
+      "discard": "Annuler les changements"
+    },
+    "draft": {
+      "saved": "Brouillon enregistré",
+      "saveFailed": "L'enregistrement du message dans le dossier Brouillons a échoué.\nUne erreur s'est produite lors de l'enregistrement du message.",
+      "tooLarge": "Échec de l'enregistrement de votre message en tant que brouillon, car il est trop volumineux.",
+      "overQuota": "Échec de l'enregistrement de votre message en tant que brouillon, car votre quota est dépassé."
+    },
+    "newMessage": "Nouveau message",
+    "more": "Plus",
+    "recipients": {
+      "suggestions": "Suggestions de contacts",
+      "invalid": "adresse invalide",
+      "chipHelp": "Suppr retire l'adresse, Entrée la modifie.",
+      "removed": "%{address} retiré",
+      "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
+      "summary": "Afficher tous les destinataires :",
+      "others": "+%{smart_count}"
+    },
+    "limit": "Vous pouvez écrire %{smart_count} messages à la fois. Fermez-en un pour en commencer un autre."
   },
   "layout": {
     "navigation": "Navigation"

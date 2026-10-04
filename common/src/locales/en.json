@@ -202,7 +202,46 @@
       "html": "Outgoing HTML",
       "text": "Text alternative",
       "restored": "Composer restored after reload"
-    }
+    },
+    "fields": {
+      "to": "To",
+      "cc": "Cc",
+      "bcc": "Bcc",
+      "replyTo": "Reply to",
+      "from": "From",
+      "subject": "Subject"
+    },
+    "window": {
+      "minimize": "Minimize",
+      "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit fullscreen",
+      "close": "Save & close",
+      "show": "Show"
+    },
+    "close": {
+      "title": "Save message",
+      "message": "Save this message to your drafts folder and close composer?",
+      "save": "Save",
+      "discard": "Discard changes"
+    },
+    "draft": {
+      "saved": "Draft saved",
+      "saveFailed": "Saving of the message to drafts folder failed.\nAn error occurred while saving mail.",
+      "tooLarge": "Failure to save your message as drafts, because it is too large.",
+      "overQuota": "Failure to save your message as drafts, because it is over quota."
+    },
+    "newMessage": "New message",
+    "more": "More",
+    "recipients": {
+      "suggestions": "Contact suggestions",
+      "invalid": "invalid address",
+      "chipHelp": "Delete removes the address, Enter edits it.",
+      "removed": "%{address} removed",
+      "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
+      "summary": "Show all the recipients:",
+      "others": "+%{smart_count}"
+    },
+    "limit": "You can write %{smart_count} messages at once. Close one to start another."
   },
   "layout": {
     "navigation": "Navigation"

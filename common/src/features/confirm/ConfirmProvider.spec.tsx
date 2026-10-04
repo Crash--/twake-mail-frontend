@@ -1,11 +1,11 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 
-import { useChoose, useConfirm } from './ConfirmProvider'
+import { useAlert, useChoose, useConfirm } from './ConfirmProvider'
 
 function Asker(): ReactElement {
   const confirm = useConfirm()
@@ -51,11 +51,34 @@ function Chooser(): ReactElement {
   )
 }
 
+function Alerter(): ReactElement {
+  const alert = useAlert()
+  const [answer, setAnswer] = useState('none')
+  const handleAsk = (): void => {
+    void alert({
+      title: 'Sending failed',
+      message: 'Your email should have at least one recipient',
+      confirmLabel: 'Add recipients'
+    }).then(() => {
+      setAnswer('acknowledged')
+    })
+  }
+  return (
+    <>
+      <button type="button" onClick={handleAsk}>
+        Send
+      </button>
+      <p>Alert: {answer}</p>
+    </>
+  )
+}
+
 function renderAsker(): void {
   render(
     <AppProviders lang="en" queryClient={makeQueryClient()}>
       <Asker />
       <Chooser />
+      <Alerter />
     </AppProviders>
   )
 }
@@ -102,5 +125,18 @@ describe('ConfirmProvider', () => {
     await userEvent.click(close)
     await userEvent.keyboard('{Escape}')
     expect(await screen.findByText('Answer: cancel')).toBeVisible()
+  })
+
+  it('alerts with one button, focused', async () => {
+    renderAsker()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    const dialog = screen.getByRole('dialog', { name: 'Sending failed' })
+    expect(within(dialog).queryByRole('button', { name: 'Cancel' })).toBe(null)
+    expect(
+      within(dialog).getByRole('button', { name: 'Add recipients' })
+    ).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByText('Alert: acknowledged')).toBeVisible()
   })
 })

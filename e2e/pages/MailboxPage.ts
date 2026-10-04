@@ -34,6 +34,11 @@ export class MailboxPage {
   readonly composeButton: Locator
   readonly userAvatar: Locator
   readonly scrollToTopButton: Locator
+  /** The toast at the bottom of the screen ("Moved to Trash", errors) */
+  readonly toast: Locator
+  readonly toastUndoButton: Locator
+  /** The list of the keyboard shortcuts (`?`, account menu) */
+  readonly shortcutsDialog: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -48,6 +53,9 @@ export class MailboxPage {
     this.composeButton = page.getByTestId('compose-email-button')
     this.userAvatar = page.getByTestId('user-avatar')
     this.scrollToTopButton = page.getByTestId('scroll-to-top-button')
+    this.toast = page.getByTestId('toast')
+    this.toastUndoButton = this.toast.getByTestId('toast-undo-button')
+    this.shortcutsDialog = page.getByTestId('shortcuts-dialog')
   }
 
   /** True when the folders are in a drawer: phones and tablets */
@@ -149,6 +157,11 @@ export class MailboxPage {
           .getByTestId('email-list-item-subject')
           .getByText(subject, { exact: true })
       })
+  }
+
+  /** The link of a list row, which holds the focus of the row */
+  emailRowLink(subject: string): Locator {
+    return this.emailRow(subject).getByRole('link')
   }
 
   /** Star toggle of a list row (`aria-pressed` when starred) */

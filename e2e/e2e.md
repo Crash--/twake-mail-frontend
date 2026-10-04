@@ -59,8 +59,8 @@ the React app. One line per Patrol test, 116 lines.
 | `MISC` | Misc | 1 | 0 | 0 |
 | | **Total** | **116** | **24** | **6** |
 
-Plus `A11Y`, accessibility scenarios (RGAA 4.1), and `RESP`, phone and tablet layouts, with no
-Patrol counterpart, at the end.
+Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
+tablet layouts, with no Patrol counterpart, at the end.
 
 Phase 0 of the React app (login, folder tree, email list, reading) is enough for `LOGIN-01`,
 `MBX-04` to `MBX-06`, `MBX-17`, `MBX-24`, `EML-01` to `EML-04` and `PUSH-01`, their data being
@@ -321,6 +321,20 @@ listed in `docs/twake-mui-gaps.md`.
   - Spec: `tests/a11y.spec.ts`. Passes in CI. On phones and tablets (Playwright projects `mobile`
     and `tablet`) the tree is in a drawer: the menu button opens it with the focus inside, choosing
     a folder closes it and gives the focus back to the button.
+
+## KBD — Keyboard shortcuts (no Patrol counterpart)
+
+Single-key shortcuts of the web app (`c`, `/`, `j`, `k`, `e`, `#`, `s`, `u`, `z`, `?`), ignored in
+text fields, dialogs and menus, and with Ctrl, Alt or Meta; they can be turned off (WCAG 2.1.4).
+
+- [ ] `KBD-01` In the list, `j` / `k` move the focus to the next / previous row; `e` archives the
+  focused email (toast "Moved to Archive", the focus moves to the next row, the email is in Archive
+  on the server) and `z` undoes it (back in the Inbox); in the open email, `s` stars it and `u`
+  marks it unread and goes back to the list. — no Patrol test
+  - Spec: `tests/shortcuts.spec.ts`.
+- [ ] `KBD-02` `?` opens the list of the shortcuts (a named dialog, axe), whose switch turns them
+  off: after a reload, `e` and `?` do nothing. — no Patrol test
+  - Spec: `tests/shortcuts.spec.ts`.
 
 ## RESP — Phones and tablets (no Patrol counterpart)
 

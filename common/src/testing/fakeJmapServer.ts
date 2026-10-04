@@ -24,6 +24,7 @@ import {
  * `Email/set` creations (referenced as `#creationId` by the next calls of
  * the request), updates of keywords and mailboxes (path patches, keeping
  * the mailbox counters right) and destructions, `Identity/get`,
+ * `EmailSubmission/set` (with `onSuccessUpdateEmail`),
  * `Mailbox/set` (creations,
  * renames, moves, subscriptions, destructions) and `Mailbox/clear`, and
  * blob downloads. Changes made through
@@ -111,6 +112,8 @@ export interface FakeJmapServer {
   /** Contacts `TMailContact/autocomplete` answers with */
   contacts: FakeContact[]
   identities: Identity[]
+  /** Ids of the emails submitted with `EmailSubmission/set`, in order */
+  submitted: string[]
   /** Blob contents by blob id, served by the download endpoint */
   blobs: Map<string, string>
   /** API requests received, in order */
@@ -464,7 +467,7 @@ function referenceError(
   return null
 }
 
-/** Replaces `#creationId` in `ids`, `destroy` and `emailId` by the ids created */
+/** Replaces `#creationId` in `ids`, `destroy` and the `emailId` of creations by the ids created */
 function resolveCreationIds(
   args: Record<string, unknown>,
   createdIds: ReadonlyMap<string, string>
@@ -477,6 +480,15 @@ function resolveCreationIds(
   for (const key of ['ids', 'destroy']) {
     const list = resolved[key]
     if (Array.isArray(list)) resolved[key] = list.map(resolve)
+  }
+  // The email of a submission
+  if (isRecord(resolved.create)) {
+    resolved.create = Object.fromEntries(
+      Object.entries(resolved.create).map(([creationId, value]) => [
+        creationId,
+        isRecord(value) ? { ...value, emailId: resolve(value.emailId) } : value
+      ])
+    )
   }
   return resolved
 }
@@ -503,6 +515,7 @@ export function makeFakeJmapServer(
     emails: init.emails ?? [],
     contacts: init.contacts ?? [],
     identities: init.identities ?? [makeIdentity({ id: 'identity-alice' })],
+    submitted: [],
     blobs: new Map(),
     requests: [],
     methodErrors: new Map(),
@@ -859,6 +872,49 @@ export function makeFakeJmapServer(
     }
   }
 
+  let submissions = 0
+
+  /**
+   * Submits created emails (nothing is delivered), then applies
+   * `onSuccessUpdateEmail` to the emails of the submissions created;
+   * `setErrors` refuses a submission by its creation id
+   */
+  function setSubmissions(args: Record<string, unknown>): unknown {
+    const create = isRecord(args.create) ? args.create : {}
+    const created: Record<string, { id: string }> = {}
+    const notCreated: Record<string, unknown> = {}
+    const emailOf = new Map<string, FakeEmail>()
+    for (const [creationId, value] of Object.entries(create)) {
+      const email = isRecord(value)
+        ? server.emails.find(candidate => candidate.id === value.emailId)
+        : undefined
+      const refusal = server.setErrors.get(creationId)
+      if (refusal !== undefined || !email) {
+        notCreated[creationId] = { type: refusal ?? 'invalidArguments' }
+        continue
+      }
+      submissions += 1
+      created[creationId] = { id: `submission-${submissions}` }
+      emailOf.set(creationId, email)
+      server.submitted.push(email.id)
+    }
+    const onSuccess = isRecord(args.onSuccessUpdateEmail)
+      ? args.onSuccessUpdateEmail
+      : {}
+    for (const [reference, patch] of Object.entries(onSuccess)) {
+      const email = emailOf.get(reference.replace(/^#/, ''))
+      if (!email || !isRecord(patch)) continue
+      updateEmail(email, patch)
+      emailLog.record(email.id, 'updated')
+    }
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      newState: 'state-submission-1',
+      created,
+      notCreated
+    }
+  }
+
   function getIdentities(args: Record<string, unknown>): unknown {
     const list = server.identities
       .filter(
@@ -1002,6 +1058,8 @@ export function makeFakeJmapServer(
         return setEmails(args)
       case 'Identity/get':
         return getIdentities(args)
+      case 'EmailSubmission/set':
+        return setSubmissions(args)
       case 'Email/changes':
         return emailLog.changes(args) ?? { error: 'cannotCalculateChanges' }
       case 'Mailbox/changes':

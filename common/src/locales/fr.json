@@ -140,7 +140,7 @@
       "blockquote": "Citation",
       "clearFormatting": "Effacer la mise en forme",
       "name": "Corps du message",
-      "keyboardHelp": "Tab indente un élément de liste ou quitte l'éditeur. Échap va à la barre de mise en forme. Ctrl+K insère un lien.",
+      "keyboardHelp": "Tab indente un élément de liste ou quitte l'éditeur. Alt+F10 va à la barre de mise en forme. Ctrl+K insère un lien.",
       "colors": {
         "red": "Rouge",
         "orange": "Orange",

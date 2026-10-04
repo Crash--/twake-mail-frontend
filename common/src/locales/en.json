@@ -140,7 +140,7 @@
       "blockquote": "Quote",
       "clearFormatting": "Clear formatting",
       "name": "Message body",
-      "keyboardHelp": "Tab indents a list item or leaves the editor. Escape goes to the formatting toolbar. Ctrl+K inserts a link.",
+      "keyboardHelp": "Tab indents a list item or leaves the editor. Alt+F10 goes to the formatting toolbar. Ctrl+K inserts a link.",
       "colors": {
         "red": "Red",
         "orange": "Orange",

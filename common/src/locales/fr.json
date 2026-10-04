@@ -54,7 +54,8 @@
     "notFound": "Ce message n'existe plus",
     "markAsRead": "Marquer comme lu",
     "markAsUnread": "Marquer comme non lu",
-    "starred": "Favoris"
+    "starred": "Favoris",
+    "noneSelected": "Aucun message sélectionné"
   },
   "login": {
     "title": "Se connecter",

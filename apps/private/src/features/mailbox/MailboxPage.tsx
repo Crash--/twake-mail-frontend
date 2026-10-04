@@ -1,15 +1,22 @@
-import { Box } from '@linagora/twake-mui'
+import { EmailOpen } from '@linagora/twake-icons'
+import { Box, Empty } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
-import { useParams } from 'react-router'
+import { useOutlet, useParams } from 'react-router'
 
+import { ListDetailLayout } from '@/ds/ListDetailLayout/ListDetailLayout'
 import { RequireKnownMailbox } from '@common/features/mailbox/RequireKnownMailbox'
 import { EmailList } from '@common/features/thread/EmailList'
+import { useI18n } from '@common/i18n/useI18n'
 
 /**
- * `/mailbox/:mailboxId`: the email list of a mailbox.
+ * `/mailbox/:mailboxId`: the email list of a mailbox, and the email opened
+ * from it (the nested `email/:emailId` route), instead of the list or beside
+ * it depending on the screen.
  */
 export function MailboxPage(): ReactElement {
+  const { t } = useI18n()
   const { mailboxId = '' } = useParams()
+  const email = useOutlet()
 
   return (
     <RequireKnownMailbox mailboxId={mailboxId}>
@@ -18,7 +25,17 @@ export function MailboxPage(): ReactElement {
         data-testid="mailbox-page"
         data-mailbox-id={mailboxId}
       >
-        <EmailList key={mailboxId} mailboxId={mailboxId} />
+        <ListDetailLayout
+          list={<EmailList key={mailboxId} mailboxId={mailboxId} />}
+          detail={email}
+          placeholder={
+            <Empty
+              icon={EmailOpen}
+              title={t('email.noneSelected')}
+              data-testid="email-view-empty"
+            />
+          }
+        />
       </Box>
     </RequireKnownMailbox>
   )

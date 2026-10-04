@@ -4,7 +4,7 @@ import { expect, test } from '../support/fixtures'
 import { makePng } from './helpers'
 import { SpikeComposer } from './SpikeComposer'
 
-test('SPIKE-DRAFT autosave: debounced, one draft kept (create + destroy), network cost', async ({
+test('SPIKE-DRAFT autosave: debounced, one draft kept (create + destroy in one request), network cost', async ({
   page,
   user,
   jmap
@@ -49,8 +49,8 @@ test('SPIKE-DRAFT autosave: debounced, one draft kept (create + destroy), networ
   }
   console.log(JSON.stringify(stats))
   writeFileSync('/tmp/twake-mail-shots/spike-composer-draft-stats.json', JSON.stringify(stats, null, 1))
-  // Two saves, two requests each (create; get + destroy)
-  expect(saves).toHaveLength(4)
+  // Two saves, one request each (create + destroy, get of the created one)
+  expect(saves).toHaveLength(2)
 })
 
 test('SPIKE-DRAFT CMP-18 a draft with an inline image reopens with its image and saves again', async ({

@@ -14,10 +14,14 @@ import {
   type EmailChanges
 } from '@common/features/thread/patchEmailList'
 import {
+  isSearchRequest,
   threadKeys,
   type EmailListData,
-  type EmailListItemData
+  type EmailListItemData,
+  type SearchRequest
 } from '@common/features/thread/queries'
+import { patchSearchList } from '@common/features/search/patchSearchList'
+import { refreshSearchWindow } from '@common/features/search/refreshSearchWindow'
 
 import { fetchChanges, type TypeChanges } from './fetchChanges'
 
@@ -58,6 +62,19 @@ function mailboxIdOfList(key: QueryKey, accountId: string): string | null {
     kind === 'list' &&
     typeof mailboxId === 'string'
     ? mailboxId
+    : null
+}
+
+function searchRequestOfList(
+  key: QueryKey,
+  accountId: string
+): SearchRequest | null {
+  const [feature, account, kind, request] = key
+  return feature === 'thread' &&
+    account === accountId &&
+    kind === 'search' &&
+    isSearchRequest(request)
+    ? request
     : null
 }
 
@@ -122,7 +139,11 @@ export function createPushSync(
     return cache
       .findAll({ queryKey: threadKeys.all(accountId) })
       .map(query => query.queryKey)
-      .filter(key => mailboxIdOfList(key, accountId) !== null)
+      .filter(
+        key =>
+          mailboxIdOfList(key, accountId) !== null ||
+          searchRequestOfList(key, accountId) !== null
+      )
   }
 
   function emailListStates(): Set<string> {
@@ -186,22 +207,76 @@ export function createPushSync(
    * Patches the lists, except those holding a page at a state whose changes
    * failed: those are refetched, the others keep their loaded pages
    */
-  function applyEmailChanges(
+  /**
+   * Search results cannot be patched without their filter: the listed
+   * emails are, and the window is queried again when other emails changed
+   * (shown results only; the others start over when shown again)
+   */
+  async function refreshSearchList(
+    key: QueryKey,
+    request: SearchRequest
+  ): Promise<void> {
+    const data = queryClient.getQueryData<EmailListData>(key)
+    if (data === undefined) return
+    const query = cache.find({ queryKey: key, exact: true })
+    if (query === undefined || query.getObserversCount() === 0) {
+      queryClient.setQueryData<EmailListData>(key, keepFirstPage(data))
+      await queryClient.invalidateQueries({
+        queryKey: key,
+        exact: true,
+        refetchType: 'none'
+      })
+      return
+    }
+    const refreshed = await refreshSearchWindow(
+      client,
+      accountId,
+      request,
+      data
+    )
+    if (isClosed) return
+    if (refreshed === null) {
+      refetchEmailLists([key])
+    } else {
+      queryClient.setQueryData<EmailListData>(key, refreshed)
+    }
+  }
+
+  /**
+   * Patches the lists, except those holding a page at a state whose changes
+   * failed: those are refetched, the others keep their loaded pages
+   */
+  async function applyEmailChanges(
     changes: EmailChanges,
     failedStates: ReadonlySet<string>
-  ): void {
+  ): Promise<void> {
     const failedLists: QueryKey[] = []
+    const searchRefreshes: Promise<void>[] = []
     for (const key of emailListKeys()) {
       const mailboxId = mailboxIdOfList(key, accountId)
+      const search = searchRequestOfList(key, accountId)
       const data = queryClient.getQueryData<EmailListData>(key)
-      if (mailboxId === null || data === undefined) continue
+      if (data === undefined) continue
       if (data.pages.some(page => failedStates.has(page.state))) {
         failedLists.push(key)
         continue
       }
-      queryClient.setQueryData<EmailListData>(key, current =>
-        current ? patchEmailList(current, mailboxId, changes) : current
-      )
+      if (mailboxId !== null) {
+        queryClient.setQueryData<EmailListData>(key, current =>
+          current ? patchEmailList(current, mailboxId, changes) : current
+        )
+      } else if (search !== null) {
+        const patch = patchSearchList(data, changes)
+        queryClient.setQueryData<EmailListData>(key, patch.data)
+        if (patch.hasUnlistedChanges) {
+          searchRefreshes.push(
+            refreshSearchList(key, search).catch((error: unknown) => {
+              logError(error)
+              refetchEmailLists([key])
+            })
+          )
+        }
+      }
     }
     for (const [key] of queryClient.getQueriesData<EmailDetail | null>({
       queryKey: emailKeys.all(accountId)
@@ -211,6 +286,7 @@ export function createPushSync(
       )
     }
     if (failedLists.length > 0) refetchEmailLists(failedLists)
+    await Promise.all(searchRefreshes)
   }
 
   async function synchronize(types: ReadonlySet<SyncedType>): Promise<void> {
@@ -262,7 +338,7 @@ export function createPushSync(
         refetchEmailLists(emailListKeys())
       } else {
         latest.Email = last.newState
-        applyEmailChanges(mergeEmailChanges(branches), failedStates)
+        await applyEmailChanges(mergeEmailChanges(branches), failedStates)
       }
     }
   }
@@ -306,7 +382,10 @@ export function createPushSync(
     if (event.action.manual === true) return
     const key: unknown = event.query.queryKey
     if (!isQueryKey(key)) return
-    if (mailboxIdOfList(key, accountId) !== null && latest.Email !== null) {
+    const isEmailList =
+      mailboxIdOfList(key, accountId) !== null ||
+      searchRequestOfList(key, accountId) !== null
+    if (isEmailList && latest.Email !== null) {
       const data = queryClient.getQueryData<EmailListData>(key)
       if (data?.pages.some(page => page.state !== latest.Email)) {
         followUp('Email')

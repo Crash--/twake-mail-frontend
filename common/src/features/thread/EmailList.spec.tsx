@@ -343,7 +343,7 @@ describe('EmailList', () => {
     const server = makeFakeJmapServer({ emails: makeEmails(2) })
     const { queryClient } = renderList(server)
     await screen.findAllByTestId('email-list-item')
-    expect(screen.getByRole('status')).toHaveTextContent(/^$/)
+    expect(screen.getByTestId('new-emails-status')).toHaveTextContent(/^$/)
 
     server.emails.push(
       makeEmail({
@@ -359,7 +359,7 @@ describe('EmailList', () => {
     })
 
     expect(await screen.findByText('Pushed')).toBeVisible()
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(screen.getByTestId('new-emails-status')).toHaveTextContent(
       'You have new messages'
     )
   })

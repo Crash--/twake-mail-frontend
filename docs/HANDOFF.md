@@ -98,23 +98,15 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - rooks 8.4.0 (la 9 est ESM-only et casse Jest) ;
   - job CI React 18.
 
-## 4. Travaux lancés mais non terminés au moment de la passation
+## 4. État au soir du 2026-10-04 (après la passation initiale)
 
-Leur résultat n'a pas été relu. À vérifier en reprenant :
-
-1. **Liste sur `VirtualizedTable`, `@/ds/`, RGAA, mesure de performances** (dans ce dépôt, commits locaux sur `main`, **non poussés**). Attendus :
-   - alias `@/ds/*` → `common/src/ds/*` et règles ESLint propres à `ds/` ;
-   - contournements déplacés dans `ds/` ;
-   - liste sur `VirtualizedTable` ;
-   - `eslint-plugin-jsx-a11y`, `@axe-core/playwright` et une spec clavier ;
-   - section RGAA dans `AGENTS.md` ;
-   - correction de la note « Known backend quirks » de `e2e/README.md` (le bug touche toutes les boîtes, pas que les team mailboxes) ;
-   - `e2e/scripts/seed-perf.ts`, `e2e/perf/` et `docs/perf/phase0.md` (5 000 mails, défilement jusqu'à 2 000, coût du push).
-
-   En reprenant : `git log origin/main..main`, relire, lancer `npm ci && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build` sur un clone propre, puis les e2e (`E2E_APP_DIR=$PWD/apps/private/dist ./e2e/scripts/start.sh && (cd e2e && npx playwright test) ; ./e2e/scripts/stop.sh`), puis pousser.
-2. **PR cozy-libs pour twake-i18n en React 19** : branche attendue sur `Crash--/cozy-libs`, pas encore ouverte.
-   - Ce qu'elle doit faire : vérifier qu'il n'y a pas de legacy context, élargir les peers à `^16 || ^17 || ^18 || ^19`, tester en 18 et en 19.
-   - Ouverture validée par Quentin : `gh pr create -R linagora/cozy-libs --head Crash--:<branche>` après relecture, en citant linagora/twake-ui#130.
+- **Fait et poussé sur `main`** (32 commits) : design system `@/ds/` (alias `@/ds/*` → `common/src/ds/*`, ESLint qui y interdit toute logique métier), liste sur `VirtualizedTable` via `ds/VirtualizedListTable` + `RowLink` (vrai lien, clic molette, focus clavier), RGAA (section dans `AGENTS.md`, `eslint-plugin-jsx-a11y-x`, axe dans les e2e avec `TWAKE_MUI_KNOWN_VIOLATIONS`, spec clavier A11Y-01, `<title>` par vue, live region des nouveaux mails), perfs (`e2e/scripts/seed-perf.ts`, `npm run perf` dans `e2e/`, `docs/perf/phase0.md`).
+- **Perfs (stack e2e, 5 000 mails)** : 1re ligne 188 ms, ouverture 50 ms, scroll jusqu'à 2 000 mails sans long task (34 lignes DOM, heap 17 Mo). **Le push ne tient pas** : avec 2 000 mails chargés, 69 requêtes / 1,17 Mo / 6,2 s → chantier `/changes` prioritaire. James ignore `calculateTotal` et n'a pas `Email/queryChanges`.
+- **Devbox** : https://mail-react.twake.valmoriq.fr (Tailscale), scripts dans `~/Sites/Linagora/twake-mail-react-devbox/` (`deploy.sh`, `register-oidc-client.sh`, `seed/seed-demo.mjs` : 3 400 mails pour `user1`). Mesures réelles React vs Flutter 0.30 : liste 0,3 s vs 3,8 s, 1 000 mails défilés en 2,7 s vs 20 s, 61 fps vs 24–29 fps. Client OIDC `twake-mail-react` actif en live seulement (à ajouter par Quentin aux templates LemonLDAP).
+- **Spike composer** (branche locale `spike/composer`, worktree `../twake-mail-frontend-spike-composer`, doc `docs/spikes/composer-tiptap.md`) : GO TipTap 3 sous conditions, citation en nœud atomique, BlockNote écarté, 42–56 j-dev. À fusionner : conflit attendu sur `e2e/package.json` (axe ajouté des deux côtés) et scripts e2e paramétrés (`E2E_PROJECT`…).
+- **PR ouvertes** : linagora/twake-ui#130 (React 19), linagora/cozy-libs#3165 (twake-i18n React 19). Issue linagora/tmail-backend#2682.
+- **Candidats issues tmail-backend (en attente d'accord)** : `bodyStructure` ignoré à la création ; `Email/set` create+destroy détruit d'abord ; pas de back-reference vers un créé dans `Email/get` ; `Email/get` attachments+bodyValues → serverFail ; **image memory : tout `Email/set` en mise à jour ne répond plus après ~256 messages** (repro `~/Sites/Linagora/tmail-backend-issues/memory-email-set-update-hang/`). Conséquence e2e : ne jamais lancer la suite après le seed de perf sans `stop.sh` + `start.sh`.
+- **Bugs app trouvés sur la devbox** : le logout OIDC ne déconnecte pas (`oidcAuth.ts` `logout()` : `startLogin` relancé par `RequireAuth` ; mettre `isRedirecting = true` avant `endLocalSession`) ; nom/email vides si absents de l'ID token (userinfo ou `session.username`).
 
 ## 5. Ce qu'il reste à faire
 

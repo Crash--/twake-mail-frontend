@@ -1,4 +1,6 @@
+import type { QueryClient } from '@tanstack/react-query'
 import { render, type RenderResult } from '@testing-library/react'
+import { createClient } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 
@@ -7,7 +9,16 @@ import { makeQueryClient } from '@common/app/queryClient'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import type { AuthService } from '@common/features/auth/types'
 import type { SupportedLanguage } from '@common/i18n/languages'
+import {
+  JmapClientProvider,
+  type JmapClientFactory
+} from '@common/jmap/JmapClientProvider'
 
+import {
+  FAKE_SESSION_URL,
+  makeFakeJmapServer,
+  type FakeJmapServer
+} from './fakeJmapServer'
 import { makeFakeBasicAuthService } from './makeFakeAuthService'
 
 export interface RenderOptions {
@@ -21,11 +32,19 @@ export interface RenderOptions {
   routes?: ReactElement
   authService?: AuthService
   lang?: SupportedLanguage
+  /** JMAP server the real JMAP client talks to; a default one otherwise */
+  jmapServer?: FakeJmapServer
+}
+
+export interface RenderWithProvidersResult extends RenderResult {
+  queryClient: QueryClient
+  jmapServer: FakeJmapServer
 }
 
 /**
  * Renders a component with the providers of the app: theme, translations,
- * query client, authentication and an in-memory router.
+ * query client, authentication, JMAP client (talking to a fake JMAP server)
+ * and an in-memory router.
  */
 export function renderWithProviders(
   ui: ReactElement,
@@ -35,24 +54,33 @@ export function renderWithProviders(
     childRoutes,
     routes,
     authService = makeFakeBasicAuthService(),
-    lang = 'en'
+    lang = 'en',
+    jmapServer = makeFakeJmapServer()
   }: RenderOptions = {}
-): RenderResult {
+): RenderWithProvidersResult {
   const queryClient = makeQueryClient()
   queryClient.setDefaultOptions({ queries: { retry: false } })
+  const createFakeClient: JmapClientFactory = options =>
+    createClient({ ...options, fetch: jmapServer.fetch })
 
-  return render(
+  const result = render(
     <AppProviders lang={lang} queryClient={queryClient}>
       <AuthProvider service={authService}>
-        <MemoryRouter initialEntries={[route]}>
-          <Routes>
-            <Route path={path} element={ui}>
-              {childRoutes}
-            </Route>
-            {routes}
-          </Routes>
-        </MemoryRouter>
+        <JmapClientProvider
+          createClient={createFakeClient}
+          sessionUrl={FAKE_SESSION_URL}
+        >
+          <MemoryRouter initialEntries={[route]}>
+            <Routes>
+              <Route path={path} element={ui}>
+                {childRoutes}
+              </Route>
+              {routes}
+            </Routes>
+          </MemoryRouter>
+        </JmapClientProvider>
       </AuthProvider>
     </AppProviders>
   )
+  return { ...result, queryClient, jmapServer }
 }

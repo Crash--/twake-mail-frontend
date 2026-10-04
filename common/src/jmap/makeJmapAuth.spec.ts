@@ -8,7 +8,7 @@ describe('makeJmapAuth', () => {
     })
 
     await expect(auth.getAuthorizationHeader()).resolves.toBe('Bearer token')
-    await expect(auth.onUnauthorized?.()).resolves.toBe(true)
+    await expect(auth.onUnauthorized()).resolves.toBe(true)
   })
 
   it('fails the request when signed out', async () => {

@@ -131,28 +131,19 @@ source maps at build time, set `SENTRY_URL`, `SENTRY_AUTH_TOKEN`,
 `SENTRY_ORG` and `SENTRY_PROJECT`: the maps are uploaded, then deleted from
 the build output.
 
-## Plugging in jmap-client-ts
+## JMAP
 
-The JMAP client is developed in parallel. What is ready:
+The app talks JMAP through
+[jmap-client-ts](https://github.com/linagora/jmap-client-ts) v2, installed
+from `github:Crash--/jmap-client-ts#v2` until it is published: npm builds it
+with its `prepare` script, approved for the locked commit in the
+`allowScripts` field of `package.json`. After moving the dependency to a new
+commit (`npm install jmap-client-ts@github:Crash--/jmap-client-ts#v2 -w
+@mail/common`), approve it again with `npm approve-scripts jmap-client-ts`.
 
-- `common/src/jmap/types.ts`: a local copy of the part of its contract the
-  app uses (`createClient` options, session methods);
-- `common/src/jmap/makeJmapAuth.ts`: the `auth` option, wired to the auth
-  service (`getAuthorizationHeader`, `onUnauthorized` with token refresh);
-- `JmapClientProvider` / `useJmapClient`, mounted in `App` with
-  `createClient={null}`.
-
-What remains:
-
-1. Add `jmap-client-ts` to `common/package.json` (and to the Jest
-   `ESM_PACKAGES` list if it ships ES modules only).
-2. Pass its `createClient` to `JmapClientProvider` in `apps/private/src/App.tsx`.
-3. Replace the types of `common/src/jmap/types.ts` by the library's, then
-   delete the file.
-4. Write the features' `queries.ts` (`Mailbox/get`, `Email/query`…), resolve
-   the inbox id for `DEFAULT_MAILBOX_ID`, fill the sidebar mailbox tree and
-   the mailbox and email pages.
-5. Show the JMAP session `username` in the user menu in basic mode.
+One client is created per sign-in (`common/src/jmap/JmapClientProvider.tsx`),
+authenticated by the auth service (`makeJmapAuth.ts`: Bearer or Basic header,
+token renewal on 401).
 
 ## Known issues
 

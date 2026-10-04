@@ -11,8 +11,8 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
 - UI: `@linagora/twake-mui` 9.x, `@linagora/twake-icons`,
   `@linagora/twake-css` utility classes, `twake-i18n`, `@linagora/twake-utils`.
 - Data: TanStack Query v5. No Redux.
-- JMAP: `jmap-client-ts` v2 (contract: `jmap-client-ts/docs/v2-api.md`), not
-  a dependency yet: see "JMAP" below.
+- JMAP: `jmap-client-ts` v2 (contract: `jmap-client-ts/docs/v2-api.md`),
+  installed from `github:Crash--/jmap-client-ts#v2` until it is published.
 - Auth: OIDC (`openid-client` v6) by default, HTTP Basic as an option.
 - Tests: Jest 30 + ts-jest + Testing Library. End-to-end tests (Playwright)
   live in `e2e/`, a separate npm package outside the workspaces: never add
@@ -88,10 +88,16 @@ Never store tokens or passwords in web storage, never log them.
 
 ## JMAP
 
-`common/src/jmap/` holds a local, minimal copy of the jmap-client-ts v2
-types and the `JmapClientProvider` / `useJmapClient` pair. Until the library
-is added, `App` passes `createClient={null}` and no JMAP call is made. See
-the README, "Plugging in jmap-client-ts".
+`common/src/jmap/`:
+
+- `JmapClientProvider` creates one jmap-client-ts client per sign-in
+  (`createClient` from the library, `makeJmapAuth` adapting the auth
+  service); `useJmapClient()` returns it.
+- Use the library types (`Mailbox`, `Email`…), narrowed with `Pick` to the
+  `properties` a query asks for.
+- Tests talk to a fake JMAP server through the real client
+  (`common/src/testing/fakeJmapServer.ts`, `renderWithProviders({
+  jmapServer })`), never to a mocked client.
 
 ## `@injected` modules
 

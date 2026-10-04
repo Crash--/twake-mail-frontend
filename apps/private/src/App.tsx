@@ -1,3 +1,4 @@
+import { createClient } from 'jmap-client-ts'
 import { useState, type ReactElement } from 'react'
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary'
 import { BrowserRouter } from 'react-router'
@@ -51,9 +52,8 @@ export function App({ config }: AppProps): ReactElement {
         onError={handleRenderError}
       >
         <AuthProvider service={authService}>
-          {/* TODO(jmap-client-ts v2): pass `createClient` from jmap-client-ts */}
           <JmapClientProvider
-            createClient={null}
+            createClient={createClient}
             sessionUrl={config.jmapSessionUrl}
           >
             <BrowserRouter>

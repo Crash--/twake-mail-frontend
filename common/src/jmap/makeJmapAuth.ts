@@ -1,6 +1,6 @@
-import type { AuthServiceBase } from '@common/features/auth/types'
+import type { AuthOptions } from 'jmap-client-ts'
 
-import type { JmapAuth } from './types'
+import type { AuthServiceBase } from '@common/features/auth/types'
 
 export class NotAuthenticatedError extends Error {
   constructor() {
@@ -15,7 +15,7 @@ export class NotAuthenticatedError extends Error {
  */
 export function makeJmapAuth(
   service: Pick<AuthServiceBase, 'getAuthorizationHeader' | 'onUnauthorized'>
-): JmapAuth {
+): Required<AuthOptions> {
   return {
     getAuthorizationHeader: async () => {
       const header = await service.getAuthorizationHeader()

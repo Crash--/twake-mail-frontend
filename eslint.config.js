@@ -132,6 +132,18 @@ export default defineConfig(
   ...tanstackQuery.configs['flat/recommended'],
 
   {
+    rules: {
+      // The JMAP client is not part of the query keys: there is one client
+      // per sign-in and the cache is cleared when the session ends. Keys
+      // start with the JMAP account id instead.
+      '@tanstack/query/exhaustive-deps': [
+        'error',
+        { allowlist: { types: ['JmapClient'] } }
+      ]
+    }
+  },
+
+  {
     files: ['**/*.spec.{ts,tsx}', '**/testing/**/*.{ts,tsx}'],
     ...jest.configs['flat/recommended'],
     languageOptions: {
@@ -156,7 +168,10 @@ export default defineConfig(
 
   {
     // Tool configuration files: their tools expect a default export
-    files: ['apps/*/rsbuild.config.ts'],
+    files: [
+      'apps/*/rsbuild.config.ts',
+      'common/src/testing/jsdomEnvironment.ts'
+    ],
     rules: { 'no-restricted-syntax': 'off' }
   },
 

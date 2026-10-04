@@ -61,7 +61,7 @@ const config: Config = {
     {
       ...shared,
       displayName: 'dom',
-      testEnvironment: 'jsdom',
+      testEnvironment: '<rootDir>/common/src/testing/jsdomEnvironment.ts',
       testMatch: ['**/*.spec.tsx'],
       setupFilesAfterEnv: ['<rootDir>/common/src/testing/setupDomTests.ts']
     },

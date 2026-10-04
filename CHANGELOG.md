@@ -50,6 +50,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   320 px without horizontal scrolling (RGAA 10.11)
 - End-to-end runs of the main path on phone (390 × 844) and tablet
   (820 × 1180) screens, and reflow checks at 320 and 640 px
+- Toasts announced to screen readers (polite, or at once for errors), that
+  stay while hovered or focused, with "Undo" after an action and "Retry"
+  after a failure
+- Email actions shown at once and sent in batches, rolled back when the
+  server refuses them, without being applied twice when push brings them
+- Keyboard shortcuts (`c`, `/`, `j`, `k`, `e`, `#`, `s`, `u`, `z`, `?`),
+  listed by `?` and in the account menu, where they can be turned off
+
+### Changed
+
+- Lists, folders and open emails are not refetched while push keeps them
+  up to date, and again after 30 s once the push channel is down
+- The folder tree keeps no room for expand arrows when no folder has
+  subfolders
 
 ### Security
 

@@ -124,6 +124,7 @@ function SpikeComposerForm({
     const fields = fieldsRef.current
     const from = setup.identities.find(item => item.id === fields.identityId)
     return {
+      identityId: from?.id ?? null,
       from: { name: from?.name ?? null, email: from?.email ?? '' },
       to: parseAddresses(fields.to),
       subject: fields.subject,

@@ -1,5 +1,6 @@
 import {
   assertSetSucceeded,
+  JmapSetError,
   type EmailAddress,
   type EmailCreate,
   type JmapClient
@@ -10,9 +11,17 @@ import { findReferencedCids } from '@common/features/email/emailBody'
 import { htmlToText, toEmailHtml } from './emailHtml'
 import type { InlineImageStore } from './InlineImageStore'
 
+/** Header keeping the identity of a draft (tmail-flutter reads it too) */
+export const IDENTITY_HEADER = 'header:X-JMAP-Identity:asText'
+
 export interface ComposedMessage {
+  /** Identity sending it, kept in the drafts (`IDENTITY_HEADER`) */
+  identityId: string | null
   from: EmailAddress
   to: EmailAddress[]
+  cc?: EmailAddress[]
+  bcc?: EmailAddress[]
+  replyTo?: EmailAddress[]
   subject: string
   /** `editor.getHTML()` */
   editorHtml: string
@@ -22,7 +31,7 @@ export interface ComposedMessage {
 
 export interface MailboxIds {
   drafts: string
-  sent: string
+  sent: string | null
 }
 
 /**
@@ -62,7 +71,13 @@ export async function buildEmail(
     keywords: { $draft: true, $seen: true },
     from: [message.from],
     to: message.to,
+    cc: message.cc ?? [],
+    bcc: message.bcc ?? [],
+    replyTo: message.replyTo?.length ? message.replyTo : null,
     subject: message.subject,
+    ...(message.identityId === null
+      ? {}
+      : { [IDENTITY_HEADER]: message.identityId }),
     inReplyTo: message.inReplyTo,
     references: message.references,
     bodyValues: {
@@ -81,17 +96,28 @@ export interface SaveResult {
   requestBytes: number
 }
 
+/** The body parts read back after a save (see `saveDraft`) */
+const SAVED_BODY_PROPERTIES = [
+  'partId',
+  'blobId',
+  'cid',
+  'type',
+  'size',
+  'name',
+  'disposition'
+] as const
+
 /**
- * Saves a draft. JMAP emails are immutable: create the new version, then,
- * once it exists, read the blob ids of its inline images and destroy the
- * previous version (tmail-flutter: create, destroy, get; three requests).
+ * Saves a draft, in one request. JMAP emails are immutable: the new
+ * version is created and the previous one destroyed in the same
+ * `Email/set` (tmail-backend creates first: the new version may use the
+ * blobs of the old one), then `Email/get` of `#draft` reads the blob ids of
+ * its inline images, which now live in its own parts
+ * (`<emailId>_<partId>`): the old ones die with the old version.
  *
- * - Not `create` and `destroy` in one call: tmail-backend destroys first.
- * - Not in one request: a failed creation must not destroy the previous
- *   version, and tmail-backend resolves neither `#creationId` nor
- *   `/created/<id>/id` references in `Email/get`.
- * - The new blob ids matter: the images of a reopened draft point at the
- *   parts of that draft (`<emailId>_<partId>`), which die with it.
+ * A previous version already gone (destroyed elsewhere) is not an error. A
+ * failed creation is (`JmapSetError`, its `notCreated` says why), and then
+ * the previous version is gone too: the composer still holds the content.
  */
 export async function saveDraft(
   client: JmapClient,
@@ -100,22 +126,29 @@ export async function saveDraft(
   previousId: string | null,
   images: InlineImageStore
 ): Promise<SaveResult> {
-  const created = assertSetSucceeded(
-    await client.call('Email/set', { accountId, create: { draft: email } })
-  ).created?.draft
-  if (!created) throw new Error('Email/set created no draft')
-  const [saved] = await client.request(builder => [
-    builder.call('Email/get', {
-      accountId,
-      ids: [created.id],
-      properties: ['attachments'],
-      bodyProperties: ['blobId', 'cid', 'type', 'size', 'name']
-    }),
+  const [set, saved] = await client.request(builder => [
     builder.call('Email/set', {
       accountId,
+      create: { draft: email },
       destroy: previousId ? [previousId] : []
+    }),
+    builder.call('Email/get', {
+      accountId,
+      ids: ['#draft'],
+      // A body property before `attachments`: tmail-backend answers
+      // serverFail otherwise (tmail-backend#2686)
+      properties: ['htmlBody', 'attachments'],
+      bodyProperties: [...SAVED_BODY_PROPERTIES]
     })
   ])
+  const created = set.created?.draft
+  if (!created) {
+    throw new JmapSetError({
+      notCreated: set.notCreated ?? {},
+      notUpdated: {},
+      notDestroyed: {}
+    })
+  }
   images.rebase(saved.list[0]?.attachments ?? [])
   return {
     emailId: created.id,
@@ -144,7 +177,9 @@ export async function sendEmail(
       onSuccessUpdateEmail: {
         '#submission': {
           [`mailboxIds/${mailboxIds.drafts}`]: null,
-          [`mailboxIds/${mailboxIds.sent}`]: true,
+          ...(mailboxIds.sent === null
+            ? {}
+            : { [`mailboxIds/${mailboxIds.sent}`]: true }),
           'keywords/$draft': null
         }
       }

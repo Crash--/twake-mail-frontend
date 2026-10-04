@@ -1,10 +1,4 @@
-import {
-  Attachment,
-  CircleFilled,
-  Icon,
-  Star,
-  StarOutline
-} from '@linagora/twake-icons'
+import { Attachment, Icon, Star, StarOutline } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -15,6 +9,7 @@ import {
 import type { ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
+import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useI18n } from '@common/i18n/useI18n'
@@ -77,11 +72,8 @@ export function EmailListItem({
           className="u-flex u-flex-items-center u-flex-justify-center u-flex-shrink-0 u-w-2"
         >
           {isUnread ? (
-            <Icon
-              icon={CircleFilled}
-              size={8}
-              role="img"
-              aria-label={t('email.unread')}
+            <StatusDot
+              label={t('email.unread')}
               data-testid="unread-status-icon"
             />
           ) : null}

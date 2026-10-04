@@ -545,4 +545,43 @@ describe('EmailList', () => {
     )
     window.localStorage.clear()
   })
+
+  it('reads and stars every email of a conversation from its row', async () => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+    const server = makeFakeJmapServer({
+      emails: [
+        makeEmail({
+          id: 'first',
+          threadId: 'plan',
+          receivedAt: '2026-10-01T08:00:00Z'
+        }),
+        makeEmail({
+          id: 'last',
+          threadId: 'plan',
+          keywords: { $seen: true },
+          receivedAt: '2026-10-03T08:00:00Z'
+        })
+      ]
+    })
+    renderList(server)
+    // Rows render again as their emails change: read them each time
+    const row = (): HTMLElement => screen.getByTestId('email-list-item')
+    await screen.findByTestId('email-list-item')
+
+    await userEvent.click(
+      within(row()).getByRole('button', { name: 'Mark as starred' })
+    )
+    await userEvent.click(
+      await within(row()).findByRole('button', { name: 'Mark as read' })
+    )
+
+    await waitFor(() => {
+      expect(server.emails.map(email => email.keywords)).toEqual([
+        { $flagged: true, $seen: true },
+        { $seen: true, $flagged: true }
+      ])
+    })
+    expect(row()).not.toHaveAttribute('data-unread')
+    window.localStorage.clear()
+  })
 })

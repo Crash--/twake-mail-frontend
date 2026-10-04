@@ -1,5 +1,11 @@
 import type { VirtualizedTableRow } from '@linagora/twake-mui'
-import { useCallback, useState, type DragEvent, type ReactElement } from 'react'
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type DragEvent,
+  type ReactElement
+} from 'react'
 
 import { setDragLabel } from '@/ds/DropTarget/DropTarget'
 import type { RowMenuAnchor } from '@/ds/VirtualizedListTable/VirtualizedListTable'
@@ -84,6 +90,7 @@ export function useEmailListActions({
   mailbox,
   mailboxId,
   total,
+  expandTargets = rows => [...rows],
   onFocusList
 }: {
   emails: readonly EmailListItemData[]
@@ -92,6 +99,8 @@ export function useEmailListActions({
   mailbox: MailboxSummary | null
   mailboxId: string | null
   total: number | null
+  /** The emails rows act on: all the emails of a conversation */
+  expandTargets?: (rows: readonly EmailListItemData[]) => TargetEmail[]
   /** Gives the focus back to the list once the selection went */
   onFocusList: () => void
 }): EmailListActions {
@@ -106,23 +115,37 @@ export function useEmailListActions({
 
   /** The row alone, or the selection when the row is in it */
   const targetsOf = useCallback(
-    (email: EmailListItemData): EmailListItemData[] =>
-      selection.isSelected(email.id) && selection.selected.length > 0
-        ? selection.selected
-        : [email],
-    [selection]
+    (email: EmailListItemData): TargetEmail[] =>
+      expandTargets(
+        selection.isSelected(email.id) && selection.selected.length > 0
+          ? selection.selected
+          : [email]
+      ),
+    [selection, expandTargets]
+  )
+
+  const selectedTargets = useMemo(
+    () => expandTargets(selection.selected),
+    [expandTargets, selection.selected]
   )
 
   const resolveTargets = useCallback(async (): Promise<
     readonly TargetEmail[]
   > => {
     if (!selection.isAllInFolder || mailboxId === null) {
-      return selection.selected
+      return selectedTargets
     }
     return fetchMailboxEmails(client, accountId, mailboxId, {
       extraCapabilities
     })
-  }, [selection, mailboxId, client, accountId, extraCapabilities])
+  }, [
+    selection.isAllInFolder,
+    selectedTargets,
+    mailboxId,
+    client,
+    accountId,
+    extraCapabilities
+  ])
 
   const handleDone = useCallback((): void => {
     selection.clear()
@@ -181,6 +204,7 @@ export function useEmailListActions({
     toolbar: hasSelection ? (
       <EmailListToolbar
         selection={selection}
+        targets={selectedTargets}
         loadedCount={emails.length}
         total={total}
         mailbox={mailbox}

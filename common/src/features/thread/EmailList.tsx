@@ -32,6 +32,7 @@ import {
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { useComposer } from '@common/features/composer/ComposerProvider'
+import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -219,6 +220,14 @@ export function EmailList(props: EmailListProps): ReactElement {
       ),
     [query.data, session.username, meLabel]
   )
+  // The actions on a conversation act on all its emails
+  const expandTargets = useCallback(
+    (rows: readonly EmailListItemData[]): TargetEmail[] => {
+      const byId = new Map(emails.map(row => [row.id, row]))
+      return rows.flatMap(row => byId.get(row.id)?.thread?.members ?? [row])
+    },
+    [emails]
+  )
   const total = query.data?.pages[0]?.total ?? null
   const location = useLocation()
   const focusEmailId = readFocusEmailId(location.state)
@@ -240,7 +249,8 @@ export function EmailList(props: EmailListProps): ReactElement {
     emails,
     mailboxId,
     openEmailId,
-    selection
+    selection,
+    expandTargets
   )
   const listActions = useEmailListActions({
     emails,
@@ -248,6 +258,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     mailbox: search === null ? mailbox : null,
     mailboxId,
     total,
+    expandTargets,
     onFocusList: focusList
   })
   const { run: runEmailAction } = useEmailActions()
@@ -290,11 +301,14 @@ export function EmailList(props: EmailListProps): ReactElement {
     emails.length
   ])
 
+  // A conversation is starred, or unread, when one of its emails is: the
+  // toggles apply to all of them
   const handleToggleStar = useCallback(
-    (email: EmailListItemData): void => {
+    (row: EmailRowData): void => {
+      const isStarred = row.thread?.isStarred ?? hasKeyword(row, FLAGGED)
       void runEmailAction({
-        action: hasKeyword(email, FLAGGED) ? 'unstar' : 'star',
-        emails: [email],
+        action: isStarred ? 'unstar' : 'star',
+        emails: row.thread?.members ?? [row],
         mailboxId,
         silent: true
       })
@@ -303,10 +317,11 @@ export function EmailList(props: EmailListProps): ReactElement {
   )
 
   const handleToggleSeen = useCallback(
-    (email: EmailListItemData): void => {
+    (row: EmailRowData): void => {
+      const isUnread = row.thread?.isUnread ?? !hasKeyword(row, SEEN)
       void runEmailAction({
-        action: hasKeyword(email, SEEN) ? 'markAsUnread' : 'markAsRead',
-        emails: [email],
+        action: isUnread ? 'markAsRead' : 'markAsUnread',
+        emails: row.thread?.members ?? [row],
         mailboxId,
         silent: true
       })

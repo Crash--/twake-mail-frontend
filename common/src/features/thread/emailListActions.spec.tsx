@@ -320,4 +320,66 @@ describe('Acting on emails of the list', () => {
       ).toEqual(['e0', 'e1'])
     })
   })
+
+  it('acts on every email of a conversation from its menu and the selection', async () => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+    const server = makeServer([
+      makeEmail({
+        id: 'first',
+        threadId: 'plan',
+        subject: 'Plan',
+        receivedAt: '2026-01-01T08:00:00Z'
+      }),
+      makeEmail({
+        id: 'mine',
+        threadId: 'plan',
+        subject: 'Re: Plan',
+        mailboxIds: { 'mailbox-sent': true },
+        receivedAt: '2026-01-02T08:00:00Z'
+      }),
+      makeEmail({
+        id: 'last',
+        threadId: 'plan',
+        subject: 'Re: Plan',
+        receivedAt: '2026-01-03T08:00:00Z'
+      }),
+      makeEmail({ id: 'other', subject: 'Lunch' })
+    ])
+    try {
+      await renderList(server)
+
+      fireEvent.contextMenu(row('Re: Plan'), { clientX: 120, clientY: 80 })
+      await userEvent.click(
+        await screen.findByRole('menuitem', { name: 'Archive message' })
+      )
+
+      // tmail-flutter ADR 0068: a thread action reaches all its emails
+      await waitFor(() => {
+        expect(
+          server.emails
+            .filter(email => email.threadId === 'plan')
+            .map(email => email.mailboxIds)
+        ).toEqual([
+          { 'mailbox-archive': true },
+          { 'mailbox-archive': true },
+          { 'mailbox-archive': true }
+        ])
+      })
+      await waitFor(() => {
+        expect(screen.getAllByTestId('email-list-item')).toHaveLength(1)
+      })
+
+      await userEvent.click(checkbox('Lunch'))
+      await userEvent.click(
+        screen.getByTestId('selected-email-action-mark-as-read')
+      )
+      await waitFor(() => {
+        expect(
+          server.emails.find(email => email.id === 'other')?.keywords
+        ).toEqual({ $seen: true })
+      })
+    } finally {
+      window.localStorage.clear()
+    }
+  })
 })

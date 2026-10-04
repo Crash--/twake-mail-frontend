@@ -77,7 +77,8 @@
       "sender": "Sender",
       "subject": "Subject",
       "date": "Date",
-      "actions": "Actions"
+      "actions": "Actions",
+      "message": "Message"
     }
   },
   "push": {

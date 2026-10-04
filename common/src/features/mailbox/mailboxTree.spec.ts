@@ -1,8 +1,10 @@
 import { makeMailbox } from '@common/testing/fakeJmapServer'
 
 import {
+  buildMailboxSections,
   buildMailboxTree,
   findAncestorIds,
+  findDescendantIds,
   findMailboxIdByRole,
   listVisibleMailboxes,
   type MailboxNode
@@ -114,5 +116,66 @@ describe('listVisibleMailboxes', () => {
     expect(findAncestorIds(mailboxes, 'inbox')).toEqual([])
     expect(findMailboxIdByRole(mailboxes, 'inbox')).toBe('inbox')
     expect(findMailboxIdByRole(mailboxes, 'trash')).toBe(null)
+  })
+})
+
+describe('buildMailboxSections', () => {
+  const TEAM = 'TeamMailbox[team@example.com]'
+  const team = (
+    overrides: Partial<Parameters<typeof makeMailbox>[0]> &
+      Pick<Parameters<typeof makeMailbox>[0], 'id' | 'name'>
+  ): ReturnType<typeof makeMailbox> =>
+    makeMailbox({ namespace: TEAM, parentId: 'team', ...overrides })
+
+  const mailboxes = [
+    makeMailbox({ id: 'inbox', name: 'INBOX', role: 'inbox' }),
+    makeMailbox({ id: 'hidden', name: 'Hidden', isSubscribed: false }),
+    makeMailbox({ id: 'under-hidden', name: 'Under', parentId: 'hidden' }),
+    makeMailbox({
+      id: 'trash',
+      name: 'Trash',
+      role: 'trash',
+      isSubscribed: false
+    }),
+    makeMailbox({ id: 'team', name: 'team', namespace: TEAM }),
+    team({ id: 'team-projects', name: 'Projects' }),
+    team({ id: 'team-sent', name: 'Sent' }),
+    team({ id: 'team-inbox', name: 'INBOX' })
+  ]
+
+  it('leaves hidden folders and their subfolders out, not the system ones', () => {
+    const { personal, hiddenCount } = buildMailboxSections(mailboxes, false)
+
+    expect(personal.map(node => node.mailbox.id)).toEqual(['inbox', 'trash'])
+    expect(hiddenCount).toBe(2)
+    expect(
+      buildMailboxSections(mailboxes, true).personal.map(
+        node => node.mailbox.id
+      )
+    ).toEqual(['inbox', 'trash', 'hidden'])
+  })
+
+  it('puts team mailboxes apart, their system folders first by name', () => {
+    const { team: roots } = buildMailboxSections(mailboxes, false)
+
+    expect(roots.map(node => node.mailbox.id)).toEqual(['team'])
+    expect(roots[0]?.children.map(node => node.mailbox.name)).toEqual([
+      'INBOX',
+      'Sent',
+      'Projects'
+    ])
+  })
+})
+
+describe('findDescendantIds', () => {
+  it('lists the descendants, the deepest first', () => {
+    const mailboxes = [
+      makeMailbox({ id: 'a', name: 'A' }),
+      makeMailbox({ id: 'b', name: 'B', parentId: 'a' }),
+      makeMailbox({ id: 'c', name: 'C', parentId: 'b' }),
+      makeMailbox({ id: 'd', name: 'D', parentId: 'a' })
+    ]
+
+    expect(findDescendantIds(mailboxes, 'a')).toEqual(['c', 'b', 'd'])
   })
 })

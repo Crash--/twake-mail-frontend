@@ -9,6 +9,7 @@ import {
   makeFakeJmapServer,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+import { readObjectUrl } from '@common/testing/objectUrls'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { EMAIL_FRAME_SANDBOX } from './EmailBodyFrame'
@@ -30,9 +31,13 @@ function renderView(
   )
 }
 
+/** The document the body frame loads, from its blob: URL */
 async function findBodyDocument(): Promise<string> {
   const frame = await screen.findByTestId('email-view-body')
-  return frame.getAttribute('srcdoc') ?? ''
+  await waitFor(() => {
+    expect(frame).toHaveAttribute('src')
+  })
+  return (await readObjectUrl(frame.getAttribute('src') ?? '')) ?? ''
 }
 
 describe('EmailView', () => {
@@ -121,9 +126,17 @@ describe('EmailView', () => {
   })
 
   it('downloads the inline images and frees them when closed', async () => {
-    const createObjectURL = jest.fn(() => 'blob:https://mail.example.com/logo')
-    const revokeObjectURL = jest.fn()
-    Object.assign(URL, { createObjectURL, revokeObjectURL })
+    const createObjectURL = jest.spyOn(URL, 'createObjectURL')
+    const revokeObjectURL = jest.spyOn(URL, 'revokeObjectURL')
+    // The URL of the image, not of the body frame document
+    const imageUrl = (): string | undefined => {
+      const index = createObjectURL.mock.calls.findIndex(
+        // Blobs of the Fetch API of Node, not of jsdom: no instanceof
+        ([object]) => 'size' in object && object.type !== 'text/html'
+      )
+      const result: unknown = createObjectURL.mock.results[index]?.value
+      return typeof result === 'string' ? result : undefined
+    }
     const server = makeFakeJmapServer({
       emails: [
         makeEmailWithBody(
@@ -147,24 +160,17 @@ describe('EmailView', () => {
     const { unmount } = renderView(server)
 
     await waitFor(async () => {
-      expect(await findBodyDocument()).toContain(
-        '<img src="blob:https://mail.example.com/logo">'
-      )
+      expect(await findBodyDocument()).toContain(`<img src="${imageUrl()}">`)
     })
     expect(screen.queryByTestId('attachment-item')).toBe(null)
 
     unmount()
 
-    expect(revokeObjectURL).toHaveBeenCalledWith(
-      'blob:https://mail.example.com/logo'
-    )
+    expect(revokeObjectURL).toHaveBeenCalledWith(imageUrl())
   })
 
   it('lists the attachments and downloads them', async () => {
-    const createObjectURL = jest.fn(
-      (_blob: Blob) => 'blob:https://mail.example.com/1'
-    )
-    Object.assign(URL, { createObjectURL, revokeObjectURL: jest.fn() })
+    const createObjectURL = jest.spyOn(URL, 'createObjectURL')
     const click = jest
       .spyOn(HTMLAnchorElement.prototype, 'click')
       .mockImplementation(() => undefined)
@@ -200,7 +206,11 @@ describe('EmailView', () => {
       expect(click).toHaveBeenCalledTimes(1)
     })
     // Blob of the Fetch API of Node, not of jsdom: check its content size
-    expect(createObjectURL.mock.calls[0]?.[0]).toHaveProperty('size', 4)
+    expect(
+      createObjectURL.mock.calls.map(([object]) =>
+        'size' in object ? object.size : null
+      )
+    ).toContain(4)
   })
 
   it('goes back to the mailbox', async () => {

@@ -34,6 +34,21 @@ export function EmailBodyFrame({
 
   useEffect(() => () => observerRef.current?.disconnect(), [])
 
+  // Loaded from a blob: URL rather than `srcdoc`: Chromium sends the origin
+  // of the app as referrer for the CSS images of a srcdoc frame, whatever
+  // its referrer policy; a blob: document sends none
+  useEffect(() => {
+    const frame = frameRef.current
+    if (!frame) return
+    const objectUrl = URL.createObjectURL(
+      new Blob([document], { type: 'text/html' })
+    )
+    frame.src = objectUrl
+    return () => {
+      URL.revokeObjectURL(objectUrl)
+    }
+  }, [document])
+
   const handleLoad = (): void => {
     observerRef.current?.disconnect()
     observerRef.current = null
@@ -62,7 +77,7 @@ export function EmailBodyFrame({
       ref={frameRef}
       title={t('email.content')}
       sandbox={EMAIL_FRAME_SANDBOX}
-      srcDoc={document}
+      referrerPolicy="no-referrer"
       width="100%"
       height={height}
       className="u-db u-bdw-0"

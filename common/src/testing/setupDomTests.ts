@@ -32,3 +32,6 @@ const emptyRects = (): DOMRectList => Object.assign([], { item: () => null })
 Range.prototype.getClientRects = emptyRects
 Range.prototype.getBoundingClientRect = (): DOMRect => new DOMRect()
 document.elementFromPoint = (): Element | null => null
+
+// Nor scrolling: the active option of a combobox is scrolled into view
+Element.prototype.scrollIntoView = (): void => undefined

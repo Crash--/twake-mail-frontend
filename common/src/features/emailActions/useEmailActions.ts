@@ -6,6 +6,8 @@ import { emailKeys } from '@common/features/email/queries'
 import { FLAGGED, SEEN } from '@common/features/email/keywords'
 import {
   findMailboxIdByRole,
+  findTeamFolderId,
+  isPersonalMailbox,
   mailboxPath
 } from '@common/features/mailbox/mailboxTree'
 import {
@@ -85,10 +87,17 @@ const DESTINATION_ROLES: Partial<Record<EmailActionName, string>> = {
  */
 export function findActionDestination(
   mailboxes: readonly MailboxSummary[],
-  action: EmailActionName
+  action: EmailActionName,
+  /** The folder the emails are in: a team mailbox has its own Trash */
+  fromMailboxId: string | null = null
 ): string | null {
   const role = DESTINATION_ROLES[action]
-  return role === undefined ? null : findMailboxIdByRole(mailboxes, role)
+  if (role === undefined) return null
+  const from = mailboxes.find(mailbox => mailbox.id === fromMailboxId)
+  if (role === 'trash' && from !== undefined && !isPersonalMailbox(from)) {
+    return findTeamFolderId(mailboxes, from.id, 'trash')
+  }
+  return findMailboxIdByRole(mailboxes, role)
 }
 
 function toOperation(
@@ -109,7 +118,7 @@ function toOperation(
         ? null
         : { kind: 'move', from: mailboxId, to: destinationId }
     default: {
-      const to = findActionDestination(mailboxes, action)
+      const to = findActionDestination(mailboxes, action, mailboxId)
       return to === null
         ? null
         : {

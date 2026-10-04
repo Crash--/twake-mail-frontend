@@ -2,6 +2,21 @@ import { LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
+/** A 1×1 PNG, served for the remote images */
+const PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64'
+)
+const REMOTE_HOST = 'https://images.example.test'
+
+function newsletter(name: string): string {
+  return [
+    `<p>${name} news</p>`,
+    `<img src="${REMOTE_HOST}/${name}/pixel.png" alt="tracking pixel" width="10" height="10">`,
+    `<div style="background-image: url(${REMOTE_HOST}/${name}/background.png)">Background</div>`
+  ].join('')
+}
+
 const SENTENCE =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
 
@@ -46,6 +61,62 @@ test.describe('EML reading an email', () => {
     await expect(email.body()).toContainText('Harmless text')
     expect(await email.body().innerHTML()).not.toMatch(/XSSRobot|<script|onerror/)
     expect(dialogs).toEqual([])
+  })
+
+  test('EML-29 remote images wait for the user, then always show for a trusted sender', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const requested: string[] = []
+    const referrers: string[] = []
+    await page.route(`${REMOTE_HOST}/**`, async route => {
+      requested.push(new URL(route.request().url()).pathname)
+      const referrer = route.request().headers().referer
+      if (referrer !== undefined) referrers.push(referrer)
+      await route.fulfill({ contentType: 'image/png', body: PNG })
+    })
+    await jmap.sendEmail({ to: user.email, subject: 'first newsletter', html: newsletter('first') })
+    await jmap.waitForEmail({ subject: 'first newsletter' })
+    await jmap.sendEmail({ to: user.email, subject: 'second newsletter', html: newsletter('second') })
+    await jmap.waitForEmail({ subject: 'second newsletter' })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    let email = await mailbox.openEmail('first newsletter')
+
+    await expect(email.body()).toContainText('first news')
+    await expect(email.remoteContentBanner).toBeVisible()
+    await expectNoA11yViolations(page)
+    expect(requested).toEqual([])
+
+    await email.showRemoteContentButton.click()
+
+    await expect(email.remoteContentBanner).toBeHidden()
+    await expect
+      .poll(() => [...requested].sort())
+      .toEqual(['/first/background.png', '/first/pixel.png'])
+    await expect
+      .poll(() =>
+        email
+          .body()
+          .getByAltText('tracking pixel')
+          .evaluate(image => (image instanceof HTMLImageElement ? image.naturalWidth : 0))
+      )
+      .toBe(1)
+    // The sender does not learn where the email is read
+    expect(referrers).toEqual([])
+
+    // Shown for this opening only: the banner comes back
+    await email.back()
+    email = await mailbox.openEmail('first newsletter')
+    await expect(email.remoteContentBanner).toBeVisible()
+    await email.alwaysShowRemoteContentButton.click()
+    await email.back()
+
+    email = await mailbox.openEmail('second newsletter')
+    await expect(email.body()).toContainText('second news')
+    await expect(email.remoteContentBanner).toBeHidden()
+    await expect.poll(() => requested).toContain('/second/pixel.png')
   })
 
   test('EML-28 opening an unread email marks it read', async ({

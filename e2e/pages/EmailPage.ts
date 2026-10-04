@@ -31,6 +31,10 @@ export class EmailPage {
   readonly replyToListButton: Locator
   readonly forwardButton: Locator
   readonly moreButton: Locator
+  /** "Remote images hidden" banner, and its buttons */
+  readonly remoteContentBanner: Locator
+  readonly showRemoteContentButton: Locator
+  readonly alwaysShowRemoteContentButton: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -47,6 +51,13 @@ export class EmailPage {
     this.replyToListButton = this.root.getByTestId('reply-to-list-email-button')
     this.forwardButton = this.root.getByTestId('forward-email-button')
     this.moreButton = this.root.getByTestId('email-view-more-button')
+    this.remoteContentBanner = this.root.getByTestId('remote-content-banner')
+    this.showRemoteContentButton = this.root.getByTestId(
+      'remote-content-show-button'
+    )
+    this.alwaysShowRemoteContentButton = this.root.getByTestId(
+      'remote-content-always-show-button'
+    )
   }
 
   async expectSubject(subject: string): Promise<EmailPage> {

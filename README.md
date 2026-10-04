@@ -207,8 +207,10 @@ token renewal on 401). The JMAP session is loaded before the mail screens
   which makes the largest chunk of the bundle (about 170 kB gzipped).
 - The app is designed for desktop first; small screens come later.
 - Push refetches the whole folder list and every loaded page of the email
-  lists: incremental updates (`Mailbox/changes`, `Email/changes`,
-  `Email/queryChanges`) come later.
+  lists: with 2 000 emails loaded, one new email costs 69 requests and 6 s
+  before it shows ([docs/perf/phase0.md](docs/perf/phase0.md)). Incremental
+  updates (`Mailbox/changes`, `Email/changes`; James has no
+  `Email/queryChanges`) come next.
 - Team and shared mailboxes are not listed yet (`Mailbox/get` without the
   James `shares` capability).
 - Remote images of an email are loaded as soon as it is opened.

@@ -27,6 +27,11 @@ export interface MessageHeaderProps {
   identity: ReactNode
   date: ReactNode
   className?: string
+  /**
+   * `span` inside phrasing content, e.g. the button toggling a message of a
+   * conversation
+   */
+  component?: 'div' | 'span'
 }
 
 /**
@@ -38,13 +43,20 @@ export function MessageHeader({
   avatar,
   identity,
   date,
-  className
+  className,
+  component = 'div'
 }: MessageHeaderProps): ReactElement {
   return (
-    <Box className={className} sx={ROOT_SX}>
-      <Box sx={{ gridArea: 'avatar' }}>{avatar}</Box>
-      <Box sx={{ gridArea: 'identity' }}>{identity}</Box>
-      <Box sx={{ gridArea: 'date' }}>{date}</Box>
+    <Box component={component} className={className} sx={ROOT_SX}>
+      <Box component={component} sx={{ gridArea: 'avatar' }}>
+        {avatar}
+      </Box>
+      <Box component={component} sx={{ gridArea: 'identity' }}>
+        {identity}
+      </Box>
+      <Box component={component} sx={{ gridArea: 'date' }}>
+        {date}
+      </Box>
     </Box>
   )
 }

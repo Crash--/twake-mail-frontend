@@ -12,10 +12,7 @@ test.describe('LOGIN login', () => {
 
     const mailbox = await login.loginAs(user)
 
-    await expect(mailbox.folder({ role: 'inbox' })).toHaveAttribute(
-      'aria-current',
-      'page'
-    )
+    await mailbox.expectFolderSelected({ role: 'inbox' })
     // A brand new account: the thread view of its empty inbox
     await expect(mailbox.emptyListView).toBeVisible()
     await expectNoA11yViolations(page)

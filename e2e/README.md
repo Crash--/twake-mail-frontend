@@ -35,10 +35,19 @@ Run a subset:
 ```bash
 npx playwright test tests/infra.spec.ts     # the harness smoke tests, no UI
 npx playwright test -g MBX-05               # one backlog entry
+npx playwright test --project mobile        # the phone screen (390 × 844); also tablet, chromium
 npx playwright test --ui                    # watch mode, time travel
 npx playwright show-report                  # last HTML report
 npx playwright show-trace test-results/artifacts/<test>/trace.zip
 ```
+
+### Screen sizes
+
+Three Playwright projects, all in Chromium: `chromium` (a desktop, the whole suite), `mobile`
+(390 × 844, touch) and `tablet` (820 × 1180, touch). The last two replay the main path
+(`LOGIN-01`, `MBX-05`, `EML-01`, `A11Y-01`) and the `RESP` specs only (`grep` in
+`playwright.config.ts`). Below 1200 px the folders are in a drawer: `MailboxPage` opens it when a
+method needs the tree (`showFolders`, `openFolder`, `expectFolderSelected`).
 
 ### The stack
 

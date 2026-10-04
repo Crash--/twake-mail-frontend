@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { LoginPage } from '../pages'
+import { LoginPage, MailboxPage } from '../pages'
 import { expect, test } from '../support/fixtures'
 
 /** Presses Tab (or `key`) until the focused element matches `selector`; fails after `max` presses */
@@ -17,6 +17,43 @@ async function tabTo(
     await page.keyboard.press(key)
   }
   throw new Error(`${selector} not reached with ${max} Tab presses`)
+}
+
+/** True when the focused element is inside the element matching `selector` */
+async function isFocusIn(page: Page, selector: string): Promise<boolean> {
+  return page.evaluate(
+    sel => document.querySelector(sel)?.contains(document.activeElement) ?? false,
+    selector
+  )
+}
+
+/**
+ * Opens a folder of the tree with the keyboard. Below the desktop size the
+ * tree is in a drawer: the menu button opens it with the focus inside, kept
+ * there by Tab; choosing a folder closes it and gives the focus back to the
+ * menu button.
+ */
+async function openFolderWithKeyboard(
+  page: Page,
+  mailbox: MailboxPage,
+  role: string
+): Promise<void> {
+  const hasDrawer = mailbox.hasFolderDrawer()
+  if (hasDrawer) {
+    await tabTo(page, '[data-testid="mobile-mailbox-menu-button"]')
+    await page.keyboard.press('Enter')
+    await expect(mailbox.folderDrawer).toBeVisible()
+    await expect.poll(() => isFocusIn(page, '[data-testid="mailbox-drawer"]')).toBe(true)
+  }
+  await tabTo(page, `[data-mailbox-role="${role}"] a`)
+  if (hasDrawer) {
+    expect(await isFocusIn(page, '[data-testid="mailbox-drawer"]')).toBe(true)
+  }
+  await page.keyboard.press('Enter')
+  if (hasDrawer) {
+    await expect(mailbox.folderDrawer).toBeHidden()
+    await expect(mailbox.folderMenuButton).toBeFocused()
+  }
 }
 
 test.describe('A11Y accessibility', () => {
@@ -41,12 +78,12 @@ test.describe('A11Y accessibility', () => {
 
     await page.waitForURL(/\/mailbox\//)
 
-    // The Sent folder of the tree, then back to the Inbox
-    await tabTo(page, '[data-mailbox-role="sent"] a')
-    await page.keyboard.press('Enter')
+    // The Sent folder of the tree, then back to the Inbox (in the drawer on
+    // phones and tablets)
+    const mailbox = new MailboxPage(page)
+    await openFolderWithKeyboard(page, mailbox, 'sent')
     await expect(page.getByTestId('email-list-item').filter({ hasText: 'first sent' })).toBeVisible()
-    await tabTo(page, '[data-mailbox-role="inbox"] a')
-    await page.keyboard.press('Enter')
+    await openFolderWithKeyboard(page, mailbox, 'inbox')
 
     // The rows are links: Tab reaches the list, the arrows move between rows
     const newest = page.getByTestId('email-list-item').filter({ hasText: 'keyboard email' })

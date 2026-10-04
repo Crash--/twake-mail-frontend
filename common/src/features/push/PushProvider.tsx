@@ -5,6 +5,10 @@ import {
 } from 'jmap-client-ts'
 import { useEffect, type ReactElement, type ReactNode } from 'react'
 
+import { DEFAULT_STALE_TIME } from '@common/app/queryClient'
+import { emailKeys } from '@common/features/email/queries'
+import { mailboxKeys } from '@common/features/mailbox/queries'
+import { threadKeys } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -22,8 +26,9 @@ export interface PushProviderProps {
 /**
  * Listens to the JMAP push channel (WebSocket) of the session and brings the
  * cached mailboxes and emails up to the states the server pushes, from their
- * changes (`pushSync`). After a reconnection, it catches up the changes made
- * while the channel was down. The channel closes when the session ends, as
+ * changes (`pushSync`). While the channel is open they never go stale; once
+ * it drops they do after `DEFAULT_STALE_TIME` again, and after a
+ * reconnection the changes made while it was down are caught up. The channel closes when the session ends, as
  * this provider unmounts with the signed-in screens.
  */
 export function PushProvider({
@@ -41,6 +46,18 @@ export function PushProvider({
       ping: { intervalMs: PING_INTERVAL_MS },
       ...(WebSocket ? { WebSocket } : {})
     })
+    // While the channel is open, push keeps the mailboxes, the lists and
+    // the open emails up to date: no refetch when they show again
+    let isOpen = false
+    const staleTime = (): number => (isOpen ? Infinity : DEFAULT_STALE_TIME)
+    const syncedKeys = [
+      mailboxKeys.all(accountId),
+      threadKeys.all(accountId),
+      emailKeys.all(accountId)
+    ]
+    for (const queryKey of syncedKeys) {
+      queryClient.setQueryDefaults(queryKey, { staleTime })
+    }
     // The data just loaded is up to date when the channel first opens
     let hasBeenOpen = false
     const unsubscribers = [
@@ -49,6 +66,7 @@ export function PushProvider({
         if (states) sync.stateChanged(states)
       }),
       push.on('status', status => {
+        isOpen = status === 'open'
         if (status !== 'open') return
         if (hasBeenOpen) sync.catchUp()
         hasBeenOpen = true
@@ -67,6 +85,11 @@ export function PushProvider({
       })
       push.close()
       sync.close()
+      for (const queryKey of syncedKeys) {
+        queryClient.setQueryDefaults(queryKey, {
+          staleTime: DEFAULT_STALE_TIME
+        })
+      }
     }
   }, [client, accountId, queryClient, WebSocket])
 

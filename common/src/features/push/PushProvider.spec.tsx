@@ -1,6 +1,8 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { act, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { WebSocketLike } from 'jmap-client-ts'
+import { useState, type ReactElement } from 'react'
 
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { EmailList } from '@common/features/thread/EmailList'
@@ -77,6 +79,41 @@ function lastSocket(): FakeWebSocket {
   const socket = FakeWebSocket.instances[FakeWebSocket.instances.length - 1]
   if (!socket) throw new Error('No WebSocket opened')
   return socket
+}
+
+/** The inbox list, behind a button that hides and shows it again */
+function TogglableList(): ReactElement {
+  const [isShown, setIsShown] = useState(true)
+  const handleToggle = (): void => {
+    setIsShown(shown => !shown)
+  }
+  return (
+    <>
+      <button type="button" onClick={handleToggle}>
+        Toggle the list
+      </button>
+      {isShown ? (
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailList mailboxId="mailbox-inbox" />
+        </VirtuosoMockContext.Provider>
+      ) : null}
+    </>
+  )
+}
+
+/** Shows the list again after `delay` ms: refetched only when stale */
+async function showListAgainAfter(delay: number): Promise<void> {
+  const toggle = screen.getByRole('button', { name: 'Toggle the list' })
+  await userEvent.click(toggle)
+  const now = Date.now()
+  jest.spyOn(Date, 'now').mockReturnValue(now + delay)
+  await userEvent.click(toggle)
+  await screen.findByTestId('email-list-item')
+  await act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 50))
+  })
 }
 
 /** The mailbox tree and the inbox list, under the push provider */
@@ -229,6 +266,59 @@ describe('PushProvider', () => {
 
     expect(countCalls(server, 'Mailbox/changes')).toBe(0)
     expect(inboxUnreadCount()).toBe('2')
+  })
+
+  describe('a list shown again a minute later', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    async function renderTogglableList(server: FakeJmapServer): Promise<void> {
+      renderWithProviders(
+        <PushProvider WebSocket={FakeWebSocket}>
+          <TogglableList />
+        </PushProvider>,
+        {
+          route: '/mailbox/mailbox-inbox',
+          path: '/mailbox/:mailboxId',
+          withJmapSession: true,
+          jmapServer: server
+        }
+      )
+      await screen.findByTestId('email-list-item')
+      await waitFor(() => {
+        expect(FakeWebSocket.instances).toHaveLength(1)
+      })
+    }
+
+    it('is not reloaded while the channel is open', async () => {
+      const server = makeServer()
+      await renderTogglableList(server)
+      act(() => {
+        lastSocket().open()
+      })
+
+      await showListAgainAfter(60_000)
+
+      expect(countCalls(server, 'Email/query')).toBe(1)
+    })
+
+    it('is reloaded once the channel dropped', async () => {
+      const server = makeServer()
+      await renderTogglableList(server)
+      act(() => {
+        lastSocket().open()
+      })
+      act(() => {
+        lastSocket().drop()
+      })
+
+      await showListAgainAfter(60_000)
+
+      await waitFor(() => {
+        expect(countCalls(server, 'Email/query')).toBe(2)
+      })
+    })
   })
 
   it('closes the channel when the session screens go away', async () => {

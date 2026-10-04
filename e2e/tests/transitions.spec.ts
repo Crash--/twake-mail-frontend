@@ -52,6 +52,9 @@ async function openAndClose(
 }
 
 test.describe('EML opening an email with a view transition', () => {
+  // The reading view of a single email: the "Thread" setting off
+  test.use({ emailsOneByOne: true })
+
   test(
     'EML-32 opening and closing an email slides, the focus and the scroll kept',
     { tag: '@mobile' },

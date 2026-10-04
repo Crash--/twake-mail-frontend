@@ -21,6 +21,9 @@ const SENTENCE =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
 
 test.describe('EML reading an email', () => {
+  // The reading view of a single email: the "Thread" setting off
+  test.use({ emailsOneByOne: true })
+
   test('EML-01 an email with a short body shows its whole content', async ({
     page,
     user,

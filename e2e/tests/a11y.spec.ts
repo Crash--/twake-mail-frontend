@@ -57,6 +57,9 @@ async function openFolderWithKeyboard(
 }
 
 test.describe('A11Y accessibility', () => {
+  // The reading view of a single email: the "Thread" setting off
+  test.use({ emailsOneByOne: true })
+
   test('A11Y-01 login, open a folder, read an email and go back with the keyboard only', async ({
     page,
     user,

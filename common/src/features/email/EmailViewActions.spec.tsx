@@ -15,6 +15,7 @@ import {
 } from '@common/testing/fakeJmapServer'
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EmailView } from './EmailView'
 
@@ -82,6 +83,8 @@ async function openEmail(server: FakeJmapServer): Promise<void> {
 }
 
 describe('EmailViewActions', () => {
+  listEmailsOneByOne()
+
   afterEach(() => {
     resetViewport()
   })

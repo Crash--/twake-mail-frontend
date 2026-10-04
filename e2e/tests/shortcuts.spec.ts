@@ -3,6 +3,9 @@ import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
 test.describe('KBD keyboard shortcuts', () => {
+  // The reading view of a single email: the "Thread" setting off
+  test.use({ emailsOneByOne: true })
+
   test('KBD-01 move between emails, archive, undo, star and leave unread with single keys', async ({
     page,
     user,

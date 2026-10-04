@@ -86,8 +86,8 @@ test.describe('THR thread detail', () => {
     jmap
   }) => {
     const original = await importOriginal(jmap)
+    // Conversations are on by default
     const mailbox = await new LoginPage(page).loginAs(user)
-    await mailbox.setThreads(true)
 
     const search = await new SearchPage(page).search(SUBJECT)
     await search.resultRow(SUBJECT).click()
@@ -140,12 +140,12 @@ test.describe('THR thread detail', () => {
       receivedAt: '2024-12-18T11:00:00Z'
     })
 
+    // Conversations are on by default
     const mailbox = await new LoginPage(page).loginAs(user)
-    await mailbox.setThreads(true)
     const row = mailbox.emailRow(`Re: ${SUBJECT}`)
     await expect(row).toHaveCount(1)
     await expect(mailbox.emailRow(SUBJECT)).toHaveCount(0)
-    await expect(mailbox.emailRowThreadCount(`Re: ${SUBJECT}`)).toHaveText(/^3/)
+    await expect(mailbox.emailRowThreadCount(`Re: ${SUBJECT}`)).toHaveText(/^\(3\)/)
     await expectNoA11yViolations(page)
 
     // A finger on touch screens: a mouse left over the toolbar of the
@@ -218,8 +218,8 @@ test.describe('THR thread detail', () => {
       seen: true,
       receivedAt: '2024-12-18T10:00:00Z'
     })
+    // Conversations are on by default
     const mailbox = await new LoginPage(page).loginAs(user)
-    await mailbox.setThreads(true)
     await mailbox.emailRow(`Re: ${SUBJECT}`).click()
     const conversation = await new ConversationPage(page).expectLoaded(
       `Re: ${SUBJECT}`

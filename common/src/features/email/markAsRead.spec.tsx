@@ -12,6 +12,7 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EmailView } from './EmailView'
 
@@ -86,6 +87,8 @@ async function openUnreadEmail(): Promise<void> {
 }
 
 describe('Marking an email as read when it is opened', () => {
+  listEmailsOneByOne()
+
   it('updates the counter and the list before the server answers', async () => {
     const server = makeServer()
     const release = server.holdRequests('Email/set')

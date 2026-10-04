@@ -12,6 +12,7 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 function makeServer(
   role: 'trash' | 'junk',
@@ -61,6 +62,8 @@ async function renderFolder(
 }
 
 describe('EmptyFolderBanner', () => {
+  listEmailsOneByOne()
+
   it('empties the Trash with Mailbox/clear, and its subfolders, after a confirmation', async () => {
     const server = makeServer('trash', { clear: true, subfolders: true })
     await renderFolder(server, 'mailbox-trash')

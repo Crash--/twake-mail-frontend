@@ -47,6 +47,9 @@ async function expectListedIn(
 }
 
 test.describe('EML acting on an open email', () => {
+  // The reading view of a single email: the "Thread" setting off
+  test.use({ emailsOneByOne: true })
+
   test('EML-06 "Archive message" from the more menu moves the email to Archive', { tag: '@mobile' }, async ({
     page,
     user,

@@ -2,8 +2,10 @@ import { useCallback, useSyncExternalStore } from 'react'
 
 /**
  * The "Thread" preference of tmail-flutter (Settings > Preferences): show
- * the emails of a conversation together. Off by default, kept in this
- * browser as tmail-flutter does (`PREFERENCES_SETTING_THREAD`).
+ * the emails of a conversation together. On by default, as in most
+ * webmails (tmail-flutter has it off), and turned off to list one row per
+ * email; kept in this browser as tmail-flutter does
+ * (`PREFERENCES_SETTING_THREAD`).
  *
  * TODO: keep it in the Linagora JMAP settings (`Settings/set`) with the
  * other preferences, once they exist (phase 4).
@@ -23,11 +25,11 @@ function getStorage(): PreferenceStorage | null {
   }
 }
 
-/** Whether conversations are on */
+/** Whether conversations are on: unless the user turned them off */
 export function readThreadPreference(
   storage: PreferenceStorage | null = getStorage()
 ): boolean {
-  return storage?.getItem(THREAD_PREFERENCE_STORAGE_KEY) === 'true'
+  return storage?.getItem(THREAD_PREFERENCE_STORAGE_KEY) !== 'false'
 }
 
 export function storeThreadPreference(

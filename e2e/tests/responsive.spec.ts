@@ -20,6 +20,9 @@ const LONG_SUBJECT =
   'Quarterly report about the budget review and the planning of the next release cycle with a supercalifragilisticexpialidocious word'
 
 test.describe('RESP responsive layout', () => {
+  // The reading view of a single email: the "Thread" setting off
+  test.use({ emailsOneByOne: true })
+
   for (const viewport of [
     { width: 320, height: 640 },
     { width: 640, height: 400 }

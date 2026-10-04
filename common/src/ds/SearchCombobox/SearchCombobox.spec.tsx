@@ -210,4 +210,32 @@ describe('SearchCombobox', () => {
 
     expect(input).toHaveFocus()
   })
+
+  it('stays collapsed, without a listbox, when only the header is shown', async () => {
+    renderDs(
+      <SearchCombobox
+        value=""
+        onChange={jest.fn()}
+        onSubmit={jest.fn()}
+        onSelect={jest.fn()}
+        groups={[{ id: 'recent', label: 'Recent', options: [] }]}
+        header={<button type="button">Has attachment</button>}
+        label="Search emails"
+        listLabel="Suggestions"
+        clearLabel="Clear search"
+        status="Only filters"
+      />
+    )
+    const input = screen.getByRole('combobox', { name: 'Search emails' })
+
+    await userEvent.click(input)
+    await userEvent.keyboard('{ArrowDown}')
+
+    expect(screen.getByRole('button', { name: 'Has attachment' })).toBeVisible()
+    expect(screen.queryByRole('listbox')).toBe(null)
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+    expect(input).not.toHaveAttribute('aria-controls')
+    expect(input).not.toHaveAttribute('aria-activedescendant')
+    expect(screen.getByRole('status')).toHaveTextContent('Only filters')
+  })
 })

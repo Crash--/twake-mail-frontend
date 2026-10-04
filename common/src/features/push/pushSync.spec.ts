@@ -7,9 +7,12 @@ import {
 } from '@common/features/mailbox/queries'
 import { emailListSourceQueryOptions } from '@common/features/thread/emailListSource'
 import {
+  conversationKeys,
+  conversationQueryOptions,
   EMAIL_LIST_PAGE_SIZE,
   emailListQueryOptions,
   threadKeys,
+  type ConversationData,
   type EmailListData,
   type EmailListPage,
   type SearchRequest
@@ -480,6 +483,87 @@ describe('createPushSync', () => {
       expect(setup.queryClient.getQueryState(searchKey())?.isInvalidated).toBe(
         true
       )
+    })
+  })
+
+  describe('conversations', () => {
+    function threadEmails(): FakeEmail[] {
+      return [
+        makeEmail({
+          id: 't1',
+          threadId: 'thread',
+          receivedAt: '2026-09-01T08:00:00Z'
+        }),
+        makeEmail({
+          id: 't2',
+          threadId: 'thread',
+          receivedAt: '2026-09-01T09:00:00Z'
+        }),
+        makeEmail({ id: 'alone', receivedAt: '2026-09-01T07:00:00Z' })
+      ]
+    }
+
+    it('adds a reply to an open conversation', async () => {
+      const setup = await makeSetup({ emails: threadEmails() })
+      await setup.queryClient.query(
+        conversationQueryOptions(setup.client, FAKE_ACCOUNT_ID, 'thread')
+      )
+
+      setup.server.addEmail(
+        makeEmail({
+          id: 't3',
+          threadId: 'thread',
+          receivedAt: '2026-09-01T10:00:00Z'
+        })
+      )
+      await pushNow(setup)
+
+      expect(
+        setup.queryClient
+          .getQueryData<ConversationData>(
+            conversationKeys.detail(FAKE_ACCOUNT_ID, 'thread')
+          )
+          ?.emails.map(email => email.id)
+      ).toEqual(['t1', 't2', 't3'])
+    })
+
+    it('shows the newest email of a conversation in a list of conversations', async () => {
+      const setup = await makeSetup({ emails: threadEmails() })
+      const observer = new InfiniteQueryObserver(
+        setup.queryClient,
+        emailListSourceQueryOptions(setup.client, FAKE_ACCOUNT_ID, {
+          kind: 'mailbox',
+          mailboxId: INBOX,
+          collapseThreads: true
+        })
+      )
+      const unsubscribe = observer.subscribe(() => undefined)
+      const key = threadKeys.threads(FAKE_ACCOUNT_ID, INBOX)
+      const rows = (): string[] =>
+        setup.queryClient
+          .getQueryData<EmailListData>(key)
+          ?.pages.flatMap(page => page.emails.map(email => email.id)) ?? []
+      await until(() => rows().length === 2)
+      expect(
+        setup.queryClient.getQueryData<EmailListData>(key)?.pages[0]
+          ?.threadSizes
+      ).toEqual({ thread: 2, 'thread-alone': 1 })
+
+      setup.server.addEmail(
+        makeEmail({
+          id: 't3',
+          threadId: 'thread',
+          receivedAt: '2026-09-01T10:00:00Z'
+        })
+      )
+      await pushNow(setup)
+
+      expect(rows()).toEqual(['t3', 'alone'])
+      expect(
+        setup.queryClient.getQueryData<EmailListData>(key)?.pages[0]
+          ?.threadSizes
+      ).toEqual({ thread: 3, 'thread-alone': 1 })
+      unsubscribe()
     })
   })
 })

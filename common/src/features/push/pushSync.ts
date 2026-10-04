@@ -13,15 +13,22 @@ import {
   patchEmailList,
   type EmailChanges
 } from '@common/features/thread/patchEmailList'
+import { patchConversation } from '@common/features/thread/patchConversation'
 import {
+  patchQueryList,
+  type QueryListScope
+} from '@common/features/thread/patchQueryList'
+import {
+  conversationKeys,
   isSearchRequest,
+  MAILBOX_SORT,
   threadKeys,
+  type ConversationData,
   type EmailListData,
   type EmailListItemData,
   type SearchRequest
 } from '@common/features/thread/queries'
-import { patchSearchList } from '@common/features/search/patchSearchList'
-import { refreshSearchWindow } from '@common/features/search/refreshSearchWindow'
+import { refreshQueryList } from '@common/features/thread/refreshQueryList'
 
 import { fetchChanges, type TypeChanges } from './fetchChanges'
 
@@ -55,27 +62,47 @@ function logError(error: unknown): void {
   console.error('[push] Cannot refresh the data', error)
 }
 
-function mailboxIdOfList(key: QueryKey, accountId: string): string | null {
-  const [feature, account, kind, mailboxId] = key
-  return feature === 'thread' &&
-    account === accountId &&
-    kind === 'list' &&
-    typeof mailboxId === 'string'
-    ? mailboxId
-    : null
-}
+/** An email list of the cache, and how push brings it up to date */
+type CachedList =
+  /** The emails of a mailbox, sorted by date: patched in place */
+  | { kind: 'mailbox'; mailboxId: string }
+  /** Search results, conversations of a mailbox: patched, then queried */
+  | { kind: 'query'; request: SearchRequest; scope: QueryListScope }
+  /** The emails of a conversation */
+  | { kind: 'conversation'; threadId: string }
 
-function searchRequestOfList(
-  key: QueryKey,
-  accountId: string
-): SearchRequest | null {
-  const [feature, account, kind, request] = key
-  return feature === 'thread' &&
+function describeList(key: QueryKey, accountId: string): CachedList | null {
+  const [feature, account, kind, value] = key
+  if (
+    feature === 'conversation' &&
     account === accountId &&
-    kind === 'search' &&
-    isSearchRequest(request)
-    ? request
-    : null
+    typeof kind === 'string'
+  ) {
+    return { kind: 'conversation', threadId: kind }
+  }
+  if (feature !== 'thread' || account !== accountId) return null
+  if (kind === 'list' && typeof value === 'string') {
+    return { kind: 'mailbox', mailboxId: value }
+  }
+  if (kind === 'threads' && typeof value === 'string') {
+    return {
+      kind: 'query',
+      request: {
+        filter: { inMailbox: value },
+        sort: MAILBOX_SORT,
+        collapseThreads: true
+      },
+      scope: { mailboxId: value, isCollapsed: true }
+    }
+  }
+  if (kind === 'search' && isSearchRequest(value)) {
+    return {
+      kind: 'query',
+      request: value,
+      scope: { isCollapsed: value.collapseThreads === true }
+    }
+  }
+  return null
 }
 
 function isQueryKey(value: unknown): value is QueryKey {
@@ -136,23 +163,27 @@ export function createPushSync(
   let isClosed = false
 
   function emailListKeys(): QueryKey[] {
-    return cache
-      .findAll({ queryKey: threadKeys.all(accountId) })
+    return [
+      ...cache.findAll({ queryKey: threadKeys.all(accountId) }),
+      ...cache.findAll({ queryKey: conversationKeys.all(accountId) })
+    ]
       .map(query => query.queryKey)
-      .filter(
-        key =>
-          mailboxIdOfList(key, accountId) !== null ||
-          searchRequestOfList(key, accountId) !== null
-      )
+      .filter(key => describeList(key, accountId) !== null)
+  }
+
+  /** The `Email` states a cached list is at: one per page */
+  function statesOf(key: QueryKey): string[] {
+    const list = describeList(key, accountId)
+    if (list?.kind === 'conversation') {
+      const data = queryClient.getQueryData<ConversationData>(key)
+      return data === undefined ? [] : [data.state]
+    }
+    const data = queryClient.getQueryData<EmailListData>(key)
+    return data?.pages.map(page => page.state) ?? []
   }
 
   function emailListStates(): Set<string> {
-    const states = new Set<string>()
-    for (const key of emailListKeys()) {
-      const data = queryClient.getQueryData<EmailListData>(key)
-      data?.pages.forEach(page => states.add(page.state))
-    }
-    return states
+    return new Set(emailListKeys().flatMap(statesOf))
   }
 
   function hasEmailDetails(): boolean {
@@ -193,9 +224,11 @@ export function createPushSync(
    */
   function refetchEmailLists(keys: readonly QueryKey[]): void {
     for (const key of keys) {
-      queryClient.setQueryData<EmailListData>(key, data =>
-        data ? keepFirstPage(data) : data
-      )
+      if (describeList(key, accountId)?.kind !== 'conversation') {
+        queryClient.setQueryData<EmailListData>(key, data =>
+          data ? keepFirstPage(data) : data
+        )
+      }
       queryClient
         .invalidateQueries({ queryKey: key, exact: true })
         .catch(logError)
@@ -204,15 +237,11 @@ export function createPushSync(
   }
 
   /**
-   * Patches the lists, except those holding a page at a state whose changes
-   * failed: those are refetched, the others keep their loaded pages
+   * A list the client cannot sort nor filter (search results, conversations
+   * of a mailbox) is queried again: shown lists at once, the others start
+   * over when shown again
    */
-  /**
-   * Search results cannot be patched without their filter: the listed
-   * emails are, and the window is queried again when other emails changed
-   * (shown results only; the others start over when shown again)
-   */
-  async function refreshSearchList(
+  async function refreshList(
     key: QueryKey,
     request: SearchRequest
   ): Promise<void> {
@@ -228,12 +257,7 @@ export function createPushSync(
       })
       return
     }
-    const refreshed = await refreshSearchWindow(
-      client,
-      accountId,
-      request,
-      data
-    )
+    const refreshed = await refreshQueryList(client, accountId, request, data)
     if (isClosed) return
     if (refreshed === null) {
       refetchEmailLists([key])
@@ -251,31 +275,38 @@ export function createPushSync(
     failedStates: ReadonlySet<string>
   ): Promise<void> {
     const failedLists: QueryKey[] = []
-    const searchRefreshes: Promise<void>[] = []
+    const refreshes: Promise<void>[] = []
     for (const key of emailListKeys()) {
-      const mailboxId = mailboxIdOfList(key, accountId)
-      const search = searchRequestOfList(key, accountId)
-      const data = queryClient.getQueryData<EmailListData>(key)
-      if (data === undefined) continue
-      if (data.pages.some(page => failedStates.has(page.state))) {
+      const list = describeList(key, accountId)
+      if (list === null) continue
+      if (statesOf(key).some(state => failedStates.has(state))) {
         failedLists.push(key)
         continue
       }
-      if (mailboxId !== null) {
-        queryClient.setQueryData<EmailListData>(key, current =>
-          current ? patchEmailList(current, mailboxId, changes) : current
+      if (list.kind === 'conversation') {
+        queryClient.setQueryData<ConversationData>(key, current =>
+          current ? patchConversation(current, list.threadId, changes) : current
         )
-      } else if (search !== null) {
-        const patch = patchSearchList(data, changes)
-        queryClient.setQueryData<EmailListData>(key, patch.data)
-        if (patch.hasUnlistedChanges) {
-          searchRefreshes.push(
-            refreshSearchList(key, search).catch((error: unknown) => {
-              logError(error)
-              refetchEmailLists([key])
-            })
-          )
-        }
+        continue
+      }
+      const data = queryClient.getQueryData<EmailListData>(key)
+      if (data === undefined) continue
+      if (list.kind === 'mailbox') {
+        queryClient.setQueryData<EmailListData>(
+          key,
+          patchEmailList(data, list.mailboxId, changes)
+        )
+        continue
+      }
+      const patch = patchQueryList(data, changes, list.scope)
+      queryClient.setQueryData<EmailListData>(key, patch.data)
+      if (patch.needsRefresh) {
+        refreshes.push(
+          refreshList(key, list.request).catch((error: unknown) => {
+            logError(error)
+            refetchEmailLists([key])
+          })
+        )
       }
     }
     for (const [key] of queryClient.getQueriesData<EmailDetail | null>({
@@ -286,7 +317,7 @@ export function createPushSync(
       )
     }
     if (failedLists.length > 0) refetchEmailLists(failedLists)
-    await Promise.all(searchRefreshes)
+    await Promise.all(refreshes)
   }
 
   async function synchronize(types: ReadonlySet<SyncedType>): Promise<void> {
@@ -382,12 +413,8 @@ export function createPushSync(
     if (event.action.manual === true) return
     const key: unknown = event.query.queryKey
     if (!isQueryKey(key)) return
-    const isEmailList =
-      mailboxIdOfList(key, accountId) !== null ||
-      searchRequestOfList(key, accountId) !== null
-    if (isEmailList && latest.Email !== null) {
-      const data = queryClient.getQueryData<EmailListData>(key)
-      if (data?.pages.some(page => page.state !== latest.Email)) {
+    if (describeList(key, accountId) !== null && latest.Email !== null) {
+      if (statesOf(key).some(state => state !== latest.Email)) {
         followUp('Email')
       }
     } else if (isMailboxList(key, accountId) && latest.Mailbox !== null) {

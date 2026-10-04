@@ -29,9 +29,16 @@ export interface EmailListPage {
   emails: EmailListItemData[]
   /** Position of the first email of the page in the query results */
   position: number
-  /** Number of ids the query returned for this page */
+  /**
+   * Number of query results the page covers: the ids the query returned,
+   * then moved by the emails push inserts or removes
+   */
   count: number
   total: number | null
+  /** No result after this page when it was fetched */
+  isLast: boolean
+  /** `Email` state the emails of the page are up to date with */
+  state: string
 }
 
 export type EmailListData = InfiniteData<EmailListPage, number>
@@ -92,28 +99,31 @@ async function fetchEmailListPage(
     },
     { signal }
   )
+  const total = query.total ?? null
+  const next = query.position + query.ids.length
   return {
     emails: orderByIds(emails.list, query.ids),
     position: query.position,
     count: query.ids.length,
-    total: query.total ?? null
+    total,
+    isLast:
+      query.ids.length < EMAIL_LIST_PAGE_SIZE ||
+      (total !== null && next >= total),
+    state: emails.state
   }
 }
 
 /** Position of the next page, undefined after the last one */
 export function getNextPosition(page: EmailListPage): number | undefined {
-  const next = page.position + page.count
-  if (page.count < EMAIL_LIST_PAGE_SIZE) return undefined
-  if (page.total !== null && next >= page.total) return undefined
-  return next
+  return page.isLast ? undefined : page.position + page.count
 }
 
 /**
  * The emails of a mailbox, most recent first, page by page: each page is
  * one JMAP request, `Email/query` then `Email/get` of its ids.
  *
- * TODO: keep the pages up to date with `Email/queryChanges` instead of
- * refetching them on every push.
+ * Push keeps the loaded pages up to date from `Email/changes`
+ * (`features/push/`): James has no `Email/queryChanges`.
  */
 export function emailListQueryOptions(
   client: JmapClient,

@@ -17,18 +17,24 @@ function isPerfUser(value: unknown): value is PerfUser {
 }
 
 /**
- * Seeds the perf user once (5 000 emails in the Inbox, 500 in "Perf folder") and keeps its
+ * Seeds the perf user once (5 000 emails in the Inbox, 500 in "Perf folder"; with
+ * `PERF_THREADS=1`, 30 % of them replies, for the conversation measures) and keeps its
  * credentials in perf/.perf-user.json; reused while the stack keeps it.
  */
 export default async function globalSetup(): Promise<void> {
+  const threads = process.env.PERF_THREADS === '1'
   if (existsSync(PERF_USER_FILE)) {
     const stored: unknown = JSON.parse(readFileSync(PERF_USER_FILE, 'utf8'))
-    if (isPerfUser(stored) && (await perfUserExists(stored))) {
+    if (
+      isPerfUser(stored) &&
+      (stored.threads ?? false) === threads &&
+      (await perfUserExists(stored))
+    ) {
       console.log(`Perf user ${stored.email} reused`)
       return
     }
   }
-  const user = await seedPerfUser()
+  const user = await seedPerfUser({ threads })
   writeFileSync(PERF_USER_FILE, `${JSON.stringify(user, null, 2)}\n`)
   console.log(
     `Perf user ${user.email}: ${user.inboxCount} + ${user.otherCount} emails seeded in ${(user.seedMs / 1000).toFixed(1)} s`

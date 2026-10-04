@@ -140,7 +140,7 @@
       "blockquote": "Trích dẫn",
       "clearFormatting": "Xóa định dạng",
       "name": "Nội dung thư",
-      "keyboardHelp": "Tab thụt lề mục danh sách hoặc rời trình soạn thảo. Alt+F10 chuyển đến thanh định dạng. Ctrl+K chèn liên kết.",
+      "keyboardHelp": "Tab thụt lề mục danh sách hoặc rời trình soạn thảo. Alt+F10 chuyển đến thanh định dạng. Ctrl+K chèn liên kết. Với ảnh được chọn bằng phím mũi tên, Enter hiển thị tùy chọn kích thước.",
       "colors": {
         "red": "Đỏ",
         "orange": "Cam",
@@ -154,6 +154,17 @@
         "normal": "Bình thường",
         "large": "Lớn",
         "huge": "Rất lớn"
+      },
+      "image": {
+        "toolbar": "Tùy chọn ảnh",
+        "small": "25%",
+        "medium": "50%",
+        "large": "75%",
+        "original": "Kích thước gốc",
+        "smaller": "Nhỏ hơn",
+        "larger": "Lớn hơn",
+        "remove": "Xóa ảnh",
+        "sizeStatus": "Chiều rộng %{width} px, %{percent}% so với ảnh gốc"
       }
     },
     "link": {

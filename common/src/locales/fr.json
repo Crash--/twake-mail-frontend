@@ -140,7 +140,7 @@
       "blockquote": "Citation",
       "clearFormatting": "Effacer la mise en forme",
       "name": "Corps du message",
-      "keyboardHelp": "Tab indente un élément de liste ou quitte l'éditeur. Alt+F10 va à la barre de mise en forme. Ctrl+K insère un lien.",
+      "keyboardHelp": "Tab indente un élément de liste ou quitte l'éditeur. Alt+F10 va à la barre de mise en forme. Ctrl+K insère un lien. Sur une image sélectionnée avec les flèches, Entrée affiche ses options de taille.",
       "colors": {
         "red": "Rouge",
         "orange": "Orange",
@@ -154,6 +154,17 @@
         "normal": "Normale",
         "large": "Grande",
         "huge": "Très grande"
+      },
+      "image": {
+        "toolbar": "Options de l'image",
+        "small": "25 %",
+        "medium": "50 %",
+        "large": "75 %",
+        "original": "Taille d'origine",
+        "smaller": "Plus petite",
+        "larger": "Plus grande",
+        "remove": "Supprimer l'image",
+        "sizeStatus": "Largeur %{width} px, %{percent} % de l'original"
       }
     },
     "link": {

@@ -21,6 +21,27 @@ export interface RichTextLinkDialogLabels {
   remove: string
 }
 
+/** The image sizes the image toolbar offers, in % of the image's own width */
+export const IMAGE_SIZE_PRESETS = {
+  small: 25,
+  medium: 50,
+  large: 75,
+  original: 100
+} as const
+
+export type ImageSizePreset = keyof typeof IMAGE_SIZE_PRESETS
+
+export interface RichTextImageLabels {
+  /** Name of the image toolbar */
+  toolbar: string
+  sizes: Record<ImageSizePreset, string>
+  smaller: string
+  larger: string
+  remove: string
+  /** What the status line says of the current size */
+  sizeStatus: (width: number, percent: number) => string
+}
+
 /** Every string of the editor, translated by the caller */
 export interface RichTextEditorLabels {
   /** Accessible name of the editing area */
@@ -45,6 +66,7 @@ export interface RichTextEditorLabels {
   insertImage: string
   clearFormatting: string
   linkDialog: RichTextLinkDialogLabels
+  image: RichTextImageLabels
 }
 
 /** The buttons of the formatting toolbar */
@@ -65,6 +87,10 @@ export type RichTextToolbarItemId =
   | 'image'
   | 'clear-formatting'
 
+/** The buttons of the image toolbar */
+export type RichTextImageItemId =
+  ImageSizePreset | 'smaller' | 'larger' | 'remove'
+
 /**
  * The `data-testid` of the editor's parts, chosen by the caller (they are a
  * contract of the app with its end-to-end tests). A part without one gets
@@ -77,11 +103,15 @@ export interface RichTextEditorTestIds {
   linkTextInput?: string
   linkUrlInput?: string
   linkApplyButton?: string
+  imageToolbar?: string
+  imageButton?: (item: RichTextImageItemId) => string
 }
 
 /** What the editor's extensions call back, kept current by the component */
 export interface EditorActions {
   openLinkDialog: () => void
   focusToolbar: () => void
+  /** Moves the focus to the toolbar of the selected image; false if none */
+  focusImageToolbar: () => boolean
   storeImages: ((files: File[]) => Promise<InlineImageAttributes[]>) | null
 }

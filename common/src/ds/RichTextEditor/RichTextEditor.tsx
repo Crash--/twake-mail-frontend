@@ -22,6 +22,7 @@ import {
 
 import { cleanPastedHtml } from './cleanPastedHtml'
 import { HtmlBlock, type HtmlBlockOptions } from './htmlBlock'
+import { ImageToolbar } from './ImageToolbar'
 import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
 import { RichTextToolbar } from './RichTextToolbar'
@@ -84,6 +85,8 @@ async function insertImages(
 function createKeyboardExtension(actionsRef: ActionsRef): AnyExtension {
   return Extension.create({
     name: 'richTextKeyboard',
+    // Before the lists' Enter: on a selected image, Enter opens its toolbar
+    priority: 1000,
     addKeyboardShortcuts() {
       return {
         'Mod-k': () => {
@@ -91,6 +94,7 @@ function createKeyboardExtension(actionsRef: ActionsRef): AnyExtension {
           return true
         },
         // Escape is left to what holds the editor (a dialog closes)
+        Enter: () => actionsRef.current.focusImageToolbar(),
         'Alt-F10': () => {
           actionsRef.current.focusToolbar()
           return true
@@ -119,9 +123,11 @@ function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
  * Keyboard: Tab leaves the editor (in a list, it indents the item first;
  * Shift+Tab outdents), Alt+F10 goes to the toolbar and Escape comes back,
  * Ctrl/Cmd+K opens the link dialog, Ctrl+Shift+V pastes as plain text.
- * Escape in the text is not handled: it reaches what holds the editor. The
- * editing area is a `textbox` (`aria-multiline`) named by `labels.editor`,
- * the help is read through `aria-describedby`.
+ * Arrows select an image in the text and Enter opens its toolbar (sizes,
+ * removal: the keyboard alternative to the resize handles). Escape in the
+ * text is not handled: it reaches what holds the editor. The editing area
+ * is a `textbox` (`aria-multiline`) named by `labels.editor`, the help is
+ * read through `aria-describedby`.
  */
 export function RichTextEditor({
   labels,
@@ -146,6 +152,7 @@ export function RichTextEditor({
   const actionsRef = useRef<EditorActions>({
     openLinkDialog: () => undefined,
     focusToolbar: () => undefined,
+    focusImageToolbar: () => false,
     storeImages: null
   })
   useLayoutEffect(() => {
@@ -249,7 +256,8 @@ export function RichTextEditor({
   }
 
   return (
-    <Box className="u-flex u-flex-column">
+    // Relative: the image toolbar is placed in it
+    <Box className="u-flex u-flex-column" sx={{ position: 'relative' }}>
       <RichTextToolbar
         editor={editor}
         labels={labels}
@@ -260,6 +268,13 @@ export function RichTextEditor({
         onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
         actionsRef={actionsRef}
         buttonTestId={testIds.toolbarButton}
+      />
+      <ImageToolbar
+        editor={editor}
+        labels={labels.image}
+        actionsRef={actionsRef}
+        data-testid={testIds.imageToolbar}
+        buttonTestId={testIds.imageButton}
       />
       <Box
         id={helpId}

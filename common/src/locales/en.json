@@ -140,7 +140,7 @@
       "blockquote": "Quote",
       "clearFormatting": "Clear formatting",
       "name": "Message body",
-      "keyboardHelp": "Tab indents a list item or leaves the editor. Alt+F10 goes to the formatting toolbar. Ctrl+K inserts a link.",
+      "keyboardHelp": "Tab indents a list item or leaves the editor. Alt+F10 goes to the formatting toolbar. Ctrl+K inserts a link. On an image selected with the arrow keys, Enter shows its size options.",
       "colors": {
         "red": "Red",
         "orange": "Orange",
@@ -154,6 +154,17 @@
         "normal": "Normal",
         "large": "Large",
         "huge": "Huge"
+      },
+      "image": {
+        "toolbar": "Image options",
+        "small": "25%",
+        "medium": "50%",
+        "large": "75%",
+        "original": "Original size",
+        "smaller": "Smaller",
+        "larger": "Larger",
+        "remove": "Remove image",
+        "sizeStatus": "Width %{width} px, %{percent}% of the original"
       }
     },
     "link": {

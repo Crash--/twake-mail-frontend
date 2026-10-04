@@ -50,6 +50,20 @@ export function useEditorLabels(): EditorLabels {
         apply: t('composer.link.apply'),
         cancel: t('composer.link.cancel'),
         remove: t('composer.link.remove')
+      },
+      image: {
+        toolbar: t('composer.editor.image.toolbar'),
+        sizes: {
+          small: t('composer.editor.image.small'),
+          medium: t('composer.editor.image.medium'),
+          large: t('composer.editor.image.large'),
+          original: t('composer.editor.image.original')
+        },
+        smaller: t('composer.editor.image.smaller'),
+        larger: t('composer.editor.image.larger'),
+        remove: t('composer.editor.image.remove'),
+        sizeStatus: (width, percent) =>
+          t('composer.editor.image.sizeStatus', { width, percent })
       }
     },
     // AA contrast on white for every colour (4.5:1)

@@ -59,7 +59,8 @@ the React app. One line per Patrol test, 116 lines.
 | `MISC` | Misc | 1 | 0 | 0 |
 | | **Total** | **116** | **24** | **6** |
 
-Plus `A11Y`, accessibility scenarios (RGAA 4.1) with no Patrol counterpart, at the end.
+Plus `A11Y`, accessibility scenarios (RGAA 4.1), and `RESP`, phone and tablet layouts, with no
+Patrol counterpart, at the end.
 
 Phase 0 of the React app (login, folder tree, email list, reading) is enough for `LOGIN-01`,
 `MBX-04` to `MBX-06`, `MBX-17`, `MBX-24`, `EML-01` to `EML-04` and `PUSH-01`, their data being
@@ -314,4 +315,33 @@ WCAG 2.0 / 2.1, A and AA); the violations of twake-mui itself are reported as an
 listed in `docs/twake-mui-gaps.md`.
 
 - [ ] `A11Y-01` Without a mouse: log in, open the Sent folder then the Inbox from the tree, reach the list with Tab, move to the second email with the arrow keys and open it with Enter (the focus lands on its subject), go back with the back button (Shift+Tab, Enter): the focus returns to the row of that email. — no Patrol test
-  - Spec: `tests/a11y.spec.ts`. Passes in CI.
+  - Spec: `tests/a11y.spec.ts`. Passes in CI. On phones and tablets (Playwright projects `mobile`
+    and `tablet`) the tree is in a drawer: the menu button opens it with the focus inside, choosing
+    a folder closes it and gives the focus back to the button.
+
+## RESP — Phones and tablets (no Patrol counterpart)
+
+The Playwright projects `mobile` (390 × 844, touch) and `tablet` (820 × 1180, touch) replay
+`LOGIN-01`, `MBX-05`, `EML-01`, `A11Y-01` and the `RESP` specs (`grep` of `playwright.config.ts`);
+the page objects open the folder drawer when the screen has one. Breakpoints: tmail-flutter's,
+600, 900 and 1200 px (`common/src/ds/useScreenSize`).
+
+- [ ] `RESP-01` At 320 px and at 640 px wide (a desktop browser zoomed to 400 % and 200 %), the
+  login form, the list, the open drawer and an email with a long subject and long addresses show
+  without horizontal scrolling of the page nor of its main content (RGAA 10.11); axe on the list
+  and the email. — `chromium` project only
+  - Spec: `tests/responsive.spec.ts`.
+- [ ] `RESP-02` On phones and tablets, the folder drawer opened by the menu button is a named modal
+  dialog holding the focus (Tab stays inside), passes axe, closes with Escape or its close button
+  and gives the focus back to the menu button.
+  - Spec: `tests/responsive.spec.ts`.
+- [ ] `RESP-03` On a phone, the search button unfolds the search over the top bar with the focus in
+  the field; Escape folds it back and focuses the button again.
+  - Spec: `tests/responsive.spec.ts`.
+- [ ] `RESP-04` At 1024 px (large tablet), the list stays beside the open email, its row marked
+  `aria-current`; the back button closes the email, shows "No email selected" and gives the focus
+  back to the row. — `chromium` project only
+  - Spec: `tests/responsive.spec.ts`.
+- [ ] `RESP-05` A phone held sideways (844 × 390): the email opens over the list, reads, and goes
+  back, without horizontal scrolling. — `chromium` project only
+  - Spec: `tests/responsive.spec.ts`.

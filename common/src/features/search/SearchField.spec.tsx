@@ -243,4 +243,26 @@ describe('SearchField', () => {
       '/search?starred=1&sort=relevance'
     )
   })
+
+  it('closes the advanced search without searching on Cancel', async () => {
+    await renderField(makeServer())
+    await userEvent.click(combobox())
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Advanced search' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
+    // A native select always shows a value: its label stays above it
+    expect(within(dialog).getByLabelText('Folder')).toHaveDisplayValue(
+      'All email'
+    )
+
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Cancel' })
+    )
+
+    expect(screen.queryByRole('dialog')).toBe(null)
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/mailbox/mailbox-inbox'
+    )
+  })
 })

@@ -84,7 +84,7 @@ export interface AdvancedSearchDialogProps {
  * has and has not, folder, date, order, and the attachment, unread and
  * starred filters. It opens on the search being typed (the quick filters
  * picked under the field are checked here) and runs it on submit; "Clear
- * filter" empties it, the order excepted.
+ * filter" empties it, the order excepted, "Cancel" leaves it unchanged.
  */
 export function AdvancedSearchDialog({
   filter,
@@ -340,6 +340,15 @@ export function AdvancedSearchDialog({
             data-testid="advanced-search-clear-button"
           >
             {t('search.clearFilter')}
+          </Button>
+          {/* Full screen on a phone: no backdrop nor Escape key to close it */}
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={onClose}
+            data-testid="advanced-search-cancel-button"
+          >
+            {t('common.cancel')}
           </Button>
           <Button
             type="submit"

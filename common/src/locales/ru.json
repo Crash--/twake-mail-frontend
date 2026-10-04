@@ -278,6 +278,7 @@
     "wordsHint": "Разделяйте слова запятыми",
     "loading": "Загрузка подсказок",
     "suggestionCount": "%{smart_count} подсказка |||| %{smart_count} подсказки |||| %{smart_count} подсказок",
+    "searchWithFilters": "Искать с этими фильтрами",
     "quickFiltersOnly": "Нет подсказок. Быстрые фильтры находятся после поля поиска."
   },
   "emailActions": {

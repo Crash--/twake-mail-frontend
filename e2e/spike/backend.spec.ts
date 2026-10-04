@@ -115,6 +115,9 @@ test('SPIKE-BACKEND multipart/related with a cid image goes through Email/set + 
   expect(JSON.stringify(email?.bodyStructure)).toContain('img1@spike')
 })
 
+// Passes only because this draft has no inline part: with images pointing at the parts of the
+// previous version, tmail-backend destroys first and the create fails ("Attachment not found").
+// The composer saves in two requests (drafts.spec.ts, docs/spikes/composer-tiptap.md).
 test('SPIKE-BACKEND draft rewrite: create + destroy in one Email/set', async ({ jmap, user }) => {
   const accountId = await jmap.accountId()
   const drafts = await jmap.findMailboxByRole('drafts')

@@ -20,3 +20,10 @@ class ResizeObserverStub implements ResizeObserver {
 }
 
 globalThis.ResizeObserver = ResizeObserverStub
+
+// jsdom has no layout either for ranges and points, which ProseMirror (the
+// rich text editor) reads to scroll the selection into view
+const emptyRects = (): DOMRectList => Object.assign([], { item: () => null })
+Range.prototype.getClientRects = emptyRects
+Range.prototype.getBoundingClientRect = (): DOMRect => new DOMRect()
+document.elementFromPoint = (): Element | null => null

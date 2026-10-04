@@ -236,6 +236,12 @@ function rebuildWordLists(root: HTMLElement): void {
     let next = first.nextElementSibling
     index += 1
     while (next instanceof HTMLElement && next === paragraphs[index]) {
+      // Another Word list (lfo) starts a new list
+      if (
+        WORD_LIST_STYLE.exec(next.getAttribute('style') ?? '')?.[1] !==
+        firstItem.listId
+      )
+        break
       const item = readWordListItem(next)
       if (!item) break
       items.push(item)

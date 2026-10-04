@@ -314,5 +314,5 @@ test('SPIKE-REPLY a reply quoting a newsletter with a cid logo is sent and read 
   expect(text).toContain('> The ACME Weekly, October edition')
 
   await openInReader(browser, bob, 'Fwd: ACME Weekly newsletter', 'forward-reader')
-  await openInTmailWeb(browser, bob, 'forward-tmailweb')
+  await openInTmailWeb(browser, bob, 'forward-tmailweb', { x: 262, y: 447 })
 })

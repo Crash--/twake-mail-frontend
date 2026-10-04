@@ -83,7 +83,12 @@ test('SPIKE-QUOTE-EDIT "Edit the quoted message" turns the atom into editable co
 }) => {
   const imported = await jmap.importEml('spike_composer/newsletter.eml')
   const composer = await new SpikeComposer(page).open(user, `?reply=${imported.id}`)
-  await page.getByRole('button', { name: 'Edit the quoted message' }).click()
+  // The keyboard reaches the button: Tab from the editor
+  await expect(composer.editor).toBeFocused()
+  await page.keyboard.press('Tab')
+  const edit = page.getByRole('button', { name: 'Edit the quoted message' })
+  await expect(edit).toBeFocused()
+  await page.keyboard.press('Enter')
   await expect(page.locator('[data-html-block-view="quote"]')).toHaveCount(0)
   const html = await composer.editorHtml()
   expect(html).not.toContain('data-html-block="quote"')

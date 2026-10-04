@@ -7,6 +7,7 @@
     "outDir": "../../.tsbuild/private",
     "tsBuildInfoFile": "../../.tsbuild/private.tsbuildinfo",
     "paths": {
+      "@/ds/*": ["../../common/src/ds/*"],
       "@/*": ["./src/*"],
       "@common/*": ["../../common/src/*"],
       "@injected/*": ["./src/*", "../../common/src/*"]

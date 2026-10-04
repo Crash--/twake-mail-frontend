@@ -35,6 +35,8 @@ const moduleNameMapper: Config['moduleNameMapper'] = {
     '<rootDir>/common/src/$1'
   ],
   '^@common/(.*)$': '<rootDir>/common/src/$1',
+  // Before `@/`: the local design system lives in common, not in the app
+  '^@/ds/(.*)$': '<rootDir>/common/src/ds/$1',
   '^@/(.*)$': '<rootDir>/apps/private/src/$1',
   '\\.css$': '<rootDir>/common/src/testing/styleMock.ts'
 }

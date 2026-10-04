@@ -59,6 +59,8 @@ export default defineConfig({
   resolve: {
     aliasStrategy: 'prefer-alias',
     alias: {
+      // Before `@`: the first matching alias wins
+      '@/ds': path.resolve(appDir, '../../common/src/ds'),
       ...getInjectedAliases(appDir, injectedAliases),
       '@': path.resolve(appDir, 'src'),
       '@common': path.resolve(appDir, '../../common/src')

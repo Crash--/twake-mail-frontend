@@ -16,6 +16,16 @@ export interface RowLinkProps {
   onNavigate: () => void
   /** The accessible name of the link, hence of the row */
   children: ReactNode
+  /**
+   * Content on several lines (a compact row: sender, subject, preview),
+   * each line cutting its own overflow; one line with an ellipsis otherwise
+   */
+  multiline?: boolean
+  /**
+   * The row is the item open beside the list (`aria-current="true"`: the
+   * current folder of the tree is the `page`)
+   */
+  current?: boolean
   'data-testid'?: string
 }
 
@@ -39,6 +49,8 @@ export function RowLink({
   href,
   onNavigate,
   children,
+  multiline = false,
+  current = false,
   'data-testid': testId
 }: RowLinkProps): ReactElement {
   const handleClick = (event: MouseEvent<HTMLAnchorElement>): void => {
@@ -51,10 +63,11 @@ export function RowLink({
     <Link
       href={href}
       onClick={handleClick}
+      aria-current={current ? 'true' : undefined}
       variant="body1"
       color="inherit"
       underline="none"
-      className="u-db u-ellipsis"
+      className={multiline ? 'u-db u-ov-hidden' : 'u-db u-ellipsis'}
       {...{ [ROW_FOCUS_ATTRIBUTE]: true }}
       data-testid={testId}
       sx={theme => ({

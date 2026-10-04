@@ -46,4 +46,29 @@ describe('RowLink', () => {
     // fireEvent returns false when the default action was prevented
     expect([ctrlClick, middleClick]).toEqual([true, true])
   })
+
+  it('marks the item open beside the list as current', () => {
+    renderDs(
+      <RowLink href="/mailbox/inbox/email/42" onNavigate={jest.fn()} current>
+        Hello
+      </RowLink>
+    )
+
+    expect(screen.getByRole('link', { name: 'Hello' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    )
+  })
+
+  it('lets its lines wrap when it spans several', () => {
+    renderDs(
+      <RowLink href="/mailbox/inbox/email/42" onNavigate={jest.fn()} multiline>
+        Hello
+      </RowLink>
+    )
+
+    const link = screen.getByRole('link', { name: 'Hello' })
+    expect(link).not.toHaveClass('u-ellipsis')
+    expect(link).not.toHaveAttribute('aria-current')
+  })
 })

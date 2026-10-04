@@ -2,9 +2,10 @@
 // second component. This wrapper only exists because `VirtualizedTable`
 // 9.16 cannot: add attributes to a row (`getRowProps`), hide its header
 // visually while keeping it for screen readers (`hideHeader`), name the
-// table, give it a density, nor be extended without replacing its whole
-// `components` set (`virtuosoComponents` is not exported). See
-// docs/twake-mui-gaps.md, "Virtualized list table", for the PR to make.
+// table, give it a density, switch to fewer columns when it is narrow, nor
+// be extended without replacing its whole `components` set
+// (`virtuosoComponents` is not exported). See docs/twake-mui-gaps.md,
+// "VirtualizedTable", for the PR to make.
 import {
   Box,
   Paper,
@@ -21,10 +22,12 @@ import {
 import {
   createContext,
   forwardRef,
+  useCallback,
   useContext,
   useEffect,
   useId,
   useMemo,
+  useState,
   type ComponentProps,
   type KeyboardEvent,
   type ReactElement
@@ -46,20 +49,27 @@ type TableProps = ComponentProps<NonNullable<TableComponents['Table']>>
 type TableHeadProps = ComponentProps<NonNullable<TableComponents['TableHead']>>
 type TableBodyProps = ComponentProps<NonNullable<TableComponents['TableBody']>>
 type TableRowProps = ComponentProps<NonNullable<TableComponents['TableRow']>>
+type TableFootProps = ComponentProps<NonNullable<TableComponents['TableFoot']>>
 
 interface ListTableSettings {
   label: string
   rowCount: number | null
   columns: readonly VirtualizedTableColumn[]
   getRowProps: ((row: VirtualizedTableRow) => RowAttributes) | null
+  /** Reports the width of the scroller, null when nobody listens */
+  onWidthChange: ((width: number) => void) | null
 }
 
 const ListTableContext = createContext<ListTableSettings>({
   label: '',
   rowCount: null,
   columns: [],
-  getRowProps: null
+  getRowProps: null,
+  onWidthChange: null
 })
+
+/** Width below which `compactColumns` replace `columns`, in pixels */
+const COMPACT_BELOW = 600
 
 /** Marks the focusable element of a row that the arrow keys move between */
 export const ROW_FOCUS_ATTRIBUTE = 'data-row-focus'
@@ -94,14 +104,44 @@ function handleArrowKeys(event: KeyboardEvent<HTMLTableElement>): void {
   }
 }
 
+/** Follows the width of the scroller, for the compact columns */
+function useWidthObserver(
+  node: HTMLDivElement | null,
+  onWidthChange: ((width: number) => void) | null
+): void {
+  useEffect(() => {
+    if (node === null || onWidthChange === null) return
+    const observer = new ResizeObserver(entries => {
+      const width = entries[0]?.contentRect.width
+      if (width !== undefined) onWidthChange(width)
+    })
+    observer.observe(node)
+    return () => {
+      observer.disconnect()
+    }
+  }, [node, onWidthChange])
+}
+
 const Scroller = forwardRef<HTMLDivElement, ScrollerProps>(function Scroller(
   { context: _context, ...props },
   ref
 ) {
+  const { onWidthChange } = useContext(ListTableContext)
+  const [node, setNode] = useState<HTMLDivElement | null>(null)
+  // Virtuoso needs the element too: both get it
+  const handleRef = useCallback(
+    (element: HTMLDivElement | null): void => {
+      setNode(element)
+      if (typeof ref === 'function') ref(element)
+      else if (ref !== null) ref.current = element
+    },
+    [ref]
+  )
+  useWidthObserver(node, onWidthChange)
   return (
     <TableContainer
       {...props}
-      ref={ref}
+      ref={handleRef}
       component={Paper}
       elevation={0}
       square
@@ -171,12 +211,34 @@ function ListTableRow({
   )
 }
 
+/**
+ * Room after the last row, scrolled with the rows: virtuoso makes its footer
+ * sticky, this one drops that style. Hidden to screen readers
+ */
+const SpacerTableFoot = forwardRef<HTMLTableSectionElement, TableFootProps>(
+  function SpacerTableFoot(
+    { context: _context, style: _style, ...props },
+    ref
+  ) {
+    return <tfoot {...props} ref={ref} aria-hidden="true" />
+  }
+)
+
+function renderSpacer(height: number, columnCount: number): ReactElement {
+  return (
+    <tr>
+      <Box component="td" colSpan={columnCount} sx={{ height, padding: 0 }} />
+    </tr>
+  )
+}
+
 const COMPONENTS: TableComponents = {
   Scroller,
   Table: ListTable,
   TableHead: HiddenTableHead,
   TableBody: ListTableBody,
-  TableRow: ListTableRow
+  TableRow: ListTableRow,
+  TableFoot: SpacerTableFoot
 }
 
 export interface VirtualizedListTableProps extends Omit<
@@ -185,6 +247,16 @@ export interface VirtualizedListTableProps extends Omit<
 > {
   /** Accessible name of the table, e.g. "Messages" */
   label: string
+  /**
+   * Fewer, richer columns for a narrow table (a phone, a list beside an
+   * open item): used while the table is narrower than 600 px. The rows grow
+   * to their content
+   */
+  compactColumns?: VirtualizedTableColumn[]
+  /** Forces the compact columns, whatever the width */
+  compact?: boolean
+  /** Free room after the last row, e.g. for a floating button, in pixels */
+  bottomInset?: number
   /** Number of rows of the whole list, loaded or not; null when unknown */
   rowCount?: number | null
   /** Attributes of the `tr` of a row: `data-*` ids and states, `aria-*` */
@@ -237,15 +309,33 @@ export function VirtualizedListTable({
   label,
   rowCount = null,
   getRowProps,
-  columns,
+  columns: wideColumns,
+  compactColumns,
+  compact = false,
+  bottomInset = 0,
   focusedRowIndex = null,
   ...props
 }: VirtualizedListTableProps): ReactElement {
   const tableId = useId()
   useFocusRowOnMount(tableId, focusedRowIndex)
+  const [isNarrow, setIsNarrow] = useState(false)
+  const handleWidthChange = useCallback((width: number): void => {
+    // A hidden table measures 0: keep its columns until it shows again
+    if (width > 0) setIsNarrow(width < COMPACT_BELOW)
+  }, [])
+  const columns =
+    compactColumns !== undefined && (compact || isNarrow)
+      ? compactColumns
+      : wideColumns
   const settings = useMemo<ListTableSettings>(
-    () => ({ label, rowCount, columns, getRowProps: getRowProps ?? null }),
-    [label, rowCount, columns, getRowProps]
+    () => ({
+      label,
+      rowCount,
+      columns,
+      getRowProps: getRowProps ?? null,
+      onWidthChange: compactColumns === undefined ? null : handleWidthChange
+    }),
+    [label, rowCount, columns, getRowProps, compactColumns, handleWidthChange]
   )
   return (
     <ListTableContext.Provider value={settings}>
@@ -264,6 +354,12 @@ export function VirtualizedListTable({
             })}
         columns={columns}
         components={COMPONENTS}
+        {...(bottomInset > 0
+          ? {
+              fixedFooterContent: () =>
+                renderSpacer(bottomInset, columns.length)
+            }
+          : {})}
       />
     </ListTableContext.Provider>
   )

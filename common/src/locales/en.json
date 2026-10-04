@@ -55,7 +55,12 @@
     "markAsRead": "Mark as read",
     "markAsUnread": "Mark as unread",
     "starred": "Starred",
-    "noneSelected": "No email selected"
+    "noneSelected": "No email selected",
+    "remoteContent": {
+      "hidden": "Remote images hidden to protect your privacy",
+      "show": "Show",
+      "alwaysShow": "Always show for this sender"
+    }
   },
   "login": {
     "title": "Sign In",

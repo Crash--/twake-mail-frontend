@@ -42,6 +42,10 @@ import {
   toStorageHtml,
   writeSnapshot
 } from '@common/features/composer/snapshot'
+import {
+  EDITOR_TEST_IDS,
+  htmlBlockEditTestId
+} from '@common/features/composer/editorTestIds'
 import { useEditorLabels } from '@common/features/composer/useEditorLabels'
 import { buildEmailDocument } from '@common/features/email/emailBody'
 import { useI18n } from '@common/i18n/useI18n'
@@ -307,13 +311,14 @@ function SpikeComposerForm({
             ),
           frameTitle: () => t('composer.quote.frameTitle'),
           editLabel: kind =>
-            kind === 'quote' ? t('composer.quote.edit') : null
+            kind === 'quote' ? t('composer.quote.edit') : null,
+          editTestId: htmlBlockEditTestId
         }}
         extensions={approach === 'schema' ? schemaQuoteExtensions() : []}
         autoFocus
         onReady={handleReady}
         onUpdate={scheduleSave}
-        data-testid="composer-editor"
+        testIds={EDITOR_TEST_IDS}
       />
       <Stack direction="row" spacing={1}>
         <Button

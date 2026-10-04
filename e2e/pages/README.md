@@ -181,6 +181,9 @@ Conventions:
 | `composer-show-cc-button` / `composer-show-bcc-button` / `composer-show-reply-to-button` | reveal hidden fields | `prefix_cc_recipient_expand_button`… |
 | `composer-subject-input` | subject | — |
 | `composer-editor` | rich text editor (contenteditable) | `mobile_editor` |
+| `rich-text-<item>-button` (`undo`, `redo`, `bold`, `italic`, `underline`, `strike`, `color`, `size`, `align`, `bullet-list`, `ordered-list`, `blockquote`, `link`, `image`, `clear-formatting`) | buttons of the formatting toolbar (Alt+F10) | — |
+| `link-dialog-text-input` / `link-dialog-url-input` / `link-dialog-apply-button` | the insert link dialog (Ctrl+K) | — |
+| `html-block-edit-<kind>` | "Edit the quoted message" (`kind` = `quote`) | — |
 | `composer-send-button` | send | `UiKeys.sendEmailButton` |
 | `composer-close-button` | close (saves a draft when dirty) | `UiKeys.closeComposerButton` |
 | `composer-more-button` + `composer-save-draft-item`, `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |

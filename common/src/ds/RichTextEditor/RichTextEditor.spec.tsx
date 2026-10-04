@@ -48,6 +48,10 @@ function renderEditor(content = '<p>Hello</p>'): void {
       content={content}
       colors={[{ value: null, label: 'Default' }]}
       fontSizes={[{ value: null, label: 'Normal' }]}
+      testIds={{
+        editor: 'editor',
+        toolbarButton: item => `toolbar-${item}`
+      }}
     />
   )
 }
@@ -58,6 +62,7 @@ describe('RichTextEditor', () => {
     const editor = await screen.findByRole('textbox', { name: 'Message body' })
 
     expect(editor).toHaveAttribute('aria-multiline', 'true')
+    expect(editor).toHaveAttribute('data-testid', 'editor')
     expect(editor).toHaveAccessibleDescription('Escape goes to the toolbar')
     expect(editor).toHaveTextContent('Hello')
   })
@@ -77,6 +82,7 @@ describe('RichTextEditor', () => {
     )
     const bold = screen.getByRole('button', { name: 'Bold' })
     expect(bold).toHaveAttribute('aria-pressed', 'false')
+    expect(bold).toHaveAttribute('data-testid', 'toolbar-bold')
     // No image handler: no image button
     expect(screen.queryByRole('button', { name: 'Insert image' })).toBe(null)
 

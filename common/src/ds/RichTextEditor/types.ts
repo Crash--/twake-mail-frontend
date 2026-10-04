@@ -47,6 +47,38 @@ export interface RichTextEditorLabels {
   linkDialog: RichTextLinkDialogLabels
 }
 
+/** The buttons of the formatting toolbar */
+export type RichTextToolbarItemId =
+  | 'undo'
+  | 'redo'
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strike'
+  | 'color'
+  | 'size'
+  | 'align'
+  | 'bullet-list'
+  | 'ordered-list'
+  | 'blockquote'
+  | 'link'
+  | 'image'
+  | 'clear-formatting'
+
+/**
+ * The `data-testid` of the editor's parts, chosen by the caller (they are a
+ * contract of the app with its end-to-end tests). A part without one gets
+ * none.
+ */
+export interface RichTextEditorTestIds {
+  /** The editing area */
+  editor?: string
+  toolbarButton?: (item: RichTextToolbarItemId) => string
+  linkTextInput?: string
+  linkUrlInput?: string
+  linkApplyButton?: string
+}
+
 /** What the editor's extensions call back, kept current by the component */
 export interface EditorActions {
   openLinkDialog: () => void

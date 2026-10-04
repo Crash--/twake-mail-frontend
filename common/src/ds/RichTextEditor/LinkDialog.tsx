@@ -32,6 +32,9 @@ export interface LinkDialogProps {
   onApply: (value: LinkDialogValue) => void
   onRemove: () => void
   onClose: () => void
+  textInputTestId?: string
+  urlInputTestId?: string
+  applyButtonTestId?: string
 }
 
 /**
@@ -46,7 +49,10 @@ export function LinkDialog({
   canRemove,
   onApply,
   onRemove,
-  onClose
+  onClose,
+  textInputTestId,
+  urlInputTestId,
+  applyButtonTestId
 }: LinkDialogProps): ReactElement {
   const titleId = useId()
   const urlRef = useRef<HTMLInputElement>(null)
@@ -90,7 +96,7 @@ export function LinkDialog({
               fullWidth
               size="small"
               slotProps={{
-                htmlInput: { 'data-testid': 'link-dialog-text-input' }
+                htmlInput: { 'data-testid': textInputTestId }
               }}
             />
             <TextField
@@ -103,7 +109,7 @@ export function LinkDialog({
               fullWidth
               size="small"
               slotProps={{
-                htmlInput: { 'data-testid': 'link-dialog-url-input' }
+                htmlInput: { 'data-testid': urlInputTestId }
               }}
             />
           </Stack>
@@ -119,7 +125,7 @@ export function LinkDialog({
             type="submit"
             variant="contained"
             disabled={url.trim() === ''}
-            data-testid="link-dialog-apply-button"
+            data-testid={applyButtonTestId}
           >
             {labels.apply}
           </Button>

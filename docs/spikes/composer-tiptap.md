@@ -371,8 +371,8 @@ Flutter fait 21 000 lignes.
 - **Redimensionnement d'image à la souris seulement** : il faut une alternative clavier (RGAA).
 - **Contraste du thème twake-mui** (3 échecs AA) : il faut une correction upstream. C'est
   documenté dans `docs/twake-mui-gaps.md`, et la spec axe filtre seulement ces trois cas.
-- **`data-testid` codés en dur dans `@/ds/RichTextEditor`** (`rich-text-*-button`,
-  `link-dialog-*`, `html-block-edit-*`) : contraire aux règles du ds, à passer en props.
+- ~~**`data-testid` codés en dur dans `@/ds/RichTextEditor`**~~ : réglé en L1 (prop `testIds`,
+  option `editTestId` de `HtmlBlock`, valeurs dans `features/composer/editorTestIds.ts`).
 - **`getHTML()` construit le HTML cité dans le document principal.** Mesuré : une seule requête
   supplémentaire par session pour une image distante `no-store` (cache d'images du document),
   pas une par sauvegarde. À surveiller ; un document inerte n'y change rien.

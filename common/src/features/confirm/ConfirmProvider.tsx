@@ -46,15 +46,23 @@ export type Choice = 'confirm' | 'alternative' | 'cancel'
  */
 export type Choose = (options: ChoiceOptions) => Promise<Choice>
 
+/** Tells the user something blocking; resolves once they acknowledged it */
+export type Alert = (
+  options: Omit<ConfirmOptions, 'isDestructive'>
+) => Promise<void>
+
 interface ConfirmApi {
   confirm: Confirm
   choose: Choose
+  alert: Alert
 }
 
 const ConfirmContext = createContext<ConfirmApi | null>(null)
 
 interface PendingConfirm extends ConfirmOptions {
   alternativeLabel: string | null
+  /** An alert: its one button acknowledges */
+  isAlert: boolean
   resolve: (choice: Choice) => void
 }
 
@@ -79,11 +87,15 @@ export function ConfirmProvider({
   const pendingRef = useRef<PendingConfirm | null>(null)
 
   const ask = useCallback(
-    (options: ConfirmOptions, alternativeLabel: string | null) =>
+    (
+      options: ConfirmOptions,
+      alternativeLabel: string | null,
+      isAlert = false
+    ) =>
       new Promise<Choice>(resolve => {
         // A dialog asked meanwhile replaces the first one, which is cancelled
         pendingRef.current?.resolve('cancel')
-        const next = { ...options, alternativeLabel, resolve }
+        const next = { ...options, alternativeLabel, isAlert, resolve }
         pendingRef.current = next
         setPending(next)
       }),
@@ -92,7 +104,10 @@ export function ConfirmProvider({
   const api = useMemo<ConfirmApi>(
     () => ({
       confirm: async options => (await ask(options, null)) === 'confirm',
-      choose: options => ask(options, options.alternativeLabel)
+      choose: options => ask(options, options.alternativeLabel),
+      alert: async options => {
+        await ask(options, null, true)
+      }
     }),
     [ask]
   )
@@ -112,6 +127,7 @@ export function ConfirmProvider({
     close('confirm')
   }
   const isChoice = (pending?.alternativeLabel ?? null) !== null
+  const isAlert = pending?.isAlert ?? false
 
   return (
     <ConfirmContext.Provider value={api}>
@@ -134,15 +150,17 @@ export function ConfirmProvider({
         </DialogContent>
         <DialogActions>
           {/* Inherit: primary text on white is below AA contrast */}
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={handleCancel}
-            autoFocus={!isChoice}
-            data-testid="confirm-dialog-cancel-button"
-          >
-            {t('common.cancel')}
-          </Button>
+          {isAlert ? null : (
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={handleCancel}
+              autoFocus={!isChoice}
+              data-testid="confirm-dialog-cancel-button"
+            >
+              {t('common.cancel')}
+            </Button>
+          )}
           {isChoice ? (
             <Button
               variant="outlined"
@@ -157,7 +175,7 @@ export function ConfirmProvider({
             variant="contained"
             color={pending?.isDestructive === true ? 'error' : 'primary'}
             onClick={handleConfirm}
-            autoFocus={isChoice}
+            autoFocus={isChoice || isAlert}
             data-testid="confirm-dialog-confirm-button"
           >
             {pending?.confirmLabel}
@@ -177,6 +195,11 @@ function useConfirmApi(): ConfirmApi {
 /** Asks for a confirmation; needs a `ConfirmProvider` (in `AppProviders`) */
 export function useConfirm(): Confirm {
   return useConfirmApi().confirm
+}
+
+/** Tells something blocking, in a dialog with one button (see `Alert`) */
+export function useAlert(): Alert {
+  return useConfirmApi().alert
 }
 
 /** Asks for a choice between two ways forward (see `Choose`) */

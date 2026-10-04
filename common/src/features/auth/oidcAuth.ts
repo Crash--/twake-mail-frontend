@@ -327,6 +327,9 @@ export function createOidcAuthService(
 
   async function logout(): Promise<void> {
     const idToken = tokens?.idToken ?? null
+    // Leaving for the SSO logout: the anonymous state must not start a login
+    // (RequireAuth does), whose redirection would replace this one
+    isRedirecting = true
     endLocalSession(service)
     try {
       const configuration = await fetchConfiguration()

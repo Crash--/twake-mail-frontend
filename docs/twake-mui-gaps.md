@@ -35,6 +35,8 @@ Each `ds/` component says in its header whether it should go upstream.
 | Touch targets | Icon buttons, list actions, tree toggles on touch screens and phones | `GlobalStyles` giving `IconButton`, `Button`, clickable `Chip`, `MenuItem` a 44 px minimum under `(pointer: coarse), (max-width: 599.95px)`; a 2rem / 44 px slot for the tree expand arrow | `ds/TouchTargets` (in `layout/AppLayout.tsx`), `ds/IconSlot` | The same rule in the theme overrides, and an icon slot in a nested `NavItem` |
 | Floating action button | "New message" on phones and tablets | `ExtendableFab` fixed at the bottom end (safe area included), label darkened to 5.3:1 | `ds/FloatingActionButton` | A placement prop on `ExtendableFab`, an AA label colour, and a scroll container to follow (it listens to `window`) |
 | Toast (snackbar) | Outcome of an action ("Moved to Trash" with Undo, errors with Retry), one at a time at the bottom of the screen | Two live regions always in the page (`role="status"` polite, `role="alert"` for errors) holding the message, and a `Paper` with the message (hidden from screen readers, read by the regions), an action `Button` and a close `IconButton`; a countdown paused on hover, focus and hidden page; Escape closes it; no animation with reduced motion | `ds/ToastRegion`, filled by `features/notifications/NotificationsProvider.tsx` | MUI's `Snackbar` mounts its `role="alert"` content with the text (often not read), knows no polite message, and closes on its timer while the focus is in it: a notification region with persistent live regions, pause on hover and focus, an action and a severity |
+| Filterable list (picker) | The folder picker of "Move message": a filter field and the folders, always shown | `TextField` as an ARIA 1.2 combobox (`aria-activedescendant`) driving a `List` `role="listbox"` of `ListItemButton` options (`aria-selected`, `aria-disabled`), indented by level, the path shown while filtering | `ds/FilterableListbox`, filled by `features/mailbox/MailboxPickerProvider.tsx` | A picker list (`Autocomplete` only knows a popup list): Drive and Calendar pick folders and calendars the same way |
+| Drop target | Folders of the tree receiving emails dragged from the list | A `Box` with the drag events, outlined (dashed primary) while an accepted drag is over it; `setDragLabel` shows "Move 2 messages" under the pointer | `ds/DropTarget`, used by `features/mailbox/MailboxTreeItem.tsx` | Drop target support on `NavItem` (see "Mailbox tree"), and a drag preview helper |
 | List and detail | The email list and the open email: one at a time, or side by side from 900 to 1199 px | Two `Box` panes (list 375 px, as tmail-flutter), only the shown ones rendered, focus given back to the list when the detail closes beside it | `ds/ListDetailLayout`, used by `apps/private/src/features/mailbox/MailboxPage.tsx` | A master-detail layout |
 
 ## VirtualizedTable
@@ -106,6 +108,12 @@ What it adds, each a candidate for the PR below:
     list. Virtuoso's `fixedFooterContent` is sticky; the wrapper's
     `TableFoot` drops that style and renders an `aria-hidden` spacer row of
     `bottomInset` pixels (padding on the scroller is not scrollable).
+15. **No row menu.** A right click, the menu key or Shift+F10 on a row
+    should open the actions of the row. Wrapper: `onRowMenu(row, anchor)`,
+    the anchor being the pointer (right click) or the row (keyboard), the
+    contextmenu event sent after the menu key ignored.
+16. **No draggable rows.** Wrapper: `onRowDragStart(row, event)` makes the
+    rows `draggable` and lets the app set the dragged data.
 
 **Proposed twake-ui PR**, "feat(VirtualizedTable): list mode with row
 attributes, hidden header and row links":
@@ -122,7 +130,8 @@ attributes, hidden header and row links":
   widths, a `MuiTableRow` theme rule for hover / focus-within actions;
 - `HeadCell` without `useExtendI18n` when no column is sortable (or sort
   labels as props), and body cells in `text.primary`;
-- `compactColumns` (with a width threshold) and `bottomInset`.
+- `compactColumns` (with a width threshold) and `bottomInset`;
+- `onRowMenu` and `onRowDragStart`.
 
 ## Accessibility (RGAA 4.1)
 
@@ -142,6 +151,9 @@ never silently ignored.
 | Focused `TextField` label (composer spike link dialog) | `color-contrast` | #2684e3 on white, 3.82:1 | Same theme fix |
 | `ExtendableFab` `color="primary"` | `color-contrast` | `primary.dark` #006bd8 on `primary.light` #d2e9ff, 4.11:1 at 16 px | A darker label (#005ab7, 5.3:1). Worked around in `ds/FloatingActionButton` |
 | `IconButton size="small"`, `NavItem`, `Chip` | (review, WCAG 2.5.5) | 32, 36 and 32 px high on touch screens | 44 px on coarse pointers. Worked around with `ds/TouchTargets` |
+| `DialogContentText` | `color-contrast` | text.secondary #868687 on white, 3.63:1 (confirmation dialogs) | Same theme fix. Worked around: `Typography color="textPrimary"` in `features/confirm/ConfirmProvider.tsx` |
+| `Button variant="outlined"` / `"text"` primary | `color-contrast` | #0a84ff on white, 3.64:1 | A darker primary for text. Worked around: `color="inherit"` (Cancel, "Select all N messages in this folder") |
+| `Checkbox indeterminate` | `aria-conditional-attr` | MUI puts `aria-checked="mixed"` on an input it leaves unchecked (it does not set the `indeterminate` property) | Set `input.indeterminate` instead of `aria-checked`. Worked around: the "Select all" checkbox of the selection toolbar is never indeterminate |
 | `Drawer` | (review) | The paper has no role nor name: a screen reader does not know a panel opened | `role="dialog"`, `aria-modal` and a label on the temporary variant. Worked around in `ds/NavigationDrawer` |
 | `VirtualizedTable` | (review) | No table name, header neither hideable nor hidden for screen readers only, rows not focusable, no row count | See "VirtualizedTable" above |
 

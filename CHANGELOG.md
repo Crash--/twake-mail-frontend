@@ -65,6 +65,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keyboard shortcuts (`c`, `/`, `j`, `k`, `e`, `#`, `s`, `u`, `z`, `?`),
   listed by `?` and in the account menu, where they can be turned off
 
+- Email actions: archive, move to trash or delete forever (with a
+  confirmation in the Trash, Spam and Drafts), move to a folder picked in a
+  filterable list, spam and not spam, read and unread, star, from the open
+  email (buttons and a "More" menu), the row (hover actions, right click,
+  menu key or Shift+F10), the selection toolbar, and by dragging rows onto
+  a folder
+- Selection: checkboxes, Shift+click ranges, Ctrl+A, select all the loaded
+  emails or the whole folder
+- "Empty trash now" and "Delete all spam emails now" banners, with
+  `Mailbox/clear` when the server has it; emptying the Trash also deletes
+  its subfolders
+
 ### Changed
 
 - Lists, folders and open emails are not refetched while push keeps them

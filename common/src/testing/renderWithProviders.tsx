@@ -66,7 +66,11 @@ export function renderWithProviders(
   }: RenderOptions = {}
 ): RenderWithProvidersResult {
   const queryClient = makeQueryClient()
-  queryClient.setDefaultOptions({ queries: { retry: false } })
+  const defaultOptions = queryClient.getDefaultOptions()
+  queryClient.setDefaultOptions({
+    ...defaultOptions,
+    queries: { ...defaultOptions.queries, retry: false }
+  })
   const createFakeClient: JmapClientFactory = options =>
     createClient({ ...options, fetch: jmapServer.fetch })
   const element = withJmapSession ? (

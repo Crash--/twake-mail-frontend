@@ -12,22 +12,85 @@ import tseslint from 'typescript-eslint'
 // not support ESLint 10 yet. Calendar and Contacts force them with npm
 // `overrides`; composing the plugins directly needs none.
 
+/** The local design system (`@/ds/*`), the only place allowed raw MUI */
+const DS_FILES = ['common/src/ds/**/*.{ts,tsx}']
+
+const COMMON_IMPORT_PATTERNS = [
+  {
+    group: ['cozy-ui', 'cozy-ui/**'],
+    message: 'cozy-ui is not used in Twake Mail: use @linagora/twake-mui.'
+  },
+  {
+    group: ['@linagora/twake-mui/*'],
+    message: 'Import from the @linagora/twake-mui entry point.'
+  }
+]
+
 const UI_IMPORT_RESTRICTIONS = {
+  paths: [
+    {
+      name: '@linagora/twake-mui',
+      importNames: ['styled'],
+      message:
+        'No styled components outside the design system: use @/ds/ (common/src/ds/README.md).'
+    }
+  ],
   patterns: [
     {
       group: ['@mui/*', '@mui/*/**'],
       message:
-        'Import components from @linagora/twake-mui, never from MUI directly (AGENTS.md).'
+        'Import components from @linagora/twake-mui, never from MUI directly (AGENTS.md). Missing UI goes to @/ds/.'
     },
     {
-      group: ['cozy-ui', 'cozy-ui/**'],
-      message: 'cozy-ui is not used in Twake Mail: use @linagora/twake-mui.'
+      group: ['@emotion/*', '@emotion/*/**'],
+      message:
+        'No styled components outside the design system: use @/ds/ (common/src/ds/README.md).'
     },
-    {
-      group: ['@linagora/twake-mui/*'],
-      message: 'Import from the @linagora/twake-mui entry point.'
-    }
+    ...COMMON_IMPORT_PATTERNS
   ]
+}
+
+const DS_BUSINESS_MESSAGE =
+  'The design system (@/ds/) holds no business logic: no JMAP, data, routing, translations nor app code. Pass values and labels as props (common/src/ds/README.md).'
+
+/** The design system is UI only: MUI is allowed, business code is not */
+const DS_IMPORT_RESTRICTIONS = {
+  paths: [
+    { name: 'jmap-client-ts', message: DS_BUSINESS_MESSAGE },
+    { name: 'react-router', message: DS_BUSINESS_MESSAGE },
+    { name: 'twake-i18n', message: DS_BUSINESS_MESSAGE }
+  ],
+  patterns: [
+    {
+      group: [
+        'jmap-client-ts/**',
+        'react-router/**',
+        'react-router-dom',
+        'twake-i18n/**',
+        '@tanstack/*',
+        '@tanstack/*/**',
+        '@injected/*',
+        '**/features',
+        '**/features/**',
+        '**/jmap',
+        '**/jmap/**',
+        '**/app',
+        '**/app/**',
+        '**/config',
+        '**/config/**',
+        '**/i18n',
+        '**/i18n/**'
+      ],
+      message: DS_BUSINESS_MESSAGE
+    },
+    ...COMMON_IMPORT_PATTERNS
+  ]
+}
+
+const SX_SYNTAX = {
+  selector: 'JSXAttribute[name.name="sx"]',
+  message:
+    'No sx outside the design system: use twake-mui props, twake-css classes, or a @/ds/ component.'
 }
 
 const FORBIDDEN_SYNTAX = [
@@ -42,10 +105,6 @@ const FORBIDDEN_SYNTAX = [
   {
     selector: 'JSXAttribute[name.name="style"]',
     message: 'No inline style: use twake-mui props or twake-css classes.'
-  },
-  {
-    selector: 'JSXAttribute[name.name="sx"]',
-    message: 'No sx: use twake-mui props or twake-css classes.'
   },
   {
     selector:
@@ -125,6 +184,16 @@ export default defineConfig(
       eqeqeq: ['error', 'always'],
       'no-console': ['error', { allow: ['info', 'warn', 'error'] }],
       'no-restricted-imports': ['error', UI_IMPORT_RESTRICTIONS],
+      'no-restricted-syntax': ['error', ...FORBIDDEN_SYNTAX, SX_SYNTAX]
+    }
+  },
+
+  {
+    // Flat config replaces rule options, it does not merge them: both
+    // rules are restated whole for the design system
+    files: DS_FILES,
+    rules: {
+      'no-restricted-imports': ['error', DS_IMPORT_RESTRICTIONS],
       'no-restricted-syntax': ['error', ...FORBIDDEN_SYNTAX]
     }
   },

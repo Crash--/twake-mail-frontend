@@ -25,12 +25,17 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
   `@mui/material`, `@mui/lab` or `@mui/icons-material` directly (ESLint
   enforces it): twake-mui re-exports MUI. Icons come from
   `@linagora/twake-icons`.
-- No `sx`, no `style`, no local MUI override, no custom CSS: plain components
-  with their standard API. If layout truly needs it, use twake-css classes
-  (`u-flex`, `u-p-1`, `u-h-100`…).
-- When twake-mui lacks a component or variant, use the closest existing one
-  and record the gap in `docs/twake-mui-gaps.md` (component, variant,
-  intended usage). Do not work around it with raw MUI.
+- Outside `@/ds/`: no `sx`, no `style`, no `styled`, no local MUI override,
+  no custom CSS: plain components with their standard API. If layout truly
+  needs it, use twake-css classes (`u-flex`, `u-p-1`, `u-h-100`…).
+- When twake-mui lacks a component or variant, build it in the local design
+  system `common/src/ds/`, imported as `@/ds/<Component>/<Component>`: the
+  only place where raw MUI, `sx` and `styled` are allowed, and where no
+  business logic is (no JMAP, TanStack Query, router, i18n, nor import from
+  `features/`, `jmap/`, `app/`, `config/`); labels and values come as props.
+  Rules: [`common/src/ds/README.md`](common/src/ds/README.md). Record the
+  gap in `docs/twake-mui-gaps.md` (component, variant, intended usage, where
+  it is implemented, the twake-ui change it calls for).
 - All user-facing strings are translated from the start, in the four locales
   (en, fr, ru, vi). Reuse tmail-flutter translations when they exist: see
   `docs/i18n.md`.
@@ -55,7 +60,8 @@ In short:
   error }`; `throw` only for broken invariants.
 - `async`/`await`, fire-and-forget promises get a `.catch()`.
 - Imports: external, then Twake/internal packages, then local. Use the
-  aliases `@/` (app), `@common/` and `@injected/`. No barrel files.
+  aliases `@/` (app), `@/ds/` (design system, in `common/src/ds/`),
+  `@common/` and `@injected/`. No barrel files.
 - `window.location` only for external URLs (SSO); in-app navigation goes
   through react-router.
 

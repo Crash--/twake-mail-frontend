@@ -83,11 +83,76 @@ function isDefaultBackground(value: string): boolean {
   )
 }
 
+/** Styles that say "nothing special" */
+function isNeutral(name: string, value: string): boolean {
+  const trimmed = value.trim().toLowerCase()
+  if (name === 'font-weight')
+    return trimmed === 'normal' || Number(trimmed) < 600
+  if (name === 'font-style') return trimmed === 'normal'
+  if (name.startsWith('text-decoration'))
+    return !/underline|line-through/.test(trimmed)
+  if (name === 'text-align')
+    return ['start', 'left', 'initial', '-webkit-match-parent'].includes(
+      trimmed
+    )
+  return false
+}
+
+/** Bold, italic, underline and strike as elements, the way the editor writes them */
+const SEMANTIC_STYLES: {
+  test: (style: CSSStyleDeclaration) => boolean
+  tag: string
+}[] = [
+  {
+    test: style =>
+      Number(style.fontWeight) >= 600 || style.fontWeight.includes('bold'),
+    tag: 'strong'
+  },
+  { test: style => style.fontStyle === 'italic', tag: 'em' },
+  {
+    test: style =>
+      (style.textDecoration || style.textDecorationLine).includes('underline'),
+    tag: 'u'
+  },
+  {
+    test: style =>
+      (style.textDecoration || style.textDecorationLine).includes(
+        'line-through'
+      ),
+    tag: 's'
+  }
+]
+
+function wrapSemantics(element: HTMLElement): void {
+  if (
+    element.tagName === 'A' ||
+    element.tagName === 'LI' ||
+    element.tagName === 'P'
+  )
+    return
+  for (const { test, tag } of SEMANTIC_STYLES) {
+    if (!test(element.style)) continue
+    const wrapper = element.ownerDocument.createElement(tag)
+    wrapper.append(...Array.from(element.childNodes))
+    element.append(wrapper)
+  }
+  ;[
+    'font-weight',
+    'font-style',
+    'text-decoration',
+    'text-decoration-line'
+  ].forEach(name => {
+    element.style.removeProperty(name)
+  })
+}
+
 function cleanStyle(element: HTMLElement): void {
+  wrapSemantics(element)
   const declarations: string[] = []
   for (const name of Array.from(element.style)) {
     if (!KEPT_STYLES.has(name)) continue
     const value = element.style.getPropertyValue(name)
+    if (isNeutral(name, value)) continue
     if (name === 'color' && isDefaultTextColor(value)) continue
     if (name === 'background-color' && isDefaultBackground(value)) continue
     declarations.push(`${name}: ${value}`)
@@ -237,6 +302,15 @@ export function cleanPastedHtml(html: string): string {
 
   rebuildWordLists(body)
 
+  // Headings would come out at the size of each mail client: bold lines
+  body.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+    const paragraph = document.createElement('p')
+    const strong = document.createElement('strong')
+    strong.append(...Array.from(heading.childNodes))
+    paragraph.append(strong)
+    heading.replaceWith(paragraph)
+  })
+
   // Google Docs: the fragment is wrapped in a bold that is not bold
   body
     .querySelectorAll<HTMLElement>('b[id^="docs-internal-guid"]')
@@ -252,6 +326,25 @@ export function cleanPastedHtml(html: string): string {
     } else {
       unwrap(font)
     }
+  })
+
+  // Links get the editor's link style: the colour and underline the source
+  // gave them (on the link, inside it or around it) go
+  body.querySelectorAll('a').forEach(link => {
+    const wrappers = [
+      link,
+      ...Array.from(link.querySelectorAll<HTMLElement>('span')),
+      ...(link.parentElement?.tagName === 'SPAN' &&
+      link.parentElement.childNodes.length === 1
+        ? [link.parentElement]
+        : [])
+    ]
+    wrappers.forEach(element => {
+      element.style.removeProperty('color')
+      element.style.removeProperty('text-decoration')
+      element.style.removeProperty('text-decoration-line')
+      if (element.getAttribute('style') === '') element.removeAttribute('style')
+    })
   })
 
   body.querySelectorAll<HTMLElement>('*').forEach(element => {

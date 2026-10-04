@@ -5,6 +5,7 @@
 import { Box } from '@linagora/twake-mui'
 import { Extension, type AnyExtension } from '@tiptap/core'
 import FileHandler from '@tiptap/extension-file-handler'
+import { TableKit } from '@tiptap/extension-table'
 import TextAlign from '@tiptap/extension-text-align'
 import { TextStyleKit } from '@tiptap/extension-text-style'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
@@ -164,6 +165,8 @@ export function RichTextEditor({
       }),
       TextStyleKit.configure({ fontFamily: false, lineHeight: false }),
       TextAlign.configure({ types: ['paragraph'] }),
+      // Tables pasted from a spreadsheet or a page keep their cells
+      TableKit.configure({ table: { resizable: false } }),
       InlineImage,
       HtmlBlock.configure(htmlBlock ?? {}),
       // The extensions read the ref in event handlers only, never while

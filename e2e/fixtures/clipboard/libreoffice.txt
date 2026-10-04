@@ -1,0 +1,5 @@
+Titre LibreOffice
+Texte rouge centré
+• Puce un
+• Puce deux
+1. Numéro un

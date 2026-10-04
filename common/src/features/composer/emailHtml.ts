@@ -18,6 +18,8 @@ const SIGNATURE_STYLE = 'clear: both; display: block;'
 
 const LIST_STYLE = 'margin:0 0 0 0;padding-left:24px;'
 const IMAGE_STYLE = 'max-width:100%;'
+const TABLE_STYLE = 'border-collapse:collapse;'
+const CELL_STYLE = 'border:1px solid #ccc;padding:4px 8px;vertical-align:top;'
 
 const HTML_BLOCK_SELECTOR = '[data-html-block]'
 
@@ -83,6 +85,15 @@ export function toEmailHtml(editorHtml: string): string {
   }
   for (const list of editorElements(root, 'ul, ol')) {
     appendStyle(list, LIST_STYLE)
+  }
+  for (const table of editorElements(root, 'table')) {
+    appendStyle(table, TABLE_STYLE)
+    table.querySelectorAll('colgroup').forEach(group => group.remove())
+  }
+  for (const cell of editorElements(root, 'td, th')) {
+    appendStyle(cell, CELL_STYLE)
+    cell.removeAttribute('colspan')
+    cell.removeAttribute('rowspan')
   }
   for (const quote of editorElements(root, 'blockquote')) {
     appendStyle(quote, BLOCKQUOTE_STYLE)

@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes. The avatar menu with the identity of the user
 // and "Sign out" is the same in every Twake app; twake-mui has the avatar
 // and the menu, not the account menu.
-import { Icon, Logout } from '@linagora/twake-icons'
+import { Icon, Logout, type IconProps } from '@linagora/twake-icons'
 import {
   Avatar,
   Divider,
@@ -23,6 +23,13 @@ export interface AccountMenuTestIds {
   logout?: string
 }
 
+export interface AccountMenuItem {
+  label: string
+  icon: IconProps['icon']
+  onClick: () => void
+  'data-testid'?: string
+}
+
 export interface AccountMenuProps {
   /** Display name, null when unknown: the email is shown instead */
   name: string | null
@@ -31,6 +38,8 @@ export interface AccountMenuProps {
   label: string
   logoutLabel: string
   onLogout: () => void
+  /** More items, between the identity and sign out */
+  items?: readonly AccountMenuItem[]
   testIds?: AccountMenuTestIds
 }
 
@@ -44,6 +53,7 @@ export function AccountMenu({
   label,
   logoutLabel,
   onLogout,
+  items = [],
   testIds = {}
 }: AccountMenuProps): ReactElement {
   const menuId = useId()
@@ -93,6 +103,21 @@ export function AccountMenu({
           />
         </ListItem>
         <Divider />
+        {items.map(item => (
+          <MenuItem
+            key={item.label}
+            onClick={() => {
+              setAnchor(null)
+              item.onClick()
+            }}
+            data-testid={item['data-testid']}
+          >
+            <ListItemIcon>
+              <Icon icon={item.icon} />
+            </ListItemIcon>
+            <ListItemText primary={item.label} />
+          </MenuItem>
+        ))}
         <MenuItem onClick={handleLogout} data-testid={testIds.logout}>
           <ListItemIcon>
             <Icon icon={Logout} />

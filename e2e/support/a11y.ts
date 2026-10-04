@@ -81,7 +81,7 @@ interface ReportedViolation {
 }
 
 /**
- * Runs axe (WCAG 2.0 / 2.1, A and AA) on the page as it is, and fails with the list of
+ * Runs axe (WCAG 2.0 / 2.1, A and AA) on the page once its transitions are over, and fails with the list of
  * violations: rule, impact, offending elements. Call it once the screen under test is
  * rendered. Frames are not entered: the only frame of the app is the sandboxed email body,
  * which runs no script (axe cannot run in it) and holds the sender's content, not ours; the
@@ -91,6 +91,17 @@ export async function expectNoA11yViolations(
   page: Page,
   { known = TWAKE_MUI_KNOWN_VIOLATIONS }: A11yOptions = {}
 ): Promise<void> {
+  // Colours measured mid-transition (a dialog fading in) are not the ones read;
+  // endless animations (spinners) never end
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every(
+        animation =>
+          animation.playState !== 'running' ||
+          animation.effect?.getTiming().iterations === Infinity
+      )
+  )
   const { violations } = await new AxeBuilder({ page })
     .setLegacyMode(true)
     .options({

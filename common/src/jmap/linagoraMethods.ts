@@ -45,6 +45,15 @@ export interface MailboxClearResponse {
 }
 
 declare module 'jmap-client-ts' {
+  interface Mailbox {
+    /**
+     * James shares extension (`urn:apache:james:params:jmap:mail:shares`):
+     * `Personal`, or `TeamMailbox[team@domain]` / `Delegated[user@domain]`
+     * for the mailboxes shared with the user; absent without the extension
+     */
+    namespace?: string | null
+  }
+
   interface JmapMethods {
     'Mailbox/clear': {
       // tmail-backend also asks for the mail capability

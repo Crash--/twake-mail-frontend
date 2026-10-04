@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { JmapClient, Mailbox } from 'jmap-client-ts'
+import type { JmapClient, Mailbox, PickProperties } from 'jmap-client-ts'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 
@@ -22,10 +22,37 @@ export const MAILBOX_PROPERTIES = [
   'sortOrder',
   'totalEmails',
   'unreadEmails',
-  'myRights'
+  'myRights',
+  'isSubscribed',
+  'namespace'
 ] as const
 
-export type MailboxSummary = Pick<Mailbox, (typeof MAILBOX_PROPERTIES)[number]>
+export type MailboxSummary = PickProperties<
+  Mailbox,
+  (typeof MAILBOX_PROPERTIES)[number]
+>
+
+/**
+ * A mailbox as the app reads it: James leaves out the properties without a
+ * value (`role` of a personal folder, `namespace` without the shares
+ * extension), which the app reads as null; a mailbox without
+ * `isSubscribed` is subscribed.
+ */
+type OftenLeftOut = 'role' | 'parentId' | 'namespace' | 'isSubscribed'
+
+/** A mailbox as James may send it */
+export type RawMailbox = Omit<MailboxSummary, OftenLeftOut> &
+  Partial<Pick<MailboxSummary, OftenLeftOut>>
+
+export function normalizeMailbox(mailbox: RawMailbox): MailboxSummary {
+  return {
+    ...mailbox,
+    role: mailbox.role ?? null,
+    parentId: mailbox.parentId ?? null,
+    namespace: mailbox.namespace ?? null,
+    isSubscribed: mailbox.isSubscribed ?? true
+  }
+}
 
 /** Every mailbox of the account, and the `Mailbox` state they are up to date with */
 export interface MailboxListData {
@@ -62,7 +89,10 @@ export function mailboxesQueryOptions(
         { accountId, ids: null, properties: [...MAILBOX_PROPERTIES] },
         { signal }
       )
-      return { state: response.state, list: response.list }
+      return {
+        state: response.state,
+        list: response.list.map(normalizeMailbox)
+      }
     }
   })
 }

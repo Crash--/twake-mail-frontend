@@ -6,6 +6,7 @@ import { emailKeys, type EmailDetail } from '@common/features/email/queries'
 import { patchMailboxes } from '@common/features/mailbox/patchMailboxes'
 import {
   mailboxKeys,
+  normalizeMailbox,
   type MailboxListData
 } from '@common/features/mailbox/queries'
 import {
@@ -347,7 +348,7 @@ export function createPushSync(
           data =>
             data
               ? patchMailboxes(data, {
-                  changed: changes.changed,
+                  changed: changes.changed.map(normalizeMailbox),
                   destroyed: changes.destroyed,
                   oldState: changes.sinceState,
                   newState: changes.newState

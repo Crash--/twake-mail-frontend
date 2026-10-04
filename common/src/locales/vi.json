@@ -111,7 +111,8 @@
       "allInFolderSelected": "Đã chọn tất cả %{smart_count} thư trong thư mục này",
       "clear": "Bỏ chọn",
       "toolbar": "Thao tác với mục đã chọn"
-    }
+    },
+    "me": "Tôi"
   },
   "push": {
     "newMessages": "Bạn có tin nhắn mới"

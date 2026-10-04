@@ -111,7 +111,8 @@
       "allInFolderSelected": "Le message de ce dossier est sélectionné |||| Les %{smart_count} messages de ce dossier sont sélectionnés",
       "clear": "Tout désélectionner",
       "toolbar": "Actions sur la sélection"
-    }
+    },
+    "me": "Moi"
   },
   "push": {
     "newMessages": "Vous avez de nouveaux messages"

@@ -111,7 +111,8 @@
       "allInFolderSelected": "All %{smart_count} message in this folder is selected |||| All %{smart_count} messages in this folder are selected",
       "clear": "Clear the selection",
       "toolbar": "Selection actions"
-    }
+    },
+    "me": "Me"
   },
   "push": {
     "newMessages": "You have new messages"

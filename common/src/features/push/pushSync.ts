@@ -28,7 +28,9 @@ export const SYNCED_TYPES: readonly SyncedType[] = ['Email', 'Mailbox']
 
 /**
  * Distinct `Email` states the cached lists may be at before the changes are
- * given up for a refetch (one `Email/changes` each)
+ * given up for a refetch (one `Email/changes` each). A round holds 3 calls
+ * per state plus 3 for the mailboxes: 15, within the 16 `maxCallsInRequest`
+ * of James.
  */
 const MAX_EMAIL_STATES = 4
 
@@ -96,8 +98,9 @@ function mergeEmailChanges(
  * - a list or the mailboxes landing in the cache at another state than the
  *   last one known (a page fetched while a patch was applied, or before a
  *   change was pushed) start another one;
- * - when the changes cannot be computed, the email lists are cut to their
- *   first page and refetched, the mailboxes refetched.
+ * - when the changes cannot be computed, the email lists at the states that
+ *   failed are cut to their first page and refetched, the mailboxes
+ *   refetched.
  */
 export function createPushSync(
   queryClient: QueryClient,
@@ -163,25 +166,41 @@ export function createPushSync(
       .catch(logError)
   }
 
-  /** The changes cannot be computed: first pages and opened emails again */
-  function refetchEmails(): void {
-    for (const key of emailListKeys()) {
+  /**
+   * The changes cannot be computed from the states of these lists: their
+   * first page again, and the opened emails
+   */
+  function refetchEmailLists(keys: readonly QueryKey[]): void {
+    for (const key of keys) {
       queryClient.setQueryData<EmailListData>(key, data =>
         data ? keepFirstPage(data) : data
       )
+      queryClient
+        .invalidateQueries({ queryKey: key, exact: true })
+        .catch(logError)
     }
-    queryClient
-      .invalidateQueries({ queryKey: threadKeys.all(accountId) })
-      .catch(logError)
     refetchEmailDetails()
   }
 
-  function applyEmailChanges(changes: EmailChanges): void {
+  /**
+   * Patches the lists, except those holding a page at a state whose changes
+   * failed: those are refetched, the others keep their loaded pages
+   */
+  function applyEmailChanges(
+    changes: EmailChanges,
+    failedStates: ReadonlySet<string>
+  ): void {
+    const failedLists: QueryKey[] = []
     for (const key of emailListKeys()) {
       const mailboxId = mailboxIdOfList(key, accountId)
-      if (mailboxId === null) continue
-      queryClient.setQueryData<EmailListData>(key, data =>
-        data ? patchEmailList(data, mailboxId, changes) : data
+      const data = queryClient.getQueryData<EmailListData>(key)
+      if (mailboxId === null || data === undefined) continue
+      if (data.pages.some(page => failedStates.has(page.state))) {
+        failedLists.push(key)
+        continue
+      }
+      queryClient.setQueryData<EmailListData>(key, current =>
+        current ? patchEmailList(current, mailboxId, changes) : current
       )
     }
     for (const [key] of queryClient.getQueriesData<EmailDetail | null>({
@@ -191,6 +210,7 @@ export function createPushSync(
         detail === undefined ? detail : patchEmailDetail(detail, changes)
       )
     }
+    if (failedLists.length > 0) refetchEmailLists(failedLists)
   }
 
   async function synchronize(types: ReadonlySet<SyncedType>): Promise<void> {
@@ -200,7 +220,7 @@ export function createPushSync(
     let emailStates = types.has('Email') ? [...emailListStates()] : []
     if (types.has('Email') && emailStates.length === 0) refetchEmailDetails()
     if (emailStates.length > MAX_EMAIL_STATES) {
-      refetchEmails()
+      refetchEmailLists(emailListKeys())
       emailStates = []
     }
     if (mailboxes === undefined && emailStates.length === 0) return
@@ -234,12 +254,15 @@ export function createPushSync(
 
     if (emailStates.length > 0) {
       const branches = result.email.filter(branch => branch !== null)
+      const failedStates = new Set(
+        emailStates.filter((_state, index) => result.email[index] === null)
+      )
       const last = branches[branches.length - 1]
-      if (branches.length < result.email.length || last === undefined) {
-        refetchEmails()
+      if (last === undefined) {
+        refetchEmailLists(emailListKeys())
       } else {
         latest.Email = last.newState
-        applyEmailChanges(mergeEmailChanges(branches))
+        applyEmailChanges(mergeEmailChanges(branches), failedStates)
       }
     }
   }

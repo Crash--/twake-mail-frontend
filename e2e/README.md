@@ -217,7 +217,6 @@ e2e/
 ├── e2e.md                    backlog: one line per Patrol test, stable IDs
 ├── playwright.config.ts
 ├── package.json              standalone package (Node 24, @playwright/test 1.63)
-├── ci/e2e.yml                GitHub Actions job (to move to .github/workflows/)
 ├── docker/
 │   ├── docker-compose.yaml   project twakemail-e2e
 │   ├── james/                tmail-backend configuration (from tmail-flutter backend-docker/)
@@ -245,7 +244,7 @@ e2e/
 
 ## CI
 
-[`.github/workflows/e2e.yml`](ci/e2e.yml): builds the app, starts the stack with `E2E_APP_DIR` pointing to
+[`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml): builds the app, starts the stack with `E2E_APP_DIR` pointing to
 `apps/private/dist`, runs the suite on Chromium, publishes the HTML report (always) and the
 traces, videos and backend logs (on failure), and a JUnit summary. Run manually with `oidc`
 checked to add Dex and the OIDC specs.

@@ -11,7 +11,8 @@ const ESM_PACKAGES = [
   '@linagora/twake-css',
   'openid-client',
   'oauth4webapi',
-  'jose'
+  'jose',
+  'jmap-client-ts'
 ]
 
 const transform: Config['transform'] = {

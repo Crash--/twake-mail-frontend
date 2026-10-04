@@ -24,6 +24,12 @@ export interface PageMarks {
   firstRow: number | null
   bodyShown: number | null
   lastClick: number | null
+  subjectShown: number | null
+  subjectFocused: number | null
+  rowFocused: number | null
+  /** View transitions started since the page loaded */
+  transitions: number
+  transitionEnd: number | null
   longTasks: [number, number][]
 }
 
@@ -32,7 +38,9 @@ export async function readMarks(page: Page): Promise<PageMarks> {
 }
 
 export async function resetMarks(page: Page): Promise<void> {
-  await page.evaluate('window.__perf.firstRow = null; window.__perf.bodyShown = null')
+  await page.evaluate(
+    'Object.assign(window.__perf, { firstRow: null, bodyShown: null, subjectShown: null, subjectFocused: null, rowFocused: null, transitionEnd: null })'
+  )
 }
 
 /** One JMAP API call seen by the browser */

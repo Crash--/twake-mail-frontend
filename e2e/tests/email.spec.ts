@@ -1,4 +1,5 @@
 import { LoginPage } from '../pages'
+import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
 const SENTENCE =
@@ -19,6 +20,7 @@ test.describe('EML reading an email', () => {
     await expect(email.body()).toContainText(SENTENCE)
     await expect(email.from).toContainText(user.email)
     await expect(email.to).toContainText(user.email)
+    await expectNoA11yViolations(page)
   })
 
   test('EML-03 a script in an email body never runs', async ({

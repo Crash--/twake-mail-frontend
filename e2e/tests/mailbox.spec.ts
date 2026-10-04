@@ -1,4 +1,5 @@
 import { LoginPage } from '../pages'
+import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
 test.describe('MBX mailbox and folders', () => {
@@ -26,6 +27,7 @@ test.describe('MBX mailbox and folders', () => {
     await mailbox.openFolder({ role: 'sent' })
     await expect(mailbox.emailRow('sent subject')).toHaveCount(1)
     await expect(mailbox.emailRow('trash subject')).toHaveCount(0)
+    await expectNoA11yViolations(page)
 
     await mailbox.openFolder({ role: 'trash' })
     await expect(mailbox.emailRow('trash subject')).toHaveCount(1)

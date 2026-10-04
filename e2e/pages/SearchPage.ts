@@ -135,6 +135,16 @@ export class SearchPage {
     })
   }
 
+  /** Every result row */
+  resultRows(): Locator {
+    return this.emailList.getByTestId('email-list-item')
+  }
+
+  /** The number of messages a conversation found shows, "(3)" */
+  resultThreadCount(row: Locator): Locator {
+    return row.getByTestId('email-list-item-thread-count')
+  }
+
   /** The subjects of the results, in their order */
   async resultSubjects(): Promise<string[]> {
     return this.emailList.getByTestId('email-list-item-subject').allInnerTexts()

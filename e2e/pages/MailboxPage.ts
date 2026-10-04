@@ -287,6 +287,16 @@ export class MailboxPage {
     return this
   }
 
+  /** The subjects of the rows, in their order */
+  async emailSubjects(): Promise<string[]> {
+    return this.emailList.getByTestId('email-list-item-subject').allInnerTexts()
+  }
+
+  /** The sender of a row, or the participants of a conversation */
+  emailRowSender(subject: string): Locator {
+    return this.emailRow(subject).getByTestId('email-list-item-sender')
+  }
+
   /** Star toggle of a list row (`aria-pressed` when starred) */
   emailRowStar(subject: string): Locator {
     return this.emailRow(subject).getByTestId('email-list-item-star')

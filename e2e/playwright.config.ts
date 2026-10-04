@@ -18,11 +18,12 @@ function traceMode(raw: string | undefined): TraceMode {
 
 /**
  * What the phone and tablet projects replay: the main path (log in, change
- * folder, read, keyboard only) and the responsive scenarios. The rest of the
+ * folder, read, keyboard only), the responsive scenarios, and the specs
+ * tagged `@mobile` (`test('EML-06 …', { tag: '@mobile' }, …)`). The rest of the
  * suite tests behaviours that do not depend on the screen size.
  */
 const RESPONSIVE_SPECS =
-  /LOGIN-01|MBX-05|EML-01|EML-29|A11Y-01|RESP-|SRCH-01|SRCH-03|SRCH-13|THR-01|THR-02/
+  /LOGIN-01|MBX-05|EML-01|EML-29|A11Y-01|RESP-|SRCH-01|SRCH-03|SRCH-13|THR-01|THR-02|@mobile/
 
 function workers(raw: string | undefined): number | undefined {
   const parsed = Number(raw)

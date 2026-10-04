@@ -67,6 +67,7 @@ Conventions:
 | `mailbox-item-name` | the folder name inside the row | — |
 | `mailbox-unread-count` | unread badge inside the row (absent when 0) | — |
 | `mailbox-expand-button` | expand / collapse arrow | — |
+| `mailbox-toggle-slot` | room of the expand arrow, only when some folder has subfolders | — |
 | `mailbox-more-button` | ⋮ button shown on hover | `UiKeys.mailboxMoreActionButton` |
 | `mailbox-context-menu` | folder actions menu (⋮ or right-click) | — |
 | `add-new-folder-button` | "+" new folder in the "Folders" header | `UiKeys.addNewFolderButton` |
@@ -87,14 +88,20 @@ Conventions:
 | `unread-status-icon` | unread marker of the row | `UiKeys.unreadStatusIcon` |
 | `email-list-item-star` | star toggle (`aria-pressed`) | — |
 | `email-list-item-toggle-seen` | "Mark as read" / "Mark as unread", shown on row hover or focus | — |
-| `email-list-item-checkbox` | selection checkbox | `UiKeys.tabletEmailSelectionAvatar` |
+| `email-list-item-remove` | "Move to trash" / "Delete permanently" (Trash, Spam, Drafts), shown on row hover or focus | `move_to_trash` hover action |
+| `email-list-item-more` | ⋮ opening the actions menu of the row (wide list) | `more` hover action |
+| `email-context-menu` | the actions menu of a row: ⋮, right click, menu key or Shift+F10; items `email-action-<action>` | — |
+| `email-list-item-checkbox` | selection checkbox (Shift+click selects a range) | `UiKeys.tabletEmailSelectionAvatar` |
 | `important-flag-icon` | "important" marker | `important_flag_icon` |
 | `empty-thread-view` | empty folder view | `UiKeys.emptyThreadView` |
 | `quick-filter-attachments` / `quick-filter-unread` / `quick-filter-starred` | quick filters | `attachments_filter`, `unread_filter`, `starred_filter` |
 | `scroll-to-top-button` | floating "back to top" button | `ScrollToTopButtonWidget` |
-| `selection-toolbar` | toolbar shown when emails are selected | — |
-| `selected-email-action-<action>` | its buttons: `mark-as-read`, `mark-as-unread`, `star`, `move-to-trash`, `move-to-spam`, `move`, `more` | `<action>_selected_email_button` |
-| `empty-trash-banner` | "Empty trash now" / "Delete all spam emails now" banner | `empty_trash_banner`, `UiKeys.cleanMessageBannerNotVisible` |
+| `selection-toolbar` | toolbar shown when emails are selected (a `section` named "Selection actions") | — |
+| `selection-toolbar-count` / `selection-toolbar-select-all` / `selection-toolbar-select-folder` / `selection-toolbar-clear` | "N selected" (`role="status"`), the select all checkbox, "Select all N messages in this folder", clear | — |
+| `selected-email-action-<action>` | its buttons, by `EmailActionId`: `not-spam`, `move-to-trash`, `delete-permanently`, `archive`, `mark-as-read`, `mark-as-unread`, `star`, `unstar`, `move`, `mark-as-spam`; `more` on phones (menu `selection-toolbar-menu`) | `<action>_selected_email_button` |
+| `empty-trash-banner` / `empty-trash-banner-button` | "Empty trash now" / "Delete all spam emails now" banner and its button | `empty_trash_banner`, `UiKeys.cleanMessageBannerNotVisible` |
+| `mailbox-picker` / `mailbox-picker-search-input` / `mailbox-picker-list` / `mailbox-picker-item` / `mailbox-picker-close-button` | the folder picker ("Move To"): a filter field (`role="combobox"`) driving a list box of folders | `destination_picker` |
+| `new-emails-status` | live region announcing the emails pushed into the list | — |
 
 ### Reading an email
 
@@ -112,8 +119,11 @@ Conventions:
 | `attachment-item` | one attachment chip (name as text) | `AttachmentItemWidget` |
 | `download-all-attachments-button` | "Download all" | `UiKeys.downloadAllAttachmentsButton` |
 | `reply-email-button` / `reply-all-emails-button` / `reply-to-list-email-button` / `forward-email-button` | reply actions | same keys, kebab-cased |
-| `email-view-more-button` | "more" menu | `email_detailed_more_button` |
-| `email-action-<action>` | its items: `mark-as-unread`, `star`, `unstar`, `move`, `move-to-trash`, `mark-as-spam`, `archive`, `label-as` | `markAsStarred_action`, `moveToSpam_action`, `labelAs_action`… |
+| `email-view-actions` | the actions beside the back button | — |
+| `email-view-star-button` | star toggle (`aria-pressed`) | — |
+| `email-view-action-<action>` | the main actions as buttons, not on phones: `archive`, `move-to-trash` / `delete-permanently`, `mark-as-unread`, `move`, `mark-as-spam` / `not-spam` | — |
+| `email-view-more-button` / `email-view-menu` | "more" button and its menu, holding every action | `email_detailed_more_button` |
+| `email-action-<action>` | the items of every email actions menu: `not-spam`, `move-to-trash`, `delete-permanently`, `archive`, `mark-as-read`, `mark-as-unread`, `star`, `unstar`, `move`, `mark-as-spam` (`label-as` later) | `markAsStarred_action`, `moveToSpam_action`, `labelAs_action`… |
 | `delete-thread-button` | delete the whole thread | `delete_thread_button` |
 | `email-address` / `email-address-dialog` | clickable address and its dialog (copy, compose, create rule) | `copy_email_address`, `email_address_dialog_close_button` |
 | `calendar-event-card` | iMIP invitation card | `CalendarEventCardWidget` |
@@ -175,5 +185,8 @@ Conventions:
 | `settings-menu-<section>` (`preferences`, `profiles`, `email-rules`, `language-region`) | settings navigation | `setting_preferences`, `setting_profiles`, `setting_email_rules`, `setting_language_region` |
 | `create-rule-button` / `email-rule-item` / `email-rule-edit-button` | email rules | `UiKeys.createRuleButton`, `editEmailRuleButton_<name>` |
 | `label-item` / `add-new-label-button` / `label-modal` / `label-name-input` / `label-save-button` | labels | `UiKeys.addNewLabelButton`, `create_new_label_modal`, `label_name_input_field`, `save_label_button_action` |
-| `confirm-dialog` / `confirm-dialog-confirm-button` / `confirm-dialog-cancel-button` | confirmation dialogs | `confirm_dialog_action` |
-| `toast` | snackbar / toast (`role="status"`) | — |
+| `confirm-dialog` / `confirm-dialog-confirm-button` / `confirm-dialog-cancel-button` | confirmation dialogs (the focus starts on Cancel) | `confirm_dialog_action` |
+| `toast` | the toast shown (`data-severity`); its message is announced by live regions always in the page (`role="status"`, `role="alert"` for errors) | — |
+| `toast-undo-button` / `toast-retry-button` / `toast-close-button` | its action ("Undo" after an action, "Retry" after a failure) and close | — |
+| `shortcuts-dialog` / `shortcuts-enabled-switch` / `shortcuts-dialog-close-button` | keyboard shortcuts list (`?`), the switch turning them off | `keyboardShortcuts` setting |
+| `shortcuts-menu-item` | "Keyboard shortcuts" in the account menu | — |

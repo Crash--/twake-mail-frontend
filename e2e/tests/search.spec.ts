@@ -1,4 +1,4 @@
-import { LoginPage, SearchPage } from '../pages'
+import { LoginPage, MailboxPage, SearchPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 import type { Email, JmapClient } from '../support/jmap'
@@ -443,26 +443,14 @@ test.describe('SRCH search', () => {
       .poll(async () => (await jmap.getEmail(email.id)).keywords.$seen)
       .toBe(true)
 
-    // TODO: archive from the selection toolbar once the email actions land
-    // (phase 2, lot A); meanwhile another client archives it, push brings it
+    // Archived from the selection toolbar: the result stays, in Archive
+    const mailbox = new MailboxPage(page)
+    await mailbox.selectEmail(subject)
+    await mailbox.runSelectionAction('archive')
     const archive = await jmap.findMailboxByRole('archive')
-    const inbox = await jmap.findMailboxByRole('inbox')
-    const accountId = await jmap.accountId()
-    await jmap.request([
-      [
-        'Email/set',
-        {
-          accountId,
-          update: {
-            [email.id]: {
-              [`mailboxIds/${inbox.id}`]: null,
-              [`mailboxIds/${archive.id}`]: true
-            }
-          }
-        },
-        'move'
-      ]
-    ])
+    await expect
+      .poll(async () => Object.keys((await jmap.getEmail(email.id)).mailboxIds))
+      .toEqual([archive.id])
 
     await expect(row.getByTestId('email-list-item-mailbox')).toContainText(
       'Archive'

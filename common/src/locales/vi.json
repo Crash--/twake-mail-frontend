@@ -276,6 +276,20 @@
       "message": "Bạn đang xoá tin nhắn vĩnh viễn. Bạn có tiếp tục không?",
       "titleMany": "Xoá tin nhắn vĩnh viễn",
       "messageMany": "Bạn đang xoá vĩnh viễn %{count} tin nhắn trong %{mailboxName}. Bạn có tiếp tục không?"
+    },
+    "menu": {
+      "unspam": "Không phải spam",
+      "removeFromSpam": "Xoá bỏ khỏi thư mục Spam",
+      "deletePermanently": "Xoá vĩnh viễn",
+      "moveMessage": "Di chuyển tin nhắn",
+      "move": "Di chuyển",
+      "more": "Thêm",
+      "markAsSpam": "Đánh dấu spam",
+      "moveToTrash": "Di chuyển tới Thùng rác",
+      "archive": "Lưu trữ tin nhắn",
+      "star": "Quan trọng",
+      "unstar": "Không quan trọng",
+      "label": "Thao tác với thư"
     }
   },
   "shortcuts": {

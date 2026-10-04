@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "rootDir": ".",
+    "outDir": "../.tsbuild/common",
+    "tsBuildInfoFile": "../.tsbuild/common.tsbuildinfo",
+    "paths": {
+      "@common/*": ["./src/*"],
+      "@injected/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "src/**/*.json", "*.ts"]
+}

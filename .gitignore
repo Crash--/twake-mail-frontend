@@ -1,0 +1,22 @@
+# dependencies
+**/node_modules
+
+# testing
+/coverage
+
+# production
+/dist
+/apps/*/dist
+
+# TypeScript build info and declaration output of `tsc -b`
+/.tsbuild
+*.tsbuildinfo
+
+# runtime configuration (copy the *.example.js files)
+public/.env.js
+public/appList.js
+
+.DS_Store
+npm-debug.log*
+.idea/
+.vscode/

@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "rootDir": ".",
+    "outDir": "../../.tsbuild/private",
+    "tsBuildInfoFile": "../../.tsbuild/private.tsbuildinfo",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@common/*": ["../../common/src/*"],
+      "@injected/*": ["./src/*", "../../common/src/*"]
+    }
+  },
+  "include": ["src", "*.ts", "../../common/src/**/*.d.ts"],
+  "references": [{ "path": "../../common" }]
+}

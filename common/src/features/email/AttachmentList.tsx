@@ -1,8 +1,8 @@
-import { Attachment, Download, Icon } from '@linagora/twake-icons'
-import { Box, Chip, Typography } from '@linagora/twake-mui'
+import { Box, Typography } from '@linagora/twake-mui'
 import type { EmailBodyPart } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 
+import { AttachmentChip } from '@/ds/AttachmentChip/AttachmentChip'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -52,15 +52,12 @@ export function AttachmentList({
             })
           }
           return (
-            <Chip
+            <AttachmentChip
               key={part.partId ?? part.blobId ?? index}
-              className="u-mr-half u-mb-half"
-              variant="outlined"
-              icon={<Icon icon={Attachment} />}
-              endIcon={<Icon icon={Download} />}
-              label={`${name} (${formatSize(part.size, lang)})`}
-              title={`${t('email.download')} ${name}`}
-              onClick={handleDownload}
+              name={name}
+              size={formatSize(part.size, lang)}
+              downloadLabel={t('email.download')}
+              onDownload={handleDownload}
               data-testid="attachment-item"
             />
           )

@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { lazy, Suspense, type ReactElement } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 
 import type { AppListEntry } from '@common/config/config'
@@ -13,11 +13,23 @@ import { AppLayout } from '@common/layout/AppLayout'
 import { EmailPage } from './features/mailbox/EmailPage'
 import { MailboxPage } from './features/mailbox/MailboxPage'
 
+// The composer spike and its editor load on demand, in their own chunk
+const SpikeComposerPage = lazy(() =>
+  import('./features/spike/SpikeComposerPage').then(module => ({
+    default: module.SpikeComposerPage
+  }))
+)
+
 export interface AppRoutesProps {
   apps: readonly AppListEntry[]
+  /** DEBUG: adds the spike routes */
+  debug?: boolean
 }
 
-export function AppRoutes({ apps }: AppRoutesProps): ReactElement {
+export function AppRoutes({
+  apps,
+  debug = false
+}: AppRoutesProps): ReactElement {
   return (
     <Routes>
       <Route path="/callback" element={<LoginCallbackPage />} />
@@ -38,6 +50,16 @@ export function AppRoutes({ apps }: AppRoutesProps): ReactElement {
             path="/mailbox/:mailboxId/email/:emailId"
             element={<EmailPage />}
           />
+          {debug ? (
+            <Route
+              path="/spike/composer"
+              element={
+                <Suspense fallback={null}>
+                  <SpikeComposerPage />
+                </Suspense>
+              }
+            />
+          ) : null}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Route>

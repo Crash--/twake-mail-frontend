@@ -79,5 +79,82 @@
   },
   "push": {
     "newMessages": "Bạn có tin nhắn mới"
+  },
+  "composer": {
+    "editor": {
+      "bold": "Đậm",
+      "italic": "Nghiên",
+      "underline": "Gạch chân",
+      "strike": "Gạch ngang",
+      "textColor": "Mầu chữ",
+      "fontSize": "Cỡ chữ",
+      "align": "Đoạn văn",
+      "alignLeft": "Căn trái",
+      "alignCenter": "Căn giữa",
+      "alignRight": "Căn phải",
+      "alignJustify": "Căn đều đầy đủ",
+      "bulletList": "Danh sách có dấu đầu dòng",
+      "orderedList": "Đánh số",
+      "link": "Gắn liên kết",
+      "insertImage": "Chèn ảnh",
+      "undo": "Hoàn tác",
+      "toolbar": "Định dạng",
+      "defaultColor": "Đặt lại về mặc định",
+      "redo": "Làm lại",
+      "blockquote": "Trích dẫn",
+      "clearFormatting": "Xóa định dạng",
+      "name": "Nội dung thư",
+      "keyboardHelp": "Tab thụt lề mục danh sách hoặc rời trình soạn thảo. Escape chuyển đến thanh định dạng. Ctrl+K chèn liên kết.",
+      "colors": {
+        "red": "Đỏ",
+        "orange": "Cam",
+        "green": "Xanh lá",
+        "blue": "Xanh dương",
+        "purple": "Tím",
+        "grey": "Xám"
+      },
+      "sizes": {
+        "small": "Nhỏ",
+        "normal": "Bình thường",
+        "large": "Lớn",
+        "huge": "Rất lớn"
+      }
+    },
+    "link": {
+      "text": "Nội dung",
+      "url": "Điền hoặc dán liên kết",
+      "apply": "Áp dụng",
+      "cancel": "Hủy",
+      "remove": "Gỡ liên kết",
+      "title": "Chèn liên kết"
+    },
+    "quote": {
+      "replyHeader": "Vào ngày %{sentDate}, từ %{emailAddress}",
+      "forwarded": "Chuyển tiếp tin nhắn",
+      "subject": "Tiêu đề",
+      "from": "Từ",
+      "to": "Đến",
+      "cc": "Cc",
+      "bcc": "Bcc",
+      "replyTo": "Trả lời",
+      "frameTitle": "Thư được trích dẫn",
+      "edit": "Sửa thư được trích dẫn",
+      "date": "Ngày"
+    },
+    "send": "Gửi",
+    "saveAsDraft": "Lưu nháp",
+    "draftSaved": "Đã lưu bản nháp",
+    "signature": "Chữ ký",
+    "spike": {
+      "title": "Bản thử trình soạn thư",
+      "from": "Từ",
+      "to": "Đến",
+      "subject": "Tiêu đề",
+      "sent": "Đã gửi thư",
+      "sendFailed": "Không thể gửi thư",
+      "html": "HTML gửi đi",
+      "text": "Phiên bản văn bản",
+      "restored": "Đã khôi phục trình soạn thư sau khi tải lại"
+    }
   }
 }

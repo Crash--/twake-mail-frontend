@@ -57,7 +57,7 @@ export function App({ config }: AppProps): ReactElement {
             sessionUrl={config.jmapSessionUrl}
           >
             <BrowserRouter>
-              <AppRoutes apps={config.appList} />
+              <AppRoutes apps={config.appList} debug={config.debug} />
             </BrowserRouter>
           </JmapClientProvider>
         </AuthProvider>

@@ -150,13 +150,11 @@ export class MailboxPage {
 
   /** The list row of an email, by exact subject */
   emailRow(subject: string): Locator {
-    return this.emailList
-      .getByTestId('email-list-item')
-      .filter({
-        has: this.page
-          .getByTestId('email-list-item-subject')
-          .getByText(subject, { exact: true })
-      })
+    return this.emailList.getByTestId('email-list-item').filter({
+      has: this.page
+        .getByTestId('email-list-item-subject')
+        .getByText(subject, { exact: true })
+    })
   }
 
   /** The link of a list row, which holds the focus of the row */
@@ -179,6 +177,27 @@ export class MailboxPage {
   async applyQuickFilter(filter: QuickFilter): Promise<MailboxPage> {
     await this.page.getByTestId(`quick-filter-${filter}`).click()
     return this
+  }
+
+  /**
+   * Switches the "Thread" setting (conversations), from the account menu
+   * until the settings screens exist
+   */
+  async setThreads(isEnabled: boolean): Promise<MailboxPage> {
+    await this.userAvatar.click()
+    const toggle = this.page.getByTestId('thread-setting-toggle')
+    if ((await toggle.getAttribute('aria-checked')) !== String(isEnabled)) {
+      await toggle.click()
+    }
+    await expect(toggle).toHaveAttribute('aria-checked', String(isEnabled))
+    await this.page.keyboard.press('Escape')
+    await expect(toggle).toBeHidden()
+    return this
+  }
+
+  /** The number of messages a conversation row shows, absent for one email */
+  emailRowThreadCount(subject: string): Locator {
+    return this.emailRow(subject).getByTestId('email-list-item-thread-count')
   }
 
   async compose(): Promise<ComposerPage> {

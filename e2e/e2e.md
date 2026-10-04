@@ -45,7 +45,7 @@ the React app. One line per Patrol test, 116 lines.
 |---|---|---|---|---|
 | `LOGIN` | Login | 1 | 1 | 0 |
 | `MBX` | Mailbox and folders | 25 | 3 | 2 |
-| `CMP` | Composer | 26 | 7 | 3 |
+| `CMP` | Composer | 33 | 7 | 3 |
 | `ATT` | Attachments | 2 | 1 | 0 |
 | `EML` | Reading and acting on an email | 27 | 0 | 1 |
 | `THR` | Thread detail | 3 | 0 | 0 |
@@ -57,7 +57,7 @@ the React app. One line per Patrol test, 116 lines.
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 1 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **116** | **24** | **6** |
+| | **Total** | **123** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -153,7 +153,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `MBX-30` A member of a team mailbox gets, on its root, only the actions the server rights allow (`myRights`: no rename, no delete; hide). — web app only, no Patrol test
   - Spec: `tests/folders.spec.ts`. Passes in CI.
 
-## CMP — Composer (26)
+## CMP — Composer (33)
 
 - [ ] `CMP-01` Compose a new email to self (bob) and alice with subject "Test subject" and body, send it, and the message is filed in the Sent mailbox (no send-failure confirm dialog appears). — `composer/send_email_test.dart` · tags: `android` `ios` `web`
   - Data: logged-in user `BASIC_AUTH_EMAIL` = bob@example.com, `ADDITIONAL_MAIL_RECIPIENT` = alice@example.com.
@@ -195,6 +195,13 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - N/A web: Android share intent (text share from another app). Web equivalent: none (would require Web Share Target in a PWA manifest).
 - [ ] `CMP-26` An external app sharing text with mimeType `text/html` opens the composer with the shared text as the body. — `composer/share_text_with_html_mimetype_opens_composer_test.dart` · tags: `android`
   - N/A web: Android share intent (text share from another app). Web equivalent: none (would require Web Share Target in a PWA manifest).
+- [ ] `CMP-27` On a desktop, composer windows sit at the bottom of the screen: Escape minimizes one to its title bar (which takes the focus and brings it back, the focus where it was), a second one opens next to it keeping what the first holds, full screen makes it a modal dialog where Escape closes it, asking to save the modified message ("Discard changes" saves nothing). — web app only, no Patrol test (tmail-flutter web has the modes, Patrol never drives them)
+- [ ] `CMP-28` A recipient field takes a pasted list (`a@b.c, Name <d@e.f>; wrong`), shows the invalid address as such in its accessible name, reaches its chips with Backspace or ArrowLeft, removes one with Delete and edits one with Enter, and suggests the contacts of the domain (`TMailContact/autocomplete`). — web app only, no Patrol test
+- [ ] `CMP-29` The formatting toolbar of the body is a single tab stop (arrows, Home, End move in it), Alt+F10 reaches it and Escape goes back to the text, Tab indents in a list or leaves the editor: no keyboard trap; tooltips repeat the button names. — web app only, no Patrol test (RGAA 12.9 / 7.1)
+- [ ] `CMP-30` An inline image is selected with the arrow keys (or a click), Enter opens its toolbar: 25 %, Larger and the status line resize it, the saved draft keeps the width, Remove takes it out; Escape goes back to the text. — web app only, no Patrol test (keyboard alternative to the resize handles, RGAA 7.1)
+- [ ] `CMP-31` With a signature, a click on it when the text ends with a list puts a new line between the list and the signature. — web app only, no Patrol test
+- [ ] `CMP-32` Pasting from Word, Google Docs, LibreOffice or a web page keeps real lists, bold, italic, chosen colours and links, without Office classes, fonts or default black; Ctrl+Shift+V pastes plain text. — web app only, no Patrol test
+- [ ] `CMP-33` `c` opens the composer with the focus in To, typing `c` there types it (no shortcut in the composer), and closing it gives the focus back to the email row it was opened from. — web app only, no Patrol test
 
 ## ATT — Attachments (2)
 

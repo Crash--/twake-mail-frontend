@@ -3,12 +3,19 @@ import { expect, type Locator, type Page } from '@playwright/test'
 export type RecipientField = 'to' | 'cc' | 'bcc' | 'reply-to'
 
 /**
- * The composer (new message, reply, forward, draft, template).
+ * The composer (new message, reply, forward, draft, template): a window of the dock at
+ * the bottom of the screen on a desktop (the newest is the first of the page), the whole
+ * screen on a phone.
  * Patrol counterparts: robots/composer_robot.dart, robots/web/web_composer_robot.dart.
  */
 export class ComposerPage {
   readonly page: Page
   readonly root: Locator
+  readonly toolbar: Locator
+  readonly recipientsSummary: Locator
+  readonly minimizeButton: Locator
+  readonly fullscreenButton: Locator
+  readonly identitySelect: Locator
   readonly subjectInput: Locator
   readonly editor: Locator
   readonly sendButton: Locator
@@ -17,9 +24,14 @@ export class ComposerPage {
   readonly attachFileButton: Locator
   readonly attachments: Locator
 
-  constructor(page: Page) {
+  constructor(page: Page, root: Locator = page.getByTestId('composer').first()) {
     this.page = page
-    this.root = page.getByTestId('composer')
+    this.root = root
+    this.toolbar = this.root.getByRole('toolbar', { name: 'Formatting options' })
+    this.recipientsSummary = this.root.getByTestId('composer-recipients-summary')
+    this.minimizeButton = this.root.getByTestId('composer-minimize-button')
+    this.fullscreenButton = this.root.getByTestId('composer-fullscreen-button')
+    this.identitySelect = this.root.getByTestId('composer-identity-select')
     this.subjectInput = this.root.getByTestId('composer-subject-input')
     this.editor = this.root.getByTestId('composer-editor')
     this.sendButton = this.root.getByTestId('composer-send-button')
@@ -27,6 +39,22 @@ export class ComposerPage {
     this.moreButton = this.root.getByTestId('composer-more-button')
     this.attachFileButton = this.root.getByTestId('composer-attach-file-button')
     this.attachments = this.root.getByTestId('composer-attachment-item')
+  }
+
+  /** A button of the formatting toolbar, by its name */
+  toolbarButton(name: string): Locator {
+    return this.toolbar.getByRole('button', { name, exact: true })
+  }
+
+  /** The HTML of the editing area, as the browser shows it */
+  async editorHtml(): Promise<string> {
+    return this.editor.innerHTML()
+  }
+
+  /** `normal`, `minimized` or `fullscreen` */
+  async expectMode(mode: 'normal' | 'minimized' | 'fullscreen'): Promise<ComposerPage> {
+    await expect(this.root).toHaveAttribute('data-mode', mode)
+    return this
   }
 
   recipientInput(field: RecipientField): Locator {
@@ -93,6 +121,21 @@ export class ComposerPage {
 
   async close(): Promise<ComposerPage> {
     await this.closeButton.click()
+    return this
+  }
+
+  /** Closes a modified message, answering the "Save message" dialog */
+  async closeAnd(choice: 'save' | 'discard' | 'cancel'): Promise<ComposerPage> {
+    await this.closeButton.click()
+    const dialog = this.page.getByTestId('confirm-dialog')
+    await expect(dialog).toBeVisible()
+    const button = {
+      save: 'confirm-dialog-confirm-button',
+      discard: 'confirm-dialog-alternative-button',
+      cancel: 'confirm-dialog-cancel-button'
+    }[choice]
+    await dialog.getByTestId(button).click()
+    await expect(dialog).toBeHidden()
     return this
   }
 }

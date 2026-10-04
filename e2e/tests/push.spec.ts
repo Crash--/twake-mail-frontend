@@ -1,5 +1,6 @@
 import { LoginPage } from '../pages'
 import { expect, test } from '../support/fixtures'
+import { recordJmapTraffic } from '../support/jmapTraffic'
 
 test.describe('PUSH real-time updates', () => {
   test('PUSH-01 a new email appears live, then follows its read and star changes', async ({
@@ -7,8 +8,10 @@ test.describe('PUSH real-time updates', () => {
     user,
     jmap
   }) => {
+    const traffic = recordJmapTraffic(page)
     const mailbox = await new LoginPage(page).loginAs(user)
     await expect(mailbox.emptyListView).toBeVisible()
+    traffic.reset()
 
     await jmap.sendEmail({ to: user.email, subject: 'pushed email', text: 'hi' })
 
@@ -28,5 +31,9 @@ test.describe('PUSH real-time updates', () => {
       'aria-pressed',
       'true'
     )
+
+    // Incremental: the changes are fetched, the list is never queried again
+    expect(traffic.methods()).toContain('Email/changes')
+    expect(traffic.methods()).not.toContain('Email/query')
   })
 })

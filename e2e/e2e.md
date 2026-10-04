@@ -314,4 +314,4 @@ WCAG 2.0 / 2.1, A and AA); the violations of twake-mui itself are reported as an
 listed in `docs/twake-mui-gaps.md`.
 
 - [ ] `A11Y-01` Without a mouse: log in, open the Sent folder then the Inbox from the tree, reach the list with Tab, move to the second email with the arrow keys and open it with Enter (the focus lands on its subject), go back with the back button (Shift+Tab, Enter): the focus returns to the row of that email. — no Patrol test
-  - Spec: `tests/a11y.spec.ts`. CI to confirm.
+  - Spec: `tests/a11y.spec.ts`. Passes in CI.

@@ -48,8 +48,8 @@ jobs:
         run: npm run build
 
       # The bundle is served by the stack's nginx on http://127.0.0.1:18302, which proxies
-      # /jmap (and /dex) on the same origin: the app must reach JMAP at its own origin.
-      # If the app reads a runtime configuration file, write it into the dist folder here.
+      # /jmap (and /dex) on the same origin. Its runtime configuration (/.env.js: basic auth,
+      # JMAP on the app origin) is e2e/docker/app-env.js, served by that nginx.
 
       # -------------------------------------------------------------- backend
       - name: Pull backend images

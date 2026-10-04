@@ -49,7 +49,7 @@ npx playwright show-trace test-results/artifacts/<test>/trace.zip
 |---|---|---|
 | `james` | `127.0.0.1:18300` | tmail-backend `memory-1.0.21.2`, JMAP (direct, used by the provisioning client) |
 | `james` | `127.0.0.1:18301` | WebAdmin (users, domains, quotas, team mailboxes) |
-| `proxy` | `127.0.0.1:18302` | **the browser facing origin**: nginx serving the app, proxying `/jmap`, `/upload`, `/download`, `/eventSource`, `/.well-known/*` to James and `/dex/` to Dex |
+| `proxy` | `127.0.0.1:18302` | **the browser facing origin**: nginx serving the app and its runtime configuration, proxying `/jmap`, `/upload`, `/download`, `/eventSource`, `/.well-known/*` to James and `/dex/` to Dex |
 | `dex` | — | OIDC provider, only with `E2E_OIDC=1` (profile `oidc`), reached through `/dex/` |
 
 The James configuration is copied from tmail-flutter `backend-docker/` (`docker/james/`);
@@ -57,6 +57,10 @@ The James configuration is copied from tmail-flutter `backend-docker/` (`docker/
 are generated as in `scripts/patrol-web-integration-test-with-docker.sh`, all into
 `docker/.generated/` (git ignored). `start.sh` waits for the James healthcheck, creates the
 `example.com` domain and checks that JMAP answers through the proxy.
+
+**App configuration.** nginx serves `/.env.js` from [`docker/app-env.js`](docker/app-env.js),
+whatever `.env.js` the build holds: basic auth, JMAP session on the origin of the app
+(`window.location.origin + '/jmap/session'`), English UI. `/appList.js` is an empty app list.
 
 **Same origin.** The app and JMAP share `http://127.0.0.1:18302`, so the browser never
 makes a cross origin call and the JMAP session advertises `http://127.0.0.1:18302/jmap`
@@ -221,6 +225,7 @@ e2e/
 │   ├── docker-compose.yaml   project twakemail-e2e
 │   ├── james/                tmail-backend configuration (from tmail-flutter backend-docker/)
 │   ├── nginx/default.conf    single origin: app + /jmap + /dex
+│   ├── app-env.js            runtime configuration of the app under test (/.env.js)
 │   ├── dex/config.yaml       OIDC provider (profile oidc)
 │   ├── app-placeholder/      served when E2E_APP_DIR is not set
 │   └── .generated/           rendered config and keys (git ignored)

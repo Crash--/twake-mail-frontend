@@ -77,20 +77,20 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 ## MBX — Mailbox and folders (25)
 
-- [ ] `MBX-01` Clicking the sidebar "+" (new folder) button, entering "crud personal folder" and confirming "Create folder" makes the new personal folder appear in the sidebar. — `mailbox/create_personal_folder_test.dart` · tags: `web` `android` `ios`
-  - Spec: `tests/folders.spec.ts` (the "+" of the "Folders" heading, then the folder opens).
-- [ ] `MBX-02` From Inbox's folder menu, create subfolder "crud sub folder" (it opens and its name shows), rename it to "renamed sub folder", move it under Archive (Archive now has a child), then delete it with confirmation (Archive has no children any more). — `mailbox/create_rename_move_and_delete_mailbox_test.dart` · tags: `ios (default)`
+- [x] `MBX-01` Clicking the sidebar "+" (new folder) button, entering "crud personal folder" and confirming "Create folder" makes the new personal folder appear in the sidebar. — `mailbox/create_personal_folder_test.dart` · tags: `web` `android` `ios`
+  - Spec: `tests/folders.spec.ts` (the "+" of the "Folders" heading, then the folder opens). Passes in CI.
+- [x] `MBX-02` From Inbox's folder menu, create subfolder "crud sub folder" (it opens and its name shows), rename it to "renamed sub folder", move it under Archive (Archive now has a child), then delete it with confirmation (Archive has no children any more). — `mailbox/create_rename_move_and_delete_mailbox_test.dart` · tags: `ios (default)`
   - Web port: every folder action is opened by long-pressing the sidebar folder. Web equivalent: hover → folder "more" (⋮) button or right-click on the folder → New subfolder / Rename / Move / Delete; port it through the folder/row context menu (⋮ on hover, or right-click).
-  - Spec: `tests/folders.spec.ts` (the folder menu: ⋮ on hover or focus, right click, menu key or Shift+F10).
-- [ ] `MBX-03` Creating subfolder "hidden sub folder" under Inbox from Inbox's folder menu, then choosing "Hide folder" on it, leaves Inbox with no children in the sidebar (and Inbox still reachable). — `mailbox/create_and_hide_sub_folder_test.dart` · tags: `ios (default)`
+  - Spec: `tests/folders.spec.ts` (the folder menu: ⋮ on hover or focus, right click, menu key or Shift+F10). Passes in CI.
+- [x] `MBX-03` Creating subfolder "hidden sub folder" under Inbox from Inbox's folder menu, then choosing "Hide folder" on it, leaves Inbox with no children in the sidebar (and Inbox still reachable). — `mailbox/create_and_hide_sub_folder_test.dart` · tags: `ios (default)`
   - Web port: long press on the sidebar folder (and a native swipe to close the drawer). Web equivalent: hover ⋮ / right-click → New subfolder, then Hide folder; port it through the folder/row context menu (⋮ on hover, or right-click).
-  - Spec: `tests/folders.spec.ts`.
+  - Spec: `tests/folders.spec.ts`. Passes in CI.
 - [ ] `MBX-04` Opening the sidebar folder search (magnifier in the "Folders" section header) and typing "Inbox" shows the Inbox folder in the search results. — `mailbox/search_mailbox_inbox_test.dart` · tags: `ios (default)`
 - [x] `MBX-05` With one email sent to self (lands in Sent) and one sent with Trash as its "sent" folder, clicking Sent shows exactly one "sent subject" row and clicking Trash shows "trash subject". — `mailbox/switch_mailbox_test.dart` · tags: `ios (default)`
   - Spec: `tests/mailbox.spec.ts`. Passes in CI.
-- [ ] `MBX-06` On a fresh account with no starred mail, the Favorites (Starred) folder is listed in the sidebar and opening it shows the empty-thread view. — `mailbox/display_empty_view_for_favorite_folder_test.dart` · tags: `ios (default)`
+- [x] `MBX-06` On a fresh account with no starred mail, the Favorites (Starred) folder is listed in the sidebar and opening it shows the empty-thread view. — `mailbox/display_empty_view_for_favorite_folder_test.dart` · tags: `ios (default)`
   - Data: relies on bob's restored mailbox having no starred email (backend reset between tests).
-  - Spec: `tests/folders.spec.ts`, also run on the `mobile` and `tablet` projects (the virtual folder is `/starred`, `data-mailbox-role="favorite"`).
+  - Spec: `tests/folders.spec.ts`, also run on the `mobile` and `tablet` projects (the virtual folder is `/starred`, `data-mailbox-role="favorite"`). Passes in CI.
 - [ ] `MBX-07` The team mailbox "bob-guests" is listed in the sidebar; composing an email to bob-guests@example.com and sending shows the "Message has been sent successfully" toast, and the email appears in the team mailbox's INBOX after expanding it. — `mailbox/team_mailbox_receive_email_test.dart` · tags: `ios (default)`
   - Data: team mailbox `bob-guests@example.com` with members bob and alice, created by `provisioning.sh` (Twake/James team-mailbox extension).
   - Spec: `tests/folders.spec.ts`, the receiving part only (named "MBX-07 (receiving part)"): the email is sent to the team address through JMAP; sending it from the composer waits for phase 3, so the line stays unticked.
@@ -99,9 +99,9 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `MBX-09` With a subfolder created under Trash and an email in Trash, emptying Trash via the banner + confirm removes the subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_banner_test.dart` · tags: `web` `android` `ios`
   - Data: Trash subfolder "Trash subfolder banner test" created via JMAP `Mailbox/set` before the UI run.
   - Spec: `tests/actions.spec.ts`. Passes in CI.
-- [ ] `MBX-10` Same setup as MBX-09, but emptying via the Trash folder context menu ("Empty trash" → "Delete") removes the Trash subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_context_menu_test.dart` · tags: `web` `android` `ios`
+- [x] `MBX-10` Same setup as MBX-09, but emptying via the Trash folder context menu ("Empty trash" → "Delete") removes the Trash subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_context_menu_test.dart` · tags: `web` `android` `ios`
   - Data: Trash subfolder "Trash subfolder context menu test" created via JMAP. On web the robot opens the menu by hovering the folder and clicking its ⋮ (more-action) button.
-  - Spec: `tests/folders.spec.ts`.
+  - Spec: `tests/folders.spec.ts`. Passes in CI.
 - [ ] `MBX-11` With an email in Trash, emptying Trash via the banner hides the banner; then "Recover deleted messages" on Trash → "Restore" brings the email back into a "Recovered" folder where it is visible. — `mailbox/empty_and_recover_trash_test.dart` · tags: `ios (default)`
   - Web port: "Recover deleted messages" is opened by long-pressing Trash (the banner part is web-native). Web equivalent: Trash folder hover ⋮ / right-click → Recover deleted messages; port it through the folder/row context menu (⋮ on hover, or right-click).
   - Data: needs the server's deleted-messages vault (James) for the restore into "Recovered".
@@ -115,9 +115,9 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [ ] `MBX-14` With an email in Spam (Spam shows no unread badge), long-pressing Spam → "Delete all spam emails" → "Delete all" empties it (no badge, no banner when opened); recovering from Trash then shows the email in "Recovered". — `mailbox/long_press_empty_and_recover_spam_test.dart` · tags: `ios (default)`
   - Web port: long press on the sidebar folder. Web equivalent: Spam folder hover ⋮ / right-click → Delete all spam emails; port it through the folder/row context menu (⋮ on hover, or right-click).
   - Data: deleted-messages vault.
-- [ ] `MBX-15` With an unread email in Inbox (Inbox shows an unread badge), choosing "Mark as read" from Inbox's folder menu removes the Inbox unread badge. — `mailbox/mark_mailbox_as_read_test.dart` · tags: `ios (default)`
+- [x] `MBX-15` With an unread email in Inbox (Inbox shows an unread badge), choosing "Mark as read" from Inbox's folder menu removes the Inbox unread badge. — `mailbox/mark_mailbox_as_read_test.dart` · tags: `ios (default)`
   - Web port: long press on Inbox. Web equivalent: Inbox hover ⋮ / right-click → Mark as read; port it through the folder/row context menu (⋮ on hover, or right-click).
-  - Spec: `tests/folders.spec.ts`, also run on the `mobile` and `tablet` projects.
+  - Spec: `tests/folders.spec.ts`, also run on the `mobile` and `tablet` projects. Passes in CI.
 - [ ] `MBX-16` With 40 emails provisioned in Inbox, choosing "Move folder content" → Templates from Inbox's folder menu moves them all: Templates lists them and Inbox shows the empty-thread view. — `mailbox/move_folder_content_test.dart` · tags: `ios (default)`
   - Web port: long press on Inbox. Web equivalent: Inbox hover ⋮ / right-click → Move folder content → destination picker; port it through the folder/row context menu (⋮ on hover, or right-click).
 - [x] `MBX-17` The Inbox unread counter goes up by 1 in real time when a new email arrives, and back down when that email is marked read by another client (JMAP `Email/set`), without any manual refresh. — `mailbox/mailbox_count_real_time_update_test.dart` · tags: `ios (default)`
@@ -148,10 +148,10 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/actions.spec.ts`. Passes in CI.
 - [x] `MBX-28` Two checked rows dragged onto a folder of the tree move there (the keyboard way is "Move message"). — web app only, no Patrol test
   - Spec: `tests/actions.spec.ts`. Passes in CI.
-- [ ] `MBX-29` A folder hidden from its menu leaves the tree; "Show hidden folders" lists it again, marked hidden, and "Show folder", reached with Shift+F10 on it (axe on the menu), shows it for good. — web app only, no Patrol test (tmail-flutter shows hidden folders from Settings > Folder visibility)
-  - Spec: `tests/folders.spec.ts`.
-- [ ] `MBX-30` A member of a team mailbox gets, on its root, only the actions the server rights allow (`myRights`: no rename, no delete; hide). — web app only, no Patrol test
-  - Spec: `tests/folders.spec.ts`.
+- [x] `MBX-29` A folder hidden from its menu leaves the tree; "Show hidden folders" lists it again, marked hidden, and "Show folder", reached with Shift+F10 on it (axe on the menu), shows it for good. — web app only, no Patrol test (tmail-flutter shows hidden folders from Settings > Folder visibility)
+  - Spec: `tests/folders.spec.ts`. Passes in CI.
+- [x] `MBX-30` A member of a team mailbox gets, on its root, only the actions the server rights allow (`myRights`: no rename, no delete; hide). — web app only, no Patrol test
+  - Spec: `tests/folders.spec.ts`. Passes in CI.
 
 ## CMP — Composer (26)
 

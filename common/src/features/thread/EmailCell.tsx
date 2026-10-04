@@ -1,19 +1,22 @@
 import {
   Attachment,
+  Dots,
   Email as EmailIcon,
   EmailOpen,
   Icon,
   Star,
-  StarOutline
+  StarOutline,
+  Trash
 } from '@linagora/twake-icons'
 import {
+  Checkbox,
   IconButton,
   Tooltip,
   Typography,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
 } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
+import type { MouseEvent, ReactElement } from 'react'
 import { useHref, useNavigate } from 'react-router'
 
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
@@ -28,13 +31,16 @@ import { HighlightedText } from '@common/features/search/HighlightedText'
 
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData, EmailSnippet } from './queries'
+import { useEmailSelectionContext } from './useEmailSelection'
 
 /**
  * The columns of the email list, in their order: one per field on a wide
  * list; `unread`, `message` (sender, date, subject, preview on four lines)
- * and `compactActions` on a narrow one (phone, list beside an open email)
+ * and `compactActions` on a narrow one (phone, list beside an open email);
+ * `select` (the selection checkbox) on both
  */
 export type EmailColumnId =
+  | 'select'
   | 'status'
   | 'sender'
   | 'subject'
@@ -79,6 +85,12 @@ export interface EmailCellProps {
   showRecipients: boolean
   onToggleStar: (email: EmailListItemData) => void
   onToggleSeen: (email: EmailListItemData) => void
+  /** To the Trash, or deleted forever (after a confirmation) */
+  onRemove: (email: EmailListItemData) => void
+  /** Whether removing deletes forever (Trash, Spam, Drafts) */
+  deletesForever: boolean
+  /** Opens the actions menu of the email under `element` */
+  onOpenMenu: (email: EmailListItemData, element: HTMLElement) => void
   /** The email open beside the list, if any */
   openEmailId: string | null
   /** Set by `VirtualizedTable` for each cell */
@@ -100,11 +112,15 @@ export function EmailCell({
   showRecipients,
   onToggleStar,
   onToggleSeen,
+  onRemove,
+  deletesForever,
+  onOpenMenu,
   openEmailId,
   row,
   column
 }: EmailCellProps): ReactElement | null {
   const { t, lang } = useI18n()
+  const selection = useEmailSelectionContext()
   const navigate = useNavigate()
   const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)
@@ -152,6 +168,63 @@ export function EmailCell({
       </IconButton>
     </Tooltip>
   )
+  const removeLabel = t(
+    deletesForever
+      ? 'emailActions.menu.deletePermanently'
+      : 'emailActions.menu.moveToTrash'
+  )
+  const handleRemove = (): void => {
+    onRemove(email)
+  }
+  const removeButton = (
+    <Tooltip title={removeLabel}>
+      <IconButton
+        size="small"
+        aria-label={removeLabel}
+        onClick={handleRemove}
+        data-testid="email-list-item-remove"
+      >
+        <Icon icon={Trash} />
+      </IconButton>
+    </Tooltip>
+  )
+  const moreLabel = t('emailActions.menu.label')
+  const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>): void => {
+    onOpenMenu(email, event.currentTarget)
+  }
+  const moreButton = (
+    <Tooltip title={moreLabel}>
+      <IconButton
+        size="small"
+        aria-label={moreLabel}
+        aria-haspopup="menu"
+        onClick={handleOpenMenu}
+        data-testid="email-list-item-more"
+      >
+        <Icon icon={Dots} />
+      </IconButton>
+    </Tooltip>
+  )
+  const isSelected = selection?.isSelected(email.id) ?? false
+  const handleSelect = (event: MouseEvent<HTMLButtonElement>): void => {
+    selection?.toggle(email.id, event.shiftKey)
+  }
+  const checkbox =
+    selection === null ? null : (
+      <Checkbox
+        size="small"
+        checked={isSelected}
+        onClick={handleSelect}
+        slotProps={{
+          input: {
+            'aria-label': t('thread.selection.select', {
+              subject: email.subject ?? ''
+            })
+          }
+        }}
+        data-testid="email-list-item-checkbox"
+      />
+    )
   const unreadDot = isUnread ? (
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
@@ -213,6 +286,8 @@ export function EmailCell({
   ) : null
 
   switch (column.id as EmailColumnId) {
+    case 'select':
+      return <span className="u-flex u-flex-justify-center">{checkbox}</span>
     case 'status':
       return (
         <span className="u-flex u-flex-items-center">
@@ -273,7 +348,13 @@ export function EmailCell({
     case 'date':
       return date
     case 'actions':
-      return <RowHoverActions>{seenButton}</RowHoverActions>
+      return (
+        <RowHoverActions>
+          {seenButton}
+          {removeButton}
+          {moreButton}
+        </RowHoverActions>
+      )
     case 'unread':
       return <span className="u-flex u-flex-justify-center">{unreadDot}</span>
     case 'message': {
@@ -329,6 +410,8 @@ export function EmailCell({
     }
     case 'compactActions':
       return (
+        // The other actions: from the selection toolbar, or a long press
+        // (the context menu of the row)
         <span className="u-flex u-flex-column u-flex-items-center">
           {starButton}
           <RowHoverActions>{seenButton}</RowHoverActions>

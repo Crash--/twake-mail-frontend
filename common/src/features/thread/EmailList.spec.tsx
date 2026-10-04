@@ -149,9 +149,13 @@ describe('EmailList', () => {
     const server = makeFakeJmapServer({ emails: makeEmails(total) })
     renderList(server)
 
-    await waitFor(() => {
-      expect(screen.getAllByTestId('email-list-item')).toHaveLength(total)
-    })
+    // Three pages of rows to render in jsdom: slow on CI machines
+    await waitFor(
+      () => {
+        expect(screen.getAllByTestId('email-list-item')).toHaveLength(total)
+      },
+      { timeout: 5000 }
+    )
     const positions = server.requests.flatMap(({ methodCalls }) =>
       methodCalls
         .filter(([name]) => name === 'Email/query')
@@ -300,7 +304,15 @@ describe('EmailList', () => {
     )
     expect(
       screen.getAllByRole('columnheader').map(header => header.textContent)
-    ).toEqual(['Status', 'Sender', 'Subject', 'Attachment', 'Date', 'Actions'])
+    ).toEqual([
+      'Selection',
+      'Status',
+      'Sender',
+      'Subject',
+      'Attachment',
+      'Date',
+      'Actions'
+    ])
   })
 
   it('opens an email from the keyboard', async () => {
@@ -403,7 +415,7 @@ describe('EmailList', () => {
       const row = await screen.findByTestId('email-list-item')
       expect(
         screen.getAllByRole('columnheader').map(header => header.textContent)
-      ).toEqual(['Status', 'Message', 'Actions'])
+      ).toEqual(['Selection', 'Status', 'Message', 'Actions'])
       const link = within(row).getByRole('link')
       expect(link).toHaveAccessibleName(
         /^Unread, Starred, Bob Dupont Attachment .+ Fresh news Hello Alice$/

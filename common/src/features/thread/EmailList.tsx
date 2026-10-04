@@ -55,7 +55,9 @@ import {
   type EmailListItemData,
   type SearchRequest
 } from './queries'
+import { useEmailListActions } from './useEmailListActions'
 import { useEmailListShortcuts } from './useEmailListShortcuts'
+import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { useNewEmailCount } from './useNewEmailCount'
 
 /** Folders whose list shows the recipients rather than the sender */
@@ -211,7 +213,21 @@ export function EmailList(props: EmailListProps): ReactElement {
     [openEmailId]
   )
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
-  const scrollerRef = useEmailListShortcuts(emails, mailboxId, openEmailId)
+  const selection = useEmailSelection(emails)
+  const { scrollerRef, focusList } = useEmailListShortcuts(
+    emails,
+    mailboxId,
+    openEmailId,
+    selection
+  )
+  const listActions = useEmailListActions({
+    emails,
+    selection,
+    mailbox: search === null ? mailbox : null,
+    mailboxId,
+    total,
+    onFocusList: focusList
+  })
   const { run: runEmailAction } = useEmailActions()
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
@@ -281,6 +297,13 @@ export function EmailList(props: EmailListProps): ReactElement {
   const columns = useMemo<(VirtualizedTableColumn & { id: EmailColumnId })[]>(
     () => [
       {
+        id: 'select',
+        label: t('thread.columns.select'),
+        width: 40,
+        sortable: false,
+        disablePadding: true
+      },
+      {
         id: 'status',
         label: t('thread.columns.status'),
         width: 72,
@@ -311,7 +334,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       {
         id: 'actions',
         label: t('thread.columns.actions'),
-        width: 48,
+        width: 112,
         sortable: false,
         disablePadding: true
       }
@@ -324,6 +347,13 @@ export function EmailList(props: EmailListProps): ReactElement {
     (VirtualizedTableColumn & { id: EmailColumnId })[]
   >(
     () => [
+      {
+        id: 'select',
+        label: t('thread.columns.select'),
+        width: 44,
+        sortable: false,
+        disablePadding: true
+      },
       {
         id: 'unread',
         label: t('thread.columns.status'),
@@ -361,6 +391,9 @@ export function EmailList(props: EmailListProps): ReactElement {
             showRecipients={showRecipients}
             onToggleStar={handleToggleStar}
             onToggleSeen={handleToggleSeen}
+            onRemove={listActions.onRemove}
+            deletesForever={listActions.deletesForever}
+            onOpenMenu={listActions.onOpenMenu}
             openEmailId={openEmailId}
           />
         )
@@ -372,6 +405,9 @@ export function EmailList(props: EmailListProps): ReactElement {
       showRecipients,
       handleToggleStar,
       handleToggleSeen,
+      listActions.onRemove,
+      listActions.deletesForever,
+      listActions.onOpenMenu,
       openEmailId
     ]
   )
@@ -422,6 +458,8 @@ export function EmailList(props: EmailListProps): ReactElement {
           rangeChanged={handleRangeChanged}
           increaseViewportBy={OVERSCAN_PX}
           scrollerRef={scrollerRef}
+          onRowMenu={listActions.onRowMenu}
+          onRowDragStart={listActions.onRowDragStart}
           componentsProps={componentsProps}
         />
         {isFetchingNextPage ? (
@@ -434,8 +472,11 @@ export function EmailList(props: EmailListProps): ReactElement {
   }
 
   return (
-    <>
+    <EmailSelectionContext.Provider value={selection}>
+      {listActions.banner}
+      {listActions.toolbar}
       {content}
+      {listActions.menu}
       {/* Always mounted: a live region only announces changes */}
       <Box
         role="status"
@@ -446,6 +487,6 @@ export function EmailList(props: EmailListProps): ReactElement {
           <span key={newEmailCount}>{t('push.newMessages')}</span>
         ) : null}
       </Box>
-    </>
+    </EmailSelectionContext.Provider>
   )
 }

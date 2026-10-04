@@ -89,7 +89,8 @@
       "subject": "Subject",
       "date": "Date",
       "actions": "Actions",
-      "message": "Message"
+      "message": "Message",
+      "select": "Selection"
     },
     "messageCount": "%{smart_count} message |||| %{smart_count} messages",
     "messages": "Messages of the conversation",
@@ -98,7 +99,17 @@
     "empty": "This conversation no longer exists",
     "archive": "Archive the conversation",
     "moveToTrash": "Move the conversation to trash",
-    "markAsSpam": "Mark the conversation as spam"
+    "markAsSpam": "Mark the conversation as spam",
+    "selection": {
+      "count": "%{count} selected",
+      "selectAll": "Select all",
+      "selectPage": "Select all messages of this page",
+      "select": "Select %{subject}",
+      "selectAllInFolder": "Select all %{smart_count} message in this folder |||| Select all %{smart_count} messages in this folder",
+      "allInFolderSelected": "All %{smart_count} message in this folder is selected |||| All %{smart_count} messages in this folder are selected",
+      "clear": "Clear the selection",
+      "toolbar": "Selection actions"
+    }
   },
   "push": {
     "newMessages": "You have new messages"
@@ -291,7 +302,8 @@
       "star": "Star",
       "unstar": "Unstar",
       "label": "Message actions"
-    }
+    },
+    "drag": "Move %{smart_count} message |||| Move %{smart_count} messages"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",

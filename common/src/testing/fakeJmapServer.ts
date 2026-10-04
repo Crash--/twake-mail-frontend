@@ -10,9 +10,12 @@ import type {
  * client, through its `fetch` option. Tests mock the network, not the client:
  * what they assert is what the app really sends.
  *
- * Covers what the app uses: the session, `Mailbox/get`, `Email/query`,
- * `Email/get` (with `#ids` back-references), `Email/set` updates of keywords,
- * and blob downloads.
+ * Covers what the app uses: the session, `Mailbox/get`, `Mailbox/changes`,
+ * `Email/query`, `Email/get` (with `#ids` back-references), `Email/changes`,
+ * `Email/set` updates of keywords, and blob downloads. Changes made through
+ * `Email/set` or the `addEmail`, `updateEmail`, `destroyEmail` and
+ * `updateMailbox` helpers move the states and are reported by `/changes`;
+ * direct edits of `emails` and `mailboxes` are not.
  */
 
 export const FAKE_JMAP_ORIGIN = 'https://jmap.example.com'
@@ -70,6 +73,92 @@ export interface FakeJmapServer {
   holdRequests: (method?: string) => () => void
   /** Names of the methods called so far, request after request */
   calledMethods: () => string[]
+  /** Current states, as a push `StateChange` would carry them */
+  states: () => { Email: string; Mailbox: string }
+  /** Delivers an email (created) */
+  addEmail: (email: FakeEmail) => void
+  /** Changes an email (updated): keywords, mailboxes… */
+  updateEmail: (id: string, patch: Partial<FakeEmail>) => void
+  destroyEmail: (id: string) => void
+  /** Changes a mailbox (updated), e.g. its counters */
+  updateMailbox: (id: string, patch: Partial<Mailbox>) => void
+}
+
+type ChangeKind = 'created' | 'updated' | 'destroyed'
+
+interface ChangeEntry {
+  /** State reached by this change */
+  state: number
+  id: string
+  kind: ChangeKind
+}
+
+/** What `/changes` reports for an object changed several times */
+function mergeKinds(first: ChangeKind, next: ChangeKind): ChangeKind | null {
+  if (first === 'created') return next === 'destroyed' ? null : 'created'
+  return next === 'destroyed' ? 'destroyed' : first
+}
+
+/** States of a data type and its change log, for `/get` and `/changes` */
+class ChangeLog {
+  #state = 1
+  readonly #entries: ChangeEntry[] = []
+  readonly #prefix: string
+  readonly #maxChanges: number
+
+  constructor(prefix: string, maxChanges: number) {
+    this.#prefix = prefix
+    this.#maxChanges = maxChanges
+  }
+
+  get state(): string {
+    return `${this.#prefix}${this.#state}`
+  }
+
+  record(id: string, kind: ChangeKind): void {
+    this.#state += 1
+    this.#entries.push({ state: this.#state, id, kind })
+  }
+
+  changes(args: Record<string, unknown>): Record<string, unknown> | null {
+    const since =
+      typeof args.sinceState === 'string' &&
+      args.sinceState.startsWith(this.#prefix)
+        ? Number(args.sinceState.slice(this.#prefix.length))
+        : Number.NaN
+    if (!Number.isInteger(since) || since > this.#state) return null
+    const maxChanges = Math.min(
+      typeof args.maxChanges === 'number' ? args.maxChanges : Infinity,
+      this.#maxChanges
+    )
+    const kinds = new Map<string, ChangeKind | null>()
+    let newState = since
+    for (const entry of this.#entries) {
+      if (entry.state <= since) continue
+      if (!kinds.has(entry.id) && kinds.size >= maxChanges) break
+      const previous = kinds.get(entry.id)
+      kinds.set(
+        entry.id,
+        previous === undefined
+          ? entry.kind
+          : previous === null
+            ? entry.kind
+            : mergeKinds(previous, entry.kind)
+      )
+      newState = entry.state
+    }
+    const idsOf = (kind: ChangeKind): string[] =>
+      [...kinds].filter(([, value]) => value === kind).map(([id]) => id)
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      oldState: `${this.#prefix}${since}`,
+      newState: `${this.#prefix}${newState}`,
+      hasMoreChanges: newState < this.#state,
+      created: idsOf('created'),
+      updated: idsOf('updated'),
+      destroyed: idsOf('destroyed')
+    }
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -270,6 +359,19 @@ function resolveReferences(
   return resolved
 }
 
+/** `invalidResultReference` when a back-reference points at an error */
+function referenceError(
+  args: Record<string, unknown>,
+  responses: FakeInvocation[]
+): string | null {
+  for (const [key, value] of Object.entries(args)) {
+    if (!key.startsWith('#') || !isRecord(value)) continue
+    const source = responses.find(([, , callId]) => callId === value.resultOf)
+    if (!source || source[0] === 'error') return 'invalidResultReference'
+  }
+  return null
+}
+
 function receivedAtDescending(left: FakeEmail, right: FakeEmail): number {
   return right.receivedAt.localeCompare(left.receivedAt)
 }
@@ -280,6 +382,8 @@ export function makeFakeJmapServer(
     emails?: FakeEmail[]
     /** Advertises push over WebSocket (without Linagora tickets) */
     webSocket?: boolean
+    /** Most objects a `/changes` response reports (`hasMoreChanges` beyond) */
+    maxChanges?: number
   } = {}
 ): FakeJmapServer {
   const server: FakeJmapServer = {
@@ -293,8 +397,32 @@ export function makeFakeJmapServer(
     calledMethods: () =>
       server.requests.flatMap(request =>
         request.methodCalls.map(([name]) => name)
-      )
+      ),
+    states: () => ({ Email: emailLog.state, Mailbox: mailboxLog.state }),
+    addEmail: email => {
+      server.emails.push(email)
+      emailLog.record(email.id, 'created')
+    },
+    updateEmail: (id, patch) => {
+      const email = server.emails.find(candidate => candidate.id === id)
+      if (!email) throw new Error(`No email ${id}`)
+      Object.assign(email, patch)
+      emailLog.record(id, 'updated')
+    },
+    destroyEmail: id => {
+      server.emails = server.emails.filter(email => email.id !== id)
+      emailLog.record(id, 'destroyed')
+    },
+    updateMailbox: (id, patch) => {
+      const mailbox = server.mailboxes.find(candidate => candidate.id === id)
+      if (!mailbox) throw new Error(`No mailbox ${id}`)
+      Object.assign(mailbox, patch)
+      mailboxLog.record(id, 'updated')
+    }
   }
+  const maxChanges = init.maxChanges ?? Infinity
+  const emailLog = new ChangeLog('state-email-', maxChanges)
+  const mailboxLog = new ChangeLog('state-mailbox-', maxChanges)
   const advertisesWebSocket = init.webSocket ?? false
   let held: { method: string | null; released: Promise<void> } | null = null
 
@@ -323,7 +451,15 @@ export function makeFakeJmapServer(
     const list = server.mailboxes
       .filter(mailbox => ids === null || ids.includes(mailbox.id))
       .map(mailbox => pickProperties({ ...mailbox }, args.properties))
-    return { accountId: FAKE_ACCOUNT_ID, state: 'm1', list, notFound: [] }
+    const notFound =
+      ids?.filter(id => !server.mailboxes.some(mailbox => mailbox.id === id)) ??
+      []
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      state: mailboxLog.state,
+      list,
+      notFound
+    }
   }
 
   function queryEmails(args: Record<string, unknown>): unknown {
@@ -354,7 +490,7 @@ export function makeFakeJmapServer(
     const notFound = ids.filter(
       id => !server.emails.some(email => email.id === id)
     )
-    return { accountId: FAKE_ACCOUNT_ID, state: 'e1', list, notFound }
+    return { accountId: FAKE_ACCOUNT_ID, state: emailLog.state, list, notFound }
   }
 
   function setSeen(email: FakeEmail, seen: boolean): void {
@@ -362,6 +498,7 @@ export function makeFakeJmapServer(
     for (const mailbox of server.mailboxes) {
       if (mailbox.id in email.mailboxIds) {
         mailbox.unreadEmails += seen ? -1 : 1
+        mailboxLog.record(mailbox.id, 'updated')
       }
     }
   }
@@ -384,6 +521,7 @@ export function makeFakeJmapServer(
     const update = isRecord(args.update) ? args.update : {}
     const updated: Record<string, null> = {}
     const notUpdated: Record<string, unknown> = {}
+    const oldState = emailLog.state
     for (const [id, patch] of Object.entries(update)) {
       const email = server.emails.find(candidate => candidate.id === id)
       if (!email || !isRecord(patch)) {
@@ -391,12 +529,13 @@ export function makeFakeJmapServer(
         continue
       }
       updateEmail(email, patch)
+      emailLog.record(id, 'updated')
       updated[id] = null
     }
     return {
       accountId: FAKE_ACCOUNT_ID,
-      oldState: 'e1',
-      newState: 'e2',
+      oldState,
+      newState: emailLog.state,
       updated,
       notUpdated
     }
@@ -412,6 +551,10 @@ export function makeFakeJmapServer(
         return getEmails(args)
       case 'Email/set':
         return setEmails(args)
+      case 'Email/changes':
+        return emailLog.changes(args) ?? { error: 'cannotCalculateChanges' }
+      case 'Mailbox/changes':
+        return mailboxLog.changes(args) ?? { error: 'cannotCalculateChanges' }
       default:
         return null
     }
@@ -441,14 +584,24 @@ export function makeFakeJmapServer(
   function respond({ methodCalls }: FakeJmapRequest): Response {
     const methodResponses: FakeInvocation[] = []
     for (const [name, rawArgs, callId] of methodCalls) {
-      const errorType = server.methodErrors.get(name)
+      const errorType =
+        server.methodErrors.get(name) ??
+        referenceError(rawArgs, methodResponses)
       const result = errorType
         ? null
         : answer(name, resolveReferences(rawArgs, methodResponses))
+      const resultError =
+        isRecord(result) && typeof result.error === 'string'
+          ? result.error
+          : null
       methodResponses.push(
-        isRecord(result)
+        isRecord(result) && resultError === null
           ? [name, result, callId]
-          : ['error', { type: errorType ?? 'unknownMethod' }, callId]
+          : [
+              'error',
+              { type: errorType ?? resultError ?? 'unknownMethod' },
+              callId
+            ]
       )
     }
     return jsonResponse({ methodResponses, sessionState: 'session-1' })

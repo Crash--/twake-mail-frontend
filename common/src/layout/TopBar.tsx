@@ -1,5 +1,6 @@
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+import { useMatch } from 'react-router'
 
 import { AppTopBar } from '@/ds/AppTopBar/AppTopBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -32,7 +33,9 @@ export interface TopBarProps {
 export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
-  const folderName = useCurrentMailboxName()
+  const mailboxName = useCurrentMailboxName()
+  const isSearch = useMatch('/search/*') !== null
+  const folderName = isSearch ? t('search.title') : mailboxName
 
   return (
     <AppTopBar

@@ -32,7 +32,10 @@ export function AppLayout({ apps }: AppLayoutProps): ReactElement {
     null
   )
   const isDrawerOpen = drawerLocationKey === location.key
-  const isEmailOpen = useMatch('/mailbox/:mailboxId/email/:emailId/*') !== null
+  const isMailboxEmailOpen =
+    useMatch('/mailbox/:mailboxId/email/:emailId/*') !== null
+  const isSearchEmailOpen = useMatch('/search/email/:emailId/*') !== null
+  const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
   const showComposeFab =
     !isDesktop && (!isEmailOpen || screenSize === 'tabletLarge')
 

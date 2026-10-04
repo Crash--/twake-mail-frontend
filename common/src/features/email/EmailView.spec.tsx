@@ -24,7 +24,7 @@ function renderView(
   emailId = 'e1'
 ): ReturnType<typeof renderWithProviders> {
   return renderWithProviders(
-    <EmailView mailboxId="mailbox-inbox" emailId={emailId} />,
+    <EmailView emailId={emailId} backPath="/mailbox/mailbox-inbox" />,
     {
       route: `/mailbox/mailbox-inbox/email/${emailId}`,
       path: '/mailbox/:mailboxId/email/:emailId',

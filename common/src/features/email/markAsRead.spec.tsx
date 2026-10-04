@@ -33,7 +33,12 @@ function ListPage(): ReactElement {
 
 function ViewPage(): ReactElement {
   const { mailboxId = '', emailId = '' } = useParams()
-  return <EmailView mailboxId={mailboxId} emailId={emailId} />
+  return (
+    <EmailView
+      emailId={emailId}
+      backPath={`/mailbox/${encodeURIComponent(mailboxId)}`}
+    />
+  )
 }
 
 function renderMailScreen(server: FakeJmapServer): void {

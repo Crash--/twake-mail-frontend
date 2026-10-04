@@ -24,8 +24,10 @@ import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { HighlightedText } from '@common/features/search/HighlightedText'
+
 import { formatFullDate, formatListDate } from './formatListDate'
-import type { EmailListItemData } from './queries'
+import type { EmailListItemData, EmailSnippet } from './queries'
 
 /**
  * The columns of the email list, in their order: one per field on a wide
@@ -43,10 +45,15 @@ export type EmailColumnId =
   | 'message'
   | 'compactActions'
 
+/** A row of the table: an email, and its snippet in search results */
+export type EmailRowData = EmailListItemData & {
+  snippet: EmailSnippet | null
+}
+
 /** The rows of the table are the emails themselves */
 export function isEmailRow(
   row: VirtualizedTableRow | undefined
-): row is VirtualizedTableRow & EmailListItemData {
+): row is VirtualizedTableRow & EmailRowData {
   return (
     row !== undefined &&
     typeof row.id === 'string' &&
@@ -62,7 +69,10 @@ export function emailPath(mailboxId: string, emailId: string): string {
 }
 
 export interface EmailCellProps {
-  mailboxId: string
+  /** Path of the email of a row, opened by its link */
+  getEmailPath: (emailId: string) => string
+  /** Names of the mailboxes of an email, shown in search results */
+  getMailboxNames?: (email: EmailListItemData) => string | null
   /** Shows the recipients instead of the sender (Sent, Drafts…) */
   showRecipients: boolean
   onToggleStar: (email: EmailListItemData) => void
@@ -83,7 +93,8 @@ export interface EmailCellProps {
  * read toggle are stacked beside it.
  */
 export function EmailCell({
-  mailboxId,
+  getEmailPath,
+  getMailboxNames,
   showRecipients,
   onToggleStar,
   onToggleSeen,
@@ -93,7 +104,7 @@ export function EmailCell({
 }: EmailCellProps): ReactElement | null {
   const { t, lang } = useI18n()
   const navigate = useNavigate()
-  const path = isEmailRow(row) ? emailPath(mailboxId, row.id) : ''
+  const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)
 
   if (!isEmailRow(row) || !column) return null
@@ -156,6 +167,30 @@ export function EmailCell({
       </time>
     </SecondaryText>
   )
+  const subject = (
+    <HighlightedText
+      text={email.subject ?? ''}
+      snippet={email.snippet?.subject ?? null}
+    />
+  )
+  const preview = (
+    <HighlightedText
+      text={email.preview}
+      snippet={email.snippet?.preview ?? null}
+    />
+  )
+  const mailboxNames = getMailboxNames?.(email) ?? null
+  const mailboxLabel =
+    mailboxNames === null ? null : (
+      <SecondaryText
+        variant="caption"
+        noWrap
+        className="u-flex-shrink-0 u-ml-half"
+        data-testid="email-list-item-mailbox"
+      >
+        {t('search.inMailbox', { name: mailboxNames })}
+      </SecondaryText>
+    )
   const attachmentIcon = email.hasAttachment ? (
     <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
   ) : null
@@ -191,14 +226,15 @@ export function EmailCell({
         >
           <span className="u-visuallyhidden">{`${context.join(', ')}, `}</span>
           <span className={emphasis} data-testid="email-list-item-subject">
-            {email.subject ?? ''}
+            {subject}
           </span>
           <SecondaryText
             className="u-ml-half"
             data-testid="email-list-item-preview"
           >
-            {email.preview}
+            {preview}
           </SecondaryText>
+          {mailboxLabel}
         </RowLink>
       )
     }
@@ -242,17 +278,20 @@ export function EmailCell({
             )}
             <span className="u-flex-shrink-0 u-ml-half">{date}</span>
           </span>
-          <Typography component="span" noWrap className="u-db">
-            <span className={emphasis} data-testid="email-list-item-subject">
-              {email.subject ?? ''}
-            </span>
-          </Typography>
+          <span className="u-flex u-flex-items-center">
+            <Typography component="span" noWrap className="u-db u-flex-auto">
+              <span className={emphasis} data-testid="email-list-item-subject">
+                {subject}
+              </span>
+            </Typography>
+            {mailboxLabel}
+          </span>
           <SecondaryText
             variant="body2"
             lines={2}
             data-testid="email-list-item-preview"
           >
-            {email.preview}
+            {preview}
           </SecondaryText>
         </RowLink>
       )

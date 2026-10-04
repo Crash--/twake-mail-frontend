@@ -38,6 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   being read; below 900 px the email replaces the list, with a back
   button. Phones get a compact top bar (current folder, search behind a
   button) and four-line list rows (sender and date, subject, preview).
+- Search: suggestions while typing (search for the text, recent searches,
+  contacts when the server autocompletes them, first matching emails) in an
+  accessible combobox, quick filters (attachment, last 7 days, from me,
+  starred), advanced search (from, to, subject, words, excluded words,
+  folder, dates, attachment, unread, starred, order), filters above the
+  results, orders as in tmail-flutter (relevance by default, the last one
+  picked remembered), matches highlighted from `SearchSnippet/get`,
+  shareable results URL (`/search?…`), results kept up to date by push
   Touch targets are at least 44 px, and every screen reflows down to
   320 px without horizontal scrolling (RGAA 10.11)
 - End-to-end runs of the main path on phone (390 × 844) and tablet

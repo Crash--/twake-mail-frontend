@@ -9,5 +9,11 @@ import { EmailView } from '@common/features/email/EmailView'
 export function EmailPage(): ReactElement {
   const { mailboxId = '', emailId = '' } = useParams()
 
-  return <EmailView key={emailId} mailboxId={mailboxId} emailId={emailId} />
+  return (
+    <EmailView
+      key={emailId}
+      emailId={emailId}
+      backPath={`/mailbox/${encodeURIComponent(mailboxId)}`}
+    />
+  )
 }

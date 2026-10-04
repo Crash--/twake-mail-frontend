@@ -14,6 +14,10 @@ import {
   useState,
   type ReactElement
 } from 'react'
+import {
+  useInfiniteQuery,
+  type UseInfiniteQueryResult
+} from '@tanstack/react-query'
 import { useLocation, useMatch } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
@@ -30,10 +34,25 @@ import { useSetKeyword } from '@common/features/email/useSetKeyword'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapClient } from '@common/jmap/JmapClientProvider'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-import { EmailCell, isEmailRow, type EmailColumnId } from './EmailCell'
-import type { EmailListData, EmailListItemData } from './queries'
-import { useEmailList } from './useEmailList'
+import {
+  EmailCell,
+  emailPath as mailboxEmailPath,
+  isEmailRow,
+  type EmailColumnId,
+  type EmailRowData
+} from './EmailCell'
+import {
+  emailListSourceQueryOptions,
+  type EmailListSource
+} from './emailListSource'
+import {
+  type EmailListData,
+  type EmailListItemData,
+  type SearchRequest
+} from './queries'
 import { useNewEmailCount } from './useNewEmailCount'
 
 /** Folders whose list shows the recipients rather than the sender */
@@ -50,16 +69,19 @@ const PRELOAD_ROWS = 10
 /** Rows rendered beyond the viewport, in pixels: for scrolling and focus */
 const OVERSCAN_PX = 400
 
-/** Every email of the pages, once: positions shift when mail arrives */
-function flattenPages(data: EmailListData | undefined): EmailListItemData[] {
+/**
+ * Every email of the pages, once (positions shift when mail arrives), with
+ * its search snippet when the list holds search results
+ */
+function flattenPages(data: EmailListData | undefined): EmailRowData[] {
   const seen = new Set<string>()
-  return (data?.pages ?? [])
-    .flatMap(page => page.emails)
-    .filter(email => {
-      if (seen.has(email.id)) return false
+  return (data?.pages ?? []).flatMap(page =>
+    page.emails.flatMap((email): EmailRowData[] => {
+      if (seen.has(email.id)) return []
       seen.add(email.id)
-      return true
+      return [{ ...email, snippet: page.snippets?.[email.id] ?? null }]
     })
+  )
 }
 
 function computeRowKey(_index: number, row: VirtualizedTableRow): string {
@@ -91,25 +113,76 @@ function readFocusEmailId(state: unknown): string | null {
     : null
 }
 
-export interface EmailListProps {
-  mailboxId: string
+/** A list of search results rather than of the emails of a mailbox */
+export interface EmailListSearch {
+  request: SearchRequest
+  /** Path of a result, opened beside or instead of the list */
+  emailPath: (emailId: string) => string
+  /** The result open beside the list, if any */
+  openEmailId: string | null
+  /** Shown when nothing matches */
+  empty: ReactElement
+}
+
+export type EmailListProps = { mailboxId: string } | { search: EmailListSearch }
+
+function useListQuery(
+  props: EmailListProps
+): UseInfiniteQueryResult<EmailListData> {
+  const client = useJmapClient()
+  const { accountId } = useJmapSession()
+  const source: EmailListSource =
+    'search' in props
+      ? { kind: 'search', request: props.search.request }
+      : { kind: 'mailbox', mailboxId: props.mailboxId }
+  return useInfiniteQuery(
+    emailListSourceQueryOptions(client, accountId, source)
+  )
 }
 
 /**
- * The emails of a mailbox, most recent first, in a virtualized table that
- * loads the next page when its end comes into view. Each row is a link to
- * the email; emails arriving by push are announced to screen readers.
+ * The emails of a mailbox, most recent first, or the results of a search,
+ * in a virtualized table that loads the next page when its end comes into
+ * view. Each row is a link to the email; emails arriving by push are
+ * announced to screen readers. Search results also show the mailboxes of
+ * each email and highlight the matches.
  */
-export function EmailList({ mailboxId }: EmailListProps): ReactElement {
+export function EmailList(props: EmailListProps): ReactElement {
   const { t } = useI18n()
-  const query = useEmailList(mailboxId)
+  const search = 'search' in props ? props.search : null
+  const mailboxId = 'mailboxId' in props ? props.mailboxId : null
+  const query = useListQuery(props)
   const mailboxes = useMailboxes()
   const mailbox =
     mailboxes.data?.find(candidate => candidate.id === mailboxId) ?? null
   const role = mailbox?.role ?? null
   const getMailboxName = useMailboxName()
-  useDocumentTitle(mailbox === null ? null : getMailboxName(mailbox))
+  useDocumentTitle(
+    search === null
+      ? mailbox === null
+        ? null
+        : getMailboxName(mailbox)
+      : t('search.title')
+  )
   const showRecipients = role !== null && RECIPIENT_ROLES.includes(role)
+  const getEmailPath = useCallback(
+    (emailId: string): string =>
+      search === null
+        ? mailboxEmailPath(mailboxId ?? '', emailId)
+        : search.emailPath(emailId),
+    [search, mailboxId]
+  )
+  // Search results come from any mailbox: each row says which
+  const getMailboxNames = useCallback(
+    (email: EmailListItemData): string | null => {
+      if (search === null) return null
+      const names = (mailboxes.data ?? [])
+        .filter(candidate => candidate.id in email.mailboxIds)
+        .map(getMailboxName)
+      return names.length === 0 ? null : names.join(', ')
+    },
+    [search, mailboxes.data, getMailboxName]
+  )
   const emails = useMemo(() => flattenPages(query.data), [query.data])
   const total = query.data?.pages[0]?.total ?? null
   const location = useLocation()
@@ -119,8 +192,9 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
       ? -1
       : emails.findIndex(email => email.id === focusEmailId)
   // Beside the list on large tablets: its row is the selected one
-  const openEmailId =
+  const openMailboxEmailId =
     useMatch('/mailbox/:mailboxId/email/:emailId')?.params.emailId ?? null
+  const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
   const isOpenEmail = useCallback(
     (row: VirtualizedTableRow): boolean => row.id === openEmailId,
     [openEmailId]
@@ -257,7 +331,8 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
       rowContent: {
         children: (
           <EmailCell
-            mailboxId={mailboxId}
+            getEmailPath={getEmailPath}
+            getMailboxNames={getMailboxNames}
             showRecipients={showRecipients}
             onToggleStar={handleToggleStar}
             onToggleSeen={handleToggleSeen}
@@ -266,7 +341,14 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
         )
       }
     }),
-    [mailboxId, showRecipients, handleToggleStar, handleToggleSeen, openEmailId]
+    [
+      getEmailPath,
+      getMailboxNames,
+      showRecipients,
+      handleToggleStar,
+      handleToggleSeen,
+      openEmailId
+    ]
   )
 
   let content: ReactElement
@@ -284,6 +366,8 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
         data-testid="email-list-error"
       />
     )
+  } else if (emails.length === 0 && search !== null) {
+    content = search.empty
   } else if (emails.length === 0) {
     content = (
       <Empty
@@ -296,7 +380,7 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
     content = (
       <>
         <VirtualizedListTable
-          label={t('mailbox.emails')}
+          label={t(search === null ? 'mailbox.emails' : 'search.results')}
           className="u-flex-auto"
           data-testid="email-list"
           rows={emails}

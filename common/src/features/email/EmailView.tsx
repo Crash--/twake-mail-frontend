@@ -215,24 +215,22 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
 }
 
 export interface EmailViewProps {
-  mailboxId: string
   emailId: string
+  /** The list the back button returns to: a mailbox, search results */
+  backPath: string
 }
 
 /**
  * An opened email: headers, attachments and body. Replaces the list, as in
- * tmail-flutter on desktop; the back button returns to the mailbox.
+ * tmail-flutter on desktop; the back button returns to the list.
  */
-export function EmailView({
-  mailboxId,
-  emailId
-}: EmailViewProps): ReactElement {
+export function EmailView({ emailId, backPath }: EmailViewProps): ReactElement {
   const { t } = useI18n()
   const navigate = useNavigate()
   const query = useEmail(emailId)
 
   const handleBack = (): void => {
-    void navigate(`/mailbox/${encodeURIComponent(mailboxId)}`, {
+    void navigate(backPath, {
       state: { focusEmailId: emailId } satisfies EmailListLocationState
     })
   }

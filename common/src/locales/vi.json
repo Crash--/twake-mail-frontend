@@ -12,7 +12,6 @@
     "close": "Đóng"
   },
   "topbar": {
-    "searchPlaceholder": "Tìm kiếm thư",
     "apps": "Mở ứng dụng",
     "account": "Quản lý tài khoản",
     "logout": "Đăng xuất",
@@ -169,5 +168,77 @@
   },
   "layout": {
     "navigation": "Điều hướng"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm emails",
+    "showingResultsFor": "Kết quả cho:",
+    "recent": "Gần đây",
+    "filters": {
+      "hasAttachment": "Đính kèm",
+      "fromMe": "Từ tôi",
+      "starred": "Quan trọng",
+      "unread": "Chưa đọc"
+    },
+    "dates": {
+      "last7Days": "7 ngày gần đây",
+      "allTime": "Toàn bộ thời gian",
+      "last30Days": "30 ngày gần đây",
+      "last6Months": "6 tháng gần đây",
+      "lastYear": "1 năm gần đây",
+      "custom": "Khoảng thời gian",
+      "range": "Từ %{startDate} đến %{endDate}"
+    },
+    "fields": {
+      "from": "Từ",
+      "to": "Đến",
+      "subject": "Tiêu đề",
+      "text": "Có chứa từ",
+      "notWords": "Không chứa",
+      "date": "Ngày",
+      "sort": "Sắp xếp theo",
+      "startDate": "Bắt đầu",
+      "endDate": "Kết thúc",
+      "folder": "Thư mục"
+    },
+    "scope": {
+      "default": "Tất cả thư",
+      "everywhere": "Tất cả thư, thư rác và spam"
+    },
+    "submit": "Tìm kiếm",
+    "hints": {
+      "address": "Tên hoặc địa chỉ email",
+      "subject": "Điền tiêu đề",
+      "words": "Nhập một số gợi ý"
+    },
+    "clearFilter": "Xoá bộ lọc",
+    "advanced": "Bộ lọc nâng cao",
+    "sort": {
+      "mostRecent": "Gần đây nhất",
+      "oldest": "Cũ nhất",
+      "relevance": "Mức độ liên quan",
+      "senderAscending": "Tên người gửi: A - Z",
+      "senderDescending": "Tên người gửi: Z - A",
+      "subjectAscending": "Tiêu đề: A - Z",
+      "subjectDescending": "Tiêu đề: Z-A",
+      "sizeAscending": "Kích thước tăng dần",
+      "sizeDescending": "Kích thước giảm dần"
+    },
+    "empty": "Không có email phù hợp với tìm kiếm của bạn",
+    "title": "Tìm kiếm",
+    "results": "Kết quả tìm kiếm",
+    "inMailbox": "Trong %{name}",
+    "quickFilters": "Bộ lọc nhanh",
+    "filtersBar": "Bộ lọc tìm kiếm",
+    "suggestions": "Gợi ý tìm kiếm",
+    "contacts": "Danh bạ",
+    "emails": "Thư",
+    "clear": "Xóa tìm kiếm",
+    "backToMailbox": "Quay lại hộp thư",
+    "closeAdvanced": "Đóng tìm kiếm nâng cao",
+    "removeFilter": "Xóa bộ lọc %{name}",
+    "searchFor": "Tìm \"%{text}\"",
+    "wordsHint": "Phân tách các từ bằng dấu phẩy",
+    "loading": "Đang tải gợi ý",
+    "suggestionCount": "%{smart_count} gợi ý"
   }
 }

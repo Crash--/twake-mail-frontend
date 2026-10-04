@@ -1,0 +1,297 @@
+# Twake Mail web — end to end test plan
+
+Parity backlog of the Playwright suite ([`README.md`](README.md)) against the **116 Patrol
+integration tests** of tmail-flutter (`integration_test/tests/`, scenarios in
+`integration_test/scenarios/`, robots in `integration_test/robots/`). Flutter web renders to a
+canvas, so none of them can be reused: each one is rewritten here as a Playwright spec against
+the React app. One line per Patrol test, 116 lines.
+
+## How to use this list
+
+- **The identifier is stable** (`MBX-03`): never renumber, never reuse. Quote it at the start of
+  the test title, it is what ties the backlog to the code:
+
+  ```ts
+  test('MBX-01 create a personal folder from the sidebar', async ({ page, user }) => { … });
+  ```
+
+  `npx playwright test -g MBX-01` then runs exactly that scenario.
+- **Tick the box** when the spec exists **and passes in CI** — not before.
+- Each line says what the Patrol test asserts (read from the scenario, not from its name), the
+  source file (relative to `integration_test/tests/`) and its Patrol tags. A test without a
+  `tags:` argument gets the `TestBase` default, `[ios]`: it never ran on web, which is why most
+  of these behaviours have no web coverage today (`ios (default)` below).
+- `Data:` notes say what the Patrol test relied on. Patrol ran every test as the shared
+  `bob@example.com`, restored from `provisioning/integration_test/backup.zip` and reset after
+  each test. Here **every test gets a brand new user** (`user` fixture) and seeds exactly what
+  it needs through the `jmap` fixture (`sendEmail`, `importEml` of the copies in
+  `fixtures/eml/`, `setKeywords`, `createMailbox`), so nothing depends on bob's backup.
+- `Web port:` notes: the Patrol test reaches the feature through a touch gesture (long press)
+  but the feature exists on the web; port it through the web path given (⋮ button on hover,
+  right-click, row checkbox).
+- **`N/A web`** marks a scenario that has no web counterpart as written (Android share
+  intents, background auto-save on app pause, pull-to-refresh, long-press shortcuts duplicating
+  another entry). The note gives the web equivalent and which entry covers it. These lines stay
+  unticked and get no spec.
+- A behaviour of the web app that Patrol never covered gets a new line, in its domain, with
+  the next free number.
+- One spec, one behaviour a user can observe. Back the UI assertion with a JMAP one when the
+  screen could lie (the email really is in Trash, the keyword really is set).
+
+## Summary
+
+| Prefix | Domain | Entries | Tagged `web` in Patrol | N/A web |
+|---|---|---|---|---|
+| `LOGIN` | Login | 1 | 1 | 0 |
+| `MBX` | Mailbox and folders | 25 | 3 | 2 |
+| `CMP` | Composer | 26 | 7 | 3 |
+| `ATT` | Attachments | 2 | 1 | 0 |
+| `EML` | Reading and acting on an email | 27 | 0 | 1 |
+| `THR` | Thread detail | 1 | 0 | 0 |
+| `SRCH` | Search | 14 | 10 | 0 |
+| `LBL` | Labels | 11 | 0 | 0 |
+| `SET` | Settings | 3 | 1 | 0 |
+| `RULE` | Email rules | 1 | 1 | 0 |
+| `CAL` | Calendar events | 2 | 0 | 0 |
+| `PUSH` | Real-time updates | 1 | 0 | 0 |
+| `APPGRID` | App grid | 1 | 0 | 0 |
+| `MISC` | Misc | 1 | 0 | 0 |
+| | **Total** | **116** | **24** | **6** |
+
+Phase 0 of the React app (login, folder tree, email list, reading) is enough for `LOGIN-01`,
+`MBX-04` to `MBX-06`, `MBX-17`, `MBX-24`, `EML-01` to `EML-04` and `PUSH-01`, their data being
+seeded through JMAP. Everything else needs actions, the composer, search or settings.
+
+---
+
+
+## LOGIN — Login (1)
+
+- [ ] `LOGIN-01` Logging in with basic auth (email + password; on mobile after "Use company server" → username → server URL) as the provisioned user lands on the thread (email list) view. — `login/login_with_basic_auth_test.dart` · tags: `web` `android` `ios`
+  - Data: the only test that does NOT seed credentials into app storage (every other test starts already logged in as bob@example.com); uses `USERNAME`, `BASIC_AUTH_URL`, `BASIC_AUTH_EMAIL`, `PASSWORD` dart-defines.
+
+## MBX — Mailbox and folders (25)
+
+- [ ] `MBX-01` Clicking the sidebar "+" (new folder) button, entering "crud personal folder" and confirming "Create folder" makes the new personal folder appear in the sidebar. — `mailbox/create_personal_folder_test.dart` · tags: `web` `android` `ios`
+- [ ] `MBX-02` From Inbox's folder menu, create subfolder "crud sub folder" (it opens and its name shows), rename it to "renamed sub folder", move it under Archive (Archive now has a child), then delete it with confirmation (Archive has no children any more). — `mailbox/create_rename_move_and_delete_mailbox_test.dart` · tags: `ios (default)`
+  - Web port: every folder action is opened by long-pressing the sidebar folder. Web equivalent: hover → folder "more" (⋮) button or right-click on the folder → New subfolder / Rename / Move / Delete; port it through the folder/row context menu (⋮ on hover, or right-click).
+- [ ] `MBX-03` Creating subfolder "hidden sub folder" under Inbox from Inbox's folder menu, then choosing "Hide folder" on it, leaves Inbox with no children in the sidebar (and Inbox still reachable). — `mailbox/create_and_hide_sub_folder_test.dart` · tags: `ios (default)`
+  - Web port: long press on the sidebar folder (and a native swipe to close the drawer). Web equivalent: hover ⋮ / right-click → New subfolder, then Hide folder; port it through the folder/row context menu (⋮ on hover, or right-click).
+- [ ] `MBX-04` Opening the sidebar folder search (magnifier in the "Folders" section header) and typing "Inbox" shows the Inbox folder in the search results. — `mailbox/search_mailbox_inbox_test.dart` · tags: `ios (default)`
+- [ ] `MBX-05` With one email sent to self (lands in Sent) and one sent with Trash as its "sent" folder, clicking Sent shows exactly one "sent subject" row and clicking Trash shows "trash subject". — `mailbox/switch_mailbox_test.dart` · tags: `ios (default)`
+- [ ] `MBX-06` On a fresh account with no starred mail, the Favorites (Starred) folder is listed in the sidebar and opening it shows the empty-thread view. — `mailbox/display_empty_view_for_favorite_folder_test.dart` · tags: `ios (default)`
+  - Data: relies on bob's restored mailbox having no starred email (backend reset between tests).
+- [ ] `MBX-07` The team mailbox "bob-guests" is listed in the sidebar; composing an email to bob-guests@example.com and sending shows the "Message has been sent successfully" toast, and the email appears in the team mailbox's INBOX after expanding it. — `mailbox/team_mailbox_receive_email_test.dart` · tags: `ios (default)`
+  - Data: team mailbox `bob-guests@example.com` with members bob and alice, created by `provisioning.sh` (Twake/James team-mailbox extension).
+- [ ] `MBX-08` With an email provisioned in Trash, opening Trash shows the "empty trash" banner and the email; clicking "Empty trash now" shows the confirmation dialog, and "Delete all" leaves the empty-thread view. — `mailbox/empty_trash_test.dart` · tags: `ios (default)`
+- [ ] `MBX-09` With a subfolder created under Trash and an email in Trash, emptying Trash via the banner + confirm removes the subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_banner_test.dart` · tags: `web` `android` `ios`
+  - Data: Trash subfolder "Trash subfolder banner test" created via JMAP `Mailbox/set` before the UI run.
+- [ ] `MBX-10` Same setup as MBX-09, but emptying via the Trash folder context menu ("Empty trash" → "Delete") removes the Trash subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_context_menu_test.dart` · tags: `web` `android` `ios`
+  - Data: Trash subfolder "Trash subfolder context menu test" created via JMAP. On web the robot opens the menu by hovering the folder and clicking its ⋮ (more-action) button.
+- [ ] `MBX-11` With an email in Trash, emptying Trash via the banner hides the banner; then "Recover deleted messages" on Trash → "Restore" brings the email back into a "Recovered" folder where it is visible. — `mailbox/empty_and_recover_trash_test.dart` · tags: `ios (default)`
+  - Web port: "Recover deleted messages" is opened by long-pressing Trash (the banner part is web-native). Web equivalent: Trash folder hover ⋮ / right-click → Recover deleted messages; port it through the folder/row context menu (⋮ on hover, or right-click).
+  - Data: needs the server's deleted-messages vault (James) for the restore into "Recovered".
+- [ ] `MBX-12` With an email in Trash (Trash shows no unread badge), long-pressing Trash → "Empty trash" → "Delete" empties it (no badge, no banner when opened); long-press Trash → "Recover deleted messages" → "Restore" puts the email in "Recovered". — `mailbox/long_press_empty_and_recover_trash_test.dart` · tags: `ios (default)`
+  - N/A web: long press on the sidebar folder. Web equivalent: Trash context menu → Empty trash is covered by MBX-10; Recover deleted messages is covered by the MBX-11 right-click port.
+  - Data: deleted-messages vault (James).
+- [ ] `MBX-13` With an email in Spam, clicking the "Delete all spam emails now" banner and confirming "Delete all" hides the banner; then "Recover deleted messages" on Trash → "Restore" shows the email in "Recovered". — `mailbox/empty_and_recover_spam_test.dart` · tags: `ios (default)`
+  - Web port: recovery is opened by long-pressing Trash (the spam banner part is web-native). Web equivalent: Trash hover ⋮ / right-click → Recover deleted messages, covered by the MBX-11 right-click port; the spam banner part should still be ported as-is.
+  - Data: email placed in Spam by sending to self with Junk as the "sent" folder; deleted-messages vault.
+- [ ] `MBX-14` With an email in Spam (Spam shows no unread badge), long-pressing Spam → "Delete all spam emails" → "Delete all" empties it (no badge, no banner when opened); recovering from Trash then shows the email in "Recovered". — `mailbox/long_press_empty_and_recover_spam_test.dart` · tags: `ios (default)`
+  - Web port: long press on the sidebar folder. Web equivalent: Spam folder hover ⋮ / right-click → Delete all spam emails; port it through the folder/row context menu (⋮ on hover, or right-click).
+  - Data: deleted-messages vault.
+- [ ] `MBX-15` With an unread email in Inbox (Inbox shows an unread badge), choosing "Mark as read" from Inbox's folder menu removes the Inbox unread badge. — `mailbox/mark_mailbox_as_read_test.dart` · tags: `ios (default)`
+  - Web port: long press on Inbox. Web equivalent: Inbox hover ⋮ / right-click → Mark as read; port it through the folder/row context menu (⋮ on hover, or right-click).
+- [ ] `MBX-16` With 40 emails provisioned in Inbox, choosing "Move folder content" → Templates from Inbox's folder menu moves them all: Templates lists them and Inbox shows the empty-thread view. — `mailbox/move_folder_content_test.dart` · tags: `ios (default)`
+  - Web port: long press on Inbox. Web equivalent: Inbox hover ⋮ / right-click → Move folder content → destination picker; port it through the folder/row context menu (⋮ on hover, or right-click).
+- [ ] `MBX-17` The Inbox unread counter goes up by 1 in real time when a new email arrives, and back down when that email is marked read by another client (JMAP `Email/set`), without any manual refresh. — `mailbox/mailbox_count_real_time_update_test.dart` · tags: `ios (default)`
+  - Data: relies on server push (JMAP WebSocket/state change); the "other client" update is a direct JMAP call.
+- [ ] `MBX-18` The used quota shown in the sidebar increases after an email with a .txt attachment is sent to self and the quota is reloaded. — `mailbox/quota_count_test.dart` · tags: `ios (default)`
+  - Data: bob quota (200 messages / 50 MB) set by `provisioning.sh`; the test reads the used quota from the controller and triggers `reloadQuota()` programmatically (no UI refresh), so on web reload the page or wait for the push update.
+- [ ] `MBX-19` Selecting an email and choosing More → "Move to" → Templates moves it to Templates (visible there); selecting another and clicking "Move to trash" moves it to Trash (visible there). — `mailbox/mailbox_move_email_test.dart` · tags: `ios (default)`
+  - Web port: selection is entered by long-pressing the email row. Web equivalent: row checkbox selection + selection toolbar, or right-click on the email → Move to / Move to trash (drag-and-drop to a folder is another web path); port it through the folder/row context menu (⋮ on hover, or right-click).
+- [ ] `MBX-20` Selecting a single unread email and clicking the selection toolbar's "Mark as read" shows the email as read in the list. — `mailbox/mark_single_selected_email_as_read_test.dart` · tags: `ios (default)`
+  - Web port: selection by long press on the email row. Web equivalent: checkbox selection → toolbar Mark as read, or right-click → Mark as read; port it through the folder/row context menu (⋮ on hover, or right-click).
+- [ ] `MBX-21` Selecting a single email and choosing More → "Mark as starred" shows the email as starred in the list. — `mailbox/mark_single_selected_email_as_star_test.dart` · tags: `ios (default)`
+  - Web port: selection by long press on the email row. Web equivalent: checkbox selection → toolbar star, or right-click → Star; port it through the folder/row context menu (⋮ on hover, or right-click).
+- [ ] `MBX-22` Selecting a single email and choosing More → "Move to spam" moves it out of Inbox; it is listed in the Spam folder. — `mailbox/mark_single_selected_email_as_spam_test.dart` · tags: `ios (default)`
+  - Web port: selection by long press on the email row. Web equivalent: checkbox selection → toolbar spam action, or right-click → Mark as spam; port it through the folder/row context menu (⋮ on hover, or right-click).
+- [ ] `MBX-23` With 4 emails (one unread, one marked read and one starred via JMAP, one with a .txt attachment), the thread quick filter "Attachments" shows the attachment email, "Unread" shows the unread email and "Starred" shows the starred email. — `mailbox/quick_filter_test.dart` · tags: `ios (default)`
+  - Data: only positive assertions (the expected email is visible); the test never checks that the other emails are filtered out, so a port should add that.
+- [ ] `MBX-24` With 16 emails in Inbox, scrolling to the oldest email shows the "scroll to top" floating button, and clicking it scrolls back to the top and hides the button. — `mailbox/scroll_list_email_in_mailbox_and_back_to_top_test.dart` · tags: `ios (default)`
+- [ ] `MBX-25` An email that arrived without the list being refreshed is not shown until a pull-to-refresh (fling down) on the list, after which it appears. — `mailbox/pull_to_refresh_test.dart` · tags: `ios (default)`
+  - N/A web: pull-to-refresh gesture. Web equivalent: none as written (new mail arrives via push, covered by MBX-17 / PUSH-01).
+
+## CMP — Composer (26)
+
+- [ ] `CMP-01` Compose a new email to self (bob) and alice with subject "Test subject" and body, send it, and the message is filed in the Sent mailbox (no send-failure confirm dialog appears). — `composer/send_email_test.dart` · tags: `android` `ios` `web`
+  - Data: logged-in user `BASIC_AUTH_EMAIL` = bob@example.com, `ADDITIONAL_MAIL_RECIPIENT` = alice@example.com.
+- [ ] `CMP-02` In a new composer to self, enable "Mark as important" from the composer "More" menu (toast "Mark as important is enabled"), send, and the resulting email tile in the list shows the important flag icon. — `composer/send_email_with_mark_as_important_test.dart` · tags: `ios (default)`
+- [ ] `CMP-03` In a new composer to self, enable "Request read receipt" from the "More" menu (toast "Request read receipt has been enabled"), send, then opening the received email shows the "Read receipt request" dialog, and it shows again when reopening the (now cached) email. — `composer/send_email_with_read_receipt_enabled_test.dart` · tags: `ios (default)`
+- [ ] `CMP-04` With two identities provisioned (default one whose signature contains the keyword "file", the other without), sending a body without the keyword using the default identity succeeds with no attachment reminder (keyword in signature is ignored), while sending a body "file in content" after switching From to the second identity shows the attachment-reminder modal ("…in your message but did not add any attachments. Do you still want to send?"). — `composer/attachment_reminder_test.dart` · tags: `ios (default)`
+  - Data: 2 identities via JMAP Identity/set (signatures "Signature file" default, "Signature").
+- [ ] `CMP-05` In a new composer, expanding the To field reveals To/Cc/Bcc/Reply-To fields; after adding a Cc recipient and moving focus to the subject the recipient fields collapse into a summary (all four hidden), and tapping the collapsed summary then the Cc expand button shows all four fields again. — `composer/show_full_recipient_fields_when_expand_all_test.dart` · tags: `ios (default)`
+- [ ] `CMP-06` In the composer editor, pressing Ctrl+K (Cmd+K on macOS) opens the app's custom insert-link dialog (with an "Apply" button) instead of the browser/editor default. — `composer/open_insert_link_dialog_via_keyboard_shortcut_test.dart` · tags: `web`
+- [ ] `CMP-07` In a new composer, uploading a PNG as attachment shows an attachment chip with its file name, inserting the same PNG inline puts a base64 `<img>` in the editor HTML, and adding it twice more as attachment results in 3 attachment chips. — `composer/composer_upload_attachment_and_inline_image_test.dart` · tags: `ios (default)`
+  - Data: PNG from `integration_test/resources/test_images.dart` (`TestImages.base64`), injected via the upload controller (no native picker).
+- [ ] `CMP-08` After sending an email to bob and alice (CMP-01 flow, subject "reply own sent email"), opening it from Sent and tapping Reply pre-fills the To field with the original To recipients (bob@example.com and alice@example.com) rather than the sender only. — `composer/reply_to_own_sent_email_test.dart` · tags: `ios (default)`
+- [ ] `CMP-09` Replying (to self) to the provisioned email "Mail with base64" that contains one base64 `data:image` inline image plus one `cid:` inline image, then sending, produces a reply whose rendered HTML references both images via `cid` (exactly 2 `cid` occurrences, base64 converted to cid attachment). — `composer/reply_email_with_content_contain_image_base64_data_test.dart` · tags: `ios (default)`
+  - Data: `provisioning/integration_test/eml/reply_email_with_image_base64/0.eml` (restored into bob's mailbox via backup.zip); found via search.
+- [ ] `CMP-10` Replying to a provisioned email and inserting an inline image without ever focusing the editor places the image above the quoted `<blockquote>` (at the first line). — `composer/reply_inline_no_focus_at_first_line_test.dart` · tags: `ios (default)`
+  - Data: email "reply inline no focus" sent to self; PNG `TestImages.base64` via faked file picker.
+- [ ] `CMP-11` Replying to a provisioned email with no signature, placing the caret just above the quoted reply body and inserting an inline image puts the image before the `<blockquote>`. — `composer/reply_inline_focused_without_signature_test.dart` · tags: `ios (default)`
+- [ ] `CMP-12` With a default identity whose signature is "SIGNATURE_MARKER", replying to a provisioned email, placing the caret above the reply body and inserting an inline image yields editor HTML ordered signature, then image, then `<blockquote>`. — `composer/reply_inline_focused_with_signature_test.dart` · tags: `ios (default)`
+  - Data: default identity with HTML signature `SIGNATURE_MARKER`.
+- [ ] `CMP-13` Forwarding the provisioned email "Forward email" (from emma, To bob, Cc alice, Bcc brian) opens a composer whose body contains the forwarded-message header block with Subject, From, To, Cc and Bcc labels (the test title also mentions Reply-To but it is not asserted). — `composer/forward_email_test.dart` · tags: `ios (default)`
+  - Data: `provisioning/integration_test/eml/forward_email/forward.eml` (in bob's backup.zip); found via search.
+- [ ] `CMP-14` Composing to self with subject "Save draft email without Reply-To", closing the composer and choosing Save in the save-draft confirm dialog shows the "Draft saved" toast; the draft appears in Drafts and reopening it shows no Reply-To recipient field. — `composer/save_draft_then_close_composer_and_open_draft_test.dart` · tags: `ios (default)`
+- [ ] `CMP-15` After saving a draft via close → Save ("Draft saved" toast), reopening it from Drafts, changing the subject and closing → Save again shows the "Draft saved" toast a second time (draft update). — `composer/update_draft_email_with_messsage_success_toast_test.dart` · tags: `ios (default)`
+- [ ] `CMP-16` With two identities provisioned (Identity 1 default, Identity 2), switching the From field to Identity 2 and using "Save as draft" from the composer "More" menu, then reopening the draft from Drafts shows Identity 2 selected in From. — `composer/change_identity_in_draft_email_test.dart` · tags: `ios (default)`
+  - Data: 2 identities ("Identity 1"/"Signature 1" default, "Identity 2"/"Signature 2").
+- [ ] `CMP-17` A draft to self with a PNG attachment (wait for "Attachments uploaded successfully") saved via close → Save, reopened from Drafts, can be saved again twice via "Save as draft" after editing the subject (" edited", " again") with each save succeeding (no error dialog). — `composer/save_draft_with_attachment_then_open_and_save_draft_again_test.dart` · tags: `ios` `web`
+  - Data: `test-attachment.png` from `TestImages.base64`; unique subject with timestamp.
+- [ ] `CMP-18` Same as CMP-17 but with an inline image in the body instead of an attachment: the reopened draft can be re-saved twice successfully. — `composer/save_draft_with_inline_image_then_open_and_save_draft_again_test.dart` · tags: `android` `ios` `web`
+  - Data: `test-inline.png` from `TestImages.base64`.
+- [ ] `CMP-19` From the Templates folder, composing an email with subject "test subject" and choosing "Save as template" (More menu), then closing with Discard, shows it in Templates; reopening it, changing the subject to "test subject updated" and saving as template again shows the updated subject in the list. — `composer/save_as_template_test.dart` · tags: `ios (default)`
+- [ ] `CMP-20` A message to self with a PNG attachment saved as template shows "Save message to template folder successfully"; reopened from Templates and edited twice, each "Save as template" shows "Update message to template folder successfully". — `composer/save_template_with_attachment_then_open_and_save_template_again_test.dart` · tags: `ios` `web`
+- [ ] `CMP-21` Same as CMP-20 but with an inline image in the body: first template save shows the "saved" toast and the two subsequent saves of the reopened template show the "updated" toast. — `composer/save_template_with_inline_image_then_open_and_save_template_again_test.dart` · tags: `ios` `web`
+- [ ] `CMP-22` With an open composer filled with recipient, subject and body, a `beforeunload` (page reload) writes a composer snapshot to sessionStorage; after the composer is torn down it is restored from that cache with the same subject, recipient and body, and closing it normally (discarding if asked) removes the snapshot. — `composer/restore_composer_after_reload_test.dart` · tags: `web`
+- [ ] `CMP-23` With a composer open and a subject typed, sending the app to background (Home) and reopening it keeps the composer open with the subject intact (auto-save on app pause). — `composer/android_composer_auto_save_test.dart` · tags: `ios (default)`
+  - N/A web: relies on Android app lifecycle (Home button / app paused, native automator). Web equivalent: composer survives page reload/close via snapshot, covered by CMP-22 (and drafts CMP-14).
+- [ ] `CMP-24` A `mailto:shared-recipient@example.com?subject=Hello&body=World` share intent emitted before the mailbox is loaded is buffered, and once the mailbox is ready the composer opens with To = shared-recipient@example.com, subject "Hello" and body "World". — `composer/share_mailto_before_mailbox_ready_opens_composer_test.dart` · tags: `android`
+  - Web port: Android share intent (`receive_sharing_intent` EventChannel). Web equivalent: port as a web variant: cold-load the `/mailto?uri=mailto:…` route (protocol handler) before the mailbox is ready and assert the composer opens prefilled.
+- [ ] `CMP-25` An external app sharing text with mimeType `text/plain;charset=utf-8` opens the composer with the shared text as the body. — `composer/share_text_with_charset_mimetype_opens_composer_test.dart` · tags: `android`
+  - N/A web: Android share intent (text share from another app). Web equivalent: none (would require Web Share Target in a PWA manifest).
+- [ ] `CMP-26` An external app sharing text with mimeType `text/html` opens the composer with the shared text as the body. — `composer/share_text_with_html_mimetype_opens_composer_test.dart` · tags: `android`
+  - N/A web: Android share intent (text share from another app). Web equivalent: none (would require Web Share Target in a PWA manifest).
+
+## ATT — Attachments (2)
+
+- [ ] `ATT-01` Opening a provisioned email to self with three .txt attachments and clicking "Download all" triggers the download (iOS: native Save dialog; web: a downloaded file whose name starts with `TwakeMail-`). — `attachments/download_all_attachments_test.dart` · tags: `ios` `web`
+  - Data: email "download all attachments subject" with 3 generated `test.txt` files (contents file1/file2/file3).
+- [ ] `ATT-02` Opening the provisioned email "Greeting Card" (via search), whose inline image part has a Content-ID but no Content-Disposition, renders the image inline as a base64 `data:image/…;base64` source in the HTML body. — `attachments/no_disposition_inline_test.dart` · tags: `ios (default)`
+  - Data: `provisioning/integration_test/eml/no_disposition_inline/no_disposition_inline.eml` (in bob's backup.zip).
+
+## EML — Reading and acting on an email (27)
+
+- [ ] `EML-01` Given a self-sent email whose body is a single short "Lorem ipsum…" sentence, opening it from the Inbox list renders that full sentence in the email body viewer. — `email_detailed/display_email_with_short_content_test.dart` · tags: `ios (default)`
+- [ ] `EML-02` Given a self-sent email with a very long plain body (hundreds of "Lorem ipsum" sentences), opening it renders the body and the reading pane scrolls all the way down to the end-of-content divider, at which point the subject header has scrolled out of view. — `email_detailed/display_and_scroll_email_with_long_content_test.dart` · tags: `ios (default)`
+- [ ] `EML-03` Given a self-sent email whose body is `<script>alert("XSSRobot")</script>`, opening it shows no alert dialog (no "XSSRobot"/"says"/"OK" text) and the sanitized rendered HTML no longer contains the script payload. — `email_detailed/display_email_with_xss_content_test.dart` · tags: `ios (default)`
+  - Data: in Playwright, assert with `page.on('dialog')` never firing and the body iframe containing no `<script>`.
+- [ ] `EML-04` Given a self-sent HTML email with 12 `<img>` tags using oversize (2000px) or normal (100px) dimensions via `style`, `width/height` attributes or both, the rendered body normalizes every image to `max-width:100%; display:inline; height:…`, strips width/height attributes from oversize images, and keeps them (plus the 100px style width) on normal-size images. — `email_detailed/deformed_inlined_image_test.dart` · tags: `ios (default)`
+  - Data: images point to `https://example.com/image.jpg` (no network needed, only the DOM attributes are checked).
+- [ ] `EML-05` After composing and sending to self an email with an inline image inserted from a file (editor content holds a `data:image/…;base64` + `cid:` image), opening the received email renders the inline image, with exactly one `cid` reference in the displayed HTML. — `email_detailed/view_inline_image_test.dart` · tags: `ios (default)`
+  - Data: PNG generated from a base64 constant (`ImageResources.base64`).
+- [ ] `EML-06` Opening a self-sent email and choosing More (⋯) > "Archive message" moves it: after going back and opening the Archive folder, the email is listed there. — `email_detailed/archive_email_test.dart` · tags: `ios (default)`
+- [ ] `EML-07` Opening a self-sent email and choosing More (⋯) > "Move to trash" closes the email view and the email is listed in the Trash folder. — `email_detailed/delete_email_test.dart` · tags: `ios (default)`
+- [ ] `EML-08` With "thread" mode enabled in Settings > Preferences, opening a self-sent email and clicking the "delete thread" button shows the "Moved to Trash" toast. — `email_detailed/delete_thread_to_trash_test.dart` · tags: `ios (default)`
+  - Data: requires toggling the thread (conversation) preference first; only the toast is asserted, not the Trash content.
+- [ ] `EML-09` Opening a self-sent email and choosing More (⋯) > "Mark as spam" closes the email view and the email is listed in the Spam folder. — `email_detailed/mark_as_spam_email_test.dart` · tags: `ios (default)`
+- [ ] `EML-10` In an opened self-sent email, the More (⋯) menu offers "Starred"; selecting it makes the menu offer "Not starred" instead, and selecting that restores the "Starred" option (star/unstar round-trip). — `email_detailed/mark_as_star_email_test.dart` · tags: `ios (default)`
+- [ ] `EML-11` Opening a self-sent email (which marks it read) and choosing More (⋯) > "Mark as unread" closes the email view and the email's list row shows the unread indicator again. — `email_detailed/mark_as_unread_email_test.dart` · tags: `ios (default)`
+- [ ] `EML-12` Opening a self-sent email and choosing More (⋯) > "Move message", then picking the Templates folder in the destination picker, removes the email from the Inbox list and lists it in Templates. — `email_detailed/move_email_to_folder_test.dart` · tags: `ios (default)`
+- [ ] `EML-13` Given a self-sent email with one .txt attachment, tapping the attachment exports/previews it natively and, after navigating back, the email view is still shown with no lingering "Preparing to export" loading dialog. — `email_detailed/export_attachment_test.dart` · tags: `ios (default)`
+  - Web port: relies on the native export flow (download to a temp file then open the OS previewer/share sheet) and the system back gesture. Web equivalent: clicking an attachment downloads it or opens the in-app previewer; port as a web variant: clicking the attachment chip triggers a download (`page.waitForEvent('download')`) / preview and no "Preparing to export" dialog stays on screen.
+  - Data: .txt attachment created on the fly ("attachment content").
+- [ ] `EML-14` Replying (Reply button) to a received email without a Reply-To header opens the composer with subject `Re: Reply email without Reply-To` and To = the original From (`emma@example.com`) only. — `email_detailed/reply_email_without_reply_to_test.dart` · tags: `ios (default)`
+  - Data: bob mailbox `backup.zip`, "Reply Emails" folder (source `provisioning/integration_test/eml/reply_email/without-reply-to.eml`: From emma, To bob, Cc alice, Bcc brian); the email is reached via search + "Show all results".
+- [ ] `EML-15` Replying to a received email that has a `Reply-To: emma-reply-to@example.com` header opens the composer with subject `Re: Reply email with Reply-To` and To = the Reply-To address (not the From). — `email_detailed/reply_email_with_reply_to_test.dart` · tags: `ios (default)`
+  - Data: bob `backup.zip`, "Reply Emails" folder (`eml/reply_email/with-reply-to.eml`); reached via search.
+- [ ] `EML-16` "Reply all" on a received email (From emma, Reply-To emma-reply-to, To bob, Cc alice, Bcc brian) opens the composer with subject `Re: Reply all email`, To = {emma-reply-to@example.com, emma@example.com}, Cc = {alice@example.com}, Bcc = {brian@example.com} (current user excluded). — `email_detailed/reply_all_email_test.dart` · tags: `ios (default)`
+  - Data: bob `backup.zip`, "Reply Emails" folder (`eml/reply_email/reply-all.eml`, also carries a List-Post header); reached via search.
+- [ ] `EML-17` "Reply to list" on a received email carrying `List-Post: <mailto:emma-reply-to-list@example.com>` opens the composer with subject `Re: Reply to list email` and To = the List-Post address only. — `email_detailed/reply_to_list_email_test.dart` · tags: `ios (default)`
+  - Data: bob `backup.zip`, "Reply Emails" folder (`eml/reply_email/reply-to-list.eml`); reached via search.
+- [ ] `EML-18` For each of the 9 supported UI languages (fr, en, vi, ru, ar, it, de, mn, pt-BR), after switching the language in Settings and receiving a new self-sent email, clicking Reply pre-fills the composer subject with the localized reply prefix + original subject (e.g. `Re: …`, `Ре: …`). — `email_detailed/reply_email_when_change_language_test.dart` · tags: `ios (default)`
+  - Data: language changed through Settings > Language each iteration; composer closed with "discard" between iterations.
+- [ ] `EML-19` For each of the 9 supported languages, replying to an email whose subject already starts with that language's localized reply prefix keeps the subject unchanged (no double `Re: Re:`). — `email_detailed/reply_email_replied_when_change_language_test.dart` · tags: `ios (default)`
+- [ ] `EML-20` For each of the 9 supported languages, after switching the language and receiving a new self-sent email, clicking Forward pre-fills the composer subject with the localized forward prefix + original subject (e.g. `Fwd: …`, `Tr: …`, `Chuyển tiếp: …`). — `email_detailed/forward_email_when_change_language_test.dart` · tags: `ios (default)`
+- [ ] `EML-21` For each of the 9 supported languages, forwarding an email whose subject already starts with that language's localized forward prefix keeps the subject unchanged (no double prefix). — `email_detailed/forward_email_forwarded_when_change_language_test.dart` · tags: `ios (default)`
+- [ ] `EML-22` Given a self-sent email with two .txt attachments, forwarding it to self from the email view and sending returns to the email view, which still lists both attachments (attachments not lost after forward). — `email_detailed/forwarding_email_lost_attachments_test.dart` · tags: `ios (default)`
+  - Data: two .txt attachments ("file1", "file2") created on the fly; only the original email view is asserted, not the forwarded copy.
+- [ ] `EML-23` In an opened self-sent email, clicking the sender address opens the email address dialog offering "Copy email address", "Create a rule with this email address" and "Compose email"; after closing it, clicking the recipient address opens the same dialog. — `email_detailed/email_address_dialog/display_email_address_info_dialog_test.dart` · tags: `ios (default)`
+- [ ] `EML-24` Clicking the sender address in an opened email and choosing "Copy email address" in the dialog shows the "Email address copied to clipboard" snackbar. — `email_detailed/email_address_dialog/copy_email_address_to_clipboard_test.dart` · tags: `ios (default)`
+  - Data: in Playwright, grant `clipboard-read` and also assert the clipboard content.
+- [ ] `EML-25` Long-pressing the sender address in an opened email copies it directly and shows the "Email address copied to clipboard" snackbar. — `email_detailed/email_address_dialog/long_press_copy_email_address_to_clipboard_test.dart` · tags: `ios (default)`
+  - N/A web: long-press shortcut is a touch gesture. Web equivalent: click the address > "Copy email address" in the dialog, covered by EML-24.
+- [ ] `EML-26` Clicking the sender address in an opened email and choosing "Compose email" opens a new composer whose To field contains exactly that address. — `email_detailed/email_address_dialog/compose_email_from_email_address_test.dart` · tags: `ios (default)`
+- [ ] `EML-27` Clicking the sender address in an opened email and choosing "Create a rule with this email address" opens the rule (filter) creator with the condition input pre-filled with that address. — `email_detailed/email_address_dialog/create_rule_with_email_address_test.dart` · tags: `ios (default)`
+
+## THR — Thread detail (1)
+
+- [ ] `THR-01` With the "Thread" option switched on in Settings > Preferences, opening the provisioned email "Reply thread" (via search), replying with body "reply thread detail" and sending makes a new collapsed message whose preview contains that text appear in the open thread detail view (real-time update). — `thread_detail/thread_detail_reply_real_time_update_test.dart` · tags: `ios (default)`
+  - Data: `provisioning/integration_test/eml/reply_email/reply-thread.eml` (in bob's backup.zip).
+
+## SRCH — Search (14)
+
+- [ ] `SRCH-01` Given a self-sent email with subject `<Search snippets html escape>`, searching for that text and showing all results lists the email with the subject rendered literally, angle brackets included (no `&lt;`/`&gt;` entities, no HTML interpretation). — `search/search_snippets_with_html_escape_test.dart` · tags: `ios (default)`
+- [ ] `SRCH-02` Given 3 self-sent emails with subject "Search snippet results" and the keyword placed at the start, middle or end of a long body (one with a .txt attachment named after the keyword), searching for the keyword and showing all results highlights the keyword in the subjects and body snippets of the result rows (12 highlighted "Search" spans expected). — `search/search_result_highlights_test.dart` · tags: `ios (default)`
+  - Data: the exact count (12) is implementation-specific; on web, assert each row's subject and snippet contain a highlighted (`<mark>`/bold) keyword.
+- [ ] `SRCH-03` Given 3 self-sent emails with subject "Search snippet suggestions" (keyword at start/middle/end of the body, one with attachment), typing the keyword in the search field shows quick-search suggestion rows with the keyword highlighted (10 highlighted spans on mobile; on web only highlighted rich text in the suggestion tiles is checked). — `search/search_suggestion_highlights_test.dart` · tags: `android` `ios` `web`
+- [ ] `SRCH-04` Given two self-sent emails "Quicksearchsuggestion attached" (with a .txt attachment) and "Quicksearchsuggestion plain", typing the keyword and clicking the "Has attachment" chip in the suggestion dropdown marks the chip selected immediately, and a single submit (Enter) returns only the attached email. — `search/apply_quick_search_filter_from_suggestion_test.dart` · tags: `web`
+- [ ] `SRCH-05` After typing a keyword and selecting the "Has attachment" chip in the suggestion dropdown, opening the advanced search form shows its "Has attachment" checkbox already checked (shared committed filter). — `search/sync_quick_search_filter_to_advanced_search_test.dart` · tags: `web`
+- [ ] `SRCH-06` Given a self-sent email "Persist search filter" with an attachment, searching for "Persist search filter", enabling the "Has attachment" filter, then changing the query to "Persist search" keeps the attachment filter selected and the email still listed. — `search/persist_filter_when_change_search_input_text_test.dart` · tags: `ios (default)`
+- [ ] `SRCH-07` Given labels "search-label" (one self-sent email tagged with it) and "search-empty-label" (no email), searching by "search-label" lists the tagged email and searching by "search-empty-label" shows the empty-results view. — `search/search_email_by_label_test.dart` · tags: `android` `ios` `web`
+  - Data: labels created via JMAP and applied as keywords at send time. Web path uses the advanced search form label dropdown + Search button; mobile uses the "Labels" filter chip in the search screen.
+- [ ] `SRCH-08` Given labels "Search Tag 1/2/3" with 3 self-sent emails each, opening search and picking each label in turn from the "Labels" filter menu lists at least 3 emails for that label. — `search/search_email_with_tag_test.dart` · tags: `android` `ios` `web`
+  - Data: labels created via JMAP, emails sent with the label keyword.
+- [ ] `SRCH-09` Given 5 emails "relevance" sent from the user to alice, brian, charlotte, david and emma, searching "relevance", setting the date filter to "Last 7 days" then the sort order to "Relevance" lists exactly those 5 emails. — `search/search_email_by_date_time_and_sort_order_relevance_test.dart` · tags: `android` `ios` `web`
+  - Data: second-party users alice/brian/charlotte/david/emma@example.com must exist (results live in the Sent folder).
+- [ ] `SRCH-10` Given 5 emails "Relevance by default" sent to alice…emma, searching that text and showing all results displays the sort-order filter button labelled "Relevance" (default search sort). — `search/search_email_with_sort_order_relevance_by_default_test.dart` · tags: `ios (default)`
+- [ ] `SRCH-11` Searching "hello" lists exactly the 5 emails from alice…emma ("<Name> send Bob"), and selecting each sort order checks the result order: most recent, oldest, sender A→Z / Z→A, subject A→Z / Z→A, size ascending / not-ascending (relevance only checks the selection succeeds). — `search/search_email_with_sort_order_test.dart` · tags: `android` `ios` `web`
+  - Data: bob mailbox `backup.zip`, "Search Emails" folder (source `provisioning/integration_test/eml/search_email_with_sort_order/0-4.eml`, dated 29 Oct–2 Nov 2024, each containing "hello").
+- [ ] `SRCH-12` When "Oldest" was previously stored as the user's sort-order preference, a search started from the inline search bar ("sort order persisted", 5 emails sent to alice…emma) returns at least 5 results sorted oldest first. — `search/sort_order_persisted_from_search_bar_test.dart` · tags: `web`
+  - Data: the Flutter test stores/reloads the preference through the controller (no real relaunch); in Playwright, pick "Oldest", reload the page, then search.
+- [ ] `SRCH-13` Given an unread self-sent email "Mobile Search action state sync", in search results (mobile layout) selecting it and applying "Mark as read" immediately removes its unread indicator, then (tablet layout) selecting it and applying "Archive" immediately shows the row as located in Archive, without leaving search. — `search/mobile_search_action_state_sync_test.dart` · tags: `android` `ios` `web`
+  - Data: on web the test resizes the viewport (mobile: long-press selection; tablet: avatar click selection) and triggers the selection toolbar actions; port both viewports with Playwright `setViewportSize`.
+- [ ] `SRCH-14` On the dashboard, the search field is not focused on load, and a right-click (secondary mouse button) on it gives it focus. — `search/right_click_focus_search_field_test.dart` · tags: `web`
+
+## LBL — Labels (11)
+
+- [ ] `LBL-01` In the sidebar/mailbox menu, the "add new label" button opens the Create label modal; entering a unique name and description and confirming shows the toast "You successfully created the <name> label". — `labels/create_new_a_tag_test.dart` · tags: `ios (default)`
+- [ ] `LBL-02` With labels "Edit Tag 1"/"Edit Tag 2" provisioned, opening the label's context menu in the sidebar (long press on mobile), choosing Edit, renaming it to "New edit tag 1" and confirming shows the new name in the sidebar label list. — `labels/edit_a_label_test.dart` · tags: `ios (default)`
+  - Data: labels created via JMAP (Label/set) before the test.
+- [ ] `LBL-03` With labels "Delete Tag 1"/"Delete Tag 2" provisioned, opening the label's context menu in the sidebar (long press on mobile), choosing Delete and confirming in the delete-label dialog removes "Delete Tag 1" from the sidebar. — `labels/delete_a_tag_test.dart` · tags: `ios (default)`
+- [ ] `LBL-04` With labels Tag 1/2/3 each applied to 3 provisioned emails (subjects "Email N subject Tag X"), opening each label from the sidebar lists at least its 3 tagged emails. — `labels/display_view_with_all_email_with_tag_test.dart` · tags: `ios (default)`
+  - Data: emails sent to self with the label keyword set.
+- [ ] `LBL-05` With "Tag with email" applied to 3 emails and "Tag without email" applied to none, opening the first label lists its 3 emails and opening the second shows the empty thread view "You don't have any emails tagged with this.". — `labels/display_empty_view_when_open_tag_test.dart` · tags: `ios (default)`
+- [ ] `LBL-06` With "Tag 1" applied to 2 emails located in Trash, opening the label from the sidebar lists them with their folder info ("Trash") displayed. — `labels/display_folder_info_when_open_mail_from_tag_test.dart` · tags: `ios (default)`
+  - Data: tagged emails provisioned then moved to the Trash role mailbox.
+- [ ] `LBL-07` In the detail view of a provisioned email, More → "Label as" opens the add-label modal; "Create a new label", entering a unique name and confirming creates the label and applies it, with toast `Label "<name>" added to email`. — `labels/create_a_new_tag_from_an_email_test.dart` · tags: `ios (default)`
+- [ ] `LBL-08` With no labels existing, selecting an email in the list (long press on mobile), then More → "Label as" opens the Choose Label modal showing the empty state "No Labels yet" with a "Create a label" button and no label list. — `labels/display_no_label_yet_widget_when_open_choose_label_modal_test.dart` · tags: `ios (default)`
+- [ ] `LBL-09` From the Choose Label modal empty state (as in LBL-08), "Create a label" → entering a unique name and confirming shows "You successfully created the <name> label", and the modal now displays a label list containing the new label instead of the empty state. — `labels/create_label_from_no_label_yet_widget_test.dart` · tags: `ios (default)`
+- [ ] `LBL-10` With one existing label ("Existing Label 1", applied to an email), selecting that email and opening "Label as" shows the label list (no empty state) plus a "Create a label" button; creating a new label from it shows the success toast and the new label in the list. — `labels/create_label_from_choose_label_modal_with_existing_labels_test.dart` · tags: `ios (default)`
+- [ ] `LBL-11` With "Remove Tag 1" applied to one email, opening that label from the sidebar and then the email shows the label chip next to the subject; clicking the chip's remove (×) button shows the toast `Label "Remove Tag 1" removed from email`. — `labels/remove_a_label_from_email_test.dart` · tags: `ios (default)`
+
+## SET — Settings (3)
+
+- [ ] `SET-01` In Settings → Preferences, toggling "Thread" (conversation view) turns it on and toggling again turns it off; toggling "Sender set important flag" (on by default) turns it off and toggling again turns it back on. — `setting/preferences/toggle_preferences_test.dart` · tags: `web` `android` `ios`
+  - Data: "Thread" is a local preference; "Sender set important flag" is a server-side (JMAP settings) preference.
+- [ ] `SET-02` After creating identities "Default Identity 1" and "Default Identity 2" (Settings → Profiles → Create new identity, name only, Save; each then listed), clicking identity 1's radio marks it as default (selected radio), then clicking identity 2's radio marks identity 2 as default. — `setting/identity/select_identity_as_default_test.dart` · tags: `ios (default)`
+  - Data: only checks that the clicked identity shows the selected radio, not that the previous one is deselected.
+- [ ] `SET-03` In Settings → Language & region, picking "English" from the language dropdown shows the title "Language"; reopening the dropdown (menu visible) and picking Vietnamese immediately re-localises the title to "Ngôn ngữ". — `setting/language/change_language_test.dart` · tags: `ios (default)`
+
+## RULE — Email rules (1)
+
+- [ ] `RULE-01` From an opened email, clicking the sender address → "Create a rule with this email address" opens the rule creator; saving rule "Reject rule" with action "Reject it" shows the reject-confirmation warning; after confirming, the rule is listed in Settings → Email rules; editing it to add "Mark as seen" and "Star it" and saving shows the warning again, and after confirming the creator closes with the rule still listed. — `email_rules/create_edit_rule_with_reject_test.dart` · tags: `web` `android` `ios`
+  - Data: one email sent to self via JMAP (so the sender is the user's own address).
+
+## CAL — Calendar events (2)
+
+- [ ] `CAL-01` Searching "Proposed new time" (show all results) and opening that COUNTER iMIP email shows an event card with "Yes" and "Mail to attendees" buttons, no "No"/"Maybe" buttons, and the banner text "… has proposed changes to the event". — `calendar/calendar_event_counter_test.dart` · tags: `ios (default)`
+  - Data: bob backup.zip, "Calendar" folder (from `eml/calendar/calendar_counter.eml`, METHOD:COUNTER, event "Come for a chat").
+- [ ] `CAL-02` On the same COUNTER event email, clicking "Mail to attendees" opens the composer with subject "Re: Come for a chat" (localised reply prefix + event title). — `calendar/mail_to_attendees_event_email_test.dart` · tags: `ios (default)`
+  - Data: same as CAL-01; the subject is asserted on the composer controller's value.
+
+## PUSH — Real-time updates (1)
+
+- [ ] `PUSH-01` An email sent to self appears in the list without a manual refresh, unread and unstarred; when another client marks it read and then starred (direct JMAP `Email/set`), the row updates live to read and then to starred. — `web_socket/web_socket_test.dart` · tags: `ios (default)`
+  - Data: requires JMAP WebSocket push from the server.
+
+## APPGRID — App grid (1)
+
+- [ ] `APPGRID-01` The app-grid button is visible in the thread view; opening it lists exactly the expected apps in order (iOS: "Twake Drive", "Twake Chat"), and launching each app and coming back to Twake Mail still shows the same list. — `app_grid/app_grid_test.dart` · tags: `ios (default)`
+  - Data: needs `APP_GRID_AVAILABLE=supported` and the server app-grid configuration. The mobile robot launches the native apps and returns via the Home button. A web robot also exists (dashboard items Twake, Contacts, Calendar, TMail, TDrive, Teleskop, each opened in a new tab then closed with Ctrl+W); port that variant.
+
+## MISC — Misc (1)
+
+- [ ] `MISC-01` Opening Settings from the user avatar, clicking "Sign out" and confirming "Yes, log out" lands on the Twake welcome screen. — `misc/log_out_test.dart` · tags: `ios (default)`

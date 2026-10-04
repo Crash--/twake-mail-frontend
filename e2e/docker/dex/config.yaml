@@ -1,0 +1,64 @@
+# Dex, the OIDC provider of the `oidc` compose profile (E2E_OIDC=1).
+#
+# The issuer is the browser facing URL: nginx proxies /dex/ to this container, so the SPA
+# talks to its own origin (no CORS, and 127.0.0.1 is a secure context, which PKCE needs for
+# crypto.subtle). tmail-backend never uses the issuer: it calls Dex directly on the compose
+# network (http://dex:5556/dex/...) to introspect tokens and read the userinfo.
+#
+# Change the issuer together with E2E_PUBLIC_URL (start.sh renders it).
+issuer: @PUBLIC_URL@/dex
+
+storage:
+  type: memory
+
+web:
+  http: 0.0.0.0:5556
+  allowedOrigins: ['*']
+
+logger:
+  level: info
+
+oauth2:
+  skipApprovalScreen: true
+  responseTypes: ['code']
+  # `password` lets the harness fetch a token without a browser (see support/oidc.ts)
+  grantTypes:
+    - authorization_code
+    - refresh_token
+    - password
+  passwordConnector: local
+
+staticClients:
+  # The SPA: public client, authorization code + PKCE
+  - id: twake-mail
+    name: Twake Mail
+    public: true
+    redirectURIs:
+      - '@PUBLIC_URL@/'
+      - '@PUBLIC_URL@/callback'
+      - '@PUBLIC_URL@/login/callback'
+      - '@PUBLIC_URL@/auth/callback'
+  # tmail-backend: credentials of oidc.introspect.credentials (Basic base64(id:secret))
+  - id: tmail-backend
+    name: tmail-backend
+    secret: secret123
+    redirectURIs: ['http://james/unused']
+  # The Playwright harness: password grant, no browser
+  - id: e2e-harness
+    name: e2e harness
+    secret: e2e-harness-secret
+    redirectURIs: ['http://127.0.0.1/unused']
+
+# Static accounts. Their James counterparts are created by start.sh with the same address.
+# Password of both: `secret`. Dex cannot create accounts at runtime, see e2e/README.md
+# ("OIDC") for the per-test-user alternative (Dex LDAP connector + OpenLDAP).
+enablePasswordDB: true
+staticPasswords:
+  - email: alice@example.com
+    hash: '$2b$10$TQgwfmh620kaIbzuESZb9eoyOvyvb6UcGMgHxihlrugdnNM7mbuKS'
+    username: alice
+    userID: 0a1b2c3d-0000-4000-8000-00000000a11c
+  - email: bob@example.com
+    hash: '$2b$10$TQgwfmh620kaIbzuESZb9eoyOvyvb6UcGMgHxihlrugdnNM7mbuKS'
+    username: bob
+    userID: 0a1b2c3d-0000-4000-8000-000000000b0b

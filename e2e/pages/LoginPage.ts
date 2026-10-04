@@ -1,0 +1,51 @@
+import { expect, type Locator, type Page } from '@playwright/test'
+
+import { MailboxPage } from './MailboxPage'
+
+/** Credentials of a test account (support/users.ts E2EUser fits) */
+export interface Credentials {
+  email: string
+  password: string
+}
+
+/**
+ * Login screen. Phase 0: basic auth (username + password against tmail-backend).
+ * Patrol counterpart: robots/login_robot.dart, robots/web/web_login_robot.dart.
+ */
+export class LoginPage {
+  readonly page: Page
+  readonly usernameInput: Locator
+  readonly passwordInput: Locator
+  readonly submitButton: Locator
+  readonly errorMessage: Locator
+  /** OIDC (phase 1): "Sign in with SSO" */
+  readonly ssoButton: Locator
+
+  constructor(page: Page) {
+    this.page = page
+    this.usernameInput = page.getByTestId('login-username-input')
+    this.passwordInput = page.getByTestId('login-password-input')
+    this.submitButton = page.getByTestId('login-submit-button')
+    this.errorMessage = page.getByTestId('login-error')
+    this.ssoButton = page.getByTestId('login-sso-button')
+  }
+
+  async goto(): Promise<LoginPage> {
+    await this.page.goto('/')
+    await expect(this.usernameInput).toBeVisible()
+    return this
+  }
+
+  /** Fills the form and waits for the mailbox: `await new LoginPage(page).loginAs(user)` */
+  async loginAs(credentials: Credentials): Promise<MailboxPage> {
+    if (!(await this.usernameInput.isVisible())) {
+      await this.goto()
+    }
+    await this.usernameInput.fill(credentials.email)
+    await this.passwordInput.fill(credentials.password)
+    await this.submitButton.click()
+    const mailbox = new MailboxPage(this.page)
+    await mailbox.expectLoaded()
+    return mailbox
+  }
+}

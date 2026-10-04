@@ -1,0 +1,262 @@
+# Twake Mail web — end to end tests
+
+A real browser driving the real React app against a real tmail-backend. No mock, no stub.
+TypeScript + [Playwright](https://playwright.dev/), in a standalone npm package: `e2e/` has its
+own `package.json` and lockfile and is not one of the app workspaces.
+
+The backlog of scenarios to write is [`e2e.md`](e2e.md): one line per Patrol integration test
+of tmail-flutter, with a stable identifier.
+
+---
+
+## Running it
+
+Node 24 (`nvm use`), Docker with compose v2.
+
+```bash
+cd e2e
+npm ci
+npx playwright install chromium        # once; skipped if ~/.cache/ms-playwright has it
+
+./scripts/start.sh                     # backend + placeholder page, ~30 s
+npx playwright test                    # whole suite
+./scripts/stop.sh                      # removes containers, network and volumes
+```
+
+To test the app, build it and hand its bundle to the stack:
+
+```bash
+npm run build                          # at the repo root: apps/private/dist
+E2E_APP_DIR=../apps/private/dist ./scripts/start.sh
+```
+
+Run a subset:
+
+```bash
+npx playwright test tests/infra.spec.ts     # the harness smoke tests, no UI
+npx playwright test -g MBX-05               # one backlog entry
+npx playwright test --ui                    # watch mode, time travel
+npx playwright show-report                  # last HTML report
+npx playwright show-trace test-results/artifacts/<test>/trace.zip
+```
+
+### The stack
+
+`docker/docker-compose.yaml`, compose project **`twakemail-e2e`**. Every port is bound to
+`127.0.0.1` only.
+
+| Service | Port | What |
+|---|---|---|
+| `james` | `127.0.0.1:18300` | tmail-backend `memory-1.0.21.2`, JMAP (direct, used by the provisioning client) |
+| `james` | `127.0.0.1:18301` | WebAdmin (users, domains, quotas, team mailboxes) |
+| `proxy` | `127.0.0.1:18302` | **the browser facing origin**: nginx serving the app, proxying `/jmap`, `/upload`, `/download`, `/eventSource`, `/.well-known/*` to James and `/dex/` to Dex |
+| `dex` | — | OIDC provider, only with `E2E_OIDC=1` (profile `oidc`), reached through `/dex/` |
+
+The James configuration is copied from tmail-flutter `backend-docker/` (`docker/james/`);
+`jmap.properties` is rendered by `start.sh` from `jmap.properties.template`, and the JWT keys
+are generated as in `scripts/patrol-web-integration-test-with-docker.sh`, all into
+`docker/.generated/` (git ignored). `start.sh` waits for the James healthcheck, creates the
+`example.com` domain and checks that JMAP answers through the proxy.
+
+**Same origin.** The app and JMAP share `http://127.0.0.1:18302`, so the browser never
+makes a cross origin call and the JMAP session advertises `http://127.0.0.1:18302/jmap`
+(`url.prefix`). tmail-backend does answer CORS itself (`Access-Control-Allow-Origin: *`,
+methods `GET, POST, OPTIONS`, headers `Content-Type, Authorization, Accept`), so a cross
+origin setup would work too, but that is not what runs here. `127.0.0.1` is a secure context:
+`crypto.subtle` (PKCE) is available without https.
+
+### Variables
+
+| Variable | Default | Used by |
+|---|---|---|
+| `E2E_APP_DIR` | `docker/app-placeholder` | `start.sh`: directory with the built app (`index.html`) |
+| `E2E_OIDC` | `0` | `start.sh` (Dex + `OidcAuthenticationStrategy`), the OIDC specs |
+| `E2E_PUBLIC_URL` | `http://127.0.0.1:18302` | `start.sh`: origin advertised by JMAP and used as Dex issuer |
+| `E2E_JMAP_PORT` / `E2E_WEBADMIN_PORT` / `E2E_APP_PORT` | `18300` / `18301` / `18302` | `start.sh` |
+| `E2E_BASE_URL` | `http://127.0.0.1:18302` | Playwright `baseURL` |
+| `E2E_JMAP_URL` | `http://127.0.0.1:18300` | provisioning JMAP client |
+| `E2E_WEBADMIN_URL` | `http://127.0.0.1:18301` | user fixtures |
+| `E2E_DOMAIN` | `example.com` | user fixtures |
+| `E2E_OIDC_ISSUER` | `$E2E_BASE_URL/dex` | `support/oidc.ts` |
+| `E2E_WORKERS` | CPU based (2 on CI) | Playwright workers |
+| `E2E_HEADLESS=false` / `E2E_SLOWMO=300` | | watch the browser |
+| `E2E_TRACE` | `retain-on-failure` | `on` to record a trace for every test |
+
+A failing test keeps a trace, a video and a screenshot under `test-results/artifacts/`;
+reports are written to `playwright-report/` (HTML) and `test-results/junit.xml`. The
+`globalSetup` refuses to start when the stack does not answer, with the command to run.
+
+---
+
+## Writing a test
+
+```ts
+import { expect, test } from '../support/fixtures';
+import { LoginPage } from '../pages';
+
+test('MBX-05 switching folder shows that folder emails', async ({ page, user, jmap }) => {
+  await jmap.sendEmail({ to: user.email, subject: 'In sent', text: 'hello' });
+  await jmap.sendEmail({ to: user.email, subject: 'In trash', text: 'hello', saveTo: 'trash' });
+
+  const mailbox = await new LoginPage(page).loginAs(user);
+  await mailbox.openFolder({ role: 'trash' });
+
+  await expect(mailbox.emailRow('In trash')).toBeVisible();
+  await expect(mailbox.emailRow('In sent')).toBeHidden();
+});
+```
+
+### Conventions
+
+- **The backlog ID starts the title**: `test('MBX-05 …')`. Tick the line of `e2e.md` once the
+  spec passes in CI. A behaviour not in the backlog gets a new line there first.
+- **Import `test` and `expect` from `support/fixtures`**, never from `@playwright/test`.
+- **One user per test.** The `user` fixture creates `user-<uuid>@example.com` with a random
+  password through WebAdmin and deletes it after the test. Nothing is shared, nothing is reset
+  globally: tests run in parallel (`fullyParallel`) on one stack and can run in any order.
+  Never use a fixed address (`bob@example.com`) in a basic auth test.
+- **Seed through JMAP, assert through the UI** (and through JMAP when the screen could lie).
+  A test sets up what it needs in a few milliseconds instead of clicking through the app.
+- **Locate through page objects** (`pages/`), which use `data-testid` in kebab-case or the
+  accessible role and name. A spec holds no selector. The ids the app must expose are listed in
+  [`pages/README.md`](pages/README.md): extend it with the page object.
+- **Web-first assertions** (`await expect(locator).toBeVisible()`), which retry, rather than
+  reading a value and comparing it. No `waitForTimeout`. For backend state, `expect.poll` or
+  `jmap.waitForEmail`.
+- TypeScript conventions of Twake: strict, explicit return types, named exports (Playwright's
+  config and `globalSetup` default exports are the only exceptions), `unknown` + guards for JSON.
+- Every test starts on a clean browser context (Playwright default): no state leaks through
+  local storage or cookies.
+
+### Fixtures
+
+| Fixture | What |
+|---|---|
+| `user` | A brand new account (`E2EUser`: `email`, `password`, `localPart`) |
+| `users` | `users.create({ prefix: 'alice', quota })` for more accounts, `users.createTeamMailbox({ members })` for a team mailbox; all deleted after the test |
+| `jmap` | JMAP client authenticated as `user` |
+| `jmapFor(other)` | JMAP client of another account, e.g. the sender of an email |
+| `webadmin` | WebAdmin client, for the rest |
+| `userQuota` (option) | `test.use({ userQuota: { count: 200, size: 50_000_000 } })` |
+
+`support/jmap.ts` is a small hand written JMAP client (`fetch`, Basic or Bearer auth, no
+dependency on the app's JMAP layer): `getSession`, `getMailboxes`, `findMailboxByRole`,
+`findMailboxByName`, `createMailbox`, `sendEmail({ to, cc, bcc, subject, text, html,
+attachments, saveTo })`, `importEml(path, role)`, `getEmail(s)`, `queryEmails`, `setKeywords`,
+`waitForEmail({ subject, mailboxRole, timeout })`, `getQuotas`, `upload`, and `request` for
+any other method call. `importEml('reply_email/reply-all.eml')` reads from `fixtures/eml/`,
+copied from tmail-flutter `provisioning/integration_test/eml/`.
+
+`saveTo` reproduces a Patrol trick: an email sent to oneself with `saveTo: 'trash'` lands both
+in the Inbox and, as its sent copy, in Trash (or Spam with `'junk'`).
+
+---
+
+## OIDC
+
+**Feasible with Dex, and running** behind `E2E_OIDC=1` (profile `oidc`). Basic auth stays the
+default mode of the phase 0 suite.
+
+What tmail-backend 1.0.21.2 does (`com.linagora.tmail.james.jmap.oidc.OidcAuthenticationStrategy`,
+a thin wrapper around James' `org.apache.james.jmap.http.OidcAuthenticationStrategy`, see the
+tmail-backend doc `docs/modules/ROOT/pages/tmail-backend/jmap-extensions/oidcAuthentication.adoc`):
+for a `Authorization: Bearer <token>` request, it calls in parallel
+
+- `oidc.introspect.url` (RFC 7662, form `token=…`, with `oidc.introspect.credentials` as the
+  `Authorization` header): requires `active: true` and an `exp`; checks `aud` against
+  `oidc.audience` when the response carries one;
+- `oidc.userInfo.url` with the bearer token: the `oidc.claim` claim (`email`) becomes the JMAP
+  username. A `sid` claim, if any, enables backchannel logout.
+
+The result is cached (`oidc.token.cache.expiration`, 60 s here). No JWT validation, no issuer
+check: an opaque token would do, as long as the provider introspects it.
+
+Dex (v2.41.1) has both endpoints: `/dex/token/introspect` (returns `active`, `exp`, `aud`,
+`iss`…) and `/dex/userinfo` (returns `email`). Measured end to end:
+
+- `INFRA-10`: a Dex token (password grant) opens a JMAP session as `alice@example.com`;
+- `INFRA-11`: a forged token gets 401;
+- `INFRA-12`: the SPA flow in the browser — authorization code + PKCE for the public client
+  `twake-mail`, Dex login form, token exchange on `/dex/token` and JMAP call with the bearer,
+  all on the app origin — ends in a JMAP session as `bob@example.com`.
+
+Configuration (`docker/dex/config.yaml`, `docker/james/oidc.properties.fragment`):
+
+| | |
+|---|---|
+| Issuer | `http://127.0.0.1:18302/dex` (browser facing, through nginx) |
+| SPA client | `twake-mail`, public, PKCE, redirect URIs `/`, `/callback`, `/login/callback`, `/auth/callback` of the app origin (Dex has no wildcard: add the app's real callback there) |
+| Introspection client | `tmail-backend` / `secret123` (`oidc.introspect.credentials=Basic …`) |
+| Harness client | `e2e-harness`, password grant, for `support/oidc.ts` |
+| `oidc.audience` | `twake-mail,e2e-harness` (Dex sets `aud` to the requesting client id) |
+| Accounts | Dex static passwords `alice@example.com` and `bob@example.com`, password `secret`; `start.sh` creates their James counterparts |
+
+Limits, and how to lift them:
+
+- **No user per test in OIDC mode.** Dex static passwords live in its config file. Per-test
+  accounts need Dex's LDAP connector plus an OpenLDAP container, exactly what Twake Calendar's
+  e2e does (`E2EUserFactory` writes an LDAP entry; Dex reads the directory at each login):
+  the factory would create the LDAP entry and the James user (`PUT /users/<email>`, any
+  password). Worth doing when OIDC specs go beyond login/logout; until then OIDC specs use
+  alice/bob and must not depend on mailbox content they did not create.
+- **No `sid` in Dex tokens**: James logs a warning and backchannel logout cannot be tested.
+  Dex v2.41 advertises no `end_session_endpoint` either (no RP-initiated logout): logout specs
+  can only assert that the app drops its own session.
+- **Refresh tokens**: Dex issues them (`offline_access`), but with the James cache (60 s) a
+  revoked token stays accepted for up to a minute.
+- If Dex ever falls short (claims mapping, logout), LemonLDAP::NG (the Twake Workplace SSO,
+  introspection + `sid` + backchannel logout) or Keycloak (the reference of the tmail-backend
+  doc) fit the same James configuration; both are heavier to boot than Dex.
+
+---
+
+## Layout
+
+```
+e2e/
+├── e2e.md                    backlog: one line per Patrol test, stable IDs
+├── playwright.config.ts
+├── package.json              standalone package (Node 24, @playwright/test 1.63)
+├── ci/e2e.yml                GitHub Actions job (to move to .github/workflows/)
+├── docker/
+│   ├── docker-compose.yaml   project twakemail-e2e
+│   ├── james/                tmail-backend configuration (from tmail-flutter backend-docker/)
+│   ├── nginx/default.conf    single origin: app + /jmap + /dex
+│   ├── dex/config.yaml       OIDC provider (profile oidc)
+│   ├── app-placeholder/      served when E2E_APP_DIR is not set
+│   └── .generated/           rendered config and keys (git ignored)
+├── scripts/{start,stop}.sh
+├── fixtures/
+│   ├── eml/                  .eml files from tmail-flutter provisioning/integration_test/eml/
+│   └── files/                attachments
+├── support/
+│   ├── fixtures.ts           test, expect and the fixtures
+│   ├── jmap.ts               provisioning JMAP client
+│   ├── users.ts              per-test accounts and team mailboxes
+│   ├── webadmin.ts           WebAdmin client
+│   ├── oidc.ts               Dex tokens without a browser
+│   ├── env.ts                environment variables
+│   └── global-setup.ts       fails fast when the stack is down
+├── pages/                    page objects + README.md (the data-testid contract)
+└── tests/                    the specs (infra.spec.ts: harness smoke tests, no UI)
+```
+
+---
+
+## CI
+
+[`.github/workflows/e2e.yml`](ci/e2e.yml): builds the app, starts the stack with `E2E_APP_DIR` pointing to
+`apps/private/dist`, runs the suite on Chromium, publishes the HTML report (always) and the
+traces, videos and backend logs (on failure), and a JUnit summary. Run manually with `oidc`
+checked to add Dex and the OIDC specs.
+
+## Known backend quirks
+
+- `view.email.query.enabled` is `false`, as in tmail-flutter's `backend-docker/`. With the
+  projection on (the image default), an `Email/query` with only `inMailbox` and a `receivedAt`
+  sort on a **team mailbox** returns no ids. A production backend with the projection enabled
+  would show an empty team mailbox to a client querying that way: worth checking against the
+  real deployment.
+- Deleting a user (`DELETE /users/…`) removes the account (it can no longer authenticate,
+  `INFRA-02`) but James does not purge its mailboxes; harmless here (memory backend, random
+  addresses, `stop.sh` drops everything).

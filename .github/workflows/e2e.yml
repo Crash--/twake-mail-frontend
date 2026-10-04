@@ -1,0 +1,118 @@
+# End to end tests: builds the app, starts the e2e backend (tmail-backend + nginx, compose
+# project `twakemail-e2e`), runs Playwright and publishes the report.
+#
+name: E2E
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      oidc:
+        description: Also start Dex and run the OIDC specs
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  checks: write # dorny/test-reporter
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      E2E_OIDC: ${{ inputs.oidc && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            e2e/package-lock.json
+
+      # ------------------------------------------------------------------ app
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Build the app
+        run: npm run build
+
+      # The bundle is served by the stack's nginx on http://127.0.0.1:18302, which proxies
+      # /jmap (and /dex) on the same origin: the app must reach JMAP at its own origin.
+      # If the app reads a runtime configuration file, write it into the dist folder here.
+
+      # -------------------------------------------------------------- backend
+      - name: Pull backend images
+        run: docker compose -p twakemail-e2e -f e2e/docker/docker-compose.yaml --profile oidc pull --quiet
+
+      - name: Start the e2e stack
+        run: ./e2e/scripts/start.sh
+        env:
+          E2E_APP_DIR: ${{ github.workspace }}/apps/private/dist
+
+      # ------------------------------------------------------------ playwright
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Install Chromium
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Typecheck the suite
+        working-directory: e2e
+        run: npm run typecheck
+
+      - name: Run Playwright
+        working-directory: e2e
+        run: npx playwright test
+
+      # --------------------------------------------------------------- report
+      - name: Backend logs
+        if: failure()
+        run: docker compose -p twakemail-e2e -f e2e/docker/docker-compose.yaml --profile oidc logs --no-color > e2e/test-results/backend.log 2>&1 || true
+
+      - name: Publish the HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 14
+
+      - name: Publish traces, videos and logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: e2e/test-results/
+          retention-days: 14
+
+      - name: Test summary
+        if: ${{ !cancelled() }}
+        uses: dorny/test-reporter@v1
+        with:
+          name: E2E results
+          path: e2e/test-results/junit.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Stop the e2e stack
+        if: always()
+        run: ./e2e/scripts/stop.sh

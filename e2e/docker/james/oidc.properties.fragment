@@ -1,0 +1,9 @@
+# OIDC (profile `oidc`, E2E_OIDC=1): Dex is the provider. James never sees the browser facing
+# issuer: it calls Dex on the compose network to introspect the bearer token and fetch the
+# userinfo, whose `email` claim becomes the JMAP username.
+oidc.introspect.url=http://dex:5556/dex/token/introspect
+oidc.introspect.credentials=Basic dG1haWwtYmFja2VuZDpzZWNyZXQxMjM=
+oidc.userInfo.url=http://dex:5556/dex/userinfo
+oidc.claim=email
+oidc.audience=twake-mail,e2e-harness
+oidc.token.cache.expiration=60s

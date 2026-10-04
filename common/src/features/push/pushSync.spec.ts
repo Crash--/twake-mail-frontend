@@ -566,5 +566,75 @@ describe('createPushSync', () => {
       expect(sizes()).toEqual({ thread: 3, 'thread-alone': 1 })
       unsubscribe()
     })
+
+    it('moves a conversation up on a reply without querying the list again', async () => {
+      const setup = await makeSetup({ emails: threadEmails() })
+      const observer = new InfiniteQueryObserver(
+        setup.queryClient,
+        emailListSourceQueryOptions(setup.client, FAKE_ACCOUNT_ID, {
+          kind: 'mailbox',
+          mailboxId: INBOX,
+          collapseThreads: true
+        })
+      )
+      const unsubscribe = observer.subscribe(() => undefined)
+      const key = threadKeys.threads(FAKE_ACCOUNT_ID, INBOX)
+      const rows = (): string[] =>
+        setup.queryClient
+          .getQueryData<EmailListData>(key)
+          ?.pages.flatMap(page => page.emails.map(email => email.id)) ?? []
+      await until(() => rows().length === 2)
+      const before = setup.server.calledMethods().length
+
+      setup.server.addEmail(
+        makeEmail({
+          id: 'alone-reply',
+          threadId: 'thread-alone',
+          receivedAt: '2026-09-02T10:00:00Z'
+        })
+      )
+      await pushNow(setup)
+
+      expect(rows()).toEqual(['alone-reply', 't2'])
+      const methods = setup.server.calledMethods().slice(before)
+      expect(methods).not.toContain('Email/query')
+      expect(methods).not.toContain('Thread/get')
+      unsubscribe()
+    })
+
+    it('brings in a new conversation with one request for its members', async () => {
+      const setup = await makeSetup({ emails: threadEmails() })
+      const observer = new InfiniteQueryObserver(
+        setup.queryClient,
+        emailListSourceQueryOptions(setup.client, FAKE_ACCOUNT_ID, {
+          kind: 'mailbox',
+          mailboxId: INBOX,
+          collapseThreads: true
+        })
+      )
+      const unsubscribe = observer.subscribe(() => undefined)
+      const key = threadKeys.threads(FAKE_ACCOUNT_ID, INBOX)
+      const rows = (): string[] =>
+        setup.queryClient
+          .getQueryData<EmailListData>(key)
+          ?.pages.flatMap(page => page.emails.map(email => email.id)) ?? []
+      await until(() => rows().length === 2)
+      const before = setup.server.requests.length
+
+      setup.server.addEmail(
+        makeEmail({ id: 'new', receivedAt: '2026-09-03T10:00:00Z' })
+      )
+      await pushNow(setup)
+
+      expect(rows()).toEqual(['new', 't2', 'alone'])
+      const requests = setup.server.requests.slice(before)
+      expect(
+        requests.map(request => request.methodCalls.map(([name]) => name))
+      ).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get'],
+        ['Thread/get', 'Email/get', 'Email/get']
+      ])
+      unsubscribe()
+    })
   })
 })

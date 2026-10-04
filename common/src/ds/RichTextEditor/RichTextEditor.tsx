@@ -58,6 +58,11 @@ export interface RichTextEditorProps {
   extensions?: AnyExtension[]
   /** Puts the caret at the start once created (a new message, a reply) */
   autoFocus?: boolean
+  /**
+   * Fills the height of its container (a flex column) and scrolls inside,
+   * without a border: the editor of a window
+   */
+  fill?: boolean
   /** The editor, once created: read and change the document through it */
   onReady?: (editor: Editor) => void
   onUpdate?: (editor: Editor) => void
@@ -145,6 +150,7 @@ export function RichTextEditor({
   footerBlockKinds = [],
   extensions = [],
   autoFocus = false,
+  fill = false,
   onReady,
   onUpdate,
   testIds = {}
@@ -271,7 +277,13 @@ export function RichTextEditor({
 
   return (
     // Relative: the image toolbar is placed in it
-    <Box className="u-flex u-flex-column" sx={{ position: 'relative' }}>
+    <Box
+      className="u-flex u-flex-column"
+      sx={{
+        position: 'relative',
+        ...(fill ? { flex: '1 1 auto', minHeight: 0 } : {})
+      }}
+    >
       <RichTextToolbar
         editor={editor}
         labels={labels}
@@ -304,10 +316,18 @@ export function RichTextEditor({
       </Box>
       <Box
         sx={{
+          ...(fill
+            ? {
+                flex: '1 1 auto',
+                minHeight: 0,
+                overflowY: 'auto',
+                '& > div, & .ProseMirror': { minHeight: '100%' }
+              }
+            : {}),
           '& .ProseMirror': {
-            minHeight: 240,
+            minHeight: fill ? undefined : 240,
             padding: 1.5,
-            border: '1px solid',
+            border: fill ? 'none' : '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
             fontSize: 14,
@@ -317,7 +337,7 @@ export function RichTextEditor({
           '& .ProseMirror:focus-visible': {
             outline: '2px solid',
             outlineColor: 'primary.main',
-            outlineOffset: 1
+            outlineOffset: fill ? -2 : 1
           },
           '& .ProseMirror p': { margin: 0, minHeight: '1.5em' },
           '& .ProseMirror blockquote': {

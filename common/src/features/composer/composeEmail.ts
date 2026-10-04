@@ -1,9 +1,10 @@
 import {
-  assertSetSucceeded,
   JmapSetError,
   type EmailAddress,
+  type EmailBodyPartCreate,
   type EmailCreate,
-  type JmapClient
+  type JmapClient,
+  type SetError
 } from 'jmap-client-ts'
 
 import { findReferencedCids } from '@common/features/email/emailBody'
@@ -27,6 +28,16 @@ export interface ComposedMessage {
   editorHtml: string
   inReplyTo: string[] | null
   references: string[] | null
+  /** Files attached (not shown in the body), already uploaded */
+  attachments?: AttachedFile[]
+}
+
+/** An uploaded file of the message */
+export interface AttachedFile {
+  blobId: string
+  type: string
+  name: string
+  size: number
 }
 
 export interface MailboxIds {
@@ -86,7 +97,15 @@ export async function buildEmail(
     },
     htmlBody: [{ partId: 'html', type: 'text/html' }],
     textBody: [{ partId: 'text', type: 'text/plain' }],
-    attachments: images.attachmentsFor(findReferencedCids(html))
+    attachments: [
+      ...images.attachmentsFor(findReferencedCids(html)),
+      ...(message.attachments ?? []).map((file): EmailBodyPartCreate => ({
+        blobId: file.blobId,
+        type: file.type,
+        name: file.name,
+        disposition: 'attachment'
+      }))
+    ]
   }
 }
 
@@ -156,10 +175,64 @@ export async function saveDraft(
   }
 }
 
+/** Why a message was not sent */
+export type SendFailure =
+  | 'tooLarge'
+  | 'overQuota'
+  | 'forbiddenFrom'
+  | 'invalidRecipients'
+  | 'invalidArguments'
+  | 'other'
+
+export type SendResult =
+  | { ok: true; emailId: string }
+  | {
+      ok: false
+      reason: SendFailure
+      /** The addresses the server refused (`invalidRecipients`) */
+      invalidRecipients: string[]
+      /**
+       * The message created but not sent: it stays in Drafts and is now
+       * the draft of the composer; null when nothing was created
+       */
+      draftId: string | null
+    }
+
+const SEND_FAILURES: Record<string, SendFailure> = {
+  tooLarge: 'tooLarge',
+  overQuota: 'overQuota',
+  forbiddenFrom: 'forbiddenFrom',
+  // What tmail-backend answers instead of the forbiddenFrom of RFC 8621
+  forbiddenMailFrom: 'forbiddenFrom',
+  invalidRecipients: 'invalidRecipients',
+  invalidArguments: 'invalidArguments'
+}
+
+function readFailure(error: SetError | undefined): {
+  reason: SendFailure
+  invalidRecipients: string[]
+} {
+  const invalid =
+    error &&
+    'invalidRecipients' in error &&
+    Array.isArray(error.invalidRecipients)
+      ? error.invalidRecipients.filter(item => typeof item === 'string')
+      : []
+  return {
+    reason: (error ? SEND_FAILURES[error.type] : undefined) ?? 'other',
+    invalidRecipients: invalid
+  }
+}
+
 /**
- * Sends a message: `Email/set` (destroying the saved draft) then
- * `EmailSubmission/set`, which moves it to Sent and drops `$draft` once
- * submitted.
+ * Sends a message, in one request: `Email/set` creates it in Drafts, then
+ * `EmailSubmission/set` submits it and, once submitted, moves it to Sent,
+ * marks it seen and drops `$draft` (`onSuccessUpdateEmail`).
+ *
+ * The previous draft is destroyed afterwards, in its own request, and
+ * only when the message was created: JMAP would run a destroy of the same
+ * call even when the creation fails, losing the draft. A message created
+ * but not submitted stays in Drafts in its place.
  */
 export async function sendEmail(
   client: JmapClient,
@@ -167,8 +240,8 @@ export async function sendEmail(
   identityId: string,
   email: EmailCreate,
   mailboxIds: MailboxIds,
-  draftId: string | null
-): Promise<string> {
+  previousDraftId: string | null
+): Promise<SendResult> {
   const [emailSet, submission] = await client.request(builder => [
     builder.call('Email/set', { accountId, create: { message: email } }),
     builder.call('EmailSubmission/set', {
@@ -180,16 +253,34 @@ export async function sendEmail(
           ...(mailboxIds.sent === null
             ? {}
             : { [`mailboxIds/${mailboxIds.sent}`]: true }),
-          'keywords/$draft': null
+          'keywords/$draft': null,
+          'keywords/$seen': true
         }
       }
-    }),
-    // After the submission: the message may use blobs of the draft
-    builder.call('Email/set', { accountId, destroy: draftId ? [draftId] : [] })
+    })
   ])
-  assertSetSucceeded(emailSet)
-  assertSetSucceeded(submission)
   const created = emailSet.created?.message
-  if (!created) throw new Error('Email/set created no message')
-  return created.id
+  if (!created) {
+    return {
+      ok: false,
+      ...readFailure(emailSet.notCreated?.message),
+      draftId: null
+    }
+  }
+  if (previousDraftId !== null) {
+    await client
+      .call('Email/set', { accountId, destroy: [previousDraftId] })
+      .catch((error: unknown) => {
+        // The new version holds everything: an old one left is no loss
+        console.warn('Previous draft not destroyed', error)
+      })
+  }
+  if (!submission.created?.submission) {
+    return {
+      ok: false,
+      ...readFailure(submission.notCreated?.submission),
+      draftId: created.id
+    }
+  }
+  return { ok: true, emailId: created.id }
 }

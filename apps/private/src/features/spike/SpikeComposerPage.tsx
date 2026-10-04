@@ -221,7 +221,7 @@ function SpikeComposerForm({
     await savingRef.current.catch(() => undefined)
     try {
       const email = await buildEmail(composed(editor), images, setup.mailboxIds)
-      await sendEmail(
+      const result = await sendEmail(
         client,
         accountId,
         identity.id,
@@ -229,6 +229,7 @@ function SpikeComposerForm({
         setup.mailboxIds,
         draftIdRef.current
       )
+      if (!result.ok) throw new Error(`Not sent: ${result.reason}`)
       removeSnapshot(storageKey)
       setPreview({
         html: email.bodyValues?.html?.value ?? '',

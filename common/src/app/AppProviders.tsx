@@ -2,6 +2,7 @@ import { TwakeMuiThemeProvider } from '@linagora/twake-mui'
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query'
 import { lazy, Suspense, type ReactElement, type ReactNode } from 'react'
 
+import { ConfirmProvider } from '@common/features/confirm/ConfirmProvider'
 import { NotificationsProvider } from '@common/features/notifications/NotificationsProvider'
 import { I18nProvider } from '@common/i18n/I18nProvider'
 import type { SupportedLanguage } from '@common/i18n/languages'
@@ -21,7 +22,7 @@ export interface AppProvidersProps {
 }
 
 /**
- * Theme, translations, data cache and notifications: what every screen
+ * Theme, translations, data cache, notifications and confirmations: what every screen
  * needs, including the ones shown before authentication.
  */
 export function AppProviders({
@@ -34,7 +35,9 @@ export function AppProviders({
     <TwakeMuiThemeProvider>
       <I18nProvider lang={lang}>
         <QueryClientProvider client={queryClient}>
-          <NotificationsProvider>{children}</NotificationsProvider>
+          <NotificationsProvider>
+            <ConfirmProvider>{children}</ConfirmProvider>
+          </NotificationsProvider>
           {debug ? (
             <Suspense fallback={null}>
               <ReactQueryDevtools buttonPosition="bottom-left" />

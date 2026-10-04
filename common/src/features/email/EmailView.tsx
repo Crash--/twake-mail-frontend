@@ -25,6 +25,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { AddressLine } from './AddressLine'
 import { formatAddressName } from './addresses'
 import { EmailMessageBody } from './EmailMessageBody'
+import { EmailViewActions } from './EmailViewActions'
 import type { EmailDetail } from './queries'
 import { useEmail } from './useEmail'
 import { useEmailViewShortcuts } from './useEmailViewShortcuts'
@@ -32,10 +33,16 @@ import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
 
 interface EmailContentProps {
   email: EmailDetail
+  /** The folder it is open from, null from search results */
+  mailboxId: string | null
   onBack: () => void
 }
 
-function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
+function EmailContent({
+  email,
+  mailboxId,
+  onBack
+}: EmailContentProps): ReactElement {
   const { t, lang } = useI18n()
   useMarkAsReadOnOpen(email)
   const sender = email.from?.[0] ?? null
@@ -66,6 +73,11 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
             <Icon icon={Left} />
           </IconButton>
         </Tooltip>
+        <EmailViewActions
+          email={email}
+          mailboxId={mailboxId}
+          onLeave={onBack}
+        />
       </Box>
       <Box className="u-ph-1">
         <Typography
@@ -214,6 +226,11 @@ export function EmailView({
 
   // A new email starts with its own choices (remote content)
   return (
-    <EmailContent key={query.data.id} email={query.data} onBack={handleBack} />
+    <EmailContent
+      key={query.data.id}
+      email={query.data}
+      mailboxId={mailboxId ?? null}
+      onBack={handleBack}
+    />
   )
 }

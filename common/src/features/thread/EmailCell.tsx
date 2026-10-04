@@ -27,9 +27,21 @@ import { useI18n } from '@common/i18n/useI18n'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData } from './queries'
 
-/** The columns of the email list, in their order */
+/**
+ * The columns of the email list, in their order: one per field on a wide
+ * list; `unread`, `message` (sender, date, subject, preview on four lines)
+ * and `compactActions` on a narrow one (phone, list beside an open email)
+ */
 export type EmailColumnId =
-  'status' | 'sender' | 'subject' | 'attachment' | 'date' | 'actions'
+  | 'status'
+  | 'sender'
+  | 'subject'
+  | 'attachment'
+  | 'date'
+  | 'actions'
+  | 'unread'
+  | 'message'
+  | 'compactActions'
 
 /** The rows of the table are the emails themselves */
 export function isEmailRow(
@@ -63,7 +75,10 @@ export interface EmailCellProps {
 /**
  * A cell of the email list, rendered according to its column: unread marker
  * and star, sender, subject and preview (the link opening the email, whose
- * name says it all), attachment, date, and the actions shown on hover.
+ * name says it all), attachment, date, and the actions shown on hover. The
+ * compact columns gather the same content: the link holds the marker, the
+ * sender, the date, the subject and two lines of preview; the star and the
+ * read toggle are stacked beside it.
  */
 export function EmailCell({
   mailboxId,
@@ -87,37 +102,71 @@ export function EmailCell({
     showRecipients ? email.to : email.from
   )
 
+  const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
+  const handleToggleStar = (): void => {
+    onToggleStar(email)
+  }
+  const starButton = (
+    <Tooltip title={starLabel}>
+      <IconButton
+        size="small"
+        color={isStarred ? 'warning' : 'default'}
+        aria-label={starLabel}
+        aria-pressed={isStarred}
+        onClick={handleToggleStar}
+        data-testid="email-list-item-star"
+      >
+        <Icon icon={isStarred ? Star : StarOutline} />
+      </IconButton>
+    </Tooltip>
+  )
+  const seenLabel = t(isUnread ? 'email.markAsRead' : 'email.markAsUnread')
+  const handleToggleSeen = (): void => {
+    onToggleSeen(email)
+  }
+  const seenButton = (
+    <Tooltip title={seenLabel}>
+      <IconButton
+        size="small"
+        aria-label={seenLabel}
+        onClick={handleToggleSeen}
+        data-testid="email-list-item-toggle-seen"
+      >
+        <Icon icon={isUnread ? EmailOpen : EmailIcon} />
+      </IconButton>
+    </Tooltip>
+  )
+  const unreadDot = isUnread ? (
+    <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
+  ) : null
+  const handleNavigate = (): void => {
+    void navigate(path)
+  }
+  const date = (
+    <SecondaryText variant="caption" noWrap data-testid="email-list-item-date">
+      <time
+        className={emphasis}
+        dateTime={email.receivedAt}
+        title={formatFullDate(email.receivedAt, lang)}
+      >
+        {formatListDate(email.receivedAt, lang)}
+      </time>
+    </SecondaryText>
+  )
+  const attachmentIcon = email.hasAttachment ? (
+    <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
+  ) : null
+
   switch (column.id as EmailColumnId) {
-    case 'status': {
-      const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
-      const handleToggleStar = (): void => {
-        onToggleStar(email)
-      }
+    case 'status':
       return (
         <span className="u-flex u-flex-items-center">
           <span className="u-flex u-flex-justify-center u-flex-shrink-0 u-w-1">
-            {isUnread ? (
-              <StatusDot
-                label={t('email.unread')}
-                data-testid="unread-status-icon"
-              />
-            ) : null}
+            {unreadDot}
           </span>
-          <Tooltip title={starLabel}>
-            <IconButton
-              size="small"
-              color={isStarred ? 'warning' : 'default'}
-              aria-label={starLabel}
-              aria-pressed={isStarred}
-              onClick={handleToggleStar}
-              data-testid="email-list-item-star"
-            >
-              <Icon icon={isStarred ? Star : StarOutline} />
-            </IconButton>
-          </Tooltip>
+          {starButton}
         </span>
       )
-    }
     case 'sender':
       return (
         <Typography noWrap data-testid="email-list-item-sender">
@@ -131,9 +180,6 @@ export function EmailCell({
         isStarred ? t('email.starred') : null,
         correspondents
       ].filter(part => part !== null && part !== '')
-      const handleNavigate = (): void => {
-        void navigate(path)
-      }
       return (
         <RowLink href={href} onNavigate={handleNavigate}>
           <span className="u-visuallyhidden">{`${context.join(', ')}, `}</span>
@@ -150,45 +196,62 @@ export function EmailCell({
       )
     }
     case 'attachment':
-      return email.hasAttachment ? (
-        <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
-      ) : null
+      return attachmentIcon
     case 'date':
+      return date
+    case 'actions':
+      return <RowHoverActions>{seenButton}</RowHoverActions>
+    case 'unread':
+      return <span className="u-flex u-flex-justify-center">{unreadDot}</span>
+    case 'message': {
+      // Read before the content of the link: what the other cells show
+      const states = [
+        isUnread ? t('email.unread') : null,
+        isStarred ? t('email.starred') : null
+      ].filter(state => state !== null)
       return (
-        <SecondaryText
-          variant="caption"
-          noWrap
-          data-testid="email-list-item-date"
-        >
-          <time
-            className={emphasis}
-            dateTime={email.receivedAt}
-            title={formatFullDate(email.receivedAt, lang)}
-          >
-            {formatListDate(email.receivedAt, lang)}
-          </time>
-        </SecondaryText>
-      )
-    case 'actions': {
-      const seenLabel = t(isUnread ? 'email.markAsRead' : 'email.markAsUnread')
-      const handleToggleSeen = (): void => {
-        onToggleSeen(email)
-      }
-      return (
-        <RowHoverActions>
-          <Tooltip title={seenLabel}>
-            <IconButton
-              size="small"
-              aria-label={seenLabel}
-              onClick={handleToggleSeen}
-              data-testid="email-list-item-toggle-seen"
+        <RowLink href={href} onNavigate={handleNavigate} multiline>
+          {states.length > 0 ? (
+            <span className="u-visuallyhidden">{`${states.join(', ')}, `}</span>
+          ) : null}
+          <span className="u-flex u-flex-items-center">
+            <Typography
+              component="span"
+              noWrap
+              className="u-db u-flex-auto"
+              data-testid="email-list-item-sender"
             >
-              <Icon icon={isUnread ? EmailOpen : EmailIcon} />
-            </IconButton>
-          </Tooltip>
-        </RowHoverActions>
+              <span className={emphasis}>{correspondents}</span>
+            </Typography>
+            {attachmentIcon === null ? null : (
+              <span className="u-flex u-flex-shrink-0 u-ml-half">
+                {attachmentIcon}
+              </span>
+            )}
+            <span className="u-flex-shrink-0 u-ml-half">{date}</span>
+          </span>
+          <Typography component="span" noWrap className="u-db">
+            <span className={emphasis} data-testid="email-list-item-subject">
+              {email.subject ?? ''}
+            </span>
+          </Typography>
+          <SecondaryText
+            variant="body2"
+            lines={2}
+            data-testid="email-list-item-preview"
+          >
+            {email.preview}
+          </SecondaryText>
+        </RowLink>
       )
     }
+    case 'compactActions':
+      return (
+        <span className="u-flex u-flex-column u-flex-items-center">
+          {starButton}
+          <RowHoverActions>{seenButton}</RowHoverActions>
+        </span>
+      )
     default:
       return null
   }

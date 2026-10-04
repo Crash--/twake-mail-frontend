@@ -17,6 +17,8 @@ import {
 import { useLocation } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { FLOATING_ACTION_INSET } from '@/ds/FloatingActionButton/FloatingActionButton'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   VirtualizedListTable,
   type ListTableRange,
@@ -211,6 +213,38 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
     [t, showRecipients]
   )
 
+  // Below 600 px of list: a phone, or the list beside an open email
+  const compactColumns = useMemo<
+    (VirtualizedTableColumn & { id: EmailColumnId })[]
+  >(
+    () => [
+      {
+        id: 'unread',
+        label: t('thread.columns.status'),
+        width: 20,
+        sortable: false,
+        disablePadding: true
+      },
+      { id: 'message', label: t('thread.columns.message'), sortable: false },
+      {
+        id: 'compactActions',
+        label: t('thread.columns.actions'),
+        width: 48,
+        sortable: false,
+        disablePadding: true
+      }
+    ],
+    [t]
+  )
+
+  const screenSize = useScreenSize()
+  // Narrow from the first render on phones and beside an open email (large
+  // tablets); the table also measures itself for the other cases (zoom)
+  const isCompact = screenSize === 'mobile' || screenSize === 'tabletLarge'
+  // The floating "New message" button covers the end of the list below the
+  // desktop size (layout/AppLayout.tsx)
+  const bottomInset = screenSize === 'desktop' ? 0 : FLOATING_ACTION_INSET
+
   const componentsProps = useMemo(
     () => ({
       rowContent: {
@@ -260,6 +294,9 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
           rows={emails}
           rowCount={total}
           columns={columns}
+          compactColumns={compactColumns}
+          compact={isCompact}
+          bottomInset={bottomInset}
           computeItemKey={computeRowKey}
           getRowProps={getRowProps}
           focusedRowIndex={focusedIndex === -1 ? null : focusedIndex}

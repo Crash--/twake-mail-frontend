@@ -77,7 +77,8 @@
       "sender": "Expéditeur",
       "subject": "Sujet",
       "date": "Date",
-      "actions": "Actions"
+      "actions": "Actions",
+      "message": "Message"
     }
   },
   "push": {

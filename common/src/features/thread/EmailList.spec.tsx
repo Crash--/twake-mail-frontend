@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { Route, useParams } from 'react-router'
 import type { ReactElement } from 'react'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
   FAKE_ACCOUNT_ID,
   makeEmail,
@@ -327,6 +328,77 @@ describe('EmailList', () => {
     if (!row) throw new Error('No row')
     await waitFor(() => {
       expect(within(row).getByRole('link')).toHaveFocus()
+    })
+  })
+
+  describe('on a phone', () => {
+    beforeEach(() => {
+      mockViewport({ width: 390, touch: true })
+    })
+    afterEach(resetViewport)
+
+    it('shows each email on four lines, the link named by its content', async () => {
+      renderList(
+        makeFakeJmapServer({
+          emails: [
+            makeEmail({
+              id: 'new',
+              subject: 'Fresh news',
+              preview: 'Hello Alice',
+              receivedAt: '2026-10-04T08:30:00Z',
+              keywords: { $flagged: true },
+              hasAttachment: true
+            })
+          ]
+        })
+      )
+
+      const row = await screen.findByTestId('email-list-item')
+      expect(
+        screen.getAllByRole('columnheader').map(header => header.textContent)
+      ).toEqual(['Status', 'Message', 'Actions'])
+      const link = within(row).getByRole('link')
+      expect(link).toHaveAccessibleName(
+        /^Unread, Starred, Bob Dupont Attachment .+ Fresh news Hello Alice$/
+      )
+      expect(link).toContainElement(
+        within(row).getByTestId('email-list-item-date')
+      )
+      expect(within(row).getByTestId('unread-status-icon')).toBeInTheDocument()
+    })
+
+    it('keeps the star and the read toggle on each row', async () => {
+      const server = makeFakeJmapServer({
+        emails: [makeEmail({ id: 'new', subject: 'Fresh news' })]
+      })
+      renderList(server)
+      const row = await screen.findByTestId('email-list-item')
+
+      await userEvent.click(
+        within(row).getByRole('button', { name: 'Mark as starred' })
+      )
+      await userEvent.click(
+        within(row).getByRole('button', { name: 'Mark as read' })
+      )
+
+      await waitFor(() => {
+        expect(server.emails[0]?.keywords).toEqual({
+          $flagged: true,
+          $seen: true
+        })
+      })
+    })
+
+    it('leaves room for the floating button after the last row', async () => {
+      const { container } = renderList(
+        makeFakeJmapServer({ emails: makeEmails(2) })
+      )
+
+      await screen.findAllByTestId('email-list-item')
+      expect(container.querySelector('tfoot')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      )
     })
   })
 })

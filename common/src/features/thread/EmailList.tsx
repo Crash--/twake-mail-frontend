@@ -1,21 +1,34 @@
 import { Email } from '@linagora/twake-icons'
-import { Box, CircularProgress, Empty, ListSkeleton } from '@linagora/twake-mui'
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
-import type { ListRange } from 'react-virtuoso'
-import { Virtuoso } from 'react-virtuoso'
+import {
+  Box,
+  CircularProgress,
+  Empty,
+  ListSkeleton,
+  type VirtualizedTableColumn,
+  type VirtualizedTableRow
+} from '@linagora/twake-mui'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactElement
+} from 'react'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
-import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
+import {
+  VirtualizedListTable,
+  type ListTableRange,
+  type RowAttributes
+} from '@/ds/VirtualizedListTable/VirtualizedListTable'
+import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useSetKeyword } from '@common/features/email/useSetKeyword'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { EmailListItem } from './EmailListItem'
+import { EmailCell, isEmailRow, type EmailColumnId } from './EmailCell'
 import type { EmailListData, EmailListItemData } from './queries'
 import { useEmailList } from './useEmailList'
-
-/** Rows left below the visible ones when the next page is requested */
-const PRELOAD_ROWS = 10
 
 /** Folders whose list shows the recipients rather than the sender */
 const RECIPIENT_ROLES: readonly string[] = [
@@ -25,23 +38,11 @@ const RECIPIENT_ROLES: readonly string[] = [
   'templates'
 ]
 
-interface ListContext {
-  isLoadingMore: boolean
-}
+/** Rows left below the visible ones when the next page is requested */
+const PRELOAD_ROWS = 10
 
-function ListFooter({
-  context
-}: {
-  context?: ListContext
-}): ReactElement | null {
-  const { t } = useI18n()
-  if (!context?.isLoadingMore) return null
-  return (
-    <Box className="u-flex u-flex-justify-center u-p-1">
-      <CircularProgress size={24} aria-label={t('common.loading')} />
-    </Box>
-  )
-}
+/** Rows rendered beyond the viewport, in pixels: for scrolling and focus */
+const OVERSCAN_PX = 400
 
 /** Every email of the pages, once: positions shift when mail arrives */
 function flattenPages(data: EmailListData | undefined): EmailListItemData[] {
@@ -55,13 +56,29 @@ function flattenPages(data: EmailListData | undefined): EmailListItemData[] {
     })
 }
 
+function computeRowKey(_index: number, row: VirtualizedTableRow): string {
+  return String(row.id)
+}
+
+function getRowProps(row: VirtualizedTableRow): RowAttributes {
+  if (!isEmailRow(row)) return {}
+  const attributes: RowAttributes = {
+    'data-testid': 'email-list-item',
+    'data-email-id': row.id,
+    'data-thread-id': row.threadId
+  }
+  if (!hasKeyword(row, SEEN)) attributes['data-unread'] = 'true'
+  return attributes
+}
+
 export interface EmailListProps {
   mailboxId: string
 }
 
 /**
- * The emails of a mailbox, most recent first, in a virtualized list that
- * loads the next page when its end comes into view.
+ * The emails of a mailbox, most recent first, in a virtualized table that
+ * loads the next page when its end comes into view. Each row is a link to
+ * the email.
  */
 export function EmailList({ mailboxId }: EmailListProps): ReactElement {
   const { t } = useI18n()
@@ -71,18 +88,31 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
     mailboxes.data?.find(mailbox => mailbox.id === mailboxId)?.role ?? null
   const showRecipients = role !== null && RECIPIENT_ROLES.includes(role)
   const emails = useMemo(() => flattenPages(query.data), [query.data])
-  const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
+  const total = query.data?.pages[0]?.total ?? null
   const { mutate: setKeyword } = useSetKeyword()
+  const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
 
-  // Checked again after each page: the end of the list may still be in view
+  // The table reports the end of the list again while a page loads, and
+  // may call a stale handler: never cancel the fetch in flight, and let the
+  // query ignore the call after the last page
+  const handleEndReached = useCallback((): void => {
+    void fetchNextPage({ cancelRefetch: false })
+  }, [fetchNextPage])
+
+  const handleRangeChanged = useCallback((range: ListTableRange): void => {
+    setLastVisibleIndex(range.endIndex)
+  }, [])
+
+  // endReached is not reported again when the page just appended still
+  // ends in view: check after each page, and fetch a few rows ahead
   useEffect(() => {
     if (
       hasNextPage &&
       !isFetchingNextPage &&
       lastVisibleIndex >= emails.length - 1 - PRELOAD_ROWS
     ) {
-      void fetchNextPage()
+      void fetchNextPage({ cancelRefetch: false })
     }
   }, [
     hasNextPage,
@@ -92,15 +122,76 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
     emails.length
   ])
 
-  if (query.isPending) {
-    return <ListSkeleton count={8} hasSecondary />
-  }
+  const handleToggleStar = useCallback(
+    (email: EmailListItemData): void => {
+      setKeyword({
+        email,
+        keyword: FLAGGED,
+        isSet: !hasKeyword(email, FLAGGED)
+      })
+    },
+    [setKeyword]
+  )
 
-  if (query.isError) {
+  // Stable, like the cell below: the rows of the table are memoized and
+  // only render again when their email changes
+  const columns = useMemo<(VirtualizedTableColumn & { id: EmailColumnId })[]>(
+    () => [
+      {
+        id: 'status',
+        label: t('thread.columns.status'),
+        width: 72,
+        sortable: false,
+        disablePadding: true
+      },
+      {
+        id: 'sender',
+        label: t(showRecipients ? 'email.to' : 'thread.columns.sender'),
+        width: 208,
+        sortable: false
+      },
+      { id: 'subject', label: t('thread.columns.subject'), sortable: false },
+      {
+        id: 'attachment',
+        label: t('email.attachment'),
+        width: 40,
+        sortable: false,
+        disablePadding: true
+      },
+      {
+        id: 'date',
+        label: t('thread.columns.date'),
+        width: 104,
+        textAlign: 'right',
+        sortable: false
+      }
+    ],
+    [t, showRecipients]
+  )
+
+  const componentsProps = useMemo(
+    () => ({
+      rowContent: {
+        children: (
+          <EmailCell
+            mailboxId={mailboxId}
+            showRecipients={showRecipients}
+            onToggleStar={handleToggleStar}
+          />
+        )
+      }
+    }),
+    [mailboxId, showRecipients, handleToggleStar]
+  )
+
+  let content: ReactElement
+  if (query.isPending) {
+    content = <ListSkeleton count={8} hasSecondary />
+  } else if (query.isError) {
     const handleRetry = (): void => {
       void query.refetch()
     }
-    return (
+    content = (
       <ErrorScreen
         title={t('common.errorOccurred')}
         actionLabel={t('common.retry')}
@@ -108,49 +199,39 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
         data-testid="email-list-error"
       />
     )
-  }
-
-  if (emails.length === 0) {
-    return (
+  } else if (emails.length === 0) {
+    content = (
       <Empty
         icon={Email}
         title={t('mailbox.empty')}
         data-testid="empty-thread-view"
       />
     )
-  }
-
-  const handleToggleStar = (email: EmailListItemData): void => {
-    setKeyword({
-      email,
-      keyword: FLAGGED,
-      isSet: !hasKeyword(email, FLAGGED)
-    })
-  }
-
-  const handleRangeChanged = (range: ListRange): void => {
-    setLastVisibleIndex(range.endIndex)
-  }
-
-  return (
-    <Virtuoso
-      role="list"
-      aria-label={t('mailbox.emails')}
-      className="u-flex-auto"
-      data-testid="email-list"
-      data={emails}
-      context={{ isLoadingMore: isFetchingNextPage }}
-      computeItemKey={(_index, email) => email.id}
-      rangeChanged={handleRangeChanged}
-      components={{ Footer: ListFooter }}
-      itemContent={(_index, email) => (
-        <EmailListItem
-          email={email}
-          mailboxId={mailboxId}
-          showRecipients={showRecipients}
-          onToggleStar={handleToggleStar}
+  } else {
+    content = (
+      <>
+        <VirtualizedListTable
+          label={t('mailbox.emails')}
+          className="u-flex-auto"
+          data-testid="email-list"
+          rows={emails}
+          rowCount={total}
+          columns={columns}
+          computeItemKey={computeRowKey}
+          getRowProps={getRowProps}
+          endReached={handleEndReached}
+          rangeChanged={handleRangeChanged}
+          increaseViewportBy={OVERSCAN_PX}
+          componentsProps={componentsProps}
         />
-      )}
-    />
-  )
+        {isFetchingNextPage ? (
+          <Box className="u-flex u-flex-justify-center u-p-half">
+            <CircularProgress size={24} aria-label={t('common.loading')} />
+          </Box>
+        ) : null}
+      </>
+    )
+  }
+
+  return content
 }

@@ -48,7 +48,8 @@
     "download": "Télécharger",
     "attachments": "Pièces jointes",
     "content": "Contenu du message",
-    "notFound": "Ce message n'existe plus"
+    "notFound": "Ce message n'existe plus",
+    "starred": "Favoris"
   },
   "login": {
     "title": "Se connecter",
@@ -64,5 +65,13 @@
   "config": {
     "title": "Twake Mail n'est pas configuré",
     "description": "La configuration d'exécution (.env.js) est absente ou invalide. Contactez votre administrateur."
+  },
+  "thread": {
+    "columns": {
+      "status": "Statut",
+      "sender": "Expéditeur",
+      "subject": "Sujet",
+      "date": "Date"
+    }
   }
 }

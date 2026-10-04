@@ -48,7 +48,8 @@
     "download": "Tải xuống",
     "attachments": "Đính kèm",
     "content": "Nội dung thư",
-    "notFound": "Thư này không còn tồn tại"
+    "notFound": "Thư này không còn tồn tại",
+    "starred": "Quan trọng"
   },
   "login": {
     "title": "Đăng nhập",
@@ -64,5 +65,13 @@
   "config": {
     "title": "Twake Mail chưa được cấu hình",
     "description": "Tệp cấu hình (.env.js) bị thiếu hoặc không hợp lệ. Vui lòng liên hệ quản trị viên."
+  },
+  "thread": {
+    "columns": {
+      "status": "Trạng thái",
+      "sender": "Người gửi",
+      "subject": "Tiêu đề",
+      "date": "Ngày"
+    }
   }
 }

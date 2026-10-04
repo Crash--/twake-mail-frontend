@@ -226,4 +226,40 @@ describe('EmailList', () => {
     })
     expect(star).toHaveAttribute('aria-pressed', 'false')
   })
+
+  it('makes each row a link named by the state, the sender and the subject', async () => {
+    renderList(
+      makeFakeJmapServer({
+        emails: [
+          makeEmail({
+            id: 'new',
+            subject: 'Fresh news',
+            preview: 'Hello Alice',
+            keywords: { $flagged: true }
+          })
+        ]
+      })
+    )
+
+    const link = await screen.findByRole('link', {
+      name: 'Unread, Starred, Bob Dupont, Fresh news Hello Alice'
+    })
+    expect(link).toHaveAttribute('href', '/mailbox/mailbox-inbox/email/new')
+    expect(screen.getByRole('table', { name: 'Messages' })).toContainElement(
+      link
+    )
+    expect(
+      screen.getAllByRole('columnheader').map(header => header.textContent)
+    ).toEqual(['Status', 'Sender', 'Subject', 'Attachment', 'Date'])
+  })
+
+  it('opens an email from the keyboard', async () => {
+    renderList(makeFakeJmapServer({ emails: makeEmails(2) }))
+    const [first] = await screen.findAllByRole('link')
+    first?.focus()
+
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+
+    expect(screen.getByText('Opened e1 of mailbox-inbox')).toBeVisible()
+  })
 })

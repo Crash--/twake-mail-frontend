@@ -48,7 +48,8 @@
     "download": "Download",
     "attachments": "Attachments",
     "content": "Message content",
-    "notFound": "This message no longer exists"
+    "notFound": "This message no longer exists",
+    "starred": "Starred"
   },
   "login": {
     "title": "Sign In",
@@ -64,5 +65,13 @@
   "config": {
     "title": "Twake Mail is not configured",
     "description": "The runtime configuration (.env.js) is missing or invalid. Contact your administrator."
+  },
+  "thread": {
+    "columns": {
+      "status": "Status",
+      "sender": "Sender",
+      "subject": "Subject",
+      "date": "Date"
+    }
   }
 }

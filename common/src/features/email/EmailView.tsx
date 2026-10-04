@@ -15,6 +15,7 @@ import { useEffect, useMemo, useRef, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
@@ -124,51 +125,57 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
           variant="h3"
           component="h1"
           tabIndex={-1}
+          className="u-breakword"
           data-testid="email-view-subject"
         >
           {email.subject ?? ''}
         </Typography>
-        <Box className="u-flex u-flex-items-start u-mt-1">
-          <Avatar className="u-mr-1 u-flex-shrink-0">
-            {getInitials(sender?.name ?? '', sender?.email ?? '')}
-          </Avatar>
-          <Box className="u-flex-auto u-ov-hidden">
-            <Typography data-testid="email-view-from">
-              {sender ? (
-                <>
-                  <span className="u-fw-bold">{formatAddressName(sender)}</span>
-                  {sender.name ? (
-                    <SecondaryText>{` <${sender.email}>`}</SecondaryText>
-                  ) : null}
-                </>
-              ) : null}
-            </Typography>
-            <AddressLine
-              label="email.to"
-              addresses={email.to}
-              data-testid="email-view-to"
-            />
-            <AddressLine
-              label="email.cc"
-              addresses={email.cc}
-              data-testid="email-view-cc"
-            />
-            <AddressLine
-              label="email.bcc"
-              addresses={email.bcc}
-              data-testid="email-view-bcc"
-            />
-          </Box>
-          <SecondaryText
-            variant="caption"
-            className="u-ml-1 u-flex-shrink-0"
-            data-testid="email-view-date"
-          >
-            <time dateTime={email.receivedAt}>
-              {formatFullDate(email.receivedAt, lang)}
-            </time>
-          </SecondaryText>
-        </Box>
+        <MessageHeader
+          className="u-mt-1"
+          avatar={
+            <Avatar>
+              {getInitials(sender?.name ?? '', sender?.email ?? '')}
+            </Avatar>
+          }
+          identity={
+            <>
+              <Typography data-testid="email-view-from">
+                {sender ? (
+                  <>
+                    <span className="u-fw-bold">
+                      {formatAddressName(sender)}
+                    </span>
+                    {sender.name ? (
+                      <SecondaryText>{` <${sender.email}>`}</SecondaryText>
+                    ) : null}
+                  </>
+                ) : null}
+              </Typography>
+              <AddressLine
+                label="email.to"
+                addresses={email.to}
+                data-testid="email-view-to"
+              />
+              <AddressLine
+                label="email.cc"
+                addresses={email.cc}
+                data-testid="email-view-cc"
+              />
+              <AddressLine
+                label="email.bcc"
+                addresses={email.bcc}
+                data-testid="email-view-bcc"
+              />
+            </>
+          }
+          date={
+            <SecondaryText variant="caption" data-testid="email-view-date">
+              <time dateTime={email.receivedAt}>
+                {formatFullDate(email.receivedAt, lang)}
+              </time>
+            </SecondaryText>
+          }
+        />
         <AttachmentList attachments={attachments} />
         <Divider className="u-mv-1" />
         {document === null ? (

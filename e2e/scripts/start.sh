@@ -12,12 +12,15 @@
 #   E2E_APP_PORT       default 18302   (127.0.0.1 only)
 #   E2E_OIDC           1 to add the `oidc` profile (Dex) and OidcAuthenticationStrategy
 #   E2E_START_TIMEOUT  seconds to wait for James, default 180
+#   E2E_PROJECT        compose project name, default twakemail-e2e (run a second stack side by side)
+#   E2E_APP_ENV        runtime configuration served as /.env.js, default docker/app-env.js
+#   E2E_COMPOSE_EXTRA  an extra compose file layered on top (e.g. docker/docker-compose.spike.yaml)
 set -euo pipefail
 
 E2E_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOCKER_DIR="$E2E_DIR/docker"
 GENERATED="$DOCKER_DIR/.generated"
-PROJECT=twakemail-e2e
+PROJECT="${E2E_PROJECT:-twakemail-e2e}"
 DOMAIN=example.com
 
 export E2E_JMAP_PORT="${E2E_JMAP_PORT:-18300}"
@@ -38,8 +41,15 @@ fi
 compose() {
   local profiles=()
   [[ "${E2E_OIDC:-0}" == "1" ]] && profiles=(--profile oidc)
-  docker compose -p "$PROJECT" -f "$DOCKER_DIR/docker-compose.yaml" "${profiles[@]}" "$@"
+  local files=(-f "$DOCKER_DIR/docker-compose.yaml")
+  [[ -n "${E2E_COMPOSE_EXTRA:-}" ]] && files+=(-f "$E2E_COMPOSE_EXTRA")
+  docker compose -p "$PROJECT" "${files[@]}" "${profiles[@]}" "$@"
 }
+
+if [[ -n "${E2E_APP_ENV:-}" ]]; then
+  E2E_APP_ENV="$(cd "$(dirname "$E2E_APP_ENV")" && pwd)/$(basename "$E2E_APP_ENV")"
+  export E2E_APP_ENV
+fi
 
 mkdir -p "$GENERATED"
 

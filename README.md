@@ -15,7 +15,7 @@ search, actions on emails and settings come next.
 Rsbuild, React 18, TypeScript (strict), react-router 7,
 [`@linagora/twake-mui`](https://github.com/linagora/twake-ui) and
 `@linagora/twake-icons`, TanStack Query 5, `twake-i18n`, `openid-client` 6,
-jmap-client-ts 2, DOMPurify, react-virtuoso, Sentry, Jest 30 + Testing
+jmap-client-ts 2, DOMPurify, Sentry, Jest 30 + Testing
 Library, Playwright. Contributors and AI agents: read
 [AGENTS.md](AGENTS.md) first.
 
@@ -117,6 +117,7 @@ None of them is cached by nginx.
 apps/private/        the application: entry point, routes, pages, Dockerfile
 common/src/
   app/               query client, Sentry, top-level providers
+  ds/                local design system (`@/ds/`): UI twake-mui lacks, no business logic
   components/        shared screens (loader, errors)
   config/            runtime configuration
   features/auth/     OIDC and basic authentication, login pages, route guard
@@ -182,10 +183,13 @@ token renewal on 401). The JMAP session is loaded before the mail screens
   the inbox.
 - **Email list**: one JMAP request per page (`Email/query` sorted by
   `receivedAt`, then `Email/get` of its ids by back-reference), loaded as
-  the end of a virtualized list comes into view; unread and starred state,
-  star toggle. The list is virtualized with react-virtuoso, which twake-mui
-  depends on but does not wrap for lists (see
-  [docs/twake-mui-gaps.md](docs/twake-mui-gaps.md)).
+  the end of the list comes into view; unread and starred state, star
+  toggle, mark as read or unread on hover. The list is the `VirtualizedTable`
+  of twake-mui, as in Twake Contacts, through the `VirtualizedListTable` of
+  the local design system (`common/src/ds/`), which adds what a message list
+  needs (see [docs/twake-mui-gaps.md](docs/twake-mui-gaps.md)): each row is
+  a real link (middle click, keyboard), arrow keys move between rows, column
+  headers exist for screen readers only, and new emails are announced.
 - **Reading**: as tmail-flutter on desktop, the email replaces the list.
   The HTML body is sanitized with DOMPurify, then shown in an iframe
   sandboxed without `allow-scripts` and under a Content Security Policy

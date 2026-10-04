@@ -288,5 +288,8 @@
     "description": "Phím tắt một phím hoạt động bên ngoài ô nhập văn bản. Hãy tắt nếu chúng cản trở công nghệ hỗ trợ của bạn.",
     "key": "Phím",
     "action": "Thao tác"
+  },
+  "settings": {
+    "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại"
   }
 }

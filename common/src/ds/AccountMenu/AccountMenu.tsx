@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes. The avatar menu with the identity of the user
 // and "Sign out" is the same in every Twake app; twake-mui has the avatar
 // and the menu, not the account menu.
-import { Icon, Logout, type IconProps } from '@linagora/twake-icons'
+import { Check, Icon, Logout, type IconProps } from '@linagora/twake-icons'
 import {
   Avatar,
   Divider,
@@ -30,6 +30,14 @@ export interface AccountMenuItem {
   'data-testid'?: string
 }
 
+/** A setting switched from the menu (`menuitemcheckbox`) */
+export interface AccountMenuToggle {
+  label: string
+  isChecked: boolean
+  onToggle: (isChecked: boolean) => void
+  'data-testid'?: string
+}
+
 export interface AccountMenuProps {
   /** Display name, null when unknown: the email is shown instead */
   name: string | null
@@ -40,12 +48,15 @@ export interface AccountMenuProps {
   onLogout: () => void
   /** More items, between the identity and sign out */
   items?: readonly AccountMenuItem[]
+  /** Settings switched from the menu, above "Sign out" */
+  toggles?: readonly AccountMenuToggle[]
   testIds?: AccountMenuTestIds
 }
 
 /**
- * The avatar of the signed-in user, opening a menu with their identity and
- * a sign out item.
+ * The avatar of the signed-in user, opening a menu with their identity,
+ * settings switched from there (checked or not, the menu stays open) and a
+ * sign out item.
  */
 export function AccountMenu({
   name,
@@ -54,6 +65,7 @@ export function AccountMenu({
   logoutLabel,
   onLogout,
   items = [],
+  toggles = [],
   testIds = {}
 }: AccountMenuProps): ReactElement {
   const menuId = useId()
@@ -118,6 +130,23 @@ export function AccountMenu({
             <ListItemText primary={item.label} />
           </MenuItem>
         ))}
+        {toggles.map(toggle => (
+          <MenuItem
+            key={toggle.label}
+            role="menuitemcheckbox"
+            aria-checked={toggle.isChecked}
+            onClick={() => {
+              toggle.onToggle(!toggle.isChecked)
+            }}
+            data-testid={toggle['data-testid']}
+          >
+            <ListItemIcon>
+              {toggle.isChecked ? <Icon icon={Check} /> : null}
+            </ListItemIcon>
+            <ListItemText primary={toggle.label} />
+          </MenuItem>
+        ))}
+        {items.length > 0 || toggles.length > 0 ? <Divider /> : null}
         <MenuItem onClick={handleLogout} data-testid={testIds.logout}>
           <ListItemIcon>
             <Icon icon={Logout} />

@@ -123,7 +123,13 @@ export function AdvancedSearchDialog({
       aria-labelledby={titleId}
       data-testid="advanced-search-dialog"
     >
-      <form onSubmit={handleSubmit} noValidate>
+      {/* A flex column that does not grow past the dialog: only the fields
+          scroll, the title and the buttons stay in view */}
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="u-flex u-flex-column u-ov-hidden"
+      >
         <DialogTitle id={titleId}>{t('search.advanced')}</DialogTitle>
         <DialogContent>
           <Box className="u-flex u-flex-column u-pt-half">

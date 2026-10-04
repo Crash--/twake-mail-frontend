@@ -46,6 +46,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   results, orders as in tmail-flutter (relevance by default, the last one
   picked remembered), matches highlighted from `SearchSnippet/get`,
   shareable results URL (`/search?…`), results kept up to date by push
+- Conversations, behind the "Thread" setting of tmail-flutter (account
+  menu, off by default): one row per conversation with its number of
+  messages, in mailboxes and search results; an opened email shows its
+  whole conversation, the oldest message first, unread and last messages
+  expanded, the others collapsed, keyboard moves between messages, replies
+  joining it as they arrive (announced), read and star actions on the
+  whole conversation
   Touch targets are at least 44 px, and every screen reflows down to
   320 px without horizontal scrolling (RGAA 10.11)
 - End-to-end runs of the main path on phone (390 × 844) and tablet

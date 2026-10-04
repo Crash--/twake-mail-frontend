@@ -16,6 +16,7 @@ import {
 } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router'
 
+import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { EmailList } from '@common/features/thread/EmailList'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -50,11 +51,16 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
   const headingRef = useRef<HTMLHeadingElement>(null)
   const params = toSearchParams(filter).toString()
   const openEmailId = useMatch('/search/email/:emailId')?.params.emailId ?? null
+  // One result per conversation when conversations are on, as tmail-flutter
+  const { isEnabled: collapseThreads } = useThreadPreference()
   const request = useMemo(
-    () => (context === null ? null : toSearchRequest(filter, context)),
+    () =>
+      context === null
+        ? null
+        : { ...toSearchRequest(filter, context), collapseThreads },
     // The params say all the filter does
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [context, params]
+    [context, params, collapseThreads]
   )
   const emailPath = useCallback(
     (emailId: string): string =>

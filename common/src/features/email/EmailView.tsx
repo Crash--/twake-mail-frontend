@@ -16,6 +16,8 @@ import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
+import { useThreadPreference } from '@common/features/settings/threadPreference'
+import { ConversationView } from '@common/features/thread/ConversationView'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
 import { formatFullDate } from '@common/features/thread/formatListDate'
 import { useI18n } from '@common/i18n/useI18n'
@@ -140,7 +142,8 @@ export interface EmailViewProps {
 }
 
 /**
- * An opened email: headers, attachments and body. Replaces the list, as in
+ * An opened email: headers, attachments and body, or its whole
+ * conversation when the "Thread" setting is on. Replaces the list, as in
  * tmail-flutter on desktop; the back button returns to the list.
  */
 export function EmailView({
@@ -157,6 +160,7 @@ export function EmailView({
     mailboxId: mailboxId ?? null,
     backPath
   })
+  const threadPreference = useThreadPreference()
 
   const handleBack = (): void => {
     void navigate(backPath, {
@@ -192,6 +196,18 @@ export function EmailView({
         icon={EmailOpen}
         title={t('email.notFound')}
         data-testid="email-not-found"
+      />
+    )
+  }
+
+  // With the "Thread" setting, the email is shown in its conversation
+  if (threadPreference.isEnabled) {
+    return (
+      <ConversationView
+        key={query.data.threadId}
+        threadId={query.data.threadId}
+        emailId={query.data.id}
+        onBack={handleBack}
       />
     )
   }

@@ -89,7 +89,15 @@
       "date": "Date",
       "actions": "Actions",
       "message": "Message"
-    }
+    },
+    "messageCount": "%{smart_count} message |||| %{smart_count} messages",
+    "messages": "Messages of the conversation",
+    "actions": "Conversation actions",
+    "newMessage": "New message from %{name}",
+    "empty": "This conversation no longer exists",
+    "archive": "Archive the conversation",
+    "moveToTrash": "Move the conversation to trash",
+    "markAsSpam": "Mark the conversation as spam"
   },
   "push": {
     "newMessages": "You have new messages"

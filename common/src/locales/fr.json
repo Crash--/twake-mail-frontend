@@ -89,7 +89,15 @@
       "date": "Date",
       "actions": "Actions",
       "message": "Message"
-    }
+    },
+    "messageCount": "%{smart_count} message |||| %{smart_count} messages",
+    "messages": "Messages de la conversation",
+    "actions": "Actions sur la conversation",
+    "newMessage": "Nouveau message de %{name}",
+    "empty": "Cette conversation n'existe plus",
+    "archive": "Archiver la conversation",
+    "moveToTrash": "Mettre la conversation à la corbeille",
+    "markAsSpam": "Marquer la conversation comme indésirable"
   },
   "push": {
     "newMessages": "Vous avez de nouveaux messages"

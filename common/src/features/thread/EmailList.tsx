@@ -34,6 +34,7 @@ import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -73,7 +74,8 @@ const OVERSCAN_PX = 400
 
 /**
  * Every email of the pages, once (positions shift when mail arrives), with
- * its search snippet when the list holds search results
+ * its search snippet when the list holds search results, and the size of
+ * its conversation when the list shows one row per conversation
  */
 function flattenPages(data: EmailListData | undefined): EmailRowData[] {
   const seen = new Set<string>()
@@ -81,7 +83,13 @@ function flattenPages(data: EmailListData | undefined): EmailRowData[] {
     page.emails.flatMap((email): EmailRowData[] => {
       if (seen.has(email.id)) return []
       seen.add(email.id)
-      return [{ ...email, snippet: page.snippets?.[email.id] ?? null }]
+      return [
+        {
+          ...email,
+          snippet: page.snippets?.[email.id] ?? null,
+          threadSize: page.threadSizes?.[email.threadId] ?? null
+        }
+      ]
     })
   )
 }
@@ -133,10 +141,11 @@ function useListQuery(
 ): UseInfiniteQueryResult<EmailListData> {
   const client = useJmapClient()
   const { accountId } = useJmapSession()
+  const { isEnabled: collapseThreads } = useThreadPreference()
   const source: EmailListSource =
     'search' in props
       ? { kind: 'search', request: props.search.request }
-      : { kind: 'mailbox', mailboxId: props.mailboxId }
+      : { kind: 'mailbox', mailboxId: props.mailboxId, collapseThreads }
   return useInfiniteQuery(
     emailListSourceQueryOptions(client, accountId, source)
   )

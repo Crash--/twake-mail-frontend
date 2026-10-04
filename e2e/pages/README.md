@@ -86,7 +86,7 @@ Conventions:
 | `email-list` | the list: a `table` named "Messages", column headers for screen readers only; each row holds one link (`[data-row-focus]`) that opens the email, the arrow keys move between rows | — |
 | `email-list-item` | one row, with `data-email-id`, `data-thread-id`, `data-unread="true"` when unread, `aria-selected` when selected | `EmailTileBuilder` |
 | `email-list-item-subject` | subject inside the row | — |
-| `email-list-item-sender` | sender inside the row | — |
+| `email-list-item-sender` | sender inside the row; the participants of a conversation ("Alice, Bob, Me") | — |
 | `email-list-item-preview` | preview text inside the row | — |
 | `email-list-item-date` | date inside the row | — |
 | `unread-status-icon` | unread marker of the row | `UiKeys.unreadStatusIcon` |
@@ -162,7 +162,7 @@ Conventions:
 | `data-testid` | Element | Flutter key |
 |---|---|---|
 | `thread-setting-toggle` | "Enable thread" in the account menu (`menuitemcheckbox`, `aria-checked`), until the settings screens exist | `ValueKey(AppLocalizations().thread)` |
-| `email-list-item-thread-count` | number of messages of a conversation row (absent for one email) | — |
+| `email-list-item-thread-count` | number of messages of a conversation row, "(3)" (absent for one email) | — |
 | `conversation-view` | an email shown with its conversation | `ThreadDetailView` |
 | `conversation-subject` / `conversation-count` | its subject (`h1`, focused when it opens) and "N messages" | — |
 | `conversation` | the messages (`ol` named "Messages of the conversation") | — |

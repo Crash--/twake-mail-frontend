@@ -287,6 +287,10 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/thread.spec.ts`, also on `mobile` and `tablet`. Passes in CI.
 - [x] `THR-03` The conversation actions star, then mark unread, every message of the conversation, in one request. — web app; tmail-flutter has these thread-level actions (ADR 0068) without a dedicated test.
   - Spec: `tests/thread.spec.ts`. Passes in CI.
+- [x] `THR-04` A conversation row (conversations are on by default) names its participants in the order they wrote, the user as "Me" ("emma@example.com, Me, carol@example.com"), shows "(3)" and is unread when one of its messages is, all in the accessible name of its link (axe); a reply arriving by push moves it above a newer email, "(4)", without querying the list again (no `Email/query`); a search finds it as one row, "(4)". — web app only, no Patrol test (issue #11)
+  - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
+- [x] `THR-05` The selection bar stars, the hover button reads and the menu of a conversation row archives every message of the conversation, its copy in Sent included (tmail-flutter ADR 0068); the row leaves the Inbox (axe on the menu). — web app only, no Patrol test (issue #11)
+  - Spec: `tests/thread.spec.ts`. Passes in CI.
 
 ## SRCH — Search (14)
 

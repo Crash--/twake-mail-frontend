@@ -1,6 +1,7 @@
 import { ConversationPage, LoginPage, SearchPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
+import { recordJmapTraffic } from '../support/jmapTraffic'
 import type { Email, JmapClient } from '../support/jmap'
 
 const SUBJECT = 'Reply thread'
@@ -242,5 +243,144 @@ test.describe('THR thread detail', () => {
         async () => (await jmap.queryEmails({ notKeyword: '$seen' })).length
       )
       .toBe(2)
+  })
+
+  test(
+    'THR-04 a conversation row names its participants and moves up when a reply arrives',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const original = await importOriginal(jmap)
+      await addReply(jmap, original, {
+        from: user.email,
+        to: 'emma@example.com',
+        text: 'my answer',
+        mailbox: 'sent',
+        seen: true,
+        receivedAt: '2024-12-18T10:00:00Z'
+      })
+      await addReply(jmap, original, {
+        from: 'carol@example.com',
+        to: user.email,
+        text: 'carol joins, unread',
+        mailbox: 'inbox',
+        seen: false,
+        receivedAt: '2024-12-19T10:00:00Z'
+      })
+      await jmap.sendEmail({ to: user.email, subject: 'Lunch', text: 'hi' })
+      await jmap.waitForEmail({ subject: 'Lunch' })
+      const traffic = recordJmapTraffic(page)
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const subject = `Re: ${SUBJECT}`
+      const row = mailbox.emailRow(subject)
+      await expect(mailbox.emailRowSender(subject)).toContainText(
+        'emma@example.com, Me, carol@example.com'
+      )
+      await expect(mailbox.emailRowThreadCount(subject)).toHaveText(/^\(3\)/)
+      await expect(row).toHaveAttribute('data-unread', 'true')
+      await expect(mailbox.emailRowLink(subject)).toHaveAccessibleName(
+        /^Unread, .*emma@example\.com, Me, carol@example\.com.*3 messages/
+      )
+      await expect.poll(() => mailbox.emailSubjects()).toEqual(['Lunch', subject])
+      await expectNoA11yViolations(page)
+
+      // A reply by push: the conversation moves up, the list is not queried
+      traffic.reset()
+      await addReply(jmap, original, {
+        from: 'dan@example.com',
+        to: user.email,
+        text: 'dan too',
+        mailbox: 'inbox',
+        seen: false,
+        // After "Lunch" whatever the second it was sent in
+        receivedAt: new Date(Date.now() + 60_000)
+          .toISOString()
+          .replace(/\.\d{3}Z$/, 'Z')
+      })
+      await expect(mailbox.emailRowThreadCount(subject)).toHaveText(/^\(4\)/)
+      await expect.poll(() => mailbox.emailSubjects()).toEqual([subject, 'Lunch'])
+      await expect(mailbox.emailRowSender(subject)).toContainText(
+        'dan@example.com'
+      )
+      expect(traffic.methods()).not.toContain('Email/query')
+
+      // Search results are grouped the same way
+      const search = await new SearchPage(page).search(SUBJECT)
+      await expect(search.resultRows()).toHaveCount(1)
+      await expect(
+        search.resultThreadCount(search.resultRows().first())
+      ).toHaveText(/^\(4\)/)
+    }
+  )
+
+  test('THR-05 the actions of a conversation row reach every message of it', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const original = await importOriginal(jmap)
+    // A message in Sent too: the updates of more than 3 emails need two
+    // mailboxes on the memory backend (linagora/tmail-backend#2684)
+    await addReply(jmap, original, {
+      from: user.email,
+      to: 'emma@example.com',
+      text: 'my answer',
+      mailbox: 'sent',
+      seen: true,
+      receivedAt: '2024-12-18T10:00:00Z'
+    })
+    await addReply(jmap, original, {
+      from: 'carol@example.com',
+      to: user.email,
+      text: 'carol joins, unread',
+      mailbox: 'inbox',
+      seen: false,
+      receivedAt: '2024-12-19T10:00:00Z'
+    })
+    const threadEmails = async (): Promise<Email[]> =>
+      (await jmap.queryEmails({ text: 'thread' })).filter(email =>
+        (email.subject ?? '').includes(SUBJECT)
+      )
+    await expect.poll(async () => (await threadEmails()).length).toBe(3)
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const subject = `Re: ${SUBJECT}`
+
+    // The selection bar stars them all
+    await mailbox.selectEmail(subject)
+    await mailbox.runSelectionAction('star')
+    await expect
+      .poll(async () =>
+        (await threadEmails()).every(email => email.keywords.$flagged === true)
+      )
+      .toBe(true)
+    await expect(mailbox.emailRowStar(subject)).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+
+    // The hover button reads them all
+    await mailbox.emailRow(subject).hover()
+    await mailbox.emailRow(subject).getByTestId('email-list-item-toggle-seen').click()
+    await expect
+      .poll(async () =>
+        (await threadEmails()).every(email => email.keywords.$seen === true)
+      )
+      .toBe(true)
+    await expect(mailbox.emailRow(subject)).not.toHaveAttribute('data-unread')
+
+    // The menu of the row archives them all (tmail-flutter ADR 0068)
+    const menu = await mailbox.openEmailMenu(subject, { rightClick: true })
+    await expectNoA11yViolations(page)
+    await menu.getByTestId('email-action-archive').click()
+    await expect(mailbox.emailRow(subject)).toBeHidden()
+    const archive = await jmap.findMailboxByRole('archive')
+    await expect
+      .poll(async () =>
+        (await threadEmails()).every(
+          email => Object.keys(email.mailboxIds).join() === archive.id
+        )
+      )
+      .toBe(true)
   })
 })

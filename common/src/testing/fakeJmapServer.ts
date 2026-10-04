@@ -62,6 +62,9 @@ export interface FakeContact {
   emailAddress: string
 }
 
+/** A mailbox, with the `namespace` of the James shares extension */
+export type FakeMailbox = Mailbox & { namespace: string | null }
+
 export type FakeInvocation = [
   name: string,
   args: Record<string, unknown>,
@@ -76,7 +79,7 @@ export interface FakeJmapRequest {
 export interface FakeJmapServer {
   /** To pass as the `fetch` option of `createClient` */
   fetch: FetchFunction
-  mailboxes: Mailbox[]
+  mailboxes: FakeMailbox[]
   emails: FakeEmail[]
   /** Contacts `TMailContact/autocomplete` answers with */
   contacts: FakeContact[]
@@ -107,7 +110,7 @@ export interface FakeJmapServer {
   updateEmail: (id: string, patch: Partial<FakeEmail>) => void
   destroyEmail: (id: string) => void
   /** Changes a mailbox (updated), e.g. its counters */
-  updateMailbox: (id: string, patch: Partial<Mailbox>) => void
+  updateMailbox: (id: string, patch: Partial<FakeMailbox>) => void
 }
 
 type ChangeKind = 'created' | 'updated' | 'destroyed'
@@ -199,8 +202,8 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 export function makeMailbox(
-  overrides: Partial<Mailbox> & Pick<Mailbox, 'id' | 'name'>
-): Mailbox {
+  overrides: Partial<FakeMailbox> & Pick<Mailbox, 'id' | 'name'>
+): FakeMailbox {
   return {
     parentId: null,
     role: null,
@@ -221,6 +224,7 @@ export function makeMailbox(
       maySubmit: true
     },
     isSubscribed: true,
+    namespace: 'Personal',
     ...overrides
   }
 }
@@ -287,7 +291,7 @@ export function makeEmailWithBody(
 }
 
 /** The mailboxes James creates for a new account, in no particular order */
-export function makeDefaultMailboxes(): Mailbox[] {
+export function makeDefaultMailboxes(): FakeMailbox[] {
   return [
     makeMailbox({ id: 'mailbox-sent', name: 'Sent', role: 'sent' }),
     makeMailbox({
@@ -419,7 +423,7 @@ function referenceError(
 
 export function makeFakeJmapServer(
   init: {
-    mailboxes?: Mailbox[]
+    mailboxes?: FakeMailbox[]
     emails?: FakeEmail[]
     /** Advertises push over WebSocket (without Linagora tickets) */
     webSocket?: boolean

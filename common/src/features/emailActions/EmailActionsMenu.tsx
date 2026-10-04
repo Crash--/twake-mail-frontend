@@ -99,7 +99,9 @@ export function EmailActionsMenu({
             <ListItemText
               primary={t(item.label)}
               slotProps={{
-                primary: { color: item.isDestructive ? 'error' : 'inherit' }
+                primary: {
+                  color: item.isDestructive ? 'error.dark' : 'inherit'
+                }
               }}
             />
           </MenuItem>

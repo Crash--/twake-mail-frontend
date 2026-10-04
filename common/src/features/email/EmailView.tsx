@@ -29,10 +29,10 @@ import {
   buildEmailDocument,
   findReferencedCids,
   joinHtmlValues,
-  normalizeCid,
   renderBodyParts
 } from './emailBody'
 import type { EmailDetail } from './queries'
+import { normalizeCid } from './sanitizeEmailHtml'
 import { useEmail } from './useEmail'
 import { useInlineImageUrls } from './useInlineImageUrls'
 import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
@@ -83,7 +83,9 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
       inlineImages.isLoading
         ? null
         : buildEmailDocument(
-            renderBodyParts(email.htmlBody, email.bodyValues, inlineImages.urls)
+            renderBodyParts(email.htmlBody, email.bodyValues, {
+              inlineImageUrls: inlineImages.urls
+            }).html
           ),
     [
       email.htmlBody,

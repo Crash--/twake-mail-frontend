@@ -1,9 +1,7 @@
 import type { EmailAddress } from 'jmap-client-ts'
 
-import {
-  findReferencedCids,
-  sanitizeEmailHtml
-} from '@common/features/email/emailBody'
+import { findReferencedCids } from '@common/features/email/emailBody'
+import { sanitizeEmailHtml } from '@common/features/email/sanitizeEmailHtml'
 
 import { BLOCKQUOTE_STYLE } from './emailHtml'
 
@@ -92,7 +90,11 @@ export function formatQuoteDate(isoDate: string, locale: string): string {
 export function sanitizeQuotedHtml(html: string): string {
   const cids = findReferencedCids(html)
   const keepCids = new Map(Array.from(cids, cid => [cid, `cid:${cid}`]))
-  const sanitized = sanitizeEmailHtml(html, keepCids)
+  // The quote is sent as it was received: its remote images stay
+  const sanitized = sanitizeEmailHtml(html, {
+    inlineImageUrls: keepCids,
+    allowRemoteContent: true
+  }).html
   return scopeStyles(
     sanitized.replaceAll(
       'class="tmail-signature"',

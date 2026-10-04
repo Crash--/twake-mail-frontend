@@ -18,6 +18,7 @@ import {
   useAuthState
 } from '@common/features/auth/AuthProvider'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 /**
  * Avatar of the signed-in user, opening the account menu.
@@ -29,9 +30,13 @@ export function UserMenu(): ReactElement {
   const state = useAuthState()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
 
+  const { session } = useJmapSession()
   const user =
     state.status === 'authenticated' ? state.user : { email: null, name: null }
-  const displayName = user.name ?? user.email ?? ''
+  // Basic mode only knows what the user typed: the JMAP session tells who
+  // the server authenticated
+  const email = service.mode === 'basic' ? session.username : user.email
+  const displayName = user.name ?? email ?? ''
 
   const handleOpen = (event: MouseEvent<HTMLElement>): void => {
     setAnchor(event.currentTarget)
@@ -59,9 +64,7 @@ export function UserMenu(): ReactElement {
           onClick={handleOpen}
           data-testid="user-avatar"
         >
-          <Avatar size="s">
-            {getInitials(user.name ?? '', user.email ?? '')}
-          </Avatar>
+          <Avatar size="s">{getInitials(user.name ?? '', email ?? '')}</Avatar>
         </IconButton>
       </Tooltip>
       <Menu
@@ -74,7 +77,7 @@ export function UserMenu(): ReactElement {
         <ListItem data-testid="user-menu-identity">
           <ListItemText
             primary={displayName}
-            secondary={user.name ? user.email : null}
+            secondary={user.name ? email : null}
           />
         </ListItem>
         <Divider />

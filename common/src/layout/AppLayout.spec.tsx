@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
 import type { AppListEntry } from '@common/config/config'
+import { FAKE_USERNAME } from '@common/testing/fakeJmapServer'
 import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -20,15 +21,16 @@ function renderLayout(
   return renderWithProviders(<AppLayout apps={apps} />, {
     path: '/',
     authService,
+    withJmapSession: true,
     childRoutes: <Route index element={<p>Routed content</p>} />
   })
 }
 
 describe('AppLayout', () => {
-  it('shows the top bar, the sidebar and the routed content', () => {
+  it('shows the top bar, the sidebar and the routed content', async () => {
     renderLayout()
 
-    expect(screen.getByRole('img', { name: 'Twake Mail' })).toBeVisible()
+    expect(await screen.findByRole('img', { name: 'Twake Mail' })).toBeVisible()
     expect(screen.getByTestId('search-input')).toHaveAttribute(
       'placeholder',
       'Search mail'
@@ -48,7 +50,7 @@ describe('AppLayout', () => {
     renderLayout()
 
     await userEvent.click(
-      screen.getByRole('button', { name: 'Go to applications' })
+      await screen.findByRole('button', { name: 'Go to applications' })
     )
 
     const [chatLink, driveLink] = screen.getAllByTestId('app-grid-item')
@@ -59,9 +61,10 @@ describe('AppLayout', () => {
     expect(driveLink).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
-  it('hides the app grid when no application is configured', () => {
+  it('hides the app grid when no application is configured', async () => {
     renderLayout([])
 
+    await screen.findByTestId('top-bar')
     expect(screen.queryByTestId('app-grid-toggle-button')).toBe(null)
   })
 
@@ -69,7 +72,7 @@ describe('AppLayout', () => {
     const authService = makeFakeBasicAuthService()
     renderLayout(APPS, authService)
 
-    await userEvent.click(screen.getByTestId('user-avatar'))
+    await userEvent.click(await screen.findByTestId('user-avatar'))
 
     const identity = screen.getByTestId('user-menu-identity')
     expect(identity).toHaveTextContent('Alice Martin')
@@ -78,5 +81,21 @@ describe('AppLayout', () => {
     await userEvent.click(screen.getByTestId('logout-button'))
 
     expect(authService.logout).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows the username of the JMAP session in basic mode', async () => {
+    renderLayout(
+      APPS,
+      makeFakeBasicAuthService({
+        status: 'authenticated',
+        user: { email: 'alice', name: null }
+      })
+    )
+
+    await userEvent.click(await screen.findByTestId('user-avatar'))
+
+    expect(screen.getByTestId('user-menu-identity')).toHaveTextContent(
+      FAKE_USERNAME
+    )
   })
 })

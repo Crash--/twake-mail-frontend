@@ -223,4 +223,20 @@ describe('applyEmailChanges', () => {
     expect(ids(queryClient, INBOX)).toEqual(['b'])
     expect(ids(queryClient, ARCHIVE)).toEqual(['old'])
   })
+
+  it('keeps the search results in place, in their new state', () => {
+    const queryClient = setUp()
+    const searchKey = threadKeys.search(ACCOUNT, {
+      filter: { text: 'news' },
+      sort: [{ property: 'receivedAt', isAscending: false }]
+    })
+    queryClient.setQueryData(searchKey, list([email('a', 20)]))
+
+    archive(queryClient, 'a')
+
+    const result = queryClient.getQueryData<EmailListData>(searchKey)
+    expect(result?.pages[0]?.emails.map(item => item.mailboxIds)).toEqual([
+      { [ARCHIVE]: true }
+    ])
+  })
 })

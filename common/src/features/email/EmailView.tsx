@@ -1,0 +1,226 @@
+import { EmailOpen, Icon, Left } from '@linagora/twake-icons'
+import {
+  Avatar,
+  Box,
+  Divider,
+  Empty,
+  getInitials,
+  IconButton,
+  ListSkeleton,
+  Tooltip,
+  Typography
+} from '@linagora/twake-mui'
+import type { EmailAddress } from 'jmap-client-ts'
+import { useMemo, type ReactElement } from 'react'
+import { useNavigate } from 'react-router'
+
+import { ErrorScreen } from '@common/components/ErrorScreen'
+import { formatFullDate } from '@common/features/thread/formatListDate'
+import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
+
+import { formatAddress, formatAddressName } from './addresses'
+import { AttachmentList } from './AttachmentList'
+import { EmailBodyFrame } from './EmailBodyFrame'
+import {
+  buildEmailDocument,
+  findReferencedCids,
+  joinHtmlValues,
+  normalizeCid,
+  renderBodyParts
+} from './emailBody'
+import type { EmailDetail } from './queries'
+import { useEmail } from './useEmail'
+import { useInlineImageUrls } from './useInlineImageUrls'
+
+interface AddressLineProps {
+  label: TranslationKey
+  addresses: readonly EmailAddress[] | null
+  'data-testid': string
+}
+
+function AddressLine({
+  label,
+  addresses,
+  'data-testid': testId
+}: AddressLineProps): ReactElement | null {
+  const { t } = useI18n()
+  if (!addresses || addresses.length === 0) return null
+  return (
+    <Typography variant="body2" color="textSecondary" data-testid={testId}>
+      {t(label)}:{' '}
+      {addresses.map((address, index) => (
+        <span key={`${address.email}-${index}`} title={address.email}>
+          {index > 0 ? ', ' : null}
+          {formatAddress(address)}
+        </span>
+      ))}
+    </Typography>
+  )
+}
+
+interface EmailContentProps {
+  email: EmailDetail
+  onBack: () => void
+}
+
+function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
+  const { t, lang } = useI18n()
+  const sender = email.from?.[0] ?? null
+  const html = useMemo(
+    () => joinHtmlValues(email.htmlBody, email.bodyValues),
+    [email.htmlBody, email.bodyValues]
+  )
+  const referencedCids = useMemo(() => findReferencedCids(html), [html])
+  const inlineImages = useInlineImageUrls(email.attachments, referencedCids)
+  const document = useMemo(
+    () =>
+      inlineImages.isLoading
+        ? null
+        : buildEmailDocument(
+            renderBodyParts(email.htmlBody, email.bodyValues, inlineImages.urls)
+          ),
+    [
+      email.htmlBody,
+      email.bodyValues,
+      inlineImages.isLoading,
+      inlineImages.urls
+    ]
+  )
+  // Inline images are shown in the body, not listed as attachments
+  const attachments = email.attachments.filter(
+    part => !part.cid || !referencedCids.has(normalizeCid(part.cid))
+  )
+  const backLabel = t('common.back')
+
+  return (
+    <Box className="u-p-1" data-testid="email-view">
+      <Box className="u-flex u-flex-items-center u-mb-1">
+        <Tooltip title={backLabel}>
+          <IconButton
+            aria-label={backLabel}
+            onClick={onBack}
+            data-testid="email-view-back-button"
+          >
+            <Icon icon={Left} />
+          </IconButton>
+        </Tooltip>
+      </Box>
+      <Box className="u-ph-1">
+        <Typography
+          variant="h3"
+          component="h1"
+          data-testid="email-view-subject"
+        >
+          {email.subject ?? ''}
+        </Typography>
+        <Box className="u-flex u-flex-items-start u-mt-1">
+          <Avatar className="u-mr-1 u-flex-shrink-0">
+            {getInitials(sender?.name ?? '', sender?.email ?? '')}
+          </Avatar>
+          <Box className="u-flex-auto u-ov-hidden">
+            <Typography data-testid="email-view-from">
+              {sender ? (
+                <>
+                  <span className="u-fw-bold">{formatAddressName(sender)}</span>
+                  {sender.name ? (
+                    <Typography component="span" color="textSecondary">
+                      {` <${sender.email}>`}
+                    </Typography>
+                  ) : null}
+                </>
+              ) : null}
+            </Typography>
+            <AddressLine
+              label="email.to"
+              addresses={email.to}
+              data-testid="email-view-to"
+            />
+            <AddressLine
+              label="email.cc"
+              addresses={email.cc}
+              data-testid="email-view-cc"
+            />
+            <AddressLine
+              label="email.bcc"
+              addresses={email.bcc}
+              data-testid="email-view-bcc"
+            />
+          </Box>
+          <Typography
+            variant="caption"
+            color="textSecondary"
+            className="u-ml-1 u-flex-shrink-0"
+            data-testid="email-view-date"
+          >
+            <time dateTime={email.receivedAt}>
+              {formatFullDate(email.receivedAt, lang)}
+            </time>
+          </Typography>
+        </Box>
+        <AttachmentList attachments={attachments} />
+        <Divider className="u-mv-1" />
+        {document === null ? (
+          <ListSkeleton count={3} />
+        ) : (
+          <EmailBodyFrame document={document} />
+        )}
+      </Box>
+    </Box>
+  )
+}
+
+export interface EmailViewProps {
+  mailboxId: string
+  emailId: string
+}
+
+/**
+ * An opened email: headers, attachments and body. Replaces the list, as in
+ * tmail-flutter on desktop; the back button returns to the mailbox.
+ */
+export function EmailView({
+  mailboxId,
+  emailId
+}: EmailViewProps): ReactElement {
+  const { t } = useI18n()
+  const navigate = useNavigate()
+  const query = useEmail(emailId)
+
+  const handleBack = (): void => {
+    void navigate(`/mailbox/${encodeURIComponent(mailboxId)}`)
+  }
+
+  if (query.isPending) {
+    return (
+      <Box className="u-p-2" data-testid="email-view-loading">
+        <ListSkeleton count={4} hasSecondary />
+      </Box>
+    )
+  }
+
+  if (query.isError) {
+    const handleRetry = (): void => {
+      void query.refetch()
+    }
+    return (
+      <ErrorScreen
+        title={t('common.errorOccurred')}
+        actionLabel={t('common.retry')}
+        onAction={handleRetry}
+        data-testid="email-view-error"
+      />
+    )
+  }
+
+  if (query.data === null) {
+    return (
+      <Empty
+        icon={EmailOpen}
+        title={t('email.notFound')}
+        data-testid="email-not-found"
+      />
+    )
+  }
+
+  return <EmailContent email={query.data} onBack={handleBack} />
+}

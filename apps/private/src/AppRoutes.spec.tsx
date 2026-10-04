@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { makeEmail, makeFakeJmapServer } from '@common/testing/fakeJmapServer'
 import {
   makeFakeBasicAuthService,
   makeFakeOidcAuthService
@@ -25,12 +26,15 @@ describe('AppRoutes', () => {
 
   it('opens an email of a mailbox', async () => {
     renderWithProviders(<AppRoutes apps={[]} />, {
-      route: '/mailbox/m1/email/e1'
+      route: '/mailbox/mailbox-inbox/email/e1',
+      jmapServer: makeFakeJmapServer({
+        emails: [makeEmail({ id: 'e1', subject: 'Hello Alice' })]
+      })
     })
 
-    const page = await screen.findByTestId('email-page')
-    expect(page).toHaveAttribute('data-mailbox-id', 'm1')
-    expect(page).toHaveAttribute('data-email-id', 'e1')
+    expect(await screen.findByTestId('email-view-subject')).toHaveTextContent(
+      'Hello Alice'
+    )
   })
 
   it('sends a signed-out user to the login form in basic mode', () => {

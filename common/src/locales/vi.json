@@ -7,7 +7,8 @@
     "loading": "Đang tiến hành ...",
     "errorOccurred": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau.",
     "unknownError": "Lỗi không xác định, xin hãy thử lại",
-    "reconnect": "Đăng nhập lại"
+    "reconnect": "Đăng nhập lại",
+    "back": "Quay lại"
   },
   "topbar": {
     "searchPlaceholder": "Tìm kiếm thư",
@@ -36,12 +37,18 @@
     "emails": "Thư"
   },
   "email": {
-    "noneSelected": "Chưa có email được lựa chọn",
-    "placeholder": "Thư sẽ được hiển thị ở đây",
     "star": "Đánh dấu quan trọng",
     "unstar": "Không quan trọng",
     "unread": "Chưa đọc",
-    "attachment": "Đính kèm"
+    "attachment": "Đính kèm",
+    "from": "Từ",
+    "to": "Đến",
+    "cc": "Cc",
+    "bcc": "Bcc",
+    "download": "Tải xuống",
+    "attachments": "Đính kèm",
+    "content": "Nội dung thư",
+    "notFound": "Thư này không còn tồn tại"
   },
   "login": {
     "title": "Đăng nhập",

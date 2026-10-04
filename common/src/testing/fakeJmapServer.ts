@@ -1,4 +1,9 @@
-import type { Email, FetchFunction, Mailbox } from 'jmap-client-ts'
+import type {
+  Email,
+  EmailBodyPart,
+  FetchFunction,
+  Mailbox
+} from 'jmap-client-ts'
 
 /**
  * An in-memory JMAP server answering the requests of the real jmap-client-ts
@@ -118,8 +123,51 @@ export function makeEmail(
     cc: null,
     preview: `Preview of ${overrides.id}`,
     hasAttachment: false,
+    htmlBody: [],
+    bodyValues: {},
+    attachments: [],
     ...overrides
   }
+}
+
+export function makeBodyPart(
+  overrides: Partial<EmailBodyPart> & Pick<EmailBodyPart, 'type'>
+): EmailBodyPart {
+  return {
+    partId: null,
+    blobId: null,
+    size: 0,
+    headers: [],
+    name: null,
+    charset: null,
+    disposition: null,
+    cid: null,
+    language: null,
+    location: null,
+    subParts: null,
+    ...overrides
+  }
+}
+
+/** An email whose body is a single HTML (or text) part */
+export function makeEmailWithBody(
+  overrides: Partial<FakeEmail> & Pick<FakeEmail, 'id'>,
+  body: { html: string } | { text: string }
+): FakeEmail {
+  const isHtml = 'html' in body
+  return makeEmail({
+    htmlBody: [
+      makeBodyPart({ partId: '1', type: isHtml ? 'text/html' : 'text/plain' })
+    ],
+    bodyValues: {
+      '1': {
+        value: isHtml ? body.html : body.text,
+        isEncodingProblem: false,
+        isTruncated: false
+      }
+    },
+    ...overrides
+  })
 }
 
 /** The mailboxes James creates for a new account, in no particular order */

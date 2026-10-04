@@ -7,7 +7,8 @@
     "loading": "Chargement... Veuillez patienter !",
     "errorOccurred": "Erreur ! Une erreur s'est produite. Veuillez réessayer plus tard.",
     "unknownError": "Une erreur s'est produite, veuillez réessayer",
-    "reconnect": "Se reconnecter"
+    "reconnect": "Se reconnecter",
+    "back": "Retour"
   },
   "topbar": {
     "searchPlaceholder": "Rechercher dans les courriers",
@@ -36,12 +37,18 @@
     "emails": "Messages"
   },
   "email": {
-    "noneSelected": "Aucun message sélectionné",
-    "placeholder": "Le message s'affichera ici",
     "star": "Marquer comme favori",
     "unstar": "Retirer des favoris",
     "unread": "Non lu",
-    "attachment": "Pièce jointe"
+    "attachment": "Pièce jointe",
+    "from": "De",
+    "to": "À",
+    "cc": "Copie à",
+    "bcc": "Copie cachée à",
+    "download": "Télécharger",
+    "attachments": "Pièces jointes",
+    "content": "Contenu du message",
+    "notFound": "Ce message n'existe plus"
   },
   "login": {
     "title": "Se connecter",

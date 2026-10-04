@@ -7,7 +7,8 @@
     "loading": "Loading... Please wait!",
     "errorOccurred": "Error! An error occurred. Please try again later.",
     "unknownError": "Unknown error occurred, please try again",
-    "reconnect": "Reconnect"
+    "reconnect": "Reconnect",
+    "back": "Back"
   },
   "topbar": {
     "searchPlaceholder": "Search mail",
@@ -36,12 +37,18 @@
     "emails": "Messages"
   },
   "email": {
-    "noneSelected": "No email selected",
-    "placeholder": "The message will be displayed here",
     "star": "Mark as starred",
     "unstar": "Unstar",
     "unread": "Unread",
-    "attachment": "Attachment"
+    "attachment": "Attachment",
+    "from": "From",
+    "to": "To",
+    "cc": "Cc",
+    "bcc": "Bcc",
+    "download": "Download",
+    "attachments": "Attachments",
+    "content": "Message content",
+    "notFound": "This message no longer exists"
   },
   "login": {
     "title": "Sign In",

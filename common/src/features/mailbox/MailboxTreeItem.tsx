@@ -32,6 +32,11 @@ function indentClass(level: number): string {
 export interface MailboxTreeItemProps {
   row: VisibleMailbox
   isSelected: boolean
+  /**
+   * Reserves the room of the expand arrow, to align the rows: only when
+   * some folder of the tree has subfolders
+   */
+  hasToggleSlot: boolean
   onToggle: (mailboxId: string, isExpanded: boolean) => void
 }
 
@@ -42,6 +47,7 @@ export interface MailboxTreeItemProps {
 export function MailboxTreeItem({
   row,
   isSelected,
+  hasToggleSlot,
   onToggle
 }: MailboxTreeItemProps): ReactElement {
   const { t } = useI18n()
@@ -68,25 +74,28 @@ export function MailboxTreeItem({
       data-mailbox-id={mailbox.id}
       data-mailbox-role={mailbox.role ?? undefined}
     >
-      <IconSlot>
-        {row.hasChildren ? (
-          <Tooltip title={toggleLabel}>
-            <IconButton
-              size="small"
-              aria-label={toggleLabel}
-              onClick={handleToggle}
-              data-testid="mailbox-expand-button"
-            >
-              <Icon icon={row.isExpanded ? Bottom : Right} size={12} />
-            </IconButton>
-          </Tooltip>
-        ) : null}
-      </IconSlot>
+      {hasToggleSlot ? (
+        <IconSlot data-testid="mailbox-toggle-slot">
+          {row.hasChildren ? (
+            <Tooltip title={toggleLabel}>
+              <IconButton
+                size="small"
+                aria-label={toggleLabel}
+                onClick={handleToggle}
+                data-testid="mailbox-expand-button"
+              >
+                <Icon icon={row.isExpanded ? Bottom : Right} size={12} />
+              </IconButton>
+            </Tooltip>
+          ) : null}
+        </IconSlot>
+      ) : null}
       <NavLink
         component={Link}
         to={`/mailbox/${encodeURIComponent(mailbox.id)}`}
         selected={isSelected}
-        className="u-ml-0 u-ov-hidden"
+        // The slot replaces the start margin of the link
+        className={hasToggleSlot ? 'u-ml-0 u-ov-hidden' : 'u-ov-hidden'}
       >
         <NavIcon icon={getMailboxIcon(mailbox)} />
         <NavText

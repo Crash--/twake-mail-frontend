@@ -19,12 +19,17 @@ import { useI18n } from '@common/i18n/useI18n'
 import {
   buildMailboxTree,
   findAncestorIds,
-  listVisibleMailboxes
+  listVisibleMailboxes,
+  type MailboxNode
 } from './mailboxTree'
 import { MailboxTreeItem } from './MailboxTreeItem'
 import { useMailboxes } from './useMailboxes'
 
 const SKELETON_ROWS = [1, 2, 3, 4, 5]
+
+function hasSubfolders(node: MailboxNode): boolean {
+  return node.children.length > 0
+}
 
 /**
  * The folder tree of the sidebar. Folders are collapsed, except the ones
@@ -46,6 +51,8 @@ export function MailboxTree(): ReactElement {
       ),
     [query.data, selectedId]
   )
+  // Without any subfolder, no row needs room for an expand arrow
+  const hasToggleSlot = tree.some(hasSubfolders)
   const rows = listVisibleMailboxes(
     tree,
     mailboxId => toggled[mailboxId] ?? selectedAncestors.has(mailboxId)
@@ -70,6 +77,7 @@ export function MailboxTree(): ReactElement {
         key={row.mailbox.id}
         row={row}
         isSelected={row.mailbox.id === selectedId}
+        hasToggleSlot={hasToggleSlot}
         onToggle={handleToggle}
       />
     ))

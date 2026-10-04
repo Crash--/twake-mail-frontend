@@ -13,6 +13,7 @@ const SLOT_SX = {
 export interface IconSlotProps {
   /** An icon button, or nothing: the slot keeps its width to align rows */
   children?: ReactNode
+  'data-testid'?: string
 }
 
 /**
@@ -20,11 +21,15 @@ export interface IconSlotProps {
  * of a tree row: 2rem wide, and as wide as a touch target on touch screens
  * and phones, so that rows with and without a button stay aligned.
  */
-export function IconSlot({ children }: IconSlotProps): ReactElement {
+export function IconSlot({
+  children,
+  'data-testid': testId
+}: IconSlotProps): ReactElement {
   return (
     <Box
       className="u-flex u-flex-items-center u-flex-justify-center u-flex-shrink-0"
       sx={SLOT_SX}
+      data-testid={testId}
     >
       {children}
     </Box>

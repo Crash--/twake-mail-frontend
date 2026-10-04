@@ -32,11 +32,16 @@
       "outbox": "Hộp thư đi"
     },
     "expand": "Mở rộng",
-    "collapse": "Đóng"
+    "collapse": "Đóng",
+    "emails": "Thư"
   },
   "email": {
     "noneSelected": "Chưa có email được lựa chọn",
-    "placeholder": "Thư sẽ được hiển thị ở đây"
+    "placeholder": "Thư sẽ được hiển thị ở đây",
+    "star": "Đánh dấu quan trọng",
+    "unstar": "Không quan trọng",
+    "unread": "Chưa đọc",
+    "attachment": "Đính kèm"
   },
   "login": {
     "title": "Đăng nhập",

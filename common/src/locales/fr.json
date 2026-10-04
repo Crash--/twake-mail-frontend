@@ -32,11 +32,16 @@
       "outbox": "Boîte d'envoi"
     },
     "expand": "Développer",
-    "collapse": "Réduire"
+    "collapse": "Réduire",
+    "emails": "Messages"
   },
   "email": {
     "noneSelected": "Aucun message sélectionné",
-    "placeholder": "Le message s'affichera ici"
+    "placeholder": "Le message s'affichera ici",
+    "star": "Marquer comme favori",
+    "unstar": "Retirer des favoris",
+    "unread": "Non lu",
+    "attachment": "Pièce jointe"
   },
   "login": {
     "title": "Se connecter",

@@ -1,24 +1,22 @@
-import { Email } from '@linagora/twake-icons'
-import { Empty } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { useParams } from 'react-router'
 
-import { useI18n } from '@common/i18n/useI18n'
+import { EmailList } from '@common/features/thread/EmailList'
 
 /**
  * `/mailbox/:mailboxId`: the email list of a mailbox.
- * TODO(jmap-client-ts v2): list the emails with Email/query + Email/get.
  */
 export function MailboxPage(): ReactElement {
-  const { t } = useI18n()
-  const { mailboxId } = useParams()
+  const { mailboxId = '' } = useParams()
 
   return (
-    <Empty
-      icon={Email}
-      title={t('mailbox.empty')}
+    <Box
+      className="u-flex u-flex-column u-h-100"
       data-testid="mailbox-page"
       data-mailbox-id={mailboxId}
-    />
+    >
+      <EmailList key={mailboxId} mailboxId={mailboxId} />
+    </Box>
   )
 }

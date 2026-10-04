@@ -32,11 +32,16 @@
       "outbox": "Outbox"
     },
     "expand": "Expand",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "emails": "Messages"
   },
   "email": {
     "noneSelected": "No email selected",
-    "placeholder": "The message will be displayed here"
+    "placeholder": "The message will be displayed here",
+    "star": "Mark as starred",
+    "unstar": "Unstar",
+    "unread": "Unread",
+    "attachment": "Attachment"
   },
   "login": {
     "title": "Sign In",

@@ -1,10 +1,11 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, useParams } from 'react-router'
 import type { ReactElement } from 'react'
 
 import {
+  FAKE_ACCOUNT_ID,
   makeEmail,
   makeFakeJmapServer,
   type FakeJmapServer
@@ -12,7 +13,7 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { EmailList } from './EmailList'
-import { EMAIL_LIST_PAGE_SIZE } from './queries'
+import { EMAIL_LIST_PAGE_SIZE, threadKeys } from './queries'
 
 function OpenedEmail(): ReactElement {
   const { mailboxId, emailId } = useParams()
@@ -287,5 +288,30 @@ describe('EmailList', () => {
       expect(server.emails[0]?.keywords).toEqual({})
     })
     expect(row).toHaveAttribute('data-unread', 'true')
+  })
+
+  it('announces the emails that arrive, not the ones loaded by scrolling', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(2) })
+    const { queryClient } = renderList(server)
+    await screen.findAllByTestId('email-list-item')
+    expect(screen.getByRole('status')).toHaveTextContent(/^$/)
+
+    server.emails.push(
+      makeEmail({
+        id: 'pushed',
+        subject: 'Pushed',
+        receivedAt: '2026-06-01T00:00:00Z'
+      })
+    )
+    await act(async () => {
+      await queryClient.invalidateQueries({
+        queryKey: threadKeys.all(FAKE_ACCOUNT_ID)
+      })
+    })
+
+    expect(await screen.findByText('Pushed')).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'You have new messages'
+    )
   })
 })

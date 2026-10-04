@@ -76,5 +76,8 @@
       "date": "Date",
       "actions": "Actions"
     }
+  },
+  "push": {
+    "newMessages": "You have new messages"
   }
 }

@@ -29,6 +29,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { EmailCell, isEmailRow, type EmailColumnId } from './EmailCell'
 import type { EmailListData, EmailListItemData } from './queries'
 import { useEmailList } from './useEmailList'
+import { useNewEmailCount } from './useNewEmailCount'
 
 /** Folders whose list shows the recipients rather than the sender */
 const RECIPIENT_ROLES: readonly string[] = [
@@ -78,7 +79,7 @@ export interface EmailListProps {
 /**
  * The emails of a mailbox, most recent first, in a virtualized table that
  * loads the next page when its end comes into view. Each row is a link to
- * the email.
+ * the email; emails arriving by push are announced to screen readers.
  */
 export function EmailList({ mailboxId }: EmailListProps): ReactElement {
   const { t } = useI18n()
@@ -89,6 +90,7 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
   const showRecipients = role !== null && RECIPIENT_ROLES.includes(role)
   const emails = useMemo(() => flattenPages(query.data), [query.data])
   const total = query.data?.pages[0]?.total ?? null
+  const newEmailCount = useNewEmailCount(emails, query.isSuccess)
   const { mutate: setKeyword } = useSetKeyword()
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
@@ -248,5 +250,15 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
     )
   }
 
-  return content
+  return (
+    <>
+      {content}
+      {/* Always mounted: a live region only announces changes */}
+      <Box role="status" className="u-visuallyhidden">
+        {newEmailCount > 0 ? (
+          <span key={newEmailCount}>{t('push.newMessages')}</span>
+        ) : null}
+      </Box>
+    </>
+  )
 }

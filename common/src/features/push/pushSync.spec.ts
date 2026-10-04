@@ -5,12 +5,14 @@ import {
   mailboxesQueryOptions,
   type MailboxListData
 } from '@common/features/mailbox/queries'
+import { emailListSourceQueryOptions } from '@common/features/thread/emailListSource'
 import {
   EMAIL_LIST_PAGE_SIZE,
   emailListQueryOptions,
   threadKeys,
   type EmailListData,
-  type EmailListPage
+  type EmailListPage,
+  type SearchRequest
 } from '@common/features/thread/queries'
 import {
   FAKE_ACCOUNT_ID,
@@ -20,6 +22,8 @@ import {
   type FakeEmail,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+
+import { LINAGORA_METHOD_CAPABILITIES } from '@common/jmap/linagoraMethods'
 
 import { MAX_CHANGES_ROUNDS } from './fetchChanges'
 import { createPushSync, type PushSync } from './pushSync'
@@ -51,7 +55,8 @@ async function makeSetup(
   const client = createClient({
     sessionUrl: FAKE_SESSION_URL,
     auth: { getAuthorizationHeader: () => Promise.resolve('Basic dGVzdA==') },
-    fetch: server.fetch
+    fetch: server.fetch,
+    methodCapabilities: LINAGORA_METHOD_CAPABILITIES
   })
   await client.getSession()
   const queryClient = new QueryClient({
@@ -362,5 +367,119 @@ describe('createPushSync', () => {
     setup.server.destroyEmail('e1')
     await pushNow(setup)
     expect(setup.queryClient.getQueryData(key)).toBe(null)
+  })
+
+  describe('search results', () => {
+    const REQUEST: SearchRequest = {
+      filter: { text: 'report' },
+      sort: [{ property: 'receivedAt', isAscending: false }]
+    }
+
+    function reports(): FakeEmail[] {
+      return [
+        makeEmail({
+          id: 'r1',
+          subject: 'First report',
+          receivedAt: '2026-09-01T10:00:00Z'
+        }),
+        makeEmail({
+          id: 'r2',
+          subject: 'Second report',
+          receivedAt: '2026-09-01T09:00:00Z'
+        }),
+        makeEmail({ id: 'other', subject: 'Lunch' })
+      ]
+    }
+
+    function searchKey(): readonly unknown[] {
+      return threadKeys.search(FAKE_ACCOUNT_ID, REQUEST)
+    }
+
+    function resultIds({ queryClient }: Setup): string[] {
+      return (
+        queryClient
+          .getQueryData<EmailListData>(searchKey())
+          ?.pages.flatMap(page => page.emails.map(email => email.id)) ?? []
+      )
+    }
+
+    function observeSearch({ queryClient, client }: Setup): () => void {
+      const observer = new InfiniteQueryObserver(
+        queryClient,
+        emailListSourceQueryOptions(client, FAKE_ACCOUNT_ID, {
+          kind: 'search',
+          request: REQUEST
+        })
+      )
+      return observer.subscribe(() => undefined)
+    }
+
+    it('patches the listed results in place, archived ones included', async () => {
+      const setup = await makeSetup({ emails: reports() })
+      const unsubscribe = observeSearch(setup)
+      await until(() => resultIds(setup).length === 2)
+      const before = setup.server.requests.length
+
+      setup.server.updateEmail('r2', {
+        keywords: { $seen: true },
+        mailboxIds: { [ARCHIVE]: true }
+      })
+      await pushNow(setup)
+
+      expect(resultIds(setup)).toEqual(['r1', 'r2'])
+      const r2 = setup.queryClient
+        .getQueryData<EmailListData>(searchKey())
+        ?.pages[0]?.emails.find(email => email.id === 'r2')
+      expect(r2?.mailboxIds).toEqual({ [ARCHIVE]: true })
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get']
+      ])
+      unsubscribe()
+    })
+
+    it('queries the shown results again when an unlisted email changed', async () => {
+      const setup = await makeSetup({ emails: reports() })
+      const unsubscribe = observeSearch(setup)
+      await until(() => resultIds(setup).length === 2)
+      const before = setup.server.requests.length
+
+      setup.server.addEmail(
+        makeEmail({
+          id: 'r0',
+          subject: 'Newest report',
+          receivedAt: '2026-09-02T10:00:00Z'
+        })
+      )
+      await pushNow(setup)
+
+      expect(resultIds(setup)).toEqual(['r0', 'r1', 'r2'])
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get'],
+        ['Email/query'],
+        ['Email/get', 'SearchSnippet/get']
+      ])
+      unsubscribe()
+    })
+
+    it('starts over the results no screen shows', async () => {
+      const setup = await makeSetup({ emails: reports() })
+      await setup.queryClient.infiniteQuery(
+        emailListSourceQueryOptions(setup.client, FAKE_ACCOUNT_ID, {
+          kind: 'search',
+          request: REQUEST
+        })
+      )
+      const before = setup.server.requests.length
+
+      setup.server.addEmail(makeEmail({ id: 'r0', subject: 'New report' }))
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get']
+      ])
+      expect(setup.queryClient.getQueryState(searchKey())?.isInvalidated).toBe(
+        true
+      )
+    })
   })
 })

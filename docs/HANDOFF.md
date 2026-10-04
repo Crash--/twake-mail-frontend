@@ -98,43 +98,69 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - rooks 8.4.0 (la 9 est ESM-only et casse Jest) ;
   - job CI React 18.
 
-## 4. État au soir du 2026-10-04 (après la passation initiale)
+## 4. État au soir du 2026-10-04 (après les lots 1 à 4)
 
-- **Fait et poussé sur `main`** (32 commits) : design system `@/ds/` (alias `@/ds/*` → `common/src/ds/*`, ESLint qui y interdit toute logique métier), liste sur `VirtualizedTable` via `ds/VirtualizedListTable` + `RowLink` (vrai lien, clic molette, focus clavier), RGAA (section dans `AGENTS.md`, `eslint-plugin-jsx-a11y-x`, axe dans les e2e avec `TWAKE_MUI_KNOWN_VIOLATIONS`, spec clavier A11Y-01, `<title>` par vue, live region des nouveaux mails), perfs (`e2e/scripts/seed-perf.ts`, `npm run perf` dans `e2e/`, `docs/perf/phase0.md`).
-- **Perfs (stack e2e, 5 000 mails)** : 1re ligne 188 ms, ouverture 50 ms, scroll jusqu'à 2 000 mails sans long task (34 lignes DOM, heap 17 Mo). **Le push ne tient pas** : avec 2 000 mails chargés, 69 requêtes / 1,17 Mo / 6,2 s → chantier `/changes` prioritaire. James ignore `calculateTotal` et n'a pas `Email/queryChanges`.
-- **Devbox** : https://mail-react.twake.valmoriq.fr (Tailscale), scripts dans `~/Sites/Linagora/twake-mail-react-devbox/` (`deploy.sh`, `register-oidc-client.sh`, `seed/seed-demo.mjs` : 3 400 mails pour `user1`). Mesures réelles React vs Flutter 0.30 : liste 0,3 s vs 3,8 s, 1 000 mails défilés en 2,7 s vs 20 s, 61 fps vs 24–29 fps. Client OIDC `twake-mail-react` actif en live seulement (à ajouter par Quentin aux templates LemonLDAP).
-- **Spike composer** (branche locale `spike/composer`, worktree `../twake-mail-frontend-spike-composer`, doc `docs/spikes/composer-tiptap.md`) : GO TipTap 3 sous conditions, citation en nœud atomique, BlockNote écarté, 42–56 j-dev. À fusionner : conflit attendu sur `e2e/package.json` (axe ajouté des deux côtés) et scripts e2e paramétrés (`E2E_PROJECT`…).
-- **PR ouvertes** : linagora/twake-ui#130 (React 19), linagora/cozy-libs#3165 (twake-i18n React 19). Issue linagora/tmail-backend#2682.
-- **Candidats issues tmail-backend (en attente d'accord)** : `bodyStructure` ignoré à la création ; `Email/set` create+destroy détruit d'abord ; pas de back-reference vers un créé dans `Email/get` ; `Email/get` attachments+bodyValues → serverFail ; **image memory : tout `Email/set` en mise à jour ne répond plus après ~256 messages** (repro `~/Sites/Linagora/tmail-backend-issues/memory-email-set-update-hang/`). Conséquence e2e : ne jamais lancer la suite après le seed de perf sans `stop.sh` + `start.sh`.
-- **Bugs app trouvés sur la devbox** : le logout OIDC ne déconnecte pas (`oidcAuth.ts` `logout()` : `startLogin` relancé par `RequireAuth` ; mettre `isRedirecting = true` avant `endLocalSession`) ; nom/email vides si absents de l'ID token (userinfo ou `session.username`).
+- **Méthode** : une branche par lot depuis `main`, vérifications sur clone propre (`npm ci`, lint, format, typecheck, tests, build) puis e2e, PR sur `Crash--/twake-mail-frontend`, merge une fois la CI verte, redéploiement devbox (`~/Sites/Linagora/twake-mail-react-devbox/deploy.sh`).
+- **Phase 0** (avant les lots) : design system `@/ds/`, liste sur `VirtualizedTable` (`ds/VirtualizedListTable` + `RowLink`), RGAA (jsx-a11y, axe dans les e2e avec `TWAKE_MUI_KNOWN_VIOLATIONS`, A11Y-01), perfs (`npm run perf`, `docs/perf/phase0.md`). Responsive (téléphone, tablette) mergé en PR #4 (projets Playwright `mobile` et `tablet`).
+- **Lot 1, spike composer fusionné** (PR #1) : `@/ds/RichTextEditor`, `features/composer/`, route `/spike/composer` derrière `DEBUG`, specs `e2e/spike/` (`./scripts/spike.sh`, sur la stack e2e avec un overlay DEBUG + tmail-web). Worktree et branche du spike supprimés.
+- **Lot 2, synchronisation incrémentale** (PR #2, `features/push/pushSync.ts`, `docs/perf/sync.md`) :
+  - sur `StateChange`, `Mailbox/changes` + `Email/changes` et les `/get` des créés et modifiés par back-references, en une requête ;
+  - patch du cache : toutes les pages chargées de chaque liste, l'arbre, l'email ouvert ; chaque page garde l'état JMAP qu'elle reflète, ce qui rattrape une page chargée pendant un patch ;
+  - repli par liste (première page seulement) si `/changes` échoue ou dure plus de 5 tours ; plus de rechargement à l'ouverture du WebSocket, rattrapage à la reconnexion.
+  - **Mesure 5** (push avec 2 000 mails chargés, stack e2e) : 69 requêtes / 1,17 Mo / 7,0 s **→ 1 requête / 2 Ko / 32 ms**.
+  - **Devbox** (1 000 mails chargés) : 35 requêtes / 742 Ko **→ 1 requête / 2,1 Ko / 34 ms**.
+- **Lot 3, OIDC** (PR #3) :
+  - le logout part bien vers `end_session` : `isRedirecting` est posé avant `endLocalSession`. LemonLDAP demande alors une confirmation, puis le rechargement de l'app affiche le formulaire SSO ;
+  - nom et email lus via userinfo si l'ID token ne les porte pas, repli sur `session.username`.
+  - Vérifié sur la devbox. Dex (e2e) n'a ni `end_session_endpoint` ni session SSO : il ne peut pas reproduire le bug.
+- **Lot 4, sécurité de lecture** (PR #5) :
+  - sanitisation DOMPurify alignée sur le fork `sanitize_html` de tmail-flutter : balises, attributs, schémas d'URL, liste blanche CSS, `<style>` filtré règle par règle ;
+  - contenu distant bloqué par défaut (images, `srcset`, fonds et `url()` CSS, polices, `@import`), avec un bandeau « Afficher » / « Toujours afficher pour cet expéditeur » (préférence en `localStorage`) ;
+  - après déblocage : `referrerpolicy=no-referrer` et iframe chargée en `blob:`, car Chromium envoie l'origine pour les images CSS d'un iframe `srcdoc` ;
+  - spec EML-29 avec `page.route`, sur desktop, mobile et tablette.
+- **Devbox** : https://mail-react.twake.valmoriq.fr (Tailscale), à jour de `main`. Vérification Playwright rejouable (script hors dépôt, `~/tmp/devbox-check/run.sh`) : login SSO, nom et email, push à 1 000 mails, logout. Client OIDC `twake-mail-react` actif en live seulement (à ajouter par Quentin aux templates LemonLDAP).
+- **PR ouvertes ailleurs** : linagora/twake-ui#130 (React 19), linagora/cozy-libs#3165 (twake-i18n React 19). Issue linagora/tmail-backend#2682.
+- **Candidats issues tmail-backend (en attente d'accord)** :
+  - `bodyStructure` ignoré à la création ;
+  - `Email/set` create+destroy détruit d'abord ;
+  - pas de back-reference vers un créé dans `Email/get` ;
+  - `Email/get` attachments+bodyValues → serverFail ;
+  - **image memory : tout `Email/set` en mise à jour ne répond plus après ~256 messages** (repro `~/Sites/Linagora/tmail-backend-issues/memory-email-set-update-hang/`). Ne jamais lancer la suite après le seed de perf sans `stop.sh` + `start.sh`.
+  - Un état inconnu passé à `Email/changes` donne `invalidArguments`, pas `cannotCalculateChanges`.
 
 ## 5. Ce qu'il reste à faire
 
 ### Immédiat
-- [ ] Reprendre les deux travaux de la section 4.
 - [ ] Une fois twake-ui#130 publié (twake-mui ≥ 9.17, twake-icons ≥ 2.12) : passer l'app en React 19 (react, react-dom et types `^19`).
   - Corriger `FormEvent` dans `BasicLoginPage.tsx` (déprécié en 19.3).
   - Override `twake-i18n` tant que la PR cozy-libs n'est pas publiée.
 - [ ] Mettre à jour le lockfile après chaque push sur `jmap-client-ts#v2`, puis `npm approve-scripts jmap-client-ts` (allowScripts épinglé sur le commit), sinon `npm ci` échoue.
-- [ ] Proposer à twake-ui les composants de `@/ds/` et les manques de `VirtualizedTable` (ligne-lien pour le clic molette, en-tête masquable, accessibilité). Demander à Quentin avant d'ouvrir les PR.
+- [ ] Proposer à twake-ui les composants de `@/ds/` et les manques de `VirtualizedTable`. Demander à Quentin avant d'ouvrir les PR.
+- [ ] Problèmes ouverts des lots :
+  - `staleTime` reste à 30 s : une liste réaffichée après 30 s recharge toutes ses pages, alors que le push la tient à jour. Passer à `Infinity` tant que le WebSocket est ouvert ;
+  - un email qui entre dans un dossier sous la fenêtre chargée n'est pas inséré : il arrive avec la page suivante ;
+  - la fenêtre entre le chargement initial et la 1re ouverture du WebSocket n'est pas rattrapée (choix explicite) ;
+  - expéditeurs de confiance en `localStorage` : à porter dans les settings JMAP Linagora (`Settings/set`) ;
+  - le bloc citation du composer (`ds/RichTextEditor`, iframe `srcdoc`) garde les images distantes du mail cité et peut envoyer l'origine en referrer pour ses fonds CSS ;
+  - tiroir mobile : l'arbre des dossiers a un retrait gauche d'environ 44 px, car `IconSlot` réserve la place du bouton d'expansion même quand aucun dossier n'a d'enfant (`features/mailbox/MailboxTreeItem.tsx`) ;
+  - e2e : le premier test lancé juste après `start.sh` reçoit parfois un 401 de James (vu sur EML-01 et SPIKE-BACKEND), puis tout passe.
 
 ### Phase 2 : lecture complète
-- Synchronisation incrémentale : `Email/changes`, `Email/queryChanges`, `Mailbox/changes` au lieu de tout recharger à chaque push (à chiffrer avec `docs/perf/phase0.md`).
 - Actions : archiver, supprimer, déplacer, spam, non-lu, sélection multiple, glisser-déposer, menu contextuel ; vider la corbeille et le spam (`Mailbox/clear`).
 - Vue conversation (threads) ; recherche avec suggestions, filtres avancés, tri et surlignage (`SearchSnippet/get`).
 - Team mailboxes : capability `urn:apache:james:params:jmap:mail:shares`.
-- Images distantes bloquées par défaut (pixels de suivi), et liste blanche de sanitisation alignée sur l'ADR 0054.
+- Normalisation de la taille des images (EML-04), bouton de repli des citations (comme le web Flutter).
 - CRUD des dossiers.
 - Porter les specs correspondantes de `e2e/e2e.md` (MBX, EML, SRCH, THR).
 
 ### Phase 3 : composer (le plus risqué)
-- TipTap habillé avec twake-mui et `@/ds/`, destinataires avec autocomplétion (`TMailContact/autocomplete`).
+- Partir du spike fusionné (`docs/spikes/composer-tiptap.md`, conditions du GO) : TipTap habillé avec twake-mui et `@/ds/`, destinataires avec autocomplétion (`TMailContact/autocomplete`).
 - Pièces jointes et images inline, brouillons et modèles, identités et signatures.
 - Restauration après rechargement, réponse, réponse à tous, transfert, rappel de pièce jointe oubliée, accusé de lecture (MDN), raccourcis clavier.
 - Specs CMP-*.
 
 ### Phase 4 : réglages et extensions
-- Identités, règles (`Filter`), transfert (`Forward`), message d'absence, labels (`Label/*`), restauration de mails supprimés (`EmailRecoveryAction`), quotas, préférences (`Settings`), langue.
+- Identités, règles (`Filter`), transfert (`Forward`), message d'absence, labels (`Label/*`), restauration de mails supprimés (`EmailRecoveryAction`), quotas, préférences (`Settings`, dont les expéditeurs de confiance), langue.
 - Créer une entrée `jmap-client-ts/linagora` qui déclare ces méthodes avec sa table `methodCapabilities`.
 
 ### Phase 5 : écosystème

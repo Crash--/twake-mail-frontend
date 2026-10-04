@@ -12,7 +12,10 @@ import {
 } from '@linagora/twake-icons'
 
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
-import { findMailboxIdByRole } from '@common/features/mailbox/mailboxTree'
+import {
+  findMailboxIdByRole,
+  isPersonalMailbox
+} from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -115,19 +118,23 @@ export function emailActionItem(id: EmailActionId): EmailActionItem {
  * forever in the Trash, Spam and Drafts), to Archive (not from Archive, and
  * only when the account has one); read or unread, starred or not (the
  * toggle that changes something), move, to Spam (not from Spam nor Drafts).
+ * Team mailboxes have no Archive nor Spam.
  */
 export function availableEmailActions(
   emails: readonly TargetEmail[],
-  mailbox: Pick<MailboxSummary, 'role'> | null,
+  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace'> | null,
   mailboxes: readonly MailboxSummary[]
 ): EmailActionItem[] {
   if (emails.length === 0) return []
   const role = mailbox?.role ?? null
   const isSpam = role === 'junk'
+  // Team mailboxes have neither Archive nor Spam (tmail-flutter)
+  const isTeam = mailbox !== null && !isPersonalMailbox(mailbox)
   const ids: EmailActionId[] = []
   if (isSpam) ids.push('not-spam')
   ids.push(deletesForever(mailbox) ? 'delete-permanently' : 'move-to-trash')
   if (
+    !isTeam &&
     role !== 'archive' &&
     findMailboxIdByRole(mailboxes, 'archive') !== null
   ) {
@@ -142,6 +149,6 @@ export function availableEmailActions(
     emails.every(email => hasKeyword(email, FLAGGED)) ? 'unstar' : 'star'
   )
   ids.push('move')
-  if (!isSpam && role !== 'drafts') ids.push('mark-as-spam')
+  if (!isTeam && !isSpam && role !== 'drafts') ids.push('mark-as-spam')
   return ids.map(emailActionItem)
 }

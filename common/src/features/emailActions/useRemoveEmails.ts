@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
+import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
 import {
   mailboxesQueryOptions,
   type MailboxSummary
@@ -17,12 +18,19 @@ import { useEmailActions } from './useEmailActions'
 /** Folders whose emails are deleted forever rather than moved to Trash */
 const DELETE_FOREVER_ROLES: readonly string[] = ['trash', 'junk', 'drafts']
 
+/** The same folders of a team mailbox, known by name */
+const DELETE_FOREVER_TEAM_NAMES: readonly string[] = ['trash', 'drafts']
+
 /** Whether deleting from this folder deletes forever (tmail-flutter) */
 export function deletesForever(
-  mailbox: Pick<MailboxSummary, 'role'> | null
+  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace'> | null
 ): boolean {
-  const role = mailbox?.role ?? null
-  return role !== null && DELETE_FOREVER_ROLES.includes(role)
+  if (mailbox === null) return false
+  if (mailbox.role !== null) return DELETE_FOREVER_ROLES.includes(mailbox.role)
+  return (
+    !isPersonalMailbox(mailbox) &&
+    DELETE_FOREVER_TEAM_NAMES.includes(mailbox.name.toLowerCase())
+  )
 }
 
 /**

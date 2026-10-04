@@ -13,7 +13,8 @@
     "undo": "Hoàn tác",
     "connectionError": "Lỗi kết nối",
     "cancel": "Hủy",
-    "delete": "Xoá"
+    "delete": "Xoá",
+    "deleteAll": "Xoá toàn bộ"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -318,5 +319,21 @@
     "title": "Chuyển tới",
     "search": "Thư mục tìm kiếm",
     "empty": "Không có thư mục nào khớp với tìm kiếm"
+  },
+  "emptyFolder": {
+    "trashBanner": "Tất cả tin nhắn trong Thùng rác sẽ bị xoá bỏ khi bộ nhớ của bạn hết dung lượng.",
+    "emptyTrashNow": "Dọn dẹp rác",
+    "spamBanner": "Tất cả thư trong Thư rác sẽ bị xóa nếu bạn đạt đến giới hạn dung lượng lưu trữ.",
+    "deleteAllSpamNow": "Xóa tất cả thư rác ngay bây giờ",
+    "emptyTrashTitle": "Làm trống thùng rác",
+    "emptyTrashMessage": "Tin nhắn trong Thùng rác sẽ bị xoá bỏ vĩnh viễn. Bạn có tiếp tục không?",
+    "emptySpamTitle": "Làm trống thư mục Thư rác",
+    "emptySpamMessage": "Bạn sắp xóa vĩnh viễn tất cả các mục trong Thư rác. Bạn có muốn tiếp tục?",
+    "success": "Tất cả tin nhắn đã được xoá vĩnh viễn",
+    "subfoldersSuccess": "Đã xoá các thư mục con trong Thùng rác",
+    "subfoldersPartial": "Một số thư mục con trong Thùng rác không thể xoá được",
+    "subfoldersFailed": "Xoá các thư mục con trong Thùng rác không thành công",
+    "trashFailed": "Xoá thư rác thất bại",
+    "spamFailed": "Dọn dẹp thư mục Spam không thành công"
   }
 }

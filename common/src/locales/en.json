@@ -13,7 +13,8 @@
     "undo": "Undo",
     "connectionError": "Connection error",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "deleteAll": "Delete all"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -318,5 +319,21 @@
     "title": "Move To",
     "search": "Search folders",
     "empty": "No folder matches your search"
+  },
+  "emptyFolder": {
+    "trashBanner": "All messages in Trash will be deleted if you reach limited storage.",
+    "emptyTrashNow": "Empty trash now",
+    "spamBanner": "All messages in Spam will be deleted if you reach limited storage.",
+    "deleteAllSpamNow": "Delete all spam emails now",
+    "emptyTrashTitle": "Empty Trash",
+    "emptyTrashMessage": "You are about to permanently delete all items in Trash. Do you want to continue?",
+    "emptySpamTitle": "Empty Spam folder",
+    "emptySpamMessage": "You are about to permanently delete all items in Spam. Do you want to continue?",
+    "success": "All messages have been deleted forever",
+    "subfoldersSuccess": "Trash subfolders deleted",
+    "subfoldersPartial": "Some subfolders in Trash could not be deleted",
+    "subfoldersFailed": "Failed to delete subfolders in Trash",
+    "trashFailed": "Empty trash folder failed",
+    "spamFailed": "Empty spam folder failed"
   }
 }

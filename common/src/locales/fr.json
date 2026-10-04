@@ -13,7 +13,8 @@
     "undo": "Annuler",
     "connectionError": "Erreur de connexion",
     "cancel": "Annuler",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "deleteAll": "Tout supprimer"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -318,5 +319,21 @@
     "title": "Déplacer vers",
     "search": "Rechercher dans les dossiers",
     "empty": "Aucun dossier ne correspond à votre recherche"
+  },
+  "emptyFolder": {
+    "trashBanner": "Tous les messages de la Corbeille seront supprimés si vous atteignez la limite de stockage.",
+    "emptyTrashNow": "Vider la corbeille maintenant",
+    "spamBanner": "Tous les messages dans le dossier Indésirables seront supprimés si vous atteignez votre limite de stockage.",
+    "deleteAllSpamNow": "Supprimez tous les indésirables maintenant",
+    "emptyTrashTitle": "Vider la corbeille",
+    "emptyTrashMessage": "Vous allez supprimer définitivement tous les éléments de la Corbeille. Voulez-vous continuer ?",
+    "emptySpamTitle": "Vider le dossier Indésirables",
+    "emptySpamMessage": "Vous allez supprimer définitivement tous les messages du dossier Indésirables. Voulez-vous continuer ?",
+    "success": "Tous les messages ont été supprimés pour toujours",
+    "subfoldersSuccess": "Sous-dossiers de la corbeille supprimés",
+    "subfoldersPartial": "Certains sous-dossiers de la corbeille n'ont pas pu être supprimés",
+    "subfoldersFailed": "Échec de la suppression des sous-dossiers de la corbeille",
+    "trashFailed": "Échec du vidage de la corbeille",
+    "spamFailed": "Le nettoyage du dossier spam a échoué"
   }
 }

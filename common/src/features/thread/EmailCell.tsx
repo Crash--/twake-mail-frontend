@@ -23,6 +23,7 @@ import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowLink } from '@/ds/RowLink/RowLink'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
+import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useI18n } from '@common/i18n/useI18n'
@@ -229,7 +230,7 @@ export function EmailCell({
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
   const handleNavigate = (): void => {
-    void navigate(path)
+    void navigate(path, { viewTransition: prepareViewTransition('forward') })
   }
   const date = (
     <SecondaryText variant="caption" noWrap data-testid="email-list-item-date">

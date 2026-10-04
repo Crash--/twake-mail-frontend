@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import type { ListRange } from 'react-virtuoso'
 import { Virtuoso } from 'react-virtuoso'
 
-import { ErrorScreen } from '@common/components/ErrorScreen'
+import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
 import { useSetKeyword } from '@common/features/email/useSetKeyword'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'

@@ -1,9 +1,8 @@
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { useI18n } from '@common/i18n/useI18n'
-
-import { ErrorScreen } from './ErrorScreen'
 
 export interface ConfigErrorScreenProps {
   /** Technical details, meant for the administrator */

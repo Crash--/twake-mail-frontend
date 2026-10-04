@@ -14,7 +14,7 @@ import type { EmailAddress } from 'jmap-client-ts'
 import { useMemo, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
-import { ErrorScreen } from '@common/components/ErrorScreen'
+import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { formatFullDate } from '@common/features/thread/formatListDate'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 

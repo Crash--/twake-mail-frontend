@@ -3,7 +3,7 @@ import { Empty } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Navigate } from 'react-router'
 
-import { ErrorScreen } from '@common/components/ErrorScreen'
+import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useI18n } from '@common/i18n/useI18n'
 

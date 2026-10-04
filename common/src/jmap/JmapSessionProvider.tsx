@@ -6,7 +6,7 @@ import {
   type ReactNode
 } from 'react'
 
-import { ErrorScreen } from '@common/components/ErrorScreen'
+import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useI18n } from '@common/i18n/useI18n'
 

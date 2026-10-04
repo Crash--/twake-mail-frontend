@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactElement } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router'
 
-import { ErrorScreen } from '@common/components/ErrorScreen'
+import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useI18n } from '@common/i18n/useI18n'
 

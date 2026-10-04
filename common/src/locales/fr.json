@@ -9,7 +9,9 @@
     "unknownError": "Une erreur s'est produite, veuillez réessayer",
     "reconnect": "Se reconnecter",
     "back": "Retour",
-    "close": "Fermer"
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "delete": "Supprimer"
   },
   "topbar": {
     "apps": "Accéder aux applications",

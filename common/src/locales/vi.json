@@ -9,7 +9,9 @@
     "unknownError": "Lỗi không xác định, xin hãy thử lại",
     "reconnect": "Đăng nhập lại",
     "back": "Quay lại",
-    "close": "Đóng"
+    "close": "Đóng",
+    "cancel": "Hủy",
+    "delete": "Xoá"
   },
   "topbar": {
     "apps": "Mở ứng dụng",

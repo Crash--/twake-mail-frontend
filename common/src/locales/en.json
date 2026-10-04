@@ -9,7 +9,9 @@
     "unknownError": "Unknown error occurred, please try again",
     "reconnect": "Reconnect",
     "back": "Back",
-    "close": "Close"
+    "close": "Close",
+    "cancel": "Cancel",
+    "delete": "Delete"
   },
   "topbar": {
     "apps": "Go to applications",

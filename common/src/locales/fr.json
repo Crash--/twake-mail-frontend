@@ -288,5 +288,8 @@
     "description": "Les raccourcis d'une seule touche fonctionnent hors des champs de saisie. Désactivez-les s'ils gênent votre aide technique.",
     "key": "Touche",
     "action": "Action"
+  },
+  "settings": {
+    "threadToggle": "Activer les fils de discussion"
   }
 }

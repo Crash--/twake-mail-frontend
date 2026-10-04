@@ -6,6 +6,7 @@ import {
   useAuthService,
   useAuthState
 } from '@common/features/auth/AuthProvider'
+import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { useOpenShortcutsHelp } from '@common/features/shortcuts/ShortcutsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -19,7 +20,8 @@ const TEST_IDS = {
 
 /**
  * Avatar of the signed-in user, opening the account menu: the keyboard
- * shortcuts and sign out.
+ * shortcuts, the conversation setting (until the settings screens exist)
+ * and sign out.
  */
 export function UserMenu(): ReactElement {
   const { t } = useI18n()
@@ -27,6 +29,7 @@ export function UserMenu(): ReactElement {
   const state = useAuthState()
   const { session } = useJmapSession()
   const openShortcutsHelp = useOpenShortcutsHelp()
+  const threadPreference = useThreadPreference()
   const user =
     state.status === 'authenticated' ? state.user : { email: null, name: null }
   // Basic mode only knows what the user typed, and the SSO may not tell the
@@ -55,6 +58,14 @@ export function UserMenu(): ReactElement {
           icon: Help,
           onClick: openShortcutsHelp,
           'data-testid': 'shortcuts-menu-item'
+        }
+      ]}
+      toggles={[
+        {
+          label: t('settings.threadToggle'),
+          isChecked: threadPreference.isEnabled,
+          onToggle: threadPreference.setEnabled,
+          'data-testid': 'thread-setting-toggle'
         }
       ]}
       testIds={TEST_IDS}

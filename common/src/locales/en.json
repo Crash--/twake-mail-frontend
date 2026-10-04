@@ -288,5 +288,8 @@
     "description": "Single-key shortcuts work outside text fields. Turn them off if they get in the way of your assistive technology.",
     "key": "Key",
     "action": "Action"
+  },
+  "settings": {
+    "threadToggle": "Enable thread"
   }
 }

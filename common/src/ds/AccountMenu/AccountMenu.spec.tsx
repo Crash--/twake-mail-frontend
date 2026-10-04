@@ -72,4 +72,28 @@ describe('AccountMenu', () => {
     expect(onShortcuts).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('menu')).toBe(null)
   })
+
+  it('switches a setting from the menu, which stays open', async () => {
+    const onToggle = jest.fn()
+    renderDs(
+      <AccountMenu
+        name="Alice Martin"
+        email="alice@example.com"
+        label="My account"
+        logoutLabel="Sign out"
+        onLogout={jest.fn()}
+        toggles={[{ label: 'Enable thread', isChecked: false, onToggle }]}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'My account' }))
+
+    const toggle = screen.getByRole('menuitemcheckbox', {
+      name: 'Enable thread'
+    })
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
+    await userEvent.click(toggle)
+
+    expect(onToggle).toHaveBeenCalledWith(true)
+    expect(screen.getByRole('menu')).toBeVisible()
+  })
 })

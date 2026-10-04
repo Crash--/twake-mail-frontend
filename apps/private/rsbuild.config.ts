@@ -9,6 +9,7 @@ import {
   setupSentryPlugin
 } from '../../common/sentryBuildUtils'
 import { injectedAliases } from './injectedAliases'
+import { makeJmapDevProxy } from './jmapDevProxy'
 
 const appDir = import.meta.dirname
 
@@ -21,7 +22,9 @@ export default defineConfig({
     host: process.env.HOST ?? 'localhost',
     port: Number(process.env.PORT ?? 5000),
     historyApiFallback: true,
-    publicDir: { name: '../../public' }
+    publicDir: { name: '../../public' },
+    // e.g. JMAP_PROXY_TARGET=http://127.0.0.1:18300 (see the README)
+    proxy: makeJmapDevProxy(process.env.JMAP_PROXY_TARGET)
   },
   source: {
     entry: {

@@ -39,7 +39,28 @@ var JMAP_SESSION_URL = 'http://localhost/jmap/session'
 var AUTH_MODE = 'basic'
 ```
 
-The JMAP server must allow the origin of the app in its CORS settings.
+The JMAP server must then allow the origin of the app in its CORS settings.
+
+### Same origin through the development proxy
+
+`JMAP_PROXY_TARGET` makes the development server proxy `/jmap` (WebSocket
+included), `/upload`, `/download`, `/eventSource` and `/.well-known/jmap` to
+a JMAP server. The URLs the JMAP session advertises are rewritten to the
+origin of the development server, so the browser only talks to it: no CORS,
+and the push WebSocket goes through the proxy too. For instance against the
+backend of the end-to-end stack (`e2e/scripts/start.sh`, tmail-backend on
+`127.0.0.1:18300`; accounts created through its WebAdmin, see
+[`e2e/README.md`](e2e/README.md)):
+
+```js
+// public/.env.js
+var JMAP_SESSION_URL = 'http://127.0.0.1:18200/jmap/session'
+var AUTH_MODE = 'basic'
+```
+
+```bash
+JMAP_PROXY_TARGET=http://127.0.0.1:18300 HOST=127.0.0.1 PORT=18200 npm start
+```
 
 ## Configuration
 

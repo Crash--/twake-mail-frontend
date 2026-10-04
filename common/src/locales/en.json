@@ -79,5 +79,82 @@
   },
   "push": {
     "newMessages": "You have new messages"
+  },
+  "composer": {
+    "editor": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "strike": "Strikethrough",
+      "textColor": "Text Color",
+      "fontSize": "Text Size",
+      "align": "Paragraph",
+      "alignLeft": "Align left",
+      "alignCenter": "Align center",
+      "alignRight": "Align right",
+      "alignJustify": "Justify full",
+      "bulletList": "Bulleted list",
+      "orderedList": "Numbered list",
+      "link": "Insert link",
+      "insertImage": "Insert image",
+      "undo": "Undo",
+      "toolbar": "Formatting options",
+      "defaultColor": "Reset to default",
+      "redo": "Redo",
+      "blockquote": "Quote",
+      "clearFormatting": "Clear formatting",
+      "name": "Message body",
+      "keyboardHelp": "Tab indents a list item or leaves the editor. Escape goes to the formatting toolbar. Ctrl+K inserts a link.",
+      "colors": {
+        "red": "Red",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "purple": "Purple",
+        "grey": "Grey"
+      },
+      "sizes": {
+        "small": "Small",
+        "normal": "Normal",
+        "large": "Large",
+        "huge": "Huge"
+      }
+    },
+    "link": {
+      "text": "Text",
+      "url": "Type or paste a link",
+      "apply": "Apply",
+      "cancel": "Cancel",
+      "remove": "Remove link",
+      "title": "Insert link"
+    },
+    "quote": {
+      "replyHeader": "On %{sentDate}, from %{emailAddress}",
+      "forwarded": "Forwarded message",
+      "subject": "Subject",
+      "from": "From",
+      "to": "To",
+      "cc": "Cc",
+      "bcc": "Bcc",
+      "replyTo": "Reply to",
+      "frameTitle": "Quoted message",
+      "edit": "Edit the quoted message",
+      "date": "Date"
+    },
+    "send": "Send",
+    "saveAsDraft": "Save as draft",
+    "draftSaved": "Draft saved",
+    "signature": "Signature",
+    "spike": {
+      "title": "Composer spike",
+      "from": "From",
+      "to": "To",
+      "subject": "Subject",
+      "sent": "Message sent",
+      "sendFailed": "The message could not be sent",
+      "html": "Outgoing HTML",
+      "text": "Text alternative",
+      "restored": "Composer restored after reload"
+    }
   }
 }

@@ -1,6 +1,7 @@
 import type { JmapClient } from 'jmap-client-ts'
 
 import { destroyMailboxEmails } from '@common/features/emailActions/mailboxEmails'
+import { findDescendantIds } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { MAILBOX_CLEAR_CAPABILITY } from '@common/jmap/linagoraMethods'
 
@@ -18,18 +19,6 @@ export interface EmptyFolderOptions {
   /** Most method calls in one request (`maxCallsInRequest`) */
   maxCalls: number
   extraCapabilities?: readonly string[]
-}
-
-/** The descendants of a mailbox, the deepest first */
-export function descendantsDeepestFirst(
-  mailboxes: readonly MailboxSummary[],
-  mailboxId: string
-): string[] {
-  const children = (parentId: string): string[] =>
-    mailboxes
-      .filter(mailbox => mailbox.parentId === parentId)
-      .flatMap(mailbox => [...children(mailbox.id), mailbox.id])
-  return children(mailboxId)
 }
 
 /**
@@ -101,7 +90,7 @@ export async function emptyFolder(
   }
 
   if (mailbox.role !== 'trash') return { deleted, subfolders: 'none' }
-  const subfolders = descendantsDeepestFirst(mailboxes, mailbox.id)
+  const subfolders = findDescendantIds(mailboxes, mailbox.id)
   if (subfolders.length === 0) return { deleted, subfolders: 'none' }
   try {
     const failed = await destroyMailboxes(

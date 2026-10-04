@@ -32,14 +32,56 @@ export const SYSTEM_ROLE_ORDER: readonly string[] = [
   'archive'
 ]
 
+/**
+ * The system folders of a team mailbox have no role: tmail-flutter knows
+ * them by name, in this order
+ */
+const TEAM_SYSTEM_NAMES: readonly string[] = [
+  'inbox',
+  'drafts',
+  'outbox',
+  'sent',
+  'trash',
+  'spam',
+  'junk',
+  'templates',
+  'archive'
+]
+
+/** A mailbox of the user, not shared with them (team mailboxes) */
+export function isPersonalMailbox(
+  mailbox: Pick<MailboxSummary, 'namespace'>
+): boolean {
+  return (
+    mailbox.namespace === null ||
+    mailbox.namespace === undefined ||
+    mailbox.namespace === 'Personal'
+  )
+}
+
+/** The Trash of a team mailbox: no role, known by its name */
+export function isTeamTrash(
+  mailbox: Pick<MailboxSummary, 'namespace' | 'name' | 'role'>
+): boolean {
+  return (
+    !isPersonalMailbox(mailbox) &&
+    mailbox.role === null &&
+    mailbox.name.toLowerCase() === 'trash'
+  )
+}
+
 function roleRank(mailbox: MailboxSummary): number {
+  if (mailbox.role === null && !isPersonalMailbox(mailbox)) {
+    const index = TEAM_SYSTEM_NAMES.indexOf(mailbox.name.toLowerCase())
+    return index === -1 ? SYSTEM_ROLE_ORDER.length : index
+  }
   const index = mailbox.role ? SYSTEM_ROLE_ORDER.indexOf(mailbox.role) : -1
   return index === -1 ? SYSTEM_ROLE_ORDER.length : index
 }
 
 /**
- * Sibling order: system roles first (inbox, drafts, sent…), then the
- * server `sortOrder`, then the name.
+ * Sibling order: system roles first (inbox, drafts, sent…; by name in team
+ * mailboxes), then the server `sortOrder`, then the name.
  */
 export function compareMailboxes(
   left: MailboxSummary,
@@ -168,4 +210,86 @@ export function mailboxPath(
       return node === undefined ? [] : [getName(node)]
     })
     .join('/')
+}
+
+/** The descendants of a mailbox, the deepest first */
+export function findDescendantIds(
+  mailboxes: readonly MailboxSummary[],
+  mailboxId: string
+): string[] {
+  const seen = new Set<string>([mailboxId])
+  const children = (parentId: string): string[] =>
+    mailboxes
+      .filter(mailbox => mailbox.parentId === parentId && !seen.has(mailbox.id))
+      .flatMap(mailbox => {
+        seen.add(mailbox.id)
+        return [...children(mailbox.id), mailbox.id]
+      })
+  return children(mailboxId)
+}
+
+/**
+ * A folder the user hid (`isSubscribed: false`), as tmail-flutter: personal
+ * folders without a role, and the roots of team mailboxes
+ */
+export function isHiddenMailbox(mailbox: MailboxSummary): boolean {
+  if (mailbox.isSubscribed) return false
+  return isPersonalMailbox(mailbox)
+    ? mailbox.role === null
+    : mailbox.parentId === null
+}
+
+export interface MailboxTreeSections {
+  /** The folders of the user */
+  personal: MailboxNode[]
+  /** One root per team mailbox, its folders under it */
+  team: MailboxNode[]
+  /** How many folders are hidden, with their subfolders */
+  hiddenCount: number
+}
+
+/**
+ * The trees of the sidebar: the personal folders, then the team mailboxes.
+ * Hidden folders and their subfolders are left out, unless `showHidden`.
+ */
+export function buildMailboxSections(
+  mailboxes: readonly MailboxSummary[],
+  showHidden: boolean
+): MailboxTreeSections {
+  const hidden = new Set<string>()
+  for (const mailbox of mailboxes) {
+    if (!isHiddenMailbox(mailbox)) continue
+    hidden.add(mailbox.id)
+    findDescendantIds(mailboxes, mailbox.id).forEach(id => hidden.add(id))
+  }
+  const shown = showHidden
+    ? mailboxes
+    : mailboxes.filter(mailbox => !hidden.has(mailbox.id))
+  return {
+    personal: buildMailboxTree(shown.filter(isPersonalMailbox)),
+    team: buildMailboxTree(
+      shown.filter(mailbox => !isPersonalMailbox(mailbox))
+    ),
+    hiddenCount: hidden.size
+  }
+}
+
+/**
+ * A folder of the team mailbox `mailboxId` belongs to, by name (team
+ * folders have no role): its Trash, its Drafts
+ */
+export function findTeamFolderId(
+  mailboxes: readonly MailboxSummary[],
+  mailboxId: string,
+  name: string
+): string | null {
+  const ancestors = findAncestorIds(mailboxes, mailboxId)
+  const rootId = ancestors[ancestors.length - 1] ?? mailboxId
+  return (
+    mailboxes.find(
+      mailbox =>
+        mailbox.parentId === rootId &&
+        mailbox.name.toLowerCase() === name.toLowerCase()
+    )?.id ?? null
+  )
 }

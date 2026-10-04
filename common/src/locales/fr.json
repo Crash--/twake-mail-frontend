@@ -276,6 +276,20 @@
       "message": "Vous êtes sur le point de supprimer définitivement ce message. Voulez-vous continuer ?",
       "titleMany": "Supprimer les messages pour toujours",
       "messageMany": "Vous allez supprimer définitivement %{count} éléments dans %{mailboxName}. Voulez-vous continuer ?"
+    },
+    "menu": {
+      "unspam": "Pas un indésirable",
+      "removeFromSpam": "Retirer des indésirables",
+      "deletePermanently": "Supprimer définitivement",
+      "moveMessage": "Déplacer le message",
+      "move": "Déplacer",
+      "more": "Plus",
+      "markAsSpam": "Marquer comme indésirable",
+      "moveToTrash": "Mettre à la corbeille",
+      "archive": "Archiver le message",
+      "star": "Favori",
+      "unstar": "Retirer des favoris",
+      "label": "Actions sur le message"
     }
   },
   "shortcuts": {

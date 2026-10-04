@@ -276,6 +276,20 @@
       "message": "You are about to permanently delete this message. Do you want to continue?",
       "titleMany": "Delete messages forever",
       "messageMany": "You are about to permanently delete %{count} items in %{mailboxName}. Do you want to continue?"
+    },
+    "menu": {
+      "unspam": "Unspam",
+      "removeFromSpam": "Remove from spam",
+      "deletePermanently": "Delete permanently",
+      "moveMessage": "Move message",
+      "move": "Move",
+      "more": "More",
+      "markAsSpam": "Mark as spam",
+      "moveToTrash": "Move to trash",
+      "archive": "Archive message",
+      "star": "Star",
+      "unstar": "Unstar",
+      "label": "Message actions"
     }
   },
   "shortcuts": {

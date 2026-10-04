@@ -11,7 +11,9 @@ import {
 import type { MouseEvent, ReactElement } from 'react'
 import { Link } from 'react-router'
 
+import { DropTarget } from '@/ds/DropTarget/DropTarget'
 import { IconSlot } from '@/ds/IconSlot/IconSlot'
+import { useDropEmails } from '@common/features/emailActions/useDropEmails'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { getMailboxIcon } from './mailboxDisplay'
@@ -54,6 +56,8 @@ export function MailboxTreeItem({
   const getName = useMailboxName()
   const { mailbox } = row
   const toggleLabel = t(row.isExpanded ? 'mailbox.collapse' : 'mailbox.expand')
+  // Keyboard users move emails from their menus: "Move message"
+  const dropEmails = useDropEmails(mailbox)
 
   const handleToggle = (event: MouseEvent<HTMLButtonElement>): void => {
     event.stopPropagation()
@@ -90,30 +94,36 @@ export function MailboxTreeItem({
           ) : null}
         </IconSlot>
       ) : null}
-      <NavLink
-        component={Link}
-        to={`/mailbox/${encodeURIComponent(mailbox.id)}`}
-        selected={isSelected}
-        // The slot replaces the start margin of the link
-        className={hasToggleSlot ? 'u-ml-0 u-ov-hidden' : 'u-ov-hidden'}
+      <DropTarget
+        accepts={dropEmails.accepts}
+        onDrop={dropEmails.onDrop}
+        className="u-flex u-flex-auto u-ov-hidden"
       >
-        <NavIcon icon={getMailboxIcon(mailbox)} />
-        <NavText
-          className="u-flex-auto u-ellipsis"
-          data-testid="mailbox-item-name"
+        <NavLink
+          component={Link}
+          to={`/mailbox/${encodeURIComponent(mailbox.id)}`}
+          selected={isSelected}
+          // The slot replaces the start margin of the link
+          className={hasToggleSlot ? 'u-ml-0 u-ov-hidden' : 'u-ov-hidden'}
         >
-          {getName(mailbox)}
-        </NavText>
-        {mailbox.unreadEmails > 0 ? (
-          <Typography
-            variant="caption"
-            className="u-fw-bold u-ml-half"
-            data-testid="mailbox-unread-count"
+          <NavIcon icon={getMailboxIcon(mailbox)} />
+          <NavText
+            className="u-flex-auto u-ellipsis"
+            data-testid="mailbox-item-name"
           >
-            {mailbox.unreadEmails}
-          </Typography>
-        ) : null}
-      </NavLink>
+            {getName(mailbox)}
+          </NavText>
+          {mailbox.unreadEmails > 0 ? (
+            <Typography
+              variant="caption"
+              className="u-fw-bold u-ml-half"
+              data-testid="mailbox-unread-count"
+            >
+              {mailbox.unreadEmails}
+            </Typography>
+          ) : null}
+        </NavLink>
+      </DropTarget>
     </NavItem>
   )
 }

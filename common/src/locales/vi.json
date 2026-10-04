@@ -89,7 +89,8 @@
       "subject": "Tiêu đề",
       "date": "Ngày",
       "actions": "Hành động",
-      "message": "Tin nhắn"
+      "message": "Tin nhắn",
+      "select": "Chọn"
     },
     "messageCount": "%{smart_count} thư",
     "messages": "Các thư trong hội thoại",
@@ -98,7 +99,17 @@
     "empty": "Hội thoại này không còn tồn tại",
     "archive": "Lưu trữ hội thoại",
     "moveToTrash": "Chuyển hội thoại vào Thùng rác",
-    "markAsSpam": "Đánh dấu hội thoại là spam"
+    "markAsSpam": "Đánh dấu hội thoại là spam",
+    "selection": {
+      "count": "Đã chọn %{count}",
+      "selectAll": "Chọn tất cả",
+      "selectPage": "Chọn tất cả tin nhắn của trang này",
+      "select": "Chọn %{subject}",
+      "selectAllInFolder": "Chọn tất cả %{smart_count} thư trong thư mục này",
+      "allInFolderSelected": "Đã chọn tất cả %{smart_count} thư trong thư mục này",
+      "clear": "Bỏ chọn",
+      "toolbar": "Thao tác với mục đã chọn"
+    }
   },
   "push": {
     "newMessages": "Bạn có tin nhắn mới"
@@ -291,7 +302,8 @@
       "star": "Quan trọng",
       "unstar": "Không quan trọng",
       "label": "Thao tác với thư"
-    }
+    },
+    "drag": "Di chuyển %{smart_count} thư"
   },
   "shortcuts": {
     "title": "Phím tắt",

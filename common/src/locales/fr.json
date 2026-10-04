@@ -89,7 +89,8 @@
       "subject": "Sujet",
       "date": "Date",
       "actions": "Actions",
-      "message": "Message"
+      "message": "Message",
+      "select": "Sélection"
     },
     "messageCount": "%{smart_count} message |||| %{smart_count} messages",
     "messages": "Messages de la conversation",
@@ -98,7 +99,17 @@
     "empty": "Cette conversation n'existe plus",
     "archive": "Archiver la conversation",
     "moveToTrash": "Mettre la conversation à la corbeille",
-    "markAsSpam": "Marquer la conversation comme indésirable"
+    "markAsSpam": "Marquer la conversation comme indésirable",
+    "selection": {
+      "count": "%{count} sélectionnés",
+      "selectAll": "Tout sélectionner",
+      "selectPage": "Sélectionnez tous les messages de cette page",
+      "select": "Sélectionner %{subject}",
+      "selectAllInFolder": "Sélectionner le message de ce dossier |||| Sélectionner les %{smart_count} messages de ce dossier",
+      "allInFolderSelected": "Le message de ce dossier est sélectionné |||| Les %{smart_count} messages de ce dossier sont sélectionnés",
+      "clear": "Tout désélectionner",
+      "toolbar": "Actions sur la sélection"
+    }
   },
   "push": {
     "newMessages": "Vous avez de nouveaux messages"
@@ -291,7 +302,8 @@
       "star": "Favori",
       "unstar": "Retirer des favoris",
       "label": "Actions sur le message"
-    }
+    },
+    "drag": "Déplacer %{smart_count} message |||| Déplacer %{smart_count} messages"
   },
   "shortcuts": {
     "title": "Raccourcis clavier",

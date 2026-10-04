@@ -42,7 +42,8 @@
     },
     "expand": "Mở rộng",
     "collapse": "Đóng",
-    "emails": "Thư"
+    "emails": "Thư",
+    "starred": "Quan trọng"
   },
   "email": {
     "star": "Đánh dấu quan trọng",

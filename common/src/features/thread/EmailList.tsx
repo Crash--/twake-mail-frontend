@@ -134,6 +134,11 @@ export interface EmailListSearch {
   openEmailId: string | null
   /** Shown when nothing matches */
   empty: ReactElement
+  /**
+   * Title of the page and name of the table, "Search results" by default
+   * (a virtual folder such as Starred has its own)
+   */
+  title?: string
 }
 
 export type EmailListProps = { mailboxId: string } | { search: EmailListSearch }
@@ -175,7 +180,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       ? mailbox === null
         ? null
         : getMailboxName(mailbox)
-      : t('search.title')
+      : (search.title ?? t('search.title'))
   )
   const showRecipients = role !== null && RECIPIENT_ROLES.includes(role)
   const getEmailPath = useCallback(
@@ -441,7 +446,11 @@ export function EmailList(props: EmailListProps): ReactElement {
     content = (
       <>
         <VirtualizedListTable
-          label={t(search === null ? 'mailbox.emails' : 'search.results')}
+          label={
+            search === null
+              ? t('mailbox.emails')
+              : (search.title ?? t('search.results'))
+          }
           className="u-flex-auto"
           data-testid="email-list"
           rows={emails}

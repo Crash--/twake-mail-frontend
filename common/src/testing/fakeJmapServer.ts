@@ -2,6 +2,7 @@ import type {
   Email,
   EmailBodyPart,
   FetchFunction,
+  Identity,
   Mailbox
 } from 'jmap-client-ts'
 
@@ -20,8 +21,10 @@ import {
  *
  * Covers what the app uses: the session, `Mailbox/get`, `Mailbox/changes`,
  * `Email/query`, `Email/get` (with `#ids` back-references), `Email/changes`,
- * `Email/set` updates of keywords and mailboxes (path patches, keeping the
- * mailbox counters right) and destructions, `Mailbox/set` (creations,
+ * `Email/set` creations (referenced as `#creationId` by the next calls of
+ * the request), updates of keywords and mailboxes (path patches, keeping
+ * the mailbox counters right) and destructions, `Identity/get`,
+ * `Mailbox/set` (creations,
  * renames, moves, subscriptions, destructions) and `Mailbox/clear`, and
  * blob downloads. Changes made through
  * `Email/set` or the `addEmail`, `updateEmail`, `destroyEmail` and
@@ -52,7 +55,31 @@ export type FakeEmail = Pick<
   | 'preview'
   | 'hasAttachment'
 > &
-  Partial<Pick<Email, 'htmlBody' | 'attachments' | 'bodyValues' | 'sentAt'>>
+  Partial<
+    Pick<
+      Email,
+      | 'htmlBody'
+      | 'textBody'
+      | 'attachments'
+      | 'bodyValues'
+      | 'sentAt'
+      | 'bcc'
+      | 'replyTo'
+      | 'inReplyTo'
+      | 'references'
+    >
+  > & {
+    /** Headers asked as `header:<name>:asText` (identity of a draft…) */
+    headers?: Record<string, string>
+  }
+
+/** What `Email/set` answers for a created email */
+interface FakeEmailCreated {
+  id: string
+  blobId: string
+  threadId: string
+  size: number
+}
 
 /** A contact of `TMailContact/autocomplete` (Linagora extension) */
 export interface FakeContact {
@@ -83,6 +110,7 @@ export interface FakeJmapServer {
   emails: FakeEmail[]
   /** Contacts `TMailContact/autocomplete` answers with */
   contacts: FakeContact[]
+  identities: Identity[]
   /** Blob contents by blob id, served by the download endpoint */
   blobs: Map<string, string>
   /** API requests received, in order */
@@ -290,6 +318,21 @@ export function makeEmailWithBody(
   })
 }
 
+export function makeIdentity(
+  overrides: Partial<Identity> & Pick<Identity, 'id'>
+): Identity {
+  return {
+    name: 'Alice Martin',
+    email: FAKE_USERNAME,
+    replyTo: null,
+    bcc: null,
+    textSignature: '',
+    htmlSignature: '',
+    mayDelete: false,
+    ...overrides
+  }
+}
+
 /** The mailboxes James creates for a new account, in no particular order */
 export function makeDefaultMailboxes(): FakeMailbox[] {
   return [
@@ -421,6 +464,23 @@ function referenceError(
   return null
 }
 
+/** Replaces `#creationId` in `ids`, `destroy` and `emailId` by the ids created */
+function resolveCreationIds(
+  args: Record<string, unknown>,
+  createdIds: ReadonlyMap<string, string>
+): Record<string, unknown> {
+  const resolve = (value: unknown): unknown =>
+    typeof value === 'string' && value.startsWith('#')
+      ? (createdIds.get(value.slice(1)) ?? value)
+      : value
+  const resolved = { ...args }
+  for (const key of ['ids', 'destroy']) {
+    const list = resolved[key]
+    if (Array.isArray(list)) resolved[key] = list.map(resolve)
+  }
+  return resolved
+}
+
 export function makeFakeJmapServer(
   init: {
     mailboxes?: FakeMailbox[]
@@ -432,6 +492,7 @@ export function makeFakeJmapServer(
     /** Extra capabilities of the session and the account */
     capabilities?: Record<string, unknown>
     contacts?: FakeContact[]
+    identities?: Identity[]
     /** `maxObjectsInSet` of the session, 500 by default */
     maxObjectsInSet?: number
   } = {}
@@ -441,6 +502,7 @@ export function makeFakeJmapServer(
     mailboxes: init.mailboxes ?? makeDefaultMailboxes(),
     emails: init.emails ?? [],
     contacts: init.contacts ?? [],
+    identities: init.identities ?? [makeIdentity({ id: 'identity-alice' })],
     blobs: new Map(),
     requests: [],
     methodErrors: new Map(),
@@ -593,7 +655,14 @@ export function makeFakeJmapServer(
     const ids = Array.isArray(args.ids) ? args.ids : []
     const list = ids.flatMap(id => {
       const email = server.emails.find(candidate => candidate.id === id)
-      return email ? [pickProperties({ ...email }, args.properties)] : []
+      if (!email) return []
+      const headers = Object.fromEntries(
+        Object.entries(email.headers ?? {}).map(([name, value]) => [
+          `header:${name}:asText`,
+          value
+        ])
+      )
+      return [pickProperties({ ...email, ...headers }, args.properties)]
     })
     const notFound = ids.filter(
       id => !server.emails.some(email => email.id === id)
@@ -657,14 +726,98 @@ export function makeFakeJmapServer(
     recount(before, email)
   }
 
+  let createdEmails = 0
+
+  /** An email made from the arguments of an `Email/set` creation */
+  function createEmail(create: Record<string, unknown>): FakeEmailCreated {
+    createdEmails += 1
+    const id = `email-created-${createdEmails}`
+    const flags = (value: unknown): Record<string, true> =>
+      isRecord(value)
+        ? Object.fromEntries(
+            Object.keys(value).map(key => [key, true as const])
+          )
+        : {}
+    const parts = (value: unknown): EmailBodyPart[] =>
+      Array.isArray(value)
+        ? value.filter(isRecord).map((part, index) =>
+            makeBodyPart({
+              ...part,
+              type: typeof part.type === 'string' ? part.type : 'text/plain',
+              blobId:
+                typeof part.blobId === 'string' ? `${id}_${index + 3}` : null,
+              partId: typeof part.partId === 'string' ? part.partId : null
+            })
+          )
+        : []
+    const bodyValues = isRecord(create.bodyValues)
+      ? Object.fromEntries(
+          Object.entries(create.bodyValues).map(([partId, value]) => [
+            partId,
+            {
+              value: isRecord(value) ? String(value.value) : '',
+              isEncodingProblem: false,
+              isTruncated: false
+            }
+          ])
+        )
+      : {}
+    const headers = Object.fromEntries(
+      Object.entries(create)
+        .filter(([key]) => key.startsWith('header:'))
+        .map(([key, value]) => [
+          key.replace(/^header:/, '').replace(/:asText$/, ''),
+          String(value)
+        ])
+    )
+    const attachments = parts(create.attachments)
+    const addresses = (value: unknown): FakeEmail['to'] =>
+      Array.isArray(value) ? (value as FakeEmail['to']) : null
+    const email: FakeEmail = makeEmail({
+      id,
+      mailboxIds: flags(create.mailboxIds),
+      keywords: flags(create.keywords),
+      receivedAt: new Date().toISOString(),
+      subject: typeof create.subject === 'string' ? create.subject : '',
+      from: addresses(create.from),
+      to: addresses(create.to),
+      cc: addresses(create.cc),
+      bcc: addresses(create.bcc),
+      replyTo: addresses(create.replyTo),
+      preview: '',
+      hasAttachment: attachments.some(part => part.disposition !== 'inline'),
+      htmlBody: parts(create.htmlBody),
+      textBody: parts(create.textBody),
+      bodyValues,
+      attachments,
+      headers
+    })
+    server.emails.push(email)
+    recount(null, email)
+    emailLog.record(id, 'created')
+    return { id, blobId: `blob-${id}`, threadId: email.threadId, size: 1000 }
+  }
+
   function setEmails(args: Record<string, unknown>): unknown {
+    const oldState = emailLog.state
+    const create = isRecord(args.create) ? args.create : {}
+    const created: Record<string, FakeEmailCreated> = {}
+    const notCreated: Record<string, unknown> = {}
+    // Creations first, as tmail-backend does
+    for (const [creationId, value] of Object.entries(create)) {
+      const refusal = server.setErrors.get(creationId)
+      if (refusal !== undefined || !isRecord(value)) {
+        notCreated[creationId] = { type: refusal ?? 'invalidArguments' }
+        continue
+      }
+      created[creationId] = createEmail(value)
+    }
     const update = isRecord(args.update) ? args.update : {}
     const destroy = Array.isArray(args.destroy) ? args.destroy : []
     const updated: Record<string, null> = {}
     const notUpdated: Record<string, unknown> = {}
     const destroyed: string[] = []
     const notDestroyed: Record<string, unknown> = {}
-    const oldState = emailLog.state
     for (const [id, patch] of Object.entries(update)) {
       const email = server.emails.find(candidate => candidate.id === id)
       const refusal = server.setErrors.get(id)
@@ -697,11 +850,22 @@ export function makeFakeJmapServer(
       accountId: FAKE_ACCOUNT_ID,
       oldState,
       newState: emailLog.state,
+      created,
+      notCreated,
       updated,
       notUpdated,
       destroyed,
       notDestroyed
     }
+  }
+
+  function getIdentities(args: Record<string, unknown>): unknown {
+    const list = server.identities
+      .filter(
+        identity => !Array.isArray(args.ids) || args.ids.includes(identity.id)
+      )
+      .map(identity => pickProperties({ ...identity }, args.properties))
+    return { accountId: FAKE_ACCOUNT_ID, state: 'state-identity-1', list }
   }
 
   let createdMailboxes = 0
@@ -836,6 +1000,8 @@ export function makeFakeJmapServer(
         return getEmails(args)
       case 'Email/set':
         return setEmails(args)
+      case 'Identity/get':
+        return getIdentities(args)
       case 'Email/changes':
         return emailLog.changes(args) ?? { error: 'cannotCalculateChanges' }
       case 'Mailbox/changes':
@@ -872,13 +1038,28 @@ export function makeFakeJmapServer(
 
   function respond({ methodCalls }: FakeJmapRequest): Response {
     const methodResponses: FakeInvocation[] = []
+    /** Ids of the objects created by the request, by creation id */
+    const createdIds = new Map<string, string>()
     for (const [name, rawArgs, callId] of methodCalls) {
       const errorType =
         server.methodErrors.get(name) ??
         referenceError(rawArgs, methodResponses)
       const result = errorType
         ? null
-        : answer(name, resolveReferences(rawArgs, methodResponses))
+        : answer(
+            name,
+            resolveCreationIds(
+              resolveReferences(rawArgs, methodResponses),
+              createdIds
+            )
+          )
+      if (isRecord(result) && isRecord(result.created)) {
+        for (const [creationId, object] of Object.entries(result.created)) {
+          if (isRecord(object) && typeof object.id === 'string') {
+            createdIds.set(creationId, object.id)
+          }
+        }
+      }
       const resultError =
         isRecord(result) && typeof result.error === 'string'
           ? result.error

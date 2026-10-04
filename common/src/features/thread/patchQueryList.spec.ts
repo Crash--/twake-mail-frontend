@@ -111,4 +111,39 @@ describe('patchQueryList', () => {
 
     expect(needsRefresh).toBe(true)
   })
+
+  it('keeps the emails of the conversations found up to date', () => {
+    const found = email('a', { threadId: 'ta' })
+    const older = email('a0', { threadId: 'ta' })
+    const grouped: EmailListData = {
+      pages: [
+        {
+          ...page([found], 0),
+          threads: { ta: [older, found] }
+        }
+      ],
+      pageParams: [0]
+    }
+    const read = { ...older, keywords: { $seen: true as const } }
+    const reply = email('a2', {
+      threadId: 'ta',
+      receivedAt: '2026-10-05T08:00:00Z'
+    })
+
+    const { data, needsRefresh } = patchQueryList(
+      grouped,
+      changes({ changed: [read, reply] }),
+      { isCollapsed: true }
+    )
+
+    expect(needsRefresh).toBe(false)
+    expect(ids(data)).toEqual([['a']])
+    expect(
+      data.pages[0]?.threads?.ta?.map(item => [item.id, item.keywords])
+    ).toEqual([
+      ['a0', { $seen: true }],
+      ['a', {}],
+      ['a2', {}]
+    ])
+  })
 })

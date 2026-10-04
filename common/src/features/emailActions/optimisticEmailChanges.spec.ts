@@ -239,4 +239,62 @@ describe('applyEmailChanges', () => {
       { [ARCHIVE]: true }
     ])
   })
+
+  it('updates a conversation from the actions on its emails', () => {
+    const queryClient = setUp()
+    const key = threadKeys.threads(ACCOUNT, INBOX)
+    const first = email('t1', 10, { threadId: 't' })
+    const last = email('t2', 20, { threadId: 't' })
+    const other = email('o1', 15, { threadId: 'o' })
+    queryClient.setQueryData<EmailListData>(key, {
+      pages: [
+        {
+          emails: [last, other],
+          position: 0,
+          count: 2,
+          total: 2,
+          isLast: true,
+          state: 's1',
+          threads: { t: [first, last], o: [other] }
+        }
+      ],
+      pageParams: [0]
+    })
+    const rows = findListRows(queryClient, ACCOUNT, ['t1', 't2'])
+
+    // Read: every email of the conversation
+    applyEmailChanges(
+      queryClient,
+      ACCOUNT,
+      planEmailChanges([first, last], {
+        kind: 'keyword',
+        keyword: '$seen',
+        isSet: true
+      }),
+      rows
+    )
+    const read = queryClient.getQueryData<EmailListData>(key)?.pages[0]
+    expect(read?.threads?.t?.map(item => item.keywords)).toEqual([
+      { $seen: true },
+      { $seen: true }
+    ])
+    expect(read?.emails[0]?.subject).toBe('Subject t2')
+
+    // Archived: the conversation leaves the Inbox
+    applyEmailChanges(
+      queryClient,
+      ACCOUNT,
+      planEmailChanges(read?.threads?.t ?? [], {
+        kind: 'move',
+        from: INBOX,
+        to: ARCHIVE
+      }),
+      rows
+    )
+    expect(
+      queryClient
+        .getQueryData<EmailListData>(key)
+        ?.pages[0]?.emails.map(item => item.id)
+    ).toEqual(['o1'])
+  })
 })

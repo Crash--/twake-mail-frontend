@@ -1,11 +1,23 @@
-import type { EmailChanges } from './patchEmailList'
-import type { EmailListData, EmailListPage } from './queries'
+import type { ThreadEmailUpdate } from './patchThreadList'
+import {
+  byReceivedAt,
+  type EmailListData,
+  type EmailListPage,
+  type ThreadMember
+} from './queries'
+
+/** Changes of the emails (`EmailChanges`), possibly partial (optimistic) */
+export interface QueryListChanges {
+  changed: readonly ThreadEmailUpdate[]
+  destroyed: readonly string[]
+  newStates: ReadonlyMap<string, string>
+}
 
 export interface QueryListPatch {
   data: EmailListData
   /**
    * Only the server can tell what the list holds now: emails it does not
-   * list changed (arrived, or were updated elsewhere), or the email
+   * know changed (arrived, or were updated elsewhere), or the email
    * standing for a conversation left
    */
   needsRefresh: boolean
@@ -18,15 +30,47 @@ export interface QueryListScope {
   isCollapsed?: boolean
 }
 
+function patchMember(
+  member: ThreadMember,
+  update: ThreadEmailUpdate
+): ThreadMember {
+  return {
+    ...member,
+    mailboxIds: update.mailboxIds,
+    keywords: update.keywords
+  }
+}
+
+/** A new email of a conversation listed, when its properties are known */
+function newMember(
+  update: ThreadEmailUpdate,
+  threadId: string
+): ThreadMember | null {
+  const { receivedAt } = update
+  if (receivedAt === undefined) return null
+  return {
+    id: update.id,
+    threadId,
+    mailboxIds: update.mailboxIds,
+    keywords: update.keywords,
+    receivedAt,
+    from: update.from ?? null,
+    hasAttachment: update.hasAttachment ?? false
+  }
+}
+
 /**
  * Applies `changes` to a list the client cannot sort or filter by itself
- * (search results, conversations of a mailbox):
+ * (search results):
  *
  * - a destroyed email is removed, as one that left the mailbox listed;
- * - a listed email is replaced (keywords, mailboxes) and stays where it is:
- *   archiving or reading a search result shows its new state rather than
- *   making it vanish, as in tmail-flutter;
- * - when an email the list does not show changed, or a conversation lost
+ * - a listed email takes its new state (keywords, mailboxes) and stays
+ *   where it is: archiving or reading a search result shows its new state
+ *   rather than making it vanish, as in tmail-flutter;
+ * - results grouped by conversation keep the emails of each thread listed
+ *   up to date, a new reply included: the conversation stays where it is,
+ *   in its new state;
+ * - when an email the list does not know changed, or a conversation lost
  *   the email standing for it, the caller queries the loaded window again
  *   (James has no `Email/queryChanges`).
  *
@@ -34,12 +78,21 @@ export interface QueryListScope {
  */
 export function patchQueryList(
   data: EmailListData,
-  { changed, destroyed, newStates }: EmailChanges,
+  { changed, destroyed, newStates }: QueryListChanges,
   { mailboxId, isCollapsed = false }: QueryListScope = {}
 ): QueryListPatch {
   const destroyedIds = new Set(destroyed)
   const changedById = new Map(changed.map(email => [email.id, email]))
   const listed = new Set<string>()
+  // The conversations listed, and the emails they hold
+  const listedThreads = new Set<string>()
+  const members = new Set<string>()
+  for (const page of data.pages) {
+    for (const [threadId, list] of Object.entries(page.threads ?? {})) {
+      listedThreads.add(threadId)
+      list.forEach(member => members.add(member.id))
+    }
+  }
   let position = data.pages[0]?.position ?? 0
   let removed = 0
 
@@ -55,7 +108,7 @@ export function patchQueryList(
       ) {
         return []
       }
-      return [update ?? email]
+      return [update ? { ...email, ...update } : email]
     })
     const delta = emails.length - page.emails.length
     removed -= delta
@@ -66,10 +119,38 @@ export function patchQueryList(
       count: Math.max(0, page.count + delta),
       state: newStates.get(page.state) ?? page.state
     }
+    if (page.threads !== undefined) {
+      patched.threads = Object.fromEntries(
+        emails.map(email => {
+          const list = (page.threads?.[email.threadId] ?? [email]).flatMap(
+            member => {
+              if (destroyedIds.has(member.id)) return []
+              const update = changedById.get(member.id)
+              return [update ? patchMember(member, update) : member]
+            }
+          )
+          // New replies of the conversation
+          for (const update of changed) {
+            if (update.threadId !== email.threadId || members.has(update.id)) {
+              continue
+            }
+            const member = newMember(update, email.threadId)
+            if (member !== null) list.push(member)
+          }
+          return [email.threadId, list.sort(byReceivedAt)]
+        })
+      )
+    }
     position += patched.count
     return patched
   })
 
+  const isKnown = (email: ThreadEmailUpdate): boolean =>
+    listed.has(email.id) ||
+    members.has(email.id) ||
+    (isCollapsed &&
+      email.threadId !== undefined &&
+      listedThreads.has(email.threadId))
   return {
     data: {
       pages: pages.map(page => ({
@@ -79,7 +160,6 @@ export function patchQueryList(
       pageParams: pages.map(page => page.position)
     },
     needsRefresh:
-      changed.some(email => !listed.has(email.id)) ||
-      (isCollapsed && removed > 0)
+      changed.some(email => !isKnown(email)) || (isCollapsed && removed > 0)
   }
 }

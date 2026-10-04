@@ -9,6 +9,10 @@ import {
 import { patchEmailList } from '@common/features/thread/patchEmailList'
 import { patchQueryList } from '@common/features/thread/patchQueryList'
 import {
+  patchThreadList,
+  type ThreadEmailUpdate
+} from '@common/features/thread/patchThreadList'
+import {
   conversationKeys,
   threadKeys,
   type ConversationData,
@@ -109,12 +113,13 @@ function countIn(
 /**
  * Shows `changes` at once, before the server confirms them:
  *
- * - every loaded email list, through `patchEmailList` (`patchQueryList`
- *   for search results and lists of conversations), and the open
- *   conversations, as if push had brought them: an email leaving a folder is removed, one entering it is
- *   inserted where it sorts (when its row is known), keywords follow. The
- *   pages keep their JMAP state, so the push of the same change later
- *   finds the lists already right and changes nothing;
+ * - every loaded email list, through `patchEmailList` (`patchThreadList`
+ *   for lists of conversations, `patchQueryList` for search results), and
+ *   the open conversations, as if push had brought them: an email leaving
+ *   a folder is removed, one entering it is inserted where it sorts (when
+ *   its row is known), keywords follow, conversations take the state of
+ *   their emails. The pages keep their JMAP state, so the push of the same
+ *   change later finds the lists already right and changes nothing;
  * - the opened emails (mailboxes, keywords; null once destroyed);
  * - the counters of the mailboxes involved. Push replaces them with the
  *   counts of the server afterwards, which are absolute: nothing is
@@ -142,6 +147,19 @@ export function applyEmailChanges(
   const leaving = changes.flatMap(({ before, after }) =>
     after !== null && !rows.has(before.id) ? [after] : []
   )
+  // Every changed email, a row or not: the members of conversations
+  const updates = changes.flatMap(({ before, after }): ThreadEmailUpdate[] =>
+    after === null
+      ? []
+      : [
+          {
+            ...rows.get(before.id),
+            id: before.id,
+            mailboxIds: after.mailboxIds,
+            keywords: after.keywords
+          }
+        ]
+  )
 
   for (const [key, data] of queryClient.getQueriesData<EmailListData>({
     queryKey: threadKeys.all(accountId)
@@ -149,20 +167,29 @@ export function applyEmailChanges(
     if (data === undefined) continue
     const mailboxId = listMailboxId(key, accountId)
     if (mailboxId === null) {
-      // Search results keep their emails where they are, in their new state;
-      // conversations leave the folder they leave (push brings the email
-      // standing for them next)
+      // Conversations follow their emails (push brings what the list cannot
+      // place alone); search results keep their emails where they are, in
+      // their new state
       const conversationsOf = conversationListMailboxId(key, accountId)
-      if (isSearchList(key, accountId) || conversationsOf !== null) {
+      if (conversationsOf !== null) {
         queryClient.setQueryData<EmailListData>(key, current =>
           current
-            ? patchQueryList(
-                current,
-                { changed, destroyed, newStates: new Map() },
-                conversationsOf === null
-                  ? {}
-                  : { mailboxId: conversationsOf, isCollapsed: true }
-              ).data
+            ? patchThreadList(current, conversationsOf, {
+                changed: updates,
+                destroyed,
+                newStates: new Map(),
+                rows
+              }).data
+            : current
+        )
+      } else if (isSearchList(key, accountId)) {
+        queryClient.setQueryData<EmailListData>(key, current =>
+          current
+            ? patchQueryList(current, {
+                changed: updates,
+                destroyed,
+                newStates: new Map()
+              }).data
             : current
         )
       }

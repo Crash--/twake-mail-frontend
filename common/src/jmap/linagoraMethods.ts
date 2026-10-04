@@ -1,4 +1,4 @@
-import type { ExtensionMethodCapabilities } from 'jmap-client-ts'
+import { CAPABILITIES, type ExtensionMethodCapabilities } from 'jmap-client-ts'
 
 /**
  * JMAP methods of Linagora's tmail-backend the app calls, declared to
@@ -29,8 +29,29 @@ export interface ContactAutocompleteResponse {
   list: TMailContact[]
 }
 
+/** Capability of `Mailbox/clear`, destroying every email of a mailbox */
+export const MAILBOX_CLEAR_CAPABILITY = 'com:linagora:params:jmap:mailbox:clear'
+
+export interface MailboxClearArgs {
+  accountId: string
+  mailboxId: string
+}
+
+/** How many emails went, or why none did */
+export interface MailboxClearResponse {
+  accountId: string
+  totalDeletedMessagesCount?: number
+  notCleared?: { type: string; description?: string | null } | null
+}
+
 declare module 'jmap-client-ts' {
   interface JmapMethods {
+    'Mailbox/clear': {
+      // tmail-backend also asks for the mail capability
+      capability: typeof MAILBOX_CLEAR_CAPABILITY | typeof CAPABILITIES.mail
+      args: MailboxClearArgs
+      response: MailboxClearResponse
+    }
     'TMailContact/autocomplete': {
       capability: typeof CONTACT_AUTOCOMPLETE_CAPABILITY
       args: ContactAutocompleteArgs
@@ -41,5 +62,6 @@ declare module 'jmap-client-ts' {
 
 /** The `methodCapabilities` option of `createClient` */
 export const LINAGORA_METHOD_CAPABILITIES: ExtensionMethodCapabilities = {
+  'Mailbox/clear': [MAILBOX_CLEAR_CAPABILITY, CAPABILITIES.mail],
   'TMailContact/autocomplete': CONTACT_AUTOCOMPLETE_CAPABILITY
 }

@@ -14,6 +14,7 @@ import {
   useState,
   type ReactElement
 } from 'react'
+import { useLocation } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import {
@@ -72,6 +73,20 @@ function getRowProps(row: VirtualizedTableRow): RowAttributes {
   return attributes
 }
 
+/** Router state of the list: the email to focus, when coming back from it */
+export interface EmailListLocationState {
+  focusEmailId: string
+}
+
+function readFocusEmailId(state: unknown): string | null {
+  return typeof state === 'object' &&
+    state !== null &&
+    'focusEmailId' in state &&
+    typeof state.focusEmailId === 'string'
+    ? state.focusEmailId
+    : null
+}
+
 export interface EmailListProps {
   mailboxId: string
 }
@@ -90,6 +105,12 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
   const showRecipients = role !== null && RECIPIENT_ROLES.includes(role)
   const emails = useMemo(() => flattenPages(query.data), [query.data])
   const total = query.data?.pages[0]?.total ?? null
+  const location = useLocation()
+  const focusEmailId = readFocusEmailId(location.state)
+  const focusedIndex =
+    focusEmailId === null
+      ? -1
+      : emails.findIndex(email => email.id === focusEmailId)
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
   const { mutate: setKeyword } = useSetKeyword()
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
@@ -236,6 +257,7 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
           columns={columns}
           computeItemKey={computeRowKey}
           getRowProps={getRowProps}
+          focusedRowIndex={focusedIndex === -1 ? null : focusedIndex}
           endReached={handleEndReached}
           rangeChanged={handleRangeChanged}
           increaseViewportBy={OVERSCAN_PX}

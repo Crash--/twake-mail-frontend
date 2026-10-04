@@ -26,7 +26,8 @@ function OpenedEmail(): ReactElement {
 
 function renderList(
   jmapServer: FakeJmapServer,
-  mailboxId = 'mailbox-inbox'
+  mailboxId = 'mailbox-inbox',
+  state: unknown = null
 ): ReturnType<typeof renderWithProviders> {
   return renderWithProviders(
     <VirtuosoMockContext.Provider
@@ -35,7 +36,7 @@ function renderList(
       <EmailList mailboxId={mailboxId} />
     </VirtuosoMockContext.Provider>,
     {
-      route: `/mailbox/${mailboxId}`,
+      route: { pathname: `/mailbox/${mailboxId}`, state },
       path: '/mailbox/:mailboxId',
       withJmapSession: true,
       jmapServer,
@@ -313,5 +314,19 @@ describe('EmailList', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       'You have new messages'
     )
+  })
+
+  it('gives the focus back to the email the user comes back from', async () => {
+    renderList(makeFakeJmapServer({ emails: makeEmails(3) }), 'mailbox-inbox', {
+      focusEmailId: 'e0'
+    })
+
+    // The first row: virtuoso does not render a list scrolled to another
+    // row without layout (jsdom); the e2e keyboard spec covers that case
+    const [row] = await screen.findAllByTestId('email-list-item')
+    if (!row) throw new Error('No row')
+    await waitFor(() => {
+      expect(within(row).getByRole('link')).toHaveFocus()
+    })
   })
 })

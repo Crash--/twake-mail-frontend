@@ -11,11 +11,12 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
-import { useMemo, type ReactElement } from 'react'
+import { useEffect, useMemo, useRef, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import type { EmailListLocationState } from '@common/features/thread/EmailList'
 import { formatFullDate } from '@common/features/thread/formatListDate'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
@@ -94,6 +95,13 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
     part => !part.cid || !referencedCids.has(normalizeCid(part.cid))
   )
   const backLabel = t('common.back')
+  const subjectRef = useRef<HTMLHeadingElement>(null)
+
+  // The list the email replaces is gone: the focus moves to the subject,
+  // where a screen reader starts reading the email
+  useEffect(() => {
+    subjectRef.current?.focus()
+  }, [])
 
   return (
     <Box className="u-p-1" data-testid="email-view">
@@ -110,8 +118,10 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
       </Box>
       <Box className="u-ph-1">
         <Typography
+          ref={subjectRef}
           variant="h3"
           component="h1"
+          tabIndex={-1}
           data-testid="email-view-subject"
         >
           {email.subject ?? ''}
@@ -187,7 +197,9 @@ export function EmailView({
   const query = useEmail(emailId)
 
   const handleBack = (): void => {
-    void navigate(`/mailbox/${encodeURIComponent(mailboxId)}`)
+    void navigate(`/mailbox/${encodeURIComponent(mailboxId)}`, {
+      state: { focusEmailId: emailId } satisfies EmailListLocationState
+    })
   }
 
   if (query.isPending) {

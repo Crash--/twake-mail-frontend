@@ -215,6 +215,18 @@ describe('EmailView', () => {
     expect(screen.getByText('The list')).toBeVisible()
   })
 
+  it('moves the focus to the subject when it opens', async () => {
+    renderView(
+      makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody({ id: 'e1', subject: 'Focused' }, { text: 'Hi' })
+        ]
+      })
+    )
+
+    expect(await screen.findByTestId('email-view-subject')).toHaveFocus()
+  })
+
   it('says when the email does not exist', async () => {
     renderView(makeFakeJmapServer({ emails: [makeEmail({ id: 'other' })] }))
 

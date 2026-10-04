@@ -22,6 +22,8 @@ import {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
+  useId,
   useMemo,
   type ComponentProps,
   type KeyboardEvent,
@@ -187,13 +189,48 @@ export interface VirtualizedListTableProps extends Omit<
   rowCount?: number | null
   /** Attributes of the `tr` of a row: `data-*` ids and states, `aria-*` */
   getRowProps?: (row: VirtualizedTableRow) => RowAttributes
+  /**
+   * Row to show and focus when the table mounts, e.g. the email the user
+   * comes back from: its `RowLink` gets the focus, its position the scroll
+   */
+  focusedRowIndex?: number | null
   'data-testid'?: string
+}
+
+/** Frames to wait for the row to focus to be rendered */
+const FOCUS_FRAMES = 30
+
+/** Focuses the `ROW_FOCUS_ATTRIBUTE` element of a row once it is rendered */
+function useFocusRowOnMount(tableId: string, index: number | null): void {
+  useEffect(() => {
+    if (index === null) return
+    let frame = 0
+    let handle = 0
+    const tryFocus = (): void => {
+      const target = document
+        .getElementById(tableId)
+        ?.querySelector(`tr[data-index="${index}"] [${ROW_FOCUS_ATTRIBUTE}]`)
+      if (target instanceof HTMLElement) {
+        target.focus()
+      } else if (frame < FOCUS_FRAMES) {
+        frame += 1
+        handle = requestAnimationFrame(tryFocus)
+      }
+    }
+    tryFocus()
+    return () => {
+      cancelAnimationFrame(handle)
+    }
+    // On mount only: later changes of the index are the list moving
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 }
 
 /**
  * A `VirtualizedTable` shaped as a list: fixed layout, readable cells,
  * column headers for screen readers only, attributes on the rows, and the
- * arrow keys moving between rows. Rows are not clickable by themselves: put
+ * arrow keys moving between rows, focus restored on a row when coming back
+ * to the list. Rows are not clickable by themselves: put
  * a `RowLink` in a cell to make the whole row a real link.
  */
 export function VirtualizedListTable({
@@ -201,15 +238,33 @@ export function VirtualizedListTable({
   rowCount = null,
   getRowProps,
   columns,
+  focusedRowIndex = null,
   ...props
 }: VirtualizedListTableProps): ReactElement {
+  const tableId = useId()
+  useFocusRowOnMount(tableId, focusedRowIndex)
   const settings = useMemo<ListTableSettings>(
     () => ({ label, rowCount, columns, getRowProps: getRowProps ?? null }),
     [label, rowCount, columns, getRowProps]
   )
   return (
     <ListTableContext.Provider value={settings}>
-      <VirtualizedTable {...props} columns={columns} components={COMPONENTS} />
+      <VirtualizedTable
+        {...props}
+        id={tableId}
+        // Not even undefined otherwise: virtuoso would render no row. The
+        // first rows are in view anyway
+        {...(focusedRowIndex === null || focusedRowIndex === 0
+          ? {}
+          : {
+              initialTopMostItemIndex: {
+                index: focusedRowIndex,
+                align: 'center' as const
+              }
+            })}
+        columns={columns}
+        components={COMPONENTS}
+      />
     </ListTableContext.Provider>
   )
 }

@@ -14,7 +14,7 @@ import {
   useState,
   type ReactElement
 } from 'react'
-import { useLocation } from 'react-router'
+import { useLocation, useMatch } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { FLOATING_ACTION_INSET } from '@/ds/FloatingActionButton/FloatingActionButton'
@@ -118,6 +118,13 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
     focusEmailId === null
       ? -1
       : emails.findIndex(email => email.id === focusEmailId)
+  // Beside the list on large tablets: its row is the selected one
+  const openEmailId =
+    useMatch('/mailbox/:mailboxId/email/:emailId')?.params.emailId ?? null
+  const isOpenEmail = useCallback(
+    (row: VirtualizedTableRow): boolean => row.id === openEmailId,
+    [openEmailId]
+  )
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
   const { mutate: setKeyword } = useSetKeyword()
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
@@ -254,11 +261,12 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
             showRecipients={showRecipients}
             onToggleStar={handleToggleStar}
             onToggleSeen={handleToggleSeen}
+            openEmailId={openEmailId}
           />
         )
       }
     }),
-    [mailboxId, showRecipients, handleToggleStar, handleToggleSeen]
+    [mailboxId, showRecipients, handleToggleStar, handleToggleSeen, openEmailId]
   )
 
   let content: ReactElement
@@ -299,6 +307,7 @@ export function EmailList({ mailboxId }: EmailListProps): ReactElement {
           bottomInset={bottomInset}
           computeItemKey={computeRowKey}
           getRowProps={getRowProps}
+          isSelectedItem={isOpenEmail}
           focusedRowIndex={focusedIndex === -1 ? null : focusedIndex}
           endReached={handleEndReached}
           rangeChanged={handleRangeChanged}

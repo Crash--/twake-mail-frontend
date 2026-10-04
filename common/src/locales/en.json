@@ -54,7 +54,8 @@
     "notFound": "This message no longer exists",
     "markAsRead": "Mark as read",
     "markAsUnread": "Mark as unread",
-    "starred": "Starred"
+    "starred": "Starred",
+    "noneSelected": "No email selected"
   },
   "login": {
     "title": "Sign In",

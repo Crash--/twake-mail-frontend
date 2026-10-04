@@ -45,11 +45,9 @@ export function AppRoutes({
           }
         >
           <Route index element={<DefaultMailboxRedirect />} />
-          <Route path="/mailbox/:mailboxId" element={<MailboxPage />} />
-          <Route
-            path="/mailbox/:mailboxId/email/:emailId"
-            element={<EmailPage />}
-          />
+          <Route path="/mailbox/:mailboxId" element={<MailboxPage />}>
+            <Route path="email/:emailId" element={<EmailPage />} />
+          </Route>
           {debug ? (
             <Route
               path="/spike/composer"

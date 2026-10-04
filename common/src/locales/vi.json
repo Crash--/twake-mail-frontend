@@ -54,7 +54,8 @@
     "notFound": "Thư này không còn tồn tại",
     "markAsRead": "Đánh dấu đã đọc",
     "markAsUnread": "Đánh dấu chưa đọc",
-    "starred": "Quan trọng"
+    "starred": "Quan trọng",
+    "noneSelected": "Chưa có email được lựa chọn"
   },
   "login": {
     "title": "Đăng nhập",

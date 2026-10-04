@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { makeEmail, makeFakeJmapServer } from '@common/testing/fakeJmapServer'
 import {
   makeFakeBasicAuthService,
@@ -128,5 +129,60 @@ describe('AppRoutes', () => {
     expect(
       await screen.findByTestId('callback-error-action')
     ).toHaveTextContent('Reconnect')
+  })
+
+  describe('on smaller screens', () => {
+    afterEach(resetViewport)
+
+    function renderEmail(): void {
+      renderWithProviders(<AppRoutes apps={[]} />, {
+        route: '/mailbox/mailbox-inbox/email/e1',
+        jmapServer: makeFakeJmapServer({
+          emails: [
+            makeEmail({ id: 'e1', subject: 'Hello Alice' }),
+            makeEmail({ id: 'e2', subject: 'Lunch' })
+          ]
+        })
+      })
+    }
+
+    it('shows the email instead of the list on a phone', async () => {
+      mockViewport({ width: 390, touch: true })
+      renderEmail()
+
+      expect(await screen.findByTestId('email-view-subject')).toHaveTextContent(
+        'Hello Alice'
+      )
+      expect(screen.queryByTestId('email-list')).toBe(null)
+      // Reading fills the screen: no floating button over it
+      expect(screen.queryByTestId('compose-email-button')).toBe(null)
+    })
+
+    it('shows the list beside the email on a large tablet', async () => {
+      mockViewport({ width: 1024 })
+      renderEmail()
+
+      expect(await screen.findByTestId('email-view-subject')).toHaveTextContent(
+        'Hello Alice'
+      )
+      expect(
+        await screen.findByRole('table', { name: 'Messages' })
+      ).toBeInTheDocument()
+      expect(screen.getByTestId('compose-email-button')).toBeInTheDocument()
+    })
+
+    it('fills the room beside the list until an email is open', async () => {
+      mockViewport({ width: 1024 })
+      renderWithProviders(<AppRoutes apps={[]} />, {
+        route: '/mailbox/mailbox-inbox',
+        jmapServer: makeFakeJmapServer({
+          emails: [makeEmail({ id: 'e1', subject: 'Hello Alice' })]
+        })
+      })
+
+      expect(await screen.findByTestId('email-view-empty')).toHaveTextContent(
+        'No email selected'
+      )
+    })
   })
 })

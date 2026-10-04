@@ -67,6 +67,8 @@ export interface EmailCellProps {
   showRecipients: boolean
   onToggleStar: (email: EmailListItemData) => void
   onToggleSeen: (email: EmailListItemData) => void
+  /** The email open beside the list, if any */
+  openEmailId: string | null
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -85,6 +87,7 @@ export function EmailCell({
   showRecipients,
   onToggleStar,
   onToggleSeen,
+  openEmailId,
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -181,7 +184,11 @@ export function EmailCell({
         correspondents
       ].filter(part => part !== null && part !== '')
       return (
-        <RowLink href={href} onNavigate={handleNavigate}>
+        <RowLink
+          href={href}
+          onNavigate={handleNavigate}
+          current={email.id === openEmailId}
+        >
           <span className="u-visuallyhidden">{`${context.join(', ')}, `}</span>
           <span className={emphasis} data-testid="email-list-item-subject">
             {email.subject ?? ''}
@@ -210,7 +217,12 @@ export function EmailCell({
         isStarred ? t('email.starred') : null
       ].filter(state => state !== null)
       return (
-        <RowLink href={href} onNavigate={handleNavigate} multiline>
+        <RowLink
+          href={href}
+          onNavigate={handleNavigate}
+          current={email.id === openEmailId}
+          multiline
+        >
           {states.length > 0 ? (
             <span className="u-visuallyhidden">{`${states.join(', ')}, `}</span>
           ) : null}

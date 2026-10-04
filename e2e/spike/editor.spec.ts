@@ -1,5 +1,4 @@
-import AxeBuilder from '@axe-core/playwright'
-
+import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 import { SpikeComposer } from './SpikeComposer'
 
@@ -117,62 +116,19 @@ test('SPIKE-AXE no WCAG 2.1 AA violation in the composer, its menus and its link
   const composer = await new SpikeComposer(page).open(user)
   await composer.editor.click()
   await page.keyboard.type('Some text')
-  // The editor, its toolbar, menus and dialog; the rest of the page (app
-  // shell, MUI text fields of the spike page) is reported apart
-  const axe = (): AxeBuilder =>
-    new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .include('[role="toolbar"]')
-      .include('.ProseMirror')
-      .include('[role="menu"]')
-      .include('[role="dialog"]')
-  const whole = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-    .analyze()
-  console.log(
-    'Whole page (out of the editor):',
-    JSON.stringify(
-      whole.violations.map(violation => ({
-        id: violation.id,
-        nodes: violation.nodes.map(node => node.target.join(' '))
-      }))
-    )
-  )
-  const results = [await axe().analyze()]
+  // The whole page: the twake-mui theme contrasts (TextField label, contained
+  // primary button) are the known violations of support/a11y.ts
+  await expectNoA11yViolations(page)
   await composer.button('Text Color').click()
   await expect(page.getByRole('menu')).toBeVisible()
   // After the fade in: axe reads the colours of a half transparent menu
   await expect(page.locator('.MuiMenu-paper')).toHaveCSS('opacity', '1')
-  results.push(await axe().analyze())
+  await expectNoA11yViolations(page)
   await page.keyboard.press('Escape')
   await expect(page.getByRole('menu')).toHaveCount(0)
   await expect(composer.editor).toBeFocused()
   await page.keyboard.press('Control+K')
   await expect(page.getByRole('dialog')).toBeVisible()
   await expect(page.getByTestId('link-dialog-url-input')).toBeFocused()
-  results.push(await axe().analyze())
-  const all = results.flatMap(result =>
-    result.violations.map(violation => ({
-      id: violation.id,
-      impact: violation.impact,
-      nodes: violation.nodes.map(node => ({
-        target: node.target.join(' '),
-        summary: node.failureSummary ?? ''
-      }))
-    }))
-  )
-  console.log('All (editor scope):', JSON.stringify(all, null, 1))
-  // twake-mui theme contrast (TextField label, contained primary button),
-  // recorded in docs/twake-mui-gaps.md; also fails on the app shell
-  const isTwakeMuiTheme = (target: string): boolean =>
-    /-label$/.test(target) || target.includes('MuiButton-contained')
-  const violations = all
-    .map(violation => ({
-      ...violation,
-      nodes: violation.nodes.filter(node => !isTwakeMuiTheme(node.target))
-    }))
-    .filter(violation => violation.nodes.length > 0)
-  console.log('Editor:', JSON.stringify(violations, null, 1))
-  console.log('Rules passed:', results[0]?.passes.length, results[2]?.passes.length)
-  expect(violations).toEqual([])
+  await expectNoA11yViolations(page)
 })

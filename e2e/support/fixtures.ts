@@ -27,10 +27,29 @@ export interface E2EFixtures {
 export interface E2EOptions {
   /** Quota applied to `user`: `test.use({ userQuota: { count: 200, size: 50_000_000 } })` */
   userQuota: Quota | null
+  /**
+   * One row per email and the reading view of a single email, as with the "Thread" setting
+   * off (conversations are on by default): `test.use({ emailsOneByOne: true })` for the specs
+   * of that mode
+   */
+  emailsOneByOne: boolean
 }
+
+/** Where the app keeps the "Thread" setting (common/src/features/settings/threadPreference.ts) */
+const THREAD_PREFERENCE_STORAGE_KEY = 'twake-mail.preferences.thread'
 
 export const test = base.extend<E2EFixtures & E2EOptions>({
   userQuota: [null, { option: true }],
+  emailsOneByOne: [false, { option: true }],
+
+  page: async ({ page, emailsOneByOne }, use) => {
+    if (emailsOneByOne) {
+      await page.addInitScript(key => {
+        window.localStorage.setItem(key, 'false')
+      }, THREAD_PREFERENCE_STORAGE_KEY)
+    }
+    await use(page)
+  },
 
   // Playwright fixtures receive an empty destructuring pattern when they need no other fixture
   // eslint-disable-next-line no-empty-pattern

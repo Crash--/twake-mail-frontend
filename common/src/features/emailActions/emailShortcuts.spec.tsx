@@ -15,6 +15,7 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 function MailScreen(): ReactElement {
   return (
@@ -99,6 +100,8 @@ function rowLink(subject: string): HTMLElement {
 }
 
 describe('Email keyboard shortcuts', () => {
+  listEmailsOneByOne()
+
   it('moves between the rows and archives the focused one', async () => {
     const server = makeServer()
     renderMailScreen(server, '/mailbox/mailbox-inbox')

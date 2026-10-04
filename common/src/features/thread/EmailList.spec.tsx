@@ -13,6 +13,7 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EmailList } from './EmailList'
 import { EMAIL_LIST_PAGE_SIZE, threadKeys } from './queries'
@@ -66,6 +67,8 @@ function makeEmails(count: number): ReturnType<typeof makeEmail>[] {
 }
 
 describe('EmailList', () => {
+  listEmailsOneByOne()
+
   it('lists the emails of the mailbox, most recent first, in one request', async () => {
     const server = makeFakeJmapServer({
       emails: [

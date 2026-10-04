@@ -16,6 +16,7 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { findCachedEmail } from './optimisticEmailChanges'
 import { useEmailActions, type EmailActionName } from './useEmailActions'
@@ -118,6 +119,8 @@ function unreadCount(role: string): string | null {
 }
 
 describe('useEmailActions', () => {
+  listEmailsOneByOne()
+
   it('archives an email at once, then offers to undo', async () => {
     const server = makeServer()
     const release = server.holdRequests('Email/set')

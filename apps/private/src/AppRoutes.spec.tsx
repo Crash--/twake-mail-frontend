@@ -8,12 +8,15 @@ import {
   makeFakeOidcAuthService
 } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { AppRoutes } from './AppRoutes'
 
 const ANONYMOUS = { status: 'anonymous' } as const
 
 describe('AppRoutes', () => {
+  listEmailsOneByOne()
+
   it('opens the inbox of a signed-in user', async () => {
     renderWithProviders(<AppRoutes apps={[]} />, { route: '/' })
 

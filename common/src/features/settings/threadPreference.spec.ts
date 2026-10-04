@@ -11,14 +11,14 @@ function makeStorage(): Pick<Storage, 'getItem' | 'setItem'> {
 }
 
 describe('thread preference', () => {
-  it('is off by default, and remembered once switched on', () => {
+  it('is on by default, and remembered once switched off', () => {
     const storage = makeStorage()
-    expect(readThreadPreference(storage)).toBe(false)
-
-    storeThreadPreference(true, storage)
     expect(readThreadPreference(storage)).toBe(true)
 
     storeThreadPreference(false, storage)
     expect(readThreadPreference(storage)).toBe(false)
+
+    storeThreadPreference(true, storage)
+    expect(readThreadPreference(storage)).toBe(true)
   })
 })

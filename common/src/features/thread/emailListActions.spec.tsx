@@ -17,6 +17,7 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EmailList } from './EmailList'
 import { EMAIL_LIST_PAGE_SIZE } from './queries'
@@ -115,6 +116,8 @@ function emailSets(server: FakeJmapServer): Record<string, unknown>[] {
 }
 
 describe('Acting on emails of the list', () => {
+  listEmailsOneByOne()
+
   it('selects emails one by one and by range, then acts on them at once', async () => {
     const server = makeServer()
     await renderList(server)

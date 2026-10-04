@@ -11,6 +11,7 @@ import {
 } from '@common/testing/fakeJmapServer'
 import { readObjectUrl } from '@common/testing/objectUrls'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EMAIL_FRAME_SANDBOX } from './EmailBodyFrame'
 import { EmailView } from './EmailView'
@@ -45,6 +46,8 @@ async function findBodyDocument(): Promise<string> {
 }
 
 describe('EmailView', () => {
+  listEmailsOneByOne()
+
   it('shows the headers of the email', async () => {
     renderView(
       makeFakeJmapServer({

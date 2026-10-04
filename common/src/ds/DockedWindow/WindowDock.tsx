@@ -1,0 +1,42 @@
+// Upstream to twake-ui: yes, with DockedWindow.
+import { Box } from '@linagora/twake-mui'
+import type { ReactElement, ReactNode } from 'react'
+
+/** Space between the windows and from the edge of the screen, in px */
+export const DOCK_GAP = 8
+export const DOCK_MARGIN = 16
+
+export interface WindowDockProps {
+  /** The windows, the newest first: it sits at the end of the line */
+  children: ReactNode
+  'data-testid'?: string
+}
+
+/**
+ * The line of `DockedWindow`s at the bottom end of the screen, the newest
+ * at the end. It only takes the clicks its windows take: the page under
+ * its empty part stays usable.
+ */
+export function WindowDock({
+  children,
+  'data-testid': testId
+}: WindowDockProps): ReactElement {
+  return (
+    <Box
+      className="u-flex u-flex-items-end"
+      sx={{
+        position: 'fixed',
+        right: `calc(${DOCK_MARGIN}px + env(safe-area-inset-right))`,
+        bottom: 0,
+        left: DOCK_MARGIN,
+        flexDirection: 'row-reverse',
+        gap: `${DOCK_GAP}px`,
+        pointerEvents: 'none',
+        zIndex: theme => theme.zIndex.drawer + 1
+      }}
+      data-testid={testId}
+    >
+      {children}
+    </Box>
+  )
+}

@@ -148,7 +148,10 @@ test.describe('THR thread detail', () => {
     await expect(mailbox.emailRowThreadCount(`Re: ${SUBJECT}`)).toHaveText(/^3/)
     await expectNoA11yViolations(page)
 
-    await row.click()
+    // A finger on touch screens: a mouse left over the toolbar of the
+    // conversation would show its tooltip once the view transition ends
+    if (test.info().project.use.hasTouch === true) await row.tap()
+    else await row.click()
     const conversation = await new ConversationPage(page).expectLoaded(
       `Re: ${SUBJECT}`
     )

@@ -84,23 +84,45 @@ const ROW_SX = {
 } as const
 
 /**
+ * Moves the focus to the `ROW_FOCUS_ATTRIBUTE` control of the row after
+ * (`1`) or before (`-1`) the row holding `from`; from outside the rows, to
+ * the first row. Virtuoso renders rows beyond the viewport, and focusing
+ * one scrolls it into view. Returns whether the focus moved.
+ */
+export function moveRowFocus(
+  table: Element,
+  from: Element | null,
+  direction: 1 | -1
+): boolean {
+  const row = from?.closest('tr') ?? null
+  const sibling =
+    row === null || !table.contains(row)
+      ? table.querySelector(`tr [${ROW_FOCUS_ATTRIBUTE}]`)?.closest('tr')
+      : direction === 1
+        ? row.nextElementSibling
+        : row.previousElementSibling
+  const target = sibling?.querySelector(`[${ROW_FOCUS_ATTRIBUTE}]`)
+  if (!(target instanceof HTMLElement)) return false
+  target.focus()
+  return true
+}
+
+/**
  * ArrowDown / ArrowUp move the focus to the same control of the next or
- * previous row; virtuoso renders rows beyond the viewport, and focusing one
- * scrolls it into view.
+ * previous row.
  */
 function handleArrowKeys(event: KeyboardEvent<HTMLTableElement>): void {
   if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
   if (!(event.target instanceof HTMLElement)) return
   if (!event.target.hasAttribute(ROW_FOCUS_ATTRIBUTE)) return
-  const row = event.target.closest('tr')
-  const sibling =
-    event.key === 'ArrowDown'
-      ? row?.nextElementSibling
-      : row?.previousElementSibling
-  const target = sibling?.querySelector(`[${ROW_FOCUS_ATTRIBUTE}]`)
-  if (target instanceof HTMLElement) {
+  if (
+    moveRowFocus(
+      event.currentTarget,
+      event.target,
+      event.key === 'ArrowDown' ? 1 : -1
+    )
+  ) {
     event.preventDefault()
-    target.focus()
   }
 }
 

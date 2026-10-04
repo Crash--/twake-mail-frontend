@@ -37,6 +37,12 @@ export const TWAKE_MUI_KNOWN_VIOLATIONS: readonly KnownViolation[] = [
   },
   {
     rule: 'color-contrast',
+    selector: '.MuiButton-text.MuiButton-colorPrimary',
+    reason:
+      'twake-mui text primary Button: #0a84ff on white, 3.6:1 (docs/twake-mui-gaps.md)'
+  },
+  {
+    rule: 'color-contrast',
     selector:
       '.MuiListItemButton-root.Mui-selected, .MuiListItemButton-root.Mui-selected *',
     reason:

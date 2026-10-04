@@ -12,7 +12,7 @@ add it here when a page object starts using it.
 | `MailboxPage` | `mailbox_folder_robot.dart`, `mailbox_menu_robot.dart`, `mailbox_navigation_robot.dart`, `mailbox_assertion_robot.dart`, `mailbox_empty_trash_robot.dart`, `thread_robot.dart`, `thread_assertion_robot.dart`, `thread_empty_trash_robot.dart` |
 | `EmailPage` | `email_robot.dart`, `email_address_dialog_robot.dart` |
 | `ComposerPage` | `composer_robot.dart`, `web/web_composer_robot.dart`, `identities_list_menu_robot.dart` |
-| (to write) `SearchPage` | `search_robot.dart`, `search_*_robot.dart`, `web/web_search_*_robot.dart` |
+| `SearchPage` | `search_robot.dart`, `search_*_robot.dart`, `web/web_search_*_robot.dart` |
 | (to write) `SettingsPage` | `setting_robot.dart`, `preferences_robot.dart`, `profiles_robot.dart`, `language_robot.dart`, `identity_creator_robot.dart`, `web/web_email_rules_setting_robot.dart`, `web/web_rules_filter_creator_robot.dart` |
 | (to write) `LabelModals` | `labels/*_robot.dart` |
 
@@ -118,6 +118,30 @@ Conventions:
 | `email-address` / `email-address-dialog` | clickable address and its dialog (copy, compose, create rule) | `copy_email_address`, `email_address_dialog_close_button` |
 | `calendar-event-card` | iMIP invitation card | `CalendarEventCardWidget` |
 
+## Phase 2 — search (`SearchPage`)
+
+| `data-testid` | Element | Flutter key |
+|---|---|---|
+| `search-bar` | the search field of the top bar and its suggestions | `SearchInputFormWidget` |
+| `search-input` | the field (`role="combobox"`, `aria-expanded`, `aria-activedescendant`) | `search_email_text_field` |
+| `search-clear-button` | clears the field | — |
+| `search-suggestions` | the suggestions (`role="listbox"`, groups "Recent", "Contacts", "Messages") | — |
+| `search-suggestion-show-all` | "Search for "…"": every result | `showingResultsFor` row |
+| `search-suggestion-recent` / `search-suggestion-contact` / `search-suggestion-item` | a recent search, a contact, an email | `RecentSearchItemTileWidget`, `ContactQuickSearchItem`, `EmailQuickSearchItemTileWidget` |
+| `quick-search-filters` + `quick-search-filter-<filter>` (`has-attachment`, `last-7-days`, `from-me`, `starred`) | quick filters above the suggestions (`aria-pressed`) | `quick_search_filter_button_<filter>` |
+| `advanced-search-button` | opens the advanced search | `UiKeys.openAdvancedSearchButton` |
+| `advanced-search-dialog` | the advanced search (`role="dialog"`); fields `advanced-search-{from,to,subject,text,not-words}-input`, `advanced-search-{folder,date,sort}-select`, checkboxes by label | `advanced_search_view` |
+| `advanced-search-submit-button` / `advanced-search-clear-button` | Search / Clear filter | `UiKeys.advancedSearchSearchButton`, `clear_filter_button` |
+| `search-page` / `search-results` | the results screen (`/search?…`) and its list pane | — |
+| `search-results-title` / `search-results-back-button` | its heading (focused when it opens) and back to the mailboxes | `search_email_back_button` |
+| `search-filters-bar` | the filters above the results (`role="toolbar"`) | — |
+| `search-filter-<filter>` (`folder`, `date-time`, `has-attachment`, `starred`, `unread`, `sort-by`) | a filter (`aria-pressed`, or `aria-haspopup="menu"` for folder, date and order) | `<filter>_search_filter_button`, `sortBy_search_filter_button` |
+| `search-filter-menu` | the menu of a filter (`menuitemradio` items) | — |
+| `search-filter-removable` | a sender, recipient, subject or excluded words filter, removed on click | — |
+| `search-clear-filter-button` | "Clear filter" | `clear_filter_button` |
+| `email-list-item-mailbox` | the folders of a result, in its row | `mailboxContain` |
+| `empty-search-view` | no result | `UiKeys.emptySearchEmailView` |
+
 ## Later phases (planned, used by `ComposerPage` already)
 
 | `data-testid` | Element | Flutter key |
@@ -133,10 +157,6 @@ Conventions:
 | `composer-more-button` + `composer-save-draft-item`, `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
 | `composer-attach-file-button` / `composer-attachment-item` | attachments | — |
 | `composer-identity-select` | From identity picker | `identities_list_menu_robot` |
-| `search-input` / `search-suggestion-item` | search bar (`search-input` is the field of the top bar already; `search-back-button` is listed with the shell) | `search_email_text_field` |
-| `search-filter-<filter>` (`date-time`, `sort-by`, `labels`, `has-attachment`) | quick search filters | `quick_search_filter_button_<filter>`, `dateTime_search_filter_button`… |
-| `advanced-search-button` / `advanced-search-submit-button` | advanced search | `UiKeys.openAdvancedSearchButton`, `UiKeys.advancedSearchSearchButton` |
-| `empty-search-view` | no result | `UiKeys.emptySearchEmailView` |
 | `settings-menu-<section>` (`preferences`, `profiles`, `email-rules`, `language-region`) | settings navigation | `setting_preferences`, `setting_profiles`, `setting_email_rules`, `setting_language_region` |
 | `create-rule-button` / `email-rule-item` / `email-rule-edit-button` | email rules | `UiKeys.createRuleButton`, `editEmailRuleButton_<name>` |
 | `label-item` / `add-new-label-button` / `label-modal` / `label-name-input` / `label-save-button` | labels | `UiKeys.addNewLabelButton`, `create_new_label_modal`, `label_name_input_field`, `save_label_button_action` |

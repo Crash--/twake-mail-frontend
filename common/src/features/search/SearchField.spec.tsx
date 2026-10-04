@@ -229,4 +229,18 @@ describe('SearchField', () => {
       'No suggestions. The quick filters follow the search field.'
     )
   })
+
+  it('runs the quick filters picked under an empty field from an option', async () => {
+    await renderField(makeServer())
+    await userEvent.click(combobox())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Starred' }))
+    await userEvent.click(
+      screen.getByRole('option', { name: 'Search with these filters' })
+    )
+
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/search?starred=1&sort=relevance'
+    )
+  })
 })

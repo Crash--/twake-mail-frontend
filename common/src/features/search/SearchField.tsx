@@ -19,6 +19,7 @@ import { HighlightedText } from './HighlightedText'
 import { QuickSearchFilters } from './QuickSearchFilters'
 import {
   EMPTY_SEARCH_FILTER,
+  isEmptySearch,
   searchPath,
   toSearchParams,
   withTypedText,
@@ -58,6 +59,9 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false)
   const suggestions = useSearchSuggestions(draft.text, draft, context, isOpen)
   const hasText = draft.text.trim() !== ''
+  // Filters picked under an empty field: an option runs them, as "Search
+  // for …" does for a text (Enter alone is no help to a mouse or a finger)
+  const hasFiltersOnly = !hasText && !isEmptySearch(draft)
   const fieldActions = useRef<SearchComboboxActions>(null)
   useShortcuts({ '/': () => fieldActions.current?.focus() })
 
@@ -76,15 +80,18 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
   }
 
   const groups = useMemo((): SearchComboboxGroup[] => {
-    const showAll: SearchComboboxOption[] = hasText
-      ? [
-          {
-            id: SHOW_ALL,
-            label: t('search.searchFor', { text: draft.text.trim() }),
-            'data-testid': 'search-suggestion-show-all'
-          }
-        ]
-      : []
+    const showAll: SearchComboboxOption[] =
+      hasText || hasFiltersOnly
+        ? [
+            {
+              id: SHOW_ALL,
+              label: hasText
+                ? t('search.searchFor', { text: draft.text.trim() })
+                : t('search.searchWithFilters'),
+              'data-testid': 'search-suggestion-show-all'
+            }
+          ]
+        : []
     const recent = hasText
       ? suggestions.recent.slice(0, RECENT_WITH_TEXT)
       : suggestions.recent
@@ -136,7 +143,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
         }))
       }
     ]
-  }, [t, hasText, draft.text, suggestions])
+  }, [t, hasText, hasFiltersOnly, draft.text, suggestions])
 
   const handleSelect = (option: SearchComboboxOption): void => {
     if (option.id === SHOW_ALL) {

@@ -140,7 +140,7 @@ Conventions:
 | `search-input` | the field (`role="combobox"`, `aria-expanded`, `aria-activedescendant`) | `search_email_text_field` |
 | `search-clear-button` | clears the field | — |
 | `search-suggestions` | the suggestions (`role="listbox"`, groups "Recent", "Contacts", "Messages") | — |
-| `search-suggestion-show-all` | "Search for "…"": every result | `showingResultsFor` row |
+| `search-suggestion-show-all` | "Search for "…"": every result; "Search with these filters" when the field is empty and filters are picked | `showingResultsFor` row |
 | `search-suggestion-recent` / `search-suggestion-contact` / `search-suggestion-item` | a recent search, a contact, an email | `RecentSearchItemTileWidget`, `ContactQuickSearchItem`, `EmailQuickSearchItemTileWidget` |
 | `quick-search-filters` + `quick-search-filter-<filter>` (`has-attachment`, `last-7-days`, `from-me`, `starred`) | quick filters above the suggestions (`aria-pressed`) | `quick_search_filter_button_<filter>` |
 | `advanced-search-button` | opens the advanced search | `UiKeys.openAdvancedSearchButton` |

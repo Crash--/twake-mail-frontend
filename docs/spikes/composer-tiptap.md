@@ -298,7 +298,10 @@ Lab dans `/tmp/blocknote-lab`, recette pour le rejouer :
 
 Messages (`suitenumerique/messages`, MIT) écrit son composer avec BlockNote 0.52.
 
-**Repris** (adapté, avec attribution MIT dans le fichier) :
+**Repris ou convergent.** L'attribution MIT figure dans les deux fichiers qui empruntent
+réellement : `cleanPastedHtml.ts` (règle des couleurs) et `emailHtml.spec.tsx` (cas de test).
+Le bloc de citation atomique et le bloc de signature ont été conçus avant la lecture de Messages
+et convergent avec son design.
 
 - Le principe du nettoyage des couleurs au collage (`paste-sanitizer.ts`) : une couleur que
   l'utilisateur ne voit pas ne doit pas partir. Chez nous, on retire les noirs, gris foncés et

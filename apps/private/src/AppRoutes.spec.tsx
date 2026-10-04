@@ -17,7 +17,7 @@ describe('AppRoutes', () => {
 
     expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
       'data-mailbox-id',
-      'inbox'
+      'mailbox-inbox'
     )
     expect(screen.getByTestId('top-bar')).toBeInTheDocument()
     expect(screen.getByTestId('sidebar')).toBeInTheDocument()

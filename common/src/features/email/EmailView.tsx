@@ -11,7 +11,7 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
-import { useEffect, useMemo, useRef, type ReactElement } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
@@ -32,7 +32,9 @@ import {
   renderBodyParts
 } from './emailBody'
 import type { EmailDetail } from './queries'
+import { RemoteContentBanner } from './RemoteContentBanner'
 import { normalizeCid } from './sanitizeEmailHtml'
+import { useTrustedSender } from './trustedSenders'
 import { useEmail } from './useEmail'
 import { useInlineImageUrls } from './useInlineImageUrls'
 import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
@@ -78,22 +80,28 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
   )
   const referencedCids = useMemo(() => findReferencedCids(html), [html])
   const inlineImages = useInlineImageUrls(email.attachments, referencedCids)
-  const document = useMemo(
-    () =>
-      inlineImages.isLoading
-        ? null
-        : buildEmailDocument(
-            renderBodyParts(email.htmlBody, email.bodyValues, {
-              inlineImageUrls: inlineImages.urls
-            }).html
-          ),
-    [
-      email.htmlBody,
-      email.bodyValues,
-      inlineImages.isLoading,
-      inlineImages.urls
-    ]
-  )
+  // Remote content tells the sender when and where the email is read: it
+  // waits for the user, unless the sender is trusted
+  const trustedSender = useTrustedSender(sender?.email ?? null)
+  const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
+  const allowRemoteContent = isRemoteContentShown || trustedSender.isTrusted
+  const body = useMemo(() => {
+    if (inlineImages.isLoading) return null
+    const rendered = renderBodyParts(email.htmlBody, email.bodyValues, {
+      inlineImageUrls: inlineImages.urls,
+      allowRemoteContent
+    })
+    return {
+      document: buildEmailDocument(rendered.html, { allowRemoteContent }),
+      hasBlockedRemoteContent: rendered.blockedRemoteContent > 0
+    }
+  }, [
+    email.htmlBody,
+    email.bodyValues,
+    inlineImages.isLoading,
+    inlineImages.urls,
+    allowRemoteContent
+  ])
   // Inline images are shown in the body, not listed as attachments
   const attachments = email.attachments.filter(
     part => !part.cid || !referencedCids.has(normalizeCid(part.cid))
@@ -107,6 +115,16 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
   useEffect(() => {
     subjectRef.current?.focus()
   }, [])
+
+  // The banner goes away with its buttons: the focus goes back to the email
+  const handleShowRemoteContent = (): void => {
+    setIsRemoteContentShown(true)
+    subjectRef.current?.focus()
+  }
+  const handleAlwaysShowRemoteContent = (): void => {
+    trustedSender.trust()
+    handleShowRemoteContent()
+  }
 
   return (
     <Box className="u-p-1" data-testid="email-view">
@@ -180,10 +198,16 @@ function EmailContent({ email, onBack }: EmailContentProps): ReactElement {
         />
         <AttachmentList attachments={attachments} />
         <Divider className="u-mv-1" />
-        {document === null ? (
+        {body?.hasBlockedRemoteContent ? (
+          <RemoteContentBanner
+            onShow={handleShowRemoteContent}
+            onAlwaysShow={sender ? handleAlwaysShowRemoteContent : null}
+          />
+        ) : null}
+        {body === null ? (
           <ListSkeleton count={3} />
         ) : (
-          <EmailBodyFrame document={document} />
+          <EmailBodyFrame document={body.document} />
         )}
       </Box>
     </Box>
@@ -245,5 +269,8 @@ export function EmailView({
     )
   }
 
-  return <EmailContent email={query.data} onBack={handleBack} />
+  // A new email starts with its own choices (remote content)
+  return (
+    <EmailContent key={query.data.id} email={query.data} onBack={handleBack} />
+  )
 }

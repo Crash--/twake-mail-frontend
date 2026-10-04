@@ -55,7 +55,12 @@
     "markAsRead": "Đánh dấu đã đọc",
     "markAsUnread": "Đánh dấu chưa đọc",
     "starred": "Quan trọng",
-    "noneSelected": "Chưa có email được lựa chọn"
+    "noneSelected": "Chưa có email được lựa chọn",
+    "remoteContent": {
+      "hidden": "Hình ảnh từ xa đã bị ẩn để bảo vệ quyền riêng tư của bạn",
+      "show": "Hiển thị",
+      "alwaysShow": "Luôn hiển thị cho người gửi này"
+    }
   },
   "login": {
     "title": "Đăng nhập",

@@ -14,6 +14,10 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { EMAIL_FRAME_SANDBOX } from './EmailBodyFrame'
 import { EmailView } from './EmailView'
+import { TRUSTED_SENDERS_STORAGE_KEY } from './trustedSenders'
+
+const TRACKED_HTML =
+  '<p>Newsletter</p><img src="https://tracker.example.com/open.gif" alt="">'
 
 function renderView(
   jmapServer: FakeJmapServer,
@@ -235,6 +239,76 @@ describe('EmailView', () => {
     )
 
     expect(await screen.findByTestId('email-view-subject')).toHaveFocus()
+  })
+
+  describe('remote content', () => {
+    afterEach(() => {
+      window.localStorage.clear()
+    })
+
+    it('hides remote images until the user shows them', async () => {
+      renderView(
+        makeFakeJmapServer({
+          emails: [makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML })]
+        })
+      )
+
+      const banner = await screen.findByTestId('remote-content-banner')
+      expect(banner).toHaveAttribute('role', 'status')
+      expect(banner).toHaveTextContent('Remote images hidden')
+      const blocked = await findBodyDocument()
+      expect(blocked).toContain('<p>Newsletter</p>')
+      expect(blocked).not.toContain('tracker.example.com')
+      expect(blocked).toContain('img-src data: blob:;')
+
+      await userEvent.click(screen.getByRole('button', { name: 'Show' }))
+
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+      await waitFor(async () => {
+        expect(await findBodyDocument()).toContain(
+          'src="https://tracker.example.com/open.gif"'
+        )
+      })
+      expect(await findBodyDocument()).toContain('referrerpolicy="no-referrer"')
+      expect(screen.getByTestId('email-view-subject')).toHaveFocus()
+    })
+
+    it('always shows the remote images of a trusted sender', async () => {
+      const server = makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML }),
+          makeEmailWithBody({ id: 'e2' }, { html: TRACKED_HTML })
+        ]
+      })
+      const { unmount } = renderView(server)
+
+      await userEvent.click(
+        await screen.findByRole('button', {
+          name: 'Always show for this sender'
+        })
+      )
+      expect(
+        JSON.parse(
+          window.localStorage.getItem(TRUSTED_SENDERS_STORAGE_KEY) ?? '[]'
+        )
+      ).toEqual(['bob@example.com'])
+      unmount()
+
+      renderView(server, 'e2')
+      expect(await findBodyDocument()).toContain('tracker.example.com')
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('shows no banner for an email without remote content', async () => {
+      renderView(
+        makeFakeJmapServer({
+          emails: [makeEmailWithBody({ id: 'e1' }, { html: '<p>Plain</p>' })]
+        })
+      )
+
+      expect(await findBodyDocument()).toContain('<p>Plain</p>')
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+    })
   })
 
   it('says when the email does not exist', async () => {

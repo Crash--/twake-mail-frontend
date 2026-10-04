@@ -55,7 +55,12 @@
     "markAsRead": "Marquer comme lu",
     "markAsUnread": "Marquer comme non lu",
     "starred": "Favoris",
-    "noneSelected": "Aucun message sélectionné"
+    "noneSelected": "Aucun message sélectionné",
+    "remoteContent": {
+      "hidden": "Images distantes masquées pour protéger votre vie privée",
+      "show": "Afficher",
+      "alwaysShow": "Toujours afficher pour cet expéditeur"
+    }
   },
   "login": {
     "title": "Se connecter",

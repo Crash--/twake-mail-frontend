@@ -60,6 +60,23 @@ export function JmapClientProvider({
   )
 }
 
+export interface ScopedJmapClientProps {
+  client: JmapClient
+  children: ReactNode
+}
+
+/** Gives `client` to the screens below, instead of the one of the sign-in */
+export function ScopedJmapClient({
+  client,
+  children
+}: ScopedJmapClientProps): ReactElement {
+  return (
+    <JmapClientContext.Provider value={client}>
+      {children}
+    </JmapClientContext.Provider>
+  )
+}
+
 /**
  * The JMAP client, for the query functions of the features. Only available
  * to signed-in screens.

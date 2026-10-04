@@ -124,6 +124,11 @@ test('MBX-05 switching folder shows that folder emails', async ({ page, user, jm
 - **Locate through page objects** (`pages/`), which use `data-testid` in kebab-case or the
   accessible role and name. A spec holds no selector. The ids the app must expose are listed in
   [`pages/README.md`](pages/README.md): extend it with the page object.
+- **Accessibility (RGAA 4.1)**: once a screen is rendered, `await expectNoA11yViolations(page)`
+  (`support/a11y.ts`) runs axe on it (WCAG 2.0 / 2.1, A and AA) and fails on any violation.
+  The violations of twake-mui itself are listed in `TWAKE_MUI_KNOWN_VIOLATIONS`: reported as
+  annotations of the test, and in `docs/twake-mui-gaps.md`. Drive with the keyboard where
+  the scenario allows it (`tests/a11y.spec.ts`).
 - **Web-first assertions** (`await expect(locator).toBeVisible()`), which retry, rather than
   reading a value and comparing it. No `waitForTimeout`. For backend state, `expect.poll` or
   `jmap.waitForEmail`.
@@ -273,6 +278,14 @@ checked to add Dex and the OIDC specs.
   With the view disabled, `Email/query` is always answered by the search index. A
   deployment enabling the view must register the listener, and keep the team mailbox gap in
   mind.
+- **Updates hang once the backend holds about 256 messages** (tmail-backend
+  `memory-1.0.21.2`, with the configuration of this stack or the image's own, email query
+  view on or off). Past that, in any account, every `Email/set` *update* (keywords,
+  `mailboxIds`, hence `onSuccessUpdateEmail` of `jmap.sendEmail`) never answers; creates,
+  reads, queries and local delivery keep working. Measured: 150 messages fine, 300 stuck
+  (still pending after 400 s); no thread busy nor blocked. Repro:
+  `tmail-backend-issues/memory-email-set-update-hang/repro.mjs`. The suite creates far fewer
+  messages per run, so a fresh stack is fine. Not checked on the distributed backend.
 - Deleting a user (`DELETE /users/…`) removes the account (it can no longer authenticate,
   `INFRA-02`) but James does not purge its mailboxes; harmless here (memory backend, random
   addresses, `stop.sh` drops everything).

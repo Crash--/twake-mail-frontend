@@ -182,6 +182,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   intent, messages checked against its origin), the files added as a link (the
   Drive card of tmail-flutter) or as attachments (downloaded, then uploaded
   with their progress); a Drive card spares the forgotten attachment reminder
+- AI assistant of the composer, when the server advertises one
+  (`com:linagora:params:jmap:aibot`, `scribeEndpoint`): tmail-flutter's
+  actions on the selection or on what the user wrote (correct, shorter,
+  longer, emojis, bullets, tone, translate) and "Help me write", the answer in
+  a dialog to insert, to replace the selection with, or to cancel
 
 ### Changed
 

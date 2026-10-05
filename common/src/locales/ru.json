@@ -491,13 +491,26 @@
       "forwarding": {
         "title": "Переслать",
         "description": "Адреса, указанные ниже, будут получать ваши электронные письма."
+      },
+      "languageRegion": {
+        "title": "Язык",
+        "description": "Выберите язык Twake Mail."
       }
     },
     "preferences": {
       "thread": "Тред",
       "threadDescription": "Отображать связанные одной темой письма как единую беседу"
     },
-    "backToMail": "Вернуться к почте"
+    "backToMail": "Вернуться к почте",
+    "language": {
+      "names": {
+        "en": "Английский",
+        "fr": "Французский",
+        "ru": "Русский",
+        "vi": "Вьетнамский"
+      },
+      "label": "Язык"
+    }
   },
   "mailboxPicker": {
     "title": "Переместить в",

@@ -11,6 +11,7 @@ import { IdentitiesSettings } from '@common/features/identities/IdentitiesSettin
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
 import { EmailRulesSettings } from '@common/features/rules/EmailRulesSettings'
 import { PushProvider } from '@common/features/push/PushProvider'
+import { LanguageSettings } from '@common/features/settings/LanguageSettings'
 import { PreferencesSettings } from '@common/features/settings/PreferencesSettings'
 import {
   SettingsHome,
@@ -97,6 +98,14 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
               element={
                 <SettingsSectionRoute id="forwarding">
                   {section => <ForwardSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
+            <Route
+              path="language-region"
+              element={
+                <SettingsSectionRoute id="language-region">
+                  {section => <LanguageSettings section={section} />}
                 </SettingsSectionRoute>
               }
             />

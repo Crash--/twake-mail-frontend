@@ -18,6 +18,7 @@ import {
   isSettingsPath,
   SettingsExitProvider
 } from '@common/features/settings/SettingsExitProvider'
+import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
 import { SettingsSidebar } from '@common/features/settings/SettingsSidebar'
 import {
   ShortcutsProvider,
@@ -99,6 +100,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
   return (
     <Box className="u-flex u-flex-column u-h-100">
       <TouchTargets />
+      <ServerLanguageSync />
       <TopBar apps={apps} onOpenFolders={handleOpenFolders} />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}

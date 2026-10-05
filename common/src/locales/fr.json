@@ -491,13 +491,26 @@
       "forwarding": {
         "title": "Adresse de transfert",
         "description": "Les adresses e-mails ci-dessous recevront vos messages."
+      },
+      "languageRegion": {
+        "title": "Langue",
+        "description": "Définissez la langue de Twake Mail."
       }
     },
     "preferences": {
       "thread": "Fil de discussion",
       "threadDescription": "Afficher plusieurs e-mail associée comme une conversation"
     },
-    "backToMail": "Retour aux e-mails"
+    "backToMail": "Retour aux e-mails",
+    "language": {
+      "names": {
+        "en": "Anglais",
+        "fr": "Français",
+        "ru": "Russe",
+        "vi": "Vietnamien"
+      },
+      "label": "Langue"
+    }
   },
   "mailboxPicker": {
     "title": "Déplacer vers",

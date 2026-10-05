@@ -5,7 +5,8 @@ import { FAKE_ACCOUNT_ID, type FakeJmapServer } from './fakeJmapServer'
 /** Capabilities of the fake server's Linagora extensions */
 export const FAKE_LINAGORA_CAPABILITIES = {
   'com:linagora:params:jmap:filter': {},
-  'com:linagora:params:jmap:forward': {}
+  'com:linagora:params:jmap:forward': {},
+  'com:linagora:params:jmap:settings': { readOnlyProperties: [] }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -84,4 +85,33 @@ export function installFakeForward(
     }
   })
   return { forward: () => forward }
+}
+
+/**
+ * `Settings/set` (`settings/<key>` patches) on the settings the fake
+ * server answers `Settings/get` with
+ */
+export function installFakeSettings(
+  server: FakeJmapServer,
+  initial: Record<string, string> = {}
+): { settings: () => Record<string, string> } {
+  server.settings = { ...initial }
+  server.handlers.set('Settings/set', args => {
+    const update = isRecord(args.update) ? args.update : {}
+    const patch = isRecord(update.singleton) ? update.singleton : {}
+    const next = { ...server.settings }
+    for (const [path, value] of Object.entries(patch)) {
+      if (path.startsWith('settings/') && typeof value === 'string') {
+        next[path.slice('settings/'.length)] = value
+      }
+    }
+    server.settings = next
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      oldState: 'state-settings-1',
+      newState: 'state-settings-2',
+      updated: { singleton: {} }
+    }
+  })
+  return { settings: () => server.settings }
 }

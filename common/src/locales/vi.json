@@ -491,13 +491,26 @@
       "forwarding": {
         "title": "Chuyển tiếp",
         "description": "Email của bạn sẽ được chuyển tiếp đến những địa chỉ bên dưới đây."
+      },
+      "languageRegion": {
+        "title": "Ngôn ngữ",
+        "description": "Thay đổi ngôn ngữ."
       }
     },
     "preferences": {
       "thread": "Hội thoại",
       "threadDescription": "Xem các thư của cuộc hội thoại"
     },
-    "backToMail": "Quay lại hộp thư"
+    "backToMail": "Quay lại hộp thư",
+    "language": {
+      "names": {
+        "en": "Tiếng Anh",
+        "fr": "Tiếng Pháp",
+        "ru": "Tiếng Nga",
+        "vi": "Tiếng Việt"
+      },
+      "label": "Ngôn ngữ"
+    }
   },
   "mailboxPicker": {
     "title": "Chuyển tới",

@@ -1,8 +1,9 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
-import type { JmapClient } from 'jmap-client-ts'
+import type { JmapClient, Session } from 'jmap-client-ts'
 import {
   LINAGORA_CAPABILITIES,
-  type KnownSettingKey
+  type KnownSettingKey,
+  type SettingsCapability
 } from 'jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
@@ -96,4 +97,32 @@ export function isShowingSenderPriority(settings: ServerSettings): boolean {
 export function useShowsSenderPriority(): boolean {
   const { settings } = useServerSettings()
   return isShowingSenderPriority(settings ?? {})
+}
+
+/**
+ * Changes one setting of the account (`Settings/set`, a `settings/<key>`
+ * patch); false when refused
+ */
+export async function updateServerSetting(
+  client: JmapClient,
+  accountId: string,
+  key: KnownSettingKey,
+  value: string
+): Promise<boolean> {
+  const response = await client.call('Settings/set', {
+    accountId,
+    update: { singleton: { [`settings/${key}`]: value } }
+  })
+  return response.updated !== null && 'singleton' in response.updated
+}
+
+/** Whether the server keeps this setting and lets the user change it */
+export function canChangeServerSetting(
+  session: Session,
+  key: KnownSettingKey
+): boolean {
+  const capability = session.capabilities[LINAGORA_CAPABILITIES.settings] as
+    SettingsCapability | undefined
+  if (!capability) return false
+  return !(capability.readOnlyProperties ?? []).includes(key)
 }

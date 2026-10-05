@@ -244,7 +244,9 @@ to start otherwise.
 put its origin in `CSP_CONNECT_SRC`, or the login fails ("Refused to connect"
 in the browser console). Check the browser console after any change of
 `.env.js` that adds an origin (`JMAP_SESSION_URL`, `SSO_BASE_URL`,
-`SENTRY_DSN`).
+`SENTRY_DSN`). The AI assistant of the composer, when tmail-backend
+advertises `com:linagora:params:jmap:aibot`, talks to its `scribeEndpoint`:
+put that origin in `CSP_CONNECT_SRC` too.
 
 ## Reverse proxy, JMAP on the same origin or not
 

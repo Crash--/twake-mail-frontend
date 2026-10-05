@@ -1,4 +1,4 @@
-import { ComposerPage, LoginPage, type MailboxPage } from '../pages'
+import { ComposerPage, EmailPage, LoginPage, type MailboxPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { makePng } from '../support/clipboard'
 import { expect, test } from '../support/fixtures'
@@ -442,6 +442,44 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       await page.getByTestId('confirm-dialog-alternative-button').click()
     await expect(restored.root).toBeHidden()
     await expect.poll(snapshotKeys).toEqual([])
+  })
+
+  test.describe('an answer back after a reload', () => {
+    test.use({ emailsOneByOne: true })
+
+    test(
+      'CMP-50 a saved answer comes back on its text, the recipients folded; a new message in To',
+      { tag: '@mobile' },
+      async ({ page, user, users, jmapFor }) => {
+        const bob = await users.create({ prefix: 'bob' })
+        await jmapFor(bob).sendEmail({ to: user.email, subject: 'Plans', text: 'hello' })
+        const mailbox = await new LoginPage(page).loginAs(user)
+        const answer = await (await mailbox.openEmail('Plans')).reply()
+        await expect(answer.editor).toBeFocused()
+        await page.keyboard.type('Answer started')
+        await expect(answer.saveStatus).toHaveText('Draft saved', {
+          timeout: 10_000
+        })
+
+        await page.reload()
+        await new LoginPage(page).loginAs(user)
+
+        const restored = new ComposerPage(page)
+        await expect(restored.subjectInput).toHaveValue('Re: Plans')
+        await expect(restored.editor).toContainText('Answer started')
+        await expect(restored.editor).toBeFocused()
+        await expect(restored.recipientsSummary).toBeVisible()
+        await expect(restored.recipientInput('to')).toBeHidden()
+        await expectNoA11yViolations(page)
+        await restored.close()
+        await expect(restored.root).toBeHidden()
+
+        // Back on the list, the email reloaded in its view
+        await new EmailPage(page).back()
+        const fresh = await mailbox.compose()
+        await expect(fresh.recipientInput('to')).toBeFocused()
+      }
+    )
   })
 
   test('CMP-34 the draft saves itself once the typing stops; closing then asks nothing and offers to discard it', async ({

@@ -207,6 +207,8 @@ Conventions:
 | `composer-more-button` + `composer-save-draft-item` (phase 3), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
 | `composer-attach-file-button` / `composer-file-input` | "Attach file" and its hidden file input | `attach_file` |
 | `composer-drive-button` | "Attach from Drive" (`TDRIVE_ENABLED`, OIDC) | `attachFromDrive` |
+| `composer-scribe-button` + `composer-scribe-menu` (`composer-scribe-action` with `data-action`, `composer-scribe-write`) | the AI assistant (with `com:linagora:params:jmap:aibot`) and its menu | `AiAssistantButton` |
+| `composer-scribe-dialog` + `composer-scribe-task`, `composer-scribe-ask`, `composer-scribe-result`, `composer-scribe-error`, `composer-scribe-retry`, `composer-scribe-replace`, `composer-scribe-insert` | the answer of the assistant | `AiScribeSuggestion` |
 | `drive-picker-dialog` + `drive-picker-frame`, `drive-picker-retry-button` | the Twake Drive picker: dialog "Twake Drive", its iframe, "Retry" after a failure | `DriveIntentWebViewModal` |
 | `composer-attachments` + `composer-attachment-item` (`data-status`: `uploading`, `done`, `failed`) + `composer-attachment-remove-button` | the attached files (a list named "Attachments (n)"), each removed (or its upload cancelled) by its button | `AttachmentItemComposerWidget` |
 | `composer-drop-zone` | the composer, where dropped files are attached | `dropFileHereToAttachThem` |

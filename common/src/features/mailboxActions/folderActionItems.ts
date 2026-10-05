@@ -4,6 +4,7 @@ import {
   FolderAdd,
   FolderMoveto,
   Rename,
+  Restore,
   Trash,
   EmailOpen,
   type IconProps
@@ -27,6 +28,7 @@ export type FolderActionId =
   | 'hide'
   | 'show'
   | 'delete'
+  | 'recover-deleted-messages'
 
 export interface FolderActionItem {
   id: FolderActionId
@@ -64,7 +66,12 @@ const ITEMS: Record<FolderActionId, Omit<FolderActionItem, 'id'>> = {
   rename: { label: 'folders.menu.rename', icon: Rename, isDestructive: false },
   hide: { label: 'folders.menu.hide', icon: EyeClosed, isDestructive: false },
   show: { label: 'folders.menu.show', icon: Eye, isDestructive: false },
-  delete: { label: 'folders.menu.delete', icon: Trash, isDestructive: true }
+  delete: { label: 'folders.menu.delete', icon: Trash, isDestructive: true },
+  'recover-deleted-messages': {
+    label: 'recovery.title',
+    icon: Restore,
+    isDestructive: false
+  }
 }
 
 function item(id: FolderActionId): FolderActionItem {
@@ -85,7 +92,9 @@ function item(id: FolderActionId): FolderActionItem {
  */
 export function availableFolderActions(
   mailbox: MailboxSummary,
-  mailboxes: readonly MailboxSummary[]
+  mailboxes: readonly MailboxSummary[],
+  /** The server keeps deleted emails: the Trash recovers them */
+  { canRecover = false }: { canRecover?: boolean } = {}
 ): FolderActionItem[] {
   const rights = mailbox.myRights
   const hasUnread = mailbox.unreadEmails > 0
@@ -112,6 +121,7 @@ export function availableFolderActions(
   if (rights.mayCreateChild) ids.push('new-subfolder')
   if (mailbox.role === 'trash') {
     if (mailbox.totalEmails > 0 || hasChildren) ids.push('empty-trash')
+    if (canRecover) ids.push('recover-deleted-messages')
   } else if (mailbox.role === 'junk') {
     if (mailbox.totalEmails > 0) ids.push('empty-spam')
   } else if (hasUnread) {

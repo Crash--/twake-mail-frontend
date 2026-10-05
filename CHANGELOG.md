@@ -151,6 +151,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in Preferences; the advanced search filters by label
 - Storage (`Quota/get`): the space used at the bottom of the sidebar, a
   banner past the warning limit of the server, Settings > Storage
+- "Recover deleted messages" in the menu of the Trash
+  (`EmailRecoveryAction`): the form of tmail-flutter, the task followed
+  until the emails are back in "Recovered"
 
 ### Changed
 

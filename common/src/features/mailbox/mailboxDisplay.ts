@@ -5,6 +5,7 @@ import {
   Folder,
   Note,
   Paperplane,
+  Restore,
   Send,
   Trash,
   Warning,
@@ -25,7 +26,9 @@ const ROLE_NAMES: Partial<Record<string, TranslationKey>> = {
   trash: 'mailbox.roles.trash',
   junk: 'mailbox.roles.junk',
   templates: 'mailbox.roles.templates',
-  archive: 'mailbox.roles.archive'
+  archive: 'mailbox.roles.archive',
+  // tmail-backend's folder of the emails recovered from the vault
+  'restored messages': 'mailbox.roles.restored'
 }
 
 const ROLE_ICONS: Partial<Record<string, MailboxIcon>> = {
@@ -36,7 +39,8 @@ const ROLE_ICONS: Partial<Record<string, MailboxIcon>> = {
   trash: Trash,
   junk: Warning,
   templates: Note,
-  archive: Archive
+  archive: Archive,
+  'restored messages': Restore
 }
 
 /**

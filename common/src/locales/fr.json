@@ -21,7 +21,8 @@
     "remove": "Retirer",
     "errorOccurredShort": "Erreur ! Une erreur s'est produite. Veuillez réessayer plus tard.",
     "save": "Enregistrer",
-    "refresh": "Rafraîchir"
+    "refresh": "Rafraîchir",
+    "open": "Ouvrir"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -46,7 +47,8 @@
       "junk": "Indésirables",
       "templates": "Modèles",
       "archive": "Archives",
-      "outbox": "Boîte d'envoi"
+      "outbox": "Boîte d'envoi",
+      "restored": "Récupéré"
     },
     "expand": "Développer",
     "collapse": "Réduire",
@@ -892,5 +894,39 @@
     "almostFull": "L'espace de stockage est presque plein. Vous pouvez libérer de l'espace en supprimant les fichiers inutiles ou en vous abonnant pour obtenir de l'espace supplémentaire.",
     "label": "Stockage utilisé",
     "dismiss": "Fermer"
+  },
+  "recovery": {
+    "title": "Récupérer les messages supprimés",
+    "horizon": "Vous pouvez récupérer les messages supprimés depuis %{period}",
+    "deletionDate": "Date de suppression",
+    "receptionDate": "Date de réception",
+    "ranges": {
+      "last7Days": "Les 7 derniers jours",
+      "last15Days": "Derniers 15 jours",
+      "last30Days": "Les 30 derniers jours",
+      "last6Months": "Les 6 derniers mois",
+      "last1Year": "L'année dernière",
+      "allTime": "Tout le temps"
+    },
+    "recipients": "Destinataires",
+    "sender": "Expéditeur",
+    "hasAttachment": "Avec pièce jointe",
+    "restore": "Restaurer",
+    "subjectPlaceholder": "Entrez les mots-clés du sujet...",
+    "addressPlaceholder": "Ajouter une adresse e-mail",
+    "inProgress": "La récupération est en cours. Vous pouvez continuer à utiliser Twake Mail",
+    "toasts": {
+      "success": "Récupération des messages supprimés réussie",
+      "canceled": "Restauration du message supprimé annulée",
+      "failed": "La restauration du message supprimé a échoué",
+      "successCount": "%{smart_count} message récupéré |||| %{smart_count} messages récupérés"
+    },
+    "subject": "Objet",
+    "addressesHelp": "Séparez plusieurs adresses par des virgules",
+    "errors": {
+      "invalidAddress": "Cette adresse e-mail n'est pas valide",
+      "start": "La récupération n'a pas pu démarrer"
+    },
+    "days": "%{smart_count} jour |||| %{smart_count} jours"
   }
 }

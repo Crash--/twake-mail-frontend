@@ -35,6 +35,7 @@ import {
 } from '@common/features/mailbox/queries'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import { useRecovery } from '@common/features/recovery/RecoveryProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -74,6 +75,7 @@ export function FolderActionsProvider({
   children
 }: FolderActionsProviderProps): ReactElement {
   const { t } = useI18n()
+  const recovery = useRecovery()
   const client = useJmapClient()
   const { accountId, session } = useJmapSession()
   const queryClient = useQueryClient()
@@ -391,9 +393,22 @@ export function FolderActionsProvider({
         case 'empty-trash':
         case 'empty-spam':
           void emptyFolder(mailbox)
+          return
+        case 'recover-deleted-messages':
+          recovery.open()
       }
     },
-    [create, loadMailboxes, move, remove, markAsRead, hide, show, emptyFolder]
+    [
+      create,
+      loadMailboxes,
+      move,
+      remove,
+      markAsRead,
+      hide,
+      show,
+      emptyFolder,
+      recovery
+    ]
   )
 
   const api = useMemo<FolderActions>(() => ({ run, create }), [run, create])

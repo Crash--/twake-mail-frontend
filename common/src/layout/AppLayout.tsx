@@ -26,6 +26,10 @@ import {
   useShortcuts
 } from '@common/features/shortcuts/ShortcutsProvider'
 import { QuotaBanner } from '@common/features/quota/QuotaBanner'
+import {
+  RecoveryBanner,
+  RecoveryProvider
+} from '@common/features/recovery/RecoveryProvider'
 import { VacationBanner } from '@common/features/vacation/VacationBanner'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -48,15 +52,17 @@ export function AppLayout(props: AppLayoutProps): ReactElement {
   return (
     <ShortcutsProvider>
       <MailboxPickerProvider>
-        <FolderActionsProvider>
-          <LabelActionsProvider>
-            <ComposerProvider>
-              <SettingsExitProvider>
-                <AppFrame {...props} />
-              </SettingsExitProvider>
-            </ComposerProvider>
-          </LabelActionsProvider>
-        </FolderActionsProvider>
+        <RecoveryProvider>
+          <FolderActionsProvider>
+            <LabelActionsProvider>
+              <ComposerProvider>
+                <SettingsExitProvider>
+                  <AppFrame {...props} />
+                </SettingsExitProvider>
+              </ComposerProvider>
+            </LabelActionsProvider>
+          </FolderActionsProvider>
+        </RecoveryProvider>
       </MailboxPickerProvider>
     </ShortcutsProvider>
   )
@@ -126,6 +132,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
         )}
         <Main>
           <VacationBanner />
+          <RecoveryBanner />
           <QuotaBanner />
           <Content data-testid="main-content">
             <Outlet />

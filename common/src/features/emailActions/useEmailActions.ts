@@ -53,6 +53,7 @@ export type EmailActionName =
   | 'deletePermanently'
   | 'addLabel'
   | 'removeLabel'
+  | 'setKeyword'
 
 export interface EmailActionRequest {
   action: EmailActionName
@@ -63,6 +64,8 @@ export interface EmailActionRequest {
   destinationId?: string
   /** The label `addLabel` and `removeLabel` set or take off */
   label?: { keyword: string; displayName: string }
+  /** The keyword `setKeyword` sets (no label, no toast of its own) */
+  keyword?: string
   /**
    * No toast: the control that ran it shows the new state, or the state
    * back as it was when it failed
@@ -132,7 +135,7 @@ function groupByHome(
 }
 
 function toOperation(
-  { action, mailboxId, destinationId, label }: EmailActionRequest,
+  { action, mailboxId, destinationId, label, keyword }: EmailActionRequest,
   mailboxes: readonly MailboxSummary[]
 ): EmailOperation | null {
   switch (action) {
@@ -155,6 +158,10 @@ function toOperation(
             keyword: label.keyword,
             isSet: action === 'addLabel'
           }
+    case 'setKeyword':
+      return keyword === undefined
+        ? null
+        : { kind: 'keyword', keyword, isSet: true }
     case 'moveTo':
       return destinationId === undefined
         ? null
@@ -343,6 +350,8 @@ export function useEmailActions(): EmailActions {
           })
         case 'markUnsubscribed':
           return t('unsubscribe.done')
+        case 'setKeyword':
+          return ''
         case 'deletePermanently':
           return count === 1
             ? t('emailActions.toast.deletedForever')

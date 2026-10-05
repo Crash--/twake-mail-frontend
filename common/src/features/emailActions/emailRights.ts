@@ -20,7 +20,8 @@ const ACTION_RIGHTS: Record<EmailActionName, EmailRight> = {
   unstar: 'maySetKeywords',
   markUnsubscribed: 'maySetKeywords',
   addLabel: 'maySetKeywords',
-  removeLabel: 'maySetKeywords'
+  removeLabel: 'maySetKeywords',
+  setKeyword: 'maySetKeywords'
 }
 
 const ITEM_RIGHTS: Record<EmailActionId, EmailRight | null> = {

@@ -54,6 +54,7 @@ function DetailAvatar({
   const isDangerous = hasDangerWarning(useVisibleTwpWarnings(detail))
   return isDangerous ? (
     <WarningAvatarBadge
+      component="span"
       size="s"
       label={t('email.twpWarning.dangerousMessage')}
       data-testid="conversation-message-danger-badge"

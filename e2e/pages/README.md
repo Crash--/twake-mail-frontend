@@ -122,12 +122,12 @@ Conventions:
 | `email-view-empty` | "No email selected", beside the list from 900 to 1199 px | `EmailViewEmptyWidget` |
 | `attachment-item` | one attachment chip (name as text) | `AttachmentItemWidget` |
 | `download-all-attachments-button` | "Download all" | `UiKeys.downloadAllAttachmentsButton` |
-| `reply-email-button` / `reply-all-emails-button` / `reply-to-list-email-button` / `forward-email-button` | reply actions | same keys, kebab-cased |
+| `reply-email-button` / `reply-all-emails-button` / `reply-to-list-email-button` / `forward-email-button` | reply actions, under the email and under each expanded message of a conversation (group `email-reply-actions`); "Reply all" when the email reaches more than one other address, "Reply to list" with a `List-Post` | same keys, kebab-cased |
 | `email-view-actions` | the actions beside the back button | — |
 | `email-view-star-button` | star toggle (`aria-pressed`) | — |
 | `email-view-action-<action>` | the main actions as buttons, not on phones: `archive`, `move-to-trash` / `delete-permanently`, `mark-as-unread`, `move`, `mark-as-spam` / `not-spam` | — |
 | `email-view-more-button` / `email-view-menu` | "more" button and its menu, holding every action | `email_detailed_more_button` |
-| `email-action-<action>` | the items of every email actions menu: `not-spam`, `move-to-trash`, `delete-permanently`, `archive`, `mark-as-read`, `mark-as-unread`, `star`, `unstar`, `move`, `mark-as-spam` (`label-as` later) | `markAsStarred_action`, `moveToSpam_action`, `labelAs_action`… |
+| `email-action-<action>` | the items of every email actions menu: `reply`, `reply-all`, `reply-to-list`, `forward` (one email, not in Drafts), `not-spam`, `move-to-trash`, `delete-permanently`, `archive`, `mark-as-read`, `mark-as-unread`, `star`, `unstar`, `move`, `mark-as-spam` (`label-as` later) | `markAsStarred_action`, `moveToSpam_action`, `labelAs_action`… |
 | `delete-thread-button` | delete the whole thread | `delete_thread_button` |
 | `email-address` / `email-address-dialog` | clickable address and its dialog (copy, compose, create rule) | `copy_email_address`, `email_address_dialog_close_button` |
 | `calendar-event-card` | iMIP invitation card | `CalendarEventCardWidget` |

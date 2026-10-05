@@ -8,17 +8,28 @@ test.describe('MBX recovery and quota', () => {
     user,
     jmap
   }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'Recover me', text: 'x', saveTo: 'trash' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Recover me',
+      text: 'x',
+      saveTo: 'trash'
+    })
     await jmap.waitForEmail({ subject: 'Recover me', mailboxRole: 'trash' })
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.openFolder({ role: 'trash' })
-    await mailbox.emptyTrashBanner.getByRole('button', { name: 'Empty Trash now' }).click()
-    await mailbox.confirmDialog.getByTestId('confirm-dialog-confirm-button').click()
+    await mailbox.emptyTrashBanner
+      .getByRole('button', { name: 'Empty Trash now' })
+      .click()
+    await mailbox.confirmDialog
+      .getByTestId('confirm-dialog-confirm-button')
+      .click()
     await expect(mailbox.emptyTrashBanner).toBeHidden()
 
     await mailbox.runFolderAction({ role: 'trash' }, 'recover-deleted-messages')
     const dialog = page.getByTestId('recovery-dialog')
-    await expect(dialog).toContainText('You can recover messages deleted during the past 15 days')
+    await expect(dialog).toContainText(
+      'You can recover messages deleted during the past 15 days'
+    )
     await expectNoA11yViolations(page)
     await dialog.getByTestId('recovery-restore-button').click()
 
@@ -33,18 +44,28 @@ test.describe('MBX recovery and quota', () => {
     user,
     jmap
   }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'junk mail', text: 'x', saveTo: 'junk' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'junk mail',
+      text: 'x',
+      saveTo: 'junk'
+    })
     await jmap.waitForEmail({ subject: 'junk mail', mailboxRole: 'junk' })
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.openFolder({ role: 'junk' })
     await mailbox.emptyTrashBanner
       .getByRole('button', { name: 'Delete all spam emails now' })
       .click()
-    await mailbox.confirmDialog.getByRole('button', { name: 'Delete all' }).click()
+    await mailbox.confirmDialog
+      .getByRole('button', { name: 'Delete all' })
+      .click()
     await expect(mailbox.emptyTrashBanner).toBeHidden()
 
     await mailbox.runFolderAction({ role: 'trash' }, 'recover-deleted-messages')
-    await page.getByTestId('recovery-dialog').getByTestId('recovery-restore-button').click()
+    await page
+      .getByTestId('recovery-dialog')
+      .getByTestId('recovery-restore-button')
+      .click()
     await page.getByTestId('recovery-open-button').click()
     await expect(mailbox.emailRow('junk mail')).toBeVisible()
   })
@@ -54,15 +75,27 @@ test.describe('MBX recovery and quota', () => {
     user,
     jmap
   }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'more junk', text: 'x', saveTo: 'junk' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'more junk',
+      text: 'x',
+      saveTo: 'junk'
+    })
     await jmap.waitForEmail({ subject: 'more junk', mailboxRole: 'junk' })
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.runFolderAction({ role: 'junk' }, 'empty-spam')
-    await mailbox.confirmDialog.getByRole('button', { name: 'Delete all' }).click()
-    await expect(mailbox.toast).toContainText('All messages have been deleted forever')
+    await mailbox.confirmDialog
+      .getByRole('button', { name: 'Delete all' })
+      .click()
+    await expect(mailbox.toast).toContainText(
+      'All messages have been deleted forever'
+    )
 
     await mailbox.runFolderAction({ role: 'trash' }, 'recover-deleted-messages')
-    await page.getByTestId('recovery-dialog').getByTestId('recovery-restore-button').click()
+    await page
+      .getByTestId('recovery-dialog')
+      .getByTestId('recovery-restore-button')
+      .click()
     await page.getByTestId('recovery-open-button').click()
     await expect(mailbox.emailRow('more junk')).toBeVisible()
   })
@@ -84,7 +117,9 @@ test.describe('MBX recovery and quota', () => {
         to: user.email,
         subject: 'With a file',
         text: 'x',
-        attachments: [{ name: 'notes.txt', type: 'text/plain', content: 'x'.repeat(20_000) }]
+        attachments: [
+          { name: 'notes.txt', type: 'text/plain', content: 'x'.repeat(20_000) }
+        ]
       })
       await jmap.waitForEmail({ subject: 'With a file' })
 
@@ -96,8 +131,12 @@ test.describe('MBX recovery and quota', () => {
 
       const settings = await mailbox.openSettings()
       await settings.open('storage')
-      await expect(page.getByTestId('storage-settings')).toContainText('of 50 MB used')
-      await expect(page.getByTestId('storage-settings')).toContainText('Available:')
+      await expect(page.getByTestId('storage-settings')).toContainText(
+        'of 50 MB used'
+      )
+      await expect(page.getByTestId('storage-settings')).toContainText(
+        'Available:'
+      )
       await expectNoA11yViolations(page)
     })
   })

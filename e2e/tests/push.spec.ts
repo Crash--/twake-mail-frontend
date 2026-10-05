@@ -62,7 +62,11 @@ test.describe('PUSH real-time updates', () => {
     await expect(mailbox.emptyListView).toBeVisible()
     traffic.reset()
 
-    await jmap.sendEmail({ to: user.email, subject: 'pushed email', text: 'hi' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'pushed email',
+      text: 'hi'
+    })
 
     const row = mailbox.emailRow('pushed email')
     await expect(row).toHaveAttribute('data-unread', 'true')
@@ -143,7 +147,11 @@ test.describe('PUSH real-time updates', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
     await expect(mailbox.emailRow('First one')).toBeVisible()
 
-    await jmap.sendEmail({ to: user.email, subject: 'Before the channel', text: 'hi' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Before the channel',
+      text: 'hi'
+    })
     await jmap.waitForEmail({ subject: 'Before the channel' })
     openChannel()
 
@@ -224,4 +232,3 @@ test.describe('PUSH real-time updates', () => {
     await expect(mailbox.emailRow('Topic in the Trash')).toHaveCount(0)
   })
 })
-

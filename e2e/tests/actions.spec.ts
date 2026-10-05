@@ -50,42 +50,42 @@ test.describe('EML acting on an open email', () => {
   // The reading view of a single email: the "Thread" setting off
   test.use({ emailsOneByOne: true })
 
-  test('EML-06 "Archive message" from the more menu moves the email to Archive', { tag: '@mobile' }, async ({
-    page,
-    user,
-    jmap
-  }) => {
-    const id = await seedOne(jmap, user, 'to archive')
+  test(
+    'EML-06 "Archive message" from the more menu moves the email to Archive',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const id = await seedOne(jmap, user, 'to archive')
 
-    const mailbox = await new LoginPage(page).loginAs(user)
-    const email = await mailbox.openEmail('to archive')
-    await email.openMoreMenu()
-    await expectNoA11yViolations(page)
-    await page.keyboard.press('Escape')
-    await email.runAction('archive')
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await mailbox.openEmail('to archive')
+      await email.openMoreMenu()
+      await expectNoA11yViolations(page)
+      await page.keyboard.press('Escape')
+      await email.runAction('archive')
 
-    await expect(email.root).toBeHidden()
-    await expect(mailbox.toast).toContainText('Moved to Archive')
-    await expect.poll(() => rolesOf(jmap, id)).toEqual(['archive'])
-    await expectListedIn(mailbox, 'archive', 'to archive')
-  })
+      await expect(email.root).toBeHidden()
+      await expect(mailbox.toast).toContainText('Moved to Archive')
+      await expect.poll(() => rolesOf(jmap, id)).toEqual(['archive'])
+      await expectListedIn(mailbox, 'archive', 'to archive')
+    }
+  )
 
-  test('EML-07 "Move to trash" closes the email, which is listed in Trash', { tag: '@mobile' }, async ({
-    page,
-    user,
-    jmap
-  }) => {
-    const id = await seedOne(jmap, user, 'to trash')
+  test(
+    'EML-07 "Move to trash" closes the email, which is listed in Trash',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const id = await seedOne(jmap, user, 'to trash')
 
-    const mailbox = await new LoginPage(page).loginAs(user)
-    const email = await mailbox.openEmail('to trash')
-    await email.runAction('move-to-trash')
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await mailbox.openEmail('to trash')
+      await email.runAction('move-to-trash')
 
-    await expect(email.root).toBeHidden()
-    await expect(mailbox.toast).toContainText('Moved to Trash')
-    await expect.poll(() => rolesOf(jmap, id)).toEqual(['trash'])
-    await expectListedIn(mailbox, 'trash', 'to trash')
-  })
+      await expect(email.root).toBeHidden()
+      await expect(mailbox.toast).toContainText('Moved to Trash')
+      await expect.poll(() => rolesOf(jmap, id)).toEqual(['trash'])
+      await expectListedIn(mailbox, 'trash', 'to trash')
+    }
+  )
 
   test('EML-09 "Mark as spam" closes the email, which is listed in Spam', async ({
     page,
@@ -113,9 +113,11 @@ test.describe('EML acting on an open email', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const email = await mailbox.openEmail('to star')
     await email.runAction('star')
-    await expect.poll(async () => (await jmap.getEmail(id)).keywords).toMatchObject({
-      $flagged: true
-    })
+    await expect
+      .poll(async () => (await jmap.getEmail(id)).keywords)
+      .toMatchObject({
+        $flagged: true
+      })
 
     let menu = await email.openMoreMenu()
     await expect(menu.getByTestId('email-action-star')).toBeHidden()
@@ -137,11 +139,16 @@ test.describe('EML acting on an open email', () => {
 
     const mailbox = await new LoginPage(page).loginAs(user)
     const email = await mailbox.openEmail('to leave unread')
-    await expect.poll(async () => '$seen' in (await jmap.getEmail(id)).keywords).toBe(true)
+    await expect
+      .poll(async () => '$seen' in (await jmap.getEmail(id)).keywords)
+      .toBe(true)
     await email.runAction('mark-as-unread')
 
     await expect(email.root).toBeHidden()
-    await expect(mailbox.emailRow('to leave unread')).toHaveAttribute('data-unread', 'true')
+    await expect(mailbox.emailRow('to leave unread')).toHaveAttribute(
+      'data-unread',
+      'true'
+    )
     await expect
       .poll(async () => '$seen' in (await jmap.getEmail(id)).keywords)
       .toBe(false)
@@ -176,8 +183,16 @@ test.describe('EML acting on an open email', () => {
     user,
     jmap
   }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'gone for good', text: 'x', saveTo: 'trash' })
-    const trashed = await jmap.waitForEmail({ subject: 'gone for good', mailboxRole: 'trash' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'gone for good',
+      text: 'x',
+      saveTo: 'trash'
+    })
+    const trashed = await jmap.waitForEmail({
+      subject: 'gone for good',
+      mailboxRole: 'trash'
+    })
 
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.openFolder({ role: 'trash' })
@@ -185,10 +200,14 @@ test.describe('EML acting on an open email', () => {
     await email.runAction('delete-permanently')
     await expect(mailbox.confirmDialog).toBeVisible()
     await expectNoA11yViolations(page)
-    await mailbox.confirmDialog.getByTestId('confirm-dialog-confirm-button').click()
+    await mailbox.confirmDialog
+      .getByTestId('confirm-dialog-confirm-button')
+      .click()
 
     await expect(email.root).toBeHidden()
-    await expect(mailbox.toast).toContainText('Message has been deleted forever')
+    await expect(mailbox.toast).toContainText(
+      'Message has been deleted forever'
+    )
     await expect
       .poll(async () => (await jmap.getEmails([trashed.id])).length)
       .toBe(0)
@@ -199,8 +218,16 @@ test.describe('EML acting on an open email', () => {
     user,
     jmap
   }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'not junk', text: 'x', saveTo: 'junk' })
-    const spam = await jmap.waitForEmail({ subject: 'not junk', mailboxRole: 'junk' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'not junk',
+      text: 'x',
+      saveTo: 'junk'
+    })
+    const spam = await jmap.waitForEmail({
+      subject: 'not junk',
+      mailboxRole: 'junk'
+    })
 
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.openFolder({ role: 'junk' })
@@ -243,32 +270,44 @@ test.describe('MBX acting on a selection', () => {
     await expect(mailbox.emailRow('first selected')).toBeVisible()
   })
 
-  test('MBX-20 "Mark as read" on a single selected unread email', { tag: '@mobile' }, async ({
+  test(
+    'MBX-20 "Mark as read" on a single selected unread email',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const id = await seedOne(jmap, user, 'unread one')
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await expect(mailbox.emailRow('unread one')).toHaveAttribute(
+        'data-unread',
+        'true'
+      )
+      await mailbox.selectEmail('unread one')
+      await mailbox.runSelectionAction('mark-as-read')
+
+      await expect(mailbox.emailRow('unread one')).not.toHaveAttribute(
+        'data-unread'
+      )
+      await expect
+        .poll(async () => '$seen' in (await jmap.getEmail(id)).keywords)
+        .toBe(true)
+    }
+  )
+
+  test('MBX-21 "Star" on a single selected email', async ({
     page,
     user,
     jmap
   }) => {
-    const id = await seedOne(jmap, user, 'unread one')
-
-    const mailbox = await new LoginPage(page).loginAs(user)
-    await expect(mailbox.emailRow('unread one')).toHaveAttribute('data-unread', 'true')
-    await mailbox.selectEmail('unread one')
-    await mailbox.runSelectionAction('mark-as-read')
-
-    await expect(mailbox.emailRow('unread one')).not.toHaveAttribute('data-unread')
-    await expect
-      .poll(async () => '$seen' in (await jmap.getEmail(id)).keywords)
-      .toBe(true)
-  })
-
-  test('MBX-21 "Star" on a single selected email', async ({ page, user, jmap }) => {
     const id = await seedOne(jmap, user, 'star me')
 
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.selectEmail('star me')
     await mailbox.runSelectionAction('star')
 
-    await expect(mailbox.emailRowStar('star me')).toHaveAttribute('aria-pressed', 'true')
+    await expect(mailbox.emailRowStar('star me')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
     await expect
       .poll(async () => '$flagged' in (await jmap.getEmail(id)).keywords)
       .toBe(true)
@@ -298,7 +337,13 @@ test.describe('MBX acting on a selection', () => {
     // Sent to oneself, each email also has a copy in Sent: the account has messages in two
     // mailboxes, out of the case where the memory backend updates every message of the account
     // for a batch of more than 3 ids (tmail-backend#2684)
-    const ids = await seed(jmap, user, ['batch 1', 'batch 2', 'batch 3', 'batch 4', 'batch 5'])
+    const ids = await seed(jmap, user, [
+      'batch 1',
+      'batch 2',
+      'batch 3',
+      'batch 4',
+      'batch 5'
+    ])
 
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.selectEmail('batch 5')
@@ -306,12 +351,19 @@ test.describe('MBX acting on a selection', () => {
     await expect(mailbox.selectionToolbar).toContainText('4 selected')
     await mailbox.runSelectionAction('mark-as-read')
 
-    await expect(mailbox.toast).toContainText('You’ve marked messages as "Read"')
+    await expect(mailbox.toast).toContainText(
+      'You’ve marked messages as "Read"'
+    )
     await expect(mailbox.selectionToolbar).toBeHidden()
     const seenOf = async (): Promise<boolean[]> =>
-      Promise.all(ids.map(async id => '$seen' in (await jmap.getEmail(id)).keywords))
+      Promise.all(
+        ids.map(async id => '$seen' in (await jmap.getEmail(id)).keywords)
+      )
     await expect.poll(seenOf).toEqual([false, true, true, true, true])
-    await expect(mailbox.emailRow('batch 1')).toHaveAttribute('data-unread', 'true')
+    await expect(mailbox.emailRow('batch 1')).toHaveAttribute(
+      'data-unread',
+      'true'
+    )
   })
 
   test('MBX-27 the menu of a row opens on a right click and on Shift+F10', async ({
@@ -323,14 +375,18 @@ test.describe('MBX acting on a selection', () => {
     const trashed = await seedOne(jmap, user, 'by keyboard')
 
     const mailbox = await new LoginPage(page).loginAs(user)
-    const menu = await mailbox.openEmailMenu('by right click', { rightClick: true })
+    const menu = await mailbox.openEmailMenu('by right click', {
+      rightClick: true
+    })
     await expectNoA11yViolations(page)
     await menu.getByTestId('email-action-archive').click()
     await expect(mailbox.emailRow('by right click')).toBeHidden()
 
     await mailbox.emailRowLink('by keyboard').focus()
     await page.keyboard.press('Shift+F10')
-    const keyboardMenu = page.getByTestId('email-context-menu').getByRole('menu')
+    const keyboardMenu = page
+      .getByTestId('email-context-menu')
+      .getByRole('menu')
     await expect(keyboardMenu).toBeVisible()
     await expect(keyboardMenu.getByRole('menuitem').first()).toBeFocused()
     await keyboardMenu.getByTestId('email-action-move-to-trash').press('Enter')
@@ -364,8 +420,17 @@ test.describe('MBX acting on a selection', () => {
 })
 
 test.describe('MBX emptying the Trash and Spam', () => {
-  test('MBX-08 "Empty trash now" asks, then empties the Trash', async ({ page, user, jmap }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'in the bin', text: 'x', saveTo: 'trash' })
+  test('MBX-08 "Empty trash now" asks, then empties the Trash', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'in the bin',
+      text: 'x',
+      saveTo: 'trash'
+    })
     await jmap.waitForEmail({ subject: 'in the bin', mailboxRole: 'trash' })
 
     const mailbox = await new LoginPage(page).loginAs(user)
@@ -373,13 +438,19 @@ test.describe('MBX emptying the Trash and Spam', () => {
     await expect(mailbox.emailRow('in the bin')).toBeVisible()
     await expect(mailbox.emptyTrashBanner).toBeVisible()
     await expectNoA11yViolations(page)
-    await mailbox.emptyTrashBanner.getByRole('button', { name: 'Empty trash now' }).click()
+    await mailbox.emptyTrashBanner
+      .getByRole('button', { name: 'Empty trash now' })
+      .click()
     await expect(mailbox.confirmDialog).toBeVisible()
     await mailbox.confirmDialog.getByRole('button', { name: 'Delete' }).click()
 
     await expect(mailbox.emptyListView).toBeVisible()
     const trash = await jmap.findMailboxByRole('trash')
-    await expect.poll(async () => (await jmap.queryEmails({ inMailbox: trash.id })).length).toBe(0)
+    await expect
+      .poll(
+        async () => (await jmap.queryEmails({ inMailbox: trash.id })).length
+      )
+      .toBe(0)
   })
 
   test('MBX-09 emptying the Trash from its banner also removes its subfolders', async ({
@@ -389,12 +460,19 @@ test.describe('MBX emptying the Trash and Spam', () => {
   }) => {
     const trash = await jmap.findMailboxByRole('trash')
     await jmap.createMailbox({ name: 'Old stuff', parentId: trash.id })
-    await jmap.sendEmail({ to: user.email, subject: 'trashed', text: 'x', saveTo: 'trash' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'trashed',
+      text: 'x',
+      saveTo: 'trash'
+    })
     await jmap.waitForEmail({ subject: 'trashed', mailboxRole: 'trash' })
 
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.openFolder({ role: 'trash' })
-    await mailbox.emptyTrashBanner.getByRole('button', { name: 'Empty trash now' }).click()
+    await mailbox.emptyTrashBanner
+      .getByRole('button', { name: 'Empty trash now' })
+      .click()
     await mailbox.confirmDialog.getByRole('button', { name: 'Delete' }).click()
 
     await expect(mailbox.emptyListView).toBeVisible()
@@ -402,7 +480,9 @@ test.describe('MBX emptying the Trash and Spam', () => {
     await mailbox.showFolders()
     await expect(mailbox.folder({ name: 'Old stuff' })).toBeHidden()
     await expect
-      .poll(async () => (await jmap.getMailboxes()).some(item => item.name === 'Old stuff'))
+      .poll(async () =>
+        (await jmap.getMailboxes()).some(item => item.name === 'Old stuff')
+      )
       .toBe(false)
   })
 
@@ -411,7 +491,12 @@ test.describe('MBX emptying the Trash and Spam', () => {
     user,
     jmap
   }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'junk mail', text: 'x', saveTo: 'junk' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'junk mail',
+      text: 'x',
+      saveTo: 'junk'
+    })
     await jmap.waitForEmail({ subject: 'junk mail', mailboxRole: 'junk' })
 
     const mailbox = await new LoginPage(page).loginAs(user)
@@ -419,10 +504,14 @@ test.describe('MBX emptying the Trash and Spam', () => {
     await mailbox.emptyTrashBanner
       .getByRole('button', { name: 'Delete all spam emails now' })
       .click()
-    await mailbox.confirmDialog.getByRole('button', { name: 'Delete all' }).click()
+    await mailbox.confirmDialog
+      .getByRole('button', { name: 'Delete all' })
+      .click()
 
     await expect(mailbox.emptyListView).toBeVisible()
     await expect(mailbox.emptyTrashBanner).toBeHidden()
-    await expect(mailbox.toast).toContainText('All messages have been deleted forever')
+    await expect(mailbox.toast).toContainText(
+      'All messages have been deleted forever'
+    )
   })
 })

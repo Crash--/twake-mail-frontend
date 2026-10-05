@@ -561,7 +561,11 @@ test.describe('THR thread detail', () => {
     { tag: '@mobile' },
     async ({ page, user, users, jmap, jmapFor }) => {
       const bob = await users.create({ prefix: 'bob' })
-      await jmapFor(bob).sendEmail({ to: user.email, subject: 'Talk', text: 'hello' })
+      await jmapFor(bob).sendEmail({
+        to: user.email,
+        subject: 'Talk',
+        text: 'hello'
+      })
       await jmap.waitForEmail({ subject: 'Talk' })
 
       const mailbox = await new LoginPage(page).loginAs(user)
@@ -580,13 +584,18 @@ test.describe('THR thread detail', () => {
       // In its conversation: marked, edited in the composer
       const draft = conversation.drafts()
       await expect(draft).toHaveCount(1)
-      await expect(draft.getByTestId('conversation-message-draft')).toHaveText('Draft')
-      if ((await conversation.toggle(draft).getAttribute('aria-expanded')) !== 'true') {
+      await expect(draft.getByTestId('conversation-message-draft')).toHaveText(
+        'Draft'
+      )
+      if (
+        (await conversation.toggle(draft).getAttribute('aria-expanded')) !==
+        'true'
+      ) {
         await conversation.toggle(draft).click()
       }
-      await expect(draft.getByTestId('conversation-draft-edit-button')).toHaveAccessibleName(
-        new RegExp(`^Edit draft to ${bob.localPart}`)
-      )
+      await expect(
+        draft.getByTestId('conversation-draft-edit-button')
+      ).toHaveAccessibleName(new RegExp(`^Edit draft to ${bob.localPart}`))
       await expectNoA11yViolations(page)
       composer = await conversation.editDraft(draft)
       await expect(composer.editor).toContainText('Answer kept')
@@ -607,13 +616,23 @@ test.describe('THR thread detail', () => {
       await mailbox.emailRowLink('Talk').click()
       // Named after its newest message, the draft
       await conversation.expectLoaded('Re: Talk')
-      if ((await conversation.toggle(draft).getAttribute('aria-expanded')) !== 'true') {
+      if (
+        (await conversation.toggle(draft).getAttribute('aria-expanded')) !==
+        'true'
+      ) {
         await conversation.toggle(draft).click()
       }
       await conversation.deleteDraft(draft)
       await expect(conversation.drafts()).toHaveCount(0)
       await expect
-        .poll(async () => (await jmap.queryEmails({ inMailbox: (await jmap.findMailboxByRole('drafts')).id })).length)
+        .poll(
+          async () =>
+            (
+              await jmap.queryEmails({
+                inMailbox: (await jmap.findMailboxByRole('drafts')).id
+              })
+            ).length
+        )
         .toBe(0)
     }
   )
@@ -624,12 +643,20 @@ test.describe('THR thread detail', () => {
     async ({ page, user, users, jmap, jmapFor }) => {
       const bob = await users.create({ prefix: 'bob' })
       const replace = { BOB_ADDRESS: bob.email, USER_ADDRESS: user.email }
-      const first = await jmap.importEml('read_receipt/receipt-1.eml', 'inbox', {
-        replace
-      })
-      const second = await jmap.importEml('read_receipt/receipt-2.eml', 'inbox', {
-        replace
-      })
+      const first = await jmap.importEml(
+        'read_receipt/receipt-1.eml',
+        'inbox',
+        {
+          replace
+        }
+      )
+      const second = await jmap.importEml(
+        'read_receipt/receipt-2.eml',
+        'inbox',
+        {
+          replace
+        }
+      )
 
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.emailRowLink('Re: Receipts in a conversation').click()
@@ -641,11 +668,15 @@ test.describe('THR thread detail', () => {
         await expect(dialog).toContainText('Read receipt request')
         await expect(dialog.getByRole('button', { name: 'No' })).toBeFocused()
         await dialog.getByRole('button', { name: 'Yes' }).click()
-        await expect(mailbox.toast).toContainText('A read receipt has been sent.')
+        await expect(mailbox.toast).toContainText(
+          'A read receipt has been sent.'
+        )
       }
       await expect(dialog).toBeHidden()
       // Back to the message the conversation opened on, the first unread one
-      await expect(conversation.toggle(conversation.messages.first())).toBeFocused()
+      await expect(
+        conversation.toggle(conversation.messages.first())
+      ).toBeFocused()
 
       for (const email of [first, second]) {
         await expect
@@ -654,7 +685,9 @@ test.describe('THR thread detail', () => {
       }
       const bobJmap = jmapFor(bob)
       await expect
-        .poll(async () => (await bobJmap.queryEmails({ text: 'Receipts' })).length)
+        .poll(
+          async () => (await bobJmap.queryEmails({ text: 'Receipts' })).length
+        )
         .toBe(2)
     }
   )

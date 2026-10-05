@@ -44,12 +44,17 @@ test.describe('KBD keyboard shortcuts', () => {
 
     const email = await mailbox.openEmail('newer')
     await page.keyboard.press('s')
-    await expect.poll(async () => (await jmap.getEmail(newer.id)).keywords).toMatchObject({
-      $flagged: true
-    })
+    await expect
+      .poll(async () => (await jmap.getEmail(newer.id)).keywords)
+      .toMatchObject({
+        $flagged: true
+      })
     await page.keyboard.press('u')
     await expect(email.root).toBeHidden()
-    await expect(mailbox.emailRow('newer')).toHaveAttribute('data-unread', 'true')
+    await expect(mailbox.emailRow('newer')).toHaveAttribute(
+      'data-unread',
+      'true'
+    )
     await expect
       .poll(async () => '$seen' in (await jmap.getEmail(newer.id)).keywords)
       .toBe(false)
@@ -68,11 +73,13 @@ test.describe('KBD keyboard shortcuts', () => {
     await page.keyboard.press('?')
 
     await expect(mailbox.shortcutsDialog).toBeVisible()
-    await expect(page.getByRole('dialog', { name: 'Keyboard shortcuts' })).toContainText(
-      'Archive message'
-    )
+    await expect(
+      page.getByRole('dialog', { name: 'Keyboard shortcuts' })
+    ).toContainText('Archive message')
     await expectNoA11yViolations(page)
-    await page.getByRole('switch', { name: 'Enable keyboard shortcuts' }).click()
+    await page
+      .getByRole('switch', { name: 'Enable keyboard shortcuts' })
+      .click()
     await page.keyboard.press('Escape')
     await expect(mailbox.shortcutsDialog).toBeHidden()
     await expect(mailbox.emailRowLink('stays here')).toBeFocused()

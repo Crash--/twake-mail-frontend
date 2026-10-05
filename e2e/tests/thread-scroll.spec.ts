@@ -111,9 +111,9 @@ async function openAndReadScrolls(
     conversation.toggle(conversation.message(/Sender 24/))
   ).toBeFocused()
   return page.evaluate(() =>
-    (
-      window as unknown as { __scrolls: { behavior?: string }[] }
-    ).__scrolls.map(options => options.behavior)
+    (window as unknown as { __scrolls: { behavior?: string }[] }).__scrolls.map(
+      options => options.behavior
+    )
   )
 }
 

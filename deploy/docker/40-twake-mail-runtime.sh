@@ -146,7 +146,7 @@ connect_src=${CSP_CONNECT_SRC:-}
 # env_js_value <KEY>: the value of `var KEY = '…';` (or `window.KEY = …`)
 env_js_value() {
   [ -f "$env_js" ] || return 0
-  grep -E "(^|[[:space:];.])$1[[:space:]]*=" "$env_js" | head -1 |
+  grep -vE '^[[:space:]]*//' "$env_js" | grep -E "(^|[[:space:];.])$1[[:space:]]*=" | head -1 |
     sed -E "s/^.*$1[[:space:]]*=[[:space:]]*//; s/[;[:space:]]*\$//; s/^['\"\`]//; s/['\"\`]\$//"
 }
 sentry_enabled=$(env_js_value SENTRY_ENABLED)

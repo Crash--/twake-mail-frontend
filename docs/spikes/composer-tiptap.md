@@ -1,6 +1,8 @@
 # Spike composer : TipTap convient-il ? (2026-10-04)
 
 Fusionné dans `main` (branche `feat/composer-foundation`) : le code du spike reste derrière `DEBUG`.
+Depuis les lots L1 à L3, le vrai composer couvre l'éditeur, l'envoi, les brouillons et les pièces
+jointes ; la route ne sert plus qu'à la démo de réponse et de transfert, jusqu'à L4.
 Route de démo `/spike/composer` (visible seulement avec `DEBUG`), qui envoie de vrais mails
 sur une stack JMAP jetable.
 
@@ -229,21 +231,30 @@ ou html-to-text : le code maison suffit.
 
 ## Constats backend (tmail-backend 1.0.21.2)
 
-Ce sont des candidats à des issues. Demander à Quentin avant d'en ouvrir.
+Corrigés depuis le spike par des repros (tmail-backend#2684, #2685, #2686), et vérifiés par
+`e2e/tests/backend.spec.ts` (`INFRA-13` à `INFRA-16`) :
 
-1. **`bodyStructure` ignoré à la création** (`Email/set`) : le message ne garde qu'une partie
-   `text/plain` vide (591 octets), sans erreur. `htmlBody` + `textBody` + `attachments` inline
-   produisent bien `multipart/related[multipart/alternative[text, html], images]`
-   (`backend.spec.ts`).
-2. **`create` + `destroy` dans le même `Email/set`** : la destruction passe en premier. Les
-   images de la nouvelle version, qui pointent vers les parties de l'ancienne
-   (`<emailId>_<partId>`), sont alors introuvables (« Attachment not found »).
-3. **Pas de référence à un id créé dans `Email/get`** : `#creationId` renvoie `serverFail` et
-   `/created/x/id` renvoie « '/ids' property need to be an array ». Il faut donc une deuxième
-   requête après la création.
-4. **`Email/get` avec `attachments` + `bodyValues`** (sans `htmlBody` avant) :
-   `NotImplementedError` dans `ReadLevel.combine`, d'où un `serverFail`. Avec `htmlBody` en tête
-   de liste, ça passe.
+1. **`bodyStructure` ignoré à la création** (`Email/set`, #2685) : le message ne garde qu'une
+   partie `text/plain` vide, sans erreur. `htmlBody` + `textBody` + `attachments` inline
+   produisent bien `multipart/related[multipart/alternative[text, html], images]`.
+2. ~~`create` + `destroy` dans le même `Email/set` : la destruction passe en premier.~~ Faux : la
+   création passe en premier, et les parties de l'ancienne version restent lisibles pour la
+   nouvelle. **Une sauvegarde de brouillon tient en une requête** (`saveDraft`).
+3. ~~Pas de référence à un id créé dans `Email/get`.~~ Faux : `ids: ['#creationId']` marche.
+4. **`Email/get` avec `attachments` avant toute propriété de corps** : `serverFail` (#2686).
+   Avec `htmlBody` ou `bodyValues` en tête de liste, ça passe ; au-delà de 4 propriétés, l'ordre
+   suit le hash d'un `Set` Scala : la liste exacte du composer (`DRAFT_PROPERTIES`) est testée.
+5. **Une création refusée n'arrête pas la destruction du même `Email/set`** (`overQuota`) :
+   l'envoi détruit donc l'ancien brouillon dans une deuxième requête, une fois le message créé.
+   La sauvegarde en une requête garde ce risque : si la création est refusée (quota), l'ancienne
+   version est perdue côté serveur, le contenu reste dans le composer et son instantané.
+6. **Annuler un envoi n'est pas possible** : la session annonce `maxDelayedSend: 0`, mais
+   `envelope.mailFrom.parameters.holdFor` est appliqué (livraison 60 s plus tard) ;
+   `EmailSubmission/set` `update { undoStatus: 'canceled' }` est ignoré sans erreur, le message
+   part quand même, et `EmailSubmission/get` est inconnu. Le composer n'offre donc pas
+   « Annuler l'envoi ». Candidat à une issue.
+7. **Refus d'expéditeur** : tmail-backend répond `forbiddenMailFrom` au lieu du `forbiddenFrom`
+   de la RFC 8621 ; un `identityId` inconnu et un domaine de destination inconnu sont acceptés.
 
 ## Écarts avec le brief et avec Flutter
 

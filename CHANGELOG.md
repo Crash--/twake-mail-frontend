@@ -97,6 +97,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   signature
 - Rich text body: formatting toolbar (Alt+F10), links (Ctrl+K), inline
   images resized with the keyboard, clean paste from office suites
+- Sending (button or Ctrl+Enter) after tmail-flutter's checks (recipients,
+  addresses, uploads, empty subject); the sent copy is filed in Sent, seen;
+  a refused message stays in the composer with the reason
+- Drafts saved 1.5 s after the last change, in one request, and on
+  closing; reopened from the Drafts folder with their identity, recipients,
+  images and files; one composer per draft; "Delete draft"
+- Attachments: picked or dropped, uploaded with their progress, cancelled
+  when removed, within the size limits of the server
+- Open composers come back after a reload of the page, and are forgotten
+  on sign out
 
 ### Changed
 

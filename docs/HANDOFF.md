@@ -98,7 +98,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - rooks 8.4.0 (la 9 est ESM-only et casse Jest) ;
   - job CI React 18.
 
-## 4. État au 2026-10-05 (après les lots 1 à 4 et le lot A de la phase 2)
+## 4. État au 2026-10-05 (après les lots 1 à 4, le lot A de la phase 2 et les lots L1 à L3 du composer)
 
 - **Méthode** : une branche par lot depuis `main`, vérifications sur clone propre (`npm ci`, lint, format, typecheck, tests, build) puis e2e, PR sur `Crash--/twake-mail-frontend`, merge une fois la CI verte, redéploiement devbox (`~/Sites/Linagora/twake-mail-react-devbox/deploy.sh`).
 - **Phase 0** (avant les lots) : design system `@/ds/`, liste sur `VirtualizedTable` (`ds/VirtualizedListTable` + `RowLink`), RGAA (jsx-a11y, axe dans les e2e avec `TWAKE_MUI_KNOWN_VIOLATIONS`, A11Y-01), perfs (`npm run perf`, `docs/perf/phase0.md`). Responsive (téléphone, tablette) mergé en PR #4 (projets Playwright `mobile` et `tablet`).
@@ -125,13 +125,19 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - **actions** (PR #10) : archiver, corbeille ou suppression définitive (Corbeille, Spam, Brouillons, avec confirmation), déplacer (`ds/FilterableListbox`, sélecteur filtrable), spam et non-spam, lu et non lu, étoile ; depuis la lecture (étoile, boutons, menu « Plus »), le survol d'une ligne, le clic droit, la touche menu ou Maj+F10 (`onRowMenu` de `ds/VirtualizedListTable`), la barre de sélection (cases, Maj+clic, Ctrl+A, tout le dossier par `Email/query` + `Email/get` en back-reference), le glisser-déposer vers l'arbre (`ds/DropTarget`) ; vider la Corbeille et le Spam (`Mailbox/clear` si la capability est là, sinon `Email/query` + `Email/set` destroy par back-reference ; sous-dossiers de la Corbeille détruits du plus profond au moins profond) ;
   - **dossiers** : créer (avec l'emplacement), renommer, déplacer, supprimer avec sous-dossiers et emails, tout marquer comme lu, masquer et réafficher, depuis le « + » et le menu d'un dossier (⋮, clic droit, touche menu) ; validation des noms de tmail-flutter ; dossier virtuel « Favoris » (`/starred`) ; team mailboxes dans leur section, droits `myRights` respectés, Corbeille propre à chaque team mailbox ; la capability `urn:apache:james:params:jmap:mail:shares` part dans chaque requête si la session l'annonce (`withExtraCapabilities` sous `JmapSessionProvider`) ; `namespace` et `isSubscribed` lus avec les dossiers, et les propriétés que James omet (`role` d'un dossier personnel) normalisées à `null` ;
   - e2e (Playwright, tags `@mobile` pour les projets téléphone et tablette) : KBD-01, KBD-02, EML-06, 07, 09, 10, 11, 12, 30, 31, MBX-08, 09, 13 (partie spam), 19 à 22, 26 à 30, 01, 02, 03, 06, 07 (partie réception), 10, 15.
+- **Phase 3, composer, lots L1 à L3** (PR #17, #20 et celle de L3 ; découpage dans `docs/spikes/composer-tiptap.md`) :
+  - **L1, éditeur** : `ds/RichTextEditor` sans `data-testid` en dur (prop `testIds`, valeurs dans `features/composer/editorTestIds.ts`) ; Alt+F10 va à la barre, Échap dans le texte est laissé au conteneur ; barre d'image au clavier (`ImageToolbar` : flèches pour sélectionner, Entrée, 25/50/75 %, taille d'origine, plus petite, plus grande, supprimer) ; `SmartTrailingBlock` repris de Messages (MIT) ; icônes twake-icons quand elles existent ;
+  - **L2, fenêtre** : `ComposerProvider` (sous `AppLayout`), `ds/DockedWindow` + `WindowDock` + `fitWindows` (jusqu'à 3 fenêtres en bas à droite, réduites ou plein écran ; plein écran modal sous 1 200 px), `ds/RecipientField` (combobox ARIA 1.2 à chips, collage de listes, adresses invalides nommées, édition et suppression au clavier) et `ds/RecipientSummary`, autocomplétion `TMailContact/autocomplete`, identités (`features/identities/`, `sortOrder` puis l'identité du compte), `useChoose` (trois issues) ;
+  - **L3, envoi, brouillons, pièces jointes** : envoi en une requête (`Email/set` dans Drafts + `EmailSubmission/set` avec `onSuccessUpdateEmail` : Sent, `$seen`, plus de `$draft`), l'ancien brouillon détruit dans une 2e requête une fois le message créé ; contrôles de Flutter avant envoi (`useAlert`) ; erreurs `overQuota`, `tooLarge`, `forbiddenMailFrom`, `invalidRecipients` ; brouillon en une requête (`Email/set` create + destroy, `Email/get` de `#draft`), autosave 1,5 s après le dernier changement, en-tête `X-JMAP-Identity`, réouverture depuis Drafts (`$draft` dans la liste), un composer par brouillon (en mémoire + Web Locks entre onglets), « Supprimer le brouillon », toast « Brouillon enregistré » avec « Supprimer » à la fermeture ; instantané `sessionStorage` des composers ouverts au `beforeunload`, restauré après rechargement, oublié à la déconnexion ; pièces jointes par XHR (progression, annulation, renouvellement du jeton sur 401), limites `maxSizeUpload` et `maxSizeAttachmentsPerEmail`, glisser-déposer (`ds/FileDropZone`), liste accessible (`ds/UploadList`) ;
+  - e2e : CMP-01, 05, 06, 07, 14 à 18, 22, et 27 à 36 (fenêtre, destinataires, clavier, images, collage, autosave, envoi refusé) ; `INFRA-13` à `INFRA-16` (`tests/backend.spec.ts`) documentent ce que tmail-backend fait des requêtes du composer.
+  - La route `/spike/composer` (DEBUG) reste pour la démo de réponse et de transfert (`e2e/spike/quote.spec.ts`, `signature.spec.ts`, `perf.spec.ts`) jusqu'à ce que L4 ouvre une réponse dans le vrai composer.
 - **Devbox** : https://mail-react.twake.valmoriq.fr (Tailscale), à jour de `main`. Vérification Playwright rejouable (script hors dépôt, `~/tmp/devbox-check/run.sh`) : login SSO, nom et email, push à 1 000 mails, logout. Client OIDC `twake-mail-react` actif en live seulement (à ajouter par Quentin aux templates LemonLDAP).
 - **PR ouvertes ailleurs** : linagora/twake-ui#130 (React 19), linagora/cozy-libs#3165 (twake-i18n React 19). Issue linagora/tmail-backend#2682.
-- **Candidats issues tmail-backend (en attente d'accord)** :
-  - `bodyStructure` ignoré à la création ;
-  - `Email/set` create+destroy détruit d'abord ;
-  - pas de back-reference vers un créé dans `Email/get` ;
-  - `Email/get` attachments+bodyValues → serverFail ;
+- **Issues et candidats tmail-backend** :
+  - `bodyStructure` ignoré à la création (tmail-backend#2685) ;
+  - `Email/get` → `serverFail` quand `attachments` précède toute propriété de corps (tmail-backend#2686) ;
+  - ~~`Email/set` create+destroy détruit d'abord~~ et ~~pas de back-reference vers un créé~~ : faux, corrigé (`INFRA-14`) ;
+  - candidats (en attente d'accord) : `holdFor` appliqué alors que `maxDelayedSend` vaut 0, `undoStatus: canceled` ignoré sans erreur et `EmailSubmission/get` inconnu (pas d'annulation d'envoi possible) ; `forbiddenMailFrom` au lieu de `forbiddenFrom` ; un `identityId` inconnu accepté par `EmailSubmission/set` ;
   - **image memory : `Email/set` en mise à jour** ([linagora/tmail-backend#2684](https://github.com/linagora/tmail-backend/issues/2684), ouverte) : blocage quand (messages des autres comptes) × (ids de la mise à jour) ≈ 256, et une mise à jour de plus de 3 ids au même patch touche tous les messages d'un compte rangés dans une seule boîte. Les comptes e2e détruisent leurs emails en fin de test ; les specs en lot gardent un message dans une seconde boîte. Ne jamais lancer la suite après le seed de perf sans `stop.sh` + `start.sh`.
   - Un état inconnu passé à `Email/changes` donne `invalidArguments`, pas `cannotCalculateChanges`.
 
@@ -151,12 +157,11 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - e2e : le premier test lancé juste après `start.sh` recevait parfois un 401 de James ; `start.sh` attend désormais des appels authentifiés réussis, à surveiller dans les prochaines CI ;
   - e2e, image memory : des `serverFail` (`ConcurrentModificationException`) à l'approvisionnement sous 2 workers, rattrapés par le retry de la CI ; RESP-05 aussi vu une fois en retry.
 - [ ] Problèmes ouverts du lot A de la phase 2 :
-  - `c` (composer) appelle le même gestionnaire que les boutons « Nouveau message », vide tant que le composer n'existe pas (phase 3) ;
   - `/` ne déplie pas la recherche repliée des téléphones ;
   - dossiers masqués : réaffichés par un bouton « Afficher les dossiers masqués » de l'arbre (tmail-flutter le fait dans Réglages > Visibilité des dossiers, page absente ici) ;
   - en vue conversation (réglage « Thread » du lot B), la lecture n'a pas encore la barre d'actions de l'email seul ;
   - « Déplacer le contenu du dossier », « Créer un filtre », la recherche dans l'arbre (MBX-04) et la récupération des emails supprimés (MBX-11 à 14) restent à faire ;
-  - l'envoi vers une team mailbox depuis l'interface (MBX-07) attend le composer.
+  - l'envoi vers une team mailbox depuis l'interface (MBX-07) est possible avec le composer : spec à porter.
 
 ### Phase 2 : lecture complète
 - ~~Actions : archiver, supprimer, déplacer, spam, non-lu, sélection multiple, glisser-déposer, menu contextuel ; vider la corbeille et le spam (`Mailbox/clear`).~~ Fait (lot A).
@@ -167,10 +172,17 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 - Porter les specs correspondantes de `e2e/e2e.md` (MBX, EML, SRCH, THR).
 
 ### Phase 3 : composer (le plus risqué)
-- Partir du spike fusionné (`docs/spikes/composer-tiptap.md`, conditions du GO) : TipTap habillé avec twake-mui et `@/ds/`, destinataires avec autocomplétion (`TMailContact/autocomplete`).
-- Pièces jointes et images inline, brouillons et modèles, identités et signatures.
-- Restauration après rechargement, réponse, réponse à tous, transfert, rappel de pièce jointe oubliée, accusé de lecture (MDN), raccourcis clavier.
-- Specs CMP-*.
+- ~~L1 éditeur, L2 fenêtre, L3 envoi, brouillons et pièces jointes.~~ Fait.
+- **L4, réponse et transfert** : ce qui est prêt : `features/composer/composerSetup.ts` et `quote.ts` (citation atomique, en-têtes localisés, `Re:`/`Fwd:`, `inReplyTo`/`references`, images du mail cité), `ComposerInit` à étendre (`{ reply: { emailId, mode } }`), `sendEmail` qui accepte déjà `inReplyTo`/`references` ; à faire : règles de destinataires (ADR 0064, 0065), `$answered`/`$forwarded` dans la requête d'envoi, boutons de la lecture, specs CMP-08 à 13 depuis `e2e/spike/quote.spec.ts` et `signature.spec.ts`, puis retirer la route `/spike/composer`, `SpikeComposerPage`, `composer.spike.*`, `snapshot.ts` (remplacé par `composerContent.ts`) et l'overlay `spike.sh`.
+- **L5, signatures et images** : la signature suit déjà l'identité ; à faire : position, signatures riches, images glissées dans le corps (aujourd'hui le dépôt les attache), cas de collage de Messages.
+- **L6, fonctions annexes** : modèles (CMP-19 à 21 : `Save as template` dans le menu Plus, qui existe), MDN (CMP-03), important (CMP-02), rappel de pièce jointe (CMP-04), mailto, Bcc par défaut de l'identité.
+- **L7, qualité** : audit RGAA manuel (NVDA, VoiceOver) de la fenêtre, des chips et de la barre d'image ; perf sur gros brouillons ; barre d'outils sur une ligne défilante sur téléphone.
+- Problèmes ouverts du composer :
+  - une sauvegarde de brouillon refusée (quota) a déjà détruit la version précédente côté serveur (`INFRA-16`) : le contenu reste dans le composer et son instantané ;
+  - pas d'annulation d'envoi (voir les candidats tmail-backend) ;
+  - un composer masqué par manque de place (`fitWindows`, écran étroit avec 3 composers) n'est joignable qu'en fermant ou réduisant les autres ;
+  - une image glissée sur le corps devient une pièce jointe ; l'image inline passe par le bouton ou le collage ;
+  - brouillons dans la vue conversation : la ligne ouvre la lecture, pas le composer.
 
 ### Phase 4 : réglages et extensions
 - Identités, règles (`Filter`), transfert (`Forward`), message d'absence, labels (`Label/*`), restauration de mails supprimés (`EmailRecoveryAction`), quotas, préférences (`Settings`, dont les expéditeurs de confiance), langue.

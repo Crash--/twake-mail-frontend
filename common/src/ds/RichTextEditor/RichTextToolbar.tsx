@@ -2,7 +2,6 @@
 // toolbar (APG toolbar pattern) in twake-mui.
 import {
   Box,
-  Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -22,12 +21,13 @@ import {
 } from 'react'
 
 import { EditorIcon, type EditorIconName } from './editorIcons'
-import type {
-  EditorActions,
-  RichTextColor,
-  RichTextEditorLabels,
-  RichTextFontSize,
-  RichTextToolbarItemId
+import {
+  DEFAULT_FONT_SIZE,
+  type EditorActions,
+  type RichTextColor,
+  type RichTextEditorLabels,
+  type RichTextFontSize,
+  type RichTextToolbarItemId
 } from './types'
 
 type MenuName = 'color' | 'size' | 'align'
@@ -41,7 +41,10 @@ interface ToolbarItem {
   disabled?: boolean
   menu?: MenuName
   run?: () => void
-  separatorBefore?: boolean
+  /** What the button shows besides its icon: the size, the colour bar */
+  display?: 'size' | 'color'
+  /** Buttons of the same group share one bordered box */
+  group?: 'format' | 'lists' | 'history' | 'insert'
 }
 
 export interface RichTextToolbarProps {
@@ -54,12 +57,53 @@ export interface RichTextToolbarProps {
   onOpenLinkDialog: () => void
   /** Null when the caller does not handle images */
   onPickImages: (() => void) | null
+  /** Link and image buttons in the toolbar; the caller has them elsewhere if not */
+  hasInsertButtons: boolean
+  /** Under the text, with a divider above, or above it */
+  placement: 'top' | 'bottom'
   /** Lets the editor send the focus here (Alt+F10) */
   actionsRef: MutableRefObject<EditorActions>
   /** The editor is disabled: every button says it, and does nothing */
   disabled?: boolean
   buttonTestId?: (item: RichTextToolbarItemId) => string
 }
+
+const BOX_HEIGHT = 32
+const ICON_SIZE = 16
+/** What every button of the toolbar is: Inter Medium 14 in a bordered box */
+const BUTTON_SX = {
+  minWidth: 0,
+  height: BOX_HEIGHT,
+  px: 1,
+  py: 0.5,
+  gap: '2px',
+  border: '1px solid',
+  borderColor: 'divider',
+  borderRadius: '4px',
+  fontSize: 14,
+  fontWeight: 500,
+  lineHeight: '20px',
+  color: 'text.primary'
+} as const
+/** A button inside a group: no border of its own */
+const GROUP_BUTTON_SX = {
+  ...BUTTON_SX,
+  width: 24,
+  height: 28,
+  px: 0,
+  py: 0,
+  border: 'none'
+} as const
+const GROUP_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  p: '2px',
+  border: '1px solid',
+  borderColor: 'divider',
+  borderRadius: '4px'
+} as const
+const ICON_SX = { fontSize: ICON_SIZE } as const
 
 const ALIGNMENTS = ['left', 'center', 'right', 'justify'] as const
 type Alignment = (typeof ALIGNMENTS)[number]
@@ -85,6 +129,8 @@ export function RichTextToolbar({
   editorId,
   onOpenLinkDialog,
   onPickImages,
+  hasInsertButtons,
+  placement,
   actionsRef,
   disabled = false,
   buttonTestId
@@ -115,31 +161,36 @@ export function RichTextToolbar({
     name: MenuName
     anchor: HTMLElement
   } | null>(null)
+  const sizeLabel = state.fontSize
+    ? String(Number.parseInt(state.fontSize, 10))
+    : String(DEFAULT_FONT_SIZE)
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
 
   const chain = (): ReturnType<Editor['chain']> => editor.chain().focus()
 
+  // The order of the design: size, colour, bold to strike, alignment, lists,
+  // then what the design does not show (history, links, clear)
   const allItems: ToolbarItem[] = [
     {
-      id: 'undo',
-      icon: 'undo',
-      label: labels.undo,
-      disabled: !state.canUndo,
-      run: () => chain().undo().run()
+      id: 'size',
+      icon: 'fontSize',
+      label: `${labels.fontSize} ${sizeLabel}`,
+      menu: 'size',
+      display: 'size'
     },
     {
-      id: 'redo',
-      icon: 'redo',
-      label: labels.redo,
-      disabled: !state.canRedo,
-      run: () => chain().redo().run()
+      id: 'color',
+      icon: 'textColor',
+      label: labels.textColor,
+      menu: 'color',
+      display: 'color'
     },
     {
       id: 'bold',
       icon: 'bold',
       label: labels.bold,
       pressed: state.bold,
-      separatorBefore: true,
+      group: 'format',
       run: () => chain().toggleBold().run()
     },
     {
@@ -147,6 +198,7 @@ export function RichTextToolbar({
       icon: 'italic',
       label: labels.italic,
       pressed: state.italic,
+      group: 'format',
       run: () => chain().toggleItalic().run()
     },
     {
@@ -154,6 +206,7 @@ export function RichTextToolbar({
       icon: 'underline',
       label: labels.underline,
       pressed: state.underline,
+      group: 'format',
       run: () => chain().toggleUnderline().run()
     },
     {
@@ -161,16 +214,9 @@ export function RichTextToolbar({
       icon: 'strike',
       label: labels.strike,
       pressed: state.strike,
+      group: 'format',
       run: () => chain().toggleStrike().run()
     },
-    {
-      id: 'color',
-      icon: 'textColor',
-      label: labels.textColor,
-      menu: 'color',
-      separatorBefore: true
-    },
-    { id: 'size', icon: 'fontSize', label: labels.fontSize, menu: 'size' },
     {
       id: 'align',
       icon: ALIGN_ICONS[state.align],
@@ -182,7 +228,7 @@ export function RichTextToolbar({
       icon: 'bulletList',
       label: labels.bulletList,
       pressed: state.bulletList,
-      separatorBefore: true,
+      group: 'lists',
       run: () => chain().toggleBulletList().run()
     },
     {
@@ -190,6 +236,7 @@ export function RichTextToolbar({
       icon: 'orderedList',
       label: labels.orderedList,
       pressed: state.orderedList,
+      group: 'lists',
       run: () => chain().toggleOrderedList().run()
     },
     {
@@ -197,31 +244,52 @@ export function RichTextToolbar({
       icon: 'blockquote',
       label: labels.blockquote,
       pressed: state.blockquote,
+      group: 'lists',
       run: () => chain().toggleBlockquote().run()
     },
     {
-      id: 'link',
-      icon: 'link',
-      label: labels.link,
-      pressed: state.link,
-      separatorBefore: true,
-      run: onOpenLinkDialog
+      id: 'undo',
+      icon: 'undo',
+      label: labels.undo,
+      disabled: !state.canUndo,
+      group: 'history',
+      run: () => chain().undo().run()
     },
-    ...(onPickImages
+    {
+      id: 'redo',
+      icon: 'redo',
+      label: labels.redo,
+      disabled: !state.canRedo,
+      group: 'history',
+      run: () => chain().redo().run()
+    },
+    ...(hasInsertButtons
       ? [
           {
-            id: 'image' as const,
-            icon: 'image' as const,
-            label: labels.insertImage,
-            run: onPickImages
-          }
+            id: 'link' as const,
+            icon: 'link' as const,
+            label: labels.link,
+            pressed: state.link,
+            group: 'insert' as const,
+            run: onOpenLinkDialog
+          },
+          ...(onPickImages
+            ? [
+                {
+                  id: 'image' as const,
+                  icon: 'image' as const,
+                  label: labels.insertImage,
+                  group: 'insert' as const,
+                  run: onPickImages
+                }
+              ]
+            : [])
         ]
       : []),
     {
       id: 'clear-formatting',
       icon: 'clearFormatting',
       label: labels.clearFormatting,
-      separatorBefore: true,
       run: () => chain().unsetAllMarks().unsetTextAlign().run()
     }
   ]
@@ -282,6 +350,77 @@ export function RichTextToolbar({
     apply()
   }
 
+  const renderButton = (item: ToolbarItem, index: number): ReactElement => {
+    const isGrouped = item.group !== undefined
+    return (
+      <Tooltip key={item.id} title={item.label}>
+        <IconButton
+          ref={element => {
+            buttonRefs.current[index] = element
+          }}
+          size="small"
+          aria-label={item.label}
+          aria-pressed={item.pressed}
+          aria-disabled={item.disabled ? true : undefined}
+          aria-haspopup={item.menu ? 'menu' : undefined}
+          aria-expanded={item.menu ? openMenu?.name === item.menu : undefined}
+          tabIndex={index === activeIndex ? 0 : -1}
+          onClick={handleClick(item, index)}
+          // Keep the editor selection while clicking
+          onMouseDown={event => event.preventDefault()}
+          data-testid={buttonTestId?.(item.id)}
+          sx={{
+            ...(isGrouped ? GROUP_BUTTON_SX : BUTTON_SX),
+            opacity: item.disabled ? 0.4 : 1,
+            ...(item.pressed
+              ? { color: 'primary.main', bgcolor: 'action.selected' }
+              : {})
+          }}
+        >
+          {item.display === 'size' ? (
+            <span aria-hidden="true">{sizeLabel}</span>
+          ) : item.display === 'color' ? (
+            <Box
+              aria-hidden="true"
+              className="u-flex u-flex-column u-flex-items-center"
+              sx={{ gap: '2px' }}
+            >
+              <EditorIcon name={item.icon} sx={ICON_SX} />
+              <Box
+                sx={{
+                  width: 10,
+                  height: 2,
+                  bgcolor: state.color || 'text.primary'
+                }}
+              />
+            </Box>
+          ) : (
+            <EditorIcon name={item.icon} sx={ICON_SX} />
+          )}
+        </IconButton>
+      </Tooltip>
+    )
+  }
+
+  // Consecutive buttons of a group share one bordered box
+  const segments: {
+    key: string
+    isGroup: boolean
+    entries: [ToolbarItem, number][]
+  }[] = []
+  items.forEach((item, index) => {
+    const last = segments[segments.length - 1]
+    if (item.group !== undefined && last?.key === item.group) {
+      last.entries.push([item, index])
+    } else {
+      segments.push({
+        key: item.group ?? item.id,
+        isGroup: item.group !== undefined,
+        entries: [[item, index]]
+      })
+    }
+  })
+
   return (
     <Box
       role="toolbar"
@@ -289,49 +428,28 @@ export function RichTextToolbar({
       aria-controls={editorId}
       onKeyDown={handleKeyDown}
       className="u-flex u-flex-wrap u-flex-items-center"
-      sx={{ gap: 0.25, py: 0.5 }}
+      sx={
+        placement === 'bottom'
+          ? {
+              flexShrink: 0,
+              gap: 1,
+              px: 2,
+              py: 1,
+              borderTop: '1px solid',
+              borderColor: 'divider'
+            }
+          : { gap: 1, py: 0.5 }
+      }
     >
-      {items.map((item, index) => (
-        <Box key={item.id} className="u-flex u-flex-items-center">
-          {item.separatorBefore ? (
-            <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-          ) : null}
-          <Tooltip title={item.label}>
-            <IconButton
-              ref={element => {
-                buttonRefs.current[index] = element
-              }}
-              size="small"
-              aria-label={item.label}
-              aria-pressed={item.pressed}
-              aria-disabled={item.disabled ? true : undefined}
-              aria-haspopup={item.menu ? 'menu' : undefined}
-              aria-expanded={
-                item.menu ? openMenu?.name === item.menu : undefined
-              }
-              tabIndex={index === activeIndex ? 0 : -1}
-              onClick={handleClick(item, index)}
-              // Keep the editor selection while clicking
-              onMouseDown={event => event.preventDefault()}
-              data-testid={buttonTestId?.(item.id)}
-              sx={{
-                opacity: item.disabled ? 0.4 : 1,
-                color: item.pressed ? 'primary.main' : 'text.secondary',
-                bgcolor: item.pressed ? 'action.selected' : 'transparent'
-              }}
-            >
-              <EditorIcon
-                name={item.icon}
-                sx={
-                  item.id === 'color' && state.color
-                    ? { borderBottom: '3px solid', borderColor: state.color }
-                    : undefined
-                }
-              />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ))}
+      {segments.map(segment =>
+        segment.isGroup ? (
+          <Box key={segment.key} sx={GROUP_SX}>
+            {segment.entries.map(([item, index]) => renderButton(item, index))}
+          </Box>
+        ) : (
+          segment.entries.map(([item, index]) => renderButton(item, index))
+        )
+      )}
 
       <Menu
         anchorEl={openMenu?.anchor}

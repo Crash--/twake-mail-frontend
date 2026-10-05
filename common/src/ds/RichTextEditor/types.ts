@@ -1,5 +1,8 @@
 import type { InlineImageAttributes } from './inlineImage'
 
+/** The size of the text, in px, when the user chose none */
+export const DEFAULT_FONT_SIZE = 14
+
 /** A colour of the text colour menu; `value: null` resets to the default */
 export interface RichTextColor {
   value: string | null
@@ -105,6 +108,14 @@ export interface RichTextEditorTestIds {
   linkApplyButton?: string
   imageToolbar?: string
   imageButton?: (item: RichTextImageItemId) => string
+}
+
+/** What a parent can do to the editor, e.g. from buttons of its own */
+export interface RichTextEditorActions {
+  /** Opens the link dialog on the selection */
+  openLinkDialog: () => void
+  /** Opens the picker of the images to insert; false if images are not handled */
+  pickImages: () => boolean
 }
 
 /** What the editor's extensions call back, kept current by the component */

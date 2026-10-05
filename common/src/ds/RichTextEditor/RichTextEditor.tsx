@@ -13,9 +13,11 @@ import StarterKit from '@tiptap/starter-kit'
 import {
   useEffect,
   useId,
+  useImperativeHandle,
   useLayoutEffect,
   useRef,
   type MutableRefObject,
+  type Ref,
   useState,
   type ChangeEvent,
   type ReactElement
@@ -28,12 +30,14 @@ import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
 import { RichTextToolbar } from './RichTextToolbar'
 import { SmartTrailingBlock } from './smartTrailingBlock'
-import type {
-  EditorActions,
-  RichTextColor,
-  RichTextEditorLabels,
-  RichTextEditorTestIds,
-  RichTextFontSize
+import {
+  DEFAULT_FONT_SIZE,
+  type EditorActions,
+  type RichTextColor,
+  type RichTextEditorActions,
+  type RichTextEditorLabels,
+  type RichTextEditorTestIds,
+  type RichTextFontSize
 } from './types'
 
 export interface RichTextEditorProps {
@@ -70,6 +74,17 @@ export interface RichTextEditorProps {
    * without a border: the editor of a window
    */
   fill?: boolean
+  /** The formatting toolbar under the text, behind a divider; above it if false */
+  isToolbarBelow?: boolean
+  /** Shows the toolbar; the parent can hide it (a button of its own) */
+  isToolbarShown?: boolean
+  /**
+   * Link and image buttons in the toolbar. A parent that has them elsewhere
+   * (the footer of the composer) sets it to false and uses `actions`
+   */
+  hasInsertButtons?: boolean
+  /** Lets the parent open the link dialog and the image picker */
+  actions?: Ref<RichTextEditorActions>
   /** The editor, once created: read and change the document through it */
   onReady?: (editor: Editor) => void
   onUpdate?: (editor: Editor) => void
@@ -165,6 +180,10 @@ export function RichTextEditor({
   autoFocus = false,
   disabled = false,
   fill = false,
+  isToolbarBelow = false,
+  isToolbarShown = true,
+  hasInsertButtons = true,
+  actions,
   onReady,
   onUpdate,
   testIds = {}
@@ -265,6 +284,23 @@ export function RichTextEditor({
     actionsRef.current.openLinkDialog = openLinkDialog
   })
 
+  useImperativeHandle(
+    actions,
+    () => ({
+      openLinkDialog: () => {
+        openLinkDialog()
+      },
+      pickImages: () => {
+        if (!onImageFiles) return false
+        fileInputRef.current?.click()
+        return true
+      }
+    }),
+    // The dialog reads the editor when it opens
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editor, onImageFiles]
+  )
+
   const closeLinkDialog = (): void => {
     setLinkDialog(null)
     editor.commands.focus()
@@ -311,18 +347,24 @@ export function RichTextEditor({
         ...(fill ? { flex: '1 1 auto', minHeight: 0 } : {})
       }}
     >
-      <RichTextToolbar
-        editor={editor}
-        labels={labels}
-        colors={colors}
-        fontSizes={fontSizes}
-        editorId={editorId}
-        onOpenLinkDialog={openLinkDialog}
-        onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
-        actionsRef={actionsRef}
-        disabled={disabled}
-        buttonTestId={testIds.toolbarButton}
-      />
+      {isToolbarShown && !isToolbarBelow ? (
+        <RichTextToolbar
+          editor={editor}
+          labels={labels}
+          colors={colors}
+          fontSizes={fontSizes}
+          editorId={editorId}
+          onOpenLinkDialog={openLinkDialog}
+          onPickImages={
+            onImageFiles ? () => fileInputRef.current?.click() : null
+          }
+          hasInsertButtons={hasInsertButtons}
+          placement={isToolbarBelow ? 'bottom' : 'top'}
+          actionsRef={actionsRef}
+          disabled={disabled}
+          buttonTestId={testIds.toolbarButton}
+        />
+      ) : null}
       <ImageToolbar
         editor={editor}
         labels={labels.image}
@@ -354,12 +396,20 @@ export function RichTextEditor({
             : {}),
           '& .ProseMirror': {
             minHeight: fill ? undefined : 240,
-            padding: 1.5,
+            // The body of a window: 24 px above, 16 px at the sides, Inter
+            // Medium 14 / 18.4 as in the design
+            padding: fill ? '24px 16px' : 1.5,
             border: fill ? 'none' : '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
-            fontSize: 14,
-            lineHeight: 1.5,
+            fontSize: DEFAULT_FONT_SIZE,
+            ...(fill
+              ? {
+                  fontWeight: 500,
+                  lineHeight: '18.4px',
+                  letterSpacing: '0.25px'
+                }
+              : { lineHeight: 1.5 }),
             overflowWrap: 'anywhere'
           },
           // Greyed as the other disabled fields of twake-mui
@@ -373,7 +423,10 @@ export function RichTextEditor({
             outlineColor: 'primary.main',
             outlineOffset: fill ? -2 : 1
           },
-          '& .ProseMirror p': { margin: 0, minHeight: '1.5em' },
+          '& .ProseMirror p': {
+            margin: 0,
+            minHeight: fill ? '18.4px' : '1.5em'
+          },
           '& .ProseMirror blockquote': {
             margin: '0 0 0 8px',
             paddingLeft: 1.5,
@@ -413,6 +466,24 @@ export function RichTextEditor({
       >
         <EditorContent editor={editor} />
       </Box>
+      {isToolbarShown && isToolbarBelow ? (
+        <RichTextToolbar
+          editor={editor}
+          labels={labels}
+          colors={colors}
+          fontSizes={fontSizes}
+          editorId={editorId}
+          onOpenLinkDialog={openLinkDialog}
+          onPickImages={
+            onImageFiles ? () => fileInputRef.current?.click() : null
+          }
+          hasInsertButtons={hasInsertButtons}
+          placement={isToolbarBelow ? 'bottom' : 'top'}
+          actionsRef={actionsRef}
+          disabled={disabled}
+          buttonTestId={testIds.toolbarButton}
+        />
+      ) : null}
       <input
         ref={fileInputRef}
         type="file"

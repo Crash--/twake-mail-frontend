@@ -38,6 +38,14 @@ describe('NavTreeItem', () => {
     )
   })
 
+  it('shows a second line under the name, part of the name of the link', () => {
+    renderItem({ secondary: 'Work/Clients' })
+
+    expect(
+      screen.getByRole('link', { name: 'Inbox Work/Clients' })
+    ).toBeVisible()
+  })
+
   it('has no expand control without children', () => {
     renderItem()
 

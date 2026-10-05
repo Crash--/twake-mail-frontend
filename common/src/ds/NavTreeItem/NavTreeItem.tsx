@@ -59,6 +59,8 @@ export interface NavTreeItemProps {
   countText?: string
   /** Short text after the name (e.g. "Hidden") */
   meta?: ReactNode
+  /** A second line under the name (e.g. the path of a search result) */
+  secondary?: ReactNode
   /**
    * Icon buttons overlaid on the end of the row while it is hovered or holds
    * the keyboard focus (always there on touch screens); they take no room
@@ -99,6 +101,7 @@ export function NavTreeItem({
   count,
   countText,
   meta,
+  secondary,
   actions,
   drop,
   itemProps,
@@ -177,18 +180,39 @@ export function NavTreeItem({
           </Box>
           <Box
             component="span"
-            ref={nameRef}
-            className="u-ellipsis"
-            data-testid={nameTestId}
-            sx={{
-              minWidth: 0,
-              fontSize: 14,
-              fontWeight: 500,
-              lineHeight: '18.4px',
-              letterSpacing: 0.25
-            }}
+            className="u-flex u-flex-column"
+            sx={{ minWidth: 0 }}
           >
-            {label}
+            <Box
+              component="span"
+              ref={nameRef}
+              className="u-ellipsis"
+              data-testid={nameTestId}
+              sx={{
+                minWidth: 0,
+                fontSize: 14,
+                fontWeight: 500,
+                lineHeight: '18.4px',
+                letterSpacing: 0.25
+              }}
+            >
+              {label}
+            </Box>
+            {secondary === undefined || secondary === null ? null : (
+              <Box
+                component="span"
+                className="u-ellipsis"
+                sx={{
+                  minWidth: 0,
+                  color: 'text.secondary',
+                  fontSize: 12,
+                  lineHeight: '15.8px',
+                  letterSpacing: 0.4
+                }}
+              >
+                {secondary}
+              </Box>
+            )}
           </Box>
           {meta}
           {countText === undefined ? null : (

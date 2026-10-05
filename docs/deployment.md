@@ -144,7 +144,21 @@ tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SS
 `CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
 `TDRIVE_ENABLED`, `TDRIVE_INTENT_URL`. tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
-server, which this app does not read.
+server; this app reads that document only for error reporting and the storage
+upgrade (below), not for the calendar nor the Workplace host of the app grid.
+
+### Storage upgrade (paywall)
+
+As in tmail-flutter, a link to buy more storage (quota banner, sidebar footer,
+Settings > Storage, composer error) is shown only when the JMAP session has
+the capability `com:linagora:params:saas` with `canUpgrade` (and not already
+`isPaying` on the highest plan), the app runs inside Twake Workplace
+(`WORKPLACE_EMBEDDING` in an iframe), and a safe `https` URL is found: the
+Workplace of the user (`workplaceFqdn` claim, else `WORKPLACE_FQDN_FALLBACK`,
+else `workplaceFqdnFallback` of the ecosystem) plus `/settings/premium`, else
+the `paywallUrlTemplate` of the ecosystem (`{localPart}`, `{domainName}`,
+`{domainPart}`). The ecosystem document is requested only when nothing else
+gives the URL; the server must allow it (same origin as `SERVER_URL`).
 
 A former name is read when the new one is absent or blank, and logged once as
 a warning in the console (`[config] JMAP_SESSION_URL is deprecated, use

@@ -7,13 +7,13 @@ import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
 import { LabelsSection } from '@common/features/labels/LabelsSection'
-import { QuotaIndicator } from '@common/features/quota/QuotaIndicator'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
 import { AppGridMenu } from './AppGridMenu'
+import { MailSidebarFooter } from './MailSidebarFooter'
 
 export interface MailSidebarProps {
   apps: readonly AppListEntry[]
@@ -71,7 +71,7 @@ export function MailSidebar({
         <MailboxTree />
         <LabelsSection />
       </Box>
-      <QuotaIndicator />
+      <MailSidebarFooter />
     </ResponsiveSidebar>
   )
 }

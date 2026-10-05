@@ -734,3 +734,9 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
 - [x] `EACT-05` "Unsubscribe" with a `mailto:` link only opens the composer on its address and subject; `$unsubscribe` is set once the message is sent, not before. — tmail-flutter `composeFromUnsubscribeMailtoLink`.
 - [x] `EACT-06` A `List-Unsubscribe` header holding no `http(s):` nor `mailto:` link (`javascript:`) offers no Unsubscribe, link or menu item.
 - [x] `EACT-07` On a phone the Unsubscribe link is not shown beside the sender; the More menu has Unsubscribe, Print all, Download message as EML and Edit as new email. Axe. `@mobile`.
+- [x] `STORAGE-01` Inside Twake Workplace (iframe, `WORKPLACE_EMBEDDING`), with the SaaS capability `com:linagora:params:saas` (`canUpgrade`, answered in the session by the spec) and a full storage, a link to the paywall (`https://<workplace>/settings/premium`) is in the quota banner ("Manage my storage"), the sidebar footer ("Increase your space", under the cloud, the 3 px gauge, "X available" and the version) and Settings > Storage ("Upgrade storage"); each opens in a new tab with `noopener noreferrer`, the opened page has no `opener`. Axe. — web app only (tmail-flutter `premiumCtaProvider`)
+  - Spec: `tests/storage-upgrade.spec.ts`.
+- [x] `STORAGE-02` A message the full storage refuses shows "over quota" in the composer with the link to the paywall. Axe. — web app only
+  - Spec: `tests/storage-upgrade.spec.ts`.
+- [x] `STORAGE-03` Outside Twake Workplace, without the SaaS capability, with `canUpgrade` false, or on the highest subscription (`isPaying` and not `canUpgrade`), the banner only advises to clean up and no link to a paywall is shown anywhere. Axe. — web app only
+  - Spec: `tests/storage-upgrade.spec.ts`.

@@ -70,6 +70,9 @@ import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useMarkUnsubscribed } from '@common/features/email/useMarkUnsubscribed'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import { openPaywall } from '@common/features/paywall/openPaywall'
+import { UpgradeStorageLink } from '@common/features/paywall/UpgradeStorageLink'
+import { usePremiumCta } from '@common/features/paywall/usePremiumCta'
 import {
   isAlwaysRequestingReadReceipts,
   useServerSettings
@@ -358,6 +361,8 @@ function LoadedComposerForm({
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [isSending, setIsSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [isSendOverQuota, setIsSendOverQuota] = useState(false)
+  const premiumCta = usePremiumCta()
   const [hasBlockedImages, setHasBlockedImages] = useState(
     content.hasBlockedImages
   )
@@ -517,7 +522,25 @@ function LoadedComposerForm({
         // The versions this save may have left
         onChange?.()
         if (kind === 'manual') {
-          notify({ message: t(saveErrorKey(error)), severity: 'error' })
+          const paywallUrl =
+            saveErrorKey(error) === 'composer.draft.overQuota' &&
+            premiumCta.status === 'available'
+              ? premiumCta.url
+              : null
+          notify({
+            message: t(saveErrorKey(error)),
+            severity: 'error',
+            action:
+              paywallUrl === null
+                ? null
+                : {
+                    label: t('quota.increase'),
+                    onClick: () => {
+                      openPaywall(paywallUrl)
+                    },
+                    'data-testid': 'composer-draft-upgrade-button'
+                  }
+          })
         }
         return false
       }
@@ -1006,6 +1029,7 @@ function LoadedComposerForm({
     const identity = identities.find(item => item.id === identityId)
     if (!editor || !identity || isSending) return
     setSendError(null)
+    setIsSendOverQuota(false)
     const lists = allRecipients()
     setRecipients(lists)
     setInputs(EMPTY_INPUTS)
@@ -1049,6 +1073,7 @@ function LoadedComposerForm({
         setDraftId(result.draftId)
         savedRef.current = fingerprintOf(editor)
       }
+      setIsSendOverQuota(result.reason === 'overQuota')
       setSendError(
         t(SEND_FAILURE_KEYS[result.reason], {
           invalidRecipients: result.invalidRecipients.join(', ')
@@ -1268,6 +1293,15 @@ function LoadedComposerForm({
             >
               <Icon icon={Warning} aria-hidden="true" className="u-mr-half" />
               {sendError}
+              {isSendOverQuota ? (
+                <>
+                  {' '}
+                  <UpgradeStorageLink
+                    label={t('quota.increase')}
+                    data-testid="composer-upgrade-link"
+                  />
+                </>
+              ) : null}
             </Typography>
           )}
         </Box>

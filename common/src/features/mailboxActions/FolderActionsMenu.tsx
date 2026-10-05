@@ -10,6 +10,7 @@ import type { ReactElement } from 'react'
 
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useRecovery } from '@common/features/recovery/RecoveryProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { availableFolderActions } from './folderActionItems'
@@ -36,12 +37,15 @@ export function FolderActionsMenu({
   onClose
 }: FolderActionsMenuProps): ReactElement {
   const { t } = useI18n()
+  const recovery = useRecovery()
   const { data: mailboxes = [] } = useMailboxes()
   const { run } = useFolderActions()
   const items =
     mailbox === null || anchor === null
       ? []
-      : availableFolderActions(mailbox, mailboxes)
+      : availableFolderActions(mailbox, mailboxes, {
+          canRecover: recovery.isAvailable
+        })
 
   return (
     <Menu

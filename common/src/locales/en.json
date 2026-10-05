@@ -21,7 +21,8 @@
     "remove": "Remove",
     "errorOccurredShort": "Error! An error occurred. Please try again later.",
     "save": "Save",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "open": "Open"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -46,7 +47,8 @@
       "junk": "Spam",
       "templates": "Templates",
       "archive": "Archive",
-      "outbox": "Outbox"
+      "outbox": "Outbox",
+      "restored": "Recovered"
     },
     "expand": "Expand",
     "collapse": "Collapse",
@@ -892,5 +894,39 @@
     "almostFull": "The storage is almost full. You can free up space by deleting unnecessary files or subscribe to get extra space.",
     "label": "Storage used",
     "dismiss": "Close"
+  },
+  "recovery": {
+    "title": "Recover deleted messages",
+    "horizon": "You can recover messages deleted during the past %{period}",
+    "deletionDate": "Deletion date",
+    "receptionDate": "Reception date",
+    "ranges": {
+      "last7Days": "Last 7 days",
+      "last15Days": "Last 15 days",
+      "last30Days": "Last 30 days",
+      "last6Months": "Last 6 months",
+      "last1Year": "Last 1 year",
+      "allTime": "All time"
+    },
+    "recipients": "Recipients",
+    "sender": "Sender",
+    "hasAttachment": "Has attachment",
+    "restore": "Restore",
+    "subjectPlaceholder": "Enter subject keywords...",
+    "addressPlaceholder": "Add an email address",
+    "inProgress": "The recovery is in progress. You can continue using Twake Mail",
+    "toasts": {
+      "success": "Recover deleted messages successfully",
+      "canceled": "Restore deleted message canceled",
+      "failed": "Restore deleted message failed",
+      "successCount": "%{smart_count} message recovered |||| %{smart_count} messages recovered"
+    },
+    "subject": "Subject",
+    "addressesHelp": "Separate several addresses with commas",
+    "errors": {
+      "invalidAddress": "This email address invalid",
+      "start": "The recovery could not start"
+    },
+    "days": "%{smart_count} day |||| %{smart_count} days"
   }
 }

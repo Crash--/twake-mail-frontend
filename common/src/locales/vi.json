@@ -21,7 +21,8 @@
     "remove": "Xóa",
     "errorOccurredShort": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau.",
     "save": "Lưu",
-    "refresh": "Làm mới"
+    "refresh": "Làm mới",
+    "open": "Mở"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -46,7 +47,8 @@
       "junk": "Thư rác",
       "templates": "Mẫu",
       "archive": "Lưu trữ",
-      "outbox": "Hộp thư đi"
+      "outbox": "Hộp thư đi",
+      "restored": "Đã khôi phục"
     },
     "expand": "Mở rộng",
     "collapse": "Đóng",
@@ -892,5 +894,39 @@
     "almostFull": "Dung lượng lưu trữ sắp đầy. Bạn có thể xóa bớt tệp không cần thiết hoặc đăng ký gói mở rộng để có thêm dung lượng.",
     "label": "Dung lượng đã dùng",
     "dismiss": "Đóng"
+  },
+  "recovery": {
+    "title": "Khôi phục tin nhắn đã xóa",
+    "horizon": "Bạn có thể khôi phục các email đã xoá trong vòng %{period}",
+    "deletionDate": "Ngày xóa",
+    "receptionDate": "Ngày nhận",
+    "ranges": {
+      "last7Days": "7 ngày gần đây",
+      "last15Days": "Trong vòng 15 ngày",
+      "last30Days": "30 ngày gần đây",
+      "last6Months": "6 tháng gần đây",
+      "last1Year": "1 năm qua",
+      "allTime": "Toàn bộ thời gian"
+    },
+    "recipients": "Người nhận",
+    "sender": "Người gửi",
+    "hasAttachment": "Đính kèm",
+    "restore": "Khôi phục",
+    "subjectPlaceholder": "Điền chủ đề thư...",
+    "addressPlaceholder": "Thêm địa chỉ email",
+    "inProgress": "Quá trình khôi phục đang được tiến hành. Bạn có thể tiếp tục sử dụng Twake Mail",
+    "toasts": {
+      "success": "Khôi phục tin nhắn đã xóa thành công",
+      "canceled": "Khôi phục tin nhắn đã xóa bị hủy",
+      "failed": "Khôi phục tin nhắn đã xóa không thành công",
+      "successCount": "Đã khôi phục %{smart_count} thư"
+    },
+    "subject": "Tiêu đề",
+    "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy",
+    "errors": {
+      "invalidAddress": "Địa chỉ email không hợp lệ",
+      "start": "Không thể bắt đầu khôi phục"
+    },
+    "days": "%{smart_count} ngày"
   }
 }

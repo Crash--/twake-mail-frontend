@@ -114,3 +114,22 @@ describe('validateFolderName', () => {
     )
   })
 })
+
+describe('availableFolderActions and the rights to mark as read', () => {
+  const inbox = (maySetSeen: boolean): ReturnType<typeof makeMailbox> =>
+    makeMailbox({
+      id: 'team-inbox',
+      name: 'INBOX',
+      parentId: 'team',
+      namespace: TEAM,
+      unreadEmails: 3,
+      myRights: { ...TEAM_RIGHTS, maySetSeen }
+    })
+  const ids = (mailbox: ReturnType<typeof makeMailbox>): string[] =>
+    availableFolderActions(mailbox, [mailbox]).map(item => item.id)
+
+  it('offers "Mark as read" on a team folder to who may set the seen flag', () => {
+    expect(ids(inbox(true))).toContain('mark-as-read')
+    expect(ids(inbox(false))).not.toContain('mark-as-read')
+  })
+})

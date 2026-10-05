@@ -97,7 +97,8 @@ export function availableFolderActions(
   { canRecover = false }: { canRecover?: boolean } = {}
 ): FolderActionItem[] {
   const rights = mailbox.myRights
-  const hasUnread = mailbox.unreadEmails > 0
+  // Marking a folder read sets `$seen` on its emails
+  const hasUnread = mailbox.unreadEmails > 0 && rights.maySetSeen
   const hasChildren = mailboxes.some(other => other.parentId === mailbox.id)
   const ids: FolderActionId[] = []
   const visibility: FolderActionId = isHiddenMailbox(mailbox) ? 'show' : 'hide'

@@ -4,6 +4,8 @@
 # may be read-only), included by /etc/nginx/nginx.conf:
 #
 #   cache_env.conf          browser caching, disabled when .env.js has DEBUG = true
+#   server.d/env.conf       with an env.file of tmail-flutter mounted (see below):
+#                           serves /.env.js from the one generated in /tmp/nginx
 #   security_headers.conf   the values of the security headers, from the
 #                           environment (see docs/deployment.md):
 #
@@ -18,11 +20,19 @@
 #   CONTENT_SECURITY_POLICY  replaces the whole policy built from the above
 #   REFERRER_POLICY          default same-origin
 #   PERMISSIONS_POLICY       default: no camera, microphone, geolocation...
+#
+# The runtime configuration is the mounted /usr/share/nginx/html/.env.js. As
+# in the image of tmail-flutter, an env.file mounted at
+# /usr/share/nginx/html/assets/env.file works too (same keys, same format):
+# when no .env.js is mounted, it is converted into a /.env.js served by nginx.
 set -eu
 
 ME=$(basename "$0")
 HTML_DIR=/usr/share/nginx/html
 CONF_DIR=/tmp/nginx/conf.d
+SERVER_CONF_DIR=/tmp/nginx/server.d
+ENV_FILE=$HTML_DIR/assets/env.file
+GENERATED_ENV_JS=/tmp/nginx/env.js
 SCRIPT_HASHES_FILE=/etc/nginx/twake-mail/csp-script-hashes
 
 log() {
@@ -57,11 +67,60 @@ check_sources() {
     'double quotes, backslashes, dollar signs, semicolons nor commas'
 }
 
-mkdir -p "$CONF_DIR"
+mkdir -p "$CONF_DIR" "$SERVER_CONF_DIR"
+
+# --- env.file of tmail-flutter ---------------------------------------------
+# KEY=VALUE lines (comments, blank lines, `export`, one layer of quotes and
+# the trailing ` # comment` of unquoted values understood) become
+# `var KEY = 'VALUE';`. The values stay strings, as in the env.file; the keys
+# must be identifiers. Nothing else of the file reaches the script.
+env_js=$HTML_DIR/.env.js
+rm -f "$SERVER_CONF_DIR/env.conf" "$GENERATED_ENV_JS"
+if [ ! -f "$HTML_DIR/.env.js" ] && [ -f "$ENV_FILE" ]; then
+  tr -d '\r' <"$ENV_FILE" | awk '
+    { sub(/^[ \t]+/, "") }
+    /^#/ || /^$/ { next }
+    { sub(/^export[ \t]+/, "") }
+    !/^[A-Za-z_][A-Za-z0-9_]*[ \t]*=/ { next }
+    {
+      i = index($0, "=")
+      key = substr($0, 1, i - 1)
+      sub(/[ \t]+$/, "", key)
+      value = substr($0, i + 1)
+      sub(/^[ \t]+/, "", value)
+      sub(/[ \t]+$/, "", value)
+      first = substr(value, 1, 1)
+      if (length(value) >= 2 && (first == "\"" || first == "\047") &&
+          substr(value, length(value), 1) == first) {
+        value = substr(value, 2, length(value) - 2)
+      } else {
+        sub(/[ \t]+#.*$/, "", value)
+      }
+      # Escaped character by character: gsub() replacements differ between awks
+      escaped = ""
+      for (n = 1; n <= length(value); n++) {
+        c = substr(value, n, 1)
+        if (c == "\\" || c == "\047") escaped = escaped "\\"
+        escaped = escaped c
+      }
+      printf "var %s = \047%s\047;\n", key, escaped
+    }' >"$GENERATED_ENV_JS"
+  cat >"$SERVER_CONF_DIR/env.conf" <<EOF
+location = /.env.js {
+  alias $GENERATED_ENV_JS;
+  default_type application/javascript;
+  expires off;
+  add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate" always;
+  include /etc/nginx/twake-mail/security-headers.conf;
+}
+EOF
+  env_js=$GENERATED_ENV_JS
+  log "$ENV_FILE converted into /.env.js"
+fi
 
 # --- Browser caching -------------------------------------------------------
-if [ -f "$HTML_DIR/.env.js" ] &&
-  grep -qE 'DEBUG[[:space:]]*=[[:space:]]*true' "$HTML_DIR/.env.js"; then
+if [ -f "$env_js" ] &&
+  grep -qE 'DEBUG[[:space:]]*=[[:space:]]*.?true' "$env_js"; then
   static_cache='no-cache'
   html_cache='no-cache'
   log "DEBUG = true in .env.js: browser caching disabled"

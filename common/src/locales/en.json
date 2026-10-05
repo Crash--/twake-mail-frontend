@@ -423,6 +423,10 @@
     "title": "Settings",
     "manageAccount": "Manage account",
     "sections": {
+      "profiles": {
+        "title": "Profiles",
+        "description": "Select the identity or email address you want to use to send an emails"
+      },
       "preferences": {
         "title": "Preferences",
         "description": "Conversations and how the app behaves"
@@ -516,5 +520,52 @@
     "show": {
       "success": "This folder is shown again"
     }
+  },
+  "identities": {
+    "create": "Create new identity",
+    "edit": "Edit identity",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Enter name",
+      "replyTo": "Reply to",
+      "bcc": "Bcc to",
+      "addressPlaceholder": "Enter email address",
+      "signature": "Signature",
+      "setDefault": "Set as default identity",
+      "create": "Create",
+      "save": "Save",
+      "email": "Email address",
+      "addressesHelp": "Separate several addresses with commas"
+    },
+    "errors": {
+      "blank": "This field cannot be blank",
+      "onlySpaces": "This field cannot contain only spaces",
+      "invalidAddress": "This email address invalid",
+      "imageUpload": "There was an error while uploading the image. Please try again.",
+      "delete": "Delete Failed",
+      "imageTooLarge": "Please choose an image with size less than %{maxSize}KB",
+      "save": "The identity could not be saved",
+      "forbiddenFrom": "You cannot send from this address",
+      "load": "The identities could not be loaded"
+    },
+    "delete": {
+      "title": "Delete identity",
+      "message": "Are you sure you want to delete this identity?"
+    },
+    "toasts": {
+      "created": "You have created a new identity",
+      "createdDefault": "You have created a new default identity",
+      "updated": "You’ve changed your identity successfully",
+      "defaultSet": "Default identity setup successful",
+      "deleted": "Identity has been deleted"
+    },
+    "editAction": "Edit",
+    "defaultGroup": "Default identity",
+    "defaultBadge": "Default",
+    "setDefaultOf": "Use %{name} by default",
+    "editOf": "Edit %{name}",
+    "deleteOf": "Delete %{name}",
+    "cannotDelete": "Created with your account, it cannot be deleted",
+    "listLabel": "Identities"
   }
 }

@@ -16,7 +16,7 @@ function escapeHtml(text: string): string {
  * kept (the user's own, or PublicAsset URLs), without style sheets, which
  * would restyle the app
  */
-function sanitizeSignature(html: string): string {
+export function sanitizeSignature(html: string): string {
   const sanitized = sanitizeEmailHtml(html, { allowRemoteContent: true }).html
   if (!/<style/i.test(sanitized)) return sanitized
   const root = new DOMParser().parseFromString(

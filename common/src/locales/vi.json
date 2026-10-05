@@ -423,6 +423,10 @@
     "title": "Cài đặt",
     "manageAccount": "Quản lý tài khoản",
     "sections": {
+      "profiles": {
+        "title": "Hồ sơ",
+        "description": "Chọn danh tính hoặc địa chỉ email mà bạn muốn sử dụng để gửi email"
+      },
       "preferences": {
         "title": "Cài đặt",
         "description": "Hội thoại và cách ứng dụng hoạt động"
@@ -516,5 +520,52 @@
     "show": {
       "success": "Thư mục này đã được hiển thị lại"
     }
+  },
+  "identities": {
+    "create": "Tạo danh tính mới",
+    "edit": "Sửa định danh",
+    "form": {
+      "name": "Tên",
+      "namePlaceholder": "Điền tên",
+      "replyTo": "Trả lời",
+      "bcc": "Bcc",
+      "addressPlaceholder": "Điền địa chỉ email",
+      "signature": "Chữ ký",
+      "setDefault": "Đặt làm định danh mặc định",
+      "create": "Tạo mới",
+      "save": "Lưu",
+      "email": "Địa chỉ email",
+      "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy"
+    },
+    "errors": {
+      "blank": "Trường dữ liệu trống",
+      "onlySpaces": "Dữ liệu không hợp lệ",
+      "invalidAddress": "Địa chỉ email không hợp lệ",
+      "imageUpload": "Tải lên hình ảnh không thành công. Hãy thử lại.",
+      "delete": "Xoá thất bại",
+      "imageTooLarge": "Vui lòng chọn kích thước hình ảnh nhỏ hơn %{maxSize}KB",
+      "save": "Không thể lưu định danh",
+      "forbiddenFrom": "Bạn không thể gửi từ địa chỉ này",
+      "load": "Không thể tải các định danh"
+    },
+    "delete": {
+      "title": "Xoá định danh",
+      "message": "Bạn có chắc chắn xoá định danh này?"
+    },
+    "toasts": {
+      "created": "Bạn vừa tạo danh tính mới",
+      "createdDefault": "Bạn đã tạo một danh tính mặc định mới",
+      "updated": "Bạn đã thay đổi định danh thành công",
+      "defaultSet": "Đã chọn định danh mặc định",
+      "deleted": "Định danh đã được xoá bỏ"
+    },
+    "editAction": "Sửa",
+    "defaultGroup": "Định danh mặc định",
+    "defaultBadge": "Mặc định",
+    "setDefaultOf": "Dùng %{name} làm mặc định",
+    "editOf": "Sửa %{name}",
+    "deleteOf": "Xóa %{name}",
+    "cannotDelete": "Được tạo cùng tài khoản của bạn, không thể xóa",
+    "listLabel": "Định danh"
   }
 }

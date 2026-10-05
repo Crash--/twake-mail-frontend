@@ -1,4 +1,9 @@
-import { Help, Setting, type IconProps } from '@linagora/twake-icons'
+import {
+  Help,
+  Identities,
+  Setting,
+  type IconProps
+} from '@linagora/twake-icons'
 import type { Session } from 'jmap-client-ts'
 
 import type { TranslationKey } from '@common/i18n/useI18n'
@@ -23,6 +28,12 @@ export interface SettingsSection {
 }
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
+  {
+    id: 'profiles',
+    icon: Identities,
+    title: 'settings.sections.profiles.title',
+    description: 'settings.sections.profiles.description'
+  },
   {
     id: 'preferences',
     icon: Setting,

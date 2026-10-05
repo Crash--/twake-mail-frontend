@@ -62,7 +62,6 @@ describe('Drive intent', () => {
         maxFileSize: 1000,
         availableSize: 1000
       },
-      displayCloseButton: true,
       theme: { type: 'light' }
     })
   })
@@ -83,7 +82,7 @@ describe('Drive intent', () => {
       )
     ).toBe(null)
     expect(readIntentMessage(message('intent-other:ready'), INTENT)).toBe(null)
-    expect(readIntentMessage(message('intent-intent-1:resize'), INTENT)).toBe(
+    expect(readIntentMessage(message('intent-intent-1:compose'), INTENT)).toBe(
       null
     )
     expect(
@@ -161,5 +160,50 @@ describe('Drive intent', () => {
         }
       ]
     })
+  })
+  it('reads the size the picker asks for, finite positive numbers only', () => {
+    expect(
+      readIntentMessage(
+        message('intent-intent-1:resize', {
+          dimensions: { width: 700, height: 500, maxHeight: 600 },
+          transition: 'height .2s ease-out'
+        }),
+        INTENT
+      )
+    ).toEqual({
+      type: 'resize',
+      size: {
+        width: 700,
+        height: 500,
+        maxHeight: 600,
+        transition: 'height .2s ease-out'
+      }
+    })
+    expect(
+      readIntentMessage(
+        message('intent-intent-1:resize', {
+          dimensions: {
+            width: -1,
+            height: Number.POSITIVE_INFINITY,
+            maxWidth: '900',
+            maxHeight: 0
+          },
+          transition: 3
+        }),
+        INTENT
+      )
+    ).toEqual({ type: 'resize', size: {} })
+    expect(
+      readIntentMessage(message('intent-intent-1:resize'), INTENT)
+    ).toEqual({ type: 'resize', size: {} })
+  })
+
+  it('hears the picker hide and show the close button of the dialog', () => {
+    expect(
+      readIntentMessage(message('intent-intent-1:hideCross'), INTENT)
+    ).toEqual({ type: 'hideCross' })
+    expect(
+      readIntentMessage(message('intent-intent-1:showCross'), INTENT)
+    ).toEqual({ type: 'showCross' })
   })
 })

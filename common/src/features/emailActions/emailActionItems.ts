@@ -1,10 +1,14 @@
 import {
   Archive,
   CheckCircle,
+  Download,
   Email,
+  EmailNotification,
   EmailOpen,
   FolderMoveto,
   Label,
+  Pen,
+  Printer,
   Star,
   StarOutline,
   Trash,
@@ -12,10 +16,16 @@ import {
   type IconProps
 } from '@linagora/twake-icons'
 
-import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
+import {
+  DRAFT,
+  FLAGGED,
+  hasKeyword,
+  SEEN
+} from '@common/features/email/keywords'
 import {
   findMailboxIdByRole,
   findTeamHomeId,
+  findTemplatesMailboxId,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
@@ -38,6 +48,10 @@ export type EmailActionId =
   | 'move'
   | 'mark-as-spam'
   | 'label-as'
+  | 'unsubscribe'
+  | 'print'
+  | 'download-eml'
+  | 'edit-as-new'
 
 export interface EmailActionItem {
   id: EmailActionId
@@ -115,8 +129,44 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
     icon: Label,
     isDestructive: false,
     group: 2
+  },
+  unsubscribe: {
+    label: 'unsubscribe.action',
+    icon: EmailNotification,
+    isDestructive: false,
+    group: 3
+  },
+  print: {
+    label: 'emailActions.menu.printAll',
+    icon: Printer,
+    isDestructive: false,
+    group: 3
+  },
+  'download-eml': {
+    label: 'emailActions.menu.downloadAsEml',
+    icon: Download,
+    isDestructive: false,
+    group: 3
+  },
+  'edit-as-new': {
+    label: 'emailActions.menu.editAsNew',
+    icon: Pen,
+    isDestructive: false,
+    group: 3
   }
 }
+
+/**
+ * The actions that only make sense on one open email, appended after the
+ * others, in tmail-flutter's order (it shows "Edit as new email" in
+ * Drafts and Templates nowhere)
+ */
+export const SINGLE_EMAIL_ACTIONS: readonly EmailActionId[] = [
+  'unsubscribe',
+  'print',
+  'download-eml',
+  'edit-as-new'
+]
 
 export function emailActionItem(id: EmailActionId): EmailActionItem {
   return { id, ...ITEMS[id] }
@@ -138,7 +188,17 @@ export function availableEmailActions(
       })
     | null,
   mailboxes: readonly MailboxSummary[],
-  { canLabel = false }: { canLabel?: boolean } = {}
+  {
+    canLabel = false,
+    extras = []
+  }: {
+    canLabel?: boolean
+    /**
+     * Actions of `SINGLE_EMAIL_ACTIONS` to add for one email, the caller
+     * knowing what it has (Unsubscribe needs a link, Print the body…)
+     */
+    extras?: readonly EmailActionId[]
+  } = {}
 ): EmailActionItem[] {
   if (emails.length === 0) return []
   const role = mailbox?.role ?? null
@@ -170,10 +230,30 @@ export function availableEmailActions(
   ids.push('move')
   if (!isTeam && !isSpam && role !== 'drafts') ids.push('mark-as-spam')
   if (canLabel) ids.push('label-as')
+  if (emails.length === 1) {
+    // A draft or a template is edited, not copied
+    const templatesId = findTemplatesMailboxId(mailboxes)
+    const isEdited =
+      role === 'drafts' ||
+      emails.some(
+        email =>
+          hasKeyword(email, DRAFT) ||
+          (templatesId !== null && templatesId in email.mailboxIds)
+      )
+    for (const id of SINGLE_EMAIL_ACTIONS) {
+      if (extras.includes(id) && !(id === 'edit-as-new' && isEdited)) {
+        ids.push(id)
+      }
+    }
+  }
   // What the rights of the folders forbid is not offered
   return ids
-    .filter(id =>
-      mayOnEmails(emails, rightForItem(id), mailboxes, mailbox?.id ?? null)
-    )
+    .filter(id => {
+      const right = rightForItem(id)
+      return (
+        right === null ||
+        mayOnEmails(emails, right, mailboxes, mailbox?.id ?? null)
+      )
+    })
     .map(emailActionItem)
 }

@@ -20,6 +20,7 @@ import {
 } from './emailBody'
 import type { EmailDetail } from './queries'
 import { RemoteContentBanner } from './RemoteContentBanner'
+import { UnsubscribedBanner } from './UnsubscribedBanner'
 import { foldQuotedHistory } from './quoteToggle'
 import { normalizeCid } from './sanitizeEmailHtml'
 import { useTrustedSender } from './trustedSenders'
@@ -103,6 +104,7 @@ export function EmailMessageBody({
 
   return (
     <>
+      <UnsubscribedBanner email={email} />
       <AttachmentList attachments={attachments} emailId={email.id} />
       {calendar.invitation ? (
         <Box className="u-mt-1">

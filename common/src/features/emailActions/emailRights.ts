@@ -18,11 +18,12 @@ const ACTION_RIGHTS: Record<EmailActionName, EmailRight> = {
   markAsUnread: 'maySetSeen',
   star: 'maySetKeywords',
   unstar: 'maySetKeywords',
+  markUnsubscribed: 'maySetKeywords',
   addLabel: 'maySetKeywords',
   removeLabel: 'maySetKeywords'
 }
 
-const ITEM_RIGHTS: Record<EmailActionId, EmailRight> = {
+const ITEM_RIGHTS: Record<EmailActionId, EmailRight | null> = {
   'not-spam': 'mayRemoveItems',
   'move-to-trash': 'mayRemoveItems',
   'delete-permanently': 'mayRemoveItems',
@@ -33,7 +34,12 @@ const ITEM_RIGHTS: Record<EmailActionId, EmailRight> = {
   'mark-as-unread': 'maySetSeen',
   star: 'maySetKeywords',
   unstar: 'maySetKeywords',
-  'label-as': 'maySetKeywords'
+  'label-as': 'maySetKeywords',
+  unsubscribe: 'maySetKeywords',
+  // Reading an email is all they need
+  print: null,
+  'download-eml': null,
+  'edit-as-new': null
 }
 
 /** The right an action needs on the folders of the emails */
@@ -41,8 +47,8 @@ export function rightForAction(action: EmailActionName): EmailRight {
   return ACTION_RIGHTS[action]
 }
 
-/** The right a menu item needs on the folders of the emails */
-export function rightForItem(id: EmailActionId): EmailRight {
+/** The right a menu item needs on the folders of the emails, if any */
+export function rightForItem(id: EmailActionId): EmailRight | null {
   return ITEM_RIGHTS[id]
 }
 

@@ -8,7 +8,6 @@ import {
   type EmailActionId
 } from '@common/features/emailActions/emailActionItems'
 import { EmailActionsMenu } from '@common/features/emailActions/EmailActionsMenu'
-import { useRunEmailAction } from '@common/features/emailActions/useRunEmailAction'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
@@ -16,6 +15,11 @@ import { useI18n } from '@common/i18n/useI18n'
 import { FLAGGED, hasKeyword } from './keywords'
 import type { EmailDetail } from './queries'
 import { useReplyOptions } from './useReplyOptions'
+import {
+  useRunViewedEmailAction,
+  viewedEmailExtras
+} from './useRunViewedEmailAction'
+import { useUnsubscribe } from './useUnsubscribe'
 
 /** The actions shown as buttons beside "More", from the tablet size */
 const BUTTONS: Record<EmailViewActionsVariant, readonly EmailActionId[]> = {
@@ -26,7 +30,8 @@ const BUTTONS: Record<EmailViewActionsVariant, readonly EmailActionId[]> = {
     'mark-as-unread',
     'move',
     'mark-as-spam',
-    'not-spam'
+    'not-spam',
+    'print'
   ],
   // A message of a conversation: the most used ones, the rest in "More"
   message: ['mark-as-unread', 'move-to-trash', 'delete-permanently']
@@ -67,13 +72,15 @@ export function EmailViewActions({
   const isPhone = useScreenSize() === 'mobile'
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
-  const runAction = useRunEmailAction()
+  const runAction = useRunViewedEmailAction()
+  const { canUnsubscribe } = useUnsubscribe()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   const replies = useReplyOptions(email)
   const mailbox =
     mailboxes.find(candidate => candidate.id === mailboxId) ?? null
   const items = availableEmailActions([email], mailbox, mailboxes, {
-    canLabel
+    canLabel,
+    extras: viewedEmailExtras(email, canUnsubscribe(email))
   })
   const buttons = isPhone
     ? []
@@ -83,7 +90,7 @@ export function EmailViewActions({
   const moreLabel = t('emailActions.menu.more')
 
   const handleRun = (id: EmailActionId): void => {
-    void runAction(id, [email], mailboxId).then(done => {
+    void runAction(id, email, mailboxId).then(done => {
       if (done) onAction(id)
     })
   }
@@ -143,6 +150,7 @@ export function EmailViewActions({
         mailboxId={mailboxId}
         onAction={onAction}
         replies={replies.actions}
+        detail={email}
         data-testid="email-view-menu"
       />
     </Box>

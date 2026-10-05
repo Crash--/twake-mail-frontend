@@ -318,7 +318,10 @@ function draftIdentity(
  * A draft of the server, as the composer reopens it: its inline images
  * registered and downloaded, its other files attached. A template opens
  * the same way, as a new message that "Save as template" updates
- * (tmail-flutter `editAsNewEmail` with its template id).
+ * (tmail-flutter `editAsNewEmail` with its template id). With `asNew`, any
+ * email opens that way: recipients, subject, body, attachments, importance
+ * and read receipt request are kept, the identity is the one the email
+ * names, else the default one.
  */
 export async function loadDraftContent(
   client: JmapClient,
@@ -326,8 +329,13 @@ export async function loadDraftContent(
   draftId: string,
   identities: readonly IdentitySummary[],
   images: InlineImageStore,
-  { isTemplate = false }: { isTemplate?: boolean } = {}
+  {
+    isTemplate = false,
+    asNew = false
+  }: { isTemplate?: boolean; asNew?: boolean } = {}
 ): Promise<ComposerContent> {
+  // A template or an email edited as new opens as a message of its own
+  const isCopy = isTemplate || asNew
   const response = await client.call('Email/get', {
     accountId,
     ids: [draftId],
@@ -383,12 +391,14 @@ export async function loadDraftContent(
     subject: email.subject ?? '',
     html: editorHtml,
     attachments,
-    draftId: isTemplate ? null : draftId,
+    draftId: isCopy ? null : draftId,
     leftovers: [],
     savedFingerprint: null,
-    inReplyTo: email.inReplyTo ?? null,
-    references: email.references ?? null,
-    answering: isTemplate ? null : parseAnswering(email[ANSWERING_HEADER]),
+    // Edited as new, it answers nothing (tmail-flutter sets these for
+    // replies and forwards only)
+    inReplyTo: asNew ? null : (email.inReplyTo ?? null),
+    references: asNew ? null : (email.references ?? null),
+    answering: isCopy ? null : parseAnswering(email[ANSWERING_HEADER]),
     hasBlockedImages: hasBlockedImages(editorHtml),
     draftSession: crypto.randomUUID(),
     mayHaveStrays: false,
@@ -396,7 +406,7 @@ export async function loadDraftContent(
       requestReadReceipt: (email[READ_RECEIPT_REQUEST_HEADER] ?? '') !== '',
       isImportant: isMarkedImportant(email)
     },
-    readReceiptAddress: isTemplate ? null : (email.from?.[0]?.email ?? null),
+    readReceiptAddress: isCopy ? null : (email.from?.[0]?.email ?? null),
     templateId: isTemplate ? draftId : null,
     opensOn: null
   }

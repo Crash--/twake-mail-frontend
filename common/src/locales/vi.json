@@ -117,7 +117,8 @@
     },
     "attachmentsMore": "Hiển thị +%{count}",
     "attachmentsHide": "Ẩn %{count}",
-    "attachmentsTitle": "%{smart_count} tệp đính kèm (%{size})"
+    "attachmentsTitle": "%{smart_count} tệp đính kèm (%{size})",
+    "replyTo": "Reply-To"
   },
   "login": {
     "title": "Đăng nhập",
@@ -515,7 +516,8 @@
       "starred": "Thư đã được đánh dấu quan trọng",
       "unstarred": "Thư đã được gỡ quan trọng",
       "starredCount": "Đã gắn sao %{smart_count} thư",
-      "unstarredCount": "Đã gỡ sao %{smart_count} thư"
+      "unstarredCount": "Đã gỡ sao %{smart_count} thư",
+      "downloadEmlFailed": "Tải xuống email thất bại"
     },
     "deleteForever": {
       "title": "Xoá tin nhắn vĩnh viễn",
@@ -535,7 +537,10 @@
       "archive": "Lưu trữ tin nhắn",
       "star": "Quan trọng",
       "unstar": "Không quan trọng",
-      "label": "Thao tác với thư"
+      "label": "Thao tác với thư",
+      "printAll": "In",
+      "downloadAsEml": "Tải xuống email dưới dạng EML",
+      "editAsNew": "Soạn lại dưới dạng email mới"
     },
     "drag": "Di chuyển %{smart_count} thư",
     "reply": {
@@ -1113,5 +1118,16 @@
       "until": "đến %{date}"
     },
     "untitled": "(Không có tiêu đề)"
+  },
+  "unsubscribe": {
+    "action": "Hủy đăng ký",
+    "title": "Hủy đăng ký thư",
+    "done": "Đã hủy đăng ký khỏi danh sách gửi thư này",
+    "banner": "Bạn hủy đăng ký khỏi %{senderName}",
+    "message": "Bạn có chắc chắn muốn ngừng nhận các tin nhắn tương tự từ %{senderName} ?"
+  },
+  "print": {
+    "inProgress": "Đang tiến hành in",
+    "failed": "In thất bại"
   }
 }

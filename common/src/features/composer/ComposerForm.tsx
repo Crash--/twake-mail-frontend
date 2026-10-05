@@ -68,6 +68,7 @@ import { useIdentities } from '@common/features/identities/useIdentities'
 import { findTemplatesMailboxId } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useMarkUnsubscribed } from '@common/features/email/useMarkUnsubscribed'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
   isAlwaysRequestingReadReceipts,
@@ -148,6 +149,13 @@ export interface ComposerInit {
   templateId?: string
   /** A `mailto:` link opened by the app (`/mailto` route) */
   mailto?: MailtoFields
+  /** An email of the server edited as a new message ("Edit as new email") */
+  editAsNewEmailId?: string
+  /**
+   * The email this message unsubscribes from (a `mailto:` unsubscribe
+   * link): it gets the `$unsubscribe` keyword once the message is sent
+   */
+  unsubscribeEmailId?: string
 }
 
 /** What the window asks its form */
@@ -299,6 +307,7 @@ function LoadedComposerForm({
   const client = useJmapClient()
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
+  const markUnsubscribed = useMarkUnsubscribed()
   const choose = useChoose()
   const confirm = useConfirm()
   const alert = useAlert()
@@ -1024,6 +1033,13 @@ function LoadedComposerForm({
         leftoversRef.current = []
         setDraftId(null)
         notify({ message: t('composer.sent'), severity: 'success' })
+        if (init.unsubscribeEmailId !== undefined) {
+          markUnsubscribed(init.unsubscribeEmailId, null).catch(
+            (error: unknown) => {
+              console.error('[composer] Cannot mark as unsubscribed', error)
+            }
+          )
+        }
         onDone()
         return
       }
@@ -1467,6 +1483,16 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       if (kept) return restoreSnapshotContent(kept, images)
       if (init.draftId !== undefined) {
         return loadDraftContent(client, accountId, init.draftId, list, images)
+      }
+      if (init.editAsNewEmailId !== undefined) {
+        return loadDraftContent(
+          client,
+          accountId,
+          init.editAsNewEmailId,
+          list,
+          images,
+          { asNew: true }
+        )
       }
       if (init.templateId !== undefined) {
         return loadDraftContent(

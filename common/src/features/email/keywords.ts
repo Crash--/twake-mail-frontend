@@ -4,9 +4,15 @@ export const FLAGGED = '$flagged'
 export const DRAFT = '$draft'
 /** Set by the server's AI on the emails that need an answer or a task */
 export const NEEDS_ACTION = 'needs-action'
+/** Set once the user unsubscribed from the mailing list of the email */
+export const UNSUBSCRIBED = '$unsubscribe'
 
 export type EmailKeyword =
-  typeof SEEN | typeof FLAGGED | typeof DRAFT | typeof NEEDS_ACTION
+  | typeof SEEN
+  | typeof FLAGGED
+  | typeof DRAFT
+  | typeof NEEDS_ACTION
+  | typeof UNSUBSCRIBED
 
 export function hasKeyword(
   email: { keywords: Record<string, true> },

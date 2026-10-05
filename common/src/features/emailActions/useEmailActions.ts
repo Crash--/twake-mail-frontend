@@ -3,7 +3,7 @@ import { JmapHttpError } from 'jmap-client-ts'
 import { useMemo } from 'react'
 
 import { emailKeys } from '@common/features/email/queries'
-import { FLAGGED, SEEN } from '@common/features/email/keywords'
+import { FLAGGED, SEEN, UNSUBSCRIBED } from '@common/features/email/keywords'
 import {
   findMailboxIdByRole,
   findTeamFolderId,
@@ -49,6 +49,7 @@ export type EmailActionName =
   | 'markAsUnread'
   | 'star'
   | 'unstar'
+  | 'markUnsubscribed'
   | 'deletePermanently'
   | 'addLabel'
   | 'removeLabel'
@@ -141,6 +142,8 @@ function toOperation(
     case 'star':
     case 'unstar':
       return { kind: 'keyword', keyword: FLAGGED, isSet: action === 'star' }
+    case 'markUnsubscribed':
+      return { kind: 'keyword', keyword: UNSUBSCRIBED, isSet: true }
     case 'deletePermanently':
       return { kind: 'destroy' }
     case 'addLabel':
@@ -338,6 +341,8 @@ export function useEmailActions(): EmailActions {
           return t('labels.toasts.removedFromEmail', {
             labelName: request.label?.displayName ?? ''
           })
+        case 'markUnsubscribed':
+          return t('unsubscribe.done')
         case 'deletePermanently':
           return count === 1
             ? t('emailActions.toast.deletedForever')

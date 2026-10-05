@@ -9,6 +9,8 @@ import {
   makeEmail,
   makeFakeJmapServer,
   makeMailbox,
+  makeTeamMailboxes,
+  teamNamespace,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -38,6 +40,31 @@ function makeServer(
     emails: [
       makeEmail({ id: 'a', mailboxIds: { [mailboxId]: true } }),
       makeEmail({ id: 'b', mailboxIds: { [mailboxId]: true } }),
+      makeEmail({ id: 'kept', mailboxIds: { 'mailbox-inbox': true } })
+    ]
+  })
+}
+
+function makeTeamServer(
+  rights: { mayRemoveItems?: boolean } = {}
+): FakeJmapServer {
+  return makeFakeJmapServer({
+    capabilities: { [LINAGORA_CAPABILITIES.mailboxClear]: {} },
+    mailboxes: [
+      ...makeDefaultMailboxes(),
+      ...makeTeamMailboxes({ rights }).map(mailbox =>
+        mailbox.id === 'team-trash' ? { ...mailbox, totalEmails: 2 } : mailbox
+      ),
+      makeMailbox({
+        id: 'team-old',
+        name: 'Old',
+        parentId: 'team-trash',
+        namespace: teamNamespace('team@example.com')
+      })
+    ],
+    emails: [
+      makeEmail({ id: 'a', mailboxIds: { 'team-trash': true } }),
+      makeEmail({ id: 'b', mailboxIds: { 'team-trash': true } }),
       makeEmail({ id: 'kept', mailboxIds: { 'mailbox-inbox': true } })
     ]
   })
@@ -126,6 +153,37 @@ describe('EmptyFolderBanner', () => {
     )
     expect(server.emails.map(email => email.id)).toEqual(['kept'])
     expect(server.calledMethods()).not.toContain('Mailbox/clear')
+  })
+
+  it('empties the Trash of a team mailbox by query, and its subfolders, as the Trash', async () => {
+    const server = makeTeamServer()
+    await renderFolder(server, 'team-trash')
+
+    const banner = screen.getByTestId('empty-trash-banner')
+    await userEvent.click(
+      within(banner).getByRole('button', { name: 'Empty trash now' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Empty Trash' })
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Delete' })
+    )
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Trash subfolders deleted'
+    )
+    expect(server.emails.map(email => email.id)).toEqual(['kept'])
+    expect(server.mailboxes.map(mailbox => mailbox.id)).not.toContain(
+      'team-old'
+    )
+    // Mailbox/clear is for the folders of the user
+    expect(server.calledMethods()).not.toContain('Mailbox/clear')
+  })
+
+  it('shows no banner in the Trash of a team mailbox to who may not remove its emails', async () => {
+    const server = makeTeamServer({ mayRemoveItems: false })
+    await renderFolder(server, 'team-trash')
+
+    expect(screen.queryByTestId('empty-trash-banner')).toBe(null)
   })
 
   it('leaves everything when cancelled, and tells about a failure', async () => {

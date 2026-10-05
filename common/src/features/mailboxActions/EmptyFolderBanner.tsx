@@ -1,19 +1,20 @@
 import { Alert, Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { isTrashMailbox } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { useEmptyFolder } from './useEmptyFolder'
+import { isEmptiableFolder, useEmptyFolder } from './useEmptyFolder'
 
 export interface EmptyFolderBannerProps {
   mailbox: MailboxSummary
 }
 
 /**
- * Above the list of the Trash (with emails or subfolders) and of Spam (with
- * emails), as tmail-flutter: a warning and the button emptying the folder.
+ * Above the list of the Trash, a team mailbox's too (with emails or subfolders),
+ * and of Spam (with emails), as tmail-flutter: a warning and the button emptying the folder.
  */
 export function EmptyFolderBanner({
   mailbox
@@ -21,13 +22,15 @@ export function EmptyFolderBanner({
   const { t } = useI18n()
   const emptyFolder = useEmptyFolder()
   const { data: mailboxes = [] } = useMailboxes()
-  const isTrash = mailbox.role === 'trash'
+  const isTrash = isTrashMailbox(mailbox)
   const hasSubfolders = mailboxes.some(
     candidate => candidate.parentId === mailbox.id
   )
   const isShown =
-    (isTrash && (mailbox.totalEmails > 0 || hasSubfolders)) ||
-    (mailbox.role === 'junk' && mailbox.totalEmails > 0)
+    isEmptiableFolder(mailbox) &&
+    (isTrash
+      ? mailbox.totalEmails > 0 || hasSubfolders
+      : mailbox.totalEmails > 0)
   if (!isShown) return null
 
   const handleEmpty = (): void => {

@@ -71,6 +71,9 @@ expect '/.env.js is never cached' "$(header /.env.js Cache-Control)" 'no-store*'
 expect '/version.js is written by the build' "$(body "$BASE/version.js")" 'var APP_VERSION = *'
 script="$(body "$BASE/" | grep -o 'src="/static/js/index[^"]*"' | head -1 | cut -d'"' -f2)"
 expect 'hashed assets are cached for a year' "$(header "$script" Cache-Control)" '*immutable*'
+worker="$(docker exec "$NAME" sh -c 'cd /usr/share/nginx/html && ls static/assets/pdf.worker*.mjs | head -1')"
+expect 'the PDF worker is served as JavaScript' \
+  "$(header "/$worker" Content-Type)" 'text/javascript*'
 expect 'assets are served pre-compressed' \
   "$(header "$script" Content-Encoding -H 'Accept-Encoding: gzip')" 'gzip'
 csp="$(header / Content-Security-Policy)"

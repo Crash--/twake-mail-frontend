@@ -4,8 +4,6 @@
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { NAV_SECONDARY_TEXT } from '@/ds/navColors/navColors'
-
 export interface NavSectionHeaderProps {
   title: string
   /** Id of the heading, for the `aria-labelledby` of the list it titles */
@@ -34,7 +32,7 @@ export function NavSectionHeader({
         className="u-flex-auto"
         data-testid={testId}
         sx={{
-          color: NAV_SECONDARY_TEXT,
+          color: 'text.secondary',
           fontSize: 12,
           fontWeight: 500,
           lineHeight: '15.8px',

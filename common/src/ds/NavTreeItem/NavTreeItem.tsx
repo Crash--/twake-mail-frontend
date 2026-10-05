@@ -16,7 +16,6 @@ import {
 } from 'react'
 
 import { DropTarget } from '@/ds/DropTarget/DropTarget'
-import { NAV_ACCENT } from '@/ds/navColors/navColors'
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 
 /** Start padding of the first level (the 8 px of the row) */
@@ -152,7 +151,7 @@ export function NavTreeItem({
             '&, &:hover, &.Mui-selected, &.Mui-selected:hover, &.Mui-focusVisible':
               { backgroundColor: 'transparent' },
             '&.Mui-selected, &.Mui-selected .MuiListItemIcon-root': {
-              color: NAV_ACCENT
+              color: 'primary.main'
             },
             // The link covers the whole row; the arrow and actions sit above
             '&::after': {
@@ -162,7 +161,8 @@ export function NavTreeItem({
               borderRadius: '8px'
             },
             '&.Mui-focusVisible::after': {
-              outline: `2px solid ${NAV_ACCENT}`,
+              outline: '2px solid',
+              outlineColor: 'primary.main',
               outlineOffset: '-2px'
             }
           }}

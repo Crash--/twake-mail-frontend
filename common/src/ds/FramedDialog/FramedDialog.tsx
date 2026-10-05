@@ -19,7 +19,7 @@ import {
   useRef,
   type ReactElement,
   type ReactNode,
-  type MutableRefObject
+  type RefObject
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -130,7 +130,7 @@ export interface FramedDialogProps {
   frameSize?: FrameSize | null
   /** Shown instead of the frame (an error and its actions) */
   message?: ReactNode
-  frameRef?: MutableRefObject<HTMLIFrameElement | null>
+  frameRef?: RefObject<HTMLIFrameElement | null>
   /** Permissions of the framed page (`allow`) */
   allow?: string
   /**

@@ -20,7 +20,7 @@ import {
   type FocusEvent,
   type KeyboardEvent,
   type MouseEvent,
-  type MutableRefObject,
+  type RefObject,
   type ReactElement
 } from 'react'
 
@@ -80,7 +80,7 @@ export interface ImageToolbarProps {
   editor: Editor
   labels: RichTextImageLabels
   /** Lets the editor move the focus here (Enter on a selected image) */
-  actionsRef: MutableRefObject<EditorActions>
+  actionsRef: RefObject<EditorActions>
   'data-testid'?: string
   buttonTestId?: (item: RichTextImageItemId) => string
 }

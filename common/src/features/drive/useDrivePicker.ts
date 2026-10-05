@@ -78,7 +78,7 @@ export function useDriveUrl(): string | null {
 export interface DrivePicker {
   state: DrivePickerState
   /** The frame of the picker, whose messages are listened to */
-  frameRef: React.MutableRefObject<HTMLIFrameElement | null>
+  frameRef: React.RefObject<HTMLIFrameElement | null>
   open: () => void
   close: () => void
 }

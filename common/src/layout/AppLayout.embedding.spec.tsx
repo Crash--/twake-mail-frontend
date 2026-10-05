@@ -31,7 +31,7 @@ function withConfig(
 ): ReactElement {
   const result = resolveConfig(
     {
-      JMAP_SESSION_URL: 'https://jmap.example.com/jmap/session',
+      SERVER_URL: 'https://jmap.example.com',
       AUTH_MODE: 'basic',
       WORKPLACE_EMBEDDING: workplaceEmbedding,
       WORKPLACE_FQDN_FALLBACK: '{localpart}.twake.example.com'

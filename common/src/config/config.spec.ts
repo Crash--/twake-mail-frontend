@@ -3,9 +3,40 @@ import { DEFAULT_SSO_SCOPE, resolveConfig } from './config'
 const ORIGIN = 'https://mail.example.com'
 
 const OIDC_SOURCE = {
-  JMAP_SESSION_URL: 'https://jmap.example.com/jmap/session',
+  SERVER_URL: 'https://jmap.example.com',
   SSO_BASE_URL: 'https://sso.example.com',
-  SSO_CLIENT_ID: 'twake-mail'
+  WEB_OIDC_CLIENT_ID: 'twake-mail'
+}
+
+/** The env.file of tmail-flutter, as the image turns it into .env.js */
+const FLUTTER_ENV_FILE = {
+  SERVER_URL: 'http://localhost/',
+  DOMAIN_REDIRECT_URL: 'http://localhost:3000',
+  WEB_OIDC_CLIENT_ID: 'teammail-web',
+  OIDC_SCOPES: 'openid,profile,email,offline_access',
+  APP_GRID_AVAILABLE: 'supported',
+  FCM_AVAILABLE: 'supported',
+  IOS_FCM: 'supported',
+  FORWARD_WARNING_MESSAGE: '',
+  PLATFORM: 'other',
+  WS_ECHO_PING: '',
+  COZY_INTEGRATION: '',
+  COZY_EXTERNAL_BRIDGE_VERSION: '',
+  SENTRY_ENABLED: 'false',
+  SENTRY_DSN: '',
+  SENTRY_ENVIRONMENT: '',
+  FORCE_EMAIL_QUERY: 'false'
+}
+
+function resolveWithWarnings(source: Record<string, unknown>): {
+  result: ReturnType<typeof resolveConfig>
+  warnings: string[]
+} {
+  const warnings: string[] = []
+  const result = resolveConfig(source, ORIGIN, message =>
+    warnings.push(message)
+  )
+  return { result, warnings }
 }
 
 describe('resolveConfig', () => {
@@ -15,7 +46,7 @@ describe('resolveConfig', () => {
     expect(result).toEqual({
       ok: true,
       value: expect.objectContaining({
-        jmapSessionUrl: 'https://jmap.example.com/jmap/session',
+        jmapSessionUrl: 'https://jmap.example.com/.well-known/jmap',
         authMode: 'oidc',
         oidc: {
           issuerUrl: 'https://sso.example.com',
@@ -26,6 +57,7 @@ describe('resolveConfig', () => {
         },
         debug: false,
         sentryDsn: null,
+        sentryEnvironment: null,
         forwardWarningMessage: null,
         workplaceEmbedding: false,
         tdriveIntentUrl: null,
@@ -62,7 +94,7 @@ describe('resolveConfig', () => {
   it('accepts the basic mode without any SSO setting', () => {
     const result = resolveConfig(
       {
-        JMAP_SESSION_URL: 'http://localhost/jmap/session',
+        SERVER_URL: 'http://localhost/',
         AUTH_MODE: 'basic'
       },
       ORIGIN
@@ -73,14 +105,14 @@ describe('resolveConfig', () => {
   })
 
   it('reports every missing required entry at once', () => {
-    const result = resolveConfig({ SSO_CLIENT_ID: '  ' }, ORIGIN)
+    const result = resolveConfig({ WEB_OIDC_CLIENT_ID: '  ' }, ORIGIN)
 
     expect(result).toEqual({
       ok: false,
       errors: [
-        'JMAP_SESSION_URL must be an absolute http(s) URL',
+        'SERVER_URL must be an absolute http(s) URL',
         'SSO_BASE_URL must be an absolute http(s) URL',
-        'SSO_CLIENT_ID is required'
+        'WEB_OIDC_CLIENT_ID is required'
       ]
     })
   })
@@ -115,5 +147,285 @@ describe('resolveConfig', () => {
     expect(result.ok && result.value.appList).toEqual([
       { name: 'Chat', link: 'https://chat.example.com', icon: '/chat.svg' }
     ])
+  })
+
+  describe('SERVER_URL', () => {
+    it.each([
+      ['http://localhost/', 'http://localhost/.well-known/jmap'],
+      ['http://localhost', 'http://localhost/.well-known/jmap'],
+      [
+        'https://mail.example.com/api',
+        'https://mail.example.com/api/.well-known/jmap'
+      ],
+      [
+        'https://mail.example.com/api//',
+        'https://mail.example.com/api/.well-known/jmap'
+      ]
+    ])('derives the JMAP session URL of %s', (serverUrl, sessionUrl) => {
+      const { result, warnings } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        SERVER_URL: serverUrl
+      })
+
+      expect(result.ok && result.value.jmapSessionUrl).toBe(sessionUrl)
+      expect(warnings).toEqual([])
+    })
+
+    it('rejects a server URL that is not absolute', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        SERVER_URL: 'jmap'
+      })
+
+      expect(result).toEqual({
+        ok: false,
+        errors: ['SERVER_URL must be an absolute http(s) URL']
+      })
+    })
+  })
+
+  describe('OIDC keys of tmail-flutter', () => {
+    it('builds the redirect URIs from DOMAIN_REDIRECT_URL, as tmail-flutter', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        DOMAIN_REDIRECT_URL: 'https://mail.example.com/app/'
+      })
+
+      expect(result.ok && result.value.oidc).toMatchObject({
+        redirectUri: 'https://mail.example.com/app/login-callback.html',
+        postLogoutRedirectUri:
+          'https://mail.example.com/app/logout-callback.html'
+      })
+    })
+
+    it('lets SSO_REDIRECT_URI and SSO_POST_LOGOUT_REDIRECT override them', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        DOMAIN_REDIRECT_URL: 'https://mail.example.com',
+        SSO_REDIRECT_URI: 'https://mail.example.com/callback',
+        SSO_POST_LOGOUT_REDIRECT: 'https://mail.example.com/bye'
+      })
+
+      expect(result.ok && result.value.oidc).toMatchObject({
+        redirectUri: 'https://mail.example.com/callback',
+        postLogoutRedirectUri: 'https://mail.example.com/bye'
+      })
+    })
+
+    it('rejects a DOMAIN_REDIRECT_URL that is not absolute', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        DOMAIN_REDIRECT_URL: 'mail.example.com'
+      })
+
+      expect(result).toEqual({
+        ok: false,
+        errors: [
+          'DOMAIN_REDIRECT_URL (or SSO_REDIRECT_URI) must be an absolute http(s) URL',
+          'DOMAIN_REDIRECT_URL (or SSO_POST_LOGOUT_REDIRECT) must be an absolute http(s) URL'
+        ]
+      })
+    })
+
+    it.each([
+      [
+        'openid,profile,email,offline_access',
+        'openid profile email offline_access'
+      ],
+      ['openid, profile ,email,', 'openid profile email'],
+      ['openid profile', 'openid profile'],
+      [' ,, ', DEFAULT_SSO_SCOPE],
+      ['', DEFAULT_SSO_SCOPE]
+    ])('reads OIDC_SCOPES %j as the scope %j', (scopes, scope) => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        OIDC_SCOPES: scopes
+      })
+
+      expect(result.ok && result.value.oidc?.scope).toBe(scope)
+    })
+  })
+
+  describe('deprecated keys', () => {
+    it('reads the former names, with one warning per key', () => {
+      const { result, warnings } = resolveWithWarnings({
+        JMAP_SESSION_URL: 'https://jmap.example.com/jmap/session',
+        SSO_BASE_URL: 'https://sso.example.com',
+        SSO_CLIENT_ID: 'old-client',
+        SSO_SCOPE: 'openid profile'
+      })
+
+      expect(result).toMatchObject({
+        ok: true,
+        value: {
+          jmapSessionUrl: 'https://jmap.example.com/jmap/session',
+          oidc: { clientId: 'old-client', scope: 'openid profile' }
+        }
+      })
+      expect(warnings).toEqual([
+        'JMAP_SESSION_URL is deprecated, use SERVER_URL (the base URL of the JMAP server) instead',
+        'SSO_CLIENT_ID is deprecated, use WEB_OIDC_CLIENT_ID instead',
+        'SSO_SCOPE is deprecated, use OIDC_SCOPES instead'
+      ])
+    })
+
+    it('prefers the names of tmail-flutter and stays silent', () => {
+      const { result, warnings } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        OIDC_SCOPES: 'openid,email',
+        JMAP_SESSION_URL: 'https://old.example.com/jmap/session',
+        SSO_CLIENT_ID: 'old-client',
+        SSO_SCOPE: 'openid'
+      })
+
+      expect(result).toMatchObject({
+        ok: true,
+        value: {
+          jmapSessionUrl: 'https://jmap.example.com/.well-known/jmap',
+          oidc: { clientId: 'twake-mail', scope: 'openid email' }
+        }
+      })
+      expect(warnings).toEqual([])
+    })
+  })
+
+  describe('Sentry', () => {
+    const SENTRY = {
+      SENTRY_DSN: 'https://key@sentry.example.com/1',
+      SENTRY_ENVIRONMENT: 'production'
+    }
+
+    it.each([true, 'true'])('starts with SENTRY_ENABLED %j', enabled => {
+      const { result, warnings } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        ...SENTRY,
+        SENTRY_ENABLED: enabled
+      })
+
+      expect(result).toMatchObject({
+        value: {
+          sentryDsn: 'https://key@sentry.example.com/1',
+          sentryEnvironment: 'production'
+        }
+      })
+      expect(warnings).toEqual([])
+    })
+
+    it.each([false, 'false', '', 'yes'])(
+      'stays off with SENTRY_ENABLED %j, whatever the DSN',
+      enabled => {
+        const { result } = resolveWithWarnings({
+          ...OIDC_SOURCE,
+          ...SENTRY,
+          SENTRY_ENABLED: enabled
+        })
+
+        expect(result).toMatchObject({
+          value: { sentryDsn: null, sentryEnvironment: null }
+        })
+      }
+    )
+
+    it('still starts with a DSN alone, with a warning', () => {
+      const { result, warnings } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        SENTRY_DSN: SENTRY.SENTRY_DSN,
+        SENTRY_ENVIRONMENT: SENTRY.SENTRY_ENVIRONMENT
+      })
+
+      expect(result).toMatchObject({
+        value: { sentryDsn: SENTRY.SENTRY_DSN, sentryEnvironment: 'production' }
+      })
+      expect(warnings).toEqual([
+        'SENTRY_DSN without SENTRY_ENABLED is deprecated, set SENTRY_ENABLED=true'
+      ])
+    })
+  })
+
+  describe('APP_GRID_AVAILABLE', () => {
+    const appList = [
+      { name: 'Chat', link: 'https://chat.example.com', icon: '/chat.svg' }
+    ]
+
+    it.each([[undefined], ['supported']])(
+      'shows the app grid when it is %j',
+      available => {
+        const { result } = resolveWithWarnings({
+          ...OIDC_SOURCE,
+          APP_GRID_AVAILABLE: available,
+          appList
+        })
+
+        expect(result.ok && result.value.appList).toEqual(appList)
+      }
+    )
+
+    it.each(['unsupported', '', 'true'])(
+      'hides it when it is %j',
+      available => {
+        const { result } = resolveWithWarnings({
+          ...OIDC_SOURCE,
+          APP_GRID_AVAILABLE: available,
+          appList
+        })
+
+        expect(result.ok && result.value.appList).toEqual([])
+      }
+    )
+
+    it('reads the apps as tmail-flutter writes them in app_dashboard.json', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        appList: [
+          {
+            appName: 'TDrive',
+            icon: 'ic_tdrive_app.svg',
+            appLink: 'https://tdrive.example.com/',
+            publicIconUri: 'https://tdrive.example.com/icon.svg'
+          },
+          {
+            appName: 'Calendar',
+            icon: 'ic_calendar_app.svg',
+            appLink: 'https://x/'
+          }
+        ]
+      })
+
+      expect(result.ok && result.value.appList).toEqual([
+        {
+          name: 'TDrive',
+          link: 'https://tdrive.example.com/',
+          icon: 'https://tdrive.example.com/icon.svg'
+        }
+      ])
+    })
+  })
+
+  describe('an env.file of tmail-flutter', () => {
+    it('is accepted as is, the keys of the mobile app ignored', () => {
+      const { result, warnings } = resolveWithWarnings({
+        ...FLUTTER_ENV_FILE,
+        SSO_BASE_URL: 'https://sso.example.com'
+      })
+
+      expect(result).toEqual({
+        ok: true,
+        value: expect.objectContaining({
+          jmapSessionUrl: 'http://localhost/.well-known/jmap',
+          authMode: 'oidc',
+          oidc: {
+            issuerUrl: 'https://sso.example.com',
+            clientId: 'teammail-web',
+            scope: 'openid profile email offline_access',
+            redirectUri: 'http://localhost:3000/login-callback.html',
+            postLogoutRedirectUri: 'http://localhost:3000/logout-callback.html'
+          },
+          sentryDsn: null,
+          forwardWarningMessage: null,
+          debug: false
+        })
+      })
+      expect(warnings).toEqual([])
+    })
   })
 })

@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
+import { identityForEmail } from '@common/features/identities/identityForEmail'
 import { useIdentities } from '@common/features/identities/useIdentities'
 import { findMailboxIdByRole } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -44,7 +45,9 @@ export function asksReadReceipt(
  * Asks, once the email is open, whether to send the read receipt its
  * sender requested (tmail-flutter): "Yes" sends it (`MDN/send`, then
  * `$mdnsent`), "No" sends nothing, and the question comes back the next
- * time the email is opened.
+ * time the email is opened. It goes out with the identity of the team
+ * mailbox or the alias that received the email (`identityForEmail`), and
+ * names that address.
  */
 export function useReadReceiptRequest(email: EmailDetail): void {
   const { t, lang } = useI18n()
@@ -60,7 +63,11 @@ export function useReadReceiptRequest(email: EmailDetail): void {
     mailboxes.data === undefined
       ? undefined
       : findMailboxIdByRole(mailboxes.data, 'sent')
-  const identity = identities.data?.[0] ?? null
+  // The identity of the team mailbox or the alias the email reached
+  const { identity, receivedAt } = identityForEmail(email, {
+    identities: identities.data ?? [],
+    mailboxes: mailboxes.data ?? []
+  })
   const isReady = sentId !== undefined && identities.data !== undefined
 
   useEffect(() => {
@@ -91,7 +98,7 @@ export function useReadReceiptRequest(email: EmailDetail): void {
             forEmailId: email.id,
             subject: t('email.readReceipt.subject', { subject }),
             textBody: t('email.readReceipt.body', {
-              receiver: session.username,
+              receiver: receivedAt ?? session.username,
               time: formatFullDate(new Date().toISOString(), lang),
               subject
             }),
@@ -137,6 +144,7 @@ export function useReadReceiptRequest(email: EmailDetail): void {
     email,
     sentId,
     identity,
+    receivedAt,
     session,
     accountId,
     client,

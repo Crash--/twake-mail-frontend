@@ -7,6 +7,8 @@ import {
   makeEmail,
   makeEmailWithBody,
   makeFakeJmapServer,
+  makeIdentity,
+  makeMailbox,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { readObjectUrl } from '@common/testing/objectUrls'
@@ -406,6 +408,73 @@ describe('EmailView', () => {
         $seen: true,
         $mdnsent: true
       })
+    })
+
+    /** The identity and the receiver of the read receipt sent, once accepted */
+    async function acceptReceipt(
+      jmapServer: FakeJmapServer
+    ): Promise<{ identityId: unknown; textBody: unknown }> {
+      renderView(jmapServer)
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Read receipt request'
+      })
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Yes' }))
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'A read receipt has been sent.'
+      )
+      const call = jmapServer.requests
+        .flatMap(request => request.methodCalls)
+        .find(([name]) => name === 'MDN/send')
+      return {
+        identityId: call?.[1].identityId,
+        textBody: jmapServer.mdnSent[0]?.textBody
+      }
+    }
+
+    it('goes out from the team mailbox the email is in, naming it', async () => {
+      const jmapServer = serverAsking()
+      const namespace = 'TeamMailbox[team@example.com]'
+      jmapServer.mailboxes.push(
+        makeMailbox({ id: 'team', name: 'team', namespace }),
+        makeMailbox({
+          id: 'team-inbox',
+          name: 'INBOX',
+          parentId: 'team',
+          namespace
+        })
+      )
+      jmapServer.identities.push(
+        makeIdentity({
+          id: 'identity-team',
+          email: 'team@example.com',
+          mayDelete: true
+        })
+      )
+      const email = jmapServer.emails[0]
+      if (email) email.mailboxIds = { 'team-inbox': true }
+
+      const sent = await acceptReceipt(jmapServer)
+
+      expect(sent.identityId).toBe('identity-team')
+      expect(sent.textBody).toContain('Message was read by team@example.com')
+    })
+
+    it('goes out from the alias the email was sent to', async () => {
+      const jmapServer = serverAsking()
+      jmapServer.identities.push(
+        makeIdentity({
+          id: 'identity-sales',
+          email: 'sales@example.com',
+          mayDelete: true
+        })
+      )
+      const email = jmapServer.emails[0]
+      if (email) email.to = [{ name: null, email: 'Sales@example.com' }]
+
+      const sent = await acceptReceipt(jmapServer)
+
+      expect(sent.identityId).toBe('identity-sales')
+      expect(sent.textBody).toContain('Message was read by sales@example.com')
     })
 
     it('sends nothing when declined, nor asks once it was sent', async () => {

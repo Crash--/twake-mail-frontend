@@ -31,6 +31,8 @@ export interface MailboxTreeItemProps {
   onToggle: (mailboxId: string, isExpanded: boolean) => void
   /** Opens the menu of the folder */
   onOpenMenu: (mailbox: MailboxSummary, anchor: FolderMenuAnchor) => void
+  /** A second line under the name: where a search result is */
+  secondary?: string | null
 }
 
 /** The menu key, or Shift+F10: the keyboard way to a context menu */
@@ -48,7 +50,8 @@ export function MailboxTreeItem({
   row,
   isSelected,
   onToggle,
-  onOpenMenu
+  onOpenMenu,
+  secondary
 }: MailboxTreeItemProps): ReactElement {
   const { t } = useI18n()
   const getName = useMailboxName()
@@ -92,6 +95,7 @@ export function MailboxTreeItem({
       level={row.level}
       icon={<Icon icon={getMailboxIcon(mailbox)} />}
       label={name}
+      secondary={secondary}
       linkComponent={Link}
       to={`/mailbox/${encodeURIComponent(mailbox.id)}`}
       isSelected={isSelected}

@@ -87,7 +87,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `MBX-03` Creating subfolder "hidden sub folder" under Inbox from Inbox's folder menu, then choosing "Hide folder" on it, leaves Inbox with no children in the sidebar (and Inbox still reachable). — `mailbox/create_and_hide_sub_folder_test.dart` · tags: `ios (default)`
   - Web port: long press on the sidebar folder (and a native swipe to close the drawer). Web equivalent: hover ⋮ / right-click → New subfolder, then Hide folder; port it through the folder/row context menu (⋮ on hover, or right-click).
   - Spec: `tests/folders.spec.ts`. Passes in CI.
-- [ ] `MBX-04` Opening the sidebar folder search (magnifier in the "Folders" section header) and typing "Inbox" shows the Inbox folder in the search results. — `mailbox/search_mailbox_inbox_test.dart` · tags: `ios (default)`
+- [x] `MBX-04` Opening the sidebar folder search (magnifier in the "Folders" section header) and typing "Inbox" shows the Inbox folder in the search results. — `mailbox/search_mailbox_inbox_test.dart` · tags: `ios (default)`
+  - Spec: `tests/folder-search.spec.ts`.
 - [x] `MBX-05` With one email sent to self (lands in Sent) and one sent with Trash as its "sent" folder, clicking Sent shows exactly one "sent subject" row and clicking Trash shows "trash subject". — `mailbox/switch_mailbox_test.dart` · tags: `ios (default)`
   - Spec: `tests/mailbox.spec.ts`. Passes in CI.
 - [x] `MBX-06` On a fresh account with no starred mail, the Favorites (Starred) folder is listed in the sidebar and opening it shows the empty-thread view. — `mailbox/display_empty_view_for_favorite_folder_test.dart` · tags: `ios (default)`
@@ -601,3 +602,9 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/team-mailboxes.spec.ts`.
 - [x] `TMB-09` The move picker lists a folder emails cannot be added to (`mayAddItems`) as unavailable. — web app only, no Patrol test
   - Spec: `tests/team-mailboxes.spec.ts`.
+- [x] `MBX-31` A subfolder found by the folder search shows its path under its name, a team mailbox its address, whatever the case or the accents; no match says "No folder matches your search". axe on the results. — web app only, no Patrol test
+  - Spec: `tests/folder-search.spec.ts`.
+- [x] `MBX-32` A hidden folder is found by the folder search, marked hidden; with the keyboard (ArrowDown, Shift+F10) "Show folder" shows it again; Escape folds the search only (also in the drawer) and focuses the magnifier. axe. — web app only, no Patrol test
+  - Spec: `tests/folder-search.spec.ts`.
+- [x] `MBX-33` The folder search links to Settings > Folder visibility. — web app only, no Patrol test
+  - Spec: `tests/folder-search.spec.ts`.

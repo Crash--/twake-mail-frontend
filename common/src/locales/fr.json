@@ -694,6 +694,11 @@
       "team": "Team-mailboxes",
       "hideOf": "Masquer %{name}",
       "showOf": "Afficher %{name}"
+    },
+    "search": {
+      "label": "Rechercher des dossiers",
+      "empty": "Aucun dossier ne correspond à votre recherche",
+      "results": "%{smart_count} dossier trouvé |||| %{smart_count} dossiers trouvés"
     }
   },
   "identities": {

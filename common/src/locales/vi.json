@@ -694,6 +694,11 @@
       "team": "Hộp thư nhóm",
       "hideOf": "Ẩn %{name}",
       "showOf": "Hiển thị %{name}"
+    },
+    "search": {
+      "label": "Tìm kiếm thư mục",
+      "empty": "Không có thư mục nào khớp với tìm kiếm",
+      "results": "Tìm thấy %{smart_count} thư mục"
     }
   },
   "identities": {

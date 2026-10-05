@@ -34,6 +34,11 @@ export class MailboxPage {
   readonly folderDrawer: Locator
   readonly addFolderButton: Locator
   readonly folderSearchButton: Locator
+  /** The search of folders: the panel, its field, the count it announces, its results */
+  readonly folderSearch: Locator
+  readonly folderSearchInput: Locator
+  readonly folderSearchStatus: Locator
+  readonly folderSearchResults: Locator
   readonly emailList: Locator
   readonly emptyListView: Locator
   readonly composeButton: Locator
@@ -67,6 +72,10 @@ export class MailboxPage {
     this.folderDrawer = page.getByTestId('mailbox-drawer')
     this.addFolderButton = page.getByTestId('add-new-folder-button')
     this.folderSearchButton = page.getByTestId('mailbox-search-button')
+    this.folderSearch = page.getByTestId('mailbox-search')
+    this.folderSearchInput = page.getByTestId('mailbox-search-input')
+    this.folderSearchStatus = page.getByTestId('mailbox-search-status')
+    this.folderSearchResults = page.getByTestId('mailbox-search-results')
     this.emailList = page.getByTestId('email-list')
     this.emptyListView = page.getByTestId('empty-thread-view')
     this.composeButton = page.getByTestId('compose-email-button')
@@ -113,7 +122,8 @@ export class MailboxPage {
       await this.folderMenuButton.click()
       await expect(this.folderDrawer).toBeVisible()
     }
-    await expect(this.folderTree).toBeVisible()
+    // The search of folders takes the place of the tree while it is open
+    await expect(this.folderTree.or(this.folderSearch)).toBeVisible()
     return this
   }
 
@@ -167,6 +177,17 @@ export class MailboxPage {
       await expect(this.folder(ref)).toHaveAttribute('aria-current', 'page')
     }
     await expect(this.root).toHaveAttribute('data-mailbox-id', mailboxId ?? '')
+    return this
+  }
+
+  /** Opens the search of folders (magnifier of the "Folders" header) and types in its field */
+  async searchFolders(query: string): Promise<MailboxPage> {
+    await this.showFolders()
+    if (!(await this.folderSearch.isVisible())) {
+      await this.folderSearchButton.click()
+      await expect(this.folderSearchInput).toBeFocused()
+    }
+    await this.folderSearchInput.fill(query)
     return this
   }
 

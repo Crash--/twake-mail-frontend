@@ -722,3 +722,15 @@ Web app only, no Patrol test: the policy is in `docs/composer-drafts.md`.
   - Spec: `tests/composer-drafts.spec.ts`.
 - [x] `SET-10` Unread emails in Spam show "N message(s) in spam" above the lists of the other folders (a live region, never in Spam itself); "Dismiss" hides it for 24 hours (kept in the browser), "View" opens Spam and hides it too; turning "Enable spam report" off in Settings → Preferences removes it for good. — web app only, no Patrol test (tmail-flutter's `SpamReportController`, `GetSpamMailboxCachedInteractor`)
   - Spec: `tests/preferences.spec.ts`.
+## Email actions (batch P1)
+
+Web app only: tmail-flutter web renders to a canvas, so Patrol never covered these actions on the web.
+Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`emailsOneByOne`).
+
+- [x] `EACT-01` "Print all" (toolbar button) prints the email through an invisible frame: title `Twake Mail - <subject>`, the address of the user, the Cc line, the body with its quoted history unfolded and the list of attachments. The toast says "Printing in progress". — tmail-flutter `printAll` (`PrintUtils.printEmail`). Axe.
+- [x] `EACT-02` "Download message as EML" saves the JMAP blob of the email as `<subject>.eml`, characters a file name cannot hold replaced.  — tmail-flutter `downloadMessageAsEML`.
+- [x] `EACT-03` "Edit as new email" opens a composer with the recipients, subject, body and attachments of the email; sending it creates another email, without `In-Reply-To` nor `References`. — tmail-flutter `editAsNewEmail`.
+- [x] `EACT-04` "Unsubscribe" after the sender asks first (axe on the dialog); declining fetches and sets nothing; confirming with the keyboard opens the web link of `List-Unsubscribe` in a new tab (a GET, only after the confirmation), sets `$unsubscribe`, toasts, shows the "You unsubscribe from" note and drops the link. — tmail-flutter `unsubscribe`, `MailUnsubscribedBanner`. Axe.
+- [x] `EACT-05` "Unsubscribe" with a `mailto:` link only opens the composer on its address and subject; `$unsubscribe` is set once the message is sent, not before. — tmail-flutter `composeFromUnsubscribeMailtoLink`.
+- [x] `EACT-06` A `List-Unsubscribe` header holding no `http(s):` nor `mailto:` link (`javascript:`) offers no Unsubscribe, link or menu item.
+- [x] `EACT-07` On a phone the Unsubscribe link is not shown beside the sender; the More menu has Unsubscribe, Print all, Download message as EML and Edit as new email. Axe. `@mobile`.

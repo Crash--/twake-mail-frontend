@@ -140,8 +140,15 @@ export interface FakeJmapServer {
    * lost connection would: the client never sees the answer
    */
   loseNextResponse: (method: string) => void
+  /**
+   * Answers the methods the fake does not implement (Linagora extensions…):
+   * a handler returns the response arguments, or `{ error: type }`
+   */
+  handlers: Map<string, (args: Record<string, unknown>) => unknown>
   /** Names of the methods called so far, request after request */
   calledMethods: () => string[]
+  /** Arguments of every call of a method, in order */
+  callsOf: (method: string) => Record<string, unknown>[]
   /** Current states, as a push `StateChange` would carry them */
   states: () => { Email: string; Mailbox: string }
   /** Delivers an email (created) */
@@ -533,6 +540,13 @@ export function makeFakeJmapServer(
     loseNextResponse: method => {
       losing = method
     },
+    handlers: new Map(),
+    callsOf: method =>
+      server.requests.flatMap(request =>
+        request.methodCalls
+          .filter(([name]) => name === method)
+          .map(([, args]) => args)
+      ),
     calledMethods: () =>
       server.requests.flatMap(request =>
         request.methodCalls.map(([name]) => name)
@@ -944,7 +958,78 @@ export function makeFakeJmapServer(
         identity => !Array.isArray(args.ids) || args.ids.includes(identity.id)
       )
       .map(identity => pickProperties({ ...identity }, args.properties))
-    return { accountId: FAKE_ACCOUNT_ID, state: 'state-identity-1', list }
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      state: `state-identity-${identityState}`,
+      list
+    }
+  }
+
+  let identityState = 1
+  let createdIdentities = 0
+
+  /** `Identity/set`: creations, top-level patches and destructions */
+  function setIdentities(args: Record<string, unknown>): unknown {
+    const create = isRecord(args.create) ? args.create : {}
+    const update = isRecord(args.update) ? args.update : {}
+    const destroy = Array.isArray(args.destroy) ? args.destroy : []
+    const oldState = `state-identity-${identityState}`
+    const created: Record<string, unknown> = {}
+    const notCreated: Record<string, unknown> = {}
+    const updated: Record<string, null> = {}
+    const notUpdated: Record<string, unknown> = {}
+    const destroyed: string[] = []
+    const notDestroyed: Record<string, unknown> = {}
+    for (const [creationId, value] of Object.entries(create)) {
+      const refused = server.setErrors.get(creationId)
+      if (refused !== undefined || !isRecord(value)) {
+        notCreated[creationId] = { type: refused ?? 'invalidArguments' }
+        continue
+      }
+      createdIdentities += 1
+      const identity = makeIdentity({
+        name: '',
+        ...(value as Partial<Identity>),
+        id: `identity-created-${createdIdentities}`,
+        mayDelete: true
+      })
+      server.identities.push(identity)
+      created[creationId] = { id: identity.id, mayDelete: true }
+    }
+    for (const [id, patch] of Object.entries(update)) {
+      const identity = server.identities.find(candidate => candidate.id === id)
+      const refused = server.setErrors.get(id)
+      if (refused !== undefined || !identity || !isRecord(patch)) {
+        notUpdated[id] = { type: refused ?? 'notFound' }
+        continue
+      }
+      Object.assign(identity, patch)
+      updated[id] = null
+    }
+    for (const id of destroy) {
+      const identity = server.identities.find(candidate => candidate.id === id)
+      const refused =
+        typeof id === 'string' ? server.setErrors.get(id) : undefined
+      if (typeof id !== 'string') continue
+      if (refused !== undefined || !identity?.mayDelete) {
+        notDestroyed[id] = { type: refused ?? 'forbidden' }
+        continue
+      }
+      server.identities = server.identities.filter(other => other !== identity)
+      destroyed.push(id)
+    }
+    identityState += 1
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      oldState,
+      newState: `state-identity-${identityState}`,
+      created,
+      notCreated,
+      updated,
+      notUpdated,
+      destroyed,
+      notDestroyed
+    }
   }
 
   let createdMailboxes = 0
@@ -1081,6 +1166,8 @@ export function makeFakeJmapServer(
         return setEmails(args)
       case 'Identity/get':
         return getIdentities(args)
+      case 'Identity/set':
+        return setIdentities(args)
       case 'EmailSubmission/set':
         return setSubmissions(args)
       case 'Email/changes':
@@ -1092,7 +1179,7 @@ export function makeFakeJmapServer(
       case 'Mailbox/clear':
         return clearMailbox(args)
       default:
-        return null
+        return server.handlers.get(name)?.(args) ?? null
     }
   }
 

@@ -1,7 +1,8 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
+import { ComposerProvider } from '@common/features/composer/ComposerProvider'
 import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
 import { FAKE_LINAGORA_CAPABILITIES } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -66,5 +67,24 @@ describe('EmailAddressMenu', () => {
     expect(
       screen.queryByRole('menuitem', { name: 'Create a rule with this email' })
     ).toBe(null)
+  })
+
+  it('writes to the address in a new message', async () => {
+    renderWithProviders(
+      <ComposerProvider>
+        <EmailAddressMenu address={BOB}>Bob</EmailAddressMenu>
+      </ComposerProvider>,
+      { withJmapSession: true }
+    )
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Bob' }))
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'Compose email' })
+    )
+
+    const composer = await screen.findByRole('dialog', { name: 'New message' })
+    expect(
+      await within(composer).findByRole('button', { name: /bob@example.com/ })
+    ).toBeVisible()
   })
 })

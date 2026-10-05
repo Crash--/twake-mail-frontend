@@ -128,7 +128,7 @@ configuration serves both apps. The values of an `env.file` are strings
 | `OIDC_SCOPES` | Scopes separated by commas, default `openid,profile,email,offline_access` | Same; spaces work too. Former `SSO_SCOPE` (spaces) still read |
 | `APP_GRID_AVAILABLE` | `supported` loads `configurations/app_dashboard.json` into the app grid, anything else hides it | `supported` shows the grid of `appList.js`, anything else hides it. Unset: shown when `appList.js` has apps. `appList.js` entries may use the keys of `app_dashboard.json` (`appName`, `appLink`, `publicIconUri`) |
 | `FORWARD_WARNING_MESSAGE` | Warning of Settings > Forwarding | Same |
-| `SENTRY_ENABLED`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | Sentry starts with `SENTRY_ENABLED=true` and a DSN and an environment; a reporting preference, and the ecosystem as a fallback | Starts with `SENTRY_ENABLED=true` and a DSN; `SENTRY_ENVIRONMENT` is the environment of the events. No preference, no ecosystem fallback. Without `SENTRY_ENABLED` a DSN alone still starts it, with a console warning |
+| `SENTRY_ENABLED`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | Sentry starts with `SENTRY_ENABLED=true` and a DSN and an environment; a reporting preference, and the ecosystem as a fallback | Same sources: one filled key makes the configuration come from the environment (even off), none leaves it to the ecosystem of the server. Starts with `SENTRY_ENABLED=true` and a DSN, and **never before the user opted in** (Settings > Preferences, stored in the account). Without `SENTRY_ENABLED` a DSN alone still starts it, with a console warning. See [sentry.md](sentry.md) |
 | `FCM_AVAILABLE`, `IOS_FCM`, `FIREBASE_*` | Push notifications of the mobile apps | Ignored |
 | `PLATFORM` | `saas` enables the sign-up flow of the mobile app | Ignored |
 | `WS_ECHO_PING` | Sends an echo ping on the push WebSocket | Not supported |
@@ -282,7 +282,7 @@ Environment variables of the container:
 
 | Variable | Default | |
 |---|---|---|
-| `CSP_CONNECT_SRC` | | Extra `connect-src` sources, space separated: the JMAP origin **and** its WebSocket origin when JMAP is not on the origin of the app (`https://jmap.example.com wss://jmap.example.com`), the SSO origin with `AUTH_MODE = 'oidc'` (`https://sso.example.com`), the Sentry ingest origin when `SENTRY_DSN` is set |
+| `CSP_CONNECT_SRC` | | Extra `connect-src` sources, space separated: the JMAP origin **and** its WebSocket origin when JMAP is not on the origin of the app (`https://jmap.example.com wss://jmap.example.com`), the SSO origin with `AUTH_MODE = 'oidc'` (`https://sso.example.com`), the Sentry ingest origin of a DSN given by the ecosystem of the server (the one of `SENTRY_DSN` is added by the image when `SENTRY_ENABLED` is true) |
 | `CSP_FRAME_SRC` | | Extra `frame-src` sources, e.g. the Twake Drive origin for its intents |
 | `CSP_FRAME_ANCESTORS` | `'self'` | Origins allowed to embed Twake Mail in a frame, see [below](#embedding-in-twake-workplace-iframe) |
 | `CSP_REPORT_URI` | | Adds `report-uri`: where browsers report violations (e.g. the security endpoint of a Sentry project) |

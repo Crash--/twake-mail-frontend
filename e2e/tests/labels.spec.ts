@@ -304,3 +304,32 @@ test.describe('LBL labels', () => {
       .not.toHaveProperty(tag.keyword)
   })
 })
+
+test.describe('LBL labels of a conversation', () => {
+  test('LBL-12 a conversation shows the labels of its emails, taken off all of them', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const tag = await jmap.createLabel('Thread tag')
+    await jmap.sendEmail({ to: user.email, subject: 'Conversation with a label', text: 'Hi' })
+    const email = await jmap.waitForEmail({
+      subject: 'Conversation with a label',
+      withoutSearch: true
+    })
+    await jmap.setKeywords(email.id, { [tag.keyword]: true })
+    const mailbox = await new LoginPage(page).loginAs(user)
+
+    await mailbox.emailRow('Conversation with a label').click()
+    const conversation = page.getByTestId('conversation-view')
+    const chip = conversation.getByTestId('label-chip')
+    await expect(chip).toContainText('Thread tag')
+    await expectNoA11yViolations(page)
+    await chip.getByRole('button', { name: 'Remove the label Thread tag' }).click()
+
+    await expect(chip).toHaveCount(0)
+    await expect
+      .poll(async () => (await jmap.getEmail(email.id)).keywords)
+      .not.toHaveProperty(tag.keyword)
+  })
+})

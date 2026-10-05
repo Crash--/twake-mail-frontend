@@ -50,14 +50,14 @@ the React app. One line per Patrol test, 116 lines.
 | `EML` | Reading and acting on an email | 27 | 0 | 1 |
 | `THR` | Thread detail | 6 | 0 | 0 |
 | `SRCH` | Search | 14 | 10 | 0 |
-| `LBL` | Labels | 11 | 0 | 0 |
+| `LBL` | Labels | 12 | 0 | 0 |
 | `SET` | Settings | 9 | 1 | 0 |
 | `RULE` | Email rules | 2 | 1 | 0 |
 | `CAL` | Calendar events | 2 | 0 | 0 |
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 1 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **150** | **24** | **6** |
+| | **Total** | **151** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -354,7 +354,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `SRCH-15` With an empty query, focusing the field shows the quick filters only: no empty listbox, the combobox collapsed (`aria-expanded="false"`, no `aria-controls`) and the live region saying the quick filters follow the field, also after typing then clearing; a quick filter picked there adds "Search with these filters", which runs it. The advanced search opened from the empty query has the picked filter checked, the "Folder" label above its value, its title and buttons in view (only the fields scroll), and a Cancel button that closes it without searching (the only way out of the full screen dialog on a phone). axe on the dropdown and on the dialog. — web app only, no Patrol test (issue #13)
   - Spec: `tests/search.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 
-## LBL — Labels (11)
+## LBL — Labels (12)
 
 - [x] `LBL-01` In the sidebar/mailbox menu, the "add new label" button opens the Create label modal; entering a unique name and description and confirming shows the toast "You successfully created the <name> label". — `labels/create_new_a_tag_test.dart` · tags: `ios (default)`
 - [x] `LBL-02` With labels "Edit Tag 1"/"Edit Tag 2" provisioned, opening the label's context menu in the sidebar (long press on mobile), choosing Edit, renaming it to "New edit tag 1" and confirming shows the new name in the sidebar label list. — `labels/edit_a_label_test.dart` · tags: `ios (default)`
@@ -375,6 +375,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `LBL-09` From the Choose Label modal empty state (as in LBL-08), "Create a label" → entering a unique name and confirming shows "You successfully created the <name> label", and the modal now displays a label list containing the new label instead of the empty state. — `labels/create_label_from_no_label_yet_widget_test.dart` · tags: `ios (default)`
 - [x] `LBL-10` With one existing label ("Existing Label 1", applied to an email), selecting that email and opening "Label as" shows the label list (no empty state) plus a "Create a label" button; creating a new label from it shows the success toast and the new label in the list. — `labels/create_label_from_choose_label_modal_with_existing_labels_test.dart` · tags: `ios (default)`
 - [x] `LBL-11` With "Remove Tag 1" applied to one email, opening that label from the sidebar and then the email shows the label chip next to the subject; clicking the chip's remove (×) button shows the toast `Label "Remove Tag 1" removed from email`. — `labels/remove_a_label_from_email_test.dart` · tags: `ios (default)`
+- [ ] `LBL-12` In the conversation view (on by default), the conversation shows the label of one of its emails under its subject; its × takes the label off that email. — web app only, no Patrol test
 
 ## SET — Settings (6)
 

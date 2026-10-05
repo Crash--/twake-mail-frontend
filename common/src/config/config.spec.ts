@@ -457,6 +457,20 @@ describe('resolveConfig', () => {
     })
   })
 
+  describe('Twake Workplace embedding', () => {
+    it.each([
+      [{ WORKPLACE_EMBEDDING: 'true' }, true],
+      [{ COZY_INTEGRATION: 'true' }, true],
+      [{ COZY_INTEGRATION: true }, true],
+      [{ COZY_INTEGRATION: 'false' }, false],
+      [{}, false]
+    ])('with %j: %s', (extra, expected) => {
+      const { result } = resolveWithWarnings({ ...OIDC_SOURCE, ...extra })
+
+      expect(result.ok && result.value.workplaceEmbedding).toBe(expected)
+    })
+  })
+
   describe('app_dashboard.json', () => {
     it('is read from the origin of the app when the grid is supported and appList.js has no app', () => {
       const { result } = resolveWithWarnings({

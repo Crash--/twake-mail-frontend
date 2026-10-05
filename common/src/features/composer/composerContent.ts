@@ -40,6 +40,15 @@ export interface ComposerAttachment extends AttachedFile {
 }
 
 /** What a composer opens with, before the editor exists */
+/** Where a composer opens: in its text (recipients folded) or in To */
+export type ComposerFocus = 'text' | 'recipients'
+
+const FOCUSES: readonly string[] = ['text', 'recipients']
+
+function isComposerFocus(value: unknown): value is ComposerFocus {
+  return typeof value === 'string' && FOCUSES.includes(value)
+}
+
 export interface ComposerContent {
   identityId: string | null
   recipients: RecipientLists
@@ -91,6 +100,11 @@ export interface ComposerContent {
    * template" replaces it
    */
   templateId: string | null
+  /**
+   * Where it opens, as it was left (a composer back after a reload); null
+   * to decide from what it is (`opensOnText`)
+   */
+  opensOn: ComposerFocus | null
 }
 
 /** The options of the "More" menu of a message */
@@ -173,7 +187,8 @@ export function newMessageContent(
     mayHaveStrays: false,
     options,
     readReceiptAddress: null,
-    templateId: null
+    templateId: null,
+    opensOn: null
   }
 }
 
@@ -383,7 +398,8 @@ export async function loadDraftContent(
       isImportant: isMarkedImportant(email)
     },
     readReceiptAddress: isTemplate ? null : (email.from?.[0]?.email ?? null),
-    templateId: isTemplate ? draftId : null
+    templateId: isTemplate ? draftId : null,
+    opensOn: null
   }
 }
 
@@ -412,6 +428,8 @@ export interface ComposerSnapshot {
   options?: SendOptions
   readReceiptAddress?: string | null
   templateId?: string | null
+  /** Absent from the snapshots written before it existed */
+  opensOn?: ComposerFocus
 }
 
 function isSnapshot(value: unknown): value is ComposerSnapshot {
@@ -478,6 +496,7 @@ export async function restoreSnapshotContent(
         ? snapshot.readReceiptAddress
         : null,
     templateId:
-      typeof snapshot.templateId === 'string' ? snapshot.templateId : null
+      typeof snapshot.templateId === 'string' ? snapshot.templateId : null,
+    opensOn: isComposerFocus(snapshot.opensOn) ? snapshot.opensOn : null
   }
 }

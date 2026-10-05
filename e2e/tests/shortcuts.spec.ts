@@ -1,4 +1,4 @@
-import { LoginPage } from '../pages'
+import { LoginPage, SearchPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
@@ -88,4 +88,30 @@ test.describe('KBD keyboard shortcuts', () => {
     await expect(mailbox.emailRow('stays here')).toBeVisible()
     await expect(mailbox.toast).toBeHidden()
   })
+
+  test(
+    'KBD-06 "/" reaches the search, unfolding it on phones; Escape gives the focus back',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      await jmap.sendEmail({ to: user.email, subject: 'find me', text: 'one' })
+      await jmap.waitForEmail({ subject: 'find me' })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const search = new SearchPage(page)
+      await mailbox.emailRowLink('find me').focus()
+      await page.keyboard.press('/')
+
+      await expect(search.input).toBeFocused()
+      await expect(search.input).toHaveValue('')
+      await expectNoA11yViolations(page)
+
+      if (search.isPhone()) {
+        // The first Escape closes the suggestions, the second folds the field
+        await page.keyboard.press('Escape')
+        await page.keyboard.press('Escape')
+        await expect(search.input).toBeHidden()
+        await expect(search.openButton).toBeFocused()
+      }
+    }
+  )
 })

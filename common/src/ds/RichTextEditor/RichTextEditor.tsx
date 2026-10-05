@@ -16,7 +16,7 @@ import {
   useImperativeHandle,
   useLayoutEffect,
   useRef,
-  type MutableRefObject,
+  type RefObject,
   type Ref,
   useState,
   type ChangeEvent,
@@ -107,7 +107,7 @@ export const IMAGE_TYPES: readonly string[] = [
   'image/webp'
 ]
 
-type ActionsRef = MutableRefObject<EditorActions>
+type ActionsRef = RefObject<EditorActions>
 
 async function insertImages(
   actionsRef: ActionsRef,

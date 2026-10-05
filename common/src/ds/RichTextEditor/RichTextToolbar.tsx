@@ -18,7 +18,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type ReactElement,
-  type MutableRefObject
+  type RefObject
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -71,7 +71,7 @@ export interface RichTextToolbarProps {
   /** Under the text, with a divider above, or above it */
   placement: 'top' | 'bottom'
   /** Lets the editor send the focus here (Alt+F10) */
-  actionsRef: MutableRefObject<EditorActions>
+  actionsRef: RefObject<EditorActions>
   /** The editor is disabled: every button says it, and does nothing */
   disabled?: boolean
   buttonTestId?: (item: RichTextToolbarItemId) => string

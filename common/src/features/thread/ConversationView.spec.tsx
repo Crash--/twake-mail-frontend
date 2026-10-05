@@ -144,7 +144,7 @@ describe('ConversationView', () => {
       expect(toggle(/Bob Dupont/)).toHaveAttribute('aria-expanded', 'true')
       expect(scrollIntoView).toHaveBeenCalledWith({
         block: 'start',
-        behavior: 'smooth'
+        behavior: 'instant'
       })
       expect(scrollIntoView.mock.contexts[0]).toBe(toggle(/Bob Dupont/))
     })
@@ -205,15 +205,18 @@ describe('ConversationView', () => {
       expect(text).not.toContain('Work')
     })
 
-    it('scrolls without animation when the user prefers reduced motion', async () => {
-      mockViewport({ width: 1400, reducedMotion: true })
-      await renderConversation(makeServer())
+    it.each([false, true])(
+      'scrolls at once, never smoothly, whatever the motion preference (reduced: %s)',
+      async reducedMotion => {
+        mockViewport({ width: 1400, reducedMotion })
+        await renderConversation(makeServer())
 
-      expect(scrollIntoView).toHaveBeenCalledWith({
-        block: 'start',
-        behavior: 'auto'
-      })
-    })
+        expect(scrollIntoView).toHaveBeenCalled()
+        for (const [options] of scrollIntoView.mock.calls) {
+          expect(options).toEqual({ block: 'start', behavior: 'instant' })
+        }
+      }
+    )
 
     it('does not move the focus nor scroll when a message arrives, expands or collapses', async () => {
       const user = userEvent.setup()

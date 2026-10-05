@@ -495,6 +495,49 @@ describe('createPushSync', () => {
       unsubscribe()
     })
 
+    it('queries more than 256 shown results again by chunks, keeping them', async () => {
+      const many = Array.from({ length: 300 }, (_, index) =>
+        makeEmail({
+          id: `r${index}`,
+          subject: `Report ${index}`,
+          receivedAt: new Date(Date.UTC(2026, 8, 1) - index * 60_000)
+            .toISOString()
+            .replace(/\.\d{3}Z$/, 'Z')
+        })
+      )
+      const setup = await makeSetup({ emails: many })
+      const options = emailListSourceQueryOptions(
+        setup.client,
+        FAKE_ACCOUNT_ID,
+        { kind: 'search', request: REQUEST }
+      )
+      await setup.queryClient.infiniteQuery({ ...options, pages: 10 })
+      const unsubscribe = observeSearch(setup)
+      expect(resultIds(setup)).toHaveLength(300)
+      const before = setup.server.requests.length
+
+      setup.server.addEmail(
+        makeEmail({
+          id: 'newest',
+          subject: 'Newest report',
+          receivedAt: '2026-09-02T10:00:00Z'
+        })
+      )
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get'],
+        ['Email/query', 'Email/query'],
+        ['Email/get', 'SearchSnippet/get']
+      ])
+      // The window keeps its size: the oldest comes with the next page
+      const ids = resultIds(setup)
+      expect(ids).toHaveLength(300)
+      expect(ids.slice(0, 2)).toEqual(['newest', 'r0'])
+      expect(ids[299]).toBe('r298')
+      unsubscribe()
+    })
+
     it('starts over the results no screen shows', async () => {
       const setup = await makeSetup({ emails: reports() })
       await setup.queryClient.infiniteQuery(

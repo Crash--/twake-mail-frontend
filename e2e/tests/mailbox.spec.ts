@@ -53,12 +53,16 @@ test.describe('MBX mailbox and folders', () => {
     await jmap.setKeywords(email.id, { $seen: true })
 
     await expect(mailbox.folderUnreadCount({ role: 'inbox' })).toBeHidden()
-    // The tree is loaded once, then follows its changes
+    // The tree is loaded once, then follows its changes (the states read
+    // when the push channel first opens, `Email/get` and `Mailbox/get` of no
+    // id, load nothing)
     const treeLoads = traffic
       .requests()
       .filter(
         methods =>
-          methods.includes('Mailbox/get') && !methods.includes('Mailbox/changes')
+          methods.includes('Mailbox/get') &&
+          !methods.includes('Mailbox/changes') &&
+          !methods.includes('Email/get')
       )
     expect(treeLoads).toHaveLength(1)
     expect(traffic.methods()).toContain('Mailbox/changes')

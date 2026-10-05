@@ -284,8 +284,10 @@ e2e/
 ├── scripts/seed-perf.ts      big mailbox for the performance measures
 ├── playwright.perf.config.ts performance project (npm run perf)
 ├── perf/                     performance measures, not run by default
-├── spike/                    composer spike specs (playwright.spike.config.ts, scripts/spike.sh:
-│                             the e2e stack with DEBUG on and tmail-web on 18503), not run by default
+├── spike/                    composer spike specs of the reply and forward (quote fidelity, signature,
+│                             typing on a big quote), until the composer replies (playwright.spike.config.ts,
+│                             scripts/spike.sh: the e2e stack with DEBUG on and tmail-web on 18503), not
+│                             run by default
 ├── fixtures/
 │   ├── eml/                  .eml files from tmail-flutter provisioning/integration_test/eml/
 │   └── files/                attachments
@@ -358,6 +360,12 @@ checked to add Dex and the OIDC specs.
     ("Attachment not found") and concurrent `Email/set` moves fail with a
     `ConcurrentModificationException`; the suite is stable with the 2
     workers of CI (`E2E_WORKERS=2`).
+- **Creating emails** (`tests/backend.spec.ts`, `INFRA-13` to `INFRA-16`, what the composer
+  relies on): `bodyStructure` is ignored on creation (tmail-backend#2685), so the composer sends
+  `htmlBody` + `textBody` + `attachments`; one `Email/set` creates before it destroys and
+  `Email/get` reads `#creationId`, so a draft is saved in one request; `Email/get` answers
+  `serverFail` when `attachments` comes before any body property (#2686); a refused creation
+  does not stop the destroy of the same `Email/set`.
 - Deleting a user (`DELETE /users/…`) removes the account (it can no longer authenticate,
   `INFRA-02`) but James does not purge its mailboxes; harmless here (memory backend, random
   addresses, `stop.sh` drops everything).

@@ -8,6 +8,7 @@ import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 import { reportRenderError } from '@common/app/sentry'
+import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import type { AppConfig } from '@common/config/config'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import { createAuthService } from '@common/features/auth/createAuthService'
@@ -54,20 +55,22 @@ export function App({ config }: AppProps): ReactElement {
   )
 
   return (
-    <AppProviders lang={lang} queryClient={queryClient} debug={config.debug}>
-      <ErrorBoundary
-        FallbackComponent={CrashScreen}
-        onError={handleRenderError}
-      >
-        <AuthProvider service={authService}>
-          <JmapClientProvider
-            createClient={createClient}
-            sessionUrl={config.jmapSessionUrl}
-          >
-            <RouterProvider router={router} />
-          </JmapClientProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </AppProviders>
+    <AppConfigProvider config={config}>
+      <AppProviders lang={lang} queryClient={queryClient} debug={config.debug}>
+        <ErrorBoundary
+          FallbackComponent={CrashScreen}
+          onError={handleRenderError}
+        >
+          <AuthProvider service={authService}>
+            <JmapClientProvider
+              createClient={createClient}
+              sessionUrl={config.jmapSessionUrl}
+            >
+              <RouterProvider router={router} />
+            </JmapClientProvider>
+          </AuthProvider>
+        </ErrorBoundary>
+      </AppProviders>
+    </AppConfigProvider>
   )
 }

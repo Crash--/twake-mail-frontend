@@ -26,6 +26,11 @@ export interface AppConfig {
   calendarSpaUrl: string | null
   chatSpaUrl: string | null
   workplaceFqdnFallback: string | null
+  /**
+   * Shown in Settings > Forwarding, e.g. the rules of the organisation on
+   * forwarding emails outside (tmail-flutter `FORWARD_WARNING_MESSAGE`)
+   */
+  forwardWarningMessage: string | null
   appVersion: string
   appList: AppListEntry[]
 }
@@ -44,6 +49,7 @@ export type RuntimeConfigKey =
   | 'CALENDAR_SPA_URL'
   | 'CHAT_SPA_URL'
   | 'WORKPLACE_FQDN_FALLBACK'
+  | 'FORWARD_WARNING_MESSAGE'
   | 'APP_VERSION'
   | 'appList'
 
@@ -176,6 +182,7 @@ export function resolveConfig(
       calendarSpaUrl: normalizeString(source.CALENDAR_SPA_URL),
       chatSpaUrl: normalizeString(source.CHAT_SPA_URL),
       workplaceFqdnFallback: normalizeString(source.WORKPLACE_FQDN_FALLBACK),
+      forwardWarningMessage: normalizeString(source.FORWARD_WARNING_MESSAGE),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev',
       appList: normalizeAppList(source.appList)
     }

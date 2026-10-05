@@ -42,3 +42,7 @@ var CHAT_SPA_URL =
 // Optional. Used by the URI templates when the SSO does not expose the
 // workplace FQDN of the user. Supports {localpart}.
 var WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.example.com'
+
+// Optional. Shown in Settings > Forwarding, e.g. the rules of your
+// organisation on forwarding emails outside.
+var FORWARD_WARNING_MESSAGE = ''

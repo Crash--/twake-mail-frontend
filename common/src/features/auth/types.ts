@@ -63,6 +63,11 @@ export interface OidcAuthService extends AuthServiceBase {
    * refuses it.
    */
   refresh: () => Promise<boolean>
+  /**
+   * The ID token of the session, for the token exchanges of the other
+   * Twake apps (Drive); null without one. Never stored nor logged.
+   */
+  getIdToken: () => string | null
 }
 
 export type BasicLoginError =

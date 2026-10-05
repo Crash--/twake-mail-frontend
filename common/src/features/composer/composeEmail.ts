@@ -9,6 +9,7 @@ import {
 } from 'jmap-client-ts'
 
 import { findReferencedCids } from '@common/features/email/emailBody'
+import { TEMPLATES_NAME } from '@common/features/mailbox/mailboxTree'
 import { IMPORTANT_HEADER_VALUES } from '@common/features/email/importance'
 
 import { htmlToText, toEmailHtml } from './emailHtml'
@@ -118,8 +119,11 @@ export function identityReplyTo(
   return identity.email === '' ? [] : [{ name, email: identity.email }]
 }
 
-/** What an email is built for: a version of the draft, or the message sent */
-export type BuildPurpose = 'draft' | 'send'
+/**
+ * What an email is built for: a version of the draft, a template, or the
+ * message sent
+ */
+export type BuildPurpose = 'draft' | 'template' | 'send'
 
 /** An uploaded file of the message */
 export interface AttachedFile {
@@ -356,6 +360,96 @@ export async function saveDraft(
     })),
     leftovers,
     requestBytes: new TextEncoder().encode(JSON.stringify(email)).length
+  }
+}
+
+export interface TemplateSaveResult {
+  emailId: string
+  /** The Templates folder, created by the save when there was none */
+  mailboxId: string
+  /** The files of the template, which now live in its own parts */
+  attachments: SaveResult['attachments']
+  /** The previous version, when it could not be destroyed */
+  leftovers: string[]
+}
+
+/** Creates the Templates folder, as tmail-flutter names it */
+async function createTemplatesMailbox(
+  client: JmapClient,
+  accountId: string
+): Promise<string> {
+  const result = await client.call('Mailbox/set', {
+    accountId,
+    create: { templates: { name: TEMPLATES_NAME, isSubscribed: true } }
+  })
+  const created = result.created?.templates
+  if (!created) {
+    throw new JmapSetError({
+      notCreated: result.notCreated ?? {},
+      notUpdated: {},
+      notDestroyed: {}
+    })
+  }
+  return created.id
+}
+
+/**
+ * Saves a message as a template (tmail-flutter "Save as template"): in the
+ * Templates folder, created first when there is none, seen, no `$draft`.
+ * Like a draft, an update is a new version, and the previous one is
+ * destroyed in another request once the new one exists; the files of the
+ * template are read back, as `saveDraft` does. `email` is built for the
+ * `template` purpose.
+ */
+export async function saveTemplate(
+  client: JmapClient,
+  accountId: string,
+  email: EmailCreate,
+  templatesId: string | null,
+  previousId: string | null,
+  images: InlineImageStore
+): Promise<TemplateSaveResult> {
+  const mailboxId =
+    templatesId ?? (await createTemplatesMailbox(client, accountId))
+  const template: EmailCreate = {
+    ...email,
+    mailboxIds: { [mailboxId]: true },
+    keywords: { $seen: true }
+  }
+  const [set, saved] = await client.request(builder => [
+    builder.call('Email/set', { accountId, create: { template } }),
+    builder.call('Email/get', {
+      accountId,
+      ids: ['#template'],
+      // A body property before `attachments` (tmail-backend#2686)
+      properties: ['htmlBody', 'attachments'],
+      bodyProperties: [...SAVED_BODY_PROPERTIES]
+    })
+  ])
+  const created = set.created?.template
+  if (!created) {
+    throw new JmapSetError({
+      notCreated: set.notCreated ?? {},
+      notUpdated: {},
+      notDestroyed: {}
+    })
+  }
+  const parts = saved.list[0]?.attachments ?? []
+  images.rebase(parts)
+  const leftovers = await destroyPreviousVersions(
+    client,
+    accountId,
+    previousId === null || previousId === created.id ? [] : [previousId]
+  )
+  return {
+    emailId: created.id,
+    mailboxId,
+    attachments: parts.map(({ blobId, name, disposition }) => ({
+      blobId,
+      name,
+      disposition
+    })),
+    leftovers
   }
 }
 

@@ -309,6 +309,12 @@
       "title": "Có thể bạn đã quên đính kèm tệp?",
       "message": "Bạn có nhắc đến %{keyword} trong thư nhưng chưa kèm tệp. Bạn có muốn tiếp tục gửi không?",
       "send": "Gửi thư"
+    },
+    "template": {
+      "save": "Lưu thư mẫu",
+      "saved": "Lưu thư mẫu thành công",
+      "updated": "Chỉnh sửa thư mẫu thành công",
+      "failed": "Lưu thư mẫu thất bại"
     }
   },
   "layout": {

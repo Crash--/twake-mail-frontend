@@ -85,6 +85,11 @@ export interface ComposerContent {
    * null for the account address
    */
   readReceiptAddress: string | null
+  /**
+   * The template the message was opened from, or last saved as: "Save as
+   * template" replaces it
+   */
+  templateId: string | null
 }
 
 /** The options of the "More" menu of a message */
@@ -166,7 +171,8 @@ export function newMessageContent(
     draftSession: crypto.randomUUID(),
     mayHaveStrays: false,
     options,
-    readReceiptAddress: null
+    readReceiptAddress: null,
+    templateId: null
   }
 }
 
@@ -262,14 +268,17 @@ function draftIdentity(
 
 /**
  * A draft of the server, as the composer reopens it: its inline images
- * registered and downloaded, its other files attached.
+ * registered and downloaded, its other files attached. A template opens
+ * the same way, as a new message that "Save as template" updates
+ * (tmail-flutter `editAsNewEmail` with its template id).
  */
 export async function loadDraftContent(
   client: JmapClient,
   accountId: string,
   draftId: string,
   identities: readonly IdentitySummary[],
-  images: InlineImageStore
+  images: InlineImageStore,
+  { isTemplate = false }: { isTemplate?: boolean } = {}
 ): Promise<ComposerContent> {
   const response = await client.call('Email/get', {
     accountId,
@@ -326,12 +335,12 @@ export async function loadDraftContent(
     subject: email.subject ?? '',
     html: editorHtml,
     attachments,
-    draftId,
+    draftId: isTemplate ? null : draftId,
     leftovers: [],
     savedFingerprint: null,
     inReplyTo: email.inReplyTo ?? null,
     references: email.references ?? null,
-    answering: parseAnswering(email[ANSWERING_HEADER]),
+    answering: isTemplate ? null : parseAnswering(email[ANSWERING_HEADER]),
     hasBlockedImages: hasBlockedImages(editorHtml),
     draftSession: crypto.randomUUID(),
     mayHaveStrays: false,
@@ -339,7 +348,8 @@ export async function loadDraftContent(
       requestReadReceipt: (email[READ_RECEIPT_REQUEST_HEADER] ?? '') !== '',
       isImportant: isMarkedImportant(email)
     },
-    readReceiptAddress: email.from?.[0]?.email ?? null
+    readReceiptAddress: isTemplate ? null : (email.from?.[0]?.email ?? null),
+    templateId: isTemplate ? draftId : null
   }
 }
 
@@ -367,6 +377,7 @@ export interface ComposerSnapshot {
   mayHaveStrays?: boolean
   options?: SendOptions
   readReceiptAddress?: string | null
+  templateId?: string | null
 }
 
 function isSnapshot(value: unknown): value is ComposerSnapshot {
@@ -431,6 +442,8 @@ export async function restoreSnapshotContent(
     readReceiptAddress:
       typeof snapshot.readReceiptAddress === 'string'
         ? snapshot.readReceiptAddress
-        : null
+        : null,
+    templateId:
+      typeof snapshot.templateId === 'string' ? snapshot.templateId : null
   }
 }

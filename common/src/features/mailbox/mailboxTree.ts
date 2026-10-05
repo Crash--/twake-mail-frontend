@@ -185,6 +185,37 @@ export function listVisibleMailboxes(
 }
 
 /** The id of the mailbox of a role, e.g. the inbox, null if there is none */
+/** The name of the Templates folder tmail-flutter creates (no role) */
+export const TEMPLATES_NAME = 'Templates'
+
+/**
+ * The Templates folder of the user: the `templates` role of tmail-flutter,
+ * or, as the folder it creates has no role on James, a personal top-level
+ * folder named "Templates", whatever its case
+ */
+export function isTemplatesMailbox(
+  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace' | 'parentId'>
+): boolean {
+  if (mailbox.role === 'templates') return true
+  return (
+    mailbox.role === null &&
+    mailbox.parentId === null &&
+    isPersonalMailbox(mailbox) &&
+    mailbox.name.toLowerCase() === TEMPLATES_NAME.toLowerCase()
+  )
+}
+
+/** The Templates folder, null before it is created */
+export function findTemplatesMailboxId(
+  mailboxes: readonly MailboxSummary[]
+): string | null {
+  return (
+    mailboxes.find(mailbox => mailbox.role === 'templates')?.id ??
+    mailboxes.find(isTemplatesMailbox)?.id ??
+    null
+  )
+}
+
 export function findMailboxIdByRole(
   mailboxes: readonly MailboxSummary[],
   role: string

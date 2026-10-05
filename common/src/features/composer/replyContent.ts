@@ -234,6 +234,7 @@ export async function loadReplyContent(
     draftSession: crypto.randomUUID(),
     mayHaveStrays: false,
     options,
-    readReceiptAddress: null
+    readReceiptAddress: null,
+    templateId: null
   }
 }

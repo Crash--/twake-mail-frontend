@@ -107,6 +107,8 @@ export interface EmailCellProps {
   openEmailId: string | null
   /** Opens a draft (`$draft`) in the composer instead of reading it */
   onOpenDraft?: (email: EmailListItemData) => void
+  /** In the Templates folder: opens the template in the composer */
+  onOpenTemplate?: (email: EmailListItemData) => void
   /**
    * Marks the emails their sender set important (the "Sender-set important
    * flag" preference of tmail-flutter, on by default)
@@ -136,6 +138,7 @@ export function EmailCell({
   onOpenMenu,
   openEmailId,
   onOpenDraft,
+  onOpenTemplate,
   showImportant = true,
   row,
   column
@@ -256,6 +259,10 @@ export function EmailCell({
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
   const handleNavigate = (): void => {
+    if (onOpenTemplate) {
+      onOpenTemplate(email)
+      return
+    }
     if (onOpenDraft && hasKeyword(email, DRAFT)) {
       onOpenDraft(email)
       return

@@ -64,9 +64,13 @@ const ComposerContext = createContext<ComposerApi | null>(null)
 
 const MODES: readonly string[] = ['normal', 'minimized', 'fullscreen']
 
-/** Two inits answering the same email the same way */
-function isSameAnswer(first: ComposerInit, second: ComposerInit): boolean {
-  const { reply } = first
+/**
+ * Two inits opening the same message: answering the same email the same
+ * way, or the same template
+ */
+function isSameMessage(first: ComposerInit, second: ComposerInit): boolean {
+  const { reply, templateId } = first
+  if (templateId !== undefined) return second.templateId === templateId
   return (
     reply !== undefined &&
     second.reply?.emailId === reply.emailId &&
@@ -253,8 +257,9 @@ export function ComposerProvider({
           return
         }
       }
-      // Answering the same email twice: the answer already open
-      const answer = current.find(entry => isSameAnswer(entry.init, init))
+      // Answering the same email twice, or opening a template again: the
+      // message already open
+      const answer = current.find(entry => isSameMessage(entry.init, init))
       if (answer) {
         bringBack(answer.id)
         return

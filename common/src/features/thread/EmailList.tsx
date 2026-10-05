@@ -34,7 +34,10 @@ import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
-import { findMailboxIdByRole } from '@common/features/mailbox/mailboxTree'
+import {
+  findMailboxIdByRole,
+  isTemplatesMailbox
+} from '@common/features/mailbox/mailboxTree'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -197,7 +200,9 @@ export function EmailList(props: EmailListProps): ReactElement {
         : getMailboxName(mailbox)
       : (search.title ?? t('search.title'))
   )
-  const showRecipients = role !== null && RECIPIENT_ROLES.includes(role)
+  const isTemplates = mailbox !== null && isTemplatesMailbox(mailbox)
+  const showRecipients =
+    isTemplates || (role !== null && RECIPIENT_ROLES.includes(role))
   const getEmailPath = useCallback(
     (emailId: string): string =>
       search === null
@@ -437,6 +442,13 @@ export function EmailList(props: EmailListProps): ReactElement {
     },
     [openComposer]
   )
+  // A template opens as a new message, which "Save as template" updates
+  const handleOpenTemplate = useCallback(
+    (email: { id: string }): void => {
+      openComposer({ templateId: email.id })
+    },
+    [openComposer]
+  )
 
   const componentsProps = useMemo(
     () => ({
@@ -453,6 +465,7 @@ export function EmailList(props: EmailListProps): ReactElement {
             onOpenMenu={listActions.onOpenMenu}
             openEmailId={openEmailId}
             onOpenDraft={handleOpenDraft}
+            onOpenTemplate={isTemplates ? handleOpenTemplate : undefined}
             showImportant={showImportant}
           />
         )
@@ -469,6 +482,8 @@ export function EmailList(props: EmailListProps): ReactElement {
       listActions.onOpenMenu,
       openEmailId,
       handleOpenDraft,
+      handleOpenTemplate,
+      isTemplates,
       showImportant
     ]
   )

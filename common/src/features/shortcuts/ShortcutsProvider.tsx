@@ -10,7 +10,7 @@ import {
   type ReactNode
 } from 'react'
 
-import { isShortcutEvent, type ShortcutKey } from './shortcuts'
+import { isShortcutEvent, shortcutKeyOf, type ShortcutKey } from './shortcuts'
 import { ShortcutsHelpDialog } from './ShortcutsHelpDialog'
 import { useShortcutsEnabled } from './shortcutsSetting'
 
@@ -71,8 +71,8 @@ export function ShortcutsProvider({
   useEffect(() => {
     if (!isEnabled) return
     const handleKeyDown = (event: KeyboardEvent): void => {
-      if (!isShortcutEvent(event)) return
-      const key = event.key as ShortcutKey
+      const key = isShortcutEvent(event) ? shortcutKeyOf(event) : null
+      if (key === null) return
       if (key === '?') {
         event.preventDefault()
         setIsHelpOpen(true)

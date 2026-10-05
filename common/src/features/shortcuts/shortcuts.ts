@@ -53,6 +53,23 @@ const OWNED_BY_CONTROL = [
   '[role="listbox"]'
 ].join(',')
 
+/**
+ * The shortcut a key press stands for. A letter is read with Shift, not
+ * with its case: Caps Lock turns `r` into `R`, which is no Shift+R.
+ */
+export function shortcutKeyOf(
+  event: Pick<KeyboardEvent, 'key' | 'shiftKey'>
+): ShortcutKey | null {
+  const { key } = event
+  const isLetter = key.length === 1 && key.toLowerCase() !== key.toUpperCase()
+  const pressed = isLetter
+    ? event.shiftKey
+      ? key.toUpperCase()
+      : key.toLowerCase()
+    : key
+  return isShortcutKey(pressed) ? pressed : null
+}
+
 export function isShortcutEvent(event: KeyboardEvent): boolean {
   if (event.defaultPrevented || event.isComposing) return false
   // AltGr types characters (`#` on a French Windows keyboard), and Chrome
@@ -66,5 +83,5 @@ export function isShortcutEvent(event: KeyboardEvent): boolean {
   if (target instanceof Element && target.closest(OWNED_BY_CONTROL) !== null) {
     return false
   }
-  return isShortcutKey(event.key)
+  return shortcutKeyOf(event) !== null
 }

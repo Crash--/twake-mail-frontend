@@ -22,7 +22,16 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
-import type { ComposerFormHandle } from './ComposerForm'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+
+import {
+  readStorage,
+  registryKey,
+  snapshotKey,
+  writeStorage
+} from './composerStorage'
+import type { ComposerFormHandle, ComposerInit } from './ComposerForm'
+import { acquireDraftLock, type ReleaseLock } from './draftLocks'
 
 // The form and its editor (TipTap) load on demand, in their own chunk
 const ComposerForm = lazy(() =>
@@ -32,10 +41,7 @@ const ComposerForm = lazy(() =>
 /** Most composers open at once (tmail-flutter has no limit) */
 export const MAX_COMPOSERS = 3
 
-/** What a composer opens with: a new message (drafts and replies later) */
-export type ComposerInit = Record<string, never>
-
-/** An open composer: serializable, to be kept across a reload */
+/** An open composer: serializable, kept across a reload */
 interface ComposerEntry {
   id: string
   init: ComposerInit
@@ -46,10 +52,36 @@ interface ComposerEntry {
 }
 
 interface ComposerApi {
+  /** Opens a new message, or a draft (the composer editing it if any) */
   openComposer: (init?: ComposerInit) => void
 }
 
 const ComposerContext = createContext<ComposerApi | null>(null)
+
+const MODES: readonly string[] = ['normal', 'minimized', 'fullscreen']
+
+function isEntry(value: unknown): value is ComposerEntry {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'id' in value &&
+    typeof value.id === 'string' &&
+    'init' in value &&
+    typeof value.init === 'object' &&
+    value.init !== null &&
+    'mode' in value &&
+    typeof value.mode === 'string' &&
+    MODES.includes(value.mode) &&
+    'title' in value &&
+    typeof value.title === 'string'
+  )
+}
+
+/** The composers a reload left, if any */
+function readRegistry(accountId: string): ComposerEntry[] {
+  const value = readStorage(registryKey(accountId))
+  return Array.isArray(value) ? value.filter(isEntry) : []
+}
 
 function useWindowWidth(): number {
   const [width, setWidth] = useState(() => window.innerWidth)
@@ -76,16 +108,23 @@ export interface ComposerProviderProps {
  * minimizes one. Below, a composer fills the screen (a modal dialog) and
  * Escape closes it. Closing asks to save a modified message, then gives
  * the focus back to what opened the composer.
+ *
+ * A draft is edited by one composer at a time (`draftLocks`). The open
+ * composers are kept in `sessionStorage` on `beforeunload` and come back
+ * after a reload (tmail-flutter ADR 0112).
  */
 export function ComposerProvider({
   children
 }: ComposerProviderProps): ReactElement {
   const { t } = useI18n()
   const { notify } = useNotify()
+  const { accountId } = useJmapSession()
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const screenWidth = useWindowWidth()
-  const [entries, setEntries] = useState<ComposerEntry[]>([])
+  const [entries, setEntries] = useState<ComposerEntry[]>(() =>
+    readRegistry(accountId)
+  )
   const entriesRef = useRef(entries)
   useEffect(() => {
     entriesRef.current = entries
@@ -93,6 +132,10 @@ export function ComposerProvider({
   /** What had the focus when each composer opened */
   const openers = useRef(new Map<string, Element | null>())
   const forms = useRef(new Map<string, ComposerFormHandle>())
+  /** The draft each composer edits, and the lock it holds on it */
+  const drafts = useRef(
+    new Map<string, { draftId: string; release: ReleaseLock }>()
+  )
 
   const setMode = useCallback((id: string, mode: DockedWindowMode): void => {
     setEntries(current => {
@@ -108,37 +151,129 @@ export function ComposerProvider({
     })
   }, [])
 
+  // Kept across a reload: the composers, and what each one holds
+  useEffect(() => {
+    const handleBeforeUnload = (): void => {
+      const open = entriesRef.current
+      if (open.length === 0) {
+        sessionStorage.removeItem(registryKey(accountId))
+        return
+      }
+      writeStorage(registryKey(accountId), open)
+      for (const entry of open) {
+        const snapshot = forms.current.get(entry.id)?.snapshot() ?? null
+        if (snapshot) writeStorage(snapshotKey(accountId, entry.id), snapshot)
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [accountId])
+
+  // The locks go with the composers
+  useEffect(() => {
+    const held = drafts.current
+    return () => {
+      held.forEach(draft => {
+        draft.release()
+      })
+      held.clear()
+    }
+  }, [])
+
+  const setDraft = useCallback(
+    (id: string, draftId: string | null): void => {
+      const current = drafts.current.get(id)
+      if (current?.draftId === draftId) return
+      current?.release()
+      drafts.current.delete(id)
+      if (draftId === null) return
+      // In the tab at once; between tabs once the lock is there
+      drafts.current.set(id, { draftId, release: () => undefined })
+      void acquireDraftLock(accountId, draftId).then(release => {
+        const now = drafts.current.get(id)
+        if (now?.draftId !== draftId) {
+          release?.()
+          return
+        }
+        if (release) now.release = release
+      })
+    },
+    [accountId]
+  )
+
   const openComposer = useCallback(
     (init: ComposerInit = {}): void => {
       const current = entriesRef.current
+      const { draftId } = init
+      if (draftId !== undefined) {
+        const holder = [...drafts.current].find(
+          ([, draft]) => draft.draftId === draftId
+        )
+        if (holder) {
+          setMode(holder[0], 'normal')
+          return
+        }
+      }
       if (current.length >= MAX_COMPOSERS) {
         const newest = current[current.length - 1]
         if (newest) setMode(newest.id, 'normal')
         notify({ message: t('composer.limit', { smart_count: MAX_COMPOSERS }) })
         return
       }
-      const id = crypto.randomUUID()
-      openers.current.set(id, document.activeElement)
-      setEntries(previous => [
-        ...previous,
-        { id, init, mode: 'normal', title: '' }
-      ])
+      const opener = document.activeElement
+      const add = (release: ReleaseLock | null): void => {
+        const id = crypto.randomUUID()
+        openers.current.set(id, opener)
+        if (draftId !== undefined && release) {
+          drafts.current.set(id, { draftId, release })
+        }
+        setEntries(previous => [
+          ...previous,
+          { id, init, mode: 'normal', title: '' }
+        ])
+      }
+      if (draftId === undefined) {
+        add(null)
+        return
+      }
+      void acquireDraftLock(accountId, draftId).then(release => {
+        if (release === null) {
+          notify({ message: t('composer.draft.lockedElsewhere') })
+          return
+        }
+        add(release)
+      })
     },
-    [notify, setMode, t]
+    [accountId, notify, setMode, t]
   )
 
-  const close = useCallback((id: string): void => {
-    const opener = openers.current.get(id)
-    openers.current.delete(id)
-    forms.current.delete(id)
-    setEntries(current => current.filter(entry => entry.id !== id))
-    if (opener instanceof HTMLElement && opener.isConnected) {
-      // Once the window is gone
-      requestAnimationFrame(() => {
-        opener.focus()
-      })
-    }
-  }, [])
+  const close = useCallback(
+    (id: string): void => {
+      const opener = openers.current.get(id)
+      openers.current.delete(id)
+      forms.current.delete(id)
+      drafts.current.get(id)?.release()
+      drafts.current.delete(id)
+      sessionStorage.removeItem(snapshotKey(accountId, id))
+      // A reload keeps the others only
+      const others = entriesRef.current.filter(entry => entry.id !== id)
+      if (others.length === 0) {
+        sessionStorage.removeItem(registryKey(accountId))
+      } else if (sessionStorage.getItem(registryKey(accountId)) !== null) {
+        writeStorage(registryKey(accountId), others)
+      }
+      setEntries(current => current.filter(entry => entry.id !== id))
+      if (opener instanceof HTMLElement && opener.isConnected) {
+        // Once the window is gone
+        requestAnimationFrame(() => {
+          opener.focus()
+        })
+      }
+    },
+    [accountId]
+  )
 
   const requestClose = useCallback(
     async (id: string): Promise<void> => {
@@ -189,6 +324,8 @@ export function ComposerProvider({
               setMode={setMode}
               setTitle={setTitle}
               registerForm={registerForm}
+              setDraft={setDraft}
+              close={close}
               requestClose={requestClose}
             />
           ))}
@@ -206,6 +343,8 @@ interface ComposerSlotProps {
   setMode: (id: string, mode: DockedWindowMode) => void
   setTitle: (id: string, title: string) => void
   registerForm: (id: string, handle: ComposerFormHandle) => void
+  setDraft: (id: string, draftId: string | null) => void
+  close: (id: string) => void
   requestClose: (id: string) => Promise<void>
 }
 
@@ -217,6 +356,8 @@ function ComposerSlot({
   setMode,
   setTitle,
   registerForm,
+  setDraft,
+  close,
   requestClose
 }: ComposerSlotProps): ReactElement {
   const { t } = useI18n()
@@ -233,6 +374,15 @@ function ComposerSlot({
     },
     [id, registerForm]
   )
+  const handleDraftChange = useCallback(
+    (draftId: string | null): void => {
+      setDraft(id, draftId)
+    },
+    [id, setDraft]
+  )
+  const handleDone = useCallback((): void => {
+    close(id)
+  }, [id, close])
 
   return (
     // Hidden (no room): kept mounted, nothing typed is lost
@@ -274,9 +424,13 @@ function ComposerSlot({
       >
         <Suspense fallback={null}>
           <ComposerForm
+            composerId={id}
+            init={entry.init}
             autoFocus
             onTitleChange={handleTitleChange}
             onReady={handleReady}
+            onDraftChange={handleDraftChange}
+            onDone={handleDone}
           />
         </Suspense>
       </DockedWindow>

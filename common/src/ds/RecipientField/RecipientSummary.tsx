@@ -27,7 +27,8 @@ export function RecipientSummary({
       className="u-w-100 u-ov-hidden"
       sx={{
         justifyContent: 'flex-start',
-        minHeight: 44,
+        minHeight: 37,
+        px: 2,
         borderBottom: '1px solid',
         borderColor: 'divider',
         '&.Mui-focusVisible': {

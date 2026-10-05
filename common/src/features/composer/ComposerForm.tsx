@@ -15,7 +15,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  TextField,
+  Select,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
@@ -35,6 +35,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
@@ -260,6 +261,7 @@ interface LoadedFormProps extends ComposerFormProps {
 }
 
 function LoadedComposerForm({
+  init,
   autoFocus,
   onTitleChange,
   onRecipientsChange,
@@ -285,6 +287,17 @@ function LoadedComposerForm({
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [identityId, setIdentityId] = useState(content.identityId)
+  // The identity selector opens on request (the "From" button), unless the
+  // message already has its own identity (a draft, an answer, a template,
+  // another than the default): the sender must be seen
+  const [isFromShown, setIsFromShown] = useState(
+    identities.length > 1 &&
+      (init.reply !== undefined ||
+        init.draftId !== undefined ||
+        init.templateId !== undefined ||
+        content.identityId !== identities[0]?.id)
+  )
+  const fromId = useId()
   // Sent as a team mailbox, the message goes through its Drafts and Sent
   const identityEmail =
     identities.find(item => item.id === identityId)?.email ?? null
@@ -989,37 +1002,7 @@ function LoadedComposerForm({
         className="u-flex u-flex-column u-flex-auto u-ov-hidden"
         onKeyDown={handleKeyDown}
       >
-        <Box className="u-ph-1 u-flex-shrink-0">
-          {identities.length > 1 ? (
-            <TextField
-              select
-              variant="standard"
-              label={t('composer.fields.from')}
-              value={identityId ?? ''}
-              onChange={event => {
-                handleIdentityChange(event.target.value)
-              }}
-              fullWidth
-              size="small"
-              className="u-mt-half"
-              slotProps={{
-                select: {
-                  SelectDisplayProps: {
-                    // @ts-expect-error data attributes are valid on the display
-                    'data-testid': 'composer-identity-select'
-                  }
-                }
-              }}
-            >
-              {identities.map(identity => (
-                <MenuItem key={identity.id} value={identity.id}>
-                  {identity.name === ''
-                    ? identity.email
-                    : `${identity.name} <${identity.email}>`}
-                </MenuItem>
-              ))}
-            </TextField>
-          ) : null}
+        <Box className="u-flex-shrink-0">
           <RecipientsEditor
             recipients={recipients}
             onChange={(kind, list) => {
@@ -1033,24 +1016,65 @@ function LoadedComposerForm({
             onShow={kind => {
               setShown(current => new Set([...current, kind]))
             }}
+            onHide={kind => {
+              setShown(current => {
+                const next = new Set(current)
+                next.delete(kind)
+                return next
+              })
+              setRecipients(current => ({ ...current, [kind]: [] }))
+              setInputs(current => ({ ...current, [kind]: '' }))
+            }}
+            fromLine={
+              isFromShown ? (
+                <FieldLine label={t('composer.fields.from')} labelId={fromId}>
+                  <Select
+                    variant="standard"
+                    disableUnderline
+                    fullWidth
+                    labelId={fromId}
+                    value={identityId ?? ''}
+                    onChange={event => {
+                      handleIdentityChange(event.target.value)
+                    }}
+                    SelectDisplayProps={{
+                      // @ts-expect-error data attributes are valid on the display
+                      'data-testid': 'composer-identity-select'
+                    }}
+                  >
+                    {identities.map(identity => (
+                      <MenuItem key={identity.id} value={identity.id}>
+                        {identity.name === ''
+                          ? identity.email
+                          : `${identity.name} <${identity.email}>`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FieldLine>
+              ) : null
+            }
+            onShowFrom={
+              identities.length > 1 && !isFromShown
+                ? () => {
+                    setIsFromShown(true)
+                  }
+                : null
+            }
             isCollapsed={isCollapsed}
             onExpand={() => {
               setIsCollapsed(false)
             }}
             autoFocusTo={autoFocus && !opensOnText}
           />
-          <Box className="u-flex u-flex-items-center">
-            <Typography
-              component="label"
-              htmlFor={subjectId}
-              variant="body2"
-              className="u-pr-1"
-            >
-              {t('composer.fields.subject')}
-            </Typography>
+          <FieldLine
+            label={t('composer.fields.subject')}
+            htmlFor={subjectId}
+            isLabelHidden
+          >
             <InputBase
               id={subjectId}
               value={subject}
+              placeholder={t('composer.fields.subject')}
               onChange={event => {
                 setSubject(event.target.value)
               }}
@@ -1058,7 +1082,7 @@ function LoadedComposerForm({
               fullWidth
               inputProps={{ 'data-testid': 'composer-subject-input' }}
             />
-          </Box>
+          </FieldLine>
         </Box>
         {hasBlockedImages ? (
           <Box className="u-ph-1 u-pt-half u-flex-shrink-0">

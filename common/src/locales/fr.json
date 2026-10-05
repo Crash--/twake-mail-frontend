@@ -251,7 +251,8 @@
       "bcc": "Copie cachée à",
       "replyTo": "Répondre à",
       "from": "De",
-      "subject": "Sujet"
+      "subject": "Sujet",
+      "hide": "Masquer %{field}"
     },
     "window": {
       "minimize": "Minimiser",

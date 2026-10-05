@@ -251,7 +251,8 @@
       "bcc": "Bcc",
       "replyTo": "Reply to",
       "from": "Từ",
-      "subject": "Tiêu đề"
+      "subject": "Tiêu đề",
+      "hide": "Ẩn %{field}"
     },
     "window": {
       "minimize": "Thu nhỏ",

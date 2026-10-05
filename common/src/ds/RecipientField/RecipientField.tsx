@@ -21,6 +21,8 @@ import {
   type Ref
 } from 'react'
 
+import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
+
 const POPUP_SX = { zIndex: 'modal' } as const
 const PAPER_SX = { maxHeight: 320, overflowY: 'auto' } as const
 const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
@@ -31,18 +33,6 @@ const OPTION_SX = {
   '&[aria-selected="true"]': { bgcolor: 'action.selected' },
   '&:hover': { bgcolor: 'action.hover' }
 } as const
-const FIELD_SX = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: 0.5,
-  minHeight: 44,
-  py: 0.5,
-  borderBottom: '1px solid',
-  borderColor: 'divider',
-  '&:focus-within': { borderColor: 'primary.main' }
-} as const
-const LABEL_SX = { color: 'text.primary', pr: 1, minWidth: 56 } as const
 const INVALID_CHIP_SX = {
   borderColor: 'error.main',
   bgcolor: 'background.paper'
@@ -103,7 +93,7 @@ export interface RecipientFieldProps {
   isList?: (text: string) => boolean
   /** Announced politely, e.g. the number of suggestions */
   status?: string
-  /** After the input, e.g. buttons showing other fields */
+  /** At the end of the line, e.g. buttons showing other fields */
   endActions?: ReactNode
   onFocus?: () => void
   /** Takes the focus once shown */
@@ -371,7 +361,7 @@ export function RecipientField({
         ref={setField}
         role="group"
         aria-labelledby={labelId}
-        sx={FIELD_SX}
+        sx={FIELD_LINE_SX}
         onClick={handleFieldClick}
       >
         <Typography
@@ -379,7 +369,7 @@ export function RecipientField({
           id={labelId}
           htmlFor={inputId}
           variant="body2"
-          sx={LABEL_SX}
+          sx={FIELD_LABEL_SX}
         >
           {labels.field}
         </Typography>
@@ -453,7 +443,11 @@ export function RecipientField({
             'data-testid': testIds.input
           }}
         />
-        {endActions}
+        {endActions === undefined ? null : (
+          <Box className="u-flex u-flex-items-center" sx={{ gap: '7px' }}>
+            {endActions}
+          </Box>
+        )}
       </Box>
       <Popper
         open={isShown}

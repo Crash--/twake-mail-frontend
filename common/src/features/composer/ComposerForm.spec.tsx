@@ -85,6 +85,19 @@ async function openComposer(name = 'Compose'): Promise<HTMLElement> {
   return composer
 }
 
+/** Opens the identity selector, which a new message shows on request */
+async function showFrom(composer: HTMLElement): Promise<void> {
+  if (within(composer).queryByTestId('composer-identity-select') !== null) {
+    return
+  }
+  // Once the subject has the focus, the recipients are folded
+  const summary = within(composer).queryByTestId('composer-recipients-summary')
+  if (summary !== null) await userEvent.click(summary)
+  await userEvent.click(
+    within(composer).getByTestId('composer-show-from-button')
+  )
+}
+
 async function fill(
   composer: HTMLElement,
   { to, subject }: { to?: string; subject?: string }
@@ -219,6 +232,7 @@ describe('ComposerForm', () => {
       }
 
       async function chooseTeam(composer: HTMLElement): Promise<void> {
+        await showFrom(composer)
         await userEvent.click(
           within(composer).getByTestId('composer-identity-select')
         )
@@ -277,6 +291,7 @@ describe('ComposerForm', () => {
           { timeout: 4000 }
         )
 
+        await showFrom(composer)
         await userEvent.click(
           within(composer).getByTestId('composer-identity-select')
         )
@@ -322,6 +337,7 @@ describe('ComposerForm', () => {
           .map(chip => chip.textContent)
       expect(bcc()).toEqual(['archive@example.com'])
 
+      await showFrom(composer)
       await userEvent.click(
         within(composer).getByTestId('composer-identity-select')
       )

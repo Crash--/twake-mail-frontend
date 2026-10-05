@@ -7,6 +7,12 @@ import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
 import { PushProvider } from '@common/features/push/PushProvider'
+import { PreferencesSettings } from '@common/features/settings/PreferencesSettings'
+import {
+  SettingsHome,
+  SettingsSectionRoute
+} from '@common/features/settings/SettingsRoutes'
+import { ShortcutsSettings } from '@common/features/settings/ShortcutsSettings'
 import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 import { AppLayout } from '@common/layout/AppLayout'
 
@@ -14,6 +20,7 @@ import { EmailPage } from './features/mailbox/EmailPage'
 import { MailboxPage } from './features/mailbox/MailboxPage'
 import { SearchEmailPage } from './features/search/SearchEmailPage'
 import { SearchPage } from './features/search/SearchPage'
+import { SettingsPage } from './features/settings/SettingsPage'
 import { StarredEmailPage } from './features/starred/StarredEmailPage'
 import { StarredPage } from './features/starred/StarredPage'
 import { RouteErrorScreen } from './RouteErrorScreen'
@@ -53,6 +60,26 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
           </Route>
           <Route path="/search" element={<SearchPage />}>
             <Route path="email/:emailId" element={<SearchEmailPage />} />
+          </Route>
+          <Route path="/settings" element={<SettingsPage />}>
+            <Route index element={<SettingsHome />} />
+            <Route
+              path="preferences"
+              element={
+                <SettingsSectionRoute id="preferences">
+                  {section => <PreferencesSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
+            <Route
+              path="keyboard-shortcuts"
+              element={
+                <SettingsSectionRoute id="keyboard-shortcuts">
+                  {section => <ShortcutsSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/settings" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

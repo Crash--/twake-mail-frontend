@@ -6,6 +6,7 @@ import { AppTopBar } from '@/ds/AppTopBar/AppTopBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
 import { useCurrentMailboxName } from '@common/features/mailbox/useCurrentMailboxName'
+import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -35,7 +36,12 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
   const isPhone = useScreenSize() === 'mobile'
   const mailboxName = useCurrentMailboxName()
   const isSearch = useMatch('/search/*') !== null
-  const folderName = isSearch ? t('search.title') : mailboxName
+  const isSettings = useMatch(`${SETTINGS_PATH}/*`) !== null
+  const folderName = isSettings
+    ? t('settings.title')
+    : isSearch
+      ? t('search.title')
+      : mailboxName
 
   return (
     <AppTopBar

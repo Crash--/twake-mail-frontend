@@ -1,13 +1,13 @@
-import { Help } from '@linagora/twake-icons'
+import { Setting } from '@linagora/twake-icons'
 import type { ReactElement } from 'react'
+import { useNavigate } from 'react-router'
 
 import { AccountMenu } from '@/ds/AccountMenu/AccountMenu'
 import {
   useAuthService,
   useAuthState
 } from '@common/features/auth/AuthProvider'
-import { useThreadPreference } from '@common/features/settings/threadPreference'
-import { useOpenShortcutsHelp } from '@common/features/shortcuts/ShortcutsProvider'
+import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -19,17 +19,15 @@ const TEST_IDS = {
 }
 
 /**
- * Avatar of the signed-in user, opening the account menu: the keyboard
- * shortcuts, the conversation setting (until the settings screens exist)
- * and sign out.
+ * Avatar of the signed-in user, opening the account menu: the settings
+ * ("Manage account" in tmail-flutter) and sign out.
  */
 export function UserMenu(): ReactElement {
   const { t } = useI18n()
   const service = useAuthService()
   const state = useAuthState()
   const { session } = useJmapSession()
-  const openShortcutsHelp = useOpenShortcutsHelp()
-  const threadPreference = useThreadPreference()
+  const navigate = useNavigate()
   const user =
     state.status === 'authenticated' ? state.user : { email: null, name: null }
   // Basic mode only knows what the user typed, and the SSO may not tell the
@@ -54,18 +52,12 @@ export function UserMenu(): ReactElement {
       onLogout={handleLogout}
       items={[
         {
-          label: t('shortcuts.title'),
-          icon: Help,
-          onClick: openShortcutsHelp,
-          'data-testid': 'shortcuts-menu-item'
-        }
-      ]}
-      toggles={[
-        {
-          label: t('settings.threadToggle'),
-          isChecked: threadPreference.isEnabled,
-          onToggle: threadPreference.setEnabled,
-          'data-testid': 'thread-setting-toggle'
+          label: t('settings.title'),
+          icon: Setting,
+          onClick: () => {
+            void navigate(SETTINGS_PATH)
+          },
+          'data-testid': 'settings-menu-item'
         }
       ]}
       testIds={TEST_IDS}

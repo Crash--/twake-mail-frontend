@@ -14,6 +14,7 @@ export interface SecondaryTextProps {
   /** Cut after this many lines, with an ellipsis */
   lines?: number
   className?: string
+  id?: string
   'data-testid'?: string
 }
 
@@ -28,6 +29,7 @@ export function SecondaryText({
   noWrap,
   lines,
   className,
+  id,
   'data-testid': testId
 }: SecondaryTextProps): ReactElement {
   return (
@@ -36,6 +38,7 @@ export function SecondaryText({
       component={component}
       noWrap={noWrap}
       className={className}
+      id={id}
       data-testid={testId}
       sx={theme => ({
         color: alpha(theme.palette.grey[900], 0.8),

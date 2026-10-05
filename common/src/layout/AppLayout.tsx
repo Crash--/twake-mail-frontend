@@ -15,6 +15,11 @@ import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerPro
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
+  isSettingsPath,
+  SettingsExitProvider
+} from '@common/features/settings/SettingsExitProvider'
+import { SettingsSidebar } from '@common/features/settings/SettingsSidebar'
+import {
   ShortcutsProvider,
   useShortcuts
 } from '@common/features/shortcuts/ShortcutsProvider'
@@ -31,8 +36,9 @@ export interface AppLayoutProps {
  * Frame of the signed-in pages: top bar, sidebar, and the routed content.
  * Below the desktop size the sidebar is a drawer, closed as soon as the user
  * goes somewhere, and "New message" a floating button, hidden while an email
- * fills the screen. The keyboard shortcuts, the folder picker, the
- * folder actions and the composers work in all of it.
+ * fills the screen. In the settings, a desktop shows their sections in
+ * the sidebar. The keyboard shortcuts, the folder picker, the folder
+ * actions and the composers work in all of it.
  */
 export function AppLayout(props: AppLayoutProps): ReactElement {
   return (
@@ -40,7 +46,9 @@ export function AppLayout(props: AppLayoutProps): ReactElement {
       <MailboxPickerProvider>
         <FolderActionsProvider>
           <ComposerProvider>
-            <AppFrame {...props} />
+            <SettingsExitProvider>
+              <AppFrame {...props} />
+            </SettingsExitProvider>
           </ComposerProvider>
         </FolderActionsProvider>
       </MailboxPickerProvider>
@@ -63,8 +71,9 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
     useMatch('/mailbox/:mailboxId/email/:emailId/*') !== null
   const isSearchEmailOpen = useMatch('/search/email/:emailId/*') !== null
   const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
+  const isSettings = isSettingsPath(location.pathname)
   const showComposeFab =
-    !isDesktop && (!isEmailOpen || screenSize === 'tabletLarge')
+    !isDesktop && !isSettings && (!isEmailOpen || screenSize === 'tabletLarge')
 
   const handleOpenFolders = (): void => {
     setDrawerLocationKey(location.key)
@@ -98,12 +107,16 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
         withTopBar={false}
         monoColumn={!isDesktop}
       >
-        <MailSidebar
-          apps={apps}
-          isDrawerOpen={isDrawerOpen}
-          onDrawerClose={handleCloseFolders}
-          onCompose={handleCompose}
-        />
+        {isSettings && isDesktop ? (
+          <SettingsSidebar />
+        ) : (
+          <MailSidebar
+            apps={apps}
+            isDrawerOpen={isDrawerOpen}
+            onDrawerClose={handleCloseFolders}
+            onCompose={handleCompose}
+          />
+        )}
         <Main>
           <Content data-testid="main-content">
             <Outlet />

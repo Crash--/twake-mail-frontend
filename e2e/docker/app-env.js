@@ -9,3 +9,5 @@ var AUTH_MODE = 'basic'
 var LANG = 'en'
 // Shown in Settings > Forwarding (SET-07)
 var FORWARD_WARNING_MESSAGE = 'Forwarding outside example.com breaks the e2e charter.'
+// "See in your Calendar" of the invitation cards (CAL-03)
+var CALENDAR_SPA_URL = 'https://calendar.example.com'

@@ -131,7 +131,14 @@ Conventions:
 | `email-action-<action>` | the items of every email actions menu: `reply`, `reply-all`, `reply-to-list`, `forward` (one email, not in Drafts), `not-spam`, `move-to-trash`, `delete-permanently`, `archive`, `mark-as-read`, `mark-as-unread`, `star`, `unstar`, `move`, `mark-as-spam` (`label-as` later) | `markAsStarred_action`, `moveToSpam_action`, `labelAs_action`… |
 | `delete-thread-button` | delete the whole thread | `delete_thread_button` |
 | `email-address` / `email-address-menu` + `email-address-copy-item`, `email-address-create-rule-item` | the sender of an email (reading view of one email) and its menu: copy, "Create a rule with this email" | `copy_email_address`, `quickCreatingRule` |
-| `calendar-event-card` | iMIP invitation card | `CalendarEventCardWidget` |
+| `calendar-event-card` | iMIP invitation card ("Orange Bar"), a `region` named "Event: <title>", above the body (`CalendarEventCard` page object) | `CalendarEventCardWidget` |
+| `calendar-event-banner` | the state badge, who did what ("… has invited you to a meeting", "… has proposed changes to the event") | — |
+| `calendar-event-when` (+ `calendar-event-recurrence`) / `calendar-event-where` / `calendar-event-video` (+ `calendar-event-video-link`, `calendar-event-copy-link`) / `calendar-event-who` | the details rows | — |
+| `calendar-event-description` | the description of the event, as text, after the card | `CalendarEventDetailWidget` |
+| `calendar-event-people` + `calendar-event-person` / `calendar-event-see-all-attendees` | organizer and attendees, each with its answer; past six people "See all attendees (n)" / "Hide" (`aria-expanded`) | `seeAllAttendees` |
+| `calendar-event-replies` + `calendar-event-reply-yes` / `-maybe` / `-no` | "Attending?" group, each answer `aria-pressed`; only "Yes" on a counter proposal | `yesEventAction`, `maybeEventAction`, `noEventAction` |
+| `calendar-event-mail-to-attendees` / `calendar-event-open-in-calendar` | "Mail to attendees"; "See in your Calendar" (with `CALENDAR_SPA_URL`) | `mailToAttendees` |
+| `calendar-event-not-invited` / `calendar-event-busy` | "You are not invited…", "You have another event at that same time" | — |
 
 ## Phase 2 — search (`SearchPage`)
 

@@ -1,0 +1,120 @@
+X-MEETING-METHOD: CANCEL
+X-MEETING-UID: twake-e2e-weekly-sync
+X-MEETING-SEQUENCE: 1
+MIME-Version: 1.0
+Message-ID: <weekly-sync-cancel-1@example.com>
+Date: Mon, 05 Oct 2026 08:00:00 +0000
+Subject: Canceled: Weekly sync
+From: Olivia Organizer <olivia@example.com>
+To: Bob <bob@example.com>
+Content-Type: multipart/mixed; boundary="mixed"
+
+--mixed
+Content-Type: multipart/alternative; boundary="alt"
+
+--alt
+Content-Type: text/plain; charset="UTF-8"
+
+Canceled: Weekly sync
+
+--alt
+Content-Type: text/html; charset="UTF-8"
+
+<p>Canceled: Weekly sync</p>
+
+--alt
+Content-Type: text/calendar; charset="UTF-8"; method=CANCEL
+Content-Transfer-Encoding: 8bit
+
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Twake e2e//EN
+METHOD:CANCEL
+BEGIN:VTIMEZONE
+TZID:Europe/Paris
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:twake-e2e-weekly-sync
+DTSTAMP:20261005T080000Z
+SEQUENCE:1
+STATUS:CANCELLED
+DTSTART;TZID=Europe/Paris:20261012T100000
+DTEND;TZID=Europe/Paris:20261012T110000
+RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO;COUNT=5
+SUMMARY:Weekly sync
+LOCATION:Room 42\, Building B
+DESCRIPTION:Agenda: <b>roadmap</b>\nNotes at https://docs.example.com/sync
+X-OPENPAAS-VIDEOCONFERENCE:https://meet.example.com/weekly-sync
+ORGANIZER;CN=Olivia Organizer:mailto:olivia@example.com
+ATTENDEE;CN=Olivia Organizer;PARTSTAT=ACCEPTED;ROLE=CHAIR:mailto:olivia@example.com
+ATTENDEE;CN=Bob;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:bob@example.com
+ATTENDEE;CN=Alice;PARTSTAT=ACCEPTED:mailto:alice@example.com
+ATTENDEE;CN=Carol;PARTSTAT=DECLINED:mailto:carol@example.com
+ATTENDEE;CN=Dave;PARTSTAT=TENTATIVE:mailto:dave@example.com
+END:VEVENT
+END:VCALENDAR
+
+--alt--
+
+--mixed
+Content-Type: application/ics; name="meeting.ics"
+Content-Disposition: attachment; filename="meeting.ics"
+Content-Transfer-Encoding: 8bit
+
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Twake e2e//EN
+METHOD:CANCEL
+BEGIN:VTIMEZONE
+TZID:Europe/Paris
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:twake-e2e-weekly-sync
+DTSTAMP:20261005T080000Z
+SEQUENCE:1
+STATUS:CANCELLED
+DTSTART;TZID=Europe/Paris:20261012T100000
+DTEND;TZID=Europe/Paris:20261012T110000
+RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO;COUNT=5
+SUMMARY:Weekly sync
+LOCATION:Room 42\, Building B
+DESCRIPTION:Agenda: <b>roadmap</b>\nNotes at https://docs.example.com/sync
+X-OPENPAAS-VIDEOCONFERENCE:https://meet.example.com/weekly-sync
+ORGANIZER;CN=Olivia Organizer:mailto:olivia@example.com
+ATTENDEE;CN=Olivia Organizer;PARTSTAT=ACCEPTED;ROLE=CHAIR:mailto:olivia@example.com
+ATTENDEE;CN=Bob;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:bob@example.com
+ATTENDEE;CN=Alice;PARTSTAT=ACCEPTED:mailto:alice@example.com
+ATTENDEE;CN=Carol;PARTSTAT=DECLINED:mailto:carol@example.com
+ATTENDEE;CN=Dave;PARTSTAT=TENTATIVE:mailto:dave@example.com
+END:VEVENT
+END:VCALENDAR
+
+--mixed--

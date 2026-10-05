@@ -7,6 +7,12 @@ import type { ReactElement, ReactNode } from 'react'
 import { NavigationDrawer } from '@/ds/NavigationDrawer/NavigationDrawer'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
+/**
+ * Width of the sidebar column on a desktop, in px: twake-mui's own (and the
+ * Figma one); the only place to change it
+ */
+export const SIDEBAR_WIDTH = 236
+
 export interface ResponsiveSidebarProps {
   /** Whether the drawer is open, below the desktop size */
   open: boolean
@@ -42,7 +48,11 @@ export function ResponsiveSidebar({
   const screenSize = useScreenSize()
 
   if (screenSize === 'desktop') {
-    return <Sidebar data-testid={testId}>{children}</Sidebar>
+    return (
+      <Sidebar data-testid={testId} sx={{ width: SIDEBAR_WIDTH }}>
+        {children}
+      </Sidebar>
+    )
   }
   return (
     <NavigationDrawer

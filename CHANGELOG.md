@@ -130,6 +130,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Forwarding (Settings > Forwarding, `Forward/set`): addresses added after
   a warning when outside the domain (`FORWARD_WARNING_MESSAGE`), removed
   after a confirmation, "Keep a copy in Inbox"
+- "Save as template" in the "More" menu of a message, in a Templates folder
+  made on the way; a template of that folder opens as a new message that
+  saving as template again updates
+- `mailto:` links opened through `/mailto?uri=mailto:…`, before the mailbox
+  is ready or after signing in, their body kept as plain text
 
 ### Changed
 
@@ -148,6 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A draft version created by a save whose answer was lost is destroyed by
   the next save
 - An email sent to oneself counts once in its conversation row
+- A conversation of an email without sender or recipient (a template, a
+  draft) enters its list by push
 
 ### Security
 

@@ -1,92 +1,100 @@
-import { Filter, Icon } from '@linagora/twake-icons'
+import { Check, Cross, Filter, Icon } from '@linagora/twake-icons'
 import {
+  Box,
   DropdownButton,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
   Menu,
   MenuItem,
-  ListItemText
+  Tooltip
 } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
-import { useNavigate } from 'react-router'
 
-import {
-  EMPTY_SEARCH_FILTER,
-  searchPath,
-  type SearchFilter
-} from '@common/features/search/searchFilter'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
-interface FilterEntry {
-  id: 'attachments' | 'unread' | 'starred'
-  label:
-    | 'search.filters.hasAttachment'
-    | 'search.filters.unread'
-    | 'search.filters.starred'
-  filter: Partial<SearchFilter>
-}
-
-const ENTRIES: readonly FilterEntry[] = [
-  { id: 'unread', label: 'search.filters.unread', filter: { unread: true } },
-  {
-    id: 'starred',
-    label: 'search.filters.starred',
-    filter: { starred: true }
-  },
-  {
-    id: 'attachments',
-    label: 'search.filters.hasAttachment',
-    filter: { hasAttachment: true }
-  }
-]
+import type { ListFilter, ListFilterOption } from './listFilter'
+import { listFilterLabelKey } from './ListFilterProvider'
 
 export interface EmailListFilterMenuProps {
-  /** The folder the filters look in */
-  mailboxId: string
+  current: ListFilter
+  /** The filters this list offers */
+  options: readonly ListFilterOption[]
+  onSelect: (option: ListFilterOption) => void
+  onClear: () => void
   className?: string
 }
 
 /**
- * "Filter" of the list toolbar: unread, starred, with attachment. The
- * folder has no filtered list of its own; each entry shows the matching
- * emails of the folder as a search (`/search?…`), which pages through the
- * server like any other.
+ * "Filter" of the list toolbar, as tmail-flutter's filter button: a menu of
+ * the filters, one at a time (picking the active one clears it), and a
+ * button clearing the filter while one is on. Phones show the icon alone.
  */
 export function EmailListFilterMenu({
-  mailboxId,
+  current,
+  options,
+  onSelect,
+  onClear,
   className
 }: EmailListFilterMenuProps): ReactElement {
   const { t } = useI18n()
-  const navigate = useNavigate()
+  const isPhone = useScreenSize() === 'mobile'
   const menuId = useId()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
-
-  const handleSelect = (entry: FilterEntry): void => {
-    setAnchor(null)
-    void navigate(
-      searchPath({
-        ...EMPTY_SEARCH_FILTER,
-        ...entry.filter,
-        scope: { kind: 'mailbox', mailboxId }
-      })
-    )
-  }
+  const isActive = current !== 'all'
+  const label = isActive
+    ? t(listFilterLabelKey(current))
+    : t('thread.toolbar.filter')
+  const clearLabel = t('thread.toolbar.clearFilter')
+  const menuProps = {
+    'aria-haspopup': 'menu',
+    'aria-controls': anchor ? menuId : undefined,
+    'aria-expanded': anchor ? true : undefined
+  } as const
 
   return (
-    <>
-      <DropdownButton
-        variant="text"
-        color="inherit"
-        className={className}
-        startIcon={<Icon icon={Filter} />}
-        aria-haspopup="menu"
-        aria-controls={anchor ? menuId : undefined}
-        aria-expanded={anchor ? 'true' : undefined}
-        onClick={event => {
-          setAnchor(event.currentTarget)
-        }}
-        data-testid="list-filter-button"
-      >
-        {t('thread.toolbar.filter')}
-      </DropdownButton>
+    <Box className={`u-flex u-flex-items-center ${className ?? ''}`}>
+      {isPhone ? (
+        <Tooltip title={t('thread.toolbar.filter')}>
+          <IconButton
+            aria-label={t('thread.toolbar.filter')}
+            color={isActive ? 'primary' : 'default'}
+            onClick={event => {
+              setAnchor(event.currentTarget)
+            }}
+            data-testid="list-filter-button"
+            {...menuProps}
+          >
+            <Icon icon={Filter} />
+          </IconButton>
+        </Tooltip>
+      ) : (
+        <DropdownButton
+          variant="text"
+          color={isActive ? 'primary' : 'inherit'}
+          startIcon={<Icon icon={Filter} />}
+          onClick={event => {
+            setAnchor(event.currentTarget)
+          }}
+          data-testid="list-filter-button"
+          {...menuProps}
+        >
+          {label}
+        </DropdownButton>
+      )}
+      {isActive ? (
+        <Tooltip title={clearLabel}>
+          <IconButton
+            size="small"
+            aria-label={clearLabel}
+            onClick={onClear}
+            data-testid="list-filter-clear-button"
+          >
+            <Icon icon={Cross} />
+          </IconButton>
+        </Tooltip>
+      ) : null}
       <Menu
         id={menuId}
         anchorEl={anchor}
@@ -96,18 +104,24 @@ export function EmailListFilterMenu({
         }}
         data-testid="list-filter-menu"
       >
-        {ENTRIES.map(entry => (
+        {options.map(option => (
           <MenuItem
-            key={entry.id}
+            key={option}
+            role="menuitemradio"
+            aria-checked={current === option}
             onClick={() => {
-              handleSelect(entry)
+              setAnchor(null)
+              onSelect(option)
             }}
-            data-testid={`quick-filter-${entry.id}`}
+            data-testid={`quick-filter-${option}`}
           >
-            <ListItemText primary={t(entry.label)} />
+            <ListItemIcon>
+              {current === option ? <Icon icon={Check} /> : null}
+            </ListItemIcon>
+            <ListItemText primary={t(listFilterLabelKey(option))} />
           </MenuItem>
         ))}
       </Menu>
-    </>
+    </Box>
   )
 }

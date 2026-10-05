@@ -32,7 +32,8 @@
     "logout": "Đăng xuất",
     "search": "Tìm kiếm",
     "showFolders": "Hiển thị thư mục",
-    "searchPlaceholder": "Tìm kiếm thư"
+    "searchPlaceholder": "Tìm kiếm thư",
+    "help": "Nhận trợ giúp hoặc báo cáo"
   },
   "sidebar": {
     "newMessage": "Tin nhắn mới",
@@ -145,7 +146,16 @@
     },
     "toolbar": {
       "label": "Thao tác với danh sách",
-      "filter": "Lọc"
+      "filter": "Lọc",
+      "clearFilter": "Xóa bộ lọc",
+      "selectPage": "Chọn tất cả tin nhắn của trang này",
+      "filterOn": "Bạn vừa lọc các email \"%{name}\"",
+      "filterOff": "Bộ lọc đã được huỷ bỏ",
+      "filters": {
+        "attachments": "Các tệp đính kèm",
+        "unread": "Chưa đọc",
+        "starred": "Quan trọng"
+      }
     },
     "me": "Tôi",
     "draft": {

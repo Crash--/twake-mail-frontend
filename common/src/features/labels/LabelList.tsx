@@ -33,6 +33,7 @@ export function LabelList({ label }: LabelListProps): ReactElement {
       emailPath: emailId => labelEmailPath(label.id, emailId),
       openEmailId,
       title: label.displayName,
+      filterScope: `label:${label.id}`,
       empty: (
         <Empty
           icon={LabelGlyph}

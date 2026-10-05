@@ -5,7 +5,10 @@ import { Route } from 'react-router'
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import type { AppListEntry } from '@common/config/config'
 import type { AuthService } from '@common/features/auth/types'
-import { FAKE_USERNAME } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_USERNAME,
+  makeFakeJmapServer
+} from '@common/testing/fakeJmapServer'
 import {
   makeFakeBasicAuthService,
   makeFakeOidcAuthService
@@ -78,6 +81,59 @@ describe('AppLayout', () => {
     expect(
       within(screen.getByTestId('top-bar')).getByTestId('search-input')
     ).toBeVisible()
+  })
+
+  describe('help button', () => {
+    function renderWithSupport(
+      support: Record<string, string> | null
+    ): ReturnType<typeof renderWithProviders> {
+      return renderWithProviders(<AppLayout apps={APPS} />, {
+        path: '/',
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer(
+          support === null
+            ? {}
+            : {
+                capabilities: {
+                  'com:linagora:params:jmap:contact:support': support
+                }
+              }
+        ),
+        childRoutes: <Route index element={<p>Routed content</p>} />
+      })
+    }
+
+    it('is absent without the contact support capability', async () => {
+      renderWithSupport(null)
+
+      await screen.findByTestId('top-bar')
+      expect(
+        screen.queryByRole('button', { name: 'Get help or report a bug' })
+      ).toBe(null)
+    })
+
+    it('writes to the support address from the composer', async () => {
+      renderWithSupport({ supportMailAddress: 'support@example.com' })
+
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Get help or report a bug' })
+      )
+
+      expect(
+        await screen.findByRole('dialog', { name: 'New message' })
+      ).toBeVisible()
+    })
+
+    it('links to the support page in a new tab', async () => {
+      renderWithSupport({ httpLink: 'https://support.example.com/help' })
+
+      const link = await screen.findByRole('link', {
+        name: 'Get help or report a bug'
+      })
+
+      expect(link).toHaveAttribute('href', 'https://support.example.com/help')
+      expect(link).toHaveAttribute('target', '_blank')
+    })
   })
 
   it('opens the composer from "New message" and with the c key', async () => {

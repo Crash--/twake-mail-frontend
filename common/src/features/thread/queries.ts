@@ -113,6 +113,11 @@ export interface SearchRequest {
   sort: readonly EmailComparator[]
   /** One row per conversation: its most recent email */
   collapseThreads?: boolean
+  /**
+   * The list is a folder narrowed by a filter: an email leaving it leaves
+   * the list (search results keep it, in its new state)
+   */
+  mailboxId?: string
 }
 
 /** The search request of a `threadKeys.search` key */

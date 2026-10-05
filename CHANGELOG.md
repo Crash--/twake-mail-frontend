@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The formatting toolbar of the composer follows the design and tmail-flutter: text
+  style (paragraph, headings, quote, code), size, font, text colour and highlight
+  with a colour popover, bold to strike, alignment, lists and indentation. The
+  sent HTML keeps them as inline styles. An emoji picker (categories, search,
+  recent; the data of emojibase-data loaded when it opens) sits in the footer on
+  tablets and desktops. On phones the footer stays on one line and the toolbar
+  scrolls sideways.
 - The Docker image is a drop-in replacement for tmail-flutter's `linagora/tmail-web`
   under the Helm chart `linagora/tmail-frontend` (1.0.12 tested): port 80,
   `app_dashboard.json` read into the app grid (the Flutter icon names mapped to

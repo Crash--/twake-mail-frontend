@@ -386,3 +386,21 @@ but pushes its chevron to the far end, shows it only past `limit` (5)
 children, has no slot for actions (search, +) and renders nothing below `lg`:
 twake-ui would need a `Nav` `subheader` with a toggle next to the title, an
 `actions` slot, and a collapse independent of `limit`.
+
+## Composer formatting toolbar and emoji picker (batch E1)
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| Toolbar menu button | Bordered 32 px box showing its value ("Aa", size, font), with a menu (`menuitemradio`) | Text style, size, font, alignment, lists and indentation of the composer | `ds/RichTextEditor/RichTextToolbar` | A `Toolbar` pattern with menu buttons, with the APG roving tabindex |
+| Colour popover | Swatches (two rows of 10), reset, free colour (native input), current colour as a 10 x 2 bar under the button | Text colour and highlight | `ds/RichTextEditor/ColorMenu` (composes `ds/ColorSwatchPicker`) | A `ColorPicker` popover |
+| Emoji picker | Popover with category tabs, search field, grid, recent; data given by the caller | Emoji button of the composer footer (not on phones: the native keyboard has one) | `ds/EmojiPicker` | An `EmojiPicker` fed by an optional lazy dataset |
+| Icon-only primary button | `PillButton` as a 44 px circle, the label stays the accessible name | Send on phones, where the footer has no room for the label | `ds/PillButton` (`isIconOnly`) | A `size="icon"` of the contained `Button` |
+| Icons | `twake-icons` has no highlighter, indent, outdent, emoji nor text style icon; Material Icons paths are used (as for bold, italic…) | Toolbar and footer | `ds/RichTextEditor/editorIcons` | Add them to `twake-icons` |
+| Category pictograms | The tabs of the emoji picker are emojis (greyed unless selected), not the outlined icons of the design | Emoji picker tabs | `ds/EmojiPicker` | Outlined category icons in `twake-icons` |
+
+Differences kept from the design and from tmail-flutter:
+
+- The size shown when nothing is chosen is 14 (the editor's text size in the design), not 16 (the number of the mock and
+  tmail-flutter's default); the sizes are tmail-flutter's list.
+- tmail-flutter opens a free colour picker dialog; Twake Mail offers the Twake palette and a free colour input in a popover.
+- tmail-flutter has no emoji picker (only the NotoEmoji fallback font): the categories are those of the Figma design.

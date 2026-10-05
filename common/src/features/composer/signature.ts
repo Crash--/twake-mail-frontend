@@ -1,6 +1,7 @@
-import DOMPurify from 'dompurify'
 import type { Editor } from '@tiptap/core'
 import type { Identity } from 'jmap-client-ts'
+
+import { sanitizeEmailHtml } from '@common/features/email/sanitizeEmailHtml'
 
 function escapeHtml(text: string): string {
   return text
@@ -10,9 +11,29 @@ function escapeHtml(text: string): string {
 }
 
 /**
+ * An HTML signature, shown in the page of the composer: sanitized as an
+ * email body (tags, attributes, CSS of tmail-flutter's list), its images
+ * kept (the user's own, or PublicAsset URLs), without style sheets, which
+ * would restyle the app
+ */
+function sanitizeSignature(html: string): string {
+  const sanitized = sanitizeEmailHtml(html, { allowRemoteContent: true }).html
+  if (!/<style/i.test(sanitized)) return sanitized
+  const root = new DOMParser().parseFromString(
+    `<body>${sanitized}</body>`,
+    'text/html'
+  ).body
+  root.querySelectorAll('style').forEach(style => {
+    style.remove()
+  })
+  return root.innerHTML
+}
+
+/**
  * The signature block of an identity, as tmail-flutter writes it
- * (`asSignatureHtml`): `-- ` then the HTML signature, or the text one.
- * Null when the identity has none.
+ * (`asSignatureHtml`): `-- ` then the HTML signature, or the text one
+ * (escaped, its lines kept; tmail-flutter inserts it raw). Null when the
+ * identity has none.
  */
 export function signatureHtml(
   identity: Pick<Identity, 'htmlSignature' | 'textSignature'>
@@ -22,7 +43,7 @@ export function signatureHtml(
   if (html === '' && text === '') return null
   const content =
     html !== ''
-      ? DOMPurify.sanitize(html, { FORBID_TAGS: ['style', 'form'] })
+      ? sanitizeSignature(html)
       : escapeHtml(text).replaceAll('\n', '<br>')
   return `<span class="tmail_signature_prefix">--&nbsp;</span><br>${content}<br>`
 }

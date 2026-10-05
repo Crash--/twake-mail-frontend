@@ -33,7 +33,7 @@ ouvertes et **un chantier design** (voir §5).
 - **Accessibilité RGAA 4.1 obligatoire** (jsx-a11y, axe dans chaque spec e2e, navigation clavier). **Responsive** (desktop, tablette, mobile).
 - Données : TanStack Query. Synchronisation incrémentale par `/changes` (pas de refetch global).
 - Langues : en, fr, ru, vi (import des ARB Flutter via `scripts/import-flutter-arb.mjs`) ; les 9 langues = issue #62.
-- React 18 tant que **linagora/twake-ui#130** (React 19, approuvée) n'est pas publiée ; `twake-i18n` 0.6.0 accepte déjà React 19 (cozy-libs#3165 mergée).
+- React 19 (depuis #63) : `@linagora/twake-mui` 10, `@linagora/twake-icons` 2.13 et `twake-i18n` 0.6 l'acceptent (twake-ui#130 et cozy-libs#3165 publiées). Pas d'`overrides`. Types dépréciés (`FormEvent`, `MutableRefObject`) remplacés par `SubmitEvent` et `RefObject`.
 - Workflow : **une branche + une PR par lot sur `Crash--/twake-mail-frontend`, merge en rebase quand la CI est verte**, puis redéploiement démo (`deploy.sh`). Conventional Commits, trailer `Co-Authored-By: Claude …`.
 - Issues : Quentin en crée souvent en cours de route → les créer sur **notre** dépôt (anglais, checklist, labels existants).
   **Rien d'externe** (tmail-backend, twake-ui, Drive…) sans son feu vert.

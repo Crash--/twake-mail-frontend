@@ -14,7 +14,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 | Liste virtualisée | `VirtualizedTable` de twake-mui, comme Contacts (`ContactsTable.tsx`, `ContactCell.tsx`, `ContactRowActions.tsx`) |
 | Données | TanStack Query v5 (Calendar et Contacts sont sur Redux Toolkit : choix délibéré différent) |
 | Client JMAP | v2 réécrite de `jmap-client-ts` (l'ancienne v1 était inutilisable). Contrat : `jmap-client-ts/docs/v2-api.md` |
-| React | 18 aujourd'hui ; passage à 19 validé, en attente des PR twake-ui et cozy-libs |
+| React | **19** (migration faite, #63) : twake-mui 10, twake-icons 2.13, twake-i18n 0.6 |
 | Éditeur riche | TipTap (pas de préférence de Quentin) |
 | E2E | **Playwright TypeScript** (pas Java comme Calendar), un utilisateur neuf par test, backlog `e2e/e2e.md` |
 | Auth | OIDC (`openid-client`, PKCE, tokens en mémoire, refresh) par défaut ; Basic activable par config |
@@ -45,9 +45,9 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 ### Bibliothèques
 - **jmap-client-ts v1** (linagora) : ~15 % de couverture, un appel par requête, upload cassé, pas de refresh de token, build cassé sous Node 20. Réécrit en v2.
 - **jmap-jam** (MIT) : bonne API, mais types fermés (on ne peut pas ajouter de méthodes), pas de WebSocket, fetch non injectable. On s'en est inspiré pour la v2 sans copier de code.
-- **twake-mui 9.16** : MUI v9, peer `react ^18` à l'origine. Catalogue limité : Layout, Sidebar, Nav*, SearchBar, Dialog, ListItem*, VirtualizedTable, Avatar, Chip…
+- **twake-mui 10.0** : MUI v9, peer `react ^18 || ^19` (le seul changement majeur de la 10.0 est le peer `twake-i18n >=0.6.0`). Catalogue limité : Layout, Sidebar, Nav*, SearchBar, Dialog, ListItem*, VirtualizedTable, Avatar, Chip…
 - **twake-libs** : contient seulement `@linagora/twake-utils` (URI templates des autres apps). C'est l'endroit prévu pour des paquets `@linagora/*` partagés, par exemple une auth OIDC commune.
-- **twake-i18n 0.5.0** (cozy-libs) : peer `react ^16-18`. Sans override, npm installe deux copies de React en 19.
+- **twake-i18n 0.6.0** (cozy-libs) : peer `react ^16-19`. L'override prévu avec la 0.5.0 n'est plus nécessaire.
 - Ticket WebSocket Linagora : capability `com:linagora:params:jmap:ws:ticket`, `POST /jmap/ws/ticket`, valeur passée en `?ticket=` sur `/jmap/ws`, sous-protocole `jmap`, valable 60 s.
 
 ### Twake Calendar / Contacts (conventions reprises)
@@ -78,7 +78,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 - **Point d'entrée `jmap-client-ts/linagora`** (Crash--/jmap-client-ts#1, phase 4) : `Label/*`, `Forward/*`, `Filter/*`, `Settings/*`, `EmailRecoveryAction/*`, `TMailContact/autocomplete`, `PublicAsset/*`, `Mailbox/clear`, `CalendarEvent/parse|accept|reject|maybe`, `CalendarEventAttendance/get` ; `LINAGORA_CAPABILITIES`, `LINAGORA_METHOD_CAPABILITIES` ; `Mailbox.namespace` et `Identity.sortOrder` (James). Programmes TypeScript à part (`src/linagora/tsconfig.json`, `tests/linagora/`) : l'importer rend `methodCapabilities` obligatoire. Types calés sur ce que renvoie tmail-backend (voir ses écarts plus bas). 10 tests d'intégration de plus (stack de test avec le coffre des messages supprimés). Phase 5 (Crash--/jmap-client-ts#2) : `CalendarEventCounter/accept` (avec `counterSupport`), `CalendarEventAttendance/get` typé `eventAttendanceStatus` (la doc de tmail-backend dit `attendanceStatus`), `utcStart`, `utcEnd` et `status` des événements. Non déclaré : `FolderFilteringAction/*`.
 
 ### twake-mail-frontend (`Crash--/twake-mail-frontend`, `main`, poussé, CI et E2E vertes)
-- Workspaces `apps/private` + `common`, rsbuild 2, TS 6, React 18, react-router 7, TanStack Query, twake-mui, twake-i18n (en/fr/ru/vi), Sentry 11 avec masquage des données sensibles, Docker/nginx, GitHub Actions.
+- Workspaces `apps/private` + `common`, rsbuild 2, TS 6, React 19, react-router 7, TanStack Query, twake-mui, twake-i18n (en/fr/ru/vi), Sentry 11 avec masquage des données sensibles, Docker/nginx, GitHub Actions.
 - Auth OIDC (refresh sérialisé, `id_token_hint`, BroadcastChannel) et Basic.
 - Arbre des dossiers (ordre Flutter, compteurs de non-lus).
 - Liste paginée par `Email/query` + `Email/get` en une seule requête.
@@ -93,7 +93,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 
 ### Contributions publiques
 - **linagora/tmail-backend#2682** : issue sur le bug de vue de requête (voir plus haut).
-- **linagora/twake-ui#130** « feat: support react 19 » (branche `Crash--/twake-ui:feat/react-19-support`). Checks verts, Argos sans écart.
+- **linagora/twake-ui#130** « feat: support react 19 » : mergée et publiée (twake-mui 10.0.0, twake-icons 2.12). Branche `Crash--/twake-ui:feat/react-19-support`.
   - peers `^18 || ^19` ;
   - corrections des types `JSX` ;
   - rooks 8.4.0 (la 9 est ESM-only et casse Jest) ;

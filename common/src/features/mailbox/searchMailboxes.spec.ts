@@ -31,9 +31,9 @@ describe('searchMailboxes', () => {
     expect(found.map(({ row }) => row.mailbox.id)).toEqual(['inbox'])
   })
 
-  it('gives the path of a subfolder and the address of a team mailbox', () => {
+  it('gives the path of a subfolder, none for a top level folder', () => {
     const found = searchMailboxes(MAILBOXES, 'sales', getName)
-    expect(found.map(({ path }) => path)).toEqual(['team@example.com'])
+    expect(found.map(({ path }) => path)).toEqual([null])
 
     const clients = searchMailboxes(MAILBOXES, 'clients', getName)
     expect(clients.map(({ row, path }) => [row.mailbox.id, path])).toEqual([

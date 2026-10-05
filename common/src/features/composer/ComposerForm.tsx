@@ -50,6 +50,7 @@ import {
 } from '@common/features/drive/driveCard'
 import type { DriveFile } from '@common/features/drive/driveIntent'
 import { buildEmailDocument } from '@common/features/email/emailBody'
+import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
 import { formatSize } from '@common/features/email/formatSize'
 import type { IdentitySummary } from '@common/features/identities/queries'
@@ -118,6 +119,7 @@ import { loadReplyContent } from './replyContent'
 import { makeIsSelf, type ReplyAction } from './replyRecipients'
 import { replaceSignature, signatureHtml } from './signature'
 import { DriveAttachButton } from './DriveAttachButton'
+import { ScribeMenu, type ScribeInput } from './ScribeMenu'
 import {
   useComposerAttachments,
   useUploadLimits
@@ -767,6 +769,35 @@ function LoadedComposerForm({
       })
   }
 
+  // The AI assistant works on the selection, else on what the user wrote
+  const scribeInput = (): ScribeInput => {
+    const editor = editorRef.current
+    if (!editor) return { text: '', isSelection: false }
+    const { from, to, empty } = editor.state.selection
+    return empty
+      ? { text: editorText(editor.getHTML()), isSelection: false }
+      : {
+          text: editor.state.doc.textBetween(from, to, '\n'),
+          isSelection: true
+        }
+  }
+
+  const handleScribeReplace = (text: string): void => {
+    editorRef.current?.chain().focus().insertContent(suggestionHtml(text)).run()
+    markChanged()
+  }
+
+  const handleScribeInsert = (text: string): void => {
+    const editor = editorRef.current
+    if (!editor) return
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(editor.state.selection.to, suggestionHtml(text))
+      .run()
+    markChanged()
+  }
+
   // Twake Drive files shared by link: their cards where the caret is
   const handleDriveLinks = (picked: DriveFile[]): void => {
     editorRef.current
@@ -1112,6 +1143,11 @@ function LoadedComposerForm({
             maxFileSize={uploadLimits.maxFileSize}
             onLinks={handleDriveLinks}
             onAttach={files.addFiles}
+          />
+          <ScribeMenu
+            getInput={scribeInput}
+            onReplace={handleScribeReplace}
+            onInsert={handleScribeInsert}
           />
           <input
             ref={fileInputRef}

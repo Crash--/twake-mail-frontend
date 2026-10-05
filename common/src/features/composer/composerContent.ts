@@ -38,6 +38,11 @@ export interface ComposerContent {
   /** The draft on the server, null before the first save */
   draftId: string | null
   /**
+   * Previous versions of the draft a save failed to destroy (see
+   * `saveDraft`): the next save destroys them
+   */
+  leftovers: string[]
+  /**
    * What the message was when last saved, or opened (`fingerprint`): null
    * until the editor computes it (a draft, a new message)
    */
@@ -85,6 +90,7 @@ export function newMessageContent(
     html: `<p></p>${signature === null ? '' : signatureBlock(signature)}`,
     attachments: [],
     draftId: null,
+    leftovers: [],
     savedFingerprint: null
   }
 }
@@ -233,6 +239,7 @@ export async function loadDraftContent(
     html: fromEmailHtml(html, cid => images.urlFor(cid)),
     attachments,
     draftId,
+    leftovers: [],
     savedFingerprint: null
   }
 }
@@ -251,6 +258,8 @@ export interface ComposerSnapshot {
   /** The uploaded files only */
   attachments: AttachedFile[]
   draftId: string | null
+  /** Absent from the snapshots written before it existed */
+  leftovers?: string[]
   savedFingerprint: string | null
 }
 
@@ -295,6 +304,9 @@ export async function restoreSnapshotContent(
       progress: 100
     })),
     draftId: snapshot.draftId,
+    leftovers: (snapshot.leftovers ?? []).filter(
+      (id): id is string => typeof id === 'string'
+    ),
     savedFingerprint: snapshot.savedFingerprint
   }
 }

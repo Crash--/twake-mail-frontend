@@ -137,14 +137,14 @@ function SpikeComposerForm({
   const saveNow = (): Promise<void> => {
     const editor = editorRef.current
     if (!editor) return Promise.resolve()
-    // One save at a time: each one destroys the previous draft
+    // One save at a time: each one replaces the previous draft
     savingRef.current = savingRef.current.then(async () => {
       const email = await buildEmail(composed(editor), images, setup.mailboxIds)
       const result = await saveDraft(
         client,
         accountId,
         email,
-        draftIdRef.current,
+        draftIdRef.current === null ? [] : [draftIdRef.current],
         images
       )
       draftIdRef.current = result.emailId
@@ -227,7 +227,7 @@ function SpikeComposerForm({
         identity.id,
         email,
         setup.mailboxIds,
-        draftIdRef.current
+        draftIdRef.current === null ? [] : [draftIdRef.current]
       )
       if (!result.ok) throw new Error(`Not sent: ${result.reason}`)
       removeSnapshot(storageKey)

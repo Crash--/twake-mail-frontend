@@ -45,6 +45,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import {
   buildEmail,
+  destroyPreviousVersions,
   saveDraft,
   sendEmail,
   type AttachedFile,
@@ -217,6 +218,8 @@ function LoadedComposerForm({
   const [changes, setChanges] = useState(0)
   const editorRef = useRef<Editor | null>(null)
   const draftIdRef = useRef<string | null>(content.draftId)
+  /** Previous versions a save failed to destroy: the next one tries again */
+  const leftoversRef = useRef<string[]>(content.leftovers)
   /** The draft was created by this composer: "Discard" may destroy it */
   const createdHereRef = useRef(false)
   /** The message as last saved (or opened): what "modified" compares to */
@@ -282,10 +285,17 @@ function LoadedComposerForm({
     onDraftChange(id)
   }
 
+  /** The draft and the versions left by earlier saves */
+  const draftVersions = (): string[] =>
+    draftIdRef.current === null
+      ? [...leftoversRef.current]
+      : [draftIdRef.current, ...leftoversRef.current]
+
   /**
-   * Saves the message as a draft, one save at a time (each destroys the
-   * previous version). An autosave skips an unchanged message; a save asked
-   * for creates the draft of an untouched one.
+   * Saves the message as a draft, one save at a time (each replaces the
+   * previous version, destroyed once the new one exists). An autosave
+   * skips an unchanged message; a save asked for creates the draft of an
+   * untouched one.
    */
   const save = (kind: 'auto' | 'manual'): Promise<boolean> => {
     const run = savingRef.current.then(async (): Promise<boolean> => {
@@ -303,10 +313,11 @@ function LoadedComposerForm({
           client,
           accountId,
           email,
-          draftIdRef.current,
+          draftVersions(),
           images
         )
         if (draftIdRef.current === null) createdHereRef.current = true
+        leftoversRef.current = result.leftovers
         setDraftId(result.emailId)
         files.rebase(result.attachments)
         savedRef.current = current
@@ -362,10 +373,24 @@ function LoadedComposerForm({
   useEffect(() => cancelAutosave, [])
 
   const destroyDraft = async (): Promise<void> => {
-    const id = draftIdRef.current
-    if (id === null) return
-    await client.call('Email/set', { accountId, destroy: [id] })
+    const ids = draftVersions()
+    if (ids.length === 0) return
+    await client.call('Email/set', { accountId, destroy: ids })
+    leftoversRef.current = []
     setDraftId(null)
+  }
+
+  /** Last try for the versions earlier saves left, as the window goes */
+  const destroyLeftovers = (): void => {
+    const ids = leftoversRef.current
+    if (ids.length === 0) return
+    void destroyPreviousVersions(client, accountId, ids)
+      .then(left => {
+        leftoversRef.current = left
+      })
+      .catch((error: unknown) => {
+        console.error(error)
+      })
   }
 
   const requestClose = async (): Promise<boolean> => {
@@ -373,6 +398,7 @@ function LoadedComposerForm({
     const current = currentFingerprint()
     if (current === null) return true
     if (current === savedRef.current) {
+      destroyLeftovers()
       // Saved meanwhile: say so, and offer to drop a draft made here
       if (createdHereRef.current && draftIdRef.current !== null) {
         notify({
@@ -401,6 +427,7 @@ function LoadedComposerForm({
     if (choice === 'alternative') return true
     const saved = await save('manual')
     if (saved) {
+      destroyLeftovers()
       notify({ message: t('composer.draft.saved'), severity: 'success' })
     }
     return saved
@@ -418,6 +445,7 @@ function LoadedComposerForm({
       images: images.toJSON(),
       attachments: uploadedFiles(files.attachments),
       draftId: draftIdRef.current,
+      leftovers: leftoversRef.current,
       savedFingerprint: savedRef.current
     }
   }
@@ -568,9 +596,10 @@ function LoadedComposerForm({
         identity.id,
         email,
         mailboxIds,
-        draftIdRef.current
+        draftVersions()
       )
       if (result.ok) {
+        leftoversRef.current = []
         setDraftId(null)
         notify({ message: t('composer.sent'), severity: 'success' })
         onDone()
@@ -578,6 +607,7 @@ function LoadedComposerForm({
       }
       if (result.draftId !== null) {
         // Created but not sent: it is the draft now
+        leftoversRef.current = result.leftovers
         setDraftId(result.draftId)
         savedRef.current = fingerprintOf(editor)
       }

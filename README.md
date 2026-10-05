@@ -12,7 +12,7 @@ search, actions on emails and settings come next.
 
 ## Stack
 
-Rsbuild, React 18, TypeScript (strict), react-router 7,
+Rsbuild, React 19, TypeScript (strict), react-router 7,
 [`@linagora/twake-mui`](https://github.com/linagora/twake-ui) and
 `@linagora/twake-icons`, TanStack Query 5, `twake-i18n`, `openid-client` 6,
 jmap-client-ts 2, DOMPurify, Sentry, Jest 30 + Testing

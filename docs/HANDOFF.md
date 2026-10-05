@@ -75,6 +75,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 - Méthodes RFC 8620/8621, Quota (RFC 9425), MDN (RFC 9007).
 - Upload et download, WebSocket avec ticket, reconnexion et ping.
 - 78 tests unitaires et de types, 7 tests d'intégration contre tmail-backend.
+- **Point d'entrée `jmap-client-ts/linagora`** (Crash--/jmap-client-ts#1, phase 4) : `Label/*`, `Forward/*`, `Filter/*`, `Settings/*`, `EmailRecoveryAction/*`, `TMailContact/autocomplete`, `PublicAsset/*`, `Mailbox/clear`, `CalendarEvent/parse|accept|reject|maybe`, `CalendarEventAttendance/get` ; `LINAGORA_CAPABILITIES`, `LINAGORA_METHOD_CAPABILITIES` ; `Mailbox.namespace` et `Identity.sortOrder` (James). Programmes TypeScript à part (`src/linagora/tsconfig.json`, `tests/linagora/`) : l'importer rend `methodCapabilities` obligatoire. Types calés sur ce que renvoie tmail-backend (voir ses écarts plus bas). 10 tests d'intégration de plus (stack de test avec le coffre des messages supprimés). Non déclarés : `CalendarEventCounter/accept`, `FolderFilteringAction/*`.
 
 ### twake-mail-frontend (`Crash--/twake-mail-frontend`, `main`, poussé, CI et E2E vertes)
 - Workspaces `apps/private` + `common`, rsbuild 2, TS 6, React 18, react-router 7, TanStack Query, twake-mui, twake-i18n (en/fr/ru/vi), Sentry 11 avec masquage des données sensibles, Docker/nginx, GitHub Actions.
@@ -98,7 +99,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - rooks 8.4.0 (la 9 est ESM-only et casse Jest) ;
   - job CI React 18.
 
-## 4. État au 2026-10-05 (après les lots 1 à 4, le lot A de la phase 2 et les lots L1 à L6 du composer)
+## 4. État au 2026-10-05 (après les lots 1 à 4, le lot A de la phase 2, les lots L1 à L6 du composer et la phase 4)
 
 - **Méthode** : une branche par lot depuis `main`, vérifications sur clone propre (`npm ci`, lint, format, typecheck, tests, build) puis e2e, PR sur `Crash--/twake-mail-frontend`, merge une fois la CI verte, redéploiement devbox (`~/Sites/Linagora/twake-mail-react-devbox/deploy.sh`).
 - **Phase 0** (avant les lots) : design system `@/ds/`, liste sur `VirtualizedTable` (`ds/VirtualizedListTable` + `RowLink`), RGAA (jsx-a11y, axe dans les e2e avec `TWAKE_MUI_KNOWN_VIOLATIONS`, A11Y-01), perfs (`npm run perf`, `docs/perf/phase0.md`). Responsive (téléphone, tablette) mergé en PR #4 (projets Playwright `mobile` et `tablet`).
@@ -171,6 +172,21 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
     - mailto : route `/mailto?uri=mailto:…` (et les champs à côté de `uri`, comme Flutter), RFC 6068 décodé une fois (`+` reste `+`), `to`, `cc`, `bcc`, `subject`, `body` ; corps en **texte** échappé (Flutter l'injecte en HTML) ; la route survit à la connexion (chemin de retour), le composer attend lui-même identités et dossiers ; pas de `registerProtocolHandler` (Flutter non plus) ;
     - correctif push : James omet les propriétés sans valeur (`from`, `to` d'un modèle ou d'un brouillon sans destinataire) ; une conversation d'un tel email n'entrait jamais dans la liste par push ;
     - e2e : `CMP-02`, `CMP-03`, `CMP-04`, `CMP-48`, `KBD-05`, `CMP-19` à `CMP-21`, `CMP-24` (variante web).
+- **Phase 4, réglages et extensions** (PR #28 pour l'entrée `jmap-client-ts/linagora`, #30 réglages et identités, #32 règles et transfert, #34 absence, préférences, langue et visibilité des dossiers, #35 libellés, et celle du quota et de la récupération) :
+  - **réglages** `/settings/<section>` (`features/settings/`), ouverts par « Paramètres » du menu du compte : sections dans la colonne de gauche sur un ordinateur (« Retour aux e-mails » revient au dossier quitté, `SettingsExitProvider`), liste des sections avec leur description sur téléphone et tablette ; une section absente du serveur est masquée (`sections.ts`, `isAvailable`), son URL renvoie à `/settings` ; titre de section en `h1` focalisé, titre de page `<section> - Paramètres - Twake Mail`. Le réglage Thread et les raccourcis ont quitté le menu du compte ;
+  - **identités** (Profils, `Identity/set`) : création, modification (l'adresse ne change plus), suppression (pas celle du compte, `mayDelete`), Reply-To et Bcc (plusieurs adresses, `[]` pour vide car James ignore `null`), signature riche (`ds/RichTextEditor`, `textSignature` tiré du texte), identité par défaut par `sortOrder` (0 pour elle, 100 pour les anciennes, comme Flutter ; radio `select_identity_as_default`) ; images de signature publiées en `PublicAsset` (attribut `public-asset-id` lu par Flutter, liées à l'identité, libérées ou détruites quand elles quittent la signature ; en base64 sans la capability) ;
+  - **règles** (`Filter/set` de la liste entière, ids = positions car `Filter/get` n'en donne pas) : conditions From, To, Cc, Recipient, Subject, toutes ou l'une ; actions déplacer, lu, étoile (`markAsImportant`), rejeter (avertissement à la création et à la modification, sans autre action), spam ; ce que le créateur n'affiche pas (mots-clés, transfert, `moveTo`) est gardé. « Créer une règle avec cet e-mail » depuis l'expéditeur d'un email lu seul (`EmailAddressMenu`, menu copier / créer une règle) ;
+  - **transfert** (`Forward/set`, toujours avec `localCopy` : tmail-backend refuse un patch partiel) : ajout avec avertissement hors domaine (texte de `FORWARD_WARNING_MESSAGE`, nouvelle variable de `.env.js`, `AppConfigProvider`), bandeau tant qu'une adresse externe est là, « Garder une copie », suppression confirmée ;
+  - **absence** (`VacationResponse/set`) : dates et heures locales converties en UTC, fin facultative, sujet, message riche (+ texte) ; désactiver garde le message (Flutter) ; bandeau « Votre répondeur automatique est activé » sur tous les écrans avec « Terminer maintenant » ; une absence dont la fin est passée est désactivée à l'ouverture ;
+  - **préférences** : `read.receipts.always`, `display.sender.priority` (`Settings/set` en patch `settings/<clé>`, sur `serverSettings.ts` du lot L6), Thread et « Visibilité des libellés » (locales) ;
+  - **langue** : appliquée à chaud (`useLanguage` de `I18nProvider`), gardée dans le navigateur et dans `language` du compte, qui l'emporte une fois lu (`ServerLanguageSync`) ; section masquée si le serveur la rend en lecture seule (cas de la devbox) ;
+  - **visibilité des dossiers** : dossiers personnels et team mailboxes, Masquer / Afficher par les actions de dossier existantes ;
+  - **libellés** (`features/labels/`) : section de la barre latérale (création, modification, suppression, couleur parmi les 20 de Flutter, `ds/ColorSwatchPicker`), vue `/label/<id>` (`hasKeyword`, dossier de chaque email), « Labelliser » depuis les menus et la sélection (modale à cases, création sur place), puces (`ds/ColorTag`, texte noir ou blanc selon le contraste) sur les lignes et sous le sujet (× pour retirer), push `Label` suivi par `Label/changes` (rechargement si l'état est inconnu), recherche avancée par libellé ;
+  - **quota** (`Quota/get`, octets) : jauge en bas de la barre latérale (couleur d'alerte au `warnLimit`, rafraîchie par le push des emails), bandeau au seuil d'alerte ou plein, Réglages > Stockage ;
+  - **récupération** (`EmailRecoveryAction`) : « Récupérer les messages supprimés » du menu de la Corbeille, formulaire de Flutter (périodes de suppression dans l'horizon du coffre, période de réception, objet, expéditeur, destinataires, pièces jointes ; pas de plage personnalisée), suivi toutes les 2 s avec un bandeau, toast « N messages récupérés » avec « Ouvrir » vers le dossier « Récupérés » (rôle `restored messages`) ;
+  - e2e : `SET-01` à `SET-09`, `RULE-01`, `RULE-02`, `LBL-01` à `LBL-11`, `SRCH-07`, `SRCH-08`, `MBX-11`, `MBX-13`, `MBX-14`, `MBX-18` (stack de la phase : projet `twakemail-p4`, 127.0.0.1:18980-18982) ;
+  - écarts voulus avec Flutter : identité du compte listée et modifiable (Flutter la masque) ; Reply-To et Bcc libres et multiples ; bouton « Enregistrer » du créateur de règles en modification ; pas d'ajout d'action à côté de « Rejeter » ; jauge de stockage toujours visible (Flutter : au-delà de 80 %) ; libellés appliqués après « Ajouter un libellé » dans la modale (Flutter applique au clic sur mobile) ;
+  - vérifié sur la devbox (scripts `~/tmp/devbox-check/{settings,rules,p4c,p4d}-check.mjs`, état initial relevé puis restauré par JMAP) : une identité créée, mise par défaut puis supprimée (ordre `sortOrder` restauré) ; une règle créée puis supprimée ; transfert lu seulement ; « Afficher l'importance » basculé puis remis ; absence programmée en 2099 (bandeau « sera activé le… ») puis désactivée et vidée ; visibilité des dossiers lue ; un libellé créé, posé sur un email, retiré, supprimé (mot-clé nettoyé) ; menu de récupération lu, aucune récupération lancée.
 - **Devbox** : https://mail-react.twake.valmoriq.fr (Tailscale), à jour de `main`. Vérification Playwright rejouable (script hors dépôt, `~/tmp/devbox-check/run.sh`) : login SSO, nom et email, push à 1 000 mails, logout. Réponse de L4 vérifiée le 2026-10-05 (`SCRIPT=reply-check.mjs ./run.sh`, étapes `pick`, `reply`, `read`, `flutter`, `cleanup`) : une réponse de user1 à un mail de sa boîte, adressée à lui-même, reçue avec `In-Reply-To` et `References` du mail cité, citation rendue dans React et dans tmail-web (citation repliée « ••• » puis dépliée) ; `$answered` posé sur l'original seul, puis retiré, la réponse détruite. Le serveur refuse un `Email/get` de plus de 5 emails avec leurs corps (`requestTooLarge`). L6 vérifié le 2026-10-05 (`SCRIPT=l6-check.mjs ./run.sh`, étapes `send`, `react`, `flutter`, `cleanup`) : un seul mail de user1 à lui-même depuis le composer React, accusé demandé et important, reçu avec `Disposition-Notification-To`, `X-Priority: 1`, `Importance: high`, `Priority: urgent` et le `Reply-To` de l'identité ; React : drapeau dans la liste, ligne « Moi » sans « (2) », dialogue d'accusé (répondu Non) ; tmail-web : drapeau dans la liste, son propre dialogue d'accusé (répondu Non) ; copies de Réception et d'Envoyés détruites, aucun accusé parti. Client OIDC `twake-mail-react` actif en live seulement (à ajouter par Quentin aux templates LemonLDAP).
 - **PR ouvertes ailleurs** : linagora/twake-ui#130 (React 19), linagora/cozy-libs#3165 (twake-i18n React 19). Issue linagora/tmail-backend#2682.
 - **Issues et candidats tmail-backend** :
@@ -182,6 +198,16 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - Un état inconnu passé à `Email/changes` donne `invalidArguments`, pas `cannotCalculateChanges`.
   - `Email/get` omet les propriétés sans valeur (`from`, `to` vides, `name` nul d'une adresse) au lieu de les rendre à `null` (RFC 8620 §5.1) : l'app les traite comme nulles (L6). Candidat à une issue (en attente d'accord).
   - Un dossier créé sous le nom « Templates » reçoit seul le rôle `templates` (pratique, mais non standard : RFC 8621 ne définit pas ce rôle).
+  - Candidats de la phase 4 (en attente d'accord) :
+    - `Identity/set` en mise à jour ignore `replyTo: null` et `bcc: null` (RFC : retour à la valeur par défaut) ; l'app envoie `[]` ;
+    - `Forward/set` refuse un patch sans `localCopy` (« Missing '/localCopy' property ») ;
+    - `Label/set` en mise à jour refuse `color: null` : on ne peut pas retirer la couleur d'un libellé ;
+    - `Filter/get` ne renvoie pas l'`id` des règles, que `Filter/set` exige ;
+    - `EmailRecoveryAction/get` et `/set` sans `accountId` ni `state` ; statuts `completed` et `canceled` (la doc dit `done`) ; `maxEmailRecoveryPerRequest` en chaîne (`"5"`) ;
+    - `PublicAsset.publicURI` contient le nom d'utilisateur là où la doc dit l'id du compte ;
+    - `Label/changes` répond `invalidArguments` à un état inconnu (pas `cannotCalculateChanges`) ;
+    - image memory : `Email/query` `{hasKeyword: <libellé>}` renvoie aussi la copie Envoyés d'un email à soi-même, qui n'a pas le mot-clé ; `Email/query` `{subject}` ne trouve pas certains sujets (« Email 1 subject Tag 1 », « Mail 1 of Tag 1 ») ;
+    - doc des extensions : rôle `restored messages` du dossier de récupération à documenter (Flutter cherche aussi `Restored-Messages`).
   - **Image memory : détruire deux emails dans un même `Email/set`** retire les autres emails de leur dossier des résultats d'`Email/query`, alors qu'`Email/get` et `Email/changes` les voient (`INFRA-17`, proche de #2684). `CMP-37` lit donc les brouillons par `Email/changes`. Candidat à une issue (en attente d'accord).
 
 ## 5. Ce qu'il reste à faire
@@ -202,9 +228,9 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - e2e, image memory : des `serverFail` (`ConcurrentModificationException`) à l'approvisionnement sous 2 workers, rattrapés par le retry de la CI ; RESP-05 aussi vu une fois en retry.
 - [ ] Problèmes ouverts du lot A de la phase 2 :
   - `/` ne déplie pas la recherche repliée des téléphones ;
-  - dossiers masqués : réaffichés par un bouton « Afficher les dossiers masqués » de l'arbre (tmail-flutter le fait dans Réglages > Visibilité des dossiers, page absente ici) ;
+  - ~~dossiers masqués sans page de réglage~~ : Réglages > Visibilité des dossiers (phase 4) ;
   - en vue conversation (réglage « Thread » du lot B), la lecture n'a pas encore la barre d'actions de l'email seul ;
-  - « Déplacer le contenu du dossier », « Créer un filtre », la recherche dans l'arbre (MBX-04) et la récupération des emails supprimés (MBX-11 à 14) restent à faire ;
+  - « Déplacer le contenu du dossier », « Créer un filtre » depuis le menu d'un dossier (Flutter pré-remplit l'action) et la recherche dans l'arbre (MBX-04) restent à faire ; ~~la récupération des emails supprimés (MBX-11 à 14)~~ : faite (MBX-12 reste N/A web) ;
   - l'envoi vers une team mailbox depuis l'interface (MBX-07) est possible avec le composer : spec à porter.
 
 ### Phase 2 : lecture complète
@@ -236,12 +262,20 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
     - le dossier Templates d'une team mailbox n'est pas utilisé (modèles personnels seulement) ; deux composers qui créent le premier modèle avant que le push n'apporte le dossier en créent deux ;
     - « Save as template » d'un composer ouvert sur un brouillon garde le brouillon (seuls ceux créés par ce composer sont détruits) ;
     - pas de sélecteur « insérer un modèle » ni de modèle depuis la recherche (Flutter ouvre la lecture) ;
-    - `display.sender.priority` et `read.receipts.always` sont lus, pas encore modifiables (phase 4, `serverSettings.ts`) ;
+    - ~~`display.sender.priority` et `read.receipts.always` pas encore modifiables~~ : Réglages > Préférences (phase 4) ;
     - le Reply-To automatique (identité) part sur tous les messages, comme Flutter : une réponse à un de ses propres messages le lit et vise bien les destinataires d'origine (règles de `replyRecipients`).
 
 ### Phase 4 : réglages et extensions
-- Identités, règles (`Filter`), transfert (`Forward`), message d'absence, labels (`Label/*`), restauration de mails supprimés (`EmailRecoveryAction`), quotas, préférences (`Settings`, dont les expéditeurs de confiance), langue.
-- Créer une entrée `jmap-client-ts/linagora` qui déclare ces méthodes avec sa table `methodCapabilities`.
+- ~~Identités, règles, transfert, absence, libellés, récupération, quota, préférences, langue, entrée `jmap-client-ts/linagora`~~ : faits (voir plus haut).
+- Reste, problèmes ouverts :
+  - expéditeurs de confiance des images distantes toujours en `localStorage` : aucune clé `Settings` documentée par tmail-backend, à convenir avant de les y mettre ;
+  - transfert : pas d'autocomplétion des contacts ni de sélection multiple pour retirer (Flutter les a) ;
+  - règles : pas de réordonnancement (Flutter non plus), pas de condition `sentDate` / en-tête (affichées telles quelles si un autre client les a posées) ;
+  - libellés : pas de couleur personnalisée (sélecteur de Flutter), la couleur d'un libellé ne peut pas être retirée (backend), les puces ne s'affichent pas dans la vue conversation ni dans un message déplié ; l'expéditeur d'un message de conversation n'a pas le menu « Créer une règle » ;
+  - récupération : pas de plage de dates personnalisée ; `maxEmailRecoveryPerRequest` non affiché (Flutter non plus) ;
+  - absence : l'éditeur reste modifiable quand la réponse est coupée (Flutter le grise) ;
+  - langue : seulement en, fr, ru, vi (Flutter en a 9) ;
+  - e2e flakies sous charge locale (passent seuls et en CI) : `THR-05`, `CMP-12`, `MBX-21`.
 
 ### Phase 5 : écosystème
 - Invitations calendrier (`CalendarEvent/*`), grille d'apps, détection d'iframe Workplace (`cozy-external-bridge`, optionnelle).
@@ -261,5 +295,5 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 - Machine de dev :
   - ne jamais toucher aux conteneurs d'autres environnements (`tmail-backend`, `tmail-web`, `e2e-*` de Drive, `lemonldap`…) ;
   - publier uniquement sur 127.0.0.1 ;
-  - ports 80, 8080, 8090, 5984 et 6060 déjà pris ; ce projet utilise 18100-18101 (tests du client), 18200 (dev), 18300-18302 (e2e) et 18400-18401 (repro du bug backend).
+  - ports 80, 8080, 8090, 5984 et 6060 déjà pris ; ce projet utilise 18100-18101 (tests du client), 18200 (dev), 18300-18302 (e2e), 18400-18401 (repro du bug backend) et 18980-18982 (stack e2e de la phase 4, projet `twakemail-p4`).
 - Node 24 : `source ~/.nvm/nvm.sh && nvm use 24`.

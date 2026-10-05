@@ -101,8 +101,10 @@ points to: JMAP and its WebSocket, the SSO, Sentry, a fixed Twake Drive
 {{- $sources = append $sources . -}}
 {{- end -}}
 {{- end -}}
+{{- if ne (toString $sentry.enabled) "false" -}}
 {{- with include "twake-mail-frontend.origin" ($sentry.dsn | default $config.sentryDsn | default "") -}}
 {{- $sources = append $sources . -}}
+{{- end -}}
 {{- end -}}
 {{- $tdrive := $config.tdrive | default dict -}}
 {{- if and $tdrive.enabled (not (contains "{" ($tdrive.intentUrl | default ""))) -}}

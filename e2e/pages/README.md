@@ -244,8 +244,7 @@ Conventions:
 | `email-list-item-avatar` | the 20 px initials avatar of the sender (decorative, `aria-hidden`) in a list row | — |
 | `search-row` / `settings-button` | desktop only: the row at the top of the page holding the search (`search-bar`) and, at its far end, the settings button (below the desktop size the search stays in `top-bar`, the settings in the account menu) | — |
 | `workplace-logo` | the Twake Workplace logo at the start of the top bar (desktop, not embedded) | — |
-| `list-toolbar` | desktop only: the toolbar above the list while nothing is selected (a `section` named "List actions"); it becomes `selection-toolbar` once rows are selected | — |
-| `list-refresh-button` / `list-select-all-button` / `list-filter-button` / `list-filter-menu` | refresh, "Select all", the "Filter" dropdown and its menu; its items are `quick-filter-unread`, `quick-filter-starred`, `quick-filter-attachments` (they open the matching emails of the folder as a search) | `unread_filter`, `starred_filter`, `attachments_filter` |
+| `list-toolbar` | the toolbar above the list while nothing is selected (a `section` named "List actions"); it becomes `selection-toolbar` once rows are selected | — |
 | `mailbox-item-address` / `folder-visibility-address` | the address of a team mailbox, beside the name of its root (sidebar, Settings > Folder visibility) | — |
 | `mailbox-search-button` (implemented) | the magnifier toggles the folder search (`aria-expanded`, `aria-controls`); Escape closes it and focuses it again | `UiKeys.mailboxSearchButton` |
 | `mailbox-search` / `mailbox-search-input` / `mailbox-search-clear-button` | the folder search panel (`role="search"`), its field (focused on open) and its clear button | `SearchMailboxView` |

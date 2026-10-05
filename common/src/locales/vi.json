@@ -18,7 +18,8 @@
     "yes": "Có",
     "no": "Không",
     "confirm": "Xác nhận",
-    "remove": "Xóa"
+    "remove": "Xóa",
+    "errorOccurredShort": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau."
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -499,7 +500,14 @@
     },
     "preferences": {
       "thread": "Hội thoại",
-      "threadDescription": "Xem các thư của cuộc hội thoại"
+      "threadDescription": "Xem các thư của cuộc hội thoại",
+      "readReceipts": "Xác nhận đã đọc tin nhắn",
+      "readReceiptsDescription": "Xác nhận đã đọc là thông báo có thể được gửi đến và đi từ người dùng của bạn để xác minh rằng thư đã được đọc.",
+      "readReceiptsToggle": "Luôn yêu cầu xác nhận đã đọc khi gửi tin nhắn",
+      "senderPriority": "Cờ ưu tiên",
+      "senderPriorityDescription": "Cho phép hiển thị cờ đánh dấu email quan trọng trong hộp thư đến của bạn. Tính năng này do người gửi kiểm soát, do đó có thể bị lạm dụng.",
+      "senderPriorityToggle": "Hiển thị cờ ưu tiên",
+      "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại"
     },
     "backToMail": "Quay lại hộp thư",
     "language": {

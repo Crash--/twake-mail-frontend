@@ -130,7 +130,8 @@ common/src/
   jmap/              JMAP client and session providers
   layout/            top bar, sidebar, app layout
   testing/           test helpers (renderWithProviders, fake JMAP server)
-docs/                twake-mui gaps, translations
+deploy/docker/       nginx configuration and entrypoint script of the image
+docs/                deployment, twake-mui gaps, translations
 scripts/             project scripts
 upgrade-instructions/ configuration changes per release
 e2e/                 end-to-end tests, separate npm package (not a workspace)
@@ -139,17 +140,23 @@ e2e/                 end-to-end tests, separate npm package (not a workspace)
 ## Docker
 
 ```bash
-npm ci && npm run build
 docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=0.1.0 -t twake-mail-frontend .
-docker run -p 8080:80 \
+docker run -p 127.0.0.1:8080:8080 --read-only --tmpfs /tmp \
   -v $PWD/my.env.js:/usr/share/nginx/html/.env.js:ro \
   -v $PWD/my.appList.js:/usr/share/nginx/html/appList.js:ro \
   twake-mail-frontend
 ```
 
-nginx serves the SPA with long-lived caching for hashed assets (disabled when
-`DEBUG = true`) and masks OIDC codes, states, tokens and tickets in its access
-log.
+The image builds the app itself (Node 24) and serves it with an unprivileged
+nginx on port 8080 (user 101, read-only root filesystem supported, health
+endpoint `/healthz`). It sends security headers, a Content-Security-Policy
+included, configured by environment variables: the SSO, and JMAP when it is
+not on the origin of the app, must be allowed with `CSP_CONNECT_SRC`. nginx
+caches hashed assets for a year (not when `DEBUG = true`) and masks OIDC
+codes, states, tokens and tickets in its access log.
+
+Everything about deploying (image, variables, CSP, reverse proxy, iframe
+embedding in Twake Workplace) is in [`docs/deployment.md`](docs/deployment.md).
 
 ## Error reporting
 

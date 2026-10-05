@@ -1,7 +1,12 @@
 **/node_modules
+**/dist
 .git
+.github
 coverage
 .tsbuild
 e2e
+deploy/docker-compose
+deploy/helm
+docs
 public/.env.js
 public/appList.js

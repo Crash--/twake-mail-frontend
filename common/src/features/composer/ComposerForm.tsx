@@ -158,8 +158,18 @@ export interface ComposerFormHandle {
    * user cancelled, the save failed).
    */
   requestClose: () => Promise<boolean>
-  /** What a reload keeps, null before the editor exists */
+  /** What the browser keeps, null before the editor exists */
   snapshot: () => ComposerSnapshot | null
+  /**
+   * Writes the draft if the message has changes the server does not have
+   * (before signing out); never rejects
+   */
+  saveIfUnsaved: () => Promise<void>
+  /**
+   * Nothing to keep: the message is as it opened and no draft exists for it
+   * (a new message not typed in, a reply not touched)
+   */
+  isPristine: () => boolean
   /** Puts the focus back in the message (opened again) */
   focus: () => void
 }
@@ -270,6 +280,7 @@ interface LoadedFormProps extends ComposerFormProps {
 
 function LoadedComposerForm({
   init,
+  restored,
   autoFocus,
   onTitleChange,
   onRecipientsChange,
@@ -545,7 +556,12 @@ function LoadedComposerForm({
   useEffect(() => cancelAutosave, [])
 
   // What is typed in a recipient field, not yet a recipient: kept as well
+  const inputsMountedRef = useRef(false)
   useEffect(() => {
+    if (!inputsMountedRef.current) {
+      inputsMountedRef.current = true
+      return
+    }
     onChange?.()
     // The window reads the form itself when it writes
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -641,13 +657,29 @@ function LoadedComposerForm({
     }
   }
 
+  const saveIfUnsaved = async (): Promise<void> => {
+    await flush()
+    const current = currentFingerprint()
+    if (current === null || current === savedRef.current) return
+    await save('auto')
+  }
+
+  const isPristine = (): boolean => {
+    const current = currentFingerprint()
+    return (
+      current !== null &&
+      current === savedRef.current &&
+      draftIdRef.current === null
+    )
+  }
+
   const focus = (): void => {
     editorRef.current?.commands.focus()
   }
 
   // The window reads the latest closures: they change with every field
   useEffect(() => {
-    onReady({ requestClose, snapshot, focus })
+    onReady({ requestClose, snapshot, isPristine, saveIfUnsaved, focus })
   })
 
   useEffect(() => {
@@ -670,9 +702,10 @@ function LoadedComposerForm({
   const handleEditorReady = (editor: Editor): void => {
     editorRef.current = editor
     // A new message or a reopened draft: what it is now is what is saved
+    // Back from the browser without a version on the server: everything
+    // typed is a change not saved (closing asks, the idle delay saves it)
+    if (restored && savedRef.current === null) savedRef.current = ''
     savedRef.current ??= fingerprintOf(editor)
-    // Back from the browser with changes the server never had: they are
-    // saved once the user stays idle
     if (savedRef.current !== fingerprintOf(editor)) markChanged()
   }
 

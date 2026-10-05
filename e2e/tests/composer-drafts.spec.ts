@@ -76,7 +76,7 @@ test.describe('composer drafts, local first', () => {
       .toEqual(['Typed, then reloaded'])
 
     await page.reload()
-    await new LoginPage(page).loginAs(user)
+    await new LoginPage(page).loginAfterReload(user)
     const restored = new ComposerPage(page)
     await expect(restored.subjectInput).toHaveValue('Typed, then reloaded')
     await expect(restored.editor).toContainText('Body kept')

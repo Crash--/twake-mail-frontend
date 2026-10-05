@@ -360,7 +360,7 @@ test.describe('CMP and EML: replying and forwarding', () => {
       subject: 'Lunch plans',
       html: '<p>Shall we meet at <b>noon</b>?</p><table><tr><td>Cell</td></tr></table>'
     })
-    const [original] = await readMailbox(jmap, 'inbox')
+    const original = await waitForReceived(jmap, 'Lunch plans')
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await (await openReceived(mailbox, 'Lunch plans')).reply()
     await expect(composer.editor).toBeFocused()

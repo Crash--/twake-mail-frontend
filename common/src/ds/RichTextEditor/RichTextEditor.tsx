@@ -353,6 +353,27 @@ export function RichTextEditor({
             borderColor: 'divider'
           },
           '& .ProseMirror img': { maxWidth: '100%', height: 'auto' },
+          // TipTap gives the resize handles of an image no size: corner
+          // squares, shown on the image hovered or selected
+          '& .ProseMirror [data-resize-handle]': {
+            width: 12,
+            height: 12,
+            margin: '-6px',
+            bgcolor: 'primary.main',
+            border: '2px solid',
+            borderColor: 'background.paper',
+            borderRadius: '2px',
+            opacity: 0,
+            zIndex: 1
+          },
+          '& .ProseMirror [data-resize-handle="bottom-right"]': {
+            cursor: 'nwse-resize'
+          },
+          '& .ProseMirror [data-resize-handle="bottom-left"]': {
+            cursor: 'nesw-resize'
+          },
+          '& .ProseMirror [data-resize-container]:hover [data-resize-handle], & .ProseMirror .ProseMirror-selectednode [data-resize-handle], & .ProseMirror [data-resize-container].ProseMirror-selectednode [data-resize-handle]':
+            { opacity: 1 },
           '& .ProseMirror a': { color: 'primary.main' },
           '& .ProseMirror table': { borderCollapse: 'collapse' },
           '& .ProseMirror td, & .ProseMirror th': {

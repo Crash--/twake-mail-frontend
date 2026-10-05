@@ -288,3 +288,17 @@ inside its frame (content that needs two dimensions, an exception of RGAA
 - "feat(theme): 44 px touch targets on coarse pointers" (item 6) and the
   `ExtendableFab` contrast fix (item 7);
 - the `VirtualizedTable` narrow mode, with the list mode PR above (item 8).
+
+## List rows and states (design batch B)
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `Row` hover actions | Actions replacing a cell (the date) on row hover and focus-within, beside it without hover | Email list rows | `ds/RowHoverActions` (`replaces`) | `VirtualizedTable` slot for hover actions |
+| One-line row content | Title never cut before 70 % of the line, preview cut first, chips before the title | Email list rows | `ds/RowLine` | `VirtualizedTable` row layout |
+| `Banner` | Persistent inline banner (offline) with a dismiss button, pinned at the bottom of its parent | "No internet connection" | `ds/OfflineBanner`, not mounted yet: no offline detection in the app | `Banner` / `PointerAlert` with a dismiss action |
+| `ListSkeleton` | One-line rows with several segments (checkbox, avatar, sender, subject, preview, date) as in the Figma loading state | Loading of the email list | none: `ListSkeleton` `count` + `divider` is used | `ListSkeleton` `variant="table"` with segments |
+| `Avatar` | Decorative 20 px initials in the row (`aria-hidden`) | Sender of a list row | twake-mui `Avatar`, `size={20}` | none |
+| `VirtualizedTable` rows | Selected row at primary 8 % (mock, `#ebf5ff`) instead of `selectedOpacity` 18 %; body rows of 49 px instead of about 44; cells in `text.secondary`; a column header the mock does not have | Email list | `ds/VirtualizedListTable` (`ROW_SX`, selected colour only) | Theme `MuiTableRow` selected opacity; `VirtualizedTable` density |
+| `Alert` / `Snackbar` | Banner that stays (no auto hide) pinned to a positioned parent | Offline banner | `ds/OfflineBanner` (composes `Alert`) | `Snackbar` `persistent` / `anchor` parent option |
+| `Checkbox`, `Avatar` | No 14 px box nor 20 px named size; the empty box is `text.secondary`, the mock uses `border.main` | List rows | twake-mui `Checkbox size="small"`, `Avatar size={20}` as is | Size props, empty colour |
+| Theme palette | `divider`, `action.hover`, `action.selected` are tinted `#424244`, Figma uses `#1d192b` at the same opacity | everywhere | not overridden (no global theme override) | `makePalette` |

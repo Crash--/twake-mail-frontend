@@ -18,6 +18,7 @@ import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import type { EmailDetail } from './queries'
+import { useReplyOptions } from './useReplyOptions'
 
 interface Neighbors {
   /** The email above in the list (more recent) */
@@ -74,6 +75,7 @@ export function useEmailViewShortcuts({
   const { run } = useEmailActions()
   const removeEmails = useRemoveEmails()
   const neighbors = useNeighbors(mailboxId, emailId)
+  const replies = useReplyOptions(email)
   const lastNeighbors = useRef(neighbors)
   const wasInMailbox = useRef(false)
 
@@ -119,6 +121,15 @@ export function useEmailViewShortcuts({
 
   useShortcuts(
     {
+      r: () => {
+        replies.open('reply')
+      },
+      R: () => {
+        replies.open('replyAll')
+      },
+      f: () => {
+        replies.open('forward')
+      },
       j: () => {
         open(neighbors.nextId, 'forward')
       },

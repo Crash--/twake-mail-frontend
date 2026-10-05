@@ -14,6 +14,7 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import { FLAGGED, hasKeyword } from './keywords'
 import type { EmailDetail } from './queries'
+import { useReplyOptions } from './useReplyOptions'
 
 /** The actions shown as buttons beside "More", from the tablet size */
 const BUTTONS: readonly EmailActionId[] = [
@@ -49,6 +50,7 @@ export function EmailViewActions({
   const { data: mailboxes = [] } = useMailboxes()
   const runAction = useRunEmailAction()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
+  const replies = useReplyOptions(email)
   const mailbox =
     mailboxes.find(candidate => candidate.id === mailboxId) ?? null
   const items = availableEmailActions([email], mailbox, mailboxes)
@@ -118,6 +120,7 @@ export function EmailViewActions({
         emails={[email]}
         mailboxId={mailboxId}
         onAction={handleAction}
+        replies={replies.actions}
         data-testid="email-view-menu"
       />
     </Box>

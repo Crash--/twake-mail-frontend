@@ -67,6 +67,7 @@
     "download": "Download",
     "attachments": "Attachments",
     "content": "Message content",
+    "showTrimmedContent": "Show trimmed content",
     "notFound": "This message no longer exists",
     "markAsRead": "Mark as read",
     "markAsUnread": "Mark as unread",

@@ -703,7 +703,10 @@
       "emptySpam": "Xóa tất cả tin nhắn rác",
       "emptyTrash": "Làm trống thùng rác",
       "button": "Thao tác với %{name}",
-      "label": "Thao tác với thư mục"
+      "label": "Thao tác với thư mục",
+      "openInNewTab": "Mở trong tab mới",
+      "createFilter": "Tạo bộ lọc",
+      "moveContent": "Chuyển nội dung thư mục"
     },
     "newFolder": "Thư mục mới",
     "create": {
@@ -759,6 +762,10 @@
       "label": "Tìm kiếm thư mục",
       "empty": "Không có thư mục nào khớp với tìm kiếm",
       "results": "Tìm thấy %{smart_count} thư mục"
+    },
+    "moveContent": {
+      "failure": "Không thể chuyển toàn bộ thư từ thư mục này sang thư mục khác.",
+      "progress": "Đang chuyển thư: %{moved}/%{total}"
     }
   },
   "identities": {

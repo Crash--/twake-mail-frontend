@@ -12,6 +12,10 @@ import {
   makeMailbox,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeFilter
+} from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { FolderActionsProvider } from './FolderActionsProvider'
@@ -34,8 +38,9 @@ function OpenFolder(): ReactElement {
   return <p>Open folder {mailboxId}</p>
 }
 
-function makeServer(): FakeJmapServer {
-  return makeFakeJmapServer({
+function makeServer(withFilter = false): FakeJmapServer {
+  const server = makeFakeJmapServer({
+    ...(withFilter ? { capabilities: FAKE_LINAGORA_CAPABILITIES } : {}),
     mailboxes: [
       ...makeDefaultMailboxes(),
       makeMailbox({
@@ -64,6 +69,7 @@ function makeServer(): FakeJmapServer {
       makeEmail({ id: 'c1', mailboxIds: { clients: true } })
     ]
   })
+  return server
 }
 
 async function renderTree(
@@ -360,6 +366,122 @@ describe('Folder actions', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map(item => item.textContent)
-    ).toEqual(['Hide folder'])
+    ).toEqual(['Open in new tab', 'Hide folder'])
+  })
+
+  it('moves the content of a folder to another, and back with Undo', async () => {
+    const server = makeServer()
+    await renderTree(server)
+
+    await userEvent.click(
+      within(await openMenu('Work')).getByRole('menuitem', {
+        name: 'Move folder content'
+      })
+    )
+    const picker = screen.getByRole('dialog', { name: 'Move To' })
+    expect(
+      within(picker).getByRole('option', { name: 'Work' })
+    ).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(within(picker).getByRole('option', { name: 'Inbox' }))
+
+    await waitFor(() => {
+      expect(
+        server.emails
+          .filter(email => 'mailbox-inbox' in email.mailboxIds)
+          .map(email => email.id)
+          .sort()
+      ).toEqual(['r1', 'u1', 'u2'])
+    })
+    expect(server.emails.find(email => email.id === 'c1')?.mailboxIds).toEqual({
+      clients: true
+    })
+    const toast = await screen.findByTestId('toast')
+    expect(toast).toHaveTextContent('Moved to Inbox')
+    await userEvent.click(
+      await within(toast).findByRole('button', { name: 'Undo' })
+    )
+    await waitFor(() => {
+      expect(
+        server.emails.filter(email => 'work' in email.mailboxIds)
+      ).toHaveLength(3)
+    })
+  })
+
+  it('says so when some emails could not be moved', async () => {
+    const server = makeServer()
+    server.setErrors.set('u2', 'forbidden')
+    await renderTree(server)
+
+    await userEvent.click(
+      within(await openMenu('Work')).getByRole('menuitem', {
+        name: 'Move folder content'
+      })
+    )
+    await userEvent.click(
+      within(screen.getByRole('dialog', { name: 'Move To' })).getByRole(
+        'option',
+        { name: 'Inbox' }
+      )
+    )
+
+    const toast = await screen.findByTestId('toast')
+    expect(toast).toHaveTextContent(
+      'Failed to move all emails from this folder to another folder.'
+    )
+    expect(within(toast).queryByRole('button', { name: 'Undo' })).toBeNull()
+  })
+
+  it('opens a folder in a new tab with a link', async () => {
+    await renderTree(makeServer())
+
+    const link = within(await openMenu('Work')).getByRole('menuitem', {
+      name: 'Open in new tab'
+    })
+
+    expect(link).toHaveAttribute('href', '/mailbox/work')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
+
+  it('creates a filter from a folder, moving to it', async () => {
+    const server = makeServer(true)
+    const filter = installFakeFilter(server)
+    await renderTree(server)
+
+    await userEvent.click(
+      within(await openMenu('Work')).getByRole('menuitem', {
+        name: 'Create filter'
+      })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Create a New Rule' })
+    expect(
+      within(dialog).getByTestId('rule-action-folder-button')
+    ).toHaveTextContent('Work')
+    await userEvent.type(within(dialog).getByTestId('rule-name-input'), 'Work')
+    await userEvent.type(
+      within(dialog).getByTestId('rule-condition-value-input'),
+      'boss@'
+    )
+    await userEvent.click(within(dialog).getByTestId('create-rule-button'))
+
+    await waitFor(() => {
+      expect(filter.rules()).toHaveLength(1)
+    })
+    expect(filter.rules()[0]).toMatchObject({
+      name: 'Work',
+      action: { appendIn: { mailboxIds: ['work'] } }
+    })
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'New filter was created'
+    )
+  })
+
+  it('does not offer to create a filter when the server has none', async () => {
+    await renderTree(makeServer())
+
+    expect(
+      within(await openMenu('Work')).queryByRole('menuitem', {
+        name: 'Create filter'
+      })
+    ).toBeNull()
   })
 })

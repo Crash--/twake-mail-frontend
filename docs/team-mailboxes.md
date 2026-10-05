@@ -51,9 +51,9 @@ Flutter paths are relative to `tmail-flutter/` (`lib/features/` abbreviated
 | Section "Team-mailboxes", shown only when there is one; own heading and tree | `f/mailbox/presentation/model/mailbox_sidebar_category_tree_source_resolver.dart`, `mailbox_categories.dart` (`teamMailBoxes`) | `r/mailbox/MailboxTree.tsx` (`team-mailboxes-section`) | ✅ | |
 | One root per team mailbox, its folders under it, nested subfolders | `mailbox_tree_builder.dart` (`teamMailboxTree`) | `mailboxTree.ts` (`buildMailboxSections`) | ✅ | |
 | Collapsed folders, the path to the selected one expanded | `ExpandMode` of the nodes | `MailboxTree.tsx` (`toggled`, `selectedAncestors`) | ✅ | |
-| Collapse the whole section by its heading | `MailboxCategoriesExpandMode` | none for any section | ❌ shared with the personal folders: left to the sidebar work in progress | S, follow-up |
+| Collapse the whole section by its heading | `MailboxCategoriesExpandMode` | `r/mailbox/SidebarSectionsProvider.tsx`, `ds/NavSectionHeader` (`toggle`); kept for the session, all expanded at first | ✅ done | |
 | Unread count per folder | `mailbox_item_widget.dart`, `countUnReadEmailsAsString` | `MailboxTreeItem.tsx` | ✅ | |
-| No unread count on Trash, Spam, Drafts, Templates, Sent, team ones included (by name) | `allowedToDisplayCountOfUnreadEmails` | the count shows everywhere | ⚠️ | S |
+| No unread count on Trash, Spam, Drafts, Templates, Sent; a team Trash, Drafts and Templates by name, not its Sent or Spam (role only in tmail-flutter) | `allowedToDisplayCountOfUnreadEmails` | `r/mailbox/mailboxDisplay.ts` (`showsUnreadCount`, `showsTotalCount` for the Drafts) | ✅ done | |
 | Order: roots alphabetical; under a root the system folders first (Inbox, Drafts, Outbox, Sent, Trash, Spam, Junk, Templates, Archive), then alphabetical; deeper levels alphabetical | `mailbox_tree_builder.dart` (`_applyTeamMailboxSorting`) | `mailboxTree.ts` (`compareMailboxes`: applied at every level, server `sortOrder` before the name) | ✅ done |  |
 | Address of the team mailbox under the name of its root (row, picker, visibility settings, folder search) | `sidebar_mailbox_item.dart` (`supportingText`), `label_mailbox_item_widget.dart`, `destination_picker_search_mailbox_item_builder.dart`, `mailbox_searched_item_builder.dart`, `label_mailbox_visibility_item_widget.dart` | none (name only) | ✅ done |  |
 | Icons of the system folders of a team mailbox (by name) | `f/mailbox/presentation/extensions/presentation_mailbox_extension.dart` (`getMailboxIcon`) | `r/mailbox/mailboxDisplay.ts` (role only) | ✅ done |  |
@@ -74,6 +74,9 @@ Flutter paths are relative to `tmail-flutter/` (`lib/features/` abbreviated
 | `Mailbox/clear` not used on the first-level system folders of a team mailbox (emails deleted by query instead) | `empty_folder_listener_delegate.dart` (`useJmapClear`) | `emptyFolder.ts` calls `Mailbox/clear` whenever the server has it | ✅ done (works on the memory image, skipped for parity) |  |
 | Create a folder at the top level / under a personal folder only | `mailbox_creator_controller.dart` | `FolderActionsProvider.tsx` (`personalOnly`) | ✅ | |
 | Folder menu hides what the rights forbid (no reason shown) | `mailbox_widget_mixin.dart` | `folderActionItems.ts` | ✅ | |
+| Move the content of a folder: never offered on a team folder | `mailbox_widget_mixin.dart` (`_listActionForTeamMailbox`) | `r/mailboxActions/folderActionItems.ts` (`move-content`) | ✅ done | |
+| ...needs `mayRemoveItems` on the source (hidden otherwise) and `mayAddItems` on the destination (listed, not selectable: `requireAddItems`) | not checked | `folderActionItems.ts`, `FolderActionsProvider.tsx` | ➕ done | |
+| Create a filter from a folder: not on a team folder | `mailbox_widget_mixin.dart` | `folderActionItems.ts` (`create-filter`, needs the filter capability) | ✅ done | |
 
 ### Emails in a team mailbox
 

@@ -36,14 +36,21 @@ import {
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useRecovery } from '@common/features/recovery/RecoveryProvider'
+import { RuleFormDialog } from '@common/features/rules/RuleFormDialog'
+import { newRuleDraft } from '@common/features/rules/rules'
+import { useAddRule } from '@common/features/rules/useAddRule'
+import { threadKeys } from '@common/features/thread/queries'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+
+import { emailSetBatchSize } from '@common/features/emailActions/sendEmailChanges'
 
 import { destroyMailboxes } from './emptyFolder'
 import type { FolderActionId } from './folderActionItems'
 import { validateFolderName } from './folderName'
 import { MailboxNameDialog } from './MailboxNameDialog'
+import { moveFolderContent, undoMoveFolderContent } from './moveFolderContent'
 import { maxCallsInRequest, useEmptyFolder } from './useEmptyFolder'
 
 export interface FolderActions {
@@ -77,7 +84,7 @@ export function FolderActionsProvider({
   const { t } = useI18n()
   const recovery = useRecovery()
   const client = useJmapClient()
-  const { accountId, session } = useJmapSession()
+  const { accountId, session, extraCapabilities } = useJmapSession()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const openMailboxId = useMatch('/mailbox/:mailboxId/*')?.params.mailboxId
@@ -85,10 +92,12 @@ export function FolderActionsProvider({
   const pickMailbox = usePickMailbox()
   const emptyFolder = useEmptyFolder()
   const { run: runEmailAction } = useEmailActions()
-  const { notify } = useNotify()
+  const { notify, dismiss } = useNotify()
   const getName = useMailboxName()
   const [dialog, setDialog] = useState<NameDialog | null>(null)
   const [mailboxes, setMailboxes] = useState<readonly MailboxSummary[]>([])
+  const [ruleFolder, setRuleFolder] = useState<MailboxSummary | null>(null)
+  const addRule = useAddRule()
 
   const loadMailboxes = useCallback(async (): Promise<MailboxSummary[]> => {
     const data = await queryClient.query({
@@ -232,6 +241,113 @@ export function FolderActionsProvider({
       }
     },
     [loadMailboxes, pickMailbox, t, sendMailboxSet, notify, getName, fail]
+  )
+
+  const refreshEmailLists = useCallback(
+    (...mailboxIds: string[]): void => {
+      for (const mailboxId of mailboxIds) {
+        queryClient
+          .invalidateQueries({
+            queryKey: threadKeys.list(accountId, mailboxId)
+          })
+          .catch(() => undefined)
+      }
+      refreshMailboxes()
+    },
+    [queryClient, accountId, refreshMailboxes]
+  )
+
+  const moveContent = useCallback(
+    async (mailbox: MailboxSummary): Promise<void> => {
+      const list = await loadMailboxes()
+      const destination = await pickMailbox({
+        disabledIds: [mailbox.id],
+        requireAddItems: true
+      })
+      if (destination === null || destination === PICKED_ROOT) return
+      const options = {
+        batchSize: emailSetBatchSize(session),
+        extraCapabilities
+      }
+      const total = mailbox.totalEmails
+      // One batch goes by too fast to show: a progress only past it
+      const progress: { toastId: string | null } = { toastId: null }
+      const showProgress = (moved: number): void => {
+        progress.toastId = notify({
+          message: t('folders.moveContent.progress', { moved, total }),
+          severity: 'info',
+          duration: null
+        })
+      }
+      if (total > options.batchSize) showProgress(0)
+      const result = await moveFolderContent(
+        client,
+        accountId,
+        mailbox.id,
+        destination.id,
+        {
+          ...options,
+          markSeen: destination.role === 'junk',
+          onProgress: moved => {
+            if (total > options.batchSize) showProgress(moved)
+          }
+        }
+      )
+      if (progress.toastId !== null) dismiss(progress.toastId)
+      refreshEmailLists(mailbox.id, destination.id)
+      if (result.error !== null || result.failedCount > 0) {
+        if (result.error !== null) {
+          console.error(
+            '[mailbox] Cannot move the folder content',
+            result.error
+          )
+        }
+        notify({ message: t('folders.moveContent.failure'), severity: 'error' })
+        return
+      }
+      notify({
+        message: t('emailActions.toast.movedTo', {
+          destinationMailboxPath: mailboxPath(list, destination.id, getName)
+        }),
+        severity: 'success',
+        action: {
+          label: t('common.undo'),
+          isUndo: true,
+          onClick: () => {
+            undoMoveFolderContent(
+              client,
+              accountId,
+              result.movedIds,
+              mailbox.id,
+              destination.id,
+              options
+            )
+              .then(isUndone => {
+                if (!isUndone) fail('common.unknownError', null)
+                refreshEmailLists(mailbox.id, destination.id)
+              })
+              .catch((error: unknown) => {
+                fail('common.unknownError', error)
+              })
+          },
+          'data-testid': 'toast-undo-button'
+        }
+      })
+    },
+    [
+      loadMailboxes,
+      pickMailbox,
+      session,
+      extraCapabilities,
+      notify,
+      dismiss,
+      t,
+      client,
+      accountId,
+      refreshEmailLists,
+      getName,
+      fail
+    ]
   )
 
   const remove = useCallback(
@@ -378,6 +494,15 @@ export function FolderActionsProvider({
         case 'move':
           void move(mailbox)
           return
+        case 'move-content':
+          void moveContent(mailbox)
+          return
+        case 'create-filter':
+          setRuleFolder(mailbox)
+          return
+        case 'open-in-new-tab':
+          // A link of the menu: the browser opens it
+          return
         case 'delete':
           void remove(mailbox)
           return
@@ -402,6 +527,7 @@ export function FolderActionsProvider({
       create,
       loadMailboxes,
       move,
+      moveContent,
       remove,
       markAsRead,
       hide,
@@ -479,6 +605,20 @@ export function FolderActionsProvider({
     <FolderActionsContext.Provider value={api}>
       {children}
       {dialogElement}
+      {ruleFolder === null ? null : (
+        <RuleFormDialog
+          rule={null}
+          initialDraft={newRuleDraft(null, ruleFolder)}
+          onSubmit={async rule => {
+            const isAdded = await addRule(rule)
+            if (isAdded) setRuleFolder(null)
+            return isAdded
+          }}
+          onClose={() => {
+            setRuleFolder(null)
+          }}
+        />
+      )}
     </FolderActionsContext.Provider>
   )
 }

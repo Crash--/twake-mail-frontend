@@ -26,7 +26,6 @@ import type { InlineImageStore, StoredImage } from './InlineImageStore'
 import { mailtoBodyHtml, type MailtoFields } from './mailto'
 import { mergeRecipients, parseRecipients, type Recipient } from './recipients'
 import type { RecipientKind, RecipientLists } from './RecipientsEditor'
-import { readStorage } from './composerStorage'
 import type { Answering } from './replyContent'
 import { signatureBlock, signatureHtml } from './signature'
 
@@ -403,9 +402,9 @@ export async function loadDraftContent(
   }
 }
 
-// --- kept across a reload (tmail-flutter ADR 0009 and 0112) ---------------
+// --- kept by the browser (tmail-flutter ADR 0112, `docs/composer-drafts.md`) ---------------
 
-/** A composer as `sessionStorage` keeps it: images by Content-ID, no URL */
+/** A composer as the browser keeps it (`composerStorage`): images by Content-ID, no URL */
 export interface ComposerSnapshot {
   identityId: string | null
   recipients: RecipientLists
@@ -446,8 +445,8 @@ function isSnapshot(value: unknown): value is ComposerSnapshot {
   )
 }
 
-export function readSnapshot(key: string): ComposerSnapshot | null {
-  const value = readStorage(key)
+/** What the browser kept, if it is a composer */
+export function parseSnapshot(value: unknown): ComposerSnapshot | null {
   return isSnapshot(value) ? value : null
 }
 

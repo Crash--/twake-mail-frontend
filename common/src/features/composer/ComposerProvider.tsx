@@ -32,14 +32,20 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import { parseSnapshot, type ComposerSnapshot } from './composerContent'
 import {
-  readStorage,
-  registryKey,
-  snapshotKey,
-  writeStorage
+  listComposers,
+  putComposer,
+  removeComposer,
+  type StoredComposer
 } from './composerStorage'
+import { LOCAL_SAVE_DELAY_MS } from './draftPolicy'
 import type { ComposerFormHandle, ComposerInit } from './ComposerForm'
-import { acquireDraftLock, type ReleaseLock } from './draftLocks'
+import {
+  acquireComposerLock,
+  acquireDraftLock,
+  type ReleaseLock
+} from './draftLocks'
 
 // The form and its editor (TipTap) load on demand, in their own chunk
 const ComposerForm = lazy(() =>
@@ -49,7 +55,7 @@ const ComposerForm = lazy(() =>
 /** Most composers open at once (tmail-flutter has no limit) */
 export const MAX_COMPOSERS = 3
 
-/** An open composer: serializable, kept across a reload */
+/** An open composer: serializable, kept in the browser (`composerStorage`) */
 interface ComposerEntry {
   id: string
   init: ComposerInit
@@ -57,8 +63,10 @@ interface ComposerEntry {
   mode: DockedWindowMode
   /** Its subject, empty for none */
   title: string
-  /** Who it is for, as names; missing in the registry of an older version */
+  /** Who it is for, as names */
   recipients?: string
+  /** `Date.now()` when it opened: the order of the dock after a reload */
+  openedAt?: number
 }
 
 interface ComposerApi {
@@ -101,10 +109,24 @@ function isEntry(value: unknown): value is ComposerEntry {
   )
 }
 
-/** The composers a reload left, if any */
-function readRegistry(accountId: string): ComposerEntry[] {
-  const value = readStorage(registryKey(accountId))
-  return Array.isArray(value) ? value.filter(isEntry) : []
+/** A composer the browser kept: its window and its form */
+interface RestoredComposer {
+  entry: ComposerEntry
+  snapshot: ComposerSnapshot | null
+}
+
+function openedAt(stored: StoredComposer): number {
+  const { entry } = stored
+  return isEntry(entry) && entry.openedAt !== undefined
+    ? entry.openedAt
+    : stored.updatedAt
+}
+
+function toRestored(stored: StoredComposer): RestoredComposer | null {
+  if (!isEntry(stored.entry) || stored.entry.id !== stored.composerId) {
+    return null
+  }
+  return { entry: stored.entry, snapshot: parseSnapshot(stored.snapshot) }
 }
 
 /** Its subject, else who it is for; null for a blank message */
@@ -142,9 +164,14 @@ export interface ComposerProviderProps {
  * Escape closes it. Closing asks to save a modified message, then gives
  * the focus back to what opened the composer.
  *
- * A draft is edited by one composer at a time (`draftLocks`). The open
- * composers are kept in `sessionStorage` on `beforeunload` and come back
- * after a reload (tmail-flutter ADR 0112).
+ * A draft is edited by one composer at a time (`draftLocks`).
+ *
+ * What is typed is kept in the browser while the user types (IndexedDB,
+ * `composerStorage`), never sent to the server: the draft is written on the
+ * server after `DRAFT_IDLE_MS` without a change, on request, or when the
+ * user closes the composer and chooses to save. The composers come back
+ * after a reload or a new session; a tab reopens those no other tab holds
+ * (a lock per composer, `draftLocks`). Sent, closed, discarded: forgotten.
  */
 export function ComposerProvider({
   children
@@ -156,9 +183,7 @@ export function ComposerProvider({
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const screenWidth = useWindowWidth()
-  const [entries, setEntries] = useState<ComposerEntry[]>(() =>
-    readRegistry(accountId)
-  )
+  const [entries, setEntries] = useState<ComposerEntry[]>([])
   const entriesRef = useRef(entries)
   useEffect(() => {
     entriesRef.current = entries
@@ -190,34 +215,126 @@ export function ComposerProvider({
     })
   }, [])
 
-  // Kept across a reload: the composers, and what each one holds
+  /** What the browser kept of the composers back from it, until closed */
+  const restored = useRef(new Map<string, ComposerSnapshot>())
+  /** The same, for the forms to open with */
+  const [restoredSnapshots, setRestoredSnapshots] = useState<
+    ReadonlyMap<string, ComposerSnapshot>
+  >(new Map())
+  /** The lock of each open composer: a tab reopens only the ones it holds */
+  const composerLocks = useRef(new Map<string, ReleaseLock>())
+  const persistTimers = useRef(new Map<string, number>())
+
+  /** Writes a composer in the browser: its window and its form */
+  const persist = useCallback(
+    (id: string): void => {
+      const timer = persistTimers.current.get(id)
+      if (timer !== undefined) window.clearTimeout(timer)
+      persistTimers.current.delete(id)
+      const entry = entriesRef.current.find(candidate => candidate.id === id)
+      // Closed meanwhile
+      if (!entry || !composerLocks.current.has(id)) return
+      const snapshot =
+        forms.current.get(id)?.snapshot() ?? restored.current.get(id) ?? null
+      void putComposer({ accountId, composerId: id, entry, snapshot })
+    },
+    [accountId]
+  )
+
+  const schedulePersist = useCallback(
+    (id: string): void => {
+      if (persistTimers.current.has(id)) return
+      persistTimers.current.set(
+        id,
+        window.setTimeout(() => {
+          persist(id)
+        }, LOCAL_SAVE_DELAY_MS)
+      )
+    },
+    [persist]
+  )
+
+  // The window changed (mode, title, recipients)
   useEffect(() => {
-    const handleBeforeUnload = (): void => {
-      const open = entriesRef.current
-      if (open.length === 0) {
-        sessionStorage.removeItem(registryKey(accountId))
-        return
-      }
-      writeStorage(registryKey(accountId), open)
-      for (const entry of open) {
-        const snapshot = forms.current.get(entry.id)?.snapshot() ?? null
-        if (snapshot) writeStorage(snapshotKey(accountId, entry.id), snapshot)
-      }
+    entries.forEach(entry => {
+      schedulePersist(entry.id)
+    })
+  }, [entries, schedulePersist])
+
+  // Written at once when the page goes (reload, closed tab, another tab
+  // shown): the browser may not wait for more
+  useEffect(() => {
+    const flush = (): void => {
+      entriesRef.current.forEach(entry => {
+        persist(entry.id)
+      })
     }
-    window.addEventListener('beforeunload', handleBeforeUnload)
+    const handleVisibility = (): void => {
+      if (document.visibilityState === 'hidden') flush()
+    }
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', handleVisibility)
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('pagehide', flush)
+      document.removeEventListener('visibilitychange', handleVisibility)
     }
+  }, [persist])
+
+  // The composers the browser kept and no other tab holds come back
+  const restoreStarted = useRef<string | null>(null)
+  useEffect(() => {
+    if (restoreStarted.current === accountId) return
+    restoreStarted.current = accountId
+    const reopen = async (): Promise<void> => {
+      const stored = (await listComposers(accountId)).sort(
+        (first, second) => openedAt(first) - openedAt(second)
+      )
+      const back: ComposerEntry[] = []
+      for (const record of stored) {
+        const composer = toRestored(record)
+        if (!composer) {
+          void removeComposer(accountId, record.composerId)
+          continue
+        }
+        if (entriesRef.current.length + back.length >= MAX_COMPOSERS) break
+        const { id } = composer.entry
+        // A reload: the page before it may release its locks a moment late
+        let release = await acquireComposerLock(accountId, id)
+        if (release === null) {
+          await new Promise(resolve => window.setTimeout(resolve, 500))
+          release = await acquireComposerLock(accountId, id)
+        }
+        // Held by another tab, which shows it
+        if (release === null) continue
+        composerLocks.current.set(id, release)
+        if (composer.snapshot) restored.current.set(id, composer.snapshot)
+        back.push(composer.entry)
+      }
+      if (back.length === 0) return
+      setRestoredSnapshots(new Map(restored.current))
+      setEntries(current => [...back, ...current])
+    }
+    void reopen()
   }, [accountId])
 
   // The locks go with the composers
   useEffect(() => {
     const held = drafts.current
+    const composers = composerLocks.current
+    const timers = persistTimers.current
     return () => {
       held.forEach(draft => {
         draft.release()
       })
       held.clear()
+      composers.forEach(release => {
+        release()
+      })
+      composers.clear()
+      timers.forEach(timer => {
+        window.clearTimeout(timer)
+      })
+      timers.clear()
     }
   }, [])
 
@@ -294,9 +411,16 @@ export function ComposerProvider({
         if (draftId !== undefined && release) {
           drafts.current.set(id, { draftId, release })
         }
+        // Held at once in the tab; between tabs once the lock is there
+        composerLocks.current.set(id, () => undefined)
+        void acquireComposerLock(accountId, id).then(held => {
+          if (!held) return
+          if (composerLocks.current.has(id)) composerLocks.current.set(id, held)
+          else held()
+        })
         setEntries(previous => [
           ...previous,
-          { id, init, mode: 'normal', title: '' }
+          { id, init, mode: 'normal', title: '', openedAt: Date.now() }
         ])
       }
       if (draftId === undefined) {
@@ -323,14 +447,14 @@ export function ComposerProvider({
       forms.current.delete(id)
       drafts.current.get(id)?.release()
       drafts.current.delete(id)
-      sessionStorage.removeItem(snapshotKey(accountId, id))
-      // A reload keeps the others only
-      const others = entriesRef.current.filter(entry => entry.id !== id)
-      if (others.length === 0) {
-        sessionStorage.removeItem(registryKey(accountId))
-      } else if (sessionStorage.getItem(registryKey(accountId)) !== null) {
-        writeStorage(registryKey(accountId), others)
-      }
+      composerLocks.current.get(id)?.()
+      composerLocks.current.delete(id)
+      restored.current.delete(id)
+      const timer = persistTimers.current.get(id)
+      if (timer !== undefined) window.clearTimeout(timer)
+      persistTimers.current.delete(id)
+      // Sent, discarded, closed: the browser forgets it
+      void removeComposer(accountId, id)
       setEntries(current => current.filter(entry => entry.id !== id))
       if (opener instanceof HTMLElement && opener.isConnected) {
         // Once the window is gone
@@ -431,6 +555,8 @@ export function ComposerProvider({
               setMode={setMode}
               setTitle={setTitle}
               setRecipients={setRecipients}
+              restored={restoredSnapshots.get(entry.id) ?? null}
+              onChange={schedulePersist}
               registerForm={registerForm}
               setDraft={setDraft}
               close={close}
@@ -459,6 +585,9 @@ interface ComposerSlotProps {
   setMode: (id: string, mode: DockedWindowMode) => void
   setTitle: (id: string, title: string) => void
   setRecipients: (id: string, recipients: string) => void
+  restored: ComposerSnapshot | null
+  /** The message changed: to keep in the browser */
+  onChange: (id: string) => void
   registerForm: (id: string, handle: ComposerFormHandle) => void
   setDraft: (id: string, draftId: string | null) => void
   close: (id: string) => void
@@ -476,6 +605,8 @@ function ComposerSlot({
   setMode,
   setTitle,
   setRecipients,
+  restored,
+  onChange,
   registerForm,
   setDraft,
   close,
@@ -508,6 +639,9 @@ function ComposerSlot({
     },
     [id, setDraft]
   )
+  const handleChange = useCallback((): void => {
+    onChange(id)
+  }, [id, onChange])
   const handleDone = useCallback((): void => {
     close(id)
   }, [id, close])
@@ -563,6 +697,8 @@ function ComposerSlot({
           <ComposerForm
             composerId={id}
             init={entry.init}
+            restored={restored}
+            onChange={handleChange}
             autoFocus
             onTitleChange={handleTitleChange}
             onRecipientsChange={handleRecipientsChange}

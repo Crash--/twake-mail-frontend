@@ -9,7 +9,9 @@ import {
   FAKE_ACCOUNT_ID,
   FAKE_USERNAME,
   makeEmail,
+  makeDefaultMailboxes,
   makeFakeJmapServer,
+  makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -277,6 +279,27 @@ describe('EmailList', () => {
     expect(
       await screen.findByTestId('email-list-item-sender')
     ).toHaveTextContent('Bob Dupont, carol@example.com')
+  })
+
+  it('shows the recipients in the Drafts of a team mailbox, known by its name', async () => {
+    renderList(
+      makeFakeJmapServer({
+        mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
+        emails: [
+          makeEmail({
+            id: 'team-draft',
+            mailboxIds: { 'team-drafts': true },
+            keywords: { $draft: true },
+            to: [{ name: 'Bob Dupont', email: 'bob@example.com' }]
+          })
+        ]
+      }),
+      'team-drafts'
+    )
+
+    expect(
+      await screen.findByTestId('email-list-item-sender')
+    ).toHaveTextContent('Bob Dupont')
   })
 
   it('opens an email on click', async () => {

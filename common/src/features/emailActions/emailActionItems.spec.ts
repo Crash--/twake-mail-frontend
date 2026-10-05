@@ -25,7 +25,7 @@ function ids(
 ): string[] {
   return availableEmailActions(
     emails,
-    { role, name: role ?? 'Folder', namespace: 'Personal' },
+    { role, name: role ?? 'Folder', namespace: 'Personal', parentId: null },
     mailboxes
   ).map(item => item.id)
 }
@@ -61,7 +61,7 @@ describe('availableEmailActions', () => {
     expect(
       availableEmailActions(
         [unread],
-        { role: 'inbox', name: 'Inbox', namespace: 'Personal' },
+        { role: 'inbox', name: 'Inbox', namespace: 'Personal', parentId: null },
         MAILBOXES,
         { canLabel: true }
       ).map(item => item.id)
@@ -90,12 +90,12 @@ describe('availableEmailActions', () => {
     const team = 'TeamMailbox[team@example.com]'
     const inTeam = availableEmailActions(
       [unread],
-      { role: null, name: 'INBOX', namespace: team },
+      { role: null, name: 'INBOX', namespace: team, parentId: 'team' },
       MAILBOXES
     ).map(item => item.id)
     const inTeamTrash = availableEmailActions(
       [unread],
-      { role: null, name: 'Trash', namespace: team },
+      { role: null, name: 'Trash', namespace: team, parentId: 'team' },
       MAILBOXES
     ).map(item => item.id)
 

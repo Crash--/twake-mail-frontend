@@ -6,6 +6,9 @@ export type SettingsSectionId =
   | 'email-rules'
   | 'preferences'
   | 'forwarding'
+  | 'vacation'
+  | 'folder-visibility'
+  | 'language-region'
   | 'keyboard-shortcuts'
 
 /** Below this width the sections are listed in the page (app `SCREEN_BREAKPOINTS.desktop`) */

@@ -10,6 +10,7 @@ import {
 import { EmailActionsMenu } from '@common/features/emailActions/EmailActionsMenu'
 import { useRunEmailAction } from '@common/features/emailActions/useRunEmailAction'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { FLAGGED, hasKeyword } from './keywords'
@@ -48,12 +49,15 @@ export function EmailViewActions({
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
   const { data: mailboxes = [] } = useMailboxes()
+  const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   const replies = useReplyOptions(email)
   const mailbox =
     mailboxes.find(candidate => candidate.id === mailboxId) ?? null
-  const items = availableEmailActions([email], mailbox, mailboxes)
+  const items = availableEmailActions([email], mailbox, mailboxes, {
+    canLabel
+  })
   const buttons = isPhone ? [] : items.filter(item => BUTTONS.includes(item.id))
   const isStarred = hasKeyword(email, FLAGGED)
   const starLabel = t(isStarred ? 'email.unstar' : 'email.star')

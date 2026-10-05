@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 
+import { useLabelActions } from '@common/features/labels/LabelActionsProvider'
 import {
   PICKED_ROOT,
   usePickMailbox
@@ -35,10 +36,12 @@ export function useRunEmailAction(): (
   const { run } = useEmailActions()
   const removeEmails = useRemoveEmails()
   const pickMailbox = usePickMailbox()
+  const { choose: chooseLabels } = useLabelActions()
 
   return useCallback(
     async (id, emails, mailboxId) => {
       if (id === 'delete-permanently') return removeEmails(emails, mailboxId)
+      if (id === 'label-as') return chooseLabels(emails, mailboxId)
       if (id === 'move') {
         const destination = await pickMailbox({
           disabledIds: mailboxId === null ? [] : [mailboxId]
@@ -54,6 +57,6 @@ export function useRunEmailAction(): (
       const action = ACTION_NAMES[id]
       return action === undefined ? false : run({ action, emails, mailboxId })
     },
-    [run, removeEmails, pickMailbox]
+    [run, removeEmails, pickMailbox, chooseLabels]
   )
 }

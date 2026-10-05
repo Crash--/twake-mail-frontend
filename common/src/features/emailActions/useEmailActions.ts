@@ -48,6 +48,8 @@ export type EmailActionName =
   | 'star'
   | 'unstar'
   | 'deletePermanently'
+  | 'addLabel'
+  | 'removeLabel'
 
 export interface EmailActionRequest {
   action: EmailActionName
@@ -56,6 +58,8 @@ export interface EmailActionRequest {
   mailboxId: string | null
   /** The folder `moveTo` moves them to */
   destinationId?: string
+  /** The label `addLabel` and `removeLabel` set or take off */
+  label?: { keyword: string; displayName: string }
   /**
    * No toast: the control that ran it shows the new state, or the state
    * back as it was when it failed
@@ -101,7 +105,7 @@ export function findActionDestination(
 }
 
 function toOperation(
-  { action, mailboxId, destinationId }: EmailActionRequest,
+  { action, mailboxId, destinationId, label }: EmailActionRequest,
   mailboxes: readonly MailboxSummary[]
 ): EmailOperation | null {
   switch (action) {
@@ -113,6 +117,15 @@ function toOperation(
       return { kind: 'keyword', keyword: FLAGGED, isSet: action === 'star' }
     case 'deletePermanently':
       return { kind: 'destroy' }
+    case 'addLabel':
+    case 'removeLabel':
+      return label === undefined
+        ? null
+        : {
+            kind: 'keyword',
+            keyword: label.keyword,
+            isSet: action === 'addLabel'
+          }
     case 'moveTo':
       return destinationId === undefined
         ? null
@@ -289,6 +302,16 @@ export function useEmailActions(): EmailActions {
           return count === 1
             ? t('emailActions.toast.unstarred')
             : t('emailActions.toast.unstarredCount', { smart_count: count })
+        case 'addLabel':
+          return count === 1
+            ? t('labels.toasts.addedToEmail', {
+                labelName: request.label?.displayName ?? ''
+              })
+            : t('labels.toasts.addedToEmails')
+        case 'removeLabel':
+          return t('labels.toasts.removedFromEmail', {
+            labelName: request.label?.displayName ?? ''
+          })
         case 'deletePermanently':
           return count === 1
             ? t('emailActions.toast.deletedForever')

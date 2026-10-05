@@ -19,7 +19,8 @@
     "no": "No",
     "confirm": "Confirm",
     "remove": "Remove",
-    "errorOccurredShort": "Error! An error occurred. Please try again later."
+    "errorOccurredShort": "Error! An error occurred. Please try again later.",
+    "save": "Save"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -515,7 +516,10 @@
       "senderPriority": "Sender-set important flag",
       "senderPriorityDescription": "Enables display of important emails flag in your inbox. This feature is controlled by the sender and thus could result in abuses.",
       "senderPriorityToggle": "Display sender-set important flag",
-      "threadToggle": "Enable thread"
+      "threadToggle": "Enable thread",
+      "labels": "Label visibility",
+      "labelsDescription": "Show labels assigned to emails directly in your message list for easier categorization.",
+      "labelsToggle": "Display labels"
     },
     "backToMail": "Back to mail",
     "language": {
@@ -807,5 +811,62 @@
       "endNow": "End now",
       "settings": "Vacation setting"
     }
+  },
+  "labels": {
+    "title": "Labels",
+    "new": "New label",
+    "emptyView": "You don't have any emails tagged with this.",
+    "form": {
+      "createTitle": "Create a new label",
+      "editTitle": "Edit label",
+      "createSubtitle": "Organize your inbox with a custom category",
+      "editSubtitle": "Update the label name",
+      "name": "Label name",
+      "namePlaceholder": "Please enter the name of your new label",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Add a short description to explain what this label is for",
+      "color": "Choose a label color",
+      "create": "Create label"
+    },
+    "errors": {
+      "duplicate": "A tag with this name already exists. Please choose a different name.",
+      "create": "Create new label failure",
+      "edit": "Edit label failure",
+      "delete": "Delete a label failure",
+      "addToEmail": "Cannot add label \"%{labelName}\" to email",
+      "removeFromEmail": "Cannot remove label \"%{labelName}\" from email",
+      "addToEmails": "Adding labels to these emails failed",
+      "load": "The labels could not be loaded"
+    },
+    "toasts": {
+      "created": "You successfully created the %{labelName} label",
+      "edited": "You successfully edited the %{labelName} label",
+      "deleted": "You successfully deleted the %{labelName} label",
+      "addedToEmail": "Label \"%{labelName}\" added to email",
+      "removedFromEmail": "Label \"%{labelName}\" removed from email",
+      "addedToEmails": "Labels have been successfully added to these emails.",
+      "updated": "The labels of the emails have been updated"
+    },
+    "delete": {
+      "title": "Delete label",
+      "message": "Are you sure you want to delete the label \"%{labelName}\"?"
+    },
+    "labelAs": "Label as",
+    "choose": {
+      "title": "Choose label",
+      "subtitle": "Select label",
+      "create": "Create a label",
+      "apply": "Add label",
+      "emptyTitle": "No Labels yet",
+      "emptyMessage": "Create your first label to organize your emails more efficiently."
+    },
+    "more": "More",
+    "menuOf": "Actions on %{name}",
+    "edit": "Edit",
+    "colorNone": "No color",
+    "colorNamed": "Color %{color}",
+    "removeFromEmail": "Remove the label %{name}",
+    "moreCount": "%{count} more labels",
+    "listLabel": "Labels of the email"
   }
 }

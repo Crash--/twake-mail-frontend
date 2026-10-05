@@ -35,6 +35,8 @@ import {
 } from '@common/features/email/keywords'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { LabelChips, labelsOfEmail } from '@common/features/labels/LabelChips'
+import type { Label } from 'jmap-client-ts/linagora'
 import { HighlightedText } from '@common/features/search/HighlightedText'
 
 import { formatFullDate, formatListDate } from './formatListDate'
@@ -114,6 +116,8 @@ export interface EmailCellProps {
    * flag" preference of tmail-flutter, on by default)
    */
   showImportant?: boolean
+  /** The labels of the account, shown on the emails that have them */
+  labels?: readonly Label[]
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -140,6 +144,7 @@ export function EmailCell({
   onOpenDraft,
   onOpenTemplate,
   showImportant = true,
+  labels = [],
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -157,6 +162,15 @@ export function EmailCell({
   const isStarred = thread?.isStarred ?? hasKeyword(email, FLAGGED)
   const hasAttachment = thread?.hasAttachment ?? email.hasAttachment
   const isImportant = showImportant && isMarkedImportant(email)
+  const emailLabels = labelsOfEmail(labels, email)
+  const labelChips = (max: number): ReactElement | null =>
+    emailLabels.length === 0 ? null : (
+      <LabelChips
+        labels={emailLabels}
+        max={max}
+        className="u-ml-half u-flex-shrink-0"
+      />
+    )
   const emphasis = isUnread ? 'u-fw-bold' : ''
   // Its participants ("Alice, Bob, Me") rather than the last sender
   const correspondents =
@@ -389,6 +403,7 @@ export function EmailCell({
           <span className={emphasis} data-testid="email-list-item-subject">
             {subject}
           </span>
+          {labelChips(3)}
           <SecondaryText
             className="u-ml-half"
             data-testid="email-list-item-preview"
@@ -454,6 +469,7 @@ export function EmailCell({
                 {subject}
               </span>
             </Typography>
+            {labelChips(1)}
             {mailboxLabel}
           </span>
           <SecondaryText

@@ -18,7 +18,8 @@ export type EmailOperation =
       /** Also marks the email read (moving to Spam) */
       markSeen?: boolean
     }
-  | { kind: 'keyword'; keyword: EmailKeyword; isSet: boolean }
+  /** A system keyword, or the keyword of a label */
+  | { kind: 'keyword'; keyword: EmailKeyword | (string & {}); isSet: boolean }
   | { kind: 'destroy' }
 
 /** The change of one email: its state before and after, null once destroyed */

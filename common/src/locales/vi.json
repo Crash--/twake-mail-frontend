@@ -19,7 +19,8 @@
     "no": "Không",
     "confirm": "Xác nhận",
     "remove": "Xóa",
-    "errorOccurredShort": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau."
+    "errorOccurredShort": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau.",
+    "save": "Lưu"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -515,7 +516,10 @@
       "senderPriority": "Cờ ưu tiên",
       "senderPriorityDescription": "Cho phép hiển thị cờ đánh dấu email quan trọng trong hộp thư đến của bạn. Tính năng này do người gửi kiểm soát, do đó có thể bị lạm dụng.",
       "senderPriorityToggle": "Hiển thị cờ ưu tiên",
-      "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại"
+      "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại",
+      "labels": "Hiển thị nhãn",
+      "labelsDescription": "Hiển thị các nhãn được gán cho email trực tiếp trong danh sách tin nhắn để phân loại dễ dàng hơn.",
+      "labelsToggle": "Hiển thị nhãn"
     },
     "backToMail": "Quay lại hộp thư",
     "language": {
@@ -807,5 +811,62 @@
       "endNow": "Kết thúc",
       "settings": "Cài đặt kỳ nghỉ"
     }
+  },
+  "labels": {
+    "title": "Nhãn",
+    "new": "Nhãn mới",
+    "emptyView": "Bạn chưa có email nào được gắn nhãn này.",
+    "form": {
+      "createTitle": "Tạo nhãn mới",
+      "editTitle": "Chỉnh sửa nhãn",
+      "createSubtitle": "Sắp xếp hộp thư đến với danh mục tùy chỉnh",
+      "editSubtitle": "Cập nhật tên nhãn",
+      "name": "Tên nhãn",
+      "namePlaceholder": "Vui lòng nhập tên nhãn mới của bạn",
+      "description": "Mô tả (tuỳ chọn)",
+      "descriptionPlaceholder": "Thêm thông tin mô tả cho Nhãn",
+      "color": "Chọn màu nhãn",
+      "create": "Tạo nhãn"
+    },
+    "errors": {
+      "duplicate": "Một nhãn với tên này đã tồn tại. Vui lòng chọn tên khác.",
+      "create": "Tạo nhãn mới thất bại",
+      "edit": "Chỉnh sửa nhãn thất bại",
+      "delete": "Xoá nhãn thất bại",
+      "addToEmail": "Không thể thêm nhãn \"%{labelName}\" vào email",
+      "removeFromEmail": "Không thể gỡ nhãn \"%{labelName}\" khỏi email",
+      "addToEmails": "Nhãn không được thêm thành công",
+      "load": "Không thể tải nhãn"
+    },
+    "toasts": {
+      "created": "Bạn đã tạo nhãn %{labelName} thành công",
+      "edited": "Bạn đã chỉnh sửa nhãn %{labelName} thành công",
+      "deleted": "Bạn đã xoá nhãn %{labelName} thành công",
+      "addedToEmail": "Nhãn \"%{labelName}\" đã được thêm vào email",
+      "removedFromEmail": "Nhãn \"%{labelName}\" đã được gỡ khỏi email",
+      "addedToEmails": "Nhãn đã được thêm vào thư.",
+      "updated": "Đã cập nhật nhãn của email"
+    },
+    "delete": {
+      "title": "Xoá nhãn",
+      "message": "Bạn có chắc chắn muốn xóa nhãn \"%{labelName}\" không?"
+    },
+    "labelAs": "Gắn nhãn",
+    "choose": {
+      "title": "Chọn nhãn",
+      "subtitle": "Chọn nhãn",
+      "create": "Tạo nhãn",
+      "apply": "Thêm nhãn",
+      "emptyTitle": "Không có nhãn",
+      "emptyMessage": "Tạo nhãn để tổ chức thư dễ dàng hơn."
+    },
+    "more": "Tiếp",
+    "menuOf": "Thao tác với %{name}",
+    "edit": "Sửa",
+    "colorNone": "Không màu",
+    "colorNamed": "Màu %{color}",
+    "removeFromEmail": "Gỡ nhãn %{name}",
+    "moreCount": "Thêm %{count} nhãn",
+    "listLabel": "Nhãn của email"
   }
 }

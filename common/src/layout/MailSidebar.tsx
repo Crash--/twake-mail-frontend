@@ -5,6 +5,7 @@ import type { ReactElement } from 'react'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
+import { LabelsSection } from '@common/features/labels/LabelsSection'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
@@ -67,6 +68,7 @@ export function MailSidebar({
       ) : null}
       <Box className="u-flex-auto u-ov-auto u-mt-1">
         <MailboxTree />
+        <LabelsSection />
       </Box>
     </ResponsiveSidebar>
   )

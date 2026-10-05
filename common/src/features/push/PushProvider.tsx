@@ -3,10 +3,12 @@ import {
   JmapPushNotSupportedError,
   type WebSocketConstructor
 } from 'jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useEffect, type ReactElement, type ReactNode } from 'react'
 
 import { DEFAULT_STALE_TIME } from '@common/app/queryClient'
 import { emailKeys } from '@common/features/email/queries'
+import { syncLabels } from '@common/features/labels/queries'
 import { mailboxKeys } from '@common/features/mailbox/queries'
 import { threadKeys } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -41,8 +43,9 @@ export function PushProvider({
 
   useEffect(() => {
     const sync = createPushSync(queryClient, client, accountId)
+    const hasLabels = client.hasCapability(LINAGORA_CAPABILITIES.labels)
     const push = client.connectWebSocket({
-      dataTypes: [...SYNCED_TYPES],
+      dataTypes: hasLabels ? [...SYNCED_TYPES, 'Label'] : [...SYNCED_TYPES],
       ping: { intervalMs: PING_INTERVAL_MS },
       ...(WebSocket ? { WebSocket } : {})
     })
@@ -64,11 +67,18 @@ export function PushProvider({
       push.on('stateChange', change => {
         const states = change.changed[accountId]
         if (states) sync.stateChanged(states)
+        const labelState = states?.Label
+        if (labelState !== undefined) {
+          void syncLabels(client, queryClient, accountId, labelState)
+        }
       }),
       push.on('status', status => {
         isOpen = status === 'open'
         if (status !== 'open') return
-        if (hasBeenOpen) sync.catchUp()
+        if (hasBeenOpen) {
+          sync.catchUp()
+          if (hasLabels) void syncLabels(client, queryClient, accountId, null)
+        }
         hasBeenOpen = true
       }),
       push.on('error', error => {

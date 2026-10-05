@@ -19,6 +19,7 @@ import type { TargetEmail } from '@common/features/emailActions/planEmailChanges
 import { useRunEmailAction } from '@common/features/emailActions/useRunEmailAction'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
 import type { EmailSelection } from './useEmailSelection'
@@ -62,13 +63,16 @@ export function EmailListToolbar({
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
   const { data: mailboxes = [] } = useMailboxes()
+  const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null)
   const [targets, setTargets] = useState<readonly TargetEmail[]>([])
   const count = selection.isAllInFolder
     ? (total ?? loadedCount)
     : selection.selected.length
-  const items = availableEmailActions(selectedTargets, mailbox, mailboxes)
+  const items = availableEmailActions(selectedTargets, mailbox, mailboxes, {
+    canLabel
+  })
   const buttons = isPhone ? items.slice(0, PHONE_BUTTONS) : items
   const isAllLoaded = selection.selected.length === loadedCount
   const canSelectFolder =

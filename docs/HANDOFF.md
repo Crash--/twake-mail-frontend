@@ -240,7 +240,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - ~~le bloc citation du composer garde les images distantes du mail cité~~ : corrigé en L4 (`CMP-38`) ;
   - e2e : 401 de James après `start.sh` (à surveiller), `serverFail` d'approvisionnement de l'image memory sous 2 workers, RESP-05 vu une fois en retry → [#66](https://github.com/Crash--/twake-mail-frontend/issues/66).
 - [ ] Problèmes ouverts du lot A de la phase 2 :
-  - `/` ne déplie pas la recherche repliée des téléphones → [#45](https://github.com/Crash--/twake-mail-frontend/issues/45) ;
+  - ~~`/` ne déplie pas la recherche repliée des téléphones~~ : corrigé ([#45](https://github.com/Crash--/twake-mail-frontend/issues/45), PR #82, `KBD-06`) ;
   - ~~dossiers masqués sans page de réglage~~ : Réglages > Visibilité des dossiers (phase 4) ;
   - en vue conversation (réglage « Thread » du lot B), la lecture n'a pas encore la barre d'actions de l'email seul → [#46](https://github.com/Crash--/twake-mail-frontend/issues/46) ;
   - « Déplacer le contenu du dossier », « Créer un filtre » depuis le menu d'un dossier (Flutter pré-remplit l'action) et la recherche dans l'arbre (MBX-04) restent à faire → [#47](https://github.com/Crash--/twake-mail-frontend/issues/47) ; ~~la récupération des emails supprimés (MBX-11 à 14)~~ : faite (MBX-12 reste N/A web) ;
@@ -250,6 +250,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 - ~~Actions : archiver, supprimer, déplacer, spam, non-lu, sélection multiple, glisser-déposer, menu contextuel ; vider la corbeille et le spam (`Mailbox/clear`).~~ Fait (lot A).
 - ~~Vue conversation (threads) ; recherche avec suggestions, filtres avancés, tri et surlignage (`SearchSnippet/get`).~~ Fait (PR #7, #9, #23).
 - ~~Team mailboxes : capability `urn:apache:james:params:jmap:mail:shares`.~~ Fait (lot A).
+- ~~URL et adresses nues non cliquables dans le lecteur~~ : corrigé, liens posés sur le DOM nettoyé (`linkifyjs`, déjà embarqué par TipTap), les `mailto:` du corps ouvrent le composer ([#70](https://github.com/Crash--/twake-mail-frontend/issues/70), PR #81, `EML-34`).
 - Normalisation de la taille des images (EML-04), bouton de repli des citations (comme le web Flutter) → [#49](https://github.com/Crash--/twake-mail-frontend/issues/49).
 - ~~CRUD des dossiers.~~ Fait (lot A), sauf « Déplacer le contenu du dossier » ([#47](https://github.com/Crash--/twake-mail-frontend/issues/47)).
 - Porter les specs correspondantes de `e2e/e2e.md` (MBX, EML, SRCH, THR).
@@ -263,14 +264,14 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 - Problèmes ouverts du composer :
   - ~~une sauvegarde de brouillon refusée (quota) a déjà détruit la version précédente côté serveur (`INFRA-16`)~~ : corrigé (lot 0, `CMP-37`) ;
   - pas d'annulation d'envoi (voir les candidats tmail-backend) → [#56](https://github.com/Crash--/twake-mail-frontend/issues/56) ;
-  - un composer masqué par manque de place (`fitWindows`, écran étroit avec 3 composers) n'est joignable qu'en fermant ou réduisant les autres → [#50](https://github.com/Crash--/twake-mail-frontend/issues/50) ;
+  - ~~un composer masqué par manque de place n'est joignable qu'en fermant ou réduisant les autres~~ : corrigé, menu « +N messages » au début du dock ou dans la barre de titre du composer plein écran ([#50](https://github.com/Crash--/twake-mail-frontend/issues/50), PR #85, `CMP-49`) ;
   - ~~une image glissée sur le corps devient une pièce jointe~~ : corrigé en L5 (`CMP-44`) ;
-  - brouillons dans la vue conversation : la ligne ouvre la lecture, pas le composer → [#51](https://github.com/Crash--/twake-mail-frontend/issues/51) ;
+  - ~~brouillons dans la vue conversation : la ligne ouvre la lecture, pas le composer~~ : corrigé, marque « Brouillon », boutons « Modifier » et « Supprimer le brouillon » ; un brouillon ne demande plus d'accusé de lecture ([#51](https://github.com/Crash--/twake-mail-frontend/issues/51), PR #86, `THR-09`) ;
   - ~~deux « Répondre » sur le même email ouvrent deux composers ; `R` part aussi avec Verr. Maj.~~ : corrigé en L6b (`KBD-04`) ;
   - L4 : ~~le menu d'une ligne de conversation n'offre pas de réponse~~, ~~le `Reply-To` de l'identité n'est pas posé~~, ~~les images distantes d'un brouillon rouvert se chargent~~, ~~une touche tapée pendant l'ouverture part aux raccourcis~~ : corrigés en L6. Reste : Flutter n'ajoute pas l'identité qui a reçu l'email, nous non plus (identité par défaut) → [#39](https://github.com/Crash--/twake-mail-frontend/issues/39) ;
   - L6 :
-    - une réponse rechargée (instantané) dont l'autosave est passée rouvre dans « À » et non sur le texte (`opensOnText` exige `draftId === null` depuis que les brouillons de réponse gardent l'original) → [#52](https://github.com/Crash--/twake-mail-frontend/issues/52) ;
-    - plusieurs messages d'une conversation demandant un accusé : chaque dialogue remplace le précédent, compté comme « Non » (`ConfirmProvider` n'a pas de file) → [#53](https://github.com/Crash--/twake-mail-frontend/issues/53) ;
+    - ~~une réponse rechargée dont l'autosave est passée rouvre dans « À »~~ : corrigé, l'instantané garde `opensOn` ([#52](https://github.com/Crash--/twake-mail-frontend/issues/52), PR #88, `CMP-50`). Reste à trancher : un brouillon de réponse rouvert depuis Brouillons s'ouvre toujours dans « À » ;
+    - ~~plusieurs messages d'une conversation demandant un accusé : chaque dialogue remplace le précédent~~ : corrigé, option `queue` de `ConfirmProvider` ([#53](https://github.com/Crash--/twake-mail-frontend/issues/53), PR #89, `THR-10`). Les dialogues successifs ont le même texte : y nommer l'expéditeur aiderait ;
     - l'accusé part avec la première identité ; Flutter prend celle de la team mailbox quand l'email y est → [#39](https://github.com/Crash--/twake-mail-frontend/issues/39) ;
     - le dossier Templates d'une team mailbox n'est pas utilisé (modèles personnels seulement) ; deux composers qui créent le premier modèle avant que le push n'apporte le dossier en créent deux → [#54](https://github.com/Crash--/twake-mail-frontend/issues/54) ;
     - « Save as template » d'un composer ouvert sur un brouillon garde le brouillon (seuls ceux créés par ce composer sont détruits) → [#54](https://github.com/Crash--/twake-mail-frontend/issues/54) ;
@@ -287,17 +288,17 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - vue conversation (réglage Thread, par défaut) : les libellés de la conversation sont sous son sujet (× les retire de tous ses emails), mais un message déplié n'a ni ses propres puces ni le menu de l'adresse de l'expéditeur (« Créer une règle avec cet e-mail » seulement dans la lecture d'un email seul) → [#46](https://github.com/Crash--/twake-mail-frontend/issues/46) ;
   - libellés : pas de couleur personnalisée (sélecteur de Flutter), la couleur d'un libellé ne peut pas être retirée (backend) → [#59](https://github.com/Crash--/twake-mail-frontend/issues/59) ;
   - récupération : pas de plage de dates personnalisée ([#60](https://github.com/Crash--/twake-mail-frontend/issues/60)) ; `maxEmailRecoveryPerRequest` non affiché (Flutter non plus) ;
-  - absence : l'éditeur reste modifiable quand la réponse est coupée (Flutter le grise) → [#61](https://github.com/Crash--/twake-mail-frontend/issues/61) ;
+  - ~~absence : l'éditeur reste modifiable quand la réponse est coupée~~ : corrigé, prop `disabled` de `ds/RichTextEditor` ([#61](https://github.com/Crash--/twake-mail-frontend/issues/61), PR #90, `SET-08`) ;
   - backend distribué (devbox) : l'index de recherche suit les mots-clés avec un délai ; la vue d'un libellé ouverte juste après « Labelliser » peut être vide jusqu'au rechargement (le push ne rafraîchit pas encore les listes de recherche sur ce cas) → [#67](https://github.com/Crash--/twake-mail-frontend/issues/67) ;
   - devbox : `Quota/get` ne renvoie aucun quota pour user1, la jauge est absente et Réglages > Stockage dit « Pas de limite de stockage pour ce compte » ;
   - langue : seulement en, fr, ru, vi (Flutter en a 9) → [#62](https://github.com/Crash--/twake-mail-frontend/issues/62) ;
   - langue : section masquée quand le serveur met `language` en lecture seule (Flutter aussi), comportement à confirmer → [#68](https://github.com/Crash--/twake-mail-frontend/issues/68) ;
-  - e2e flakies sous charge locale (passent seuls et en CI) : `THR-05`, `CMP-12`, `MBX-21` → [#66](https://github.com/Crash--/twake-mail-frontend/issues/66).
+  - e2e flakies sous charge locale (passent seuls et en CI) : `THR-05`, `CMP-12`, `MBX-21`, `CMP-04` ; à 4 workers, `Email/import` perd parfois son blob (`EML-17`, `CMP-39`) → [#66](https://github.com/Crash--/twake-mail-frontend/issues/66).
 
 ### Phase 5 : écosystème
 - ~~Invitations calendrier, grille d'apps, iframe Workplace, sélecteur Drive (#42), assistant IA~~ : faits (voir plus haut). Paywall : hors périmètre tant que `saas` n'est pas annoncée.
 - Problèmes ouverts :
-  - Drive sur la devbox : le cozy-stack refuse `token_exchange` depuis l'origine de Twake Mail (« the origin of this application is not allowed ») ; il faut, dans `cozy_stack/config/cozy.yaml`, un `app_token_exchange` pour le client OIDC `twake-mail-react` (comme `openpaas` → `registry://calendar`) et une app de registre pour Mail. Non modifié (config Workplace) ;
+  - Drive sur la devbox : `app_token_exchange` `twake-mail-react` → `registry://mail` est configuré, mais le cozy-stack refuse toujours `POST /auth/token_exchange` depuis `https://mail-react.twake.valmoriq.fr` (pré-requête CORS `OPTIONS` en 403, `POST` en 403 `{"error":"the origin of this application is not allowed"}`). Il n'accepte que l'origine de l'app du `software_id` (`https://mail.twake.valmoriq.fr` et `https://calendar.twake.valmoriq.fr` répondent 204) : servir le webmail React sur `mail.<domaine>`, ou faire accepter cette origine au cozy-stack. Sélecteur non testable de bout en bout d'ici là ;
   - Drive dans Workplace sans OIDC (bridge `fetchJSON` comme Flutter) et upload-from-url (`com:linagora:params:jmap:upload:from-url`, absente de la devbox) non faits ;
   - invitations : `CAL-06` et `CAL-07` à faire tourner sur une stack avec esn-sabre ; « Plus d'options » non défini ; statut des invités affiché (Calendar le fait, la carte Flutter non) ; une seule carte par email (premier événement du premier blob, comme Flutter) ;
   - IA : pas de réglage utilisateur pour masquer l'assistant (Flutter en a un), pas de bouton dans la sélection ni de copie du résultat ; à vérifier sur un serveur qui annonce `aibot` (destination = `scribeEndpoint` de la session) ;

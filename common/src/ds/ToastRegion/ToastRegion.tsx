@@ -113,6 +113,12 @@ function useCountdown(
   }, [isPaused, isPageHidden])
 }
 
+const LIVE_REGIONS_STYLE: SystemStyleObject<Theme> = {
+  position: 'fixed',
+  top: 0,
+  left: 0
+}
+
 function regionStyle(
   theme: Theme,
   bottomOffset: number
@@ -286,16 +292,21 @@ export function ToastRegion({
 
   return (
     <>
-      {/* Always mounted: a live region only announces what changes in it */}
-      <Box role="status" className="u-visuallyhidden">
-        {politeMessage === null ? null : (
-          <span key={toast?.id}>{politeMessage}</span>
-        )}
-      </Box>
-      <Box role="alert" className="u-visuallyhidden">
-        {alertMessage === null ? null : (
-          <span key={toast?.id}>{alertMessage}</span>
-        )}
+      {/* Always mounted: a live region only announces what changes in it.
+          Fixed, so the visually hidden regions (absolute, without offset)
+          do not sit at the end of the page, a pixel under the viewport, and
+          make the document scroll */}
+      <Box sx={LIVE_REGIONS_STYLE}>
+        <Box role="status" className="u-visuallyhidden">
+          {politeMessage === null ? null : (
+            <span key={toast?.id}>{politeMessage}</span>
+          )}
+        </Box>
+        <Box role="alert" className="u-visuallyhidden">
+          {alertMessage === null ? null : (
+            <span key={toast?.id}>{alertMessage}</span>
+          )}
+        </Box>
       </Box>
       {toast === null ? null : (
         <Box sx={theme => regionStyle(theme, bottomOffset)}>

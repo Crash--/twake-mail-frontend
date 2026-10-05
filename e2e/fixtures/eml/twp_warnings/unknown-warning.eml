@@ -1,0 +1,10 @@
+From: "Bob" <BOB_ADDRESS>
+To: <USER_ADDRESS>
+Subject: Unknown warning
+Date: Mon, 05 Oct 2026 08:00:00 +0000
+Message-ID: <unknown-warning@example.com>
+X-TWP-Message: level:warn code:brand-new-code Server says <b>careful</b> https://evil.example/ now.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Body of the flagged message.

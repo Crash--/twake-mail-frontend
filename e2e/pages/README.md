@@ -118,6 +118,7 @@ Conventions:
 | `email-view-date` | received date | — |
 | `email-view-body` | the body, **a sandboxed iframe** (the page object enters it with `contentFrame()`) | — |
 | `remote-content-banner` | "Remote images hidden", above the body when the email has remote images, backgrounds or fonts | — (web app only) |
+| `twp-warnings` + `twp-warning-<index>`, `twp-warning-dismiss-<index>`, `twp-warning-not-spam-<index>`, `email-view-danger-badge` / `conversation-message-danger-badge` | The banners of the `X-TWP-Message` warnings of an email (position of the header), their dismiss and "Not spam" buttons, the red badge replacing the sender avatar | — (`TwpWarningBanner`, `UiKeys.twpWarningBannerPrefix`) |
 | `remote-content-show-button` / `remote-content-always-show-button` | show them for this email / always for this sender | — |
 | `email-view-back-button` | back to the list | `EmailViewBackButton` |
 | `email-view-empty` | "No email selected", beside the list from 900 to 1199 px | `EmailViewEmptyWidget` |

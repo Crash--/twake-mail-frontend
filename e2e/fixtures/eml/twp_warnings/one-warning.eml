@@ -1,0 +1,10 @@
+From: "Bob" <BOB_ADDRESS>
+To: <USER_ADDRESS>
+Subject: Flagged by the backend
+Date: Mon, 05 Oct 2026 08:00:00 +0000
+Message-ID: <one-warning@example.com>
+X-TWP-Message: level:info code:suspicious-sender This email is from an external sender immitating known users, double check the mail address.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Body of the flagged message.

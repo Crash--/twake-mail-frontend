@@ -248,7 +248,7 @@ test.describe('CMP composer', () => {
     await expect(page.getByRole('dialog', { name: 'Third' })).toBeHidden()
 
     // A narrow desktop: two in the dock, the oldest in the menu at its start
-    await page.setViewportSize({ width: 1200, height: 800 })
+    await page.setViewportSize({ width: 1700, height: 800 })
     await expect(page.getByRole('dialog', { name: 'First' })).toBeVisible()
     await expect(page.getByRole('dialog', { name: 'Third' })).toBeVisible()
     await expect(page.getByRole('dialog', { name: 'Second' })).toBeHidden()
@@ -343,26 +343,31 @@ test.describe('CMP composer', () => {
     const composer = await mailbox.compose()
     await expect(composer.editor).toHaveAttribute('aria-multiline', 'true')
 
-    // Subject -> toolbar -> editor
+    // Subject -> editor -> toolbar (under the text)
+    await expect(composer.toolbarButton('Undo')).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
     await composer.subjectInput.focus()
     await page.keyboard.press('Tab')
-    const undo = composer.toolbarButton('Undo')
-    await expect(undo).toBeFocused()
-    await expect(undo).toHaveAttribute('aria-disabled', 'true')
+    await expect(composer.editor).toBeFocused()
+    await page.keyboard.press('Tab')
+    const first = composer.toolbar.getByRole('button').first()
+    await expect(first).toBeFocused()
     await page.keyboard.press('ArrowRight')
     await page.keyboard.press('ArrowRight')
     await expect(composer.toolbarButton('Bold')).toBeFocused()
     await page.keyboard.press('End')
     await expect(composer.toolbarButton('Clear formatting')).toBeFocused()
     await page.keyboard.press('Home')
-    await expect(undo).toBeFocused()
-    await page.keyboard.press('Tab')
+    await expect(first).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
     await expect(composer.editor).toBeFocused()
 
     // Alt+F10 goes to the toolbar (on the last used button), Escape comes back
     await page.keyboard.type('text')
     await page.keyboard.press('Alt+F10')
-    await expect(undo).toBeFocused()
+    await expect(first).toBeFocused()
     await page.keyboard.press('ArrowRight')
     await page.keyboard.press('Escape')
     await expect(composer.editor).toBeFocused()
@@ -385,7 +390,7 @@ test.describe('CMP composer', () => {
     )
     await page.keyboard.press('Alt+F10')
     await page.keyboard.press('Shift+Tab')
-    await expect(composer.subjectInput).toBeFocused()
+    await expect(composer.editor).toBeFocused()
 
     // Tooltips carry the same text as the aria-label
     await composer.toolbarButton('Italic').hover()
@@ -404,7 +409,7 @@ test.describe('CMP composer', () => {
     await composer.editor.click()
     await page.keyboard.type('Before ')
     const chooser = page.waitForEvent('filechooser')
-    await composer.toolbarButton('Insert image').click()
+    await composer.insertImageButton.click()
     await (
       await chooser
     ).setFiles({ name: 'resize.png', mimeType: 'image/png', buffer: png })
@@ -614,5 +619,92 @@ test.describe('CMP composer', () => {
     await composer.close()
     await expect(composer.root).toBeHidden()
     await expect(row).toBeFocused()
+  })
+
+  test('CMP-61 the From line opens from its button on the To line', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const accountId = await jmap.accountId()
+    await jmap.request([
+      [
+        'Identity/set',
+        {
+          accountId,
+          create: {
+            first: { name: 'Identity 1', email: user.email, sortOrder: 0 },
+            second: { name: 'Identity 2', email: user.email, sortOrder: 1 }
+          }
+        },
+        's'
+      ]
+    ])
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await expect(composer.identitySelect).toBeHidden()
+    await composer.root.getByTestId('composer-show-from-button').click()
+    await expect(composer.identitySelect).toContainText('Identity 1')
+    await expect(
+      composer.root.getByTestId('composer-show-from-button')
+    ).toHaveCount(0)
+    await composer.chooseIdentity('Identity 2')
+    await expectNoA11yViolations(page)
+  })
+
+  test('CMP-62 Cc and Bcc open as lines of the To template and go away, emptied, with their close button', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.addRecipient('to', 'bob@example.com')
+    await composer.showField('cc')
+    await composer.showField('bcc')
+    await composer.addRecipient('cc', 'carol@example.com')
+    const to = await composer.root.getByTestId('composer-to-field').boundingBox()
+    const bcc = await composer.root
+      .getByTestId('composer-bcc-field')
+      .boundingBox()
+    expect(bcc?.width).toBe(to?.width)
+    expect(bcc?.height).toBe(37)
+    await expectNoA11yViolations(page)
+
+    await composer.root.getByTestId('composer-hide-cc-button').click()
+    await expect(composer.recipientInput('cc')).toBeHidden()
+    await expect(composer.recipientInput('to')).toBeFocused()
+    await composer.showField('cc')
+    await expect(composer.recipients('cc')).toHaveCount(0)
+  })
+
+  test('CMP-63 the formatting toolbar sits under the text, its footer button shows it or not, and the link button opens the dialog', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await expect(composer.toolbar).toBeVisible()
+    const editor = await composer.editor.boundingBox()
+    const toolbar = await composer.toolbar.boundingBox()
+    expect(toolbar?.y).toBeGreaterThan(editor?.y ?? Infinity)
+    await expect(composer.formattingButton).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+
+    await composer.formattingButton.click()
+    await expect(composer.toolbar).toBeHidden()
+    await expect(composer.formattingButton).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+    await composer.formattingButton.click()
+    await expect(composer.toolbar).toBeVisible()
+
+    await composer.root.getByTestId('rich-text-link-button').click()
+    await expect(
+      page.getByRole('dialog', { name: 'Insert link' })
+    ).toBeVisible()
+    await expectNoA11yViolations(page)
   })
 })

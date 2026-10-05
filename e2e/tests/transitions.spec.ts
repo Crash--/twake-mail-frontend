@@ -172,6 +172,8 @@ test.describe('EML composer kept while navigating', () => {
       })
     }
     await jmap.waitForEmail({ subject: 'Slide 1' })
+    // A wide screen: the window of the dock leaves the start of the rows free
+    await page.setViewportSize({ width: 1920, height: 1000 })
     await watchViewTransitions(page)
     await watchComposerLayers(page)
     const mailbox = await new LoginPage(page).loginAs(user)

@@ -255,3 +255,7 @@ Conventions:
 | `list-filter-button` / `list-filter-menu` / `list-filter-clear-button` | the "Filter" dropdown (shows the active filter, hidden in an empty Trash or Spam and in search results), its menu (`menuitemradio`, items `quick-filter-*`: they filter the folder in place) and the button clearing the filter | `FilterMessageButton` |
 | `recover-deleted-messages-button` | personal Trash, when the server keeps deleted messages: opens the recovery | `recover_deleted_messages_button` |
 | `help-button` | top bar, when the server gives a support contact (`com:linagora:params:jmap:contact:support`): a link, or a message to the support address | `icHelp` button |
+| `composer-show-from-button` | "From" on the To line (only with several identities): opens the From line holding `composer-identity-select`; a draft, an answer or a template with an identity of its own opens it already | `prefix_from_recipient_from_button` |
+| `composer-hide-cc-button` / `composer-hide-bcc-button` / `composer-hide-reply-to-button` | the close button at the end of the line of an optional field: hides it and empties it, the focus goes back to To | `prefix_*_recipient_delete_button` |
+| `composer-formatting-button` | footer, first button: shows or hides the formatting toolbar (`aria-pressed`, shown by default) | — |
+| `rich-text-link-button` / `rich-text-image-button` | the link and image buttons moved from the formatting toolbar to the footer of the composer (same ids; the vacation editor keeps them in its toolbar) | `insertLinkButton`, `insertImageButton` |

@@ -1231,7 +1231,11 @@ function LoadedComposerForm({
                 kind === 'quote' ? t('composer.quote.edit') : null,
               editableHtml: (_kind, html) =>
                 editableQuoteHtml(html, cid => images.urlFor(cid)),
-              editTestId: htmlBlockEditTestId
+              editTestId: htmlBlockEditTestId,
+              toggleLabel: kind =>
+                kind === 'signature' ? t('composer.signature') : null,
+              toggleTestId: kind =>
+                kind === 'signature' ? 'composer-signature-toggle' : undefined
             }}
             selectionAction={
               hasScribe

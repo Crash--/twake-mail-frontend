@@ -1,10 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  LINAGORA_CAPABILITIES,
-  type KnownSettingKey
-} from 'jmap-client-ts/linagora'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
 
+import { useSentryReporting } from '@common/features/sentry/useSentryReporting'
 import { useLabelVisibility } from '@common/features/labels/labelVisibility'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
@@ -19,6 +17,7 @@ import {
   isAlwaysRequestingReadReceipts,
   isShowingSenderPriority,
   serverSettingsKeys,
+  type ServerSettingKey,
   updateServerSetting,
   useServerSettings
 } from './serverSettings'
@@ -30,9 +29,10 @@ export interface PreferencesSettingsProps {
 
 /**
  * Settings > Preferences, as tmail-flutter: the read receipts asked for
- * every message and the important flag set by senders (settings of the
- * account on the server, when it keeps them), the conversation view and
- * the labels (kept in this browser).
+ * every message, the important flag set by senders and the error reports
+ * (settings of the account on the server, when it keeps them; the reports
+ * only when error reporting is configured), the conversation view and the
+ * labels (kept in this browser).
  */
 export function PreferencesSettings({
   section
@@ -46,9 +46,10 @@ export function PreferencesSettings({
   const [isLabelVisible, setLabelVisible] = useLabelVisibility()
   const hasLabels = LINAGORA_CAPABILITIES.labels in session.capabilities
   const { settings } = useServerSettings()
-  const [saving, setSaving] = useState<KnownSettingKey | null>(null)
+  const errorReporting = useSentryReporting()
+  const [saving, setSaving] = useState<ServerSettingKey | null>(null)
 
-  const changeServerSetting = (key: KnownSettingKey, isOn: boolean): void => {
+  const changeServerSetting = (key: ServerSettingKey, isOn: boolean): void => {
     setSaving(key)
     updateServerSetting(client, accountId, key, String(isOn))
       .then(async isSaved => {
@@ -66,7 +67,7 @@ export function PreferencesSettings({
       })
   }
 
-  const serverOption = (key: KnownSettingKey): boolean =>
+  const serverOption = (key: ServerSettingKey): boolean =>
     settings !== null && canChangeServerSetting(session, key)
 
   return (
@@ -95,6 +96,19 @@ export function PreferencesSettings({
             changeServerSetting('display.sender.priority', isOn)
           }}
           data-testid="sender-priority-setting-toggle"
+        />
+      ) : null}
+      {errorReporting.isConfigured && errorReporting.canChoose ? (
+        <PreferenceOption
+          title={t('settings.preferences.errorReporting')}
+          description={t('settings.preferences.errorReportingDescription')}
+          toggleLabel={t('settings.preferences.errorReportingToggle')}
+          isChecked={errorReporting.isOptedIn}
+          isDisabled={saving === 'sentry.user-opt-in'}
+          onChange={isOn => {
+            changeServerSetting('sentry.user-opt-in', isOn)
+          }}
+          data-testid="error-reporting-setting-toggle"
         />
       ) : null}
       <PreferenceOption

@@ -607,7 +607,10 @@
       "threadToggle": "Activer les fils de discussion",
       "labels": "Visibilité du libellé",
       "labelsDescription": "Afficher les libellés assignés aux e-mails directement dans votre liste de messages pour une catégorisation plus facile.",
-      "labelsToggle": "Afficher les libellés"
+      "labelsToggle": "Afficher les libellés",
+      "errorReporting": "Rapports d'erreurs",
+      "errorReportingDescription": "Envoyer des rapports de plantage et d'erreur pour que l'équipe d'assistance puisse diagnostiquer les problèmes que vous rencontrez. Vos e-mails, leur contenu et leurs destinataires ne sont jamais inclus.",
+      "errorReportingToggle": "Envoyer des rapports d'erreurs"
     },
     "backToMail": "Retour aux e-mails",
     "language": {

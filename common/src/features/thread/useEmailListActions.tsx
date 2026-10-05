@@ -111,6 +111,8 @@ export function useEmailListActions({
   const [menu, setMenu] = useState<{
     anchor: EmailActionsMenuAnchor
     emails: readonly TargetEmail[]
+    /** The row alone (a conversation too): what answers go to */
+    answerEmailId: string | null
   } | null>(null)
 
   /** The row alone, or the selection when the row is in it */
@@ -122,6 +124,15 @@ export function useEmailListActions({
           : [email]
       ),
     [selection, expandTargets]
+  )
+
+  /** The row answered from its menu, unless the menu acts on a selection */
+  const answerOf = useCallback(
+    (email: EmailListItemData): string | null =>
+      selection.isSelected(email.id) && selection.selected.length > 1
+        ? null
+        : email.id,
+    [selection]
   )
 
   const selectedTargets = useMemo(
@@ -164,16 +175,26 @@ export function useEmailListActions({
 
   const onOpenMenu = useCallback(
     (email: EmailListItemData, element: HTMLElement): void => {
-      setMenu({ anchor: { element }, emails: targetsOf(email) })
+      setMenu({
+        anchor: { element },
+        emails: targetsOf(email),
+        answerEmailId: answerOf(email)
+      })
     },
-    [targetsOf]
+    [targetsOf, answerOf]
   )
 
   const onRowMenu = useCallback(
     (row: VirtualizedTableRow, anchor: RowMenuAnchor): void => {
-      if (isEmailRow(row)) setMenu({ anchor, emails: targetsOf(row) })
+      if (isEmailRow(row)) {
+        setMenu({
+          anchor,
+          emails: targetsOf(row),
+          answerEmailId: answerOf(row)
+        })
+      }
     },
-    [targetsOf]
+    [targetsOf, answerOf]
   )
 
   const onRowDragStart = useCallback(
@@ -221,6 +242,7 @@ export function useEmailListActions({
         anchor={menu?.anchor ?? null}
         onClose={handleCloseMenu}
         emails={menu?.emails ?? []}
+        answerEmailId={menu?.answerEmailId ?? null}
         mailboxId={mailboxId}
         onAction={handleMenuAction}
         data-testid="email-context-menu"

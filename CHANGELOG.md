@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   configuration (`SERVER_URL` with its WebSocket, `SSO_BASE_URL`, the SSO found
   by WebFinger at startup). See `docs/deployment.md`
 
+- Storage upgrade on the Twake platform, as tmail-flutter: a link to the
+  paywall in the quota banner, the sidebar footer, Settings > Storage and the
+  composer error, with the SaaS capability, inside Twake Workplace and a safe
+  https URL (Workplace of the user, or `paywallUrlTemplate` of the
+  ecosystem). The sidebar footer follows the design (gauge, "X available",
+  version). The ecosystem document is now read by one shared module
+  (`features/ecosystem`), used by error reporting too
 
 - Error reporting driven by a preference, as tmail-flutter on the web: Sentry
   starts only when configured (`SENTRY_*` or the ecosystem of the server) and

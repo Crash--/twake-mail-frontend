@@ -110,7 +110,7 @@ test.describe('MBX recovery and quota', () => {
     }) => {
       const mailbox = await new LoginPage(page).loginAs(user)
       const indicator = page.getByTestId('quota-indicator')
-      await expect(indicator).toContainText('of 50 MB')
+      await expect(indicator).toContainText('50 MB available')
       const before = Number(await indicator.getAttribute('data-used'))
 
       await jmap.sendEmail({

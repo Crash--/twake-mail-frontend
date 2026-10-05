@@ -278,3 +278,5 @@ Conventions:
 | `email-unsubscribe-link` | "Unsubscribe" link after the sender of an email (or message of a conversation) with a usable `List-Unsubscribe` link, not yet unsubscribed; not on phones | `unsubscribe` text button |
 | `email-unsubscribed-banner` | note "You unsubscribe from <sender>" on an email with the `$unsubscribe` keyword | `MailUnsubscribedBanner` |
 | `print-frame` | the invisible `iframe` "Print all" prints through; it goes away once printed | — |
+| `quota-banner-upgrade-link` / `quota-upgrade-link` / `storage-upgrade-button` / `composer-upgrade-link` | the link to the paywall (new tab), only on the Twake platform with the SaaS capability: in the quota banner, the sidebar footer, Settings > Storage, the composer send error | `quotaBannerWarningSubtitleWithPremium` link, `LinagoraSidebarUpsellButton`, `UpgradeStorageWidget`, over-quota dialog |
+| `sidebar-footer` / `sidebar-version` | the foot of the sidebar (storage + version) and its "version x.y.z" line | `MailboxSidebarFooter`, `ApplicationVersionWidget` |

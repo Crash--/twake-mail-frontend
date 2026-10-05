@@ -4,8 +4,17 @@ import {
   buildEmailDocument,
   findReferencedCids,
   plainTextToHtml,
+  plainTextToLinkedHtml,
   renderBodyParts
 } from './emailBody'
+
+function textPart(value: string): {
+  value: string
+  isEncodingProblem: boolean
+  isTruncated: boolean
+} {
+  return { value, isEncodingProblem: false, isTruncated: false }
+}
 
 describe('findReferencedCids', () => {
   it('lists the Content-IDs referenced by cid URLs', () => {
@@ -57,6 +66,46 @@ describe('renderBodyParts', () => {
     )
 
     expect(content).toEqual({ html: '<img>', blockedRemoteContent: 1 })
+  })
+
+  it('links the bare URLs and addresses of text and HTML parts', () => {
+    const content = renderBodyParts(
+      [
+        makeBodyPart({ partId: '1', type: 'text/plain' }),
+        makeBodyPart({ partId: '2', type: 'text/html' })
+      ],
+      {
+        '1': textPart('See https://example.com/a.'),
+        '2': textPart(
+          '<p>www.example.org or <a href="https://example.net">https://example.net</a></p>'
+        )
+      }
+    )
+
+    expect(content.html).toBe(
+      '<div class="tmail-plain-text">See <a href="https://example.com/a" target="_blank" rel="noopener noreferrer">https://example.com/a</a>.</div>' +
+        '<p><a href="https://www.example.org/" target="_blank" rel="noopener noreferrer">www.example.org</a> or <a href="https://example.net" target="_blank" rel="noopener noreferrer">https://example.net</a></p>'
+    )
+  })
+})
+
+describe('plainTextToLinkedHtml', () => {
+  it('escapes the text, line breaks kept', () => {
+    expect(plainTextToLinkedHtml('a < b & "c"\n<script>x</script>')).toBe(
+      '<div class="tmail-plain-text">a &lt; b &amp; "c"\n&lt;script&gt;x&lt;/script&gt;</div>'
+    )
+  })
+
+  it('links an address to write to', () => {
+    expect(plainTextToLinkedHtml('bob@example.com')).toBe(
+      '<div class="tmail-plain-text"><a href="mailto:bob@example.com" target="_blank" rel="noopener noreferrer">bob@example.com</a></div>'
+    )
+  })
+
+  it('is not what the composer quotes: plainTextToHtml keeps URLs as text', () => {
+    expect(plainTextToHtml('https://example.com')).toBe(
+      '<div class="tmail-plain-text">https://example.com</div>'
+    )
   })
 })
 

@@ -8,6 +8,57 @@ function clean(html: string): string {
 }
 
 describe('sanitizeEmailHtml', () => {
+  describe('autolink', () => {
+    it('leaves bare URLs as text by default (composer quote)', () => {
+      expect(clean('<p>https://example.com</p>')).toBe(
+        '<p>https://example.com</p>'
+      )
+    })
+
+    it('links bare URLs once sanitized when asked', () => {
+      expect(
+        sanitizeEmailHtml('<p onclick="x()">https://example.com</p>', {
+          autolink: true
+        }).html
+      ).toBe(
+        '<p><a href="https://example.com/" target="_blank" rel="noopener noreferrer">https://example.com</a></p>'
+      )
+    })
+
+    it.each([
+      [
+        'an encoded script',
+        '&lt;script&gt;alert(1)&lt;/script&gt; www.example.com'
+      ],
+      [
+        'a URL closing the attribute',
+        'https://example.com/"onmouseover="alert(1)'
+      ],
+      [
+        'a URL holding markup',
+        'https://example.com/&lt;img src=x onerror=alert(1)&gt;'
+      ],
+      ['a javascript URL', 'javascript:alert(1)//https://example.com'],
+      [
+        'a style sheet URL',
+        '<style>a { background: url(https://example.com) }</style>x'
+      ]
+    ])('produces no script, handler nor other scheme from %s', (_, html) => {
+      const container = document.createElement('div')
+      container.innerHTML = sanitizeEmailHtml(html, { autolink: true }).html
+
+      expect(container.querySelector('script, img, style a')).toBe(null)
+      container.querySelectorAll('*').forEach(element => {
+        Array.from(element.attributes).forEach(attribute => {
+          expect(attribute.name.startsWith('on')).toBe(false)
+        })
+      })
+      container.querySelectorAll('a').forEach(link => {
+        expect(link.getAttribute('href')).toMatch(/^(https:|mailto:)/)
+      })
+    })
+  })
+
   describe('XSS', () => {
     it.each([
       ['a script', '<script>alert(1)</script>'],

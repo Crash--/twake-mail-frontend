@@ -1,5 +1,6 @@
 import type { EmailBodyPart, EmailBodyValue } from 'jmap-client-ts'
 
+import { autolink } from './autolink'
 import {
   normalizeCid,
   readCid,
@@ -66,6 +67,19 @@ export function plainTextToHtml(text: string): string {
   return `<div class="tmail-plain-text">${escapeHtml(text)}</div>`
 }
 
+/**
+ * Plain text as HTML for the reader: line breaks and spaces kept, URLs and
+ * email addresses turned into links. Built with the DOM, the text never
+ * parsed as HTML
+ */
+export function plainTextToLinkedHtml(text: string): string {
+  const container = document.createElement('div')
+  container.className = 'tmail-plain-text'
+  container.textContent = text
+  autolink(container)
+  return container.outerHTML
+}
+
 /** The Content-IDs an HTML body references with `cid:` URLs */
 export function findReferencedCids(html: string): Set<string> {
   const cids = new Set<string>()
@@ -77,7 +91,8 @@ export function findReferencedCids(html: string): Set<string> {
 
 /**
  * The displayable content of the body parts JMAP selected for an HTML view
- * (`htmlBody`): HTML parts sanitized, text parts escaped.
+ * (`htmlBody`), for the reader: HTML parts sanitized, text parts escaped,
+ * bare URLs and email addresses of both turned into links.
  */
 export function renderBodyParts(
   parts: readonly EmailBodyPart[],
@@ -90,11 +105,16 @@ export function renderBodyParts(
       const value = part.partId === null ? undefined : bodyValues[part.partId]
       if (!value) return ''
       if (part.type === 'text/html') {
-        const sanitized = sanitizeEmailHtml(value.value, options)
+        const sanitized = sanitizeEmailHtml(value.value, {
+          ...options,
+          autolink: true
+        })
         blockedRemoteContent += sanitized.blockedRemoteContent
         return sanitized.html
       }
-      if (part.type.startsWith('text/')) return plainTextToHtml(value.value)
+      if (part.type.startsWith('text/')) {
+        return plainTextToLinkedHtml(value.value)
+      }
       return ''
     })
     .join('')

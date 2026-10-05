@@ -583,3 +583,21 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/page-scroll.spec.ts`.
 - [x] `THR-18` Opening a long conversation from the list with a view transition shows its target from the first frame of the conversation, nothing scrolls under the transition, and it ends on the final scroll position; `THR-19` the same from a search result. — web app (issue #108)
   - Spec: `tests/thread-scroll.spec.ts`, on `chromium`, `mobile` and `tablet`.
+- [x] `TMB-01` The team mailbox says its address beside its name, and lists its folders as tmail-flutter: INBOX, Drafts, Outbox, Sent, Trash, Templates. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`.
+- [x] `TMB-02` Deleting an email of a team mailbox moves it to the Trash of the team mailbox, with neither Archive nor Spam in its menu. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`.
+- [x] `TMB-03` Deleting a team email found by a search moves it to the Trash of its team mailbox, with neither Archive nor Spam. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`.
+- [x] `TMB-04` The default search leaves out the Trash of a team mailbox. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`.
+- [x] `TMB-05` The banner of the Trash of a team mailbox empties it, with its subfolders, after a confirmation naming the Trash. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`.
+- [x] `TMB-06` A message sent with the identity of a team mailbox keeps its copy in the Sent of the team mailbox, not in the one of the user. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`.
+- [x] `TMB-07` A draft written with the identity of a team mailbox is saved in the Drafts of the team mailbox. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`; the manager and the rights come from `Mailbox/set` `sharedWith`.
+- [x] `TMB-08` A member who may only read a team folder is offered no action that deletes, moves, reads or stars its emails, nor "New subfolder" or "Mark as read" on the folder. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`.
+- [x] `TMB-09` The move picker lists a folder emails cannot be added to (`mayAddItems`) as unavailable. — web app only, no Patrol test
+  - Spec: `tests/team-mailboxes.spec.ts`.

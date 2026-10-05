@@ -6,7 +6,11 @@ import { EmailPage } from './EmailPage'
 import { SettingsPage } from './SettingsPage'
 
 /** A folder of the sidebar, by JMAP role (`inbox`, `trash`...) or by displayed name */
-export type FolderRef = { role: MailboxRole } | { name: string }
+export type FolderRef =
+  | { role: MailboxRole }
+  | { name: string }
+  /** By JMAP id: the folders of a team mailbox share their names with the user's own */
+  | { id: string }
 
 export type QuickFilter = 'attachments' | 'unread' | 'starred'
 
@@ -135,6 +139,9 @@ export class MailboxPage {
     const items = this.page.getByTestId('mailbox-item')
     if ('role' in ref) {
       return items.and(this.page.locator(`[data-mailbox-role="${ref.role}"]`))
+    }
+    if ('id' in ref) {
+      return items.and(this.page.locator(`[data-mailbox-id="${ref.id}"]`))
     }
     return items.filter({
       has: this.page

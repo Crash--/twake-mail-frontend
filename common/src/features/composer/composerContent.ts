@@ -64,6 +64,13 @@ export interface ComposerContent {
    * the user shows them
    */
   hasBlockedImages: boolean
+  /** Names the composer in the versions it saves (`DRAFT_SESSION_HEADER`) */
+  draftSession: string
+  /**
+   * A save may have created a version whose id was lost (its answer never
+   * came): the next one looks for it (`findStrayVersions`)
+   */
+  mayHaveStrays: boolean
 }
 
 /** What makes two states of a message different */
@@ -112,7 +119,9 @@ export function newMessageContent(
     inReplyTo: null,
     references: null,
     answering: null,
-    hasBlockedImages: false
+    hasBlockedImages: false,
+    draftSession: crypto.randomUUID(),
+    mayHaveStrays: false
   }
 }
 
@@ -275,7 +284,9 @@ export async function loadDraftContent(
     inReplyTo: email.inReplyTo ?? null,
     references: email.references ?? null,
     answering: parseAnswering(email[ANSWERING_HEADER]),
-    hasBlockedImages: hasBlockedImages(editorHtml)
+    hasBlockedImages: hasBlockedImages(editorHtml),
+    draftSession: crypto.randomUUID(),
+    mayHaveStrays: false
   }
 }
 
@@ -299,6 +310,8 @@ export interface ComposerSnapshot {
   inReplyTo?: string[] | null
   references?: string[] | null
   answering?: Answering | null
+  draftSession?: string
+  mayHaveStrays?: boolean
 }
 
 function isSnapshot(value: unknown): value is ComposerSnapshot {
@@ -350,6 +363,11 @@ export async function restoreSnapshotContent(
     inReplyTo: snapshot.inReplyTo ?? null,
     references: snapshot.references ?? null,
     answering: snapshot.answering ?? null,
-    hasBlockedImages: hasBlockedImages(html)
+    hasBlockedImages: hasBlockedImages(html),
+    draftSession:
+      typeof snapshot.draftSession === 'string'
+        ? snapshot.draftSession
+        : crypto.randomUUID(),
+    mayHaveStrays: snapshot.mayHaveStrays === true
   }
 }

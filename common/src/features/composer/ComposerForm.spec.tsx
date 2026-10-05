@@ -409,6 +409,40 @@ describe('ComposerForm', () => {
       // Three autosaves
     }, 15_000)
 
+    it('destroys with the next save a version whose answer was lost', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      const status = within(composer).getByTestId('composer-save-status')
+      const error = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined)
+      jmapServer.loseNextResponse('Email/set')
+
+      await fill(composer, { to: 'bob@example.com', subject: 'One' })
+      await waitFor(
+        () => {
+          expect(status).toHaveTextContent('Draft not saved')
+        },
+        { timeout: 4000 }
+      )
+      // Created all the same, its id unknown to the composer
+      expect(draftsOf(jmapServer)).toHaveLength(1)
+
+      await fill(composer, { subject: ' two' })
+      await waitFor(
+        () => {
+          expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
+            'One two'
+          ])
+        },
+        { timeout: 4000 }
+      )
+      expect(
+        draftsOf(jmapServer)[0]?.headers?.['X-Twake-Draft-Session']
+      ).toMatch(/^[0-9a-f-]{36}$/)
+      error.mockRestore()
+    }, 15_000)
+
     it('comes back after a reload, until closed', async () => {
       const snapshot: ComposerSnapshot = {
         identityId: 'identity-alice',

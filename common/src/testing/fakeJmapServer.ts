@@ -135,6 +135,11 @@ export interface FakeJmapServer {
    * is in flight.
    */
   holdRequests: (method?: string) => () => void
+  /**
+   * Runs the next API request calling `method`, then fails its fetch as a
+   * lost connection would: the client never sees the answer
+   */
+  loseNextResponse: (method: string) => void
   /** Names of the methods called so far, request after request */
   calledMethods: () => string[]
   /** Current states, as a push `StateChange` would carry them */
@@ -525,6 +530,9 @@ export function makeFakeJmapServer(
     methodErrors: new Map(),
     setErrors: new Map(),
     holdRequests,
+    loseNextResponse: method => {
+      losing = method
+    },
     calledMethods: () =>
       server.requests.flatMap(request =>
         request.methodCalls.map(([name]) => name)
@@ -558,6 +566,7 @@ export function makeFakeJmapServer(
   const extraCapabilities = init.capabilities ?? {}
   const maxObjectsInSet = init.maxObjectsInSet ?? 500
   let held: { method: string | null; released: Promise<void> } | null = null
+  let losing: string | null = null
 
   function holdRequests(method?: string): () => void {
     let release = (): void => undefined
@@ -1171,7 +1180,15 @@ export function makeFakeJmapServer(
       const request = parseRequest(JSON.parse(init.body))
       server.requests.push(request)
       if (held && isHeld(request)) await held.released
-      return respond(request)
+      const response = respond(request)
+      if (
+        losing !== null &&
+        request.methodCalls.some(([name]) => name === losing)
+      ) {
+        losing = null
+        throw new TypeError('Failed to fetch')
+      }
+      return response
     }
     return new Response('Not found', { status: 404 })
   }

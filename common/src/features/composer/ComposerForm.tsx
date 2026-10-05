@@ -48,6 +48,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import {
   buildEmail,
   destroyPreviousVersions,
+  findStrayVersions,
   saveDraft,
   sendEmail,
   type AttachedFile,
@@ -262,6 +263,8 @@ function LoadedComposerForm({
   const draftIdRef = useRef<string | null>(content.draftId)
   /** Previous versions a save failed to destroy: the next one tries again */
   const leftoversRef = useRef<string[]>(content.leftovers)
+  /** A save lost its answer: it may have left a version (`findStrayVersions`) */
+  const mayHaveStraysRef = useRef(content.mayHaveStrays)
   /** The draft was created by this composer: "Discard" may destroy it */
   const createdHereRef = useRef(false)
   /** The message as last saved (or opened): what "modified" compares to */
@@ -319,7 +322,8 @@ function LoadedComposerForm({
       inReplyTo: content.inReplyTo,
       references: content.references,
       attachments: uploadedFiles(files.attachments),
-      answering: content.answering
+      answering: content.answering,
+      draftSession: content.draftSession
     }
   }
 
@@ -333,6 +337,27 @@ function LoadedComposerForm({
     draftIdRef.current === null
       ? [...leftoversRef.current]
       : [draftIdRef.current, ...leftoversRef.current]
+
+  /**
+   * Adds to the versions to destroy the ones a save whose answer was lost
+   * may have created. Tried again next time when the server cannot tell.
+   */
+  const collectStrays = async (): Promise<void> => {
+    if (!mayHaveStraysRef.current) return
+    try {
+      const strays = await findStrayVersions(
+        client,
+        accountId,
+        mailboxIds.drafts,
+        content.draftSession,
+        draftVersions()
+      )
+      leftoversRef.current = [...leftoversRef.current, ...strays]
+      mayHaveStraysRef.current = false
+    } catch (error: unknown) {
+      console.warn('Lost draft versions not looked for', error)
+    }
+  }
 
   /**
    * Saves the message as a draft, one save at a time (each replaces the
@@ -350,6 +375,7 @@ function LoadedComposerForm({
         return true
       }
       setSaveState('saving')
+      await collectStrays()
       try {
         const email = await buildEmail(composed(editor), images, mailboxIds)
         const result = await saveDraft(
@@ -368,6 +394,8 @@ function LoadedComposerForm({
         return true
       } catch (error: unknown) {
         console.error(error)
+        // Not refused but unanswered: it may have been created all the same
+        if (!(error instanceof JmapSetError)) mayHaveStraysRef.current = true
         setSaveState('failed')
         if (kind === 'manual') {
           notify({ message: t(saveErrorKey(error)), severity: 'error' })
@@ -416,6 +444,7 @@ function LoadedComposerForm({
   useEffect(() => cancelAutosave, [])
 
   const destroyDraft = async (): Promise<void> => {
+    await collectStrays()
     const ids = draftVersions()
     if (ids.length === 0) return
     await client.call('Email/set', { accountId, destroy: ids })
@@ -492,7 +521,9 @@ function LoadedComposerForm({
       savedFingerprint: savedRef.current,
       inReplyTo: content.inReplyTo,
       references: content.references,
-      answering: content.answering
+      answering: content.answering,
+      draftSession: content.draftSession,
+      mayHaveStrays: mayHaveStraysRef.current
     }
   }
 
@@ -647,6 +678,7 @@ function LoadedComposerForm({
     setIsSending(true)
     try {
       await flush()
+      await collectStrays()
       const email = await buildEmail(
         composed(editor),
         images,

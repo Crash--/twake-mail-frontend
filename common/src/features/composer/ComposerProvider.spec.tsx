@@ -218,7 +218,9 @@ describe('ComposerProvider', () => {
     expect(draft?.from).toEqual([
       { name: 'Alice Martin', email: FAKE_USERNAME }
     ])
-    expect(draft?.headers).toEqual({ 'X-JMAP-Identity': 'identity-alice' })
+    expect(draft?.headers).toMatchObject({
+      'X-JMAP-Identity': 'identity-alice'
+    })
   })
 
   it('discards a modified message without saving it', async () => {

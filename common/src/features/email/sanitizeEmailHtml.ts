@@ -3,6 +3,7 @@ import DOMPurify, {
   type UponSanitizeAttributeHookEvent
 } from 'dompurify'
 
+import { autolink, openInNewTab } from './autolink'
 import { sanitizeDeclarations, sanitizeStyleSheet } from './sanitizeCss'
 
 /**
@@ -81,6 +82,11 @@ export interface SanitizeOptions {
    * the sender when and where the email is read (tracking pixels)
    */
   allowRemoteContent?: boolean
+  /**
+   * Turns the bare URLs and email addresses of the text into links, for the
+   * reader (not for the quote of the composer, which keeps the original)
+   */
+  autolink?: boolean
 }
 
 export interface SanitizedEmailHtml {
@@ -240,10 +246,7 @@ function sanitizeStyleElement(node: Node): void {
 function finishElement(node: Element): void {
   const state = currentRun()
   const tagName = node.tagName.toLowerCase()
-  if (tagName === 'a' && node.hasAttribute('href')) {
-    node.setAttribute('target', '_blank')
-    node.setAttribute('rel', 'noopener noreferrer')
-  }
+  if (tagName === 'a' && node.hasAttribute('href')) openInNewTab(node)
   if (tagName !== 'img') return
   const src = node.getAttribute('src')
   const source = src === null ? null : classifyImageSource(src)
@@ -303,12 +306,15 @@ export function sanitizeEmailHtml(
   html: string,
   {
     inlineImageUrls = new Map(),
-    allowRemoteContent = false
+    allowRemoteContent = false,
+    autolink: withAutolink = false
   }: SanitizeOptions = {}
 ): SanitizedEmailHtml {
   run = { inlineImageUrls, allowRemoteContent, blockedRemoteContent: 0 }
   try {
     const content = purifier.sanitize(html, CONFIG)
+    // On the sanitized DOM: the links it adds are built, never parsed
+    if (withAutolink) autolink(content)
     const container = document.createElement('div')
     container.append(content)
     return {

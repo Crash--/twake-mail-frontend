@@ -124,6 +124,54 @@ describe('ConversationView', () => {
     expect(within(toggle(/Bob Dupont/)).getByText('Preview a')).toBeVisible()
   })
 
+  describe('backend warnings', () => {
+    function makeWarnedServer(): FakeJmapServer {
+      const server = makeServer()
+      const message = server.emails.find(email => email.id === 'c')
+      if (message === undefined) throw new Error('no message c')
+      message.headers = {
+        'X-TWP-Message': ['level:error code:virus', 'level:info Plain text']
+      }
+      return server
+    }
+
+    it('shows the banners in the expanded message that has them, with the badge', async () => {
+      await renderConversation(makeWarnedServer())
+
+      const banners = await screen.findAllByTestId(/^twp-warning-\d$/)
+      expect(banners).toHaveLength(2)
+      expect(banners[0]).toHaveTextContent('This email is having virus')
+      expect(banners[1]).toHaveTextContent('Plain text')
+      expect(
+        await screen.findAllByTestId('conversation-message-danger-badge')
+      ).toHaveLength(1)
+    })
+
+    it('keeps a collapsed message plain, without banner nor badge', async () => {
+      await renderConversation(makeServer())
+
+      expect(screen.queryByTestId('twp-warnings')).toBeNull()
+      expect(
+        screen.queryByTestId('conversation-message-danger-badge')
+      ).toBeNull()
+    })
+
+    it('dismisses one banner of a message with its keyword', async () => {
+      const server = makeWarnedServer()
+      await renderConversation(server)
+
+      await userEvent.click(await screen.findByTestId('twp-warning-dismiss-1'))
+
+      await waitFor(() => {
+        expect(
+          server.emails.find(email => email.id === 'c')?.keywords
+        ).toHaveProperty('twp-warning-dismissed-1', true)
+      })
+      expect(screen.queryByTestId('twp-warning-1')).toBeNull()
+      expect(screen.getByTestId('twp-warning-0')).toBeInTheDocument()
+    })
+  })
+
   describe('the message it opens on', () => {
     let scrollIntoView: jest.SpyInstance
 

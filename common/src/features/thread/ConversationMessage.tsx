@@ -11,6 +11,7 @@ import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { MessageThreadItem } from '@/ds/MessageThread/MessageThreadItem'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
+import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { AddressLine } from '@common/features/email/AddressLine'
 import { formatAddressName } from '@common/features/email/addresses'
 import { EmailMessageBody } from '@common/features/email/EmailMessageBody'
@@ -22,6 +23,11 @@ import { messageMailboxId } from '@common/features/email/messageMailbox'
 import type { EmailDetail } from '@common/features/email/queries'
 import { ReplyActions } from '@common/features/email/ReplyActions'
 import { SenderLine } from '@common/features/email/SenderLine'
+import {
+  TwpWarningBanners,
+  useVisibleTwpWarnings
+} from '@common/features/email/TwpWarningBanners'
+import { hasDangerWarning } from '@common/features/email/twpWarnings'
 import { useEmail } from '@common/features/email/useEmail'
 import { useReadReceiptRequest } from '@common/features/email/useReadReceiptRequest'
 import { useUnsubscribe } from '@common/features/email/useUnsubscribe'
@@ -36,6 +42,45 @@ import { ConversationDraftActions } from './ConversationDraftActions'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData } from './queries'
 import { useRevealOnOpen } from './useRevealOnOpen'
+
+function DetailAvatar({
+  detail,
+  initials
+}: {
+  detail: EmailDetail
+  initials: string
+}): ReactElement {
+  const { t } = useI18n()
+  const isDangerous = hasDangerWarning(useVisibleTwpWarnings(detail))
+  return isDangerous ? (
+    <WarningAvatarBadge
+      size="s"
+      label={t('email.twpWarning.dangerousMessage')}
+      data-testid="conversation-message-danger-badge"
+    />
+  ) : (
+    <Avatar component="span" size="s" aria-hidden="true">
+      {initials}
+    </Avatar>
+  )
+}
+
+function ExpandedAvatar({
+  emailId,
+  initials
+}: {
+  emailId: string
+  initials: string
+}): ReactElement {
+  const query = useEmail(emailId)
+  return query.data ? (
+    <DetailAvatar detail={query.data} initials={initials} />
+  ) : (
+    <Avatar component="span" size="s" aria-hidden="true">
+      {initials}
+    </Avatar>
+  )
+}
 
 interface ExpandedBodyProps {
   detail: EmailDetail
@@ -109,6 +154,7 @@ function ExpandedBody({
       />
       <EmailActionRequiredTag email={detail} mailboxId={mailboxId} />
       <EmailLabels emails={[detail]} mailboxId={mailboxId} />
+      <TwpWarningBanners email={detail} mailboxId={mailboxId} />
       <EmailMessageBody
         email={detail}
         onRemoteContentShown={onRemoteContentShown}
@@ -189,6 +235,7 @@ export function ConversationMessage({
   const toggleRef = useRef<HTMLButtonElement>(null)
   useRevealOnOpen(toggleRef, isTarget, describedById)
   const sender = email.from?.[0] ?? null
+  const initials = getInitials(sender?.name ?? '', sender?.email ?? '')
   const isUnread = !hasKeyword(email, SEEN)
   const isDraft = hasKeyword(email, DRAFT)
   const emphasis = isUnread ? 'u-fw-bold' : ''
@@ -204,9 +251,13 @@ export function ConversationMessage({
     <MessageHeader
       component="span"
       avatar={
-        <Avatar component="span" size="s" aria-hidden="true">
-          {getInitials(sender?.name ?? '', sender?.email ?? '')}
-        </Avatar>
+        isExpanded ? (
+          <ExpandedAvatar emailId={email.id} initials={initials} />
+        ) : (
+          <Avatar component="span" size="s" aria-hidden="true">
+            {initials}
+          </Avatar>
+        )
       }
       identity={
         <>

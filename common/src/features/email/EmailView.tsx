@@ -14,6 +14,7 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
+import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
@@ -35,6 +36,8 @@ import { EmailMessageBody } from './EmailMessageBody'
 import { EmailViewActions } from './EmailViewActions'
 import { ReplyActions } from './ReplyActions'
 import { SenderLine } from './SenderLine'
+import { hasDangerWarning } from './twpWarnings'
+import { TwpWarningBanners, useVisibleTwpWarnings } from './TwpWarningBanners'
 import type { EmailDetail } from './queries'
 import { useEmail } from './useEmail'
 import { useEmailViewShortcuts } from './useEmailViewShortcuts'
@@ -60,6 +63,7 @@ function EmailContent({
   useReadReceiptRequest(email)
   const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
   const sender = email.from?.[0] ?? null
+  const isDangerous = hasDangerWarning(useVisibleTwpWarnings(email))
   const backLabel = t('common.back')
   useDocumentTitle(email.subject ?? '')
   const subjectRef = useRef<HTMLHeadingElement>(null)
@@ -115,9 +119,16 @@ function EmailContent({
         <MessageHeader
           className="u-mt-1"
           avatar={
-            <Avatar>
-              {getInitials(sender?.name ?? '', sender?.email ?? '')}
-            </Avatar>
+            isDangerous ? (
+              <WarningAvatarBadge
+                label={t('email.twpWarning.dangerousMessage')}
+                data-testid="email-view-danger-badge"
+              />
+            ) : (
+              <Avatar>
+                {getInitials(sender?.name ?? '', sender?.email ?? '')}
+              </Avatar>
+            )
           }
           identity={
             <>
@@ -157,6 +168,7 @@ function EmailContent({
             </SecondaryText>
           }
         />
+        <TwpWarningBanners email={email} mailboxId={mailboxId} />
         <EmailMessageBody
           email={email}
           onRemoteContentShown={handleRemoteContentShown}

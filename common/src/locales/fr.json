@@ -86,6 +86,25 @@
       "show": "Afficher",
       "alwaysShow": "Toujours afficher pour cet expéditeur"
     },
+    "twpWarning": {
+      "levels": {
+        "info": "Information",
+        "warn": "Avertissement",
+        "error": "Danger"
+      },
+      "titles": {
+        "info": "À propos de ce message",
+        "warn": "Soyez prudent avec ce message",
+        "error": "Ce message peut être dangereux"
+      },
+      "codes": {
+        "suspiciousSender": "Cet e-mail provient d'un expéditeur externe qui imite des utilisateurs connus, vérifiez bien l'adresse e-mail.",
+        "virus": "Les pièces jointes de cet e-mail contiennent un virus !",
+        "virusRemoved": "Cet e-mail contenait un virus dans une pièce jointe, que nous avons supprimée pour votre sécurité."
+      },
+      "notSpam": "Pas un indésirable",
+      "dangerousMessage": "Message dangereux"
+    },
     "readReceipt": {
       "title": "Demande d'accusé de lecture",
       "message": "L'expéditeur a demandé l'envoi d'un accusé de lecture pour ce message. Envoyer un accusé de lecture ?",

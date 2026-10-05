@@ -10,7 +10,9 @@ const MIN_FRAME_HEIGHT = 24
 /**
  * The frame of a `frame` block, as high as its content. No `allow-scripts`:
  * nothing in it can run; `allow-same-origin` only lets the editor measure
- * it.
+ * it. Loaded from a `blob:` URL rather than `srcdoc`: Chromium sends the
+ * origin of the page as referrer for the CSS images of a `srcdoc` frame,
+ * whatever its referrer policy; a `blob:` document sends none.
  */
 function HtmlBlockFrame({
   document,
@@ -24,6 +26,18 @@ function HtmlBlockFrame({
   const [height, setHeight] = useState(MIN_FRAME_HEIGHT)
 
   useEffect(() => () => observerRef.current?.disconnect(), [])
+
+  useEffect(() => {
+    const frame = frameRef.current
+    if (!frame) return
+    const objectUrl = URL.createObjectURL(
+      new Blob([document], { type: 'text/html' })
+    )
+    frame.src = objectUrl
+    return () => {
+      URL.revokeObjectURL(objectUrl)
+    }
+  }, [document])
 
   const handleLoad = (): void => {
     observerRef.current?.disconnect()
@@ -44,7 +58,7 @@ function HtmlBlockFrame({
       ref={frameRef}
       title={title}
       sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-      srcDoc={document}
+      referrerPolicy="no-referrer"
       width="100%"
       height={height}
       onLoad={handleLoad}

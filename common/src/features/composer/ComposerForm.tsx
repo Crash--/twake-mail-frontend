@@ -65,7 +65,11 @@ import {
 } from './composerContent'
 import { snapshotKey } from './composerStorage'
 import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
-import { resolveCidSources, toStorageHtml } from './emailHtml'
+import {
+  editableQuoteHtml,
+  resolveCidSources,
+  toStorageHtml
+} from './emailHtml'
 import { InlineImageStore } from './InlineImageStore'
 import {
   RecipientsEditor,
@@ -78,6 +82,8 @@ import {
   parseRecipients,
   type Recipient
 } from './recipients'
+import { loadReplyContent } from './replyContent'
+import { makeIsSelf, type ReplyAction } from './replyRecipients'
 import { replaceSignature, signatureHtml } from './signature'
 import { useComposerAttachments } from './useComposerAttachments'
 import { useEditorLabels } from './useEditorLabels'
@@ -85,9 +91,13 @@ import { useEditorLabels } from './useEditorLabels'
 /** Pause in the changes before a draft is saved */
 export const AUTOSAVE_DELAY_MS = 1500
 
-/** What a composer opens: a new message, or a draft of the server */
+/**
+ * What a composer opens: a new message, a draft of the server, or the
+ * answer to an email
+ */
 export interface ComposerInit {
   draftId?: string
+  reply?: { emailId: string; action: ReplyAction }
 }
 
 /** What the window asks its form */
@@ -155,9 +165,13 @@ function uploadedFiles(
     .map(({ blobId, type, name, size }) => ({ blobId, type, name, size }))
 }
 
-/** The quote and the signature keep their HTML: shown in a frame */
+/**
+ * The frame of a kept HTML block (the quoted email): its remote images,
+ * backgrounds and fonts stay in the message, but are blocked here as in the
+ * reader (CSP, no referrer)
+ */
 function buildBlockDocument(content: string): string {
-  return buildEmailDocument(content, { allowRemoteContent: true })
+  return buildEmailDocument(content, { allowRemoteContent: false })
 }
 
 /** The translation key of a failed draft save */
@@ -207,7 +221,11 @@ function LoadedComposerForm({
   const [shown, setShown] = useState<ReadonlySet<RecipientKind>>(
     new Set(content.shown)
   )
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  // An answer with its recipients opens on the text, the recipients folded
+  // (tmail-flutter); otherwise in To
+  const opensOnText =
+    content.answering !== null && content.recipients.to.length > 0
+  const [isCollapsed, setIsCollapsed] = useState(opensOnText)
   const [subject, setSubject] = useState(content.subject)
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null)
   const [saveState, setSaveState] = useState<SaveState>('idle')
@@ -273,8 +291,8 @@ function LoadedComposerForm({
       replyTo: toAddresses(lists.replyTo),
       subject,
       editorHtml: editor.getHTML(),
-      inReplyTo: null,
-      references: null,
+      inReplyTo: content.inReplyTo,
+      references: content.references,
       attachments: uploadedFiles(files.attachments)
     }
   }
@@ -445,7 +463,10 @@ function LoadedComposerForm({
       attachments: uploadedFiles(files.attachments),
       draftId: draftIdRef.current,
       leftovers: leftoversRef.current,
-      savedFingerprint: savedRef.current
+      savedFingerprint: savedRef.current,
+      inReplyTo: content.inReplyTo,
+      references: content.references,
+      answering: content.answering
     }
   }
 
@@ -595,7 +616,8 @@ function LoadedComposerForm({
         identity.id,
         email,
         mailboxIds,
-        draftVersions()
+        draftVersions(),
+        content.answering
       )
       if (result.ok) {
         leftoversRef.current = []
@@ -693,7 +715,7 @@ function LoadedComposerForm({
             onExpand={() => {
               setIsCollapsed(false)
             }}
-            autoFocusTo={autoFocus}
+            autoFocusTo={autoFocus && !opensOnText}
           />
           <Box className="u-flex u-flex-items-center">
             <Typography
@@ -741,9 +763,12 @@ function LoadedComposerForm({
               frameTitle: () => t('composer.quote.frameTitle'),
               editLabel: kind =>
                 kind === 'quote' ? t('composer.quote.edit') : null,
+              editableHtml: (_kind, html) =>
+                editableQuoteHtml(html, cid => images.urlFor(cid)),
               editTestId: htmlBlockEditTestId
             }}
             footerBlockKinds={['signature', 'quote']}
+            autoFocus={autoFocus && opensOnText}
             fill
             onReady={handleEditorReady}
             onUpdate={markChanged}
@@ -883,6 +908,9 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
   const mailboxes = useMailboxes()
   const drafts = mailboxes.data?.find(mailbox => mailbox.role === 'drafts')
   const sent = mailboxes.data?.find(mailbox => mailbox.role === 'sent')
+  const { session } = useJmapSession()
+  const { lang } = useI18n()
+  const { quote } = useEditorLabels()
   const { composerId, init } = props
   // Read once per composer: the key only says which one
   // eslint-disable-next-line @tanstack/query/exhaustive-deps
@@ -894,6 +922,25 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       if (kept) return restoreSnapshotContent(kept, images)
       if (init.draftId !== undefined) {
         return loadDraftContent(client, accountId, init.draftId, list, images)
+      }
+      if (init.reply !== undefined) {
+        return loadReplyContent(
+          client,
+          accountId,
+          init.reply,
+          list,
+          images,
+          {
+            quote,
+            replyPrefix: t('composer.prefix.reply'),
+            forwardPrefix: t('composer.prefix.forward')
+          },
+          lang,
+          makeIsSelf([
+            session.username,
+            ...list.map(identity => identity.email)
+          ])
+        )
       }
       return newMessageContent(list)
     },

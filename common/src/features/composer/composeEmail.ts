@@ -11,6 +11,7 @@ import { findReferencedCids } from '@common/features/email/emailBody'
 
 import { htmlToText, toEmailHtml } from './emailHtml'
 import type { InlineImageStore } from './InlineImageStore'
+import type { Answering } from './replyContent'
 
 /** Header keeping the identity of a draft (tmail-flutter reads it too) */
 export const IDENTITY_HEADER = 'header:X-JMAP-Identity:asText'
@@ -285,6 +286,10 @@ function readFailure(error: SetError | undefined): {
  * own request, and only when the message was created: JMAP would run a
  * destroy of the same call even when the creation fails, losing the draft.
  * A message created but not submitted stays in Drafts in its place.
+ *
+ * Once sent, the email it answers gets `$answered` or `$forwarded`, in a
+ * last request: tmail-flutter sets it in the sending request, even when the
+ * submission fails.
  */
 export async function sendEmail(
   client: JmapClient,
@@ -292,7 +297,8 @@ export async function sendEmail(
   identityId: string,
   email: EmailCreate,
   mailboxIds: MailboxIds,
-  previousDraftIds: readonly string[]
+  previousDraftIds: readonly string[],
+  answering: Answering | null = null
 ): Promise<SendResult> {
   const [emailSet, submission] = await client.request(builder => [
     builder.call('Email/set', { accountId, create: { message: email } }),
@@ -333,6 +339,19 @@ export async function sendEmail(
       draftId: created.id,
       leftovers
     }
+  }
+  if (answering !== null) {
+    await client
+      .call('Email/set', {
+        accountId,
+        update: {
+          [answering.emailId]: { [`keywords/${answering.keyword}`]: true }
+        }
+      })
+      .catch((error: unknown) => {
+        // Sent all the same: only the mark of the answered email is missing
+        console.warn('Answered email not marked', error)
+      })
   }
   return { ok: true, emailId: created.id }
 }

@@ -102,6 +102,9 @@ export function toEmailHtml(editorHtml: string): string {
     const reference = image.getAttribute('data-reference')
     if (reference) image.setAttribute('src', `cid:${reference}`)
     image.removeAttribute('data-reference')
+    const blocked = image.getAttribute('data-blocked-src')
+    if (blocked) image.setAttribute('src', blocked)
+    image.removeAttribute('data-blocked-src')
     appendStyle(image, IMAGE_STYLE)
   }
   for (const signature of Array.from(
@@ -145,6 +148,26 @@ export function toStorageHtml(editorHtml: string): string {
     /<img([^>]*?)src="blob:[^"]*"([^>]*?)data-reference="([^"]+)"/g,
     '<img$1src="cid:$3"$2data-reference="$3"'
   )
+}
+
+/**
+ * A quote made editable: its `cid:` images shown (`fromEmailHtml`), its
+ * remote images kept but not loaded (`data-blocked-src`, given back by
+ * `toEmailHtml`), as the reader blocks them
+ */
+export function editableQuoteHtml(
+  html: string,
+  urlFor: (cid: string) => string | null
+): string {
+  const root = parse(fromEmailHtml(html, urlFor))
+  for (const image of Array.from(root.querySelectorAll('img'))) {
+    const src = image.getAttribute('src') ?? ''
+    if (!/^(https?:)?\/\//i.test(src.trim())) continue
+    image.setAttribute('data-blocked-src', src)
+    image.setAttribute('src', '')
+    image.removeAttribute('srcset')
+  }
+  return root.innerHTML
 }
 
 /** Replaces `cid:` sources by display URLs, for a frame that shows HTML */

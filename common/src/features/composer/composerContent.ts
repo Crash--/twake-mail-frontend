@@ -14,6 +14,7 @@ import type { InlineImageStore, StoredImage } from './InlineImageStore'
 import type { Recipient } from './recipients'
 import type { RecipientKind, RecipientLists } from './RecipientsEditor'
 import { readStorage } from './composerStorage'
+import type { Answering } from './replyContent'
 import { signatureBlock, signatureHtml } from './signature'
 
 /** A file of the message, uploaded or uploading */
@@ -47,6 +48,12 @@ export interface ComposerContent {
    * until the editor computes it (a draft, a new message)
    */
   savedFingerprint: string | null
+  /** Message-IDs of the email answered (`In-Reply-To`) */
+  inReplyTo: string[] | null
+  /** Message-IDs of the thread (`References`) */
+  references: string[] | null
+  /** The email answered, marked once the answer is sent; null for none */
+  answering: Answering | null
 }
 
 /** What makes two states of a message different */
@@ -91,7 +98,10 @@ export function newMessageContent(
     attachments: [],
     draftId: null,
     leftovers: [],
-    savedFingerprint: null
+    savedFingerprint: null,
+    inReplyTo: null,
+    references: null,
+    answering: null
   }
 }
 
@@ -141,6 +151,8 @@ type DraftEmail = Pick<
   | 'cc'
   | 'bcc'
   | 'replyTo'
+  | 'inReplyTo'
+  | 'references'
 > & { [IDENTITY_HEADER]?: string | null }
 
 function toRecipients(
@@ -240,7 +252,11 @@ export async function loadDraftContent(
     attachments,
     draftId,
     leftovers: [],
-    savedFingerprint: null
+    savedFingerprint: null,
+    inReplyTo: email.inReplyTo ?? null,
+    references: email.references ?? null,
+    // The email it answers is not known any more
+    answering: null
   }
 }
 
@@ -261,6 +277,9 @@ export interface ComposerSnapshot {
   /** Absent from the snapshots written before it existed */
   leftovers?: string[]
   savedFingerprint: string | null
+  inReplyTo?: string[] | null
+  references?: string[] | null
+  answering?: Answering | null
 }
 
 function isSnapshot(value: unknown): value is ComposerSnapshot {
@@ -307,6 +326,9 @@ export async function restoreSnapshotContent(
     leftovers: (snapshot.leftovers ?? []).filter(
       (id): id is string => typeof id === 'string'
     ),
-    savedFingerprint: snapshot.savedFingerprint
+    savedFingerprint: snapshot.savedFingerprint,
+    inReplyTo: snapshot.inReplyTo ?? null,
+    references: snapshot.references ?? null,
+    answering: snapshot.answering ?? null
   }
 }

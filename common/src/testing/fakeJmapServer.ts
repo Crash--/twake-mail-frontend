@@ -66,11 +66,15 @@ export type FakeEmail = Pick<
       | 'sentAt'
       | 'bcc'
       | 'replyTo'
+      | 'messageId'
       | 'inReplyTo'
       | 'references'
     >
   > & {
-    /** Headers asked as `header:<name>:asText` (identity of a draft…) */
+    /**
+     * Headers asked as `header:<name>:asText` (identity of a draft…) or
+     * `asURLs` (the `<…>` of the value: `List-Post`)
+     */
     headers?: Record<string, string>
   }
 
@@ -670,9 +674,12 @@ export function makeFakeJmapServer(
       const email = server.emails.find(candidate => candidate.id === id)
       if (!email) return []
       const headers = Object.fromEntries(
-        Object.entries(email.headers ?? {}).map(([name, value]) => [
-          `header:${name}:asText`,
-          value
+        Object.entries(email.headers ?? {}).flatMap(([name, value]) => [
+          [`header:${name}:asText`, value],
+          [
+            `header:${name}:asURLs`,
+            Array.from(value.matchAll(/<([^>]+)>/g), match => match[1])
+          ]
         ])
       )
       return [pickProperties({ ...email, ...headers }, args.properties)]
@@ -784,6 +791,10 @@ export function makeFakeJmapServer(
         ])
     )
     const attachments = parts(create.attachments)
+    const strings = (value: unknown): string[] | null =>
+      Array.isArray(value)
+        ? value.filter(item => typeof item === 'string')
+        : null
     const addresses = (value: unknown): FakeEmail['to'] =>
       Array.isArray(value) ? (value as FakeEmail['to']) : null
     const email: FakeEmail = makeEmail({
@@ -797,6 +808,9 @@ export function makeFakeJmapServer(
       cc: addresses(create.cc),
       bcc: addresses(create.bcc),
       replyTo: addresses(create.replyTo),
+      messageId: [`${id}@example.com`],
+      inReplyTo: strings(create.inReplyTo),
+      references: strings(create.references),
       preview: '',
       hasAttachment: attachments.some(part => part.disposition !== 'inline'),
       htmlBody: parts(create.htmlBody),

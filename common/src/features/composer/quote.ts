@@ -214,10 +214,23 @@ export function buildQuoteHtml(
   ].join('')
 }
 
-/** `Re: ` / `Fwd: ` unless the subject already has it */
-export function prefixSubject(subject: string | null, prefix: string): string {
+/**
+ * The subject of an answer, as tmail-flutter writes it
+ * (`EmailUtils.applyPrefix`): the prefix of the UI language (`Re:`,
+ * `Tr:`…) unless the subject already starts with it or with the English one
+ * (`Re:`, `Fwd:`), whatever the case.
+ */
+export function prefixSubject(
+  subject: string | null,
+  defaultPrefix: 'Re:' | 'Fwd:',
+  localizedPrefix: string
+): string {
   const current = subject ?? ''
-  return current.toLowerCase().startsWith(prefix.toLowerCase())
+  const start = current.trim().toLowerCase()
+  const prefixes = [defaultPrefix, localizedPrefix].map(prefix =>
+    prefix.toLowerCase()
+  )
+  return prefixes.some(prefix => start.startsWith(prefix))
     ? current
-    : `${prefix} ${current}`
+    : `${localizedPrefix} ${current.trim()}`
 }

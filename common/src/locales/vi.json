@@ -271,6 +271,10 @@
       "uploaded": "Đã đính kèm %{name}",
       "uploadFailed": "Không thể đính kèm %{name}",
       "removed": "Đã gỡ %{name}"
+    },
+    "prefix": {
+      "reply": "Re:",
+      "forward": "Chuyển tiếp:"
     }
   },
   "layout": {
@@ -387,7 +391,14 @@
       "unstar": "Không quan trọng",
       "label": "Thao tác với thư"
     },
-    "drag": "Di chuyển %{smart_count} thư"
+    "drag": "Di chuyển %{smart_count} thư",
+    "reply": {
+      "reply": "Trả lời",
+      "replyAll": "Trả lời tất cả",
+      "replyToList": "Trả lời danh sách",
+      "forward": "Chuyển tiếp",
+      "label": "Hành động trả lời"
+    }
   },
   "shortcuts": {
     "title": "Phím tắt",

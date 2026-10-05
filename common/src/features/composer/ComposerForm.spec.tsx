@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 
 import {
   FAKE_ACCOUNT_ID,
+  makeBodyPart,
   makeEmailWithBody,
   makeFakeJmapServer,
   makeIdentity,
@@ -39,6 +40,17 @@ function Opener(): ReactElement {
       >
         Open draft
       </button>
+      {(['reply', 'replyAll', 'forward'] as const).map(action => (
+        <button
+          key={action}
+          type="button"
+          onClick={() => {
+            openComposer({ reply: { emailId: 'source-1', action } })
+          }}
+        >
+          {`Answer ${action}`}
+        </button>
+      ))}
     </>
   )
 }
@@ -411,6 +423,132 @@ describe('ComposerForm', () => {
         expect(readSnapshot(snapshotKey(FAKE_ACCOUNT_ID, 'composer-1'))).toBe(
           null
         )
+      })
+    })
+  })
+
+  describe('answers', () => {
+    function serverWithSource(): FakeJmapServer {
+      return makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'source-1',
+              subject: 'Plans',
+              from: [{ name: 'Emma', email: 'emma@example.com' }],
+              to: [{ name: null, email: 'alice@example.com' }],
+              cc: [{ name: null, email: 'carol@example.com' }],
+              messageId: ['plans@example.com'],
+              references: ['start@example.com'],
+              attachments: [
+                makeBodyPart({
+                  partId: '2',
+                  blobId: 'blob-report',
+                  type: 'application/pdf',
+                  name: 'report.pdf',
+                  size: 2048,
+                  disposition: 'attachment'
+                })
+              ]
+            },
+            { html: '<p>The original <b>plans</b></p>' }
+          )
+        ]
+      })
+    }
+
+    it('replies to the sender with the quote, and marks the email answered once sent', async () => {
+      const jmapServer = serverWithSource()
+      renderComposer(jmapServer)
+      const composer = await openComposer('Answer reply')
+
+      expect(
+        within(composer).getByRole('textbox', { name: 'Subject' })
+      ).toHaveValue('Re: Plans')
+      // The recipients are folded: the text has the focus
+      await waitFor(() => {
+        expect(
+          within(composer).getByRole('textbox', { name: 'Message body' })
+        ).toHaveFocus()
+      })
+      expect(within(composer).getByTitle('Quoted message')).toBeVisible()
+      expect(
+        within(composer).queryAllByTestId('composer-attachment-item')
+      ).toEqual([])
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      const sent = jmapServer.emails.find(
+        email => email.id === jmapServer.submitted[0]
+      )
+      expect(sent?.to).toEqual([{ name: 'Emma', email: 'emma@example.com' }])
+      expect(sent?.subject).toBe('Re: Plans')
+      expect(sent?.inReplyTo).toEqual(['plans@example.com'])
+      expect(sent?.references).toEqual([
+        'start@example.com',
+        'plans@example.com'
+      ])
+      const html = Object.values(sent?.bodyValues ?? {})
+        .map(value => value.value)
+        .join('')
+      expect(html).toContain('On ')
+      expect(html).toContain('<b>plans</b>')
+      await waitFor(() => {
+        expect(
+          jmapServer.emails.find(email => email.id === 'source-1')?.keywords
+        ).toEqual({ $answered: true })
+      })
+    })
+
+    it('replies to all but the user, Cc kept', async () => {
+      renderComposer(serverWithSource())
+      const composer = await openComposer('Answer replyAll')
+
+      await userEvent.click(
+        within(composer).getByTestId('composer-recipients-summary')
+      )
+      expect(
+        within(composer)
+          .getAllByTestId('recipient-chip')
+          .map(chip => chip.textContent)
+      ).toEqual(['Emma', 'carol@example.com'])
+    })
+
+    it('forwards the files of the email, which can be removed', async () => {
+      const jmapServer = serverWithSource()
+      renderComposer(jmapServer)
+      const composer = await openComposer('Answer forward')
+
+      expect(
+        within(composer).getByRole('textbox', { name: 'Subject' })
+      ).toHaveValue('Fwd: Plans')
+      expect(
+        within(composer).getByRole('combobox', { name: 'To' })
+      ).toHaveFocus()
+      expect(
+        within(composer).getByTestId('composer-attachment-item')
+      ).toHaveTextContent('report.pdf')
+
+      await fill(composer, { to: 'dan@example.com' })
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      const sent = jmapServer.emails.find(
+        email => email.id === jmapServer.submitted[0]
+      )
+      expect(sent?.inReplyTo).toBe(null)
+      expect(sent?.attachments?.map(part => part.name)).toEqual(['report.pdf'])
+      await waitFor(() => {
+        expect(
+          jmapServer.emails.find(email => email.id === 'source-1')?.keywords
+        ).toEqual({ $forwarded: true })
       })
     })
   })

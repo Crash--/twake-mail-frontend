@@ -271,6 +271,10 @@
       "uploaded": "%{name} joint",
       "uploadFailed": "%{name} n'a pas pu être joint",
       "removed": "%{name} retiré"
+    },
+    "prefix": {
+      "reply": "Re:",
+      "forward": "Tr:"
     }
   },
   "layout": {
@@ -387,7 +391,14 @@
       "unstar": "Retirer des favoris",
       "label": "Actions sur le message"
     },
-    "drag": "Déplacer %{smart_count} message |||| Déplacer %{smart_count} messages"
+    "drag": "Déplacer %{smart_count} message |||| Déplacer %{smart_count} messages",
+    "reply": {
+      "reply": "Répondre",
+      "replyAll": "Répondre à tous",
+      "replyToList": "Répondre à la liste",
+      "forward": "Transférer",
+      "label": "Actions de réponse"
+    }
   },
   "shortcuts": {
     "title": "Raccourcis clavier",

@@ -1,4 +1,9 @@
-import { fromEmailHtml, htmlToText, toEmailHtml } from './emailHtml'
+import {
+  editableQuoteHtml,
+  fromEmailHtml,
+  htmlToText,
+  toEmailHtml
+} from './emailHtml'
 
 // Cases in the spirit of the email exporter tests of Messages (La Suite
 // numérique, src/frontend/src/features/blocknote/email-exporter/
@@ -75,5 +80,23 @@ describe('htmlToText', () => {
         '> > deeper'
       ].join('\n')
     )
+  })
+})
+
+describe('editableQuoteHtml', () => {
+  it('shows the cid images and keeps the remote ones without loading them', () => {
+    const editable = editableQuoteHtml(
+      '<blockquote><img src="cid:logo"><img src="https://tracker.example/p.png" srcset="https://tracker.example/p2.png 2x"></blockquote>',
+      cid => (cid === 'logo' ? 'blob:logo' : null)
+    )
+    expect(editable).toContain('src="blob:logo" data-reference="logo"')
+    expect(editable).toContain(
+      '<img src="" data-blocked-src="https://tracker.example/p.png">'
+    )
+    expect(editable).not.toContain('srcset')
+    expect(toEmailHtml(editable)).toContain(
+      'src="https://tracker.example/p.png"'
+    )
+    expect(toEmailHtml(editable)).toContain('src="cid:logo"')
   })
 })

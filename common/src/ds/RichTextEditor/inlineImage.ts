@@ -58,6 +58,15 @@ export const InlineImage = Image.extend({
           attributes.reference
             ? { 'data-reference': String(attributes.reference) }
             : {}
+      },
+      // A source the caller keeps without loading it (remote content)
+      blockedSrc: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-blocked-src'),
+        renderHTML: attributes =>
+          attributes.blockedSrc
+            ? { 'data-blocked-src': String(attributes.blockedSrc) }
+            : {}
       }
     }
   }

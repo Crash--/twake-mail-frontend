@@ -69,6 +69,7 @@ import {
 import { summarizeThread, type ThreadSummary } from './threadSummary'
 import { useEmailListActions } from './useEmailListActions'
 import { useEmailListShortcuts } from './useEmailListShortcuts'
+import { EmailListDefaultToolbar } from './EmailListDefaultToolbar'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { useNewEmailCount } from './useNewEmailCount'
 
@@ -432,6 +433,10 @@ export function EmailList(props: EmailListProps): ReactElement {
   )
 
   const screenSize = useScreenSize()
+  const { refetch } = query
+  const handleRefresh = useCallback((): void => {
+    void refetch()
+  }, [refetch])
   // Narrow from the first render on phones and beside an open email (large
   // tablets); the table also measures itself for the other cases (zoom)
   const isCompact = screenSize === 'mobile' || screenSize === 'tabletLarge'
@@ -565,7 +570,15 @@ export function EmailList(props: EmailListProps): ReactElement {
   return (
     <EmailSelectionContext.Provider value={selection}>
       {listActions.banner}
-      {listActions.toolbar}
+      {listActions.toolbar ??
+        (screenSize === 'desktop' ? (
+          <EmailListDefaultToolbar
+            selection={selection}
+            loadedCount={emails.length}
+            mailboxId={mailboxId}
+            onRefresh={handleRefresh}
+          />
+        ) : null)}
       {content}
       {listActions.menu}
       {/* Always mounted: a live region only announces changes */}

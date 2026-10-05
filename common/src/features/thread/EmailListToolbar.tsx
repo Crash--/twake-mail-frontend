@@ -61,7 +61,9 @@ export function EmailListToolbar({
   onDone
 }: EmailListToolbarProps): ReactElement {
   const { t } = useI18n()
-  const isPhone = useScreenSize() === 'mobile'
+  const screenSize = useScreenSize()
+  const isPhone = screenSize === 'mobile'
+  const isDesktop = screenSize === 'desktop'
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
@@ -106,6 +108,18 @@ export function EmailListToolbar({
   const clearLabel = t('thread.selection.clear')
   const moreLabel = t('emailActions.menu.more')
 
+  const clearButton = (
+    <Tooltip title={clearLabel}>
+      <IconButton
+        aria-label={clearLabel}
+        onClick={selection.clear}
+        data-testid="selection-toolbar-clear"
+      >
+        <Icon icon={Cross} />
+      </IconButton>
+    </Tooltip>
+  )
+
   return (
     <Box
       component="section"
@@ -113,16 +127,18 @@ export function EmailListToolbar({
       className="u-flex u-flex-items-center u-flex-wrap u-ph-half"
       data-testid="selection-toolbar"
     >
-      <Tooltip title={selectAllLabel}>
-        <Checkbox
-          // Not indeterminate: MUI then says aria-checked="mixed" on an
-          // unchecked input, which axe refuses (docs/twake-mui-gaps.md)
-          checked={isAllLoaded || selection.isAllInFolder}
-          onChange={handleToggleAll}
-          slotProps={{ input: { 'aria-label': selectAllLabel } }}
-          data-testid="selection-toolbar-select-all"
-        />
-      </Tooltip>
+      {isDesktop ? null : (
+        <Tooltip title={selectAllLabel}>
+          <Checkbox
+            // Not indeterminate: MUI then says aria-checked="mixed" on an
+            // unchecked input, which axe refuses (docs/twake-mui-gaps.md)
+            checked={isAllLoaded || selection.isAllInFolder}
+            onChange={handleToggleAll}
+            slotProps={{ input: { 'aria-label': selectAllLabel } }}
+            data-testid="selection-toolbar-select-all"
+          />
+        </Tooltip>
+      )}
       <Typography
         role="status"
         variant="body2"
@@ -133,6 +149,18 @@ export function EmailListToolbar({
           ? t('thread.selection.allInFolderSelected', { smart_count: count })
           : t('thread.selection.count', { count })}
       </Typography>
+      {isDesktop ? clearButton : null}
+      {isDesktop && !isAllLoaded && !selection.isAllInFolder ? (
+        <Button
+          size="small"
+          variant="text"
+          color="inherit"
+          onClick={handleToggleAll}
+          data-testid="selection-toolbar-select-all"
+        >
+          {selectAllLabel}
+        </Button>
+      ) : null}
       {canSelectFolder ? (
         <Button
           size="small"
@@ -144,7 +172,7 @@ export function EmailListToolbar({
           {t('thread.selection.selectAllInFolder', { smart_count: total })}
         </Button>
       ) : null}
-      <Box className="u-flex-auto" />
+      {isDesktop ? null : <Box className="u-flex-auto" />}
       {buttons.map(item => (
         <Tooltip key={item.id} title={t(item.label)}>
           <IconButton
@@ -173,15 +201,7 @@ export function EmailListToolbar({
           </IconButton>
         </Tooltip>
       ) : null}
-      <Tooltip title={clearLabel}>
-        <IconButton
-          aria-label={clearLabel}
-          onClick={selection.clear}
-          data-testid="selection-toolbar-clear"
-        >
-          <Icon icon={Cross} />
-        </IconButton>
-      </Tooltip>
+      {isDesktop ? null : clearButton}
       <EmailActionsMenu
         anchor={moreAnchor === null ? null : { element: moreAnchor }}
         onClose={() => {

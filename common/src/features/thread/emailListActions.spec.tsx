@@ -183,7 +183,7 @@ describe('Acting on emails of the list', () => {
     await screen.findAllByTestId('email-list-item')
     // Only the first page: no scroll to load the next one
     await userEvent.click(checkbox('Email 0'))
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Select all' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Select all' }))
 
     await userEvent.click(
       screen.getByRole('button', {

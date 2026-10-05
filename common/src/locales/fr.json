@@ -143,6 +143,10 @@
       "clear": "Tout désélectionner",
       "toolbar": "Actions sur la sélection"
     },
+    "toolbar": {
+      "label": "Actions de la liste",
+      "filter": "Filtrer"
+    },
     "me": "Moi",
     "draft": {
       "marker": "Brouillon",

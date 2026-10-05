@@ -143,6 +143,10 @@
       "clear": "Clear the selection",
       "toolbar": "Selection actions"
     },
+    "toolbar": {
+      "label": "List actions",
+      "filter": "Filter"
+    },
     "me": "Me",
     "draft": {
       "marker": "Draft",

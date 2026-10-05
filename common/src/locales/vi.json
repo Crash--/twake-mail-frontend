@@ -143,6 +143,10 @@
       "clear": "Bỏ chọn",
       "toolbar": "Thao tác với mục đã chọn"
     },
+    "toolbar": {
+      "label": "Thao tác với danh sách",
+      "filter": "Lọc"
+    },
     "me": "Tôi",
     "draft": {
       "marker": "Thư nháp",

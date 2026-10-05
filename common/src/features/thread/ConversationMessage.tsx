@@ -24,6 +24,7 @@ import { ReplyActions } from '@common/features/email/ReplyActions'
 import { SenderLine } from '@common/features/email/SenderLine'
 import { useEmail } from '@common/features/email/useEmail'
 import { useReadReceiptRequest } from '@common/features/email/useReadReceiptRequest'
+import { useUnsubscribe } from '@common/features/email/useUnsubscribe'
 import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
 import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredTag'
 import { EmailLabels } from '@common/features/labels/EmailLabels'
@@ -57,6 +58,7 @@ function ExpandedBody({
 }: ExpandedBodyProps): ReactElement {
   const { t, lang } = useI18n()
   useReadReceiptRequest(detail)
+  const { canUnsubscribe, unsubscribe } = useUnsubscribe()
   const { data: mailboxes = [] } = useMailboxes()
   const mailboxId = messageMailboxId(detail, openedMailboxId, mailboxes)
   const sender = detail.from?.[0] ?? null
@@ -68,6 +70,13 @@ function ExpandedBody({
         <SenderLine
           sender={sender}
           hasLabel
+          onUnsubscribe={
+            canUnsubscribe(detail)
+              ? () => {
+                  void unsubscribe(detail, mailboxId)
+                }
+              : null
+          }
           data-testid="conversation-message-sender"
         />
         {isDraft ? null : (

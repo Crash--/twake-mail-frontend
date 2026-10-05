@@ -66,6 +66,7 @@ export type FakeEmail = Pick<
       | 'sentAt'
       | 'bcc'
       | 'replyTo'
+      | 'blobId'
       | 'messageId'
       | 'inReplyTo'
       | 'references'

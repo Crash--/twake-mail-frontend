@@ -117,7 +117,8 @@
     },
     "attachmentsMore": "Show +%{count} more",
     "attachmentsHide": "Hide %{count}",
-    "attachmentsTitle": "%{smart_count} Attachment (%{size}) |||| %{smart_count} Attachments (%{size})"
+    "attachmentsTitle": "%{smart_count} Attachment (%{size}) |||| %{smart_count} Attachments (%{size})",
+    "replyTo": "Reply-To"
   },
   "login": {
     "title": "Sign In",
@@ -515,7 +516,8 @@
       "starred": "Mail has been starred",
       "unstarred": "Mail has been unstarred",
       "starredCount": "%{smart_count} message starred |||| %{smart_count} messages starred",
-      "unstarredCount": "%{smart_count} message unstarred |||| %{smart_count} messages unstarred"
+      "unstarredCount": "%{smart_count} message unstarred |||| %{smart_count} messages unstarred",
+      "downloadEmlFailed": "Download message as EML failed"
     },
     "deleteForever": {
       "title": "Delete message forever",
@@ -535,7 +537,10 @@
       "archive": "Archive message",
       "star": "Star",
       "unstar": "Unstar",
-      "label": "Message actions"
+      "label": "Message actions",
+      "printAll": "Print all",
+      "downloadAsEml": "Download message as EML",
+      "editAsNew": "Edit as new email"
     },
     "drag": "Move %{smart_count} message |||| Move %{smart_count} messages",
     "reply": {
@@ -1113,5 +1118,16 @@
       "until": "until %{date}"
     },
     "untitled": "(No title)"
+  },
+  "unsubscribe": {
+    "action": "Unsubscribe",
+    "title": "Unsubscribe mail",
+    "done": "Unsubscribed from this mailing list",
+    "banner": "You unsubscribe from %{senderName}",
+    "message": "Are you sure you'd like to stop receiving similar messages from %{senderName} ?"
+  },
+  "print": {
+    "inProgress": "Printing in progress",
+    "failed": "Printing failed"
   }
 }

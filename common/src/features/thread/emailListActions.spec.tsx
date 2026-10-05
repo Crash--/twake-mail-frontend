@@ -223,7 +223,8 @@ describe('Acting on emails of the list', () => {
       'Mark as read',
       'Star',
       'Move message',
-      'Mark as spam'
+      'Mark as spam',
+      'Edit as new email'
     ])
     await userEvent.keyboard('{Escape}')
     await waitFor(() => {

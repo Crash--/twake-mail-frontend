@@ -1,7 +1,8 @@
-import { Typography } from '@linagora/twake-mui'
+import { Link, Typography } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -12,6 +13,11 @@ export interface SenderLineProps {
   sender: EmailAddress | null
   /** Says "From:" first, where the name is already shown above */
   hasLabel?: boolean
+  /**
+   * Offers "Unsubscribe" after the address (not on phones, where it is in
+   * the "More" menu, as in tmail-flutter)
+   */
+  onUnsubscribe?: (() => void) | null
   'data-testid': string
 }
 
@@ -22,9 +28,11 @@ export interface SenderLineProps {
 export function SenderLine({
   sender,
   hasLabel = false,
+  onUnsubscribe = null,
   'data-testid': testId
 }: SenderLineProps): ReactElement {
   const { t } = useI18n()
+  const isPhone = useScreenSize() === 'mobile'
   return (
     <Typography data-testid={testId}>
       {hasLabel ? (
@@ -37,6 +45,21 @@ export function SenderLine({
             <SecondaryText component="span">{` <${sender.email}>`}</SecondaryText>
           ) : null}
         </EmailAddressMenu>
+      ) : null}
+      {onUnsubscribe !== null && !isPhone ? (
+        <>
+          {' '}
+          <Link
+            component="button"
+            type="button"
+            color="inherit"
+            underline="always"
+            onClick={onUnsubscribe}
+            data-testid="email-unsubscribe-link"
+          >
+            {t('unsubscribe.action')}
+          </Link>
+        </>
       ) : null}
     </Typography>
   )

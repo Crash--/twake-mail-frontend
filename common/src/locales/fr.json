@@ -117,7 +117,8 @@
     },
     "attachmentsMore": "Afficher les %{count} autres pièces jointes",
     "attachmentsHide": "Cacher les %{count} pièces jointes",
-    "attachmentsTitle": "%{smart_count} pièce jointe (%{size}) |||| %{smart_count} pièces jointes (%{size})"
+    "attachmentsTitle": "%{smart_count} pièce jointe (%{size}) |||| %{smart_count} pièces jointes (%{size})",
+    "replyTo": "Répondre à"
   },
   "login": {
     "title": "Se connecter",
@@ -515,7 +516,8 @@
       "starred": "Le mail a été marqué en favoris",
       "unstarred": "Le mail a été retiré des favoris",
       "starredCount": "%{smart_count} message ajouté aux favoris |||| %{smart_count} messages ajoutés aux favoris",
-      "unstarredCount": "%{smart_count} message retiré des favoris |||| %{smart_count} messages retirés des favoris"
+      "unstarredCount": "%{smart_count} message retiré des favoris |||| %{smart_count} messages retirés des favoris",
+      "downloadEmlFailed": "Échec du téléchargement du message au format EML"
     },
     "deleteForever": {
       "title": "Supprimer le message pour toujours",
@@ -535,7 +537,10 @@
       "archive": "Archiver le message",
       "star": "Favori",
       "unstar": "Retirer des favoris",
-      "label": "Actions sur le message"
+      "label": "Actions sur le message",
+      "printAll": "Tout imprimer",
+      "downloadAsEml": "Télécharger le message au format EML",
+      "editAsNew": "Modifier comme nouvel e-mail"
     },
     "drag": "Déplacer %{smart_count} message |||| Déplacer %{smart_count} messages",
     "reply": {
@@ -1113,5 +1118,16 @@
       "until": "jusqu'au %{date}"
     },
     "untitled": "(Sans titre)"
+  },
+  "unsubscribe": {
+    "action": "Se désabonner",
+    "title": "Désabonnement de l'adresse e-mail",
+    "done": "Désabonnement de cette liste de diffusion réussi",
+    "banner": "Désabonnement de %{senderName}",
+    "message": "Confirmez-vous ne plus vouloir recevoir de message similaire en provenance de %{senderName} ?"
+  },
+  "print": {
+    "inProgress": "Impression en cours",
+    "failed": "Échec de l'impression"
   }
 }

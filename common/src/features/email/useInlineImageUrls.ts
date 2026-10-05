@@ -1,4 +1,4 @@
-import type { EmailBodyPart } from 'jmap-client-ts'
+import type { EmailBodyPart, JmapClient } from 'jmap-client-ts'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -12,7 +12,7 @@ export interface InlineImages {
   isLoading: boolean
 }
 
-interface InlineImagePart {
+export interface InlineImagePart {
   cid: string
   blobId: string
   type: string
@@ -21,6 +21,49 @@ interface InlineImagePart {
 function toInlineImagePart(part: EmailBodyPart): InlineImagePart | null {
   if (!part.cid || !part.blobId || !part.type.startsWith('image/')) return null
   return { cid: normalizeCid(part.cid), blobId: part.blobId, type: part.type }
+}
+
+/**
+ * Downloads inline images with the credentials of the session; the ones
+ * that cannot be fetched are left out. `onUrl` sees each object URL created,
+ * to revoke it later.
+ */
+export async function downloadInlineImages(
+  client: JmapClient,
+  accountId: string,
+  images: readonly InlineImagePart[],
+  signal: AbortSignal,
+  onUrl: (url: string) => void
+): Promise<ReadonlyMap<string, string>> {
+  const results = await Promise.allSettled(
+    images.map(async image => {
+      const blob = await client.download(
+        { accountId, blobId: image.blobId, type: image.type },
+        { signal }
+      )
+      const url = URL.createObjectURL(blob)
+      onUrl(url)
+      return [image.cid, url] as const
+    })
+  )
+  return new Map(
+    results.flatMap(result =>
+      result.status === 'fulfilled' ? [result.value] : []
+    )
+  )
+}
+
+/** The inline images of an email that its HTML references */
+export function findInlineImageParts(
+  parts: readonly EmailBodyPart[],
+  referencedCids: ReadonlySet<string>
+): InlineImagePart[] {
+  return parts
+    .map(toInlineImagePart)
+    .filter(
+      (part): part is InlineImagePart =>
+        part !== null && referencedCids.has(part.cid)
+    )
 }
 
 const NO_IMAGES: ReadonlyMap<string, string> = new Map()
@@ -37,13 +80,7 @@ export function useInlineImageUrls(
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const images = useMemo(
-    () =>
-      parts
-        .map(toInlineImagePart)
-        .filter(
-          (part): part is InlineImagePart =>
-            part !== null && referencedCids.has(part.cid)
-        ),
+    () => findInlineImageParts(parts, referencedCids),
     [parts, referencedCids]
   )
   const imagesKey = images.map(image => image.blobId).join(',')
@@ -58,23 +95,16 @@ export function useInlineImageUrls(
     const created: string[] = []
 
     const downloadAll = async (): Promise<void> => {
-      const results = await Promise.allSettled(
-        images.map(async image => {
-          const blob = await client.download(
-            { accountId, blobId: image.blobId, type: image.type },
-            { signal: controller.signal }
-          )
-          const url = URL.createObjectURL(blob)
+      const urls = await downloadInlineImages(
+        client,
+        accountId,
+        images,
+        controller.signal,
+        url => {
           created.push(url)
-          return [image.cid, url] as const
-        })
+        }
       )
       if (controller.signal.aborted) return
-      const urls = new Map(
-        results.flatMap(result =>
-          result.status === 'fulfilled' ? [result.value] : []
-        )
-      )
       setLoaded({ key: imagesKey, urls })
     }
     void downloadAll()

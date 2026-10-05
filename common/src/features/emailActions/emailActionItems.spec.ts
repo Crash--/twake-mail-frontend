@@ -30,6 +30,59 @@ function ids(
   ).map(item => item.id)
 }
 
+describe('availableEmailActions, actions of one open email', () => {
+  const ALL = ['unsubscribe', 'print', 'download-eml', 'edit-as-new'] as const
+  function withExtras(
+    role: string | null,
+    emails = [unread],
+    extras: readonly (typeof ALL)[number][] = ALL
+  ): string[] {
+    return availableEmailActions(
+      emails,
+      { role, name: role ?? 'Folder', namespace: 'Personal', parentId: null },
+      MAILBOXES,
+      { extras }
+    ).map(item => item.id)
+  }
+
+  it('adds the asked ones after the others, in tmail-flutter order', () => {
+    expect(withExtras('inbox')).toEqual([
+      'move-to-trash',
+      'archive',
+      'mark-as-read',
+      'star',
+      'move',
+      'mark-as-spam',
+      'unsubscribe',
+      'print',
+      'download-eml',
+      'edit-as-new'
+    ])
+  })
+
+  it('adds none for several emails', () => {
+    expect(withExtras('inbox', [unread, readStarred])).not.toContain('print')
+  })
+
+  it('does not edit as new a draft, nor a template', () => {
+    expect(withExtras('drafts')).not.toContain('edit-as-new')
+    expect(
+      withExtras('inbox', [
+        { id: 'd', mailboxIds: { x: true }, keywords: { $draft: true } }
+      ])
+    ).not.toContain('edit-as-new')
+    const templates = makeMailbox({ id: 'tpl', name: 'Templates' })
+    expect(
+      availableEmailActions(
+        [{ id: 't', mailboxIds: { tpl: true }, keywords: {} }],
+        null,
+        [...MAILBOXES, templates],
+        { extras: ALL }
+      ).map(item => item.id)
+    ).not.toContain('edit-as-new')
+  })
+})
+
 describe('availableEmailActions', () => {
   it('offers the actions of tmail-flutter in the Inbox, in its order', () => {
     expect(ids('inbox')).toEqual([

@@ -40,6 +40,7 @@ import { useEmail } from './useEmail'
 import { useEmailViewShortcuts } from './useEmailViewShortcuts'
 import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
 import { useReadReceiptRequest } from './useReadReceiptRequest'
+import { useUnsubscribe } from './useUnsubscribe'
 
 interface EmailContentProps {
   email: EmailDetail
@@ -54,6 +55,7 @@ function EmailContent({
   onBack
 }: EmailContentProps): ReactElement {
   const { t, lang } = useI18n()
+  const { canUnsubscribe, unsubscribe } = useUnsubscribe()
   useMarkAsReadOnOpen(email)
   useReadReceiptRequest(email)
   const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
@@ -119,7 +121,17 @@ function EmailContent({
           }
           identity={
             <>
-              <SenderLine sender={sender} data-testid="email-view-from" />
+              <SenderLine
+                sender={sender}
+                onUnsubscribe={
+                  canUnsubscribe(email)
+                    ? () => {
+                        void unsubscribe(email, mailboxId)
+                      }
+                    : null
+                }
+                data-testid="email-view-from"
+              />
               <AddressLine
                 label="email.to"
                 addresses={email.to}

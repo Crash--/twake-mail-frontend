@@ -11,6 +11,12 @@ import type { ReactElement } from 'react'
 
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
+import type { EmailDetail } from '@common/features/email/queries'
+import {
+  useRunViewedEmailAction,
+  viewedEmailExtras
+} from '@common/features/email/useRunViewedEmailAction'
+import { useUnsubscribe } from '@common/features/email/useUnsubscribe'
 import { REPLY_LABELS } from '@common/features/email/useReplyOptions'
 import { isDraftsMailbox } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -58,6 +64,11 @@ export interface EmailActionsMenuProps {
    * folder, the one its conversation opens on)
    */
   answerEmailId?: string | null
+  /**
+   * The open email, when the menu is its "More" menu: adds the actions
+   * that need all of it (Print, Download as EML, Unsubscribe)
+   */
+  detail?: EmailDetail
   'data-testid'?: string
 }
 
@@ -77,12 +88,15 @@ export function EmailActionsMenu({
   onAction,
   replies,
   answerEmailId,
+  detail,
   'data-testid': testId = 'email-actions-menu'
 }: EmailActionsMenuProps): ReactElement {
   const { t } = useI18n()
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
+  const runViewedAction = useRunViewedEmailAction()
+  const { canUnsubscribe } = useUnsubscribe()
   const { openComposer } = useComposer()
   const mailbox =
     mailboxes.find(candidate => candidate.id === mailboxId) ?? null
@@ -99,7 +113,11 @@ export function EmailActionsMenu({
     anchor === null
       ? []
       : availableEmailActions(emails, mailbox, mailboxes, {
-          canLabel
+          canLabel,
+          extras:
+            detail !== undefined
+              ? viewedEmailExtras(detail, canUnsubscribe(detail))
+              : ['edit-as-new']
         }).filter(item => !exclude.includes(item.id))
 
   const handleReply = (action: ReplyAction): void => {
@@ -125,7 +143,16 @@ export function EmailActionsMenu({
 
   const handleRun = (item: EmailActionItem): void => {
     onClose()
-    void runAction(item.id, emails, mailboxId).then(done => {
+    let running: Promise<boolean>
+    if (detail !== undefined) {
+      running = runViewedAction(item.id, detail, mailboxId)
+    } else if (item.id === 'edit-as-new') {
+      if (answered !== null) openComposer({ editAsNewEmailId: answered })
+      running = Promise.resolve(false)
+    } else {
+      running = runAction(item.id, emails, mailboxId)
+    }
+    void running.then(done => {
       if (done) onAction?.(item.id)
     })
   }

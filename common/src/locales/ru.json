@@ -117,7 +117,8 @@
     },
     "attachmentsMore": "Показать еще %{count}",
     "attachmentsHide": "Скрыть %{count}",
-    "attachmentsTitle": "%{smart_count} вложение (%{size}) |||| %{smart_count} вложения (%{size}) |||| %{smart_count} вложений (%{size})"
+    "attachmentsTitle": "%{smart_count} вложение (%{size}) |||| %{smart_count} вложения (%{size}) |||| %{smart_count} вложений (%{size})",
+    "replyTo": "Ответ"
   },
   "login": {
     "title": "Войти",
@@ -515,7 +516,8 @@
       "starred": "Отмечено как избранное",
       "unstarred": "Удалено из избранного",
       "starredCount": "%{smart_count} сообщение добавлено в избранное |||| %{smart_count} сообщения добавлены в избранное |||| %{smart_count} сообщений добавлено в избранное",
-      "unstarredCount": "%{smart_count} сообщение убрано из избранного |||| %{smart_count} сообщения убраны из избранного |||| %{smart_count} сообщений убрано из избранного"
+      "unstarredCount": "%{smart_count} сообщение убрано из избранного |||| %{smart_count} сообщения убраны из избранного |||| %{smart_count} сообщений убрано из избранного",
+      "downloadEmlFailed": "Не удалось скачать сообщения как EML"
     },
     "deleteForever": {
       "title": "Удалить сообщение навсегда",
@@ -535,7 +537,10 @@
       "archive": "Заархивировать сообщение",
       "star": "Избранное",
       "unstar": "Убрать из избранного",
-      "label": "Действия с сообщением"
+      "label": "Действия с сообщением",
+      "printAll": "Печатать все",
+      "downloadAsEml": "Скачать сообщения как EML",
+      "editAsNew": "Редактировать как новый адрес электронной почты"
     },
     "drag": "Переместить %{smart_count} сообщение |||| Переместить %{smart_count} сообщения |||| Переместить %{smart_count} сообщений",
     "reply": {
@@ -1113,5 +1118,16 @@
       "until": "до %{date}"
     },
     "untitled": "(Без названия)"
+  },
+  "unsubscribe": {
+    "action": "Отписаться",
+    "title": "Отписаться от почты",
+    "done": "Вы отписались от этой рассылки",
+    "banner": "Вы отписались от %{senderName}",
+    "message": "Вы уверены, что больше не хотите получать схожие письма от %{senderName} ?"
+  },
+  "print": {
+    "inProgress": "Идет процесс печати",
+    "failed": "Ошибка печати"
   }
 }

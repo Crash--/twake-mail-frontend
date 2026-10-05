@@ -21,22 +21,27 @@ export const EMAIL_VIEW_PROPERTIES = [
   'bodyValues',
   'attachments',
   'hasAttachment',
-  'replyTo'
+  'replyTo',
+  'blobId'
 ] as const
 
 /** The posting address of a mailing list (RFC 2369), for "Reply to list" */
 export const LIST_POST_HEADER = 'header:List-Post:asURLs'
+
+/** Where to unsubscribe (RFC 2369): the `<…>` URLs of the header */
+export const LIST_UNSUBSCRIBE_HEADER = 'header:List-Unsubscribe:asURLs'
 
 /** Where the sender asks a read receipt to go (RFC 8098, RFC 9007) */
 export const READ_RECEIPT_HEADER = 'header:Disposition-Notification-To:asText'
 
 export type EmailDetail = Pick<
   Email,
-  Exclude<(typeof EMAIL_VIEW_PROPERTIES)[number], 'replyTo'>
+  Exclude<(typeof EMAIL_VIEW_PROPERTIES)[number], 'replyTo' | 'blobId'>
 > &
-  Partial<Pick<Email, 'replyTo'>> &
+  Partial<Pick<Email, 'replyTo' | 'blobId'>> &
   PriorityHeaders & {
     [LIST_POST_HEADER]?: string[] | null
+    [LIST_UNSUBSCRIBE_HEADER]?: string[] | null
     [READ_RECEIPT_HEADER]?: string | null
   }
 
@@ -71,6 +76,7 @@ export function emailQueryOptions(
           properties: [
             ...EMAIL_VIEW_PROPERTIES,
             LIST_POST_HEADER,
+            LIST_UNSUBSCRIBE_HEADER,
             READ_RECEIPT_HEADER,
             ...PRIORITY_HEADERS
           ],

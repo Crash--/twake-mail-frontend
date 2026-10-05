@@ -79,6 +79,11 @@ function subscribe(listener: () => void): () => void {
   }
 }
 
+/** Whether the remote content of `email` is always shown, outside React */
+export function isTrustedSender(email: string): boolean {
+  return readTrustedSenders().has(normalize(email))
+}
+
 export interface TrustedSender {
   isTrusted: boolean
   /** Always shows the remote content of this sender */

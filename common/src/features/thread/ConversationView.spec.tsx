@@ -270,6 +270,40 @@ describe('ConversationView', () => {
     })
   })
 
+  it('offers Unsubscribe on the message that has a link, and only there', async () => {
+    const server = makeServer()
+    const message = server.emails.find(email => email.id === 'c')
+    if (message) {
+      message.headers = { 'List-Unsubscribe': '<https://example.com/u?id=1>' }
+    }
+    const open = jest.spyOn(window, 'open').mockReturnValue(null)
+    await renderConversation(server)
+
+    const links = await screen.findAllByTestId('email-unsubscribe-link')
+    expect(links).toHaveLength(1)
+    const [link] = links
+    if (!link) throw new Error('No Unsubscribe link')
+    await userEvent.click(link)
+    await userEvent.click(
+      within(await screen.findByRole('dialog')).getByRole('button', {
+        name: 'Unsubscribe'
+      })
+    )
+
+    expect(open).toHaveBeenCalledWith(
+      'https://example.com/u?id=1',
+      '_blank',
+      'noopener,noreferrer'
+    )
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'c')?.keywords).toEqual({
+        $seen: true,
+        $unsubscribe: true
+      })
+    })
+    open.mockRestore()
+  })
+
   it('expands a collapsed message, its body loaded', async () => {
     await renderConversation(makeServer())
 

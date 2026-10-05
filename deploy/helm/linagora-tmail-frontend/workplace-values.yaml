@@ -1,0 +1,53 @@
+# Values of the linagora/tmail-frontend chart (1.0.12) shaped like a Twake Workplace
+# deployment, with example.com addresses, used with the image of this repository
+# (docs/deployment.md, "Deploy with linagora/tmail-frontend"). Tested by test.sh.
+#
+# The image is not set here: --set image.repository=... --set image.tag=...
+config:
+  serverUrl: https://jmap.example.com
+  domainRedirectUrl: https://mail.example.com
+  clientID: example-client
+  oidcScopes: openid,profile,email
+  appGridAvailable: supported
+  fcmAvailable: supported
+  iosFcm: supported
+  platformType: saas
+  cozyIntegration: true
+  forceEmailQuery: true
+  appGrid:
+    apps:
+      - appName: Chat
+        appLink: https://chat.example.com
+        icon: ic_twake_app.svg
+      - appName: Drive
+        appLink: https://drive.example.com
+        icon: ic_tdrive_app.svg
+      - appName: Mail
+        appLink: https://mail.example.com
+        icon: ic_tmail_app.svg
+  sentry:
+    enabled: true
+    dsn: https://publickey@sentry.example.com/42
+    environment: example
+  fcm:
+    apiKey: example
+    appId: example
+    senderId: example
+    projectId: example
+    databaseUrl: https://example.firebaseio.com
+    storageBucket: example.appspot.com
+    authDomain: example.firebaseapp.com
+    vapidPublicKey: example
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hostname: mail.example.com
+  path: /
+  pathType: ImplementationSpecific
+  tls: true
+
+# The Workplace frames the app from the address of each user
+extraEnv:
+  - name: CSP_FRAME_ANCESTORS
+    value: "'self' https://*.example.com"

@@ -29,6 +29,7 @@ import { ImageToolbar } from './ImageToolbar'
 import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
 import { RichTextToolbar } from './RichTextToolbar'
+import { SelectionAction } from './SelectionAction'
 import { SmartTrailingBlock } from './smartTrailingBlock'
 import {
   DEFAULT_FONT_SIZE,
@@ -37,7 +38,8 @@ import {
   type RichTextEditorActions,
   type RichTextEditorLabels,
   type RichTextEditorTestIds,
-  type RichTextFontSize
+  type RichTextFontSize,
+  type RichTextSelectionAction
 } from './types'
 
 export interface RichTextEditorProps {
@@ -89,6 +91,8 @@ export interface RichTextEditorProps {
   onReady?: (editor: Editor) => void
   onUpdate?: (editor: Editor) => void
   testIds?: RichTextEditorTestIds
+  /** A button under the end of the selected text */
+  selectionAction?: RichTextSelectionAction
 }
 
 /** The image types the editor takes (paste, drop, toolbar) */
@@ -186,10 +190,12 @@ export function RichTextEditor({
   actions,
   onReady,
   onUpdate,
-  testIds = {}
+  testIds = {},
+  selectionAction
 }: RichTextEditorProps): ReactElement {
   const editorId = useId()
   const helpId = useId()
+  const [container, setContainer] = useState<HTMLElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [linkDialog, setLinkDialog] = useState<{
     value: LinkDialogValue
@@ -358,6 +364,7 @@ export function RichTextEditor({
   return (
     // Relative: the image toolbar is placed in it
     <Box
+      ref={setContainer}
       className="u-flex u-flex-column"
       sx={{
         position: 'relative',
@@ -466,6 +473,13 @@ export function RichTextEditor({
       >
         <EditorContent editor={editor} />
       </Box>
+      {selectionAction ? (
+        <SelectionAction
+          editor={editor}
+          action={selectionAction}
+          container={container}
+        />
+      ) : null}
       {isToolbarBelow ? toolbar : null}
       <input
         ref={fileInputRef}

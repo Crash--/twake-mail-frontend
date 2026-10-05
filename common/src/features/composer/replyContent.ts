@@ -9,9 +9,16 @@ import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 import { LIST_POST_HEADER } from '@common/features/email/queries'
 import type { IdentitySummary } from '@common/features/identities/queries'
 
-import type { ComposerAttachment, ComposerContent } from './composerContent'
+import {
+  identityBcc,
+  NO_SEND_OPTIONS,
+  type ComposerAttachment,
+  type ComposerContent,
+  type SendOptions
+} from './composerContent'
 import type { InlineImageStore } from './InlineImageStore'
 import { buildQuoteHtml, prefixSubject, type QuoteLabels } from './quote'
+import { mergeRecipients } from './recipients'
 import {
   replyRecipients,
   type IsSelf,
@@ -126,7 +133,8 @@ export async function loadReplyContent(
   images: InlineImageStore,
   labels: ReplyLabels,
   locale: string,
-  isSelf: IsSelf
+  isSelf: IsSelf,
+  options: SendOptions = NO_SEND_OPTIONS
 ): Promise<ComposerContent> {
   const response = await client.call('Email/get', {
     accountId,
@@ -198,10 +206,13 @@ export async function loadReplyContent(
   )
   const identity = identities[0] ?? null
   const signature = identity ? signatureHtml(identity) : null
+  const bcc = mergeRecipients(recipients.bcc, identityBcc(identity))
   return {
     identityId: identity?.id ?? null,
-    recipients: { ...recipients, replyTo: [] },
-    shown: (['cc', 'bcc'] as const).filter(kind => recipients[kind].length > 0),
+    recipients: { ...recipients, bcc, replyTo: [] },
+    shown: (['cc', 'bcc'] as const).filter(kind =>
+      kind === 'bcc' ? bcc.length > 0 : recipients[kind].length > 0
+    ),
     subject: isForward
       ? prefixSubject(source.subject, 'Fwd:', labels.forwardPrefix)
       : prefixSubject(source.subject, 'Re:', labels.replyPrefix),
@@ -221,6 +232,8 @@ export async function loadReplyContent(
     },
     hasBlockedImages: false,
     draftSession: crypto.randomUUID(),
-    mayHaveStrays: false
+    mayHaveStrays: false,
+    options,
+    readReceiptAddress: null
   }
 }

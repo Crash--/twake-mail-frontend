@@ -1,6 +1,7 @@
 import {
   createClient,
   JmapSetError,
+  type EmailAddress,
   type EmailCreate,
   type FetchFunction,
   type JmapClient
@@ -15,7 +16,14 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 
-import { saveDraft, sendEmail } from './composeEmail'
+import {
+  buildEmail,
+  identityReplyTo,
+  saveDraft,
+  sendEmail,
+  type BuildPurpose,
+  type ComposedMessage
+} from './composeEmail'
 import { InlineImageStore } from './InlineImageStore'
 
 const MAILBOX_IDS = { drafts: 'mailbox-drafts', sent: 'mailbox-sent' }
@@ -263,5 +271,77 @@ describe('sendEmail', () => {
 
     expect(result.ok).toBe(true)
     expect(subjectsOf(server)).toEqual([])
+  })
+})
+
+describe('buildEmail', () => {
+  const message: ComposedMessage = {
+    identityId: 'identity-alice',
+    from: { name: 'Alice', email: 'alice@example.com' },
+    to: [{ name: null, email: 'bob@example.com' }],
+    subject: 'Options',
+    editorHtml: '<p>Hello</p>',
+    inReplyTo: null,
+    references: null,
+    readReceiptTo: 'alice@example.com',
+    isImportant: true,
+    identityReplyTo: [{ name: 'Alice', email: 'alice@example.com' }]
+  }
+
+  function build(
+    input: ComposedMessage,
+    purpose: BuildPurpose
+  ): Promise<EmailCreate> {
+    const server = makeFakeJmapServer()
+    const images = new InlineImageStore(makeClient(server), FAKE_ACCOUNT_ID)
+    return buildEmail(input, images, MAILBOX_IDS, purpose)
+  }
+
+  it('asks a read receipt and marks it important as tmail-flutter', async () => {
+    const email = await build(message, 'send')
+
+    expect(email).toMatchObject({
+      'header:Disposition-Notification-To:asText': 'alice@example.com',
+      'header:Return-Path:asText': 'alice@example.com',
+      'header:X-Priority:asText': '1',
+      'header:Importance:asText': 'high',
+      'header:Priority:asText': 'urgent'
+    })
+    const plain = await build(
+      { ...message, readReceiptTo: null, isImportant: false },
+      'send'
+    )
+    expect(Object.keys(plain).filter(key => key.startsWith('header:'))).toEqual(
+      ['header:X-JMAP-Identity:asText']
+    )
+  })
+
+  it('sends with the Reply-To of the identity when none is typed, drafts without', async () => {
+    expect((await build(message, 'send')).replyTo).toEqual([
+      { name: 'Alice', email: 'alice@example.com' }
+    ])
+    expect((await build(message, 'draft')).replyTo).toBe(null)
+    const typed = [{ name: null, email: 'replies@example.com' }]
+    expect(
+      (await build({ ...message, replyTo: typed }, 'send')).replyTo
+    ).toEqual(typed)
+  })
+})
+
+describe('identityReplyTo', () => {
+  it('names the Reply-To of the identity after it, else answers to the identity', () => {
+    const identity = {
+      name: 'Support',
+      email: 'alice@example.com',
+      // James leaves out the name it does not have
+      replyTo: [{ email: 'replies@example.com' } as EmailAddress]
+    }
+    expect(identityReplyTo(identity)).toEqual([
+      { name: 'Support', email: 'replies@example.com' }
+    ])
+    expect(identityReplyTo({ ...identity, replyTo: null })).toEqual([
+      { name: 'Support', email: 'alice@example.com' }
+    ])
+    expect(identityReplyTo(undefined)).toEqual([])
   })
 })

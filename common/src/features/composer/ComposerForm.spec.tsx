@@ -128,6 +128,85 @@ describe('ComposerForm', () => {
       expect(sent?.to).toEqual([{ name: null, email: 'bob@example.com' }])
     })
 
+    it('asks a read receipt and marks the message important from "More"', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Options' })
+
+      for (const [name, toast] of [
+        ['Request read receipt', 'Request read receipt has been enabled'],
+        ['Mark as important', 'Mark as important is enabled']
+      ] as const) {
+        await userEvent.click(
+          within(composer).getByRole('button', { name: 'More' })
+        )
+        const item = screen.getByRole('menuitemcheckbox', { name })
+        expect(item).toHaveAttribute('aria-checked', 'false')
+        await userEvent.click(item)
+        expect(await screen.findByTestId('toast')).toHaveTextContent(toast)
+      }
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'More' })
+      )
+      expect(
+        screen.getByRole('menuitemcheckbox', { name: 'Mark as important' })
+      ).toHaveAttribute('aria-checked', 'true')
+      await userEvent.keyboard('{Escape}')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      await waitFor(() => {
+        expect(jmapServer.submitted).toHaveLength(1)
+      })
+      const sent = jmapServer.emails.find(
+        email => email.id === jmapServer.submitted[0]
+      )
+      expect(sent?.headers).toMatchObject({
+        'Disposition-Notification-To': 'alice@example.com',
+        'X-Priority': '1',
+        Importance: 'high',
+        Priority: 'urgent'
+      })
+      expect(sent?.replyTo).toEqual([
+        { name: 'Alice Martin', email: 'alice@example.com' }
+      ])
+    })
+
+    it('swaps the Bcc of the identity when another one is chosen', async () => {
+      renderComposer(
+        makeFakeJmapServer({
+          identities: [
+            makeIdentity({
+              id: 'identity-alice',
+              mayDelete: false,
+              bcc: [{ name: null, email: 'archive@example.com' }]
+            }),
+            makeIdentity({
+              id: 'identity-work',
+              name: 'Work',
+              mayDelete: true,
+              bcc: [{ name: null, email: 'boss@example.com' }]
+            })
+          ]
+        })
+      )
+      const composer = await openComposer()
+      const bcc = (): string[] =>
+        within(within(composer).getByTestId('composer-bcc-field'))
+          .queryAllByTestId('recipient-chip')
+          .map(chip => chip.textContent)
+      expect(bcc()).toEqual(['archive@example.com'])
+
+      await userEvent.click(
+        within(composer).getByTestId('composer-identity-select')
+      )
+      await userEvent.click(screen.getByRole('option', { name: /^Work/ }))
+
+      expect(bcc()).toEqual(['boss@example.com'])
+    })
+
     it('asks for a recipient first', async () => {
       const { jmapServer } = renderComposer()
       const composer = await openComposer()

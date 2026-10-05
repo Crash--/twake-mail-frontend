@@ -3,11 +3,13 @@ import {
   type EmailAddress,
   type EmailBodyPartCreate,
   type EmailCreate,
+  type Identity,
   type JmapClient,
   type SetError
 } from 'jmap-client-ts'
 
 import { findReferencedCids } from '@common/features/email/emailBody'
+import { IMPORTANT_HEADER_VALUES } from '@common/features/email/importance'
 
 import { htmlToText, toEmailHtml } from './emailHtml'
 import type { InlineImageStore } from './InlineImageStore'
@@ -30,6 +32,12 @@ export const ANSWERING_HEADER = 'header:X-Twake-Answering:asText'
  */
 const DRAFT_SESSION_NAME = 'X-Twake-Draft-Session'
 export const DRAFT_SESSION_HEADER = `header:${DRAFT_SESSION_NAME}:asText`
+
+/** Asks the recipients for a read receipt (RFC 8098), with `RETURN_PATH_HEADER` */
+export const READ_RECEIPT_REQUEST_HEADER =
+  'header:Disposition-Notification-To:asText'
+/** tmail-flutter writes the address of the read receipts there too */
+export const RETURN_PATH_HEADER = 'header:Return-Path:asText'
 
 const ANSWER_KEYWORDS: readonly string[] = ['$answered', '$forwarded']
 
@@ -74,6 +82,40 @@ export interface ComposedMessage {
   answering?: Answering | null
   /** The composer saving it, in the drafts (`DRAFT_SESSION_HEADER`) */
   draftSession?: string | null
+  /**
+   * Where to send read receipts (`Disposition-Notification-To`): the address
+   * of the account, as tmail-flutter; null asks for none
+   */
+  readReceiptTo?: string | null
+  /** Marked important: `X-Priority`, `Importance`, `Priority` */
+  isImportant?: boolean
+  /**
+   * The Reply-To of the message sent when the user typed none: the one of
+   * the identity, as tmail-flutter (`createReplyToRecipients`); drafts keep
+   * only what was typed
+   */
+  identityReplyTo?: EmailAddress[]
+}
+
+/**
+ * The Reply-To of a message sent with `identity` when the user typed none
+ * (tmail-flutter `createReplyToRecipients`): the Reply-To of the identity,
+ * named after it when the address has no name, else the identity itself
+ */
+export function identityReplyTo(
+  identity: Pick<Identity, 'name' | 'email' | 'replyTo'> | undefined
+): EmailAddress[] {
+  if (!identity) return []
+  const name = identity.name === '' ? null : identity.name
+  const replyTo = identity.replyTo ?? []
+  if (replyTo.length > 0) {
+    return replyTo.map(address => ({
+      // James leaves out a name it does not have
+      name: (address.name ?? '') === '' ? name : address.name,
+      email: address.email
+    }))
+  }
+  return identity.email === '' ? [] : [{ name, email: identity.email }]
 }
 
 /** What an email is built for: a version of the draft, or the message sent */
@@ -128,6 +170,14 @@ export async function buildEmail(
   const answering = purpose === 'draft' ? (message.answering ?? null) : null
   const draftSession =
     purpose === 'draft' ? (message.draftSession ?? null) : null
+  const typedReplyTo = message.replyTo ?? []
+  const replyTo =
+    typedReplyTo.length > 0
+      ? typedReplyTo
+      : purpose === 'send'
+        ? (message.identityReplyTo ?? [])
+        : []
+  const readReceiptTo = message.readReceiptTo ?? null
   return {
     mailboxIds: { [mailboxIds.drafts]: true },
     keywords: { $draft: true, $seen: true },
@@ -135,7 +185,7 @@ export async function buildEmail(
     to: message.to,
     cc: message.cc ?? [],
     bcc: message.bcc ?? [],
-    replyTo: message.replyTo?.length ? message.replyTo : null,
+    replyTo: replyTo.length > 0 ? replyTo : null,
     subject: message.subject,
     ...(message.identityId === null
       ? {}
@@ -144,6 +194,13 @@ export async function buildEmail(
       ? {}
       : { [ANSWERING_HEADER]: formatAnswering(answering) }),
     ...(draftSession === null ? {} : { [DRAFT_SESSION_HEADER]: draftSession }),
+    ...(readReceiptTo === null || readReceiptTo === ''
+      ? {}
+      : {
+          [READ_RECEIPT_REQUEST_HEADER]: readReceiptTo,
+          [RETURN_PATH_HEADER]: readReceiptTo
+        }),
+    ...(message.isImportant === true ? IMPORTANT_HEADER_VALUES : {}),
     inReplyTo: message.inReplyTo,
     references: message.references,
     bodyValues: {

@@ -68,6 +68,8 @@ export interface SearchFilter {
   hasAttachment: boolean
   unread: boolean
   starred: boolean
+  /** The keyword of a label the emails have, null for any */
+  label: string | null
   sort: SortOrder
 }
 
@@ -84,6 +86,7 @@ export const EMPTY_SEARCH_FILTER: SearchFilter = {
   hasAttachment: false,
   unread: false,
   starred: false,
+  label: null,
   sort: DEFAULT_SORT_ORDER
 }
 
@@ -99,7 +102,8 @@ export function isEmptySearch(filter: SearchFilter): boolean {
     filter.dateRange === 'allTime' &&
     !filter.hasAttachment &&
     !filter.unread &&
-    !filter.starred
+    !filter.starred &&
+    filter.label === null
   )
 }
 
@@ -145,8 +149,13 @@ const PARAMS = {
   hasAttachment: 'attachment',
   unread: 'unread',
   starred: 'starred',
+  label: 'label',
   sort: 'sort'
 } as const
+
+function emptyToNull(value: string | null): string | null {
+  return value === null || value === '' ? null : value
+}
 
 /** `in=` value searching every mailbox, the trash and the spam included */
 const EVERYWHERE = 'all'
@@ -193,6 +202,7 @@ export function parseSearchParams(
     hasAttachment: params.get(PARAMS.hasAttachment) === '1',
     unread: params.get(PARAMS.unread) === '1',
     starred: params.get(PARAMS.starred) === '1',
+    label: emptyToNull(params.get(PARAMS.label)),
     sort: isOneOf(SORT_ORDERS, sort) ? sort : defaultSort
   }
 }
@@ -223,6 +233,7 @@ export function toSearchParams(filter: SearchFilter): URLSearchParams {
   if (filter.hasAttachment) params.set(PARAMS.hasAttachment, '1')
   if (filter.unread) params.set(PARAMS.unread, '1')
   if (filter.starred) params.set(PARAMS.starred, '1')
+  if (filter.label !== null) params.set(PARAMS.label, filter.label)
   params.set(PARAMS.sort, filter.sort)
   return params
 }
@@ -318,6 +329,12 @@ export function toJmapFilter(
   if (subject !== '') condition.subject = subject
   if (filter.hasAttachment) condition.hasAttachment = true
   if (filter.starred) condition.hasKeyword = FLAGGED
+  // One `hasKeyword` per condition: the label in its own when starred too
+  const labelCondition: EmailFilterCondition[] = []
+  if (filter.label !== null) {
+    if (condition.hasKeyword === undefined) condition.hasKeyword = filter.label
+    else labelCondition.push({ hasKeyword: filter.label })
+  }
   if (filter.unread) condition.notKeyword = SEEN
   if (filter.scope.kind === 'mailbox') {
     condition.inMailbox = filter.scope.mailboxId
@@ -326,7 +343,7 @@ export function toJmapFilter(
   }
   if (filter.from.length === 1) condition.from = filter.from[0]
 
-  const extra: Filter<EmailFilterCondition>[] = []
+  const extra: Filter<EmailFilterCondition>[] = [...labelCondition]
   if (filter.from.length > 1) {
     extra.push(anyOf(filter.from.map(from => ({ from }))))
   }

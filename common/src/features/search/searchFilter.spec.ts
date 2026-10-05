@@ -122,6 +122,24 @@ describe('toJmapFilter', () => {
     })
   })
 
+  it('searches the emails of a label, in a condition of its own when starred too', () => {
+    expect(
+      toJmapFilter(filter({ label: 'work' }), {
+        ...CONTEXT,
+        trashAndSpamIds: []
+      })
+    ).toEqual({ hasKeyword: 'work' })
+    expect(
+      toJmapFilter(filter({ label: 'work', starred: true }), {
+        ...CONTEXT,
+        trashAndSpamIds: []
+      })
+    ).toEqual({
+      operator: 'AND',
+      conditions: [{ hasKeyword: '$flagged' }, { hasKeyword: 'work' }]
+    })
+  })
+
   it('counts relative ranges from midnight, without an end', () => {
     expect(toJmapFilter(filter({ dateRange: 'last7Days' }), CONTEXT)).toEqual({
       after: midnight(2026, 9, 27),

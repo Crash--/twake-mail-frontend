@@ -12,6 +12,7 @@ import {
 import { useState, type FormEvent, type ReactElement } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -93,6 +94,9 @@ export function AdvancedSearchDialog({
   onSubmit
 }: AdvancedSearchDialogProps): ReactElement {
   const { t } = useI18n()
+  const labelsAvailable = useLabelsAvailable()
+  const labelList = useLabels().data?.list
+  const labels = labelsAvailable ? (labelList ?? []) : []
   const mailboxes = useMailboxOptions()
   const [draft, setDraft] = useState(filter)
   const [fields, setFields] = useState(() => toTextFields(filter))
@@ -234,6 +238,32 @@ export function AdvancedSearchDialog({
                 </option>
               ))}
             </TextField>
+            {labels.length > 0 ? (
+              <TextField
+                select
+                label={t('search.labels.label')}
+                value={draft.label ?? ''}
+                onChange={event => {
+                  setDraft({
+                    ...draft,
+                    label: event.target.value === '' ? null : event.target.value
+                  })
+                }}
+                margin="dense"
+                slotProps={{
+                  select: { native: true },
+                  inputLabel: { shrink: true },
+                  htmlInput: { 'data-testid': 'advanced-search-label-select' }
+                }}
+              >
+                <option value="">{t('search.labels.all')}</option>
+                {labels.map(label => (
+                  <option key={label.id} value={label.keyword}>
+                    {label.displayName}
+                  </option>
+                ))}
+              </TextField>
+            ) : null}
             <TextField
               select
               label={t('search.fields.date')}

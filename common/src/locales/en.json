@@ -394,7 +394,11 @@
     "loading": "Loading suggestions",
     "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
     "searchWithFilters": "Search with these filters",
-    "quickFiltersOnly": "No suggestions. The quick filters follow the search field."
+    "quickFiltersOnly": "No suggestions. The quick filters follow the search field.",
+    "labels": {
+      "all": "All labels",
+      "label": "Label"
+    }
   },
   "emailActions": {
     "toast": {

@@ -108,6 +108,7 @@
     "preview": {
       "loading": "Loading... Please wait!",
       "cannotPreviewPdf": "Cannot preview PDF",
+      "tooLarge": "This PDF is larger than %{size}: download it to read it.",
       "cannotPreviewHtml": "This html attachment cannot be previewed",
       "noPreview": "No preview available",
       "open": "Preview",

@@ -192,7 +192,12 @@ Conventions:
 | `composer-send-button` | send | `UiKeys.sendEmailButton` |
 | `composer-close-button` | close (saves a draft when dirty) | `UiKeys.closeComposerButton` |
 | `composer-more-button` + `composer-save-draft-item` (phase 3), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
-| `composer-attach-file-button` / `composer-attachment-item` | attachments | — |
+| `composer-attach-file-button` / `composer-file-input` | "Attach file" and its hidden file input | `attach_file` |
+| `composer-attachments` + `composer-attachment-item` (`data-status`: `uploading`, `done`, `failed`) + `composer-attachment-remove-button` | the attached files (a list named "Attachments (n)"), each removed (or its upload cancelled) by its button | `AttachmentItemComposerWidget` |
+| `composer-drop-zone` | the composer, where dropped files are attached | `dropFileHereToAttachThem` |
+| `composer-save-status` | what the autosave did ("Saving…", "Draft saved", "Draft not saved"), a `status` | — |
+| `composer-send-error` | why the server refused the message (`role="alert"`) | — |
+| `composer-delete-draft-button` / `composer-discard-draft-button` | delete the draft and close; "Discard" of the "Draft saved" toast after a close | `discard` |
 | `composer-identity-select` | From identity picker, shown with more than one identity | `identities_list_menu_robot` |
 | `confirm-dialog-alternative-button` | the third button of a choice (`useChoose`), e.g. "Discard changes" when closing a modified message | — |
 | `settings-menu-<section>` (`preferences`, `profiles`, `email-rules`, `language-region`) | settings navigation | `setting_preferences`, `setting_profiles`, `setting_email_rules`, `setting_language_region` |

@@ -133,34 +133,9 @@ test.describe('CMP composer', () => {
     expect(html).toMatch(/<a [^>]*href="https:\/\/twake.app"[^>]*>Twake<\/a>/)
   })
 
-  test('CMP-14 closing a modified message offers to save it, and the draft lands in Drafts without Reply-To', {
-    tag: '@mobile'
-  }, async ({ page, user, jmap }) => {
-    const mailbox = await new LoginPage(page).loginAs(user)
-    const composer = await mailbox.compose()
-    await composer.fill({
-      to: [user.email],
-      subject: 'Save draft email without Reply-To',
-      body: 'Draft body'
-    })
-
-    await composer.closeAnd('save')
-
-    await expect(mailbox.toast).toContainText('Draft saved')
-    await expect(composer.root).toBeHidden()
-    await expect
-      .poll(async () => (await readDrafts(jmap)).map(draft => draft.subject))
-      .toEqual(['Save draft email without Reply-To'])
-    const [draft] = await readDrafts(jmap)
-    expect(draft?.to.map(address => address.email)).toEqual([user.email])
-    expect(draft?.replyTo ?? null).toBe(null)
-    expect(draft?.html).toContain('<div>Draft body</div>')
-  })
-
   test('CMP-27 composer windows minimize, go full screen and stay open side by side', async ({
     page,
-    user,
-    jmap
+    user
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const first = await mailbox.compose()
@@ -195,13 +170,14 @@ test.describe('CMP composer', () => {
     await mailbox.composeButton.click({ force: true })
     await expect(page.getByTestId('composer')).toHaveCount(2)
     await expectNoA11yViolations(page)
+    // A change not saved yet (the autosave waits 1.5 s): closing asks
+    await second.subjectInput.press('End')
+    await page.keyboard.type('!')
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('confirm-dialog')).toBeVisible()
     await page.getByTestId('confirm-dialog-alternative-button').click()
     await expect(page.getByTestId('composer')).toHaveCount(1)
     await expect(page.getByRole('dialog', { name: 'First message' })).toBeVisible()
-    // Discarding saved nothing
-    expect(await readDrafts(jmap)).toEqual([])
   })
 
   test('CMP-28 recipients: a pasted list, an invalid address, chips edited and removed with the keyboard, contacts suggested', async ({

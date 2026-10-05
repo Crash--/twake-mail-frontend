@@ -22,7 +22,9 @@
     "errorOccurredShort": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau.",
     "save": "Lưu",
     "refresh": "Làm mới",
-    "open": "Mở"
+    "open": "Mở",
+    "offline": "Không có kết nối",
+    "dismiss": "Bỏ qua"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -38,7 +40,8 @@
     "teamMailboxes": "Hộp thư nhóm"
   },
   "mailbox": {
-    "empty": "Không có thư nào ở thư mục hiện tại",
+    "empty": "Bạn không có thư nào trong thư mục này.",
+    "emptyHint": "Hãy bắt đầu soạn thư.",
     "roles": {
       "inbox": "Hộp thư đến",
       "drafts": "Thư nháp",

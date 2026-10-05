@@ -29,13 +29,16 @@ function renderBar(onOpenMenu = jest.fn()): jest.Mock {
 describe('AppTopBar', () => {
   afterEach(resetViewport)
 
-  it('shows the title, the search and the actions on a desktop, no menu', () => {
+  it('shows the title and the actions on a desktop, 50 px high, no menu nor search', () => {
     mockViewport({ width: 1440 })
 
     renderBar()
 
     expect(screen.getByText('Twake Mail')).toBeVisible()
-    expect(screen.getByRole('textbox', { name: 'Search mail' })).toBeVisible()
+    expect(screen.getByTestId('top-bar').firstElementChild).toHaveStyle({
+      minHeight: '50px'
+    })
+    expect(screen.queryByRole('textbox')).toBe(null)
     expect(screen.getByRole('button', { name: 'My account' })).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Show folders' })).toBe(null)
     expect(screen.queryByText('Inbox')).toBe(null)
@@ -97,8 +100,8 @@ describe('AppTopBar', () => {
     })
   })
 
-  it('focuses the search on demand on a desktop', () => {
-    mockViewport({ width: 1440 })
+  it('focuses the search on demand on a tablet', () => {
+    mockViewport({ width: 820, touch: true })
     renderBar()
 
     act(() => {

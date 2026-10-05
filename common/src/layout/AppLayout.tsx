@@ -34,6 +34,7 @@ import { VacationBanner } from '@common/features/vacation/VacationBanner'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { MailSidebar } from './MailSidebar'
+import { MailSearchRow } from './MailSearchRow'
 import { TopBar } from './TopBar'
 
 export interface AppLayoutProps {
@@ -131,6 +132,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
           />
         )}
         <Main>
+          {isDesktop && !isSettings ? <MailSearchRow /> : null}
           <VacationBanner />
           <RecoveryBanner />
           <QuotaBanner />

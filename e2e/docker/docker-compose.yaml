@@ -46,6 +46,7 @@ services:
     image: nginx:1.27-alpine
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/app-dist.conf:/etc/nginx/e2e/app.conf:ro
       - ${E2E_APP_ENV:-./app-env.js}:/etc/nginx/e2e/app-env.js:ro
       - ./app-list.js:/etc/nginx/e2e/app-list.js:ro
       - ./drive-picker.html:/etc/nginx/e2e/drive-picker.html:ro

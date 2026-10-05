@@ -38,6 +38,18 @@ export interface E2EOptions {
 /** Where the app keeps the "Thread" setting (common/src/features/settings/threadPreference.ts) */
 const THREAD_PREFERENCE_STORAGE_KEY = 'twake-mail.preferences.thread'
 
+/**
+ * Whether a console message is a violation of the Content-Security-Policy of the app (the
+ * header of its Docker image, see docs/deployment.md), as Chromium logs it. The email body
+ * frames add their own, stricter policy (common/src/features/email/emailBody.ts), whose
+ * directives never allow 'self': remote content blocked there is the expected behaviour.
+ */
+function isAppCspViolation(text: string): boolean {
+  if (!text.includes('Content Security Policy')) return false
+  const directive = /directive:? "([^"]*)"/.exec(text)?.[1]
+  return directive === undefined || directive.includes("'self'")
+}
+
 export const test = base.extend<E2EFixtures & E2EOptions>({
   userQuota: [null, { option: true }],
   emailsOneByOne: [false, { option: true }],
@@ -48,7 +60,14 @@ export const test = base.extend<E2EFixtures & E2EOptions>({
         window.localStorage.setItem(key, 'false')
       }, THREAD_PREFERENCE_STORAGE_KEY)
     }
+    // The suite runs against the Docker image too (E2E_APP_IMAGE): whatever its security
+    // headers block fails the test
+    const cspViolations: string[] = []
+    page.on('console', message => {
+      if (isAppCspViolation(message.text())) cspViolations.push(message.text())
+    })
     await use(page)
+    expect(cspViolations, 'Content-Security-Policy violations').toEqual([])
   },
 
   // Playwright fixtures receive an empty destructuring pattern when they need no other fixture

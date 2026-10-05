@@ -1,0 +1,27 @@
+# Overlay of docker-compose.yaml: the browser facing nginx proxies the app to its production
+# Docker image instead of serving a bundle, so that the suite runs against the image (its
+# nginx configuration and security headers). Started by `E2E_APP_IMAGE=<image> start.sh`.
+#
+# The image runs as in production: non-root, read-only root filesystem, /tmp as a tmpfs.
+# Its /.env.js and /appList.js are still served by the proxy (nginx/default.conf).
+services:
+  app:
+    image: ${E2E_APP_IMAGE:-twake-mail-frontend:e2e}
+    read_only: true
+    user: '101'
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      # The Workplace container of APPGRID-02 (/e2e/workplace.html) frames the app from
+      # http://localhost:<port>, another origin
+      CSP_FRAME_ANCESTORS: "'self' http://localhost:*"
+
+  proxy:
+    volumes:
+      - ./nginx/app-image.conf:/etc/nginx/e2e/app.conf:ro
+    depends_on:
+      - app

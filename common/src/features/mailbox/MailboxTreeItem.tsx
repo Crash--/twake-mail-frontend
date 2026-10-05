@@ -16,7 +16,12 @@ import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderAct
 import { useI18n } from '@common/i18n/useI18n'
 
 import { getMailboxIcon } from './mailboxDisplay'
-import { isHiddenMailbox, type VisibleMailbox } from './mailboxTree'
+import {
+  isHiddenMailbox,
+  isTeamRoot,
+  teamMailboxAddress,
+  type VisibleMailbox
+} from './mailboxTree'
 import type { MailboxSummary } from './queries'
 import { useMailboxName } from './useMailboxName'
 
@@ -53,6 +58,8 @@ export function MailboxTreeItem({
   const dropEmails = useDropEmails(mailbox)
   const name = getName(mailbox)
   const isHidden = isHiddenMailbox(mailbox)
+  // The root of a team mailbox says its address
+  const address = isTeamRoot(mailbox) ? teamMailboxAddress(mailbox) : null
   const menuLabel = t('folders.menu.button', { name })
   // The menu key may also send a contextmenu event: open the menu once
   const openedByKey = useRef(false)
@@ -101,15 +108,26 @@ export function MailboxTreeItem({
           : undefined
       }
       meta={
-        isHidden ? (
-          <SecondaryText
-            variant="caption"
-            className="u-ml-half"
-            data-testid="mailbox-item-hidden"
-          >
-            {t('folders.hidden.label')}
-          </SecondaryText>
-        ) : null
+        <>
+          {address === null ? null : (
+            <SecondaryText
+              variant="caption"
+              className="u-ml-half"
+              data-testid="mailbox-item-address"
+            >
+              {address}
+            </SecondaryText>
+          )}
+          {isHidden ? (
+            <SecondaryText
+              variant="caption"
+              className="u-ml-half"
+              data-testid="mailbox-item-hidden"
+            >
+              {t('folders.hidden.label')}
+            </SecondaryText>
+          ) : null}
+        </>
       }
       count={
         mailbox.unreadEmails > 0 ? (

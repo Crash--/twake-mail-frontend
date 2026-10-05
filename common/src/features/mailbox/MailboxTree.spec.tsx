@@ -5,7 +5,8 @@ import type { SupportedLanguage } from '@common/i18n/languages'
 import {
   makeDefaultMailboxes,
   makeFakeJmapServer,
-  makeMailbox
+  makeMailbox,
+  makeTeamMailboxes
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -243,5 +244,24 @@ describe('MailboxTree', () => {
     await screen.findAllByTestId('mailbox-item')
 
     expect(folderNames().slice(0, 3)).toEqual(['Inbox', 'Starred', 'Drafts'])
+  })
+
+  it('says the address of a team mailbox on its root, not on its folders', async () => {
+    renderWithProviders(<MailboxTree />, {
+      route: '/mailbox/team-inbox',
+      path: '/mailbox/:mailboxId',
+      withJmapSession: true,
+      jmapServer: makeFakeJmapServer({
+        mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()]
+      })
+    })
+
+    const section = await screen.findByTestId('team-mailboxes-section')
+    expect(within(section).getAllByTestId('mailbox-item-address')).toHaveLength(
+      1
+    )
+    expect(
+      within(section).getByTestId('mailbox-item-address')
+    ).toHaveTextContent('team@example.com')
   })
 })

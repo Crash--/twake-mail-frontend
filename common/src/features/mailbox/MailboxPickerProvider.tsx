@@ -27,8 +27,10 @@ import { useI18n } from '@common/i18n/useI18n'
 import { getMailboxIcon } from './mailboxDisplay'
 import {
   buildMailboxSections,
+  isTeamRoot,
   listVisibleMailboxes,
-  mailboxPath
+  mailboxPath,
+  teamMailboxAddress
 } from './mailboxTree'
 import type { MailboxSummary } from './queries'
 import { useMailboxes } from './useMailboxes'
@@ -115,7 +117,10 @@ export function MailboxPickerProvider({
       ({ mailbox, level }): FilterableListboxOption => ({
         id: mailbox.id,
         label: getName(mailbox),
-        secondary: mailboxPath(mailboxes, mailbox.id, getName),
+        // The root of a team mailbox is found by its address too
+        secondary: isTeamRoot(mailbox)
+          ? (teamMailboxAddress(mailbox) ?? mailbox.name)
+          : mailboxPath(mailboxes, mailbox.id, getName),
         level,
         icon: getMailboxIcon(mailbox),
         disabled: disabled.has(mailbox.id)

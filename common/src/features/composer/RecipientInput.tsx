@@ -2,19 +2,18 @@ import { useMemo, type ReactElement, type ReactNode, type Ref } from 'react'
 
 import {
   RecipientField,
-  type RecipientFieldActions,
-  type RecipientFieldChip
+  type RecipientFieldActions
 } from '@/ds/RecipientField/RecipientField'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
   formatRecipient,
   hasRecipient,
-  isValidEmail,
   mergeRecipients,
   parseRecipients,
   type Recipient
 } from './recipients'
+import { recipientChips } from './recipientChips'
 import { useContactSuggestions } from './useContactSuggestions'
 
 /** A list of addresses: separators, or several `@` */
@@ -78,12 +77,7 @@ export function RecipientInput({
     [contacts, recipients]
   )
 
-  const chips: RecipientFieldChip[] = recipients.map(recipient => ({
-    id: recipient.email,
-    label: recipient.name ?? recipient.email,
-    title: formatRecipient(recipient),
-    isInvalid: !isValidEmail(recipient.email)
-  }))
+  const chips = recipientChips(recipients)
 
   const handleCommit = (text: string): void => {
     onChange(mergeRecipients(recipients, parseRecipients(text)))

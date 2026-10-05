@@ -1,6 +1,4 @@
-import { useEffect, type RefObject } from 'react'
-
-import { REDUCED_MOTION_QUERY } from '@/ds/ViewTransition/viewTransition'
+import { useLayoutEffect, type RefObject } from 'react'
 
 /** How long the target is kept in place while the messages above load */
 const SETTLE_MS = 1500
@@ -8,19 +6,16 @@ const SETTLE_MS = 1500
 /** Events meaning the user took the scroll over */
 const USER_EVENTS = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
 
-/** jsdom has no `matchMedia` */
-function prefersReducedMotion(view: {
-  matchMedia?: (query: string) => { matches: boolean }
-}): boolean {
-  return view.matchMedia?.(REDUCED_MOTION_QUERY).matches ?? false
-}
-
 /**
  * When a conversation opens, scrolls to its target message and moves the
- * focus to its header (`target`), once. The scroll is smooth unless the
- * user prefers reduced motion. The messages above it load after (bodies,
- * images): until the user scrolls, or `SETTLE_MS` passed, the target is kept
- * in place. A message arriving later never moves anything.
+ * focus to its header (`target`), once. The scroll is instant and done
+ * before the first paint of the conversation: it opens already on the
+ * target. A smooth scroll would run while the view transition of the
+ * navigation (list to reading pane) is playing, the two motions fighting,
+ * and the re-alignment below would cut it short with a jump. The messages
+ * above it load after (bodies, images): until the user scrolls, or
+ * `SETTLE_MS` passed, the target is kept in place. A message arriving later
+ * never moves anything.
  *
  * Does nothing when `isTarget` is false. `describedById` is the element read with the header the first time it
  * has the focus (subject and count of the conversation, which the focus
@@ -31,7 +26,7 @@ export function useRevealOnOpen(
   isTarget: boolean,
   describedById: string
 ): void {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = target.current
     if (!isTarget || element === null) return undefined
 
@@ -42,10 +37,7 @@ export function useRevealOnOpen(
     element.addEventListener('blur', clearDescription, { once: true })
 
     element.focus({ preventScroll: true })
-    element.scrollIntoView({
-      block: 'start',
-      behavior: prefersReducedMotion(window) ? 'auto' : 'smooth'
-    })
+    element.scrollIntoView({ block: 'start', behavior: 'instant' })
 
     let isSettling = true
     let isFirstObservation = true
@@ -58,7 +50,9 @@ export function useRevealOnOpen(
               isFirstObservation = false
               return
             }
-            if (isSettling) element.scrollIntoView({ block: 'start' })
+            if (isSettling) {
+              element.scrollIntoView({ block: 'start', behavior: 'instant' })
+            }
           })
     const timer = window.setTimeout(() => {
       stop()

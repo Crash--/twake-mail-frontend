@@ -314,6 +314,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
     await setUpIdentities(jmap, user.email)
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    await composer.showIdentity()
     await expect(composer.identitySelect).toContainText('Identity 1')
     await composer.fill({ to: [user.email], subject: 'Draft with identity 2' })
     await composer.chooseIdentity('Identity 2')

@@ -25,6 +25,8 @@ export class ComposerPage {
   readonly closeButton: Locator
   readonly moreButton: Locator
   readonly attachFileButton: Locator
+  readonly insertImageButton: Locator
+  readonly formattingButton: Locator
   readonly attachments: Locator
 
   constructor(
@@ -53,6 +55,8 @@ export class ComposerPage {
     this.closeButton = this.root.getByTestId('composer-close-button')
     this.moreButton = this.root.getByTestId('composer-more-button')
     this.attachFileButton = this.root.getByTestId('composer-attach-file-button')
+    this.insertImageButton = this.root.getByTestId('rich-text-image-button')
+    this.formattingButton = this.root.getByTestId('composer-formatting-button')
     this.attachments = this.root.getByTestId('composer-attachment-item')
   }
 
@@ -95,7 +99,7 @@ export class ComposerPage {
     return this
   }
 
-  /** Inserts an image in the body through the toolbar, at the caret */
+  /** Inserts an image in the body through the footer button, at the caret */
   async insertImage(file: {
     name: string
     mimeType: string
@@ -104,14 +108,31 @@ export class ComposerPage {
     const images = this.editor.locator('img[data-reference]')
     const count = await images.count()
     const chooser = this.page.waitForEvent('filechooser')
-    await this.toolbarButton('Insert image').click()
+    await this.insertImageButton.click()
     await (await chooser).setFiles(file)
     await expect(images).toHaveCount(count + 1, { timeout: 20_000 })
     return this
   }
 
+  /**
+   * Opens the From line (the "From" button of the To line) unless it is
+   * open: a new message shows it on request, an answer or a draft with it
+   */
+  async showIdentity(): Promise<ComposerPage> {
+    if (!(await this.identitySelect.isVisible())) {
+      // Once the focus left the recipients they are folded, buttons included
+      if (await this.recipientsSummary.isVisible()) {
+        await this.recipientsSummary.click()
+      }
+      await this.root.getByTestId('composer-show-from-button').click()
+    }
+    await expect(this.identitySelect).toBeVisible()
+    return this
+  }
+
   /** Picks the identity to send from, by the start of its name */
   async chooseIdentity(name: string): Promise<ComposerPage> {
+    await this.showIdentity()
     await this.identitySelect.click()
     await this.page
       .getByRole('option', { name: new RegExp(`^${name}`) })

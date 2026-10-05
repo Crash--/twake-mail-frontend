@@ -309,3 +309,31 @@ inside its frame (content that needs two dimensions, an exception of RGAA
 | Theme palette | `divider`, `action.hover`, `action.selected` are tinted `#424244`, Figma uses `#1d192b` at the same opacity | everywhere | not overridden (no global theme override) | `makePalette` |
 | `SearchBar` | The clear button is English only and cannot be named, so `disabledClear` plus an `IconButton` with a translated label; no accessible name prop on the input (set through `inputProps`) | Folder search of the sidebar | `features/mailbox/MailboxSearch` composes twake-mui `SearchBar` | Translated, named clear button; `inputProps` label |
 | `NavItem` | A second line under the name (path of a search result) | Folder search results | `ds/NavTreeItem` (`secondary` prop) | Optional `secondary` on `NavItem` |
+
+## Composer design (batch composer)
+
+The composer follows the Figma "Composer" frames (window 790 px, flat 37 px
+field lines, boxed formatting toolbar, footer). No global theme override: what
+twake-mui lacks lives in `@/ds/`.
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| Field line | A flat line: label on the left, value inline, full width divider, 37 px; no outlined or filled look, no floating label | From, Subject, and the line of `RecipientField` (To, Cc, Bcc, Reply to) | `ds/FieldLine` (`FIELD_LINE_SX` shared with `ds/RecipientField`) | `TextField variant="line"` (or a `FormRow`) |
+| `Button` | Underlined text button: Inter Medium 14 / 18.4, secondary colour, padding 2 4, pill radius (twake-mui text buttons are 16 px, primary, not underlined) | "From", "Cc", "Bcc", "Reply to" at the end of the To line | `ds/FieldTextButton` | `Button variant="link"` and a 14 px `size="medium"` |
+| `Button` | "button medium": 14 / 20 with letter spacing 0.1, fixed width, 18 px icon, pill radius (twake-mui forces 16 px) | Send | `ds/PillButton` | Button typography in the theme (`button` is 16 px, Figma 14) |
+| `IconButton` | Plain `size="medium"` is the 40 px of the design (the default `large` is 48) | Title bar and footer of the composer | twake-mui `IconButton size="medium"` as is | none |
+| Toolbar | Bordered boxes (1 px divider, radius 4, 32 px high) for the controls, one box for a group (bold, italic, underline, strikethrough: 24 px buttons, 114 px wide), a value shown in the box (size), a 10 x 2 colour bar under the "A" | Formatting toolbar | `ds/RichTextEditor/RichTextToolbar` (APG toolbar kept: roving tabindex, `aria-pressed`, Alt+F10) | A `Toolbar` with `ToolbarGroup` and `ToolbarSelect` in twake-ui |
+| Window | 790 x 634, radius 8 all around, Material 3 elevation 3 (`0 1px 3px rgba(0,0,0,.3), 0 4px 8px 3px rgba(0,0,0,.15)`), title bar 44 px on `background.default`, title `h5`, minimized bar 400 px, 24 px from the edges | Composer | `ds/DockedWindow`, `ds/DockedWindow/WindowDock` | `Paper elevation` M3 levels (twake-mui has MUI shadows only) |
+| `@linagora/twake-icons` | No "open in full" (still the Material path in `ds/DockedWindow`), no "format size" (Material path `fontSize` of `editorIcons`, used for the footer toggle), no highlighter | Title bar, footer, toolbar | `ds/DockedWindow`, `ds/RichTextEditor/editorIcons` | Add `OpenInFull`, `FormatSize`, `Highlighter` |
+| Icons substituted | Send `Paperplane`, attach `Attachment`, image `Image`, link `Link`, Drive `ToTheCloud` (cloud upload), AI `AssistantColor` (multicolour star), delete `Trash`, templates/save `FileOutline`, minimize `Dash`, close `Cross` | Footer and title bar | `features/composer`, `ds/DockedWindow` | Match the Figma icon set |
+
+**Not in the composer, because the editor has no such feature** (shown as the
+design does it where something exists, never invented): the text style "Aa"
+(headings and paragraph styles are off in `StarterKit`), the font family
+"Sans Serif" (`TextStyleKit` is configured without `fontFamily`), the
+highlight colour (no `Highlight` extension), the second alignment box (the
+design repeats the alignment icon; here the lists and quote are grouped). The
+toolbar keeps undo, redo and clear formatting, which the design omits, so no
+behaviour is lost. The toolbar is 48 px high (32 px boxes with 8 px of padding
+above and below), not the 40 px of the spec, which cannot hold a 32 px box
+with that padding.

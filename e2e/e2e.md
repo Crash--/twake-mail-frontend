@@ -226,7 +226,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `CMP-46` The remote images of a draft reopened from Drafts (outside the quote) are not loaded until "Show" of the banner, and go with the message sent. — web app only, no Patrol test (tmail-flutter loads them)
 - [x] `CMP-47` A save whose answer is lost (the version created on the server, its id unknown) leaves no stray draft: the next save finds it by its `X-Twake-Draft-Session` header and destroys it. — web app only, no Patrol test
 - [x] `CMP-48` A message is received with the Reply-To of its identity (named after it) when none is typed, and its Bcc, shown in the composer, gets a copy (tmail-flutter `createReplyToRecipients`, `_applyBccEmailAddressFromIdentity`). — web app only, no Patrol test
-- [x] `CMP-49` With three composers on a tablet (one fills the screen) or a 1200 px desktop (the dock holds two), the others are listed in a named "+N messages" menu button (in the title bar of the full screen one, at the start of the dock), reachable with the arrow keys; choosing one shows it. — web app only, no Patrol test (issue #50)
+- [x] `CMP-49` With three composers on a tablet (one fills the screen) or a 1700 px desktop (the dock holds two), the others are listed in a named "+N messages" menu button (in the title bar of the full screen one, at the start of the dock), reachable with the arrow keys; choosing one shows it. — web app only, no Patrol test (issue #50)
   - Spec: `tests/composer.spec.ts`, on `chromium` (it resizes the window: three composers cannot be opened on a tablet).
 - [x] `CMP-50` An answer whose draft was autosaved comes back after a reload on its text, the recipients folded, as it was left; a new message still opens in To. — web app only, no Patrol test (issue #52)
   - Spec: `tests/composer-send.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
@@ -623,3 +623,14 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
 - [ ] `FBAR-05` Starred has no "starred" filter, a label view has the three, search results have
   their own filters bar and no list filter. Axe.
   - Spec: `tests/folder-toolbar.spec.ts`.
+
+## Composer design (batch composer)
+
+Web app only, no Patrol test: the composer follows the Figma "Composer" frames.
+
+- [x] `CMP-61` With several identities, the To line has a "From" text button that opens the From line (the identity picker); it goes away once open. — web app only (tmail-flutter `prefix_from_recipient_from_button`). Axe.
+  - Spec: `tests/composer.spec.ts`.
+- [x] `CMP-62` Cc and Bcc open as 37 px lines of the same width as To; their close button hides them, emptied, and gives the focus back to To. — web app only (tmail-flutter `deleteEmailAddressType`). Axe.
+  - Spec: `tests/composer.spec.ts`.
+- [x] `CMP-63` The formatting toolbar is under the text; the footer button shows or hides it (`aria-pressed`), and the footer link button opens the link dialog. — web app only. Axe.
+  - Spec: `tests/composer.spec.ts`.

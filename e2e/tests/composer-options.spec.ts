@@ -192,6 +192,7 @@ test.describe('CMP composer: options of a message', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
 
     let composer = await mailbox.compose()
+    await composer.showIdentity()
     await expect(composer.identitySelect).toContainText(
       'Identity with attachment keyword'
     )

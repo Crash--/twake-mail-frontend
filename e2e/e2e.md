@@ -764,3 +764,15 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `TWP-01` An email with an `X-TWP-Message` header shows a banner between its header and its body, with the localized text of a known code (`suspicious-sender`), its level said in words (axe; also on `mobile`); `TWP-02` several headers stack in order and an error replaces the sender avatar by a badge; `TWP-03` an unknown code shows the text of the server as plain text (no HTML, no link); `TWP-04` a dismissed warning stays dismissed after a reload with the keyword `twp-warning-dismissed-<index>`, the others stay; `TWP-05` an error in Spam offers "Not spam", which moves the email to the Inbox; `TWP-06` an error in the Inbox does not; `TWP-07` in a conversation the banners and the badge show in the expanded message that has them. — web app (issue #142)
   - Spec: `tests/twp-warnings.spec.ts`; fixtures `fixtures/eml/twp_warnings/`.
+- [x] `CMP-71` The attached files are chips (type icon or thumbnail, name cut in the middle, size, a check once uploaded, a progress bar, a remove button); once all are uploaded and there are more than two, "Show less" folds the list to two and "Show more (+N)" shows the rest again (tmail-flutter's mobile composer threshold). — web app only, no Patrol test (Figma "Attachment", `AttachmentItemComposerWidget`)
+  - Spec: `tests/composer-attachments-ui.spec.ts`, axe on both states.
+- [x] `CMP-72` On a desktop, more than nine files uploading at once are listed in a labelled "Uploading N files" popup (a progress bar each) instead of chips, until they all end. — web app only, no Patrol test (Figma note "if there are more than 9 files upload in a time…")
+  - Spec: `tests/composer-attachments-ui.spec.ts`, uploads held by a route.
+- [x] `CMP-73` A failed upload says "Upload failed" (icon and words) and its Retry button sends the same file again. — web app only, no Patrol test
+  - Spec: `tests/composer-attachments-ui.spec.ts`.
+- [x] `CMP-74` The signature is a card under a "Signature" pill (`aria-expanded`) that folds it in the view only: the message still carries it. — web app only, no Patrol test (Figma "Signature")
+  - Spec: `tests/composer-attachments-ui.spec.ts`.
+- [x] `CMP-75` The recipients folded (focus on the subject or the body) show their chips with a "+N" counter for those that do not fit, in one button named after every recipient; a click unfolds them and focuses To, whose chips stay out of the tab order (ArrowLeft reaches them). — web app only, no Patrol test (`RecipientsCollapsedComposerWidget`)
+  - Spec: `tests/composer-attachments-ui.spec.ts`.
+- [x] `CMP-76` On a phone, more than nine uploads at once stay chips in the list, no popup. — web app only, no Patrol test
+  - Spec: `tests/composer-attachments-ui.spec.ts`.

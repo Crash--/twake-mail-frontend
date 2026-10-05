@@ -289,3 +289,7 @@ Conventions:
 | `rich-text-bullet-list-button` / `rich-text-ordered-list-button` / `rich-text-indent-button` / `rich-text-outdent-button` / `rich-text-blockquote-button` | correction of the earlier rows: they are items of the "Lists and indentation" menu (`rich-text-blockquote-button` an item of the "Text style" menu), no longer toolbar buttons; open the menu first (`ComposerPage.chooseFromMenu`) | `OrderListType`, `ParagraphType.indent`/`outdent`, `HeaderStyleType.blockquote` |
 | `composer-emoji-button` / `composer-emoji-picker` (+ `-search`, `-tab-<group>`) | footer emoji button (not on phones) and its popover (`dialog` named "Emoji") | — (tmail-flutter has no emoji picker) |
 | `composer-delete-draft-item` | on phones the delete button moves into the "More" menu (`composer-delete-draft-button` stays on tablets and desktops) | `delete_draft_button` |
+| `composer-attachments-toggle` | the "Show less" / "Show more (+N)" button folding the attached files (`aria-expanded`) | `showMoreAttachmentButton`, `MobileAttachmentComposerWidget` |
+| `composer-attachment-retry-button` | "Retry <file>" of a failed upload | none (new) |
+| `composer-upload-popup` (+ `-item`, `-remove-button`, `-retry-button`, `-close-button`) | the "Uploading N files" popup listing the uploads when there are more than nine, on a desktop or tablet | none (Figma) |
+| `composer-signature-toggle` | the "Signature" pill folding the signature card in the editor (`aria-expanded`) | none (Figma) |

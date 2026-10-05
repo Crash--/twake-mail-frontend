@@ -8,6 +8,7 @@ import {
   makeEmail,
   makeFakeJmapServer,
   makeMailbox,
+  makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -122,6 +123,36 @@ describe('SearchResults', () => {
       })
     )
     expect(server.calledMethods()).toContain('SearchSnippet/get')
+  })
+
+  it('finds the emails of a team mailbox, not the ones in its Trash', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        makeMailbox({ id: 'mailbox-inbox', name: 'INBOX', role: 'inbox' }),
+        makeMailbox({ id: 'mailbox-trash', name: 'Trash', role: 'trash' }),
+        ...makeTeamMailboxes()
+      ],
+      emails: [
+        makeEmail({
+          id: 'team-report',
+          subject: 'Team report',
+          mailboxIds: { 'team-inbox': true }
+        }),
+        makeEmail({
+          id: 'team-deleted',
+          subject: 'Team deleted report',
+          mailboxIds: { 'team-trash': true }
+        })
+      ]
+    })
+    renderSearch(server, 'q=report')
+
+    await waitFor(() => {
+      expect(rows()).toHaveLength(1)
+    })
+    expect(
+      within(rows()[0] ?? document.body).getByTestId('email-list-item-subject')
+    ).toHaveTextContent('Team report')
   })
 
   it('shows the empty view when nothing matches', async () => {

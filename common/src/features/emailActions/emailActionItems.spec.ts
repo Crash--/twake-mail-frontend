@@ -135,6 +135,46 @@ describe('availableEmailActions out of a folder', () => {
   })
 })
 
+describe('availableEmailActions and the rights of the folder', () => {
+  const rights = (
+    overrides: Partial<ReturnType<typeof makeMailbox>['myRights']>
+  ): ReturnType<typeof makeTeamMailboxes> =>
+    makeTeamMailboxes({ rights: overrides })
+  const idsIn = (
+    overrides: Partial<ReturnType<typeof makeMailbox>['myRights']>
+  ): string[] => {
+    const team = rights(overrides)
+    const inbox = team.find(mailbox => mailbox.id === 'team-inbox')
+    if (inbox === undefined) throw new Error('No inbox')
+    const email = {
+      id: 'x',
+      mailboxIds: { 'team-inbox': true as const },
+      keywords: {}
+    }
+    return availableEmailActions([email], inbox, [...MAILBOXES, ...team]).map(
+      item => item.id
+    )
+  }
+
+  it('offers everything to a member with all the rights', () => {
+    expect(idsIn({})).toEqual(['move-to-trash', 'mark-as-read', 'star', 'move'])
+  })
+
+  it('leaves out what needs a right the member does not have', () => {
+    expect(idsIn({ mayRemoveItems: false })).toEqual(['mark-as-read', 'star'])
+    expect(idsIn({ maySetSeen: false })).toEqual([
+      'move-to-trash',
+      'star',
+      'move'
+    ])
+    expect(idsIn({ maySetKeywords: false })).toEqual([
+      'move-to-trash',
+      'mark-as-read',
+      'move'
+    ])
+  })
+})
+
 describe('findActionDestination', () => {
   const team = 'TeamMailbox[team@example.com]'
   const mailboxes = [

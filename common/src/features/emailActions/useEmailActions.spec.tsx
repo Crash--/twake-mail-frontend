@@ -320,3 +320,44 @@ describe('useEmailActions out of a folder', () => {
     })
   })
 })
+
+function StarButton(): ReactElement {
+  const { run } = useEmailActions()
+  const handleClick = (): void => {
+    void run({
+      action: 'star',
+      mailboxId: 'team-inbox',
+      emails: [
+        { id: 'theirs', mailboxIds: { 'team-inbox': true }, keywords: {} }
+      ]
+    })
+  }
+  return (
+    <button type="button" onClick={handleClick}>
+      Star
+    </button>
+  )
+}
+
+describe('useEmailActions and the rights of the folder', () => {
+  it('refuses with a reason what the rights of the folder forbid, and sends nothing', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        ...makeTeamMailboxes({ rights: { maySetKeywords: false } })
+      ],
+      emails: [makeEmail({ id: 'theirs', mailboxIds: { 'team-inbox': true } })]
+    })
+    renderWithProviders(<StarButton />, {
+      withJmapSession: true,
+      jmapServer: server
+    })
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Star' }))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You do not have the right to do this in this folder.'
+    )
+    expect(emailSets(server)).toEqual([])
+  })
+})

@@ -22,6 +22,7 @@ import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
 import type { TargetEmail } from './planEmailChanges'
+import { mayOnEmails, rightForItem } from './emailRights'
 import { deletesForever } from './useRemoveEmails'
 
 /** What the menus, toolbars and shortcuts can do to emails */
@@ -131,10 +132,11 @@ export function emailActionItem(id: EmailActionId): EmailActionItem {
  */
 export function availableEmailActions(
   emails: readonly TargetEmail[],
-  mailbox: Pick<
-    MailboxSummary,
-    'role' | 'name' | 'namespace' | 'parentId'
-  > | null,
+  mailbox:
+    | (Pick<MailboxSummary, 'role' | 'name' | 'namespace' | 'parentId'> & {
+        id?: string
+      })
+    | null,
   mailboxes: readonly MailboxSummary[],
   { canLabel = false }: { canLabel?: boolean } = {}
 ): EmailActionItem[] {
@@ -168,5 +170,10 @@ export function availableEmailActions(
   ids.push('move')
   if (!isTeam && !isSpam && role !== 'drafts') ids.push('mark-as-spam')
   if (canLabel) ids.push('label-as')
-  return ids.map(emailActionItem)
+  // What the rights of the folders forbid is not offered
+  return ids
+    .filter(id =>
+      mayOnEmails(emails, rightForItem(id), mailboxes, mailbox?.id ?? null)
+    )
+    .map(emailActionItem)
 }

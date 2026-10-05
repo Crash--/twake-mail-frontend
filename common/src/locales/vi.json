@@ -511,7 +511,9 @@
       "replyToList": "Trả lời danh sách",
       "forward": "Chuyển tiếp",
       "label": "Hành động trả lời"
-    }
+    },
+    "noRights": "Bạn không có quyền thực hiện thao tác này trong thư mục này.",
+    "noRightsDestination": "Bạn không thể thêm thư vào thư mục này."
   },
   "shortcuts": {
     "title": "Phím tắt",

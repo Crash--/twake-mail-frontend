@@ -24,6 +24,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import { mayOnEmail, rightForAction } from './emailRights'
 import {
   applyEmailChanges,
   findCachedEmail,
@@ -346,7 +347,8 @@ export function useEmailActions(): EmailActions {
       }
     }
 
-    async function run(request: EmailActionRequest): Promise<boolean> {
+    async function run(initial: EmailActionRequest): Promise<boolean> {
+      let request = initial
       // The folders are loaded with the tree; fetched here if not yet
       const list =
         (
@@ -357,6 +359,16 @@ export function useEmailActions(): EmailActions {
             })
             .catch(() => null)
         )?.list ?? []
+      // What the rights of the folders forbid is refused, with its reason
+      const right = rightForAction(request.action)
+      const allowed = request.emails.filter(email =>
+        mayOnEmail(email, right, list, request.mailboxId)
+      )
+      if (allowed.length < request.emails.length) {
+        notify({ message: t('emailActions.noRights'), severity: 'error' })
+        if (allowed.length === 0) return false
+        request = { ...request, emails: allowed }
+      }
       const planned = groupByHome(request, list).flatMap(
         ({ mailboxId, emails }) => {
           const operation = toOperation({ ...request, mailboxId }, list)
@@ -368,6 +380,20 @@ export function useEmailActions(): EmailActions {
       const operation = planned[0]?.operation ?? null
       if (operation === null) {
         console.warn('[email] No folder to run this action', request.action)
+        return false
+      }
+      const refused = planned.find(({ operation: candidate }) => {
+        const destination =
+          candidate.kind === 'move'
+            ? list.find(mailbox => mailbox.id === candidate.to)
+            : undefined
+        return destination?.myRights.mayAddItems === false
+      })
+      if (refused !== undefined) {
+        notify({
+          message: t('emailActions.noRightsDestination'),
+          severity: 'error'
+        })
         return false
       }
       const changes = planned.flatMap(group => group.changes)

@@ -232,6 +232,51 @@ test.describe('INFRA tmail-backend and the composer', () => {
     expect(good?.[0]).toBe('Email/get')
   })
 
+  test('INFRA-17 destroying two emails in one Email/set drops the other emails of their mailbox from Email/query (memory image)', async ({
+    jmap,
+    user
+  }) => {
+    const accountId = await jmap.accountId()
+    const drafts = await jmap.findMailboxByRole('drafts')
+    const draft = (subject: string): Record<string, unknown> => ({
+      mailboxIds: { [drafts.id]: true },
+      keywords: { $draft: true, $seen: true },
+      from: [{ email: user.email }],
+      subject,
+      bodyValues: { text: { value: subject } },
+      textBody: [{ partId: 'text', type: 'text/plain' }]
+    })
+    const [created] = await jmap.request([
+      [
+        'Email/set',
+        {
+          accountId,
+          create: { a: draft('a'), b: draft('b'), kept: draft('kept') }
+        },
+        'c0'
+      ]
+    ])
+    const ids = created?.[1].created as Record<string, { id: string }>
+    const keptId = ids.kept?.id ?? ''
+    await jmap.request([
+      [
+        'Email/set',
+        { accountId, destroy: [ids.a?.id ?? '', ids.b?.id ?? ''] },
+        'd'
+      ]
+    ])
+    const [query, got] = await jmap.request([
+      ['Email/query', { accountId, filter: { inMailbox: drafts.id } }, 'q'],
+      ['Email/get', { accountId, ids: [keptId], properties: ['id'] }, 'g']
+    ])
+    expect((got?.[1].list as { id: string }[]).map(email => email.id)).toEqual([
+      keptId
+    ])
+    // When this fails, the index of the memory image is fixed: CMP-37 can
+    // read the drafts with Email/query again
+    expect(query?.[1].ids).toEqual([])
+  })
+
   test.describe('over quota', () => {
     test.use({ userQuota: { size: 4000 } })
 

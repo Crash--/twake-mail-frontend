@@ -31,7 +31,7 @@ spec:
         - -c
         - >-
           wget -q -O - http://{{ include "twake-mail-frontend.fullname" . }}:{{ .Values.service.port }}/healthz &&
-          wget -q -O - http://{{ include "twake-mail-frontend.fullname" . }}:{{ .Values.service.port }}/.env.js | grep -q JMAP_SESSION_URL
+          wget -q -O - http://{{ include "twake-mail-frontend.fullname" . }}:{{ .Values.service.port }}/.env.js | grep -q SERVER_URL
       resources:
         limits:
           memory: 32Mi

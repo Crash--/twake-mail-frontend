@@ -36,6 +36,8 @@ staticClients:
     redirectURIs:
       - '@PUBLIC_URL@/'
       - '@PUBLIC_URL@/callback'
+      - '@PUBLIC_URL@/login-callback.html'
+      - '@PUBLIC_URL@/logout-callback.html'
       - '@PUBLIC_URL@/login/callback'
       - '@PUBLIC_URL@/auth/callback'
   # tmail-backend: credentials of oidc.introspect.credentials (Basic base64(id:secret))

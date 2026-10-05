@@ -17,7 +17,9 @@ test.describe('AI composer assistant', () => {
     page,
     user
   }) => {
-    await page.route('**/jmap/session', async route => {
+    // The app reads the session from /.well-known/jmap (SERVER_URL), which
+    // redirects to /jmap/session
+    await page.route('**/{jmap/session,.well-known/jmap}', async route => {
       const response = await route.fetch()
       const session = (await response.json()) as {
         capabilities: Record<string, unknown>

@@ -31,7 +31,7 @@ deployment:
     repository: registry.example.com/twake-mail-frontend
     tag: main
 config:
-  jmapSessionUrl: https://jmap.example.com/jmap/session
+  serverUrl: https://jmap.example.com
   authMode: oidc
   sso:
     baseUrl: https://sso.example.com
@@ -66,10 +66,10 @@ app ([details](../../../docs/deployment.md#content-security-policy)). With
 `csp.autoConnectSrc` (default), the chart adds to `connect-src` the origins
 the configuration points to:
 
-- `config.jmapSessionUrl` and its WebSocket origin (`wss://` for `https://`),
+- `config.serverUrl` and its WebSocket origin (`wss://` for `https://`),
   unless it is a path (JMAP on the origin of the app);
 - `config.sso.baseUrl` with `authMode: oidc`;
-- `config.sentryDsn`;
+- `config.sentry.dsn`;
 - `config.tdrive.intentUrl` when it is a fixed URL. The Drive of each user
   usually has its own host (a URI template): list the Drive hosts in
   `csp.connectSrc` (its API) and `csp.frameSrc` (the picker), with a wildcard
@@ -84,8 +84,7 @@ blocking anything, for a progressive rollout.
 
 With `ingress.jmap.enabled`, the ingress routes `/jmap`, `/upload`,
 `/download`, `/eventSource` and `/.well-known/jmap` of the hosts to the
-tmail-backend service `ingress.jmap.service`. Set `config.jmapSessionUrl:
-/jmap/session`, and make tmail-backend advertise URLs of the host of the app
+tmail-backend service `ingress.jmap.service`. Set `config.serverUrl: /`, and make tmail-backend advertise URLs of the host of the app
 in its JMAP session (`url.prefix=https://mail.example.com` and
 `websocket.url.prefix=wss://mail.example.com` in `jmap.properties`). The
 ingress controller must pass WebSocket upgrades through (Traefik and
@@ -111,11 +110,16 @@ ingress-nginx do).
 | `deployment.extraEnv` | `[]` | |
 | `deployment.nodeSelector`, `tolerations`, `affinity`, `topologySpreadConstraints`, `priorityClassName` | | |
 | `service.type`, `service.port` | `ClusterIP`, `8080` | |
-| `config.jmapSessionUrl` | `https://jmap.example.com/jmap/session` | URL of the JMAP session; a path is resolved on the origin of the app |
+| `config.serverUrl` | `https://jmap.example.com` | `SERVER_URL`: base URL of the JMAP server, the session is `<serverUrl>/.well-known/jmap`; a path (`/`) is resolved on the origin of the app |
+| `config.jmapSessionUrl` | `""` | Deprecated, use `serverUrl` (rendered as `JMAP_SESSION_URL`) |
 | `config.authMode` | `oidc` | `oidc` or `basic` |
-| `config.sso.baseUrl`, `clientId`, `scope` | | OIDC issuer, public client, scopes (keep `offline_access`) |
-| `config.sso.redirectUri`, `postLogoutRedirect` | `""` | Default to `<origin>/callback` and `<origin>/` |
-| `config.sentryDsn` | `""` | Error reporting, disabled when empty |
+| `config.sso.baseUrl` | | OIDC issuer (`SSO_BASE_URL`, not in tmail-flutter) |
+| `config.sso.clientId`, `scope` | | `WEB_OIDC_CLIENT_ID` and `OIDC_SCOPES` (commas or spaces; keep `offline_access`) |
+| `config.domainRedirectUrl` | `""` | `DOMAIN_REDIRECT_URL`: the redirect URIs are `<it>/login-callback.html` and `<it>/logout-callback.html`; without it `<origin>/callback` and `<origin>/` |
+| `config.sso.redirectUri`, `postLogoutRedirect` | `""` | Replace the URIs built from `domainRedirectUrl` |
+| `config.sentry.enabled`, `dsn`, `environment` | `true`, `""`, `""` | `SENTRY_ENABLED` (true with a DSN), `SENTRY_DSN`, `SENTRY_ENVIRONMENT` |
+| `config.sentryDsn` | `""` | Deprecated, use `sentry.dsn` |
+| `config.appGridAvailable` | `""` | `APP_GRID_AVAILABLE`: `supported` or `unsupported`; unset: shown when `appList` has apps |
 | `config.debug` | `false` | TanStack Query devtools, nginx cache disabled |
 | `config.lang` | `en` | Default UI language: `en`, `fr`, `ru`, `vi` |
 | `config.calendarSpaUrl`, `config.chatSpaUrl`, `config.workplaceFqdnFallback` | `""` | URI templates of the other Twake apps |

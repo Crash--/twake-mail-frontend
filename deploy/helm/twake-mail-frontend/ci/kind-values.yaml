@@ -6,7 +6,7 @@ deployment:
     tag: ci
     pullPolicy: Never
 config:
-  jmapSessionUrl: http://127.0.0.1:19000/jmap/session
+  serverUrl: http://127.0.0.1:19000
   authMode: basic
   appList:
     - name: Calendar

@@ -740,3 +740,17 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/storage-upgrade.spec.ts`.
 - [x] `STORAGE-03` Outside Twake Workplace, without the SaaS capability, with `canUpgrade` false, or on the highest subscription (`isPaying` and not `canUpgrade`), the banner only advises to clean up and no link to a paywall is shown anywhere. Axe. — web app only
   - Spec: `tests/storage-upgrade.spec.ts`.
+- [x] `MBX-50` "Move folder content" on a folder with three emails asks for a destination, moves them all (toast "Moved to Bulk target") and Undo puts exactly those back. axe on the picker. — web app only, no Patrol test (tmail-flutter: `moveFolderContent`)
+  - Spec: `tests/folder-menu.spec.ts`, `@mobile`.
+- [x] `MBX-51` A folder with 55 emails (more than one batch of 50) is moved whole; moving to Spam marks them read. — web app only
+  - Spec: `tests/folder-menu.spec.ts`.
+- [x] `MBX-52` An empty folder does not offer "Move folder content". — web app only
+  - Spec: `tests/folder-menu.spec.ts`.
+- [x] `MBX-53` "Create filter" on a folder opens the rule creator with "Move to <folder>" chosen; saving creates the rule (toast, `Filter/get`). axe on the dialog. — web app only (tmail-flutter: `createFilter`)
+  - Spec: `tests/folder-menu.spec.ts`, `@mobile`.
+- [x] `MBX-54` "Open in new tab" is a link (`target="_blank"`) to `/mailbox/<id>` and opens a tab. — web app only (tmail-flutter: `openInNewTab`)
+  - Spec: `tests/folder-menu.spec.ts`.
+- [x] `MBX-55` The unread count is hidden on the Trash and Drafts, shown on a folder with unread emails; Drafts shows the number of emails it holds. — web app only (tmail-flutter: `allowedToDisplayCountOfUnreadEmails`)
+  - Spec: `tests/folder-menu.spec.ts`, `@mobile`.
+- [x] `MBX-56` The title of the "Folders" section is a button (`aria-expanded`) that collapses and expands the tree, its actions stay; the choice survives closing and opening the folder drawer. axe. — web app only (tmail-flutter: `MailboxCategoriesExpandMode`, kept for the session only)
+  - Spec: `tests/folder-menu.spec.ts`, `@mobile`.

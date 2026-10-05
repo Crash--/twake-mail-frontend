@@ -108,31 +108,46 @@ describe('AppRoutes', () => {
     expect(authService.startLogin).toHaveBeenCalledTimes(2)
   })
 
-  it('lands on the page asked for once the SSO calls back', async () => {
+  it.each(['/callback', '/login-callback.html'])(
+    'lands on the page asked for once the SSO calls back on %s',
+    async path => {
+      const authService = makeFakeOidcAuthService(ANONYMOUS)
+      authService.handleCallback = jest.fn(() => {
+        authService.store.setState({
+          status: 'authenticated',
+          user: { email: 'alice@example.com', name: null, workplaceFqdn: null }
+        })
+        return Promise.resolve({
+          ok: true as const,
+          value: { returnTo: '/mailbox/mailbox-sent' }
+        })
+      })
+      renderWithProviders(<AppRoutes apps={[]} />, {
+        route: `${path}?code=abc&state=xyz`,
+        authService
+      })
+
+      expect(
+        await screen.findByRole('treeitem', { current: 'page' })
+      ).toHaveAttribute('data-mailbox-id', 'mailbox-sent')
+      expect(screen.getByTestId('mailbox-page')).toHaveAttribute(
+        'data-mailbox-id',
+        'mailbox-sent'
+      )
+      expect(authService.handleCallback).toHaveBeenCalledTimes(1)
+    }
+  )
+
+  it('goes back to the app once the SSO has logged the user out', async () => {
     const authService = makeFakeOidcAuthService(ANONYMOUS)
-    authService.handleCallback = jest.fn(() => {
-      authService.store.setState({
-        status: 'authenticated',
-        user: { email: 'alice@example.com', name: null, workplaceFqdn: null }
-      })
-      return Promise.resolve({
-        ok: true as const,
-        value: { returnTo: '/mailbox/mailbox-sent' }
-      })
-    })
     renderWithProviders(<AppRoutes apps={[]} />, {
-      route: '/callback?code=abc&state=xyz',
+      route: '/logout-callback.html',
       authService
     })
 
-    expect(
-      await screen.findByRole('treeitem', { current: 'page' })
-    ).toHaveAttribute('data-mailbox-id', 'mailbox-sent')
-    expect(screen.getByTestId('mailbox-page')).toHaveAttribute(
-      'data-mailbox-id',
-      'mailbox-sent'
-    )
-    expect(authService.handleCallback).toHaveBeenCalledTimes(1)
+    await waitFor(() => {
+      expect(authService.startLogin).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('offers to reconnect when the callback fails', async () => {

@@ -6,7 +6,7 @@ import {
   IconButton,
   Tooltip
 } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
@@ -33,6 +33,8 @@ export interface EmailListDefaultToolbarProps {
   mailbox: MailboxSummary | null
   /** The filters of the list, null when it has none (search results) */
   filter: ListToolbarFilter | null
+  /** The filters of a search, shown in place of `filter` */
+  searchFilters?: ReactNode
   isRefreshing: boolean
   onRefresh: () => void
 }
@@ -49,6 +51,7 @@ export function EmailListDefaultToolbar({
   loadedCount,
   mailbox,
   filter,
+  searchFilters,
   isRefreshing,
   onRefresh
 }: EmailListDefaultToolbarProps): ReactElement {
@@ -113,6 +116,9 @@ export function EmailListDefaultToolbar({
             {t('thread.selection.selectAll')}
           </Button>
         </Tooltip>
+      )}
+      {searchFilters === undefined ? null : (
+        <Box className={`u-flex u-flex-auto ${spacing}`}>{searchFilters}</Box>
       )}
       {filter === null ? null : (
         <EmailListFilterMenu

@@ -77,9 +77,12 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleChange = (changed: SearchFilter): void => {
-    void navigate(searchPath(changed), { replace: true })
-  }
+  const handleChange = useCallback(
+    (changed: SearchFilter): void => {
+      void navigate(searchPath(changed), { replace: true })
+    },
+    [navigate]
+  )
 
   const handleBack = (): void => {
     void navigate('/')
@@ -96,12 +99,24 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
     ),
     [t]
   )
+  // In the list toolbar, in place of the filter of a folder
+  const filters = useMemo(
+    () => <SearchFiltersBar filter={filter} onChange={handleChange} />,
+    [filter, handleChange]
+  )
   const search = useMemo(
     () =>
       request === null
         ? null
-        : { request, emailPath, openEmailId, empty, opensAtMatch: true },
-    [request, emailPath, openEmailId, empty]
+        : {
+            request,
+            emailPath,
+            openEmailId,
+            empty,
+            filters,
+            opensAtMatch: true
+          },
+    [request, emailPath, openEmailId, empty, filters]
   )
 
   return (
@@ -127,7 +142,6 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
           {t('search.results')}
         </Typography>
       </Box>
-      <SearchFiltersBar filter={filter} onChange={handleChange} />
       {search === null ? (
         <ListSkeleton count={8} hasSecondary />
       ) : (

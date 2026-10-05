@@ -162,6 +162,8 @@ export interface ComposerFormProps {
   /** Takes the focus once loaded */
   autoFocus: boolean
   onTitleChange: (title: string) => void
+  /** Who the message is for, as names: what tells it apart without subject */
+  onRecipientsChange?: (names: string) => void
   /** Gives the window what it asks the form */
   onReady: (handle: ComposerFormHandle) => void
   /** The draft the composer edits changed (opened, saved, sent, deleted) */
@@ -255,6 +257,7 @@ interface LoadedFormProps extends ComposerFormProps {
 function LoadedComposerForm({
   autoFocus,
   onTitleChange,
+  onRecipientsChange,
   onReady,
   onDraftChange,
   onDone,
@@ -595,6 +598,13 @@ function LoadedComposerForm({
   useEffect(() => {
     onTitleChange(subject)
   }, [subject, onTitleChange])
+
+  const recipientNames = [...recipients.to, ...recipients.cc, ...recipients.bcc]
+    .map(recipient => recipient.name ?? recipient.email)
+    .join(', ')
+  useEffect(() => {
+    onRecipientsChange?.(recipientNames)
+  }, [recipientNames, onRecipientsChange])
 
   useEffect(() => {
     if (content.draftId !== null) onDraftChange(content.draftId)

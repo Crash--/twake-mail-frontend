@@ -84,10 +84,11 @@ afterAll(() => {
 function renderButton(enabled = true): {
   onLinks: jest.Mock
   onAttach: jest.Mock
+  unmount: () => void
 } {
   const onLinks = jest.fn()
   const onAttach = jest.fn()
-  renderWithProviders(
+  const { unmount } = renderWithProviders(
     withConfig(
       <DriveAttachButton
         maxFileSize={1000}
@@ -104,7 +105,7 @@ function renderButton(enabled = true): {
       withJmapSession: true
     }
   )
-  return { onLinks, onAttach }
+  return { onLinks, onAttach, unmount }
 }
 
 async function openPicker(): Promise<HTMLIFrameElement> {
@@ -148,11 +149,81 @@ describe('DriveAttachButton', () => {
       expect.objectContaining({ multiple: true }),
       PICKER
     )
+    expect(postMessage.mock.calls[0]?.[0]).not.toHaveProperty(
+      'displayCloseButton'
+    )
     send(frame, { type: 'intent-i1:readyToUse' })
     expect(screen.queryByRole('status')).toBe(null)
     await waitFor(() => {
       expect(frame).toHaveFocus()
     })
+  })
+
+  it('leaves the close button to Drive once it is ready, unless it asks for it', async () => {
+    renderButton()
+    const frame = await openPicker()
+    expect(screen.getByRole('button', { name: 'Close' })).toBeVisible()
+
+    send(frame, { type: 'intent-i1:ready' })
+    send(frame, { type: 'intent-i1:readyToUse' })
+    expect(screen.queryByRole('button', { name: 'Close' })).toBe(null)
+
+    send(frame, { type: 'intent-i1:showCross' })
+    expect(screen.getByRole('button', { name: 'Close' })).toBeVisible()
+    send(frame, { type: 'intent-i1:hideCross' })
+    expect(screen.queryByRole('button', { name: 'Close' })).toBe(null)
+
+    send(frame, {
+      type: 'intent-i1:resize',
+      dimensions: { width: 640, height: 480 }
+    })
+    expect(screen.getByRole('dialog', { name: 'Twake Drive' })).toHaveStyle({
+      width: '640px',
+      height: '480px'
+    })
+  })
+
+  it('stops listening and drops the frame on close and on unmount', async () => {
+    const addListener = jest.spyOn(window, 'addEventListener')
+    const removeListener = jest.spyOn(window, 'removeEventListener')
+    const { onLinks, unmount } = renderButton()
+    const pick = {
+      type: 'intent-i1:done',
+      document: [
+        { id: 'f1', name: 'plan.pdf', sharingLink: `${PICKER}/public?s=x` }
+      ]
+    }
+    const listeners = (): unknown[] =>
+      addListener.mock.calls
+        .filter(([type]) => type === 'message')
+        .map(([, listener]) => listener)
+    const removed = (listener: unknown): boolean =>
+      removeListener.mock.calls.some(
+        ([type, candidate]) => type === 'message' && candidate === listener
+      )
+
+    // Closed by the user: the listener goes with the frame
+    let frame = await openPicker()
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    expect(frame).not.toBeInTheDocument()
+    expect(listeners()).toHaveLength(1)
+    expect(removed(listeners()[0])).toBe(true)
+    send(frame, pick)
+    expect(onLinks).not.toHaveBeenCalled()
+
+    // Unmounted while open (the composer closes)
+    frame = await openPicker()
+    expect(listeners()).toHaveLength(2)
+    unmount()
+    expect(frame).not.toBeInTheDocument()
+    expect(removed(listeners()[1])).toBe(true)
+    send(frame, pick)
+    expect(onLinks).not.toHaveBeenCalled()
+    addListener.mockRestore()
+    removeListener.mockRestore()
   })
 
   it('gives the files shared by link and closes', async () => {

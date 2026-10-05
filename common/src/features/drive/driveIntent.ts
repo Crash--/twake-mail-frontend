@@ -38,7 +38,33 @@ export interface DrivePickerOptions {
   theme: 'light' | 'dark'
 }
 
-/** The data of the intent, as tmail-flutter and Twake Calendar send it */
+/**
+ * The data of the intent (Drive's `FilePickerConfig`, see twake-drive
+ * `docs/file-picker-intent.md`), as tmail-flutter sends it: one picker with
+ * both actions, the user chooses in Drive. What each one makes Drive do:
+ *
+ * - `downloadLink` ("Add as attachment"): a link to download the file,
+ *   valid 10 minutes, that we fetch and attach. No lasting public link,
+ *   but for the files of the user (not of a shared drive) Drive grants
+ *   itself a 5-minute read-only share by link (`POST
+ *   /permissions?codes=code&ttl=5m`) to mint that link: it shows in
+ *   `shared-by-link` though it is expired. No option avoids it; Drive asks
+ *   none for the files of a shared drive.
+ * - `sharingLink` ("Add as link"): a permanent public link, read-only by
+ *   default (Drive asks for the access, a password and an expiry date),
+ *   created with `POST /permissions` or an existing one updated with
+ *   `PATCH /permissions/:id`.
+ * - A double click on a file picks it with the first enabled of
+ *   `sharingLink`, then `downloadLink`: a public link. Only `sharingLink:
+ *   null` would make it attach; tmail-flutter offers both, so do we.
+ * - `null` hides an action: `downloadLink` is null when the server cannot
+ *   take attachments. `maxFileSize` and `availableSize` only disable the
+ *   button for larger files.
+ *
+ * `multiple: true` is Drive's default, sent to be explicit. Not sent:
+ * `displayCloseButton`, ignored by Drive (its header always has a close
+ * button, which cancels the intent).
+ */
 export function pickerData(
   options: DrivePickerOptions
 ): Record<string, unknown> {
@@ -57,7 +83,6 @@ export function pickerData(
                   availableSize: options.maxFileSize
                 })
           },
-    displayCloseButton: true,
     theme: { type: options.theme }
   }
 }
@@ -154,13 +179,54 @@ function readFile(value: unknown): DriveFile | null {
   }
 }
 
+/**
+ * The size the picker asks for (`resize`), in CSS pixels: `width` and
+ * `height` set the size of the frame, `maxWidth` and `maxHeight` cap it
+ * (cozy-interapp applies them as styles of the element holding the frame),
+ * `transition` animates the change.
+ */
+export interface DriveFrameSize {
+  width?: number
+  height?: number
+  maxWidth?: number
+  maxHeight?: number
+  transition?: string
+}
+
 /** What a message of the picker means */
 export type DriveIntentMessage =
   | { type: 'ready' }
   | { type: 'readyToUse' }
+  | { type: 'resize'; size: DriveFrameSize }
+  /** The picker shows its own close button: hide the dialog's */
+  | { type: 'hideCross' }
+  /** The picker hides its own close button: show the dialog's */
+  | { type: 'showCross' }
   | { type: 'done'; files: DriveFile[] }
   | { type: 'cancel' }
   | { type: 'error' }
+
+const SIZE_KEYS = ['width', 'height', 'maxWidth', 'maxHeight'] as const
+
+/** The dimensions of a `resize` message: finite positive numbers only */
+function readFrameSize(
+  dimensions: unknown,
+  transition: unknown
+): DriveFrameSize {
+  const size: DriveFrameSize = {}
+  if (isRecord(dimensions)) {
+    for (const key of SIZE_KEYS) {
+      const value = dimensions[key]
+      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+        size[key] = value
+      }
+    }
+  }
+  if (typeof transition === 'string' && transition !== '') {
+    size.transition = transition
+  }
+  return size
+}
 
 /**
  * A `message` event as the picker speaks it, or null when it is not one of
@@ -182,6 +248,15 @@ export function readIntentMessage(
       return { type: 'ready' }
     case 'readyToUse':
       return { type: 'readyToUse' }
+    case 'resize':
+      return {
+        type: 'resize',
+        size: readFrameSize(event.data.dimensions, event.data.transition)
+      }
+    case 'hideCross':
+      return { type: 'hideCross' }
+    case 'showCross':
+      return { type: 'showCross' }
     case 'cancel':
       return { type: 'cancel' }
     case 'error':

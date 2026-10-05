@@ -17,6 +17,7 @@ import {
   pickerData,
   readIntentMessage,
   type DriveFile,
+  type DriveFrameSize,
   type DriveIntent,
   type DrivePickerOptions
 } from './driveIntent'
@@ -27,7 +28,20 @@ export const DRIVE_READY_TIMEOUT_MS = 20_000
 export type DrivePickerState =
   | { status: 'closed' }
   | { status: 'opening' }
-  | { status: 'open'; intent: DriveIntent; isReady: boolean }
+  | {
+      status: 'open'
+      intent: DriveIntent
+      isReady: boolean
+      /** The size the picker asked for (`resize`), null for the default */
+      size: DriveFrameSize | null
+      /**
+       * The picker asked the dialog to show its close button (`showCross`,
+       * undone by `hideCross`). False by default: Drive has its own, in its
+       * header, which cancels the intent; the dialog shows its own only
+       * while the picker loads.
+       */
+      showCloseButton: boolean
+    }
   | { status: 'failed' }
 
 /**
@@ -74,7 +88,14 @@ export interface DrivePicker {
  * try after renewing the session, as tmail-flutter), creates the intent,
  * then listens to the messages of its frame only: from the origin of the
  * intent, from its window, with its id, while it is open. The picked files
- * go to `onFiles`; Cancel closes it.
+ * go to `onFiles`; Cancel closes it. The picker may ask for a size
+ * (`resize`) and for the close button of the dialog (`showCross`,
+ * `hideCross`), as cozy-interapp lets it.
+ *
+ * Closing or unmounting removes the `message` listener and the frame (its
+ * `src` goes, so the dialog drops it), and a late answer of the stack is
+ * ignored: what cozy-interapp's `destroy` does (Twake Calendar misses it,
+ * linagora/twake-calendar-frontend#1498).
  */
 export function useDrivePicker(
   driveUrl: string | null,
@@ -127,7 +148,13 @@ export function useDrivePicker(
       if (runRef.current !== run) return
       setState(
         intent.ok
-          ? { status: 'open', intent: intent.value, isReady: false }
+          ? {
+              status: 'open',
+              intent: intent.value,
+              isReady: false,
+              size: null,
+              showCloseButton: false
+            }
           : { status: 'failed' }
       )
     }
@@ -157,6 +184,23 @@ export function useDrivePicker(
             current.status === 'open' ? { ...current, isReady: true } : current
           )
           return
+        case 'resize':
+          setState(current =>
+            current.status === 'open'
+              ? { ...current, size: message.size }
+              : current
+          )
+          return
+        case 'hideCross':
+        case 'showCross': {
+          const showCloseButton = message.type === 'showCross'
+          setState(current =>
+            current.status === 'open'
+              ? { ...current, showCloseButton }
+              : current
+          )
+          return
+        }
         case 'done':
           close()
           onFilesRef.current(message.files)
@@ -173,6 +217,14 @@ export function useDrivePicker(
       window.removeEventListener('message', handleMessage)
     }
   }, [intent, close])
+
+  // Unmounted: a pending token exchange or intent creation is ignored
+  useEffect(
+    () => () => {
+      runRef.current += 1
+    },
+    []
+  )
 
   useEffect(() => {
     if (intent === null || isReady) return undefined

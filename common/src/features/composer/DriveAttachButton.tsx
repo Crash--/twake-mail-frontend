@@ -144,6 +144,8 @@ export function DriveAttachButton({
         loadingLabel={t('composer.drive.loading')}
         closeLabel={t('common.close')}
         onClose={picker.close}
+        showCloseButton={state.status === 'open' && state.showCloseButton}
+        frameSize={state.status === 'open' ? state.size : null}
         frameRef={picker.frameRef}
         disableRestoreFocus
         message={

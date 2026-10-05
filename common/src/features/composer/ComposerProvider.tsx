@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type ReactElement,
   type ReactNode
 } from 'react'
@@ -41,7 +42,11 @@ import {
   type StoredComposer
 } from './composerStorage'
 import { LOCAL_SAVE_DELAY_MS } from './draftPolicy'
-import type { ComposerFormHandle, ComposerInit } from './ComposerForm'
+import type {
+  ComposerForm as ComposerFormType,
+  ComposerFormHandle,
+  ComposerInit
+} from './ComposerForm'
 import {
   acquireComposerLock,
   acquireDraftLock,
@@ -49,9 +54,28 @@ import {
 } from './draftLocks'
 
 // The form and its editor (TipTap) load on demand, in their own chunk
-const ComposerForm = lazy(() =>
-  import('./ComposerForm').then(module => ({ default: module.ComposerForm }))
-)
+/**
+ * The component once its chunk is loaded. React 19 holds a boundary that
+ * suspends on a chunk, even an already loaded one, for several hundred
+ * milliseconds before showing it: once loaded, the form is rendered directly.
+ */
+let loadedComposerForm: typeof ComposerFormType | null = null
+
+const loadComposerForm = async (): Promise<{
+  default: typeof ComposerFormType
+}> => {
+  const module = await import('./ComposerForm')
+  loadedComposerForm = module.ComposerForm
+  return { default: module.ComposerForm }
+}
+const LazyComposerForm = lazy(loadComposerForm)
+
+function ComposerForm(
+  props: ComponentProps<typeof ComposerFormType>
+): ReactElement {
+  const Loaded = loadedComposerForm
+  return Loaded ? <Loaded {...props} /> : <LazyComposerForm {...props} />
+}
 
 /** Most composers open at once (tmail-flutter has no limit) */
 export const MAX_COMPOSERS = 3
@@ -189,6 +213,11 @@ export function ComposerProvider({
   const { t } = useI18n()
   const { notify } = useNotify()
   const { accountId } = useJmapSession()
+  // React 19 holds a boundary that suspends on a chunk for several hundred
+  // milliseconds before showing it: the chunk is loaded before it is asked for
+  useEffect(() => {
+    loadComposerForm().catch(() => null)
+  }, [])
   const suspendShortcuts = useSuspendShortcuts()
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'

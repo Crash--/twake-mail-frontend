@@ -138,6 +138,8 @@ export function NavTreeItem({
           // Tooltip would name the link by the title: the content does it
           aria-label={undefined}
           sx={{
+            // Not positioned (ButtonBase is): the ::after below is the row's
+            position: 'static',
             flex: '0 1 auto',
             minWidth: 0,
             m: 0,

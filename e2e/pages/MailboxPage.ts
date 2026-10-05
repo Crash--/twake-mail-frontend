@@ -152,7 +152,8 @@ export class MailboxPage {
   async openFolder(ref: FolderRef): Promise<MailboxPage> {
     await this.showFolders()
     const mailboxId = await this.folder(ref).getAttribute('data-mailbox-id')
-    await this.folder(ref).click()
+    // The link, not the row: the expand arrow sits inside the row
+    await this.folder(ref).getByRole('link').click()
     if (this.hasFolderDrawer()) {
       await expect(this.folderDrawer).toBeHidden()
     } else {

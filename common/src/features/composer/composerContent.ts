@@ -8,7 +8,12 @@ import {
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 
-import { IDENTITY_HEADER, type AttachedFile } from './composeEmail'
+import {
+  ANSWERING_HEADER,
+  IDENTITY_HEADER,
+  parseAnswering,
+  type AttachedFile
+} from './composeEmail'
 import { blockRemoteImages, fromEmailHtml, hasBlockedImages } from './emailHtml'
 import type { InlineImageStore, StoredImage } from './InlineImageStore'
 import type { Recipient } from './recipients'
@@ -132,7 +137,8 @@ export const DRAFT_PROPERTIES = [
   'references',
   'keywords',
   'mailboxIds',
-  IDENTITY_HEADER
+  IDENTITY_HEADER,
+  ANSWERING_HEADER
 ] as const
 
 const DRAFT_BODY_PROPERTIES = [
@@ -159,7 +165,10 @@ type DraftEmail = Pick<
   | 'replyTo'
   | 'inReplyTo'
   | 'references'
-> & { [IDENTITY_HEADER]?: string | null }
+> & {
+  [IDENTITY_HEADER]?: string | null
+  [ANSWERING_HEADER]?: string | null
+}
 
 function toRecipients(
   addresses: EmailAddress[] | null | undefined
@@ -265,8 +274,7 @@ export async function loadDraftContent(
     savedFingerprint: null,
     inReplyTo: email.inReplyTo ?? null,
     references: email.references ?? null,
-    // The email it answers is not known any more
-    answering: null,
+    answering: parseAnswering(email[ANSWERING_HEADER]),
     hasBlockedImages: hasBlockedImages(editorHtml)
   }
 }

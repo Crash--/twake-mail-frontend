@@ -564,6 +564,49 @@ describe('ComposerForm', () => {
       })
     })
 
+    it('marks the email a reply reopened from Drafts answers, once sent', async () => {
+      const jmapServer = serverWithSource()
+      renderComposer(jmapServer)
+      const composer = await openComposer('Answer reply')
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'More' })
+      )
+      await userEvent.click(
+        screen.getByRole('menuitem', { name: 'Save as draft' })
+      )
+      await waitFor(() => {
+        expect(draftsOf(jmapServer)).toHaveLength(1)
+      })
+      const [draft] = draftsOf(jmapServer)
+      expect(draft?.headers?.['X-Twake-Answering']).toBe('$answered source-1')
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Save & close' })
+      )
+      await waitFor(() => {
+        expect(screen.queryByTestId('composer')).toBe(null)
+      })
+      // Reopened from Drafts, by another composer
+      jmapServer.emails = jmapServer.emails.map(email =>
+        email.id === draft?.id ? { ...email, id: 'draft-1' } : email
+      )
+
+      const reopened = await openComposer('Open draft')
+      await userEvent.click(
+        within(reopened).getByRole('button', { name: 'Send' })
+      )
+
+      await waitFor(() => {
+        expect(
+          jmapServer.emails.find(email => email.id === 'source-1')?.keywords
+        ).toEqual({ $answered: true })
+      })
+      const sent = jmapServer.emails.find(
+        email => email.id === jmapServer.submitted[0]
+      )
+      expect(sent?.inReplyTo).toEqual(['plans@example.com'])
+      expect(sent?.headers?.['X-Twake-Answering']).toBeUndefined()
+    })
+
     it('replies to all but the user, Cc kept', async () => {
       renderComposer(serverWithSource())
       const composer = await openComposer('Answer replyAll')

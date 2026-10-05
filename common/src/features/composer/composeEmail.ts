@@ -11,10 +11,41 @@ import { findReferencedCids } from '@common/features/email/emailBody'
 
 import { htmlToText, toEmailHtml } from './emailHtml'
 import type { InlineImageStore } from './InlineImageStore'
-import type { Answering } from './replyContent'
+import type { AnswerKeyword, Answering } from './replyContent'
 
 /** Header keeping the identity of a draft (tmail-flutter reads it too) */
 export const IDENTITY_HEADER = 'header:X-JMAP-Identity:asText'
+
+/**
+ * Header keeping, in a draft only, the email it answers and how
+ * (`$answered <emailId>`): reopened from Drafts, the answer still marks it
+ * once sent. tmail-flutter forgets it.
+ */
+export const ANSWERING_HEADER = 'header:X-Twake-Answering:asText'
+
+const ANSWER_KEYWORDS: readonly string[] = ['$answered', '$forwarded']
+
+function isAnswerKeyword(value: string): value is AnswerKeyword {
+  return ANSWER_KEYWORDS.includes(value)
+}
+
+/** The value of `ANSWERING_HEADER` */
+export function formatAnswering({ keyword, emailId }: Answering): string {
+  return `${keyword} ${emailId}`
+}
+
+/** What `ANSWERING_HEADER` says, null when absent or not understood */
+export function parseAnswering(
+  value: string | null | undefined
+): Answering | null {
+  const [keyword = '', emailId = '', ...rest] = (value ?? '')
+    .trim()
+    .split(/\s+/)
+  if (rest.length > 0 || emailId === '' || !isAnswerKeyword(keyword)) {
+    return null
+  }
+  return { keyword, emailId }
+}
 
 export interface ComposedMessage {
   /** Identity sending it, kept in the drafts (`IDENTITY_HEADER`) */
@@ -31,7 +62,12 @@ export interface ComposedMessage {
   references: string[] | null
   /** Files attached (not shown in the body), already uploaded */
   attachments?: AttachedFile[]
+  /** The email it answers, kept in the drafts (`ANSWERING_HEADER`) */
+  answering?: Answering | null
 }
+
+/** What an email is built for: a version of the draft, or the message sent */
+export type BuildPurpose = 'draft' | 'send'
 
 /** An uploaded file of the message */
 export interface AttachedFile {
@@ -75,9 +111,11 @@ async function uploadDataImages(
 export async function buildEmail(
   message: ComposedMessage,
   images: InlineImageStore,
-  mailboxIds: MailboxIds
+  mailboxIds: MailboxIds,
+  purpose: BuildPurpose = 'draft'
 ): Promise<EmailCreate> {
   const html = await uploadDataImages(toEmailHtml(message.editorHtml), images)
+  const answering = purpose === 'draft' ? (message.answering ?? null) : null
   return {
     mailboxIds: { [mailboxIds.drafts]: true },
     keywords: { $draft: true, $seen: true },
@@ -90,6 +128,9 @@ export async function buildEmail(
     ...(message.identityId === null
       ? {}
       : { [IDENTITY_HEADER]: message.identityId }),
+    ...(answering === null
+      ? {}
+      : { [ANSWERING_HEADER]: formatAnswering(answering) }),
     inReplyTo: message.inReplyTo,
     references: message.references,
     bodyValues: {

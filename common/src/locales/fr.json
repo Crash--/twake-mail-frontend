@@ -442,7 +442,16 @@
     "enable": "Activer les raccourcis clavier",
     "description": "Les raccourcis d'une seule touche fonctionnent hors des champs de saisie. Désactivez-les s'ils gênent votre aide technique.",
     "key": "Touche",
-    "action": "Action"
+    "action": "Action",
+    "composerTitle": "Dans un message en cours de rédaction",
+    "composer": {
+      "send": "Envoyer le message",
+      "link": "Insérer un lien",
+      "toolbar": "Aller à la barre de mise en forme",
+      "plainPaste": "Coller en texte brut",
+      "bold": "Gras, italique, souligné",
+      "escape": "Réduire la fenêtre (la fermer en plein écran)"
+    }
   },
   "settings": {
     "title": "Paramètres",

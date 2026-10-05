@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
@@ -173,6 +173,9 @@ describe('ShortcutsProvider', () => {
       name: 'Keyboard shortcuts'
     })
     expect(dialog).toHaveTextContent('Archive message')
+    expect(
+      within(dialog).getByRole('table', { name: 'In a message being written' })
+    ).toHaveTextContent('Ctrl + EnterSend the message')
     // Keys pressed in the dialog belong to it
     fireEvent.keyDown(dialog, { key: 'e' })
     expect(onArchive).not.toHaveBeenCalled()

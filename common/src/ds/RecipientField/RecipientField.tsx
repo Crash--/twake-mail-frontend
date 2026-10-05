@@ -2,7 +2,7 @@
 // suggestions; Mail (recipients), Calendar (attendees) and Drive (sharing)
 // all need one. The ARIA 1.2 combobox of `SearchCombobox`, with the chips
 // of what was already entered before the input.
-import { Icon, Warning } from '@linagora/twake-icons'
+import { Cross, Icon, Warning } from '@linagora/twake-icons'
 import { Box, InputBase, Paper, Popper, Typography } from '@linagora/twake-mui'
 // Not twake-mui's Chip: it drops its ref, which the keyboard needs to move
 // the focus between chips (docs/twake-mui-gaps.md)
@@ -22,6 +22,7 @@ import {
 } from 'react'
 
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
+import { RecipientAvatar } from './RecipientAvatar'
 
 const POPUP_SX = { zIndex: 'modal' } as const
 const PAPER_SX = { maxHeight: 320, overflowY: 'auto' } as const
@@ -51,7 +52,19 @@ const CONTENT_SX = {
   minHeight: 28
 } as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
-const INVALID_CHIP_SX = {
+/** Figma "Teammail 1.1" recipient chip: 32 px high, grey, rounded */
+export const RECIPIENT_CHIP_SX = {
+  height: 32,
+  borderRadius: '10px',
+  bgcolor: 'background.default',
+  fontSize: 14,
+  fontWeight: 500,
+  letterSpacing: '0.25px',
+  '& .MuiChip-avatar': { ml: '6px', mr: '-2px' },
+  '& .MuiChip-deleteIcon': { color: 'text.secondary' }
+} as const
+export const INVALID_CHIP_SX = {
+  ...RECIPIENT_CHIP_SX,
   borderColor: 'error.main',
   bgcolor: 'background.paper'
 } as const
@@ -65,6 +78,8 @@ export interface RecipientFieldChip {
   title?: string
   /** Not usable as is: shown in red, with an icon, and said in its name */
   isInvalid: boolean
+  /** Shows a decorative avatar of this name before the label */
+  avatar?: string
 }
 
 /** A suggestion of the list under the field */
@@ -403,11 +418,17 @@ export function RecipientField({
               }}
               size="small"
               variant={chip.isInvalid ? 'outlined' : 'filled'}
+              avatar={
+                chip.isInvalid || chip.avatar === undefined ? undefined : (
+                  <RecipientAvatar of={chip.avatar} />
+                )
+              }
               icon={
                 chip.isInvalid ? (
                   <Icon icon={Warning} aria-hidden="true" />
                 ) : undefined
               }
+              deleteIcon={<Icon icon={Cross} size={12} aria-hidden="true" />}
               label={chip.label}
               title={chip.title ?? chip.label}
               aria-label={
@@ -431,7 +452,7 @@ export function RecipientField({
                 removeChip(index)
               }}
               onKeyDown={handleChipKeyDown(index)}
-              sx={chip.isInvalid ? INVALID_CHIP_SX : undefined}
+              sx={chip.isInvalid ? INVALID_CHIP_SX : RECIPIENT_CHIP_SX}
               data-testid={testIds.chip}
               data-invalid={chip.isInvalid ? 'true' : undefined}
             />

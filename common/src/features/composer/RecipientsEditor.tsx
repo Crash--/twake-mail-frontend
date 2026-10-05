@@ -8,6 +8,7 @@ import { RecipientSummary } from '@/ds/RecipientField/RecipientSummary'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { RecipientInput } from './RecipientInput'
+import { recipientChips } from './recipientChips'
 import type { Recipient } from './recipients'
 
 export type RecipientKind = 'to' | 'cc' | 'bcc' | 'replyTo'
@@ -30,9 +31,6 @@ const LABEL_KEYS = {
   bcc: 'composer.fields.bcc',
   replyTo: 'composer.fields.replyTo'
 } as const
-
-/** Names shown in the summary of the collapsed fields */
-const SUMMARY_NAMES = 3
 
 export interface RecipientsEditorProps {
   recipients: RecipientLists
@@ -107,22 +105,19 @@ export function RecipientsEditor({
   }
 
   if (isCollapsed) {
-    const all = [...recipients.to, ...recipients.cc, ...recipients.bcc]
-    const names = all
-      .slice(0, SUMMARY_NAMES)
-      .map(recipient => recipient.name ?? recipient.email)
-      .join(', ')
-    const others = all.length - SUMMARY_NAMES
     return (
       <>
         {fromLine}
         <RecipientSummary
-          summary={
-            others > 0
-              ? `${names} ${t('composer.recipients.others', { smart_count: others })}`
-              : names
-          }
+          chips={recipientChips([
+            ...recipients.to,
+            ...recipients.cc,
+            ...recipients.bcc
+          ])}
           label={t('composer.recipients.summary')}
+          moreLabel={count =>
+            t('composer.recipients.others', { smart_count: count })
+          }
           onExpand={handleExpand}
           data-testid="composer-recipients-summary"
         />

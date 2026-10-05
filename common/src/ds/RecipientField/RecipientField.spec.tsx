@@ -212,3 +212,35 @@ describe('RecipientField', () => {
     expect(screen.getByRole('combobox', { name: 'To' })).toHaveFocus()
   })
 })
+
+describe('RecipientField avatar', () => {
+  it('draws the letter of a chip with CSS: the name and the text stay the address', () => {
+    renderDs(
+      <RecipientField
+        labels={LABELS}
+        chips={[
+          {
+            id: 'alice@example.com',
+            label: 'alice@example.com',
+            isInvalid: false,
+            avatar: 'alice@example.com'
+          }
+        ]}
+        inputValue=""
+        onInputChange={jest.fn()}
+        onCommit={jest.fn()}
+        onRemove={jest.fn()}
+        onEdit={jest.fn()}
+        suggestions={[]}
+        onSelectSuggestion={jest.fn()}
+      />
+    )
+
+    const chip = screen.getByText('alice@example.com').closest('.MuiChip-root')
+    expect(chip).toHaveTextContent(/^alice@example\.com$/)
+    expect(chip?.querySelector('[data-letter="A"]')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    )
+  })
+})

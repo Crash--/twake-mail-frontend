@@ -201,7 +201,7 @@ export function ScribeMenu({
           className="u-ml-half"
           data-testid="composer-scribe-button"
         >
-          <Icon icon={AssistantColor} size={24} aria-hidden="true" />
+          <Icon icon={AssistantColor} size={20} aria-hidden="true" />
         </IconButton>
       </Tooltip>
       <Menu

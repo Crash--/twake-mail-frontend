@@ -133,7 +133,7 @@ export function DriveAttachButton({
           className="u-ml-half"
           data-testid="composer-drive-button"
         >
-          <Icon icon={ToTheCloud} size={24} aria-hidden="true" />
+          <Icon icon={ToTheCloud} size={20} aria-hidden="true" />
         </IconButton>
       </Tooltip>
       <FramedDialog

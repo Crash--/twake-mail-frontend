@@ -129,6 +129,7 @@ export function NavTreeItem({
         onOpen={handleTooltipOpen}
         onClose={handleTooltipClose}
         placement="right"
+        disableInteractive
         enterDelay={500}
       >
         <NavLink
@@ -196,7 +197,8 @@ export function NavTreeItem({
         </NavLink>
       </Tooltip>
       {toggle ? (
-        <Tooltip title={toggle.label}>
+        // Not interactive: it would cover the row below the arrow
+        <Tooltip title={toggle.label} disableInteractive>
           <IconButton
             aria-label={toggle.label}
             onClick={event => {

@@ -46,6 +46,8 @@ export interface PickMailboxOptions {
    * folder to create or move: chosen, it resolves to `PICKED_ROOT`
    */
   rootLabel?: string
+  /** Folders emails cannot be added to (`mayAddItems`) are listed, not selectable */
+  requireAddItems?: boolean
   /** The personal folders only, not the team mailboxes */
   personalOnly?: boolean
 }
@@ -123,7 +125,9 @@ export function MailboxPickerProvider({
           : mailboxPath(mailboxes, mailbox.id, getName),
         level,
         icon: getMailboxIcon(mailbox),
-        disabled: disabled.has(mailbox.id)
+        disabled:
+          disabled.has(mailbox.id) ||
+          (pending?.requireAddItems === true && !mailbox.myRights.mayAddItems)
       })
     )
     const rootLabel = pending?.rootLabel

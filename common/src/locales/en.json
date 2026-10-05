@@ -511,7 +511,9 @@
       "replyToList": "Reply to list",
       "forward": "Forward",
       "label": "Reply actions"
-    }
+    },
+    "noRights": "You do not have the right to do this in this folder.",
+    "noRightsDestination": "You cannot add messages to this folder."
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",

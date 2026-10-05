@@ -171,6 +171,9 @@ export function EmailCell({
   const isStarred = thread?.isStarred ?? hasKeyword(email, FLAGGED)
   const hasAttachment = thread?.hasAttachment ?? email.hasAttachment
   const isImportant = showImportant && isMarkedImportant(email)
+  // As tmail-flutter: a conversation row shows the labels of the email that
+  // represents it. To show the union of its emails (issue #110), pass
+  // `thread.members` here instead of `email`.
   const emailLabels = labelsOfEmail(labels, email)
   const labelChips = (max: number): ReactElement | null =>
     emailLabels.length === 0 ? null : (

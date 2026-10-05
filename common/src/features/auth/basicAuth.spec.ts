@@ -48,7 +48,7 @@ describe('createBasicAuthService', () => {
     )
     expect(service.getState()).toEqual({
       status: 'authenticated',
-      user: { email: 'alice@example.com', name: null }
+      user: { email: 'alice@example.com', name: null, workplaceFqdn: null }
     })
     await expect(service.getAuthorizationHeader()).resolves.toBe(
       makeBasicAuthorizationHeader('alice@example.com', 'secret')

@@ -113,7 +113,7 @@ describe('AppRoutes', () => {
     authService.handleCallback = jest.fn(() => {
       authService.store.setState({
         status: 'authenticated',
-        user: { email: 'alice@example.com', name: null }
+        user: { email: 'alice@example.com', name: null, workplaceFqdn: null }
       })
       return Promise.resolve({
         ok: true as const,

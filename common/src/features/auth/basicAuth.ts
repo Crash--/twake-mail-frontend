@@ -88,7 +88,7 @@ export function createBasicAuthService(
       authorizationHeader = header
       store.setState({
         status: 'authenticated',
-        user: { email: username.trim(), name: null }
+        user: { email: username.trim(), name: null, workplaceFqdn: null }
       })
     }
     return result

@@ -3,6 +3,11 @@ import type { AuthMode } from '@common/config/config'
 export interface AuthUser {
   email: string | null
   name: string | null
+  /**
+   * The Twake Workplace of the user (`workplaceFqdn` claim of the SSO, as
+   * tmail-flutter reads it), for the URI templates of the other apps
+   */
+  workplaceFqdn: string | null
 }
 
 export type AuthState =

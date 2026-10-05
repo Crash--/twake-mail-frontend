@@ -110,7 +110,7 @@ describe('AppLayout', () => {
       APPS,
       makeFakeOidcAuthService({
         status: 'authenticated',
-        user: { email: null, name: null }
+        user: { email: null, name: null, workplaceFqdn: null }
       })
     )
 
@@ -126,7 +126,7 @@ describe('AppLayout', () => {
       APPS,
       makeFakeBasicAuthService({
         status: 'authenticated',
-        user: { email: 'alice', name: null }
+        user: { email: 'alice', name: null, workplaceFqdn: null }
       })
     )
 

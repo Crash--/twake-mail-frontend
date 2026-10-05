@@ -7,7 +7,11 @@ import type {
 
 const SIGNED_IN: AuthState = {
   status: 'authenticated',
-  user: { email: 'alice@example.com', name: 'Alice Martin' }
+  user: {
+    email: 'alice@example.com',
+    name: 'Alice Martin',
+    workplaceFqdn: null
+  }
 }
 
 /**

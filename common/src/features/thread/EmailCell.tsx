@@ -27,6 +27,7 @@ import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
+import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { isMarkedImportant } from '@common/features/email/importance'
@@ -160,6 +161,7 @@ export function EmailCell({
   const { t, lang } = useI18n()
   const selection = useEmailSelectionContext()
   const navigate = useNavigate()
+  const ensureEmailViewReady = useEmailViewReady()
   const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)
 
@@ -307,9 +309,12 @@ export function EmailCell({
       onOpenDraft(email)
       return
     }
-    void navigate(path, {
-      state: openState,
-      viewTransition: prepareViewTransition('forward')
+    // The transition ends on the email, not on its skeleton
+    void ensureEmailViewReady(email.id, email.threadId).then(isReady => {
+      void navigate(path, {
+        state: openState,
+        viewTransition: isReady && prepareViewTransition('forward')
+      })
     })
   }
   const date = (

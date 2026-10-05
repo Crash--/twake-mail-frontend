@@ -1,0 +1,11 @@
+From: "Bob" <BOB_ADDRESS>
+To: <USER_ADDRESS>
+Subject: Two warnings
+Date: Mon, 05 Oct 2026 08:00:00 +0000
+Message-ID: <two-warnings@example.com>
+X-TWP-Message: level:warn code:virus Server text for the virus.
+X-TWP-Message: level:error code:virus-removed Server text for the removed virus.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Body of the flagged message.

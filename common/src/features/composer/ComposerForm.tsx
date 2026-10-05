@@ -1,5 +1,6 @@
 import {
   Attachment,
+  AssistantColor,
   Check,
   FileOutline,
   Icon,
@@ -57,6 +58,8 @@ import {
 } from '@common/features/drive/driveCard'
 import type { DriveFile } from '@common/features/drive/driveIntent'
 import { buildEmailDocument } from '@common/features/email/emailBody'
+import { scribeEndpoint } from '@common/features/scribe/scribe'
+import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
 import { formatSize } from '@common/features/email/formatSize'
@@ -816,6 +819,11 @@ function LoadedComposerForm({
       })
   }
 
+  // The sparkle under the selection opens the assistant's menu on it
+  const [scribeAnchor, setScribeAnchor] = useState<HTMLElement | null>(null)
+  const [isScribeOn] = useScribePreference()
+  const hasScribe = isScribeOn && scribeEndpoint(session, accountId) !== null
+
   // The AI assistant works on the selection, else on what the user wrote
   const scribeInput = (): ScribeInput => {
     const editor = editorRef.current
@@ -1128,6 +1136,22 @@ function LoadedComposerForm({
                 editableQuoteHtml(html, cid => images.urlFor(cid)),
               editTestId: htmlBlockEditTestId
             }}
+            selectionAction={
+              hasScribe
+                ? {
+                    label: t('composer.scribe.assistant'),
+                    icon: (
+                      <Icon
+                        icon={AssistantColor}
+                        size={20}
+                        aria-hidden="true"
+                      />
+                    ),
+                    onSelect: setScribeAnchor,
+                    testId: 'composer-scribe-selection-button'
+                  }
+                : undefined
+            }
             footerBlockKinds={['signature', 'quote']}
             autoFocus={autoFocus && opensOnText}
             fill
@@ -1232,6 +1256,10 @@ function LoadedComposerForm({
             onAttach={files.addFiles}
           />
           <ScribeMenu
+            externalAnchor={scribeAnchor}
+            onExternalClose={() => {
+              setScribeAnchor(null)
+            }}
             getInput={scribeInput}
             onReplace={handleScribeReplace}
             onInsert={handleScribeInsert}

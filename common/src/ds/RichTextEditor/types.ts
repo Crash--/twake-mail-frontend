@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import type { InlineImageAttributes } from './inlineImage'
 
 /** The size of the text, in px, when the user chose none */
@@ -108,6 +110,16 @@ export interface RichTextEditorTestIds {
   linkApplyButton?: string
   imageToolbar?: string
   imageButton?: (item: RichTextImageItemId) => string
+}
+
+/** A button following the selected text, e.g. a writing assistant */
+export interface RichTextSelectionAction {
+  /** Accessible name and tooltip */
+  label: string
+  icon: ReactNode
+  /** Called with the button, to anchor a menu on it */
+  onSelect: (anchor: HTMLElement) => void
+  testId?: string
 }
 
 /** What a parent can do to the editor, e.g. from buttons of its own */

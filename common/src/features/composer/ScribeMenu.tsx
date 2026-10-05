@@ -1,4 +1,4 @@
-import { AssistantColor, Icon } from '@linagora/twake-icons'
+import { AssistantColor, Copy, Icon } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -20,6 +20,7 @@ import {
 import { useEffect, useId, useRef, useState, type ReactElement } from 'react'
 
 import { useAuthService } from '@common/features/auth/AuthProvider'
+import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
   actionMessages,
@@ -62,6 +63,13 @@ export interface ScribeMenuProps {
   onReplace: (text: string) => void
   /** Inserts the answer where the caret is (after the selection) */
   onInsert: (text: string) => void
+  /**
+   * Another button (the one following the selection) the menu opens on, as
+   * if the toolbar button had been pressed; null to leave it closed
+   */
+  externalAnchor?: HTMLElement | null
+  /** The menu opened on `externalAnchor` closed */
+  onExternalClose?: () => void
 }
 
 type Request =
@@ -85,13 +93,16 @@ type Answer =
 export function ScribeMenu({
   getInput,
   onReplace,
-  onInsert
+  onInsert,
+  externalAnchor = null,
+  onExternalClose
 }: ScribeMenuProps): ReactElement | null {
   const { t } = useI18n()
   const { notify } = useNotify()
   const service = useAuthService()
   const { session, accountId } = useJmapSession()
   const endpoint = scribeEndpoint(session, accountId)
+  const [isScribeOn] = useScribePreference()
   const menuId = useId()
   const titleId = useId()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
@@ -107,7 +118,8 @@ export function ScribeMenu({
     []
   )
 
-  if (endpoint === null) return null
+  // Offered when the server has an assistant and the user did not hide it
+  if (endpoint === null || !isScribeOn) return null
 
   const ask = (messages: ScribeMessage[]): void => {
     abortRef.current?.abort()
@@ -141,7 +153,7 @@ export function ScribeMenu({
       : writingMessages(task.trim(), next.input.text)
 
   const handleAction = (action: ScribeAction): void => {
-    setAnchor(null)
+    closeMenu()
     const input = getInput()
     if (input.text.trim() === '') {
       notify({ message: t('composer.scribe.emptyText') })
@@ -153,10 +165,29 @@ export function ScribeMenu({
   }
 
   const handleWrite = (): void => {
-    setAnchor(null)
+    closeMenu()
     setTask('')
     setAnswer({ status: 'idle' })
     setRequest({ kind: 'write', input: getInput() })
+  }
+
+  const menuAnchor = anchor ?? externalAnchor
+  const closeMenu = (): void => {
+    setAnchor(null)
+    onExternalClose?.()
+  }
+
+  const handleCopy = (): void => {
+    if (answer.status !== 'done') return
+    navigator.clipboard
+      .writeText(answer.text)
+      .then(() => {
+        notify({ message: t('composer.scribe.copied') })
+      })
+      .catch((error: unknown) => {
+        console.warn('[scribe] Cannot copy the suggestion', error)
+        notify({ message: t('common.errorOccurredShort'), severity: 'error' })
+      })
   }
 
   const handleClose = (): void => {
@@ -192,7 +223,7 @@ export function ScribeMenu({
         <IconButton
           aria-label={t('composer.scribe.assistant')}
           aria-haspopup="true"
-          aria-controls={anchor ? menuId : undefined}
+          aria-controls={menuAnchor ? menuId : undefined}
           aria-expanded={anchor ? 'true' : undefined}
           size="medium"
           onClick={event => {
@@ -206,11 +237,9 @@ export function ScribeMenu({
       </Tooltip>
       <Menu
         id={menuId}
-        anchorEl={anchor}
-        open={anchor !== null}
-        onClose={() => {
-          setAnchor(null)
-        }}
+        anchorEl={menuAnchor}
+        open={menuAnchor !== null}
+        onClose={closeMenu}
         data-testid="composer-scribe-menu"
       >
         {CATEGORIES.flatMap(category => [
@@ -327,6 +356,17 @@ export function ScribeMenu({
             >
               {t('composer.scribe.replace')}
             </Button>
+          ) : null}
+          {answer.status === 'done' ? (
+            <Tooltip title={t('composer.scribe.copy')}>
+              <IconButton
+                aria-label={t('composer.scribe.copy')}
+                onClick={handleCopy}
+                data-testid="composer-scribe-copy"
+              >
+                <Icon icon={Copy} size={20} aria-hidden="true" />
+              </IconButton>
+            </Tooltip>
           ) : null}
           {answer.status === 'done' ? (
             <Button

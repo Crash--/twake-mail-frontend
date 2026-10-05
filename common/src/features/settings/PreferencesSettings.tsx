@@ -2,9 +2,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
 
-import { useSentryReporting } from '@common/features/sentry/useSentryReporting'
+import { hasAiCapability } from '@common/features/ai/aiNeedsAction'
 import { useLabelVisibility } from '@common/features/labels/labelVisibility'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import { scribeEndpoint } from '@common/features/scribe/scribe'
+import { useScribePreference } from '@common/features/scribe/scribePreference'
+import { useSentryReporting } from '@common/features/sentry/useSentryReporting'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -14,7 +17,9 @@ import type { SettingsSection } from './sections'
 import { SettingsSectionLayout } from './SettingsSectionLayout'
 import {
   canChangeServerSetting,
+  AI_LABEL_CATEGORIZATION_KEY,
   isAlwaysRequestingReadReceipts,
+  isLabelCategorizationOn,
   isShowingSenderPriority,
   serverSettingsKeys,
   type ServerSettingKey,
@@ -31,8 +36,9 @@ export interface PreferencesSettingsProps {
  * Settings > Preferences, as tmail-flutter: the read receipts asked for
  * every message, the important flag set by senders and the error reports
  * (settings of the account on the server, when it keeps them; the reports
- * only when error reporting is configured), the conversation view and the
- * labels (kept in this browser).
+ * only when error reporting is configured), the conversation view, the AI
+ * assistant and the labels (kept in this browser), and, with the AI
+ * capability, the label categorisation (setting of the account).
  */
 export function PreferencesSettings({
   section
@@ -45,6 +51,8 @@ export function PreferencesSettings({
   const threadPreference = useThreadPreference()
   const [isLabelVisible, setLabelVisible] = useLabelVisibility()
   const hasLabels = LINAGORA_CAPABILITIES.labels in session.capabilities
+  const [isScribeOn, setScribeOn] = useScribePreference()
+  const hasScribe = scribeEndpoint(session, accountId) !== null
   const { settings } = useServerSettings()
   const errorReporting = useSentryReporting()
   const [saving, setSaving] = useState<ServerSettingKey | null>(null)
@@ -106,6 +114,33 @@ export function PreferencesSettings({
         onChange={threadPreference.setEnabled}
         data-testid="thread-setting-toggle"
       />
+      {hasScribe ? (
+        <PreferenceOption
+          title={t('settings.preferences.aiScribe')}
+          description={t('settings.preferences.aiScribeDescription')}
+          toggleLabel={t('settings.preferences.aiScribeToggle')}
+          isChecked={isScribeOn}
+          onChange={setScribeOn}
+          data-testid="ai-scribe-setting-toggle"
+        />
+      ) : null}
+      {serverOption(AI_LABEL_CATEGORIZATION_KEY) &&
+      settings !== null &&
+      hasAiCapability(session, accountId) ? (
+        <PreferenceOption
+          title={t('settings.preferences.aiLabelCategorization')}
+          description={t(
+            'settings.preferences.aiLabelCategorizationDescription'
+          )}
+          toggleLabel={t('settings.preferences.aiLabelCategorizationToggle')}
+          isChecked={isLabelCategorizationOn(settings)}
+          isDisabled={saving === AI_LABEL_CATEGORIZATION_KEY}
+          onChange={isOn => {
+            changeServerSetting(AI_LABEL_CATEGORIZATION_KEY, isOn)
+          }}
+          data-testid="ai-label-categorization-setting-toggle"
+        />
+      ) : null}
       {hasLabels ? (
         <PreferenceOption
           title={t('settings.preferences.labels')}

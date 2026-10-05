@@ -56,6 +56,7 @@ describe('resolveConfig', () => {
           postLogoutRedirectUri: 'https://mail.example.com/'
         },
         debug: false,
+        sentrySource: 'ecosystem',
         sentryDsn: null,
         sentryEnvironment: null,
         forwardWarningMessage: null,
@@ -325,6 +326,56 @@ describe('resolveConfig', () => {
         })
       }
     )
+
+    it('comes from the ecosystem of the server when no key is filled', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        SENTRY_ENABLED: '',
+        SENTRY_DSN: '  ',
+        SENTRY_ENVIRONMENT: ''
+      })
+
+      expect(result).toMatchObject({
+        value: {
+          sentrySource: 'ecosystem',
+          sentryDsn: null,
+          sentryEnvironment: null,
+          ecosystemUrl:
+            'https://jmap.example.com/.well-known/linagora-ecosystem'
+        }
+      })
+    })
+
+    it.each([
+      ['SENTRY_ENABLED', false],
+      ['SENTRY_ENABLED', 'false'],
+      ['SENTRY_DSN', 'https://key@sentry.example.com/1'],
+      ['SENTRY_ENVIRONMENT', 'production']
+    ])(
+      'comes from the environment, with no ecosystem, once %s is %j',
+      (key, value) => {
+        const { result } = resolveWithWarnings({
+          ...OIDC_SOURCE,
+          [key]: value
+        })
+
+        expect(result).toMatchObject({ value: { sentrySource: 'env' } })
+      }
+    )
+
+    it('keeps the path of SERVER_URL for the ecosystem document', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        SERVER_URL: 'https://example.com/jmap-base/'
+      })
+
+      expect(result).toMatchObject({
+        value: {
+          ecosystemUrl:
+            'https://example.com/jmap-base/.well-known/linagora-ecosystem'
+        }
+      })
+    })
 
     it('still starts with a DSN alone, with a warning', () => {
       const { result, warnings } = resolveWithWarnings({

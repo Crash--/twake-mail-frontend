@@ -232,7 +232,8 @@
       "fullscreen": "Toàn màn hình",
       "exitFullscreen": "Thoát toàn màn hình",
       "close": "Lưu và đóng",
-      "show": "Hiển thị"
+      "show": "Hiển thị",
+      "overflow": "+%{smart_count} thư"
     },
     "close": {
       "title": "Lưu thư",

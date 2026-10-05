@@ -16,8 +16,12 @@ import {
   DockedWindow,
   type DockedWindowMode
 } from '@/ds/DockedWindow/DockedWindow'
-import { fitWindows } from '@/ds/DockedWindow/fitWindows'
+import { fitWindows, type FittedWindowMode } from '@/ds/DockedWindow/fitWindows'
 import { WindowDock } from '@/ds/DockedWindow/WindowDock'
+import {
+  WindowOverflowMenu,
+  type WindowOverflowItem
+} from '@/ds/DockedWindow/WindowOverflowMenu'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
@@ -53,6 +57,8 @@ interface ComposerEntry {
   mode: DockedWindowMode
   /** Its subject, empty for none */
   title: string
+  /** Who it is for, as names; missing in the registry of an older version */
+  recipients?: string
 }
 
 interface ComposerApi {
@@ -99,6 +105,15 @@ function isEntry(value: unknown): value is ComposerEntry {
 function readRegistry(accountId: string): ComposerEntry[] {
   const value = readStorage(registryKey(accountId))
   return Array.isArray(value) ? value.filter(isEntry) : []
+}
+
+/** Its subject, else who it is for; null for a blank message */
+function describeEntry(entry: ComposerEntry): string | null {
+  if (entry.title !== '') return entry.title
+  if (entry.recipients !== undefined && entry.recipients !== '') {
+    return entry.recipients
+  }
+  return null
 }
 
 function useWindowWidth(): number {
@@ -336,6 +351,16 @@ export function ComposerProvider({
     [close]
   )
 
+  const setRecipients = useCallback((id: string, recipients: string): void => {
+    setEntries(current =>
+      current.some(entry => entry.id === id && entry.recipients !== recipients)
+        ? current.map(entry =>
+            entry.id === id ? { ...entry, recipients } : entry
+          )
+        : current
+    )
+  }, [])
+
   const setTitle = useCallback((id: string, title: string): void => {
     setEntries(current =>
       current.some(entry => entry.id === id && entry.title !== title)
@@ -355,26 +380,57 @@ export function ComposerProvider({
 
   // The newest first, at the end of the dock
   const newestFirst = [...entries].reverse()
-  const shownModes = isDesktop
+  const fittedModes: FittedWindowMode[] = isDesktop
     ? fitWindows(
         newestFirst.map(entry => entry.mode),
         screenWidth
       )
-    : newestFirst.map((_entry, index) => (index === 0 ? 'fullscreen' : null))
+    : newestFirst.map((_entry, index) =>
+        index === 0 ? 'fullscreen' : 'overflow'
+      )
+  // Left out for lack of room: listed in a menu, never out of reach
+  const overflowItems: WindowOverflowItem[] = newestFirst
+    .filter((_entry, index) => fittedModes[index] === 'overflow')
+    .map(entry => ({
+      id: entry.id,
+      label: describeEntry(entry) ?? t('composer.newMessage')
+    }))
+  const overflowMenu =
+    overflowItems.length === 0 ? null : (
+      <WindowOverflowMenu
+        label={t('composer.window.overflow', {
+          smart_count: overflowItems.length
+        })}
+        items={overflowItems}
+        onSelect={bringBack}
+        variant={isDesktop ? 'dock' : 'titleBar'}
+        testIds={{
+          button: 'composer-overflow-button',
+          menu: 'composer-overflow-menu',
+          item: 'composer-overflow-item'
+        }}
+      />
+    )
 
   return (
     <ComposerContext.Provider value={api}>
       {children}
       {entries.length > 0 ? (
-        <WindowDock data-testid="composer-dock">
+        <WindowDock
+          start={isDesktop ? overflowMenu : null}
+          data-testid="composer-dock"
+        >
           {newestFirst.map((entry, index) => (
             <ComposerSlot
               key={entry.id}
               entry={entry}
-              mode={shownModes[index] ?? null}
+              mode={shownMode(fittedModes[index])}
               isModal={!isDesktop}
+              // Over the page: the menu goes in the window shown
+              titleBarActions={!isDesktop && index === 0 ? overflowMenu : null}
               setMode={setMode}
               setTitle={setTitle}
+              setRecipients={setRecipients}
               registerForm={registerForm}
               setDraft={setDraft}
               close={close}
@@ -388,13 +444,21 @@ export function ComposerProvider({
   )
 }
 
+function shownMode(
+  fitted: FittedWindowMode | undefined
+): DockedWindowMode | null {
+  return fitted === undefined || fitted === 'overflow' ? null : fitted
+}
+
 interface ComposerSlotProps {
   entry: ComposerEntry
-  /** The mode shown, null when the dock has no room for it */
+  /** The mode shown, null when the dock has no room for it (overflow menu) */
   mode: DockedWindowMode | null
   isModal: boolean
+  titleBarActions: ReactNode
   setMode: (id: string, mode: DockedWindowMode) => void
   setTitle: (id: string, title: string) => void
+  setRecipients: (id: string, recipients: string) => void
   registerForm: (id: string, handle: ComposerFormHandle) => void
   setDraft: (id: string, draftId: string | null) => void
   close: (id: string) => void
@@ -408,8 +472,10 @@ function ComposerSlot({
   entry,
   mode,
   isModal,
+  titleBarActions,
   setMode,
   setTitle,
+  setRecipients,
   registerForm,
   setDraft,
   close,
@@ -423,6 +489,12 @@ function ComposerSlot({
       setTitle(id, title)
     },
     [id, setTitle]
+  )
+  const handleRecipientsChange = useCallback(
+    (recipients: string): void => {
+      setRecipients(id, recipients)
+    },
+    [id, setRecipients]
   )
   const handleReady = useCallback(
     (handle: ComposerFormHandle): void => {
@@ -452,8 +524,11 @@ function ComposerSlot({
       <DockedWindow
         title={entry.title === '' ? t('composer.newMessage') : entry.title}
         mode={mode ?? 'minimized'}
-        isModal={isModal}
+        // Out of the dock (overflow menu): no focus trap fighting the one
+        // of the window shown
+        isModal={isModal && mode !== null}
         isCompact={isModal}
+        titleBarActions={titleBarActions}
         labels={{
           minimize: t('composer.window.minimize'),
           restore: t('composer.window.show'),
@@ -487,6 +562,7 @@ function ComposerSlot({
             init={entry.init}
             autoFocus
             onTitleChange={handleTitleChange}
+            onRecipientsChange={handleRecipientsChange}
             onReady={handleReady}
             onDraftChange={handleDraftChange}
             onDone={handleDone}

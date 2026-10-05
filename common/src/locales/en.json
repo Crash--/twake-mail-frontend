@@ -232,7 +232,8 @@
       "fullscreen": "Fullscreen",
       "exitFullscreen": "Exit fullscreen",
       "close": "Save & close",
-      "show": "Show"
+      "show": "Show",
+      "overflow": "+%{smart_count} message |||| +%{smart_count} messages"
     },
     "close": {
       "title": "Save message",

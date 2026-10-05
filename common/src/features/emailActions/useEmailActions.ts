@@ -7,6 +7,7 @@ import { FLAGGED, SEEN } from '@common/features/email/keywords'
 import {
   findMailboxIdByRole,
   findTeamFolderId,
+  findTeamHomeId,
   isPersonalMailbox,
   mailboxPath
 } from '@common/features/mailbox/mailboxTree'
@@ -102,6 +103,30 @@ export function findActionDestination(
     return findTeamFolderId(mailboxes, from.id, 'trash')
   }
   return findMailboxIdByRole(mailboxes, role)
+}
+
+/**
+ * The emails of a request by the folder they are taken out of. Shown in a
+ * folder they are all in it. In a search or in Starred, an email of a team
+ * mailbox is taken out of its own folder, so that its Trash is the one of
+ * its team mailbox (tmail-flutter `_moveEmailsToTrashAcrossNamespaces`).
+ */
+function groupByHome(
+  { action, emails, mailboxId }: EmailActionRequest,
+  mailboxes: readonly MailboxSummary[]
+): { mailboxId: string | null; emails: TargetEmail[] }[] {
+  if (action !== 'moveToTrash' || mailboxId !== null) {
+    return [{ mailboxId, emails: [...emails] }]
+  }
+  const groups = new Map<string | null, TargetEmail[]>()
+  for (const email of emails) {
+    const home = findTeamHomeId(mailboxes, email)
+    groups.set(home, [...(groups.get(home) ?? []), email])
+  }
+  return [...groups].map(([home, group]) => ({
+    mailboxId: home,
+    emails: group
+  }))
 }
 
 function toOperation(
@@ -323,8 +348,7 @@ export function useEmailActions(): EmailActions {
 
     async function run(request: EmailActionRequest): Promise<boolean> {
       // The folders are loaded with the tree; fetched here if not yet
-      const operation = toOperation(
-        request,
+      const list =
         (
           await queryClient
             .query({
@@ -333,12 +357,20 @@ export function useEmailActions(): EmailActions {
             })
             .catch(() => null)
         )?.list ?? []
+      const planned = groupByHome(request, list).flatMap(
+        ({ mailboxId, emails }) => {
+          const operation = toOperation({ ...request, mailboxId }, list)
+          return operation === null
+            ? []
+            : [{ operation, changes: planEmailChanges(emails, operation) }]
+        }
       )
+      const operation = planned[0]?.operation ?? null
       if (operation === null) {
         console.warn('[email] No folder to run this action', request.action)
         return false
       }
-      const changes = planEmailChanges(request.emails, operation)
+      const changes = planned.flatMap(group => group.changes)
       if (changes.length === 0) return true
       const result = await execute(changes)
       if (result.failed.length > 0) {

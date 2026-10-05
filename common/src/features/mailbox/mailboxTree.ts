@@ -410,6 +410,22 @@ export function buildMailboxSections(
 }
 
 /**
+ * The folder of a team mailbox an email is in, null for an email of the
+ * user
+ */
+export function findTeamHomeId(
+  mailboxes: readonly MailboxSummary[],
+  email: { mailboxIds: Readonly<Record<string, true>> }
+): string | null {
+  return (
+    Object.keys(email.mailboxIds).find(id => {
+      const mailbox = mailboxes.find(candidate => candidate.id === id)
+      return mailbox !== undefined && !isPersonalMailbox(mailbox)
+    }) ?? null
+  )
+}
+
+/**
  * A folder of the team mailbox `mailboxId` belongs to, by name (team
  * folders have no role): its Trash, its Drafts
  */

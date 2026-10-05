@@ -1,9 +1,9 @@
 import type { JmapClient } from 'jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import { destroyMailboxEmails } from '@common/features/emailActions/mailboxEmails'
 import { findDescendantIds } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
-import { MAILBOX_CLEAR_CAPABILITY } from '@common/jmap/linagoraMethods'
 
 /** What happened to the subfolders of the Trash */
 export type SubfoldersOutcome = 'none' | 'deleted' | 'partial' | 'failed'
@@ -73,7 +73,7 @@ export async function emptyFolder(
   options: EmptyFolderOptions
 ): Promise<EmptyFolderResult> {
   let deleted: number
-  if (client.hasCapability(MAILBOX_CLEAR_CAPABILITY)) {
+  if (client.hasCapability(LINAGORA_CAPABILITIES.mailboxClear)) {
     const response = await client.call(
       'Mailbox/clear',
       { accountId, mailboxId: mailbox.id },

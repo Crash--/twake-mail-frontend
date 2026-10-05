@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import {
+  LINAGORA_CAPABILITIES,
+  type TMailContact
+} from 'jmap-client-ts/linagora'
 
 import { contactAutocompleteQueryOptions } from '@common/features/contacts/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
-import {
-  CONTACT_AUTOCOMPLETE_CAPABILITY,
-  type TMailContact
-} from '@common/jmap/linagoraMethods'
 
 /** Pause in the typing before contacts are looked up (tmail-flutter) */
 export const CONTACT_SUGGESTION_DELAY_MS = 150
@@ -41,7 +41,7 @@ export function useContactSuggestions(typed: string): TMailContact[] {
     }
   }, [typed])
   const minLength = readMinInputLength(
-    session.capabilities[CONTACT_AUTOCOMPLETE_CAPABILITY]
+    session.capabilities[LINAGORA_CAPABILITIES.contactAutocomplete]
   )
   const query = useQuery({
     ...contactAutocompleteQueryOptions(client, accountId, text),

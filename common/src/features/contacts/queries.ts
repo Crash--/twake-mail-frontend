@@ -1,8 +1,8 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { JmapClient } from 'jmap-client-ts'
+import type { TMailContact } from 'jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
-import type { TMailContact } from '@common/jmap/linagoraMethods'
 
 /** How many contacts are suggested under a recipient field (tmail-flutter) */
 export const CONTACT_SUGGESTION_LIMIT = 8

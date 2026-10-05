@@ -373,6 +373,71 @@ export function makeDefaultMailboxes(): FakeMailbox[] {
   ]
 }
 
+/** The namespace James gives the folders of a team mailbox */
+export function teamNamespace(address: string): string {
+  return `TeamMailbox[${address}]`
+}
+
+/** The system folders James creates in a team mailbox, under its root */
+const TEAM_FOLDER_NAMES = [
+  'INBOX',
+  'Drafts',
+  'Outbox',
+  'Sent',
+  'Trash',
+  'Templates'
+] as const
+
+export interface TeamMailboxOptions {
+  /** Id of the root; the folders are `<id>-inbox`, `<id>-drafts`… */
+  id?: string
+  /** Name of the root, the local part of the address by default */
+  name?: string
+  address?: string
+  /** What the member may do in every folder, all of it by default */
+  rights?: Partial<Mailbox['myRights']>
+}
+
+/**
+ * A team mailbox as James exposes it: a root without parent and its system
+ * folders, which have no role, every one in the namespace
+ * `TeamMailbox[<address>]`. A member may do everything but rename or delete
+ * the folders of the team.
+ */
+export function makeTeamMailboxes({
+  id = 'team',
+  address = 'team@example.com',
+  name = address.split('@')[0] ?? id,
+  rights = {}
+}: TeamMailboxOptions = {}): FakeMailbox[] {
+  const common = {
+    namespace: teamNamespace(address),
+    myRights: {
+      mayReadItems: true,
+      mayAddItems: true,
+      mayRemoveItems: true,
+      maySetSeen: true,
+      maySetKeywords: true,
+      mayCreateChild: true,
+      mayRename: false,
+      mayDelete: false,
+      maySubmit: true,
+      ...rights
+    }
+  }
+  return [
+    makeMailbox({ id, name, ...common }),
+    ...TEAM_FOLDER_NAMES.map(folder =>
+      makeMailbox({
+        id: `${id}-${folder.toLowerCase()}`,
+        name: folder,
+        parentId: id,
+        ...common
+      })
+    )
+  ]
+}
+
 export const FAKE_WEBSOCKET_URL = 'wss://jmap.example.com/jmap/ws'
 
 function makeSession(

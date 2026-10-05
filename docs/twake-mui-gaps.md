@@ -404,3 +404,12 @@ Differences kept from the design and from tmail-flutter:
   tmail-flutter's default); the sizes are tmail-flutter's list.
 - tmail-flutter opens a free colour picker dialog; Twake Mail offers the Twake palette and a free colour input in a popover.
 - tmail-flutter has no emoji picker (only the NotoEmoji fallback font): the categories are those of the Figma design.
+
+
+## Message alerts (X-TWP-Message warnings, issue #142)
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `Alert` / `AlertTitle` | Levels (info, warn, error), icon, title and `onClose` exist. Missing: a message that is part of the page is not an event, yet `Alert` is `role="alert"` (a live region); the level is carried by colour and an `aria-hidden` icon only; `action` replaces the close button, so an action and a labelled dismiss cannot sit together | Banner between the header and the body of an email, one per backend warning | `ds/MessageAlert` (composes `Alert`, `AlertTitle`, `Button`, `IconButton`): `role="group"` named by its title, level in words (visually hidden), action pill plus dismiss | `Alert` `role` and `levelLabel` props; `action` next to `onClose` |
+| `Alert` | One-line warning above a section (the attachments), without title nor action; static, level in words | Inline warning above the attachments. Built, not mounted: the header contract does not say when attachments are blocked (issue #142, open questions) | `ds/InlineAlert` | Same as above |
+| `Avatar` | A state instead of initials or a picture: red round badge with a warning sign, named for assistive technology | Replaces the sender avatar of a message with an error-level warning | `ds/WarningAvatarBadge` (composes `Avatar`) | `Avatar` `color="error"` with an `icon` and a `label` |

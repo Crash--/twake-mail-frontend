@@ -194,7 +194,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `CMP-20` A message to self with a PNG attachment saved as template shows "Save message to template folder successfully"; reopened from Templates and edited twice, each "Save as template" shows "Update message to template folder successfully". — `composer/save_template_with_attachment_then_open_and_save_template_again_test.dart` · tags: `ios` `web`
 - [x] `CMP-21` Same as CMP-20 but with an inline image in the body: first template save shows the "saved" toast and the two subsequent saves of the reopened template show the "updated" toast. — `composer/save_template_with_inline_image_then_open_and_save_template_again_test.dart` · tags: `ios` `web`
   - Spec: `tests/composer-templates.spec.ts` (CMP-20 and CMP-21 also check the file or the inline image of the template on the server).
-- [x] `CMP-22` With an open composer filled with recipient, subject and body, a `beforeunload` (page reload) writes a composer snapshot to sessionStorage; after the composer is torn down it is restored from that cache with the same subject, recipient and body, and closing it normally (discarding if asked) removes the snapshot. — `composer/restore_composer_after_reload_test.dart` · tags: `web`
+- [x] `CMP-22` With an open composer filled with recipient, subject and body, the composer is kept in the browser (IndexedDB) while typing; after a page reload it is restored from that cache with the same subject, recipient and body, and closing it normally (discarding if asked) removes the record. — `composer/restore_composer_after_reload_test.dart` · tags: `web`
 - [ ] `CMP-23` With a composer open and a subject typed, sending the app to background (Home) and reopening it keeps the composer open with the subject intact (auto-save on app pause). — `composer/android_composer_auto_save_test.dart` · tags: `ios (default)`
   - N/A web: relies on Android app lifecycle (Home button / app paused, native automator). Web equivalent: composer survives page reload/close via snapshot, covered by CMP-22 (and drafts CMP-14).
 - [x] `CMP-24` A `mailto:shared-recipient@example.com?subject=Hello&body=World` share intent emitted before the mailbox is loaded is buffered, and once the mailbox is ready the composer opens with To = shared-recipient@example.com, subject "Hello" and body "World". — `composer/share_mailto_before_mailbox_ready_opens_composer_test.dart` · tags: `android`
@@ -211,7 +211,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `CMP-31` With a signature, a click on it when the text ends with a list puts a new line between the list and the signature. — web app only, no Patrol test
 - [x] `CMP-32` Pasting from Word, Google Docs, LibreOffice or a web page keeps real lists, bold, italic, chosen colours and links, without Office classes, fonts or default black; Ctrl+Shift+V pastes plain text. — web app only, no Patrol test
 - [x] `CMP-33` `c` opens the composer with the focus in To, typing `c` there types it (no shortcut in the composer), and closing it gives the focus back to the email row it was opened from. — web app only, no Patrol test
-- [x] `CMP-34` A message saves itself as a draft 1.5 s after the last change ("Draft saved" under it); closing it then asks nothing, says "Draft saved" and offers "Discard", which destroys the draft made by this composer. — web app only, no Patrol test (tmail-flutter web has no autosave)
+- [x] `CMP-34` A message saves itself as a draft after five minutes without a change ("Draft saved" under it); closing it then asks nothing, says "Draft saved" and offers "Discard", which destroys the draft made by this composer. — web app only, no Patrol test (tmail-flutter web has no autosave)
 - [x] `CMP-35` A file being uploaded shows its progress and is cancelled when removed; files above the size limit of the server (`maxSizeUpload`, `maxSizeAttachmentsPerEmail`) are refused with "Maximum files size". — web app only, no Patrol test
 - [x] `CMP-36` A message refused by the server (over quota) stays in the composer, the reason said in an alert. — web app only, no Patrol test
 - [x] `CMP-37` A draft save refused by the server (over quota) leaves the previous version of the draft on the server, untouched; once the request destroying a previous version is lost, the next save destroys it with the version it replaces, leaving one draft. — web app only, no Patrol test (tmail-flutter saves a draft with create and destroy in one `Email/set`)
@@ -699,3 +699,20 @@ finishes issue #112.
   - Spec: `tests/attachments.spec.ts`.
 - [x] `ATT-10` A 400-page PDF has one canvas per page but draws only the pages in view (fewer than 10 drawn at once); scrolled to the end, the last page is drawn and the first is released. — web app only
   - Spec: `tests/attachments.spec.ts`.
+
+## CMP — Drafts, local first (#134)
+
+Web app only, no Patrol test: the policy is in `docs/composer-drafts.md`.
+
+- [x] `CMP-64` Typing for two minutes in a composer (a pause every ten seconds) writes nothing on the server: no `Email/set`, the composer is kept in the browser meanwhile (before: 12 creations and 11 destructions).
+  - Spec: `tests/composer-drafts.spec.ts`, fake clock.
+- [x] `CMP-65` A composer comes back after a reload with its recipients, subject and body, and in a new tab once the first is closed.
+  - Spec: `tests/composer-drafts.spec.ts`.
+- [x] `CMP-66` The draft is written once after five minutes without a change (one creation, no destruction), not again while unchanged; a real change writes one more version and destroys the previous one.
+  - Spec: `tests/composer-drafts.spec.ts`, fake clock.
+- [x] `CMP-67` Sending a message forgets the composer kept in the browser.
+  - Spec: `tests/composer-drafts.spec.ts`.
+- [x] `CMP-68` Signing out forgets the composers kept in the browser, none comes back at the next sign in.
+  - Spec: `tests/composer-drafts.spec.ts`.
+- [x] `CMP-69` A composer shown by a tab is not reopened by a second tab of the browser.
+  - Spec: `tests/composer-drafts.spec.ts`.

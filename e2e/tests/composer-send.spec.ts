@@ -1,6 +1,7 @@
 import { ComposerPage, EmailPage, LoginPage, type MailboxPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { makePng } from '../support/clipboard'
+import { keptComposers } from '../support/composerStorage'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient, MailboxRole } from '../support/jmap'
 
@@ -416,13 +417,10 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       subject: 'Kept across a reload',
       body: 'Text kept'
     })
-    const snapshotKeys = (): Promise<string[]> =>
-      page.evaluate(() =>
-        Object.keys(sessionStorage).filter(key =>
-          key.startsWith('twake-mail-composer')
-        )
-      )
-    expect(await snapshotKeys()).toEqual([])
+    // Kept in the browser as the user types, no need to wait for the unload
+    await expect
+      .poll(async () => (await keptComposers(page)).map(kept => kept.subject))
+      .toEqual(['Kept across a reload'])
 
     await page.reload()
     await new LoginPage(page).loginAs(user)
@@ -430,7 +428,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
     const restored = new ComposerPage(page)
     await expect(restored.subjectInput).toHaveValue('Kept across a reload')
     await expect(restored.editor).toContainText('Text kept')
-    expect((await snapshotKeys()).length).toBeGreaterThan(0)
+    expect(await keptComposers(page)).toHaveLength(1)
     await restored.recipientsSummary
       .or(restored.recipientInput('to'))
       .first()
@@ -442,7 +440,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
     if (await dialog.isVisible())
       await page.getByTestId('confirm-dialog-alternative-button').click()
     await expect(restored.root).toBeHidden()
-    await expect.poll(snapshotKeys).toEqual([])
+    await expect.poll(async () => keptComposers(page)).toEqual([])
   })
 
   test.describe('an answer back after a reload', () => {
@@ -458,13 +456,17 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
           subject: 'Plans',
           text: 'hello'
         })
+        await page.clock.install()
         const mailbox = await new LoginPage(page).loginAs(user)
         const answer = await (await mailbox.openEmail('Plans')).reply()
         await expect(answer.editor).toBeFocused()
         await page.keyboard.type('Answer started')
+        await answer.idle()
         await expect(answer.saveStatus).toHaveText('Draft saved', {
           timeout: 10_000
         })
+        // The browser keeps the id of the draft a moment later
+        await page.clock.runFor(1000)
 
         await page.reload()
         await new LoginPage(page).loginAs(user)
@@ -487,11 +489,12 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
     )
   })
 
-  test('CMP-34 the draft saves itself once the typing stops; closing then asks nothing and offers to discard it', async ({
+  test('CMP-34 the draft saves itself after five minutes without a change; closing then asks nothing and offers to discard it', async ({
     page,
     user,
     jmap
   }) => {
+    await page.clock.install()
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
     await composer.fill({
@@ -499,7 +502,9 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       subject: 'Autosaved draft',
       body: 'Saved alone'
     })
+    expect(await readMailbox(jmap, 'drafts')).toEqual([])
 
+    await composer.idle()
     await expect(composer.saveStatus).toHaveText('Draft saved', {
       timeout: 10_000
     })
@@ -567,6 +572,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       user,
       jmap
     }) => {
+      await page.clock.install()
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
       await composer.fill({
@@ -574,6 +580,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
         subject: 'Kept draft',
         body: 'Small'
       })
+      await composer.idle()
       await expect(composer.saveStatus).toHaveText('Draft saved', {
         timeout: 10_000
       })
@@ -584,6 +591,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       await composer.editor.click()
       await page.keyboard.press('End')
       await page.keyboard.insertText('x'.repeat(6000))
+      await composer.idle()
       await expect(composer.saveStatus).toHaveText('Draft not saved', {
         timeout: 10_000
       })
@@ -598,6 +606,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       // Back under the quota: the new version replaces the kept one
       await page.keyboard.press('ControlOrMeta+z')
       await composer.subjectInput.fill('Kept draft, saved again')
+      await composer.idle()
       await expect
         .poll(async () =>
           (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
@@ -620,6 +629,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
         await route.continue()
       })
       await composer.subjectInput.fill('Third version')
+      await composer.idle()
       await expect
         .poll(async () =>
           (await readMailbox(jmap, 'drafts')).map(draft => draft.subject).sort()
@@ -634,6 +644,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       // the memory image drops the rest of the mailbox from Email/query
       const since = await emailState(jmap)
       await composer.subjectInput.fill('Fourth version')
+      await composer.idle()
       await expect
         .poll(async () => (await emailChanges(jmap, since)).destroyed.sort())
         .toEqual([...left].sort())
@@ -738,6 +749,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
     user,
     jmap
   }) => {
+    await page.clock.install()
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
     // The first save reaches the server, its answer never comes back
@@ -757,6 +769,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       subject: 'Lost answer',
       body: 'First'
     })
+    await composer.idle()
     await expect(composer.saveStatus).toHaveText('Draft not saved', {
       timeout: 10_000
     })
@@ -769,6 +782,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
     const [stray] = await readMailbox(jmap, 'drafts')
 
     await composer.subjectInput.fill('Lost answer, saved again')
+    await composer.idle()
 
     await expect
       .poll(async () =>

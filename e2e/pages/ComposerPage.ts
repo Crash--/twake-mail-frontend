@@ -1,5 +1,8 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
+/** Pause in the changes after which the draft is written on the server */
+export const DRAFT_IDLE_MS = 5 * 60 * 1000
+
 export type RecipientField = 'to' | 'cc' | 'bcc' | 'reply-to'
 
 /**
@@ -200,6 +203,16 @@ export class ComposerPage {
   ): Promise<ComposerPage> {
     await this.moreButton.click()
     await this.page.getByTestId(`composer-${item}-item`).click()
+    return this
+  }
+
+  /**
+   * Lets the draft idle delay (five minutes without a change) pass, so the
+   * draft is written on the server. Needs `page.clock.install()` before the
+   * page loads.
+   */
+  async idle(): Promise<ComposerPage> {
+    await this.page.clock.runFor(DRAFT_IDLE_MS)
     return this
   }
 

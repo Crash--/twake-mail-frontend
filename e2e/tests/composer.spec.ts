@@ -202,7 +202,7 @@ test.describe('CMP composer', () => {
     await mailbox.composeButton.click({ force: true })
     await expect(page.getByTestId('composer')).toHaveCount(2)
     await expectNoA11yViolations(page)
-    // A change not saved yet (the autosave waits 1.5 s): closing asks
+    // A change not saved yet (the draft waits five minutes of inactivity): closing asks
     await second.subjectInput.press('End')
     await page.keyboard.type('!')
     await page.keyboard.press('Escape')

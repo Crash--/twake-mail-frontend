@@ -246,3 +246,4 @@ Conventions:
 | `workplace-logo` | the Twake Workplace logo at the start of the top bar (desktop, not embedded) | — |
 | `list-toolbar` | desktop only: the toolbar above the list while nothing is selected (a `section` named "List actions"); it becomes `selection-toolbar` once rows are selected | — |
 | `list-refresh-button` / `list-select-all-button` / `list-filter-button` / `list-filter-menu` | refresh, "Select all", the "Filter" dropdown and its menu; its items are `quick-filter-unread`, `quick-filter-starred`, `quick-filter-attachments` (they open the matching emails of the folder as a search) | `unread_filter`, `starred_filter`, `attachments_filter` |
+| `mailbox-item-address` / `folder-visibility-address` | the address of a team mailbox, beside the name of its root (sidebar, Settings > Folder visibility) | — |

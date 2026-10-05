@@ -541,6 +541,57 @@ export class JmapClient {
     return this.findMailboxById(requireString(created, 'id'))
   }
 
+  /**
+   * Puts an email straight into a mailbox (`Email/set`), seen unless said otherwise: for the
+   * folders mail is not delivered to, e.g. the Trash of a team mailbox
+   */
+  async createEmailIn(
+    mailboxId: string,
+    input: { subject: string; text?: string; keywords?: Keywords }
+  ): Promise<Email> {
+    const result = await this.#call('Email/set', {
+      create: {
+        new: {
+          mailboxIds: { [mailboxId]: true },
+          keywords: input.keywords ?? { $seen: true },
+          from: [{ email: (await this.getSession()).username }],
+          to: [{ email: 'someone@example.com' }],
+          subject: input.subject,
+          bodyStructure: { type: 'text/plain', partId: '1' },
+          bodyValues: { '1': { value: input.text ?? 'Hello' } }
+        }
+      }
+    })
+    const created = isRecord(result.created) ? result.created.new : undefined
+    if (!isRecord(created)) {
+      throw new JmapError(
+        `Email/set did not create "${input.subject}": ${JSON.stringify(result.notCreated)}`,
+        'notCreated'
+      )
+    }
+    return this.getEmail(requireString(created, 'id'))
+  }
+
+  /**
+   * Sets what a member may do in a folder (`Mailbox/set` `sharedWith`, IMAP rights letters:
+   * `lr` is read only), as a manager of the team mailbox
+   */
+  async shareMailbox(
+    mailboxId: string,
+    member: string,
+    rights: readonly string[]
+  ): Promise<void> {
+    const result = await this.#call('Mailbox/set', {
+      update: { [mailboxId]: { [`sharedWith/${member}`]: [...rights] } }
+    })
+    if (!isRecord(result.updated) || !(mailboxId in result.updated)) {
+      throw new JmapError(
+        `Mailbox/set did not share ${mailboxId}: ${JSON.stringify(result.notUpdated)}`,
+        'notUpdated'
+      )
+    }
+  }
+
   async findMailboxById(id: string): Promise<Mailbox> {
     const result = await this.#call('Mailbox/get', { ids: [id] })
     const [mailbox] = requireArray(result, 'list')

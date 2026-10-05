@@ -1284,6 +1284,10 @@ describe('ComposerForm', () => {
     it('replies to all but the user, Cc kept', async () => {
       renderComposer(serverWithSource())
       const composer = await openComposer('Answer replyAll')
+      // The editor takes the focus on the next frame, and folds the recipients
+      await waitFor(() => {
+        expect(document.activeElement?.getAttribute('role')).toBe('textbox')
+      })
 
       await userEvent.click(
         within(composer).getByTestId('composer-recipients-summary')

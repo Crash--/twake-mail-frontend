@@ -142,6 +142,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vacation response (Settings > Vacation, `VacationResponse/set`): on or
   off, from a date and time until another, with a subject and a rich
   message; a banner says it is on, over every screen, with "End now"
+- Folder visibility (Settings > Folder visibility): every folder, hidden
+  or shown again
 
 ### Changed
 

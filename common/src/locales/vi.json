@@ -500,6 +500,10 @@
       "vacation": {
         "title": "Kỳ nghỉ",
         "description": "Trả lời tự động."
+      },
+      "folderVisibility": {
+        "title": "Tuỳ chọn hiển thị thư mục",
+        "description": "Hiện/ẩn thư mục, bao gồm các thư mục cá nhân và hộp thư nhóm."
       }
     },
     "preferences": {
@@ -601,6 +605,14 @@
     },
     "show": {
       "success": "Thư mục này đã được hiển thị lại"
+    },
+    "visibility": {
+      "hide": "Ẩn",
+      "show": "Hiển thị",
+      "personal": "Thư mục cá nhân",
+      "team": "Hộp thư nhóm",
+      "hideOf": "Ẩn %{name}",
+      "showOf": "Hiển thị %{name}"
     }
   },
   "identities": {

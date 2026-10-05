@@ -500,6 +500,10 @@
       "vacation": {
         "title": "Vacation",
         "description": "Sends an automated reply to incoming messages."
+      },
+      "folderVisibility": {
+        "title": "Folder visibility",
+        "description": "Show/ hide your folders, including your personal folders and team mailboxes."
       }
     },
     "preferences": {
@@ -601,6 +605,14 @@
     },
     "show": {
       "success": "This folder is shown again"
+    },
+    "visibility": {
+      "hide": "Hide",
+      "show": "Show",
+      "personal": "Personal folders",
+      "team": "Team-mailboxes",
+      "hideOf": "Hide %{name}",
+      "showOf": "Show %{name}"
     }
   },
   "identities": {

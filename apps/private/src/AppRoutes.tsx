@@ -8,6 +8,7 @@ import { RequireAuth } from '@common/features/auth/RequireAuth'
 import { MailtoRoute } from '@common/features/composer/MailtoRoute'
 import { ForwardSettings } from '@common/features/forward/ForwardSettings'
 import { IdentitiesSettings } from '@common/features/identities/IdentitiesSettings'
+import { FolderVisibilitySettings } from '@common/features/mailbox/FolderVisibilitySettings'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
 import { EmailRulesSettings } from '@common/features/rules/EmailRulesSettings'
 import { PushProvider } from '@common/features/push/PushProvider'
@@ -107,6 +108,14 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
               element={
                 <SettingsSectionRoute id="vacation">
                   {section => <VacationSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
+            <Route
+              path="folder-visibility"
+              element={
+                <SettingsSectionRoute id="folder-visibility">
+                  {section => <FolderVisibilitySettings section={section} />}
                 </SettingsSectionRoute>
               }
             />

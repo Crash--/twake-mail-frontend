@@ -5,7 +5,6 @@ import { createRoot } from 'react-dom/client'
 
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
-import { initSentry } from '@common/app/sentry'
 import { ConfigErrorScreen } from '@common/components/ConfigErrorScreen'
 import { getConfigResult } from '@common/config/config'
 import { findPreferredLanguage } from '@common/i18n/languages'
@@ -26,9 +25,9 @@ const container = document.getElementById('root')
 if (!container) throw new Error('Root element #root not found')
 
 const configResult = getConfigResult()
-if (configResult.ok) {
-  initSentry(configResult.value)
-} else {
+// The error reporting does not start here: it needs the consent of the
+// signed-in user (`SentryReportingSync`)
+if (!configResult.ok) {
   console.error('[config] Invalid runtime configuration', configResult.errors)
 }
 

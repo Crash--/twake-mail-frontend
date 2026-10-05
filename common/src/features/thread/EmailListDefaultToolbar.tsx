@@ -1,13 +1,11 @@
-import { Icon, Refresh, Restore, SelectAll } from '@linagora/twake-icons'
-import {
-  Box,
-  Button,
-  CircularProgress,
-  IconButton,
-  Tooltip
-} from '@linagora/twake-mui'
+import { Restore, RestoreStraight, SelectAll } from '@linagora/twake-icons'
+import { CircularProgress } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { CheckboxBlankIcon } from '@/ds/ListIcons/ListIcons'
+import { IconAction } from '@/ds/IconAction/IconAction'
+import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'
+import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
@@ -66,63 +64,43 @@ export function EmailListDefaultToolbar({
     mailbox.role === 'trash' &&
     isPersonalMailbox(mailbox) &&
     recovery.isAvailable
-  const spacing = isPhone ? '' : 'u-ml-1-half'
 
   return (
-    <Box
-      component="section"
-      aria-label={t('thread.toolbar.label')}
-      className="u-flex u-flex-items-center u-flex-wrap u-ph-1 u-pv-half"
-      data-testid="list-toolbar"
-    >
+    <ListToolbar label={t('thread.toolbar.label')} data-testid="list-toolbar">
       {isRefreshing ? (
-        <Box
-          className="u-flex u-flex-items-center u-flex-justify-center"
+        <span
+          className="u-flex u-flex-items-center u-flex-justify-center u-w-2 u-h-2"
           data-testid="list-refresh-spinner"
         >
-          <CircularProgress size={24} aria-label={t('common.loading')} />
-        </Box>
+          <CircularProgress size={20} aria-label={t('common.loading')} />
+        </span>
       ) : (
-        <Tooltip title={refreshLabel}>
-          <IconButton
-            aria-label={refreshLabel}
-            onClick={onRefresh}
-            data-testid="list-refresh-button"
-          >
-            <Icon icon={Refresh} />
-          </IconButton>
-        </Tooltip>
+        <IconAction
+          label={refreshLabel}
+          icon={Restore}
+          onClick={onRefresh}
+          data-testid="list-refresh-button"
+        />
       )}
       {loadedCount === 0 ? null : isPhone ? (
-        <Tooltip title={selectAllLabel}>
-          <IconButton
-            aria-label={selectAllLabel}
-            onClick={selection.selectLoaded}
-            data-testid="list-select-all-button"
-          >
-            <Icon icon={SelectAll} />
-          </IconButton>
-        </Tooltip>
+        <IconAction
+          label={selectAllLabel}
+          icon={SelectAll}
+          onClick={selection.selectLoaded}
+          data-testid="list-select-all-button"
+        />
       ) : (
-        <Tooltip title={selectAllLabel}>
-          <Button
-            variant="text"
-            color="inherit"
-            className={spacing}
-            startIcon={<Icon icon={SelectAll} />}
-            onClick={selection.selectLoaded}
-            data-testid="list-select-all-button"
-          >
-            {t('thread.selection.selectAll')}
-          </Button>
-        </Tooltip>
+        <ToolbarButton
+          label={t('thread.selection.selectAll')}
+          tooltip={selectAllLabel}
+          icon={CheckboxBlankIcon}
+          onClick={selection.selectLoaded}
+          data-testid="list-select-all-button"
+        />
       )}
-      {searchFilters === undefined ? null : (
-        <Box className={`u-flex u-flex-auto ${spacing}`}>{searchFilters}</Box>
-      )}
+      {searchFilters === undefined ? null : searchFilters}
       {filter === null ? null : (
         <EmailListFilterMenu
-          className={spacing}
           current={filter.current}
           options={filter.options}
           onSelect={filter.onSelect}
@@ -130,17 +108,13 @@ export function EmailListDefaultToolbar({
         />
       )}
       {canRecover ? (
-        <Tooltip title={recoverLabel}>
-          <IconButton
-            className={spacing}
-            aria-label={recoverLabel}
-            onClick={recovery.open}
-            data-testid="recover-deleted-messages-button"
-          >
-            <Icon icon={Restore} />
-          </IconButton>
-        </Tooltip>
+        <IconAction
+          label={recoverLabel}
+          icon={RestoreStraight}
+          onClick={recovery.open}
+          data-testid="recover-deleted-messages-button"
+        />
       ) : null}
-    </Box>
+    </ListToolbar>
   )
 }

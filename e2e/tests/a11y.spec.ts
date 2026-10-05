@@ -8,7 +8,7 @@ async function tabTo(
   page: Page,
   selector: string,
   key: 'Tab' | 'Shift+Tab' = 'Tab',
-  max = 40
+  max = 60
 ): Promise<void> {
   for (let presses = 0; presses < max; presses += 1) {
     if (

@@ -320,19 +320,27 @@ export function EmailCell({
       )
     case 'sender':
       return (
-        <Typography noWrap data-testid="email-list-item-sender">
-          <span className={emphasis}>{correspondents}</span>
+        // The names take the ellipsis, the number of messages stays in view
+        <span className="u-flex u-flex-items-center">
+          <Typography
+            component="span"
+            noWrap
+            className="u-db"
+            data-testid="email-list-item-sender"
+          >
+            <span className={emphasis}>{correspondents}</span>
+          </Typography>
           {threadSize === null ? null : (
             <SecondaryText
               component="span"
-              className="u-ml-half"
+              className="u-flex-shrink-0 u-ml-half"
               aria-hidden="true"
               data-testid="email-list-item-thread-count"
             >
               {`(${threadSize})`}
             </SecondaryText>
           )}
-        </Typography>
+        </span>
       )
     case 'subject': {
       // Read before the subject: what the other cells show to the eye

@@ -1,14 +1,18 @@
 import { Typography } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
+import { useRef, type ReactElement } from 'react'
 import { useMatch } from 'react-router'
 
-import { AppTopBar } from '@/ds/AppTopBar/AppTopBar'
+import {
+  AppTopBar,
+  type AppTopBarSearchActions
+} from '@/ds/AppTopBar/AppTopBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
 import { useCurrentMailboxName } from '@common/features/mailbox/useCurrentMailboxName'
 import { LABEL_PATH } from '@common/features/labels/labelPaths'
 import { useLabels } from '@common/features/labels/queries'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
+import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
@@ -52,6 +56,9 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
     : isSearch
       ? t('search.title')
       : (labelName ?? mailboxName)
+  // Here, not in the field: on phones the field is not there until unfolded
+  const searchActions = useRef<AppTopBarSearchActions>(null)
+  useShortcuts({ '/': () => searchActions.current?.focusSearch() })
 
   return (
     <AppTopBar
@@ -83,6 +90,7 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
       }}
       openSearchLabel={t('topbar.search')}
       closeSearchLabel={t('common.back')}
+      searchActions={searchActions}
       testIds={SEARCH_TEST_IDS}
       data-testid="top-bar"
     />

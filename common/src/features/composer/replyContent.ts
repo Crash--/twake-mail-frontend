@@ -235,6 +235,7 @@ export async function loadReplyContent(
     mayHaveStrays: false,
     options,
     readReceiptAddress: null,
-    templateId: null
+    templateId: null,
+    opensOn: null
   }
 }

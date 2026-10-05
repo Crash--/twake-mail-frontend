@@ -286,12 +286,14 @@ function LoadedComposerForm({
   const [shown, setShown] = useState<ReadonlySet<RecipientKind>>(
     new Set(content.shown)
   )
-  // An answer with its recipients opens on the text, the recipients folded
-  // (tmail-flutter); otherwise in To
+  // As it was left (back after a reload); else an answer with its
+  // recipients opens on the text, the recipients folded (tmail-flutter),
+  // anything else in To
+  const hasRecipients = content.recipients.to.length > 0
   const opensOnText =
-    content.answering !== null &&
-    content.draftId === null &&
-    content.recipients.to.length > 0
+    content.opensOn === null
+      ? content.answering !== null && content.draftId === null && hasRecipients
+      : content.opensOn === 'text' && hasRecipients
   const [isCollapsed, setIsCollapsed] = useState(opensOnText)
   const [subject, setSubject] = useState(content.subject)
   const [options, setOptions] = useState<SendOptions>(content.options)
@@ -582,7 +584,9 @@ function LoadedComposerForm({
       mayHaveStrays: mayHaveStraysRef.current,
       options,
       readReceiptAddress: content.readReceiptAddress,
-      templateId: templateIdRef.current
+      templateId: templateIdRef.current,
+      // The recipients fold once the focus leaves them for the text
+      opensOn: isCollapsed ? 'text' : 'recipients'
     }
   }
 

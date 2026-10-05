@@ -904,6 +904,86 @@ describe('ComposerForm', () => {
       expect(sent?.headers?.['X-Twake-Answering']).toBeUndefined()
     })
 
+    describe('back after a reload', () => {
+      afterEach(() => {
+        sessionStorage.clear()
+      })
+
+      function restoreReply(opensOn: ComposerSnapshot['opensOn']): void {
+        const snapshot: ComposerSnapshot = {
+          identityId: 'identity-alice',
+          recipients: {
+            to: [{ name: 'Emma', email: 'emma@example.com' }],
+            cc: [],
+            bcc: [],
+            replyTo: []
+          },
+          shown: [],
+          subject: 'Re: Plans',
+          html: '<p>Started answer</p>',
+          images: [],
+          attachments: [],
+          // Its autosave ran
+          draftId: 'draft-1',
+          savedFingerprint: null,
+          answering: { emailId: 'source-1', keyword: '$answered' },
+          ...(opensOn === undefined ? {} : { opensOn })
+        }
+        writeStorage(registryKey(FAKE_ACCOUNT_ID), [
+          { id: 'composer-1', init: {}, mode: 'normal', title: 'Re: Plans' }
+        ])
+        writeStorage(snapshotKey(FAKE_ACCOUNT_ID, 'composer-1'), snapshot)
+      }
+
+      it('opens a saved answer on its text, the recipients folded, as it was left', async () => {
+        restoreReply('text')
+        renderComposer(serverWithSource())
+
+        const composer = await screen.findByRole('dialog', {
+          name: 'Re: Plans'
+        })
+        await waitFor(() => {
+          expect(
+            within(composer).getByRole('textbox', { name: 'Message body' })
+          ).toHaveFocus()
+        })
+        expect(
+          within(composer).getByTestId('composer-recipients-summary')
+        ).toBeVisible()
+        expect(within(composer).queryByRole('combobox', { name: 'To' })).toBe(
+          null
+        )
+      })
+
+      it('opens in To when it was left there', async () => {
+        restoreReply('recipients')
+        renderComposer(serverWithSource())
+
+        const composer = await screen.findByRole('dialog', {
+          name: 'Re: Plans'
+        })
+        await waitFor(() => {
+          expect(
+            within(composer).getByRole('combobox', { name: 'To' })
+          ).toHaveFocus()
+        })
+      })
+
+      it('keeps where an answer opens in what a reload keeps', async () => {
+        renderComposer(serverWithSource())
+        await openComposer('Answer reply')
+
+        window.dispatchEvent(new Event('beforeunload'))
+
+        const [entry] = JSON.parse(
+          sessionStorage.getItem(registryKey(FAKE_ACCOUNT_ID)) ?? '[]'
+        ) as { id: string }[]
+        expect(
+          readSnapshot(snapshotKey(FAKE_ACCOUNT_ID, entry?.id ?? ''))?.opensOn
+        ).toBe('text')
+      })
+    })
+
     it('replies to all but the user, Cc kept', async () => {
       renderComposer(serverWithSource())
       const composer = await openComposer('Answer replyAll')

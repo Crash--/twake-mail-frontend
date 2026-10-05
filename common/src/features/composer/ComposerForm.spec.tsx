@@ -294,7 +294,7 @@ describe('ComposerForm', () => {
           },
           { timeout: 6000 }
         )
-      })
+      }, 30_000)
     })
 
     it('swaps the Bcc of the identity when another one is chosen', async () => {

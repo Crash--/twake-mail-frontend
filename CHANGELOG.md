@@ -169,6 +169,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `WORKPLACE_EMBEDDING`: inside an iframe of Twake Workplace, the top bar
   leaves the logotype and the app grid to the container, the account button
   becomes a gear (cozy-external-bridge, as Twake Calendar)
+- "Attach from Drive" in the composer (`TDRIVE_ENABLED`, `TDRIVE_INTENT_URL`,
+  OIDC mode): the Twake Drive picker in a dialog (token exchange, cozy-stack
+  intent, messages checked against its origin), the files added as a link (the
+  Drive card of tmail-flutter) or as attachments (downloaded, then uploaded
+  with their progress); a Drive card spares the forgotten attachment reminder
 
 ### Changed
 

@@ -320,6 +320,21 @@
       "saved": "Le message a bien été sauvegardé dans le dossier des modèles",
       "updated": "Mise à jour réussie du message dans le dossier de modèles",
       "failed": "Échec de l'enregistrement du message dans le dossier de modèles"
+    },
+    "drive": {
+      "attach": "Joindre depuis Drive",
+      "addAsLink": "Ajouter comme lien",
+      "addAsAttachment": "Ajouter comme pièce jointe",
+      "attachFailed": "Impossible de joindre le(s) fichier(s) depuis Drive",
+      "openInDrive": "Ouvrir dans Drive",
+      "attached": "Fichiers ajoutés depuis Drive.",
+      "title": "Twake Drive",
+      "frameTitle": "Sélecteur de fichiers Twake Drive",
+      "loading": "Ouverture de Twake Drive…",
+      "error": "Twake Drive n'a pas pu être ouvert.",
+      "retry": "Réessayer",
+      "tooLarge": "%{name} est trop volumineux pour être joint",
+      "linked": "Lien vers %{name} inséré |||| Liens vers %{smart_count} fichiers insérés"
     }
   },
   "layout": {

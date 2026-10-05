@@ -55,3 +55,13 @@ var FORWARD_WARNING_MESSAGE = ''
 // app: do not send `X-Frame-Options`, nor a `frame-ancestors` that leaves out
 // its origin.
 var WORKPLACE_EMBEDDING = false
+
+// Twake Drive picker of the composer ("Attach from Drive"), as Twake Calendar:
+// add files as a link (a card in the message) or as attachments. Needs the
+// OIDC mode: the ID token of the user is traded for a Drive token
+// (`POST <Drive>/auth/token_exchange`), which the cozy-stack of the Drive must
+// allow for this OIDC client and this origin. TDRIVE_INTENT_URL is the address
+// of the Drive (cozy-stack) of the user, a URI template: {localpart},
+// {workplaceFqdn}, {workplaceFqdn.localpart}, {workplaceFqdn.domain}.
+var TDRIVE_ENABLED = false
+var TDRIVE_INTENT_URL = 'https://{workplaceFqdn}'

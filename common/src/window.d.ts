@@ -39,6 +39,10 @@ declare global {
     FORWARD_WARNING_MESSAGE?: string
     /** Adapts the top bar inside an iframe of Twake Workplace */
     WORKPLACE_EMBEDDING?: boolean
+    /** The Twake Drive picker of the composer (as Twake Calendar) */
+    TDRIVE_ENABLED?: boolean
+    /** URI template of the Drive (cozy-stack) of the user */
+    TDRIVE_INTENT_URL?: string
 
     APP_VERSION?: string
 

@@ -41,6 +41,11 @@ export interface AppConfig {
    * the app grid to the container, as Twake Calendar does
    */
   workplaceEmbedding: boolean
+  /**
+   * The Twake Drive picker of the composer: the URI template of the Drive
+   * (cozy-stack) of the user, null when `TDRIVE_ENABLED` is off
+   */
+  tdriveIntentUrl: string | null
   appVersion: string
   appList: AppListEntry[]
 }
@@ -61,6 +66,8 @@ export type RuntimeConfigKey =
   | 'WORKPLACE_FQDN_FALLBACK'
   | 'FORWARD_WARNING_MESSAGE'
   | 'WORKPLACE_EMBEDDING'
+  | 'TDRIVE_ENABLED'
+  | 'TDRIVE_INTENT_URL'
   | 'APP_VERSION'
   | 'appList'
 
@@ -195,6 +202,9 @@ export function resolveConfig(
       workplaceFqdnFallback: normalizeString(source.WORKPLACE_FQDN_FALLBACK),
       forwardWarningMessage: normalizeString(source.FORWARD_WARNING_MESSAGE),
       workplaceEmbedding: toBoolean(source.WORKPLACE_EMBEDDING),
+      tdriveIntentUrl: toBoolean(source.TDRIVE_ENABLED)
+        ? normalizeString(source.TDRIVE_INTENT_URL)
+        : null,
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev',
       appList: normalizeAppList(source.appList)
     }

@@ -55,7 +55,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const queryClient = useQueryClient()
   const { accountId } = useJmapSession()
   const { notify } = useNotify()
-  const { labels, colors, fontSizes } = useEditorLabels()
+  const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
   const enableId = useId()
   const editorRef = useRef<Editor | null>(null)
   const start = toLocalInputs(vacation.fromDate)
@@ -255,6 +255,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
           disabled={isOff}
           colors={colors}
           fontSizes={fontSizes}
+          fontFamilies={fontFamilies}
           onReady={editor => {
             editorRef.current = editor
           }}

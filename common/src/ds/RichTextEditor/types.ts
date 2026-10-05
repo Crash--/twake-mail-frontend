@@ -17,6 +17,27 @@ export interface RichTextFontSize {
   label: string
 }
 
+/** A font of the font menu (`Arial`…); the first one is the default */
+export interface RichTextFontFamily {
+  value: string
+  label: string
+}
+
+/** The block styles of the text style menu */
+export const TEXT_STYLES = [
+  'paragraph',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'blockquote',
+  'code'
+] as const
+
+export type TextStyle = (typeof TEXT_STYLES)[number]
+
 export interface RichTextLinkDialogLabels {
   title: string
   text: string
@@ -61,7 +82,20 @@ export interface RichTextEditorLabels {
   underline: string
   strike: string
   textColor: string
+  /** The highlighter (background colour of the text) */
+  highlight: string
   fontSize: string
+  fontFamily: string
+  /** The "Aa" menu: paragraph, headings, quote, code */
+  textStyle: string
+  textStyles: Record<TextStyle, string>
+  /** The menu of lists and indentation */
+  lists: string
+  indent: string
+  outdent: string
+  /** Colour popovers: the colour of a free choice (native colour input) */
+  customColor: string
+  noHighlight: string
   align: string
   alignments: Record<'left' | 'center' | 'right' | 'justify', string>
   bulletList: string
@@ -83,7 +117,13 @@ export type RichTextToolbarItemId =
   | 'underline'
   | 'strike'
   | 'color'
+  | 'highlight'
   | 'size'
+  | 'font'
+  | 'text-style'
+  | 'lists'
+  | 'indent'
+  | 'outdent'
   | 'align'
   | 'bullet-list'
   | 'ordered-list'
@@ -128,6 +168,10 @@ export interface RichTextEditorActions {
   openLinkDialog: () => void
   /** Opens the picker of the images to insert; false if images are not handled */
   pickImages: () => boolean
+  /** Types text at the caret (an emoji) and puts the focus back in the text */
+  insertText: (text: string) => void
+  /** Puts the focus back in the text */
+  focus: () => void
 }
 
 /** What the editor's extensions call back, kept current by the component */

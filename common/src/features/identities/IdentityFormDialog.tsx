@@ -97,7 +97,7 @@ export function IdentityFormDialog({
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
   const isMobile = useScreenSize() === 'mobile'
-  const { labels, colors, fontSizes } = useEditorLabels()
+  const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
   const titleId = useId()
   const nameRef = useRef<HTMLInputElement>(null)
   const replyToRef = useRef<HTMLInputElement>(null)
@@ -421,6 +421,7 @@ export function IdentityFormDialog({
             content={initialSignature}
             colors={colors}
             fontSizes={fontSizes}
+            fontFamilies={fontFamilies}
             onImageFiles={handleImageFiles}
             onReady={editor => {
               editorRef.current = editor

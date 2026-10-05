@@ -1,6 +1,7 @@
 import type {
   RichTextColor,
   RichTextEditorLabels,
+  RichTextFontFamily,
   RichTextFontSize
 } from '@/ds/RichTextEditor/types'
 import { useI18n } from '@common/i18n/useI18n'
@@ -11,8 +12,57 @@ export interface EditorLabels {
   labels: RichTextEditorLabels
   colors: RichTextColor[]
   fontSizes: RichTextFontSize[]
+  fontFamilies: RichTextFontFamily[]
   quote: QuoteLabels
 }
+
+/** tmail-flutter's `RichTextWebController.fontSizeList` */
+const FONT_SIZES = [10, 12, 14, 15, 16, 18, 24, 36, 48, 64] as const
+
+/**
+ * tmail-flutter's `FontNameType`: the names are those of the fonts, and
+ * "Sans Serif" is the generic family
+ */
+const FONT_FAMILIES: RichTextFontFamily[] = [
+  { value: 'sans-serif', label: 'Sans Serif' },
+  { value: 'Arial', label: 'Arial' },
+  { value: 'Arial Black', label: 'Arial Black' },
+  { value: 'Brush Script MT', label: 'Brush Script MT' },
+  { value: 'Comic Sans MS', label: 'Comic Sans MS' },
+  { value: 'Courier New', label: 'Courier New' },
+  { value: 'Helvetica Neue', label: 'Helvetica Neue' },
+  { value: 'Helvetica', label: 'Helvetica' },
+  { value: 'Impact', label: 'Impact' },
+  { value: 'Lucida Grande', label: 'Lucida Grande' },
+  { value: 'Tahoma', label: 'Tahoma' },
+  { value: 'Times New Roman', label: 'Times New Roman' },
+  { value: 'Trebuchet MS', label: 'Trebuchet MS' },
+  { value: 'Verdana', label: 'Verdana' }
+]
+
+/** The two rows of the colour bar (Twake palette), strong then light */
+const PALETTE = [
+  ['black', '#000000'],
+  ['darkGrey', '#5f6b7a'],
+  ['red', '#ff4d4d'],
+  ['orange', '#ff9900'],
+  ['yellow', '#ffd600'],
+  ['green', '#34c759'],
+  ['teal', '#00bfa5'],
+  ['blue', '#0a84ff'],
+  ['purple', '#8e44ad'],
+  ['pink', '#ff4081'],
+  ['grey', '#8c9caf'],
+  ['lightGrey', '#e5ecf3'],
+  ['lightRed', '#ffb3b3'],
+  ['lightOrange', '#ffd199'],
+  ['lightYellow', '#fff0a0'],
+  ['lightGreen', '#b9efc8'],
+  ['lightTeal', '#99ecdc'],
+  ['lightBlue', '#a6d5ff'],
+  ['lightPurple', '#d9b8e6'],
+  ['lightPink', '#ffc2d9']
+] as const
 
 /** The translated strings the editor and the quote need */
 export function useEditorLabels(): EditorLabels {
@@ -29,7 +79,26 @@ export function useEditorLabels(): EditorLabels {
       underline: t('composer.editor.underline'),
       strike: t('composer.editor.strike'),
       textColor: t('composer.editor.textColor'),
+      highlight: t('composer.editor.highlight'),
       fontSize: t('composer.editor.fontSize'),
+      fontFamily: t('composer.editor.fontFamily'),
+      textStyle: t('composer.editor.textStyle'),
+      textStyles: {
+        paragraph: t('composer.editor.textStyles.paragraph'),
+        h1: t('composer.editor.textStyles.h1'),
+        h2: t('composer.editor.textStyles.h2'),
+        h3: t('composer.editor.textStyles.h3'),
+        h4: t('composer.editor.textStyles.h4'),
+        h5: t('composer.editor.textStyles.h5'),
+        h6: t('composer.editor.textStyles.h6'),
+        blockquote: t('composer.editor.textStyles.blockquote'),
+        code: t('composer.editor.textStyles.code')
+      },
+      lists: t('composer.editor.lists'),
+      indent: t('composer.editor.indent'),
+      outdent: t('composer.editor.outdent'),
+      customColor: t('composer.editor.customColor'),
+      noHighlight: t('composer.editor.noHighlight'),
       align: t('composer.editor.align'),
       alignments: {
         left: t('composer.editor.alignLeft'),
@@ -66,22 +135,18 @@ export function useEditorLabels(): EditorLabels {
           t('composer.editor.image.sizeStatus', { width, percent })
       }
     },
-    // AA contrast on white for every colour (4.5:1)
     colors: [
       { value: null, label: t('composer.editor.defaultColor') },
-      { value: '#c62828', label: t('composer.editor.colors.red') },
-      { value: '#b23c00', label: t('composer.editor.colors.orange') },
-      { value: '#2e7d32', label: t('composer.editor.colors.green') },
-      { value: '#1565c0', label: t('composer.editor.colors.blue') },
-      { value: '#6a1b9a', label: t('composer.editor.colors.purple') },
-      { value: '#616161', label: t('composer.editor.colors.grey') }
+      ...PALETTE.map(([key, value]) => ({
+        value,
+        label: t(`composer.editor.colors.${key}`)
+      }))
     ],
-    fontSizes: [
-      { value: '12px', label: t('composer.editor.sizes.small') },
-      { value: null, label: t('composer.editor.sizes.normal') },
-      { value: '18px', label: t('composer.editor.sizes.large') },
-      { value: '24px', label: t('composer.editor.sizes.huge') }
-    ],
+    fontSizes: FONT_SIZES.map(size => ({
+      value: `${size}px`,
+      label: String(size)
+    })),
+    fontFamilies: FONT_FAMILIES,
     quote: {
       replyHeader: (sentDate, emailAddress) =>
         t('composer.quote.replyHeader', { sentDate, emailAddress }),

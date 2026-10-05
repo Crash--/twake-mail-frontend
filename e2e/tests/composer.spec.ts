@@ -125,17 +125,17 @@ test.describe('CMP composer', () => {
     await page.keyboard.type('world')
     await page.keyboard.press('Control+B')
     await page.keyboard.press('Enter')
-    await composer.toolbarButton('Bulleted list').click()
+    await composer.chooseFromMenu('Lists and indentation', 'Bulleted list')
     await page.keyboard.type('first')
     await page.keyboard.press('Enter')
     await page.keyboard.type('second')
     await page.keyboard.press('Enter')
     await page.keyboard.press('Enter')
     await composer.toolbarButton('Text Color').click()
-    await page.getByRole('menuitemradio', { name: 'Red' }).click()
+    await page.getByRole('radio', { name: 'Red', exact: true }).click()
     await page.keyboard.type('red text ')
     await composer.toolbarButton('Text Color').click()
-    await page.getByRole('menuitemradio', { name: 'Reset to default' }).click()
+    await page.getByRole('button', { name: 'Reset to default' }).click()
 
     await page.keyboard.press('Control+K')
     const dialog = page.getByRole('dialog', { name: 'Insert link' })
@@ -154,7 +154,7 @@ test.describe('CMP composer', () => {
       '<ul><li><p>first</p></li><li><p>second</p></li></ul>'
     )
     expect(html).toContain(
-      '<span style="color: rgb(198, 40, 40);">red text </span>'
+      '<span style="color: rgb(255, 77, 77);">red text </span>'
     )
     expect(html).toMatch(/<a [^>]*href="https:\/\/twake.app"[^>]*>Twake<\/a>/)
   })
@@ -354,8 +354,7 @@ test.describe('CMP composer', () => {
     await page.keyboard.press('Tab')
     const first = composer.toolbar.getByRole('button').first()
     await expect(first).toBeFocused()
-    await page.keyboard.press('ArrowRight')
-    await page.keyboard.press('ArrowRight')
+    for (let step = 0; step < 5; step++) await page.keyboard.press('ArrowRight')
     await expect(composer.toolbarButton('Bold')).toBeFocused()
     await page.keyboard.press('End')
     await expect(composer.toolbarButton('Clear formatting')).toBeFocused()
@@ -375,7 +374,7 @@ test.describe('CMP composer', () => {
 
     // In a list, Tab indents; at the first item it cannot, so it leaves
     await page.keyboard.press('Enter')
-    await composer.toolbarButton('Bulleted list').click()
+    await composer.chooseFromMenu('Lists and indentation', 'Bulleted list')
     await page.keyboard.type('item')
     await page.keyboard.press('Tab')
     await expect(composer.editor).not.toBeFocused()
@@ -486,7 +485,7 @@ test.describe('CMP composer', () => {
     const composer = await mailbox.compose()
     await expect(composer.editor).toContainText('SIGNATURE_MARKER')
     await composer.editor.click({ position: { x: 20, y: 10 } })
-    await composer.toolbarButton('Bulleted list').click()
+    await composer.chooseFromMenu('Lists and indentation', 'Bulleted list')
     await page.keyboard.type('item')
     expect(await composer.editorHtml()).toMatch(/<\/ul><div[^>]*node-htmlBlock/)
 

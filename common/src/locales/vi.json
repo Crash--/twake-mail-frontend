@@ -221,18 +221,26 @@
       "name": "Nội dung thư",
       "keyboardHelp": "Tab thụt lề mục danh sách hoặc rời trình soạn thảo. Alt+F10 chuyển đến thanh định dạng. Ctrl+K chèn liên kết. Với ảnh được chọn bằng phím mũi tên, Enter hiển thị tùy chọn kích thước.",
       "colors": {
+        "black": "Đen",
+        "darkGrey": "Xám đậm",
         "red": "Đỏ",
         "orange": "Cam",
+        "yellow": "Vàng",
         "green": "Xanh lá",
+        "teal": "Xanh ngọc",
         "blue": "Xanh dương",
         "purple": "Tím",
-        "grey": "Xám"
-      },
-      "sizes": {
-        "small": "Nhỏ",
-        "normal": "Bình thường",
-        "large": "Lớn",
-        "huge": "Rất lớn"
+        "pink": "Hồng",
+        "grey": "Xám",
+        "lightGrey": "Xám nhạt",
+        "lightRed": "Đỏ nhạt",
+        "lightOrange": "Cam nhạt",
+        "lightYellow": "Vàng nhạt",
+        "lightGreen": "Xanh lá nhạt",
+        "lightTeal": "Xanh ngọc nhạt",
+        "lightBlue": "Xanh dương nhạt",
+        "lightPurple": "Tím nhạt",
+        "lightPink": "Hồng nhạt"
       },
       "image": {
         "toolbar": "Tùy chọn ảnh",
@@ -244,7 +252,26 @@
         "larger": "Lớn hơn",
         "remove": "Xóa ảnh",
         "sizeStatus": "Chiều rộng %{width} px, %{percent}% so với ảnh gốc"
-      }
+      },
+      "textStyle": "Kiểu văn bản",
+      "textStyles": {
+        "paragraph": "Thường",
+        "h1": "Tiêu đề 1",
+        "h2": "Tiêu đề 2",
+        "h3": "Tiêu đề 3",
+        "h4": "Tiêu đề 4",
+        "h5": "Tiêu đề 5",
+        "h6": "Tiêu đề 6",
+        "blockquote": "Trích dẫn",
+        "code": "Mã"
+      },
+      "fontFamily": "Phông chữ",
+      "highlight": "Màu tô sáng",
+      "lists": "Danh sách và thụt lề",
+      "indent": "Tăng thụt lề",
+      "outdent": "Giảm thụt lề",
+      "customColor": "Màu khác",
+      "noHighlight": "Không tô sáng"
     },
     "link": {
       "text": "Nội dung",

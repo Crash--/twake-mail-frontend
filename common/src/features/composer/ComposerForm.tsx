@@ -314,7 +314,7 @@ function LoadedComposerForm({
   const choose = useChoose()
   const confirm = useConfirm()
   const alert = useAlert()
-  const { labels, colors, fontSizes } = useEditorLabels()
+  const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
   const subjectId = useId()
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -1214,6 +1214,7 @@ function LoadedComposerForm({
             content={content.html}
             colors={colors}
             fontSizes={fontSizes}
+            fontFamilies={fontFamilies}
             onImageFiles={handleImageFiles}
             htmlBlock={{
               buildFrameDocument: html =>

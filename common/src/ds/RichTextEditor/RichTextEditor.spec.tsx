@@ -20,6 +20,25 @@ const LABELS: RichTextEditorLabels = {
   underline: 'Underline',
   strike: 'Strikethrough',
   textColor: 'Text color',
+  highlight: 'Highlight color',
+  fontFamily: 'Font',
+  textStyle: 'Text style',
+  textStyles: {
+    paragraph: 'Normal',
+    h1: 'Header 1',
+    h2: 'Header 2',
+    h3: 'Header 3',
+    h4: 'Header 4',
+    h5: 'Header 5',
+    h6: 'Header 6',
+    blockquote: 'Quote',
+    code: 'Code'
+  },
+  lists: 'Lists and indentation',
+  indent: 'Increase indent',
+  outdent: 'Decrease indent',
+  customColor: 'Other color',
+  noHighlight: 'No highlight',
   fontSize: 'Text size',
   align: 'Paragraph',
   alignments: {
@@ -57,6 +76,11 @@ const LABELS: RichTextEditorLabels = {
   }
 }
 
+const FONTS = [
+  { value: 'sans-serif', label: 'Sans Serif' },
+  { value: 'Arial', label: 'Arial' }
+]
+
 const TEST_IDS = {
   editor: 'editor',
   toolbarButton: (item: string) => `toolbar-${item}`,
@@ -73,6 +97,7 @@ async function renderEditor(content = '<p>Hello</p>'): Promise<Editor> {
       content={content}
       colors={[{ value: null, label: 'Default' }]}
       fontSizes={[{ value: null, label: 'Normal' }]}
+      fontFamilies={FONTS}
       testIds={TEST_IDS}
       onReady={editor => {
         created.editor = editor
@@ -105,6 +130,7 @@ function DisabledEditor({
         content="<p>Away until Monday</p>"
         colors={[{ value: null, label: 'Default' }]}
         fontSizes={[{ value: null, label: 'Normal' }]}
+        fontFamilies={FONTS}
         testIds={TEST_IDS}
         disabled={disabled}
         onReady={onReady}
@@ -146,8 +172,8 @@ describe('RichTextEditor', () => {
     // No image handler: no image button
     expect(screen.queryByRole('button', { name: 'Insert image' })).toBe(null)
 
-    screen.getByRole('button', { name: 'Undo' }).focus()
-    await userEvent.keyboard('{ArrowRight}{ArrowRight}')
+    screen.getByRole('button', { name: 'Text style Normal' }).focus()
+    await userEvent.keyboard('{ArrowRight>5/}')
     expect(bold).toHaveFocus()
     await userEvent.keyboard('{End}')
     expect(
@@ -178,6 +204,7 @@ describe('RichTextEditor', () => {
           content="<p>Hello</p>"
           colors={[{ value: null, label: 'Default' }]}
           fontSizes={[{ value: null, label: 'Normal' }]}
+          fontFamilies={FONTS}
         />
       </div>
     )
@@ -187,7 +214,9 @@ describe('RichTextEditor', () => {
     })
 
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
-    expect(screen.getByRole('button', { name: 'Text size 14' })).toHaveFocus()
+    expect(
+      screen.getByRole('button', { name: 'Text style Normal' })
+    ).toHaveFocus()
     await userEvent.keyboard('{Escape}')
     await waitFor(() => {
       expect(text).toHaveFocus()
@@ -299,7 +328,7 @@ describe('RichTextEditor', () => {
     expect(bold).toHaveAttribute('aria-disabled', 'true')
     // Still in the tab order of the toolbar
     expect(bold.tabIndex).toBe(-1)
-    expect(screen.getByTestId('toolbar-size').tabIndex).toBe(0)
+    expect(screen.getByTestId('toolbar-text-style').tabIndex).toBe(0)
     await userEvent.click(bold)
     expect(created.editor?.getHTML()).toBe('<p>Away until Monday</p>')
 
@@ -338,6 +367,7 @@ describe('RichTextEditor', () => {
         content="<p>Hello</p>"
         colors={[{ value: null, label: 'Default' }]}
         fontSizes={[{ value: null, label: 'Normal' }]}
+        fontFamilies={FONTS}
         onImageFiles={() => Promise.resolve([])}
         hasInsertButtons={false}
         isToolbarBelow
@@ -363,6 +393,7 @@ describe('RichTextEditor', () => {
         content="<p>Hello</p>"
         colors={[{ value: null, label: 'Default' }]}
         fontSizes={[{ value: null, label: 'Normal' }]}
+        fontFamilies={FONTS}
         isToolbarShown={false}
       />
     )

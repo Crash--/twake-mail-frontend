@@ -47,6 +47,8 @@ spec:
             {{- include "twake-mail-frontend.securityContext" .Values.deployment.containerSecurityContext | nindent 12 }}
           {{- end }}
           env:
+            - name: LISTEN_PORT
+              value: "8080"
             {{- if .Values.csp.policy }}
             - name: CONTENT_SECURITY_POLICY
               value: {{ .Values.csp.policy | quote }}

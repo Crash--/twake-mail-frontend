@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 #
-# Twake Mail web image: the SPA served by an unprivileged nginx on port 8080.
+# Twake Mail web image: the SPA served by an unprivileged nginx, on port 80 by
+# default (LISTEN_PORT changes it). A drop-in replacement for linagora/tmail-web
+# under the linagora/tmail-frontend Helm chart; see docs/deployment.md.
 # Build from the repository root (the app is built inside the image):
 #
 #   docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=x.y.z -t twake-mail-frontend .
@@ -58,22 +60,34 @@ LABEL org.opencontainers.image.title="Twake Mail" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.version="${BUILD_VERSION}"
 
-# The default server of the base image is replaced by nginx.conf
-RUN rm -f /etc/nginx/conf.d/default.conf
+# The default server of the base image is replaced by nginx.conf.
+# nginx-bind: a copy of nginx allowed to bind a port below 1024 through a file
+# capability, for clusters whose runtime does not lower
+# net.ipv4.ip_unprivileged_port_start. It cannot start under
+# `capabilities.drop: [ALL]` or `allowPrivilegeEscalation: false`, so the
+# wrapper /usr/local/bin/nginx only picks it when it is needed and works.
+USER root
+RUN rm -f /etc/nginx/conf.d/default.conf \
+ && apk add --no-cache libcap \
+ && cp /usr/sbin/nginx /usr/sbin/nginx-bind \
+ && setcap cap_net_bind_service=+ep /usr/sbin/nginx-bind \
+ && apk del libcap
 COPY deploy/docker/nginx.conf /etc/nginx/nginx.conf
 COPY deploy/docker/security-headers.conf /etc/nginx/twake-mail/security-headers.conf
 COPY --chmod=755 deploy/docker/40-twake-mail-runtime.sh /docker-entrypoint.d/
+COPY --chmod=755 deploy/docker/nginx-wrapper.sh /usr/local/bin/nginx
 COPY --from=build /src/csp-script-hashes /etc/nginx/twake-mail/csp-script-hashes
 COPY --from=build /src/apps/private/dist /usr/share/nginx/html
 
-# Check the configuration with the defaults, then leave /tmp empty: it is a
+# Check the configuration with the defaults (nginx -t does not bind: the build
+# sandbox may not allow port 80 to a non-root user), then leave /tmp empty: it is a
 # tmpfs or an emptyDir at runtime
-RUN NGINX_ENTRYPOINT_QUIET_LOGS=1 /docker-entrypoint.d/40-twake-mail-runtime.sh \
+USER 101
+RUN LISTEN_PORT=8080 NGINX_ENTRYPOINT_QUIET_LOGS=1 /docker-entrypoint.d/40-twake-mail-runtime.sh \
  && nginx -t -q \
  && rm -rf /tmp/nginx /tmp/nginx.pid
 
-USER 101
-EXPOSE 8080
+EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1
+  CMD wget -q -O /dev/null "http://127.0.0.1:${LISTEN_PORT:-80}/healthz" || exit 1
 CMD ["nginx", "-g", "daemon off;"]

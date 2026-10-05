@@ -16,6 +16,7 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
+      LISTEN_PORT: '8080'
       # The Workplace container of APPGRID-02 (/e2e/workplace.html) frames the app from
       # http://localhost:<port>, another origin
       CSP_FRAME_ANCESTORS: "'self' http://localhost:*"

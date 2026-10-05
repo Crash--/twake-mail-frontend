@@ -1,8 +1,16 @@
 #!/bin/sh
 # Run by the entrypoint of the nginx image before nginx starts. Writes the
-# runtime configuration of nginx under /tmp/nginx/conf.d (the root filesystem
-# may be read-only), included by /etc/nginx/nginx.conf:
+# runtime configuration of nginx under /tmp/nginx (the root filesystem may be
+# read-only), included by /etc/nginx/nginx.conf:
 #
+#   server.d/listen.conf    the port, LISTEN_PORT (default 80, as the
+#                           linagora/tmail-frontend chart expects). A port below
+#                           1024 as a non-root user needs the sysctl
+#                           net.ipv4.ip_unprivileged_port_start (Docker lowers
+#                           it to 0) or CAP_NET_BIND_SERVICE: the start
+#                           wrapper then runs nginx-bind, which has it as a file
+#                           capability. This script stops with a message when
+#                           neither is possible
 #   cache_env.conf          browser caching, disabled when .env.js has DEBUG = true
 #   server.d/env.conf       with an env.file of tmail-flutter mounted (see below):
 #                           serves /.env.js from the one generated in /tmp/nginx
@@ -35,6 +43,7 @@ CONF_DIR=/tmp/nginx/conf.d
 SERVER_CONF_DIR=/tmp/nginx/server.d
 ENV_FILE=$HTML_DIR/assets/env.file
 GENERATED_ENV_JS=/tmp/nginx/env.js
+NGINX_BIN_FILE=/tmp/nginx/bin
 SCRIPT_HASHES_FILE=/etc/nginx/twake-mail/csp-script-hashes
 
 log() {
@@ -70,6 +79,31 @@ check_sources() {
 }
 
 mkdir -p "$CONF_DIR" "$SERVER_CONF_DIR"
+
+# --- Port ------------------------------------------------------------------
+listen_port=${LISTEN_PORT:-80}
+case "$listen_port" in
+  '' | *[!0-9]*) fail "LISTEN_PORT must be a port number, got '$listen_port'" ;;
+esac
+if [ "$listen_port" -lt 1 ] || [ "$listen_port" -gt 65535 ]; then
+  fail "LISTEN_PORT must be between 1 and 65535, got '$listen_port'"
+fi
+printf 'listen %s;\n' "$listen_port" >"$SERVER_CONF_DIR/listen.conf"
+rm -f "$NGINX_BIN_FILE"
+unprivileged_start=$(cat /proc/sys/net/ipv4/ip_unprivileged_port_start 2>/dev/null || echo 1024)
+if [ "$(id -u)" != 0 ] && [ "$listen_port" -lt "$unprivileged_start" ]; then
+  # The bounding set must hold CAP_NET_BIND_SERVICE (bit 10) and no_new_privs
+  # must be off, or the kernel ignores the file capability of nginx-bind
+  cap_bnd=$(awk '/^CapBnd:/ { print $2 }' /proc/self/status 2>/dev/null || true)
+  no_new_privs=$(awk '/^NoNewPrivs:/ { print $2 }' /proc/self/status 2>/dev/null || true)
+  if [ -n "$cap_bnd" ] && [ $(((0x$cap_bnd >> 10) & 1)) = 1 ] &&
+    [ "${no_new_privs:-0}" = 0 ] && [ -x /usr/sbin/nginx-bind ]; then
+    echo /usr/sbin/nginx-bind >"$NGINX_BIN_FILE"
+    log "port $listen_port: binding it with the capability of nginx-bind"
+  else
+    fail "cannot bind port $listen_port as uid $(id -u): net.ipv4.ip_unprivileged_port_start is $unprivileged_start and CAP_NET_BIND_SERVICE is not usable. Set the sysctl net.ipv4.ip_unprivileged_port_start=0 (Kubernetes: podSecurityContext.sysctls) or LISTEN_PORT=8080"
+  fi
+fi
 
 # --- env.file of tmail-flutter ---------------------------------------------
 # KEY=VALUE lines (comments, blank lines, `export`, one layer of quotes and

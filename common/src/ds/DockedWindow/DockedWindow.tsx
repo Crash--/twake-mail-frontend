@@ -29,11 +29,14 @@ import {
 export type DockedWindowMode = 'normal' | 'minimized' | 'fullscreen'
 
 /** Size of a window in the dock, in px */
-export const DOCKED_WINDOW_WIDTH = 600
+export const DOCKED_WINDOW_WIDTH = 790
 /** Width of a minimized window (its title bar), in px */
-export const MINIMIZED_WINDOW_WIDTH = 280
-const DOCKED_WINDOW_HEIGHT = 600
-const TITLE_BAR_HEIGHT = 48
+export const MINIMIZED_WINDOW_WIDTH = 400
+const DOCKED_WINDOW_HEIGHT = 634
+const TITLE_BAR_HEIGHT = 44
+/** Material 3 elevation 3, the shadow of the composer in the design */
+const WINDOW_SHADOW =
+  '0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15)'
 
 /** `view-transition-class` of the windows (and the backdrop) that opt in */
 const VIEW_TRANSITION_CLASS = 'docked-window'
@@ -201,13 +204,14 @@ export function DockedWindow({
           aria-labelledby={titleId}
           aria-modal={isFullscreen ? true : undefined}
           tabIndex={-1}
-          elevation={isFullscreen ? 24 : 8}
+          elevation={isFullscreen ? 24 : 0}
           onKeyDown={handleKeyDown}
           className="u-flex u-flex-column u-ov-hidden"
           sx={[
             {
               pointerEvents: 'auto',
-              borderRadius: 2,
+              borderRadius: '8px',
+              ...(isFullscreen ? {} : { boxShadow: WINDOW_SHADOW }),
               ...(viewTransitionName === undefined
                 ? {}
                 : {
@@ -229,9 +233,6 @@ export function DockedWindow({
                     height: '90vh'
                   }
                 : {
-                    // In the dock, the window sits on the bottom edge
-                    borderBottomLeftRadius: 0,
-                    borderBottomRightRadius: 0,
                     width: isMinimized ? MINIMIZED_WINDOW_WIDTH : width,
                     height: isMinimized
                       ? TITLE_BAR_HEIGHT
@@ -244,10 +245,11 @@ export function DockedWindow({
           <Box
             className="u-flex u-flex-items-center u-flex-shrink-0"
             sx={{
-              minHeight: TITLE_BAR_HEIGHT,
-              pl: 2,
-              pr: 0.5,
-              bgcolor: 'grey.100',
+              height: TITLE_BAR_HEIGHT,
+              px: 2,
+              bgcolor: 'background.default',
+              borderBottom: isMinimized ? 'none' : '1px solid',
+              borderColor: 'divider',
               gap: 0.5
             }}
           >
@@ -261,7 +263,7 @@ export function DockedWindow({
                 sx={{ justifyContent: 'flex-start', borderRadius: 1 }}
                 aria-label={`${labels.restore}: ${title}`}
               >
-                <Typography id={titleId} variant="subtitle2" noWrap>
+                <Typography id={titleId} variant="h5" noWrap>
                   {title}
                 </Typography>
               </ButtonBase>
@@ -269,7 +271,7 @@ export function DockedWindow({
               <Typography
                 id={titleId}
                 component="h2"
-                variant="subtitle2"
+                variant="h5"
                 noWrap
                 className="u-flex-auto"
               >
@@ -281,19 +283,23 @@ export function DockedWindow({
               <>
                 <Tooltip title={isMinimized ? labels.restore : labels.minimize}>
                   <IconButton
-                    size="small"
+                    size="medium"
                     aria-label={isMinimized ? labels.restore : labels.minimize}
                     onClick={() => {
                       onModeChange(isMinimized ? 'normal' : 'minimized')
                     }}
                     data-testid={testIds.minimize}
                   >
-                    <Icon icon={isMinimized ? Up : Dash} aria-hidden="true" />
+                    <Icon
+                      icon={isMinimized ? Up : Dash}
+                      size={24}
+                      aria-hidden="true"
+                    />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={fullscreenLabel}>
                   <IconButton
-                    size="small"
+                    size="medium"
                     aria-label={fullscreenLabel}
                     onClick={() => {
                       onModeChange(
@@ -302,7 +308,7 @@ export function DockedWindow({
                     }}
                     data-testid={testIds.fullscreen}
                   >
-                    <SvgIcon fontSize="small" aria-hidden="true">
+                    <SvgIcon aria-hidden="true">
                       <path
                         d={
                           mode === 'fullscreen'
@@ -317,12 +323,12 @@ export function DockedWindow({
             )}
             <Tooltip title={labels.close}>
               <IconButton
-                size="small"
+                size="medium"
                 aria-label={labels.close}
                 onClick={onClose}
                 data-testid={testIds.close}
               >
-                <Icon icon={Cross} aria-hidden="true" />
+                <Icon icon={Cross} size={24} aria-hidden="true" />
               </IconButton>
             </Tooltip>
           </Box>

@@ -40,16 +40,18 @@ export function useRevealOnOpen(
     element.scrollIntoView({ block: 'start', behavior: 'instant' })
 
     let isSettling = true
-    let isFirstObservation = true
+    const list = element.closest('ol')
+    // The first call reports the size the list has now: ignored unless it
+    // changed since the scroll above (the first frame of a view transition
+    // waits for its snapshots, the bodies can load and grow before it)
+    let lastHeight = list?.getBoundingClientRect().height ?? 0
     const observer =
       typeof ResizeObserver === 'undefined'
         ? null
         : new ResizeObserver(() => {
-            // The first call reports the size the list has now
-            if (isFirstObservation) {
-              isFirstObservation = false
-              return
-            }
+            const height = list?.getBoundingClientRect().height ?? 0
+            if (height === lastHeight) return
+            lastHeight = height
             if (isSettling) {
               element.scrollIntoView({ block: 'start', behavior: 'instant' })
             }
@@ -65,7 +67,6 @@ export function useRevealOnOpen(
         document.removeEventListener(type, stop, true)
       }
     }
-    const list = element.closest('ol')
     if (list) observer?.observe(list)
     for (const type of USER_EVENTS) {
       document.addEventListener(type, stop, true)

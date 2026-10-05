@@ -23,6 +23,14 @@ export const IDENTITY_HEADER = 'header:X-JMAP-Identity:asText'
  */
 export const ANSWERING_HEADER = 'header:X-Twake-Answering:asText'
 
+/**
+ * Header naming, in a draft only, the composer that saved it. A save whose
+ * answer was lost may have created a version nobody knows the id of: the
+ * next save finds it by this header (`findStrayVersions`) and destroys it.
+ */
+const DRAFT_SESSION_NAME = 'X-Twake-Draft-Session'
+export const DRAFT_SESSION_HEADER = `header:${DRAFT_SESSION_NAME}:asText`
+
 const ANSWER_KEYWORDS: readonly string[] = ['$answered', '$forwarded']
 
 function isAnswerKeyword(value: string): value is AnswerKeyword {
@@ -64,6 +72,8 @@ export interface ComposedMessage {
   attachments?: AttachedFile[]
   /** The email it answers, kept in the drafts (`ANSWERING_HEADER`) */
   answering?: Answering | null
+  /** The composer saving it, in the drafts (`DRAFT_SESSION_HEADER`) */
+  draftSession?: string | null
 }
 
 /** What an email is built for: a version of the draft, or the message sent */
@@ -116,6 +126,8 @@ export async function buildEmail(
 ): Promise<EmailCreate> {
   const html = await uploadDataImages(toEmailHtml(message.editorHtml), images)
   const answering = purpose === 'draft' ? (message.answering ?? null) : null
+  const draftSession =
+    purpose === 'draft' ? (message.draftSession ?? null) : null
   return {
     mailboxIds: { [mailboxIds.drafts]: true },
     keywords: { $draft: true, $seen: true },
@@ -131,6 +143,7 @@ export async function buildEmail(
     ...(answering === null
       ? {}
       : { [ANSWERING_HEADER]: formatAnswering(answering) }),
+    ...(draftSession === null ? {} : { [DRAFT_SESSION_HEADER]: draftSession }),
     inReplyTo: message.inReplyTo,
     references: message.references,
     bodyValues: {
@@ -204,6 +217,28 @@ export async function destroyPreviousVersions(
     console.warn('Previous draft versions not destroyed', error)
     return [...ids]
   }
+}
+
+/**
+ * The versions of a draft saved by the composer `draftSession` that it does
+ * not know (`known`): made by a save whose answer was lost. Throws when the
+ * server cannot tell.
+ */
+export async function findStrayVersions(
+  client: JmapClient,
+  accountId: string,
+  draftsId: string,
+  draftSession: string,
+  known: readonly string[]
+): Promise<string[]> {
+  const { ids } = await client.call('Email/query', {
+    accountId,
+    filter: {
+      inMailbox: draftsId,
+      header: [DRAFT_SESSION_NAME, draftSession]
+    }
+  })
+  return ids.filter(id => !known.includes(id))
 }
 
 /**

@@ -67,6 +67,18 @@ function matchesCondition(
     cc: value => typeof value === 'string' && addressesMatch(email.cc, value),
     subject: value =>
       typeof value === 'string' && includes(email.subject, value),
+    // [name] or [name, value]: the header is there (with that value)
+    header: value => {
+      if (!Array.isArray(value) || typeof value[0] !== 'string') return false
+      const [name, expected] = value as [string, unknown]
+      const entry = Object.entries(email.headers ?? {}).find(
+        ([key]) => key.toLowerCase() === name.toLowerCase()
+      )
+      return (
+        entry !== undefined &&
+        (typeof expected !== 'string' || entry[1] === expected)
+      )
+    },
     body: value =>
       typeof value === 'string' &&
       (includes(bodyText(email), value) || includes(email.preview, value))

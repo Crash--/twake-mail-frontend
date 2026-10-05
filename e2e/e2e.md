@@ -692,3 +692,10 @@ finishes issue #112.
   - Spec: `tests/attachments.spec.ts`.
 - [x] `ATT-07` A .eml attachment is parsed by the server and shown as an email (subject, From/To, sanitized body in the sandboxed frame): no dialog, no request outside the app (axe). — tmail-flutter `EmailPreviewerController` (opens a window there, a dialog here; no Patrol test)
   - Spec: `tests/attachments.spec.ts`.
+
+- [x] `ATT-08` A PDF with embedded fonts (printed by the browser, TrueType subsets) is drawn on its canvas with the glyphs as paths (`disableFontFace`), without any `eval` nor `Function` call (spied from `addInitScript`) and without any request outside the app; the worker `.mjs` is served as `text/javascript` with the CSP (no `worker-src`, no `unsafe-eval`) and `nosniff`. — web app only
+  - Spec: `tests/attachments.spec.ts`.
+- [x] `ATT-09` A PDF whose part is declared larger than 30 MB is not fetched nor drawn: the dialog says to download it, the viewer bar downloads it (axe). — web app only
+  - Spec: `tests/attachments.spec.ts`.
+- [x] `ATT-10` A 400-page PDF has one canvas per page but draws only the pages in view (fewer than 10 drawn at once); scrolled to the end, the last page is drawn and the first is released. — web app only
+  - Spec: `tests/attachments.spec.ts`.

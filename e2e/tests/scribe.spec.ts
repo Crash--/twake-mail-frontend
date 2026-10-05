@@ -23,7 +23,10 @@ test.describe('AI composer assistant', () => {
       const response = await route.fetch()
       const session = (await response.json()) as {
         capabilities: Record<string, unknown>
-        accounts: Record<string, { accountCapabilities: Record<string, unknown> }>
+        accounts: Record<
+          string,
+          { accountCapabilities: Record<string, unknown> }
+        >
       }
       session.capabilities[AIBOT] = {}
       for (const account of Object.values(session.accounts)) {
@@ -35,7 +38,9 @@ test.describe('AI composer assistant', () => {
     await page.route(ENDPOINT, async route => {
       asked.push(route.request().postData() ?? '')
       await route.fulfill({
-        json: { choices: [{ message: { role: 'assistant', content: 'Bonjour Bob' } }] }
+        json: {
+          choices: [{ message: { role: 'assistant', content: 'Bonjour Bob' } }]
+        }
       })
     })
 
@@ -47,7 +52,9 @@ test.describe('AI composer assistant', () => {
     await composer.root.getByTestId('composer-scribe-button').click()
     await page.getByRole('menuitem', { name: 'French' }).click()
     const dialog = page.getByTestId('composer-scribe-dialog')
-    await expect(dialog.getByRole('region', { name: 'Suggestion' })).toHaveText('Bonjour Bob')
+    await expect(dialog.getByRole('region', { name: 'Suggestion' })).toHaveText(
+      'Bonjour Bob'
+    )
     await expectNoA11yViolations(page)
     expect(asked).toHaveLength(1)
     expect(asked[0]).toContain('Translate the text to French.')
@@ -67,6 +74,8 @@ test.describe('AI composer assistant', () => {
     const composer = await mailbox.compose()
 
     await expect(composer.editor).toBeVisible()
-    await expect(composer.root.getByTestId('composer-scribe-button')).toHaveCount(0)
+    await expect(
+      composer.root.getByTestId('composer-scribe-button')
+    ).toHaveCount(0)
   })
 })

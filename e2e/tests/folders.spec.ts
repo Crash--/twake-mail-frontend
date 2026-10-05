@@ -14,13 +14,18 @@ test.describe('MBX folders', () => {
     await expectNoA11yViolations(page)
     await mailbox.submitFolderName('crud personal folder')
 
-    await expect(mailbox.toast).toContainText('You successfully created crud personal folder folder')
-    await expect(mailbox.folder({ name: 'crud personal folder' })).toHaveAttribute(
-      'aria-current',
-      'page'
+    await expect(mailbox.toast).toContainText(
+      'You successfully created crud personal folder folder'
     )
+    await expect(
+      mailbox.folder({ name: 'crud personal folder' })
+    ).toHaveAttribute('aria-current', 'page')
     await expect
-      .poll(async () => (await jmap.getMailboxes()).some(item => item.name === 'crud personal folder'))
+      .poll(async () =>
+        (await jmap.getMailboxes()).some(
+          item => item.name === 'crud personal folder'
+        )
+      )
       .toBe(true)
   })
 
@@ -32,7 +37,10 @@ test.describe('MBX folders', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
     await mailbox.runFolderAction({ role: 'inbox' }, 'new-subfolder')
     await mailbox.submitFolderName('crud sub folder')
-    await expect(mailbox.folder({ name: 'crud sub folder' })).toHaveAttribute('aria-current', 'page')
+    await expect(mailbox.folder({ name: 'crud sub folder' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
 
     await mailbox.runFolderAction({ name: 'crud sub folder' }, 'rename')
     await mailbox.submitFolderName('renamed sub folder')
@@ -41,10 +49,16 @@ test.describe('MBX folders', () => {
     await mailbox.runFolderAction({ name: 'renamed sub folder' }, 'move')
     await mailbox.pickFolder('Archive')
     await expect(mailbox.toast).toContainText('Moved to Archive')
-    await expect(mailbox.folder({ role: 'archive' })).toHaveAttribute('aria-expanded', 'true')
+    await expect(mailbox.folder({ role: 'archive' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
     const archive = await jmap.findMailboxByRole('archive')
     await expect
-      .poll(async () => (await jmap.findMailboxByName('renamed sub folder')).parentId)
+      .poll(
+        async () =>
+          (await jmap.findMailboxByName('renamed sub folder')).parentId
+      )
       .toBe(archive.id)
 
     await mailbox.runFolderAction({ name: 'renamed sub folder' }, 'delete')
@@ -53,8 +67,13 @@ test.describe('MBX folders', () => {
     await mailbox.confirmDialog.getByRole('button', { name: 'Delete' }).click()
 
     await expect(mailbox.folder({ name: 'renamed sub folder' })).toBeHidden()
-    await expect(mailbox.folder({ role: 'archive' })).not.toHaveAttribute('aria-expanded')
-    await expect(mailbox.folder({ role: 'inbox' })).toHaveAttribute('aria-current', 'page')
+    await expect(mailbox.folder({ role: 'archive' })).not.toHaveAttribute(
+      'aria-expanded'
+    )
+    await expect(mailbox.folder({ role: 'inbox' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
   })
 
   test('MBX-03 a hidden subfolder leaves the Inbox without children', async ({
@@ -66,68 +85,95 @@ test.describe('MBX folders', () => {
     await jmap.createMailbox({ name: 'hidden sub folder', parentId: inbox.id })
 
     const mailbox = await new LoginPage(page).loginAs(user)
-    await expect(mailbox.folder({ role: 'inbox' })).toHaveAttribute('aria-expanded', 'false')
+    await expect(mailbox.folder({ role: 'inbox' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
     await mailbox.toggleFolder({ role: 'inbox' })
     await mailbox.runFolderAction({ name: 'hidden sub folder' }, 'hide')
 
-    await expect(mailbox.toast).toContainText('This folder has been hidden from your primary folder')
+    await expect(mailbox.toast).toContainText(
+      'This folder has been hidden from your primary folder'
+    )
     await expect(mailbox.folder({ name: 'hidden sub folder' })).toBeHidden()
-    await expect(mailbox.folder({ role: 'inbox' })).not.toHaveAttribute('aria-expanded')
+    await expect(mailbox.folder({ role: 'inbox' })).not.toHaveAttribute(
+      'aria-expanded'
+    )
     await mailbox.openFolder({ role: 'inbox' })
   })
 
-  test('MBX-06 the Starred folder is listed, empty on a new account', { tag: '@mobile' }, async ({
-    page,
-    user
-  }) => {
-    const mailbox = await new LoginPage(page).loginAs(user)
-    await mailbox.showFolders()
-    await mailbox.folder({ name: 'Starred' }).click()
-    await mailbox.hideFolders()
+  test(
+    'MBX-06 the Starred folder is listed, empty on a new account',
+    { tag: '@mobile' },
+    async ({ page, user }) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.showFolders()
+      await mailbox.folder({ name: 'Starred' }).click()
+      await mailbox.hideFolders()
 
-    await expect(mailbox.emptyListView).toBeVisible()
-    await mailbox.expectFolderSelected({ name: 'Starred' })
-    await expectNoA11yViolations(page)
-  })
-
-  test('MBX-06b Starred follows the whole Inbox subtree, in the DOM and with the keyboard', { tag: '@mobile' }, async ({
-    page,
-    user,
-    jmap
-  }) => {
-    const inbox = await jmap.findMailboxByRole('inbox')
-    await jmap.createMailbox({ name: 'Newsletters', parentId: inbox.id })
-
-    const mailbox = await new LoginPage(page).loginAs(user)
-    await mailbox.toggleFolder({ role: 'inbox' })
-    await expect(mailbox.folder({ name: 'Newsletters' })).toHaveAttribute('aria-level', '2')
-
-    const rows = mailbox.folderTree.getByTestId('mailbox-item')
-    const names = rows.getByTestId('mailbox-item-name')
-    await expect(names).toHaveText(['Inbox', 'Newsletters', 'Starred', 'Drafts', 'Outbox', 'Sent', 'Trash', 'Spam', 'Archive'])
-    await expect(rows.evaluateAll(items => items.map(item => item.getAttribute('aria-level')))).resolves.toEqual([
-      '1', '2', '1', '1', '1', '1', '1', '1', '1'
-    ])
-    const starred = mailbox.folder({ name: 'Starred' })
-    await expect(starred).toHaveAttribute('aria-posinset', '2')
-    await expect(starred).toHaveAttribute('aria-setsize', '8')
-    await expect(mailbox.folder({ name: 'Drafts' })).toHaveAttribute('aria-posinset', '3')
-
-    // Tab goes Inbox, then its subfolder, then Starred, then Drafts
-    await mailbox.folder({ role: 'inbox' }).getByRole('link').focus()
-    const visited: string[] = []
-    for (let step = 0; step < 12 && !visited.includes('Drafts'); step++) {
-      await page.keyboard.press('Tab')
-      const name = await page.evaluate(
-        () =>
-          document.activeElement
-            ?.closest('[data-testid="mailbox-item"]')
-            ?.querySelector('[data-testid="mailbox-item-name"]')?.textContent ?? null
-      )
-      if (name !== null && visited.at(-1) !== name) visited.push(name)
+      await expect(mailbox.emptyListView).toBeVisible()
+      await mailbox.expectFolderSelected({ name: 'Starred' })
+      await expectNoA11yViolations(page)
     }
-    expect(visited).toEqual(['Inbox', 'Newsletters', 'Starred', 'Drafts'])
-  })
+  )
+
+  test(
+    'MBX-06b Starred follows the whole Inbox subtree, in the DOM and with the keyboard',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const inbox = await jmap.findMailboxByRole('inbox')
+      await jmap.createMailbox({ name: 'Newsletters', parentId: inbox.id })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.toggleFolder({ role: 'inbox' })
+      await expect(mailbox.folder({ name: 'Newsletters' })).toHaveAttribute(
+        'aria-level',
+        '2'
+      )
+
+      const rows = mailbox.folderTree.getByTestId('mailbox-item')
+      const names = rows.getByTestId('mailbox-item-name')
+      await expect(names).toHaveText([
+        'Inbox',
+        'Newsletters',
+        'Starred',
+        'Drafts',
+        'Outbox',
+        'Sent',
+        'Trash',
+        'Spam',
+        'Archive'
+      ])
+      await expect(
+        rows.evaluateAll(items =>
+          items.map(item => item.getAttribute('aria-level'))
+        )
+      ).resolves.toEqual(['1', '2', '1', '1', '1', '1', '1', '1', '1'])
+      const starred = mailbox.folder({ name: 'Starred' })
+      await expect(starred).toHaveAttribute('aria-posinset', '2')
+      await expect(starred).toHaveAttribute('aria-setsize', '8')
+      await expect(mailbox.folder({ name: 'Drafts' })).toHaveAttribute(
+        'aria-posinset',
+        '3'
+      )
+
+      // Tab goes Inbox, then its subfolder, then Starred, then Drafts
+      await mailbox.folder({ role: 'inbox' }).getByRole('link').focus()
+      const visited: string[] = []
+      for (let step = 0; step < 12 && !visited.includes('Drafts'); step++) {
+        await page.keyboard.press('Tab')
+        const name = await page.evaluate(
+          () =>
+            document.activeElement
+              ?.closest('[data-testid="mailbox-item"]')
+              ?.querySelector('[data-testid="mailbox-item-name"]')
+              ?.textContent ?? null
+        )
+        if (name !== null && visited.at(-1) !== name) visited.push(name)
+      }
+      expect(visited).toEqual(['Inbox', 'Newsletters', 'Starred', 'Drafts'])
+    }
+  )
 
   test('MBX-07 (receiving part) a team mailbox is listed apart, its emails under its INBOX', async ({
     page,
@@ -136,7 +182,11 @@ test.describe('MBX folders', () => {
     jmap
   }) => {
     const team = await users.createTeamMailbox({ members: [user] })
-    await jmap.sendEmail({ to: team.email, subject: 'for the team', text: 'hello team' })
+    await jmap.sendEmail({
+      to: team.email,
+      subject: 'for the team',
+      text: 'hello team'
+    })
 
     const mailbox = await new LoginPage(page).loginAs(user)
     await expect(mailbox.teamMailboxesSection).toContainText('Team-mailboxes')
@@ -154,7 +204,12 @@ test.describe('MBX folders', () => {
   }) => {
     const trash = await jmap.findMailboxByRole('trash')
     await jmap.createMailbox({ name: 'Old stuff', parentId: trash.id })
-    await jmap.sendEmail({ to: user.email, subject: 'trashed', text: 'x', saveTo: 'trash' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'trashed',
+      text: 'x',
+      saveTo: 'trash'
+    })
     await jmap.waitForEmail({ subject: 'trashed', mailboxRole: 'trash' })
 
     const mailbox = await new LoginPage(page).loginAs(user)
@@ -168,23 +223,31 @@ test.describe('MBX folders', () => {
     await expect(mailbox.emptyTrashBanner).toBeHidden()
   })
 
-  test('MBX-15 "Mark as read" on the Inbox clears its unread count', { tag: '@mobile' }, async ({
-    page,
-    user,
-    jmap
-  }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'unread news', text: 'x' })
-    const email = await jmap.waitForEmail({ subject: 'unread news' })
+  test(
+    'MBX-15 "Mark as read" on the Inbox clears its unread count',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      await jmap.sendEmail({
+        to: user.email,
+        subject: 'unread news',
+        text: 'x'
+      })
+      const email = await jmap.waitForEmail({ subject: 'unread news' })
 
-    const mailbox = await new LoginPage(page).loginAs(user)
-    await mailbox.showFolders()
-    await expect(mailbox.folderUnreadCount({ role: 'inbox' })).toHaveText('1')
-    await mailbox.runFolderAction({ role: 'inbox' }, 'mark-as-read')
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.showFolders()
+      await expect(mailbox.folderUnreadCount({ role: 'inbox' })).toHaveText('1')
+      await mailbox.runFolderAction({ role: 'inbox' }, 'mark-as-read')
 
-    await expect(mailbox.folderUnreadCount({ role: 'inbox' })).toBeHidden()
-    await expect(mailbox.toast).toContainText('You’ve marked all messages in "Inbox" as read')
-    await expect.poll(async () => '$seen' in (await jmap.getEmail(email.id)).keywords).toBe(true)
-  })
+      await expect(mailbox.folderUnreadCount({ role: 'inbox' })).toBeHidden()
+      await expect(mailbox.toast).toContainText(
+        'You’ve marked all messages in "Inbox" as read'
+      )
+      await expect
+        .poll(async () => '$seen' in (await jmap.getEmail(email.id)).keywords)
+        .toBe(true)
+    }
+  )
 
   test('MBX-29 a hidden folder shows again from the hidden folders, with the keyboard', async ({
     page,
@@ -198,7 +261,10 @@ test.describe('MBX folders', () => {
     await expect(mailbox.folder({ name: 'Rarely used' })).toBeHidden()
 
     await mailbox.showHiddenFoldersButton.click()
-    await expect(mailbox.showHiddenFoldersButton).toHaveAttribute('aria-pressed', 'true')
+    await expect(mailbox.showHiddenFoldersButton).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
     const hidden = mailbox.folder({ name: 'Rarely used' })
     await expect(hidden).toHaveAttribute('data-hidden', 'true')
     await hidden.getByRole('link').focus()

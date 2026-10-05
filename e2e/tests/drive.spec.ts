@@ -21,7 +21,10 @@ import { expect, test } from '../support/fixtures'
 async function appRunsInOidcMode(): Promise<boolean> {
   try {
     const config = await (await fetch(`${env.baseUrl}/.env.js`)).text()
-    return /AUTH_MODE\s*=\s*'oidc'/.test(config) && /TDRIVE_ENABLED\s*=\s*true/.test(config)
+    return (
+      /AUTH_MODE\s*=\s*'oidc'/.test(config) &&
+      /TDRIVE_ENABLED\s*=\s*true/.test(config)
+    )
   } catch {
     return false
   }
@@ -49,10 +52,16 @@ async function openDrivePicker(
   const dialog = page.getByRole('dialog', { name: 'Twake Drive' })
   await expect(dialog).toBeVisible()
   const picker = page.frameLocator('[data-testid="drive-picker-frame"]')
-  await expect(picker.getByRole('button', { name: 'Add as link' })).toBeEnabled()
+  await expect(
+    picker.getByRole('button', { name: 'Add as link' })
+  ).toBeEnabled()
   // One close button: Drive's, in its header; the dialog's only while it loads
-  await expect(picker.getByRole('button', { name: 'Close Drive' })).toBeVisible()
-  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toHaveCount(0)
+  await expect(
+    picker.getByRole('button', { name: 'Close Drive' })
+  ).toBeVisible()
+  await expect(
+    dialog.getByRole('button', { name: 'Close', exact: true })
+  ).toHaveCount(0)
   return composer
 }
 
@@ -81,34 +90,38 @@ test.describe('DRIVE Twake Drive picker', () => {
     )
   })
 
-  test('DRIVE-01 "Attach from Drive" opens the picker in a named dialog (full screen on phones); "Add as link" inserts a Drive card, the focus back in the message', { tag: '@mobile' }, async ({
-    page
-  }) => {
-    const mailbox = await signInWithDex(page)
-    const composer = await openDrivePicker(page, mailbox)
-    await expectNoA11yViolations(page)
-    // Both actions, as tmail-flutter: the user chooses in Drive
-    const options = await pickerOptions(page)
-    expect(options.sharingLink).toEqual({ label: 'Add as link' })
-    expect(options.downloadLink).toMatchObject({ label: 'Add as attachment' })
-    expect(options).not.toHaveProperty('displayCloseButton')
+  test(
+    'DRIVE-01 "Attach from Drive" opens the picker in a named dialog (full screen on phones); "Add as link" inserts a Drive card, the focus back in the message',
+    { tag: '@mobile' },
+    async ({ page }) => {
+      const mailbox = await signInWithDex(page)
+      const composer = await openDrivePicker(page, mailbox)
+      await expectNoA11yViolations(page)
+      // Both actions, as tmail-flutter: the user chooses in Drive
+      const options = await pickerOptions(page)
+      expect(options.sharingLink).toEqual({ label: 'Add as link' })
+      expect(options.downloadLink).toMatchObject({ label: 'Add as attachment' })
+      expect(options).not.toHaveProperty('displayCloseButton')
 
-    await page
-      .frameLocator('[data-testid="drive-picker-frame"]')
-      .getByRole('button', { name: 'Add as link' })
-      .click()
+      await page
+        .frameLocator('[data-testid="drive-picker-frame"]')
+        .getByRole('button', { name: 'Add as link' })
+        .click()
 
-    await expect(page.getByRole('dialog', { name: 'Twake Drive' })).toBeHidden()
-    const card = composer.editor.locator('a.tmail-file-link-card')
-    await expect(card).toHaveAttribute(
-      'href',
-      `http://localhost:${new URL(env.baseUrl).port}/e2e/drive/share/report`
-    )
-    await expect(card).toContainText('report.txt')
-    // Back in the message, after the card
-    await expect(composer.editor).toBeFocused()
-    await deleteDraft(composer)
-  })
+      await expect(
+        page.getByRole('dialog', { name: 'Twake Drive' })
+      ).toBeHidden()
+      const card = composer.editor.locator('a.tmail-file-link-card')
+      await expect(card).toHaveAttribute(
+        'href',
+        `http://localhost:${new URL(env.baseUrl).port}/e2e/drive/share/report`
+      )
+      await expect(card).toContainText('report.txt')
+      // Back in the message, after the card
+      await expect(composer.editor).toBeFocused()
+      await deleteDraft(composer)
+    }
+  )
 
   test('DRIVE-02 "Add as attachment" downloads the file and attaches it', async ({
     page
@@ -123,7 +136,10 @@ test.describe('DRIVE Twake Drive picker', () => {
 
     await expect(composer.attachments).toHaveCount(1)
     await expect(composer.attachments.first()).toContainText('report.txt')
-    await expect(composer.attachments.first()).toHaveAttribute('data-status', 'done')
+    await expect(composer.attachments.first()).toHaveAttribute(
+      'data-status',
+      'done'
+    )
     await deleteDraft(composer)
   })
 
@@ -143,73 +159,96 @@ test.describe('DRIVE Twake Drive picker', () => {
     // of its first control lands on the dialog, where Escape closes it
     await composer.root.getByTestId('composer-drive-button').click()
     const picker = page.frameLocator('[data-testid="drive-picker-frame"]')
-    await expect(picker.getByRole('button', { name: 'Add as link' })).toBeEnabled()
+    await expect(
+      picker.getByRole('button', { name: 'Add as link' })
+    ).toBeEnabled()
     await page.keyboard.press('Tab')
-    await expect(picker.getByRole('button', { name: 'Close Drive' })).toBeFocused()
+    await expect(
+      picker.getByRole('button', { name: 'Close Drive' })
+    ).toBeFocused()
     await page.keyboard.press('Shift+Tab')
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog', { name: 'Twake Drive' })).toBeHidden()
-    await expect(composer.root.getByTestId('composer-drive-button')).toBeFocused()
+    await expect(
+      composer.root.getByTestId('composer-drive-button')
+    ).toBeFocused()
 
     await expect(page.getByRole('dialog', { name: 'Twake Drive' })).toBeHidden()
-    await expect(composer.editor.locator('a.tmail-file-link-card')).toHaveCount(0)
+    await expect(composer.editor.locator('a.tmail-file-link-card')).toHaveCount(
+      0
+    )
     await expect(composer.attachments).toHaveCount(0)
     await composer.close()
   })
-  test('DRIVE-04 The picker fills a centred dialog at the size it asks for, within the screen (full screen on phones); it can ask for the close button of the dialog', { tag: '@mobile' }, async ({
-    page
-  }) => {
-    const mailbox = await signInWithDex(page)
-    await openDrivePicker(page, mailbox)
-    const dialog = page.getByRole('dialog', { name: 'Twake Drive' })
-    const frame = page.getByTestId('drive-picker-frame')
-    const picker = page.frameLocator('[data-testid="drive-picker-frame"]')
-    const viewport = page.viewportSize()
-    if (viewport === null) throw new Error('No viewport')
-    const isPhone = viewport.width < 600
+  test(
+    'DRIVE-04 The picker fills a centred dialog at the size it asks for, within the screen (full screen on phones); it can ask for the close button of the dialog',
+    { tag: '@mobile' },
+    async ({ page }) => {
+      const mailbox = await signInWithDex(page)
+      await openDrivePicker(page, mailbox)
+      const dialog = page.getByRole('dialog', { name: 'Twake Drive' })
+      const frame = page.getByTestId('drive-picker-frame')
+      const picker = page.frameLocator('[data-testid="drive-picker-frame"]')
+      const viewport = page.viewportSize()
+      if (viewport === null) throw new Error('No viewport')
+      const isPhone = viewport.width < 600
 
-    // The frame fills the dialog, which is inside the screen
-    const expectFrameBox = async (width: number, height: number): Promise<void> => {
-      await expect
-        .poll(async () => {
-          const box = await frame.boundingBox()
-          return box === null
-            ? null
-            : [Math.round(box.width), Math.round(box.height)]
-        })
-        .toEqual([width, height])
-      const box = await frame.boundingBox()
-      if (box === null) throw new Error('No frame')
-      expect(box.x).toBeGreaterThanOrEqual(0)
-      expect(box.y).toBeGreaterThanOrEqual(0)
-      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
-      expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
-      if (!isPhone) {
-        // Centred
-        expect(Math.abs(box.x + box.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1)
-        expect(Math.abs(box.y + box.height / 2 - viewport.height / 2)).toBeLessThanOrEqual(1)
+      // The frame fills the dialog, which is inside the screen
+      const expectFrameBox = async (
+        width: number,
+        height: number
+      ): Promise<void> => {
+        await expect
+          .poll(async () => {
+            const box = await frame.boundingBox()
+            return box === null
+              ? null
+              : [Math.round(box.width), Math.round(box.height)]
+          })
+          .toEqual([width, height])
+        const box = await frame.boundingBox()
+        if (box === null) throw new Error('No frame')
+        expect(box.x).toBeGreaterThanOrEqual(0)
+        expect(box.y).toBeGreaterThanOrEqual(0)
+        expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
+        expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+        if (!isPhone) {
+          // Centred
+          expect(
+            Math.abs(box.x + box.width / 2 - viewport.width / 2)
+          ).toBeLessThanOrEqual(1)
+          expect(
+            Math.abs(box.y + box.height / 2 - viewport.height / 2)
+          ).toBeLessThanOrEqual(1)
+        }
       }
+
+      // 900 × 800 by default, the screen minus 16 px around at most
+      await expectFrameBox(
+        isPhone ? viewport.width : Math.min(900, viewport.width - 32),
+        isPhone ? viewport.height : Math.min(800, viewport.height - 32)
+      )
+      await picker.getByRole('button', { name: 'Ask for 640 × 480' }).click()
+      await expectFrameBox(
+        isPhone ? viewport.width : 640,
+        isPhone ? viewport.height : 480
+      )
+
+      await picker
+        .getByRole('button', { name: 'Ask for the dialog close button' })
+        .click()
+      const close = dialog.getByRole('button', { name: 'Close', exact: true })
+      await expect(close).toBeVisible()
+      await picker
+        .getByRole('button', { name: 'Hide the dialog close button' })
+        .click()
+      await expect(close).toHaveCount(0)
+      await picker
+        .getByRole('button', { name: 'Ask for the dialog close button' })
+        .click()
+      await close.click()
+      await expect(dialog).toBeHidden()
+      await expect(page.getByTestId('composer-drive-button')).toBeFocused()
     }
-
-    // 900 × 800 by default, the screen minus 16 px around at most
-    await expectFrameBox(
-      isPhone ? viewport.width : Math.min(900, viewport.width - 32),
-      isPhone ? viewport.height : Math.min(800, viewport.height - 32)
-    )
-    await picker.getByRole('button', { name: 'Ask for 640 × 480' }).click()
-    await expectFrameBox(
-      isPhone ? viewport.width : 640,
-      isPhone ? viewport.height : 480
-    )
-
-    await picker.getByRole('button', { name: 'Ask for the dialog close button' }).click()
-    const close = dialog.getByRole('button', { name: 'Close', exact: true })
-    await expect(close).toBeVisible()
-    await picker.getByRole('button', { name: 'Hide the dialog close button' }).click()
-    await expect(close).toHaveCount(0)
-    await picker.getByRole('button', { name: 'Ask for the dialog close button' }).click()
-    await close.click()
-    await expect(dialog).toBeHidden()
-    await expect(page.getByTestId('composer-drive-button')).toBeFocused()
-  })
+  )
 })

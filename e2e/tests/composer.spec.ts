@@ -12,17 +12,31 @@ const CLIPBOARD = path.resolve(__dirname, '../fixtures/clipboard')
 /** Sets the HTML signature of the default identity */
 async function setSignature(jmap: JmapClient, html: string): Promise<void> {
   const accountId = await jmap.accountId()
-  const [identities] = await jmap.request([['Identity/get', { accountId, ids: null }, 'i']])
+  const [identities] = await jmap.request([
+    ['Identity/get', { accountId, ids: null }, 'i']
+  ])
   const identityId = (identities?.[1].list as { id: string }[])[0]?.id ?? ''
   await jmap.request([
-    ['Identity/set', { accountId, update: { [identityId]: { htmlSignature: html } } }, 's']
+    [
+      'Identity/set',
+      { accountId, update: { [identityId]: { htmlSignature: html } } },
+      's'
+    ]
   ])
 }
 
 /** The drafts of the account, with their HTML body */
 async function readDrafts(
   jmap: JmapClient
-): Promise<{ id: string; subject: string; to: { email: string }[]; replyTo: unknown; html: string }[]> {
+): Promise<
+  {
+    id: string
+    subject: string
+    to: { email: string }[]
+    replyTo: unknown
+    html: string
+  }[]
+> {
   const accountId = await jmap.accountId()
   const drafts = await jmap.findMailboxByRole('drafts')
   const [, got] = await jmap.request([
@@ -56,37 +70,45 @@ async function readDrafts(
 }
 
 test.describe('CMP composer', () => {
-  test('CMP-05 the recipient fields fold into a summary once the focus moves on, and unfold', {
-    tag: '@mobile'
-  }, async ({ page, user }) => {
-    const mailbox = await new LoginPage(page).loginAs(user)
-    const composer = await mailbox.compose()
-    await expect(composer.recipientInput('to')).toBeFocused()
+  test(
+    'CMP-05 the recipient fields fold into a summary once the focus moves on, and unfold',
+    {
+      tag: '@mobile'
+    },
+    async ({ page, user }) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const composer = await mailbox.compose()
+      await expect(composer.recipientInput('to')).toBeFocused()
 
-    await composer.showField('cc')
-    await expect(composer.recipientInput('cc')).toBeFocused()
-    await composer.showField('bcc')
-    await composer.showField('reply-to')
-    for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
-      await expect(composer.recipientInput(field)).toBeVisible()
-    }
-    await composer.addRecipient('cc', 'carol@example.com')
-    await expectNoA11yViolations(page)
+      await composer.showField('cc')
+      await expect(composer.recipientInput('cc')).toBeFocused()
+      await composer.showField('bcc')
+      await composer.showField('reply-to')
+      for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
+        await expect(composer.recipientInput(field)).toBeVisible()
+      }
+      await composer.addRecipient('cc', 'carol@example.com')
+      await expectNoA11yViolations(page)
 
-    await composer.subjectInput.click()
-    await expect(composer.recipientsSummary).toBeVisible()
-    await expect(composer.recipientsSummary).toContainText('carol@example.com')
-    for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
-      await expect(composer.recipientInput(field)).toBeHidden()
-    }
+      await composer.subjectInput.click()
+      await expect(composer.recipientsSummary).toBeVisible()
+      await expect(composer.recipientsSummary).toContainText(
+        'carol@example.com'
+      )
+      for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
+        await expect(composer.recipientInput(field)).toBeHidden()
+      }
 
-    await composer.recipientsSummary.click()
-    await expect(composer.recipientInput('to')).toBeFocused()
-    for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
-      await expect(composer.recipientInput(field)).toBeVisible()
+      await composer.recipientsSummary.click()
+      await expect(composer.recipientInput('to')).toBeFocused()
+      for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
+        await expect(composer.recipientInput(field)).toBeVisible()
+      }
+      await expect(
+        composer.recipients('cc').filter({ hasText: 'carol@example.com' })
+      ).toBeVisible()
     }
-    await expect(composer.recipients('cc').filter({ hasText: 'carol@example.com' })).toBeVisible()
-  })
+  )
 
   test('CMP-06 Ctrl+K opens the link dialog of the app; bold, lists and colour format the body', async ({
     page,
@@ -128,8 +150,12 @@ test.describe('CMP composer', () => {
 
     const html = await composer.editorHtml()
     expect(html).toContain('<strong>world</strong>')
-    expect(html).toContain('<ul><li><p>first</p></li><li><p>second</p></li></ul>')
-    expect(html).toContain('<span style="color: rgb(198, 40, 40);">red text </span>')
+    expect(html).toContain(
+      '<ul><li><p>first</p></li><li><p>second</p></li></ul>'
+    )
+    expect(html).toContain(
+      '<span style="color: rgb(198, 40, 40);">red text </span>'
+    )
     expect(html).toMatch(/<a [^>]*href="https:\/\/twake.app"[^>]*>Twake<\/a>/)
   })
 
@@ -147,7 +173,9 @@ test.describe('CMP composer', () => {
     await first.subjectInput.focus()
     await page.keyboard.press('Escape')
     await first.expectMode('minimized')
-    const restore = first.root.getByRole('button', { name: 'Show: First message' })
+    const restore = first.root.getByRole('button', {
+      name: 'Show: First message'
+    })
     await expect(restore).toBeFocused()
     await page.keyboard.press('Enter')
     await first.expectMode('normal')
@@ -159,8 +187,12 @@ test.describe('CMP composer', () => {
     await expect(page.getByTestId('composer')).toHaveCount(2)
     await expect(second.recipientInput('to')).toBeFocused()
     await second.subjectInput.fill('Second message')
-    await expect(page.getByRole('dialog', { name: 'Second message' })).toBeVisible()
-    await expect(page.getByRole('dialog', { name: 'First message' })).toBeVisible()
+    await expect(
+      page.getByRole('dialog', { name: 'Second message' })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('dialog', { name: 'First message' })
+    ).toBeVisible()
 
     // Full screen: modal; Escape there closes, asking first
     await second.fullscreenButton.click()
@@ -177,7 +209,9 @@ test.describe('CMP composer', () => {
     await expect(page.getByTestId('confirm-dialog')).toBeVisible()
     await page.getByTestId('confirm-dialog-alternative-button').click()
     await expect(page.getByTestId('composer')).toHaveCount(1)
-    await expect(page.getByRole('dialog', { name: 'First message' })).toBeVisible()
+    await expect(
+      page.getByRole('dialog', { name: 'First message' })
+    ).toBeVisible()
   })
 
   test('CMP-49 composers the screen has no room for stay reachable from a menu', async ({
@@ -198,12 +232,14 @@ test.describe('CMP composer', () => {
       'true'
     )
     await expect(mailbox.composerOverflowButton).toHaveText('+2 messages')
-    await expect(mailbox.composerOverflowButton).toHaveAttribute('aria-haspopup', 'menu')
+    await expect(mailbox.composerOverflowButton).toHaveAttribute(
+      'aria-haspopup',
+      'menu'
+    )
     await mailbox.composerOverflowButton.click()
-    await expect(mailbox.composerOverflowMenu.getByRole('menuitem')).toHaveText([
-      'Second',
-      'First'
-    ])
+    await expect(mailbox.composerOverflowMenu.getByRole('menuitem')).toHaveText(
+      ['Second', 'First']
+    )
     await expectNoA11yViolations(page)
     await page.keyboard.press('Escape')
     await expect(mailbox.composerOverflowButton).toBeFocused()
@@ -238,17 +274,30 @@ test.describe('CMP composer', () => {
       const composer = await mailbox.compose()
       const to = composer.recipientInput('to')
 
-      await copyHtml(page, 'alice@example.com', 'alice@example.com, Bob <bob@example.com>; wrong')
+      await copyHtml(
+        page,
+        'alice@example.com',
+        'alice@example.com, Bob <bob@example.com>; wrong'
+      )
       await to.focus()
       await page.keyboard.press('Control+V')
-      await expect(composer.recipients('to')).toHaveText(['alice@example.com', 'Bob', 'wrong'])
-      await expect(composer.recipients('to').last()).toHaveAccessibleName('wrong, invalid address')
+      await expect(composer.recipients('to')).toHaveText([
+        'alice@example.com',
+        'Bob',
+        'wrong'
+      ])
+      await expect(composer.recipients('to').last()).toHaveAccessibleName(
+        'wrong, invalid address'
+      )
 
       // Backspace reaches the last chip, Delete removes it, Enter edits one
       await page.keyboard.press('Backspace')
       await expect(composer.recipients('to').last()).toBeFocused()
       await page.keyboard.press('Delete')
-      await expect(composer.recipients('to')).toHaveText(['alice@example.com', 'Bob'])
+      await expect(composer.recipients('to')).toHaveText([
+        'alice@example.com',
+        'Bob'
+      ])
       // Without a chip after it, the input has the focus again
       await expect(to).toBeFocused()
       await page.keyboard.press('ArrowLeft')
@@ -258,17 +307,29 @@ test.describe('CMP composer', () => {
       await expect(to).toBeFocused()
       await expect(to).toHaveValue('alice@example.com')
       await page.keyboard.press('Enter')
-      await expect(composer.recipients('to')).toHaveText(['Bob', 'alice@example.com'])
+      await expect(composer.recipients('to')).toHaveText([
+        'Bob',
+        'alice@example.com'
+      ])
 
       // Contacts of the domain are suggested
       await page.keyboard.type('Zel')
-      const suggestion = composer.root.getByRole('option', { name: /Zelda Contact/ })
+      const suggestion = composer.root.getByRole('option', {
+        name: /Zelda Contact/
+      })
       await expect(suggestion).toBeVisible()
       await expectNoA11yViolations(page)
       await page.keyboard.press('ArrowDown')
       await page.keyboard.press('Enter')
-      await expect(composer.recipients('to')).toHaveText(['Bob', 'alice@example.com', 'Zelda Contact'])
-      await expect(composer.recipients('to').last()).toHaveAttribute('title', `Zelda Contact <${contact}>`)
+      await expect(composer.recipients('to')).toHaveText([
+        'Bob',
+        'alice@example.com',
+        'Zelda Contact'
+      ])
+      await expect(composer.recipients('to').last()).toHaveAttribute(
+        'title',
+        `Zelda Contact <${contact}>`
+      )
     } finally {
       await webadmin.deleteDomainContact('example.com', contact)
     }
@@ -319,7 +380,9 @@ test.describe('CMP composer', () => {
     await page.keyboard.type('nested')
     await page.keyboard.press('Tab')
     await expect(composer.editor).toBeFocused()
-    expect(await composer.editorHtml()).toContain('<ul><li><p>nested</p></li></ul>')
+    expect(await composer.editorHtml()).toContain(
+      '<ul><li><p>nested</p></li></ul>'
+    )
     await page.keyboard.press('Alt+F10')
     await page.keyboard.press('Shift+Tab')
     await expect(composer.subjectInput).toBeFocused()
@@ -342,16 +405,26 @@ test.describe('CMP composer', () => {
     await page.keyboard.type('Before ')
     const chooser = page.waitForEvent('filechooser')
     await composer.toolbarButton('Insert image').click()
-    await (await chooser).setFiles({ name: 'resize.png', mimeType: 'image/png', buffer: png })
+    await (
+      await chooser
+    ).setFiles({ name: 'resize.png', mimeType: 'image/png', buffer: png })
     const image = composer.editor.locator('img[data-reference]')
     await expect(image).toHaveCount(1, { timeout: 20_000 })
-    await expect.poll(() => image.evaluate(element => (element as HTMLImageElement).naturalWidth)).toBe(800)
+    await expect
+      .poll(() =>
+        image.evaluate(element => (element as HTMLImageElement).naturalWidth)
+      )
+      .toBe(800)
 
     // The caret is after the image: ArrowLeft selects it, Enter opens its toolbar
     await page.keyboard.press('ArrowLeft')
-    const toolbar = composer.root.getByRole('toolbar', { name: 'Image options' })
+    const toolbar = composer.root.getByRole('toolbar', {
+      name: 'Image options'
+    })
     await expect(toolbar).toBeVisible()
-    await expect(composer.root.getByRole('status').filter({ hasText: 'Width 800 px' })).toBeVisible()
+    await expect(
+      composer.root.getByRole('status').filter({ hasText: 'Width 800 px' })
+    ).toBeVisible()
     await page.keyboard.press('Enter')
     const quarter = toolbar.getByRole('button', { name: '25%' })
     await expect(quarter).toBeFocused()
@@ -359,12 +432,16 @@ test.describe('CMP composer', () => {
 
     await page.keyboard.press('Enter')
     await expect(quarter).toHaveAttribute('aria-pressed', 'true')
-    await expect(composer.root.getByRole('status').filter({ hasText: 'Width 200 px, 25%' })).toBeVisible()
+    await expect(
+      composer.root.getByRole('status').filter({ hasText: 'Width 200 px, 25%' })
+    ).toBeVisible()
     await page.keyboard.press('End')
     await page.keyboard.press('ArrowLeft')
     await expect(toolbar.getByRole('button', { name: 'Larger' })).toBeFocused()
     await page.keyboard.press('Enter')
-    await expect(composer.root.getByRole('status').filter({ hasText: 'Width 280 px, 35%' })).toBeVisible()
+    await expect(
+      composer.root.getByRole('status').filter({ hasText: 'Width 280 px, 35%' })
+    ).toBeVisible()
     await expect(image).toHaveCSS('width', '280px')
 
     // The saved draft keeps the size
@@ -372,7 +449,9 @@ test.describe('CMP composer', () => {
     await expect(mailbox.toast).toContainText('Draft saved')
     await expect
       .poll(async () => (await readDrafts(jmap))[0]?.html ?? '')
-      .toMatch(/<img[^>]*src="cid:[^"]+"[^>]*width="280"|<img[^>]*width="280"[^>]*src="cid:/)
+      .toMatch(
+        /<img[^>]*src="cid:[^"]+"[^>]*width="280"|<img[^>]*width="280"[^>]*src="cid:/
+      )
 
     // A click selects it too; Escape goes back to the text, the image still selected
     await image.click()
@@ -384,7 +463,9 @@ test.describe('CMP composer', () => {
     await composer.expectMode('normal')
     await page.keyboard.press('Enter')
     await page.keyboard.press('End')
-    await expect(page.getByTestId('rich-text-image-remove-button')).toBeFocused()
+    await expect(
+      page.getByTestId('rich-text-image-remove-button')
+    ).toBeFocused()
     await page.keyboard.press('Enter')
     await expect(image).toHaveCount(0)
     await expect(toolbar).toBeHidden()
@@ -412,7 +493,18 @@ test.describe('CMP composer', () => {
   })
 
   test.describe('CMP-32 pasting into the body keeps clean HTML', () => {
-    const NOISE = [/mso-/i, /class="Mso/, /o:p/, /font-family/, /font-size/, /line-height/, /Liberation/, /rgb\(0, 0, 0\)/, /#000000/, /rgb\(33, 37, 41\)/]
+    const NOISE = [
+      /mso-/i,
+      /class="Mso/,
+      /o:p/,
+      /font-family/,
+      /font-size/,
+      /line-height/,
+      /Liberation/,
+      /rgb\(0, 0, 0\)/,
+      /#000000/,
+      /rgb\(33, 37, 41\)/
+    ]
     const CASES: { name: string; expected: (string | RegExp)[] }[] = [
       {
         name: 'word',
@@ -465,7 +557,9 @@ test.describe('CMP composer', () => {
           readFileSync(path.join(CLIPBOARD, `${name}.txt`), 'utf8')
         )
         await page.keyboard.press('Control+V')
-        await expect.poll(() => composer.editorHtml()).not.toMatch(/^<p><br[^>]*><\/p>$/)
+        await expect
+          .poll(() => composer.editorHtml())
+          .not.toMatch(/^<p><br[^>]*><\/p>$/)
         const result = await composer.editorHtml()
         for (const fragment of expected) {
           if (typeof fragment === 'string') expect(result).toContain(fragment)
@@ -498,7 +592,11 @@ test.describe('CMP composer', () => {
     user,
     jmap
   }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'Focus anchor', text: 'hello' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Focus anchor',
+      text: 'hello'
+    })
     await jmap.waitForEmail({ subject: 'Focus anchor' })
     const mailbox = await new LoginPage(page).loginAs(user)
     const row = mailbox.emailRowLink('Focus anchor')

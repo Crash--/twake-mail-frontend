@@ -452,7 +452,11 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       { tag: '@mobile' },
       async ({ page, user, users, jmapFor }) => {
         const bob = await users.create({ prefix: 'bob' })
-        await jmapFor(bob).sendEmail({ to: user.email, subject: 'Plans', text: 'hello' })
+        await jmapFor(bob).sendEmail({
+          to: user.email,
+          subject: 'Plans',
+          text: 'hello'
+        })
         const mailbox = await new LoginPage(page).loginAs(user)
         const answer = await (await mailbox.openEmail('Plans')).reply()
         await expect(answer.editor).toBeFocused()

@@ -30,7 +30,11 @@ test.describe('EML reading an email', () => {
     user,
     jmap
   }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'short content', text: SENTENCE })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'short content',
+      text: SENTENCE
+    })
     await jmap.waitForEmail({ subject: 'short content' })
 
     const mailbox = await new LoginPage(page).loginAs(user)
@@ -63,7 +67,9 @@ test.describe('EML reading an email', () => {
     const email = await mailbox.openEmail('xss content')
 
     await expect(email.body()).toContainText('Harmless text')
-    expect(await email.body().innerHTML()).not.toMatch(/XSSRobot|<script|onerror/)
+    expect(await email.body().innerHTML()).not.toMatch(
+      /XSSRobot|<script|onerror/
+    )
     expect(dialogs).toEqual([])
   })
 
@@ -88,7 +94,10 @@ test.describe('EML reading an email', () => {
       const plain = await mailbox.openEmail('plain links')
 
       const docs = plain.bodyLink('https://docs.example.test/start')
-      await expect(docs).toHaveAttribute('href', 'https://docs.example.test/start')
+      await expect(docs).toHaveAttribute(
+        'href',
+        'https://docs.example.test/start'
+      )
       await expect(docs).toHaveAttribute('target', '_blank')
       await expect(docs).toHaveAttribute('rel', 'noopener noreferrer')
       await expect(plain.bodyLink('www.example.org')).toHaveAttribute(
@@ -130,9 +139,17 @@ test.describe('EML reading an email', () => {
       if (referrer !== undefined) referrers.push(referrer)
       await route.fulfill({ contentType: 'image/png', body: PNG })
     })
-    await jmap.sendEmail({ to: user.email, subject: 'first newsletter', html: newsletter('first') })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'first newsletter',
+      html: newsletter('first')
+    })
     await jmap.waitForEmail({ subject: 'first newsletter' })
-    await jmap.sendEmail({ to: user.email, subject: 'second newsletter', html: newsletter('second') })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'second newsletter',
+      html: newsletter('second')
+    })
     await jmap.waitForEmail({ subject: 'second newsletter' })
 
     const mailbox = await new LoginPage(page).loginAs(user)
@@ -154,7 +171,9 @@ test.describe('EML reading an email', () => {
         email
           .body()
           .getByAltText('tracking pixel')
-          .evaluate(image => (image instanceof HTMLImageElement ? image.naturalWidth : 0))
+          .evaluate(image =>
+            image instanceof HTMLImageElement ? image.naturalWidth : 0
+          )
       )
       .toBe(1)
     // The sender does not learn where the email is read
@@ -182,114 +201,161 @@ test.describe('EML reading an email', () => {
     const sent = await jmap.waitForEmail({ subject: 'to be read' })
 
     const mailbox = await new LoginPage(page).loginAs(user)
-    await expect(mailbox.emailRow('to be read')).toHaveAttribute('data-unread', 'true')
+    await expect(mailbox.emailRow('to be read')).toHaveAttribute(
+      'data-unread',
+      'true'
+    )
     await expect(mailbox.folderUnreadCount({ role: 'inbox' })).toHaveText('1')
 
     const email = await mailbox.openEmail('to be read')
     await expect(mailbox.folderUnreadCount({ role: 'inbox' })).toBeHidden()
     await email.back()
 
-    await expect(mailbox.emailRow('to be read')).not.toHaveAttribute('data-unread')
+    await expect(mailbox.emailRow('to be read')).not.toHaveAttribute(
+      'data-unread'
+    )
     await expect
       .poll(async () => (await jmap.getEmail(sent.id)).keywords)
       .toEqual(expect.objectContaining({ $seen: true }))
   })
 
-  test('EML-04 images keep within the reading pane, with their declared ratio', {
-    tag: '@mobile'
-  }, async ({ page, user, jmap }) => {
-    // tmail-flutter's 12 images, as data: images (remote ones wait for the user)
-    const oversize = 'width="2000" height="200"'
-    const normal = 'width="100" height="100"'
-    const images: [string, string][] = [
-      ['no-style', ''],
-      ['oversize-style-full-whitespaces', 'style="width: 2000px; height: 200px;"'],
-      ['oversize-style-whitespaces', 'style="width: 2000px;height: 200px;"'],
-      ['oversize-style-no-whitespaces', 'style="width:2000px;height:200px;"'],
-      ['oversize-attributes', oversize],
-      ['oversize-style-and-attributes-1', `style="width: 2000px; height: 200px;" ${oversize}`],
-      ['oversize-style-and-attributes-2', `style="width: 2000px;height: 200px;" ${oversize}`],
-      ['oversize-style-and-attributes-3', `style="width:2000px;height:200px;" ${oversize}`],
-      ['normal-attributes', normal],
-      ['normal-style-and-attributes-1', `style="width: 100px; height: 100px;" ${normal}`],
-      ['normal-style-and-attributes-2', `style="width: 100px;height: 100px;" ${normal}`],
-      ['normal-style-and-attributes-3', `style="width:100px;height:100px;" ${normal}`]
-    ]
-    await jmap.sendEmail({
-      to: user.email,
-      subject: 'Deformed inlined image',
-      html: images
-        .map(([alt, size]) => `<img src="${PNG_DATA}" ${size} alt="${alt}">`)
-        .join('<br>')
-    })
-    await jmap.waitForEmail({ subject: 'Deformed inlined image' })
-
-    const mailbox = await new LoginPage(page).loginAs(user)
-    const email = await mailbox.openEmail('Deformed inlined image')
-    const body = email.body()
-    await expect(body.locator('img')).toHaveCount(12)
-    await expect
-      .poll(() =>
-        body
-          .locator('img')
-          .evaluateAll(all => all.every(image => (image as HTMLImageElement).complete))
-      )
-      .toBe(true)
-
-    const content = await body
-      .locator('#tmail-content')
-      .evaluate(element => ({ scroll: element.scrollWidth, client: element.clientWidth }))
-    expect(content.scroll).toBeLessThanOrEqual(content.client)
-    const rendered = await body.locator('img').evaluateAll(all =>
-      all.map(image => {
-        const box = image.getBoundingClientRect()
-        return { alt: image.getAttribute('alt') ?? '', width: box.width, height: box.height }
+  test(
+    'EML-04 images keep within the reading pane, with their declared ratio',
+    {
+      tag: '@mobile'
+    },
+    async ({ page, user, jmap }) => {
+      // tmail-flutter's 12 images, as data: images (remote ones wait for the user)
+      const oversize = 'width="2000" height="200"'
+      const normal = 'width="100" height="100"'
+      const images: [string, string][] = [
+        ['no-style', ''],
+        [
+          'oversize-style-full-whitespaces',
+          'style="width: 2000px; height: 200px;"'
+        ],
+        ['oversize-style-whitespaces', 'style="width: 2000px;height: 200px;"'],
+        ['oversize-style-no-whitespaces', 'style="width:2000px;height:200px;"'],
+        ['oversize-attributes', oversize],
+        [
+          'oversize-style-and-attributes-1',
+          `style="width: 2000px; height: 200px;" ${oversize}`
+        ],
+        [
+          'oversize-style-and-attributes-2',
+          `style="width: 2000px;height: 200px;" ${oversize}`
+        ],
+        [
+          'oversize-style-and-attributes-3',
+          `style="width:2000px;height:200px;" ${oversize}`
+        ],
+        ['normal-attributes', normal],
+        [
+          'normal-style-and-attributes-1',
+          `style="width: 100px; height: 100px;" ${normal}`
+        ],
+        [
+          'normal-style-and-attributes-2',
+          `style="width: 100px;height: 100px;" ${normal}`
+        ],
+        [
+          'normal-style-and-attributes-3',
+          `style="width:100px;height:100px;" ${normal}`
+        ]
+      ]
+      await jmap.sendEmail({
+        to: user.email,
+        subject: 'Deformed inlined image',
+        html: images
+          .map(([alt, size]) => `<img src="${PNG_DATA}" ${size} alt="${alt}">`)
+          .join('<br>')
       })
-    )
-    for (const { alt, width, height } of rendered) {
-      if (alt.startsWith('oversize')) {
-        expect(width, alt).toBeLessThanOrEqual(content.client)
-        expect(width / height, alt).toBeCloseTo(10, 1)
-      } else if (alt.startsWith('normal')) {
-        expect([width, height], alt).toEqual([100, 100])
-      } else {
-        expect([width, height], alt).toEqual([1, 1])
+      await jmap.waitForEmail({ subject: 'Deformed inlined image' })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await mailbox.openEmail('Deformed inlined image')
+      const body = email.body()
+      await expect(body.locator('img')).toHaveCount(12)
+      await expect
+        .poll(() =>
+          body
+            .locator('img')
+            .evaluateAll(all =>
+              all.every(image => (image as HTMLImageElement).complete)
+            )
+        )
+        .toBe(true)
+
+      const content = await body
+        .locator('#tmail-content')
+        .evaluate(element => ({
+          scroll: element.scrollWidth,
+          client: element.clientWidth
+        }))
+      expect(content.scroll).toBeLessThanOrEqual(content.client)
+      const rendered = await body.locator('img').evaluateAll(all =>
+        all.map(image => {
+          const box = image.getBoundingClientRect()
+          return {
+            alt: image.getAttribute('alt') ?? '',
+            width: box.width,
+            height: box.height
+          }
+        })
+      )
+      for (const { alt, width, height } of rendered) {
+        if (alt.startsWith('oversize')) {
+          expect(width, alt).toBeLessThanOrEqual(content.client)
+          expect(width / height, alt).toBeCloseTo(10, 1)
+        } else if (alt.startsWith('normal')) {
+          expect([width, height], alt).toEqual([100, 100])
+        } else {
+          expect([width, height], alt).toEqual([1, 1])
+        }
       }
+      await expectNoA11yViolations(page)
     }
-    await expectNoA11yViolations(page)
-  })
+  )
 
-  test('EML-36 the quoted history of an answer is folded behind a button', {
-    tag: '@mobile'
-  }, async ({ page, user, jmap }) => {
-    await jmap.sendEmail({
-      to: user.email,
-      subject: 'Folded history',
-      html: '<p>My answer</p><blockquote><p>The original message</p></blockquote>'
-    })
-    await jmap.waitForEmail({ subject: 'Folded history' })
+  test(
+    'EML-36 the quoted history of an answer is folded behind a button',
+    {
+      tag: '@mobile'
+    },
+    async ({ page, user, jmap }) => {
+      await jmap.sendEmail({
+        to: user.email,
+        subject: 'Folded history',
+        html: '<p>My answer</p><blockquote><p>The original message</p></blockquote>'
+      })
+      await jmap.waitForEmail({ subject: 'Folded history' })
 
-    const mailbox = await new LoginPage(page).loginAs(user)
-    const email = await mailbox.openEmail('Folded history')
-    const body = email.body()
-    const toggle = body.getByRole('group').locator('summary')
-    const quote = body.getByText('The original message')
-    await expect(body).toContainText('My answer')
-    await expect(toggle).toHaveAccessibleName('Show trimmed content')
-    await expect(quote).toBeHidden()
-    await expectNoA11yViolations(page)
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await mailbox.openEmail('Folded history')
+      const body = email.body()
+      const toggle = body.getByRole('group').locator('summary')
+      const quote = body.getByText('The original message')
+      await expect(body).toContainText('My answer')
+      await expect(toggle).toHaveAccessibleName('Show trimmed content')
+      await expect(quote).toBeHidden()
+      await expectNoA11yViolations(page)
 
-    const frame = page.getByTestId('email-view').getByTestId('email-view-body')
-    const folded = (await frame.boundingBox())?.height ?? 0
-    // With the keyboard: Enter unfolds it, the frame grows; Space folds it again
-    await toggle.focus()
-    await page.keyboard.press('Enter')
-    await expect(quote).toBeVisible()
-    await expect(body.locator('details')).toHaveAttribute('open', '')
-    await expect.poll(async () => (await frame.boundingBox())?.height ?? 0).toBeGreaterThan(folded)
-    await page.keyboard.press('Space')
-    await expect(quote).toBeHidden()
-  })
+      const frame = page
+        .getByTestId('email-view')
+        .getByTestId('email-view-body')
+      const folded = (await frame.boundingBox())?.height ?? 0
+      // With the keyboard: Enter unfolds it, the frame grows; Space folds it again
+      await toggle.focus()
+      await page.keyboard.press('Enter')
+      await expect(quote).toBeVisible()
+      await expect(body.locator('details')).toHaveAttribute('open', '')
+      await expect
+        .poll(async () => (await frame.boundingBox())?.height ?? 0)
+        .toBeGreaterThan(folded)
+      await page.keyboard.press('Space')
+      await expect(quote).toBeHidden()
+    }
+  )
 })
 
 test.describe('EML reading an email of a team mailbox', () => {
@@ -348,4 +414,3 @@ test.describe('EML reading an email of a team mailbox', () => {
     }
   )
 })
-

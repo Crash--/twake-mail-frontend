@@ -153,7 +153,10 @@ test.describe('FBAR folder action bar', () => {
     await jmap.setKeywords(email.id, { $flagged: true, [label.keyword]: true })
     const mailbox = await new LoginPage(page).loginAs(user)
 
-    await mailbox.folder({ role: 'favorite' }).getByRole('link').click()
+    await page
+      .locator('[data-mailbox-role="favorite"]')
+      .getByRole('link')
+      .click()
     await expect(mailbox.emailRow('Marked').first()).toBeVisible()
     await page.getByTestId('list-filter-button').click()
     await expect(page.getByTestId('quick-filter-unread')).toBeVisible()

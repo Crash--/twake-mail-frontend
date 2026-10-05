@@ -192,9 +192,7 @@ test.describe('EML composer kept while navigating', () => {
 
     // The dock covers the middle of the row: the link is clicked at its start
     const openSlide = async (subject: string): Promise<EmailPage> => {
-      await mailbox
-        .emailRowLink(subject)
-        .click({ position: { x: 5, y: 5 } })
+      await mailbox.emailRowLink(subject).click({ position: { x: 5, y: 5 } })
       const email = new EmailPage(page)
       await email.expectSubject(subject)
       return email

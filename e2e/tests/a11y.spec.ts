@@ -11,7 +11,12 @@ async function tabTo(
   max = 40
 ): Promise<void> {
   for (let presses = 0; presses < max; presses += 1) {
-    if (await page.evaluate(sel => document.activeElement?.matches(sel) ?? false, selector)) {
+    if (
+      await page.evaluate(
+        sel => document.activeElement?.matches(sel) ?? false,
+        selector
+      )
+    ) {
       return
     }
     await page.keyboard.press(key)
@@ -22,7 +27,8 @@ async function tabTo(
 /** True when the focused element is inside the element matching `selector` */
 async function isFocusIn(page: Page, selector: string): Promise<boolean> {
   return page.evaluate(
-    sel => document.querySelector(sel)?.contains(document.activeElement) ?? false,
+    sel =>
+      document.querySelector(sel)?.contains(document.activeElement) ?? false,
     selector
   )
 }
@@ -43,7 +49,9 @@ async function openFolderWithKeyboard(
     await tabTo(page, '[data-testid="mobile-mailbox-menu-button"]')
     await page.keyboard.press('Enter')
     await expect(mailbox.folderDrawer).toBeVisible()
-    await expect.poll(() => isFocusIn(page, '[data-testid="mailbox-drawer"]')).toBe(true)
+    await expect
+      .poll(() => isFocusIn(page, '[data-testid="mailbox-drawer"]'))
+      .toBe(true)
   }
   await tabTo(page, `[data-mailbox-role="${role}"] a`)
   if (hasDrawer) {
@@ -66,9 +74,17 @@ test.describe('A11Y accessibility', () => {
     jmap
   }) => {
     // Sent to oneself: in the Inbox and, as the sent copy, in Sent
-    await jmap.sendEmail({ to: user.email, subject: 'first sent', text: 'hello' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'first sent',
+      text: 'hello'
+    })
     await jmap.waitForEmail({ subject: 'first sent' })
-    await jmap.sendEmail({ to: user.email, subject: 'keyboard email', text: 'Read me' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'keyboard email',
+      text: 'Read me'
+    })
     await jmap.waitForEmail({ subject: 'keyboard email' })
 
     const login = await new LoginPage(page).goto()
@@ -85,12 +101,18 @@ test.describe('A11Y accessibility', () => {
     // phones and tablets)
     const mailbox = new MailboxPage(page)
     await openFolderWithKeyboard(page, mailbox, 'sent')
-    await expect(page.getByTestId('email-list-item').filter({ hasText: 'first sent' })).toBeVisible()
+    await expect(
+      page.getByTestId('email-list-item').filter({ hasText: 'first sent' })
+    ).toBeVisible()
     await openFolderWithKeyboard(page, mailbox, 'inbox')
 
     // The rows are links: Tab reaches the list, the arrows move between rows
-    const newest = page.getByTestId('email-list-item').filter({ hasText: 'keyboard email' })
-    const row = page.getByTestId('email-list-item').filter({ hasText: 'first sent' })
+    const newest = page
+      .getByTestId('email-list-item')
+      .filter({ hasText: 'keyboard email' })
+    const row = page
+      .getByTestId('email-list-item')
+      .filter({ hasText: 'first sent' })
     await expect(newest).toBeVisible()
     await tabTo(page, '[data-testid="email-list-item"] [data-row-focus]')
     await expect(newest.locator('[data-row-focus]')).toBeFocused()
@@ -100,7 +122,9 @@ test.describe('A11Y accessibility', () => {
 
     // The email replaces the list: the focus moves to its subject
     const view = page.getByTestId('email-view')
-    await expect(view.getByTestId('email-view-subject')).toHaveText('first sent')
+    await expect(view.getByTestId('email-view-subject')).toHaveText(
+      'first sent'
+    )
     await expect(view.getByTestId('email-view-subject')).toBeFocused()
     await expect(
       view.getByTestId('email-view-body').contentFrame().locator('body')

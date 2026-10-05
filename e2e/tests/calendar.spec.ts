@@ -20,7 +20,7 @@ const REQUEST_EML = 'calendar/calendar_request.eml'
 const CANCEL_EML = 'calendar/calendar_cancel.eml'
 
 const NO_CALDAV =
-  "memory image: answering an invitation needs esn-sabre (CalDAV), CalendarEvent/accept answers serverFail \"Failed to resolve 'esn_sabre'\""
+  'memory image: answering an invitation needs esn-sabre (CalDAV), CalendarEvent/accept answers serverFail "Failed to resolve \'esn_sabre\'"'
 
 test.describe('CAL calendar events', () => {
   test.describe('reading one email at a time', () => {
@@ -35,15 +35,22 @@ test.describe('CAL calendar events', () => {
         replace: { 'bob@example.com': user.email }
       })
       await expect
-        .poll(async () => (await jmap.queryEmails({ text: 'Proposed new time' })).length)
+        .poll(
+          async () =>
+            (await jmap.queryEmails({ text: 'Proposed new time' })).length
+        )
         .toBe(1)
 
       await new LoginPage(page).loginAs(user)
       const search = await new SearchPage(page).search('Proposed new time')
       await search.openResult('Proposed new time')
 
-      const card = await new CalendarEventCard(page).expectVisible('Come for a chat')
-      await expect(card.banner).toContainText('has proposed changes to the event')
+      const card = await new CalendarEventCard(page).expectVisible(
+        'Come for a chat'
+      )
+      await expect(card.banner).toContainText(
+        'has proposed changes to the event'
+      )
       await expect(card.answerButton('yes')).toBeVisible()
       await expect(card.mailToAttendeesButton).toBeVisible()
       await expect(card.answerButton('no')).toBeHidden()
@@ -62,61 +69,76 @@ test.describe('CAL calendar events', () => {
 
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.openEmail('Proposed new time')
-      const card = await new CalendarEventCard(page).expectVisible('Come for a chat')
+      const card = await new CalendarEventCard(page).expectVisible(
+        'Come for a chat'
+      )
       const composer = await card.mailToAttendees()
 
       await expect(composer.subjectInput).toHaveValue('Re: Come for a chat')
-      await expect(composer.recipients('to')).toHaveText(['tddang@linagora.com'])
-    })
-
-    test('CAL-03 an invitation shows when, how it repeats, where, the video conference, who answered what and the description', { tag: '@mobile' }, async ({
-      page,
-      user,
-      jmap
-    }) => {
-      await jmap.importEml(REQUEST_EML, 'inbox', {
-        replace: { 'bob@example.com': user.email }
-      })
-
-      const mailbox = await new LoginPage(page).loginAs(user)
-      await mailbox.openEmail('Invitation: Weekly sync')
-      const card = await new CalendarEventCard(page).expectVisible('Weekly sync')
-
-      await expect(card.banner).toHaveText(
-        'Olivia Organizer has invited you to a meeting'
-      )
-      // Europe/Paris, the time zone of the browser (playwright.config.ts)
-      await expect(card.when).toContainText(/Monday, October 12, 2026 · 10:00\s–\s11:00\sAM/)
-      await expect(card.recurrence).toContainText('Every 2 weeks, on Monday, 5 times')
-      await expect(card.where).toContainText('Room 42, Building B')
-      await expect(card.videoLink).toHaveAttribute(
-        'href',
-        'https://meet.example.com/weekly-sync'
-      )
-      // Shown and copied, not joined (tmail-flutter #4622)
-      await expect(card.videoLink).toHaveText('https://meet.example.com/weekly-sync')
-      await expect(card.copyLinkButton).toBeVisible()
-      // Everyone, the organizer first: the list folds past six people
-      await expect(card.people).toHaveText([
-        'Olivia Organizer <olivia@example.com> - Organizer',
-        `Bob <${user.email}> · awaiting reply`,
-        'Alice <alice@example.com> · accepted',
-        'Carol <carol@example.com> · declined',
-        'Dave <dave@example.com> · maybe'
+      await expect(composer.recipients('to')).toHaveText([
+        'tddang@linagora.com'
       ])
-      await expect(card.seeAllAttendeesButton).toBeHidden()
-      // After the card, read as text: the markup of the file is not rendered
-      await expect(card.description).toContainText('Agenda: roadmap')
-      await expect(card.description.locator('b')).toHaveCount(0)
-      for (const answer of ['yes', 'maybe', 'no'] as const) {
-        await expect(card.answerButton(answer)).toHaveAttribute('aria-pressed', 'false')
-      }
-      await expect(card.openInCalendarLink).toHaveAttribute(
-        'href',
-        'https://calendar.example.com/events/twake-e2e-weekly-sync'
-      )
-      await expectNoA11yViolations(page)
     })
+
+    test(
+      'CAL-03 an invitation shows when, how it repeats, where, the video conference, who answered what and the description',
+      { tag: '@mobile' },
+      async ({ page, user, jmap }) => {
+        await jmap.importEml(REQUEST_EML, 'inbox', {
+          replace: { 'bob@example.com': user.email }
+        })
+
+        const mailbox = await new LoginPage(page).loginAs(user)
+        await mailbox.openEmail('Invitation: Weekly sync')
+        const card = await new CalendarEventCard(page).expectVisible(
+          'Weekly sync'
+        )
+
+        await expect(card.banner).toHaveText(
+          'Olivia Organizer has invited you to a meeting'
+        )
+        // Europe/Paris, the time zone of the browser (playwright.config.ts)
+        await expect(card.when).toContainText(
+          /Monday, October 12, 2026 · 10:00\s–\s11:00\sAM/
+        )
+        await expect(card.recurrence).toContainText(
+          'Every 2 weeks, on Monday, 5 times'
+        )
+        await expect(card.where).toContainText('Room 42, Building B')
+        await expect(card.videoLink).toHaveAttribute(
+          'href',
+          'https://meet.example.com/weekly-sync'
+        )
+        // Shown and copied, not joined (tmail-flutter #4622)
+        await expect(card.videoLink).toHaveText(
+          'https://meet.example.com/weekly-sync'
+        )
+        await expect(card.copyLinkButton).toBeVisible()
+        // Everyone, the organizer first: the list folds past six people
+        await expect(card.people).toHaveText([
+          'Olivia Organizer <olivia@example.com> - Organizer',
+          `Bob <${user.email}> · awaiting reply`,
+          'Alice <alice@example.com> · accepted',
+          'Carol <carol@example.com> · declined',
+          'Dave <dave@example.com> · maybe'
+        ])
+        await expect(card.seeAllAttendeesButton).toBeHidden()
+        // After the card, read as text: the markup of the file is not rendered
+        await expect(card.description).toContainText('Agenda: roadmap')
+        await expect(card.description.locator('b')).toHaveCount(0)
+        for (const answer of ['yes', 'maybe', 'no'] as const) {
+          await expect(card.answerButton(answer)).toHaveAttribute(
+            'aria-pressed',
+            'false'
+          )
+        }
+        await expect(card.openInCalendarLink).toHaveAttribute(
+          'href',
+          'https://calendar.example.com/events/twake-e2e-weekly-sync'
+        )
+        await expectNoA11yViolations(page)
+      }
+    )
 
     test('CAL-04 a cancellation says so and offers no answer', async ({
       page,
@@ -129,9 +151,13 @@ test.describe('CAL calendar events', () => {
 
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.openEmail('Canceled: Weekly sync')
-      const card = await new CalendarEventCard(page).expectVisible('Weekly sync')
+      const card = await new CalendarEventCard(page).expectVisible(
+        'Weekly sync'
+      )
 
-      await expect(card.banner).toHaveText('Olivia Organizer has canceled a meeting')
+      await expect(card.banner).toHaveText(
+        'Olivia Organizer has canceled a meeting'
+      )
       await expect(card.replies).toBeHidden()
       await expect(card.mailToAttendeesButton).toBeVisible()
       await expectNoA11yViolations(page)
@@ -146,9 +172,13 @@ test.describe('CAL calendar events', () => {
 
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.openEmail('Invitation: Weekly sync')
-      const card = await new CalendarEventCard(page).expectVisible('Weekly sync')
+      const card = await new CalendarEventCard(page).expectVisible(
+        'Weekly sync'
+      )
 
-      await expect(card.notInvited).toContainText('You are not invited to this event.')
+      await expect(card.notInvited).toContainText(
+        'You are not invited to this event.'
+      )
       await expect(card.replies).toBeHidden()
       await expect(card.openInCalendarLink).toBeHidden()
     })
@@ -165,13 +195,23 @@ test.describe('CAL calendar events', () => {
 
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.openEmail('Invitation: Weekly sync')
-      const card = await new CalendarEventCard(page).expectVisible('Weekly sync')
+      const card = await new CalendarEventCard(page).expectVisible(
+        'Weekly sync'
+      )
       await card.answer('maybe')
 
-      await expect(page.getByTestId('toast')).toHaveText(/You may attend this meeting/)
-      await expect(card.answerButton('maybe')).toHaveAttribute('aria-pressed', 'true')
+      await expect(page.getByTestId('toast')).toHaveText(
+        /You may attend this meeting/
+      )
+      await expect(card.answerButton('maybe')).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
       await page.reload()
-      await expect(card.answerButton('maybe')).toHaveAttribute('aria-pressed', 'true')
+      await expect(card.answerButton('maybe')).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
     })
 
     test('CAL-07 Yes on a counter proposal accepts the proposed time', async ({
@@ -186,7 +226,9 @@ test.describe('CAL calendar events', () => {
 
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.openEmail('Proposed new time')
-      const card = await new CalendarEventCard(page).expectVisible('Come for a chat')
+      const card = await new CalendarEventCard(page).expectVisible(
+        'Come for a chat'
+      )
       await card.answer('yes')
 
       await expect(page.getByTestId('toast')).toHaveText(

@@ -183,7 +183,7 @@ test.describe('SET preferences', () => {
     ).toBeVisible()
   })
 
-  test('SET-10 unread spam shows a banner in the other folders, opened or dismissed from it, and turned off in Preferences', async ({
+  test('SET-14 unread spam shows a banner in the other folders, opened or dismissed from it, and turned off in Preferences', async ({
     page,
     user,
     jmap

@@ -125,7 +125,9 @@ export function useReadReceiptRequest(email: EmailDetail): void {
       title: t('email.readReceipt.title'),
       message: t('email.readReceipt.message'),
       confirmLabel: t('common.yes'),
-      cancelLabel: t('common.no')
+      cancelLabel: t('common.no'),
+      // The messages of a conversation each ask in turn
+      queue: true
     })
       .then(isConfirmed => (isConfirmed ? send() : undefined))
       .catch((error: unknown) => {

@@ -1,5 +1,7 @@
-# End to end tests: builds the app, starts the e2e backend (tmail-backend + nginx, compose
-# project `twakemail-e2e`), runs Playwright and publishes the report.
+# End to end tests: builds the Docker image of the app, starts the e2e backend (tmail-backend +
+# nginx, compose project `twakemail-e2e`) with the image behind its nginx, runs Playwright
+# and publishes the report. The suite thus runs against the production image: its nginx,
+# cache policy and security headers (a Content-Security-Policy violation fails the test).
 #
 name: E2E
 
@@ -36,20 +38,24 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            e2e/package-lock.json
+          cache-dependency-path: e2e/package-lock.json
 
       # ------------------------------------------------------------------ app
-      - name: Install app dependencies
-        run: npm ci
+      - uses: docker/setup-buildx-action@v4
 
-      - name: Build the app
-        run: npm run build
-
-      # The bundle is served by the stack's nginx on http://127.0.0.1:18302, which proxies
+      # The image is proxied by the stack's nginx on http://127.0.0.1:18302, which also proxies
       # /jmap (and /dex) on the same origin. Its runtime configuration (/.env.js: basic auth,
       # JMAP on the app origin) is e2e/docker/app-env.js, served by that nginx.
+      - name: Build the app image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/private/Dockerfile
+          build-args: BUILD_VERSION=e2e-${{ github.sha }}
+          tags: twake-mail-frontend:e2e
+          load: true
+          cache-from: type=gha,scope=twake-mail-frontend
+          cache-to: type=gha,mode=max,scope=twake-mail-frontend
 
       # -------------------------------------------------------------- backend
       - name: Pull backend images
@@ -58,7 +64,7 @@ jobs:
       - name: Start the e2e stack
         run: ./e2e/scripts/start.sh
         env:
-          E2E_APP_DIR: ${{ github.workspace }}/apps/private/dist
+          E2E_APP_IMAGE: twake-mail-frontend:e2e
 
       # ------------------------------------------------------------ playwright
       - name: Install e2e dependencies
@@ -86,7 +92,7 @@ jobs:
       # --------------------------------------------------------------- report
       - name: Backend logs
         if: failure()
-        run: docker compose -p twakemail-e2e -f e2e/docker/docker-compose.yaml --profile oidc logs --no-color > e2e/test-results/backend.log 2>&1 || true
+        run: docker compose -p twakemail-e2e -f e2e/docker/docker-compose.yaml -f e2e/docker/docker-compose.image.yaml --profile oidc logs --no-color > e2e/test-results/backend.log 2>&1 || true
 
       - name: Publish the HTML report
         if: ${{ !cancelled() }}

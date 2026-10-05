@@ -435,10 +435,10 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       .waitFor()
     await expect(restored.root).toContainText('kept@example.com')
 
+    // Never saved on the server: closing asks, nothing typed is lost silently
     await restored.close()
-    const dialog = page.getByTestId('confirm-dialog')
-    if (await dialog.isVisible())
-      await page.getByTestId('confirm-dialog-alternative-button').click()
+    await expect(page.getByTestId('confirm-dialog')).toBeVisible()
+    await page.getByTestId('confirm-dialog-alternative-button').click()
     await expect(restored.root).toBeHidden()
     await expect.poll(async () => keptComposers(page)).toEqual([])
   })

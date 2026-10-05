@@ -716,3 +716,5 @@ Web app only, no Patrol test: the policy is in `docs/composer-drafts.md`.
   - Spec: `tests/composer-drafts.spec.ts`.
 - [x] `CMP-69` A composer shown by a tab is not reopened by a second tab of the browser.
   - Spec: `tests/composer-drafts.spec.ts`.
+- [x] `CMP-70` Signing out saves, once, the draft of a composer that has changes the server does not have, then forgets the composers kept in the browser.
+  - Spec: `tests/composer-drafts.spec.ts`.

@@ -341,6 +341,11 @@ export class MailboxPage {
     return this.emailRow(subject).getByTestId('email-list-item-thread-count')
   }
 
+  /** The "important" mark of a row (set by its sender) */
+  emailRowImportantIcon(subject: string): Locator {
+    return this.emailRow(subject).getByTestId('important-flag-icon')
+  }
+
   async compose(): Promise<ComposerPage> {
     await this.composeButton.click()
     const composer = new ComposerPage(this.page)

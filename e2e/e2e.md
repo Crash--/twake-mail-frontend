@@ -57,8 +57,9 @@ the React app. One line per Patrol test, 116 lines.
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 2 | 0 | 0 |
 | `DRIVE` | Twake Drive picker | 3 | 0 | 0 |
+| `AI` | AI assistant of the composer | 2 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **160** | **24** | **6** |
+| | **Total** | **162** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -452,6 +453,15 @@ when the workflow is started with `oidc`). They sign in as Dex's static alice.
 - [ ] `DRIVE-01` "Attach from Drive" opens the picker in a dialog named "Twake Drive" (full screen on phones; axe); "Add as link" closes it and inserts a Drive card (`a.tmail-file-link-card`) at the caret, the focus back in the message. — web app only (tmail-flutter `workplace/`)
 - [ ] `DRIVE-02` "Add as attachment" downloads the file and attaches it (`report.txt`, uploaded). — web app only
 - [ ] `DRIVE-03` Cancel in the picker closes it, the message unchanged. — web app only
+
+## AI — AI assistant of the composer (2)
+
+tmail-backend advertises no assistant (`com:linagora:params:jmap:aibot`) on the memory image nor
+on the Twake Workplace of the devbox: `tests/scribe.spec.ts` adds it to the JMAP session with
+`page.route` and answers its endpoint itself (doubles: no text leaves the machine).
+
+- [ ] `AI-01` With the capability, the assistant of the composer translates what the user wrote ("French"): the request carries tmail-flutter's prompt and the text, the answer shows in a dialog (axe) and "Insert" puts it in the message. — web app only (tmail-flutter `scribe/`)
+- [ ] `AI-02` Without the capability, the composer has no assistant. — web app only
 
 ## MISC — Misc (1)
 

@@ -1,8 +1,8 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { EmailFilterCondition, Filter, JmapClient } from 'jmap-client-ts'
+import type { TMailContact } from 'jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
-import type { TMailContact } from '@common/jmap/linagoraMethods'
 import {
   fetchListPage,
   type EmailListPage,

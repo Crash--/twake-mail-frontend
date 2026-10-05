@@ -5,8 +5,8 @@ import {
   type FetchFunction,
   type JmapClient
 } from 'jmap-client-ts'
+import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
 
-import { LINAGORA_METHOD_CAPABILITIES } from '@common/jmap/linagoraMethods'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_SESSION_URL,

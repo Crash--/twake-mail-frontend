@@ -1,9 +1,9 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import { EmailList } from '@common/features/thread/EmailList'
-import { MAILBOX_CLEAR_CAPABILITY } from '@common/jmap/linagoraMethods'
 import {
   makeDefaultMailboxes,
   makeEmail,
@@ -21,7 +21,9 @@ function makeServer(
   const mailboxId = role === 'trash' ? 'mailbox-trash' : 'mailbox-spam'
   return makeFakeJmapServer({
     capabilities:
-      options.clear === true ? { [MAILBOX_CLEAR_CAPABILITY]: {} } : {},
+      options.clear === true
+        ? { [LINAGORA_CAPABILITIES.mailboxClear]: {} }
+        : {},
     mailboxes: [
       ...makeDefaultMailboxes().map(mailbox =>
         mailbox.id === mailboxId ? { ...mailbox, totalEmails: 2 } : mailbox
@@ -98,7 +100,7 @@ describe('EmptyFolderBanner', () => {
     expect(clear?.using).toEqual(
       expect.arrayContaining([
         'urn:ietf:params:jmap:mail',
-        MAILBOX_CLEAR_CAPABILITY
+        LINAGORA_CAPABILITIES.mailboxClear
       ])
     )
     expect(await screen.findByTestId('toast')).toHaveTextContent(

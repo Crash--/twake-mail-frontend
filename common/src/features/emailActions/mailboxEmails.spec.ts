@@ -1,6 +1,5 @@
 import { createClient, type JmapClient } from 'jmap-client-ts'
-
-import { LINAGORA_METHOD_CAPABILITIES } from '@common/jmap/linagoraMethods'
+import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import {
   FAKE_ACCOUNT_ID,

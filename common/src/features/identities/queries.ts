@@ -1,18 +1,12 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { Identity, JmapClient, PickProperties } from 'jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 
 /** James extension giving identities a `sortOrder` (tmail-flutter sorts by it) */
 export const IDENTITY_SORT_ORDER_CAPABILITY =
-  'urn:apache:james:params:jmap:mail:identity:sortorder'
-
-declare module 'jmap-client-ts' {
-  interface Identity {
-    /** With `IDENTITY_SORT_ORDER_CAPABILITY` only: the lowest comes first */
-    sortOrder?: number
-  }
-}
+  LINAGORA_CAPABILITIES.jamesIdentitySortOrder
 
 /** The identity properties the app reads */
 export const IDENTITY_PROPERTIES = [

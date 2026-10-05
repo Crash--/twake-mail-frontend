@@ -1,5 +1,6 @@
 import { InfiniteQueryObserver, QueryClient } from '@tanstack/react-query'
 import { createClient, type JmapClient } from 'jmap-client-ts'
+import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import {
   mailboxesQueryOptions,
@@ -25,8 +26,6 @@ import {
   type FakeEmail,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
-
-import { LINAGORA_METHOD_CAPABILITIES } from '@common/jmap/linagoraMethods'
 
 import { MAX_CHANGES_ROUNDS } from './fetchChanges'
 import { createPushSync, type PushSync } from './pushSync'

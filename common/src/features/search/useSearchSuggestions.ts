@@ -1,5 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
+import {
+  LINAGORA_CAPABILITIES,
+  type TMailContact
+} from 'jmap-client-ts/linagora'
 
 import type {
   EmailListItemData,
@@ -7,10 +11,6 @@ import type {
 } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
-import {
-  CONTACT_AUTOCOMPLETE_CAPABILITY,
-  type TMailContact
-} from '@common/jmap/linagoraMethods'
 
 import {
   contactSuggestionsQueryOptions,
@@ -80,7 +80,7 @@ export function useSearchSuggestions(
   const { accountId, session } = useJmapSession()
   const text = useDebouncedValue(typed.trim(), SUGGESTION_DELAY_MS)
   const minContactLength = readMinInputLength(
-    session.capabilities[CONTACT_AUTOCOMPLETE_CAPABILITY]
+    session.capabilities[LINAGORA_CAPABILITIES.contactAutocomplete]
   )
   const request = useMemo(
     () =>

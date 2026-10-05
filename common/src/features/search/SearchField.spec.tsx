@@ -2,9 +2,9 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { useLocation } from 'react-router'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
-import { CONTACT_AUTOCOMPLETE_CAPABILITY } from '@common/jmap/linagoraMethods'
 import {
   FAKE_USERNAME,
   makeEmail,
@@ -52,7 +52,7 @@ function makeServer(withContacts = false): FakeJmapServer {
       makeEmail({ id: 'lunch', subject: 'Lunch report' })
     ],
     capabilities: withContacts
-      ? { [CONTACT_AUTOCOMPLETE_CAPABILITY]: { minInputLength: 2 } }
+      ? { [LINAGORA_CAPABILITIES.contactAutocomplete]: { minInputLength: 2 } }
       : {},
     contacts: [
       {

@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { CAPABILITIES, type JmapClient, type Session } from 'jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 
@@ -8,7 +9,7 @@ import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
  * `namespace`: tmail-flutter sends it in every request when the session
  * has it
  */
-export const SHARES_CAPABILITY = 'urn:apache:james:params:jmap:mail:shares'
+export const SHARES_CAPABILITY = LINAGORA_CAPABILITIES.jamesShares
 
 /** What the mail screens need from the JMAP session */
 export interface JmapSessionInfo {

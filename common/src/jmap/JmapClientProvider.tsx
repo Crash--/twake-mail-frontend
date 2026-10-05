@@ -6,13 +6,13 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
+import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import {
   useAuthService,
   useAuthState
 } from '@common/features/auth/AuthProvider'
 
-import { LINAGORA_METHOD_CAPABILITIES } from './linagoraMethods'
 import { makeJmapAuth } from './makeJmapAuth'
 
 /** `createClient` of jmap-client-ts, or a wrapper of it in tests */

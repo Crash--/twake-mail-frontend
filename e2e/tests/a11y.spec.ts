@@ -53,6 +53,10 @@ async function openFolderWithKeyboard(
       .poll(() => isFocusIn(page, '[data-testid="mailbox-drawer"]'))
       .toBe(true)
   }
+  // The tree loads after the page: Tab presses must not run out before it
+  await expect(
+    page.locator(`[data-mailbox-role="${role}"] a`)
+  ).toBeAttached()
   await tabTo(page, `[data-mailbox-role="${role}"] a`)
   if (hasDrawer) {
     expect(await isFocusIn(page, '[data-testid="mailbox-drawer"]')).toBe(true)

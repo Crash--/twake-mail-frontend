@@ -271,6 +271,10 @@
       "uploaded": "%{name} attached",
       "uploadFailed": "%{name} could not be attached",
       "removed": "%{name} removed"
+    },
+    "prefix": {
+      "reply": "Re:",
+      "forward": "Fwd:"
     }
   },
   "layout": {
@@ -387,7 +391,14 @@
       "unstar": "Unstar",
       "label": "Message actions"
     },
-    "drag": "Move %{smart_count} message |||| Move %{smart_count} messages"
+    "drag": "Move %{smart_count} message |||| Move %{smart_count} messages",
+    "reply": {
+      "reply": "Reply",
+      "replyAll": "Reply all",
+      "replyToList": "Reply to list",
+      "forward": "Forward",
+      "label": "Reply actions"
+    }
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",

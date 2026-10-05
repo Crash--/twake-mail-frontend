@@ -28,6 +28,11 @@ export interface HtmlBlockOptions {
   editLabel: (kind: string) => string | null
   /** `data-testid` of that button */
   editTestId: (kind: string) => string | undefined
+  /**
+   * The editable HTML of a block the user unwraps (image URLs to display,
+   * content to block…), sanitized; the block's own HTML by default
+   */
+  editableHtml: (kind: string, html: string) => string
 }
 
 declare module '@tiptap/core' {
@@ -75,7 +80,8 @@ export const HtmlBlock = Node.create<HtmlBlockOptions>({
       buildFrameDocument: (html: string) => html,
       frameTitle: (kind: string) => kind,
       editLabel: () => null,
-      editTestId: () => undefined
+      editTestId: () => undefined,
+      editableHtml: (_kind: string, html: string) => html
     }
   },
 
@@ -165,7 +171,10 @@ export const HtmlBlock = Node.create<HtmlBlockOptions>({
           if (node?.type.name !== this.name) return false
           return commands.insertContentAt(
             { from: position, to: position + node.nodeSize },
-            String(node.attrs.html)
+            this.options.editableHtml(
+              String(node.attrs.kind),
+              String(node.attrs.html)
+            )
           )
         }
     }

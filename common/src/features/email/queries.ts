@@ -18,10 +18,20 @@ export const EMAIL_VIEW_PROPERTIES = [
   'htmlBody',
   'bodyValues',
   'attachments',
-  'hasAttachment'
+  'hasAttachment',
+  'replyTo'
 ] as const
 
-export type EmailDetail = Pick<Email, (typeof EMAIL_VIEW_PROPERTIES)[number]>
+/** The posting address of a mailing list (RFC 2369), for "Reply to list" */
+export const LIST_POST_HEADER = 'header:List-Post:asURLs'
+
+export type EmailDetail = Pick<
+  Email,
+  Exclude<(typeof EMAIL_VIEW_PROPERTIES)[number], 'replyTo'>
+> &
+  Partial<Pick<Email, 'replyTo'>> & {
+    [LIST_POST_HEADER]?: string[] | null
+  }
 
 export type EmailDetailKey = readonly ['email', string, 'detail', string]
 
@@ -45,18 +55,20 @@ export function emailQueryOptions(
 ): QueryOptionsFor<EmailDetail | null, EmailDetailKey> {
   return queryOptions({
     queryKey: emailKeys.detail(accountId, emailId),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal }): Promise<EmailDetail | null> => {
       const response = await client.call(
         'Email/get',
         {
           accountId,
           ids: [emailId],
-          properties: [...EMAIL_VIEW_PROPERTIES],
+          properties: [...EMAIL_VIEW_PROPERTIES, LIST_POST_HEADER],
           fetchHTMLBodyValues: true
         },
         { signal }
       )
-      return response.list[0] ?? null
+      // SAFETY: the properties asked above, the header under its name
+      const email = response.list[0] as EmailDetail | undefined
+      return email ?? null
     }
   })
 }

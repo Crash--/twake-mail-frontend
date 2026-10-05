@@ -281,7 +281,7 @@ export function SearchCombobox({
     >
       <SearchBar
         ref={anchorRef}
-        size="medium"
+        size="small"
         elevation={0}
         className="u-w-100"
         placeholder={label}

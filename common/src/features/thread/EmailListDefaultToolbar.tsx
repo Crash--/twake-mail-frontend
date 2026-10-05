@@ -48,6 +48,7 @@ export function EmailListDefaultToolbar({
       <Button
         variant="text"
         color="inherit"
+        className="u-ml-1-half"
         startIcon={<Icon icon={SelectAll} />}
         disabled={loadedCount === 0}
         onClick={selection.selectLoaded}
@@ -56,7 +57,7 @@ export function EmailListDefaultToolbar({
         {t('thread.selection.selectAll')}
       </Button>
       {mailboxId === null ? null : (
-        <EmailListFilterMenu mailboxId={mailboxId} />
+        <EmailListFilterMenu mailboxId={mailboxId} className="u-ml-1-half" />
       )}
     </Box>
   )

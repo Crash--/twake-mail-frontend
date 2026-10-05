@@ -33,6 +33,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { ConversationDraftActions } from './ConversationDraftActions'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData } from './queries'
+import { useRevealOnOpen } from './useRevealOnOpen'
 
 interface ExpandedBodyProps {
   detail: EmailDetail
@@ -151,6 +152,10 @@ export interface ConversationMessageProps {
   onAction: (emailId: string, id: EmailActionId) => void
   /** Where the focus goes once the remote content banner went away */
   onRemoteContentShown: () => void
+  /** The message the conversation opened on: scrolled to and focused */
+  isTarget?: boolean
+  /** Id of the subject and count of the conversation, read with the target */
+  describedById?: string
 }
 
 /**
@@ -165,10 +170,13 @@ export function ConversationMessage({
   onToggle,
   openedMailboxId,
   onAction,
-  onRemoteContentShown
+  onRemoteContentShown,
+  isTarget = false,
+  describedById = ''
 }: ConversationMessageProps): ReactElement {
   const { t, lang } = useI18n()
   const toggleRef = useRef<HTMLButtonElement>(null)
+  useRevealOnOpen(toggleRef, isTarget, describedById)
   const sender = email.from?.[0] ?? null
   const isUnread = !hasKeyword(email, SEEN)
   const isDraft = hasKeyword(email, DRAFT)

@@ -47,6 +47,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import { OPENED_FROM_LIST } from './conversationTarget'
 import {
   EmailCell,
   emailPath as mailboxEmailPath,
@@ -149,6 +150,8 @@ export interface EmailListSearch {
   request: SearchRequest
   /** Path of a result, opened beside or instead of the list */
   emailPath: (emailId: string) => string
+  /** Its results open on the message that matched, not the first unread */
+  opensAtMatch?: boolean
   /** The result open beside the list, if any */
   openEmailId: string | null
   /** Shown when nothing matches */
@@ -204,6 +207,9 @@ export function EmailList(props: EmailListProps): ReactElement {
   const isTemplates = mailbox !== null && isTemplatesMailbox(mailbox)
   const showRecipients =
     isTemplates || (role !== null && RECIPIENT_ROLES.includes(role))
+  // A result of a search opens on the message that matched; the rows of a
+  // folder, a label or Starred on the first unread one
+  const openState = search?.opensAtMatch === true ? undefined : OPENED_FROM_LIST
   const getEmailPath = useCallback(
     (emailId: string): string =>
       search === null
@@ -458,6 +464,7 @@ export function EmailList(props: EmailListProps): ReactElement {
         children: (
           <EmailCell
             getEmailPath={getEmailPath}
+            openState={openState}
             getMailboxNames={getMailboxNames}
             showRecipients={showRecipients}
             onToggleStar={handleToggleStar}
@@ -476,6 +483,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     }),
     [
       getEmailPath,
+      openState,
       getMailboxNames,
       showRecipients,
       handleToggleStar,

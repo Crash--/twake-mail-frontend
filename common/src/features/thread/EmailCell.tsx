@@ -39,6 +39,7 @@ import { LabelChips, labelsOfEmail } from '@common/features/labels/LabelChips'
 import type { Label } from 'jmap-client-ts/linagora'
 import { HighlightedText } from '@common/features/search/HighlightedText'
 
+import type { ConversationOpenState } from './conversationTarget'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
@@ -92,6 +93,11 @@ export function emailPath(mailboxId: string, emailId: string): string {
 export interface EmailCellProps {
   /** Path of the email of a row, opened by its link */
   getEmailPath: (emailId: string) => string
+  /**
+   * Navigation state of the link: a conversation opened from a list opens
+   * on its first unread message
+   */
+  openState?: ConversationOpenState
   /** Names of the mailboxes of an email, shown in search results */
   getMailboxNames?: (email: EmailListItemData) => string | null
   /** Shows the recipients instead of the sender (Sent, Drafts…) */
@@ -133,6 +139,7 @@ export interface EmailCellProps {
  */
 export function EmailCell({
   getEmailPath,
+  openState,
   getMailboxNames,
   showRecipients,
   onToggleStar,
@@ -281,7 +288,10 @@ export function EmailCell({
       onOpenDraft(email)
       return
     }
-    void navigate(path, { viewTransition: prepareViewTransition('forward') })
+    void navigate(path, {
+      state: openState,
+      viewTransition: prepareViewTransition('forward')
+    })
   }
   const date = (
     <SecondaryText variant="caption" noWrap data-testid="email-list-item-date">

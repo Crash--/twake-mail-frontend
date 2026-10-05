@@ -98,7 +98,9 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
   )
   const search = useMemo(
     () =>
-      request === null ? null : { request, emailPath, openEmailId, empty },
+      request === null
+        ? null
+        : { request, emailPath, openEmailId, empty, opensAtMatch: true },
     [request, emailPath, openEmailId, empty]
   )
 

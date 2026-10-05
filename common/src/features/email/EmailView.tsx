@@ -10,7 +10,7 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
@@ -21,6 +21,7 @@ import type { EmailActionId } from '@common/features/emailActions/emailActionIte
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { ConversationView } from '@common/features/thread/ConversationView'
+import { isOpenedFromList } from '@common/features/thread/conversationTarget'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
 import { formatFullDate } from '@common/features/thread/formatListDate'
 import { EmailLabels } from '@common/features/labels/EmailLabels'
@@ -172,6 +173,7 @@ export function EmailView({
 }: EmailViewProps): ReactElement {
   const { t } = useI18n()
   const navigate = useNavigate()
+  const location = useLocation()
   const query = useEmail(emailId)
   const threadPreference = useThreadPreference()
   // The conversation stays once the email opened was deleted from it
@@ -227,6 +229,7 @@ export function EmailView({
         threadId={threadId}
         emailId={emailId}
         mailboxId={mailboxId ?? null}
+        fromList={isOpenedFromList(location.state)}
         onBack={handleBack}
       />
     )

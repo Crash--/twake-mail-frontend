@@ -10,6 +10,7 @@ import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useRemoveEmails } from '@common/features/emailActions/useRemoveEmails'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
+import { OPENED_FROM_LIST } from '@common/features/thread/conversationTarget'
 import { emailPath } from '@common/features/thread/EmailCell'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
 import { focusedEmailId } from '@common/features/thread/useEmailListShortcuts'
@@ -118,6 +119,7 @@ export function useEmailViewShortcuts({
   ): void => {
     if (id !== null && mailboxId !== null) {
       void navigate(emailPath(mailboxId, id), {
+        state: OPENED_FROM_LIST,
         viewTransition: prepareViewTransition(direction)
       })
     }

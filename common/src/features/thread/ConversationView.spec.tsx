@@ -1,6 +1,7 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_USERNAME,
@@ -71,10 +72,16 @@ function makeServer(
 }
 
 async function renderConversation(
-  server: FakeJmapServer
+  server: FakeJmapServer,
+  { emailId = 'c', fromList = false } = {}
 ): Promise<ReturnType<typeof renderWithProviders>> {
   const result = renderWithProviders(
-    <ConversationView threadId={THREAD} emailId="c" onBack={jest.fn()} />,
+    <ConversationView
+      threadId={THREAD}
+      emailId={emailId}
+      fromList={fromList}
+      onBack={jest.fn()}
+    />,
     { withJmapSession: true, jmapServer: server }
   )
   await screen.findByRole('list', { name: 'Messages of the conversation' })
@@ -109,15 +116,144 @@ describe('ConversationView', () => {
   it('shows the messages of the thread, unread and last ones expanded', async () => {
     await renderConversation(makeServer())
 
-    expect(
-      screen.getByRole('heading', { name: 'Re: Project kick-off' })
-    ).toHaveFocus()
     expect(screen.getByText('3 messages')).toBeVisible()
     expect(screen.getAllByTestId('conversation-message')).toHaveLength(3)
     expect(toggle(/Bob Dupont/)).toHaveAttribute('aria-expanded', 'false')
     expect(toggle(/Carol/)).toHaveAttribute('aria-expanded', 'true')
     expect(toggle(/Dan/)).toHaveAttribute('aria-expanded', 'true')
     expect(within(toggle(/Bob Dupont/)).getByText('Preview a')).toBeVisible()
+  })
+
+  describe('the message it opens on', () => {
+    let scrollIntoView: jest.SpyInstance
+
+    beforeEach(() => {
+      scrollIntoView = jest.spyOn(Element.prototype, 'scrollIntoView')
+      mockViewport({ width: 1400 })
+    })
+
+    afterEach(() => {
+      scrollIntoView.mockRestore()
+      resetViewport()
+    })
+
+    it('is the email opened from a search result or a link, focused and scrolled to', async () => {
+      await renderConversation(makeServer(), { emailId: 'a' })
+
+      expect(toggle(/Bob Dupont/)).toHaveFocus()
+      expect(toggle(/Bob Dupont/)).toHaveAttribute('aria-expanded', 'true')
+      expect(scrollIntoView).toHaveBeenCalledWith({
+        block: 'start',
+        behavior: 'smooth'
+      })
+      expect(scrollIntoView.mock.contexts[0]).toBe(toggle(/Bob Dupont/))
+    })
+
+    it('is the first unread message from a list', async () => {
+      await renderConversation(makeServer(), { fromList: true })
+
+      expect(toggle(/Carol/)).toHaveFocus()
+    })
+
+    it('is the latest message from a list when all are read', async () => {
+      const server = makeServer()
+      const unread = server.emails.find(email => email.id === 'b')
+      if (unread) unread.keywords = { $seen: true }
+      await renderConversation(server, { fromList: true })
+
+      expect(toggle(/Dan/)).toHaveFocus()
+    })
+
+    it('is described by the subject and count of the conversation, until the focus leaves', async () => {
+      const user = userEvent.setup()
+      await renderConversation(makeServer())
+
+      const target = toggle(/Dan/)
+      expect(target).toHaveAccessibleDescription(
+        expect.stringContaining('3 messages')
+      )
+      expect(target).toHaveAccessibleDescription(
+        expect.stringContaining('Re: Project kick-off')
+      )
+      await user.tab()
+      expect(target).not.toHaveAttribute('aria-describedby')
+    })
+
+    it('is described by the subject and count only, not the labels of the conversation', async () => {
+      const server = makeServer(FAKE_LINAGORA_CAPABILITIES)
+      installFakeLabels(server, [
+        { id: 'l1', displayName: 'Work', keyword: 'work', color: null }
+      ])
+      for (const email of server.emails) {
+        email.keywords = { ...email.keywords, work: true }
+      }
+      renderWithProviders(
+        <LabelActionsProvider>
+          <ConversationView threadId={THREAD} emailId="c" onBack={jest.fn()} />
+        </LabelActionsProvider>,
+        { withJmapSession: true, jmapServer: server }
+      )
+      await screen.findByRole('list', { name: 'Messages of the conversation' })
+
+      const description = toggle(/Dan/).getAttribute('aria-describedby') ?? ''
+      const text = description
+        .split(' ')
+        .map(id => document.getElementById(id)?.textContent ?? '')
+        .join(' ')
+      expect(text).toContain('Re: Project kick-off')
+      expect(text).toContain('3 messages')
+      expect(text).not.toContain('Work')
+    })
+
+    it('scrolls without animation when the user prefers reduced motion', async () => {
+      mockViewport({ width: 1400, reducedMotion: true })
+      await renderConversation(makeServer())
+
+      expect(scrollIntoView).toHaveBeenCalledWith({
+        block: 'start',
+        behavior: 'auto'
+      })
+    })
+
+    it('does not move the focus nor scroll when a message arrives, expands or collapses', async () => {
+      const user = userEvent.setup()
+      const server = makeServer()
+      const { queryClient } = await renderConversation(server)
+      await user.click(toggle(/Dan/))
+      await user.click(toggle(/Dan/))
+      const calls = scrollIntoView.mock.calls.length
+
+      const reply = makeEmailWithBody(
+        {
+          id: 'd',
+          threadId: THREAD,
+          subject: 'Re: Project kick-off',
+          preview: 'reply thread detail',
+          receivedAt: '2026-10-05T08:00:00Z',
+          keywords: { $seen: true },
+          from: [{ name: 'Erin', email: 'erin@example.com' }]
+        },
+        { text: 'reply thread detail' }
+      )
+      server.addEmail(reply)
+      act(() => {
+        queryClient.setQueryData<ConversationData>(
+          conversationKeys.detail(FAKE_ACCOUNT_ID, THREAD),
+          data =>
+            data
+              ? patchConversation(data, THREAD, {
+                  changed: [reply],
+                  destroyed: [],
+                  newStates: new Map()
+                })
+              : data
+        )
+      })
+      await screen.findByRole('button', { name: /Erin/ })
+
+      expect(scrollIntoView).toHaveBeenCalledTimes(calls)
+      expect(toggle(/Dan/)).toHaveFocus()
+    })
   })
 
   it('marks the unread message read once expanded', async () => {

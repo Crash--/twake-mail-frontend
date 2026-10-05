@@ -7,6 +7,7 @@ import {
   Backdrop,
   Box,
   ButtonBase,
+  GlobalStyles,
   IconButton,
   Paper,
   SvgIcon,
@@ -33,6 +34,24 @@ export const DOCKED_WINDOW_WIDTH = 600
 export const MINIMIZED_WINDOW_WIDTH = 280
 const DOCKED_WINDOW_HEIGHT = 600
 const TITLE_BAR_HEIGHT = 48
+
+/** `view-transition-class` of the windows (and the backdrop) that opt in */
+const VIEW_TRANSITION_CLASS = 'docked-window'
+
+/**
+ * A window is its own layer in a view transition of the page: the cross-fade
+ * of the page would otherwise freeze it, then hide it under the opaque
+ * snapshots of what navigates (flicker). Its layer stays above the page, shows
+ * the new picture only, and neither fades nor moves.
+ */
+const VIEW_TRANSITION_STYLES = {
+  [`::view-transition-group(*.${VIEW_TRANSITION_CLASS})`]: {
+    zIndex: 2,
+    animation: 'none'
+  },
+  [`::view-transition-old(*.${VIEW_TRANSITION_CLASS})`]: { display: 'none' },
+  [`::view-transition-new(*.${VIEW_TRANSITION_CLASS})`]: { animation: 'none' }
+} as const
 
 // Material Icons paths (Apache-2.0): twake-icons has no "open in full" nor
 // "close full screen" icon (docs/twake-mui-gaps.md)
@@ -72,6 +91,12 @@ export interface DockedWindowProps {
    * `WindowOverflowMenu` when the window fills the screen
    */
   titleBarActions?: ReactNode
+  /**
+   * `view-transition-name` of the window, unique in the page: set, it stays
+   * out of the view transitions of the page (see `VIEW_TRANSITION_STYLES`).
+   * Its backdrop, when it has one, takes `<name>-backdrop`
+   */
+  viewTransitionName?: string
   children: ReactNode
   testIds?: {
     window?: string
@@ -111,6 +136,7 @@ export function DockedWindow({
   onClose,
   onEscape,
   titleBarActions,
+  viewTransitionName,
   children,
   testIds = {}
 }: DockedWindowProps): ReactElement {
@@ -160,6 +186,9 @@ export function DockedWindow({
 
   return (
     <>
+      {viewTransitionName === undefined ? null : (
+        <GlobalStyles styles={VIEW_TRANSITION_STYLES} />
+      )}
       <FocusTrap
         open={isFullscreen}
         isEnabled={isTopmost}
@@ -179,6 +208,12 @@ export function DockedWindow({
             {
               pointerEvents: 'auto',
               borderRadius: 2,
+              ...(viewTransitionName === undefined
+                ? {}
+                : {
+                    viewTransitionName,
+                    viewTransitionClass: VIEW_TRANSITION_CLASS
+                  }),
               zIndex: theme =>
                 isFullscreen ? theme.zIndex.modal : theme.zIndex.appBar + 1,
               '&:focus': { outline: 'none' }
@@ -308,7 +343,13 @@ export function DockedWindow({
           // The dock lets clicks through: not the backdrop
           sx={{
             zIndex: theme => theme.zIndex.modal - 1,
-            pointerEvents: 'auto'
+            pointerEvents: 'auto',
+            ...(viewTransitionName === undefined
+              ? {}
+              : {
+                  viewTransitionName: `${viewTransitionName}-backdrop`,
+                  viewTransitionClass: VIEW_TRANSITION_CLASS
+                })
           }}
           // A click on the backdrop does nothing: the window has its own
           // close button, and nothing typed must go by accident

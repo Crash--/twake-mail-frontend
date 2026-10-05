@@ -16,11 +16,13 @@ const LABELS = {
 }
 
 function Harness({
+  viewTransitionName,
   isModal = false,
   isCompact = false,
   onEscape = jest.fn(),
   onClose = jest.fn()
 }: {
+  viewTransitionName?: string
   isModal?: boolean
   isCompact?: boolean
   onEscape?: () => void
@@ -38,6 +40,7 @@ function Harness({
         onModeChange={setMode}
         onClose={onClose}
         onEscape={onEscape}
+        viewTransitionName={viewTransitionName}
         testIds={{ window: 'window' }}
       >
         <label>
@@ -49,7 +52,23 @@ function Harness({
   )
 }
 
+function viewTransitionName(element: HTMLElement): string {
+  return getComputedStyle(element).getPropertyValue('view-transition-name')
+}
+
 describe('DockedWindow', () => {
+  it('is a layer of its own in a view transition of the page when it has a name', () => {
+    renderDs(<Harness viewTransitionName="composer-1" isModal />)
+
+    expect(viewTransitionName(screen.getByRole('dialog'))).toBe('composer-1')
+  })
+
+  it('is part of the page in a view transition without a name', () => {
+    renderDs(<Harness isModal />)
+
+    expect(viewTransitionName(screen.getByRole('dialog'))).toBe('')
+  })
+
   it('is a non modal dialog named by its title', () => {
     renderDs(<Harness />)
     const dialog = screen.getByRole('dialog', { name: 'New message' })

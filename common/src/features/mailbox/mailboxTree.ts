@@ -59,6 +59,24 @@ export function isPersonalMailbox(
   )
 }
 
+/**
+ * The address of the team mailbox a folder belongs to: what its namespace
+ * holds between brackets (`TeamMailbox[team@example.com]`), else the whole
+ * namespace, as tmail-flutter's `emailTeamMailBoxes`; null for a folder of
+ * the user. Every folder of a team mailbox has the namespace of its root.
+ */
+export function teamMailboxAddress(
+  mailbox: Pick<MailboxSummary, 'namespace'>
+): string | null {
+  if (isPersonalMailbox(mailbox)) return null
+  const namespace = mailbox.namespace ?? ''
+  const open = namespace.indexOf('[')
+  const close = namespace.indexOf(']', open)
+  const address =
+    open > 0 && close > open ? namespace.slice(open + 1, close) : namespace
+  return address === '' ? null : address
+}
+
 /** The Trash of a team mailbox: no role, known by its name */
 export function isTeamTrash(
   mailbox: Pick<MailboxSummary, 'namespace' | 'name' | 'role'>

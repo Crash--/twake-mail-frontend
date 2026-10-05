@@ -137,6 +137,16 @@ describe('AppLayout', () => {
     )
   })
 
+  it('focuses the search with the / key', async () => {
+    renderLayout()
+
+    await userEvent.click(await screen.findByTestId('main-content'))
+    await userEvent.keyboard('/')
+
+    expect(screen.getByTestId('search-input')).toHaveFocus()
+    expect(screen.getByTestId('search-input')).toHaveValue('')
+  })
+
   it('keeps the drawer, the menu button and the floating button off a desktop', async () => {
     renderLayout()
 
@@ -175,6 +185,28 @@ describe('AppLayout on a phone', () => {
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
       'New message'
     )
+  })
+
+  it('unfolds the folded search with the / key, folded back by Escape', async () => {
+    renderPhoneLayout()
+
+    await screen.findByTestId('top-bar-folder-name')
+    expect(screen.queryByTestId('search-input')).toBe(null)
+    await userEvent.click(screen.getByTestId('main-content'))
+    await userEvent.keyboard('/')
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-input')).toHaveFocus()
+    })
+    expect(screen.getByTestId('search-input')).toHaveValue('')
+
+    // The first Escape closes the suggestions, the second folds the search
+    await userEvent.keyboard('{Escape}{Escape}')
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-open-button')).toHaveFocus()
+    })
+    expect(screen.queryByTestId('search-input')).toBe(null)
   })
 
   it('opens the folders in a drawer, closed once a folder is chosen', async () => {

@@ -10,6 +10,7 @@ import {
   makeDefaultMailboxes,
   makeIdentity,
   makeMailbox,
+  makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import {
@@ -200,6 +201,100 @@ describe('ComposerForm', () => {
       expect(
         screen.getByRole('menuitemcheckbox', { name: 'Request read receipt' })
       ).toHaveAttribute('aria-checked', 'true')
+    })
+
+    describe('as a team mailbox', () => {
+      function makeTeamServer(): FakeJmapServer {
+        return makeFakeJmapServer({
+          mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
+          identities: [
+            makeIdentity({ id: 'identity-alice', mayDelete: false }),
+            makeIdentity({
+              id: 'identity-team',
+              name: 'Team',
+              email: 'team@example.com'
+            })
+          ]
+        })
+      }
+
+      async function chooseTeam(composer: HTMLElement): Promise<void> {
+        await userEvent.click(
+          within(composer).getByTestId('composer-identity-select')
+        )
+        await userEvent.click(screen.getByRole('option', { name: /^Team/ }))
+      }
+
+      it('keeps the sent copy in the Sent of the team mailbox', async () => {
+        const { jmapServer } = renderComposer(makeTeamServer())
+        const composer = await openComposer()
+        await fill(composer, { to: 'bob@example.com', subject: 'From team' })
+        await chooseTeam(composer)
+
+        await userEvent.click(
+          within(composer).getByRole('button', { name: 'Send' })
+        )
+
+        expect(await screen.findByTestId('toast')).toHaveTextContent(
+          'Message has been sent successfully'
+        )
+        const sent = jmapServer.emails.find(
+          email => email.id === jmapServer.submitted[0]
+        )
+        expect(sent?.mailboxIds).toEqual({ 'team-sent': true })
+      })
+
+      it('saves the draft in the Drafts of the team mailbox', async () => {
+        const { jmapServer } = renderComposer(makeTeamServer())
+        const composer = await openComposer()
+        await chooseTeam(composer)
+        await fill(composer, { to: 'bob@example.com', subject: 'Team draft' })
+
+        await waitFor(
+          () => {
+            expect(
+              within(composer).getByTestId('composer-save-status')
+            ).toHaveTextContent('Draft saved')
+          },
+          { timeout: 4000 }
+        )
+        expect(
+          jmapServer.emails.map(email => [email.subject, email.mailboxIds])
+        ).toEqual([['Team draft', { 'team-drafts': true }]])
+      })
+
+      it('moves the draft to the Drafts of the user when the identity goes back', async () => {
+        const { jmapServer } = renderComposer(makeTeamServer())
+        const composer = await openComposer()
+        await chooseTeam(composer)
+        await fill(composer, { to: 'bob@example.com', subject: 'Moving' })
+        await waitFor(
+          () => {
+            expect(
+              within(composer).getByTestId('composer-save-status')
+            ).toHaveTextContent('Draft saved')
+          },
+          { timeout: 4000 }
+        )
+
+        await userEvent.click(
+          within(composer).getByTestId('composer-identity-select')
+        )
+        await userEvent.click(screen.getByRole('option', { name: /^Alice/ }))
+        await userEvent.type(
+          within(composer).getByRole('textbox', { name: 'Subject' }),
+          '!'
+        )
+
+        await waitFor(
+          () => {
+            expect(jmapServer.emails.map(email => email.mailboxIds)).toEqual([
+              { 'mailbox-drafts': true }
+            ])
+          },
+          { timeout: 6000 }
+        )
+      })
     })
 
     it('swaps the Bcc of the identity when another one is chosen', async () => {

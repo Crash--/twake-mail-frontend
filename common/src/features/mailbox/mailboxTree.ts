@@ -444,3 +444,23 @@ export function findTeamFolderId(
     )?.id ?? null
   )
 }
+
+/**
+ * The folder of the team mailbox whose address is `address`, by name
+ * (Drafts, Sent: team folders have no role); null when there is none
+ */
+export function findTeamFolderByAddress(
+  mailboxes: readonly MailboxSummary[],
+  address: string,
+  name: string
+): string | null {
+  const wanted = address.trim().toLowerCase()
+  return (
+    mailboxes.find(
+      mailbox =>
+        isTeamFolder(mailbox) &&
+        mailbox.name.toLowerCase() === name &&
+        teamMailboxAddress(mailbox)?.toLowerCase() === wanted
+    )?.id ?? null
+  )
+}

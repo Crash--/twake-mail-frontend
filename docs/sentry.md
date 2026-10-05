@@ -13,12 +13,12 @@ never sent, and the test that proves each point.
 | The consent of each user is stored with their account (JMAP `Settings`, `sentry.user-opt-in`), never in the browser, never global | `useSentryReporting.ts` | `SentryReportingSync.spec.tsx`, e2e `SET-11` |
 | Unknown means off: settings not read yet, ecosystem not answered yet, server without the `settings` capability or with the key read-only | `useSentryReporting.ts` | `SentryReportingSync.spec.tsx` |
 | The preference starts and stops the reports at once, without reloading | `SentryReportingSync.tsx` | `sentry.spec.ts`, e2e `SET-10` |
-| Withdrawing the consent drops what the SDK still holds: the gate closes first, then the client is closed | `SentryLifecycle.apply` | `sentry.spec.ts` "stops allowing at once" |
+| Withdrawing the consent closes the gate first, so whatever has not been through `beforeSend` is dropped; events already handed to the transport get 100 ms to leave when the client closes | `SentryLifecycle.apply` | `sentry.spec.ts` "stops allowing at once" |
 | Signing out (or another tab signing out, or changing account) stops the reports, clears the user and the breadcrumbs, closes the client | `AuthProvider.tsx`, `SentryReportingSync.tsx` | `SentryReportingSync.spec.tsx`, e2e `SET-11` |
 | No default PII (`dataCollection.userInfo: false`, the replacement of `sendDefaultPii` in the SDK v11), no cookies, headers, request bodies nor query parameters collected | `sentry.ts` options | `sentry.spec.ts` |
 | No session replay, no feedback widget, no profiling, no tracing, no logs, no release health sessions: none of their integrations is added and no sample rate is set | `sentry.ts` options | `sentry.spec.ts` "only sends error events", e2e `SET-10` |
 | Every event and breadcrumb is rebuilt, not filtered: only known fields leave | `common/src/app/sentryEvents.ts` | `sentry.spec.ts`, `scrubSensitiveData.spec.ts`, e2e `SET-10` |
-| The user is a pseudonym of the account (first 16 hex digits of the SHA-256 of the JMAP account id), never the address, name nor login | `sentryUserId.ts` | `SentryReportingSync.spec.tsx`, e2e `SET-10` |
+| The user is a pseudonym of the account (first 16 hex digits of the SHA-256 of the JMAP account id): never the address, name nor login, and not reversible without a candidate list of accounts | `sentryUserId.ts` | `SentryReportingSync.spec.tsx`, e2e `SET-10` |
 | Source maps are never served | Dockerfile, `nginx.conf`, `common/sentryBuildUtils.ts` | `smoke-test.sh` |
 | The ingest origin is added to the CSP `connect-src` only from the configured DSN, only when enabled | `40-twake-mail-runtime.sh` | `smoke-test.sh`, Helm `_helpers.tpl` |
 
@@ -177,5 +177,8 @@ is sent).
    `.env.js` (Helm: `config.sentry.*`), or serve the `sentry` section in the
    ecosystem and add the ingest origin to `CSP_CONNECT_SRC`.
 3. Decide `userOptInByDefault` (off unless users must opt out).
-4. Optional: source maps (`SENTRY_URL`, `SENTRY_ORG`, `SENTRY_PROJECT` build
+4. Serve the app over HTTPS: the pseudonym uses Web Crypto, which browsers
+   only offer on secure origins (and `localhost`); elsewhere the reporting never
+   starts.
+5. Optional: source maps (`SENTRY_URL`, `SENTRY_ORG`, `SENTRY_PROJECT` build
    arguments and the `sentry_auth_token` build secret).

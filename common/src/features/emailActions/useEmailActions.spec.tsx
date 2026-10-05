@@ -13,6 +13,7 @@ import {
   makeEmail,
   makeFakeJmapServer,
   makeMailbox,
+  makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -267,5 +268,55 @@ describe('useEmailActions', () => {
       methodCalls.some(([name]) => name === 'Email/set')
     )
     expect(request?.using).toContain(SHARES_CAPABILITY)
+  })
+})
+
+/** Deletes emails shown out of a folder, as a search or Starred does */
+function DeleteFromSearch(): ReactElement {
+  const { run } = useEmailActions()
+  const handleClick = (): void => {
+    void run({
+      action: 'moveToTrash',
+      mailboxId: null,
+      emails: [
+        { id: 'mine', mailboxIds: { 'mailbox-inbox': true }, keywords: {} },
+        { id: 'theirs', mailboxIds: { 'team-inbox': true }, keywords: {} }
+      ]
+    })
+  }
+  return (
+    <button type="button" onClick={handleClick}>
+      Delete from search
+    </button>
+  )
+}
+
+describe('useEmailActions out of a folder', () => {
+  it('sends each email to the Trash of its own mailbox, a team email to its team Trash', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
+      emails: [
+        makeEmail({ id: 'mine', mailboxIds: { 'mailbox-inbox': true } }),
+        makeEmail({ id: 'theirs', mailboxIds: { 'team-inbox': true } })
+      ]
+    })
+    renderWithProviders(<DeleteFromSearch />, {
+      withJmapSession: true,
+      jmapServer: server
+    })
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Delete from search' })
+    )
+
+    await waitFor(() => {
+      expect(emailSets(server)).not.toEqual([])
+    })
+    await waitFor(() => {
+      expect(server.emails.map(email => email.mailboxIds)).toEqual([
+        { 'mailbox-trash': true },
+        { 'team-trash': true }
+      ])
+    })
   })
 })

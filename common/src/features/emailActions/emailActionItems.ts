@@ -15,6 +15,7 @@ import {
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import {
   findMailboxIdByRole,
+  findTeamHomeId,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
@@ -138,7 +139,11 @@ export function availableEmailActions(
   const role = mailbox?.role ?? null
   const isSpam = role === 'junk'
   // Team mailboxes have neither Archive nor Spam (tmail-flutter)
-  const isTeam = mailbox !== null && !isPersonalMailbox(mailbox)
+  // (out of a folder, in a search, the emails say where they are)
+  const isTeam =
+    mailbox === null
+      ? emails.some(email => findTeamHomeId(mailboxes, email) !== null)
+      : !isPersonalMailbox(mailbox)
   const ids: EmailActionId[] = []
   if (isSpam) ids.push('not-spam')
   ids.push(deletesForever(mailbox) ? 'delete-permanently' : 'move-to-trash')

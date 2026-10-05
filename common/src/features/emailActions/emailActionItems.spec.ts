@@ -1,6 +1,7 @@
 import {
   makeDefaultMailboxes,
-  makeMailbox
+  makeMailbox,
+  makeTeamMailboxes
 } from '@common/testing/fakeJmapServer'
 
 import { availableEmailActions } from './emailActionItems'
@@ -100,6 +101,37 @@ describe('availableEmailActions', () => {
 
     expect(inTeam).toEqual(['move-to-trash', 'mark-as-read', 'star', 'move'])
     expect(inTeamTrash).toContain('delete-permanently')
+  })
+})
+
+describe('availableEmailActions out of a folder', () => {
+  const team = makeTeamMailboxes()
+  const mailboxes = [...MAILBOXES, ...team]
+  const mine = {
+    id: 'm',
+    mailboxIds: { 'mailbox-inbox': true as const },
+    keywords: {}
+  }
+  const theirs = {
+    id: 't',
+    mailboxIds: { 'team-inbox': true as const },
+    keywords: {}
+  }
+
+  it('offers Archive and Spam on the emails of the user', () => {
+    const items = availableEmailActions([mine], null, mailboxes).map(
+      item => item.id
+    )
+
+    expect(items).toEqual(expect.arrayContaining(['archive', 'mark-as-spam']))
+  })
+
+  it('offers neither Archive nor Spam as soon as an email is a team one', () => {
+    const items = availableEmailActions([mine, theirs], null, mailboxes).map(
+      item => item.id
+    )
+
+    expect(items).toEqual(['move-to-trash', 'mark-as-read', 'star', 'move'])
   })
 })
 

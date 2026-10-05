@@ -17,14 +17,22 @@ import {
   type ThreadMember
 } from './queries'
 
-/** Largest window queried again; beyond, the list starts over */
-export const MAX_REFRESHED_RESULTS = 256
+/** Most ids one `Email/query` returns: James caps `limit` at 256 */
+export const QUERY_CHUNK_SIZE = 256
+
+/**
+ * Largest window queried again, in chunks of `QUERY_CHUNK_SIZE` in one
+ * request (James answers 16 calls per request); beyond, the list starts
+ * over
+ */
+export const MAX_REFRESHED_RESULTS = 8 * QUERY_CHUNK_SIZE
 
 /**
  * Queries the loaded window of a list again (search results, conversations
  * of a mailbox), after changes the client cannot place: James has no
- * `Email/queryChanges`. One `Email/query` of the ids, then, when new ids
- * appear, one request with the `Email/get` and `SearchSnippet/get` of the
+ * `Email/queryChanges`. The `Email/query` of the ids, by chunks of 256 in
+ * one request (the loaded rows stay, and the scroll position with them),
+ * then, when new ids appear, one request with the `Email/get` and `SearchSnippet/get` of the
  * new ids and, for conversations, the `Thread/get` of their threads and
  * the `Email/get` of their members. The emails already listed are kept as
  * they are, with their members (push patched them). Null when the window
@@ -47,14 +55,26 @@ export async function refreshQueryList(
   )
   if (windowSize > MAX_REFRESHED_RESULTS) return null
 
-  const query = await client.call('Email/query', {
-    accountId,
-    filter,
-    sort: sort.length > 0 ? [...sort] : null,
-    position: 0,
-    limit: windowSize,
-    collapseThreads
-  })
+  const chunks = await client.request(builder =>
+    Array.from(
+      { length: Math.ceil(windowSize / QUERY_CHUNK_SIZE) },
+      (_, index) => {
+        const position = index * QUERY_CHUNK_SIZE
+        return builder.call('Email/query', {
+          accountId,
+          filter,
+          sort: sort.length > 0 ? [...sort] : null,
+          position,
+          limit: Math.min(QUERY_CHUNK_SIZE, windowSize - position),
+          collapseThreads
+        })
+      }
+    )
+  )
+  const query = {
+    ids: [...new Set(chunks.flatMap(chunk => chunk.ids))],
+    total: chunks[0]?.total ?? null
+  }
   const known = new Map(loaded.map(email => [email.id, email]))
   const missing = query.ids.filter(id => !known.has(id))
   const snippets = new Map<string, EmailSnippet>(

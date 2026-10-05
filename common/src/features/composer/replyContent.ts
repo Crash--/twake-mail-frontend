@@ -218,6 +218,7 @@ export async function loadReplyContent(
     answering: {
       emailId: source.id,
       keyword: isForward ? '$forwarded' : '$answered'
-    }
+    },
+    hasBlockedImages: false
   }
 }

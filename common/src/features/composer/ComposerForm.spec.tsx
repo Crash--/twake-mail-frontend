@@ -288,6 +288,40 @@ describe('ComposerForm', () => {
       )
     })
 
+    it('keeps the remote images of a reopened draft unloaded until asked', async () => {
+      const jmapServer = makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'draft-1',
+              mailboxIds: { 'mailbox-drafts': true },
+              keywords: { $draft: true, $seen: true },
+              subject: 'Tracked',
+              to: [{ name: null, email: 'bob@example.com' }]
+            },
+            {
+              html: '<div>Hi <img src="https://tracker.example/p.png" alt="pixel"></div>'
+            }
+          )
+        ]
+      })
+      renderComposer(jmapServer)
+      const composer = await openComposer('Open draft')
+
+      const image = (): Element | null =>
+        composer.querySelector('img[alt="pixel"]')
+      expect(image()?.getAttribute('src') ?? '').toBe('')
+      const banner = within(composer).getByTestId('remote-content-banner')
+      expect(banner).toHaveTextContent('hidden')
+
+      await userEvent.click(
+        within(banner).getByRole('button', { name: /show/i })
+      )
+
+      expect(image()).toHaveAttribute('src', 'https://tracker.example/p.png')
+      expect(within(composer).queryByTestId('remote-content-banner')).toBe(null)
+    })
+
     it('keeps the previous version of a draft when the server refuses the new one', async () => {
       const jmapServer = makeFakeJmapServer({
         emails: [

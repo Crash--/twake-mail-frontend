@@ -1,5 +1,5 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
-import { act, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, useParams } from 'react-router'
 import { useState, type ReactElement } from 'react'
@@ -32,12 +32,11 @@ function OpenedEmail(): ReactElement {
 function renderList(
   jmapServer: FakeJmapServer,
   mailboxId = 'mailbox-inbox',
-  state: unknown = null
+  state: unknown = null,
+  viewportHeight = 100_000
 ): ReturnType<typeof renderWithProviders> {
   return renderWithProviders(
-    <VirtuosoMockContext.Provider
-      value={{ viewportHeight: 100_000, itemHeight: 56 }}
-    >
+    <VirtuosoMockContext.Provider value={{ viewportHeight, itemHeight: 56 }}>
       <EmailList mailboxId={mailboxId} />
     </VirtuosoMockContext.Provider>,
     {
@@ -153,25 +152,31 @@ describe('EmailList', () => {
   it('loads the next pages when the end of the list is reached', async () => {
     const total = EMAIL_LIST_PAGE_SIZE * 2 + 5
     const server = makeFakeJmapServer({ emails: makeEmails(total) })
-    renderList(server)
+    renderList(server, 'mailbox-inbox', null, 56 * 10)
 
-    // Three pages of rows to render in jsdom: slow on CI machines
-    await waitFor(
-      () => {
-        expect(screen.getAllByTestId('email-list-item')).toHaveLength(total)
-      },
-      { timeout: 5000 }
-    )
-    const positions = server.requests.flatMap(({ methodCalls }) =>
-      methodCalls
-        .filter(([name]) => name === 'Email/query')
-        .map(([, args]) => args.position)
-    )
-    expect(positions).toEqual([
-      0,
-      EMAIL_LIST_PAGE_SIZE,
-      EMAIL_LIST_PAGE_SIZE * 2
-    ])
+    await screen.findAllByTestId('email-list-item')
+    const scroller = document.querySelector('[data-virtuoso-scroller]')
+    if (!scroller) throw new Error('No scroller')
+    const queriedPositions = (): unknown[] =>
+      server.requests.flatMap(({ methodCalls }) =>
+        methodCalls
+          .filter(([name]) => name === 'Email/query')
+          .map(([, args]) => args.position)
+      )
+
+    // Only the rows near the viewport are rendered: scroll to the end of
+    // what is loaded, once per page
+    await waitFor(() => {
+      const loaded = EMAIL_LIST_PAGE_SIZE * queriedPositions().length
+      fireEvent.scroll(scroller, { target: { scrollTop: 56 * (loaded - 5) } })
+      expect(queriedPositions()).toEqual([
+        0,
+        EMAIL_LIST_PAGE_SIZE,
+        EMAIL_LIST_PAGE_SIZE * 2
+      ])
+    })
+    fireEvent.scroll(scroller, { target: { scrollTop: 56 * total } })
+    expect(await screen.findByText(`Email ${total - 1}`)).toBeVisible()
   })
 
   it('reloads a list shown again once stale, even after its last page', async () => {

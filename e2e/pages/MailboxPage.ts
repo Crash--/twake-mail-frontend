@@ -347,6 +347,7 @@ export class MailboxPage {
   }
 
   async applyQuickFilter(filter: QuickFilter): Promise<MailboxPage> {
+    await this.page.getByTestId('list-filter-button').click()
     await this.page.getByTestId(`quick-filter-${filter}`).click()
     return this
   }

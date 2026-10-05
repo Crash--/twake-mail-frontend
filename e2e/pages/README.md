@@ -99,7 +99,7 @@ Conventions:
 | `email-list-item-checkbox` | selection checkbox (Shift+click selects a range) | `UiKeys.tabletEmailSelectionAvatar` |
 | `important-flag-icon` | "important" marker | `important_flag_icon` |
 | `empty-thread-view` | empty folder view | `UiKeys.emptyThreadView` |
-| `quick-filter-attachments` / `quick-filter-unread` / `quick-filter-starred` | items of the "Filter" menu of the list toolbar (desktop) | `attachments_filter`, `unread_filter`, `starred_filter` |
+| `quick-filter-attachments` / `quick-filter-unread` / `quick-filter-starred` | items of the "Filter" menu of the list toolbar (filter the folder in place) | `attachments_filter`, `unread_filter`, `starred_filter` |
 | `scroll-to-top-button` | floating "back to top" button | `ScrollToTopButtonWidget` |
 | `selection-toolbar` | toolbar shown when emails are selected (a `section` named "Selection actions") | — |
 | `selection-toolbar-count` / `selection-toolbar-select-all` / `selection-toolbar-select-folder` / `selection-toolbar-clear` | "N selected" (`role="status"`), the select all checkbox (phones and tablets; a "Select all" text button on desktops, shown while not everything is loaded), "Select all N messages in this folder", clear | — |
@@ -251,3 +251,8 @@ Conventions:
 | `mailbox-search` / `mailbox-search-input` / `mailbox-search-clear-button` | the folder search panel (`role="search"`), its field (focused on open) and its clear button | `SearchMailboxView` |
 | `mailbox-search-status` / `mailbox-search-results` | the count of folders found announced (`role="status"`), or "No folder matches your search"; the results, `mailbox-item` rows with the path under the name (a team root keeps its address beside it), hidden folders included (`data-hidden`) | `MailboxSearchedItemBuilder` |
 | `mailbox-search-visibility-link` | link to Settings > Folder visibility, in the search panel | — (Settings menu in tmail-flutter) |
+| `list-refresh-button` / `list-refresh-spinner` | refresh (the spinner replaces the button while it runs) | `refresh_all_mailbox_and_email_button` |
+| `list-select-all-button` | "Select all messages of this page" (hidden for an empty list; icon alone on phones) | — |
+| `list-filter-button` / `list-filter-menu` / `list-filter-clear-button` | the "Filter" dropdown (shows the active filter, hidden in an empty Trash or Spam and in search results), its menu (`menuitemradio`, items `quick-filter-*`: they filter the folder in place) and the button clearing the filter | `FilterMessageButton` |
+| `recover-deleted-messages-button` | personal Trash, when the server keeps deleted messages: opens the recovery | `recover_deleted_messages_button` |
+| `help-button` | top bar, when the server gives a support contact (`com:linagora:params:jmap:contact:support`): a link, or a message to the support address | `icHelp` button |

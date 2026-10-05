@@ -608,3 +608,18 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/folder-search.spec.ts`.
 - [x] `MBX-33` The folder search links to Settings > Folder visibility. — web app only, no Patrol test
   - Spec: `tests/folder-search.spec.ts`.
+- [ ] `FBAR-01` The inbox toolbar offers refresh, "Select all messages of this page" and the three
+  filters (menu); selecting all turns it into the selection bar; axe. — also on phones and tablets
+  - Spec: `tests/folder-toolbar.spec.ts`.
+- [ ] `FBAR-02` A filter narrows the folder in place (same URL), one at a time, with a toast; picking
+  it again or the clear button restores the list. — also on phones and tablets
+  - Spec: `tests/folder-toolbar.spec.ts`.
+- [ ] `FBAR-03` In a filtered folder, an email leaving it (moved to the Trash) leaves the list and a
+  new matching email joins it by push.
+  - Spec: `tests/folder-toolbar.spec.ts`.
+- [ ] `FBAR-04` The Trash has its empty banner and the filter (and the recovery button when the
+  server keeps deleted messages); an empty Spam has neither "select all" nor the filter. Axe.
+  - Spec: `tests/folder-toolbar.spec.ts`.
+- [ ] `FBAR-05` Starred has no "starred" filter, a label view has the three, search results have
+  their own filters bar and no list filter. Axe.
+  - Spec: `tests/folder-toolbar.spec.ts`.

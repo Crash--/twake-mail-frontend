@@ -135,6 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   saving as template again updates
 - `mailto:` links opened through `/mailto?uri=mailto:…`, before the mailbox
   is ready or after signing in, their body kept as plain text
+- Language (Settings > Language): applied at once, kept in the browser and
+  in the `language` setting of the account, which every device follows
 
 ### Changed
 

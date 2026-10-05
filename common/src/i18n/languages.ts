@@ -9,6 +9,14 @@ export const SUPPORTED_LANGUAGES: readonly SupportedLanguage[] = [
 
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'en'
 
+/** The name of each language in itself, as tmail-flutter lists them */
+export const LANGUAGE_NATIVE_NAMES: Record<SupportedLanguage, string> = {
+  en: 'English',
+  fr: 'Français',
+  ru: 'Русский',
+  vi: 'Tiếng Việt'
+}
+
 /** Also read by the chunk-load fallback of public/index.html */
 export const LANGUAGE_STORAGE_KEY = 'lang'
 
@@ -51,6 +59,16 @@ export function findPreferredLanguage(
     configuredLanguage,
     ...navigator.languages
   ])
+}
+
+/** Remembers the language chosen in this browser */
+export function storeLanguage(lang: SupportedLanguage): void {
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang)
+  } catch (error: unknown) {
+    // Storage can be disabled by the browser privacy settings
+    console.warn('[i18n] Cannot remember the language', error)
+  }
 }
 
 function readStoredLanguage(): string | null {

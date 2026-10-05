@@ -1,5 +1,6 @@
 import {
   Filter,
+  Globe,
   Help,
   Identities,
   Send,
@@ -10,6 +11,8 @@ import type { Session } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import type { TranslationKey } from '@common/i18n/useI18n'
+
+import { canChangeServerSetting } from './serverSettings'
 
 /** Path of the settings, `/settings/<section>` for one of them */
 export const SETTINGS_PATH = '/settings'
@@ -23,6 +26,7 @@ export type SettingsSectionId =
   | 'email-rules'
   | 'preferences'
   | 'forwarding'
+  | 'language-region'
   | 'keyboard-shortcuts'
 
 export interface SettingsSection {
@@ -64,6 +68,16 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     title: 'settings.sections.forwarding.title',
     description: 'settings.sections.forwarding.description',
     isAvailable: offers(LINAGORA_CAPABILITIES.forward)
+  },
+  {
+    id: 'language-region',
+    icon: Globe,
+    title: 'settings.sections.languageRegion.title',
+    description: 'settings.sections.languageRegion.description',
+    // Unless the server keeps the language and does not let it change
+    isAvailable: session =>
+      !(LINAGORA_CAPABILITIES.settings in session.capabilities) ||
+      canChangeServerSetting(session, 'language')
   },
   {
     id: 'keyboard-shortcuts',

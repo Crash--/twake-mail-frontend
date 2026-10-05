@@ -163,6 +163,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Yes on a counter proposal (`CalendarEventCounter/accept`), "Mail to
   attendees", "See in your Calendar" (`CALENDAR_SPA_URL`); the description
   as text after the card
+- App grid: the `link` and `icon` of `appList.js` may be URI templates
+  (`{localpart}`, `{workplaceFqdn}`…), resolved with the `workplaceFqdn`
+  claim of the SSO or `WORKPLACE_FQDN_FALLBACK`, for the Drive of each user
+- `WORKPLACE_EMBEDDING`: inside an iframe of Twake Workplace, the top bar
+  leaves the logotype and the app grid to the container, the account button
+  becomes a gear (cozy-external-bridge, as Twake Calendar)
 
 ### Changed
 

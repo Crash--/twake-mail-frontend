@@ -8,6 +8,7 @@ import {
   useAuthState
 } from '@common/features/auth/AuthProvider'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
+import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -28,8 +29,11 @@ export function UserMenu(): ReactElement {
   const state = useAuthState()
   const { session } = useJmapSession()
   const navigate = useNavigate()
+  const isEmbedded = useIsEmbedded()
   const user =
-    state.status === 'authenticated' ? state.user : { email: null, name: null }
+    state.status === 'authenticated'
+      ? state.user
+      : { email: null, name: null, workplaceFqdn: null }
   // Basic mode only knows what the user typed, and the SSO may not tell the
   // email: the JMAP session tells who the server authenticated
   const email =
@@ -60,6 +64,8 @@ export function UserMenu(): ReactElement {
           'data-testid': 'settings-menu-item'
         }
       ]}
+      // Inside Twake Workplace the container shows the user: a gear here
+      trigger={isEmbedded ? 'settings' : 'avatar'}
       testIds={TEST_IDS}
     />
   )

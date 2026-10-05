@@ -1,8 +1,13 @@
-import type { ReactElement } from 'react'
+import { useMemo, type ReactElement } from 'react'
 
 import { AppGridMenu as AppGrid } from '@/ds/AppGridMenu/AppGridMenu'
+import { useAppConfig } from '@common/config/AppConfigProvider'
 import type { AppListEntry } from '@common/config/config'
+import { resolveAppList } from '@common/features/apps/appList'
+import { useAuthState } from '@common/features/auth/AuthProvider'
+import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 const TEST_IDS = {
   button: 'app-grid-toggle-button',
@@ -15,10 +20,29 @@ export interface AppGridMenuProps {
 }
 
 /**
- * Links to the other Twake applications, listed by `public/appList.js`.
+ * Links to the other Twake applications, listed by `public/appList.js`,
+ * their URI templates resolved for the user (the Twake Drive of each user
+ * has its own address). Inside Twake Workplace the container has its own
+ * grid: none here.
  */
 export function AppGridMenu({ apps }: AppGridMenuProps): ReactElement | null {
   const { t } = useI18n()
+  const config = useAppConfig()
+  const state = useAuthState()
+  const { session } = useJmapSession()
+  const isEmbedded = useIsEmbedded()
+  const workplaceFqdn =
+    state.status === 'authenticated' ? state.user.workplaceFqdn : null
+  const resolved = useMemo(
+    () =>
+      resolveAppList(apps, {
+        username: session.username,
+        workplaceFqdn,
+        workplaceFqdnFallback: config?.workplaceFqdnFallback ?? null
+      }),
+    [apps, session.username, workplaceFqdn, config?.workplaceFqdnFallback]
+  )
 
-  return <AppGrid apps={apps} label={t('topbar.apps')} testIds={TEST_IDS} />
+  if (isEmbedded) return null
+  return <AppGrid apps={resolved} label={t('topbar.apps')} testIds={TEST_IDS} />
 }

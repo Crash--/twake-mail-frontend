@@ -48,3 +48,10 @@ var WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.example.com'
 // Optional. Shown in Settings > Forwarding, e.g. the rules of your
 // organisation on forwarding emails outside.
 var FORWARD_WARNING_MESSAGE = ''
+
+// Inside an iframe of Twake Workplace, leave the logotype and the app grid to
+// the container (the account button becomes a gear), as Twake Calendar does.
+// Has no effect outside an iframe. The Workplace must be allowed to frame the
+// app: do not send `X-Frame-Options`, nor a `frame-ancestors` that leaves out
+// its origin.
+var WORKPLACE_EMBEDDING = false

@@ -1,0 +1,5 @@
+# Append-only tables that every pull request extends: keep the rows of both sides
+e2e/e2e.md merge=union
+e2e/pages/README.md merge=union
+docs/twake-mui-gaps.md merge=union
+CHANGELOG.md merge=union

@@ -47,6 +47,7 @@ describe('list filters', () => {
       },
       sort: [{ property: 'receivedAt', isAscending: false }],
       collapseThreads: true,
+      isListFiltered: true,
       mailboxId: 'inbox'
     })
   })

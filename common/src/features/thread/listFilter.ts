@@ -57,7 +57,8 @@ export function withListFilter(
     filter: {
       operator: 'AND',
       conditions: [request.filter, CONDITIONS[filter]]
-    }
+    },
+    isListFiltered: true
   }
 }
 

@@ -5,6 +5,7 @@ import type { ThreadEmailUpdate } from './patchThreadList'
 import {
   byReceivedAt,
   type EmailListData,
+  type EmailListItemData,
   type EmailListPage,
   type ThreadMember
 } from './queries'
@@ -37,6 +38,11 @@ export interface QueryListScope {
    * results…) changes nothing
    */
   filter?: Filter<EmailFilterCondition>
+  /**
+   * The list is narrowed by a filter of the toolbar: a listed email that no
+   * longer matches `filter` leaves it (search results keep it in place)
+   */
+  dropsNonMatching?: boolean
 }
 
 function patchMember(
@@ -70,10 +76,33 @@ function newMember(
 }
 
 /**
+ * Whether a row of a filtered list stays: its email matches the filter, or
+ * on a list of conversations one email of its thread does (`maybe` stays:
+ * only the server knows)
+ */
+function stillMatches(
+  email: EmailListItemData,
+  members: readonly ThreadMember[] | undefined,
+  changedById: ReadonlyMap<string, ThreadEmailUpdate>,
+  filter: Filter<EmailFilterCondition> | undefined
+): boolean {
+  const candidates = members ?? [email]
+  return candidates.some(member => {
+    const update = changedById.get(member.id)
+    return (
+      filterVerdict(filter, update ? { ...member, ...update } : member) !== 'no'
+    )
+  })
+}
+
+/**
  * Applies `changes` to a list the client cannot sort or filter by itself
  * (search results):
  *
  * - a destroyed email is removed, as one that left the mailbox listed;
+ * - on a list narrowed by a filter of the toolbar (`dropsNonMatching`), an
+ *   email that no longer matches it leaves the list, as in tmail-flutter's
+ *   client-side `filterEmail`;
  * - a listed email takes its new state (keywords, mailboxes) and stays
  *   where it is: archiving or reading a search result shows its new state
  *   rather than making it vanish, as in tmail-flutter;
@@ -90,7 +119,12 @@ function newMember(
 export function patchQueryList(
   data: EmailListData,
   { changed, destroyed, newStates }: QueryListChanges,
-  { mailboxId, isCollapsed = false, filter }: QueryListScope = {}
+  {
+    mailboxId,
+    isCollapsed = false,
+    filter,
+    dropsNonMatching = false
+  }: QueryListScope = {}
 ): QueryListPatch {
   const destroyedIds = new Set(destroyed)
   const changedById = new Map(changed.map(email => [email.id, email]))
@@ -119,7 +153,19 @@ export function patchQueryList(
       ) {
         return []
       }
-      return [update ? { ...email, ...update } : email]
+      const patched = update ? { ...email, ...update } : email
+      if (
+        dropsNonMatching &&
+        !stillMatches(
+          patched,
+          page.threads?.[email.threadId],
+          changedById,
+          filter
+        )
+      ) {
+        return []
+      }
+      return [patched]
     })
     const delta = emails.length - page.emails.length
     removed -= delta

@@ -118,6 +118,12 @@ export interface SearchRequest {
    * the list (search results keep it, in its new state)
    */
   mailboxId?: string
+  /**
+   * The list is narrowed by a filter of the toolbar (unread, starred,
+   * attachments): an email that stops matching it leaves the list, as
+   * tmail-flutter's client-side `filterEmail`. Search results keep it
+   */
+  isListFiltered?: boolean
 }
 
 /** The search request of a `threadKeys.search` key */

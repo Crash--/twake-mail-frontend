@@ -18,7 +18,8 @@ import {
   threadKeys,
   type ConversationData,
   type EmailListData,
-  type EmailListItemData
+  type EmailListItemData,
+  type SearchRequest
 } from '@common/features/thread/queries'
 
 import type { EmailChange, TargetEmail } from './planEmailChanges'
@@ -36,6 +37,12 @@ function listMailboxId(key: QueryKey, accountId: string): string | null {
 function isSearchList(key: QueryKey, accountId: string): boolean {
   const [feature, account, kind] = key
   return feature === 'thread' && account === accountId && kind === 'search'
+}
+
+/** The request of a search list */
+function searchListRequest(key: QueryKey): SearchRequest | null {
+  const request: unknown = key[3]
+  return isSearchRequest(request) ? request : null
 }
 
 /** The folder a search list is the filtered view of, if it is */
@@ -192,15 +199,21 @@ export function applyEmailChanges(
             : current
         )
       } else if (isSearchList(key, accountId)) {
+        const request = searchListRequest(key)
         const filteredMailboxId = filteredListMailboxId(key)
         queryClient.setQueryData<EmailListData>(key, current =>
           current
             ? patchQueryList(
                 current,
                 { changed: updates, destroyed, newStates: new Map() },
-                filteredMailboxId === null
-                  ? {}
-                  : { mailboxId: filteredMailboxId }
+                {
+                  ...(filteredMailboxId === null
+                    ? {}
+                    : { mailboxId: filteredMailboxId }),
+                  ...(request?.isListFiltered === true
+                    ? { filter: request.filter, dropsNonMatching: true }
+                    : {})
+                }
               ).data
             : current
         )

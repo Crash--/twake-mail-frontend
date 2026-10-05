@@ -69,4 +69,76 @@ describe('PreferencesSettings', () => {
     ).toBeInTheDocument()
     expect(screen.getAllByRole('switch')).toHaveLength(1)
   })
+
+  it('offers the label categorisation with the AI capability only', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: {
+        ...FAKE_LINAGORA_CAPABILITIES,
+        'com:linagora:params:jmap:aibot': {}
+      }
+    })
+    const settings = installFakeSettings(server)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { jmapServer: server, withJmapSession: true }
+    )
+
+    const toggle = await screen.findByRole('switch', {
+      name: 'Enable label categorisation'
+    })
+    expect(toggle).not.toBeChecked()
+    // Without a scribe endpoint, no AI Scribe option
+    expect(screen.queryByRole('switch', { name: 'Enable AI Scribe' })).toBe(
+      null
+    )
+    await userEvent.click(toggle)
+    await waitFor(() => {
+      expect(toggle).toBeChecked()
+    })
+    expect(settings.settings()).toEqual({
+      'ai.label-categorization.enabled': 'true'
+    })
+  })
+
+  it('has no AI option without the AI capability', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeSettings(server)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { jmapServer: server, withJmapSession: true }
+    )
+
+    await screen.findByRole('switch', { name: 'Enable thread' })
+    expect(
+      screen.queryByRole('switch', { name: 'Enable label categorisation' })
+    ).toBe(null)
+  })
+
+  it('hides the AI assistant on request, when the server has one', async () => {
+    window.localStorage.clear()
+    const server = makeFakeJmapServer({
+      capabilities: {
+        'com:linagora:params:jmap:aibot': {
+          scribeEndpoint: 'https://scribe.example.test/chat'
+        }
+      }
+    })
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { jmapServer: server, withJmapSession: true }
+    )
+
+    const toggle = await screen.findByRole('switch', {
+      name: 'Enable AI Scribe'
+    })
+    expect(toggle).toBeChecked()
+    await userEvent.click(toggle)
+    expect(toggle).not.toBeChecked()
+    expect(
+      window.localStorage.getItem('twake-mail.preferences.ai-scribe')
+    ).toBe('false')
+    window.localStorage.clear()
+  })
 })

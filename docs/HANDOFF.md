@@ -309,7 +309,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - Drive sur la devbox : `app_token_exchange` `twake-mail-react` → `registry://mail` est configuré, mais le cozy-stack refuse toujours `POST /auth/token_exchange` depuis `https://mail-react.twake.valmoriq.fr` (pré-requête CORS `OPTIONS` en 403, `POST` en 403 `{"error":"the origin of this application is not allowed"}`). Il n'accepte que l'origine de l'app du `software_id` (`https://mail.twake.valmoriq.fr` et `https://calendar.twake.valmoriq.fr` répondent 204) : servir le webmail React sur `mail.<domaine>`, ou faire accepter cette origine au cozy-stack. Sélecteur non testable de bout en bout d'ici là ;
   - Drive dans Workplace sans OIDC (bridge `fetchJSON` comme Flutter) et upload-from-url (`com:linagora:params:jmap:upload:from-url`, absente de la devbox) non faits ;
   - invitations : `CAL-06` et `CAL-07` à faire tourner sur une stack avec esn-sabre ; « Plus d'options » non défini ; statut des invités affiché (Calendar le fait, la carte Flutter non) ; une seule carte par email (premier événement du premier blob, comme Flutter) ;
-  - IA : pas de réglage utilisateur pour masquer l'assistant (Flutter en a un), pas de bouton dans la sélection ni de copie du résultat ; à vérifier sur un serveur qui annonce `aibot` (destination = `scribeEndpoint` de la session) ;
+  - IA : réglage « AI Scribe », bouton sous la sélection et copie du résultat faits ; dossier « Action required » et réglage de catégorisation faits (derrière `aibot`) ; à vérifier sur un serveur qui annonce `aibot` (destination = `scribeEndpoint` de la session) ;
   - Workplace : pas de synchronisation de route avec le conteneur (Calendar non plus) ;
   - e2e Drive : un job CI en mode OIDC les ferait tourner.
 

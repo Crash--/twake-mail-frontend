@@ -644,3 +644,13 @@ Web app only, no Patrol test: the composer follows the Figma "Composer" frames.
   - Spec: `tests/error-reporting.spec.ts`.
 - [x] `SET-13` An aborted request and a failed network request, logged with `console.error`, are not reported, while a real bug right after is. — web app only (tmail-flutter ADR 0076)
   - Spec: `tests/error-reporting.spec.ts`.
+
+## AI-ACTION — Action required and AI preferences (4)
+
+`tests/ai-action-required.spec.ts` and `tests/scribe.spec.ts` add the `aibot` capability to the JMAP
+session with `page.route`; the setting `ai.label-categorization.enabled` is stored by the real server.
+
+- [x] `AI-03` With the AI capability, "Enable label categorisation" in Preferences adds the "Action required" folder right after Starred; it lists the unread emails with `needs-action`, tagged "Action required"; the tag of the opened email has a × taking the keyword off; switching the preference off removes the folder. — web app only (tmail-flutter `HandleAiNeedsActionExtension`)
+- [x] `AI-04` Without the AI capability, even with the setting on and the keyword set: no folder (`/action-required` goes back to the inbox), no tag, no AI option in Preferences. — web app only
+- [x] `AI-05` Selecting text in the composer shows an assistant button under it; the menu works on the selection; the answer is copied ("Result copied to clipboard"). — web app only (tmail-flutter `AiSelectionOverlay`, copy of the suggestion)
+- [x] `AI-06` The "AI Scribe" preference (kept in this browser) hides the assistant of the composer. — web app only

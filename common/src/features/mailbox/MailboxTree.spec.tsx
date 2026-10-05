@@ -1,4 +1,4 @@
-import { act, screen, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import type { SupportedLanguage } from '@common/i18n/languages'
@@ -263,5 +263,59 @@ describe('MailboxTree', () => {
     expect(
       within(section).getByTestId('mailbox-item-address')
     ).toHaveTextContent('team@example.com')
+  })
+
+  describe('Action required', () => {
+    const AI = { 'com:linagora:params:jmap:aibot': {} }
+    const SETTINGS = {
+      'com:linagora:params:jmap:settings': { readOnlyProperties: [] }
+    }
+
+    function renderTree(
+      capabilities: Record<string, unknown>,
+      settings: Record<string, string>
+    ): void {
+      renderWithProviders(<MailboxTree />, {
+        route: '/mailbox/mailbox-sent',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer({ capabilities, settings })
+      })
+    }
+
+    it('comes after Starred with the AI capability and the categorisation on', async () => {
+      renderTree(
+        { ...AI, ...SETTINGS },
+        { 'ai.label-categorization.enabled': 'true' }
+      )
+
+      expect(await screen.findByText('Action required')).toBeVisible()
+      expect(folderNames().slice(0, 4)).toEqual([
+        'Inbox',
+        'Starred',
+        'Action required',
+        'Drafts'
+      ])
+      expect(folder('Action required')).toHaveAttribute('aria-posinset', '3')
+      expect(folder('Drafts')).toHaveAttribute('aria-posinset', '4')
+      expect(folder('Action required')).toHaveAttribute('aria-setsize', '7')
+    })
+
+    it.each([
+      ['the categorisation is off', { ...AI, ...SETTINGS }, {}],
+      [
+        'the server has no AI capability',
+        SETTINGS,
+        { 'ai.label-categorization.enabled': 'true' }
+      ]
+    ])('is not there when %s', async (_name, capabilities, settings) => {
+      renderTree(capabilities, settings)
+
+      await screen.findAllByTestId('mailbox-item')
+      await waitFor(() => {
+        expect(folderNames()).toContain('Starred')
+      })
+      expect(screen.queryByText('Action required')).toBe(null)
+    })
   })
 })

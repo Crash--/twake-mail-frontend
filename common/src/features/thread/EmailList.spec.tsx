@@ -534,8 +534,12 @@ describe('EmailList', () => {
     expect(row).toHaveAttribute('data-email-id', 'last')
     expect(row).toHaveAttribute('data-unread', 'true')
     expect(within(row).getByTestId('email-list-item-sender')).toHaveTextContent(
-      'Bob Dupont, Me, Carol Petit(3)'
+      /^Bob Dupont, Me, Carol Petit$/
     )
+    // Beside the names, out of their ellipsis
+    expect(
+      within(row).getByTestId('email-list-item-thread-count')
+    ).toHaveTextContent('(3)')
     expect(within(row).getByRole('link')).toHaveAccessibleName(
       /^Unread, Starred, Bob Dupont, Me, Carol Petit, 3 messages, Re: Plan/
     )

@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 
 import {
   clearComposerStorage,
+  keepComposerBeforeUnload,
   COMPOSER_TTL_MS,
   listComposers,
   putComposer,
@@ -21,7 +22,37 @@ function record(
   }
 }
 
+/** `sessionStorage` for Node */
+function stubSessionStorage(): Storage {
+  const items = new Map<string, string>()
+  const storage: Storage = {
+    get length() {
+      return items.size
+    },
+    key: index => [...items.keys()][index] ?? null,
+    getItem: key => items.get(key) ?? null,
+    setItem: (key, value) => {
+      items.set(key, value)
+    },
+    removeItem: key => {
+      items.delete(key)
+    },
+    clear: () => {
+      items.clear()
+    }
+  }
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    value: storage,
+    configurable: true
+  })
+  return storage
+}
+
 describe('composerStorage', () => {
+  beforeEach(() => {
+    stubSessionStorage()
+  })
+
   afterEach(async () => {
     jest.restoreAllMocks()
     await clearComposerStorage()
@@ -91,5 +122,32 @@ describe('composerStorage', () => {
     })
 
     expect(await listComposers('a')).toEqual([])
+  })
+
+  it('takes the synchronous copy of a page that went before its write ended', async () => {
+    await listComposers('a')
+    await putComposer(record('a', 'one', 'Old'))
+    keepComposerBeforeUnload(record('a', 'one', 'Newer'))
+    keepComposerBeforeUnload(record('a', 'two', 'Only in the copy'))
+
+    const stored = await listComposers('a')
+
+    expect(stored.map(item => item.snapshot)).toEqual([
+      { html: '<p>Newer</p>' },
+      { html: '<p>Only in the copy</p>' }
+    ])
+    // Taken once
+    expect(await listComposers('a')).toHaveLength(2)
+    expect(sessionStorage.length).toBe(0)
+  })
+
+  it('drops the synchronous copy of a composer removed or signed out', async () => {
+    await listComposers('a')
+    keepComposerBeforeUnload(record('a', 'one'))
+    await removeComposer('a', 'one')
+    keepComposerBeforeUnload(record('a', 'two'))
+    await clearComposerStorage()
+
+    expect(sessionStorage.length).toBe(0)
   })
 })

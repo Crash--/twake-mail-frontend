@@ -309,6 +309,12 @@
       "title": "Forgot to attach a file?",
       "message": "You wrote %{keyword} in your message but did not add any attachments. Do you still want to send?",
       "send": "Send message"
+    },
+    "template": {
+      "save": "Save as template",
+      "saved": "Save message to template folder successfully",
+      "updated": "Update message to template folder successfully",
+      "failed": "Save message to template folder failed"
     }
   },
   "layout": {

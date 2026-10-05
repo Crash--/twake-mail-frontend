@@ -309,6 +309,12 @@
       "title": "Vous avez oublié la pièce jointe ?",
       "message": "Vous avez écrit %{keyword} dans votre email mais vous n'avez joint aucun fichier. Voulez-vous quand même l'envoyer ?",
       "send": "Envoyer le message"
+    },
+    "template": {
+      "save": "Sauvegarder comme modèle",
+      "saved": "Le message a bien été sauvegardé dans le dossier des modèles",
+      "updated": "Mise à jour réussie du message dans le dossier de modèles",
+      "failed": "Échec de l'enregistrement du message dans le dossier de modèles"
     }
   },
   "layout": {

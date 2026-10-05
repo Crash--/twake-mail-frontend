@@ -48,6 +48,7 @@ import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
 import { formatSize } from '@common/features/email/formatSize'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
+import { findTemplatesMailboxId } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
@@ -64,6 +65,7 @@ import {
   destroyPreviousVersions,
   findStrayVersions,
   saveDraft,
+  saveTemplate,
   sendEmail,
   type AttachedFile,
   type ComposedMessage,
@@ -120,6 +122,8 @@ export const AUTOSAVE_DELAY_MS = 1500
 export interface ComposerInit {
   draftId?: string
   reply?: { emailId: string; action: ReplyAction }
+  /** A template of the Templates folder, opened as a new message */
+  templateId?: string
 }
 
 /** What the window asks its form */
@@ -227,6 +231,8 @@ interface LoadedFormProps extends ComposerFormProps {
   content: ComposerContent
   identities: IdentitySummary[]
   mailboxIds: MailboxIds
+  /** The Templates folder, null until "Save as template" creates it */
+  templatesId: string | null
   images: InlineImageStore
 }
 
@@ -239,6 +245,7 @@ function LoadedComposerForm({
   content,
   identities,
   mailboxIds,
+  templatesId,
   images
 }: LoadedFormProps): ReactElement {
   const { t, lang } = useI18n()
@@ -282,6 +289,10 @@ function LoadedComposerForm({
   const draftIdRef = useRef<string | null>(content.draftId)
   /** Previous versions a save failed to destroy: the next one tries again */
   const leftoversRef = useRef<string[]>(content.leftovers)
+  /** The template "Save as template" replaces, if any */
+  const templateIdRef = useRef(content.templateId)
+  /** The Templates folder a save created, before the folders know it */
+  const createdTemplatesIdRef = useRef<string | null>(null)
   /** A save lost its answer: it may have left a version (`findStrayVersions`) */
   const mayHaveStraysRef = useRef(content.mayHaveStrays)
   /** The draft was created by this composer: "Discard" may destroy it */
@@ -550,7 +561,8 @@ function LoadedComposerForm({
       draftSession: content.draftSession,
       mayHaveStrays: mayHaveStraysRef.current,
       options,
-      readReceiptAddress: content.readReceiptAddress
+      readReceiptAddress: content.readReceiptAddress,
+      templateId: templateIdRef.current
     }
   }
 
@@ -669,6 +681,61 @@ function LoadedComposerForm({
           notify({ message: t('composer.draft.saved'), severity: 'success' })
         }
       })
+  }
+
+  /**
+   * "Save as template" (tmail-flutter): the message goes to Templates,
+   * replacing the template it was opened from or last saved as. It is
+   * kept there: the drafts this composer made of it go, and closing it asks
+   * nothing until it changes again.
+   */
+  const handleSaveTemplate = (): void => {
+    setMoreAnchor(null)
+    cancelAutosave()
+    const run = savingRef.current.then(async (): Promise<void> => {
+      const editor = editorRef.current
+      if (!editor) return
+      const previous = templateIdRef.current
+      try {
+        const email = await buildEmail(
+          composed(editor),
+          images,
+          mailboxIds,
+          'template'
+        )
+        const result = await saveTemplate(
+          client,
+          accountId,
+          email,
+          templatesId ?? createdTemplatesIdRef.current,
+          previous,
+          images
+        )
+        createdTemplatesIdRef.current = result.mailboxId
+        templateIdRef.current = result.emailId
+        files.rebase(result.attachments)
+        savedRef.current = fingerprintOf(editor)
+        setSaveState('idle')
+        if (createdHereRef.current) {
+          createdHereRef.current = false
+          await destroyDraft().catch((error: unknown) => {
+            console.warn('Drafts of a template not destroyed', error)
+          })
+        }
+        notify({
+          message: t(
+            previous === null
+              ? 'composer.template.saved'
+              : 'composer.template.updated'
+          ),
+          severity: 'success'
+        })
+      } catch (error: unknown) {
+        console.error(error)
+        notify({ message: t('composer.template.failed'), severity: 'error' })
+      }
+    })
+    savingRef.current = run
   }
 
   const handleDeleteDraft = (): void => {
@@ -1060,6 +1127,12 @@ function LoadedComposerForm({
             >
               <ListItemText inset primary={t('composer.saveAsDraft')} />
             </MenuItem>
+            <MenuItem
+              onClick={handleSaveTemplate}
+              data-testid="composer-save-template-item"
+            >
+              <ListItemText inset primary={t('composer.template.save')} />
+            </MenuItem>
             {(
               [
                 [
@@ -1136,6 +1209,16 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       if (init.draftId !== undefined) {
         return loadDraftContent(client, accountId, init.draftId, list, images)
       }
+      if (init.templateId !== undefined) {
+        return loadDraftContent(
+          client,
+          accountId,
+          init.templateId,
+          list,
+          images,
+          { isTemplate: true }
+        )
+      }
       if (init.reply !== undefined) {
         return loadReplyContent(
           client,
@@ -1190,6 +1273,7 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       content={content.data}
       identities={identities.data}
       mailboxIds={{ drafts: drafts.id, sent: sent?.id ?? null }}
+      templatesId={findTemplatesMailboxId(mailboxes.data ?? [])}
       images={images}
     />
   )

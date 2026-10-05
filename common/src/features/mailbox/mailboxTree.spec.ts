@@ -1,6 +1,8 @@
 import { makeMailbox } from '@common/testing/fakeJmapServer'
 
 import {
+  findTemplatesMailboxId,
+  isTemplatesMailbox,
   buildMailboxSections,
   buildMailboxTree,
   findAncestorIds,
@@ -177,5 +179,32 @@ describe('findDescendantIds', () => {
     ]
 
     expect(findDescendantIds(mailboxes, 'a')).toEqual(['c', 'b', 'd'])
+  })
+})
+
+describe('isTemplatesMailbox', () => {
+  it('knows the Templates folder by its role, or by the name tmail-flutter gives it', () => {
+    expect(
+      isTemplatesMailbox(makeMailbox({ id: 't', name: 'x', role: 'templates' }))
+    ).toBe(true)
+    expect(
+      isTemplatesMailbox(makeMailbox({ id: 't', name: 'TEMPLATES' }))
+    ).toBe(true)
+    expect(
+      isTemplatesMailbox(
+        makeMailbox({ id: 't', name: 'Templates', parentId: 'work' })
+      )
+    ).toBe(false)
+    expect(
+      isTemplatesMailbox(
+        makeMailbox({ id: 't', name: 'Templates', namespace: 'Delegated' })
+      )
+    ).toBe(false)
+    expect(
+      findTemplatesMailboxId([
+        makeMailbox({ id: 'a', name: 'Inbox', role: 'inbox' }),
+        makeMailbox({ id: 'b', name: 'Templates' })
+      ])
+    ).toBe('b')
   })
 })

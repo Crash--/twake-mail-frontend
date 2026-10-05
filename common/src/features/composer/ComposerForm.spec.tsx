@@ -7,7 +7,9 @@ import {
   makeBodyPart,
   makeEmailWithBody,
   makeFakeJmapServer,
+  makeDefaultMailboxes,
   makeIdentity,
+  makeMailbox,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import {
@@ -39,6 +41,14 @@ function Opener(): ReactElement {
         }}
       >
         Open draft
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          openComposer({ templateId: 'template-1' })
+        }}
+      >
+        Open template
       </button>
       {(['reply', 'replyAll', 'forward'] as const).map(action => (
         <button
@@ -635,6 +645,116 @@ describe('ComposerForm', () => {
           null
         )
       })
+    })
+  })
+
+  describe('templates', () => {
+    function templatesOf(server: FakeJmapServer): typeof server.emails {
+      const folder = server.mailboxes.find(
+        mailbox => mailbox.name === 'Templates'
+      )
+      return server.emails.filter(
+        email => folder !== undefined && folder.id in email.mailboxIds
+      )
+    }
+
+    async function saveAsTemplate(composer: HTMLElement): Promise<void> {
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'More' })
+      )
+      await userEvent.click(
+        screen.getByRole('menuitem', { name: 'Save as template' })
+      )
+    }
+
+    it('saves a message as a template, in a Templates folder made for it, then updates it', async () => {
+      const jmapServer = makeFakeJmapServer()
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await fill(composer, { subject: 'test subject' })
+
+      await saveAsTemplate(composer)
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Save message to template folder successfully'
+      )
+      expect(templatesOf(jmapServer)).toEqual([
+        expect.objectContaining({
+          subject: 'test subject',
+          keywords: { $seen: true }
+        })
+      ])
+      const [first] = templatesOf(jmapServer)
+
+      await userEvent.type(
+        within(composer).getByRole('textbox', { name: 'Subject' }),
+        ' updated'
+      )
+      await saveAsTemplate(composer)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('toast')).toHaveTextContent(
+          'Update message to template folder successfully'
+        )
+      })
+      await waitFor(() => {
+        expect(templatesOf(jmapServer).map(email => email.subject)).toEqual([
+          'test subject updated'
+        ])
+      })
+      expect(templatesOf(jmapServer)[0]?.id).not.toBe(first?.id)
+      expect(
+        jmapServer.mailboxes.filter(mailbox => mailbox.name === 'Templates')
+      ).toHaveLength(1)
+      // Kept as a template: no draft left, closing asks nothing
+      expect(draftsOf(jmapServer)).toEqual([])
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Save & close' })
+      )
+      await waitFor(() => {
+        expect(screen.queryByTestId('composer')).toBe(null)
+      })
+      expect(draftsOf(jmapServer)).toEqual([])
+    })
+
+    it('opens a template as a new message that saving as template updates', async () => {
+      const templates = makeMailbox({
+        id: 'mailbox-templates',
+        name: 'Templates'
+      })
+      const jmapServer = makeFakeJmapServer({
+        mailboxes: [...makeDefaultMailboxes(), templates],
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'template-1',
+              mailboxIds: { 'mailbox-templates': true },
+              keywords: { $seen: true },
+              subject: 'Weekly report',
+              to: [{ name: null, email: 'team@example.com' }]
+            },
+            { html: '<div>Done this week:</div>' }
+          )
+        ]
+      })
+      renderComposer(jmapServer)
+      const composer = await openComposer('Open template')
+
+      expect(
+        within(composer).getByRole('textbox', { name: 'Subject' })
+      ).toHaveValue('Weekly report')
+      expect(
+        within(composer).getByRole('textbox', { name: 'Message body' })
+      ).toHaveTextContent('Done this week:')
+      await saveAsTemplate(composer)
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Update message to template folder successfully'
+      )
+      await waitFor(() => {
+        expect(templatesOf(jmapServer)).toHaveLength(1)
+      })
+      expect(templatesOf(jmapServer)[0]?.id).not.toBe('template-1')
     })
   })
 

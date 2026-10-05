@@ -1311,6 +1311,7 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
           accountId,
           init.reply,
           list,
+          mailboxes.data ?? [],
           images,
           {
             quote,
@@ -1330,7 +1331,11 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       }
       return newMessageContent(list, options)
     },
-    enabled: identities.data !== undefined && serverSettings.isSettled,
+    // The folders tell the team mailbox an answered email is in
+    enabled:
+      identities.data !== undefined &&
+      mailboxes.data !== undefined &&
+      serverSettings.isSettled,
     staleTime: Infinity,
     gcTime: 0,
     refetchOnWindowFocus: false,

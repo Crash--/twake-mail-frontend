@@ -788,6 +788,93 @@ describe('ComposerForm', () => {
       })
     }
 
+    function serverWithAlias(): FakeJmapServer {
+      const jmapServer = serverWithSource()
+      jmapServer.identities.push(
+        makeIdentity({
+          id: 'identity-sales',
+          name: 'Sales',
+          email: 'sales@example.com',
+          mayDelete: true,
+          textSignature: 'The sales team',
+          bcc: [{ name: null, email: 'crm@example.com' }]
+        })
+      )
+      // Sent to the alias (not to the address of the account), Bob in To
+      const source = jmapServer.emails[0]
+      if (source) {
+        source.to = [{ name: null, email: 'bob@example.com' }]
+        source.cc = [{ name: null, email: 'SALES@example.com' }]
+      }
+      return jmapServer
+    }
+
+    it.each(['reply', 'replyAll', 'forward'])(
+      'answers (%s) from the alias the email was sent to, with its signature',
+      async action => {
+        renderComposer(serverWithAlias())
+
+        const composer = await openComposer(`Answer ${action}`)
+
+        expect(
+          within(composer).getByTestId('composer-identity-select')
+        ).toHaveTextContent('Sales')
+        expect(
+          within(composer).getByRole('textbox', { name: 'Message body' })
+        ).toHaveTextContent('The sales team')
+      }
+    )
+
+    it('sends the answer from the alias, with its Bcc', async () => {
+      const jmapServer = serverWithAlias()
+      renderComposer(jmapServer)
+      const composer = await openComposer('Answer reply')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      const sent = jmapServer.emails.find(
+        email => email.id === jmapServer.submitted[0]
+      )
+      expect(sent?.bcc).toEqual([{ name: null, email: 'crm@example.com' }])
+      expect(sent?.from?.[0]?.email).toBe('sales@example.com')
+    })
+
+    it('answers an email of a team mailbox from its identity', async () => {
+      const jmapServer = serverWithSource()
+      const namespace = 'TeamMailbox[team@example.com]'
+      jmapServer.mailboxes.push(
+        makeMailbox({ id: 'team', name: 'team', namespace }),
+        makeMailbox({
+          id: 'team-inbox',
+          name: 'INBOX',
+          parentId: 'team',
+          namespace
+        })
+      )
+      jmapServer.identities.push(
+        makeIdentity({
+          id: 'identity-team',
+          name: 'Team',
+          email: 'team@example.com',
+          mayDelete: true
+        })
+      )
+      const source = jmapServer.emails[0]
+      if (source) source.mailboxIds = { 'team-inbox': true }
+      renderComposer(jmapServer)
+
+      const composer = await openComposer('Answer reply')
+
+      expect(
+        within(composer).getByTestId('composer-identity-select')
+      ).toHaveTextContent('Team')
+    })
+
     it('replies to the sender with the quote, and marks the email answered once sent', async () => {
       const jmapServer = serverWithSource()
       renderComposer(jmapServer)

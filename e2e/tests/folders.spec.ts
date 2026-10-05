@@ -90,6 +90,45 @@ test.describe('MBX folders', () => {
     await expectNoA11yViolations(page)
   })
 
+  test('MBX-06b Starred follows the whole Inbox subtree, in the DOM and with the keyboard', { tag: '@mobile' }, async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const inbox = await jmap.findMailboxByRole('inbox')
+    await jmap.createMailbox({ name: 'Newsletters', parentId: inbox.id })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.toggleFolder({ role: 'inbox' })
+    await expect(mailbox.folder({ name: 'Newsletters' })).toHaveAttribute('aria-level', '2')
+
+    const rows = mailbox.folderTree.getByTestId('mailbox-item')
+    const names = rows.getByTestId('mailbox-item-name')
+    await expect(names).toHaveText(['Inbox', 'Newsletters', 'Starred', 'Drafts', 'Outbox', 'Sent', 'Trash', 'Spam', 'Archive'])
+    await expect(rows.evaluateAll(items => items.map(item => item.getAttribute('aria-level')))).resolves.toEqual([
+      '1', '2', '1', '1', '1', '1', '1', '1', '1'
+    ])
+    const starred = mailbox.folder({ name: 'Starred' })
+    await expect(starred).toHaveAttribute('aria-posinset', '2')
+    await expect(starred).toHaveAttribute('aria-setsize', '8')
+    await expect(mailbox.folder({ name: 'Drafts' })).toHaveAttribute('aria-posinset', '3')
+
+    // Tab goes Inbox, then its subfolder, then Starred, then Drafts
+    await mailbox.folder({ role: 'inbox' }).getByRole('link').focus()
+    const visited: string[] = []
+    for (let step = 0; step < 12 && !visited.includes('Drafts'); step++) {
+      await page.keyboard.press('Tab')
+      const name = await page.evaluate(
+        () =>
+          document.activeElement
+            ?.closest('[data-testid="mailbox-item"]')
+            ?.querySelector('[data-testid="mailbox-item-name"]')?.textContent ?? null
+      )
+      if (name !== null && visited.at(-1) !== name) visited.push(name)
+    }
+    expect(visited).toEqual(['Inbox', 'Newsletters', 'Starred', 'Drafts'])
+  })
+
   test('MBX-07 (receiving part) a team mailbox is listed apart, its emails under its INBOX', async ({
     page,
     user,

@@ -228,7 +228,14 @@
       "saved": "Đã lưu bản nháp",
       "saveFailed": "Lưu bản nháp thất bại.\nCó lỗi trong quá trình lưu bản nháp.",
       "tooLarge": "Không thể lưu tin nhắn của bạn vào mục nháp, vì nó quá lớn.",
-      "overQuota": "Không thể lưu tin nhắn của bạn dưới dạng bản nháp vì nó vượt quá giới hạn dung lượng."
+      "overQuota": "Không thể lưu tin nhắn của bạn dưới dạng bản nháp vì nó vượt quá giới hạn dung lượng.",
+      "discard": "Huỷ bỏ",
+      "saving": "Đang lưu…",
+      "autosaved": "Đã lưu bản nháp",
+      "notSaved": "Chưa lưu bản nháp",
+      "delete": "Xóa bản nháp",
+      "deleted": "Đã xóa bản nháp",
+      "lockedElsewhere": "Bản nháp này đang được mở trong một cửa sổ khác"
     },
     "newMessage": "Tin nhắn mới",
     "more": "Tiếp",
@@ -241,7 +248,41 @@
       "summary": "Hiện tất cả người nhận:",
       "others": "+%{smart_count}"
     },
-    "limit": "Bạn có thể soạn %{smart_count} thư cùng lúc. Hãy đóng một thư để bắt đầu thư khác."
+    "limit": "Bạn có thể soạn %{smart_count} thư cùng lúc. Hãy đóng một thư để bắt đầu thư khác.",
+    "sent": "Tin nhắn đã được gửi",
+    "sending": "Đang gửi thư",
+    "sendChecks": {
+      "failedTitle": "Gửi tin nhắn thất bại",
+      "noRecipient": "Email của bạn nên có ít nhất một người nhận",
+      "addRecipients": "Thêm người nhận",
+      "invalid": "Sửa lại địa chỉ email không hợp lệ và tiếp tục",
+      "fixAddresses": "Sửa địa chỉ email không hợp lệ",
+      "emptySubjectTitle": "Tiêu đề rỗng",
+      "emptySubject": "Bạn có chắc chắn sẽ gửi tin nhắn không có tiêu đề?",
+      "sendAnyway": "Tiếp tục gửi",
+      "uploading": "Không thể gửi tin nhắn khi đính kèm đang được tải lên"
+    },
+    "gotIt": "Xác nhận",
+    "sendErrors": {
+      "tooLarge": "Không thể gửi tin nhắn của bạn, vì nó quá lớn.",
+      "overQuota": "Không thể gửi tin nhắn của bạn, vì vượt quá giới hạn dung lượng.",
+      "invalidRecipients": "Không thể gửi thư của bạn vì những người nhận sau không hợp lệ: %{invalidRecipients}",
+      "generic": "Gửi thư không thành công.\nCó lỗi trong quá trình gửi thư.",
+      "forbiddenFrom": "Không thể gửi thư vì bạn không được phép gửi từ địa chỉ này."
+    },
+    "attachments": {
+      "tooLargeTitle": "Làm rỗng thư mục rác",
+      "tooLarge": "Dung lượng bị giới hạn. Các tệp tải lên phải có dung lượng nhỏ hơn %{maxSize}",
+      "attach": "Đính kèm",
+      "dropHere": "Thả tệp đính kèm",
+      "list": "Tệp đính kèm (%{smart_count})",
+      "remove": "Gỡ %{name}",
+      "progress": "Đang tải lên %{name}",
+      "failed": "Tải lên thất bại",
+      "uploaded": "Đã đính kèm %{name}",
+      "uploadFailed": "Không thể đính kèm %{name}",
+      "removed": "Đã gỡ %{name}"
+    }
   },
   "layout": {
     "navigation": "Điều hướng"

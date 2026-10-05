@@ -228,7 +228,14 @@
       "saved": "Brouillon enregistré",
       "saveFailed": "L'enregistrement du message dans le dossier Brouillons a échoué.\nUne erreur s'est produite lors de l'enregistrement du message.",
       "tooLarge": "Échec de l'enregistrement de votre message en tant que brouillon, car il est trop volumineux.",
-      "overQuota": "Échec de l'enregistrement de votre message en tant que brouillon, car votre quota est dépassé."
+      "overQuota": "Échec de l'enregistrement de votre message en tant que brouillon, car votre quota est dépassé.",
+      "discard": "Rejeter",
+      "saving": "Enregistrement…",
+      "autosaved": "Brouillon enregistré",
+      "notSaved": "Brouillon non enregistré",
+      "delete": "Supprimer le brouillon",
+      "deleted": "Brouillon supprimé",
+      "lockedElsewhere": "Ce brouillon est déjà ouvert dans une autre fenêtre"
     },
     "newMessage": "Nouveau message",
     "more": "Plus",
@@ -241,7 +248,41 @@
       "summary": "Afficher tous les destinataires :",
       "others": "+%{smart_count}"
     },
-    "limit": "Vous pouvez écrire %{smart_count} messages à la fois. Fermez-en un pour en commencer un autre."
+    "limit": "Vous pouvez écrire %{smart_count} messages à la fois. Fermez-en un pour en commencer un autre.",
+    "sent": "Le message a bien été envoyé",
+    "sending": "Envoi du message",
+    "sendChecks": {
+      "failedTitle": "Échec de l'envoi",
+      "noRecipient": "Votre message devrait avoir au moins un destinataire",
+      "addRecipients": "Ajouter des destinataires",
+      "invalid": "Vérifiez les adresses e-mails et réessayez",
+      "fixAddresses": "Corriger les adresses e-mails",
+      "emptySubjectTitle": "Sujet vide",
+      "emptySubject": "Voulez-vous vraiment envoyer des messages sans sujet ?",
+      "sendAnyway": "Envoyer quand même",
+      "uploading": "Votre message n'a pas pu être envoyé car une pièce jointe est en cours de téléversement"
+    },
+    "gotIt": "Compris",
+    "sendErrors": {
+      "tooLarge": "Échec de l'envoi de votre message, car il est trop volumineux.",
+      "overQuota": "Échec de l'envoi de votre message, car vous dépassez votre quota.",
+      "invalidRecipients": "Échec de l'envoi de votre message, car ces destinataires sont invalides : %{invalidRecipients}",
+      "generic": "L'envoi du message a échoué.\nUne erreur s'est produite lors de l'envoi du message.",
+      "forbiddenFrom": "Échec de l'envoi de votre message, car vous ne pouvez pas envoyer depuis cette adresse."
+    },
+    "attachments": {
+      "tooLargeTitle": "Taille maximale des fichiers",
+      "tooLarge": "Vous avez atteint la taille maximale pour un fichier. Veuillez téléverser des fichiers dont la taille totale est inférieure à %{maxSize}",
+      "attach": "Joindre un fichier",
+      "dropHere": "Déposez le fichier ici pour le joindre",
+      "list": "Pièces jointes (%{smart_count})",
+      "remove": "Retirer %{name}",
+      "progress": "Envoi de %{name}",
+      "failed": "Échec de l'envoi",
+      "uploaded": "%{name} joint",
+      "uploadFailed": "%{name} n'a pas pu être joint",
+      "removed": "%{name} retiré"
+    }
   },
   "layout": {
     "navigation": "Navigation"

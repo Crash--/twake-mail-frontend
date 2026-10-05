@@ -228,7 +228,14 @@
       "saved": "Draft saved",
       "saveFailed": "Saving of the message to drafts folder failed.\nAn error occurred while saving mail.",
       "tooLarge": "Failure to save your message as drafts, because it is too large.",
-      "overQuota": "Failure to save your message as drafts, because it is over quota."
+      "overQuota": "Failure to save your message as drafts, because it is over quota.",
+      "discard": "Discard",
+      "saving": "Saving…",
+      "autosaved": "Draft saved",
+      "notSaved": "Draft not saved",
+      "delete": "Delete draft",
+      "deleted": "Draft deleted",
+      "lockedElsewhere": "This draft is already open in another window"
     },
     "newMessage": "New message",
     "more": "More",
@@ -241,7 +248,41 @@
       "summary": "Show all the recipients:",
       "others": "+%{smart_count}"
     },
-    "limit": "You can write %{smart_count} messages at once. Close one to start another."
+    "limit": "You can write %{smart_count} messages at once. Close one to start another.",
+    "sent": "Message has been sent successfully",
+    "sending": "Sending message",
+    "sendChecks": {
+      "failedTitle": "Sending failed",
+      "noRecipient": "Your email should have at least one recipient",
+      "addRecipients": "Add recipients",
+      "invalid": "Check the correctness of email addresses and try again",
+      "fixAddresses": "Fix email addresses",
+      "emptySubjectTitle": "Empty subject",
+      "emptySubject": "Are you sure to send messages without a subject?",
+      "sendAnyway": "Send anyway",
+      "uploading": "Your message could not be sent because it uploading attachment"
+    },
+    "gotIt": "Got it",
+    "sendErrors": {
+      "tooLarge": "Failure to send your message, because it is too large.",
+      "overQuota": "Failure to send your message, because it is over quota.",
+      "invalidRecipients": "Failure to send your message, because these recipients are invalid: %{invalidRecipients}",
+      "generic": "Sending of the message failed.\nAn error occurred while sending mail.",
+      "forbiddenFrom": "Failure to send your message, because you may not send from this address."
+    },
+    "attachments": {
+      "tooLargeTitle": "Maximum files size",
+      "tooLarge": "You have reached the maximum file size. Please upload files that total size is less than %{maxSize}",
+      "attach": "Attach file",
+      "dropHere": "Drop file here to attach them",
+      "list": "Attachments (%{smart_count})",
+      "remove": "Remove %{name}",
+      "progress": "Uploading %{name}",
+      "failed": "Upload failed",
+      "uploaded": "%{name} attached",
+      "uploadFailed": "%{name} could not be attached",
+      "removed": "%{name} removed"
+    }
   },
   "layout": {
     "navigation": "Navigation"

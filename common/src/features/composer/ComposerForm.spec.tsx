@@ -1,0 +1,415 @@
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import type { ReactElement } from 'react'
+
+import {
+  FAKE_ACCOUNT_ID,
+  makeEmailWithBody,
+  makeFakeJmapServer,
+  makeIdentity,
+  type FakeJmapServer
+} from '@common/testing/fakeJmapServer'
+import {
+  installFakeUploads,
+  type FakeUploads
+} from '@common/testing/fakeUploads'
+import { renderWithProviders } from '@common/testing/renderWithProviders'
+
+import { readSnapshot, type ComposerSnapshot } from './composerContent'
+import { registryKey, snapshotKey, writeStorage } from './composerStorage'
+import { ComposerProvider, useComposer } from './ComposerProvider'
+
+function Opener(): ReactElement {
+  const { openComposer } = useComposer()
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          openComposer()
+        }}
+      >
+        Compose
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          openComposer({ draftId: 'draft-1' })
+        }}
+      >
+        Open draft
+      </button>
+    </>
+  )
+}
+
+function renderComposer(
+  jmapServer: FakeJmapServer = makeFakeJmapServer()
+): ReturnType<typeof renderWithProviders> {
+  return renderWithProviders(
+    <ComposerProvider>
+      <Opener />
+    </ComposerProvider>,
+    { jmapServer, withJmapSession: true }
+  )
+}
+
+async function openComposer(name = 'Compose'): Promise<HTMLElement> {
+  await userEvent.click(await screen.findByRole('button', { name }))
+  const editor = await screen.findByRole('textbox', { name: 'Message body' })
+  const composer = editor.closest('[role="dialog"]')
+  if (!(composer instanceof HTMLElement)) throw new Error('No composer')
+  return composer
+}
+
+async function fill(
+  composer: HTMLElement,
+  { to, subject }: { to?: string; subject?: string }
+): Promise<void> {
+  if (to !== undefined) {
+    await userEvent.type(
+      within(composer).getByRole('combobox', { name: 'To' }),
+      `${to},`
+    )
+  }
+  if (subject !== undefined) {
+    await userEvent.type(
+      within(composer).getByRole('textbox', { name: 'Subject' }),
+      subject
+    )
+  }
+}
+
+function draftsOf(server: FakeJmapServer): typeof server.emails {
+  return server.emails.filter(email => 'mailbox-drafts' in email.mailboxIds)
+}
+
+describe('ComposerForm', () => {
+  let uploads: FakeUploads | null = null
+
+  afterEach(() => {
+    uploads?.restore()
+    uploads = null
+    sessionStorage.clear()
+  })
+
+  describe('sending', () => {
+    it('sends the message, which lands in Sent, seen', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Hello' })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      expect(screen.queryByRole('dialog', { name: 'Hello' })).toBe(null)
+      expect(jmapServer.submitted).toHaveLength(1)
+      const sent = jmapServer.emails.find(
+        email => email.id === jmapServer.submitted[0]
+      )
+      expect(sent?.mailboxIds).toEqual({ 'mailbox-sent': true })
+      expect(sent?.keywords).toEqual({ $seen: true })
+      expect(sent?.to).toEqual([{ name: null, email: 'bob@example.com' }])
+    })
+
+    it('asks for a recipient first', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { subject: 'Nobody' })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      const alert = await screen.findByRole('dialog', {
+        name: 'Sending failed'
+      })
+      expect(alert).toHaveTextContent(
+        'Your email should have at least one recipient'
+      )
+      await userEvent.click(
+        within(alert).getByRole('button', { name: 'Add recipients' })
+      )
+      expect(jmapServer.submitted).toEqual([])
+    })
+
+    it('refuses an invalid address', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'wrong', subject: 'Invalid' })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      expect(
+        await screen.findByText(
+          'Check the correctness of email addresses and try again'
+        )
+      ).toBeVisible()
+      expect(jmapServer.submitted).toEqual([])
+    })
+
+    it('asks before sending without a subject', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com' })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Empty subject'
+      })
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Send anyway' })
+      )
+
+      await waitFor(() => {
+        expect(jmapServer.submitted).toHaveLength(1)
+      })
+    })
+
+    it('says why the server refused it, the message kept as a draft', async () => {
+      const jmapServer = makeFakeJmapServer()
+      jmapServer.setErrors.set('submission', 'forbiddenMailFrom')
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Refused' })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      expect(await within(composer).findByRole('alert')).toHaveTextContent(
+        'Failure to send your message, because you may not send from this address.'
+      )
+      expect(screen.getByRole('dialog', { name: 'Refused' })).toBeVisible()
+      expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
+        'Refused'
+      ])
+    })
+  })
+
+  describe('drafts', () => {
+    it('saves the draft once the typing stops, and closes without asking', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Autosaved' })
+
+      await waitFor(
+        () => {
+          expect(
+            within(composer).getByTestId('composer-save-status')
+          ).toHaveTextContent('Draft saved')
+        },
+        { timeout: 4000 }
+      )
+      expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
+        'Autosaved'
+      ])
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Save & close' })
+      )
+      const toast = await screen.findByTestId('toast')
+      expect(toast).toHaveTextContent('Draft saved')
+      expect(screen.queryByRole('dialog', { name: 'Save message' })).toBe(null)
+
+      // The draft made here can go at once
+      await userEvent.click(
+        within(toast).getByRole('button', { name: 'Discard' })
+      )
+      await waitFor(() => {
+        expect(draftsOf(jmapServer)).toEqual([])
+      })
+    })
+
+    it('reopens a draft with its fields and its identity, in one composer', async () => {
+      const jmapServer = makeFakeJmapServer({
+        identities: [
+          makeIdentity({ id: 'identity-alice', mayDelete: false }),
+          makeIdentity({ id: 'identity-work', name: 'Work', mayDelete: true })
+        ],
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'draft-1',
+              mailboxIds: { 'mailbox-drafts': true },
+              keywords: { $draft: true, $seen: true },
+              subject: 'Reopened',
+              to: [{ name: 'Bob', email: 'bob@example.com' }],
+              cc: [{ name: null, email: 'carol@example.com' }],
+              headers: { 'X-JMAP-Identity': 'identity-work' }
+            },
+            { html: '<div>Draft body</div>' }
+          )
+        ]
+      })
+      renderComposer(jmapServer)
+      const composer = await openComposer('Open draft')
+
+      expect(
+        within(composer).getByRole('textbox', { name: 'Subject' })
+      ).toHaveValue('Reopened')
+      expect(
+        within(composer).getByRole('combobox', { name: 'Cc' })
+      ).toBeVisible()
+      expect(
+        within(composer).queryByRole('combobox', { name: 'Reply to' })
+      ).toBe(null)
+      expect(
+        within(composer).getByTestId('composer-identity-select')
+      ).toHaveTextContent('Work')
+      expect(
+        within(composer).getByRole('textbox', { name: 'Message body' })
+      ).toHaveTextContent('Draft body')
+
+      // Opening it again shows the same composer
+      await userEvent.click(screen.getByRole('button', { name: 'Open draft' }))
+      expect(screen.getAllByRole('dialog', { name: 'Reopened' })).toHaveLength(
+        1
+      )
+    })
+
+    it('comes back after a reload, until closed', async () => {
+      const snapshot: ComposerSnapshot = {
+        identityId: 'identity-alice',
+        recipients: {
+          to: [{ name: null, email: 'bob@example.com' }],
+          cc: [],
+          bcc: [],
+          replyTo: []
+        },
+        shown: [],
+        subject: 'Before the reload',
+        html: '<p>Kept text</p>',
+        images: [],
+        attachments: [],
+        draftId: null,
+        savedFingerprint: null
+      }
+      writeStorage(registryKey(FAKE_ACCOUNT_ID), [
+        {
+          id: 'composer-1',
+          init: {},
+          mode: 'normal',
+          title: 'Before the reload'
+        }
+      ])
+      writeStorage(snapshotKey(FAKE_ACCOUNT_ID, 'composer-1'), snapshot)
+      renderComposer()
+
+      const composer = await screen.findByRole('dialog', {
+        name: 'Before the reload'
+      })
+      expect(
+        await within(composer).findByRole('textbox', { name: 'Message body' })
+      ).toHaveTextContent('Kept text')
+      expect(
+        within(composer)
+          .getAllByTestId('recipient-chip')
+          .map(chip => chip.textContent)
+      ).toEqual(['bob@example.com'])
+
+      // Unchanged since the reload: it closes at once
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Save & close' })
+      )
+      await waitFor(() => {
+        expect(readSnapshot(snapshotKey(FAKE_ACCOUNT_ID, 'composer-1'))).toBe(
+          null
+        )
+      })
+    })
+  })
+
+  describe('attachments', () => {
+    it('uploads the files picked, which go with the draft, and removes them', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        new File(['report'], 'report.pdf', { type: 'application/pdf' })
+      )
+
+      const list = await within(composer).findByRole('list', {
+        name: 'Attachments (1)'
+      })
+      await waitFor(() => {
+        expect(
+          within(list).getByTestId('composer-attachment-item')
+        ).toHaveAttribute('data-status', 'done')
+      })
+      await userEvent.click(
+        within(composer).getByTestId('composer-more-button')
+      )
+      await userEvent.click(
+        await screen.findByRole('menuitem', { name: 'Save as draft' })
+      )
+      await waitFor(() => {
+        expect(draftsOf(jmapServer)[0]?.attachments).toEqual([
+          expect.objectContaining({
+            name: 'report.pdf',
+            disposition: 'attachment'
+          })
+        ])
+      })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Remove report.pdf' })
+      )
+      expect(
+        within(composer).queryByRole('list', { name: /Attachments/ })
+      ).toBe(null)
+    })
+
+    it('cancels an upload removed while it runs', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      uploads.hold()
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        new File(['big'], 'big.zip', { type: 'application/zip' })
+      )
+      expect(
+        await within(composer).findByRole('progressbar', {
+          name: 'Uploading big.zip'
+        })
+      ).toBeInTheDocument()
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Remove big.zip' })
+      )
+
+      expect(uploads.held[0]?.isAborted()).toBe(true)
+    })
+
+    it('refuses a file above the size limit of the server', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        new File([new Uint8Array(20_000_001)], 'huge.bin')
+      )
+
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Maximum files size'
+      })
+      expect(dialog).toHaveTextContent('20 MB')
+      expect(uploads.received).toEqual([])
+    })
+  })
+})

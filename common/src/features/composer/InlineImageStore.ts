@@ -205,6 +205,13 @@ export class InlineImageStore {
     })
   }
 
+  /** Bytes of the images held, which count in the size of the message */
+  totalSize(): number {
+    let total = 0
+    for (const image of this.#images.values()) total += image.size
+    return total
+  }
+
   dispose(): void {
     for (const image of this.#images.values()) {
       if (image.url) URL.revokeObjectURL(image.url)

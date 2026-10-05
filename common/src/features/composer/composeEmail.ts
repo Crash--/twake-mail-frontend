@@ -111,6 +111,12 @@ export async function buildEmail(
 
 export interface SaveResult {
   emailId: string
+  /** The files of the saved version, which now live in its own parts */
+  attachments: {
+    blobId: string | null
+    name: string | null
+    disposition: string | null
+  }[]
   /** Size of the JSON request, for the network cost of autosave */
   requestBytes: number
 }
@@ -168,9 +174,15 @@ export async function saveDraft(
       notDestroyed: {}
     })
   }
-  images.rebase(saved.list[0]?.attachments ?? [])
+  const parts = saved.list[0]?.attachments ?? []
+  images.rebase(parts)
   return {
     emailId: created.id,
+    attachments: parts.map(({ blobId, name, disposition }) => ({
+      blobId,
+      name,
+      disposition
+    })),
     requestBytes: new TextEncoder().encode(JSON.stringify(email)).length
   }
 }

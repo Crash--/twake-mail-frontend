@@ -102,18 +102,18 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `MBX-10` Same setup as MBX-09, but emptying via the Trash folder context menu ("Empty trash" → "Delete") removes the Trash subfolder from the sidebar, and Trash then shows the empty view with no banner. — `mailbox/clear_trash_subfolders_via_context_menu_test.dart` · tags: `web` `android` `ios`
   - Data: Trash subfolder "Trash subfolder context menu test" created via JMAP. On web the robot opens the menu by hovering the folder and clicking its ⋮ (more-action) button.
   - Spec: `tests/folders.spec.ts`. Passes in CI.
-- [ ] `MBX-11` With an email in Trash, emptying Trash via the banner hides the banner; then "Recover deleted messages" on Trash → "Restore" brings the email back into a "Recovered" folder where it is visible. — `mailbox/empty_and_recover_trash_test.dart` · tags: `ios (default)`
+- [x] `MBX-11` With an email in Trash, emptying Trash via the banner hides the banner; then "Recover deleted messages" on Trash → "Restore" brings the email back into a "Recovered" folder where it is visible. — `mailbox/empty_and_recover_trash_test.dart` · tags: `ios (default)`
   - Spec: `tests/recovery.spec.ts`; the toast's "Open" goes to the "Recovered" folder (role `restored messages`, named `Restored-Messages` by tmail-backend).
   - Web port: "Recover deleted messages" is opened by long-pressing Trash (the banner part is web-native). Web equivalent: Trash folder hover ⋮ / right-click → Recover deleted messages; port it through the folder/row context menu (⋮ on hover, or right-click).
   - Data: needs the server's deleted-messages vault (James) for the restore into "Recovered".
 - [ ] `MBX-12` With an email in Trash (Trash shows no unread badge), long-pressing Trash → "Empty trash" → "Delete" empties it (no badge, no banner when opened); long-press Trash → "Recover deleted messages" → "Restore" puts the email in "Recovered". — `mailbox/long_press_empty_and_recover_trash_test.dart` · tags: `ios (default)`
   - N/A web: long press on the sidebar folder. Web equivalent: Trash context menu → Empty trash is covered by MBX-10; Recover deleted messages is covered by the MBX-11 right-click port.
   - Data: deleted-messages vault (James).
-- [ ] `MBX-13` With an email in Spam, clicking the "Delete all spam emails now" banner and confirming "Delete all" hides the banner; then "Recover deleted messages" on Trash → "Restore" shows the email in "Recovered". — `mailbox/empty_and_recover_spam_test.dart` · tags: `ios (default)`
+- [x] `MBX-13` With an email in Spam, clicking the "Delete all spam emails now" banner and confirming "Delete all" hides the banner; then "Recover deleted messages" on Trash → "Restore" shows the email in "Recovered". — `mailbox/empty_and_recover_spam_test.dart` · tags: `ios (default)`
   - Web port: recovery is opened by long-pressing Trash (the spam banner part is web-native). Web equivalent: Trash hover ⋮ / right-click → Recover deleted messages, covered by the MBX-11 right-click port; the spam banner part should still be ported as-is.
   - Data: email placed in Spam by sending to self with Junk as the "sent" folder; deleted-messages vault.
   - Spec: `tests/actions.spec.ts` for the spam banner part ("MBX-13 (spam banner)"), `tests/recovery.spec.ts` for the whole scenario.
-- [ ] `MBX-14` With an email in Spam (Spam shows no unread badge), long-pressing Spam → "Delete all spam emails" → "Delete all" empties it (no badge, no banner when opened); recovering from Trash then shows the email in "Recovered". — `mailbox/long_press_empty_and_recover_spam_test.dart` · tags: `ios (default)`
+- [x] `MBX-14` With an email in Spam (Spam shows no unread badge), long-pressing Spam → "Delete all spam emails" → "Delete all" empties it (no badge, no banner when opened); recovering from Trash then shows the email in "Recovered". — `mailbox/long_press_empty_and_recover_spam_test.dart` · tags: `ios (default)`
   - Spec: `tests/recovery.spec.ts`, "Delete all spam emails" from the ⋮ menu of Spam.
   - Web port: long press on the sidebar folder. Web equivalent: Spam folder hover ⋮ / right-click → Delete all spam emails; port it through the folder/row context menu (⋮ on hover, or right-click).
   - Data: deleted-messages vault.
@@ -125,7 +125,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `MBX-17` The Inbox unread counter goes up by 1 in real time when a new email arrives, and back down when that email is marked read by another client (JMAP `Email/set`), without any manual refresh. — `mailbox/mailbox_count_real_time_update_test.dart` · tags: `ios (default)`
   - Spec: `tests/mailbox.spec.ts`. Passes in CI.
   - Data: relies on server push (JMAP WebSocket/state change); the "other client" update is a direct JMAP call.
-- [ ] `MBX-18` The used quota shown in the sidebar increases after an email with a .txt attachment is sent to self and the quota is reloaded. — `mailbox/quota_count_test.dart` · tags: `ios (default)`
+- [x] `MBX-18` The used quota shown in the sidebar increases after an email with a .txt attachment is sent to self and the quota is reloaded. — `mailbox/quota_count_test.dart` · tags: `ios (default)`
   - Web port: the sidebar shows the storage used (`quota-indicator`, `data-used`), brought up to date by push; Settings → Storage shows it too.
   - Data: bob quota (200 messages / 50 MB) set by `provisioning.sh`; the test reads the used quota from the controller and triggers `reloadQuota()` programmatically (no UI refresh), so on web reload the page or wait for the push update.
 - [x] `MBX-19` Selecting an email and choosing More → "Move to" → Templates moves it to Templates (visible there); selecting another and clicking "Move to trash" moves it to Trash (visible there). — `mailbox/mailbox_move_email_test.dart` · tags: `ios (default)`

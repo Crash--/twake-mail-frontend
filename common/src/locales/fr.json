@@ -67,6 +67,7 @@
     "download": "Télécharger",
     "attachments": "Pièces jointes",
     "content": "Contenu du message",
+    "showTrimmedContent": "Afficher le contenu masqué",
     "notFound": "Ce message n'existe plus",
     "markAsRead": "Marquer comme lu",
     "markAsUnread": "Marquer comme non lu",

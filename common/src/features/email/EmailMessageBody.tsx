@@ -8,6 +8,7 @@ import {
 } from '@common/features/calendar/CalendarInvitationCard'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { parseMailto } from '@common/features/composer/mailto'
+import { useI18n } from '@common/i18n/useI18n'
 
 import { AttachmentList } from './AttachmentList'
 import { EmailBodyFrame } from './EmailBodyFrame'
@@ -19,6 +20,7 @@ import {
 } from './emailBody'
 import type { EmailDetail } from './queries'
 import { RemoteContentBanner } from './RemoteContentBanner'
+import { foldQuotedHistory } from './quoteToggle'
 import { normalizeCid } from './sanitizeEmailHtml'
 import { useTrustedSender } from './trustedSenders'
 import { useInlineImageUrls } from './useInlineImageUrls'
@@ -42,6 +44,7 @@ export function EmailMessageBody({
   email,
   onRemoteContentShown
 }: EmailMessageBodyProps): ReactElement {
+  const { t } = useI18n()
   const sender = email.from?.[0] ?? null
   const html = useMemo(
     () => joinHtmlValues(email.htmlBody, email.bodyValues),
@@ -54,6 +57,7 @@ export function EmailMessageBody({
   const { openComposer } = useComposer()
   const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
   const allowRemoteContent = isRemoteContentShown || trustedSender.isTrusted
+  const trimmedContentLabel = t('email.showTrimmedContent')
   const body = useMemo(() => {
     if (inlineImages.isLoading) return null
     const rendered = renderBodyParts(email.htmlBody, email.bodyValues, {
@@ -61,8 +65,10 @@ export function EmailMessageBody({
       allowRemoteContent,
       normalizeImageSizes: true
     })
+    // The quoted history of an answer is folded behind "•••"
+    const content = foldQuotedHistory(rendered.html, trimmedContentLabel)
     return {
-      document: buildEmailDocument(rendered.html, { allowRemoteContent }),
+      document: buildEmailDocument(content, { allowRemoteContent }),
       hasBlockedRemoteContent: rendered.blockedRemoteContent > 0
     }
   }, [
@@ -70,7 +76,8 @@ export function EmailMessageBody({
     email.bodyValues,
     inlineImages.isLoading,
     inlineImages.urls,
-    allowRemoteContent
+    allowRemoteContent,
+    trimmedContentLabel
   ])
   // Inline images are shown in the body, not listed as attachments; nor
   // is the nameless calendar part the event card shows

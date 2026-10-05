@@ -51,6 +51,15 @@ body {
 img { max-width: 100%; height: auto; }
 pre, .tmail-plain-text { white-space: pre-wrap; font-family: inherit; margin: 0; }
 blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid #c4c4c4; }
+details.tmail-quoted-history > summary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+  width: 32px; height: 20px; margin: 8px 0 8px 4px; border-radius: 10px;
+  background: #e3e7ee; cursor: pointer; list-style: none;
+}
+details.tmail-quoted-history > summary::-webkit-details-marker { display: none; }
+details.tmail-quoted-history > summary:hover { background: #cdd3dc; }
+details.tmail-quoted-history > summary:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
+details.tmail-quoted-history > summary > span { width: 4px; height: 4px; border-radius: 50%; background: #55687d; }
 `
 
 function escapeHtml(text: string): string {

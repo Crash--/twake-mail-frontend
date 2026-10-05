@@ -131,7 +131,10 @@ export function emailActionItem(id: EmailActionId): EmailActionItem {
  */
 export function availableEmailActions(
   emails: readonly TargetEmail[],
-  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace'> | null,
+  mailbox: Pick<
+    MailboxSummary,
+    'role' | 'name' | 'namespace' | 'parentId'
+  > | null,
   mailboxes: readonly MailboxSummary[],
   { canLabel = false }: { canLabel?: boolean } = {}
 ): EmailActionItem[] {

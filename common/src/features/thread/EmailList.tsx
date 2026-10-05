@@ -37,6 +37,8 @@ import type { TargetEmail } from '@common/features/emailActions/planEmailChanges
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import {
   findMailboxIdByRole,
+  isTeamDrafts,
+  isTeamTemplates,
   isTemplatesMailbox
 } from '@common/features/mailbox/mailboxTree'
 import { useLabels } from '@common/features/labels/queries'
@@ -207,8 +209,11 @@ export function EmailList(props: EmailListProps): ReactElement {
       : (search.title ?? t('search.title'))
   )
   const isTemplates = mailbox !== null && isTemplatesMailbox(mailbox)
+  // The Drafts and Templates of a team mailbox are known by their name
   const showRecipients =
-    isTemplates || (role !== null && RECIPIENT_ROLES.includes(role))
+    isTemplates ||
+    (mailbox !== null && (isTeamDrafts(mailbox) || isTeamTemplates(mailbox))) ||
+    (role !== null && RECIPIENT_ROLES.includes(role))
   // A result of a search opens on the message that matched; the rows of a
   // folder, a label or Starred on the first unread one
   const openState = search?.opensAtMatch === true ? undefined : OPENED_FROM_LIST

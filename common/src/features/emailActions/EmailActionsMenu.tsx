@@ -12,6 +12,7 @@ import type { ReactElement } from 'react'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
 import { REPLY_LABELS } from '@common/features/email/useReplyOptions'
+import { isDraftsMailbox } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
@@ -91,7 +92,9 @@ export function EmailActionsMenu({
     anchor === null || answered === null
       ? []
       : (replies ??
-        (mailbox?.role === 'drafts' ? [] : ['reply', 'replyAll', 'forward']))
+        (mailbox !== null && isDraftsMailbox(mailbox)
+          ? []
+          : ['reply', 'replyAll', 'forward']))
   const items =
     anchor === null
       ? []

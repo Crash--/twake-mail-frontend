@@ -2,7 +2,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
-import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
+import {
+  isDraftsMailbox,
+  isTrashMailbox
+} from '@common/features/mailbox/mailboxTree'
 import {
   mailboxesQueryOptions,
   type MailboxSummary
@@ -15,21 +18,21 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import type { TargetEmail } from './planEmailChanges'
 import { useEmailActions } from './useEmailActions'
 
-/** Folders whose emails are deleted forever rather than moved to Trash */
-const DELETE_FOREVER_ROLES: readonly string[] = ['trash', 'junk', 'drafts']
-
-/** The same folders of a team mailbox, known by name */
-const DELETE_FOREVER_TEAM_NAMES: readonly string[] = ['trash', 'drafts']
+/** Folders whose emails are deleted forever, besides the Trash and Drafts */
+const DELETE_FOREVER_ROLES: readonly string[] = ['junk']
 
 /** Whether deleting from this folder deletes forever (tmail-flutter) */
 export function deletesForever(
-  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace'> | null
+  mailbox: Pick<
+    MailboxSummary,
+    'role' | 'name' | 'namespace' | 'parentId'
+  > | null
 ): boolean {
   if (mailbox === null) return false
-  if (mailbox.role !== null) return DELETE_FOREVER_ROLES.includes(mailbox.role)
   return (
-    !isPersonalMailbox(mailbox) &&
-    DELETE_FOREVER_TEAM_NAMES.includes(mailbox.name.toLowerCase())
+    isTrashMailbox(mailbox) ||
+    isDraftsMailbox(mailbox) ||
+    (mailbox.role !== null && DELETE_FOREVER_ROLES.includes(mailbox.role))
   )
 }
 

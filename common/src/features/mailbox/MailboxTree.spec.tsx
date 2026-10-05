@@ -159,4 +159,63 @@ describe('MailboxTree', () => {
       within(folder('Work')).queryByTestId('mailbox-toggle-slot')
     ).toBeInTheDocument()
   })
+
+  it('puts Starred after the whole subtree of an expanded Inbox', async () => {
+    const jmapServer = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'news', name: 'News', parentId: 'mailbox-inbox' }),
+        makeMailbox({ id: 'tech', name: 'Tech', parentId: 'news' })
+      ]
+    })
+    renderWithProviders(<MailboxTree />, {
+      route: '/mailbox/tech',
+      path: '/mailbox/:mailboxId',
+      withJmapSession: true,
+      jmapServer
+    })
+
+    await screen.findAllByTestId('mailbox-item')
+
+    expect(folderNames()).toEqual([
+      'Inbox',
+      'News',
+      'Tech',
+      'Starred',
+      'Drafts',
+      'Sent',
+      'Trash',
+      'Spam'
+    ])
+    const items = screen.getAllByTestId('mailbox-item')
+    const levels = items.map(item => item.getAttribute('aria-level'))
+    expect(levels).toEqual(['1', '2', '3', '1', '1', '1', '1', '1'])
+    const starred = folder('Starred')
+    expect(starred).toHaveAttribute('aria-level', '1')
+    expect(starred).toHaveAttribute('aria-posinset', '2')
+    expect(starred).toHaveAttribute('aria-setsize', '6')
+    expect(folder('Drafts')).toHaveAttribute('aria-posinset', '3')
+    expect(folder('Drafts')).toHaveAttribute('aria-setsize', '6')
+    expect(folder('News')).toHaveAttribute('aria-posinset', '1')
+    expect(folder('News')).toHaveAttribute('aria-setsize', '1')
+  })
+
+  it('keeps Starred right after a collapsed Inbox', async () => {
+    const jmapServer = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'news', name: 'News', parentId: 'mailbox-inbox' })
+      ]
+    })
+    renderWithProviders(<MailboxTree />, {
+      route: '/mailbox/mailbox-sent',
+      path: '/mailbox/:mailboxId',
+      withJmapSession: true,
+      jmapServer
+    })
+
+    await screen.findAllByTestId('mailbox-item')
+
+    expect(folderNames().slice(0, 3)).toEqual(['Inbox', 'Starred', 'Drafts'])
+  })
 })

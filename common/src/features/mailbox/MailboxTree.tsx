@@ -50,7 +50,7 @@ interface TreeRowsProps {
   hasToggleSlot: boolean
   onToggle: (mailboxId: string, isExpanded: boolean) => void
   onOpenMenu: (mailbox: MailboxSummary, anchor: FolderMenuAnchor) => void
-  /** Puts the Starred virtual folder after the Inbox */
+  /** Puts the Starred virtual folder after the Inbox and its subfolders */
   withStarred?: boolean
 }
 
@@ -66,6 +66,12 @@ function TreeRows({
     row => row.level === 1 && row.mailbox.role === 'inbox'
   )
   const starredAt = withStarred && inbox !== undefined ? inbox.position : null
+  // The Starred folder comes after the whole subtree of the Inbox
+  const inboxIndex = inbox === undefined ? -1 : rows.indexOf(inbox)
+  const nextTopLevel = rows.findIndex(
+    (row, index) => index > inboxIndex && row.level === 1
+  )
+  const starredBefore = nextTopLevel === -1 ? rows.length : nextTopLevel
   // The Starred folder takes a place among the top level folders
   const shift = (row: VisibleMailbox): VisibleMailbox =>
     starredAt === null || row.level !== 1
@@ -75,10 +81,19 @@ function TreeRows({
           position: row.position > starredAt ? row.position + 1 : row.position,
           siblingCount: row.siblingCount + 1
         }
+  const starredItem =
+    inbox !== undefined && starredAt !== null ? (
+      <StarredTreeItem
+        position={starredAt + 1}
+        siblingCount={inbox.siblingCount + 1}
+        hasToggleSlot={hasToggleSlot}
+      />
+    ) : null
   return (
     <>
-      {rows.map(row => (
+      {rows.map((row, index) => (
         <Fragment key={row.mailbox.id}>
+          {index === starredBefore ? starredItem : null}
           <MailboxTreeItem
             row={shift(row)}
             isSelected={row.mailbox.id === selectedId}
@@ -86,15 +101,9 @@ function TreeRows({
             onToggle={onToggle}
             onOpenMenu={onOpenMenu}
           />
-          {row === inbox && starredAt !== null ? (
-            <StarredTreeItem
-              position={starredAt + 1}
-              siblingCount={row.siblingCount + 1}
-              hasToggleSlot={hasToggleSlot}
-            />
-          ) : null}
         </Fragment>
       ))}
+      {starredBefore === rows.length ? starredItem : null}
     </>
   )
 }

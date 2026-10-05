@@ -6,7 +6,8 @@ import {
   Icon,
   Star,
   StarOutline,
-  Trash
+  Trash,
+  WarningCircle
 } from '@linagora/twake-icons'
 import {
   Checkbox,
@@ -25,6 +26,7 @@ import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
+import { isMarkedImportant } from '@common/features/email/importance'
 import {
   DRAFT,
   FLAGGED,
@@ -105,6 +107,11 @@ export interface EmailCellProps {
   openEmailId: string | null
   /** Opens a draft (`$draft`) in the composer instead of reading it */
   onOpenDraft?: (email: EmailListItemData) => void
+  /**
+   * Marks the emails their sender set important (the "Sender-set important
+   * flag" preference of tmail-flutter, on by default)
+   */
+  showImportant?: boolean
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -129,6 +136,7 @@ export function EmailCell({
   onOpenMenu,
   openEmailId,
   onOpenDraft,
+  showImportant = true,
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -145,6 +153,7 @@ export function EmailCell({
   const isUnread = thread?.isUnread ?? !hasKeyword(email, SEEN)
   const isStarred = thread?.isStarred ?? hasKeyword(email, FLAGGED)
   const hasAttachment = thread?.hasAttachment ?? email.hasAttachment
+  const isImportant = showImportant && isMarkedImportant(email)
   const emphasis = isUnread ? 'u-fw-bold' : ''
   // Its participants ("Alice, Bob, Me") rather than the last sender
   const correspondents =
@@ -302,6 +311,15 @@ export function EmailCell({
         {t('search.inMailbox', { name: mailboxNames })}
       </SecondaryText>
     )
+  // Said in the name of the row link: the icon shows it to the eye
+  const importantIcon = isImportant ? (
+    <Icon
+      icon={WarningCircle}
+      aria-hidden="true"
+      className="u-mr-half u-flex-shrink-0"
+      data-testid="important-flag-icon"
+    />
+  ) : null
   const attachmentIcon = hasAttachment ? (
     <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
   ) : null
@@ -347,6 +365,7 @@ export function EmailCell({
       const context = [
         isUnread ? t('email.unread') : null,
         isStarred ? t('email.starred') : null,
+        isImportant ? t('email.important') : null,
         correspondents,
         threadSize === null
           ? null
@@ -359,6 +378,7 @@ export function EmailCell({
           current={email.id === openEmailId}
         >
           <span className="u-visuallyhidden">{`${context.join(', ')}, `}</span>
+          {importantIcon}
           <span className={emphasis} data-testid="email-list-item-subject">
             {subject}
           </span>
@@ -390,7 +410,8 @@ export function EmailCell({
       // Read before the content of the link: what the other cells show
       const states = [
         isUnread ? t('email.unread') : null,
-        isStarred ? t('email.starred') : null
+        isStarred ? t('email.starred') : null,
+        isImportant ? t('email.important') : null
       ].filter(state => state !== null)
       return (
         <RowLink
@@ -420,6 +441,7 @@ export function EmailCell({
             <span className="u-flex-shrink-0 u-ml-half">{date}</span>
           </span>
           <span className="u-flex u-flex-items-center">
+            {importantIcon}
             <Typography component="span" noWrap className="u-db u-flex-auto">
               <span className={emphasis} data-testid="email-list-item-subject">
                 {subject}

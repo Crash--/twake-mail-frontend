@@ -13,6 +13,10 @@ import type {
   SearchSnippet
 } from 'jmap-client-ts'
 
+import {
+  PRIORITY_HEADERS,
+  type PriorityHeaders
+} from '@common/features/email/importance'
 import type {
   InfiniteQueryOptionsFor,
   QueryOptionsFor
@@ -22,8 +26,8 @@ import { settle } from '@common/jmap/settle'
 /** Emails fetched per page of the list */
 export const EMAIL_LIST_PAGE_SIZE = 30
 
-/** The email properties a list row shows */
-export const EMAIL_LIST_PROPERTIES = [
+/** The email properties a list row shows, without its headers */
+export const EMAIL_ROW_PROPERTIES = [
   'id',
   'threadId',
   'mailboxIds',
@@ -36,10 +40,17 @@ export const EMAIL_LIST_PROPERTIES = [
   'hasAttachment'
 ] as const
 
+/** The email properties a list row shows: the fields, the priority headers */
+export const EMAIL_LIST_PROPERTIES = [
+  ...EMAIL_ROW_PROPERTIES,
+  ...PRIORITY_HEADERS
+] as const
+
 export type EmailListItemData = Pick<
   Email,
-  (typeof EMAIL_LIST_PROPERTIES)[number]
->
+  (typeof EMAIL_ROW_PROPERTIES)[number]
+> &
+  PriorityHeaders
 
 /**
  * What a list of conversations knows of every email of a listed thread:
@@ -387,7 +398,7 @@ export function conversationQueryOptions(
 ): QueryOptionsFor<ConversationData, ConversationKey> {
   return queryOptions({
     queryKey: conversationKeys.detail(accountId, threadId),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal }): Promise<ConversationData> => {
       const [, emails] = await client.request(
         builder => {
           const thread = builder.call('Thread/get', {

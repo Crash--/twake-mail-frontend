@@ -14,7 +14,9 @@
     "connectionError": "Connection error",
     "cancel": "Cancel",
     "delete": "Delete",
-    "deleteAll": "Delete all"
+    "deleteAll": "Delete all",
+    "yes": "Yes",
+    "no": "No"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -67,7 +69,17 @@
       "hidden": "Remote images hidden to protect your privacy",
       "show": "Show",
       "alwaysShow": "Always show for this sender"
-    }
+    },
+    "readReceipt": {
+      "title": "Read receipt request",
+      "message": "The sender has requested a Read receipt for this email. Send Read receipt?",
+      "notSupported": "Your account does not support the MDN capability",
+      "noIdentity": "Identity id given cannot be found",
+      "subject": "Read: %{subject}",
+      "body": "Message was read by %{receiver} on %{time} \n\nSubject: %{subject} \n\nNote: This Return Read Receipt only acknowledges that the message was displayed on the recipient's computer. There is no guarantee that the recipient has read or understood the message contents.",
+      "sent": "A read receipt has been sent."
+    },
+    "important": "Important"
   },
   "login": {
     "title": "Sign In",
@@ -275,6 +287,19 @@
     "prefix": {
       "reply": "Re:",
       "forward": "Fwd:"
+    },
+    "options": {
+      "markAsImportant": "Mark as important",
+      "importantEnabled": "Mark as important is enabled",
+      "importantDisabled": "Mark as important is disabled",
+      "readReceipt": "Request read receipt",
+      "readReceiptEnabled": "Request read receipt has been enabled",
+      "readReceiptDisabled": "Request read receipt has been disabled"
+    },
+    "attachmentReminder": {
+      "title": "Forgot to attach a file?",
+      "message": "You wrote %{keyword} in your message but did not add any attachments. Do you still want to send?",
+      "send": "Send message"
     }
   },
   "layout": {

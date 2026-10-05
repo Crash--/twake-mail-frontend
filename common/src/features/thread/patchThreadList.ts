@@ -1,7 +1,7 @@
 import { patchEmailList } from './patchEmailList'
 import {
   byReceivedAt,
-  EMAIL_LIST_PROPERTIES,
+  EMAIL_ROW_PROPERTIES,
   type EmailListData,
   type EmailListItemData,
   type EmailListPage,
@@ -50,7 +50,7 @@ export interface ThreadListPatch {
 }
 
 function isRow(email: ThreadEmailUpdate): email is EmailListItemData {
-  return EMAIL_LIST_PROPERTIES.every(property => email[property] !== undefined)
+  return EMAIL_ROW_PROPERTIES.every(property => email[property] !== undefined)
 }
 
 function toMember(

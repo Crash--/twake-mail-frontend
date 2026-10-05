@@ -15,6 +15,7 @@ import { threadKeys } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import { fetchCurrentStates } from './fetchChanges'
 import { createPushSync, SYNCED_TYPES } from './pushSync'
 
 /** Keeps idle connections open through proxies that close silent sockets */
@@ -30,8 +31,9 @@ export interface PushProviderProps {
  * Listens to the JMAP push channel (WebSocket) of the session and brings the
  * cached mailboxes and emails up to the states the server pushes, from their
  * changes (`pushSync`). While the channel is open they never go stale; once
- * it drops they do after `DEFAULT_STALE_TIME` again, and after a
- * reconnection the changes made while it was down are caught up. The channel closes when the session ends, as
+ * it drops they do after `DEFAULT_STALE_TIME` again. When it first opens,
+ * the changes made since the first loads are caught up, as after a
+ * reconnection those made while it was down. The channel closes when the session ends, as
  * this provider unmounts with the signed-in screens.
  */
 export function PushProvider({
@@ -62,7 +64,10 @@ export function PushProvider({
     for (const queryKey of syncedKeys) {
       queryClient.setQueryDefaults(queryKey, { staleTime })
     }
-    // The data just loaded is up to date when the channel first opens
+    // Changes made between the first loads and the first opening of the
+    // channel are pushed to nobody: the current states tell whether the
+    // cache is behind, as a push would, and the lists landing after them
+    // catch up (`pushSync`). A reopening catches up from the cache states
     let hasBeenOpen = false
     const unsubscribers = [
       push.on('stateChange', change => {
@@ -85,6 +90,14 @@ export function PushProvider({
         if (hasBeenOpen) {
           sync.catchUp()
           if (hasLabels) void syncLabels(client, queryClient, accountId, null)
+        } else {
+          fetchCurrentStates(client, accountId)
+            .then(states => {
+              sync.stateChanged({ ...states })
+            })
+            .catch((error: unknown) => {
+              console.warn('[push] Cannot read the current states', error)
+            })
         }
         hasBeenOpen = true
       }),

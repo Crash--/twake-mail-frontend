@@ -187,3 +187,25 @@ export async function fetchChanges(
     email: emails.map(result)
   }
 }
+
+/** The current `Email` and `Mailbox` states of the account */
+export interface CurrentStates {
+  Email: string
+  Mailbox: string
+}
+
+/**
+ * The current `Email` and `Mailbox` states of the account, in one small
+ * request (`/get` of no id): what a push would say, to tell whether the
+ * cache is behind
+ */
+export async function fetchCurrentStates(
+  client: JmapClient,
+  accountId: string
+): Promise<CurrentStates> {
+  const [emails, mailboxes] = await client.request(builder => [
+    builder.call('Email/get', { accountId, ids: [], properties: ['id'] }),
+    builder.call('Mailbox/get', { accountId, ids: [], properties: ['id'] })
+  ])
+  return { Email: emails.state, Mailbox: mailboxes.state }
+}

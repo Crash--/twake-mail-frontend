@@ -169,6 +169,9 @@
       "editTo": "Sửa thư nháp gửi %{recipients}",
       "delete": "Xóa thư nháp",
       "deleteTo": "Xóa thư nháp gửi %{recipients}"
+    },
+    "row": {
+      "openInNewTab": "Mở trong tab mới"
     }
   },
   "push": {

@@ -169,6 +169,9 @@
       "editTo": "Изменить черновик для %{recipients}",
       "delete": "Удалить черновик",
       "deleteTo": "Удалить черновик для %{recipients}"
+    },
+    "row": {
+      "openInNewTab": "Открыть в новой вкладке"
     }
   },
   "push": {

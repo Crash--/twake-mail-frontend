@@ -1,9 +1,12 @@
 import {
+  Answer,
   Attachment,
   Dots,
-  Email as EmailIcon,
+  EmailNotification,
   EmailOpen,
+  FolderMoveto,
   Icon,
+  Openwith,
   Star,
   StarOutline,
   Trash,
@@ -13,8 +16,6 @@ import {
   Avatar,
   Checkbox,
   getInitials,
-  IconButton,
-  Tooltip,
   Typography,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
@@ -22,9 +23,12 @@ import {
 import type { MouseEvent, ReactElement } from 'react'
 import { useHref, useNavigate } from 'react-router'
 
+import { IconAction } from '@/ds/IconAction/IconAction'
+import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
+import { RowSender } from '@/ds/RowSender/RowSender'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
@@ -52,18 +56,18 @@ import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
 
 /**
- * The columns of the email list, in their order: one per field on a wide
- * list (the actions share the cell of the date); `unread`, `message` (sender, date, subject, preview on four lines)
- * and `compactActions` on a narrow one (phone, list beside an open email);
- * `select` (the selection checkbox) on both
+ * The columns of the email list, in their order: `lead` (selection, star and
+ * reply), `sender`, `subject` and `trailing` (attachment and date, replaced
+ * by the actions on hover) on a wide list; `select`, `unread`, `message`
+ * (sender, date, subject, preview on four lines) and `compactActions` on a
+ * narrow one (phone, list beside an open email)
  */
 export type EmailColumnId =
+  | 'lead'
   | 'select'
-  | 'status'
   | 'sender'
   | 'subject'
-  | 'attachment'
-  | 'date'
+  | 'trailing'
   | 'unread'
   | 'message'
   | 'compactActions'
@@ -116,6 +120,10 @@ export interface EmailCellProps {
   deletesForever: boolean
   /** Opens the actions menu of the email under `element` */
   onOpenMenu: (email: EmailListItemData, element: HTMLElement) => void
+  /** Answers the email in the composer (not offered for drafts) */
+  onReply: (email: EmailListItemData) => void
+  /** Asks for a folder, then moves the email (or its selection) there */
+  onMove: (email: EmailListItemData) => void
   /** The email open beside the list, if any */
   openEmailId: string | null
   /** Opens a draft (`$draft`) in the composer instead of reading it */
@@ -157,6 +165,8 @@ export function EmailCell({
   onRemove,
   deletesForever,
   onOpenMenu,
+  onReply,
+  onMove,
   openEmailId,
   onOpenDraft,
   onOpenTemplate,
@@ -197,6 +207,7 @@ export function EmailCell({
         <LabelChips
           labels={emailLabels}
           max={max}
+          size="small"
           nowrap
           className="u-flex-shrink-0 u-mr-half"
         />
@@ -216,7 +227,7 @@ export function EmailCell({
       component="span"
       size={20}
       aria-hidden="true"
-      className="u-mr-half u-flex-shrink-0"
+      className="u-flex-shrink-0"
       data-testid="email-list-item-avatar"
     >
       {getInitials(avatarAddress?.name ?? '', avatarAddress?.email ?? '')}
@@ -227,34 +238,67 @@ export function EmailCell({
     onToggleStar(email)
   }
   const starButton = (
-    <Tooltip title={starLabel}>
-      <IconButton
-        size="small"
-        color={isStarred ? 'warning' : 'default'}
-        aria-label={starLabel}
-        aria-pressed={isStarred}
-        onClick={handleToggleStar}
-        data-testid="email-list-item-star"
-      >
-        <Icon icon={isStarred ? Star : StarOutline} />
-      </IconButton>
-    </Tooltip>
+    <IconAction
+      label={starLabel}
+      icon={isStarred ? Star : StarOutline}
+      tone={isStarred ? 'starred' : 'default'}
+      aria-pressed={isStarred}
+      onClick={handleToggleStar}
+      data-testid="email-list-item-star"
+    />
   )
+  const isDraft = hasKeyword(email, DRAFT)
+  const replyLabel = t('emailActions.reply.reply')
+  const handleReply = (): void => {
+    onReply(email)
+  }
+  // A draft or a template opens in the composer: nothing to answer
+  const replyButton =
+    isDraft || onOpenTemplate ? null : (
+      <IconAction
+        label={replyLabel}
+        icon={Answer}
+        onClick={handleReply}
+        data-testid="email-list-item-reply"
+      />
+    )
   const seenLabel = t(isUnread ? 'email.markAsRead' : 'email.markAsUnread')
   const handleToggleSeen = (): void => {
     onToggleSeen(email)
   }
   const seenButton = (
-    <Tooltip title={seenLabel}>
-      <IconButton
-        size="small"
-        aria-label={seenLabel}
-        onClick={handleToggleSeen}
-        data-testid="email-list-item-toggle-seen"
-      >
-        <Icon icon={isUnread ? EmailOpen : EmailIcon} />
-      </IconButton>
-    </Tooltip>
+    <IconAction
+      label={seenLabel}
+      icon={isUnread ? EmailOpen : EmailNotification}
+      onClick={handleToggleSeen}
+      data-testid="email-list-item-toggle-seen"
+    />
+  )
+  const openLabel = t('thread.row.openInNewTab')
+  // The email in a tab of its own, beside the list: same route as the row
+  const handleOpenInNewTab = (): void => {
+    window.open(href, '_blank', 'noopener,noreferrer')
+  }
+  const openButton =
+    isDraft || onOpenTemplate ? null : (
+      <IconAction
+        label={openLabel}
+        icon={Openwith}
+        onClick={handleOpenInNewTab}
+        data-testid="email-list-item-open-in-new-tab"
+      />
+    )
+  const moveLabel = t('emailActions.menu.moveMessage')
+  const handleMove = (): void => {
+    onMove(email)
+  }
+  const moveButton = (
+    <IconAction
+      label={moveLabel}
+      icon={FolderMoveto}
+      onClick={handleMove}
+      data-testid="email-list-item-move"
+    />
   )
   const removeLabel = t(
     deletesForever
@@ -265,36 +309,28 @@ export function EmailCell({
     onRemove(email)
   }
   const removeButton = (
-    <Tooltip title={removeLabel}>
-      <IconButton
-        size="small"
-        aria-label={removeLabel}
-        onClick={handleRemove}
-        data-testid="email-list-item-remove"
-      >
-        <Icon icon={Trash} />
-      </IconButton>
-    </Tooltip>
+    <IconAction
+      label={removeLabel}
+      icon={Trash}
+      onClick={handleRemove}
+      data-testid="email-list-item-remove"
+    />
   )
   const moreLabel = t('emailActions.menu.label')
-  const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>): void => {
+  const handleOpenMenu = (event: MouseEvent<HTMLElement>): void => {
     onOpenMenu(email, event.currentTarget)
   }
   const moreButton = (
-    <Tooltip title={moreLabel}>
-      <IconButton
-        size="small"
-        aria-label={moreLabel}
-        aria-haspopup="menu"
-        onClick={handleOpenMenu}
-        data-testid="email-list-item-more"
-      >
-        <Icon icon={Dots} />
-      </IconButton>
-    </Tooltip>
+    <IconAction
+      label={moreLabel}
+      icon={Dots}
+      aria-haspopup="menu"
+      onClick={handleOpenMenu}
+      data-testid="email-list-item-more"
+    />
   )
   const isSelected = selection?.isSelected(email.id) ?? false
-  const handleSelect = (event: MouseEvent<HTMLButtonElement>): void => {
+  const handleSelect = (event: MouseEvent<HTMLElement>): void => {
     selection?.toggle(email.id, event.shiftKey)
   }
   const checkbox =
@@ -316,6 +352,14 @@ export function EmailCell({
   const unreadDot = isUnread ? (
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
+  // The frame stays when the email is read: the names line up
+  const framedDot = (
+    <StatusDot
+      label={isUnread ? t('email.unread') : null}
+      framed
+      data-testid="unread-status-icon"
+    />
+  )
   const handleNavigate = (): void => {
     if (onOpenTemplate) {
       onOpenTemplate(email)
@@ -343,6 +387,16 @@ export function EmailCell({
         {formatListDate(email.receivedAt, lang)}
       </time>
     </SecondaryText>
+  )
+  const wideDate = (
+    <RowDate isStrong={isUnread} data-testid="email-list-item-date">
+      <time
+        dateTime={email.receivedAt}
+        title={formatFullDate(email.receivedAt, lang)}
+      >
+        {formatListDate(email.receivedAt, lang)}
+      </time>
+    </RowDate>
   )
   const subject = (
     <HighlightedText
@@ -395,42 +449,52 @@ export function EmailCell({
     <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
   ) : null
 
+  // A 32 px box for the icon: the attachment lines up with the buttons
+  const wideAttachment = hasAttachment ? (
+    <span className="u-flex u-flex-justify-center u-w-2 u-mr-half">
+      <Icon
+        icon={Attachment}
+        size={20}
+        role="img"
+        aria-label={t('email.attachment')}
+      />
+    </span>
+  ) : null
+
   switch (column.id as EmailColumnId) {
     case 'select':
       return <span className="u-flex u-flex-justify-center">{checkbox}</span>
-    case 'status':
+    case 'lead':
       return (
         <span className="u-flex u-flex-items-center">
+          {checkbox}
           {starButton}
-          <span className="u-flex u-flex-justify-center u-flex-shrink-0 u-w-1">
-            {unreadDot}
-          </span>
+          {replyButton}
         </span>
       )
     case 'sender':
       return (
         // The names take the ellipsis, the number of messages stays in view
-        <span className="u-flex u-flex-items-center">
-          {avatar}
-          <Typography
-            component="span"
-            noWrap
-            className="u-db"
-            data-testid="email-list-item-sender"
-          >
-            <span className={emphasis}>{correspondents}</span>
-          </Typography>
-          {threadSize === null ? null : (
-            <SecondaryText
-              component="span"
-              className="u-flex-shrink-0 u-ml-half"
-              aria-hidden="true"
-              data-testid="email-list-item-thread-count"
-            >
-              {`(${threadSize})`}
-            </SecondaryText>
-          )}
-        </span>
+        <RowSender
+          marker={framedDot}
+          avatar={avatar}
+          isStrong={isUnread}
+          trailing={
+            threadSize === null ? null : (
+              <SecondaryText
+                component="span"
+                className="u-flex-shrink-0 u-ml-half"
+                aria-hidden="true"
+                data-testid="email-list-item-thread-count"
+              >
+                {`(${threadSize})`}
+              </SecondaryText>
+            )
+          }
+          data-testid="email-list-item-sender"
+        >
+          {correspondents}
+        </RowSender>
       )
     case 'subject': {
       // Read before the subject: what the other cells show to the eye
@@ -451,6 +515,7 @@ export function EmailCell({
         >
           <span className="u-visuallyhidden">{`${context.join(', ')}, `}</span>
           <RowLine
+            isStrong={isUnread}
             leading={
               <>
                 {importantIcon}
@@ -458,26 +523,29 @@ export function EmailCell({
               </>
             }
             primary={
-              <span className={emphasis} data-testid="email-list-item-subject">
-                {subject}
-              </span>
+              <span data-testid="email-list-item-subject">{subject}</span>
             }
             secondary={
-              <SecondaryText data-testid="email-list-item-preview">
-                {preview}
-              </SecondaryText>
+              <span data-testid="email-list-item-preview">{preview}</span>
             }
             trailing={mailboxLabel}
           />
         </RowLink>
       )
     }
-    case 'attachment':
-      return attachmentIcon
-    case 'date':
+    case 'trailing':
       return (
-        <RowHoverActions replaces={date}>
+        <RowHoverActions
+          replaces={
+            <>
+              {wideAttachment}
+              {wideDate}
+            </>
+          }
+        >
+          {openButton}
           {seenButton}
+          {moveButton}
           {removeButton}
           {moreButton}
         </RowHoverActions>

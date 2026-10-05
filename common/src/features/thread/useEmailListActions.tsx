@@ -15,6 +15,7 @@ import {
 } from '@common/features/emailActions/EmailActionsMenu'
 import { fetchMailboxEmails } from '@common/features/emailActions/mailboxEmails'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
+import { useRunEmailAction } from '@common/features/emailActions/useRunEmailAction'
 import {
   deletesForever,
   useRemoveEmails
@@ -70,6 +71,8 @@ export interface EmailListActions {
   menu: ReactElement
   deletesForever: boolean
   onRemove: (email: EmailListItemData) => void
+  /** Asks for a folder, then moves the row (or the selection it is in) */
+  onMove: (email: EmailListItemData) => void
   onOpenMenu: (email: EmailListItemData, element: HTMLElement) => void
   onRowMenu: (row: VirtualizedTableRow, anchor: RowMenuAnchor) => void
   onRowDragStart: (
@@ -108,6 +111,7 @@ export function useEmailListActions({
   const client = useJmapClient()
   const { accountId, extraCapabilities } = useJmapSession()
   const removeEmails = useRemoveEmails()
+  const runEmailAction = useRunEmailAction()
   const [menu, setMenu] = useState<{
     anchor: EmailActionsMenuAnchor
     emails: readonly TargetEmail[]
@@ -171,6 +175,16 @@ export function useEmailListActions({
       })
     },
     [targetsOf, removeEmails, mailboxId, handleDone]
+  )
+
+  const onMove = useCallback(
+    (email: EmailListItemData): void => {
+      const targets = targetsOf(email)
+      void runEmailAction('move', targets, mailboxId).then(done => {
+        if (done && targets.length > 1) handleDone()
+      })
+    },
+    [targetsOf, runEmailAction, mailboxId, handleDone]
   )
 
   const onOpenMenu = useCallback(
@@ -250,6 +264,7 @@ export function useEmailListActions({
     ),
     deletesForever: deletesForever(mailbox),
     onRemove,
+    onMove,
     onOpenMenu,
     onRowMenu,
     onRowDragStart

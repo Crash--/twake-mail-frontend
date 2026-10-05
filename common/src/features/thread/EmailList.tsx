@@ -25,12 +25,15 @@ import { createPortal } from 'react-dom'
 import { useLocation, useMatch } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { ListPane } from '@/ds/ListPane/ListPane'
+import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
 import { FLOATING_ACTION_INSET } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   VirtualizedListTable,
   type ListTableRange,
-  type RowAttributes
+  type RowAttributes,
+  type RowLayout
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
@@ -97,6 +100,23 @@ const RECIPIENT_ROLES: readonly string[] = [
   'outbox',
   'templates'
 ]
+
+/** Padding of a row and gap between its cells, in px (Figma "Listitemmail") */
+const ROW_LAYOUT: RowLayout = {
+  paddingX: 8,
+  paddingTop: 6,
+  paddingBottom: 5,
+  gap: 8
+}
+
+/** An icon button of a row, in px */
+const ACTION_SIZE = 32
+
+/** Selection, star and reply: three icon buttons without gap */
+const LEAD_WIDTH = ROW_LAYOUT.paddingX + 3 * ACTION_SIZE
+
+/** The actions replacing the date on hover: five icon buttons without gap */
+const TRAILING_WIDTH = ROW_LAYOUT.gap + 5 * ACTION_SIZE + ROW_LAYOUT.paddingX
 
 /** Rows left below the visible ones when the next page is requested */
 const PRELOAD_ROWS = 10
@@ -421,40 +441,34 @@ export function EmailList(props: EmailListProps): ReactElement {
   const columns = useMemo<(VirtualizedTableColumn & { id: EmailColumnId })[]>(
     () => [
       {
-        id: 'select',
-        label: t('thread.columns.select'),
-        width: 40,
-        sortable: false,
-        disablePadding: true
-      },
-      {
-        id: 'status',
-        label: t('thread.columns.status'),
-        width: 72,
+        id: 'lead',
+        label: `${t('thread.columns.select')}, ${t('thread.columns.status')}`,
+        width: LEAD_WIDTH,
         sortable: false,
         disablePadding: true
       },
       {
         id: 'sender',
         label: t(showRecipients ? 'email.to' : 'thread.columns.sender'),
-        width: 224,
-        sortable: false
-      },
-      { id: 'subject', label: t('thread.columns.subject'), sortable: false },
-      {
-        id: 'attachment',
-        label: t('email.attachment'),
-        width: 40,
+        width: ROW_LAYOUT.gap + SENDER_WIDTH,
         sortable: false,
         disablePadding: true
       },
       {
-        // The date, which the actions replace on hover; beside it without hover
-        id: 'date',
-        label: `${t('thread.columns.date')}, ${t('thread.columns.actions')}`,
-        width: canHover ? 144 : 224,
+        id: 'subject',
+        label: t('thread.columns.subject'),
+        sortable: false,
+        disablePadding: true
+      },
+      {
+        // The attachment and the date, which the actions replace on hover;
+        // beside them without hover
+        id: 'trailing',
+        label: `${t('email.attachment')}, ${t('thread.columns.date')}, ${t('thread.columns.actions')}`,
+        width: canHover ? TRAILING_WIDTH : TRAILING_WIDTH + 72,
         textAlign: 'right',
-        sortable: false
+        sortable: false,
+        disablePadding: true
       }
     ],
     [t, showRecipients, canHover]
@@ -526,6 +540,12 @@ export function EmailList(props: EmailListProps): ReactElement {
     },
     [openComposer]
   )
+  const handleReply = useCallback(
+    (email: { id: string }): void => {
+      openComposer({ reply: { emailId: email.id, action: 'reply' } })
+    },
+    [openComposer]
+  )
   // A template opens as a new message, which "Save as template" updates
   const handleOpenTemplate = useCallback(
     (email: { id: string }): void => {
@@ -548,6 +568,8 @@ export function EmailList(props: EmailListProps): ReactElement {
             onRemove={listActions.onRemove}
             deletesForever={listActions.deletesForever}
             onOpenMenu={listActions.onOpenMenu}
+            onReply={handleReply}
+            onMove={listActions.onMove}
             openEmailId={openEmailId}
             onOpenDraft={handleOpenDraft}
             onOpenTemplate={isTemplates ? handleOpenTemplate : undefined}
@@ -568,6 +590,8 @@ export function EmailList(props: EmailListProps): ReactElement {
       listActions.onRemove,
       listActions.deletesForever,
       listActions.onOpenMenu,
+      handleReply,
+      listActions.onMove,
       openEmailId,
       handleOpenDraft,
       handleOpenTemplate,
@@ -619,6 +643,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           rowCount={total}
           columns={columns}
           compactColumns={compactColumns}
+          rowLayout={ROW_LAYOUT}
           compact={isCompact}
           bottomInset={bottomInset}
           computeItemKey={computeRowKey}
@@ -660,29 +685,31 @@ export function EmailList(props: EmailListProps): ReactElement {
   return (
     <EmailSelectionContext.Provider value={selection}>
       {listActions.banner}
-      {listActions.toolbar ?? (
-        <EmailListDefaultToolbar
-          selection={selection}
-          loadedCount={emails.length}
-          mailbox={mailbox}
-          filter={filterInToolbar ? listToolbarFilter : null}
-          searchFilters={search?.filters}
-          isRefreshing={isRefreshing}
-          onRefresh={handleRefresh}
-        />
-      )}
-      {topBarSlot !== null && listToolbarFilter !== null
-        ? createPortal(
-            <EmailListFilterMenu
-              current={listToolbarFilter.current}
-              options={listToolbarFilter.options}
-              onSelect={listToolbarFilter.onSelect}
-              onClear={listToolbarFilter.onClear}
-            />,
-            topBarSlot
-          )
-        : null}
-      {content}
+      <ListPane>
+        {listActions.toolbar ?? (
+          <EmailListDefaultToolbar
+            selection={selection}
+            loadedCount={emails.length}
+            mailbox={mailbox}
+            filter={filterInToolbar ? listToolbarFilter : null}
+            searchFilters={search?.filters}
+            isRefreshing={isRefreshing}
+            onRefresh={handleRefresh}
+          />
+        )}
+        {topBarSlot !== null && listToolbarFilter !== null
+          ? createPortal(
+              <EmailListFilterMenu
+                current={listToolbarFilter.current}
+                options={listToolbarFilter.options}
+                onSelect={listToolbarFilter.onSelect}
+                onClear={listToolbarFilter.onClear}
+              />,
+              topBarSlot
+            )
+          : null}
+        {content}
+      </ListPane>
       {listActions.menu}
       {/* Always mounted: a live region only announces changes */}
       <Box

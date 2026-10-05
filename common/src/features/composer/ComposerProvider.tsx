@@ -20,6 +20,10 @@ import { fitWindows } from '@/ds/DockedWindow/fitWindows'
 import { WindowDock } from '@/ds/DockedWindow/WindowDock'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import {
+  useSuspendShortcuts,
+  type ReleaseShortcuts
+} from '@common/features/shortcuts/ShortcutsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -119,6 +123,7 @@ export function ComposerProvider({
   const { t } = useI18n()
   const { notify } = useNotify()
   const { accountId } = useJmapSession()
+  const suspendShortcuts = useSuspendShortcuts()
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const screenWidth = useWindowWidth()
@@ -132,6 +137,11 @@ export function ComposerProvider({
   /** What had the focus when each composer opened */
   const openers = useRef(new Map<string, Element | null>())
   const forms = useRef(new Map<string, ComposerFormHandle>())
+  /**
+   * The shortcuts are off while a composer opens: a key typed before its
+   * form takes the focus belongs to it, not to the screen behind
+   */
+  const openings = useRef(new Map<string, ReleaseShortcuts>())
   /** The draft each composer edits, and the lock it holds on it */
   const drafts = useRef(
     new Map<string, { draftId: string; release: ReleaseLock }>()
@@ -203,6 +213,11 @@ export function ComposerProvider({
     [accountId]
   )
 
+  const settleOpening = useCallback((id: string): void => {
+    openings.current.get(id)?.()
+    openings.current.delete(id)
+  }, [])
+
   const openComposer = useCallback(
     (init: ComposerInit = {}): void => {
       const current = entriesRef.current
@@ -223,9 +238,11 @@ export function ComposerProvider({
         return
       }
       const opener = document.activeElement
+      const releaseShortcuts = suspendShortcuts()
       const add = (release: ReleaseLock | null): void => {
         const id = crypto.randomUUID()
         openers.current.set(id, opener)
+        openings.current.set(id, releaseShortcuts)
         if (draftId !== undefined && release) {
           drafts.current.set(id, { draftId, release })
         }
@@ -240,17 +257,19 @@ export function ComposerProvider({
       }
       void acquireDraftLock(accountId, draftId).then(release => {
         if (release === null) {
+          releaseShortcuts()
           notify({ message: t('composer.draft.lockedElsewhere') })
           return
         }
         add(release)
       })
     },
-    [accountId, notify, setMode, t]
+    [accountId, notify, setMode, t, suspendShortcuts]
   )
 
   const close = useCallback(
     (id: string): void => {
+      settleOpening(id)
       const opener = openers.current.get(id)
       openers.current.delete(id)
       forms.current.delete(id)
@@ -272,7 +291,7 @@ export function ComposerProvider({
         })
       }
     },
-    [accountId]
+    [accountId, settleOpening]
   )
 
   const requestClose = useCallback(
@@ -327,6 +346,7 @@ export function ComposerProvider({
               setDraft={setDraft}
               close={close}
               requestClose={requestClose}
+              onFocusIn={settleOpening}
             />
           ))}
         </WindowDock>
@@ -346,6 +366,8 @@ interface ComposerSlotProps {
   setDraft: (id: string, draftId: string | null) => void
   close: (id: string) => void
   requestClose: (id: string) => Promise<void>
+  /** The focus went in the composer */
+  onFocusIn: (id: string) => void
 }
 
 /** One composer: its window, and its form once loaded */
@@ -358,7 +380,8 @@ function ComposerSlot({
   registerForm,
   setDraft,
   close,
-  requestClose
+  requestClose,
+  onFocusIn
 }: ComposerSlotProps): ReactElement {
   const { t } = useI18n()
   const { id } = entry
@@ -389,6 +412,9 @@ function ComposerSlot({
     <div
       hidden={mode === null}
       className={mode === null ? undefined : 'u-flex u-flex-items-end'}
+      onFocus={() => {
+        onFocusIn(id)
+      }}
     >
       <DockedWindow
         title={entry.title === '' ? t('composer.newMessage') : entry.title}

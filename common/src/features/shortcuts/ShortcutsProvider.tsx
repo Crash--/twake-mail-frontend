@@ -22,10 +22,20 @@ interface Registration {
   when: { current: () => boolean }
 }
 
+/** Gives the keys back to the shortcuts; calling it again does nothing */
+export type ReleaseShortcuts = () => void
+
 interface ShortcutsApi {
   register: (registration: Registration) => () => void
   openHelp: () => void
+  suspend: () => ReleaseShortcuts
 }
+
+/**
+ * Longest suspension: a view that never takes the focus (it failed to
+ * load) does not leave the shortcuts off
+ */
+export const MAX_SUSPENSION_MS = 10_000
 
 const ShortcutsContext = createContext<ShortcutsApi | null>(null)
 
@@ -50,6 +60,7 @@ export function ShortcutsProvider({
   const [isEnabled] = useShortcutsEnabled()
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const registrations = useRef<Registration[]>([])
+  const suspensions = useRef(0)
 
   const register = useCallback((registration: Registration): (() => void) => {
     registrations.current = [...registrations.current, registration]
@@ -58,6 +69,19 @@ export function ShortcutsProvider({
         candidate => candidate !== registration
       )
     }
+  }, [])
+
+  const suspend = useCallback((): ReleaseShortcuts => {
+    suspensions.current += 1
+    let isReleased = false
+    const release = (): void => {
+      if (isReleased) return
+      isReleased = true
+      window.clearTimeout(timer)
+      suspensions.current -= 1
+    }
+    const timer = window.setTimeout(release, MAX_SUSPENSION_MS)
+    return release
   }, [])
 
   const openHelp = useCallback((): void => {
@@ -73,6 +97,11 @@ export function ShortcutsProvider({
     const handleKeyDown = (event: KeyboardEvent): void => {
       const key = isShortcutEvent(event) ? shortcutKeyOf(event) : null
       if (key === null) return
+      // A view opening, about to take the focus: the key was meant for it
+      if (suspensions.current > 0) {
+        event.preventDefault()
+        return
+      }
       if (key === '?') {
         event.preventDefault()
         setIsHelpOpen(true)
@@ -95,7 +124,10 @@ export function ShortcutsProvider({
     }
   }, [isEnabled])
 
-  const api = useMemo(() => ({ register, openHelp }), [register, openHelp])
+  const api = useMemo(
+    () => ({ register, openHelp, suspend }),
+    [register, openHelp, suspend]
+  )
 
   return (
     <ShortcutsContext.Provider value={api}>
@@ -109,7 +141,11 @@ function noop(): void {
   // Outside the mail screens (tests of a single component): no shortcut
 }
 
-const NO_SHORTCUTS: ShortcutsApi = { register: () => noop, openHelp: noop }
+const NO_SHORTCUTS: ShortcutsApi = {
+  register: () => noop,
+  openHelp: noop,
+  suspend: () => noop
+}
 
 function useShortcutsApi(): ShortcutsApi {
   return useContext(ShortcutsContext) ?? NO_SHORTCUTS
@@ -139,4 +175,13 @@ export function useShortcuts(
 /** Opens the list of the keyboard shortcuts (account menu) */
 export function useOpenShortcutsHelp(): () => void {
   return useShortcutsApi().openHelp
+}
+
+/**
+ * Turns the shortcuts off until the returned function is called, at most
+ * `MAX_SUSPENSION_MS`: while a view opens (a composer loading its editor),
+ * the keys typed are meant for it, not for the screen behind
+ */
+export function useSuspendShortcuts(): () => ReleaseShortcuts {
+  return useShortcutsApi().suspend
 }

@@ -5,7 +5,13 @@ import type { ReactElement } from 'react'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 
-import { ShortcutsProvider, useShortcuts } from './ShortcutsProvider'
+import {
+  MAX_SUSPENSION_MS,
+  ShortcutsProvider,
+  useShortcuts,
+  useSuspendShortcuts,
+  type ReleaseShortcuts
+} from './ShortcutsProvider'
 import { SHORTCUTS_STORAGE_KEY } from './shortcutsSetting'
 
 function Screen({
@@ -95,6 +101,51 @@ describe('ShortcutsProvider', () => {
     fireEvent.keyDown(document.body, { key: 'R', shiftKey: true })
     expect(replyAll).toHaveBeenCalledTimes(2)
     expect(reply).toHaveBeenCalledTimes(1)
+  })
+
+  it('ignores the keys while a view opens, until it is released', () => {
+    jest.useFakeTimers()
+    const onArchive = jest.fn()
+    const releases: ReleaseShortcuts[] = []
+    function Opening(): ReactElement {
+      const suspend = useSuspendShortcuts()
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            releases.push(suspend())
+          }}
+        >
+          Open
+        </button>
+      )
+    }
+    renderShortcuts(
+      <>
+        <Screen onArchive={onArchive} />
+        <Opening />
+      </>
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+    fireEvent.keyDown(document.body, { key: 'e' })
+    expect(onArchive).not.toHaveBeenCalled()
+
+    releases[0]?.()
+    releases[0]?.()
+    fireEvent.keyDown(document.body, { key: 'e' })
+    expect(onArchive).toHaveBeenCalledTimes(1)
+
+    // Never released: back after a while
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+    fireEvent.keyDown(document.body, { key: 'e' })
+    expect(onArchive).toHaveBeenCalledTimes(1)
+    act(() => {
+      jest.advanceTimersByTime(MAX_SUSPENSION_MS)
+    })
+    fireEvent.keyDown(document.body, { key: 'e' })
+    expect(onArchive).toHaveBeenCalledTimes(2)
+    jest.useRealTimers()
   })
 
   it('gives a key to the last screen that handles it now', () => {

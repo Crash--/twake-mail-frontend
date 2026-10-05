@@ -53,11 +53,11 @@ the React app. One line per Patrol test, 116 lines.
 | `LBL` | Labels | 12 | 0 | 0 |
 | `SET` | Settings | 9 | 1 | 0 |
 | `RULE` | Email rules | 2 | 1 | 0 |
-| `CAL` | Calendar events | 2 | 0 | 0 |
+| `CAL` | Calendar events | 7 | 0 | 0 |
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 1 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **151** | **24** | **6** |
+| | **Total** | **156** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -400,12 +400,30 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Web port: the sender of the email opened alone (`emailsOneByOne`) is a button whose menu has "Create a rule with this email"; the creator opens in Settings → Email rules. Adding actions next to "Reject it" is not offered (a rejected email gets no other action, which tmail-flutter enforces on save anyway): the edit adds a condition (Subject contains "reject") instead, and the warning shows again.
 - [x] `RULE-02` In Settings → Email rules (empty state "No Rules Configured"), a rule on Subject moving to a folder picked in the folder picker and marking as seen files the next matching email there, read; deleting it after confirmation brings the empty state back. — web app only, no Patrol test
 
-## CAL — Calendar events (2)
+## CAL — Calendar events (7)
+
+The card is tmail-flutter's "Orange Bar" design (linagora/tmail-flutter#4623, #4831, #4851). The
+fixtures (`fixtures/eml/calendar/`) carry their `.ics` in 8 bit so that `importEml({ replace })`
+can put the test user among the attendees; `calendar_counter_web.eml` is `calendar_counter.eml`
+without its base64 parts. The memory image parses events but cannot answer them: answering needs
+the CalDAV server (esn-sabre) of a Twake Workplace, `CalendarEvent/accept` and
+`CalendarEventAttendance/get` answer `serverFail` ("Failed to resolve 'esn_sabre'"). `CAL-06` and
+`CAL-07` are `fixme` for that reason and were checked on the devbox.
 
 - [ ] `CAL-01` Searching "Proposed new time" (show all results) and opening that COUNTER iMIP email shows an event card with "Yes" and "Mail to attendees" buttons, no "No"/"Maybe" buttons, and the banner text "… has proposed changes to the event". — `calendar/calendar_event_counter_test.dart` · tags: `ios (default)`
   - Data: bob backup.zip, "Calendar" folder (from `eml/calendar/calendar_counter.eml`, METHOD:COUNTER, event "Come for a chat").
+  - Spec: `tests/calendar.spec.ts`, with `calendar/calendar_counter_web.eml`.
 - [ ] `CAL-02` On the same COUNTER event email, clicking "Mail to attendees" opens the composer with subject "Re: Come for a chat" (localised reply prefix + event title). — `calendar/mail_to_attendees_event_email_test.dart` · tags: `ios (default)`
   - Data: same as CAL-01; the subject is asserted on the composer controller's value.
+  - Spec: `tests/calendar.spec.ts`; also asserts the recipients (everyone but the user).
+- [ ] `CAL-03` An invitation (REQUEST) shows the badge "<organizer> has invited you to a meeting", when in the time zone of the browser and how it repeats ("Every 2 weeks, on Monday, 5 times"), where, the meeting link with "Copy link" (no "Join": tmail-flutter#4622), the organizer then every attendee with their answer, Yes / Maybe / No (`aria-pressed`), "See in your Calendar" to `<CALENDAR_SPA_URL>/events/<uid>`, and the description as text after the card; axe. — web app only (`calendar_event_card_mapper.dart`)
+  - Spec: `tests/calendar.spec.ts`, `@mobile`.
+- [ ] `CAL-04` A cancellation (CANCEL) shows "<organizer> has canceled a meeting" and offers no answer, only "Mail to attendees"; axe. — web app only
+- [ ] `CAL-05` An invitation the user is not part of says "You are not invited to this event…", without answers nor calendar link. — web app only
+- [ ] `CAL-06` Maybe answers the invitation (`CalendarEvent/maybe`): toast "You may attend this meeting", the button pressed, still after a reload (`CalendarEventAttendance/get`). — web app only
+  - `fixme` on the memory image (no esn-sabre); checked on the devbox.
+- [ ] `CAL-07` Yes on a counter proposal (`CalendarEventCounter/accept`): toast "You accepted the proposed time for this meeting". — web app only
+  - `fixme` on the memory image (no esn-sabre).
 
 ## PUSH — Real-time updates (1)
 

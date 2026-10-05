@@ -1,0 +1,75 @@
+X-MEETING-METHOD: COUNTER
+X-MEETING-UID: a0b97e6e-3c82-4ef1-9837-56c168959f3d
+X-MEETING-SEQUENCE: 0
+MIME-Version: 1.0
+Reply-To: Dat Dang <tddang1995@gmail.com>
+Message-ID: <calendar-counter-web@example.com>
+Date: Tue, 15 Apr 2025 09:17:11 +0000
+Subject: Proposed new time
+From: Dat Dang <tddang1995@gmail.com>
+To: Tuan Dat DANG <tddang@linagora.com>
+Content-Type: multipart/mixed; boundary="mixed"
+
+--mixed
+Content-Type: multipart/alternative; boundary="alt"
+
+--alt
+Content-Type: text/plain; charset="UTF-8"
+
+Dat Dang has replied "Maybe" to this invitation and proposed a new time:
+Tue Apr 15, 2025 5:30pm - 6pm
+
+--alt
+Content-Type: text/calendar; charset="UTF-8"; method=COUNTER
+Content-Transfer-Encoding: 8bit
+
+BEGIN:VCALENDAR
+PRODID:-//Google Inc//Google Calendar 70.9054//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:COUNTER
+BEGIN:VEVENT
+DTSTART:20250415T103000Z
+DTEND:20250415T110000Z
+DTSTAMP:20250415T091711Z
+ORGANIZER;CN=Tuan Dat DANG:mailto:tddang@linagora.com
+UID:a0b97e6e-3c82-4ef1-9837-56c168959f3d
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=TENTATIVE;CN=Dat Dang;X-NUM-GUESTS=0:mailto:tddang1995@gmail.com
+CREATED:20250415T091711Z
+LAST-MODIFIED:20250415T091711Z
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Come for a chat
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR
+
+--alt--
+
+--mixed
+Content-Type: application/ics; name="invite.ics"
+Content-Disposition: attachment; filename="invite.ics"
+Content-Transfer-Encoding: 8bit
+
+BEGIN:VCALENDAR
+PRODID:-//Google Inc//Google Calendar 70.9054//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:COUNTER
+BEGIN:VEVENT
+DTSTART:20250415T103000Z
+DTEND:20250415T110000Z
+DTSTAMP:20250415T091711Z
+ORGANIZER;CN=Tuan Dat DANG:mailto:tddang@linagora.com
+UID:a0b97e6e-3c82-4ef1-9837-56c168959f3d
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=TENTATIVE;CN=Dat Dang;X-NUM-GUESTS=0:mailto:bob@example.com
+CREATED:20250415T091711Z
+LAST-MODIFIED:20250415T091711Z
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Come for a chat
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR
+
+--mixed--

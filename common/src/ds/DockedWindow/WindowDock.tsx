@@ -4,7 +4,7 @@ import type { ReactElement, ReactNode } from 'react'
 
 /** Space between the windows and from the edge of the screen, in px */
 export const DOCK_GAP = 8
-export const DOCK_MARGIN = 16
+export const DOCK_MARGIN = 24
 /** Width of the overflow menu at the start of the dock, in px */
 export const OVERFLOW_MENU_WIDTH = 160
 
@@ -35,7 +35,7 @@ export function WindowDock({
       sx={{
         position: 'fixed',
         right: `calc(${DOCK_MARGIN}px + env(safe-area-inset-right))`,
-        bottom: 0,
+        bottom: DOCK_MARGIN,
         left: DOCK_MARGIN,
         flexDirection: 'row-reverse',
         gap: `${DOCK_GAP}px`,

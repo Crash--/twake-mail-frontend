@@ -37,6 +37,8 @@ declare global {
 
     /** Shown in Settings > Forwarding when set */
     FORWARD_WARNING_MESSAGE?: string
+    /** Adapts the top bar inside an iframe of Twake Workplace */
+    WORKPLACE_EMBEDDING?: boolean
 
     APP_VERSION?: string
 

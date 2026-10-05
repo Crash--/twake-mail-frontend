@@ -7,6 +7,7 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
 import { LabelsSection } from '@common/features/labels/LabelsSection'
 import { QuotaIndicator } from '@common/features/quota/QuotaIndicator'
+import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
@@ -35,6 +36,7 @@ export function MailSidebar({
 }: MailSidebarProps): ReactElement {
   const { t } = useI18n()
   const screenSize = useScreenSize()
+  const isEmbedded = useIsEmbedded()
 
   return (
     <ResponsiveSidebar
@@ -45,7 +47,7 @@ export function MailSidebar({
       drawerHeader={
         <>
           <Box className="u-flex-auto u-ov-hidden">
-            <AppTitle />
+            {isEmbedded ? null : <AppTitle />}
           </Box>
           {screenSize === 'mobile' ? <AppGridMenu apps={apps} /> : null}
         </>

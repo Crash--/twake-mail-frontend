@@ -1,7 +1,13 @@
 // Upstream to twake-ui: yes. The avatar menu with the identity of the user
 // and "Sign out" is the same in every Twake app; twake-mui has the avatar
 // and the menu, not the account menu.
-import { Check, Icon, Logout, type IconProps } from '@linagora/twake-icons'
+import {
+  Check,
+  Icon,
+  Logout,
+  Setting,
+  type IconProps
+} from '@linagora/twake-icons'
 import {
   Avatar,
   Divider,
@@ -51,6 +57,11 @@ export interface AccountMenuProps {
   /** Settings switched from the menu, above "Sign out" */
   toggles?: readonly AccountMenuToggle[]
   testIds?: AccountMenuTestIds
+  /**
+   * What opens the menu: the avatar, or a gear when the page around the
+   * app already shows the user (an embedding container)
+   */
+  trigger?: 'avatar' | 'settings'
 }
 
 /**
@@ -66,7 +77,8 @@ export function AccountMenu({
   onLogout,
   items = [],
   toggles = [],
-  testIds = {}
+  testIds = {},
+  trigger = 'avatar'
 }: AccountMenuProps): ReactElement {
   const menuId = useId()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
@@ -96,9 +108,13 @@ export function AccountMenu({
           onClick={handleOpen}
           data-testid={testIds.button}
         >
-          <Avatar size="s" aria-hidden="true">
-            {getInitials(name ?? '', email ?? '')}
-          </Avatar>
+          {trigger === 'settings' ? (
+            <Icon icon={Setting} aria-hidden="true" />
+          ) : (
+            <Avatar size="s" aria-hidden="true">
+              {getInitials(name ?? '', email ?? '')}
+            </Avatar>
+          )}
         </IconButton>
       </Tooltip>
       <Menu

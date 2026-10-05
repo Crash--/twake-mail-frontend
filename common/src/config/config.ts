@@ -9,6 +9,11 @@ export interface OidcConfig {
   postLogoutRedirectUri: string
 }
 
+/**
+ * An application of the app grid (`appList.js`). `link` and `icon` may be
+ * URI templates (`{localpart}`, `{workplaceFqdn}`…), resolved for the user:
+ * a Twake Drive lives at an address of its own.
+ */
 export interface AppListEntry {
   name: string
   link: string
@@ -31,6 +36,11 @@ export interface AppConfig {
    * forwarding emails outside (tmail-flutter `FORWARD_WARNING_MESSAGE`)
    */
   forwardWarningMessage: string | null
+  /**
+   * Inside an iframe (Twake Workplace), the top bar leaves the logotype and
+   * the app grid to the container, as Twake Calendar does
+   */
+  workplaceEmbedding: boolean
   appVersion: string
   appList: AppListEntry[]
 }
@@ -50,6 +60,7 @@ export type RuntimeConfigKey =
   | 'CHAT_SPA_URL'
   | 'WORKPLACE_FQDN_FALLBACK'
   | 'FORWARD_WARNING_MESSAGE'
+  | 'WORKPLACE_EMBEDDING'
   | 'APP_VERSION'
   | 'appList'
 
@@ -183,6 +194,7 @@ export function resolveConfig(
       chatSpaUrl: normalizeString(source.CHAT_SPA_URL),
       workplaceFqdnFallback: normalizeString(source.WORKPLACE_FQDN_FALLBACK),
       forwardWarningMessage: normalizeString(source.FORWARD_WARNING_MESSAGE),
+      workplaceEmbedding: toBoolean(source.WORKPLACE_EMBEDDING),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev',
       appList: normalizeAppList(source.appList)
     }

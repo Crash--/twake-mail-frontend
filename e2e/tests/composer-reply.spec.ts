@@ -346,6 +346,34 @@ test.describe('CMP and EML: replying and forwarding', () => {
     expect(original?.keywords.$forwarded).toBe(true)
   })
 
+  test(
+    'CMP-60 an answer to an email received on an alias goes out from the alias identity',
+    { tag: '@mobile' },
+    async ({ page, user, users, jmap, jmapFor }) => {
+      const bob = await users.create({ prefix: 'bob' })
+      // James gives the account an identity of each of its aliases
+      const alias = await users.createAlias(user, 'sales')
+      await jmapFor(bob).sendEmail({
+        to: alias,
+        subject: 'Quote request',
+        text: 'How much?'
+      })
+      await jmap.waitForEmail({ subject: 'Quote request' })
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await openReceived(mailbox, 'Quote request')
+
+      const composer = await email.reply()
+      await expect(composer.identitySelect).toContainText(alias)
+      await expectNoA11yViolations(page)
+      await composer.send()
+
+      const reply = await jmapFor(bob).waitForEmail({
+        subject: 'Re: Quote request'
+      })
+      expect(reply.from?.[0]?.email).toBe(alias)
+    }
+  )
+
   test('CMP-42 a reply is received with In-Reply-To, References and a faithful quote; the email is marked answered', async ({
     page,
     user,

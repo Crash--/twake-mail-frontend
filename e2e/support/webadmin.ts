@@ -65,6 +65,21 @@ export class WebAdminClient {
     return this.#call('PUT', `/quota/users/${encodeURIComponent(email)}`, quota)
   }
 
+  /** An alias of an account: its emails are delivered to the account, which may send from it */
+  async addAlias(userEmail: string, alias: string): Promise<Response> {
+    return this.#call(
+      'PUT',
+      `/address/aliases/${encodeURIComponent(userEmail)}/sources/${encodeURIComponent(alias)}`
+    )
+  }
+
+  async deleteAlias(userEmail: string, alias: string): Promise<Response> {
+    return this.#call(
+      'DELETE',
+      `/address/aliases/${encodeURIComponent(userEmail)}/sources/${encodeURIComponent(alias)}`
+    )
+  }
+
   /** Twake team mailbox: `<name>@<domain>`, shared by its members */
   async createTeamMailbox(domain: string, name: string): Promise<Response> {
     return this.#call(

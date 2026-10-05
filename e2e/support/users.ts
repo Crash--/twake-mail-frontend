@@ -42,6 +42,7 @@ export class E2EUserFactory {
   readonly #domain: string
   readonly #users: E2EUser[] = []
   readonly #teamMailboxes: E2ETeamMailbox[] = []
+  readonly #aliases: { user: E2EUser; alias: string }[] = []
 
   constructor(
     webadmin: WebAdminClient = new WebAdminClient(),
@@ -95,9 +96,17 @@ export class E2EUserFactory {
     return teamMailbox
   }
 
+  /** An alias of `user` (`<prefix>-<uuid>@<domain>`), delivered to its account */
+  async createAlias(user: E2EUser, prefix = 'alias'): Promise<string> {
+    const alias = `${prefix}-${randomUUID().slice(0, 8)}@${this.#domain}`
+    await this.#webadmin.addAlias(user.email, alias)
+    this.#aliases.push({ user, alias })
+    return alias
+  }
+
   /**
-   * Deletes every team mailbox and account created by this factory, and the emails of those
-   * accounts. Already gone is fine.
+   * Deletes every alias, team mailbox and account created by this factory, and the emails of
+   * those accounts. Already gone is fine.
    */
   async cleanup(): Promise<string[]> {
     const failures: string[] = []
@@ -125,6 +134,9 @@ export class E2EUserFactory {
           `${user.email} emails: ${error instanceof Error ? error.message : String(error)}`
         )
       }
+    }
+    for (const { user, alias } of this.#aliases.splice(0)) {
+      await ignoreNotFound(this.#webadmin.deleteAlias(user.email, alias), alias)
     }
     for (const teamMailbox of this.#teamMailboxes.splice(0)) {
       await ignoreNotFound(

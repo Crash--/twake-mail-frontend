@@ -635,7 +635,9 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
           (await readMailbox(jmap, 'drafts')).map(draft => draft.subject).sort()
         )
         .toEqual(['Kept draft, saved again', 'Third version'])
-      expect(lost).toBe(1)
+      // The new version exists before the request destroying the previous
+      // one leaves: wait for it to be lost
+      await expect.poll(() => lost).toBe(1)
       await page.unroute('**/jmap')
       const left = (await readMailbox(jmap, 'drafts')).map(draft => draft.id)
 

@@ -17,13 +17,18 @@
 #   security_headers.conf   the values of the security headers, from the
 #                           environment (see docs/deployment.md):
 #
-#   CSP_CONNECT_SRC          extra sources of connect-src: the JMAP server and
-#                            its WebSocket when not on the origin of the app,
-#                            the SSO. The Sentry ingest origin of SENTRY_DSN is
-#                            added by this script when SENTRY_ENABLED is true,
-#                            and only then
+#   CSP_CONNECT_SRC          extra sources of connect-src, added to those this
+#                            script derives from the configuration: SERVER_URL
+#                            (the JMAP server) and its ws:/wss: counterpart,
+#                            SSO_BASE_URL, the SSO that a WebFinger request on
+#                            SERVER_URL answers at startup (see below), and the
+#                            Sentry ingest origin of SENTRY_DSN when
+#                            SENTRY_ENABLED is true
+#   CSP_WEBFINGER_DISCOVERY  false: no WebFinger request at startup
+#   CSP_WEBFINGER_TIMEOUT    seconds of each of its two attempts, default 3
 #   CSP_FRAME_SRC            extra sources of frame-src (e.g. Twake Drive intents)
 #   CSP_FRAME_ANCESTORS      who may embed the app in a frame, default 'self'
+#                            (COZY_INTEGRATION on without it logs a warning)
 #   CSP_REPORT_URI           where browsers report violations (report-uri)
 #   CSP_REPORT_ONLY          true: send Content-Security-Policy-Report-Only
 #                            instead of Content-Security-Policy
@@ -183,18 +188,103 @@ env_js_value() {
   grep -vE '^[[:space:]]*//' "$env_js" | grep -E "(^|[[:space:];.])$1[[:space:]]*=" | head -1 |
     sed -E "s/^.*$1[[:space:]]*=[[:space:]]*//; s/[;[:space:]]*\$//; s/^['\"\`]//; s/['\"\`]\$//"
 }
+# add_connect_src <source>: appended to connect_src unless already listed
+add_connect_src() {
+  case " $connect_src " in
+    *" $1 "*) return 0 ;;
+  esac
+  connect_src="${connect_src:+$connect_src }$1"
+}
+
+# origin_of <url>: scheme://host[:port] of an http(s) URL, nothing otherwise
+origin_of() {
+  printf '%s' "$1" |
+    sed -nE 's|^(https?://[][A-Za-z0-9._:-]+)([/?#].*)?$|\1|p'
+}
+
+# add_origin_with_websocket <url>: the origin of a server, and its ws:/wss:
+# counterpart (the push channel)
+add_origin_with_websocket() {
+  origin=$(origin_of "$1")
+  [ -n "$origin" ] || return 0
+  add_connect_src "$origin"
+  case "$origin" in
+    https://*) add_connect_src "wss://${origin#https://}" ;;
+    http://*) add_connect_src "ws://${origin#http://}" ;;
+  esac
+}
+
+# The JMAP server (SERVER_URL), usually on another origin than the app: with
+# its WebSocket, as the env.file of the linagora/tmail-frontend chart gives it
+server_url=$(env_js_value SERVER_URL)
+if [ -n "$server_url" ]; then
+  if [ -z "$(origin_of "$server_url")" ]; then
+    log "SERVER_URL is not a fixed http(s) URL, left out of connect-src"
+  else
+    add_origin_with_websocket "$server_url"
+    log "SERVER_URL origin added to connect-src"
+  fi
+fi
+
+# The SSO given by the configuration
+sso_base_url=$(env_js_value SSO_BASE_URL)
+if [ -n "$sso_base_url" ]; then
+  origin=$(origin_of "$sso_base_url")
+  [ -z "$origin" ] || add_connect_src "$origin"
+fi
+
+# Without SSO_BASE_URL (and unless AUTH_MODE is basic), the app finds the SSO
+# at runtime: WebFinger on SERVER_URL, as tmail-flutter does. Its origin must
+# be in connect-src, and the browser cannot add it itself: ask the same
+# question once at startup. Bounded (CSP_WEBFINGER_TIMEOUT seconds, two
+# attempts), never fatal; CSP_WEBFINGER_DISCOVERY=false turns it off. The
+# answer is the state of the SSO now: after a change of it, restart the
+# container, or give its origin in CSP_CONNECT_SRC.
+auth_mode=$(env_js_value AUTH_MODE)
+server_origin=$(origin_of "$server_url")
+if [ -n "$server_origin" ] && [ -z "$sso_base_url" ] && [ "$auth_mode" != basic ] &&
+  [ "${CSP_WEBFINGER_DISCOVERY:-true}" != false ]; then
+  timeout=${CSP_WEBFINGER_TIMEOUT:-3}
+  case "$timeout" in
+    '' | *[!0-9]*) fail "CSP_WEBFINGER_TIMEOUT must be a number of seconds" ;;
+  esac
+  issuer=''
+  for attempt in 1 2; do
+    # No redirection followed, no credentials, http(s) only, small answer
+    answer=$(curl -s --proto '=http,https' --connect-timeout "$timeout" \
+      --max-time "$timeout" --max-filesize 65536 -G \
+      --data-urlencode "resource=$server_origin" \
+      --data-urlencode 'rel=http://openid.net/specs/connect/1.0/issuer' \
+      -H 'Accept: application/jrd+json, application/json' \
+      "$(printf '%s' "$server_url" | sed -E 's#/+$##')/.well-known/webfinger" 2>/dev/null |
+      tr -d '\r\n' || true)
+    # The link of the issuer relation, else the first link (tmail-flutter)
+    link=$(printf '%s' "$answer" |
+      grep -oE '\{[^{}]*"http://openid.net/specs/connect/1.0/issuer"[^{}]*\}' | head -1 || true)
+    [ -n "$link" ] || link=$answer
+    issuer=$(printf '%s' "$link" |
+      sed -nE 's#.*"href"[[:space:]]*:[[:space:]]*"([^"]*)".*#\1#p' | head -1)
+    [ -z "$(origin_of "$issuer")" ] || break
+    issuer=''
+    [ "$attempt" = 2 ] || sleep 1
+  done
+  if [ -n "$issuer" ]; then
+    add_connect_src "$(origin_of "$issuer")"
+    log "SSO origin $(origin_of "$issuer") found by WebFinger, added to connect-src"
+  else
+    log "warning: no SSO found by WebFinger on $server_origin: if the app signs in with an SSO, add its origin to CSP_CONNECT_SRC"
+  fi
+fi
+
 sentry_enabled=$(env_js_value SENTRY_ENABLED)
 sentry_dsn=$(env_js_value SENTRY_DSN)
 # Without SENTRY_ENABLED, a DSN alone starts the reporting (deprecated)
 case "$sentry_enabled" in
   true | '')
     sentry_origin=$(printf '%s' "$sentry_dsn" |
-      sed -nE 's#^(https?://)[^@/[:space:]]+@([^/?#[:space:]]+)/.*$#\1\2#p')
-    case " $connect_src " in
-      *" $sentry_origin "*) sentry_origin='' ;;
-    esac
+      sed -nE 's#^(https?://)[^@/[:space:]]+@([^/?\#[:space:]]+)/.*$#\1\2#p')
     if [ -n "$sentry_origin" ]; then
-      connect_src="${connect_src:+$connect_src }$sentry_origin"
+      add_connect_src "$sentry_origin"
       log "Sentry ingest origin $sentry_origin added to connect-src"
     fi
     ;;
@@ -202,6 +292,13 @@ esac
 
 frame_src=${CSP_FRAME_SRC:-}
 frame_ancestors=${CSP_FRAME_ANCESTORS:-"'self'"}
+# COZY_INTEGRATION / WORKPLACE_EMBEDDING: the app is framed by Twake Workplace,
+# at an address this image cannot guess (one per user)
+if [ -z "${CSP_FRAME_ANCESTORS:-}" ]; then
+  case "$(env_js_value COZY_INTEGRATION)$(env_js_value WORKPLACE_EMBEDDING)" in
+    *true*) log "warning: COZY_INTEGRATION is on but CSP_FRAME_ANCESTORS is not set: browsers will refuse to show the app in the frame of Twake Workplace. Set it to the origins of the Workplace, e.g. \"'self' https://*.example.com\"" ;;
+  esac
+fi
 report_uri=${CSP_REPORT_URI:-}
 check_sources CSP_CONNECT_SRC "$connect_src"
 check_sources CSP_FRAME_SRC "$frame_src"

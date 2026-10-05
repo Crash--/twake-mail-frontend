@@ -2,25 +2,15 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   IconButton,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography
+  Tooltip
 } from '@linagora/twake-mui'
 import { Cross, Icon } from '@linagora/twake-icons'
-import { useId, type ChangeEvent, type ReactElement } from 'react'
+import { useId, type ReactElement } from 'react'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { SHORTCUTS } from './shortcuts'
-import { useShortcutsEnabled } from './shortcutsSetting'
+import { ShortcutsPanel } from './ShortcutsPanel'
 
 export interface ShortcutsHelpDialogProps {
   open: boolean
@@ -37,12 +27,7 @@ export function ShortcutsHelpDialog({
   const { t } = useI18n()
   const titleId = useId()
   const descriptionId = useId()
-  const [isEnabled, setEnabled] = useShortcutsEnabled()
   const closeLabel = t('common.close')
-
-  const handleToggle = (event: ChangeEvent<HTMLInputElement>): void => {
-    setEnabled(event.target.checked)
-  }
 
   return (
     <Dialog
@@ -66,61 +51,7 @@ export function ShortcutsHelpDialog({
         </Tooltip>
       </DialogTitle>
       <DialogContent>
-        <div id={descriptionId}>
-          <SecondaryText variant="body2" component="p">
-            {t('shortcuts.description')}
-          </SecondaryText>
-        </div>
-        <FormControlLabel
-          className="u-mv-1"
-          control={
-            <Switch
-              checked={isEnabled}
-              onChange={handleToggle}
-              data-testid="shortcuts-enabled-switch"
-            />
-          }
-          label={t('shortcuts.enable')}
-        />
-        <Table size="small" aria-labelledby={titleId}>
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <Typography variant="subtitle2" color="textPrimary">
-                  {t('shortcuts.key')}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant="subtitle2" color="textPrimary">
-                  {t('shortcuts.action')}
-                </Typography>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {SHORTCUTS.map(shortcut => (
-              <TableRow key={shortcut.key}>
-                <TableCell>
-                  <Typography
-                    component="kbd"
-                    variant="body2"
-                    color="textPrimary"
-                    className="u-fw-bold"
-                  >
-                    {shortcut.keys ?? shortcut.key}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  {/* The theme greys table cells below AA contrast
-                      (docs/twake-mui-gaps.md) */}
-                  <Typography variant="body2" color="textPrimary">
-                    {t(shortcut.label)}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ShortcutsPanel descriptionId={descriptionId} labelledBy={titleId} />
       </DialogContent>
     </Dialog>
   )

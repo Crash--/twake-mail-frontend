@@ -22,6 +22,20 @@ export interface AppListEntry {
   icon: string
 }
 
+/**
+ * The SSO is not given (`SSO_BASE_URL`): it is looked up at runtime from the
+ * JMAP server, as tmail-flutter does (`completeConfig`)
+ */
+export interface IssuerDiscovery {
+  /** `SERVER_URL`, without trailing slash: WebFinger is asked there */
+  serverUrl: string
+  /**
+   * Sign in with the Basic form when no SSO is found, as tmail-flutter does.
+   * Off when `AUTH_MODE=oidc` is explicit: the SSO is then required.
+   */
+  fallbackToBasic: boolean
+}
+
 export type SentrySource = 'env' | 'ecosystem'
 
 export interface AppConfig {
@@ -29,6 +43,11 @@ export interface AppConfig {
   authMode: AuthMode
   /** Set when `authMode` is `oidc`, null otherwise */
   oidc: OidcConfig | null
+  /**
+   * Set while `oidc.issuerUrl` is only a guess (`SERVER_URL` itself): the
+   * issuer is to be discovered. Null when `SSO_BASE_URL` gives it.
+   */
+  issuerDiscovery: IssuerDiscovery | null
   /**
    * Where the error reporting configuration comes from, as in tmail-flutter
    * on the web: `env` as soon as one of the `SENTRY_*` keys is filled (even
@@ -233,9 +252,12 @@ function resolveOidcConfig(
   source: RuntimeConfigSource,
   origin: string,
   errors: string[],
-  warn: DeprecationWarner
+  warn: DeprecationWarner,
+  discoveryServerUrl: string | null
 ): OidcConfig | null {
-  const issuerUrl = normalizeString(source.SSO_BASE_URL)
+  // Without SSO_BASE_URL, tmail-flutter guesses the SSO is the server itself
+  // when WebFinger finds none
+  const issuerUrl = normalizeString(source.SSO_BASE_URL) ?? discoveryServerUrl
   const clientId = readKey(source, 'WEB_OIDC_CLIENT_ID', 'SSO_CLIENT_ID', warn)
   const { redirectUri, postLogoutRedirectUri } = resolveRedirectUris(
     source,
@@ -365,8 +387,15 @@ export function resolveConfig(
     errors.push(`AUTH_MODE must be one of: ${AUTH_MODES.join(', ')}`)
   }
 
+  const hasSsoBaseUrl = normalizeString(source.SSO_BASE_URL) !== null
+  const discoveryServerUrl =
+    authMode === 'oidc' && !hasSsoBaseUrl && serverUrl !== null
+      ? removeTrailingSlashes(serverUrl)
+      : null
   const oidc =
-    authMode === 'oidc' ? resolveOidcConfig(source, origin, errors, warn) : null
+    authMode === 'oidc'
+      ? resolveOidcConfig(source, origin, errors, warn, discoveryServerUrl)
+      : null
 
   if (errors.length > 0 || !jmapSessionUrl || !authMode) {
     return { ok: false, errors }
@@ -382,6 +411,13 @@ export function resolveConfig(
       jmapSessionUrl,
       authMode,
       oidc,
+      issuerDiscovery:
+        discoveryServerUrl === null
+          ? null
+          : {
+              serverUrl: discoveryServerUrl,
+              fallbackToBasic: normalizeString(source.AUTH_MODE) === null
+            },
       ...resolveSentry(source, warn),
       ecosystemUrl:
         serverUrl === null

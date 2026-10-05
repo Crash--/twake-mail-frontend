@@ -18,7 +18,8 @@
     "yes": "Yes",
     "no": "No",
     "confirm": "Confirm",
-    "remove": "Remove"
+    "remove": "Remove",
+    "errorOccurredShort": "Error! An error occurred. Please try again later."
   },
   "topbar": {
     "apps": "Go to applications",
@@ -499,7 +500,14 @@
     },
     "preferences": {
       "thread": "Thread",
-      "threadDescription": "View multiple related emails like a conversation"
+      "threadDescription": "View multiple related emails like a conversation",
+      "readReceipts": "Email read receipts",
+      "readReceiptsDescription": "Read receipts are notifications that can be sent to and from your users to verify that mail has been read.",
+      "readReceiptsToggle": "Always request read receipts with outgoing messages",
+      "senderPriority": "Sender-set important flag",
+      "senderPriorityDescription": "Enables display of important emails flag in your inbox. This feature is controlled by the sender and thus could result in abuses.",
+      "senderPriorityToggle": "Display sender-set important flag",
+      "threadToggle": "Enable thread"
     },
     "backToMail": "Back to mail",
     "language": {

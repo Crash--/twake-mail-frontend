@@ -137,6 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is ready or after signing in, their body kept as plain text
 - Language (Settings > Language): applied at once, kept in the browser and
   in the `language` setting of the account, which every device follows
+- Preferences: "Always request read receipts" and "Display sender-set
+  important flag", kept in the settings of the account
 
 ### Changed
 

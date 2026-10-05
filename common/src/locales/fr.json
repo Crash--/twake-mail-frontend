@@ -18,7 +18,8 @@
     "yes": "Oui",
     "no": "Non",
     "confirm": "Confirmer",
-    "remove": "Retirer"
+    "remove": "Retirer",
+    "errorOccurredShort": "Erreur ! Une erreur s'est produite. Veuillez réessayer plus tard."
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -499,7 +500,14 @@
     },
     "preferences": {
       "thread": "Fil de discussion",
-      "threadDescription": "Afficher plusieurs e-mail associée comme une conversation"
+      "threadDescription": "Afficher plusieurs e-mail associée comme une conversation",
+      "readReceipts": "Accusés de lecture",
+      "readReceiptsDescription": "Les accusés de lecture sont des notifications qui peuvent être envoyées à l'expéditeur pour confirmer que le destinataire a bien ouvert le message.",
+      "readReceiptsToggle": "Toujours exiger des accusés de lecture pour les messages sortants",
+      "senderPriority": "Étiquette Important définie par l'expéditeur",
+      "senderPriorityDescription": "Active l'affichage des messages marqués comme important dans votre boîte de réception. Cette fonctionnalité est contrôlée par l'envoyeur et peut entraîner des abus.",
+      "senderPriorityToggle": "Afficher l'étiquette Important définie par l'expéditeur",
+      "threadToggle": "Activer les fils de discussion"
     },
     "backToMail": "Retour aux e-mails",
     "language": {

@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import {
@@ -38,10 +38,22 @@ describe('VacationSettings', () => {
   it('turns the vacation response on, from a date until another', async () => {
     const fake = setup()
 
+    expect(
+      await screen.findByTestId('vacation-message-editor')
+    ).toHaveAttribute('aria-disabled', 'true')
     await userEvent.click(
       await screen.findByRole('switch', {
         name: 'Automatically reply to messages when they are received.'
       })
+    )
+    await waitFor(() => {
+      expect(screen.getByTestId('vacation-message-editor')).toHaveAttribute(
+        'contenteditable',
+        'true'
+      )
+    })
+    expect(screen.getByTestId('vacation-message-editor')).not.toHaveAttribute(
+      'aria-disabled'
     )
     fireEvent.change(screen.getByLabelText(/^Start date/), {
       target: { value: '2026-10-10' }
@@ -115,6 +127,10 @@ describe('VacationSettings', () => {
       })
     )
     expect(screen.getByLabelText(/^Start date/)).toBeDisabled()
+    const message = screen.getByTestId('vacation-message-editor')
+    expect(message).toHaveAttribute('aria-disabled', 'true')
+    expect(message).toHaveAttribute('contenteditable', 'false')
+    expect(message).toHaveTextContent('Away')
     await userEvent.click(screen.getByTestId('vacation-save-button'))
 
     expect(await screen.findByTestId('toast')).toHaveTextContent(

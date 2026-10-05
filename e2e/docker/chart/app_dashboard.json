@@ -1,0 +1,19 @@
+{
+  "apps": [
+    {
+      "appName": "Twake Chat",
+      "appLink": "https://chat.workplace.example.test/",
+      "icon": "ic_twake_app.svg"
+    },
+    {
+      "appName": "Twake Drive",
+      "appLink": "https://drive.workplace.example.test/",
+      "icon": "ic_tdrive_app.svg"
+    },
+    {
+      "appName": "Legacy app",
+      "appLink": "https://legacy.workplace.example.test/",
+      "icon": "ic_linshare_app.png"
+    }
+  ]
+}

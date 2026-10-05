@@ -1,4 +1,4 @@
-# Reprendre le projet dans une nouvelle session (état au 2026-10-05)
+# Reprendre le projet dans une nouvelle session (état au 2026-10-05, fin de journée)
 
 Point d'entrée pour la prochaine session (agent ou humain). Le détail historique est dans
 [`HANDOFF.md`](HANDOFF.md) ; les règles du code dans [`../AGENTS.md`](../AGENTS.md).
@@ -17,7 +17,8 @@ ouvertes et **un chantier design** (voir §5).
 |---|---|
 | App (public) | `github.com/Crash--/twake-mail-frontend`, clone `~/Sites/Linagora/twake-mail-frontend` |
 | Client JMAP (public) | `github.com/Crash--/jmap-client-ts`, branche **`v2`**, clone `~/Sites/Linagora/jmap-client-ts` ; entrée `jmap-client-ts/linagora` pour les extensions |
-| Référence Flutter | `~/.paseo/worktrees/1d578va0/sharp-mouse` (worktree de tmail-flutter, à jour avec la Orange Bar) |
+| Référence Flutter | `~/.paseo/worktrees/1d578va0/spiffy-pony` (worktree de tmail-flutter à jour de `master` ; `sharp-mouse` n'existe plus) |
+| Design (hors dépôt) | `~/Sites/Linagora/twake-mail-design-cache/` : `design-reference.md` (point d'entrée), `sidebar-spec.md`, `component-check.md` (twake-mui vs Figma), `audit-sidebar.md`, captures Figma (`twake-mui-page/`, `other-pages/`), rendus Storybook, captures avant/après, scripts `tools/`. **Ne rien en copier dans le dépôt public.** |
 | Démo (Tailscale seulement) | **https://mail-react.twake.valmoriq.fr**, branchée sur le Workplace `twake.valmoriq.fr` (tmail-backend 1.0.19.1, SSO LemonLDAP), compte `user1` (≈ 3 400 mails de démo) |
 | Déploiement démo | `~/Sites/Linagora/twake-mail-react-devbox/` : `deploy.sh` (clone + build image + up), `docker-compose.yaml`, `config/.env.js`, `config/appList.js`, `seed/` |
 | Workplace local | `~/Sites/Linagora/twake-workplace-docker` (**modifs locales de Quentin : ne jamais commit/reset/stash**) |
@@ -43,28 +44,41 @@ ouvertes et **un chantier design** (voir §5).
 
 ## 4. État au moment de la passation
 
-- `main` = `16f7cbc`, CI verte, aucune PR ouverte, aucun worktree, déployé sur la démo.
-- **Issues ouvertes** (`gh issue list -R Crash--/twake-mail-frontend`) : 23, dont
-  - nouvelles de Quentin à traiter : **#93** composer qui clignote en naviguant (piste : View Transitions), **#95** défiler vers le message à lire dans une conversation, **#96** (question) affichage de la recherche avec les conversations, **#98** Favoris placé entre la boîte de réception et ses sous-dossiers, **#92** sidebar trop étroite ;
-  - améliorations : #44, #47, #48 (spec MBX-07), #54, #55 (barre d'outils mobile du composer), #57–#60, #62 ;
-  - bloquées en amont : #56 (annulation d'envoi), #63 (React 19), #64 (suivi twake-ui), #66 (flakes e2e image memory) ;
-  - questions : #67, #68 ; audit RGAA manuel : #65 ; non prioritaire : #40.
-- Démo : Drive activé (`TDRIVE_ENABLED`), app embarquée dans le Workplace de `user1` (`https://user1-mail.twake.valmoriq.fr`).
-  Le sélecteur Drive corrigé par la PR #97 **n'a pas été vérifié avec le vrai Drive** (identifiants refusés à l'agent) : à tester à la main.
+- `main` = `8768916`, CI verte, aucune PR ouverte (hormis celle de ce doc), aucun worktree ; déployé sur la démo.
+- Fait le 2026-10-05 (PR #100 à #118) : #98 Favoris, #93 composer qui clignote, #95 défilement vers le message, #108 glitch
+  défilement / View Transition, #113 double scrollbar (zones live de `ToastRegion`), contraste reporté au thème dédié (#105),
+  design : sidebar (#104), barre du haut 50 px + recherche dans le corps + barre de liste (#106), lignes de liste et états (#107),
+  barre d'action des dossiers + filtre de liste comme Flutter + bouton d'aide (#118, `Refs #112`), clés `.env.js` = `env.file`
+  de tmail-flutter (#114, anciens noms en alias ; table dans `docs/deployment.md`), recherche de dossiers (#116), parité
+  team-mailboxes (#117, tableau dans `docs/team-mailboxes.md`).
+- Démo : `config/.env.js` passé aux noms Flutter (`SERVER_URL`, `WEB_OIDC_CLIENT_ID`, `OIDC_SCOPES`, `SENTRY_ENABLED`),
+  sauvegarde `config/.env.js.bak-flutter-keys-*`. Redirection SSO vérifiée ; **connexion réelle non vérifiée** (identifiants).
+- Issues ouvertes : `gh issue list -R Crash--/twake-mail-frontend`. Nouvelles du jour : #102 (flèches dans l'arbre des dossiers),
+  #110 (libellés d'une ligne de conversation), #111 (bandeau d'achat d'espace / paywall, logique Flutter décrite), #112 (reste de
+  la parité de la barre d'action, voir son dernier commentaire). #47 : la recherche dans l'arbre (MBX-04) est faite par #116.
 
-## 5. Prochain chantier : le design (demandé par Quentin)
+## 5. Chantier design : où on en est
 
-1. **Vérifier que les outils Figma sont chargés** (serveur MCP `figma` en scope utilisateur, `https://mcp.figma.com/mcp`,
-   authentifié) : `ToolSearch` « figma » doit renvoyer des outils `mcp__figma__*`. Sinon, demander à Quentin de relancer la
-   session après `/mcp` → figma → Authenticate. Les sous-agents n'ont les outils que s'ils existent dans la session principale.
-2. **Lire le design** : fichier **Teammail 1.1**
-   https://www.figma.com/design/XqLqMINlZw09BdEHI8yLb9/Teammail---1.1?node-id=9152-12 (nœud donné par Quentin), puis ses pages
-   de composants et ses variables (couleurs, typographie, espacements, rayons, ombres). Autre fichier vu : *Cozy new UI*
-   `NYgsH6s0LKkpo0aQRG9fAI`. Demander à Quentin les liens de la sidebar, du composer, de la vue conversation s'ils manquent.
-3. **Comparer** avec twake-mui (`node_modules/@linagora/twake-mui`, `/tmp/twake-ui`) et nos composants `@/ds/` ; noter les écarts.
-4. **Corriger par lots** (une PR par lot, captures avant/après regardées, axe et responsive) : boutons, champs, sidebar (#92, #98),
-   barre du haut, liste, lecture, composer. Ce qui manque à twake-mui → `@/ds/` + entrée dans `docs/twake-mui-gaps.md`.
-5. En parallèle si utile : #93 (clignotement du composer, à vérifier avec `prefers-reduced-motion`), #95.
+- **Lire Figma** : le fichier Teammail 1.1 est en vue publique. Playwright headless (user-agent Chrome standard, sinon 403
+  CloudFront) l'ouvre sans compte et sans quota : scripts `twake-mail-design-cache/tools/` (README du cache). Le MCP Figma de
+  Quentin a un siège View/Starter (~20 ou 6 appels/mois, 6 consommés) : ne l'utiliser que dans la session principale, jamais
+  dans un sous-agent. Le panneau des propriétés (composant source, variantes) exige un compte ; la bibliothèque DS est externe.
+- **Référence** : page « new components Twake MUI » (l'app refaite en Twake MUI, `twake-mui-page/`), page « new sidebar »,
+  conversation « new compact » (`other-pages/threads-frame.png`). La page « COMPOSE SCREENS 1.1 » date de 2024 : à ignorer.
+- **Règles** : palette officielle telle quelle, **pas de correction de contraste** (thème dédié plus tard ; axe le signale en
+  annotation). twake-mui d'abord (voir `component-check.md` : `SearchBar elevation={0}`, `Snackbar`+`Alert` pour le hors ligne,
+  `NavDesktopDropdown` pour les en-têtes repliables…), `@/ds/` sinon, pas de surcharge du thème global.
+- **Reste à faire** : lecture d'un email et conversation compacte (`n28866`, `threads-frame`), composer (`n29032/35/38/41`),
+  recherche ouverte et recherche avancée (`n28838`, `n28859`), mobile (`n29045`, menus `n29085…`), mode sombre, pied de sidebar
+  (stockage « disponible », version), en-têtes de section repliables (« Folders › »), finitions de la recherche de dossiers
+  (ombre du champ, badge « masqué » qui tronque), bannière hors ligne à brancher (`ds/OfflineBanner` existe), skeletons.
+- **Questions en attente de Quentin** : largeur de sidebar #92 (236 px + infobulle ou 264 px) ; icône « ↶ » des lignes (réponse
+  rapide ou statut `$answered`) ; libellés d'une ligne de conversation (#110 : email représentatif ou union) ; engrenage du menu de
+  compte en mode embarqué (proposition : le retirer) ; boutons texte 16 px (thème) vs 14 px (maquette) ; résultats masqués de la
+  recherche de dossiers ouvrables ou grisés comme Flutter ; identités du composer (`mayDelete`) et actions interdites masquées ou
+  grisées (team-mailboxes) ; WebFinger pour découvrir le SSO depuis `SERVER_URL` ; `COZY_INTEGRATION` vs `WORKPLACE_EMBEDDING` ;
+  consentement Sentry ; défilement d'ouverture désormais jamais fluide (#109). Candidats d'issues externes listés dans les
+  rapports (rien d'ouvert) : `Mailbox/clear` sur team-mailbox, namespaces `Delegated`, `serverFail` de la memory image.
 
 ## 6. Devbox : ce qui a été modifié (et comment revenir en arrière)
 
@@ -90,6 +104,11 @@ ouvertes et **un chantier design** (voir §5).
 - La CI e2e tourne **contre l'image Docker** avec une **garde CSP** : toute violation fait échouer le test.
 - Prettier : toujours depuis la racine du dépôt (lancé dans `e2e/`, il reformate des specs).
 - Node 24 : `source ~/.nvm/nvm.sh && nvm use 24`.
+- E2E en parallèle : chaque agent a son `E2E_PROJECT` et ses ports (`E2E_JMAP_PORT`, `E2E_WEBADMIN_PORT`, `E2E_APP_PORT`) **et** exporte
+  `E2E_BASE_URL`, `E2E_JMAP_URL`, `E2E_WEBADMIN_URL` pour Playwright ; toujours passer son `E2E_PROJECT` à `stop.sh`.
+- Avant de merger : vérifier la CI du **commit de tête** (`gh run list --commit <sha>`), pas seulement `statusCheckRollup`.
+- Sous-agents : interdire `mcp__figma__*` et la copie des captures/SVG du cache dans le dépôt ; lignes ajoutées en **fin** de
+  `docs/twake-mui-gaps.md`, `e2e/pages/README.md`, `e2e/e2e.md` pour limiter les conflits.
 - Skills Twake : plugin `twake-guidelines` (scope utilisateur), sources dans `~/.claude/plugins/marketplaces/twake-guidelines/skills/`.
 
 ## 8. Message à coller pour démarrer la prochaine session
@@ -99,3 +118,5 @@ ouvertes et **un chantier design** (voir §5).
 > (§5) en commençant par lire le design system du fichier Teammail 1.1 (lien dans le doc). Même façon de travailler
 > qu'avant : agents en parallèle dans des worktrees, une PR par lot mergée quand la CI est verte, redéploiement de la démo,
 > issues sur notre dépôt pour ce que je signale, rien d'externe sans mon accord.
+
+(Pour le design, commencer par `~/Sites/Linagora/twake-mail-design-cache/design-reference.md` et les questions du §5.)

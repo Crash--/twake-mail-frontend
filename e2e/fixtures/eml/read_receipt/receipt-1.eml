@@ -1,0 +1,10 @@
+From: "Bob" <BOB_ADDRESS>
+To: <USER_ADDRESS>
+Subject: Receipts in a conversation
+Date: Mon, 05 Oct 2026 08:00:00 +0000
+Message-ID: <receipt-1@example.com>
+Disposition-Notification-To: <BOB_ADDRESS>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+First message, a receipt asked.

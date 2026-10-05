@@ -325,6 +325,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/thread.spec.ts`. Passes in CI.
 - [x] `THR-09` With conversations on, a reply draft opens in the composer from Drafts; in its conversation it is marked "Draft", "Edit" (named after its recipients) opens the composer on it and "Delete draft" deletes it forever once confirmed. — web app only; tmail-flutter opens a draft in the composer (issue #51)
   - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
+- [x] `THR-10` Two messages of a conversation asking for a read receipt ask in turn (the second dialog once the first is answered, focused on "No"), not one replacing the other; "Yes" to both sends both receipts (`$mdnsent`), and the focus goes back to the conversation. — web app only, no Patrol test (issue #53)
+  - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
 
 ## SRCH — Search (14)
 

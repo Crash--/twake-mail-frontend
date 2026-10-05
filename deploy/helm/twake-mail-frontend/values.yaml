@@ -112,8 +112,11 @@ config:
   # to register on the SSO client are <it>/login-callback.html and
   # <it>/logout-callback.html
   domainRedirectUrl: ""
-  # -- Error reporting (SENTRY_* of tmail-flutter). Starts with a DSN, unless
-  # enabled is false
+  # -- Error reporting (SENTRY_* of tmail-flutter). With a DSN, it is
+  # configured here and the users choose in Settings > Preferences whether
+  # their errors are reported (nothing is sent before). enabled: false turns it
+  # off for good. Without a DSN, the configuration is left to the ecosystem of
+  # the server (.well-known/linagora-ecosystem). See docs/sentry.md
   sentry:
     enabled: true
     dsn: ""

@@ -117,7 +117,7 @@ ingress-nginx do).
 | `config.sso.clientId`, `scope` | | `WEB_OIDC_CLIENT_ID` and `OIDC_SCOPES` (commas or spaces; keep `offline_access`) |
 | `config.domainRedirectUrl` | `""` | `DOMAIN_REDIRECT_URL`: the redirect URIs are `<it>/login-callback.html` and `<it>/logout-callback.html`; without it `<origin>/callback` and `<origin>/` |
 | `config.sso.redirectUri`, `postLogoutRedirect` | `""` | Replace the URIs built from `domainRedirectUrl` |
-| `config.sentry.enabled`, `dsn`, `environment` | `true`, `""`, `""` | `SENTRY_ENABLED` (true with a DSN), `SENTRY_DSN`, `SENTRY_ENVIRONMENT` |
+| `config.sentry.enabled`, `dsn`, `environment` | `true`, `""`, `""` | `SENTRY_ENABLED` (true with a DSN), `SENTRY_DSN`, `SENTRY_ENVIRONMENT`; none of them is written without a DSN (unless `enabled` is false), which leaves the configuration to the ecosystem of the server |
 | `config.sentryDsn` | `""` | Deprecated, use `sentry.dsn` |
 | `config.appGridAvailable` | `""` | `APP_GRID_AVAILABLE`: `supported` or `unsupported`; unset: shown when `appList` has apps |
 | `config.debug` | `false` | TanStack Query devtools, nginx cache disabled |

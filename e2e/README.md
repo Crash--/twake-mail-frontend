@@ -369,6 +369,10 @@ checked to add Dex and the OIDC specs.
   only once the new one exists (`CMP-37`); destroying two emails in one `Email/set` drops the
   other emails of their mailbox from `Email/query` (`INFRA-17`, memory image: they are still
   there for `Email/get` and `Email/changes`).
+- **Properties left out**: `Email/get` leaves out the properties it has no value for (`from` and
+  `to` of a template or a draft without recipients, the `name` of an address) instead of
+  returning `null`; the app reads them as `null`. A folder created with the name "Templates"
+  gets the `templates` role from James.
 - Deleting a user (`DELETE /users/…`) removes the account (it can no longer authenticate,
   `INFRA-02`) but James does not purge its mailboxes; harmless here (memory backend, random
   addresses, `stop.sh` drops everything).

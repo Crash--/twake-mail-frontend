@@ -160,14 +160,38 @@ export function editableQuoteHtml(
   urlFor: (cid: string) => string | null
 ): string {
   const root = parse(fromEmailHtml(html, urlFor))
-  for (const image of Array.from(root.querySelectorAll('img'))) {
+  blockRemoteSources(Array.from(root.querySelectorAll('img')))
+  return root.innerHTML
+}
+
+/** Keeps the remote sources of images without loading them; how many */
+function blockRemoteSources(images: readonly Element[]): number {
+  let count = 0
+  for (const image of images) {
     const src = image.getAttribute('src') ?? ''
     if (!/^(https?:)?\/\//i.test(src.trim())) continue
     image.setAttribute('data-blocked-src', src)
     image.setAttribute('src', '')
     image.removeAttribute('srcset')
+    count += 1
   }
+  return count
+}
+
+/**
+ * Editor HTML whose remote images (outside kept HTML blocks, which their
+ * frame blocks) are kept but not loaded, as the reader blocks them
+ * (`data-blocked-src`, given back by `toEmailHtml`)
+ */
+export function blockRemoteImages(editorHtml: string): string {
+  const root = parse(editorHtml)
+  blockRemoteSources(editorElements(root, 'img'))
   return root.innerHTML
+}
+
+/** Whether editor HTML holds images blocked by `blockRemoteImages` */
+export function hasBlockedImages(editorHtml: string): boolean {
+  return editorElements(parse(editorHtml), 'img[data-blocked-src]').length > 0
 }
 
 /** Replaces `cid:` sources by display URLs, for a frame that shows HTML */

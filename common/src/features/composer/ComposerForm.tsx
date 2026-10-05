@@ -35,6 +35,7 @@ import {
   useConfirm
 } from '@common/features/confirm/ConfirmProvider'
 import { buildEmailDocument } from '@common/features/email/emailBody'
+import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
 import { formatSize } from '@common/features/email/formatSize'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
@@ -71,6 +72,7 @@ import {
   resolveCidSources,
   toStorageHtml
 } from './emailHtml'
+import { showBlockedImages } from './editorImages'
 import { InlineImageStore } from './InlineImageStore'
 import {
   RecipientsEditor,
@@ -249,6 +251,9 @@ function LoadedComposerForm({
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [isSending, setIsSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [hasBlockedImages, setHasBlockedImages] = useState(
+    content.hasBlockedImages
+  )
   /** Counts the changes: each one (re)schedules an autosave */
   const [changes, setChanges] = useState(0)
   const editorRef = useRef<Editor | null>(null)
@@ -513,6 +518,14 @@ function LoadedComposerForm({
     savedRef.current ??= fingerprintOf(editor)
   }
 
+  /** The remote images of a reopened draft, loaded once asked */
+  const handleShowImages = (): void => {
+    setHasBlockedImages(false)
+    const editor = editorRef.current
+    if (editor) showBlockedImages(editor)
+    editor?.commands.focus()
+  }
+
   const handleIdentityChange = (id: string): void => {
     setIdentityId(id)
     const next = identities.find(candidate => candidate.id === id)
@@ -761,6 +774,14 @@ function LoadedComposerForm({
             />
           </Box>
         </Box>
+        {hasBlockedImages ? (
+          <Box className="u-ph-1 u-pt-half u-flex-shrink-0">
+            <RemoteContentBanner
+              onShow={handleShowImages}
+              onAlwaysShow={null}
+            />
+          </Box>
+        ) : null}
         {/* Focusing the body folds the recipients, as the subject does */}
         <Box
           className="u-flex u-flex-column u-flex-auto u-ov-hidden u-ph-1"

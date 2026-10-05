@@ -9,7 +9,7 @@ import type { IdentitySummary } from '@common/features/identities/queries'
 import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 
 import { IDENTITY_HEADER, type AttachedFile } from './composeEmail'
-import { fromEmailHtml } from './emailHtml'
+import { blockRemoteImages, fromEmailHtml, hasBlockedImages } from './emailHtml'
 import type { InlineImageStore, StoredImage } from './InlineImageStore'
 import type { Recipient } from './recipients'
 import type { RecipientKind, RecipientLists } from './RecipientsEditor'
@@ -54,6 +54,11 @@ export interface ComposerContent {
   references: string[] | null
   /** The email answered, marked once the answer is sent; null for none */
   answering: Answering | null
+  /**
+   * Its remote images are kept but not loaded (a reopened draft), until
+   * the user shows them
+   */
+  hasBlockedImages: boolean
 }
 
 /** What makes two states of a message different */
@@ -101,7 +106,8 @@ export function newMessageContent(
     savedFingerprint: null,
     inReplyTo: null,
     references: null,
-    answering: null
+    answering: null,
+    hasBlockedImages: false
   }
 }
 
@@ -235,6 +241,10 @@ export async function loadDraftContent(
     }
   }
   await images.downloadAll()
+  // Its remote images wait for the user, as in the reader
+  const editorHtml = blockRemoteImages(
+    fromEmailHtml(html, cid => images.urlFor(cid))
+  )
   const recipients: RecipientLists = {
     to: toRecipients(email.to),
     cc: toRecipients(email.cc),
@@ -248,7 +258,7 @@ export async function loadDraftContent(
       kind => recipients[kind].length > 0
     ),
     subject: email.subject ?? '',
-    html: fromEmailHtml(html, cid => images.urlFor(cid)),
+    html: editorHtml,
     attachments,
     draftId,
     leftovers: [],
@@ -256,7 +266,8 @@ export async function loadDraftContent(
     inReplyTo: email.inReplyTo ?? null,
     references: email.references ?? null,
     // The email it answers is not known any more
-    answering: null
+    answering: null,
+    hasBlockedImages: hasBlockedImages(editorHtml)
   }
 }
 
@@ -310,12 +321,13 @@ export async function restoreSnapshotContent(
     images.register(image)
   })
   await images.downloadAll()
+  const html = fromEmailHtml(snapshot.html, cid => images.urlFor(cid))
   return {
     identityId: snapshot.identityId,
     recipients: snapshot.recipients,
     shown: snapshot.shown,
     subject: snapshot.subject,
-    html: fromEmailHtml(snapshot.html, cid => images.urlFor(cid)),
+    html,
     attachments: snapshot.attachments.map(file => ({
       ...file,
       id: file.blobId,
@@ -329,6 +341,7 @@ export async function restoreSnapshotContent(
     savedFingerprint: snapshot.savedFingerprint,
     inReplyTo: snapshot.inReplyTo ?? null,
     references: snapshot.references ?? null,
-    answering: snapshot.answering ?? null
+    answering: snapshot.answering ?? null,
+    hasBlockedImages: hasBlockedImages(html)
   }
 }

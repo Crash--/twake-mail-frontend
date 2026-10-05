@@ -45,7 +45,7 @@ the React app. One line per Patrol test, 116 lines.
 |---|---|---|---|---|
 | `LOGIN` | Login | 1 | 1 | 0 |
 | `MBX` | Mailbox and folders | 25 | 3 | 2 |
-| `CMP` | Composer | 42 | 7 | 3 |
+| `CMP` | Composer | 45 | 7 | 3 |
 | `ATT` | Attachments | 2 | 1 | 0 |
 | `EML` | Reading and acting on an email | 27 | 0 | 1 |
 | `THR` | Thread detail | 3 | 0 | 0 |
@@ -57,7 +57,7 @@ the React app. One line per Patrol test, 116 lines.
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 1 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **132** | **24** | **6** |
+| | **Total** | **135** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -153,7 +153,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `MBX-30` A member of a team mailbox gets, on its root, only the actions the server rights allow (`myRights`: no rename, no delete; hide). — web app only, no Patrol test
   - Spec: `tests/folders.spec.ts`. Passes in CI.
 
-## CMP — Composer (42)
+## CMP — Composer (45)
 
 - [x] `CMP-01` Compose a new email to self (bob) and alice with subject "Test subject" and body, send it, and the message is filed in the Sent mailbox (no send-failure confirm dialog appears). — `composer/send_email_test.dart` · tags: `android` `ios` `web`
   - Data: logged-in user `BASIC_AUTH_EMAIL` = bob@example.com, `ADDITIONAL_MAIL_RECIPIENT` = alice@example.com.
@@ -211,6 +211,9 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [ ] `CMP-40` A reply saved as a draft reopens from Drafts with its quote as it was, and is sent in the thread (`In-Reply-To`). — web app only, no Patrol test
 - [ ] `CMP-41` The quote of a forwarded newsletter keeps its tables, images, links and styles (scoped to the quote), its `cid:` logo sent again. — web app only, no Patrol test (from the quote fidelity measure of the composer spike)
 - [ ] `CMP-42` A reply is received with `In-Reply-To` and `References` of the original, the text, the reply header and the quote (HTML and `>` text), and the original gets `$answered`. — web app only, no Patrol test
+- [ ] `CMP-43` The signature of the default identity (HTML, sanitized: no style sheet, no event handler) goes between the text and the quote of a reply; choosing another identity (text signature, escaped, lines kept) replaces it in place; the sent message keeps tmail-flutter's `tmail-signature` wrapper above the quote. — web app only, no Patrol test (from the signature spec of the composer spike)
+- [ ] `CMP-44` An image dropped on the body is inserted inline where it is dropped, not attached; the same image dropped elsewhere in the composer (the subject) is attached. — web app only, no Patrol test
+- [ ] `CMP-45` An inline image is resized with the mouse (its corner handle), the width kept. — web app only, no Patrol test (CMP-30 does it with the keyboard)
 
 ## ATT — Attachments (2)
 

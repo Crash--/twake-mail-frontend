@@ -16,6 +16,9 @@ export class ComposerPage {
   readonly minimizeButton: Locator
   readonly fullscreenButton: Locator
   readonly identitySelect: Locator
+  readonly saveStatus: Locator
+  readonly sendError: Locator
+  readonly deleteDraftButton: Locator
   readonly subjectInput: Locator
   readonly editor: Locator
   readonly sendButton: Locator
@@ -24,14 +27,26 @@ export class ComposerPage {
   readonly attachFileButton: Locator
   readonly attachments: Locator
 
-  constructor(page: Page, root: Locator = page.getByTestId('composer').first()) {
+  constructor(
+    page: Page,
+    root: Locator = page.getByTestId('composer').first()
+  ) {
     this.page = page
     this.root = root
-    this.toolbar = this.root.getByRole('toolbar', { name: 'Formatting options' })
-    this.recipientsSummary = this.root.getByTestId('composer-recipients-summary')
+    this.toolbar = this.root.getByRole('toolbar', {
+      name: 'Formatting options'
+    })
+    this.recipientsSummary = this.root.getByTestId(
+      'composer-recipients-summary'
+    )
     this.minimizeButton = this.root.getByTestId('composer-minimize-button')
     this.fullscreenButton = this.root.getByTestId('composer-fullscreen-button')
     this.identitySelect = this.root.getByTestId('composer-identity-select')
+    this.saveStatus = this.root.getByTestId('composer-save-status')
+    this.sendError = this.root.getByTestId('composer-send-error')
+    this.deleteDraftButton = this.root.getByTestId(
+      'composer-delete-draft-button'
+    )
     this.subjectInput = this.root.getByTestId('composer-subject-input')
     this.editor = this.root.getByTestId('composer-editor')
     this.sendButton = this.root.getByTestId('composer-send-button')
@@ -52,8 +67,56 @@ export class ComposerPage {
   }
 
   /** `normal`, `minimized` or `fullscreen` */
-  async expectMode(mode: 'normal' | 'minimized' | 'fullscreen'): Promise<ComposerPage> {
+  async expectMode(
+    mode: 'normal' | 'minimized' | 'fullscreen'
+  ): Promise<ComposerPage> {
     await expect(this.root).toHaveAttribute('data-mode', mode)
+    return this
+  }
+
+  /** Attaches a file through "Attach file", and waits for its upload */
+  async attachFile(file: {
+    name: string
+    mimeType: string
+    buffer: Buffer
+  }): Promise<ComposerPage> {
+    const count = await this.attachments.count()
+    const chooser = this.page.waitForEvent('filechooser')
+    await this.attachFileButton.click()
+    await (await chooser).setFiles(file)
+    await expect(this.attachments).toHaveCount(count + 1)
+    await expect(this.attachments.nth(count)).toHaveAttribute(
+      'data-status',
+      'done',
+      {
+        timeout: 20_000
+      }
+    )
+    return this
+  }
+
+  /** Inserts an image in the body through the toolbar, at the caret */
+  async insertImage(file: {
+    name: string
+    mimeType: string
+    buffer: Buffer
+  }): Promise<ComposerPage> {
+    const images = this.editor.locator('img[data-reference]')
+    const count = await images.count()
+    const chooser = this.page.waitForEvent('filechooser')
+    await this.toolbarButton('Insert image').click()
+    await (await chooser).setFiles(file)
+    await expect(images).toHaveCount(count + 1, { timeout: 20_000 })
+    return this
+  }
+
+  /** Picks the identity to send from, by the start of its name */
+  async chooseIdentity(name: string): Promise<ComposerPage> {
+    await this.identitySelect.click()
+    await this.page
+      .getByRole('option', { name: new RegExp(`^${name}`) })
+      .click()
+    await expect(this.identitySelect).toContainText(name)
     return this
   }
 

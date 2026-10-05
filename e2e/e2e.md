@@ -45,7 +45,7 @@ the React app. One line per Patrol test, 116 lines.
 |---|---|---|---|---|
 | `LOGIN` | Login | 1 | 1 | 0 |
 | `MBX` | Mailbox and folders | 25 | 3 | 2 |
-| `CMP` | Composer | 33 | 7 | 3 |
+| `CMP` | Composer | 36 | 7 | 3 |
 | `ATT` | Attachments | 2 | 1 | 0 |
 | `EML` | Reading and acting on an email | 27 | 0 | 1 |
 | `THR` | Thread detail | 3 | 0 | 0 |
@@ -57,7 +57,7 @@ the React app. One line per Patrol test, 116 lines.
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 1 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **123** | **24** | **6** |
+| | **Total** | **126** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -153,7 +153,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `MBX-30` A member of a team mailbox gets, on its root, only the actions the server rights allow (`myRights`: no rename, no delete; hide). — web app only, no Patrol test
   - Spec: `tests/folders.spec.ts`. Passes in CI.
 
-## CMP — Composer (33)
+## CMP — Composer (36)
 
 - [ ] `CMP-01` Compose a new email to self (bob) and alice with subject "Test subject" and body, send it, and the message is filed in the Sent mailbox (no send-failure confirm dialog appears). — `composer/send_email_test.dart` · tags: `android` `ios` `web`
   - Data: logged-in user `BASIC_AUTH_EMAIL` = bob@example.com, `ADDITIONAL_MAIL_RECIPIENT` = alice@example.com.
@@ -161,8 +161,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [ ] `CMP-03` In a new composer to self, enable "Request read receipt" from the "More" menu (toast "Request read receipt has been enabled"), send, then opening the received email shows the "Read receipt request" dialog, and it shows again when reopening the (now cached) email. — `composer/send_email_with_read_receipt_enabled_test.dart` · tags: `ios (default)`
 - [ ] `CMP-04` With two identities provisioned (default one whose signature contains the keyword "file", the other without), sending a body without the keyword using the default identity succeeds with no attachment reminder (keyword in signature is ignored), while sending a body "file in content" after switching From to the second identity shows the attachment-reminder modal ("…in your message but did not add any attachments. Do you still want to send?"). — `composer/attachment_reminder_test.dart` · tags: `ios (default)`
   - Data: 2 identities via JMAP Identity/set (signatures "Signature file" default, "Signature").
-- [ ] `CMP-05` In a new composer, expanding the To field reveals To/Cc/Bcc/Reply-To fields; after adding a Cc recipient and moving focus to the subject the recipient fields collapse into a summary (all four hidden), and tapping the collapsed summary then the Cc expand button shows all four fields again. — `composer/show_full_recipient_fields_when_expand_all_test.dart` · tags: `ios (default)`
-- [ ] `CMP-06` In the composer editor, pressing Ctrl+K (Cmd+K on macOS) opens the app's custom insert-link dialog (with an "Apply" button) instead of the browser/editor default. — `composer/open_insert_link_dialog_via_keyboard_shortcut_test.dart` · tags: `web`
+- [x] `CMP-05` In a new composer, expanding the To field reveals To/Cc/Bcc/Reply-To fields; after adding a Cc recipient and moving focus to the subject the recipient fields collapse into a summary (all four hidden), and tapping the collapsed summary then the Cc expand button shows all four fields again. — `composer/show_full_recipient_fields_when_expand_all_test.dart` · tags: `ios (default)`
+- [x] `CMP-06` In the composer editor, pressing Ctrl+K (Cmd+K on macOS) opens the app's custom insert-link dialog (with an "Apply" button) instead of the browser/editor default. — `composer/open_insert_link_dialog_via_keyboard_shortcut_test.dart` · tags: `web`
 - [ ] `CMP-07` In a new composer, uploading a PNG as attachment shows an attachment chip with its file name, inserting the same PNG inline puts a base64 `<img>` in the editor HTML, and adding it twice more as attachment results in 3 attachment chips. — `composer/composer_upload_attachment_and_inline_image_test.dart` · tags: `ios (default)`
   - Data: PNG from `integration_test/resources/test_images.dart` (`TestImages.base64`), injected via the upload controller (no native picker).
 - [ ] `CMP-08` After sending an email to bob and alice (CMP-01 flow, subject "reply own sent email"), opening it from Sent and tapping Reply pre-fills the To field with the original To recipients (bob@example.com and alice@example.com) rather than the sender only. — `composer/reply_to_own_sent_email_test.dart` · tags: `ios (default)`
@@ -195,13 +195,16 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - N/A web: Android share intent (text share from another app). Web equivalent: none (would require Web Share Target in a PWA manifest).
 - [ ] `CMP-26` An external app sharing text with mimeType `text/html` opens the composer with the shared text as the body. — `composer/share_text_with_html_mimetype_opens_composer_test.dart` · tags: `android`
   - N/A web: Android share intent (text share from another app). Web equivalent: none (would require Web Share Target in a PWA manifest).
-- [ ] `CMP-27` On a desktop, composer windows sit at the bottom of the screen: Escape minimizes one to its title bar (which takes the focus and brings it back, the focus where it was), a second one opens next to it keeping what the first holds, full screen makes it a modal dialog where Escape closes it, asking to save the modified message ("Discard changes" saves nothing). — web app only, no Patrol test (tmail-flutter web has the modes, Patrol never drives them)
-- [ ] `CMP-28` A recipient field takes a pasted list (`a@b.c, Name <d@e.f>; wrong`), shows the invalid address as such in its accessible name, reaches its chips with Backspace or ArrowLeft, removes one with Delete and edits one with Enter, and suggests the contacts of the domain (`TMailContact/autocomplete`). — web app only, no Patrol test
-- [ ] `CMP-29` The formatting toolbar of the body is a single tab stop (arrows, Home, End move in it), Alt+F10 reaches it and Escape goes back to the text, Tab indents in a list or leaves the editor: no keyboard trap; tooltips repeat the button names. — web app only, no Patrol test (RGAA 12.9 / 7.1)
-- [ ] `CMP-30` An inline image is selected with the arrow keys (or a click), Enter opens its toolbar: 25 %, Larger and the status line resize it, the saved draft keeps the width, Remove takes it out; Escape goes back to the text. — web app only, no Patrol test (keyboard alternative to the resize handles, RGAA 7.1)
-- [ ] `CMP-31` With a signature, a click on it when the text ends with a list puts a new line between the list and the signature. — web app only, no Patrol test
-- [ ] `CMP-32` Pasting from Word, Google Docs, LibreOffice or a web page keeps real lists, bold, italic, chosen colours and links, without Office classes, fonts or default black; Ctrl+Shift+V pastes plain text. — web app only, no Patrol test
-- [ ] `CMP-33` `c` opens the composer with the focus in To, typing `c` there types it (no shortcut in the composer), and closing it gives the focus back to the email row it was opened from. — web app only, no Patrol test
+- [x] `CMP-27` On a desktop, composer windows sit at the bottom of the screen: Escape minimizes one to its title bar (which takes the focus and brings it back, the focus where it was), a second one opens next to it keeping what the first holds, full screen makes it a modal dialog where Escape closes it, asking to save the modified message. — web app only, no Patrol test (tmail-flutter web has the modes, Patrol never drives them)
+- [x] `CMP-28` A recipient field takes a pasted list (`a@b.c, Name <d@e.f>; wrong`), shows the invalid address as such in its accessible name, reaches its chips with Backspace or ArrowLeft, removes one with Delete and edits one with Enter, and suggests the contacts of the domain (`TMailContact/autocomplete`). — web app only, no Patrol test
+- [x] `CMP-29` The formatting toolbar of the body is a single tab stop (arrows, Home, End move in it), Alt+F10 reaches it and Escape goes back to the text, Tab indents in a list or leaves the editor: no keyboard trap; tooltips repeat the button names. — web app only, no Patrol test (RGAA 12.9 / 7.1)
+- [x] `CMP-30` An inline image is selected with the arrow keys (or a click), Enter opens its toolbar: 25 %, Larger and the status line resize it, the saved draft keeps the width, Remove takes it out; Escape goes back to the text. — web app only, no Patrol test (keyboard alternative to the resize handles, RGAA 7.1)
+- [x] `CMP-31` With a signature, a click on it when the text ends with a list puts a new line between the list and the signature. — web app only, no Patrol test
+- [x] `CMP-32` Pasting from Word, Google Docs, LibreOffice or a web page keeps real lists, bold, italic, chosen colours and links, without Office classes, fonts or default black; Ctrl+Shift+V pastes plain text. — web app only, no Patrol test
+- [x] `CMP-33` `c` opens the composer with the focus in To, typing `c` there types it (no shortcut in the composer), and closing it gives the focus back to the email row it was opened from. — web app only, no Patrol test
+- [ ] `CMP-34` A message saves itself as a draft 1.5 s after the last change ("Draft saved" under it); closing it then asks nothing, says "Draft saved" and offers "Discard", which destroys the draft made by this composer. — web app only, no Patrol test (tmail-flutter web has no autosave)
+- [ ] `CMP-35` A file being uploaded shows its progress and is cancelled when removed; files above the size limit of the server (`maxSizeUpload`, `maxSizeAttachmentsPerEmail`) are refused with "Maximum files size". — web app only, no Patrol test
+- [ ] `CMP-36` A message refused by the server (over quota) stays in the composer, the reason said in an alert. — web app only, no Patrol test
 
 ## ATT — Attachments (2)
 

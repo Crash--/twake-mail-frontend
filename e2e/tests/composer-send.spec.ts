@@ -1,0 +1,501 @@
+import { ComposerPage, LoginPage, type MailboxPage } from '../pages'
+import { expectNoA11yViolations } from '../support/a11y'
+import { makePng } from '../support/clipboard'
+import { expect, test } from '../support/fixtures'
+import type { JmapClient, MailboxRole } from '../support/jmap'
+
+interface BodyPart {
+  partId?: string | null
+  blobId?: string | null
+  type: string
+  name?: string | null
+  cid?: string | null
+  disposition?: string | null
+  subParts?: BodyPart[] | null
+}
+
+interface ReadEmail {
+  id: string
+  subject: string
+  mailboxIds: Record<string, true>
+  keywords: Record<string, true>
+  to?: { email: string }[]
+  replyTo?: { email: string }[] | null
+  bodyStructure: BodyPart
+  htmlBody: BodyPart[]
+  textBody: BodyPart[]
+  attachments: BodyPart[]
+  bodyValues: Record<string, { value: string }>
+  'header:X-JMAP-Identity:asText'?: string | null
+}
+
+/**
+ * Emails of a mailbox read in full. A body property comes first: past
+ * `attachments`, tmail-backend answers serverFail otherwise (#2686).
+ */
+async function readMailbox(
+  jmap: JmapClient,
+  role: MailboxRole
+): Promise<ReadEmail[]> {
+  const accountId = await jmap.accountId()
+  const mailbox = await jmap.findMailboxByRole(role)
+  const [, got] = await jmap.request([
+    ['Email/query', { accountId, filter: { inMailbox: mailbox.id } }, 'q'],
+    [
+      'Email/get',
+      {
+        accountId,
+        '#ids': { resultOf: 'q', name: 'Email/query', path: '/ids' },
+        properties: [
+          'htmlBody',
+          'textBody',
+          'bodyValues',
+          'attachments',
+          'bodyStructure',
+          'subject',
+          'mailboxIds',
+          'keywords',
+          'to',
+          'replyTo',
+          'header:X-JMAP-Identity:asText'
+        ],
+        bodyProperties: [
+          'partId',
+          'blobId',
+          'type',
+          'name',
+          'cid',
+          'disposition',
+          'subParts'
+        ],
+        fetchHTMLBodyValues: true,
+        fetchTextBodyValues: true
+      },
+      'g'
+    ]
+  ])
+  return (got?.[1].list ?? []) as ReadEmail[]
+}
+
+function bodyOf(email: ReadEmail, parts: BodyPart[]): string {
+  return parts
+    .map(part => email.bodyValues[part.partId ?? '']?.value ?? '')
+    .join('')
+}
+
+function types(part: BodyPart): string[] {
+  return [part.type, ...(part.subParts ?? []).flatMap(types)]
+}
+
+async function openDraft(
+  mailbox: MailboxPage,
+  subject: string
+): Promise<ComposerPage> {
+  await mailbox.openFolder({ role: 'drafts' })
+  await mailbox.emailRowLink(subject).click()
+  const composer = new ComposerPage(mailbox.page)
+  await expect(composer.subjectInput).toHaveValue(subject)
+  return composer
+}
+
+/** Sets up two identities, the first one the default (lowest sortOrder) */
+async function setUpIdentities(jmap: JmapClient, email: string): Promise<void> {
+  const accountId = await jmap.accountId()
+  await jmap.request([
+    [
+      'Identity/set',
+      {
+        accountId,
+        create: {
+          first: { name: 'Identity 1', email, sortOrder: 0 },
+          second: { name: 'Identity 2', email, sortOrder: 1 }
+        }
+      },
+      's'
+    ]
+  ])
+}
+
+test.describe('CMP composer: sending, drafts and attachments', () => {
+  test('CMP-01 a message to two people, an inline image and a file, is received as written and filed in Sent', async ({
+    page,
+    user,
+    users,
+    jmap,
+    jmapFor
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    const alice = await users.create({ prefix: 'alice' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({
+      to: [bob.email, alice.email],
+      subject: 'Test subject'
+    })
+    await composer.editor.click()
+    await page.keyboard.type('Hello ')
+    await page.keyboard.press('Control+B')
+    await page.keyboard.type('both')
+    await page.keyboard.press('Control+B')
+    await page.keyboard.press('Enter')
+    await composer.insertImage({
+      name: 'inline.png',
+      mimeType: 'image/png',
+      buffer: await makePng(page, 240, 120, 'INLINE')
+    })
+    await composer.attachFile({
+      name: 'report.png',
+      mimeType: 'image/png',
+      buffer: await makePng(page, 120, 60, 'FILE')
+    })
+    await expectNoA11yViolations(page)
+
+    await composer.send()
+
+    await expect(mailbox.toast).toContainText(
+      'Message has been sent successfully'
+    )
+    for (const reader of [bob, alice]) {
+      const readerJmap = jmapFor(reader)
+      await readerJmap.waitForEmail({ subject: 'Test subject' })
+      const [received] = await readMailbox(readerJmap, 'inbox')
+      if (!received) throw new Error('Not received')
+      expect(types(received.bodyStructure)).toEqual(
+        expect.arrayContaining([
+          'multipart/related',
+          'multipart/alternative',
+          'text/plain',
+          'text/html'
+        ])
+      )
+      const html = bodyOf(received, received.htmlBody)
+      expect(html).toContain('<div>Hello <strong>both</strong></div>')
+      const inline = received.attachments.find(
+        part => part.disposition === 'inline'
+      )
+      expect(inline?.cid).toBeTruthy()
+      expect(html).toContain(
+        `src="cid:${(inline?.cid ?? '').replace(/^<|>$/g, '')}"`
+      )
+      expect(bodyOf(received, received.textBody)).toContain('Hello both')
+      expect(received.attachments.map(part => part.name)).toContain(
+        'report.png'
+      )
+    }
+    const [sent] = await readMailbox(jmap, 'sent')
+    expect(sent?.subject).toBe('Test subject')
+    expect(Object.keys(sent?.keywords ?? {})).toEqual(['$seen'])
+    expect(await readMailbox(jmap, 'drafts')).toEqual([])
+  })
+
+  test('CMP-07 attachments and inline images: a PNG as a file, the same inline, then two more files', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    const png = {
+      name: 'picture.png',
+      mimeType: 'image/png',
+      buffer: await makePng(page, 160, 80, 'PNG')
+    }
+
+    await composer.attachFile(png)
+    await expect(composer.attachments.first()).toContainText('picture.png')
+    await composer.editor.click()
+    await composer.insertImage(png)
+    expect(await composer.editorHtml()).toMatch(/<img[^>]*data-reference=/)
+    await composer.attachFile(png)
+    await composer.attachFile(png)
+
+    await expect(composer.attachments).toHaveCount(3)
+    await expect(
+      composer.root.getByRole('list', { name: 'Attachments (3)' })
+    ).toBeVisible()
+    await expectNoA11yViolations(page)
+  })
+
+  test(
+    'CMP-14 a draft saved on closing reopens from Drafts without a Reply-To field',
+    {
+      tag: '@mobile'
+    },
+    async ({ page, user, jmap }) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const composer = await mailbox.compose()
+      await composer.fill({
+        to: [user.email],
+        subject: 'Save draft email without Reply-To'
+      })
+
+      await composer.closeAnd('save')
+      await expect(mailbox.toast).toContainText('Draft saved')
+
+      const reopened = await openDraft(
+        mailbox,
+        'Save draft email without Reply-To'
+      )
+      await expect(reopened.recipients('to')).toHaveText([user.email])
+      await expect(reopened.recipientInput('reply-to')).toBeHidden()
+      expect(
+        (await readMailbox(jmap, 'drafts')).map(draft => draft.replyTo ?? null)
+      ).toEqual([null])
+    }
+  )
+
+  test('CMP-15 a reopened draft, its subject changed, is saved again on closing', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ to: [user.email], subject: 'Draft to update' })
+    await composer.closeAnd('save')
+    await expect(mailbox.toast).toContainText('Draft saved')
+
+    const reopened = await openDraft(mailbox, 'Draft to update')
+    await reopened.subjectInput.fill('Draft updated')
+    await reopened.closeAnd('save')
+
+    await expect(mailbox.toast).toContainText('Draft saved')
+    await expect
+      .poll(async () =>
+        (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
+      )
+      .toEqual(['Draft updated'])
+  })
+
+  test('CMP-16 the identity chosen for a draft comes back with it', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await setUpIdentities(jmap, user.email)
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await expect(composer.identitySelect).toContainText('Identity 1')
+    await composer.fill({ to: [user.email], subject: 'Draft with identity 2' })
+    await composer.chooseIdentity('Identity 2')
+    await composer.runMoreAction('save-draft')
+    await expect(mailbox.toast).toContainText('Draft saved')
+    await composer.close()
+    await expect(composer.root).toBeHidden()
+
+    const reopened = await openDraft(mailbox, 'Draft with identity 2')
+    await expect(reopened.identitySelect).toContainText('Identity 2')
+  })
+
+  test('CMP-17 a draft with a file, reopened, is saved again twice', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ to: [user.email], subject: 'Draft with a file' })
+    await composer.attachFile({
+      name: 'kept.png',
+      mimeType: 'image/png',
+      buffer: await makePng(page, 120, 60, 'KEPT')
+    })
+    await composer.closeAnd('save')
+    await expect(mailbox.toast).toContainText('Draft saved')
+
+    const reopened = await openDraft(mailbox, 'Draft with a file')
+    await expect(reopened.attachments).toHaveText([/kept\.png/])
+    for (const suffix of [' edited', ' again']) {
+      await reopened.subjectInput.press('End')
+      await reopened.subjectInput.pressSequentially(suffix)
+      await reopened.runMoreAction('save-draft')
+      await expect(mailbox.toast).toContainText('Draft saved')
+    }
+    await expect
+      .poll(async () =>
+        (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
+      )
+      .toEqual(['Draft with a file edited again'])
+    const [draft] = await readMailbox(jmap, 'drafts')
+    expect(draft?.attachments.map(part => part.name)).toEqual(['kept.png'])
+  })
+
+  test('CMP-18 a draft with an inline image, reopened, shows it and is saved again twice', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ to: [user.email], subject: 'Draft with an image' })
+    await composer.editor.click()
+    await composer.insertImage({
+      name: 'inline.png',
+      mimeType: 'image/png',
+      buffer: await makePng(page, 200, 100, 'INLINE')
+    })
+    await composer.closeAnd('save')
+    await expect(mailbox.toast).toContainText('Draft saved')
+
+    const reopened = await openDraft(mailbox, 'Draft with an image')
+    const image = reopened.editor.locator('img[data-reference]')
+    await expect(image).toHaveCount(1)
+    await expect
+      .poll(() =>
+        image.evaluate(element => (element as HTMLImageElement).naturalWidth)
+      )
+      .toBe(200)
+    for (const suffix of [' edited', ' again']) {
+      await reopened.subjectInput.press('End')
+      await reopened.subjectInput.pressSequentially(suffix)
+      await reopened.runMoreAction('save-draft')
+      await expect(mailbox.toast).toContainText('Draft saved')
+    }
+    await expect
+      .poll(async () =>
+        (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
+      )
+      .toEqual(['Draft with an image edited again'])
+    const [draft] = await readMailbox(jmap, 'drafts')
+    const inline = draft?.attachments.find(
+      part => part.disposition === 'inline'
+    )
+    expect(bodyOf(draft as ReadEmail, draft?.htmlBody ?? [])).toContain(
+      `cid:${(inline?.cid ?? '').replace(/^<|>$/g, '')}`
+    )
+  })
+
+  test('CMP-22 a composer comes back after a reload, until it is closed', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({
+      to: ['kept@example.com'],
+      subject: 'Kept across a reload',
+      body: 'Text kept'
+    })
+    const snapshotKeys = (): Promise<string[]> =>
+      page.evaluate(() =>
+        Object.keys(sessionStorage).filter(key =>
+          key.startsWith('twake-mail-composer')
+        )
+      )
+    expect(await snapshotKeys()).toEqual([])
+
+    await page.reload()
+    await new LoginPage(page).loginAs(user)
+
+    const restored = new ComposerPage(page)
+    await expect(restored.subjectInput).toHaveValue('Kept across a reload')
+    await expect(restored.editor).toContainText('Text kept')
+    expect((await snapshotKeys()).length).toBeGreaterThan(0)
+    await restored.recipientsSummary
+      .or(restored.recipientInput('to'))
+      .first()
+      .waitFor()
+    await expect(restored.root).toContainText('kept@example.com')
+
+    await restored.close()
+    const dialog = page.getByTestId('confirm-dialog')
+    if (await dialog.isVisible())
+      await page.getByTestId('confirm-dialog-alternative-button').click()
+    await expect(restored.root).toBeHidden()
+    await expect.poll(snapshotKeys).toEqual([])
+  })
+
+  test('CMP-34 the draft saves itself once the typing stops; closing then asks nothing and offers to discard it', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({
+      to: [user.email],
+      subject: 'Autosaved draft',
+      body: 'Saved alone'
+    })
+
+    await expect(composer.saveStatus).toHaveText('Draft saved', {
+      timeout: 10_000
+    })
+    expect(
+      (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
+    ).toEqual(['Autosaved draft'])
+
+    await composer.close()
+    await expect(page.getByTestId('confirm-dialog')).toBeHidden()
+    await expect(mailbox.toast).toContainText('Draft saved')
+    await page.getByTestId('composer-discard-draft-button').click()
+    await expect.poll(async () => readMailbox(jmap, 'drafts')).toEqual([])
+  })
+
+  test('CMP-35 a file being uploaded is cancelled when removed; a file above the limit is refused', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    // Slow uploads: the progress shows, the removal cancels
+    await page.route('**/upload/**', async route => {
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      await route.continue().catch(() => undefined)
+    })
+    const chooser = page.waitForEvent('filechooser')
+    await composer.attachFileButton.click()
+    await (
+      await chooser
+    ).setFiles({
+      name: 'slow.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('slow')
+    })
+    await expect(
+      composer.root.getByRole('progressbar', { name: 'Uploading slow.txt' })
+    ).toBeVisible()
+    await expectNoA11yViolations(page)
+    await composer.root.getByRole('button', { name: 'Remove slow.txt' }).click()
+    await expect(composer.attachments).toHaveCount(0)
+    await page.unroute('**/upload/**')
+
+    // Above the total of tmail-backend (maxSizeAttachmentsPerEmail, 20 MB)
+    const big = page.waitForEvent('filechooser')
+    await composer.attachFileButton.click()
+    await (
+      await big
+    ).setFiles({
+      name: 'big.bin',
+      mimeType: 'application/octet-stream',
+      buffer: Buffer.alloc(21_000_000)
+    })
+    const dialog = page.getByRole('dialog', { name: 'Maximum files size' })
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('button', { name: 'Got it' }).click()
+    await expect(composer.attachments).toHaveCount(0)
+  })
+
+  test.describe('over quota', () => {
+    test.use({ userQuota: { size: 4000 } })
+
+    test('CMP-36 a message the quota refuses stays in the composer, the reason said', async ({
+      page,
+      user
+    }) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const composer = await mailbox.compose()
+      await composer.fill({
+        to: [user.email],
+        subject: 'Too big for the quota'
+      })
+      await composer.editor.click()
+      await page.keyboard.insertText('x'.repeat(6000))
+
+      await composer.sendButton.click()
+
+      await expect(composer.sendError).toContainText('over quota')
+      await expect(composer.root).toBeVisible()
+      await expectNoA11yViolations(page)
+    })
+  })
+})

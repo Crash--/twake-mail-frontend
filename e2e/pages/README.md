@@ -186,6 +186,8 @@ Conventions:
 | `conversation-message-sender` / `conversation-message-to` / `conversation-message-cc` / `conversation-message-bcc` | in an expanded message: "From:" with the address menu (`email-address`), recipients; then its actions (`email-view-actions`), its labels (`label-chip`, × takes one off this message) | `EmailView` of the thread detail |
 | `conversation-toggle-seen` / `conversation-toggle-star` | mark the conversation read or unread, star or unstar it (`aria-pressed`) | `thread_detail_app_bar` buttons |
 | `email-view-back-button` / `email-view-body` | back to the list, the body of an expanded message | same ids as the reading view |
+| `conversation-message-draft` | the "Draft" marker of a draft of the conversation | — |
+| `conversation-draft-actions`, `conversation-draft-edit-button` / `conversation-draft-delete-button` | under an expanded draft, instead of the answers: edit it in the composer, delete it | — (tmail-flutter opens drafts in the composer) |
 
 ## Later phases (planned, used by `ComposerPage` already)
 

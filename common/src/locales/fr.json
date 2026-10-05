@@ -496,6 +496,10 @@
       "languageRegion": {
         "title": "Langue",
         "description": "Définissez la langue de Twake Mail."
+      },
+      "vacation": {
+        "title": "Réponse automatique",
+        "description": "Envoie une réponse automatique aux messages reçus."
       }
     },
     "preferences": {
@@ -763,5 +767,33 @@
     "listLabel": "Adresses de transfert",
     "removeOf": "Retirer %{email}",
     "inputLabel": "Nouveau destinataire"
+  },
+  "vacation": {
+    "enable": "Renvoie automatiquement une réponse aux messages reçus.",
+    "startDate": "Date de début",
+    "startTime": "Heure de début",
+    "stops": "Les réponses automatiques s'arrêtent le",
+    "endDate": "Date de fin",
+    "endTime": "Heure de fin",
+    "subject": "Sujet",
+    "subjectPlaceholder": "Entrez le sujet",
+    "message": "Message",
+    "save": "Sauvegarder les modifications",
+    "errors": {
+      "noStart": "Veuillez entrer une date de début valide",
+      "endBeforeStart": "La date de fin doit être supérieure à la date de début",
+      "noMessage": "Le corps du message ne peut pas être vide"
+    },
+    "toasts": {
+      "saved": "Paramètres de réponse automatique enregistrés",
+      "ended": "Votre répondeur automatique a été désactivé avec succès"
+    },
+    "banner": {
+      "enabled": "Votre répondeur automatique est activé.",
+      "willStart": "Votre répondeur automatique sera activé le %{startDate}",
+      "stopped": "Votre répondeur de vacances s'est arrêté le %{endDate}",
+      "endNow": "Termine maintenant",
+      "settings": "Paramètres de réponse automatique"
+    }
   }
 }

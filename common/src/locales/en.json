@@ -496,6 +496,10 @@
       "languageRegion": {
         "title": "Language",
         "description": "Set the language you use on Twake Mail."
+      },
+      "vacation": {
+        "title": "Vacation",
+        "description": "Sends an automated reply to incoming messages."
       }
     },
     "preferences": {
@@ -763,5 +767,33 @@
     "listLabel": "Forwarding addresses",
     "removeOf": "Remove %{email}",
     "inputLabel": "New recipient"
+  },
+  "vacation": {
+    "enable": "Automatically reply to messages when they are received.",
+    "startDate": "Start date",
+    "startTime": "Start time",
+    "stops": "Vacation stops at",
+    "endDate": "End date",
+    "endTime": "End time",
+    "subject": "Subject",
+    "subjectPlaceholder": "Enter subject",
+    "message": "Message",
+    "save": "Save changes",
+    "errors": {
+      "noStart": "Please enter a valid start date",
+      "endBeforeStart": "End date must be greater than start date",
+      "noMessage": "Message body cannot be blank"
+    },
+    "toasts": {
+      "saved": "Vacation settings saved",
+      "ended": "Your vacation responder is disabled successfully"
+    },
+    "banner": {
+      "enabled": "Your vacation responder is enabled.",
+      "willStart": "Your vacation responder will be activated on %{startDate}",
+      "stopped": "Your vacation responder stopped on %{endDate}",
+      "endNow": "End now",
+      "settings": "Vacation setting"
+    }
   }
 }

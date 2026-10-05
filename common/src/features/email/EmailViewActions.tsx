@@ -18,33 +18,50 @@ import type { EmailDetail } from './queries'
 import { useReplyOptions } from './useReplyOptions'
 
 /** The actions shown as buttons beside "More", from the tablet size */
-const BUTTONS: readonly EmailActionId[] = [
-  'archive',
-  'move-to-trash',
-  'delete-permanently',
-  'mark-as-unread',
-  'move',
-  'mark-as-spam',
-  'not-spam'
-]
+const BUTTONS: Record<EmailViewActionsVariant, readonly EmailActionId[]> = {
+  email: [
+    'archive',
+    'move-to-trash',
+    'delete-permanently',
+    'mark-as-unread',
+    'move',
+    'mark-as-spam',
+    'not-spam'
+  ],
+  // A message of a conversation: the most used ones, the rest in "More"
+  message: ['mark-as-unread', 'move-to-trash', 'delete-permanently']
+}
+
+/** An open email, or an expanded message of a conversation */
+export type EmailViewActionsVariant = 'email' | 'message'
 
 export interface EmailViewActionsProps {
   email: EmailDetail
   /** The folder the email is open from, null from search results */
   mailboxId: string | null
-  /** Back to the list: an email marked unread is closed, as tmail-flutter */
-  onLeave: () => void
+  /** After an action changed the email: the single view closes on unread */
+  onAction: (id: EmailActionId) => void
+  /** Fewer buttons for a message of a conversation */
+  variant?: EmailViewActionsVariant
+  /**
+   * Names the group of actions, e.g. with the sender and date of a message
+   * among others
+   */
+  label?: string
 }
 
 /**
- * The actions of an open email, beside its back button: the star, the main
- * actions as buttons (not on phones), and every action in "More". An email
- * leaving the folder closes the view (`useEmailViewShortcuts`).
+ * The actions of an open email, beside its back button, or of a message of
+ * a conversation: the star, the main actions as buttons (not on phones),
+ * and every action in "More". An email leaving the folder closes the view
+ * (`useEmailViewShortcuts`).
  */
 export function EmailViewActions({
   email,
   mailboxId,
-  onLeave
+  onAction,
+  variant = 'email',
+  label
 }: EmailViewActionsProps): ReactElement {
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
@@ -58,22 +75,23 @@ export function EmailViewActions({
   const items = availableEmailActions([email], mailbox, mailboxes, {
     canLabel
   })
-  const buttons = isPhone ? [] : items.filter(item => BUTTONS.includes(item.id))
+  const buttons = isPhone
+    ? []
+    : items.filter(item => BUTTONS[variant].includes(item.id))
   const isStarred = hasKeyword(email, FLAGGED)
   const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
   const moreLabel = t('emailActions.menu.more')
 
-  const handleAction = (id: EmailActionId): void => {
-    if (id === 'mark-as-unread') onLeave()
-  }
   const handleRun = (id: EmailActionId): void => {
     void runAction(id, [email], mailboxId).then(done => {
-      if (done) handleAction(id)
+      if (done) onAction(id)
     })
   }
 
   return (
     <Box
+      role={label === undefined ? undefined : 'group'}
+      aria-label={label}
       className="u-flex u-flex-items-center u-flex-auto u-flex-justify-end"
       data-testid="email-view-actions"
     >
@@ -123,7 +141,7 @@ export function EmailViewActions({
         }}
         emails={[email]}
         mailboxId={mailboxId}
-        onAction={handleAction}
+        onAction={onAction}
         replies={replies.actions}
         data-testid="email-view-menu"
       />

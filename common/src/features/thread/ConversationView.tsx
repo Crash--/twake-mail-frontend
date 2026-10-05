@@ -28,6 +28,7 @@ import { formatAddressName } from '@common/features/email/addresses'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { findMailboxIdByRole } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
 import {
   useEmailActions,
   type EmailActionName
@@ -58,12 +59,15 @@ function initiallyExpanded(
 interface ConversationContentProps {
   emails: EmailListItemData[]
   openedId: string
+  /** The folder it is open from, null from search results */
+  mailboxId: string | null
   onBack: () => void
 }
 
 function ConversationContent({
   emails,
   openedId,
+  mailboxId,
   onBack
 }: ConversationContentProps): ReactElement {
   const { t } = useI18n()
@@ -108,6 +112,21 @@ function ConversationContent({
     subjectRef.current?.focus()
   }, [])
 
+  // Once none of its messages is left in the folder (moved by the actions of
+  // a message, or by another client), back to the list; a message moved
+  // elsewhere stays in the conversation with its new folder
+  const isInMailbox =
+    mailboxId === null || emails.some(email => mailboxId in email.mailboxIds)
+  const wasInMailboxRef = useRef(isInMailbox)
+  useEffect(() => {
+    if (isInMailbox) {
+      wasInMailboxRef.current = true
+    } else if (wasInMailboxRef.current) {
+      wasInMailboxRef.current = false
+      onBack()
+    }
+  }, [isInMailbox, onBack])
+
   const handleToggle = (emailId: string): void => {
     const email = emails.find(candidate => candidate.id === emailId)
     // Expanding an unread message reads it
@@ -134,6 +153,19 @@ function ConversationContent({
     subjectRef.current?.focus()
   }
 
+  // A message marked unread collapses, as the conversation does; a message
+  // deleted forever leaves it, the focus goes back to the subject
+  const handleMessageAction = (emailId: string, id: EmailActionId): void => {
+    if (id === 'mark-as-unread') {
+      setExpanded(current => {
+        const next = new Set(current)
+        next.delete(emailId)
+        return next
+      })
+    }
+    if (id === 'delete-permanently') handleFocusSubject()
+  }
+
   // The actions apply to every message of the conversation (tmail-flutter
   // ADR 0068), with the toasts, undo and retry of the email actions
   const runOnAll = (action: EmailActionName): void => {
@@ -153,6 +185,8 @@ function ConversationContent({
 
   // The conversation leaves the folder: back to the list
   const handleMove = (action: EmailActionName) => (): void => {
+    // Leaves once, not again when the messages leave the folder
+    wasInMailboxRef.current = false
     runOnAll(action)
     onBack()
   }
@@ -236,7 +270,7 @@ function ConversationContent({
           </Tooltip>
         ))}
       </Box>
-      <Box className="u-ph-1">
+      <Box className="u-ph-1" data-testid="conversation-header">
         <Typography
           ref={subjectRef}
           variant="h3"
@@ -264,6 +298,8 @@ function ConversationContent({
             email={email}
             isExpanded={expanded.has(email.id)}
             onToggle={handleToggle}
+            openedMailboxId={mailboxId}
+            onAction={handleMessageAction}
             onRemoteContentShown={handleFocusSubject}
           />
         ))}
@@ -290,6 +326,8 @@ export interface ConversationViewProps {
   /** The email opened: the conversation is its thread */
   threadId: string
   emailId: string
+  /** The folder it is open from; absent from search results */
+  mailboxId?: string | null
   onBack: () => void
 }
 
@@ -303,6 +341,7 @@ export interface ConversationViewProps {
 export function ConversationView({
   threadId,
   emailId,
+  mailboxId = null,
   onBack
 }: ConversationViewProps): ReactElement {
   const { t } = useI18n()
@@ -320,6 +359,18 @@ export function ConversationView({
       ),
     [query.data, emailId, sentId, session.username]
   )
+
+  // Its last message deleted, the conversation is gone: back to the list
+  const hasEmails = emails.length > 0
+  const hadEmailsRef = useRef(false)
+  useEffect(() => {
+    if (hasEmails) {
+      hadEmailsRef.current = true
+    } else if (hadEmailsRef.current) {
+      hadEmailsRef.current = false
+      onBack()
+    }
+  }, [hasEmails, onBack])
 
   if (query.isPending) {
     return (
@@ -351,6 +402,11 @@ export function ConversationView({
     )
   }
   return (
-    <ConversationContent emails={emails} openedId={emailId} onBack={onBack} />
+    <ConversationContent
+      emails={emails}
+      openedId={emailId}
+      mailboxId={mailboxId}
+      onBack={onBack}
+    />
   )
 }

@@ -8,7 +8,12 @@ import {
   makeFakeJmapServer,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeLabels
+} from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
 
 import { ConversationView } from './ConversationView'
 import { patchConversation } from './patchConversation'
@@ -16,7 +21,9 @@ import { conversationKeys, type ConversationData } from './queries'
 
 const THREAD = 'thread-1'
 
-function makeServer(): FakeJmapServer {
+function makeServer(
+  capabilities: Record<string, unknown> = {}
+): FakeJmapServer {
   const email = (
     id: string,
     day: number,
@@ -35,6 +42,7 @@ function makeServer(): FakeJmapServer {
       { text: `Body of ${id}` }
     )
   return makeFakeJmapServer({
+    capabilities,
     emails: [
       email('a', 1, {
         id: 'a',
@@ -72,8 +80,28 @@ async function renderConversation(
   return result
 }
 
+/** The header of a message, a button expanding or collapsing it */
 function toggle(name: RegExp): HTMLElement {
-  return screen.getByRole('button', { name })
+  const found = screen
+    .getAllByTestId('conversation-message-toggle')
+    .filter(element => name.test(element.textContent))
+  const [first, ...others] = found
+  if (first === undefined || others.length > 0) {
+    throw new Error(`${found.length} toggles match ${name}`)
+  }
+  return first
+}
+
+/** The actions of the whole conversation, beside the back button */
+function conversationActions(): HTMLElement {
+  return screen.getByRole('toolbar', { name: 'Conversation actions' })
+}
+
+/** The actions of an expanded message, named by its sender and date */
+function messageActions(name: RegExp): HTMLElement {
+  return screen.getByRole('group', {
+    name: new RegExp(`^Actions on the message from ${name.source}`)
+  })
 }
 
 describe('ConversationView', () => {
@@ -119,13 +147,14 @@ describe('ConversationView', () => {
     const before = server.requests.length
 
     await userEvent.click(
-      screen.getByRole('button', { name: 'Mark as starred' })
+      within(conversationActions()).getByRole('button', {
+        name: 'Mark as starred'
+      })
     )
 
-    expect(screen.getByRole('button', { name: 'Unstar' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
+    expect(
+      within(conversationActions()).getByRole('button', { name: 'Unstar' })
+    ).toHaveAttribute('aria-pressed', 'true')
     await waitFor(() => {
       const sets = server.requests
         .slice(before)
@@ -203,7 +232,9 @@ describe('ConversationView', () => {
     })
 
     await userEvent.click(
-      screen.getByRole('button', { name: 'Mark as unread' })
+      within(conversationActions()).getByRole('button', {
+        name: 'Mark as unread'
+      })
     )
 
     expect(toggle(/Dan/)).toHaveAttribute('aria-expanded', 'false')
@@ -214,6 +245,214 @@ describe('ConversationView', () => {
           .map(email => email.keywords)
       ).toEqual([{}, {}, {}])
     })
-    expect(screen.getByRole('button', { name: 'Mark as read' })).toBeVisible()
+    expect(
+      within(conversationActions()).getByRole('button', {
+        name: 'Mark as read'
+      })
+    ).toBeVisible()
+  })
+})
+
+describe('ConversationView, an expanded message', () => {
+  /** The emails of the thread, after the unread one was marked read */
+  async function renderRead(server: FakeJmapServer): Promise<void> {
+    await renderConversation(server)
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'b')?.keywords).toEqual({
+        $seen: true
+      })
+    })
+  }
+
+  function setsSince(
+    server: FakeJmapServer,
+    before: number
+  ): Record<string, unknown>[] {
+    return server.requests
+      .slice(before)
+      .flatMap(request => request.methodCalls)
+      .filter(([name]) => name === 'Email/set')
+      .map(([, args]) => args)
+  }
+
+  it('has its own actions, outside its header, named by its sender and date', async () => {
+    await renderRead(makeServer())
+
+    const actions = messageActions(/Dan/)
+    expect(actions).toHaveAccessibleName(/^Actions on the message from Dan, /)
+    expect(
+      within(actions).getByRole('button', { name: 'Mark as starred' })
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(within(actions).getByRole('button', { name: 'More' })).toBeVisible()
+    // No control nested in the button toggling the message
+    expect(within(toggle(/Dan/)).queryByRole('button')).toBe(null)
+  })
+
+  it('stars that message only', async () => {
+    const server = makeServer()
+    await renderRead(server)
+    const before = server.requests.length
+
+    await userEvent.click(
+      within(messageActions(/Dan/)).getByRole('button', {
+        name: 'Mark as starred'
+      })
+    )
+
+    await waitFor(() => {
+      expect(setsSince(server, before)).toHaveLength(1)
+    })
+    expect(Object.keys(setsSince(server, before)[0]?.update ?? {})).toEqual([
+      'c'
+    ])
+    expect(
+      within(messageActions(/Dan/)).getByRole('button', { name: 'Unstar' })
+    ).toHaveAttribute('aria-pressed', 'true')
+    // The conversation is not starred: one message only is
+    expect(
+      within(conversationActions()).getByRole('button', {
+        name: 'Mark as starred'
+      })
+    ).toBeVisible()
+  })
+
+  it('collapses once marked unread, its header keeping the focus', async () => {
+    const server = makeServer()
+    await renderRead(server)
+
+    await userEvent.click(
+      within(messageActions(/Dan/)).getByRole('button', {
+        name: 'Mark as unread'
+      })
+    )
+
+    await waitFor(() => {
+      expect(toggle(/Dan/)).toHaveAttribute('aria-expanded', 'false')
+    })
+    expect(toggle(/Dan/)).toHaveFocus()
+    expect(server.emails.find(email => email.id === 'c')?.keywords).toEqual({})
+    expect(server.emails.find(email => email.id === 'b')?.keywords).toEqual({
+      $seen: true
+    })
+  })
+
+  it('offers the actions of the folder of the message', async () => {
+    const server = makeServer()
+    const bob = server.emails.find(email => email.id === 'a')
+    if (bob) bob.mailboxIds = { 'mailbox-trash': true }
+    await renderRead(server)
+
+    await userEvent.click(toggle(/Bob Dupont/))
+
+    expect(
+      within(messageActions(/Bob Dupont/)).getByRole('button', {
+        name: 'Delete permanently'
+      })
+    ).toBeVisible()
+    expect(
+      within(messageActions(/Dan/)).getByRole('button', {
+        name: 'Move to trash'
+      })
+    ).toBeVisible()
+  })
+
+  it('opens the address menu of its sender', async () => {
+    const server = makeServer(FAKE_LINAGORA_CAPABILITIES)
+    await renderRead(server)
+
+    await userEvent.click(
+      within(screen.getByRole('region', { name: /Dan/ })).getByRole('button', {
+        name: 'Dan <dan@example.com>'
+      })
+    )
+
+    const menu = screen.getByRole('menu', {
+      name: 'Actions on dan@example.com'
+    })
+    expect(within(menu).getByRole('menuitem', { name: 'Copy' })).toBeVisible()
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Compose email' })
+    ).toBeVisible()
+    expect(
+      within(menu).getByRole('menuitem', {
+        name: 'Create a rule with this email'
+      })
+    ).toBeVisible()
+  })
+
+  it('shows its own labels, the × taking one off that message only', async () => {
+    const server = makeServer(FAKE_LINAGORA_CAPABILITIES)
+    installFakeLabels(server, [
+      { id: 'l1', displayName: 'Work', keyword: 'work', color: null }
+    ])
+    for (const email of server.emails) {
+      if (email.id === 'b' || email.id === 'c') {
+        email.keywords = { ...email.keywords, work: true }
+      }
+    }
+    renderWithProviders(
+      <LabelActionsProvider>
+        <ConversationView threadId={THREAD} emailId="c" onBack={jest.fn()} />
+      </LabelActionsProvider>,
+      { withJmapSession: true, jmapServer: server }
+    )
+    const dan = await screen.findByRole('region', { name: /Dan/ })
+
+    await userEvent.click(
+      await within(dan).findByRole('button', {
+        name: 'Remove the label Work'
+      })
+    )
+
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'c')?.keywords).toEqual({
+        $seen: true
+      })
+    })
+    expect(server.emails.find(email => email.id === 'b')?.keywords).toEqual({
+      $seen: true,
+      work: true
+    })
+  })
+
+  it('leaves once none of its messages is left in the folder', async () => {
+    const server = makeServer()
+    const onBack = jest.fn()
+    renderWithProviders(
+      <ConversationView
+        threadId={THREAD}
+        emailId="c"
+        mailboxId="mailbox-inbox"
+        onBack={onBack}
+      />,
+      { withJmapSession: true, jmapServer: server }
+    )
+    await screen.findByRole('list', { name: 'Messages of the conversation' })
+    const trash = async (name: RegExp): Promise<void> => {
+      if (toggle(name).getAttribute('aria-expanded') === 'false') {
+        await userEvent.click(toggle(name))
+      }
+      await userEvent.click(
+        await within(messageActions(name)).findByRole('button', {
+          name: 'Move to trash'
+        })
+      )
+    }
+
+    await trash(/Dan/)
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'c')?.mailboxIds).toEqual(
+        { 'mailbox-trash': true }
+      )
+    })
+    // Still in the conversation, with its new folder
+    expect(toggle(/Dan/)).toBeVisible()
+    expect(onBack).not.toHaveBeenCalled()
+
+    await trash(/Carol/)
+    await trash(/Bob Dupont/)
+    await waitFor(() => {
+      expect(onBack).toHaveBeenCalledTimes(1)
+    })
   })
 })

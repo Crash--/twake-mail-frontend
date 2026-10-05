@@ -1,6 +1,6 @@
 // Upstream to twake-ui: yes, with `MessageThread`.
 import { Box, ButtonBase } from '@linagora/twake-mui'
-import { useId, type ReactElement, type ReactNode } from 'react'
+import { useId, type ReactElement, type ReactNode, type Ref } from 'react'
 
 import { MESSAGE_TOGGLE_ATTRIBUTE } from './MessageThread'
 
@@ -36,6 +36,8 @@ export interface MessageThreadItemProps {
   'data-testid'?: string
   /** Test id of the toggle */
   toggleTestId?: string
+  /** The toggle, e.g. to give it the focus once the message collapsed */
+  toggleRef?: Ref<HTMLButtonElement>
 }
 
 /**
@@ -49,7 +51,8 @@ export function MessageThreadItem({
   header,
   children,
   'data-testid': testId,
-  toggleTestId
+  toggleTestId,
+  toggleRef
 }: MessageThreadItemProps): ReactElement {
   const id = useId()
   const toggleId = `${id}-toggle`
@@ -64,6 +67,7 @@ export function MessageThreadItem({
       data-expanded={isExpanded ? 'true' : 'false'}
     >
       <ButtonBase
+        ref={toggleRef}
         id={toggleId}
         aria-expanded={isExpanded}
         aria-controls={regionId}

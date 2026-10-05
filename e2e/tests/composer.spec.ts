@@ -180,6 +180,48 @@ test.describe('CMP composer', () => {
     await expect(page.getByRole('dialog', { name: 'First message' })).toBeVisible()
   })
 
+  test('CMP-49 composers the screen has no room for stay reachable from a menu', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    for (const subject of ['First', 'Second', 'Third']) {
+      const composer = await mailbox.compose()
+      await composer.subjectInput.fill(subject)
+      await expect(page.getByRole('dialog', { name: subject })).toBeVisible()
+    }
+
+    // A tablet: the newest fills the screen, the others are in its menu
+    await page.setViewportSize({ width: 1000, height: 800 })
+    await expect(page.getByRole('dialog', { name: 'Third' })).toHaveAttribute(
+      'aria-modal',
+      'true'
+    )
+    await expect(mailbox.composerOverflowButton).toHaveText('+2 messages')
+    await expect(mailbox.composerOverflowButton).toHaveAttribute('aria-haspopup', 'menu')
+    await mailbox.composerOverflowButton.click()
+    await expect(mailbox.composerOverflowMenu.getByRole('menuitem')).toHaveText([
+      'Second',
+      'First'
+    ])
+    await expectNoA11yViolations(page)
+    await page.keyboard.press('Escape')
+    await expect(mailbox.composerOverflowButton).toBeFocused()
+    const first = await mailbox.showComposerFromOverflow('First')
+    await expect(first.root).toHaveAttribute('aria-modal', 'true')
+    await expect(page.getByRole('dialog', { name: 'Third' })).toBeHidden()
+
+    // A narrow desktop: two in the dock, the oldest in the menu at its start
+    await page.setViewportSize({ width: 1200, height: 800 })
+    await expect(page.getByRole('dialog', { name: 'First' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Third' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Second' })).toBeHidden()
+    await expect(mailbox.composerOverflowButton).toHaveText('+1 message')
+    const second = await mailbox.showComposerFromOverflow('Second')
+    await expect(second.subjectInput).toHaveValue('Second')
+    await expectNoA11yViolations(page)
+  })
+
   test('CMP-28 recipients: a pasted list, an invalid address, chips edited and removed with the keyboard, contacts suggested', async ({
     page,
     user,

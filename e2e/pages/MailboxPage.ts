@@ -33,6 +33,9 @@ export class MailboxPage {
   readonly emailList: Locator
   readonly emptyListView: Locator
   readonly composeButton: Locator
+  /** The composers the dock has no room for: "+N messages", then a menu */
+  readonly composerOverflowButton: Locator
+  readonly composerOverflowMenu: Locator
   readonly userAvatar: Locator
   readonly scrollToTopButton: Locator
   /** The toast at the bottom of the screen ("Moved to Trash", errors) */
@@ -63,6 +66,10 @@ export class MailboxPage {
     this.emailList = page.getByTestId('email-list')
     this.emptyListView = page.getByTestId('empty-thread-view')
     this.composeButton = page.getByTestId('compose-email-button')
+    this.composerOverflowButton = page.getByTestId('composer-overflow-button')
+    this.composerOverflowMenu = page
+      .getByTestId('composer-overflow-menu')
+      .getByRole('menu')
     this.userAvatar = page.getByTestId('user-avatar')
     this.scrollToTopButton = page.getByTestId('scroll-to-top-button')
     this.toast = page.getByTestId('toast')
@@ -344,6 +351,24 @@ export class MailboxPage {
   /** The "important" mark of a row (set by its sender) */
   emailRowImportantIcon(subject: string): Locator {
     return this.emailRow(subject).getByTestId('important-flag-icon')
+  }
+
+  /** Brings back a composer left out of the dock, with the keyboard */
+  async showComposerFromOverflow(subject: string): Promise<ComposerPage> {
+    await this.composerOverflowButton.focus()
+    await this.page.keyboard.press('Enter')
+    await expect(this.composerOverflowMenu).toBeVisible()
+    const item = this.composerOverflowMenu.getByRole('menuitem', { name: subject })
+    while (!(await item.evaluate(element => element === document.activeElement))) {
+      await this.page.keyboard.press('ArrowDown')
+    }
+    await this.page.keyboard.press('Enter')
+    const composer = new ComposerPage(
+      this.page,
+      this.page.getByRole('dialog', { name: subject })
+    )
+    await expect(composer.root).toBeVisible()
+    return composer
   }
 
   async compose(): Promise<ComposerPage> {

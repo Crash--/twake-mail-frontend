@@ -64,6 +64,16 @@ const ComposerContext = createContext<ComposerApi | null>(null)
 
 const MODES: readonly string[] = ['normal', 'minimized', 'fullscreen']
 
+/** Two inits answering the same email the same way */
+function isSameAnswer(first: ComposerInit, second: ComposerInit): boolean {
+  const { reply } = first
+  return (
+    reply !== undefined &&
+    second.reply?.emailId === reply.emailId &&
+    second.reply.action === reply.action
+  )
+}
+
 function isEntry(value: unknown): value is ComposerEntry {
   return (
     typeof value === 'object' &&
@@ -218,6 +228,18 @@ export function ComposerProvider({
     openings.current.delete(id)
   }, [])
 
+  /** Shows a composer already open, the focus in its form */
+  const bringBack = useCallback(
+    (id: string): void => {
+      setMode(id, 'normal')
+      // Once shown again
+      requestAnimationFrame(() => {
+        forms.current.get(id)?.focus()
+      })
+    },
+    [setMode]
+  )
+
   const openComposer = useCallback(
     (init: ComposerInit = {}): void => {
       const current = entriesRef.current
@@ -227,9 +249,15 @@ export function ComposerProvider({
           ([, draft]) => draft.draftId === draftId
         )
         if (holder) {
-          setMode(holder[0], 'normal')
+          bringBack(holder[0])
           return
         }
+      }
+      // Answering the same email twice: the answer already open
+      const answer = current.find(entry => isSameAnswer(entry.init, init))
+      if (answer) {
+        bringBack(answer.id)
+        return
       }
       if (current.length >= MAX_COMPOSERS) {
         const newest = current[current.length - 1]
@@ -264,7 +292,7 @@ export function ComposerProvider({
         add(release)
       })
     },
-    [accountId, notify, setMode, t, suspendShortcuts]
+    [accountId, notify, setMode, t, bringBack, suspendShortcuts]
   )
 
   const close = useCallback(

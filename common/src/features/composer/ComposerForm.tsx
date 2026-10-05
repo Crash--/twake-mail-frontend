@@ -111,6 +111,8 @@ export interface ComposerFormHandle {
   requestClose: () => Promise<boolean>
   /** What a reload keeps, null before the editor exists */
   snapshot: () => ComposerSnapshot | null
+  /** Puts the focus back in the message (opened again) */
+  focus: () => void
 }
 
 export interface ComposerFormProps {
@@ -486,9 +488,13 @@ function LoadedComposerForm({
     }
   }
 
+  const focus = (): void => {
+    editorRef.current?.commands.focus()
+  }
+
   // The window reads the latest closures: they change with every field
   useEffect(() => {
-    onReady({ requestClose, snapshot })
+    onReady({ requestClose, snapshot, focus })
   })
 
   useEffect(() => {

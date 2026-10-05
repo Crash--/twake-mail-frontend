@@ -504,6 +504,32 @@ describe('ComposerForm', () => {
       })
     })
 
+    it('brings back the answer already open instead of a second one', async () => {
+      renderComposer(serverWithSource())
+      const composer = await openComposer('Answer reply')
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Minimize' })
+      )
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Answer reply' })
+      )
+
+      await waitFor(() => {
+        expect(
+          within(composer).getByRole('textbox', { name: 'Message body' })
+        ).toHaveFocus()
+      })
+      expect(screen.getAllByTestId('composer')).toHaveLength(1)
+      // Another answer to the same email is another message
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Answer forward' })
+      )
+      await waitFor(() => {
+        expect(screen.getAllByTestId('composer')).toHaveLength(2)
+      })
+    })
+
     it('replies to all but the user, Cc kept', async () => {
       renderComposer(serverWithSource())
       const composer = await openComposer('Answer replyAll')

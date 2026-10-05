@@ -25,7 +25,12 @@ import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
-import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
+import {
+  DRAFT,
+  FLAGGED,
+  hasKeyword,
+  SEEN
+} from '@common/features/email/keywords'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { HighlightedText } from '@common/features/search/HighlightedText'
@@ -94,6 +99,8 @@ export interface EmailCellProps {
   onOpenMenu: (email: EmailListItemData, element: HTMLElement) => void
   /** The email open beside the list, if any */
   openEmailId: string | null
+  /** Opens a draft (`$draft`) in the composer instead of reading it */
+  onOpenDraft?: (email: EmailListItemData) => void
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -117,6 +124,7 @@ export function EmailCell({
   deletesForever,
   onOpenMenu,
   openEmailId,
+  onOpenDraft,
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -230,6 +238,10 @@ export function EmailCell({
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
   const handleNavigate = (): void => {
+    if (onOpenDraft && hasKeyword(email, DRAFT)) {
+      onOpenDraft(email)
+      return
+    }
     void navigate(path, { viewTransition: prepareViewTransition('forward') })
   }
   const date = (

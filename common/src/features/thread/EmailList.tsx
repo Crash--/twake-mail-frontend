@@ -31,6 +31,7 @@ import {
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
+import { useComposer } from '@common/features/composer/ComposerProvider'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -386,6 +387,14 @@ export function EmailList(props: EmailListProps): ReactElement {
   // desktop size (layout/AppLayout.tsx)
   const bottomInset = screenSize === 'desktop' ? 0 : FLOATING_ACTION_INSET
 
+  const { openComposer } = useComposer()
+  const handleOpenDraft = useCallback(
+    (email: { id: string }): void => {
+      openComposer({ draftId: email.id })
+    },
+    [openComposer]
+  )
+
   const componentsProps = useMemo(
     () => ({
       rowContent: {
@@ -400,6 +409,7 @@ export function EmailList(props: EmailListProps): ReactElement {
             deletesForever={listActions.deletesForever}
             onOpenMenu={listActions.onOpenMenu}
             openEmailId={openEmailId}
+            onOpenDraft={handleOpenDraft}
           />
         )
       }
@@ -413,7 +423,8 @@ export function EmailList(props: EmailListProps): ReactElement {
       listActions.onRemove,
       listActions.deletesForever,
       listActions.onOpenMenu,
-      openEmailId
+      openEmailId,
+      handleOpenDraft
     ]
   )
 

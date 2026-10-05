@@ -66,6 +66,6 @@
     "@parcel/watcher": false,
     "@sentry/cli": false,
     "unrs-resolver": false,
-    "github:Crash--/jmap-client-ts#f1682f4207f845718ec78ea996f5ff8eb1717085": true
+    "github:Crash--/jmap-client-ts#d4db397f38155f94b616469144d829e6b0e217f8": true
   }
 }

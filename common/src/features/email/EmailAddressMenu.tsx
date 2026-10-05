@@ -1,4 +1,4 @@
-import { Copy, Filter, Icon } from '@linagora/twake-icons'
+import { Copy, Filter, Icon, Pen } from '@linagora/twake-icons'
 import {
   Link,
   ListItemIcon,
@@ -17,6 +17,7 @@ import {
 } from 'react'
 import { useNavigate } from 'react-router'
 
+import { useComposer } from '@common/features/composer/ComposerProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { NewRuleLocationState } from '@common/features/rules/EmailRulesSettings'
 import { settingsSectionPath } from '@common/features/settings/sections'
@@ -31,8 +32,8 @@ export interface EmailAddressMenuProps {
 
 /**
  * An address of an email header, as a button opening what can be done
- * with it, as tmail-flutter's address dialog: copy it, and "Create a rule
- * with this email" when the server has filtering rules.
+ * with it, as tmail-flutter's address dialog: copy it, write to it, and
+ * "Create a rule with this email" when the server has filtering rules.
  */
 export function EmailAddressMenu({
   address,
@@ -41,6 +42,7 @@ export function EmailAddressMenu({
   const { t } = useI18n()
   const navigate = useNavigate()
   const { notify } = useNotify()
+  const { openComposer } = useComposer()
   const { session } = useJmapSession()
   const menuId = useId()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
@@ -64,6 +66,19 @@ export function EmailAddressMenu({
       .catch((error: unknown) => {
         console.warn('[email] Cannot copy the address', error)
       })
+  }
+
+  const handleCompose = (): void => {
+    handleClose()
+    openComposer({
+      mailto: {
+        to: [address.email],
+        cc: [],
+        bcc: [],
+        subject: null,
+        body: null
+      }
+    })
   }
 
   const handleCreateRule = (): void => {
@@ -106,6 +121,15 @@ export function EmailAddressMenu({
             <Icon icon={Copy} />
           </ListItemIcon>
           <ListItemText>{t('email.address.copy')}</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={handleCompose}
+          data-testid="email-address-compose-item"
+        >
+          <ListItemIcon>
+            <Icon icon={Pen} />
+          </ListItemIcon>
+          <ListItemText>{t('email.address.compose')}</ListItemText>
         </MenuItem>
         {hasRules ? (
           <MenuItem

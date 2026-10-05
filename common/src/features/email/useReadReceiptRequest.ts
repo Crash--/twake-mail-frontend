@@ -12,6 +12,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { formatFullDate } from '@common/features/thread/formatListDate'
 
+import { DRAFT } from './keywords'
 import { emailKeys, READ_RECEIPT_HEADER, type EmailDetail } from './queries'
 
 /** RFC 9007 */
@@ -23,7 +24,8 @@ export const MDN_SENT = '$mdnsent'
 /**
  * Whether an opened email asks for a read receipt still to send, as
  * tmail-flutter decides (`hasReadReceipt`): it has a
- * `Disposition-Notification-To`, no `$mdnsent`, and is not in Sent.
+ * `Disposition-Notification-To`, no `$mdnsent`, and is not in Sent nor a
+ * draft (the user asked for a receipt on a message not sent yet).
  */
 export function asksReadReceipt(
   email: Pick<EmailDetail, 'keywords' | 'mailboxIds'> &
@@ -33,6 +35,7 @@ export function asksReadReceipt(
   return (
     (email[READ_RECEIPT_HEADER] ?? '').trim() !== '' &&
     !(MDN_SENT in email.keywords) &&
+    !(DRAFT in email.keywords) &&
     !(sentId !== null && sentId in email.mailboxIds)
   )
 }

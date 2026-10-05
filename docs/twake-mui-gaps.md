@@ -183,6 +183,11 @@ Before the composer, every icon needed existed in `@linagora/twake-icons` (`Mail
 `Attachment`, `Download`). There is no dedicated inbox, spam nor template
 icon: `Email`, `Warning` and `Note` stand in.
 
+The answers of an email have one icon, `Reply`: there is no "reply all" nor
+"forward" icon. The buttons under an email are labelled (`Reply` icon on the
+replies, none on Forward); the menus use `Reply` for the three replies and
+`Share` for Forward. twake-icons should get `ReplyAll` and `Forward`.
+
 twake-css:
 
 - `u-fw-bold` has no `!important`, unlike most utilities: it loses against

@@ -164,7 +164,16 @@ export function ListDetailLayout({
   detail,
   placeholder
 }: ListDetailLayoutProps): ReactElement {
-  const isSplit = useScreenSize() === 'tabletLarge'
+  const screenSize = useScreenSize()
+  const isSplit = screenSize === 'tabletLarge'
+  // On desktops the pane is the scrolling area of the item: the view
+  // transition snapshots a pane that does not move with the scroll, which it
+  // would otherwise slide over the bars above it. Below, the page scrolls
+  // (the sticky bars stick to it).
+  const singlePaneClassName =
+    screenSize === 'desktop'
+      ? 'u-flex u-flex-column u-h-100 u-ov-auto'
+      : 'u-flex u-flex-column u-h-100'
   const hasDetail = detail !== null && detail !== undefined
   const lastListFocusRef = useRef<HTMLElement | null>(null)
   const hadDetailRef = useRef(hasDetail)
@@ -206,7 +215,7 @@ export function ListDetailLayout({
     // The same flex column as the parent of the layout: the list and the
     // item lay out as if they were its children
     return (
-      <Box className="u-flex u-flex-column u-h-100" sx={SINGLE_PANE_SX}>
+      <Box className={singlePaneClassName} sx={SINGLE_PANE_SX}>
         {styles}
         {hasDetail ? detail : list}
       </Box>

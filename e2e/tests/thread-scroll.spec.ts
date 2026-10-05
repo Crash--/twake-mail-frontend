@@ -142,10 +142,18 @@ async function traceOpening(page: Page): Promise<void> {
       scrolledAfterFinish: false
     }
     Object.defineProperty(window, '__opening', { value: trace })
-    const top = (): number =>
-      Math.round(
-        document.querySelector('[data-testid="main-content"]')?.scrollTop ?? 0
-      )
+    // The scrolling area of the conversation: the pane on desktops, the main
+    // content below
+    const top = (): number => {
+      let element = document.querySelector('[data-testid="conversation-view"]')
+      while (
+        element !== null &&
+        !/(auto|scroll)/.test(getComputedStyle(element).overflowY)
+      ) {
+        element = element.parentElement
+      }
+      return Math.round(element?.scrollTop ?? 0)
+    }
     const start = document.startViewTransition?.bind(document)
     if (start) {
       document.startViewTransition = (

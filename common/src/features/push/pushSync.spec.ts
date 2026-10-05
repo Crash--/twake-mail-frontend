@@ -463,6 +463,38 @@ describe('createPushSync', () => {
       unsubscribe()
     })
 
+    it('queries nothing for an unlisted email that cannot match the search', async () => {
+      const setup = await makeSetup({ emails: reports() })
+      const request: SearchRequest = {
+        ...REQUEST,
+        filter: { text: 'report', inMailboxOtherThan: ['mailbox-trash'] }
+      }
+      const observer = new InfiniteQueryObserver(
+        setup.queryClient,
+        emailListSourceQueryOptions(setup.client, FAKE_ACCOUNT_ID, {
+          kind: 'search',
+          request
+        })
+      )
+      const unsubscribe = observer.subscribe(() => undefined)
+      await until(() => observer.getCurrentResult().data !== undefined)
+      const before = setup.server.requests.length
+
+      setup.server.addEmail(
+        makeEmail({
+          id: 'trashed',
+          subject: 'Old report',
+          mailboxIds: { 'mailbox-trash': true }
+        })
+      )
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get']
+      ])
+      unsubscribe()
+    })
+
     it('starts over the results no screen shows', async () => {
       const setup = await makeSetup({ emails: reports() })
       await setup.queryClient.infiniteQuery(

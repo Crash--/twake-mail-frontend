@@ -146,4 +146,27 @@ describe('patchQueryList', () => {
       ['a2', {}]
     ])
   })
+
+  it('asks for no query for an unknown email that cannot match the filter', () => {
+    const filter = {
+      text: 'invoice',
+      inMailboxOtherThan: ['mailbox-trash', 'mailbox-spam']
+    }
+    const inTrash = email('trashed', { mailboxIds: { 'mailbox-trash': true } })
+    const inInbox = email('arrived', { mailboxIds: { [INBOX]: true } })
+
+    expect(
+      patchQueryList(results(), changes({ changed: [inTrash] }), {
+        isCollapsed: true,
+        filter
+      }).needsRefresh
+    ).toBe(false)
+    // The client cannot tell whether its words match
+    expect(
+      patchQueryList(results(), changes({ changed: [inInbox] }), {
+        isCollapsed: true,
+        filter
+      }).needsRefresh
+    ).toBe(true)
+  })
 })

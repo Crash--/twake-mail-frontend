@@ -32,7 +32,8 @@ export interface SearchFiltersBarProps {
 }
 
 /**
- * The filters above the results, as in tmail-flutter: folder, senders and
+ * The filters of the list toolbar while a search runs, in place of the
+ * filter of a folder, as in tmail-flutter: folder, senders and
  * recipients (removable), date, attachment, starred, unread and order. Each
  * change runs the search again; "Clear filter" keeps the order only.
  */
@@ -186,7 +187,7 @@ export function SearchFiltersBar({
     <Box
       role="toolbar"
       aria-label={t('search.filtersBar')}
-      className="u-flex u-flex-wrap u-flex-items-center u-ph-1 u-pb-half"
+      className="u-flex u-flex-auto u-flex-wrap u-flex-items-center"
       data-testid="search-filters-bar"
     >
       <span className="u-mr-half u-mb-half">

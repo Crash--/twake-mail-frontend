@@ -136,10 +136,10 @@ export function useListFilterSlot(): HTMLElement | null {
 
 /** The place of the filter button in the top bar, on phones */
 export function ListFilterSlot(): ReactElement {
-  const api = useContext(ListFilterContext) ?? NO_FILTER
+  const { setSlot } = useContext(ListFilterContext) ?? NO_FILTER
   return (
     <span
-      ref={api.setSlot}
+      ref={setSlot}
       className="u-flex u-flex-items-center"
       data-testid="list-filter-slot"
     />

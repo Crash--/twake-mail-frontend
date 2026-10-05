@@ -101,7 +101,7 @@ function EmailContent({
           {email.subject ?? ''}
         </Typography>
         {showsImportant ? <ImportantMark showLabel /> : null}
-        <EmailLabels email={email} mailboxId={mailboxId ?? null} />
+        <EmailLabels emails={[email]} mailboxId={mailboxId ?? null} />
         <MessageHeader
           className="u-mt-1"
           avatar={

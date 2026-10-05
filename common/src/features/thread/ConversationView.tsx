@@ -32,6 +32,7 @@ import {
   useEmailActions,
   type EmailActionName
 } from '@common/features/emailActions/useEmailActions'
+import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -246,6 +247,7 @@ function ConversationContent({
         >
           {subject}
         </Typography>
+        <EmailLabels emails={emails} mailboxId={null} />
         <SecondaryText
           variant="body2"
           component="p"

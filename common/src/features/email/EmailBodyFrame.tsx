@@ -18,6 +18,27 @@ const MIN_HEIGHT = 32
 export interface EmailBodyFrameProps {
   /** The whole document, from `buildEmailDocument` */
   document: string
+  /** A `mailto:` link of the email was followed: opens it in the app */
+  onMailtoLink?: (href: string) => void
+}
+
+/**
+ * Hands the `mailto:` links of the email document to `onMailtoLink` rather
+ * than to the system (tmail-flutter `mailtoDelegate`). The listeners live in
+ * the app: nothing runs in the frame
+ */
+export function interceptMailtoLinks(
+  frameDocument: Document,
+  onMailtoLink: (href: string) => void
+): void {
+  frameDocument.querySelectorAll('a[href]').forEach(link => {
+    const href = link.getAttribute('href')?.trim() ?? ''
+    if (!/^mailto:/i.test(href)) return
+    link.addEventListener('click', event => {
+      event.preventDefault()
+      onMailtoLink(href)
+    })
+  })
 }
 
 /**
@@ -25,12 +46,18 @@ export interface EmailBodyFrameProps {
  * its content, so that the reading pane scrolls as one page.
  */
 export function EmailBodyFrame({
-  document
+  document,
+  onMailtoLink
 }: EmailBodyFrameProps): ReactElement {
   const { t } = useI18n()
   const frameRef = useRef<HTMLIFrameElement>(null)
   const observerRef = useRef<ResizeObserver | null>(null)
+  const onMailtoLinkRef = useRef(onMailtoLink)
   const [height, setHeight] = useState(MIN_HEIGHT)
+
+  useEffect(() => {
+    onMailtoLinkRef.current = onMailtoLink
+  }, [onMailtoLink])
 
   useEffect(() => () => observerRef.current?.disconnect(), [])
 
@@ -52,9 +79,15 @@ export function EmailBodyFrame({
   const handleLoad = (): void => {
     observerRef.current?.disconnect()
     observerRef.current = null
-    const content =
-      frameRef.current?.contentDocument?.getElementById(EMAIL_CONTENT_ID)
-    if (!content) return
+    const frameDocument = frameRef.current?.contentDocument
+    const content = frameDocument?.getElementById(EMAIL_CONTENT_ID)
+    if (!frameDocument || !content) return
+
+    if (onMailtoLinkRef.current) {
+      interceptMailtoLinks(frameDocument, href => {
+        onMailtoLinkRef.current?.(href)
+      })
+    }
 
     // The wrapper, not the document: a body sized on the viewport
     // (`min-height: 100vh`) would grow the frame at each measure

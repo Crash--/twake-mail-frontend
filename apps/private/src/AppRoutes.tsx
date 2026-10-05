@@ -7,6 +7,7 @@ import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
 import { IdentitiesSettings } from '@common/features/identities/IdentitiesSettings'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
+import { EmailRulesSettings } from '@common/features/rules/EmailRulesSettings'
 import { PushProvider } from '@common/features/push/PushProvider'
 import { PreferencesSettings } from '@common/features/settings/PreferencesSettings'
 import {
@@ -69,6 +70,14 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
               element={
                 <SettingsSectionRoute id="profiles">
                   {section => <IdentitiesSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
+            <Route
+              path="email-rules"
+              element={
+                <SettingsSectionRoute id="email-rules">
+                  {section => <EmailRulesSettings section={section} />}
                 </SettingsSectionRoute>
               }
             />

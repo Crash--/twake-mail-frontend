@@ -124,6 +124,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Identities (Settings > Profiles): created, edited and deleted with their
   Reply-To, Bcc and rich signature, the default one chosen when the server
   sorts identities; signature images published as PublicAssets
+- Email rules (Settings > Email rules, `Filter/set`): conditions on From,
+  To, Cc, Recipient or Subject, all or any met; move to a folder, mark as
+  seen, star, reject (after a warning) or mark as spam
 
 ### Changed
 

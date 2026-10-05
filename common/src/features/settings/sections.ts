@@ -1,10 +1,12 @@
 import {
+  Filter,
   Help,
   Identities,
   Setting,
   type IconProps
 } from '@linagora/twake-icons'
 import type { Session } from 'jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -16,7 +18,7 @@ export const SETTINGS_PATH = '/settings'
  * (`AccountMenuItem`), with the alias of its URLs
  */
 export type SettingsSectionId =
-  'profiles' | 'preferences' | 'keyboard-shortcuts'
+  'profiles' | 'email-rules' | 'preferences' | 'keyboard-shortcuts'
 
 export interface SettingsSection {
   id: SettingsSectionId
@@ -27,12 +29,23 @@ export interface SettingsSection {
   isAvailable?: (session: Session) => boolean
 }
 
+function offers(capability: string): (session: Session) => boolean {
+  return session => capability in session.capabilities
+}
+
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   {
     id: 'profiles',
     icon: Identities,
     title: 'settings.sections.profiles.title',
     description: 'settings.sections.profiles.description'
+  },
+  {
+    id: 'email-rules',
+    icon: Filter,
+    title: 'settings.sections.emailRules.title',
+    description: 'settings.sections.emailRules.description',
+    isAvailable: offers(LINAGORA_CAPABILITIES.filter)
   },
   {
     id: 'preferences',

@@ -16,7 +16,8 @@
     "delete": "Delete",
     "deleteAll": "Delete all",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "confirm": "Confirm"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -468,6 +469,10 @@
       "keyboardShortcuts": {
         "title": "Keyboard shortcuts",
         "description": "Mailbox & email actions"
+      },
+      "emailRules": {
+        "title": "Email Rules",
+        "description": "Creating rules to handle incoming messages. You choose both the condition that triggers a rule and the actions the rule will take."
       }
     },
     "preferences": {
@@ -601,5 +606,89 @@
     "deleteOf": "Delete %{name}",
     "cannotDelete": "Created with your account, it cannot be deleted",
     "listLabel": "Identities"
+  },
+  "rules": {
+    "add": "Add a rule",
+    "empty": {
+      "title": "No Rules Configured",
+      "message": "Start by creating your first rule to automate email management.",
+      "action": "Create My First Rule"
+    },
+    "delete": {
+      "title": "Delete rule",
+      "message": "Do you want to delete rule \"%{ruleName}\"?"
+    },
+    "toasts": {
+      "created": "New filter was created",
+      "updated": "Your filter has been updated",
+      "deleted": "The rule has been removed."
+    },
+    "errors": {
+      "save": "Create filter rule failed",
+      "noCondition": "You have not added a condition to the rule.",
+      "noAction": "You have not added a action to the rule.",
+      "noFolder": "Please select a mailbox to move the message",
+      "noSpam": "Spam folder not found",
+      "load": "The rules could not be loaded",
+      "delete": "The rule could not be deleted"
+    },
+    "form": {
+      "createTitle": "Create a New Rule",
+      "editTitle": "Edit rule",
+      "create": "Create Rule",
+      "name": "Rule Name",
+      "namePlaceholder": "Enter the rule name",
+      "conditions": "Condition",
+      "combinerBefore": "If",
+      "combinerAfter": "of the following conditions are met:",
+      "value": "Value",
+      "addCondition": "Add a condition",
+      "actions": "Actions to Perform",
+      "selectAction": "Select action",
+      "toFolder": "To folder:",
+      "addAction": "Add an action",
+      "save": "Save",
+      "removeCondition": "Remove condition %{position}",
+      "removeAction": "Remove action %{position}",
+      "field": "Field",
+      "comparator": "Operator",
+      "combiner": "Conditions to meet",
+      "action": "Action %{position}",
+      "condition": "Condition %{position}",
+      "chooseFolder": "Choose a folder",
+      "rejectAlone": "Rejected emails get no other action"
+    },
+    "combiners": {
+      "AND": "All",
+      "OR": "Any"
+    },
+    "fields": {
+      "from": "From",
+      "to": "To",
+      "cc": "Cc",
+      "recipient": "Recipient",
+      "subject": "Subject"
+    },
+    "comparators": {
+      "contains": "Contains",
+      "notContains": "Not contains",
+      "exactlyEquals": "Exactly equals",
+      "notExactlyEquals": "Not exactly equals"
+    },
+    "actions": {
+      "move": "Move message",
+      "seen": "Mark as seen",
+      "star": "Star it",
+      "reject": "Reject it",
+      "spam": "Mark as spam"
+    },
+    "reject": {
+      "title": "Reject all emails matching this condition?",
+      "message": "This action is irreversible. Are you sure you want to proceed?"
+    },
+    "editOf": "Edit %{name}",
+    "deleteOf": "Delete %{name}",
+    "listLabel": "Rules",
+    "count": "%{smart_count} rule |||| %{smart_count} rules"
   }
 }

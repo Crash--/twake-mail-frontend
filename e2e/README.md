@@ -71,7 +71,9 @@ may still answer 401 to the first authenticated requests.
 
 **App configuration.** nginx serves `/.env.js` from [`docker/app-env.js`](docker/app-env.js),
 whatever `.env.js` the build holds: basic auth, JMAP session on the origin of the app
-(`window.location.origin + '/jmap/session'`), English UI. `/appList.js` is an empty app list.
+(`window.location.origin + '/jmap/session'`), English UI. `/appList.js` comes from
+[`docker/app-list.js`](docker/app-list.js): three apps on hosts that do not exist (the specs
+answer them), the Drive one a URI template resolved per user.
 
 **Same origin.** The app and JMAP share `http://127.0.0.1:18302`, so the browser never
 makes a cross origin call and the JMAP session advertises `http://127.0.0.1:18302/jmap`
@@ -281,6 +283,7 @@ e2e/
 │   ├── james/                tmail-backend configuration (from tmail-flutter backend-docker/)
 │   ├── nginx/default.conf    single origin: app + /jmap + /dex
 │   ├── app-env.js            runtime configuration of the app under test (/.env.js)
+│   ├── app-list.js           apps of its app grid (/appList.js)
 │   ├── dex/config.yaml       OIDC provider (profile oidc)
 │   ├── app-placeholder/      served when E2E_APP_DIR is not set
 │   └── .generated/           rendered config and keys (git ignored)

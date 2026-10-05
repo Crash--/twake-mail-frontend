@@ -49,6 +49,7 @@ Conventions:
 | `logout-button` | Sign out item | — |
 | `app-grid-toggle-button` | app grid button | `UiKeys.toggleAppGridButton` |
 | `app-grid-list` | app grid panel | `UiKeys.listViewAppGrid` |
+| `app-grid-item` | one app of the grid (`data-app-name`), a link opening a new tab (`AppGrid` page object) | `AppGridDashboardItem` |
 | `mobile-mailbox-menu-button` | top bar button opening the folder drawer, below 1200 px | `UiKeys.mobileMailboxMenuButton` |
 | `mailbox-drawer` | the folder drawer (`role="dialog"` named "Navigation"), holding `mailbox-tree` | — |
 | `mailbox-drawer-close-button` | its close button | — |

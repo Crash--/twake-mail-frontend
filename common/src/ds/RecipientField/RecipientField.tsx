@@ -33,6 +33,24 @@ const OPTION_SX = {
   '&[aria-selected="true"]': { bgcolor: 'action.selected' },
   '&:hover': { bgcolor: 'action.hover' }
 } as const
+/**
+ * The line keeps its end actions on the first row: the label, chips and
+ * input wrap in a box of their own
+ */
+const LINE_SX = {
+  ...FIELD_LINE_SX,
+  flexWrap: 'nowrap',
+  alignItems: 'flex-start'
+} as const
+const CONTENT_SX = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  columnGap: 0.5,
+  rowGap: 0.5,
+  minHeight: 28
+} as const
+const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
 const INVALID_CHIP_SX = {
   borderColor: 'error.main',
   bgcolor: 'background.paper'
@@ -147,6 +165,7 @@ export function RecipientField({
   const chipHelpId = `${id}-chip-help`
   const rootRef = useRef<HTMLDivElement>(null)
   const [field, setField] = useState<HTMLDivElement | null>(null)
+  const [content, setContent] = useState<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const chipRefs = useRef<(HTMLDivElement | null)[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -351,7 +370,9 @@ export function RecipientField({
 
   const handleFieldClick = (event: { target: EventTarget }): void => {
     // A click in the empty part of the field goes to the input
-    if (event.target === field) inputRef.current?.focus()
+    if (event.target === field || event.target === content) {
+      inputRef.current?.focus()
+    }
   }
 
   return (
@@ -361,90 +382,92 @@ export function RecipientField({
         ref={setField}
         role="group"
         aria-labelledby={labelId}
-        sx={FIELD_LINE_SX}
+        sx={LINE_SX}
         onClick={handleFieldClick}
       >
-        <Typography
-          component="label"
-          id={labelId}
-          htmlFor={inputId}
-          variant="body2"
-          sx={FIELD_LABEL_SX}
-        >
-          {labels.field}
-        </Typography>
-        {chips.map((chip, index) => (
-          <Chip
-            key={chip.id}
-            ref={(element: HTMLDivElement | null) => {
-              chipRefs.current[index] = element
-            }}
-            size="small"
-            variant={chip.isInvalid ? 'outlined' : 'filled'}
-            icon={
-              chip.isInvalid ? (
-                <Icon icon={Warning} aria-hidden="true" />
-              ) : undefined
-            }
-            label={chip.label}
-            title={chip.title ?? chip.label}
-            aria-label={
-              chip.isInvalid ? `${chip.label}, ${labels.invalid}` : chip.label
-            }
-            aria-describedby={chipHelpId}
-            tabIndex={-1}
-            // Enter (a click without a pointer) or a double click edits;
-            // a single click only selects the chip
-            onClick={event => {
-              if (event.detail === 0) editChip(index)
-            }}
-            onDoubleClick={() => {
-              editChip(index)
-            }}
-            onDelete={(event: { type: string }) => {
-              if (event.type === 'keyup' && skipDeleteKeyUp.current) {
-                skipDeleteKeyUp.current = false
-                return
+        <Box ref={setContent} className="u-flex-auto" sx={CONTENT_SX}>
+          <Typography
+            component="label"
+            id={labelId}
+            htmlFor={inputId}
+            variant="body2"
+            sx={FIELD_LABEL_SX}
+          >
+            {labels.field}
+          </Typography>
+          {chips.map((chip, index) => (
+            <Chip
+              key={chip.id}
+              ref={(element: HTMLDivElement | null) => {
+                chipRefs.current[index] = element
+              }}
+              size="small"
+              variant={chip.isInvalid ? 'outlined' : 'filled'}
+              icon={
+                chip.isInvalid ? (
+                  <Icon icon={Warning} aria-hidden="true" />
+                ) : undefined
               }
-              removeChip(index)
+              label={chip.label}
+              title={chip.title ?? chip.label}
+              aria-label={
+                chip.isInvalid ? `${chip.label}, ${labels.invalid}` : chip.label
+              }
+              aria-describedby={chipHelpId}
+              tabIndex={-1}
+              // Enter (a click without a pointer) or a double click edits;
+              // a single click only selects the chip
+              onClick={event => {
+                if (event.detail === 0) editChip(index)
+              }}
+              onDoubleClick={() => {
+                editChip(index)
+              }}
+              onDelete={(event: { type: string }) => {
+                if (event.type === 'keyup' && skipDeleteKeyUp.current) {
+                  skipDeleteKeyUp.current = false
+                  return
+                }
+                removeChip(index)
+              }}
+              onKeyDown={handleChipKeyDown(index)}
+              sx={chip.isInvalid ? INVALID_CHIP_SX : undefined}
+              data-testid={testIds.chip}
+              data-invalid={chip.isInvalid ? 'true' : undefined}
+            />
+          ))}
+          <InputBase
+            inputRef={inputRef}
+            value={inputValue}
+            onChange={event => {
+              setIsOpen(true)
+              setActiveId(null)
+              onInputChange(event.target.value)
             }}
-            onKeyDown={handleChipKeyDown(index)}
-            sx={chip.isInvalid ? INVALID_CHIP_SX : undefined}
-            data-testid={testIds.chip}
-            data-invalid={chip.isInvalid ? 'true' : undefined}
+            onFocus={() => {
+              setIsOpen(true)
+              onFocus?.()
+            }}
+            onPaste={handlePaste}
+            className="u-flex-auto"
+            sx={{ minWidth: 120 }}
+            inputProps={{
+              id: inputId,
+              role: 'combobox',
+              'aria-expanded': isShown,
+              'aria-controls': isShown ? listboxId : undefined,
+              'aria-autocomplete': 'list',
+              'aria-activedescendant':
+                active === null ? undefined : optionId(active.id),
+              autoComplete: 'off',
+              spellCheck: false,
+              onKeyDown: handleInputKeyDown,
+              'data-testid': testIds.input
+            }}
           />
-        ))}
-        <InputBase
-          inputRef={inputRef}
-          value={inputValue}
-          onChange={event => {
-            setIsOpen(true)
-            setActiveId(null)
-            onInputChange(event.target.value)
-          }}
-          onFocus={() => {
-            setIsOpen(true)
-            onFocus?.()
-          }}
-          onPaste={handlePaste}
-          className="u-flex-auto"
-          sx={{ minWidth: 120 }}
-          inputProps={{
-            id: inputId,
-            role: 'combobox',
-            'aria-expanded': isShown,
-            'aria-controls': isShown ? listboxId : undefined,
-            'aria-autocomplete': 'list',
-            'aria-activedescendant':
-              active === null ? undefined : optionId(active.id),
-            autoComplete: 'off',
-            spellCheck: false,
-            onKeyDown: handleInputKeyDown,
-            'data-testid': testIds.input
-          }}
-        />
+        </Box>
         {endActions === undefined ? null : (
-          <Box className="u-flex u-flex-items-center" sx={{ gap: '7px' }}>
+          <Box className="u-flex u-flex-items-center" sx={ACTIONS_SX}>
             {endActions}
           </Box>
         )}

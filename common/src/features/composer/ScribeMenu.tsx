@@ -1,4 +1,4 @@
-import { Ai, Icon } from '@linagora/twake-icons'
+import { AssistantColor, Icon } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -194,13 +194,14 @@ export function ScribeMenu({
           aria-haspopup="true"
           aria-controls={anchor ? menuId : undefined}
           aria-expanded={anchor ? 'true' : undefined}
+          size="medium"
           onClick={event => {
             setAnchor(event.currentTarget)
           }}
           className="u-ml-half"
           data-testid="composer-scribe-button"
         >
-          <Icon icon={Ai} aria-hidden="true" />
+          <Icon icon={AssistantColor} size={24} aria-hidden="true" />
         </IconButton>
       </Tooltip>
       <Menu

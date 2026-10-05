@@ -1,14 +1,16 @@
 import {
   Attachment,
   Check,
-  Dots,
+  FileOutline,
   Icon,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Paperplane,
   Trash,
   Warning
 } from '@linagora/twake-icons'
 import {
   Box,
-  Button,
   IconButton,
   InputBase,
   ListItemIcon,
@@ -39,6 +41,9 @@ import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
+import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
+import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
+import { PillButton } from '@/ds/PillButton/PillButton'
 import { UploadList } from '@/ds/UploadList/UploadList'
 import {
   useAlert,
@@ -286,6 +291,8 @@ function LoadedComposerForm({
   const subjectId = useId()
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const editorActions = useRef<RichTextEditorActions>(null)
+  const [isToolbarShown, setIsToolbarShown] = useState(true)
   const [identityId, setIdentityId] = useState(content.identityId)
   // The identity selector opens on request (the "From" button), unless the
   // message already has its own identity (a draft, an answer, a template,
@@ -1094,7 +1101,7 @@ function LoadedComposerForm({
         ) : null}
         {/* Focusing the body folds the recipients, as the subject does */}
         <Box
-          className="u-flex u-flex-column u-flex-auto u-ov-hidden u-ph-1"
+          className="u-flex u-flex-column u-flex-auto u-ov-hidden"
           onFocus={event => {
             if (event.target.getAttribute('role') === 'textbox') {
               collapseRecipients()
@@ -1124,6 +1131,10 @@ function LoadedComposerForm({
             footerBlockKinds={['signature', 'quote']}
             autoFocus={autoFocus && opensOnText}
             fill
+            isToolbarBelow
+            isToolbarShown={isToolbarShown}
+            hasInsertButtons={false}
+            actions={editorActions}
             onReady={handleEditorReady}
             onUpdate={markChanged}
             testIds={EDITOR_TEST_IDS}
@@ -1168,26 +1179,51 @@ function LoadedComposerForm({
             </Typography>
           )}
         </Box>
-        <Box className="u-flex u-flex-items-center u-ph-1 u-pv-half u-flex-shrink-0">
-          <Button
-            variant="contained"
-            onClick={() => {
-              void handleSend()
-            }}
-            disabled={isSending}
-            aria-describedby={sendError === null ? undefined : sendErrorId}
-            data-testid="composer-send-button"
-          >
-            {isSending ? t('composer.sending') : t('composer.send')}
-          </Button>
+        <Box className="u-flex u-flex-wrap u-flex-items-center u-p-1 u-flex-shrink-0">
+          <Tooltip title={labels.toolbar}>
+            <IconButton
+              size="medium"
+              aria-label={labels.toolbar}
+              aria-pressed={isToolbarShown}
+              onClick={() => {
+                setIsToolbarShown(shown => !shown)
+              }}
+              data-testid="composer-formatting-button"
+            >
+              <EditorIcon name="fontSize" fontSize="medium" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={t('composer.attachments.attach')}>
             <IconButton
+              size="medium"
               aria-label={t('composer.attachments.attach')}
               onClick={() => fileInputRef.current?.click()}
               className="u-ml-half"
               data-testid="composer-attach-file-button"
             >
-              <Icon icon={Attachment} aria-hidden="true" />
+              <Icon icon={Attachment} size={24} aria-hidden="true" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={labels.insertImage}>
+            <IconButton
+              size="medium"
+              aria-label={labels.insertImage}
+              onClick={() => editorActions.current?.pickImages()}
+              className="u-ml-half"
+              data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
+            >
+              <Icon icon={ImageIcon} size={24} aria-hidden="true" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={labels.link}>
+            <IconButton
+              size="medium"
+              aria-label={labels.link}
+              onClick={() => editorActions.current?.openLinkDialog()}
+              className="u-ml-half"
+              data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
+            >
+              <Icon icon={LinkIcon} size={24} aria-hidden="true" />
             </IconButton>
           </Tooltip>
           <DriveAttachButton
@@ -1219,24 +1255,38 @@ function LoadedComposerForm({
           </Typography>
           <Tooltip title={t('composer.draft.delete')}>
             <IconButton
+              size="medium"
               aria-label={t('composer.draft.delete')}
               onClick={handleDeleteDraft}
               data-testid="composer-delete-draft-button"
             >
-              <Icon icon={Trash} aria-hidden="true" />
+              <Icon icon={Trash} size={24} aria-hidden="true" />
             </IconButton>
           </Tooltip>
           <Tooltip title={t('composer.more')}>
             <IconButton
+              size="medium"
               aria-label={t('composer.more')}
               aria-haspopup="menu"
               aria-expanded={moreAnchor !== null}
               onClick={handleOpenMore}
+              className="u-ml-half u-mr-1"
               data-testid="composer-more-button"
             >
-              <Icon icon={Dots} aria-hidden="true" />
+              <Icon icon={FileOutline} size={24} aria-hidden="true" />
             </IconButton>
           </Tooltip>
+          <PillButton
+            label={isSending ? t('composer.sending') : t('composer.send')}
+            icon={Paperplane}
+            width={128}
+            onClick={() => {
+              void handleSend()
+            }}
+            disabled={isSending}
+            aria-describedby={sendError === null ? undefined : sendErrorId}
+            data-testid="composer-send-button"
+          />
           <Menu
             anchorEl={moreAnchor}
             open={moreAnchor !== null}

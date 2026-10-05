@@ -12,7 +12,7 @@ export const FIELD_LINE_HEIGHT = 37
  * (`RecipientField`): 37 px, 16 px on each side, a divider below, and the
  * text of the inputs in it set in Inter Medium 14 / 20.
  */
-export const FIELD_LINE_SX: SxProps<Theme> = {
+export const FIELD_LINE_SX = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
@@ -37,14 +37,17 @@ export const FIELD_LINE_SX: SxProps<Theme> = {
     color: 'text.secondary',
     opacity: 1
   }
-}
+} as const satisfies SxProps<Theme>
 
 /** The label of a line: Inter Medium 14 / 18.4 in the secondary colour */
-export const FIELD_LABEL_SX: SxProps<Theme> = {
+export const FIELD_LABEL_SX = {
   color: 'text.secondary',
   pr: 1,
   minWidth: 40
-}
+} as const satisfies SxProps<Theme>
+
+/** A single control per line: it shrinks rather than wraps */
+const LINE_SX = { ...FIELD_LINE_SX, flexWrap: 'nowrap' } as const
 
 export interface FieldLineProps {
   /** Name of the field; shown on the left unless `isLabelHidden` */
@@ -73,7 +76,7 @@ export function FieldLine({
   endActions
 }: FieldLineProps): ReactElement {
   return (
-    <Box sx={FIELD_LINE_SX}>
+    <Box sx={LINE_SX}>
       <Typography
         component="label"
         id={labelId}
@@ -84,7 +87,12 @@ export function FieldLine({
       >
         {label}
       </Typography>
-      <Box className="u-flex u-flex-auto u-flex-items-center">{children}</Box>
+      <Box
+        className="u-flex u-flex-auto u-flex-items-center"
+        sx={{ minWidth: 0 }}
+      >
+        {children}
+      </Box>
       {endActions}
     </Box>
   )

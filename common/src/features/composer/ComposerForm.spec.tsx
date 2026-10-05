@@ -312,6 +312,38 @@ describe('ComposerForm', () => {
       }, 30_000)
     })
 
+    it('shows the From line on request, with several identities only', async () => {
+      const single = renderComposer()
+      const first = await openComposer()
+      expect(within(first).queryByTestId('composer-show-from-button')).toBe(
+        null
+      )
+      expect(within(first).queryByTestId('composer-identity-select')).toBe(null)
+      single.unmount()
+
+      renderComposer(
+        makeFakeJmapServer({
+          identities: [
+            makeIdentity({ id: 'identity-alice', mayDelete: false }),
+            makeIdentity({ id: 'identity-work', name: 'Work', mayDelete: true })
+          ]
+        })
+      )
+      const composer = await openComposer()
+      expect(within(composer).queryByTestId('composer-identity-select')).toBe(
+        null
+      )
+      await userEvent.click(
+        within(composer).getByTestId('composer-show-from-button')
+      )
+      expect(
+        within(composer).getByTestId('composer-identity-select')
+      ).toBeVisible()
+      expect(within(composer).queryByTestId('composer-show-from-button')).toBe(
+        null
+      )
+    })
+
     it('swaps the Bcc of the identity when another one is chosen', async () => {
       renderComposer(
         makeFakeJmapServer({

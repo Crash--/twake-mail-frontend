@@ -214,8 +214,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `CMP-43` The signature of the default identity (HTML, sanitized: no style sheet, no event handler) goes between the text and the quote of a reply; choosing another identity (text signature, escaped, lines kept) replaces it in place; the sent message keeps tmail-flutter's `tmail-signature` wrapper above the quote. — web app only, no Patrol test (from the signature spec of the composer spike)
 - [x] `CMP-44` An image dropped on the body is inserted inline where it is dropped, not attached; the same image dropped elsewhere in the composer (the subject) is attached. — web app only, no Patrol test
 - [x] `CMP-45` An inline image is resized with the mouse (its corner handle), the width kept. — web app only, no Patrol test (CMP-30 does it with the keyboard)
-- [ ] `CMP-46` The remote images of a draft reopened from Drafts (outside the quote) are not loaded until "Show" of the banner, and go with the message sent. — web app only, no Patrol test (tmail-flutter loads them)
-- [ ] `CMP-47` A save whose answer is lost (the version created on the server, its id unknown) leaves no stray draft: the next save finds it by its `X-Twake-Draft-Session` header and destroys it. — web app only, no Patrol test
+- [x] `CMP-46` The remote images of a draft reopened from Drafts (outside the quote) are not loaded until "Show" of the banner, and go with the message sent. — web app only, no Patrol test (tmail-flutter loads them)
+- [x] `CMP-47` A save whose answer is lost (the version created on the server, its id unknown) leaves no stray draft: the next save finds it by its `X-Twake-Draft-Session` header and destroys it. — web app only, no Patrol test
 
 ## ATT — Attachments (2)
 
@@ -302,7 +302,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `THR-04` A conversation row (conversations are on by default) names its participants in the order they wrote, the user as "Me" ("emma@example.com, Me, carol@example.com"), shows "(3)" and is unread when one of its messages is, all in the accessible name of its link (axe); a reply arriving by push moves it above a newer email, "(4)", without querying the list again (no `Email/query`); a search finds it as one row, "(4)". — web app only, no Patrol test (issue #11)
   - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 - [x] `THR-05` The selection bar stars, the hover button reads and the menu of a conversation row archives every message of the conversation, its copy in Sent included (tmail-flutter ADR 0068); the row leaves the Inbox (axe on the menu). — web app only, no Patrol test (issue #11)
-- [ ] `THR-06` An email sent to oneself (in the Inbox and, as its copy, in Sent) counts once on its row, as the conversation shows it; the menu of a conversation row answers its newest email (axe on the menu). — web app only (tmail-flutter rows have no count and no answer)
+- [x] `THR-06` An email sent to oneself (in the Inbox and, as its copy, in Sent) counts once on its row, as the conversation shows it; the menu of a conversation row answers its newest email (axe on the menu). — web app only (tmail-flutter rows have no count and no answer)
   - Spec: `tests/thread.spec.ts`. Passes in CI.
 
 ## SRCH — Search (14)
@@ -424,7 +424,7 @@ text fields, dialogs and menus, and with Ctrl, Alt or Meta; they can be turned o
 - [x] `KBD-03` On the open email, `r` replies, `Shift+R` replies to all and `f` forwards, as in
   tmail-flutter; the menu of a row (right click) replies too, and so do the buttons under a message of
   a conversation. — `thread_detail/.../key_shortcut_extension.dart` (no Patrol test)
-- [ ] `KBD-04` `R` with Caps Lock (no Shift) replies, not to all; replying again to the same email
+- [x] `KBD-04` `R` with Caps Lock (no Shift) replies, not to all; replying again to the same email
   brings back the reply open, the focus in it; a key typed while the composer opens (`e`) does not
   reach the shortcuts of the email behind it. — no Patrol test
 

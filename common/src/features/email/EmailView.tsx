@@ -28,6 +28,7 @@ import { AddressLine } from './AddressLine'
 import { formatAddressName } from './addresses'
 import { isMarkedImportant } from './importance'
 import { ImportantMark } from './ImportantMark'
+import { EmailAddressMenu } from './EmailAddressMenu'
 import { EmailMessageBody } from './EmailMessageBody'
 import { EmailViewActions } from './EmailViewActions'
 import { ReplyActions } from './ReplyActions'
@@ -110,14 +111,14 @@ function EmailContent({
             <>
               <Typography data-testid="email-view-from">
                 {sender ? (
-                  <>
+                  <EmailAddressMenu address={sender}>
                     <span className="u-fw-bold">
                       {formatAddressName(sender)}
                     </span>
                     {sender.name ? (
                       <SecondaryText>{` <${sender.email}>`}</SecondaryText>
                     ) : null}
-                  </>
+                  </EmailAddressMenu>
                 ) : null}
               </Typography>
               <AddressLine

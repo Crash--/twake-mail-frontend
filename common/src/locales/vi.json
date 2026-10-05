@@ -80,7 +80,14 @@
       "body": "Tin nhắn đã được %{receiver} đọc vào lúc %{time}\n\nChủ đề: %{subject}\n\nChú ý: Xác nhận đã đọc này chỉ xác nhận rằng tin nhắn đã hiển thị trên máy tính của người nhận. Không có bảo đảm rằng người nhận đã đọc hoặc hiểu nội dung của tin nhắn.",
       "sent": "Xác nhận đã đọc được gửi."
     },
-    "important": "Quan trọng"
+    "important": "Quan trọng",
+    "address": {
+      "createRule": "Tạo một quy tắc với email này",
+      "compose": "Soạn thư",
+      "copy": "Sao chép",
+      "menu": "Thao tác với %{email}",
+      "copied": "Đã sao chép địa chỉ email"
+    }
   },
   "login": {
     "title": "Đăng nhập",

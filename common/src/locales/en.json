@@ -80,7 +80,14 @@
       "body": "Message was read by %{receiver} on %{time} \n\nSubject: %{subject} \n\nNote: This Return Read Receipt only acknowledges that the message was displayed on the recipient's computer. There is no guarantee that the recipient has read or understood the message contents.",
       "sent": "A read receipt has been sent."
     },
-    "important": "Important"
+    "important": "Important",
+    "address": {
+      "createRule": "Create a rule with this email",
+      "compose": "Compose email",
+      "copy": "Copy",
+      "menu": "Actions on %{email}",
+      "copied": "Email address copied"
+    }
   },
   "login": {
     "title": "Sign In",

@@ -80,7 +80,14 @@
       "body": "Le message a été lu par %{receiver} le %{time}\n\nSujet : %{subject}\n\nRemarque : Cet accusé de lecture confirme uniquement que le message a été affiché sur l'ordinateur du destinataire. Il n'y a aucune garantie que le destinataire ait lu ou compris le contenu du message.",
       "sent": "Un accusé de lecture a été envoyé."
     },
-    "important": "Important"
+    "important": "Important",
+    "address": {
+      "createRule": "Créer une règle à partir de ce message",
+      "compose": "Rédiger un message",
+      "copy": "Copier",
+      "menu": "Actions sur %{email}",
+      "copied": "Adresse e-mail copiée"
+    }
   },
   "login": {
     "title": "Se connecter",

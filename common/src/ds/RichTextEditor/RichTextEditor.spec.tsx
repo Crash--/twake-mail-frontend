@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { Editor } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
 import userEvent from '@testing-library/user-event'
@@ -7,7 +7,7 @@ import { useState, type KeyboardEvent, type ReactElement } from 'react'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { RichTextEditor } from './RichTextEditor'
-import type { RichTextEditorLabels } from './types'
+import type { RichTextEditorActions, RichTextEditorLabels } from './types'
 
 const LABELS: RichTextEditorLabels = {
   editor: 'Message body',
@@ -187,7 +187,7 @@ describe('RichTextEditor', () => {
     })
 
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
-    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Text size 14' })).toHaveFocus()
     await userEvent.keyboard('{Escape}')
     await waitFor(() => {
       expect(text).toHaveFocus()
@@ -299,7 +299,7 @@ describe('RichTextEditor', () => {
     expect(bold).toHaveAttribute('aria-disabled', 'true')
     // Still in the tab order of the toolbar
     expect(bold.tabIndex).toBe(-1)
-    expect(screen.getByTestId('toolbar-undo').tabIndex).toBe(0)
+    expect(screen.getByTestId('toolbar-size').tabIndex).toBe(0)
     await userEvent.click(bold)
     expect(created.editor?.getHTML()).toBe('<p>Away until Monday</p>')
 
@@ -311,5 +311,62 @@ describe('RichTextEditor', () => {
     expect(area).not.toHaveAttribute('aria-disabled')
     expect(bold).not.toHaveAttribute('aria-disabled')
     expect(area).toHaveTextContent('Away until Monday')
+  })
+
+  it('shows the size and the colour in the toolbar, and groups the toggles', async () => {
+    await renderEditor('<p><span style="font-size: 18px">Big</span></p>')
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Formatting options'
+    })
+    expect(
+      within(toolbar).getByRole('button', { name: 'Text size 18' })
+    ).toHaveTextContent('18')
+    // Bold, italic, underline and strikethrough share one box
+    const bold = within(toolbar).getByRole('button', { name: 'Bold' })
+    const strike = within(toolbar).getByRole('button', {
+      name: 'Strikethrough'
+    })
+    expect(bold.parentElement).toBe(strike.parentElement)
+    expect(bold.parentElement).not.toBe(toolbar)
+  })
+
+  it('leaves the link and image buttons to its parent, who opens them', async () => {
+    const handle: { current: RichTextEditorActions | null } = { current: null }
+    renderDs(
+      <RichTextEditor
+        labels={LABELS}
+        content="<p>Hello</p>"
+        colors={[{ value: null, label: 'Default' }]}
+        fontSizes={[{ value: null, label: 'Normal' }]}
+        onImageFiles={() => Promise.resolve([])}
+        hasInsertButtons={false}
+        isToolbarBelow
+        actions={handle}
+      />
+    )
+    await screen.findByRole('textbox', { name: 'Message body' })
+    expect(screen.queryByRole('button', { name: 'Insert link' })).toBe(null)
+    expect(screen.queryByRole('button', { name: 'Insert image' })).toBe(null)
+
+    act(() => {
+      handle.current?.openLinkDialog()
+    })
+    expect(
+      await screen.findByRole('dialog', { name: 'Insert link' })
+    ).toBeVisible()
+  })
+
+  it('hides the toolbar on demand', async () => {
+    renderDs(
+      <RichTextEditor
+        labels={LABELS}
+        content="<p>Hello</p>"
+        colors={[{ value: null, label: 'Default' }]}
+        fontSizes={[{ value: null, label: 'Normal' }]}
+        isToolbarShown={false}
+      />
+    )
+    await screen.findByRole('textbox', { name: 'Message body' })
+    expect(screen.queryByRole('toolbar')).toBe(null)
   })
 })

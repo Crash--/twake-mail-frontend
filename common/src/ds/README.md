@@ -43,8 +43,8 @@ cannot produce an inaccessible screen. Every component here must:
   only when no element fits, and then the complete ARIA pattern;
 - require an accessible name for every control: icon buttons take a
   `label` that becomes both their `aria-label` and their tooltip;
-- meet AA contrast (4.5:1 text, 3:1 large text and UI parts) with the theme
-  colours, and never carry information by colour alone (an unread row is
+- use the official Twake palette as is (colour contrast is deferred to a
+  dedicated theme), and never carry information by colour alone (an unread row is
   bold *and* says "Unread");
 - announce changes that happen away from the focus through a live region
   (`role="status"` / `aria-live="polite"`, `role="alert"` for errors);

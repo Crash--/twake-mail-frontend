@@ -62,8 +62,11 @@ step: a feature is not done until it is accessible.
   `aria-*` kept in sync).
 - **Names**: every control has an accessible name. Every icon button has an
   `aria-label` and a tooltip with the same text.
-- **Contrast and colour**: AA contrast (4.5:1 text, 3:1 large text and UI
-  parts); no information carried by colour alone (an unread email is bold
+- **Contrast and colour**: colour contrast is deferred to a dedicated
+  theme: until then, use the official Twake palette (Figma "Teammail 1.1")
+  as is, without darkening colours, and the e2e axe helper reports
+  `color-contrast` as an annotation instead of failing. No information
+  carried by colour alone (an unread email is bold
   and its row says "Unread"; starred is announced through `aria-pressed`
   and the row name).
 - **Language and titles**: `<html lang>` follows the UI language; each view

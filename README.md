@@ -37,7 +37,7 @@ For a local backend without SSO, use the basic mode:
 
 ```js
 // public/.env.js
-var JMAP_SESSION_URL = 'http://localhost/jmap/session'
+var SERVER_URL = 'http://localhost'
 var AUTH_MODE = 'basic'
 ```
 
@@ -56,7 +56,7 @@ backend of the end-to-end stack (`e2e/scripts/start.sh`, tmail-backend on
 
 ```js
 // public/.env.js
-var JMAP_SESSION_URL = 'http://127.0.0.1:18200/jmap/session'
+var SERVER_URL = window.location.origin
 var AUTH_MODE = 'basic'
 ```
 
@@ -165,7 +165,7 @@ backend: `cd deploy/docker-compose/demo && docker compose up -d --build`, then
 
 ## Error reporting
 
-Set `SENTRY_DSN` in `.env.js` to report errors; events are scrubbed of query
+Set `SENTRY_ENABLED = true` and `SENTRY_DSN` in `.env.js` to report errors; events are scrubbed of query
 strings, tokens and email addresses before leaving the browser. To upload
 source maps at build time, set `SENTRY_URL`, `SENTRY_AUTH_TOKEN`,
 `SENTRY_ORG` and `SENTRY_PROJECT`: the maps are uploaded, then deleted from

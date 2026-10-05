@@ -9,6 +9,7 @@ against the JMAP server).
 - [The Docker image](#the-docker-image)
 - [Published images](#published-images)
 - [Runtime configuration](#runtime-configuration)
+- [Same configuration as tmail-flutter](#same-configuration-as-tmail-flutter)
 - [Docker Compose](#docker-compose)
 - [Kubernetes (Helm)](#kubernetes-helm)
 - [Security headers](#security-headers)
@@ -107,8 +108,62 @@ Two files, mounted next to `index.html`:
 - `appList.js`: the applications of the app grid
   ([example](../public/appList.example.js)).
 
-Without `.env.js` the app shows its "refresh" fallback page: the file is
-required. `appList.js` is optional (no app grid).
+Without `.env.js` (nor an `env.file`, see below) the app shows its "refresh"
+fallback page: the configuration is required. `appList.js` is optional (no
+app grid).
+
+## Same configuration as tmail-flutter
+
+The keys of `.env.js` that exist in the
+[`env.file`](https://github.com/linagora/tmail-flutter/blob/master/env.file)
+of tmail-flutter have its names and its value formats, so that one deployment
+configuration serves both apps. The values of an `env.file` are strings
+(`'true'`, not `true`): both forms work here.
+
+| tmail-flutter key | Meaning there | Here |
+|---|---|---|
+| `SERVER_URL` | Base URL of the JMAP server; the session is read from `<SERVER_URL>/.well-known/jmap`; also where it looks for the OIDC provider (WebFinger) | Same for the session (trailing slashes ignored, a path prefix is kept). WebFinger is not implemented: set `SSO_BASE_URL`. Former `JMAP_SESSION_URL` (full URL) still read |
+| `DOMAIN_REDIRECT_URL` | URL of the web app; OIDC redirect `<it>/login-callback.html`, post-logout `<it>/logout-callback.html` | Same, the two routes are served by the app. `SSO_REDIRECT_URI` and `SSO_POST_LOGOUT_REDIRECT` override them. Without any of them `<origin>/callback` and `<origin>/` |
+| `WEB_OIDC_CLIENT_ID` | OIDC public client of the web app | Same. Former `SSO_CLIENT_ID` still read |
+| `OIDC_SCOPES` | Scopes separated by commas, default `openid,profile,email,offline_access` | Same; spaces work too. Former `SSO_SCOPE` (spaces) still read |
+| `APP_GRID_AVAILABLE` | `supported` loads `configurations/app_dashboard.json` into the app grid, anything else hides it | `supported` shows the grid of `appList.js`, anything else hides it. Unset: shown when `appList.js` has apps. `appList.js` entries may use the keys of `app_dashboard.json` (`appName`, `appLink`, `publicIconUri`) |
+| `FORWARD_WARNING_MESSAGE` | Warning of Settings > Forwarding | Same |
+| `SENTRY_ENABLED`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | Sentry starts with `SENTRY_ENABLED=true` and a DSN and an environment; a reporting preference, and the ecosystem as a fallback | Starts with `SENTRY_ENABLED=true` and a DSN; `SENTRY_ENVIRONMENT` is the environment of the events. No preference, no ecosystem fallback. Without `SENTRY_ENABLED` a DSN alone still starts it, with a console warning |
+| `FCM_AVAILABLE`, `IOS_FCM`, `FIREBASE_*` | Push notifications of the mobile apps | Ignored |
+| `PLATFORM` | `saas` enables the sign-up flow of the mobile app | Ignored |
+| `WS_ECHO_PING` | Sends an echo ping on the push WebSocket | Not supported |
+| `FORCE_EMAIL_QUERY` | Refreshes the list with `Email/query` instead of `Email/changes` | Not supported (the list is a TanStack Query cache, refetched on push) |
+| `COZY_INTEGRATION`, `COZY_EXTERNAL_BRIDGE_VERSION` | Loads the cozy-external-bridge script in a Cozy | Not supported. `WORKPLACE_EMBEDDING` adapts the top bar inside an iframe of the Workplace |
+
+Keys that only this app has: `AUTH_MODE` (`oidc` or `basic`; tmail-flutter
+shows the credentials form when its WebFinger lookup fails), `SSO_BASE_URL`
+(the issuer; tmail-flutter finds it with WebFinger), `SSO_REDIRECT_URI`,
+`SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
+`CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
+`TDRIVE_ENABLED`, `TDRIVE_INTENT_URL`. tmail-flutter takes the calendar and
+the Workplace host from the `.well-known/linagora-ecosystem` document of the
+server, which this app does not read.
+
+A former name is read when the new one is absent or blank, and logged once as
+a warning in the console (`[config] JMAP_SESSION_URL is deprecated, use
+SERVER_URL ...`).
+
+### Mounting an `env.file`
+
+Like the image of tmail-flutter, the image accepts an `env.file` mounted at
+`/usr/share/nginx/html/assets/env.file`:
+
+```bash
+docker run --rm -p 127.0.0.1:8080:8080 --read-only --tmpfs /tmp \
+  -v $PWD/env.file:/usr/share/nginx/html/assets/env.file:ro \
+  twake-mail-frontend
+```
+
+When no `.env.js` is mounted, the entrypoint converts the `env.file`
+(`KEY=VALUE` lines; comments, blank lines, `export`, quotes and ` # comment`
+understood) into a `/.env.js` served by nginx, written under `/tmp` only. A
+mounted `.env.js` takes precedence. An `env.file` alone lacks the keys of this
+app: add `SSO_BASE_URL` (or `AUTH_MODE=basic`) and what is above.
 
 ## Docker Compose
 
@@ -121,7 +176,7 @@ filesystem, `/tmp` tmpfs, no capability).
 
 ```bash
 cd deploy/docker-compose
-cp config/.env.example.js config/.env.js          # set JMAP_SESSION_URL, SSO_*
+cp config/.env.example.js config/.env.js          # set SERVER_URL, SSO_*, WEB_OIDC_CLIENT_ID
 cp config/appList.example.js config/appList.js
 CSP_CONNECT_SRC="https://jmap.example.com wss://jmap.example.com https://sso.example.com" \
   docker compose up -d --build
@@ -157,7 +212,7 @@ follows Linagora's Twake Workplace deployment conventions (values under
   root filesystem, no capability, `RuntimeDefault` seccomp, `/tmp` as an
   `emptyDir`, probes on `/healthz`;
 - a `ConfigMap` rendering `.env.js` and `appList.js` from typed values
-  (`config.jmapSessionUrl`, `config.authMode`, `config.sso.*`,
+  (`config.serverUrl`, `config.authMode`, `config.sso.*`,
   `config.appList`...), mounted next to `index.html`; a checksum annotation
   rolls the pods when it changes;
 - the Content-Security-Policy origins derived from the configuration (JMAP
@@ -243,7 +298,7 @@ to start otherwise.
 **The SSO is almost always on another origin**: with `AUTH_MODE = 'oidc'`,
 put its origin in `CSP_CONNECT_SRC`, or the login fails ("Refused to connect"
 in the browser console). Check the browser console after any change of
-`.env.js` that adds an origin (`JMAP_SESSION_URL`, `SSO_BASE_URL`,
+`.env.js` that adds an origin (`SERVER_URL`, `SSO_BASE_URL`,
 `SENTRY_DSN`). The AI assistant of the composer, when tmail-backend
 advertises `com:linagora:params:jmap:aibot`, talks to its `scribeEndpoint`:
 put that origin in `CSP_CONNECT_SRC` too.
@@ -303,8 +358,10 @@ this origin.
 Register a public client (no secret) using Authorization Code with PKCE
 (S256):
 
-- redirect URI: `SSO_REDIRECT_URI`, by default `https://<app>/callback`;
-- post-logout redirect URI: `SSO_POST_LOGOUT_REDIRECT`, by default
+- redirect URI: `<DOMAIN_REDIRECT_URL>/login-callback.html` (or
+  `SSO_REDIRECT_URI`), by default `https://<app>/callback`;
+- post-logout redirect URI: `<DOMAIN_REDIRECT_URL>/logout-callback.html` (or
+  `SSO_POST_LOGOUT_REDIRECT`), by default
   `https://<app>/`;
 - scopes `openid profile email offline_access`, refresh tokens allowed;
 - the access token must be accepted by tmail-backend (its OIDC audience).

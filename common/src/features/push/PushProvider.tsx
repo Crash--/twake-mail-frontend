@@ -9,6 +9,7 @@ import { useEffect, type ReactElement, type ReactNode } from 'react'
 import { DEFAULT_STALE_TIME } from '@common/app/queryClient'
 import { emailKeys } from '@common/features/email/queries'
 import { syncLabels } from '@common/features/labels/queries'
+import { quotaKeys } from '@common/features/quota/quota'
 import { mailboxKeys } from '@common/features/mailbox/queries'
 import { threadKeys } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -67,6 +68,12 @@ export function PushProvider({
       push.on('stateChange', change => {
         const states = change.changed[accountId]
         if (states) sync.stateChanged(states)
+        if (states?.Email !== undefined) {
+          // Emails in or out: the storage used changed
+          void queryClient.invalidateQueries({
+            queryKey: quotaKeys.all(accountId)
+          })
+        }
         const labelState = states?.Label
         if (labelState !== undefined) {
           void syncLabels(client, queryClient, accountId, labelState)

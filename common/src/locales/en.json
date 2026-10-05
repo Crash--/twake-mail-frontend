@@ -20,7 +20,8 @@
     "confirm": "Confirm",
     "remove": "Remove",
     "errorOccurredShort": "Error! An error occurred. Please try again later.",
-    "save": "Save"
+    "save": "Save",
+    "refresh": "Refresh"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -509,6 +510,10 @@
       "folderVisibility": {
         "title": "Folder visibility",
         "description": "Show/ hide your folders, including your personal folders and team mailboxes."
+      },
+      "storage": {
+        "title": "Storage",
+        "description": "Monitor your available space."
       }
     },
     "preferences": {
@@ -872,5 +877,20 @@
     "removeFromEmail": "Remove the label %{name}",
     "moreCount": "%{count} more labels",
     "listLabel": "Labels of the email"
+  },
+  "quota": {
+    "available": "%{count} available",
+    "outOfStorage": "Out of storage",
+    "state": "%{used} of %{limit} Used",
+    "banner": {
+      "full": "You have run out of storage space",
+      "low": "You are running low on storage (90%)",
+      "advice": "To keep sending messages and enjoying all Twake Mail features, please consider cleaning up."
+    },
+    "usedOf": "of %{limit} used",
+    "availableLong": "Available: %{count}",
+    "almostFull": "The storage is almost full. You can free up space by deleting unnecessary files or subscribe to get extra space.",
+    "label": "Storage used",
+    "dismiss": "Close"
   }
 }

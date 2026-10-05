@@ -11,6 +11,7 @@ import { IdentitiesSettings } from '@common/features/identities/IdentitiesSettin
 import { FolderVisibilitySettings } from '@common/features/mailbox/FolderVisibilitySettings'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
 import { EmailRulesSettings } from '@common/features/rules/EmailRulesSettings'
+import { StorageSettings } from '@common/features/quota/StorageSettings'
 import { PushProvider } from '@common/features/push/PushProvider'
 import { LanguageSettings } from '@common/features/settings/LanguageSettings'
 import { PreferencesSettings } from '@common/features/settings/PreferencesSettings'
@@ -137,6 +138,14 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
               element={
                 <SettingsSectionRoute id="keyboard-shortcuts">
                   {section => <ShortcutsSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
+            <Route
+              path="storage"
+              element={
+                <SettingsSectionRoute id="storage">
+                  {section => <StorageSettings section={section} />}
                 </SettingsSectionRoute>
               }
             />

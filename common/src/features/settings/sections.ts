@@ -1,4 +1,5 @@
 import {
+  Eye,
   Filter,
   Globe,
   Help,
@@ -28,6 +29,7 @@ export type SettingsSectionId =
   | 'preferences'
   | 'forwarding'
   | 'vacation'
+  | 'folder-visibility'
   | 'language-region'
   | 'keyboard-shortcuts'
 
@@ -77,6 +79,12 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     title: 'settings.sections.vacation.title',
     description: 'settings.sections.vacation.description',
     isAvailable: offers(CAPABILITIES.vacationResponse)
+  },
+  {
+    id: 'folder-visibility',
+    icon: Eye,
+    title: 'settings.sections.folderVisibility.title',
+    description: 'settings.sections.folderVisibility.description'
   },
   {
     id: 'language-region',

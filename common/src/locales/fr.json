@@ -500,6 +500,10 @@
       "vacation": {
         "title": "Réponse automatique",
         "description": "Envoie une réponse automatique aux messages reçus."
+      },
+      "folderVisibility": {
+        "title": "Affichage des dossiers",
+        "description": "Afficher/masquer vos dossiers, y compris vos dossiers personnels et vos boîtes aux lettres d'équipe."
       }
     },
     "preferences": {
@@ -601,6 +605,14 @@
     },
     "show": {
       "success": "Ce dossier est de nouveau affiché"
+    },
+    "visibility": {
+      "hide": "Masquer",
+      "show": "Afficher",
+      "personal": "Dossiers personnels",
+      "team": "Team-mailboxes",
+      "hideOf": "Masquer %{name}",
+      "showOf": "Afficher %{name}"
     }
   },
   "identities": {

@@ -44,6 +44,15 @@ violation of the Content-Security-Policy of the app logged in the browser consol
 (`support/fixtures.ts`); the stricter policy of the email body frames is not checked, blocking
 remote content there is expected.
 
+Or test the image as the Helm chart of Linagora's `tmail-frontend` runs it (port 80, an
+`env.file` and an `app_dashboard.json` mounted in the image, no `.env.js`, no CSP variable, JMAP
+on another origin than the app), specs `tests/chart-image.spec.ts`:
+
+```bash
+E2E_CHART_IMAGE=twake-mail-frontend:e2e ./scripts/start-chart.sh            # no SSO: the Basic form
+E2E_OIDC=1 E2E_CHART_IMAGE=twake-mail-frontend:e2e ./scripts/start-chart.sh # Dex found by WebFinger
+```
+
 Run a subset:
 
 ```bash
@@ -117,6 +126,9 @@ origin setup would work too, but that is not what runs here. `127.0.0.1` is a se
 | `E2E_WORKERS` | CPU based (2 on CI) | Playwright workers |
 | `E2E_HEADLESS=false` / `E2E_SLOWMO=300` | | watch the browser |
 | `E2E_TRACE` | `retain-on-failure` | `on` to record a trace for every test |
+| `E2E_CHART_IMAGE` | | `start-chart.sh`: the image started as the chart of tmail-frontend does (`docker/docker-compose.chart.yaml`) |
+| `E2E_CHART_SERVER_URL` | `http://localhost:$E2E_APP_PORT` | `start-chart.sh`: `SERVER_URL` of the `env.file`, another origin than the app |
+| `E2E_CHART_WEBFINGER` | `on` with `E2E_OIDC=1`, else `off` | `start-chart.sh`: whether the stack answers WebFinger with Dex |
 
 A failing test keeps a trace, a video and a screenshot under `test-results/artifacts/`;
 reports are written to `playwright-report/` (HTML) and `test-results/junit.xml`. The
@@ -314,10 +326,12 @@ e2e/
 │   ├── app-list.js           apps of its app grid (/appList.js)
 │   ├── app-env-oidc.js       the same in OIDC mode with the Drive picker (E2E_APP_ENV, DRIVE-*)
 │   ├── drive-picker.html     a fake Twake Drive picker (/e2e/drive/picker.html)
+│   ├── docker-compose.chart.yaml   overlay: the image as the chart of tmail-frontend runs it (start-chart.sh)
+│   ├── nginx/chart.conf, chart/    its proxy, and the app_dashboard.json it mounts
 │   ├── dex/config.yaml       OIDC provider (profile oidc)
 │   ├── app-placeholder/      served when E2E_APP_DIR is not set
 │   └── .generated/           rendered config and keys (git ignored)
-├── scripts/{start,stop}.sh
+├── scripts/{start,start-chart,stop}.sh
 ├── scripts/seed-perf.ts      big mailbox for the performance measures
 ├── playwright.perf.config.ts performance project (npm run perf)
 ├── perf/                     performance measures, not run by default

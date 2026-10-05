@@ -1,0 +1,19 @@
+# Overlay of docker-compose.yaml: the app under test is its Docker image started as the Helm
+# chart of Linagora's tmail-frontend starts tmail-flutter's: port 80, env.file and
+# app_dashboard.json mounted at the paths of the chart, no .env.js, no CSP variable. The
+# browser facing nginx proxies it (nginx/chart.conf). Started by scripts/start-chart.sh,
+# which writes .generated/chart-env.file and .generated/chart-webfinger.conf.
+services:
+  app:
+    image: ${E2E_CHART_IMAGE:-twake-mail-frontend:e2e}
+    volumes:
+      - ./.generated/chart-env.file:/usr/share/nginx/html/assets/env.file:ro
+      - ./chart/app_dashboard.json:/usr/share/nginx/html/assets/configurations/app_dashboard.json:ro
+
+  proxy:
+    volumes:
+      - ./nginx/chart.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./.generated/chart-webfinger.conf:/etc/nginx/e2e/webfinger.conf:ro
+    depends_on:
+      - james
+      - app

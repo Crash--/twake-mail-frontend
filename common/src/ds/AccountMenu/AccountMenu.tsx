@@ -101,6 +101,7 @@ export function AccountMenu({
     <>
       <Tooltip title={label}>
         <IconButton
+          size="small"
           aria-label={label}
           aria-controls={anchor ? menuId : undefined}
           aria-haspopup="true"

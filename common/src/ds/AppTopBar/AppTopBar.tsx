@@ -4,7 +4,14 @@
 // responsive behaviour they share: a menu button below the desktop size,
 // the search folded behind a button on phones.
 import { Burger, Icon, Left, Magnifier } from '@linagora/twake-icons'
-import { AppBar, Box, IconButton, Toolbar, Tooltip } from '@linagora/twake-mui'
+import {
+  AppBar,
+  Box,
+  IconButton,
+  Toolbar,
+  Tooltip,
+  type Theme
+} from '@linagora/twake-mui'
 import {
   useEffect,
   useImperativeHandle,
@@ -17,6 +24,19 @@ import {
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+
+/** Height of the bar on desktops, as in the design */
+const DESKTOP_HEIGHT = 50
+const TABLET_SEARCH_MAX_WIDTH = 768
+// A shadow, not a border: the bar stays exactly as high as its toolbar
+const BAR_SX = {
+  boxShadow: (theme: Theme) => `0 1px 0 ${theme.palette.divider}`
+} as const
+const SEARCH_SX = { width: '100%', maxWidth: TABLET_SEARCH_MAX_WIDTH } as const
+// `&&`: the theme sets the height of the toolbar at each breakpoint
+const DESKTOP_TOOLBAR_SX = {
+  '&&': { minHeight: DESKTOP_HEIGHT, height: DESKTOP_HEIGHT }
+} as const
 
 export interface AppTopBarMenu {
   /** Name and tooltip of the button, e.g. "Show folders" */
@@ -43,7 +63,11 @@ export interface AppTopBarProps {
   title: ReactNode
   /** What phones show instead of the logotype, e.g. the current folder */
   compactTitle?: ReactNode
-  /** A search field: centred, or folded behind a button on phones */
+  /**
+   * A search field: centred on tablets, folded behind a button on phones.
+   * Desktops do not show it here: their search sits in the page, under the
+   * bar (`ds/SearchRow`)
+   */
   search: ReactNode
   /** Buttons at the end of the bar: app switcher, account */
   actions: ReactNode
@@ -62,7 +86,8 @@ export interface AppTopBarProps {
 /**
  * The bar at the top of the app.
  *
- * - Desktop (1200 px and more): title, search in the middle, actions.
+ * - Desktop (1200 px and more): 50 px high, title at the start, actions at
+ *   the end; the search is in the page.
  * - Tablet: the same, after a button opening the navigation drawer.
  * - Phone (below 600 px): menu button, compact title, a search button and
  *   the actions. The search button unfolds the search over the whole bar
@@ -85,6 +110,7 @@ export function AppTopBar({
 }: AppTopBarProps): ReactElement {
   const screenSize = useScreenSize()
   const isPhone = screenSize === 'mobile'
+  const isDesktop = screenSize === 'desktop'
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const openSearchRef = useRef<HTMLButtonElement>(null)
@@ -154,20 +180,19 @@ export function AppTopBar({
       </>
     )
   } else {
-    const menuButton =
-      screenSize === 'desktop' ? null : (
-        <Tooltip title={menu.label}>
-          <IconButton
-            edge="start"
-            aria-label={menu.label}
-            aria-haspopup="dialog"
-            onClick={menu.onOpen}
-            data-testid={menu['data-testid']}
-          >
-            <Icon icon={Burger} />
-          </IconButton>
-        </Tooltip>
-      )
+    const menuButton = isDesktop ? null : (
+      <Tooltip title={menu.label}>
+        <IconButton
+          edge="start"
+          aria-label={menu.label}
+          aria-haspopup="dialog"
+          onClick={menu.onOpen}
+          data-testid={menu['data-testid']}
+        >
+          <Icon icon={Burger} />
+        </IconButton>
+      </Tooltip>
+    )
     content = isPhone ? (
       <>
         {menuButton}
@@ -190,12 +215,16 @@ export function AppTopBar({
       <>
         {menuButton}
         {title}
-        <Box
-          ref={searchRef}
-          className="u-flex u-flex-auto u-flex-justify-center u-ph-2"
-        >
-          {search}
-        </Box>
+        {isDesktop ? (
+          <Box className="u-flex-auto" />
+        ) : (
+          <Box
+            ref={searchRef}
+            className="u-flex u-flex-auto u-flex-justify-center u-ph-2"
+          >
+            <Box sx={SEARCH_SX}>{search}</Box>
+          </Box>
+        )}
         {actions}
       </>
     )
@@ -206,9 +235,15 @@ export function AppTopBar({
       position="static"
       color="inherit"
       elevation={0}
+      sx={BAR_SX}
       data-testid={testId}
     >
-      <Toolbar className="u-flex u-flex-items-center">{content}</Toolbar>
+      <Toolbar
+        className="u-flex u-flex-items-center"
+        sx={isDesktop ? DESKTOP_TOOLBAR_SX : undefined}
+      >
+        {content}
+      </Toolbar>
     </AppBar>
   )
 }

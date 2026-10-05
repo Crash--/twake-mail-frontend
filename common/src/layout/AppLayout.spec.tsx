@@ -32,6 +32,8 @@ function renderLayout(
 }
 
 describe('AppLayout', () => {
+  afterEach(resetViewport)
+
   it('shows the top bar, the sidebar and the routed content', async () => {
     renderLayout()
 
@@ -48,6 +50,33 @@ describe('AppLayout', () => {
     )
     expect(
       within(screen.getByTestId('main-content')).getByText('Routed content')
+    ).toBeVisible()
+  })
+
+  it('puts the search and the settings button in the page, under the top bar', async () => {
+    mockViewport({ width: 1440 })
+    renderLayout()
+
+    const row = await screen.findByTestId('search-row')
+
+    expect(
+      within(screen.getByTestId('top-bar')).queryByTestId('search-input')
+    ).toBe(null)
+    expect(within(row).getByTestId('search-input')).toBeVisible()
+    expect(within(row).getByRole('button', { name: 'Settings' })).toBeVisible()
+    expect(
+      within(screen.getByTestId('top-bar')).getByTestId('workplace-logo')
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the search in the top bar below the desktop size', async () => {
+    mockViewport({ width: 820, touch: true })
+    renderLayout()
+
+    expect(await screen.findByTestId('search-input')).toBeVisible()
+    expect(screen.queryByTestId('search-row')).toBe(null)
+    expect(
+      within(screen.getByTestId('top-bar')).getByTestId('search-input')
     ).toBeVisible()
   })
 

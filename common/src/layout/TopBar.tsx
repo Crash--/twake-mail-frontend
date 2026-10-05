@@ -1,4 +1,5 @@
-import { Typography } from '@linagora/twake-mui'
+import { Icon, TwakeWorkplace } from '@linagora/twake-icons'
+import { Divider, Typography } from '@linagora/twake-mui'
 import { useRef, type ReactElement } from 'react'
 import { useMatch } from 'react-router'
 
@@ -42,7 +43,9 @@ export interface TopBarProps {
  */
 export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
   const { t } = useI18n()
-  const isPhone = useScreenSize() === 'mobile'
+  const screenSize = useScreenSize()
+  const isPhone = screenSize === 'mobile'
+  const isDesktop = screenSize === 'desktop'
   const isEmbedded = useIsEmbedded()
   const mailboxName = useCurrentMailboxName()
   const isSearch = useMatch('/search/*') !== null
@@ -58,12 +61,38 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
       : (labelName ?? mailboxName)
   // Here, not in the field: on phones the field is not there until unfolded
   const searchActions = useRef<AppTopBarSearchActions>(null)
-  useShortcuts({ '/': () => searchActions.current?.focusSearch() })
+  // On desktops the search is in the page, which handles the shortcut
+  useShortcuts(
+    { '/': () => searchActions.current?.focusSearch() },
+    () => !isDesktop
+  )
 
   return (
     <AppTopBar
       // Inside Twake Workplace, the container shows the name of the app
-      title={isEmbedded ? null : <AppTitle />}
+      title={
+        isEmbedded ? null : (
+          <>
+            {isDesktop ? (
+              <>
+                <Icon
+                  icon={TwakeWorkplace}
+                  size={32}
+                  preserveColor
+                  aria-hidden="true"
+                  data-testid="workplace-logo"
+                />
+                <Divider
+                  orientation="vertical"
+                  flexItem
+                  className="u-mh-1 u-mv-half"
+                />
+              </>
+            ) : null}
+            <AppTitle />
+          </>
+        )
+      }
       compactTitle={
         folderName === null ? undefined : (
           <Typography

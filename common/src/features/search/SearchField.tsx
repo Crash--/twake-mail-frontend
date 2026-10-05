@@ -177,7 +177,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
   return (
     <>
       <SearchCombobox
-        className="u-w-100 u-maw-7"
+        className="u-w-100"
         value={draft.text}
         onChange={handleChange}
         onSubmit={handleSubmit}

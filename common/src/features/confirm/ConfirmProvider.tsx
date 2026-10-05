@@ -29,6 +29,12 @@ export interface ConfirmOptions {
   isDestructive?: boolean
   /** Label of the button that declines, "Cancel" by default (e.g. "No") */
   cancelLabel?: string
+  /**
+   * Waits for the dialogs already asked to be answered, instead of
+   * replacing them (each one cancelled): questions the user must answer
+   * one after the other, such as the read receipts of a conversation
+   */
+  queue?: boolean
 }
 
 /** Asks the user; resolves true when they confirm, false otherwise */
@@ -78,6 +84,10 @@ export interface ConfirmProviderProps {
  * dialog takes the focus (on "Cancel", the safe choice, for a
  * confirmation; on the confirm button for a choice) and gives it back to
  * what had it when it closes; Escape cancels.
+ *
+ * A dialog asked while another is open replaces it, the first one
+ * cancelled, unless it asks to `queue`: it then waits for the open dialog
+ * and those queued before it, each shown once the previous one has closed.
  */
 export function ConfirmProvider({
   children
@@ -87,6 +97,13 @@ export function ConfirmProvider({
   const messageId = useId()
   const [pending, setPending] = useState<PendingConfirm | null>(null)
   const pendingRef = useRef<PendingConfirm | null>(null)
+  /** Asked with `queue` while a dialog was open: shown in this order */
+  const queueRef = useRef<PendingConfirm[]>([])
+
+  const show = (next: PendingConfirm | null): void => {
+    pendingRef.current = next
+    setPending(next)
+  }
 
   const ask = useCallback(
     (
@@ -95,11 +112,16 @@ export function ConfirmProvider({
       isAlert = false
     ) =>
       new Promise<Choice>(resolve => {
+        const next = { ...options, alternativeLabel, isAlert, resolve }
+        const isBusy =
+          pendingRef.current !== null || queueRef.current.length > 0
+        if (options.queue === true && isBusy) {
+          queueRef.current.push(next)
+          return
+        }
         // A dialog asked meanwhile replaces the first one, which is cancelled
         pendingRef.current?.resolve('cancel')
-        const next = { ...options, alternativeLabel, isAlert, resolve }
-        pendingRef.current = next
-        setPending(next)
+        show(next)
       }),
     []
   )
@@ -116,8 +138,17 @@ export function ConfirmProvider({
 
   const close = (choice: Choice): void => {
     pendingRef.current?.resolve(choice)
-    pendingRef.current = null
-    setPending(null)
+    show(null)
+  }
+  // The next question once the dialog has gone: a new dialog, announced
+  // as such, which gives the focus back where it was when all are answered
+  const handleExited = (): void => {
+    // Once the dialog has unmounted, not while it is still leaving
+    requestAnimationFrame(() => {
+      if (pendingRef.current !== null) return
+      const next = queueRef.current.shift()
+      if (next) show(next)
+    })
   }
   const handleCancel = (): void => {
     close('cancel')
@@ -140,6 +171,7 @@ export function ConfirmProvider({
         size="small"
         aria-labelledby={titleId}
         aria-describedby={messageId}
+        slotProps={{ transition: { onExited: handleExited } }}
         data-testid="confirm-dialog"
       >
         <DialogTitle id={titleId}>{pending?.title}</DialogTitle>

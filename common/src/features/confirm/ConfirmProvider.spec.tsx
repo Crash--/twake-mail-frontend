@@ -73,6 +73,41 @@ function Alerter(): ReactElement {
   )
 }
 
+/** Asks two questions at once, as two messages of a conversation do */
+function TwoAskers({ queue }: { queue: boolean }): ReactElement {
+  const confirm = useConfirm()
+  const [answers, setAnswers] = useState<string[]>([])
+  const handleAsk = (): void => {
+    for (const name of ['Alice', 'Bob']) {
+      void confirm({
+        title: `Receipt for ${name}`,
+        message: `${name} asked for a read receipt.`,
+        confirmLabel: 'Yes',
+        cancelLabel: 'No',
+        queue
+      }).then(confirmed => {
+        setAnswers(current => [...current, `${name}: ${String(confirmed)}`])
+      })
+    }
+  }
+  return (
+    <>
+      <button type="button" onClick={handleAsk}>
+        Open conversation
+      </button>
+      <p>Answers: {answers.join(', ')}</p>
+    </>
+  )
+}
+
+function renderTwoAskers(queue: boolean): void {
+  render(
+    <AppProviders lang="en" queryClient={makeQueryClient()}>
+      <TwoAskers queue={queue} />
+    </AppProviders>
+  )
+}
+
 function renderAsker(): void {
   render(
     <AppProviders lang="en" queryClient={makeQueryClient()}>
@@ -138,5 +173,45 @@ describe('ConfirmProvider', () => {
     ).toHaveFocus()
     await userEvent.keyboard('{Enter}')
     expect(await screen.findByText('Alert: acknowledged')).toBeVisible()
+  })
+
+  it('asks queued questions one after the other, then gives the focus back', async () => {
+    renderTwoAskers(true)
+    const opener = screen.getByRole('button', { name: 'Open conversation' })
+
+    await userEvent.click(opener)
+    expect(
+      screen.getByRole('dialog', { name: 'Receipt for Alice' })
+    ).toBeVisible()
+    await userEvent.click(screen.getByRole('button', { name: 'Yes' }))
+
+    const second = await screen.findByRole('dialog', {
+      name: 'Receipt for Bob'
+    })
+    await waitFor(() => {
+      expect(within(second).getByRole('button', { name: 'No' })).toHaveFocus()
+    })
+    await userEvent.keyboard('{Enter}')
+
+    expect(
+      await screen.findByText('Answers: Alice: true, Bob: false')
+    ).toBeVisible()
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    expect(opener).toHaveFocus()
+  })
+
+  it('replaces the open question with a new one unless queued', async () => {
+    renderTwoAskers(false)
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Open conversation' })
+    )
+
+    expect(
+      screen.getByRole('dialog', { name: 'Receipt for Bob' })
+    ).toBeVisible()
+    expect(await screen.findByText('Answers: Alice: false')).toBeVisible()
   })
 })

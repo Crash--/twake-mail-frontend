@@ -23,6 +23,11 @@ const LIST_ROW = '[data-testid="email-list-item"]'
 async function newPage(browser: Browser): Promise<{ context: BrowserContext; page: Page; jmap: JmapRecorder }> {
   const context = await browser.newContext()
   await context.addInitScript({ path: INSTRUMENT_SCRIPT })
+  // One row per email, the reading view of one email: the measures of docs/perf (phase0.md,
+  // sync.md) were taken so, before conversations became the default
+  await context.addInitScript(() => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'false')
+  })
   const page = await context.newPage()
   return { context, page, jmap: new JmapRecorder(page) }
 }

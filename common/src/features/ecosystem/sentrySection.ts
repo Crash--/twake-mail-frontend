@@ -1,7 +1,3 @@
-import { queryOptions } from '@tanstack/react-query'
-
-import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
-
 /** The `sentry` section of the Linagora ecosystem document of the server */
 export interface EcosystemSentry {
   /** Whether this deployment offers error reporting */
@@ -14,13 +10,6 @@ export interface EcosystemSentry {
    */
   userOptInByDefault: boolean | null
 }
-
-export type EcosystemSentryKey = ['sentry', string, 'ecosystem', string]
-
-const ECOSYSTEM_TIMEOUT = 5_000
-
-/** The document is a few lines: anything bigger is not what it should be */
-const MAX_ECOSYSTEM_LENGTH = 64_000
 
 /** A boolean, or `"true"`/`"false"` (tmail-flutter `_parseBool`); else null */
 function toBoolean(value: unknown): boolean | null {
@@ -74,56 +63,4 @@ export function isSafeEcosystemDsn(dsn: string): boolean {
   } catch {
     return false
   }
-}
-
-/**
- * The `sentry` section of the ecosystem document of the server
- * (`.well-known/linagora-ecosystem`, as tmail-flutter), null when the server
- * serves none. Asked without credentials nor referrer: it is public
- * information, and nothing of the user goes with the request.
- */
-export async function fetchEcosystemSentry(
-  url: string,
-  signal?: AbortSignal
-): Promise<EcosystemSentry | null> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => {
-    controller.abort()
-  }, ECOSYSTEM_TIMEOUT)
-  const abort = (): void => {
-    controller.abort()
-  }
-  signal?.addEventListener('abort', abort)
-  try {
-    const response = await fetch(url, {
-      credentials: 'omit',
-      referrerPolicy: 'no-referrer',
-      headers: { Accept: 'application/json' },
-      signal: controller.signal
-    })
-    if (!response.ok) return null
-    const text = await response.text()
-    if (text.length > MAX_ECOSYSTEM_LENGTH) return null
-    try {
-      return parseEcosystemSentry(JSON.parse(text))
-    } catch {
-      return null
-    }
-  } finally {
-    clearTimeout(timer)
-    signal?.removeEventListener('abort', abort)
-  }
-}
-
-/** The ecosystem document is the same for every account of the server */
-export function ecosystemSentryQueryOptions(
-  accountId: string,
-  url: string
-): QueryOptionsFor<EcosystemSentry | null, EcosystemSentryKey> {
-  return queryOptions({
-    queryKey: ['sentry', accountId, 'ecosystem', url],
-    queryFn: ({ signal }) => fetchEcosystemSentry(url, signal),
-    staleTime: 60 * 60_000,
-    retry: false
-  })
 }

@@ -11,11 +11,11 @@ import {
   useServerSettings
 } from '@common/features/settings/serverSettings'
 
+import { ecosystemQueryOptions } from '@common/features/ecosystem/ecosystem'
 import {
-  ecosystemSentryQueryOptions,
   isSafeEcosystemDsn,
   type EcosystemSentry
-} from './ecosystem'
+} from '@common/features/ecosystem/sentrySection'
 
 export interface SentryReportingState {
   /** A valid configuration exists: the preference can be shown */
@@ -61,11 +61,11 @@ export function resolveSentrySetup(
  */
 export function useSentryReporting(): SentryReportingState {
   const config = useAppConfig()
-  const { accountId, session } = useJmapSession()
+  const { session } = useJmapSession()
   const { settings, isRead } = useServerSettings()
   const isEnvOff = config?.sentrySource === 'env' && config.sentryDsn === null
   const ecosystem = useQuery({
-    ...ecosystemSentryQueryOptions(accountId, config?.ecosystemUrl ?? ''),
+    ...ecosystemQueryOptions(config?.ecosystemUrl ?? ''),
     enabled: config !== null && !isEnvOff
   })
 
@@ -76,7 +76,7 @@ export function useSentryReporting(): SentryReportingState {
     setup: null
   }
   if (config === null || isEnvOff) return off
-  const found = resolveSentrySetup(config, ecosystem.data ?? null)
+  const found = resolveSentrySetup(config, ecosystem.data?.sentry ?? null)
   if (found === null) return off
 
   const canChoose =
@@ -87,7 +87,8 @@ export function useSentryReporting(): SentryReportingState {
   // The default is known once the ecosystem answered, or failed
   const isDefaultKnown = !ecosystem.isPending
   const isOptedIn =
-    choice ?? (isDefaultKnown && ecosystem.data?.userOptInByDefault === true)
+    choice ??
+    (isDefaultKnown && ecosystem.data?.sentry?.userOptInByDefault === true)
   return {
     isConfigured: true,
     canChoose,

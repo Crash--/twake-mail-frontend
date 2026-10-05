@@ -49,9 +49,7 @@ export function App({ config }: AppProps): ReactElement {
   // (the `viewTransition` option of `navigate`)
   const [router] = useState(() =>
     createBrowserRouter(
-      createRoutesFromElements(
-        appRouteElements({ apps: config.appList, debug: config.debug })
-      )
+      createRoutesFromElements(appRouteElements({ apps: config.appList }))
     )
   )
 

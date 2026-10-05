@@ -191,19 +191,7 @@
     },
     "send": "Envoyer",
     "saveAsDraft": "Enregistrer comme brouillon",
-    "draftSaved": "Brouillon enregistré",
     "signature": "Signature",
-    "spike": {
-      "title": "Prototype du composer",
-      "from": "De",
-      "to": "À",
-      "subject": "Objet",
-      "sent": "Message envoyé",
-      "sendFailed": "Le message n’a pas pu être envoyé",
-      "html": "HTML envoyé",
-      "text": "Alternative texte",
-      "restored": "Composer restauré après rechargement"
-    },
     "fields": {
       "to": "À",
       "cc": "Copie à",

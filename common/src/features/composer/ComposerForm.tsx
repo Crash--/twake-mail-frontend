@@ -65,7 +65,7 @@ import {
 } from './composerContent'
 import { snapshotKey } from './composerStorage'
 import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
-import { resolveCidSources } from './emailHtml'
+import { resolveCidSources, toStorageHtml } from './emailHtml'
 import { InlineImageStore } from './InlineImageStore'
 import {
   RecipientsEditor,
@@ -79,7 +79,6 @@ import {
   type Recipient
 } from './recipients'
 import { replaceSignature, signatureHtml } from './signature'
-import { toStorageHtml } from './snapshot'
 import { useComposerAttachments } from './useComposerAttachments'
 import { useEditorLabels } from './useEditorLabels'
 

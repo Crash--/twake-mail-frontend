@@ -191,19 +191,7 @@
     },
     "send": "Send",
     "saveAsDraft": "Save as draft",
-    "draftSaved": "Draft saved",
     "signature": "Signature",
-    "spike": {
-      "title": "Composer spike",
-      "from": "From",
-      "to": "To",
-      "subject": "Subject",
-      "sent": "Message sent",
-      "sendFailed": "The message could not be sent",
-      "html": "Outgoing HTML",
-      "text": "Text alternative",
-      "restored": "Composer restored after reload"
-    },
     "fields": {
       "to": "To",
       "cc": "Cc",

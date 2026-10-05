@@ -191,19 +191,7 @@
     },
     "send": "Gửi",
     "saveAsDraft": "Lưu nháp",
-    "draftSaved": "Đã lưu bản nháp",
     "signature": "Chữ ký",
-    "spike": {
-      "title": "Bản thử trình soạn thư",
-      "from": "Từ",
-      "to": "Đến",
-      "subject": "Tiêu đề",
-      "sent": "Đã gửi thư",
-      "sendFailed": "Không thể gửi thư",
-      "html": "HTML gửi đi",
-      "text": "Phiên bản văn bản",
-      "restored": "Đã khôi phục trình soạn thư sau khi tải lại"
-    },
     "fields": {
       "to": "Đến",
       "cc": "Cc",

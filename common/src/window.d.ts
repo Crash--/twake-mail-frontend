@@ -35,6 +35,9 @@ declare global {
     CHAT_SPA_URL?: string
     WORKPLACE_FQDN_FALLBACK?: string
 
+    /** Shown in Settings > Forwarding when set */
+    FORWARD_WARNING_MESSAGE?: string
+
     APP_VERSION?: string
 
     appList?: AppListEntry[]

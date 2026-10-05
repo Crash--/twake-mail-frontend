@@ -26,10 +26,22 @@ describe('resolveConfig', () => {
         },
         debug: false,
         sentryDsn: null,
+        forwardWarningMessage: null,
         appVersion: 'dev',
         appList: []
       })
     })
+  })
+
+  it('reads the forwarding warning, without its surrounding spaces', () => {
+    const result = resolveConfig(
+      { ...OIDC_SOURCE, FORWARD_WARNING_MESSAGE: '  No external forward.  ' },
+      ORIGIN
+    )
+
+    expect(result.ok && result.value.forwardWarningMessage).toBe(
+      'No external forward.'
+    )
   })
 
   it('accepts the basic mode without any SSO setting', () => {

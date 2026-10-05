@@ -19,6 +19,7 @@ import { hasKeyword, SEEN } from '@common/features/email/keywords'
 import type { EmailDetail } from '@common/features/email/queries'
 import { ReplyActions } from '@common/features/email/ReplyActions'
 import { useEmail } from '@common/features/email/useEmail'
+import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useReadReceiptRequest } from '@common/features/email/useReadReceiptRequest'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -96,6 +97,7 @@ export function ConversationMessage({
   const sender = email.from?.[0] ?? null
   const isUnread = !hasKeyword(email, SEEN)
   const emphasis = isUnread ? 'u-fw-bold' : ''
+  const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
 
   const header = (
     <MessageHeader
@@ -120,7 +122,7 @@ export function ConversationMessage({
                 />
               </span>
             ) : null}
-            {isMarkedImportant(email) ? <ImportantMark /> : null}
+            {showsImportant ? <ImportantMark /> : null}
             <span className={emphasis}>
               {sender ? formatAddressName(sender) : ''}
             </span>

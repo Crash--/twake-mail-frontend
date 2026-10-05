@@ -17,6 +17,7 @@ import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
+import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { ConversationView } from '@common/features/thread/ConversationView'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
@@ -51,6 +52,7 @@ function EmailContent({
   const { t, lang } = useI18n()
   useMarkAsReadOnOpen(email)
   useReadReceiptRequest(email)
+  const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
   const sender = email.from?.[0] ?? null
   const backLabel = t('common.back')
   useDocumentTitle(email.subject ?? '')
@@ -96,7 +98,7 @@ function EmailContent({
         >
           {email.subject ?? ''}
         </Typography>
-        {isMarkedImportant(email) ? <ImportantMark showLabel /> : null}
+        {showsImportant ? <ImportantMark showLabel /> : null}
         <MessageHeader
           className="u-mt-1"
           avatar={

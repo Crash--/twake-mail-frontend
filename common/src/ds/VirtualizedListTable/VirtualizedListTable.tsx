@@ -58,8 +58,22 @@ type TableFootProps = ComponentProps<NonNullable<TableComponents['TableFoot']>>
 export type RowMenuAnchor =
   { position: { left: number; top: number } } | { element: HTMLElement }
 
+/**
+ * How the cells of a row are laid out, in px: the row pads its content
+ * (`paddingX` on the sides, `paddingTop` and `paddingBottom` above and
+ * below) and the cells are `gap` apart. The column widths include these
+ * paddings.
+ */
+export interface RowLayout {
+  paddingX: number
+  paddingTop: number
+  paddingBottom: number
+  gap: number
+}
+
 interface ListTableSettings {
   label: string
+  rowLayout: RowLayout | null
   rowCount: number | null
   columns: readonly VirtualizedTableColumn[]
   getRowProps: ((row: VirtualizedTableRow) => RowAttributes) | null
@@ -72,6 +86,7 @@ interface ListTableSettings {
 
 const ListTableContext = createContext<ListTableSettings>({
   label: '',
+  rowLayout: null,
   rowCount: null,
   columns: [],
   getRowProps: null,
@@ -100,6 +115,22 @@ const ROW_SX = {
       'color-mix(in srgb, var(--mui-palette-primary-main) 8%, transparent)'
   }
 } as const
+
+function makeRowLayoutSx({
+  paddingX,
+  paddingTop,
+  paddingBottom,
+  gap
+}: RowLayout): Record<string, Record<string, string>> {
+  return {
+    '& .MuiTableCell-root': {
+      boxSizing: 'border-box',
+      padding: `${paddingTop}px 0 ${paddingBottom}px ${gap}px`
+    },
+    '& .MuiTableCell-root:first-of-type': { paddingLeft: `${paddingX}px` },
+    '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
+  }
+}
 
 /**
  * Moves the focus to the `ROW_FOCUS_ATTRIBUTE` control of the row after
@@ -242,7 +273,7 @@ function ListTableRow({
   context,
   ...props
 }: TableRowProps): ReactElement {
-  const { getRowProps, onRowMenu, onRowDragStart } =
+  const { getRowProps, onRowMenu, onRowDragStart, rowLayout } =
     useContext(ListTableContext)
   // The menu key may also send a contextmenu event: open the menu once
   const openedByKey = useRef(false)
@@ -284,7 +315,11 @@ function ListTableRow({
       aria-rowindex={props['data-index'] + 2}
       selected={context.isSelectedItem(item)}
       hover
-      sx={ROW_SX}
+      sx={
+        rowLayout === null
+          ? ROW_SX
+          : { ...ROW_SX, ...makeRowLayoutSx(rowLayout) }
+      }
       {...(onRowMenu === null
         ? {}
         : { onContextMenu: handleContextMenu, onKeyDown: handleKeyDown })}
@@ -339,6 +374,11 @@ export interface VirtualizedListTableProps extends Omit<
   compactColumns?: VirtualizedTableColumn[]
   /** Forces the compact columns, whatever the width */
   compact?: boolean
+  /**
+   * The padding of the rows and the gap between their cells, with the wide
+   * columns only (the compact ones keep the theme's cell padding)
+   */
+  rowLayout?: RowLayout
   /** Free room after the last row, e.g. for a floating button, in pixels */
   bottomInset?: number
   /** Number of rows of the whole list, loaded or not; null when unknown */
@@ -409,6 +449,7 @@ export function VirtualizedListTable({
   compactColumns,
   compact = false,
   bottomInset = 0,
+  rowLayout,
   focusedRowIndex = null,
   ...props
 }: VirtualizedListTableProps): ReactElement {
@@ -419,14 +460,13 @@ export function VirtualizedListTable({
     // A hidden table measures 0: keep its columns until it shows again
     if (width > 0) setIsNarrow(width < COMPACT_BELOW)
   }, [])
-  const columns =
-    compactColumns !== undefined && (compact || isNarrow)
-      ? compactColumns
-      : wideColumns
+  const isCompact = compactColumns !== undefined && (compact || isNarrow)
+  const columns = isCompact ? compactColumns : wideColumns
   const settings = useMemo<ListTableSettings>(
     () => ({
       label,
       rowCount,
+      rowLayout: isCompact ? null : (rowLayout ?? null),
       columns,
       getRowProps: getRowProps ?? null,
       onRowMenu: onRowMenu ?? null,
@@ -436,6 +476,8 @@ export function VirtualizedListTable({
     [
       label,
       rowCount,
+      isCompact,
+      rowLayout,
       columns,
       getRowProps,
       onRowMenu,

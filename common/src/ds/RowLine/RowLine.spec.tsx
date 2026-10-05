@@ -26,4 +26,19 @@ describe('RowLine', () => {
 
     expect(screen.getByTestId('line').children).toHaveLength(1)
   })
+
+  it('writes the title in Semi Bold and the preview in the main colour when strong', () => {
+    renderDs(
+      <RowLine
+        primary={<span data-testid="title">Subject</span>}
+        secondary="Preview"
+        isStrong
+        data-testid="line"
+      />
+    )
+
+    expect(screen.getByTestId('title').parentElement).toHaveStyle({
+      fontWeight: '600'
+    })
+  })
 })

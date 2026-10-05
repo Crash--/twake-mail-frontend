@@ -1,1 +1,2 @@
 @AGENTS.md
+@docs/NEXT_SESSION.md

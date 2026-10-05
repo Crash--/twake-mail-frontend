@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
+  FAKE_ACCOUNT_ID,
   FAKE_USERNAME,
   makeFakeJmapServer,
   makeIdentity,
@@ -11,11 +12,13 @@ import {
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
+import type { ComposerSnapshot } from './composerContent'
 import {
   ComposerProvider,
   MAX_COMPOSERS,
   useComposer
 } from './ComposerProvider'
+import { registryKey, snapshotKey, writeStorage } from './composerStorage'
 
 function Opener(): ReactElement {
   const { openComposer } = useComposer()
@@ -270,6 +273,103 @@ describe('ComposerProvider', () => {
     await userEvent.keyboard('{Escape}')
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'New message' })).toBe(null)
+    })
+  })
+
+  describe('without room for every composer', () => {
+    const initialWidth = window.innerWidth
+
+    afterEach(() => {
+      window.innerWidth = initialWidth
+      sessionStorage.clear()
+    })
+
+    /** Composers left by a reload, the oldest first */
+    function restoreComposers(subjects: readonly string[]): void {
+      writeStorage(
+        registryKey(FAKE_ACCOUNT_ID),
+        subjects.map((subject, index) => ({
+          id: `composer-${index}`,
+          init: {},
+          mode: 'normal',
+          title: subject
+        }))
+      )
+      subjects.forEach((subject, index) => {
+        const snapshot: ComposerSnapshot = {
+          identityId: null,
+          recipients: { to: [], cc: [], bcc: [], replyTo: [] },
+          shown: [],
+          subject,
+          html: '<p></p>',
+          images: [],
+          attachments: [],
+          draftId: null,
+          savedFingerprint: null
+        }
+        writeStorage(
+          snapshotKey(FAKE_ACCOUNT_ID, `composer-${index}`),
+          snapshot
+        )
+      })
+    }
+
+    it('lists the composers the dock has no room for, and brings one back', async () => {
+      window.innerWidth = 1200
+      restoreComposers(['First', 'Second', 'Third'])
+      renderComposer()
+
+      expect(await screen.findByRole('dialog', { name: 'Third' })).toBeVisible()
+      expect(screen.getByRole('dialog', { name: 'Second' })).toBeVisible()
+      expect(screen.queryByRole('dialog', { name: 'First' })).toBe(null)
+
+      await userEvent.click(screen.getByRole('button', { name: '+1 message' }))
+      const menu = screen.getByRole('menu', { name: '+1 message' })
+      await userEvent.click(
+        within(menu).getByRole('menuitem', { name: 'First' })
+      )
+
+      const first = await screen.findByRole('dialog', { name: 'First' })
+      expect(first).toBeVisible()
+      await waitFor(() => {
+        expect(first).toContainElement(
+          document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null
+        )
+      })
+      // The oldest of the others makes room
+      expect(screen.queryByRole('dialog', { name: 'Second' })).toBe(null)
+      expect(screen.getByRole('dialog', { name: 'Third' })).toBeVisible()
+    })
+
+    it('reaches the other composers from the one filling a tablet screen', async () => {
+      mockViewport({ width: 1000, touch: true })
+      window.innerWidth = 1000
+      restoreComposers(['First', 'Second', 'Third'])
+      renderComposer()
+
+      const third = await screen.findByRole('dialog', { name: 'Third' })
+      expect(third).toHaveAttribute('aria-modal', 'true')
+      expect(screen.getAllByRole('dialog')).toHaveLength(1)
+
+      await userEvent.click(
+        within(third).getByRole('button', { name: '+2 messages' })
+      )
+      const menu = screen.getByRole('menu', { name: '+2 messages' })
+      expect(
+        within(menu)
+          .getAllByRole('menuitem')
+          .map(item => item.textContent)
+      ).toEqual(['Second', 'First'])
+      await userEvent.keyboard('{ArrowDown}{Enter}')
+
+      const first = await screen.findByRole('dialog', { name: 'First' })
+      expect(first).toHaveAttribute('aria-modal', 'true')
+      expect(screen.getAllByRole('dialog')).toHaveLength(1)
+      expect(
+        within(first).getByRole('button', { name: '+2 messages' })
+      ).toBeVisible()
     })
   })
 })

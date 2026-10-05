@@ -5,10 +5,17 @@ import type { ReactElement, ReactNode } from 'react'
 /** Space between the windows and from the edge of the screen, in px */
 export const DOCK_GAP = 8
 export const DOCK_MARGIN = 16
+/** Width of the overflow menu at the start of the dock, in px */
+export const OVERFLOW_MENU_WIDTH = 160
 
 export interface WindowDockProps {
   /** The windows, the newest first: it sits at the end of the line */
   children: ReactNode
+  /**
+   * At the start of the line, before the oldest window: the
+   * `WindowOverflowMenu` of the windows left out. First in the focus order
+   */
+  start?: ReactNode
   'data-testid'?: string
 }
 
@@ -19,6 +26,7 @@ export interface WindowDockProps {
  */
 export function WindowDock({
   children,
+  start,
   'data-testid': testId
 }: WindowDockProps): ReactElement {
   return (
@@ -36,6 +44,12 @@ export function WindowDock({
       }}
       data-testid={testId}
     >
+      {start ? (
+        // Last of the reversed line: the far left
+        <Box className="u-flex u-flex-items-end" sx={{ order: 1 }}>
+          {start}
+        </Box>
+      ) : null}
       {children}
     </Box>
   )

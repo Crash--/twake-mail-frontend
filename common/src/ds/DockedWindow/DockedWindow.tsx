@@ -67,6 +67,11 @@ export interface DockedWindowProps {
   onClose: () => void
   /** Escape pressed in the window, not handled by what has the focus */
   onEscape: () => void
+  /**
+   * More controls of the title bar, before its buttons, e.g. the
+   * `WindowOverflowMenu` when the window fills the screen
+   */
+  titleBarActions?: ReactNode
   children: ReactNode
   testIds?: {
     window?: string
@@ -105,6 +110,7 @@ export function DockedWindow({
   onModeChange,
   onClose,
   onEscape,
+  titleBarActions,
   children,
   testIds = {}
 }: DockedWindowProps): ReactElement {
@@ -235,6 +241,7 @@ export function DockedWindow({
                 {title}
               </Typography>
             )}
+            {isMinimized ? null : titleBarActions}
             {isCompact ? null : (
               <>
                 <Tooltip title={isMinimized ? labels.restore : labels.minimize}>

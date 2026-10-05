@@ -5,6 +5,7 @@ import type { AppListEntry } from '@common/config/config'
 import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
+import { ForwardSettings } from '@common/features/forward/ForwardSettings'
 import { IdentitiesSettings } from '@common/features/identities/IdentitiesSettings'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
 import { EmailRulesSettings } from '@common/features/rules/EmailRulesSettings'
@@ -86,6 +87,14 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
               element={
                 <SettingsSectionRoute id="preferences">
                   {section => <PreferencesSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
+            <Route
+              path="forwarding"
+              element={
+                <SettingsSectionRoute id="forwarding">
+                  {section => <ForwardSettings section={section} />}
                 </SettingsSectionRoute>
               }
             />

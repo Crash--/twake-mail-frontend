@@ -17,7 +17,8 @@
     "deleteAll": "Tout supprimer",
     "yes": "Oui",
     "no": "Non",
-    "confirm": "Confirmer"
+    "confirm": "Confirmer",
+    "remove": "Retirer"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -480,6 +481,10 @@
       "emailRules": {
         "title": "Règles des messages",
         "description": "Création de règles pour gérer les messages entrants. Vous choisissez la condition qui déclenche une règle et les actions que la règle appliquera."
+      },
+      "forwarding": {
+        "title": "Adresse de transfert",
+        "description": "Les adresses e-mails ci-dessous recevront vos messages."
       }
     },
     "preferences": {
@@ -697,5 +702,39 @@
     "deleteOf": "Supprimer %{name}",
     "listLabel": "Règles",
     "count": "%{smart_count} règle |||| %{smart_count} règles"
+  },
+  "forward": {
+    "localCopy": "Conserver une copie dans la boîte de réception",
+    "localCopyDescription": "Conservez une copie des e-mails transférés dans votre boîte de réception, en plus de les envoyez aux destinataires",
+    "recipients": "Transférer à",
+    "inputPlaceholder": "Entrez le nom ou l'adresse e-mail",
+    "add": "Ajouter un destinataire",
+    "external": "Domaine externe",
+    "delete": {
+      "title": "Supprimer des destinataires",
+      "message": "Voulez-vous supprimer l'adresse e-mail %{emailAddress} ?"
+    },
+    "errors": {
+      "invalid": "Format d'e-mail incorrect",
+      "empty": "Veuillez saisir au moins un destinataire",
+      "add": "L'ajout du destinataire a échoué.",
+      "delete": "Échec de la suppression des destinataires.",
+      "localCopy": "Échec de l'activation de la copie locale lors d'un transfert.",
+      "load": "Le transfert n'a pas pu être chargé"
+    },
+    "externalWarning": {
+      "title": "Vous redirigez les e-mails vers un autre nom de domaine.",
+      "message": "Il pourrait s'agir d'une menace de sécurité ou d'une extraction illégale de données. Confirmez-vous vouloir continuer ?"
+    },
+    "toasts": {
+      "added": "Les adresses e-mails ont été ajoutées à partir de la liste des destinataires.",
+      "deleted": "L'adresse e-mail a été supprimée de la liste des destinataires.",
+      "localCopyOn": "Gardez la copie locale activée.",
+      "localCopyOff": "Gardez la copie locale désactivée."
+    },
+    "externalBanner": "Vous redirigez vos e-mails vers un autre domaine. Cela pourrait constituer une menace pour la sécurité ou être considéré comme une extraction illégale de données.",
+    "listLabel": "Adresses de transfert",
+    "removeOf": "Retirer %{email}",
+    "inputLabel": "Nouveau destinataire"
   }
 }

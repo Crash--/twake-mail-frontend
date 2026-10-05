@@ -2,6 +2,7 @@ import {
   Filter,
   Help,
   Identities,
+  Send,
   Setting,
   type IconProps
 } from '@linagora/twake-icons'
@@ -18,7 +19,11 @@ export const SETTINGS_PATH = '/settings'
  * (`AccountMenuItem`), with the alias of its URLs
  */
 export type SettingsSectionId =
-  'profiles' | 'email-rules' | 'preferences' | 'keyboard-shortcuts'
+  | 'profiles'
+  | 'email-rules'
+  | 'preferences'
+  | 'forwarding'
+  | 'keyboard-shortcuts'
 
 export interface SettingsSection {
   id: SettingsSectionId
@@ -52,6 +57,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     icon: Setting,
     title: 'settings.sections.preferences.title',
     description: 'settings.sections.preferences.description'
+  },
+  {
+    id: 'forwarding',
+    icon: Send,
+    title: 'settings.sections.forwarding.title',
+    description: 'settings.sections.forwarding.description',
+    isAvailable: offers(LINAGORA_CAPABILITIES.forward)
   },
   {
     id: 'keyboard-shortcuts',

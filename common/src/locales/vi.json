@@ -627,9 +627,15 @@
       "senderPriorityDescription": "Cho phép hiển thị cờ đánh dấu email quan trọng trong hộp thư đến của bạn. Tính năng này do người gửi kiểm soát, do đó có thể bị lạm dụng.",
       "senderPriorityToggle": "Hiển thị cờ ưu tiên",
       "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại",
+      "spamReports": "Báo cáo thư rác",
+      "spamReportsDescription": "Nhắc định kỳ kiểm tra thư rác",
+      "spamReportsToggle": "Bật báo cáo thư rác",
       "labels": "Hiển thị nhãn",
       "labelsDescription": "Hiển thị các nhãn được gán cho email trực tiếp trong danh sách tin nhắn để phân loại dễ dàng hơn.",
       "labelsToggle": "Hiển thị nhãn",
+      "driveAttachment": "Tệp đính kèm Drive",
+      "driveAttachmentDescription": "Hiển thị hoặc ẩn nút đính kèm Twake Drive trong trình soạn thư",
+      "driveAttachmentToggle": "Bật nút đính kèm Drive",
       "errorReporting": "Báo cáo lỗi",
       "errorReportingDescription": "Gửi báo cáo sự cố và lỗi để nhóm hỗ trợ có thể chẩn đoán các vấn đề bạn gặp phải. Email của bạn, nội dung và người nhận không bao giờ được đưa vào.",
       "errorReportingToggle": "Gửi báo cáo lỗi",
@@ -657,6 +663,11 @@
     "empty": "Không có thư mục nào khớp với tìm kiếm",
     "personalFolders": "Thư mục cá nhân",
     "allFolders": "Tất cả thư mục"
+  },
+  "spamReport": {
+    "banner": "%{smart_count} thư trong Spam",
+    "view": "Xem",
+    "dismiss": "Bỏ qua"
   },
   "emptyFolder": {
     "trashBanner": "Tất cả tin nhắn trong Thùng rác sẽ bị xoá bỏ khi bộ nhớ của bạn hết dung lượng.",

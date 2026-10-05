@@ -29,6 +29,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { isEmailRow } from './EmailCell'
 import { EmailListToolbar } from './EmailListToolbar'
 import type { EmailListItemData } from './queries'
+import { SpamReportBanner } from './SpamReportBanner'
 import type { EmailSelection } from './useEmailSelection'
 
 /** Type of the emails dragged from a list, read by the folder tree */
@@ -247,10 +248,12 @@ export function useEmailListActions({
         onDone={handleDone}
       />
     ) : null,
-    banner:
-      mailbox === null || hasSelection ? null : (
-        <EmptyFolderBanner mailbox={mailbox} />
-      ),
+    banner: hasSelection ? null : (
+      <>
+        <SpamReportBanner mailbox={mailbox} />
+        {mailbox === null ? null : <EmptyFolderBanner mailbox={mailbox} />}
+      </>
+    ),
     menu: (
       <EmailActionsMenu
         anchor={menu?.anchor ?? null}

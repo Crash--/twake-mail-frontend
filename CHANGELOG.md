@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Error reporting driven by a preference, as tmail-flutter on the web: Sentry
+  starts only when configured (`SENTRY_*` or the ecosystem of the server) and
+  the user opted in (Settings > Preferences, `sentry.user-opt-in` of the
+  account, `userOptInByDefault` as default), stops when they opt out or sign
+  out, and sends scrubbed events only. See `docs/sentry.md`
+
 - Runtime configuration keys of the `env.file` of tmail-flutter: `SERVER_URL`
   (the session is `<SERVER_URL>/.well-known/jmap`), `DOMAIN_REDIRECT_URL`
   (redirects `login-callback.html` and `logout-callback.html`),

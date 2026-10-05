@@ -703,7 +703,10 @@
       "emptySpam": "Delete all spam emails",
       "emptyTrash": "Empty Trash",
       "button": "Actions on %{name}",
-      "label": "Folder actions"
+      "label": "Folder actions",
+      "openInNewTab": "Open in new tab",
+      "createFilter": "Create filter",
+      "moveContent": "Move folder content"
     },
     "newFolder": "New folder",
     "create": {
@@ -759,6 +762,10 @@
       "label": "Search for folders",
       "empty": "No folder matches your search",
       "results": "%{smart_count} folder found |||| %{smart_count} folders found"
+    },
+    "moveContent": {
+      "failure": "Failed to move all emails from this folder to another folder.",
+      "progress": "Moving emails: %{moved} of %{total}"
     }
   },
   "identities": {

@@ -21,7 +21,7 @@ const TEAM_RIGHTS = {
 
 const MAILBOXES = [
   ...makeDefaultMailboxes(),
-  makeMailbox({ id: 'work', name: 'Work', unreadEmails: 2 }),
+  makeMailbox({ id: 'work', name: 'Work', unreadEmails: 2, totalEmails: 3 }),
   makeMailbox({ id: 'clients', name: 'Clients', parentId: 'work' }),
   makeMailbox({
     id: 'team',
@@ -39,29 +39,41 @@ const MAILBOXES = [
   })
 ]
 
-function ids(mailboxId: string): string[] {
+function ids(
+  mailboxId: string,
+  options: Parameters<typeof availableFolderActions>[2] = {}
+): string[] {
   const mailbox = MAILBOXES.find(candidate => candidate.id === mailboxId)
   if (!mailbox) throw new Error(`No ${mailboxId}`)
-  return availableFolderActions(mailbox, MAILBOXES).map(item => item.id)
+  return availableFolderActions(mailbox, MAILBOXES, options).map(
+    item => item.id
+  )
 }
 
 describe('availableFolderActions', () => {
   it('offers the menu of tmail-flutter for each kind of folder', () => {
     expect(ids('work')).toEqual([
+      'open-in-new-tab',
       'new-subfolder',
       'mark-as-read',
       'move',
+      'move-content',
       'rename',
       'hide',
       'delete'
     ])
     // Inbox: 2 unread in the default mailboxes
-    expect(ids('mailbox-inbox')).toEqual(['new-subfolder', 'mark-as-read'])
-    expect(ids('mailbox-sent')).toEqual(['new-subfolder'])
+    expect(ids('mailbox-inbox')).toEqual([
+      'open-in-new-tab',
+      'new-subfolder',
+      'mark-as-read',
+      'move-content'
+    ])
+    expect(ids('mailbox-sent')).toEqual(['open-in-new-tab', 'new-subfolder'])
   })
 
   it('empties the Trash and Spam only when they hold something', () => {
-    expect(ids('mailbox-trash')).toEqual(['new-subfolder'])
+    expect(ids('mailbox-trash')).toEqual(['open-in-new-tab', 'new-subfolder'])
     const trash = makeMailbox({
       id: 'trash',
       name: 'Trash',
@@ -73,9 +85,77 @@ describe('availableFolderActions', () => {
     ).toContain('empty-trash')
   })
 
+  it('offers to create a filter from a personal folder, when the server has filters', () => {
+    expect(ids('work')).not.toContain('create-filter')
+    expect(ids('work', { canFilter: true })).toContain('create-filter')
+    expect(ids('mailbox-sent', { canFilter: true })).toEqual([
+      'open-in-new-tab',
+      'new-subfolder',
+      'create-filter'
+    ])
+    // Not a team folder
+    expect(ids('team', { canFilter: true })).not.toContain('create-filter')
+  })
+
+  it('offers to move the content of a folder that holds emails, as tmail-flutter', () => {
+    // A personal folder
+    expect(ids('work')).toContain('move-content')
+    expect(ids('clients')).not.toContain('move-content')
+    // Trash and Spam with emails
+    const trash = makeMailbox({
+      id: 'trash',
+      name: 'Trash',
+      role: 'trash',
+      totalEmails: 3
+    })
+    expect(availableFolderActions(trash, [trash]).map(item => item.id)).toEqual(
+      ['open-in-new-tab', 'new-subfolder', 'move-content', 'empty-trash']
+    )
+    // The other system folders, only with unread emails
+    const inbox = makeMailbox({
+      id: 'inbox',
+      name: 'Inbox',
+      role: 'inbox',
+      totalEmails: 3,
+      unreadEmails: 1
+    })
+    expect(availableFolderActions(inbox, [inbox]).map(item => item.id)).toEqual(
+      ['open-in-new-tab', 'new-subfolder', 'mark-as-read', 'move-content']
+    )
+    expect(
+      availableFolderActions({ ...inbox, unreadEmails: 0 }, [inbox]).map(
+        item => item.id
+      )
+    ).not.toContain('move-content')
+    // Taking emails out needs the right to remove them
+    const locked = {
+      ...makeMailbox({ id: 'locked', name: 'Locked', totalEmails: 3 }),
+      myRights: {
+        ...makeMailbox({ id: 'x', name: 'x' }).myRights,
+        mayRemoveItems: false
+      }
+    }
+    expect(
+      availableFolderActions(locked, MAILBOXES).map(item => item.id)
+    ).not.toContain('move-content')
+    // Never for a team folder
+    expect(ids('team-trash')).not.toContain('move-content')
+  })
+
+  it('does not offer to open a hidden folder in a new tab', () => {
+    const hidden = makeMailbox({
+      id: 'h',
+      name: 'H',
+      isSubscribed: false
+    })
+    expect(
+      availableFolderActions(hidden, [hidden]).map(item => item.id)
+    ).not.toContain('open-in-new-tab')
+  })
+
   it('follows the rights of a team mailbox', () => {
-    expect(ids('team')).toEqual(['hide'])
-    expect(ids('team-trash')).toEqual(['empty-trash'])
+    expect(ids('team')).toEqual(['open-in-new-tab', 'hide'])
+    expect(ids('team-trash')).toEqual(['open-in-new-tab', 'empty-trash'])
   })
 })
 

@@ -7,10 +7,13 @@ import {
   type PopoverPosition
 } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { useHref } from 'react-router'
 
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useRecovery } from '@common/features/recovery/RecoveryProvider'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { availableFolderActions } from './folderActionItems'
@@ -39,12 +42,18 @@ export function FolderActionsMenu({
   const { t } = useI18n()
   const recovery = useRecovery()
   const { data: mailboxes = [] } = useMailboxes()
+  const { session } = useJmapSession()
   const { run } = useFolderActions()
+  // Opening a folder in a new tab is a link: the browser does it
+  const newTabHref = useHref(
+    `/mailbox/${encodeURIComponent(mailbox?.id ?? '')}`
+  )
   const items =
     mailbox === null || anchor === null
       ? []
       : availableFolderActions(mailbox, mailboxes, {
-          canRecover: recovery.isAvailable
+          canRecover: recovery.isAvailable,
+          canFilter: LINAGORA_CAPABILITIES.filter in session.capabilities
         })
 
   return (
@@ -60,6 +69,14 @@ export function FolderActionsMenu({
       {items.map(item => (
         <MenuItem
           key={item.id}
+          {...(item.id === 'open-in-new-tab'
+            ? {
+                component: 'a',
+                href: newTabHref,
+                target: '_blank',
+                rel: 'noopener noreferrer'
+              }
+            : {})}
           onClick={() => {
             onClose()
             if (mailbox !== null) run(item.id, mailbox)

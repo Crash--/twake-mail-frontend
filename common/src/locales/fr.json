@@ -703,7 +703,10 @@
       "emptySpam": "Supprimer tous les indésirables",
       "emptyTrash": "Vider la corbeille",
       "button": "Actions sur %{name}",
-      "label": "Actions sur le dossier"
+      "label": "Actions sur le dossier",
+      "openInNewTab": "Ouvrir dans un nouvel onglet",
+      "createFilter": "Créer un filtre",
+      "moveContent": "Déplacer le contenu du dossier"
     },
     "newFolder": "Nouveau dossier",
     "create": {
@@ -759,6 +762,10 @@
       "label": "Rechercher des dossiers",
       "empty": "Aucun dossier ne correspond à votre recherche",
       "results": "%{smart_count} dossier trouvé |||| %{smart_count} dossiers trouvés"
+    },
+    "moveContent": {
+      "failure": "Échec lors du déplacement de tous les e-mails vers un autre dossier.",
+      "progress": "Déplacement des e-mails : %{moved} sur %{total}"
     }
   },
   "identities": {

@@ -1,7 +1,19 @@
-import { makeMailbox } from '@common/testing/fakeJmapServer'
+import {
+  makeMailbox,
+  makeTeamMailboxes,
+  teamNamespace
+} from '@common/testing/fakeJmapServer'
 
 import {
   findTemplatesMailboxId,
+  isDraftsMailbox,
+  isFirstLevelTeamFolder,
+  isTeamDrafts,
+  isTeamFolder,
+  isTeamRoot,
+  isTeamTemplates,
+  isTeamTrash,
+  isTrashMailbox,
   isTemplatesMailbox,
   buildMailboxSections,
   buildMailboxTree,
@@ -230,5 +242,132 @@ describe('teamMailboxAddress', () => {
   it('gives none for the folders of the user', () => {
     expect(teamMailboxAddress({ namespace: 'Personal' })).toBe(null)
     expect(teamMailboxAddress({ namespace: null })).toBe(null)
+  })
+})
+
+describe('the folders of a team mailbox', () => {
+  const folders = makeTeamMailboxes({ id: 'team' })
+  const byName = (name: string): (typeof folders)[number] => {
+    const folder = folders.find(candidate => candidate.name === name)
+    if (folder === undefined) throw new Error(`No ${name}`)
+    return folder
+  }
+
+  it('tells its root from its folders', () => {
+    expect(isTeamRoot(byName('team'))).toBe(true)
+    expect(isTeamFolder(byName('team'))).toBe(false)
+    expect(isTeamFolder(byName('Trash'))).toBe(true)
+    expect(isTeamRoot(makeMailbox({ id: 'p', name: 'Personal' }))).toBe(false)
+    expect(isTeamFolder(makeMailbox({ id: 'q', name: 'Trash' }))).toBe(false)
+  })
+
+  it('knows the system folders by name, they have no role', () => {
+    expect(isTeamTrash(byName('Trash'))).toBe(true)
+    expect(isTeamDrafts(byName('Drafts'))).toBe(true)
+    expect(isTeamTemplates(byName('Templates'))).toBe(true)
+    expect(isTeamTrash(byName('INBOX'))).toBe(false)
+    // The root of a team mailbox named like a system folder is not one
+    expect(
+      isTeamTrash(
+        makeMailbox({ id: 'r', name: 'trash', namespace: teamNamespace('t@x') })
+      )
+    ).toBe(false)
+  })
+
+  it('knows the Trash and Drafts of the user or of a team mailbox', () => {
+    expect(
+      isTrashMailbox(makeMailbox({ id: 't', name: 'Trash', role: 'trash' }))
+    ).toBe(true)
+    expect(isTrashMailbox(byName('Trash'))).toBe(true)
+    // A personal folder named Trash, without the role, is a folder
+    expect(isTrashMailbox(makeMailbox({ id: 'f', name: 'Trash' }))).toBe(false)
+    expect(
+      isDraftsMailbox(makeMailbox({ id: 'd', name: 'D', role: 'drafts' }))
+    ).toBe(true)
+    expect(isDraftsMailbox(byName('Drafts'))).toBe(true)
+    expect(isDraftsMailbox(byName('Sent'))).toBe(false)
+  })
+
+  it('tells the folders directly under the root from the deeper ones', () => {
+    const project = makeMailbox({
+      id: 'project',
+      name: 'Project',
+      parentId: 'team',
+      namespace: teamNamespace('team@example.com')
+    })
+    const nested = makeMailbox({
+      id: 'nested-trash',
+      name: 'Trash',
+      parentId: 'project',
+      namespace: teamNamespace('team@example.com')
+    })
+    const all = [...folders, project, nested]
+
+    expect(isFirstLevelTeamFolder(byName('Trash'), all)).toBe(true)
+    expect(isFirstLevelTeamFolder(nested, all)).toBe(false)
+    expect(isFirstLevelTeamFolder(byName('team'), all)).toBe(false)
+    expect(isTeamTrash(nested)).toBe(true)
+  })
+
+  it('orders the roots by name, the system folders first, then the others by name', () => {
+    const second = makeTeamMailboxes({
+      id: 'archive',
+      address: 'archive@x.org'
+    })
+    const project = makeMailbox({
+      id: 'project',
+      name: 'Project',
+      parentId: 'team',
+      namespace: teamNamespace('team@example.com'),
+      sortOrder: 1
+    })
+    const inside = [
+      makeMailbox({
+        id: 'z',
+        name: 'Trash',
+        parentId: 'project',
+        namespace: teamNamespace('team@example.com'),
+        sortOrder: 9
+      }),
+      makeMailbox({
+        id: 'a',
+        name: 'Zeta',
+        parentId: 'project',
+        namespace: teamNamespace('team@example.com'),
+        sortOrder: 1
+      }),
+      makeMailbox({
+        id: 'b',
+        name: 'Alpha',
+        parentId: 'project',
+        namespace: teamNamespace('team@example.com'),
+        sortOrder: 5
+      })
+    ]
+    const { team } = buildMailboxSections(
+      [...folders, project, ...inside, ...second],
+      false
+    )
+
+    // A team named "archive" is a root, not the Archive folder; the server
+    // sort order does not count in a team mailbox
+    expect(names(team)).toEqual(['archive', 'team'])
+    expect(names(team[1]?.children ?? [])).toEqual([
+      'INBOX',
+      'Drafts',
+      'Outbox',
+      'Sent',
+      'Trash',
+      'Templates',
+      'Project'
+    ])
+    const projectNode = team[1]?.children.find(
+      node => node.mailbox.id === 'project'
+    )
+    expect(names(projectNode?.children ?? [])).toEqual([
+      'Alpha',
+      'Trash',
+      'Zeta'
+    ])
   })
 })

@@ -26,6 +26,7 @@ import {
 import { cleanPastedHtml } from './cleanPastedHtml'
 import { HtmlBlock, type HtmlBlockOptions } from './htmlBlock'
 import { ImageToolbar } from './ImageToolbar'
+import { Indent } from './indent'
 import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
 import { RichTextToolbar } from './RichTextToolbar'
@@ -38,6 +39,7 @@ import {
   type RichTextEditorActions,
   type RichTextEditorLabels,
   type RichTextEditorTestIds,
+  type RichTextFontFamily,
   type RichTextFontSize,
   type RichTextSelectionAction
 } from './types'
@@ -48,6 +50,8 @@ export interface RichTextEditorProps {
   content: string
   colors: readonly RichTextColor[]
   fontSizes: readonly RichTextFontSize[]
+  /** The fonts of the font menu; the first one is the default */
+  fontFamilies: readonly RichTextFontFamily[]
   /**
    * Stores image files (resizing, uploading…) and says how to show them.
    * Called for the toolbar button, paste and drop. Without it, the editor
@@ -177,6 +181,7 @@ export function RichTextEditor({
   content,
   colors,
   fontSizes,
+  fontFamilies,
   onImageFiles,
   htmlBlock,
   footerBlockKinds = [],
@@ -215,8 +220,6 @@ export function RichTextEditor({
     extensions: [
       StarterKit.configure({
         code: false,
-        codeBlock: false,
-        heading: false,
         horizontalRule: false,
         // No paragraph always trailing the document: nothing is written
         // after a signature or a quote by accident. SmartTrailingBlock
@@ -229,8 +232,9 @@ export function RichTextEditor({
           defaultProtocol: 'https'
         }
       }),
-      TextStyleKit.configure({ fontFamily: false, lineHeight: false }),
-      TextAlign.configure({ types: ['paragraph'] }),
+      TextStyleKit.configure({ lineHeight: false }),
+      TextAlign.configure({ types: ['paragraph', 'heading'] }),
+      Indent,
       // Tables pasted from a spreadsheet or a page keep their cells
       TableKit.configure({ table: { resizable: false } }),
       InlineImage,
@@ -300,6 +304,12 @@ export function RichTextEditor({
         if (!onImageFiles) return false
         fileInputRef.current?.click()
         return true
+      },
+      insertText: text => {
+        editor.chain().focus().insertContent(text).run()
+      },
+      focus: () => {
+        editor.commands.focus()
       }
     }),
     // The dialog reads the editor when it opens
@@ -350,6 +360,7 @@ export function RichTextEditor({
       labels={labels}
       colors={colors}
       fontSizes={fontSizes}
+      fontFamilies={fontFamilies}
       editorId={editorId}
       onOpenLinkDialog={openLinkDialog}
       onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
@@ -433,6 +444,23 @@ export function RichTextEditor({
           '& .ProseMirror p': {
             margin: 0,
             minHeight: fill ? '18.4px' : '1.5em'
+          },
+          '& .ProseMirror h1, & .ProseMirror h2, & .ProseMirror h3, & .ProseMirror h4, & .ProseMirror h5, & .ProseMirror h6':
+            { margin: 0, lineHeight: 1.3 },
+          '& .ProseMirror h1': { fontSize: '2em' },
+          '& .ProseMirror h2': { fontSize: '1.5em' },
+          '& .ProseMirror h3': { fontSize: '1.17em' },
+          '& .ProseMirror h4': { fontSize: '1em' },
+          '& .ProseMirror h5': { fontSize: '0.83em' },
+          '& .ProseMirror h6': { fontSize: '0.67em' },
+          '& .ProseMirror pre': {
+            margin: 0,
+            padding: 1,
+            fontFamily: 'monospace',
+            fontSize: '0.9em',
+            bgcolor: 'action.hover',
+            borderRadius: 0.5,
+            whiteSpace: 'pre-wrap'
           },
           '& .ProseMirror blockquote': {
             margin: '0 0 0 8px',

@@ -221,18 +221,26 @@
       "name": "Corps du message",
       "keyboardHelp": "Tab indente un élément de liste ou quitte l'éditeur. Alt+F10 va à la barre de mise en forme. Ctrl+K insère un lien. Sur une image sélectionnée avec les flèches, Entrée affiche ses options de taille.",
       "colors": {
+        "black": "Noir",
+        "darkGrey": "Gris foncé",
         "red": "Rouge",
         "orange": "Orange",
+        "yellow": "Jaune",
         "green": "Vert",
+        "teal": "Turquoise",
         "blue": "Bleu",
         "purple": "Violet",
-        "grey": "Gris"
-      },
-      "sizes": {
-        "small": "Petite",
-        "normal": "Normale",
-        "large": "Grande",
-        "huge": "Très grande"
+        "pink": "Rose",
+        "grey": "Gris",
+        "lightGrey": "Gris clair",
+        "lightRed": "Rouge clair",
+        "lightOrange": "Orange clair",
+        "lightYellow": "Jaune clair",
+        "lightGreen": "Vert clair",
+        "lightTeal": "Turquoise clair",
+        "lightBlue": "Bleu clair",
+        "lightPurple": "Violet clair",
+        "lightPink": "Rose clair"
       },
       "image": {
         "toolbar": "Options de l'image",
@@ -244,7 +252,26 @@
         "larger": "Plus grande",
         "remove": "Supprimer l'image",
         "sizeStatus": "Largeur %{width} px, %{percent} % de l'original"
-      }
+      },
+      "textStyle": "Style du texte",
+      "textStyles": {
+        "paragraph": "Normal",
+        "h1": "Titre 1",
+        "h2": "Titre 2",
+        "h3": "Titre 3",
+        "h4": "Titre 4",
+        "h5": "Titre 5",
+        "h6": "Titre 6",
+        "blockquote": "Citation",
+        "code": "Code"
+      },
+      "fontFamily": "Police",
+      "highlight": "Couleur de surlignage",
+      "lists": "Listes et retraits",
+      "indent": "Augmenter le retrait",
+      "outdent": "Diminuer le retrait",
+      "customColor": "Autre couleur",
+      "noHighlight": "Sans surlignage"
     },
     "link": {
       "text": "Texte",

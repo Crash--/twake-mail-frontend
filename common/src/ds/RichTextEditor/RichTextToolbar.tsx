@@ -9,6 +9,7 @@ import {
   MenuItem,
   Tooltip
 } from '@linagora/twake-mui'
+import type { Node as ProseNode } from '@tiptap/pm/model'
 import { useEditorState, type Editor } from '@tiptap/react'
 import {
   useLayoutEffect,
@@ -20,17 +21,24 @@ import {
   type MutableRefObject
 } from 'react'
 
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+
+import { ColorMenu } from './ColorMenu'
 import { EditorIcon, type EditorIconName } from './editorIcons'
 import {
   DEFAULT_FONT_SIZE,
+  TEXT_STYLES,
   type EditorActions,
   type RichTextColor,
   type RichTextEditorLabels,
+  type RichTextFontFamily,
   type RichTextFontSize,
-  type RichTextToolbarItemId
+  type RichTextToolbarItemId,
+  type TextStyle
 } from './types'
 
-type MenuName = 'color' | 'size' | 'align'
+type MenuName =
+  'color' | 'highlight' | 'size' | 'font' | 'text-style' | 'align' | 'lists'
 
 interface ToolbarItem {
   id: RichTextToolbarItemId
@@ -41,8 +49,8 @@ interface ToolbarItem {
   disabled?: boolean
   menu?: MenuName
   run?: () => void
-  /** What the button shows besides its icon: the size, the colour bar */
-  display?: 'size' | 'color'
+  /** What the button shows besides its icon: text, a colour bar */
+  display?: 'size' | 'color' | 'highlight' | 'font' | 'text-style'
   /** Buttons of the same group share one bordered box */
   group?: 'format' | 'lists' | 'history' | 'insert'
 }
@@ -52,6 +60,7 @@ export interface RichTextToolbarProps {
   labels: RichTextEditorLabels
   colors: readonly RichTextColor[]
   fontSizes: readonly RichTextFontSize[]
+  fontFamilies: readonly RichTextFontFamily[]
   /** Id of the editing area the toolbar controls */
   editorId: string
   onOpenLinkDialog: () => void
@@ -77,12 +86,14 @@ const BUTTON_SX = {
   px: 1,
   py: 0.5,
   gap: '2px',
+  flexShrink: 0,
   border: '1px solid',
   borderColor: 'divider',
   borderRadius: '4px',
   fontSize: 14,
   fontWeight: 500,
   lineHeight: '20px',
+  whiteSpace: 'nowrap',
   color: 'text.primary'
 } as const
 /** A button inside a group: no border of its own */
@@ -97,6 +108,7 @@ const GROUP_BUTTON_SX = {
 const GROUP_SX = {
   display: 'flex',
   alignItems: 'center',
+  flexShrink: 0,
   gap: '4px',
   p: '2px',
   border: '1px solid',
@@ -115,17 +127,52 @@ const ALIGN_ICONS: Record<Alignment, EditorIconName> = {
   justify: 'alignJustify'
 }
 
+/** `"Times New Roman", serif` and `times new roman` are the same font */
+function familyKey(value: string): string {
+  const first = value.split(',')[0] ?? ''
+  return first.replace(/["']/g, '').trim().toLowerCase()
+}
+
+/**
+ * Takes the quotes off the selected blocks. `lift` cannot do it when the
+ * whole document is selected, so the quotes are replaced by their content.
+ */
+function unwrapBlockquotes(editor: Editor): void {
+  editor
+    .chain()
+    .focus()
+    .command(({ tr, state }) => {
+      const { from, to } = state.selection
+      const quotes: { pos: number; size: number; node: ProseNode }[] = []
+      state.doc.nodesBetween(from, to, (node, pos) => {
+        if (node.type.name === 'blockquote') {
+          quotes.push({ pos, size: node.nodeSize, node })
+          return false
+        }
+        return true
+      })
+      // From the end, so that the positions before stay valid
+      for (const { pos, size, node } of quotes.reverse()) {
+        tr.replaceWith(pos, pos + size, node.content)
+      }
+      return quotes.length > 0
+    })
+    .run()
+}
+
 /**
  * The formatting toolbar: one tab stop, arrows (Home, End) move between the
- * buttons (roving tabindex), toggles say `aria-pressed`, every icon button
- * has an `aria-label` and the same tooltip. Disabled buttons stay
- * focusable (`aria-disabled`), as the toolbar pattern recommends.
+ * buttons (roving tabindex), toggles say `aria-pressed`, menus say
+ * `aria-expanded`, every icon button has an `aria-label` and the same
+ * tooltip. Disabled buttons stay focusable (`aria-disabled`), as the toolbar
+ * pattern recommends. On phones it is one line that scrolls sideways.
  */
 export function RichTextToolbar({
   editor,
   labels,
   colors,
   fontSizes,
+  fontFamilies,
   editorId,
   onOpenLinkDialog,
   onPickImages,
@@ -135,28 +182,43 @@ export function RichTextToolbar({
   disabled = false,
   buttonTestId
 }: RichTextToolbarProps): ReactElement {
+  const isMobile = useScreenSize() === 'mobile'
   const state = useEditorState({
     editor,
-    selector: ({ editor: current }) => ({
-      bold: current.isActive('bold'),
-      italic: current.isActive('italic'),
-      underline: current.isActive('underline'),
-      strike: current.isActive('strike'),
-      bulletList: current.isActive('bulletList'),
-      orderedList: current.isActive('orderedList'),
-      blockquote: current.isActive('blockquote'),
-      link: current.isActive('link'),
-      canUndo: current.can().undo(),
-      canRedo: current.can().redo(),
-      color: String(current.getAttributes('textStyle').color ?? ''),
-      fontSize: String(current.getAttributes('textStyle').fontSize ?? ''),
-      align:
-        ALIGNMENTS.find(alignment =>
-          current.isActive({ textAlign: alignment })
-        ) ?? 'left'
-    })
+    selector: ({ editor: current }) => {
+      const textStyle = current.getAttributes('textStyle')
+      const heading = TEXT_STYLES.find(
+        style =>
+          style.startsWith('h') &&
+          current.isActive('heading', { level: Number(style.slice(1)) })
+      )
+      return {
+        bold: current.isActive('bold'),
+        italic: current.isActive('italic'),
+        underline: current.isActive('underline'),
+        strike: current.isActive('strike'),
+        bulletList: current.isActive('bulletList'),
+        orderedList: current.isActive('orderedList'),
+        blockquote: current.isActive('blockquote'),
+        codeBlock: current.isActive('codeBlock'),
+        heading: heading ?? null,
+        link: current.isActive('link'),
+        canUndo: current.can().undo(),
+        canRedo: current.can().redo(),
+        color: String(textStyle.color ?? ''),
+        backgroundColor: String(textStyle.backgroundColor ?? ''),
+        fontSize: String(textStyle.fontSize ?? ''),
+        fontFamily: String(textStyle.fontFamily ?? ''),
+        align:
+          ALIGNMENTS.find(alignment =>
+            current.isActive({ textAlign: alignment })
+          ) ?? 'left'
+      }
+    }
   })
   const [activeIndex, setActiveIndex] = useState(0)
+  // On phones: is there more to scroll to on each side (the edge fades)
+  const [edges, setEdges] = useState({ start: false, end: false })
   const [openMenu, setOpenMenu] = useState<{
     name: MenuName
     anchor: HTMLElement
@@ -164,13 +226,44 @@ export function RichTextToolbar({
   const sizeLabel = state.fontSize
     ? String(Number.parseInt(state.fontSize, 10))
     : String(DEFAULT_FONT_SIZE)
+  const currentFont =
+    fontFamilies.find(
+      family => familyKey(family.value) === familyKey(state.fontFamily)
+    ) ?? fontFamilies[0]
+  const currentStyle: TextStyle =
+    state.heading ??
+    (state.blockquote ? 'blockquote' : state.codeBlock ? 'code' : 'paragraph')
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
 
   const chain = (): ReturnType<Editor['chain']> => editor.chain().focus()
 
-  // The order of the design: size, colour, bold to strike, alignment, lists,
-  // then what the design does not show (history, links, clear)
+  const applyTextStyle = (style: TextStyle): void => {
+    if (style === 'blockquote') {
+      if (!state.blockquote) chain().setBlockquote().run()
+      return
+    }
+    if (state.blockquote) unwrapBlockquotes(editor)
+    if (style === 'paragraph') {
+      chain().setParagraph().run()
+    } else if (style === 'code') {
+      chain().setCodeBlock().run()
+    } else {
+      const level = Number(style.slice(1)) as 1 | 2 | 3 | 4 | 5 | 6
+      chain().setHeading({ level }).run()
+    }
+  }
+
+  // The order of the design: text style, size, font, colour, highlight,
+  // bold to strike, alignment, lists and indentation, then what the design
+  // does not show (history, links, clear)
   const allItems: ToolbarItem[] = [
+    {
+      id: 'text-style',
+      icon: 'fontSize',
+      label: `${labels.textStyle} ${labels.textStyles[currentStyle]}`,
+      menu: 'text-style',
+      display: 'text-style'
+    },
     {
       id: 'size',
       icon: 'fontSize',
@@ -179,11 +272,25 @@ export function RichTextToolbar({
       display: 'size'
     },
     {
+      id: 'font',
+      icon: 'fontSize',
+      label: `${labels.fontFamily} ${currentFont?.label ?? ''}`,
+      menu: 'font',
+      display: 'font'
+    },
+    {
       id: 'color',
       icon: 'textColor',
       label: labels.textColor,
       menu: 'color',
       display: 'color'
+    },
+    {
+      id: 'highlight',
+      icon: 'highlight',
+      label: labels.highlight,
+      menu: 'highlight',
+      display: 'highlight'
     },
     {
       id: 'bold',
@@ -224,28 +331,10 @@ export function RichTextToolbar({
       menu: 'align'
     },
     {
-      id: 'bullet-list',
+      id: 'lists',
       icon: 'bulletList',
-      label: labels.bulletList,
-      pressed: state.bulletList,
-      group: 'lists',
-      run: () => chain().toggleBulletList().run()
-    },
-    {
-      id: 'ordered-list',
-      icon: 'orderedList',
-      label: labels.orderedList,
-      pressed: state.orderedList,
-      group: 'lists',
-      run: () => chain().toggleOrderedList().run()
-    },
-    {
-      id: 'blockquote',
-      icon: 'blockquote',
-      label: labels.blockquote,
-      pressed: state.blockquote,
-      group: 'lists',
-      run: () => chain().toggleBlockquote().run()
+      label: labels.lists,
+      menu: 'lists'
     },
     {
       id: 'undo',
@@ -310,6 +399,21 @@ export function RichTextToolbar({
     }
   })
 
+  const toolbarRef = useRef<HTMLDivElement>(null)
+  const updateEdges = (): void => {
+    const element = toolbarRef.current
+    if (!element) return
+    const start = element.scrollLeft > 1
+    const end =
+      element.scrollLeft + element.clientWidth < element.scrollWidth - 1
+    setEdges(previous =>
+      previous.start === start && previous.end === end
+        ? previous
+        : { start, end }
+    )
+  }
+  useLayoutEffect(updateEdges, [isMobile, items.length])
+
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     // React events bubble out of the menus' portals: only the buttons count
     if (!(event.target instanceof Node)) return
@@ -350,6 +454,46 @@ export function RichTextToolbar({
     apply()
   }
 
+  const renderColorBar = (color: string, fallback: string): ReactElement => (
+    <Box
+      sx={{
+        width: 10,
+        height: 2,
+        bgcolor: color || fallback
+      }}
+    />
+  )
+
+  const renderContent = (item: ToolbarItem): ReactElement => {
+    switch (item.display) {
+      case 'size':
+        return <span aria-hidden="true">{sizeLabel}</span>
+      case 'font':
+        return <span aria-hidden="true">{currentFont?.label}</span>
+      case 'text-style':
+        return <span aria-hidden="true">Aa</span>
+      case 'color':
+      case 'highlight':
+        return (
+          <Box
+            aria-hidden="true"
+            className="u-flex u-flex-column u-flex-items-center"
+            sx={{ gap: '2px' }}
+          >
+            <EditorIcon
+              name={item.icon}
+              sx={item.display === 'highlight' ? { fontSize: 14 } : ICON_SX}
+            />
+            {item.display === 'color'
+              ? renderColorBar(state.color, 'currentColor')
+              : renderColorBar(state.backgroundColor, 'transparent')}
+          </Box>
+        )
+      default:
+        return <EditorIcon name={item.icon} sx={ICON_SX} />
+    }
+  }
+
   const renderButton = (item: ToolbarItem, index: number): ReactElement => {
     const isGrouped = item.group !== undefined
     return (
@@ -362,10 +506,17 @@ export function RichTextToolbar({
           aria-label={item.label}
           aria-pressed={item.pressed}
           aria-disabled={item.disabled ? true : undefined}
-          aria-haspopup={item.menu ? 'menu' : undefined}
+          aria-haspopup={
+            item.menu
+              ? item.menu === 'color' || item.menu === 'highlight'
+                ? 'dialog'
+                : 'menu'
+              : undefined
+          }
           aria-expanded={item.menu ? openMenu?.name === item.menu : undefined}
           tabIndex={index === activeIndex ? 0 : -1}
           onClick={handleClick(item, index)}
+          onFocus={() => setActiveIndex(index)}
           // Keep the editor selection while clicking
           onMouseDown={event => event.preventDefault()}
           data-testid={buttonTestId?.(item.id)}
@@ -377,26 +528,7 @@ export function RichTextToolbar({
               : {})
           }}
         >
-          {item.display === 'size' ? (
-            <span aria-hidden="true">{sizeLabel}</span>
-          ) : item.display === 'color' ? (
-            <Box
-              aria-hidden="true"
-              className="u-flex u-flex-column u-flex-items-center"
-              sx={{ gap: '2px' }}
-            >
-              <EditorIcon name={item.icon} sx={ICON_SX} />
-              <Box
-                sx={{
-                  width: 10,
-                  height: 2,
-                  bgcolor: state.color || 'text.primary'
-                }}
-              />
-            </Box>
-          ) : (
-            <EditorIcon name={item.icon} sx={ICON_SX} />
-          )}
+          {renderContent(item)}
         </IconButton>
       </Tooltip>
     )
@@ -421,25 +553,45 @@ export function RichTextToolbar({
     }
   })
 
+  const testIdOf = (id: RichTextToolbarItemId): string | undefined =>
+    buttonTestId?.(id)
+
   return (
     <Box
       role="toolbar"
       aria-label={labels.toolbar}
       aria-controls={editorId}
       onKeyDown={handleKeyDown}
-      className="u-flex u-flex-wrap u-flex-items-center"
-      sx={
-        placement === 'bottom'
+      ref={toolbarRef}
+      onScroll={updateEdges}
+      className="u-flex u-flex-items-center"
+      sx={{
+        flexShrink: 0,
+        gap: 1,
+        ...(placement === 'bottom'
           ? {
-              flexShrink: 0,
-              gap: 1,
               px: 2,
               py: 1,
               borderTop: '1px solid',
               borderColor: 'divider'
             }
-          : { gap: 1, py: 0.5 }
-      }
+          : { py: 0.5 }),
+        ...(isMobile
+          ? {
+              // One line that scrolls sideways, edges faded, no scrollbar
+              flexWrap: 'nowrap',
+              overflowX: 'auto',
+              scrollSnapType: 'x proximity',
+              scrollPaddingInline: 16,
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': { display: 'none' },
+              '& > *': { scrollSnapAlign: 'start' },
+              maskImage: `linear-gradient(to right, ${
+                edges.start ? 'transparent 0, #000 16px' : '#000 0'
+              }, ${edges.end ? '#000 calc(100% - 16px), transparent 100%' : '#000 100%'})`
+            }
+          : { flexWrap: 'wrap' })
+      }}
     >
       {segments.map(segment =>
         segment.isGroup ? (
@@ -453,37 +605,71 @@ export function RichTextToolbar({
 
       <Menu
         anchorEl={openMenu?.anchor}
-        open={openMenu?.name === 'color'}
+        open={openMenu?.name === 'text-style'}
         onClose={closeMenu}
       >
-        {colors.map(color => (
+        {TEXT_STYLES.map(style => (
           <MenuItem
-            key={color.value ?? 'default'}
+            key={style}
             role="menuitemradio"
-            aria-checked={state.color === (color.value ?? '')}
-            onClick={applyAndClose(() =>
-              color.value === null
-                ? chain().unsetColor().run()
-                : chain().setColor(color.value).run()
-            )}
+            aria-checked={currentStyle === style}
+            onClick={applyAndClose(() => applyTextStyle(style))}
+            data-testid={
+              style === 'blockquote' ? testIdOf('blockquote') : undefined
+            }
           >
-            <ListItemIcon>
-              <Box
-                aria-hidden="true"
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: '50%',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: color.value ?? 'text.primary'
-                }}
-              />
-            </ListItemIcon>
-            <ListItemText>{color.label}</ListItemText>
+            <ListItemText
+              slotProps={{
+                primary: {
+                  sx: {
+                    fontWeight: style.startsWith('h') ? 700 : undefined,
+                    fontFamily: style === 'code' ? 'monospace' : undefined,
+                    fontStyle: style === 'blockquote' ? 'italic' : undefined
+                  }
+                }
+              }}
+            >
+              {labels.textStyles[style]}
+            </ListItemText>
           </MenuItem>
         ))}
       </Menu>
+
+      <ColorMenu
+        anchor={openMenu?.name === 'color' ? openMenu.anchor : null}
+        title={labels.textColor}
+        colors={colors}
+        value={state.color}
+        customLabel={labels.customColor}
+        onPick={color => {
+          if (color === null) chain().unsetColor().run()
+          else chain().setColor(color).run()
+        }}
+        onClose={() => {
+          closeMenu()
+          editor.commands.focus()
+        }}
+        data-testid="rich-text-color-menu"
+      />
+
+      <ColorMenu
+        anchor={openMenu?.name === 'highlight' ? openMenu.anchor : null}
+        title={labels.highlight}
+        colors={colors.map(color =>
+          color.value === null ? { ...color, label: labels.noHighlight } : color
+        )}
+        value={state.backgroundColor}
+        customLabel={labels.customColor}
+        onPick={color => {
+          if (color === null) chain().unsetBackgroundColor().run()
+          else chain().setBackgroundColor(color).run()
+        }}
+        onClose={() => {
+          closeMenu()
+          editor.commands.focus()
+        }}
+        data-testid="rich-text-highlight-menu"
+      />
 
       <Menu
         anchorEl={openMenu?.anchor}
@@ -494,19 +680,39 @@ export function RichTextToolbar({
           <MenuItem
             key={size.value ?? 'default'}
             role="menuitemradio"
-            aria-checked={state.fontSize === (size.value ?? '')}
+            aria-checked={
+              (state.fontSize || `${DEFAULT_FONT_SIZE}px`) ===
+              (size.value ?? `${DEFAULT_FONT_SIZE}px`)
+            }
             onClick={applyAndClose(() =>
               size.value === null
                 ? chain().unsetFontSize().run()
                 : chain().setFontSize(size.value).run()
             )}
           >
+            <ListItemText>{size.label}</ListItemText>
+          </MenuItem>
+        ))}
+      </Menu>
+
+      <Menu
+        anchorEl={openMenu?.anchor}
+        open={openMenu?.name === 'font'}
+        onClose={closeMenu}
+      >
+        {fontFamilies.map(family => (
+          <MenuItem
+            key={family.value}
+            role="menuitemradio"
+            aria-checked={currentFont?.value === family.value}
+            onClick={applyAndClose(() =>
+              chain().setFontFamily(family.value).run()
+            )}
+          >
             <ListItemText
-              slotProps={{
-                primary: { sx: { fontSize: size.value ?? undefined } }
-              }}
+              slotProps={{ primary: { sx: { fontFamily: family.value } } }}
             >
-              {size.label}
+              {family.label}
             </ListItemText>
           </MenuItem>
         ))}
@@ -530,6 +736,61 @@ export function RichTextToolbar({
             <ListItemText>{labels.alignments[alignment]}</ListItemText>
           </MenuItem>
         ))}
+      </Menu>
+
+      <Menu
+        anchorEl={openMenu?.anchor}
+        open={openMenu?.name === 'lists'}
+        onClose={closeMenu}
+      >
+        <MenuItem
+          role="menuitemcheckbox"
+          aria-checked={state.bulletList}
+          onClick={applyAndClose(() => chain().toggleBulletList().run())}
+          data-testid={testIdOf('bullet-list')}
+        >
+          <ListItemIcon>
+            <EditorIcon name="bulletList" />
+          </ListItemIcon>
+          <ListItemText>{labels.bulletList}</ListItemText>
+        </MenuItem>
+        <MenuItem
+          role="menuitemcheckbox"
+          aria-checked={state.orderedList}
+          onClick={applyAndClose(() => chain().toggleOrderedList().run())}
+          data-testid={testIdOf('ordered-list')}
+        >
+          <ListItemIcon>
+            <EditorIcon name="orderedList" />
+          </ListItemIcon>
+          <ListItemText>{labels.orderedList}</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={applyAndClose(() => {
+            const inList = state.bulletList || state.orderedList
+            if (inList && chain().sinkListItem('listItem').run()) return
+            chain().indentBlocks().run()
+          })}
+          data-testid={testIdOf('indent')}
+        >
+          <ListItemIcon>
+            <EditorIcon name="indent" />
+          </ListItemIcon>
+          <ListItemText>{labels.indent}</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={applyAndClose(() => {
+            const inList = state.bulletList || state.orderedList
+            if (inList && chain().liftListItem('listItem').run()) return
+            chain().outdentBlocks().run()
+          })}
+          data-testid={testIdOf('outdent')}
+        >
+          <ListItemIcon>
+            <EditorIcon name="outdent" />
+          </ListItemIcon>
+          <ListItemText>{labels.outdent}</ListItemText>
+        </MenuItem>
       </Menu>
     </Box>
   )

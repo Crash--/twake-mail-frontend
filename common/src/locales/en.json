@@ -221,18 +221,26 @@
       "name": "Message body",
       "keyboardHelp": "Tab indents a list item or leaves the editor. Alt+F10 goes to the formatting toolbar. Ctrl+K inserts a link. On an image selected with the arrow keys, Enter shows its size options.",
       "colors": {
+        "black": "Black",
+        "darkGrey": "Dark grey",
         "red": "Red",
         "orange": "Orange",
+        "yellow": "Yellow",
         "green": "Green",
+        "teal": "Teal",
         "blue": "Blue",
         "purple": "Purple",
-        "grey": "Grey"
-      },
-      "sizes": {
-        "small": "Small",
-        "normal": "Normal",
-        "large": "Large",
-        "huge": "Huge"
+        "pink": "Pink",
+        "grey": "Grey",
+        "lightGrey": "Light grey",
+        "lightRed": "Light red",
+        "lightOrange": "Light orange",
+        "lightYellow": "Light yellow",
+        "lightGreen": "Light green",
+        "lightTeal": "Light teal",
+        "lightBlue": "Light blue",
+        "lightPurple": "Light purple",
+        "lightPink": "Light pink"
       },
       "image": {
         "toolbar": "Image options",
@@ -244,7 +252,26 @@
         "larger": "Larger",
         "remove": "Remove image",
         "sizeStatus": "Width %{width} px, %{percent}% of the original"
-      }
+      },
+      "textStyle": "Text style",
+      "textStyles": {
+        "paragraph": "Normal",
+        "h1": "Header 1",
+        "h2": "Header 2",
+        "h3": "Header 3",
+        "h4": "Header 4",
+        "h5": "Header 5",
+        "h6": "Header 6",
+        "blockquote": "Quote",
+        "code": "Code"
+      },
+      "fontFamily": "Font",
+      "highlight": "Highlight color",
+      "lists": "Lists and indentation",
+      "indent": "Increase indent",
+      "outdent": "Decrease indent",
+      "customColor": "Other color",
+      "noHighlight": "No highlight"
     },
     "link": {
       "text": "Text",

@@ -39,7 +39,7 @@ declare global {
 
     /** Defaults to 'oidc' */
     AUTH_MODE?: AuthMode
-    /** OIDC issuer URL, required when AUTH_MODE is 'oidc' */
+    /** OIDC issuer URL; without it the issuer is found by WebFinger on SERVER_URL (tmail-flutter) */
     SSO_BASE_URL?: string
     /** Overrides the redirect URI built from DOMAIN_REDIRECT_URL (default `<origin>/callback`) */
     SSO_REDIRECT_URI?: string

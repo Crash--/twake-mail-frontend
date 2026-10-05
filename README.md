@@ -143,17 +143,17 @@ e2e/                 end-to-end tests, separate npm package (not a workspace)
 
 ```bash
 docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=0.1.0 -t twake-mail-frontend .
-docker run -p 127.0.0.1:8080:8080 --read-only --tmpfs /tmp \
+docker run -p 127.0.0.1:8080:80 --read-only --tmpfs /tmp \
   -v $PWD/my.env.js:/usr/share/nginx/html/.env.js:ro \
   -v $PWD/my.appList.js:/usr/share/nginx/html/appList.js:ro \
   twake-mail-frontend
 ```
 
 The image builds the app itself (Node 24) and serves it with an unprivileged
-nginx on port 8080 (user 101, read-only root filesystem supported, health
+nginx on port 80 (`LISTEN_PORT`; user 101, read-only root filesystem supported, health
 endpoint `/healthz`). It sends security headers, a Content-Security-Policy
-included, configured by environment variables: the SSO, and JMAP when it is
-not on the origin of the app, must be allowed with `CSP_CONNECT_SRC`. nginx
+included, configured by environment variables; the origins of the JMAP server
+and of the SSO are derived from the configuration (more in `CSP_CONNECT_SRC`). nginx
 caches hashed assets for a year (not when `DEBUG = true`) and masks OIDC
 codes, states, tokens and tickets in its access log.
 

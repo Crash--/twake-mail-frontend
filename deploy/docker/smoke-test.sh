@@ -18,6 +18,9 @@ trap 'docker rm -f "$NAME" "$ENV_FILE_NAME" >/dev/null 2>&1 || true; rm -rf "$CO
 cat >"$CONFIG_DIR/.env.js" <<'EOF'
 var SERVER_URL = 'https://jmap.example.com'
 var AUTH_MODE = 'basic'
+var SENTRY_ENABLED = 'true'
+var SENTRY_DSN = 'https://publickey@sentry.example.com/42'
+var SENTRY_ENVIRONMENT = 'smoke'
 EOF
 echo 'var appList = []' >"$CONFIG_DIR/appList.js"
 chmod 644 "$CONFIG_DIR"/*.js
@@ -73,7 +76,11 @@ expect 'assets are served pre-compressed' \
 csp="$(header / Content-Security-Policy)"
 expect 'Content-Security-Policy sent' "$csp" "default-src 'self';*"
 expect 'CSP: inline script allowed by its hash' "$csp" "*script-src 'self' 'sha256-*"
-expect 'CSP: CSP_CONNECT_SRC appended' "$csp" '*connect-src *wss://jmap.example.com;*'
+expect 'CSP: CSP_CONNECT_SRC appended' "$csp" '*connect-src *wss://jmap.example.com *;*'
+expect 'CSP: the Sentry ingest origin of the DSN allowed' "$csp" \
+  '*connect-src *https://sentry.example.com;*'
+expect 'source maps are not served' \
+  "$(curl -s -o /dev/null -w '%{http_code}' "$BASE${script}.map")" '404'
 expect 'CSP: CSP_FRAME_ANCESTORS used' "$csp" "*frame-ancestors 'self' https://workplace.example.com;*"
 expect 'CSP on the SPA fallback too' "$(header /mailbox/inbox Content-Security-Policy)" "$csp"
 expect 'X-Content-Type-Options' "$(header / X-Content-Type-Options)" 'nosniff'
@@ -89,6 +96,7 @@ WEB_OIDC_CLIENT_ID="teammail-web"
 OIDC_SCOPES=openid,profile,email,offline_access # trailing comment
 FORWARD_WARNING_MESSAGE=It's a \ test
 SENTRY_ENABLED=false
+SENTRY_DSN=https://publickey@ingest-off.example.com/1
 ENVFILE
 chmod 644 "$CONFIG_DIR/env.file"
 docker run -d --name "$ENV_FILE_NAME" \
@@ -115,6 +123,13 @@ else
 fi
 expect 'env.file: values stay strings' "$env_js" "*var SENTRY_ENABLED = 'false';*"
 expect 'env.file: comments left out' "$env_js" "var SERVER_URL*"
+env_file_csp="$(curl -fsS -o /dev/null -D - "$ENV_FILE_BASE/" | tr -d '\r')"
+if [[ "$env_file_csp" == *ingest-off.example.com* ]]; then
+  echo 'FAIL CSP: the DSN of a disabled Sentry must not be allowed'
+  failures=$((failures + 1))
+else
+  echo 'ok   CSP: the DSN of a disabled Sentry is not allowed'
+fi
 env_js_headers="$(curl -fsS -o /dev/null -D - "$ENV_FILE_BASE/.env.js" | tr -d '\r')"
 expect 'env.file: /.env.js is never cached' "$env_js_headers" '*no-store*'
 expect 'env.file: /.env.js is JavaScript' "$env_js_headers" '*application/javascript*'

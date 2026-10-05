@@ -165,9 +165,16 @@ var SSO_POST_LOGOUT_REDIRECT = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
 {{- $sentry := $config.sentry | default dict }}
 {{- $sentryDsn := $sentry.dsn | default $config.sentryDsn | default "" }}
+{{- /*
+One filled SENTRY_* key makes the configuration come from here, with no
+fallback to the ecosystem of the server: nothing is written without a DSN
+(unless sentry.enabled is false), which leaves it to the ecosystem.
+*/}}
+{{- if or (ne $sentryDsn "") (eq (toString $sentry.enabled) "false") }}
 var SENTRY_ENABLED = {{ ternary "true" "false" (and (ne (toString $sentry.enabled) "false") (ne $sentryDsn "")) }}
 var SENTRY_DSN = {{ include "twake-mail-frontend.jsString" $sentryDsn }}
 var SENTRY_ENVIRONMENT = {{ include "twake-mail-frontend.jsString" ($sentry.environment | default "") }}
+{{- end }}
 {{- with $config.appGridAvailable }}
 var APP_GRID_AVAILABLE = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}

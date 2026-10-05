@@ -11,7 +11,9 @@
 #
 #   CSP_CONNECT_SRC          extra sources of connect-src: the JMAP server and
 #                            its WebSocket when not on the origin of the app,
-#                            the SSO, the Sentry ingest host
+#                            the SSO. The Sentry ingest origin of SENTRY_DSN is
+#                            added by this script when SENTRY_ENABLED is true,
+#                            and only then
 #   CSP_FRAME_SRC            extra sources of frame-src (e.g. Twake Drive intents)
 #   CSP_FRAME_ANCESTORS      who may embed the app in a frame, default 'self'
 #   CSP_REPORT_URI           where browsers report violations (report-uri)
@@ -136,6 +138,34 @@ EOF
 
 # --- Security headers ------------------------------------------------------
 connect_src=${CSP_CONNECT_SRC:-}
+
+# The ingest origin of the Sentry DSN of the configuration, when error
+# reporting is on: nothing else is allowed to receive reports. A DSN given by
+# the ecosystem of the server is not known here: add its origin to
+# CSP_CONNECT_SRC.
+# env_js_value <KEY>: the value of `var KEY = '…';` (or `window.KEY = …`)
+env_js_value() {
+  [ -f "$env_js" ] || return 0
+  grep -E "(^|[[:space:];.])$1[[:space:]]*=" "$env_js" | head -1 |
+    sed -E "s/^.*$1[[:space:]]*=[[:space:]]*//; s/[;[:space:]]*\$//; s/^['\"\`]//; s/['\"\`]\$//"
+}
+sentry_enabled=$(env_js_value SENTRY_ENABLED)
+sentry_dsn=$(env_js_value SENTRY_DSN)
+# Without SENTRY_ENABLED, a DSN alone starts the reporting (deprecated)
+case "$sentry_enabled" in
+  true | '')
+    sentry_origin=$(printf '%s' "$sentry_dsn" |
+      sed -nE 's#^(https?://)[^@/[:space:]]+@([^/?#[:space:]]+)/.*$#\1\2#p')
+    case " $connect_src " in
+      *" $sentry_origin "*) sentry_origin='' ;;
+    esac
+    if [ -n "$sentry_origin" ]; then
+      connect_src="${connect_src:+$connect_src }$sentry_origin"
+      log "Sentry ingest origin $sentry_origin added to connect-src"
+    fi
+    ;;
+esac
+
 frame_src=${CSP_FRAME_SRC:-}
 frame_ancestors=${CSP_FRAME_ANCESTORS:-"'self'"}
 report_uri=${CSP_REPORT_URI:-}

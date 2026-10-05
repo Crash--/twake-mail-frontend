@@ -40,7 +40,10 @@ WORKDIR /src/apps/private/dist
 # development checkout, which the build copies from public/.
 # Hashes of the inline scripts of index.html, allowed by the CSP.
 # Assets pre-compressed for gzip_static.
+# Source maps are never shipped: those of a build that uploads them to Sentry
+# are deleted by the plugin already, this removes any other.
 RUN rm -f .env.js appList.js \
+ && find . -type f -name '*.map' -delete \
  && echo "var APP_VERSION = \"${BUILD_VERSION}\";" > version.js \
  && node /src/scripts/csp-script-hashes.mjs index.html > /src/csp-script-hashes \
  && find . -type f ! -name '.env.js' ! -name 'version.js' ! -name 'appList.js' \

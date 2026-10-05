@@ -634,3 +634,5 @@ Web app only, no Patrol test: the composer follows the Figma "Composer" frames.
   - Spec: `tests/composer.spec.ts`.
 - [x] `CMP-63` The formatting toolbar is under the text; the footer button shows or hides it (`aria-pressed`), and the footer link button opens the link dialog. — web app only. Axe.
   - Spec: `tests/composer.spec.ts`.
+- [x] `THR-20` Opening a conversation from the list with a view transition never animates towards a skeleton (the email and its conversation are loaded before the navigation, the transition is skipped when they take longer than 300 ms), the pane the transition snapshots does not move while the target is scrolled to (it would slide over the search row and the top bar), and the transition ends on the final scroll position; standalone and embedded, 1440, 1280 and 1000 px wide, with and without server latency. — web app (issue #120)
+  - Spec: `tests/open-glitch.spec.ts`, on `chromium`.

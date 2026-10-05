@@ -16,7 +16,9 @@ const SUBMISSION = 'urn:ietf:params:jmap:submission'
 const QUOTA = 'urn:ietf:params:jmap:quota'
 const SHARES = 'urn:apache:james:params:jmap:mail:shares'
 const DEFAULT_USING: readonly string[] = [CORE, MAIL, SUBMISSION, SHARES]
-const IDENTITY_SORT_ORDER = 'urn:apache:james:params:jmap:mail:identity:sortorder'
+const LABELS = 'com:linagora:params:jmap:labels'
+const IDENTITY_SORT_ORDER =
+  'urn:apache:james:params:jmap:mail:identity:sortorder'
 
 export const EML_FIXTURES_DIR: string = path.resolve(
   __dirname,
@@ -134,6 +136,11 @@ export interface WaitForEmailInput {
   mailboxRole?: MailboxRole
   /** A folder by id, instead of a role */
   mailboxId?: string
+  /**
+   * Lists the folder instead of searching the subject: the memory image
+   * does not find some subjects ("Email 1 subject Tag 1")
+   */
+  withoutSearch?: boolean
   /** Milliseconds, 15 s by default */
   timeout?: number
 }
@@ -440,6 +447,34 @@ export class JmapClient {
       throw new JmapError(`${name}: empty response`, 'invalidResponse')
     }
     return first[1]
+  }
+
+  /** Creates a label (`Label/set`) and returns its id and keyword */
+  async createLabel(
+    displayName: string,
+    color: string | null = null
+  ): Promise<{ id: string; keyword: string; displayName: string }> {
+    const result = await this.call(
+      'Label/set',
+      { create: { label: { displayName, color } } },
+      [LABELS]
+    )
+    const created = isRecord(result.created) ? result.created.label : undefined
+    if (!isRecord(created)) {
+      throw new JmapError(
+        `Label/set did not create "${displayName}": ${JSON.stringify(result.notCreated)}`,
+        'notCreated'
+      )
+    }
+    const id = requireString(created, 'id')
+    const keyword = typeof created.keyword === 'string' ? created.keyword : id
+    return { id, keyword, displayName }
+  }
+
+  /** The labels of the account */
+  async getLabels(): Promise<Record<string, unknown>[]> {
+    const result = await this.call('Label/get', { ids: null }, [LABELS])
+    return requireArray(result, 'list').filter(isRecord)
   }
 
   /** The identities of the account, with their `sortOrder` (James) */
@@ -857,10 +892,11 @@ export class JmapClient {
     const deadline = Date.now() + timeout
     let delay = 100
     for (;;) {
-      const emails = await this.queryEmails({
-        inMailbox: mailbox.id,
-        subject: input.subject
-      })
+      const emails = await this.queryEmails(
+        input.withoutSearch === true
+          ? { inMailbox: mailbox.id }
+          : { inMailbox: mailbox.id, subject: input.subject }
+      )
       const match = emails.find(email => email.subject === input.subject)
       if (match !== undefined) {
         return match

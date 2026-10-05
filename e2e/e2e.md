@@ -325,9 +325,11 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `SRCH-06` Given a self-sent email "Persist search filter" with an attachment, searching for "Persist search filter", enabling the "Has attachment" filter, then changing the query to "Persist search" keeps the attachment filter selected and the email still listed. — `search/persist_filter_when_change_search_input_text_test.dart` · tags: `ios (default)`
   - Spec: `tests/search.spec.ts`. Passes in CI.
 - [ ] `SRCH-07` Given labels "search-label" (one self-sent email tagged with it) and "search-empty-label" (no email), searching by "search-label" lists the tagged email and searching by "search-empty-label" shows the empty-results view. — `search/search_email_by_label_test.dart` · tags: `android` `ios` `web`
+  - Web port: the label is picked in the "Label" select of the advanced search.
   - Data: labels created via JMAP and applied as keywords at send time. Web path uses the advanced search form label dropdown + Search button; mobile uses the "Labels" filter chip in the search screen.
   - Spec: `tests/search.spec.ts`, `test.fixme`: labels (`Label/*`, `com:linagora:params:jmap:labels`) come with phase 4.
 - [ ] `SRCH-08` Given labels "Search Tag 1/2/3" with 3 self-sent emails each, opening search and picking each label in turn from the "Labels" filter menu lists at least 3 emails for that label. — `search/search_email_with_tag_test.dart` · tags: `android` `ios` `web`
+  - Web port: the label is picked in the "Label" select of the advanced search; results counted once per subject (the memory image also returns the Sent copy of an email sent to oneself).
   - Data: labels created via JMAP, emails sent with the label keyword.
   - Spec: `tests/search.spec.ts`, `test.fixme`: labels (`Label/*`, `com:linagora:params:jmap:labels`) come with phase 4.
 - [x] `SRCH-09` Given 5 emails "relevance" sent from the user to alice, brian, charlotte, david and emma, searching "relevance", setting the date filter to "Last 7 days" then the sort order to "Relevance" lists exactly those 5 emails. — `search/search_email_by_date_time_and_sort_order_relevance_test.dart` · tags: `android` `ios` `web`
@@ -353,15 +355,20 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 - [ ] `LBL-01` In the sidebar/mailbox menu, the "add new label" button opens the Create label modal; entering a unique name and description and confirming shows the toast "You successfully created the <name> label". — `labels/create_new_a_tag_test.dart` · tags: `ios (default)`
 - [ ] `LBL-02` With labels "Edit Tag 1"/"Edit Tag 2" provisioned, opening the label's context menu in the sidebar (long press on mobile), choosing Edit, renaming it to "New edit tag 1" and confirming shows the new name in the sidebar label list. — `labels/edit_a_label_test.dart` · tags: `ios (default)`
+  - Web port: the label menu is its ⋮ button in the sidebar; renaming it to an existing name is refused first ("A tag with this name already exists").
   - Data: labels created via JMAP (Label/set) before the test.
 - [ ] `LBL-03` With labels "Delete Tag 1"/"Delete Tag 2" provisioned, opening the label's context menu in the sidebar (long press on mobile), choosing Delete and confirming in the delete-label dialog removes "Delete Tag 1" from the sidebar. — `labels/delete_a_tag_test.dart` · tags: `ios (default)`
+  - Web port: the label menu is its ⋮ button in the sidebar.
 - [ ] `LBL-04` With labels Tag 1/2/3 each applied to 3 provisioned emails (subjects "Email N subject Tag X"), opening each label from the sidebar lists at least its 3 tagged emails. — `labels/display_view_with_all_email_with_tag_test.dart` · tags: `ios (default)`
+  - Data: two labels of three emails each, sent by another account (an email sent to oneself has a Sent copy that the memory image also returns for `hasKeyword`).
   - Data: emails sent to self with the label keyword set.
 - [ ] `LBL-05` With "Tag with email" applied to 3 emails and "Tag without email" applied to none, opening the first label lists its 3 emails and opening the second shows the empty thread view "You don't have any emails tagged with this.". — `labels/display_empty_view_when_open_tag_test.dart` · tags: `ios (default)`
 - [ ] `LBL-06` With "Tag 1" applied to 2 emails located in Trash, opening the label from the sidebar lists them with their folder info ("Trash") displayed. — `labels/display_folder_info_when_open_mail_from_tag_test.dart` · tags: `ios (default)`
   - Data: tagged emails provisioned then moved to the Trash role mailbox.
 - [ ] `LBL-07` In the detail view of a provisioned email, More → "Label as" opens the add-label modal; "Create a new label", entering a unique name and confirming creates the label and applies it, with toast `Label "<name>" added to email`. — `labels/create_a_new_tag_from_an_email_test.dart` · tags: `ios (default)`
+  - Web port: "Label as" opens the choose-label modal of every entry point; the label created there is checked, then "Add label" puts it on.
 - [ ] `LBL-08` With no labels existing, selecting an email in the list (long press on mobile), then More → "Label as" opens the Choose Label modal showing the empty state "No Labels yet" with a "Create a label" button and no label list. — `labels/display_no_label_yet_widget_when_open_choose_label_modal_test.dart` · tags: `ios (default)`
+  - Web port: the row checkbox, then "Label as" in the "More" menu of the selection toolbar.
 - [ ] `LBL-09` From the Choose Label modal empty state (as in LBL-08), "Create a label" → entering a unique name and confirming shows "You successfully created the <name> label", and the modal now displays a label list containing the new label instead of the empty state. — `labels/create_label_from_no_label_yet_widget_test.dart` · tags: `ios (default)`
 - [ ] `LBL-10` With one existing label ("Existing Label 1", applied to an email), selecting that email and opening "Label as" shows the label list (no empty state) plus a "Create a label" button; creating a new label from it shows the success toast and the new label in the list. — `labels/create_label_from_choose_label_modal_with_existing_labels_test.dart` · tags: `ios (default)`
 - [ ] `LBL-11` With "Remove Tag 1" applied to one email, opening that label from the sidebar and then the email shows the label chip next to the subject; clicking the chip's remove (×) button shows the toast `Label "Remove Tag 1" removed from email`. — `labels/remove_a_label_from_email_test.dart` · tags: `ios (default)`

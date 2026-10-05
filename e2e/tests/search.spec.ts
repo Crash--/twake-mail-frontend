@@ -287,18 +287,69 @@ test.describe('SRCH search', () => {
     await expect(search.resultRow('Persist search plain')).toBeHidden()
   })
 
-  test('SRCH-07 search by label', async () => {
-    test.fixme(
-      true,
-      'Labels (Label/get, com:linagora:params:jmap:labels) come with phase 4: no label filter yet'
-    )
+  test('SRCH-07 search by label', async ({ page, user, jmap }) => {
+    const tagged = await jmap.createLabel('search-label')
+    await jmap.createLabel('search-empty-label')
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Labelled for search',
+      text: 'Hi'
+    })
+    const email = await jmap.waitForEmail({ subject: 'Labelled for search' })
+    await jmap.setKeywords(email.id, { [tagged.keyword]: true })
+    await new LoginPage(page).loginAs(user)
+    const search = new SearchPage(page)
+
+    let dialog = await search.openAdvanced()
+    await dialog
+      .getByTestId('advanced-search-label-select')
+      .selectOption({ label: 'search-label' })
+    await search.advancedSubmitButton.click()
+    await search.expectResults()
+    await expect(search.resultRow('Labelled for search')).toBeVisible()
+
+    dialog = await search.openAdvanced()
+    await dialog
+      .getByTestId('advanced-search-label-select')
+      .selectOption({ label: 'search-empty-label' })
+    await search.advancedSubmitButton.click()
+    await expect(search.emptyView).toBeVisible()
   })
 
-  test('SRCH-08 search by tag from the labels filter', async () => {
-    test.fixme(
-      true,
-      'Labels (Label/get, com:linagora:params:jmap:labels) come with phase 4: no label filter yet'
-    )
+  test('SRCH-08 search by tag from the labels filter', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const tags = []
+    for (const name of ['Search Tag 1', 'Search Tag 2', 'Search Tag 3']) {
+      const tag = await jmap.createLabel(name)
+      tags.push(tag)
+      for (let index = 1; index <= 3; index += 1) {
+        const subject = `Email ${index} subject ${name}`
+        await jmap.sendEmail({ to: user.email, subject, text: 'Tagged' })
+        const email = await jmap.waitForEmail({ subject, withoutSearch: true })
+        await jmap.setKeywords(email.id, { [tag.keyword]: true })
+      }
+    }
+    await new LoginPage(page).loginAs(user)
+    const search = new SearchPage(page)
+
+    for (const tag of tags) {
+      const dialog = await search.openAdvanced()
+      await dialog
+        .getByTestId('advanced-search-label-select')
+        .selectOption({ label: tag.displayName })
+      await search.advancedSubmitButton.click()
+      await search.expectResults()
+      await expect
+        // The memory image also lists the Sent copy of an email sent to
+        // oneself, without the keyword: the subjects, once each
+        .poll(async () => [...new Set(await search.resultSubjects())].sort())
+        .toEqual(
+          [1, 2, 3].map(index => `Email ${index} subject ${tag.displayName}`)
+        )
+    }
   })
 
   test('SRCH-09 last 7 days sorted by relevance lists the emails sent to five people', async ({

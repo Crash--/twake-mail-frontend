@@ -41,6 +41,7 @@ const CALLBACK_URL = new URL(
 type TokenResponse = Awaited<ReturnType<typeof client.refreshTokenGrant>>
 
 const FULL_PROFILE = { email: 'alice@example.com', name: 'Alice Martin' }
+const FULL_USER = { ...FULL_PROFILE, workplaceFqdn: null }
 
 function makeTokenResponse(
   accessToken: string,
@@ -211,7 +212,7 @@ describe('createOidcAuthService', () => {
       )
       expect(service.getState()).toEqual({
         status: 'authenticated',
-        user: { email: 'alice@example.com', name: 'Alice Martin' }
+        user: FULL_USER
       })
       await expect(service.getAuthorizationHeader()).resolves.toBe(
         'Bearer access-1'
@@ -359,9 +360,26 @@ describe('createOidcAuthService', () => {
 
       expect(service.getState()).toEqual({
         status: 'authenticated',
-        user: FULL_PROFILE
+        user: FULL_USER
       })
       expect(mockedClient.fetchUserInfo).not.toHaveBeenCalled()
+    })
+
+    it('reads the Twake Workplace of the user from its claim', async () => {
+      const service = createOidcAuthService(CONFIG, makeDependencies())
+      await service.startLogin('/')
+      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
+        makeTokenResponse('access-1', {
+          profile: { ...FULL_PROFILE, workplaceFqdn: 'acme.twake.example.com' }
+        })
+      )
+
+      await service.handleCallback(CALLBACK_URL)
+
+      expect(service.getState()).toEqual({
+        status: 'authenticated',
+        user: { ...FULL_PROFILE, workplaceFqdn: 'acme.twake.example.com' }
+      })
     })
 
     it('asks userinfo for what the ID token does not say', async () => {
@@ -385,7 +403,7 @@ describe('createOidcAuthService', () => {
       )
       expect(service.getState()).toEqual({
         status: 'authenticated',
-        user: FULL_PROFILE
+        user: FULL_USER
       })
     })
 
@@ -408,7 +426,7 @@ describe('createOidcAuthService', () => {
 
       expect(service.getState()).toEqual({
         status: 'authenticated',
-        user: FULL_PROFILE
+        user: FULL_USER
       })
     })
 
@@ -427,7 +445,7 @@ describe('createOidcAuthService', () => {
       })
       expect(service.getState()).toEqual({
         status: 'authenticated',
-        user: { email: null, name: null }
+        user: { email: null, name: null, workplaceFqdn: null }
       })
     })
   })

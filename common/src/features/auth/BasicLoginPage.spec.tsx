@@ -51,7 +51,7 @@ describe('BasicLoginPage', () => {
     service.login = jest.fn(() => {
       service.store.setState({
         status: 'authenticated',
-        user: { email: 'alice@example.com', name: null }
+        user: { email: 'alice@example.com', name: null, workplaceFqdn: null }
       })
       return Promise.resolve({ ok: true as const })
     })

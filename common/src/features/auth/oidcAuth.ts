@@ -89,7 +89,8 @@ function normalizeUser(claims: UserClaims | undefined): AuthUser {
     email: getStringClaim(claims, 'email'),
     name:
       getStringClaim(claims, 'name') ??
-      getStringClaim(claims, 'preferred_username')
+      getStringClaim(claims, 'preferred_username'),
+    workplaceFqdn: getStringClaim(claims, 'workplaceFqdn')
   }
 }
 
@@ -97,7 +98,8 @@ function normalizeUser(claims: UserClaims | undefined): AuthUser {
 function mergeUsers(primary: AuthUser, fallback: AuthUser): AuthUser {
   return {
     email: primary.email ?? fallback.email,
-    name: primary.name ?? fallback.name
+    name: primary.name ?? fallback.name,
+    workplaceFqdn: primary.workplaceFqdn ?? fallback.workplaceFqdn
   }
 }
 
@@ -202,7 +204,7 @@ export function createOidcAuthService(
     const state = store.getState()
     return state.status === 'authenticated'
       ? state.user
-      : { email: null, name: null }
+      : { email: null, name: null, workplaceFqdn: null }
   }
 
   /**
@@ -229,7 +231,7 @@ export function createOidcAuthService(
       return normalizeUser(userInfo)
     } catch (error) {
       console.warn('[auth] Userinfo unavailable', getErrorMessage(error))
-      return { email: null, name: null }
+      return { email: null, name: null, workplaceFqdn: null }
     }
   }
 

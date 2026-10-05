@@ -201,6 +201,10 @@ test.describe('SET preferences', () => {
     // Dismissed: gone for 24 hours, kept in this browser
     await banner.getByRole('button', { name: 'Dismiss' }).click()
     await expect(banner).toHaveCount(0)
+    // As tmail-flutter, Spam is marked as read
+    await expect
+      .poll(async () => (await jmap.findMailboxById(spam.id)).unreadEmails)
+      .toBe(0)
     const away = await mailbox.openSettings()
     await away.backToMail()
     await expect(mailbox.root).toBeVisible()
@@ -210,6 +214,7 @@ test.describe('SET preferences', () => {
     await page.evaluate(() => {
       window.localStorage.removeItem('twake-mail.preferences.spamReport')
     })
+    await jmap.createEmailIn(spam.id, { subject: 'More pills', keywords: {} })
     const elsewhere = await mailbox.openSettings()
     await elsewhere.backToMail()
     await expect(banner).toBeVisible()

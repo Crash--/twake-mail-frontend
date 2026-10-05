@@ -644,7 +644,7 @@ Web app only, no Patrol test: the composer follows the Figma "Composer" frames.
   - Spec: `tests/error-reporting.spec.ts`.
 - [x] `SET-13` An aborted request and a failed network request, logged with `console.error`, are not reported, while a real bug right after is. — web app only (tmail-flutter ADR 0076)
   - Spec: `tests/error-reporting.spec.ts`.
-- [x] `SET-14` Unread emails in Spam show "N message(s) in spam" above the lists of the other folders (a live region, never in Spam itself); "Dismiss" hides it for 24 hours (kept in the browser), "View" opens Spam and hides it too; turning "Enable spam report" off in Settings → Preferences removes it for good. — web app only, no Patrol test (tmail-flutter's `SpamReportController`, `GetSpamMailboxCachedInteractor`)
+- [x] `SET-14` Unread emails in Spam show "N message(s) in spam" above the lists of the other folders (a live region, never in Spam itself); "Dismiss" hides it for 24 hours (kept in the browser) and marks Spam as read, "View" opens Spam and hides it too; turning "Enable spam report" off in Settings → Preferences removes it for good. — web app only, no Patrol test (tmail-flutter's `SpamReportController`, `GetSpamMailboxCachedInteractor`)
   - Spec: `tests/preferences.spec.ts`.
 
 ## AI-ACTION — Action required and AI preferences (4)

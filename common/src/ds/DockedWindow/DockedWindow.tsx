@@ -2,7 +2,7 @@
 // the bottom of the screen that can be minimized or put full screen while
 // the page stays usable (Gmail's composer, chat windows): Mail needs them
 // for the composer, Chat could for conversations.
-import { Cross, Dash, Icon, Up } from '@linagora/twake-icons'
+import { Cross, Dash, Icon } from '@linagora/twake-icons'
 import {
   Backdrop,
   Box,
@@ -290,11 +290,7 @@ export function DockedWindow({
                     }}
                     data-testid={testIds.minimize}
                   >
-                    <Icon
-                      icon={isMinimized ? Up : Dash}
-                      size={24}
-                      aria-hidden="true"
-                    />
+                    <Icon icon={Dash} size={24} aria-hidden="true" />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={fullscreenLabel}>

@@ -77,6 +77,40 @@ async function readMailbox(
   return (got?.[1].list ?? []) as ReadEmail[]
 }
 
+async function emailState(jmap: JmapClient): Promise<string> {
+  const accountId = await jmap.accountId()
+  const [got] = await jmap.request([
+    ['Email/get', { accountId, ids: [], properties: ['id'] }, 'g']
+  ])
+  return String(got?.[1].state)
+}
+
+/** What changed since `state`, without Email/query */
+async function emailChanges(
+  jmap: JmapClient,
+  state: string
+): Promise<{ created: string[]; destroyed: string[] }> {
+  const accountId = await jmap.accountId()
+  const [changes] = await jmap.request([
+    ['Email/changes', { accountId, sinceState: state }, 'c']
+  ])
+  const result = changes?.[1] as { created: string[]; destroyed: string[] }
+  return { created: result.created, destroyed: result.destroyed }
+}
+
+async function subjectsOf(
+  jmap: JmapClient,
+  ids: readonly string[]
+): Promise<string[]> {
+  const accountId = await jmap.accountId()
+  const [got] = await jmap.request([
+    ['Email/get', { accountId, ids, properties: ['subject'] }, 'g']
+  ])
+  return ((got?.[1].list ?? []) as { subject: string }[]).map(
+    email => email.subject
+  )
+}
+
 function bodyOf(email: ReadEmail, parts: BodyPart[]): string {
   return parts
     .map(part => email.bodyValues[part.partId ?? '']?.value ?? '')
@@ -473,6 +507,90 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
     await expect(dialog).toBeVisible()
     await dialog.getByRole('button', { name: 'Got it' }).click()
     await expect(composer.attachments).toHaveCount(0)
+  })
+
+  test.describe('a draft never lost', () => {
+    // Room for two small versions side by side, not for a big one
+    test.use({ userQuota: { size: 8000 } })
+
+    test('CMP-37 a draft save the quota refuses keeps the previous version; a version left by a lost destroy goes with the next save', async ({
+      page,
+      user,
+      jmap
+    }) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const composer = await mailbox.compose()
+      await composer.fill({
+        to: [user.email],
+        subject: 'Kept draft',
+        body: 'Small'
+      })
+      await expect(composer.saveStatus).toHaveText('Draft saved', {
+        timeout: 10_000
+      })
+      const [kept] = await readMailbox(jmap, 'drafts')
+      expect(kept?.subject).toBe('Kept draft')
+
+      // Over the quota: refused, the saved version stays as it was
+      await composer.editor.click()
+      await page.keyboard.press('End')
+      await page.keyboard.insertText('x'.repeat(6000))
+      await expect(composer.saveStatus).toHaveText('Draft not saved', {
+        timeout: 10_000
+      })
+      const [stillThere, ...others] = await readMailbox(jmap, 'drafts')
+      expect(others).toEqual([])
+      expect(stillThere?.id).toBe(kept?.id)
+      expect(stillThere && bodyOf(stillThere, stillThere.textBody)).toContain(
+        'Small'
+      )
+      await expectNoA11yViolations(page)
+
+      // Back under the quota: the new version replaces the kept one
+      await page.keyboard.press('ControlOrMeta+z')
+      await composer.subjectInput.fill('Kept draft, saved again')
+      await expect
+        .poll(async () =>
+          (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
+        )
+        .toEqual(['Kept draft, saved again'])
+
+      // The request destroying the previous version is lost once
+      let lost = 0
+      await page.route('**/jmap', async route => {
+        const body = route.request().postData() ?? ''
+        if (
+          lost === 0 &&
+          body.includes('"destroy"') &&
+          !body.includes('"create"')
+        ) {
+          lost += 1
+          await route.abort()
+          return
+        }
+        await route.continue()
+      })
+      await composer.subjectInput.fill('Third version')
+      await expect
+        .poll(async () =>
+          (await readMailbox(jmap, 'drafts')).map(draft => draft.subject).sort()
+        )
+        .toEqual(['Kept draft, saved again', 'Third version'])
+      expect(lost).toBe(1)
+      await page.unroute('**/jmap')
+      const left = (await readMailbox(jmap, 'drafts')).map(draft => draft.id)
+
+      // The next save destroys it with the version it replaces. Read
+      // through Email/changes: once two emails are destroyed in one call,
+      // the memory image drops the rest of the mailbox from Email/query
+      const since = await emailState(jmap)
+      await composer.subjectInput.fill('Fourth version')
+      await expect
+        .poll(async () => (await emailChanges(jmap, since)).destroyed.sort())
+        .toEqual([...left].sort())
+      const { created } = await emailChanges(jmap, since)
+      expect(await subjectsOf(jmap, created)).toEqual(['Fourth version'])
+    })
   })
 
   test.describe('over quota', () => {

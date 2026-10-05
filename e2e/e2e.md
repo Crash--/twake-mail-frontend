@@ -45,7 +45,7 @@ the React app. One line per Patrol test, 116 lines.
 |---|---|---|---|---|
 | `LOGIN` | Login | 1 | 1 | 0 |
 | `MBX` | Mailbox and folders | 25 | 3 | 2 |
-| `CMP` | Composer | 36 | 7 | 3 |
+| `CMP` | Composer | 37 | 7 | 3 |
 | `ATT` | Attachments | 2 | 1 | 0 |
 | `EML` | Reading and acting on an email | 27 | 0 | 1 |
 | `THR` | Thread detail | 3 | 0 | 0 |
@@ -57,7 +57,7 @@ the React app. One line per Patrol test, 116 lines.
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 1 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **126** | **24** | **6** |
+| | **Total** | **127** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -153,7 +153,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `MBX-30` A member of a team mailbox gets, on its root, only the actions the server rights allow (`myRights`: no rename, no delete; hide). — web app only, no Patrol test
   - Spec: `tests/folders.spec.ts`. Passes in CI.
 
-## CMP — Composer (36)
+## CMP — Composer (37)
 
 - [x] `CMP-01` Compose a new email to self (bob) and alice with subject "Test subject" and body, send it, and the message is filed in the Sent mailbox (no send-failure confirm dialog appears). — `composer/send_email_test.dart` · tags: `android` `ios` `web`
   - Data: logged-in user `BASIC_AUTH_EMAIL` = bob@example.com, `ADDITIONAL_MAIL_RECIPIENT` = alice@example.com.
@@ -205,6 +205,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `CMP-34` A message saves itself as a draft 1.5 s after the last change ("Draft saved" under it); closing it then asks nothing, says "Draft saved" and offers "Discard", which destroys the draft made by this composer. — web app only, no Patrol test (tmail-flutter web has no autosave)
 - [x] `CMP-35` A file being uploaded shows its progress and is cancelled when removed; files above the size limit of the server (`maxSizeUpload`, `maxSizeAttachmentsPerEmail`) are refused with "Maximum files size". — web app only, no Patrol test
 - [x] `CMP-36` A message refused by the server (over quota) stays in the composer, the reason said in an alert. — web app only, no Patrol test
+- [ ] `CMP-37` A draft save refused by the server (over quota) leaves the previous version of the draft on the server, untouched; once the request destroying a previous version is lost, the next save destroys it with the version it replaces, leaving one draft. — web app only, no Patrol test (tmail-flutter saves a draft with create and destroy in one `Email/set`)
 
 ## ATT — Attachments (2)
 

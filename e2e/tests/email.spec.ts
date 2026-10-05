@@ -66,6 +66,56 @@ test.describe('EML reading an email', () => {
     expect(dialogs).toEqual([])
   })
 
+  test(
+    'EML-34 bare URLs and addresses of text and HTML emails are links',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      await jmap.sendEmail({
+        to: user.email,
+        subject: 'plain links',
+        text: 'Docs at https://docs.example.test/start. Ask bob@example.com, or see <www.example.org>.'
+      })
+      await jmap.sendEmail({
+        to: user.email,
+        subject: 'html links',
+        html: '<p>Read www.example.org, then <a href="https://kept.example.test/">https://kept.example.test/</a></p><pre><code>curl https://code.example.test</code></pre>'
+      })
+      await jmap.waitForEmail({ subject: 'plain links' })
+      await jmap.waitForEmail({ subject: 'html links' })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const plain = await mailbox.openEmail('plain links')
+
+      const docs = plain.bodyLink('https://docs.example.test/start')
+      await expect(docs).toHaveAttribute('href', 'https://docs.example.test/start')
+      await expect(docs).toHaveAttribute('target', '_blank')
+      await expect(docs).toHaveAttribute('rel', 'noopener noreferrer')
+      await expect(plain.bodyLink('www.example.org')).toHaveAttribute(
+        'href',
+        'https://www.example.org/'
+      )
+      await expectNoA11yViolations(page)
+
+      // mailto: writes the message in the app, with the keyboard
+      const composer = await plain.writeFromBodyLink('bob@example.com')
+      await expect(
+        composer.recipients('to').filter({ hasText: 'bob@example.com' })
+      ).toBeVisible()
+      await composer.close()
+
+      await plain.back()
+      const html = await mailbox.openEmail('html links')
+      await expect(html.bodyLink('www.example.org')).toHaveAttribute(
+        'href',
+        'https://www.example.org/'
+      )
+      await expect(html.body().getByRole('link')).toHaveCount(2)
+      await expect(html.body().locator('code')).toHaveText(
+        'curl https://code.example.test'
+      )
+    }
+  )
+
   test('EML-29 remote images wait for the user, then always show for a trusted sender', async ({
     page,
     user,

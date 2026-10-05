@@ -13,6 +13,16 @@ function lockName(accountId: string, draftId: string): string {
 }
 
 /**
+ * The composers kept in the browser (`composerStorage`) are shared by the
+ * tabs: a composer belongs to the tab that holds the lock named after it,
+ * for as long as it is open. A tab starting reopens the composers nobody
+ * holds (a closed tab, a reload), never the ones another tab shows.
+ */
+function composerLockName(accountId: string, composerId: string): string {
+  return `twake-mail-composer|${accountId}|${composerId}`
+}
+
+/**
  * Takes the lock of a draft for as long as it is edited. Resolves null
  * when another tab holds it; resolves a no-op where the browser has no Web
  * Locks (only the composers of the tab are then known).
@@ -21,6 +31,18 @@ export function acquireDraftLock(
   accountId: string,
   draftId: string
 ): Promise<ReleaseLock | null> {
+  return acquireLock(lockName(accountId, draftId))
+}
+
+/** Takes the lock of an open composer, as `acquireDraftLock` does */
+export function acquireComposerLock(
+  accountId: string,
+  composerId: string
+): Promise<ReleaseLock | null> {
+  return acquireLock(composerLockName(accountId, composerId))
+}
+
+function acquireLock(name: string): Promise<ReleaseLock | null> {
   const locks = typeof navigator === 'undefined' ? undefined : navigator.locks
   // Not in every browser (nor in jsdom)
   if (!locks) return Promise.resolve(() => undefined)
@@ -30,7 +52,7 @@ export function acquireDraftLock(
       release = done
     })
     locks
-      .request(lockName(accountId, draftId), { ifAvailable: true }, lock => {
+      .request(name, { ifAvailable: true }, lock => {
         if (lock === null) {
           resolve(null)
           return undefined

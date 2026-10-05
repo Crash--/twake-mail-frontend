@@ -19,8 +19,13 @@ import {
 } from '@common/testing/fakeUploads'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
-import { readSnapshot, type ComposerSnapshot } from './composerContent'
-import { registryKey, snapshotKey, writeStorage } from './composerStorage'
+import { parseSnapshot, type ComposerSnapshot } from './composerContent'
+import {
+  clearComposerStorage,
+  listComposers,
+  putComposer,
+  resumeComposerStorage
+} from './composerStorage'
 import { ComposerProvider, useComposer } from './ComposerProvider'
 
 function Opener(): ReactElement {
@@ -120,14 +125,44 @@ function draftsOf(server: FakeJmapServer): typeof server.emails {
   return server.emails.filter(email => 'mailbox-drafts' in email.mailboxIds)
 }
 
+// The saves are tested with the real delay in draftPolicy.spec.tsx
+jest.mock('./draftPolicy', () => ({
+  LOCAL_SAVE_DELAY_MS: 800,
+  DRAFT_IDLE_MS: 400
+}))
+
 describe('ComposerForm', () => {
   let uploads: FakeUploads | null = null
 
   afterEach(() => {
     uploads?.restore()
     uploads = null
-    sessionStorage.clear()
+    void clearComposerStorage()
   })
+
+  /** A composer the browser kept, as a reload leaves it */
+  async function keepComposer(
+    title: string,
+    snapshot: ComposerSnapshot
+  ): Promise<void> {
+    resumeComposerStorage()
+    await putComposer({
+      accountId: FAKE_ACCOUNT_ID,
+      composerId: 'composer-1',
+      entry: { id: 'composer-1', init: {}, mode: 'normal', title },
+      snapshot
+    })
+  }
+
+  /** What the browser keeps of the composers, once its writes are done */
+  async function kept(): Promise<
+    { id: string; snapshot: ComposerSnapshot | null }[]
+  > {
+    return (await listComposers(FAKE_ACCOUNT_ID)).map(stored => ({
+      id: stored.composerId,
+      snapshot: parseSnapshot(stored.snapshot)
+    }))
+  }
 
   describe('sending', () => {
     it('sends the message, which lands in Sent, seen', async () => {
@@ -756,15 +791,7 @@ describe('ComposerForm', () => {
         draftId: null,
         savedFingerprint: null
       }
-      writeStorage(registryKey(FAKE_ACCOUNT_ID), [
-        {
-          id: 'composer-1',
-          init: {},
-          mode: 'normal',
-          title: 'Before the reload'
-        }
-      ])
-      writeStorage(snapshotKey(FAKE_ACCOUNT_ID, 'composer-1'), snapshot)
+      await keepComposer('Before the reload', snapshot)
       renderComposer()
 
       const composer = await screen.findByRole('dialog', {
@@ -783,10 +810,8 @@ describe('ComposerForm', () => {
       await userEvent.click(
         within(composer).getByRole('button', { name: 'Save & close' })
       )
-      await waitFor(() => {
-        expect(readSnapshot(snapshotKey(FAKE_ACCOUNT_ID, 'composer-1'))).toBe(
-          null
-        )
+      await waitFor(async () => {
+        expect(await kept()).toEqual([])
       })
     })
   })
@@ -1135,11 +1160,9 @@ describe('ComposerForm', () => {
     })
 
     describe('back after a reload', () => {
-      afterEach(() => {
-        sessionStorage.clear()
-      })
-
-      function restoreReply(opensOn: ComposerSnapshot['opensOn']): void {
+      async function restoreReply(
+        opensOn: ComposerSnapshot['opensOn']
+      ): Promise<void> {
         const snapshot: ComposerSnapshot = {
           identityId: 'identity-alice',
           recipients: {
@@ -1159,14 +1182,11 @@ describe('ComposerForm', () => {
           answering: { emailId: 'source-1', keyword: '$answered' },
           ...(opensOn === undefined ? {} : { opensOn })
         }
-        writeStorage(registryKey(FAKE_ACCOUNT_ID), [
-          { id: 'composer-1', init: {}, mode: 'normal', title: 'Re: Plans' }
-        ])
-        writeStorage(snapshotKey(FAKE_ACCOUNT_ID, 'composer-1'), snapshot)
+        await keepComposer('Re: Plans', snapshot)
       }
 
       it('opens a saved answer on its text, the recipients folded, as it was left', async () => {
-        restoreReply('text')
+        await restoreReply('text')
         renderComposer(serverWithSource())
 
         const composer = await screen.findByRole('dialog', {
@@ -1186,7 +1206,7 @@ describe('ComposerForm', () => {
       })
 
       it('opens in To when it was left there', async () => {
-        restoreReply('recipients')
+        await restoreReply('recipients')
         renderComposer(serverWithSource())
 
         const composer = await screen.findByRole('dialog', {
@@ -1199,18 +1219,16 @@ describe('ComposerForm', () => {
         })
       })
 
-      it('keeps where an answer opens in what a reload keeps', async () => {
+      it('keeps where an answer opens in what the browser keeps', async () => {
         renderComposer(serverWithSource())
         await openComposer('Answer reply')
 
-        window.dispatchEvent(new Event('beforeunload'))
+        // The page goes: written at once
+        window.dispatchEvent(new Event('pagehide'))
 
-        const [entry] = JSON.parse(
-          sessionStorage.getItem(registryKey(FAKE_ACCOUNT_ID)) ?? '[]'
-        ) as { id: string }[]
-        expect(
-          readSnapshot(snapshotKey(FAKE_ACCOUNT_ID, entry?.id ?? ''))?.opensOn
-        ).toBe('text')
+        await waitFor(async () => {
+          expect((await kept())[0]?.snapshot?.opensOn).toBe('text')
+        })
       })
     })
 

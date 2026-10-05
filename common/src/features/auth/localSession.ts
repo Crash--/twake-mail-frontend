@@ -1,25 +1,16 @@
+import { clearComposerStorage } from '@common/features/composer/composerStorage'
+
 import type { AuthServiceBase } from './types'
 
 export const SESSION_CHANNEL_NAME = 'twake-mail-session'
 const SESSION_ENDED = 'session-ended'
 
 /**
- * Composers kept for a reload (`features/composer/composerContent.ts`):
- * signing out drops them, as tmail-flutter does (ADR 0112)
+ * The composers kept in the browser (`features/composer/composerStorage.ts`)
+ * go when the session ends, as tmail-flutter does (ADR 0112)
  */
-const COMPOSER_KEYS_PREFIX = 'twake-mail-composer'
-
 function forgetComposers(): void {
-  // Not in every runtime (Node tests)
-  if (typeof sessionStorage === 'undefined') return
-  const keys: string[] = []
-  for (let index = 0; index < sessionStorage.length; index += 1) {
-    const key = sessionStorage.key(index)
-    if (key?.startsWith(COMPOSER_KEYS_PREFIX)) keys.push(key)
-  }
-  keys.forEach(key => {
-    sessionStorage.removeItem(key)
-  })
+  void clearComposerStorage()
 }
 
 function openChannel(): BroadcastChannel | null {

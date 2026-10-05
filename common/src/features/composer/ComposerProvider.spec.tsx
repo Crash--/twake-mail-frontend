@@ -19,7 +19,12 @@ import {
   MAX_COMPOSERS,
   useComposer
 } from './ComposerProvider'
-import { registryKey, snapshotKey, writeStorage } from './composerStorage'
+import {
+  clearComposerStorage,
+  listComposers,
+  putComposer,
+  resumeComposerStorage
+} from './composerStorage'
 
 function Opener(): ReactElement {
   const { openComposer } = useComposer()
@@ -54,8 +59,92 @@ async function openComposer(): Promise<HTMLElement> {
 }
 
 describe('ComposerProvider', () => {
-  afterEach(() => {
+  afterEach(async () => {
     resetViewport()
+    await clearComposerStorage()
+  })
+
+  describe('kept in the browser', () => {
+    const subjectsKept = async (): Promise<unknown[]> =>
+      (await listComposers(FAKE_ACCOUNT_ID)).map(
+        stored =>
+          (stored.snapshot as { subject?: string } | null)?.subject ?? null
+      )
+
+    it('writes the composer while the user types, and nothing on the server', async () => {
+      const jmapServer = makeFakeJmapServer()
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.type(
+        within(composer).getByRole('textbox', { name: 'Subject' }),
+        'Kept while typing'
+      )
+
+      await waitFor(async () => {
+        expect(await subjectsKept()).toEqual(['Kept while typing'])
+      })
+      expect(jmapServer.callsOf('Email/set')).toEqual([])
+    })
+
+    it('forgets the composer once closed', async () => {
+      renderComposer()
+      const composer = await openComposer()
+      await userEvent.type(
+        within(composer).getByRole('textbox', { name: 'Subject' }),
+        'Gone'
+      )
+      await waitFor(async () => {
+        expect(await subjectsKept()).toEqual(['Gone'])
+      })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Save & close' })
+      )
+      await userEvent.click(
+        await screen.findByTestId('confirm-dialog-alternative-button')
+      )
+
+      await waitFor(async () => {
+        expect(await subjectsKept()).toEqual([])
+      })
+    })
+
+    it('leaves the composers another tab holds to that tab', async () => {
+      resumeComposerStorage()
+      for (const id of ['mine', 'theirs']) {
+        await putComposer({
+          accountId: FAKE_ACCOUNT_ID,
+          composerId: id,
+          entry: { id, init: {}, mode: 'normal', title: id },
+          snapshot: null
+        })
+      }
+      const request = jest.fn(
+        (
+          name: string,
+          _options: unknown,
+          callback: (lock: object | null) => unknown
+        ) => Promise.resolve(callback(name.endsWith('|theirs') ? null : {}))
+      )
+      Object.defineProperty(navigator, 'locks', {
+        value: { request },
+        configurable: true
+      })
+
+      try {
+        renderComposer()
+
+        expect(
+          await screen.findByRole('dialog', { name: 'mine' })
+        ).toBeVisible()
+        expect(screen.queryByRole('dialog', { name: 'theirs' })).toBe(null)
+        // Still there for the tab that holds it
+        expect(await subjectsKept()).toHaveLength(2)
+      } finally {
+        Reflect.deleteProperty(navigator, 'locks')
+      }
+    })
   })
 
   it('keeps the same window and editor while the page navigates (issue #93)', async () => {
@@ -313,21 +402,15 @@ describe('ComposerProvider', () => {
 
     afterEach(() => {
       window.innerWidth = initialWidth
-      sessionStorage.clear()
+      void clearComposerStorage()
     })
 
     /** Composers left by a reload, the oldest first */
-    function restoreComposers(subjects: readonly string[]): void {
-      writeStorage(
-        registryKey(FAKE_ACCOUNT_ID),
-        subjects.map((subject, index) => ({
-          id: `composer-${index}`,
-          init: {},
-          mode: 'normal',
-          title: subject
-        }))
-      )
-      subjects.forEach((subject, index) => {
+    async function restoreComposers(
+      subjects: readonly string[]
+    ): Promise<void> {
+      resumeComposerStorage()
+      for (const [index, subject] of subjects.entries()) {
         const snapshot: ComposerSnapshot = {
           identityId: null,
           recipients: { to: [], cc: [], bcc: [], replyTo: [] },
@@ -339,16 +422,24 @@ describe('ComposerProvider', () => {
           draftId: null,
           savedFingerprint: null
         }
-        writeStorage(
-          snapshotKey(FAKE_ACCOUNT_ID, `composer-${index}`),
+        await putComposer({
+          accountId: FAKE_ACCOUNT_ID,
+          composerId: `composer-${index}`,
+          entry: {
+            id: `composer-${index}`,
+            init: {},
+            mode: 'normal',
+            title: subject,
+            openedAt: index
+          },
           snapshot
-        )
-      })
+        })
+      }
     }
 
     it('lists the composers the dock has no room for, and brings one back', async () => {
       window.innerWidth = 1700
-      restoreComposers(['First', 'Second', 'Third'])
+      await restoreComposers(['First', 'Second', 'Third'])
       renderComposer()
 
       expect(await screen.findByRole('dialog', { name: 'Third' })).toBeVisible()
@@ -378,7 +469,7 @@ describe('ComposerProvider', () => {
     it('reaches the other composers from the one filling a tablet screen', async () => {
       mockViewport({ width: 1000, touch: true })
       window.innerWidth = 1000
-      restoreComposers(['First', 'Second', 'Third'])
+      await restoreComposers(['First', 'Second', 'Third'])
       renderComposer()
 
       const third = await screen.findByRole('dialog', { name: 'Third' })

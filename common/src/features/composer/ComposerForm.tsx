@@ -96,7 +96,6 @@ import {
   loadDraftContent,
   mailtoContent,
   newMessageContent,
-  readSnapshot,
   restoreSnapshotContent,
   identityBcc,
   NO_SEND_OPTIONS,
@@ -105,7 +104,6 @@ import {
   type ComposerSnapshot,
   type SendOptions
 } from './composerContent'
-import { snapshotKey } from './composerStorage'
 import { findAttachmentKeywords, writtenText } from './attachmentReminder'
 import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
 import {
@@ -130,6 +128,7 @@ import {
 import { loadReplyContent } from './replyContent'
 import { makeIsSelf, type ReplyAction } from './replyRecipients'
 import { replaceSignature, signatureHtml } from './signature'
+import { DRAFT_IDLE_MS } from './draftPolicy'
 import { DriveAttachButton } from './DriveAttachButton'
 import { ScribeMenu, type ScribeInput } from './ScribeMenu'
 import {
@@ -137,9 +136,6 @@ import {
   useUploadLimits
 } from './useComposerAttachments'
 import { useEditorLabels } from './useEditorLabels'
-
-/** Pause in the changes before a draft is saved */
-export const AUTOSAVE_DELAY_MS = 1500
 
 /**
  * What a composer opens: a new message, a draft of the server, or the
@@ -171,8 +167,12 @@ export interface ComposerFormHandle {
 export interface ComposerFormProps {
   composerId: string
   init: ComposerInit
+  /** What the browser kept of this composer (back after a reload) */
+  restored?: ComposerSnapshot | null
   /** Takes the focus once loaded */
   autoFocus: boolean
+  /** The message changed: the window keeps it in the browser */
+  onChange?: () => void
   onTitleChange: (title: string) => void
   /** Who the message is for, as names: what tells it apart without subject */
   onRecipientsChange?: (names: string) => void
@@ -274,6 +274,7 @@ function LoadedComposerForm({
   onTitleChange,
   onRecipientsChange,
   onReady,
+  onChange,
   onDraftChange,
   onDone,
   content,
@@ -485,12 +486,16 @@ function LoadedComposerForm({
         files.rebase(result.attachments)
         savedRef.current = current
         setSaveState('saved')
+        // The browser keeps the id of the draft and what it holds
+        onChange?.()
         return true
       } catch (error: unknown) {
         console.error(error)
         // Not refused but unanswered: it may have been created all the same
         if (!(error instanceof JmapSetError)) mayHaveStraysRef.current = true
         setSaveState('failed')
+        // The versions this save may have left
+        onChange?.()
         if (kind === 'manual') {
           notify({ message: t(saveErrorKey(error)), severity: 'error' })
         }
@@ -523,19 +528,28 @@ function LoadedComposerForm({
     markChanged()
   }, [identityId, recipients, subject, options])
 
-  // Autosave, once the user stopped changing the message
+  // Kept in the browser at once (the window debounces it), on the server
+  // once the user stopped changing the message for `DRAFT_IDLE_MS`
   useEffect(() => {
     if (changes === 0) return
+    onChange?.()
     cancelAutosave()
     timerRef.current = window.setTimeout(() => {
       timerRef.current = null
       void save('auto')
-    }, AUTOSAVE_DELAY_MS)
+    }, DRAFT_IDLE_MS)
     // `save` reads the fields of the last render
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [changes])
 
   useEffect(() => cancelAutosave, [])
+
+  // What is typed in a recipient field, not yet a recipient: kept as well
+  useEffect(() => {
+    onChange?.()
+    // The window reads the form itself when it writes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputs])
 
   const destroyDraft = async (): Promise<void> => {
     await collectStrays()
@@ -544,6 +558,7 @@ function LoadedComposerForm({
     await client.call('Email/set', { accountId, destroy: ids })
     leftoversRef.current = []
     setDraftId(null)
+    onChange?.()
   }
 
   /** Last try for the versions earlier saves left, as the window goes */
@@ -656,6 +671,9 @@ function LoadedComposerForm({
     editorRef.current = editor
     // A new message or a reopened draft: what it is now is what is saved
     savedRef.current ??= fingerprintOf(editor)
+    // Back from the browser with changes the server never had: they are
+    // saved once the user stays idle
+    if (savedRef.current !== fingerprintOf(editor)) markChanged()
   }
 
   /** The remote images of a reopened draft, loaded once asked */
@@ -783,6 +801,7 @@ function LoadedComposerForm({
         files.rebase(result.attachments)
         savedRef.current = fingerprintOf(editor)
         setSaveState('idle')
+        onChange?.()
         if (createdHereRef.current) {
           createdHereRef.current = false
           await destroyDraft().catch((error: unknown) => {
@@ -1411,7 +1430,7 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
           serverSettings.settings ?? {}
         )
       }
-      const kept = readSnapshot(snapshotKey(accountId, composerId))
+      const kept = props.restored ?? null
       if (kept) return restoreSnapshotContent(kept, images)
       if (init.draftId !== undefined) {
         return loadDraftContent(client, accountId, init.draftId, list, images)

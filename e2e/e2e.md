@@ -567,3 +567,9 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
 - [ ] `RESP-05` A phone held sideways (844 × 390): the email opens over the list, reads, and goes
   back, without horizontal scrolling. — `chromium` project only
   - Spec: `tests/responsive.spec.ts`.
+- [ ] `LST-01` A list row with a label stays on one line (about 52 px) on a desktop, the chip before
+  the subject. — `chromium` project only
+  - Spec: `tests/list-rows.spec.ts`.
+- [ ] `LST-02` The actions of a row replace its date on hover and on keyboard focus. — `chromium`
+  project only
+  - Spec: `tests/list-rows.spec.ts`.

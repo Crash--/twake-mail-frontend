@@ -10,7 +10,9 @@ import {
   WarningCircle
 } from '@linagora/twake-icons'
 import {
+  Avatar,
   Checkbox,
+  getInitials,
   IconButton,
   Tooltip,
   Typography,
@@ -21,6 +23,7 @@ import type { MouseEvent, ReactElement } from 'react'
 import { useHref, useNavigate } from 'react-router'
 
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
+import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
@@ -47,7 +50,7 @@ import { useEmailSelectionContext } from './useEmailSelection'
 
 /**
  * The columns of the email list, in their order: one per field on a wide
- * list; `unread`, `message` (sender, date, subject, preview on four lines)
+ * list (the actions share the cell of the date); `unread`, `message` (sender, date, subject, preview on four lines)
  * and `compactActions` on a narrow one (phone, list beside an open email);
  * `select` (the selection checkbox) on both
  */
@@ -58,7 +61,6 @@ export type EmailColumnId =
   | 'subject'
   | 'attachment'
   | 'date'
-  | 'actions'
   | 'unread'
   | 'message'
   | 'compactActions'
@@ -175,7 +177,8 @@ export function EmailCell({
       <LabelChips
         labels={emailLabels}
         max={max}
-        className="u-ml-half u-flex-shrink-0"
+        nowrap
+        className="u-flex-shrink-0 u-mr-half"
       />
     )
   const emphasis = isUnread ? 'u-fw-bold' : ''
@@ -185,6 +188,19 @@ export function EmailCell({
       ? thread.participants.join(', ')
       : formatAddressNames(showRecipients ? email.to : email.from)
 
+  // Decorative: the name of the sender is the text next to it
+  const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
+  const avatar = (
+    <Avatar
+      component="span"
+      size={20}
+      aria-hidden="true"
+      className="u-mr-half u-flex-shrink-0"
+      data-testid="email-list-item-avatar"
+    >
+      {getInitials(avatarAddress?.name ?? '', avatarAddress?.email ?? '')}
+    </Avatar>
+  )
   const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
   const handleToggleStar = (): void => {
     onToggleStar(email)
@@ -361,16 +377,17 @@ export function EmailCell({
     case 'status':
       return (
         <span className="u-flex u-flex-items-center">
+          {starButton}
           <span className="u-flex u-flex-justify-center u-flex-shrink-0 u-w-1">
             {unreadDot}
           </span>
-          {starButton}
         </span>
       )
     case 'sender':
       return (
         // The names take the ellipsis, the number of messages stays in view
         <span className="u-flex u-flex-items-center">
+          {avatar}
           <Typography
             component="span"
             noWrap
@@ -409,28 +426,33 @@ export function EmailCell({
           current={email.id === openEmailId}
         >
           <span className="u-visuallyhidden">{`${context.join(', ')}, `}</span>
-          {importantIcon}
-          <span className={emphasis} data-testid="email-list-item-subject">
-            {subject}
-          </span>
-          {labelChips(3)}
-          <SecondaryText
-            className="u-ml-half"
-            data-testid="email-list-item-preview"
-          >
-            {preview}
-          </SecondaryText>
-          {mailboxLabel}
+          <RowLine
+            leading={
+              <>
+                {importantIcon}
+                {labelChips(1)}
+              </>
+            }
+            primary={
+              <span className={emphasis} data-testid="email-list-item-subject">
+                {subject}
+              </span>
+            }
+            secondary={
+              <SecondaryText data-testid="email-list-item-preview">
+                {preview}
+              </SecondaryText>
+            }
+            trailing={mailboxLabel}
+          />
         </RowLink>
       )
     }
     case 'attachment':
       return attachmentIcon
     case 'date':
-      return date
-    case 'actions':
       return (
-        <RowHoverActions>
+        <RowHoverActions replaces={date}>
           {seenButton}
           {removeButton}
           {moreButton}
@@ -479,7 +501,7 @@ export function EmailCell({
                 {subject}
               </span>
             </Typography>
-            {labelChips(1)}
+            <span className="u-ml-half u-flex">{labelChips(1)}</span>
             {mailboxLabel}
           </span>
           <SecondaryText

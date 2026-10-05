@@ -235,9 +235,10 @@ Conventions:
 | `labels-section` / `label-item` (`data-label-name`) + `label-item-menu-button`, `label-item-menu` (`label-edit-item`, `label-delete-item`) / `add-new-label-button` | the labels of the sidebar | `UiKeys.addNewLabelButton`, `label_action_type_context_menu` |
 | `label-modal` + `label-name-input`, `label-description-input`, `label-color-picker`, `label-cancel-button`, `label-save-button` | create or edit a label | `create_new_label_modal`, `edit_label_modal`, `label_name_input_field`, `save_label_button_action` |
 | `choose-label-modal` + `choose-label-list`, `choose-label-item`, `choose-label-empty`, `choose-label-create-button`, `choose-label-apply-button`, `choose-label-cancel-button` | "Label as" (`email-action-label-as` in the email menus) | `add_label_to_email_modal`, `ChooseLabelModal`, `NoLabelYetWidget` |
-| `label-page` (`data-label-id`) / `label-chips` + `label-chip`, `label-chip-more` | the emails of a label; the labels of an email (list rows, under the subject, with a × there) | `LabelWidget` |
+| `label-page` (`data-label-id`) / `label-chips` + `label-chip`, `label-chip-more` | the emails of a label; the labels of an email (list rows: inline, before the subject; with a × elsewhere) | `LabelWidget` |
 | `advanced-search-label-select` | the label of the advanced search | `UiKeys.advancedSearchLabelDropDown` |
 | `confirm-dialog` / `confirm-dialog-confirm-button` / `confirm-dialog-cancel-button` | confirmation dialogs (the focus starts on Cancel) | `confirm_dialog_action` |
 | `toast` | the toast shown (`data-severity`); its message is announced by live regions always in the page (`role="status"`, `role="alert"` for errors) | — |
 | `toast-undo-button` / `toast-retry-button` / `toast-close-button` | its action ("Undo" after an action, "Retry" after a failure) and close | — |
 | `shortcuts-dialog` / `shortcuts-enabled-switch` / `shortcuts-dialog-close-button` | keyboard shortcuts list (`?`), the switch turning them off | `keyboardShortcuts` setting |
+| `email-list-item-avatar` | the 20 px initials avatar of the sender (decorative, `aria-hidden`) in a list row | — |

@@ -252,7 +252,7 @@ describe('EmailList', () => {
     renderList(makeFakeJmapServer({ emails: [] }))
 
     expect(await screen.findByTestId('empty-thread-view')).toHaveTextContent(
-      'There are no emails in your current folder'
+      "You don't have any email in this folder."
     )
     expect(screen.queryByTestId('email-list')).toBe(null)
   })
@@ -343,9 +343,26 @@ describe('EmailList', () => {
       'Sender',
       'Subject',
       'Attachment',
-      'Date',
-      'Actions'
+      'Date, Actions'
     ])
+  })
+
+  it('shows the initials of the sender, hidden from assistive technologies, and reaches the row actions by keyboard', async () => {
+    renderList(makeFakeJmapServer({ emails: makeEmails(1) }))
+    const row = await screen.findByTestId('email-list-item')
+
+    expect(within(row).getByTestId('email-list-item-avatar')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    )
+    within(row).getByTestId('email-list-item-star').focus()
+    // The link of the row, then its actions
+    await userEvent.tab()
+    await userEvent.tab()
+
+    expect(
+      within(row).getByRole('button', { name: 'Mark as unread' })
+    ).toHaveFocus()
   })
 
   it('opens an email from the keyboard', async () => {

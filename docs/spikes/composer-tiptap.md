@@ -2,7 +2,9 @@
 
 Fusionné dans `main` (branche `feat/composer-foundation`) : le code du spike reste derrière `DEBUG`.
 Depuis les lots L1 à L3, le vrai composer couvre l'éditeur, l'envoi, les brouillons et les pièces
-jointes ; la route ne sert plus qu'à la démo de réponse et de transfert, jusqu'à L4.
+jointes, et depuis L4 la réponse et le transfert : **le spike est retiré** (route, page, `e2e/spike/`,
+`scripts/spike.sh`). Ce qui suit le décrit tel qu'il était, ses commandes ne marchent plus ; ses
+specs utiles tournent sur le vrai composer (`CMP-10` à `12`, `CMP-39`, `CMP-41`, `PERF-04`).
 Route de démo `/spike/composer` (visible seulement avec `DEBUG`), qui envoie de vrais mails
 sur une stack JMAP jetable.
 

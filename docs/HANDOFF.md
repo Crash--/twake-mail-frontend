@@ -1,4 +1,4 @@
-# Twake Mail React — passation (2026-10-04)
+# Twake Mail React — passation (2026-10-05)
 
 Réécriture de la version **web** de tmail-flutter en React. Le mobile reste en Flutter.
 Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore et ce qu'il reste à faire.
@@ -98,7 +98,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - rooks 8.4.0 (la 9 est ESM-only et casse Jest) ;
   - job CI React 18.
 
-## 4. État au 2026-10-05 (après les lots 1 à 4, le lot A de la phase 2 et les lots L1 à L3 du composer)
+## 4. État au 2026-10-05 (après les lots 1 à 4, le lot A de la phase 2 et les lots L1 à L5 du composer)
 
 - **Méthode** : une branche par lot depuis `main`, vérifications sur clone propre (`npm ci`, lint, format, typecheck, tests, build) puis e2e, PR sur `Crash--/twake-mail-frontend`, merge une fois la CI verte, redéploiement devbox (`~/Sites/Linagora/twake-mail-react-devbox/deploy.sh`).
 - **Phase 0** (avant les lots) : design system `@/ds/`, liste sur `VirtualizedTable` (`ds/VirtualizedListTable` + `RowLink`), RGAA (jsx-a11y, axe dans les e2e avec `TWAKE_MUI_KNOWN_VIOLATIONS`, A11Y-01), perfs (`npm run perf`, `docs/perf/phase0.md`). Responsive (téléphone, tablette) mergé en PR #4 (projets Playwright `mobile` et `tablet`).
@@ -125,7 +125,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - **actions** (PR #10) : archiver, corbeille ou suppression définitive (Corbeille, Spam, Brouillons, avec confirmation), déplacer (`ds/FilterableListbox`, sélecteur filtrable), spam et non-spam, lu et non lu, étoile ; depuis la lecture (étoile, boutons, menu « Plus »), le survol d'une ligne, le clic droit, la touche menu ou Maj+F10 (`onRowMenu` de `ds/VirtualizedListTable`), la barre de sélection (cases, Maj+clic, Ctrl+A, tout le dossier par `Email/query` + `Email/get` en back-reference), le glisser-déposer vers l'arbre (`ds/DropTarget`) ; vider la Corbeille et le Spam (`Mailbox/clear` si la capability est là, sinon `Email/query` + `Email/set` destroy par back-reference ; sous-dossiers de la Corbeille détruits du plus profond au moins profond) ;
   - **dossiers** : créer (avec l'emplacement), renommer, déplacer, supprimer avec sous-dossiers et emails, tout marquer comme lu, masquer et réafficher, depuis le « + » et le menu d'un dossier (⋮, clic droit, touche menu) ; validation des noms de tmail-flutter ; dossier virtuel « Favoris » (`/starred`) ; team mailboxes dans leur section, droits `myRights` respectés, Corbeille propre à chaque team mailbox ; la capability `urn:apache:james:params:jmap:mail:shares` part dans chaque requête si la session l'annonce (`withExtraCapabilities` sous `JmapSessionProvider`) ; `namespace` et `isSubscribed` lus avec les dossiers, et les propriétés que James omet (`role` d'un dossier personnel) normalisées à `null` ;
   - e2e (Playwright, tags `@mobile` pour les projets téléphone et tablette) : KBD-01, KBD-02, EML-06, 07, 09, 10, 11, 12, 30, 31, MBX-08, 09, 13 (partie spam), 19 à 22, 26 à 30, 01, 02, 03, 06, 07 (partie réception), 10, 15.
-- **Phase 3, composer, lots L1 à L3** (PR #17, #20 et celle de L3 ; découpage dans `docs/spikes/composer-tiptap.md`) :
+- **Phase 3, composer, lots L1 à L5** (PR #17, #20, celle de L3, #24 pour le lot 0, #26 pour L4, celle de L5 ; découpage dans `docs/spikes/composer-tiptap.md`) :
   - **L1, éditeur** : `ds/RichTextEditor` sans `data-testid` en dur (prop `testIds`, valeurs dans `features/composer/editorTestIds.ts`) ; Alt+F10 va à la barre, Échap dans le texte est laissé au conteneur ; barre d'image au clavier (`ImageToolbar` : flèches pour sélectionner, Entrée, 25/50/75 %, taille d'origine, plus petite, plus grande, supprimer) ; `SmartTrailingBlock` repris de Messages (MIT) ; icônes twake-icons quand elles existent ;
   - **L2, fenêtre** : `ComposerProvider` (sous `AppLayout`), `ds/DockedWindow` + `WindowDock` + `fitWindows` (jusqu'à 3 fenêtres en bas à droite, réduites ou plein écran ; plein écran modal sous 1 200 px), `ds/RecipientField` (combobox ARIA 1.2 à chips, collage de listes, adresses invalides nommées, édition et suppression au clavier) et `ds/RecipientSummary`, autocomplétion `TMailContact/autocomplete`, identités (`features/identities/`, `sortOrder` puis l'identité du compte), `useChoose` (trois issues) ;
   - **L3, envoi, brouillons, pièces jointes** : envoi en une requête (`Email/set` dans Drafts + `EmailSubmission/set` avec `onSuccessUpdateEmail` : Sent, `$seen`, plus de `$draft`), l'ancien brouillon détruit dans une 2e requête une fois le message créé ; contrôles de Flutter avant envoi (`useAlert`) ; erreurs `overQuota`, `tooLarge`, `forbiddenMailFrom`, `invalidRecipients` ; brouillon en deux requêtes depuis le lot 0 (voir plus bas), autosave 1,5 s après le dernier changement, en-tête `X-JMAP-Identity`, réouverture depuis Drafts (`$draft` dans la liste), un composer par brouillon (en mémoire + Web Locks entre onglets), « Supprimer le brouillon », toast « Brouillon enregistré » avec « Supprimer » à la fermeture ; instantané `sessionStorage` des composers ouverts au `beforeunload`, restauré après rechargement, oublié à la déconnexion ; pièces jointes par XHR (progression, annulation, renouvellement du jeton sur 401), limites `maxSizeUpload` et `maxSizeAttachmentsPerEmail`, glisser-déposer (`ds/FileDropZone`), liste accessible (`ds/UploadList`) ;
@@ -142,7 +142,14 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
     - la réponse s'ouvre sur le texte, destinataires repliés ; un transfert dans « À » ;
     - spike retiré (route, page, `composer.spike.*`, `snapshot.ts`, `composerSetup.ts`, `schemaQuoteExtensions.ts`, `e2e/spike/`, `spike.sh` et son overlay tmail-web, dépendances pixelmatch/pngjs) ; ses specs utiles portées : `CMP-10` à `CMP-12` (signature), `CMP-39` (modifier la citation), `CMP-41` (fidélité de la citation), `PERF-04` (`e2e/perf/composer.perf.ts` : 160 ms du clic au curseur, 7 ms par touche en médiane sur une réponse à 200 Ko, 480 ms et 16 ms avec le CPU ralenti 4 fois) ;
     - e2e : `CMP-08`, `09`, `10` à `13`, `38` à `42`, `EML-14` à `22` (préfixes dans les 4 langues de l'app), `KBD-03`.
-- **Devbox** : https://mail-react.twake.valmoriq.fr (Tailscale), à jour de `main`. Vérification Playwright rejouable (script hors dépôt, `~/tmp/devbox-check/run.sh`) : login SSO, nom et email, push à 1 000 mails, logout. Client OIDC `twake-mail-react` actif en live seulement (à ajouter par Quentin aux templates LemonLDAP).
+  - **L5, signatures et images** :
+    - signature HTML nettoyée comme un corps d'email (balises, attributs, CSS de la liste de Flutter), sans feuille de style (elle s'affiche dans la page du composer) ; signature texte échappée, ses lignes gardées (Flutter l'insère brute) ; entre le texte et la citation ; un changement d'identité la remplace en place ; à l'envoi, l'enveloppe `tmail-signature` que Flutter reconnaît ;
+    - `PublicAsset` : Flutter ne s'en sert que dans l'éditeur de signature des réglages (images envoyées en blob puis publiées, URL publique dans le HTML) ; le composer n'a rien à faire, les images de signature restent des URL distantes, gardées (`allowRemoteContent`) : à porter avec les réglages d'identité (phase 4) ;
+    - une image déposée sur le corps est insérée en ligne là où elle tombe (`FileDropZone` laisse la main à l'éditeur, `isForChild`) ; ailleurs, ou un autre fichier, devient une pièce jointe ;
+    - les poignées de redimensionnement de TipTap n'avaient pas de taille : coins visibles au survol et à la sélection, redimensionnement à la souris (`CMP-45`) ; au clavier, `CMP-30` ;
+    - collage (Word, Google Docs, LibreOffice, page web, texte brut) : déjà couvert par `CMP-32`, inchangé ;
+    - e2e : `CMP-43` à `CMP-45`.
+- **Devbox** : https://mail-react.twake.valmoriq.fr (Tailscale), à jour de `main`. Vérification Playwright rejouable (script hors dépôt, `~/tmp/devbox-check/run.sh`) : login SSO, nom et email, push à 1 000 mails, logout. Réponse de L4 vérifiée le 2026-10-05 (`SCRIPT=reply-check.mjs ./run.sh`, étapes `pick`, `reply`, `read`, `flutter`, `cleanup`) : une réponse de user1 à un mail de sa boîte, adressée à lui-même, reçue avec `In-Reply-To` et `References` du mail cité, citation rendue dans React et dans tmail-web (citation repliée « ••• » puis dépliée) ; `$answered` posé sur l'original seul, puis retiré, la réponse détruite. Le serveur refuse un `Email/get` de plus de 5 emails avec leurs corps (`requestTooLarge`). Client OIDC `twake-mail-react` actif en live seulement (à ajouter par Quentin aux templates LemonLDAP).
 - **PR ouvertes ailleurs** : linagora/twake-ui#130 (React 19), linagora/cozy-libs#3165 (twake-i18n React 19). Issue linagora/tmail-backend#2682.
 - **Issues et candidats tmail-backend** :
   - `bodyStructure` ignoré à la création (tmail-backend#2685) ;
@@ -161,6 +168,7 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
   - Override `twake-i18n` tant que la PR cozy-libs n'est pas publiée.
 - [ ] Mettre à jour le lockfile après chaque push sur `jmap-client-ts#v2`, puis `npm approve-scripts jmap-client-ts` (allowScripts épinglé sur le commit), sinon `npm ci` échoue.
 - [ ] Proposer à twake-ui les composants de `@/ds/` et les manques de `VirtualizedTable`. Demander à Quentin avant d'ouvrir les PR.
+- [ ] Ouvrir (après accord de Quentin) l'issue tmail-backend du candidat `INFRA-17` (image memory : deux emails détruits dans un `Email/set` font disparaître le reste du dossier d'`Email/query`), et demander à twake-icons `ReplyAll` et `Forward`.
 - [ ] Problèmes ouverts des lots :
   - un email qui entre dans un dossier sous la fenêtre chargée n'est pas inséré : il arrive avec la page suivante ;
   - la fenêtre entre le chargement initial et la 1re ouverture du WebSocket n'est pas rattrapée (choix explicite) ;
@@ -186,15 +194,16 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
 ### Phase 3 : composer (le plus risqué)
 - ~~L1 éditeur, L2 fenêtre, L3 envoi, brouillons et pièces jointes.~~ Fait.
 - ~~**L4, réponse et transfert**~~ : fait (voir plus haut).
-- **L5, signatures et images** : la signature suit déjà l'identité ; à faire : position, signatures riches, images glissées dans le corps (aujourd'hui le dépôt les attache), cas de collage de Messages.
+- ~~**L5, signatures et images**~~ : fait (voir plus haut).
 - **L6, fonctions annexes** : modèles (CMP-19 à 21 : `Save as template` dans le menu Plus, qui existe), MDN (CMP-03), important (CMP-02), rappel de pièce jointe (CMP-04), mailto, Bcc par défaut de l'identité.
 - **L7, qualité** : audit RGAA manuel (NVDA, VoiceOver) de la fenêtre, des chips et de la barre d'image ; perf sur gros brouillons ; barre d'outils sur une ligne défilante sur téléphone.
 - Problèmes ouverts du composer :
   - ~~une sauvegarde de brouillon refusée (quota) a déjà détruit la version précédente côté serveur (`INFRA-16`)~~ : corrigé (lot 0, `CMP-37`) ;
   - pas d'annulation d'envoi (voir les candidats tmail-backend) ;
   - un composer masqué par manque de place (`fitWindows`, écran étroit avec 3 composers) n'est joignable qu'en fermant ou réduisant les autres ;
-  - une image glissée sur le corps devient une pièce jointe ; l'image inline passe par le bouton ou le collage ;
+  - ~~une image glissée sur le corps devient une pièce jointe~~ : corrigé en L5 (`CMP-44`) ;
   - brouillons dans la vue conversation : la ligne ouvre la lecture, pas le composer ;
+  - deux « Répondre » sur le même email ouvrent deux composers (pas de dédoublonnage, contrairement aux brouillons) ; `R` (répondre à tous) part aussi avec Verr. Maj. ;
   - L4 : le menu d'une ligne de conversation (plusieurs emails) n'offre pas de réponse ; Flutter n'ajoute pas l'identité qui a reçu l'email, nous non plus (identité par défaut) ; le `Reply-To` de l'identité n'est pas encore posé à l'envoi (Flutter le pose toujours, avec L6) ; les images distantes d'un brouillon rouvert (hors citation) se chargent ; une touche tapée entre le clic sur « Répondre » et l'ouverture du composer part aux raccourcis de la lecture.
 
 ### Phase 4 : réglages et extensions

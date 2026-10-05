@@ -36,6 +36,8 @@ export function StarredList(): ReactElement {
       emailPath: starredEmailPath,
       openEmailId,
       title,
+      filterScope: 'starred',
+      isStarredView: true,
       empty: (
         <Empty
           icon={Star}

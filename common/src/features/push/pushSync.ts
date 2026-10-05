@@ -103,7 +103,8 @@ function describeList(key: QueryKey, accountId: string): CachedList | null {
       request: value,
       scope: {
         isCollapsed: value.collapseThreads === true,
-        filter: value.filter
+        filter: value.filter,
+        ...(value.mailboxId === undefined ? {} : { mailboxId: value.mailboxId })
       }
     }
   }

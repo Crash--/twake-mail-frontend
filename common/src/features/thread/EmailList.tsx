@@ -18,6 +18,7 @@ import {
 } from 'react'
 import {
   useInfiniteQuery,
+  useQueryClient,
   type UseInfiniteQueryResult
 } from '@tanstack/react-query'
 import { useLocation, useMatch } from 'react-router'
@@ -42,6 +43,7 @@ import {
   isTemplatesMailbox
 } from '@common/features/mailbox/mailboxTree'
 import { useLabels } from '@common/features/labels/queries'
+import { mailboxKeys } from '@common/features/mailbox/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -72,6 +74,13 @@ import { summarizeThread, type ThreadSummary } from './threadSummary'
 import { useEmailListActions } from './useEmailListActions'
 import { useEmailListShortcuts } from './useEmailListShortcuts'
 import { EmailListDefaultToolbar } from './EmailListDefaultToolbar'
+import {
+  availableListFilters,
+  mailboxFilterRequest,
+  withListFilter,
+  type ListFilter
+} from './listFilter'
+import { useListFilter } from './ListFilterProvider'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { useNewEmailCount } from './useNewEmailCount'
 
@@ -165,20 +174,41 @@ export interface EmailListSearch {
    * (a virtual folder such as Starred has its own)
    */
   title?: string
+  /**
+   * The list can be filtered by the toolbar (Starred, a label; not the
+   * results of a search, which have their own filters): the name of the
+   * list, the filter lasting while it is shown
+   */
+  filterScope?: string
+  /** The list is the Starred view: no "starred" filter */
+  isStarredView?: boolean
 }
 
 export type EmailListProps = { mailboxId: string } | { search: EmailListSearch }
 
 function useListQuery(
-  props: EmailListProps
+  props: EmailListProps,
+  filter: ListFilter
 ): UseInfiniteQueryResult<EmailListData> {
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const { isEnabled: collapseThreads } = useThreadPreference()
-  const source: EmailListSource =
-    'search' in props
-      ? { kind: 'search', request: props.search.request }
-      : { kind: 'mailbox', mailboxId: props.mailboxId, collapseThreads }
+  let source: EmailListSource
+  if ('search' in props) {
+    source = {
+      kind: 'search',
+      request: withListFilter(props.search.request, filter)
+    }
+  } else if (filter === 'all') {
+    source = { kind: 'mailbox', mailboxId: props.mailboxId, collapseThreads }
+  } else {
+    // A folder narrowed by a filter is a query list, which push keeps up to
+    // date with its paging
+    source = {
+      kind: 'search',
+      request: mailboxFilterRequest(props.mailboxId, filter, collapseThreads)
+    }
+  }
   return useInfiniteQuery(
     emailListSourceQueryOptions(client, accountId, source)
   )
@@ -195,10 +225,21 @@ export function EmailList(props: EmailListProps): ReactElement {
   const { t } = useI18n()
   const search = 'search' in props ? props.search : null
   const mailboxId = 'mailboxId' in props ? props.mailboxId : null
-  const query = useListQuery(props)
   const mailboxes = useMailboxes()
   const mailbox =
     mailboxes.data?.find(candidate => candidate.id === mailboxId) ?? null
+  const filterScope =
+    search === null
+      ? `mailbox:${mailboxId ?? ''}`
+      : (search.filterScope ?? null)
+  const listFilter = useListFilter(filterScope)
+  // Nothing to filter in an empty Trash or Spam: the filters are gone
+  const isEmptyTrashOrSpam =
+    mailbox !== null &&
+    (mailbox.role === 'trash' || mailbox.role === 'junk') &&
+    mailbox.totalEmails <= 0
+  const filter: ListFilter = isEmptyTrashOrSpam ? 'all' : listFilter.filter
+  const query = useListQuery(props, filter)
   const role = mailbox?.role ?? null
   const getMailboxName = useMailboxName()
   useDocumentTitle(
@@ -235,7 +276,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     },
     [search, mailboxes.data, getMailboxName]
   )
-  const { session } = useJmapSession()
+  const { session, accountId } = useJmapSession()
   const meLabel = t('thread.me')
   const sentId = findMailboxIdByRole(mailboxes.data ?? [], 'sent')
   const emails = useMemo(
@@ -439,9 +480,20 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   const screenSize = useScreenSize()
   const { refetch } = query
+  const queryClient = useQueryClient()
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  // As tmail-flutter: the folders (their counts) and the emails
   const handleRefresh = useCallback((): void => {
-    void refetch()
-  }, [refetch])
+    setIsRefreshing(true)
+    Promise.all([
+      refetch(),
+      queryClient.invalidateQueries({ queryKey: mailboxKeys.list(accountId) })
+    ])
+      .catch(() => undefined)
+      .finally(() => {
+        setIsRefreshing(false)
+      })
+  }, [refetch, queryClient, accountId])
   // Narrow from the first render on phones and beside an open email (large
   // tablets); the table also measures itself for the other cases (zoom)
   const isCompact = screenSize === 'mobile' || screenSize === 'tabletLarge'
@@ -575,15 +627,27 @@ export function EmailList(props: EmailListProps): ReactElement {
   return (
     <EmailSelectionContext.Provider value={selection}>
       {listActions.banner}
-      {listActions.toolbar ??
-        (screenSize === 'desktop' ? (
-          <EmailListDefaultToolbar
-            selection={selection}
-            loadedCount={emails.length}
-            mailboxId={mailboxId}
-            onRefresh={handleRefresh}
-          />
-        ) : null)}
+      {listActions.toolbar ?? (
+        <EmailListDefaultToolbar
+          selection={selection}
+          loadedCount={emails.length}
+          mailbox={mailbox}
+          filter={
+            filterScope === null || isEmptyTrashOrSpam
+              ? null
+              : {
+                  current: filter,
+                  options: availableListFilters({
+                    isStarredView: search?.isStarredView === true
+                  }),
+                  onSelect: listFilter.select,
+                  onClear: listFilter.clear
+                }
+          }
+          isRefreshing={isRefreshing}
+          onRefresh={handleRefresh}
+        />
+      )}
       {content}
       {listActions.menu}
       {/* Always mounted: a live region only announces changes */}

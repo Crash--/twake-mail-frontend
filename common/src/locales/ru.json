@@ -32,7 +32,8 @@
     "logout": "Выйти",
     "search": "Поиск",
     "showFolders": "Показать папки",
-    "searchPlaceholder": "Поиск по почте"
+    "searchPlaceholder": "Поиск по почте",
+    "help": "Задать вопрос или сообщить об ошибке"
   },
   "sidebar": {
     "newMessage": "Новое сообщение",
@@ -145,7 +146,16 @@
     },
     "toolbar": {
       "label": "Действия со списком",
-      "filter": "Фильтр"
+      "filter": "Фильтр",
+      "clearFilter": "Сбросить фильтр",
+      "selectPage": "Выбрать все сообщения на этой странице",
+      "filterOn": "Вы установили фильтр \"%{name}\"",
+      "filterOff": "Вы отключили фильтр сообщений",
+      "filters": {
+        "attachments": "С вложениями",
+        "unread": "Не прочитано",
+        "starred": "Избранное"
+      }
     },
     "me": "Я",
     "draft": {

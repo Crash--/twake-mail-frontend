@@ -19,6 +19,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
 import { AppGridMenu } from './AppGridMenu'
+import { HelpButton } from './HelpButton'
 import { MailSearchBar } from './MailSearchBar'
 import { UserMenu } from './UserMenu'
 
@@ -108,6 +109,7 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
       search={<MailSearchBar />}
       actions={
         <>
+          <HelpButton />
           {isPhone ? null : <AppGridMenu apps={apps} />}
           <UserMenu />
         </>

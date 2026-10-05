@@ -13,6 +13,7 @@ import {
   useComposer
 } from '@common/features/composer/ComposerProvider'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
+import { ListFilterProvider } from '@common/features/thread/ListFilterProvider'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -59,7 +60,9 @@ export function AppLayout(props: AppLayoutProps): ReactElement {
             <LabelActionsProvider>
               <ComposerProvider>
                 <SettingsExitProvider>
-                  <AppFrame {...props} />
+                  <ListFilterProvider>
+                    <AppFrame {...props} />
+                  </ListFilterProvider>
                 </SettingsExitProvider>
               </ComposerProvider>
             </LabelActionsProvider>

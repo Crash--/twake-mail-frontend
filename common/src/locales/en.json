@@ -32,7 +32,8 @@
     "logout": "Sign out",
     "search": "Search",
     "showFolders": "Show folders",
-    "searchPlaceholder": "Search mail"
+    "searchPlaceholder": "Search mail",
+    "help": "Get help or report a bug"
   },
   "sidebar": {
     "newMessage": "New message",
@@ -145,7 +146,16 @@
     },
     "toolbar": {
       "label": "List actions",
-      "filter": "Filter"
+      "filter": "Filter",
+      "clearFilter": "Clear the filter",
+      "selectPage": "Select all messages of this page",
+      "filterOn": "You’ve filtered messages by \"%{name}\"",
+      "filterOff": "You’ve disabled filtered messages",
+      "filters": {
+        "attachments": "With attachments",
+        "unread": "Unread",
+        "starred": "Starred"
+      }
     },
     "me": "Me",
     "draft": {

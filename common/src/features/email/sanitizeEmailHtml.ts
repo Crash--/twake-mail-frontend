@@ -4,6 +4,7 @@ import DOMPurify, {
 } from 'dompurify'
 
 import { autolink, openInNewTab } from './autolink'
+import { normalizeImageStyle } from './imageSize'
 import { sanitizeDeclarations, sanitizeStyleSheet } from './sanitizeCss'
 
 /**
@@ -87,6 +88,11 @@ export interface SanitizeOptions {
    * reader (not for the quote of the composer, which keeps the original)
    */
   autolink?: boolean
+  /**
+   * Keeps the images within the reading pane, with their ratio (EML-04):
+   * for the reader, not for what the composer sends again (quote, signature)
+   */
+  normalizeImageSizes?: boolean
 }
 
 export interface SanitizedEmailHtml {
@@ -140,6 +146,7 @@ function classifyImageSource(value: string): ImageSource {
 interface Run {
   inlineImageUrls: ReadonlyMap<string, string>
   allowRemoteContent: boolean
+  normalizeImageSizes: boolean
   blockedRemoteContent: number
 }
 
@@ -271,6 +278,13 @@ function finishElement(node: Element): void {
     node.setAttribute('referrerpolicy', 'no-referrer')
     node.setAttribute('loading', 'lazy')
   }
+  if (state.normalizeImageSizes) {
+    const style = normalizeImageStyle(node.getAttribute('style'), {
+      width: node.getAttribute('width'),
+      height: node.getAttribute('height')
+    })
+    if (style !== null && style !== '') node.setAttribute('style', style)
+  }
 }
 
 const purifier = DOMPurify(window)
@@ -300,17 +314,24 @@ const CONFIG: Config & { RETURN_DOM_FRAGMENT: true } = {
  * Sanitizes the HTML of an email for display: no script, no event handler,
  * no form, links opening a new tab without access to the app, CSS filtered,
  * `cid:` images pointing at their downloaded parts, and remote content left
- * out unless `allowRemoteContent`.
+ * out unless `allowRemoteContent`; with `normalizeImageSizes`, images kept
+ * within the pane (`normalizeImageStyle`).
  */
 export function sanitizeEmailHtml(
   html: string,
   {
     inlineImageUrls = new Map(),
     allowRemoteContent = false,
-    autolink: withAutolink = false
+    autolink: withAutolink = false,
+    normalizeImageSizes = false
   }: SanitizeOptions = {}
 ): SanitizedEmailHtml {
-  run = { inlineImageUrls, allowRemoteContent, blockedRemoteContent: 0 }
+  run = {
+    inlineImageUrls,
+    allowRemoteContent,
+    normalizeImageSizes,
+    blockedRemoteContent: 0
+  }
   try {
     const content = purifier.sanitize(html, CONFIG)
     // On the sanitized DOM: the links it adds are built, never parsed

@@ -24,6 +24,7 @@ import { ConversationView } from '@common/features/thread/ConversationView'
 import { isOpenedFromList } from '@common/features/thread/conversationTarget'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
 import { formatFullDate } from '@common/features/thread/formatListDate'
+import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredTag'
 import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -107,6 +108,7 @@ function EmailContent({
           {email.subject ?? ''}
         </Typography>
         {showsImportant ? <ImportantMark showLabel /> : null}
+        <EmailActionRequiredTag email={email} mailboxId={mailboxId ?? null} />
         <EmailLabels emails={[email]} mailboxId={mailboxId ?? null} />
         <MessageHeader
           className="u-mt-1"

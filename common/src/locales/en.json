@@ -57,7 +57,9 @@
     "expand": "Expand",
     "collapse": "Collapse",
     "emails": "Messages",
-    "starred": "Starred"
+    "starred": "Starred",
+    "actionRequired": "Action required",
+    "emptyActionRequired": "You don’t have any action required emails."
   },
   "email": {
     "star": "Mark as starred",
@@ -98,7 +100,9 @@
       "copy": "Copy",
       "menu": "Actions on %{email}",
       "copied": "Email address copied"
-    }
+    },
+    "actionRequired": "Action Required",
+    "removeActionRequired": "Remove the Action Required tag"
   },
   "login": {
     "title": "Sign In",
@@ -610,7 +614,13 @@
       "labelsToggle": "Display labels",
       "errorReporting": "Error reporting",
       "errorReportingDescription": "Send crash and error reports so the support team can diagnose problems you run into. Your emails, their content and their recipients are never included.",
-      "errorReportingToggle": "Send error reports"
+      "errorReportingToggle": "Send error reports",
+      "aiLabelCategorization": "Label categorisation",
+      "aiLabelCategorizationDescription": "Apply my labels on incoming emails using their description",
+      "aiLabelCategorizationToggle": "Enable label categorisation",
+      "aiScribe": "AI Scribe",
+      "aiScribeDescription": "Use AI to help write and improve your emails",
+      "aiScribeToggle": "Enable AI Scribe"
     },
     "backToMail": "Back to mail",
     "language": {

@@ -57,7 +57,9 @@
     "expand": "Développer",
     "collapse": "Réduire",
     "emails": "Messages",
-    "starred": "Favoris"
+    "starred": "Favoris",
+    "actionRequired": "Action requise",
+    "emptyActionRequired": "Vous n'avez aucun e-mail nécessitant une action."
   },
   "email": {
     "star": "Marquer comme favori",
@@ -98,7 +100,9 @@
       "copy": "Copier",
       "menu": "Actions sur %{email}",
       "copied": "Adresse e-mail copiée"
-    }
+    },
+    "actionRequired": "Action requise",
+    "removeActionRequired": "Retirer l’étiquette Action requise"
   },
   "login": {
     "title": "Se connecter",
@@ -610,7 +614,13 @@
       "labelsToggle": "Afficher les libellés",
       "errorReporting": "Rapports d'erreurs",
       "errorReportingDescription": "Envoyer des rapports de plantage et d'erreur pour que l'équipe d'assistance puisse diagnostiquer les problèmes que vous rencontrez. Vos e-mails, leur contenu et leurs destinataires ne sont jamais inclus.",
-      "errorReportingToggle": "Envoyer des rapports d'erreurs"
+      "errorReportingToggle": "Envoyer des rapports d'erreurs",
+      "aiLabelCategorization": "Libellés de catégorisation",
+      "aiLabelCategorizationDescription": "Appliquer mes libellés sur les e-mails entrants en utilisant leur description",
+      "aiLabelCategorizationToggle": "Activer la catégorisation par libellés",
+      "aiScribe": "AI Scribe",
+      "aiScribeDescription": "Utiliser l'IA pour vous aider à rédiger et améliorer vos e-mails",
+      "aiScribeToggle": "Activer AI Scribe"
     },
     "backToMail": "Retour aux e-mails",
     "language": {

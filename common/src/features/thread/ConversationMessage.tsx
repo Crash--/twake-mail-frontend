@@ -25,6 +25,7 @@ import { SenderLine } from '@common/features/email/SenderLine'
 import { useEmail } from '@common/features/email/useEmail'
 import { useReadReceiptRequest } from '@common/features/email/useReadReceiptRequest'
 import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
+import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredTag'
 import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
@@ -97,6 +98,7 @@ function ExpandedBody({
         addresses={detail.bcc}
         data-testid="conversation-message-bcc"
       />
+      <EmailActionRequiredTag email={detail} mailboxId={mailboxId} />
       <EmailLabels emails={[detail]} mailboxId={mailboxId} />
       <EmailMessageBody
         email={detail}

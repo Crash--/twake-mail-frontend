@@ -24,14 +24,21 @@ const CONDITIONS: Readonly<Record<ListFilterOption, EmailFilterCondition>> = {
 export interface ListFilterContext {
   /** The list is the Starred view: nothing to filter by "starred" */
   isStarredView: boolean
+  /** The list is the Action required view: only unread emails, as tmail-flutter */
+  isActionRequiredView?: boolean
 }
 
-/** The filters offered by a list: `starred` makes no sense in Starred */
+/**
+ * The filters offered by a list: `starred` makes no sense in Starred, nor
+ * `unread` in Action required
+ */
 export function availableListFilters(
   context: ListFilterContext
 ): ListFilterOption[] {
   return LIST_FILTER_OPTIONS.filter(
-    option => !(option === 'starred' && context.isStarredView)
+    option =>
+      !(option === 'starred' && context.isStarredView) &&
+      !(option === 'unread' && context.isActionRequiredView === true)
   )
 }
 

@@ -107,6 +107,18 @@ export function isShowingSenderPriority(settings: ServerSettings): boolean {
   return readBooleanSetting(settings, 'display.sender.priority', true)
 }
 
+export const AI_LABEL_CATEGORIZATION_KEY: KnownSettingKey =
+  'ai.label-categorization.enabled'
+
+/**
+ * "Label categorisation" (tmail-flutter `ai.label-categorization.enabled`,
+ * off by default): the server labels the incoming emails, and the "Action
+ * required" folder is offered
+ */
+export function isLabelCategorizationOn(settings: ServerSettings): boolean {
+  return readBooleanSetting(settings, AI_LABEL_CATEGORIZATION_KEY, false)
+}
+
 /** Whether to mark the emails their sender set important */
 export function useShowsSenderPriority(): boolean {
   const { settings } = useServerSettings()

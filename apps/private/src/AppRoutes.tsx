@@ -35,6 +35,8 @@ import { MailboxPage } from './features/mailbox/MailboxPage'
 import { SearchEmailPage } from './features/search/SearchEmailPage'
 import { SearchPage } from './features/search/SearchPage'
 import { SettingsPage } from './features/settings/SettingsPage'
+import { ActionRequiredEmailPage } from './features/action-required/ActionRequiredEmailPage'
+import { ActionRequiredPage } from './features/action-required/ActionRequiredPage'
 import { StarredEmailPage } from './features/starred/StarredEmailPage'
 import { StarredPage } from './features/starred/StarredPage'
 import { RouteErrorScreen } from './RouteErrorScreen'
@@ -78,6 +80,12 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
           </Route>
           <Route path="/starred" element={<StarredPage />}>
             <Route path="email/:emailId" element={<StarredEmailPage />} />
+          </Route>
+          <Route path="/action-required" element={<ActionRequiredPage />}>
+            <Route
+              path="email/:emailId"
+              element={<ActionRequiredEmailPage />}
+            />
           </Route>
           <Route path="/label/:labelId" element={<LabelPage />}>
             <Route path="email/:emailId" element={<LabelEmailPage />} />

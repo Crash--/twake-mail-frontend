@@ -516,6 +516,7 @@ describe('EmailList', () => {
           subject: 'Re: Plan',
           mailboxIds: { 'mailbox-sent': true },
           from: [{ name: 'Alice Martin', email: FAKE_USERNAME }],
+          to: [{ name: 'Bob Dupont', email: 'bob@example.com' }],
           keywords: { $seen: true },
           receivedAt: '2026-10-02T08:00:00Z'
         }),

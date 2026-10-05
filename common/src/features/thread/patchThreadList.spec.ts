@@ -39,9 +39,19 @@ function member(source: EmailListItemData): ThreadMember {
     keywords,
     receivedAt,
     from,
+    to,
     hasAttachment
   } = source
-  return { id, threadId, mailboxIds, keywords, receivedAt, from, hasAttachment }
+  return {
+    id,
+    threadId,
+    mailboxIds,
+    keywords,
+    receivedAt,
+    from,
+    to,
+    hasAttachment
+  }
 }
 
 /** A page of conversations: each row with every email of its thread */

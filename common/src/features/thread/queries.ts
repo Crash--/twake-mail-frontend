@@ -54,6 +54,7 @@ export const THREAD_MEMBER_PROPERTIES = [
   'keywords',
   'receivedAt',
   'from',
+  'to',
   'hasAttachment'
 ] as const
 

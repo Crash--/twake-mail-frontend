@@ -1,7 +1,11 @@
 import type { ThreadMember } from './queries'
-import { summarizeThread } from './threadSummary'
+import { summarizeThread, type ThreadContext } from './threadSummary'
 
 const ME = 'alice@example.com'
+
+function context(rowEmailId = 'm1'): ThreadContext {
+  return { ownAddress: ME, meLabel: 'Me', sentId: 'sent', rowEmailId }
+}
 
 function member(
   id: string,
@@ -15,6 +19,7 @@ function member(
     keywords: { $seen: true },
     receivedAt: `2026-10-0${id.slice(-1)}T08:00:00Z`,
     from: [{ name: from.name ?? null, email: from.email }],
+    to: [{ name: null, email: 'dan@example.com' }],
     hasAttachment: false,
     ...overrides
   }
@@ -29,8 +34,7 @@ describe('summarizeThread', () => {
         member('m3', { name: 'Bob Dupont', email: 'bob@example.com' }),
         member('m4', { email: 'carol@example.com' })
       ],
-      ME,
-      'Me'
+      context()
     )
 
     expect(summary.participants).toEqual([
@@ -51,8 +55,7 @@ describe('summarizeThread', () => {
           { keywords: { $flagged: true } }
         )
       ],
-      ME,
-      'Me'
+      context()
     )
 
     expect(summary).toMatchObject({
@@ -65,8 +68,7 @@ describe('summarizeThread', () => {
   it('is read and not starred when none of its emails is', () => {
     const summary = summarizeThread(
       [member('m1', { email: 'bob@example.com' })],
-      ME,
-      'Me'
+      context()
     )
 
     expect(summary).toMatchObject({
@@ -74,5 +76,20 @@ describe('summarizeThread', () => {
       isStarred: false,
       hasAttachment: false
     })
+  })
+
+  it('does not count the copy in Sent of an email sent to oneself', () => {
+    const toMe = { to: [{ name: null, email: ME }] }
+    const members = [
+      member('m1', { email: 'bob@example.com' }),
+      member('m2', { email: ME }, { ...toMe, mailboxIds: { inbox: true } }),
+      member('m3', { email: ME }, { ...toMe, mailboxIds: { sent: true } })
+    ]
+
+    expect(summarizeThread(members, context('m1')).count).toBe(2)
+    expect(summarizeThread(members.slice(1), context('m2')).count).toBe(1)
+    // Opened from Sent, the copy is the row: counted
+    expect(summarizeThread(members, context('m3')).count).toBe(3)
+    expect(summarizeThread(members, context('m1')).members).toHaveLength(3)
   })
 })

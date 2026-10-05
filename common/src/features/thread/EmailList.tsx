@@ -34,6 +34,7 @@ import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
+import { findMailboxIdByRole } from '@common/features/mailbox/mailboxTree'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
@@ -85,7 +86,10 @@ const OVERSCAN_PX = 400
  */
 function flattenPages(
   data: EmailListData | undefined,
-  summarize: (members: readonly ThreadMember[]) => ThreadSummary
+  summarize: (
+    members: readonly ThreadMember[],
+    rowEmailId: string
+  ) => ThreadSummary
 ): EmailRowData[] {
   const seen = new Set<string>()
   return (data?.pages ?? []).flatMap(page =>
@@ -97,7 +101,7 @@ function flattenPages(
         {
           ...email,
           snippet: page.snippets?.[email.id] ?? null,
-          thread: members === undefined ? null : summarize(members)
+          thread: members === undefined ? null : summarize(members, email.id)
         }
       ]
     })
@@ -213,12 +217,18 @@ export function EmailList(props: EmailListProps): ReactElement {
   )
   const { session } = useJmapSession()
   const meLabel = t('thread.me')
+  const sentId = findMailboxIdByRole(mailboxes.data ?? [], 'sent')
   const emails = useMemo(
     () =>
-      flattenPages(query.data, members =>
-        summarizeThread(members, session.username, meLabel)
+      flattenPages(query.data, (members, rowEmailId) =>
+        summarizeThread(members, {
+          ownAddress: session.username,
+          meLabel,
+          sentId,
+          rowEmailId
+        })
       ),
-    [query.data, session.username, meLabel]
+    [query.data, session.username, meLabel, sentId]
   )
   // The actions on a conversation act on all its emails
   const expandTargets = useCallback(

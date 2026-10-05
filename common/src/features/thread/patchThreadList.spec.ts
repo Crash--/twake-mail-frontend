@@ -237,6 +237,28 @@ describe('patchThreadList', () => {
     expect(memberIds(data, 'e')).toEqual(['e0', 'e1'])
   })
 
+  it('brings in a conversation whose email has no sender nor recipient', () => {
+    // As James sends it: the properties without value are left out
+    const { from: _from, to: _to, ...template } = email('t1', 't', 17)
+
+    const { data } = patchThreadList(
+      conversations(),
+      INBOX,
+      changes({
+        changed: [template],
+        threads: new Map([
+          ['t', [member({ ...template, from: null, to: null })]]
+        ])
+      })
+    )
+
+    expect(rows(data)).toEqual(['a2', 'b1', 't1', 'c1', 'd1'])
+    const row = data.pages
+      .flatMap(current => current.emails)
+      .find(current => current.id === 't1')
+    expect(row?.to).toBe(null)
+  })
+
   it('does not ask for a conversation that sorts below the loaded rows', () => {
     const old = email('f1', 'f', 3)
 

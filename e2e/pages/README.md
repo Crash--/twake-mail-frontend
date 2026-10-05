@@ -193,6 +193,7 @@ Conventions:
 |---|---|---|
 | `composer` | a composer window (`role="dialog"` named by its subject; `data-mode`: `normal`, `minimized`, `fullscreen`), the newest first; `composer-dock` holds them | — |
 | `composer-minimize-button` / `composer-fullscreen-button` | minimize (then "Show"), full screen (then "Exit fullscreen"), desktop only | `minimize`, `fullscreen` buttons of `desktop_app_bar_composer_widget` |
+| `composer-overflow-button` / `composer-overflow-menu` / `composer-overflow-item` | "+N messages", the composers left out for lack of room (at the start of the dock, or in the title bar of the composer filling the screen), its menu and its items | — (web app only) |
 | `composer-recipients-summary` | the recipient fields folded into one line (focus on the subject or the body), unfolds them | `RecipientsCollapsedComposerWidget` |
 | `composer-to-suggestions` (… `-cc-`, `-bcc-`, `-reply-to-`) | the contact suggestions of a field (`role="listbox"`) | — |
 | `composer-to-input` / `composer-cc-input` / `composer-bcc-input` / `composer-reply-to-input` | recipient inputs | `prefix_to_recipient_composer_widget`… |

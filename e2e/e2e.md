@@ -225,6 +225,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `CMP-46` The remote images of a draft reopened from Drafts (outside the quote) are not loaded until "Show" of the banner, and go with the message sent. — web app only, no Patrol test (tmail-flutter loads them)
 - [x] `CMP-47` A save whose answer is lost (the version created on the server, its id unknown) leaves no stray draft: the next save finds it by its `X-Twake-Draft-Session` header and destroys it. — web app only, no Patrol test
 - [x] `CMP-48` A message is received with the Reply-To of its identity (named after it) when none is typed, and its Bcc, shown in the composer, gets a copy (tmail-flutter `createReplyToRecipients`, `_applyBccEmailAddressFromIdentity`). — web app only, no Patrol test
+- [x] `CMP-49` With three composers on a tablet (one fills the screen) or a 1200 px desktop (the dock holds two), the others are listed in a named "+N messages" menu button (in the title bar of the full screen one, at the start of the dock), reachable with the arrow keys; choosing one shows it. — web app only, no Patrol test (issue #50)
+  - Spec: `tests/composer.spec.ts`, on `chromium` (it resizes the window: three composers cannot be opened on a tablet).
 
 ## ATT — Attachments (2)
 

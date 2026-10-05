@@ -227,6 +227,14 @@ Ce document résume ce qui a été appris, ce qui est fait, ce qui tourne encore
     - linagora-design-flutter / tmail-flutter : couleurs de la carte d'événement sous l'AA (pastilles #0A84FF, orange #F67E35 sous texte blanc, libellés à 64 %).
   - **Image memory : détruire deux emails dans un même `Email/set`** retire les autres emails de leur dossier des résultats d'`Email/query`, alors qu'`Email/get` et `Email/changes` les voient (`INFRA-17`, proche de #2684). `CMP-37` lit donc les brouillons par `Email/changes`. Candidat à une issue (en attente d'accord).
 
+- **Session design et retours du lead tmail, 2026-10-05** (PR #100 à #118, détail et questions dans `NEXT_SESSION.md` §4-5) :
+  - corrections : #100 Favoris après le sous-arbre de l'Inbox (#98), #101 composer hors du cliché des View Transitions (#93), #103 défilement et focus sur le message à lire (#95), #109 défilement instantané avant le premier rendu (#108), #115 zones live de `ToastRegion` en `fixed` (1 px de trop, double scrollbar, #113) ;
+  - #105 contraste reporté à un thème dédié : palette officielle, `color-contrast` en annotation dans `e2e/support/a11y.ts` (validé par Quentin) ;
+  - design (Figma Teammail 1.1) : #104 lignes de la sidebar (`ds/NavTreeItem`, `NavSectionHeader`, `CountBadge`, `ComposeButton`, `SIDEBAR_WIDTH`), #106 barre du haut 50 px, recherche dans le corps (`ds/SearchRow`), barre de liste, corps blanc (`ds/FlatPanes`), #107 lignes sur une ligne (`ds/RowLine`, avatar, libellés en ligne, actions au survol, vide, chargement, `ds/OfflineBanner` non branchée), #118 barre d'action de dossier, filtre de liste comme `FilterMessageOption`, bouton d'aide (capability `contact:support`) ;
+  - #114 clés `.env.js` = `env.file` de tmail-flutter (`SERVER_URL`, `WEB_OIDC_CLIENT_ID`, `OIDC_SCOPES`, `DOMAIN_REDIRECT_URL`, `APP_GRID_AVAILABLE`, `SENTRY_*`), anciens noms en alias, `env.file` monté converti au démarrage de l'image (`docs/deployment.md`) ;
+  - #116 recherche de dossiers dans la sidebar (MBX-04), #117 parité team-mailboxes (`docs/team-mailboxes.md`, droits `myRights` sur les actions d'email) ;
+  - candidats d'issues (en attente d'accord) : tmail-backend `Mailbox/clear` sur la corbeille d'une team-mailbox (Flutter l'évite), image memory `serverFail` occasionnel à l'envoi ; tmail-flutter : namespaces `Delegated` traités comme des team-mailboxes.
+
 ## 5. Ce qu'il reste à faire
 
 ### Immédiat

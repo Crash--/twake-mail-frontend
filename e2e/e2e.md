@@ -235,7 +235,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 ## ATT — Attachments (2)
 
-- [ ] `ATT-01` Opening a provisioned email to self with three .txt attachments and clicking "Download all" triggers the download (iOS: native Save dialog; web: a downloaded file whose name starts with `TwakeMail-`). — `attachments/download_all_attachments_test.dart` · tags: `ios` `web`
+- [x] `ATT-01` Opening a provisioned email to self with attachments and clicking "Download all" triggers the download (iOS: native Save dialog; web: a downloaded file whose name starts with `TwakeMail-`, `.zip`); the button is hidden when the server does not advertise `com:linagora:params:downloadAll` or the email has a single attachment (unit tests). — `attachments/download_all_attachments_test.dart` · tags: `ios` `web`
   - Data: email "download all attachments subject" with 3 generated `test.txt` files (contents file1/file2/file3).
 - [ ] `ATT-02` Opening the provisioned email "Greeting Card" (via search), whose inline image part has a Content-ID but no Content-Disposition, renders the image inline as a base64 `data:image/…;base64` source in the HTML body. — `attachments/no_disposition_inline_test.dart` · tags: `ios (default)`
   - Data: `provisioning/integration_test/eml/no_disposition_inline/no_disposition_inline.eml` (in bob's backup.zip).
@@ -678,3 +678,17 @@ finishes issue #112.
   - Spec: `tests/list-rows.spec.ts`.
 - [x] `LST-05` Measures of the design: 32 px icon buttons, 16 px between toolbar controls, rows about 44 px. — `chromium`
   - Spec: `tests/list-rows.spec.ts`.
+
+
+## ATT — Attachment cards and preview (batch P2)
+
+- [x] `ATT-03` An email with four attachments shows "4 Attachments" and three cards with a "+1 more" tile; the card of an image opens it in a full-screen dialog named after the file (an `<img>`, axe), Escape closes it and gives the focus back to the card; a text file is shown as text (markup escaped) and downloaded from the viewer bar; "+N more" lists the others. — tmail-flutter `AttachmentItemWidget`, `previewImageFile`, `previewPlainTextFile` (no Patrol test)
+  - Spec: `tests/attachments.spec.ts`.
+- [x] `ATT-04` A hostile HTML attachment (script, handler, remote image, iframe, meta refresh, `javascript:` link) is previewed through the sanitizer, the CSP and the sandboxed frame of the email body: no dialog, no request outside the app, nothing of it left in the document (axe). — tmail-flutter `HtmlAttachmentPreviewer` (no Patrol test) · `@mobile`
+  - Spec: `tests/attachments.spec.ts`.
+- [x] `ATT-05` A hostile SVG attachment (script, handler, remote image), whatever type the sender gives it, is shown by an `<img>`: no frame, object nor embed, no dialog, no request outside the app. — web app only
+  - Spec: `tests/attachments.spec.ts`.
+- [x] `ATT-06` A PDF with a JavaScript open action and a link annotation is drawn page by page on canvases (pdf.js, worker served by the app under its CSP): no dialog, no request outside the app (axe). — tmail-flutter `PDFViewer` (no Patrol test)
+  - Spec: `tests/attachments.spec.ts`.
+- [x] `ATT-07` A .eml attachment is parsed by the server and shown as an email (subject, From/To, sanitized body in the sandboxed frame): no dialog, no request outside the app (axe). — tmail-flutter `EmailPreviewerController` (opens a window there, a dialog here; no Patrol test)
+  - Spec: `tests/attachments.spec.ts`.

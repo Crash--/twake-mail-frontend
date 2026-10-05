@@ -1,8 +1,9 @@
 import { Pen } from '@linagora/twake-icons'
-import { Box, Content, Layout, Main } from '@linagora/twake-mui'
+import { Box, Layout } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 import { Outlet, useLocation, useMatch } from 'react-router'
 
+import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -131,15 +132,15 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
             onCompose={handleCompose}
           />
         )}
-        <Main>
+        <FlatMain>
           {isDesktop && !isSettings ? <MailSearchRow /> : null}
           <VacationBanner />
           <RecoveryBanner />
           <QuotaBanner />
-          <Content data-testid="main-content">
+          <FlatContent data-testid="main-content">
             <Outlet />
-          </Content>
-        </Main>
+          </FlatContent>
+        </FlatMain>
       </Layout>
       {showComposeFab ? (
         <FloatingActionButton

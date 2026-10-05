@@ -41,6 +41,7 @@ const ENTRIES: readonly FilterEntry[] = [
 export interface EmailListFilterMenuProps {
   /** The folder the filters look in */
   mailboxId: string
+  className?: string
 }
 
 /**
@@ -50,7 +51,8 @@ export interface EmailListFilterMenuProps {
  * server like any other.
  */
 export function EmailListFilterMenu({
-  mailboxId
+  mailboxId,
+  className
 }: EmailListFilterMenuProps): ReactElement {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -73,6 +75,7 @@ export function EmailListFilterMenu({
       <DropdownButton
         variant="text"
         color="inherit"
+        className={className}
         startIcon={<Icon icon={Filter} />}
         aria-haspopup="menu"
         aria-controls={anchor ? menuId : undefined}

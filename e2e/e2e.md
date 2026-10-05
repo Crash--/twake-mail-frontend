@@ -577,3 +577,7 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   sidebar, the search is in the page under it (820 px at most) with the settings button at the far
   end of its row, and the list toolbar sits under the search; axe. — `chromium` project only
   - Spec: `tests/responsive.spec.ts`.
+- [x] `LAYOUT-01` The document never scrolls (`scrollHeight <= clientHeight`) on the mailbox, the
+  reading view and the settings, on a desktop and a tablet, standalone and framed as in Twake
+  Workplace. — `chromium` project only
+  - Spec: `tests/page-scroll.spec.ts`.

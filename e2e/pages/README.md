@@ -161,7 +161,11 @@ Conventions:
 
 | `data-testid` | Element | Flutter key |
 |---|---|---|
-| `thread-setting-toggle` | "Thread" switch of Settings > Preferences (holds the `switch` input) | `ValueKey(AppLocalizations().thread)` |
+| `thread-setting-toggle` / `read-receipts-setting-toggle` / `sender-priority-setting-toggle` | switches of Settings > Preferences (each holds the `switch` input) | `ValueKey(AppLocalizations().thread)`, `setting_option_switch_on` |
+| `language-select` | Settings > Language | `language_drop_down_button` |
+| `vacation-form` + `vacation-enable-toggle`, `vacation-start-date-input`, `vacation-start-time-input`, `vacation-end-toggle`, `vacation-end-date-input`, `vacation-end-time-input`, `vacation-subject-input`, `vacation-message-editor`, `vacation-error`, `vacation-cancel-button`, `vacation-save-button` | Settings > Vacation | `VacationView` |
+| `vacation-banner` + `vacation-end-now-button`, `vacation-settings-button` | the banner of an active vacation response, over every screen | `VacationNotificationMessageWidget` |
+| `folder-visibility-personal` / `folder-visibility-team` / `folder-visibility-item` (`data-mailbox-name`, `data-hidden`) + `folder-visibility-toggle` | Settings > Folder visibility | `MailboxVisibilityView` |
 | `email-list-item-thread-count` | number of messages of a conversation row, "(3)" (absent for one email) | — |
 | `conversation-view` | an email shown with its conversation | `ThreadDetailView` |
 | `conversation-subject` / `conversation-count` | its subject (`h1`, focused when it opens) and "N messages" | — |

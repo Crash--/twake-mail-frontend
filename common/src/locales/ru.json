@@ -57,7 +57,9 @@
     "expand": "Увеличить",
     "collapse": "Сжать",
     "emails": "Письма",
-    "starred": "Избранное"
+    "starred": "Избранное",
+    "actionRequired": "Требуется действие",
+    "emptyActionRequired": "У вас нет писем, требующих действия."
   },
   "email": {
     "star": "Добавить в избранное",
@@ -98,7 +100,9 @@
       "copy": "Скопировать",
       "menu": "Действия с %{email}",
       "copied": "Адрес скопирован"
-    }
+    },
+    "actionRequired": "Требуется действие",
+    "removeActionRequired": "Убрать метку «Требуется действие»"
   },
   "login": {
     "title": "Войти",
@@ -610,7 +614,13 @@
       "labelsToggle": "Показывать метки",
       "errorReporting": "Отчёты об ошибках",
       "errorReportingDescription": "Отправляйте отчёты о сбоях и ошибках, чтобы служба поддержки могла диагностировать возникающие у вас проблемы. Ваши письма, их содержимое и получатели никогда не включаются.",
-      "errorReportingToggle": "Отправлять отчёты об ошибках"
+      "errorReportingToggle": "Отправлять отчёты об ошибках",
+      "aiLabelCategorization": "Категоризация меток",
+      "aiLabelCategorizationDescription": "Применять мои метки к входящим письмам, используя их описание",
+      "aiLabelCategorizationToggle": "Включить категоризацию меток",
+      "aiScribe": "AI Scribe",
+      "aiScribeDescription": "Используйте ИИ для помощи в написании и улучшении ваших электронных писем",
+      "aiScribeToggle": "Включить AI Scribe"
     },
     "backToMail": "Вернуться к почте",
     "language": {

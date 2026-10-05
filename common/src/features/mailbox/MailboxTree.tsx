@@ -25,6 +25,7 @@ import {
   type FolderMenuAnchor
 } from '@common/features/mailboxActions/FolderActionsMenu'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
+import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -36,6 +37,7 @@ import {
 import { MailboxSearch } from './MailboxSearch'
 import { MailboxTreeItem } from './MailboxTreeItem'
 import type { MailboxSummary } from './queries'
+import { ActionRequiredTreeItem } from './ActionRequiredTreeItem'
 import { StarredTreeItem } from './StarredTreeItem'
 import { useMailboxes } from './useMailboxes'
 
@@ -48,6 +50,8 @@ interface TreeRowsProps {
   onOpenMenu: (mailbox: MailboxSummary, anchor: FolderMenuAnchor) => void
   /** Puts the Starred virtual folder after the Inbox and its subfolders */
   withStarred?: boolean
+  /** Puts the Action required virtual folder after Starred */
+  withActionRequired?: boolean
 }
 
 function TreeRows({
@@ -55,7 +59,8 @@ function TreeRows({
   selectedId,
   onToggle,
   onOpenMenu,
-  withStarred = false
+  withStarred = false,
+  withActionRequired = false
 }: TreeRowsProps): ReactElement {
   const inbox = rows.find(
     row => row.level === 1 && row.mailbox.role === 'inbox'
@@ -67,21 +72,33 @@ function TreeRows({
     (row, index) => index > inboxIndex && row.level === 1
   )
   const starredBefore = nextTopLevel === -1 ? rows.length : nextTopLevel
-  // The Starred folder takes a place among the top level folders
+  // Starred and Action required take a place among the top level folders
+  const virtualCount = withActionRequired ? 2 : 1
   const shift = (row: VisibleMailbox): VisibleMailbox =>
     starredAt === null || row.level !== 1
       ? row
       : {
           ...row,
-          position: row.position > starredAt ? row.position + 1 : row.position,
-          siblingCount: row.siblingCount + 1
+          position:
+            row.position > starredAt
+              ? row.position + virtualCount
+              : row.position,
+          siblingCount: row.siblingCount + virtualCount
         }
   const starredItem =
     inbox !== undefined && starredAt !== null ? (
-      <StarredTreeItem
-        position={starredAt + 1}
-        siblingCount={inbox.siblingCount + 1}
-      />
+      <>
+        <StarredTreeItem
+          position={starredAt + 1}
+          siblingCount={inbox.siblingCount + virtualCount}
+        />
+        {withActionRequired ? (
+          <ActionRequiredTreeItem
+            position={starredAt + 2}
+            siblingCount={inbox.siblingCount + virtualCount}
+          />
+        ) : null}
+      </>
     ) : null
   return (
     <>
@@ -114,6 +131,7 @@ export function MailboxTree(): ReactElement {
   const teamTitleId = useId()
   const query = useMailboxes()
   const folderActions = useFolderActions()
+  const isActionRequiredOn = useAiNeedsActionEnabled()
   const match = useMatch('/mailbox/:mailboxId/*')
   const selectedId = match?.params.mailboxId ?? null
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
@@ -185,6 +203,7 @@ export function MailboxTree(): ReactElement {
         onToggle={handleToggle}
         onOpenMenu={handleOpenMenu}
         withStarred
+        withActionRequired={isActionRequiredOn}
       />
     )
   }

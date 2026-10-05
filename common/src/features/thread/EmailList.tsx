@@ -42,6 +42,7 @@ import {
   isTeamTemplates,
   isTemplatesMailbox
 } from '@common/features/mailbox/mailboxTree'
+import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
 import { useLabels } from '@common/features/labels/queries'
 import { mailboxKeys } from '@common/features/mailbox/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
@@ -182,6 +183,8 @@ export interface EmailListSearch {
   filterScope?: string
   /** The list is the Starred view: no "starred" filter */
   isStarredView?: boolean
+  /** The list is the Action required view: it is unread-only, no "unread" filter */
+  isActionRequiredView?: boolean
 }
 
 export type EmailListProps = { mailboxId: string } | { search: EmailListSearch }
@@ -504,6 +507,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   const { openComposer } = useComposer()
   const showImportant = useShowsSenderPriority()
   const labels = useLabels().data?.list
+  const showActionRequired = useAiNeedsActionEnabled()
   const handleOpenDraft = useCallback(
     (email: { id: string }): void => {
       openComposer({ draftId: email.id })
@@ -537,6 +541,7 @@ export function EmailList(props: EmailListProps): ReactElement {
             onOpenTemplate={isTemplates ? handleOpenTemplate : undefined}
             showImportant={showImportant}
             labels={labels}
+            showActionRequired={showActionRequired}
           />
         )
       }
@@ -556,7 +561,8 @@ export function EmailList(props: EmailListProps): ReactElement {
       handleOpenTemplate,
       isTemplates,
       showImportant,
-      labels
+      labels,
+      showActionRequired
     ]
   )
 
@@ -638,7 +644,8 @@ export function EmailList(props: EmailListProps): ReactElement {
               : {
                   current: filter,
                   options: availableListFilters({
-                    isStarredView: search?.isStarredView === true
+                    isStarredView: search?.isStarredView === true,
+                    isActionRequiredView: search?.isActionRequiredView === true
                   }),
                   onSelect: listFilter.select,
                   onClear: listFilter.clear

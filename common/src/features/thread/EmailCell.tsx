@@ -35,10 +35,12 @@ import {
   DRAFT,
   FLAGGED,
   hasKeyword,
+  NEEDS_ACTION,
   SEEN
 } from '@common/features/email/keywords'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { ActionRequiredTag } from '@common/features/ai/ActionRequiredTag'
 import { LabelChips, labelsOfEmail } from '@common/features/labels/LabelChips'
 import type { Label } from 'jmap-client-ts/linagora'
 import { HighlightedText } from '@common/features/search/HighlightedText'
@@ -127,6 +129,11 @@ export interface EmailCellProps {
   showImportant?: boolean
   /** The labels of the account, shown on the emails that have them */
   labels?: readonly Label[]
+  /**
+   * Tags the emails with the `needs-action` keyword "Action required" (the
+   * AI feature of tmail-flutter, on when the server offers it)
+   */
+  showActionRequired?: boolean
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -155,6 +162,7 @@ export function EmailCell({
   onOpenTemplate,
   showImportant = true,
   labels = [],
+  showActionRequired = false,
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -177,14 +185,22 @@ export function EmailCell({
   // represents it. To show the union of its emails (issue #110), pass
   // `thread.members` here instead of `email`.
   const emailLabels = labelsOfEmail(labels, email)
+  const isActionRequired = showActionRequired && hasKeyword(email, NEEDS_ACTION)
   const labelChips = (max: number): ReactElement | null =>
-    emailLabels.length === 0 ? null : (
-      <LabelChips
-        labels={emailLabels}
-        max={max}
-        nowrap
-        className="u-flex-shrink-0 u-mr-half"
-      />
+    emailLabels.length === 0 && !isActionRequired ? null : (
+      <>
+        {isActionRequired ? (
+          <span className="u-flex-shrink-0 u-mr-half">
+            <ActionRequiredTag maxLength={16} />
+          </span>
+        ) : null}
+        <LabelChips
+          labels={emailLabels}
+          max={max}
+          nowrap
+          className="u-flex-shrink-0 u-mr-half"
+        />
+      </>
     )
   const emphasis = isUnread ? 'u-fw-bold' : ''
   // Its participants ("Alice, Bob, Me") rather than the last sender

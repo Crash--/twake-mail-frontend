@@ -57,7 +57,9 @@
     "expand": "Mở rộng",
     "collapse": "Đóng",
     "emails": "Thư",
-    "starred": "Quan trọng"
+    "starred": "Quan trọng",
+    "actionRequired": "Cần xử lý",
+    "emptyActionRequired": "Bạn chưa có email nào cần xử lý."
   },
   "email": {
     "star": "Đánh dấu quan trọng",
@@ -98,7 +100,9 @@
       "copy": "Sao chép",
       "menu": "Thao tác với %{email}",
       "copied": "Đã sao chép địa chỉ email"
-    }
+    },
+    "actionRequired": "Cần xử lý",
+    "removeActionRequired": "Gỡ nhãn Cần xử lý"
   },
   "login": {
     "title": "Đăng nhập",
@@ -610,7 +614,13 @@
       "labelsToggle": "Hiển thị nhãn",
       "errorReporting": "Báo cáo lỗi",
       "errorReportingDescription": "Gửi báo cáo sự cố và lỗi để nhóm hỗ trợ có thể chẩn đoán các vấn đề bạn gặp phải. Email của bạn, nội dung và người nhận không bao giờ được đưa vào.",
-      "errorReportingToggle": "Gửi báo cáo lỗi"
+      "errorReportingToggle": "Gửi báo cáo lỗi",
+      "aiLabelCategorization": "Nhãn phân loại tự động",
+      "aiLabelCategorizationDescription": "Gán nhãn tự động dựa trên nội dung mô tả của nhãn",
+      "aiLabelCategorizationToggle": "Kích hoạt nhãn phân loại tự động",
+      "aiScribe": "AI Scribe",
+      "aiScribeDescription": "Sử dụng AI để giúp soạn thảo và cải thiện email của bạn",
+      "aiScribeToggle": "Bật AI Scribe"
     },
     "backToMail": "Quay lại hộp thư",
     "language": {

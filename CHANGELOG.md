@@ -107,6 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when removed, within the size limits of the server
 - Open composers come back after a reload of the page, and are forgotten
   on sign out
+- Reply, reply all and forward from the menu of a conversation row, to the
+  email standing for it
 
 ### Changed
 
@@ -114,6 +116,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   up to date, and again after 30 s once the push channel is down
 - The folder tree keeps no room for expand arrows when no folder has
   subfolders
+
+### Fixed
+
+- `R` replies to all only with Shift, not with Caps Lock
+- A key typed while a composer opens no longer reaches the shortcuts of the
+  email behind it; answering an email twice brings back the answer open
+- A reply reopened from Drafts marks the email it answers once sent
+- The remote images of a reopened draft wait for the user, as in the reader
+- A draft version created by a save whose answer was lost is destroyed by
+  the next save
+- An email sent to oneself counts once in its conversation row
 
 ### Security
 

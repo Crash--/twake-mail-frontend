@@ -1,4 +1,6 @@
-import { LoginPage, MailboxPage, SearchPage } from '../pages'
+import type { Page } from '@playwright/test'
+
+import { EmailPage, LoginPage, MailboxPage, SearchPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
@@ -111,5 +113,123 @@ test.describe('EML opening an email with a view transition', () => {
     expect(await hasViewTransitionApi(page)).toBe(false)
 
     expect(await openAndClose(mailbox, page)).toBe(0)
+  })
+})
+
+interface ComposerLayerProbe {
+  __composerLayers?: { name: string; groupWidth: string }[]
+}
+
+/**
+ * For each view transition the page starts: the `view-transition-name` of
+ * the composer window and the width of its `::view-transition-group`, which
+ * only exists when the window is a layer of its own (not in the root one).
+ */
+async function watchComposerLayers(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const view: Window & ComposerLayerProbe = window
+    view.__composerLayers = []
+    if (typeof document.startViewTransition !== 'function') return
+    const start = document.startViewTransition.bind(document)
+    document.startViewTransition = (
+      ...args: Parameters<Document['startViewTransition']>
+    ): ViewTransition => {
+      const transition = start(...args)
+      transition.ready
+        .then(() => {
+          const window = document.querySelector('[data-testid="composer"]')
+          const name = window
+            ? getComputedStyle(window).getPropertyValue('view-transition-name')
+            : 'none'
+          const groupWidth = getComputedStyle(
+            document.documentElement,
+            `::view-transition-group(${name})`
+          ).width
+          view.__composerLayers?.push({ name, groupWidth })
+        })
+        .catch(() => undefined)
+      return transition
+    }
+  })
+}
+
+test.describe('EML composer kept while navigating', () => {
+  test.use({ emailsOneByOne: true })
+
+  test('EML-37 a composer open while emails open and close is not part of the page transition, and is not remounted (issue #93)', async ({
+    page,
+    user,
+    users,
+    jmap,
+    jmapFor
+  }) => {
+    const sender = await users.create({ prefix: 'sender' })
+    for (const index of [0, 1]) {
+      await jmapFor(sender).sendEmail({
+        to: user.email,
+        subject: `Slide ${index}`,
+        text: `Body of slide ${index}`
+      })
+    }
+    await jmap.waitForEmail({ subject: 'Slide 1' })
+    await watchViewTransitions(page)
+    await watchComposerLayers(page)
+    const mailbox = await new LoginPage(page).loginAs(user)
+    test.skip(
+      !(await hasViewTransitionApi(page)),
+      'a browser without the View Transitions API: EML-33'
+    )
+
+    const composer = await mailbox.compose()
+    await composer.editor.click()
+    await page.keyboard.type('hello')
+    const editorNode = await composer.editor.elementHandle()
+    const sameEditor = (): Promise<boolean> =>
+      composer.editor.evaluate(
+        (node, expected) => node === expected,
+        editorNode
+      )
+
+    // The dock covers the middle of the row: the link is clicked at its start
+    const openSlide = async (subject: string): Promise<EmailPage> => {
+      await mailbox
+        .emailRowLink(subject)
+        .click({ position: { x: 5, y: 5 } })
+      const email = new EmailPage(page)
+      await email.expectSubject(subject)
+      return email
+    }
+
+    const before = await viewTransitionCount(page)
+    const first = await openSlide('Slide 0')
+    await first.back()
+    await openSlide('Slide 1')
+    await expect(composer.editor).toHaveText('hello')
+    expect(await sameEditor()).toBe(true)
+    expect(await viewTransitionCount(page)).toBe(before + 3)
+
+    // Each transition had the composer as a layer of its own
+    await expect
+      .poll(async () =>
+        page.evaluate(
+          () => (window as Window & ComposerLayerProbe).__composerLayers
+        )
+      )
+      .toHaveLength(3)
+    const layers = await page.evaluate(
+      () => (window as Window & ComposerLayerProbe).__composerLayers ?? []
+    )
+    for (const layer of layers) {
+      expect(layer.name).toMatch(/^composer-/)
+      expect(layer.groupWidth).not.toBe('')
+      expect(layer.groupWidth).not.toBe('auto')
+    }
+
+    // The same editor still takes the typing
+    await composer.editor.click()
+    await page.keyboard.type('!')
+    await expect(composer.editor).toHaveText('hello!')
+    await expect(composer.editor).toBeFocused()
+    expect(await sameEditor()).toBe(true)
   })
 })

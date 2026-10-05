@@ -310,6 +310,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 - [x] `EML-36` The quoted history of an answer (the last top level `blockquote`, as tmail-flutter, or the quote of Gmail, Outlook, Thunderbird) is folded behind a "•••" button named "Show trimmed content"; Enter unfolds it and the frame grows, Space folds it again (axe). — tmail-flutter web `HtmlUtils.addQuoteToggle` (no Patrol test) (issue #49)
   - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). A `<details>`/`<summary>` in the frame: no script runs there. Passes in CI.
+- [x] `EML-37` With a composer open, opening an email and going back run view transitions in which the composer window is a layer of its own (`view-transition-name` set, its `::view-transition-group` exists), not part of the root snapshot; its editor is the same DOM node, keeps its text and takes the typing again. — web app only, no Patrol test (issue #93)
+  - Spec: `tests/transitions.spec.ts`, on `chromium` (the phone composer fills the screen).
 
 ## THR — Thread detail (3)
 

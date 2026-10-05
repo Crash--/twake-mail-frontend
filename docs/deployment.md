@@ -12,6 +12,7 @@ against the JMAP server).
 - [Security headers](#security-headers)
 - [Reverse proxy, JMAP on the same origin or not](#reverse-proxy-jmap-on-the-same-origin-or-not)
 - [Embedding in Twake Workplace (iframe)](#embedding-in-twake-workplace-iframe)
+- [Twake Drive picker](#twake-drive-picker)
 - [SSO client](#sso-client)
 
 ## The Docker image
@@ -211,7 +212,22 @@ Workplace of every user when each one has its own host. Browsers ignore
 `X-Frame-Options` when `frame-ancestors` is set, so the image does not send
 it; make sure the reverse proxy does not add one either.
 
-## SSO client
+## Twake Drive picker
+
+With `TDRIVE_ENABLED = true` (OIDC only), the composer trades the ID token
+for a Drive token and opens the Drive picker in a frame. The browser then
+talks to the Drive (cozy-stack) of the user, `TDRIVE_INTENT_URL`, and frames
+the Drive application, usually on another host (`<user>-drive.<domain>`).
+Allow both, with wildcards when every user has their own host:
+
+```bash
+-e CSP_CONNECT_SRC="https://sso.example.com https://*.workplace.example.com" \
+-e CSP_FRAME_SRC="https://*.workplace.example.com"
+```
+
+The cozy-stack must also accept the token exchange for this OIDC client and
+this origin.
+
 
 Register a public client (no secret) using Authorization Code with PKCE
 (S256):

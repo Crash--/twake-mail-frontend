@@ -396,7 +396,13 @@
       "failed": "Ошибка загрузки",
       "uploaded": "%{name} прикреплён",
       "uploadFailed": "Не удалось прикрепить %{name}",
-      "removed": "%{name} убран"
+      "removed": "%{name} убран",
+      "retry": "Повторить %{name}",
+      "done": "Загружено",
+      "showLess": "Показать меньше",
+      "showMore": "Показать ещё (+%{count})",
+      "uploadingTitle": "Загрузка %{smart_count} файла |||| Загрузка %{smart_count} файлов |||| Загрузка %{smart_count} файлов",
+      "hideUploads": "Скрыть список загрузки"
     },
     "prefix": {
       "reply": "Re:",

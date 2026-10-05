@@ -49,6 +49,10 @@ export interface ComposerAttachments {
   addFiles: (files: File[]) => void
   /** Removes a file, cancelling its upload */
   remove: (id: string) => void
+  /** Uploads again a file whose upload failed */
+  retry: (id: string) => void
+  /** Local `blob:` URL of the picture files added in this session */
+  previews: Readonly<Record<string, string>>
   /** Said by the live region of the list */
   status: string
   isUploading: boolean
@@ -80,6 +84,10 @@ export function useComposerAttachments(
   const [attachments, setAttachments] = useState(initial)
   const [status, setStatus] = useState('')
   const controllers = useRef(new Map<string, AbortController>())
+  /** The files of this session, kept to upload them again */
+  const sources = useRef(new Map<string, File>())
+  const [previews, setPreviews] = useState<Record<string, string>>({})
+  const previewUrls = useRef(new Map<string, string>())
   const attachmentsRef = useRef(attachments)
   useEffect(() => {
     attachmentsRef.current = attachments
@@ -87,9 +95,13 @@ export function useComposerAttachments(
 
   useEffect(() => {
     const running = controllers.current
+    const urls = previewUrls.current
     return () => {
       running.forEach(controller => {
         controller.abort()
+      })
+      urls.forEach(url => {
+        URL.revokeObjectURL(url)
       })
     }
   }, [])
@@ -100,23 +112,10 @@ export function useComposerAttachments(
     )
   }
 
-  const upload = (file: File): void => {
-    const id = crypto.randomUUID()
+  const run = (id: string, file: File): void => {
     const type = file.type || 'application/octet-stream'
     const controller = new AbortController()
     controllers.current.set(id, controller)
-    setAttachments(current => [
-      ...current,
-      {
-        id,
-        blobId: '',
-        type,
-        name: file.name,
-        size: file.size,
-        status: 'uploading',
-        progress: 0
-      }
-    ])
     uploadBlob({
       url: uploadUrlFor(session.uploadUrl, accountId),
       blob: file,
@@ -150,6 +149,40 @@ export function useComposerAttachments(
       })
   }
 
+  const upload = (file: File): void => {
+    const id = crypto.randomUUID()
+    const type = file.type || 'application/octet-stream'
+    sources.current.set(id, file)
+    if (
+      type.startsWith('image/') &&
+      typeof URL.createObjectURL === 'function'
+    ) {
+      const url = URL.createObjectURL(file)
+      previewUrls.current.set(id, url)
+      setPreviews(current => ({ ...current, [id]: url }))
+    }
+    setAttachments(current => [
+      ...current,
+      {
+        id,
+        blobId: '',
+        type,
+        name: file.name,
+        size: file.size,
+        status: 'uploading',
+        progress: 0
+      }
+    ])
+    run(id, file)
+  }
+
+  const retry = (id: string): void => {
+    const file = sources.current.get(id)
+    if (!file || controllers.current.has(id)) return
+    update(id, { status: 'uploading', progress: 0 })
+    run(id, file)
+  }
+
   const refuse = (maxSize: number): void => {
     void alert({
       title: t('composer.attachments.tooLargeTitle'),
@@ -180,6 +213,17 @@ export function useComposerAttachments(
   const remove = (id: string): void => {
     controllers.current.get(id)?.abort()
     controllers.current.delete(id)
+    sources.current.delete(id)
+    const url = previewUrls.current.get(id)
+    if (url !== undefined) {
+      URL.revokeObjectURL(url)
+      previewUrls.current.delete(id)
+      setPreviews(current =>
+        Object.fromEntries(
+          Object.entries(current).filter(([key]) => key !== id)
+        )
+      )
+    }
     const removed = attachmentsRef.current.find(item => item.id === id)
     setAttachments(current => current.filter(item => item.id !== id))
     if (removed) {
@@ -209,6 +253,8 @@ export function useComposerAttachments(
     attachments,
     addFiles,
     remove,
+    retry,
+    previews,
     rebase,
     status,
     isUploading: attachments.some(item => item.status === 'uploading')

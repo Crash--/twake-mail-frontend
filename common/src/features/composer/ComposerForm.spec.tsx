@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
@@ -1425,6 +1425,120 @@ describe('ComposerForm', () => {
       )
 
       expect(uploads.held[0]?.isAborted()).toBe(true)
+    })
+
+    it('uploads a failed file again', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => undefined)
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      uploads.hold()
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        new File(['zip'], 'big.zip', { type: 'application/zip' })
+      )
+      await within(composer).findByRole('progressbar', {
+        name: 'Uploading big.zip'
+      })
+      act(() => {
+        uploads?.held[0]?.fail(500)
+      })
+      const item = await within(composer).findByTestId(
+        'composer-attachment-item'
+      )
+      await waitFor(() => {
+        expect(item).toHaveAttribute('data-status', 'failed')
+      })
+      expect(item).toHaveTextContent('Upload failed')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Retry big.zip' })
+      )
+      await within(composer).findByRole('progressbar', {
+        name: 'Uploading big.zip'
+      })
+      act(() => {
+        uploads?.held[1]?.finish()
+      })
+      await waitFor(() => {
+        expect(item).toHaveAttribute('data-status', 'done')
+      })
+    })
+
+    it('folds a long list of files, and shows the rest again', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        ['a', 'b', 'c', 'd'].map(
+          name => new File([name], `${name}.txt`, { type: 'text/plain' })
+        )
+      )
+      await waitFor(() => {
+        expect(
+          within(composer)
+            .getAllByTestId('composer-attachment-item')
+            .every(item => item.getAttribute('data-status') === 'done')
+        ).toBe(true)
+      })
+      expect(
+        within(composer).getAllByTestId('composer-attachment-item')
+      ).toHaveLength(4)
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Show less' })
+      )
+      expect(
+        within(composer).getAllByTestId('composer-attachment-item')
+      ).toHaveLength(2)
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Show more (+2)' })
+      )
+      expect(
+        within(composer).getAllByTestId('composer-attachment-item')
+      ).toHaveLength(4)
+    })
+
+    it('lists more than 9 uploads at once in a popup, until they end', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      uploads.hold()
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        Array.from(
+          { length: 10 },
+          (_, index) =>
+            new File(['x'], `file-${String(index)}.txt`, { type: 'text/plain' })
+        )
+      )
+
+      const popup = await screen.findByRole('region', {
+        name: 'Uploading 10 files'
+      })
+      expect(within(popup).getAllByRole('progressbar')).toHaveLength(10)
+      expect(
+        within(composer).queryAllByTestId('composer-attachment-item')
+      ).toHaveLength(0)
+
+      act(() => {
+        uploads?.held.forEach(held => {
+          held.finish()
+        })
+      })
+      await waitFor(() => {
+        expect(screen.queryByRole('region', { name: /Uploading/ })).toBe(null)
+      })
+      expect(
+        within(composer).getAllByTestId('composer-attachment-item')
+      ).toHaveLength(10)
     })
 
     it('refuses a file above the size limit of the server', async () => {

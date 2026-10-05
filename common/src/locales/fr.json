@@ -396,7 +396,13 @@
       "failed": "Échec de l'envoi",
       "uploaded": "%{name} joint",
       "uploadFailed": "%{name} n'a pas pu être joint",
-      "removed": "%{name} retiré"
+      "removed": "%{name} retiré",
+      "retry": "Réessayer %{name}",
+      "done": "Envoyé",
+      "showLess": "Afficher moins",
+      "showMore": "Afficher plus (+%{count})",
+      "uploadingTitle": "Envoi de %{smart_count} fichier |||| Envoi de %{smart_count} fichiers",
+      "hideUploads": "Masquer la liste d'envoi"
     },
     "prefix": {
       "reply": "Re:",

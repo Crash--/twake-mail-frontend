@@ -929,5 +929,65 @@
       "start": "Не удалось начать восстановление"
     },
     "days": "%{smart_count} день |||| %{smart_count} дня |||| %{smart_count} дней"
+  },
+  "calendar": {
+    "banner": {
+      "invited": "пригласил(а) вас на встречу",
+      "updated": "обновил(а) встречу",
+      "canceled": "отменил(а) встречу",
+      "accepted": "принял(а) это приглашение",
+      "tentative": "ответил(а) \"Возможно\" на это приглашение",
+      "declined": "отклонил(а) это приглашение",
+      "counter": "предложил(а) изменения к этому событию",
+      "counterDeclined": "Ваше предложение отклонено"
+    },
+    "anAttendee": "Участник",
+    "when": "Когда",
+    "where": "Где",
+    "who": "Кто",
+    "organizer": "Организатор",
+    "seeAllAttendees": "Посмотреть всех участников",
+    "hideAttendees": "Скрыть",
+    "attending": "Участие?",
+    "reply": {
+      "yes": "Да",
+      "maybe": "Возможно",
+      "no": "Нет"
+    },
+    "mailToAttendees": "Написать приглашенным",
+    "joinVideoConference": "Присоединиться к видеоконференции",
+    "copyLink": "Копировать ссылку",
+    "seeInCalendar": "Посмотреть в вашем Календаре",
+    "busy": "В это время у вас запланировано другое мероприятие",
+    "notInvited": "Вы не приглашены на это мероприятие. Пожалуйста, свяжитесь с организатором.",
+    "replied": {
+      "yes": "Вы придете на эту встречу",
+      "maybe": "Вы возможно придете на эту встречу",
+      "no": "Вы не придете на эту встречу"
+    },
+    "replyFailed": "Не удалось отправить ответ на событие",
+    "counterAccepted": "Вы приняли предложенное время встречи",
+    "eventLabel": "Событие: %{title}",
+    "allDay": "Весь день",
+    "description": "Описание",
+    "videoConference": "Видео",
+    "linkCopied": "Ссылка скопирована",
+    "participation": {
+      "needsAction": "ожидает ответа",
+      "accepted": "принято",
+      "declined": "отклонено",
+      "tentative": "возможно",
+      "delegated": "делегировано"
+    },
+    "recurrence": {
+      "daily": "Каждый %{smart_count} день |||| Каждые %{smart_count} дня |||| Каждые %{smart_count} дней",
+      "weekly": "Каждую %{smart_count} неделю |||| Каждые %{smart_count} недели |||| Каждые %{smart_count} недель",
+      "monthly": "Каждый %{smart_count} месяц |||| Каждые %{smart_count} месяца |||| Каждые %{smart_count} месяцев",
+      "yearly": "Каждый %{smart_count} год |||| Каждые %{smart_count} года |||| Каждые %{smart_count} лет",
+      "onDays": "по дням: %{days}",
+      "count": "%{smart_count} раз |||| %{smart_count} раза |||| %{smart_count} раз",
+      "until": "до %{date}"
+    },
+    "untitled": "(Без названия)"
   }
 }

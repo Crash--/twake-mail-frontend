@@ -154,6 +154,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Recover deleted messages" in the menu of the Trash
   (`EmailRecoveryAction`): the form of tmail-flutter, the task followed
   until the emails are back in "Recovered"
+- Calendar invitations (`CalendarEvent/parse`): the event card of
+  tmail-flutter's new design above the body of an email holding a `.ics`
+  file or a `text/calendar` part (state badge, when and how it repeats in the
+  time zone of the user, where, the meeting link to copy, organizer and
+  attendees with their answer), Yes / Maybe / No (`CalendarEvent/accept`,
+  `maybe`, `reject`, the current answer from `CalendarEventAttendance/get`),
+  Yes on a counter proposal (`CalendarEventCounter/accept`), "Mail to
+  attendees", "See in your Calendar" (`CALENDAR_SPA_URL`); the description
+  as text after the card
 
 ### Changed
 

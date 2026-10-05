@@ -929,5 +929,65 @@
       "start": "La récupération n'a pas pu démarrer"
     },
     "days": "%{smart_count} jour |||| %{smart_count} jours"
+  },
+  "calendar": {
+    "banner": {
+      "invited": "vous a invité à une réunion",
+      "updated": "a mis à jour une réunion",
+      "canceled": "a annulé une réunion",
+      "accepted": "a accepté cette invitation",
+      "tentative": "a répondu \"Peut-être\" à cette invitation",
+      "declined": "a décliné cette invitation",
+      "counter": "a proposé des modifications à l'événement",
+      "counterDeclined": "Votre contre-proposition a été refusée"
+    },
+    "anAttendee": "Un participant",
+    "when": "Quand",
+    "where": "Où",
+    "who": "Qui",
+    "organizer": "Organisateur",
+    "seeAllAttendees": "Voir tous les participants",
+    "hideAttendees": "Masquer",
+    "attending": "Présence ?",
+    "reply": {
+      "yes": "Oui",
+      "maybe": "Peut-être",
+      "no": "Non"
+    },
+    "mailToAttendees": "Écrire aux invités",
+    "joinVideoConference": "Rejoindre la conférence vidéo",
+    "copyLink": "Copier le lien",
+    "seeInCalendar": "Voir dans votre Agenda",
+    "busy": "Vous avez un autre rendez-vous à ce moment là",
+    "notInvited": "Vous n'êtes pas invité à cet événement. Veuillez contacter son organisateur.",
+    "replied": {
+      "yes": "Vous participerez à cette réunion",
+      "maybe": "Vous participerez peut-être à cette réunion",
+      "no": "Vous ne participerez pas à cette réunion"
+    },
+    "replyFailed": "La réponse à l'évènement n'a pas été envoyée !",
+    "counterAccepted": "Vous avez accepté le créneau horaire proposé pour cette réunion",
+    "eventLabel": "Événement : %{title}",
+    "allDay": "Toute la journée",
+    "description": "Description",
+    "videoConference": "Visio",
+    "linkCopied": "Lien copié dans le presse-papier",
+    "participation": {
+      "needsAction": "en attente de réponse",
+      "accepted": "accepté",
+      "declined": "refusé",
+      "tentative": "peut-être",
+      "delegated": "délégué"
+    },
+    "recurrence": {
+      "daily": "Tous les jours |||| Tous les %{smart_count} jours",
+      "weekly": "Toutes les semaines |||| Toutes les %{smart_count} semaines",
+      "monthly": "Tous les mois |||| Tous les %{smart_count} mois",
+      "yearly": "Tous les ans |||| Tous les %{smart_count} ans",
+      "onDays": "le %{days}",
+      "count": "%{smart_count} fois |||| %{smart_count} fois",
+      "until": "jusqu'au %{date}"
+    },
+    "untitled": "(Sans titre)"
   }
 }

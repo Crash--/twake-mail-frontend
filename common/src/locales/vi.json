@@ -929,5 +929,65 @@
       "start": "Không thể bắt đầu khôi phục"
     },
     "days": "%{smart_count} ngày"
+  },
+  "calendar": {
+    "banner": {
+      "invited": "đã mời bạn tham dự một cuộc họp",
+      "updated": "đã cập nhật một cuộc họp",
+      "canceled": "đã hủy một cuộc họp",
+      "accepted": "đã chấp nhận lời mời này",
+      "tentative": "đã trả lời \"Có thể\" cho lời mời này",
+      "declined": "đã từ chối lời mời này",
+      "counter": "đã đề xuất thay đổi sự kiện",
+      "counterDeclined": "Đề xuất phản đối của bạn đã bị từ chối"
+    },
+    "anAttendee": "Một người tham dự",
+    "when": "Khi nào",
+    "where": "Ở đâu",
+    "who": "Ai",
+    "organizer": "Người tổ chức",
+    "seeAllAttendees": "Xem tất cả người tham dự",
+    "hideAttendees": "Ẩn",
+    "attending": "Tham dự?",
+    "reply": {
+      "yes": "Có",
+      "maybe": "Có thể",
+      "no": "Không"
+    },
+    "mailToAttendees": "Gửi thư cho người tham dự",
+    "joinVideoConference": "Tham gia hội nghị video",
+    "copyLink": "Sao chép liên kết",
+    "seeInCalendar": "Xem trong Lịch của bạn",
+    "busy": "Bạn có một sự kiện khác trong cùng thời điểm này",
+    "notInvited": "Bạn không được mời vào sự kiện này. Hãy liên hệ người tổ chức.",
+    "replied": {
+      "yes": "Bạn sẽ tham gia sự kiện",
+      "maybe": "Bạn có thể tham gia sự kiện",
+      "no": "Bạn sẽ không tham gia sự kiện"
+    },
+    "replyFailed": "Hồi đáp sự kiện không thành công!",
+    "counterAccepted": "Bạn đã chấp nhận một đề xuất thời gian mới cho cuộc họp này",
+    "eventLabel": "Sự kiện: %{title}",
+    "allDay": "Cả ngày",
+    "description": "Mô tả",
+    "videoConference": "Video",
+    "linkCopied": "Liên kết đã được sao chép",
+    "participation": {
+      "needsAction": "đang chờ phản hồi",
+      "accepted": "đã chấp nhận",
+      "declined": "đã từ chối",
+      "tentative": "có thể",
+      "delegated": "đã ủy quyền"
+    },
+    "recurrence": {
+      "daily": "Mỗi %{smart_count} ngày",
+      "weekly": "Mỗi %{smart_count} tuần",
+      "monthly": "Mỗi %{smart_count} tháng",
+      "yearly": "Mỗi %{smart_count} năm",
+      "onDays": "vào %{days}",
+      "count": "%{smart_count} lần",
+      "until": "đến %{date}"
+    },
+    "untitled": "(Không có tiêu đề)"
   }
 }

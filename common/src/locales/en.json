@@ -929,5 +929,65 @@
       "start": "The recovery could not start"
     },
     "days": "%{smart_count} day |||| %{smart_count} days"
+  },
+  "calendar": {
+    "banner": {
+      "invited": "has invited you to a meeting",
+      "updated": "has updated a meeting",
+      "canceled": "has canceled a meeting",
+      "accepted": "has accepted this invitation",
+      "tentative": "has replied \"Maybe\" to this invitation",
+      "declined": "has declined this invitation",
+      "counter": "has proposed changes to the event",
+      "counterDeclined": "Your counter proposal was declined"
+    },
+    "anAttendee": "An attendee",
+    "when": "When",
+    "where": "Where",
+    "who": "Who",
+    "organizer": "Organizer",
+    "seeAllAttendees": "See all attendees",
+    "hideAttendees": "Hide",
+    "attending": "Attending?",
+    "reply": {
+      "yes": "Yes",
+      "maybe": "Maybe",
+      "no": "No"
+    },
+    "mailToAttendees": "Mail to attendees",
+    "joinVideoConference": "Join the video conference",
+    "copyLink": "Copy link",
+    "seeInCalendar": "See in your Calendar",
+    "busy": "You have another event at that same time",
+    "notInvited": "You are not invited to this event. Please contact the organizer.",
+    "replied": {
+      "yes": "You will attend this meeting",
+      "maybe": "You may attend this meeting",
+      "no": "You will not attend this meeting"
+    },
+    "replyFailed": "Event reply was sent unsuccessfully!",
+    "counterAccepted": "You accepted the proposed time for this meeting",
+    "eventLabel": "Event: %{title}",
+    "allDay": "All day",
+    "description": "Description",
+    "videoConference": "Video",
+    "linkCopied": "Link copied to clipboard",
+    "participation": {
+      "needsAction": "awaiting reply",
+      "accepted": "accepted",
+      "declined": "declined",
+      "tentative": "maybe",
+      "delegated": "delegated"
+    },
+    "recurrence": {
+      "daily": "Every day |||| Every %{smart_count} days",
+      "weekly": "Every week |||| Every %{smart_count} weeks",
+      "monthly": "Every month |||| Every %{smart_count} months",
+      "yearly": "Every year |||| Every %{smart_count} years",
+      "onDays": "on %{days}",
+      "count": "%{smart_count} time |||| %{smart_count} times",
+      "until": "until %{date}"
+    },
+    "untitled": "(No title)"
   }
 }

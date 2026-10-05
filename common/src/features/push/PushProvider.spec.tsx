@@ -143,8 +143,16 @@ async function renderWithPush(server: FakeJmapServer): Promise<{
     expect(FakeWebSocket.instances).toHaveLength(1)
   })
   const socket = lastSocket()
+  const getsBefore = countCalls(server, 'Email/get')
   act(() => {
     socket.open()
+  })
+  // The current states, read once the channel opened, are up to date
+  await waitFor(() => {
+    expect(countCalls(server, 'Email/get')).toBe(getsBefore + 1)
+  })
+  await act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 0))
   })
   return { socket, result }
 }
@@ -176,7 +184,7 @@ describe('PushProvider', () => {
     })
   })
 
-  it('reloads nothing when the channel first opens', async () => {
+  it('only reads the current states when the channel first opens', async () => {
     const server = makeServer()
     await renderWithPush(server)
 
@@ -184,7 +192,44 @@ describe('PushProvider', () => {
       await new Promise(resolve => setTimeout(resolve, 50))
     })
 
-    expect(countCalls(server, 'Mailbox/get')).toBe(1)
+    // The list and the tree loaded once, then one request of the states
+    expect(countCalls(server, 'Mailbox/get')).toBe(2)
+    expect(countCalls(server, 'Email/query')).toBe(1)
+    expect(countCalls(server, 'Email/changes')).toBe(0)
+  })
+
+  it('catches up an email delivered before the channel first opened', async () => {
+    const server = makeServer()
+    renderWithProviders(
+      <PushProvider WebSocket={FakeWebSocket}>
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailList mailboxId="mailbox-inbox" />
+        </VirtuosoMockContext.Provider>
+      </PushProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    await screen.findByText('Already there')
+
+    // Delivered after the list loaded, before the channel opened: no push
+    server.addEmail(
+      makeEmail({
+        id: 'early',
+        subject: 'Before the socket',
+        receivedAt: '2026-10-05T08:00:00Z'
+      })
+    )
+    act(() => {
+      lastSocket().open()
+    })
+
+    expect(await screen.findByText('Before the socket')).toBeVisible()
     expect(countCalls(server, 'Email/query')).toBe(1)
   })
 

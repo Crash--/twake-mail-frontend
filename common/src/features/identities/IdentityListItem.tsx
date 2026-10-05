@@ -82,21 +82,21 @@ export function IdentityListItem({
             />
           ) : null}
         </Box>
-        <SecondaryText variant="body2" className="u-breakword">
+        <SecondaryText variant="body2" component="p" className="u-breakword">
           {identity.email}
         </SecondaryText>
         {replyTo === '' ? null : (
-          <SecondaryText variant="body2" className="u-breakword">
+          <SecondaryText variant="body2" component="p" className="u-breakword">
             {`${t('identities.form.replyTo')}: ${replyTo}`}
           </SecondaryText>
         )}
         {bcc === '' ? null : (
-          <SecondaryText variant="body2" className="u-breakword">
+          <SecondaryText variant="body2" component="p" className="u-breakword">
             {`${t('email.bcc')}: ${bcc}`}
           </SecondaryText>
         )}
         {signature === '' ? null : (
-          <SecondaryText variant="body2" className="u-ellipsis">
+          <SecondaryText variant="body2" component="p" className="u-ellipsis">
             {`-- ${signature}`}
           </SecondaryText>
         )}

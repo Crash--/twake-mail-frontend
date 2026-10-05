@@ -1,5 +1,11 @@
-import { Divider, ListSkeleton } from '@linagora/twake-mui'
+import { Box, Divider, ListSkeleton } from '@linagora/twake-mui'
 import { useMemo, useState, type ReactElement } from 'react'
+
+import { isUnnamedCalendarPart } from '@common/features/calendar/calendarBlobs'
+import {
+  CalendarInvitationCard,
+  useCalendarInvitation
+} from '@common/features/calendar/CalendarInvitationCard'
 
 import { AttachmentList } from './AttachmentList'
 import { EmailBodyFrame } from './EmailBodyFrame'
@@ -25,8 +31,8 @@ export interface EmailMessageBodyProps {
 }
 
 /**
- * What an email says: its attachments, the remote content banner and the
- * sanitized body, with its inline images. Remote content (images, fonts,
+ * What an email says: its attachments, the card of its calendar event, the
+ * remote content banner and the sanitized body, with its inline images. Remote content (images, fonts,
  * backgrounds) tells the sender when and where the email is read: it waits
  * for the user, unless the sender is trusted.
  */
@@ -42,6 +48,7 @@ export function EmailMessageBody({
   const referencedCids = useMemo(() => findReferencedCids(html), [html])
   const inlineImages = useInlineImageUrls(email.attachments, referencedCids)
   const trustedSender = useTrustedSender(sender?.email ?? null)
+  const calendar = useCalendarInvitation(email.attachments)
   const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
   const allowRemoteContent = isRemoteContentShown || trustedSender.isTrusted
   const body = useMemo(() => {
@@ -61,9 +68,12 @@ export function EmailMessageBody({
     inlineImages.urls,
     allowRemoteContent
   ])
-  // Inline images are shown in the body, not listed as attachments
+  // Inline images are shown in the body, not listed as attachments; nor
+  // is the nameless calendar part the event card shows
   const attachments = email.attachments.filter(
-    part => !part.cid || !referencedCids.has(normalizeCid(part.cid))
+    part =>
+      (!part.cid || !referencedCids.has(normalizeCid(part.cid))) &&
+      !(calendar.invitation !== null && isUnnamedCalendarPart(part))
   )
 
   const handleShowRemoteContent = (): void => {
@@ -78,6 +88,16 @@ export function EmailMessageBody({
   return (
     <>
       <AttachmentList attachments={attachments} />
+      {calendar.invitation ? (
+        <Box className="u-mt-1">
+          <CalendarInvitationCard
+            invitation={calendar.invitation}
+            blobIds={calendar.blobIds}
+            from={email.from}
+            replyTo={email.replyTo}
+          />
+        </Box>
+      ) : null}
       <Divider className="u-mv-1" />
       {body?.hasBlockedRemoteContent ? (
         <RemoteContentBanner

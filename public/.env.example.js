@@ -35,6 +35,8 @@ var LANG = 'en'
 // URLs of the other Twake applications, as RFC 6570-style URI templates.
 // Supported expressions: {localpart}, {workplaceFqdn},
 // {workplaceFqdn.localpart}, {workplaceFqdn.domain}.
+// CALENDAR_SPA_URL: "See in your Calendar" of an invitation opens
+// <CALENDAR_SPA_URL>/events/<uid> (the route of Twake Calendar).
 var CALENDAR_SPA_URL = 'https://calendar.example.com'
 var CHAT_SPA_URL =
   'https://{workplaceFqdn.localpart}-chat.{workplaceFqdn.domain}/#/bridge/web/#/chat/@{target}:{workplaceFqdn.domain}'

@@ -13,6 +13,11 @@ export interface PillButtonProps {
   disabled?: boolean
   /** Fixed width, in px; the label sets it when absent */
   width?: number
+  /**
+   * Only the icon, in a 44 px circle, where the width is short (phones);
+   * the label stays the accessible name
+   */
+  isIconOnly?: boolean
   'aria-describedby'?: string
   'data-testid'?: string
 }
@@ -27,6 +32,7 @@ export function PillButton({
   onClick,
   disabled = false,
   width,
+  isIconOnly = false,
   'aria-describedby': describedBy,
   'data-testid': testId
 }: PillButtonProps): ReactElement {
@@ -36,13 +42,15 @@ export function PillButton({
       onClick={onClick}
       disabled={disabled}
       aria-describedby={describedBy}
-      startIcon={<Icon icon={icon} size={18} />}
+      aria-label={isIconOnly ? label : undefined}
+      startIcon={isIconOnly ? undefined : <Icon icon={icon} size={18} />}
       data-testid={testId}
       sx={{
-        width,
-        minHeight: 40,
+        width: isIconOnly ? 44 : width,
+        minWidth: isIconOnly ? 44 : undefined,
+        minHeight: isIconOnly ? 44 : 40,
         py: '10px',
-        px: 3,
+        px: isIconOnly ? 0 : 3,
         gap: '10px',
         borderRadius: '100px',
         fontSize: 14,
@@ -53,7 +61,7 @@ export function PillButton({
         '& .MuiButton-startIcon': { m: 0 }
       }}
     >
-      {label}
+      {isIconOnly ? <Icon icon={icon} size={18} aria-hidden="true" /> : label}
     </Button>
   )
 }

@@ -183,7 +183,7 @@ export function RecipientsEditor({
             ) : (
               <Tooltip title={hideLabel(kind)}>
                 <IconButton
-                  size="small"
+                  size="xsmall"
                   aria-label={hideLabel(kind)}
                   onClick={() => {
                     handleHide(kind)

@@ -137,20 +137,27 @@ describe('AppLayout', () => {
   })
 
   it('opens the composer from "New message" and with the c key', async () => {
-    renderLayout()
+    // A screen with room for two windows of the dock
+    const initialWidth = window.innerWidth
+    window.innerWidth = 1700
+    try {
+      renderLayout()
 
-    await userEvent.click(await screen.findByTestId('compose-email-button'))
-    expect(
-      await screen.findByRole('dialog', { name: 'New message' })
-    ).toBeVisible()
-
-    await userEvent.click(screen.getByTestId('main-content'))
-    await userEvent.keyboard('c')
-    await waitFor(() => {
+      await userEvent.click(await screen.findByTestId('compose-email-button'))
       expect(
-        screen.getAllByRole('dialog', { name: 'New message' })
-      ).toHaveLength(2)
-    })
+        await screen.findByRole('dialog', { name: 'New message' })
+      ).toBeVisible()
+
+      await userEvent.click(screen.getByTestId('main-content'))
+      await userEvent.keyboard('c')
+      await waitFor(() => {
+        expect(
+          screen.getAllByRole('dialog', { name: 'New message' })
+        ).toHaveLength(2)
+      })
+    } finally {
+      window.innerWidth = initialWidth
+    }
   })
 
   it('lists the other applications in the app grid', async () => {

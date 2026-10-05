@@ -1,4 +1,4 @@
-import { Drive, Icon } from '@linagora/twake-icons'
+import { Icon, ToTheCloud } from '@linagora/twake-icons'
 import { Button, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 
@@ -128,11 +128,12 @@ export function DriveAttachButton({
           ref={buttonRef}
           aria-label={t('composer.drive.attach')}
           aria-haspopup="dialog"
+          size="medium"
           onClick={picker.open}
           className="u-ml-half"
           data-testid="composer-drive-button"
         >
-          <Icon icon={Drive} aria-hidden="true" />
+          <Icon icon={ToTheCloud} size={24} aria-hidden="true" />
         </IconButton>
       </Tooltip>
       <FramedDialog

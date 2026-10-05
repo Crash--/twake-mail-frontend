@@ -338,6 +338,23 @@ export function RichTextEditor({
     )
   }
 
+  const toolbar = isToolbarShown ? (
+    <RichTextToolbar
+      editor={editor}
+      labels={labels}
+      colors={colors}
+      fontSizes={fontSizes}
+      editorId={editorId}
+      onOpenLinkDialog={openLinkDialog}
+      onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
+      hasInsertButtons={hasInsertButtons}
+      placement={isToolbarBelow ? 'bottom' : 'top'}
+      actionsRef={actionsRef}
+      disabled={disabled}
+      buttonTestId={testIds.toolbarButton}
+    />
+  ) : null
+
   return (
     // Relative: the image toolbar is placed in it
     <Box
@@ -347,24 +364,7 @@ export function RichTextEditor({
         ...(fill ? { flex: '1 1 auto', minHeight: 0 } : {})
       }}
     >
-      {isToolbarShown && !isToolbarBelow ? (
-        <RichTextToolbar
-          editor={editor}
-          labels={labels}
-          colors={colors}
-          fontSizes={fontSizes}
-          editorId={editorId}
-          onOpenLinkDialog={openLinkDialog}
-          onPickImages={
-            onImageFiles ? () => fileInputRef.current?.click() : null
-          }
-          hasInsertButtons={hasInsertButtons}
-          placement={isToolbarBelow ? 'bottom' : 'top'}
-          actionsRef={actionsRef}
-          disabled={disabled}
-          buttonTestId={testIds.toolbarButton}
-        />
-      ) : null}
+      {isToolbarBelow ? null : toolbar}
       <ImageToolbar
         editor={editor}
         labels={labels.image}
@@ -466,24 +466,7 @@ export function RichTextEditor({
       >
         <EditorContent editor={editor} />
       </Box>
-      {isToolbarShown && isToolbarBelow ? (
-        <RichTextToolbar
-          editor={editor}
-          labels={labels}
-          colors={colors}
-          fontSizes={fontSizes}
-          editorId={editorId}
-          onOpenLinkDialog={openLinkDialog}
-          onPickImages={
-            onImageFiles ? () => fileInputRef.current?.click() : null
-          }
-          hasInsertButtons={hasInsertButtons}
-          placement={isToolbarBelow ? 'bottom' : 'top'}
-          actionsRef={actionsRef}
-          disabled={disabled}
-          buttonTestId={testIds.toolbarButton}
-        />
-      ) : null}
+      {isToolbarBelow ? toolbar : null}
       <input
         ref={fileInputRef}
         type="file"

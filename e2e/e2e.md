@@ -211,9 +211,9 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `CMP-40` A reply saved as a draft reopens from Drafts with its quote as it was, and is sent in the thread (`In-Reply-To`). — web app only, no Patrol test
 - [x] `CMP-41` The quote of a forwarded newsletter keeps its tables, images, links and styles (scoped to the quote), its `cid:` logo sent again. — web app only, no Patrol test (from the quote fidelity measure of the composer spike)
 - [x] `CMP-42` A reply is received with `In-Reply-To` and `References` of the original, the text, the reply header and the quote (HTML and `>` text), and the original gets `$answered`. — web app only, no Patrol test
-- [ ] `CMP-43` The signature of the default identity (HTML, sanitized: no style sheet, no event handler) goes between the text and the quote of a reply; choosing another identity (text signature, escaped, lines kept) replaces it in place; the sent message keeps tmail-flutter's `tmail-signature` wrapper above the quote. — web app only, no Patrol test (from the signature spec of the composer spike)
-- [ ] `CMP-44` An image dropped on the body is inserted inline where it is dropped, not attached; the same image dropped elsewhere in the composer (the subject) is attached. — web app only, no Patrol test
-- [ ] `CMP-45` An inline image is resized with the mouse (its corner handle), the width kept. — web app only, no Patrol test (CMP-30 does it with the keyboard)
+- [x] `CMP-43` The signature of the default identity (HTML, sanitized: no style sheet, no event handler) goes between the text and the quote of a reply; choosing another identity (text signature, escaped, lines kept) replaces it in place; the sent message keeps tmail-flutter's `tmail-signature` wrapper above the quote. — web app only, no Patrol test (from the signature spec of the composer spike)
+- [x] `CMP-44` An image dropped on the body is inserted inline where it is dropped, not attached; the same image dropped elsewhere in the composer (the subject) is attached. — web app only, no Patrol test
+- [x] `CMP-45` An inline image is resized with the mouse (its corner handle), the width kept. — web app only, no Patrol test (CMP-30 does it with the keyboard)
 
 ## ATT — Attachments (2)
 

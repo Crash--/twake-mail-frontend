@@ -66,3 +66,44 @@ switches (measures 2 to 4) did not move.
 - Measured on the memory backend of the e2e stack; the update hang of that
   image after about 256 messages (see `phase0.md`, "Backend") does not
   concern this measure, whose push is an `Email/set` create.
+
+## Conversations (issue #11)
+
+Conversations are on by default. A list of conversations of a mailbox
+(`collapseThreads`) used to be queried again on every push (its loaded
+window, `refreshQueryList`), and to start over from its first page beyond
+256 rows. Each page now keeps the members of the threads it lists
+(`Thread/get` and `Email/get` of their emails, in the request of the page),
+and push patches the list from them (`thread/patchThreadList.ts`): a reply
+updates the members of its conversation and moves the row to where its
+newest email in the mailbox sorts. A conversation the list does not know
+yet (a new one, or one below the loaded rows that a reply brings up) needs
+its members: one more request, `Thread/get` + `Email/get`, shared by every
+list.
+
+Measured on 2026-10-05 with `e2e/perf/threads.perf.ts` (`PERF-04`):
+production build, end-to-end stack, 5 000 emails in the Inbox seeded with
+`PERF_THREADS=1` (30 % replies), 2 000 conversations loaded by scrolling,
+then one push; 5 runs, median (p95), before the change (`main`, the
+"Thread" setting turned on) and after it, each on a fresh stack.
+
+| push with 2 000 conversations loaded | before | after |
+|---|---|---|
+| Reply to a loaded conversation: JMAP requests | 69 (68 `Email/query`) | 1 (no `Email/query`) |
+| Reply to a loaded conversation: response bytes | 1 258 kB | 2.0 kB |
+| Reply to a loaded conversation: arrival → list updated | 177 (239) ms | 102 (126) ms |
+| Reply to a conversation below the loaded rows (first run) | 69 requests, 1 258 kB | 2 requests, 3.0 kB, 173 ms |
+| New conversation: JMAP requests | 69 | 2 |
+| New conversation: response bytes | 1 258 kB | 2.8 kB |
+
+Before, the list was cut to its first page and refetched, then the table,
+still scrolled 2 000 rows down, fetched the 67 other pages again one after
+the other. After, the loaded rows stay. The "below the loaded rows" case is
+measured on the first run only: the following runs reply to the same
+conversation, by then at the top.
+
+Search results grouped by conversation still cannot be patched alone (no
+`Email/queryChanges`): a change to an email of a conversation they list
+(read, starred, a new reply) is applied to its members in place, but an
+email of another conversation still queries the loaded window again, with
+the 256-row limit.

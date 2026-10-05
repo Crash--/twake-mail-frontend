@@ -247,8 +247,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `EML-03` Given a self-sent email whose body is `<script>alert("XSSRobot")</script>`, opening it shows no alert dialog (no "XSSRobot"/"says"/"OK" text) and the sanitized rendered HTML no longer contains the script payload. — `email_detailed/display_email_with_xss_content_test.dart` · tags: `ios (default)`
   - Spec: `tests/email.spec.ts`. Passes in CI.
   - Data: in Playwright, assert with `page.on('dialog')` never firing and the body iframe containing no `<script>`.
-- [ ] `EML-04` Given a self-sent HTML email with 12 `<img>` tags using oversize (2000px) or normal (100px) dimensions via `style`, `width/height` attributes or both, the rendered body normalizes every image to `max-width:100%; display:inline; height:…`, strips width/height attributes from oversize images, and keeps them (plus the 100px style width) on normal-size images. — `email_detailed/deformed_inlined_image_test.dart` · tags: `ios (default)`
-  - Data: images point to `https://example.com/image.jpg` (no network needed, only the DOM attributes are checked).
+- [x] `EML-04` Given a self-sent HTML email with 12 `<img>` tags using oversize (2000px) or normal (100px) dimensions via `style`, `width/height` attributes or both, the rendered body has no horizontal scroll: oversize images fit the pane with their declared ratio (2000 × 200 stays 10:1), normal ones keep their 100 × 100. — `email_detailed/deformed_inlined_image_test.dart` · tags: `ios (default)`
+  - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Web variant: the images are `data:` PNGs (remote ones wait for the user) and the rendered boxes are measured; tmail-flutter's script strips the attributes of the images wider than the screen, the frame here runs no script: the sanitizer turns the declared size into an `aspect-ratio` (`imageSize.ts`). Passes in CI.
 - [ ] `EML-05` After composing and sending to self an email with an inline image inserted from a file (editor content holds a `data:image/…;base64` + `cid:` image), opening the received email renders the inline image, with exactly one `cid` reference in the displayed HTML. — `email_detailed/view_inline_image_test.dart` · tags: `ios (default)`
   - Data: PNG generated from a base64 constant (`ImageResources.base64`).
 - [x] `EML-06` Opening a self-sent email and choosing More (⋯) > "Archive message" moves it: after going back and opening the Archive folder, the email is listed there. — `email_detailed/archive_email_test.dart` · tags: `ios (default)`
@@ -308,6 +308,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
 - [x] `EML-35` The read receipt of an email received in a team mailbox (asked by its sender) goes out with the identity of the team mailbox (James gives one to its members) and names its address as the reader (`MDN/send` inspected, axe on the dialog). — tmail-flutter `_setUpDefaultIdentityForTeamMailbox`, `_getReceiverEmailAddress` (no Patrol test) (issue #39)
   - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
+- [x] `EML-36` The quoted history of an answer (the last top level `blockquote`, as tmail-flutter, or the quote of Gmail, Outlook, Thunderbird) is folded behind a "•••" button named "Show trimmed content"; Enter unfolds it and the frame grows, Space folds it again (axe). — tmail-flutter web `HtmlUtils.addQuoteToggle` (no Patrol test) (issue #49)
+  - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). A `<details>`/`<summary>` in the frame: no script runs there. Passes in CI.
 
 ## THR — Thread detail (3)
 

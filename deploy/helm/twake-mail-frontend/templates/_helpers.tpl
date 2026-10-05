@@ -90,7 +90,8 @@ points to: JMAP and its WebSocket, the SSO, Sentry, a fixed Twake Drive
 {{- $sources := list -}}
 {{- $config := .Values.config -}}
 {{- if .Values.csp.autoConnectSrc -}}
-{{- $jmap := urlParse ($config.jmapSessionUrl | default "") -}}
+{{- $sentry := $config.sentry | default dict -}}
+{{- $jmap := urlParse ($config.serverUrl | default $config.jmapSessionUrl | default "") -}}
 {{- if and $jmap.scheme $jmap.host -}}
 {{- $sources = append $sources (printf "%s://%s" $jmap.scheme $jmap.host) -}}
 {{- $sources = append $sources (printf "%s://%s" (ternary "wss" "ws" (eq $jmap.scheme "https")) $jmap.host) -}}
@@ -100,7 +101,7 @@ points to: JMAP and its WebSocket, the SSO, Sentry, a fixed Twake Drive
 {{- $sources = append $sources . -}}
 {{- end -}}
 {{- end -}}
-{{- with include "twake-mail-frontend.origin" ($config.sentryDsn | default "") -}}
+{{- with include "twake-mail-frontend.origin" ($sentry.dsn | default $config.sentryDsn | default "") -}}
 {{- $sources = append $sources . -}}
 {{- end -}}
 {{- $tdrive := $config.tdrive | default dict -}}
@@ -128,17 +129,32 @@ A JavaScript string literal (JSON is valid JavaScript)
 {{- $config := .Values.config -}}
 // Runtime configuration of Twake Mail, rendered by the Helm chart
 // {{ include "twake-mail-frontend.chart" . }} from its values (config.*).
+{{- $serverUrl := $config.serverUrl | default "" | toString }}
+{{- if $serverUrl }}
+{{- if hasPrefix "/" $serverUrl }}
+var SERVER_URL = window.location.origin + {{ include "twake-mail-frontend.jsString" $serverUrl }}
+{{- else }}
+var SERVER_URL = {{ include "twake-mail-frontend.jsString" $serverUrl }}
+{{- end }}
+{{- else if $config.jmapSessionUrl }}
+{{- /* Deprecated: the app reads it as JMAP_SESSION_URL and warns */}}
 {{- if hasPrefix "/" ($config.jmapSessionUrl | toString) }}
 var JMAP_SESSION_URL = window.location.origin + {{ include "twake-mail-frontend.jsString" $config.jmapSessionUrl }}
 {{- else }}
-var JMAP_SESSION_URL = {{ include "twake-mail-frontend.jsString" (required "config.jmapSessionUrl is required" $config.jmapSessionUrl) }}
+var JMAP_SESSION_URL = {{ include "twake-mail-frontend.jsString" $config.jmapSessionUrl }}
+{{- end }}
+{{- else }}
+{{- required "config.serverUrl is required" "" }}
 {{- end }}
 var AUTH_MODE = {{ include "twake-mail-frontend.jsString" ($config.authMode | default "oidc") }}
 {{- if eq ($config.authMode | default "oidc") "oidc" }}
 var SSO_BASE_URL = {{ include "twake-mail-frontend.jsString" (required "config.sso.baseUrl is required with authMode oidc" $config.sso.baseUrl) }}
-var SSO_CLIENT_ID = {{ include "twake-mail-frontend.jsString" (required "config.sso.clientId is required with authMode oidc" $config.sso.clientId) }}
+var WEB_OIDC_CLIENT_ID = {{ include "twake-mail-frontend.jsString" (required "config.sso.clientId is required with authMode oidc" $config.sso.clientId) }}
 {{- with $config.sso.scope }}
-var SSO_SCOPE = {{ include "twake-mail-frontend.jsString" . }}
+var OIDC_SCOPES = {{ include "twake-mail-frontend.jsString" (regexReplaceAll "[\\s,]+" . ",") }}
+{{- end }}
+{{- with $config.domainRedirectUrl }}
+var DOMAIN_REDIRECT_URL = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
 {{- with $config.sso.redirectUri }}
 var SSO_REDIRECT_URI = {{ include "twake-mail-frontend.jsString" . }}
@@ -147,7 +163,14 @@ var SSO_REDIRECT_URI = {{ include "twake-mail-frontend.jsString" . }}
 var SSO_POST_LOGOUT_REDIRECT = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
 {{- end }}
-var SENTRY_DSN = {{ include "twake-mail-frontend.jsString" ($config.sentryDsn | default "") }}
+{{- $sentry := $config.sentry | default dict }}
+{{- $sentryDsn := $sentry.dsn | default $config.sentryDsn | default "" }}
+var SENTRY_ENABLED = {{ ternary "true" "false" (and (ne (toString $sentry.enabled) "false") (ne $sentryDsn "")) }}
+var SENTRY_DSN = {{ include "twake-mail-frontend.jsString" $sentryDsn }}
+var SENTRY_ENVIRONMENT = {{ include "twake-mail-frontend.jsString" ($sentry.environment | default "") }}
+{{- with $config.appGridAvailable }}
+var APP_GRID_AVAILABLE = {{ include "twake-mail-frontend.jsString" . }}
+{{- end }}
 var DEBUG = {{ ternary "true" "false" (eq (toString $config.debug) "true") }}
 {{- with $config.lang }}
 var LANG = {{ include "twake-mail-frontend.jsString" . }}

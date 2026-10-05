@@ -3,8 +3,9 @@
 // whatever .env.js the build contains.
 //
 // JMAP is reached on the origin of the app, through the same nginx: no CORS,
-// and it follows E2E_PUBLIC_URL (http://127.0.0.1:18302 by default).
-var JMAP_SESSION_URL = window.location.origin + '/jmap/session'
+// and it follows E2E_PUBLIC_URL (http://127.0.0.1:18302 by default). The
+// session is read from <SERVER_URL>/.well-known/jmap, as tmail-flutter does.
+var SERVER_URL = window.location.origin
 var AUTH_MODE = 'basic'
 var LANG = 'en'
 // Shown in Settings > Forwarding (SET-07)

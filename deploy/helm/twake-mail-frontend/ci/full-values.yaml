@@ -15,14 +15,17 @@ deployment:
         matchLabels:
           app.kubernetes.io/name: twake-mail-frontend
 config:
-  jmapSessionUrl: /jmap/session
+  serverUrl: /
   authMode: oidc
   sso:
     baseUrl: https://sso.example.com/
     clientId: twake-mail
-    redirectUri: https://mail.example.com/callback
-    postLogoutRedirect: https://mail.example.com/
-  sentryDsn: https://public@sentry.example.com/42
+    scope: openid,profile,email,offline_access
+  domainRedirectUrl: https://mail.example.com
+  sentry:
+    dsn: https://public@sentry.example.com/42
+    environment: ci
+  appGridAvailable: supported
   lang: fr
   calendarSpaUrl: https://calendar.example.com
   chatSpaUrl: https://{workplaceFqdn.localpart}-chat.{workplaceFqdn.domain}/

@@ -29,6 +29,14 @@ export interface HtmlBlockOptions {
   /** `data-testid` of that button */
   editTestId: (kind: string) => string | undefined
   /**
+   * Label of the pill folding and unfolding an `inline` block (a signature:
+   * "Signature"), null for a block without one. The block then shows as a
+   * card under the pill.
+   */
+  toggleLabel: (kind: string) => string | null
+  /** `data-testid` of that pill */
+  toggleTestId: (kind: string) => string | undefined
+  /**
    * The editable HTML of a block the user unwraps (image URLs to display,
    * content to block…), sanitized; the block's own HTML by default
    */
@@ -81,6 +89,8 @@ export const HtmlBlock = Node.create<HtmlBlockOptions>({
       frameTitle: (kind: string) => kind,
       editLabel: () => null,
       editTestId: () => undefined,
+      toggleLabel: () => null,
+      toggleTestId: () => undefined,
       editableHtml: (_kind: string, html: string) => html
     }
   },

@@ -16,7 +16,8 @@
     "delete": "Supprimer",
     "deleteAll": "Tout supprimer",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "confirm": "Confirmer"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -468,6 +469,10 @@
       "keyboardShortcuts": {
         "title": "Raccourcis clavier",
         "description": "Actions sur la boîte de messagerie et les e-mails"
+      },
+      "emailRules": {
+        "title": "Règles des messages",
+        "description": "Création de règles pour gérer les messages entrants. Vous choisissez la condition qui déclenche une règle et les actions que la règle appliquera."
       }
     },
     "preferences": {
@@ -601,5 +606,89 @@
     "deleteOf": "Supprimer %{name}",
     "cannotDelete": "Créée avec votre compte, elle ne peut pas être supprimée",
     "listLabel": "Identités"
+  },
+  "rules": {
+    "add": "Ajouter une règle",
+    "empty": {
+      "title": "Aucune règle n'est configurée",
+      "message": "Commencez par créer votre première règle pour automatiser la gestion des e-mails.",
+      "action": "Créer ma première règle"
+    },
+    "delete": {
+      "title": "Supprimer la règle",
+      "message": "Voulez-vous supprimer la règle \"%{ruleName}\" ?"
+    },
+    "toasts": {
+      "created": "Un nouveau filtre a été créé",
+      "updated": "Votre filtre a été créé",
+      "deleted": "La règle a été supprimée."
+    },
+    "errors": {
+      "save": "Échec de la création de la règle de filtrage",
+      "noCondition": "Vous n'avez pas ajouté de condition à la règle.",
+      "noAction": "Vous n'avez pas ajouté d'action à la règle.",
+      "noFolder": "Veuillez sélectionner une boîte aux lettres pour déplacer le message",
+      "noSpam": "Dossier Spam non trouvé",
+      "load": "Les règles n'ont pas pu être chargées",
+      "delete": "La règle n'a pas pu être supprimée"
+    },
+    "form": {
+      "createTitle": "Créer une nouvelle règle",
+      "editTitle": "Modifier la règle",
+      "create": "Créer une règle",
+      "name": "Nom de la règle",
+      "namePlaceholder": "Entrez le nom de la règle",
+      "conditions": "Conditions",
+      "combinerBefore": "Si",
+      "combinerAfter": "des conditions suivantes sont remplies :",
+      "value": "Valeur",
+      "addCondition": "Ajouter une condition",
+      "actions": "Actions à effectuer",
+      "selectAction": "Sélectionner une action",
+      "toFolder": "Vers le dossier :",
+      "addAction": "Ajouter une action",
+      "save": "Enregistrer",
+      "removeCondition": "Retirer la condition %{position}",
+      "removeAction": "Retirer l'action %{position}",
+      "field": "Champ",
+      "comparator": "Opérateur",
+      "combiner": "Conditions à remplir",
+      "action": "Action %{position}",
+      "condition": "Condition %{position}",
+      "chooseFolder": "Choisir un dossier",
+      "rejectAlone": "Un e-mail refusé ne reçoit aucune autre action"
+    },
+    "combiners": {
+      "AND": "Toutes",
+      "OR": "Au moins une"
+    },
+    "fields": {
+      "from": "De",
+      "to": "À",
+      "cc": "Cc",
+      "recipient": "Destinataire",
+      "subject": "Sujet"
+    },
+    "comparators": {
+      "contains": "Contient",
+      "notContains": "Ne contient pas",
+      "exactlyEquals": "Exactement égal",
+      "notExactlyEquals": "Pas exactement égal"
+    },
+    "actions": {
+      "move": "Déplacer le message",
+      "seen": "Marquer comme lu",
+      "star": "Favori",
+      "reject": "Rejet",
+      "spam": "Marquer comme indésirable"
+    },
+    "reject": {
+      "title": "Rejeter tous les e-mails qui correspondent à ce critère ?",
+      "message": "Cette action est irréversible. Confirmez-vous vouloir continuer ?"
+    },
+    "editOf": "Modifier %{name}",
+    "deleteOf": "Supprimer %{name}",
+    "listLabel": "Règles",
+    "count": "%{smart_count} règle |||| %{smart_count} règles"
   }
 }

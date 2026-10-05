@@ -149,6 +149,7 @@ never silently ignored.
 |---|---|---|---|
 | Theme `text.secondary` (Grey 900 at 64 %), used by `Typography color="textSecondary"`, `TableCell` body, `ListSubheader` | `color-contrast` | 3.6:1 on white, 3.5:1 on Grey 100 (4.5:1 needed) | Grey 900 at 80 % or more (5.4:1). Worked around with `ds/SecondaryText` and the list table |
 | `TextField` / `InputLabel` (login form) | `color-contrast` | #868687 on white, 3.63:1 | Same theme fix |
+| `Empty` `text` | `color-contrast` | text.secondary #868687 on white, 3.63:1 ("No Rules Configured") | Same theme fix. Worked around: `ds/SecondaryText` as the text in `features/rules/EmailRulesSettings.tsx` |
 | `TextField` helper text (`FormHelperText`, identity form) | `color-contrast` | #868687 on white, 3.63:1; in error, `error.main` #ff3347, 3.61:1 | The theme fixes of `text.secondary` and `error.main` |
 | `NavLink` with a `ListItemText` (list of the settings sections on phones) | `color-contrast` | The nav text colour #868687 on white, 3.63:1 | Same theme fix. Worked around: `Typography color="textPrimary"` and `ds/SecondaryText` in `features/settings/SettingsSectionList.tsx` |
 | `Button variant="contained"` primary (sign in, new message) | `color-contrast` | White on #0a84ff, 3.64:1 at 15–16 px normal weight | A darker `primary.main` for filled buttons (4.5:1 with white needs about #0067d6) |

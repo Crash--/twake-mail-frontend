@@ -16,7 +16,8 @@
     "delete": "Xoá",
     "deleteAll": "Xoá toàn bộ",
     "yes": "Có",
-    "no": "Không"
+    "no": "Không",
+    "confirm": "Xác nhận"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -468,6 +469,10 @@
       "keyboardShortcuts": {
         "title": "Phím tắt",
         "description": "Hành động thư mục và email"
+      },
+      "emailRules": {
+        "title": "Quy tắc thư",
+        "description": "Tạo bộ lọc để phân loại tin nhắn tới. Bạn có thể chọn các điều kiện để kích hoạt thực hiện bộ lọc."
       }
     },
     "preferences": {
@@ -601,5 +606,89 @@
     "deleteOf": "Xóa %{name}",
     "cannotDelete": "Được tạo cùng tài khoản của bạn, không thể xóa",
     "listLabel": "Định danh"
+  },
+  "rules": {
+    "add": "Tạo một bộ lọc",
+    "empty": {
+      "title": "Chưa có bộ lọc nào được tạo",
+      "message": "Tạo một bộ lọc thư để tự động phân loại thư",
+      "action": "Tạo bộ lọc thư"
+    },
+    "delete": {
+      "title": "Xoá bộ lọc",
+      "message": "Bạn có muốn xoá bộ lọc \"%{ruleName}\"?"
+    },
+    "toasts": {
+      "created": "Bộ lọc mới đã được tạo",
+      "updated": "Bộ lọc của bạn đã được cập nhật",
+      "deleted": "Bộ lọc đã được loại bỏ."
+    },
+    "errors": {
+      "save": "Tạo bộ lọc không thành công",
+      "noCondition": "Bạn chưa thêm điều kiện.",
+      "noAction": "Bạn chưa thêm các hành động.",
+      "noFolder": "Vui lòng chọn hộp thư để chuyển thư",
+      "noSpam": "Không thấy thư mục Spam",
+      "load": "Không thể tải các quy tắc",
+      "delete": "Không thể xóa quy tắc"
+    },
+    "form": {
+      "createTitle": "Tạo bộ lọc mới",
+      "editTitle": "Sửa bộ lọc",
+      "create": "Tạo bộ lọc",
+      "name": "Tên bộ lọc",
+      "namePlaceholder": "Nhập tên bộ lọc",
+      "conditions": "Điều kiện",
+      "combinerBefore": "Nếu",
+      "combinerAfter": "trong các điều kiện sau đây được đáp ứng:",
+      "value": "Giá trị",
+      "addCondition": "Thêm điều kiện",
+      "actions": "Hành động",
+      "selectAction": "Chọn hành động",
+      "toFolder": "Tới thư mục:",
+      "addAction": "Thêm hành động",
+      "save": "Lưu",
+      "removeCondition": "Xóa điều kiện %{position}",
+      "removeAction": "Xóa hành động %{position}",
+      "field": "Trường",
+      "comparator": "Toán tử",
+      "combiner": "Điều kiện cần đáp ứng",
+      "action": "Hành động %{position}",
+      "condition": "Điều kiện %{position}",
+      "chooseFolder": "Chọn thư mục",
+      "rejectAlone": "Email bị từ chối không áp dụng hành động khác"
+    },
+    "combiners": {
+      "AND": "Tất cả",
+      "OR": "Bất kì"
+    },
+    "fields": {
+      "from": "Từ",
+      "to": "Đến",
+      "cc": "Cc",
+      "recipient": "Nguời nhận",
+      "subject": "Tiêu đề"
+    },
+    "comparators": {
+      "contains": "Bao gồm",
+      "notContains": "Không bao gồm",
+      "exactlyEquals": "Chính xác bằng",
+      "notExactlyEquals": "Không chính xác bằng"
+    },
+    "actions": {
+      "move": "Di chuyển tin nhắn",
+      "seen": "Đánh dấu là đã đọc",
+      "star": "Gắn dấu sao cho nó",
+      "reject": "Từ chối nó",
+      "spam": "Đánh dấu là thư rác"
+    },
+    "reject": {
+      "title": "Từ chối tất cả thư với điều kiện này?",
+      "message": "Hành động này là không thể khôi phục. Bạn có chắc chắn muốn tiếp tục?"
+    },
+    "editOf": "Sửa %{name}",
+    "deleteOf": "Xóa %{name}",
+    "listLabel": "Quy tắc",
+    "count": "%{smart_count} quy tắc"
   }
 }

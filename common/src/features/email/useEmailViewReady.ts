@@ -13,7 +13,7 @@ import { emailQueryOptions } from './queries'
  * at once, without the view transition: animating towards a skeleton and
  * then swapping it for the content is worse than no animation.
  */
-export const EMAIL_VIEW_READY_TIMEOUT_MS = 300
+export const EMAIL_VIEW_READY_TIMEOUT_MS = 500
 
 /**
  * Loads what the reading view of an email shows (the email, and its

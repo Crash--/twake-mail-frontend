@@ -1,3 +1,5 @@
+import { APP_DASHBOARD_PATH, normalizeAppList } from './appDashboard'
+
 export type AuthMode = 'oidc' | 'basic'
 
 export interface OidcConfig {
@@ -62,6 +64,12 @@ export interface AppConfig {
   tdriveIntentUrl: string | null
   appVersion: string
   appList: AppListEntry[]
+  /**
+   * Where to read the apps when `appList.js` gives none and the grid is
+   * supported (`APP_GRID_AVAILABLE=supported`): the `app_dashboard.json` the
+   * chart of tmail-frontend mounts. Null otherwise.
+   */
+  appDashboardUrl: string | null
 }
 
 /**
@@ -196,46 +204,6 @@ function toSessionUrl(serverUrl: string): string {
   return `${removeTrailingSlashes(serverUrl)}${JMAP_SESSION_WELL_KNOWN_PATH}`
 }
 
-function isAppListEntry(value: unknown): value is AppListEntry {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'name' in value &&
-    typeof value.name === 'string' &&
-    'link' in value &&
-    typeof value.link === 'string' &&
-    'icon' in value &&
-    typeof value.icon === 'string'
-  )
-}
-
-function readEntryString(entry: object, key: string): string | undefined {
-  const value: unknown = Object.getOwnPropertyDescriptor(entry, key)?.value
-  return typeof value === 'string' ? value : undefined
-}
-
-/**
- * An app as tmail-flutter writes it in `configurations/app_dashboard.json`
- * (`appName`, `appLink`, `publicIconUri`) becomes an entry of `appList.js`.
- * Its `icon` is the name of an asset of the Flutter app: only a
- * `publicIconUri` can serve as an icon here.
- */
-function fromFlutterAppEntry(value: unknown): unknown {
-  if (typeof value !== 'object' || value === null) return value
-  const name = readEntryString(value, 'appName')
-  const link = readEntryString(value, 'appLink')
-  const icon = readEntryString(value, 'publicIconUri')
-  return name !== undefined && link !== undefined && icon !== undefined
-    ? { name, link, icon }
-    : value
-}
-
-function normalizeAppList(value: unknown): AppListEntry[] {
-  return Array.isArray(value)
-    ? value.map(fromFlutterAppEntry).filter(isAppListEntry)
-    : []
-}
-
 /**
  * The redirect URIs: `SSO_REDIRECT_URI` and `SSO_POST_LOGOUT_REDIRECT` when
  * set, else built from `DOMAIN_REDIRECT_URL` as tmail-flutter does
@@ -358,6 +326,11 @@ function isAppGridAvailable(source: RuntimeConfigSource): boolean {
   )
 }
 
+/** `APP_GRID_AVAILABLE=supported`, written in the configuration */
+function isAppGridSupported(source: RuntimeConfigSource): boolean {
+  return normalizeString(source.APP_GRID_AVAILABLE) === 'supported'
+}
+
 /**
  * Validates the runtime configuration and fills in its defaults.
  *
@@ -396,6 +369,10 @@ export function resolveConfig(
     return { ok: false, errors }
   }
 
+  const appList = isAppGridAvailable(source)
+    ? normalizeAppList(source.appList)
+    : []
+
   return {
     ok: true,
     value: {
@@ -418,9 +395,11 @@ export function resolveConfig(
         ? normalizeString(source.TDRIVE_INTENT_URL)
         : null,
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev',
-      appList: isAppGridAvailable(source)
-        ? normalizeAppList(source.appList)
-        : []
+      appList,
+      appDashboardUrl:
+        appList.length === 0 && isAppGridSupported(source)
+          ? new URL(APP_DASHBOARD_PATH, origin).href
+          : null
     }
   }
 }

@@ -1,3 +1,6 @@
+import type { EmailFilterCondition, Filter } from 'jmap-client-ts'
+
+import { filterVerdict } from './filterVerdict'
 import type { ThreadEmailUpdate } from './patchThreadList'
 import {
   byReceivedAt,
@@ -28,6 +31,12 @@ export interface QueryListScope {
   mailboxId?: string
   /** One row per conversation (`collapseThreads`) */
   isCollapsed?: boolean
+  /**
+   * The filter of the list: an email it does not know that cannot match it
+   * (in the Trash for a search leaving it out, unread for starred
+   * results…) changes nothing
+   */
+  filter?: Filter<EmailFilterCondition>
 }
 
 function patchMember(
@@ -71,16 +80,17 @@ function newMember(
  * - results grouped by conversation keep the emails of each thread listed
  *   up to date, a new reply included: the conversation stays where it is,
  *   in its new state;
- * - when an email the list does not know changed, or a conversation lost
- *   the email standing for it, the caller queries the loaded window again
- *   (James has no `Email/queryChanges`).
+ * - when an email the list does not know changed and may match its filter
+ *   (`filterVerdict`), or a conversation lost the email standing for it,
+ *   the caller queries the loaded window again (James has no
+ *   `Email/queryChanges`).
  *
  * Positions and counts follow, pages take the new state of their state.
  */
 export function patchQueryList(
   data: EmailListData,
   { changed, destroyed, newStates }: QueryListChanges,
-  { mailboxId, isCollapsed = false }: QueryListScope = {}
+  { mailboxId, isCollapsed = false, filter }: QueryListScope = {}
 ): QueryListPatch {
   const destroyedIds = new Set(destroyed)
   const changedById = new Map(changed.map(email => [email.id, email]))
@@ -161,6 +171,9 @@ export function patchQueryList(
       pageParams: pages.map(page => page.position)
     },
     needsRefresh:
-      changed.some(email => !isKnown(email)) || (isCollapsed && removed > 0)
+      changed.some(
+        email => !isKnown(email) && filterVerdict(filter, email) !== 'no'
+      ) ||
+      (isCollapsed && removed > 0)
   }
 }

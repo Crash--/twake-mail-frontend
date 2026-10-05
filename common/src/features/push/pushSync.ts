@@ -101,7 +101,10 @@ function describeList(key: QueryKey, accountId: string): CachedList | null {
     return {
       kind: 'query',
       request: value,
-      scope: { isCollapsed: value.collapseThreads === true }
+      scope: {
+        isCollapsed: value.collapseThreads === true,
+        filter: value.filter
+      }
     }
   }
   return null

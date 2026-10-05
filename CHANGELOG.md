@@ -118,6 +118,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its Bcc; a message saying a file is attached, without any, asks before
   it is sent
 - The keyboard shortcuts list the keys of a message being written
+- Settings (`/settings/<section>`), opened from the account menu: the
+  sections beside them on a desktop, listed on phones and tablets; the
+  conversation setting (Preferences) and the keyboard shortcuts moved there
+- Identities (Settings > Profiles): created, edited and deleted with their
+  Reply-To, Bcc and rich signature, the default one chosen when the server
+  sorts identities; signature images published as PublicAssets
 
 ### Changed
 

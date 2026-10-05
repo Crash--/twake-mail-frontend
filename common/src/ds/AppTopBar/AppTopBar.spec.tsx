@@ -1,14 +1,18 @@
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
+import { createRef } from 'react'
 import userEvent from '@testing-library/user-event'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { AppTopBar } from './AppTopBar'
+import { AppTopBar, type AppTopBarSearchActions } from './AppTopBar'
+
+const searchActions = createRef<AppTopBarSearchActions>()
 
 function renderBar(onOpenMenu = jest.fn()): jest.Mock {
   renderDs(
     <AppTopBar
+      searchActions={searchActions}
       title={<span>Twake Mail</span>}
       compactTitle={<span>Inbox</span>}
       search={<input aria-label="Search mail" />}
@@ -86,6 +90,37 @@ describe('AppTopBar', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Search' }))
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(screen.queryByRole('textbox')).toBe(null)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Search' })).toHaveFocus()
+    })
+  })
+
+  it('focuses the search on demand on a desktop', () => {
+    mockViewport({ width: 1440 })
+    renderBar()
+
+    act(() => {
+      searchActions.current?.focusSearch()
+    })
+
+    expect(screen.getByRole('textbox', { name: 'Search mail' })).toHaveFocus()
+  })
+
+  it('unfolds the search on demand on a phone, then focuses it', async () => {
+    mockViewport({ width: 390, touch: true })
+    renderBar()
+
+    act(() => {
+      searchActions.current?.focusSearch()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: 'Search mail' })).toHaveFocus()
+    })
+
+    await userEvent.keyboard('{Escape}')
 
     expect(screen.queryByRole('textbox')).toBe(null)
     await waitFor(() => {

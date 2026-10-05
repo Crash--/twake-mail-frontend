@@ -7,11 +7,13 @@ import { Burger, Icon, Left, Magnifier } from '@linagora/twake-icons'
 import { AppBar, Box, IconButton, Toolbar, Tooltip } from '@linagora/twake-mui'
 import {
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
   type KeyboardEvent,
   type ReactElement,
-  type ReactNode
+  type ReactNode,
+  type Ref
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -26,6 +28,14 @@ export interface AppTopBarMenu {
 export interface AppTopBarTestIds {
   openSearch?: string
   closeSearch?: string
+}
+
+export interface AppTopBarSearchActions {
+  /**
+   * Moves the focus into the search, unfolding it first on phones (a
+   * keyboard shortcut)
+   */
+  focusSearch: () => void
 }
 
 export interface AppTopBarProps {
@@ -43,6 +53,8 @@ export interface AppTopBarProps {
   openSearchLabel: string
   /** Name and tooltip of the button folding it back */
   closeSearchLabel: string
+  /** Receives `AppTopBarSearchActions`, as MUI's `action` props */
+  searchActions?: Ref<AppTopBarSearchActions>
   testIds?: AppTopBarTestIds
   'data-testid'?: string
 }
@@ -56,6 +68,8 @@ export interface AppTopBarProps {
  *   the actions. The search button unfolds the search over the whole bar
  *   and moves the focus into it; the back button or Escape fold it and give
  *   the focus back to the search button.
+ *
+ * `searchActions.focusSearch()` reaches the search on every screen size.
  */
 export function AppTopBar({
   title,
@@ -65,6 +79,7 @@ export function AppTopBar({
   menu,
   openSearchLabel,
   closeSearchLabel,
+  searchActions,
   testIds = {},
   'data-testid': testId
 }: AppTopBarProps): ReactElement {
@@ -85,6 +100,21 @@ export function AppTopBar({
       openSearchRef.current?.focus()
     }
   }, [isSearchUnfolded])
+
+  useImperativeHandle(
+    searchActions,
+    () => ({
+      focusSearch: () => {
+        if (isPhone && !isSearchOpen) {
+          // Focused once unfolded, by the effect above
+          setIsSearchOpen(true)
+          return
+        }
+        searchRef.current?.querySelector('input')?.focus()
+      }
+    }),
+    [isPhone, isSearchOpen]
+  )
 
   const handleOpenSearch = (): void => {
     setIsSearchOpen(true)
@@ -160,7 +190,10 @@ export function AppTopBar({
       <>
         {menuButton}
         {title}
-        <Box className="u-flex u-flex-auto u-flex-justify-center u-ph-2">
+        <Box
+          ref={searchRef}
+          className="u-flex u-flex-auto u-flex-justify-center u-ph-2"
+        >
           {search}
         </Box>
         {actions}

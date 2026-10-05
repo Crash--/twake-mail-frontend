@@ -201,7 +201,7 @@ export function EmailCell({
       <>
         {isActionRequired ? (
           <span className="u-flex-shrink-0 u-mr-half">
-            <ActionRequiredTag maxLength={16} />
+            <ActionRequiredTag maxLength={16} size="small" />
           </span>
         ) : null}
         <LabelChips

@@ -38,6 +38,7 @@ import {
   findMailboxIdByRole,
   isTemplatesMailbox
 } from '@common/features/mailbox/mailboxTree'
+import { useLabels } from '@common/features/labels/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -436,6 +437,7 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   const { openComposer } = useComposer()
   const showImportant = useShowsSenderPriority()
+  const labels = useLabels().data?.list
   const handleOpenDraft = useCallback(
     (email: { id: string }): void => {
       openComposer({ draftId: email.id })
@@ -467,6 +469,7 @@ export function EmailList(props: EmailListProps): ReactElement {
             onOpenDraft={handleOpenDraft}
             onOpenTemplate={isTemplates ? handleOpenTemplate : undefined}
             showImportant={showImportant}
+            labels={labels}
           />
         )
       }
@@ -484,7 +487,8 @@ export function EmailList(props: EmailListProps): ReactElement {
       handleOpenDraft,
       handleOpenTemplate,
       isTemplates,
-      showImportant
+      showImportant,
+      labels
     ]
   )
 

@@ -22,6 +22,7 @@ import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { ConversationView } from '@common/features/thread/ConversationView'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
 import { formatFullDate } from '@common/features/thread/formatListDate'
+import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { AddressLine } from './AddressLine'
@@ -100,6 +101,7 @@ function EmailContent({
           {email.subject ?? ''}
         </Typography>
         {showsImportant ? <ImportantMark showLabel /> : null}
+        <EmailLabels email={email} mailboxId={mailboxId ?? null} />
         <MessageHeader
           className="u-mt-1"
           avatar={

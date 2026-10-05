@@ -56,6 +56,18 @@ describe('availableEmailActions', () => {
     ])
   })
 
+  it('offers "Label as" when labels show', () => {
+    expect(
+      availableEmailActions(
+        [unread],
+        { role: 'inbox', name: 'Inbox', namespace: 'Personal' },
+        MAILBOXES,
+        { canLabel: true }
+      ).map(item => item.id)
+    ).toContain('label-as')
+    expect(ids('inbox')).not.toContain('label-as')
+  })
+
   it('offers no archive from Archive nor without an Archive folder', () => {
     expect(ids('archive')).not.toContain('archive')
     expect(ids('inbox', [unread], makeDefaultMailboxes())).not.toContain(

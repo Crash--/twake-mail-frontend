@@ -1,7 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
-import type { KnownSettingKey } from 'jmap-client-ts/linagora'
+import {
+  LINAGORA_CAPABILITIES,
+  type KnownSettingKey
+} from 'jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
 
+import { useLabelVisibility } from '@common/features/labels/labelVisibility'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -27,8 +31,8 @@ export interface PreferencesSettingsProps {
 /**
  * Settings > Preferences, as tmail-flutter: the read receipts asked for
  * every message and the important flag set by senders (settings of the
- * account on the server, when it keeps them), and the conversation view
- * (kept in this browser).
+ * account on the server, when it keeps them), the conversation view and
+ * the labels (kept in this browser).
  */
 export function PreferencesSettings({
   section
@@ -39,6 +43,8 @@ export function PreferencesSettings({
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
   const threadPreference = useThreadPreference()
+  const [isLabelVisible, setLabelVisible] = useLabelVisibility()
+  const hasLabels = LINAGORA_CAPABILITIES.labels in session.capabilities
   const { settings } = useServerSettings()
   const [saving, setSaving] = useState<KnownSettingKey | null>(null)
 
@@ -99,6 +105,16 @@ export function PreferencesSettings({
         onChange={threadPreference.setEnabled}
         data-testid="thread-setting-toggle"
       />
+      {hasLabels ? (
+        <PreferenceOption
+          title={t('settings.preferences.labels')}
+          description={t('settings.preferences.labelsDescription')}
+          toggleLabel={t('settings.preferences.labelsToggle')}
+          isChecked={isLabelVisible}
+          onChange={setLabelVisible}
+          data-testid="label-visibility-setting-toggle"
+        />
+      ) : null}
     </SettingsSectionLayout>
   )
 }

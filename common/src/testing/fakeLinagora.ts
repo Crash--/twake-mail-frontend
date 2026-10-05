@@ -7,6 +7,7 @@ export const FAKE_LINAGORA_CAPABILITIES = {
   'com:linagora:params:jmap:filter': {},
   'com:linagora:params:jmap:forward': {},
   'com:linagora:params:jmap:settings': { readOnlyProperties: [] },
+  'com:linagora:params:jmap:labels': { version: 2 },
   'urn:ietf:params:jmap:vacationresponse': {}
 }
 
@@ -150,4 +151,87 @@ export function installFakeVacation(
     }
   })
   return { vacation: () => vacation }
+}
+
+/** `Label/get`, `Label/set` and `Label/changes` (tmail-backend labels) */
+export function installFakeLabels(
+  server: FakeJmapServer,
+  initial: Record<string, unknown>[] = []
+): { labels: () => Record<string, unknown>[] } {
+  let labels = initial.map(label => ({ ...label }))
+  let state = 1
+  const log: { state: number; id: string; kind: string }[] = []
+  let created = 0
+  server.handlers.set('Label/get', args => ({
+    accountId: FAKE_ACCOUNT_ID,
+    state: `label-${state}`,
+    list: labels.filter(
+      label => !Array.isArray(args.ids) || args.ids.includes(String(label.id))
+    ),
+    notFound: []
+  }))
+  server.handlers.set('Label/changes', args => {
+    const since = Number(String(args.sinceState).replace('label-', ''))
+    if (Number.isNaN(since)) return { error: 'invalidArguments' }
+    const entries = log.filter(entry => entry.state > since)
+    const ids = (kind: string): string[] => [
+      ...new Set(entries.filter(entry => entry.kind === kind).map(e => e.id))
+    ]
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      oldState: String(args.sinceState),
+      newState: `label-${state}`,
+      hasMoreChanges: false,
+      created: ids('created'),
+      updated: ids('updated'),
+      destroyed: ids('destroyed')
+    }
+  })
+  server.handlers.set('Label/set', args => {
+    const oldState = `label-${state}`
+    const result: Record<string, unknown> = {
+      accountId: FAKE_ACCOUNT_ID,
+      oldState
+    }
+    if (isRecord(args.create)) {
+      const done: Record<string, unknown> = {}
+      for (const [creationId, value] of Object.entries(args.create)) {
+        if (!isRecord(value)) continue
+        created += 1
+        const id = `label-created-${created}`
+        labels = [...labels, { ...value, id, keyword: id, readOnly: false }]
+        state += 1
+        log.push({ state, id, kind: 'created' })
+        done[creationId] = { id, keyword: id }
+      }
+      result.created = done
+    }
+    if (isRecord(args.update)) {
+      const done: Record<string, null> = {}
+      for (const [id, patch] of Object.entries(args.update)) {
+        if (!isRecord(patch)) continue
+        labels = labels.map(label =>
+          label.id === id ? { ...label, ...patch } : label
+        )
+        state += 1
+        log.push({ state, id, kind: 'updated' })
+        done[id] = null
+      }
+      result.updated = done
+    }
+    if (Array.isArray(args.destroy)) {
+      const destroyed = args.destroy.filter(
+        (id): id is string => typeof id === 'string'
+      )
+      labels = labels.filter(label => !destroyed.includes(String(label.id)))
+      for (const id of destroyed) {
+        state += 1
+        log.push({ state, id, kind: 'destroyed' })
+      }
+      result.destroyed = destroyed
+    }
+    result.newState = `label-${state}`
+    return result
+  })
+  return { labels: () => labels }
 }

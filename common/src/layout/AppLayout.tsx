@@ -11,6 +11,7 @@ import {
   ComposerProvider,
   useComposer
 } from '@common/features/composer/ComposerProvider'
+import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -47,11 +48,13 @@ export function AppLayout(props: AppLayoutProps): ReactElement {
     <ShortcutsProvider>
       <MailboxPickerProvider>
         <FolderActionsProvider>
-          <ComposerProvider>
-            <SettingsExitProvider>
-              <AppFrame {...props} />
-            </SettingsExitProvider>
-          </ComposerProvider>
+          <LabelActionsProvider>
+            <ComposerProvider>
+              <SettingsExitProvider>
+                <AppFrame {...props} />
+              </SettingsExitProvider>
+            </ComposerProvider>
+          </LabelActionsProvider>
         </FolderActionsProvider>
       </MailboxPickerProvider>
     </ShortcutsProvider>

@@ -23,6 +23,8 @@ import { VacationSettings } from '@common/features/vacation/VacationSettings'
 import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 import { AppLayout } from '@common/layout/AppLayout'
 
+import { LabelEmailPage } from './features/labels/LabelEmailPage'
+import { LabelPage } from './features/labels/LabelPage'
 import { EmailPage } from './features/mailbox/EmailPage'
 import { MailboxPage } from './features/mailbox/MailboxPage'
 import { SearchEmailPage } from './features/search/SearchEmailPage'
@@ -65,6 +67,9 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
           </Route>
           <Route path="/starred" element={<StarredPage />}>
             <Route path="email/:emailId" element={<StarredEmailPage />} />
+          </Route>
+          <Route path="/label/:labelId" element={<LabelPage />}>
+            <Route path="email/:emailId" element={<LabelEmailPage />} />
           </Route>
           <Route path="/search" element={<SearchPage />}>
             <Route path="email/:emailId" element={<SearchEmailPage />} />

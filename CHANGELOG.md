@@ -144,6 +144,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   message; a banner says it is on, over every screen, with "End now"
 - Folder visibility (Settings > Folder visibility): every folder, hidden
   or shown again
+- Labels (`Label/*`): in the sidebar (created, edited, deleted, with a
+  colour), their emails (`/label/<id>`), "Label as" on emails from every
+  menu and the selection, chips on the rows and under the subject (× takes
+  one off), kept up to date by push (`Label/changes`), "Label visibility"
+  in Preferences; the advanced search filters by label
 
 ### Changed
 

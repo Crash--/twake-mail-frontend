@@ -4,6 +4,7 @@ import {
   Email,
   EmailOpen,
   FolderMoveto,
+  Label,
   Star,
   StarOutline,
   Trash,
@@ -34,6 +35,7 @@ export type EmailActionId =
   | 'unstar'
   | 'move'
   | 'mark-as-spam'
+  | 'label-as'
 
 export interface EmailActionItem {
   id: EmailActionId
@@ -105,6 +107,12 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
     icon: Warning,
     isDestructive: false,
     group: 2
+  },
+  'label-as': {
+    label: 'labels.labelAs',
+    icon: Label,
+    isDestructive: false,
+    group: 2
   }
 }
 
@@ -118,12 +126,13 @@ export function emailActionItem(id: EmailActionId): EmailActionItem {
  * forever in the Trash, Spam and Drafts), to Archive (not from Archive, and
  * only when the account has one); read or unread, starred or not (the
  * toggle that changes something), move, to Spam (not from Spam nor Drafts).
- * Team mailboxes have no Archive nor Spam.
+ * Team mailboxes have no Archive nor Spam. "Label as" when labels show.
  */
 export function availableEmailActions(
   emails: readonly TargetEmail[],
   mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace'> | null,
-  mailboxes: readonly MailboxSummary[]
+  mailboxes: readonly MailboxSummary[],
+  { canLabel = false }: { canLabel?: boolean } = {}
 ): EmailActionItem[] {
   if (emails.length === 0) return []
   const role = mailbox?.role ?? null
@@ -150,5 +159,6 @@ export function availableEmailActions(
   )
   ids.push('move')
   if (!isTeam && !isSpam && role !== 'drafts') ids.push('mark-as-spam')
+  if (canLabel) ids.push('label-as')
   return ids.map(emailActionItem)
 }

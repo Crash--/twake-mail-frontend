@@ -13,6 +13,7 @@ import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
 import { REPLY_LABELS } from '@common/features/email/useReplyOptions'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -79,6 +80,7 @@ export function EmailActionsMenu({
 }: EmailActionsMenuProps): ReactElement {
   const { t } = useI18n()
   const { data: mailboxes = [] } = useMailboxes()
+  const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
   const { openComposer } = useComposer()
   const mailbox =
@@ -93,9 +95,9 @@ export function EmailActionsMenu({
   const items =
     anchor === null
       ? []
-      : availableEmailActions(emails, mailbox, mailboxes).filter(
-          item => !exclude.includes(item.id)
-        )
+      : availableEmailActions(emails, mailbox, mailboxes, {
+          canLabel
+        }).filter(item => !exclude.includes(item.id))
 
   const handleReply = (action: ReplyAction): void => {
     onClose()

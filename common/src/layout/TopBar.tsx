@@ -6,6 +6,8 @@ import { AppTopBar } from '@/ds/AppTopBar/AppTopBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
 import { useCurrentMailboxName } from '@common/features/mailbox/useCurrentMailboxName'
+import { LABEL_PATH } from '@common/features/labels/labelPaths'
+import { useLabels } from '@common/features/labels/queries'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
@@ -37,11 +39,15 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
   const mailboxName = useCurrentMailboxName()
   const isSearch = useMatch('/search/*') !== null
   const isSettings = useMatch(`${SETTINGS_PATH}/*`) !== null
+  const labelId = useMatch(`${LABEL_PATH}/:labelId/*`)?.params.labelId
+  const labelName =
+    useLabels().data?.list.find(label => label.id === labelId)?.displayName ??
+    null
   const folderName = isSettings
     ? t('settings.title')
     : isSearch
       ? t('search.title')
-      : mailboxName
+      : (labelName ?? mailboxName)
 
   return (
     <AppTopBar

@@ -27,6 +27,8 @@ export interface ColorTagProps {
   /** Shows a × button; its accessible name and tooltip */
   removeLabel?: string
   onRemove?: () => void
+  /** `small`: 11 / 14 text and 4 px of padding, the tags of a list row */
+  size?: 'small' | 'medium'
   /** Cut the name after this many characters, with an ellipsis */
   maxLength?: number
   'data-testid'?: string
@@ -42,6 +44,7 @@ export function ColorTag({
   removeLabel,
   onRemove,
   maxLength,
+  size = 'medium',
   'data-testid': testId
 }: ColorTagProps): ReactElement {
   const textColor = readableTextColor(color)
@@ -60,12 +63,12 @@ export function ColorTag({
         alignItems: 'center',
         maxWidth: '100%',
         borderRadius: '4px',
-        px: 0.75,
-        py: 0.125,
+        px: size === 'small' ? 0.5 : 0.75,
+        py: size === 'small' ? 0 : 0.125,
         backgroundColor: color,
         color: textColor,
-        fontSize: '0.75rem',
-        lineHeight: 1.5,
+        fontSize: size === 'small' ? '11px' : '0.75rem',
+        lineHeight: size === 'small' ? '14px' : 1.5,
         whiteSpace: 'nowrap',
         verticalAlign: 'middle'
       }}

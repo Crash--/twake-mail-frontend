@@ -339,7 +339,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/thread-scroll.spec.ts`, on `chromium` and `mobile` (`THR-11`).
 - [x] `THR-13` From a search result the conversation opens on the message that matched; `THR-14` from a link `/mailbox/:id/email/:emailId` on that message. — web app (issue #95)
   - Spec: `tests/thread-scroll.spec.ts`, on `chromium` and `mobile`.
-- [x] `THR-15` The scroll is smooth; `THR-16` instant with `prefers-reduced-motion`; `THR-17` expanding, collapsing a message or a reply arriving by push does not move the view. — web app (issue #95)
+- [x] `THR-15` The scroll is instant, never smooth (a smooth one would fight the view transition, issue #108); `THR-16` instant with `prefers-reduced-motion`; `THR-17` expanding, collapsing a message or a reply arriving by push does not move the view. — web app (issue #95)
   - Spec: `tests/thread-scroll.spec.ts` (`THR-17` also on `mobile`).
 
 ## SRCH — Search (14)
@@ -581,3 +581,5 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   reading view and the settings, on a desktop and a tablet, standalone and framed as in Twake
   Workplace. — `chromium` project only
   - Spec: `tests/page-scroll.spec.ts`.
+- [x] `THR-18` Opening a long conversation from the list with a view transition shows its target from the first frame of the conversation, nothing scrolls under the transition, and it ends on the final scroll position; `THR-19` the same from a search result. — web app (issue #108)
+  - Spec: `tests/thread-scroll.spec.ts`, on `chromium`, `mobile` and `tablet`.

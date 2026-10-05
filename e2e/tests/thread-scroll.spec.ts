@@ -4,10 +4,13 @@ import { ConversationPage, LoginPage, SearchPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
+import { hasViewTransitionApi } from '../support/viewTransitions'
 
 const SUBJECT = 'Long conversation'
 const MESSAGE_COUNT = 24
 const NEEDLE = 'needlexyz'
+/** Pixels the target may move while the bodies above it grow */
+const MAX_CORRECTION = 16
 
 interface ThreadOptions {
   /** 1-based number of the first unread message, none when absent */
@@ -112,6 +115,102 @@ async function openAndReadScrolls(
       window as unknown as { __scrolls: { behavior?: string }[] }
     ).__scrolls.map(options => options.behavior)
   )
+}
+
+/**
+ * What the page showed while a conversation opened with a view transition:
+ * the scroll position of the reading area at every frame the conversation was
+ * on screen, and the one at the end of the transition.
+ */
+interface OpeningTrace {
+  transitions: number
+  frames: number[]
+  atFinish: number | null
+  scrolledAfterFinish: boolean
+}
+
+interface TraceWindow {
+  __opening: OpeningTrace
+}
+
+async function traceOpening(page: Page): Promise<void> {
+  await page.addInitScript((maxCorrection: number) => {
+    const trace: OpeningTrace = {
+      transitions: 0,
+      frames: [],
+      atFinish: null,
+      scrolledAfterFinish: false
+    }
+    Object.defineProperty(window, '__opening', { value: trace })
+    const top = (): number =>
+      Math.round(
+        document.querySelector('[data-testid="main-content"]')?.scrollTop ?? 0
+      )
+    const start = document.startViewTransition?.bind(document)
+    if (start) {
+      document.startViewTransition = (
+        ...args: Parameters<Document['startViewTransition']>
+      ): ViewTransition => {
+        trace.transitions += 1
+        const transition = start(...args)
+        void transition.finished.then(() => {
+          trace.atFinish = top()
+        })
+        return transition
+      }
+    }
+    document.addEventListener(
+      'scroll',
+      () => {
+        if (
+          trace.atFinish !== null &&
+          Math.abs(top() - trace.atFinish) > maxCorrection
+        ) {
+          trace.scrolledAfterFinish = true
+        }
+      },
+      true
+    )
+    const onFrame = (): void => {
+      if (document.querySelector('[data-testid="conversation-view"]')) {
+        trace.frames.push(top())
+      }
+      requestAnimationFrame(onFrame)
+    }
+    requestAnimationFrame(onFrame)
+  }, MAX_CORRECTION)
+}
+
+/**
+ * The conversation opened with a view transition shows its target from its
+ * first frame to the end of the transition (one motion, no scroll under it),
+ * and the transition ends on the final scroll position.
+ */
+async function expectCleanOpening(page: Page): Promise<void> {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () => (window as unknown as TraceWindow).__opening.atFinish
+        ),
+      { message: 'the view transition finishes' }
+    )
+    .not.toBeNull()
+  // Room for the late corrections (bodies growing) and for a late scroll
+  await page.waitForTimeout(1000)
+  const trace = await page.evaluate(
+    () => (window as unknown as TraceWindow).__opening
+  )
+  expect(trace.transitions).toBeGreaterThan(0)
+  const finalTop = trace.atFinish ?? Number.NaN
+  expect(finalTop).toBeGreaterThan(0)
+  // From the first frame of the conversation: never on its top first, only
+  // the small corrections of the bodies growing above the target
+  expect(trace.frames.length).toBeGreaterThan(0)
+  for (const top of trace.frames) {
+    expect(Math.abs(top - finalTop)).toBeLessThanOrEqual(MAX_CORRECTION)
+  }
+  expect(trace.scrolledAfterFinish).toBe(false)
 }
 
 test.describe('THR conversation opens on the message to read', () => {
@@ -231,10 +330,67 @@ test.describe('THR conversation opens on the message to read', () => {
     }
   )
 
-  test('THR-15 scrolls smoothly', async ({ page, user, jmap }) => {
+  test('THR-15 scrolls at once, never smoothly', async ({
+    page,
+    user,
+    jmap
+  }) => {
     await createLongThread(jmap, 'emma@example.com', user.email)
-    expect(await openAndReadScrolls(page, user)).toContain('smooth')
+    const behaviors = await openAndReadScrolls(page, user)
+    expect(behaviors.length).toBeGreaterThan(0)
+    expect(behaviors).not.toContain('smooth')
   })
+
+  test(
+    'THR-18 from the list, the view transition ends on the final scroll position',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      await createLongThread(jmap, 'emma@example.com', user.email, {
+        firstUnread: 18
+      })
+      await traceOpening(page)
+      const mailbox = await new LoginPage(page).loginAs(user)
+      test.skip(
+        !(await hasViewTransitionApi(page)),
+        'a browser without the View Transitions API'
+      )
+      await mailbox.emailRowLink(`Re: ${SUBJECT}`).click()
+      const conversation = await new ConversationPage(page).expectLoaded(
+        `Re: ${SUBJECT}`
+      )
+      await expect(
+        conversation.toggle(conversation.message(/Sender 18/))
+      ).toBeInViewport()
+
+      await expectCleanOpening(page)
+    }
+  )
+
+  test(
+    'THR-19 from a search result, the view transition ends on the final scroll position',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      await createLongThread(jmap, 'emma@example.com', user.email, {
+        needleIn: 14
+      })
+      await traceOpening(page)
+      await new LoginPage(page).loginAs(user)
+      test.skip(
+        !(await hasViewTransitionApi(page)),
+        'a browser without the View Transitions API'
+      )
+      const search = await new SearchPage(page).search(NEEDLE)
+      await search.resultRows().first().click()
+      const conversation = await new ConversationPage(page).expectLoaded(
+        `Re: ${SUBJECT}`
+      )
+      await expect(
+        conversation.toggle(conversation.message(/Sender 14/))
+      ).toBeInViewport()
+
+      await expectCleanOpening(page)
+    }
+  )
 
   test.describe('with reduced motion', () => {
     test.use({ contextOptions: { reducedMotion: 'reduce' } })

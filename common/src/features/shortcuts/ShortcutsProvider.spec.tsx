@@ -76,6 +76,27 @@ describe('ShortcutsProvider', () => {
     expect(onDelete).toHaveBeenCalled()
   })
 
+  it('reads a letter with Shift, not with its case (Caps Lock)', () => {
+    const reply = jest.fn()
+    const replyAll = jest.fn()
+    function ReplyScreen(): ReactElement {
+      useShortcuts({ r: reply, R: replyAll })
+      return <p>Email</p>
+    }
+    renderShortcuts(<ReplyScreen />)
+
+    // Caps Lock on: "R" without Shift
+    fireEvent.keyDown(document.body, { key: 'R' })
+    expect(reply).toHaveBeenCalledTimes(1)
+    expect(replyAll).not.toHaveBeenCalled()
+
+    // Shift, with or without Caps Lock
+    fireEvent.keyDown(document.body, { key: 'r', shiftKey: true })
+    fireEvent.keyDown(document.body, { key: 'R', shiftKey: true })
+    expect(replyAll).toHaveBeenCalledTimes(2)
+    expect(reply).toHaveBeenCalledTimes(1)
+  })
+
   it('gives a key to the last screen that handles it now', () => {
     const first = jest.fn()
     const second = jest.fn()

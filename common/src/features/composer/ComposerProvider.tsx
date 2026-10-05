@@ -34,6 +34,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { parseSnapshot, type ComposerSnapshot } from './composerContent'
 import {
+  keepComposerBeforeUnload,
   listComposers,
   putComposer,
   removeComposer,
@@ -236,7 +237,7 @@ export function ComposerProvider({
 
   /** Writes a composer in the browser: its window and its form */
   const persist = useCallback(
-    (id: string): void => {
+    (id: string, isLeaving = false): void => {
       const timer = persistTimers.current.get(id)
       if (timer !== undefined) window.clearTimeout(timer)
       persistTimers.current.delete(id)
@@ -252,7 +253,10 @@ export function ComposerProvider({
       const snapshot = form?.snapshot() ?? restored.current.get(id) ?? null
       // The editor is not there yet and nothing was kept: wait for it
       if (snapshot === null) return
-      void putComposer({ accountId, composerId: id, entry, snapshot })
+      const record = { accountId, composerId: id, entry, snapshot }
+      void putComposer(record)
+      // The page goes: IndexedDB may not finish, this copy is synchronous
+      if (isLeaving) keepComposerBeforeUnload(record)
     },
     [accountId]
   )
@@ -282,7 +286,7 @@ export function ComposerProvider({
   useEffect(() => {
     const flush = (): void => {
       entriesRef.current.forEach(entry => {
-        persist(entry.id)
+        persist(entry.id, true)
       })
     }
     const handleVisibility = (): void => {

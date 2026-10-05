@@ -140,6 +140,72 @@ function isTooBig(snapshot: unknown): boolean {
   )
 }
 
+const LAST_GASP_PREFIX = 'twake-mail-composer-last|'
+
+function lastGaspKey(accountId: string, composerId: string): string {
+  return `${LAST_GASP_PREFIX}${accountId}|${composerId}`
+}
+
+/**
+ * The page is going (reload, closed tab): an IndexedDB transaction started
+ * now may be cut short, a `sessionStorage` write is synchronous (tmail-flutter
+ * ADR 0009). It is a copy for the next page of this tab only: `listComposers`
+ * takes it when it is newer than the record, then drops it.
+ */
+export function keepComposerBeforeUnload(
+  record: Omit<StoredComposer, 'updatedAt'>
+): void {
+  if (isSuspended || isTooBig(record.snapshot)) return
+  try {
+    const stored: StoredComposer = { ...record, updatedAt: Date.now() }
+    sessionStorage.setItem(
+      lastGaspKey(record.accountId, record.composerId),
+      JSON.stringify(stored)
+    )
+  } catch {
+    // Quota or storage disabled: the IndexedDB write is the only one
+  }
+}
+
+function takeLastGasps(): StoredComposer[] {
+  const taken: StoredComposer[] = []
+  try {
+    const keys: string[] = []
+    for (let index = 0; index < sessionStorage.length; index += 1) {
+      const key = sessionStorage.key(index)
+      if (key?.startsWith(LAST_GASP_PREFIX)) keys.push(key)
+    }
+    for (const key of keys) {
+      const raw = sessionStorage.getItem(key)
+      sessionStorage.removeItem(key)
+      const value: unknown = raw === null ? null : JSON.parse(raw)
+      if (isStored(value)) taken.push(value)
+    }
+  } catch {
+    // Nothing to take
+  }
+  return taken
+}
+
+/** One copy of this tab, or every one (`accountId` null) */
+function forgetLastGasps(accountId: string | null, composerId = ''): void {
+  try {
+    const keys: string[] = []
+    for (let index = 0; index < sessionStorage.length; index += 1) {
+      const key = sessionStorage.key(index)
+      if (!key?.startsWith(LAST_GASP_PREFIX)) continue
+      if (accountId === null || key === lastGaspKey(accountId, composerId)) {
+        keys.push(key)
+      }
+    }
+    keys.forEach(key => {
+      sessionStorage.removeItem(key)
+    })
+  } catch {
+    // Nothing to forget
+  }
+}
+
 /** Keeps a composer (the record replaces the previous one) */
 export function putComposer(
   record: Omit<StoredComposer, 'updatedAt'>
@@ -164,6 +230,7 @@ export function removeComposer(
   accountId: string,
   composerId: string
 ): Promise<void> {
+  forgetLastGasps(accountId, composerId)
   return enqueue(async () => {
     memory.delete(memoryKey(accountId, composerId))
     const database = await openDatabase()
@@ -193,9 +260,29 @@ export function listComposers(accountId: string): Promise<StoredComposer[]> {
           database.transaction(STORE, 'readonly').objectStore(STORE).getAll()
         )
       : [...memory.values()]
+    // What the previous page of this tab wrote last, when newer
+    const newest = new Map<string, StoredComposer>()
+    for (const value of all) {
+      if (isStored(value)) {
+        newest.set(memoryKey(value.accountId, value.composerId), value)
+      }
+    }
+    for (const gasp of takeLastGasps()) {
+      const key = memoryKey(gasp.accountId, gasp.composerId)
+      const kept = newest.get(key)
+      if (kept && gasp.updatedAt < kept.updatedAt) continue
+      newest.set(key, gasp)
+      if (database) {
+        const transaction = database.transaction(STORE, 'readwrite')
+        transaction.objectStore(STORE).put(gasp)
+        await done(transaction)
+      } else {
+        memory.set(key, gasp)
+      }
+    }
     const now = Date.now()
     const mine: StoredComposer[] = []
-    for (const value of all) {
+    for (const value of newest.values()) {
       if (!isStored(value)) continue
       if (now - value.updatedAt > COMPOSER_TTL_MS) {
         void removeComposer(value.accountId, value.composerId)
@@ -214,6 +301,7 @@ export function listComposers(accountId: string): Promise<StoredComposer[]> {
 export function clearComposerStorage(): Promise<void> {
   isSuspended = true
   memory.clear()
+  forgetLastGasps(null)
   return enqueue(async () => {
     const database = await openDatabase()
     if (!database) return

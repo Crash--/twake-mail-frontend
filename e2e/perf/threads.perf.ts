@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
 
-import { createInboxEmail, createInboxReply } from '../scripts/seed-perf'
+import { createInboxEmail, createInboxReply, mailboxIdByRole } from '../scripts/seed-perf'
 import { INSTRUMENT_SCRIPT, JmapRecorder, RUNS, login, readPerfUser, report, waitInPage } from './support'
 
 /** Conversations to load by scrolling before the push */
@@ -100,3 +100,71 @@ test.describe('PERF conversations', () => {
     })
   }
 })
+
+/** Conversations of the grouped search loaded by scrolling: beyond the 256 a refresh queried */
+const SEARCH_TARGET = Number(process.env.PERF_SEARCH_TARGET ?? 400)
+
+/** The scroll position of the list */
+async function scrollTop(page: Page): Promise<number> {
+  return page.evaluate(() => document.querySelector('[data-testid="email-list"]')?.scrollTop ?? 0)
+}
+
+/**
+ * Push during a search grouped by conversation (issue #43), "Topic" matching every seeded
+ * conversation, with more than 256 of them loaded: an email that cannot be in the results (in the
+ * Trash, which the search leaves out) and one the client cannot tell (in the Inbox, another
+ * subject). Each in a fresh page.
+ */
+test.describe('PERF grouped search', () => {
+  for (const kind of ['email in the Trash', 'email of another subject in the Inbox'] as const) {
+    test(`PERF-05 push during a grouped search with ${SEARCH_TARGET} conversations loaded: ${kind}`, async ({
+      browser
+    }) => {
+      const user = readPerfUser()
+      const trashId = await mailboxIdByRole(user, 'trash')
+      const m: Record<string, number[]> = {}
+      const add = (name: string, value: number): void => {
+        ;(m[`6. ${kind}: ${name}`] ??= []).push(value)
+      }
+      for (let run = 0; run < RUNS; run += 1) {
+        const { context, page, jmap } = await newPage(browser)
+        await login(page, user)
+        await expect(page.locator(LIST_ROW).first()).toBeVisible()
+        // In the app: a reload would lose the session, kept in memory
+        await page.evaluate(() => {
+          window.history.pushState(null, '', '/search?q=Topic')
+          window.dispatchEvent(new PopStateEvent('popstate'))
+        })
+        await expect(page.getByTestId('search-results')).toBeVisible()
+        await expect(page.locator(LIST_ROW).first()).toBeVisible()
+        await jmap.idle(page)
+        await scrollTo(page, SEARCH_TARGET)
+        await jmap.idle(page)
+        const rowsBefore = await loadedRows(page)
+        const topBefore = await scrollTop(page)
+        add('rows loaded before the push', rowsBefore)
+
+        const beforePush = jmap.calls.length
+        const subject = `Lunch ${run} ${Date.now()}`
+        const pushStart = Date.now()
+        if (kind === 'email in the Trash') await createInboxEmail({ ...user, inboxId: trashId }, subject)
+        else await createInboxEmail(user, subject)
+        // The push brings its changes first, then what they lead to
+        await expect
+          .poll(() => jmap.since(beforePush).some(call => call.methods.includes('Email/changes')), { timeout: 30_000 })
+          .toBe(true)
+        await jmap.idle(page)
+        const calls = jmap.since(beforePush)
+        add('arrival → requests settled (ms)', Date.now() - pushStart - 1500)
+        add('JMAP requests', calls.length)
+        add('Email/query calls', calls.filter(call => call.methods.includes('Email/query')).length)
+        add('response bytes (kB)', sum(calls.map(call => call.responseBytes)) / 1024)
+        add('rows loaded after the push', await loadedRows(page))
+        add('scroll moved (px)', Math.abs((await scrollTop(page)) - topBefore))
+        await context.close()
+      }
+      report(m)
+    })
+  }
+})
+

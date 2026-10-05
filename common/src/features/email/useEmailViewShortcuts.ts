@@ -55,6 +55,8 @@ export interface EmailViewShortcutsOptions {
   mailboxId: string | null
   /** The list to go back to */
   backPath: string
+  /** Goes back to the list once the email left the folder (by default) */
+  leavesWhenMoved?: boolean
 }
 
 /**
@@ -69,7 +71,8 @@ export function useEmailViewShortcuts({
   emailId,
   email,
   mailboxId,
-  backPath
+  backPath,
+  leavesWhenMoved = true
 }: EmailViewShortcutsOptions): void {
   const navigate = useNavigate()
   const { run } = useEmailActions()
@@ -86,9 +89,10 @@ export function useEmailViewShortcuts({
   }, [neighbors])
 
   const isInMailbox =
-    email !== undefined &&
-    email !== null &&
-    (mailboxId === null || mailboxId in email.mailboxIds)
+    !leavesWhenMoved ||
+    (email !== undefined &&
+      email !== null &&
+      (mailboxId === null || mailboxId in email.mailboxIds))
   useEffect(() => {
     if (isInMailbox) {
       wasInMailbox.current = true

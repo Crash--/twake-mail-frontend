@@ -9,7 +9,7 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import { useEffect, useRef, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
@@ -17,6 +17,7 @@ import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
+import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { ConversationView } from '@common/features/thread/ConversationView'
@@ -26,13 +27,12 @@ import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { AddressLine } from './AddressLine'
-import { formatAddressName } from './addresses'
 import { isMarkedImportant } from './importance'
 import { ImportantMark } from './ImportantMark'
-import { EmailAddressMenu } from './EmailAddressMenu'
 import { EmailMessageBody } from './EmailMessageBody'
 import { EmailViewActions } from './EmailViewActions'
 import { ReplyActions } from './ReplyActions'
+import { SenderLine } from './SenderLine'
 import type { EmailDetail } from './queries'
 import { useEmail } from './useEmail'
 import { useEmailViewShortcuts } from './useEmailViewShortcuts'
@@ -66,6 +66,11 @@ function EmailContent({
     subjectRef.current?.focus()
   }, [])
 
+  // As tmail-flutter: an email marked unread is closed
+  const handleAction = (id: EmailActionId): void => {
+    if (id === 'mark-as-unread') onBack()
+  }
+
   // The banner goes away with its buttons: the focus goes back to the email
   const handleRemoteContentShown = (): void => {
     subjectRef.current?.focus()
@@ -86,7 +91,7 @@ function EmailContent({
         <EmailViewActions
           email={email}
           mailboxId={mailboxId}
-          onLeave={onBack}
+          onAction={handleAction}
         />
       </Box>
       <Box className="u-ph-1">
@@ -111,18 +116,7 @@ function EmailContent({
           }
           identity={
             <>
-              <Typography data-testid="email-view-from">
-                {sender ? (
-                  <EmailAddressMenu address={sender}>
-                    <span className="u-fw-bold">
-                      {formatAddressName(sender)}
-                    </span>
-                    {sender.name ? (
-                      <SecondaryText>{` <${sender.email}>`}</SecondaryText>
-                    ) : null}
-                  </EmailAddressMenu>
-                ) : null}
-              </Typography>
+              <SenderLine sender={sender} data-testid="email-view-from" />
               <AddressLine
                 label="email.to"
                 addresses={email.to}
@@ -179,13 +173,22 @@ export function EmailView({
   const { t } = useI18n()
   const navigate = useNavigate()
   const query = useEmail(emailId)
+  const threadPreference = useThreadPreference()
+  // The conversation stays once the email opened was deleted from it
+  const [lastThreadId, setLastThreadId] = useState<string | null>(null)
+  const loadedThreadId = query.data?.threadId ?? null
+  if (loadedThreadId !== null && loadedThreadId !== lastThreadId) {
+    setLastThreadId(loadedThreadId)
+  }
+  const threadId = loadedThreadId ?? lastThreadId
   useEmailViewShortcuts({
     emailId,
     email: query.data,
     mailboxId: mailboxId ?? null,
-    backPath
+    backPath,
+    // A conversation leaves once none of its messages is in the folder
+    leavesWhenMoved: !threadPreference.isEnabled
   })
-  const threadPreference = useThreadPreference()
 
   const handleBack = (): void => {
     void navigate(backPath, {
@@ -216,24 +219,25 @@ export function EmailView({
     )
   }
 
+  // With the "Thread" setting, the email is shown in its conversation
+  if (threadPreference.isEnabled && threadId !== null) {
+    return (
+      <ConversationView
+        key={threadId}
+        threadId={threadId}
+        emailId={emailId}
+        mailboxId={mailboxId ?? null}
+        onBack={handleBack}
+      />
+    )
+  }
+
   if (query.data === null) {
     return (
       <Empty
         icon={EmailOpen}
         title={t('email.notFound')}
         data-testid="email-not-found"
-      />
-    )
-  }
-
-  // With the "Thread" setting, the email is shown in its conversation
-  if (threadPreference.isEnabled) {
-    return (
-      <ConversationView
-        key={query.data.threadId}
-        threadId={query.data.threadId}
-        emailId={query.data.id}
-        onBack={handleBack}
       />
     )
   }

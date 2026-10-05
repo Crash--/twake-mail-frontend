@@ -123,6 +123,7 @@
     "messageCount": "%{smart_count} сообщение |||| %{smart_count} сообщения |||| %{smart_count} сообщений",
     "messages": "Сообщения беседы",
     "actions": "Действия с беседой",
+    "messageActions": "Действия с сообщением от %{name}, %{date}",
     "newMessage": "Новое сообщение от %{name}",
     "empty": "Эта беседа больше не существует",
     "archive": "Заархивировать беседу",

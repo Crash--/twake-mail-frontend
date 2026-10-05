@@ -123,6 +123,7 @@
     "messageCount": "%{smart_count} message |||| %{smart_count} messages",
     "messages": "Messages de la conversation",
     "actions": "Actions sur la conversation",
+    "messageActions": "Actions sur le message de %{name}, %{date}",
     "newMessage": "Nouveau message de %{name}",
     "empty": "Cette conversation n'existe plus",
     "archive": "Archiver la conversation",

@@ -271,4 +271,75 @@ describe('keepFirstPage', () => {
     expect(ids(data)).toEqual([['a', 'b']])
     expect(data.pageParams).toEqual([0])
   })
+
+  describe('an email entering below the loaded rows', () => {
+    /**
+     * The rows the user scrolls through once the next page came: the loaded
+     * ones, then the page the server gives at the next position, each email
+     * once (the list shows them so)
+     */
+    function scrolled(
+      data: EmailListData,
+      server: readonly string[]
+    ): string[] {
+      const position = nextPosition(data) ?? server.length
+      const rows = [
+        ...ids(data).flat(),
+        ...server.slice(position, position + 30)
+      ]
+      return [...new Set(rows)]
+    }
+
+    it('comes with the next page, at its place, when it is older', () => {
+      const data = patchEmailList(
+        twoPages(),
+        INBOX,
+        changes({ changed: [email('old', 11)] })
+      )
+
+      expect(ids(data)).toEqual([
+        ['a', 'b'],
+        ['c', 'd']
+      ])
+      expect(scrolled(data, ['a', 'b', 'c', 'd', 'e', 'old', 'f'])).toEqual([
+        'a',
+        'b',
+        'c',
+        'd',
+        'e',
+        'old',
+        'f'
+      ])
+    })
+
+    it('is kept once, whatever the order the server gives equal dates', () => {
+      const data = patchEmailList(
+        twoPages(),
+        INBOX,
+        changes({
+          changed: [email('tie', 14, { receivedAt: '2026-10-14T08:00:00Z' })]
+        })
+      )
+
+      expect(ids(data)).toEqual([
+        ['a', 'b'],
+        ['c', 'd', 'tie']
+      ])
+      // The server sorts the email of the same date before or after the row
+      for (const server of [
+        ['a', 'b', 'c', 'd', 'tie', 'e', 'f'],
+        ['a', 'b', 'c', 'tie', 'd', 'e', 'f']
+      ]) {
+        expect(scrolled(data, server)).toEqual([
+          'a',
+          'b',
+          'c',
+          'd',
+          'tie',
+          'e',
+          'f'
+        ])
+      }
+    })
+  })
 })

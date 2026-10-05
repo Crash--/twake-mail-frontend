@@ -28,10 +28,25 @@ function insertionIndex(
   return emails.findIndex(candidate => candidate.receivedAt < email.receivedAt)
 }
 
+/** The last row of the loaded window, null when nothing is loaded */
+function lastLoadedRow(drafts: readonly PageDraft[]): EmailListItemData | null {
+  for (let index = drafts.length - 1; index >= 0; index -= 1) {
+    const emails = drafts[index]?.emails ?? []
+    const last = emails[emails.length - 1]
+    if (last !== undefined) return last
+  }
+  return null
+}
+
 /**
  * Inserts `email` where the server sorts it (`receivedAt` descending), if it
- * falls within the loaded window: before the first email received earlier,
- * or at the end when the list is complete. Returns false when it does not.
+ * falls within the loaded window: before the first email received earlier;
+ * at the end when the list is complete, or when it was received at the same
+ * time as the last row: the server may sort it before that row, so that the
+ * rows loaded cover it whatever the order it gives equal dates, and the next
+ * page starts after it. Older, it comes with the next page, at its place:
+ * the positions before it did not move. Returns false when it is not
+ * inserted.
  */
 function insertEmail(drafts: PageDraft[], email: EmailListItemData): boolean {
   for (const draft of drafts) {
@@ -43,7 +58,11 @@ function insertEmail(drafts: PageDraft[], email: EmailListItemData): boolean {
     }
   }
   const last = drafts[drafts.length - 1]
-  if (!last?.page.isLast) return false
+  const lastRow = lastLoadedRow(drafts)
+  const isAtTheEnd =
+    last?.page.isLast === true ||
+    (lastRow !== null && email.receivedAt >= lastRow.receivedAt)
+  if (last === undefined || !isAtTheEnd) return false
   last.emails.push(email)
   last.delta += 1
   return true

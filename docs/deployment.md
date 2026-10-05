@@ -7,6 +7,7 @@ server) and signs users in through an OpenID Connect provider (or HTTP Basic
 against the JMAP server).
 
 - [The Docker image](#the-docker-image)
+- [Published images](#published-images)
 - [Runtime configuration](#runtime-configuration)
 - [Security headers](#security-headers)
 - [Reverse proxy, JMAP on the same origin or not](#reverse-proxy-jmap-on-the-same-origin-or-not)
@@ -64,6 +65,32 @@ SENTRY_AUTH_TOKEN=... docker build -f apps/private/Dockerfile \
   --build-arg SENTRY_URL=https://sentry.example.com --build-arg SENTRY_ORG=example \
   --build-arg SENTRY_PROJECT=twake-mail --build-arg BUILD_VERSION=1.2.3 .
 ```
+
+## Published images
+
+The `Docker image` workflow (`.github/workflows/docker.yml`) builds the image
+on every pull request (`linux/amd64` and `linux/arm64`, never pushed) and
+publishes it on a push to `main` and on a version tag:
+
+| Event | Tags |
+|---|---|
+| push to `main` | `main`, `sha-<short sha>` |
+| tag `v1.2.3` | `1.2.3`, `1.2`, `1`, `latest`, `sha-<short sha>` (no `1` nor `latest` for `0.x`) |
+
+Before publishing, it runs [`deploy/docker/smoke-test.sh`](../deploy/docker/smoke-test.sh)
+on the image (non-root, read-only root filesystem, health endpoint, cache
+policy, security headers, Docker healthcheck) and a Trivy scan (report only).
+The image carries OCI labels, an SBOM and a provenance attestation.
+
+The image goes to `ghcr.io/<owner>/twake-mail-frontend`, or to the repository
+variable `IMAGE_REPOSITORY` (a full name with its registry, e.g.
+`docker.io/example/twake-mail-frontend`, with the secrets `REGISTRY_USERNAME`
+and `REGISTRY_PASSWORD`). A GitHub owner whose name is not a valid image path
+component (`name--`) cannot own a GHCR image: the workflow then builds without
+pushing until `IMAGE_REPOSITORY` is set.
+
+`version.js` holds the version (`1.2.3` on a tag, `main-<sha>` otherwise),
+also the Sentry release.
 
 ## Runtime configuration
 

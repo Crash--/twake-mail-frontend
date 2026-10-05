@@ -644,7 +644,8 @@ test.describe('THR thread detail', () => {
         await expect(mailbox.toast).toContainText('A read receipt has been sent.')
       }
       await expect(dialog).toBeHidden()
-      await expect(conversation.subject).toBeFocused()
+      // Back to the message the conversation opened on, the first unread one
+      await expect(conversation.toggle(conversation.messages.first())).toBeFocused()
 
       for (const email of [first, second]) {
         await expect

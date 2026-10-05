@@ -178,7 +178,8 @@ Conventions:
 | `email-list-item-thread-count` | number of messages of a conversation row, "(3)" (absent for one email) | — |
 | `conversation-view` | an email shown with its conversation | `ThreadDetailView` |
 | `conversation-header` | its subject, labels (`label-chip`, × takes one off every email of the conversation) and count | — |
-| `conversation-subject` / `conversation-count` | its subject (`h1`, focused when it opens) and "N messages" | — |
+| `conversation-subject` / `conversation-count` | its subject (`h1`) and "N messages" | — |
+| `conversation-toolbar` | the actions of the conversation (back, read, star, archive…), sticky at the top of the scrolling area | — |
 | `conversation` | the messages (`ol` named "Messages of the conversation") | — |
 | `conversation-message` | a message (`data-expanded`) | `ThreadDetailCollapsedEmail`, `EmailView` |
 | `conversation-message-toggle` | its header, a button (`aria-expanded`); ArrowUp / ArrowDown / Home / End move between them | — |

@@ -4,7 +4,7 @@ Policy of the composer drafts ([#134](https://github.com/Crash--/twake-mail-fron
 asked by the tmail-backend lead). Code: `common/src/features/composer/`
 (`draftPolicy.ts`, `composerStorage.ts`, `draftLocks.ts`, `ComposerProvider.tsx`,
 `ComposerForm.tsx`). Tests: `draftPolicy.spec.tsx`, `composerStorage.spec.ts`,
-`e2e/tests/composer-drafts.spec.ts` (`CMP-64` to `CMP-69`).
+`e2e/tests/composer-drafts.spec.ts` (`CMP-64` to `CMP-70`).
 
 ## Why
 
@@ -24,20 +24,29 @@ produced 12 creations and 11 destructions, 23 writes, for one message.
 
 | What | Where | When |
 |---|---|---|
-| Typing (body, subject, recipients, options, identity, attachments added or removed, recipient fields not yet validated) | IndexedDB of the browser | `LOCAL_SAVE_DELAY_MS` (0.8 s) after the last change, and at once on `pagehide` and when the tab is hidden |
+| Typing (body, subject, recipients, options, identity, attachments added or removed, recipient fields not yet validated) | IndexedDB of the browser | `LOCAL_SAVE_DELAY_MS` (0.8 s) after the last change, and a best effort write on `pagehide` and when the tab is hidden. A message nobody typed in (a new one, an untouched reply) is not kept |
 | Draft | JMAP server | `DRAFT_IDLE_MS` (5 minutes) after the last change, **and** only if the message differs from the last version saved (fingerprint of identity, recipients, subject, body, attachments, options) |
 | Draft | JMAP server | "Save draft" (More menu): at once |
 | Draft | JMAP server | Closing a composer with changes: the dialog "Save message" / "Discard" asks; "Save" writes. Nothing is lost silently, and nothing is written without the user's answer (as tmail-flutter) |
-| Draft | JMAP server | The save the 5 minute timer started before is cancelled by any new change, so a burst of typing never writes |
+| Draft | JMAP server | Signing out (account menu): the open composers with changes the server does not have are saved first, one draft each (at most `MAX_COMPOSERS`), waiting 8 s at most |
 
-A composer restored from the browser with changes the server never had arms the
-5 minute timer again.
+A composer restored from the browser whose message never reached the server is
+treated as having unsaved changes: closing it asks "Save message" / "Discard", and
+the 5 minute timer starts again as it opens. One that was saved, then changed, is
+compared to the version it saved.
 
-Not done: no save on `beforeunload` or logout. A request started while the page
-goes is not reliable (and `sendBeacon` cannot carry the Bearer header), and a
-partial save would leave a stale `draftId` in the browser. What was typed is in
-IndexedDB and comes back (below). Signing out forgets it, as tmail-flutter does
-(ADR 0112): a user who signs out with an unsaved message uses "Save draft" first.
+Not done: no save on `beforeunload`. A request started while the page goes is not
+reliable (and `sendBeacon` cannot carry the Bearer header), and a partial save would
+leave a stale `draftId` in the browser. What was typed is in IndexedDB and comes back
+(below). Signing out is different: it is a user action with time to wait, so the
+unsaved changes are saved first (tmail-flutter discards the composers without
+saving, ADR 0112; with a 5 minute delay that would lose too much). Writes happen on
+sign out only for a composer with changes the server does not have.
+
+Limit: the write of the `pagehide` is an asynchronous IndexedDB transaction, which the
+browser may cut short (the reason of ADR 0009). The 0.8 s debounce is the real
+guarantee: up to 0.8 s of typing can be lost on a hard reload or a crash, where the
+synchronous `sessionStorage` write of tmail-flutter lost none on a reload.
 
 A replacement of the server draft is always one creation and one destruction per
 real save (never per keystroke). Cost for a message edited for an hour with

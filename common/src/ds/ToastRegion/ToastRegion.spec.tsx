@@ -70,6 +70,17 @@ describe('ToastRegion', () => {
     expect(screen.getByTestId('toast')).toHaveTextContent('Moved to Trash')
   })
 
+  it('keeps its live regions out of the flow of the page', () => {
+    renderToast(null)
+    // Absolute without offset, a hidden region would land under the last
+    // element of the page and make the document scroll
+    const container = screen.getByRole('status').parentElement
+    expect(container).not.toBeNull()
+    if (container === null) return
+    expect(screen.getByRole('alert').parentElement).toBe(container)
+    expect(window.getComputedStyle(container).position).toBe('fixed')
+  })
+
   it('announces an error as an alert', () => {
     renderToast({ id: '1', message: 'Connection error', severity: 'error' })
 

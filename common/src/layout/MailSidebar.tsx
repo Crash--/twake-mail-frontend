@@ -9,6 +9,7 @@ import type { AppListEntry } from '@common/config/config'
 import { LabelsSection } from '@common/features/labels/LabelsSection'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
+import { SidebarSectionsProvider } from '@common/features/mailbox/SidebarSectionsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -40,38 +41,40 @@ export function MailSidebar({
   const isEmbedded = useIsEmbedded()
 
   return (
-    <ResponsiveSidebar
-      open={isDrawerOpen}
-      onClose={onDrawerClose}
-      label={t('layout.navigation')}
-      closeLabel={t('common.close')}
-      drawerHeader={
-        <>
-          <Box className="u-flex-auto u-ov-hidden">
-            {isEmbedded ? null : <AppTitle />}
+    <SidebarSectionsProvider>
+      <ResponsiveSidebar
+        open={isDrawerOpen}
+        onClose={onDrawerClose}
+        label={t('layout.navigation')}
+        closeLabel={t('common.close')}
+        drawerHeader={
+          <>
+            <Box className="u-flex-auto u-ov-hidden">
+              {isEmbedded ? null : <AppTitle />}
+            </Box>
+            {screenSize === 'mobile' ? <AppGridMenu apps={apps} /> : null}
+          </>
+        }
+        data-testid="sidebar"
+        drawerTestId="mailbox-drawer"
+        closeButtonTestId="mailbox-drawer-close-button"
+      >
+        {screenSize === 'desktop' ? (
+          <Box className="u-mh-1 u-mt-1">
+            <ComposeButton
+              label={t('sidebar.newMessage')}
+              icon={Pen}
+              onClick={onCompose}
+              data-testid="compose-email-button"
+            />
           </Box>
-          {screenSize === 'mobile' ? <AppGridMenu apps={apps} /> : null}
-        </>
-      }
-      data-testid="sidebar"
-      drawerTestId="mailbox-drawer"
-      closeButtonTestId="mailbox-drawer-close-button"
-    >
-      {screenSize === 'desktop' ? (
-        <Box className="u-mh-1 u-mt-1">
-          <ComposeButton
-            label={t('sidebar.newMessage')}
-            icon={Pen}
-            onClick={onCompose}
-            data-testid="compose-email-button"
-          />
+        ) : null}
+        <Box className="u-flex-auto u-ov-auto u-mt-1-half">
+          <MailboxTree />
+          <LabelsSection />
         </Box>
-      ) : null}
-      <Box className="u-flex-auto u-ov-auto u-mt-1-half">
-        <MailboxTree />
-        <LabelsSection />
-      </Box>
-      <MailSidebarFooter />
-    </ResponsiveSidebar>
+        <MailSidebarFooter />
+      </ResponsiveSidebar>
+    </SidebarSectionsProvider>
   )
 }

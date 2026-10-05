@@ -376,3 +376,13 @@ memory, silent with the SSO).
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
 | File viewer | Full-screen dark dialog with a top bar (close, truncated title, download) and a focusable scroll region | Preview of an attachment (image, text, PDF, HTML, .eml) | `ds/FilePreviewDialog` (with `FilePreviewSurface`) | A `Dialog` variant `fileViewer`, shared by Mail, Drive and Chat |
+## Collapsible sidebar section header
+
+`ds/NavSectionHeader` (`toggle` prop) makes the title of the "Folders",
+"Team-mailboxes" and "Labels" sections a button, inside the level 2 heading,
+with `aria-expanded`, `aria-controls` and the 16 px chevron 8 px after the
+text (Figma). twake-mui's `NavDesktopDropdown` is a collapsible section header
+but pushes its chevron to the far end, shows it only past `limit` (5)
+children, has no slot for actions (search, +) and renders nothing below `lg`:
+twake-ui would need a `Nav` `subheader` with a toggle next to the title, an
+`actions` slot, and a collapse independent of `limit`.

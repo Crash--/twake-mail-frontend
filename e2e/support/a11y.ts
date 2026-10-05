@@ -31,6 +31,12 @@ export const TWAKE_MUI_KNOWN_VIOLATIONS: readonly KnownViolation[] = [
   },
   {
     rule: 'color-contrast',
+    selector: '.MuiFormHelperText-root',
+    reason:
+      'twake-mui TextField helper text: text.secondary (3.6:1) or error.main (3.6:1) on white (docs/twake-mui-gaps.md)'
+  },
+  {
+    rule: 'color-contrast',
     selector: '.MuiButton-contained',
     reason:
       'twake-mui contained primary Button: white on #0a84ff, 3.6:1 (docs/twake-mui-gaps.md)'

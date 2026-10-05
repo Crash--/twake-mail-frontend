@@ -8,3 +8,4 @@ export {
   type SearchFilterChip
 } from './SearchPage'
 export { ConversationPage } from './ConversationPage'
+export { SettingsPage, type SettingsSectionId } from './SettingsPage'

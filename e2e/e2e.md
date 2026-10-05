@@ -51,13 +51,13 @@ the React app. One line per Patrol test, 116 lines.
 | `THR` | Thread detail | 6 | 0 | 0 |
 | `SRCH` | Search | 14 | 10 | 0 |
 | `LBL` | Labels | 11 | 0 | 0 |
-| `SET` | Settings | 3 | 1 | 0 |
+| `SET` | Settings | 6 | 1 | 0 |
 | `RULE` | Email rules | 1 | 1 | 0 |
 | `CAL` | Calendar events | 2 | 0 | 0 |
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 1 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **140** | **24** | **6** |
+| | **Total** | **143** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -362,13 +362,16 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [ ] `LBL-10` With one existing label ("Existing Label 1", applied to an email), selecting that email and opening "Label as" shows the label list (no empty state) plus a "Create a label" button; creating a new label from it shows the success toast and the new label in the list. — `labels/create_label_from_choose_label_modal_with_existing_labels_test.dart` · tags: `ios (default)`
 - [ ] `LBL-11` With "Remove Tag 1" applied to one email, opening that label from the sidebar and then the email shows the label chip next to the subject; clicking the chip's remove (×) button shows the toast `Label "Remove Tag 1" removed from email`. — `labels/remove_a_label_from_email_test.dart` · tags: `ios (default)`
 
-## SET — Settings (3)
+## SET — Settings (6)
 
 - [ ] `SET-01` In Settings → Preferences, toggling "Thread" (conversation view) turns it on and toggling again turns it off; toggling "Sender set important flag" (on by default) turns it off and toggling again turns it back on. — `setting/preferences/toggle_preferences_test.dart` · tags: `web` `android` `ios`
   - Data: "Thread" is a local preference; "Sender set important flag" is a server-side (JMAP settings) preference.
 - [ ] `SET-02` After creating identities "Default Identity 1" and "Default Identity 2" (Settings → Profiles → Create new identity, name only, Save; each then listed), clicking identity 1's radio marks it as default (selected radio), then clicking identity 2's radio marks identity 2 as default. — `setting/identity/select_identity_as_default_test.dart` · tags: `ios (default)`
   - Data: only checks that the clicked identity shows the selected radio, not that the previous one is deselected.
 - [ ] `SET-03` In Settings → Language & region, picking "English" from the language dropdown shows the title "Language"; reopening the dropdown (menu visible) and picking Vietnamese immediately re-localises the title to "Ngôn ngữ". — `setting/language/change_language_test.dart` · tags: `ios (default)`
+- [ ] `SET-04` In Settings → Profiles, an identity created with a Reply-To (`Name <address>`), a Bcc and a signature lists them and is stored so; editing it refuses an invalid Bcc (named under the field, focused, nothing saved), then saves a new name and an emptied Bcc; the identity of the account has no delete button; deleting the new one asks for confirmation and removes it. — web app only, no Patrol test
+- [ ] `SET-05` An image inserted in the signature of a new identity is uploaded and published (`PublicAsset/set`): the saved signature shows its public URL with `public-asset-id`, and the asset is tied to the identity. — web app only, no Patrol test
+- [ ] `SET-06` "Settings" in the account menu opens Profiles beside the sections on a desktop, the list of the sections (with what each is for) on phones and tablets; a section opens with its title focused and in the page title, the back buttons return to the list and to the mail. — web app only, no Patrol test
 
 ## RULE — Email rules (1)
 

@@ -16,6 +16,7 @@ const SUBMISSION = 'urn:ietf:params:jmap:submission'
 const QUOTA = 'urn:ietf:params:jmap:quota'
 const SHARES = 'urn:apache:james:params:jmap:mail:shares'
 const DEFAULT_USING: readonly string[] = [CORE, MAIL, SUBMISSION, SHARES]
+const IDENTITY_SORT_ORDER = 'urn:apache:james:params:jmap:mail:identity:sortorder'
 
 export const EML_FIXTURES_DIR: string = path.resolve(
   __dirname,
@@ -417,6 +418,34 @@ export class JmapClient {
       throw new JmapError(`${name}: empty response`, 'invalidResponse')
     }
     return first[1]
+  }
+
+  /**
+   * Calls one method of the account with more capabilities (Linagora
+   * extensions…) and returns its response arguments
+   */
+  async call(
+    name: string,
+    args: Record<string, unknown>,
+    extraCapabilities: readonly string[] = []
+  ): Promise<Record<string, unknown>> {
+    const accountId = await this.accountId()
+    const [first] = await this.request(
+      [[name, { accountId, ...args }, 'c0']],
+      [...DEFAULT_USING, ...extraCapabilities]
+    )
+    if (first === undefined) {
+      throw new JmapError(`${name}: empty response`, 'invalidResponse')
+    }
+    return first[1]
+  }
+
+  /** The identities of the account, with their `sortOrder` (James) */
+  async getIdentities(): Promise<Record<string, unknown>[]> {
+    const result = await this.call('Identity/get', { ids: null }, [
+      IDENTITY_SORT_ORDER
+    ])
+    return requireArray(result, 'list').filter(isRecord)
   }
 
   async getMailboxes(): Promise<Mailbox[]> {

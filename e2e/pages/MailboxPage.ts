@@ -3,6 +3,7 @@ import { expect, type Locator, type Page } from '@playwright/test'
 import type { MailboxRole } from '../support/jmap'
 import { ComposerPage } from './ComposerPage'
 import { EmailPage } from './EmailPage'
+import { SettingsPage } from './SettingsPage'
 
 /** A folder of the sidebar, by JMAP role (`inbox`, `trash`...) or by displayed name */
 export type FolderRef = { role: MailboxRole } | { name: string }
@@ -314,19 +315,24 @@ export class MailboxPage {
     return this
   }
 
-  /**
-   * Switches the "Thread" setting (conversations), from the account menu
-   * until the settings screens exist
-   */
-  async setThreads(isEnabled: boolean): Promise<MailboxPage> {
+  /** Opens the settings from the account menu */
+  async openSettings(): Promise<SettingsPage> {
     await this.userAvatar.click()
-    const toggle = this.page.getByTestId('thread-setting-toggle')
-    if ((await toggle.getAttribute('aria-checked')) !== String(isEnabled)) {
-      await toggle.click()
-    }
-    await expect(toggle).toHaveAttribute('aria-checked', String(isEnabled))
-    await this.page.keyboard.press('Escape')
-    await expect(toggle).toBeHidden()
+    await this.page.getByTestId('settings-menu-item').click()
+    const settings = new SettingsPage(this.page)
+    await expect(settings.heading).toBeVisible()
+    return settings
+  }
+
+  /** Switches the "Thread" setting (conversations) in Settings > Preferences, then back to mail */
+  async setThreads(isEnabled: boolean): Promise<MailboxPage> {
+    const settings = await this.openSettings()
+    await settings.open('preferences')
+    const toggle = this.page.getByTestId('thread-setting-toggle').getByRole('switch')
+    await toggle.setChecked(isEnabled)
+    await expect(toggle).toBeChecked({ checked: isEnabled })
+    await settings.backToMailButton.click()
+    await expect(this.root).toBeVisible()
     return this
   }
 

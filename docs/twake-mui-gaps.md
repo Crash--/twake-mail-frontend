@@ -149,6 +149,8 @@ never silently ignored.
 |---|---|---|---|
 | Theme `text.secondary` (Grey 900 at 64 %), used by `Typography color="textSecondary"`, `TableCell` body, `ListSubheader` | `color-contrast` | 3.6:1 on white, 3.5:1 on Grey 100 (4.5:1 needed) | Grey 900 at 80 % or more (5.4:1). Worked around with `ds/SecondaryText` and the list table |
 | `TextField` / `InputLabel` (login form) | `color-contrast` | #868687 on white, 3.63:1 | Same theme fix |
+| `TextField` helper text (`FormHelperText`, identity form) | `color-contrast` | #868687 on white, 3.63:1; in error, `error.main` #ff3347, 3.61:1 | The theme fixes of `text.secondary` and `error.main` |
+| `NavLink` with a `ListItemText` (list of the settings sections on phones) | `color-contrast` | The nav text colour #868687 on white, 3.63:1 | Same theme fix. Worked around: `Typography color="textPrimary"` and `ds/SecondaryText` in `features/settings/SettingsSectionList.tsx` |
 | `Button variant="contained"` primary (sign in, new message) | `color-contrast` | White on #0a84ff, 3.64:1 at 15–16 px normal weight | A darker `primary.main` for filled buttons (4.5:1 with white needs about #0067d6) |
 | `Button variant="text"` primary ("Clear filter" of the search) | `color-contrast` | #0a84ff on white, 3.64:1 at 13-14 px | The same darker `primary.main` (or `primary.dark` for text buttons) |
 | Selected `NavLink` (current folder) | `color-contrast` | #0a84ff on `action.selected` #e5e8eb, 2.96:1 | Darker selected text (`primary.dark`) |

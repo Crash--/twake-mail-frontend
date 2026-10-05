@@ -99,10 +99,10 @@ Conventions:
 | `email-list-item-checkbox` | selection checkbox (Shift+click selects a range) | `UiKeys.tabletEmailSelectionAvatar` |
 | `important-flag-icon` | "important" marker | `important_flag_icon` |
 | `empty-thread-view` | empty folder view | `UiKeys.emptyThreadView` |
-| `quick-filter-attachments` / `quick-filter-unread` / `quick-filter-starred` | quick filters | `attachments_filter`, `unread_filter`, `starred_filter` |
+| `quick-filter-attachments` / `quick-filter-unread` / `quick-filter-starred` | items of the "Filter" menu of the list toolbar (desktop) | `attachments_filter`, `unread_filter`, `starred_filter` |
 | `scroll-to-top-button` | floating "back to top" button | `ScrollToTopButtonWidget` |
 | `selection-toolbar` | toolbar shown when emails are selected (a `section` named "Selection actions") | — |
-| `selection-toolbar-count` / `selection-toolbar-select-all` / `selection-toolbar-select-folder` / `selection-toolbar-clear` | "N selected" (`role="status"`), the select all checkbox, "Select all N messages in this folder", clear | — |
+| `selection-toolbar-count` / `selection-toolbar-select-all` / `selection-toolbar-select-folder` / `selection-toolbar-clear` | "N selected" (`role="status"`), the select all checkbox (phones and tablets; a "Select all" text button on desktops, shown while not everything is loaded), "Select all N messages in this folder", clear | — |
 | `selected-email-action-<action>` | its buttons, by `EmailActionId`: `not-spam`, `move-to-trash`, `delete-permanently`, `archive`, `mark-as-read`, `mark-as-unread`, `star`, `unstar`, `move`, `mark-as-spam`; `more` on phones (menu `selection-toolbar-menu`) | `<action>_selected_email_button` |
 | `empty-trash-banner` / `empty-trash-banner-button` | "Empty trash now" / "Delete all spam emails now" banner and its button | `empty_trash_banner`, `UiKeys.cleanMessageBannerNotVisible` |
 | `mailbox-picker` / `mailbox-picker-search-input` / `mailbox-picker-list` / `mailbox-picker-item` / `mailbox-picker-close-button` | the folder picker ("Move To"): a filter field (`role="combobox"`) driving a list box of folders | `destination_picker` |
@@ -242,3 +242,7 @@ Conventions:
 | `toast-undo-button` / `toast-retry-button` / `toast-close-button` | its action ("Undo" after an action, "Retry" after a failure) and close | — |
 | `shortcuts-dialog` / `shortcuts-enabled-switch` / `shortcuts-dialog-close-button` | keyboard shortcuts list (`?`), the switch turning them off | `keyboardShortcuts` setting |
 | `email-list-item-avatar` | the 20 px initials avatar of the sender (decorative, `aria-hidden`) in a list row | — |
+| `search-row` / `settings-button` | desktop only: the row at the top of the page holding the search (`search-bar`) and, at its far end, the settings button (below the desktop size the search stays in `top-bar`, the settings in the account menu) | — |
+| `workplace-logo` | the Twake Workplace logo at the start of the top bar (desktop, not embedded) | — |
+| `list-toolbar` | desktop only: the toolbar above the list while nothing is selected (a `section` named "List actions"); it becomes `selection-toolbar` once rows are selected | — |
+| `list-refresh-button` / `list-select-all-button` / `list-filter-button` / `list-filter-menu` | refresh, "Select all", the "Filter" dropdown and its menu; its items are `quick-filter-unread`, `quick-filter-starred`, `quick-filter-attachments` (they open the matching emails of the folder as a search) | `unread_filter`, `starred_filter`, `attachments_filter` |

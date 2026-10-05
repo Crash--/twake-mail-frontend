@@ -442,7 +442,16 @@
     "enable": "Enable keyboard shortcuts",
     "description": "Single-key shortcuts work outside text fields. Turn them off if they get in the way of your assistive technology.",
     "key": "Key",
-    "action": "Action"
+    "action": "Action",
+    "composerTitle": "In a message being written",
+    "composer": {
+      "send": "Send the message",
+      "link": "Insert a link",
+      "toolbar": "Go to the formatting toolbar",
+      "plainPaste": "Paste as plain text",
+      "bold": "Bold, italic, underline",
+      "escape": "Minimize the window (close it in full screen)"
+    }
   },
   "settings": {
     "title": "Settings",

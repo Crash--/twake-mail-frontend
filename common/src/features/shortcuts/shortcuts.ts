@@ -85,3 +85,25 @@ export function isShortcutEvent(event: KeyboardEvent): boolean {
   }
   return shortcutKeyOf(event) !== null
 }
+
+/**
+ * The keys of a message being written, listed by the help: tmail-flutter's
+ * (Escape, Ctrl+K) and the ones of the editor. `Mod` is Ctrl, or ⌘ on a
+ * Mac.
+ */
+export const COMPOSER_SHORTCUTS: readonly {
+  keys: string
+  label: TranslationKey
+}[] = [
+  { keys: 'Mod + Enter', label: 'shortcuts.composer.send' },
+  { keys: 'Mod + K', label: 'shortcuts.composer.link' },
+  { keys: 'Mod + B, I, U', label: 'shortcuts.composer.bold' },
+  { keys: 'Mod + Shift + V', label: 'shortcuts.composer.plainPaste' },
+  { keys: 'Alt + F10', label: 'shortcuts.composer.toolbar' },
+  { keys: 'Escape', label: 'shortcuts.composer.escape' }
+]
+
+/** `Mod` of `COMPOSER_SHORTCUTS` as the keyboard of the user writes it */
+export function modifierKeyName(platform: string): string {
+  return /mac|iphone|ipad/i.test(platform) ? '⌘' : 'Ctrl'
+}

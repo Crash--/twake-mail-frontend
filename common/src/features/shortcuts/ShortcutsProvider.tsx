@@ -27,7 +27,6 @@ export type ReleaseShortcuts = () => void
 
 interface ShortcutsApi {
   register: (registration: Registration) => () => void
-  openHelp: () => void
   suspend: () => ReleaseShortcuts
 }
 
@@ -84,10 +83,6 @@ export function ShortcutsProvider({
     return release
   }, [])
 
-  const openHelp = useCallback((): void => {
-    setIsHelpOpen(true)
-  }, [])
-
   const handleCloseHelp = useCallback((): void => {
     setIsHelpOpen(false)
   }, [])
@@ -124,10 +119,7 @@ export function ShortcutsProvider({
     }
   }, [isEnabled])
 
-  const api = useMemo(
-    () => ({ register, openHelp, suspend }),
-    [register, openHelp, suspend]
-  )
+  const api = useMemo(() => ({ register, suspend }), [register, suspend])
 
   return (
     <ShortcutsContext.Provider value={api}>
@@ -143,7 +135,6 @@ function noop(): void {
 
 const NO_SHORTCUTS: ShortcutsApi = {
   register: () => noop,
-  openHelp: noop,
   suspend: () => noop
 }
 
@@ -170,11 +161,6 @@ export function useShortcuts(
     () => register({ bindings: bindingsRef, when: whenRef }),
     [register]
   )
-}
-
-/** Opens the list of the keyboard shortcuts (account menu) */
-export function useOpenShortcutsHelp(): () => void {
-  return useShortcutsApi().openHelp
 }
 
 /**

@@ -420,7 +420,23 @@
     "action": "Действие"
   },
   "settings": {
-    "threadToggle": "Включить треды"
+    "title": "Настройки",
+    "manageAccount": "Управление аккаунтом",
+    "sections": {
+      "preferences": {
+        "title": "Предпочтения",
+        "description": "Цепочки писем и поведение приложения"
+      },
+      "keyboardShortcuts": {
+        "title": "Сочетания клавиш",
+        "description": "Действия с почтовым ящиком и письмами"
+      }
+    },
+    "preferences": {
+      "thread": "Тред",
+      "threadDescription": "Отображать связанные одной темой письма как единую беседу"
+    },
+    "backToMail": "Вернуться к почте"
   },
   "mailboxPicker": {
     "title": "Переместить в",

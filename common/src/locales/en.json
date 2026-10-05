@@ -420,7 +420,23 @@
     "action": "Action"
   },
   "settings": {
-    "threadToggle": "Enable thread"
+    "title": "Settings",
+    "manageAccount": "Manage account",
+    "sections": {
+      "preferences": {
+        "title": "Preferences",
+        "description": "Conversations and how the app behaves"
+      },
+      "keyboardShortcuts": {
+        "title": "Keyboard shortcuts",
+        "description": "Mailbox & email actions"
+      }
+    },
+    "preferences": {
+      "thread": "Thread",
+      "threadDescription": "View multiple related emails like a conversation"
+    },
+    "backToMail": "Back to mail"
   },
   "mailboxPicker": {
     "title": "Move To",

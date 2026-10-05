@@ -420,7 +420,23 @@
     "action": "Action"
   },
   "settings": {
-    "threadToggle": "Activer les fils de discussion"
+    "title": "Paramètres",
+    "manageAccount": "Gérer le compte",
+    "sections": {
+      "preferences": {
+        "title": "Préférences",
+        "description": "Conversations et comportement de l'application"
+      },
+      "keyboardShortcuts": {
+        "title": "Raccourcis clavier",
+        "description": "Actions sur la boîte de messagerie et les e-mails"
+      }
+    },
+    "preferences": {
+      "thread": "Fil de discussion",
+      "threadDescription": "Afficher plusieurs e-mail associée comme une conversation"
+    },
+    "backToMail": "Retour aux e-mails"
   },
   "mailboxPicker": {
     "title": "Déplacer vers",

@@ -420,7 +420,23 @@
     "action": "Thao tác"
   },
   "settings": {
-    "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại"
+    "title": "Cài đặt",
+    "manageAccount": "Quản lý tài khoản",
+    "sections": {
+      "preferences": {
+        "title": "Cài đặt",
+        "description": "Hội thoại và cách ứng dụng hoạt động"
+      },
+      "keyboardShortcuts": {
+        "title": "Phím tắt",
+        "description": "Hành động thư mục và email"
+      }
+    },
+    "preferences": {
+      "thread": "Hội thoại",
+      "threadDescription": "Xem các thư của cuộc hội thoại"
+    },
+    "backToMail": "Quay lại hộp thư"
   },
   "mailboxPicker": {
     "title": "Chuyển tới",

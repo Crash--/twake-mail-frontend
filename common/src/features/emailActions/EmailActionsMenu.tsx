@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Reply, Share } from '@linagora/twake-icons'
 import {
   Divider,
   ListItemIcon,
@@ -9,6 +9,9 @@ import {
 } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { useComposer } from '@common/features/composer/ComposerProvider'
+import type { ReplyAction } from '@common/features/composer/replyRecipients'
+import { REPLY_LABELS } from '@common/features/email/useReplyOptions'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -19,6 +22,13 @@ import {
 } from './emailActionItems'
 import type { TargetEmail } from './planEmailChanges'
 import { useRunEmailAction } from './useRunEmailAction'
+
+const REPLY_MENU_IDS: Record<ReplyAction, string> = {
+  reply: 'reply',
+  replyAll: 'reply-all',
+  replyToList: 'reply-to-list',
+  forward: 'forward'
+}
 
 /** Where the menu opens: under a button or row, or at the mouse pointer */
 export type EmailActionsMenuAnchor =
@@ -35,6 +45,11 @@ export interface EmailActionsMenuProps {
   exclude?: readonly EmailActionId[]
   /** After an action ran (e.g. to clear the selection) */
   onAction?: (id: EmailActionId) => void
+  /**
+   * The answers offered first, for one email: by default reply, reply all
+   * and forward, none in Drafts
+   */
+  replies?: readonly ReplyAction[]
   'data-testid'?: string
 }
 
@@ -52,19 +67,47 @@ export function EmailActionsMenu({
   mailboxId,
   exclude = [],
   onAction,
+  replies,
   'data-testid': testId = 'email-actions-menu'
 }: EmailActionsMenuProps): ReactElement {
   const { t } = useI18n()
   const { data: mailboxes = [] } = useMailboxes()
   const runAction = useRunEmailAction()
+  const { openComposer } = useComposer()
   const mailbox =
     mailboxes.find(candidate => candidate.id === mailboxId) ?? null
+  const single = emails.length === 1 ? emails[0] : undefined
+  const answers: readonly ReplyAction[] =
+    anchor === null || single === undefined
+      ? []
+      : (replies ??
+        (mailbox?.role === 'drafts' ? [] : ['reply', 'replyAll', 'forward']))
   const items =
     anchor === null
       ? []
       : availableEmailActions(emails, mailbox, mailboxes).filter(
           item => !exclude.includes(item.id)
         )
+
+  const handleReply = (action: ReplyAction): void => {
+    onClose()
+    if (single) openComposer({ reply: { emailId: single.id, action } })
+  }
+
+  const replyItems = answers.map(action => (
+    <MenuItem
+      key={action}
+      onClick={() => {
+        handleReply(action)
+      }}
+      data-testid={`email-action-${REPLY_MENU_IDS[action]}`}
+    >
+      <ListItemIcon>
+        <Icon icon={action === 'forward' ? Share : Reply} />
+      </ListItemIcon>
+      <ListItemText primary={t(REPLY_LABELS[action])} />
+    </MenuItem>
+  ))
 
   const handleRun = (item: EmailActionItem): void => {
     onClose()
@@ -84,6 +127,10 @@ export function EmailActionsMenu({
       data-testid={testId}
     >
       {/* No Fragment: Menu reads its children for the keyboard focus */}
+      {replyItems}
+      {replyItems.length > 0 && items.length > 0 ? (
+        <Divider key="divider-replies" />
+      ) : null}
       {items.flatMap((item, index) => {
         const menuItem = (
           <MenuItem

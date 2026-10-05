@@ -27,6 +27,7 @@ import { AddressLine } from './AddressLine'
 import { formatAddressName } from './addresses'
 import { EmailMessageBody } from './EmailMessageBody'
 import { EmailViewActions } from './EmailViewActions'
+import { ReplyActions } from './ReplyActions'
 import type { EmailDetail } from './queries'
 import { useEmail } from './useEmail'
 import { useEmailViewShortcuts } from './useEmailViewShortcuts'
@@ -141,6 +142,7 @@ function EmailContent({
           email={email}
           onRemoteContentShown={handleRemoteContentShown}
         />
+        <ReplyActions email={email} />
       </Box>
     </Box>
   )

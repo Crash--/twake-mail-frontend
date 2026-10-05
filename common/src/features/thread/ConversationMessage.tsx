@@ -15,6 +15,7 @@ import { formatAddressName } from '@common/features/email/addresses'
 import { EmailMessageBody } from '@common/features/email/EmailMessageBody'
 import { hasKeyword, SEEN } from '@common/features/email/keywords'
 import type { EmailDetail } from '@common/features/email/queries'
+import { ReplyActions } from '@common/features/email/ReplyActions'
 import { useEmail } from '@common/features/email/useEmail'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -42,6 +43,7 @@ function ExpandedBody({
         email={detail}
         onRemoteContentShown={onRemoteContentShown}
       />
+      <ReplyActions email={detail} />
     </>
   )
 }

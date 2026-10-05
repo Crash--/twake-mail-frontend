@@ -107,7 +107,7 @@ export function ShortcutsHelpDialog({
                     color="textPrimary"
                     className="u-fw-bold"
                   >
-                    {shortcut.key}
+                    {shortcut.keys ?? shortcut.key}
                   </Typography>
                 </TableCell>
                 <TableCell>

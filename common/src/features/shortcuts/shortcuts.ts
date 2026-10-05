@@ -2,22 +2,32 @@ import type { TranslationKey } from '@common/i18n/useI18n'
 
 /** The keys the app listens to, as `KeyboardEvent.key` gives them */
 export type ShortcutKey =
-  'c' | '/' | 'j' | 'k' | 'e' | '#' | 's' | 'u' | 'z' | '?'
+  'c' | '/' | 'j' | 'k' | 'e' | '#' | 's' | 'u' | 'z' | 'r' | 'R' | 'f' | '?'
 
-/** The shortcuts, in the order the help lists them */
-export const SHORTCUTS: readonly { key: ShortcutKey; label: TranslationKey }[] =
-  [
-    { key: 'c', label: 'shortcuts.actions.compose' },
-    { key: '/', label: 'shortcuts.actions.search' },
-    { key: 'j', label: 'shortcuts.actions.next' },
-    { key: 'k', label: 'shortcuts.actions.previous' },
-    { key: 'e', label: 'shortcuts.actions.archive' },
-    { key: '#', label: 'shortcuts.actions.delete' },
-    { key: 's', label: 'shortcuts.actions.star' },
-    { key: 'u', label: 'shortcuts.actions.markAsUnread' },
-    { key: 'z', label: 'shortcuts.actions.undo' },
-    { key: '?', label: 'shortcuts.actions.help' }
-  ]
+/**
+ * The shortcuts, in the order the help lists them; `keys` is what the help
+ * shows when it is not the key itself. Reply, reply all and forward are
+ * tmail-flutter's (r, Shift+R, f).
+ */
+export const SHORTCUTS: readonly {
+  key: ShortcutKey
+  keys?: string
+  label: TranslationKey
+}[] = [
+  { key: 'c', label: 'shortcuts.actions.compose' },
+  { key: '/', label: 'shortcuts.actions.search' },
+  { key: 'j', label: 'shortcuts.actions.next' },
+  { key: 'k', label: 'shortcuts.actions.previous' },
+  { key: 'e', label: 'shortcuts.actions.archive' },
+  { key: '#', label: 'shortcuts.actions.delete' },
+  { key: 's', label: 'shortcuts.actions.star' },
+  { key: 'u', label: 'shortcuts.actions.markAsUnread' },
+  { key: 'r', label: 'emailActions.reply.reply' },
+  { key: 'R', keys: 'Shift + R', label: 'emailActions.reply.replyAll' },
+  { key: 'f', label: 'emailActions.reply.forward' },
+  { key: 'z', label: 'shortcuts.actions.undo' },
+  { key: '?', label: 'shortcuts.actions.help' }
+]
 
 const KEYS = new Set<string>(SHORTCUTS.map(shortcut => shortcut.key))
 

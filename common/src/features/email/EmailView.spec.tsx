@@ -314,6 +314,45 @@ describe('EmailView', () => {
     })
   })
 
+  it('offers the answers the email allows', async () => {
+    renderView(
+      makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'e1',
+              cc: [{ name: null, email: 'carol@example.com' }],
+              headers: { 'List-Post': '<mailto:team@example.com>' }
+            },
+            { text: 'Hello' }
+          )
+        ]
+      })
+    )
+    const answers = await screen.findByRole('group', { name: 'Reply actions' })
+    expect(
+      Array.from(
+        answers.querySelectorAll('button'),
+        button => button.textContent
+      )
+    ).toEqual(['Reply', 'Reply all', 'Reply to list', 'Forward'])
+  })
+
+  it('offers no "Reply all" to an email between the sender and the user', async () => {
+    renderView(
+      makeFakeJmapServer({
+        emails: [makeEmailWithBody({ id: 'e1' }, { text: 'Only to me' })]
+      })
+    )
+    const answers = await screen.findByRole('group', { name: 'Reply actions' })
+    expect(
+      Array.from(
+        answers.querySelectorAll('button'),
+        button => button.textContent
+      )
+    ).toEqual(['Reply', 'Forward'])
+  })
+
   it('says when the email does not exist', async () => {
     renderView(makeFakeJmapServer({ emails: [makeEmail({ id: 'other' })] }))
 

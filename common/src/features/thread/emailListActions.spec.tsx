@@ -215,6 +215,9 @@ describe('Acting on emails of the list', () => {
         .getAllByRole('menuitem')
         .map(item => item.textContent)
     ).toEqual([
+      'Reply',
+      'Reply all',
+      'Forward',
       'Move to trash',
       'Archive message',
       'Mark as read',

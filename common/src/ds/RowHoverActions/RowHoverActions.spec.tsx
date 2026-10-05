@@ -21,4 +21,18 @@ describe('RowHoverActions', () => {
 
     expect(screen.getByRole('button', { name: 'Mark as read' })).toHaveFocus()
   })
+
+  it('keeps what the actions replace in the page, before the actions', async () => {
+    renderDs(
+      <>
+        <RowHoverActions replaces={<time>Aug 29</time>}>
+          <button type="button">Delete</button>
+        </RowHoverActions>
+      </>
+    )
+
+    expect(screen.getByText('Aug 29')).toBeInTheDocument()
+    await userEvent.tab()
+    expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus()
+  })
 })

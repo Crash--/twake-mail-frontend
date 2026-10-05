@@ -266,9 +266,18 @@ export function RichTextEditor({
       },
       transformPastedHTML: cleanPastedHtml
     },
-    onCreate: ({ editor: created }) => onReady?.(created),
     onUpdate: ({ editor: updated }) => onUpdate?.(updated)
   })
+
+  // Hands over the live editor: in development StrictMode creates one, destroys
+  // it and creates another, and `onCreate` would leave the caller the destroyed one
+  const onReadyRef = useRef(onReady)
+  useEffect(() => {
+    onReadyRef.current = onReady
+  })
+  useEffect(() => {
+    if (!editor.isDestroyed) onReadyRef.current?.(editor)
+  }, [editor])
 
   // ProseMirror drops `contenteditable`; the role needs the state said
   useEffect(() => {

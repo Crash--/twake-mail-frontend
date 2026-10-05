@@ -185,4 +185,26 @@ test.describe('composer drafts, local first', () => {
     expect(await keptComposers(other)).toHaveLength(1)
     await expect(composer.subjectInput).toHaveValue('Held by the first tab')
   })
+  test('CMP-70 signing out saves the draft once when it has changes the server does not have', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const traffic = recordJmapTraffic(page)
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ to: [user.email], subject: 'Before signing out' })
+    expect(await draftSubjects(jmap)).toEqual([])
+    traffic.reset()
+
+    await page.getByTestId('user-avatar').click()
+    await page.getByTestId('logout-button').click()
+    await expect(page.getByTestId('login-username-input')).toBeVisible()
+
+    await expect
+      .poll(() => draftSubjects(jmap))
+      .toEqual(['Before signing out'])
+    expect(traffic.writes()).toMatchObject({ created: 1, destroyed: 0 })
+    await expect.poll(async () => keptComposers(page)).toEqual([])
+  })
 })

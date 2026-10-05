@@ -9,6 +9,7 @@ import {
   useDriveUrl
 } from '@common/features/drive/useDrivePicker'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import { useDriveAttachmentPreference } from '@common/features/settings/driveAttachmentPreference'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface DriveAttachButtonProps {
@@ -24,7 +25,8 @@ export interface DriveAttachButtonProps {
  * "Attach from Drive" (`TDRIVE_ENABLED`): the Twake Drive picker in a
  * dialog, where the user picks files and adds them as a link (a card in
  * the message) or as attachments (downloaded, then uploaded as any file,
- * with its progress). Nothing without a Drive for the user.
+ * with its progress). Nothing without a Drive for the user, or when turned
+ * off in Settings > Preferences.
  */
 export function DriveAttachButton({
   maxFileSize,
@@ -34,6 +36,7 @@ export function DriveAttachButton({
   const { t } = useI18n()
   const { notify } = useNotify()
   const driveUrl = useDriveUrl()
+  const { isEnabled: isButtonShown } = useDriveAttachmentPreference()
   const buttonRef = useRef<HTMLButtonElement>(null)
   // Where the focus goes once the dialog is closed: the message after
   // inserted cards, the button otherwise
@@ -118,7 +121,7 @@ export function DriveAttachButton({
     wasOpenRef.current = isOpen
   }, [isOpen])
 
-  if (driveUrl === null) return null
+  if (driveUrl === null || !isButtonShown) return null
   const { state } = picker
 
   return (

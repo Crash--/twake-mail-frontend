@@ -8,6 +8,7 @@ import {
 } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
+import { SPAM_REPORT_PREFERENCE_STORAGE_KEY } from './spamReportPreference'
 import { PreferencesSettings } from './PreferencesSettings'
 import { SETTINGS_SECTIONS, type SettingsSection } from './sections'
 
@@ -67,7 +68,29 @@ describe('PreferencesSettings', () => {
     expect(
       await screen.findByRole('switch', { name: 'Enable thread' })
     ).toBeInTheDocument()
-    expect(screen.getAllByRole('switch')).toHaveLength(1)
+    // Thread and spam report: no labels, no Drive, no server settings
+    expect(screen.getAllByRole('switch')).toHaveLength(2)
+  })
+
+  it('turns the spam report off, kept in this browser', async () => {
+    window.localStorage.removeItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { withJmapSession: true }
+    )
+
+    const toggle = await screen.findByRole('switch', {
+      name: 'Enable spam report'
+    })
+    expect(toggle).toBeChecked()
+    await userEvent.click(toggle)
+    expect(toggle).not.toBeChecked()
+    expect(
+      JSON.parse(
+        window.localStorage.getItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY) ?? ''
+      )
+    ).toEqual({ isEnabled: false, lastDismissedAt: 0 })
+    window.localStorage.removeItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY)
   })
 
   it('offers the label categorisation with the AI capability only', async () => {

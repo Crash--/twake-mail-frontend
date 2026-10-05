@@ -627,9 +627,15 @@
       "senderPriorityDescription": "Active l'affichage des messages marqués comme important dans votre boîte de réception. Cette fonctionnalité est contrôlée par l'envoyeur et peut entraîner des abus.",
       "senderPriorityToggle": "Afficher l'étiquette Important définie par l'expéditeur",
       "threadToggle": "Activer les fils de discussion",
+      "spamReports": "Signaler un spam",
+      "spamReportsDescription": "Vous rappelle que vous devez modérer régulièrement vos courriers indésirables",
+      "spamReportsToggle": "Activer le signalement des spams",
       "labels": "Visibilité du libellé",
       "labelsDescription": "Afficher les libellés assignés aux e-mails directement dans votre liste de messages pour une catégorisation plus facile.",
       "labelsToggle": "Afficher les libellés",
+      "driveAttachment": "Pièce jointe Drive",
+      "driveAttachmentDescription": "Afficher ou masquer le bouton de pièce jointe Twake Drive dans l'éditeur de message",
+      "driveAttachmentToggle": "Activer le bouton de pièce jointe Drive",
       "errorReporting": "Rapports d'erreurs",
       "errorReportingDescription": "Envoyer des rapports de plantage et d'erreur pour que l'équipe d'assistance puisse diagnostiquer les problèmes que vous rencontrez. Vos e-mails, leur contenu et leurs destinataires ne sont jamais inclus.",
       "errorReportingToggle": "Envoyer des rapports d'erreurs",
@@ -657,6 +663,11 @@
     "empty": "Aucun dossier ne correspond à votre recherche",
     "personalFolders": "Dossiers personnels",
     "allFolders": "Tous les dossiers"
+  },
+  "spamReport": {
+    "banner": "%{smart_count} message(s) indésirable(s)",
+    "view": "Vue",
+    "dismiss": "Rejeter"
   },
   "emptyFolder": {
     "trashBanner": "Tous les messages de la Corbeille seront supprimés si vous atteignez la limite de stockage.",

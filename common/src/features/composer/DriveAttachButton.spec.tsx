@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import { resolveConfig } from '@common/config/config'
+import { DRIVE_ATTACHMENT_PREFERENCE_STORAGE_KEY } from '@common/features/settings/driveAttachmentPreference'
 import { makeFakeOidcAuthService } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -128,6 +129,21 @@ function send(frame: HTMLIFrameElement, data: unknown, origin = PICKER): void {
 }
 
 describe('DriveAttachButton', () => {
+  it('is hidden once turned off in the preferences', async () => {
+    window.localStorage.setItem(
+      DRIVE_ATTACHMENT_PREFERENCE_STORAGE_KEY,
+      'false'
+    )
+    try {
+      renderButton()
+      await waitFor(() => {
+        expect(screen.queryByTestId('composer-drive-button')).toBeNull()
+      })
+    } finally {
+      window.localStorage.removeItem(DRIVE_ATTACHMENT_PREFERENCE_STORAGE_KEY)
+    }
+  })
+
   it('opens the picker with a Drive token, answers it at its origin only', async () => {
     renderButton()
     const frame = await openPicker()

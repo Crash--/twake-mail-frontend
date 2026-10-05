@@ -3,6 +3,7 @@ import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
 
 import { hasAiCapability } from '@common/features/ai/aiNeedsAction'
+import { useDriveUrl } from '@common/features/drive/useDrivePicker'
 import { useLabelVisibility } from '@common/features/labels/labelVisibility'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { scribeEndpoint } from '@common/features/scribe/scribe'
@@ -26,6 +27,8 @@ import {
   updateServerSetting,
   useServerSettings
 } from './serverSettings'
+import { useDriveAttachmentPreference } from './driveAttachmentPreference'
+import { useSpamReportPreference } from './spamReportPreference'
 import { useThreadPreference } from './threadPreference'
 
 export interface PreferencesSettingsProps {
@@ -36,9 +39,10 @@ export interface PreferencesSettingsProps {
  * Settings > Preferences, as tmail-flutter: the read receipts asked for
  * every message, the important flag set by senders and the error reports
  * (settings of the account on the server, when it keeps them; the reports
- * only when error reporting is configured), the conversation view, the AI
- * assistant and the labels (kept in this browser), and, with the AI
- * capability, the label categorisation (setting of the account).
+ * only when error reporting is configured), the conversation view, the
+ * spam report, the AI assistant, the labels and the Drive button of the
+ * composer (kept in this browser), and, with the AI capability, the label
+ * categorisation (setting of the account).
  */
 export function PreferencesSettings({
   section
@@ -49,6 +53,10 @@ export function PreferencesSettings({
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
   const threadPreference = useThreadPreference()
+  const spamReport = useSpamReportPreference()
+  const driveAttachment = useDriveAttachmentPreference()
+  // Without a Drive for the user there is no button to show or hide
+  const hasDrive = useDriveUrl() !== null
   const [isLabelVisible, setLabelVisible] = useLabelVisibility()
   const hasLabels = LINAGORA_CAPABILITIES.labels in session.capabilities
   const [isScribeOn, setScribeOn] = useScribePreference()
@@ -114,6 +122,14 @@ export function PreferencesSettings({
         onChange={threadPreference.setEnabled}
         data-testid="thread-setting-toggle"
       />
+      <PreferenceOption
+        title={t('settings.preferences.spamReports')}
+        description={t('settings.preferences.spamReportsDescription')}
+        toggleLabel={t('settings.preferences.spamReportsToggle')}
+        isChecked={spamReport.isEnabled}
+        onChange={spamReport.setEnabled}
+        data-testid="spam-report-setting-toggle"
+      />
       {hasScribe ? (
         <PreferenceOption
           title={t('settings.preferences.aiScribe')}
@@ -149,6 +165,16 @@ export function PreferencesSettings({
           isChecked={isLabelVisible}
           onChange={setLabelVisible}
           data-testid="label-visibility-setting-toggle"
+        />
+      ) : null}
+      {hasDrive ? (
+        <PreferenceOption
+          title={t('settings.preferences.driveAttachment')}
+          description={t('settings.preferences.driveAttachmentDescription')}
+          toggleLabel={t('settings.preferences.driveAttachmentToggle')}
+          isChecked={driveAttachment.isEnabled}
+          onChange={driveAttachment.setEnabled}
+          data-testid="drive-attachment-setting-toggle"
         />
       ) : null}
       {errorReporting.isConfigured && errorReporting.canChoose ? (

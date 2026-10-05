@@ -16,7 +16,7 @@ import {
   useId,
   useRef,
   useState,
-  type FormEvent,
+  type SubmitEvent,
   type ReactElement
 } from 'react'
 
@@ -93,7 +93,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
     }
   }
 
-  const handleSubmit = (event: FormEvent): void => {
+  const handleSubmit = (event: SubmitEvent): void => {
     event.preventDefault()
     const result = values()
     if (typeof result === 'string') {

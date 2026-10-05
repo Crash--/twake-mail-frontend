@@ -10,7 +10,7 @@ import {
   FormControlLabel,
   TextField
 } from '@linagora/twake-mui'
-import { useId, useState, type FormEvent, type ReactElement } from 'react'
+import { useId, useState, type SubmitEvent, type ReactElement } from 'react'
 
 import {
   isValidEmail,
@@ -77,7 +77,7 @@ export function RecoveryDialog({
     ? null
     : 'recovery.errors.invalidAddress'
 
-  const handleSubmit = (event: FormEvent): void => {
+  const handleSubmit = (event: SubmitEvent): void => {
     event.preventDefault()
     if (senderProblem !== null || recipientsProblem !== null) return
     setIsSaving(true)

@@ -18,7 +18,7 @@ import {
 } from '@linagora/twake-mui'
 import {
   useState,
-  type FormEvent,
+  type SubmitEvent,
   type MouseEvent,
   type ReactElement
 } from 'react'
@@ -230,7 +230,7 @@ export function SearchFiltersBar({
     labels.find(label => label.keyword === filter.label)?.displayName ??
     t('search.labels.all')
 
-  const handleAddress = (event: FormEvent<HTMLFormElement>): void => {
+  const handleAddress = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
     if (address === null) return
     const value = address.value.trim()

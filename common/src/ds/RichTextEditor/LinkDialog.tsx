@@ -12,7 +12,7 @@ import {
   useId,
   useRef,
   useState,
-  type FormEvent,
+  type SubmitEvent,
   type ReactElement
 } from 'react'
 
@@ -68,7 +68,7 @@ export function LinkDialog({
     }
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
     if (url.trim() === '') return
     onApply({ text: text.trim(), url: url.trim() })

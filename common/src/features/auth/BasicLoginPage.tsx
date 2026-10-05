@@ -9,7 +9,7 @@ import {
   useId,
   useState,
   type ChangeEvent,
-  type FormEvent,
+  type SubmitEvent,
   type ReactElement
 } from 'react'
 import { Navigate, useLocation } from 'react-router'
@@ -102,7 +102,7 @@ function BasicLoginForm({
     }
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
     void submit()
   }

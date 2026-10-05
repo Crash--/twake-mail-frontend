@@ -54,6 +54,26 @@ describe('AppRoutes', () => {
     )
   })
 
+  it('opens a mailto link in a composer, over the inbox', async () => {
+    renderWithProviders(<AppRoutes apps={[]} />, {
+      route:
+        '/mailto?uri=mailto%3Ashared-recipient%40example.com%3Fsubject%3DHello%26body%3DWorld'
+    })
+
+    const subject = await screen.findByRole('textbox', { name: 'Subject' })
+    expect(subject).toHaveValue('Hello')
+    expect(
+      await screen.findByRole('textbox', { name: 'Message body' })
+    ).toHaveTextContent('World')
+    expect(screen.getByTestId('recipient-chip')).toHaveTextContent(
+      'shared-recipient@example.com'
+    )
+    expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
+      'data-mailbox-id',
+      'mailbox-inbox'
+    )
+  })
+
   it('sends a signed-out user to the login form in basic mode', () => {
     renderWithProviders(<AppRoutes apps={[]} />, {
       route: '/mailbox/m1',

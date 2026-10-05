@@ -75,6 +75,7 @@ import {
 import {
   fingerprint,
   loadDraftContent,
+  mailtoContent,
   newMessageContent,
   readSnapshot,
   restoreSnapshotContent,
@@ -95,6 +96,7 @@ import {
 } from './emailHtml'
 import { showBlockedImages } from './editorImages'
 import { InlineImageStore } from './InlineImageStore'
+import type { MailtoFields } from './mailto'
 import {
   RecipientsEditor,
   type RecipientKind,
@@ -124,6 +126,8 @@ export interface ComposerInit {
   reply?: { emailId: string; action: ReplyAction }
   /** A template of the Templates folder, opened as a new message */
   templateId?: string
+  /** A `mailto:` link opened by the app (`/mailto` route) */
+  mailto?: MailtoFields
 }
 
 /** What the window asks its form */
@@ -1238,6 +1242,9 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
           ]),
           options
         )
+      }
+      if (init.mailto !== undefined) {
+        return mailtoContent(list, init.mailto, options)
       }
       return newMessageContent(list, options)
     },

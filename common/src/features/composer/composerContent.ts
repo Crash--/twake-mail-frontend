@@ -23,7 +23,8 @@ import {
 } from './composeEmail'
 import { blockRemoteImages, fromEmailHtml, hasBlockedImages } from './emailHtml'
 import type { InlineImageStore, StoredImage } from './InlineImageStore'
-import type { Recipient } from './recipients'
+import { mailtoBodyHtml, type MailtoFields } from './mailto'
+import { mergeRecipients, parseRecipients, type Recipient } from './recipients'
 import type { RecipientKind, RecipientLists } from './RecipientsEditor'
 import { readStorage } from './composerStorage'
 import type { Answering } from './replyContent'
@@ -173,6 +174,39 @@ export function newMessageContent(
     options,
     readReceiptAddress: null,
     templateId: null
+  }
+}
+
+/**
+ * A new message from a `mailto:` link: its recipients (the Bcc of the
+ * identity kept beside its own, as tmail-flutter), its subject, and its
+ * body as plain text above the signature
+ */
+export function mailtoContent(
+  identities: readonly IdentitySummary[],
+  mailto: MailtoFields,
+  options: SendOptions = NO_SEND_OPTIONS
+): ComposerContent {
+  const content = newMessageContent(identities, options)
+  const recipients: RecipientLists = {
+    to: parseRecipients(mailto.to.join(',')),
+    cc: parseRecipients(mailto.cc.join(',')),
+    bcc: mergeRecipients(
+      parseRecipients(mailto.bcc.join(',')),
+      content.recipients.bcc
+    ),
+    replyTo: []
+  }
+  const body = mailto.body ?? ''
+  return {
+    ...content,
+    recipients,
+    shown: (['cc', 'bcc'] as const).filter(kind => recipients[kind].length > 0),
+    subject: mailto.subject ?? '',
+    html:
+      body === ''
+        ? content.html
+        : content.html.replace(/^<p><\/p>/, mailtoBodyHtml(body))
   }
 }
 

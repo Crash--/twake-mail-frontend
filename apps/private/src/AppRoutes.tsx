@@ -5,6 +5,7 @@ import type { AppListEntry } from '@common/config/config'
 import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
+import { MailtoRoute } from '@common/features/composer/MailtoRoute'
 import { ForwardSettings } from '@common/features/forward/ForwardSettings'
 import { IdentitiesSettings } from '@common/features/identities/IdentitiesSettings'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
@@ -55,6 +56,7 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
           }
         >
           <Route index element={<DefaultMailboxRedirect />} />
+          <Route path="/mailto" element={<MailtoRoute />} />
           <Route path="/mailbox/:mailboxId" element={<MailboxPage />}>
             <Route path="email/:emailId" element={<EmailPage />} />
           </Route>

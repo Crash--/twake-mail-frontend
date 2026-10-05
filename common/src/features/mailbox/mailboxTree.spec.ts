@@ -9,6 +9,7 @@ import {
   findDescendantIds,
   findMailboxIdByRole,
   listVisibleMailboxes,
+  teamMailboxAddress,
   type MailboxNode
 } from './mailboxTree'
 
@@ -206,5 +207,28 @@ describe('isTemplatesMailbox', () => {
         makeMailbox({ id: 'b', name: 'Templates' })
       ])
     ).toBe('b')
+  })
+})
+
+describe('teamMailboxAddress', () => {
+  it('reads the address between the brackets of the namespace', () => {
+    expect(
+      teamMailboxAddress({ namespace: 'TeamMailbox[team@example.com]' })
+    ).toBe('team@example.com')
+    expect(
+      teamMailboxAddress({ namespace: 'Delegated[bob@example.com]' })
+    ).toBe('bob@example.com')
+  })
+
+  it('takes the whole namespace without brackets', () => {
+    expect(teamMailboxAddress({ namespace: 'team@example.com' })).toBe(
+      'team@example.com'
+    )
+    expect(teamMailboxAddress({ namespace: '[odd]' })).toBe('[odd]')
+  })
+
+  it('gives none for the folders of the user', () => {
+    expect(teamMailboxAddress({ namespace: 'Personal' })).toBe(null)
+    expect(teamMailboxAddress({ namespace: null })).toBe(null)
   })
 })

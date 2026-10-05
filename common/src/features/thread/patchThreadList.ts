@@ -1,7 +1,6 @@
 import { patchEmailList } from './patchEmailList'
 import {
   byReceivedAt,
-  EMAIL_ROW_PROPERTIES,
   type EmailListData,
   type EmailListItemData,
   type EmailListPage,
@@ -49,8 +48,31 @@ export interface ThreadListPatch {
   missingRowIds: string[]
 }
 
-function isRow(email: ThreadEmailUpdate): email is EmailListItemData {
-  return EMAIL_ROW_PROPERTIES.every(property => email[property] !== undefined)
+/**
+ * The row of a full update (`Email/get` of the list properties), null for a
+ * partial one (an optimistic update: mailboxes and keywords). James leaves
+ * out the properties it has no value for (`from`, `to` of a template or a
+ * draft without recipients): they are null.
+ */
+function toRow(email: ThreadEmailUpdate): EmailListItemData | null {
+  const { threadId, receivedAt, hasAttachment } = email
+  if (
+    threadId === undefined ||
+    receivedAt === undefined ||
+    hasAttachment === undefined
+  ) {
+    return null
+  }
+  return {
+    ...email,
+    threadId,
+    receivedAt,
+    hasAttachment,
+    subject: email.subject ?? null,
+    from: email.from ?? null,
+    to: email.to ?? null,
+    preview: email.preview ?? ''
+  }
 }
 
 function toMember(
@@ -157,7 +179,8 @@ export function patchThreadList(
   }
   const rows = new Map(changes.rows ?? [])
   for (const email of changes.changed) {
-    if (isRow(email)) rows.set(email.id, email)
+    const row = toRow(email)
+    if (row !== null) rows.set(email.id, row)
     const threadId = email.threadId ?? threadOf.get(email.id)
     // Not of a conversation the list knows, nor coming into the mailbox
     if (threadId === undefined || changes.threads?.has(threadId) === true) {

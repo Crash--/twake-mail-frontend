@@ -36,6 +36,7 @@ import {
 } from './mailboxTree'
 import { MailboxSearch } from './MailboxSearch'
 import { MailboxTreeItem } from './MailboxTreeItem'
+import { useSidebarSections } from './SidebarSectionsProvider'
 import type { MailboxSummary } from './queries'
 import { ActionRequiredTreeItem } from './ActionRequiredTreeItem'
 import { StarredTreeItem } from './StarredTreeItem'
@@ -129,6 +130,9 @@ export function MailboxTree(): ReactElement {
   const { t } = useI18n()
   const titleId = useId()
   const teamTitleId = useId()
+  const foldersContentId = useId()
+  const teamContentId = useId()
+  const collapsible = useSidebarSections()
   const query = useMailboxes()
   const folderActions = useFolderActions()
   const isActionRequiredOn = useAiNeedsActionEnabled()
@@ -218,6 +222,14 @@ export function MailboxTree(): ReactElement {
       <NavSectionHeader
         title={t('sidebar.folders')}
         titleId={titleId}
+        toggle={{
+          isExpanded: collapsible.isExpanded('folders'),
+          onToggle: () => {
+            collapsible.toggle('folders')
+          },
+          controlsId: isSearching ? searchId : foldersContentId,
+          'data-testid': 'folders-section-toggle'
+        }}
         data-testid="mailbox-tree-title"
         actions={
           <>
@@ -268,29 +280,44 @@ export function MailboxTree(): ReactElement {
           onOpenMenu={handleOpenMenu}
         />
       ) : (
-        <NavTree
-          role="tree"
-          aria-labelledby={titleId}
-          aria-busy={query.isPending}
-          data-testid="mailbox-tree"
-        >
-          {content}
-        </NavTree>
+        <div id={foldersContentId} hidden={!collapsible.isExpanded('folders')}>
+          <NavTree
+            role="tree"
+            aria-labelledby={titleId}
+            aria-busy={query.isPending}
+            data-testid="mailbox-tree"
+          >
+            {content}
+          </NavTree>
+        </div>
       )}
       {teamRows.length > 0 && !isSearching ? (
         <Box className="u-mt-1" data-testid="team-mailboxes-section">
           <NavSectionHeader
             title={t('sidebar.teamMailboxes')}
             titleId={teamTitleId}
+            toggle={{
+              isExpanded: collapsible.isExpanded('teamMailboxes'),
+              onToggle: () => {
+                collapsible.toggle('teamMailboxes')
+              },
+              controlsId: teamContentId,
+              'data-testid': 'team-mailboxes-section-toggle'
+            }}
           />
-          <NavTree role="tree" aria-labelledby={teamTitleId}>
-            <TreeRows
-              rows={teamRows}
-              selectedId={selectedId}
-              onToggle={handleToggle}
-              onOpenMenu={handleOpenMenu}
-            />
-          </NavTree>
+          <div
+            id={teamContentId}
+            hidden={!collapsible.isExpanded('teamMailboxes')}
+          >
+            <NavTree role="tree" aria-labelledby={teamTitleId}>
+              <TreeRows
+                rows={teamRows}
+                selectedId={selectedId}
+                onToggle={handleToggle}
+                onOpenMenu={handleOpenMenu}
+              />
+            </NavTree>
+          </div>
         </Box>
       ) : null}
       <FolderActionsMenu

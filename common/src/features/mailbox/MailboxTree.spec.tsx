@@ -11,6 +11,7 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { MailboxTree } from './MailboxTree'
+import { SidebarSectionsProvider } from './SidebarSectionsProvider'
 
 function renderTree(
   route = '/mailbox/mailbox-inbox',
@@ -24,13 +25,18 @@ function renderTree(
       makeMailbox({ id: 'acme', name: 'ACME', parentId: 'clients' })
     ]
   })
-  return renderWithProviders(<MailboxTree />, {
-    route,
-    path: '/mailbox/:mailboxId',
-    withJmapSession: true,
-    jmapServer,
-    lang
-  })
+  return renderWithProviders(
+    <SidebarSectionsProvider>
+      <MailboxTree />
+    </SidebarSectionsProvider>,
+    {
+      route,
+      path: '/mailbox/:mailboxId',
+      withJmapSession: true,
+      jmapServer,
+      lang
+    }
+  )
 }
 
 function folderNames(): string[] {
@@ -51,6 +57,26 @@ function folder(name: string): HTMLElement {
 }
 
 describe('MailboxTree', () => {
+  it('collapses and expands the Folders section by its title', async () => {
+    renderTree()
+    await screen.findAllByTestId('mailbox-item')
+
+    const toggle = screen.getByRole('button', { name: 'Folders' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+
+    await userEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryAllByRole('treeitem')).toHaveLength(0)
+    // Its actions stay
+    expect(screen.getByTestId('add-new-folder-button')).toBeVisible()
+
+    await userEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getAllByRole('treeitem').length).toBeGreaterThan(0)
+  })
+
   it('lists the system folders first, with their translated name', async () => {
     renderTree('/mailbox/mailbox-inbox', 'fr')
 

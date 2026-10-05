@@ -14,6 +14,7 @@ import { Link, useMatch } from 'react-router'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
+import { useSidebarSections } from '@common/features/mailbox/SidebarSectionsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { LabelIcon } from './LabelIcon'
@@ -103,6 +104,8 @@ function LabelItem({ label }: { label: Label }): ReactElement {
 export function LabelsSection(): ReactElement | null {
   const { t } = useI18n()
   const titleId = useId()
+  const contentId = useId()
+  const sections = useSidebarSections()
   const isAvailable = useLabelsAvailable()
   const { data } = useLabels()
   const { create } = useLabelActions()
@@ -119,6 +122,14 @@ export function LabelsSection(): ReactElement | null {
       <NavSectionHeader
         title={t('labels.title')}
         titleId={titleId}
+        toggle={{
+          isExpanded: sections.isExpanded('labels'),
+          onToggle: () => {
+            sections.toggle('labels')
+          },
+          controlsId: contentId,
+          'data-testid': 'labels-section-toggle'
+        }}
         actions={
           <Tooltip title={newLabel}>
             <IconButton
@@ -132,11 +143,13 @@ export function LabelsSection(): ReactElement | null {
           </Tooltip>
         }
       />
-      <NavTree>
-        {(data?.list ?? []).map(label => (
-          <LabelItem key={label.id} label={label} />
-        ))}
-      </NavTree>
+      <div id={contentId} hidden={!sections.isExpanded('labels')}>
+        <NavTree>
+          {(data?.list ?? []).map(label => (
+            <LabelItem key={label.id} label={label} />
+          ))}
+        </NavTree>
+      </div>
     </Box>
   )
 }

@@ -190,6 +190,13 @@ The answers of an email have one icon, `Reply`: there is no "reply all" nor
 replies, none on Forward); the menus use `Reply` for the three replies and
 `Share` for Forward. twake-icons should get `ReplyAll` and `Forward`.
 
+There is no "important" icon (tmail-flutter `ic_mark_as_important.svg`):
+the list, the reader and the conversation use `WarningCircle`, always with
+the word "Important" for screen readers (`features/email/ImportantMark`).
+twake-icons should get `Important`, and a read receipt icon
+(`ic_read_receipt.svg`), absent too: the "More" menu of the composer shows
+a `Check` beside the options turned on (`menuitemcheckbox`).
+
 twake-css:
 
 - `u-fw-bold` has no `!important`, unlike most utilities: it loses against

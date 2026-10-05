@@ -45,6 +45,7 @@ import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
 import { PillButton } from '@/ds/PillButton/PillButton'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { UploadList } from '@/ds/UploadList/UploadList'
 import {
   useAlert,
@@ -316,6 +317,7 @@ function LoadedComposerForm({
   const confirm = useConfirm()
   const alert = useAlert()
   const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
+  const isPhone = useScreenSize() === 'mobile'
   const subjectId = useId()
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -1307,7 +1309,11 @@ function LoadedComposerForm({
             </Typography>
           )}
         </Box>
-        <Box className="u-flex u-flex-wrap u-flex-items-center u-p-1 u-flex-shrink-0">
+        <Box
+          className={`u-flex u-flex-items-center u-flex-shrink-0 ${
+            isPhone ? 'u-flex-nowrap u-p-half' : 'u-flex-wrap u-p-1'
+          }`}
+        >
           <Tooltip title={labels.toolbar}>
             <IconButton
               size="medium"
@@ -1354,12 +1360,14 @@ function LoadedComposerForm({
               <Icon icon={LinkIcon} size={20} aria-hidden="true" />
             </IconButton>
           </Tooltip>
-          <EmojiButton
-            onInsert={emoji => {
-              editorActions.current?.insertText(emoji)
-            }}
-            onDismiss={() => editorActions.current?.focus()}
-          />
+          {isPhone ? null : (
+            <EmojiButton
+              onInsert={emoji => {
+                editorActions.current?.insertText(emoji)
+              }}
+              onDismiss={() => editorActions.current?.focus()}
+            />
+          )}
           <DriveAttachButton
             maxFileSize={uploadLimits.maxFileSize}
             onLinks={handleDriveLinks}
@@ -1386,21 +1394,24 @@ function LoadedComposerForm({
             role="status"
             variant="caption"
             color="textPrimary"
-            className="u-flex-auto u-ph-1"
+            className={isPhone ? 'u-visuallyhidden' : 'u-flex-auto u-ph-1'}
             data-testid="composer-save-status"
           >
             {saveStateKey === null ? '' : t(saveStateKey)}
           </Typography>
-          <Tooltip title={t('composer.draft.delete')}>
-            <IconButton
-              size="medium"
-              aria-label={t('composer.draft.delete')}
-              onClick={handleDeleteDraft}
-              data-testid="composer-delete-draft-button"
-            >
-              <Icon icon={Trash} size={20} aria-hidden="true" />
-            </IconButton>
-          </Tooltip>
+          {isPhone ? <span className="u-flex-auto" /> : null}
+          {isPhone ? null : (
+            <Tooltip title={t('composer.draft.delete')}>
+              <IconButton
+                size="medium"
+                aria-label={t('composer.draft.delete')}
+                onClick={handleDeleteDraft}
+                data-testid="composer-delete-draft-button"
+              >
+                <Icon icon={Trash} size={20} aria-hidden="true" />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title={t('composer.more')}>
             <IconButton
               size="medium"
@@ -1408,7 +1419,7 @@ function LoadedComposerForm({
               aria-haspopup="menu"
               aria-expanded={moreAnchor !== null}
               onClick={handleOpenMore}
-              className="u-ml-half u-mr-1"
+              className={isPhone ? undefined : 'u-ml-half u-mr-1'}
               data-testid="composer-more-button"
             >
               <Icon icon={FileOutline} size={20} aria-hidden="true" />
@@ -1418,6 +1429,7 @@ function LoadedComposerForm({
             label={isSending ? t('composer.sending') : t('composer.send')}
             icon={Paperplane}
             width={128}
+            isIconOnly={isPhone}
             onClick={() => {
               void handleSend()
             }}
@@ -1475,6 +1487,17 @@ function LoadedComposerForm({
                 <ListItemText inset={!options[option]} primary={t(label)} />
               </MenuItem>
             ))}
+            {isPhone ? (
+              <MenuItem
+                onClick={() => {
+                  setMoreAnchor(null)
+                  handleDeleteDraft()
+                }}
+                data-testid="composer-delete-draft-item"
+              >
+                <ListItemText inset primary={t('composer.draft.delete')} />
+              </MenuItem>
+            ) : null}
           </Menu>
         </Box>
       </div>

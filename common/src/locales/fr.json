@@ -22,7 +22,9 @@
     "errorOccurredShort": "Erreur ! Une erreur s'est produite. Veuillez réessayer plus tard.",
     "save": "Enregistrer",
     "refresh": "Rafraîchir",
-    "open": "Ouvrir"
+    "open": "Ouvrir",
+    "offline": "Aucune connexion Internet",
+    "dismiss": "Rejeter"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -38,7 +40,8 @@
     "teamMailboxes": "Team-mailboxes"
   },
   "mailbox": {
-    "empty": "Il n'y a aucun message dans ce dossier",
+    "empty": "Vous n'avez aucun message dans ce dossier.",
+    "emptyHint": "Commencez par écrire un message.",
     "roles": {
       "inbox": "Boîte de réception",
       "drafts": "Brouillons",

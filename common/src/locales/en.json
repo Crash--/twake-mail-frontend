@@ -22,7 +22,9 @@
     "errorOccurredShort": "Error! An error occurred. Please try again later.",
     "save": "Save",
     "refresh": "Refresh",
-    "open": "Open"
+    "open": "Open",
+    "offline": "No internet connection",
+    "dismiss": "Dismiss"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -38,7 +40,8 @@
     "teamMailboxes": "Team-mailboxes"
   },
   "mailbox": {
-    "empty": "There are no emails in your current folder",
+    "empty": "You don't have any email in this folder.",
+    "emptyHint": "Start to compose emails.",
     "roles": {
       "inbox": "Inbox",
       "drafts": "Drafts",

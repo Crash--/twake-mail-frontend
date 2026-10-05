@@ -283,6 +283,13 @@ playwright.perf.config.ts perf/transition.perf.ts`.
 Reply to the caret in the text, then the latency of each key typed above the quote, at full
 speed and with the CPU slowed down 4 times.
 
+`perf/threads.perf.ts` measures pushes on lists of conversations: `PERF-04` with 2 000 of
+them loaded, and `PERF-05` during a grouped search with 400 loaded, an email that cannot match
+it and one the client cannot tell (`PERF_SEARCH_TARGET`; seed with `PERF_THREADS=1`;
+[`docs/perf/sync.md`](../docs/perf/sync.md)). The memory image may answer `serverFail` to the
+parallel creations of the seed (`ConcurrentModificationException`): stop and start the stack,
+then run again.
+
 `perf/flutter.perf.ts` measures the same login and scroll on tmail-flutter web, as a
 reference, when `PERF_FLUTTER_URL` is set: serve `linagora/tmail-web` on a free port of
 `127.0.0.1` with an `env.file` whose `SERVER_URL` is the stack origin

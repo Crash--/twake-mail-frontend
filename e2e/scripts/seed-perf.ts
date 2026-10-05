@@ -404,6 +404,21 @@ export async function createInboxEmail(
   return created
 }
 
+/** The id of the mailbox of `role` of the perf user (`trash`, `junk`…) */
+export async function mailboxIdByRole(
+  user: Pick<PerfUser, 'email' | 'password'>,
+  role: string,
+  jmapUrl: string = process.env.E2E_JMAP_URL ?? 'http://127.0.0.1:18300'
+): Promise<string> {
+  const client = new SeedClient(jmapUrl, user.email, user.password)
+  const accountId = await client.accountId()
+  const result = await client.call('Mailbox/get', { accountId, ids: null, properties: ['role'] })
+  const list = Array.isArray(result.list) ? result.list : []
+  const found: unknown = list.find((mailbox: unknown) => isRecord(mailbox) && mailbox.role === role)
+  if (!isRecord(found) || typeof found.id !== 'string') throw new Error(`No ${role} mailbox`)
+  return found.id
+}
+
 /** True when the stored perf user still exists on the stack (it does not survive stop.sh) */
 export async function perfUserExists(
   user: Pick<PerfUser, 'email' | 'password'>,

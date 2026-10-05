@@ -117,6 +117,11 @@ export interface SaveResult {
     name: string | null
     disposition: string | null
   }[]
+  /**
+   * Previous versions still on the server (their destruction failed): to
+   * destroy with the next save, the sending or the deletion of the draft
+   */
+  leftovers: string[]
   /** Size of the JSON request, for the network cost of autosave */
   requestBytes: number
 }
@@ -133,30 +138,57 @@ const SAVED_BODY_PROPERTIES = [
 ] as const
 
 /**
- * Saves a draft, in one request. JMAP emails are immutable: the new
- * version is created and the previous one destroyed in the same
- * `Email/set` (tmail-backend creates first: the new version may use the
- * blobs of the old one), then `Email/get` of `#draft` reads the blob ids of
- * its inline images, which now live in its own parts
- * (`<emailId>_<partId>`): the old ones die with the old version.
+ * Destroys previous versions of a draft, once a newer one exists. Returns
+ * the ones still there: a version already gone (destroyed elsewhere,
+ * `notFound`) is not one. Never throws: a version left is a duplicate in
+ * Drafts, not a loss, and the next save tries again.
+ */
+export async function destroyPreviousVersions(
+  client: JmapClient,
+  accountId: string,
+  ids: readonly string[]
+): Promise<string[]> {
+  if (ids.length === 0) return []
+  try {
+    const result = await client.call('Email/set', {
+      accountId,
+      destroy: [...ids]
+    })
+    const destroyed = new Set(result.destroyed ?? [])
+    return ids.filter(
+      id => !destroyed.has(id) && result.notDestroyed?.[id]?.type !== 'notFound'
+    )
+  } catch (error: unknown) {
+    console.warn('Previous draft versions not destroyed', error)
+    return [...ids]
+  }
+}
+
+/**
+ * Saves a draft. JMAP emails are immutable: a new version is created, then
+ * the previous ones are destroyed, in two requests, as `sendEmail` does.
  *
- * A previous version already gone (destroyed elsewhere) is not an error. A
- * failed creation is (`JmapSetError`, its `notCreated` says why), and then
- * the previous version is gone too: the composer still holds the content.
+ * The first request creates the new version and reads, with `Email/get` of
+ * `#draft`, the blob ids of its inline images, which now live in its own
+ * parts (`<emailId>_<partId>`). Only once it exists does a second request
+ * destroy the previous versions (`previousIds`: the draft the composer
+ * edits, and the versions an earlier save failed to destroy). One
+ * `Email/set` doing both would lose the draft: JMAP runs the destroy of the
+ * call even when its creation is refused (quota, `tooLarge`: `INFRA-16`).
+ *
+ * A refused creation throws `JmapSetError` (its `notCreated` says why) and
+ * leaves the previous version as it was, its blobs still valid. A failed
+ * destruction is not an error: the versions left come back in `leftovers`.
  */
 export async function saveDraft(
   client: JmapClient,
   accountId: string,
   email: EmailCreate,
-  previousId: string | null,
+  previousIds: readonly string[],
   images: InlineImageStore
 ): Promise<SaveResult> {
   const [set, saved] = await client.request(builder => [
-    builder.call('Email/set', {
-      accountId,
-      create: { draft: email },
-      destroy: previousId ? [previousId] : []
-    }),
+    builder.call('Email/set', { accountId, create: { draft: email } }),
     builder.call('Email/get', {
       accountId,
       ids: ['#draft'],
@@ -176,6 +208,11 @@ export async function saveDraft(
   }
   const parts = saved.list[0]?.attachments ?? []
   images.rebase(parts)
+  const leftovers = await destroyPreviousVersions(
+    client,
+    accountId,
+    previousIds.filter(id => id !== created.id)
+  )
   return {
     emailId: created.id,
     attachments: parts.map(({ blobId, name, disposition }) => ({
@@ -183,6 +220,7 @@ export async function saveDraft(
       name,
       disposition
     })),
+    leftovers,
     requestBytes: new TextEncoder().encode(JSON.stringify(email)).length
   }
 }
@@ -208,6 +246,8 @@ export type SendResult =
        * the draft of the composer; null when nothing was created
        */
       draftId: string | null
+      /** Previous versions of the draft still there, with `draftId` */
+      leftovers: string[]
     }
 
 const SEND_FAILURES: Record<string, SendFailure> = {
@@ -241,10 +281,10 @@ function readFailure(error: SetError | undefined): {
  * `EmailSubmission/set` submits it and, once submitted, moves it to Sent,
  * marks it seen and drops `$draft` (`onSuccessUpdateEmail`).
  *
- * The previous draft is destroyed afterwards, in its own request, and
- * only when the message was created: JMAP would run a destroy of the same
- * call even when the creation fails, losing the draft. A message created
- * but not submitted stays in Drafts in its place.
+ * The previous versions of the draft are destroyed afterwards, in their
+ * own request, and only when the message was created: JMAP would run a
+ * destroy of the same call even when the creation fails, losing the draft.
+ * A message created but not submitted stays in Drafts in its place.
  */
 export async function sendEmail(
   client: JmapClient,
@@ -252,7 +292,7 @@ export async function sendEmail(
   identityId: string,
   email: EmailCreate,
   mailboxIds: MailboxIds,
-  previousDraftId: string | null
+  previousDraftIds: readonly string[]
 ): Promise<SendResult> {
   const [emailSet, submission] = await client.request(builder => [
     builder.call('Email/set', { accountId, create: { message: email } }),
@@ -276,22 +316,22 @@ export async function sendEmail(
     return {
       ok: false,
       ...readFailure(emailSet.notCreated?.message),
-      draftId: null
+      draftId: null,
+      leftovers: [...previousDraftIds]
     }
   }
-  if (previousDraftId !== null) {
-    await client
-      .call('Email/set', { accountId, destroy: [previousDraftId] })
-      .catch((error: unknown) => {
-        // The new version holds everything: an old one left is no loss
-        console.warn('Previous draft not destroyed', error)
-      })
-  }
+  // The new version holds everything: an old one left is no loss
+  const leftovers = await destroyPreviousVersions(
+    client,
+    accountId,
+    previousDraftIds
+  )
   if (!submission.created?.submission) {
     return {
       ok: false,
       ...readFailure(submission.notCreated?.submission),
-      draftId: created.id
+      draftId: created.id,
+      leftovers
     }
   }
   return { ok: true, emailId: created.id }

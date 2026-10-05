@@ -276,6 +276,93 @@ describe('ComposerForm', () => {
       )
     })
 
+    it('keeps the previous version of a draft when the server refuses the new one', async () => {
+      const jmapServer = makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'draft-1',
+              mailboxIds: { 'mailbox-drafts': true },
+              keywords: { $draft: true, $seen: true },
+              subject: 'Kept',
+              to: [{ name: 'Bob', email: 'bob@example.com' }]
+            },
+            { html: '<div>Draft body</div>' }
+          )
+        ]
+      })
+      jmapServer.setErrors.set('draft', 'overQuota')
+      const error = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined)
+      renderComposer(jmapServer)
+      const composer = await openComposer('Open draft')
+      const status = within(composer).getByTestId('composer-save-status')
+
+      await fill(composer, { subject: ' edited' })
+      await waitFor(
+        () => {
+          expect(status).toHaveTextContent('Draft not saved')
+        },
+        { timeout: 4000 }
+      )
+      expect(draftsOf(jmapServer).map(email => email.id)).toEqual(['draft-1'])
+      expect(draftsOf(jmapServer)[0]?.subject).toBe('Kept')
+
+      // Accepted again: the new version replaces the old one
+      jmapServer.setErrors.clear()
+      await fill(composer, { subject: '!' })
+      await waitFor(
+        () => {
+          expect(status).toHaveTextContent('Draft saved')
+        },
+        { timeout: 4000 }
+      )
+      expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
+        'Kept edited!'
+      ])
+      error.mockRestore()
+    }, 10_000)
+
+    it('destroys with the next save a previous version it failed to destroy', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      const status = within(composer).getByTestId('composer-save-status')
+      await fill(composer, { to: 'bob@example.com', subject: 'One' })
+      await waitFor(
+        () => {
+          expect(status).toHaveTextContent('Draft saved')
+        },
+        { timeout: 4000 }
+      )
+      const [first] = draftsOf(jmapServer)
+      jmapServer.setErrors.set(first?.id ?? '', 'forbidden')
+      const warn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => undefined)
+
+      await fill(composer, { subject: ' two' })
+      await waitFor(
+        () => {
+          expect(draftsOf(jmapServer)).toHaveLength(2)
+        },
+        { timeout: 4000 }
+      )
+
+      jmapServer.setErrors.clear()
+      await fill(composer, { subject: ' three' })
+      await waitFor(
+        () => {
+          expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
+            'One two three'
+          ])
+        },
+        { timeout: 4000 }
+      )
+      warn.mockRestore()
+      // Three autosaves
+    }, 15_000)
+
     it('comes back after a reload, until closed', async () => {
       const snapshot: ComposerSnapshot = {
         identityId: 'identity-alice',

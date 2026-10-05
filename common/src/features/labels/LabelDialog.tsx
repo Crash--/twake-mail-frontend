@@ -13,7 +13,7 @@ import {
   useId,
   useRef,
   useState,
-  type FormEvent,
+  type SubmitEvent,
   type ReactElement
 } from 'react'
 
@@ -107,7 +107,7 @@ export function LabelDialog({
       : null
   }
 
-  const handleSubmit = (event: FormEvent): void => {
+  const handleSubmit = (event: SubmitEvent): void => {
     event.preventDefault()
     setIsTouched(true)
     if (problem !== null) {

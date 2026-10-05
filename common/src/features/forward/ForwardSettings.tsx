@@ -19,7 +19,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
-  type FormEvent,
+  type SubmitEvent,
   type ReactElement
 } from 'react'
 
@@ -106,7 +106,7 @@ export function ForwardSettings({
     }
   }
 
-  const handleAdd = (event: FormEvent): void => {
+  const handleAdd = (event: SubmitEvent): void => {
     event.preventDefault()
     const emails = parseRecipients(typed).map(recipient => recipient.email)
     if (emails.length === 0) {

@@ -20,7 +20,7 @@ import {
   FormControlLabel,
   TextField
 } from '@linagora/twake-mui'
-import { useId, useState, type FormEvent, type ReactElement } from 'react'
+import { useId, useState, type SubmitEvent, type ReactElement } from 'react'
 
 import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
 import { FormRow } from '@/ds/FormRow/FormRow'
@@ -133,7 +133,7 @@ export function AdvancedSearchDialog({
     setFields(toTextFields(cleared))
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
     onSubmit(withTextFields(draft, fields))
   }

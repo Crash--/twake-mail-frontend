@@ -26,7 +26,7 @@ import {
   useRef,
   useState,
   type FocusEvent,
-  type FormEvent,
+  type SubmitEvent,
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
@@ -298,7 +298,7 @@ export function SearchCombobox({
     }
   }
 
-  const handleSubmit = (event: FormEvent<HTMLDivElement>): void => {
+  const handleSubmit = (event: SubmitEvent<HTMLDivElement>): void => {
     event.preventDefault()
     close()
     onSubmit()

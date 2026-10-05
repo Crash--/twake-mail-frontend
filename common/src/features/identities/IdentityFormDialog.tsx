@@ -17,7 +17,7 @@ import {
   useId,
   useRef,
   useState,
-  type FormEvent,
+  type SubmitEvent,
   type ReactElement
 } from 'react'
 
@@ -255,7 +255,7 @@ export function IdentityFormDialog({
     return result
   }
 
-  const handleSubmit = (event: FormEvent): void => {
+  const handleSubmit = (event: SubmitEvent): void => {
     event.preventDefault()
     setIsTouched(true)
     if (nameProblem !== null) {

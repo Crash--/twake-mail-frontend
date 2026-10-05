@@ -103,7 +103,7 @@ export function EmailMessageBody({
 
   return (
     <>
-      <AttachmentList attachments={attachments} />
+      <AttachmentList attachments={attachments} emailId={email.id} />
       {calendar.invitation ? (
         <Box className="u-mt-1">
           <CalendarInvitationCard

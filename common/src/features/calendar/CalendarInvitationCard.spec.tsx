@@ -192,7 +192,7 @@ describe('CalendarInvitationCard', () => {
     ])
     // The nameless calendar part is the card; the named file stays listed
     expect(screen.getByText(/invite\.ics/)).toBeVisible()
-    expect(screen.getAllByRole('button', { name: /^Download/ })).toHaveLength(1)
+    expect(screen.getAllByTestId('attachment-item')).toHaveLength(1)
   })
 
   it('answers Yes in the UI language and shows the answer', async () => {

@@ -4,6 +4,10 @@ import { useCallback } from 'react'
 import { emailSetBatchSize } from '@common/features/emailActions/sendEmailChanges'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import {
+  isTeamTrash,
+  isTrashMailbox
+} from '@common/features/mailbox/mailboxTree'
+import {
   mailboxesQueryOptions,
   mailboxKeys,
   type MailboxSummary
@@ -40,9 +44,15 @@ const SUBFOLDER_TOASTS: Record<
   failed: { key: 'emptyFolder.subfoldersFailed', severity: 'error' }
 }
 
-/** A folder that can be emptied at once: the Trash and Spam */
+/**
+ * A folder that can be emptied at once: the Trash and Spam; the Trash of a
+ * team mailbox only for who may remove its emails (tmail-flutter
+ * `isEmptyableTrash`)
+ */
 export function isEmptiableFolder(mailbox: MailboxSummary | null): boolean {
-  return mailbox?.role === 'trash' || mailbox?.role === 'junk'
+  if (mailbox === null) return false
+  if (mailbox.role === 'trash' || mailbox.role === 'junk') return true
+  return isTeamTrash(mailbox) && mailbox.myRights.mayRemoveItems
 }
 
 /**
@@ -60,7 +70,7 @@ export function useEmptyFolder(): (mailbox: MailboxSummary) => Promise<void> {
 
   return useCallback(
     async (mailbox: MailboxSummary): Promise<void> => {
-      const isTrash = mailbox.role === 'trash'
+      const isTrash = isTrashMailbox(mailbox)
       const confirmed = await confirm(
         isTrash
           ? {

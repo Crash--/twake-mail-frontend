@@ -2,7 +2,11 @@ import type { JmapClient } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import { destroyMailboxEmails } from '@common/features/emailActions/mailboxEmails'
-import { findDescendantIds } from '@common/features/mailbox/mailboxTree'
+import {
+  findDescendantIds,
+  isPersonalMailbox,
+  isTrashMailbox
+} from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 
 /** What happened to the subfolders of the Trash */
@@ -61,7 +65,7 @@ export async function destroyMailboxes(
 
 /**
  * Empties a folder as tmail-flutter: its emails go for good, with
- * `Mailbox/clear` when the server has it, by pages of `Email/query` and
+ * `Mailbox/clear` when the server has it (not in a team mailbox), by pages of `Email/query` and
  * `Email/set` destroy otherwise; the Trash also loses its subfolders.
  * Throws when the emails cannot be destroyed.
  */
@@ -73,7 +77,12 @@ export async function emptyFolder(
   options: EmptyFolderOptions
 ): Promise<EmptyFolderResult> {
   let deleted: number
-  if (client.hasCapability(LINAGORA_CAPABILITIES.mailboxClear)) {
+  // tmail-flutter does not clear the folders of a team mailbox (its
+  // `Mailbox/clear` is for the folders of the user, known by their role)
+  if (
+    isPersonalMailbox(mailbox) &&
+    client.hasCapability(LINAGORA_CAPABILITIES.mailboxClear)
+  ) {
     const response = await client.call(
       'Mailbox/clear',
       { accountId, mailboxId: mailbox.id },
@@ -89,7 +98,7 @@ export async function emptyFolder(
     deleted = await destroyMailboxEmails(client, accountId, mailbox.id, options)
   }
 
-  if (mailbox.role !== 'trash') return { deleted, subfolders: 'none' }
+  if (!isTrashMailbox(mailbox)) return { deleted, subfolders: 'none' }
   const subfolders = findDescendantIds(mailboxes, mailbox.id)
   if (subfolders.length === 0) return { deleted, subfolders: 'none' }
   try {

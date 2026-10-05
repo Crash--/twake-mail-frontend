@@ -6,6 +6,8 @@ import {
   CalendarInvitationCard,
   useCalendarInvitation
 } from '@common/features/calendar/CalendarInvitationCard'
+import { useComposer } from '@common/features/composer/ComposerProvider'
+import { parseMailto } from '@common/features/composer/mailto'
 
 import { AttachmentList } from './AttachmentList'
 import { EmailBodyFrame } from './EmailBodyFrame'
@@ -49,6 +51,7 @@ export function EmailMessageBody({
   const inlineImages = useInlineImageUrls(email.attachments, referencedCids)
   const trustedSender = useTrustedSender(sender?.email ?? null)
   const calendar = useCalendarInvitation(email.attachments)
+  const { openComposer } = useComposer()
   const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
   const allowRemoteContent = isRemoteContentShown || trustedSender.isTrusted
   const body = useMemo(() => {
@@ -84,6 +87,11 @@ export function EmailMessageBody({
     trustedSender.trust()
     handleShowRemoteContent()
   }
+  // The links of the email write a message with the app, not with the system
+  const handleMailtoLink = (href: string): void => {
+    const mailto = parseMailto(href)
+    if (mailto !== null) openComposer({ mailto })
+  }
 
   return (
     <>
@@ -108,7 +116,10 @@ export function EmailMessageBody({
       {body === null ? (
         <ListSkeleton count={3} />
       ) : (
-        <EmailBodyFrame document={body.document} />
+        <EmailBodyFrame
+          document={body.document}
+          onMailtoLink={handleMailtoLink}
+        />
       )}
     </>
   )

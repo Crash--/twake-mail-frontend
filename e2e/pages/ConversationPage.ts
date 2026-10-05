@@ -1,5 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
+import { ComposerPage } from './ComposerPage'
+
 /**
  * An email shown with its conversation (the "Thread" setting on): the
  * messages, collapsed or expanded, and the conversation actions.
@@ -86,6 +88,31 @@ export class ConversationPage {
   /** The label chips of an expanded message */
   messageLabelChips(message: Locator): Locator {
     return message.getByRole('region').getByTestId('label-chip')
+  }
+
+  /** The drafts of the conversation, marked "Draft" */
+  drafts(): Locator {
+    return this.messages.filter({
+      has: this.page.getByTestId('conversation-message-draft')
+    })
+  }
+
+  /** "Edit" of an expanded draft: the composer opens on it */
+  async editDraft(message: Locator): Promise<ComposerPage> {
+    await message.getByTestId('conversation-draft-edit-button').click()
+    const composer = new ComposerPage(this.page)
+    await expect(composer.root).toBeVisible()
+    return composer
+  }
+
+  /** "Delete draft" of an expanded draft, confirmed */
+  async deleteDraft(message: Locator): Promise<ConversationPage> {
+    await message.getByTestId('conversation-draft-delete-button').click()
+    const dialog = this.page.getByTestId('confirm-dialog')
+    await expect(dialog).toBeVisible()
+    await dialog.getByTestId('confirm-dialog-confirm-button').click()
+    await expect(dialog).toBeHidden()
+    return this
   }
 
   /** The sandboxed body of an expanded message */

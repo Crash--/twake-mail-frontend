@@ -555,4 +555,66 @@ test.describe('THR thread detail', () => {
       /@/
     )
   })
+
+  test(
+    'THR-09 a draft opens in the composer, from Drafts and from its conversation, where it can be deleted',
+    { tag: '@mobile' },
+    async ({ page, user, users, jmap, jmapFor }) => {
+      const bob = await users.create({ prefix: 'bob' })
+      await jmapFor(bob).sendEmail({ to: user.email, subject: 'Talk', text: 'hello' })
+      await jmap.waitForEmail({ subject: 'Talk' })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.emailRowLink('Talk').click()
+      const conversation = await new ConversationPage(page).expectLoaded('Talk')
+      await conversation.root.getByTestId('reply-email-button').click()
+      let composer = new ComposerPage(page)
+      await expect(composer.editor).toBeFocused()
+      await page.keyboard.type('Answer kept')
+      await expect(composer.saveStatus).toHaveText('Draft saved', {
+        timeout: 10_000
+      })
+      await composer.close()
+      await expect(composer.root).toBeHidden()
+
+      // In its conversation: marked, edited in the composer
+      const draft = conversation.drafts()
+      await expect(draft).toHaveCount(1)
+      await expect(draft.getByTestId('conversation-message-draft')).toHaveText('Draft')
+      if ((await conversation.toggle(draft).getAttribute('aria-expanded')) !== 'true') {
+        await conversation.toggle(draft).click()
+      }
+      await expect(draft.getByTestId('conversation-draft-edit-button')).toHaveAccessibleName(
+        new RegExp(`^Edit draft to ${bob.localPart}`)
+      )
+      await expectNoA11yViolations(page)
+      composer = await conversation.editDraft(draft)
+      await expect(composer.editor).toContainText('Answer kept')
+      await expect(composer.recipients('to')).toHaveCount(1)
+      await composer.close()
+      await expect(composer.root).toBeHidden()
+
+      // From Drafts, a conversation too: the composer
+      await mailbox.openFolder({ role: 'drafts' })
+      await mailbox.emailRowLink('Re: Talk').click()
+      composer = new ComposerPage(page)
+      await expect(composer.editor).toContainText('Answer kept')
+      await composer.close()
+      await expect(composer.root).toBeHidden()
+
+      // Deleted from its conversation
+      await mailbox.openFolder({ role: 'inbox' })
+      await mailbox.emailRowLink('Talk').click()
+      // Named after its newest message, the draft
+      await conversation.expectLoaded('Re: Talk')
+      if ((await conversation.toggle(draft).getAttribute('aria-expanded')) !== 'true') {
+        await conversation.toggle(draft).click()
+      }
+      await conversation.deleteDraft(draft)
+      await expect(conversation.drafts()).toHaveCount(0)
+      await expect
+        .poll(async () => (await jmap.queryEmails({ inMailbox: (await jmap.findMailboxByRole('drafts')).id })).length)
+        .toBe(0)
+    }
+  )
 })

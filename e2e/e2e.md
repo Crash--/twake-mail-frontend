@@ -319,6 +319,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 - [x] `THR-08` The sender of an expanded message is a button opening its address menu (copy, compose, axe); "Create a rule with this email" opens the rule creator with the address. — web app; tmail-flutter `thread_detail_open_email_address_detail_action.dart` (issue #46)
   - Spec: `tests/thread.spec.ts`. Passes in CI.
+- [x] `THR-09` With conversations on, a reply draft opens in the composer from Drafts; in its conversation it is marked "Draft", "Edit" (named after its recipients) opens the composer on it and "Delete draft" deletes it forever once confirmed. — web app only; tmail-flutter opens a draft in the composer (issue #51)
+  - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
 
 ## SRCH — Search (14)
 

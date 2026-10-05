@@ -69,7 +69,13 @@ export interface RichTextEditorProps {
   testIds?: RichTextEditorTestIds
 }
 
-const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+/** The image types the editor takes (paste, drop, toolbar) */
+export const IMAGE_TYPES: readonly string[] = [
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp'
+]
 
 type ActionsRef = MutableRefObject<EditorActions>
 
@@ -118,7 +124,7 @@ function createKeyboardExtension(actionsRef: ActionsRef): AnyExtension {
 function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
   const report = (error: unknown): void => console.error(error)
   return FileHandler.configure({
-    allowedMimeTypes: IMAGE_TYPES,
+    allowedMimeTypes: [...IMAGE_TYPES],
     onPaste: (editor, files) => {
       void insertImages(actionsRef, editor, files, null).catch(report)
     },

@@ -1,8 +1,8 @@
 import {
   Archive,
   Email,
-  File,
-  Folder,
+  FileOutline,
+  FolderOutlined,
   Note,
   Paperplane,
   Restore,
@@ -33,7 +33,7 @@ const ROLE_NAMES: Partial<Record<string, TranslationKey>> = {
 
 const ROLE_ICONS: Partial<Record<string, MailboxIcon>> = {
   inbox: Email,
-  drafts: File,
+  drafts: FileOutline,
   outbox: Send,
   sent: Paperplane,
   trash: Trash,
@@ -56,5 +56,5 @@ export function getRoleNameKey(
 export function getMailboxIcon(
   mailbox: Pick<MailboxSummary, 'role'>
 ): MailboxIcon {
-  return (mailbox.role && ROLE_ICONS[mailbox.role]) ?? Folder
+  return (mailbox.role && ROLE_ICONS[mailbox.role]) ?? FolderOutlined
 }

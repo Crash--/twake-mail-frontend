@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import type { SupportedLanguage } from '@common/i18n/languages'
@@ -128,36 +128,62 @@ describe('MailboxTree', () => {
     expect(folder('ACME')).toHaveAttribute('aria-level', '3')
   })
 
-  it('keeps no room for an expand arrow when no folder has subfolders', async () => {
-    const jmapServer = makeFakeJmapServer({
-      mailboxes: [
-        ...makeDefaultMailboxes(),
-        makeMailbox({ id: 'work', name: 'Work' })
-      ]
-    })
-    renderWithProviders(<MailboxTree />, {
-      route: '/mailbox/mailbox-inbox',
-      path: '/mailbox/:mailboxId',
-      withJmapSession: true,
-      jmapServer
-    })
-
-    await screen.findAllByTestId('mailbox-item')
-
-    expect(screen.queryByTestId('mailbox-toggle-slot')).toBe(null)
-  })
-
-  it('aligns every folder on the expand arrows when one has subfolders', async () => {
+  it('has no slot for an expand arrow, which follows the name of a folder with subfolders', async () => {
     renderTree()
 
     await screen.findAllByTestId('mailbox-item')
 
+    expect(screen.queryByTestId('mailbox-toggle-slot')).toBe(null)
+    expect(within(folder('Inbox')).queryByTestId('mailbox-expand-button')).toBe(
+      null
+    )
     expect(
-      within(folder('Inbox')).queryByTestId('mailbox-toggle-slot')
+      within(folder('Work')).getByTestId('mailbox-expand-button')
+    ).toHaveAccessibleName('Expand')
+  })
+
+  it('reaches the expand arrow with Tab and toggles it with Enter and Space', async () => {
+    renderTree()
+    await screen.findAllByTestId('mailbox-item')
+
+    act(() => {
+      within(folder('Work')).getByRole('link').focus()
+    })
+    await userEvent.tab()
+    expect(
+      within(folder('Work')).getByRole('button', { name: 'Expand' })
+    ).toHaveFocus()
+
+    await userEvent.keyboard('{Enter}')
+    expect(folder('Work')).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.keyboard(' ')
+    expect(folder('Work')).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('keeps the actions of a folder in the tab order, named', async () => {
+    renderTree()
+    await screen.findAllByTestId('mailbox-item')
+
+    const more = within(folder('Sent')).getByRole('button', {
+      name: 'Actions on Sent'
+    })
+    act(() => {
+      within(folder('Sent')).getByRole('link').focus()
+    })
+    await userEvent.tab()
+    expect(more).toHaveFocus()
+  })
+
+  it('says the unread count in the name of the link, the badge being decoration', async () => {
+    renderTree()
+    await screen.findAllByTestId('mailbox-item')
+
+    expect(
+      within(folder('Work')).getByRole('link', { name: 'Work 4' })
     ).toBeInTheDocument()
     expect(
-      within(folder('Work')).queryByTestId('mailbox-toggle-slot')
-    ).toBeInTheDocument()
+      within(folder('Work')).getByTestId('mailbox-unread-count')
+    ).toHaveTextContent('4')
   })
 
   it('puts Starred after the whole subtree of an expanded Inbox', async () => {

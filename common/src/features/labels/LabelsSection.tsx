@@ -5,17 +5,15 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  Nav,
-  NavItem,
-  NavLink,
-  NavText,
-  Tooltip,
-  Typography
+  Tooltip
 } from '@linagora/twake-mui'
 import type { Label } from 'jmap-client-ts/linagora'
 import { useId, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
+import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
+import { NavTree } from '@/ds/NavTree/NavTree'
+import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { LabelIcon } from './LabelIcon'
@@ -33,69 +31,68 @@ function LabelItem({ label }: { label: Label }): ReactElement {
   const canChange = label.readOnly !== true
 
   return (
-    <NavItem data-testid="label-item" data-label-name={label.displayName}>
-      <NavLink
-        component={Link}
-        to={labelPath(label.id)}
-        selected={isSelected}
-        aria-current={isSelected ? 'page' : undefined}
-        className="u-ov-hidden"
-      >
-        <Box className="u-mr-1 u-flex">
-          <LabelIcon color={label.color} />
-        </Box>
-        <NavText className="u-flex-auto u-ellipsis">
-          {label.displayName}
-        </NavText>
-      </NavLink>
-      {canChange ? (
-        <>
-          <Tooltip title={menuLabel}>
-            <IconButton
-              size="small"
-              aria-label={menuLabel}
-              aria-haspopup="menu"
-              onClick={event => {
-                setAnchor(event.currentTarget)
-              }}
-              data-testid="label-item-menu-button"
-            >
-              <Icon icon={Dots} />
-            </IconButton>
-          </Tooltip>
-          <Menu
-            anchorEl={anchor}
-            open={anchor !== null}
-            onClose={() => {
-              setAnchor(null)
-            }}
-            slotProps={{ list: { 'aria-label': menuLabel } }}
-            data-testid="label-item-menu"
-          >
-            <MenuItem
-              onClick={() => {
+    <NavTreeItem
+      level={1}
+      icon={<LabelIcon color={label.color} />}
+      label={label.displayName}
+      linkComponent={Link}
+      to={labelPath(label.id)}
+      isSelected={isSelected}
+      data-testid="label-item"
+      itemProps={{
+        'data-label-name': label.displayName,
+        'aria-current': isSelected ? 'page' : undefined
+      }}
+      actions={
+        canChange ? (
+          <>
+            <Tooltip title={menuLabel}>
+              <IconButton
+                size="small"
+                aria-label={menuLabel}
+                aria-haspopup="menu"
+                onClick={event => {
+                  setAnchor(event.currentTarget)
+                }}
+                data-testid="label-item-menu-button"
+              >
+                <Icon icon={Dots} />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={anchor}
+              open={anchor !== null}
+              onClose={() => {
                 setAnchor(null)
-                edit(label)
               }}
-              data-testid="label-edit-item"
+              slotProps={{ list: { 'aria-label': menuLabel } }}
+              data-testid="label-item-menu"
             >
-              <ListItemText>{t('labels.edit')}</ListItemText>
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setAnchor(null)
-                remove(label)
-              }}
-              data-testid="label-delete-item"
-            >
-              <ListItemText slotProps={{ primary: { color: 'error.dark' } }}>
-                {t('common.delete')}
-              </ListItemText>
-            </MenuItem>
-          </Menu>
-        </>
-      ) : null}
-    </NavItem>
+              <MenuItem
+                onClick={() => {
+                  setAnchor(null)
+                  edit(label)
+                }}
+                data-testid="label-edit-item"
+              >
+                <ListItemText>{t('labels.edit')}</ListItemText>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  setAnchor(null)
+                  remove(label)
+                }}
+                data-testid="label-delete-item"
+              >
+                <ListItemText slotProps={{ primary: { color: 'error.dark' } }}>
+                  {t('common.delete')}
+                </ListItemText>
+              </MenuItem>
+            </Menu>
+          </>
+        ) : undefined
+      }
+    />
   )
 }
 
@@ -119,32 +116,27 @@ export function LabelsSection(): ReactElement | null {
       className="u-mt-1"
       data-testid="labels-section"
     >
-      <Box className="u-flex u-flex-items-center u-mh-1">
-        <Typography
-          id={titleId}
-          variant="subtitle2"
-          component="h2"
-          color="textPrimary"
-          className="u-flex-auto"
-        >
-          {t('labels.title')}
-        </Typography>
-        <Tooltip title={newLabel}>
-          <IconButton
-            size="small"
-            aria-label={newLabel}
-            onClick={create}
-            data-testid="add-new-label-button"
-          >
-            <Icon icon={Plus} />
-          </IconButton>
-        </Tooltip>
-      </Box>
-      <Nav>
+      <NavSectionHeader
+        title={t('labels.title')}
+        titleId={titleId}
+        actions={
+          <Tooltip title={newLabel}>
+            <IconButton
+              size="small"
+              aria-label={newLabel}
+              onClick={create}
+              data-testid="add-new-label-button"
+            >
+              <Icon icon={Plus} />
+            </IconButton>
+          </Tooltip>
+        }
+      />
+      <NavTree>
         {(data?.list ?? []).map(label => (
           <LabelItem key={label.id} label={label} />
         ))}
-      </Nav>
+      </NavTree>
     </Box>
   )
 }

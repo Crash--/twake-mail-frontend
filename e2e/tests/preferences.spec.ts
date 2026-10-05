@@ -81,9 +81,18 @@ test.describe('SET preferences', () => {
     await settings.open('vacation')
     await expect(page.getByTestId('vacation-banner')).toHaveCount(0)
 
+    // Off: the message is greyed out like the other fields, not editable
+    const message = page.getByTestId('vacation-message-editor')
+    await expect(message).toHaveAttribute('aria-disabled', 'true')
+    await expect(message).toHaveAttribute('contenteditable', 'false')
+    await expect(page.getByTestId('vacation-subject-input')).toBeDisabled()
+    await expectNoA11yViolations(page)
+
     await page.getByRole('switch', {
       name: 'Automatically reply to messages when they are received.'
     }).click()
+    await expect(message).toHaveAttribute('contenteditable', 'true')
+    await expect(message).not.toHaveAttribute('aria-disabled')
     await page.getByTestId('vacation-start-date-input').fill('2020-01-01')
     await page.getByTestId('vacation-save-button').click()
     await expect(page.getByTestId('vacation-error')).toHaveText('Message body cannot be blank')

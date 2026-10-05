@@ -893,7 +893,8 @@
     "availableLong": "Disponible : %{count}",
     "almostFull": "L'espace de stockage est presque plein. Vous pouvez libérer de l'espace en supprimant les fichiers inutiles ou en vous abonnant pour obtenir de l'espace supplémentaire.",
     "label": "Stockage utilisé",
-    "dismiss": "Fermer"
+    "dismiss": "Fermer",
+    "unlimited": "Pas de limite de stockage pour ce compte"
   },
   "recovery": {
     "title": "Récupérer les messages supprimés",

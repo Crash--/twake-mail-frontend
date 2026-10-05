@@ -893,7 +893,8 @@
     "availableLong": "Available: %{count}",
     "almostFull": "The storage is almost full. You can free up space by deleting unnecessary files or subscribe to get extra space.",
     "label": "Storage used",
-    "dismiss": "Close"
+    "dismiss": "Close",
+    "unlimited": "No storage limit for this account"
   },
   "recovery": {
     "title": "Recover deleted messages",

@@ -32,9 +32,17 @@ export function StorageSettings({
     <SettingsSectionLayout section={section}>
       {query.isPending ? (
         <ListSkeleton count={2} />
-      ) : !quota ? (
+      ) : query.isError ? (
         <SecondaryText variant="body2" component="p">
           {t('common.errorOccurredShort')}
+        </SecondaryText>
+      ) : !quota ? (
+        <SecondaryText
+          variant="body2"
+          component="p"
+          data-testid="storage-unlimited"
+        >
+          {t('quota.unlimited')}
         </SecondaryText>
       ) : (
         <Box data-testid="storage-settings">

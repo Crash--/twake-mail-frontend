@@ -68,7 +68,6 @@ Conventions:
 | `mailbox-item-name` | the folder name inside the row | — |
 | `mailbox-unread-count` | unread badge inside the row (absent when 0) | — |
 | `mailbox-expand-button` | expand / collapse arrow | — |
-| `mailbox-toggle-slot` | room of the expand arrow, only when some folder has subfolders | — |
 | `mailbox-more-button` | ⋮ button shown on hover or focus (always on touch screens), named "Actions on <folder>" | `UiKeys.mailboxMoreActionButton` |
 | `mailbox-context-menu` | folder actions menu (⋮, right click, menu key or Shift+F10); items `mailbox-action-<action>`: `new-subfolder`, `mark-as-read`, `empty-trash`, `empty-spam`, `move`, `rename`, `hide`, `show`, `delete` | — |
 | `add-new-folder-button` | "+" new folder in the "Folders" header | `UiKeys.addNewFolderButton` |

@@ -1,7 +1,8 @@
-import { Icon, Pen } from '@linagora/twake-icons'
-import { Box, Button } from '@linagora/twake-mui'
+import { Pen } from '@linagora/twake-icons'
+import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { ComposeButton } from '@/ds/ComposeButton/ComposeButton'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { AppListEntry } from '@common/config/config'
@@ -58,18 +59,15 @@ export function MailSidebar({
     >
       {screenSize === 'desktop' ? (
         <Box className="u-mh-1 u-mt-1">
-          <Button
-            variant="contained"
-            fullWidth
+          <ComposeButton
+            label={t('sidebar.newMessage')}
+            icon={Pen}
             onClick={onCompose}
-            startIcon={<Icon icon={Pen} />}
             data-testid="compose-email-button"
-          >
-            {t('sidebar.newMessage')}
-          </Button>
+          />
         </Box>
       ) : null}
-      <Box className="u-flex-auto u-ov-auto u-mt-1">
+      <Box className="u-flex-auto u-ov-auto u-mt-1-half">
         <MailboxTree />
         <LabelsSection />
       </Box>

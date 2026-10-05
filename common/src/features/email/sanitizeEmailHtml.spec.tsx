@@ -295,4 +295,37 @@ describe('sanitizeEmailHtml', () => {
       ).toBe(0)
     })
   })
+
+  describe('image sizes (EML-04)', () => {
+    function images(html: string): string {
+      return sanitizeEmailHtml(html, {
+        allowRemoteContent: true,
+        normalizeImageSizes: true
+      }).html
+    }
+
+    it('gives an oversize image its ratio, the pane its width', () => {
+      expect(
+        images(
+          '<img src="https://example.com/a.jpg" style="width:2000px;height:200px;" width="2000" height="200">'
+        )
+      ).toContain(
+        'style="width: 2000px; height: auto; aspect-ratio: 2000 / 200" width="2000" height="200"'
+      )
+    })
+
+    it('keeps the ratio of the attributes, which stay', () => {
+      expect(
+        images('<img src="https://example.com/a.jpg" width="600" height="1">')
+      ).toBe(
+        '<img src="https://example.com/a.jpg" width="600" height="1" referrerpolicy="no-referrer" loading="lazy" style="height: auto; aspect-ratio: 600 / 1">'
+      )
+    })
+
+    it('normalizes nothing for the composer', () => {
+      expect(
+        sanitizeEmailHtml('<img style="width:2000px;height:200px">').html
+      ).toBe('<img style="width: 2000px; height: 200px">')
+    })
+  })
 })

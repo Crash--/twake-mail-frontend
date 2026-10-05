@@ -58,7 +58,8 @@ export function EmailMessageBody({
     if (inlineImages.isLoading) return null
     const rendered = renderBodyParts(email.htmlBody, email.bodyValues, {
       inlineImageUrls: inlineImages.urls,
-      allowRemoteContent
+      allowRemoteContent,
+      normalizeImageSizes: true
     })
     return {
       document: buildEmailDocument(rendered.html, { allowRemoteContent }),

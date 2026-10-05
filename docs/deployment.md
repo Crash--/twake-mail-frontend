@@ -9,6 +9,7 @@ against the JMAP server).
 - [The Docker image](#the-docker-image)
 - [Published images](#published-images)
 - [Runtime configuration](#runtime-configuration)
+- [Docker Compose](#docker-compose)
 - [Security headers](#security-headers)
 - [Reverse proxy, JMAP on the same origin or not](#reverse-proxy-jmap-on-the-same-origin-or-not)
 - [Embedding in Twake Workplace (iframe)](#embedding-in-twake-workplace-iframe)
@@ -107,6 +108,43 @@ Two files, mounted next to `index.html`:
 
 Without `.env.js` the app shows its "refresh" fallback page: the file is
 required. `appList.js` is optional (no app grid).
+
+## Docker Compose
+
+Two examples in [`deploy/docker-compose/`](../deploy/docker-compose/), both
+building the image from the repository (set `TWAKE_MAIL_IMAGE` to use a
+published one) and running it as in production (user 101, read-only root
+filesystem, `/tmp` tmpfs, no capability).
+
+**The app alone**, in front of an existing JMAP server and SSO:
+
+```bash
+cd deploy/docker-compose
+cp config/.env.example.js config/.env.js          # set JMAP_SESSION_URL, SSO_*
+cp config/appList.example.js config/appList.js
+CSP_CONNECT_SRC="https://jmap.example.com wss://jmap.example.com https://sso.example.com" \
+  docker compose up -d --build
+```
+
+The app answers on `http://127.0.0.1:8080` (`TWAKE_MAIL_PORT`): put the TLS
+reverse proxy in front of it. `CSP_FRAME_ANCESTORS` and `CSP_REPORT_ONLY` are
+passed through too. Create both files before `up`: Docker would mount empty
+directories in their place.
+
+**A demo** with tmail-backend (memory image: nothing is kept), basic
+authentication, and an nginx putting the app and JMAP on one origin:
+
+```bash
+cd deploy/docker-compose/demo
+docker compose up -d --build
+# http://localhost:8080, alice@example.com / alice (or bob@example.com / bob)
+docker compose down -v
+```
+
+tmail-backend builds the URLs of its JMAP session from the
+`X-JMAP-PREFIX` / `X-JMAP-WEBSOCKET-PREFIX` headers of the proxy
+(`dynamic.jmap.prefix.resolution.enabled`), so the demo works on any host
+name and port. Not meant for production: no TLS, no SSO, no persistence.
 
 ## Security headers
 

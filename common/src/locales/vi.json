@@ -396,7 +396,13 @@
       "failed": "Tải lên thất bại",
       "uploaded": "Đã đính kèm %{name}",
       "uploadFailed": "Không thể đính kèm %{name}",
-      "removed": "Đã gỡ %{name}"
+      "removed": "Đã gỡ %{name}",
+      "retry": "Thử lại %{name}",
+      "done": "Đã tải lên",
+      "showLess": "Thu gọn",
+      "showMore": "Xem thêm (+%{count})",
+      "uploadingTitle": "Đang tải lên %{smart_count} tệp",
+      "hideUploads": "Ẩn danh sách tải lên"
     },
     "prefix": {
       "reply": "Re:",

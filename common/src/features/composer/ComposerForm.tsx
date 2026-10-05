@@ -46,7 +46,6 @@ import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
 import { PillButton } from '@/ds/PillButton/PillButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import { UploadList } from '@/ds/UploadList/UploadList'
 import {
   useAlert,
   useChoose,
@@ -63,7 +62,6 @@ import { scribeEndpoint } from '@common/features/scribe/scribe'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
-import { formatSize } from '@common/features/email/formatSize'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
 import { findTemplatesMailboxId } from '@common/features/mailbox/mailboxTree'
@@ -132,6 +130,7 @@ import {
 } from './recipients'
 import { loadReplyContent } from './replyContent'
 import { makeIsSelf, type ReplyAction } from './replyRecipients'
+import { ComposerAttachmentsList } from './ComposerAttachmentsList'
 import { replaceSignature, signatureHtml } from './signature'
 import { DRAFT_IDLE_MS } from './draftPolicy'
 import { EmojiButton } from './EmojiButton'
@@ -308,7 +307,7 @@ function LoadedComposerForm({
   templatesId,
   images
 }: LoadedFormProps): ReactElement {
-  const { t, lang } = useI18n()
+  const { t } = useI18n()
   const client = useJmapClient()
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
@@ -1266,30 +1265,7 @@ function LoadedComposerForm({
           />
         </Box>
         <Box className="u-ph-1 u-flex-shrink-0">
-          <UploadList
-            items={files.attachments.map(file => ({
-              id: file.id,
-              name: file.name,
-              size: formatSize(file.size, lang),
-              status: file.status,
-              progress: file.progress
-            }))}
-            labels={{
-              list: t('composer.attachments.list', {
-                smart_count: files.attachments.length
-              }),
-              remove: name => t('composer.attachments.remove', { name }),
-              progress: name => t('composer.attachments.progress', { name }),
-              failed: t('composer.attachments.failed')
-            }}
-            onRemove={files.remove}
-            status={files.status}
-            testIds={{
-              list: 'composer-attachments',
-              item: 'composer-attachment-item',
-              remove: 'composer-attachment-remove-button'
-            }}
-          />
+          <ComposerAttachmentsList files={files} />
           {sendError === null ? null : (
             <Typography
               id={sendErrorId}

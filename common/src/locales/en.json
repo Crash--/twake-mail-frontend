@@ -396,7 +396,13 @@
       "failed": "Upload failed",
       "uploaded": "%{name} attached",
       "uploadFailed": "%{name} could not be attached",
-      "removed": "%{name} removed"
+      "removed": "%{name} removed",
+      "retry": "Retry %{name}",
+      "done": "Uploaded",
+      "showLess": "Show less",
+      "showMore": "Show more (+%{count})",
+      "uploadingTitle": "Uploading %{smart_count} file |||| Uploading %{smart_count} files",
+      "hideUploads": "Hide the upload list"
     },
     "prefix": {
       "reply": "Re:",

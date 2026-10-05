@@ -17,7 +17,7 @@ import { EmailMessageBody } from '@common/features/email/EmailMessageBody'
 import { EmailViewActions } from '@common/features/email/EmailViewActions'
 import { isMarkedImportant } from '@common/features/email/importance'
 import { ImportantMark } from '@common/features/email/ImportantMark'
-import { hasKeyword, SEEN } from '@common/features/email/keywords'
+import { DRAFT, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { messageMailboxId } from '@common/features/email/messageMailbox'
 import type { EmailDetail } from '@common/features/email/queries'
 import { ReplyActions } from '@common/features/email/ReplyActions'
@@ -30,6 +30,7 @@ import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { ConversationDraftActions } from './ConversationDraftActions'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData } from './queries'
 
@@ -57,6 +58,8 @@ function ExpandedBody({
   const { data: mailboxes = [] } = useMailboxes()
   const mailboxId = messageMailboxId(detail, openedMailboxId, mailboxes)
   const sender = detail.from?.[0] ?? null
+  // A draft is not read but written: the composer edits it
+  const isDraft = hasKeyword(detail, DRAFT)
   return (
     <>
       <Box className="u-flex u-flex-items-center u-flex-wrap">
@@ -65,16 +68,18 @@ function ExpandedBody({
           hasLabel
           data-testid="conversation-message-sender"
         />
-        <EmailViewActions
-          email={detail}
-          mailboxId={mailboxId}
-          onAction={onAction}
-          variant="message"
-          label={t('thread.messageActions', {
-            name: sender === null ? '' : formatAddressName(sender),
-            date: formatFullDate(detail.receivedAt, lang)
-          })}
-        />
+        {isDraft ? null : (
+          <EmailViewActions
+            email={detail}
+            mailboxId={mailboxId}
+            onAction={onAction}
+            variant="message"
+            label={t('thread.messageActions', {
+              name: sender === null ? '' : formatAddressName(sender),
+              date: formatFullDate(detail.receivedAt, lang)
+            })}
+          />
+        )}
       </Box>
       <AddressLine
         label="email.to"
@@ -96,7 +101,15 @@ function ExpandedBody({
         email={detail}
         onRemoteContentShown={onRemoteContentShown}
       />
-      <ReplyActions email={detail} />
+      {isDraft ? (
+        <ConversationDraftActions
+          draft={detail}
+          mailboxId={mailboxId}
+          onAction={onAction}
+        />
+      ) : (
+        <ReplyActions email={detail} />
+      )}
     </>
   )
 }
@@ -158,6 +171,7 @@ export function ConversationMessage({
   const toggleRef = useRef<HTMLButtonElement>(null)
   const sender = email.from?.[0] ?? null
   const isUnread = !hasKeyword(email, SEEN)
+  const isDraft = hasKeyword(email, DRAFT)
   const emphasis = isUnread ? 'u-fw-bold' : ''
   const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
 
@@ -191,6 +205,16 @@ export function ConversationMessage({
               </span>
             ) : null}
             {showsImportant ? <ImportantMark /> : null}
+            {isDraft ? (
+              <Typography
+                component="span"
+                color="error"
+                className="u-mr-half"
+                data-testid="conversation-message-draft"
+              >
+                {t('thread.draft.marker')}
+              </Typography>
+            ) : null}
             <span className={emphasis}>
               {sender ? formatAddressName(sender) : ''}
             </span>

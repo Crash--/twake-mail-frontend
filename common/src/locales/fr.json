@@ -139,7 +139,15 @@
       "clear": "Tout désélectionner",
       "toolbar": "Actions sur la sélection"
     },
-    "me": "Moi"
+    "me": "Moi",
+    "draft": {
+      "marker": "Brouillon",
+      "actions": "Actions du brouillon",
+      "edit": "Modifier",
+      "editTo": "Modifier le brouillon pour %{recipients}",
+      "delete": "Supprimer le brouillon",
+      "deleteTo": "Supprimer le brouillon pour %{recipients}"
+    }
   },
   "push": {
     "newMessages": "Vous avez de nouveaux messages"

@@ -14,6 +14,9 @@ export function initSentry(config: AppConfig): boolean {
   Sentry.init({
     dsn: config.sentryDsn,
     release: config.appVersion,
+    ...(config.sentryEnvironment
+      ? { environment: config.sentryEnvironment }
+      : {}),
     // Nothing about the user nor the HTTP exchanges: mails, tokens and
     // addresses travel in them
     dataCollection: {

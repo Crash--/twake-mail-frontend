@@ -26,7 +26,7 @@ function forwardingSection(): SettingsSection {
 function withWarning(ui: ReactElement, message: string): ReactElement {
   const result = resolveConfig(
     {
-      JMAP_SESSION_URL: 'https://jmap.example.com/jmap/session',
+      SERVER_URL: 'https://jmap.example.com',
       AUTH_MODE: 'basic',
       FORWARD_WARNING_MESSAGE: message
     },

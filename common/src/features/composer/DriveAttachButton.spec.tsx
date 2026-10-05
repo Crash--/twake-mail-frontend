@@ -15,7 +15,7 @@ const PICKER = 'https://alice-drive.twake.example.com'
 function withConfig(ui: ReactElement, enabled = true): ReactElement {
   const result = resolveConfig(
     {
-      JMAP_SESSION_URL: 'https://jmap.example.com/jmap/session',
+      SERVER_URL: 'https://jmap.example.com',
       AUTH_MODE: 'basic',
       TDRIVE_ENABLED: enabled,
       TDRIVE_INTENT_URL: 'https://{localpart}.twake.example.com'

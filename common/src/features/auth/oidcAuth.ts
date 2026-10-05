@@ -374,7 +374,8 @@ export function createOidcAuthService(
     logout,
     startLogin,
     handleCallback,
-    refresh
+    refresh,
+    getIdToken: () => tokens?.idToken ?? null
   }
 
   async function logout(): Promise<void> {

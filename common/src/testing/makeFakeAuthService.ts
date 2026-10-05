@@ -57,6 +57,7 @@ export function makeFakeOidcAuthService(
     handleCallback: jest.fn(() =>
       Promise.resolve({ ok: true as const, value: { returnTo: '/' } })
     ),
-    refresh: jest.fn(() => Promise.resolve(true))
+    refresh: jest.fn(() => Promise.resolve(true)),
+    getIdToken: jest.fn(() => 'id-token-alice')
   }
 }

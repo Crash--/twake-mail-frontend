@@ -382,6 +382,14 @@ describe('createOidcAuthService', () => {
       })
     })
 
+    it('gives the ID token of the session, none once signed out', async () => {
+      const service = await signIn(makeDependencies())
+
+      expect(service.getIdToken()).toBe('id-of-access-1')
+      service.clearLocalSession()
+      expect(service.getIdToken()).toBe(null)
+    })
+
     it('asks userinfo for what the ID token does not say', async () => {
       const service = createOidcAuthService(CONFIG, makeDependencies())
       await service.startLogin('/')

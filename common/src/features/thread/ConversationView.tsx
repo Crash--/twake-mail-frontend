@@ -38,26 +38,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { ConversationMessage } from './ConversationMessage'
 import { conversationQueryOptions, type EmailListItemData } from './queries'
-
-/**
- * The copy in Sent of an email the user sent to themselves duplicates the
- * one received: tmail-flutter hides it (`checkEmailValidForThreadDetail`)
- */
-function isOwnSentCopy(
-  email: EmailListItemData,
-  sentId: string | null,
-  username: string
-): boolean {
-  const me = username.toLowerCase()
-  const isMine = (address: { email: string }): boolean =>
-    address.email.toLowerCase() === me
-  return (
-    sentId !== null &&
-    sentId in email.mailboxIds &&
-    (email.from ?? []).some(isMine) &&
-    (email.to ?? []).some(isMine)
-  )
-}
+import { isOwnSentCopy } from './threadSummary'
 
 /** Shown expanded when the conversation opens: unread, last, opened */
 function initiallyExpanded(

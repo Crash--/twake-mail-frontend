@@ -55,6 +55,7 @@ function newMember(
     keywords: update.keywords,
     receivedAt,
     from: update.from ?? null,
+    to: update.to ?? null,
     hasAttachment: update.hasAttachment ?? false
   }
 }

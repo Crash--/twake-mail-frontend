@@ -67,6 +67,7 @@ function toMember(
     keywords: email.keywords,
     receivedAt,
     from: email.from ?? previous?.from ?? null,
+    to: email.to ?? previous?.to ?? null,
     hasAttachment: email.hasAttachment ?? previous?.hasAttachment ?? false
   }
 }

@@ -480,7 +480,7 @@ when the workflow is started with `oidc`). They sign in as Dex's static alice.
 
 - [ ] `DRIVE-01` "Attach from Drive" opens the picker in a dialog named "Twake Drive" (full screen on phones; axe; both actions sent, no `displayCloseButton`); "Add as link" closes it and inserts a Drive card (`a.tmail-file-link-card`) at the caret, the focus back in the message. — web app only (tmail-flutter `workplace/`)
 - [ ] `DRIVE-02` "Add as attachment" downloads the file and attaches it (`report.txt`, uploaded). — web app only
-- [ ] `DRIVE-03` The close button of the picker (in its header, as Drive's) closes it, the message unchanged. — web app only
+- [ ] `DRIVE-03` The close button of the picker (in its header, as Drive's) closes it, the message unchanged; with the keyboard, Shift+Tab out of the picker then Escape closes it, the focus back on the button. — web app only
 - [ ] `DRIVE-04` The picker fills a centred dialog, 900 × 800 by default, at the size it asks for (`resize`), always within the screen (full screen on phones); one close button (the picker's once it is ready), the dialog's when the picker asks for it (`showCross` / `hideCross`), the focus back on the button. — web app only
 
 ## AI — AI assistant of the composer (2)

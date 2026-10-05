@@ -137,6 +137,19 @@ test.describe('DRIVE Twake Drive picker', () => {
       .frameLocator('[data-testid="drive-picker-frame"]')
       .getByRole('button', { name: 'Close Drive' })
       .click()
+    await expect(page.getByRole('dialog', { name: 'Twake Drive' })).toBeHidden()
+
+    // With the keyboard: Drive does not handle Escape, but one Shift+Tab out
+    // of its first control lands on the dialog, where Escape closes it
+    await composer.root.getByTestId('composer-drive-button').click()
+    const picker = page.frameLocator('[data-testid="drive-picker-frame"]')
+    await expect(picker.getByRole('button', { name: 'Add as link' })).toBeEnabled()
+    await page.keyboard.press('Tab')
+    await expect(picker.getByRole('button', { name: 'Close Drive' })).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog', { name: 'Twake Drive' })).toBeHidden()
+    await expect(composer.root.getByTestId('composer-drive-button')).toBeFocused()
 
     await expect(page.getByRole('dialog', { name: 'Twake Drive' })).toBeHidden()
     await expect(composer.editor.locator('a.tmail-file-link-card')).toHaveCount(0)

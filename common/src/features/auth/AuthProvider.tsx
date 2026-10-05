@@ -8,6 +8,8 @@ import {
   type ReactNode
 } from 'react'
 
+import { stopSentryReporting } from '@common/app/sentry'
+
 import { onSessionEndedElsewhere } from './localSession'
 import type { AuthService, AuthState } from './types'
 
@@ -33,7 +35,11 @@ export function AuthProvider({
   useEffect(
     () =>
       service.subscribe(() => {
-        if (service.getState().status === 'anonymous') queryClient.clear()
+        if (service.getState().status === 'anonymous') {
+          // The session ends: the reports stop, the user is forgotten
+          stopSentryReporting()
+          queryClient.clear()
+        }
       }),
     [service, queryClient]
   )

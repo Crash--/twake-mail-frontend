@@ -92,7 +92,13 @@ const ROW_SX = {
   '& .MuiButtonBase-root': { position: 'relative', zIndex: 1 },
   // The theme greys body cells with text.secondary, 3.6:1 on white: below
   // the 4.5:1 of RGAA 3.2 (docs/twake-mui-gaps.md)
-  '& .MuiTableCell-body': { color: 'text.primary' }
+  '& .MuiTableCell-body': { color: 'text.primary' },
+  // The mock selects a row with the primary colour at 8 %; the theme's
+  // `selectedOpacity` (18 %) is heavier (docs/twake-mui-gaps.md)
+  '&.Mui-selected, &.Mui-selected:hover': {
+    backgroundColor:
+      'color-mix(in srgb, var(--mui-palette-primary-main) 8%, transparent)'
+  }
 } as const
 
 /**

@@ -8,6 +8,12 @@ export interface RowHoverActionsProps {
   children: ReactNode
   /** What holds the actions: a table row, or a list item (a folder) */
   in?: 'tableRow' | 'listItem'
+  /**
+   * What the actions take the place of on hover or focus (a date): it stays
+   * in the DOM and the layout, only faded. On a screen without hover the
+   * actions are shown beside it instead.
+   */
+  replaces?: ReactNode
 }
 
 const CONTAINERS = {
@@ -22,9 +28,44 @@ const CONTAINERS = {
  */
 export function RowHoverActions({
   children,
-  in: container = 'tableRow'
+  in: container = 'tableRow',
+  replaces
 }: RowHoverActionsProps): ReactElement {
   const row = CONTAINERS[container]
+  if (replaces !== undefined) {
+    return (
+      <Box
+        className="u-flex u-flex-items-center u-flex-justify-end"
+        sx={{ position: 'relative', width: '100%' }}
+      >
+        <Box
+          className="u-flex u-flex-items-center"
+          sx={{
+            [`${row}:hover &, ${row}:focus-within &`]: { opacity: 0 },
+            '@media (hover: none)': { opacity: 1 }
+          }}
+        >
+          {replaces}
+        </Box>
+        <Box
+          className="u-flex u-flex-items-center u-flex-justify-end"
+          sx={{
+            position: 'absolute',
+            right: 0,
+            opacity: 0,
+            [`${row}:hover &, ${row}:focus-within &`]: { opacity: 1 },
+            '@media (hover: none)': {
+              position: 'static',
+              opacity: 1,
+              marginLeft: 1
+            }
+          }}
+        >
+          {children}
+        </Box>
+      </Box>
+    )
+  }
   return (
     <Box
       className="u-flex u-flex-items-center u-flex-justify-end"

@@ -1,0 +1,241 @@
+import { act, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import type { ReactElement } from 'react'
+
+import { AppConfigProvider } from '@common/config/AppConfigProvider'
+import { resolveConfig } from '@common/config/config'
+import { makeFakeOidcAuthService } from '@common/testing/makeFakeAuthService'
+import { renderWithProviders } from '@common/testing/renderWithProviders'
+
+import { DriveAttachButton } from './DriveAttachButton'
+
+const DRIVE = 'https://alice.twake.example.com'
+const PICKER = 'https://alice-drive.twake.example.com'
+
+function withConfig(ui: ReactElement, enabled = true): ReactElement {
+  const result = resolveConfig(
+    {
+      JMAP_SESSION_URL: 'https://jmap.example.com/jmap/session',
+      AUTH_MODE: 'basic',
+      TDRIVE_ENABLED: enabled,
+      TDRIVE_INTENT_URL: 'https://{localpart}.twake.example.com'
+    },
+    'https://mail.example.com'
+  )
+  if (!result.ok) throw new Error('Invalid configuration')
+  return <AppConfigProvider config={result.value}>{ui}</AppConfigProvider>
+}
+
+function urlOf(input: Parameters<typeof fetch>[0]): string {
+  if (typeof input === 'string') return input
+  return input instanceof URL ? input.href : input.url
+}
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  })
+}
+
+const fetchMock = jest.fn<Promise<Response>, Parameters<typeof fetch>>()
+let refusesExchange = false
+const originalFetch = global.fetch
+
+beforeEach(() => {
+  fetchMock.mockReset()
+  refusesExchange = false
+  fetchMock.mockImplementation(input => {
+    const url = urlOf(input)
+    if (url === `${DRIVE}/auth/token_exchange`) {
+      return Promise.resolve(
+        refusesExchange
+          ? json(
+              { error: 'the origin of this application is not allowed' },
+              403
+            )
+          : json({ access_token: 'drive-token' })
+      )
+    }
+    if (url.startsWith(`${DRIVE}/intents`)) {
+      return Promise.resolve(
+        json({
+          data: {
+            id: 'i1',
+            attributes: {
+              services: [{ href: `${PICKER}/#/intents?intent=i1` }]
+            }
+          }
+        })
+      )
+    }
+    if (url === `${DRIVE}/files/downloads/s3cr3t/notes.txt`) {
+      return Promise.resolve(new Response('Hello', { status: 200 }))
+    }
+    return Promise.reject(new Error(`Unexpected ${url}`))
+  })
+  global.fetch = fetchMock
+})
+
+afterAll(() => {
+  global.fetch = originalFetch
+})
+
+function renderButton(enabled = true): {
+  onLinks: jest.Mock
+  onAttach: jest.Mock
+} {
+  const onLinks = jest.fn()
+  const onAttach = jest.fn()
+  renderWithProviders(
+    withConfig(
+      <DriveAttachButton
+        maxFileSize={1000}
+        onLinks={onLinks}
+        onAttach={onAttach}
+      />,
+      enabled
+    ),
+    {
+      authService: makeFakeOidcAuthService({
+        status: 'authenticated',
+        user: { email: 'alice@example.com', name: 'Alice', workplaceFqdn: null }
+      }),
+      withJmapSession: true
+    }
+  )
+  return { onLinks, onAttach }
+}
+
+async function openPicker(): Promise<HTMLIFrameElement> {
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Attach from Drive' })
+  )
+  const dialog = await screen.findByRole('dialog', { name: 'Twake Drive' })
+  expect(dialog).toBeVisible()
+  const frame = await screen.findByTitle('Twake Drive file picker')
+  // SAFETY: found by its title, the iframe of the picker
+  return frame as HTMLIFrameElement
+}
+
+function send(frame: HTMLIFrameElement, data: unknown, origin = PICKER): void {
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent('message', { data, origin, source: frame.contentWindow })
+    )
+  })
+}
+
+describe('DriveAttachButton', () => {
+  it('opens the picker with a Drive token, answers it at its origin only', async () => {
+    renderButton()
+    const frame = await openPicker()
+
+    expect(frame).toHaveAttribute('src', `${PICKER}/#/intents?intent=i1`)
+    expect(screen.getByRole('status')).toHaveTextContent('Opening Twake Drive…')
+    const [, init] = fetchMock.mock.calls[1] ?? []
+    expect(new Headers(init?.headers).get('Authorization')).toBe(
+      'Bearer drive-token'
+    )
+    const picker = frame.contentWindow
+    if (picker === null) throw new Error('No window in the frame')
+    const postMessage = jest.spyOn(picker, 'postMessage')
+
+    send(frame, { type: 'intent-i1:ready' }, 'https://evil.example.com')
+    expect(postMessage).not.toHaveBeenCalled()
+    send(frame, { type: 'intent-i1:ready' })
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ multiple: true }),
+      PICKER
+    )
+    send(frame, { type: 'intent-i1:readyToUse' })
+    expect(screen.queryByRole('status')).toBe(null)
+    await waitFor(() => {
+      expect(frame).toHaveFocus()
+    })
+  })
+
+  it('gives the files shared by link and closes', async () => {
+    const { onLinks } = renderButton()
+    const frame = await openPicker()
+    send(frame, { type: 'intent-i1:ready' })
+    send(frame, {
+      type: 'intent-i1:done',
+      document: [
+        {
+          id: 'f1',
+          name: 'plan.pdf',
+          sharingLink: `${PICKER}/public?sharecode=x`
+        }
+      ]
+    })
+
+    expect(onLinks).toHaveBeenCalledWith([
+      expect.objectContaining({
+        name: 'plan.pdf',
+        sharingLink: `${PICKER}/public?sharecode=x`
+      })
+    ])
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+  })
+
+  it('downloads the files to attach', async () => {
+    const { onAttach } = renderButton()
+    const frame = await openPicker()
+    send(frame, { type: 'intent-i1:ready' })
+    send(frame, {
+      type: 'intent-i1:done',
+      document: [
+        {
+          id: 'f2',
+          name: 'notes.txt',
+          size: 5,
+          mimeType: 'text/plain',
+          downloadLink: `${DRIVE}/files/downloads/s3cr3t/notes.txt`
+        }
+      ]
+    })
+
+    await waitFor(() => {
+      expect(onAttach).toHaveBeenCalledTimes(1)
+    })
+    const [files] = onAttach.mock.calls[0] as [File[]]
+    expect(files.map(file => [file.name, file.type, file.size])).toEqual([
+      ['notes.txt', 'text/plain', 5]
+    ])
+  })
+
+  it('says when Drive cannot be opened, and tries again', async () => {
+    refusesExchange = true
+    renderButton()
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Attach from Drive' })
+    )
+
+    expect(
+      await screen.findByText('Twake Drive could not be opened.')
+    ).toBeVisible()
+    // Refused again after renewing the session: the exchange was tried twice
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        urlOf(url).endsWith('/auth/token_exchange')
+      )
+    ).toHaveLength(2)
+    refusesExchange = false
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByTitle('Twake Drive file picker')).toBeVisible()
+  })
+
+  it('is not offered without TDRIVE_ENABLED, and calls no Drive', async () => {
+    renderButton(false)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Attach from Drive' })).toBe(
+        null
+      )
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+})

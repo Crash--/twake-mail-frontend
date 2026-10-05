@@ -27,6 +27,8 @@ describe('resolveConfig', () => {
         debug: false,
         sentryDsn: null,
         forwardWarningMessage: null,
+        workplaceEmbedding: false,
+        tdriveIntentUrl: null,
         appVersion: 'dev',
         appList: []
       })
@@ -42,6 +44,19 @@ describe('resolveConfig', () => {
     expect(result.ok && result.value.forwardWarningMessage).toBe(
       'No external forward.'
     )
+  })
+
+  it('reads the Drive picker only when TDRIVE_ENABLED is on', () => {
+    const drive = { TDRIVE_INTENT_URL: 'https://{localpart}.twake.example.com' }
+
+    expect(resolveConfig({ ...OIDC_SOURCE, ...drive }, ORIGIN)).toMatchObject({
+      value: { tdriveIntentUrl: null }
+    })
+    expect(
+      resolveConfig({ ...OIDC_SOURCE, ...drive, TDRIVE_ENABLED: true }, ORIGIN)
+    ).toMatchObject({
+      value: { tdriveIntentUrl: 'https://{localpart}.twake.example.com' }
+    })
   })
 
   it('accepts the basic mode without any SSO setting', () => {

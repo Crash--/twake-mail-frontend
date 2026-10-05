@@ -320,6 +320,21 @@
       "saved": "Save message to template folder successfully",
       "updated": "Update message to template folder successfully",
       "failed": "Save message to template folder failed"
+    },
+    "drive": {
+      "attach": "Attach from Drive",
+      "addAsLink": "Add as link",
+      "addAsAttachment": "Add as attachment",
+      "attachFailed": "Unable to attach file(s) from drive",
+      "openInDrive": "Open in drive",
+      "attached": "Files attached from Drive.",
+      "title": "Twake Drive",
+      "frameTitle": "Twake Drive file picker",
+      "loading": "Opening Twake Drive…",
+      "error": "Twake Drive could not be opened.",
+      "retry": "Retry",
+      "tooLarge": "%{name} is too large to be attached",
+      "linked": "Link to %{name} inserted |||| Links to %{smart_count} files inserted"
     }
   },
   "layout": {

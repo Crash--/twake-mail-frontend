@@ -320,6 +320,21 @@
       "saved": "Lưu thư mẫu thành công",
       "updated": "Chỉnh sửa thư mẫu thành công",
       "failed": "Lưu thư mẫu thất bại"
+    },
+    "drive": {
+      "attach": "Đính kèm từ Drive",
+      "addAsLink": "Thêm dưới dạng liên kết",
+      "addAsAttachment": "Thêm dưới dạng tệp đính kèm",
+      "attachFailed": "Không thể đính kèm tệp từ drive",
+      "openInDrive": "Mở trong Drive",
+      "attached": "Đã đính kèm tệp từ Drive.",
+      "title": "Twake Drive",
+      "frameTitle": "Trình chọn tệp Twake Drive",
+      "loading": "Đang mở Twake Drive…",
+      "error": "Không thể mở Twake Drive.",
+      "retry": "Thử lại",
+      "tooLarge": "%{name} quá lớn để đính kèm",
+      "linked": "Đã chèn liên kết tới %{smart_count} tệp"
     }
   },
   "layout": {

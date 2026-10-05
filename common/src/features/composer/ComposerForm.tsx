@@ -43,6 +43,12 @@ import {
   useChoose,
   useConfirm
 } from '@common/features/confirm/ConfirmProvider'
+import {
+  DRIVE_CARD_BLOCK,
+  driveCardsBlock,
+  hasDriveCards
+} from '@common/features/drive/driveCard'
+import type { DriveFile } from '@common/features/drive/driveIntent'
 import { buildEmailDocument } from '@common/features/email/emailBody'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
 import { formatSize } from '@common/features/email/formatSize'
@@ -111,7 +117,11 @@ import {
 import { loadReplyContent } from './replyContent'
 import { makeIsSelf, type ReplyAction } from './replyRecipients'
 import { replaceSignature, signatureHtml } from './signature'
-import { useComposerAttachments } from './useComposerAttachments'
+import { DriveAttachButton } from './DriveAttachButton'
+import {
+  useComposerAttachments,
+  useUploadLimits
+} from './useComposerAttachments'
 import { useEditorLabels } from './useEditorLabels'
 
 /** Pause in the changes before a draft is saved */
@@ -309,6 +319,7 @@ function LoadedComposerForm({
   const markChanged = (): void => {
     setChanges(count => count + 1)
   }
+  const uploadLimits = useUploadLimits()
   const files = useComposerAttachments(
     content.attachments,
     () => images.totalSize(),
@@ -756,6 +767,20 @@ function LoadedComposerForm({
       })
   }
 
+  // Twake Drive files shared by link: their cards where the caret is
+  const handleDriveLinks = (picked: DriveFile[]): void => {
+    editorRef.current
+      ?.chain()
+      .focus()
+      .insertHtmlBlock({
+        html: driveCardsBlock(picked, t('composer.drive.openInDrive')),
+        kind: DRIVE_CARD_BLOCK,
+        display: 'inline'
+      })
+      .run()
+    markChanged()
+  }
+
   const handlePickFiles = (event: ChangeEvent<HTMLInputElement>): void => {
     const picked = Array.from(event.target.files ?? [])
     event.target.value = ''
@@ -809,11 +834,13 @@ function LoadedComposerForm({
   /**
    * A message saying a file is attached, without any: asks before sending
    * (tmail-flutter `validateAttachmentReminder`). Inline images are no
-   * attachment; the quote and the signature are not read.
+   * attachment; the quote and the signature are not read. A Twake Drive
+   * card is a file shared: no reminder.
    */
   const checkAttachmentReminder = async (): Promise<boolean> => {
     const editor = editorRef.current
     if (!editor || files.attachments.length > 0) return true
+    if (hasDriveCards(editor.getHTML())) return true
     const keywords = findAttachmentKeywords(
       writtenText(subject, editor.getHTML())
     )
@@ -1081,6 +1108,11 @@ function LoadedComposerForm({
               <Icon icon={Attachment} aria-hidden="true" />
             </IconButton>
           </Tooltip>
+          <DriveAttachButton
+            maxFileSize={uploadLimits.maxFileSize}
+            onLinks={handleDriveLinks}
+            onAttach={files.addFiles}
+          />
           <input
             ref={fileInputRef}
             type="file"

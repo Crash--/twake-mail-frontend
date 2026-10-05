@@ -1,4 +1,9 @@
-import { ConversationPage, LoginPage, SearchPage } from '../pages'
+import {
+  ComposerPage,
+  ConversationPage,
+  LoginPage,
+  SearchPage
+} from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 import { recordJmapTraffic } from '../support/jmapTraffic'
@@ -382,5 +387,39 @@ test.describe('THR thread detail', () => {
         )
       )
       .toBe(true)
+  })
+
+  test('THR-06 an email sent to oneself counts once; the menu of a conversation answers its newest email', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const original = await importOriginal(jmap)
+    await addReply(jmap, original, {
+      from: 'carol@example.com',
+      to: user.email,
+      text: 'carol answers',
+      mailbox: 'inbox',
+      seen: false,
+      receivedAt: '2024-12-19T10:00:00Z'
+    })
+    // In the Inbox and, as its copy, in Sent: one message
+    await jmap.sendEmail({ to: user.email, subject: 'Note to self', text: 'x' })
+    await jmap.waitForEmail({ subject: 'Note to self' })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+
+    await expect(mailbox.emailRow('Note to self')).toBeVisible()
+    await expect(mailbox.emailRowThreadCount('Note to self')).toHaveCount(0)
+    const subject = `Re: ${SUBJECT}`
+    await expect(mailbox.emailRowThreadCount(subject)).toHaveText(/^\(2\)/)
+
+    const menu = await mailbox.openEmailMenu(subject, { rightClick: true })
+    await expectNoA11yViolations(page)
+    await menu.getByTestId('email-action-reply').click()
+    const composer = new ComposerPage(page)
+    await expect(composer.subjectInput).toHaveValue(subject)
+    await expect(composer.recipientsSummary).toContainText('carol@example.com')
+    await expect(composer.recipientsSummary).not.toContainText('emma')
   })
 })

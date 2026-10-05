@@ -2,7 +2,6 @@ import {
   buildMailboxSections,
   listVisibleMailboxes,
   mailboxPath,
-  teamMailboxAddress,
   type VisibleMailbox
 } from './mailboxTree'
 import type { MailboxSummary } from './queries'
@@ -13,7 +12,7 @@ export interface MailboxSearchResult {
   row: VisibleMailbox
   /**
    * Where the folder is, as tmail-flutter's `mailboxPath` (`Work/Clients`)
-   * for a subfolder, the address of the team mailbox for its root, else null
+   * for a subfolder, null for a top level folder
    */
   path: string | null
 }
@@ -51,7 +50,6 @@ export function searchMailboxes(
 
   return rows.map((row, index) => {
     const { mailbox } = row
-    const address = teamMailboxAddress(mailbox)
     return {
       row: {
         mailbox,
@@ -61,9 +59,10 @@ export function searchMailboxes(
         position: index + 1,
         siblingCount: rows.length
       },
+      // The root of a team mailbox shows its address on its own
       path:
         mailbox.parentId === null
-          ? address
+          ? null
           : mailboxPath(mailboxes, mailbox.id, getName)
     }
   })

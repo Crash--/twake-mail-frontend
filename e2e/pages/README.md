@@ -249,5 +249,5 @@ Conventions:
 | `mailbox-item-address` / `folder-visibility-address` | the address of a team mailbox, beside the name of its root (sidebar, Settings > Folder visibility) | — |
 | `mailbox-search-button` (implemented) | the magnifier toggles the folder search (`aria-expanded`, `aria-controls`); Escape closes it and focuses it again | `UiKeys.mailboxSearchButton` |
 | `mailbox-search` / `mailbox-search-input` / `mailbox-search-clear-button` | the folder search panel (`role="search"`), its field (focused on open) and its clear button | `SearchMailboxView` |
-| `mailbox-search-status` / `mailbox-search-results` | the count of folders found announced (`role="status"`), or "No folder matches your search"; the results, `mailbox-item` rows with the path or the team address under the name, hidden folders included (`data-hidden`) | `MailboxSearchedItemBuilder` |
+| `mailbox-search-status` / `mailbox-search-results` | the count of folders found announced (`role="status"`), or "No folder matches your search"; the results, `mailbox-item` rows with the path under the name (a team root keeps its address beside it), hidden folders included (`data-hidden`) | `MailboxSearchedItemBuilder` |
 | `mailbox-search-visibility-link` | link to Settings > Folder visibility, in the search panel | — (Settings menu in tmail-flutter) |

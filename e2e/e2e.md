@@ -454,6 +454,12 @@ the CalDAV server (esn-sabre) of a Twake Workplace, `CalendarEvent/accept` and
 - [x] `PUSH-01` An email sent to self appears in the list without a manual refresh, unread and unstarred; when another client marks it read and then starred (direct JMAP `Email/set`), the row updates live to read and then to starred. — `web_socket/web_socket_test.dart` · tags: `ios (default)`
   - Spec: `tests/push.spec.ts`. Passes in CI.
   - Data: requires JMAP WebSocket push from the server.
+- [x] `PUSH-02` An email entering the Inbox below the loaded rows (70 conversations, one a minute) is not listed yet; scrolled to, it shows once, between the rows it was received between, and no row is listed twice. — web app only (issue #43)
+  - Spec: `tests/push.spec.ts`. The same date as the last loaded row is checked by unit tests (`patchEmailList.spec.ts`), the server deciding the order of equal dates. Passes in CI.
+- [x] `PUSH-03` An email delivered after the list loaded and before the push channel opened (its WebSocket ticket held back) shows once the channel opens, without user action. — web app only (issue #43)
+  - Spec: `tests/push.spec.ts`. Passes in CI.
+- [x] `PUSH-04` During a search grouped by conversation, scrolled down, a push of an email in the Trash (left out of the search) queries nothing and keeps the scroll; one in the Inbox queries the results again, the loaded rows and the scroll kept, the new conversation at the top. — web app only (issue #43)
+  - Spec: `tests/push.spec.ts`, 40 conversations: beyond 256 messages the memory image hangs the updates of the other tests (linagora/tmail-backend#2684); more than 256 loaded rows are measured by `PERF-05` (`docs/perf/sync.md`). Passes in CI.
 
 ## APPGRID — App grid (2)
 

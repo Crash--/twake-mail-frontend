@@ -21,6 +21,7 @@ import {
   useQueryClient,
   type UseInfiniteQueryResult
 } from '@tanstack/react-query'
+import { createPortal } from 'react-dom'
 import { useLocation, useMatch } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
@@ -74,14 +75,18 @@ import {
 import { summarizeThread, type ThreadSummary } from './threadSummary'
 import { useEmailListActions } from './useEmailListActions'
 import { useEmailListShortcuts } from './useEmailListShortcuts'
-import { EmailListDefaultToolbar } from './EmailListDefaultToolbar'
+import {
+  EmailListDefaultToolbar,
+  type ListToolbarFilter
+} from './EmailListDefaultToolbar'
+import { EmailListFilterMenu } from './EmailListFilterMenu'
 import {
   availableListFilters,
   mailboxFilterRequest,
   withListFilter,
   type ListFilter
 } from './listFilter'
-import { useListFilter } from './ListFilterProvider'
+import { useListFilter, useListFilterSlot } from './ListFilterProvider'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { useNewEmailCount } from './useNewEmailCount'
 
@@ -482,6 +487,8 @@ export function EmailList(props: EmailListProps): ReactElement {
   )
 
   const screenSize = useScreenSize()
+  // On phones the filter is in the top bar, as in tmail-flutter's app bar
+  const filterSlot = useListFilterSlot()
   const { refetch } = query
   const queryClient = useQueryClient()
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -630,6 +637,21 @@ export function EmailList(props: EmailListProps): ReactElement {
     )
   }
 
+  const listToolbarFilter: ListToolbarFilter | null =
+    filterScope === null || isEmptyTrashOrSpam
+      ? null
+      : {
+          current: filter,
+          options: availableListFilters({
+            isStarredView: search?.isStarredView === true,
+            isActionRequiredView: search?.isActionRequiredView === true
+          }),
+          onSelect: listFilter.select,
+          onClear: listFilter.clear
+        }
+  const filterInTopBar = screenSize === 'mobile' && filterSlot !== null
+  const filterInToolbar = !filterInTopBar
+
   return (
     <EmailSelectionContext.Provider value={selection}>
       {listActions.banner}
@@ -638,23 +660,22 @@ export function EmailList(props: EmailListProps): ReactElement {
           selection={selection}
           loadedCount={emails.length}
           mailbox={mailbox}
-          filter={
-            filterScope === null || isEmptyTrashOrSpam
-              ? null
-              : {
-                  current: filter,
-                  options: availableListFilters({
-                    isStarredView: search?.isStarredView === true,
-                    isActionRequiredView: search?.isActionRequiredView === true
-                  }),
-                  onSelect: listFilter.select,
-                  onClear: listFilter.clear
-                }
-          }
+          filter={filterInToolbar ? listToolbarFilter : null}
           isRefreshing={isRefreshing}
           onRefresh={handleRefresh}
         />
       )}
+      {filterInTopBar && listToolbarFilter !== null && filterSlot !== null
+        ? createPortal(
+            <EmailListFilterMenu
+              current={listToolbarFilter.current}
+              options={listToolbarFilter.options}
+              onSelect={listToolbarFilter.onSelect}
+              onClear={listToolbarFilter.onClear}
+            />,
+            filterSlot
+          )
+        : null}
       {content}
       {listActions.menu}
       {/* Always mounted: a live region only announces changes */}

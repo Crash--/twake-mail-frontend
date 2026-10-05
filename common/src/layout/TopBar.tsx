@@ -15,6 +15,7 @@ import { useLabels } from '@common/features/labels/queries'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
+import { ListFilterSlot } from '@common/features/thread/ListFilterProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -109,6 +110,7 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
       search={<MailSearchBar />}
       actions={
         <>
+          {isPhone ? <ListFilterSlot /> : null}
           <HelpButton />
           {isPhone ? null : <AppGridMenu apps={apps} />}
           <UserMenu />

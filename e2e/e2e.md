@@ -313,6 +313,10 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `THR-05` The selection bar stars, the hover button reads and the menu of a conversation row archives every message of the conversation, its copy in Sent included (tmail-flutter ADR 0068); the row leaves the Inbox (axe on the menu). — web app only, no Patrol test (issue #11)
 - [x] `THR-06` An email sent to oneself (in the Inbox and, as its copy, in Sent) counts once on its row, as the conversation shows it; the menu of a conversation row answers its newest email (axe on the menu). — web app only (tmail-flutter rows have no count and no answer)
   - Spec: `tests/thread.spec.ts`. Passes in CI.
+- [x] `THR-07` An expanded message of a conversation has the actions of the single email view, in a group named by its sender and date: its star stars it alone; "More" opens with the keyboard (arrows, Escape gives the focus back to it, axe with the menu open); "Mark as unread" marks it alone and collapses it, its header keeping the focus; "Move to trash" moves it alone, the conversation stays open with both messages. — web app; tmail-flutter shows each expanded message with the actions of `EmailView` (`thread_detail_on_email_action_click.dart`) without a dedicated test (issue #46)
+  - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
+- [x] `THR-08` The sender of an expanded message is a button opening its address menu (copy, compose, axe); "Create a rule with this email" opens the rule creator with the address. — web app; tmail-flutter `thread_detail_open_email_address_detail_action.dart` (issue #46)
+  - Spec: `tests/thread.spec.ts`. Passes in CI.
 
 ## SRCH — Search (14)
 
@@ -378,6 +382,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `LBL-10` With one existing label ("Existing Label 1", applied to an email), selecting that email and opening "Label as" shows the label list (no empty state) plus a "Create a label" button; creating a new label from it shows the success toast and the new label in the list. — `labels/create_label_from_choose_label_modal_with_existing_labels_test.dart` · tags: `ios (default)`
 - [x] `LBL-11` With "Remove Tag 1" applied to one email, opening that label from the sidebar and then the email shows the label chip next to the subject; clicking the chip's remove (×) button shows the toast `Label "Remove Tag 1" removed from email`. — `labels/remove_a_label_from_email_test.dart` · tags: `ios (default)`
 - [x] `LBL-12` In the conversation view (on by default), the conversation shows the label of one of its emails under its subject; its × takes the label off that email. — web app only, no Patrol test
+- [x] `LBL-13` An expanded message of a conversation shows its own labels; the × of one takes it off that message alone (axe). — web app; tmail-flutter `remove_label_from_email_extension.dart` in the thread detail (issue #46)
+  - Spec: `tests/labels.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 
 ## SET — Settings (6)
 

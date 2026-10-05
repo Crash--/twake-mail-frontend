@@ -2,6 +2,8 @@ export interface Viewport {
   width: number
   /** A touch screen: `(pointer: coarse)` and `(hover: none)` match */
   touch?: boolean
+  /** `(prefers-reduced-motion: reduce)` matches */
+  reducedMotion?: boolean
 }
 
 type MatchMedia = (query: string) => MediaQueryList
@@ -18,6 +20,8 @@ function matchesCondition(condition: string, viewport: Viewport): boolean {
       return viewport.width <= Number.parseFloat(rawValue)
     case 'pointer':
       return rawValue === (touch ? 'coarse' : 'fine')
+    case 'prefers-reduced-motion':
+      return rawValue === 'reduce' && (viewport.reducedMotion ?? false)
     case 'hover':
       return rawValue === (touch ? 'none' : 'hover')
     default:

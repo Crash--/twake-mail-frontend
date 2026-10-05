@@ -18,11 +18,19 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement
+} from 'react'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageThread } from '@/ds/MessageThread/MessageThread'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { StickyBar } from '@/ds/StickyBar/StickyBar'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { formatAddressName } from '@common/features/email/addresses'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
@@ -39,6 +47,7 @@ import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { ConversationMessage } from './ConversationMessage'
+import { pickTargetMessageId } from './conversationTarget'
 import { conversationQueryOptions, type EmailListItemData } from './queries'
 import { isOwnSentCopy } from './threadSummary'
 
@@ -61,6 +70,8 @@ interface ConversationContentProps {
   openedId: string
   /** The folder it is open from, null from search results */
   mailboxId: string | null
+  /** Opened from the row of a list, not from a result or a link */
+  fromList: boolean
   onBack: () => void
 }
 
@@ -68,6 +79,7 @@ function ConversationContent({
   emails,
   openedId,
   mailboxId,
+  fromList,
   onBack
 }: ConversationContentProps): ReactElement {
   const { t } = useI18n()
@@ -76,6 +88,14 @@ function ConversationContent({
   )
   // The messages there when it opened: the others arrived since
   const [initialIds] = useState(() => new Set(emails.map(email => email.id)))
+  // The message the conversation opens on: scrolled to, focused
+  const [targetId] = useState(() =>
+    pickTargetMessageId(emails, openedId, fromList)
+  )
+  // Read with the header of the target: the subject and the count, not the labels
+  const headerId = useId()
+  const subjectId = `${headerId}-subject`
+  const countId = `${headerId}-count`
   const subjectRef = useRef<HTMLHeadingElement>(null)
   const { run } = useEmailActions()
   const subject = emails[emails.length - 1]?.subject ?? ''
@@ -104,12 +124,6 @@ function ConversationContent({
     }
     // Once, when the conversation opens
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // The list the conversation replaces is gone: the focus moves to its
-  // subject, where a screen reader starts reading
-  useEffect(() => {
-    subjectRef.current?.focus()
   }, [])
 
   // Once none of its messages is left in the folder (moved by the actions of
@@ -224,10 +238,12 @@ function ConversationContent({
 
   return (
     <Box className="u-p-1" data-testid="conversation-view">
-      <Box
+      {/* Stays in view over a long conversation */}
+      <StickyBar
         role="toolbar"
-        aria-label={t('thread.actions')}
-        className="u-flex u-flex-items-center u-mb-1"
+        label={t('thread.actions')}
+        className="u-flex u-flex-items-center u-pb-half"
+        data-testid="conversation-toolbar"
       >
         <Tooltip title={backLabel}>
           <IconButton
@@ -269,10 +285,11 @@ function ConversationContent({
             </IconButton>
           </Tooltip>
         ))}
-      </Box>
+      </StickyBar>
       <Box className="u-ph-1" data-testid="conversation-header">
         <Typography
           ref={subjectRef}
+          id={subjectId}
           variant="h3"
           component="h1"
           tabIndex={-1}
@@ -285,6 +302,7 @@ function ConversationContent({
         <SecondaryText
           variant="body2"
           component="p"
+          id={countId}
           className="u-mb-1"
           data-testid="conversation-count"
         >
@@ -301,6 +319,8 @@ function ConversationContent({
             openedMailboxId={mailboxId}
             onAction={handleMessageAction}
             onRemoteContentShown={handleFocusSubject}
+            isTarget={email.id === targetId}
+            describedById={`${subjectId} ${countId}`}
           />
         ))}
       </MessageThread>
@@ -328,6 +348,11 @@ export interface ConversationViewProps {
   emailId: string
   /** The folder it is open from; absent from search results */
   mailboxId?: string | null
+  /**
+   * Opened from the row of a list: it opens on the first unread message,
+   * otherwise the latest. Otherwise (search result, link) on `emailId`.
+   */
+  fromList?: boolean
   onBack: () => void
 }
 
@@ -337,11 +362,13 @@ export interface ConversationViewProps {
  * Unread messages, the last one and the one opened are expanded (and the
  * unread ones marked read, in one request), the others collapsed; a reply
  * arriving while it is open joins it collapsed (push) and is announced.
+ * It opens scrolled to, and focused on, the header of the message to read.
  */
 export function ConversationView({
   threadId,
   emailId,
   mailboxId = null,
+  fromList = false,
   onBack
 }: ConversationViewProps): ReactElement {
   const { t } = useI18n()
@@ -406,6 +433,7 @@ export function ConversationView({
       emails={emails}
       openedId={emailId}
       mailboxId={mailboxId}
+      fromList={fromList}
       onBack={onBack}
     />
   )

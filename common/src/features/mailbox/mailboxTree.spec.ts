@@ -6,6 +6,7 @@ import {
 
 import {
   findTemplatesMailboxId,
+  findTrashAndSpamIds,
   isDraftsMailbox,
   isFirstLevelTeamFolder,
   isTeamDrafts,
@@ -369,5 +370,20 @@ describe('the folders of a team mailbox', () => {
       'Trash',
       'Zeta'
     ])
+  })
+})
+
+describe('findTrashAndSpamIds', () => {
+  it('lists the Trash and Spam of the user and the Trash of each team mailbox', () => {
+    const ids = findTrashAndSpamIds([
+      makeMailbox({ id: 'inbox', name: 'INBOX', role: 'inbox' }),
+      makeMailbox({ id: 'trash', name: 'Trash', role: 'trash' }),
+      makeMailbox({ id: 'spam', name: 'Spam', role: 'junk' }),
+      makeMailbox({ id: 'folder-trash', name: 'Trash' }),
+      ...makeTeamMailboxes({ id: 'a', address: 'a@x.org' }),
+      ...makeTeamMailboxes({ id: 'b', address: 'b@x.org' })
+    ])
+
+    expect(ids.sort()).toEqual(['a-trash', 'b-trash', 'spam', 'trash'])
   })
 })

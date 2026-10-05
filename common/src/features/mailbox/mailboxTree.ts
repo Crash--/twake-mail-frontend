@@ -147,6 +147,19 @@ export function isFirstLevelTeamFolder(
   return parent !== undefined && isTeamRoot(parent)
 }
 
+/**
+ * The Trash and Spam folders of the user and the Trash of every team
+ * mailbox, which a search leaves out by default (tmail-flutter
+ * `trashSpamMailboxIds`)
+ */
+export function findTrashAndSpamIds(
+  mailboxes: readonly MailboxSummary[]
+): string[] {
+  return mailboxes
+    .filter(mailbox => isTrashMailbox(mailbox) || mailbox.role === 'junk')
+    .map(mailbox => mailbox.id)
+}
+
 function roleRank(mailbox: MailboxSummary, isUnderTeamRoot: boolean): number {
   if (!isPersonalMailbox(mailbox)) {
     // Under the root of a team mailbox, its system folders come first, known

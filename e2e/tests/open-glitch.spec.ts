@@ -163,7 +163,7 @@ const SCREENS = [
   { name: 'side by side', viewport: { width: 1000, height: 800 } }
 ]
 /** Delay added to every JMAP call: a remote server, like the demo */
-const LATENCIES = [0, 200]
+const LATENCIES = [0, 100]
 
 test.describe('THR-20 opening a conversation with a view transition', () => {
   for (const screen of SCREENS) {

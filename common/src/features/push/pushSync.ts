@@ -104,6 +104,7 @@ function describeList(key: QueryKey, accountId: string): CachedList | null {
       scope: {
         isCollapsed: value.collapseThreads === true,
         filter: value.filter,
+        dropsNonMatching: value.isListFiltered === true,
         ...(value.mailboxId === undefined ? {} : { mailboxId: value.mailboxId })
       }
     }

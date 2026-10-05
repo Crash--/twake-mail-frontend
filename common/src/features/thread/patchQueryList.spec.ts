@@ -102,6 +102,88 @@ describe('patchQueryList', () => {
     expect(needsRefresh).toBe(false)
   })
 
+  describe('under a filter of the toolbar', () => {
+    const unread = { notKeyword: '$seen' }
+    const scope = {
+      filter: unread,
+      dropsNonMatching: true,
+      mailboxId: INBOX
+    }
+
+    it('removes an email that stops matching it', () => {
+      const read = email('b', {
+        mailboxIds: { [INBOX]: true },
+        keywords: { $seen: true }
+      })
+
+      const { data, needsRefresh } = patchQueryList(
+        results(),
+        changes({ changed: [read] }),
+        scope
+      )
+
+      expect(ids(data)).toEqual([['a'], ['c']])
+      expect(data.pages[0]?.total).toBe(3)
+      expect(needsRefresh).toBe(false)
+    })
+
+    it('keeps an email that still matches it', () => {
+      const starred = email('b', {
+        mailboxIds: { [INBOX]: true },
+        keywords: { $flagged: true }
+      })
+
+      const { data } = patchQueryList(
+        results(),
+        changes({ changed: [starred] }),
+        scope
+      )
+
+      expect(ids(data)).toEqual([['a', 'b'], ['c']])
+    })
+
+    it('keeps a read search result in place without the flag', () => {
+      const read = email('b', { keywords: { $seen: true } })
+
+      const { data } = patchQueryList(results(), changes({ changed: [read] }), {
+        filter: unread
+      })
+
+      expect(ids(data)).toEqual([['a', 'b'], ['c']])
+    })
+
+    it('keeps a conversation while one of its emails still matches', () => {
+      const found = email('a', {
+        threadId: 'ta',
+        mailboxIds: { [INBOX]: true }
+      })
+      const older = email('a0', {
+        threadId: 'ta',
+        mailboxIds: { [INBOX]: true }
+      })
+      const grouped: EmailListData = {
+        pages: [{ ...page([found], 0), threads: { ta: [older, found] } }],
+        pageParams: [0]
+      }
+      const readFound = { ...found, keywords: { $seen: true as const } }
+
+      const { data } = patchQueryList(
+        grouped,
+        changes({ changed: [readFound] }),
+        { ...scope, isCollapsed: true }
+      )
+      expect(ids(data)).toEqual([['a']])
+
+      const readOlder = { ...older, keywords: { $seen: true as const } }
+      const { data: none } = patchQueryList(
+        data,
+        changes({ changed: [readOlder] }),
+        { ...scope, isCollapsed: true }
+      )
+      expect(ids(none)).toEqual([[]])
+    })
+  })
+
   it('asks for a refresh when a conversation loses its email', () => {
     const { needsRefresh } = patchQueryList(
       results(),

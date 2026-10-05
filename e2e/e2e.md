@@ -333,6 +333,12 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
 - [x] `THR-10` Two messages of a conversation asking for a read receipt ask in turn (the second dialog once the first is answered, focused on "No"), not one replacing the other; "Yes" to both sends both receipts (`$mdnsent`), and the focus goes back to the conversation. — web app only, no Patrol test (issue #53)
   - Spec: `tests/thread.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
+- [x] `THR-11` Opening a long conversation (24 messages) from a list scrolls to its first unread message and gives the focus to its header (expanded, in view, below the sticky toolbar, the subject and count read with it); `THR-12` with all messages read, the latest one. — web app; tmail-flutter `focusExpandedEmail` scrolls to the expanded message (issue #95)
+  - Spec: `tests/thread-scroll.spec.ts`, on `chromium` and `mobile` (`THR-11`).
+- [x] `THR-13` From a search result the conversation opens on the message that matched; `THR-14` from a link `/mailbox/:id/email/:emailId` on that message. — web app (issue #95)
+  - Spec: `tests/thread-scroll.spec.ts`, on `chromium` and `mobile`.
+- [x] `THR-15` The scroll is smooth; `THR-16` instant with `prefers-reduced-motion`; `THR-17` expanding, collapsing a message or a reply arriving by push does not move the view. — web app (issue #95)
+  - Spec: `tests/thread-scroll.spec.ts` (`THR-17` also on `mobile`).
 
 ## SRCH — Search (14)
 

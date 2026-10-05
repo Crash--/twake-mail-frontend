@@ -251,7 +251,8 @@
       "bcc": "Скрытая копия",
       "replyTo": "Ответ",
       "from": "От",
-      "subject": "Тема"
+      "subject": "Тема",
+      "hide": "Скрыть: %{field}"
     },
     "window": {
       "minimize": "Уменьшить",

@@ -251,7 +251,8 @@
       "bcc": "Bcc",
       "replyTo": "Reply to",
       "from": "From",
-      "subject": "Subject"
+      "subject": "Subject",
+      "hide": "Hide %{field}"
     },
     "window": {
       "minimize": "Minimize",

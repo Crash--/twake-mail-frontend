@@ -1,6 +1,9 @@
-import { Box, Button } from '@linagora/twake-mui'
-import { useState, type ReactElement } from 'react'
+import { Cross, Icon } from '@linagora/twake-icons'
+import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
+import { useRef, useState, type ReactElement, type ReactNode } from 'react'
 
+import { FieldTextButton } from '@/ds/FieldTextButton/FieldTextButton'
+import type { RecipientFieldActions } from '@/ds/RecipientField/RecipientField'
 import { RecipientSummary } from '@/ds/RecipientField/RecipientSummary'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -39,6 +42,15 @@ export interface RecipientsEditorProps {
   /** The optional fields shown (Cc, Bcc, Reply to) */
   shown: ReadonlySet<RecipientKind>
   onShow: (kind: RecipientKind) => void
+  /** Takes Cc, Bcc or Reply to off again; the field is emptied by the caller */
+  onHide: (kind: RecipientKind) => void
+  /**
+   * The line of the identity selector, shown above To once opened; null
+   * while hidden or when the user has one identity only
+   */
+  fromLine: ReactNode
+  /** Opens the line above; null when there is nothing to open */
+  onShowFrom: (() => void) | null
   /** The fields folded into a one line summary */
   isCollapsed: boolean
   onExpand: () => void
@@ -59,6 +71,9 @@ export function RecipientsEditor({
   onInputChange,
   shown,
   onShow,
+  onHide,
+  fromLine,
+  onShowFrom,
   isCollapsed,
   onExpand,
   autoFocusTo = false
@@ -74,6 +89,18 @@ export function RecipientsEditor({
     onShow(kind)
   }
 
+  const toRef = useRef<RecipientFieldActions>(null)
+
+  const handleHide = (kind: RecipientKind): void => {
+    onHide(kind)
+    // The button that had the focus goes with the field
+    toRef.current?.focus()
+  }
+
+  const handleShowFrom = (): void => {
+    onShowFrom?.()
+  }
+
   const handleExpand = (): void => {
     setFocused('to')
     onExpand()
@@ -87,18 +114,24 @@ export function RecipientsEditor({
       .join(', ')
     const others = all.length - SUMMARY_NAMES
     return (
-      <RecipientSummary
-        summary={
-          others > 0
-            ? `${names} ${t('composer.recipients.others', { smart_count: others })}`
-            : names
-        }
-        label={t('composer.recipients.summary')}
-        onExpand={handleExpand}
-        data-testid="composer-recipients-summary"
-      />
+      <>
+        {fromLine}
+        <RecipientSummary
+          summary={
+            others > 0
+              ? `${names} ${t('composer.recipients.others', { smart_count: others })}`
+              : names
+          }
+          label={t('composer.recipients.summary')}
+          onExpand={handleExpand}
+          data-testid="composer-recipients-summary"
+        />
+      </>
     )
   }
+
+  const hideLabel = (kind: RecipientKind): string =>
+    t('composer.fields.hide', { field: t(LABEL_KEYS[kind]) })
 
   const hidden = OPTIONAL_KINDS.filter(kind => !shown.has(kind))
   const kinds: RecipientKind[] = [
@@ -108,6 +141,7 @@ export function RecipientsEditor({
 
   return (
     <Box>
+      {fromLine}
       {kinds.map(kind => (
         <RecipientInput
           key={kind}
@@ -122,25 +156,44 @@ export function RecipientsEditor({
             onInputChange(kind, value)
           }}
           autoFocus={focused === kind}
+          actions={kind === 'to' ? toRef : undefined}
           endActions={
-            kind === 'to' && hidden.length > 0 ? (
-              <Box className="u-flex">
+            kind === 'to' ? (
+              <>
+                {onShowFrom === null ? null : (
+                  <FieldTextButton
+                    onClick={handleShowFrom}
+                    data-testid="composer-show-from-button"
+                  >
+                    {t('composer.fields.from')}
+                  </FieldTextButton>
+                )}
                 {hidden.map(other => (
-                  <Button
+                  <FieldTextButton
                     key={other}
-                    size="small"
-                    variant="text"
-                    color="inherit"
                     onClick={() => {
                       handleShow(other)
                     }}
                     data-testid={`composer-show-${FIELD_IDS[other]}-button`}
                   >
                     {t(LABEL_KEYS[other])}
-                  </Button>
+                  </FieldTextButton>
                 ))}
-              </Box>
-            ) : undefined
+              </>
+            ) : (
+              <Tooltip title={hideLabel(kind)}>
+                <IconButton
+                  size="small"
+                  aria-label={hideLabel(kind)}
+                  onClick={() => {
+                    handleHide(kind)
+                  }}
+                  data-testid={`composer-hide-${FIELD_IDS[kind]}-button`}
+                >
+                  <Icon icon={Cross} size={16} aria-hidden="true" />
+                </IconButton>
+              </Tooltip>
+            )
           }
         />
       ))}

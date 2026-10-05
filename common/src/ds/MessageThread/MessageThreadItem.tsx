@@ -11,6 +11,8 @@ const ITEM_SX = {
 } as const
 
 const TOGGLE_SX = {
+  // Scrolled to, a message stops below the sticky bar of the conversation
+  scrollMarginTop: '3.5rem',
   display: 'block',
   width: '100%',
   textAlign: 'start',

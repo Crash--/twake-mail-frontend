@@ -375,7 +375,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `LBL-09` From the Choose Label modal empty state (as in LBL-08), "Create a label" → entering a unique name and confirming shows "You successfully created the <name> label", and the modal now displays a label list containing the new label instead of the empty state. — `labels/create_label_from_no_label_yet_widget_test.dart` · tags: `ios (default)`
 - [x] `LBL-10` With one existing label ("Existing Label 1", applied to an email), selecting that email and opening "Label as" shows the label list (no empty state) plus a "Create a label" button; creating a new label from it shows the success toast and the new label in the list. — `labels/create_label_from_choose_label_modal_with_existing_labels_test.dart` · tags: `ios (default)`
 - [x] `LBL-11` With "Remove Tag 1" applied to one email, opening that label from the sidebar and then the email shows the label chip next to the subject; clicking the chip's remove (×) button shows the toast `Label "Remove Tag 1" removed from email`. — `labels/remove_a_label_from_email_test.dart` · tags: `ios (default)`
-- [ ] `LBL-12` In the conversation view (on by default), the conversation shows the label of one of its emails under its subject; its × takes the label off that email. — web app only, no Patrol test
+- [x] `LBL-12` In the conversation view (on by default), the conversation shows the label of one of its emails under its subject; its × takes the label off that email. — web app only, no Patrol test
 
 ## SET — Settings (6)
 

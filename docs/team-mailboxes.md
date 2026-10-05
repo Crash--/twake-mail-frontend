@@ -97,7 +97,7 @@ Flutter paths are relative to `tmail-flutter/` (`lib/features/` abbreviated
 
 | Behaviour | Flutter | React | Status | Effort |
 |---|---|---|---|---|
-| From lists the identity of the team mailbox | `f/composer/.../setup_list_identities_extension.dart` (only identities with `mayDelete`) | `r/composer/ComposerForm.tsx` (every identity) | ✅ (James gives the team identity `mayDelete: false`; tmail-flutter only filters on `mayDelete` when it fetches the identities itself) |  |
+| From lists the identity of the team mailbox | `f/composer/.../setup_list_identities_extension.dart` (only identities with `mayDelete`) | `r/composer/ComposerForm.tsx` (every identity) | open question: this app lists every identity, tmail-flutter keeps those with `mayDelete: true` when the composer gets none from the dashboard, and James gives the team identity (and the default one) `mayDelete: false` on the memory image; production may differ, to confirm |  |
 | Replying / forwarding an email of a team mailbox picks its identity and signature | `single_email_controller.dart` (`_setUpDefaultIdentityForTeamMailbox`) | `r/identities/identityForEmail.ts`, `r/composer/replyContent.ts` | ✅ | |
 | The draft is saved in the Drafts of the team mailbox of the identity chosen | `get_draft_mailbox_id_for_composer_extension.dart` | `ComposerForm.tsx` (`drafts` taken once, role `drafts`) | ✅ done |  |
 | The sent copy goes to the Sent of the team mailbox of the identity | `get_sent_mailbox_id_for_composer_extension.dart` | `ComposerForm.tsx` (`sent`), `composeEmail.ts` (`sendEmail`) | ✅ done |  |

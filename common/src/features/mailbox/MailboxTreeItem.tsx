@@ -15,7 +15,11 @@ import { useDropEmails } from '@common/features/emailActions/useDropEmails'
 import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderActionsMenu'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { getMailboxIcon } from './mailboxDisplay'
+import {
+  getMailboxIcon,
+  showsTotalCount,
+  showsUnreadCount
+} from './mailboxDisplay'
 import {
   isHiddenMailbox,
   isTeamRoot,
@@ -63,6 +67,11 @@ export function MailboxTreeItem({
   const isHidden = isHiddenMailbox(mailbox)
   // The root of a team mailbox says its address
   const address = isTeamRoot(mailbox) ? teamMailboxAddress(mailbox) : null
+  const shownCount = showsUnreadCount(mailbox)
+    ? { count: mailbox.unreadEmails, testId: 'mailbox-unread-count' }
+    : showsTotalCount(mailbox)
+      ? { count: mailbox.totalEmails, testId: 'mailbox-total-count' }
+      : null
   const menuLabel = t('folders.menu.button', { name })
   // The menu key may also send a contextmenu event: open the menu once
   const openedByKey = useRef(false)
@@ -134,17 +143,15 @@ export function MailboxTreeItem({
         </>
       }
       count={
-        mailbox.unreadEmails > 0 ? (
+        shownCount === null ? null : (
           <CountBadge
-            count={mailbox.unreadEmails}
+            count={shownCount.count}
             aria-hidden
-            data-testid="mailbox-unread-count"
+            data-testid={shownCount.testId}
           />
-        ) : null
+        )
       }
-      countText={
-        mailbox.unreadEmails > 0 ? String(mailbox.unreadEmails) : undefined
-      }
+      countText={shownCount === null ? undefined : String(shownCount.count)}
       actions={
         <Tooltip title={menuLabel}>
           <IconButton

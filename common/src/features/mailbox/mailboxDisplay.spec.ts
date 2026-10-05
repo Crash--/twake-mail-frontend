@@ -2,7 +2,11 @@ import { Trash, FolderOutlined, Paperplane } from '@linagora/twake-icons'
 
 import { makeMailbox, makeTeamMailboxes } from '@common/testing/fakeJmapServer'
 
-import { getMailboxIcon } from './mailboxDisplay'
+import {
+  getMailboxIcon,
+  showsTotalCount,
+  showsUnreadCount
+} from './mailboxDisplay'
 
 describe('getMailboxIcon', () => {
   const team = makeTeamMailboxes()
@@ -29,5 +33,70 @@ describe('getMailboxIcon', () => {
     expect(getMailboxIcon(makeMailbox({ id: 'f', name: 'Trash' }))).toBe(
       FolderOutlined
     )
+  })
+})
+
+describe('showsUnreadCount', () => {
+  const team = makeTeamMailboxes()
+  const withCounts = (
+    mailbox: (typeof team)[number]
+  ): (typeof team)[number] => ({
+    ...mailbox,
+    unreadEmails: 3,
+    totalEmails: 5
+  })
+
+  it('shows the unread count of the Inbox and of other folders', () => {
+    expect(
+      showsUnreadCount(
+        makeMailbox({ id: 'i', name: 'F', role: 'inbox', unreadEmails: 2 })
+      )
+    ).toBe(true)
+    expect(
+      showsUnreadCount(makeMailbox({ id: 'w', name: 'Work', unreadEmails: 2 }))
+    ).toBe(true)
+  })
+
+  it('shows nothing when nothing is unread', () => {
+    expect(
+      showsUnreadCount(makeMailbox({ id: 'i', name: 'F', role: 'inbox' }))
+    ).toBe(false)
+  })
+
+  it.each(['trash', 'junk', 'drafts', 'templates', 'sent'])(
+    'hides the unread count of the %s folder',
+    role => {
+      expect(
+        showsUnreadCount(
+          makeMailbox({ id: role, name: 'F', role, unreadEmails: 4 })
+        )
+      ).toBe(false)
+    }
+  )
+
+  it('hides the unread count of the Trash, Drafts and Templates of a team mailbox, by name', () => {
+    for (const name of ['Trash', 'Drafts', 'Templates']) {
+      const mailbox = team.find(candidate => candidate.name === name)
+      if (mailbox === undefined) continue
+      expect(showsUnreadCount(withCounts(mailbox))).toBe(false)
+    }
+  })
+})
+
+describe('showsTotalCount', () => {
+  it('shows the number of drafts, as tmail-flutter', () => {
+    expect(
+      showsTotalCount(
+        makeMailbox({ id: 'd', name: 'F', role: 'drafts', totalEmails: 2 })
+      )
+    ).toBe(true)
+    expect(
+      showsTotalCount(makeMailbox({ id: 'd', name: 'F', role: 'drafts' }))
+    ).toBe(false)
+    expect(
+      showsTotalCount(
+        makeMailbox({ id: 'i', name: 'F', role: 'inbox', totalEmails: 2 })
+      )
+    ).toBe(false)
   })
 })

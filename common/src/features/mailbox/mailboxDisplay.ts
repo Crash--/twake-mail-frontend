@@ -14,7 +14,13 @@ import {
 
 import type { TranslationKey } from '@common/i18n/useI18n'
 
-import { isTeamFolder } from './mailboxTree'
+import {
+  isDraftsMailbox,
+  isTeamFolder,
+  isTeamTemplates,
+  isTemplatesMailbox,
+  isTrashMailbox
+} from './mailboxTree'
 import type { MailboxSummary } from './queries'
 
 type MailboxIcon = IconProps['icon']
@@ -83,4 +89,34 @@ export function getMailboxIcon(
     )
   }
   return FolderOutlined
+}
+
+/**
+ * Whether the sidebar shows the unread count of a folder: not on the Trash,
+ * Spam, Drafts, Templates and Sent (the ones of a team mailbox, known by
+ * their name, included, except its Sent and Spam which tmail-flutter tests
+ * by role only), and only when something is unread
+ * (`allowedToDisplayCountOfUnreadEmails`)
+ */
+export function showsUnreadCount(mailbox: MailboxSummary): boolean {
+  return (
+    mailbox.unreadEmails > 0 &&
+    !(
+      isTrashMailbox(mailbox) ||
+      mailbox.role === 'junk' ||
+      isDraftsMailbox(mailbox) ||
+      isTemplatesMailbox(mailbox) ||
+      isTeamTemplates(mailbox) ||
+      mailbox.role === 'sent'
+    )
+  )
+}
+
+/**
+ * Whether the sidebar shows the number of emails of a folder instead: the
+ * Drafts, when it holds some (`allowedToDisplayCountOfTotalEmails`; the
+ * Trash and Spam have the "Empty" action in that place)
+ */
+export function showsTotalCount(mailbox: MailboxSummary): boolean {
+  return mailbox.totalEmails > 0 && isDraftsMailbox(mailbox)
 }

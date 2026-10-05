@@ -74,9 +74,10 @@ export type FakeEmail = Pick<
   > & {
     /**
      * Headers asked as `header:<name>:asText` (identity of a draft…) or
-     * `asURLs` (the `<…>` of the value: `List-Post`)
+     * `asURLs` (the `<…>` of the value: `List-Post`); a list is a header
+     * repeated, read by `asText:all` (`X-TWP-Message`)
      */
-    headers?: Record<string, string>
+    headers?: Record<string, string | string[]>
   }
 
 /** What `Email/set` answers for a created email */
@@ -770,13 +771,21 @@ export function makeFakeJmapServer(
       const email = server.emails.find(candidate => candidate.id === id)
       if (!email) return []
       const headers = Object.fromEntries(
-        Object.entries(email.headers ?? {}).flatMap(([name, value]) => [
-          [`header:${name}:asText`, value],
-          [
-            `header:${name}:asURLs`,
-            Array.from(value.matchAll(/<([^>]+)>/g), match => match[1])
+        Object.entries(email.headers ?? {}).flatMap(([name, header]) => {
+          const values = typeof header === 'string' ? [header] : header
+          const value = values[0] ?? null
+          return [
+            [`header:${name}:asText`, value],
+            [`header:${name}:asText:all`, values],
+            [
+              `header:${name}:asURLs`,
+              Array.from(
+                values.join(' ').matchAll(/<([^>]+)>/g),
+                match => match[1]
+              )
+            ]
           ]
-        ])
+        })
       )
       return [pickProperties({ ...email, ...headers }, args.properties)]
     })

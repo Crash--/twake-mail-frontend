@@ -56,8 +56,9 @@ the React app. One line per Patrol test, 116 lines.
 | `CAL` | Calendar events | 7 | 0 | 0 |
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid | 2 | 0 | 0 |
+| `DRIVE` | Twake Drive picker | 3 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **157** | **24** | **6** |
+| | **Total** | **160** | **24** | **6** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -433,11 +434,24 @@ the CalDAV server (esn-sabre) of a Twake Workplace, `CalendarEvent/accept` and
 
 ## APPGRID — App grid (2)
 
-- [ ] `APPGRID-01` The app-grid button is visible in the thread view; opening it lists exactly the expected apps in order (iOS: "Twake Drive", "Twake Chat"), and launching each app and coming back to Twake Mail still shows the same list. — `app_grid/app_grid_test.dart` · tags: `ios (default)`
+- [x] `APPGRID-01` The app-grid button is visible in the thread view; opening it lists exactly the expected apps in order (iOS: "Twake Drive", "Twake Chat"), and launching each app and coming back to Twake Mail still shows the same list. — `app_grid/app_grid_test.dart` · tags: `ios (default)`
   - Data: needs `APP_GRID_AVAILABLE=supported` and the server app-grid configuration. The mobile robot launches the native apps and returns via the Home button. A web robot also exists (dashboard items Twake, Contacts, Calendar, TMail, TDrive, Teleskop, each opened in a new tab then closed with Ctrl+W); port that variant.
-  - Web port: `tests/appgrid.spec.ts`, `@mobile` (in the folder drawer on phones). The apps of `docker/app-list.js` (Twake Chat, Twake Drive, Twake Calendar, hosts answered by the spec) in that order, the Drive at `https://<localpart>-drive.workplace.example.test/` (URI template), each opened in a new tab, closed, the grid still listing them; axe. tmail-flutter web reads its grid from `app_dashboard.json`, not from `.well-known/linagora-ecosystem` (mobile only).
-- [ ] `APPGRID-02` Inside an iframe of Twake Workplace (`WORKPLACE_EMBEDDING`), the top bar has neither the logotype nor the app grid, and a gear opens the account menu (Twake Calendar's `EmbeddingContext`). — web app only
-  - Spec: `tests/appgrid.spec.ts`; the container is `/e2e/workplace.html` of the stack, on `localhost` (another origin than the app on `127.0.0.1`).
+  - Web port: `tests/appgrid.spec.ts`, `@mobile` (in the folder drawer on phones). The apps of `docker/app-list.js` (Twake Chat, Twake Drive, Twake Calendar, hosts answered by the spec) in that order, the Drive at `https://<localpart>-drive.workplace.example.test/` (URI template), each opened in a new tab, closed, the grid still listing them; axe. Passes in CI. tmail-flutter web reads its grid from `app_dashboard.json`, not from `.well-known/linagora-ecosystem` (mobile only).
+- [x] `APPGRID-02` Inside an iframe of Twake Workplace (`WORKPLACE_EMBEDDING`), the top bar has neither the logotype nor the app grid, and a gear opens the account menu (Twake Calendar's `EmbeddingContext`). — web app only
+  - Spec: `tests/appgrid.spec.ts`; the container is `/e2e/workplace.html` of the stack, on `localhost` (another origin than the app on `127.0.0.1`). Passes in CI.
+
+## DRIVE — Twake Drive picker (3)
+
+`tests/drive.spec.ts`, against the fake Drive of the stack (`docker/drive-picker.html`, the
+`/e2e/drive/` locations of `docker/nginx/default.conf`: token exchange, intent, a picker
+speaking the cozy-interapp protocol, a file to download). The picker trades the ID token of
+the session: the specs need the app in OIDC mode, `E2E_OIDC=1
+E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`, and skip otherwise (CI runs them only
+when the workflow is started with `oidc`). They sign in as Dex's static alice.
+
+- [ ] `DRIVE-01` "Attach from Drive" opens the picker in a dialog named "Twake Drive" (full screen on phones; axe); "Add as link" closes it and inserts a Drive card (`a.tmail-file-link-card`) at the caret, the focus back in the message. — web app only (tmail-flutter `workplace/`)
+- [ ] `DRIVE-02` "Add as attachment" downloads the file and attaches it (`report.txt`, uploaded). — web app only
+- [ ] `DRIVE-03` Cancel in the picker closes it, the message unchanged. — web app only
 
 ## MISC — Misc (1)
 

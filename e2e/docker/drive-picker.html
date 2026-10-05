@@ -1,0 +1,56 @@
+<!doctype html>
+<!--
+  A fake Twake Drive picker for DRIVE-01 and DRIVE-02: the cozy-interapp
+  protocol (intent-<id>:ready, :readyToUse, :done, :cancel) of the intent
+  e2e-intent, one file to share by link or to attach. Served by the stack's
+  nginx at http://localhost:<port>/e2e/drive/picker.html.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fake Twake Drive</title>
+  </head>
+  <body>
+    <h1>Fake Twake Drive</h1>
+    <p>report.txt</p>
+    <button type="button" id="link" disabled>Add as link</button>
+    <button type="button" id="attach" disabled>Add as attachment</button>
+    <button type="button" id="cancel">Cancel</button>
+    <script>
+      var ID = 'e2e-intent'
+      var base = location.protocol + '//' + location.host + '/e2e/drive'
+      var parentOrigin = null
+      function send(type, extra) {
+        var message = Object.assign({ type: 'intent-' + ID + ':' + type }, extra || {})
+        window.parent.postMessage(message, parentOrigin || '*')
+      }
+      window.addEventListener('message', function (event) {
+        if (event.source !== window.parent) return
+        parentOrigin = event.origin
+        var data = event.data || {}
+        var link = document.getElementById('link')
+        var attach = document.getElementById('attach')
+        if (data.sharingLink) link.textContent = data.sharingLink.label
+        link.disabled = !data.sharingLink
+        if (data.downloadLink) attach.textContent = data.downloadLink.label
+        attach.disabled = !data.downloadLink
+        send('readyToUse')
+      })
+      var file = { id: 'file-1', name: 'report.txt', size: 20, mimeType: 'text/plain' }
+      document.getElementById('link').addEventListener('click', function () {
+        send('done', {
+          document: [Object.assign({ sharingLink: base + '/share/report' }, file)]
+        })
+      })
+      document.getElementById('attach').addEventListener('click', function () {
+        send('done', {
+          document: [Object.assign({ downloadLink: base + '/files/report.txt' }, file)]
+        })
+      })
+      document.getElementById('cancel').addEventListener('click', function () {
+        send('cancel')
+      })
+      send('ready')
+    </script>
+  </body>
+</html>

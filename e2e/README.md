@@ -73,7 +73,10 @@ may still answer 401 to the first authenticated requests.
 whatever `.env.js` the build holds: basic auth, JMAP session on the origin of the app
 (`window.location.origin + '/jmap/session'`), English UI. `/appList.js` comes from
 [`docker/app-list.js`](docker/app-list.js): three apps on hosts that do not exist (the specs
-answer them), the Drive one a URI template resolved per user.
+answer them), the Drive one a URI template resolved per user. The same nginx serves a fake
+Twake Drive on `http://localhost:<port>/e2e/drive/` (token exchange, intent, picker, a file)
+for the Drive specs, which need the app in OIDC mode:
+`E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`.
 
 **Same origin.** The app and JMAP share `http://127.0.0.1:18302`, so the browser never
 makes a cross origin call and the JMAP session advertises `http://127.0.0.1:18302/jmap`
@@ -284,6 +287,8 @@ e2e/
 │   ├── nginx/default.conf    single origin: app + /jmap + /dex
 │   ├── app-env.js            runtime configuration of the app under test (/.env.js)
 │   ├── app-list.js           apps of its app grid (/appList.js)
+│   ├── app-env-oidc.js       the same in OIDC mode with the Drive picker (E2E_APP_ENV, DRIVE-*)
+│   ├── drive-picker.html     a fake Twake Drive picker (/e2e/drive/picker.html)
 │   ├── dex/config.yaml       OIDC provider (profile oidc)
 │   ├── app-placeholder/      served when E2E_APP_DIR is not set
 │   └── .generated/           rendered config and keys (git ignored)

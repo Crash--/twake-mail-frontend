@@ -9,9 +9,16 @@ import type { IdentitySummary } from '@common/features/identities/queries'
 import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 
 import {
+  isMarkedImportant,
+  PRIORITY_HEADERS,
+  type PriorityHeaders
+} from '@common/features/email/importance'
+
+import {
   ANSWERING_HEADER,
   IDENTITY_HEADER,
   parseAnswering,
+  READ_RECEIPT_REQUEST_HEADER,
   type AttachedFile
 } from './composeEmail'
 import { blockRemoteImages, fromEmailHtml, hasBlockedImages } from './emailHtml'
@@ -71,6 +78,34 @@ export interface ComposerContent {
    * came): the next one looks for it (`findStrayVersions`)
    */
   mayHaveStrays: boolean
+  /** "Request read receipt" and "Mark as important" of the "More" menu */
+  options: SendOptions
+  /**
+   * Where read receipts go: the sender of a reopened draft (tmail-flutter);
+   * null for the account address
+   */
+  readReceiptAddress: string | null
+}
+
+/** The options of the "More" menu of a message */
+export interface SendOptions {
+  requestReadReceipt: boolean
+  isImportant: boolean
+}
+
+export const NO_SEND_OPTIONS: SendOptions = {
+  requestReadReceipt: false,
+  isImportant: false
+}
+
+/**
+ * The Bcc of an identity, added to the messages it sends when it is
+ * chosen (tmail-flutter `_applyBccEmailAddressFromIdentity`)
+ */
+export function identityBcc(
+  identity: Pick<IdentitySummary, 'bcc'> | null | undefined
+): Recipient[] {
+  return toRecipients(identity?.bcc)
 }
 
 /** What makes two states of a message different */
@@ -79,13 +114,16 @@ export function fingerprint(
   recipients: RecipientLists,
   subject: string,
   storageHtml: string,
-  attachments: readonly Pick<ComposerAttachment, 'id' | 'status'>[]
+  attachments: readonly Pick<ComposerAttachment, 'id' | 'status'>[],
+  options: SendOptions = NO_SEND_OPTIONS
 ): string {
   return JSON.stringify([
     identityId,
     recipients,
     subject,
     storageHtml,
+    options.requestReadReceipt,
+    options.isImportant,
     // Their local ids: a save moves their blobs, not the files
     attachments
       .filter(attachment => attachment.status === 'done')
@@ -100,16 +138,21 @@ export const EMPTY_RECIPIENTS: RecipientLists = {
   replyTo: []
 }
 
-/** A new message: the signature of the default identity, below a line */
+/**
+ * A new message: the signature of the default identity, below a line, and
+ * its Bcc; `options` are the preferences of the user (read receipts)
+ */
 export function newMessageContent(
-  identities: readonly IdentitySummary[]
+  identities: readonly IdentitySummary[],
+  options: SendOptions = NO_SEND_OPTIONS
 ): ComposerContent {
   const identity = identities[0] ?? null
   const signature = identity ? signatureHtml(identity) : null
+  const bcc = identityBcc(identity)
   return {
     identityId: identity?.id ?? null,
-    recipients: EMPTY_RECIPIENTS,
-    shown: [],
+    recipients: { ...EMPTY_RECIPIENTS, bcc },
+    shown: bcc.length > 0 ? ['bcc'] : [],
     subject: '',
     html: `<p></p>${signature === null ? '' : signatureBlock(signature)}`,
     attachments: [],
@@ -121,7 +164,9 @@ export function newMessageContent(
     answering: null,
     hasBlockedImages: false,
     draftSession: crypto.randomUUID(),
-    mayHaveStrays: false
+    mayHaveStrays: false,
+    options,
+    readReceiptAddress: null
   }
 }
 
@@ -147,7 +192,9 @@ export const DRAFT_PROPERTIES = [
   'keywords',
   'mailboxIds',
   IDENTITY_HEADER,
-  ANSWERING_HEADER
+  ANSWERING_HEADER,
+  READ_RECEIPT_REQUEST_HEADER,
+  ...PRIORITY_HEADERS
 ] as const
 
 const DRAFT_BODY_PROPERTIES = [
@@ -177,7 +224,8 @@ type DraftEmail = Pick<
 > & {
   [IDENTITY_HEADER]?: string | null
   [ANSWERING_HEADER]?: string | null
-}
+  [READ_RECEIPT_REQUEST_HEADER]?: string | null
+} & PriorityHeaders
 
 function toRecipients(
   addresses: EmailAddress[] | null | undefined
@@ -286,7 +334,12 @@ export async function loadDraftContent(
     answering: parseAnswering(email[ANSWERING_HEADER]),
     hasBlockedImages: hasBlockedImages(editorHtml),
     draftSession: crypto.randomUUID(),
-    mayHaveStrays: false
+    mayHaveStrays: false,
+    options: {
+      requestReadReceipt: (email[READ_RECEIPT_REQUEST_HEADER] ?? '') !== '',
+      isImportant: isMarkedImportant(email)
+    },
+    readReceiptAddress: email.from?.[0]?.email ?? null
   }
 }
 
@@ -312,6 +365,8 @@ export interface ComposerSnapshot {
   answering?: Answering | null
   draftSession?: string
   mayHaveStrays?: boolean
+  options?: SendOptions
+  readReceiptAddress?: string | null
 }
 
 function isSnapshot(value: unknown): value is ComposerSnapshot {
@@ -368,6 +423,14 @@ export async function restoreSnapshotContent(
       typeof snapshot.draftSession === 'string'
         ? snapshot.draftSession
         : crypto.randomUUID(),
-    mayHaveStrays: snapshot.mayHaveStrays === true
+    mayHaveStrays: snapshot.mayHaveStrays === true,
+    options: {
+      requestReadReceipt: snapshot.options?.requestReadReceipt === true,
+      isImportant: snapshot.options?.isImportant === true
+    },
+    readReceiptAddress:
+      typeof snapshot.readReceiptAddress === 'string'
+        ? snapshot.readReceiptAddress
+        : null
   }
 }

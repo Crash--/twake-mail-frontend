@@ -1,9 +1,18 @@
-import { Attachment, Dots, Icon, Trash, Warning } from '@linagora/twake-icons'
+import {
+  Attachment,
+  Check,
+  Dots,
+  Icon,
+  Trash,
+  Warning
+} from '@linagora/twake-icons'
 import {
   Box,
   Button,
   IconButton,
   InputBase,
+  ListItemIcon,
+  ListItemText,
   Menu,
   MenuItem,
   TextField,
@@ -47,6 +56,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import {
   buildEmail,
+  identityReplyTo,
   destroyPreviousVersions,
   findStrayVersions,
   saveDraft,
@@ -62,9 +72,11 @@ import {
   newMessageContent,
   readSnapshot,
   restoreSnapshotContent,
+  identityBcc,
   type ComposerAttachment,
   type ComposerContent,
-  type ComposerSnapshot
+  type ComposerSnapshot,
+  type SendOptions
 } from './composerContent'
 import { snapshotKey } from './composerStorage'
 import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
@@ -225,7 +237,7 @@ function LoadedComposerForm({
 }: LoadedFormProps): ReactElement {
   const { t, lang } = useI18n()
   const client = useJmapClient()
-  const { accountId } = useJmapSession()
+  const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
   const choose = useChoose()
   const confirm = useConfirm()
@@ -250,6 +262,7 @@ function LoadedComposerForm({
     content.recipients.to.length > 0
   const [isCollapsed, setIsCollapsed] = useState(opensOnText)
   const [subject, setSubject] = useState(content.subject)
+  const [options, setOptions] = useState<SendOptions>(content.options)
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [isSending, setIsSending] = useState(false)
@@ -296,7 +309,8 @@ function LoadedComposerForm({
       allRecipients(),
       subject,
       toStorageHtml(editor.getHTML()),
-      files.attachments
+      files.attachments,
+      options
     )
 
   const currentFingerprint = (): string | null => {
@@ -323,7 +337,12 @@ function LoadedComposerForm({
       references: content.references,
       attachments: uploadedFiles(files.attachments),
       answering: content.answering,
-      draftSession: content.draftSession
+      draftSession: content.draftSession,
+      readReceiptTo: options.requestReadReceipt
+        ? (content.readReceiptAddress ?? session.username)
+        : null,
+      isImportant: options.isImportant,
+      identityReplyTo: identityReplyTo(identity)
     }
   }
 
@@ -427,7 +446,7 @@ function LoadedComposerForm({
       return
     }
     markChanged()
-  }, [identityId, recipients, subject])
+  }, [identityId, recipients, subject, options])
 
   // Autosave, once the user stopped changing the message
   useEffect(() => {
@@ -523,7 +542,9 @@ function LoadedComposerForm({
       references: content.references,
       answering: content.answering,
       draftSession: content.draftSession,
-      mayHaveStrays: mayHaveStraysRef.current
+      mayHaveStrays: mayHaveStraysRef.current,
+      options,
+      readReceiptAddress: content.readReceiptAddress
     }
   }
 
@@ -561,11 +582,50 @@ function LoadedComposerForm({
   }
 
   const handleIdentityChange = (id: string): void => {
-    setIdentityId(id)
+    const previous = identities.find(candidate => candidate.id === identityId)
     const next = identities.find(candidate => candidate.id === id)
+    setIdentityId(id)
     if (editorRef.current && next) {
       replaceSignature(editorRef.current, signatureHtml(next))
     }
+    // The Bcc of the identity goes with it (tmail-flutter)
+    const left = new Set(
+      identityBcc(previous).map(recipient => recipient.email.toLowerCase())
+    )
+    const added = identityBcc(next)
+    if (left.size === 0 && added.length === 0) return
+    setRecipients(current => ({
+      ...current,
+      bcc: mergeRecipients(
+        current.bcc.filter(
+          recipient => !left.has(recipient.email.toLowerCase())
+        ),
+        added
+      )
+    }))
+    if (added.length > 0) setShown(current => new Set([...current, 'bcc']))
+  }
+
+  /** A "More" option switched on or off, said in a toast (tmail-flutter) */
+  const handleToggleOption = (option: keyof SendOptions): void => {
+    setMoreAnchor(null)
+    const isOn = !options[option]
+    setOptions(current => ({ ...current, [option]: isOn }))
+    const messages: Record<
+      keyof SendOptions,
+      [TranslationKey, TranslationKey]
+    > = {
+      requestReadReceipt: [
+        'composer.options.readReceiptEnabled',
+        'composer.options.readReceiptDisabled'
+      ],
+      isImportant: [
+        'composer.options.importantEnabled',
+        'composer.options.importantDisabled'
+      ]
+    }
+    const [enabled, disabled] = messages[option]
+    notify({ message: t(isOn ? enabled : disabled), severity: 'success' })
   }
 
   const handleImageFiles = async (
@@ -968,8 +1028,39 @@ function LoadedComposerForm({
               onClick={handleSaveDraft}
               data-testid="composer-save-draft-item"
             >
-              {t('composer.saveAsDraft')}
+              <ListItemText inset primary={t('composer.saveAsDraft')} />
             </MenuItem>
+            {(
+              [
+                [
+                  'requestReadReceipt',
+                  'composer.options.readReceipt',
+                  'composer-read-receipt-item'
+                ],
+                [
+                  'isImportant',
+                  'composer.options.markAsImportant',
+                  'composer-mark-important-item'
+                ]
+              ] as const
+            ).map(([option, label, testId]) => (
+              <MenuItem
+                key={option}
+                role="menuitemcheckbox"
+                aria-checked={options[option]}
+                onClick={() => {
+                  handleToggleOption(option)
+                }}
+                data-testid={testId}
+              >
+                {options[option] ? (
+                  <ListItemIcon>
+                    <Icon icon={Check} aria-hidden="true" />
+                  </ListItemIcon>
+                ) : null}
+                <ListItemText inset={!options[option]} primary={t(label)} />
+              </MenuItem>
+            ))}
           </Menu>
         </Box>
       </div>

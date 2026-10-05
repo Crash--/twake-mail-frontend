@@ -45,7 +45,16 @@ export function SelectionAction({
     }
     const place = (): void => {
       try {
-        const end = editor.view.coordsAtPos(selection.to)
+        // The last box of the selected text, as the eye sees it; a select
+        // all would otherwise end after the last block, at the far side
+        const domSelection = window.getSelection()
+        const boxes =
+          domSelection !== null && domSelection.rangeCount > 0
+            ? Array.from(domSelection.getRangeAt(0).getClientRects()).filter(
+                box => box.width > 0 && box.height > 0
+              )
+            : []
+        const end = boxes.at(-1) ?? editor.view.coordsAtPos(selection.to)
         const frame = container.getBoundingClientRect()
         setPosition({
           top: end.bottom - frame.top + 4,

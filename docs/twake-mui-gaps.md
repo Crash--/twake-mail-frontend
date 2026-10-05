@@ -337,3 +337,10 @@ toolbar keeps undo, redo and clear formatting, which the design omits, so no
 behaviour is lost. The toolbar is 48 px high (32 px boxes with 8 px of padding
 above and below), not the 40 px of the spec, which cannot hold a 32 px box
 with that padding.
+
+## RichTextEditor `selectionAction`
+
+- Component: `RichTextEditor` (`common/src/ds/RichTextEditor/SelectionAction.tsx`).
+- Variant: a button following the end of the selected text (the sparkle of tmail-flutter's `AiSelectionOverlay`), in the tab order after the text.
+- Usage: the AI assistant of the composer opens its menu on it.
+- twake-ui change: upstream with RichTextEditor, which twake-mui lacks.

@@ -17,6 +17,12 @@ describe('list filters', () => {
     ])
   })
 
+  it('has no unread filter in Action required, which lists unread emails', () => {
+    expect(
+      availableListFilters({ isStarredView: false, isActionRequiredView: true })
+    ).toEqual(['attachments', 'starred'])
+  })
+
   it('leaves a request alone for "all"', () => {
     const request = { filter: { hasKeyword: '$flagged' }, sort: [] }
 

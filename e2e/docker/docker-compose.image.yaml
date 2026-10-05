@@ -21,8 +21,9 @@ services:
       CSP_FRAME_ANCESTORS: "'self' http://localhost:*"
       # The fake Twake Drive of DRIVE-* (/e2e/drive/), on http://localhost:<port> too: its
       # API (token exchange, intents, downloads) and its picker in a frame
-      # and the scribe endpoint of the AI specs (AI-*), answered by the spec itself
-      CSP_CONNECT_SRC: 'http://localhost:* https://scribe.example.test'
+      # and the scribe endpoint of the AI specs (AI-*), answered by the spec itself, and the
+      # Sentry ingest of SENTRY_DSN in app-env.js (SET-10 to SET-13), likewise
+      CSP_CONNECT_SRC: 'http://localhost:* https://scribe.example.test https://sentry-stub.example.test'
       CSP_FRAME_SRC: 'http://localhost:*'
 
   proxy:

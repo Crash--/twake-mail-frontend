@@ -259,3 +259,4 @@ Conventions:
 | `composer-hide-cc-button` / `composer-hide-bcc-button` / `composer-hide-reply-to-button` | the close button at the end of the line of an optional field: hides it and empties it, the focus goes back to To | `prefix_*_recipient_delete_button` |
 | `composer-formatting-button` | footer, first button: shows or hides the formatting toolbar (`aria-pressed`, shown by default) | — |
 | `rich-text-link-button` / `rich-text-image-button` | the link and image buttons moved from the formatting toolbar to the footer of the composer (same ids; the vacation editor keeps them in its toolbar) | `insertLinkButton`, `insertImageButton` |
+| `error-reporting-setting-toggle` | switch of Settings > Preferences, "Send error reports", shown when error reporting is configured and the server keeps the setting (holds the `switch` input) | `errorReporting` option (`sentry-reporting`) |

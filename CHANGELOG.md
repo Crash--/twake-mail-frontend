@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Runtime configuration keys of the `env.file` of tmail-flutter: `SERVER_URL`
+  (the session is `<SERVER_URL>/.well-known/jmap`), `DOMAIN_REDIRECT_URL`
+  (redirects `login-callback.html` and `logout-callback.html`),
+  `WEB_OIDC_CLIENT_ID`, `OIDC_SCOPES` (comma separated), `APP_GRID_AVAILABLE`,
+  `SENTRY_ENABLED`, `SENTRY_ENVIRONMENT`. `JMAP_SESSION_URL`, `SSO_CLIENT_ID`
+  and `SSO_SCOPE` are deprecated aliases, logged once in the console. The
+  image also accepts an `env.file` mounted at
+  `/usr/share/nginx/html/assets/env.file`; see `docs/deployment.md`
+
 - Application skeleton: npm workspaces (`apps/private`, `common`), Rsbuild,
   React 18, TypeScript strict, `@linagora/twake-mui`, TanStack Query
 - Runtime configuration (`.env.js`, `appList.js`, `version.js`), validated at

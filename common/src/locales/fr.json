@@ -20,7 +20,8 @@
     "confirm": "Confirmer",
     "remove": "Retirer",
     "errorOccurredShort": "Erreur ! Une erreur s'est produite. Veuillez réessayer plus tard.",
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "refresh": "Rafraîchir"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -509,6 +510,10 @@
       "folderVisibility": {
         "title": "Affichage des dossiers",
         "description": "Afficher/masquer vos dossiers, y compris vos dossiers personnels et vos boîtes aux lettres d'équipe."
+      },
+      "storage": {
+        "title": "Stockage",
+        "description": "Gérer votre espace disponible."
       }
     },
     "preferences": {
@@ -872,5 +877,20 @@
     "removeFromEmail": "Retirer le libellé %{name}",
     "moreCount": "%{count} autres libellés",
     "listLabel": "Libellés de l'e-mail"
+  },
+  "quota": {
+    "available": "%{count} disponible",
+    "outOfStorage": "Stockage épuisé",
+    "state": "%{used} sur %{limit} utilisés",
+    "banner": {
+      "full": "Vous n'avez plus d'espace de stockage libre",
+      "low": "Vous manquez d'espace de stockage (90 %)",
+      "advice": "Pour continuer à envoyer vos messages et profiter de l'ensemble des fonctionnalités de Twake Mail, veuillez nettoyer votre boîte mail."
+    },
+    "usedOf": "sur %{limit} utilisés",
+    "availableLong": "Disponible : %{count}",
+    "almostFull": "L'espace de stockage est presque plein. Vous pouvez libérer de l'espace en supprimant les fichiers inutiles ou en vous abonnant pour obtenir de l'espace supplémentaire.",
+    "label": "Stockage utilisé",
+    "dismiss": "Fermer"
   }
 }

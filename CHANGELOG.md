@@ -149,6 +149,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   menu and the selection, chips on the rows and under the subject (× takes
   one off), kept up to date by push (`Label/changes`), "Label visibility"
   in Preferences; the advanced search filters by label
+- Storage (`Quota/get`): the space used at the bottom of the sidebar, a
+  banner past the warning limit of the server, Settings > Storage
 
 ### Changed
 

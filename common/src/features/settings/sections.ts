@@ -1,4 +1,5 @@
 import {
+  Cloud,
   Eye,
   Filter,
   Globe,
@@ -32,6 +33,7 @@ export type SettingsSectionId =
   | 'folder-visibility'
   | 'language-region'
   | 'keyboard-shortcuts'
+  | 'storage'
 
 export interface SettingsSection {
   id: SettingsSectionId
@@ -101,6 +103,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     icon: Help,
     title: 'settings.sections.keyboardShortcuts.title',
     description: 'settings.sections.keyboardShortcuts.description'
+  },
+  {
+    id: 'storage',
+    icon: Cloud,
+    title: 'settings.sections.storage.title',
+    description: 'settings.sections.storage.description',
+    isAvailable: offers(CAPABILITIES.quota)
   }
 ]
 

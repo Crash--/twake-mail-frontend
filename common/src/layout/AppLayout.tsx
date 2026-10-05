@@ -25,6 +25,7 @@ import {
   ShortcutsProvider,
   useShortcuts
 } from '@common/features/shortcuts/ShortcutsProvider'
+import { QuotaBanner } from '@common/features/quota/QuotaBanner'
 import { VacationBanner } from '@common/features/vacation/VacationBanner'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -125,6 +126,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
         )}
         <Main>
           <VacationBanner />
+          <QuotaBanner />
           <Content data-testid="main-content">
             <Outlet />
           </Content>

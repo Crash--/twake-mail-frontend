@@ -102,7 +102,21 @@
       "copied": "Adresse e-mail copiée"
     },
     "actionRequired": "Action requise",
-    "removeActionRequired": "Retirer l’étiquette Action requise"
+    "removeActionRequired": "Retirer l’étiquette Action requise",
+    "downloadAll": "Tout télécharger",
+    "downloadFailed": "Le téléchargement de la pièce jointe a échoué",
+    "preview": {
+      "loading": "Chargement... Veuillez patienter !",
+      "cannotPreviewPdf": "Impossible de prévisualiser le PDF",
+      "cannotPreviewHtml": "Cette pièce jointe HTML ne peut pas être prévisualisée",
+      "noPreview": "Aucun aperçu disponible",
+      "open": "Aperçu",
+      "page": "Page %{page} sur %{count}",
+      "truncated": "L'aperçu s'arrête ici : téléchargez le fichier pour lire la suite."
+    },
+    "attachmentsMore": "Afficher les %{count} autres pièces jointes",
+    "attachmentsHide": "Cacher les %{count} pièces jointes",
+    "attachmentsTitle": "%{smart_count} pièce jointe (%{size}) |||| %{smart_count} pièces jointes (%{size})"
   },
   "login": {
     "title": "Se connecter",

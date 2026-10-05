@@ -102,7 +102,21 @@
       "copied": "Đã sao chép địa chỉ email"
     },
     "actionRequired": "Cần xử lý",
-    "removeActionRequired": "Gỡ nhãn Cần xử lý"
+    "removeActionRequired": "Gỡ nhãn Cần xử lý",
+    "downloadAll": "Tải xuống tất cả",
+    "downloadFailed": "Tải xuống tệp đính kèm không thành công",
+    "preview": {
+      "loading": "Đang tiến hành ...",
+      "cannotPreviewPdf": "Không thể xem trước tệp PDF",
+      "cannotPreviewHtml": "Không thể xem trước tệp HTML này",
+      "noPreview": "Không có bản xem trước",
+      "open": "Xem trước",
+      "page": "Trang %{page} trên %{count}",
+      "truncated": "Bản xem trước bị cắt ở đây: hãy tải tệp xuống để đọc phần còn lại."
+    },
+    "attachmentsMore": "Hiển thị +%{count}",
+    "attachmentsHide": "Ẩn %{count}",
+    "attachmentsTitle": "%{smart_count} tệp đính kèm (%{size})"
   },
   "login": {
     "title": "Đăng nhập",

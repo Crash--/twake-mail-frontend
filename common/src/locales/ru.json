@@ -102,7 +102,21 @@
       "copied": "Адрес скопирован"
     },
     "actionRequired": "Требуется действие",
-    "removeActionRequired": "Убрать метку «Требуется действие»"
+    "removeActionRequired": "Убрать метку «Требуется действие»",
+    "downloadAll": "Загрузить все",
+    "downloadFailed": "Не удалось загрузить вложение",
+    "preview": {
+      "loading": "Загрузка... Подождите.",
+      "cannotPreviewPdf": "Невозможно просмотреть PDF-файл",
+      "cannotPreviewHtml": "Это вложение HTML невозможно просмотреть",
+      "noPreview": "Предварительный просмотр недоступен",
+      "open": "Предпросмотр",
+      "page": "Страница %{page} из %{count}",
+      "truncated": "Предпросмотр обрезан: скачайте файл, чтобы прочитать остальное."
+    },
+    "attachmentsMore": "Показать еще %{count}",
+    "attachmentsHide": "Скрыть %{count}",
+    "attachmentsTitle": "%{smart_count} вложение (%{size}) |||| %{smart_count} вложения (%{size}) |||| %{smart_count} вложений (%{size})"
   },
   "login": {
     "title": "Войти",

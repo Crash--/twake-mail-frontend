@@ -102,7 +102,21 @@
       "copied": "Email address copied"
     },
     "actionRequired": "Action Required",
-    "removeActionRequired": "Remove the Action Required tag"
+    "removeActionRequired": "Remove the Action Required tag",
+    "downloadAll": "Download all",
+    "downloadFailed": "Attachment download failed",
+    "preview": {
+      "loading": "Loading... Please wait!",
+      "cannotPreviewPdf": "Cannot preview PDF",
+      "cannotPreviewHtml": "This html attachment cannot be previewed",
+      "noPreview": "No preview available",
+      "open": "Preview",
+      "page": "Page %{page} of %{count}",
+      "truncated": "The preview is cut here: download the file to read the rest."
+    },
+    "attachmentsMore": "Show +%{count} more",
+    "attachmentsHide": "Hide %{count}",
+    "attachmentsTitle": "%{smart_count} Attachment (%{size}) |||| %{smart_count} Attachments (%{size})"
   },
   "login": {
     "title": "Sign In",

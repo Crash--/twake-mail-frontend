@@ -191,9 +191,9 @@ describe('EmailView', () => {
             hasAttachment: true,
             attachments: [
               makeBodyPart({
-                type: 'application/pdf',
+                type: 'application/zip',
                 blobId: 'blob-report',
-                name: 'report.pdf',
+                name: 'report.zip',
                 size: 12_345,
                 disposition: 'attachment'
               })
@@ -203,13 +203,16 @@ describe('EmailView', () => {
         )
       ]
     })
-    server.blobs.set('blob-report', '%PDF')
+    server.blobs.set('blob-report', 'PK')
     renderView(server)
 
     const attachment = await screen.findByTestId('attachment-item')
-    expect(attachment).toHaveTextContent('report.pdf (12.3 kB)')
+    expect(attachment).toHaveTextContent('report.zip')
+    expect(attachment).toHaveTextContent('12.3 kB')
 
-    await userEvent.click(attachment)
+    await userEvent.click(
+      within(attachment).getByRole('button', { name: 'Download report.zip' })
+    )
 
     await waitFor(() => {
       expect(click).toHaveBeenCalledTimes(1)
@@ -219,7 +222,7 @@ describe('EmailView', () => {
       createObjectURL.mock.calls.map(([object]) =>
         'size' in object ? object.size : null
       )
-    ).toContain(4)
+    ).toContain(2)
   })
 
   it('goes back to the mailbox', async () => {

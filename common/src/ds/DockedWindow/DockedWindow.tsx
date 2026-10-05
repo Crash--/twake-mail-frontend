@@ -290,7 +290,7 @@ export function DockedWindow({
                     }}
                     data-testid={testIds.minimize}
                   >
-                    <Icon icon={Dash} size={24} aria-hidden="true" />
+                    <Icon icon={Dash} size={16} aria-hidden="true" />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={fullscreenLabel}>
@@ -324,7 +324,7 @@ export function DockedWindow({
                 onClick={onClose}
                 data-testid={testIds.close}
               >
-                <Icon icon={Cross} size={24} aria-hidden="true" />
+                <Icon icon={Cross} size={16} aria-hidden="true" />
               </IconButton>
             </Tooltip>
           </Box>

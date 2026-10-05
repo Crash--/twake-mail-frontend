@@ -1201,7 +1201,7 @@ function LoadedComposerForm({
               className="u-ml-half"
               data-testid="composer-attach-file-button"
             >
-              <Icon icon={Attachment} size={24} aria-hidden="true" />
+              <Icon icon={Attachment} size={20} aria-hidden="true" />
             </IconButton>
           </Tooltip>
           <Tooltip title={labels.insertImage}>
@@ -1212,7 +1212,7 @@ function LoadedComposerForm({
               className="u-ml-half"
               data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
             >
-              <Icon icon={ImageIcon} size={24} aria-hidden="true" />
+              <Icon icon={ImageIcon} size={20} aria-hidden="true" />
             </IconButton>
           </Tooltip>
           <Tooltip title={labels.link}>
@@ -1223,7 +1223,7 @@ function LoadedComposerForm({
               className="u-ml-half"
               data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
             >
-              <Icon icon={LinkIcon} size={24} aria-hidden="true" />
+              <Icon icon={LinkIcon} size={20} aria-hidden="true" />
             </IconButton>
           </Tooltip>
           <DriveAttachButton
@@ -1260,7 +1260,7 @@ function LoadedComposerForm({
               onClick={handleDeleteDraft}
               data-testid="composer-delete-draft-button"
             >
-              <Icon icon={Trash} size={24} aria-hidden="true" />
+              <Icon icon={Trash} size={20} aria-hidden="true" />
             </IconButton>
           </Tooltip>
           <Tooltip title={t('composer.more')}>
@@ -1273,7 +1273,7 @@ function LoadedComposerForm({
               className="u-ml-half u-mr-1"
               data-testid="composer-more-button"
             >
-              <Icon icon={FileOutline} size={24} aria-hidden="true" />
+              <Icon icon={FileOutline} size={20} aria-hidden="true" />
             </IconButton>
           </Tooltip>
           <PillButton

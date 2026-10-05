@@ -43,10 +43,12 @@ unsaved changes are saved first (tmail-flutter discards the composers without
 saving, ADR 0112; with a 5 minute delay that would lose too much). Writes happen on
 sign out only for a composer with changes the server does not have.
 
-Limit: the write of the `pagehide` is an asynchronous IndexedDB transaction, which the
-browser may cut short (the reason of ADR 0009). The 0.8 s debounce is the real
-guarantee: up to 0.8 s of typing can be lost on a hard reload or a crash, where the
-synchronous `sessionStorage` write of tmail-flutter lost none on a reload.
+Reload and closed tab: the write of the `pagehide` in IndexedDB is asynchronous and the
+browser may cut it short (the reason of ADR 0009). So the page also writes a synchronous
+copy in `sessionStorage` (`keepComposerBeforeUnload`, as tmail-flutter); the next page of the
+tab takes it when it is newer than the IndexedDB record, then drops it. The 0.8 s debounce
+covers the rest: up to 0.8 s of typing can be lost only when the browser or the machine
+crashes. CI showed the need (a reload right after typing came back with half a word).
 
 A replacement of the server draft is always one creation and one destruction per
 real save (never per keystroke). Cost for a message edited for an hour with

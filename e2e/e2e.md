@@ -654,3 +654,27 @@ session with `page.route`; the setting `ai.label-categorization.enabled` is stor
 - [x] `AI-04` Without the AI capability, even with the setting on and the keyword set: no folder (`/action-required` goes back to the inbox), no tag, no AI option in Preferences. — web app only
 - [x] `AI-05` Selecting text in the composer shows an assistant button under it; the menu works on the selection; the answer is copied ("Result copied to clipboard"). — web app only (tmail-flutter `AiSelectionOverlay`, copy of the suggestion)
 - [x] `AI-06` The "AI Scribe" preference (kept in this browser) hides the assistant of the composer. — web app only
+
+## List toolbar and rows (batch P4)
+
+Web app only, no Patrol test: the list follows the Figma "Email message list" and
+finishes issue #112.
+
+- [x] `FBAR-06` In a filtered folder, an email that stops matching the filter (marked as read under "Unread") leaves the list at once, as tmail-flutter's client-side `filterEmail`. — web app (issue #112)
+  - Spec: `tests/folder-toolbar.spec.ts`.
+- [x] `TBAR-01` With the messages vault, the personal Trash has a button recovering deleted messages, which opens the recovery dialog. The session is rewritten at the network level (`page.route`), the e2e stack being unable to guarantee the capability. Axe. — web app (issue #112)
+  - Spec: `tests/toolbar-capabilities.spec.ts`.
+- [x] `TBAR-02` Without the vault, the Trash has no recovery button. — web app (issue #112)
+  - Spec: `tests/toolbar-capabilities.spec.ts`.
+- [x] `TBAR-03` A support address makes the help button of the top bar open a message to it. — web app (issue #112)
+  - Spec: `tests/toolbar-capabilities.spec.ts`.
+- [x] `TBAR-04` A support web page makes the help button a link to it, in a new tab. Axe. — web app (issue #112)
+  - Spec: `tests/toolbar-capabilities.spec.ts`.
+- [x] `TBAR-05` Without a support contact there is no help button. — web app (issue #112)
+  - Spec: `tests/toolbar-capabilities.spec.ts`.
+- [x] `LST-03` The reply button of a row opens the composer on a reply to it ("Re: subject"). — `chromium`
+  - Spec: `tests/list-rows.spec.ts`.
+- [x] `LST-04` The hover actions open the email in a tab of its own, and open the folder picker to move it. — `chromium`
+  - Spec: `tests/list-rows.spec.ts`.
+- [x] `LST-05` Measures of the design: 32 px icon buttons, 16 px between toolbar controls, rows about 44 px. — `chromium`
+  - Spec: `tests/list-rows.spec.ts`.

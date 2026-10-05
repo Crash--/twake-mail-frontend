@@ -344,3 +344,26 @@ with that padding.
 - Variant: a button following the end of the selected text (the sparkle of tmail-flutter's `AiSelectionOverlay`), in the tab order after the text.
 - Usage: the AI assistant of the composer opens its menu on it.
 - twake-ui change: upstream with RichTextEditor, which twake-mui lacks.
+## Mail list and toolbar (batch P4)
+
+The list follows the Figma "Email message list" (rows 44 px, toolbar with a half
+opacity divider, 16 px on each side). No global theme override: what twake-mui
+lacks lives in `@/ds/`.
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `IconButton` | A 32 px round button holding a 20 px icon, with its tooltip as accessible name, and a yellow tone for a filled star (`warning.light`) | Row actions, refresh | `ds/IconAction` | `IconButton size="small"` at 32 px with a `label`, 20 px icons |
+| `Button` | Text button "button medium": Inter Medium 14 / 20, letter spacing 0.1, 32 px high, padding 6 px, gap 8, 16 px icon, chevron when it opens a menu, text colour | Select all, Filter | `ds/ToolbarButton` | `Button variant="text" size="medium"` (twake-mui forces 16 px) |
+| `@linagora/twake-icons` | No `filter_list` (three decreasing lines) nor an empty checkbox; the nearest (`Filter`, sliders; `Checkbox`, checked) are not the design | Filter and Select all of the toolbar | `ds/ListIcons` (Material Icons paths, Apache-2.0) | Add `FilterList` and `CheckboxBlank` |
+| `@linagora/twake-icons` | `refresh-restore` is `Restore`; open in new window is `Openwith`; the quick reply arrow is `Answer`; mark unread is `EmailNotification`; move is `FolderMoveto`; recovery of deleted messages is `RestoreStraight`: the nearest of the set, drawn differently from Material | Rows and toolbar | `features/thread` | Match the Figma icon set |
+| Toolbar | 16 px above and below, 16 px between controls, divider below at 50 % opacity | List toolbar | `ds/ListToolbar` | Part of a `Toolbar` with a divider opacity |
+| Row layout | Padding 6 8 and 8 px between cells (`rowLayout`), a sender block of 198 px after a 20 px marker frame, 12 px date (600 / 18.4 unread, 400 / 12 read), subject at most 268 px and Semi Bold (600) when unread (twake-css has `u-fw-bold` only) | Mail rows | `ds/VirtualizedListTable` (`rowLayout`), `ds/RowSender`, `ds/RowDate`, `ds/RowLine` (`isStrong`), `ds/StatusDot` (`framed`) | `VirtualizedTable` row padding / gap options; theme semi-bold utility |
+| Tag | `size="small"`: 11 / 14 text, 4 px padding | Labels in a row | `ds/ColorTag` | `Chip size="small"` with a free colour |
+| Column | 16 px on each side of the toolbar and the list | List pane | `ds/ListPane` | none (layout) |
+
+Differences kept from the Figma list: the text of a label tag is black or white
+by contrast (the design has white only, unreadable on a light label); the row
+has no 8 px radius (a table row cannot be rounded and it is invisible without a
+background, the hover and selection have none in the design); the open-in-new
+button opens the email route in a tab, which signs in again (tokens live in
+memory, silent with the SSO).

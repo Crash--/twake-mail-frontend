@@ -38,14 +38,17 @@ async function createEmails(
   await jmap.request([['Email/set', { accountId, create }, 'c']])
 }
 
-/** Scrolls the list down until the row of `subject` shows */
+/**
+ * Scrolls the list down, half a screen at a time, until the row shows (the
+ * rows are virtualized, and the order of the results is the server's)
+ */
 async function scrollToRow(
   list: import('@playwright/test').Locator,
   row: import('@playwright/test').Locator
 ): Promise<void> {
   await expect(async () => {
     await list.evaluate(element => {
-      element.scrollTop = element.scrollHeight
+      element.scrollTop += element.clientHeight / 2
     })
     await expect(row).toBeVisible({ timeout: 500 })
   }).toPass({ timeout: 20_000 })

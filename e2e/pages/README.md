@@ -252,7 +252,7 @@ Conventions:
 | `mailbox-search-visibility-link` | link to Settings > Folder visibility, in the search panel | — (Settings menu in tmail-flutter) |
 | `list-refresh-button` / `list-refresh-spinner` | refresh (the spinner replaces the button while it runs) | `refresh_all_mailbox_and_email_button` |
 | `list-select-all-button` | "Select all messages of this page" (hidden for an empty list; icon alone on phones) | — |
-| `list-filter-button` / `list-filter-menu` / `list-filter-clear-button` | the "Filter" dropdown (shows the active filter, hidden in an empty Trash or Spam and in search results), its menu (`menuitemradio`, items `quick-filter-*`: they filter the folder in place) and the button clearing the filter | `FilterMessageButton` |
+| `list-filter-button` / `list-filter-menu` / `list-filter-clear-button` | the "Filter" dropdown (shows the active filter, hidden in an empty Trash or Spam and in search results, where `search-filters-bar` takes its place in the toolbar; on phones an icon in the top bar, `list-filter-slot`), its menu (`menuitemradio`, items `quick-filter-*`: they filter the folder in place) and the button clearing the filter | `FilterMessageButton` |
 | `recover-deleted-messages-button` | personal Trash, when the server keeps deleted messages: opens the recovery | `recover_deleted_messages_button` |
 | `help-button` | top bar, when the server gives a support contact (`com:linagora:params:jmap:contact:support`): a link, or a message to the support address | `icHelp` button |
 | `composer-show-from-button` | "From" on the To line (only with several identities): opens the From line holding `composer-identity-select`; a draft, an answer or a template with an identity of its own opens it already | `prefix_from_recipient_from_button` |
@@ -263,3 +263,7 @@ Conventions:
 | `action-required-tag` (`action-required-tag-bar` on the opened email) | the "Action required" tag of an email, with a × on the opened one | `ActionRequiredTag`, `EmailActionRequiredTag` |
 | `ai-scribe-setting-toggle`, `ai-label-categorization-setting-toggle` | the AI options of Settings > Preferences | `PreferencesSettings` |
 | `composer-scribe-selection-button`, `composer-scribe-copy` | the assistant button under the selected text, the copy of its answer | `RichTextEditor` `selectionAction`, `ScribeMenu` |
+| `email-list-item-reply` | "Reply" icon button of a row (wide list, not on drafts and templates): opens the composer on a reply | `reply` row action |
+| `email-list-item-open-in-new-tab` | hover action opening the email in a tab of its own (not on drafts and templates) | `open in new` hover action |
+| `email-list-item-move` | hover action asking for a folder, then moving the email | `move_to_mailbox` hover action |
+| `list-filter-slot` | phones: the place of the filter button in the top bar (`list-filter-button` and its menu are rendered there) | `mobile_filter_message_button` |

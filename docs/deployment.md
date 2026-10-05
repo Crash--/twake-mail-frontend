@@ -131,7 +131,7 @@ Environment variables of the container:
 | Variable | Default | |
 |---|---|---|
 | `CSP_CONNECT_SRC` | | Extra `connect-src` sources, space separated: the JMAP origin **and** its WebSocket origin when JMAP is not on the origin of the app (`https://jmap.example.com wss://jmap.example.com`), the SSO origin with `AUTH_MODE = 'oidc'` (`https://sso.example.com`), the Sentry ingest origin when `SENTRY_DSN` is set |
-| `CSP_FRAME_SRC` | | Extra `frame-src` sources, e.g. the Twake Drive origin for its intents |
+| `CSP_FRAME_SRC` | | Extra `frame-src` sources: the Twake Drive picker (`TDRIVE_ENABLED`), e.g. `https://*-drive.example.com` |
 | `CSP_FRAME_ANCESTORS` | `'self'` | Origins allowed to embed Twake Mail in a frame, see [below](#embedding-in-twake-workplace-iframe) |
 | `CSP_REPORT_URI` | | Adds `report-uri`: where browsers report violations (e.g. the security endpoint of a Sentry project) |
 | `CSP_REPORT_ONLY` | `false` | `true` sends `Content-Security-Policy-Report-Only` instead: nothing blocked, violations reported. For a progressive rollout |
@@ -147,7 +147,14 @@ to start otherwise.
 put its origin in `CSP_CONNECT_SRC`, or the login fails ("Refused to connect"
 in the browser console). Check the browser console after any change of
 `.env.js` that adds an origin (`JMAP_SESSION_URL`, `SSO_BASE_URL`,
-`SENTRY_DSN`).
+`SENTRY_DSN`, `TDRIVE_INTENT_URL`). Two features talk to other origins:
+
+- the Twake Drive picker (`TDRIVE_ENABLED`): the Drive stack of the user in
+  `CSP_CONNECT_SRC` (token exchange, intent, downloads) and its Drive app in
+  `CSP_FRAME_SRC`;
+- the AI assistant, when tmail-backend advertises
+  `com:linagora:params:jmap:aibot`: the origin of its `scribeEndpoint` in
+  `CSP_CONNECT_SRC`.
 
 ## Reverse proxy, JMAP on the same origin or not
 

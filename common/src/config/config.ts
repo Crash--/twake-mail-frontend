@@ -20,14 +20,26 @@ export interface AppListEntry {
   icon: string
 }
 
+export type SentrySource = 'env' | 'ecosystem'
+
 export interface AppConfig {
   jmapSessionUrl: string
   authMode: AuthMode
   /** Set when `authMode` is `oidc`, null otherwise */
   oidc: OidcConfig | null
+  /**
+   * Where the error reporting configuration comes from, as in tmail-flutter
+   * on the web: `env` as soon as one of the `SENTRY_*` keys is filled (even
+   * to turn it off), `ecosystem` (`.well-known/linagora-ecosystem` of the
+   * server) when all three are absent or blank
+   */
+  sentrySource: SentrySource
+  /** The DSN of the `env` source; null when it is off, or from the ecosystem */
   sentryDsn: string | null
   /** tmail-flutter `SENTRY_ENVIRONMENT`, null when blank */
   sentryEnvironment: string | null
+  /** The Linagora ecosystem document of the server (`SERVER_URL` based) */
+  ecosystemUrl: string
   debug: boolean
   defaultLanguage: string | null
   calendarSpaUrl: string | null
@@ -112,6 +124,9 @@ export type DeprecationWarner = (message: string) => void
 
 /** The JMAP session of a server, found at this path (RFC 8620, 2.2) */
 const JMAP_SESSION_WELL_KNOWN_PATH = '/.well-known/jmap'
+
+/** The Linagora ecosystem document of a server, next to its JMAP session */
+const ECOSYSTEM_WELL_KNOWN_PATH = '/.well-known/linagora-ecosystem'
 
 function normalizeString(value: unknown): string | null {
   if (typeof value !== 'string') return null
@@ -285,34 +300,51 @@ function resolveOidcConfig(
   }
 }
 
+/** A key filled in: a boolean, or a string that is not blank */
+function isFilled(value: unknown): boolean {
+  return typeof value === 'boolean' || normalizeString(value) !== null
+}
+
 /**
- * Error reporting. With `SENTRY_ENABLED` in the configuration, as in
- * tmail-flutter, it starts only with `SENTRY_ENABLED=true` and a DSN. Without
- * the key (a configuration from before it existed), a DSN is enough: reported
- * as deprecated.
+ * Error reporting. As in tmail-flutter on the web, one filled `SENTRY_*` key
+ * makes the configuration come from the environment, with no fallback to the
+ * ecosystem even when it is off or incomplete; all three absent or blank
+ * leave it to the ecosystem of the server. From the environment it starts
+ * only with `SENTRY_ENABLED=true` and a DSN. Without `SENTRY_ENABLED` (a
+ * configuration from before it existed), a DSN is enough: reported as
+ * deprecated.
  */
 function resolveSentry(
   source: RuntimeConfigSource,
   warn: DeprecationWarner
-): Pick<AppConfig, 'sentryDsn' | 'sentryEnvironment'> {
-  const dsn = normalizeString(source.SENTRY_DSN)
-  if (source.SENTRY_ENABLED === undefined) {
-    if (dsn !== null) {
-      warn(
-        'SENTRY_DSN without SENTRY_ENABLED is deprecated, set SENTRY_ENABLED=true'
-      )
-    }
+): Pick<AppConfig, 'sentrySource' | 'sentryDsn' | 'sentryEnvironment'> {
+  const isFromEnv = [
+    source.SENTRY_ENABLED,
+    source.SENTRY_DSN,
+    source.SENTRY_ENVIRONMENT
+  ].some(isFilled)
+  if (!isFromEnv) {
     return {
-      sentryDsn: dsn,
-      sentryEnvironment: normalizeString(source.SENTRY_ENVIRONMENT)
+      sentrySource: 'ecosystem',
+      sentryDsn: null,
+      sentryEnvironment: null
     }
   }
-  return toBoolean(source.SENTRY_ENABLED)
-    ? {
-        sentryDsn: dsn,
-        sentryEnvironment: normalizeString(source.SENTRY_ENVIRONMENT)
-      }
-    : { sentryDsn: null, sentryEnvironment: null }
+  const dsn = normalizeString(source.SENTRY_DSN)
+  const environment = normalizeString(source.SENTRY_ENVIRONMENT)
+  const isDeprecatedDsnOnly =
+    source.SENTRY_ENABLED === undefined && dsn !== null
+  if (isDeprecatedDsnOnly) {
+    warn(
+      'SENTRY_DSN without SENTRY_ENABLED is deprecated, set SENTRY_ENABLED=true'
+    )
+  }
+  const isOn = isDeprecatedDsnOnly || toBoolean(source.SENTRY_ENABLED)
+  return {
+    sentrySource: 'env',
+    sentryDsn: isOn ? dsn : null,
+    sentryEnvironment: isOn ? environment : null
+  }
 }
 
 /**
@@ -371,6 +403,10 @@ export function resolveConfig(
       authMode,
       oidc,
       ...resolveSentry(source, warn),
+      ecosystemUrl:
+        serverUrl === null
+          ? new URL(ECOSYSTEM_WELL_KNOWN_PATH, jmapSessionUrl).href
+          : `${removeTrailingSlashes(serverUrl)}${ECOSYSTEM_WELL_KNOWN_PATH}`,
       debug: toBoolean(source.DEBUG),
       defaultLanguage: normalizeString(source.LANG),
       calendarSpaUrl: normalizeString(source.CALENDAR_SPA_URL),

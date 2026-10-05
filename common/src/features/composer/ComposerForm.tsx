@@ -244,7 +244,9 @@ function LoadedComposerForm({
   // An answer with its recipients opens on the text, the recipients folded
   // (tmail-flutter); otherwise in To
   const opensOnText =
-    content.answering !== null && content.recipients.to.length > 0
+    content.answering !== null &&
+    content.draftId === null &&
+    content.recipients.to.length > 0
   const [isCollapsed, setIsCollapsed] = useState(opensOnText)
   const [subject, setSubject] = useState(content.subject)
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null)
@@ -316,7 +318,8 @@ function LoadedComposerForm({
       editorHtml: editor.getHTML(),
       inReplyTo: content.inReplyTo,
       references: content.references,
-      attachments: uploadedFiles(files.attachments)
+      attachments: uploadedFiles(files.attachments),
+      answering: content.answering
     }
   }
 
@@ -644,7 +647,12 @@ function LoadedComposerForm({
     setIsSending(true)
     try {
       await flush()
-      const email = await buildEmail(composed(editor), images, mailboxIds)
+      const email = await buildEmail(
+        composed(editor),
+        images,
+        mailboxIds,
+        'send'
+      )
       const result = await sendEmail(
         client,
         accountId,

@@ -74,6 +74,12 @@ expect 'hashed assets are cached for a year' "$(header "$script" Cache-Control)"
 worker="$(docker exec "$NAME" sh -c 'cd /usr/share/nginx/html && ls static/assets/pdf.worker*.mjs | head -1')"
 expect 'the PDF worker is served as JavaScript' \
   "$(header "/$worker" Content-Type)" 'text/javascript*'
+expect 'the PDF worker is cached like the other assets' \
+  "$(header "/$worker" Cache-Control)" '*immutable*'
+expect 'the PDF worker carries the CSP (a worker takes its own)' \
+  "$(header "/$worker" Content-Security-Policy)" "default-src 'self';*"
+expect 'the PDF worker carries nosniff' "$(header "/$worker" X-Content-Type-Options)" 'nosniff'
+expect 'the PDF worker carries the Referrer-Policy' "$(header "/$worker" Referrer-Policy)" 'same-origin'
 expect 'assets are served pre-compressed' \
   "$(header "$script" Content-Encoding -H 'Accept-Encoding: gzip')" 'gzip'
 csp="$(header / Content-Security-Policy)"
@@ -85,6 +91,10 @@ expect 'CSP: the Sentry ingest origin of the DSN allowed' "$csp" \
 expect 'source maps are not served' \
   "$(curl -s -o /dev/null -w '%{http_code}' "$BASE${script}.map")" '404'
 expect 'CSP: CSP_FRAME_ANCESTORS used' "$csp" "*frame-ancestors 'self' https://workplace.example.com;*"
+expect 'CSP: no worker-src, no eval, no WebAssembly' \
+  "$(printf '%s' "$csp" | grep -qE 'worker-src|unsafe-eval' && echo forbidden || echo ok)" 'ok'
+expect 'CSP: script-src has no blob:' \
+  "$(printf '%s' "$csp" | grep -o "script-src[^;]*" | grep -q 'blob:' && echo forbidden || echo ok)" 'ok'
 expect 'CSP on the SPA fallback too' "$(header /mailbox/inbox Content-Security-Policy)" "$csp"
 expect 'X-Content-Type-Options' "$(header / X-Content-Type-Options)" 'nosniff'
 expect 'Referrer-Policy' "$(header / Referrer-Policy)" 'same-origin'

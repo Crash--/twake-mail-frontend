@@ -18,7 +18,7 @@ test.describe('FBAR folder action bar', () => {
       await expect(
         toolbar.getByTestId('recover-deleted-messages-button')
       ).toHaveCount(0)
-      await toolbar.getByTestId('list-filter-button').click()
+      await page.getByTestId('list-filter-button').click()
       await expect(
         page.getByTestId('list-filter-menu').getByRole('menuitemradio')
       ).toHaveCount(3)
@@ -101,6 +101,29 @@ test.describe('FBAR folder action bar', () => {
       .click()
     await expect(mailbox.emailRow('Unread one')).toHaveCount(0)
     await expect(mailbox.emailRow('Unread two')).toBeVisible()
+  })
+
+  test('FBAR-06 an email marked as read leaves the Unread filter at once', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'Read me', text: 'Hi' })
+    await jmap.sendEmail({ to: user.email, subject: 'Keep me', text: 'Hi' })
+    await jmap.waitForEmail({ subject: 'Read me' })
+    await jmap.waitForEmail({ subject: 'Keep me' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.applyQuickFilter('unread')
+    await expect(mailbox.emailRow('Read me')).toBeVisible()
+
+    await mailbox.emailRow('Read me').hover()
+    await mailbox
+      .emailRow('Read me')
+      .getByTestId('email-list-item-toggle-seen')
+      .click()
+
+    await expect(mailbox.emailRow('Read me')).toHaveCount(0)
+    await expect(mailbox.emailRow('Keep me')).toBeVisible()
   })
 
   test('FBAR-04 the Trash has its banner and the filter, an empty Spam has neither select all nor filter', async ({

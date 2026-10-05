@@ -20,6 +20,9 @@ interface FilterState {
 }
 
 interface ListFilterApi {
+  /** Where phones show the filter button: the end of the top bar */
+  slot: HTMLElement | null
+  setSlot: (element: HTMLElement | null) => void
   state: FilterState | null
   select: (scope: string, option: ListFilterOption) => void
   clear: () => void
@@ -56,6 +59,7 @@ export function ListFilterProvider({
   const { t } = useI18n()
   const { notify } = useNotify()
   const [state, setState] = useState<FilterState | null>(null)
+  const [slot, setSlot] = useState<HTMLElement | null>(null)
 
   const clear = useCallback((): void => {
     setState(null)
@@ -79,7 +83,10 @@ export function ListFilterProvider({
     [state, clear, notify, t]
   )
 
-  const api = useMemo(() => ({ state, select, clear }), [state, select, clear])
+  const api = useMemo(
+    () => ({ state, select, clear, slot, setSlot }),
+    [state, select, clear, slot]
+  )
   return (
     <ListFilterContext.Provider value={api}>
       {children}
@@ -94,6 +101,8 @@ export interface ListFilterControl {
 }
 
 const NO_FILTER: ListFilterApi = {
+  slot: null,
+  setSlot: () => undefined,
   state: null,
   select: () => undefined,
   clear: () => undefined
@@ -113,5 +122,26 @@ export function useListFilter(scope: string | null): ListFilterControl {
       clear: api.clear
     }),
     [filter, scope, api]
+  )
+}
+
+/**
+ * Where phones show the filter button of the list: tmail-flutter's mobile
+ * app bar holds it, so the top bar renders this slot and the list on screen
+ * fills it. Null when there is no top bar to host it.
+ */
+export function useListFilterSlot(): HTMLElement | null {
+  return (useContext(ListFilterContext) ?? NO_FILTER).slot
+}
+
+/** The place of the filter button in the top bar, on phones */
+export function ListFilterSlot(): ReactElement {
+  const api = useContext(ListFilterContext) ?? NO_FILTER
+  return (
+    <span
+      ref={api.setSlot}
+      className="u-flex u-flex-items-center"
+      data-testid="list-filter-slot"
+    />
   )
 }

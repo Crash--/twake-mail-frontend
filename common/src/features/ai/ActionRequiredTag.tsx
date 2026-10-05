@@ -11,12 +11,15 @@ export interface ActionRequiredTagProps {
   onRemove?: () => void
   /** Cut the name after this many characters (a list row) */
   maxLength?: number
+  /** `small` in a list row */
+  size?: 'small' | 'medium'
 }
 
 /** The tag of an email the AI found needs an action */
 export function ActionRequiredTag({
   onRemove,
-  maxLength
+  maxLength,
+  size
 }: ActionRequiredTagProps): ReactElement {
   const { t } = useI18n()
   return (
@@ -26,6 +29,7 @@ export function ActionRequiredTag({
       removeLabel={onRemove ? t('email.removeActionRequired') : undefined}
       onRemove={onRemove}
       maxLength={maxLength}
+      size={size}
       data-testid="action-required-tag"
     />
   )

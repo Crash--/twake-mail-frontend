@@ -50,6 +50,12 @@ export interface EmailActionsMenuProps {
    * and forward, none in Drafts
    */
   replies?: readonly ReplyAction[]
+  /**
+   * The email the answers go to: by default the email when there is one; a
+   * conversation row gives the email standing for it (its newest in the
+   * folder, the one its conversation opens on)
+   */
+  answerEmailId?: string | null
   'data-testid'?: string
 }
 
@@ -68,6 +74,7 @@ export function EmailActionsMenu({
   exclude = [],
   onAction,
   replies,
+  answerEmailId,
   'data-testid': testId = 'email-actions-menu'
 }: EmailActionsMenuProps): ReactElement {
   const { t } = useI18n()
@@ -77,8 +84,9 @@ export function EmailActionsMenu({
   const mailbox =
     mailboxes.find(candidate => candidate.id === mailboxId) ?? null
   const single = emails.length === 1 ? emails[0] : undefined
+  const answered = answerEmailId ?? single?.id ?? null
   const answers: readonly ReplyAction[] =
-    anchor === null || single === undefined
+    anchor === null || answered === null
       ? []
       : (replies ??
         (mailbox?.role === 'drafts' ? [] : ['reply', 'replyAll', 'forward']))
@@ -91,7 +99,8 @@ export function EmailActionsMenu({
 
   const handleReply = (action: ReplyAction): void => {
     onClose()
-    if (single) openComposer({ reply: { emailId: single.id, action } })
+    if (answered !== null)
+      openComposer({ reply: { emailId: answered, action } })
   }
 
   const replyItems = answers.map(action => (

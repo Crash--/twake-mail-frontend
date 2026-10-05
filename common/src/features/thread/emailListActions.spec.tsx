@@ -355,6 +355,12 @@ describe('Acting on emails of the list', () => {
       await renderList(server)
 
       fireEvent.contextMenu(row('Re: Plan'), { clientX: 120, clientY: 80 })
+      // The answers go to the email standing for the conversation
+      expect(
+        (await screen.findAllByRole('menuitem'))
+          .slice(0, 3)
+          .map(item => item.textContent)
+      ).toEqual(['Reply', 'Reply all', 'Forward'])
       await userEvent.click(
         await screen.findByRole('menuitem', { name: 'Archive message' })
       )

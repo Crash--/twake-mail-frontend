@@ -120,6 +120,8 @@ export interface FakeJmapServer {
   submitted: string[]
   /** The MDNs sent with `MDN/send` (RFC 9007), in order */
   mdnSent: Record<string, unknown>[]
+  /** The Linagora `Settings` of the account (`Settings/get`) */
+  settings: Record<string, string>
   /** Blob contents by blob id, served by the download endpoint */
   blobs: Map<string, string>
   /** API requests received, in order */
@@ -525,6 +527,7 @@ export function makeFakeJmapServer(
     identities?: Identity[]
     /** `maxObjectsInSet` of the session, 500 by default */
     maxObjectsInSet?: number
+    settings?: Record<string, string>
   } = {}
 ): FakeJmapServer {
   const server: FakeJmapServer = {
@@ -535,6 +538,7 @@ export function makeFakeJmapServer(
     identities: init.identities ?? [makeIdentity({ id: 'identity-alice' })],
     submitted: [],
     mdnSent: [],
+    settings: init.settings ?? {},
     blobs: new Map(),
     requests: [],
     methodErrors: new Map(),
@@ -1208,6 +1212,13 @@ export function makeFakeJmapServer(
         return setSubmissions(args)
       case 'MDN/send':
         return sendMdns(args)
+      case 'Settings/get':
+        return {
+          accountId: FAKE_ACCOUNT_ID,
+          state: 'state-settings-1',
+          list: [{ id: 'singleton', settings: server.settings }],
+          notFound: []
+        }
       case 'Email/changes':
         return emailLog.changes(args) ?? { error: 'cannotCalculateChanges' }
       case 'Mailbox/changes':

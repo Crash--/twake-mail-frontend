@@ -50,6 +50,10 @@ import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import {
+  isAlwaysRequestingReadReceipts,
+  useServerSettings
+} from '@common/features/settings/serverSettings'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -73,6 +77,7 @@ import {
   readSnapshot,
   restoreSnapshotContent,
   identityBcc,
+  NO_SEND_OPTIONS,
   type ComposerAttachment,
   type ComposerContent,
   type ComposerSnapshot,
@@ -1111,6 +1116,7 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
   const { session } = useJmapSession()
   const { lang } = useI18n()
   const { quote } = useEditorLabels()
+  const serverSettings = useServerSettings()
   const { composerId, init } = props
   // Read once per composer: the key only says which one
   // eslint-disable-next-line @tanstack/query/exhaustive-deps
@@ -1118,6 +1124,13 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
     queryKey: ['composer', accountId, composerId, 'content'],
     queryFn: async (): Promise<ComposerContent> => {
       const list = identities.data ?? []
+      // The preferences of the user (tmail-flutter: compose, reply, forward)
+      const options: SendOptions = {
+        ...NO_SEND_OPTIONS,
+        requestReadReceipt: isAlwaysRequestingReadReceipts(
+          serverSettings.settings ?? {}
+        )
+      }
       const kept = readSnapshot(snapshotKey(accountId, composerId))
       if (kept) return restoreSnapshotContent(kept, images)
       if (init.draftId !== undefined) {
@@ -1139,12 +1152,13 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
           makeIsSelf([
             session.username,
             ...list.map(identity => identity.email)
-          ])
+          ]),
+          options
         )
       }
-      return newMessageContent(list)
+      return newMessageContent(list, options)
     },
-    enabled: identities.data !== undefined,
+    enabled: identities.data !== undefined && serverSettings.isSettled,
     staleTime: Infinity,
     gcTime: 0,
     refetchOnWindowFocus: false,

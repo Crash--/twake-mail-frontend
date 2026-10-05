@@ -219,6 +219,35 @@ describe('EmailList', () => {
     }
   })
 
+  it('marks the emails their sender set important, unless turned off', async () => {
+    const emails = [
+      makeEmail({
+        id: 'urgent',
+        subject: 'Urgent',
+        headers: { Importance: 'high' }
+      }),
+      makeEmail({ id: 'plain', subject: 'Plain' })
+    ]
+    const { unmount } = renderList(makeFakeJmapServer({ emails }))
+
+    const link = await screen.findByRole('link', { name: /Urgent/ })
+    expect(link).toHaveAccessibleName(/Important/)
+    expect(screen.getAllByTestId('important-flag-icon')).toHaveLength(1)
+    unmount()
+
+    renderList(
+      makeFakeJmapServer({
+        emails,
+        capabilities: { 'com:linagora:params:jmap:settings': {} },
+        settings: { 'display.sender.priority': 'false' }
+      })
+    )
+    await screen.findByRole('link', { name: /Urgent/ })
+    await waitFor(() => {
+      expect(screen.queryByTestId('important-flag-icon')).toBe(null)
+    })
+  })
+
   it('shows the empty view for a mailbox without emails', async () => {
     renderList(makeFakeJmapServer({ emails: [] }))
 

@@ -35,6 +35,7 @@ import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { findMailboxIdByRole } from '@common/features/mailbox/mailboxTree'
+import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
@@ -429,6 +430,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   const bottomInset = screenSize === 'desktop' ? 0 : FLOATING_ACTION_INSET
 
   const { openComposer } = useComposer()
+  const showImportant = useShowsSenderPriority()
   const handleOpenDraft = useCallback(
     (email: { id: string }): void => {
       openComposer({ draftId: email.id })
@@ -451,6 +453,7 @@ export function EmailList(props: EmailListProps): ReactElement {
             onOpenMenu={listActions.onOpenMenu}
             openEmailId={openEmailId}
             onOpenDraft={handleOpenDraft}
+            showImportant={showImportant}
           />
         )
       }
@@ -465,7 +468,8 @@ export function EmailList(props: EmailListProps): ReactElement {
       listActions.deletesForever,
       listActions.onOpenMenu,
       openEmailId,
-      handleOpenDraft
+      handleOpenDraft,
+      showImportant
     ]
   )
 

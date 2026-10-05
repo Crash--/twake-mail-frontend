@@ -174,6 +174,24 @@ describe('ComposerForm', () => {
       ])
     })
 
+    it('asks a read receipt by default when the user always does', async () => {
+      renderComposer(
+        makeFakeJmapServer({
+          capabilities: { 'com:linagora:params:jmap:settings': {} },
+          settings: { 'read.receipts.always': 'true' }
+        })
+      )
+      const composer = await openComposer()
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'More' })
+      )
+
+      expect(
+        screen.getByRole('menuitemcheckbox', { name: 'Request read receipt' })
+      ).toHaveAttribute('aria-checked', 'true')
+    })
+
     it('swaps the Bcc of the identity when another one is chosen', async () => {
       renderComposer(
         makeFakeJmapServer({

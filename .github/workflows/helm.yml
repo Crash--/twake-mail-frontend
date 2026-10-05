@@ -1,0 +1,157 @@
+# Helm chart of the app (deploy/helm/twake-mail-frontend): linted, rendered and validated
+# against the Kubernetes schemas, installed in a kind cluster with the image of the same
+# commit (helm test), and published as an OCI artifact on a push to main.
+#
+# The chart goes to oci://ghcr.io/<owner>/charts, or to the repository variable
+# CHART_REPOSITORY (e.g. oci://registry.example.com/charts, with the secrets
+# REGISTRY_USERNAME and REGISTRY_PASSWORD). An owner whose name is not a valid OCI path
+# component (ending with dashes) cannot own a GHCR artifact: nothing is pushed then.
+name: Helm chart
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - deploy/helm/**
+      - deploy/docker/**
+      - apps/private/Dockerfile
+      - .github/workflows/helm.yml
+  pull_request:
+    paths:
+      - deploy/helm/**
+      - deploy/docker/**
+      - apps/private/Dockerfile
+      - .github/workflows/helm.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: helm-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CHART: deploy/helm/twake-mail-frontend
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v5
+
+      - name: Install kubeconform
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz \
+            | tar xz -C "$RUNNER_TEMP/bin" kubeconform
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Lint
+        run: |
+          helm lint --strict "$CHART"
+          helm lint --strict "$CHART" -f "$CHART/ci/full-values.yaml"
+
+      - name: Render and validate against the Kubernetes schemas
+        run: |
+          for values in "" "$CHART/ci/full-values.yaml" "$CHART/ci/kind-values.yaml"; do
+            echo "::group::${values:-default values}"
+            helm template ci "$CHART" ${values:+-f "$values"} \
+              | kubeconform -strict -summary -kubernetes-version 1.30.0 -
+            echo "::endgroup::"
+          done
+
+  kind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v5
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build the image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/private/Dockerfile
+          tags: twake-mail-frontend:ci
+          load: true
+          cache-from: type=gha,scope=twake-mail-frontend
+
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: twake-mail
+
+      - name: Install the chart
+        run: |
+          kind load docker-image twake-mail-frontend:ci --name twake-mail
+          helm install twake-mail "$CHART" --namespace twake-mail --create-namespace \
+            -f "$CHART/ci/kind-values.yaml" --wait --timeout 3m
+
+      - name: helm test
+        run: helm test twake-mail --namespace twake-mail --logs
+
+      - name: Check what the pods serve
+        run: |
+          kubectl --namespace twake-mail port-forward --address 127.0.0.1 service/twake-mail-twake-mail-frontend 18080:8080 &
+          for _ in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:18080/healthz && break; sleep 1; done
+          set -x
+          curl -fsS http://127.0.0.1:18080/.env.js | grep -q 'var AUTH_MODE = "basic"'
+          curl -fsS http://127.0.0.1:18080/appList.js | grep -q '"name": "Calendar"'
+          curl -fsS -D - -o /dev/null http://127.0.0.1:18080/ \
+            | grep -i '^content-security-policy:' | grep -q 'http://127.0.0.1:19000 ws://127.0.0.1:19000'
+
+      - name: Cluster state
+        if: failure()
+        run: |
+          kubectl --namespace twake-mail get all,configmap,pdb -o wide
+          kubectl --namespace twake-mail describe pods
+          kubectl --namespace twake-mail logs -l app.kubernetes.io/name=twake-mail-frontend --tail 50
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint, kind]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # push to GHCR
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v5
+
+      - name: Chart repository
+        id: repository
+        env:
+          CHART_REPOSITORY: ${{ vars.CHART_REPOSITORY }}
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          repository="${CHART_REPOSITORY:-oci://ghcr.io/$owner/charts}"
+          path="${repository#oci://}"
+          echo "name=$repository" >> "$GITHUB_OUTPUT"
+          echo "registry=${path%%/*}" >> "$GITHUB_OUTPUT"
+          component='[a-z0-9]+((\.|_|__|-+)[a-z0-9]+)*'
+          if [[ ! "${path#*/}" =~ ^$component(/$component)*$ ]]; then
+            echo "::warning::$repository is not a valid OCI repository: set the repository variable CHART_REPOSITORY to publish the chart"
+            echo "push=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package
+        run: helm package "$CHART" --destination dist
+
+      - name: Push
+        if: steps.repository.outputs.push == 'true'
+        env:
+          REGISTRY: ${{ steps.repository.outputs.registry }}
+          REPOSITORY: ${{ steps.repository.outputs.name }}
+          USERNAME: ${{ steps.repository.outputs.registry == 'ghcr.io' && github.actor || secrets.REGISTRY_USERNAME }}
+          PASSWORD: ${{ steps.repository.outputs.registry == 'ghcr.io' && secrets.GITHUB_TOKEN || secrets.REGISTRY_PASSWORD }}
+        run: |
+          echo "$PASSWORD" | helm registry login "$REGISTRY" --username "$USERNAME" --password-stdin
+          helm push dist/*.tgz "$REPOSITORY"

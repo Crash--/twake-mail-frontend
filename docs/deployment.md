@@ -10,6 +10,7 @@ against the JMAP server).
 - [Published images](#published-images)
 - [Runtime configuration](#runtime-configuration)
 - [Docker Compose](#docker-compose)
+- [Kubernetes (Helm)](#kubernetes-helm)
 - [Security headers](#security-headers)
 - [Reverse proxy, JMAP on the same origin or not](#reverse-proxy-jmap-on-the-same-origin-or-not)
 - [Embedding in Twake Workplace (iframe)](#embedding-in-twake-workplace-iframe)
@@ -145,6 +146,36 @@ tmail-backend builds the URLs of its JMAP session from the
 `X-JMAP-PREFIX` / `X-JMAP-WEBSOCKET-PREFIX` headers of the proxy
 (`dynamic.jmap.prefix.resolution.enabled`), so the demo works on any host
 name and port. Not meant for production: no TLS, no SSO, no persistence.
+
+## Kubernetes (Helm)
+
+The chart [`deploy/helm/twake-mail-frontend`](../deploy/helm/twake-mail-frontend/README.md)
+follows Linagora's Twake Workplace deployment conventions (values under
+`deployment.*`, `config.*`, `ingress.*`):
+
+- a `Deployment` (2 replicas) running the image as user 101 with a read-only
+  root filesystem, no capability, `RuntimeDefault` seccomp, `/tmp` as an
+  `emptyDir`, probes on `/healthz`;
+- a `ConfigMap` rendering `.env.js` and `appList.js` from typed values
+  (`config.jmapSessionUrl`, `config.authMode`, `config.sso.*`,
+  `config.appList`...), mounted next to `index.html`; a checksum annotation
+  rolls the pods when it changes;
+- the Content-Security-Policy origins derived from the configuration (JMAP
+  and its WebSocket, SSO, Sentry), plus `csp.*`;
+- a `Service`, an optional `Ingress` (which can route the JMAP paths to
+  tmail-backend for a same-origin setup), a `PodDisruptionBudget`, an optional
+  `HorizontalPodAutoscaler`, and a `helm test`.
+
+```bash
+helm install twake-mail deploy/helm/twake-mail-frontend \
+  --namespace twake-mail --create-namespace -f my-values.yaml
+```
+
+The `Helm chart` workflow lints it, validates the rendered manifests with
+kubeconform, installs it in a kind cluster with the image of the same commit
+(`helm test`), and publishes it as an OCI artifact on a push to `main`
+(`oci://ghcr.io/<owner>/charts`, or the repository variable
+`CHART_REPOSITORY`; same restriction on the owner name as the image).
 
 ## Security headers
 

@@ -1,0 +1,15 @@
+apiVersion: v2
+name: twake-mail-frontend
+description: A Helm chart for Twake Mail, the React webmail of Twake Workplace
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.23.0-0"
+home: https://github.com/Crash--/twake-mail-frontend
+sources:
+  - https://github.com/Crash--/twake-mail-frontend
+keywords:
+  - twake
+  - mail
+  - jmap
+  - webmail

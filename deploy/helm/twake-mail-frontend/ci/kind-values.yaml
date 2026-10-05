@@ -1,0 +1,14 @@
+# Installed by the CI in a kind cluster, with the image built from the same commit and
+# loaded into the cluster (kind load docker-image twake-mail-frontend:ci)
+deployment:
+  image:
+    repository: twake-mail-frontend
+    tag: ci
+    pullPolicy: Never
+config:
+  jmapSessionUrl: http://127.0.0.1:19000/jmap/session
+  authMode: basic
+  appList:
+    - name: Calendar
+      link: https://calendar.example.com
+      icon: /assets/images/svg/app-calendar.svg

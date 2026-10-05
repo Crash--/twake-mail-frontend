@@ -32,6 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and a Trivy scan
 - Docker Compose examples (`deploy/docker-compose/`): the app alone, and a
   demo with tmail-backend and basic authentication on one origin
+- Helm chart (`deploy/helm/twake-mail-frontend`): hardened Deployment,
+  `.env.js` and `appList.js` rendered from typed values into a ConfigMap,
+  CSP origins derived from the configuration, optional Ingress (with the
+  JMAP paths), PodDisruptionBudget, optional HorizontalPodAutoscaler, `helm
+  test`; linted, validated and installed in kind by the CI, published as an
+  OCI artifact
 - JMAP client (jmap-client-ts v2): one client per sign-in, JMAP session
   loaded before the mail screens, its username shown in the user menu in
   basic mode

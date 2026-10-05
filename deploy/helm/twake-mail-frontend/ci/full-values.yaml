@@ -1,0 +1,70 @@
+# Every optional feature on: rendered and validated by the CI (helm template + kubeconform)
+deployment:
+  image:
+    tag: main
+  podAnnotations:
+    example.com/team: mail
+  extraEnv:
+    - name: NGINX_ENTRYPOINT_QUIET_LOGS
+      value: "1"
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: twake-mail-frontend
+config:
+  jmapSessionUrl: /jmap/session
+  authMode: oidc
+  sso:
+    baseUrl: https://sso.example.com/
+    clientId: twake-mail
+    redirectUri: https://mail.example.com/callback
+    postLogoutRedirect: https://mail.example.com/
+  sentryDsn: https://public@sentry.example.com/42
+  lang: fr
+  calendarSpaUrl: https://calendar.example.com
+  chatSpaUrl: https://{workplaceFqdn.localpart}-chat.{workplaceFqdn.domain}/
+  workplaceFqdnFallback: "{localpart}.workplace.example.com"
+  workplaceEmbedding: true
+  forwardWarningMessage: Do not forward "outside" <example.com>
+  tdrive:
+    enabled: true
+    intentUrl: https://{workplaceFqdn}
+  extraEnvJs: |
+    var SOME_FUTURE_SETTING = 'value'
+  appList:
+    - name: Calendar
+      link: https://calendar.example.com
+      icon: /assets/images/svg/app-calendar.svg
+    - name: Drive
+      link: https://{workplaceFqdn.localpart}-drive.{workplaceFqdn.domain}
+      icon: /assets/images/svg/app-drive.svg
+csp:
+  connectSrc:
+    - https://*.workplace.example.com
+  frameSrc:
+    - https://*.workplace.example.com
+  frameAncestors:
+    - "'self'"
+    - https://*.workplace.example.com
+  reportUri: https://sentry.example.com/api/42/security/?sentry_key=public
+  reportOnly: true
+referrerPolicy: strict-origin-when-cross-origin
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: mail.example.com
+  tls:
+    enabled: true
+  jmap:
+    enabled: true
+autoscaling:
+  enabled: true
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

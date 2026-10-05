@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import type { Editor } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
 import userEvent from '@testing-library/user-event'
-import type { KeyboardEvent } from 'react'
+import { useState, type KeyboardEvent, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
@@ -82,6 +82,35 @@ async function renderEditor(content = '<p>Hello</p>'): Promise<Editor> {
   await screen.findByRole('textbox', { name: 'Message body' })
   if (created.editor === null) throw new Error('The editor was not created')
   return created.editor
+}
+
+function DisabledEditor({
+  onReady
+}: {
+  onReady: (editor: Editor) => void
+}): ReactElement {
+  const [disabled, setDisabled] = useState(true)
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setDisabled(false)
+        }}
+      >
+        Enable
+      </button>
+      <RichTextEditor
+        labels={LABELS}
+        content="<p>Away until Monday</p>"
+        colors={[{ value: null, label: 'Default' }]}
+        fontSizes={[{ value: null, label: 'Normal' }]}
+        testIds={TEST_IDS}
+        disabled={disabled}
+        onReady={onReady}
+      />
+    </>
+  )
 }
 
 const IMAGE_WIDTH = 800
@@ -254,5 +283,33 @@ describe('RichTextEditor', () => {
         null
       )
     })
+  })
+
+  it('is disabled on demand, its content kept for when it is enabled again', async () => {
+    const created: { editor: Editor | null } = { editor: null }
+    const handleReady = (editor: Editor): void => {
+      created.editor = editor
+    }
+    renderDs(<DisabledEditor onReady={handleReady} />)
+    const area = await screen.findByRole('textbox', { name: 'Message body' })
+
+    expect(area).toHaveAttribute('aria-disabled', 'true')
+    expect(area).toHaveAttribute('contenteditable', 'false')
+    const bold = screen.getByTestId('toolbar-bold')
+    expect(bold).toHaveAttribute('aria-disabled', 'true')
+    // Still in the tab order of the toolbar
+    expect(bold.tabIndex).toBe(-1)
+    expect(screen.getByTestId('toolbar-undo').tabIndex).toBe(0)
+    await userEvent.click(bold)
+    expect(created.editor?.getHTML()).toBe('<p>Away until Monday</p>')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Enable' }))
+
+    await waitFor(() => {
+      expect(area).toHaveAttribute('contenteditable', 'true')
+    })
+    expect(area).not.toHaveAttribute('aria-disabled')
+    expect(bold).not.toHaveAttribute('aria-disabled')
+    expect(area).toHaveTextContent('Away until Monday')
   })
 })

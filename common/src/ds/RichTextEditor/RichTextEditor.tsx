@@ -11,6 +11,7 @@ import { TextStyleKit } from '@tiptap/extension-text-style'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import {
+  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -58,6 +59,12 @@ export interface RichTextEditorProps {
   extensions?: AnyExtension[]
   /** Puts the caret at the start once created (a new message, a reply) */
   autoFocus?: boolean
+  /**
+   * Not editable, and shown so: the text cannot change, the editing area
+   * says `aria-disabled`, the toolbar buttons stay in the tab order with
+   * `aria-disabled`. The content is kept for when it is enabled again
+   */
+  disabled?: boolean
   /**
    * Fills the height of its container (a flex column) and scrolls inside,
    * without a border: the editor of a window
@@ -156,6 +163,7 @@ export function RichTextEditor({
   footerBlockKinds = [],
   extensions = [],
   autoFocus = false,
+  disabled = false,
   fill = false,
   onReady,
   onUpdate,
@@ -216,6 +224,7 @@ export function RichTextEditor({
       ...extensions
     ],
     content,
+    editable: !disabled,
     autofocus: autoFocus ? 'start' : false,
     editorProps: {
       attributes: {
@@ -231,6 +240,18 @@ export function RichTextEditor({
     onCreate: ({ editor: created }) => onReady?.(created),
     onUpdate: ({ editor: updated }) => onUpdate?.(updated)
   })
+
+  // ProseMirror drops `contenteditable`; the role needs the state said
+  useEffect(() => {
+    if (editor.isDestroyed) return
+    if (editor.isEditable === disabled) editor.setEditable(!disabled, false)
+    const area = editor.view.dom
+    if (disabled) {
+      area.setAttribute('aria-disabled', 'true')
+    } else {
+      area.removeAttribute('aria-disabled')
+    }
+  }, [editor, disabled])
 
   const openLinkDialog = (): void => {
     const { from, to } = editor.state.selection
@@ -299,6 +320,7 @@ export function RichTextEditor({
         onOpenLinkDialog={openLinkDialog}
         onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
         actionsRef={actionsRef}
+        disabled={disabled}
         buttonTestId={testIds.toolbarButton}
       />
       <ImageToolbar
@@ -339,6 +361,12 @@ export function RichTextEditor({
             fontSize: 14,
             lineHeight: 1.5,
             overflowWrap: 'anywhere'
+          },
+          // Greyed as the other disabled fields of twake-mui
+          '& .ProseMirror[contenteditable="false"]': {
+            bgcolor: 'action.disabledBackground',
+            color: 'text.secondary',
+            cursor: 'default'
           },
           '& .ProseMirror:focus-visible': {
             outline: '2px solid',

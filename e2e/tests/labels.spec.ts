@@ -1,4 +1,4 @@
-import { LabelModals, LoginPage } from '../pages'
+import { ConversationPage, LabelModals, LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test, type E2EUser } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
@@ -312,7 +312,11 @@ test.describe('LBL labels of a conversation', () => {
     jmap
   }) => {
     const tag = await jmap.createLabel('Thread tag')
-    await jmap.sendEmail({ to: user.email, subject: 'Conversation with a label', text: 'Hi' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Conversation with a label',
+      text: 'Hi'
+    })
     const email = await jmap.waitForEmail({
       subject: 'Conversation with a label',
       withoutSearch: true
@@ -321,15 +325,56 @@ test.describe('LBL labels of a conversation', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
 
     await mailbox.emailRow('Conversation with a label').click()
-    const conversation = page.getByTestId('conversation-view')
-    const chip = conversation.getByTestId('label-chip')
+    const conversation = new ConversationPage(page)
+    const chip = conversation.labelChips
     await expect(chip).toContainText('Thread tag')
     await expectNoA11yViolations(page)
-    await chip.getByRole('button', { name: 'Remove the label Thread tag' }).click()
+    await chip
+      .getByRole('button', { name: 'Remove the label Thread tag' })
+      .click()
 
     await expect(chip).toHaveCount(0)
     await expect
       .poll(async () => (await jmap.getEmail(email.id)).keywords)
       .not.toHaveProperty(tag.keyword)
   })
+
+  test(
+    'LBL-13 an expanded message of a conversation shows its own labels, taken off it alone',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const tag = await jmap.createLabel('Message tag')
+      await jmap.sendEmail({
+        to: user.email,
+        subject: 'Labelled message',
+        text: 'One'
+      })
+      const first = await jmap.waitForEmail({
+        subject: 'Labelled message',
+        withoutSearch: true
+      })
+      await jmap.setKeywords(first.id, { [tag.keyword]: true })
+      const mailbox = await new LoginPage(page).loginAs(user)
+
+      const row = mailbox.emailRow('Labelled message')
+      if (test.info().project.use.hasTouch === true) await row.tap()
+      else await row.click()
+      const conversation = new ConversationPage(page)
+      await conversation.expectLoaded('Labelled message')
+      const message = conversation.messages.first()
+      const chip = conversation.messageLabelChips(message)
+      await expect(chip).toContainText('Message tag')
+      await expectNoA11yViolations(page)
+
+      await chip
+        .getByRole('button', { name: 'Remove the label Message tag' })
+        .click()
+
+      await expect(chip).toHaveCount(0)
+      await expect(conversation.labelChips).toHaveCount(0)
+      await expect
+        .poll(async () => (await jmap.getEmail(first.id)).keywords)
+        .not.toHaveProperty(tag.keyword)
+    }
+  )
 })

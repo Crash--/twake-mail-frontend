@@ -125,13 +125,13 @@ Conventions:
 | `attachment-item` | one attachment chip (name as text) | `AttachmentItemWidget` |
 | `download-all-attachments-button` | "Download all" | `UiKeys.downloadAllAttachmentsButton` |
 | `reply-email-button` / `reply-all-emails-button` / `reply-to-list-email-button` / `forward-email-button` | reply actions, under the email and under each expanded message of a conversation (group `email-reply-actions`); "Reply all" when the email reaches more than one other address, "Reply to list" with a `List-Post` | same keys, kebab-cased |
-| `email-view-actions` | the actions beside the back button | — |
+| `email-view-actions` | the actions beside the back button; also in each expanded message of a conversation (a `group` named "Actions on the message from <sender>, <date>"), with the ids below | — |
 | `email-view-star-button` | star toggle (`aria-pressed`) | — |
-| `email-view-action-<action>` | the main actions as buttons, not on phones: `archive`, `move-to-trash` / `delete-permanently`, `mark-as-unread`, `move`, `mark-as-spam` / `not-spam` | — |
+| `email-view-action-<action>` | the main actions as buttons, not on phones: `archive`, `move-to-trash` / `delete-permanently`, `mark-as-unread`, `move`, `mark-as-spam` / `not-spam`; in a message of a conversation `mark-as-unread`, `move-to-trash` / `delete-permanently` only | — |
 | `email-view-more-button` / `email-view-menu` | "more" button and its menu, holding every action | `email_detailed_more_button` |
 | `email-action-<action>` | the items of every email actions menu: `reply`, `reply-all`, `reply-to-list`, `forward` (one email, not in Drafts), `not-spam`, `move-to-trash`, `delete-permanently`, `archive`, `mark-as-read`, `mark-as-unread`, `star`, `unstar`, `move`, `mark-as-spam` (`label-as` later) | `markAsStarred_action`, `moveToSpam_action`, `labelAs_action`… |
 | `delete-thread-button` | delete the whole thread | `delete_thread_button` |
-| `email-address` / `email-address-menu` + `email-address-copy-item`, `email-address-create-rule-item` | the sender of an email (reading view of one email) and its menu: copy, "Create a rule with this email" | `copy_email_address`, `quickCreatingRule` |
+| `email-address` / `email-address-menu` + `email-address-copy-item`, `email-address-compose-item`, `email-address-create-rule-item` | the sender of an email (reading view of one email, each expanded message of a conversation) and its menu: copy, "Compose email", "Create a rule with this email" | `copy_email_address`, `compose_email`, `quickCreatingRule` |
 | `calendar-event-card` | iMIP invitation card ("Orange Bar"), a `region` named "Event: <title>", above the body (`CalendarEventCard` page object) | `CalendarEventCardWidget` |
 | `calendar-event-banner` | the state badge, who did what ("… has invited you to a meeting", "… has proposed changes to the event") | — |
 | `calendar-event-when` (+ `calendar-event-recurrence`) / `calendar-event-where` / `calendar-event-video` (+ `calendar-event-video-link`, `calendar-event-copy-link`) / `calendar-event-who` | the details rows | — |
@@ -177,11 +177,13 @@ Conventions:
 | `folder-visibility-personal` / `folder-visibility-team` / `folder-visibility-item` (`data-mailbox-name`, `data-hidden`) + `folder-visibility-toggle` | Settings > Folder visibility | `MailboxVisibilityView` |
 | `email-list-item-thread-count` | number of messages of a conversation row, "(3)" (absent for one email) | — |
 | `conversation-view` | an email shown with its conversation | `ThreadDetailView` |
+| `conversation-header` | its subject, labels (`label-chip`, × takes one off every email of the conversation) and count | — |
 | `conversation-subject` / `conversation-count` | its subject (`h1`, focused when it opens) and "N messages" | — |
 | `conversation` | the messages (`ol` named "Messages of the conversation") | — |
 | `conversation-message` | a message (`data-expanded`) | `ThreadDetailCollapsedEmail`, `EmailView` |
 | `conversation-message-toggle` | its header, a button (`aria-expanded`); ArrowUp / ArrowDown / Home / End move between them | — |
-| `conversation-message-from` / `conversation-message-to` / `conversation-message-preview` / `conversation-message-unread` | sender, recipients (expanded), preview (collapsed), unread marker | — |
+| `conversation-message-from` / `conversation-message-preview` / `conversation-message-unread` | in the header: sender name, preview (collapsed), unread marker | — |
+| `conversation-message-sender` / `conversation-message-to` / `conversation-message-cc` / `conversation-message-bcc` | in an expanded message: "From:" with the address menu (`email-address`), recipients; then its actions (`email-view-actions`), its labels (`label-chip`, × takes one off this message) | `EmailView` of the thread detail |
 | `conversation-toggle-seen` / `conversation-toggle-star` | mark the conversation read or unread, star or unstar it (`aria-pressed`) | `thread_detail_app_bar` buttons |
 | `email-view-back-button` / `email-view-body` | back to the list, the body of an expanded message | same ids as the reading view |
 

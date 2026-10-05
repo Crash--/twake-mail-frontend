@@ -2,7 +2,8 @@ import {
   ComposerPage,
   ConversationPage,
   LoginPage,
-  SearchPage
+  SearchPage,
+  SettingsPage
 } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
@@ -118,9 +119,9 @@ test.describe('THR thread detail', () => {
     )
     await expect(conversation.messages).toHaveCount(2)
     await expect(conversation.count).toHaveText('2 messages')
-    await expect(
-      page.getByTestId('conversation-announcement')
-    ).toHaveText(/New message from/)
+    await expect(page.getByTestId('conversation-announcement')).toHaveText(
+      /New message from/
+    )
   })
 
   test('THR-02 a conversation is one row with its message count, unread and last messages expanded', async ({
@@ -151,7 +152,9 @@ test.describe('THR thread detail', () => {
     const row = mailbox.emailRow(`Re: ${SUBJECT}`)
     await expect(row).toHaveCount(1)
     await expect(mailbox.emailRow(SUBJECT)).toHaveCount(0)
-    await expect(mailbox.emailRowThreadCount(`Re: ${SUBJECT}`)).toHaveText(/^\(3\)/)
+    await expect(mailbox.emailRowThreadCount(`Re: ${SUBJECT}`)).toHaveText(
+      /^\(3\)/
+    )
     await expectNoA11yViolations(page)
 
     // A finger on touch screens: a mouse left over the toolbar of the
@@ -286,7 +289,9 @@ test.describe('THR thread detail', () => {
       await expect(mailbox.emailRowLink(subject)).toHaveAccessibleName(
         /^Unread, .*emma@example\.com, Me, carol@example\.com.*3 messages/
       )
-      await expect.poll(() => mailbox.emailSubjects()).toEqual(['Lunch', subject])
+      await expect
+        .poll(() => mailbox.emailSubjects())
+        .toEqual(['Lunch', subject])
       await expectNoA11yViolations(page)
 
       // A reply by push: the conversation moves up, the list is not queried
@@ -303,7 +308,9 @@ test.describe('THR thread detail', () => {
           .replace(/\.\d{3}Z$/, 'Z')
       })
       await expect(mailbox.emailRowThreadCount(subject)).toHaveText(/^\(4\)/)
-      await expect.poll(() => mailbox.emailSubjects()).toEqual([subject, 'Lunch'])
+      await expect
+        .poll(() => mailbox.emailSubjects())
+        .toEqual([subject, 'Lunch'])
       await expect(mailbox.emailRowSender(subject)).toContainText(
         'dan@example.com'
       )
@@ -366,7 +373,10 @@ test.describe('THR thread detail', () => {
 
     // The hover button reads them all
     await mailbox.emailRow(subject).hover()
-    await mailbox.emailRow(subject).getByTestId('email-list-item-toggle-seen').click()
+    await mailbox
+      .emailRow(subject)
+      .getByTestId('email-list-item-toggle-seen')
+      .click()
     await expect
       .poll(async () =>
         (await threadEmails()).every(email => email.keywords.$seen === true)
@@ -421,5 +431,128 @@ test.describe('THR thread detail', () => {
     await expect(composer.subjectInput).toHaveValue(subject)
     await expect(composer.recipientsSummary).toContainText('carol@example.com')
     await expect(composer.recipientsSummary).not.toContainText('emma')
+  })
+
+  test(
+    'THR-07 an expanded message has the actions of the single email view, for itself only',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const original = await importOriginal(jmap)
+      await addReply(jmap, original, {
+        from: 'carol@example.com',
+        to: user.email,
+        text: 'carol answers',
+        mailbox: 'inbox',
+        seen: false,
+        receivedAt: '2024-12-19T10:00:00Z'
+      })
+      const subject = `Re: ${SUBJECT}`
+      // The only unread email
+      await expect
+        .poll(
+          async () => (await jmap.queryEmails({ notKeyword: '$seen' })).length
+        )
+        .toBe(1)
+      const [reply] = await jmap.queryEmails({ notKeyword: '$seen' })
+      if (reply === undefined) throw new Error('No reply')
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const row = mailbox.emailRow(subject)
+      if (test.info().project.use.hasTouch === true) await row.tap()
+      else await row.click()
+      const conversation = await new ConversationPage(page).expectLoaded(
+        subject
+      )
+      const carol = conversation.message(/carol@example\.com/)
+      const first = conversation.messages.first()
+      await expect(conversation.actions(carol)).toHaveAccessibleName(
+        /^Actions on the message from carol@example\.com, /
+      )
+      await expectNoA11yViolations(page)
+
+      // The star of the message stars it alone
+      await conversation.starButton(carol).click()
+      await expect(conversation.starButton(carol)).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+      await expect
+        .poll(async () => (await jmap.getEmail(reply.id)).keywords.$flagged)
+        .toBe(true)
+      expect((await jmap.getEmail(original.id)).keywords.$flagged).toBe(
+        undefined
+      )
+
+      // "More", with the keyboard: arrows in the menu, Escape back to it
+      const moreButton = conversation
+        .actions(carol)
+        .getByTestId('email-view-more-button')
+      const menu = await conversation.openMore(carol)
+      await expectNoA11yViolations(page)
+      await page.keyboard.press('ArrowDown')
+      await expect(menu.getByRole('menuitem').nth(1)).toBeFocused()
+      await page.keyboard.press('Escape')
+      await expect(menu).toBeHidden()
+      await expect(moreButton).toBeFocused()
+
+      // Marked unread, it collapses, its header keeps the focus
+      await (
+        await conversation.openMore(carol)
+      )
+        .getByTestId('email-action-mark-as-unread')
+        .click()
+      await expect(conversation.toggle(carol)).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      )
+      await expect(conversation.toggle(carol)).toBeFocused()
+      await expect
+        .poll(async () => (await jmap.getEmail(reply.id)).keywords.$seen)
+        .toBe(undefined)
+      expect((await jmap.getEmail(original.id)).keywords.$seen).toBe(true)
+
+      // Moved to the Trash, the first message stays in the conversation,
+      // the conversation stays open: the reply is still in the Inbox
+      await conversation.toggle(first).click()
+      await (
+        await conversation.openMore(first)
+      )
+        .getByTestId('email-action-move-to-trash')
+        .click()
+      const trash = await jmap.findMailboxByRole('trash')
+      await expect
+        .poll(async () =>
+          Object.keys((await jmap.getEmail(original.id)).mailboxIds)
+        )
+        .toEqual([trash.id])
+      await expect(conversation.messages).toHaveCount(2)
+      await expect(conversation.subject).toBeVisible()
+    }
+  )
+
+  test('THR-08 the sender of an expanded message opens its address menu', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await importOriginal(jmap)
+    await new LoginPage(page).loginAs(user)
+    const search = await new SearchPage(page).search(SUBJECT)
+    await search.resultRow(SUBJECT).click()
+    const conversation = await new ConversationPage(page).expectLoaded(SUBJECT)
+    const message = conversation.messages.first()
+
+    await conversation.senderAddress(message).click()
+    const menu = page.getByTestId('email-address-menu')
+    await expect(menu).toBeVisible()
+    await expect(menu.getByTestId('email-address-compose-item')).toBeVisible()
+    await expectNoA11yViolations(page)
+    await menu.getByTestId('email-address-create-rule-item').click()
+
+    const dialog = new SettingsPage(page).ruleDialog
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByTestId('rule-condition-value-input')).toHaveValue(
+      /@/
+    )
   })
 })

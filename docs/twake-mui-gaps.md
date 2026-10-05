@@ -150,6 +150,13 @@ review, that come from twake-mui itself. The e2e helper lists the axe ones in
 `TWAKE_MUI_KNOWN_VIOLATIONS`: they are reported as annotations of the test,
 never silently ignored.
 
+Colour contrast is deferred to a dedicated theme (decision of 2026-10-05):
+meanwhile the app follows the official Twake palette, and the helper reports
+every `color-contrast` violation as a `deferred a11y rule` annotation
+(`DEFERRED_RULES`). The `color-contrast` rows below and the colours darkened
+before that decision (`ds/EventCard`, `ds/SecondaryText`,
+`ds/FloatingActionButton`) are inputs for that theme.
+
 | Component | Rule (axe) | Measured | Fix upstream |
 |---|---|---|---|
 | Theme `text.secondary` (Grey 900 at 64 %), used by `Typography color="textSecondary"`, `TableCell` body, `ListSubheader` | `color-contrast` | 3.6:1 on white, 3.5:1 on Grey 100 (4.5:1 needed) | Grey 900 at 80 % or more (5.4:1). Worked around with `ds/SecondaryText` and the list table |

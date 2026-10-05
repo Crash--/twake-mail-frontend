@@ -671,12 +671,25 @@ export class JmapClient {
   async importEml(
     emlPath: string,
     mailboxRole: MailboxRole = 'inbox',
-    options: { keywords?: Keywords; receivedAt?: string } = {}
+    options: {
+      keywords?: Keywords
+      receivedAt?: string
+      /** Text replaced in the message, e.g. its recipient by the test user */
+      replace?: Record<string, string>
+    } = {}
   ): Promise<Email> {
     const absolute = path.isAbsolute(emlPath)
       ? emlPath
       : path.join(EML_FIXTURES_DIR, emlPath)
-    const blob = await this.upload(await readFile(absolute), 'message/rfc822')
+    let content = await readFile(absolute)
+    if (options.replace !== undefined) {
+      let text = content.toString('utf8')
+      for (const [from, to] of Object.entries(options.replace)) {
+        text = text.replaceAll(from, to)
+      }
+      content = Buffer.from(text, 'utf8')
+    }
+    const blob = await this.upload(content, 'message/rfc822')
     const mailbox = await this.findMailboxByRole(mailboxRole)
     const result = await this.#call('Email/import', {
       emails: {

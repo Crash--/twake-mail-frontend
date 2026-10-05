@@ -1,21 +1,39 @@
 <!doctype html>
 <!--
-  A fake Twake Drive picker for DRIVE-01 and DRIVE-02: the cozy-interapp
-  protocol (intent-<id>:ready, :readyToUse, :done, :cancel) of the intent
-  e2e-intent, one file to share by link or to attach. Served by the stack's
-  nginx at http://localhost:<port>/e2e/drive/picker.html.
+  A fake Twake Drive picker for the DRIVE specs: the cozy-interapp protocol
+  (intent-<id>:ready, :readyToUse, :resize, :showCross, :hideCross, :done,
+  :cancel) of the intent e2e-intent, one file to share by link or to attach.
+  As the real one, its header has its own close button (which cancels the
+  intent) and it never asks for a size by itself: the buttons below send
+  `resize` and `showCross` / `hideCross` for the specs. The options received
+  from the app are shown in #options. Served by the stack's nginx at
+  http://localhost:<port>/e2e/drive/picker.html.
 -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>Fake Twake Drive</title>
+    <style>
+      html, body { margin: 0; height: 100%; }
+      header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; border-bottom: 1px solid #ccc; }
+      main { padding: 8px 16px; }
+      pre { white-space: pre-wrap; font-size: 12px; }
+    </style>
   </head>
   <body>
-    <h1>Fake Twake Drive</h1>
-    <p>report.txt</p>
-    <button type="button" id="link" disabled>Add as link</button>
-    <button type="button" id="attach" disabled>Add as attachment</button>
-    <button type="button" id="cancel">Cancel</button>
+    <header>
+      <h1>Fake Twake Drive</h1>
+      <button type="button" id="close" aria-label="Close Drive">×</button>
+    </header>
+    <main>
+      <p>report.txt</p>
+      <button type="button" id="link" disabled>Add as link</button>
+      <button type="button" id="attach" disabled>Add as attachment</button>
+      <button type="button" id="resize">Ask for 640 × 480</button>
+      <button type="button" id="show-cross">Ask for the dialog close button</button>
+      <button type="button" id="hide-cross">Hide the dialog close button</button>
+      <pre id="options"></pre>
+    </main>
     <script>
       var ID = 'e2e-intent'
       var base = location.protocol + '//' + location.host + '/e2e/drive'
@@ -28,6 +46,7 @@
         if (event.source !== window.parent) return
         parentOrigin = event.origin
         var data = event.data || {}
+        document.getElementById('options').textContent = JSON.stringify(data)
         var link = document.getElementById('link')
         var attach = document.getElementById('attach')
         if (data.sharingLink) link.textContent = data.sharingLink.label
@@ -47,8 +66,20 @@
           document: [Object.assign({ downloadLink: base + '/files/report.txt' }, file)]
         })
       })
-      document.getElementById('cancel').addEventListener('click', function () {
+      document.getElementById('close').addEventListener('click', function () {
         send('cancel')
+      })
+      document.getElementById('resize').addEventListener('click', function () {
+        send('resize', {
+          dimensions: { width: 640, height: 480 },
+          transition: 'width .2s ease-out, height .2s ease-out'
+        })
+      })
+      document.getElementById('show-cross').addEventListener('click', function () {
+        send('showCross')
+      })
+      document.getElementById('hide-cross').addEventListener('click', function () {
+        send('hideCross')
       })
       send('ready')
     </script>

@@ -457,6 +457,52 @@ describe('resolveConfig', () => {
     })
   })
 
+  describe('the SSO of the server', () => {
+    const NO_SSO_SOURCE = {
+      SERVER_URL: 'https://jmap.example.com/',
+      WEB_OIDC_CLIENT_ID: 'teammail-web'
+    }
+
+    it('is to be discovered, with the Basic form as fallback, without SSO_BASE_URL', () => {
+      const { result } = resolveWithWarnings(NO_SSO_SOURCE)
+
+      expect(result).toEqual({
+        ok: true,
+        value: expect.objectContaining({
+          authMode: 'oidc',
+          oidc: expect.objectContaining({
+            issuerUrl: 'https://jmap.example.com'
+          }),
+          issuerDiscovery: {
+            serverUrl: 'https://jmap.example.com',
+            fallbackToBasic: true
+          }
+        })
+      })
+    })
+
+    it('is required when AUTH_MODE=oidc is explicit', () => {
+      const { result } = resolveWithWarnings({
+        ...NO_SSO_SOURCE,
+        AUTH_MODE: 'oidc'
+      })
+
+      expect(result.ok && result.value.issuerDiscovery).toEqual({
+        serverUrl: 'https://jmap.example.com',
+        fallbackToBasic: false
+      })
+    })
+
+    it.each([
+      [{ ...NO_SSO_SOURCE, SSO_BASE_URL: 'https://sso.example.com' }],
+      [{ ...NO_SSO_SOURCE, AUTH_MODE: 'basic' }]
+    ])('is not discovered with %j', source => {
+      const { result } = resolveWithWarnings(source)
+
+      expect(result.ok && result.value.issuerDiscovery).toBe(null)
+    })
+  })
+
   describe('Twake Workplace embedding', () => {
     it.each([
       [{ WORKPLACE_EMBEDDING: 'true' }, true],

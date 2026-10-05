@@ -98,19 +98,6 @@ export function PreferencesSettings({
           data-testid="sender-priority-setting-toggle"
         />
       ) : null}
-      {errorReporting.isConfigured && errorReporting.canChoose ? (
-        <PreferenceOption
-          title={t('settings.preferences.errorReporting')}
-          description={t('settings.preferences.errorReportingDescription')}
-          toggleLabel={t('settings.preferences.errorReportingToggle')}
-          isChecked={errorReporting.isOptedIn}
-          isDisabled={saving === 'sentry.user-opt-in'}
-          onChange={isOn => {
-            changeServerSetting('sentry.user-opt-in', isOn)
-          }}
-          data-testid="error-reporting-setting-toggle"
-        />
-      ) : null}
       <PreferenceOption
         title={t('settings.preferences.thread')}
         description={t('settings.preferences.threadDescription')}
@@ -127,6 +114,19 @@ export function PreferencesSettings({
           isChecked={isLabelVisible}
           onChange={setLabelVisible}
           data-testid="label-visibility-setting-toggle"
+        />
+      ) : null}
+      {errorReporting.isConfigured && errorReporting.canChoose ? (
+        <PreferenceOption
+          title={t('settings.preferences.errorReporting')}
+          description={t('settings.preferences.errorReportingDescription')}
+          toggleLabel={t('settings.preferences.errorReportingToggle')}
+          isChecked={errorReporting.isOptedIn}
+          isDisabled={saving === 'sentry.user-opt-in'}
+          onChange={isOn => {
+            changeServerSetting('sentry.user-opt-in', isOn)
+          }}
+          data-testid="error-reporting-setting-toggle"
         />
       ) : null}
     </SettingsSectionLayout>

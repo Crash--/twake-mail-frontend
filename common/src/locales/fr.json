@@ -423,6 +423,10 @@
     "title": "Paramètres",
     "manageAccount": "Gérer le compte",
     "sections": {
+      "profiles": {
+        "title": "Profils",
+        "description": "Sélectionnez l'identité ou l'adresse e-mail que vous souhaitez utiliser pour envoyer les messages"
+      },
       "preferences": {
         "title": "Préférences",
         "description": "Conversations et comportement de l'application"
@@ -516,5 +520,52 @@
     "show": {
       "success": "Ce dossier est de nouveau affiché"
     }
+  },
+  "identities": {
+    "create": "Créer une nouvelle identité",
+    "edit": "Modifier l'identité",
+    "form": {
+      "name": "Nom",
+      "namePlaceholder": "Entrez le nom",
+      "replyTo": "Répondre à",
+      "bcc": "Cci à",
+      "addressPlaceholder": "Entrez l'adresse e-mail",
+      "signature": "Signature",
+      "setDefault": "Définir comme identité par défaut",
+      "create": "Créer",
+      "save": "Sauvegarder",
+      "email": "Adresse e-mail",
+      "addressesHelp": "Séparez plusieurs adresses par des virgules"
+    },
+    "errors": {
+      "blank": "Ce champ ne peut pas être vide",
+      "onlySpaces": "Ce champ ne peut pas contenir uniquement des espaces",
+      "invalidAddress": "Cette adresse e-mail n'est pas valide",
+      "imageUpload": "Une erreur est survenue pendant le téléversement de l'image. Réessayez plus tard.",
+      "delete": "Échec de la suppression",
+      "imageTooLarge": "Merci de choisir une taille d'image inférieure à %{maxSize}Ko",
+      "save": "L'identité n'a pas pu être enregistrée",
+      "forbiddenFrom": "Vous ne pouvez pas envoyer depuis cette adresse",
+      "load": "Les identités n'ont pas pu être chargées"
+    },
+    "delete": {
+      "title": "Supprimer l'identité",
+      "message": "Voulez-vous vraiment supprimer cette identité ?"
+    },
+    "toasts": {
+      "created": "Vous avez créé une nouvelle identité",
+      "createdDefault": "Vous avez créé une nouvelle identité par défaut",
+      "updated": "Vous avez changé d'identité avec succès",
+      "defaultSet": "Configuration de l'identité par défaut réussie",
+      "deleted": "L'identité a été supprimée"
+    },
+    "editAction": "Modifier",
+    "defaultGroup": "Identité par défaut",
+    "defaultBadge": "Par défaut",
+    "setDefaultOf": "Utiliser %{name} par défaut",
+    "editOf": "Modifier %{name}",
+    "deleteOf": "Supprimer %{name}",
+    "cannotDelete": "Créée avec votre compte, elle ne peut pas être supprimée",
+    "listLabel": "Identités"
   }
 }

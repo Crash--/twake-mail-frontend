@@ -14,7 +14,7 @@ describe('Settings', () => {
     resetViewport()
   })
 
-  it('opens from the account menu on the first section, and goes back to the folder left', async () => {
+  it('opens from the account menu on Profiles, and goes back to the folder left', async () => {
     renderWithProviders(<AppRoutes apps={[]} />, {
       route: '/mailbox/mailbox-sent'
     })
@@ -25,26 +25,22 @@ describe('Settings', () => {
 
     const heading = await screen.findByRole('heading', {
       level: 1,
-      name: 'Preferences'
+      name: 'Profiles'
     })
     await waitFor(() => {
       expect(heading).toHaveFocus()
     })
     const nav = screen.getByRole('navigation', { name: 'Settings' })
-    expect(
-      within(nav).getByTestId('settings-menu-preferences')
-    ).toHaveAttribute('aria-current', 'page')
-    expect(document.title).toBe('Preferences - Settings - Twake Mail')
+    expect(within(nav).getByTestId('settings-menu-profiles')).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    expect(document.title).toBe('Profiles - Settings - Twake Mail')
     expect(screen.queryByTestId('mailbox-tree')).toBe(null)
 
-    await userEvent.click(
-      within(nav).getByTestId('settings-menu-keyboard-shortcuts')
-    )
+    await userEvent.click(within(nav).getByTestId('settings-menu-preferences'))
     expect(
-      await screen.findByRole('heading', {
-        level: 1,
-        name: 'Keyboard shortcuts'
-      })
+      await screen.findByRole('heading', { level: 1, name: 'Preferences' })
     ).toBeVisible()
 
     await userEvent.click(screen.getByTestId('settings-back-button'))
@@ -86,7 +82,7 @@ describe('Settings', () => {
     })
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Preferences' })
+      await screen.findByRole('heading', { level: 1, name: 'Profiles' })
     ).toBeVisible()
   })
 

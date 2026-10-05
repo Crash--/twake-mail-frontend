@@ -5,6 +5,7 @@ import type { AppListEntry } from '@common/config/config'
 import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
+import { IdentitiesSettings } from '@common/features/identities/IdentitiesSettings'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
 import { PushProvider } from '@common/features/push/PushProvider'
 import { PreferencesSettings } from '@common/features/settings/PreferencesSettings'
@@ -63,6 +64,14 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
           </Route>
           <Route path="/settings" element={<SettingsPage />}>
             <Route index element={<SettingsHome />} />
+            <Route
+              path="profiles"
+              element={
+                <SettingsSectionRoute id="profiles">
+                  {section => <IdentitiesSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
             <Route
               path="preferences"
               element={

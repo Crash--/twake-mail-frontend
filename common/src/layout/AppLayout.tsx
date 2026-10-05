@@ -21,6 +21,7 @@ import {
   isSettingsPath,
   SettingsExitProvider
 } from '@common/features/settings/SettingsExitProvider'
+import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync'
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
 import { SettingsSidebar } from '@common/features/settings/SettingsSidebar'
 import {
@@ -117,6 +118,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
     <Box className="u-flex u-flex-column u-h-100">
       <TouchTargets />
       <ServerLanguageSync />
+      <SentryReportingSync />
       <TopBar apps={apps} onOpenFolders={handleOpenFolders} />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}

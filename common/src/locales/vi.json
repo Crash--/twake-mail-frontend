@@ -607,7 +607,10 @@
       "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại",
       "labels": "Hiển thị nhãn",
       "labelsDescription": "Hiển thị các nhãn được gán cho email trực tiếp trong danh sách tin nhắn để phân loại dễ dàng hơn.",
-      "labelsToggle": "Hiển thị nhãn"
+      "labelsToggle": "Hiển thị nhãn",
+      "errorReporting": "Báo cáo lỗi",
+      "errorReportingDescription": "Gửi báo cáo sự cố và lỗi để nhóm hỗ trợ có thể chẩn đoán các vấn đề bạn gặp phải. Email của bạn, nội dung và người nhận không bao giờ được đưa vào.",
+      "errorReportingToggle": "Gửi báo cáo lỗi"
     },
     "backToMail": "Quay lại hộp thư",
     "language": {

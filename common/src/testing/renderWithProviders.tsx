@@ -6,6 +6,8 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
+import { AppConfigProvider } from '@common/config/AppConfigProvider'
+import type { AppConfig } from '@common/config/config'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import type { AuthService } from '@common/features/auth/types'
 import type { SupportedLanguage } from '@common/i18n/languages'
@@ -40,6 +42,8 @@ export interface RenderOptions {
    * the mail screens (`useJmapSession`)
    */
   withJmapSession?: boolean
+  /** The runtime configuration, for the screens that read it */
+  config?: AppConfig
 }
 
 export interface RenderWithProvidersResult extends RenderResult {
@@ -62,7 +66,8 @@ export function renderWithProviders(
     authService = makeFakeBasicAuthService(),
     lang = 'en',
     jmapServer = makeFakeJmapServer(),
-    withJmapSession = false
+    withJmapSession = false,
+    config
   }: RenderOptions = {}
 ): RenderWithProvidersResult {
   const queryClient = makeQueryClient()
@@ -73,10 +78,15 @@ export function renderWithProviders(
   })
   const createFakeClient: JmapClientFactory = options =>
     createClient({ ...options, fetch: jmapServer.fetch })
-  const element = withJmapSession ? (
+  const session = withJmapSession ? (
     <JmapSessionProvider>{ui}</JmapSessionProvider>
   ) : (
     ui
+  )
+  const element = config ? (
+    <AppConfigProvider config={config}>{session}</AppConfigProvider>
+  ) : (
+    session
   )
 
   const result = render(

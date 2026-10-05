@@ -10,6 +10,12 @@ import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+/**
+ * The settings of the account the client reads or writes: the ones the
+ * library knows, and the ones of tmail-flutter it does not list yet
+ */
+export type ServerSettingKey = KnownSettingKey | 'sentry.user-opt-in'
+
 /** The settings of the account kept by the server (Linagora `Settings`) */
 export type ServerSettings = Readonly<Record<string, string>>
 
@@ -48,7 +54,7 @@ export function serverSettingsQueryOptions(
 /** A boolean setting: its values are strings, `"true"` is the only true */
 export function readBooleanSetting(
   settings: ServerSettings,
-  key: KnownSettingKey,
+  key: ServerSettingKey,
   fallback: boolean
 ): boolean {
   const value = settings[key]
@@ -60,6 +66,8 @@ export interface ServerSettingsState {
   settings: ServerSettings | null
   /** Read, failed, or not offered: what to use is known */
   isSettled: boolean
+  /** The settings were read from the server (not failed, not unsupported) */
+  isRead: boolean
 }
 
 /** The server settings of the account, when the server offers them */
@@ -71,8 +79,14 @@ export function useServerSettings(): ServerSettingsState {
     ...serverSettingsQueryOptions(client, accountId),
     enabled: isOffered
   })
-  if (!isOffered || query.isError) return { settings: {}, isSettled: true }
-  return { settings: query.data ?? null, isSettled: query.data !== undefined }
+  if (!isOffered || query.isError) {
+    return { settings: {}, isSettled: true, isRead: false }
+  }
+  return {
+    settings: query.data ?? null,
+    isSettled: query.data !== undefined,
+    isRead: query.data !== undefined
+  }
 }
 
 /**
@@ -100,13 +114,24 @@ export function useShowsSenderPriority(): boolean {
 }
 
 /**
+ * "Error reporting" (tmail-flutter `sentry.user-opt-in`): the choice of the
+ * user to send error reports, null while they have not made one
+ */
+export function readSentryUserOptIn(settings: ServerSettings): boolean | null {
+  const value = settings['sentry.user-opt-in']
+  if (value === 'true') return true
+  if (value === 'false') return false
+  return null
+}
+
+/**
  * Changes one setting of the account (`Settings/set`, a `settings/<key>`
  * patch); false when refused
  */
 export async function updateServerSetting(
   client: JmapClient,
   accountId: string,
-  key: KnownSettingKey,
+  key: ServerSettingKey,
   value: string
 ): Promise<boolean> {
   const response = await client.call('Settings/set', {
@@ -119,7 +144,7 @@ export async function updateServerSetting(
 /** Whether the server keeps this setting and lets the user change it */
 export function canChangeServerSetting(
   session: Session,
-  key: KnownSettingKey
+  key: ServerSettingKey
 ): boolean {
   const capability = session.capabilities[LINAGORA_CAPABILITIES.settings] as
     SettingsCapability | undefined

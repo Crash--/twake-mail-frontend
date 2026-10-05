@@ -11,11 +11,12 @@ set -euo pipefail
 
 IMAGE="${1:?usage: $0 <image>}"
 NAME="twake-mail-smoke-$$"
+ENV_FILE_NAME="twake-mail-smoke-envfile-$$"
 CONFIG_DIR="$(mktemp -d)"
-trap 'docker rm -f "$NAME" >/dev/null 2>&1 || true; rm -rf "$CONFIG_DIR"' EXIT
+trap 'docker rm -f "$NAME" "$ENV_FILE_NAME" >/dev/null 2>&1 || true; rm -rf "$CONFIG_DIR"' EXIT
 
 cat >"$CONFIG_DIR/.env.js" <<'EOF'
-var JMAP_SESSION_URL = 'https://jmap.example.com/jmap/session'
+var SERVER_URL = 'https://jmap.example.com'
 var AUTH_MODE = 'basic'
 EOF
 echo 'var appList = []' >"$CONFIG_DIR/appList.js"
@@ -79,6 +80,44 @@ expect 'X-Content-Type-Options' "$(header / X-Content-Type-Options)" 'nosniff'
 expect 'Referrer-Policy' "$(header / Referrer-Policy)" 'same-origin'
 expect 'Permissions-Policy' "$(header / Permissions-Policy)" '*camera=()*'
 expect 'no nginx version disclosed' "$(header / Server)" 'nginx'
+
+# An env.file of tmail-flutter, mounted where its image reads it, instead of .env.js
+cat >"$CONFIG_DIR/env.file" <<'ENVFILE'
+# comment
+SERVER_URL=https://jmap.example.com/
+WEB_OIDC_CLIENT_ID="teammail-web"
+OIDC_SCOPES=openid,profile,email,offline_access # trailing comment
+FORWARD_WARNING_MESSAGE=It's a \ test
+SENTRY_ENABLED=false
+ENVFILE
+chmod 644 "$CONFIG_DIR/env.file"
+docker run -d --name "$ENV_FILE_NAME" \
+  --read-only --tmpfs /tmp --user 101 --cap-drop ALL --security-opt no-new-privileges \
+  -p 127.0.0.1::8080 \
+  -v "$CONFIG_DIR/env.file:/usr/share/nginx/html/assets/env.file:ro" \
+  "$IMAGE" >/dev/null
+ENV_FILE_BASE="http://$(docker port "$ENV_FILE_NAME" 8080/tcp | head -1)"
+for _ in $(seq 1 30); do
+  curl -fsS -o /dev/null "$ENV_FILE_BASE/healthz" 2>/dev/null && break
+  sleep 1
+done
+env_js="$(body "$ENV_FILE_BASE/.env.js")"
+expect 'env.file: /.env.js generated' "$env_js" "*var SERVER_URL = 'https://jmap.example.com/';*"
+expect 'env.file: quotes removed' "$env_js" "*var WEB_OIDC_CLIENT_ID = 'teammail-web';*"
+expect 'env.file: trailing comment removed' "$env_js" "*var OIDC_SCOPES = 'openid,profile,email,offline_access';*"
+forward_line="$(grep '^var FORWARD_WARNING_MESSAGE' <<<"$env_js" || true)"
+expected_line='var FORWARD_WARNING_MESSAGE = '"'It\\'s a \\\\ test';"
+if [[ "$forward_line" == "$expected_line" ]]; then
+  echo 'ok   env.file: quote and backslash escaped'
+else
+  echo "FAIL env.file: quote and backslash escaped: got '$forward_line'"
+  failures=$((failures + 1))
+fi
+expect 'env.file: values stay strings' "$env_js" "*var SENTRY_ENABLED = 'false';*"
+expect 'env.file: comments left out' "$env_js" "var SERVER_URL*"
+env_js_headers="$(curl -fsS -o /dev/null -D - "$ENV_FILE_BASE/.env.js" | tr -d '\r')"
+expect 'env.file: /.env.js is never cached' "$env_js_headers" '*no-store*'
+expect 'env.file: /.env.js is JavaScript' "$env_js_headers" '*application/javascript*'
 
 echo -n "waiting for the Docker healthcheck"
 health=starting

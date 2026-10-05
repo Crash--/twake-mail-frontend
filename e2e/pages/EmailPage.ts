@@ -14,6 +14,10 @@ export type EmailAction =
   | 'not-spam'
   | 'archive'
   | 'label-as'
+  | 'unsubscribe'
+  | 'print'
+  | 'download-eml'
+  | 'edit-as-new'
 
 /**
  * An opened email (reading pane / full screen).
@@ -34,6 +38,11 @@ export class EmailPage {
   readonly replyToListButton: Locator
   readonly forwardButton: Locator
   readonly moreButton: Locator
+  /** "Unsubscribe" link after the sender, and the note once unsubscribed */
+  readonly unsubscribeLink: Locator
+  readonly unsubscribedBanner: Locator
+  /** The toolbar button of "Print all" */
+  readonly printButton: Locator
   /** "Remote images hidden" banner, and its buttons */
   readonly remoteContentBanner: Locator
   readonly showRemoteContentButton: Locator
@@ -54,6 +63,9 @@ export class EmailPage {
     this.replyToListButton = this.root.getByTestId('reply-to-list-email-button')
     this.forwardButton = this.root.getByTestId('forward-email-button')
     this.moreButton = this.root.getByTestId('email-view-more-button')
+    this.unsubscribeLink = this.root.getByTestId('email-unsubscribe-link')
+    this.unsubscribedBanner = this.root.getByTestId('email-unsubscribed-banner')
+    this.printButton = this.root.getByTestId('email-view-action-print')
     this.remoteContentBanner = this.root.getByTestId('remote-content-banner')
     this.showRemoteContentButton = this.root.getByTestId(
       'remote-content-show-button'

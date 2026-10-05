@@ -25,6 +25,7 @@ import { JmapSetError } from 'jmap-client-ts'
 import {
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -56,6 +57,7 @@ import { formatSize } from '@common/features/email/formatSize'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
 import { findTemplatesMailboxId } from '@common/features/mailbox/mailboxTree'
+import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
@@ -76,6 +78,7 @@ import {
   sendEmail,
   type AttachedFile,
   type ComposedMessage,
+  composerMailboxIds,
   type MailboxIds,
   type SendFailure
 } from './composeEmail'
@@ -248,7 +251,9 @@ function saveErrorKey(error: unknown): TranslationKey {
 interface LoadedFormProps extends ComposerFormProps {
   content: ComposerContent
   identities: IdentitySummary[]
-  mailboxIds: MailboxIds
+  /** The Drafts and Sent of the user: the ones of a team mailbox follow the identity */
+  ownMailboxIds: MailboxIds
+  mailboxes: readonly MailboxSummary[]
   /** The Templates folder, null until "Save as template" creates it */
   templatesId: string | null
   images: InlineImageStore
@@ -263,7 +268,8 @@ function LoadedComposerForm({
   onDone,
   content,
   identities,
-  mailboxIds,
+  ownMailboxIds,
+  mailboxes,
   templatesId,
   images
 }: LoadedFormProps): ReactElement {
@@ -279,6 +285,13 @@ function LoadedComposerForm({
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [identityId, setIdentityId] = useState(content.identityId)
+  // Sent as a team mailbox, the message goes through its Drafts and Sent
+  const identityEmail =
+    identities.find(item => item.id === identityId)?.email ?? null
+  const mailboxIds = useMemo(
+    () => composerMailboxIds(mailboxes, identityEmail, ownMailboxIds),
+    [mailboxes, identityEmail, ownMailboxIds]
+  )
   const [recipients, setRecipients] = useState<RecipientLists>(
     content.recipients
   )
@@ -1272,6 +1285,12 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
   const mailboxes = useMailboxes()
   const drafts = mailboxes.data?.find(mailbox => mailbox.role === 'drafts')
   const sent = mailboxes.data?.find(mailbox => mailbox.role === 'sent')
+  const draftsId = drafts?.id ?? null
+  const sentId = sent?.id ?? null
+  const ownMailboxIds = useMemo(
+    () => (draftsId === null ? null : { drafts: draftsId, sent: sentId }),
+    [draftsId, sentId]
+  )
   const { session } = useJmapSession()
   const { lang } = useI18n()
   const { quote } = useEditorLabels()
@@ -1354,7 +1373,7 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       </Typography>
     )
   }
-  if (!identities.data || !drafts || !content.data) {
+  if (!identities.data || !ownMailboxIds || !content.data) {
     return (
       <Typography role="status" className="u-p-1">
         {t('common.loading')}
@@ -1366,7 +1385,8 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       {...props}
       content={content.data}
       identities={identities.data}
-      mailboxIds={{ drafts: drafts.id, sent: sent?.id ?? null }}
+      ownMailboxIds={ownMailboxIds}
+      mailboxes={mailboxes.data ?? []}
       templatesId={findTemplatesMailboxId(mailboxes.data ?? [])}
       images={images}
     />

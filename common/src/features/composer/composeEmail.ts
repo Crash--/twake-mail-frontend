@@ -9,7 +9,11 @@ import {
 } from 'jmap-client-ts'
 
 import { findReferencedCids } from '@common/features/email/emailBody'
-import { TEMPLATES_NAME } from '@common/features/mailbox/mailboxTree'
+import {
+  findTeamFolderByAddress,
+  TEMPLATES_NAME
+} from '@common/features/mailbox/mailboxTree'
+import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { IMPORTANT_HEADER_VALUES } from '@common/features/email/importance'
 
 import { htmlToText, toEmailHtml } from './emailHtml'
@@ -136,6 +140,25 @@ export interface AttachedFile {
 export interface MailboxIds {
   drafts: string
   sent: string | null
+}
+
+/**
+ * The Drafts and Sent folders a message goes through: the ones of the team
+ * mailbox when it is sent with the identity of a team mailbox, else the
+ * ones of the user (tmail-flutter `getDraftMailboxIdForComposer`,
+ * `getSentMailboxIdForComposer`)
+ */
+export function composerMailboxIds(
+  mailboxes: readonly MailboxSummary[],
+  identityEmail: string | null,
+  own: MailboxIds
+): MailboxIds {
+  if (identityEmail === null) return own
+  return {
+    drafts:
+      findTeamFolderByAddress(mailboxes, identityEmail, 'drafts') ?? own.drafts,
+    sent: findTeamFolderByAddress(mailboxes, identityEmail, 'sent') ?? own.sent
+  }
 }
 
 /**

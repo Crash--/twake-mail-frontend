@@ -447,6 +447,25 @@
       "ask": "Demander",
       "result": "Suggestion",
       "emptyText": "Écrivez ou sélectionnez d'abord du texte"
+    },
+    "emoji": {
+      "open": "Insérer un emoji",
+      "title": "Emojis",
+      "search": "Rechercher un emoji",
+      "noResults": "Aucun emoji trouvé",
+      "loading": "Chargement des emojis",
+      "recent": "Récents",
+      "categories": "Catégories d’emojis",
+      "groups": {
+        "people": "Emojis et personnes",
+        "animals": "Animaux et nature",
+        "food": "Nourriture et boissons",
+        "activities": "Activités",
+        "travel": "Voyages et lieux",
+        "objects": "Objets",
+        "symbols": "Symboles",
+        "flags": "Drapeaux"
+      }
     }
   },
   "layout": {

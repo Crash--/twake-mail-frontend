@@ -133,6 +133,7 @@ import { loadReplyContent } from './replyContent'
 import { makeIsSelf, type ReplyAction } from './replyRecipients'
 import { replaceSignature, signatureHtml } from './signature'
 import { DRAFT_IDLE_MS } from './draftPolicy'
+import { EmojiButton } from './EmojiButton'
 import { DriveAttachButton } from './DriveAttachButton'
 import { ScribeMenu, type ScribeInput } from './ScribeMenu'
 import {
@@ -1353,6 +1354,12 @@ function LoadedComposerForm({
               <Icon icon={LinkIcon} size={20} aria-hidden="true" />
             </IconButton>
           </Tooltip>
+          <EmojiButton
+            onInsert={emoji => {
+              editorActions.current?.insertText(emoji)
+            }}
+            onDismiss={() => editorActions.current?.focus()}
+          />
           <DriveAttachButton
             maxFileSize={uploadLimits.maxFileSize}
             onLinks={handleDriveLinks}

@@ -9,6 +9,8 @@ export interface WarningAvatarBadgeProps {
   /** What it says, e.g. "Dangerous message": it replaces the sender avatar */
   label: string
   size?: AvatarProps['size']
+  /** `span` inside phrasing content, e.g. the button toggling a message */
+  component?: 'div' | 'span'
   'data-testid'?: string
 }
 
@@ -20,10 +22,12 @@ export interface WarningAvatarBadgeProps {
 export function WarningAvatarBadge({
   label,
   size,
+  component = 'div',
   'data-testid': testId
 }: WarningAvatarBadgeProps): ReactElement {
   return (
     <Avatar
+      component={component}
       size={size}
       role="img"
       aria-label={label}

@@ -12,4 +12,14 @@ describe('WarningAvatarBadge', () => {
       screen.getByTestId('b')
     )
   })
+
+  it('can be a span, inside a button', () => {
+    renderDs(
+      <button type="button">
+        <WarningAvatarBadge label="Dangerous message" component="span" />
+      </button>
+    )
+
+    expect(screen.getByRole('img').tagName).toBe('SPAN')
+  })
 })

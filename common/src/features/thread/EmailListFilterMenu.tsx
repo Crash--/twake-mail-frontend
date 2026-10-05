@@ -1,7 +1,6 @@
 import { Check, Cross, Filter, Icon } from '@linagora/twake-icons'
 import {
   Box,
-  DropdownButton,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -11,6 +10,9 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
+import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
+import { IconAction } from '@/ds/IconAction/IconAction'
+import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -54,7 +56,9 @@ export function EmailListFilterMenu({
   } as const
 
   return (
-    <Box className={`u-flex u-flex-items-center ${className ?? ''}`}>
+    <Box
+      className={`u-flex u-flex-items-center u-flex-shrink-0 ${className ?? ''}`}
+    >
       {isPhone ? (
         <Tooltip title={t('thread.toolbar.filter')}>
           <IconButton
@@ -70,30 +74,26 @@ export function EmailListFilterMenu({
           </IconButton>
         </Tooltip>
       ) : (
-        <DropdownButton
-          variant="text"
-          color={isActive ? 'primary' : 'inherit'}
-          startIcon={<Icon icon={Filter} />}
+        <ToolbarButton
+          label={label}
+          icon={FilterListIcon}
+          hasMenu
+          isActive={isActive}
           onClick={event => {
             setAnchor(event.currentTarget)
           }}
           data-testid="list-filter-button"
           {...menuProps}
-        >
-          {label}
-        </DropdownButton>
+        />
       )}
       {isActive ? (
-        <Tooltip title={clearLabel}>
-          <IconButton
-            size="small"
-            aria-label={clearLabel}
-            onClick={onClear}
-            data-testid="list-filter-clear-button"
-          >
-            <Icon icon={Cross} />
-          </IconButton>
-        </Tooltip>
+        <IconAction
+          label={clearLabel}
+          icon={Cross}
+          iconSize={16}
+          onClick={onClear}
+          data-testid="list-filter-clear-button"
+        />
       ) : null}
       <Menu
         id={menuId}

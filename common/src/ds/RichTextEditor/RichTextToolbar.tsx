@@ -56,6 +56,8 @@ export interface RichTextToolbarProps {
   onPickImages: (() => void) | null
   /** Lets the editor send the focus here (Alt+F10) */
   actionsRef: MutableRefObject<EditorActions>
+  /** The editor is disabled: every button says it, and does nothing */
+  disabled?: boolean
   buttonTestId?: (item: RichTextToolbarItemId) => string
 }
 
@@ -84,6 +86,7 @@ export function RichTextToolbar({
   onOpenLinkDialog,
   onPickImages,
   actionsRef,
+  disabled = false,
   buttonTestId
 }: RichTextToolbarProps): ReactElement {
   const state = useEditorState({
@@ -116,7 +119,7 @@ export function RichTextToolbar({
 
   const chain = (): ReturnType<Editor['chain']> => editor.chain().focus()
 
-  const items: ToolbarItem[] = [
+  const allItems: ToolbarItem[] = [
     {
       id: 'undo',
       icon: 'undo',
@@ -222,6 +225,10 @@ export function RichTextToolbar({
       run: () => chain().unsetAllMarks().unsetTextAlign().run()
     }
   ]
+
+  const items = disabled
+    ? allItems.map(item => ({ ...item, disabled: true }))
+    : allItems
 
   const focusItem = (index: number): void => {
     const count = items.length

@@ -132,6 +132,8 @@ export interface SentEmail {
 export interface WaitForEmailInput {
   subject: string
   mailboxRole?: MailboxRole
+  /** A folder by id, instead of a role */
+  mailboxId?: string
   /** Milliseconds, 15 s by default */
   timeout?: number
 }
@@ -848,7 +850,10 @@ export class JmapClient {
   /** Polls until an email with exactly this subject is in the mailbox (Inbox by default) */
   async waitForEmail(input: WaitForEmailInput): Promise<Email> {
     const timeout = input.timeout ?? 15_000
-    const mailbox = await this.findMailboxByRole(input.mailboxRole ?? 'inbox')
+    const mailbox =
+      input.mailboxId === undefined
+        ? await this.findMailboxByRole(input.mailboxRole ?? 'inbox')
+        : await this.findMailboxById(input.mailboxId)
     const deadline = Date.now() + timeout
     let delay = 100
     for (;;) {

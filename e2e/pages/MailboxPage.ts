@@ -331,7 +331,7 @@ export class MailboxPage {
     const toggle = this.page.getByTestId('thread-setting-toggle').getByRole('switch')
     await toggle.setChecked(isEnabled)
     await expect(toggle).toBeChecked({ checked: isEnabled })
-    await settings.backToMailButton.click()
+    await settings.backToMail()
     await expect(this.root).toBeVisible()
     return this
   }

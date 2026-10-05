@@ -1,7 +1,12 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
 /** The settings sections, by the alias of their URL (tmail-flutter `getAliasBrowser`) */
-export type SettingsSectionId = 'profiles' | 'preferences' | 'keyboard-shortcuts'
+export type SettingsSectionId =
+  | 'profiles'
+  | 'email-rules'
+  | 'preferences'
+  | 'forwarding'
+  | 'keyboard-shortcuts'
 
 /** Below this width the sections are listed in the page (app `SCREEN_BREAKPOINTS.desktop`) */
 const DESKTOP_MIN_WIDTH = 1200
@@ -24,6 +29,13 @@ export class SettingsPage {
   readonly createIdentityButton: Locator
   readonly identityItems: Locator
   readonly identityDialog: Locator
+  // Email rules
+  readonly addRuleButton: Locator
+  readonly ruleItems: Locator
+  readonly ruleDialog: Locator
+  // Forwarding
+  readonly forwardInput: Locator
+  readonly forwardItems: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -35,6 +47,11 @@ export class SettingsPage {
     this.createIdentityButton = page.getByTestId('create-new-identity-button')
     this.identityItems = page.getByTestId('identity-item')
     this.identityDialog = page.getByTestId('identity-form-dialog')
+    this.addRuleButton = page.getByTestId('add-rule-button')
+    this.ruleItems = page.getByTestId('email-rule-item')
+    this.ruleDialog = page.getByTestId('rule-form-dialog')
+    this.forwardInput = page.getByTestId('forward-input')
+    this.forwardItems = page.getByTestId('forward-item')
   }
 
   async #isDesktop(): Promise<boolean> {
@@ -58,6 +75,28 @@ export class SettingsPage {
     await this.menuItem(id).click()
     await expect(this.section(id)).toBeVisible()
     return this
+  }
+
+  rule(name: string): Locator {
+    return this.ruleItems.filter({
+      has: this.page.getByTestId('email-rule-name').getByText(name, { exact: true })
+    })
+  }
+
+  /** Picks the action of a row of the rule creator (1-based) */
+  async selectRuleAction(position: number, label: string): Promise<void> {
+    await this.ruleDialog
+      .getByRole('group', { name: `Action ${position}` })
+      .getByTestId('rule-action-select')
+      .selectOption({ label })
+  }
+
+  /** Back to the mail, from a section on any screen size */
+  async backToMail(): Promise<void> {
+    if (!(await this.#isDesktop()) && (await this.sectionBackButton.isVisible())) {
+      await this.sectionBackButton.click()
+    }
+    await this.backToMailButton.click()
   }
 
   identity(name: string): Locator {

@@ -129,7 +129,7 @@ Conventions:
 | `email-view-more-button` / `email-view-menu` | "more" button and its menu, holding every action | `email_detailed_more_button` |
 | `email-action-<action>` | the items of every email actions menu: `reply`, `reply-all`, `reply-to-list`, `forward` (one email, not in Drafts), `not-spam`, `move-to-trash`, `delete-permanently`, `archive`, `mark-as-read`, `mark-as-unread`, `star`, `unstar`, `move`, `mark-as-spam` (`label-as` later) | `markAsStarred_action`, `moveToSpam_action`, `labelAs_action`… |
 | `delete-thread-button` | delete the whole thread | `delete_thread_button` |
-| `email-address` / `email-address-dialog` | clickable address and its dialog (copy, compose, create rule) | `copy_email_address`, `email_address_dialog_close_button` |
+| `email-address` / `email-address-menu` + `email-address-copy-item`, `email-address-create-rule-item` | the sender of an email (reading view of one email) and its menu: copy, "Create a rule with this email" | `copy_email_address`, `quickCreatingRule` |
 | `calendar-event-card` | iMIP invitation card | `CalendarEventCardWidget` |
 
 ## Phase 2 — search (`SearchPage`)
@@ -207,7 +207,9 @@ Conventions:
 | `settings-section-<section>` | the section opened (its heading is the `h1` of the page) | — |
 | `create-new-identity-button` / `identity-list` / `identity-item` (`data-identity-name`, `data-default`) + `identity-item-name`, `identity-default-badge`, `identity-default-radio`, `identity-edit-button`, `identity-delete-button` | Settings > Profiles | `create_new_identity_button`, `IdentityListTileBuilder` |
 | `identity-form-dialog` + `identity-name-input`, `identity-email-select`, `identity-reply-to-input`, `identity-bcc-input`, `identity-signature-editor`, `identity-default-checkbox`, `identity-cancel-button`, `save-identity-button`, `identity-form-error` | the identity creator | `IdentityCreatorView`, `save_identity_button` |
-| `create-rule-button` / `email-rule-item` / `email-rule-edit-button` | email rules | `UiKeys.createRuleButton`, `editEmailRuleButton_<name>` |
+| `add-rule-button` / `email-rule-list` / `email-rule-item` (`data-rule-name`) + `email-rule-name`, `email-rule-edit-button`, `email-rule-delete-button` / `email-rules-empty` | Settings > Email rules | `addARule`, `editEmailRuleButton_<name>` |
+| `rule-form-dialog` + `rule-name-input`, `rule-combiner-select`, `rule-condition` (group "Condition N": `rule-condition-field-select`, `rule-condition-comparator-select`, `rule-condition-value-input`, `rule-condition-remove-button`), `rule-add-condition-button`, `rule-action` (group "Action N": `rule-action-select`, `rule-action-folder-button`, `rule-action-remove-button`), `rule-add-action-button`, `rule-form-error`, `rule-cancel-button`, `create-rule-button` | the rule creator | `RuleFilterCreatorView`, `UiKeys.createRuleButton`, `UiKeys.addActionButton` |
+| `forward-input` / `forward-add-button` / `forward-list` / `forward-item` (`data-email`) + `forward-remove-button` / `forward-local-copy-toggle` / `forward-warning-banner` | Settings > Forwarding | `forward_*` |
 | `label-item` / `add-new-label-button` / `label-modal` / `label-name-input` / `label-save-button` | labels | `UiKeys.addNewLabelButton`, `create_new_label_modal`, `label_name_input_field`, `save_label_button_action` |
 | `confirm-dialog` / `confirm-dialog-confirm-button` / `confirm-dialog-cancel-button` | confirmation dialogs (the focus starts on Cancel) | `confirm_dialog_action` |
 | `toast` | the toast shown (`data-severity`); its message is announced by live regions always in the page (`role="status"`, `role="alert"` for errors) | — |

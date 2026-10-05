@@ -17,7 +17,8 @@
     "deleteAll": "Delete all",
     "yes": "Yes",
     "no": "No",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "remove": "Remove"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -480,6 +481,10 @@
       "emailRules": {
         "title": "Email Rules",
         "description": "Creating rules to handle incoming messages. You choose both the condition that triggers a rule and the actions the rule will take."
+      },
+      "forwarding": {
+        "title": "Forwarding",
+        "description": "Emails addresses listed below will receive your emails."
       }
     },
     "preferences": {
@@ -697,5 +702,39 @@
     "deleteOf": "Delete %{name}",
     "listLabel": "Rules",
     "count": "%{smart_count} rule |||| %{smart_count} rules"
+  },
+  "forward": {
+    "localCopy": "Keep a copy in Inbox",
+    "localCopyDescription": "Store forwarded emails in your inbox as well as sending them to recipients",
+    "recipients": "Forward to",
+    "inputPlaceholder": "Enter name or email address",
+    "add": "Add recipient",
+    "external": "External domain",
+    "delete": {
+      "title": "Remove recipients",
+      "message": "Do you want to delete email %{emailAddress}?"
+    },
+    "errors": {
+      "invalid": "Incorrect email format",
+      "empty": "Please input at least one recipient",
+      "add": "Adding recipient failed.",
+      "delete": "Delete recipients failed.",
+      "localCopy": "Edit local copy in forward failed.",
+      "load": "The forwarding could not be loaded"
+    },
+    "externalWarning": {
+      "title": "You are redirecting emails to another domain.",
+      "message": "This could be a security threat or considered illegal data extraction. Do you want to proceed?"
+    },
+    "toasts": {
+      "added": "The emails has been added from the recipient list.",
+      "deleted": "The email has been removed from the recipient list.",
+      "localCopyOn": "Keep local copy enable.",
+      "localCopyOff": "Keep local copy disable."
+    },
+    "externalBanner": "You are redirecting emails to another domain. This could be a security threat or considered illegal data extraction.",
+    "listLabel": "Forwarding addresses",
+    "removeOf": "Remove %{email}",
+    "inputLabel": "New recipient"
   }
 }

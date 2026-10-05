@@ -17,7 +17,8 @@
     "deleteAll": "Xoá toàn bộ",
     "yes": "Có",
     "no": "Không",
-    "confirm": "Xác nhận"
+    "confirm": "Xác nhận",
+    "remove": "Xóa"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -480,6 +481,10 @@
       "emailRules": {
         "title": "Quy tắc thư",
         "description": "Tạo bộ lọc để phân loại tin nhắn tới. Bạn có thể chọn các điều kiện để kích hoạt thực hiện bộ lọc."
+      },
+      "forwarding": {
+        "title": "Chuyển tiếp",
+        "description": "Email của bạn sẽ được chuyển tiếp đến những địa chỉ bên dưới đây."
       }
     },
     "preferences": {
@@ -697,5 +702,39 @@
     "deleteOf": "Xóa %{name}",
     "listLabel": "Quy tắc",
     "count": "%{smart_count} quy tắc"
+  },
+  "forward": {
+    "localCopy": "Giữ bản sao trong thư mục Thư đến",
+    "localCopyDescription": "Giữ email chuyển tiếp trong thư mục Thư đến đồng thời gửi đến những người nhận khác",
+    "recipients": "Chuyển tiếp tới",
+    "inputPlaceholder": "Nhập tên hoặc địa chỉ email",
+    "add": "Thêm người nhận",
+    "external": "Tên miền bên ngoài",
+    "delete": {
+      "title": "Xoá người nhận",
+      "message": "Bạn có muốn xoá email %{emailAddress}?"
+    },
+    "errors": {
+      "invalid": "Email không đúng định dạng",
+      "empty": "Vui lòng nhập ít nhất một người nhận",
+      "add": "Không thêm được người nhận.",
+      "delete": "Xoá người nhận không thành công.",
+      "localCopy": "Thay đổi lưu bản sao tin nhắn không thành công.",
+      "load": "Không thể tải cài đặt chuyển tiếp"
+    },
+    "externalWarning": {
+      "title": "Bạn đang chuyển email đến một tên miền khác.",
+      "message": "Nó có thể là một đe doạ về bảo mật hoặc một hành động trích xuất dữ liệu không hợp pháp. Bạn có muốn tiếp tục?"
+    },
+    "toasts": {
+      "added": "Email đã được thêm vào danh sách nhận.",
+      "deleted": "Địa chỉ email đã được xoá khỏi danh sách nhận.",
+      "localCopyOn": "Giữ bản sao.",
+      "localCopyOff": "Vô hiệu bản sao."
+    },
+    "externalBanner": "Bạn đang chuyển hướng email đến một tên miền khác. Đây có thể là một mối đe dọa bảo mật hoặc được coi là trích xuất dữ liệu bất hợp pháp.",
+    "listLabel": "Địa chỉ chuyển tiếp",
+    "removeOf": "Xóa %{email}",
+    "inputLabel": "Người nhận mới"
   }
 }

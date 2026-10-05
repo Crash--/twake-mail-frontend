@@ -127,6 +127,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Email rules (Settings > Email rules, `Filter/set`): conditions on From,
   To, Cc, Recipient or Subject, all or any met; move to a folder, mark as
   seen, star, reject (after a warning) or mark as spam
+- Forwarding (Settings > Forwarding, `Forward/set`): addresses added after
+  a warning when outside the domain (`FORWARD_WARNING_MESSAGE`), removed
+  after a confirmation, "Keep a copy in Inbox"
 
 ### Changed
 

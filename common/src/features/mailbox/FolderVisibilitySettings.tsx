@@ -18,6 +18,8 @@ import { useI18n } from '@common/i18n/useI18n'
 import {
   buildMailboxSections,
   isPersonalMailbox,
+  isTeamRoot,
+  teamMailboxAddress,
   type MailboxNode
 } from './mailboxTree'
 import { useMailboxes } from './useMailboxes'
@@ -65,6 +67,15 @@ function FolderRows({
                   {name}
                 </Typography>
               )}
+              {isTeamRoot(mailbox) ? (
+                <SecondaryText
+                  variant="caption"
+                  className="u-mr-1 u-breakword"
+                  data-testid="folder-visibility-address"
+                >
+                  {teamMailboxAddress(mailbox)}
+                </SecondaryText>
+              ) : null}
               {canHide(node) ? (
                 <Button
                   variant="text"

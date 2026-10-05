@@ -1,0 +1,103 @@
+# Twake Mail demo: the app, tmail-backend (memory image: nothing is kept) and an nginx putting
+# both on one origin, http://localhost:8080. Basic authentication, no SSO.
+#
+#   docker compose up -d --build
+#   open http://localhost:8080 and sign in as alice@example.com / alice
+#   docker compose down
+#
+# Every port is bound to 127.0.0.1. Not for production: see docs/deployment.md.
+name: twake-mail-demo
+
+services:
+  web:
+    image: ${TWAKE_MAIL_IMAGE:-twake-mail-frontend:local}
+    build:
+      context: ../../..
+      dockerfile: apps/private/Dockerfile
+      args:
+        BUILD_VERSION: ${TWAKE_MAIL_VERSION:-demo}
+    read_only: true
+    user: '101'
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./config/.env.js:/usr/share/nginx/html/.env.js:ro
+      - ./config/appList.js:/usr/share/nginx/html/appList.js:ro
+    # JMAP is on the origin of the app: the default Content-Security-Policy is enough
+
+  # The browser facing origin: the app, and tmail-backend under /jmap, /upload, /download,
+  # /eventSource and /.well-known/jmap
+  proxy:
+    image: nginx:1.29-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - '127.0.0.1:${TWAKE_MAIL_PORT:-8080}:80'
+    depends_on:
+      - web
+      - tmail-backend
+
+  # JWT keys of tmail-backend, generated once into a volume
+  jwt-keys:
+    image: &tmail-backend linagora/tmail-backend:memory-1.0.21.2
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        set -e
+        cd /keys
+        if [ ! -f jwt_privatekey ]; then
+          openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:2048 -out jwt_privatekey
+          openssl rsa -in jwt_privatekey -pubout -out jwt_publickey
+        fi
+    volumes:
+      - jwt-keys:/keys
+
+  tmail-backend:
+    image: *tmail-backend
+    environment:
+      - DOMAIN=example.com
+    volumes:
+      - ./tmail-backend/jmap.properties:/root/conf/jmap.properties:ro
+      - jwt-keys:/root/conf/jwt:ro
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'curl',
+          '-fsS',
+          '-o',
+          '/dev/null',
+          'http://localhost:8000/healthcheck'
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 60
+      start_period: 10s
+    depends_on:
+      jwt-keys:
+        condition: service_completed_successfully
+
+  # Demo accounts, through the WebAdmin API (not exposed)
+  provision:
+    image: *tmail-backend
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        set -e
+        webadmin=http://tmail-backend:8000
+        curl -fsS -o /dev/null -X PUT "$$webadmin/domains/example.com"
+        for user in alice bob; do
+          curl -fsS -o /dev/null -X PUT "$$webadmin/users/$$user@example.com" \
+            -H 'Content-Type: application/json' -d "{\"password\":\"$$user\"}"
+        done
+        echo "accounts alice@example.com / alice and bob@example.com / bob ready"
+    depends_on:
+      tmail-backend:
+        condition: service_healthy
+
+volumes:
+  jwt-keys:

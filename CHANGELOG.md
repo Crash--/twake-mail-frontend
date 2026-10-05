@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI workflow publishing the image (`main`, `sha-<sha>`, semver tags;
   `linux/amd64` and `linux/arm64`, SBOM and provenance) after a smoke test
   and a Trivy scan
+- Docker Compose examples (`deploy/docker-compose/`): the app alone, and a
+  demo with tmail-backend and basic authentication on one origin
 - JMAP client (jmap-client-ts v2): one client per sign-in, JMAP session
   loaded before the mail screens, its username shown in the user menu in
   basic mode

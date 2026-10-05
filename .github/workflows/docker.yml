@@ -151,3 +151,39 @@ jobs:
             echo "$TAGS"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # The demo of deploy/docker-compose/demo: the documented `docker compose up` must give a
+  # working app and backend on one origin
+  compose-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start the demo
+        working-directory: deploy/docker-compose/demo
+        run: docker compose up -d --build --quiet-pull
+
+      - name: Check the app and JMAP on one origin
+        run: |
+          base=http://127.0.0.1:8080
+          for _ in $(seq 1 90); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -u alice@example.com:alice "$base/jmap/session" || true)
+            [[ "$code" == 200 ]] && break
+            sleep 2
+          done
+          set -x
+          curl -fsS -u alice@example.com:alice "$base/jmap/session" | grep -q '"ws://127.0.0.1:8080/jmap/ws"'
+          curl -fsS "$base/" | grep -q '<div id="root"'
+          curl -fsS "$base/.env.js" | grep -q "AUTH_MODE = 'basic'"
+          curl -fsS -D - -o /dev/null "$base/" | grep -qi '^content-security-policy:'
+
+      - name: Logs
+        if: failure()
+        working-directory: deploy/docker-compose/demo
+        run: docker compose logs --no-color
+
+      - name: Stop the demo
+        if: always()
+        working-directory: deploy/docker-compose/demo
+        run: docker compose down -v

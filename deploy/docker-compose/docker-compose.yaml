@@ -1,0 +1,39 @@
+# Twake Mail alone, in front of an existing JMAP server and SSO (see README.md).
+#
+#   cp config/.env.example.js config/.env.js          # then set your JMAP server and SSO
+#   cp config/appList.example.js config/appList.js
+#   docker compose up -d --build
+#
+# The app answers on http://127.0.0.1:8080: put your TLS reverse proxy in front of it.
+name: twake-mail
+
+services:
+  web:
+    image: ${TWAKE_MAIL_IMAGE:-twake-mail-frontend:local}
+    build:
+      context: ../..
+      dockerfile: apps/private/Dockerfile
+      args:
+        BUILD_VERSION: ${TWAKE_MAIL_VERSION:-local}
+    restart: unless-stopped
+    # As in production: no root, nothing written outside /tmp
+    read_only: true
+    user: '101'
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./config/.env.js:/usr/share/nginx/html/.env.js:ro
+      - ./config/appList.js:/usr/share/nginx/html/appList.js:ro
+    environment:
+      # Origins the browser may reach besides the app (docs/deployment.md): the SSO, and the
+      # JMAP server with its WebSocket when it is not behind the origin of the app
+      CSP_CONNECT_SRC: ${CSP_CONNECT_SRC:-}
+      # Origins allowed to embed the app in a frame (Twake Workplace)
+      CSP_FRAME_ANCESTORS: ${CSP_FRAME_ANCESTORS:-'self'}
+      CSP_REPORT_ONLY: ${CSP_REPORT_ONLY:-false}
+    ports:
+      - '127.0.0.1:${TWAKE_MAIL_PORT:-8080}:8080'

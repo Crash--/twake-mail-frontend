@@ -406,19 +406,30 @@ export interface VirtualizedListTableProps extends Omit<
 /** Frames to wait for the row to focus to be rendered */
 const FOCUS_FRAMES = 30
 
-/** Focuses the `ROW_FOCUS_ATTRIBUTE` element of a row once it is rendered */
+/**
+ * Focuses the `ROW_FOCUS_ATTRIBUTE` element of a row once it is rendered.
+ * The list may render its rows again while it settles (React 19 commits them
+ * later than React 18 did): while the frames last, a focus lost with the
+ * removed row (back on the body) is given to the new one.
+ */
 function useFocusRowOnMount(tableId: string, index: number | null): void {
   useEffect(() => {
     if (index === null) return
     let frame = 0
     let handle = 0
+    let focused: HTMLElement | null = null
     const tryFocus = (): void => {
       const target = document
         .getElementById(tableId)
         ?.querySelector(`tr[data-index="${index}"] [${ROW_FOCUS_ATTRIBUTE}]`)
-      if (target instanceof HTMLElement) {
+      const lostFocus =
+        focused === null ||
+        (!focused.isConnected && document.activeElement === document.body)
+      if (target instanceof HTMLElement && lostFocus) {
         target.focus()
-      } else if (frame < FOCUS_FRAMES) {
+        focused = target
+      }
+      if (frame < FOCUS_FRAMES) {
         frame += 1
         handle = requestAnimationFrame(tryFocus)
       }

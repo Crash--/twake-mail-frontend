@@ -19,6 +19,7 @@ import { hasKeyword, SEEN } from '@common/features/email/keywords'
 import type { EmailDetail } from '@common/features/email/queries'
 import { ReplyActions } from '@common/features/email/ReplyActions'
 import { useEmail } from '@common/features/email/useEmail'
+import { useReadReceiptRequest } from '@common/features/email/useReadReceiptRequest'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { formatFullDate, formatListDate } from './formatListDate'
@@ -34,6 +35,7 @@ function ExpandedBody({
   detail,
   onRemoteContentShown
 }: ExpandedBodyProps): ReactElement {
+  useReadReceiptRequest(detail)
   return (
     <>
       <AddressLine

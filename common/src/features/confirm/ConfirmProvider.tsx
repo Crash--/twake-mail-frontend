@@ -27,6 +27,8 @@ export interface ConfirmOptions {
   confirmLabel: string
   /** The confirmed action destroys something: the button says it in red */
   isDestructive?: boolean
+  /** Label of the button that declines, "Cancel" by default (e.g. "No") */
+  cancelLabel?: string
 }
 
 /** Asks the user; resolves true when they confirm, false otherwise */
@@ -48,7 +50,7 @@ export type Choose = (options: ChoiceOptions) => Promise<Choice>
 
 /** Tells the user something blocking; resolves once they acknowledged it */
 export type Alert = (
-  options: Omit<ConfirmOptions, 'isDestructive'>
+  options: Omit<ConfirmOptions, 'isDestructive' | 'cancelLabel'>
 ) => Promise<void>
 
 interface ConfirmApi {
@@ -158,7 +160,7 @@ export function ConfirmProvider({
               autoFocus={!isChoice}
               data-testid="confirm-dialog-cancel-button"
             >
-              {t('common.cancel')}
+              {pending?.cancelLabel ?? t('common.cancel')}
             </Button>
           )}
           {isChoice ? (

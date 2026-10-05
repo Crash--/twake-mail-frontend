@@ -34,6 +34,7 @@ import type { EmailDetail } from './queries'
 import { useEmail } from './useEmail'
 import { useEmailViewShortcuts } from './useEmailViewShortcuts'
 import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
+import { useReadReceiptRequest } from './useReadReceiptRequest'
 
 interface EmailContentProps {
   email: EmailDetail
@@ -49,6 +50,7 @@ function EmailContent({
 }: EmailContentProps): ReactElement {
   const { t, lang } = useI18n()
   useMarkAsReadOnOpen(email)
+  useReadReceiptRequest(email)
   const sender = email.from?.[0] ?? null
   const backLabel = t('common.back')
   useDocumentTitle(email.subject ?? '')

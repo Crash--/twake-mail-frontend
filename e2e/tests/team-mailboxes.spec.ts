@@ -194,10 +194,12 @@ test.describe('TMB team mailboxes', () => {
     const team = await users.createTeamMailbox({ members: [user] })
     const folders = await teamFolders(jmap, team)
 
+    await page.clock.install()
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
     await composer.chooseIdentity(team.email)
     await composer.fill({ to: ['bob@example.com'], subject: 'Team draft' })
+    await composer.idle()
     await expect(composer.saveStatus).toContainText('Draft saved', {
       timeout: 15_000
     })

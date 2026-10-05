@@ -524,10 +524,12 @@ test.describe('CMP: the quote', () => {
       subject: 'Draft me',
       html: '<p>Original text</p>'
     })
+    await page.clock.install()
     const mailbox = await new LoginPage(page).loginAs(user)
     let composer = await (await openReceived(mailbox, 'Draft me')).reply()
     await expect(composer.editor).toBeFocused()
     await page.keyboard.type('Answer kept')
+    await composer.idle()
     await expect(composer.saveStatus).toHaveText('Draft saved', {
       timeout: 10_000
     })

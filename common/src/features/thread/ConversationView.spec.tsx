@@ -13,6 +13,7 @@ import {
   installFakeLabels
 } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { ComposerProvider } from '@common/features/composer/ComposerProvider'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
 
 import { ConversationView } from './ConversationView'
@@ -453,6 +454,90 @@ describe('ConversationView, an expanded message', () => {
     await trash(/Bob Dupont/)
     await waitFor(() => {
       expect(onBack).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('a draft of the conversation', () => {
+    function makeServerWithDraft(): FakeJmapServer {
+      const server = makeServer()
+      server.addEmail(
+        makeEmailWithBody(
+          {
+            id: 'draft',
+            threadId: THREAD,
+            subject: 'Re: Project kick-off',
+            preview: 'Not sent yet',
+            receivedAt: '2026-10-05T08:00:00Z',
+            mailboxIds: { 'mailbox-drafts': true },
+            keywords: { $seen: true, $draft: true },
+            from: [{ name: null, email: FAKE_USERNAME }],
+            to: [{ name: 'Bob Dupont', email: 'bob@example.com' }]
+          },
+          { text: 'Not sent yet' }
+        )
+      )
+      return server
+    }
+
+    async function renderWithComposer(server: FakeJmapServer): Promise<void> {
+      renderWithProviders(
+        <ComposerProvider>
+          <ConversationView threadId={THREAD} emailId="c" onBack={jest.fn()} />
+        </ComposerProvider>,
+        { withJmapSession: true, jmapServer: server }
+      )
+      await screen.findByRole('list', { name: 'Messages of the conversation' })
+    }
+
+    it('is marked as a draft, edited in the composer rather than answered', async () => {
+      await renderWithComposer(makeServerWithDraft())
+
+      const draft = toggle(/Draft/)
+      expect(
+        within(draft).getByTestId('conversation-message-draft')
+      ).toHaveTextContent('Draft')
+      const actions = await screen.findByRole('group', {
+        name: 'Draft actions'
+      })
+      expect(
+        screen.queryByRole('group', { name: /^Actions on the message from Me/ })
+      ).toBe(null)
+
+      await userEvent.click(
+        within(actions).getByRole('button', {
+          name: 'Edit draft to Bob Dupont'
+        })
+      )
+
+      const composer = await screen.findByRole('dialog', {
+        name: 'Re: Project kick-off'
+      })
+      expect(
+        await within(composer).findByRole('textbox', { name: 'Message body' })
+      ).toHaveTextContent('Not sent yet')
+    })
+
+    it('is deleted forever once confirmed', async () => {
+      const server = makeServerWithDraft()
+      await renderWithComposer(server)
+
+      const actions = await screen.findByRole('group', {
+        name: 'Draft actions'
+      })
+      await userEvent.click(
+        within(actions).getByRole('button', {
+          name: 'Delete draft to Bob Dupont'
+        })
+      )
+      await userEvent.click(
+        within(await screen.findByRole('dialog')).getByRole('button', {
+          name: 'Delete'
+        })
+      )
+
+      await waitFor(() => {
+        expect(server.emails.some(email => email.id === 'draft')).toBe(false)
+      })
     })
   })
 })

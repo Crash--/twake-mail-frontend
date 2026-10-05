@@ -139,7 +139,15 @@
       "clear": "Bỏ chọn",
       "toolbar": "Thao tác với mục đã chọn"
     },
-    "me": "Tôi"
+    "me": "Tôi",
+    "draft": {
+      "marker": "Thư nháp",
+      "actions": "Thao tác với thư nháp",
+      "edit": "Sửa",
+      "editTo": "Sửa thư nháp gửi %{recipients}",
+      "delete": "Xóa thư nháp",
+      "deleteTo": "Xóa thư nháp gửi %{recipients}"
+    }
   },
   "push": {
     "newMessages": "Bạn có tin nhắn mới"

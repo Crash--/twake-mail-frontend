@@ -13,15 +13,18 @@
 // session is read from `<SERVER_URL>/.well-known/jmap` (RFC 8620).
 var SERVER_URL = 'https://jmap.example.com'
 
-// How the user signs in: 'oidc' (default) or 'basic'. Not in tmail-flutter,
-// which looks for an OIDC provider with WebFinger and falls back to the form.
-// - oidc: Authorization Code + PKCE against SSO_BASE_URL.
+// How the user signs in: 'oidc' or 'basic'. Not in tmail-flutter. Unset, the
+// app looks for an OIDC provider with WebFinger on SERVER_URL and falls back
+// to the form, as tmail-flutter does.
+// - oidc: Authorization Code + PKCE against SSO_BASE_URL (else found by
+//   WebFinger; no form then).
 // - basic: email + password form, sent as HTTP Basic to the JMAP server.
 var AUTH_MODE = 'oidc'
 
-// OpenID Connect settings, required when AUTH_MODE is 'oidc'.
+// OpenID Connect settings.
 // Issuer URL, where `/.well-known/openid-configuration` is served. Not in
-// tmail-flutter (WebFinger), so an `env.file` needs it added.
+// tmail-flutter, which finds it with WebFinger on SERVER_URL as this app does
+// when it is not set.
 var SSO_BASE_URL = 'https://sso.example.com'
 // [tmail-flutter] Public client of the app.
 var WEB_OIDC_CLIENT_ID = 'twake-mail'

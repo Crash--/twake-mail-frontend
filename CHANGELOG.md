@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The Docker image is a drop-in replacement for tmail-flutter's `linagora/tmail-web`
+  under the Helm chart `linagora/tmail-frontend` (1.0.12 tested): port 80,
+  `app_dashboard.json` read into the app grid (the Flutter icon names mapped to
+  the icons of the app), `COZY_INTEGRATION` as the Workplace embedding, the SSO
+  found by WebFinger on `SERVER_URL` when `SSO_BASE_URL` is not set (then the
+  Basic form, as tmail-flutter), and the CSP `connect-src` derived from the
+  configuration (`SERVER_URL` with its WebSocket, `SSO_BASE_URL`, the SSO found
+  by WebFinger at startup). See `docs/deployment.md`
+
+
 - Error reporting driven by a preference, as tmail-flutter on the web: Sentry
   starts only when configured (`SENTRY_*` or the ecosystem of the server) and
   the user opted in (Settings > Preferences, `sentry.user-opt-in` of the
@@ -215,6 +225,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a dialog to insert, to replace the selection with, or to cancel
 
 ### Changed
+
+- **The Docker image listens on port 80** instead of 8080 (`LISTEN_PORT=8080`
+  keeps the former port; the Compose files and the Helm chart of this
+  repository do). It still runs as user 101: port 80 needs the sysctl
+  `net.ipv4.ip_unprivileged_port_start` (Docker and most runtimes lower it) or
+  the capability of `nginx-bind`, see `docs/deployment.md`
 
 - Helm chart: without `config.sentry.dsn` (and `config.sentry.enabled` not
   false), `SENTRY_*` are no longer written to `.env.js`, which leaves the

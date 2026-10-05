@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "twake-mail-frontend.fullname" . }}-test-connection
+  labels:
+    {{- include "twake-mail-frontend.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  automountServiceAccountToken: false
+  restartPolicy: Never
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: healthz
+      image: {{ include "twake-mail-frontend.image" . | quote }}
+      imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+      # The health endpoint, then the runtime configuration served by the app
+      command:
+        - sh
+        - -c
+        - >-
+          wget -q -O - http://{{ include "twake-mail-frontend.fullname" . }}:{{ .Values.service.port }}/healthz &&
+          wget -q -O - http://{{ include "twake-mail-frontend.fullname" . }}:{{ .Values.service.port }}/.env.js | grep -q JMAP_SESSION_URL
+      resources:
+        limits:
+          memory: 32Mi

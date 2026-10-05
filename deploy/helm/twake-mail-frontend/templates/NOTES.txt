@@ -1,0 +1,18 @@
+Twake Mail {{ .Chart.AppVersion }} ({{ include "twake-mail-frontend.image" . }})
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+
+  {{ ternary "https" "http" $.Values.ingress.tls.enabled }}://{{ .host }}/
+{{- end }}
+{{- else }}
+
+No ingress: reach the app with
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward --address 127.0.0.1 service/{{ include "twake-mail-frontend.fullname" . }} 8080:{{ .Values.service.port }}
+  open http://127.0.0.1:8080/
+{{- end }}
+
+Content-Security-Policy connect-src, besides the origin of the app:
+  {{ include "twake-mail-frontend.cspConnectSrc" . | default "(nothing)" }}
+Check the browser console for "Refused to connect" after a change of the
+JMAP, SSO or Sentry URLs (values csp.*).

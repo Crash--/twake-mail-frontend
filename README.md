@@ -132,6 +132,7 @@ common/src/
   testing/           test helpers (renderWithProviders, fake JMAP server)
 deploy/docker/       nginx configuration and entrypoint script of the image
 deploy/docker-compose/ Docker Compose examples: the app alone, a demo with tmail-backend
+deploy/helm/         Helm chart
 docs/                deployment, twake-mui gaps, translations
 scripts/             project scripts
 upgrade-instructions/ configuration changes per release
@@ -157,7 +158,7 @@ caches hashed assets for a year (not when `DEBUG = true`) and masks OIDC
 codes, states, tokens and tickets in its access log.
 
 Everything about deploying (image, variables, CSP, reverse proxy, iframe
-embedding in Twake Workplace, Docker Compose) is in
+embedding in Twake Workplace, Docker Compose, Helm) is in
 [`docs/deployment.md`](docs/deployment.md). To try it out with a demo
 backend: `cd deploy/docker-compose/demo && docker compose up -d --build`, then
 <http://localhost:8080> as `alice@example.com` / `alice`.

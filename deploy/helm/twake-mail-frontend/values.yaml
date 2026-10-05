@@ -1,0 +1,192 @@
+# Default values for twake-mail-frontend.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+deployment:
+  replicaCount: 2
+  image:
+    # Build it with apps/private/Dockerfile and push it to your registry until an
+    # official image is published (see README.md).
+    repository: linagora/twake-mail-frontend
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+    # Pins the image by digest (sha256:...), the tag is then ignored.
+    digest: ""
+
+  # -- Extra annotations and labels of the pods (a checksum of the
+  # configuration is always added, so that a change rolls the pods)
+  podAnnotations: {}
+  podLabels: {}
+
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+
+  # The image runs nginx as user 101 and only writes under /tmp, an emptyDir
+  podSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    enabled: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
+  # -- Size limit of the /tmp emptyDir (nginx temp files, generated configuration)
+  tmpSizeLimit: 64Mi
+
+  # -- Extra environment variables of the container
+  extraEnv: []
+  #  - name: NGINX_ENTRYPOINT_QUIET_LOGS
+  #    value: "1"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# Runtime configuration of the app: rendered into .env.js (see
+# public/.env.example.js of the repository) and mounted next to index.html
+config:
+  # -- URL of the JMAP session resource. A path (/jmap/session) is resolved on
+  # the origin of the app: JMAP behind the same host (see ingress.jmap)
+  jmapSessionUrl: https://jmap.example.com/jmap/session
+  # -- How users sign in: oidc or basic
+  authMode: oidc
+  sso:
+    # -- OIDC issuer URL
+    baseUrl: https://sso.example.com
+    clientId: twake-mail
+    scope: openid profile email offline_access
+    # -- Defaults to <origin of the app>/callback
+    redirectUri: ""
+    # -- Defaults to <origin of the app>/
+    postLogoutRedirect: ""
+  # -- Sentry DSN for error reporting, empty disables it
+  sentryDsn: ""
+  # -- TanStack Query devtools, nginx cache disabled
+  debug: false
+  # -- Default UI language: en, fr, ru or vi
+  lang: en
+  # -- URI templates of the other Twake applications
+  calendarSpaUrl: ""
+  chatSpaUrl: ""
+  workplaceFqdnFallback: ""
+  # -- Inside an iframe of Twake Workplace, leave the logotype and the app grid
+  # to the container (allow the container in csp.frameAncestors)
+  workplaceEmbedding: false
+  forwardWarningMessage: ""
+  # -- Twake Drive picker of the composer (OIDC only). intentUrl is the Drive
+  # (cozy-stack) of the user, a URI template ({workplaceFqdn}...). Allow the
+  # Drive hosts in csp.connectSrc and csp.frameSrc (wildcards for per-user
+  # hosts); a fixed intentUrl is added to connect-src by csp.autoConnectSrc
+  tdrive:
+    enabled: false
+    intentUrl: ""
+  # -- JavaScript appended to .env.js as is, for a variable this chart does not
+  # know yet
+  extraEnvJs: ""
+
+  # -- Applications of the app grid (appList.js): name, link, icon. link and
+  # icon may be URI templates ({workplaceFqdn.localpart}...)
+  appList: []
+  #  - name: Calendar
+  #    link: https://calendar.example.com
+  #    icon: /assets/images/svg/app-calendar.svg
+
+# Security headers of the image (docs/deployment.md of the repository)
+csp:
+  # -- Add the origins of config.jmapSessionUrl (and its WebSocket),
+  # config.sso.baseUrl (with authMode oidc), config.sentryDsn and a fixed
+  # config.tdrive.intentUrl to connect-src
+  autoConnectSrc: true
+  # -- Extra connect-src sources
+  connectSrc: []
+  # -- Extra frame-src sources (e.g. the Twake Drive origin for its intents)
+  frameSrc: []
+  # -- Origins allowed to embed the app in a frame (Twake Workplace)
+  frameAncestors:
+    - "'self'"
+  # -- report-uri of the policy
+  reportUri: ""
+  # -- Report violations without blocking anything
+  reportOnly: false
+  # -- Replaces the whole policy built from the values above
+  policy: ""
+# -- Empty keeps the defaults of the image
+referrerPolicy: ""
+permissionsPolicy: ""
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: mail.example.com
+  tls:
+    enabled: false
+    secretName: twake-mail-frontend-tls
+  # -- Route the JMAP paths of the hosts to tmail-backend, so that JMAP is on
+  # the origin of the app (then set config.jmapSessionUrl to /jmap/session and
+  # make tmail-backend advertise URLs of this host, url.prefix)
+  jmap:
+    enabled: false
+    service:
+      name: tmail-backend-jmap
+      port: 80
+    paths:
+      - /jmap
+      - /upload
+      - /download
+      - /eventSource
+      - /.well-known/jmap
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1

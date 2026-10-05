@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "twake-mail-frontend.fullname" . }}
+  labels:
+    {{- include "twake-mail-frontend.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.deployment.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "twake-mail-frontend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # .env.js and appList.js are mounted with subPath, never updated in a
+        # running pod: a change of the configuration rolls the pods
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.deployment.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "twake-mail-frontend.selectorLabels" . | nindent 8 }}
+        {{- with .Values.deployment.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.podSecurityContext.enabled }}
+      securityContext:
+        {{- include "twake-mail-frontend.securityContext" .Values.deployment.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
+      containers:
+        - name: mail-frontend
+          image: {{ include "twake-mail-frontend.image" . | quote }}
+          imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
+          {{- if .Values.deployment.containerSecurityContext.enabled }}
+          securityContext:
+            {{- include "twake-mail-frontend.securityContext" .Values.deployment.containerSecurityContext | nindent 12 }}
+          {{- end }}
+          env:
+            {{- if .Values.csp.policy }}
+            - name: CONTENT_SECURITY_POLICY
+              value: {{ .Values.csp.policy | quote }}
+            {{- end }}
+            - name: CSP_CONNECT_SRC
+              value: {{ include "twake-mail-frontend.cspConnectSrc" . | quote }}
+            - name: CSP_FRAME_SRC
+              value: {{ .Values.csp.frameSrc | default list | uniq | join " " | quote }}
+            - name: CSP_FRAME_ANCESTORS
+              value: {{ .Values.csp.frameAncestors | default (list "'self'") | uniq | join " " | quote }}
+            - name: CSP_REPORT_URI
+              value: {{ .Values.csp.reportUri | default "" | quote }}
+            - name: CSP_REPORT_ONLY
+              value: {{ ternary "true" "false" (eq (toString .Values.csp.reportOnly) "true") | quote }}
+            {{- with .Values.referrerPolicy }}
+            - name: REFERRER_POLICY
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.permissionsPolicy }}
+            - name: PERMISSIONS_POLICY
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.deployment.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- with .Values.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.deployment.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/nginx/html/.env.js
+              subPath: .env.js
+              readOnly: true
+            - name: config
+              mountPath: /usr/share/nginx/html/appList.js
+              subPath: appList.js
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "twake-mail-frontend.fullname" . }}
+        - name: tmp
+          emptyDir:
+            {{- with .Values.deployment.tmpSizeLimit }}
+            sizeLimit: {{ . }}
+            {{- end }}
+      {{- with .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

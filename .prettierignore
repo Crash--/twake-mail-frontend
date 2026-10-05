@@ -15,3 +15,6 @@ package-lock.json
 
 # End-to-end tests live in their own package
 e2e/
+
+# Helm chart: Go templates, checked by helm lint
+deploy/helm/

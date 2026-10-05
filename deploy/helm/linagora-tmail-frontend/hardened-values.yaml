@@ -1,0 +1,31 @@
+# To add to workplace-values.yaml for a cluster that enforces a restricted pod
+# security profile: non-root, read-only root filesystem, no capability, no privilege
+# escalation, port 80 allowed to the non-root user by the pod's sysctl.
+#
+# The chart mounts nothing on /tmp: the image writes its nginx configuration and
+# temporary files there.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+  sysctls:
+    - name: net.ipv4.ip_unprivileged_port_start
+      value: "0"
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+extraVolumes:
+  - name: tmp
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: tmp
+    mountPath: /tmp

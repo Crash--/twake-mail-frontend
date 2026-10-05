@@ -112,6 +112,34 @@ jobs:
           kubectl --namespace twake-mail describe pods
           kubectl --namespace twake-mail logs -l app.kubernetes.io/name=twake-mail-frontend --tail 50
 
+  # The image under the chart of Linagora's tmail-frontend (the one of tmail-flutter's
+  # linagora/tmail-web in Twake Workplace): deploy/helm/linagora-tmail-frontend/test.sh
+  linagora-chart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v5
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build the image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/private/Dockerfile
+          tags: twake-mail-frontend:ci
+          load: true
+          cache-from: type=gha,scope=twake-mail-frontend
+
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: twake-mail
+
+      - name: Render and install the chart of tmail-frontend with the image
+        run: deploy/helm/linagora-tmail-frontend/test.sh twake-mail-frontend:ci --kind
+
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [lint, kind]

@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
+import { Link, Route, Routes } from 'react-router'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
@@ -55,6 +56,37 @@ async function openComposer(): Promise<HTMLElement> {
 describe('ComposerProvider', () => {
   afterEach(() => {
     resetViewport()
+  })
+
+  it('keeps the same window and editor while the page navigates (issue #93)', async () => {
+    renderWithProviders(
+      <ComposerProvider>
+        <Opener />
+        <Routes>
+          <Route path="/" element={<Link to="/other">Go</Link>} />
+          <Route path="/other" element={<Link to="/">Back</Link>} />
+        </Routes>
+      </ComposerProvider>,
+      { jmapServer: makeFakeJmapServer(), withJmapSession: true }
+    )
+    const composer = await openComposer()
+    const editor = within(composer).getByRole('textbox', {
+      name: 'Message body'
+    })
+    await userEvent.click(editor)
+    await userEvent.keyboard('hello')
+
+    await userEvent.click(screen.getByRole('link', { name: 'Go' }))
+    await screen.findByRole('link', { name: 'Back' })
+    await userEvent.click(screen.getByRole('link', { name: 'Back' }))
+    await screen.findByRole('link', { name: 'Go' })
+
+    expect(screen.getByRole('dialog', { name: 'New message' })).toBe(composer)
+    const same = within(composer).getByRole('textbox', {
+      name: 'Message body'
+    })
+    expect(same).toBe(editor)
+    expect(same).toHaveTextContent('hello')
   })
 
   it('opens a docked window with the focus in To', async () => {

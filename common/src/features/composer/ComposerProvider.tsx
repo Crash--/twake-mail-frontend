@@ -529,6 +529,9 @@ function ComposerSlot({
         isModal={isModal && mode !== null}
         isCompact={isModal}
         titleBarActions={titleBarActions}
+        // Its own layer in the view transitions of the navigations: not
+        // frozen nor hidden under the snapshot of the page
+        viewTransitionName={`composer-${entry.id}`}
         labels={{
           minimize: t('composer.window.minimize'),
           restore: t('composer.window.show'),

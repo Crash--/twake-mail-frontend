@@ -267,3 +267,6 @@ Conventions:
 | `email-list-item-open-in-new-tab` | hover action opening the email in a tab of its own (not on drafts and templates) | `open in new` hover action |
 | `email-list-item-move` | hover action asking for a folder, then moving the email | `move_to_mailbox` hover action |
 | `list-filter-slot` | phones: the place of the filter button in the top bar (`list-filter-button` and its menu are rendered there) | `mobile_filter_message_button` |
+| `attachment-item` (card) + `attachment-item-open` / `attachment-item-download` | an attachment card, its main button (preview, or download when the type has no preview) and its download button (shown on hover or focus, always in the DOM); `attachment-list` holds the header and the cards | `AttachmentItemWidget` |
+| `attachment-show-more` / `attachment-show-less` | the "+N more" tile and the "Hide N" button of the list of attachments | `showMoreAttachmentButton`, `hideAttachmentButton` |
+| `attachment-preview` (+ `-close`, `-download`) | the full-screen dialog previewing an attachment, named after the file; `attachment-preview-image` / `-text` / `-html` / `-eml` / `-error` its content, `pdf-preview` the PDF canvases | `PDFViewer`, `HtmlAttachmentPreviewer`, `TwakeImagePreviewer` |

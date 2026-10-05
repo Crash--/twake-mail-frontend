@@ -9,3 +9,4 @@ export {
 } from './SearchPage'
 export { ConversationPage } from './ConversationPage'
 export { SettingsPage, type SettingsSectionId } from './SettingsPage'
+export { LabelModals } from './LabelModals'

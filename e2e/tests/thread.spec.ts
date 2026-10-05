@@ -617,4 +617,44 @@ test.describe('THR thread detail', () => {
         .toBe(0)
     }
   )
+
+  test(
+    'THR-10 the read receipts asked by two messages of a conversation are asked in turn',
+    { tag: '@mobile' },
+    async ({ page, user, users, jmap, jmapFor }) => {
+      const bob = await users.create({ prefix: 'bob' })
+      const replace = { BOB_ADDRESS: bob.email, USER_ADDRESS: user.email }
+      const first = await jmap.importEml('read_receipt/receipt-1.eml', 'inbox', {
+        replace
+      })
+      const second = await jmap.importEml('read_receipt/receipt-2.eml', 'inbox', {
+        replace
+      })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.emailRowLink('Re: Receipts in a conversation').click()
+      const conversation = await new ConversationPage(page).expectLoaded(
+        'Re: Receipts in a conversation'
+      )
+      const dialog = page.getByTestId('confirm-dialog')
+      for (let answered = 0; answered < 2; answered += 1) {
+        await expect(dialog).toContainText('Read receipt request')
+        await expect(dialog.getByRole('button', { name: 'No' })).toBeFocused()
+        await dialog.getByRole('button', { name: 'Yes' }).click()
+        await expect(mailbox.toast).toContainText('A read receipt has been sent.')
+      }
+      await expect(dialog).toBeHidden()
+      await expect(conversation.subject).toBeFocused()
+
+      for (const email of [first, second]) {
+        await expect
+          .poll(async () => (await jmap.getEmail(email.id)).keywords)
+          .toMatchObject({ $mdnsent: true })
+      }
+      const bobJmap = jmapFor(bob)
+      await expect
+        .poll(async () => (await bobJmap.queryEmails({ text: 'Receipts' })).length)
+        .toBe(2)
+    }
+  )
 })

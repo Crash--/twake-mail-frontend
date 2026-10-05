@@ -19,6 +19,11 @@ services:
       # The Workplace container of APPGRID-02 (/e2e/workplace.html) frames the app from
       # http://localhost:<port>, another origin
       CSP_FRAME_ANCESTORS: "'self' http://localhost:*"
+      # The fake Twake Drive of the DRIVE specs (/e2e/drive/ on http://localhost:<port>):
+      # its token exchange, intent and download, and its picker in a frame
+      CSP_FRAME_SRC: 'http://localhost:*'
+      # The doubles of the AI specs: the scribe endpoint answered by the spec, and the Drive
+      CSP_CONNECT_SRC: 'https://scribe.example.test http://localhost:*'
 
   proxy:
     volumes:

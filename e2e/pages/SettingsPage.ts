@@ -10,6 +10,7 @@ export type SettingsSectionId =
   | 'folder-visibility'
   | 'language-region'
   | 'keyboard-shortcuts'
+  | 'storage'
 
 /** Below this width the sections are listed in the page (app `SCREEN_BREAKPOINTS.desktop`) */
 const DESKTOP_MIN_WIDTH = 1200

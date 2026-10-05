@@ -77,7 +77,8 @@ Conventions:
 | `mailbox-search-button` | magnifier in the "Folders" header | `UiKeys.mailboxSearchButton` |
 | `team-mailboxes-section` | "Team-mailboxes" heading and tree, after the folders of the user | — |
 | `mailbox-item` with `data-mailbox-role="favorite"` | the Starred virtual folder (`/starred`), after the Inbox | `favorite` folder |
-| `quota-indicator` | used / total storage | — |
+| `quota-indicator` (`data-used`) + `quota-refresh-button`, `quota-text` / `quota-banner` / `storage-settings` | the storage used at the bottom of the sidebar, the banner past the warning limit, Settings > Storage | `MailboxSidebarFooter`, `QuotasBannerWidget` |
+| `mailbox-action-recover-deleted-messages` / `recovery-dialog` + `recovery-deletion-select`, `recovery-reception-select`, `recovery-subject-input`, `recovery-recipients-input`, `recovery-sender-input`, `recovery-cancel-button`, `recovery-restore-button`, `recovery-error` / `recovery-banner` / `recovery-open-button` | "Recover deleted messages" of the Trash menu, its progress banner and the "Open" of its toast | `recoverDeletedMessages` |
 
 ### Email list (thread view)
 

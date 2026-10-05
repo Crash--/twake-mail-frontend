@@ -54,7 +54,9 @@ export interface AppConfig {
   forwardWarningMessage: string | null
   /**
    * Inside an iframe (Twake Workplace), the top bar leaves the logotype and
-   * the app grid to the container, as Twake Calendar does
+   * the app grid to the container, as Twake Calendar does. On with
+   * `WORKPLACE_EMBEDDING` or `COZY_INTEGRATION` (tmail-flutter, which loads
+   * cozy-external-bridge when it is `true`: this app bundles it)
    */
   workplaceEmbedding: boolean
   /**
@@ -83,6 +85,7 @@ export type FlutterConfigKey =
   | 'OIDC_SCOPES'
   | 'APP_GRID_AVAILABLE'
   | 'FORWARD_WARNING_MESSAGE'
+  | 'COZY_INTEGRATION'
   | 'SENTRY_ENABLED'
   | 'SENTRY_DSN'
   | 'SENTRY_ENVIRONMENT'
@@ -390,7 +393,9 @@ export function resolveConfig(
       chatSpaUrl: normalizeString(source.CHAT_SPA_URL),
       workplaceFqdnFallback: normalizeString(source.WORKPLACE_FQDN_FALLBACK),
       forwardWarningMessage: normalizeString(source.FORWARD_WARNING_MESSAGE),
-      workplaceEmbedding: toBoolean(source.WORKPLACE_EMBEDDING),
+      workplaceEmbedding:
+        toBoolean(source.WORKPLACE_EMBEDDING) ||
+        toBoolean(source.COZY_INTEGRATION),
       tdriveIntentUrl: toBoolean(source.TDRIVE_ENABLED)
         ? normalizeString(source.TDRIVE_INTENT_URL)
         : null,

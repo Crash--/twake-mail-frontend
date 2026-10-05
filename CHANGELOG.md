@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docs/deployment.md`
 - End-to-end suite runnable against the Docker image (`E2E_APP_IMAGE`),
   failing on any Content-Security-Policy violation
+- CI workflow publishing the image (`main`, `sha-<sha>`, semver tags;
+  `linux/amd64` and `linux/arm64`, SBOM and provenance) after a smoke test
+  and a Trivy scan
 - JMAP client (jmap-client-ts v2): one client per sign-in, JMAP session
   loaded before the mail screens, its username shown in the user menu in
   basic mode

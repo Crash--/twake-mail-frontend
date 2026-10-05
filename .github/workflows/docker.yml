@@ -1,0 +1,153 @@
+# Docker image of the app (apps/private/Dockerfile): built on every pull request, published on
+# a push to main and on a version tag.
+#
+#   push to main      <image>:main, <image>:sha-<short sha>
+#   tag v1.2.3        <image>:1.2.3, <image>:1.2, <image>:1, <image>:latest, <image>:sha-<short sha>
+#   pull request      built (linux/amd64 and linux/arm64) and smoke tested, never pushed
+#
+# <image> is ghcr.io/<owner>/twake-mail-frontend, or the repository variable IMAGE_REPOSITORY
+# (e.g. docker.io/example/twake-mail-frontend, with the secrets REGISTRY_USERNAME and
+# REGISTRY_PASSWORD). The image gets OCI labels, an SBOM and a provenance attestation, and is
+# scanned by Trivy (report only, never blocking).
+name: Docker image
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write # push to GHCR
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image repository
+        id: repository
+        env:
+          IMAGE_REPOSITORY: ${{ vars.IMAGE_REPOSITORY }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          repository="${IMAGE_REPOSITORY:-ghcr.io/$owner/twake-mail-frontend}"
+          echo "name=$repository" >> "$GITHUB_OUTPUT"
+          echo "registry=${repository%%/*}" >> "$GITHUB_OUTPUT"
+          # An OCI repository path is lowercase components separated by '/', each one
+          # without a leading or trailing separator: a GitHub owner like `name--` cannot
+          # own a GHCR image. Build anyway, but do not try to push.
+          component='[a-z0-9]+((\.|_|__|-+)[a-z0-9]+)*'
+          if [[ ! "${repository#*/}" =~ ^$component(/$component)*$ ]]; then
+            echo "::warning::$repository is not a valid image name: set the repository variable IMAGE_REPOSITORY to publish the image"
+            echo "push=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$EVENT_NAME" == "pull_request" ]]; then
+            echo "push=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tags and labels
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          # A placeholder when the name is invalid: metadata-action rejects it
+          images: ${{ steps.repository.outputs.push == 'true' && steps.repository.outputs.name || 'twake-mail-frontend' }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+            type=sha
+          labels: |
+            org.opencontainers.image.title=Twake Mail
+            org.opencontainers.image.description=Twake Mail webmail (React), served by an unprivileged nginx
+            org.opencontainers.image.licenses=AGPL-3.0-only
+
+      # APP_VERSION of the app (version.js) and Sentry release: 1.2.3 on a tag, main-<sha> or
+      # pr-<n>-<sha> otherwise
+      - name: Version
+        id: version
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "build=$VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=$VERSION-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+
+      # ---------------------------------------------------------------- smoke test
+      - name: Build for the smoke test (linux/amd64)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/private/Dockerfile
+          build-args: BUILD_VERSION=${{ steps.version.outputs.build }}
+          tags: twake-mail-frontend:smoke
+          load: true
+          cache-from: type=gha,scope=twake-mail-frontend
+          cache-to: type=gha,mode=max,scope=twake-mail-frontend
+
+      - name: Smoke test (non-root, read-only root filesystem)
+        run: ./deploy/docker/smoke-test.sh twake-mail-frontend:smoke
+
+      - name: Trivy scan (report only)
+        continue-on-error: true
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.75.0 image --scanners vuln --severity CRITICAL,HIGH \
+            --ignore-unfixed --exit-code 0 --no-progress twake-mail-frontend:smoke
+
+      # ------------------------------------------------------------------ publish
+      - name: Log in to ${{ steps.repository.outputs.registry }}
+        if: steps.repository.outputs.push == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ steps.repository.outputs.registry }}
+          username: ${{ steps.repository.outputs.registry == 'ghcr.io' && github.actor || secrets.REGISTRY_USERNAME }}
+          password: ${{ steps.repository.outputs.registry == 'ghcr.io' && secrets.GITHUB_TOKEN || secrets.REGISTRY_PASSWORD }}
+
+      - name: Build (linux/amd64, linux/arm64) and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/private/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          build-args: BUILD_VERSION=${{ steps.version.outputs.build }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          push: ${{ steps.repository.outputs.push == 'true' }}
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha,scope=twake-mail-frontend
+          cache-to: type=gha,mode=max,scope=twake-mail-frontend
+
+      - name: Summary
+        env:
+          PUSHED: ${{ steps.repository.outputs.push }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          {
+            if [[ "$PUSHED" == "true" ]]; then echo "### Image pushed"; else echo "### Image built (not pushed)"; fi
+            echo
+            echo '```'
+            echo "$TAGS"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

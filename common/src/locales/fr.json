@@ -108,6 +108,7 @@
     "preview": {
       "loading": "Chargement... Veuillez patienter !",
       "cannotPreviewPdf": "Impossible de prévisualiser le PDF",
+      "tooLarge": "Ce PDF dépasse %{size} : téléchargez-le pour le lire.",
       "cannotPreviewHtml": "Cette pièce jointe HTML ne peut pas être prévisualisée",
       "noPreview": "Aucun aperçu disponible",
       "open": "Aperçu",

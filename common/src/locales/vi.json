@@ -108,6 +108,7 @@
     "preview": {
       "loading": "Đang tiến hành ...",
       "cannotPreviewPdf": "Không thể xem trước tệp PDF",
+      "tooLarge": "Tệp PDF này lớn hơn %{size}: hãy tải xuống để xem.",
       "cannotPreviewHtml": "Không thể xem trước tệp HTML này",
       "noPreview": "Không có bản xem trước",
       "open": "Xem trước",

@@ -15,6 +15,7 @@ import {
 } from '@/ds/FilePreviewDialog/FilePreviewDialog'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { parseMailto } from '@common/features/composer/mailto'
+import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -28,6 +29,8 @@ import {
 import { EmailBodyFrame } from './EmailBodyFrame'
 import { buildEmailDocument } from './emailBody'
 import { EmlPreview } from './EmlPreview'
+import { formatSize } from './formatSize'
+import { MAX_PDF_PREVIEW_BYTES } from './pdfLimits'
 import { sanitizeEmailHtml } from './sanitizeEmailHtml'
 
 // pdf.js and its worker load with the first PDF only
@@ -45,6 +48,7 @@ export interface AttachmentPreviewDialogProps {
 type Loaded =
   | { status: 'loading' }
   | { status: 'error' }
+  | { status: 'tooLarge'; blob: Blob }
   | { status: 'ready'; blob: Blob; bytes: Uint8Array }
 
 function decodeText(bytes: Uint8Array, charset: string | null): string {
@@ -75,16 +79,21 @@ export function AttachmentPreviewDialog({
   kind,
   onClose
 }: AttachmentPreviewDialogProps): ReactElement {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const { openComposer } = useComposer()
+  const { notify } = useNotify()
   const name = part.name ?? t('email.attachment')
   const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' })
   const [failed, setFailed] = useState(false)
 
+  // A big PDF is neither fetched nor handed to pdf.js: the dialog offers the
+  // download (the size of the part is declared by the server)
+  const isDeclaredTooLarge = kind === 'pdf' && part.size > MAX_PDF_PREVIEW_BYTES
+
   useEffect(() => {
-    if (!part.blobId) return
+    if (!part.blobId || isDeclaredTooLarge) return
     const controller = new AbortController()
     client
       .download(
@@ -92,6 +101,10 @@ export function AttachmentPreviewDialog({
         { signal: controller.signal }
       )
       .then(async blob => {
+        if (kind === 'pdf' && blob.size > MAX_PDF_PREVIEW_BYTES) {
+          setLoaded({ status: 'tooLarge', blob })
+          return
+        }
         const bytes = new Uint8Array(await blob.arrayBuffer())
         setLoaded({ status: 'ready', blob, bytes })
       })
@@ -103,7 +116,15 @@ export function AttachmentPreviewDialog({
     return () => {
       controller.abort()
     }
-  }, [client, accountId, part.blobId, part.type, name])
+  }, [
+    client,
+    accountId,
+    part.blobId,
+    part.type,
+    name,
+    kind,
+    isDeclaredTooLarge
+  ])
 
   const imageUrl = useMemo(() => {
     if (loaded.status !== 'ready' || kind !== 'image') return null
@@ -127,7 +148,20 @@ export function AttachmentPreviewDialog({
   }, [loaded, kind, part.charset])
 
   const handleDownload = (): void => {
-    if (loaded.status === 'ready') saveBlob(loaded.blob, name)
+    if (loaded.status === 'ready' || loaded.status === 'tooLarge') {
+      saveBlob(loaded.blob, name)
+      return
+    }
+    if (!part.blobId) return
+    client
+      .download({ accountId, blobId: part.blobId, name, type: part.type })
+      .then(blob => {
+        saveBlob(blob, name)
+      })
+      .catch((error: unknown) => {
+        console.error('[email] Attachment download failed', error)
+        notify({ message: t('email.downloadFailed'), severity: 'error' })
+      })
   }
   const handleMailtoLink = (href: string): void => {
     const mailto = parseMailto(href)
@@ -140,6 +174,15 @@ export function AttachmentPreviewDialog({
   }
 
   const renderContent = (): ReactElement => {
+    if (isDeclaredTooLarge || loaded.status === 'tooLarge') {
+      return (
+        <Alert severity="info" data-testid="attachment-preview-too-large">
+          {t('email.preview.tooLarge', {
+            size: formatSize(MAX_PDF_PREVIEW_BYTES, lang)
+          })}
+        </Alert>
+      )
+    }
     if (loaded.status === 'loading') {
       return <CircularProgress aria-label={t('email.preview.loading')} />
     }
@@ -220,7 +263,11 @@ export function AttachmentPreviewDialog({
       title={name}
       closeLabel={t('common.close')}
       downloadLabel={
-        loaded.status === 'ready' ? t('email.download') : undefined
+        loaded.status === 'ready' ||
+        loaded.status === 'tooLarge' ||
+        isDeclaredTooLarge
+          ? t('email.download')
+          : undefined
       }
       onClose={onClose}
       onDownload={handleDownload}

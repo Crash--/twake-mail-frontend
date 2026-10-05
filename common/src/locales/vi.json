@@ -447,6 +447,25 @@
       "ask": "Hỏi",
       "result": "Đề xuất",
       "emptyText": "Hãy viết hoặc chọn văn bản trước"
+    },
+    "emoji": {
+      "open": "Chèn biểu tượng cảm xúc",
+      "title": "Biểu tượng cảm xúc",
+      "search": "Tìm biểu tượng cảm xúc",
+      "noResults": "Không tìm thấy biểu tượng cảm xúc",
+      "loading": "Đang tải biểu tượng cảm xúc",
+      "recent": "Gần đây",
+      "categories": "Nhóm biểu tượng cảm xúc",
+      "groups": {
+        "people": "Biểu tượng và con người",
+        "animals": "Động vật và thiên nhiên",
+        "food": "Đồ ăn và thức uống",
+        "activities": "Hoạt động",
+        "travel": "Du lịch và địa điểm",
+        "objects": "Đồ vật",
+        "symbols": "Ký hiệu",
+        "flags": "Cờ"
+      }
     }
   },
   "layout": {

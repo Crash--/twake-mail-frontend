@@ -447,6 +447,25 @@
       "ask": "Ask",
       "result": "Suggestion",
       "emptyText": "Write or select some text first"
+    },
+    "emoji": {
+      "open": "Insert emoji",
+      "title": "Emoji",
+      "search": "Search emoji",
+      "noResults": "No emoji found",
+      "loading": "Loading emoji",
+      "recent": "Recent",
+      "categories": "Emoji categories",
+      "groups": {
+        "people": "Emoji & People",
+        "animals": "Animals & Nature",
+        "food": "Food & Drink",
+        "activities": "Activities",
+        "travel": "Travel & Places",
+        "objects": "Objects",
+        "symbols": "Symbols",
+        "flags": "Flags"
+      }
     }
   },
   "layout": {

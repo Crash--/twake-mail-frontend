@@ -298,6 +298,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/transitions.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 - [x] `EML-33` With `prefers-reduced-motion: reduce`, or in a browser without the View Transitions API, the same path runs no transition and keeps the focus and the scroll. — web app only, no Patrol test (issue #12)
   - Spec: `tests/transitions.spec.ts`, reduced motion on `chromium`, `mobile` and `tablet`, without the API on `chromium`. Passes in CI.
+- [x] `EML-34` The bare `https://` URLs, `www.` hosts and email addresses of a text/plain and of an HTML email are links (new tab, `noopener noreferrer`, trailing punctuation left out, `www.` opened in https); a link already there is not doubled, code is left as is; following an address with the keyboard opens a composer to it. — web app only, no Patrol test (issue #70)
+  - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
 
 ## THR — Thread detail (3)
 

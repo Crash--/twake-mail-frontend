@@ -79,6 +79,18 @@ export class EmailPage {
       .locator('body')
   }
 
+  /** A link of the body, by its text */
+  bodyLink(name: string): Locator {
+    return this.body().getByRole('link', { name, exact: true })
+  }
+
+  /** Follows a `mailto:` link of the body with the keyboard: a new composer */
+  async writeFromBodyLink(name: string): Promise<ComposerPage> {
+    await this.bodyLink(name).focus()
+    await this.bodyLink(name).press('Enter')
+    return this.#composer()
+  }
+
   async reply(): Promise<ComposerPage> {
     await this.replyButton.click()
     return this.#composer()

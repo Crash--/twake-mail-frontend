@@ -6,7 +6,8 @@ import { FAKE_ACCOUNT_ID, type FakeJmapServer } from './fakeJmapServer'
 export const FAKE_LINAGORA_CAPABILITIES = {
   'com:linagora:params:jmap:filter': {},
   'com:linagora:params:jmap:forward': {},
-  'com:linagora:params:jmap:settings': { readOnlyProperties: [] }
+  'com:linagora:params:jmap:settings': { readOnlyProperties: [] },
+  'urn:ietf:params:jmap:vacationresponse': {}
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -114,4 +115,39 @@ export function installFakeSettings(
     }
   })
   return { settings: () => server.settings }
+}
+
+/** `VacationResponse/get` and `VacationResponse/set` (RFC 8621) */
+export function installFakeVacation(
+  server: FakeJmapServer,
+  initial: Record<string, unknown> = {}
+): { vacation: () => Record<string, unknown> } {
+  let vacation: Record<string, unknown> = {
+    id: 'singleton',
+    isEnabled: false,
+    fromDate: null,
+    toDate: null,
+    subject: null,
+    textBody: null,
+    htmlBody: null,
+    ...initial
+  }
+  server.handlers.set('VacationResponse/get', () => ({
+    accountId: FAKE_ACCOUNT_ID,
+    state: 'vacation-1',
+    list: [vacation],
+    notFound: []
+  }))
+  server.handlers.set('VacationResponse/set', args => {
+    const update = isRecord(args.update) ? args.update : {}
+    const patch = isRecord(update.singleton) ? update.singleton : {}
+    vacation = { ...vacation, ...patch }
+    return {
+      accountId: FAKE_ACCOUNT_ID,
+      oldState: 'vacation-1',
+      newState: 'vacation-2',
+      updated: { singleton: null }
+    }
+  })
+  return { vacation: () => vacation }
 }

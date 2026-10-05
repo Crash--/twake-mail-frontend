@@ -24,6 +24,7 @@ import {
   ShortcutsProvider,
   useShortcuts
 } from '@common/features/shortcuts/ShortcutsProvider'
+import { VacationBanner } from '@common/features/vacation/VacationBanner'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { MailSidebar } from './MailSidebar'
@@ -120,6 +121,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
           />
         )}
         <Main>
+          <VacationBanner />
           <Content data-testid="main-content">
             <Outlet />
           </Content>

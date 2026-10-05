@@ -139,6 +139,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the `language` setting of the account, which every device follows
 - Preferences: "Always request read receipts" and "Display sender-set
   important flag", kept in the settings of the account
+- Vacation response (Settings > Vacation, `VacationResponse/set`): on or
+  off, from a date and time until another, with a subject and a rich
+  message; a banner says it is on, over every screen, with "End now"
 
 ### Changed
 

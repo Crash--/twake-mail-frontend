@@ -3,11 +3,12 @@ import {
   Globe,
   Help,
   Identities,
+  Plane,
   Send,
   Setting,
   type IconProps
 } from '@linagora/twake-icons'
-import type { Session } from 'jmap-client-ts'
+import { CAPABILITIES, type Session } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import type { TranslationKey } from '@common/i18n/useI18n'
@@ -26,6 +27,7 @@ export type SettingsSectionId =
   | 'email-rules'
   | 'preferences'
   | 'forwarding'
+  | 'vacation'
   | 'language-region'
   | 'keyboard-shortcuts'
 
@@ -68,6 +70,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     title: 'settings.sections.forwarding.title',
     description: 'settings.sections.forwarding.description',
     isAvailable: offers(LINAGORA_CAPABILITIES.forward)
+  },
+  {
+    id: 'vacation',
+    icon: Plane,
+    title: 'settings.sections.vacation.title',
+    description: 'settings.sections.vacation.description',
+    isAvailable: offers(CAPABILITIES.vacationResponse)
   },
   {
     id: 'language-region',

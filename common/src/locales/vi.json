@@ -496,6 +496,10 @@
       "languageRegion": {
         "title": "Ngôn ngữ",
         "description": "Thay đổi ngôn ngữ."
+      },
+      "vacation": {
+        "title": "Kỳ nghỉ",
+        "description": "Trả lời tự động."
       }
     },
     "preferences": {
@@ -763,5 +767,33 @@
     "listLabel": "Địa chỉ chuyển tiếp",
     "removeOf": "Xóa %{email}",
     "inputLabel": "Người nhận mới"
+  },
+  "vacation": {
+    "enable": "Tự động trả lời tin nhắn.",
+    "startDate": "Bắt đầu",
+    "startTime": "Bắt đầu",
+    "stops": "Kết thúc kỳ nghỉ",
+    "endDate": "Kết thúc",
+    "endTime": "Kết thúc",
+    "subject": "Tiêu đề",
+    "subjectPlaceholder": "Tiêu đề",
+    "message": "Tin nhắn",
+    "save": "Lưu thay đổi",
+    "errors": {
+      "noStart": "Vui lòng điền ngày bắt đầu",
+      "endBeforeStart": "Ngày kết thúc phải sau ngày bắt đầu",
+      "noMessage": "Tin nhắn trống"
+    },
+    "toasts": {
+      "saved": "Cài đặt đã thay đổi",
+      "ended": "Phản hồi kỳ nghỉ đã được vô hiệu"
+    },
+    "banner": {
+      "enabled": "Phản hồi kỳ nghỉ đã được kích hoạt.",
+      "willStart": "Phản hồi kỳ nghỉ sẽ được kích hoạt vào %{startDate}",
+      "stopped": "Phản hồi kỳ nghỉ đã vô hiệu %{endDate}",
+      "endNow": "Kết thúc",
+      "settings": "Cài đặt kỳ nghỉ"
+    }
   }
 }

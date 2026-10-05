@@ -508,6 +508,9 @@ text fields, dialogs and menus, and with Ctrl, Alt or Meta; they can be turned o
 - [x] `KBD-05` `?` lists, besides the single keys, the keys of a message being written (Ctrl+Enter
   sends, Ctrl+K inserts a link, Escape minimizes…), in a table named by its heading (axe). — no
   Patrol test
+- [x] `KBD-06` `/` moves the focus into the search, unfolding it first on phones, where Escape
+  folds it back and gives the focus to the search button. — no Patrol test (issue #45)
+  - Spec: `tests/shortcuts.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
 
 ## RESP — Phones and tablets (no Patrol counterpart)
 

@@ -174,7 +174,7 @@ test('MBX-05 switching folder shows that folder emails', async ({ page, user, jm
 | Fixture | What |
 |---|---|
 | `user` | A brand new account (`E2EUser`: `email`, `password`, `localPart`) |
-| `users` | `users.create({ prefix: 'alice', quota })` for more accounts, `users.createTeamMailbox({ members })` for a team mailbox; all deleted after the test, their emails (team mailboxes included) destroyed first |
+| `users` | `users.create({ prefix: 'alice', quota })` for more accounts, `users.createTeamMailbox({ members })` for a team mailbox, `users.createAlias(user)` for an alias of an account (James gives the account an identity of it, as it does of the team mailboxes it belongs to); all deleted after the test, their emails (team mailboxes included) destroyed first |
 | `jmap` | JMAP client authenticated as `user` |
 | `jmapFor(other)` | JMAP client of another account, e.g. the sender of an email |
 | `webadmin` | WebAdmin client, for the rest |
@@ -183,7 +183,7 @@ test('MBX-05 switching folder shows that folder emails', async ({ page, user, jm
 `support/jmap.ts` is a small hand written JMAP client (`fetch`, Basic or Bearer auth, no
 dependency on the app's JMAP layer): `getSession`, `getMailboxes`, `findMailboxByRole`,
 `findMailboxByName`, `createMailbox`, `sendEmail({ to, cc, bcc, subject, text, html,
-attachments, saveTo })`, `importEml(path, role)`, `getEmail(s)`, `queryEmails`, `setKeywords`,
+attachments, saveTo, headers })`, `importEml(path, role)`, `getEmail(s)`, `queryEmails`, `setKeywords`,
 `waitForEmail({ subject, mailboxRole, timeout })`, `getQuotas`, `upload`, and `request` for
 any other method call. `importEml('reply_email/reply-all.eml')` reads from `fixtures/eml/`,
 copied from tmail-flutter `provisioning/integration_test/eml/`.

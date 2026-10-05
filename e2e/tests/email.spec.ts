@@ -194,3 +194,61 @@ test.describe('EML reading an email', () => {
       .toEqual(expect.objectContaining({ $seen: true }))
   })
 })
+
+test.describe('EML reading an email of a team mailbox', () => {
+  test(
+    'EML-35 the read receipt of an email of a team mailbox goes out from its identity',
+    { tag: '@mobile' },
+    async ({ page, user, users, jmap, jmapFor }) => {
+      const bob = await users.create({ prefix: 'bob' })
+      const team = await users.createTeamMailbox({ members: [user] })
+      await jmapFor(bob).sendEmail({
+        to: team.email,
+        subject: 'Receipt from the team',
+        text: 'Please confirm',
+        headers: { 'Disposition-Notification-To': bob.email }
+      })
+      const teamInbox = await jmap.findMailboxByName('INBOX', {
+        namespace: `TeamMailbox[${team.email}]`
+      })
+      await jmap.waitForEmail({
+        subject: 'Receipt from the team',
+        mailboxId: teamInbox.id,
+        withoutSearch: true
+      })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.toggleFolder({ name: team.name })
+      await mailbox.openFolder({ name: 'INBOX' })
+      await mailbox.emailRow('Receipt from the team').click()
+      const dialog = mailbox.confirmDialog
+      await expect(dialog).toContainText('Read receipt request')
+      await expectNoA11yViolations(page)
+      const sent = page.waitForRequest(
+        request =>
+          request.method() === 'POST' &&
+          (request.postData() ?? '').includes('"MDN/send"')
+      )
+      await dialog.getByRole('button', { name: 'Yes' }).click()
+
+      const body = (await sent).postDataJSON() as {
+        methodCalls: [
+          string,
+          { identityId?: string; send?: { receipt?: { textBody?: string } } }
+        ][]
+      }
+      const mdn = body.methodCalls.find(([name]) => name === 'MDN/send')?.[1]
+      // James gives the members an identity of the team mailbox
+      const teamIdentities = (await jmap.getIdentities())
+        .filter(identity => identity.email === team.email)
+        .map(identity => identity.id)
+      expect(teamIdentities).not.toEqual([])
+      expect(teamIdentities).toContain(mdn?.identityId)
+      expect(mdn?.send?.receipt?.textBody).toContain(
+        `Message was read by ${team.email}`
+      )
+      await expect(mailbox.toast).toContainText('A read receipt has been sent.')
+    }
+  )
+})
+

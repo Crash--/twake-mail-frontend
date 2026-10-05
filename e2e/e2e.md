@@ -229,6 +229,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/composer.spec.ts`, on `chromium` (it resizes the window: three composers cannot be opened on a tablet).
 - [x] `CMP-50` An answer whose draft was autosaved comes back after a reload on its text, the recipients folded, as it was left; a new message still opens in To. — web app only, no Patrol test (issue #52)
   - Spec: `tests/composer-send.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
+- [x] `CMP-60` An email sent by another user to an alias of the account (whose identity James creates) is answered from that alias identity, selected in the composer ("From"), and received from the alias (axe). — web app; tmail-flutter answers from the default identity (`setup_selected_identity_extension.dart`): intended difference (issue #39)
+  - Spec: `tests/composer-reply.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 
 ## ATT — Attachments (2)
 
@@ -304,6 +306,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/transitions.spec.ts`, reduced motion on `chromium`, `mobile` and `tablet`, without the API on `chromium`. Passes in CI.
 - [x] `EML-34` The bare `https://` URLs, `www.` hosts and email addresses of a text/plain and of an HTML email are links (new tab, `noopener noreferrer`, trailing punctuation left out, `www.` opened in https); a link already there is not doubled, code is left as is; following an address with the keyboard opens a composer to it. — web app only, no Patrol test (issue #70)
   - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
+- [x] `EML-35` The read receipt of an email received in a team mailbox (asked by its sender) goes out with the identity of the team mailbox (James gives one to its members) and names its address as the reader (`MDN/send` inspected, axe on the dialog). — tmail-flutter `_setUpDefaultIdentityForTeamMailbox`, `_getReceiverEmailAddress` (no Patrol test) (issue #39)
+  - Spec: `tests/email.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 
 ## THR — Thread detail (3)
 

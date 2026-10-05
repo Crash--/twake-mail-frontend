@@ -124,6 +124,8 @@ export interface SendEmailInput {
   attachments?: AttachmentInput[]
   /** Mailbox the sent copy lands in, `sent` by default (Patrol tests use trash/junk to seed those folders) */
   saveTo?: MailboxRole
+  /** Extra header fields, as text: `{ 'Disposition-Notification-To': 'bob@example.com' }` */
+  headers?: Record<string, string>
 }
 
 export interface SentEmail {
@@ -676,6 +678,9 @@ export class JmapClient {
       subject: input.subject,
       bodyValues,
       attachments
+    }
+    for (const [name, value] of Object.entries(input.headers ?? {})) {
+      email[`header:${name}:asText`] = value
     }
     if (input.text !== undefined) {
       bodyValues.text = { value: input.text }

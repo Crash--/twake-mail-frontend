@@ -206,6 +206,8 @@ Conventions:
 | `composer-close-button` | close (saves a draft when dirty) | `UiKeys.closeComposerButton` |
 | `composer-more-button` + `composer-save-draft-item` (phase 3), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
 | `composer-attach-file-button` / `composer-file-input` | "Attach file" and its hidden file input | `attach_file` |
+| `composer-drive-button` | "Attach from Drive" (`TDRIVE_ENABLED`, OIDC) | `attachFromDrive` |
+| `drive-picker-dialog` + `drive-picker-frame`, `drive-picker-retry-button` | the Twake Drive picker: dialog "Twake Drive", its iframe, "Retry" after a failure | `DriveIntentWebViewModal` |
 | `composer-attachments` + `composer-attachment-item` (`data-status`: `uploading`, `done`, `failed`) + `composer-attachment-remove-button` | the attached files (a list named "Attachments (n)"), each removed (or its upload cancelled) by its button | `AttachmentItemComposerWidget` |
 | `composer-drop-zone` | the composer, where dropped files are attached | `dropFileHereToAttachThem` |
 | `composer-save-status` | what the autosave did ("Saving…", "Draft saved", "Draft not saved"), a `status` | — |

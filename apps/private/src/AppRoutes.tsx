@@ -1,7 +1,11 @@
 import type { ReactElement } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 
-import type { AppListEntry } from '@common/config/config'
+import {
+  LOGIN_CALLBACK_PATH,
+  LOGOUT_CALLBACK_PATH,
+  type AppListEntry
+} from '@common/config/config'
 import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
@@ -50,6 +54,12 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
     // The data router shows `errorElement` when a page fails to render
     <Route errorElement={<RouteErrorScreen />}>
       <Route path="/callback" element={<LoginCallbackPage />} />
+      {/* The redirect URIs built from DOMAIN_REDIRECT_URL, as tmail-flutter */}
+      <Route path={`/${LOGIN_CALLBACK_PATH}`} element={<LoginCallbackPage />} />
+      <Route
+        path={`/${LOGOUT_CALLBACK_PATH}`}
+        element={<Navigate to="/" replace />}
+      />
       <Route path="/login" element={<BasicLoginPage />} />
       <Route element={<RequireAuth />}>
         <Route

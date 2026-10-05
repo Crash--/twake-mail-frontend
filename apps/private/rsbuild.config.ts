@@ -21,7 +21,8 @@ export default defineConfig({
   server: {
     host: process.env.HOST ?? 'localhost',
     port: Number(process.env.PORT ?? 5000),
-    historyApiFallback: true,
+    // /login-callback.html (DOMAIN_REDIRECT_URL) has a dot but is a route
+    historyApiFallback: { disableDotRule: true },
     publicDir: { name: '../../public' },
     // e.g. JMAP_PROXY_TARGET=http://127.0.0.1:18300 (see the README)
     proxy: makeJmapDevProxy(process.env.JMAP_PROXY_TARGET)

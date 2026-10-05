@@ -119,15 +119,9 @@ async function waitForReceived(
   return found
 }
 
-async function chipTexts(composer: ComposerPage, field: 'to' | 'cc' | 'bcc') {
-  return composer.recipients(field).allTextContents()
-}
-
-/** Shows the folded recipient fields of an answer */
+/** Shows the recipient fields of an answer, folded as it opens */
 async function unfold(composer: ComposerPage): Promise<void> {
-  if (await composer.recipientsSummary.isVisible()) {
-    await composer.recipientsSummary.click()
-  }
+  await composer.recipientsSummary.click()
 }
 
 /** The quote of the composer: a frame, in the editor */
@@ -182,7 +176,7 @@ test.describe('CMP and EML: replying and forwarding', () => {
       )
       await expect(composer.editor).toBeFocused()
       await unfold(composer)
-      expect(await chipTexts(composer, 'to')).toEqual(['emma@example.com'])
+      await expect(composer.recipients('to')).toHaveText(['emma@example.com'])
       await expect(quoteFrame(composer).locator('blockquote')).toContainText(
         'Reply email without Reply-To'
       )
@@ -206,7 +200,7 @@ test.describe('CMP and EML: replying and forwarding', () => {
       'Re: Reply email with Reply-To'
     )
     await unfold(composer)
-    expect(await chipTexts(composer, 'to')).toEqual([
+    await expect(composer.recipients('to')).toHaveText([
       'emma-reply-to@example.com'
     ])
   })
@@ -225,12 +219,12 @@ test.describe('CMP and EML: replying and forwarding', () => {
     ).replyAll()
     await expect(composer.subjectInput).toHaveValue('Re: Reply all email')
     await unfold(composer)
-    expect(await chipTexts(composer, 'to')).toEqual([
+    await expect(composer.recipients('to')).toHaveText([
       'emma-reply-to@example.com',
       'emma@example.com'
     ])
-    expect(await chipTexts(composer, 'cc')).toEqual(['alice'])
-    expect(await chipTexts(composer, 'bcc')).toEqual(['brian'])
+    await expect(composer.recipients('cc')).toHaveText(['alice'])
+    await expect(composer.recipients('bcc')).toHaveText(['brian'])
   })
 
   test('EML-17 Reply to list answers the List-Post address only', async ({
@@ -248,10 +242,10 @@ test.describe('CMP and EML: replying and forwarding', () => {
     const composer = new ComposerPage(page)
     await expect(composer.subjectInput).toHaveValue('Re: Reply to list email')
     await unfold(composer)
-    expect(await chipTexts(composer, 'to')).toEqual([
+    await expect(composer.recipients('to')).toHaveText([
       'emma-reply-to-list@example.com'
     ])
-    expect(await composer.recipients('cc').count()).toBe(0)
+    await expect(composer.recipients('cc')).toHaveCount(0)
   })
 
   test('CMP-08 a reply to an email the user sent goes to its recipients', async ({
@@ -272,7 +266,10 @@ test.describe('CMP and EML: replying and forwarding', () => {
       await openReceived(mailbox, 'reply own sent email')
     ).reply()
     await unfold(composer)
-    expect(await chipTexts(composer, 'to')).toEqual([user.email, alice.email])
+    await expect(composer.recipients('to')).toHaveText([
+      user.email,
+      alice.email
+    ])
   })
 
   test('CMP-13 a forward quotes the fields of the email and has no recipient', async ({
@@ -289,7 +286,7 @@ test.describe('CMP and EML: replying and forwarding', () => {
     ).forward()
     await expect(composer.subjectInput).toHaveValue('Fwd: Forward email')
     await expect(composer.recipientInput('to')).toBeFocused()
-    expect(await composer.recipients('to').count()).toBe(0)
+    await expect(composer.recipients('to')).toHaveCount(0)
     const header = quoteFrame(composer).locator('cite')
     await expect(header).toContainText('------- Forwarded message -------')
     for (const label of ['Subject:', 'Date:', 'From:', 'To:', 'Cc:', 'Bcc:']) {
@@ -738,7 +735,7 @@ test.describe('KBD and menus: answering', () => {
       await expect(composer.subjectInput).toHaveValue(subject)
       if (key === 'Shift+R') {
         await unfold(composer)
-        expect(await chipTexts(composer, 'to')).toEqual([
+        await expect(composer.recipients('to')).toHaveText([
           carol.email,
           'dave@example.com'
         ])

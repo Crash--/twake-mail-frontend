@@ -27,6 +27,8 @@ services:
     volumes:
       - ./config/.env.js:/usr/share/nginx/html/.env.js:ro
       - ./config/appList.js:/usr/share/nginx/html/appList.js:ro
+    environment:
+      LISTEN_PORT: '8080'
     # JMAP is on the origin of the app: the default Content-Security-Policy is enough
 
   # The browser facing origin: the app, and tmail-backend under /jmap, /upload, /download,

@@ -29,6 +29,8 @@ services:
       - ./config/.env.js:/usr/share/nginx/html/.env.js:ro
       - ./config/appList.js:/usr/share/nginx/html/appList.js:ro
     environment:
+      # The image listens on 80 by default (linagora/tmail-frontend chart)
+      LISTEN_PORT: '8080'
       # Origins the browser may reach besides the app (docs/deployment.md): the SSO, and the
       # JMAP server with its WebSocket when it is not behind the origin of the app
       CSP_CONNECT_SRC: ${CSP_CONNECT_SRC:-}

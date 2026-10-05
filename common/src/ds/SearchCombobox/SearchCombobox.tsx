@@ -282,6 +282,7 @@ export function SearchCombobox({
       <SearchBar
         ref={anchorRef}
         size="medium"
+        elevation={0}
         className="u-w-100"
         placeholder={label}
         value={value}

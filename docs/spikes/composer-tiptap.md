@@ -232,22 +232,23 @@ ou html-to-text : le code maison suffit.
 ## Constats backend (tmail-backend 1.0.21.2)
 
 Corrigés depuis le spike par des repros (tmail-backend#2684, #2685, #2686), et vérifiés par
-`e2e/tests/backend.spec.ts` (`INFRA-13` à `INFRA-16`) :
+`e2e/tests/backend.spec.ts` (`INFRA-13` à `INFRA-17`) :
 
 1. **`bodyStructure` ignoré à la création** (`Email/set`, #2685) : le message ne garde qu'une
    partie `text/plain` vide, sans erreur. `htmlBody` + `textBody` + `attachments` inline
    produisent bien `multipart/related[multipart/alternative[text, html], images]`.
 2. ~~`create` + `destroy` dans le même `Email/set` : la destruction passe en premier.~~ Faux : la
    création passe en premier, et les parties de l'ancienne version restent lisibles pour la
-   nouvelle. **Une sauvegarde de brouillon tient en une requête** (`saveDraft`).
+   nouvelle. Mais voir le point 5 : la sauvegarde ne s'en sert pas.
 3. ~~Pas de référence à un id créé dans `Email/get`.~~ Faux : `ids: ['#creationId']` marche.
 4. **`Email/get` avec `attachments` avant toute propriété de corps** : `serverFail` (#2686).
    Avec `htmlBody` ou `bodyValues` en tête de liste, ça passe ; au-delà de 4 propriétés, l'ordre
    suit le hash d'un `Set` Scala : la liste exacte du composer (`DRAFT_PROPERTIES`) est testée.
 5. **Une création refusée n'arrête pas la destruction du même `Email/set`** (`overQuota`) :
-   l'envoi détruit donc l'ancien brouillon dans une deuxième requête, une fois le message créé.
-   La sauvegarde en une requête garde ce risque : si la création est refusée (quota), l'ancienne
-   version est perdue côté serveur, le contenu reste dans le composer et son instantané.
+   l'envoi et la sauvegarde (`saveDraft`) détruisent donc l'ancienne version dans une deuxième
+   requête, une fois la nouvelle créée : une création refusée (quota, `tooLarge`) laisse
+   l'ancienne intacte (`CMP-37`). Une destruction ratée laisse un doublon, que la sauvegarde
+   suivante, l'envoi, la suppression du brouillon ou la fermeture détruisent.
 6. **Annuler un envoi n'est pas possible** : la session annonce `maxDelayedSend: 0`, mais
    `envelope.mailFrom.parameters.holdFor` est appliqué (livraison 60 s plus tard) ;
    `EmailSubmission/set` `update { undoStatus: 'canceled' }` est ignoré sans erreur, le message
@@ -255,6 +256,9 @@ Corrigés depuis le spike par des repros (tmail-backend#2684, #2685, #2686), et 
    « Annuler l'envoi ». Candidat à une issue.
 7. **Refus d'expéditeur** : tmail-backend répond `forbiddenMailFrom` au lieu du `forbiddenFrom`
    de la RFC 8621 ; un `identityId` inconnu et un domaine de destination inconnu sont acceptés.
+8. **Image memory : détruire deux emails dans un même `Email/set`** retire les autres emails de
+   leur dossier des résultats d'`Email/query` (`INFRA-17`) ; `Email/get` et `Email/changes` les
+   voient toujours. Proche de tmail-backend#2684. Candidat à une issue.
 
 ## Écarts avec le brief et avec Flutter
 

@@ -109,6 +109,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   on sign out
 - Reply, reply all and forward from the menu of a conversation row, to the
   email standing for it
+- "Request read receipt" and "Mark as important" in the "More" menu of a
+  message, on by default for read receipts when the user always asks
+  (Linagora settings); emails asking a read receipt offer to send it
+  (`MDN/send`); emails marked important by their sender are flagged in the
+  list, the conversation and the reader, unless turned off
+- Messages go with the Reply-To of their identity when none is typed, and
+  its Bcc; a message saying a file is attached, without any, asks before
+  it is sent
+- The keyboard shortcuts list the keys of a message being written
 
 ### Changed
 

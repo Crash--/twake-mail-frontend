@@ -216,6 +216,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Helm chart: without `config.sentry.dsn` (and `config.sentry.enabled` not
+  false), `SENTRY_*` are no longer written to `.env.js`, which leaves the
+  error reporting configuration to the ecosystem of the server; they used to
+  turn it off. `config.sentry.enabled: false` still turns it off
 - Lists, folders and open emails are not refetched while push keeps them
   up to date, and again after 30 s once the push channel is down
 - The folder tree keeps no room for expand arrows when no folder has

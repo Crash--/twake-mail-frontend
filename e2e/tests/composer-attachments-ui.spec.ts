@@ -193,4 +193,25 @@ test.describe('CMP: attachments, signature and recipient chips of the composer',
       { timeout: 20_000 }
     )
   })
+
+  test('CMP-77 files dragged over the composer show the drop panel; dropping them attaches them', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    const zone = composer.root.getByTestId('composer-drop-zone')
+    const dataTransfer = await page.evaluateHandle(() => {
+      const transfer = new DataTransfer()
+      transfer.items.add(new File(['dropped'], 'dropped.txt', { type: 'text/plain' }))
+      return transfer
+    })
+
+    await zone.dispatchEvent('dragenter', { dataTransfer })
+    await expect(zone.getByText('Drop file here to attach them')).toBeVisible()
+    await zone.dispatchEvent('drop', { dataTransfer })
+    await expect(zone.getByText('Drop file here to attach them')).toBeHidden()
+    await expect(composer.attachments).toHaveCount(1)
+    await expect(composer.attachments).toContainText('dropped.txt')
+  })
 })

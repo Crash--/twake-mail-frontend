@@ -776,3 +776,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-attachments-ui.spec.ts`.
 - [x] `CMP-76` On a phone, more than nine uploads at once stay chips in the list, no popup. — web app only, no Patrol test
   - Spec: `tests/composer-attachments-ui.spec.ts`.
+- [x] `CMP-77` Files dragged over the composer show the "Drop file here to attach them" panel (dashed light blue, Figma "Attachment - drag & drop"); dropping them attaches them and hides it. — web app only, no Patrol test
+  - Spec: `tests/composer-attachments-ui.spec.ts`.

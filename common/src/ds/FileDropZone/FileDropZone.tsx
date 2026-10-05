@@ -1,6 +1,7 @@
 // Upstream to twake-ui: yes. Dropping files on a panel (a message, a
 // conversation, a folder) is common to Mail, Chat and Drive; twake-mui has
 // no drop zone.
+import { File, Icon } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import {
   useRef,
@@ -9,6 +10,11 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
+
+// Figma "Teammail 1.1" tokens the theme does not carry
+const DASH_COLOR = '#5aa9ff'
+const PANEL_COLOR = '#f5faff'
+const ICON_BACKGROUND = '#d4e8ff'
 
 export interface FileDropZoneProps {
   /** Shown over the zone while files are dragged over it */
@@ -104,17 +110,43 @@ export function FileDropZone({
             position: 'absolute',
             inset: 0,
             zIndex: 1,
+            p: 2,
+            boxSizing: 'border-box',
             pointerEvents: 'none',
-            border: '2px dashed',
-            borderColor: 'primary.main',
-            borderRadius: 1,
-            bgcolor: 'background.paper',
-            opacity: 0.95
+            bgcolor: 'background.paper'
           }}
         >
-          <Typography variant="h6" component="p" color="primary">
-            {label}
-          </Typography>
+          {/* Figma "Attachment - drag & drop": a dashed light blue panel */}
+          <Box
+            className="u-flex u-flex-column u-flex-items-center u-flex-justify-center u-w-100 u-h-100"
+            sx={{
+              gap: 2,
+              border: '2px dashed',
+              borderColor: DASH_COLOR,
+              borderRadius: '8px',
+              bgcolor: PANEL_COLOR
+            }}
+          >
+            <Box
+              className="u-flex u-flex-items-center u-flex-justify-center"
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '16px',
+                bgcolor: ICON_BACKGROUND,
+                color: 'primary.main'
+              }}
+            >
+              <Icon icon={File} size={28} color="currentColor" />
+            </Box>
+            <Typography
+              variant="subtitle1"
+              component="p"
+              sx={{ fontWeight: 600, color: 'text.primary' }}
+            >
+              {label}
+            </Typography>
+          </Box>
         </Box>
       ) : null}
     </Box>

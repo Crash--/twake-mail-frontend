@@ -182,4 +182,52 @@ test.describe('SET preferences', () => {
       mailbox.folderTree.getByText('Projects', { exact: true })
     ).toBeVisible()
   })
+
+  test('SET-10 unread spam shows a banner in the other folders, opened or dismissed from it, and turned off in Preferences', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const spam = await jmap.findMailboxByRole('junk')
+    await jmap.createEmailIn(spam.id, { subject: 'Cheap pills', keywords: {} })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const banner = page.getByTestId('spam-report-banner')
+    await expect(banner).toBeVisible()
+    await expect(banner).toHaveRole('status')
+    await expect(banner).toContainText('1 message in spam')
+    await expectNoA11yViolations(page)
+
+    // Dismissed: gone for 24 hours, kept in this browser
+    await banner.getByRole('button', { name: 'Dismiss' }).click()
+    await expect(banner).toHaveCount(0)
+    const away = await mailbox.openSettings()
+    await away.backToMail()
+    await expect(mailbox.root).toBeVisible()
+    await expect(banner).toHaveCount(0)
+
+    // Back after the delay, with the preference turned off it stays away
+    await page.evaluate(() => {
+      window.localStorage.removeItem('twake-mail.preferences.spamReport')
+    })
+    const elsewhere = await mailbox.openSettings()
+    await elsewhere.backToMail()
+    await expect(banner).toBeVisible()
+    await banner.getByRole('button', { name: 'View' }).click()
+    await expect(page).toHaveURL(new RegExp(`/mailbox/${spam.id}`))
+    await expect(banner).toHaveCount(0)
+
+    await page.evaluate(() => {
+      window.localStorage.removeItem('twake-mail.preferences.spamReport')
+    })
+    const settings = await mailbox.openSettings()
+    await settings.open('preferences')
+    const toggle = page.getByRole('switch', { name: 'Enable spam report' })
+    await expect(toggle).toBeChecked()
+    await toggle.click()
+    await expect(toggle).not.toBeChecked()
+    await settings.backToMail()
+    await expect(mailbox.root).toBeVisible()
+    await expect(banner).toHaveCount(0)
+  })
 })

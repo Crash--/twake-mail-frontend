@@ -718,3 +718,5 @@ Web app only, no Patrol test: the policy is in `docs/composer-drafts.md`.
   - Spec: `tests/composer-drafts.spec.ts`.
 - [x] `CMP-70` Signing out saves, once, the draft of a composer that has changes the server does not have, then forgets the composers kept in the browser.
   - Spec: `tests/composer-drafts.spec.ts`.
+- [x] `SET-10` Unread emails in Spam show "N message(s) in spam" above the lists of the other folders (a live region, never in Spam itself); "Dismiss" hides it for 24 hours (kept in the browser), "View" opens Spam and hides it too; turning "Enable spam report" off in Settings → Preferences removes it for good. — web app only, no Patrol test (tmail-flutter's `SpamReportController`, `GetSpamMailboxCachedInteractor`)
+  - Spec: `tests/preferences.spec.ts`.

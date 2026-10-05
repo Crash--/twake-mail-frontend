@@ -68,6 +68,16 @@ async function matches(
   )
 }
 
+/**
+ * Colour contrast is left to a dedicated theme: until it exists, the app follows the official
+ * Twake palette (Figma "Teammail 1.1"), so `color-contrast` violations are reported as
+ * annotations of the test instead of failing it (docs/twake-mui-gaps.md, "Accessibility").
+ */
+export const DEFERRED_RULES: Readonly<Record<string, string>> = {
+  'color-contrast':
+    'contrast deferred to the dedicated theme, the official palette is used meanwhile'
+}
+
 export interface A11yOptions {
   /** Defaults to the twake-mui violations above */
   known?: readonly KnownViolation[]
@@ -121,6 +131,14 @@ export async function expectNoA11yViolations(
     const nodes: ReportedNode[] = []
     for (const node of violation.nodes) {
       const target = node.target.join(' ')
+      const deferredReason = DEFERRED_RULES[violation.id]
+      if (deferredReason !== undefined) {
+        test.info().annotations.push({
+          type: 'deferred a11y rule',
+          description: `${violation.id} on ${target}: ${deferredReason}`
+        })
+        continue
+      }
       let knownViolation: KnownViolation | undefined
       for (const candidate of known) {
         if (

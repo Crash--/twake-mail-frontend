@@ -24,7 +24,8 @@
     "refresh": "Refresh",
     "open": "Open",
     "offline": "No internet connection",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "opensInNewTab": "opens in a new tab"
   },
   "topbar": {
     "apps": "Go to applications",
@@ -38,7 +39,8 @@
   "sidebar": {
     "newMessage": "New message",
     "folders": "Folders",
-    "teamMailboxes": "Team-mailboxes"
+    "teamMailboxes": "Team-mailboxes",
+    "version": "version %{version}"
   },
   "mailbox": {
     "empty": "You don't have any email in this folder.",
@@ -1016,14 +1018,18 @@
     "banner": {
       "full": "You have run out of storage space",
       "low": "You are running low on storage (90%)",
-      "advice": "To keep sending messages and enjoying all Twake Mail features, please consider cleaning up."
+      "advice": "To keep sending messages and enjoying all Twake Mail features, please consider cleaning up.",
+      "adviceWithPremium": "To keep sending messages and enjoying all Twake Mail features, please consider cleaning up or upgrading your storage."
     },
     "usedOf": "of %{limit} used",
     "availableLong": "Available: %{count}",
     "almostFull": "The storage is almost full. You can free up space by deleting unnecessary files or subscribe to get extra space.",
     "label": "Storage used",
     "dismiss": "Close",
-    "unlimited": "No storage limit for this account"
+    "unlimited": "No storage limit for this account",
+    "manage": "Manage my storage",
+    "upgrade": "Upgrade storage",
+    "increase": "Increase your space"
   },
   "recovery": {
     "title": "Recover deleted messages",

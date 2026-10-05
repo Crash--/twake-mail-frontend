@@ -24,7 +24,8 @@
     "refresh": "Rafraîchir",
     "open": "Ouvrir",
     "offline": "Aucune connexion Internet",
-    "dismiss": "Rejeter"
+    "dismiss": "Rejeter",
+    "opensInNewTab": "s'ouvre dans un nouvel onglet"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -38,7 +39,8 @@
   "sidebar": {
     "newMessage": "Nouveau message",
     "folders": "Dossiers",
-    "teamMailboxes": "Team-mailboxes"
+    "teamMailboxes": "Team-mailboxes",
+    "version": "version %{version}"
   },
   "mailbox": {
     "empty": "Vous n'avez aucun message dans ce dossier.",
@@ -1016,14 +1018,18 @@
     "banner": {
       "full": "Vous n'avez plus d'espace de stockage libre",
       "low": "Vous manquez d'espace de stockage (90 %)",
-      "advice": "Pour continuer à envoyer vos messages et profiter de l'ensemble des fonctionnalités de Twake Mail, veuillez nettoyer votre boîte mail."
+      "advice": "Pour continuer à envoyer vos messages et profiter de l'ensemble des fonctionnalités de Twake Mail, veuillez nettoyer votre boîte mail.",
+      "adviceWithPremium": "Pour continuer d'envoyer des messages et profiter de l'ensemble des fonctionnalités de Twake mail, veuillez nettoyer ou augmenter votre espace de stockage."
     },
     "usedOf": "sur %{limit} utilisés",
     "availableLong": "Disponible : %{count}",
     "almostFull": "L'espace de stockage est presque plein. Vous pouvez libérer de l'espace en supprimant les fichiers inutiles ou en vous abonnant pour obtenir de l'espace supplémentaire.",
     "label": "Stockage utilisé",
     "dismiss": "Fermer",
-    "unlimited": "Pas de limite de stockage pour ce compte"
+    "unlimited": "Pas de limite de stockage pour ce compte",
+    "manage": "Gérer mon espace de stockage",
+    "upgrade": "Augmenter l'espace de stockage",
+    "increase": "Augmentez votre espace"
   },
   "recovery": {
     "title": "Récupérer les messages supprimés",

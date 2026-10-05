@@ -14,6 +14,11 @@ export interface FileDropZoneProps {
   /** Shown over the zone while files are dragged over it */
   label: string
   onFiles: (files: File[]) => void
+  /**
+   * Leaves a drag to what is under the pointer (an editor taking dropped
+   * images inline): true for the drags the zone must ignore
+   */
+  isForChild?: (event: DragEvent<HTMLElement>) => boolean
   children: ReactNode
   className?: string
   'data-testid'?: string
@@ -32,6 +37,7 @@ function hasFiles(event: DragEvent<HTMLElement>): boolean {
 export function FileDropZone({
   label,
   onFiles,
+  isForChild = () => false,
   children,
   className,
   'data-testid': testId
@@ -49,6 +55,10 @@ export function FileDropZone({
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>): void => {
     if (!hasFiles(event)) return
+    // Over the child, the child shows where the files go
+    const isChild = isForChild(event)
+    setIsOver(!isChild)
+    if (isChild) return
     event.preventDefault()
     event.dataTransfer.dropEffect = 'copy'
   }
@@ -61,6 +71,11 @@ export function FileDropZone({
 
   const handleDrop = (event: DragEvent<HTMLDivElement>): void => {
     if (!hasFiles(event)) return
+    if (isForChild(event)) {
+      depth.current = 0
+      setIsOver(false)
+      return
+    }
     event.preventDefault()
     event.stopPropagation()
     depth.current = 0

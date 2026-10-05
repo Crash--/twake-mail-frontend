@@ -19,13 +19,14 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type DragEvent,
   type KeyboardEvent,
   type MouseEvent,
   type ReactElement
 } from 'react'
 
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
-import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
+import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import { UploadList } from '@/ds/UploadList/UploadList'
 import {
@@ -172,6 +173,21 @@ function uploadedFiles(
  */
 function buildBlockDocument(content: string): string {
   return buildEmailDocument(content, { allowRemoteContent: false })
+}
+
+/**
+ * Images dropped on the body go inline, where they are dropped; other
+ * files, or images dropped elsewhere, are attached
+ */
+function isImageDropOnBody(event: DragEvent<HTMLElement>): boolean {
+  const target = event.target
+  if (!(target instanceof Element)) return false
+  if (target.closest('[contenteditable="true"]') === null) return false
+  const items = Array.from(event.dataTransfer.items)
+  return (
+    items.length > 0 &&
+    items.every(item => item.kind === 'file' && IMAGE_TYPES.includes(item.type))
+  )
 }
 
 /** The translation key of a failed draft save */
@@ -658,6 +674,7 @@ function LoadedComposerForm({
     <FileDropZone
       label={t('composer.attachments.dropHere')}
       onFiles={files.addFiles}
+      isForChild={isImageDropOnBody}
       className="u-flex u-flex-column u-flex-auto u-ov-hidden"
       data-testid="composer-drop-zone"
     >

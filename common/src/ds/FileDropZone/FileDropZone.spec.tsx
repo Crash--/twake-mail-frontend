@@ -47,4 +47,35 @@ describe('FileDropZone', () => {
     })
     expect(screen.queryByText('Drop file here')).toBe(null)
   })
+
+  it('leaves to its child the drags it says are for it', () => {
+    const onFiles = jest.fn()
+    const onChildDrop = jest.fn()
+    renderDs(
+      <FileDropZone
+        label="Drop file here"
+        onFiles={onFiles}
+        isForChild={event =>
+          event.target instanceof Element &&
+          event.target.closest('[data-child]') !== null
+        }
+        data-testid="zone"
+      >
+        <p data-child="" onDrop={onChildDrop}>
+          Editor
+        </p>
+      </FileDropZone>
+    )
+    const file = new File(['x'], 'photo.png', { type: 'image/png' })
+
+    fireEvent.dragOver(screen.getByText('Editor'), {
+      dataTransfer: transfer([file])
+    })
+    expect(screen.queryByText('Drop file here')).toBe(null)
+    fireEvent.drop(screen.getByText('Editor'), {
+      dataTransfer: transfer([file])
+    })
+    expect(onFiles).not.toHaveBeenCalled()
+    expect(onChildDrop).toHaveBeenCalled()
+  })
 })

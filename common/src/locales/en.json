@@ -86,6 +86,25 @@
       "show": "Show",
       "alwaysShow": "Always show for this sender"
     },
+    "twpWarning": {
+      "levels": {
+        "info": "Information",
+        "warn": "Warning",
+        "error": "Danger"
+      },
+      "titles": {
+        "info": "About this message",
+        "warn": "Be careful with this message",
+        "error": "This message may be dangerous"
+      },
+      "codes": {
+        "suspiciousSender": "This email is from an external sender immitating known users, double check the mail address.",
+        "virus": "This email is having virus in its attachments!",
+        "virusRemoved": "This email was having virus in its attachment, that we removed for your security."
+      },
+      "notSpam": "Not spam",
+      "dangerousMessage": "Dangerous message"
+    },
     "readReceipt": {
       "title": "Read receipt request",
       "message": "The sender has requested a Read receipt for this email. Send Read receipt?",

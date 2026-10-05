@@ -86,6 +86,25 @@
       "show": "Hiển thị",
       "alwaysShow": "Luôn hiển thị cho người gửi này"
     },
+    "twpWarning": {
+      "levels": {
+        "info": "Thông tin",
+        "warn": "Cảnh báo",
+        "error": "Nguy hiểm"
+      },
+      "titles": {
+        "info": "Về thư này",
+        "warn": "Hãy cẩn thận với thư này",
+        "error": "Thư này có thể nguy hiểm"
+      },
+      "codes": {
+        "suspiciousSender": "Thư này đến từ người gửi bên ngoài giả mạo những người dùng quen thuộc, hãy kiểm tra kỹ địa chỉ email.",
+        "virus": "Tệp đính kèm của thư này có chứa vi-rút!",
+        "virusRemoved": "Tệp đính kèm của thư này từng chứa vi-rút và đã được chúng tôi gỡ bỏ để đảm bảo an toàn cho bạn."
+      },
+      "notSpam": "Không phải thư rác",
+      "dangerousMessage": "Thư nguy hiểm"
+    },
     "readReceipt": {
       "title": "Yêu cầu xác nhận đọc",
       "message": "Người gửi đã yêu cầu xác nhận đọc cho email này. Gửi xác nhận đọc?",

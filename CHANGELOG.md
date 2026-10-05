@@ -31,6 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ecosystem). The sidebar footer follows the design (gauge, "X available",
   version). The ecosystem document is now read by one shared module
   (`features/ecosystem`), used by error reporting too
+- Backend warnings of an email (`X-TWP-Message` headers: suspicious sender,
+  virus, phishing): a banner per warning between the header and the body, in
+  the email view and in each message of a conversation, a red badge instead of
+  the avatar for an error, and a dismissal kept with the keyword
+  `twp-warning-dismissed-<index>`. See `docs/twp-warnings.md`
 
 - Error reporting driven by a preference, as tmail-flutter on the web: Sentry
   starts only when configured (`SENTRY_*` or the ecosystem of the server) and

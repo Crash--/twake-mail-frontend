@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 
 import type { AppListEntry } from '@common/config/config'
@@ -18,17 +18,8 @@ import { StarredEmailPage } from './features/starred/StarredEmailPage'
 import { StarredPage } from './features/starred/StarredPage'
 import { RouteErrorScreen } from './RouteErrorScreen'
 
-// The composer spike and its editor load on demand, in their own chunk
-const SpikeComposerPage = lazy(() =>
-  import('./features/spike/SpikeComposerPage').then(module => ({
-    default: module.SpikeComposerPage
-  }))
-)
-
 export interface AppRoutesProps {
   apps: readonly AppListEntry[]
-  /** DEBUG: adds the spike routes */
-  debug?: boolean
 }
 
 /**
@@ -37,10 +28,7 @@ export interface AppRoutesProps {
  * data route and its navigations can run as view transitions; `AppRoutes`
  * renders them under any router (tests).
  */
-export function appRouteElements({
-  apps,
-  debug = false
-}: AppRoutesProps): ReactElement {
+export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
   return (
     // The data router shows `errorElement` when a page fails to render
     <Route errorElement={<RouteErrorScreen />}>
@@ -66,16 +54,6 @@ export function appRouteElements({
           <Route path="/search" element={<SearchPage />}>
             <Route path="email/:emailId" element={<SearchEmailPage />} />
           </Route>
-          {debug ? (
-            <Route
-              path="/spike/composer"
-              element={
-                <Suspense fallback={null}>
-                  <SpikeComposerPage />
-                </Suspense>
-              }
-            />
-          ) : null}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Route>

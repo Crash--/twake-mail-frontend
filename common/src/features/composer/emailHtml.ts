@@ -139,6 +139,14 @@ export function fromEmailHtml(
   return root.innerHTML
 }
 
+/** Editor HTML with its image URLs swapped for their Content-IDs */
+export function toStorageHtml(editorHtml: string): string {
+  return editorHtml.replace(
+    /<img([^>]*?)src="blob:[^"]*"([^>]*?)data-reference="([^"]+)"/g,
+    '<img$1src="cid:$3"$2data-reference="$3"'
+  )
+}
+
 /** Replaces `cid:` sources by display URLs, for a frame that shows HTML */
 export function resolveCidSources(
   html: string,

@@ -161,7 +161,7 @@ Conventions:
 
 | `data-testid` | Element | Flutter key |
 |---|---|---|
-| `thread-setting-toggle` | "Enable thread" in the account menu (`menuitemcheckbox`, `aria-checked`), until the settings screens exist | `ValueKey(AppLocalizations().thread)` |
+| `thread-setting-toggle` | "Thread" switch of Settings > Preferences (holds the `switch` input) | `ValueKey(AppLocalizations().thread)` |
 | `email-list-item-thread-count` | number of messages of a conversation row, "(3)" (absent for one email) | — |
 | `conversation-view` | an email shown with its conversation | `ThreadDetailView` |
 | `conversation-subject` / `conversation-count` | its subject (`h1`, focused when it opens) and "N messages" | — |
@@ -200,11 +200,16 @@ Conventions:
 | `composer-delete-draft-button` / `composer-discard-draft-button` | delete the draft and close; "Discard" of the "Draft saved" toast after a close | `discard` |
 | `composer-identity-select` | From identity picker, shown with more than one identity | `identities_list_menu_robot` |
 | `confirm-dialog-alternative-button` | the third button of a choice (`useChoose`), e.g. "Discard changes" when closing a modified message | — |
-| `settings-menu-<section>` (`preferences`, `profiles`, `email-rules`, `language-region`) | settings navigation | `setting_preferences`, `setting_profiles`, `setting_email_rules`, `setting_language_region` |
+| `settings-menu-item` | "Settings" in the account menu | `manage_account` item |
+| `settings-menu-<section>` (`profiles`, `preferences`, `keyboard-shortcuts`, later `email-rules`, `language-region`…) | settings navigation: the sidebar on a desktop, the list of sections below | `setting_preferences`, `setting_profiles`, `setting_email_rules`, `setting_language_region` |
+| `settings-sidebar` / `settings-nav` / `settings-section-list` | the settings column (desktop), its navigation, the list of the sections (phones and tablets) | `setting_menu` |
+| `settings-back-button` / `settings-section-back-button` | back to the mail; back from a section to the list (below the desktop size) | `back_to_dashboard_button` |
+| `settings-section-<section>` | the section opened (its heading is the `h1` of the page) | — |
+| `create-new-identity-button` / `identity-list` / `identity-item` (`data-identity-name`, `data-default`) + `identity-item-name`, `identity-default-badge`, `identity-default-radio`, `identity-edit-button`, `identity-delete-button` | Settings > Profiles | `create_new_identity_button`, `IdentityListTileBuilder` |
+| `identity-form-dialog` + `identity-name-input`, `identity-email-select`, `identity-reply-to-input`, `identity-bcc-input`, `identity-signature-editor`, `identity-default-checkbox`, `identity-cancel-button`, `save-identity-button`, `identity-form-error` | the identity creator | `IdentityCreatorView`, `save_identity_button` |
 | `create-rule-button` / `email-rule-item` / `email-rule-edit-button` | email rules | `UiKeys.createRuleButton`, `editEmailRuleButton_<name>` |
 | `label-item` / `add-new-label-button` / `label-modal` / `label-name-input` / `label-save-button` | labels | `UiKeys.addNewLabelButton`, `create_new_label_modal`, `label_name_input_field`, `save_label_button_action` |
 | `confirm-dialog` / `confirm-dialog-confirm-button` / `confirm-dialog-cancel-button` | confirmation dialogs (the focus starts on Cancel) | `confirm_dialog_action` |
 | `toast` | the toast shown (`data-severity`); its message is announced by live regions always in the page (`role="status"`, `role="alert"` for errors) | — |
 | `toast-undo-button` / `toast-retry-button` / `toast-close-button` | its action ("Undo" after an action, "Retry" after a failure) and close | — |
 | `shortcuts-dialog` / `shortcuts-enabled-switch` / `shortcuts-dialog-close-button` | keyboard shortcuts list (`?`), the switch turning them off | `keyboardShortcuts` setting |
-| `shortcuts-menu-item` | "Keyboard shortcuts" in the account menu | — |

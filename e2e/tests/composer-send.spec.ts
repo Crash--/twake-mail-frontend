@@ -4,6 +4,12 @@ import { makePng } from '../support/clipboard'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient, MailboxRole } from '../support/jmap'
 
+/** A 1 × 1 transparent PNG */
+const PIXEL = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+  'base64'
+)
+
 interface BodyPart {
   partId?: string | null
   blobId?: string | null
@@ -615,5 +621,119 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       await expect(composer.root).toBeVisible()
       await expectNoA11yViolations(page)
     })
+  })
+
+  test('CMP-46 the remote images of a reopened draft wait for "Show", and go with the message', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const tracker = 'http://tracker.invalid/pixel.png'
+    let loads = 0
+    await page.route(tracker, async route => {
+      loads += 1
+      await route.fulfill({ body: PIXEL, contentType: 'image/png' })
+    })
+    const accountId = await jmap.accountId()
+    const drafts = await jmap.findMailboxByRole('drafts')
+    await jmap.request([
+      [
+        'Email/set',
+        {
+          accountId,
+          create: {
+            draft: {
+              mailboxIds: { [drafts.id]: true },
+              keywords: { $draft: true, $seen: true },
+              from: [{ email: user.email }],
+              to: [{ email: user.email }],
+              subject: 'Tracked draft',
+              bodyValues: {
+                html: {
+                  value: `<div>Hello <img src="${tracker}" alt="pixel"></div>`
+                }
+              },
+              htmlBody: [{ partId: 'html', type: 'text/html' }]
+            }
+          }
+        },
+        'c'
+      ]
+    ])
+    const mailbox = await new LoginPage(page).loginAs(user)
+
+    const composer = await openDraft(mailbox, 'Tracked draft')
+
+    const banner = composer.root.getByTestId('remote-content-banner')
+    await expect(banner).toBeVisible()
+    await expect(composer.editor.locator('img[alt="pixel"]')).toHaveAttribute(
+      'data-blocked-src',
+      tracker
+    )
+    expect(loads).toBe(0)
+    await expectNoA11yViolations(page)
+
+    await banner.getByTestId('remote-content-show-button').click()
+    await expect(composer.editor.locator('img[alt="pixel"]')).toHaveAttribute(
+      'src',
+      tracker
+    )
+    await expect.poll(() => loads).toBeGreaterThan(0)
+    await composer.send()
+    const sent = await jmap.waitForEmail({
+      subject: 'Tracked draft',
+      mailboxRole: 'sent'
+    })
+    const [read] = (await readMailbox(jmap, 'sent')).filter(
+      email => email.id === sent.id
+    )
+    expect(read && bodyOf(read, read.htmlBody)).toContain(`src="${tracker}"`)
+  })
+
+  test('CMP-47 a version created by a save whose answer was lost goes with the next save', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    // The first save reaches the server, its answer never comes back
+    let lost = 0
+    await page.route('**/jmap', async route => {
+      const body = route.request().postData() ?? ''
+      if (lost === 0 && body.includes('"create"')) {
+        lost += 1
+        await route.fetch()
+        await route.abort()
+        return
+      }
+      await route.continue()
+    })
+    await composer.fill({
+      to: [user.email],
+      subject: 'Lost answer',
+      body: 'First'
+    })
+    await expect(composer.saveStatus).toHaveText('Draft not saved', {
+      timeout: 10_000
+    })
+    expect(lost).toBe(1)
+    await expect
+      .poll(async () =>
+        (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
+      )
+      .toEqual(['Lost answer'])
+    const [stray] = await readMailbox(jmap, 'drafts')
+
+    await composer.subjectInput.fill('Lost answer, saved again')
+
+    await expect
+      .poll(async () =>
+        (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
+      )
+      .toEqual(['Lost answer, saved again'])
+    const [kept] = await readMailbox(jmap, 'drafts')
+    expect(kept?.id).not.toBe(stray?.id)
+    await page.unroute('**/jmap')
   })
 })

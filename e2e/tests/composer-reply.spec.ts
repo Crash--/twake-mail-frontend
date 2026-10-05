@@ -482,10 +482,11 @@ test.describe('CMP: the quote', () => {
     ).toHaveAttribute('src', /^blob:/)
   })
 
-  test('CMP-40 a reply saved as a draft reopens with its quote, and is sent in the thread', async ({
+  test('CMP-40 a reply saved as a draft reopens with its quote, and is sent in the thread, the original answered', async ({
     page,
     user,
     users,
+    jmap,
     jmapFor
   }) => {
     const bob = await users.create({ prefix: 'bob' })
@@ -519,6 +520,29 @@ test.describe('CMP: the quote', () => {
     const [original] = await readMailbox(bobJmap, 'sent')
     expect(received.inReplyTo).toEqual(original?.messageId)
     expect(received.html).toContain('Original text')
+    // The draft kept the email it answers (X-Twake-Answering), the message
+    // sent does not carry it
+    await expect
+      .poll(async () => {
+        const [answered] = await readMailbox(jmap, 'inbox')
+        return answered?.keywords
+      })
+      .toMatchObject({ $answered: true })
+    const accountId = await bobJmap.accountId()
+    const [headers] = await bobJmap.request([
+      [
+        'Email/get',
+        {
+          accountId,
+          ids: [received.id],
+          properties: ['header:X-Twake-Answering:asText']
+        },
+        'h'
+      ]
+    ])
+    expect(headers?.[1].list).toEqual([
+      expect.objectContaining({ 'header:X-Twake-Answering:asText': null })
+    ])
   })
 
   test('CMP-41 the quote of a newsletter keeps its tables, images, links and styles', async ({
@@ -749,5 +773,58 @@ test.describe('KBD and menus: answering', () => {
       'Re: Shortcuts'
     )
     await expectNoA11yViolations(page)
+  })
+
+  test('KBD-04 Caps Lock R replies, a second reply brings back the first, keys typed while it opens are its own', async ({
+    page,
+    user,
+    users,
+    jmap,
+    jmapFor
+  }) => {
+    const carol = await users.create({ prefix: 'carol' })
+    await jmapFor(carol).sendEmail({
+      to: [user.email, 'dave@example.com'],
+      subject: 'Caps',
+      text: 'x'
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.openFolder({ role: 'inbox' })
+    await mailbox.emailRow('Caps').click()
+    const conversation = new ConversationPage(page)
+    await conversation.expectLoaded('Caps')
+
+    // Caps Lock on: "R" without Shift is no Shift+R
+    await conversation.subject.focus()
+    await page.keyboard.press('R')
+    const composer = new ComposerPage(page)
+    await expect(composer.subjectInput).toHaveValue('Re: Caps')
+    await unfold(composer)
+    await expect(composer.recipients('to')).toHaveText([carol.email])
+
+    // Replying again brings back the reply open
+    await conversation.subject.focus()
+    await page.keyboard.press('r')
+    await expect(page.getByTestId('composer')).toHaveCount(1)
+    await expect(composer.editor).toBeFocused()
+    await composer.close()
+    await expect(composer.root).toBeHidden()
+
+    // The email answered loads slowly: "e" typed meanwhile archives nothing
+    await page.route('**/jmap', async route => {
+      if ((route.request().postData() ?? '').includes('"messageId"')) {
+        await new Promise(resolve => setTimeout(resolve, 1500))
+      }
+      await route.continue()
+    })
+    await conversation.subject.focus()
+    await page.keyboard.press('f')
+    await page.keyboard.press('e')
+    await expect(composer.subjectInput).toHaveValue('Fwd: Caps')
+    const inbox = await jmap.findMailboxByRole('inbox')
+    const [email] = await jmap.queryEmails({ inMailbox: inbox.id })
+    expect(email).toBeDefined()
+    await expect(conversation.subject).toBeVisible()
+    await page.unroute('**/jmap')
   })
 })

@@ -247,3 +247,7 @@ Conventions:
 | `list-toolbar` | desktop only: the toolbar above the list while nothing is selected (a `section` named "List actions"); it becomes `selection-toolbar` once rows are selected | — |
 | `list-refresh-button` / `list-select-all-button` / `list-filter-button` / `list-filter-menu` | refresh, "Select all", the "Filter" dropdown and its menu; its items are `quick-filter-unread`, `quick-filter-starred`, `quick-filter-attachments` (they open the matching emails of the folder as a search) | `unread_filter`, `starred_filter`, `attachments_filter` |
 | `mailbox-item-address` / `folder-visibility-address` | the address of a team mailbox, beside the name of its root (sidebar, Settings > Folder visibility) | — |
+| `mailbox-search-button` (implemented) | the magnifier toggles the folder search (`aria-expanded`, `aria-controls`); Escape closes it and focuses it again | `UiKeys.mailboxSearchButton` |
+| `mailbox-search` / `mailbox-search-input` / `mailbox-search-clear-button` | the folder search panel (`role="search"`), its field (focused on open) and its clear button | `SearchMailboxView` |
+| `mailbox-search-status` / `mailbox-search-results` | the count of folders found announced (`role="status"`), or "No folder matches your search"; the results, `mailbox-item` rows with the path or the team address under the name, hidden folders included (`data-hidden`) | `MailboxSearchedItemBuilder` |
+| `mailbox-search-visibility-link` | link to Settings > Folder visibility, in the search panel | — (Settings menu in tmail-flutter) |

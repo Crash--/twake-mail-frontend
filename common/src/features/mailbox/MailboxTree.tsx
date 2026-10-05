@@ -1,4 +1,4 @@
-import { Eye, EyeClosed, Icon, Plus } from '@linagora/twake-icons'
+import { Eye, EyeClosed, Icon, Magnifier, Plus } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -11,6 +11,7 @@ import {
   Fragment,
   useId,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
   type ReactNode
@@ -32,6 +33,7 @@ import {
   listVisibleMailboxes,
   type VisibleMailbox
 } from './mailboxTree'
+import { MailboxSearch } from './MailboxSearch'
 import { MailboxTreeItem } from './MailboxTreeItem'
 import type { MailboxSummary } from './queries'
 import { StarredTreeItem } from './StarredTreeItem'
@@ -116,6 +118,9 @@ export function MailboxTree(): ReactElement {
   const selectedId = match?.params.mailboxId ?? null
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
   const [showHidden, setShowHidden] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
+  const searchButtonRef = useRef<HTMLButtonElement>(null)
+  const searchId = useId()
   const [menu, setMenu] = useState<{
     mailbox: MailboxSummary
     anchor: FolderMenuAnchor
@@ -152,6 +157,13 @@ export function MailboxTree(): ReactElement {
   const handleCreate = (): void => {
     folderActions.create(null)
   }
+  const handleToggleSearch = (): void => {
+    setIsSearching(searching => !searching)
+  }
+  const handleCloseSearch = (): void => {
+    setIsSearching(false)
+    searchButtonRef.current?.focus()
+  }
   const handleToggleHidden = (): void => {
     setShowHidden(shown => !shown)
   }
@@ -177,6 +189,7 @@ export function MailboxTree(): ReactElement {
     )
   }
 
+  const searchLabel = t('folders.search.label')
   const newFolderLabel = t('folders.newFolder')
   const hiddenLabel = t('folders.hidden.show')
 
@@ -202,6 +215,19 @@ export function MailboxTree(): ReactElement {
                 </IconButton>
               </Tooltip>
             ) : null}
+            <Tooltip title={searchLabel}>
+              <IconButton
+                ref={searchButtonRef}
+                size="small"
+                aria-label={searchLabel}
+                aria-expanded={isSearching}
+                aria-controls={isSearching ? searchId : undefined}
+                onClick={handleToggleSearch}
+                data-testid="mailbox-search-button"
+              >
+                <Icon icon={Magnifier} />
+              </IconButton>
+            </Tooltip>
             <Tooltip title={newFolderLabel}>
               <IconButton
                 size="small"
@@ -215,15 +241,24 @@ export function MailboxTree(): ReactElement {
           </>
         }
       />
-      <NavTree
-        role="tree"
-        aria-labelledby={titleId}
-        aria-busy={query.isPending}
-        data-testid="mailbox-tree"
-      >
-        {content}
-      </NavTree>
-      {teamRows.length > 0 ? (
+      {isSearching ? (
+        <MailboxSearch
+          id={searchId}
+          selectedId={selectedId}
+          onClose={handleCloseSearch}
+          onOpenMenu={handleOpenMenu}
+        />
+      ) : (
+        <NavTree
+          role="tree"
+          aria-labelledby={titleId}
+          aria-busy={query.isPending}
+          data-testid="mailbox-tree"
+        >
+          {content}
+        </NavTree>
+      )}
+      {teamRows.length > 0 && !isSearching ? (
         <Box className="u-mt-1" data-testid="team-mailboxes-section">
           <NavSectionHeader
             title={t('sidebar.teamMailboxes')}

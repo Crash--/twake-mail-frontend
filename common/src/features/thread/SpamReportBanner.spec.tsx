@@ -2,6 +2,7 @@ import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import {
   SPAM_REPORT_INTERVAL_MS,
   SPAM_REPORT_PREFERENCE_STORAGE_KEY
@@ -39,7 +40,9 @@ async function renderFolder(
     <VirtuosoMockContext.Provider
       value={{ viewportHeight: 10_000, itemHeight: 56 }}
     >
-      <EmailList mailboxId={mailboxId} />
+      <FolderActionsProvider>
+        <EmailList mailboxId={mailboxId} />
+      </FolderActionsProvider>
     </VirtuosoMockContext.Provider>,
     {
       route: `/mailbox/${mailboxId}`,
@@ -58,7 +61,8 @@ describe('SpamReportBanner', () => {
   })
 
   it('reminds the unread emails of Spam, in a live region, and hides for 24 hours once dismissed', async () => {
-    await renderFolder(makeServer(), 'mailbox-inbox')
+    const server = makeServer()
+    await renderFolder(server, 'mailbox-inbox')
 
     const banner = await screen.findByTestId('spam-report-banner')
     expect(banner).toHaveRole('status')
@@ -72,6 +76,12 @@ describe('SpamReportBanner', () => {
     expect(stored).toEqual({
       isEnabled: true,
       lastDismissedAt: expect.any(Number)
+    })
+    // As tmail-flutter, Spam is marked as read
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 's')?.keywords).toEqual({
+        $seen: true
+      })
     })
   })
 

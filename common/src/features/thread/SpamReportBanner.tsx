@@ -3,6 +3,7 @@ import { Alert, Button, IconButton } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
+import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import {
@@ -20,7 +21,7 @@ export interface SpamReportBannerProps {
  * Above the lists, the unread emails of Spam, as tmail-flutter's spam
  * report: not in Spam itself, not within 24 hours of its dismissal or of
  * the view of Spam, and unless turned off in Settings > Preferences.
- * "View" opens Spam; closing it hides it for 24 hours.
+ * "View" opens Spam; closing it hides it for 24 hours and marks Spam as read.
  */
 export function SpamReportBanner({
   mailbox
@@ -28,6 +29,7 @@ export function SpamReportBanner({
   const { t } = useI18n()
   const navigate = useNavigate()
   const { data: mailboxes = [] } = useMailboxes()
+  const folderActions = useFolderActions()
   const { isEnabled, lastDismissedAt, dismiss } = useSpamReportPreference()
   // When the list showed: the delay is checked then, as at a refresh in tmail-flutter
   const [now] = useState(() => Date.now())
@@ -51,6 +53,12 @@ export function SpamReportBanner({
   }, [isShown, isEnabled, spam, unread, dismiss])
 
   if (!isShown) return null
+
+  // As tmail-flutter: the close button also marks Spam as read
+  const handleClose = (): void => {
+    dismiss()
+    if (spam.myRights.maySetSeen) folderActions.run('mark-as-read', spam)
+  }
 
   const handleView = (): void => {
     dismiss()
@@ -77,7 +85,7 @@ export function SpamReportBanner({
             color="inherit"
             size="small"
             aria-label={t('spamReport.dismiss')}
-            onClick={dismiss}
+            onClick={handleClose}
             data-testid="spam-report-banner-dismiss"
           >
             <Icon icon={Cross} size={16} aria-hidden="true" />

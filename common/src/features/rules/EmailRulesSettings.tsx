@@ -16,6 +16,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { ruleKeys, rulesQueryOptions, saveRules } from './queries'
 import { RuleFormDialog } from './RuleFormDialog'
+import { useAddRule } from './useAddRule'
 import { RuleListItem } from './RuleListItem'
 import { newRuleDraft, type RuleDraft } from './rules'
 
@@ -53,6 +54,7 @@ export function EmailRulesSettings({
   const { accountId } = useJmapSession()
   const { notify } = useNotify()
   const confirm = useConfirm()
+  const addRule = useAddRule()
   const location = useLocation()
   const navigate = useNavigate()
   const query = useQuery(rulesQueryOptions(client, accountId))
@@ -80,16 +82,17 @@ export function EmailRulesSettings({
 
   const handleSubmit = async (rule: Rule): Promise<boolean> => {
     if (form === null) return false
-    const isNew = form.index === null
-    const next = isNew
-      ? [rule, ...rules]
-      : rules.map((other, index) => (index === form.index ? rule : other))
+    if (form.index === null) {
+      const isAdded = await addRule(rule)
+      if (isAdded) setForm(null)
+      return isAdded
+    }
+    const next = rules.map((other, index) =>
+      index === form.index ? rule : other
+    )
     const isSaved = await save(next)
     if (isSaved) {
-      notify({
-        message: t(isNew ? 'rules.toasts.created' : 'rules.toasts.updated'),
-        severity: 'success'
-      })
+      notify({ message: t('rules.toasts.updated'), severity: 'success' })
       setForm(null)
     }
     return isSaved

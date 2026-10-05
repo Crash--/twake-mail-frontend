@@ -7,6 +7,7 @@ import type {
   RuleUpdate
 } from 'jmap-client-ts/linagora'
 
+import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
 /** The fields tmail-flutter offers in a condition, in its order */
@@ -91,13 +92,26 @@ export function emptyCondition(value = ''): RuleCondition {
   return { field: 'from', comparator: 'contains', value }
 }
 
-/** A new rule; from an address, its condition is "From contains <address>" */
-export function newRuleDraft(fromAddress: string | null = null): RuleDraft {
+/**
+ * A new rule; from an address, its condition is "From contains <address>";
+ * for a folder, its action moves to it ("Mark as spam" for the Spam folder),
+ * as tmail-flutter's rule creator opened from a folder menu
+ */
+export function newRuleDraft(
+  fromAddress: string | null = null,
+  folder: Pick<MailboxSummary, 'id' | 'role'> | null = null
+): RuleDraft {
+  const action: RuleActionDraft =
+    folder === null
+      ? { kind: null, mailboxId: null }
+      : folder.role === 'junk'
+        ? { kind: 'spam', mailboxId: null }
+        : { kind: 'move', mailboxId: folder.id }
   return {
     name: '',
     combiner: 'AND',
     conditions: [emptyCondition(fromAddress ?? '')],
-    actions: [{ kind: null, mailboxId: null }]
+    actions: [action]
   }
 }
 

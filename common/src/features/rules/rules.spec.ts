@@ -38,6 +38,18 @@ describe('rules', () => {
     })
   })
 
+  it('starts a rule from a folder with the action moving to it', () => {
+    expect(newRuleDraft(null, { id: 'work', role: null }).actions).toEqual([
+      { kind: 'move', mailboxId: 'work' }
+    ])
+  })
+
+  it('starts a rule from Spam with the action marking as spam', () => {
+    expect(newRuleDraft(null, { id: 'spam', role: 'junk' }).actions).toEqual([
+      { kind: 'spam', mailboxId: null }
+    ])
+  })
+
   it('edits a rule and keeps what the creator does not show', () => {
     const draft = draftFromRule(ARCHIVE_RULE, SPAM)
     expect(draft.actions).toEqual([

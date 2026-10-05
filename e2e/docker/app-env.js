@@ -7,3 +7,5 @@
 var JMAP_SESSION_URL = window.location.origin + '/jmap/session'
 var AUTH_MODE = 'basic'
 var LANG = 'en'
+// Shown in Settings > Forwarding (SET-07)
+var FORWARD_WARNING_MESSAGE = 'Forwarding outside example.com breaks the e2e charter.'

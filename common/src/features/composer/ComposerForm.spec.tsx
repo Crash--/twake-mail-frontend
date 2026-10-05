@@ -207,6 +207,52 @@ describe('ComposerForm', () => {
       expect(bcc()).toEqual(['boss@example.com'])
     })
 
+    it('reminds a file said attached, not the one of the signature', async () => {
+      const { jmapServer } = renderComposer(
+        makeFakeJmapServer({
+          identities: [
+            makeIdentity({
+              id: 'identity-alice',
+              mayDelete: false,
+              textSignature: 'Signature file'
+            })
+          ]
+        })
+      )
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Reminder' })
+      const body = within(composer).getByRole('textbox', {
+        name: 'Message body'
+      })
+      await userEvent.click(body)
+      await userEvent.keyboard('The PJ is there')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Forgot to attach a file?'
+      })
+      expect(dialog).toHaveTextContent(
+        'You wrote "pj" in your message but did not add any attachments.'
+      )
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Cancel' })
+      )
+      expect(jmapServer.submitted).toEqual([])
+
+      await userEvent.click(
+        await within(composer).findByRole('button', { name: 'Send' })
+      )
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Send message' })
+      )
+      await waitFor(() => {
+        expect(jmapServer.submitted).toHaveLength(1)
+      })
+    })
+
     it('asks for a recipient first', async () => {
       const { jmapServer } = renderComposer()
       const composer = await openComposer()

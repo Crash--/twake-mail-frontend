@@ -79,6 +79,7 @@ import {
   type SendOptions
 } from './composerContent'
 import { snapshotKey } from './composerStorage'
+import { findAttachmentKeywords, writtenText } from './attachmentReminder'
 import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
 import {
   editableQuoteHtml,
@@ -716,14 +717,38 @@ function LoadedComposerForm({
       })
       return false
     }
-    if (subject.trim() === '') {
-      return confirm({
+    if (
+      subject.trim() === '' &&
+      !(await confirm({
         title: t('composer.sendChecks.emptySubjectTitle'),
         message: t('composer.sendChecks.emptySubject'),
         confirmLabel: t('composer.sendChecks.sendAnyway')
-      })
+      }))
+    ) {
+      return false
     }
-    return true
+    return checkAttachmentReminder()
+  }
+
+  /**
+   * A message saying a file is attached, without any: asks before sending
+   * (tmail-flutter `validateAttachmentReminder`). Inline images are no
+   * attachment; the quote and the signature are not read.
+   */
+  const checkAttachmentReminder = async (): Promise<boolean> => {
+    const editor = editorRef.current
+    if (!editor || files.attachments.length > 0) return true
+    const keywords = findAttachmentKeywords(
+      writtenText(subject, editor.getHTML())
+    )
+    if (keywords.length === 0) return true
+    return confirm({
+      title: t('composer.attachmentReminder.title'),
+      message: t('composer.attachmentReminder.message', {
+        keyword: keywords.map(keyword => `"${keyword}"`).join(', ')
+      }),
+      confirmLabel: t('composer.attachmentReminder.send')
+    })
   }
 
   const handleSend = async (): Promise<void> => {

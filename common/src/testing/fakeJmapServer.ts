@@ -118,6 +118,8 @@ export interface FakeJmapServer {
   identities: Identity[]
   /** Ids of the emails submitted with `EmailSubmission/set`, in order */
   submitted: string[]
+  /** The MDNs sent with `MDN/send` (RFC 9007), in order */
+  mdnSent: Record<string, unknown>[]
   /** Blob contents by blob id, served by the download endpoint */
   blobs: Map<string, string>
   /** API requests received, in order */
@@ -532,6 +534,7 @@ export function makeFakeJmapServer(
     contacts: init.contacts ?? [],
     identities: init.identities ?? [makeIdentity({ id: 'identity-alice' })],
     submitted: [],
+    mdnSent: [],
     blobs: new Map(),
     requests: [],
     methodErrors: new Map(),
@@ -952,6 +955,39 @@ export function makeFakeJmapServer(
     }
   }
 
+  /**
+   * Sends MDNs (nothing is delivered) for existing emails, then applies
+   * `onSuccessUpdateEmail` to the emails they are for
+   */
+  function sendMdns(args: Record<string, unknown>): unknown {
+    const send = isRecord(args.send) ? args.send : {}
+    const sent: Record<string, unknown> = {}
+    const notSent: Record<string, unknown> = {}
+    const emailOf = new Map<string, FakeEmail>()
+    for (const [creationId, mdn] of Object.entries(send)) {
+      const email = isRecord(mdn)
+        ? server.emails.find(candidate => candidate.id === mdn.forEmailId)
+        : undefined
+      if (!email || !isRecord(mdn)) {
+        notSent[creationId] = { type: 'notFound' }
+        continue
+      }
+      server.mdnSent.push(mdn)
+      sent[creationId] = { finalRecipient: `rfc822; ${FAKE_USERNAME}` }
+      emailOf.set(creationId, email)
+    }
+    const onSuccess = isRecord(args.onSuccessUpdateEmail)
+      ? args.onSuccessUpdateEmail
+      : {}
+    for (const [reference, patch] of Object.entries(onSuccess)) {
+      const email = emailOf.get(reference.replace(/^#/, ''))
+      if (!email || !isRecord(patch)) continue
+      updateEmail(email, patch)
+      emailLog.record(email.id, 'updated')
+    }
+    return { accountId: FAKE_ACCOUNT_ID, sent, notSent }
+  }
+
   function getIdentities(args: Record<string, unknown>): unknown {
     const list = server.identities
       .filter(
@@ -1170,6 +1206,8 @@ export function makeFakeJmapServer(
         return setIdentities(args)
       case 'EmailSubmission/set':
         return setSubmissions(args)
+      case 'MDN/send':
+        return sendMdns(args)
       case 'Email/changes':
         return emailLog.changes(args) ?? { error: 'cannotCalculateChanges' }
       case 'Mailbox/changes':

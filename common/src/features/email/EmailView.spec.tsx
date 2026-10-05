@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
@@ -359,5 +359,68 @@ describe('EmailView', () => {
     expect(await screen.findByTestId('email-not-found')).toHaveTextContent(
       'This message no longer exists'
     )
+  })
+
+  describe('read receipts', () => {
+    function serverAsking(keywords: Record<string, true> = {}): FakeJmapServer {
+      return makeFakeJmapServer({
+        capabilities: { 'urn:ietf:params:jmap:mdn': {} },
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'e1',
+              subject: 'Please confirm',
+              keywords: { $seen: true, ...keywords },
+              headers: { 'Disposition-Notification-To': 'bob@example.com' }
+            },
+            { text: 'Hello' }
+          )
+        ]
+      })
+    }
+
+    it('sends the read receipt the sender asked for, once accepted', async () => {
+      const jmapServer = serverAsking()
+      renderView(jmapServer)
+
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Read receipt request'
+      })
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Yes' }))
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'A read receipt has been sent.'
+      )
+      expect(jmapServer.mdnSent).toEqual([
+        expect.objectContaining({
+          forEmailId: 'e1',
+          subject: 'Read: Please confirm',
+          disposition: {
+            actionMode: 'manual-action',
+            sendingMode: 'mdn-sent-manually',
+            type: 'displayed'
+          }
+        })
+      ])
+      expect(jmapServer.emails[0]?.keywords).toEqual({
+        $seen: true,
+        $mdnsent: true
+      })
+    })
+
+    it('sends nothing when declined, nor asks once it was sent', async () => {
+      const jmapServer = serverAsking()
+      const { unmount } = renderView(jmapServer)
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Read receipt request'
+      })
+      await userEvent.click(within(dialog).getByRole('button', { name: 'No' }))
+      expect(jmapServer.mdnSent).toEqual([])
+      unmount()
+
+      renderView(serverAsking({ $mdnsent: true }))
+      await screen.findByTestId('email-view-subject')
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
   })
 })

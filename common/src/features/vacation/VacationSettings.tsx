@@ -252,6 +252,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
           key={editorKey}
           labels={{ ...labels, editor: t('vacation.message') }}
           content={vacation.htmlBody ?? ''}
+          disabled={isOff}
           colors={colors}
           fontSizes={fontSizes}
           onReady={editor => {

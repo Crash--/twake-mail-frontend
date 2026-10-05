@@ -7,7 +7,9 @@ import {
 } from '@common/features/email/emailBody'
 import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 import { LIST_POST_HEADER } from '@common/features/email/queries'
+import { identityForEmail } from '@common/features/identities/identityForEmail'
 import type { IdentitySummary } from '@common/features/identities/queries'
+import type { MailboxSummary } from '@common/features/mailbox/queries'
 
 import {
   identityBcc,
@@ -29,6 +31,7 @@ import { signatureBlock, signatureHtml } from './signature'
 /** What the answer to an email is made of */
 const SOURCE_PROPERTIES = [
   'id',
+  'mailboxIds',
   'messageId',
   'references',
   'receivedAt',
@@ -57,6 +60,7 @@ const SOURCE_BODY_PROPERTIES = [
 type SourceEmail = Pick<
   Email,
   | 'id'
+  | 'mailboxIds'
   | 'messageId'
   | 'references'
   | 'receivedAt'
@@ -120,7 +124,9 @@ export function threadHeaders(
  * A composer answering an email (reply, reply all, reply to list,
  * forward), as tmail-flutter opens it: the recipients of its rules, the
  * subject with the prefix of the UI language, two empty lines, the
- * signature of the default identity, then the quote. The quote keeps the
+ * signature of the identity that received the email (its team mailbox or
+ * alias, `identityForEmail`; tmail-flutter takes the default one), then the
+ * quote. The quote keeps the
  * email's HTML (sanitized) in an HtmlBlock; its `cid:` images are
  * registered, to be sent again as inline parts. A forward also takes the
  * other files of the email (the same blobs), which the user can remove.
@@ -130,6 +136,7 @@ export async function loadReplyContent(
   accountId: string,
   reply: { emailId: string; action: ReplyAction },
   identities: readonly IdentitySummary[],
+  mailboxes: readonly MailboxSummary[],
   images: InlineImageStore,
   labels: ReplyLabels,
   locale: string,
@@ -204,7 +211,7 @@ export async function loadReplyContent(
     action,
     isSelf
   )
-  const identity = identities[0] ?? null
+  const { identity } = identityForEmail(source, { identities, mailboxes })
   const signature = identity ? signatureHtml(identity) : null
   const bcc = mergeRecipients(recipients.bcc, identityBcc(identity))
   return {

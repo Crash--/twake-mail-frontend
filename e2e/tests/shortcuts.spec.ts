@@ -86,7 +86,7 @@ test.describe('KBD keyboard shortcuts', () => {
 
     // Basic credentials live in memory: sign in again, the setting stays
     await page.reload()
-    await new LoginPage(page).loginAs(user)
+    await new LoginPage(page).loginAfterReload(user)
     await mailbox.emailRowLink('stays here').focus()
     await page.keyboard.press('e')
     await page.keyboard.press('?')

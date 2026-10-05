@@ -423,7 +423,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       .toEqual(['Kept across a reload'])
 
     await page.reload()
-    await new LoginPage(page).loginAs(user)
+    await new LoginPage(page).loginAfterReload(user)
 
     const restored = new ComposerPage(page)
     await expect(restored.subjectInput).toHaveValue('Kept across a reload')
@@ -469,7 +469,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
         await page.clock.runFor(1000)
 
         await page.reload()
-        await new LoginPage(page).loginAs(user)
+        await new LoginPage(page).loginAfterReload(user)
 
         const restored = new ComposerPage(page)
         await expect(restored.subjectInput).toHaveValue('Re: Plans')

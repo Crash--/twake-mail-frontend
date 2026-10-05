@@ -36,6 +36,16 @@ export class LoginPage {
     return this
   }
 
+  /**
+   * After a reload: waits for the form the app redirects to, then signs in.
+   * `loginAs` would go to `/login` itself when the form is not there yet,
+   * and the app would forget the page the user was on.
+   */
+  async loginAfterReload(credentials: Credentials): Promise<MailboxPage> {
+    await expect(this.usernameInput).toBeVisible()
+    return this.loginAs(credentials)
+  }
+
   /** Fills the form and waits for the mailbox: `await new LoginPage(page).loginAs(user)` */
   async loginAs(credentials: Credentials): Promise<MailboxPage> {
     if (!(await this.usernameInput.isVisible())) {

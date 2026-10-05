@@ -447,9 +447,39 @@ describe('resolveConfig', () => {
           name: 'TDrive',
           link: 'https://tdrive.example.com/',
           icon: 'https://tdrive.example.com/icon.svg'
+        },
+        {
+          name: 'Calendar',
+          link: 'https://x/',
+          icon: '/assets/images/svg/app-calendar.svg'
         }
       ])
     })
+  })
+
+  describe('app_dashboard.json', () => {
+    it('is read from the origin of the app when the grid is supported and appList.js has no app', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        APP_GRID_AVAILABLE: 'supported'
+      })
+
+      expect(result.ok && result.value.appDashboardUrl).toBe(
+        `${ORIGIN}/assets/configurations/app_dashboard.json`
+      )
+    })
+
+    it.each([undefined, 'unsupported'])(
+      'is not read when APP_GRID_AVAILABLE is %j',
+      available => {
+        const { result } = resolveWithWarnings({
+          ...OIDC_SOURCE,
+          APP_GRID_AVAILABLE: available
+        })
+
+        expect(result.ok && result.value.appDashboardUrl).toBe(null)
+      }
+    )
   })
 
   describe('an env.file of tmail-flutter', () => {

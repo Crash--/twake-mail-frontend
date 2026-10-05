@@ -9,7 +9,7 @@ import { ConfigErrorScreen } from '@common/components/ConfigErrorScreen'
 import { getConfigResult } from '@common/config/config'
 import { findPreferredLanguage } from '@common/i18n/languages'
 
-import { App } from './App'
+import { AppBootstrap } from './AppBootstrap'
 
 function ConfigErrorApp({ errors }: { errors: string[] }): ReactElement {
   const [queryClient] = useState(makeQueryClient)
@@ -34,7 +34,7 @@ if (!configResult.ok) {
 createRoot(container).render(
   <StrictMode>
     {configResult.ok ? (
-      <App config={configResult.value} />
+      <AppBootstrap config={configResult.value} />
     ) : (
       <ConfigErrorApp errors={configResult.errors} />
     )}

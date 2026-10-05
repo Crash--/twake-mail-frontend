@@ -394,7 +394,11 @@
     "loading": "Đang tải gợi ý",
     "suggestionCount": "%{smart_count} gợi ý",
     "searchWithFilters": "Tìm kiếm với các bộ lọc này",
-    "quickFiltersOnly": "Không có gợi ý. Các bộ lọc nhanh nằm sau ô tìm kiếm."
+    "quickFiltersOnly": "Không có gợi ý. Các bộ lọc nhanh nằm sau ô tìm kiếm.",
+    "labels": {
+      "all": "Tất cả nhãn",
+      "label": "Nhãn"
+    }
   },
   "emailActions": {
     "toast": {

@@ -394,7 +394,11 @@
     "loading": "Chargement des suggestions",
     "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
     "searchWithFilters": "Rechercher avec ces filtres",
-    "quickFiltersOnly": "Aucune suggestion. Les filtres rapides suivent le champ de recherche."
+    "quickFiltersOnly": "Aucune suggestion. Les filtres rapides suivent le champ de recherche.",
+    "labels": {
+      "all": "Tous les libellés",
+      "label": "Libellé"
+    }
   },
   "emailActions": {
     "toast": {

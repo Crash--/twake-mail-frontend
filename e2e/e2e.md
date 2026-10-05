@@ -636,3 +636,11 @@ Web app only, no Patrol test: the composer follows the Figma "Composer" frames.
   - Spec: `tests/composer.spec.ts`.
 - [x] `THR-20` Opening a conversation from the list with a view transition never animates towards a skeleton (the email and its conversation are loaded before the navigation, the transition is skipped when they take longer than 500 ms), the pane the transition snapshots does not move while the target is scrolled to (it would slide over the search row and the top bar), and the transition ends on the final scroll position; standalone and embedded, 1440, 1280 and 1000 px wide, with and without server latency. — web app (issue #120)
   - Spec: `tests/open-glitch.spec.ts`, on `chromium`.
+- [x] `SET-10` Error reporting is configured (`SENTRY_*` of the app environment, an ingest host answered by the spec) but nothing is sent before the user opts in: an uncaught error and a `console.error` go nowhere. Turning "Send error reports" on in Settings → Preferences stores `sentry.user-opt-in` in the account and the next errors are posted to the ingest host, without a reload; what is posted holds the release, the environment and a 16 hex digits user id, and no address, name, password, `Bearer`/`Basic` value, subject, sender nor preview, and no session, replay or transaction envelope; turning it off stops the reports at once, and on again restarts them. Axe. — web app only (tmail-flutter `sentry.user-opt-in`)
+  - Spec: `tests/error-reporting.spec.ts`.
+- [x] `SET-11` The choice belongs to the account: it is on again at the next sign-in and reports resume; signing out stops the reports; another account in the same browser is off. — web app only
+  - Spec: `tests/error-reporting.spec.ts`.
+- [x] `SET-12` With `userOptInByDefault` in the `sentry` section of the ecosystem, a user who never chose is opted in (the switch is on and errors are posted), and can opt out. — web app only (tmail-flutter `userOptInByDefault`)
+  - Spec: `tests/error-reporting.spec.ts`.
+- [x] `SET-13` An aborted request and a failed network request, logged with `console.error`, are not reported, while a real bug right after is. — web app only (tmail-flutter ADR 0076)
+  - Spec: `tests/error-reporting.spec.ts`.

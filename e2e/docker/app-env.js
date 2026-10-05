@@ -16,3 +16,9 @@ var CALENDAR_SPA_URL = 'https://calendar.example.com'
 var WORKPLACE_FQDN_FALLBACK = '{localpart}.workplace.example.test'
 // Inside an iframe the top bar leaves the logotype and the app grid (APPGRID-02)
 var WORKPLACE_EMBEDDING = true
+// Error reporting (SET-10 to SET-13): configured, but nothing is sent until a user opts in.
+// The ingest host does not exist: the specs answer it themselves (page.route), and the
+// image of the app allows its origin (docker-compose.image.yaml, CSP_CONNECT_SRC)
+var SENTRY_ENABLED = 'true'
+var SENTRY_DSN = 'https://e2epublickey@sentry-stub.example.test/42'
+var SENTRY_ENVIRONMENT = 'e2e'

@@ -4,6 +4,7 @@ import {
   CircularProgress,
   Empty,
   ListSkeleton,
+  useMediaQuery,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
 } from '@linagora/twake-mui'
@@ -258,16 +259,18 @@ export function EmailList(props: EmailListProps): ReactElement {
     focusEmailId === null
       ? -1
       : emails.findIndex(email => email.id === focusEmailId)
-  // Beside the list on large tablets: its row is the selected one
+  // Beside the list on large tablets: its row is highlighted like the
+  // selected ones
   const openMailboxEmailId =
     useMatch('/mailbox/:mailboxId/email/:emailId')?.params.emailId ?? null
   const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
-  const isOpenEmail = useCallback(
-    (row: VirtualizedTableRow): boolean => row.id === openEmailId,
-    [openEmailId]
-  )
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
   const selection = useEmailSelection(emails)
+  const isHighlightedRow = useCallback(
+    (row: VirtualizedTableRow): boolean =>
+      row.id === openEmailId || selection.isSelected(String(row.id)),
+    [openEmailId, selection]
+  )
   const { scrollerRef, focusList } = useEmailListShortcuts(
     emails,
     mailboxId,
@@ -354,6 +357,7 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   // Stable, like the cell below: the rows of the table are memoized and
   // only render again when their email changes
+  const canHover = !useMediaQuery('(hover: none)')
   const columns = useMemo<(VirtualizedTableColumn & { id: EmailColumnId })[]>(
     () => [
       {
@@ -373,7 +377,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       {
         id: 'sender',
         label: t(showRecipients ? 'email.to' : 'thread.columns.sender'),
-        width: 208,
+        width: 224,
         sortable: false
       },
       { id: 'subject', label: t('thread.columns.subject'), sortable: false },
@@ -385,21 +389,15 @@ export function EmailList(props: EmailListProps): ReactElement {
         disablePadding: true
       },
       {
+        // The date, which the actions replace on hover; beside it without hover
         id: 'date',
-        label: t('thread.columns.date'),
-        width: 104,
+        label: `${t('thread.columns.date')}, ${t('thread.columns.actions')}`,
+        width: canHover ? 144 : 224,
         textAlign: 'right',
         sortable: false
-      },
-      {
-        id: 'actions',
-        label: t('thread.columns.actions'),
-        width: 112,
-        sortable: false,
-        disablePadding: true
       }
     ],
-    [t, showRecipients]
+    [t, showRecipients, canHover]
   )
 
   // Below 600 px of list: a phone, or the list beside an open email
@@ -502,7 +500,7 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   let content: ReactElement
   if (query.isPending) {
-    content = <ListSkeleton count={8} hasSecondary />
+    content = <ListSkeleton count={8} divider />
   } else if (query.isError) {
     const handleRetry = (): void => {
       void query.refetch()
@@ -522,6 +520,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       <Empty
         icon={Email}
         title={t('mailbox.empty')}
+        text={t('mailbox.emptyHint')}
         data-testid="empty-thread-view"
       />
     )
@@ -544,7 +543,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           bottomInset={bottomInset}
           computeItemKey={computeRowKey}
           getRowProps={getRowProps}
-          isSelectedItem={isOpenEmail}
+          isSelectedItem={isHighlightedRow}
           focusedRowIndex={focusedIndex === -1 ? null : focusedIndex}
           endReached={handleEndReached}
           rangeChanged={handleRangeChanged}

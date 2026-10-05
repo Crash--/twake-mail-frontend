@@ -21,6 +21,8 @@ export interface LabelChipsProps {
   max?: number
   /** Gives each chip a × taking the label off */
   onRemove?: (label: Label) => void
+  /** Keeps the chips on one line (a list row) instead of wrapping them */
+  nowrap?: boolean
   className?: string
 }
 
@@ -29,6 +31,7 @@ export function LabelChips({
   labels,
   max,
   onRemove,
+  nowrap = false,
   className
 }: LabelChipsProps): ReactElement | null {
   const { t } = useI18n()
@@ -41,7 +44,7 @@ export function LabelChips({
       component="span"
       role="list"
       aria-label={t('labels.listLabel')}
-      className={`u-flex u-flex-wrap u-flex-items-center ${className ?? ''}`}
+      className={`u-flex ${nowrap ? 'u-flex-nowrap' : 'u-flex-wrap'} u-flex-items-center ${className ?? ''}`}
       data-testid="label-chips"
     >
       {shown.map(label => (

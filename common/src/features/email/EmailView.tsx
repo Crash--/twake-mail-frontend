@@ -25,6 +25,8 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import { AddressLine } from './AddressLine'
 import { formatAddressName } from './addresses'
+import { isMarkedImportant } from './importance'
+import { ImportantMark } from './ImportantMark'
 import { EmailMessageBody } from './EmailMessageBody'
 import { EmailViewActions } from './EmailViewActions'
 import { ReplyActions } from './ReplyActions'
@@ -92,6 +94,7 @@ function EmailContent({
         >
           {email.subject ?? ''}
         </Typography>
+        {isMarkedImportant(email) ? <ImportantMark showLabel /> : null}
         <MessageHeader
           className="u-mt-1"
           avatar={

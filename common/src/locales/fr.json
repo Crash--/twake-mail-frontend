@@ -14,7 +14,9 @@
     "connectionError": "Erreur de connexion",
     "cancel": "Annuler",
     "delete": "Supprimer",
-    "deleteAll": "Tout supprimer"
+    "deleteAll": "Tout supprimer",
+    "yes": "Oui",
+    "no": "Non"
   },
   "topbar": {
     "apps": "Accéder aux applications",
@@ -67,7 +69,17 @@
       "hidden": "Images distantes masquées pour protéger votre vie privée",
       "show": "Afficher",
       "alwaysShow": "Toujours afficher pour cet expéditeur"
-    }
+    },
+    "readReceipt": {
+      "title": "Demande d'accusé de lecture",
+      "message": "L'expéditeur a demandé l'envoi d'un accusé de lecture pour ce message. Envoyer un accusé de lecture ?",
+      "notSupported": "Votre compte ne prend pas en charge la fonctionnalité MDN",
+      "noIdentity": "L'identifiant d'identité fourni est introuvable",
+      "subject": "Lu : %{subject}",
+      "body": "Le message a été lu par %{receiver} le %{time}\n\nSujet : %{subject}\n\nRemarque : Cet accusé de lecture confirme uniquement que le message a été affiché sur l'ordinateur du destinataire. Il n'y a aucune garantie que le destinataire ait lu ou compris le contenu du message.",
+      "sent": "Un accusé de lecture a été envoyé."
+    },
+    "important": "Important"
   },
   "login": {
     "title": "Se connecter",
@@ -275,6 +287,19 @@
     "prefix": {
       "reply": "Re:",
       "forward": "Tr:"
+    },
+    "options": {
+      "markAsImportant": "Marquer comme important",
+      "importantEnabled": "Marquer comme important est activé",
+      "importantDisabled": "Marquer comme important est désactivé",
+      "readReceipt": "Demander un accusé de lecture",
+      "readReceiptEnabled": "L'accusé de lecture a été activé",
+      "readReceiptDisabled": "L'accusé de lecture a été désactivé"
+    },
+    "attachmentReminder": {
+      "title": "Vous avez oublié la pièce jointe ?",
+      "message": "Vous avez écrit %{keyword} dans votre email mais vous n'avez joint aucun fichier. Voulez-vous quand même l'envoyer ?",
+      "send": "Envoyer le message"
     }
   },
   "layout": {

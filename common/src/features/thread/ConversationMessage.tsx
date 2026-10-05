@@ -12,6 +12,8 @@ import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { AddressLine } from '@common/features/email/AddressLine'
 import { formatAddressName } from '@common/features/email/addresses'
+import { isMarkedImportant } from '@common/features/email/importance'
+import { ImportantMark } from '@common/features/email/ImportantMark'
 import { EmailMessageBody } from '@common/features/email/EmailMessageBody'
 import { hasKeyword, SEEN } from '@common/features/email/keywords'
 import type { EmailDetail } from '@common/features/email/queries'
@@ -116,6 +118,7 @@ export function ConversationMessage({
                 />
               </span>
             ) : null}
+            {isMarkedImportant(email) ? <ImportantMark /> : null}
             <span className={emphasis}>
               {sender ? formatAddressName(sender) : ''}
             </span>

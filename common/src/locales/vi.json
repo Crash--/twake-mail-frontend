@@ -14,7 +14,9 @@
     "connectionError": "Lỗi kết nối",
     "cancel": "Hủy",
     "delete": "Xoá",
-    "deleteAll": "Xoá toàn bộ"
+    "deleteAll": "Xoá toàn bộ",
+    "yes": "Có",
+    "no": "Không"
   },
   "topbar": {
     "apps": "Mở ứng dụng",
@@ -67,7 +69,17 @@
       "hidden": "Hình ảnh từ xa đã bị ẩn để bảo vệ quyền riêng tư của bạn",
       "show": "Hiển thị",
       "alwaysShow": "Luôn hiển thị cho người gửi này"
-    }
+    },
+    "readReceipt": {
+      "title": "Yêu cầu xác nhận đọc",
+      "message": "Người gửi đã yêu cầu xác nhận đọc cho email này. Gửi xác nhận đọc?",
+      "notSupported": "Tài khoản của bạn không hỗ trợ tính năng MDN",
+      "noIdentity": "Không tìm thấy id danh tính",
+      "subject": "Đọc %{subject}",
+      "body": "Tin nhắn đã được %{receiver} đọc vào lúc %{time}\n\nChủ đề: %{subject}\n\nChú ý: Xác nhận đã đọc này chỉ xác nhận rằng tin nhắn đã hiển thị trên máy tính của người nhận. Không có bảo đảm rằng người nhận đã đọc hoặc hiểu nội dung của tin nhắn.",
+      "sent": "Xác nhận đã đọc được gửi."
+    },
+    "important": "Quan trọng"
   },
   "login": {
     "title": "Đăng nhập",
@@ -275,6 +287,19 @@
     "prefix": {
       "reply": "Re:",
       "forward": "Chuyển tiếp:"
+    },
+    "options": {
+      "markAsImportant": "Quan trọng",
+      "importantEnabled": "Đã kích hoạt đánh dấu ưu tiên",
+      "importantDisabled": "Đã vô hiệu đánh dấu ưu tiên",
+      "readReceipt": "Yêu cầu xác nhận đọc",
+      "readReceiptEnabled": "Đã bật yêu cầu xác nhận đọc",
+      "readReceiptDisabled": "Đã tắt yêu cầu xác nhận đọc"
+    },
+    "attachmentReminder": {
+      "title": "Có thể bạn đã quên đính kèm tệp?",
+      "message": "Bạn có nhắc đến %{keyword} trong thư nhưng chưa kèm tệp. Bạn có muốn tiếp tục gửi không?",
+      "send": "Gửi thư"
     }
   },
   "layout": {

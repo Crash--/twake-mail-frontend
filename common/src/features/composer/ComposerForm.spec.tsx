@@ -128,7 +128,7 @@ function draftsOf(server: FakeJmapServer): typeof server.emails {
 // The saves are tested with the real delay in draftPolicy.spec.tsx
 jest.mock('./draftPolicy', () => ({
   LOCAL_SAVE_DELAY_MS: 800,
-  DRAFT_IDLE_MS: 400
+  DRAFT_IDLE_MS: 1500
 }))
 
 describe('ComposerForm', () => {
@@ -806,13 +806,58 @@ describe('ComposerForm', () => {
           .map(chip => chip.textContent)
       ).toEqual(['bob@example.com'])
 
-      // Unchanged since the reload: it closes at once
+      // Never saved on the server: closing asks, what was typed is not lost
       await userEvent.click(
         within(composer).getByRole('button', { name: 'Save & close' })
+      )
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Discard changes' })
       )
       await waitFor(async () => {
         expect(await kept()).toEqual([])
       })
+    })
+
+    it('saves a composer back from the browser when its message was never saved, once the user stays idle', async () => {
+      const snapshot: ComposerSnapshot = {
+        identityId: 'identity-alice',
+        recipients: {
+          to: [{ name: null, email: 'bob@example.com' }],
+          cc: [],
+          bcc: [],
+          replyTo: []
+        },
+        shown: [],
+        subject: 'Typed before the reload',
+        html: '<p>Kept text</p>',
+        images: [],
+        attachments: [],
+        draftId: null,
+        savedFingerprint: null
+      }
+      await keepComposer('Typed before the reload', snapshot)
+      const { jmapServer } = renderComposer()
+      await screen.findByRole('dialog', { name: 'Typed before the reload' })
+
+      await waitFor(
+        () => {
+          expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
+            'Typed before the reload'
+          ])
+        },
+        { timeout: 4000 }
+      )
+    })
+
+    it('keeps nothing of a message nobody typed in', async () => {
+      renderComposer()
+      await openComposer()
+
+      window.dispatchEvent(new Event('pagehide'))
+      // Let the writes of the browser settle
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      expect(await kept()).toEqual([])
     })
   })
 
@@ -1221,7 +1266,11 @@ describe('ComposerForm', () => {
 
       it('keeps where an answer opens in what the browser keeps', async () => {
         renderComposer(serverWithSource())
-        await openComposer('Answer reply')
+        const composer = await openComposer('Answer reply')
+        await userEvent.type(
+          within(composer).getByRole('textbox', { name: 'Subject' }),
+          '!'
+        )
 
         // The page goes: written at once
         window.dispatchEvent(new Event('pagehide'))

@@ -72,7 +72,16 @@ interface ComposerEntry {
 interface ComposerApi {
   /** Opens a new message, or a draft (the composer editing it if any) */
   openComposer: (init?: ComposerInit) => void
+  /**
+   * Writes the open composers that have changes the server does not have,
+   * one draft each, before signing out (which forgets them). Gives up after
+   * `SAVE_BEFORE_SIGN_OUT_MS`; never rejects.
+   */
+  saveUnsaved: () => Promise<void>
 }
+
+/** Longest wait for the drafts to be saved before signing out */
+export const SAVE_BEFORE_SIGN_OUT_MS = 8000
 
 const ComposerContext = createContext<ComposerApi | null>(null)
 
@@ -234,8 +243,15 @@ export function ComposerProvider({
       const entry = entriesRef.current.find(candidate => candidate.id === id)
       // Closed meanwhile
       if (!entry || !composerLocks.current.has(id)) return
-      const snapshot =
-        forms.current.get(id)?.snapshot() ?? restored.current.get(id) ?? null
+      const form = forms.current.get(id)
+      // Nothing typed, no draft: nothing worth keeping
+      if (form?.isPristine() === true) {
+        void removeComposer(accountId, id)
+        return
+      }
+      const snapshot = form?.snapshot() ?? restored.current.get(id) ?? null
+      // The editor is not there yet and nothing was kept: wait for it
+      if (snapshot === null) return
       void putComposer({ accountId, composerId: id, entry, snapshot })
     },
     [accountId]
@@ -281,10 +297,11 @@ export function ComposerProvider({
   }, [persist])
 
   // The composers the browser kept and no other tab holds come back
-  const restoreStarted = useRef<string | null>(null)
   useEffect(() => {
-    if (restoreStarted.current === accountId) return
-    restoreStarted.current = accountId
+    // The effect ran again (strict mode) or the provider went: what was
+    // taken is given back
+    const run = { isCancelled: false }
+    const isCancelled = (): boolean => run.isCancelled
     const reopen = async (): Promise<void> => {
       const stored = (await listComposers(accountId)).sort(
         (first, second) => openedAt(first) - openedAt(second)
@@ -296,7 +313,12 @@ export function ComposerProvider({
           void removeComposer(accountId, record.composerId)
           continue
         }
-        if (entriesRef.current.length + back.length >= MAX_COMPOSERS) break
+        if (
+          isCancelled() ||
+          entriesRef.current.length + back.length >= MAX_COMPOSERS
+        ) {
+          break
+        }
         const { id } = composer.entry
         // A reload: the page before it may release its locks a moment late
         let release = await acquireComposerLock(accountId, id)
@@ -306,15 +328,30 @@ export function ComposerProvider({
         }
         // Held by another tab, which shows it
         if (release === null) continue
+        if (isCancelled()) {
+          release()
+          break
+        }
         composerLocks.current.set(id, release)
         if (composer.snapshot) restored.current.set(id, composer.snapshot)
         back.push(composer.entry)
+      }
+      if (isCancelled()) {
+        back.forEach(({ id }) => {
+          composerLocks.current.get(id)?.()
+          composerLocks.current.delete(id)
+          restored.current.delete(id)
+        })
+        return
       }
       if (back.length === 0) return
       setRestoredSnapshots(new Map(restored.current))
       setEntries(current => [...back, ...current])
     }
     void reopen()
+    return () => {
+      run.isCancelled = true
+    }
   }, [accountId])
 
   // The locks go with the composers
@@ -500,7 +537,22 @@ export function ComposerProvider({
     []
   )
 
-  const api = useMemo(() => ({ openComposer }), [openComposer])
+  const saveUnsaved = useCallback(async (): Promise<void> => {
+    const saving = (async (): Promise<void> => {
+      for (const entry of entriesRef.current) {
+        await forms.current.get(entry.id)?.saveIfUnsaved()
+      }
+    })()
+    const timeout = new Promise<void>(resolve => {
+      window.setTimeout(resolve, SAVE_BEFORE_SIGN_OUT_MS)
+    })
+    await Promise.race([saving, timeout])
+  }, [])
+
+  const api = useMemo(
+    () => ({ openComposer, saveUnsaved }),
+    [openComposer, saveUnsaved]
+  )
 
   // The newest first, at the end of the dock
   const newestFirst = [...entries].reverse()
@@ -716,7 +768,11 @@ function noop(): void {
   // Outside the mail screens: nothing to compose in
 }
 
-const NO_COMPOSER: ComposerApi = { openComposer: noop }
+function resolved(): Promise<void> {
+  return Promise.resolve()
+}
+
+const NO_COMPOSER: ComposerApi = { openComposer: noop, saveUnsaved: resolved }
 
 /** Opens composers; a no-op outside a `ComposerProvider` */
 export function useComposer(): ComposerApi {

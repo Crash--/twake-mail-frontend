@@ -16,16 +16,26 @@ import { DRAFT_IDLE_MS } from './draftPolicy'
 const FIVE_MINUTES = 5 * 60 * 1000
 
 function Opener(): ReactElement {
-  const { openComposer } = useComposer()
+  const { openComposer, saveUnsaved } = useComposer()
   return (
-    <button
-      type="button"
-      onClick={() => {
-        openComposer()
-      }}
-    >
-      Compose
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          openComposer()
+        }}
+      >
+        Compose
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          void saveUnsaved()
+        }}
+      >
+        Sign out
+      </button>
+    </>
   )
 }
 
@@ -148,5 +158,25 @@ describe('the save policy of a draft', () => {
     const sets = jmapServer.callsOf('Email/set')
     expect(sets.filter(call => call.create !== undefined)).toHaveLength(2)
     expect(sets.filter(call => call.destroy !== undefined)).toHaveLength(1)
+  })
+
+  it('saves the changes the server does not have before signing out, once', async () => {
+    const jmapServer = makeFakeJmapServer()
+    const { subject } = await openAndType(jmapServer)
+    await user.type(subject, 'Before signing out')
+    expect(jmapServer.callsOf('Email/set')).toHaveLength(0)
+
+    await user.click(screen.getByRole('button', { name: 'Sign out' }))
+    await waitFor(() => {
+      expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
+        'Before signing out'
+      ])
+    })
+    const calls = jmapServer.callsOf('Email/set').length
+
+    // Saved: nothing more to write
+    await user.click(screen.getByRole('button', { name: 'Sign out' }))
+    await pass(1000)
+    expect(jmapServer.callsOf('Email/set')).toHaveLength(calls)
   })
 })

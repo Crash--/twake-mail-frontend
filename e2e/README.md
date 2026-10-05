@@ -30,6 +30,20 @@ npm run build                          # at the repo root: apps/private/dist
 E2E_APP_DIR=../apps/private/dist ./scripts/start.sh
 ```
 
+Or test the production Docker image of the app (its nginx, cache policy and security headers),
+as the CI does:
+
+```bash
+docker build -f apps/private/Dockerfile -t twake-mail-frontend:e2e .   # at the repo root
+E2E_APP_IMAGE=twake-mail-frontend:e2e ./scripts/start.sh
+```
+
+The image runs as in production (user 101, read-only root filesystem, `/tmp` tmpfs) behind
+the stack's nginx, which still serves `/.env.js` and `/appList.js`. Every test fails on a
+violation of the Content-Security-Policy of the app logged in the browser console
+(`support/fixtures.ts`); the stricter policy of the email body frames is not checked, blocking
+remote content there is expected.
+
 Run a subset:
 
 ```bash
@@ -59,6 +73,7 @@ method needs the tree (`showFolders`, `openFolder`, `expectFolderSelected`).
 | `james` | `127.0.0.1:18300` | tmail-backend `memory-1.0.21.2`, JMAP (direct, used by the provisioning client) |
 | `james` | `127.0.0.1:18301` | WebAdmin (users, domains, quotas, team mailboxes) |
 | `proxy` | `127.0.0.1:18302` | **the browser facing origin**: nginx serving the app and its runtime configuration, proxying `/jmap`, `/upload`, `/download`, `/eventSource`, `/.well-known/*` to James and `/dex/` to Dex |
+| `app` | — | the Docker image of the app, only with `E2E_APP_IMAGE`, reached through the proxy |
 | `dex` | — | OIDC provider, only with `E2E_OIDC=1` (profile `oidc`), reached through `/dex/` |
 
 The James configuration is copied from tmail-flutter `backend-docker/` (`docker/james/`);
@@ -87,6 +102,7 @@ origin setup would work too, but that is not what runs here. `127.0.0.1` is a se
 | Variable | Default | Used by |
 |---|---|---|
 | `E2E_APP_DIR` | `docker/app-placeholder` | `start.sh`: directory with the built app (`index.html`) |
+| `E2E_APP_IMAGE` | | `start.sh`: Docker image of the app, proxied instead of `E2E_APP_DIR` (`docker/docker-compose.image.yaml`) |
 | `E2E_OIDC` | `0` | `start.sh` (Dex + `OidcAuthenticationStrategy`), the OIDC specs |
 | `E2E_PUBLIC_URL` | `http://127.0.0.1:18302` | `start.sh`: origin advertised by JMAP and used as Dex issuer |
 | `E2E_JMAP_PORT` / `E2E_WEBADMIN_PORT` / `E2E_APP_PORT` | `18300` / `18301` / `18302` | `start.sh` |
@@ -281,7 +297,9 @@ e2e/
 ├── docker/
 │   ├── docker-compose.yaml   project twakemail-e2e
 │   ├── james/                tmail-backend configuration (from tmail-flutter backend-docker/)
+│   ├── docker-compose.image.yaml   overlay: the app from its Docker image (E2E_APP_IMAGE)
 │   ├── nginx/default.conf    single origin: app + /jmap + /dex
+│   ├── nginx/app-{dist,image}.conf   the app location: bundle or image
 │   ├── app-env.js            runtime configuration of the app under test (/.env.js)
 │   ├── app-list.js           apps of its app grid (/appList.js)
 │   ├── dex/config.yaml       OIDC provider (profile oidc)
@@ -311,8 +329,8 @@ e2e/
 
 ## CI
 
-[`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml): builds the app, starts the stack with `E2E_APP_DIR` pointing to
-`apps/private/dist`, runs the suite on Chromium, publishes the HTML report (always) and the
+[`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml): builds the Docker image of the app, starts the stack with
+`E2E_APP_IMAGE` (the suite runs against the production image and its security headers), runs the suite on Chromium, publishes the HTML report (always) and the
 traces, videos and backend logs (on failure), and a JUnit summary. Run manually with `oidc`
 checked to add Dex and the OIDC specs.
 

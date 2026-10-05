@@ -2,10 +2,13 @@
 # Starts the e2e backend (compose project `twakemail-e2e`) and waits until it is usable.
 #
 #   E2E_APP_DIR=../apps/web/dist ./scripts/start.sh   serve a built app on 127.0.0.1:18302
+#   E2E_APP_IMAGE=twake-mail-frontend:e2e ./scripts/start.sh   or the Docker image of the app
 #   E2E_OIDC=1 ./scripts/start.sh                     also start Dex and enable OIDC in James
 #
 # Variables (all optional):
 #   E2E_APP_DIR        directory holding the built SPA (index.html); default: a placeholder page
+#   E2E_APP_IMAGE      Docker image of the app (apps/private/Dockerfile), proxied instead of
+#                      E2E_APP_DIR (docker/docker-compose.image.yaml)
 #   E2E_PUBLIC_URL     browser facing origin, default http://127.0.0.1:${E2E_APP_PORT}
 #   E2E_JMAP_PORT      default 18300   (127.0.0.1 only)
 #   E2E_WEBADMIN_PORT  default 18301   (127.0.0.1 only)
@@ -32,6 +35,11 @@ WEBSOCKET_URL="${PUBLIC_URL/#http/ws}"
 WEBADMIN="http://127.0.0.1:$E2E_WEBADMIN_PORT"
 TIMEOUT="${E2E_START_TIMEOUT:-180}"
 
+if [[ -n "${E2E_APP_IMAGE:-}" && -n "${E2E_APP_DIR:-}" ]]; then
+  echo "Set E2E_APP_DIR or E2E_APP_IMAGE, not both" >&2; exit 1
+fi
+export E2E_APP_IMAGE="${E2E_APP_IMAGE:-}"
+
 if [[ -n "${E2E_APP_DIR:-}" ]]; then
   [[ -f "$E2E_APP_DIR/index.html" ]] || { echo "E2E_APP_DIR=$E2E_APP_DIR has no index.html" >&2; exit 1; }
   E2E_APP_DIR="$(cd "$E2E_APP_DIR" && pwd)"
@@ -42,6 +50,7 @@ compose() {
   local profiles=()
   [[ "${E2E_OIDC:-0}" == "1" ]] && profiles=(--profile oidc)
   local files=(-f "$DOCKER_DIR/docker-compose.yaml")
+  [[ -n "${E2E_APP_IMAGE:-}" ]] && files+=(-f "$DOCKER_DIR/docker-compose.image.yaml")
   [[ -n "${E2E_COMPOSE_EXTRA:-}" ]] && files+=(-f "$E2E_COMPOSE_EXTRA")
   docker compose -p "$PROJECT" "${files[@]}" "${profiles[@]}" "$@"
 }
@@ -74,7 +83,7 @@ awk -v strategies="$STRATEGIES" -v public="$PUBLIC_URL" -v ws="$WEBSOCKET_URL" -
   { print }' "$DOCKER_DIR/james/jmap.properties.template" > "$GENERATED/jmap.properties"
 sed "s|@PUBLIC_URL@|$PUBLIC_URL|g" "$DOCKER_DIR/dex/config.yaml" > "$GENERATED/dex-config.yaml"
 
-echo "Starting compose project $PROJECT (public URL $PUBLIC_URL, OIDC=${E2E_OIDC:-0})..."
+echo "Starting compose project $PROJECT (public URL $PUBLIC_URL, OIDC=${E2E_OIDC:-0}${E2E_APP_IMAGE:+, app image $E2E_APP_IMAGE})..."
 # --force-recreate: rendered configuration may have changed since the last run
 compose up -d --force-recreate --remove-orphans
 
@@ -108,6 +117,12 @@ until curl -fsS -o /dev/null "$PUBLIC_URL/__e2e/health" \
   if (( SECONDS > deadline )); then echo "proxy $PUBLIC_URL not ready" >&2; exit 1; fi
   sleep 1
 done
+if [[ -n "$E2E_APP_IMAGE" ]]; then
+  until curl -fsS -o /dev/null "$PUBLIC_URL/"; do
+    if (( SECONDS > deadline )); then echo "app image $E2E_APP_IMAGE not serving" >&2; exit 1; fi
+    sleep 1
+  done
+fi
 if [[ "${E2E_OIDC:-0}" == "1" ]]; then
   until curl -fsS -o /dev/null "$PUBLIC_URL/dex/.well-known/openid-configuration"; do
     if (( SECONDS > deadline )); then echo "Dex not ready" >&2; exit 1; fi

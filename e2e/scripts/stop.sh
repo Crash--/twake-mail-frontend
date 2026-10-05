@@ -5,6 +5,8 @@ set -euo pipefail
 
 E2E_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 files=(-f "$E2E_DIR/docker/docker-compose.yaml")
+# the overlay of E2E_APP_IMAGE, so that its `app` service goes too
+files+=(-f "$E2E_DIR/docker/docker-compose.image.yaml")
 [[ -n "${E2E_COMPOSE_EXTRA:-}" ]] && files+=(-f "$E2E_COMPOSE_EXTRA")
 docker compose -p "${E2E_PROJECT:-twakemail-e2e}" "${files[@]}" --profile oidc \
   down --volumes --remove-orphans

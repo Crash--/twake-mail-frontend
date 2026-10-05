@@ -77,20 +77,84 @@ export function teamMailboxAddress(
   return address === '' ? null : address
 }
 
-/** The Trash of a team mailbox: no role, known by its name */
-export function isTeamTrash(
-  mailbox: Pick<MailboxSummary, 'namespace' | 'name' | 'role'>
+/** The root of a team mailbox: a folder of another namespace without parent */
+export function isTeamRoot(
+  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>
 ): boolean {
+  return !isPersonalMailbox(mailbox) && mailbox.parentId === null
+}
+
+/** A folder of a team mailbox, not its root */
+export function isTeamFolder(
+  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>
+): boolean {
+  return !isPersonalMailbox(mailbox) && mailbox.parentId !== null
+}
+
+type NamedMailbox = Pick<
+  MailboxSummary,
+  'namespace' | 'parentId' | 'name' | 'role'
+>
+
+/**
+ * A system folder of a team mailbox, known by its name (they have no role),
+ * as tmail-flutter does: at any depth, `isChildOfTeamMailboxes` and the name
+ */
+function isTeamFolderNamed(mailbox: NamedMailbox, name: string): boolean {
   return (
-    !isPersonalMailbox(mailbox) &&
+    isTeamFolder(mailbox) &&
     mailbox.role === null &&
-    mailbox.name.toLowerCase() === 'trash'
+    mailbox.name.toLowerCase() === name
   )
 }
 
-function roleRank(mailbox: MailboxSummary): number {
-  if (mailbox.role === null && !isPersonalMailbox(mailbox)) {
-    const index = TEAM_SYSTEM_NAMES.indexOf(mailbox.name.toLowerCase())
+/** The Trash of a team mailbox: no role, known by its name */
+export function isTeamTrash(mailbox: NamedMailbox): boolean {
+  return isTeamFolderNamed(mailbox, 'trash')
+}
+
+/** The Drafts of a team mailbox: no role, known by its name */
+export function isTeamDrafts(mailbox: NamedMailbox): boolean {
+  return isTeamFolderNamed(mailbox, 'drafts')
+}
+
+/** The Templates of a team mailbox: no role, known by its name */
+export function isTeamTemplates(mailbox: NamedMailbox): boolean {
+  return isTeamFolderNamed(mailbox, 'templates')
+}
+
+/** The Trash of the user or of a team mailbox */
+export function isTrashMailbox(mailbox: NamedMailbox): boolean {
+  return mailbox.role === 'trash' || isTeamTrash(mailbox)
+}
+
+/** The Drafts of the user or of a team mailbox */
+export function isDraftsMailbox(mailbox: NamedMailbox): boolean {
+  return mailbox.role === 'drafts' || isTeamDrafts(mailbox)
+}
+
+/**
+ * Whether a folder is directly under the root of its team mailbox
+ * (Team/Trash, not Team/Project/Trash), as tmail-flutter's
+ * `isFirstLevelTeamSystemFolder`
+ */
+export function isFirstLevelTeamFolder(
+  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>,
+  mailboxes: readonly Pick<MailboxSummary, 'id' | 'namespace' | 'parentId'>[]
+): boolean {
+  if (!isTeamFolder(mailbox)) return false
+  const parent = mailboxes.find(candidate => candidate.id === mailbox.parentId)
+  return parent !== undefined && isTeamRoot(parent)
+}
+
+function roleRank(mailbox: MailboxSummary, isUnderTeamRoot: boolean): number {
+  if (!isPersonalMailbox(mailbox)) {
+    // Under the root of a team mailbox, its system folders come first, known
+    // by name; everywhere else in a team mailbox the order is the name
+    const index =
+      isUnderTeamRoot && mailbox.role === null
+        ? TEAM_SYSTEM_NAMES.indexOf(mailbox.name.toLowerCase())
+        : -1
     return index === -1 ? SYSTEM_ROLE_ORDER.length : index
   }
   const index = mailbox.role ? SYSTEM_ROLE_ORDER.indexOf(mailbox.role) : -1
@@ -98,24 +162,33 @@ function roleRank(mailbox: MailboxSummary): number {
 }
 
 /**
- * Sibling order: system roles first (inbox, drafts, sent…; by name in team
- * mailboxes), then the server `sortOrder`, then the name.
+ * Sibling order: system roles first (inbox, drafts, sent…), then the server
+ * `sortOrder`, then the name. In a team mailbox the system folders under its
+ * root come first, by name, and everything else is by name, as tmail-flutter
+ * (`_applyTeamMailboxSorting`).
  */
 export function compareMailboxes(
   left: MailboxSummary,
-  right: MailboxSummary
+  right: MailboxSummary,
+  isUnderTeamRoot = false
 ): number {
   return (
-    roleRank(left) - roleRank(right) ||
-    left.sortOrder - right.sortOrder ||
+    roleRank(left, isUnderTeamRoot) - roleRank(right, isUnderTeamRoot) ||
+    (isPersonalMailbox(left) ? left.sortOrder : 0) -
+      (isPersonalMailbox(right) ? right.sortOrder : 0) ||
     left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }) ||
     left.id.localeCompare(right.id)
   )
 }
 
-function sortTree(nodes: MailboxNode[]): MailboxNode[] {
-  nodes.sort((left, right) => compareMailboxes(left.mailbox, right.mailbox))
-  nodes.forEach(node => sortTree(node.children))
+function sortTree(
+  nodes: MailboxNode[],
+  isUnderTeamRoot = false
+): MailboxNode[] {
+  nodes.sort((left, right) =>
+    compareMailboxes(left.mailbox, right.mailbox, isUnderTeamRoot)
+  )
+  nodes.forEach(node => sortTree(node.children, isTeamRoot(node.mailbox)))
   return nodes
 }
 

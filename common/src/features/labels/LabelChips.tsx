@@ -21,6 +21,8 @@ export interface LabelChipsProps {
   max?: number
   /** Gives each chip a × taking the label off */
   onRemove?: (label: Label) => void
+  /** `small`: the tags of a list row (11 / 14) */
+  size?: 'small' | 'medium'
   /** Keeps the chips on one line (a list row) instead of wrapping them */
   nowrap?: boolean
   className?: string
@@ -31,6 +33,7 @@ export function LabelChips({
   labels,
   max,
   onRemove,
+  size = 'medium',
   nowrap = false,
   className
 }: LabelChipsProps): ReactElement | null {
@@ -47,16 +50,19 @@ export function LabelChips({
       className={`u-flex ${nowrap ? 'u-flex-nowrap' : 'u-flex-wrap'} u-flex-items-center ${className ?? ''}`}
       data-testid="label-chips"
     >
-      {shown.map(label => (
+      {shown.map((label, index) => (
         <Box
           component="span"
           role="listitem"
           key={label.id}
-          className="u-mr-half"
+          className={
+            index < shown.length - 1 || hidden > 0 ? 'u-mr-half' : undefined
+          }
         >
           <ColorTag
             label={label.displayName}
             color={label.color ?? DEFAULT_LABEL_COLOR}
+            size={size}
             maxLength={max === undefined ? undefined : 16}
             removeLabel={t('labels.removeFromEmail', {
               name: label.displayName
@@ -78,6 +84,7 @@ export function LabelChips({
             <ColorTag
               label={`+${hidden}`}
               color="#F3F6F9"
+              size={size}
               data-testid="label-chip-more"
             />
           </span>

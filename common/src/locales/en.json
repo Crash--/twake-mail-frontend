@@ -169,6 +169,9 @@
       "editTo": "Edit draft to %{recipients}",
       "delete": "Delete draft",
       "deleteTo": "Delete draft to %{recipients}"
+    },
+    "row": {
+      "openInNewTab": "Open in new tab"
     }
   },
   "push": {

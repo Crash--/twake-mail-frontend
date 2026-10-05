@@ -169,6 +169,9 @@
       "editTo": "Modifier le brouillon pour %{recipients}",
       "delete": "Supprimer le brouillon",
       "deleteTo": "Supprimer le brouillon pour %{recipients}"
+    },
+    "row": {
+      "openInNewTab": "Ouvrir dans un nouvel onglet"
     }
   },
   "push": {

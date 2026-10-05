@@ -361,12 +361,10 @@ describe('EmailList', () => {
     expect(
       screen.getAllByRole('columnheader').map(header => header.textContent)
     ).toEqual([
-      'Selection',
-      'Status',
+      'Selection, Status',
       'Sender',
       'Subject',
-      'Attachment',
-      'Date, Actions'
+      'Attachment, Date, Actions'
     ])
   })
 
@@ -379,7 +377,9 @@ describe('EmailList', () => {
       'true'
     )
     within(row).getByTestId('email-list-item-star').focus()
-    // The link of the row, then its actions
+    // Reply, the link of the row, then its actions
+    await userEvent.tab()
+    await userEvent.tab()
     await userEvent.tab()
     await userEvent.tab()
 

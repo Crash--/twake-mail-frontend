@@ -3,7 +3,6 @@ import {
   Box,
   Empty,
   IconButton,
-  ListSkeleton,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
@@ -16,8 +15,10 @@ import {
 } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router'
 
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { EmailList } from '@common/features/thread/EmailList'
+import { EmailListSkeleton } from '@common/features/thread/EmailListSkeleton'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { SearchFiltersBar } from './SearchFiltersBar'
@@ -49,6 +50,7 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
   const navigate = useNavigate()
   const location = useLocation()
   const context = useSearchContext()
+  const screenSize = useScreenSize()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const params = toSearchParams(filter).toString()
   const openEmailId = useMatch('/search/email/:emailId')?.params.emailId ?? null
@@ -145,7 +147,10 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
         <SearchFiltersBar filter={filter} onChange={handleChange} />
       </Box>
       {search === null ? (
-        <ListSkeleton count={8} hasSecondary />
+        <EmailListSkeleton
+          isCompact={screenSize !== 'desktop'}
+          className="u-flex-auto"
+        />
       ) : (
         <EmailList search={search} />
       )}

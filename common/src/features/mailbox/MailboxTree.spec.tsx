@@ -81,6 +81,31 @@ describe('MailboxTree', () => {
     expect(screen.getByTestId('mailbox-folders-tree')).toBeVisible()
   })
 
+  it('draws rows of skeleton, busy and hidden to screen readers, while the folders load', async () => {
+    const server = makeFakeJmapServer({ mailboxes: makeDefaultMailboxes() })
+    const release = server.holdRequests('Mailbox/get')
+    renderWithProviders(
+      <SidebarSectionsProvider>
+        <MailboxTree />
+      </SidebarSectionsProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+
+    const skeleton = await screen.findByTestId('mailbox-tree-loading')
+    expect(skeleton).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByRole('tree', { name: 'Mailboxes' })).toBe(null)
+
+    release()
+
+    expect(await screen.findByRole('tree', { name: 'Mailboxes' })).toBeVisible()
+    expect(screen.queryByTestId('mailbox-tree-loading')).toBe(null)
+  })
+
   it('holds the system folders and the folders of the user in two trees', async () => {
     renderTree()
     await screen.findAllByTestId('mailbox-item')

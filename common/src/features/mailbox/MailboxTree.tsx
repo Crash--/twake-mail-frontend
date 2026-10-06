@@ -1,10 +1,5 @@
 import { Eye, EyeClosed, Magnifier, Plus } from '@linagora/twake-icons'
-import {
-  Box,
-  ListItem,
-  ListItemSkeleton,
-  ListItemText
-} from '@linagora/twake-mui'
+import { Box, ListItem, ListItemText } from '@linagora/twake-mui'
 import {
   Fragment,
   useId,
@@ -19,12 +14,14 @@ import { useMatch } from 'react-router'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
+import { NavTreeSkeleton } from '@/ds/NavTreeSkeleton/NavTreeSkeleton'
 import {
   FolderActionsMenu,
   type FolderMenuAnchor
 } from '@common/features/mailboxActions/FolderActionsMenu'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
+import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnouncer'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -42,7 +39,8 @@ import { ActionRequiredTreeItem } from './ActionRequiredTreeItem'
 import { StarredTreeItem } from './StarredTreeItem'
 import { useMailboxes } from './useMailboxes'
 
-const SKELETON_ROWS = [1, 2, 3, 4, 5]
+/** The system folders and Starred: Action required comes with its feature */
+const SKELETON_ROWS = 8
 
 interface TreeRowsProps {
   rows: readonly VisibleMailbox[]
@@ -195,10 +193,9 @@ export function MailboxTree(): ReactElement {
     setShowHidden(shown => !shown)
   }
 
+  useLoadingAnnouncement(query.isPending)
   let systemContent: ReactNode
-  if (query.isPending) {
-    systemContent = SKELETON_ROWS.map(row => <ListItemSkeleton key={row} />)
-  } else if (query.isError) {
+  if (query.isError) {
     systemContent = (
       <ListItem data-testid="mailbox-tree-error">
         <ListItemText secondary={t('common.errorOccurred')} />
@@ -224,11 +221,16 @@ export function MailboxTree(): ReactElement {
   // The titles stay outside the trees: a tree only holds tree items
   return (
     <>
-      {isSearching ? null : (
+      {query.isPending ? (
+        <NavTreeSkeleton
+          rowCount={SKELETON_ROWS}
+          data-testid="mailbox-tree-loading"
+        />
+      ) : null}
+      {isSearching || query.isPending ? null : (
         <NavTree
           role="tree"
           aria-label={t('sidebar.mailboxes')}
-          aria-busy={query.isPending}
           data-testid="mailbox-tree"
         >
           {systemContent}

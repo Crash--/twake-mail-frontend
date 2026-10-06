@@ -259,6 +259,24 @@ describe('EmailList', () => {
     })
   })
 
+  it('shows rows of skeleton, busy and hidden to screen readers, while the emails load', async () => {
+    const server = makeFakeJmapServer({
+      emails: [makeEmail({ id: 'e1', subject: 'Landed' })]
+    })
+    const release = server.holdRequests('Email/query')
+    renderList(server)
+
+    const skeleton = await screen.findByTestId('email-list-loading')
+    expect(skeleton).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByRole('table')).toBe(null)
+    expect(screen.queryByTestId('email-list')).toBe(null)
+
+    release()
+
+    expect(await screen.findByText('Landed')).toBeVisible()
+    expect(screen.queryByTestId('email-list-loading')).toBe(null)
+  })
+
   it('shows the empty view for a mailbox without emails', async () => {
     renderList(makeFakeJmapServer({ emails: [] }))
 

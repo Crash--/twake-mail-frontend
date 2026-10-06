@@ -7,7 +7,7 @@ import {
   Trash,
   Warning
 } from '@linagora/twake-icons'
-import { Box, Empty, ListSkeleton, Typography } from '@linagora/twake-mui'
+import { Box, Empty, Typography } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import {
   useEffect,
@@ -25,6 +25,7 @@ import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { formatAddressName } from '@common/features/email/addresses'
+import { ReadingLoadingView } from '@common/features/email/ReadingLoadingView'
 import { ReadingToolbar } from '@common/features/email/ReadingToolbar'
 import type { EmailViewNavigation } from '@common/features/email/useEmailViewShortcuts'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
@@ -399,13 +400,7 @@ export function ConversationView({
     }
   }, [hasEmails, onBack])
 
-  if (query.isPending) {
-    return (
-      <Box className="u-p-2" data-testid="email-view-loading">
-        <ListSkeleton count={4} hasSecondary />
-      </Box>
-    )
-  }
+  if (query.isPending) return <ReadingLoadingView onBack={onBack} />
   if (query.isError) {
     const handleRetry = (): void => {
       void query.refetch()

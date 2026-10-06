@@ -22,6 +22,7 @@ import {
   fitWindows,
   type FittedWindowMode
 } from '@/ds/DockedWindow/fitWindows'
+import { useOverlayWindow } from '@/ds/SpaceOverlay/SpaceOverlay'
 import { WindowDock } from '@/ds/DockedWindow/WindowDock'
 import {
   WindowOverflowMenu,
@@ -177,17 +178,23 @@ function describeEntry(entry: ComposerEntry): string | null {
   return null
 }
 
+/**
+ * The width of the window the dock shows in: the page of TwakeSpace when the
+ * app is framed there and the dock sits on its overlay, else this one
+ */
 function useWindowWidth(): number {
-  const [width, setWidth] = useState(() => window.innerWidth)
+  const view = useOverlayWindow() ?? window
+  const [width, setWidth] = useState(() => view.innerWidth)
   useEffect(() => {
     const handleResize = (): void => {
-      setWidth(window.innerWidth)
+      setWidth(view.innerWidth)
     }
-    window.addEventListener('resize', handleResize)
+    handleResize()
+    view.addEventListener('resize', handleResize)
     return () => {
-      window.removeEventListener('resize', handleResize)
+      view.removeEventListener('resize', handleResize)
     }
-  }, [])
+  }, [view])
   return width
 }
 

@@ -1,5 +1,5 @@
 // Upstream to twake-ui: yes. Every app framed by TwakeSpace needs it, and it
-// knows nothing about email (twake-space-architecture specs/twake-surface.md).
+// knows nothing about email.
 
 /**
  * The part of the overlay TwakeSpace shows: `'full'` while something there
@@ -14,15 +14,6 @@ export interface OverlayBox {
   width: number
   height: number
 }
-
-/** What the overlay page (`public/embed/overlay.js`) puts on its window */
-interface TwakeSurface {
-  intentId: string | null
-  ready: Promise<void>
-  setRegion: (region: OverlayRegion) => void
-}
-
-type OverlayWindow = Window & { twakeSurface?: TwakeSurface }
 
 /**
  * Where the overlay stands: looked for (render nothing yet, so that what
@@ -48,10 +39,12 @@ export interface SpaceOverlay {
 const SHADOW_MARGIN = 16
 /**
  * How long a frame named by TwakeSpace waits for its overlay before showing
- * its windows in place: the handshake takes well under a second, and a
+ * its windows in place: the overlay loads in well under a second, and a
  * TwakeSpace without overlay should not hold a composer back longer
  */
 const CONNECT_TIMEOUT_MS = 5_000
+/** How often the overlay is looked for while TwakeSpace loads it */
+const LOOKUP_INTERVAL_MS = 100
 /** Changes of the overlay sent together, about one frame */
 const REGION_DELAY_MS = 16
 const FOCUS_RETRY_MS = 50
@@ -59,9 +52,12 @@ const FOCUS_RETRY_MS = 50
 /**
  * The overlay of this frame, found by name: TwakeSpace names it after the
  * frame (`<frame name>:overlay`). Null outside a frame or in a frame without
- * a name, where windows and dialogs stay in the app.
+ * a name, where windows and dialogs stay in the app. `reportRegion` tells
+ * TwakeSpace the region of the overlay to show.
  */
-export function connectSpaceOverlay(): SpaceOverlay | null {
+export function connectSpaceOverlay(
+  reportRegion: (region: OverlayRegion) => void
+): SpaceOverlay | null {
   if (window.parent === window || window.name === '') return null
   const name = `${window.name}:overlay`
   const listeners = new Set<() => void>()
@@ -76,11 +72,9 @@ export function connectSpaceOverlay(): SpaceOverlay | null {
     })
   }
 
-  const attach = (overlay: OverlayWindow, surface: TwakeSurface): void => {
-    if (status !== 'connecting') return
-    const doc = overlay.document
+  const attach = (doc: Document): void => {
     mirrorStyles(document, doc)
-    reportRegion(doc, surface, followFocus(document))
+    followRegion(doc, reportRegion, followFocus(document))
     body = doc.body
     settle('connected')
   }
@@ -91,15 +85,12 @@ export function connectSpaceOverlay(): SpaceOverlay | null {
   const find = (): void => {
     if (status !== 'connecting') return
     const overlay = findOverlay(name)
-    const surface = overlay?.twakeSurface
-    if (overlay && surface) {
-      void surface.ready.then(() => {
-        clearTimeout(giveUp)
-        attach(overlay, surface)
-      })
+    if (overlay !== null) {
+      clearTimeout(giveUp)
+      attach(overlay)
       return
     }
-    setTimeout(find, 100)
+    setTimeout(find, LOOKUP_INTERVAL_MS)
   }
   find()
 
@@ -126,16 +117,23 @@ function followFocus(app: Document): () => HTMLElement | null {
   return () => (last?.isConnected ? last : null)
 }
 
-function findOverlay(name: string): OverlayWindow | null {
+/**
+ * The document of the overlay once loaded: until then the frame holds the
+ * blank page of TwakeSpace, of another origin
+ */
+function findOverlay(name: string): Document | null {
   const frames = Array.from(
     { length: window.parent.length },
-    (_, index): OverlayWindow | undefined => window.parent[index]
+    (_, index): Window | undefined => window.parent[index]
   )
-  // The frames of TwakeSpace are of another origin, except the overlay
   for (const frame of frames) {
     try {
-      if (frame?.name === name && frame.document.readyState === 'complete') {
-        return frame
+      if (
+        frame?.name === name &&
+        frame.location.href !== 'about:blank' &&
+        frame.document.readyState === 'complete'
+      ) {
+        return frame.document
       }
     } catch {
       // Another origin
@@ -248,9 +246,9 @@ function restoreFocus(target: HTMLElement, attempts = 10): void {
  * When a dialog closes and leaves the focus nowhere on the overlay, it goes
  * back to the element of the app that had it.
  */
-function reportRegion(
+function followRegion(
   doc: Document,
-  surface: TwakeSurface,
+  reportRegion: (region: OverlayRegion) => void,
   lastAppFocus: () => HTMLElement | null
 ): void {
   const view = doc.defaultView
@@ -264,7 +262,7 @@ function reportRegion(
     if (key === last) return
     const wasBlocking = last === '"full"'
     last = key
-    surface.setRegion(region)
+    reportRegion(region)
     if (wasBlocking && region !== 'full' && doc.activeElement === doc.body) {
       const target = lastAppFocus()
       if (target !== null) restoreFocus(target)

@@ -76,4 +76,21 @@ describe('connectToSpace', () => {
       SPACE_ORIGIN
     )
   })
+
+  it('tells TwakeSpace the region of the overlay, to its origin only', () => {
+    mockBridge()
+    const postMessage = jest.spyOn(window.parent, 'postMessage')
+
+    connectToSpace(SPACE_ORIGIN)?.reportOverlayRegion([
+      { x: 1, y: 2, width: 3, height: 4 }
+    ])
+
+    expect(postMessage).toHaveBeenCalledWith(
+      {
+        type: 'twake-embed:overlay-region',
+        region: [{ x: 1, y: 2, width: 3, height: 4 }]
+      },
+      SPACE_ORIGIN
+    )
+  })
 })

@@ -1,5 +1,7 @@
 import { CozyBridge } from 'cozy-external-bridge'
 
+import type { OverlayRegion } from '@/ds/SpaceOverlay/spaceOverlay'
+
 /**
  * Message to TwakeSpace when the bridge has no `notifyLoginRequired` yet
  * (cozy-external-bridge 1.3)
@@ -7,6 +9,9 @@ import { CozyBridge } from 'cozy-external-bridge'
 export const LOGIN_REQUIRED_MESSAGE = {
   type: 'twake-embed:login-required'
 } as const
+
+/** The region of the overlay TwakeSpace shows (`ds/SpaceOverlay`) */
+export const OVERLAY_REGION_MESSAGE = 'twake-embed:overlay-region'
 
 /** What the facade of a team mailbox tells TwakeSpace, around its frame */
 export interface SpaceBridge {
@@ -20,6 +25,11 @@ export interface SpaceBridge {
    * the frame: TwakeSpace signs the user in again, then reloads its frames
    */
   notifyLoginRequired: () => void
+  /**
+   * The region of the overlay over TwakeSpace's page the facade draws in:
+   * TwakeSpace shows that part only, the rest of its page keeps its clicks
+   */
+  reportOverlayRegion: (region: OverlayRegion) => void
 }
 
 interface LoginRequiredMethod {
@@ -58,6 +68,12 @@ export function connectToSpace(spaceOrigin: string | null): SpaceBridge | null {
         return
       }
       window.parent.postMessage(LOGIN_REQUIRED_MESSAGE, spaceOrigin)
+    },
+    reportOverlayRegion: region => {
+      window.parent.postMessage(
+        { type: OVERLAY_REGION_MESSAGE, region },
+        spaceOrigin
+      )
     }
   }
 }

@@ -605,16 +605,22 @@ export function EmailCell({
                 {subject}
               </span>
             </Typography>
-            <span className="u-ml-half u-flex">{labelChips(1)}</span>
             {mailboxLabel}
           </span>
-          <SecondaryText
-            variant="body2"
-            lines={2}
-            data-testid="email-list-item-preview"
-          >
-            {preview}
-          </SecondaryText>
+          {/* As the design and tmail-flutter: the labels end the preview line */}
+          <span className="u-flex u-flex-items-end">
+            <SecondaryText
+              variant="body2"
+              lines={2}
+              className="u-flex-auto"
+              data-testid="email-list-item-preview"
+            >
+              {preview}
+            </SecondaryText>
+            <span className="u-flex u-ml-half u-flex-shrink-0">
+              {labelChips(1)}
+            </span>
+          </span>
         </RowLink>
       )
     }

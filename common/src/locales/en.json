@@ -1116,7 +1116,7 @@
     "colorNone": "No color",
     "colorNamed": "Color %{color}",
     "removeFromEmail": "Remove the label %{name}",
-    "moreCount": "%{count} more labels",
+    "moreNames": "%{count} more labels: %{names}",
     "listLabel": "Labels of the email"
   },
   "quota": {

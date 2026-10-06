@@ -1,5 +1,6 @@
 import { ComposerPage, LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
+import { addReplyInInbox } from '../support/conversation'
 import { expect, test } from '../support/fixtures'
 
 test.describe('LST email list rows', () => {
@@ -175,5 +176,138 @@ test.describe('LST email list rows', () => {
     // 20 px marker frame, then the 198 px block of the sender, 4 px apart
     const avatar = await box(row.getByTestId('email-list-item-avatar'))
     expect([avatar.width, avatar.height]).toEqual([20, 20])
+  })
+})
+
+test.describe('LST labels in the list rows', () => {
+  test(
+    'LST-06 a row shows one label chip then "+N" naming the others, at the end of the preview on a phone and a tablet, without growing the row on a desktop',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const design = await jmap.createLabel('Design', '#2196F3')
+      const urgent = await jmap.createLabel('Urgent', '#F44336')
+      const personal = await jmap.createLabel('Personal', '#4CAF50')
+      for (const subject of ['Plain row', 'Three labels row']) {
+        await jmap.sendEmail({
+          to: user.email,
+          subject,
+          text: 'A body that gives the row a preview of some length'
+        })
+      }
+      const email = await jmap.waitForEmail({ subject: 'Three labels row' })
+      await jmap.waitForEmail({ subject: 'Plain row' })
+      await jmap.setKeywords(email.id, {
+        [design.keyword]: true,
+        [urgent.keyword]: true,
+        [personal.keyword]: true
+      })
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const row = mailbox.emailRow('Three labels row')
+
+      await expect(row.getByTestId('label-chip')).toHaveCount(1)
+      await expect(row.getByTestId('label-chip')).toHaveText('Design')
+      await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
+      // The hidden labels are named for assistive technologies
+      await expect(
+        row.getByRole('list', { name: 'Labels of the email' })
+      ).toContainText('2 more labels: Personal, Urgent')
+      const rowBox = await row.boundingBox()
+      const chipBox = await row.getByTestId('label-chip').boundingBox()
+      const subjectBox = await row
+        .getByTestId('email-list-item-subject')
+        .boundingBox()
+      const previewBox = await row
+        .getByTestId('email-list-item-preview')
+        .boundingBox()
+      const viewport = page.viewportSize()
+      if (viewport !== null && viewport.width < 1000) {
+        // Phones and tablets: the chips end the preview line, inside the row
+        expect(chipBox?.y ?? 0).toBeGreaterThan(subjectBox?.y ?? 0)
+        expect(chipBox?.y ?? 0).toBeGreaterThanOrEqual(previewBox?.y ?? 0)
+        expect((chipBox?.x ?? 0) + (chipBox?.width ?? 0)).toBeLessThanOrEqual(
+          (rowBox?.x ?? 0) + (rowBox?.width ?? 0)
+        )
+        expect((chipBox?.y ?? 0) + (chipBox?.height ?? 0)).toBeLessThanOrEqual(
+          (rowBox?.y ?? 0) + (rowBox?.height ?? 0)
+        )
+      } else {
+        // A desktop: the row is as high as one without labels
+        const plainBox = await mailbox.emailRow('Plain row').boundingBox()
+        expect(
+          Math.abs((rowBox?.height ?? 0) - (plainBox?.height ?? 99))
+        ).toBeLessThan(1)
+        expect(chipBox?.x).toBeLessThan(subjectBox?.x ?? 0)
+      }
+      await expectNoA11yViolations(page)
+    }
+  )
+
+  test('LST-07 the row of a conversation shows the labels of the email that stands for it (the last one), as tmail-flutter', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const older = await jmap.createLabel('Older', '#2196F3')
+    const latest = await jmap.createLabel('Latest', '#F44336')
+    const original = await jmap.importEml(
+      'reply_email/reply-thread.eml',
+      'inbox',
+      {
+        keywords: { $seen: true, [older.keyword]: true },
+        receivedAt: '2024-12-17T16:31:00Z'
+      }
+    )
+    const replyId = await addReplyInInbox(jmap, original, {
+      from: 'emma@example.com',
+      to: user.email,
+      text: 'the latest reply'
+    })
+    await jmap.setKeywords(replyId, { $seen: true, [latest.keyword]: true })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRow('Re: Reply thread')
+
+    await expect(row.getByTestId('email-list-item-thread-count')).toBeVisible()
+    await expect(row.getByTestId('label-chip')).toHaveCount(1)
+    await expect(row.getByTestId('label-chip')).toHaveText('Latest')
+    await expect(row).not.toContainText('Older')
+  })
+
+  test('LST-08 the rows of a label view show their labels on the same line as the inbox, and a long label name is cut', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const long = await jmap.createLabel(
+      'An extremely long label name that must be cut',
+      '#FF9800'
+    )
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Long label row',
+      text: 'A body that gives the row a preview'
+    })
+    const email = await jmap.waitForEmail({ subject: 'Long label row' })
+    await jmap.setKeywords(email.id, { [long.keyword]: true })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const viewport = page.viewportSize()
+    test.skip(
+      viewport === null || viewport.width < 1000,
+      'the label view is reached from the sidebar of a desktop'
+    )
+    const inboxHeight = (await mailbox.emailRow('Long label row').boundingBox())
+      ?.height
+
+    await page.getByRole('link', { name: long.displayName }).click()
+    const row = mailbox.emailRow('Long label row').first()
+    await expect(row).toBeVisible()
+
+    const chip = row.getByTestId('label-chip')
+    await expect(chip).toHaveCount(1)
+    // Cut with an ellipsis, the whole name in its title
+    await expect(chip).toContainText('…')
+    await expect(chip).toHaveAttribute('title', long.displayName)
+    expect(
+      Math.abs(((await row.boundingBox())?.height ?? 0) - (inboxHeight ?? 99))
+    ).toBeLessThan(1)
   })
 })

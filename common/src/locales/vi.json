@@ -1121,6 +1121,12 @@
     "edit": "Sửa",
     "colorNone": "Không màu",
     "colorNamed": "Màu %{color}",
+    "colorCustom": "Màu tùy chỉnh",
+    "colorCustomNamed": "Màu tùy chỉnh %{color}",
+    "colorHex": "Màu tùy chỉnh (mã thập lục phân)",
+    "colorHexHint": "Định dạng #RRGGBB, ví dụ #1A2B3C",
+    "colorHexInvalid": "Nhập màu theo định dạng #RRGGBB, ví dụ #1A2B3C",
+    "colorPicker": "Mở bộ chọn màu",
     "removeFromEmail": "Gỡ nhãn %{name}",
     "moreNames": "%{count} nhãn khác: %{names}",
     "listLabel": "Nhãn của email"

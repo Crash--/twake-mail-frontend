@@ -75,7 +75,10 @@ export function LabelDialog({
   const [name, setName] = useState(label?.displayName ?? '')
   const [description, setDescription] = useState(label?.description ?? '')
   const [color, setColor] = useState<string | null>(label?.color ?? null)
+  const [isColorValid, setIsColorValid] = useState(true)
   const [isTouched, setIsTouched] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const hexRef = useRef<HTMLInputElement>(null)
   const [isSaving, setIsSaving] = useState(false)
   const problem = validateLabelName(name, labels, label?.id ?? null)
   const shownProblem = isTouched ? problem : null
@@ -110,8 +113,13 @@ export function LabelDialog({
   const handleSubmit = (event: SubmitEvent): void => {
     event.preventDefault()
     setIsTouched(true)
+    setIsSubmitted(true)
     if (problem !== null) {
       nameRef.current?.focus()
+      return
+    }
+    if (!isColorValid) {
+      hexRef.current?.focus()
       return
     }
     setIsSaving(true)
@@ -210,7 +218,30 @@ export function LabelDialog({
             }))}
             value={color}
             onChange={setColor}
-            noneLabel={t('labels.colorNone')}
+            // tmail-backend refuses a null colour: a colour cannot be taken
+            // off, so "No color" is only offered to a label without one
+            noneLabel={
+              (label?.color ?? null) === null
+                ? t('labels.colorNone')
+                : undefined
+            }
+            custom={{
+              label: t('labels.colorCustom'),
+              valueLabel: value =>
+                t('labels.colorCustomNamed', { color: value }),
+              hexLabel: t('labels.colorHex'),
+              hint: t('labels.colorHexHint'),
+              invalidMessage: t('labels.colorHexInvalid'),
+              pickerLabel: t('labels.colorPicker'),
+              showError: isSubmitted,
+              onValidityChange: setIsColorValid,
+              hexInputRef: hexRef,
+              testIds: {
+                swatch: 'label-color-custom',
+                hexInput: 'label-color-hex-input',
+                nativeInput: 'label-color-native-input'
+              }
+            }}
             data-testid="label-color-picker"
           />
         </DialogContent>

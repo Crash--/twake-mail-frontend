@@ -1121,6 +1121,12 @@
     "edit": "Modifier",
     "colorNone": "Sans couleur",
     "colorNamed": "Couleur %{color}",
+    "colorCustom": "Couleur personnalisée",
+    "colorCustomNamed": "Couleur personnalisée %{color}",
+    "colorHex": "Couleur personnalisée (hexadécimal)",
+    "colorHexHint": "Format #RRGGBB, par exemple #1A2B3C",
+    "colorHexInvalid": "Saisissez une couleur au format #RRGGBB, par exemple #1A2B3C",
+    "colorPicker": "Ouvrir le sélecteur de couleur",
     "removeFromEmail": "Retirer le libellé %{name}",
     "moreNames": "%{count} autres libellés : %{names}",
     "listLabel": "Libellés de l'e-mail"

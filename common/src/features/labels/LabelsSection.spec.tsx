@@ -84,6 +84,89 @@ describe('LabelsSection', () => {
     expect(await screen.findByRole('link', { name: 'Travel' })).toBeVisible()
   })
 
+  it('creates a label with a custom colour, refusing an invalid one', async () => {
+    const fake = setup()
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'New label' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Create a new label' })
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Label name' }),
+      'Travel'
+    )
+    await userEvent.click(
+      within(dialog).getByRole('radio', { name: 'Custom color' })
+    )
+    const hex = within(dialog).getByRole('textbox', {
+      name: 'Custom color (hexadecimal)'
+    })
+    await userEvent.clear(hex)
+    await userEvent.type(hex, '#12')
+    await userEvent.click(within(dialog).getByTestId('label-save-button'))
+
+    expect(hex).toBeInvalid()
+    expect(hex).toHaveFocus()
+    expect(fake.labels()).toHaveLength(1)
+
+    await userEvent.clear(hex)
+    await userEvent.type(hex, 'c0ffee')
+    await userEvent.click(within(dialog).getByTestId('label-save-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You successfully created the Travel label'
+    )
+    expect(fake.labels()).toContainEqual(
+      expect.objectContaining({ displayName: 'Travel', color: '#C0FFEE' })
+    )
+  })
+
+  it('edits a custom colour, and offers no "No color" to a coloured label', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    const fake = installFakeLabels(server, [
+      { id: 'a', displayName: 'Blue', keyword: 'a', color: '#aabbcc' },
+      { id: 'b', displayName: 'Plain', keyword: 'b', color: null }
+    ])
+    renderWithProviders(
+      <LabelActionsProvider>
+        <LabelsSection />
+      </LabelActionsProvider>,
+      { jmapServer: server, withJmapSession: true }
+    )
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Actions on Plain' })
+    )
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
+    expect(screen.getByRole('radio', { name: 'No color' })).toBeChecked()
+    await userEvent.click(screen.getByTestId('label-cancel-button'))
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Actions on Blue' })
+    )
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
+    const dialog = screen.getByRole('dialog', { name: 'Edit label' })
+    expect(within(dialog).queryByRole('radio', { name: 'No color' })).toBe(null)
+    expect(
+      within(dialog).getByRole('radio', { name: 'Custom color #AABBCC' })
+    ).toBeChecked()
+    const hex = within(dialog).getByRole('textbox', {
+      name: 'Custom color (hexadecimal)'
+    })
+    await userEvent.clear(hex)
+    await userEvent.type(hex, '#112233')
+    await userEvent.click(within(dialog).getByTestId('label-save-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You successfully edited'
+    )
+    expect(fake.labels()).toContainEqual(
+      expect.objectContaining({ displayName: 'Blue', color: '#112233' })
+    )
+  })
+
   it('deletes a label from its menu once confirmed', async () => {
     const fake = setup()
 

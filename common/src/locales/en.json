@@ -1121,6 +1121,12 @@
     "edit": "Edit",
     "colorNone": "No color",
     "colorNamed": "Color %{color}",
+    "colorCustom": "Custom color",
+    "colorCustomNamed": "Custom color %{color}",
+    "colorHex": "Custom color (hexadecimal)",
+    "colorHexHint": "Format #RRGGBB, for example #1A2B3C",
+    "colorHexInvalid": "Enter a color as #RRGGBB, for example #1A2B3C",
+    "colorPicker": "Open the color picker",
     "removeFromEmail": "Remove the label %{name}",
     "moreNames": "%{count} more labels: %{names}",
     "listLabel": "Labels of the email"

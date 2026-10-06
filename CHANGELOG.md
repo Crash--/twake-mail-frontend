@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Keyboard navigation of the folder trees (system folders, folders of the user,
+  Team-mailboxes, results of the folder search), as the WAI-ARIA tree view: one
+  tab stop per tree, Up / Down / Home / End, Right and Left to expand, collapse
+  or go to the first child / the parent, Enter to open the folder, letters to
+  jump to a folder. The expand arrow and the menu button of the focused folder
+  follow it with Tab; Shift+F10 and the menu key still open its menu. The focus
+  goes to a neighbour when the focused folder disappears.
+
 - The formatting toolbar of the composer follows the design and tmail-flutter: text
   style (paragraph, headings, quote, code), size, font, text colour and highlight
   with a colour popover, bold to strike, alignment, lists and indentation. The

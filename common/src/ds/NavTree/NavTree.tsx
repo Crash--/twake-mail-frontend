@@ -217,11 +217,11 @@ export function NavTree({
         typedRef.current = ''
         typedTimerRef.current = null
       }, TYPEAHEAD_RESET_MS)
+      // The letters belong to the tree, found or not: the same key does not
+      // do something else depending on the names of the folders
+      event.preventDefault()
       const match = findTypeaheadMatch(rows, current, typedRef.current)
-      if (match !== -1) {
-        event.preventDefault()
-        items[match]?.focus()
-      }
+      if (match !== -1) items[match]?.focus()
       return
     }
 

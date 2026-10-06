@@ -199,6 +199,22 @@ describe('NavTree', () => {
     expect(item('Drafts')).toHaveFocus()
   })
 
+  it('keeps its letters to itself, found or not, and leaves punctuation to the page', async () => {
+    const prevented: boolean[] = []
+    const onKeyDown = (event: KeyboardEvent): void => {
+      prevented.push(event.defaultPrevented)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    renderDs(<Tree folders={FOLDERS} />)
+    item('Inbox').focus()
+
+    await userEvent.keyboard('q')
+    await userEvent.keyboard('/')
+    document.removeEventListener('keydown', onKeyDown)
+
+    expect(prevented).toEqual([true, false])
+  })
+
   it('cycles through the rows starting with a letter typed again', async () => {
     renderDs(<Tree folders={FOLDERS} />)
     item('Inbox').focus()

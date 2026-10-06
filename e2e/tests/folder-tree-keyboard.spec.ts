@@ -256,8 +256,15 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
       .evaluate(row => getComputedStyle(row).outlineStyle)
     expect(outline).toBe('solid')
 
-    // Escape and the other keys of the page are left alone
+    // Escape is left alone; a letter belongs to the tree, whether a folder
+    // starts with it or not ("q": none): "c" does not open the composer
     await page.keyboard.press('Escape')
+    await page.keyboard.press('q')
+    await page.keyboard.press('c')
+    await expect(page.getByTestId('composer')).toBeHidden()
     await mailbox.expectFolderFocused({ name: 'Starred' })
+    // Punctuation stays for the shortcuts of the page: "/" focuses the search
+    await page.keyboard.press('/')
+    await expect(page.getByTestId('search-input')).toBeFocused()
   })
 })

@@ -110,7 +110,12 @@ describe('isTypeaheadKey', () => {
     expect(isTypeaheadKey({ key: 'd', ...plain })).toBe(true)
     expect(isTypeaheadKey({ key: 'D', ...plain })).toBe(true)
     expect(isTypeaheadKey({ key: 'ArrowDown', ...plain })).toBe(false)
+    expect(isTypeaheadKey({ key: '4', ...plain })).toBe(true)
     expect(isTypeaheadKey({ key: ' ', ...plain })).toBe(false)
+    // Left to the shortcuts of the page
+    for (const key of ['/', '?', '#']) {
+      expect(isTypeaheadKey({ key, ...plain })).toBe(false)
+    }
     expect(isTypeaheadKey({ key: 'd', ...plain, ctrlKey: true })).toBe(false)
   })
 })

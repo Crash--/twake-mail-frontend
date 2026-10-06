@@ -1,7 +1,16 @@
-import { Dots, Icon, Star, StarOutline } from '@linagora/twake-icons'
-import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
+import {
+  Archive,
+  Dots,
+  FolderMoveto,
+  Reply,
+  Star,
+  StarOutline,
+  Trash
+} from '@linagora/twake-icons'
+import { Box } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
+import { IconAction } from '@/ds/IconAction/IconAction'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,
@@ -21,21 +30,21 @@ import {
 } from './useRunViewedEmailAction'
 import { useUnsubscribe } from './useUnsubscribe'
 
-/** The actions shown as buttons beside "More", from the tablet size */
-const BUTTONS: Record<EmailViewActionsVariant, readonly EmailActionId[]> = {
-  email: [
-    'archive',
-    'move-to-trash',
-    'delete-permanently',
-    'mark-as-unread',
-    'move',
-    'mark-as-spam',
-    'not-spam',
-    'print'
-  ],
-  // A message of a conversation: the most used ones, the rest in "More"
-  message: ['mark-as-unread', 'move-to-trash', 'delete-permanently']
+/**
+ * The actions shown as buttons, from the tablet size, between "Reply" and
+ * "More" (the star and the delete button are the same in both): "Move" for
+ * an email, "Archive" for a message of a conversation
+ */
+const MOVES: Record<EmailViewActionsVariant, EmailActionId> = {
+  email: 'move',
+  message: 'archive'
 }
+
+/** The delete button: the folder offers one of these, never both */
+const DELETIONS: readonly EmailActionId[] = [
+  'move-to-trash',
+  'delete-permanently'
+]
 
 /** An open email, or an expanded message of a conversation */
 export type EmailViewActionsVariant = 'email' | 'message'
@@ -56,9 +65,10 @@ export interface EmailViewActionsProps {
 }
 
 /**
- * The actions of an open email, beside its back button, or of a message of
- * a conversation: the star, the main actions as buttons (not on phones),
- * and every action in "More". An email leaving the folder closes the view
+ * The actions of an open email, in its header, or of a message of a
+ * conversation: reply, move (archive in a conversation), star and delete as
+ * icon buttons (the star and "More" only on phones), and every action in
+ * "More". An email leaving the folder closes the view
  * (`useEmailViewShortcuts`).
  */
 export function EmailViewActions({
@@ -82,12 +92,12 @@ export function EmailViewActions({
     canLabel,
     extras: viewedEmailExtras(email, canUnsubscribe(email))
   })
-  const buttons = isPhone
-    ? []
-    : items.filter(item => BUTTONS[variant].includes(item.id))
+  const move = items.find(item => item.id === MOVES[variant])
+  const deletion = items.find(item => DELETIONS.includes(item.id))
   const isStarred = hasKeyword(email, FLAGGED)
   const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
   const moreLabel = t('emailActions.menu.more')
+  const replyLabel = t('emailActions.reply.reply')
 
   const handleRun = (id: EmailActionId): void => {
     void runAction(id, email, mailboxId).then(done => {
@@ -99,48 +109,59 @@ export function EmailViewActions({
     <Box
       role={label === undefined ? undefined : 'group'}
       aria-label={label}
-      className="u-flex u-flex-items-center u-flex-auto u-flex-justify-end"
+      className="u-flex u-flex-items-center u-flex-justify-end"
       data-testid="email-view-actions"
     >
-      <Tooltip title={starLabel}>
-        <IconButton
-          aria-label={starLabel}
-          aria-pressed={isStarred}
-          color={isStarred ? 'warning' : 'default'}
+      {isPhone || replies.actions.length === 0 ? null : (
+        <IconAction
+          label={replyLabel}
+          icon={Reply}
           onClick={() => {
-            handleRun(isStarred ? 'unstar' : 'star')
+            replies.open('reply')
           }}
-          data-testid="email-view-star-button"
-        >
-          <Icon icon={isStarred ? Star : StarOutline} />
-        </IconButton>
-      </Tooltip>
-      {buttons.map(item => (
-        <Tooltip key={item.id} title={t(item.label)}>
-          <IconButton
-            aria-label={t(item.label)}
-            onClick={() => {
-              handleRun(item.id)
-            }}
-            data-testid={`email-view-action-${item.id}`}
-          >
-            <Icon icon={item.icon} />
-          </IconButton>
-        </Tooltip>
-      ))}
-      <Tooltip title={moreLabel}>
-        <IconButton
-          aria-label={moreLabel}
-          aria-haspopup="menu"
-          aria-expanded={menuAnchor !== null}
-          onClick={event => {
-            setMenuAnchor(event.currentTarget)
+          data-testid="email-view-action-reply"
+        />
+      )}
+      {isPhone || move === undefined ? null : (
+        <IconAction
+          label={t(move.label)}
+          icon={move.id === 'move' ? FolderMoveto : Archive}
+          onClick={() => {
+            handleRun(move.id)
           }}
-          data-testid="email-view-more-button"
-        >
-          <Icon icon={Dots} />
-        </IconButton>
-      </Tooltip>
+          data-testid={`email-view-action-${move.id}`}
+        />
+      )}
+      <IconAction
+        label={starLabel}
+        icon={isStarred ? Star : StarOutline}
+        tone={isStarred ? 'starred' : 'default'}
+        aria-pressed={isStarred}
+        onClick={() => {
+          handleRun(isStarred ? 'unstar' : 'star')
+        }}
+        data-testid="email-view-star-button"
+      />
+      {isPhone || deletion === undefined ? null : (
+        <IconAction
+          label={t(deletion.label)}
+          icon={Trash}
+          onClick={() => {
+            handleRun(deletion.id)
+          }}
+          data-testid={`email-view-action-${deletion.id}`}
+        />
+      )}
+      <IconAction
+        label={moreLabel}
+        icon={Dots}
+        aria-haspopup="menu"
+        aria-expanded={menuAnchor !== null}
+        onClick={event => {
+          setMenuAnchor(event.currentTarget)
+        }}
+        data-testid="email-view-more-button"
+      />
       <EmailActionsMenu
         anchor={menuAnchor === null ? null : { element: menuAnchor }}
         onClose={() => {

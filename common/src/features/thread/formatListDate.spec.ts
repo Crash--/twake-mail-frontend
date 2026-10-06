@@ -1,4 +1,8 @@
-import { formatFullDate, formatListDate } from './formatListDate'
+import {
+  formatFullDate,
+  formatHeaderDate,
+  formatListDate
+} from './formatListDate'
 
 const NOW = new Date('2026-10-04T15:00:00Z')
 
@@ -27,5 +31,17 @@ describe('formatListDate', () => {
   it('shows nothing for an invalid date', () => {
     expect(formatListDate('not a date', 'en', NOW)).toBe('')
     expect(formatFullDate('not a date', 'en')).toBe('')
+  })
+})
+
+describe('formatHeaderDate', () => {
+  it('shows the day, month and time, and the year when it is not this one', () => {
+    expect(formatHeaderDate('2026-07-28T02:20:00Z', 'en', NOW)).toBe(
+      'Jul 28, 2:20 AM'
+    )
+    expect(formatHeaderDate('2024-07-28T02:20:00Z', 'en', NOW)).toBe(
+      'Jul 28, 2024, 2:20 AM'
+    )
+    expect(formatHeaderDate('not a date', 'en', NOW)).toBe('')
   })
 })

@@ -139,7 +139,12 @@
     "attachmentsMore": "Show +%{count} more",
     "attachmentsHide": "Hide %{count}",
     "attachmentsTitle": "%{smart_count} Attachment (%{size}) |||| %{smart_count} Attachments (%{size})",
-    "replyTo": "Reply-To"
+    "replyTo": "Reply-To",
+    "backTo": "Back to %{name}",
+    "previousEmail": "Previous email",
+    "nextEmail": "Next email",
+    "showRecipients": "Show all recipients",
+    "hideRecipients": "Hide the addresses"
   },
   "login": {
     "title": "Sign In",

@@ -139,7 +139,12 @@
     "attachmentsMore": "Afficher les %{count} autres pièces jointes",
     "attachmentsHide": "Cacher les %{count} pièces jointes",
     "attachmentsTitle": "%{smart_count} pièce jointe (%{size}) |||| %{smart_count} pièces jointes (%{size})",
-    "replyTo": "Répondre à"
+    "replyTo": "Répondre à",
+    "backTo": "Retour à %{name}",
+    "previousEmail": "Message précédent",
+    "nextEmail": "Message suivant",
+    "showRecipients": "Afficher tous les destinataires",
+    "hideRecipients": "Masquer les adresses"
   },
   "login": {
     "title": "Se connecter",

@@ -42,3 +42,23 @@ export function formatFullDate(isoDate: string, lang: string): string {
     timeStyle: 'short'
   }).format(date)
 }
+
+/**
+ * Date and time of the header of an open email, as the mocks write it
+ * ("28 Jul, 2:20 am"): the year is added when it is not the current one
+ */
+export function formatHeaderDate(
+  isoDate: string,
+  lang: string,
+  now: Date = new Date()
+): string {
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat(lang, {
+    ...(date.getFullYear() === now.getFullYear() ? {} : { year: 'numeric' }),
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  }).format(date)
+}

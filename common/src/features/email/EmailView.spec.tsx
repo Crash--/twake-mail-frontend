@@ -74,13 +74,13 @@ describe('EmailView', () => {
       'Bob Dupont <bob@example.com>'
     )
     expect(screen.getByTestId('email-view-to')).toHaveTextContent(
-      'To: Alice Martin <alice@example.com>'
+      /^To\s*Alice Martin$/
     )
     expect(screen.getByTestId('email-view-cc')).toHaveTextContent(
-      'Cc: carol@example.com'
+      /^Cc\s*carol@example.com/
     )
     expect(screen.getByTestId('email-view-date')).toHaveTextContent(
-      'Saturday, February 14, 2026 at 10:30 AM'
+      'Feb 14, 10:30 AM'
     )
     expect(screen.queryByTestId('email-view-bcc')).toBe(null)
   })
@@ -340,7 +340,7 @@ describe('EmailView', () => {
         answers.querySelectorAll('button'),
         button => button.textContent
       )
-    ).toEqual(['Reply', 'Reply all', 'Reply to list', 'Forward'])
+    ).toEqual(['Reply all', 'Reply', 'Reply to list', 'Forward'])
   })
 
   it('offers no "Reply all" to an email between the sender and the user', async () => {

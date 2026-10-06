@@ -5,18 +5,18 @@ import { renderDs } from '@/ds/testing/renderDs'
 import { MessageHeader } from './MessageHeader'
 
 describe('MessageHeader', () => {
-  it('lays out the avatar, the identity and the date', () => {
+  it('lays out the avatar, the identity and the actions', () => {
     renderDs(
       <MessageHeader
         avatar={<span>AM</span>}
         identity={<p>Alice Martin</p>}
-        date={<time dateTime="2026-10-04">Oct 4</time>}
+        actions={<button type="button">Star</button>}
       />
     )
 
     const identity = screen.getByText('Alice Martin').parentElement
     expect(screen.getByText('AM')).toBeVisible()
-    expect(screen.getByText('Oct 4')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Star' })).toBeVisible()
     expect(identity).toHaveStyle({ gridArea: 'identity' })
     expect(getComputedStyle(identity?.parentElement as Element).display).toBe(
       'grid'

@@ -116,11 +116,14 @@ export function LinkDialog({
         </DialogContent>
         <DialogActions>
           {canRemove ? (
-            <Button onClick={onRemove} color="error">
+            <Button variant="outlined" color="error" onClick={onRemove}>
               {labels.remove}
             </Button>
           ) : null}
-          <Button onClick={onClose}>{labels.cancel}</Button>
+          {/* Inherit: primary text on white is below AA contrast */}
+          <Button variant="outlined" color="inherit" onClick={onClose}>
+            {labels.cancel}
+          </Button>
           <Button
             type="submit"
             variant="contained"

@@ -8,6 +8,7 @@ import {
 } from '@/ds/ListTableSkeleton/ListTableSkeleton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { SENDER_BLOCK_WIDTH } from '@/ds/RowSender/RowSender'
+import { AfterDelay } from '@common/features/loading/AfterDelay'
 import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnouncer'
 
 import {
@@ -118,7 +119,15 @@ export interface EmailListSkeletonProps {
  * a desktop row is 44 px, a narrow one (a phone, a tablet, the list beside
  * an open email) holds the sender, the subject and two lines of preview.
  */
-export function EmailListSkeleton({
+export function EmailListSkeleton(props: EmailListSkeletonProps): ReactElement {
+  return (
+    <AfterDelay>
+      <EmailListRowsSkeleton {...props} />
+    </AfterDelay>
+  )
+}
+
+function EmailListRowsSkeleton({
   isCompact,
   className
 }: EmailListSkeletonProps): ReactElement {

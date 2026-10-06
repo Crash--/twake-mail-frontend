@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loading states on the boxes of the real content: the email list and the
   search results show skeleton rows (the 44 px desktop row, the narrow row of a
   tablet or phone), the folders and the open email or conversation show theirs,
-  so that nothing moves when the data lands. The skeletons are busy and hidden
+  so that nothing moves when the data lands, and only when a load lasts more than
+  150 ms (a fast one does not flash them). The skeletons are busy and hidden
   to screen readers, which hear "Loading" once, and do not pulse with
   `prefers-reduced-motion`.
 - "No internet connection" banner while the browser is offline (Dismiss hides it

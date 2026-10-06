@@ -21,6 +21,7 @@ import {
 } from '@common/features/mailboxActions/FolderActionsMenu'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
+import { AfterDelay } from '@common/features/loading/AfterDelay'
 import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnouncer'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -117,6 +118,17 @@ function TreeRows({
   )
 }
 
+/** The folder rows while the folders load, announced as loading */
+function MailboxTreeLoading(): ReactElement {
+  useLoadingAnnouncement(true)
+  return (
+    <NavTreeSkeleton
+      rowCount={SKELETON_ROWS}
+      data-testid="mailbox-tree-loading"
+    />
+  )
+}
+
 /**
  * The folder trees of the sidebar: the folders of the user (with the
  * Starred virtual folder after the Inbox), then, when the user belongs to
@@ -193,7 +205,6 @@ export function MailboxTree(): ReactElement {
     setShowHidden(shown => !shown)
   }
 
-  useLoadingAnnouncement(query.isPending)
   let systemContent: ReactNode
   if (query.isError) {
     systemContent = (
@@ -222,10 +233,9 @@ export function MailboxTree(): ReactElement {
   return (
     <>
       {query.isPending ? (
-        <NavTreeSkeleton
-          rowCount={SKELETON_ROWS}
-          data-testid="mailbox-tree-loading"
-        />
+        <AfterDelay>
+          <MailboxTreeLoading />
+        </AfterDelay>
       ) : null}
       {isSearching || query.isPending ? null : (
         <NavTree

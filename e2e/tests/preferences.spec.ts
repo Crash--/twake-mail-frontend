@@ -149,7 +149,7 @@ test.describe('SET preferences', () => {
     await jmap.createMailbox({ name: 'Projects' })
     const mailbox = await new LoginPage(page).loginAs(user)
     await expect(
-      mailbox.folderTree.getByText('Projects', { exact: true })
+      mailbox.foldersTree.getByText('Projects', { exact: true })
     ).toBeVisible()
     const settings = await mailbox.openSettings()
     await settings.open('folder-visibility')
@@ -168,7 +168,7 @@ test.describe('SET preferences', () => {
     ).toBeVisible()
     await settings.backToMail()
     await expect(
-      mailbox.folderTree.getByText('Projects', { exact: true })
+      mailbox.foldersTree.getByText('Projects', { exact: true })
     ).toHaveCount(0)
 
     await mailbox.openSettings()
@@ -179,7 +179,7 @@ test.describe('SET preferences', () => {
     ).toBeVisible()
     await settings.backToMail()
     await expect(
-      mailbox.folderTree.getByText('Projects', { exact: true })
+      mailbox.foldersTree.getByText('Projects', { exact: true })
     ).toBeVisible()
   })
 

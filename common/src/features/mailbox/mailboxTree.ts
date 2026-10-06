@@ -410,6 +410,50 @@ export function buildMailboxSections(
 }
 
 /**
+ * A top-level folder of the user that belongs to the system block of the
+ * sidebar (Inbox, Drafts, Archive…, the Templates folder tmail-flutter
+ * creates), as opposed to the "Folders" the user made
+ */
+export function isSystemRoot(mailbox: MailboxSummary): boolean {
+  return mailbox.role !== null || isTemplatesMailbox(mailbox)
+}
+
+export interface PersonalTrees {
+  /** The system folders, in the order of tmail-flutter, Templates included */
+  system: MailboxNode[]
+  /** The folders the user made */
+  folders: MailboxNode[]
+}
+
+/**
+ * Splits the roots of the personal tree in the two blocks of the design: the
+ * system folders, above the "Folders" section, and the user's folders
+ * (tmail-flutter's `exchange` and `personalFolders` categories)
+ */
+export function splitPersonalTree(
+  roots: readonly MailboxNode[]
+): PersonalTrees {
+  const rank = (mailbox: MailboxSummary): number =>
+    SYSTEM_ROLE_ORDER.indexOf(
+      mailbox.role ?? (isTemplatesMailbox(mailbox) ? 'templates' : '')
+    )
+  const system = roots.filter(node => isSystemRoot(node.mailbox))
+  // Array.prototype.sort is stable: roles of the same rank keep their order
+  system.sort((left, right) => {
+    const leftRank = rank(left.mailbox)
+    const rightRank = rank(right.mailbox)
+    return (
+      (leftRank === -1 ? SYSTEM_ROLE_ORDER.length : leftRank) -
+      (rightRank === -1 ? SYSTEM_ROLE_ORDER.length : rightRank)
+    )
+  })
+  return {
+    system,
+    folders: roots.filter(node => !isSystemRoot(node.mailbox))
+  }
+}
+
+/**
  * The folder of a team mailbox an email is in, null for an email of the
  * user
  */

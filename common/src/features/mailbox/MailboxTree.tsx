@@ -1,11 +1,9 @@
-import { Eye, EyeClosed, Icon, Magnifier, Plus } from '@linagora/twake-icons'
+import { Eye, EyeClosed, Magnifier, Plus } from '@linagora/twake-icons'
 import {
   Box,
-  IconButton,
   ListItem,
   ListItemSkeleton,
-  ListItemText,
-  Tooltip
+  ListItemText
 } from '@linagora/twake-mui'
 import {
   Fragment,
@@ -18,6 +16,7 @@ import {
 } from 'react'
 import { useMatch } from 'react-router'
 
+import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
 import {
@@ -32,6 +31,7 @@ import {
   buildMailboxSections,
   findAncestorIds,
   listVisibleMailboxes,
+  splitPersonalTree,
   type VisibleMailbox
 } from './mailboxTree'
 import { MailboxSearch } from './MailboxSearch'
@@ -161,7 +161,12 @@ export function MailboxTree(): ReactElement {
   )
   const isExpanded = (mailboxId: string): boolean =>
     toggled[mailboxId] ?? selectedAncestors.has(mailboxId)
-  const personalRows = listVisibleMailboxes(sections.personal, isExpanded)
+  const personal = useMemo(
+    () => splitPersonalTree(sections.personal),
+    [sections.personal]
+  )
+  const systemRows = listVisibleMailboxes(personal.system, isExpanded)
+  const folderRows = listVisibleMailboxes(personal.folders, isExpanded)
   const teamRows = listVisibleMailboxes(sections.team, isExpanded)
 
   const handleToggle = (mailboxId: string, expanded: boolean): void => {
@@ -190,19 +195,19 @@ export function MailboxTree(): ReactElement {
     setShowHidden(shown => !shown)
   }
 
-  let content: ReactNode
+  let systemContent: ReactNode
   if (query.isPending) {
-    content = SKELETON_ROWS.map(row => <ListItemSkeleton key={row} />)
+    systemContent = SKELETON_ROWS.map(row => <ListItemSkeleton key={row} />)
   } else if (query.isError) {
-    content = (
+    systemContent = (
       <ListItem data-testid="mailbox-tree-error">
         <ListItemText secondary={t('common.errorOccurred')} />
       </ListItem>
     )
   } else {
-    content = (
+    systemContent = (
       <TreeRows
-        rows={personalRows}
+        rows={systemRows}
         selectedId={selectedId}
         onToggle={handleToggle}
         onOpenMenu={handleOpenMenu}
@@ -219,6 +224,16 @@ export function MailboxTree(): ReactElement {
   // The titles stay outside the trees: a tree only holds tree items
   return (
     <>
+      {isSearching ? null : (
+        <NavTree
+          role="tree"
+          aria-label={t('sidebar.mailboxes')}
+          aria-busy={query.isPending}
+          data-testid="mailbox-tree"
+        >
+          {systemContent}
+        </NavTree>
+      )}
       <NavSectionHeader
         title={t('sidebar.folders')}
         titleId={titleId}
@@ -234,41 +249,29 @@ export function MailboxTree(): ReactElement {
         actions={
           <>
             {sections.hiddenCount > 0 ? (
-              <Tooltip title={hiddenLabel}>
-                <IconButton
-                  size="small"
-                  aria-label={hiddenLabel}
-                  aria-pressed={showHidden}
-                  onClick={handleToggleHidden}
-                  data-testid="show-hidden-folders-button"
-                >
-                  <Icon icon={showHidden ? Eye : EyeClosed} />
-                </IconButton>
-              </Tooltip>
+              <NavSectionAction
+                label={hiddenLabel}
+                icon={showHidden ? Eye : EyeClosed}
+                aria-pressed={showHidden}
+                onClick={handleToggleHidden}
+                data-testid="show-hidden-folders-button"
+              />
             ) : null}
-            <Tooltip title={searchLabel}>
-              <IconButton
-                ref={searchButtonRef}
-                size="small"
-                aria-label={searchLabel}
-                aria-expanded={isSearching}
-                aria-controls={isSearching ? searchId : undefined}
-                onClick={handleToggleSearch}
-                data-testid="mailbox-search-button"
-              >
-                <Icon icon={Magnifier} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={newFolderLabel}>
-              <IconButton
-                size="small"
-                aria-label={newFolderLabel}
-                onClick={handleCreate}
-                data-testid="add-new-folder-button"
-              >
-                <Icon icon={Plus} />
-              </IconButton>
-            </Tooltip>
+            <NavSectionAction
+              buttonRef={searchButtonRef}
+              label={searchLabel}
+              icon={Magnifier}
+              aria-expanded={isSearching}
+              aria-controls={isSearching ? searchId : undefined}
+              onClick={handleToggleSearch}
+              data-testid="mailbox-search-button"
+            />
+            <NavSectionAction
+              label={newFolderLabel}
+              icon={Plus}
+              onClick={handleCreate}
+              data-testid="add-new-folder-button"
+            />
           </>
         }
       />
@@ -281,18 +284,24 @@ export function MailboxTree(): ReactElement {
         />
       ) : (
         <div id={foldersContentId} hidden={!collapsible.isExpanded('folders')}>
-          <NavTree
-            role="tree"
-            aria-labelledby={titleId}
-            aria-busy={query.isPending}
-            data-testid="mailbox-tree"
-          >
-            {content}
-          </NavTree>
+          {folderRows.length > 0 ? (
+            <NavTree
+              role="tree"
+              aria-labelledby={titleId}
+              data-testid="mailbox-folders-tree"
+            >
+              <TreeRows
+                rows={folderRows}
+                selectedId={selectedId}
+                onToggle={handleToggle}
+                onOpenMenu={handleOpenMenu}
+              />
+            </NavTree>
+          ) : null}
         </div>
       )}
       {teamRows.length > 0 && !isSearching ? (
-        <Box className="u-mt-1" data-testid="team-mailboxes-section">
+        <Box data-testid="team-mailboxes-section">
           <NavSectionHeader
             title={t('sidebar.teamMailboxes')}
             titleId={teamTitleId}

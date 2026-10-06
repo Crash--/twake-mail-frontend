@@ -173,9 +173,11 @@ test.describe('MBX folder menu', () => {
   test(
     'MBX-56 the title of the Folders section collapses and expands it, and the choice is kept',
     { tag: '@mobile' },
-    async ({ page, user }) => {
+    async ({ page, user, jmap }) => {
+      await jmap.createMailbox({ name: 'Projects' })
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.showFolders()
+      await expect(mailbox.foldersTree).toBeVisible()
       await expect(mailbox.foldersSectionToggle).toHaveAttribute(
         'aria-expanded',
         'true'
@@ -186,7 +188,9 @@ test.describe('MBX folder menu', () => {
         'aria-expanded',
         'false'
       )
-      await expect(mailbox.folderTree).toBeHidden()
+      // The title folds the folders of the user, not the system ones
+      await expect(mailbox.foldersTree).toBeHidden()
+      await expect(mailbox.folder({ role: 'inbox' })).toBeVisible()
       await expect(mailbox.addFolderButton).toBeVisible()
       await expectNoA11yViolations(page)
 
@@ -202,7 +206,7 @@ test.describe('MBX folder menu', () => {
       )
       await mailbox.foldersSectionToggle.focus()
       await page.keyboard.press('Enter')
-      await expect(mailbox.folderTree).toBeVisible()
+      await expect(mailbox.foldersTree).toBeVisible()
       await expect(mailbox.folder({ role: 'inbox' })).toBeVisible()
     }
   )

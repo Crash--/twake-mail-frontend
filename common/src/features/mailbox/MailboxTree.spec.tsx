@@ -15,11 +15,13 @@ import { SidebarSectionsProvider } from './SidebarSectionsProvider'
 
 function renderTree(
   route = '/mailbox/mailbox-inbox',
-  lang: SupportedLanguage = 'en'
+  lang: SupportedLanguage = 'en',
+  extra: ReturnType<typeof makeMailbox>[] = []
 ): ReturnType<typeof renderWithProviders> {
   const jmapServer = makeFakeJmapServer({
     mailboxes: [
       ...makeDefaultMailboxes(),
+      ...extra,
       makeMailbox({ id: 'work', name: 'Work', unreadEmails: 4 }),
       makeMailbox({ id: 'clients', name: 'Clients', parentId: 'work' }),
       makeMailbox({ id: 'acme', name: 'ACME', parentId: 'clients' })
@@ -67,14 +69,66 @@ describe('MailboxTree', () => {
     await userEvent.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryAllByRole('treeitem')).toHaveLength(0)
+    // The folders of the user fold, the system ones stay
+    expect(screen.queryByTestId('mailbox-folders-tree')).not.toBeVisible()
+    expect(screen.getByTestId('mailbox-tree')).toBeVisible()
     // Its actions stay
     expect(screen.getByTestId('add-new-folder-button')).toBeVisible()
 
     await userEvent.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getAllByRole('treeitem').length).toBeGreaterThan(0)
+    expect(screen.getByTestId('mailbox-folders-tree')).toBeVisible()
+  })
+
+  it('holds the system folders and the folders of the user in two trees', async () => {
+    renderTree()
+    await screen.findAllByTestId('mailbox-item')
+
+    const system = screen.getByRole('tree', { name: 'Mailboxes' })
+    const folders = screen.getByRole('tree', { name: 'Folders' })
+    expect(system).toBe(screen.getByTestId('mailbox-tree'))
+    expect(folders).toBe(screen.getByTestId('mailbox-folders-tree'))
+    expect(within(system).getByText('Inbox')).toBeInTheDocument()
+    expect(within(system).queryByText('Work')).toBeNull()
+    expect(within(folders).getByText('Work')).toBeInTheDocument()
+    expect(within(folders).queryByText('Inbox')).toBeNull()
+  })
+
+  it('shows Clean on the Spam with emails, and nowhere else', async () => {
+    renderTree('/mailbox/mailbox-inbox', 'en', [
+      makeMailbox({
+        id: 'mailbox-spam',
+        name: 'Spam',
+        role: 'junk',
+        totalEmails: 3
+      })
+    ])
+    await screen.findAllByTestId('mailbox-item')
+
+    const buttons = screen.getAllByTestId('mailbox-clean-button')
+    expect(buttons).toHaveLength(1)
+    expect(within(folder('Spam')).getByRole('button', { name: 'Clean' })).toBe(
+      buttons[0]
+    )
+  })
+
+  it('says a hidden folder is hidden without a coloured badge', async () => {
+    renderTree('/mailbox/mailbox-inbox', 'en', [
+      makeMailbox({ id: 'rare', name: 'Rarely used', isSubscribed: false })
+    ])
+    await screen.findAllByTestId('mailbox-item')
+    await userEvent.click(screen.getByTestId('show-hidden-folders-button'))
+
+    const row = folder('Rarely used')
+    expect(row).toHaveAttribute('data-hidden', 'true')
+    expect(within(row).getByTestId('mailbox-item-hidden')).toHaveTextContent(
+      'hidden'
+    )
+    // The name keeps its room: nothing visible follows it
+    expect(within(row).getByTestId('mailbox-item-name')).toHaveTextContent(
+      'Rarely used'
+    )
   })
 
   it('lists the system folders first, with their translated name', async () => {

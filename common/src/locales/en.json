@@ -37,6 +37,7 @@
     "help": "Get help or report a bug"
   },
   "sidebar": {
+    "mailboxes": "Mailboxes",
     "newMessage": "New message",
     "folders": "Folders",
     "teamMailboxes": "Team-mailboxes",
@@ -843,7 +844,8 @@
     "moveContent": {
       "failure": "Failed to move all emails from this folder to another folder.",
       "progress": "Moving emails: %{moved} of %{total}"
-    }
+    },
+    "clean": "Clean"
   },
   "identities": {
     "create": "Create new identity",

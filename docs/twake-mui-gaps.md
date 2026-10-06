@@ -465,3 +465,8 @@ Differences kept from the design and from tmail-flutter:
 |---|---|---|---|---|
 | `Dialog` / `Drawer` | A picker modal: a centred dialog on desktops and tablets, a sheet rising from the bottom edge on phones (rounded top, 85 % of the screen at most, safe area padding), titled, with a close button in both; `Drawer` sits under a full-screen window (the composer on a phone) unless it takes the modal z-index | The "Insert template" picker | `ds/PickerSheet` | A `Dialog` `variant="sheet"` below the phone breakpoint, with a title slot |
 | Filter field and list | The always shown filtered list says how many options match: a live region (`role="status"`) always in the page, filled when the filter changes (no second announcement from the empty message) | The result count of the template picker | `ds/FilterableListbox` (`resultsLabel`) | A result count slot on a filtered listbox |
+## Contact card (batch D5)
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `Dialog` + `Drawer` | The card of a contact (avatar, name, address with a copy button, full width action buttons): a centred 383 px dialog on tablets and desktops, a bottom sheet with 16 px top corners on phones, one component for both (tmail-flutter `EmailAddressDialogBuilder` and `EmailAddressBottomSheetBuilder`); named by the name of the person, focus trapped, Escape and close button, focus given back | The address of the sender and of the recipients of an email, in the reading view | `ds/ContactCard` (filled by `features/email/EmailAddressCard.tsx`: avatar, actions and their links) | A `ContactCard`, or a `Dialog` variant that turns into a bottom sheet on phones |

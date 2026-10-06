@@ -47,6 +47,10 @@ var DOMAIN_REDIRECT_URL = 'https://mail.example.com'
 var SENTRY_ENABLED = 'false'
 var SENTRY_DSN = ''
 var SENTRY_ENVIRONMENT = ''
+// Feedback widget (a floating button with a message and a screenshot), offered
+// only to the users who opted in to error reporting. Off by default; needs a
+// Sentry 24.4.2 or later.
+var SENTRY_FEEDBACK_ENABLED = 'false'
 
 // [tmail-flutter] 'supported' shows the app grid (the apps of appList.js),
 // anything else hides it.

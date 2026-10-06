@@ -29,6 +29,8 @@ declare global {
     SENTRY_ENABLED?: boolean | string
     SENTRY_DSN?: string
     SENTRY_ENVIRONMENT?: string
+    /** `true` offers the feedback widget to the users who opted in to error reporting */
+    SENTRY_FEEDBACK_ENABLED?: boolean | string
 
     /** @deprecated use SERVER_URL */
     JMAP_SESSION_URL?: string

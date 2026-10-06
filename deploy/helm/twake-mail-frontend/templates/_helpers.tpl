@@ -177,6 +177,9 @@ var SENTRY_ENABLED = {{ ternary "true" "false" (and (ne (toString $sentry.enable
 var SENTRY_DSN = {{ include "twake-mail-frontend.jsString" $sentryDsn }}
 var SENTRY_ENVIRONMENT = {{ include "twake-mail-frontend.jsString" ($sentry.environment | default "") }}
 {{- end }}
+{{- if eq (toString $sentry.feedbackEnabled) "true" }}
+var SENTRY_FEEDBACK_ENABLED = "true"
+{{- end }}
 {{- with $config.appGridAvailable }}
 var APP_GRID_AVAILABLE = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}

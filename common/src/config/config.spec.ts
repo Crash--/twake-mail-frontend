@@ -59,6 +59,7 @@ describe('resolveConfig', () => {
         sentrySource: 'ecosystem',
         sentryDsn: null,
         sentryEnvironment: null,
+        sentryFeedbackEnabled: false,
         forwardWarningMessage: null,
         workplaceEmbedding: false,
         tdriveIntentUrl: null,
@@ -362,6 +363,42 @@ describe('resolveConfig', () => {
         expect(result).toMatchObject({ value: { sentrySource: 'env' } })
       }
     )
+
+    it.each([
+      [true, true],
+      ['true', true],
+      [false, false],
+      ['false', false],
+      ['', false],
+      ['yes', false],
+      [undefined, false]
+    ])('reads SENTRY_FEEDBACK_ENABLED %j as %j', (value, expected) => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        ...SENTRY,
+        SENTRY_ENABLED: 'true',
+        SENTRY_FEEDBACK_ENABLED: value
+      })
+
+      expect(result).toMatchObject({
+        value: { sentryFeedbackEnabled: expected }
+      })
+    })
+
+    it('leaves the source to the ecosystem when only the feedback flag is set', () => {
+      const { result, warnings } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        SENTRY_ENABLED: '',
+        SENTRY_DSN: '',
+        SENTRY_ENVIRONMENT: '',
+        SENTRY_FEEDBACK_ENABLED: 'true'
+      })
+
+      expect(result).toMatchObject({
+        value: { sentrySource: 'ecosystem', sentryFeedbackEnabled: true }
+      })
+      expect(warnings).toEqual([])
+    })
 
     it('keeps the path of SERVER_URL for the ecosystem document', () => {
       const { result } = resolveWithWarnings({

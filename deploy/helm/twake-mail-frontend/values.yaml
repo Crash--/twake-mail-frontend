@@ -121,6 +121,10 @@ config:
     enabled: true
     dsn: ""
     environment: ""
+    # -- Offers the feedback widget (a floating button: message, optional
+    # email, screenshot) to the users who opted in to error reporting. Needs a
+    # Sentry 24.4.2 or later. Works with a DSN given by the ecosystem too
+    feedbackEnabled: false
   # -- Deprecated, use sentry.dsn
   sentryDsn: ""
   # -- supported shows the app grid, unsupported hides it (APP_GRID_AVAILABLE

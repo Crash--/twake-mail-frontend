@@ -16,6 +16,8 @@ export interface ToolbarButtonProps {
   hasMenu?: boolean
   /** The primary colour instead of the text colour (a filter is on) */
   isActive?: boolean
+  /** Takes no click, and no tooltip (a disabled button gets no pointer event) */
+  disabled?: boolean
   onClick: (event: MouseEvent<HTMLElement>) => void
   'aria-haspopup'?: 'menu'
   'aria-controls'?: string
@@ -30,6 +32,7 @@ export function ToolbarButton({
   icon,
   hasMenu = false,
   isActive = false,
+  disabled = false,
   onClick,
   'aria-haspopup': hasPopup,
   'aria-controls': controls,
@@ -41,6 +44,7 @@ export function ToolbarButton({
       variant="text"
       color={isActive ? 'primary' : 'inherit'}
       onClick={onClick}
+      disabled={disabled}
       startIcon={<Icon icon={icon} size={16} />}
       endIcon={hasMenu ? <Icon icon={Dropdown} size={16} /> : undefined}
       aria-haspopup={hasPopup}
@@ -65,7 +69,7 @@ export function ToolbarButton({
       {label}
     </Button>
   )
-  return tooltip === undefined ? (
+  return tooltip === undefined || disabled ? (
     button
   ) : (
     <Tooltip title={tooltip}>{button}</Tooltip>

@@ -43,6 +43,12 @@ export class LoadingPage {
     return box
   }
 
+  /** The boxes of every element a locator matches, in order */
+  async boxes(locator: Locator): Promise<Box[]> {
+    const handles = await locator.all()
+    return Promise.all(handles.map(handle => this.box(handle)))
+  }
+
   /** The first row of the skeleton of the list */
   get firstSkeletonRow(): Locator {
     return this.listSkeleton.locator('tbody tr').first()

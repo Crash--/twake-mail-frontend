@@ -46,6 +46,8 @@ test.describe('LOAD loading states', () => {
     await expect(loading.loadingAnnouncement).toHaveText(/Loading/)
     const skeletonRow = await loading.box(loading.firstSkeletonRow)
     const toolbar = await loading.box(page.getByTestId('list-toolbar'))
+    const toolbarButtons = page.getByTestId('list-toolbar').getByRole('button')
+    const buttonsBefore = await loading.boxes(toolbarButtons)
 
     gate.release()
     const firstRow = loading.firstRow(mailbox.emailList)
@@ -65,6 +67,18 @@ test.describe('LOAD loading states', () => {
       0,
       'toolbar'
     )
+    // The buttons of the toolbar stay where they were (Select all is there
+    // from the start, not yet usable)
+    const buttonsAfter = await loading.boxes(toolbarButtons)
+    expect(buttonsAfter).toHaveLength(buttonsBefore.length)
+    buttonsAfter.forEach((box, index) => {
+      loading.expectSameBox(
+        box,
+        buttonsBefore[index] ?? box,
+        1,
+        `toolbar button ${index}`
+      )
+    })
     expect(await loading.layoutShift()).toBeLessThan(0.01)
     await expect(loading.loadingAnnouncement).toBeEmpty()
   })

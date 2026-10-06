@@ -278,7 +278,9 @@
         "smaller": "Smaller",
         "larger": "Larger",
         "remove": "Remove image",
-        "sizeStatus": "Width %{width} px, %{percent}% of the original"
+        "sizeStatus": "Width %{width} px, %{percent}% of the original",
+        "alt": "Alternative text",
+        "altHelp": "Leave empty if the image is only decorative. Enter applies, Escape cancels."
       },
       "textStyle": "Text style",
       "textStyles": {

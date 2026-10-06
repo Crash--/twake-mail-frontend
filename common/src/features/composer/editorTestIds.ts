@@ -11,6 +11,7 @@ export const EDITOR_TEST_IDS: RichTextEditorTestIds = {
   linkUrlInput: 'link-dialog-url-input',
   linkApplyButton: 'link-dialog-apply-button',
   imageToolbar: 'rich-text-image-toolbar',
+  imageAltInput: 'rich-text-image-alt-input',
   imageButton: item => `rich-text-image-${item}-button`
 }
 

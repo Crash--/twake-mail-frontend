@@ -8,12 +8,14 @@ import {
   IconButton,
   Paper,
   Popper,
+  TextField,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
 import { NodeSelection } from '@tiptap/pm/state'
 import { useEditorState, type Editor } from '@tiptap/react'
 import {
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -49,6 +51,8 @@ interface SelectedImage {
   position: number
   /** Width the image is shown at, null for its own width */
   width: number | null
+  /** The alternative text, empty for a decorative image */
+  alt: string
 }
 
 /** The image the selection holds, null when it holds something else */
@@ -63,7 +67,11 @@ function selectedImage(editor: Editor): SelectedImage | null {
   const width = Number(selection.node.attrs.width)
   return {
     position: selection.from,
-    width: Number.isFinite(width) && width > 0 ? width : null
+    width: Number.isFinite(width) && width > 0 ? width : null,
+    alt:
+      typeof selection.node.attrs.alt === 'string'
+        ? selection.node.attrs.alt
+        : ''
   }
 }
 
@@ -76,29 +84,121 @@ function imageElement(
   return dom instanceof HTMLElement ? dom.querySelector('img') : null
 }
 
+interface AltTextFieldProps {
+  label: string
+  help: string
+  /** The alternative text of the image */
+  value: string
+  /** Writes it in the image, `keepSelection` when the focus goes on in the editor */
+  onApply: (alt: string) => void
+  onBackToText: () => void
+  onBackToToolbar: () => void
+  inputRef: RefObject<HTMLInputElement | null>
+  'data-testid'?: string
+}
+
+/**
+ * The field of the alternative text of the image (RGAA 1.1): empty means
+ * decorative (`alt=""`). Enter writes it, Escape gives the old text back;
+ * both return to the text of the message. Tab writes it too and goes on,
+ * Shift+Tab goes back to the toolbar.
+ */
+function AltTextField({
+  label,
+  help,
+  value,
+  onApply,
+  onBackToText,
+  onBackToToolbar,
+  inputRef,
+  'data-testid': testId
+}: AltTextFieldProps): ReactElement {
+  const helpId = useId()
+  const [draft, setDraft] = useState(value)
+  /** Escape or a key already wrote or dropped the text: leaving writes nothing more */
+  const isDone = useRef(false)
+
+  const finish = (apply: boolean, leave: () => void): void => {
+    isDone.current = true
+    // The focus leaves first: writing the text remounts this field
+    leave()
+    if (apply && draft !== value) onApply(draft)
+    if (!apply) setDraft(value)
+  }
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    isDone.current = false
+    const key = event.key
+    if (key === 'Enter') {
+      finish(true, onBackToText)
+    } else if (key === 'Escape') {
+      finish(false, onBackToText)
+    } else if (key === 'Tab') {
+      finish(true, event.shiftKey ? onBackToToolbar : onBackToText)
+    } else {
+      return
+    }
+    event.preventDefault()
+    // Not to the composer around the editor (Escape closes it)
+    event.stopPropagation()
+  }
+
+  return (
+    <>
+      <TextField
+        label={label}
+        value={draft}
+        onChange={event => setDraft(event.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => {
+          if (!isDone.current && draft !== value) onApply(draft)
+          isDone.current = false
+        }}
+        size="small"
+        inputRef={inputRef}
+        sx={{ minWidth: 200, flex: '1 1 200px' }}
+        slotProps={{
+          htmlInput: {
+            'aria-describedby': helpId,
+            autoComplete: 'off',
+            'data-testid': testId
+          }
+        }}
+      />
+      <span id={helpId} className="u-visuallyhidden">
+        {help}
+      </span>
+    </>
+  )
+}
+
 export interface ImageToolbarProps {
   editor: Editor
   labels: RichTextImageLabels
   /** Lets the editor move the focus here (Enter on a selected image) */
   actionsRef: RefObject<EditorActions>
   'data-testid'?: string
+  altInputTestId?: string
   buttonTestId?: (item: RichTextImageItemId) => string
 }
 
 /**
  * The toolbar of the selected image, next to it: sizes in % of the image's
  * own width (as the resize handles, it writes `width` and `height`),
- * smaller, larger, remove, and a status line saying the size.
+ * smaller, larger, remove, a field for its alternative text and a status
+ * line saying the size.
  *
  * Keyboard: arrows select an image in the text, Enter moves the focus here;
- * arrows (Home, End) move between the buttons; Escape or Tab go back to the
- * text, the image still selected.
+ * arrows (Home, End) move between the buttons; Escape or Shift+Tab go back
+ * to the text, the image still selected; Tab goes to the alternative text,
+ * where Enter and Escape return to the text (see `AltTextField`).
  */
 export function ImageToolbar({
   editor,
   labels,
   actionsRef,
   'data-testid': testId,
+  altInputTestId,
   buttonTestId
 }: ImageToolbarProps): ReactElement | null {
   const image = useEditorState({
@@ -112,6 +212,7 @@ export function ImageToolbar({
   const [hasFocus, setHasFocus] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const altRef = useRef<HTMLInputElement>(null)
 
   const element = image === null ? null : imageElement(editor, image.position)
   const naturalWidth = element?.naturalWidth ?? 0
@@ -136,6 +237,18 @@ export function ImageToolbar({
         tr.setNodeAttribute(image.position, 'width', width)
         tr.setNodeAttribute(image.position, 'height', height)
         tr.setSelection(NodeSelection.create(tr.doc, image.position))
+        return true
+      })
+      .run()
+  }
+
+  const writeAlt = (alt: string): void => {
+    if (image === null) return
+    // Not touching the selection: the focus may be leaving for elsewhere
+    editor
+      .chain()
+      .command(({ tr }) => {
+        tr.setNodeAttribute(image.position, 'alt', alt)
         return true
       })
       .run()
@@ -219,7 +332,7 @@ export function ImageToolbar({
       Home: () => focusItem(0),
       End: () => focusItem(items.length - 1),
       Escape: backToText,
-      Tab: backToText
+      Tab: event.shiftKey ? backToText : () => altRef.current?.focus()
     }
     const action = keys[event.key]
     if (action) {
@@ -269,7 +382,14 @@ export function ImageToolbar({
         onFocus={() => setHasFocus(true)}
         onBlur={handleBlur}
         className="u-flex u-flex-items-center"
-        sx={{ gap: 0.25, px: 0.5, py: 0.25, mt: 0.5 }}
+        sx={{
+          gap: 0.5,
+          px: 0.5,
+          py: 0.5,
+          mt: 0.5,
+          flexWrap: 'wrap',
+          maxWidth: 'min(520px, 90vw)'
+        }}
       >
         <Box
           role="toolbar"
@@ -324,6 +444,18 @@ export function ImageToolbar({
             </Box>
           ))}
         </Box>
+        <AltTextField
+          // A new text when another image, or the image changed elsewhere
+          key={`${image.position}:${image.alt}`}
+          label={labels.alt}
+          help={labels.altHelp}
+          value={image.alt}
+          onApply={writeAlt}
+          onBackToText={backToText}
+          onBackToToolbar={() => focusItem(activeIndex)}
+          inputRef={altRef}
+          data-testid={altInputTestId}
+        />
         <Typography
           role="status"
           variant="caption"

@@ -66,6 +66,10 @@ export interface RichTextImageLabels {
   remove: string
   /** What the status line says of the current size */
   sizeStatus: (width: number, percent: number) => string
+  /** Label of the field of the alternative text */
+  alt: string
+  /** What an empty alternative text means, and the keys of the field */
+  altHelp: string
 }
 
 /** Every string of the editor, translated by the caller */
@@ -149,6 +153,7 @@ export interface RichTextEditorTestIds {
   linkUrlInput?: string
   linkApplyButton?: string
   imageToolbar?: string
+  imageAltInput?: string
   imageButton?: (item: RichTextImageItemId) => string
 }
 

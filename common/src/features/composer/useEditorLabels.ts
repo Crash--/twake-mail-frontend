@@ -132,7 +132,9 @@ export function useEditorLabels(): EditorLabels {
         larger: t('composer.editor.image.larger'),
         remove: t('composer.editor.image.remove'),
         sizeStatus: (width, percent) =>
-          t('composer.editor.image.sizeStatus', { width, percent })
+          t('composer.editor.image.sizeStatus', { width, percent }),
+        alt: t('composer.editor.image.alt'),
+        altHelp: t('composer.editor.image.altHelp')
       }
     },
     colors: [

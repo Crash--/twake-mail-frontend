@@ -278,7 +278,9 @@
         "smaller": "Plus petite",
         "larger": "Plus grande",
         "remove": "Supprimer l'image",
-        "sizeStatus": "Largeur %{width} px, %{percent} % de l'original"
+        "sizeStatus": "Largeur %{width} px, %{percent} % de l'original",
+        "alt": "Texte alternatif",
+        "altHelp": "Laissez vide si l'image est purement décorative. Entrée valide, Échap annule."
       },
       "textStyle": "Style du texte",
       "textStyles": {

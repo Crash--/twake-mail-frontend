@@ -27,6 +27,8 @@ export interface EmailListDefaultToolbarProps {
   selection: EmailSelection
   /** Emails loaded in the list: nothing to select without */
   loadedCount: number
+  /** The list is loading: "Select all" is there, not yet usable, so that the toolbar does not move when the emails land */
+  isLoading?: boolean
   /** The folder shown, null for a label, Starred and search results */
   mailbox: MailboxSummary | null
   /** The filters of the list, null when it has none (search results, whose filters are above the list) */
@@ -47,6 +49,7 @@ export interface EmailListDefaultToolbarProps {
 export function EmailListDefaultToolbar({
   selection,
   loadedCount,
+  isLoading = false,
   mailbox,
   filter,
   end,
@@ -82,10 +85,11 @@ export function EmailListDefaultToolbar({
           data-testid="list-refresh-button"
         />
       )}
-      {loadedCount === 0 ? null : isPhone ? (
+      {loadedCount === 0 && !isLoading ? null : isPhone ? (
         <IconAction
           label={selectAllLabel}
           icon={SelectAll}
+          disabled={loadedCount === 0}
           onClick={selection.selectLoaded}
           data-testid="list-select-all-button"
         />
@@ -94,6 +98,7 @@ export function EmailListDefaultToolbar({
           label={t('thread.selection.selectAll')}
           tooltip={selectAllLabel}
           icon={CheckboxBlankIcon}
+          disabled={loadedCount === 0}
           onClick={selection.selectLoaded}
           data-testid="list-select-all-button"
         />

@@ -681,6 +681,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           <EmailListDefaultToolbar
             selection={selection}
             loadedCount={emails.length}
+            isLoading={query.isPending}
             mailbox={mailbox}
             filter={filterInToolbar ? listToolbarFilter : null}
             end={search?.toolbarEnd}

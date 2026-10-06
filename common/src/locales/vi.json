@@ -1255,5 +1255,11 @@
   "print": {
     "inProgress": "Đang tiến hành in",
     "failed": "In thất bại"
+  },
+  "teamMailboxEmbed": {
+    "unavailableTitle": "Hộp thư nhóm này không khả dụng",
+    "unavailableDescription": "Bạn không phải là thành viên của %{address}, hoặc hộp thư này không tồn tại.",
+    "sessionExpiredTitle": "Phiên của bạn đã hết hạn",
+    "sessionExpiredDescription": "Hãy đăng nhập lại để xem hộp thư nhóm này."
   }
 }

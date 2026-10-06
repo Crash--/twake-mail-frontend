@@ -1,6 +1,6 @@
 import { Pen } from '@linagora/twake-icons'
 import { Box, Layout } from '@linagora/twake-mui'
-import { useState, type ReactElement } from 'react'
+import { useState, type ReactElement, type ReactNode } from 'react'
 import { Outlet, useLocation, useMatch } from 'react-router'
 
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
@@ -54,6 +54,22 @@ export interface AppLayoutProps {
  */
 export function AppLayout(props: AppLayoutProps): ReactElement {
   return (
+    <MailProviders>
+      <AppFrame {...props} />
+    </MailProviders>
+  )
+}
+
+/**
+ * What the mail screens need around them: shortcuts, folder picker,
+ * recovery, folder and label actions, composers, list filter
+ */
+export function MailProviders({
+  children
+}: {
+  children: ReactNode
+}): ReactElement {
+  return (
     <ShortcutsProvider>
       <MailboxPickerProvider>
         <RecoveryProvider>
@@ -61,9 +77,7 @@ export function AppLayout(props: AppLayoutProps): ReactElement {
             <LabelActionsProvider>
               <ComposerProvider>
                 <SettingsExitProvider>
-                  <ListFilterProvider>
-                    <AppFrame {...props} />
-                  </ListFilterProvider>
+                  <ListFilterProvider>{children}</ListFilterProvider>
                 </SettingsExitProvider>
               </ComposerProvider>
             </LabelActionsProvider>

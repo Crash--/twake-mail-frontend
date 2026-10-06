@@ -1,0 +1,83 @@
+# Facade of a team mailbox (TwakeSpace)
+
+The Mail tab of a TwakeSpace space frames this app on the facade of the
+space's team mailbox ([ADR 010][adr010] of twake-space-architecture: one
+iframe contract for the Drive, Mail, Chat, Calendar and Tasks tabs).
+
+## Route
+
+```
+/embed/team-mailboxes/<address>[/mailbox/<folder id>[/email/<email id>]]
+```
+
+- `<address>` is the address of the team mailbox, encoded as a path segment
+  (`team%40example.com`; a raw `@` works too). It is the resource id the mail
+  side service publishes in `com.twake.mail.space.provisioned.v1` ([ADR
+  005][adr005]): the identity of a team mailbox in TMail (webadmin
+  `/domains/<domain>/team-mailboxes/<name>`, JMAP namespace
+  `TeamMailbox[<address>]`), and it does not change when the space is
+  renamed. The app never receives a space id.
+- The facade has no top bar, app grid, account menu, labels nor banners:
+  "New message" and the folders of the team mailbox (Inbox, Drafts, Outbox,
+  Sent, Trash, Templates, then its subfolders), the list and the reading
+  view. Below the desktop size the folders are in a drawer, opened from a
+  bar holding the name of the current folder.
+- The routes live under the base `/embed/team-mailboxes/<address>` (the
+  `basename` of their router): the screens of the webmail link inside it.
+  Anything else, a folder of the user or of another team mailbox, leads to
+  the Inbox of the team mailbox, never to the folders of the user.
+- A user who is not a member of the team mailbox (a viewer of the space has
+  no access, ADR 005), or an address without team mailbox, gets "This team
+  mailbox is not available" (`team-mailbox-unavailable`).
+- A new message writes from the identity of the team mailbox (its sent copy
+  and its drafts go to its folders, as in the webmail). Moving an email to a
+  folder of the user stays possible from the move picker.
+
+## Sign in
+
+The facade signs in as the webmail does (`AUTH_MODE`), with one difference
+in a frame: the SSO refuses to show its portal there, and a frame cannot
+tell a blocked page from a slow one. So, in a frame, the authorization
+request is silent (`prompt=none`) and replaces the page (no entry in the
+history the frame shares with TwakeSpace):
+
+- with an SSO session (the one of TwakeSpace, same site), the SSO comes
+  back with a code at once;
+- without one, it comes back with `login_required` (or
+  `interaction_required`, `consent_required`, `account_selection_required`):
+  the facade shows "Your session has expired" (`team-mailbox-session-expired`)
+  and tells TwakeSpace, which signs the user in again and reloads its frames.
+
+The callback page of the SSO (`/callback`, or `login-callback.html` with
+`DOMAIN_REDIRECT_URL`) is outside the base of the facade: the app knows a
+login of the facade by the return path of the pending login, handles the
+callback first, then puts that path back in the address. Outside a frame
+(the route opened in a tab) the login is the regular one.
+
+## Talking to TwakeSpace
+
+Through cozy-external-bridge, as with Twake Workplace, set up with the origin
+of `TWAKE_SPACE_URL` only (outside a frame or without it, the facade says
+nothing):
+
+- **navigation**: `startHistorySyncing`, so every navigation of the facade
+  reaches `updateHistory(<path>)` of TwakeSpace, which can write it in its
+  own address and frame that path again on a reload;
+- **sign in again**: `notifyLoginRequired()` of the bridge. Until a version
+  of cozy-external-bridge has it, the facade posts
+  `{ type: 'twake-embed:login-required' }` to the origin of TwakeSpace.
+
+TwakeSpace exposes these methods with Comlink, as
+cozy-external-bridge-container does (that package needs a Cozy app:
+cozy-client, cozy-flags, the data proxy).
+
+## Deployment
+
+- `TWAKE_SPACE_URL`: the URL of TwakeSpace (its origin is kept).
+- `CSP_FRAME_ANCESTORS` must allow the origin of TwakeSpace. The header is
+  the same for every page: the SSO callback is framed too.
+- TwakeSpace, the app and the SSO portal are served on one registrable
+  domain (ADR 010), so that the SSO cookie reaches the frame.
+
+[adr010]: https://github.com/linagora/twake-space-architecture/pull/10
+[adr005]: https://github.com/linagora/twake-space-architecture/pull/5

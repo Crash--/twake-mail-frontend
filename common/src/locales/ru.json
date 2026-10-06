@@ -1255,5 +1255,11 @@
   "print": {
     "inProgress": "Идет процесс печати",
     "failed": "Ошибка печати"
+  },
+  "teamMailboxEmbed": {
+    "unavailableTitle": "Этот общий почтовый ящик недоступен",
+    "unavailableDescription": "Вы не являетесь участником %{address}, или он не существует.",
+    "sessionExpiredTitle": "Срок действия сеанса истёк",
+    "sessionExpiredDescription": "Войдите снова, чтобы открыть этот общий почтовый ящик."
   }
 }

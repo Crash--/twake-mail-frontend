@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The facade of a team mailbox for the Mail tab of TwakeSpace,
+  `/embed/team-mailboxes/<address>`: its folders, list and reading view
+  without the frame of the webmail, new messages from its address, a silent
+  login in a frame, and its navigation and "sign in again" sent to TwakeSpace
+  through cozy-external-bridge (`TWAKE_SPACE_URL`). See
+  `docs/team-mailbox-embed.md`.
+
 - Keyboard navigation of the folder trees (system folders, folders of the user,
   Team-mailboxes, results of the folder search), as the WAI-ARIA tree view: one
   tab stop per tree, Up / Down / Home / End, Right and Left to expand, collapse

@@ -6,8 +6,8 @@
 #   pull request      built (linux/amd64 and linux/arm64) and smoke tested, never pushed
 #
 # <image> is ghcr.io/<owner>/twake-mail-frontend, or the repository variable IMAGE_REPOSITORY
-# (e.g. docker.io/example/twake-mail-frontend, with the secrets REGISTRY_USERNAME and
-# REGISTRY_PASSWORD). The image gets OCI labels, an SBOM and a provenance attestation, and is
+# (e.g. ghcr.io/linagora/twake-mail-frontend or docker.io/example/twake-mail-frontend, with the
+# secrets REGISTRY_USERNAME and REGISTRY_PASSWORD; for GHCR, a token with write:packages). The image gets OCI labels, an SBOM and a provenance attestation, and is
 # scanned by Trivy (report only, never blocking).
 name: Docker image
 
@@ -120,8 +120,10 @@ jobs:
         uses: docker/login-action@v4
         with:
           registry: ${{ steps.repository.outputs.registry }}
-          username: ${{ steps.repository.outputs.registry == 'ghcr.io' && github.actor || secrets.REGISTRY_USERNAME }}
-          password: ${{ steps.repository.outputs.registry == 'ghcr.io' && secrets.GITHUB_TOKEN || secrets.REGISTRY_PASSWORD }}
+          # The secrets when set (any registry, GHCR of another owner included), else the
+          # workflow token, which can only push to GHCR under the owner of this repository.
+          username: ${{ secrets.REGISTRY_USERNAME || github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
 
       - name: Build (linux/amd64, linux/arm64) and push
         uses: docker/build-push-action@v7

@@ -255,7 +255,7 @@ describe('createOidcAuthService', () => {
       const dependencies = makeDependencies()
       const service = createOidcAuthService(CONFIG, dependencies, FRAMED)
 
-      await service.startLogin('/embed/team-mailboxes/team%40example.com/')
+      await service.startLogin('/embed/team-mailboxes/team/')
 
       expect(mockedClient.buildAuthorizationUrl).toHaveBeenCalledWith(
         configuration,
@@ -266,7 +266,7 @@ describe('createOidcAuthService', () => {
       )
       expect(dependencies.redirect).not.toHaveBeenCalled()
       expect(peekPendingLoginReturnTo(dependencies.storage)).toBe(
-        '/embed/team-mailboxes/team%40example.com/'
+        '/embed/team-mailboxes/team/'
       )
     })
 
@@ -287,7 +287,7 @@ describe('createOidcAuthService', () => {
       'account_selection_required'
     ])('says the user must sign in when the SSO answers %s', async error => {
       const service = createOidcAuthService(CONFIG, makeDependencies(), FRAMED)
-      await service.startLogin('/embed/team-mailboxes/team%40example.com/')
+      await service.startLogin('/embed/team-mailboxes/team/')
 
       await expect(
         service.handleCallback(
@@ -298,7 +298,7 @@ describe('createOidcAuthService', () => {
       ).resolves.toEqual({
         ok: false,
         error: 'login-required',
-        returnTo: '/embed/team-mailboxes/team%40example.com/'
+        returnTo: '/embed/team-mailboxes/team/'
       })
       expect(mockedClient.authorizationCodeGrant).not.toHaveBeenCalled()
     })

@@ -68,7 +68,8 @@ import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
-import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
+import { useTeamMailboxRoot } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
+import { teamMailboxAddress } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useMarkUnsubscribed } from '@common/features/email/useMarkUnsubscribed'
@@ -1773,7 +1774,11 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
   const serverSettings = useServerSettings()
   const { composerId, init } = props
   // The facade of a team mailbox writes from its address
-  const teamAddress = useTeamMailboxEmbed()
+  const teamRoot = useTeamMailboxRoot()
+  const teamAddress =
+    teamRoot === null
+      ? null
+      : (teamMailboxAddress(teamRoot)?.toLowerCase() ?? null)
   // Read once per composer: the key only says which one
   // eslint-disable-next-line @tanstack/query/exhaustive-deps
   const content = useQuery({

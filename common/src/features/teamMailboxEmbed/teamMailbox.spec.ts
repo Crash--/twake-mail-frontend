@@ -8,17 +8,30 @@ import {
 
 const MAILBOXES = [
   makeMailbox({ id: 'inbox', name: 'Inbox', role: 'inbox' }),
-  ...makeTeamMailboxes({ id: 'sales', address: 'Sales@example.com' }),
+  ...makeTeamMailboxes({ id: 'sales', address: 'sales@example.com' }),
   ...makeTeamMailboxes({ id: 'team', address: 'team@example.com' })
 ]
 
 describe('team mailbox of the facade', () => {
-  it('tells the folders of one team mailbox, without case', () => {
-    const sales = MAILBOXES.filter(mailbox =>
-      isInTeamMailbox(mailbox, 'sales@example.com')
-    )
+  it('finds the root by its id, none for a mailbox the user cannot see', () => {
+    expect(findTeamMailboxRoot(MAILBOXES, 'team')?.name).toBe('team')
+    expect(findTeamMailboxRoot(MAILBOXES, 'other')).toBe(null)
+  })
 
-    expect(sales.map(({ id }) => id)).toEqual([
+  it('takes neither a folder of the team mailbox nor one of the user for its root', () => {
+    expect(findTeamMailboxRoot(MAILBOXES, 'team-inbox')).toBe(null)
+    expect(findTeamMailboxRoot(MAILBOXES, 'inbox')).toBe(null)
+  })
+
+  it('tells the folders of one team mailbox', () => {
+    const root = findTeamMailboxRoot(MAILBOXES, 'sales')
+    if (root === null) throw new Error('No root')
+
+    expect(
+      MAILBOXES.filter(mailbox => isInTeamMailbox(mailbox, root)).map(
+        ({ id }) => id
+      )
+    ).toEqual([
       'sales',
       'sales-inbox',
       'sales-drafts',
@@ -29,21 +42,14 @@ describe('team mailbox of the facade', () => {
     ])
   })
 
-  it('finds the root, none for a mailbox the user is not a member of', () => {
-    expect(findTeamMailboxRoot(MAILBOXES, 'team@example.com')?.id).toBe('team')
-    expect(findTeamMailboxRoot(MAILBOXES, 'other@example.com')).toBe(null)
-  })
-
   it('opens on the Inbox of the team mailbox, never the one of the user', () => {
-    expect(findTeamInboxId(MAILBOXES, 'sales@example.com')).toBe('sales-inbox')
-    expect(findTeamInboxId(MAILBOXES, 'other@example.com')).toBe(null)
+    expect(findTeamInboxId(MAILBOXES, 'sales')).toBe('sales-inbox')
+    expect(findTeamInboxId(MAILBOXES, 'other')).toBe(null)
   })
 
   it('falls back to the first folder when the Inbox is missing', () => {
     const withoutInbox = MAILBOXES.filter(({ id }) => id !== 'team-inbox')
 
-    expect(findTeamInboxId(withoutInbox, 'team@example.com')).toBe(
-      'team-drafts'
-    )
+    expect(findTeamInboxId(withoutInbox, 'team')).toBe('team-drafts')
   })
 })

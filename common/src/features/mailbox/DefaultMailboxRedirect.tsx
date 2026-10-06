@@ -19,7 +19,7 @@ import { useMailboxes } from './useMailboxes'
 export function DefaultMailboxRedirect(): ReactElement {
   const { t } = useI18n()
   const query = useMailboxes()
-  const teamAddress = useTeamMailboxEmbed()
+  const teamRootId = useTeamMailboxEmbed()
 
   if (query.isPending) return <FullPageLoader />
 
@@ -37,15 +37,13 @@ export function DefaultMailboxRedirect(): ReactElement {
     )
   }
 
-  if (teamAddress !== null) {
-    const teamInboxId = findTeamInboxId(query.data, teamAddress)
+  if (teamRootId !== null) {
+    const teamInboxId = findTeamInboxId(query.data, teamRootId)
     if (teamInboxId === null) {
       return (
         <ErrorScreen
           title={t('teamMailboxEmbed.unavailableTitle')}
-          description={t('teamMailboxEmbed.unavailableDescription', {
-            address: teamAddress
-          })}
+          description={t('teamMailboxEmbed.unavailableDescription')}
           data-testid="team-mailbox-unavailable"
         />
       )

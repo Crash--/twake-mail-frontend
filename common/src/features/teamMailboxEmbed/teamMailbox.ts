@@ -1,32 +1,31 @@
 import {
-  findTeamFolderByAddress,
-  isTeamRoot,
-  teamMailboxAddress
+  findTeamFolderId,
+  isPersonalMailbox,
+  isTeamRoot
 } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 
-/** Whether a folder belongs to the team mailbox of `address` (lowercased) */
-export function isInTeamMailbox(
-  mailbox: Pick<MailboxSummary, 'namespace'>,
-  address: string
-): boolean {
-  return teamMailboxAddress(mailbox)?.toLowerCase() === address
-}
-
 /**
- * The root of the team mailbox of `address`: null when the user is not one
- * of its members (a viewer of the space has no access, ADR 005) or when it
- * does not exist
+ * The root of the team mailbox whose root folder is `rootId`: null when the
+ * user is not one of its members (a viewer of the space has no access, ADR
+ * 005), or when it is not the root of a team mailbox
  */
 export function findTeamMailboxRoot(
   mailboxes: readonly MailboxSummary[],
-  address: string
+  rootId: string
 ): MailboxSummary | null {
   return (
-    mailboxes.find(
-      mailbox => isTeamRoot(mailbox) && isInTeamMailbox(mailbox, address)
-    ) ?? null
+    mailboxes.find(mailbox => mailbox.id === rootId && isTeamRoot(mailbox)) ??
+    null
   )
+}
+
+/** Whether a folder belongs to the team mailbox of `root`: its namespace */
+export function isInTeamMailbox(
+  mailbox: Pick<MailboxSummary, 'namespace'>,
+  root: Pick<MailboxSummary, 'namespace'>
+): boolean {
+  return !isPersonalMailbox(mailbox) && mailbox.namespace === root.namespace
 }
 
 /**
@@ -35,12 +34,12 @@ export function findTeamMailboxRoot(
  */
 export function findTeamInboxId(
   mailboxes: readonly MailboxSummary[],
-  address: string
+  rootId: string
 ): string | null {
-  const root = findTeamMailboxRoot(mailboxes, address)
+  const root = findTeamMailboxRoot(mailboxes, rootId)
   if (root === null) return null
   return (
-    findTeamFolderByAddress(mailboxes, address, 'inbox') ??
+    findTeamFolderId(mailboxes, root.id, 'inbox') ??
     mailboxes.find(mailbox => mailbox.parentId === root.id)?.id ??
     root.id
   )

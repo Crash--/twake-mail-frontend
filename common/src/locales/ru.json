@@ -1258,7 +1258,7 @@
   },
   "teamMailboxEmbed": {
     "unavailableTitle": "Этот общий почтовый ящик недоступен",
-    "unavailableDescription": "Вы не являетесь участником %{address}, или он не существует.",
+    "unavailableDescription": "Вы не являетесь участником этого общего почтового ящика, или он не существует.",
     "sessionExpiredTitle": "Срок действия сеанса истёк",
     "sessionExpiredDescription": "Войдите снова, чтобы открыть этот общий почтовый ящик."
   }

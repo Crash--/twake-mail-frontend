@@ -7,28 +7,30 @@ iframe contract for the Drive, Mail, Chat, Calendar and Tasks tabs).
 ## Route
 
 ```
-/embed/team-mailboxes/<address>[/mailbox/<folder id>[/email/<email id>]]
+/embed/team-mailboxes/<id>[/mailbox/<folder id>[/email/<email id>]]
 ```
 
-- `<address>` is the address of the team mailbox, encoded as a path segment
-  (`team%40example.com`; a raw `@` works too). It is the resource id the mail
-  side service publishes in `com.twake.mail.space.provisioned.v1` ([ADR
-  005][adr005]): the identity of a team mailbox in TMail (webadmin
-  `/domains/<domain>/team-mailboxes/<name>`, JMAP namespace
-  `TeamMailbox[<address>]`), and it does not change when the space is
-  renamed. The app never receives a space id.
+- `<id>` is the id of the root folder of the team mailbox, the resource id
+  the mail side service publishes in `com.twake.mail.space.provisioned.v1`
+  ([ADR 005][adr005]). The service reads it from webadmin, the `mailboxId`
+  of the folder named after the team mailbox in
+  `GET /domains/<domain>/team-mailboxes/<name>/mailboxes`; JMAP gives every
+  member the same id for that folder (`Mailbox/get`, namespace
+  `TeamMailbox[<address>]`, no parent). It does not change when the space
+  is renamed. The app never receives a space id.
 - The facade has no top bar, app grid, account menu, labels nor banners:
   "New message" and the folders of the team mailbox (Inbox, Drafts, Outbox,
   Sent, Trash, Templates, then its subfolders), the list and the reading
   view. Below the desktop size the folders are in a drawer, opened from a
   bar holding the name of the current folder.
-- The routes live under the base `/embed/team-mailboxes/<address>` (the
+- The routes live under the base `/embed/team-mailboxes/<id>` (the
   `basename` of their router): the screens of the webmail link inside it.
   Anything else, a folder of the user or of another team mailbox, leads to
   the Inbox of the team mailbox, never to the folders of the user.
 - A user who is not a member of the team mailbox (a viewer of the space has
-  no access, ADR 005), or an address without team mailbox, gets "This team
-  mailbox is not available" (`team-mailbox-unavailable`).
+  no access, ADR 005), or an id that is not the root of a team mailbox of
+  theirs, gets "This team mailbox is not available"
+  (`team-mailbox-unavailable`).
 - A new message writes from the identity of the team mailbox (its sent copy
   and its drafts go to its folders, as in the webmail). Moving an email to a
   folder of the user stays possible from the move picker.
@@ -78,6 +80,9 @@ cozy-client, cozy-flags, the data proxy).
 
 ## Deployment
 
+- Team mailboxes need the ACLs of James: `acl.enabled=true` in
+  `cassandra.properties` (`mailRepository.cassandra.aclEnabled` in the Helm
+  chart of tmail-backend).
 - `TWAKE_SPACE_URL`: the URL of TwakeSpace (its origin is kept).
 - `CSP_FRAME_ANCESTORS` must allow the origin of TwakeSpace. The header is
   the same for every page: the SSO callback is framed too.

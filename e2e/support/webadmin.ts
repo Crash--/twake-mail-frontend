@@ -98,6 +98,24 @@ export class WebAdminClient {
     return this.#call('PUT', path)
   }
 
+  /**
+   * The folders of a team mailbox, its root first: what the mail side
+   * service of TwakeSpace reads to publish the id of the root
+   */
+  async listTeamMailboxFolders(
+    domain: string,
+    name: string
+  ): Promise<{ mailboxName: string; mailboxId: string }[]> {
+    const response = await this.#call(
+      'GET',
+      `/domains/${encodeURIComponent(domain)}/team-mailboxes/${encodeURIComponent(name)}/mailboxes`
+    )
+    return (await response.json()) as {
+      mailboxName: string
+      mailboxId: string
+    }[]
+  }
+
   async deleteTeamMailbox(domain: string, name: string): Promise<Response> {
     return this.#call(
       'DELETE',

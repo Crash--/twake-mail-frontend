@@ -602,7 +602,7 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/team-mailboxes.spec.ts`.
 - [x] `TMB-09` The move picker lists a folder emails cannot be added to (`mayAddItems`) as unavailable. — web app only, no Patrol test
   - Spec: `tests/team-mailboxes.spec.ts`.
-- [x] `TMB-10` Framed, the facade of a team mailbox (`/embed/team-mailboxes/<address>`) opens its Inbox and lists its folders only, without the top bar. axe. — web app only (TwakeSpace), no Patrol test
+- [x] `TMB-10` Framed, the facade of a team mailbox (`/embed/team-mailboxes/<id of its root>`, read from webadmin) opens its Inbox and lists its folders only, without the top bar. axe. — web app only (TwakeSpace), no Patrol test
   - Spec: `tests/team-mailbox-embed.spec.ts`.
 - [x] `TMB-11` A new message of the facade writes from the address of the team mailbox. — web app only (TwakeSpace), no Patrol test
   - Spec: `tests/team-mailbox-embed.spec.ts`.

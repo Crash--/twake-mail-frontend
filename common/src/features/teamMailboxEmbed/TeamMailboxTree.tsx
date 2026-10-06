@@ -23,8 +23,8 @@ import { findTeamMailboxRoot, isInTeamMailbox } from './teamMailbox'
 const SKELETON_ROWS = [1, 2, 3, 4, 5]
 
 export interface TeamMailboxTreeProps {
-  /** The address of the team mailbox, lowercased */
-  address: string
+  /** The id of the root folder of the team mailbox */
+  rootId: string
 }
 
 /**
@@ -34,7 +34,7 @@ export interface TeamMailboxTreeProps {
  * this mailbox.
  */
 export function TeamMailboxTree({
-  address
+  rootId
 }: TeamMailboxTreeProps): ReactElement {
   const { t } = useI18n()
   const titleId = useId()
@@ -47,12 +47,14 @@ export function TeamMailboxTree({
     anchor: FolderMenuAnchor
   } | null>(null)
 
+  const root = findTeamMailboxRoot(query.data ?? [], rootId)
   const folders = useMemo(
     () =>
-      (query.data ?? []).filter(mailbox => isInTeamMailbox(mailbox, address)),
-    [query.data, address]
+      root === null
+        ? []
+        : (query.data ?? []).filter(mailbox => isInTeamMailbox(mailbox, root)),
+    [query.data, root]
   )
-  const root = findTeamMailboxRoot(folders, address)
   // The root is the mailbox itself, its folders the top level
   const tree = useMemo(
     () =>
@@ -107,7 +109,7 @@ export function TeamMailboxTree({
   return (
     <>
       <NavSectionHeader
-        title={root?.name ?? address}
+        title={root?.name ?? ''}
         titleId={titleId}
         data-testid="team-mailbox-title"
       />

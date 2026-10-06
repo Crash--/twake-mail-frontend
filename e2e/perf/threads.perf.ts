@@ -68,6 +68,7 @@ test.describe('PERF conversations', () => {
   for (const kind of ['reply to a loaded conversation', 'reply to an older conversation', 'new conversation'] as const) {
     test(`PERF-04 push with ${SCROLL_TARGET} conversations loaded: ${kind}`, async ({ browser }) => {
       const user = readPerfUser()
+      test.skip(user.threads !== true, 'Needs the perf user seeded with PERF_THREADS=1')
       const m: Record<string, number[]> = {}
       const add = (name: string, value: number): void => {
         ;(m[`4. ${kind}: ${name}`] ??= []).push(value)
@@ -121,6 +122,7 @@ test.describe('PERF grouped search', () => {
       browser
     }) => {
       const user = readPerfUser()
+      test.skip(user.threads !== true, 'Needs the perf user seeded with PERF_THREADS=1')
       const trashId = await mailboxIdByRole(user, 'trash')
       const m: Record<string, number[]> = {}
       const add = (name: string, value: number): void => {

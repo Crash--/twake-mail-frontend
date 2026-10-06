@@ -1,4 +1,5 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
+import { onlineManager } from '@tanstack/react-query'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, useParams } from 'react-router'
@@ -56,6 +57,13 @@ function renderList(
       )
     }
   )
+}
+
+function setOnline(isOnline: boolean): void {
+  jest.spyOn(window.navigator, 'onLine', 'get').mockReturnValue(isOnline)
+  act(() => {
+    window.dispatchEvent(new Event(isOnline ? 'online' : 'offline'))
+  })
 }
 
 function makeEmails(count: number): ReturnType<typeof makeEmail>[] {
@@ -284,6 +292,63 @@ describe('EmailList', () => {
       "You don't have any email in this folder."
     )
     expect(screen.queryByTestId('email-list')).toBe(null)
+  })
+
+  describe('offline', () => {
+    afterEach(() => {
+      onlineManager.setOnline(true)
+      jest.restoreAllMocks()
+    })
+
+    it('says there is no connection instead of the empty view', async () => {
+      renderList(makeFakeJmapServer({ emails: [] }))
+      await screen.findByTestId('empty-thread-view')
+
+      setOnline(false)
+
+      expect(screen.getByTestId('email-list-offline')).toHaveTextContent(
+        'No internet connection, try again later.'
+      )
+      expect(screen.queryByTestId('empty-thread-view')).toBe(null)
+
+      setOnline(true)
+
+      expect(await screen.findByTestId('empty-thread-view')).toBeVisible()
+    })
+
+    it('keeps the emails already listed', async () => {
+      renderList(
+        makeFakeJmapServer({
+          emails: [makeEmail({ id: 'e1', subject: 'Kept' })]
+        })
+      )
+      await screen.findByText('Kept')
+
+      setOnline(false)
+
+      expect(screen.getByText('Kept')).toBeVisible()
+      expect(screen.queryByTestId('email-list-offline')).toBe(null)
+    })
+
+    it('shows the offline view, not skeletons, while a first load waits for the network', async () => {
+      const server = makeFakeJmapServer({
+        emails: [makeEmail({ id: 'e1', subject: 'Landed' })]
+      })
+      const release = server.holdRequests('Email/query')
+      renderList(server)
+      await screen.findByTestId('email-list-loading')
+
+      setOnline(false)
+
+      expect(screen.getByTestId('email-list-offline')).toBeVisible()
+      expect(screen.queryByTestId('email-list-loading')).toBe(null)
+
+      setOnline(true)
+      release()
+
+      expect(await screen.findByText('Landed')).toBeVisible()
+      expect(screen.queryByTestId('email-list-offline')).toBe(null)
+    })
   })
 
   it('shows the recipients in the Sent folder', async () => {

@@ -25,6 +25,8 @@ export class LoadingPage {
   readonly offlineBanner: Locator
   /** The live region saying that the network is gone, or back */
   readonly networkAnnouncement: Locator
+  /** What an empty list, or one still to load, says offline */
+  readonly offlineListView: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -34,6 +36,7 @@ export class LoadingPage {
     this.loadingAnnouncement = page.getByTestId('loading-announcement')
     this.offlineBanner = page.getByTestId('offline-banner')
     this.networkAnnouncement = page.getByTestId('network-announcement')
+    this.offlineListView = page.getByTestId('email-list-offline')
   }
 
   /** The box of a locator, once it is on the page */

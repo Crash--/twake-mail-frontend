@@ -255,8 +255,8 @@ test.describe('OFF offline banner', () => {
     // A polite region of its own, not an alert that would interrupt
     await expect(loading.networkAnnouncement).toHaveAttribute('role', 'status')
     await expect(loading.offlineBanner).not.toHaveAttribute('role', 'alert')
-    // The app keeps what it has
-    await expect(mailbox.emailList.or(mailbox.emptyListView)).toBeVisible()
+    // The app keeps what it has; an empty list says why (OFF-03)
+    await expect(mailbox.emailList.or(loading.offlineListView)).toBeVisible()
     await expectNoA11yViolations(page)
 
     await loading.offlineBanner.getByRole('button', { name: 'Dismiss' }).click()
@@ -315,6 +315,34 @@ test.describe('OFF offline banner', () => {
     await expect(loading.listSkeleton).toBeHidden()
     await expect(loading.networkAnnouncement).toBeEmpty()
   })
+
+  test('OFF-03 offline, a folder not loaded yet says there is no connection, then lists its emails once back', { tag: '@mobile' }, async ({
+    page,
+    context,
+    user,
+    jmap
+  }) => {
+    const loading = new LoadingPage(page)
+    await jmap.sendEmail({ to: user.email, subject: 'Filed', text: 'Hi', saveTo: 'trash' })
+    await jmap.waitForEmail({ subject: 'Filed', mailboxRole: 'trash' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+
+    await context.setOffline(true)
+    await expect(loading.offlineBanner).toBeVisible()
+    await mailbox.openFolder({ role: 'trash' })
+
+    await expect(loading.offlineListView).toHaveText(
+      'No internet connection, try again later.'
+    )
+    await expect(loading.listSkeleton).toBeHidden()
+    await expectNoA11yViolations(page)
+
+    await context.setOffline(false)
+
+    await expect(mailbox.emailRow('Filed')).toBeVisible()
+    await expect(loading.offlineListView).toBeHidden()
+  })
+
 })
 
 test.describe('LOAD in the facade of a team mailbox', () => {

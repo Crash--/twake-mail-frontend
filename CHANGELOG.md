@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for the session, as tmail-flutter's Skip), said politely once, with "Back
   online" at the return. Back online, what arrived meanwhile is caught up from
   the `/changes` of the emails and folders, without refetching every list.
+- Offline, an empty list (a folder not loaded yet, a search) says "No internet
+  connection, try again later." instead of its skeletons or its empty view, as
+  tmail-flutter; the emails already listed stay.
 
 - Keyboard navigation of the folder trees (system folders, folders of the user,
   Team-mailboxes, results of the folder search), as the WAI-ARIA tree view: one

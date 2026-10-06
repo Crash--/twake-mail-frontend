@@ -126,4 +126,87 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
       else expect(toolbar.height).toBeGreaterThanOrEqual(53)
     }
   )
+
+  test(
+    'CMP-100 with 200 recipients the chips scroll in a field of 3 rows, and the body keeps its height',
+    { tag: '@mobile' },
+    async ({ page, user }) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const composer = await mailbox.compose()
+      const addresses = (prefix: string): string =>
+        Array.from(
+          { length: 200 },
+          (_, index) => `${prefix}${index}@example.com`
+        ).join(', ')
+      const to = composer.root.getByTestId('composer-to-field')
+      // The area the message is written in: the scrolling ancestor of the editing area
+      const body = async (): Promise<Box> =>
+        composer.editor.evaluate(element => {
+          let area: HTMLElement | null = element.parentElement
+          while (
+            area !== null &&
+            !['auto', 'scroll'].includes(getComputedStyle(area).overflowY)
+          ) {
+            area = area.parentElement
+          }
+          const box = (area ?? element).getBoundingClientRect()
+          return { x: box.x, y: box.y, width: box.width, height: box.height }
+        })
+
+      const before = await body()
+      await composer.recipientInput('to').fill(addresses('to'))
+      await composer.recipientInput('to').press('Enter')
+      await expect(composer.recipients('to')).toHaveCount(200)
+
+      // Three rows of 32 px chips, 4 px apart, then the field scrolls inside
+      const chips = composer.recipients('to')
+      const content = chips.first().locator('..')
+      expect((await boxOf(content)).height).toBeLessThanOrEqual(104)
+      expect(
+        await content.evaluate(element => element.scrollHeight)
+      ).toBeGreaterThan(104)
+      expect(await styleOf(content, 'overflow-y')).toBe('auto')
+      // The window gave the body about what it had: the field grew by 2 rows at most
+      const after = await body()
+      expect(before.height - after.height).toBeLessThanOrEqual(80)
+      expect(after.height).toBeGreaterThanOrEqual(120)
+
+      // The input at the end stays in view while typing; the focused chip follows the keys
+      await composer.recipientInput('to').focus()
+      await page.keyboard.press('Backspace')
+      const last = chips.last()
+      await expect(last).toBeFocused()
+      const within = async (locator: Locator): Promise<boolean> => {
+        const [inner, outer] = [await boxOf(locator), await boxOf(content)]
+        return (
+          inner.y >= outer.y - 1 &&
+          inner.y + inner.height <= outer.y + outer.height + 1
+        )
+      }
+      expect(await within(last)).toBe(true)
+      for (let step = 0; step < 150; step += 1) {
+        await page.keyboard.press('ArrowLeft')
+      }
+      await expect(chips.nth(49)).toBeFocused()
+      expect(await within(chips.nth(49))).toBe(true)
+      await composer.recipientInput('to').focus()
+      expect(await within(composer.recipientInput('to'))).toBe(true)
+
+      // Cc and Bcc as full as To: the body is still there
+      for (const field of ['cc', 'bcc'] as const) {
+        await composer.showField(field)
+        await composer.recipientInput(field).fill(addresses(field))
+        await composer.recipientInput(field).press('Enter')
+        await expect(composer.recipients(field)).toHaveCount(200)
+        expect(
+          (await boxOf(composer.root.getByTestId(`composer-${field}-field`)))
+            .height
+        ).toBeLessThanOrEqual(120)
+      }
+      expect((await boxOf(to)).height).toBeLessThanOrEqual(120)
+      // 600 recipients in three fields, on a 720 px high desktop screen: 91 px at the worst
+      const full = await body()
+      expect(full.height).toBeGreaterThanOrEqual(80)
+    }
+  )
 })

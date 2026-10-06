@@ -886,3 +886,13 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-a11y.spec.ts`.
 - [x] `A11Y-14` Sending without a recipient opens a dialog with the focus on "Add recipients", which takes it to the To field. — web app only (RGAA, `@mobile`)
   - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `A11Y-15` An image inserted in the body is decorative (`alt=""`, not the name of the file) until its alternative text is written in the field of the image toolbar: named "Alternative text", described by its help, reached with Tab from the toolbar, Enter writes and returns to the text, Escape gives the old text back without folding the window, an emptied field makes it decorative again, Shift+Tab goes back to the toolbar. — web app only (RGAA 1.1)
+  - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `A11Y-16` Escape while a recipient chip is edited gives the chip back, in its place, and stops there; adding nothing is announced; the next Escape minimizes the window. — web app only (RGAA 7.3, `@mobile`)
+  - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `A11Y-17` A recipient chip added is announced ("alice@example.com added", "3 recipients added" for a list) as one removed is, and "Draft saved" of a save asked for is said once, by the toast. — web app only (RGAA 7.5)
+  - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `A11Y-18` The minimized window keeps the name of its button ("Show: ...") with plain text inside, no heading. — web app only (RGAA 9.1)
+  - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `CMP-100` With 200 recipients in To, Cc and Bcc each field shows 3 rows of chips and scrolls inside, the focused chip and the input stay in view, and the body keeps its height (317 of 393 px with To full on a desktop, 91 px at the worst with the three full). — web app only (RGAA 10.11, `@mobile`)
+  - Spec: `tests/composer-geometry.spec.ts`.

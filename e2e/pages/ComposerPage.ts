@@ -20,6 +20,9 @@ export class ComposerPage {
   readonly fullscreenButton: Locator
   readonly identitySelect: Locator
   readonly saveStatus: Locator
+  readonly saveAnnouncement: Locator
+  readonly imageToolbar: Locator
+  readonly imageAltInput: Locator
   readonly sendError: Locator
   readonly deleteDraftButton: Locator
   readonly subjectInput: Locator
@@ -48,6 +51,9 @@ export class ComposerPage {
     this.fullscreenButton = this.root.getByTestId('composer-fullscreen-button')
     this.identitySelect = this.root.getByTestId('composer-identity-select')
     this.saveStatus = this.root.getByTestId('composer-save-status')
+    this.saveAnnouncement = this.root.getByTestId('composer-save-announcement')
+    this.imageToolbar = this.root.getByTestId('rich-text-image-toolbar')
+    this.imageAltInput = this.root.getByTestId('rich-text-image-alt-input')
     this.sendError = this.root.getByTestId('composer-send-error')
     this.deleteDraftButton = this.root.getByTestId(
       'composer-delete-draft-button'
@@ -109,7 +115,11 @@ export class ComposerPage {
   /** Opens a menu of the formatting toolbar and chooses one of its items */
   async chooseFromMenu(button: string, item: string): Promise<void> {
     await this.toolbarButton(button).click()
-    await this.root.page().getByRole('menu').getByText(item, { exact: true }).click()
+    await this.root
+      .page()
+      .getByRole('menu')
+      .getByText(item, { exact: true })
+      .click()
   }
 
   /** The HTML of the editing area, as the browser shows it */
@@ -158,6 +168,17 @@ export class ComposerPage {
     await this.insertImageButton.click()
     await (await chooser).setFiles(file)
     await expect(images).toHaveCount(count + 1, { timeout: 20_000 })
+    return this
+  }
+
+  /**
+   * Selects the image before the caret (ArrowLeft from the text, where the caret is after it)
+   * and waits for its toolbar
+   */
+  async selectLastImage(): Promise<ComposerPage> {
+    await this.editor.focus()
+    await this.page.keyboard.press('ArrowLeft')
+    await expect(this.imageToolbar).toBeVisible()
     return this
   }
 

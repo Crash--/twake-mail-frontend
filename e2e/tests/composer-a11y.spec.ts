@@ -264,10 +264,188 @@ test.describe('A11Y composer', () => {
     await expect(
       composer.root.getByRole('status').filter({ hasText: 'Width 400 px' })
     ).toBeVisible()
-    // The alternative text is the name of the file: the grid tracks it
-    await expect(composer.editor.getByRole('img')).toHaveAccessibleName(
-      'photo.png'
+    // Decorative until the author writes the alternative text (A11Y-15): not the name of the file
+    await expect(
+      composer.editor.locator('img[data-reference]')
+    ).toHaveAttribute('alt', '')
+  })
+
+  test('A11Y-15 the alternative text of an image: a field, empty meaning decorative, Enter writes, Escape cancels', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.editor.focus()
+    await page.keyboard.type('See ')
+    await composer.insertImage({
+      name: 'photo.png',
+      mimeType: 'image/png',
+      buffer: await makePng(page, 400, 200, 'A11Y')
+    })
+    const image = composer.editor.locator('img[data-reference]')
+    // Not the name of the file: empty, so decorative (alt="" is there, not absent)
+    await expect(image).toHaveAttribute('alt', '')
+    await expect(composer.editor.getByRole('img')).toHaveCount(0)
+
+    // The field is in the toolbar's tab path, named and described
+    await composer.selectLastImage()
+    await expect(composer.imageToolbar).toBeVisible()
+    await page.keyboard.press('Enter')
+    await expect(
+      composer.root.getByRole('button', { name: '25%' })
+    ).toBeFocused()
+    await page.keyboard.press('Tab')
+    const field = composer.root.getByRole('textbox', {
+      name: 'Alternative text'
+    })
+    await expect(field).toBeFocused()
+    await expect(field).toHaveValue('')
+    await expect(field).toHaveAccessibleDescription(
+      'Leave empty if the image is only decorative. Enter applies, Escape cancels.'
     )
+    await expectNoA11yViolations(page)
+
+    // Enter writes it and goes back to the text, the image still selected
+    await page.keyboard.type('A pink square with the letters A11Y')
+    await expect(image).toHaveAttribute('alt', '')
+    await page.keyboard.press('Enter')
+    await expect(image).toHaveAttribute(
+      'alt',
+      'A pink square with the letters A11Y'
+    )
+    await expect(composer.editor.getByRole('img')).toHaveAccessibleName(
+      'A pink square with the letters A11Y'
+    )
+    await expect(composer.editor).toBeFocused()
+    await expect(composer.root).toHaveAttribute('data-mode', 'normal')
+
+    // Escape gives the old text back, and does not fold the window
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('Tab')
+    await expect(field).toHaveValue('A pink square with the letters A11Y')
+    await page.keyboard.type(' and more')
+    await page.keyboard.press('Escape')
+    await expect(image).toHaveAttribute(
+      'alt',
+      'A pink square with the letters A11Y'
+    )
+    await expect(composer.editor).toBeFocused()
+    await expect(composer.root).toHaveAttribute('data-mode', 'normal')
+
+    // Emptied: decorative again
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Control+A')
+    await page.keyboard.press('Delete')
+    await page.keyboard.press('Enter')
+    await expect(image).toHaveAttribute('alt', '')
+
+    // Shift+Tab goes back to the toolbar, writing what was typed
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('Tab')
+    await page.keyboard.type('Back')
+    await page.keyboard.press('Shift+Tab')
+    await expect(image).toHaveAttribute('alt', 'Back')
+    await expect(
+      composer.root.getByRole('button', { name: '25%' })
+    ).toBeFocused()
+  })
+
+  test(
+    'A11Y-16 Escape while a chip is edited gives the chip back and stops there; the next Escape folds the window',
+    { tag: '@mobile' },
+    async ({ page, user }, testInfo) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const composer = await mailbox.compose()
+      await composer
+        .recipientInput('to')
+        .fill('alice@example.com, bob@example.com, carol@example.com')
+      await composer.recipientInput('to').press('Enter')
+      await expect(composer.recipients('to')).toHaveCount(3)
+      await composer.recipientInput('to').focus()
+
+      // Edit the middle one, change the text, Escape: the chip is back where it was
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('Enter')
+      await expect(composer.recipientInput('to')).toHaveValue('bob@example.com')
+      await page.keyboard.type('.fr')
+      await page.keyboard.press('Escape')
+      await expect(composer.recipients('to')).toHaveText([
+        'alice@example.com',
+        'bob@example.com',
+        'carol@example.com'
+      ])
+      await expect(composer.recipientInput('to')).toHaveValue('')
+      await expect(composer.recipientInput('to')).toBeFocused()
+      await expect(composer.root).toHaveAttribute('data-mode', 'normal')
+      // Giving a chip back is not adding one: the field still says what it said
+      await expect(
+        composer.root.getByTestId('composer-to-field').getByRole('status')
+      ).toHaveText('3 recipients added')
+
+      // Nothing is being edited any more: the next Escape is the window's
+      if (testInfo.project.name === 'chromium') {
+        await page.keyboard.press('Escape')
+        await composer.expectMode('minimized')
+      }
+    }
+  )
+
+  test('A11Y-17 a chip added is announced as one removed, and "Draft saved" is said once', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    const toStatus = composer.root
+      .getByTestId('composer-to-field')
+      .getByRole('status')
+
+    await composer.addRecipient('to', 'alice@example.com')
+    await expect(toStatus).toHaveText('alice@example.com added')
+    await composer
+      .recipientInput('to')
+      .fill('bob@example.com, carol@example.com, dave@example.com')
+    await composer.recipientInput('to').press('Enter')
+    await expect(toStatus).toHaveText('3 recipients added')
+    await composer.recipientInput('to').press('Backspace')
+    await page.keyboard.press('Delete')
+    await expect(toStatus).toHaveText('dave@example.com removed')
+
+    // A save asked for: the toast says it, the line only shows it
+    await composer.subjectInput.fill('Announced once')
+    await composer.runMoreAction('save-draft')
+    await expect(composer.saveStatus).toHaveText('Draft saved')
+    await expect(page.getByTestId('toast')).toHaveText(/Draft saved/)
+    await expect(composer.saveAnnouncement).toHaveText('')
+    await expect(composer.saveStatus).not.toHaveAttribute('role', /./)
+    const saidTwice = page
+      .getByRole('status')
+      .filter({ hasText: 'Draft saved' })
+    await expect(saidTwice).toHaveCount(1)
+    // The autosave (the live region of the line, with no toast) is tested with the form's specs
+  })
+
+  test('A11Y-18 the minimized window has no heading inside its button, and keeps its name', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ subject: 'Plain title' })
+    await composer.minimizeButton.click()
+    await composer.expectMode('minimized')
+
+    const restore = composer.root.getByRole('button', {
+      name: 'Show: Plain title'
+    })
+    await expect(restore).toBeVisible()
+    await expect(restore.locator('h1, h2, h3, h4, h5, h6')).toHaveCount(0)
+    await expect(composer.root.getByRole('heading')).toHaveCount(0)
+    await expect(restore).toHaveText('Plain title')
+    await expectNoA11yViolations(page)
   })
 
   test('A11Y-13 attachments, the "attached" reminder, the close dialog, the toasts and the template picker', async ({

@@ -96,7 +96,7 @@ const ListTableContext = createContext<ListTableSettings>({
 })
 
 /** Width below which `compactColumns` replace `columns`, in pixels */
-const COMPACT_BELOW = 600
+export const COMPACT_BELOW = 600
 
 /** Marks the focusable element of a row that the arrow keys move between */
 export const ROW_FOCUS_ATTRIBUTE = 'data-row-focus'
@@ -116,7 +116,7 @@ const ROW_SX = {
   }
 } as const
 
-function makeRowLayoutSx({
+export function makeRowLayoutSx({
   paddingX,
   paddingTop,
   paddingBottom,

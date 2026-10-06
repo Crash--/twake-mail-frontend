@@ -836,6 +836,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
 - [x] `CMP-88` (updated, issue #54) — the More menu holds "Insert template" between "Save as draft" and "Save as template", on a phone and on a tablet. — web app (issue #54)
   - Spec: `tests/composer-mobile.spec.ts`.
 - [x] `LST-06` A row with three labels shows the first one then a "+2" chip; the list of labels of the row names the hidden ones ("2 more labels: Personal, Urgent"); on a desktop the row is as high as a row without labels with the chip before the subject, on a phone and a tablet the chips end the preview line, inside the row; axe. — web app (Figma list rows, tmail-flutter `LabelTagListWidget`) (issue #110)
+- [x] `LST-06` A row with three labels shows the first one then a "+2" chip; the list of labels of the row names the hidden ones ("2 more labels: Personal, Urgent"); on a tablet and a desktop the row is as high as a row without labels with the chip before the subject, on a phone the chips end the preview line, inside the row; axe. — web app (Figma list rows, tmail-flutter `LabelTagListWidget`) (issue #110)
   - Spec: `tests/list-rows.spec.ts`.
 - [x] `LST-07` The row of a conversation shows the labels of the email that stands for it (the last one), not those of the older emails: a label on the first email only is not on the row. — tmail-flutter `thread_view.dart` (`presentationEmail.getLabelList`) (issue #110)
   - Spec: `tests/list-rows.spec.ts`.

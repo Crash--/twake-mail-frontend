@@ -181,7 +181,7 @@ test.describe('LST email list rows', () => {
 
 test.describe('LST labels in the list rows', () => {
   test(
-    'LST-06 a row shows one label chip then "+N" naming the others, at the end of the preview on a phone and a tablet, without growing the row on a desktop',
+    'LST-06 a row shows one label chip then "+N" naming the others, at the end of the preview on a phone, before the subject without growing the row on a tablet and a desktop',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       const design = await jmap.createLabel('Design', '#2196F3')
@@ -220,8 +220,8 @@ test.describe('LST labels in the list rows', () => {
         .getByTestId('email-list-item-preview')
         .boundingBox()
       const viewport = page.viewportSize()
-      if (viewport !== null && viewport.width < 1000) {
-        // Phones and tablets: the chips end the preview line, inside the row
+      if (viewport !== null && viewport.width < 600) {
+        // Phones: the chips end the preview line, inside the row
         expect(chipBox?.y ?? 0).toBeGreaterThan(subjectBox?.y ?? 0)
         expect(chipBox?.y ?? 0).toBeGreaterThanOrEqual(previewBox?.y ?? 0)
         expect((chipBox?.x ?? 0) + (chipBox?.width ?? 0)).toBeLessThanOrEqual(
@@ -231,7 +231,7 @@ test.describe('LST labels in the list rows', () => {
           (rowBox?.y ?? 0) + (rowBox?.height ?? 0)
         )
       } else {
-        // A desktop: the row is as high as one without labels
+        // A tablet and a desktop: the row is as high as one without labels
         const plainBox = await mailbox.emailRow('Plain row').boundingBox()
         expect(
           Math.abs((rowBox?.height ?? 0) - (plainBox?.height ?? 99))

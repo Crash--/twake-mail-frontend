@@ -17,7 +17,14 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import { useEffect, useId, useRef, useState, type ReactElement } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactElement,
+  type MouseEvent
+} from 'react'
 
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { useAuthService } from '@common/features/auth/AuthProvider'
@@ -178,9 +185,12 @@ export function ScribeMenu({
     onExternalClose?.()
   }
 
-  const handleCopy = (): void => {
+  // The clipboard of the window clicked in: the menu may be on the overlay of
+  // TwakeSpace, and a window without the focus may not write to it
+  const handleCopy = (event: MouseEvent<HTMLElement>): void => {
     if (answer.status !== 'done') return
-    navigator.clipboard
+    const view = event.currentTarget.ownerDocument.defaultView ?? window
+    view.navigator.clipboard
       .writeText(answer.text)
       .then(() => {
         notify({ message: t('composer.scribe.copied') })

@@ -14,6 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   login in a frame, and its navigation and "sign in again" sent to TwakeSpace
   through cozy-external-bridge (`TWAKE_SPACE_URL`). See
   `docs/team-mailbox-embed.md`.
+- Loading states on the boxes of the real content: the email list and the
+  search results show skeleton rows (the 44 px desktop row, the narrow row of a
+  tablet or phone), the folders and the open email or conversation show theirs,
+  so that nothing moves when the data lands. The skeletons are busy and hidden
+  to screen readers, which hear "Loading" once, and do not pulse with
+  `prefers-reduced-motion`.
+- "No internet connection" banner while the browser is offline (Dismiss hides it
+  for the session, as tmail-flutter's Skip), said politely once, with "Back
+  online" at the return. Back online, what arrived meanwhile is caught up from
+  the `/changes` of the emails and folders, without refetching every list.
 
 - Keyboard navigation of the folder trees (system folders, folders of the user,
   Team-mailboxes, results of the folder search), as the WAI-ARIA tree view: one

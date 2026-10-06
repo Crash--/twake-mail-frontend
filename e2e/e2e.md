@@ -906,3 +906,18 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/labels.spec.ts`.
 - [x] `LBL-15` A label with a colour out of the palette opens with the custom swatch checked and its hexadecimal value; editing it is kept by the server; a coloured label has no "No color" (tmail-backend refuses `color: null` in `Label/set` update), a label without colour keeps it; the arrows reach the custom swatch and Tab goes to its field. — web app (issue #59, `@mobile`)
   - Spec: `tests/labels.spec.ts`.
+
+- [x] `LOAD-01` The list shows skeleton rows of the geometry of the real ones while its emails load (a 44 px row with checkbox, avatar, sender, subject, date on a desktop; the narrow row of sender, subject and two lines of preview on a tablet and a phone), busy (`aria-busy`) and hidden to screen readers; when the emails land the first row, and the toolbar, are on the same boxes (±1 px, ±3 px of the narrow rows, which grow to their content) and the layout shift stays under 0.01. — web app (batch D8, `@mobile`)
+  - Spec: `tests/loading-states.spec.ts`.
+- [x] `LOAD-02` At sign-in the folders and the list load together under one "Loading" announcement (a single polite live region, emptied afterwards); the tree skeleton rows are on the boxes of the real folders. — web app (batch D8, `@mobile`)
+  - Spec: `tests/loading-states.spec.ts`.
+- [x] `LOAD-03` An opening conversation shows its real toolbar (the way back is there) and the shapes of its subject, the header of a message and its body, then the content lands on the same boxes; axe clean while it loads. — web app (batch D8, `@mobile`)
+  - Spec: `tests/loading-states.spec.ts`.
+- [x] `LOAD-04` The results of a search show the skeleton rows while they load, the first result lands on the first skeleton row; axe clean while it loads. — web app (batch D8, `@mobile`)
+  - Spec: `tests/loading-states.spec.ts`.
+- [x] `LOAD-05` The skeletons pulse, and stand still with `prefers-reduced-motion: reduce`. — web app (batch D8, `@mobile`)
+  - Spec: `tests/loading-states.spec.ts`.
+- [x] `OFF-01` When the browser goes offline (`context.setOffline(true)`) the "No internet connection" banner shows, said once by a polite live region (the banner itself is not an alert), axe clean; "Dismiss" hides it for the rest of the session, as tmail-flutter's "Skip". — web app (batch D8, `@mobile`, `NetworkConnectionController`)
+  - Spec: `tests/loading-states.spec.ts`.
+- [x] `OFF-02` Back online the banner goes away, "Back online" is said once, and what arrived while offline (the push channel dropped with the network) is caught up from `Email/changes`, with no `Email/query` and no read of the whole list of folders. — web app (batch D8, `@mobile`)
+  - Spec: `tests/loading-states.spec.ts`.

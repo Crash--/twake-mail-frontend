@@ -6,6 +6,8 @@ export interface JmapTraffic {
   methods: () => string[]
   /** The same, request by request */
   requests: () => string[][]
+  /** Every method call with its arguments, in order */
+  calls: () => { name: string; args: unknown }[]
   /** The writes on emails (drafts) since the recording started */
   writes: () => EmailWrites
   /** Forgets what was recorded so far */
@@ -79,6 +81,16 @@ export function recordJmapTraffic(page: Page): JmapTraffic {
   return {
     methods: () => requests.flat(),
     requests: () => requests.map(methods => [...methods]),
+    calls: () =>
+      raw.flatMap(request => {
+        const body: unknown = request.postDataJSON()
+        if (!isRecord(body) || !Array.isArray(body.methodCalls)) return []
+        return body.methodCalls.flatMap((call: unknown) =>
+          Array.isArray(call) && typeof call[0] === 'string'
+            ? [{ name: call[0], args: call[1] }]
+            : []
+        )
+      }),
     writes: () => emailWrites(raw),
     reset: () => {
       requests = []

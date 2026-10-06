@@ -78,8 +78,8 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
   annotation). twake-mui d'abord (voir `component-check.md` : `SearchBar elevation={0}`, `Snackbar`+`Alert` pour le hors ligne,
   `NavDesktopDropdown` pour les en-têtes repliables…), `@/ds/` sinon, pas de surcharge du thème global.
 - **Fait** : sidebar, barre du haut, liste, recherche (ouverte, filtres, avancée), lecture et conversation, composer et
-  éditeur (desktop, tablette, téléphone), libellés. Captures `after-*` par lot dans le cache.
-- **Reste à faire** : mode sombre, skeletons, bannière hors ligne à brancher (`ds/OfflineBanner` existe), réglages, mobile
+  éditeur (desktop, tablette, téléphone), libellés, skeletons (liste, recherche, arbre, lecture) et bannière hors ligne (D8). Captures `after-*` par lot dans le cache.
+- **Reste à faire** : mode sombre, réglages, mobile
   hors composer (`n29045`, menus `n29085…`), pages Figma sans équivalent Flutter (multi-comptes, délégation, migration,
   automatisations : périmètre à décider).
 - **Décisions en attente de Quentin** : toutes dans `twake-mail-design-cache/questions-quentin.md` (une ligne par lot).

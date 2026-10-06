@@ -9,6 +9,12 @@ const STICKY_SX = {
   bgcolor: 'background.paper'
 } as const
 
+const DIVIDER_SX = {
+  ...STICKY_SX,
+  borderBottom: 1,
+  borderColor: 'divider'
+} as const
+
 export interface StickyBarProps {
   children: ReactNode
   /** ARIA role of the bar, e.g. `toolbar` */
@@ -16,6 +22,8 @@ export interface StickyBarProps {
   /** Accessible name of the bar */
   label?: string
   className?: string
+  /** A line under the bar, the toolbar of a reading view */
+  hasDivider?: boolean
   'data-testid'?: string
 }
 
@@ -28,6 +36,7 @@ export function StickyBar({
   role,
   label,
   className,
+  hasDivider = false,
   'data-testid': testId
 }: StickyBarProps): ReactElement {
   return (
@@ -35,7 +44,7 @@ export function StickyBar({
       role={role}
       aria-label={label}
       className={className}
-      sx={STICKY_SX}
+      sx={hasDivider ? DIVIDER_SX : STICKY_SX}
       data-testid={testId}
     >
       {children}

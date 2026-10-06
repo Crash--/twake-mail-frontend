@@ -10,16 +10,26 @@ const ITEM_SX = {
   '&:first-of-type': { borderTop: 0 }
 } as const
 
+const ROW_SX = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  '&:hover': { bgcolor: 'action.hover' }
+} as const
+
+const ACTIONS_SX = { flex: 'none', pt: 0.75, pr: 1 } as const
+
+const REGION_SX = { px: 2, pb: 1 } as const
+
 const TOGGLE_SX = {
   // Scrolled to, a message stops below the sticky bar of the conversation
-  scrollMarginTop: '3.5rem',
+  scrollMarginTop: '4rem',
   display: 'block',
-  width: '100%',
+  flex: 1,
+  minWidth: 0,
   textAlign: 'start',
-  px: 1,
+  px: 2,
   py: 1,
   borderRadius: 1,
-  '&:hover': { bgcolor: 'action.hover' },
   '&.Mui-focusVisible': {
     outline: 2,
     outlineColor: 'primary.main',
@@ -33,6 +43,11 @@ export interface MessageThreadItemProps {
   onToggle: () => void
   /** The header: sender, date, and the preview while collapsed */
   header: ReactNode
+  /**
+   * The icon buttons at the end of the header row: beside the toggle, not in
+   * it (a button cannot hold buttons)
+   */
+  actions?: ReactNode
   /** The message, shown while expanded */
   children: ReactNode
   'data-testid'?: string
@@ -51,6 +66,7 @@ export function MessageThreadItem({
   isExpanded,
   onToggle,
   header,
+  actions,
   children,
   'data-testid': testId,
   toggleTestId,
@@ -68,24 +84,29 @@ export function MessageThreadItem({
       data-testid={testId}
       data-expanded={isExpanded ? 'true' : 'false'}
     >
-      <ButtonBase
-        ref={toggleRef}
-        id={toggleId}
-        aria-expanded={isExpanded}
-        aria-controls={regionId}
-        onClick={onToggle}
-        sx={TOGGLE_SX}
-        {...toggleProps}
-        data-testid={toggleTestId}
-      >
-        {header}
-      </ButtonBase>
+      <Box sx={ROW_SX}>
+        <ButtonBase
+          ref={toggleRef}
+          id={toggleId}
+          aria-expanded={isExpanded}
+          aria-controls={regionId}
+          onClick={onToggle}
+          sx={TOGGLE_SX}
+          {...toggleProps}
+          data-testid={toggleTestId}
+        >
+          {header}
+        </ButtonBase>
+        {actions === undefined || actions === null ? null : (
+          <Box sx={ACTIONS_SX}>{actions}</Box>
+        )}
+      </Box>
       <Box
         id={regionId}
         role="region"
         aria-labelledby={toggleId}
         hidden={!isExpanded}
-        className="u-ph-1 u-pb-1"
+        sx={REGION_SX}
       >
         {isExpanded ? children : null}
       </Box>

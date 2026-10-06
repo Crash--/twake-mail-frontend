@@ -56,9 +56,16 @@ export function IconAction({
       ...(tone === 'starred' ? { color: 'warning.light' } : {})
     }
   } as const
+  // A disabled button takes no pointer event, so the tooltip needs a wrapper
   return (
     <Tooltip title={label}>
-      <IconButton {...common}>{content}</IconButton>
+      {disabled ? (
+        <span>
+          <IconButton {...common}>{content}</IconButton>
+        </span>
+      ) : (
+        <IconButton {...common}>{content}</IconButton>
+      )}
     </Tooltip>
   )
 }

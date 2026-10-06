@@ -295,6 +295,13 @@ playwright.perf.config.ts perf/transition.perf.ts`.
 Reply to the caret in the text, then the latency of each key typed above the quote, at full
 speed and with the CPU slowed down 4 times.
 
+`perf/composer-large.perf.ts` (`PERF-06`, `PERF-07`) measures large drafts of the composer: a body
+of 1, 2 and 5 MB, 50 attachments, 200 recipients (open, typing, autosave, save, send), against
+budgets (`perf/budgets.ts`). It runs **first and alone on a fresh stack** (`npm run perf:large`,
+which `npm run perf` runs before the rest): the 5 000 email seed makes this backend stall the sends.
+Method, numbers and budgets: [`docs/perf/composer.md`](../docs/perf/composer.md). `PERF_LARGE=<ids>`,
+`PERF_LARGE_RUNS`, `PERF_PROFILE=<dir>` (CPU profiles) and `PERF_NO_BUDGET=1` tune it.
+
 `perf/threads.perf.ts` measures pushes on lists of conversations: `PERF-04` with 2 000 of
 them loaded, and `PERF-05` during a grouped search with 400 loaded, an email that cannot match
 it and one the client cannot tell (`PERF_SEARCH_TARGET`; seed with `PERF_THREADS=1`;

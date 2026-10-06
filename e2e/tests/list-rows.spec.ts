@@ -181,7 +181,7 @@ test.describe('LST email list rows', () => {
 
 test.describe('LST labels in the list rows', () => {
   test(
-    'LST-06 a row shows one label chip then "+N" naming the others, at the end of the preview on a phone, before the subject without growing the row on a tablet and a desktop',
+    'LST-06 a row shows one label chip then "+N" naming the others, at the end of the preview on a phone and a tablet, before the subject without growing the row on a desktop',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       const design = await jmap.createLabel('Design', '#2196F3')
@@ -220,8 +220,8 @@ test.describe('LST labels in the list rows', () => {
         .getByTestId('email-list-item-preview')
         .boundingBox()
       const viewport = page.viewportSize()
-      if (viewport !== null && viewport.width < 600) {
-        // Phones: the chips end the preview line, inside the row
+      if (viewport !== null && viewport.width < 1000) {
+        // Phones and tablets: the chips end the preview line, inside the row
         expect(chipBox?.y ?? 0).toBeGreaterThan(subjectBox?.y ?? 0)
         expect(chipBox?.y ?? 0).toBeGreaterThanOrEqual(previewBox?.y ?? 0)
         expect((chipBox?.x ?? 0) + (chipBox?.width ?? 0)).toBeLessThanOrEqual(
@@ -231,7 +231,7 @@ test.describe('LST labels in the list rows', () => {
           (rowBox?.y ?? 0) + (rowBox?.height ?? 0)
         )
       } else {
-        // A tablet and a desktop: the row is as high as one without labels
+        // A desktop: the row is as high as one without labels
         const plainBox = await mailbox.emailRow('Plain row').boundingBox()
         expect(
           Math.abs((rowBox?.height ?? 0) - (plainBox?.height ?? 99))
@@ -309,5 +309,54 @@ test.describe('LST labels in the list rows', () => {
     expect(
       Math.abs(((await row.boundingBox())?.height ?? 0) - (inboxHeight ?? 99))
     ).toBeLessThan(1)
+  })
+})
+
+test.describe('LST list rows at every width', () => {
+  test('LST-09 from 600 to 1440 px the date never overlaps the subject, which keeps room to read', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const label = await jmap.createLabel('Design', '#2196F3')
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Width sweep subject',
+      text: 'A body that gives the row a preview of some length to fill the row'
+    })
+    const email = await jmap.waitForEmail({
+      subject: 'Width sweep subject'
+    })
+    await jmap.setKeywords(email.id, { [label.keyword]: true })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRow('Width sweep subject')
+    await expect(row).toBeVisible()
+
+    for (const width of [600, 720, 820, 1024, 1180, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 })
+      // The table measures itself again after a resize: look until it settles
+      await expect(async () => {
+        await expect(row.getByTestId('email-list-item-subject')).toBeVisible()
+        await expect(row.getByTestId('email-list-item-date')).toBeVisible()
+        const subject = await row
+          .getByTestId('email-list-item-subject')
+          .boundingBox()
+        const date = await row.getByTestId('email-list-item-date').boundingBox()
+        expect(subject, `subject at ${String(width)}`).not.toBeNull()
+        expect(date, `date at ${String(width)}`).not.toBeNull()
+        const overlaps =
+          (subject?.x ?? 0) < (date?.x ?? 0) + (date?.width ?? 0) &&
+          (date?.x ?? 0) < (subject?.x ?? 0) + (subject?.width ?? 0) &&
+          (subject?.y ?? 0) < (date?.y ?? 0) + (date?.height ?? 0) &&
+          (date?.y ?? 0) < (subject?.y ?? 0) + (subject?.height ?? 0)
+        expect(overlaps, `date over the subject at ${String(width)}`).toBe(
+          false
+        )
+        expect(
+          subject?.width ?? 0,
+          `subject at ${String(width)}`
+        ).toBeGreaterThan(150)
+      }).toPass()
+    }
   })
 })

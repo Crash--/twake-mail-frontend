@@ -146,7 +146,13 @@ function TeamMailboxRouter({
     )
   )
 
-  useEffect(() => spaceBridge?.syncHistory(), [spaceBridge])
+  useEffect(
+    () =>
+      spaceBridge?.syncHistory(path =>
+        router.navigate(path, { replace: true })
+      ),
+    [router, spaceBridge]
+  )
 
   return <RouterProvider router={router} />
 }

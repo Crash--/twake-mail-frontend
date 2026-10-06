@@ -1,4 +1,9 @@
-import { removeSignatures, signatureHtml } from './signature'
+import { Editor } from '@tiptap/core'
+import StarterKit from '@tiptap/starter-kit'
+
+import { HtmlBlock } from '@/ds/RichTextEditor/htmlBlock'
+
+import { removeSignatures, replaceSignature, signatureHtml } from './signature'
 
 const identity = (
   htmlSignature: string,
@@ -63,5 +68,46 @@ describe('removeSignatures', () => {
   it('leaves a body without signature as it is', () => {
     const html = '<p>Hello <b>world</b></p>'
     expect(removeSignatures(html)).toBe(html)
+  })
+})
+
+describe('replaceSignature', () => {
+  const QUOTE = '<div data-html-block="quote"><blockquote>Hi</blockquote></div>'
+
+  function makeEditor(content: string): Editor {
+    return new Editor({
+      extensions: [StarterKit.configure({ trailingNode: false }), HtmlBlock],
+      content
+    })
+  }
+
+  it('puts a signature that arrives late above the quote, without touching what was typed', () => {
+    const editor = makeEditor(`<p>typed</p><p>more</p>${QUOTE}`)
+    editor.commands.setTextSelection(3)
+    const typed = editor.state.doc.content.content.map(node => node.textContent)
+
+    replaceSignature(editor, '-- Alice')
+
+    const kinds = editor.state.doc.content.content.map(node =>
+      node.type.name === 'htmlBlock' ? String(node.attrs.kind) : node.type.name
+    )
+    expect(kinds).toEqual(['paragraph', 'paragraph', 'signature', 'quote'])
+    expect(
+      editor.state.doc.content.content.slice(0, 2).map(node => node.textContent)
+    ).toEqual(typed.slice(0, 2))
+    expect(editor.state.selection.from).toBe(3)
+  })
+
+  it('replaces the signature in place when there is one', () => {
+    const editor = makeEditor(
+      `<p>typed</p><div data-html-block="signature">-- Alice</div>${QUOTE}`
+    )
+
+    replaceSignature(editor, '-- Bob')
+
+    const html = editor.getHTML()
+    expect(html).toContain('-- Bob')
+    expect(html).not.toContain('-- Alice')
+    expect(html.match(/data-html-block="signature"/g)).toHaveLength(1)
   })
 })

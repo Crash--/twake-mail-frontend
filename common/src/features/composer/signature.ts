@@ -94,7 +94,8 @@ function findBlock(
 /**
  * Puts the signature of the new identity in place of the current one. A
  * message without one gets it above the quote, like tmail-flutter (which
- * has no setting for it), or at the end.
+ * has no setting for it), or at the end. Whatever the user has typed, the
+ * selection included, stays as it is.
  */
 export function replaceSignature(editor: Editor, html: string | null): void {
   const current = findBlock(editor, 'signature')
@@ -110,10 +111,14 @@ export function replaceSignature(editor: Editor, html: string | null): void {
   }
   if (html === null) return
   const quote = findBlock(editor, 'quote')
-  const node = {
-    type: 'htmlBlock',
-    attrs: { html, kind: 'signature', display: 'inline' }
-  }
+  const node = editor.schema.nodes.htmlBlock?.create({
+    html,
+    kind: 'signature',
+    display: 'inline'
+  })
+  if (!node) return
+  // A plain insertion: the caret and what is typed stay where they are
+  // (`insertContentAt` would move the caret after the signature)
   const position = quote ? quote.pos : editor.state.doc.content.size
-  editor.chain().insertContentAt(position, node).run()
+  editor.view.dispatch(editor.state.tr.insert(position, node))
 }

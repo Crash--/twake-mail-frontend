@@ -608,6 +608,10 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/team-mailbox-embed.spec.ts`.
 - [x] `TMB-12` The facade of a team mailbox the user is not a member of says it is not available. axe. — web app only (TwakeSpace), no Patrol test
   - Spec: `tests/team-mailbox-embed.spec.ts`.
+- [ ] `TMB-13` On the overlay of TwakeSpace (a host page naming the frame, with an overlay frame clipped to the region the facade reports), the composer opens at the bottom end of the host page, the host takes the clicks beside it, and a dialog of the composer is centred on the window and blocks it all. CI to confirm. — web app only (TwakeSpace), no Patrol test
+  - Spec: `tests/team-mailbox-overlay.spec.ts`.
+- [ ] `TMB-14` On the overlay of TwakeSpace, a dialog opened from the facade (the folder picker) shows on the host page, and closing it gives the focus back to what opened it. CI to confirm. — web app only (TwakeSpace), no Patrol test
+  - Spec: `tests/team-mailbox-overlay.spec.ts`.
 - [x] `MBX-31` A subfolder found by the folder search shows its path under its name, a team mailbox its address, whatever the case or the accents; no match says "No folder matches your search". axe on the results. — web app only, no Patrol test
   - Spec: `tests/folder-search.spec.ts`.
 - [x] `MBX-32` A hidden folder is found by the folder search, marked hidden; with the keyboard (ArrowDown, Shift+F10) "Show folder" shows it again; Escape folds the search only (also in the drawer) and focuses the magnifier. axe. — web app only, no Patrol test

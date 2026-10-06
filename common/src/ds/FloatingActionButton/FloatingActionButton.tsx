@@ -8,13 +8,51 @@ import {
   type SxProps,
   type Theme
 } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
+import {
+  createContext,
+  useContext,
+  type ReactElement,
+  type ReactNode
+} from 'react'
+
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /** Distance to the edges of the screen, in theme spacing units */
 const OFFSET = 2
 
 /** Room the button takes at the bottom of the screen, for the content under it */
 export const FLOATING_ACTION_INSET = 88
+
+const AlwaysFloatingContext = createContext(false)
+
+/**
+ * The screens below show their floating button on a desktop too (a layout
+ * without sidebar, where the main action has no other place)
+ */
+export function AlwaysFloatingAction({
+  children
+}: {
+  children: ReactNode
+}): ReactElement {
+  return (
+    <AlwaysFloatingContext.Provider value>
+      {children}
+    </AlwaysFloatingContext.Provider>
+  )
+}
+
+/**
+ * The room to keep free at the end of scrolling content: the floating
+ * button is there below the desktop size, and on a desktop under
+ * `AlwaysFloatingAction`
+ */
+export function useFloatingActionInset(): number {
+  const screenSize = useScreenSize()
+  const isAlwaysFloating = useContext(AlwaysFloatingContext)
+  return isAlwaysFloating || screenSize !== 'desktop'
+    ? FLOATING_ACTION_INSET
+    : 0
+}
 
 const FAB_SX: SxProps<Theme> = theme => ({
   position: 'fixed',

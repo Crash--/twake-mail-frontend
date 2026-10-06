@@ -39,7 +39,7 @@ async function signIn(scope: Page | Frame, user: E2EUser): Promise<void> {
 }
 
 test.describe('TMB team mailbox facade', () => {
-  test('TMB-10 framed, the facade of a team mailbox opens its Inbox with its folders only', async ({
+  test('TMB-10 framed, the facade of a team mailbox opens its Inbox, without top bar nor sidebar', async ({
     page,
     user,
     users,
@@ -47,10 +47,6 @@ test.describe('TMB team mailbox facade', () => {
     webadmin
   }) => {
     const team = await users.createTeamMailbox({ members: [user] })
-    const other = await users.createTeamMailbox({
-      prefix: 'other',
-      members: [user]
-    })
     const teamInbox = (await jmap.getMailboxes()).find(
       mailbox =>
         mailbox.namespace === `TeamMailbox[${team.email}]` &&
@@ -80,17 +76,8 @@ test.describe('TMB team mailbox facade', () => {
         .getByTestId('email-list-item')
         .filter({ hasText: 'For the whole team' })
     ).toBeVisible()
-    await expect(frame.getByTestId('team-mailbox-title')).toHaveText(team.name)
-    const tree = frame.getByTestId('mailbox-tree')
-    await expect(tree.getByTestId('mailbox-item-name')).toHaveText([
-      'INBOX',
-      'Drafts',
-      'Outbox',
-      'Sent',
-      'Trash',
-      'Templates'
-    ])
-    await expect(tree).not.toContainText(other.name)
+    await expect(frame.getByTestId('compose-email-button')).toBeVisible()
+    await expect(frame.getByTestId('sidebar')).toBeHidden()
     await expect(frame.getByTestId('top-bar')).toBeHidden()
     expect(new URL(scope.url()).pathname).toBe(
       `${path}/mailbox/${teamInbox.id}`

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { createClient } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Routes, useLocation } from 'react-router'
@@ -63,22 +63,17 @@ function renderRoutes(path: string, rootId = 'team'): void {
 describe('teamMailboxEmbedRouteElements', () => {
   listEmailsOneByOne()
 
-  it('opens the Inbox of the team mailbox, with its folders only', async () => {
+  it('opens the Inbox of the team mailbox, without the frame of the webmail', async () => {
     renderRoutes(`${BASE}/`)
 
     expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
       'data-mailbox-id',
       'team-inbox'
     )
-    expect(screen.getByTestId('team-mailbox-title')).toHaveTextContent('team')
-    const tree = screen.getByTestId('mailbox-tree')
-    await waitFor(() => {
-      expect(within(tree).getAllByRole('treeitem')).toHaveLength(6)
-    })
-    expect(within(tree).queryByText('Sent')).toBeInTheDocument()
-    expect(within(tree).queryByText('sales')).toBe(null)
+    expect(screen.getByTestId('compose-email-button')).toBeInTheDocument()
+    expect(screen.queryByTestId('sidebar')).toBe(null)
+    expect(screen.queryByTestId('mailbox-tree')).toBe(null)
     expect(screen.queryByTestId('top-bar')).toBe(null)
-    expect(screen.queryByTestId('team-mailboxes-section')).toBe(null)
   })
 
   it('opens the Inbox of the team mailbox instead of a folder of the user', async () => {

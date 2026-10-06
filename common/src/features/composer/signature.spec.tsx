@@ -1,4 +1,4 @@
-import { signatureHtml } from './signature'
+import { removeSignatures, signatureHtml } from './signature'
 
 const identity = (
   htmlSignature: string,
@@ -34,5 +34,34 @@ describe('signatureHtml', () => {
 
   it('is null without a signature', () => {
     expect(signatureHtml(identity('  ', ''))).toBe(null)
+  })
+})
+
+describe('removeSignatures', () => {
+  it('drops the signature block this composer writes', () => {
+    expect(
+      removeSignatures(
+        '<p>Hello</p><div data-html-block="signature" data-html-block-display="inline">-- <br>Alice</div>'
+      )
+    ).toBe('<p>Hello</p>')
+  })
+
+  it('drops the signature wrapper of tmail-flutter', () => {
+    expect(
+      removeSignatures(
+        '<div>Hello</div><div class="tmail-signature">-- <br>Alice</div>'
+      )
+    ).toBe('<div>Hello</div>')
+  })
+
+  it('keeps a signature quoted in an older email', () => {
+    const html =
+      '<p>Hello</p><div data-html-block="quote"><div class="tmail-signature">Bob</div></div>'
+    expect(removeSignatures(html)).toBe(html)
+  })
+
+  it('leaves a body without signature as it is', () => {
+    const html = '<p>Hello <b>world</b></p>'
+    expect(removeSignatures(html)).toBe(html)
   })
 })

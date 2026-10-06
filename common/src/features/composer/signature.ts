@@ -53,6 +53,28 @@ export function signatureBlock(html: string): string {
   return `<div data-html-block="signature" data-html-block-display="inline">${html}</div>`
 }
 
+/**
+ * The editor HTML without its signature: the block this composer writes
+ * (`data-html-block="signature"`) and tmail-flutter's `tmail-signature`
+ * wrapper. A signature quoted in an older email (inside a quote block) is
+ * content, not the signature of the message, and stays.
+ */
+export function removeSignatures(html: string): string {
+  if (!/data-html-block="signature"|tmail-signature/i.test(html)) return html
+  const root = new DOMParser().parseFromString(
+    `<body>${html}</body>`,
+    'text/html'
+  ).body
+  root
+    .querySelectorAll('[data-html-block="signature"], .tmail-signature')
+    .forEach(signature => {
+      if (signature.closest('[data-html-block="quote"]') === null) {
+        signature.remove()
+      }
+    })
+  return root.innerHTML
+}
+
 function findBlock(
   editor: Editor,
   kind: string

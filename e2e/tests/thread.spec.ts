@@ -533,7 +533,7 @@ test.describe('THR thread detail', () => {
     }
   )
 
-  test('THR-08 the sender of an expanded message opens its address menu', async ({
+  test('THR-08 the sender of an expanded message opens its contact card', async ({
     page,
     user,
     jmap
@@ -546,7 +546,7 @@ test.describe('THR thread detail', () => {
     const message = conversation.messages.first()
 
     await conversation.senderAddress(message).click()
-    const menu = page.getByTestId('email-address-menu')
+    const menu = page.getByTestId('email-address-card')
     await expect(menu).toBeVisible()
     await expect(menu.getByTestId('email-address-compose-item')).toBeVisible()
     await expectNoA11yViolations(page)

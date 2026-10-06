@@ -38,6 +38,8 @@ export class EmailPage {
   readonly replyToListButton: Locator
   readonly forwardButton: Locator
   readonly moreButton: Locator
+  /** The contact card (dialog, bottom sheet on a phone) of an address of the header */
+  readonly addressCard: Locator
   /** "Unsubscribe" link after the sender, and the note once unsubscribed */
   readonly unsubscribeLink: Locator
   readonly unsubscribedBanner: Locator
@@ -61,6 +63,7 @@ export class EmailPage {
     this.replyToListButton = this.root.getByTestId('reply-to-list-email-button')
     this.forwardButton = this.root.getByTestId('forward-email-button')
     this.moreButton = this.root.getByTestId('email-view-more-button')
+    this.addressCard = page.getByTestId('email-address-card')
     this.unsubscribeLink = this.root.getByTestId('email-unsubscribe-link')
     this.unsubscribedBanner = this.root.getByTestId('email-unsubscribed-banner')
     this.remoteContentBanner = this.root.getByTestId('remote-content-banner')
@@ -70,6 +73,11 @@ export class EmailPage {
     this.alwaysShowRemoteContentButton = this.root.getByTestId(
       'remote-content-always-show-button'
     )
+  }
+
+  /** The button of an address of a header line (`from`, `to`, `cc`), opening its card */
+  addressButton(line: Locator, name: string | RegExp): Locator {
+    return line.getByTestId('email-address').filter({ hasText: name })
   }
 
   async expectSubject(subject: string): Promise<EmailPage> {

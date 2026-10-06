@@ -9,7 +9,7 @@ import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import { formatAddress, formatAddressName } from './addresses'
-import { EmailAddressMenu } from './EmailAddressMenu'
+import { EmailAddressCard } from './EmailAddressCard'
 
 export interface AddressLineProps {
   label: TranslationKey
@@ -50,9 +50,9 @@ function CompactAddressLine({
             variant="meta"
             className="u-mr-half"
           >
-            <EmailAddressMenu address={address}>
+            <EmailAddressCard address={address}>
               {isOpen ? formatAddress(address) : formatAddressName(address)}
-            </EmailAddressMenu>
+            </EmailAddressCard>
             {index < addresses.length - 1 ? ',' : null}
           </MessageText>
         ))}
@@ -97,9 +97,11 @@ export function AddressLine({
     <SecondaryText variant="body2" component="p" data-testid={testId}>
       {t(label)}:{' '}
       {addresses.map((address, index) => (
-        <span key={`${address.email}-${index}`} title={address.email}>
+        <span key={`${address.email}-${index}`}>
           {index > 0 ? ', ' : null}
-          {formatAddress(address)}
+          <EmailAddressCard address={address}>
+            {formatAddress(address)}
+          </EmailAddressCard>
         </span>
       ))}
     </SecondaryText>

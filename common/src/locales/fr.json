@@ -119,9 +119,11 @@
     "address": {
       "createRule": "Créer une règle à partir de ce message",
       "compose": "Rédiger un message",
-      "copy": "Copier",
-      "menu": "Actions sur %{email}",
-      "copied": "Adresse e-mail copiée"
+      "invite": "Inviter à un évènement",
+      "chat": "Discuter",
+      "copy": "Copier l'adresse e-mail",
+      "copied": "Adresse e-mail copiée",
+      "close": "Fermer"
     },
     "actionRequired": "Action requise",
     "removeActionRequired": "Retirer l’étiquette Action requise",

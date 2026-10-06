@@ -8,7 +8,7 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { formatAddressName } from './addresses'
-import { EmailAddressMenu } from './EmailAddressMenu'
+import { EmailAddressCard } from './EmailAddressCard'
 
 export interface SenderLineProps {
   sender: EmailAddress | null
@@ -46,7 +46,7 @@ export function SenderLine({
   return (
     <InlineGroup gap={1} data-testid={testId}>
       {sender ? (
-        <EmailAddressMenu address={sender}>
+        <EmailAddressCard address={sender}>
           {variant === 'full' ? (
             <>
               <MessageText variant="name">
@@ -59,7 +59,7 @@ export function SenderLine({
           ) : (
             <MessageText variant="meta">{`<${sender.email}>`}</MessageText>
           )}
-        </EmailAddressMenu>
+        </EmailAddressCard>
       ) : null}
       {onUnsubscribe !== null && !isPhone ? (
         <InlineTextButton

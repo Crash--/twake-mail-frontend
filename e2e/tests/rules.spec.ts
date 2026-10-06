@@ -20,7 +20,7 @@ test.describe('RULE email rules', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const email = await mailbox.openEmail(subject)
     await email.from.getByTestId('email-address').click()
-    await expect(page.getByTestId('email-address-menu')).toBeVisible()
+    await expect(page.getByTestId('email-address-card')).toBeVisible()
     await expectNoA11yViolations(page)
     await page.getByTestId('email-address-create-rule-item').click()
 

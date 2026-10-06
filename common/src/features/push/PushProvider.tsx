@@ -71,6 +71,8 @@ export function PushProvider({
         refetchOnReconnect: false
       })
     }
+    // The reopening of the channel asks for it too: requests made while a
+    // synchronization runs are merged (`pushSync`)
     const handleOnline = (): void => {
       sync.catchUp()
       if (hasLabels) void syncLabels(client, queryClient, accountId, null)

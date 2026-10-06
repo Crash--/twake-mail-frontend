@@ -111,8 +111,10 @@ test.describe('LOAD loading states', () => {
     ).toBe(1)
     const treeVisible = !new MailboxPage(page).hasFolderDrawer()
     let skeletonRow = null
+    let titleBefore = null
     if (treeVisible) {
       await expect(loading.treeSkeleton).toBeVisible()
+      titleBefore = await loading.box(page.getByTestId('mailbox-tree-title'))
       await expect(loading.treeSkeleton).toHaveAttribute('aria-busy', 'true')
       skeletonRow = await loading.box(
         loading.treeSkeleton.locator('.MuiSkeleton-circular, .MuiSkeleton-rounded').first().locator('..')
@@ -129,6 +131,15 @@ test.describe('LOAD loading states', () => {
         skeletonRow,
         1,
         'first folder'
+      )
+    }
+    if (titleBefore !== null) {
+      // The "Folders" title does not jump when the rows of the system folders land
+      loading.expectSameBox(
+        await loading.box(page.getByTestId('mailbox-tree-title')),
+        titleBefore,
+        1,
+        'Folders title'
       )
     }
   })

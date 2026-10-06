@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The facade of a team mailbox for the Mail tab of TwakeSpace,
-  `/embed/team-mailboxes/<id of its root folder>`: its folders, list and reading view
+  `/embed/team-mailboxes/<id of its root folder>`: its list and reading view
   without the frame of the webmail, new messages from its address, a silent
   login in a frame, and its navigation and "sign in again" sent to TwakeSpace
   through cozy-external-bridge (`TWAKE_SPACE_URL`). See

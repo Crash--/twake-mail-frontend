@@ -18,11 +18,11 @@ iframe contract for the Drive, Mail, Chat, Calendar and Tasks tabs).
   member the same id for that folder (`Mailbox/get`, namespace
   `TeamMailbox[<address>]`, no parent). It does not change when the space
   is renamed. The app never receives a space id.
-- The facade has no top bar, app grid, account menu, labels nor banners:
-  "New message" and the folders of the team mailbox (Inbox, Drafts, Outbox,
-  Sent, Trash, Templates, then its subfolders), the list and the reading
-  view. Below the desktop size the folders are in a drawer, opened from a
-  bar holding the name of the current folder.
+- The facade is the list and the reading view of the team mailbox, opened
+  on its Inbox: no top bar, sidebar (no folder tree), app grid, account
+  menu, labels nor banners. "New message" is a floating button at every
+  size, hidden while an email fills the screen. The other folders of the
+  team mailbox open by their path (`/mailbox/<folder id>`).
 - The routes live under the base `/embed/team-mailboxes/<id>` (the
   `basename` of their router): the screens of the webmail link inside it.
   Anything else, a folder of the user or of another team mailbox, leads to

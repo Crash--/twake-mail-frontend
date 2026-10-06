@@ -27,7 +27,7 @@ import { useLocation, useMatch } from 'react-router'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { ListPane } from '@/ds/ListPane/ListPane'
 import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
-import { FLOATING_ACTION_INSET } from '@/ds/FloatingActionButton/FloatingActionButton'
+import { useFloatingActionInset } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   VirtualizedListTable,
@@ -526,8 +526,9 @@ export function EmailList(props: EmailListProps): ReactElement {
   // the other cases (zoom, an email open beside the list)
   const isCompact = screenSize !== 'desktop'
   // The floating "New message" button covers the end of the list below the
-  // desktop size (layout/AppLayout.tsx)
-  const bottomInset = screenSize === 'desktop' ? 0 : FLOATING_ACTION_INSET
+  // desktop size (layout/AppLayout.tsx), and on a desktop in the facade of a
+  // team mailbox (layout/TeamMailboxLayout.tsx)
+  const bottomInset = useFloatingActionInset()
 
   const { openComposer } = useComposer()
   const showImportant = useShowsSenderPriority()

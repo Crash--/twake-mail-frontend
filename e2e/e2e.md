@@ -856,3 +856,19 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/contact-card.spec.ts`.
 - [x] `LST-09` At 600, 720, 820, 1024, 1180, 1280 and 1440 px a list row (with a label) has its date clear of its subject and a subject more than 150 px wide: below the desktop size the rows are the two or three line rows of phones, with no permanent hover actions (tmail-flutter: the wide tile is for the web desktop only). — web app (tmail-flutter `thread_view.dart`, `EmailTileBuilder`)
   - Spec: `tests/list-rows.spec.ts`.
+- [x] `TRE-01` Each folder tree (the system folders, the folders of the user, a team mailbox) is one tab stop, on the selected folder (else the first), the links and the buttons of the other rows being out of the tab sequence; Down / Up go to the next / previous visible folder (the subfolders of the Inbox, then Starred, then Drafts), Home / End to the first / last, and stop at the ends; the focused row becomes the tab stop; axe. Desktop and folder drawer. — web app, WAI-ARIA APG tree view (issue #102)
+  - Spec: `tests/folder-tree-keyboard.spec.ts`.
+- [x] `TRE-02` Right expands a collapsed folder (the focus stays on it), then goes to its first child; Left goes from a child to its parent, collapses an expanded folder; Right on a folder without children does nothing; `aria-level`, `aria-posinset`, `aria-setsize` and `aria-expanded` follow; Enter opens the folder and the drawer closes. — web app, WAI-ARIA APG tree view (issue #102)
+  - Spec: `tests/folder-tree-keyboard.spec.ts`.
+- [x] `TRE-03` The actions of the focused folder stay reachable: Tab goes to its expand arrow then its menu button (Shift+Tab back to the row), Shift+F10 and the menu key open its menu with the focus in it, Escape gives the focus back to the row, the arrows work again. — web app (issue #102)
+  - Spec: `tests/folder-tree-keyboard.spec.ts`.
+- [x] `TRE-04` The folders of the user and the team mailboxes are trees of their own (one tab stop each, arrows stopping at their ends); Right and Left work in a team mailbox; from the field of the folder search, Down goes to the first result, a row of a tree. — web app (issue #102)
+  - Spec: `tests/folder-tree-keyboard.spec.ts`.
+- [x] `TRE-05` Deleting the folder that holds the focus, from its menu with the keyboard, leaves the focus on a folder of the tree (not on the page), which is the only tab stop, and the arrows still work. — web app (issue #102)
+  - Spec: `tests/folder-tree-keyboard.spec.ts`.
+- [x] `TRE-06` A folder destroyed from another client while it holds the focus (push) hands the focus to a neighbour. — web app (issue #102)
+  - Spec: `tests/folder-tree-keyboard.spec.ts`.
+- [x] `TRE-07` Typeahead: a letter goes to the next folder starting with it, the same letter again to the one after; the focused row has a visible outline; Escape is left alone. — web app, WAI-ARIA APG tree view (issue #102)
+  - Spec: `tests/folder-tree-keyboard.spec.ts`.
+- [x] `MBX-06b` (updated, issue #102) — the order Inbox, its subfolder, Starred, Drafts is walked with the arrow keys from the Inbox, no longer with Tab.
+  - Spec: `tests/folders.spec.ts`.

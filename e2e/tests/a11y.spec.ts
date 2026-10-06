@@ -7,7 +7,7 @@ import { expect, test } from '../support/fixtures'
 async function tabTo(
   page: Page,
   selector: string,
-  key: 'Tab' | 'Shift+Tab' = 'Tab',
+  key: 'Tab' | 'Shift+Tab' | 'ArrowDown' = 'Tab',
   max = 60
 ): Promise<void> {
   for (let presses = 0; presses < max; presses += 1) {
@@ -54,10 +54,12 @@ async function openFolderWithKeyboard(
       .toBe(true)
   }
   // The tree loads after the page: Tab presses must not run out before it
-  await expect(
-    page.locator(`[data-mailbox-role="${role}"] a`)
-  ).toBeAttached()
-  await tabTo(page, `[data-mailbox-role="${role}"] a`)
+  const row = `[role="treeitem"][data-mailbox-role="${role}"]`
+  await expect(page.locator(row)).toBeAttached()
+  // One tab stop for the whole tree (the selected folder), then its arrows
+  await tabTo(page, '[data-testid="mailbox-tree"] [role="treeitem"][tabindex="0"]')
+  await page.keyboard.press('Home')
+  await tabTo(page, row, 'ArrowDown')
   if (hasDrawer) {
     expect(await isFocusIn(page, '[data-testid="mailbox-drawer"]')).toBe(true)
   }

@@ -71,7 +71,7 @@ test.describe('MBX folder search of the sidebar', () => {
 
     // Down from the field to the result, then its menu with the menu key
     await page.keyboard.press('ArrowDown')
-    await expect(hidden.getByRole('link')).toBeFocused()
+    await expect(hidden).toBeFocused()
     await page.keyboard.press('Shift+F10')
     const menu = page.getByTestId('mailbox-context-menu').getByRole('menu')
     await expect(menu.getByRole('menuitem').first()).toBeFocused()

@@ -541,6 +541,18 @@ export class JmapClient {
     return this.findMailboxById(requireString(created, 'id'))
   }
 
+  /** Deletes an (empty) mailbox, as another client would: the app learns it by push */
+  async destroyMailbox(mailboxId: string): Promise<void> {
+    const result = await this.#call('Mailbox/set', { destroy: [mailboxId] })
+    const destroyed = Array.isArray(result.destroyed) ? result.destroyed : []
+    if (!destroyed.includes(mailboxId)) {
+      throw new JmapError(
+        `Mailbox/set did not destroy ${mailboxId}: ${JSON.stringify(result.notDestroyed)}`,
+        'notDestroyed'
+      )
+    }
+  }
+
   /**
    * Puts an email straight into a mailbox (`Email/set`), seen unless said otherwise: for the
    * folders mail is not delivered to, e.g. the Trash of a team mailbox

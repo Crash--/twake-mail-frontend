@@ -896,3 +896,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-a11y.spec.ts`.
 - [x] `CMP-100` With 200 recipients in To, Cc and Bcc each field shows 3 rows of chips and scrolls inside, the focused chip and the input stay in view, and the body keeps its height (317 of 393 px with To full on a desktop, 91 px at the worst with the three full). — web app only (RGAA 10.11, `@mobile`)
   - Spec: `tests/composer-geometry.spec.ts`.
+- [x] `LBL-14` The label modal has a "Custom color" swatch after the palette: it opens a hexadecimal field and the native colour input; a value that is not `#RRGGBB` keeps the modal open, focuses the field and says why (`role="alert"`), the native input fills the field (in capitals), the swatch is named with its value ("Custom color #1A2B3C", axe), and the server keeps the colour as `#RRGGBB` (the format tmail-flutter writes and reads). — web app; tmail-flutter `create_new_label_modal.dart` and its colour picker modal (issue #59, `@mobile`)
+  - Spec: `tests/labels.spec.ts`.
+- [x] `LBL-15` A label with a colour out of the palette opens with the custom swatch checked and its hexadecimal value; editing it is kept by the server; a coloured label has no "No color" (tmail-backend refuses `color: null` in `Label/set` update), a label without colour keeps it; the arrows reach the custom swatch and Tab goes to its field. — web app (issue #59, `@mobile`)
+  - Spec: `tests/labels.spec.ts`.

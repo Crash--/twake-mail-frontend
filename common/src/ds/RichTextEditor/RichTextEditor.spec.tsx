@@ -72,7 +72,9 @@ const LABELS: RichTextEditorLabels = {
     smaller: 'Smaller',
     larger: 'Larger',
     remove: 'Remove image',
-    sizeStatus: (width, percent) => `Width ${width} px, ${percent}%`
+    sizeStatus: (width, percent) => `Width ${width} px, ${percent}%`,
+    alt: 'Alternative text',
+    altHelp: 'Leave empty if decorative.'
   }
 }
 
@@ -86,23 +88,35 @@ const TEST_IDS = {
   toolbarButton: (item: string) => `toolbar-${item}`,
   linkUrlInput: 'link-url',
   imageToolbar: 'image-toolbar',
+  imageAltInput: 'image-alt',
   imageButton: (item: string) => `image-${item}`
 }
 
-async function renderEditor(content = '<p>Hello</p>'): Promise<Editor> {
+async function renderEditor(
+  content = '<p>Hello</p>',
+  onEscape?: () => void
+): Promise<Editor> {
   const created: { editor: Editor | null } = { editor: null }
   renderDs(
-    <RichTextEditor
-      labels={LABELS}
-      content={content}
-      colors={[{ value: null, label: 'Default' }]}
-      fontSizes={[{ value: null, label: 'Normal' }]}
-      fontFamilies={FONTS}
-      testIds={TEST_IDS}
-      onReady={editor => {
-        created.editor = editor
+    // Where the window around the editor would see an Escape that goes up
+    <div
+      role="presentation"
+      onKeyDown={event => {
+        if (event.key === 'Escape') onEscape?.()
       }}
-    />
+    >
+      <RichTextEditor
+        labels={LABELS}
+        content={content}
+        colors={[{ value: null, label: 'Default' }]}
+        fontSizes={[{ value: null, label: 'Normal' }]}
+        fontFamilies={FONTS}
+        testIds={TEST_IDS}
+        onReady={editor => {
+          created.editor = editor
+        }}
+      />
+    </div>
   )
   await screen.findByRole('textbox', { name: 'Message body' })
   if (created.editor === null) throw new Error('The editor was not created')
@@ -297,6 +311,101 @@ describe('RichTextEditor', () => {
         ).toHaveFocus()
       })
       expect(editor.state.selection).toBeInstanceOf(NodeSelection)
+    })
+
+    describe('alternative text', () => {
+      const bodyBox = (): HTMLElement =>
+        screen.getByRole('textbox', { name: 'Message body' })
+
+      it('is a labelled field with the text of the image, and a help', async () => {
+        await selectImage()
+        const field = await screen.findByRole('textbox', {
+          name: 'Alternative text'
+        })
+
+        expect(field).toHaveValue('Picture')
+        expect(field).toHaveAttribute('data-testid', 'image-alt')
+        expect(field).toHaveAccessibleDescription('Leave empty if decorative.')
+      })
+
+      it('is reached with Tab from the toolbar, and written with Enter', async () => {
+        const editor = await selectImage()
+        const small = await screen.findByRole('button', { name: '25%' })
+        act(() => {
+          small.focus()
+        })
+
+        await userEvent.keyboard('{Tab}')
+        const field = screen.getByRole('textbox', { name: 'Alternative text' })
+        expect(field).toHaveFocus()
+        await userEvent.clear(field)
+        await userEvent.type(field, 'A red bicycle')
+        // Nothing is written while it is typed
+        expect(editor.getHTML()).toContain('alt="Picture"')
+
+        await userEvent.keyboard('{Enter}')
+        expect(editor.getHTML()).toContain('alt="A red bicycle"')
+        await waitFor(() => {
+          expect(bodyBox()).toHaveFocus()
+        })
+        expect(editor.state.selection).toBeInstanceOf(NodeSelection)
+      })
+
+      it('makes the image decorative when emptied: alt="" is kept', async () => {
+        const editor = await selectImage()
+        const field = await screen.findByRole('textbox', {
+          name: 'Alternative text'
+        })
+        await userEvent.clear(field)
+        await userEvent.keyboard('{Enter}')
+
+        expect(editor.getHTML()).toContain('alt=""')
+      })
+
+      it('gives the old text back on Escape, and keeps Escape from the window', async () => {
+        const handleEscape = jest.fn()
+        const editor = await renderEditor(
+          '<p>Look <img src="blob:picture" alt="Picture"> here</p>',
+          handleEscape
+        )
+        act(() => {
+          bodyBox().focus()
+          editor.view.dispatch(
+            editor.state.tr.setSelection(
+              NodeSelection.create(editor.state.doc, 6)
+            )
+          )
+        })
+        const field = await screen.findByRole('textbox', {
+          name: 'Alternative text'
+        })
+        await userEvent.clear(field)
+        await userEvent.type(field, 'Draft')
+
+        await userEvent.keyboard('{Escape}')
+        expect(editor.getHTML()).toContain('alt="Picture"')
+        expect(handleEscape).not.toHaveBeenCalled()
+        await waitFor(() => {
+          expect(bodyBox()).toHaveFocus()
+        })
+      })
+
+      it('goes back to the toolbar with Shift+Tab, writing the text', async () => {
+        const editor = await selectImage()
+        const field = await screen.findByRole('textbox', {
+          name: 'Alternative text'
+        })
+        act(() => {
+          field.focus()
+        })
+        await userEvent.type(field, ' 2')
+
+        await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+        expect(editor.getHTML()).toContain('alt="Picture 2"')
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: '25%' })).toHaveFocus()
+        })
+      })
     })
 
     it('removes the image', async () => {

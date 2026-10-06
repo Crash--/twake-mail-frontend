@@ -838,7 +838,9 @@ function LoadedComposerForm({
     const stored = await Promise.all(added.map(file => images.add(file)))
     return stored.map(image => ({
       src: image.url ?? '',
-      alt: image.name,
+      // Empty: decorative until the author writes what the image says (the
+      // name of the file says nothing to a screen reader)
+      alt: '',
       reference: image.cid,
       width: null
     }))

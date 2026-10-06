@@ -65,7 +65,9 @@ const LABELS: RichTextEditorLabels = {
     smaller: '',
     larger: '',
     remove: '',
-    sizeStatus: () => ''
+    sizeStatus: () => '',
+    alt: '',
+    altHelp: ''
   }
 }
 

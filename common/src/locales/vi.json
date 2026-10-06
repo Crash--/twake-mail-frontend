@@ -278,7 +278,9 @@
         "smaller": "Nhỏ hơn",
         "larger": "Lớn hơn",
         "remove": "Xóa ảnh",
-        "sizeStatus": "Chiều rộng %{width} px, %{percent}% so với ảnh gốc"
+        "sizeStatus": "Chiều rộng %{width} px, %{percent}% so với ảnh gốc",
+        "alt": "Văn bản thay thế",
+        "altHelp": "Để trống nếu ảnh chỉ để trang trí. Enter để áp dụng, Escape để hủy."
       },
       "textStyle": "Kiểu văn bản",
       "textStyles": {

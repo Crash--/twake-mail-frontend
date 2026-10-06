@@ -397,6 +397,7 @@ export function RichTextEditor({
         labels={labels.image}
         actionsRef={actionsRef}
         data-testid={testIds.imageToolbar}
+        altInputTestId={testIds.imageAltInput}
         buttonTestId={testIds.imageButton}
       />
       <Box

@@ -119,9 +119,11 @@
     "address": {
       "createRule": "Create a rule with this email",
       "compose": "Compose email",
-      "copy": "Copy",
-      "menu": "Actions on %{email}",
-      "copied": "Email address copied"
+      "invite": "Invite to an event",
+      "chat": "Chat",
+      "copy": "Copy the email address",
+      "copied": "Email address copied",
+      "close": "Close"
     },
     "actionRequired": "Action Required",
     "removeActionRequired": "Remove the Action Required tag",

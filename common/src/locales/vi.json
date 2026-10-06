@@ -119,9 +119,11 @@
     "address": {
       "createRule": "Tạo một quy tắc với email này",
       "compose": "Soạn thư",
-      "copy": "Sao chép",
-      "menu": "Thao tác với %{email}",
-      "copied": "Đã sao chép địa chỉ email"
+      "invite": "Mời tham gia sự kiện",
+      "chat": "Trò chuyện",
+      "copy": "Sao chép địa chỉ email",
+      "copied": "Đã sao chép địa chỉ email",
+      "close": "Đóng"
     },
     "actionRequired": "Cần xử lý",
     "removeActionRequired": "Gỡ nhãn Cần xử lý",

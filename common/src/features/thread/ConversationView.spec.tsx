@@ -590,7 +590,7 @@ describe('ConversationView, an expanded message', () => {
     ).toBeVisible()
   })
 
-  it('opens the address menu of its sender', async () => {
+  it('opens the contact card of its sender', async () => {
     const server = makeServer(FAKE_LINAGORA_CAPABILITIES)
     await renderRead(server)
 
@@ -600,15 +600,15 @@ describe('ConversationView, an expanded message', () => {
       })
     )
 
-    const menu = screen.getByRole('menu', {
-      name: 'Actions on dan@example.com'
-    })
-    expect(within(menu).getByRole('menuitem', { name: 'Copy' })).toBeVisible()
+    const card = await screen.findByRole('dialog', { name: /Dan/ })
     expect(
-      within(menu).getByRole('menuitem', { name: 'Compose email' })
+      within(card).getByRole('button', { name: 'Copy the email address' })
     ).toBeVisible()
     expect(
-      within(menu).getByRole('menuitem', {
+      within(card).getByRole('button', { name: 'Compose email' })
+    ).toBeVisible()
+    expect(
+      within(card).getByRole('button', {
         name: 'Create a rule with this email'
       })
     ).toBeVisible()

@@ -12,6 +12,8 @@ var LANG = 'en'
 var FORWARD_WARNING_MESSAGE = 'Forwarding outside example.com breaks the e2e charter.'
 // "See in your Calendar" of the invitation cards (CAL-03)
 var CALENDAR_SPA_URL = 'https://calendar.example.com'
+// "Chat" of the contact card of an address (CRD-03); {target} is the local part of the address
+var CHAT_SPA_URL = 'https://chat.example.com/#/chat/@{target}'
 // Workplace of each user for the URI templates of docker/app-list.js (APPGRID-01)
 var WORKPLACE_FQDN_FALLBACK = '{localpart}.workplace.example.test'
 // Inside an iframe the top bar leaves the logotype and the app grid (APPGRID-02)

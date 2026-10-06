@@ -1,22 +1,15 @@
-import { Copy, Filter, Icon, Pen } from '@linagora/twake-icons'
-import {
-  Link,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem
-} from '@linagora/twake-mui'
+import { CalendarToday, Discuss, Filter, Pen } from '@linagora/twake-icons'
+import { Avatar, getInitials, Link } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
-import {
-  useId,
-  useState,
-  type MouseEvent,
-  type ReactElement,
-  type ReactNode
-} from 'react'
+import { useState, type ReactElement, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 
+import {
+  ContactCard,
+  type ContactCardAction
+} from '@/ds/ContactCard/ContactCard'
+import { useAppConfig } from '@common/config/AppConfigProvider'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { NewRuleLocationState } from '@common/features/rules/EmailRulesSettings'
@@ -24,40 +17,45 @@ import { settingsSectionPath } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-export interface EmailAddressMenuProps {
+import { contactLinks } from './contactLinks'
+
+export interface EmailAddressCardProps {
   address: EmailAddress
   /** What the address shows: its name, its email */
   children: ReactNode
 }
 
 /**
- * An address of an email header, as a button opening what can be done
- * with it, as tmail-flutter's address dialog: copy it, write to it, and
- * "Create a rule with this email" when the server has filtering rules.
+ * An address of an email header, as a button opening its contact card, as
+ * tmail-flutter's address dialog (a dialog, a bottom sheet on phones): the
+ * avatar, the name, the address with a button copying it, and the actions
+ * "Compose email" and, when the server has filtering rules, "Create a rule
+ * with this email". As in Twake Calendar's attendees, "Invite to an event"
+ * and "Chat" appear when `CALENDAR_SPA_URL` and `CHAT_SPA_URL` are set.
  */
-export function EmailAddressMenu({
+export function EmailAddressCard({
   address,
   children
-}: EmailAddressMenuProps): ReactElement {
+}: EmailAddressCardProps): ReactElement {
   const { t } = useI18n()
   const navigate = useNavigate()
   const { notify } = useNotify()
   const { openComposer } = useComposer()
   const { session } = useJmapSession()
-  const menuId = useId()
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+  const config = useAppConfig()
+  const [isOpen, setIsOpen] = useState(false)
   const hasRules = LINAGORA_CAPABILITIES.filter in session.capabilities
+  const name = (address.name ?? '').trim()
 
-  const handleOpen = (event: MouseEvent<HTMLElement>): void => {
-    setAnchor(event.currentTarget)
+  const handleOpen = (): void => {
+    setIsOpen(true)
   }
 
   const handleClose = (): void => {
-    setAnchor(null)
+    setIsOpen(false)
   }
 
   const handleCopy = (): void => {
-    handleClose()
     navigator.clipboard
       .writeText(address.email)
       .then(() => {
@@ -88,6 +86,52 @@ export function EmailAddressMenu({
     })
   }
 
+  const links = contactLinks(address.email, {
+    calendarSpaUrl: config?.calendarSpaUrl ?? null,
+    chatSpaUrl: config?.chatSpaUrl ?? null,
+    workplaceFqdnFallback: config?.workplaceFqdnFallback ?? null,
+    username: session.username
+  })
+  const actions: ContactCardAction[] = [
+    {
+      id: 'compose',
+      label: t('email.address.compose'),
+      icon: Pen,
+      isPrimary: true,
+      onClick: handleCompose,
+      'data-testid': 'email-address-compose-item'
+    }
+  ]
+  if (links.invite !== null) {
+    actions.push({
+      id: 'invite',
+      label: t('email.address.invite'),
+      icon: CalendarToday,
+      href: links.invite,
+      onClick: handleClose,
+      'data-testid': 'email-address-invite-item'
+    })
+  }
+  if (links.chat !== null) {
+    actions.push({
+      id: 'chat',
+      label: t('email.address.chat'),
+      icon: Discuss,
+      href: links.chat,
+      onClick: handleClose,
+      'data-testid': 'email-address-chat-item'
+    })
+  }
+  if (hasRules) {
+    actions.push({
+      id: 'create-rule',
+      label: t('email.address.createRule'),
+      icon: Filter,
+      onClick: handleCreateRule,
+      'data-testid': 'email-address-create-rule-item'
+    })
+  }
+
   return (
     <>
       <Link
@@ -96,53 +140,29 @@ export function EmailAddressMenu({
         color="inherit"
         underline="hover"
         className="u-ta-left"
-        aria-haspopup="menu"
-        aria-expanded={anchor !== null}
-        aria-controls={anchor === null ? undefined : menuId}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
         onClick={handleOpen}
         data-testid="email-address"
       >
         {children}
       </Link>
-      <Menu
-        id={menuId}
-        anchorEl={anchor}
-        open={anchor !== null}
+      <ContactCard
+        open={isOpen}
         onClose={handleClose}
-        slotProps={{
-          list: {
-            'aria-label': t('email.address.menu', { email: address.email })
-          }
-        }}
-        data-testid="email-address-menu"
-      >
-        <MenuItem onClick={handleCopy} data-testid="email-address-copy-item">
-          <ListItemIcon>
-            <Icon icon={Copy} />
-          </ListItemIcon>
-          <ListItemText>{t('email.address.copy')}</ListItemText>
-        </MenuItem>
-        <MenuItem
-          onClick={handleCompose}
-          data-testid="email-address-compose-item"
-        >
-          <ListItemIcon>
-            <Icon icon={Pen} />
-          </ListItemIcon>
-          <ListItemText>{t('email.address.compose')}</ListItemText>
-        </MenuItem>
-        {hasRules ? (
-          <MenuItem
-            onClick={handleCreateRule}
-            data-testid="email-address-create-rule-item"
-          >
-            <ListItemIcon>
-              <Icon icon={Filter} />
-            </ListItemIcon>
-            <ListItemText>{t('email.address.createRule')}</ListItemText>
-          </MenuItem>
-        ) : null}
-      </Menu>
+        avatar={
+          <Avatar size={64} aria-hidden="true">
+            {getInitials(name, address.email)}
+          </Avatar>
+        }
+        name={name}
+        address={address.email}
+        copyLabel={t('email.address.copy')}
+        onCopy={handleCopy}
+        closeLabel={t('email.address.close')}
+        actions={actions}
+        data-testid="email-address-card"
+      />
     </>
   )
 }

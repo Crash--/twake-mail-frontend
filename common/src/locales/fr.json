@@ -1116,7 +1116,7 @@
     "colorNone": "Sans couleur",
     "colorNamed": "Couleur %{color}",
     "removeFromEmail": "Retirer le libellé %{name}",
-    "moreCount": "%{count} autres libellés",
+    "moreNames": "%{count} autres libellés : %{names}",
     "listLabel": "Libellés de l'e-mail"
   },
   "quota": {

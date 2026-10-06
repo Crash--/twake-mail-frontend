@@ -14,6 +14,10 @@ import {
   makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeLabels
+} from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
@@ -664,6 +668,48 @@ describe('EmailList', () => {
       ])
     })
     expect(row()).not.toHaveAttribute('data-unread')
+    window.localStorage.clear()
+  })
+
+  it('shows on a conversation row the labels of the email that stands for it', async () => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES,
+      emails: [
+        makeEmail({
+          id: 'first',
+          threadId: 'plan',
+          subject: 'Plan',
+          keywords: { $seen: true, work: true },
+          receivedAt: '2026-10-01T08:00:00Z'
+        }),
+        makeEmail({
+          id: 'last',
+          threadId: 'plan',
+          subject: 'Re: Plan',
+          keywords: { $seen: true, urgent: true },
+          receivedAt: '2026-10-03T08:00:00Z'
+        })
+      ]
+    })
+    installFakeLabels(server, [
+      { id: 'work', displayName: 'Work', keyword: 'work', color: '#273891' },
+      {
+        id: 'urgent',
+        displayName: 'Urgent',
+        keyword: 'urgent',
+        color: '#F44336'
+      }
+    ])
+    renderList(server)
+
+    // As tmail-flutter (thread_view.dart: presentationEmail.getLabelList):
+    // the labels of the last email, not the union of the conversation
+    const row = await screen.findByTestId('email-list-item')
+    expect(await within(row).findByTestId('label-chip')).toHaveTextContent(
+      'Urgent'
+    )
+    expect(within(row).queryByText('Work')).toBe(null)
     window.localStorage.clear()
   })
 })

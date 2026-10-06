@@ -1116,7 +1116,7 @@
     "colorNone": "Без цвета",
     "colorNamed": "Цвет %{color}",
     "removeFromEmail": "Удалить метку %{name}",
-    "moreCount": "Ещё меток: %{count}",
+    "moreNames": "Ещё меток: %{count}: %{names}",
     "listLabel": "Метки письма"
   },
   "quota": {

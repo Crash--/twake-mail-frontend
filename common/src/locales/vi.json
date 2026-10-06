@@ -1116,7 +1116,7 @@
     "colorNone": "Không màu",
     "colorNamed": "Màu %{color}",
     "removeFromEmail": "Gỡ nhãn %{name}",
-    "moreCount": "Thêm %{count} nhãn",
+    "moreNames": "%{count} nhãn khác: %{names}",
     "listLabel": "Nhãn của email"
   },
   "quota": {

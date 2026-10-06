@@ -1,4 +1,4 @@
-import { Box } from '@linagora/twake-mui'
+import { Box, Tooltip } from '@linagora/twake-mui'
 import type { Label } from 'jmap-client-ts/linagora'
 import type { ReactElement } from 'react'
 
@@ -41,6 +41,11 @@ export function LabelChips({
   if (labels.length === 0) return null
   const shown = max === undefined ? labels : labels.slice(0, max)
   const hidden = labels.length - shown.length
+  // The names of the labels the "+N" stands for
+  const hiddenNames = labels
+    .slice(shown.length)
+    .map(label => label.displayName)
+    .join(', ')
 
   return (
     <Box
@@ -80,16 +85,18 @@ export function LabelChips({
       ))}
       {hidden > 0 ? (
         <Box component="span" role="listitem">
-          <span aria-hidden>
-            <ColorTag
-              label={`+${hidden}`}
-              color="#F3F6F9"
-              size={size}
-              data-testid="label-chip-more"
-            />
-          </span>
+          <Tooltip title={hiddenNames}>
+            <span aria-hidden>
+              <ColorTag
+                label={`+${hidden}`}
+                color="#F3F6F9"
+                size={size}
+                data-testid="label-chip-more"
+              />
+            </span>
+          </Tooltip>
           <span className="u-visuallyhidden">
-            {t('labels.moreCount', { count: hidden })}
+            {t('labels.moreNames', { count: hidden, names: hiddenNames })}
           </span>
         </Box>
       ) : null}

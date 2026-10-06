@@ -258,7 +258,7 @@ describe('Folder search of the sidebar', () => {
 
     await userEvent.keyboard('{ArrowDown}')
 
-    expect(within(result('Old clients')).getByRole('link')).toHaveFocus()
+    expect(result('Old clients')).toHaveFocus()
     await userEvent.tab()
     expect(
       within(result('Old clients')).getByRole('button', {

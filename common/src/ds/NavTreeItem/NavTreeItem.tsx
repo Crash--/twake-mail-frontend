@@ -7,6 +7,7 @@
 import { Bottom, Icon, Right } from '@linagora/twake-icons'
 import { Box, IconButton, NavItem, NavLink, Tooltip } from '@linagora/twake-mui'
 import {
+  useId,
   useRef,
   useState,
   type ElementType,
@@ -87,8 +88,11 @@ const ROW_BACKGROUND =
  * A row of a navigation tree: icon, name, then the arrow of a folder with
  * children, the counter and the actions. The whole row (36 px at least,
  * radius 8) is the link and carries the hover and selected backgrounds; the
- * arrow and the actions are controls of their own above it, so a tree
- * keyboard user tabs to them. A name cut by the width shows in a tooltip.
+ * arrow and the actions are controls of their own above it. As a
+ * `role="treeitem"` of a `NavTree` the row itself holds the keyboard focus
+ * (its name is the one of the link), the arrow keys of the tree drive the
+ * arrow, and Tab reaches the buttons of the focused row. A name cut by the
+ * width shows in a tooltip.
  */
 export function NavTreeItem({
   level,
@@ -109,6 +113,7 @@ export function NavTreeItem({
   nameTestId
 }: NavTreeItemProps): ReactElement {
   const nameRef = useRef<HTMLSpanElement>(null)
+  const linkId = useId()
   const [isTooltipOpen, setIsTooltipOpen] = useState(false)
   const [isTruncated, setIsTruncated] = useState(false)
   const hasActions = actions !== undefined && actions !== null
@@ -136,6 +141,7 @@ export function NavTreeItem({
       >
         <NavLink
           component={linkComponent}
+          id={linkId}
           to={to}
           selected={isSelected}
           // Tooltip would name the link by the title: the content does it
@@ -230,6 +236,8 @@ export function NavTreeItem({
               toggle.onToggle()
             }}
             data-testid={toggle['data-testid']}
+            // What the Right and Left keys of a tree press
+            data-nav-toggle=""
             sx={{
               position: 'relative',
               zIndex: 1,
@@ -279,6 +287,8 @@ export function NavTreeItem({
 
   return (
     <NavItem
+      // A row of a tree holds the focus: the buttons inside must not name it
+      aria-labelledby={itemProps?.role === 'treeitem' ? linkId : undefined}
       {...itemProps}
       data-testid={testId}
       sx={theme => ({
@@ -293,6 +303,12 @@ export function NavTreeItem({
         borderRadius: '8px',
         backgroundColor: isSelected ? theme.palette.action.selected : undefined,
         '&:hover': { backgroundColor: rowBackground(theme) },
+        // A tree row holds the focus (the link is for the pointer)
+        '&[role="treeitem"]:focus-visible': {
+          outline: '2px solid',
+          outlineColor: theme.palette.primary.main,
+          outlineOffset: '-2px'
+        },
         ...(hasActions
           ? {
               '& [data-nav-actions]': { ml: 'auto' },

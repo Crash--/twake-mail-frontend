@@ -212,4 +212,50 @@ test.describe('composer drafts, local first', () => {
     expect(traffic.writes()).toMatchObject({ created: 1, destroyed: 0 })
     await expect.poll(async () => keptComposers(page)).toEqual([])
   })
+
+  test('CMP-101 a composer discarded just before the page goes does not come back', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ to: ['gone@example.com'], subject: 'Thrown away' })
+    await expect
+      .poll(async () => (await keptComposers(page)).length)
+      .toBe(1)
+    // The page goes before the IndexedDB delete ends: what a reload in the
+    // next milliseconds does, made certain here
+    await page.evaluate(() => {
+      IDBObjectStore.prototype.delete = function dropped() {
+        return undefined as unknown as IDBRequest
+      }
+    })
+
+    await composer.closeAnd('discard')
+    expect(await keptComposers(page)).toHaveLength(1)
+    await page.goto('/')
+    await new LoginPage(page).loginAs(user)
+
+    await expect.poll(async () => keptComposers(page)).toEqual([])
+    await expect(page.getByTestId('composer')).toHaveCount(0)
+  })
+
+  test('CMP-102 a composer discarded then followed by an immediate navigation is not restored', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ to: ['gone@example.com'], subject: 'Thrown away fast' })
+    await expect
+      .poll(async () => (await keptComposers(page)).length)
+      .toBe(1)
+
+    await composer.closeAnd('discard')
+    await page.goto('/')
+    await new LoginPage(page).loginAs(user)
+
+    await expect.poll(async () => keptComposers(page)).toEqual([])
+    await expect(page.getByTestId('composer')).toHaveCount(0)
+  })
 })

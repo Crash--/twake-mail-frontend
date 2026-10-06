@@ -156,6 +156,7 @@ export function keepComposerBeforeUnload(
   record: Omit<StoredComposer, 'updatedAt'>
 ): void {
   if (isSuspended || isTooBig(record.snapshot)) return
+  if (isBuried(record.accountId, record.composerId)) return
   try {
     const stored: StoredComposer = { ...record, updatedAt: Date.now() }
     sessionStorage.setItem(
@@ -164,6 +165,70 @@ export function keepComposerBeforeUnload(
     )
   } catch {
     // Quota or storage disabled: the IndexedDB write is the only one
+  }
+}
+
+const TOMBSTONE_PREFIX = 'twake-mail-composer-gone|'
+
+function tombstoneKey(accountId: string, composerId: string): string {
+  return `${TOMBSTONE_PREFIX}${accountId}|${composerId}`
+}
+
+function isBuried(accountId: string, composerId: string): boolean {
+  try {
+    return sessionStorage.getItem(tombstoneKey(accountId, composerId)) !== null
+  } catch {
+    return false
+  }
+}
+
+/**
+ * A composer that is closed, sent, discarded or saved as a template is gone
+ * for good: this mark is written synchronously, before the IndexedDB delete
+ * (`removeComposer`), which a reload in the next milliseconds may cut short.
+ * `listComposers` ignores the marked composers and finishes the delete.
+ * `sessionStorage`, like the copy of `keepComposerBeforeUnload`: it only has
+ * to survive a reload of this tab.
+ */
+export function buryComposer(accountId: string, composerId: string): void {
+  forgetLastGasps(accountId, composerId)
+  try {
+    sessionStorage.setItem(
+      tombstoneKey(accountId, composerId),
+      String(Date.now())
+    )
+  } catch {
+    // Quota or storage disabled: the IndexedDB delete is the only one
+  }
+}
+
+/** The `[accountId, composerId]` of the marks of this tab */
+function readTombstones(): { accountId: string; composerId: string }[] {
+  const marks: { accountId: string; composerId: string }[] = []
+  try {
+    for (let index = 0; index < sessionStorage.length; index += 1) {
+      const key = sessionStorage.key(index)
+      if (!key?.startsWith(TOMBSTONE_PREFIX)) continue
+      const rest = key.slice(TOMBSTONE_PREFIX.length)
+      const cut = rest.lastIndexOf('|')
+      if (cut > 0) {
+        marks.push({
+          accountId: rest.slice(0, cut),
+          composerId: rest.slice(cut + 1)
+        })
+      }
+    }
+  } catch {
+    // No marks
+  }
+  return marks
+}
+
+function dropTombstone(accountId: string, composerId: string): void {
+  try {
+    sessionStorage.removeItem(tombstoneKey(accountId, composerId))
+  } catch {
+    // Nothing to drop
   }
 }
 
@@ -255,6 +320,17 @@ export function listComposers(accountId: string): Promise<StoredComposer[]> {
   resumeComposerStorage()
   return enqueue(async () => {
     const database = await openDatabase()
+    // Discarded just before the previous page went: finish the delete
+    for (const mark of readTombstones()) {
+      memory.delete(memoryKey(mark.accountId, mark.composerId))
+      if (database) {
+        const transaction = database.transaction(STORE, 'readwrite')
+        transaction.objectStore(STORE).delete([mark.accountId, mark.composerId])
+        await done(transaction)
+      }
+      forgetLastGasps(mark.accountId, mark.composerId)
+      dropTombstone(mark.accountId, mark.composerId)
+    }
     const all: unknown[] = database
       ? await request(
           database.transaction(STORE, 'readonly').objectStore(STORE).getAll()
@@ -302,6 +378,9 @@ export function clearComposerStorage(): Promise<void> {
   isSuspended = true
   memory.clear()
   forgetLastGasps(null)
+  readTombstones().forEach(mark => {
+    dropTombstone(mark.accountId, mark.composerId)
+  })
   return enqueue(async () => {
     const database = await openDatabase()
     if (!database) return

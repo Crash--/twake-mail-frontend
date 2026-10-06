@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto'
 
 import {
+  buryComposer,
   clearComposerStorage,
   keepComposerBeforeUnload,
   COMPOSER_TTL_MS,
@@ -146,6 +147,32 @@ describe('composerStorage', () => {
     keepComposerBeforeUnload(record('a', 'one'))
     await removeComposer('a', 'one')
     keepComposerBeforeUnload(record('a', 'two'))
+    await clearComposerStorage()
+
+    expect(sessionStorage.length).toBe(0)
+  })
+
+  it('does not bring back a composer discarded just before the page went', async () => {
+    await listComposers('a')
+    await putComposer(record('a', 'gone', 'Discarded'))
+    await putComposer(record('a', 'kept', 'Kept'))
+    // The page goes right after "Discard": the IndexedDB delete never ran
+    buryComposer('a', 'gone')
+    keepComposerBeforeUnload(record('a', 'gone', 'Late copy'))
+
+    const stored = await listComposers('a')
+
+    expect(stored.map(item => item.composerId)).toEqual(['kept'])
+    // Purged for good, and the mark is dropped
+    expect(sessionStorage.length).toBe(0)
+    expect((await listComposers('a')).map(item => item.composerId)).toEqual([
+      'kept'
+    ])
+  })
+
+  it('drops the marks of a signed out tab', async () => {
+    await listComposers('a')
+    buryComposer('a', 'one')
     await clearComposerStorage()
 
     expect(sessionStorage.length).toBe(0)

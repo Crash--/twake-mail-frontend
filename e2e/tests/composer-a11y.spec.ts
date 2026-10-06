@@ -284,6 +284,18 @@ test.describe('A11Y composer', () => {
       buffer: await makePng(page, 400, 200, 'A11Y')
     })
     const image = composer.editor.locator('img[data-reference]')
+    const field = composer.root.getByRole('textbox', {
+      name: 'Alternative text'
+    })
+    /** From the selected image to its field: Enter to the toolbar, Tab on, each one reached */
+    const goToAltField = async (): Promise<void> => {
+      await page.keyboard.press('Enter')
+      await expect(
+        composer.root.getByRole('button', { name: '25%' })
+      ).toBeFocused()
+      await page.keyboard.press('Tab')
+      await expect(field).toBeFocused()
+    }
     // Not the name of the file: empty, so decorative (alt="" is there, not absent)
     await expect(image).toHaveAttribute('alt', '')
     await expect(composer.editor.getByRole('img')).toHaveCount(0)
@@ -296,9 +308,6 @@ test.describe('A11Y composer', () => {
       composer.root.getByRole('button', { name: '25%' })
     ).toBeFocused()
     await page.keyboard.press('Tab')
-    const field = composer.root.getByRole('textbox', {
-      name: 'Alternative text'
-    })
     await expect(field).toBeFocused()
     await expect(field).toHaveValue('')
     await expect(field).toHaveAccessibleDescription(
@@ -321,8 +330,7 @@ test.describe('A11Y composer', () => {
     await expect(composer.root).toHaveAttribute('data-mode', 'normal')
 
     // Escape gives the old text back, and does not fold the window
-    await page.keyboard.press('Enter')
-    await page.keyboard.press('Tab')
+    await goToAltField()
     await expect(field).toHaveValue('A pink square with the letters A11Y')
     await page.keyboard.type(' and more')
     await page.keyboard.press('Escape')
@@ -334,16 +342,16 @@ test.describe('A11Y composer', () => {
     await expect(composer.root).toHaveAttribute('data-mode', 'normal')
 
     // Emptied: decorative again
-    await page.keyboard.press('Enter')
-    await page.keyboard.press('Tab')
+    await goToAltField()
     await page.keyboard.press('Control+A')
     await page.keyboard.press('Delete')
     await page.keyboard.press('Enter')
     await expect(image).toHaveAttribute('alt', '')
+    // The focus is back in the text once the field, which the new text remounts, is replaced
+    await expect(composer.editor).toBeFocused()
 
     // Shift+Tab goes back to the toolbar, writing what was typed
-    await page.keyboard.press('Enter')
-    await page.keyboard.press('Tab')
+    await goToAltField()
     await page.keyboard.type('Back')
     await page.keyboard.press('Shift+Tab')
     await expect(image).toHaveAttribute('alt', 'Back')

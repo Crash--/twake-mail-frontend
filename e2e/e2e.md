@@ -816,3 +816,22 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-mobile.spec.ts`.
 - [x] `CMP-49` / `CMP-83` (updated, editor E5) — the composer fills the screen on a phone only (a tablet shows it as a window in the dock), so CMP-49 checks the "+N messages" menu in the top bar of a 390 px phone and then the 1700 px desktop, and CMP-83 checks the one line top bar of a phone (no footer) before the toolbar it shows on "Aa". — web app (editor E5)
   - Spec: `tests/composer.spec.ts`, `tests/composer-format.spec.ts`.
+
+- [x] `CMP-91` Two tabs saving their first template at the same time make a single Templates folder (Web Lock, then the folders are read again before creating one), holding both templates. — web app only, no Patrol test (issue #54)
+  - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-92` A draft reopened from Drafts and saved as a template leaves no draft behind, with no question asked (the draft is the user's own). — web app only, no Patrol test (issue #54)
+  - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-93` A message written as a team mailbox and saved as a template goes to the Templates of that team mailbox (none is made for the user), and the template opened from there keeps the identity of the team mailbox. — web app only, no Patrol test (issue #54)
+  - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-94` A draft of a team mailbox reopened and saved as a template asks "Delete the shared draft?" first: Cancel saves nothing, "Save and delete the draft" files the template and destroys the draft. — web app only, no Patrol test (issue #54)
+  - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-95` "Insert template" in the More menu opens a named dialog with the focus in its filter field, listing the templates of the user and of the team mailboxes; typing filters them and announces "N templates found" in a live region; Enter inserts the subject and the body of the active one into an empty message and puts the focus in the body. No axe violation. — web app only, no Patrol test (tmail-flutter has no picker, issue #54)
+  - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-96` Inserting a template into a message that has text asks to insert it at the cursor (the subject and the text stay) or to replace the message; Escape closes the picker and gives the focus back to "More". — web app only, no Patrol test (issue #54)
+  - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-97` The picker is a sheet from the bottom edge, as wide as the screen, on a phone, and a centred dialog on a tablet and a desktop; it filters and inserts by touch. — web app only, no Patrol test (issue #54, `@mobile`)
+  - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-98` A template found by a search opens in the composer (a new message linked to the template), not in the reading view; the search stays behind. — web app only, no Patrol test (issue #54)
+  - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-88` (updated, issue #54) — the More menu holds "Insert template" between "Save as draft" and "Save as template", on a phone and on a tablet. — web app (issue #54)
+  - Spec: `tests/composer-mobile.spec.ts`.

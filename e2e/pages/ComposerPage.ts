@@ -257,12 +257,45 @@ export class ComposerPage {
     return this
   }
 
-  /** More menu items: `composer-save-draft-item`, `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` */
+  /** More menu items: `composer-save-draft-item`, `composer-save-template-item`, `composer-insert-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` */
   async runMoreAction(
-    item: 'save-draft' | 'save-template' | 'read-receipt' | 'mark-important'
+    item:
+      | 'save-draft'
+      | 'save-template'
+      | 'insert-template'
+      | 'read-receipt'
+      | 'mark-important'
   ): Promise<ComposerPage> {
     await this.moreButton.click()
     await this.page.getByTestId(`composer-${item}-item`).click()
+    return this
+  }
+
+  /** The "Insert template" picker: a dialog, a sheet on a phone */
+  get templatePicker(): Locator {
+    return this.page.getByTestId('template-picker')
+  }
+
+  /** The filter field of the picker (`role="combobox"`) */
+  get templatePickerInput(): Locator {
+    return this.page.getByTestId('template-picker-search-input')
+  }
+
+  /** The templates the picker lists */
+  get templatePickerOptions(): Locator {
+    return this.page.getByTestId('template-picker-item')
+  }
+
+  /** The live region announcing how many templates match */
+  get templatePickerResults(): Locator {
+    return this.page.getByTestId('template-picker-results')
+  }
+
+  /** Opens the picker from the More menu, once its list is there */
+  async openTemplatePicker(): Promise<ComposerPage> {
+    await this.runMoreAction('insert-template')
+    await expect(this.templatePicker).toBeVisible()
+    await expect(this.templatePickerInput).toBeVisible()
     return this
   }
 

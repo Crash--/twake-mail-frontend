@@ -1,4 +1,5 @@
 import {
+  JmapRequestError,
   JmapSetError,
   type EmailAddress,
   type EmailBodyPartCreate,
@@ -585,6 +586,14 @@ export type SendResult =
       /** Previous versions of the draft still there, with `draftId` */
       leftovers: string[]
     }
+
+/**
+ * The request itself was refused as too large (`maxSizeRequest` of the JMAP session, 10 MB at
+ * tmail-backend): the body, written twice (HTML and text) with the headers, is over it
+ */
+export function isRequestTooLarge(error: unknown): boolean {
+  return error instanceof JmapRequestError && error.limit === 'maxSizeRequest'
+}
 
 const SEND_FAILURES: Record<string, SendFailure> = {
   tooLarge: 'tooLarge',

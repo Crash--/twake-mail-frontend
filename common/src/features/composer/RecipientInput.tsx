@@ -1,4 +1,10 @@
-import { useMemo, type ReactElement, type ReactNode, type Ref } from 'react'
+import {
+  useMemo,
+  useRef,
+  type ReactElement,
+  type ReactNode,
+  type Ref
+} from 'react'
 
 import {
   RecipientField,
@@ -78,8 +84,11 @@ export function RecipientInput({
   )
 
   const chips = recipientChips(recipients)
+  /** The recipient taken back into the input, and where it stood */
+  const edited = useRef<{ recipient: Recipient; index: number } | null>(null)
 
   const handleCommit = (text: string): void => {
+    edited.current = null
     onChange(mergeRecipients(recipients, parseRecipients(text)))
     onInputChange('')
   }
@@ -89,13 +98,33 @@ export function RecipientInput({
   }
 
   const handleEdit = (id: string): void => {
-    const edited = recipients.find(recipient => recipient.email === id)
-    if (!edited) return
-    onChange(recipients.filter(recipient => recipient !== edited))
-    onInputChange(formatRecipient(edited))
+    const index = recipients.findIndex(recipient => recipient.email === id)
+    const recipient = recipients[index]
+    if (!recipient) return
+    edited.current = { recipient, index }
+    onChange(recipients.filter(other => other !== recipient))
+    onInputChange(formatRecipient(recipient))
+  }
+
+  const handleCancelEdit = (): void => {
+    const previous = edited.current
+    edited.current = null
+    onInputChange('')
+    if (
+      previous === null ||
+      hasRecipient(recipients, previous.recipient.email)
+    ) {
+      return
+    }
+    onChange([
+      ...recipients.slice(0, previous.index),
+      previous.recipient,
+      ...recipients.slice(previous.index)
+    ])
   }
 
   const handleSelect = (id: string): void => {
+    edited.current = null
     const contact = contacts.find(candidate => candidate.emailAddress === id)
     onChange(
       mergeRecipients(recipients, [
@@ -112,7 +141,13 @@ export function RecipientInput({
         suggestions: t('composer.recipients.suggestions'),
         invalid: t('composer.recipients.invalid'),
         chipHelp: t('composer.recipients.chipHelp'),
-        removed: address => t('composer.recipients.removed', { address })
+        removed: address => t('composer.recipients.removed', { address }),
+        added: addresses =>
+          addresses.length === 1
+            ? t('composer.recipients.added', { address: addresses[0] ?? '' })
+            : t('composer.recipients.addedMany', {
+                smart_count: addresses.length
+              })
       }}
       chips={chips}
       inputValue={inputValue}
@@ -120,6 +155,7 @@ export function RecipientInput({
       onCommit={handleCommit}
       onRemove={handleRemove}
       onEdit={handleEdit}
+      onCancelEdit={handleCancelEdit}
       suggestions={suggestions}
       onSelectSuggestion={handleSelect}
       isList={isList}

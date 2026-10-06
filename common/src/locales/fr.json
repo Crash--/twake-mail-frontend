@@ -370,6 +370,8 @@
       "invalid": "adresse invalide",
       "chipHelp": "Suppr retire l'adresse, Entrée la modifie.",
       "removed": "%{address} retiré",
+      "added": "%{address} ajouté",
+      "addedMany": "%{smart_count} destinataire ajouté |||| %{smart_count} destinataires ajoutés",
       "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
       "summary": "Afficher tous les destinataires :",
       "others": "+%{smart_count}"

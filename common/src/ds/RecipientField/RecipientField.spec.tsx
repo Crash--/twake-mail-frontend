@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState, type KeyboardEvent, type ReactElement } from 'react'
+import { useRef, useState, type KeyboardEvent, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
@@ -15,7 +15,11 @@ const LABELS = {
   suggestions: 'Suggestions',
   invalid: 'invalid address',
   chipHelp: 'Delete removes, Enter edits',
-  removed: (label: string) => `${label} removed`
+  removed: (label: string) => `${label} removed`,
+  added: (labels: readonly string[]) =>
+    labels.length === 1
+      ? `${labels[0] ?? ''} added`
+      : `${labels.length} recipients added`
 }
 
 const CONTACTS: RecipientFieldSuggestion[] = [
@@ -37,6 +41,9 @@ function Harness({
 }): ReactElement {
   const [chips, setChips] = useState(initial.map(toChip))
   const [input, setInput] = useState('')
+  const edited = useRef<{ chip: RecipientFieldChip; index: number } | null>(
+    null
+  )
   const suggestions =
     input.length >= 2
       ? CONTACTS.filter(contact =>
@@ -67,8 +74,22 @@ function Harness({
           setChips(current => current.filter(chip => chip.id !== id))
         }}
         onEdit={id => {
-          setChips(current => current.filter(chip => chip.id !== id))
+          const index = chips.findIndex(chip => chip.id === id)
+          const chip = chips[index]
+          if (chip) edited.current = { chip, index }
+          setChips(current => current.filter(other => other.id !== id))
           setInput(id)
+        }}
+        onCancelEdit={() => {
+          const previous = edited.current
+          edited.current = null
+          setInput('')
+          if (previous === null) return
+          setChips(current => [
+            ...current.slice(0, previous.index),
+            previous.chip,
+            ...current.slice(previous.index)
+          ])
         }}
         suggestions={suggestions}
         onSelectSuggestion={id => {
@@ -193,6 +214,92 @@ describe('RecipientField', () => {
     expect(onEscape).toHaveBeenCalledTimes(1)
   })
 
+  it('gives the chip back on Escape while it is edited, and stops there', async () => {
+    const onEscape = jest.fn()
+    renderDs(
+      <Harness
+        initial={['a@example.com', 'b@example.com', 'c@example.com']}
+        onEscape={onEscape}
+      />
+    )
+    const input = screen.getByRole('combobox', { name: 'To' })
+    await userEvent.click(input)
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{Enter}')
+    expect(input).toHaveValue('b@example.com')
+    await userEvent.type(input, 'xyz')
+
+    await userEvent.keyboard('{Escape}')
+    expect(onEscape).not.toHaveBeenCalled()
+    expect(chipNames()).toEqual([
+      'a@example.com',
+      'b@example.com',
+      'c@example.com'
+    ])
+    expect(input).toHaveValue('')
+    expect(input).toHaveFocus()
+    // Restoring a chip is not adding one
+    expect(screen.getByRole('status')).not.toHaveTextContent('added')
+
+    // The second Escape is the window's
+    await userEvent.keyboard('{Escape}')
+    expect(onEscape).toHaveBeenCalledTimes(1)
+  })
+
+  it('closes the suggestions and gives the chip back with the same Escape', async () => {
+    const onEscape = jest.fn()
+    renderDs(<Harness initial={['al']} onEscape={onEscape} />)
+    const input = screen.getByRole('combobox', { name: 'To' })
+    await userEvent.click(input)
+    await userEvent.keyboard('{ArrowLeft}{Enter}')
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('listbox')).toBe(null)
+    expect(chipNames()).toEqual(['al, invalid address'])
+    expect(onEscape).not.toHaveBeenCalled()
+  })
+
+  it('lets Escape go once the edited text was committed', async () => {
+    const onEscape = jest.fn()
+    renderDs(<Harness initial={['a@example.com']} onEscape={onEscape} />)
+    const input = screen.getByRole('combobox', { name: 'To' })
+    await userEvent.click(input)
+    await userEvent.keyboard('{ArrowLeft}{Enter}{Enter}')
+    expect(chipNames()).toEqual(['a@example.com'])
+
+    await userEvent.keyboard('{Escape}')
+    expect(onEscape).toHaveBeenCalledTimes(1)
+  })
+
+  it('announces the chips it gets, as it announces the ones it loses', async () => {
+    renderDs(<Harness initial={['a@example.com']} />)
+    const input = screen.getByRole('combobox', { name: 'To' })
+    const status = screen.getByRole('status')
+    // What was there at the start is not news
+    expect(status).toHaveTextContent('')
+
+    await userEvent.type(input, 'bob@example.com{Enter}')
+    expect(status).toHaveTextContent('bob@example.com added')
+
+    await userEvent.click(input)
+    await userEvent.paste('erin@example.com, frank@example.com')
+    expect(status).toHaveTextContent('2 recipients added')
+
+    await userEvent.keyboard('{Backspace}{Delete}')
+    expect(status).toHaveTextContent('frank@example.com removed')
+  })
+
+  it('caps the height of its chips and scrolls inside', () => {
+    const many = Array.from({ length: 200 }, (_, index) => `u${index}@x.org`)
+    renderDs(<Harness initial={many} />)
+
+    const content = screen.getAllByTestId('chip')[0]?.parentElement
+    if (!content) throw new Error('No chips')
+    const style = getComputedStyle(content)
+    expect(style.maxHeight).toBe('104px')
+    expect(style.overflowY).toBe('auto')
+  })
+
   it('takes the focus once shown when asked to', () => {
     renderDs(
       <RecipientField
@@ -203,6 +310,7 @@ describe('RecipientField', () => {
         onCommit={jest.fn()}
         onRemove={jest.fn()}
         onEdit={jest.fn()}
+        onCancelEdit={jest.fn()}
         suggestions={[]}
         onSelectSuggestion={jest.fn()}
         autoFocus
@@ -231,6 +339,7 @@ describe('RecipientField avatar', () => {
         onCommit={jest.fn()}
         onRemove={jest.fn()}
         onEdit={jest.fn()}
+        onCancelEdit={jest.fn()}
         suggestions={[]}
         onSelectSuggestion={jest.fn()}
       />

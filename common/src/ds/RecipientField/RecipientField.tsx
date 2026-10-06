@@ -63,13 +63,21 @@ const LABEL_SX = {
 const CHIPS_LABEL_SX = { ...LABEL_SX, mt: '2px' } as const
 const INPUT_MIN_WIDTH = 56
 const INPUT_SX = { flex: `1 1 ${INPUT_MIN_WIDTH}px`, minWidth: INPUT_MIN_WIDTH }
+/** Rows of chips shown before the field scrolls (32 px chips, 4 px apart) */
+const MAX_CHIP_ROWS = 3
+const CHIP_HEIGHT = 32
+const CHIP_GAP = 4
 const CONTENT_SX = {
   minWidth: 0,
+  // With hundreds of recipients the field keeps its place in the window: it
+  // scrolls inside, and the focused chip or the input scrolls into view
+  maxHeight: MAX_CHIP_ROWS * CHIP_HEIGHT + (MAX_CHIP_ROWS - 1) * CHIP_GAP,
+  overflowY: 'auto',
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
-  columnGap: 0.5,
-  rowGap: 0.5,
+  columnGap: `${CHIP_GAP}px`,
+  rowGap: `${CHIP_GAP}px`,
   minHeight: 28
 } as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
@@ -122,6 +130,11 @@ export interface RecipientFieldLabels {
   chipHelp: string
   /** Announced when a chip is removed */
   removed: (label: string) => string
+  /**
+   * Announced when chips are added: the labels of the new ones, in order
+   * (a pasted list can add hundreds)
+   */
+  added: (labels: readonly string[]) => string
 }
 
 /** What a parent can do to the field */
@@ -142,6 +155,11 @@ export interface RecipientFieldProps {
   onRemove: (id: string) => void
   /** The chip goes back into the input, to be corrected */
   onEdit: (id: string) => void
+  /**
+   * Escape while a chip is edited: the chip comes back as it was and the
+   * input is emptied (the field does not touch its input itself)
+   */
+  onCancelEdit: () => void
   suggestions: readonly RecipientFieldSuggestion[]
   onSelectSuggestion: (id: string) => void
   /** Whether pasted text holds several entries, committed at once */
@@ -173,7 +191,8 @@ export interface RecipientFieldProps {
  * - the chips are out of the tab order: ArrowLeft (or Backspace) at the
  *   start of the input goes to the last one, arrows move between them,
  *   Delete or Backspace removes one (announced), Enter, F2 or a double
- *   click edits it;
+ *   click edits it; Escape then gives the chip back as it was, and stops
+ *   there (a second Escape reaches the page);
  * - an invalid chip says so in its accessible name and with an icon, not
  *   by its colour only.
  */
@@ -185,6 +204,7 @@ export function RecipientField({
   onCommit,
   onRemove,
   onEdit,
+  onCancelEdit,
   suggestions,
   onSelectSuggestion,
   isList,
@@ -215,6 +235,11 @@ export function RecipientField({
    * there must not remove it (MUI's Chip deletes on key up)
    */
   const skipDeleteKeyUp = useRef(false)
+  /** A chip was taken back into the input, and not committed since */
+  const isEditing = useRef(false)
+  const previousIds = useRef<readonly string[] | null>(null)
+  /** The chips changed because an edit was cancelled: nothing was added */
+  const isRestoring = useRef(false)
 
   useImperativeHandle(
     actions,
@@ -249,6 +274,13 @@ export function RecipientField({
     }
   }, [chips])
 
+  // Chips added above the input push it down in the scrolled field
+  useEffect(() => {
+    if (document.activeElement === inputRef.current) {
+      inputRef.current?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [chips.length])
+
   useEffect(() => {
     if (active === null) return
     document
@@ -258,6 +290,22 @@ export function RecipientField({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
+  // Adding chips is announced as removing one is
+  useEffect(() => {
+    const before = previousIds.current
+    previousIds.current = chips.map(chip => chip.id)
+    if (before === null) return
+    const known = new Set(before)
+    const added = chips.filter(chip => !known.has(chip.id))
+    const restored = isRestoring.current
+    isRestoring.current = false
+    if (added.length > 0 && !restored) {
+      setAnnouncement(labels.added(added.map(chip => chip.label)))
+    }
+    // The text is the caller's: only a change of the chips is said
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chips])
+
   const close = (): void => {
     setIsOpen(false)
     setActiveId(null)
@@ -266,11 +314,13 @@ export function RecipientField({
   const commit = (text: string): void => {
     if (text.trim() === '') return
     close()
+    isEditing.current = false
     onCommit(text)
   }
 
   const select = (suggestion: RecipientFieldSuggestion): void => {
     close()
+    isEditing.current = false
     onSelectSuggestion(suggestion.id)
     inputRef.current?.focus()
   }
@@ -334,10 +384,17 @@ export function RecipientField({
         }
         break
       case 'Escape':
-        if (isShown) {
+        // One thing at a time: the suggestions close and the chip being
+        // edited comes back together, then Escape is the page's again
+        if (isShown || isEditing.current) {
           event.preventDefault()
           event.stopPropagation()
           close()
+          if (isEditing.current) {
+            isEditing.current = false
+            isRestoring.current = true
+            onCancelEdit()
+          }
         }
         break
       default:
@@ -358,6 +415,7 @@ export function RecipientField({
     const chip = chips[index]
     if (!chip) return
     pendingFocus.current = -1
+    isEditing.current = true
     onEdit(chip.id)
   }
 
@@ -397,6 +455,7 @@ export function RecipientField({
     const next = event.relatedTarget
     if (next instanceof Node && rootRef.current?.contains(next)) return
     close()
+    isEditing.current = false
     commit(inputValue)
   }
 
@@ -485,6 +544,7 @@ export function RecipientField({
             onChange={event => {
               setIsOpen(true)
               setActiveId(null)
+              if (event.target.value === '') isEditing.current = false
               onInputChange(event.target.value)
             }}
             onFocus={() => {

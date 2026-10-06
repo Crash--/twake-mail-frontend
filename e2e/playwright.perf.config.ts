@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test'
 
 import { env } from './support/env'
 
+const isLargePhase = process.env.PERF_PHASE === 'large'
+
 /**
  * Performance measures of the app on a big mailbox: `npm run perf` (see perf/README section
  * of e2e/README.md). Not part of the default suite nor of CI: one worker, no retry, no trace
@@ -11,7 +13,10 @@ import { env } from './support/env'
  */
 export default defineConfig({
   testDir: './perf',
-  testMatch: '**/*.perf.ts',
+  // The large drafts of the composer run first, on a fresh stack (`npm run perf:large`): the
+  // 5 000 emails of the seed make this backend stall the sends. Everything else needs the seed
+  testMatch: isLargePhase ? '**/composer-large.perf.ts' : '**/*.perf.ts',
+  testIgnore: isLargePhase ? undefined : '**/composer-large.perf.ts',
   outputDir: './test-results/perf',
   globalSetup: './perf/global-setup.ts',
   fullyParallel: false,
@@ -36,7 +41,11 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], channel: 'chromium', viewport: { width: 1440, height: 900 } }
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: 'chromium',
+        viewport: { width: 1440, height: 900 }
+      }
     }
   ]
 })

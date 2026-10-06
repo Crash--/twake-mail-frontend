@@ -832,6 +832,16 @@ export class JmapClient {
       }
       content = Buffer.from(text, 'utf8')
     }
+    return this.importEmlContent(content, mailboxRole, options, emlPath)
+  }
+
+  /** Imports a message held in memory (upload + Email/import) */
+  async importEmlContent(
+    content: Buffer,
+    mailboxRole: MailboxRole = 'inbox',
+    options: { keywords?: Keywords; receivedAt?: string } = {},
+    label = 'a message'
+  ): Promise<Email> {
     const blob = await this.upload(content, 'message/rfc822')
     const mailbox = await this.findMailboxByRole(mailboxRole)
     const result = await this.#call('Email/import', {
@@ -849,7 +859,7 @@ export class JmapClient {
     const created = isRecord(result.created) ? result.created.eml : undefined
     if (!isRecord(created)) {
       throw new JmapError(
-        `Email/import of ${emlPath} failed: ${JSON.stringify(result.notCreated)}`,
+        `Email/import of ${label} failed: ${JSON.stringify(result.notCreated)}`,
         'notCreated'
       )
     }

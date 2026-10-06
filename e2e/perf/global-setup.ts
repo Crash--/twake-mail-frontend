@@ -1,7 +1,11 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
-import { perfUserExists, seedPerfUser, type PerfUser } from '../scripts/seed-perf'
+import {
+  perfUserExists,
+  seedPerfUser,
+  type PerfUser
+} from '../scripts/seed-perf'
 
 export const PERF_USER_FILE = path.join(__dirname, '.perf-user.json')
 
@@ -22,6 +26,9 @@ function isPerfUser(value: unknown): value is PerfUser {
  * credentials in perf/.perf-user.json; reused while the stack keeps it.
  */
 export default async function globalSetup(): Promise<void> {
+  // The large drafts of the composer make their own users: the big mailbox is not what they
+  // measure, and it makes this backend stall their sends (`PERF_PHASE=large`)
+  if (process.env.PERF_PHASE === 'large') return
   const threads = process.env.PERF_THREADS === '1'
   if (existsSync(PERF_USER_FILE)) {
     const stored: unknown = JSON.parse(readFileSync(PERF_USER_FILE, 'utf8'))

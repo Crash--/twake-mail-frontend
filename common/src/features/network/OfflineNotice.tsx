@@ -22,7 +22,14 @@ const BACK_ONLINE_MS = 5_000
  * each change (a live region always mounted, not the banner, which appears
  * with its text and is often not read).
  */
-export function OfflineNotice(): ReactElement {
+export interface OfflineNoticeProps {
+  /** The floating "New message" button is there at every size (the embedded facade) */
+  hasFloatingAction?: boolean
+}
+
+export function OfflineNotice({
+  hasFloatingAction = false
+}: OfflineNoticeProps): ReactElement {
   const { t } = useI18n()
   const isOnline = useOnlineStatus()
   const screenSize = useScreenSize()
@@ -64,7 +71,9 @@ export function OfflineNotice(): ReactElement {
           dismissLabel={t('common.dismiss')}
           onDismiss={handleDismiss}
           bottomOffset={
-            screenSize === 'desktop' ? BANNER_OFFSET : BANNER_OFFSET_WITH_FAB
+            screenSize === 'desktop' && !hasFloatingAction
+              ? BANNER_OFFSET
+              : BANNER_OFFSET_WITH_FAB
           }
           data-testid="offline-banner"
         />

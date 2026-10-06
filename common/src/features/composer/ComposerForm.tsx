@@ -374,6 +374,11 @@ function LoadedComposerForm({
   const moreButtonRef = useRef<HTMLButtonElement>(null)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [saveState, setSaveState] = useState<SaveState>('idle')
+  /**
+   * What the live region says of an autosave. A save asked for says it in
+   * a toast: one voice for each message, never the line and the toast
+   */
+  const [saveAnnouncement, setSaveAnnouncement] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
   const [isSendOverQuota, setIsSendOverQuota] = useState(false)
@@ -510,6 +515,7 @@ function LoadedComposerForm({
         return true
       }
       setSaveState('saving')
+      setSaveAnnouncement('')
       await collectStrays()
       try {
         const email = await buildEmail(composed(editor), images, mailboxIds)
@@ -526,6 +532,7 @@ function LoadedComposerForm({
         files.rebase(result.attachments)
         savedRef.current = current
         setSaveState('saved')
+        if (kind === 'auto') setSaveAnnouncement(t('composer.draft.autosaved'))
         // The browser keeps the id of the draft and what it holds
         onChange?.()
         return true
@@ -534,6 +541,7 @@ function LoadedComposerForm({
         // Not refused but unanswered: it may have been created all the same
         if (!(error instanceof JmapSetError)) mayHaveStraysRef.current = true
         setSaveState('failed')
+        if (kind === 'auto') setSaveAnnouncement(t('composer.draft.notSaved'))
         // The versions this save may have left
         onChange?.()
         if (kind === 'manual') {
@@ -1347,15 +1355,25 @@ function LoadedComposerForm({
     />
   )
   const saveStatus = (
-    <Typography
-      role="status"
-      variant="caption"
-      color="textPrimary"
-      className={isPhone ? 'u-visuallyhidden' : 'u-flex-auto u-ph-1'}
-      data-testid="composer-save-status"
-    >
-      {saveStateKey === null ? '' : t(saveStateKey)}
-    </Typography>
+    <>
+      {/* To read, not announced: see `saveAnnouncement` */}
+      <Typography
+        variant="caption"
+        color="textPrimary"
+        className={isPhone ? 'u-visuallyhidden' : 'u-flex-auto u-ph-1'}
+        data-testid="composer-save-status"
+      >
+        {saveStateKey === null ? '' : t(saveStateKey)}
+      </Typography>
+      {/* Always mounted: a live region only announces changes */}
+      <Box
+        role="status"
+        className="u-visuallyhidden"
+        data-testid="composer-save-announcement"
+      >
+        {saveAnnouncement}
+      </Box>
+    </>
   )
   const moreButton = (
     <ActionIconButton

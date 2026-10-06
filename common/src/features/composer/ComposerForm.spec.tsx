@@ -569,6 +569,47 @@ describe('ComposerForm', () => {
       expect(jmapServer.submitted).toEqual([])
     })
 
+    it('gives an edited recipient back, in its place, on Escape', async () => {
+      renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'a@example.com,b@example.com,c@example.com' })
+      const input = within(composer).getByRole('combobox', { name: 'To' })
+      const names = (): (string | null)[] =>
+        within(composer)
+          .getAllByTestId('recipient-chip')
+          .map(chip => chip.getAttribute('aria-label'))
+
+      await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{Enter}')
+      expect(names()).toEqual(['a@example.com', 'c@example.com'])
+      expect(input).toHaveValue('b@example.com')
+      await userEvent.type(input, 'xx')
+
+      await userEvent.keyboard('{Escape}')
+      expect(names()).toEqual([
+        'a@example.com',
+        'b@example.com',
+        'c@example.com'
+      ])
+      expect(input).toHaveValue('')
+      // The window did not fold: its fields are still there
+      expect(
+        within(composer).getByRole('textbox', { name: 'Subject' })
+      ).toBeVisible()
+    })
+
+    it('says a recipient added', async () => {
+      renderComposer()
+      const composer = await openComposer()
+
+      await fill(composer, { to: 'bob@example.com' })
+
+      expect(
+        within(within(composer).getByTestId('composer-to-field')).getByRole(
+          'status'
+        )
+      ).toHaveTextContent('bob@example.com added')
+    })
+
     it('asks before sending without a subject', async () => {
       const { jmapServer } = renderComposer()
       const composer = await openComposer()
@@ -624,6 +665,13 @@ describe('ComposerForm', () => {
         },
         { timeout: 4000 }
       )
+      // Said once, by the live region of the autosave: the line is only read
+      expect(
+        within(composer).getByTestId('composer-save-announcement')
+      ).toHaveTextContent('Draft saved')
+      expect(
+        within(composer).getByTestId('composer-save-status')
+      ).not.toHaveAttribute('role')
       expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
         'Autosaved'
       ])
@@ -723,6 +771,35 @@ describe('ComposerForm', () => {
 
       expect(image()).toHaveAttribute('src', 'https://tracker.example/p.png')
       expect(within(composer).queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('says "Draft saved" once when the user saves, in the toast and not in the window', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'By hand' })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'More' })
+      )
+      await userEvent.click(
+        screen.getByRole('menuitem', { name: 'Save as draft' })
+      )
+
+      await waitFor(() => {
+        expect(draftsOf(jmapServer)).toHaveLength(1)
+      })
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Draft saved'
+      )
+      expect(
+        within(composer).getByTestId('composer-save-status')
+      ).toHaveTextContent('Draft saved')
+      // Of the live regions, only the toast says it
+      expect(
+        screen
+          .getAllByRole('status')
+          .filter(region => region.textContent.includes('Draft saved'))
+      ).toHaveLength(1)
     })
 
     it('keeps the previous version of a draft when the server refuses the new one', async () => {

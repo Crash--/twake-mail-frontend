@@ -63,20 +63,29 @@ callback first, then puts that path back in the address. Outside a frame
 
 ## Talking to TwakeSpace
 
-Through cozy-external-bridge, as with Twake Workplace, set up with the origin
-of `TWAKE_SPACE_URL` only (outside a frame or without it, the facade says
-nothing):
+Raw `postMessage` (ADR 010 of twake-space-architecture), to the origin of
+`TWAKE_SPACE_URL` only, and from it only (`event.origin` and
+`event.source` are checked). Outside a frame or without `TWAKE_SPACE_URL`, the
+facade says nothing. `resourceId` is the root id of the route, and `path` the
+URL of the frame below `/embed/team-mailboxes/<rootId>` (pathname, query and
+fragment): `''` on the route itself, otherwise it starts with `/`, `?` or `#`.
 
-- **navigation**: `startHistorySyncing`, so every navigation of the facade
-  reaches `updateHistory(<path>)` of TwakeSpace, which can write it in its
-  own address and frame that path again on a reload;
-- **sign in again**: `notifyLoginRequired()` of the bridge. Until a version
-  of cozy-external-bridge has it, the facade posts
-  `{ type: 'twake-embed:login-required' }` to the origin of TwakeSpace.
+TwakeSpace owns the history of the page; the frame has no entries of its own:
 
-TwakeSpace exposes these methods with Comlink, as
-cozy-external-bridge-container does (that package needs a Cozy app:
-cozy-client, cozy-flags, the data proxy).
+- `history.pushState` is replaced by `history.replaceState`, and
+  `history.replaceState` is wrapped, once, when the router starts. Each change
+  of the URL, and the first one, is sent as
+  `{ type: 'twake-embed:path', resourceId, path, replace }`: `replace` is
+  `false` for what was a `pushState`, `true` otherwise.
+- `{ type: 'twake-embed:navigate', resourceId, path }` (Back, Forward, deep
+  link): the router navigates to `path` with a replace, without reporting the
+  URL it writes. Dropped when `resourceId` is not the mailbox shown.
+- `{ type: 'twake-embed:load', resourceId, path }` (another mailbox): the
+  router cannot switch mailbox in place yet (its base is read once), so the
+  facade does `location.replace` to the route of `resourceId` plus `path`.
+- the facade never navigates its own document after its boot.
+- **sign in again**: `notifyLoginRequired()` of cozy-external-bridge. Until a
+  version of it has it, the facade posts `{ type: 'twake-embed:login-required' }`.
 
 ### Overlay
 

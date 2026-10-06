@@ -194,6 +194,9 @@ var CHAT_SPA_URL = {{ include "twake-mail-frontend.jsString" . }}
 var WORKPLACE_FQDN_FALLBACK = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
 var WORKPLACE_EMBEDDING = {{ ternary "true" "false" (eq (toString $config.workplaceEmbedding) "true") }}
+{{- with $config.twakeSpaceUrl }}
+var TWAKE_SPACE_URL = {{ include "twake-mail-frontend.jsString" . }}
+{{- end }}
 {{- with $config.forwardWarningMessage }}
 var FORWARD_WARNING_MESSAGE = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}

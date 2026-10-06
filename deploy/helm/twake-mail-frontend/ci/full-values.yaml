@@ -31,6 +31,7 @@ config:
   chatSpaUrl: https://{workplaceFqdn.localpart}-chat.{workplaceFqdn.domain}/
   workplaceFqdnFallback: "{localpart}.workplace.example.com"
   workplaceEmbedding: true
+  twakeSpaceUrl: https://space.example.com
   forwardWarningMessage: Do not forward "outside" <example.com>
   tdrive:
     enabled: true

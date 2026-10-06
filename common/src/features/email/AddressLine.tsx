@@ -99,7 +99,7 @@ export function AddressLine({
       {addresses.map((address, index) => (
         <span key={`${address.email}-${index}`}>
           {index > 0 ? ', ' : null}
-          <EmailAddressCard address={address}>
+          <EmailAddressCard address={address} isInline>
             {formatAddress(address)}
           </EmailAddressCard>
         </span>

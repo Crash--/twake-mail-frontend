@@ -1,4 +1,4 @@
-import { ComposerPage, LoginPage } from '../pages'
+import { ComposerPage, ConversationPage, LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
@@ -189,5 +189,43 @@ test.describe('CRD the contact card of an address', () => {
       email.addressCard.getByTestId('email-address-compose-item')
     ).toBeVisible()
     await expect(email.addressCard.getByRole('link')).toHaveCount(0)
+  })
+
+  test.describe('in a conversation', () => {
+    test.use({ emailsOneByOne: false })
+
+    test(
+      'CRD-06 a recipient of an expanded message of a conversation opens its card too, and its line wraps as text',
+      { tag: '@mobile' },
+      async ({ page, user, users, jmap }) => {
+        const bob = await users.create({ prefix: 'bob' })
+        await jmap.sendEmail({
+          to: [{ name: 'Bob Dupont', email: bob.email }],
+          saveTo: 'inbox',
+          subject: SUBJECT,
+          text: 'hello'
+        })
+        await jmap.waitForEmail({ subject: SUBJECT })
+        const mailbox = await new LoginPage(page).loginAs(user)
+        await mailbox.emailRow(SUBJECT).click()
+        const conversation = await new ConversationPage(page).expectLoaded(
+          SUBJECT
+        )
+        const message = conversation.messages.first()
+
+        const recipient = message
+          .getByTestId('conversation-message-to')
+          .getByTestId('email-address')
+        await recipient.click()
+
+        const card = page.getByRole('dialog', { name: 'Bob Dupont' })
+        await expect(card.getByTestId('contact-card-address')).toHaveText(
+          bob.email
+        )
+        await page.keyboard.press('Escape')
+        await expect(card).toBeHidden()
+        await expect(recipient).toBeFocused()
+      }
+    )
   })
 })

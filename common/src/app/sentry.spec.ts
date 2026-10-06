@@ -1,7 +1,9 @@
 import * as Sentry from '@sentry/react'
 
+import { makeRecorder, parseItems } from '@common/testing/sentryRecorder'
+
 import {
-  SentryLifecycle,
+  type SentryLifecycle,
   type SentryReporting,
   type SentrySetup
 } from './sentry'
@@ -9,44 +11,11 @@ import {
 const SETUP: SentrySetup = {
   dsn: 'https://publickey@sentry.example.com/42',
   environment: 'test',
-  release: '1.2.3'
+  release: '1.2.3',
+  feedbackEnabled: false
 }
 
 const REPORTING: SentryReporting = { setup: SETUP, userId: 'a1b2c3d4e5f60718' }
-
-/** The envelopes the SDK would post, as text */
-function makeRecorder(): {
-  sent: string[]
-  lifecycle: SentryLifecycle
-} {
-  const sent: string[] = []
-  const lifecycle = new SentryLifecycle({
-    transport: options =>
-      Sentry.createTransport(options, request => {
-        sent.push(
-          typeof request.body === 'string'
-            ? request.body
-            : new TextDecoder().decode(request.body)
-        )
-        return Promise.resolve({ statusCode: 200 })
-      })
-  })
-  return { sent, lifecycle }
-}
-
-/** The items of an envelope: [header, payload] pairs */
-function parseItems(envelope: string): { type: string; payload: unknown }[] {
-  const lines = envelope.split('\n').filter(line => line !== '')
-  const items: { type: string; payload: unknown }[] = []
-  for (let index = 1; index + 1 < lines.length; index += 2) {
-    const header = JSON.parse(lines[index] ?? '{}') as { type: string }
-    items.push({
-      type: header.type,
-      payload: JSON.parse(lines[index + 1] ?? '{}') as unknown
-    })
-  }
-  return items
-}
 
 // The SDK wraps the console once for the whole page, so the console is
 // silenced once as well, not per test (`restoreMocks` would undo a spy)
@@ -168,6 +137,17 @@ describe('SentryLifecycle', () => {
     expect(Sentry.getIsolationScope().getUser()?.id).toBeUndefined()
     expect(Sentry.getCurrentScope().getScopeData().breadcrumbs).toEqual([])
     expect(Sentry.getIsolationScope().getScopeData().breadcrumbs).toEqual([])
+  })
+
+  it('tags the events with the app, so that a shared DSN can tell them apart', async () => {
+    await lifecycle.apply(REPORTING)
+    Sentry.captureException(new Error('boom'))
+    await Sentry.flush(500)
+
+    const event = parseItems(sent[0] ?? '')[0]?.payload as {
+      tags?: Record<string, string>
+    }
+    expect(event.tags).toEqual({ app: 'twake-mail' })
   })
 
   describe('what is sent', () => {

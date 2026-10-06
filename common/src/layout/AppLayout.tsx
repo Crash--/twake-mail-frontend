@@ -23,6 +23,7 @@ import {
   isSettingsPath,
   SettingsExitProvider
 } from '@common/features/settings/SettingsExitProvider'
+import { FeedbackWidget } from '@common/features/sentry/FeedbackWidget'
 import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync'
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
 import { SettingsSidebar } from '@common/features/settings/SettingsSidebar'
@@ -138,6 +139,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
       <ServerLanguageSync />
       <OfflineNotice />
       <SentryReportingSync />
+      <FeedbackWidget hasFloatingAction={showComposeFab} />
       <TopBar apps={apps} onOpenFolders={handleOpenFolders} />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}

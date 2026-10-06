@@ -1264,5 +1264,29 @@
     "unavailableDescription": "Vous n'êtes pas membre de cette boîte mail d'équipe, ou elle n'existe pas.",
     "sessionExpiredTitle": "Votre session a expiré",
     "sessionExpiredDescription": "Reconnectez-vous pour voir cette boîte mail d'équipe."
+  },
+  "feedback": {
+    "trigger": "Donner votre avis",
+    "triggerAria": "Donner votre avis",
+    "formTitle": "Donner votre avis",
+    "messageLabel": "Votre avis",
+    "messagePlaceholder": "Qu'est-ce qui fonctionne, qu'est-ce qui ne fonctionne pas, que manque-t-il ?",
+    "emailLabel": "E-mail (facultatif)",
+    "emailPlaceholder": "nom@exemple.fr",
+    "submit": "Envoyer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "success": "Merci pour votre avis !",
+    "required": "(obligatoire)",
+    "addScreenshot": "Ajouter une capture d'écran",
+    "removeScreenshot": "Retirer la capture d'écran",
+    "highlightTool": "Surligner",
+    "hideTool": "Masquer",
+    "removeHighlight": "Retirer",
+    "errorEmptyMessage": "Écrivez un message avant d'envoyer votre avis.",
+    "errorNoClient": "Votre avis ne peut pas être envoyé pour le moment.",
+    "errorTimeout": "Nous n'avons pas pu confirmer l'envoi de votre avis.",
+    "errorForbidden": "Votre avis a été refusé par le serveur.",
+    "errorGeneric": "Votre avis n'a pas pu être envoyé. Vérifiez votre connexion ou votre bloqueur de publicités, puis réessayez."
   }
 }

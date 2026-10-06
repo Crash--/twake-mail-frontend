@@ -1,12 +1,22 @@
 import * as Sentry from '@sentry/react'
 
-import { scrubBreadcrumb, scrubEvent } from '@common/app/sentryEvents'
+import {
+  isFeedbackEvent,
+  scrubBreadcrumb,
+  scrubEvent,
+  scrubFeedbackEvent
+} from '@common/app/sentryEvents'
 
 /** What starts the reporting: where to send, and for which release */
 export interface SentrySetup {
   dsn: string
   environment: string | null
   release: string
+  /**
+   * Whether the user feedback widget is offered (`SENTRY_FEEDBACK_ENABLED`):
+   * the integration is added to the client, the button is mounted by the shell
+   */
+  feedbackEnabled: boolean
 }
 
 /** The reporting that is allowed right now: the setup, and who reports */
@@ -22,6 +32,12 @@ export interface SentryLifecycleOptions {
 }
 
 const MAX_BREADCRUMBS = 30
+
+/** The id of the element the feedback widget adds to the body (SDK default) */
+export const FEEDBACK_HOST_ID = 'sentry-feedback'
+
+/** Tags every event: the DSN may be shared by several apps */
+const APP_TAG = 'twake-mail'
 
 /** Time given to the events already in flight when the reporting stops (ms) */
 const CLOSE_TIMEOUT = 100
@@ -41,7 +57,8 @@ function sameSetup(a: SentrySetup, b: SentrySetup): boolean {
   return (
     a.dsn === b.dsn &&
     a.environment === b.environment &&
-    a.release === b.release
+    a.release === b.release &&
+    a.feedbackEnabled === b.feedbackEnabled
   )
 }
 
@@ -53,14 +70,16 @@ function sameSetup(a: SentrySetup, b: SentrySetup): boolean {
  * checks, so a revocation drops what is not sent yet.
  *
  * What the SDK sends is limited by the options of `start`: no default PII, no
- * session replay, feedback widget, profiling nor tracing, and every event and
- * breadcrumb is rebuilt by `sentryEvents.ts`.
+ * session replay, profiling nor tracing, the feedback widget only when the
+ * deployment turns it on, and every event and breadcrumb is rebuilt by
+ * `sentryEvents.ts`.
  */
 export class SentryLifecycle {
   private readonly options: SentryLifecycleOptions
   private wanted: SentryReporting | null = null
   private running: SentryReporting | null = null
   private queue: Promise<void> = Promise.resolve()
+  private readonly listeners = new Set<() => void>()
 
   constructor(options: SentryLifecycleOptions = {}) {
     this.options = options
@@ -74,6 +93,26 @@ export class SentryLifecycle {
   /** Whether the SDK is started */
   isRunning(): boolean {
     return this.running !== null
+  }
+
+  /**
+   * Whether the SDK is started with the feedback integration: the shell can
+   * mount the button. Meant for `useSyncExternalStore`, with `subscribe`.
+   */
+  isFeedbackRunning(): boolean {
+    return this.running?.setup.feedbackEnabled === true
+  }
+
+  /** Calls `listener` when the SDK starts or stops; returns the way to stop */
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener)
+    return () => {
+      this.listeners.delete(listener)
+    }
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) listener()
   }
 
   /**
@@ -114,6 +153,7 @@ export class SentryLifecycle {
         dsn: setup.dsn,
         release: setup.release,
         ...(setup.environment ? { environment: setup.environment } : {}),
+        initialScope: { tags: { app: APP_TAG } },
         ...(this.options.transport
           ? { transport: this.options.transport }
           : {}),
@@ -128,8 +168,9 @@ export class SentryLifecycle {
           urlQueryParams: false
         },
         // No tracing (no `tracesSampleRate`, no browser tracing integration),
-        // no profiling, no session replay, no feedback widget, no logs, no
-        // release health sessions: none of their integrations is added
+        // no profiling, no session replay, no logs, no release health
+        // sessions: none of their integrations is added. The feedback one is
+        // added only when the deployment turns it on
         sendClientReports: false,
         maxBreadcrumbs: MAX_BREADCRUMBS,
         denyUrls: [
@@ -149,7 +190,31 @@ export class SentryLifecycle {
             xhr: true
           }),
           // As tmail-flutter, errors are reported and warnings are not
-          Sentry.captureConsoleIntegration({ levels: ['error'] })
+          Sentry.captureConsoleIntegration({ levels: ['error'] }),
+          // `beforeSend` never sees a feedback: this is its gate and scrubbing
+          {
+            name: 'TwakeFeedbackGate',
+            processEvent: event => {
+              if (!isFeedbackEvent(event)) return event
+              return this.isAllowed() ? scrubFeedbackEvent(event) : null
+            }
+          },
+          ...(setup.feedbackEnabled
+            ? [
+                // The synchronous integration, bundled with the app: the
+                // lazy one loads code from Sentry's CDN, which
+                // `script-src 'self'` refuses. No button of its own, the
+                // shell of the app mounts one (`FeedbackWidget`)
+                Sentry.feedbackIntegration({
+                  autoInject: false,
+                  enableScreenshot: true,
+                  showBranding: false,
+                  showName: false,
+                  showEmail: true,
+                  isEmailRequired: false
+                })
+              ]
+            : [])
         ],
         beforeSend: (event, hint) =>
           this.isAllowed() ? scrubEvent(event, hint) : null,
@@ -158,6 +223,7 @@ export class SentryLifecycle {
       })
       this.running = reporting
       this.moveUser(reporting)
+      this.notify()
     } catch (error: unknown) {
       // The reporting must never break the app
       console.warn('[sentry] Cannot start', error)
@@ -170,7 +236,16 @@ export class SentryLifecycle {
   }
 
   private async stop(): Promise<void> {
+    const hadFeedback = this.isFeedbackRunning()
     this.running = null
+    this.notify()
+    // Neither `close` nor the `remove` of the integration takes the host of
+    // the widget out of the page (it looks for the parent of the shadow root,
+    // which has none), and the next client would add a second one
+    if (hadFeedback) {
+      Sentry.getFeedback()?.remove()
+      document.getElementById(FEEDBACK_HOST_ID)?.remove()
+    }
     // `Sentry.setUser` sets the user on the isolation scope: the other scopes
     // must not get an empty one, which would hide it at the next start
     Sentry.getIsolationScope().setUser(null)

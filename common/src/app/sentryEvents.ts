@@ -1,6 +1,7 @@
 import type {
   Breadcrumb,
   ErrorEvent,
+  Event,
   EventHint,
   Exception
 } from '@sentry/react'
@@ -202,6 +203,86 @@ export function scrubEvent(
       ? {}
       : { transaction: scrubUrl(event.transaction) }),
     breadcrumbs: (event.breadcrumbs ?? [])
+      .map(scrubBreadcrumb)
+      .filter((breadcrumb): breadcrumb is Breadcrumb => breadcrumb !== null)
+  }
+}
+
+/**
+ * The event type of a user feedback. The SDK never gives these to
+ * `beforeSend`, which only sees errors: they have their own gate.
+ */
+export function isFeedbackEvent(event: Event): boolean {
+  return event.type === 'feedback'
+}
+
+/** The contexts a feedback keeps: the browser, its system and the trace */
+const KEPT_FEEDBACK_CONTEXTS = new Set([
+  'browser',
+  'os',
+  'device',
+  'culture',
+  'trace'
+])
+
+/**
+ * A user feedback as it leaves the browser. What the user chose to write (the
+ * message, and the contact email when they filled it) stays as typed: it is
+ * the point of the form, and the key based scrubbing would turn the address
+ * into `[email]`. Everything the SDK adds around it is held to the rules of
+ * the errors: the URL of the page without query nor identifiers, no HTTP
+ * headers, no `extra` data, the pseudonymous user only, the scrubbed
+ * breadcrumbs. The screenshot travels as an attachment, which no hook sees:
+ * it is the user's own capture, sent only from the form that previews it.
+ */
+export function scrubFeedbackEvent(event: Event): Event {
+  const {
+    extra: _extra,
+    request,
+    contexts,
+    user,
+    breadcrumbs,
+    transaction,
+    ...rest
+  } = event
+  const feedback = contexts?.feedback
+  const keptContexts = Object.fromEntries(
+    Object.entries(contexts ?? {}).filter(([key]) =>
+      KEPT_FEEDBACK_CONTEXTS.has(key)
+    )
+  )
+  return {
+    ...rest,
+    contexts: {
+      ...keptContexts,
+      ...(feedback
+        ? {
+            feedback: {
+              message: feedback.message,
+              contact_email: feedback.contact_email,
+              source: feedback.source,
+              associated_event_id: feedback.associated_event_id,
+              url:
+                typeof feedback.url === 'string'
+                  ? scrubUrl(feedback.url)
+                  : undefined
+            }
+          }
+        : {})
+    },
+    ...(request === undefined
+      ? {}
+      : {
+          request: {
+            url: request.url === undefined ? undefined : scrubUrl(request.url),
+            method: request.method
+          }
+        }),
+    ...(user?.id === undefined ? {} : { user: { id: user.id } }),
+    ...(transaction === undefined
+      ? {}
+      : { transaction: scrubUrl(transaction) }),
+    breadcrumbs: (breadcrumbs ?? [])
       .map(scrubBreadcrumb)
       .filter((breadcrumb): breadcrumb is Breadcrumb => breadcrumb !== null)
   }

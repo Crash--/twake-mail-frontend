@@ -18,6 +18,7 @@ export function SentryReportingSync(): ReactElement | null {
   const dsn = setup?.dsn
   const environment = setup?.environment
   const release = setup?.release
+  const feedbackEnabled = setup?.feedbackEnabled ?? false
 
   useEffect(() => {
     if (dsn === undefined || release === undefined) {
@@ -29,7 +30,12 @@ export function SentryReportingSync(): ReactElement | null {
       .then(userId => {
         if (!isCurrent) return undefined
         return sentryLifecycle.apply({
-          setup: { dsn, environment: environment ?? null, release },
+          setup: {
+            dsn,
+            environment: environment ?? null,
+            release,
+            feedbackEnabled
+          },
           userId
         })
       })
@@ -40,7 +46,7 @@ export function SentryReportingSync(): ReactElement | null {
       isCurrent = false
       stopSentryReporting()
     }
-  }, [accountId, dsn, environment, release])
+  }, [accountId, dsn, environment, release, feedbackEnabled])
 
   return null
 }

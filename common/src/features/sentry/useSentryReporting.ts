@@ -39,7 +39,11 @@ export function resolveSentrySetup(
   if (config.sentrySource === 'env') {
     return config.sentryDsn === null
       ? null
-      : { dsn: config.sentryDsn, environment: config.sentryEnvironment }
+      : {
+          dsn: config.sentryDsn,
+          environment: config.sentryEnvironment,
+          feedbackEnabled: config.sentryFeedbackEnabled
+        }
   }
   if (
     ecosystem?.enabled !== true ||
@@ -49,7 +53,11 @@ export function resolveSentrySetup(
   ) {
     return null
   }
-  return { dsn: ecosystem.dsn, environment: ecosystem.environment }
+  return {
+    dsn: ecosystem.dsn,
+    environment: ecosystem.environment,
+    feedbackEnabled: config.sentryFeedbackEnabled
+  }
 }
 
 /**

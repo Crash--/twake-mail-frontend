@@ -85,6 +85,50 @@ test.describe('TMB team mailbox facade', () => {
     await expectNoA11yViolations(page)
   })
 
+  test('TMB-15 framed between the tablet sizes, the facade has the desktop layout', async ({
+    page,
+    user,
+    users,
+    jmap,
+    webadmin
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    const teamInbox = (await jmap.getMailboxes()).find(
+      mailbox =>
+        mailbox.namespace === `TeamMailbox[${team.email}]` &&
+        mailbox.name === 'INBOX'
+    )
+    if (teamInbox === undefined) throw new Error('No INBOX in the team mailbox')
+    await jmap.createEmailIn(teamInbox.id, { subject: 'For the whole team' })
+    const path = await facadePath(webadmin, team)
+    await page.route(`**${SPACE_HOST}`, route =>
+      route.fulfill({ contentType: 'text/html', body: spaceHostHtml(path) })
+    )
+    // A large tablet in the webmail: the list beside the reading pane
+    await page.setViewportSize({ width: 1000, height: 800 })
+
+    await page.goto(SPACE_HOST)
+    const frame = page.frameLocator('iframe')
+    const scope = page
+      .frames()
+      .find(candidate => candidate !== page.mainFrame())
+    if (scope === undefined) throw new Error('The facade did not load')
+    await signIn(scope, user)
+
+    const row = frame
+      .getByTestId('email-list-item')
+      .filter({ hasText: 'For the whole team' })
+    await expect(row).toBeVisible()
+    await expect(frame.getByTestId('email-view-empty')).toBeHidden()
+
+    await row.click()
+
+    // Conversations by default: the email opens as one
+    await expect(frame.getByTestId('conversation-view')).toBeVisible()
+    await expect(row).toBeHidden()
+    await expectNoA11yViolations(page)
+  })
+
   test('TMB-11 a new message of the facade writes from the address of the team mailbox', async ({
     page,
     user,

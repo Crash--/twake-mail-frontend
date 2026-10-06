@@ -4,6 +4,7 @@ import { useState, type ReactElement } from 'react'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderDs } from '@/ds/testing/renderDs'
+import { WithoutTablets } from '@/ds/useScreenSize/useScreenSize'
 
 import { ListDetailLayout } from './ListDetailLayout'
 
@@ -78,6 +79,20 @@ describe('ListDetailLayout', () => {
 
     expect(screen.getByRole('button', { name: 'Hello Alice' })).toBeVisible()
     expect(screen.getByText('No email selected')).toBeVisible()
+  })
+
+  it('replaces the list with the open item on a large tablet without tablets', () => {
+    mockViewport({ width: 1024 })
+
+    renderDs(
+      <WithoutTablets>
+        <Mailbox initiallyOpen />
+      </WithoutTablets>
+    )
+
+    expect(screen.getByRole('button', { name: 'Back' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Hello Alice' })).toBe(null)
+    expect(screen.queryByText('No email selected')).toBe(null)
   })
 
   it('gives the focus back to the list when the item closes beside it', async () => {

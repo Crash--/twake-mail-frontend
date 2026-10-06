@@ -9,7 +9,6 @@ import {
   FloatingActionButton
 } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
-import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -25,7 +24,8 @@ import { MailProviders } from './AppLayout'
  * shown in the Mail tab of a TwakeSpace space: the routed content only, no
  * top bar, sidebar, app grid, account menu nor banners. "New message" is a
  * floating button at every size, hidden while an email fills the screen
- * (its answer bar is at the bottom).
+ * (its answer bar is at the bottom). No tablet layouts (`WithoutTablets`,
+ * set by the app): an email always fills the screen.
  */
 export function TeamMailboxLayout(): ReactElement {
   return (
@@ -40,9 +40,7 @@ export function TeamMailboxLayout(): ReactElement {
 function TeamMailboxFrame(): ReactElement {
   const { t } = useI18n()
   const { undoLast } = useNotify()
-  const screenSize = useScreenSize()
   const isEmailOpen = useMatch('/mailbox/:mailboxId/email/:emailId/*') !== null
-  const showComposeFab = !isEmailOpen || screenSize === 'tabletLarge'
 
   const { openComposer } = useComposer()
   // The floating button and the `c` shortcut; the composer writes from the
@@ -73,14 +71,14 @@ function TeamMailboxFrame(): ReactElement {
           </FlatContent>
         </FlatMain>
       </Layout>
-      {showComposeFab ? (
+      {isEmailOpen ? null : (
         <FloatingActionButton
           label={t('sidebar.newMessage')}
           icon={Pen}
           onClick={handleCompose}
           data-testid="compose-email-button"
         />
-      ) : null}
+      )}
     </Box>
   )
 }

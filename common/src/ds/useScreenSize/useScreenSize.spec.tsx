@@ -4,7 +4,7 @@ import type { ReactElement } from 'react'
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { useScreenSize } from './useScreenSize'
+import { useScreenSize, WithoutTablets } from './useScreenSize'
 
 function ScreenSize(): ReactElement {
   return <p>{useScreenSize()}</p>
@@ -34,5 +34,22 @@ describe('useScreenSize', () => {
     renderDs(<ScreenSize />)
 
     expect(screen.getByText('desktop')).toBeInTheDocument()
+  })
+
+  it.each([
+    [599, 'mobile'],
+    [600, 'desktop'],
+    [1024, 'desktop'],
+    [1440, 'desktop']
+  ])('calls a %i px wide screen %s without tablets', (width, size) => {
+    mockViewport({ width })
+
+    renderDs(
+      <WithoutTablets>
+        <ScreenSize />
+      </WithoutTablets>
+    )
+
+    expect(screen.getByText(size)).toBeInTheDocument()
   })
 })

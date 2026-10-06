@@ -4,6 +4,12 @@
 // of tmail-flutter (`ResponsiveUtils`), which Twake Mail users know: one
 // pane below 900 px, the folders in a drawer below 1200 px.
 import { useMediaQuery } from '@linagora/twake-mui'
+import {
+  createContext,
+  useContext,
+  type ReactElement,
+  type ReactNode
+} from 'react'
 
 /** Smallest width of each screen size, in CSS pixels (tmail-flutter) */
 export const SCREEN_BREAKPOINTS = {
@@ -37,12 +43,42 @@ export const SCREEN_QUERIES = {
 
 const MEDIA_OPTIONS = { noSsr: true } as const
 
+const WithoutTabletsContext = createContext(false)
+
+/**
+ * The screens below have two layouts only: `mobile` below 600 px, `desktop`
+ * from there (a frame narrower than the screen, where the tablet layouts
+ * would show for a desktop user)
+ */
+export function WithoutTablets({
+  children
+}: {
+  children: ReactNode
+}): ReactElement {
+  return (
+    <WithoutTabletsContext.Provider value>
+      {children}
+    </WithoutTabletsContext.Provider>
+  )
+}
+
+/**
+ * Width below which an item opened from a list slides in over it, as on a
+ * phone (phones and small tablets): 900 px, 600 px under `WithoutTablets`
+ */
+export function useSlideBreakpoint(): number {
+  return useContext(WithoutTabletsContext)
+    ? SCREEN_BREAKPOINTS.tablet
+    : SCREEN_BREAKPOINTS.tabletLarge
+}
+
 /**
  * The size class of the viewport. Without `matchMedia` (jsdom, server
  * rendering) every query is false: the screen is a desktop, the layout the
  * app had before it was responsive.
  */
 export function useScreenSize(): ScreenSize {
+  const isWithoutTablets = useContext(WithoutTabletsContext)
   // noSsr: the first render already has the right size, no desktop flash
   const isMobile = useMediaQuery(SCREEN_QUERIES.mobile, MEDIA_OPTIONS)
   const isBelowTabletLarge = useMediaQuery(
@@ -55,6 +91,7 @@ export function useScreenSize(): ScreenSize {
   )
 
   if (isMobile) return 'mobile'
+  if (isWithoutTablets) return 'desktop'
   if (isBelowTabletLarge) return 'tablet'
   if (isBelowDesktop) return 'tabletLarge'
   return 'desktop'

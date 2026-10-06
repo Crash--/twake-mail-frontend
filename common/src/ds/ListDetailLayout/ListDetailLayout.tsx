@@ -12,7 +12,7 @@ import {
 } from 'react'
 
 import {
-  SCREEN_BREAKPOINTS,
+  useSlideBreakpoint,
   useScreenSize
 } from '@/ds/useScreenSize/useScreenSize'
 import {
@@ -54,18 +54,18 @@ const fadeIn = (keyframes: string): string =>
 
 /**
  * The view transitions of a navigation run with `prepareViewTransition`:
- * - one view at a time below 900 px (phones, small tablets): a swipe, the
- *   item coming in from the end while the list moves aside, the reverse
- *   when going back;
+ * - one view at a time below `slideBreakpoint` (900 px: phones, small
+ *   tablets; 600 px under `WithoutTablets`): a swipe, the item coming in
+ *   from the end while the list moves aside, the reverse when going back;
  * - otherwise (the item pane beside the list from 900 px, the item replacing
- *   the whole width from 1 200 px): a lighter effect, the old view fading
+ *   the whole width on desktops): a lighter effect, the old view fading
  *   out, then the new one fading in with a short slide;
  * - a history traversal (back button of the browser) does not move;
  * - the rest of the page (top bar, sidebar) does not move, and nothing does
  *   with reduced motion; the pseudo-elements let the pointer through, the
  *   page under them is already the new one.
  */
-function transitionStyles(theme: Theme): CSSObject {
+function transitionStyles(theme: Theme, slideBreakpoint: number): CSSObject {
   return {
     '@keyframes list-detail-out-start': {
       to: { transform: 'translateX(-30%)', opacity: 0.6 }
@@ -103,7 +103,7 @@ function transitionStyles(theme: Theme): CSSObject {
       { backgroundColor: theme.palette.background.paper },
     // The pane leaving on top when going back
     [`${backward}::view-transition-old(${PANE_TRANSITION})`]: { zIndex: 1 },
-    [`@media (max-width:${SCREEN_BREAKPOINTS.tabletLarge - 0.05}px)`]: {
+    [`@media (max-width:${slideBreakpoint - 0.05}px)`]: {
       [`${forward}::view-transition-old(${PANE_TRANSITION})`]: {
         animation: slide('list-detail-out-start')
       },
@@ -117,7 +117,7 @@ function transitionStyles(theme: Theme): CSSObject {
         animation: slide('list-detail-in-start')
       }
     },
-    [`@media (min-width:${SCREEN_BREAKPOINTS.tabletLarge}px)`]: {
+    [`@media (min-width:${slideBreakpoint}px)`]: {
       [`::view-transition-old(${PANE_TRANSITION}), ::view-transition-old(${ITEM_TRANSITION})`]:
         { animation: fadeOut('list-detail-fade-out') },
       [`${forward}::view-transition-new(${PANE_TRANSITION}), ${forward}::view-transition-new(${ITEM_TRANSITION})`]:
@@ -165,6 +165,7 @@ export function ListDetailLayout({
   placeholder
 }: ListDetailLayoutProps): ReactElement {
   const screenSize = useScreenSize()
+  const slideBreakpoint = useSlideBreakpoint()
   const isSplit = screenSize === 'tabletLarge'
   // On desktops the pane is the scrolling area of the item: the view
   // transition snapshots a pane that does not move with the scroll, which it
@@ -209,7 +210,11 @@ export function ListDetailLayout({
     lastListFocusRef.current = event.target
   }
 
-  const styles = <GlobalStyles styles={transitionStyles} />
+  const styles = (
+    <GlobalStyles
+      styles={(theme: Theme) => transitionStyles(theme, slideBreakpoint)}
+    />
+  )
 
   if (!isSplit) {
     // The same flex column as the parent of the layout: the list and the

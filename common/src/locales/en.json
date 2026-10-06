@@ -432,7 +432,27 @@
       "save": "Save as template",
       "saved": "Save message to template folder successfully",
       "updated": "Update message to template folder successfully",
-      "failed": "Save message to template folder failed"
+      "failed": "Save message to template folder failed",
+      "insert": "Insert template",
+      "pickerTitle": "Insert a template",
+      "filter": "Search templates",
+      "list": "Templates",
+      "empty": "No template matches your search",
+      "none": "You have no template yet. Use “Save as template” to make one.",
+      "results": "%{smart_count} template found |||| %{smart_count} templates found",
+      "noSubject": "(No subject)",
+      "inserted": "Template inserted",
+      "insertFailed": "The template could not be inserted",
+      "insertTitle": "The message is not empty",
+      "insertMessage": "Insert the template at the cursor, or replace the whole message with it?",
+      "insertHere": "Insert at the cursor",
+      "replace": "Replace the message",
+      "shared": {
+        "title": "Delete the shared draft?",
+        "message": "This draft is shared with a team mailbox. Saving it as a template also deletes the draft for everyone who can see it.",
+        "delete": "Save and delete the draft",
+        "keep": "Save and keep the draft"
+      }
     },
     "drive": {
       "attach": "Attach from Drive",

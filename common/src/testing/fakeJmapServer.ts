@@ -1172,12 +1172,19 @@ export function makeFakeJmapServer(
       }
       createdMailboxes += 1
       const id = `mailbox-created-${createdMailboxes}`
+      const parentId =
+        typeof value.parentId === 'string' ? value.parentId : null
+      const parent = server.mailboxes.find(mailbox => mailbox.id === parentId)
       server.mailboxes.push(
         makeMailbox({
           id,
           name: value.name,
-          parentId: typeof value.parentId === 'string' ? value.parentId : null,
-          isSubscribed: value.isSubscribed !== false
+          parentId,
+          isSubscribed: value.isSubscribed !== false,
+          // A folder of a team mailbox is part of it, with its rights
+          ...(parent
+            ? { namespace: parent.namespace, myRights: { ...parent.myRights } }
+            : {})
         })
       )
       mailboxLog.record(id, 'created')

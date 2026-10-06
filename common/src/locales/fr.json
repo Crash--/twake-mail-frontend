@@ -432,7 +432,27 @@
       "save": "Sauvegarder comme modèle",
       "saved": "Le message a bien été sauvegardé dans le dossier des modèles",
       "updated": "Mise à jour réussie du message dans le dossier de modèles",
-      "failed": "Échec de l'enregistrement du message dans le dossier de modèles"
+      "failed": "Échec de l'enregistrement du message dans le dossier de modèles",
+      "insert": "Insérer un modèle",
+      "pickerTitle": "Insérer un modèle",
+      "filter": "Rechercher un modèle",
+      "list": "Modèles",
+      "empty": "Aucun modèle ne correspond à votre recherche",
+      "none": "Vous n’avez pas encore de modèle. Utilisez « Enregistrer comme modèle » pour en créer un.",
+      "results": "%{smart_count} modèle trouvé |||| %{smart_count} modèles trouvés",
+      "noSubject": "(Sans objet)",
+      "inserted": "Modèle inséré",
+      "insertFailed": "Impossible d’insérer le modèle",
+      "insertTitle": "Le message n’est pas vide",
+      "insertMessage": "Insérer le modèle à l’emplacement du curseur, ou remplacer tout le message par le modèle ?",
+      "insertHere": "Insérer au curseur",
+      "replace": "Remplacer le message",
+      "shared": {
+        "title": "Supprimer le brouillon partagé ?",
+        "message": "Ce brouillon est partagé avec une boîte d’équipe. L’enregistrer comme modèle supprime aussi le brouillon pour tous ceux qui le voient.",
+        "delete": "Enregistrer et supprimer le brouillon",
+        "keep": "Enregistrer et garder le brouillon"
+      }
     },
     "drive": {
       "attach": "Joindre depuis Drive",

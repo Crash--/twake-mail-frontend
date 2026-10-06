@@ -225,6 +225,7 @@ describe('ComposerForm', () => {
       ).toEqual(
         [
           'Insert link',
+          'Insert template',
           'Save as draft',
           'Save as template',
           'Request read receipt',
@@ -1040,6 +1041,358 @@ describe('ComposerForm', () => {
         expect(templatesOf(jmapServer)).toHaveLength(1)
       })
       expect(templatesOf(jmapServer)[0]?.id).not.toBe('template-1')
+    })
+
+    describe('as a team mailbox', () => {
+      function makeTeamServer(
+        options: Parameters<typeof makeTeamMailboxes>[0] = {},
+        without: string[] = []
+      ): FakeJmapServer {
+        return makeFakeJmapServer({
+          mailboxes: [
+            ...makeDefaultMailboxes(),
+            ...makeTeamMailboxes(options).filter(
+              mailbox => !without.includes(mailbox.id)
+            )
+          ],
+          identities: [
+            makeIdentity({ id: 'identity-alice', mayDelete: false }),
+            makeIdentity({
+              id: 'identity-team',
+              name: 'Team',
+              email: 'team@example.com'
+            })
+          ]
+        })
+      }
+
+      async function chooseTeam(composer: HTMLElement): Promise<void> {
+        await showFrom(composer)
+        await userEvent.click(
+          within(composer).getByTestId('composer-identity-select')
+        )
+        await userEvent.click(screen.getByRole('option', { name: /^Team/ }))
+      }
+
+      it('files the template in the Templates of the team mailbox of the identity', async () => {
+        const jmapServer = makeTeamServer()
+        renderComposer(jmapServer)
+        const composer = await openComposer()
+        await chooseTeam(composer)
+        await fill(composer, { subject: 'Team template' })
+
+        await saveAsTemplate(composer)
+
+        expect(await screen.findByTestId('toast')).toHaveTextContent(
+          'Save message to template folder successfully'
+        )
+        expect(
+          jmapServer.emails.map(email => [email.subject, email.mailboxIds])
+        ).toEqual([['Team template', { 'team-templates': true }]])
+      })
+
+      it('creates the Templates of the team mailbox under its root when it has none', async () => {
+        const jmapServer = makeTeamServer({}, ['team-templates'])
+        renderComposer(jmapServer)
+        const composer = await openComposer()
+        await chooseTeam(composer)
+        await fill(composer, { subject: 'Team template' })
+
+        await saveAsTemplate(composer)
+
+        await screen.findByTestId('toast')
+        const created = jmapServer.mailboxes.filter(
+          mailbox => mailbox.name === 'Templates'
+        )
+        expect(created).toEqual([
+          expect.objectContaining({
+            parentId: 'team',
+            namespace: expect.any(String)
+          })
+        ])
+        expect(jmapServer.emails[0]?.mailboxIds).toEqual({
+          [created[0]?.id ?? '']: true
+        })
+      })
+
+      it('keeps the template in the own Templates when the rights do not allow the team ones', async () => {
+        const jmapServer = makeTeamServer({
+          rights: { mayAddItems: false, mayCreateChild: false }
+        })
+        renderComposer(jmapServer)
+        const composer = await openComposer()
+        await chooseTeam(composer)
+        await fill(composer, { subject: 'Mine' })
+
+        await saveAsTemplate(composer)
+
+        await screen.findByTestId('toast')
+        const own = jmapServer.mailboxes.find(
+          mailbox => mailbox.name === 'Templates' && mailbox.parentId === null
+        )
+        expect(own).not.toBe(undefined)
+        expect(jmapServer.emails[0]?.mailboxIds).toEqual({
+          [own?.id ?? '']: true
+        })
+      })
+    })
+
+    describe('saved from a reopened draft', () => {
+      function serverWithDraftIn(mailboxId: string): FakeJmapServer {
+        return makeFakeJmapServer({
+          mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
+          emails: [
+            makeEmailWithBody(
+              {
+                id: 'draft-1',
+                mailboxIds: { [mailboxId]: true },
+                keywords: { $draft: true, $seen: true },
+                subject: 'Reopened'
+              },
+              { html: '<div>Body</div>' }
+            )
+          ]
+        })
+      }
+
+      /** The emails kept as templates: neither drafts nor the opened one */
+      function savedTemplates(server: FakeJmapServer): typeof server.emails {
+        return server.emails.filter(email => email.keywords.$draft !== true)
+      }
+
+      it('destroys the draft it was opened on', async () => {
+        const jmapServer = serverWithDraftIn('mailbox-drafts')
+        renderComposer(jmapServer)
+        const composer = await openComposer('Open draft')
+        await screen.findByDisplayValue('Reopened')
+
+        await saveAsTemplate(composer)
+
+        expect(await screen.findByTestId('toast')).toHaveTextContent(
+          'Save message to template folder successfully'
+        )
+        await waitFor(() => {
+          expect(draftsOf(jmapServer)).toEqual([])
+        })
+        expect(savedTemplates(jmapServer).map(email => email.subject)).toEqual([
+          'Reopened'
+        ])
+      })
+
+      it('asks before destroying a draft of a team mailbox, and destroys it when told to', async () => {
+        const jmapServer = serverWithDraftIn('team-drafts')
+        renderComposer(jmapServer)
+        const composer = await openComposer('Open draft')
+        await screen.findByDisplayValue('Reopened')
+
+        await saveAsTemplate(composer)
+        const dialog = await screen.findByRole('dialog', {
+          name: 'Delete the shared draft?'
+        })
+        expect(savedTemplates(jmapServer)).toEqual([])
+        await userEvent.click(
+          within(dialog).getByRole('button', {
+            name: 'Save and delete the draft'
+          })
+        )
+
+        await waitFor(() => {
+          expect(
+            jmapServer.emails.filter(email => 'team-drafts' in email.mailboxIds)
+          ).toEqual([])
+        })
+        expect(savedTemplates(jmapServer)).toHaveLength(1)
+      })
+
+      it('keeps the shared draft when told to', async () => {
+        const jmapServer = serverWithDraftIn('team-drafts')
+        renderComposer(jmapServer)
+        const composer = await openComposer('Open draft')
+        await screen.findByDisplayValue('Reopened')
+
+        await saveAsTemplate(composer)
+        await userEvent.click(
+          await screen.findByRole('button', { name: 'Save and keep the draft' })
+        )
+
+        await waitFor(() => {
+          expect(savedTemplates(jmapServer)).toHaveLength(1)
+        })
+        expect(
+          jmapServer.emails.filter(email => 'team-drafts' in email.mailboxIds)
+        ).toHaveLength(1)
+      })
+
+      it('saves nothing when the question is cancelled', async () => {
+        const jmapServer = serverWithDraftIn('team-drafts')
+        renderComposer(jmapServer)
+        const composer = await openComposer('Open draft')
+        await screen.findByDisplayValue('Reopened')
+
+        await saveAsTemplate(composer)
+        await userEvent.click(
+          await screen.findByRole('button', { name: 'Cancel' })
+        )
+
+        await waitFor(() => {
+          expect(
+            screen.queryByRole('dialog', { name: 'Delete the shared draft?' })
+          ).toBe(null)
+        })
+        expect(savedTemplates(jmapServer)).toEqual([])
+        expect(jmapServer.emails).toHaveLength(1)
+      })
+    })
+
+    describe('insert template', () => {
+      function serverWithTemplates(): FakeJmapServer {
+        return makeFakeJmapServer({
+          mailboxes: [
+            ...makeDefaultMailboxes(),
+            makeMailbox({ id: 'mailbox-templates', name: 'Templates' }),
+            ...makeTeamMailboxes()
+          ],
+          emails: [
+            makeEmailWithBody(
+              {
+                id: 'template-1',
+                mailboxIds: { 'mailbox-templates': true },
+                keywords: { $seen: true },
+                subject: 'Weekly report',
+                preview: 'Done this week'
+              },
+              { html: '<div>Done this week:</div>' }
+            ),
+            makeEmailWithBody(
+              {
+                id: 'template-2',
+                mailboxIds: { 'team-templates': true },
+                keywords: { $seen: true },
+                subject: 'Welcome aboard',
+                preview: 'Glad to have you'
+              },
+              { html: '<div>Glad to have you</div>' }
+            )
+          ]
+        })
+      }
+
+      async function openPicker(composer: HTMLElement): Promise<HTMLElement> {
+        await userEvent.click(
+          within(composer).getByRole('button', { name: 'More' })
+        )
+        await userEvent.click(
+          screen.getByRole('menuitem', { name: 'Insert template' })
+        )
+        return screen.findByRole('dialog', { name: 'Insert a template' })
+      }
+
+      it('lists the templates of the user and of the team mailboxes, filterable and announcing the results', async () => {
+        renderComposer(serverWithTemplates())
+        const composer = await openComposer()
+        const picker = await openPicker(composer)
+
+        const field = await within(picker).findByRole('combobox', {
+          name: 'Search templates'
+        })
+        expect(field).toHaveFocus()
+        expect(
+          within(picker)
+            .getAllByRole('option')
+            .map(option => option.textContent)
+            .sort()
+        ).toEqual([
+          expect.stringContaining('Weekly report'),
+          expect.stringContaining('Welcome aboard')
+        ])
+
+        await userEvent.type(field, 'welc')
+
+        expect(within(picker).getAllByRole('option')).toHaveLength(1)
+        expect(within(picker).getByRole('status')).toHaveTextContent(
+          '1 template found'
+        )
+      })
+
+      it('inserts the subject and the body of the template, with the keyboard, into an empty message', async () => {
+        renderComposer(serverWithTemplates())
+        const composer = await openComposer()
+        const picker = await openPicker(composer)
+        const field = await within(picker).findByRole('combobox', {
+          name: 'Search templates'
+        })
+        await userEvent.type(field, 'weekly')
+
+        await userEvent.keyboard('{Enter}')
+
+        await waitFor(() => {
+          expect(
+            within(composer).getByRole('textbox', { name: 'Subject' })
+          ).toHaveValue('Weekly report')
+        })
+        expect(
+          within(composer).getByRole('textbox', { name: 'Message body' })
+        ).toHaveTextContent('Done this week:')
+        expect(
+          screen.queryByRole('dialog', { name: 'Insert a template' })
+        ).toBe(null)
+        expect(
+          within(composer).getByRole('textbox', { name: 'Message body' })
+        ).toHaveFocus()
+      })
+
+      it('asks to insert or replace when the message is not empty', async () => {
+        renderComposer(serverWithTemplates())
+        const composer = await openComposer()
+        await fill(composer, { subject: 'My own subject' })
+        let picker = await openPicker(composer)
+        await userEvent.click(
+          await within(picker).findByRole('option', { name: /Weekly report/ })
+        )
+
+        await userEvent.click(
+          await screen.findByRole('button', { name: 'Insert at the cursor' })
+        )
+
+        await waitFor(() => {
+          expect(
+            within(composer).getByRole('textbox', { name: 'Message body' })
+          ).toHaveTextContent('Done this week:')
+        })
+        // The subject of a message that has one stays
+        expect(
+          within(composer).getByRole('textbox', { name: 'Subject' })
+        ).toHaveValue('My own subject')
+
+        picker = await openPicker(composer)
+        await userEvent.click(
+          await within(picker).findByRole('option', { name: /Welcome aboard/ })
+        )
+        await userEvent.click(
+          await screen.findByRole('button', { name: 'Replace the message' })
+        )
+
+        await waitFor(() => {
+          expect(
+            within(composer).getByRole('textbox', { name: 'Subject' })
+          ).toHaveValue('Welcome aboard')
+        })
+        const body = within(composer).getByRole('textbox', {
+          name: 'Message body'
+        })
+        expect(body).toHaveTextContent('Glad to have you')
+        expect(body).not.toHaveTextContent('Done this week:')
+      })
+
+      it('says there is no template yet', async () => {
+        renderComposer()
+        const composer = await openComposer()
+        const picker = await openPicker(composer)
+
+        expect(
+          await within(picker).findByTestId('template-picker-none')
+        ).toBeVisible()
+      })
     })
   })
 

@@ -1,7 +1,8 @@
-import { act, screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
+import type { SpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import { resolveConfig } from '@common/config/config'
 import { DRIVE_ATTACHMENT_PREFERENCE_STORAGE_KEY } from '@common/features/settings/driveAttachmentPreference'
@@ -82,7 +83,10 @@ afterAll(() => {
   global.fetch = originalFetch
 })
 
-function renderButton(enabled = true): {
+function renderButton(
+  enabled = true,
+  overlay?: SpaceOverlay
+): {
   onLinks: jest.Mock
   onAttach: jest.Mock
   unmount: () => void
@@ -103,7 +107,8 @@ function renderButton(enabled = true): {
         status: 'authenticated',
         user: { email: 'alice@example.com', name: 'Alice', workplaceFqdn: null }
       }),
-      withJmapSession: true
+      withJmapSession: true,
+      overlay
     }
   )
   return { onLinks, onAttach, unmount }
@@ -324,5 +329,48 @@ describe('DriveAttachButton', () => {
       )
     })
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('hears the picker when its dialog shows on the overlay of TwakeSpace', async () => {
+    // Another document, as the overlay frame TwakeSpace puts over its page
+    const host = document.createElement('iframe')
+    document.body.append(host)
+    const overlayWindow = host.contentWindow
+    const overlayBody = host.contentDocument?.body
+    if (!overlayWindow || !overlayBody) throw new Error('No overlay document')
+    const { unmount } = renderButton(true, {
+      getStatus: () => 'connected',
+      getBody: () => overlayBody,
+      subscribe: () => () => undefined
+    })
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Attach from Drive' })
+    )
+    const frame = await within(overlayBody).findByTitle(
+      'Twake Drive file picker'
+    )
+    // SAFETY: found by its title, the iframe of the picker
+    const picker = (frame as HTMLIFrameElement).contentWindow
+    if (picker === null) throw new Error('No window in the frame')
+    const postMessage = jest.spyOn(picker, 'postMessage')
+
+    // The picker posts to its parent: the overlay's window
+    act(() => {
+      overlayWindow.dispatchEvent(
+        new MessageEvent('message', {
+          data: { type: 'intent-i1:ready' },
+          origin: PICKER,
+          source: picker
+        })
+      )
+    })
+
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ multiple: true }),
+      PICKER
+    )
+    unmount()
+    host.remove()
   })
 })

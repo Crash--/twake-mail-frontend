@@ -31,6 +31,9 @@ export default defineConfig({
     locale: 'en-US',
     timezoneId: 'Europe/Paris',
     viewport: { width: 1440, height: 900 },
+    // A click on a control that never becomes usable fails after this, not at the end of the
+    // 30 minutes of a test (PERF-04 once waited for a Reply button hidden by a composer)
+    actionTimeout: 2 * 60_000,
     trace: 'off',
     video: 'off',
     screenshot: 'off',

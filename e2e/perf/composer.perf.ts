@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 
+import { keptComposers } from '../support/composerStorage'
 import { JmapClient } from '../support/jmap'
 import { percentile, readProbe, startProbe } from './composerProbe'
 import { RUNS, readPerfUser, report } from './support'
@@ -17,6 +18,8 @@ test.describe('PERF answering a big email', () => {
     test(`PERF-04 reply to a 200 KB newsletter, CPU x${cpu}`, async ({
       page
     }) => {
+      // 5 runs of a few seconds: a run stuck on a control is an error, not 30 minutes
+      test.setTimeout(10 * 60_000)
       const user = readPerfUser()
       const jmap = JmapClient.forUser(user)
       const imported = await jmap.importEml(
@@ -74,6 +77,10 @@ test.describe('PERF answering a big email', () => {
           if (await dialog.isVisible())
             await page.getByTestId('confirm-dialog-alternative-button').click()
           else await discard.click()
+          // The browser forgets the composer a moment after its window is gone (an
+          // IndexedDB removal): leaving before that aborts it, and the next run signs in
+          // to a composer that covers the Reply button
+          await expect.poll(() => keptComposers(page)).toEqual([])
           await page.goto('about:blank')
         }
       } finally {

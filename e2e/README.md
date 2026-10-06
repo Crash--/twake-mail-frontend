@@ -300,7 +300,10 @@ playwright.perf.config.ts perf/transition.perf.ts`.
 
 `perf/composer.perf.ts` (`PERF-04`) measures answering a 200 KB newsletter: from the click on
 Reply to the caret in the text, then the latency of each key typed above the quote, at full
-speed and with the CPU slowed down 4 times.
+speed and with the CPU slowed down 4 times. Each run leaves by `about:blank` once the browser has
+forgotten the discarded composer (an IndexedDB removal): leaving before it commits aborts it, and the
+next sign in brings the composer back over the Reply button. A click that never becomes possible fails
+after `actionTimeout` (2 minutes), not at the end of the 30 minutes of a test.
 
 `perf/composer-large.perf.ts` (`PERF-06`, `PERF-07`) measures large drafts of the composer: a body
 of 1, 2 and 5 MB, 50 attachments, 200 recipients (open, typing, autosave, save, send), against

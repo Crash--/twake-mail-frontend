@@ -58,7 +58,7 @@ Run a subset:
 ```bash
 npx playwright test tests/infra.spec.ts     # the harness smoke tests, no UI
 npx playwright test -g MBX-05               # one backlog entry
-npx playwright test --project mobile        # the phone screen (390 × 844); also tablet, chromium
+npx playwright test --project mobile        # the phone screen (390 × 844); also tablet, chromium, bulk
 npx playwright test --ui                    # watch mode, time travel
 npx playwright show-report                  # last HTML report
 npx playwright show-trace test-results/artifacts/<test>/trace.zip
@@ -71,6 +71,13 @@ Three Playwright projects, all in Chromium: `chromium` (a desktop, the whole sui
 (`LOGIN-01`, `MBX-05`, `EML-01`, `A11Y-01`), the `RESP` specs and the search on a small screen (`SRCH-01`, `SRCH-03`, `SRCH-13`) only (`grep` in
 `playwright.config.ts`). Below 1200 px the folders are in a drawer: `MailboxPage` opens it when a
 method needs the tree (`showFolders`, `openFolder`, `expectFolderSelected`).
+
+A fourth project, `bulk`, replays on a desktop the specs that must be alone on the backend
+(`BULK_SPECS` in `playwright.config.ts`, today `MBX-51`, a 55 email move): it starts once the
+other three are done. tmail-backend (memory) leaves a bulk `Email/set` hanging when other
+accounts change emails at the same time (`ConcurrentModificationException` in its log, the app
+stays on "Moving emails: 0 of 55"). Do not run `MBX-51` with `--repeat-each` and several workers:
+the copies overlap by construction.
 
 ### The stack
 

@@ -42,8 +42,7 @@ function makeSpaceBridge(): SpaceBridge & {
 } {
   return {
     syncHistory: jest.fn(() => () => undefined),
-    notifyLoginRequired: jest.fn(),
-    reportOverlayRegion: jest.fn()
+    notifyLoginRequired: jest.fn()
   }
 }
 

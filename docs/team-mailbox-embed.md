@@ -109,7 +109,10 @@ centred on it and dimming all of it.
 - Each time what it draws changes, the facade sends TwakeSpace the region of
   the overlay to show, from its own frame
   (`{ type: 'twake-embed:overlay-region', region }`): the boxes of its windows, or
-  the whole page while a dialog, a menu or a full screen window is open.
+  the whole page while a dialog, a menu or a full screen window is open. It
+  posts it to any origin, so the overlay needs no `TWAKE_SPACE_URL`: the
+  region is only boxes of the layout, and `frame-ancestors` says who may
+  frame the facade.
   TwakeSpace clips the overlay to it, so the rest of its page keeps its
   clicks. The region is computed on a timer, not on the animation frames of
   the overlay: the browser does not run them while the overlay shows nothing.

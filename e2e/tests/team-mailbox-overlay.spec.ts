@@ -63,11 +63,6 @@ async function openHost(
   path: string
 ): Promise<{ facade: FrameLocator; overlay: FrameLocator }> {
   await page.setViewportSize({ width: 1440, height: 900 })
-  await page.route('**/.env.js', async route => {
-    const response = await route.fetch()
-    const body = `${await response.text()}\nvar TWAKE_SPACE_URL = window.location.origin\n`
-    await route.fulfill({ response, body })
-  })
   await page.route(`**${HOST}`, route =>
     route.fulfill({ contentType: 'text/html', body: hostHtml(path) })
   )

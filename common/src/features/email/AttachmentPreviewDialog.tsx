@@ -6,7 +6,8 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ReactElement
+  type ReactElement,
+  type MouseEvent
 } from 'react'
 
 import {
@@ -147,16 +148,18 @@ export function AttachmentPreviewDialog({
     return buildEmailDocument(html)
   }, [loaded, kind, part.charset])
 
-  const handleDownload = (): void => {
+  const handleDownload = (event: MouseEvent<HTMLElement>): void => {
+    // The dialog may be on the overlay of TwakeSpace, not in this document
+    const page = event.currentTarget.ownerDocument
     if (loaded.status === 'ready' || loaded.status === 'tooLarge') {
-      saveBlob(loaded.blob, name)
+      saveBlob(loaded.blob, name, page)
       return
     }
     if (!part.blobId) return
     client
       .download({ accountId, blobId: part.blobId, name, type: part.type })
       .then(blob => {
-        saveBlob(blob, name)
+        saveBlob(blob, name, page)
       })
       .catch((error: unknown) => {
         console.error('[email] Attachment download failed', error)

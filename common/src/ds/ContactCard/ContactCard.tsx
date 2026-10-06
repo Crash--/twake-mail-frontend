@@ -13,7 +13,12 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import { useId, type ReactElement, type ReactNode } from 'react'
+import {
+  useId,
+  type ReactElement,
+  type ReactNode,
+  type MouseEvent
+} from 'react'
 
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -56,7 +61,8 @@ export interface ContactCardProps {
   name: string
   address: string
   copyLabel: string
-  onCopy: () => void
+  /** The click's event tells which document the card is rendered in */
+  onCopy: (event: MouseEvent<HTMLElement>) => void
   closeLabel: string
   actions: readonly ContactCardAction[]
   'data-testid'?: string

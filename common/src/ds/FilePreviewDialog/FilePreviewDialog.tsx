@@ -9,7 +9,12 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import { useId, type ReactElement, type ReactNode } from 'react'
+import {
+  useId,
+  type ReactElement,
+  type ReactNode,
+  type MouseEvent
+} from 'react'
 
 export interface FilePreviewDialogProps {
   open: boolean
@@ -19,7 +24,8 @@ export interface FilePreviewDialogProps {
   /** Absent: no download button (the file is not loaded yet) */
   downloadLabel?: string
   onClose: () => void
-  onDownload?: () => void
+  /** The click's event tells which document the dialog is rendered in */
+  onDownload?: (event: MouseEvent<HTMLElement>) => void
   children: ReactNode
   'data-testid'?: string
 }

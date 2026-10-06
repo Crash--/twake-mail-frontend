@@ -55,8 +55,11 @@ function AddressCardDialog({
 
   const handleClose = onClose
 
-  const handleCopy = (): void => {
-    navigator.clipboard
+  // The clipboard of the window clicked in: the card may be on the overlay of
+  // TwakeSpace, and a window without the focus may not write to it
+  const handleCopy = (event: MouseEvent<HTMLElement>): void => {
+    const view = event.currentTarget.ownerDocument.defaultView ?? window
+    view.navigator.clipboard
       .writeText(address.email)
       .then(() => {
         notify({ message: t('email.address.copied'), severity: 'success' })

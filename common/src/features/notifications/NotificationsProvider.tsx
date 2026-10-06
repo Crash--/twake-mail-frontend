@@ -9,13 +9,12 @@ import {
   type ReactNode
 } from 'react'
 
-import { FLOATING_ACTION_INSET } from '@/ds/FloatingActionButton/FloatingActionButton'
+import { useFloatingActionInset } from '@/ds/FloatingActionButton/FloatingActionButton'
 import {
   ToastRegion,
   type ToastItem,
   type ToastSeverity
 } from '@/ds/ToastRegion/ToastRegion'
-import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface NotificationAction {
@@ -56,13 +55,13 @@ export interface NotificationsProviderProps {
 /**
  * The toasts of the app: `useNotify().notify({ message, action })` shows
  * one at the bottom of the screen (above the floating "New message" button
- * on phones and tablets), announced to screen readers (`ds/ToastRegion`).
+ * on phones and tablets, and on desktops under `AlwaysFloatingAction`), announced to screen readers (`ds/ToastRegion`).
  */
 export function NotificationsProvider({
   children
 }: NotificationsProviderProps): ReactElement {
   const { t } = useI18n()
-  const screenSize = useScreenSize()
+  const floatingActionInset = useFloatingActionInset()
   const [shown, setShown] = useState<ShownNotification | null>(null)
   const shownRef = useRef<ShownNotification | null>(null)
   const counter = useRef(0)
@@ -135,7 +134,7 @@ export function NotificationsProvider({
         toast={shown}
         onClose={handleClose}
         closeLabel={t('common.close')}
-        bottomOffset={screenSize === 'desktop' ? 0 : FLOATING_ACTION_INSET}
+        bottomOffset={floatingActionInset}
         data-testid="toast"
       />
     </NotificationsContext.Provider>

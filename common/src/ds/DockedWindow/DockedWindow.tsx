@@ -34,6 +34,13 @@ export const DOCKED_WINDOW_WIDTH = 790
 export const MINIMIZED_WINDOW_WIDTH = 400
 const DOCKED_WINDOW_HEIGHT = 634
 const TITLE_BAR_HEIGHT = 44
+/** Gap between the expanded window and the edges of the screen */
+const FULLSCREEN_INSET = {
+  top: 64,
+  right: 'min(80px, 5vw)',
+  bottom: 72,
+  left: 'min(136px, 8vw)'
+} as const
 /** Material 3 elevation 3, the shadow of the composer in the design */
 const WINDOW_SHADOW =
   '0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15)'
@@ -204,14 +211,14 @@ export function DockedWindow({
           aria-labelledby={titleId}
           aria-modal={isFullscreen ? true : undefined}
           tabIndex={-1}
-          elevation={isFullscreen ? 24 : 0}
+          elevation={0}
           onKeyDown={handleKeyDown}
           className="u-flex u-flex-column u-ov-hidden"
           sx={[
             {
               pointerEvents: 'auto',
               borderRadius: '8px',
-              ...(isFullscreen ? {} : { boxShadow: WINDOW_SHADOW }),
+              boxShadow: WINDOW_SHADOW,
               ...(viewTransitionName === undefined
                 ? {}
                 : {
@@ -226,11 +233,13 @@ export function DockedWindow({
               ? { position: 'fixed', inset: 0, borderRadius: 0 }
               : isFullscreen
                 ? {
+                    // Expanded as in the design: under the top bar of the
+                    // app, the navigation still showing at the start
                     position: 'fixed',
-                    top: '5vh',
-                    left: '7.5vw',
-                    width: '85vw',
-                    height: '90vh'
+                    top: FULLSCREEN_INSET.top,
+                    right: FULLSCREEN_INSET.right,
+                    bottom: FULLSCREEN_INSET.bottom,
+                    left: FULLSCREEN_INSET.left
                   }
                 : {
                     width: isMinimized ? MINIMIZED_WINDOW_WIDTH : width,
@@ -342,8 +351,10 @@ export function DockedWindow({
       {isFullscreen ? (
         <Backdrop
           open
-          // The dock lets clicks through: not the backdrop
+          // The dock lets clicks through: not the backdrop. Not dimmed
+          // outside the compact layout: the design shows the page as is
           sx={{
+            ...(isCompact ? {} : { backgroundColor: 'transparent' }),
             zIndex: theme => theme.zIndex.modal - 1,
             pointerEvents: 'auto',
             ...(viewTransitionName === undefined

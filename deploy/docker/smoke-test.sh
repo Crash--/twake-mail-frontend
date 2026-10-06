@@ -133,6 +133,7 @@ chmod 644 "$CONFIG_DIR/env.file"
 docker run -d --name "$ENV_FILE_NAME" \
   --read-only --tmpfs /tmp --user 101 --cap-drop ALL --security-opt no-new-privileges \
   -p 127.0.0.1::80 -e CSP_WEBFINGER_DISCOVERY=false \
+  -e "TWAKE_SPACE_URL=https://space.example.com/it's" \
   -v "$CONFIG_DIR/env.file:/usr/share/nginx/html/assets/env.file:ro" \
   "$IMAGE" >/dev/null
 ENV_FILE_BASE="http://$(docker port "$ENV_FILE_NAME" 80/tcp | head -1)"
@@ -143,6 +144,7 @@ done
 env_js="$(body "$ENV_FILE_BASE/.env.js")"
 expect 'env.file: /.env.js generated' "$env_js" "*var SERVER_URL = 'https://jmap.example.com/';*"
 expect 'env.file: quotes removed' "$env_js" "*var WEB_OIDC_CLIENT_ID = 'teammail-web';*"
+expect 'env.file: TWAKE_SPACE_URL from the environment' "$env_js" "*var TWAKE_SPACE_URL = 'https://space.example.com/it\\\\'s';*"
 expect 'env.file: trailing comment removed' "$env_js" "*var OIDC_SCOPES = 'openid,profile,email,offline_access';*"
 forward_line="$(grep '^var FORWARD_WARNING_MESSAGE' <<<"$env_js" || true)"
 expected_line='var FORWARD_WARNING_MESSAGE = '"'It\\'s a \\\\ test';"

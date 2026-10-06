@@ -70,7 +70,11 @@ export function resolveNavTreeKey(
   }
 }
 
-/** True for a key that adds a letter to the typeahead (not a shortcut) */
+/**
+ * True for a key that adds a letter to the typeahead: a letter or a digit,
+ * with no Ctrl, Alt or Meta. Punctuation (`/`, `?`, `#`) is not one, and
+ * stays free for the shortcuts of the page.
+ */
 export function isTypeaheadKey(event: {
   key: string
   ctrlKey: boolean
@@ -78,8 +82,7 @@ export function isTypeaheadKey(event: {
   metaKey: boolean
 }): boolean {
   return (
-    event.key.length === 1 &&
-    event.key !== ' ' &&
+    /^[\p{L}\p{N}]$/u.test(event.key) &&
     !event.ctrlKey &&
     !event.altKey &&
     !event.metaKey

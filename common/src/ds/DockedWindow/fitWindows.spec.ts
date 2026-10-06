@@ -1,4 +1,4 @@
-import { fitWindows } from './fitWindows'
+import { dockedWindowWidth, fitWindows } from './fitWindows'
 
 describe('fitWindows', () => {
   it('keeps what fits, the newest first, the rest in the overflow menu', () => {
@@ -60,5 +60,22 @@ describe('fitWindows', () => {
       'minimized',
       'overflow'
     ])
+  })
+})
+
+describe('dockedWindowWidth', () => {
+  it('is 790 px where the screen has room, less on a tablet', () => {
+    expect(dockedWindowWidth(1440)).toBe(790)
+    expect(dockedWindowWidth(820)).toBe(772)
+    expect(dockedWindowWidth(600)).toBe(552)
+  })
+
+  it('keeps 790 px below the narrowest tablet, where the window is minimized', () => {
+    expect(dockedWindowWidth(500)).toBe(790)
+  })
+
+  it('shows a normal window on a tablet screen', () => {
+    expect(fitWindows(['normal'], 820)).toEqual(['normal'])
+    expect(fitWindows(['normal'], 600)).toEqual(['normal'])
   })
 })

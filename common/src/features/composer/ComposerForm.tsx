@@ -2,6 +2,8 @@ import {
   Attachment,
   AssistantColor,
   Check,
+  Cross,
+  Dots,
   FileOutline,
   Icon,
   Image as ImageIcon,
@@ -33,7 +35,8 @@ import {
   type DragEvent,
   type KeyboardEvent,
   type MouseEvent,
-  type ReactElement
+  type ReactElement,
+  type ReactNode
 } from 'react'
 
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
@@ -44,6 +47,7 @@ import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
 import { PillButton } from '@/ds/PillButton/PillButton'
+import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   useAlert,
@@ -203,6 +207,13 @@ export interface ComposerFormProps {
   onDraftChange: (draftId: string | null) => void
   /** Sent, or its draft deleted: the window goes */
   onDone: () => void
+  /**
+   * On a phone the form has the top bar of the window (no title bar): the
+   * close button asks the window to close
+   */
+  onRequestClose?: () => void
+  /** On a phone, more controls of the top bar, after the close button */
+  topBarActions?: ReactNode
 }
 
 const EMPTY_INPUTS: Record<RecipientKind, string> = {
@@ -299,6 +310,8 @@ function LoadedComposerForm({
   onChange,
   onDraftChange,
   onDone,
+  onRequestClose,
+  topBarActions,
   content,
   identities,
   ownMailboxIds,
@@ -320,7 +333,7 @@ function LoadedComposerForm({
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editorActions = useRef<RichTextEditorActions>(null)
-  const [isToolbarShown, setIsToolbarShown] = useState(true)
+  const [isToolbarShown, setIsToolbarShown] = useState(!isPhone)
   const [identityId, setIdentityId] = useState(content.identityId)
   // The identity selector opens on request (the "From" button), unless the
   // message already has its own identity (a draft, an answer, a template,
@@ -1097,6 +1110,195 @@ function LoadedComposerForm({
 
   const saveStateKey = SAVE_STATE_KEYS[saveState]
 
+  const gap = isPhone ? undefined : 'u-ml-half'
+  const formattingButton = (
+    <ActionIconButton
+      label={labels.toolbar}
+      aria-pressed={isToolbarShown}
+      onClick={() => {
+        setIsToolbarShown(shown => !shown)
+      }}
+      data-testid="composer-formatting-button"
+    >
+      <EditorIcon name="fontSize" fontSize="medium" />
+    </ActionIconButton>
+  )
+  const attachButton = (
+    <ActionIconButton
+      label={t('composer.attachments.attach')}
+      onClick={() => fileInputRef.current?.click()}
+      className={gap}
+      data-testid="composer-attach-file-button"
+    >
+      <Icon icon={Attachment} size={24} aria-hidden="true" />
+    </ActionIconButton>
+  )
+  const imageButton = (
+    <ActionIconButton
+      label={labels.insertImage}
+      onClick={() => editorActions.current?.pickImages()}
+      className={gap}
+      data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
+    >
+      <Icon icon={ImageIcon} size={20} aria-hidden="true" />
+    </ActionIconButton>
+  )
+  // On a phone the link is in the More menu, as the bar has no room for it
+  const linkButton = (
+    <ActionIconButton
+      label={labels.link}
+      onClick={() => editorActions.current?.openLinkDialog()}
+      className={gap}
+      data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
+    >
+      <Icon icon={LinkIcon} size={20} aria-hidden="true" />
+    </ActionIconButton>
+  )
+  const driveButton = (
+    <DriveAttachButton
+      maxFileSize={uploadLimits.maxFileSize}
+      onLinks={handleDriveLinks}
+      onAttach={files.addFiles}
+    />
+  )
+  const scribeMenu = (
+    <ScribeMenu
+      externalAnchor={scribeAnchor}
+      onExternalClose={() => {
+        setScribeAnchor(null)
+      }}
+      getInput={scribeInput}
+      onReplace={handleScribeReplace}
+      onInsert={handleScribeInsert}
+    />
+  )
+  const fileInput = (
+    <input
+      ref={fileInputRef}
+      type="file"
+      multiple
+      hidden
+      onChange={handlePickFiles}
+      data-testid="composer-file-input"
+    />
+  )
+  const saveStatus = (
+    <Typography
+      role="status"
+      variant="caption"
+      color="textPrimary"
+      className={isPhone ? 'u-visuallyhidden' : 'u-flex-auto u-ph-1'}
+      data-testid="composer-save-status"
+    >
+      {saveStateKey === null ? '' : t(saveStateKey)}
+    </Typography>
+  )
+  const moreButton = (
+    <ActionIconButton
+      label={t('composer.more')}
+      aria-haspopup="menu"
+      aria-expanded={moreAnchor !== null}
+      onClick={handleOpenMore}
+      className={isPhone ? undefined : 'u-ml-half u-mr-1'}
+      data-testid="composer-more-button"
+    >
+      <Icon
+        icon={isPhone ? Dots : FileOutline}
+        size={isPhone ? 24 : 20}
+        aria-hidden="true"
+      />
+    </ActionIconButton>
+  )
+  const sendButton = (
+    <PillButton
+      label={isSending ? t('composer.sending') : t('composer.send')}
+      icon={Paperplane}
+      width={128}
+      isIconOnly={isPhone}
+      onClick={() => {
+        void handleSend()
+      }}
+      disabled={isSending}
+      aria-describedby={sendError === null ? undefined : sendErrorId}
+      data-testid="composer-send-button"
+    />
+  )
+  const moreMenu = (
+    <Menu
+      anchorEl={moreAnchor}
+      open={moreAnchor !== null}
+      onClose={() => {
+        setMoreAnchor(null)
+      }}
+    >
+      {isPhone ? (
+        <MenuItem
+          onClick={() => {
+            setMoreAnchor(null)
+            editorActions.current?.openLinkDialog()
+          }}
+          data-testid="composer-link-item"
+        >
+          <ListItemText inset primary={labels.link} />
+        </MenuItem>
+      ) : null}
+      <MenuItem
+        onClick={handleSaveDraft}
+        data-testid="composer-save-draft-item"
+      >
+        <ListItemText inset primary={t('composer.saveAsDraft')} />
+      </MenuItem>
+      <MenuItem
+        onClick={handleSaveTemplate}
+        data-testid="composer-save-template-item"
+      >
+        <ListItemText inset primary={t('composer.template.save')} />
+      </MenuItem>
+      {(
+        [
+          [
+            'requestReadReceipt',
+            'composer.options.readReceipt',
+            'composer-read-receipt-item'
+          ],
+          [
+            'isImportant',
+            'composer.options.markAsImportant',
+            'composer-mark-important-item'
+          ]
+        ] as const
+      ).map(([option, label, testId]) => (
+        <MenuItem
+          key={option}
+          role="menuitemcheckbox"
+          aria-checked={options[option]}
+          onClick={() => {
+            handleToggleOption(option)
+          }}
+          data-testid={testId}
+        >
+          {options[option] ? (
+            <ListItemIcon>
+              <Icon icon={Check} aria-hidden="true" />
+            </ListItemIcon>
+          ) : null}
+          <ListItemText inset={!options[option]} primary={t(label)} />
+        </MenuItem>
+      ))}
+      {isPhone ? (
+        <MenuItem
+          onClick={() => {
+            setMoreAnchor(null)
+            handleDeleteDraft()
+          }}
+          data-testid="composer-delete-draft-item"
+        >
+          <ListItemText inset primary={t('composer.draft.delete')} />
+        </MenuItem>
+      ) : null}
+    </Menu>
+  )
+
   return (
     <FileDropZone
       label={t('composer.attachments.dropHere')}
@@ -1111,6 +1313,31 @@ function LoadedComposerForm({
         className="u-flex u-flex-column u-flex-auto u-ov-hidden"
         onKeyDown={handleKeyDown}
       >
+        {isPhone ? (
+          <TopActionBar
+            data-testid="composer-top-bar"
+            start={
+              <ActionIconButton
+                label={t('composer.window.close')}
+                onClick={onRequestClose}
+                data-testid="composer-close-button"
+              >
+                <Icon icon={Cross} size={16} aria-hidden="true" />
+              </ActionIconButton>
+            }
+          >
+            {topBarActions}
+            {scribeMenu}
+            {formattingButton}
+            {attachButton}
+            {imageButton}
+            {driveButton}
+            {sendButton}
+            {moreButton}
+            {fileInput}
+            {saveStatus}
+          </TopActionBar>
+        ) : null}
         <Box className="u-flex-shrink-0">
           <RecipientsEditor
             recipients={recipients}
@@ -1288,86 +1515,22 @@ function LoadedComposerForm({
             </Typography>
           )}
         </Box>
-        <Box
-          className={`u-flex u-flex-items-center u-flex-shrink-0 ${
-            isPhone ? 'u-flex-nowrap u-p-half' : 'u-flex-wrap u-p-1'
-          }`}
-        >
-          <ActionIconButton
-            label={labels.toolbar}
-            aria-pressed={isToolbarShown}
-            onClick={() => {
-              setIsToolbarShown(shown => !shown)
-            }}
-            data-testid="composer-formatting-button"
-          >
-            <EditorIcon name="fontSize" fontSize="medium" />
-          </ActionIconButton>
-          <ActionIconButton
-            label={t('composer.attachments.attach')}
-            onClick={() => fileInputRef.current?.click()}
-            className="u-ml-half"
-            data-testid="composer-attach-file-button"
-          >
-            <Icon icon={Attachment} size={24} aria-hidden="true" />
-          </ActionIconButton>
-          <ActionIconButton
-            label={labels.insertImage}
-            onClick={() => editorActions.current?.pickImages()}
-            className="u-ml-half"
-            data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
-          >
-            <Icon icon={ImageIcon} size={20} aria-hidden="true" />
-          </ActionIconButton>
-          <ActionIconButton
-            label={labels.link}
-            onClick={() => editorActions.current?.openLinkDialog()}
-            className="u-ml-half"
-            data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
-          >
-            <Icon icon={LinkIcon} size={20} aria-hidden="true" />
-          </ActionIconButton>
-          {isPhone ? null : (
+        {isPhone ? null : (
+          <Box className="u-flex u-flex-items-center u-flex-shrink-0 u-flex-wrap u-p-1">
+            {formattingButton}
+            {attachButton}
+            {imageButton}
+            {linkButton}
             <EmojiButton
               onInsert={emoji => {
                 editorActions.current?.insertText(emoji)
               }}
               onDismiss={() => editorActions.current?.focus()}
             />
-          )}
-          <DriveAttachButton
-            maxFileSize={uploadLimits.maxFileSize}
-            onLinks={handleDriveLinks}
-            onAttach={files.addFiles}
-          />
-          <ScribeMenu
-            externalAnchor={scribeAnchor}
-            onExternalClose={() => {
-              setScribeAnchor(null)
-            }}
-            getInput={scribeInput}
-            onReplace={handleScribeReplace}
-            onInsert={handleScribeInsert}
-          />
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            hidden
-            onChange={handlePickFiles}
-            data-testid="composer-file-input"
-          />
-          <Typography
-            role="status"
-            variant="caption"
-            color="textPrimary"
-            className={isPhone ? 'u-visuallyhidden' : 'u-flex-auto u-ph-1'}
-            data-testid="composer-save-status"
-          >
-            {saveStateKey === null ? '' : t(saveStateKey)}
-          </Typography>
-          {isPhone ? <span className="u-flex-auto" /> : null}
-          {isPhone ? null : (
+            {driveButton}
+            {scribeMenu}
+            {fileInput}
+            {saveStatus}
             <ActionIconButton
               label={t('composer.draft.delete')}
               onClick={handleDeleteDraft}
@@ -1375,92 +1538,11 @@ function LoadedComposerForm({
             >
               <Icon icon={Trash} size={20} aria-hidden="true" />
             </ActionIconButton>
-          )}
-          <ActionIconButton
-            label={t('composer.more')}
-            aria-haspopup="menu"
-            aria-expanded={moreAnchor !== null}
-            onClick={handleOpenMore}
-            className={isPhone ? undefined : 'u-ml-half u-mr-1'}
-            data-testid="composer-more-button"
-          >
-            <Icon icon={FileOutline} size={20} aria-hidden="true" />
-          </ActionIconButton>
-          <PillButton
-            label={isSending ? t('composer.sending') : t('composer.send')}
-            icon={Paperplane}
-            width={128}
-            isIconOnly={isPhone}
-            onClick={() => {
-              void handleSend()
-            }}
-            disabled={isSending}
-            aria-describedby={sendError === null ? undefined : sendErrorId}
-            data-testid="composer-send-button"
-          />
-          <Menu
-            anchorEl={moreAnchor}
-            open={moreAnchor !== null}
-            onClose={() => {
-              setMoreAnchor(null)
-            }}
-          >
-            <MenuItem
-              onClick={handleSaveDraft}
-              data-testid="composer-save-draft-item"
-            >
-              <ListItemText inset primary={t('composer.saveAsDraft')} />
-            </MenuItem>
-            <MenuItem
-              onClick={handleSaveTemplate}
-              data-testid="composer-save-template-item"
-            >
-              <ListItemText inset primary={t('composer.template.save')} />
-            </MenuItem>
-            {(
-              [
-                [
-                  'requestReadReceipt',
-                  'composer.options.readReceipt',
-                  'composer-read-receipt-item'
-                ],
-                [
-                  'isImportant',
-                  'composer.options.markAsImportant',
-                  'composer-mark-important-item'
-                ]
-              ] as const
-            ).map(([option, label, testId]) => (
-              <MenuItem
-                key={option}
-                role="menuitemcheckbox"
-                aria-checked={options[option]}
-                onClick={() => {
-                  handleToggleOption(option)
-                }}
-                data-testid={testId}
-              >
-                {options[option] ? (
-                  <ListItemIcon>
-                    <Icon icon={Check} aria-hidden="true" />
-                  </ListItemIcon>
-                ) : null}
-                <ListItemText inset={!options[option]} primary={t(label)} />
-              </MenuItem>
-            ))}
-            {isPhone ? (
-              <MenuItem
-                onClick={() => {
-                  setMoreAnchor(null)
-                  handleDeleteDraft()
-                }}
-                data-testid="composer-delete-draft-item"
-              >
-                <ListItemText inset primary={t('composer.draft.delete')} />
-              </MenuItem>
-            ) : null}
-          </Menu>
-        </Box>
+            {moreButton}
+            {sendButton}
+          </Box>
+        )}
+        {moreMenu}
       </div>
     </FileDropZone>
   )
@@ -1567,20 +1649,43 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
     retry: false
   })
 
+  // A phone has no title bar: loading and failing keep a way out
+  const isPhone = useScreenSize() === 'mobile'
+  const waiting = (message: ReactElement): ReactElement => (
+    <>
+      {isPhone ? (
+        <TopActionBar
+          start={
+            <ActionIconButton
+              label={t('composer.window.close')}
+              onClick={props.onRequestClose}
+              data-testid="composer-close-button"
+            >
+              <Icon icon={Cross} size={16} aria-hidden="true" />
+            </ActionIconButton>
+          }
+        >
+          {props.topBarActions}
+        </TopActionBar>
+      ) : null}
+      {message}
+    </>
+  )
+
   if (
     identities.isError ||
     mailboxes.isError ||
     content.isError ||
     (mailboxes.data && !drafts)
   ) {
-    return (
+    return waiting(
       <Typography role="alert" className="u-p-1">
         {t('common.errorOccurred')}
       </Typography>
     )
   }
   if (!identities.data || !ownMailboxIds || !content.data) {
-    return (
+    return waiting(
       <Typography role="status" className="u-p-1">
         {t('common.loading')}
       </Typography>

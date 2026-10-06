@@ -58,9 +58,10 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     await page.keyboard.press('Enter')
     await expect(page.getByRole('menu')).toBeHidden()
     await expect(composer.editor.locator('h1')).toHaveText('Title')
-    await expect(
-      composer.toolbarButton('Text style Header 1')
-    ).toHaveAttribute('aria-expanded', 'false')
+    await expect(composer.toolbarButton('Text style Header 1')).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
 
     // Escape closes a menu without applying anything
     await composer.toolbarButton('Text style Header 1').click()
@@ -112,9 +113,7 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     // The buttons say what the selection has
     await expect(composer.toolbarButton('Text style Header 2')).toBeVisible()
     await expect(composer.toolbarButton('Text Size 24')).toBeVisible()
-    await expect(
-      composer.toolbarButton('Font Times New Roman')
-    ).toBeVisible()
+    await expect(composer.toolbarButton('Font Times New Roman')).toBeVisible()
     await expectNoA11yViolations(page)
 
     await composer.send()
@@ -173,14 +172,14 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     async ({ page, user }) => {
       test.skip(
         (page.viewportSize()?.width ?? 0) >= 600,
-        'The footer of the phones'
+        'The top bar of the phones'
       )
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
 
-      await expect(composer.root.getByTestId('composer-emoji-button')).toHaveCount(
-        0
-      )
+      await expect(
+        composer.root.getByTestId('composer-emoji-button')
+      ).toHaveCount(0)
       const boxes = await Promise.all(
         [
           composer.formattingButton,
@@ -189,11 +188,14 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
           composer.sendButton
         ].map(locator => locator.boundingBox())
       )
-      const centres = boxes.map(box => (box?.y ?? -100) + (box?.height ?? 0) / 2)
+      const centres = boxes.map(
+        box => (box?.y ?? -100) + (box?.height ?? 0) / 2
+      )
       expect(Math.max(...centres) - Math.min(...centres)).toBeLessThan(4)
       await expect(composer.sendButton).toHaveAccessibleName('Send')
 
       // One line, scrolling sideways; the last button is reachable
+      await composer.showFormattingToolbar()
       const toolbarBox = await composer.toolbar.boundingBox()
       expect(toolbarBox?.height).toBeLessThan(70)
       const clear = composer.toolbarButton('Clear formatting')

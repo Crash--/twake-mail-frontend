@@ -17,7 +17,11 @@ import {
   DockedWindow,
   type DockedWindowMode
 } from '@/ds/DockedWindow/DockedWindow'
-import { fitWindows, type FittedWindowMode } from '@/ds/DockedWindow/fitWindows'
+import {
+  dockedWindowWidth,
+  fitWindows,
+  type FittedWindowMode
+} from '@/ds/DockedWindow/fitWindows'
 import { WindowDock } from '@/ds/DockedWindow/WindowDock'
 import {
   WindowOverflowMenu,
@@ -220,7 +224,11 @@ export function ComposerProvider({
   }, [])
   const suspendShortcuts = useSuspendShortcuts()
   const screenSize = useScreenSize()
-  const isDesktop = screenSize === 'desktop'
+  // Windows in the dock from a tablet up (tmail-flutter: only a phone gets
+  // the composer over the whole screen); the title of a tablet window is
+  // centred
+  const isDesktop = screenSize !== 'mobile'
+  const isTablet = screenSize === 'tablet' || screenSize === 'tabletLarge'
   const screenWidth = useWindowWidth()
   const [entries, setEntries] = useState<ComposerEntry[]>([])
   const entriesRef = useRef(entries)
@@ -635,6 +643,8 @@ export function ComposerProvider({
               entry={entry}
               mode={shownMode(fittedModes[index])}
               isModal={!isDesktop}
+              isTablet={isTablet}
+              width={dockedWindowWidth(screenWidth)}
               // Over the page: the menu goes in the window shown
               titleBarActions={!isDesktop && index === 0 ? overflowMenu : null}
               setMode={setMode}
@@ -666,6 +676,9 @@ interface ComposerSlotProps {
   /** The mode shown, null when the dock has no room for it (overflow menu) */
   mode: DockedWindowMode | null
   isModal: boolean
+  isTablet: boolean
+  /** Width of a window in the dock, in px */
+  width: number
   titleBarActions: ReactNode
   setMode: (id: string, mode: DockedWindowMode) => void
   setTitle: (id: string, title: string) => void
@@ -686,6 +699,8 @@ function ComposerSlot({
   entry,
   mode,
   isModal,
+  isTablet,
+  width,
   titleBarActions,
   setMode,
   setTitle,
@@ -727,6 +742,9 @@ function ComposerSlot({
   const handleChange = useCallback((): void => {
     onChange(id)
   }, [id, onChange])
+  const handleRequestClose = useCallback((): void => {
+    void requestClose(id)
+  }, [id, requestClose])
   const handleDone = useCallback((): void => {
     close(id)
   }, [id, close])
@@ -747,6 +765,10 @@ function ComposerSlot({
         // of the window shown
         isModal={isModal && mode !== null}
         isCompact={isModal}
+        isTitleBarHidden
+        isTitleCentered={isTablet}
+        isTall={isTablet}
+        width={width}
         titleBarActions={titleBarActions}
         // Its own layer in the view transitions of the navigations: not
         // frozen nor hidden under the snapshot of the page
@@ -790,6 +812,8 @@ function ComposerSlot({
             onReady={handleReady}
             onDraftChange={handleDraftChange}
             onDone={handleDone}
+            onRequestClose={handleRequestClose}
+            topBarActions={titleBarActions}
           />
         </Suspense>
       </DockedWindow>

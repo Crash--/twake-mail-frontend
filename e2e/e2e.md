@@ -804,3 +804,15 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-geometry.spec.ts`.
 - [x] `CMP-85` At every width the close, formatting, attach, image and More buttons of the composer are 40 px round buttons, the toolbar boxes are 32 px high and the toolbar 41 px with its rule (touch screens enlarge the targets to 44 px). — web app (Figma, editor E4)
   - Spec: `tests/composer-geometry.spec.ts`.
+- [x] `CMP-86` On a phone the composer has no title bar nor footer: a 56 px bar holds the close button, then Aa (the formatting toolbar is hidden until it is pressed), attach, image, a round Send (a disc in a 44 px target) and "More", every target at least 44 px, in that order. — web app (Figma phone composer, tmail-flutter `MobileResponsiveAppBarComposerWidget`, editor E5)
+  - Spec: `tests/composer-mobile.spec.ts`.
+- [x] `CMP-87` At 390 and 360 px "Aa" shows the formatting toolbar at the bottom of the window, nothing overflows the screen horizontally, the toolbar scrolls sideways, its last button is whole at the end and a swipe stops on the start of a group. — web app (editor E5)
+  - Spec: `tests/composer-mobile.spec.ts`.
+- [x] `CMP-88` The More menu of a phone holds Insert link, Save as draft, Save as template, Request read receipt, Mark as important and Delete draft; a tablet's holds the four of tmail-flutter's desktop menu (no link, no delete: they are in the footer). — web app (tmail-flutter mobile app bar, editor E5)
+  - Spec: `tests/composer-mobile.spec.ts`.
+- [x] `CMP-89` On a tablet (820 px) the composer is a 772 x 710 window with 24 px around it, its title centred and minimize, expand and close at the end (44 px), no horizontal overflow; it minimizes into the dock. — web app (Figma tablet composer, tmail-flutter `TabletResponsiveContainerView`, editor E5)
+  - Spec: `tests/composer-mobile.spec.ts`.
+- [x] `CMP-90` Several long addresses in "To": the label keeps the first chip company, and the input stays on the row of the last chip while 56 px are left, else takes the row under the chips with nothing empty after it (every width). — web app (editor E5)
+  - Spec: `tests/composer-mobile.spec.ts`.
+- [x] `CMP-49` / `CMP-83` (updated, editor E5) — the composer fills the screen on a phone only (a tablet shows it as a window in the dock), so CMP-49 checks the "+N messages" menu in the top bar of a 390 px phone and then the 1700 px desktop, and CMP-83 checks the one line top bar of a phone (no footer) before the toolbar it shows on "Aa". — web app (editor E5)
+  - Spec: `tests/composer.spec.ts`, `tests/composer-format.spec.ts`.

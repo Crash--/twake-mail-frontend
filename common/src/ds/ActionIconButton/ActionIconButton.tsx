@@ -36,7 +36,13 @@ export const ActionIconButton = forwardRef<
           width: ACTION_ICON_BUTTON_SIZE,
           height: ACTION_ICON_BUTTON_SIZE,
           p: 0,
-          flexShrink: 0
+          flexShrink: 0,
+          // A toggle that is on (Aa showing the formatting): the light blue
+          // of the design and tmail-flutter's selected icon button
+          '&[aria-pressed="true"]': {
+            bgcolor: 'primary.light',
+            color: 'primary.dark'
+          }
         }}
       >
         {children}

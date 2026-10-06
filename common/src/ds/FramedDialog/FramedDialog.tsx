@@ -128,6 +128,12 @@ export interface FramedDialogProps {
   showCloseButton?: boolean
   /** The size the framed page asks for, null for the default (900 × 800) */
   frameSize?: FrameSize | null
+  /**
+   * What the loading state shows instead of the progress indicator and its
+   * text (Figma "Drive loading": the logo of the framed application in the
+   * middle, its name at the bottom); the text stays for screen readers
+   */
+  loadingBrand?: { logo: ReactNode; name: ReactNode }
   /** Shown instead of the frame (an error and its actions) */
   message?: ReactNode
   frameRef?: RefObject<HTMLIFrameElement | null>
@@ -163,6 +169,7 @@ export function FramedDialog({
   showCloseButton = true,
   frameSize = null,
   message,
+  loadingBrand,
   frameRef,
   allow,
   disableRestoreFocus = false,
@@ -219,8 +226,23 @@ export function FramedDialog({
           </Box>
         ) : isLoading ? (
           <Box sx={OVERLAY_SX} role="status">
-            <CircularProgress aria-hidden="true" />
-            <Typography>{loadingLabel}</Typography>
+            {loadingBrand === undefined ? (
+              <>
+                <CircularProgress aria-hidden="true" />
+                <Typography>{loadingLabel}</Typography>
+              </>
+            ) : (
+              <>
+                <span className="u-visuallyhidden">{loadingLabel}</span>
+                <Box aria-hidden="true">{loadingBrand.logo}</Box>
+                <Box
+                  aria-hidden="true"
+                  sx={{ position: 'absolute', bottom: 24, left: 0, right: 0 }}
+                >
+                  {loadingBrand.name}
+                </Box>
+              </>
+            )}
           </Box>
         ) : null}
         {showCloseButton || !isReady || hasMessage ? (

@@ -36,6 +36,12 @@ function OidcCallback({ service }: { service: OidcAuthService }): ReactElement {
         await navigate(result.value.returnTo, { replace: true })
         return
       }
+      if (result.error === 'login-required') {
+        // Only a framed app logs in silently, and it handles its callback
+        // itself (`TeamMailboxEmbed`): start over with a regular login
+        await navigate(result.returnTo, { replace: true })
+        return
+      }
       if (result.error === 'missing-login-state') {
         // Reloaded or bookmarked callback: start over
         await navigate('/', { replace: true })

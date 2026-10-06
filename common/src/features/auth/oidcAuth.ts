@@ -1,7 +1,11 @@
 import * as client from 'openid-client'
 
 import type { OidcConfig } from '@common/config/config'
-import { getCurrentPath, redirectTo } from '@common/utils/navigation'
+import {
+  getCurrentPath,
+  redirectTo,
+  replaceWith
+} from '@common/utils/navigation'
 
 import { makeAuthStore } from './authStore'
 import { endLocalSession } from './localSession'
@@ -25,6 +29,17 @@ const CLOCK_SKEW_S = 300
 const REFRESH_AHEAD_MS = 60_000
 /** A token closer than this to its expiry is renewed before being sent */
 const EXPIRY_LEEWAY_MS = 10_000
+/**
+ * Answers of the SSO to a silent login (`prompt=none`) when it would need
+ * to show a page: no session, consent, account choice (OpenID Connect Core
+ * 1.0, 3.1.2.6)
+ */
+const LOGIN_REQUIRED_ERRORS = new Set([
+  'login_required',
+  'interaction_required',
+  'consent_required',
+  'account_selection_required'
+])
 
 interface OidcTokens {
   accessToken: string
@@ -38,6 +53,8 @@ interface PendingLogin {
   codeVerifier: string
   state: string
   returnTo: string
+  /** A login without any page of the SSO (`prompt=none`) */
+  silent?: boolean
 }
 
 type TokenResponse = client.TokenEndpointResponse &
@@ -47,14 +64,28 @@ export interface OidcDependencies {
   /** Holds the pending login across the SSO round trip */
   storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
   redirect: (url: string) => void
+  /** Leaves for the SSO without adding a history entry */
+  replace: (url: string) => void
   getCurrentPath: () => string
   now: () => number
+}
+
+export interface OidcOptions {
+  /**
+   * The app is shown in the frame of another app (TwakeSpace, ADR 010): the
+   * SSO refuses to show its portal there, so every login is silent, and
+   * leaves no entry in the history the frame shares with the page around
+   * it. When the SSO needs the user, the callback says `login-required`
+   * and the page around the frame signs the user in again.
+   */
+  framed?: boolean
 }
 
 function makeDefaultDependencies(): OidcDependencies {
   return {
     storage: window.sessionStorage,
     redirect: redirectTo,
+    replace: replaceWith,
     getCurrentPath,
     now: () => Date.now()
   }
@@ -69,8 +100,26 @@ function isPendingLogin(value: unknown): value is PendingLogin {
     'state' in value &&
     typeof value.state === 'string' &&
     'returnTo' in value &&
-    typeof value.returnTo === 'string'
+    typeof value.returnTo === 'string' &&
+    (!('silent' in value) || typeof value.silent === 'boolean')
   )
+}
+
+/**
+ * Where the pending login comes back to, without consuming it: the app
+ * reads it on its callback page to know which screen the login is for.
+ */
+export function peekPendingLoginReturnTo(
+  storage: Pick<Storage, 'getItem'> = window.sessionStorage
+): string | null {
+  const raw = storage.getItem(PENDING_LOGIN_STORAGE_KEY)
+  if (raw === null) return null
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    return isPendingLogin(parsed) ? sanitizeReturnTo(parsed.returnTo) : null
+  } catch {
+    return null
+  }
 }
 
 /** Claims of an ID token or of a userinfo response */
@@ -142,7 +191,8 @@ async function discoverConfiguration(
  */
 export function createOidcAuthService(
   config: OidcConfig,
-  dependencies: OidcDependencies = makeDefaultDependencies()
+  dependencies: OidcDependencies = makeDefaultDependencies(),
+  { framed = false }: OidcOptions = {}
 ): OidcAuthService {
   const store = makeAuthStore()
   let tokens: OidcTokens | null = null
@@ -247,7 +297,8 @@ export function createOidcAuthService(
       const pendingLogin: PendingLogin = {
         codeVerifier,
         state,
-        returnTo: sanitizeReturnTo(returnTo)
+        returnTo: sanitizeReturnTo(returnTo),
+        ...(framed ? { silent: true } : {})
       }
       dependencies.storage.setItem(
         PENDING_LOGIN_STORAGE_KEY,
@@ -258,9 +309,14 @@ export function createOidcAuthService(
         scope: config.scope,
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
-        state
+        state,
+        ...(framed ? { prompt: 'none' } : {})
       })
-      dependencies.redirect(authorizationUrl.href)
+      if (framed) {
+        dependencies.replace(authorizationUrl.href)
+      } else {
+        dependencies.redirect(authorizationUrl.href)
+      }
       return { ok: true }
     } catch (error) {
       isRedirecting = false
@@ -288,6 +344,17 @@ export function createOidcAuthService(
     const pendingLogin = takePendingLogin()
     if (!pendingLogin) return { ok: false, error: 'missing-login-state' }
 
+    const returnTo = sanitizeReturnTo(pendingLogin.returnTo)
+    const ssoError = callbackUrl.searchParams.get('error')
+    if (
+      pendingLogin.silent === true &&
+      ssoError !== null &&
+      LOGIN_REQUIRED_ERRORS.has(ssoError) &&
+      callbackUrl.searchParams.get('state') === pendingLogin.state
+    ) {
+      return { ok: false, error: 'login-required', returnTo }
+    }
+
     try {
       const configuration = await fetchConfiguration()
       const response = await client.authorizationCodeGrant(
@@ -299,10 +366,7 @@ export function createOidcAuthService(
         }
       )
       saveTokens(response, await fetchUserInfo(configuration, response))
-      return {
-        ok: true,
-        value: { returnTo: sanitizeReturnTo(pendingLogin.returnTo) }
-      }
+      return { ok: true, value: { returnTo } }
     } catch (error) {
       return {
         ok: false,

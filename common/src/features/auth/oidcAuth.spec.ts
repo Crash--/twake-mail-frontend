@@ -4,6 +4,7 @@ import type { OidcConfig } from '@common/config/config'
 
 import {
   createOidcAuthService,
+  peekPendingLoginReturnTo,
   PENDING_LOGIN_STORAGE_KEY,
   type OidcDependencies
 } from './oidcAuth'
@@ -88,6 +89,7 @@ function makeDependencies(): OidcDependencies {
   return {
     storage: makeMemoryStorage(),
     redirect: jest.fn(),
+    replace: jest.fn(),
     getCurrentPath: () => '/mailbox/inbox?page=2',
     now: () => Date.now()
   }
@@ -243,6 +245,119 @@ describe('createOidcAuthService', () => {
         detail: 'invalid_grant'
       })
       expect(service.getState()).toEqual({ status: 'anonymous' })
+    })
+  })
+
+  describe('in the frame of another app', () => {
+    const FRAMED = { framed: true }
+
+    it('logs in silently, without a history entry', async () => {
+      const dependencies = makeDependencies()
+      const service = createOidcAuthService(CONFIG, dependencies, FRAMED)
+
+      await service.startLogin('/embed/team-mailboxes/team%40example.com/')
+
+      expect(mockedClient.buildAuthorizationUrl).toHaveBeenCalledWith(
+        configuration,
+        expect.objectContaining({ prompt: 'none', state: 'state-1' })
+      )
+      expect(dependencies.replace).toHaveBeenCalledWith(
+        'https://sso.example.com/authorize?client_id=twake-mail'
+      )
+      expect(dependencies.redirect).not.toHaveBeenCalled()
+      expect(peekPendingLoginReturnTo(dependencies.storage)).toBe(
+        '/embed/team-mailboxes/team%40example.com/'
+      )
+    })
+
+    it('goes back silently when a request is refused', async () => {
+      const dependencies = makeDependencies()
+      const service = createOidcAuthService(CONFIG, dependencies, FRAMED)
+
+      await service.onUnauthorized()
+
+      expect(dependencies.replace).toHaveBeenCalledTimes(1)
+      expect(dependencies.redirect).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      'login_required',
+      'interaction_required',
+      'consent_required',
+      'account_selection_required'
+    ])('says the user must sign in when the SSO answers %s', async error => {
+      const service = createOidcAuthService(CONFIG, makeDependencies(), FRAMED)
+      await service.startLogin('/embed/team-mailboxes/team%40example.com/')
+
+      await expect(
+        service.handleCallback(
+          new URL(
+            `https://mail.example.com/callback?error=${error}&state=state-1`
+          )
+        )
+      ).resolves.toEqual({
+        ok: false,
+        error: 'login-required',
+        returnTo: '/embed/team-mailboxes/team%40example.com/'
+      })
+      expect(mockedClient.authorizationCodeGrant).not.toHaveBeenCalled()
+    })
+
+    it('does not take an answer of another login for its own', async () => {
+      const service = createOidcAuthService(CONFIG, makeDependencies(), FRAMED)
+      await service.startLogin('/')
+      mockedClient.authorizationCodeGrant.mockRejectedValueOnce(
+        new Error('state mismatch')
+      )
+
+      await expect(
+        service.handleCallback(
+          new URL(
+            'https://mail.example.com/callback?error=login_required&state=other'
+          )
+        )
+      ).resolves.toMatchObject({ ok: false, error: 'token-exchange-failed' })
+    })
+
+    it('leaves the regular login as it is', async () => {
+      const dependencies = makeDependencies()
+      const service = createOidcAuthService(CONFIG, dependencies)
+      await service.startLogin('/')
+      mockedClient.authorizationCodeGrant.mockRejectedValueOnce(
+        new Error('login_required')
+      )
+
+      await expect(
+        service.handleCallback(
+          new URL(
+            'https://mail.example.com/callback?error=login_required&state=state-1'
+          )
+        )
+      ).resolves.toMatchObject({ ok: false, error: 'token-exchange-failed' })
+      expect(dependencies.replace).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('peekPendingLoginReturnTo', () => {
+    it('reads where the pending login comes back to, and leaves it', async () => {
+      const dependencies = makeDependencies()
+      const service = createOidcAuthService(CONFIG, dependencies)
+      await service.startLogin('/mailbox/inbox')
+
+      expect(peekPendingLoginReturnTo(dependencies.storage)).toBe(
+        '/mailbox/inbox'
+      )
+      expect(dependencies.storage.getItem(PENDING_LOGIN_STORAGE_KEY)).not.toBe(
+        null
+      )
+    })
+
+    it('is null without a pending login, or with a broken one', () => {
+      const storage = makeMemoryStorage()
+      expect(peekPendingLoginReturnTo(storage)).toBe(null)
+
+      storage.setItem(PENDING_LOGIN_STORAGE_KEY, '{')
+      expect(peekPendingLoginReturnTo(storage)).toBe(null)
     })
   })
 

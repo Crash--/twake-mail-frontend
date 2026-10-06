@@ -420,8 +420,7 @@ export function RichTextToolbar({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     // React events bubble out of the menus' portals: only the buttons count
-    if (!(event.target instanceof Node)) return
-    if (!event.currentTarget.contains(event.target)) return
+    if (!event.currentTarget.contains(event.target as Node)) return
     const keys: Record<string, () => void> = {
       ArrowRight: () => focusItem(activeIndex + 1),
       ArrowLeft: () => focusItem(activeIndex - 1),

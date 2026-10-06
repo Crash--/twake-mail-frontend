@@ -80,8 +80,12 @@ function imageElement(
   position: number
 ): HTMLImageElement | null {
   const dom = editor.view.nodeDOM(position)
-  if (dom instanceof HTMLImageElement) return dom
-  return dom instanceof HTMLElement ? dom.querySelector('img') : null
+  // Not `instanceof`: the editor may be rendered in another document
+  if (dom?.nodeType !== Node.ELEMENT_NODE) return null
+  const element = dom as HTMLElement
+  return element.tagName === 'IMG'
+    ? (element as HTMLImageElement)
+    : element.querySelector('img')
 }
 
 interface AltTextFieldProps {
@@ -354,10 +358,8 @@ export function ImageToolbar({
   }
 
   const handleBlur = (event: FocusEvent<HTMLDivElement>): void => {
-    if (
-      !(event.relatedTarget instanceof Node) ||
-      !event.currentTarget.contains(event.relatedTarget)
-    ) {
+    const next = event.relatedTarget
+    if (next === null || !event.currentTarget.contains(next)) {
       setHasFocus(false)
     }
   }

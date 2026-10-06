@@ -89,8 +89,10 @@ The image carries OCI labels, an SBOM and a provenance attestation.
 
 The image goes to `ghcr.io/<owner>/twake-mail-frontend`, or to the repository
 variable `IMAGE_REPOSITORY` (a full name with its registry, e.g.
-`docker.io/example/twake-mail-frontend`, with the secrets `REGISTRY_USERNAME`
-and `REGISTRY_PASSWORD`). A GitHub owner whose name is not a valid image path
+`ghcr.io/linagora/twake-mail-frontend` or `docker.io/example/twake-mail-frontend`,
+with the secrets `REGISTRY_USERNAME` and `REGISTRY_PASSWORD`). The workflow
+token can only push to GHCR under the owner of the repository: for the GHCR of
+another owner, `REGISTRY_PASSWORD` is a token with `write:packages` on it. A GitHub owner whose name is not a valid image path
 component (`name--`) cannot own a GHCR image: the workflow then builds without
 pushing until `IMAGE_REPOSITORY` is set.
 

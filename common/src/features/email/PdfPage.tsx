@@ -134,7 +134,10 @@ export function PdfPage({
         })
     }
 
-    const observer = new IntersectionObserver(entries => {
+    // The window the node is rendered in, maybe not this one (the overlay of
+    // TwakeSpace): an observer only follows the documents of its own window
+    const view = canvas.ownerDocument.defaultView ?? window
+    const observer = new view.IntersectionObserver(entries => {
       for (const entry of entries) {
         state.isVisible = entry.isIntersecting
         if (state.isVisible) start()

@@ -8,10 +8,8 @@ import {
   Box,
   ButtonBase,
   GlobalStyles,
-  IconButton,
   Paper,
   SvgIcon,
-  Tooltip,
   Typography
 } from '@linagora/twake-mui'
 import FocusTrap from '@mui/material/Unstable_TrapFocus'
@@ -24,6 +22,8 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
+
+import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 
 /** Where the window is: in the dock, its title bar only, or over the page */
 export type DockedWindowMode = 'normal' | 'minimized' | 'fullscreen'
@@ -290,52 +290,43 @@ export function DockedWindow({
             {isMinimized ? null : titleBarActions}
             {isCompact ? null : (
               <>
-                <Tooltip title={isMinimized ? labels.restore : labels.minimize}>
-                  <IconButton
-                    size="medium"
-                    aria-label={isMinimized ? labels.restore : labels.minimize}
-                    onClick={() => {
-                      onModeChange(isMinimized ? 'normal' : 'minimized')
-                    }}
-                    data-testid={testIds.minimize}
-                  >
-                    <Icon icon={Dash} size={16} aria-hidden="true" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={fullscreenLabel}>
-                  <IconButton
-                    size="medium"
-                    aria-label={fullscreenLabel}
-                    onClick={() => {
-                      onModeChange(
-                        mode === 'fullscreen' ? 'normal' : 'fullscreen'
-                      )
-                    }}
-                    data-testid={testIds.fullscreen}
-                  >
-                    <SvgIcon aria-hidden="true">
-                      <path
-                        d={
-                          mode === 'fullscreen'
-                            ? EXIT_FULLSCREEN_PATH
-                            : FULLSCREEN_PATH
-                        }
-                      />
-                    </SvgIcon>
-                  </IconButton>
-                </Tooltip>
+                <ActionIconButton
+                  label={isMinimized ? labels.restore : labels.minimize}
+                  onClick={() => {
+                    onModeChange(isMinimized ? 'normal' : 'minimized')
+                  }}
+                  data-testid={testIds.minimize}
+                >
+                  <Icon icon={Dash} size={16} aria-hidden="true" />
+                </ActionIconButton>
+                <ActionIconButton
+                  label={fullscreenLabel}
+                  onClick={() => {
+                    onModeChange(
+                      mode === 'fullscreen' ? 'normal' : 'fullscreen'
+                    )
+                  }}
+                  data-testid={testIds.fullscreen}
+                >
+                  <SvgIcon aria-hidden="true">
+                    <path
+                      d={
+                        mode === 'fullscreen'
+                          ? EXIT_FULLSCREEN_PATH
+                          : FULLSCREEN_PATH
+                      }
+                    />
+                  </SvgIcon>
+                </ActionIconButton>
               </>
             )}
-            <Tooltip title={labels.close}>
-              <IconButton
-                size="medium"
-                aria-label={labels.close}
-                onClick={onClose}
-                data-testid={testIds.close}
-              >
-                <Icon icon={Cross} size={16} aria-hidden="true" />
-              </IconButton>
-            </Tooltip>
+            <ActionIconButton
+              label={labels.close}
+              onClick={onClose}
+              data-testid={testIds.close}
+            >
+              <Icon icon={Cross} size={16} aria-hidden="true" />
+            </ActionIconButton>
           </Box>
           <Box
             className="u-flex u-flex-column u-flex-auto u-ov-hidden"

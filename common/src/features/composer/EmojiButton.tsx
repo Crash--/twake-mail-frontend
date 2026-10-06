@@ -1,7 +1,7 @@
-import { IconButton, Tooltip } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
 import { EmojiPicker, type EmojiEntry } from '@/ds/EmojiPicker/EmojiPicker'
+import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -55,21 +55,18 @@ export function EmojiButton({
 
   return (
     <>
-      <Tooltip title={label}>
-        <IconButton
-          size="medium"
-          aria-label={label}
-          aria-haspopup="dialog"
-          aria-expanded={anchor !== null}
-          onClick={event => {
-            handleOpen(event.currentTarget)
-          }}
-          className="u-ml-half"
-          data-testid="composer-emoji-button"
-        >
-          <EditorIcon name="emoji" fontSize="medium" />
-        </IconButton>
-      </Tooltip>
+      <ActionIconButton
+        label={label}
+        aria-haspopup="dialog"
+        aria-expanded={anchor !== null}
+        onClick={event => {
+          handleOpen(event.currentTarget)
+        }}
+        className="u-ml-half"
+        data-testid="composer-emoji-button"
+      >
+        <EditorIcon name="emoji" fontSize="medium" />
+      </ActionIconButton>
       <EmojiPicker
         anchor={anchor}
         emojis={emojis?.lang === lang ? emojis.list : null}

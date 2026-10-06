@@ -12,14 +12,12 @@ import {
 } from '@linagora/twake-icons'
 import {
   Box,
-  IconButton,
   InputBase,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
   Select,
-  Tooltip,
   Typography
 } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
@@ -38,6 +36,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
@@ -1264,7 +1263,7 @@ function LoadedComposerForm({
             testIds={EDITOR_TEST_IDS}
           />
         </Box>
-        <Box className="u-ph-1 u-flex-shrink-0">
+        <Box className="u-flex-shrink-0">
           <ComposerAttachmentsList files={files} />
           {sendError === null ? null : (
             <Typography
@@ -1272,7 +1271,7 @@ function LoadedComposerForm({
               role="alert"
               variant="body2"
               color="textPrimary"
-              className="u-pv-half u-flex u-flex-items-center"
+              className="u-ph-1 u-pv-half u-flex u-flex-items-center"
               data-testid="composer-send-error"
             >
               <Icon icon={Warning} aria-hidden="true" className="u-mr-half" />
@@ -1294,52 +1293,40 @@ function LoadedComposerForm({
             isPhone ? 'u-flex-nowrap u-p-half' : 'u-flex-wrap u-p-1'
           }`}
         >
-          <Tooltip title={labels.toolbar}>
-            <IconButton
-              size="medium"
-              aria-label={labels.toolbar}
-              aria-pressed={isToolbarShown}
-              onClick={() => {
-                setIsToolbarShown(shown => !shown)
-              }}
-              data-testid="composer-formatting-button"
-            >
-              <EditorIcon name="fontSize" fontSize="medium" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('composer.attachments.attach')}>
-            <IconButton
-              size="medium"
-              aria-label={t('composer.attachments.attach')}
-              onClick={() => fileInputRef.current?.click()}
-              className="u-ml-half"
-              data-testid="composer-attach-file-button"
-            >
-              <Icon icon={Attachment} size={20} aria-hidden="true" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={labels.insertImage}>
-            <IconButton
-              size="medium"
-              aria-label={labels.insertImage}
-              onClick={() => editorActions.current?.pickImages()}
-              className="u-ml-half"
-              data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
-            >
-              <Icon icon={ImageIcon} size={20} aria-hidden="true" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={labels.link}>
-            <IconButton
-              size="medium"
-              aria-label={labels.link}
-              onClick={() => editorActions.current?.openLinkDialog()}
-              className="u-ml-half"
-              data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
-            >
-              <Icon icon={LinkIcon} size={20} aria-hidden="true" />
-            </IconButton>
-          </Tooltip>
+          <ActionIconButton
+            label={labels.toolbar}
+            aria-pressed={isToolbarShown}
+            onClick={() => {
+              setIsToolbarShown(shown => !shown)
+            }}
+            data-testid="composer-formatting-button"
+          >
+            <EditorIcon name="fontSize" fontSize="medium" />
+          </ActionIconButton>
+          <ActionIconButton
+            label={t('composer.attachments.attach')}
+            onClick={() => fileInputRef.current?.click()}
+            className="u-ml-half"
+            data-testid="composer-attach-file-button"
+          >
+            <Icon icon={Attachment} size={24} aria-hidden="true" />
+          </ActionIconButton>
+          <ActionIconButton
+            label={labels.insertImage}
+            onClick={() => editorActions.current?.pickImages()}
+            className="u-ml-half"
+            data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
+          >
+            <Icon icon={ImageIcon} size={20} aria-hidden="true" />
+          </ActionIconButton>
+          <ActionIconButton
+            label={labels.link}
+            onClick={() => editorActions.current?.openLinkDialog()}
+            className="u-ml-half"
+            data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
+          >
+            <Icon icon={LinkIcon} size={20} aria-hidden="true" />
+          </ActionIconButton>
           {isPhone ? null : (
             <EmojiButton
               onInsert={emoji => {
@@ -1381,30 +1368,24 @@ function LoadedComposerForm({
           </Typography>
           {isPhone ? <span className="u-flex-auto" /> : null}
           {isPhone ? null : (
-            <Tooltip title={t('composer.draft.delete')}>
-              <IconButton
-                size="medium"
-                aria-label={t('composer.draft.delete')}
-                onClick={handleDeleteDraft}
-                data-testid="composer-delete-draft-button"
-              >
-                <Icon icon={Trash} size={20} aria-hidden="true" />
-              </IconButton>
-            </Tooltip>
-          )}
-          <Tooltip title={t('composer.more')}>
-            <IconButton
-              size="medium"
-              aria-label={t('composer.more')}
-              aria-haspopup="menu"
-              aria-expanded={moreAnchor !== null}
-              onClick={handleOpenMore}
-              className={isPhone ? undefined : 'u-ml-half u-mr-1'}
-              data-testid="composer-more-button"
+            <ActionIconButton
+              label={t('composer.draft.delete')}
+              onClick={handleDeleteDraft}
+              data-testid="composer-delete-draft-button"
             >
-              <Icon icon={FileOutline} size={20} aria-hidden="true" />
-            </IconButton>
-          </Tooltip>
+              <Icon icon={Trash} size={20} aria-hidden="true" />
+            </ActionIconButton>
+          )}
+          <ActionIconButton
+            label={t('composer.more')}
+            aria-haspopup="menu"
+            aria-expanded={moreAnchor !== null}
+            onClick={handleOpenMore}
+            className={isPhone ? undefined : 'u-ml-half u-mr-1'}
+            data-testid="composer-more-button"
+          >
+            <Icon icon={FileOutline} size={20} aria-hidden="true" />
+          </ActionIconButton>
           <PillButton
             label={isSending ? t('composer.sending') : t('composer.send')}
             icon={Paperplane}

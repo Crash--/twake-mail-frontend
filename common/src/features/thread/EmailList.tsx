@@ -51,6 +51,7 @@ import { mailboxKeys } from '@common/features/mailbox/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useOnlineStatus } from '@common/features/network/useOnlineStatus'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -305,6 +306,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       ),
     [query.data, session.username, meLabel, sentId]
   )
+  const isOnline = useOnlineStatus()
   // The actions on a conversation act on all its emails
   const expandTargets = useCallback(
     (rows: readonly EmailListItemData[]): TargetEmail[] => {
@@ -592,7 +594,17 @@ export function EmailList(props: EmailListProps): ReactElement {
   )
 
   let content: ReactElement
-  if (query.isPending) {
+  if (!isOnline && emails.length === 0) {
+    // tmail-flutter: offline, an empty list says why, a search too. A first
+    // load waits there for the network (TanStack pauses it), not on skeletons.
+    content = (
+      <Empty
+        icon={Email}
+        title={t('mailbox.offline')}
+        data-testid="email-list-offline"
+      />
+    )
+  } else if (query.isPending) {
     content = (
       <EmailListSkeleton isCompact={isCompact} className="u-flex-auto" />
     )

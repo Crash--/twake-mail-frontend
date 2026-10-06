@@ -47,6 +47,7 @@
   "mailbox": {
     "empty": "Vous n'avez aucun message dans ce dossier.",
     "emptyHint": "Commencez par écrire un message.",
+    "offline": "Connexion Internet indisponible, réessayez plus tard.",
     "roles": {
       "inbox": "Boîte de réception",
       "drafts": "Brouillons",

@@ -921,5 +921,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/loading-states.spec.ts`.
 - [x] `OFF-02` Back online the banner goes away, "Back online" is said once, and what arrived while offline (the push channel dropped with the network) is caught up from `Email/changes`, with no `Email/query` and no read of the whole list of folders. — web app (batch D8, `@mobile`)
   - Spec: `tests/loading-states.spec.ts`.
+- [x] `OFF-03` Offline, a folder not loaded yet (and any empty list, a search too) says "No internet connection, try again later." instead of skeletons or the empty view, axe clean; back online its emails land. Emails already listed stay. — web app (`@mobile`, tmail-flutter `EmptyEmailsWidget`)
+  - Spec: `tests/loading-states.spec.ts`.
 - [x] `LOAD-06` Framed, the facade of a team mailbox (no sidebar) shows the list skeleton (busy, "Loading" once) and the first row lands on its first row; offline, the banner sits above the floating "New message" button. — web app (batch D8, `@mobile`)
   - Spec: `tests/loading-states.spec.ts`.

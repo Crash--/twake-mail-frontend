@@ -47,6 +47,7 @@
   "mailbox": {
     "empty": "You don't have any email in this folder.",
     "emptyHint": "Start to compose emails.",
+    "offline": "No internet connection, try again later.",
     "roles": {
       "inbox": "Inbox",
       "drafts": "Drafts",

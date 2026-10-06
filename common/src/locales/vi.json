@@ -47,6 +47,7 @@
   "mailbox": {
     "empty": "Bạn không có thư nào trong thư mục này.",
     "emptyHint": "Hãy bắt đầu soạn thư.",
+    "offline": "Không có kết nối mạng, thử lại sau.",
     "roles": {
       "inbox": "Hộp thư đến",
       "drafts": "Thư nháp",

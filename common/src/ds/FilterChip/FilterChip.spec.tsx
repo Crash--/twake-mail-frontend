@@ -30,7 +30,7 @@ describe('FilterChip', () => {
       <FilterChip
         label="All time"
         isSelected={false}
-        hasMenu
+        popup="menu"
         isExpanded
         onClick={jest.fn()}
       />
@@ -59,5 +59,27 @@ describe('FilterChip', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Starred' }))
 
     expect(screen.getByRole('textbox', { name: 'Field' })).toHaveFocus()
+  })
+
+  it('says a form opens, and is a plain button when removable', () => {
+    renderDs(
+      <>
+        <FilterChip
+          label="From"
+          isSelected
+          popup="dialog"
+          onClick={jest.fn()}
+        />
+        <FilterChip label="Remove" isSelected isRemovable onClick={jest.fn()} />
+      </>
+    )
+
+    expect(screen.getByRole('button', { name: 'From' })).toHaveAttribute(
+      'aria-haspopup',
+      'dialog'
+    )
+    expect(screen.getByRole('button', { name: 'Remove' })).not.toHaveAttribute(
+      'aria-pressed'
+    )
   })
 })

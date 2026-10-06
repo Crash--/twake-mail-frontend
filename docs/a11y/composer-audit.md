@@ -1,7 +1,7 @@
 # Composer: RGAA 4.1 audit grid
 
 Point 1 of [#65](https://github.com/Crash--/twake-mail-frontend/issues/65). What can be checked
-without a screen reader is checked by `e2e/tests/composer-a11y.spec.ts` (`A11Y-10` to `A11Y-14`: the
+without a screen reader is checked by `e2e/tests/composer-a11y.spec.ts` (`A11Y-10` to `A11Y-18`: the
 accessibility tree of each state with `toMatchAriaSnapshot`, names, roles, states, live regions, the
 order of the focus and where it comes back) and by axe in every composer spec (WCAG 2.0/2.1 A and
 AA). **The audit with NVDA (Firefox, Chrome) and VoiceOver (Safari macOS, iOS) is still to do**:
@@ -65,8 +65,10 @@ send checks and the close dialog, toasts, "Insert template" picker.
 ## What this audit could not do
 
 - **Read with NVDA and VoiceOver** (desktop and iOS): the order and the words of what is said, the
-  double "Draft saved", the heading in the minimized title, the chips as buttons with a help text,
-  the toolbar with its roving focus, the combobox of the recipients (ARIA 1.2 pattern).
+  chips as buttons with a help text, the toolbar with its roving focus, the combobox of the
+  recipients (ARIA 1.2 pattern). The fixes of the lot E8 are to confirm the same way: "Draft saved"
+  said once, "added" said for a chip, the title of the minimized window read as the text of its
+  button, the field of the alternative text in the image toolbar.
 - **Contrast** (deferred, see above).
 - Zoom, Windows high contrast, `prefers-reduced-motion` in the composer.
 

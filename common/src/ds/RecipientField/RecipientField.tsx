@@ -544,7 +544,6 @@ export function RecipientField({
             onChange={event => {
               setIsOpen(true)
               setActiveId(null)
-              if (event.target.value === '') isEditing.current = false
               onInputChange(event.target.value)
             }}
             onFocus={() => {

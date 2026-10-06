@@ -680,8 +680,7 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
   }) => {
     await setSignature(jmap, '<p>SIGNATURE_MARKER</p>')
     const composer = await openReply(page, user, jmap)
-    await composer.root.locator('[data-html-block-view="quote"]').click()
-    await page.keyboard.press('ArrowLeft')
+    await composer.placeCaretAboveQuote()
     await composer.insertImage({
       name: 'between.png',
       mimeType: 'image/png',

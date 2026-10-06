@@ -156,6 +156,23 @@ export class ComposerPage {
     return this
   }
 
+  /**
+   * Puts the caret in the gap just above the quote (between the signature
+   * and the quote): click the quote, then ArrowLeft. ProseMirror may read the
+   * stale DOM selection (the start of the text) between the two and drop the
+   * selected quote, so the gesture is repeated until the gap cursor is there
+   */
+  async placeCaretAboveQuote(): Promise<ComposerPage> {
+    await expect(async () => {
+      await this.root.locator('[data-html-block-view="quote"]').click()
+      await this.page.keyboard.press('ArrowLeft')
+      await expect(this.editor.locator('.ProseMirror-gapcursor')).toBeAttached({
+        timeout: 1_000
+      })
+    }).toPass({ timeout: 15_000 })
+    return this
+  }
+
   /** Inserts an image in the body through the footer button, at the caret */
   async insertImage(file: {
     name: string

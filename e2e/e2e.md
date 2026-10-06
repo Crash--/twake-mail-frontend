@@ -800,3 +800,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/search.spec.ts`.
 - [x] `SRCH-17` At 1440 px every chip of the filters above the results, "Clear filter" included, shares one line (nothing wraps, nothing scrolls), and the order of the results is a "Relevance" button of the list toolbar (`aria-haspopup="menu"`, menu of orders) rather than a chip: picking "Oldest" shows it on the button. axe on the results. — web app (search design D2)
   - Spec: `tests/search.spec.ts`.
+- [x] `CMP-84` The composer has the measures of the design on a desktop: 790 x 634 window with an 8 px radius, 44 px title bar with three 40 px buttons 4 px apart, 37 px fields, a toolbar 40 px high under a 1 px rule with 32 px boxes 8 px apart and a 114 px wide B I U S group, a footer with 16 px padding, 40 px icon buttons 8 px apart and a 128 x 40 Send pill with a 100 px radius. — web app (Figma, editor E4)
+  - Spec: `tests/composer-geometry.spec.ts`.
+- [x] `CMP-85` At every width the close, formatting, attach, image and More buttons of the composer are 40 px round buttons, the toolbar boxes are 32 px high and the toolbar 41 px with its rule (touch screens enlarge the targets to 44 px). — web app (Figma, editor E4)
+  - Spec: `tests/composer-geometry.spec.ts`.

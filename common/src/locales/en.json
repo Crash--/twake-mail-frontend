@@ -1264,5 +1264,29 @@
     "unavailableDescription": "You are not a member of this team mailbox, or it does not exist.",
     "sessionExpiredTitle": "Your session has expired",
     "sessionExpiredDescription": "Sign in again to see this team mailbox."
+  },
+  "feedback": {
+    "trigger": "Send feedback",
+    "triggerAria": "Send feedback",
+    "formTitle": "Send feedback",
+    "messageLabel": "Your feedback",
+    "messagePlaceholder": "What works, what does not, what is missing?",
+    "emailLabel": "Email (optional)",
+    "emailPlaceholder": "name@example.com",
+    "submit": "Send",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "success": "Thank you for your feedback!",
+    "required": "(required)",
+    "addScreenshot": "Add a screenshot",
+    "removeScreenshot": "Remove the screenshot",
+    "highlightTool": "Highlight",
+    "hideTool": "Hide",
+    "removeHighlight": "Remove",
+    "errorEmptyMessage": "Write a message before sending your feedback.",
+    "errorNoClient": "Feedback cannot be sent right now.",
+    "errorTimeout": "We could not confirm that your feedback was sent.",
+    "errorForbidden": "Your feedback was refused by the server.",
+    "errorGeneric": "Your feedback could not be sent. Check your connection or your ad blocker and try again."
   }
 }

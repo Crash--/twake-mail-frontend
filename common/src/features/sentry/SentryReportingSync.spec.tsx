@@ -1,6 +1,6 @@
 import { webcrypto } from 'node:crypto'
 
-import { screen, waitFor } from '@testing-library/react'
+import { cleanup, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
@@ -128,10 +128,38 @@ describe('SentryReportingSync', () => {
     expect(reporting.setup).toEqual({
       dsn: DSN,
       environment: 'production',
-      release: '1.2.3'
+      release: '1.2.3',
+      feedbackEnabled: false
     })
     expect(reporting.userId).toMatch(/^[0-9a-f]{16}$/)
     expect(reporting.userId).not.toContain(FAKE_ACCOUNT_ID)
+  })
+
+  it('turns the feedback on with its flag, whatever the source of the DSN', async () => {
+    renderSync({
+      config: makeConfig({
+        SENTRY_ENABLED: 'true',
+        SENTRY_DSN: DSN,
+        SENTRY_FEEDBACK_ENABLED: 'true'
+      }),
+      settings: { 'sentry.user-opt-in': 'true' }
+    })
+    expect(await lastReporting()).toMatchObject({
+      setup: { feedbackEnabled: true }
+    })
+
+    cleanup()
+    apply.mockClear()
+    answerEcosystem(
+      ecosystemOf({ enabled: true, dsn: DSN, environment: 'staging' })
+    )
+    renderSync({
+      config: makeConfig({ SENTRY_FEEDBACK_ENABLED: 'true' }),
+      settings: { 'sentry.user-opt-in': 'true' }
+    })
+    expect(await lastReporting()).toMatchObject({
+      setup: { dsn: DSN, environment: 'staging', feedbackEnabled: true }
+    })
   })
 
   it('does not start without a choice when the default is off', async () => {
@@ -215,7 +243,12 @@ describe('SentryReportingSync', () => {
     renderSync({ config: ECOSYSTEM_CONFIG })
 
     expect(await lastReporting()).toMatchObject({
-      setup: { dsn: DSN, environment: 'staging', release: '1.2.3' }
+      setup: {
+        dsn: DSN,
+        environment: 'staging',
+        release: '1.2.3',
+        feedbackEnabled: false
+      }
     })
     expect(fetchMock).toHaveBeenCalledWith(
       'https://jmap.example.com/.well-known/linagora-ecosystem',

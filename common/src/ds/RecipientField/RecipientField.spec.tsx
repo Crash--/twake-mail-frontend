@@ -245,6 +245,19 @@ describe('RecipientField', () => {
     expect(onEscape).toHaveBeenCalledTimes(1)
   })
 
+  it('gives the chip back on Escape even when its text was emptied', async () => {
+    const onEscape = jest.fn()
+    renderDs(<Harness initial={['a@example.com']} onEscape={onEscape} />)
+    const input = screen.getByRole('combobox', { name: 'To' })
+    await userEvent.click(input)
+    await userEvent.keyboard('{ArrowLeft}{Enter}')
+    await userEvent.clear(input)
+
+    await userEvent.keyboard('{Escape}')
+    expect(chipNames()).toEqual(['a@example.com'])
+    expect(onEscape).not.toHaveBeenCalled()
+  })
+
   it('closes the suggestions and gives the chip back with the same Escape', async () => {
     const onEscape = jest.fn()
     renderDs(<Harness initial={['al']} onEscape={onEscape} />)

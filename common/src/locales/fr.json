@@ -323,7 +323,8 @@
       "replyTo": "Répondre à",
       "from": "De",
       "subject": "Sujet",
-      "hide": "Masquer %{field}"
+      "hide": "Masquer %{field}",
+      "more": "Autres champs de destinataires"
     },
     "window": {
       "minimize": "Minimiser",

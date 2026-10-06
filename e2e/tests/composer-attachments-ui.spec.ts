@@ -215,3 +215,62 @@ test.describe('CMP: attachments, signature and recipient chips of the composer',
     await expect(composer.attachments).toContainText('dropped.txt')
   })
 })
+
+/** Every optional line of the To line stays reachable, whatever the width */
+for (const width of [360, 390, 820]) {
+  test(
+    `CMP-78 at ${String(width)} px the From, Cc, Bcc and Reply to lines can all be opened, inside the window`,
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const accountId = await jmap.accountId()
+      await jmap.request([
+        [
+          'Identity/set',
+          {
+            accountId,
+            create: { work: { name: 'Work', email: user.email } }
+          },
+          's'
+        ]
+      ])
+      await page.setViewportSize({ width, height: width === 820 ? 1180 : 844 })
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const composer = await mailbox.compose()
+      await composer.addRecipient('to', 'a.very.long.recipient.name@example.com')
+
+      const expectInside = async (
+        locator: ReturnType<typeof composer.recipientInput>
+      ): Promise<void> => {
+        await expect(locator).toBeVisible()
+        const box = await locator.boundingBox()
+        expect(box).not.toBeNull()
+        expect((box?.x ?? -1) >= 0).toBe(true)
+        expect((box?.x ?? 0) + (box?.width ?? 0) <= width).toBe(true)
+      }
+
+      if (width < 600) {
+        const more = composer.root.getByTestId('composer-show-more-fields-button')
+        await expectInside(more)
+        await expectNoA11yViolations(page)
+        await more.focus()
+        await page.keyboard.press('Enter')
+        await expect(composer.recipientInput('cc')).toBeFocused()
+        for (const field of ['cc', 'bcc', 'reply-to'] as const) {
+          await expectInside(composer.recipientInput(field))
+        }
+        await expectInside(composer.identitySelect)
+      } else {
+        for (const id of ['from', 'cc', 'bcc', 'reply-to']) {
+          await expectInside(composer.root.getByTestId(`composer-show-${id}-button`))
+        }
+        for (const id of ['cc', 'bcc', 'reply-to'] as const) {
+          await composer.root.getByTestId(`composer-show-${id}-button`).click()
+          await expectInside(composer.recipientInput(id))
+        }
+        await composer.root.getByTestId('composer-show-from-button').click()
+        await expectInside(composer.identitySelect)
+      }
+      await expectNoA11yViolations(page)
+    }
+  )
+}

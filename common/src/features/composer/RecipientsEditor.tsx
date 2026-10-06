@@ -1,7 +1,8 @@
-import { Cross, Icon } from '@linagora/twake-icons'
+import { Bottom, Cross, Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useRef, useState, type ReactElement, type ReactNode } from 'react'
 
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { FieldTextButton } from '@/ds/FieldTextButton/FieldTextButton'
 import type { RecipientFieldActions } from '@/ds/RecipientField/RecipientField'
 import { RecipientSummary } from '@/ds/RecipientField/RecipientSummary'
@@ -77,6 +78,7 @@ export function RecipientsEditor({
   autoFocusTo = false
 }: RecipientsEditorProps): ReactElement {
   const { t } = useI18n()
+  const isPhone = useScreenSize() === 'mobile'
   /** The field to focus when it shows */
   const [focused, setFocused] = useState<RecipientKind | null>(
     autoFocusTo ? 'to' : null
@@ -97,6 +99,13 @@ export function RecipientsEditor({
 
   const handleShowFrom = (): void => {
     onShowFrom?.()
+  }
+
+  /** On a phone, one chevron shows From, Cc, Bcc and Reply to together */
+  const handleShowAll = (): void => {
+    setFocused('cc')
+    onShowFrom?.()
+    OPTIONAL_KINDS.filter(kind => !shown.has(kind)).forEach(onShow)
   }
 
   const handleExpand = (): void => {
@@ -154,27 +163,42 @@ export function RecipientsEditor({
           actions={kind === 'to' ? toRef : undefined}
           endActions={
             kind === 'to' ? (
-              <>
-                {onShowFrom === null ? null : (
-                  <FieldTextButton
-                    onClick={handleShowFrom}
-                    data-testid="composer-show-from-button"
-                  >
-                    {t('composer.fields.from')}
-                  </FieldTextButton>
-                )}
-                {hidden.map(other => (
-                  <FieldTextButton
-                    key={other}
-                    onClick={() => {
-                      handleShow(other)
-                    }}
-                    data-testid={`composer-show-${FIELD_IDS[other]}-button`}
-                  >
-                    {t(LABEL_KEYS[other])}
-                  </FieldTextButton>
-                ))}
-              </>
+              isPhone ? (
+                onShowFrom === null && hidden.length === 0 ? null : (
+                  <Tooltip title={t('composer.fields.more')}>
+                    <IconButton
+                      size="small"
+                      aria-label={t('composer.fields.more')}
+                      onClick={handleShowAll}
+                      data-testid="composer-show-more-fields-button"
+                    >
+                      <Icon icon={Bottom} aria-hidden="true" />
+                    </IconButton>
+                  </Tooltip>
+                )
+              ) : (
+                <>
+                  {onShowFrom === null ? null : (
+                    <FieldTextButton
+                      onClick={handleShowFrom}
+                      data-testid="composer-show-from-button"
+                    >
+                      {t('composer.fields.from')}
+                    </FieldTextButton>
+                  )}
+                  {hidden.map(other => (
+                    <FieldTextButton
+                      key={other}
+                      onClick={() => {
+                        handleShow(other)
+                      }}
+                      data-testid={`composer-show-${FIELD_IDS[other]}-button`}
+                    >
+                      {t(LABEL_KEYS[other])}
+                    </FieldTextButton>
+                  ))}
+                </>
+              )
             ) : (
               <Tooltip title={hideLabel(kind)}>
                 <IconButton

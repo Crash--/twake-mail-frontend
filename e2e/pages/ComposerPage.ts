@@ -133,7 +133,7 @@ export class ComposerPage {
       if (await this.recipientsSummary.isVisible()) {
         await this.recipientsSummary.click()
       }
-      await this.root.getByTestId('composer-show-from-button').click()
+      await this.openOptionalLine('from')
     }
     await expect(this.identitySelect).toBeVisible()
     return this
@@ -161,9 +161,25 @@ export class ComposerPage {
       .getByTestId('recipient-chip')
   }
 
+  /**
+   * Opens From, Cc, Bcc or Reply-To: by its text button, or on a phone by the
+   * chevron showing them all
+   */
+  private async openOptionalLine(
+    line: 'from' | Exclude<RecipientField, 'to'>
+  ): Promise<void> {
+    const more = this.root.getByTestId('composer-show-more-fields-button')
+    if (await more.isVisible()) {
+      await more.click()
+      return
+    }
+    await this.root.getByTestId(`composer-show-${line}-button`).click()
+  }
+
   /** Cc / Bcc / Reply-To are collapsed by default */
   async showField(field: Exclude<RecipientField, 'to'>): Promise<ComposerPage> {
-    await this.root.getByTestId(`composer-show-${field}-button`).click()
+    if (await this.recipientInput(field).isVisible()) return this
+    await this.openOptionalLine(field)
     return this
   }
 

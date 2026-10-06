@@ -778,3 +778,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-attachments-ui.spec.ts`.
 - [x] `CMP-77` Files dragged over the composer show the "Drop file here to attach them" panel (dashed light blue, Figma "Attachment - drag & drop"); dropping them attaches them and hides it. — web app only, no Patrol test
   - Spec: `tests/composer-attachments-ui.spec.ts`.
+- [x] `CMP-78` At 360, 390 and 820 px every optional line of the composer opens, by touch and keyboard, with its button inside the window: on a phone one chevron "More recipient fields" shows From, Cc, Bcc and Reply to together (tmail-flutter's mobile expand button) and puts the focus in Cc; a tablet and a desktop keep the text buttons. — web app only, no Patrol test
+  - Spec: `tests/composer-attachments-ui.spec.ts`.

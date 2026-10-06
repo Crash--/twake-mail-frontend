@@ -293,3 +293,4 @@ Conventions:
 | `composer-attachment-retry-button` | "Retry <file>" of a failed upload | none (new) |
 | `composer-upload-popup` (+ `-item`, `-remove-button`, `-retry-button`, `-close-button`) | the "Uploading N files" popup listing the uploads when there are more than nine, on a desktop or tablet | none (Figma) |
 | `composer-signature-toggle` | the "Signature" pill folding the signature card in the editor (`aria-expanded`) | none (Figma) |
+| `composer-show-more-fields-button` | on a phone, the chevron of the To line showing From, Cc, Bcc and Reply to together | `_buildExpandButton` of `RecipientComposerWidget` |

@@ -350,8 +350,7 @@ export function UploadList({
           sx={{
             listStyle: 'none',
             m: 0,
-            py: '12px',
-            px: 1,
+            p: '12px',
             gap: '12px',
             maxHeight: 190,
             overflowY: 'auto'

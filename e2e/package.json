@@ -14,7 +14,8 @@
     "test:ui": "playwright test --ui",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit",
-    "perf": "playwright test -c playwright.perf.config.ts",
+    "perf": "npm run perf:large && playwright test -c playwright.perf.config.ts",
+    "perf:large": "PERF_PHASE=large playwright test -c playwright.perf.config.ts",
     "perf:seed": "node --no-warnings scripts/seed-perf.ts"
   },
   "devDependencies": {

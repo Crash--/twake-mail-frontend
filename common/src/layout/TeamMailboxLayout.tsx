@@ -1,5 +1,5 @@
 import { Pen } from '@linagora/twake-icons'
-import { Box } from '@linagora/twake-mui'
+import { Box, Layout } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Outlet, useMatch } from 'react-router'
 
@@ -64,13 +64,15 @@ function TeamMailboxFrame(): ReactElement {
       <ServerLanguageSync />
       <SentryReportingSync />
       <OfflineNotice hasFloatingAction />
-      <Box className="u-flex u-flex-auto u-ov-hidden">
+      {/* One pane and no top bar: without these, twake-mui keeps room for
+          its top bar above the content below 1 024 px */}
+      <Layout className="u-flex-auto u-ov-hidden" withTopBar={false} monoColumn>
         <FlatMain>
           <FlatContent data-testid="main-content">
             <Outlet />
           </FlatContent>
         </FlatMain>
-      </Box>
+      </Layout>
       {showComposeFab ? (
         <FloatingActionButton
           label={t('sidebar.newMessage')}

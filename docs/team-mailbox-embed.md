@@ -86,22 +86,23 @@ centred on it and dimming all of it.
 
 - TwakeSpace names the frame of the facade and puts a second frame over its
   whole page, named after the first (`<frame name>:overlay`), on
-  `/embed/overlay.html`. That page boots nothing: its script
-  (`public/embed/overlay.js`) answers TwakeSpace in the Open Buro intent
-  lifecycle (`intent:ready`, then `intent:init`).
-- The facade finds the overlay by its name (it has the same origin), copies
+  `/embed/overlay.html`, an empty page that boots nothing.
+- The facade finds the overlay by its name once loaded (it has the same
+  origin; after 5 s without it, it renders in its frame), copies
   its CSS rules into it, and renders there with React portals: the
   `WindowDock` of the composer, and every `Dialog` and temporary `Drawer`
   through the theme (`ds/SpaceOverlay`). Menus and tooltips follow the
   document of their anchor.
 - Each time what it draws changes, the facade sends TwakeSpace the region of
-  the overlay to show (`twake-surface:region`): the boxes of its windows, or
+  the overlay to show, from its own frame
+  (`{ type: 'twake-embed:overlay-region', region }`): the boxes of its windows, or
   the whole page while a dialog, a menu or a full screen window is open.
   TwakeSpace clips the overlay to it, so the rest of its page keeps its
   clicks. The region is computed on a timer, not on the animation frames of
   the overlay: the browser does not run them while the overlay shows nothing.
-- Without the overlay (outside a frame, an older TwakeSpace), the composer
-  and the dialogs stay in the frame, as in the webmail.
+- Without the overlay (outside a frame, an older TwakeSpace that does not
+  name the frame), the composer and the dialogs stay in the frame, as in the
+  webmail.
 
 ## Deployment
 

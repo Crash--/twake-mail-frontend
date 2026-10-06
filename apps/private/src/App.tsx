@@ -75,7 +75,9 @@ export function App({ config }: AppProps): ReactElement {
   )
   // Framed by TwakeSpace, the composer and the dialogs go onto its page
   const [overlay] = useState(() =>
-    spaceBridge === null ? null : connectSpaceOverlay()
+    spaceBridge === null
+      ? null
+      : connectSpaceOverlay(spaceBridge.reportOverlayRegion)
   )
   const [authService] = useState(() =>
     createAuthService(config, {

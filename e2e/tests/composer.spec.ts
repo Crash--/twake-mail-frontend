@@ -706,4 +706,30 @@ test.describe('CMP composer', () => {
     ).toBeVisible()
     await expectNoA11yViolations(page)
   })
+
+  test('CMP-64 the expanded composer sits under the top bar with the page still showing around it, and the page is not dimmed', async ({
+    page,
+    user
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'desktop geometry')
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fullscreenButton.click()
+    await composer.expectMode('fullscreen')
+    const box = await composer.root.boundingBox()
+    const viewport = page.viewportSize()
+    expect(box).not.toBeNull()
+    expect(viewport).not.toBeNull()
+    expect(box?.y).toBeGreaterThanOrEqual(60)
+    expect(box?.x).toBeGreaterThan(100)
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThan(
+      (viewport?.width ?? 0) - 50
+    )
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThan(
+      (viewport?.height ?? 0) - 50
+    )
+    await expect(mailbox.composeButton).toBeVisible()
+    await composer.fullscreenButton.click()
+    await composer.expectMode('normal')
+  })
 })

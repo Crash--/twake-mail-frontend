@@ -211,6 +211,39 @@ export class MailboxPage {
     return this
   }
 
+  /**
+   * Puts the keyboard focus on the row of a folder (the `treeitem`, which holds it: its link is
+   * for the pointer), opening the drawer if needed
+   */
+  async focusFolder(ref: FolderRef): Promise<MailboxPage> {
+    await this.showFolders()
+    await this.folder(ref).focus()
+    await this.expectFolderFocused(ref)
+    return this
+  }
+
+  /** The row of the folder holds the keyboard focus */
+  async expectFolderFocused(ref: FolderRef): Promise<MailboxPage> {
+    await expect(this.folder(ref)).toBeFocused()
+    return this
+  }
+
+  /** The name of the folder whose row (or button) holds the keyboard focus, "" when none does */
+  focusedFolderName(): Promise<string> {
+    return this.page.evaluate(
+      () =>
+        document.activeElement
+          ?.closest('[role="treeitem"]')
+          ?.querySelector('[data-testid="mailbox-item-name"]')?.textContent ??
+        ''
+    )
+  }
+
+  /** The rows of a tree (`folderTree`, `foldersTree`...) that are in the tab sequence: one */
+  treeTabStops(tree: Locator): Locator {
+    return tree.locator('[role="treeitem"][tabindex="0"]')
+  }
+
   /** Folder actions menu (⋮ on hover, or right-click): New subfolder, Rename, Move, Delete, Empty trash... */
   async openFolderMenu(ref: FolderRef): Promise<Locator> {
     await this.showFolders()

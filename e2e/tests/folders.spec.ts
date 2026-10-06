@@ -157,19 +157,12 @@ test.describe('MBX folders', () => {
         '3'
       )
 
-      // Tab goes Inbox, then its subfolder, then Starred, then Drafts
-      await mailbox.folder({ role: 'inbox' }).getByRole('link').focus()
-      const visited: string[] = []
-      for (let step = 0; step < 12 && !visited.includes('Drafts'); step++) {
-        await page.keyboard.press('Tab')
-        const name = await page.evaluate(
-          () =>
-            document.activeElement
-              ?.closest('[data-testid="mailbox-item"]')
-              ?.querySelector('[data-testid="mailbox-item-name"]')
-              ?.textContent ?? null
-        )
-        if (name !== null && visited.at(-1) !== name) visited.push(name)
+      // The arrows go Inbox, then its subfolder, then Starred, then Drafts
+      await mailbox.focusFolder({ role: 'inbox' })
+      const visited = [await mailbox.focusedFolderName()]
+      for (let step = 0; step < 3; step++) {
+        await page.keyboard.press('ArrowDown')
+        visited.push(await mailbox.focusedFolderName())
       }
       expect(visited).toEqual(['Inbox', 'Newsletters', 'Starred', 'Drafts'])
     }
@@ -267,7 +260,7 @@ test.describe('MBX folders', () => {
     )
     const hidden = mailbox.folder({ name: 'Rarely used' })
     await expect(hidden).toHaveAttribute('data-hidden', 'true')
-    await hidden.getByRole('link').focus()
+    await hidden.focus()
     await page.keyboard.press('Shift+F10')
     const menu = page.getByTestId('mailbox-context-menu').getByRole('menu')
     await expect(menu.getByRole('menuitem').first()).toBeFocused()

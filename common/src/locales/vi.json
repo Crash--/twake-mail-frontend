@@ -398,7 +398,8 @@
       "overQuota": "Không thể gửi tin nhắn của bạn, vì vượt quá giới hạn dung lượng.",
       "invalidRecipients": "Không thể gửi thư của bạn vì những người nhận sau không hợp lệ: %{invalidRecipients}",
       "generic": "Gửi thư không thành công.\nCó lỗi trong quá trình gửi thư.",
-      "forbiddenFrom": "Không thể gửi thư vì bạn không được phép gửi từ địa chỉ này."
+      "forbiddenFrom": "Không thể gửi thư vì bạn không được phép gửi từ địa chỉ này.",
+      "offline": "Bạn đang ngoại tuyến."
     },
     "attachments": {
       "tooLargeTitle": "Làm rỗng thư mục rác",

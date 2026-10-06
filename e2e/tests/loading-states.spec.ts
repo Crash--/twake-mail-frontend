@@ -343,6 +343,33 @@ test.describe('OFF offline banner', () => {
     await expect(loading.offlineListView).toBeHidden()
   })
 
+  test('OFF-04 a message sent offline stays in the composer, which says the user is offline, and goes once back', { tag: '@mobile' }, async ({
+    page,
+    context,
+    user,
+    users,
+    jmapFor
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ to: [bob.email], subject: 'Sent offline', body: 'Hi' })
+
+    await context.setOffline(true)
+    await composer.sendButton.click()
+
+    await expect(composer.sendError).toHaveText(
+      'You are offline. It looks like you are not connected.'
+    )
+    await expect(composer.root).toBeVisible()
+    await expect(composer.subjectInput).toHaveValue('Sent offline')
+
+    await context.setOffline(false)
+    await composer.send()
+
+    await expect(mailbox.toast).toContainText('Message has been sent successfully')
+    await jmapFor(bob).waitForEmail({ subject: 'Sent offline' })
+  })
 })
 
 test.describe('LOAD in the facade of a team mailbox', () => {

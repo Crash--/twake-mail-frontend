@@ -1,7 +1,10 @@
 import type { ReactElement, ReactNode } from 'react'
 
 import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
-import { isInTeamMailbox } from '@common/features/teamMailboxEmbed/teamMailbox'
+import {
+  findTeamMailboxRoot,
+  isInTeamMailbox
+} from '@common/features/teamMailboxEmbed/teamMailbox'
 
 import { DefaultMailboxRedirect } from './DefaultMailboxRedirect'
 import { useMailboxes } from './useMailboxes'
@@ -22,17 +25,18 @@ export function RequireKnownMailbox({
   children
 }: RequireKnownMailboxProps): ReactElement {
   const query = useMailboxes()
-  const teamAddress = useTeamMailboxEmbed()
+  const teamRootId = useTeamMailboxEmbed()
 
-  if (
-    query.isSuccess &&
-    !query.data.some(
+  if (query.isSuccess) {
+    const teamRoot =
+      teamRootId === null ? null : findTeamMailboxRoot(query.data, teamRootId)
+    const isKnown = query.data.some(
       mailbox =>
         mailbox.id === mailboxId &&
-        (teamAddress === null || isInTeamMailbox(mailbox, teamAddress))
+        (teamRootId === null ||
+          (teamRoot !== null && isInTeamMailbox(mailbox, teamRoot)))
     )
-  ) {
-    return <DefaultMailboxRedirect />
+    if (!isKnown) return <DefaultMailboxRedirect />
   }
   return <>{children}</>
 }

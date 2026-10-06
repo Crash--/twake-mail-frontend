@@ -115,7 +115,7 @@ export function TeamMailboxEmbedApp({
   }
 
   return (
-    <TeamMailboxEmbedProvider address={embed.target.address}>
+    <TeamMailboxEmbedProvider rootId={embed.target.rootId}>
       <TeamMailboxRouter
         basename={embed.target.basename}
         spaceBridge={spaceBridge}

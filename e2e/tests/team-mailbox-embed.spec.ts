@@ -3,14 +3,24 @@ import type { Frame, Page } from '@playwright/test'
 import { ComposerPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
-import type { E2EUser } from '../support/users'
+import type { E2ETeamMailbox, E2EUser } from '../support/users'
+import type { WebAdminClient } from '../support/webadmin'
 
 /**
  * The facade of a team mailbox, for the Mail tab of a TwakeSpace space
- * (ADR 010 of twake-space-architecture): `/embed/team-mailboxes/<address>`
+ * (ADR 010 of twake-space-architecture): `/embed/team-mailboxes/<id>`, the
+ * id of its root folder, read from webadmin as the mail side service does
  */
-function facadePath(address: string): string {
-  return `/embed/team-mailboxes/${encodeURIComponent(address)}`
+async function facadePath(
+  webadmin: WebAdminClient,
+  team: E2ETeamMailbox
+): Promise<string> {
+  const [, domain = ''] = team.email.split('@')
+  const root = (await webadmin.listTeamMailboxFolders(domain, team.name)).find(
+    folder => folder.mailboxName === team.name
+  )
+  if (root === undefined) throw new Error(`No root for ${team.email}`)
+  return `/embed/team-mailboxes/${root.mailboxId}`
 }
 
 const SPACE_HOST = '/space-host'
@@ -33,7 +43,8 @@ test.describe('TMB team mailbox facade', () => {
     page,
     user,
     users,
-    jmap
+    jmap,
+    webadmin
   }) => {
     const team = await users.createTeamMailbox({ members: [user] })
     const other = await users.createTeamMailbox({
@@ -47,11 +58,9 @@ test.describe('TMB team mailbox facade', () => {
     )
     if (teamInbox === undefined) throw new Error('No INBOX in the team mailbox')
     await jmap.createEmailIn(teamInbox.id, { subject: 'For the whole team' })
+    const path = await facadePath(webadmin, team)
     await page.route(`**${SPACE_HOST}`, route =>
-      route.fulfill({
-        contentType: 'text/html',
-        body: spaceHostHtml(facadePath(team.email))
-      })
+      route.fulfill({ contentType: 'text/html', body: spaceHostHtml(path) })
     )
 
     await page.goto(SPACE_HOST)
@@ -84,7 +93,7 @@ test.describe('TMB team mailbox facade', () => {
     await expect(tree).not.toContainText(other.name)
     await expect(frame.getByTestId('top-bar')).toBeHidden()
     expect(new URL(scope.url()).pathname).toBe(
-      `${facadePath(team.email)}/mailbox/${teamInbox.id}`
+      `${path}/mailbox/${teamInbox.id}`
     )
     await expectNoA11yViolations(page)
   })
@@ -92,7 +101,8 @@ test.describe('TMB team mailbox facade', () => {
   test('TMB-11 a new message of the facade writes from the address of the team mailbox', async ({
     page,
     user,
-    users
+    users,
+    webadmin
   }) => {
     // After the identity of the user (`user-…`), the default one, by name
     const team = await users.createTeamMailbox({
@@ -100,7 +110,7 @@ test.describe('TMB team mailbox facade', () => {
       members: [user]
     })
 
-    await page.goto(facadePath(team.email))
+    await page.goto(await facadePath(webadmin, team))
     await signIn(page, user)
     await expect(page.getByTestId('mailbox-page')).toBeVisible()
     await page.getByTestId('compose-email-button').first().click()
@@ -114,17 +124,16 @@ test.describe('TMB team mailbox facade', () => {
   test('TMB-12 the facade of a team mailbox the user is not a member of says so', async ({
     page,
     user,
-    users
+    users,
+    webadmin
   }) => {
     const bob = await users.create({ prefix: 'bob' })
     const team = await users.createTeamMailbox({ members: [bob] })
 
-    await page.goto(facadePath(team.email))
+    await page.goto(await facadePath(webadmin, team))
     await signIn(page, user)
 
-    await expect(page.getByTestId('team-mailbox-unavailable')).toContainText(
-      team.email
-    )
+    await expect(page.getByTestId('team-mailbox-unavailable')).toBeVisible()
     await expect(page.getByTestId('mailbox-page')).toBeHidden()
     await expectNoA11yViolations(page)
   })

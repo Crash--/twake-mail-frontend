@@ -21,14 +21,17 @@ import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync'
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
-import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
+import {
+  useTeamMailboxEmbed,
+  useTeamMailboxRoot
+} from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { TeamMailboxTree } from '@common/features/teamMailboxEmbed/TeamMailboxTree'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { MailProviders } from './AppLayout'
 
 /**
- * Frame of the facade of a team mailbox (`/embed/team-mailboxes/<address>`),
+ * Frame of the facade of a team mailbox (`/embed/team-mailboxes/<id>`),
  * shown in the Mail tab of a TwakeSpace space: no top bar, app grid,
  * account menu, labels nor banners, only the folders of the mailbox and
  * the routed content. Below the desktop size the folders are in a drawer,
@@ -46,7 +49,8 @@ export function TeamMailboxLayout(): ReactElement {
 function TeamMailboxFrame(): ReactElement {
   const { t } = useI18n()
   const { undoLast } = useNotify()
-  const address = useTeamMailboxEmbed() ?? ''
+  const rootId = useTeamMailboxEmbed() ?? ''
+  const root = useTeamMailboxRoot()
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const location = useLocation()
@@ -105,7 +109,7 @@ function TeamMailboxFrame(): ReactElement {
             </IconButton>
           </Tooltip>
           <Typography variant="h6" component="h1" noWrap>
-            {folderName ?? address}
+            {folderName ?? root?.name}
           </Typography>
         </Box>
       )}
@@ -137,7 +141,7 @@ function TeamMailboxFrame(): ReactElement {
             className="u-flex-auto u-ov-auto u-mt-1-half"
             data-testid="sidebar-scroll"
           >
-            <TeamMailboxTree address={address} />
+            <TeamMailboxTree rootId={rootId} />
           </Box>
         </ResponsiveSidebar>
         <FlatMain>

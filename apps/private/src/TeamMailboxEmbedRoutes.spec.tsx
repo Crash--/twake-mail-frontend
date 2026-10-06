@@ -19,13 +19,13 @@ import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 
 import { teamMailboxEmbedRouteElements } from './TeamMailboxEmbedRoutes'
 
-const BASE = '/embed/team-mailboxes/team%40example.com'
+const BASE = '/embed/team-mailboxes/team'
 
 function LocationProbe(): ReactElement {
   return <output data-testid="location">{useLocation().pathname}</output>
 }
 
-function renderRoutes(path: string, address = 'team@example.com'): void {
+function renderRoutes(path: string, rootId = 'team'): void {
   const jmapServer = makeFakeJmapServer({
     mailboxes: [
       ...makeDefaultMailboxes(),
@@ -48,7 +48,7 @@ function renderRoutes(path: string, address = 'team@example.com'): void {
           }
           sessionUrl={FAKE_SESSION_URL}
         >
-          <TeamMailboxEmbedProvider address={address}>
+          <TeamMailboxEmbedProvider rootId={rootId}>
             <MemoryRouter basename={BASE} initialEntries={[path]}>
               <LocationProbe />
               <Routes>{teamMailboxEmbedRouteElements()}</Routes>
@@ -102,12 +102,23 @@ describe('teamMailboxEmbedRouteElements', () => {
     })
   })
 
+  it('opens the Inbox of the team mailbox instead of a folder of another team mailbox', async () => {
+    renderRoutes(`${BASE}/mailbox/sales-inbox`)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mailbox-page')).toHaveAttribute(
+        'data-mailbox-id',
+        'team-inbox'
+      )
+    })
+  })
+
   it('says so when the user is not a member of the team mailbox', async () => {
-    renderRoutes(`${BASE}/`, 'other@example.com')
+    renderRoutes(`${BASE}/`, 'other')
 
     expect(
       await screen.findByTestId('team-mailbox-unavailable')
-    ).toHaveTextContent('other@example.com')
+    ).toBeInTheDocument()
     expect(screen.queryByTestId('mailbox-page')).toBe(null)
   })
 })

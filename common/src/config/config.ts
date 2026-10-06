@@ -80,7 +80,7 @@ export interface AppConfig {
   workplaceEmbedding: boolean
   /**
    * The origin of TwakeSpace, whose Mail tab frames the facade of a team
-   * mailbox (`/embed/team-mailboxes/<address>`): the facade talks to it
+   * mailbox (`/embed/team-mailboxes/<id>`): the facade talks to it
    * through cozy-external-bridge. Null when `TWAKE_SPACE_URL` is unset or
    * not an http(s) URL.
    */

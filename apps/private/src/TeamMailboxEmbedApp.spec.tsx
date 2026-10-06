@@ -24,7 +24,7 @@ import {
 
 import { TeamMailboxEmbedApp } from './TeamMailboxEmbedApp'
 
-const BASE = '/embed/team-mailboxes/team%40example.com'
+const BASE = '/embed/team-mailboxes/team'
 const ANONYMOUS = { status: 'anonymous' } as const
 
 function makeServer(): FakeJmapServer {

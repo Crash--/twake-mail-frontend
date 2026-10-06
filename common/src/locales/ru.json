@@ -1121,6 +1121,12 @@
     "edit": "Изменить",
     "colorNone": "Без цвета",
     "colorNamed": "Цвет %{color}",
+    "colorCustom": "Свой цвет",
+    "colorCustomNamed": "Свой цвет %{color}",
+    "colorHex": "Свой цвет (шестнадцатеричный код)",
+    "colorHexHint": "Формат #RRGGBB, например #1A2B3C",
+    "colorHexInvalid": "Введите цвет в формате #RRGGBB, например #1A2B3C",
+    "colorPicker": "Открыть выбор цвета",
     "removeFromEmail": "Удалить метку %{name}",
     "moreNames": "Ещё меток: %{count}: %{names}",
     "listLabel": "Метки письма"

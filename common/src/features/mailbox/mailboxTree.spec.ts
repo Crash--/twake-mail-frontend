@@ -18,6 +18,7 @@ import {
   isTemplatesMailbox,
   buildMailboxSections,
   buildMailboxTree,
+  splitPersonalTree,
   findAncestorIds,
   findDescendantIds,
   findMailboxIdByRole,
@@ -385,5 +386,23 @@ describe('findTrashAndSpamIds', () => {
     ])
 
     expect(ids.sort()).toEqual(['a-trash', 'b-trash', 'spam', 'trash'])
+  })
+})
+
+describe('splitPersonalTree', () => {
+  it('puts the system folders, Templates by name included, apart from the folders of the user', () => {
+    const tree = buildMailboxTree([
+      makeMailbox({ id: '1', name: 'Projects' }),
+      makeMailbox({ id: '2', name: 'Archive', role: 'archive' }),
+      makeMailbox({ id: '3', name: 'templates' }),
+      makeMailbox({ id: '4', name: 'INBOX', role: 'inbox' }),
+      makeMailbox({ id: '5', name: 'Spam', role: 'junk' }),
+      makeMailbox({ id: '6', name: 'Clients' })
+    ])
+
+    const { system, folders } = splitPersonalTree(tree)
+
+    expect(names(system)).toEqual(['INBOX', 'Spam', 'templates', 'Archive'])
+    expect(names(folders)).toEqual(['Clients', 'Projects'])
   })
 })

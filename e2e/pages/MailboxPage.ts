@@ -28,7 +28,10 @@ export class MailboxPage {
   readonly page: Page
   /** The mailbox screen, `data-mailbox-id` of the open folder */
   readonly root: Locator
+  /** The system folders (Inbox…Archive) and the virtual ones (Starred…) */
   readonly folderTree: Locator
+  /** The folders of the user, under the "Folders" title */
+  readonly foldersTree: Locator
   /** The top bar button opening the folder drawer, below the desktop size */
   readonly folderMenuButton: Locator
   readonly folderDrawer: Locator
@@ -72,6 +75,7 @@ export class MailboxPage {
     this.page = page
     this.root = page.getByTestId('mailbox-page')
     this.folderTree = page.getByTestId('mailbox-tree')
+    this.foldersTree = page.getByTestId('mailbox-folders-tree')
     this.folderMenuButton = page.getByTestId('mobile-mailbox-menu-button')
     this.folderDrawer = page.getByTestId('mailbox-drawer')
     this.addFolderButton = page.getByTestId('add-new-folder-button')

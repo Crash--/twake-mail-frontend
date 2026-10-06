@@ -786,3 +786,11 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/reading-view.spec.ts`.
 - [x] `THR-21` A conversation has its answers in a bar at the bottom (Reply and Forward go to the latest message), the actions of every message (reply, archive, star, delete, "More") in its row, and the actions on all of its messages in the "More" menu of its toolbar. axe. — web app, batch D1
   - Spec: `tests/reading-view.spec.ts`.
+- [x] `SBR-04` The system folders (Inbox to Archive) come first in the sidebar, in their own tree named "Mailboxes"; the "Folders" title comes after them, then the folders of the user, then "Labels". — web app (sidebar D4; tmail-flutter's `exchange` and `personalFolders` categories)
+  - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-05` A hidden folder listed on demand keeps its whole name: the icon of hidden folders replaces its folder icon and the word "hidden" is said by the link (visually hidden), not shown as a badge. — web app (tmail-flutter `icHideFolder`)
+  - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-06` The Spam row, with emails, has a "Clean" text button (described by "Delete all spam emails") that empties it after the confirmation; no other row has it. — web app (Figma sidebar, tmail-flutter `clean`)
+  - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-07` The folder search field is the flat 40 px pill of the design system (no shadow). — web app (Figma)
+  - Spec: `tests/sidebar.spec.ts`.

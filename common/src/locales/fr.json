@@ -37,6 +37,7 @@
     "help": "Obtenez de l'aide ou signalez un bogue"
   },
   "sidebar": {
+    "mailboxes": "Boîtes aux lettres",
     "newMessage": "Nouveau message",
     "folders": "Dossiers",
     "teamMailboxes": "Team-mailboxes",
@@ -843,7 +844,8 @@
     "moveContent": {
       "failure": "Échec lors du déplacement de tous les e-mails vers un autre dossier.",
       "progress": "Déplacement des e-mails : %{moved} sur %{total}"
-    }
+    },
+    "clean": "Vider"
   },
   "identities": {
     "create": "Créer une nouvelle identité",

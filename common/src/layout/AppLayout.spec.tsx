@@ -48,7 +48,7 @@ describe('AppLayout', () => {
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
       'New message'
     )
-    expect(screen.getByRole('tree', { name: 'Folders' })).toBe(
+    expect(screen.getByRole('tree', { name: 'Mailboxes' })).toBe(
       screen.getByTestId('mailbox-tree')
     )
     expect(
@@ -310,7 +310,7 @@ describe('AppLayout on a phone', () => {
     await userEvent.click(menuButton)
 
     const drawer = await screen.findByRole('dialog', { name: 'Navigation' })
-    const tree = within(drawer).getByRole('tree', { name: 'Folders' })
+    const tree = within(drawer).getByRole('tree', { name: 'Mailboxes' })
     expect(
       within(drawer).getByRole('img', { name: 'Twake Mail' })
     ).toBeVisible()

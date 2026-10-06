@@ -37,6 +37,7 @@
     "help": "Nhận trợ giúp hoặc báo cáo"
   },
   "sidebar": {
+    "mailboxes": "Hộp thư",
     "newMessage": "Tin nhắn mới",
     "folders": "Thư mục",
     "teamMailboxes": "Hộp thư nhóm",
@@ -843,7 +844,8 @@
     "moveContent": {
       "failure": "Không thể chuyển toàn bộ thư từ thư mục này sang thư mục khác.",
       "progress": "Đang chuyển thư: %{moved}/%{total}"
-    }
+    },
+    "clean": "Dọn dẹp"
   },
   "identities": {
     "create": "Tạo danh tính mới",

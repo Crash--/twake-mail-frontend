@@ -1,4 +1,4 @@
-import { Dots, Icon } from '@linagora/twake-icons'
+import { Dots, EyeClosed, Icon } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useRef,
@@ -10,9 +10,11 @@ import { Link } from 'react-router'
 
 import { CountBadge } from '@/ds/CountBadge/CountBadge'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
+import { RowTextAction } from '@/ds/RowTextAction/RowTextAction'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useDropEmails } from '@common/features/emailActions/useDropEmails'
 import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderActionsMenu'
+import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -48,7 +50,8 @@ function isMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
  * A folder of the sidebar tree: icon, name, expand arrow and unread count,
  * linking to the folder, where dragged emails can drop; its menu opens from
  * the ⋮ button shown on hover or focus, a right click, the menu key or
- * Shift+F10. A hidden folder, shown on demand, says so.
+ * Shift+F10. On the Spam, "Clean" empties it. A hidden folder, shown on
+ * demand, has the icon of hidden folders and says so.
  */
 export function MailboxTreeItem({
   row,
@@ -59,6 +62,7 @@ export function MailboxTreeItem({
 }: MailboxTreeItemProps): ReactElement {
   const { t } = useI18n()
   const getName = useMailboxName()
+  const folderActions = useFolderActions()
   const { mailbox } = row
   const toggleLabel = t(row.isExpanded ? 'mailbox.collapse' : 'mailbox.expand')
   // Keyboard users move emails from their menus: "Move message"
@@ -72,6 +76,8 @@ export function MailboxTreeItem({
     : showsTotalCount(mailbox)
       ? { count: mailbox.totalEmails, testId: 'mailbox-total-count' }
       : null
+  // "Clean" empties the Spam, as the menu item does
+  const canEmptySpam = mailbox.role === 'junk' && mailbox.totalEmails > 0
   const menuLabel = t('folders.menu.button', { name })
   // The menu key may also send a contextmenu event: open the menu once
   const openedByKey = useRef(false)
@@ -95,6 +101,9 @@ export function MailboxTreeItem({
     }, 0)
     onOpenMenu(mailbox, { element: event.currentTarget })
   }
+  const handleEmptySpam = (): void => {
+    folderActions.run('empty-spam', mailbox)
+  }
   const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>): void => {
     onOpenMenu(mailbox, { element: event.currentTarget })
   }
@@ -102,7 +111,19 @@ export function MailboxTreeItem({
   return (
     <NavTreeItem
       level={row.level}
-      icon={<Icon icon={getMailboxIcon(mailbox)} />}
+      icon={
+        isHidden ? (
+          // As tmail-flutter, a hidden folder takes the icon of the hidden
+          // folders, with the word for who does not see it
+          <Tooltip title={t('folders.hidden.label')}>
+            <span className="u-flex u-flex-items-center">
+              <Icon icon={EyeClosed} />
+            </span>
+          </Tooltip>
+        ) : (
+          <Icon icon={getMailboxIcon(mailbox)} />
+        )
+      }
       label={name}
       secondary={secondary}
       linkComponent={Link}
@@ -132,13 +153,12 @@ export function MailboxTreeItem({
             </SecondaryText>
           )}
           {isHidden ? (
-            <SecondaryText
-              variant="caption"
-              className="u-ml-half"
+            <span
+              className="u-visuallyhidden"
               data-testid="mailbox-item-hidden"
             >
-              {t('folders.hidden.label')}
-            </SecondaryText>
+              {` ${t('folders.hidden.label')}`}
+            </span>
           ) : null}
         </>
       }
@@ -153,17 +173,28 @@ export function MailboxTreeItem({
       }
       countText={shownCount === null ? undefined : String(shownCount.count)}
       actions={
-        <Tooltip title={menuLabel}>
-          <IconButton
-            size="small"
-            aria-label={menuLabel}
-            aria-haspopup="menu"
-            onClick={handleOpenMenu}
-            data-testid="mailbox-more-button"
-          >
-            <Icon icon={Dots} />
-          </IconButton>
-        </Tooltip>
+        <>
+          {canEmptySpam ? (
+            <RowTextAction
+              description={t('folders.menu.emptySpam')}
+              onClick={handleEmptySpam}
+              data-testid="mailbox-clean-button"
+            >
+              {t('folders.clean')}
+            </RowTextAction>
+          ) : null}
+          <Tooltip title={menuLabel}>
+            <IconButton
+              size="small"
+              aria-label={menuLabel}
+              aria-haspopup="menu"
+              onClick={handleOpenMenu}
+              data-testid="mailbox-more-button"
+            >
+              <Icon icon={Dots} />
+            </IconButton>
+          </Tooltip>
+        </>
       }
       drop={dropEmails}
       nameTestId="mailbox-item-name"

@@ -272,8 +272,9 @@ function buildBlockDocument(content: string): string {
  * files, or images dropped elsewhere, are attached
  */
 function isImageDropOnBody(event: DragEvent<HTMLElement>): boolean {
-  const target = event.target
-  if (!(target instanceof Element)) return false
+  // Not `instanceof`: the composer may be rendered in another document
+  const target = event.target as Element
+  if (target.nodeType !== Node.ELEMENT_NODE) return false
   if (target.closest('[contenteditable="true"]') === null) return false
   const items = Array.from(event.dataTransfer.items)
   return (

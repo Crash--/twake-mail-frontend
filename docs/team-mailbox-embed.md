@@ -48,6 +48,11 @@ history the frame shares with TwakeSpace):
   the facade shows "Your session has expired" (`team-mailbox-session-expired`)
   and tells TwakeSpace, which signs the user in again and reloads its frames.
 
+LemonLDAP::NG must answer the silent request with a redirection (as for
+Twake Tasks, ADR 009 of twake-space-architecture): the default `query`
+response mode, and `jsRedirect` off, since a form post and a JavaScript
+redirection are pages it refuses to show in a frame.
+
 The callback page of the SSO (`/callback`, or `login-callback.html` with
 `DOMAIN_REDIRECT_URL`) is outside the base of the facade: the app knows a
 login of the facade by the return path of the pending login, handles the

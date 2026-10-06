@@ -59,6 +59,12 @@ export interface AppConfig {
   sentryDsn: string | null
   /** tmail-flutter `SENTRY_ENVIRONMENT`, null when blank */
   sentryEnvironment: string | null
+  /**
+   * `SENTRY_FEEDBACK_ENABLED`: offers the feedback widget to the users who
+   * opted in to error reporting. Independent of where the DSN comes from;
+   * off by default
+   */
+  sentryFeedbackEnabled: boolean
   /** The Linagora ecosystem document of the server (`SERVER_URL` based) */
   ecosystemUrl: string
   debug: boolean
@@ -133,6 +139,7 @@ export type RuntimeConfigKey =
   | 'CHAT_SPA_URL'
   | 'WORKPLACE_FQDN_FALLBACK'
   | 'WORKPLACE_EMBEDDING'
+  | 'SENTRY_FEEDBACK_ENABLED'
   | 'TWAKE_SPACE_URL'
   | 'TDRIVE_ENABLED'
   | 'TDRIVE_INTENT_URL'
@@ -327,7 +334,8 @@ function isFilled(value: unknown): boolean {
  * leave it to the ecosystem of the server. From the environment it starts
  * only with `SENTRY_ENABLED=true` and a DSN. Without `SENTRY_ENABLED` (a
  * configuration from before it existed), a DSN is enough: reported as
- * deprecated.
+ * deprecated. `SENTRY_FEEDBACK_ENABLED` is not one of these keys: it does not
+ * choose the source, and works with the DSN of the ecosystem as well.
  */
 function resolveSentry(
   source: RuntimeConfigSource,
@@ -441,6 +449,7 @@ export function resolveConfig(
               fallbackToBasic: normalizeString(source.AUTH_MODE) === null
             },
       ...resolveSentry(source, warn),
+      sentryFeedbackEnabled: toBoolean(source.SENTRY_FEEDBACK_ENABLED),
       ecosystemUrl:
         serverUrl === null
           ? new URL(ECOSYSTEM_WELL_KNOWN_PATH, jmapSessionUrl).href

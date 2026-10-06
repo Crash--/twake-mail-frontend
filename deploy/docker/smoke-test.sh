@@ -34,6 +34,7 @@ var AUTH_MODE = 'basic'
 var SENTRY_ENABLED = 'true'
 var SENTRY_DSN = 'https://publickey@sentry.example.com/42'
 var SENTRY_ENVIRONMENT = 'smoke'
+var SENTRY_FEEDBACK_ENABLED = 'true'
 EOF
 echo 'var appList = []' >"$CONFIG_DIR/appList.js"
 chmod 644 "$CONFIG_DIR"/*.js

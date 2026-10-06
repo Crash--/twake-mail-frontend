@@ -852,3 +852,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/contact-card.spec.ts`.
 - [x] `CRD-05` Without `CALENDAR_SPA_URL` and `CHAT_SPA_URL` the card offers "Compose email" and no link. — web app (issue #132)
   - Spec: `tests/contact-card.spec.ts`.
+- [x] `CRD-06` A recipient of an expanded message of a conversation (a `mailto:` link in its "To" line, which wraps with the text) opens its card too; Escape closes it and gives the focus back to the recipient. — web app (issue #132)
+  - Spec: `tests/contact-card.spec.ts`.

@@ -2,7 +2,12 @@ import { CalendarToday, Discuss, Filter, Pen } from '@linagora/twake-icons'
 import { Avatar, getInitials, Link } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
-import { useState, type ReactElement, type ReactNode } from 'react'
+import {
+  useState,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode
+} from 'react'
 import { useNavigate } from 'react-router'
 
 import {
@@ -23,37 +28,32 @@ export interface EmailAddressCardProps {
   address: EmailAddress
   /** What the address shows: its name, its email */
   children: ReactNode
+  /**
+   * In running text (a line of recipients): a `mailto:` link that opens the
+   * card, not a button, which would never break across lines with the text
+   */
+  isInline?: boolean
 }
 
-/**
- * An address of an email header, as a button opening its contact card, as
- * tmail-flutter's address dialog (a dialog, a bottom sheet on phones): the
- * avatar, the name, the address with a button copying it, and the actions
- * "Compose email" and, when the server has filtering rules, "Create a rule
- * with this email". As in Twake Calendar's attendees, "Invite to an event"
- * and "Chat" appear when `CALENDAR_SPA_URL` and `CHAT_SPA_URL` are set.
- */
-export function EmailAddressCard({
+function AddressCardDialog({
   address,
-  children
-}: EmailAddressCardProps): ReactElement {
+  isOpen,
+  onClose
+}: {
+  address: EmailAddress
+  isOpen: boolean
+  onClose: () => void
+}): ReactElement {
   const { t } = useI18n()
   const navigate = useNavigate()
   const { notify } = useNotify()
   const { openComposer } = useComposer()
   const { session } = useJmapSession()
   const config = useAppConfig()
-  const [isOpen, setIsOpen] = useState(false)
   const hasRules = LINAGORA_CAPABILITIES.filter in session.capabilities
   const name = (address.name ?? '').trim()
 
-  const handleOpen = (): void => {
-    setIsOpen(true)
-  }
-
-  const handleClose = (): void => {
-    setIsOpen(false)
-  }
+  const handleClose = onClose
 
   const handleCopy = (): void => {
     navigator.clipboard
@@ -134,22 +134,9 @@ export function EmailAddressCard({
 
   return (
     <>
-      <Link
-        component="button"
-        type="button"
-        color="inherit"
-        underline="hover"
-        className="u-ta-left"
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-        onClick={handleOpen}
-        data-testid="email-address"
-      >
-        {children}
-      </Link>
       <ContactCard
         open={isOpen}
-        onClose={handleClose}
+        onClose={onClose}
         avatar={
           <Avatar size={64} aria-hidden="true">
             {getInitials(name, address.email)}
@@ -163,6 +150,61 @@ export function EmailAddressCard({
         actions={actions}
         data-testid="email-address-card"
       />
+    </>
+  )
+}
+
+/**
+ * An address of an email header, as a button opening its contact card, as
+ * tmail-flutter's address dialog (a dialog, a bottom sheet on phones): the
+ * avatar, the name, the address with a button copying it, and the actions
+ * "Compose email" and, when the server has filtering rules, "Create a rule
+ * with this email". As in Twake Calendar's attendees, "Invite to an event"
+ * and "Chat" appear when `CALENDAR_SPA_URL` and `CHAT_SPA_URL` are set.
+ */
+export function EmailAddressCard({
+  address,
+  children,
+  isInline = false
+}: EmailAddressCardProps): ReactElement {
+  const [isOpen, setIsOpen] = useState(false)
+  // Mounted at the first opening: a long conversation has many addresses
+  const [hasOpened, setHasOpened] = useState(false)
+
+  const handleOpen = (event: MouseEvent): void => {
+    // A link: the card, not the mail program
+    event.preventDefault()
+    setHasOpened(true)
+    setIsOpen(true)
+  }
+
+  const handleClose = (): void => {
+    setIsOpen(false)
+  }
+
+  return (
+    <>
+      <Link
+        {...(isInline
+          ? { href: `mailto:${address.email}` }
+          : { component: 'button', type: 'button' })}
+        color="inherit"
+        underline="hover"
+        className="u-ta-left"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        onClick={handleOpen}
+        data-testid="email-address"
+      >
+        {children}
+      </Link>
+      {hasOpened ? (
+        <AddressCardDialog
+          address={address}
+          isOpen={isOpen}
+          onClose={handleClose}
+        />
+      ) : null}
     </>
   )
 }

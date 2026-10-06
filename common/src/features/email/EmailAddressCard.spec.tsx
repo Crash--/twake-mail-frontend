@@ -209,4 +209,20 @@ describe('EmailAddressCard', () => {
       'https://chat.example.com/#/chat/@bob'
     )
   })
+
+  it('is a mailto link opening the card, not the mail program, in running text', async () => {
+    renderWithProviders(
+      <EmailAddressCard address={BOB} isInline>
+        Bob
+      </EmailAddressCard>,
+      { withJmapSession: true }
+    )
+
+    const link = await screen.findByRole('link', { name: 'Bob' })
+    expect(link).toHaveAttribute('href', 'mailto:bob@example.com')
+    expect(link).toHaveAttribute('aria-haspopup', 'dialog')
+    await userEvent.click(link)
+
+    expect(await screen.findByRole('dialog', { name: 'Bob' })).toBeVisible()
+  })
 })

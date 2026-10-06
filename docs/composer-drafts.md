@@ -50,6 +50,14 @@ tab takes it when it is newer than the IndexedDB record, then drops it. The 0.8 
 covers the rest: up to 0.8 s of typing can be lost only when the browser or the machine
 crashes. CI showed the need (a reload right after typing came back with half a word).
 
+Removals have the same problem the other way round: a composer sent, discarded or closed is
+deleted from IndexedDB, and a reload within the next milliseconds cuts the delete, so the
+composer would come back. closing therefore first writes a synchronous mark in
+`sessionStorage` (`buryComposer`, key `twake-mail-composer-gone|<account>|<id>`);
+`listComposers` finishes the delete, drops the last copy of that composer and the mark, and
+never lists it. Signing out drops the marks. A quit of the whole browser needs no mark: the
+delete had the time to end, and a tab closed during it is the same cut as above.
+
 A replacement of the server draft is always one creation and one destruction per
 real save (never per keystroke). Cost for a message edited for an hour with
 pauses of more than five minutes: one pair per pause, instead of one pair per

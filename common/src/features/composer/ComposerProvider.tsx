@@ -42,6 +42,7 @@ import {
   keepComposerBeforeUnload,
   listComposers,
   putComposer,
+  buryComposer,
   removeComposer,
   type StoredComposer
 } from './composerStorage'
@@ -531,7 +532,9 @@ export function ComposerProvider({
       const timer = persistTimers.current.get(id)
       if (timer !== undefined) window.clearTimeout(timer)
       persistTimers.current.delete(id)
-      // Sent, discarded, closed: the browser forgets it
+      // Sent, discarded, closed: the browser forgets it. The mark is
+      // synchronous, the delete may be cut short by a reload
+      buryComposer(accountId, id)
       void removeComposer(accountId, id)
       setEntries(current => current.filter(entry => entry.id !== id))
       if (opener instanceof HTMLElement && opener.isConnected) {

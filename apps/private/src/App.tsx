@@ -16,7 +16,10 @@ import type { AppConfig } from '@common/config/config'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import { createAuthService } from '@common/features/auth/createAuthService'
 import { peekPendingLoginReturnTo } from '@common/features/auth/oidcAuth'
-import { connectToSpace } from '@common/features/teamMailboxEmbed/spaceBridge'
+import {
+  connectToSpace,
+  reportOverlayRegion
+} from '@common/features/teamMailboxEmbed/spaceBridge'
 import { parseTeamMailboxEmbedPath } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { useI18n } from '@common/i18n/useI18n'
 import { findPreferredLanguage } from '@common/i18n/languages'
@@ -79,9 +82,7 @@ export function App({ config }: AppProps): ReactElement {
   )
   // Framed by TwakeSpace, the composer and the dialogs go onto its page
   const [overlay] = useState(() =>
-    spaceBridge === null
-      ? null
-      : connectSpaceOverlay(spaceBridge.reportOverlayRegion)
+    embed === null ? null : connectSpaceOverlay(reportOverlayRegion)
   )
   const [authService] = useState(() =>
     createAuthService(config, {

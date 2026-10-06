@@ -47,11 +47,6 @@ export interface SpaceBridge {
    * the frame: TwakeSpace signs the user in again, then reloads its frames
    */
   notifyLoginRequired: () => void
-  /**
-   * The region of the overlay over TwakeSpace's page the facade draws in:
-   * TwakeSpace shows that part only, the rest of its page keeps its clicks
-   */
-  reportOverlayRegion: (region: OverlayRegion) => void
 }
 
 interface LoginRequiredMethod {
@@ -177,12 +172,17 @@ export function connectToSpace(
         return
       }
       window.parent.postMessage(LOGIN_REQUIRED_MESSAGE, spaceOrigin)
-    },
-    reportOverlayRegion: region => {
-      window.parent.postMessage(
-        { type: OVERLAY_REGION_MESSAGE, region },
-        spaceOrigin
-      )
     }
   }
+}
+
+/**
+ * Tells the page framing the facade the region of the overlay over its page
+ * the facade draws in: it shows that part only, the rest of its page keeps its
+ * clicks. Any page: the region is only boxes of the layout, and
+ * `frame-ancestors` already says who may frame the facade, so the overlay
+ * works without `TWAKE_SPACE_URL`.
+ */
+export function reportOverlayRegion(region: OverlayRegion): void {
+  window.parent.postMessage({ type: OVERLAY_REGION_MESSAGE, region }, '*')
 }

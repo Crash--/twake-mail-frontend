@@ -3,7 +3,8 @@ import { replaceWith } from '@common/utils/navigation'
 import {
   connectToSpace,
   isEmbedPath,
-  LOGIN_REQUIRED_MESSAGE
+  LOGIN_REQUIRED_MESSAGE,
+  reportOverlayRegion
 } from './spaceBridge'
 
 jest.mock('@common/utils/navigation', () => ({ replaceWith: jest.fn() }))
@@ -271,19 +272,22 @@ describe('connectToSpace', () => {
       SPACE_ORIGIN
     )
   })
+})
 
-  it('tells TwakeSpace the region of the overlay, to its origin only', () => {
-    mockBridge()
-    const postMessage = jest.spyOn(window.parent, 'postMessage')
+describe('reportOverlayRegion', () => {
+  it('tells the page framing the facade, without the origin of TwakeSpace', () => {
+    const postMessage = jest
+      .spyOn(window.parent, 'postMessage')
+      .mockImplementation(() => undefined)
 
-    connect()?.reportOverlayRegion([{ x: 1, y: 2, width: 3, height: 4 }])
+    reportOverlayRegion([{ x: 1, y: 2, width: 3, height: 4 }])
 
     expect(postMessage).toHaveBeenCalledWith(
       {
         type: 'twake-embed:overlay-region',
         region: [{ x: 1, y: 2, width: 3, height: 4 }]
       },
-      SPACE_ORIGIN
+      '*'
     )
   })
 })

@@ -35,6 +35,9 @@ test.describe('LOAD loading states', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const gate = await holdJmapMethods(page, ['Email/query'])
     await loading.watchLayoutShift()
+    // A slow machine, as CI: the rows of the table arrive one frame after another
+    const cdp = await page.context().newCDPSession(page)
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
 
     await mailbox.openFolder({ role: 'trash' })
     await expect(loading.listSkeleton).toBeVisible()
@@ -79,7 +82,10 @@ test.describe('LOAD loading states', () => {
         `toolbar button ${index}`
       )
     })
-    expect(await loading.layoutShift()).toBeLessThan(0.01)
+    expect(
+      await loading.layoutShift(),
+      await loading.layoutShiftSources()
+    ).toBeLessThan(0.01)
     await expect(loading.loadingAnnouncement).toBeEmpty()
   })
 

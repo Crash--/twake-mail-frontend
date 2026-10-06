@@ -1,7 +1,8 @@
 import { Icon, ToTheCloud } from '@linagora/twake-icons'
-import { Button, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
+import { Button, Typography } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 
+import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FramedDialog } from '@/ds/FramedDialog/FramedDialog'
 import type { DriveFile } from '@common/features/drive/driveIntent'
 import {
@@ -126,19 +127,16 @@ export function DriveAttachButton({
 
   return (
     <>
-      <Tooltip title={t('composer.drive.attach')}>
-        <IconButton
-          ref={buttonRef}
-          aria-label={t('composer.drive.attach')}
-          aria-haspopup="dialog"
-          size="medium"
-          onClick={picker.open}
-          className="u-ml-half"
-          data-testid="composer-drive-button"
-        >
-          <Icon icon={ToTheCloud} size={20} aria-hidden="true" />
-        </IconButton>
-      </Tooltip>
+      <ActionIconButton
+        ref={buttonRef}
+        label={t('composer.drive.attach')}
+        aria-haspopup="dialog"
+        onClick={picker.open}
+        className="u-ml-half"
+        data-testid="composer-drive-button"
+      >
+        <Icon icon={ToTheCloud} size={20} aria-hidden="true" />
+      </ActionIconButton>
       <FramedDialog
         open={isOpen}
         title={t('composer.drive.title')}

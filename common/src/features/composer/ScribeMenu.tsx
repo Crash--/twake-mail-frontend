@@ -19,6 +19,7 @@ import {
 } from '@linagora/twake-mui'
 import { useEffect, useId, useRef, useState, type ReactElement } from 'react'
 
+import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -219,22 +220,19 @@ export function ScribeMenu({
 
   return (
     <>
-      <Tooltip title={t('composer.scribe.assistant')}>
-        <IconButton
-          aria-label={t('composer.scribe.assistant')}
-          aria-haspopup="true"
-          aria-controls={menuAnchor ? menuId : undefined}
-          aria-expanded={anchor ? 'true' : undefined}
-          size="medium"
-          onClick={event => {
-            setAnchor(event.currentTarget)
-          }}
-          className="u-ml-half"
-          data-testid="composer-scribe-button"
-        >
-          <Icon icon={AssistantColor} size={20} aria-hidden="true" />
-        </IconButton>
-      </Tooltip>
+      <ActionIconButton
+        label={t('composer.scribe.assistant')}
+        aria-haspopup="true"
+        aria-controls={menuAnchor ? menuId : undefined}
+        aria-expanded={anchor ? 'true' : undefined}
+        onClick={event => {
+          setAnchor(event.currentTarget)
+        }}
+        className="u-ml-half"
+        data-testid="composer-scribe-button"
+      >
+        <Icon icon={AssistantColor} size={20} aria-hidden="true" />
+      </ActionIconButton>
       <Menu
         id={menuId}
         anchorEl={menuAnchor}

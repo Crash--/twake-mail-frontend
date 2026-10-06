@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router'
+import { Navigate, Outlet, useHref, useLocation } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { FullPageLoader } from '@common/components/FullPageLoader'
@@ -24,6 +24,8 @@ export function RequireAuth(): ReactElement {
   const [loginError, setLoginError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
   const returnTo = `${location.pathname}${location.search}${location.hash}`
+  // The SSO comes back to the page itself: the base of the router included
+  const ssoReturnTo = useHref(returnTo)
   const mustStartSsoLogin =
     state.status === 'anonymous' && service.mode === 'oidc'
 
@@ -31,7 +33,7 @@ export function RequireAuth(): ReactElement {
     if (!mustStartSsoLogin) return
 
     const startSsoLogin = async (): Promise<void> => {
-      const result = await service.startLogin(returnTo)
+      const result = await service.startLogin(ssoReturnTo)
       if (!result.ok) {
         console.error('[auth] Cannot reach the SSO', result.error)
         setLoginError(result.error)

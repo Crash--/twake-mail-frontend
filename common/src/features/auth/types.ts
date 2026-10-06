@@ -50,6 +50,8 @@ export type LoginCallbackResult =
       error: 'missing-login-state' | 'token-exchange-failed'
       detail?: string
     }
+  /** A silent login the SSO cannot complete without the user */
+  | { ok: false; error: 'login-required'; returnTo: string }
 
 export interface OidcAuthService extends AuthServiceBase {
   readonly mode: 'oidc'

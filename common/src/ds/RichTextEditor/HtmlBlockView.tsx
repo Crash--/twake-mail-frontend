@@ -48,7 +48,10 @@ function HtmlBlockFrame({
       setHeight(Math.max(Math.ceil(body.scrollHeight), MIN_FRAME_HEIGHT))
     }
     measure()
-    const observer = new ResizeObserver(measure)
+    // The window the node is rendered in, maybe not this one (the overlay of
+    // TwakeSpace): an observer only follows the documents of its own window
+    const view = frameRef.current?.ownerDocument.defaultView ?? window
+    const observer = new view.ResizeObserver(measure)
     observer.observe(body)
     observerRef.current = observer
   }

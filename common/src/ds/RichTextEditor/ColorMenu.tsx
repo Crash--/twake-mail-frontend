@@ -58,16 +58,21 @@ export function ColorMenu({
   )
   const current = toHex(value)
 
+  // Not `instanceof`: the menu may be rendered in another document
+  const inputOf = (target: EventTarget): HTMLInputElement | null =>
+    (target as Element).tagName === 'INPUT'
+      ? (target as HTMLInputElement)
+      : null
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>): void => {
-    if (event.key === 'Enter' && event.target instanceof HTMLInputElement) {
+    if (event.key === 'Enter' && inputOf(event.target) !== null) {
       event.preventDefault()
       onClose()
     }
   }
   // A keyboard "click" (arrows in the group) has no detail: keep it open
   const handleClick = (event: MouseEvent<HTMLElement>): void => {
-    if (event.detail > 0 && event.target instanceof HTMLInputElement) {
-      if (event.target.type === 'radio') onClose()
+    if (event.detail > 0 && inputOf(event.target)?.type === 'radio') {
+      onClose()
     }
   }
 

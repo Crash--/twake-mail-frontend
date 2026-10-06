@@ -30,8 +30,11 @@ export const InlineImage = Image.extend({
       const view = parent(props)
       const update = view.update?.bind(view)
       const showSize = (node: ProseMirrorNode): void => {
+        // Not `instanceof`: the editor may be in another document
         const image =
-          view.dom instanceof HTMLElement ? view.dom.querySelector('img') : null
+          view.dom.nodeType === Node.ELEMENT_NODE
+            ? view.dom.querySelector('img')
+            : null
         if (!image) return
         const width = Number(node.attrs.width)
         const height = Number(node.attrs.height)

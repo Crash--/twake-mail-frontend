@@ -276,14 +276,16 @@ export function RecipientField({
 
   // Chips added above the input push it down in the scrolled field
   useEffect(() => {
-    if (document.activeElement === inputRef.current) {
-      inputRef.current?.scrollIntoView({ block: 'nearest' })
+    const input = inputRef.current
+    if (input !== null && input.ownerDocument.activeElement === input) {
+      input.scrollIntoView({ block: 'nearest' })
     }
   }, [chips.length])
 
   useEffect(() => {
     if (active === null) return
-    document
+    // The document the field is rendered in, maybe not this window's
+    ;(rootRef.current?.ownerDocument ?? document)
       .getElementById(optionId(active.id))
       ?.scrollIntoView({ block: 'nearest' })
     // optionId only depends on the stable id
@@ -453,7 +455,7 @@ export function RecipientField({
 
   const handleBlur = (event: FocusEvent<HTMLDivElement>): void => {
     const next = event.relatedTarget
-    if (next instanceof Node && rootRef.current?.contains(next)) return
+    if (next !== null && rootRef.current?.contains(next)) return
     close()
     isEditing.current = false
     commit(inputValue)

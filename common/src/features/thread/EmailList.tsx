@@ -521,9 +521,10 @@ export function EmailList(props: EmailListProps): ReactElement {
         setIsRefreshing(false)
       })
   }, [refetch, queryClient, accountId])
-  // Narrow from the first render on phones and beside an open email (large
-  // tablets); the table also measures itself for the other cases (zoom)
-  const isCompact = screenSize === 'mobile' || screenSize === 'tabletLarge'
+  // Narrow from the first render below the desktop size, as tmail-flutter (its
+  // wide tile is for `isWebDesktop` only); the table also measures itself for
+  // the other cases (zoom, an email open beside the list)
+  const isCompact = screenSize !== 'desktop'
   // The floating "New message" button covers the end of the list below the
   // desktop size (layout/AppLayout.tsx)
   const bottomInset = screenSize === 'desktop' ? 0 : FLOATING_ACTION_INSET

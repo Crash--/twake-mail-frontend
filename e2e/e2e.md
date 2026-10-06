@@ -836,7 +836,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
 - [x] `CMP-88` (updated, issue #54) — the More menu holds "Insert template" between "Save as draft" and "Save as template", on a phone and on a tablet. — web app (issue #54)
   - Spec: `tests/composer-mobile.spec.ts`.
 - [x] `LST-06` A row with three labels shows the first one then a "+2" chip; the list of labels of the row names the hidden ones ("2 more labels: Personal, Urgent"); on a desktop the row is as high as a row without labels with the chip before the subject, on a phone and a tablet the chips end the preview line, inside the row; axe. — web app (Figma list rows, tmail-flutter `LabelTagListWidget`) (issue #110)
-- [x] `LST-06` A row with three labels shows the first one then a "+2" chip; the list of labels of the row names the hidden ones ("2 more labels: Personal, Urgent"); on a tablet and a desktop the row is as high as a row without labels with the chip before the subject, on a phone the chips end the preview line, inside the row; axe. — web app (Figma list rows, tmail-flutter `LabelTagListWidget`) (issue #110)
+- [x] `LST-06` A row with three labels shows the first one then a "+2" chip; the list of labels of the row names the hidden ones ("2 more labels: Personal, Urgent"); on a desktop the row is as high as a row without labels with the chip before the subject, on a phone and a tablet the chips end the preview line, inside the row; axe. — web app (Figma list rows, tmail-flutter `LabelTagListWidget`) (issue #110)
   - Spec: `tests/list-rows.spec.ts`.
 - [x] `LST-07` The row of a conversation shows the labels of the email that stands for it (the last one), not those of the older emails: a label on the first email only is not on the row. — tmail-flutter `thread_view.dart` (`presentationEmail.getLabelList`) (issue #110)
   - Spec: `tests/list-rows.spec.ts`.
@@ -854,3 +854,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/contact-card.spec.ts`.
 - [x] `CRD-06` A recipient of an expanded message of a conversation (a `mailto:` link in its "To" line, which wraps with the text) opens its card too; Escape closes it and gives the focus back to the recipient. — web app (issue #132)
   - Spec: `tests/contact-card.spec.ts`.
+- [x] `LST-09` At 600, 720, 820, 1024, 1180, 1280 and 1440 px a list row (with a label) has its date clear of its subject and a subject more than 150 px wide: below the desktop size the rows are the two or three line rows of phones, with no permanent hover actions (tmail-flutter: the wide tile is for the web desktop only). — web app (tmail-flutter `thread_view.dart`, `EmailTileBuilder`)
+  - Spec: `tests/list-rows.spec.ts`.

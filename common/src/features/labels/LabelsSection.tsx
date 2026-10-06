@@ -11,6 +11,7 @@ import type { Label } from 'jmap-client-ts/linagora'
 import { useId, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
+import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
@@ -113,12 +114,7 @@ export function LabelsSection(): ReactElement | null {
   const newLabel = t('labels.new')
 
   return (
-    <Box
-      component="nav"
-      aria-labelledby={titleId}
-      className="u-mt-1"
-      data-testid="labels-section"
-    >
+    <Box component="nav" aria-labelledby={titleId} data-testid="labels-section">
       <NavSectionHeader
         title={t('labels.title')}
         titleId={titleId}
@@ -131,16 +127,12 @@ export function LabelsSection(): ReactElement | null {
           'data-testid': 'labels-section-toggle'
         }}
         actions={
-          <Tooltip title={newLabel}>
-            <IconButton
-              size="small"
-              aria-label={newLabel}
-              onClick={create}
-              data-testid="add-new-label-button"
-            >
-              <Icon icon={Plus} />
-            </IconButton>
-          </Tooltip>
+          <NavSectionAction
+            label={newLabel}
+            icon={Plus}
+            onClick={create}
+            data-testid="add-new-label-button"
+          />
         }
       />
       <div id={contentId} hidden={!sections.isExpanded('labels')}>

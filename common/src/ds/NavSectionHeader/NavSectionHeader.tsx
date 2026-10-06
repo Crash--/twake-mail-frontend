@@ -4,7 +4,7 @@
 // pushed to the far end, shown only past `limit` children, with no room for
 // actions, and which renders nothing below `lg`.
 import { Bottom, Icon, Right } from '@linagora/twake-icons'
-import { ButtonBase, Typography } from '@linagora/twake-mui'
+import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 export interface NavSectionToggle {
@@ -32,12 +32,13 @@ const TITLE_SX = {
   fontWeight: 500,
   lineHeight: '15.8px',
   letterSpacing: 0.5,
-  py: 1
+  py: 0
 } as const
 
 /**
  * The title of a section of a sidebar ("Folders", "Labels"): a heading in
- * 12/500 secondary text, outside the list it titles, and its actions. With
+ * 12/500 secondary text, outside the list it titles, and its actions,
+ * 32 px high with 10 px above and 8 px below. With
  * `toggle`, the title is a button holding the chevron of the section, 8 px
  * after the text (Figma), that expands and collapses it.
  */
@@ -49,14 +50,17 @@ export function NavSectionHeader({
   'data-testid': testId
 }: NavSectionHeaderProps): ReactElement {
   return (
-    <div className="u-flex u-flex-items-center u-pl-1 u-pr-half">
+    <Box
+      className="u-flex u-flex-items-center"
+      sx={{ minHeight: 32, mt: '10px', mb: '8px', pl: 2, pr: '13px' }}
+    >
       <Typography
         id={titleId}
         variant="caption"
         component="h2"
         className="u-flex-auto"
         data-testid={testId}
-        sx={toggle === undefined ? TITLE_SX : { ...TITLE_SX, py: 0 }}
+        sx={TITLE_SX}
       >
         {toggle === undefined ? (
           title
@@ -71,7 +75,7 @@ export function NavSectionHeader({
               letterSpacing: 'inherit',
               color: 'inherit',
               gap: 1,
-              py: 1,
+              minHeight: 32,
               borderRadius: 1
             }}
           >
@@ -85,6 +89,6 @@ export function NavSectionHeader({
         )}
       </Typography>
       {actions}
-    </div>
+    </Box>
   )
 }

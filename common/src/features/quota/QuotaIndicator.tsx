@@ -1,7 +1,8 @@
 import { Cloud, Icon, Refresh } from '@linagora/twake-icons'
-import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
+import { Box, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
+import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'
 import { formatSize } from '@common/features/email/formatSize'
@@ -30,7 +31,7 @@ export function QuotaIndicator(): ReactElement | null {
   return (
     <Box data-testid="quota-indicator" data-used={quota.used}>
       <Box className="u-flex u-flex-items-center">
-        <Icon icon={Cloud} aria-hidden />
+        <Icon icon={Cloud} size={24} aria-hidden />
         <SecondaryText
           id={labelId}
           variant="caption"
@@ -39,19 +40,15 @@ export function QuotaIndicator(): ReactElement | null {
         >
           {t('settings.sections.storage.title')}
         </SecondaryText>
-        <Tooltip title={refreshLabel}>
-          <IconButton
-            size="small"
-            aria-label={refreshLabel}
-            disabled={query.isFetching}
-            onClick={() => {
-              void query.refetch()
-            }}
-            data-testid="quota-refresh-button"
-          >
-            <Icon icon={Refresh} />
-          </IconButton>
-        </Tooltip>
+        <NavSectionAction
+          label={refreshLabel}
+          icon={Refresh}
+          disabled={query.isFetching}
+          onClick={() => {
+            void query.refetch()
+          }}
+          data-testid="quota-refresh-button"
+        />
       </Box>
       <StorageGauge
         value={percent}

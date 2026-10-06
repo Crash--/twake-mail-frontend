@@ -33,7 +33,8 @@ export interface PushProviderProps {
  * changes (`pushSync`). While the channel is open they never go stale; once
  * it drops they do after `DEFAULT_STALE_TIME` again. When it first opens,
  * the changes made since the first loads are caught up, as after a
- * reconnection those made while it was down. The channel closes when the session ends, as
+ * reconnection those made while it was down, as when the browser comes back
+ * online (no refetch of everything: the changes are caught up). The channel closes when the session ends, as
  * this provider unmounts with the signed-in screens.
  */
 export function PushProvider({
@@ -61,9 +62,20 @@ export function PushProvider({
       threadKeys.all(accountId),
       emailKeys.all(accountId)
     ]
+    // Back online, the channel is not open yet and the lists would count as
+    // stale: TanStack would then refetch all of them. The changes made while
+    // offline are caught up from the cache states instead (`catchUp`)
     for (const queryKey of syncedKeys) {
-      queryClient.setQueryDefaults(queryKey, { staleTime })
+      queryClient.setQueryDefaults(queryKey, {
+        staleTime,
+        refetchOnReconnect: false
+      })
     }
+    const handleOnline = (): void => {
+      sync.catchUp()
+      if (hasLabels) void syncLabels(client, queryClient, accountId, null)
+    }
+    window.addEventListener('online', handleOnline)
     // Changes made between the first loads and the first opening of the
     // channel are pushed to nobody: the current states tell whether the
     // cache is behind, as a push would, and the lists landing after them
@@ -110,6 +122,7 @@ export function PushProvider({
       })
     ]
     return () => {
+      window.removeEventListener('online', handleOnline)
       unsubscribers.forEach(unsubscribe => {
         unsubscribe()
       })
@@ -117,7 +130,8 @@ export function PushProvider({
       sync.close()
       for (const queryKey of syncedKeys) {
         queryClient.setQueryDefaults(queryKey, {
-          staleTime: DEFAULT_STALE_TIME
+          staleTime: DEFAULT_STALE_TIME,
+          refetchOnReconnect: true
         })
       }
     }

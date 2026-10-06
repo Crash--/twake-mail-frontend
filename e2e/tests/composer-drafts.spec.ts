@@ -122,7 +122,12 @@ test.describe('composer drafts, local first', () => {
     await composer.subjectInput.fill('Two writes')
     await composer.idle()
     await expect.poll(() => draftSubjects(jmap)).toEqual(['Two writes'])
-    expect(traffic.writes()).toMatchObject({ created: 2, destroyed: 1 })
+    // The server has destroyed the old version, the page's request events may be a moment behind
+    // (a starved runner): the writes are read once they have all been seen, not at the instant
+    // the server answers
+    await expect
+      .poll(() => traffic.writes())
+      .toMatchObject({ created: 2, destroyed: 1 })
   })
 
   test('CMP-67 sending forgets the composer in the browser', async ({

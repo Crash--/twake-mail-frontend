@@ -1,4 +1,15 @@
 import {
+  Account,
+  Calendar,
+  Forbidden,
+  FolderOutlined,
+  LabelOutlined,
+  Magnifier,
+  Text,
+  Swap,
+  type IconProps
+} from '@linagora/twake-icons'
+import {
   Box,
   Button,
   Checkbox,
@@ -9,8 +20,10 @@ import {
   FormControlLabel,
   TextField
 } from '@linagora/twake-mui'
-import { useState, type FormEvent, type ReactElement } from 'react'
+import { useId, useState, type FormEvent, type ReactElement } from 'react'
 
+import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
+import { FormRow } from '@/ds/FormRow/FormRow'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
@@ -76,6 +89,8 @@ function withTextFields(
 export interface AdvancedSearchDialogProps {
   /** The search being typed, quick filters included */
   filter: SearchFilter
+  /** The search field: on a desktop the form opens over it */
+  anchorEl: HTMLElement | null
   onClose: () => void
   /** Runs the search of the form */
   onSubmit: (filter: SearchFilter) => void
@@ -83,13 +98,16 @@ export interface AdvancedSearchDialogProps {
 
 /**
  * The advanced search of tmail-flutter: from, to, subject, words the email
- * has and has not, folder, date, order, and the attachment, unread and
- * starred filters. It opens on the search being typed (the quick filters
- * picked under the field are checked here) and runs it on submit; "Clear
- * filter" empties it, the order excepted, "Cancel" leaves it unchanged.
+ * has and has not, folder, label, date, order, and the attachment, unread,
+ * starred and events filters. On a desktop it is the white card of the
+ * design opening over the search field, on a phone a full screen dialog. It
+ * opens on the search being typed (the quick filters picked under the field
+ * are checked here) and runs it on submit; "Clear filter" empties it, the
+ * order excepted; Escape (and "Cancel" on a phone) leaves it unchanged.
  */
 export function AdvancedSearchDialog({
   filter,
+  anchorEl,
   onClose,
   onSubmit
 }: AdvancedSearchDialogProps): ReactElement {
@@ -100,6 +118,8 @@ export function AdvancedSearchDialog({
   const mailboxes = useMailboxOptions()
   const [draft, setDraft] = useState(filter)
   const [fields, setFields] = useState(() => toTextFields(filter))
+  const id = useId()
+  const fieldId = (name: string): string => `${id}-${name}`
 
   const handleText =
     (name: keyof TextFields) =>
@@ -118,7 +138,7 @@ export function AdvancedSearchDialog({
     onSubmit(withTextFields(draft, fields))
   }
 
-  const titleId = 'advanced-search-title'
+  const titleId = `${id}-title`
   const isPhone = useScreenSize() === 'mobile'
   const clearButton = (
     <Button
@@ -130,6 +150,278 @@ export function AdvancedSearchDialog({
       {t('search.clearFilter')}
     </Button>
   )
+  const submitButton = (
+    <Button
+      type="submit"
+      variant="contained"
+      data-testid="advanced-search-submit-button"
+    >
+      {t('search.submit')}
+    </Button>
+  )
+
+  const textRow = (
+    name: keyof TextFields,
+    label: string,
+    placeholder: string,
+    icon: IconProps['icon'],
+    testId: string,
+    autoFocus = false
+  ): ReactElement => (
+    <FormRow label={label} htmlFor={fieldId(name)} icon={icon}>
+      <TextField
+        id={fieldId(name)}
+        variant="standard"
+        fullWidth
+        placeholder={placeholder}
+        value={fields[name]}
+        onChange={handleText(name)}
+        autoFocus={autoFocus}
+        slotProps={{ htmlInput: { 'data-testid': testId } }}
+      />
+    </FormRow>
+  )
+
+  const rows = (
+    <Box className="u-flex u-flex-column">
+      {textRow(
+        'from',
+        t('search.fields.from'),
+        t('search.hints.address'),
+        Account,
+        'advanced-search-from-input',
+        true
+      )}
+      {textRow(
+        'to',
+        t('search.fields.to'),
+        t('search.hints.address'),
+        Account,
+        'advanced-search-to-input'
+      )}
+      {textRow(
+        'subject',
+        t('search.fields.subject'),
+        t('search.hints.subject'),
+        Text,
+        'advanced-search-subject-input'
+      )}
+      {textRow(
+        'text',
+        t('search.fields.text'),
+        t('search.hints.words'),
+        Magnifier,
+        'advanced-search-text-input'
+      )}
+      {textRow(
+        'notWords',
+        t('search.fields.notWords'),
+        t('search.wordsHint'),
+        Forbidden,
+        'advanced-search-not-words-input'
+      )}
+      <FormRow
+        label={t('search.fields.folder')}
+        htmlFor={fieldId('folder')}
+        icon={FolderOutlined}
+      >
+        <TextField
+          select
+          id={fieldId('folder')}
+          variant="standard"
+          fullWidth
+          value={scopeValue(draft)}
+          onChange={event => {
+            setDraft({ ...draft, scope: toScope(event.target.value) })
+          }}
+          slotProps={{
+            select: { native: true },
+            htmlInput: { 'data-testid': 'advanced-search-folder-select' }
+          }}
+        >
+          <option value={SCOPE_DEFAULT}>{t('search.scope.default')}</option>
+          <option value={SCOPE_EVERYWHERE}>
+            {t('search.scope.everywhere')}
+          </option>
+          {mailboxes.map(mailbox => (
+            <option key={mailbox.id} value={mailbox.id}>
+              {mailbox.label}
+            </option>
+          ))}
+        </TextField>
+      </FormRow>
+      {labels.length > 0 ? (
+        <FormRow
+          label={t('search.labels.label')}
+          htmlFor={fieldId('label')}
+          icon={LabelOutlined}
+        >
+          <TextField
+            select
+            id={fieldId('label')}
+            variant="standard"
+            fullWidth
+            value={draft.label ?? ''}
+            onChange={event => {
+              setDraft({
+                ...draft,
+                label: event.target.value === '' ? null : event.target.value
+              })
+            }}
+            slotProps={{
+              select: { native: true },
+              htmlInput: { 'data-testid': 'advanced-search-label-select' }
+            }}
+          >
+            <option value="">{t('search.labels.all')}</option>
+            {labels.map(label => (
+              <option key={label.id} value={label.keyword}>
+                {label.displayName}
+              </option>
+            ))}
+          </TextField>
+        </FormRow>
+      ) : null}
+      <FormRow
+        label={t('search.fields.date')}
+        htmlFor={fieldId('date')}
+        icon={Calendar}
+      >
+        <TextField
+          select
+          id={fieldId('date')}
+          variant="standard"
+          fullWidth
+          value={draft.dateRange}
+          onChange={event => {
+            const dateRange =
+              DATE_RANGES.find(range => range === event.target.value) ??
+              'allTime'
+            setDraft({ ...draft, dateRange })
+          }}
+          slotProps={{
+            select: { native: true },
+            htmlInput: { 'data-testid': 'advanced-search-date-select' }
+          }}
+        >
+          {DATE_RANGES.map(range => (
+            <option key={range} value={range}>
+              {t(DATE_LABELS[range])}
+            </option>
+          ))}
+        </TextField>
+      </FormRow>
+      {draft.dateRange === 'custom' ? (
+        <>
+          <FormRow
+            label={t('search.fields.startDate')}
+            htmlFor={fieldId('start')}
+          >
+            <TextField
+              id={fieldId('start')}
+              type="date"
+              variant="standard"
+              fullWidth
+              value={draft.startDate ?? ''}
+              onChange={event => {
+                setDraft({ ...draft, startDate: event.target.value || null })
+              }}
+              slotProps={{
+                htmlInput: { 'data-testid': 'advanced-search-start-date-input' }
+              }}
+            />
+          </FormRow>
+          <FormRow label={t('search.fields.endDate')} htmlFor={fieldId('end')}>
+            <TextField
+              id={fieldId('end')}
+              type="date"
+              variant="standard"
+              fullWidth
+              value={draft.endDate ?? ''}
+              onChange={event => {
+                setDraft({ ...draft, endDate: event.target.value || null })
+              }}
+              slotProps={{
+                htmlInput: { 'data-testid': 'advanced-search-end-date-input' }
+              }}
+            />
+          </FormRow>
+        </>
+      ) : null}
+      <FormRow
+        label={t('search.fields.sort')}
+        htmlFor={fieldId('sort')}
+        icon={Swap}
+      >
+        <TextField
+          select
+          id={fieldId('sort')}
+          variant="standard"
+          fullWidth
+          value={draft.sort}
+          onChange={event => {
+            const sort =
+              SORT_ORDERS.find(order => order === event.target.value) ??
+              draft.sort
+            setDraft({ ...draft, sort })
+          }}
+          slotProps={{
+            select: { native: true },
+            htmlInput: { 'data-testid': 'advanced-search-sort-select' }
+          }}
+        >
+          {SORT_ORDERS.map(order => (
+            <option key={order} value={order}>
+              {t(SORT_LABELS[order])}
+            </option>
+          ))}
+        </TextField>
+      </FormRow>
+      <Box className="u-flex u-flex-wrap u-mt-1">
+        {(
+          [
+            ['hasAttachment', 'search.filters.hasAttachment'],
+            ['unread', 'search.filters.unread'],
+            ['starred', 'search.filters.starred'],
+            ['notIncludeEvents', 'search.filters.notIncludeEvents']
+          ] as const
+        ).map(([name, label]) => (
+          <FormControlLabel
+            key={name}
+            label={t(label)}
+            control={
+              <Checkbox
+                checked={draft[name]}
+                onChange={event => {
+                  setDraft({ ...draft, [name]: event.target.checked })
+                }}
+              />
+            }
+          />
+        ))}
+      </Box>
+    </Box>
+  )
+
+  if (!isPhone) {
+    return (
+      <AnchoredDialog
+        open
+        anchorEl={anchorEl}
+        onClose={onClose}
+        title={t('search.advanced')}
+        data-testid="advanced-search-dialog"
+      >
+        <form onSubmit={handleSubmit} noValidate className="u-p-2">
+          {rows}
+          <Box className="u-flex u-flex-justify-end u-flex-items-center u-mt-1">
+            {clearButton}
+            <Box className="u-ml-1">{submitButton}</Box>
+          </Box>
+        </form>
+      </AnchoredDialog>
+    )
+  }
 
   return (
     <Dialog
@@ -146,249 +438,17 @@ export function AdvancedSearchDialog({
         noValidate
         className="u-flex u-flex-column u-ov-hidden"
       >
-        {isPhone ? (
-          // Three buttons do not fit under a phone screen: "Clear filter"
-          // goes up beside the title, out of its accessible name
-          <Box className="u-flex u-flex-items-center u-pr-1">
-            {/* DialogTitle does not shrink (flex: 0 0 auto) */}
-            <Box className="u-flex-auto">
-              <DialogTitle id={titleId}>{t('search.advanced')}</DialogTitle>
-            </Box>
-            {clearButton}
+        {/* Three buttons do not fit under a phone screen: "Clear filter"
+            goes up beside the title, out of its accessible name */}
+        <Box className="u-flex u-flex-items-center u-pr-1">
+          {/* DialogTitle does not shrink (flex: 0 0 auto) */}
+          <Box className="u-flex-auto">
+            <DialogTitle id={titleId}>{t('search.advanced')}</DialogTitle>
           </Box>
-        ) : (
-          <DialogTitle id={titleId}>{t('search.advanced')}</DialogTitle>
-        )}
-        <DialogContent>
-          <Box className="u-flex u-flex-column u-pt-half">
-            <TextField
-              label={t('search.fields.from')}
-              placeholder={t('search.hints.address')}
-              value={fields.from}
-              onChange={handleText('from')}
-              margin="dense"
-              autoFocus
-              slotProps={{
-                htmlInput: { 'data-testid': 'advanced-search-from-input' }
-              }}
-            />
-            <TextField
-              label={t('search.fields.to')}
-              placeholder={t('search.hints.address')}
-              value={fields.to}
-              onChange={handleText('to')}
-              margin="dense"
-              slotProps={{
-                htmlInput: { 'data-testid': 'advanced-search-to-input' }
-              }}
-            />
-            <TextField
-              label={t('search.fields.subject')}
-              placeholder={t('search.hints.subject')}
-              value={fields.subject}
-              onChange={handleText('subject')}
-              margin="dense"
-              slotProps={{
-                htmlInput: { 'data-testid': 'advanced-search-subject-input' }
-              }}
-            />
-            <TextField
-              label={t('search.fields.text')}
-              placeholder={t('search.hints.words')}
-              value={fields.text}
-              onChange={handleText('text')}
-              margin="dense"
-              slotProps={{
-                htmlInput: { 'data-testid': 'advanced-search-text-input' }
-              }}
-            />
-            <TextField
-              label={t('search.fields.notWords')}
-              placeholder={t('search.wordsHint')}
-              value={fields.notWords}
-              onChange={handleText('notWords')}
-              margin="dense"
-              slotProps={{
-                htmlInput: { 'data-testid': 'advanced-search-not-words-input' }
-              }}
-            />
-            <TextField
-              select
-              label={t('search.fields.folder')}
-              value={scopeValue(draft)}
-              onChange={event => {
-                setDraft({ ...draft, scope: toScope(event.target.value) })
-              }}
-              margin="dense"
-              slotProps={{
-                select: { native: true },
-                // A native select always shows a value, even the empty one
-                // of the default folder: the label stays above it
-                inputLabel: { shrink: true },
-                htmlInput: { 'data-testid': 'advanced-search-folder-select' }
-              }}
-            >
-              <option value={SCOPE_DEFAULT}>{t('search.scope.default')}</option>
-              <option value={SCOPE_EVERYWHERE}>
-                {t('search.scope.everywhere')}
-              </option>
-              {mailboxes.map(mailbox => (
-                <option key={mailbox.id} value={mailbox.id}>
-                  {mailbox.label}
-                </option>
-              ))}
-            </TextField>
-            {labels.length > 0 ? (
-              <TextField
-                select
-                label={t('search.labels.label')}
-                value={draft.label ?? ''}
-                onChange={event => {
-                  setDraft({
-                    ...draft,
-                    label: event.target.value === '' ? null : event.target.value
-                  })
-                }}
-                margin="dense"
-                slotProps={{
-                  select: { native: true },
-                  inputLabel: { shrink: true },
-                  htmlInput: { 'data-testid': 'advanced-search-label-select' }
-                }}
-              >
-                <option value="">{t('search.labels.all')}</option>
-                {labels.map(label => (
-                  <option key={label.id} value={label.keyword}>
-                    {label.displayName}
-                  </option>
-                ))}
-              </TextField>
-            ) : null}
-            <TextField
-              select
-              label={t('search.fields.date')}
-              value={draft.dateRange}
-              onChange={event => {
-                const dateRange =
-                  DATE_RANGES.find(range => range === event.target.value) ??
-                  'allTime'
-                setDraft({ ...draft, dateRange })
-              }}
-              margin="dense"
-              slotProps={{
-                select: { native: true },
-                // A native select always shows a value, even the empty one
-                // of the default folder: the label stays above it
-                inputLabel: { shrink: true },
-                htmlInput: { 'data-testid': 'advanced-search-date-select' }
-              }}
-            >
-              {DATE_RANGES.map(range => (
-                <option key={range} value={range}>
-                  {t(DATE_LABELS[range])}
-                </option>
-              ))}
-            </TextField>
-            {draft.dateRange === 'custom' ? (
-              <Box className="u-flex u-flex-wrap">
-                <TextField
-                  type="date"
-                  label={t('search.fields.startDate')}
-                  value={draft.startDate ?? ''}
-                  onChange={event => {
-                    setDraft({
-                      ...draft,
-                      startDate: event.target.value || null
-                    })
-                  }}
-                  margin="dense"
-                  className="u-mr-1"
-                  slotProps={{
-                    inputLabel: { shrink: true },
-                    htmlInput: {
-                      'data-testid': 'advanced-search-start-date-input'
-                    }
-                  }}
-                />
-                <TextField
-                  type="date"
-                  label={t('search.fields.endDate')}
-                  value={draft.endDate ?? ''}
-                  onChange={event => {
-                    setDraft({ ...draft, endDate: event.target.value || null })
-                  }}
-                  margin="dense"
-                  slotProps={{
-                    inputLabel: { shrink: true },
-                    htmlInput: {
-                      'data-testid': 'advanced-search-end-date-input'
-                    }
-                  }}
-                />
-              </Box>
-            ) : null}
-            <TextField
-              select
-              label={t('search.fields.sort')}
-              value={draft.sort}
-              onChange={event => {
-                const sort =
-                  SORT_ORDERS.find(order => order === event.target.value) ??
-                  draft.sort
-                setDraft({ ...draft, sort })
-              }}
-              margin="dense"
-              slotProps={{
-                select: { native: true },
-                // A native select always shows a value, even the empty one
-                // of the default folder: the label stays above it
-                inputLabel: { shrink: true },
-                htmlInput: { 'data-testid': 'advanced-search-sort-select' }
-              }}
-            >
-              {SORT_ORDERS.map(order => (
-                <option key={order} value={order}>
-                  {t(SORT_LABELS[order])}
-                </option>
-              ))}
-            </TextField>
-            <FormControlLabel
-              label={t('search.filters.hasAttachment')}
-              control={
-                <Checkbox
-                  checked={draft.hasAttachment}
-                  onChange={event => {
-                    setDraft({ ...draft, hasAttachment: event.target.checked })
-                  }}
-                />
-              }
-            />
-            <FormControlLabel
-              label={t('search.filters.unread')}
-              control={
-                <Checkbox
-                  checked={draft.unread}
-                  onChange={event => {
-                    setDraft({ ...draft, unread: event.target.checked })
-                  }}
-                />
-              }
-            />
-            <FormControlLabel
-              label={t('search.filters.starred')}
-              control={
-                <Checkbox
-                  checked={draft.starred}
-                  onChange={event => {
-                    setDraft({ ...draft, starred: event.target.checked })
-                  }}
-                />
-              }
-            />
-          </Box>
-        </DialogContent>
+          {clearButton}
+        </Box>
+        <DialogContent>{rows}</DialogContent>
         <DialogActions>
-          {isPhone ? null : clearButton}
           {/* Full screen on a phone: no backdrop nor Escape key to close it */}
           <Button
             variant="outlined"
@@ -398,13 +458,7 @@ export function AdvancedSearchDialog({
           >
             {t('common.cancel')}
           </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            data-testid="advanced-search-submit-button"
-          >
-            {t('search.submit')}
-          </Button>
+          {submitButton}
         </DialogActions>
       </form>
     </Dialog>

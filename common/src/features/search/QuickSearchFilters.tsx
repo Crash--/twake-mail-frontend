@@ -1,9 +1,15 @@
+import {
+  Account,
+  Attachment,
+  Calendar,
+  StarOutline
+} from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { FilterChip } from './FilterChip'
 import type { SearchFilter } from './searchFilter'
 
 export interface QuickSearchFiltersProps {
@@ -40,6 +46,7 @@ export function QuickSearchFilters({
       <span className="u-mr-half u-mb-half">
         <FilterChip
           label={t('search.filters.hasAttachment')}
+          icon={Attachment}
           isSelected={filter.hasAttachment}
           keepFocus
           onClick={() => {
@@ -51,6 +58,7 @@ export function QuickSearchFilters({
       <span className="u-mr-half u-mb-half">
         <FilterChip
           label={t('search.dates.last7Days')}
+          icon={Calendar}
           isSelected={isLast7Days}
           keepFocus
           onClick={() => {
@@ -67,6 +75,7 @@ export function QuickSearchFilters({
       <span className="u-mr-half u-mb-half">
         <FilterChip
           label={t('search.filters.fromMe')}
+          icon={Account}
           isSelected={isFromMe}
           keepFocus
           onClick={() => {
@@ -83,6 +92,7 @@ export function QuickSearchFilters({
       <span className="u-mr-half u-mb-half">
         <FilterChip
           label={t('search.filters.starred')}
+          icon={StarOutline}
           isSelected={filter.starred}
           keepFocus
           onClick={() => {

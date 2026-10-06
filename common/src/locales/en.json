@@ -511,7 +511,8 @@
       "hasAttachment": "Has attachment",
       "fromMe": "From me",
       "starred": "Starred",
-      "unread": "Unread"
+      "unread": "Unread",
+      "notIncludeEvents": "Don't include events"
     },
     "dates": {
       "last7Days": "Last 7 days",
@@ -544,6 +545,7 @@
       "subject": "Enter a subject",
       "words": "Enter some suggestions"
     },
+    "addFilter": "Add",
     "clearFilter": "Clear filter",
     "advanced": "Advanced search",
     "sort": {

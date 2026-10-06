@@ -511,7 +511,8 @@
       "hasAttachment": "Avec pièce jointe",
       "fromMe": "De moi",
       "starred": "Favoris",
-      "unread": "Non lu"
+      "unread": "Non lu",
+      "notIncludeEvents": "Exclure les événements"
     },
     "dates": {
       "last7Days": "Les 7 derniers jours",
@@ -544,6 +545,7 @@
       "subject": "Entrer un sujet",
       "words": "Entrez quelques mots"
     },
+    "addFilter": "Ajouter",
     "clearFilter": "Effacer les filtres",
     "advanced": "Recherche avancée",
     "sort": {

@@ -238,4 +238,37 @@ describe('SearchCombobox', () => {
     expect(input).not.toHaveAttribute('aria-activedescendant')
     expect(screen.getByRole('status')).toHaveTextContent('Only filters')
   })
+
+  it('keeps the name of a group whose heading is hidden, and hides the end of a row', async () => {
+    renderDs(
+      <SearchCombobox
+        value="re"
+        onChange={jest.fn()}
+        onSubmit={jest.fn()}
+        onSelect={jest.fn()}
+        groups={[
+          {
+            id: 'emails',
+            label: 'Messages',
+            isLabelHidden: true,
+            options: [
+              { id: 'e1', label: 'Quarterly report', end: <span>Jun 29</span> }
+            ]
+          }
+        ]}
+        label="Search emails"
+        listLabel="Suggestions"
+        clearLabel="Clear search"
+      />
+    )
+    await userEvent.click(
+      screen.getByRole('combobox', { name: 'Search emails' })
+    )
+
+    expect(screen.getByRole('group', { name: 'Messages' })).toBeInTheDocument()
+    expect(screen.getByText('Messages')).toHaveClass('u-visuallyhidden')
+    expect(
+      screen.getByRole('option', { name: 'Quarterly report' })
+    ).toBeInTheDocument()
+  })
 })

@@ -2,6 +2,8 @@
 export const SEEN = '$seen'
 export const FLAGGED = '$flagged'
 export const DRAFT = '$draft'
+/** Set on the emails carrying a calendar invitation */
+export const EVENT = 'event'
 /** Set by the server's AI on the emails that need an answer or a task */
 export const NEEDS_ACTION = 'needs-action'
 /** Set once the user unsubscribed from the mailing list of the email */

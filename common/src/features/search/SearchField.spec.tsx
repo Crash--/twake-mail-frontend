@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { useLocation } from 'react-router'
@@ -245,7 +245,7 @@ describe('SearchField', () => {
     )
   })
 
-  it('closes the advanced search without searching on Cancel', async () => {
+  it('closes the advanced search without searching on Escape', async () => {
     await renderField(makeServer())
     await userEvent.click(combobox())
     await userEvent.click(
@@ -257,11 +257,11 @@ describe('SearchField', () => {
       'All email'
     )
 
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Cancel' })
-    )
+    await userEvent.keyboard('{Escape}')
 
-    expect(screen.queryByRole('dialog')).toBe(null)
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
     expect(screen.getByTestId('location')).toHaveTextContent(
       '/mailbox/mailbox-inbox'
     )

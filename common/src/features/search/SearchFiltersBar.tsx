@@ -1,9 +1,32 @@
-import { Box, Button, Chip, Menu, MenuItem } from '@linagora/twake-mui'
-import { useState, type MouseEvent, type ReactElement } from 'react'
+import {
+  Account,
+  Attachment,
+  Calendar,
+  CalendarToday,
+  Email,
+  FolderOutlined,
+  LabelOutlined,
+  StarOutline
+} from '@linagora/twake-icons'
+import {
+  Box,
+  Button,
+  Menu,
+  MenuItem,
+  Popover,
+  TextField
+} from '@linagora/twake-mui'
+import {
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type ReactElement
+} from 'react'
 
+import { FilterChip } from '@/ds/FilterChip/FilterChip'
+import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { FilterChip } from './FilterChip'
 import {
   DATE_RANGES,
   DEFAULT_SORT_ORDER,
@@ -16,13 +39,19 @@ import { DATE_LABELS, SORT_LABELS } from './searchLabels'
 import { storeSortOrder } from './searchStorage'
 import { useMailboxOptions } from './useMailboxOptions'
 
-type MenuName = 'folder' | 'date' | 'sort'
+type MenuName = 'folder' | 'labels' | 'date' | 'sort'
+type AddressField = 'from' | 'to'
 
 interface MenuChoice {
   key: string
   label: string
   isSelected: boolean
   apply: () => void
+}
+
+/** A chip and the space around it, for when the bar wraps */
+function Slot({ children }: { children: ReactElement }): ReactElement {
+  return <span className="u-mr-half u-mb-half">{children}</span>
 }
 
 export interface SearchFiltersBarProps {
@@ -43,6 +72,14 @@ export function SearchFiltersBar({
 }: SearchFiltersBarProps): ReactElement {
   const { t } = useI18n()
   const mailboxes = useMailboxOptions()
+  const labelsAvailable = useLabelsAvailable()
+  const labelList = useLabels().data?.list
+  const labels = labelsAvailable ? (labelList ?? []) : []
+  const [address, setAddress] = useState<{
+    field: AddressField
+    anchor: HTMLElement
+    value: string
+  } | null>(null)
   const [menu, setMenu] = useState<{
     name: MenuName
     anchor: HTMLElement
@@ -108,6 +145,25 @@ export function SearchFiltersBar({
                 ...filter,
                 scope: { kind: 'mailbox', mailboxId: mailbox.id }
               })
+            }
+          }))
+        ]
+      case 'labels':
+        return [
+          {
+            key: 'all',
+            label: t('search.labels.all'),
+            isSelected: filter.label === null,
+            apply: () => {
+              onChange({ ...filter, label: null })
+            }
+          },
+          ...labels.map(label => ({
+            key: label.id,
+            label: label.displayName,
+            isSelected: filter.label === label.keyword,
+            apply: () => {
+              onChange({ ...filter, label: label.keyword })
             }
           }))
         ]
@@ -181,6 +237,23 @@ export function SearchFiltersBar({
         ])
   ]
 
+  const labelName =
+    labels.find(label => label.keyword === filter.label)?.displayName ??
+    t('search.labels.all')
+
+  const handleAddress = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault()
+    if (address === null) return
+    const value = address.value.trim()
+    if (value !== '' && !filter[address.field].includes(value)) {
+      onChange({
+        ...filter,
+        [address.field]: [...filter[address.field], value]
+      })
+    }
+    setAddress(null)
+  }
+
   const canClear = !isEmptySearch(filter) || filter.sort !== DEFAULT_SORT_ORDER
 
   return (
@@ -190,69 +263,112 @@ export function SearchFiltersBar({
       className="u-flex u-flex-auto u-flex-wrap u-flex-items-center"
       data-testid="search-filters-bar"
     >
-      <span className="u-mr-half u-mb-half">
+      <Slot>
         <FilterChip
           label={scopeLabel}
+          icon={FolderOutlined}
           isSelected={scope.kind !== 'default'}
           hasMenu
           isExpanded={menu?.name === 'folder'}
           onClick={openMenu('folder')}
           data-testid="search-filter-folder"
         />
-      </span>
+      </Slot>
+      {labelsAvailable ? (
+        <Slot>
+          <FilterChip
+            label={labelName}
+            icon={LabelOutlined}
+            isSelected={filter.label !== null}
+            hasMenu
+            isExpanded={menu?.name === 'labels'}
+            onClick={openMenu('labels')}
+            data-testid="search-filter-labels"
+          />
+        </Slot>
+      ) : null}
+      {(['from', 'to'] as const).map(field => (
+        <Slot key={field}>
+          <FilterChip
+            label={t(`search.fields.${field}`)}
+            icon={Account}
+            isSelected={filter[field].length > 0}
+            hasMenu
+            isExpanded={address?.field === field}
+            onClick={event => {
+              setAddress({ field, anchor: event.currentTarget, value: '' })
+            }}
+            data-testid={`search-filter-${field}`}
+          />
+        </Slot>
+      ))}
       {removable.map(item => (
-        <span key={item.key} className="u-mr-half u-mb-half">
-          <Chip
+        <Slot key={item.key}>
+          <FilterChip
             label={item.label}
-            color="primary"
+            isSelected
             onClick={item.remove}
-            onDelete={item.remove}
             aria-label={t('search.removeFilter', { name: item.label })}
             data-testid="search-filter-removable"
           />
-        </span>
+        </Slot>
       ))}
-      <span className="u-mr-half u-mb-half">
+      <Slot>
         <FilterChip
           label={dateLabel}
+          icon={Calendar}
           isSelected={filter.dateRange !== 'allTime'}
           hasMenu
           isExpanded={menu?.name === 'date'}
           onClick={openMenu('date')}
           data-testid="search-filter-date-time"
         />
-      </span>
-      <span className="u-mr-half u-mb-half">
+      </Slot>
+      <Slot>
         <FilterChip
           label={t('search.filters.hasAttachment')}
+          icon={Attachment}
           isSelected={filter.hasAttachment}
           onClick={() => {
             onChange({ ...filter, hasAttachment: !filter.hasAttachment })
           }}
           data-testid="search-filter-has-attachment"
         />
-      </span>
-      <span className="u-mr-half u-mb-half">
+      </Slot>
+      <Slot>
         <FilterChip
           label={t('search.filters.starred')}
+          icon={StarOutline}
           isSelected={filter.starred}
           onClick={() => {
             onChange({ ...filter, starred: !filter.starred })
           }}
           data-testid="search-filter-starred"
         />
-      </span>
-      <span className="u-mr-half u-mb-half">
+      </Slot>
+      <Slot>
         <FilterChip
           label={t('search.filters.unread')}
+          icon={Email}
           isSelected={filter.unread}
           onClick={() => {
             onChange({ ...filter, unread: !filter.unread })
           }}
           data-testid="search-filter-unread"
         />
-      </span>
-      <span className="u-mr-half u-mb-half">
+      </Slot>
+      <Slot>
+        <FilterChip
+          label={t('search.filters.notIncludeEvents')}
+          icon={CalendarToday}
+          isSelected={filter.notIncludeEvents}
+          onClick={() => {
+            onChange({ ...filter, notIncludeEvents: !filter.notIncludeEvents })
+          }}
+          data-testid="search-filter-not-include-events"
+        />
+      </Slot>
+      <Slot>
         <FilterChip
           label={t(SORT_LABELS[filter.sort])}
           isSelected={filter.sort !== DEFAULT_SORT_ORDER}
@@ -261,7 +377,7 @@ export function SearchFiltersBar({
           onClick={openMenu('sort')}
           data-testid="search-filter-sort-by"
         />
-      </span>
+      </Slot>
       {canClear ? (
         <Button
           variant="text"
@@ -275,6 +391,46 @@ export function SearchFiltersBar({
           {t('search.clearFilter')}
         </Button>
       ) : null}
+      <Popover
+        open={address !== null}
+        anchorEl={address?.anchor ?? null}
+        onClose={() => {
+          setAddress(null)
+        }}
+        data-testid="search-filter-address-popover"
+      >
+        {address === null ? null : (
+          <Box
+            component="form"
+            className="u-flex u-flex-items-center u-p-1"
+            onSubmit={handleAddress}
+          >
+            <TextField
+              autoFocus
+              size="small"
+              label={t(`search.fields.${address.field}`)}
+              placeholder={t('search.hints.address')}
+              value={address.value}
+              onChange={event => {
+                setAddress({ ...address, value: event.target.value })
+              }}
+              slotProps={{
+                htmlInput: { 'data-testid': 'search-filter-address-input' }
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              size="small"
+              className="u-ml-half"
+              disabled={address.value.trim() === ''}
+              data-testid="search-filter-address-add-button"
+            >
+              {t('search.addFilter')}
+            </Button>
+          </Box>
+        )}
+      </Popover>
       <Menu
         open={menu !== null}
         anchorEl={menu?.anchor ?? null}

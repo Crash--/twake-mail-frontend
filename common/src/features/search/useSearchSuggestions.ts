@@ -22,7 +22,7 @@ import {
   type SearchContext,
   type SearchFilter
 } from './searchFilter'
-import { readRecentSearches } from './searchStorage'
+import { readRecentSearchEntries, type RecentSearch } from './searchStorage'
 
 /** Pause in the typing before the suggestions are fetched */
 export const SUGGESTION_DELAY_MS = 300
@@ -37,7 +37,7 @@ export interface EmailSuggestion {
 
 export interface SearchSuggestions {
   /** Recent searches containing the text (all of them for an empty text) */
-  recent: string[]
+  recent: RecentSearch[]
   contacts: TMailContact[]
   emails: EmailSuggestion[]
   isLoading: boolean
@@ -105,8 +105,8 @@ export function useSearchSuggestions(
   const recent = useMemo(() => {
     const needle = typed.trim().toLowerCase()
     return isOpen
-      ? readRecentSearches(accountId).filter(item =>
-          item.toLowerCase().includes(needle)
+      ? readRecentSearchEntries(accountId).filter(item =>
+          item.text.toLowerCase().includes(needle)
         )
       : []
   }, [isOpen, typed, accountId])

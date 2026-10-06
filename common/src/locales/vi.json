@@ -511,7 +511,8 @@
       "hasAttachment": "Đính kèm",
       "fromMe": "Từ tôi",
       "starred": "Quan trọng",
-      "unread": "Chưa đọc"
+      "unread": "Chưa đọc",
+      "notIncludeEvents": "Không bao gồm các sự kiện"
     },
     "dates": {
       "last7Days": "7 ngày gần đây",
@@ -544,6 +545,7 @@
       "subject": "Điền tiêu đề",
       "words": "Nhập một số gợi ý"
     },
+    "addFilter": "Thêm",
     "clearFilter": "Xoá bộ lọc",
     "advanced": "Bộ lọc nâng cao",
     "sort": {

@@ -5,10 +5,10 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, Ref } from 'react'
 
-/** Widest the search grows, as in the design */
-const SEARCH_MAX_WIDTH = 820
+/** The search is 700 px wide in the design, less when the room is short */
+const SEARCH_WIDTH = 700
 const ROW_SX = { px: 2, pt: 1.5, pb: 1 } as const
-const SEARCH_SX = { flex: '1 1 auto', maxWidth: SEARCH_MAX_WIDTH } as const
+const SEARCH_SX = { flex: `0 1 ${SEARCH_WIDTH}px`, minWidth: 0 } as const
 
 export interface SearchRowProps {
   /** The search field, e.g. a `SearchCombobox` */
@@ -21,7 +21,7 @@ export interface SearchRowProps {
 }
 
 /**
- * The row at the top of the page: the search grows up to 820 px at the
+ * The row at the top of the page: the search is 700 px wide at the
  * start, the actions stay at the far end.
  */
 export function SearchRow({

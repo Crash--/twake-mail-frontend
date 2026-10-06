@@ -195,6 +195,8 @@ export interface EmailListSearch {
   openEmailId: string | null
   /** Shown when nothing matches */
   empty: ReactElement
+  /** At the end of the list toolbar: the order of the results */
+  toolbarEnd?: ReactElement
   /**
    * Title of the page and name of the table, "Search results" by default
    * (a virtual folder such as Starred has its own)
@@ -687,6 +689,7 @@ export function EmailList(props: EmailListProps): ReactElement {
             loadedCount={emails.length}
             mailbox={mailbox}
             filter={filterInToolbar ? listToolbarFilter : null}
+            end={search?.toolbarEnd}
             isRefreshing={isRefreshing}
             onRefresh={handleRefresh}
           />

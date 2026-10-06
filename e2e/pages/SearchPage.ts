@@ -6,7 +6,7 @@ import { EmailPage } from './EmailPage'
 export type QuickSearchFilter =
   'has-attachment' | 'last-7-days' | 'from-me' | 'starred'
 
-/** The filters above the results */
+/** The filters above the results (`sort-by` is the order button of the list toolbar) */
 export type SearchFilterChip =
   | 'folder'
   | 'labels'

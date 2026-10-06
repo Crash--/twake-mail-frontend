@@ -159,7 +159,7 @@ Conventions:
 | `search-page` / `search-results` | the results screen (`/search?…`) and its list pane | — |
 | `search-results-title` / `search-results-back-button` | its heading (focused when it opens) and back to the mailboxes | `search_email_back_button` |
 | `search-filters-bar` | the filters above the results (`role="toolbar"`) | — |
-| `search-filter-<filter>` (`folder`, `date-time`, `has-attachment`, `starred`, `unread`, `sort-by`) | a filter (`aria-pressed`, or `aria-haspopup="menu"` for folder, date and order) | `<filter>_search_filter_button`, `sortBy_search_filter_button` |
+| `search-filter-<filter>` (`folder`, `date-time`, `has-attachment`, `starred`, `unread`; `sort-by` is the order button at the end of the list toolbar, not in the row) | a filter (`aria-pressed`, or `aria-haspopup="menu"` for folder, date and order) | `<filter>_search_filter_button`, `sortBy_search_filter_button` |
 | `search-filter-menu` | the menu of a filter (`menuitemradio` items) | — |
 | `search-filter-removable` | a sender, recipient, subject or excluded words filter, removed on click | — |
 | `search-clear-filter-button` | "Clear filter" | `clear_filter_button` |

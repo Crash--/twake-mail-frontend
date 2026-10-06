@@ -1,4 +1,4 @@
-import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
+import { expect, test, type Browser, type BrowserContext, type Locator, type Page } from '@playwright/test'
 
 import { INSTRUMENT_SCRIPT, RUNS, login, readMarks, readPerfUser, report, resetMarks, type PageMarks } from './support'
 
@@ -23,6 +23,23 @@ async function newPage(
     window.localStorage.setItem('twake-mail.preferences.thread', 'false')
   })
   return { context, page: await context.newPage() }
+}
+
+/**
+ * The 3rd read email of the list. PERF-01 and PERF-02 push unread emails to the top of the
+ * Inbox, and on a phone only about 11 rows are rendered: the list is scrolled (outside the
+ * measure) until enough read rows are in the DOM.
+ */
+async function findReadRow(page: Page, index: number): Promise<Locator> {
+  const rows = page.locator(`${LIST_ROW}:not([data-unread])`)
+  const box = await page.locator(LIST_ROW).first().boundingBox()
+  if (box === null) throw new Error('No list row')
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await expect(async () => {
+    if ((await rows.count()) <= index) await page.mouse.wheel(0, 200)
+    expect(await rows.count()).toBeGreaterThan(index)
+  }).toPass()
+  return rows.nth(index)
 }
 
 function since(marks: PageMarks, mark: number | null, name: string): number {
@@ -52,7 +69,7 @@ test.describe('PERF opening an email', () => {
           await expect(page.locator(LIST_ROW).first()).toBeVisible()
 
           // A read email (an unread one would be marked read: see the README quirks)
-          const row = page.locator(`${LIST_ROW}:not([data-unread])`).nth(2)
+          const row = await findReadRow(page, 2)
           await expect(row).toBeVisible()
           await resetMarks(page)
           const transitionsBefore = (await readMarks(page)).transitions

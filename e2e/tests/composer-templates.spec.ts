@@ -39,6 +39,25 @@ async function readTemplates(jmap: JmapClient): Promise<Template[]> {
   return (got?.[1].list ?? []) as Template[]
 }
 
+/**
+ * The Templates folder once it holds `count` emails. An update creates the new version, then
+ * destroys the previous one; tmail-backend (memory) goes on listing and returning a destroyed
+ * email for a moment after `Email/set` answered that it is gone (the next read no longer has it)
+ */
+async function readTemplatesSettled(
+  jmap: JmapClient,
+  count: number
+): Promise<Template[]> {
+  let templates: Template[] = []
+  await expect
+    .poll(async () => {
+      templates = await readTemplates(jmap)
+      return templates.map(template => template.subject)
+    })
+    .toHaveLength(count)
+  return templates
+}
+
 /** Saves the message as a template, and says which toast came */
 async function saveAsTemplate(
   composer: ComposerPage,
@@ -91,7 +110,7 @@ test.describe('CMP composer: templates and mailto links', () => {
 
     await expect(mailbox.emailRow('test subject updated')).toBeVisible()
     await expect(mailbox.emailRow('test subject')).toBeHidden()
-    const templates = await readTemplates(jmap)
+    const templates = await readTemplatesSettled(jmap, 1)
     expect(templates.map(template => template.subject)).toEqual([
       'test subject updated'
     ])
@@ -137,8 +156,7 @@ test.describe('CMP composer: templates and mailto links', () => {
         await saveAsTemplate(composer, mailbox, 'updated')
       }
 
-      const [template, ...others] = await readTemplates(jmap)
-      expect(others).toEqual([])
+      const [template] = await readTemplatesSettled(jmap, 1)
       expect(template?.subject).toBe(`${subject} edited again`)
       expect(template?.attachments.map(part => part.name)).toEqual([file.name])
       // An inline image keeps its Content-ID, a file has none

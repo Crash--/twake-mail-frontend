@@ -316,3 +316,74 @@ test.describe('OFF offline banner', () => {
     await expect(loading.networkAnnouncement).toBeEmpty()
   })
 })
+
+test.describe('LOAD in the facade of a team mailbox', () => {
+  test('LOAD-06 framed, the facade shows the list skeleton without a sidebar, and the offline banner above its floating button', { tag: '@mobile' }, async ({
+    page,
+    context,
+    user,
+    users,
+    jmap,
+    webadmin
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    const teamInbox = (await jmap.getMailboxes()).find(
+      mailbox =>
+        mailbox.namespace === `TeamMailbox[${team.email}]` &&
+        mailbox.name === 'INBOX'
+    )
+    if (teamInbox === undefined) throw new Error('No INBOX in the team mailbox')
+    await jmap.createEmailIn(teamInbox.id, { subject: 'For the whole team' })
+    const [, domain = ''] = team.email.split('@')
+    const root = (
+      await webadmin.listTeamMailboxFolders(domain, team.name)
+    ).find(folder => folder.mailboxName === team.name)
+    if (root === undefined) throw new Error(`No root for ${team.email}`)
+    const host = '/space-host'
+    await page.route(`**${host}`, route =>
+      route.fulfill({
+        contentType: 'text/html',
+        body: `<!doctype html><html lang="en"><head><title>Space</title></head><body style="margin:0"><iframe src="/embed/team-mailboxes/${root.mailboxId}" title="Mail" style="display:block;border:0;width:100vw;height:100vh"></iframe></body></html>`
+      })
+    )
+    await page.goto(host)
+    const frame = page.frameLocator('iframe')
+    const scope = page.frames().find(candidate => candidate !== page.mainFrame())
+    if (scope === undefined) throw new Error('The facade did not load')
+    const gate = await holdJmapMethods(page, ['Email/query'])
+    await scope.getByTestId('login-username-input').fill(user.email)
+    await scope.getByTestId('login-password-input').fill(user.password)
+    await scope.getByTestId('login-submit-button').click()
+
+    await expect(frame.getByTestId('email-list-loading')).toBeVisible()
+    await expect(frame.getByTestId('email-list-loading')).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
+    await expect(frame.getByTestId('loading-announcement')).toHaveText(/Loading/)
+    await expect(frame.getByTestId('sidebar')).toBeHidden()
+    const skeleton = await frame
+      .getByTestId('email-list-loading')
+      .locator('tbody tr')
+      .first()
+      .boundingBox()
+
+    gate.release()
+    const row = frame.getByTestId('email-list-item').first()
+    await expect(row).toBeVisible()
+    const real = await row.boundingBox()
+    expect(Math.abs((real?.y ?? 0) - (skeleton?.y ?? 99))).toBeLessThanOrEqual(1)
+
+    await context.setOffline(true)
+    const banner = frame.getByTestId('offline-banner')
+    await expect(banner).toBeVisible()
+    const bannerBox = await banner.boundingBox()
+    const fabBox = await frame.getByTestId('compose-email-button').boundingBox()
+    // Above the floating button, not under it
+    expect((bannerBox?.y ?? 0) + (bannerBox?.height ?? 0)).toBeLessThanOrEqual(
+      (fabBox?.y ?? 0) + 1
+    )
+    await context.setOffline(false)
+    await expect(banner).toBeHidden()
+  })
+})

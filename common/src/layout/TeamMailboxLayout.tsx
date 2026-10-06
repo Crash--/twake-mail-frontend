@@ -11,6 +11,7 @@ import {
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useComposer } from '@common/features/composer/ComposerProvider'
+import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync'
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
@@ -62,6 +63,7 @@ function TeamMailboxFrame(): ReactElement {
       <TouchTargets />
       <ServerLanguageSync />
       <SentryReportingSync />
+      <OfflineNotice hasFloatingAction />
       <Box className="u-flex u-flex-auto u-ov-hidden">
         <FlatMain>
           <FlatContent data-testid="main-content">

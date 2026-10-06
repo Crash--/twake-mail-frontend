@@ -101,7 +101,7 @@ export function MailboxSearch({
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (event.key === 'ArrowDown') {
       const first = panelRef.current?.querySelector<HTMLElement>(
-        '[data-testid="mailbox-search-results"] a'
+        '[data-testid="mailbox-search-results"] [role="treeitem"]'
       )
       if (first) {
         event.preventDefault()

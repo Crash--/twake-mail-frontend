@@ -228,7 +228,7 @@ describe('MailboxTree', () => {
     await screen.findAllByTestId('mailbox-item')
 
     act(() => {
-      within(folder('Work')).getByRole('link').focus()
+      folder('Work').focus()
     })
     await userEvent.tab()
     expect(
@@ -249,10 +249,121 @@ describe('MailboxTree', () => {
       name: 'Actions on Sent'
     })
     act(() => {
-      within(folder('Sent')).getByRole('link').focus()
+      folder('Sent').focus()
     })
     await userEvent.tab()
     expect(more).toHaveFocus()
+  })
+
+  describe('keyboard', () => {
+    it('has one tab stop per tree: the selected folder, else the first', async () => {
+      renderTree('/mailbox/mailbox-sent')
+      await screen.findAllByTestId('mailbox-item')
+
+      const stops = screen
+        .getAllByRole('treeitem')
+        .filter(item => item.getAttribute('tabindex') === '0')
+      expect(stops.map(stop => stop.textContent)).toEqual([
+        expect.stringContaining('Sent'),
+        expect.stringContaining('Work')
+      ])
+      // The links are for the pointer, the buttons of the other rows are out
+      expect(within(folder('Inbox')).getByRole('link')).toHaveAttribute(
+        'tabindex',
+        '-1'
+      )
+      expect(
+        within(folder('Drafts')).getByRole('button', {
+          name: 'Actions on Drafts'
+        })
+      ).toHaveAttribute('tabindex', '-1')
+    })
+
+    it('goes down and up the visible folders, Starred after the Inbox subtree', async () => {
+      renderTree('/mailbox/news', 'en', [
+        makeMailbox({ id: 'news', name: 'News', parentId: 'mailbox-inbox' })
+      ])
+      await screen.findAllByTestId('mailbox-item')
+      act(() => {
+        folder('Inbox').focus()
+      })
+
+      await userEvent.keyboard('{ArrowDown}')
+      expect(folder('News')).toHaveFocus()
+      await userEvent.keyboard('{ArrowDown}')
+      expect(folder('Starred')).toHaveFocus()
+      await userEvent.keyboard('{ArrowUp}{ArrowUp}')
+      expect(folder('Inbox')).toHaveFocus()
+      await userEvent.keyboard('{End}')
+      expect(folder('Spam')).toHaveFocus()
+      await userEvent.keyboard('{Home}')
+      expect(folder('Inbox')).toHaveFocus()
+    })
+
+    it('expands with ArrowRight, goes to the first child, then back to the parent', async () => {
+      renderTree()
+      await screen.findAllByTestId('mailbox-item')
+      act(() => {
+        folder('Work').focus()
+      })
+
+      await userEvent.keyboard('{ArrowRight}')
+      expect(folder('Work')).toHaveAttribute('aria-expanded', 'true')
+      expect(folder('Work')).toHaveFocus()
+      await userEvent.keyboard('{ArrowRight}')
+      expect(folder('Clients')).toHaveFocus()
+      expect(folder('Clients')).toHaveAttribute('aria-level', '2')
+      expect(folder('Clients')).toHaveAttribute('aria-posinset', '1')
+      expect(folder('Clients')).toHaveAttribute('aria-setsize', '1')
+      await userEvent.keyboard('{ArrowLeft}')
+      expect(folder('Work')).toHaveFocus()
+      await userEvent.keyboard('{ArrowLeft}')
+      expect(folder('Work')).toHaveAttribute('aria-expanded', 'false')
+      expect(folderNames()).not.toContain('Clients')
+    })
+
+    it('opens the folder with Enter', async () => {
+      renderTree()
+      await screen.findAllByTestId('mailbox-item')
+      act(() => {
+        folder('Sent').focus()
+      })
+
+      await userEvent.keyboard('{Enter}')
+
+      expect(folder('Sent')).toHaveAttribute('aria-current', 'page')
+      expect(folder('Sent')).toHaveAttribute('aria-selected', 'true')
+      expect(folder('Inbox')).toHaveAttribute('aria-selected', 'false')
+    })
+
+    it('opens the menu of the focused folder with Shift+F10 and the menu key', async () => {
+      renderTree()
+      await screen.findAllByTestId('mailbox-item')
+      act(() => {
+        folder('Sent').focus()
+      })
+
+      await userEvent.keyboard('{Shift>}{F10}{/Shift}')
+
+      expect(await screen.findByRole('menu')).toBeVisible()
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() => {
+        expect(screen.queryByRole('menu')).toBe(null)
+      })
+      expect(folder('Sent')).toHaveFocus()
+
+      await userEvent.keyboard('{ContextMenu}')
+      expect(await screen.findByRole('menu')).toBeVisible()
+    })
+
+    it('names a folder by its link, not by the buttons of the row', async () => {
+      renderTree()
+      await screen.findAllByTestId('mailbox-item')
+
+      expect(
+        screen.getByRole('treeitem', { name: 'Work 4' })
+      ).toBeInTheDocument()
+    })
   })
 
   it('says the unread count in the name of the link, the badge being decoration', async () => {

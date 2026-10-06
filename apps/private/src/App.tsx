@@ -5,6 +5,7 @@ import { createBrowserRouter, createRoutesFromElements } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { AlwaysFloatingAction } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { connectSpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
 import { WithoutTablets } from '@/ds/useScreenSize/useScreenSize'
 import { AppProviders } from '@common/app/AppProviders'
@@ -115,9 +116,15 @@ export function App({ config }: AppProps): ReactElement {
       </AppProviders>
     </AppConfigProvider>
   )
+  if (embed === null) return app
   // The facade is a desktop from 600 px: its frame is narrower than the
-  // screen of TwakeSpace, where a tablet layout would surprise
-  return embed === null ? app : <WithoutTablets>{app}</WithoutTablets>
+  // screen of TwakeSpace, where a tablet layout would surprise. Its "New
+  // message" button floats at every size: the toasts keep above it.
+  return (
+    <WithoutTablets>
+      <AlwaysFloatingAction>{app}</AlwaysFloatingAction>
+    </WithoutTablets>
+  )
 }
 
 function WebmailRouter({ config }: AppProps): ReactElement {

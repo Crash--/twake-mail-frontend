@@ -24,6 +24,7 @@
     "refresh": "Rafraîchir",
     "open": "Ouvrir",
     "offline": "Aucune connexion Internet",
+    "backOnline": "De nouveau en ligne",
     "dismiss": "Rejeter",
     "opensInNewTab": "s'ouvre dans un nouvel onglet"
   },

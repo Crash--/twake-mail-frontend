@@ -6,18 +6,21 @@ import { renderDs } from '@/ds/testing/renderDs'
 import { OfflineBanner } from './OfflineBanner'
 
 describe('OfflineBanner', () => {
-  it('announces the message as an alert', () => {
+  it('shows the message without being a live region of its own', () => {
     renderDs(
       <OfflineBanner
         message="No internet connection"
         dismissLabel="Dismiss"
         onDismiss={jest.fn()}
+        data-testid="banner"
       />
     )
 
-    expect(screen.getByRole('alert')).toHaveTextContent(
+    expect(screen.getByTestId('banner')).toHaveTextContent(
       'No internet connection'
     )
+    expect(screen.queryByRole('alert')).toBe(null)
+    expect(screen.queryByRole('status')).toBe(null)
   })
 
   it('hides itself through its button', async () => {

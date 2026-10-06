@@ -233,6 +233,44 @@ describe('PushProvider', () => {
     expect(countCalls(server, 'Email/query')).toBe(1)
   })
 
+  it('catches up what arrived offline when the browser is back, without a refetch', async () => {
+    const server = makeServer()
+    const { socket } = await renderWithPush(server)
+    const queriesBefore = countCalls(server, 'Email/query')
+    const requestsBefore = server.requests.length
+
+    // Offline for longer than the data stays fresh
+    act(() => {
+      window.dispatchEvent(new Event('offline'))
+    })
+    server.addEmail(
+      makeEmail({
+        id: 'offline-mail',
+        subject: 'Delivered offline',
+        receivedAt: '2026-10-05T08:00:00Z'
+      })
+    )
+    jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 10 * 60_000)
+    // The channel dropped with the network, and is not back yet
+    act(() => {
+      socket.drop()
+      window.dispatchEvent(new Event('online'))
+    })
+
+    expect(await screen.findByText('Delivered offline')).toBeVisible()
+    expect(countCalls(server, 'Email/changes')).toBeGreaterThan(0)
+    expect(countCalls(server, 'Email/query')).toBe(queriesBefore)
+    // The mailboxes changed are read by id: none of the whole list again
+    const wholeListReads = server.requests
+      .slice(requestsBefore)
+      .flatMap(request => request.methodCalls)
+      .filter(
+        ([name, args]) =>
+          name === 'Mailbox/get' && (args as { ids?: unknown }).ids === null
+      )
+    expect(wholeListReads).toHaveLength(0)
+  })
+
   it('updates the counters from the mailbox changes', async () => {
     const server = makeServer()
     const { socket } = await renderWithPush(server)

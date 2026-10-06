@@ -12,6 +12,7 @@ import {
   ComposerProvider,
   useComposer
 } from '@common/features/composer/ComposerProvider'
+import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
 import { ListFilterProvider } from '@common/features/thread/ListFilterProvider'
@@ -135,6 +136,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
     <Box className="u-flex u-flex-column u-h-100">
       <TouchTargets />
       <ServerLanguageSync />
+      <OfflineNotice />
       <SentryReportingSync />
       <TopBar apps={apps} onOpenFolders={handleOpenFolders} />
       {/* The top bar is in the flow, not fixed over the layout: no room to

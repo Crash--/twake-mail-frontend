@@ -80,18 +80,54 @@ export class LoadingPage {
     )
   }
 
+  /** What moved, for the message of a failed check (`watchLayoutShift`) */
+  async layoutShiftSources(): Promise<string> {
+    return this.page.evaluate(() =>
+      JSON.stringify((window as unknown as { __shifts: unknown[] }).__shifts)
+    )
+  }
+
   /** Starts adding up the layout shifts of the page (`layoutShift`) */
   async watchLayoutShift(): Promise<void> {
     await this.page.evaluate(() => {
-      const holder = window as unknown as { __cls: number }
+      const holder = window as unknown as { __cls: number; __shifts: unknown[] }
       holder.__cls = 0
+      holder.__shifts = []
       new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
           const shift = entry as PerformanceEntry & {
             value: number
             hadRecentInput: boolean
+            sources: {
+              node: Node | null
+              previousRect: DOMRectReadOnly
+              currentRect: DOMRectReadOnly
+            }[]
           }
-          if (!shift.hadRecentInput) holder.__cls += shift.value
+          if (shift.hadRecentInput) continue
+          // The room after the last row (a transparent `tfoot`) slides down
+          // while the table measures its rows: nothing to see moves
+          const isOnlySpacer = shift.sources.every(
+            source =>
+              source.node instanceof Element && source.node.tagName === 'TFOOT'
+          )
+          if (isOnlySpacer) continue
+          holder.__cls += shift.value
+          holder.__shifts.push({
+            value: shift.value,
+            at: Math.round(shift.startTime),
+            sources: shift.sources.map(source => {
+              const element =
+                source.node instanceof Element ? source.node : null
+              return {
+                node: element
+                  ? `${element.tagName.toLowerCase()}[${element.getAttribute('data-testid') ?? element.className}]`
+                  : null,
+                from: [source.previousRect.x, source.previousRect.y, source.previousRect.width, source.previousRect.height].map(Math.round),
+                to: [source.currentRect.x, source.currentRect.y, source.currentRect.width, source.currentRect.height].map(Math.round)
+              }
+            })
+          })
         }
       }).observe({ type: 'layout-shift', buffered: false })
     })

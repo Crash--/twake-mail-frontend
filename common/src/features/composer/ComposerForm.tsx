@@ -1112,6 +1112,19 @@ function LoadedComposerForm({
     if (picked.length > 0) files.addFiles(picked)
   }
 
+  /**
+   * The send check asked for recipients: the focus goes to the To field, not back to Send
+   * (the dialog gives it back once closed, hence the wait)
+   */
+  const focusRecipients = (): void => {
+    window.setTimeout(() => {
+      fileInputRef.current
+        ?.closest('[role="dialog"]')
+        ?.querySelector<HTMLInputElement>('input[role="combobox"]')
+        ?.focus()
+    }, 50)
+  }
+
   /** Whether the message can go: the checks of tmail-flutter, in its order */
   const checkBeforeSending = async (
     lists: RecipientLists
@@ -1123,6 +1136,7 @@ function LoadedComposerForm({
         confirmLabel: t('composer.sendChecks.addRecipients')
       })
       setIsCollapsed(false)
+      focusRecipients()
       return false
     }
     const all = [...lists.to, ...lists.cc, ...lists.bcc, ...lists.replyTo]
@@ -1133,6 +1147,7 @@ function LoadedComposerForm({
         confirmLabel: t('composer.sendChecks.fixAddresses')
       })
       setIsCollapsed(false)
+      focusRecipients()
       return false
     }
     if (files.isUploading) {

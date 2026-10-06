@@ -44,6 +44,7 @@ const LINE_SX = {
   alignItems: 'flex-start'
 } as const
 const CONTENT_SX = {
+  minWidth: 0,
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
@@ -55,6 +56,7 @@ const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
 /** Figma "Teammail 1.1" recipient chip: 32 px high, grey, rounded */
 export const RECIPIENT_CHIP_SX = {
   height: 32,
+  maxWidth: '100%',
   borderRadius: '10px',
   bgcolor: 'background.default',
   fontSize: 14,

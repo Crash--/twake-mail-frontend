@@ -323,7 +323,8 @@
       "replyTo": "Reply to",
       "from": "From",
       "subject": "Subject",
-      "hide": "Hide %{field}"
+      "hide": "Hide %{field}",
+      "more": "More recipient fields"
     },
     "window": {
       "minimize": "Minimize",

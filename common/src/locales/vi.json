@@ -323,7 +323,8 @@
       "replyTo": "Reply to",
       "from": "Từ",
       "subject": "Tiêu đề",
-      "hide": "Ẩn %{field}"
+      "hide": "Ẩn %{field}",
+      "more": "Các trường người nhận khác"
     },
     "window": {
       "minimize": "Thu nhỏ",

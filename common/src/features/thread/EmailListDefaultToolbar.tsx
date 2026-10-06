@@ -1,6 +1,6 @@
 import { Restore, RestoreStraight, SelectAll } from '@linagora/twake-icons'
 import { CircularProgress } from '@linagora/twake-mui'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 
 import { CheckboxBlankIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
@@ -29,10 +29,8 @@ export interface EmailListDefaultToolbarProps {
   loadedCount: number
   /** The folder shown, null for a label, Starred and search results */
   mailbox: MailboxSummary | null
-  /** The filters of the list, null when it has none (search results) */
+  /** The filters of the list, null when it has none (search results, whose filters are above the list) */
   filter: ListToolbarFilter | null
-  /** The filters of a search, shown in place of `filter` */
-  searchFilters?: ReactNode
   isRefreshing: boolean
   onRefresh: () => void
 }
@@ -49,7 +47,6 @@ export function EmailListDefaultToolbar({
   loadedCount,
   mailbox,
   filter,
-  searchFilters,
   isRefreshing,
   onRefresh
 }: EmailListDefaultToolbarProps): ReactElement {
@@ -98,7 +95,6 @@ export function EmailListDefaultToolbar({
           data-testid="list-select-all-button"
         />
       )}
-      {searchFilters === undefined ? null : searchFilters}
       {filter === null ? null : (
         <EmailListFilterMenu
           current={filter.current}

@@ -225,4 +225,44 @@ describe('SearchResults', () => {
       await screen.findByText('Opened report with ?q=report&sort=relevance')
     ).toBeVisible()
   })
+
+  it('adds a sender from the From chip and leaves the events out', async () => {
+    renderSearch(makeServer(), 'q=report')
+    await waitFor(() => {
+      expect(rows()).toHaveLength(2)
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'From' }))
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'From' }),
+      'alice@example.com{Enter}'
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent(
+        'from=alice%40example.com'
+      )
+    })
+    expect(
+      screen.getByRole('button', {
+        name: 'Remove the filter From: alice@example.com'
+      })
+    ).toBeVisible()
+
+    await userEvent.click(
+      screen.getByRole('button', { name: "Don't include events" })
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent('noevents=1')
+    })
+  })
+
+  it('titles the results for assistive technologies without showing a heading row', async () => {
+    renderSearch(makeServer(), 'q=report')
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Search results' })
+    ).toHaveClass('u-visuallyhidden')
+  })
 })

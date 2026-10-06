@@ -210,11 +210,6 @@ export interface EmailListSearch {
   isStarredView?: boolean
   /** The list is the Action required view: it is unread-only, no "unread" filter */
   isActionRequiredView?: boolean
-  /**
-   * The filters of the search, shown in the toolbar in place of the list
-   * filter (tmail-flutter hides the latter while a search runs)
-   */
-  filters?: ReactElement
 }
 
 export type EmailListProps = { mailboxId: string } | { search: EmailListSearch }
@@ -692,7 +687,6 @@ export function EmailList(props: EmailListProps): ReactElement {
             loadedCount={emails.length}
             mailbox={mailbox}
             filter={filterInToolbar ? listToolbarFilter : null}
-            searchFilters={search?.filters}
             isRefreshing={isRefreshing}
             onRefresh={handleRefresh}
           />

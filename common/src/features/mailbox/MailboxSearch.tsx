@@ -132,7 +132,8 @@ export function MailboxSearch({
       data-testid="mailbox-search"
     >
       <SearchBar
-        size="medium"
+        size="small"
+        elevation={0}
         className="u-w-100"
         placeholder={label}
         value={query}

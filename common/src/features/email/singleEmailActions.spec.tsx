@@ -116,7 +116,10 @@ describe('actions of an open email', () => {
     it('prints the headers, the whole body and the attachments', async () => {
       await openEmail(makeServer())
 
-      await userEvent.click(screen.getByRole('button', { name: 'Print all' }))
+      const menu = await openMoreMenu()
+      await userEvent.click(
+        within(menu).getByRole('menuitem', { name: 'Print all' })
+      )
 
       await waitFor(() => {
         expect(printHtmlDocument).toHaveBeenCalledTimes(1)
@@ -134,22 +137,12 @@ describe('actions of an open email', () => {
       expect(document).toContain('alice@example.com')
     })
 
-    it('is also in the More menu', async () => {
+    it('keeps remote images out of the printed document', async () => {
       await openEmail(makeServer())
       const menu = await openMoreMenu()
-
       await userEvent.click(
         within(menu).getByRole('menuitem', { name: 'Print all' })
       )
-
-      await waitFor(() => {
-        expect(printHtmlDocument).toHaveBeenCalledTimes(1)
-      })
-    })
-
-    it('keeps remote images out of the printed document', async () => {
-      await openEmail(makeServer())
-      await userEvent.click(screen.getByRole('button', { name: 'Print all' }))
       await waitFor(() => {
         expect(printHtmlDocument).toHaveBeenCalled()
       })

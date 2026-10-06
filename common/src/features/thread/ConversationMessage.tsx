@@ -1,15 +1,12 @@
-import {
-  Avatar,
-  Box,
-  getInitials,
-  ListSkeleton,
-  Typography
-} from '@linagora/twake-mui'
+import { Attachment, Icon } from '@linagora/twake-icons'
+import { Avatar, getInitials, Skeleton, Typography } from '@linagora/twake-mui'
 import { useRef, type ReactElement } from 'react'
 
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { MessageThreadItem } from '@/ds/MessageThread/MessageThreadItem'
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { Indent } from '@/ds/Indent/Indent'
+import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
+import { MessageText } from '@/ds/MessageText/MessageText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { AddressLine } from '@common/features/email/AddressLine'
@@ -21,7 +18,6 @@ import { ImportantMark } from '@common/features/email/ImportantMark'
 import { DRAFT, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { messageMailboxId } from '@common/features/email/messageMailbox'
 import type { EmailDetail } from '@common/features/email/queries'
-import { ReplyActions } from '@common/features/email/ReplyActions'
 import { SenderLine } from '@common/features/email/SenderLine'
 import {
   TwpWarningBanners,
@@ -38,8 +34,13 @@ import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { CollapsedMessageActions } from './CollapsedMessageActions'
 import { ConversationDraftActions } from './ConversationDraftActions'
-import { formatFullDate, formatListDate } from './formatListDate'
+import {
+  formatFullDate,
+  formatHeaderDate,
+  formatListDate
+} from './formatListDate'
 import type { EmailListItemData } from './queries'
 import { useRevealOnOpen } from './useRevealOnOpen'
 
@@ -60,7 +61,7 @@ function DetailAvatar({
       data-testid="conversation-message-danger-badge"
     />
   ) : (
-    <Avatar component="span" size="s" aria-hidden="true">
+    <Avatar component="span" size={32} aria-hidden="true">
       {initials}
     </Avatar>
   )
@@ -77,7 +78,7 @@ function ExpandedAvatar({
   return query.data ? (
     <DetailAvatar detail={query.data} initials={initials} />
   ) : (
-    <Avatar component="span" size="s" aria-hidden="true">
+    <Avatar component="span" size={32} aria-hidden="true">
       {initials}
     </Avatar>
   )
@@ -91,10 +92,14 @@ interface ExpandedBodyProps {
   onRemoteContentShown: () => void
 }
 
+/** Avatar (32) and the gap after it (10): the column of the name */
+const INDENT = 42
+
 /**
- * The content of an expanded message: its actions, sender (with the
- * address menu), recipients, labels, body and answers, as the single email
- * view has them, applying to this message only
+ * The content of an expanded message: its sender (with the address menu),
+ * recipients, labels and body, as the single email view has them; the
+ * answers are in the bar at the bottom of the conversation, and its actions
+ * beside its header
  */
 function ExpandedBody({
   detail,
@@ -102,7 +107,6 @@ function ExpandedBody({
   onAction,
   onRemoteContentShown
 }: ExpandedBodyProps): ReactElement {
-  const { t, lang } = useI18n()
   useReadReceiptRequest(detail)
   const { canUnsubscribe, unsubscribe } = useUnsubscribe()
   const { data: mailboxes = [] } = useMailboxes()
@@ -112,10 +116,10 @@ function ExpandedBody({
   const isDraft = hasKeyword(detail, DRAFT)
   return (
     <>
-      <Box className="u-flex u-flex-items-center u-flex-wrap">
+      <Indent size={INDENT} pullUp={14}>
         <SenderLine
           sender={sender}
-          hasLabel
+          variant="address"
           onUnsubscribe={
             canUnsubscribe(detail)
               ? () => {
@@ -125,34 +129,25 @@ function ExpandedBody({
           }
           data-testid="conversation-message-sender"
         />
-        {isDraft ? null : (
-          <EmailViewActions
-            email={detail}
-            mailboxId={mailboxId}
-            onAction={onAction}
-            variant="message"
-            label={t('thread.messageActions', {
-              name: sender === null ? '' : formatAddressName(sender),
-              date: formatFullDate(detail.receivedAt, lang)
-            })}
-          />
-        )}
-      </Box>
-      <AddressLine
-        label="email.to"
-        addresses={detail.to}
-        data-testid="conversation-message-to"
-      />
-      <AddressLine
-        label="email.cc"
-        addresses={detail.cc}
-        data-testid="conversation-message-cc"
-      />
-      <AddressLine
-        label="email.bcc"
-        addresses={detail.bcc}
-        data-testid="conversation-message-bcc"
-      />
+        <AddressLine
+          label="email.to"
+          addresses={detail.to}
+          variant="full"
+          data-testid="conversation-message-to"
+        />
+        <AddressLine
+          label="email.cc"
+          addresses={detail.cc}
+          variant="full"
+          data-testid="conversation-message-cc"
+        />
+        <AddressLine
+          label="email.bcc"
+          addresses={detail.bcc}
+          variant="full"
+          data-testid="conversation-message-bcc"
+        />
+      </Indent>
       <EmailActionRequiredTag email={detail} mailboxId={mailboxId} />
       <EmailLabels emails={[detail]} mailboxId={mailboxId} />
       <TwpWarningBanners email={detail} mailboxId={mailboxId} />
@@ -166,9 +161,7 @@ function ExpandedBody({
           mailboxId={mailboxId}
           onAction={onAction}
         />
-      ) : (
-        <ReplyActions email={detail} />
-      )}
+      ) : null}
     </>
   )
 }
@@ -187,7 +180,9 @@ function MessageContent({
   onRemoteContentShown
 }: MessageContentProps): ReactElement | null {
   const query = useEmail(emailId)
-  if (query.isPending) return <ListSkeleton count={3} />
+  // About the height of a short message, so that the ones below the one the
+  // conversation opened on do not move when it loads
+  if (query.isPending) return <Skeleton variant="rounded" height={71} />
   if (query.data === null || query.data === undefined) return null
   return (
     <ExpandedBody
@@ -197,6 +192,60 @@ function MessageContent({
       onAction={onAction}
       onRemoteContentShown={onRemoteContentShown}
     />
+  )
+}
+
+interface MessageActionsProps {
+  email: EmailListItemData
+  isExpanded: boolean
+  openedMailboxId: string | null
+  onAction: (id: EmailActionId) => void
+  label: string
+}
+
+function ExpandedMessageActions({
+  email,
+  openedMailboxId,
+  onAction,
+  label
+}: Omit<MessageActionsProps, 'isExpanded'>): ReactElement {
+  const { data: mailboxes = [] } = useMailboxes()
+  const query = useEmail(email.id)
+  // The row's own actions until the message is loaded: the same buttons
+  if (query.data === null || query.data === undefined) {
+    return (
+      <CollapsedMessageActions
+        email={email}
+        openedMailboxId={openedMailboxId}
+        onAction={onAction}
+        label={label}
+      />
+    )
+  }
+  return (
+    <EmailViewActions
+      email={query.data}
+      mailboxId={messageMailboxId(query.data, openedMailboxId, mailboxes)}
+      onAction={onAction}
+      variant="message"
+      label={label}
+    />
+  )
+}
+
+/**
+ * The actions beside the header of a message: the ones of the open email
+ * (with Print, Download as EML, Unsubscribe in "More") once it is
+ * expanded, else the ones a list row knows enough to run
+ */
+function MessageActions({
+  isExpanded,
+  ...props
+}: MessageActionsProps): ReactElement {
+  return isExpanded ? (
+    <ExpandedMessageActions {...props} />
+  ) : (
+    <CollapsedMessageActions {...props} />
   )
 }
 
@@ -255,68 +304,74 @@ export function ConversationMessage({
         isExpanded ? (
           <ExpandedAvatar emailId={email.id} initials={initials} />
         ) : (
-          <Avatar component="span" size="s" aria-hidden="true">
+          <Avatar component="span" size={32} aria-hidden="true">
             {initials}
           </Avatar>
         )
       }
       identity={
         <>
-          <Typography
+          <InlineGroup
             component="span"
-            className="u-db"
+            gap={1}
             data-testid="conversation-message-from"
           >
             {isUnread ? (
-              <span className="u-dib u-mr-half">
-                <StatusDot
-                  label={t('email.unread')}
-                  data-testid="conversation-message-unread"
-                />
-              </span>
+              <StatusDot
+                label={t('email.unread')}
+                data-testid="conversation-message-unread"
+              />
             ) : null}
             {showsImportant ? <ImportantMark /> : null}
             {isDraft ? (
               <Typography
                 component="span"
                 color="error"
-                className="u-mr-half"
                 data-testid="conversation-message-draft"
               >
                 {t('thread.draft.marker')}
               </Typography>
             ) : null}
-            <span className={emphasis}>
+            <MessageText variant="compactName" className={emphasis}>
               {sender ? formatAddressName(sender) : ''}
-            </span>
-          </Typography>
+            </MessageText>
+            {email.hasAttachment ? (
+              <Icon
+                icon={Attachment}
+                size={16}
+                aria-label={t('email.attachment')}
+              />
+            ) : null}
+            <MessageText variant="compact">
+              <time
+                dateTime={email.receivedAt}
+                title={formatFullDate(email.receivedAt, lang)}
+              >
+                {isExpanded
+                  ? formatHeaderDate(email.receivedAt, lang)
+                  : formatListDate(email.receivedAt, lang)}
+              </time>
+            </MessageText>
+          </InlineGroup>
           {isExpanded ? null : (
-            <SecondaryText
-              variant="body2"
-              component="span"
+            <MessageText
+              variant="compact"
               noWrap
               className="u-db"
               data-testid="conversation-message-preview"
             >
               <span className={emphasis}>{email.preview}</span>
-            </SecondaryText>
+            </MessageText>
           )}
         </>
       }
-      date={
-        <SecondaryText variant="caption" component="span" noWrap>
-          <time
-            dateTime={email.receivedAt}
-            title={formatFullDate(email.receivedAt, lang)}
-          >
-            {isExpanded
-              ? formatFullDate(email.receivedAt, lang)
-              : formatListDate(email.receivedAt, lang)}
-          </time>
-        </SecondaryText>
-      }
     />
   )
+
+  const actionsLabel = t('thread.messageActions', {
+    name: sender === null ? '' : formatAddressName(sender),
+    date: formatFullDate(email.receivedAt, lang)
+  })
 
   return (
     <MessageThreadItem
@@ -325,6 +380,17 @@ export function ConversationMessage({
         onToggle(email.id)
       }}
       header={header}
+      actions={
+        isDraft ? null : (
+          <MessageActions
+            email={email}
+            isExpanded={isExpanded}
+            openedMailboxId={openedMailboxId}
+            onAction={handleAction}
+            label={actionsLabel}
+          />
+        )
+      }
       data-testid="conversation-message"
       toggleTestId="conversation-message-toggle"
       toggleRef={toggleRef}

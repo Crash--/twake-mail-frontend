@@ -93,8 +93,9 @@ describe('EmailViewActions', () => {
     const server = makeServer()
     await openEmail(server)
 
+    await userEvent.click(screen.getByRole('button', { name: 'More' }))
     await userEvent.click(
-      screen.getByRole('button', { name: 'Archive message' })
+      screen.getByRole('menuitem', { name: 'Archive message' })
     )
 
     expect(await screen.findByTestId('empty-thread-view')).toBeVisible()

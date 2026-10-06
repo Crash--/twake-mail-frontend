@@ -1,12 +1,10 @@
-import { EmailOpen, Icon, Left } from '@linagora/twake-icons'
+import { EmailOpen } from '@linagora/twake-icons'
 import {
   Avatar,
   Box,
   Empty,
   getInitials,
-  IconButton,
   ListSkeleton,
-  Tooltip,
   Typography
 } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
@@ -15,7 +13,9 @@ import { useLocation, useNavigate } from 'react-router'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
+import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
+import { MessageText } from '@/ds/MessageText/MessageText'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
@@ -24,23 +24,30 @@ import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { ConversationView } from '@common/features/thread/ConversationView'
 import { isOpenedFromList } from '@common/features/thread/conversationTarget'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
-import { formatFullDate } from '@common/features/thread/formatListDate'
+import {
+  formatFullDate,
+  formatHeaderDate
+} from '@common/features/thread/formatListDate'
 import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredTag'
 import { EmailLabels } from '@common/features/labels/EmailLabels'
-import { useI18n } from '@common/i18n/useI18n'
+import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import { AddressLine } from './AddressLine'
 import { isMarkedImportant } from './importance'
 import { ImportantMark } from './ImportantMark'
 import { EmailMessageBody } from './EmailMessageBody'
 import { EmailViewActions } from './EmailViewActions'
+import { ReadingToolbar } from './ReadingToolbar'
 import { ReplyActions } from './ReplyActions'
 import { SenderLine } from './SenderLine'
 import { hasDangerWarning } from './twpWarnings'
 import { TwpWarningBanners, useVisibleTwpWarnings } from './TwpWarningBanners'
 import type { EmailDetail } from './queries'
 import { useEmail } from './useEmail'
-import { useEmailViewShortcuts } from './useEmailViewShortcuts'
+import {
+  useEmailViewShortcuts,
+  type EmailViewNavigation
+} from './useEmailViewShortcuts'
 import { useMarkAsReadOnOpen } from './useMarkAsReadOnOpen'
 import { useReadReceiptRequest } from './useReadReceiptRequest'
 import { useUnsubscribe } from './useUnsubscribe'
@@ -50,12 +57,24 @@ interface EmailContentProps {
   /** The folder it is open from, null from search results */
   mailboxId: string | null
   onBack: () => void
+  navigation: EmailViewNavigation
 }
+
+const RECIPIENT_LINES: readonly {
+  label: TranslationKey
+  field: 'to' | 'cc' | 'bcc'
+  testId: string
+}[] = [
+  { label: 'email.to', field: 'to', testId: 'email-view-to' },
+  { label: 'email.cc', field: 'cc', testId: 'email-view-cc' },
+  { label: 'email.bcc', field: 'bcc', testId: 'email-view-bcc' }
+]
 
 function EmailContent({
   email,
   mailboxId,
-  onBack
+  onBack,
+  navigation
 }: EmailContentProps): ReactElement {
   const { t, lang } = useI18n()
   const { canUnsubscribe, unsubscribe } = useUnsubscribe()
@@ -64,9 +83,13 @@ function EmailContent({
   const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
   const sender = email.from?.[0] ?? null
   const isDangerous = hasDangerWarning(useVisibleTwpWarnings(email))
-  const backLabel = t('common.back')
   useDocumentTitle(email.subject ?? '')
   const subjectRef = useRef<HTMLHeadingElement>(null)
+  const [isRecipientsOpen, setIsRecipientsOpen] = useState(false)
+  const recipientLines = RECIPIENT_LINES.map(line => ({
+    ...line,
+    addresses: email[line.field]
+  })).filter(line => (line.addresses ?? []).length > 0)
 
   // The list the email replaces is gone: the focus moves to the subject,
   // where a screen reader starts reading the email
@@ -85,37 +108,29 @@ function EmailContent({
   }
 
   return (
-    <Box className="u-p-1" data-testid="email-view">
-      <Box className="u-flex u-flex-items-center u-mb-1">
-        <Tooltip title={backLabel}>
-          <IconButton
-            aria-label={backLabel}
-            onClick={onBack}
-            data-testid="email-view-back-button"
+    <ReadingPane data-testid="email-view">
+      <ReadingToolbar onBack={onBack} navigation={navigation} />
+      <Box className="u-ph-1 u-pt-1 u-flex-auto">
+        <InlineGroup gap={2} align="center">
+          <Typography
+            ref={subjectRef}
+            variant="h4"
+            component="h1"
+            tabIndex={-1}
+            className="u-breakword"
+            data-testid="email-view-subject"
           >
-            <Icon icon={Left} />
-          </IconButton>
-        </Tooltip>
-        <EmailViewActions
-          email={email}
-          mailboxId={mailboxId}
-          onAction={handleAction}
-        />
-      </Box>
-      <Box className="u-ph-1">
-        <Typography
-          ref={subjectRef}
-          variant="h3"
-          component="h1"
-          tabIndex={-1}
-          className="u-breakword"
-          data-testid="email-view-subject"
-        >
-          {email.subject ?? ''}
-        </Typography>
+            {email.subject ?? ''}
+          </Typography>
+          <EmailLabels
+            emails={[email]}
+            mailboxId={mailboxId ?? null}
+            size="small"
+            className=""
+          />
+        </InlineGroup>
         {showsImportant ? <ImportantMark showLabel /> : null}
         <EmailActionRequiredTag email={email} mailboxId={mailboxId ?? null} />
-        <EmailLabels emails={[email]} mailboxId={mailboxId ?? null} />
         <MessageHeader
           className="u-mt-1"
           avatar={
@@ -125,7 +140,7 @@ function EmailContent({
                 data-testid="email-view-danger-badge"
               />
             ) : (
-              <Avatar>
+              <Avatar size={40}>
                 {getInitials(sender?.name ?? '', sender?.email ?? '')}
               </Avatar>
             )
@@ -142,30 +157,42 @@ function EmailContent({
                     : null
                 }
                 data-testid="email-view-from"
-              />
-              <AddressLine
-                label="email.to"
-                addresses={email.to}
-                data-testid="email-view-to"
-              />
-              <AddressLine
-                label="email.cc"
-                addresses={email.cc}
-                data-testid="email-view-cc"
-              />
-              <AddressLine
-                label="email.bcc"
-                addresses={email.bcc}
-                data-testid="email-view-bcc"
-              />
+              >
+                <MessageText variant="meta" data-testid="email-view-date">
+                  <time
+                    dateTime={email.receivedAt}
+                    title={formatFullDate(email.receivedAt, lang)}
+                  >
+                    {formatHeaderDate(email.receivedAt, lang)}
+                  </time>
+                </MessageText>
+              </SenderLine>
+              <InlineGroup gap={2}>
+                {recipientLines.map(({ label, addresses, testId }, index) => (
+                  <AddressLine
+                    key={testId}
+                    label={label}
+                    addresses={addresses}
+                    isOpen={isRecipientsOpen}
+                    onToggle={
+                      index === recipientLines.length - 1
+                        ? () => {
+                            setIsRecipientsOpen(current => !current)
+                          }
+                        : null
+                    }
+                    data-testid={testId}
+                  />
+                ))}
+              </InlineGroup>
             </>
           }
-          date={
-            <SecondaryText variant="caption" data-testid="email-view-date">
-              <time dateTime={email.receivedAt}>
-                {formatFullDate(email.receivedAt, lang)}
-              </time>
-            </SecondaryText>
+          actions={
+            <EmailViewActions
+              email={email}
+              mailboxId={mailboxId}
+              onAction={handleAction}
+            />
           }
         />
         <TwpWarningBanners email={email} mailboxId={mailboxId} />
@@ -173,9 +200,9 @@ function EmailContent({
           email={email}
           onRemoteContentShown={handleRemoteContentShown}
         />
-        <ReplyActions email={email} />
       </Box>
-    </Box>
+      <ReplyActions email={email} />
+    </ReadingPane>
   )
 }
 
@@ -209,7 +236,7 @@ export function EmailView({
     setLastThreadId(loadedThreadId)
   }
   const threadId = loadedThreadId ?? lastThreadId
-  useEmailViewShortcuts({
+  const navigation = useEmailViewShortcuts({
     emailId,
     email: query.data,
     mailboxId: mailboxId ?? null,
@@ -257,6 +284,7 @@ export function EmailView({
         mailboxId={mailboxId ?? null}
         fromList={isOpenedFromList(location.state)}
         onBack={handleBack}
+        navigation={navigation}
       />
     )
   }
@@ -278,6 +306,7 @@ export function EmailView({
       email={query.data}
       mailboxId={mailboxId ?? null}
       onBack={handleBack}
+      navigation={navigation}
     />
   )
 }

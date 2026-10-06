@@ -2,21 +2,12 @@ import {
   Archive,
   Email as EmailIcon,
   EmailOpen,
-  Icon,
-  Left,
   Star,
   StarOutline,
   Trash,
   Warning
 } from '@linagora/twake-icons'
-import {
-  Box,
-  Empty,
-  IconButton,
-  ListSkeleton,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { Box, Empty, ListSkeleton, Typography } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import {
   useEffect,
@@ -28,11 +19,14 @@ import {
 } from 'react'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageThread } from '@/ds/MessageThread/MessageThread'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
-import { StickyBar } from '@/ds/StickyBar/StickyBar'
+import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { formatAddressName } from '@common/features/email/addresses'
+import { ReadingToolbar } from '@common/features/email/ReadingToolbar'
+import type { EmailViewNavigation } from '@common/features/email/useEmailViewShortcuts'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { findMailboxIdByRole } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -46,7 +40,9 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import { ConversationMenu, type ConversationMenuItem } from './ConversationMenu'
 import { ConversationMessage } from './ConversationMessage'
+import { ConversationReplyBar } from './ConversationReplyBar'
 import { pickTargetMessageId } from './conversationTarget'
 import { conversationQueryOptions, type EmailListItemData } from './queries'
 import { isOwnSentCopy } from './threadSummary'
@@ -65,6 +61,11 @@ function initiallyExpanded(
   return expanded
 }
 
+const NO_NAVIGATION: EmailViewNavigation = {
+  openPrevious: null,
+  openNext: null
+}
+
 interface ConversationContentProps {
   emails: EmailListItemData[]
   openedId: string
@@ -73,6 +74,7 @@ interface ConversationContentProps {
   /** Opened from the row of a list, not from a result or a link */
   fromList: boolean
   onBack: () => void
+  navigation?: EmailViewNavigation
 }
 
 function ConversationContent({
@@ -80,7 +82,8 @@ function ConversationContent({
   openedId,
   mailboxId,
   fromList,
-  onBack
+  onBack,
+  navigation = NO_NAVIGATION
 }: ConversationContentProps): ReactElement {
   const { t } = useI18n()
   const [expanded, setExpanded] = useState(() =>
@@ -231,79 +234,72 @@ function ConversationContent({
     }
   ]
 
-  const backLabel = t('common.back')
   const readLabel = t(isRead ? 'email.markAsUnread' : 'email.markAsRead')
   const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
+  const menuItems: ConversationMenuItem[] = [
+    {
+      id: 'toggle-seen',
+      label: readLabel,
+      icon: isRead ? EmailIcon : EmailOpen,
+      onSelect: handleToggleRead,
+      'data-testid': 'conversation-toggle-seen'
+    },
+    {
+      id: 'toggle-star',
+      label: starLabel,
+      icon: isStarred ? Star : StarOutline,
+      onSelect: handleToggleStar,
+      'data-testid': 'conversation-toggle-star'
+    },
+    ...moves.map(move => ({
+      id: move.action,
+      label: move.label,
+      icon: move.icon,
+      onSelect: handleMove(move.action),
+      'data-testid': move.testId
+    }))
+  ]
   const lastSender = lastArrived?.from?.[0] ?? null
 
   return (
-    <Box className="u-p-1" data-testid="conversation-view">
+    <ReadingPane data-testid="conversation-view">
       {/* Stays in view over a long conversation */}
-      <StickyBar
-        role="toolbar"
+      <ReadingToolbar
+        onBack={onBack}
+        navigation={navigation}
         label={t('thread.actions')}
-        className="u-flex u-flex-items-center u-pb-half"
         data-testid="conversation-toolbar"
       >
-        <Tooltip title={backLabel}>
-          <IconButton
-            aria-label={backLabel}
-            onClick={onBack}
-            data-testid="email-view-back-button"
+        <ConversationMenu items={menuItems} />
+      </ReadingToolbar>
+      <Box
+        className="u-ph-1 u-pt-1 u-pb-half"
+        data-testid="conversation-header"
+      >
+        <InlineGroup gap={2} align="center">
+          <Typography
+            ref={subjectRef}
+            id={subjectId}
+            variant="h4"
+            component="h1"
+            tabIndex={-1}
+            className="u-breakword"
+            data-testid="conversation-subject"
           >
-            <Icon icon={Left} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={readLabel}>
-          <IconButton
-            aria-label={readLabel}
-            onClick={handleToggleRead}
-            data-testid="conversation-toggle-seen"
-          >
-            <Icon icon={isRead ? EmailIcon : EmailOpen} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={starLabel}>
-          <IconButton
-            aria-label={starLabel}
-            aria-pressed={isStarred}
-            color={isStarred ? 'warning' : 'default'}
-            onClick={handleToggleStar}
-            data-testid="conversation-toggle-star"
-          >
-            <Icon icon={isStarred ? Star : StarOutline} />
-          </IconButton>
-        </Tooltip>
-        {moves.map(move => (
-          <Tooltip key={move.action} title={move.label}>
-            <IconButton
-              aria-label={move.label}
-              onClick={handleMove(move.action)}
-              data-testid={move.testId}
-            >
-              <Icon icon={move.icon} />
-            </IconButton>
-          </Tooltip>
-        ))}
-      </StickyBar>
-      <Box className="u-ph-1" data-testid="conversation-header">
-        <Typography
-          ref={subjectRef}
-          id={subjectId}
-          variant="h3"
-          component="h1"
-          tabIndex={-1}
-          className="u-breakword"
-          data-testid="conversation-subject"
-        >
-          {subject}
-        </Typography>
-        <EmailLabels emails={emails} mailboxId={null} />
+            {subject}
+          </Typography>
+          <EmailLabels
+            emails={emails}
+            mailboxId={null}
+            size="small"
+            className=""
+          />
+        </InlineGroup>
         <SecondaryText
           variant="body2"
           component="p"
           id={countId}
-          className="u-mb-1"
+          className="u-visuallyhidden"
           data-testid="conversation-count"
         >
           {t('thread.messageCount', { smart_count: emails.length })}
@@ -338,7 +334,8 @@ function ConversationContent({
           </span>
         )}
       </Box>
-    </Box>
+      <ConversationReplyBar emails={emails} />
+    </ReadingPane>
   )
 }
 
@@ -354,6 +351,8 @@ export interface ConversationViewProps {
    */
   fromList?: boolean
   onBack: () => void
+  /** The previous and next email of the folder, for the toolbar */
+  navigation?: EmailViewNavigation
 }
 
 /**
@@ -369,7 +368,8 @@ export function ConversationView({
   emailId,
   mailboxId = null,
   fromList = false,
-  onBack
+  onBack,
+  navigation = NO_NAVIGATION
 }: ConversationViewProps): ReactElement {
   const { t } = useI18n()
   const client = useJmapClient()
@@ -435,6 +435,7 @@ export function ConversationView({
       mailboxId={mailboxId}
       fromList={fromList}
       onBack={onBack}
+      navigation={navigation}
     />
   )
 }

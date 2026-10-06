@@ -139,7 +139,12 @@
     "attachmentsMore": "Hiển thị +%{count}",
     "attachmentsHide": "Ẩn %{count}",
     "attachmentsTitle": "%{smart_count} tệp đính kèm (%{size})",
-    "replyTo": "Reply-To"
+    "replyTo": "Reply-To",
+    "backTo": "Quay lại %{name}",
+    "previousEmail": "Thư trước",
+    "nextEmail": "Thư sau",
+    "showRecipients": "Hiện tất cả người nhận",
+    "hideRecipients": "Ẩn địa chỉ"
   },
   "login": {
     "title": "Đăng nhập",

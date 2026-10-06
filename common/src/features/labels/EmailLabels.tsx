@@ -11,6 +11,9 @@ export interface EmailLabelsProps {
   emails: readonly TargetEmail[]
   /** The folder the emails are shown in, null elsewhere */
   mailboxId: string | null
+  /** `small`: 11 / 14 tags, in the line of the subject */
+  size?: 'small' | 'medium'
+  className?: string
 }
 
 /**
@@ -20,7 +23,9 @@ export interface EmailLabelsProps {
  */
 export function EmailLabels({
   emails,
-  mailboxId
+  mailboxId,
+  size = 'medium',
+  className = 'u-mt-half'
 }: EmailLabelsProps): ReactElement | null {
   const isAvailable = useLabelsAvailable()
   const labels = useLabels().data?.list ?? []
@@ -31,7 +36,8 @@ export function EmailLabels({
   )
   return (
     <LabelChips
-      className="u-mt-half"
+      className={className}
+      size={size}
       labels={shown}
       onRemove={label => {
         void takeOff(

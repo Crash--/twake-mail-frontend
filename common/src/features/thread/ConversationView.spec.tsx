@@ -105,6 +105,14 @@ function conversationActions(): HTMLElement {
   return screen.getByRole('toolbar', { name: 'Conversation actions' })
 }
 
+/** Opens the "More" menu of the toolbar, with the actions on every message */
+async function openConversationMenu(): Promise<HTMLElement> {
+  await userEvent.click(
+    within(conversationActions()).getByRole('button', { name: 'More' })
+  )
+  return screen.getByTestId('conversation-menu')
+}
+
 /** The actions of an expanded message, named by its sender and date */
 function messageActions(name: RegExp): HTMLElement {
   return screen.getByRole('group', {
@@ -369,14 +377,17 @@ describe('ConversationView', () => {
     const before = server.requests.length
 
     await userEvent.click(
-      within(conversationActions()).getByRole('button', {
+      within(await openConversationMenu()).getByRole('menuitem', {
         name: 'Mark as starred'
       })
     )
 
     expect(
-      within(conversationActions()).getByRole('button', { name: 'Unstar' })
-    ).toHaveAttribute('aria-pressed', 'true')
+      within(await openConversationMenu()).getByRole('menuitem', {
+        name: 'Unstar'
+      })
+    ).toBeVisible()
+    await userEvent.keyboard('{Escape}')
     await waitFor(() => {
       const sets = server.requests
         .slice(before)
@@ -454,7 +465,7 @@ describe('ConversationView', () => {
     })
 
     await userEvent.click(
-      within(conversationActions()).getByRole('button', {
+      within(await openConversationMenu()).getByRole('menuitem', {
         name: 'Mark as unread'
       })
     )
@@ -468,7 +479,7 @@ describe('ConversationView', () => {
       ).toEqual([{}, {}, {}])
     })
     expect(
-      within(conversationActions()).getByRole('button', {
+      within(await openConversationMenu()).getByRole('menuitem', {
         name: 'Mark as read'
       })
     ).toBeVisible()
@@ -532,7 +543,7 @@ describe('ConversationView, an expanded message', () => {
     ).toHaveAttribute('aria-pressed', 'true')
     // The conversation is not starred: one message only is
     expect(
-      within(conversationActions()).getByRole('button', {
+      within(await openConversationMenu()).getByRole('menuitem', {
         name: 'Mark as starred'
       })
     ).toBeVisible()
@@ -543,9 +554,10 @@ describe('ConversationView, an expanded message', () => {
     await renderRead(server)
 
     await userEvent.click(
-      within(messageActions(/Dan/)).getByRole('button', {
-        name: 'Mark as unread'
-      })
+      within(messageActions(/Dan/)).getByRole('button', { name: 'More' })
+    )
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'Mark as unread' })
     )
 
     await waitFor(() => {
@@ -584,7 +596,7 @@ describe('ConversationView, an expanded message', () => {
 
     await userEvent.click(
       within(screen.getByRole('region', { name: /Dan/ })).getByRole('button', {
-        name: 'Dan <dan@example.com>'
+        name: '<dan@example.com>'
       })
     )
 

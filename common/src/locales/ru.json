@@ -139,7 +139,12 @@
     "attachmentsMore": "Показать еще %{count}",
     "attachmentsHide": "Скрыть %{count}",
     "attachmentsTitle": "%{smart_count} вложение (%{size}) |||| %{smart_count} вложения (%{size}) |||| %{smart_count} вложений (%{size})",
-    "replyTo": "Ответ"
+    "replyTo": "Ответ",
+    "backTo": "Назад в «%{name}»",
+    "previousEmail": "Предыдущее письмо",
+    "nextEmail": "Следующее письмо",
+    "showRecipients": "Показать всех получателей",
+    "hideRecipients": "Скрыть адреса"
   },
   "login": {
     "title": "Войти",

@@ -49,6 +49,13 @@ function useNeighbors(mailboxId: string | null, emailId: string): Neighbors {
   }, [data, emailId])
 }
 
+export interface EmailViewNavigation {
+  /** Opens the email above in the folder, null when there is none */
+  openPrevious: (() => void) | null
+  /** Opens the email below in the folder, null when there is none */
+  openNext: (() => void) | null
+}
+
 export interface EmailViewShortcutsOptions {
   emailId: string
   email: EmailDetail | null | undefined
@@ -66,7 +73,8 @@ export interface EmailViewShortcutsOptions {
  * marks unread and goes back to the list), unless the focus is in the list
  * beside it. Once the email leaves its folder (archived, deleted, moved
  * here or by another client), or is deleted, the view goes back to the
- * list, on the row that took its place.
+ * list, on the row that took its place. Returns what the "previous" and
+ * "next" buttons of the toolbar do (the same moves as `k` and `j`).
  */
 export function useEmailViewShortcuts({
   emailId,
@@ -74,7 +82,7 @@ export function useEmailViewShortcuts({
   mailboxId,
   backPath,
   leavesWhenMoved = true
-}: EmailViewShortcutsOptions): void {
+}: EmailViewShortcutsOptions): EmailViewNavigation {
   const navigate = useNavigate()
   const { run } = useEmailActions()
   const removeEmails = useRemoveEmails()
@@ -169,4 +177,20 @@ export function useEmailViewShortcuts({
     },
     () => focusedEmailId() === null
   )
+
+  const { previousId, nextId } = neighbors
+  return {
+    openPrevious:
+      previousId === null || mailboxId === null
+        ? null
+        : () => {
+            open(previousId, 'backward')
+          },
+    openNext:
+      nextId === null || mailboxId === null
+        ? null
+        : () => {
+            open(nextId, 'forward')
+          }
+  }
 }

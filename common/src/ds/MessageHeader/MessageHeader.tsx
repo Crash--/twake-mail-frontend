@@ -1,5 +1,5 @@
 // Upstream to twake-ui: yes, see docs/twake-mui-gaps.md "Email header":
-// twake-mui has no message header (identity, recipients, date), and a
+// twake-mui has no message header (identity, recipients, actions), and a
 // flex row of them does not reflow on a phone.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
@@ -9,23 +9,24 @@ import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 const ROOT_SX = {
   display: 'grid',
   gridTemplateColumns: 'auto minmax(0, 1fr) auto',
-  gridTemplateAreas: '"avatar identity date"',
-  columnGap: 2,
+  gridTemplateAreas: '"avatar identity actions"',
+  columnGap: 1.25,
   rowGap: 0.5,
   alignItems: 'start',
   // Long addresses wrap instead of widening the page (RGAA 10.11)
   overflowWrap: 'anywhere',
   [`@media ${SCREEN_QUERIES.mobile}`]: {
     gridTemplateColumns: 'auto minmax(0, 1fr)',
-    gridTemplateAreas: '"avatar identity" ". date"'
+    gridTemplateAreas: '"avatar identity" ". actions"'
   }
 } as const
 
 export interface MessageHeaderProps {
   avatar: ReactNode
-  /** Sender and recipients */
+  /** Sender, date and recipients */
   identity: ReactNode
-  date: ReactNode
+  /** The icon buttons at the end of the header, if any */
+  actions?: ReactNode
   className?: string
   /**
    * `span` inside phrasing content, e.g. the button toggling a message of a
@@ -35,14 +36,14 @@ export interface MessageHeaderProps {
 }
 
 /**
- * The header of a message: avatar, sender and recipients, and the date at
- * the end of the line; on phones the date goes under the recipients, and
- * long names and addresses wrap rather than overflow.
+ * The header of a message: avatar, identity (sender, date, recipients) and
+ * the icon buttons at the end of the line; on phones the actions go under the
+ * identity, and long names and addresses wrap rather than overflow.
  */
 export function MessageHeader({
   avatar,
   identity,
-  date,
+  actions,
   className,
   component = 'div'
 }: MessageHeaderProps): ReactElement {
@@ -51,12 +52,14 @@ export function MessageHeader({
       <Box component={component} sx={{ gridArea: 'avatar' }}>
         {avatar}
       </Box>
-      <Box component={component} sx={{ gridArea: 'identity' }}>
+      <Box component={component} sx={{ gridArea: 'identity', minWidth: 0 }}>
         {identity}
       </Box>
-      <Box component={component} sx={{ gridArea: 'date' }}>
-        {date}
-      </Box>
+      {actions === undefined || actions === null ? null : (
+        <Box component={component} sx={{ gridArea: 'actions' }}>
+          {actions}
+        </Box>
+      )}
     </Box>
   )
 }

@@ -1,8 +1,10 @@
 import { Icon, Reply } from '@linagora/twake-icons'
-import { Box, Button } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 
+import { ActionBar, ActionBarButton } from '@/ds/ActionBar/ActionBar'
+import { ForwardIcon, ReplyAllIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { useI18n } from '@common/i18n/useI18n'
+import type { ReplyAction } from '@common/features/composer/replyRecipients'
 
 import type { EmailDetail } from './queries'
 import {
@@ -15,41 +17,46 @@ export interface ReplyActionsProps {
   email: EmailDetail
 }
 
+const ICONS: Record<ReplyAction, ReactNode> = {
+  reply: <Icon icon={Reply} size={20} aria-hidden="true" />,
+  replyAll: <ReplyAllIcon />,
+  replyToList: <Icon icon={Reply} size={20} aria-hidden="true" />,
+  forward: <ForwardIcon />
+}
+
+/** The order of the mock: Reply all, Reply, Reply to list, Forward */
+const ORDER: readonly ReplyAction[] = [
+  'replyAll',
+  'reply',
+  'replyToList',
+  'forward'
+]
+
 /**
- * The answers to an email, under it, as tmail-flutter's bottom bar: Reply,
- * Reply all, Reply to list and Forward, on every screen size.
+ * The answers to an email, in the bar at the bottom of it, as the mocks and
+ * tmail-flutter: Reply all, Reply, Reply to list and Forward, on every
+ * screen size.
  */
 export function ReplyActions({ email }: ReplyActionsProps): ReactElement {
   const { t } = useI18n()
   const { actions, open } = useReplyOptions(email)
   return (
-    <Box
-      role="group"
-      aria-label={t('emailActions.reply.label')}
-      className="u-flex u-flex-wrap u-mt-1"
+    <ActionBar
+      label={t('emailActions.reply.label')}
       data-testid="email-reply-actions"
     >
-      {actions.map(action => (
-        <Button
+      {ORDER.filter(action => actions.includes(action)).map(action => (
+        <ActionBarButton
           key={action}
-          variant="outlined"
-          // The primary blue fails AA on white (docs/twake-mui-gaps.md)
-          color="inherit"
-          size="small"
-          startIcon={
-            action === 'forward' ? undefined : (
-              <Icon icon={Reply} aria-hidden="true" />
-            )
-          }
+          icon={ICONS[action]}
           onClick={() => {
             open(action)
           }}
-          className="u-mr-half u-mb-half"
           data-testid={REPLY_TEST_IDS[action]}
         >
           {t(REPLY_LABELS[action])}
-        </Button>
+        </ActionBarButton>
       ))}
-    </Box>
+    </ActionBar>
   )
 }

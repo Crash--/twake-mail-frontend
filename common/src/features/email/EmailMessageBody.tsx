@@ -36,8 +36,9 @@ export interface EmailMessageBodyProps {
 }
 
 /**
- * What an email says: its attachments, the card of its calendar event, the
- * remote content banner and the sanitized body, with its inline images. Remote content (images, fonts,
+ * What an email says: the card of its calendar event, the remote content
+ * banner, the sanitized body with its inline images, and its attachments
+ * under it, as in the mocks. Remote content (images, fonts,
  * backgrounds) tells the sender when and where the email is read: it waits
  * for the user, unless the sender is trusted.
  */
@@ -105,7 +106,6 @@ export function EmailMessageBody({
   return (
     <>
       <UnsubscribedBanner email={email} />
-      <AttachmentList attachments={attachments} emailId={email.id} />
       {calendar.invitation ? (
         <Box className="u-mt-1">
           <CalendarInvitationCard
@@ -116,7 +116,6 @@ export function EmailMessageBody({
           />
         </Box>
       ) : null}
-      <Divider className="u-mv-1" />
       {body?.hasBlockedRemoteContent ? (
         <RemoteContentBanner
           onShow={handleShowRemoteContent}
@@ -131,6 +130,8 @@ export function EmailMessageBody({
           onMailtoLink={handleMailtoLink}
         />
       )}
+      {attachments.length > 0 ? <Divider className="u-mt-1" /> : null}
+      <AttachmentList attachments={attachments} emailId={email.id} />
     </>
   )
 }

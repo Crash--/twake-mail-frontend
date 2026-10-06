@@ -3,9 +3,9 @@ import { Box, Empty } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Navigate, useOutlet, useParams } from 'react-router'
 
-import { FullPageLoader } from '@common/components/FullPageLoader'
 import { ListDetailLayout } from '@/ds/ListDetailLayout/ListDetailLayout'
 import { LabelList } from '@common/features/labels/LabelList'
+import { EmailListPageSkeleton } from '@common/features/thread/EmailListSkeleton'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -20,7 +20,7 @@ export function LabelPage(): ReactElement {
   const isAvailable = useLabelsAvailable()
   const query = useLabels()
   if (!isAvailable) return <Navigate to="/" replace />
-  if (query.isPending) return <FullPageLoader />
+  if (query.isPending) return <EmailListPageSkeleton />
   const label = query.data?.list.find(candidate => candidate.id === labelId)
   if (!label) return <Navigate to="/" replace />
 

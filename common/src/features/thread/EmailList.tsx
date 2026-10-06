@@ -3,7 +3,6 @@ import {
   Box,
   CircularProgress,
   Empty,
-  ListSkeleton,
   useMediaQuery,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
@@ -32,8 +31,7 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   VirtualizedListTable,
   type ListTableRange,
-  type RowAttributes,
-  type RowLayout
+  type RowAttributes
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
@@ -92,7 +90,9 @@ import {
 } from './listFilter'
 import { useListFilter, useListFilterSlot } from './ListFilterProvider'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
+import { EmailListSkeleton } from './EmailListSkeleton'
 import { useNewEmailCount } from './useNewEmailCount'
+import { getTrailingWidth, LEAD_WIDTH, ROW_LAYOUT } from './emailListGeometry'
 
 /** Folders whose list shows the recipients rather than the sender */
 const RECIPIENT_ROLES: readonly string[] = [
@@ -101,23 +101,6 @@ const RECIPIENT_ROLES: readonly string[] = [
   'outbox',
   'templates'
 ]
-
-/** Padding of a row and gap between its cells, in px (Figma "Listitemmail") */
-const ROW_LAYOUT: RowLayout = {
-  paddingX: 8,
-  paddingTop: 6,
-  paddingBottom: 5,
-  gap: 8
-}
-
-/** An icon button of a row, in px */
-const ACTION_SIZE = 32
-
-/** Selection, star and reply: three icon buttons without gap */
-const LEAD_WIDTH = ROW_LAYOUT.paddingX + 3 * ACTION_SIZE
-
-/** The actions replacing the date on hover: five icon buttons without gap */
-const TRAILING_WIDTH = ROW_LAYOUT.gap + 5 * ACTION_SIZE + ROW_LAYOUT.paddingX
 
 /** Rows left below the visible ones when the next page is requested */
 const PRELOAD_ROWS = 10
@@ -463,7 +446,7 @@ export function EmailList(props: EmailListProps): ReactElement {
         // beside them without hover
         id: 'trailing',
         label: `${t('email.attachment')}, ${t('thread.columns.date')}, ${t('thread.columns.actions')}`,
-        width: canHover ? TRAILING_WIDTH : TRAILING_WIDTH + 72,
+        width: getTrailingWidth(canHover),
         textAlign: 'right',
         sortable: false,
         disablePadding: true
@@ -610,7 +593,9 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   let content: ReactElement
   if (query.isPending) {
-    content = <ListSkeleton count={8} divider />
+    content = (
+      <EmailListSkeleton isCompact={isCompact} className="u-flex-auto" />
+    )
   } else if (query.isError) {
     const handleRetry = (): void => {
       void query.refetch()

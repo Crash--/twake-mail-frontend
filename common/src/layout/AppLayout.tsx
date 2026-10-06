@@ -12,6 +12,7 @@ import {
   ComposerProvider,
   useComposer
 } from '@common/features/composer/ComposerProvider'
+import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
 import { ListFilterProvider } from '@common/features/thread/ListFilterProvider'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
@@ -77,7 +78,9 @@ export function MailProviders({
             <LabelActionsProvider>
               <ComposerProvider>
                 <SettingsExitProvider>
-                  <ListFilterProvider>{children}</ListFilterProvider>
+                  <ListFilterProvider>
+                    <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                  </ListFilterProvider>
                 </SettingsExitProvider>
               </ComposerProvider>
             </LabelActionsProvider>

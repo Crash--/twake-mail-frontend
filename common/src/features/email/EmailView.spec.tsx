@@ -232,9 +232,24 @@ describe('EmailView', () => {
       })
     )
 
-    await userEvent.click(await screen.findByTestId('email-view-back-button'))
+    await screen.findByTestId('email-view-subject')
+    await userEvent.click(screen.getByTestId('email-view-back-button'))
 
     expect(screen.getByText('The list')).toBeVisible()
+  })
+
+  it('goes back to the mailbox while the email still loads', async () => {
+    const server = makeFakeJmapServer({
+      emails: [makeEmailWithBody({ id: 'e1' }, { text: 'Hello' })]
+    })
+    const release = server.holdRequests('Email/get')
+    renderView(server)
+
+    expect(await screen.findByTestId('email-view-loading')).toBeVisible()
+    await userEvent.click(screen.getByTestId('email-view-back-button'))
+
+    expect(screen.getByText('The list')).toBeVisible()
+    release()
   })
 
   it('moves the focus to the subject when it opens', async () => {

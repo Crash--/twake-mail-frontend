@@ -4,7 +4,6 @@ import {
   Box,
   Empty,
   getInitials,
-  ListSkeleton,
   Typography
 } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
@@ -37,6 +36,7 @@ import { isMarkedImportant } from './importance'
 import { ImportantMark } from './ImportantMark'
 import { EmailMessageBody } from './EmailMessageBody'
 import { EmailViewActions } from './EmailViewActions'
+import { ReadingLoadingView } from './ReadingLoadingView'
 import { ReadingToolbar } from './ReadingToolbar'
 import { ReplyActions } from './ReplyActions'
 import { SenderLine } from './SenderLine'
@@ -252,13 +252,7 @@ export function EmailView({
     })
   }
 
-  if (query.isPending) {
-    return (
-      <Box className="u-p-2" data-testid="email-view-loading">
-        <ListSkeleton count={4} hasSecondary />
-      </Box>
-    )
-  }
+  if (query.isPending) return <ReadingLoadingView onBack={handleBack} />
 
   if (query.isError) {
     const handleRetry = (): void => {

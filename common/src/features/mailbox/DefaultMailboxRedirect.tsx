@@ -4,9 +4,9 @@ import type { ReactElement } from 'react'
 import { Navigate } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
-import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { findTeamInboxId } from '@common/features/teamMailboxEmbed/teamMailbox'
+import { EmailListPageSkeleton } from '@common/features/thread/EmailListSkeleton'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { findMailboxIdByRole } from './mailboxTree'
@@ -21,7 +21,7 @@ export function DefaultMailboxRedirect(): ReactElement {
   const query = useMailboxes()
   const teamRootId = useTeamMailboxEmbed()
 
-  if (query.isPending) return <FullPageLoader />
+  if (query.isPending) return <EmailListPageSkeleton />
 
   if (query.isError) {
     const handleRetry = (): void => {

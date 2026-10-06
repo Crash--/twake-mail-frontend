@@ -48,7 +48,7 @@ describe('AppLayout', () => {
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
       'New message'
     )
-    expect(screen.getByRole('tree', { name: 'Mailboxes' })).toBe(
+    expect(await screen.findByRole('tree', { name: 'Mailboxes' })).toBe(
       screen.getByTestId('mailbox-tree')
     )
     expect(

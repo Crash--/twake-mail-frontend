@@ -370,6 +370,8 @@
       "invalid": "địa chỉ không hợp lệ",
       "chipHelp": "Delete xóa địa chỉ, Enter để sửa.",
       "removed": "Đã xóa %{address}",
+      "added": "Đã thêm %{address}",
+      "addedMany": "Đã thêm %{smart_count} người nhận",
       "suggestionCount": "%{smart_count} gợi ý",
       "summary": "Hiện tất cả người nhận:",
       "others": "+%{smart_count}"

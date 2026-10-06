@@ -370,6 +370,8 @@
       "invalid": "неверный адрес",
       "chipHelp": "Delete удаляет адрес, Enter изменяет его.",
       "removed": "%{address} удалён",
+      "added": "%{address} добавлен",
+      "addedMany": "Добавлен %{smart_count} получатель |||| Добавлено %{smart_count} получателя |||| Добавлено %{smart_count} получателей",
       "suggestionCount": "%{smart_count} предложение |||| %{smart_count} предложения |||| %{smart_count} предложений",
       "summary": "Показать всех получателей:",
       "others": "+%{smart_count}"

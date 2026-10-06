@@ -450,6 +450,13 @@ export function RichTextEditor({
             outlineColor: 'primary.main',
             outlineOffset: fill ? -2 : 1
           },
+          // A long draft (a quoted thread, big tables) has thousands of nodes: the blocks
+          // out of view are not laid out nor painted at each key (docs/perf/composer.md).
+          // `auto` keeps their text reachable by find and by assistive technologies
+          '& .ProseMirror > *': {
+            contentVisibility: 'auto',
+            containIntrinsicSize: 'auto 300px'
+          },
           '& .ProseMirror p': {
             margin: 0,
             minHeight: fill ? '18.4px' : '1.5em'

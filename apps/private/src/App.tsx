@@ -6,6 +6,7 @@ import { RouterProvider } from 'react-router/dom'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { connectSpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
+import { WithoutTablets } from '@/ds/useScreenSize/useScreenSize'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 import { reportRenderError } from '@common/app/sentry'
@@ -86,7 +87,7 @@ export function App({ config }: AppProps): ReactElement {
   )
   const [lang] = useState(() => findPreferredLanguage(config.defaultLanguage))
 
-  return (
+  const app = (
     <AppConfigProvider config={config}>
       <AppProviders
         lang={lang}
@@ -114,6 +115,9 @@ export function App({ config }: AppProps): ReactElement {
       </AppProviders>
     </AppConfigProvider>
   )
+  // The facade is a desktop from 600 px: its frame is narrower than the
+  // screen of TwakeSpace, where a tablet layout would surprise
+  return embed === null ? app : <WithoutTablets>{app}</WithoutTablets>
 }
 
 function WebmailRouter({ config }: AppProps): ReactElement {

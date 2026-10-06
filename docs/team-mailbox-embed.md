@@ -23,6 +23,10 @@ iframe contract for the Drive, Mail, Chat, Calendar and Tasks tabs).
   menu, labels nor banners. "New message" is a floating button at every
   size, hidden while an email fills the screen. The other folders of the
   team mailbox open by their path (`/mailbox/<folder id>`).
+- Two layouts only: the mobile one below 600 px, the desktop one from there
+  (`WithoutTablets`). The frame is narrower than the screen of TwakeSpace:
+  the tablet layouts of the webmail (the list beside the reading pane from
+  900 px, compact rows) would show to desktop users.
 - The routes live under the base `/embed/team-mailboxes/<id>` (the
   `basename` of their router): the screens of the webmail link inside it.
   Anything else, a folder of the user or of another team mailbox, leads to

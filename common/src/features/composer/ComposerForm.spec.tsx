@@ -259,6 +259,32 @@ describe('ComposerForm', () => {
       expect(sent?.to).toEqual([{ name: null, email: 'bob@example.com' }])
     })
 
+    it('says the user is offline when the sending fails without network, and keeps the message', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Offline' })
+      const error = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined)
+      const onLine = jest
+        .spyOn(window.navigator, 'onLine', 'get')
+        .mockReturnValue(false)
+      jmapServer.loseNextResponse('EmailSubmission/set')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      expect(
+        await within(composer).findByTestId('composer-send-error')
+      ).toHaveTextContent(
+        'You are offline. It looks like you are not connected.'
+      )
+      expect(screen.getByRole('dialog', { name: 'Offline' })).toBeVisible()
+      onLine.mockRestore()
+      error.mockRestore()
+    })
+
     it('asks a read receipt and marks the message important from "More"', async () => {
       const { jmapServer } = renderComposer()
       const composer = await openComposer()

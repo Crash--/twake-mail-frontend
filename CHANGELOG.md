@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Offline, an empty list (a folder not loaded yet, a search) says "No internet
   connection, try again later." instead of its skeletons or its empty view, as
   tmail-flutter; the emails already listed stay.
+- A message sent offline stays in the composer, which says "You are offline. It
+  looks like you are not connected." instead of a generic failure.
 
 - Keyboard navigation of the folder trees (system folders, folders of the user,
   Team-mailboxes, results of the folder search), as the WAI-ARIA tree view: one

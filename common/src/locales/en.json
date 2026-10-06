@@ -398,7 +398,8 @@
       "overQuota": "Failure to send your message, because it is over quota.",
       "invalidRecipients": "Failure to send your message, because these recipients are invalid: %{invalidRecipients}",
       "generic": "Sending of the message failed.\nAn error occurred while sending mail.",
-      "forbiddenFrom": "Failure to send your message, because you may not send from this address."
+      "forbiddenFrom": "Failure to send your message, because you may not send from this address.",
+      "offline": "You are offline. It looks like you are not connected."
     },
     "attachments": {
       "tooLargeTitle": "Maximum files size",

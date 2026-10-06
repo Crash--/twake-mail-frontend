@@ -398,7 +398,8 @@
       "overQuota": "Échec de l'envoi de votre message, car vous dépassez votre quota.",
       "invalidRecipients": "Échec de l'envoi de votre message, car ces destinataires sont invalides : %{invalidRecipients}",
       "generic": "L'envoi du message a échoué.\nUne erreur s'est produite lors de l'envoi du message.",
-      "forbiddenFrom": "Échec de l'envoi de votre message, car vous ne pouvez pas envoyer depuis cette adresse."
+      "forbiddenFrom": "Échec de l'envoi de votre message, car vous ne pouvez pas envoyer depuis cette adresse.",
+      "offline": "Vous êtes hors ligne. Veuillez vérifier votre connexion."
     },
     "attachments": {
       "tooLargeTitle": "Taille maximale des fichiers",

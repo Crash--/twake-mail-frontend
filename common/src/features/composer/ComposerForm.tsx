@@ -293,6 +293,16 @@ function saveErrorKey(error: unknown): TranslationKey {
   return 'composer.draft.saveFailed'
 }
 
+/**
+ * The translation key of a sending that threw. As tmail-flutter, the
+ * connectivity is read when it fails: offline, it says so.
+ */
+function sendErrorKey(error: unknown): TranslationKey {
+  if (!navigator.onLine) return 'composer.sendErrors.offline'
+  if (isRequestTooLarge(error)) return 'composer.sendErrors.tooLarge'
+  return 'composer.sendErrors.generic'
+}
+
 interface LoadedFormProps extends ComposerFormProps {
   content: ComposerContent
   identities: IdentitySummary[]
@@ -1263,13 +1273,7 @@ function LoadedComposerForm({
       )
     } catch (error: unknown) {
       console.error(error)
-      setSendError(
-        t(
-          isRequestTooLarge(error)
-            ? 'composer.sendErrors.tooLarge'
-            : 'composer.sendErrors.generic'
-        )
-      )
+      setSendError(t(sendErrorKey(error)))
     } finally {
       setIsSending(false)
     }

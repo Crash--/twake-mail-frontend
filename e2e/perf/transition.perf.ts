@@ -17,6 +17,11 @@ async function newPage(
 ): Promise<{ context: BrowserContext; page: Page }> {
   const context = await browser.newContext({ ...SCREENS[screen], reducedMotion })
   await context.addInitScript({ path: INSTRUMENT_SCRIPT })
+  // One email per row and the reading view of one email (`email-view-subject`): conversations,
+  // the default, open another view
+  await context.addInitScript(() => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'false')
+  })
   return { context, page: await context.newPage() }
 }
 

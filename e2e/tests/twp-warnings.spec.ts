@@ -118,7 +118,7 @@ test.describe('TWP warnings of the backend', () => {
 
       // Basic credentials live in memory: sign in again, the keyword stays
       await page.reload()
-      await new LoginPage(page).loginAs(user)
+      await new LoginPage(page).loginAfterReload(user)
       await expect(email.subject).toHaveText('Two warnings')
       await expect(email.root.getByTestId('twp-warning-0')).toBeVisible()
       await expect(email.root.getByTestId('twp-warning-1')).toHaveCount(0)

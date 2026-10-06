@@ -43,11 +43,13 @@ export function SelectionAction({
     if (selection.isEmpty || container === null || editor.isDestroyed) {
       return undefined
     }
+    // The window the editor is rendered in, maybe not this one
+    const view = container.ownerDocument.defaultView ?? window
     const place = (): void => {
       try {
         // The last box of the selected text, as the eye sees it; a select
         // all would otherwise end after the last block, at the far side
-        const domSelection = window.getSelection()
+        const domSelection = view.getSelection()
         const boxes =
           domSelection !== null && domSelection.rangeCount > 0
             ? Array.from(domSelection.getRangeAt(0).getClientRects()).filter(
@@ -65,11 +67,11 @@ export function SelectionAction({
       }
     }
     place()
-    window.addEventListener('scroll', place, true)
-    window.addEventListener('resize', place)
+    view.addEventListener('scroll', place, true)
+    view.addEventListener('resize', place)
     return () => {
-      window.removeEventListener('scroll', place, true)
-      window.removeEventListener('resize', place)
+      view.removeEventListener('scroll', place, true)
+      view.removeEventListener('resize', place)
     }
   }, [editor, container, selection.isEmpty, selection.to])
 

@@ -117,9 +117,11 @@ export const SmartTrailingBlock = Extension.create<SmartTrailingBlockOptions>({
           handleDOMEvents: {
             click: (view, event) => {
               // The controls of a block (its edit button) do their own thing
+              // Not `instanceof`: the editor may be in another document
+              const target = event.target as Element | null
               if (
-                event.target instanceof Element &&
-                event.target.closest('button, a, input') !== null
+                target?.nodeType === Node.ELEMENT_NODE &&
+                target.closest('button, a, input') !== null
               ) {
                 return false
               }

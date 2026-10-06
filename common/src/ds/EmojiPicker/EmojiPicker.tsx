@@ -184,9 +184,9 @@ function EmojiPickerContent({
   }
 
   const handleGridKeyDown = (event: KeyboardEvent<HTMLElement>): void => {
-    const current = event.target
-    if (!(current instanceof HTMLButtonElement) || !current.dataset.emoji)
-      return
+    // Not `instanceof`: the picker may be rendered in another document
+    const current = event.target as HTMLButtonElement
+    if (current.tagName !== 'BUTTON' || !current.dataset.emoji) return
     const buttons = Array.from(
       event.currentTarget.querySelectorAll<HTMLButtonElement>('[data-emoji]')
     )

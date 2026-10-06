@@ -111,7 +111,10 @@ export function RecipientSummary({
   useEffect(() => {
     const box = boxRef.current
     if (!box || typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(fit)
+    // The window the node is rendered in, maybe not this one (the overlay of
+    // TwakeSpace): an observer only follows the documents of its own window
+    const view = box.ownerDocument.defaultView ?? window
+    const observer = new view.ResizeObserver(fit)
     observer.observe(box)
     return () => {
       observer.disconnect()

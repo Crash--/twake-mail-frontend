@@ -129,9 +129,13 @@ export interface DockedWindowProps {
   }
 }
 
-/** Another MUI modal (menu, dialog) is over the page: let it hold the focus */
-function isTopmost(): boolean {
-  return document.querySelector('.MuiModal-root:not(.MuiModal-hidden)') === null
+/**
+ * Another MUI modal (menu, dialog) is over the page: let it hold the focus.
+ * The page is the window's document, which is not the app's on the overlay
+ * of TwakeSpace.
+ */
+function isTopmost(page: Document): boolean {
+  return page.querySelector('.MuiModal-root:not(.MuiModal-hidden)') === null
 }
 
 /**
@@ -184,9 +188,11 @@ export function DockedWindow({
     if (before === mode) return
     const root = rootRef.current
     if (!root) return
-    const active = document.activeElement
+    // The document the window is rendered in, maybe not this window's
+    const page = root.ownerDocument
+    const active = page.activeElement
     // Brought back from its title bar, whose button went with the click
-    const wasRestored = before === 'minimized' && active === document.body
+    const wasRestored = before === 'minimized' && active === page.body
     if (!root.contains(active) && !wasRestored) return
     if (mode === 'minimized') {
       restoreRef.current?.focus()
@@ -208,7 +214,10 @@ export function DockedWindow({
   }
 
   const handleBodyFocus = (event: FocusEvent<HTMLDivElement>): void => {
-    if (event.target instanceof HTMLElement) lastFocused.current = event.target
+    // Not `instanceof`: the window may be rendered in another document
+    if (event.target.nodeType === Node.ELEMENT_NODE) {
+      lastFocused.current = event.target
+    }
   }
 
   const fullscreenLabel =
@@ -262,7 +271,7 @@ export function DockedWindow({
       )}
       <FocusTrap
         open={isFullscreen}
-        isEnabled={isTopmost}
+        isEnabled={() => isTopmost(rootRef.current?.ownerDocument ?? document)}
         disableAutoFocus
         disableRestoreFocus
       >

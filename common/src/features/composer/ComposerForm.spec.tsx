@@ -114,10 +114,12 @@ async function fill(
     )
   }
   if (subject !== undefined) {
-    await userEvent.type(
-      within(composer).getByRole('textbox', { name: 'Subject' }),
-      subject
+    // Pasted: typing it costs about 40 ms a character (a render of the composer each), which
+    // a loaded CI runner multiplies
+    await userEvent.click(
+      within(composer).getByRole('textbox', { name: 'Subject' })
     )
+    await userEvent.paste(subject)
   }
 }
 
@@ -899,10 +901,11 @@ describe('ComposerForm', () => {
       ])
       const [first] = templatesOf(jmapServer)
 
-      await userEvent.type(
-        within(composer).getByRole('textbox', { name: 'Subject' }),
-        ' updated'
+      await userEvent.click(
+        within(composer).getByRole('textbox', { name: 'Subject' })
       )
+      await userEvent.keyboard('{End}')
+      await userEvent.paste(' updated')
       await saveAsTemplate(composer)
 
       await waitFor(() => {

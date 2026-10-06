@@ -183,7 +183,9 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
     // The search results: down from the field, then the arrows of a tree
     await mailbox.searchFolders('zeta')
     await page.keyboard.press('ArrowDown')
-    await expect(mailbox.folderSearchResults.getByRole('treeitem')).toBeFocused()
+    await expect(
+      mailbox.folderSearchResults.getByRole('treeitem')
+    ).toBeFocused()
     await expectNoA11yViolations(page)
   })
 
@@ -200,12 +202,16 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
       await page.keyboard.press('Shift+F10')
       const menu = page.getByTestId('mailbox-context-menu').getByRole('menu')
       await menu.getByTestId('mailbox-action-delete').click()
-      await mailbox.confirmDialog.getByRole('button', { name: 'Delete' }).click()
+      await mailbox.confirmDialog
+        .getByRole('button', { name: 'Delete' })
+        .click()
       await expect(mailbox.folder({ name: 'Beta' })).toBeHidden()
 
       // It is on a folder of the tree, not on the page
       await expect
-        .poll(() => mailbox.focusedFolderName(), { message: 'a folder holds the focus' })
+        .poll(() => mailbox.focusedFolderName(), {
+          message: 'a folder holds the focus'
+        })
         .not.toBe('')
       await expect(mailbox.treeTabStops(mailbox.foldersTree)).toHaveCount(1)
       await page.keyboard.press('ArrowDown')
@@ -229,6 +235,35 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
       await expect(mailbox.treeTabStops(mailbox.foldersTree)).toHaveCount(1)
     }
   )
+
+  test('TRE-08 a folder name cut by the width shows in a tooltip when its row has the keyboard focus, and on hover, without a second description', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const name = `A very long folder name that the sidebar cuts ${'x'.repeat(60)}`
+    await jmap.createMailbox({ name: 'Zzz' })
+    await jmap.createMailbox({ name })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.focusFolder({ name: 'Zzz' })
+    // Moved to with the keys, as a keyboard user does (not a focus() of the test)
+    await page.keyboard.press('Home')
+    await mailbox.expectFolderFocused({ name })
+
+    const tooltip = page.getByRole('tooltip', { name })
+    await expect(tooltip).toBeVisible()
+    // The name is said once: by the row, whose tooltip is no description
+    await expect(mailbox.folder({ name })).not.toHaveAttribute(
+      'aria-describedby'
+    )
+    await expect(
+      mailbox.folder({ name }).getByRole('link')
+    ).not.toHaveAttribute('aria-describedby')
+    await page.keyboard.press('End')
+    await expect(tooltip).toBeHidden()
+    await mailbox.folder({ name }).hover()
+    await expect(tooltip).toBeVisible()
+  })
 
   test('TRE-07 letters jump to the folder starting with them, and the focused folder has a visible ring', async ({
     page,

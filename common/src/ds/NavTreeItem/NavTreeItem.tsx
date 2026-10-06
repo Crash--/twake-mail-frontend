@@ -290,6 +290,21 @@ export function NavTreeItem({
       // A row of a tree holds the focus: the buttons inside must not name it
       aria-labelledby={itemProps?.role === 'treeitem' ? linkId : undefined}
       {...itemProps}
+      onFocus={event => {
+        itemProps?.onFocus?.(event)
+        // A row of a tree holds the keyboard focus: a name cut by the width
+        // shows then as it does on hover (not for a click)
+        if (
+          event.target === event.currentTarget &&
+          event.currentTarget.matches(':focus-visible')
+        ) {
+          handleTooltipOpen()
+        }
+      }}
+      onBlur={event => {
+        itemProps?.onBlur?.(event)
+        if (event.target === event.currentTarget) handleTooltipClose()
+      }}
       data-testid={testId}
       sx={theme => ({
         position: 'relative',

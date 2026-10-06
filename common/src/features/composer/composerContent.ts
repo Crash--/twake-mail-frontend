@@ -159,13 +159,22 @@ export const EMPTY_RECIPIENTS: RecipientLists = {
 
 /**
  * A new message: the signature of the default identity, below a line, and
- * its Bcc; `options` are the preferences of the user (read receipts)
+ * its Bcc; `options` are the preferences of the user (read receipts).
+ * `fromEmail` picks another identity by its address when there is one (the
+ * team mailbox of the facade).
  */
 export function newMessageContent(
   identities: readonly IdentitySummary[],
-  options: SendOptions = NO_SEND_OPTIONS
+  options: SendOptions = NO_SEND_OPTIONS,
+  fromEmail: string | null = null
 ): ComposerContent {
-  const identity = identities[0] ?? null
+  const preferred =
+    fromEmail === null
+      ? undefined
+      : identities.find(
+          candidate => candidate.email.toLowerCase() === fromEmail
+        )
+  const identity = preferred ?? identities[0] ?? null
   const signature = identity ? signatureHtml(identity) : null
   const bcc = identityBcc(identity)
   return {

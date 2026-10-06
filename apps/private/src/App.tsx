@@ -12,11 +12,18 @@ import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import type { AppConfig } from '@common/config/config'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import { createAuthService } from '@common/features/auth/createAuthService'
+import { peekPendingLoginReturnTo } from '@common/features/auth/oidcAuth'
+import { connectToSpace } from '@common/features/teamMailboxEmbed/spaceBridge'
+import { parseTeamMailboxEmbedPath } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { useI18n } from '@common/i18n/useI18n'
 import { findPreferredLanguage } from '@common/i18n/languages'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
 
 import { appRouteElements } from './AppRoutes'
+import {
+  TeamMailboxEmbedApp,
+  type TeamMailboxEmbed
+} from './TeamMailboxEmbedApp'
 
 function CrashScreen({ resetErrorBoundary }: FallbackProps): ReactElement {
   const { t } = useI18n()
@@ -38,21 +45,39 @@ function handleRenderError(
   reportRenderError(error, info.componentStack ?? '')
 }
 
+/**
+ * The facade of a team mailbox the page is for: its path, or the login
+ * callback of a login it started (the callback path is outside its base)
+ */
+function findTeamMailboxEmbed(config: AppConfig): TeamMailboxEmbed | null {
+  const { pathname, href } = window.location
+  const target = parseTeamMailboxEmbedPath(pathname)
+  if (target !== null) return { target, callbackUrl: null }
+  if (config.oidc === null) return null
+  if (pathname !== new URL(config.oidc.redirectUri).pathname) return null
+  const returnTo = peekPendingLoginReturnTo()
+  const pending = returnTo === null ? null : parseTeamMailboxEmbedPath(returnTo)
+  return pending === null
+    ? null
+    : { target: pending, callbackUrl: new URL(href) }
+}
+
 export interface AppProps {
   config: AppConfig
 }
 
 export function App({ config }: AppProps): ReactElement {
   const [queryClient] = useState(makeQueryClient)
-  const [authService] = useState(() => createAuthService(config))
-  const [lang] = useState(() => findPreferredLanguage(config.defaultLanguage))
-  // A data router: navigations of its routes can run as view transitions
-  // (the `viewTransition` option of `navigate`)
-  const [router] = useState(() =>
-    createBrowserRouter(
-      createRoutesFromElements(appRouteElements({ apps: config.appList }))
-    )
+  const [embed] = useState(() => findTeamMailboxEmbed(config))
+  const [spaceBridge] = useState(() =>
+    embed === null ? null : connectToSpace(config.twakeSpaceOrigin)
   )
+  const [authService] = useState(() =>
+    createAuthService(config, {
+      framed: embed !== null && window.parent !== window
+    })
+  )
+  const [lang] = useState(() => findPreferredLanguage(config.defaultLanguage))
 
   return (
     <AppConfigProvider config={config}>
@@ -66,11 +91,27 @@ export function App({ config }: AppProps): ReactElement {
               createClient={createClient}
               sessionUrl={config.jmapSessionUrl}
             >
-              <RouterProvider router={router} />
+              {embed === null ? (
+                <WebmailRouter config={config} />
+              ) : (
+                <TeamMailboxEmbedApp embed={embed} spaceBridge={spaceBridge} />
+              )}
             </JmapClientProvider>
           </AuthProvider>
         </ErrorBoundary>
       </AppProviders>
     </AppConfigProvider>
   )
+}
+
+function WebmailRouter({ config }: AppProps): ReactElement {
+  // A data router: navigations of its routes can run as view transitions
+  // (the `viewTransition` option of `navigate`)
+  const [router] = useState(() =>
+    createBrowserRouter(
+      createRoutesFromElements(appRouteElements({ apps: config.appList }))
+    )
+  )
+
+  return <RouterProvider router={router} />
 }

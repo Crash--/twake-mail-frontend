@@ -1255,5 +1255,11 @@
   "print": {
     "inProgress": "Printing in progress",
     "failed": "Printing failed"
+  },
+  "teamMailboxEmbed": {
+    "unavailableTitle": "This team mailbox is not available",
+    "unavailableDescription": "You are not a member of %{address}, or it does not exist.",
+    "sessionExpiredTitle": "Your session has expired",
+    "sessionExpiredDescription": "Sign in again to see this team mailbox."
   }
 }

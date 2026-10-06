@@ -68,6 +68,7 @@ import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
+import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useMarkUnsubscribed } from '@common/features/email/useMarkUnsubscribed'
@@ -1771,6 +1772,8 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
   const { quote } = useEditorLabels()
   const serverSettings = useServerSettings()
   const { composerId, init } = props
+  // The facade of a team mailbox writes from its address
+  const teamAddress = useTeamMailboxEmbed()
   // Read once per composer: the key only says which one
   // eslint-disable-next-line @tanstack/query/exhaustive-deps
   const content = useQuery({
@@ -1833,7 +1836,7 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       if (init.mailto !== undefined) {
         return mailtoContent(list, init.mailto, options)
       }
-      return newMessageContent(list, options)
+      return newMessageContent(list, options, teamAddress)
     },
     // The folders tell the team mailbox an answered email is in
     enabled:

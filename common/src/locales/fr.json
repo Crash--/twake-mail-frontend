@@ -1255,5 +1255,11 @@
   "print": {
     "inProgress": "Impression en cours",
     "failed": "Échec de l'impression"
+  },
+  "teamMailboxEmbed": {
+    "unavailableTitle": "Cette boîte mail d'équipe n'est pas disponible",
+    "unavailableDescription": "Vous n'êtes pas membre de %{address}, ou elle n'existe pas.",
+    "sessionExpiredTitle": "Votre session a expiré",
+    "sessionExpiredDescription": "Reconnectez-vous pour voir cette boîte mail d'équipe."
   }
 }

@@ -1,6 +1,6 @@
 import { Restore, RestoreStraight, SelectAll } from '@linagora/twake-icons'
 import { CircularProgress } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 
 import { CheckboxBlankIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
@@ -31,6 +31,8 @@ export interface EmailListDefaultToolbarProps {
   mailbox: MailboxSummary | null
   /** The filters of the list, null when it has none (search results, whose filters are above the list) */
   filter: ListToolbarFilter | null
+  /** At the far end of the toolbar (the order of the search results) */
+  end?: ReactNode
   isRefreshing: boolean
   onRefresh: () => void
 }
@@ -47,6 +49,7 @@ export function EmailListDefaultToolbar({
   loadedCount,
   mailbox,
   filter,
+  end,
   isRefreshing,
   onRefresh
 }: EmailListDefaultToolbarProps): ReactElement {
@@ -111,6 +114,7 @@ export function EmailListDefaultToolbar({
           data-testid="recover-deleted-messages-button"
         />
       ) : null}
+      {end === undefined ? null : <span className="u-ml-auto">{end}</span>}
     </ListToolbar>
   )
 }

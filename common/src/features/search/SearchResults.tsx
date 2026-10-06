@@ -21,6 +21,7 @@ import { EmailList } from '@common/features/thread/EmailList'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { SearchFiltersBar } from './SearchFiltersBar'
+import { SearchSortButton } from './SearchSortButton'
 import {
   searchPath,
   toSearchParams,
@@ -99,6 +100,10 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
     ),
     [t]
   )
+  const toolbarEnd = useMemo(
+    () => <SearchSortButton filter={filter} onChange={handleChange} />,
+    [filter, handleChange]
+  )
   const search = useMemo(
     () =>
       request === null
@@ -108,14 +113,15 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
             emailPath,
             openEmailId,
             empty,
+            toolbarEnd,
             opensAtMatch: true
           },
-    [request, emailPath, openEmailId, empty]
+    [request, emailPath, openEmailId, empty, toolbarEnd]
   )
 
   return (
     <Box className="u-flex u-flex-column u-h-100" data-testid="search-results">
-      <Box className="u-flex u-flex-items-start u-ph-1 u-pt-half">
+      <Box className="u-flex u-flex-items-center u-ph-half u-pt-half">
         <Tooltip title={backLabel}>
           <IconButton
             aria-label={backLabel}

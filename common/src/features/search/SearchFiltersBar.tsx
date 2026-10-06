@@ -24,6 +24,7 @@ import {
 } from 'react'
 
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
+import { ScrollRow } from '@/ds/ScrollRow/ScrollRow'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -32,14 +33,12 @@ import {
   DEFAULT_SORT_ORDER,
   EMPTY_SEARCH_FILTER,
   isEmptySearch,
-  SORT_ORDERS,
   type SearchFilter
 } from './searchFilter'
-import { DATE_LABELS, SORT_LABELS } from './searchLabels'
-import { storeSortOrder } from './searchStorage'
+import { DATE_LABELS } from './searchLabels'
 import { useMailboxOptions } from './useMailboxOptions'
 
-type MenuName = 'folder' | 'labels' | 'date' | 'sort'
+type MenuName = 'folder' | 'labels' | 'date'
 type AddressField = 'from' | 'to'
 
 interface MenuChoice {
@@ -49,9 +48,9 @@ interface MenuChoice {
   apply: () => void
 }
 
-/** A chip and the space around it, for when the bar wraps */
+/** A chip as one child of the row: the row spaces them */
 function Slot({ children }: { children: ReactElement }): ReactElement {
-  return <span className="u-mr-half u-mb-half">{children}</span>
+  return <span>{children}</span>
 }
 
 export interface SearchFiltersBarProps {
@@ -182,16 +181,6 @@ export function SearchFiltersBar({
             })
           }
         }))
-      case 'sort':
-        return SORT_ORDERS.map(order => ({
-          key: order,
-          label: t(SORT_LABELS[order]),
-          isSelected: filter.sort === order,
-          apply: () => {
-            storeSortOrder(order)
-            onChange({ ...filter, sort: order })
-          }
-        }))
     }
   }
 
@@ -257,12 +246,7 @@ export function SearchFiltersBar({
   const canClear = !isEmptySearch(filter) || filter.sort !== DEFAULT_SORT_ORDER
 
   return (
-    <Box
-      role="toolbar"
-      aria-label={t('search.filtersBar')}
-      className="u-flex u-flex-auto u-flex-wrap u-flex-items-center"
-      data-testid="search-filters-bar"
-    >
+    <ScrollRow label={t('search.filtersBar')} data-testid="search-filters-bar">
       <Slot>
         <FilterChip
           label={scopeLabel}
@@ -369,21 +353,10 @@ export function SearchFiltersBar({
           data-testid="search-filter-not-include-events"
         />
       </Slot>
-      <Slot>
-        <FilterChip
-          label={t(SORT_LABELS[filter.sort])}
-          isSelected={filter.sort !== DEFAULT_SORT_ORDER}
-          popup="menu"
-          isExpanded={menu?.name === 'sort'}
-          onClick={openMenu('sort')}
-          data-testid="search-filter-sort-by"
-        />
-      </Slot>
       {canClear ? (
         <Button
           variant="text"
           size="small"
-          className="u-mb-half"
           onClick={() => {
             onChange({ ...EMPTY_SEARCH_FILTER, sort: filter.sort })
           }}
@@ -460,6 +433,6 @@ export function SearchFiltersBar({
           </MenuItem>
         ))}
       </Menu>
-    </Box>
+    </ScrollRow>
   )
 }

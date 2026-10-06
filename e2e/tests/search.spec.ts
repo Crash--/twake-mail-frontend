@@ -668,4 +668,52 @@ test.describe('SRCH search', () => {
     await page.getByTestId('search-filter-removable').click()
     await expect(search.resultRow(plain)).toBeVisible()
   })
+
+  test('SRCH-17 the filters stay on one line at 1440 px and the order sits at the end of the list toolbar', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 789 })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Onelinefilters report',
+      text: 'report'
+    })
+    await jmap.waitForEmail({ subject: 'Onelinefilters report' })
+    await new LoginPage(page).loginAs(user)
+    const search = await new SearchPage(page).search('report')
+    await search.filterChip('has-attachment').click()
+    await expect(search.filterChip('has-attachment')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+
+    // Every chip, "Clear filter" included, shares one line: nothing wraps
+    // and nothing scrolls
+    const bar = page.getByTestId('search-filters-bar')
+    const controls = bar.getByRole('button')
+    const count = await controls.count()
+    expect(count).toBeGreaterThanOrEqual(8)
+    const centers: number[] = []
+    for (let index = 0; index < count; index++) {
+      const box = await controls.nth(index).boundingBox()
+      centers.push((box?.y ?? -100) + (box?.height ?? 0) / 2)
+    }
+    expect(Math.max(...centers) - Math.min(...centers)).toBeLessThan(4)
+    expect(
+      await bar.evaluate(element => element.scrollWidth <= element.clientWidth)
+    ).toBe(true)
+
+    // The order is a button of the list toolbar, not a chip of the row
+    await expect(bar.getByTestId('search-filter-sort-by')).toHaveCount(0)
+    const sort = page
+      .getByTestId('list-toolbar')
+      .getByTestId('search-filter-sort-by')
+    await expect(sort).toHaveText('Relevance')
+    await expect(sort).toHaveAttribute('aria-haspopup', 'menu')
+    await search.pickFilter('sort-by', 'Oldest')
+    await expect(sort).toHaveText('Oldest')
+    await expectNoA11yViolations(page)
+  })
 })

@@ -798,3 +798,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SRCH-16` Given an invitation ("event" keyword) and a plain email matching "report", the "Don't include events" chip above the results leaves the invitation out (`aria-pressed`), and the "From" chip adds a sender nobody has: the chip "From: nobody@x.org" shows, the empty view follows, and removing it brings the email back. axe on the results. — web app (search design D2)
   - Spec: `tests/search.spec.ts`.
+- [x] `SRCH-17` At 1440 px every chip of the filters above the results, "Clear filter" included, shares one line (nothing wraps, nothing scrolls), and the order of the results is a "Relevance" button of the list toolbar (`aria-haspopup="menu"`, menu of orders) rather than a chip: picking "Oldest" shows it on the button. axe on the results. — web app (search design D2)
+  - Spec: `tests/search.spec.ts`.

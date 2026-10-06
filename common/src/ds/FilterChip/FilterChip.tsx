@@ -12,7 +12,7 @@ const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
   borderRadius: 2,
   border: 0,
   px: 0.5,
-  fontSize: 14,
+  fontSize: 13,
   fontWeight: 500,
   color: isSelected ? 'primary.main' : 'text.primary',
   bgcolor: theme =>
@@ -26,12 +26,12 @@ const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
         : theme.palette.action.hover
   },
   '& .MuiChip-icon': {
-    ml: 1,
+    ml: 0.75,
     mr: 0,
     fontSize: 16,
     color: isSelected ? 'primary.main' : 'text.secondary'
   },
-  '& .MuiChip-label': { px: 1 }
+  '& .MuiChip-label': { px: 0.5 }
 })
 
 export interface FilterChipProps {

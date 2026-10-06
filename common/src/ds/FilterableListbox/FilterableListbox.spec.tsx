@@ -85,4 +85,29 @@ describe('FilterableListbox', () => {
 
     expect(onSelect).not.toHaveBeenCalled()
   })
+
+  it('announces how many options match once the filter changes', async () => {
+    renderDs(
+      <FilterableListbox
+        options={OPTIONS}
+        onSelect={jest.fn()}
+        filterLabel="Search folders"
+        listLabel="Folders"
+        emptyLabel="No folder"
+        resultsLabel={count => `${count} found`}
+      />
+    )
+    // Always in the page: a region that appears with its text is not read
+    const region = screen.getByRole('status')
+    expect(region).toHaveTextContent('')
+
+    await userEvent.keyboard('work')
+    expect(region).toHaveTextContent('2 found')
+
+    await userEvent.keyboard('zzz')
+    expect(region).toHaveTextContent('0 found')
+    // One live region: the empty message does not repeat it
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    expect(screen.getByText('No folder')).toBeVisible()
+  })
 })

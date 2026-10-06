@@ -41,7 +41,18 @@ export interface FilterableListboxProps {
   listLabel: string
   /** Shown when no option matches */
   emptyLabel: string
-  testIds?: { input?: string; listbox?: string; option?: string }
+  /**
+   * Says how many options match ("3 results"), in a live region, each time
+   * the filter changes (RGAA 7.1: a change of content is announced); left
+   * out, nothing is announced
+   */
+  resultsLabel?: (count: number) => string
+  testIds?: {
+    input?: string
+    listbox?: string
+    option?: string
+    results?: string
+  }
 }
 
 const LEVEL_SX = (level: number): object => ({ pl: 2 + (level - 1) * 2 })
@@ -63,6 +74,7 @@ export function FilterableListbox({
   filterLabel,
   listLabel,
   emptyLabel,
+  resultsLabel,
   testIds = {}
 }: FilterableListboxProps): ReactElement {
   const id = useId()
@@ -185,10 +197,25 @@ export function FilterableListbox({
         })}
       </List>
       {shown.length === 0 ? (
-        <Typography role="status" variant="body2" className="u-p-1">
+        // With a results label, the live region below says it already
+        <Typography
+          role={resultsLabel === undefined ? 'status' : undefined}
+          variant="body2"
+          className="u-p-1"
+        >
           {emptyLabel}
         </Typography>
       ) : null}
+      {/* Always in the page: a region that appears with its text is not announced */}
+      {resultsLabel === undefined ? null : (
+        <span
+          role="status"
+          className="u-visuallyhidden"
+          data-testid={testIds.results}
+        >
+          {isFiltering ? resultsLabel(shown.length) : ''}
+        </span>
+      )}
     </Box>
   )
 }

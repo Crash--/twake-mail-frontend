@@ -41,8 +41,10 @@ export interface FilterChipProps {
   /** Applied: the pale primary look, a cross, and `aria-pressed` */
   isSelected: boolean
   onClick: (event: MouseEvent<HTMLElement>) => void
-  /** Opens a menu of values rather than toggling */
-  hasMenu?: boolean
+  /** Opens a popup (a menu of values, a small form) rather than toggling */
+  popup?: 'menu' | 'dialog'
+  /** Applied and removed on click: a plain button, not a toggle */
+  isRemovable?: boolean
   /** The chip of a menu, while it is open */
   isExpanded?: boolean
   /** Keeps the focus where it is (the search field) when clicked */
@@ -66,15 +68,19 @@ export function FilterChip({
   icon,
   isSelected,
   onClick,
-  hasMenu = false,
+  popup,
+  isRemovable = false,
   isExpanded = false,
   keepFocus = false,
   'aria-label': ariaLabel,
   'data-testid': testId
 }: FilterChipProps): ReactElement {
-  const menuProps = hasMenu
-    ? { 'aria-haspopup': 'menu' as const, 'aria-expanded': isExpanded }
-    : { 'aria-pressed': isSelected }
+  const stateProps =
+    popup !== undefined
+      ? { 'aria-haspopup': popup, 'aria-expanded': isExpanded }
+      : isRemovable
+        ? {}
+        : { 'aria-pressed': isSelected }
   return (
     <Chip
       label={label}
@@ -82,7 +88,7 @@ export function FilterChip({
       variant="filled"
       icon={icon === undefined ? undefined : <Icon icon={icon} />}
       endIcon={
-        hasMenu ? (
+        popup !== undefined ? (
           <Icon icon={Bottom} size={12} />
         ) : isSelected ? (
           <Icon icon={CrossSmall} />
@@ -91,7 +97,7 @@ export function FilterChip({
       sx={CHIP_SX(isSelected)}
       onClick={onClick}
       onMouseDown={keepFocus ? preventFocus : undefined}
-      {...menuProps}
+      {...stateProps}
       aria-label={ariaLabel}
       data-selected={isSelected ? 'true' : undefined}
       data-testid={testId}

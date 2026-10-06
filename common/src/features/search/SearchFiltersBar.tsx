@@ -268,7 +268,7 @@ export function SearchFiltersBar({
           label={scopeLabel}
           icon={FolderOutlined}
           isSelected={scope.kind !== 'default'}
-          hasMenu
+          popup="menu"
           isExpanded={menu?.name === 'folder'}
           onClick={openMenu('folder')}
           data-testid="search-filter-folder"
@@ -280,7 +280,7 @@ export function SearchFiltersBar({
             label={labelName}
             icon={LabelOutlined}
             isSelected={filter.label !== null}
-            hasMenu
+            popup="menu"
             isExpanded={menu?.name === 'labels'}
             onClick={openMenu('labels')}
             data-testid="search-filter-labels"
@@ -293,7 +293,7 @@ export function SearchFiltersBar({
             label={t(`search.fields.${field}`)}
             icon={Account}
             isSelected={filter[field].length > 0}
-            hasMenu
+            popup="dialog"
             isExpanded={address?.field === field}
             onClick={event => {
               setAddress({ field, anchor: event.currentTarget, value: '' })
@@ -307,6 +307,7 @@ export function SearchFiltersBar({
           <FilterChip
             label={item.label}
             isSelected
+            isRemovable
             onClick={item.remove}
             aria-label={t('search.removeFilter', { name: item.label })}
             data-testid="search-filter-removable"
@@ -318,7 +319,7 @@ export function SearchFiltersBar({
           label={dateLabel}
           icon={Calendar}
           isSelected={filter.dateRange !== 'allTime'}
-          hasMenu
+          popup="menu"
           isExpanded={menu?.name === 'date'}
           onClick={openMenu('date')}
           data-testid="search-filter-date-time"
@@ -372,7 +373,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t(SORT_LABELS[filter.sort])}
           isSelected={filter.sort !== DEFAULT_SORT_ORDER}
-          hasMenu
+          popup="menu"
           isExpanded={menu?.name === 'sort'}
           onClick={openMenu('sort')}
           data-testid="search-filter-sort-by"
@@ -396,6 +397,13 @@ export function SearchFiltersBar({
         anchorEl={address?.anchor ?? null}
         onClose={() => {
           setAddress(null)
+        }}
+        slotProps={{
+          paper: {
+            role: 'dialog',
+            'aria-label':
+              address === null ? undefined : t(`search.fields.${address.field}`)
+          }
         }}
         data-testid="search-filter-address-popover"
       >

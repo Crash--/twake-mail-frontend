@@ -780,3 +780,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-attachments-ui.spec.ts`.
 - [x] `CMP-78` At 360, 390 and 820 px every optional line of the composer opens, by touch and keyboard, with its button inside the window: on a phone one chevron "More recipient fields" shows From, Cc, Bcc and Reply to together (tmail-flutter's mobile expand button) and puts the focus in Cc; a tablet and a desktop keep the text buttons. — web app only, no Patrol test
   - Spec: `tests/composer-attachments-ui.spec.ts`.
+- [x] `CMP-64` the expanded composer sits under the top bar, inset from the screen edges with the page showing around it (not dimmed, as in the design), and goes back to the dock. — web app (editor E3)
+  - Spec: `tests/composer.spec.ts`.

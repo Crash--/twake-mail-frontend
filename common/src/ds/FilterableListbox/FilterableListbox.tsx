@@ -15,6 +15,7 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type KeyboardEvent,
   type ReactElement
@@ -97,9 +98,11 @@ export function FilterableListbox({
   const optionId = (option: FilterableListboxOption): string =>
     `${id}-option-${option.id}`
 
+  const listRef = useRef<HTMLUListElement>(null)
   useEffect(() => {
     if (active === null) return
-    document
+    // The document the list is rendered in, maybe not this window's
+    ;(listRef.current?.ownerDocument ?? document)
       .getElementById(optionId(active))
       ?.scrollIntoView({ block: 'nearest' })
     // optionId only depends on the stable id
@@ -150,6 +153,7 @@ export function FilterableListbox({
         }}
       />
       <List
+        ref={listRef}
         id={listboxId}
         role="listbox"
         aria-label={listLabel}

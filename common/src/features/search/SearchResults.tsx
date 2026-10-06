@@ -99,11 +99,6 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
     ),
     [t]
   )
-  // In the list toolbar, in place of the filter of a folder
-  const filters = useMemo(
-    () => <SearchFiltersBar filter={filter} onChange={handleChange} />,
-    [filter, handleChange]
-  )
   const search = useMemo(
     () =>
       request === null
@@ -113,15 +108,14 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
             emailPath,
             openEmailId,
             empty,
-            filters,
             opensAtMatch: true
           },
-    [request, emailPath, openEmailId, empty, filters]
+    [request, emailPath, openEmailId, empty]
   )
 
   return (
     <Box className="u-flex u-flex-column u-h-100" data-testid="search-results">
-      <Box className="u-flex u-flex-items-center u-ph-half u-pt-half">
+      <Box className="u-flex u-flex-items-start u-ph-1 u-pt-half">
         <Tooltip title={backLabel}>
           <IconButton
             aria-label={backLabel}
@@ -131,16 +125,18 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
             <Icon icon={Left} />
           </IconButton>
         </Tooltip>
+        {/* The title is for the screen readers and the page title: the
+            design shows the filters right under the search */}
         <Typography
           ref={headingRef}
-          variant="h4"
-          component="h1"
+          variant="h1"
           tabIndex={-1}
-          className="u-ml-half"
+          className="u-visuallyhidden"
           data-testid="search-results-title"
         >
           {t('search.results')}
         </Typography>
+        <SearchFiltersBar filter={filter} onChange={handleChange} />
       </Box>
       {search === null ? (
         <ListSkeleton count={8} hasSecondary />

@@ -13,6 +13,10 @@ export class LabelModals {
   readonly nameInput: Locator
   readonly descriptionInput: Locator
   readonly saveButton: Locator
+  readonly colorPicker: Locator
+  readonly customColorSwatch: Locator
+  readonly customColorHexInput: Locator
+  readonly customColorNativeInput: Locator
   readonly chooseModal: Locator
   readonly chooseEmpty: Locator
   readonly chooseCreateButton: Locator
@@ -26,6 +30,14 @@ export class LabelModals {
     this.nameInput = this.labelModal.getByTestId('label-name-input')
     this.descriptionInput = this.labelModal.getByTestId('label-description-input')
     this.saveButton = this.labelModal.getByTestId('label-save-button')
+    this.colorPicker = this.labelModal.getByTestId('label-color-picker')
+    this.customColorSwatch = this.labelModal.getByTestId('label-color-custom')
+    this.customColorHexInput = this.labelModal.getByTestId(
+      'label-color-hex-input'
+    )
+    this.customColorNativeInput = this.labelModal.getByTestId(
+      'label-color-native-input'
+    )
     this.chooseModal = page.getByTestId('choose-label-modal')
     this.chooseEmpty = this.chooseModal.getByTestId('choose-label-empty')
     this.chooseCreateButton = this.chooseModal.getByTestId('choose-label-create-button')
@@ -59,6 +71,17 @@ export class LabelModals {
     if (description !== undefined) await this.descriptionInput.fill(description)
     await this.saveButton.click()
     await expect(this.labelModal).toBeHidden()
+  }
+
+  /** A swatch of the colour picker of the label modal, by its name */
+  colorSwatch(name: string): Locator {
+    return this.colorPicker.getByRole('radio', { name, exact: true })
+  }
+
+  /** Picks the custom colour by its hexadecimal field */
+  async chooseCustomColor(hex: string): Promise<void> {
+    await this.customColorSwatch.check()
+    await this.customColorHexInput.fill(hex)
   }
 
   /** A label of the "Label as" modal: its checkbox */

@@ -274,4 +274,50 @@ test.describe('SET error reporting', () => {
     expect(body).not.toContain('request aborted')
     expect(body).not.toContain('network down')
   })
+
+  test('SET-15 the feedback button is offered only to a user who opted in; the feedback is posted to the ingest host with its message and no address of the account', async ({
+    page,
+    user
+  }) => {
+    const ingest = await stubIngest(page)
+    await openPreferences(page, user)
+    const button = page.getByRole('button', { name: 'Send feedback' })
+
+    // Configured, but not opted in: no button, nothing posted
+    await expect(errorReportingSwitch(page)).not.toBeChecked()
+    await expect(button).toHaveCount(0)
+
+    await errorReportingSwitch(page).click()
+    await expect(errorReportingSwitch(page)).toBeChecked()
+    await expect(button).toBeVisible()
+
+    await expectNoA11yViolations(page)
+
+    await button.click()
+    await expect(page.getByRole('textbox', { name: 'Your feedback' })).toBeVisible()
+    await expectNoA11yViolations(page)
+    await page
+      .getByRole('textbox', { name: 'Your feedback' })
+      .fill('The folder list is slow to open')
+    await page.getByRole('button', { name: 'Send', exact: true }).click()
+    await expect(page.getByText('Thank you for your feedback!')).toBeVisible()
+    await expect
+      .poll(() => ingest.envelopes.join('\n'))
+      .toContain('The folder list is slow to open')
+
+    const body = ingest.envelopes.join('\n')
+    expect(body).toContain('"type":"feedback"')
+    expect(body).toContain('"app":"twake-mail"')
+    expect(body).toMatch(/"user":\{"id":"[0-9a-f]{16}"\}/)
+    for (const secret of [user.email, user.localPart, user.password]) {
+      expect(body, `the feedback must not contain ${secret}`).not.toContain(
+        secret
+      )
+    }
+
+    // Opting out takes the button away at once
+    await errorReportingSwitch(page).click()
+    await expect(errorReportingSwitch(page)).not.toBeChecked()
+    await expect(button).toHaveCount(0)
+  })
 })

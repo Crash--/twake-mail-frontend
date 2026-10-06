@@ -658,6 +658,8 @@ Web app only, no Patrol test: the composer follows the Figma "Composer" frames.
   - Spec: `tests/error-reporting.spec.ts`.
 - [x] `SET-14` Unread emails in Spam show "N message(s) in spam" above the lists of the other folders (a live region, never in Spam itself); "Dismiss" hides it for 24 hours (kept in the browser) and marks Spam as read, "View" opens Spam and hides it too; turning "Enable spam report" off in Settings → Preferences removes it for good. — web app only, no Patrol test (tmail-flutter's `SpamReportController`, `GetSpamMailboxCachedInteractor`)
   - Spec: `tests/preferences.spec.ts`.
+- [x] `SET-15` With `SENTRY_FEEDBACK_ENABLED` on, the "Send feedback" button is not on the page until the user opts in to error reporting; then its form posts a feedback to the ingest host with the message, the `app` tag and the pseudonymous user id, and no address, name nor password of the account; opting out removes the button at once. — web app only, the screenshot needs the browser's sharing prompt (not driven here)
+  - Spec: `tests/error-reporting.spec.ts`.
 
 ## AI-ACTION — Action required and AI preferences (4)
 

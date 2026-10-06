@@ -16,13 +16,20 @@ never sent, and the test that proves each point.
 | Withdrawing the consent closes the gate first, so whatever has not been through `beforeSend` is dropped; events already handed to the transport get 100 ms to leave when the client closes | `SentryLifecycle.apply` | `sentry.spec.ts` "stops allowing at once" |
 | Signing out (or another tab signing out, or changing account) stops the reports, clears the user and the breadcrumbs, closes the client | `AuthProvider.tsx`, `SentryReportingSync.tsx` | `SentryReportingSync.spec.tsx`, e2e `SET-11` |
 | No default PII (`dataCollection.userInfo: false`, the replacement of `sendDefaultPii` in the SDK v11), no cookies, headers, request bodies nor query parameters collected | `sentry.ts` options | `sentry.spec.ts` |
-| No session replay, no feedback widget, no profiling, no tracing, no logs, no release health sessions: none of their integrations is added and no sample rate is set | `sentry.ts` options | `sentry.spec.ts` "only sends error events", e2e `SET-10` |
+| No session replay, no profiling, no tracing, no logs, no release health sessions: none of their integrations is added and no sample rate is set | `sentry.ts` options | `sentry.spec.ts` "only sends error events", e2e `SET-10` |
+| The user feedback widget (ADR 011) is added only when the deployment sets `SENTRY_FEEDBACK_ENABLED=true` **and** the user opted in, so it follows the same gate as the errors. It is the synchronous integration, bundled with the app: nothing loads from Sentry's CDN, no worker, no change to `script-src`, `worker-src` or `img-src`. The button is mounted by the standalone webmail shell only: never in the facade of a team mailbox, never inside Twake Workplace | `sentry.ts` (`feedbackIntegration`), `FeedbackWidget.tsx`, `AppLayout.tsx` | `sentry.feedback.spec.tsx`, `FeedbackWidget.spec.tsx`, e2e `SET-15`, `smoke-test.sh` (no `worker-src`) |
+| The SDK never gives a feedback to `beforeSend`: a gate of its own (`TwakeFeedbackGate`) drops it when the reporting is not allowed and rebuilds it with `scrubFeedbackEvent` | `sentry.ts`, `sentryEvents.ts` | `sentry.feedback.spec.tsx` |
 | Every event and breadcrumb is rebuilt, not filtered: only known fields leave | `common/src/app/sentryEvents.ts` | `sentry.spec.ts`, `scrubSensitiveData.spec.ts`, e2e `SET-10` |
 | The user is a pseudonym of the account (first 16 hex digits of the SHA-256 of the JMAP account id): never the address, name nor login, and not reversible without a candidate list of accounts | `sentryUserId.ts` | `SentryReportingSync.spec.tsx`, e2e `SET-10` |
 | Source maps are never served | Dockerfile, `nginx.conf`, `common/sentryBuildUtils.ts` | `smoke-test.sh` |
 | The ingest origin is added to the CSP `connect-src` only from the configured DSN, only when enabled | `40-twake-mail-runtime.sh` | `smoke-test.sh`, Helm `_helpers.tpl` |
 
 ## Where the configuration comes from
+
+`SENTRY_FEEDBACK_ENABLED` (off by default) is not one of the keys below: it
+does not choose the source, and applies to the DSN of the environment as well
+as to the one of the ecosystem. It only offers the feedback widget; it starts
+nothing by itself.
 
 As tmail-flutter on the web (its ADR 0110):
 
@@ -76,7 +83,8 @@ message or the exceptions (type, scrubbed value cut at 300 characters, handled
 flag, stack frames with the file name, function, line and column, and no source
 lines nor local variables), the URL of the page without query string, fragment
 nor identifiers, the browser and language contexts the SDK adds, the
-pseudonymous user id, and up to 30 scrubbed breadcrumbs. Nothing else.
+pseudonymous user id, the tag `app=twake-mail` (the DSN may be shared with
+other apps), and up to 30 scrubbed breadcrumbs. Nothing else.
 
 Breadcrumbs are limited to the requests (`fetch`, `xhr`: method, status, URL
 scrubbed) and the navigation. Console breadcrumbs and interaction ones (clicks,
@@ -87,6 +95,36 @@ its sender and subject) are dropped.
 tmail-flutter), `console.warn`, `info` and `log` are not. Only the message
 string is kept: the other arguments, where the JMAP objects land, are dropped
 before anything else is looked at.
+
+## User feedback
+
+With `SENTRY_FEEDBACK_ENABLED` on and the user opted in, a "Send feedback"
+button floats at the bottom right of the webmail (above the compose button on
+phones and tablets, under dialogs and panels). Its form has a message, an
+optional email (empty, never pre-filled: the app puts no address nor name on
+its events), and, where the browser can share a tab, a screenshot with a
+highlight tool and a hide tool that masks a part of the page before it is
+sent. Every text of the form is translated like the rest of the app.
+
+What is sent for a feedback: what the user typed (the message, and the email
+when they gave one), as typed; the screenshot they chose to attach (the
+browser asks which tab to share, and it can show mail: the "Error reporting"
+setting promises what the *reports* never hold, the screenshot is the user's
+own choice); the release,
+the environment, the tag `app`, the pseudonymous user id, the browser and
+system contexts, the URL of the page without query string, fragment nor
+identifiers, and the scrubbed breadcrumbs. HTTP headers and `extra` data are
+left out. Sending the form is the consent for that feedback: the opt-in is
+still what makes the button exist.
+
+The feedback event does not go through `beforeSend` (the SDK only gives it
+errors), so the scrubbing of the errors does not apply to it: the message and
+the email must stay readable, and `scrubFeedbackEvent` rebuilds the rest of
+the event instead. A feedback cannot be related to the errors of an embedded
+app: the apps shown inside TwakeSpace have no button of their own.
+
+The SDK does not remove the host of the widget when it is closed: the
+lifecycle does it, so a new opt-in does not add a second button.
 
 ## What is scrubbed
 
@@ -168,6 +206,7 @@ is sent).
 | Environment configuration needs a non blank environment | A DSN is enough | Existing deployments; the environment only labels events |
 | Consent unknown or ecosystem unreachable: the default (off), an explicit opt-in is honoured | Same. If the server keeps no settings (no `com:linagora:params:jmap:settings`) the toggle is hidden and nothing is sent, even with `userOptInByDefault` | An opt-out the user cannot reach is no consent |
 | `sendDefaultPii: false` | `dataCollection.userInfo: false` | `sendDefaultPii` does not exist in the SDK v11 |
+| No feedback widget | An optional one, off by default (`SENTRY_FEEDBACK_ENABLED`) | ADR 011: feedback from the people who use the new frontends, in the Sentry the team already reads |
 
 ## For the operator
 
@@ -180,5 +219,12 @@ is sent).
 4. Serve the app over HTTPS: the pseudonym uses Web Crypto, which browsers
    only offer on secure origins (and `localhost`); elsewhere the reporting never
    starts.
-5. Optional: source maps (`SENTRY_URL`, `SENTRY_ORG`, `SENTRY_PROJECT` build
+5. Optional: the user feedback widget. Needs a Sentry 24.4.2 or later
+   (feature-complete mode for screenshots). Set `SENTRY_FEEDBACK_ENABLED=true`
+   (Helm: `config.sentry.feedbackEnabled`). Nothing else changes in the
+   policy: `connect-src` already carries the ingest origin, and the widget
+   needs no worker, no CDN and no other source. The Sentry project holds
+   screenshots, which can show mail and names: set its retention
+   accordingly.
+6. Optional: source maps (`SENTRY_URL`, `SENTRY_ORG`, `SENTRY_PROJECT` build
    arguments and the `sentry_auth_token` build secret).

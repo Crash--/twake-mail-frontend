@@ -24,3 +24,5 @@ var WORKPLACE_EMBEDDING = true
 var SENTRY_ENABLED = 'true'
 var SENTRY_DSN = 'https://e2epublickey@sentry-stub.example.test/42'
 var SENTRY_ENVIRONMENT = 'e2e'
+// User feedback (SET-15): the button is offered only to a user who opted in
+var SENTRY_FEEDBACK_ENABLED = 'true'

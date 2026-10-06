@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- User feedback with Sentry: a floating "Send feedback" button (message,
+  optional email, screenshot with a hide tool) in the standalone webmail, only
+  when the deployment sets `SENTRY_FEEDBACK_ENABLED=true` (Helm
+  `config.sentry.feedbackEnabled`, off by default; needs a Sentry 24.4.2 or
+  later) and the user opted in to error reporting. Nothing is initialised
+  before the opt-in, the app puts no address nor name on the feedback, and the
+  button is never shown in the facade of a team mailbox nor inside Twake
+  Workplace. Events now carry the tag `app=twake-mail`. See `docs/sentry.md`
+  and ADR 011.
 - The facade of a team mailbox for the Mail tab of TwakeSpace,
   `/embed/team-mailboxes/<id of its root folder>`: its list and reading view
   without the frame of the webmail, new messages from its address, a silent

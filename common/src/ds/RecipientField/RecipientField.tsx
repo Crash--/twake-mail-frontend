@@ -43,6 +43,26 @@ const LINE_SX = {
   flexWrap: 'nowrap',
   alignItems: 'flex-start'
 } as const
+/**
+ * The label stands beside the chips, not in their wrapping row: a chip as
+ * wide as the field keeps the label company on the first row instead of
+ * leaving it alone above
+ */
+const LABEL_SX = {
+  ...FIELD_LABEL_SX,
+  display: 'flex',
+  alignItems: 'center',
+  flexShrink: 0,
+  height: 28
+} as const
+/**
+ * The input follows the last chip on its row while `INPUT_MIN_WIDTH` is
+ * left, and only then goes to the next row
+ */
+/** Beside 32 px chips, the 28 px label stays centred on the first row */
+const CHIPS_LABEL_SX = { ...LABEL_SX, mt: '2px' } as const
+const INPUT_MIN_WIDTH = 56
+const INPUT_SX = { flex: `1 1 ${INPUT_MIN_WIDTH}px`, minWidth: INPUT_MIN_WIDTH }
 const CONTENT_SX = {
   minWidth: 0,
   display: 'flex',
@@ -63,7 +83,7 @@ export const RECIPIENT_CHIP_SX = {
   fontWeight: 500,
   letterSpacing: '0.25px',
   '& .MuiChip-avatar': { ml: '6px', mr: '-2px' },
-  '& .MuiChip-deleteIcon': { color: 'text.secondary' }
+  '& .MuiChip-deleteIcon': { color: 'text.secondary', flexShrink: 0 }
 } as const
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
@@ -402,16 +422,16 @@ export function RecipientField({
         sx={LINE_SX}
         onClick={handleFieldClick}
       >
+        <Typography
+          component="label"
+          id={labelId}
+          htmlFor={inputId}
+          variant="body2"
+          sx={chips.length === 0 ? LABEL_SX : CHIPS_LABEL_SX}
+        >
+          {labels.field}
+        </Typography>
         <Box ref={setContent} className="u-flex-auto" sx={CONTENT_SX}>
-          <Typography
-            component="label"
-            id={labelId}
-            htmlFor={inputId}
-            variant="body2"
-            sx={FIELD_LABEL_SX}
-          >
-            {labels.field}
-          </Typography>
           {chips.map((chip, index) => (
             <Chip
               key={chip.id}
@@ -472,8 +492,7 @@ export function RecipientField({
               onFocus?.()
             }}
             onPaste={handlePaste}
-            className="u-flex-auto"
-            sx={{ minWidth: 120 }}
+            sx={INPUT_SX}
             inputProps={{
               id: inputId,
               role: 'combobox',

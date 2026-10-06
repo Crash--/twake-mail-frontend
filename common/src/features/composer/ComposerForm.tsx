@@ -90,6 +90,7 @@ import {
   findStrayVersions,
   saveDraft,
   isInTeamMailbox,
+  isRequestTooLarge,
   saveTemplate,
   sendEmail,
   type AttachedFile,
@@ -284,6 +285,7 @@ function isImageDropOnBody(event: DragEvent<HTMLElement>): boolean {
 
 /** The translation key of a failed draft save */
 function saveErrorKey(error: unknown): TranslationKey {
+  if (isRequestTooLarge(error)) return 'composer.draft.tooLarge'
   if (error instanceof JmapSetError) {
     const types = Object.values(error.notCreated).map(setError => setError.type)
     if (types.includes('tooLarge')) return 'composer.draft.tooLarge'
@@ -1215,7 +1217,13 @@ function LoadedComposerForm({
       )
     } catch (error: unknown) {
       console.error(error)
-      setSendError(t('composer.sendErrors.generic'))
+      setSendError(
+        t(
+          isRequestTooLarge(error)
+            ? 'composer.sendErrors.tooLarge'
+            : 'composer.sendErrors.generic'
+        )
+      )
     } finally {
       setIsSending(false)
     }

@@ -1,5 +1,6 @@
 import {
   createClient,
+  JmapRequestError,
   JmapSetError,
   type EmailAddress,
   type EmailCreate,
@@ -22,6 +23,7 @@ import {
   buildEmail,
   ensureTemplatesMailbox,
   identityReplyTo,
+  isRequestTooLarge,
   saveDraft,
   sendEmail,
   type BuildPurpose,
@@ -436,5 +438,28 @@ describe('ensureTemplatesMailbox', () => {
     expect(server.mailboxes.find(mailbox => mailbox.id === id)?.parentId).toBe(
       'team'
     )
+  })
+})
+
+describe('isRequestTooLarge', () => {
+  const problem = (limit?: string): JmapRequestError =>
+    new JmapRequestError(
+      {
+        type: 'urn:ietf:params:jmap:error:limit',
+        status: 400,
+        ...(limit === undefined ? {} : { limit }),
+        detail: 'Request size is exceeded'
+      },
+      400
+    )
+
+  it('recognizes the request refused for its size', () => {
+    expect(isRequestTooLarge(problem('maxSizeRequest'))).toBe(true)
+  })
+
+  it('is false for another limit and for other errors', () => {
+    expect(isRequestTooLarge(problem('maxCallsInRequest'))).toBe(false)
+    expect(isRequestTooLarge(problem())).toBe(false)
+    expect(isRequestTooLarge(new Error('boom'))).toBe(false)
   })
 })

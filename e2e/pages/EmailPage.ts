@@ -41,8 +41,6 @@ export class EmailPage {
   /** "Unsubscribe" link after the sender, and the note once unsubscribed */
   readonly unsubscribeLink: Locator
   readonly unsubscribedBanner: Locator
-  /** The toolbar button of "Print all" */
-  readonly printButton: Locator
   /** "Remote images hidden" banner, and its buttons */
   readonly remoteContentBanner: Locator
   readonly showRemoteContentButton: Locator
@@ -65,7 +63,6 @@ export class EmailPage {
     this.moreButton = this.root.getByTestId('email-view-more-button')
     this.unsubscribeLink = this.root.getByTestId('email-unsubscribe-link')
     this.unsubscribedBanner = this.root.getByTestId('email-unsubscribed-banner')
-    this.printButton = this.root.getByTestId('email-view-action-print')
     this.remoteContentBanner = this.root.getByTestId('remote-content-banner')
     this.showRemoteContentButton = this.root.getByTestId(
       'remote-content-show-button'
@@ -131,6 +128,11 @@ export class EmailPage {
     const menu = await this.openMoreMenu()
     await menu.getByTestId(`email-action-${action}`).click()
     return this
+  }
+
+  /** "Print all", in the "more" menu */
+  async print(): Promise<EmailPage> {
+    return this.runAction('print')
   }
 
   async back(): Promise<EmailPage> {

@@ -782,3 +782,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-attachments-ui.spec.ts`.
 - [x] `CMP-64` the expanded composer sits under the top bar, inset from the screen edges with the page showing around it (not dimmed, as in the design), and goes back to the dock. — web app (editor E3)
   - Spec: `tests/composer.spec.ts`.
+- [x] `EML-38` The reading view of the new design (single email): the toolbar says "‹ Inbox" (named "Back to Inbox") and its previous / next buttons open the neighbours of the folder; the header has five icon buttons (reply, move, star, delete, "More") and a chevron after "Cc" showing the addresses; Reply all / Reply / Forward are in a bar at the bottom. axe. — web app, batch D1 (Figma "Teammail 1.1")
+  - Spec: `tests/reading-view.spec.ts`.
+- [x] `THR-21` A conversation has its answers in a bar at the bottom (Reply and Forward go to the latest message), the actions of every message (reply, archive, star, delete, "More") in its row, and the actions on all of its messages in the "More" menu of its toolbar. axe. — web app, batch D1
+  - Spec: `tests/reading-view.spec.ts`.

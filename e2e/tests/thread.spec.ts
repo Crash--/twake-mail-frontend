@@ -234,18 +234,21 @@ test.describe('THR thread detail', () => {
       `Re: ${SUBJECT}`
     )
 
-    await conversation.toggleStarButton.click()
-    await expect(conversation.toggleStarButton).toHaveAttribute(
-      'aria-pressed',
-      'true'
+    await conversation.runToolbarAction('toggle-star')
+    // The item now offers to take the star off
+    const menu = await conversation.openToolbarMenu()
+    await expect(menu.getByTestId('conversation-toggle-star')).toHaveText(
+      'Unstar'
     )
+    await page.keyboard.press('Escape')
+    await expect(menu).toBeHidden()
     await expect
       .poll(
         async () => (await jmap.queryEmails({ hasKeyword: '$flagged' })).length
       )
       .toBe(2)
 
-    await conversation.toggleSeenButton.click()
+    await conversation.runToolbarAction('toggle-seen')
     await expect
       .poll(
         async () => (await jmap.queryEmails({ notKeyword: '$seen' })).length

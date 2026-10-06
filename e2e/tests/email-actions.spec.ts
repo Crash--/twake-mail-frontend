@@ -57,7 +57,7 @@ test.describe('EACT email actions of the reading view', () => {
 
     const mailbox = await new LoginPage(page).loginAs(user)
     const email = await mailbox.openEmail('Quarterly report')
-    await email.printButton.click()
+    await email.print()
 
     await expect.poll(async () => (await printedDocuments(page)).length).toBe(1)
     const [document = ''] = await printedDocuments(page)

@@ -14,8 +14,8 @@ export class ConversationPage {
   readonly count: Locator
   readonly messages: Locator
   readonly backButton: Locator
-  readonly toggleSeenButton: Locator
-  readonly toggleStarButton: Locator
+  /** The "More" button of the toolbar: the actions on the whole conversation */
+  readonly toolbarMoreButton: Locator
   /** The labels of the whole conversation, under its subject */
   readonly labelChips: Locator
 
@@ -26,8 +26,7 @@ export class ConversationPage {
     this.count = this.root.getByTestId('conversation-count')
     this.messages = this.root.getByTestId('conversation-message')
     this.backButton = this.root.getByTestId('email-view-back-button')
-    this.toggleSeenButton = this.root.getByTestId('conversation-toggle-seen')
-    this.toggleStarButton = this.root.getByTestId('conversation-toggle-star')
+    this.toolbarMoreButton = this.root.getByTestId('conversation-more-button')
     this.labelChips = this.root
       .getByTestId('conversation-header')
       .getByTestId('label-chip')
@@ -36,6 +35,21 @@ export class ConversationPage {
   async expectLoaded(subject: string): Promise<ConversationPage> {
     await expect(this.subject).toHaveText(subject)
     return this
+  }
+
+  /** Opens the menu of the toolbar (read, star, archive, trash, spam) */
+  async openToolbarMenu(): Promise<Locator> {
+    await this.toolbarMoreButton.click()
+    const menu = this.page.getByTestId('conversation-menu')
+    await expect(menu).toBeVisible()
+    return menu
+  }
+
+  /** An action of the toolbar menu: `toggle-seen`, `toggle-star`, `archive`, `move-to-trash`, `mark-as-spam` */
+  async runToolbarAction(action: string): Promise<void> {
+    const menu = await this.openToolbarMenu()
+    await menu.getByTestId(`conversation-${action}`).click()
+    await expect(menu).toBeHidden()
   }
 
   /** A message, by a text of its header (sender, preview) */

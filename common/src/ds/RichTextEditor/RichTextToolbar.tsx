@@ -79,12 +79,15 @@ export interface RichTextToolbarProps {
 
 const BOX_HEIGHT = 32
 const ICON_SIZE = 16
-/** What every button of the toolbar is: Inter Medium 14 in a bordered box */
+/**
+ * What every button of the toolbar is: Inter Medium 14 in a bordered box. The
+ * design draws the 1 px border inside its 8 px (4 px) padding.
+ */
 const BUTTON_SX = {
   minWidth: 0,
   height: BOX_HEIGHT,
-  px: 1,
-  py: 0.5,
+  px: '7px',
+  py: '3px',
   gap: '2px',
   flexShrink: 0,
   border: '1px solid',
@@ -99,7 +102,7 @@ const BUTTON_SX = {
 /** A button inside a group: no border of its own */
 const GROUP_BUTTON_SX = {
   ...BUTTON_SX,
-  width: 24,
+  width: 24.5,
   height: 28,
   px: 0,
   py: 0,
@@ -110,7 +113,8 @@ const GROUP_SX = {
   alignItems: 'center',
   flexShrink: 0,
   gap: '4px',
-  p: '2px',
+  // 2 px with the border: 32 px high, 114 px wide for B I U S
+  p: '1px',
   border: '1px solid',
   borderColor: 'divider',
   borderRadius: '4px'
@@ -571,7 +575,8 @@ export function RichTextToolbar({
         ...(placement === 'bottom'
           ? {
               px: 2,
-              py: 1,
+              // 40 px high under a 1 px rule, as in the design
+              py: 0.5,
               borderTop: '1px solid',
               borderColor: 'divider'
             }

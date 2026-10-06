@@ -116,11 +116,7 @@ import { findAttachmentKeywords, writtenText } from './attachmentReminder'
 import { TemplatePicker } from './TemplatePicker'
 import { chooseTemplatesTarget, templatesTargetKey } from './templatesFolder'
 import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
-import {
-  editableQuoteHtml,
-  resolveCidSources,
-  toStorageHtml
-} from './emailHtml'
+import { editableQuoteHtml, resolveCidSources } from './emailHtml'
 import { showBlockedImages } from './editorImages'
 import { InlineImageStore } from './InlineImageStore'
 import type { MailtoFields } from './mailto'
@@ -140,6 +136,7 @@ import { makeIsSelf, type ReplyAction } from './replyRecipients'
 import { ComposerAttachmentsList } from './ComposerAttachmentsList'
 import { removeSignatures, replaceSignature, signatureHtml } from './signature'
 import { DRAFT_IDLE_MS } from './draftPolicy'
+import { getEditorHtml, getEditorStorageHtml } from './editorHtml'
 import { EmojiButton } from './EmojiButton'
 import { DriveAttachButton } from './DriveAttachButton'
 import { ScribeMenu, type ScribeInput } from './ScribeMenu'
@@ -427,7 +424,7 @@ function LoadedComposerForm({
       identityId,
       allRecipients(),
       subject,
-      toStorageHtml(editor.getHTML()),
+      getEditorStorageHtml(editor),
       files.attachments,
       options
     )
@@ -451,7 +448,7 @@ function LoadedComposerForm({
       bcc: toAddresses(lists.bcc),
       replyTo: toAddresses(lists.replyTo),
       subject,
-      editorHtml: editor.getHTML(),
+      editorHtml: getEditorHtml(editor),
       inReplyTo: content.inReplyTo,
       references: content.references,
       attachments: uploadedFiles(files.attachments),
@@ -605,6 +602,27 @@ function LoadedComposerForm({
 
   useEffect(() => cancelAutosave, [])
 
+  /** What the timers and the editor call: the closures of the last render */
+  const latestRef = useRef({ save, onChange })
+  useEffect(() => {
+    latestRef.current = { save, onChange }
+  })
+
+  /**
+   * The text changed: the same scheduling as `markChanged`, without a render of the form.
+   * Typing in a long message with 200 recipients or 50 files rendered every chip and every
+   * file at each key (60 ms at 4 times slower CPU); the text lives in the editor, which the
+   * saves read themselves, so nothing on the screen depends on it
+   */
+  const handleEditorUpdate = (): void => {
+    latestRef.current.onChange?.()
+    cancelAutosave()
+    timerRef.current = window.setTimeout(() => {
+      timerRef.current = null
+      void latestRef.current.save('auto')
+    }, DRAFT_IDLE_MS)
+  }
+
   // What is typed in a recipient field, not yet a recipient: kept as well
   const inputsMountedRef = useRef(false)
   useEffect(() => {
@@ -688,7 +706,7 @@ function LoadedComposerForm({
       recipients: allRecipients(),
       shown: [...shown],
       subject,
-      html: toStorageHtml(editor.getHTML()),
+      html: getEditorStorageHtml(editor),
       images: images.toJSON(),
       attachments: uploadedFiles(files.attachments),
       draftId: draftIdRef.current,
@@ -986,7 +1004,8 @@ function LoadedComposerForm({
         { isTemplate: true }
       )
       const isEmpty =
-        subject.trim() === '' && writtenText('', editor.getHTML()).trim() === ''
+        subject.trim() === '' &&
+        writtenText('', getEditorHtml(editor)).trim() === ''
       let mode: 'insert' | 'replace' = 'insert'
       if (!isEmpty) {
         const choice = await choose({
@@ -1050,7 +1069,7 @@ function LoadedComposerForm({
     if (!editor) return { text: '', isSelection: false }
     const { from, to, empty } = editor.state.selection
     return empty
-      ? { text: editorText(editor.getHTML()), isSelection: false }
+      ? { text: editorText(getEditorHtml(editor)), isSelection: false }
       : {
           text: editor.state.doc.textBetween(from, to, '\n'),
           isSelection: true
@@ -1146,9 +1165,9 @@ function LoadedComposerForm({
   const checkAttachmentReminder = async (): Promise<boolean> => {
     const editor = editorRef.current
     if (!editor || files.attachments.length > 0) return true
-    if (hasDriveCards(editor.getHTML())) return true
+    if (hasDriveCards(getEditorHtml(editor))) return true
     const keywords = findAttachmentKeywords(
-      writtenText(subject, editor.getHTML())
+      writtenText(subject, getEditorHtml(editor))
     )
     if (keywords.length === 0) return true
     return confirm({
@@ -1621,7 +1640,7 @@ function LoadedComposerForm({
             hasInsertButtons={false}
             actions={editorActions}
             onReady={handleEditorReady}
-            onUpdate={markChanged}
+            onUpdate={handleEditorUpdate}
             testIds={EDITOR_TEST_IDS}
           />
         </Box>

@@ -3,12 +3,18 @@ import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
 import {
+  FAKE_ACCOUNT_ID,
   makeFakeJmapServer,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
-import { clearComposerStorage, resumeComposerStorage } from './composerStorage'
+import { parseSnapshot } from './composerContent'
+import {
+  clearComposerStorage,
+  listComposers,
+  resumeComposerStorage
+} from './composerStorage'
 import { ComposerProvider, useComposer } from './ComposerProvider'
 import { DRAFT_IDLE_MS } from './draftPolicy'
 
@@ -178,5 +184,47 @@ describe('the save policy of a draft', () => {
     await user.click(screen.getByRole('button', { name: 'Sign out' }))
     await pass(1000)
     expect(jmapServer.callsOf('Email/set')).toHaveLength(calls)
+  })
+
+  // The text is typed in the editor, which does not render the form: its saves must not depend on it
+  it('keeps what is typed in the body in the browser, then on the server after the idle delay', async () => {
+    const jmapServer = makeFakeJmapServer()
+    const { composer } = await openAndType(jmapServer)
+    const body = within(composer).getByRole('textbox', { name: 'Message body' })
+
+    await user.click(body)
+    await user.keyboard('Only in the body')
+    await pass(1500)
+    await waitFor(async () => {
+      const stored = await listComposers(FAKE_ACCOUNT_ID)
+      expect(
+        stored.map(record => parseSnapshot(record.snapshot)?.html ?? '')
+      ).toEqual([expect.stringContaining('Only in the body')])
+    })
+    expect(jmapServer.callsOf('Email/set')).toHaveLength(0)
+
+    await pass(FIVE_MINUTES)
+    await waitFor(() => {
+      expect(draftsOf(jmapServer)).toHaveLength(1)
+    })
+    expect(JSON.stringify(draftsOf(jmapServer))).toContain('Only in the body')
+  })
+
+  it('starts the delay again at each key typed in the body', async () => {
+    const jmapServer = makeFakeJmapServer()
+    const { composer } = await openAndType(jmapServer)
+    const body = within(composer).getByRole('textbox', { name: 'Message body' })
+
+    await user.click(body)
+    await user.keyboard('One')
+    await pass(FIVE_MINUTES - 1000)
+    await user.keyboard(' two')
+    await pass(FIVE_MINUTES - 1000)
+    expect(jmapServer.callsOf('Email/set')).toHaveLength(0)
+
+    await pass(2000)
+    await waitFor(() => {
+      expect(JSON.stringify(draftsOf(jmapServer))).toContain('One two')
+    })
   })
 })

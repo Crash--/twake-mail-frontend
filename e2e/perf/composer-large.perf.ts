@@ -235,16 +235,26 @@ async function measureLargeDraft(
         // The request is over the 10 MB of the server: both are refused, and the window says so
         const refusedAt = Date.now()
         await composer.runMoreAction('save-draft')
-        await expect(composer.saveStatus).toHaveText('Draft not saved', {
-          timeout: 120_000
-        })
+        await page.waitForFunction(
+          () =>
+            document.querySelector('[data-testid="composer-save-status"]')
+              ?.textContent === 'Draft not saved',
+          undefined,
+          { timeout: 120_000 }
+        )
         add(
           'save draft refused: click → "Draft not saved" (ms)',
           Date.now() - refusedAt
         )
         const sendRefusedAt = Date.now()
         await composer.sendButton.click()
-        await expect(composer.sendError).toBeVisible({ timeout: 120_000 })
+        await page.waitForFunction(
+          () =>
+            document.querySelector('[data-testid="composer-send-error"]') !==
+            null,
+          undefined,
+          { timeout: 120_000 }
+        )
         add(
           'send refused: click → error shown (ms)',
           Date.now() - sendRefusedAt

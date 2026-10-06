@@ -876,3 +876,13 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/folders.spec.ts`.
 - [x] `CMP-99` Inserting a template that was saved with a signature, at the cursor or replacing the message, leaves the signature of the current identity once: the one of the template (the block of this app or the `tmail-signature` wrapper of tmail-flutter) is dropped. — web app only, no Patrol test (tmail-flutter opens a template as a new message and has no "Insert template", issue #54, #65)
   - Spec: `tests/composer-templates.spec.ts`.
+- [x] `A11Y-10` The composer window is a named, non modal `dialog` (level 2 title, the three live regions mounted before anything is said), tabs in the order it is read, minimizes to a dialog whose title is a "Show: …" button taking the focus, goes full screen as a modal and back to its button, and sits next to a second window with its own name. Axe at each step. — web app only (RGAA, docs/a11y/composer-audit.md)
+  - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `A11Y-11` Recipient chips are buttons named after the address, invalid ones say so and carry the help as description; Backspace reaches the last chip, Enter edits it, Delete removes it, "Carol removed" is announced and the focus goes back to the field. — web app only (RGAA, `@mobile`)
+  - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `A11Y-12` The formatting toolbar has `aria-pressed` states, Alt+F10 goes to it and Escape comes back; the link dialog is named and takes the focus in and gives it back; the image toolbar is named, its sizes are pressed buttons and the width is announced. — web app only (RGAA)
+  - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `A11Y-13` Attachments are a list named with its count, adding one is announced, a toast is a polite status, the template picker and the "Save message" dialog are named, take the focus in and give it back. — web app only (RGAA)
+  - Spec: `tests/composer-a11y.spec.ts`.
+- [x] `A11Y-14` Sending without a recipient opens a dialog with the focus on "Add recipients", which takes it to the To field. — web app only (RGAA, `@mobile`)
+  - Spec: `tests/composer-a11y.spec.ts`.

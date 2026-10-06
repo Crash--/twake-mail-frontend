@@ -124,6 +124,7 @@ ingress-nginx do).
 | `config.lang` | `en` | Default UI language: `en`, `fr`, `ru`, `vi` |
 | `config.calendarSpaUrl`, `config.chatSpaUrl`, `config.workplaceFqdnFallback` | `""` | URI templates of the other Twake apps |
 | `config.workplaceEmbedding` | `false` | Inside an iframe of Twake Workplace, leave the logotype and the app grid to the container |
+| `config.twakeSpaceUrl` | `""` | `TWAKE_SPACE_URL`: TwakeSpace, whose Mail tab frames the facade of a team mailbox; allow it in `csp.frameAncestors` |
 | `config.forwardWarningMessage` | `""` | |
 | `config.tdrive.enabled`, `config.tdrive.intentUrl` | `false`, `""` | Twake Drive picker of the composer (OIDC only); `intentUrl` is the Drive (cozy-stack) of the user, a URI template |
 | `config.extraEnvJs` | `""` | JavaScript appended to `.env.js` as is |

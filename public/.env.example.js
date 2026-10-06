@@ -67,6 +67,12 @@ var CALENDAR_SPA_URL = 'https://calendar.example.com'
 var CHAT_SPA_URL =
   'https://{workplaceFqdn.localpart}-chat.{workplaceFqdn.domain}/#/bridge/web/#/chat/@{target}:{workplaceFqdn.domain}'
 
+// Optional. TwakeSpace, whose Mail tab frames the facade of a team mailbox
+// (/embed/team-mailboxes/<address>): the facade sends its navigation and
+// "sign in again" to it through cozy-external-bridge. Allow it in
+// CSP_FRAME_ANCESTORS too.
+// var TWAKE_SPACE_URL = 'https://space.example.com'
+
 // Optional. Used by the URI templates when the SSO does not expose the
 // workplace FQDN of the user. Supports {localpart}.
 var WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.example.com'

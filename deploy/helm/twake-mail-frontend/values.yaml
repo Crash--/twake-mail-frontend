@@ -137,6 +137,9 @@ config:
   # -- Inside an iframe of Twake Workplace, leave the logotype and the app grid
   # to the container (allow the container in csp.frameAncestors)
   workplaceEmbedding: false
+  # -- TwakeSpace, whose Mail tab frames the facade of a team mailbox
+  # (/embed/team-mailboxes/<address>); allow it in csp.frameAncestors
+  twakeSpaceUrl: ""
   forwardWarningMessage: ""
   # -- Twake Drive picker of the composer (OIDC only). intentUrl is the Drive
   # (cozy-stack) of the user, a URI template ({workplaceFqdn}...). Allow the

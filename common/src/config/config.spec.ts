@@ -517,6 +517,37 @@ describe('resolveConfig', () => {
     })
   })
 
+  describe('TwakeSpace', () => {
+    it('keeps the origin of TWAKE_SPACE_URL', () => {
+      const { result } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        TWAKE_SPACE_URL: ' https://space.example.com/spaces/ '
+      })
+
+      expect(result.ok && result.value.twakeSpaceOrigin).toBe(
+        'https://space.example.com'
+      )
+    })
+
+    it.each([[{}], [{ TWAKE_SPACE_URL: '' }]])('is null with %j', extra => {
+      const { result } = resolveWithWarnings({ ...OIDC_SOURCE, ...extra })
+
+      expect(result.ok && result.value.twakeSpaceOrigin).toBe(null)
+    })
+
+    it('ignores a value that is not an http(s) URL, with a warning', () => {
+      const { result, warnings } = resolveWithWarnings({
+        ...OIDC_SOURCE,
+        TWAKE_SPACE_URL: 'space.example.com'
+      })
+
+      expect(result.ok && result.value.twakeSpaceOrigin).toBe(null)
+      expect(warnings).toContainEqual(
+        expect.stringContaining('TWAKE_SPACE_URL')
+      )
+    })
+  })
+
   describe('app_dashboard.json', () => {
     it('is read from the origin of the app when the grid is supported and appList.js has no app', () => {
       const { result } = resolveWithWarnings({

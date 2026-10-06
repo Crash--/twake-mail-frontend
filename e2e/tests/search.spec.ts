@@ -573,18 +573,37 @@ test.describe('SRCH search', () => {
       await expect(
         dialog.getByRole('checkbox', { name: 'Starred' })
       ).toBeChecked()
-      await expect(
-        dialog.locator('label', { hasText: 'Folder' })
-      ).toHaveAttribute('data-shrink', 'true')
-      await expect(
-        dialog.getByRole('heading', { name: 'Advanced search' })
-      ).toBeInViewport()
+      await expect(dialog.getByLabel('Folder')).toHaveValue('')
+      await expect(dialog.getByLabel('Folder')).toBeInViewport()
       await expect(search.advancedSubmitButton).toBeInViewport()
-      await expect(search.advancedCancelButton).toBeInViewport()
+      if (search.isPhone()) {
+        // A full screen dialog: its title and Cancel stay in view
+        await expect(
+          dialog.getByRole('heading', { name: 'Advanced search' })
+        ).toBeInViewport()
+        await expect(search.advancedCancelButton).toBeInViewport()
+      } else {
+        // The card of the design, laid over the search field
+        const field = await page.getByTestId('search-bar').boundingBox()
+        const card = await page.getByRole('dialog').boundingBox()
+        // From the corner of the field, moved left only to stay on screen
+        expect(card?.x ?? 0).toBeLessThanOrEqual((field?.x ?? 0) + 1)
+        expect(card?.x ?? 0).toBeGreaterThanOrEqual((field?.x ?? 0) - 16)
+        // 700 px under the search of a desktop, at least a form's width
+        // under the narrower one of a tablet
+        expect(card?.width).toBeGreaterThanOrEqual(
+          Math.min(560, field?.width ?? 0)
+        )
+        if ((page.viewportSize()?.width ?? 0) >= 1200) {
+          expect(card?.width).toBeCloseTo(700, -1)
+        }
+      }
       await expectNoA11yViolations(page)
 
-      // Cancel: the only way out of the full screen dialog on a phone
-      await search.advancedCancelButton.click()
+      // Cancel on a phone, the only way out of the full screen dialog;
+      // Escape elsewhere
+      if (search.isPhone()) await search.advancedCancelButton.click()
+      else await page.keyboard.press('Escape')
       await expect(dialog).toBeHidden()
       await expect(search.results).toBeHidden()
 
@@ -602,4 +621,51 @@ test.describe('SRCH search', () => {
       await expect(search.resultRow(subject).first()).toBeVisible()
     }
   )
+
+  test('SRCH-16 the filters above the results leave the invitations out and filter by sender', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const plain = 'Filterbar plain report'
+    const invitation = 'Filterbar invitation report'
+    await jmap.sendEmail({ to: user.email, subject: plain, text: 'report' })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: invitation,
+      text: 'report'
+    })
+    await waitInInbox(jmap, plain)
+    const event = await waitInInbox(jmap, invitation)
+    await jmap.setKeywords(event.id, { event: true })
+
+    await new LoginPage(page).loginAs(user)
+    const search = await new SearchPage(page).search('report')
+    await expect(search.resultRow(plain)).toBeVisible()
+    await expect(search.resultRow(invitation)).toBeVisible()
+    await expect(search.filterChip('from')).toBeVisible()
+    await expect(search.filterChip('to')).toBeVisible()
+
+    await search.filterChip('not-include-events').click()
+
+    await expect(search.filterChip('not-include-events')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    await expect(search.resultRow(invitation)).toBeHidden()
+    await expect(search.resultRow(plain)).toBeVisible()
+    await expectNoA11yViolations(page)
+
+    // A sender nobody has: nothing is left, the chip shows the filter
+    await search.filterChip('from').click()
+    await page.getByTestId('search-filter-address-input').fill('nobody@x.org')
+    await page.keyboard.press('Enter')
+
+    await expect(page.getByTestId('search-filter-removable')).toHaveText(
+      'From: nobody@x.org'
+    )
+    await expect(search.emptyView).toBeVisible()
+    await page.getByTestId('search-filter-removable').click()
+    await expect(search.resultRow(plain)).toBeVisible()
+  })
 })

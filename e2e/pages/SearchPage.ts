@@ -8,7 +8,16 @@ export type QuickSearchFilter =
 
 /** The filters above the results */
 export type SearchFilterChip =
-  'folder' | 'date-time' | 'has-attachment' | 'starred' | 'unread' | 'sort-by'
+  | 'folder'
+  | 'labels'
+  | 'from'
+  | 'to'
+  | 'date-time'
+  | 'has-attachment'
+  | 'starred'
+  | 'unread'
+  | 'not-include-events'
+  | 'sort-by'
 
 /** Below this width the search field is folded behind a button of the top bar */
 const PHONE_MAX_WIDTH = 600

@@ -137,7 +137,7 @@ import {
 import { loadReplyContent } from './replyContent'
 import { makeIsSelf, type ReplyAction } from './replyRecipients'
 import { ComposerAttachmentsList } from './ComposerAttachmentsList'
-import { replaceSignature, signatureHtml } from './signature'
+import { removeSignatures, replaceSignature, signatureHtml } from './signature'
 import { DRAFT_IDLE_MS } from './draftPolicy'
 import { EmojiButton } from './EmojiButton'
 import { DriveAttachButton } from './DriveAttachButton'
@@ -964,7 +964,9 @@ function LoadedComposerForm({
    * the signature. Into a message with something written, the user says: at
    * the cursor (the subject is kept unless it is empty), or the whole
    * message replaced (the quote and the signature too), the one choice
-   * that loses nothing by default.
+   * that loses nothing by default. The signature is the identity's, not the
+   * template's: the one of the template is dropped and the message keeps
+   * (or gets back) the signature of its current identity, never two.
    */
   const handleInsertTemplate = async (
     template: TemplateSummary
@@ -997,12 +999,17 @@ function LoadedComposerForm({
         }
         mode = choice === 'confirm' ? 'insert' : 'replace'
       }
+      const body = removeSignatures(loaded.html)
       if (mode === 'replace') {
-        editor.chain().focus().setContent(loaded.html).run()
+        editor.chain().focus().setContent(body).run()
+        const current = identities.find(
+          candidate => candidate.id === identityId
+        )
+        replaceSignature(editor, current ? signatureHtml(current) : null)
         setSubject(loaded.subject)
       } else {
         if (subject.trim() === '') setSubject(loaded.subject)
-        editor.chain().focus().insertContent(loaded.html).run()
+        editor.chain().focus().insertContent(body).run()
       }
       if (loaded.hasBlockedImages) setHasBlockedImages(true)
       markChanged()

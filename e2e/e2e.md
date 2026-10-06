@@ -874,3 +874,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `MBX-06b` (updated, issue #102) — the order Inbox, its subfolder, Starred, Drafts is walked with the arrow keys from the Inbox, no longer with Tab.
   - Spec: `tests/folders.spec.ts`.
+- [x] `CMP-99` Inserting a template that was saved with a signature, at the cursor or replacing the message, leaves the signature of the current identity once: the one of the template (the block of this app or the `tmail-signature` wrapper of tmail-flutter) is dropped. — web app only, no Patrol test (tmail-flutter opens a template as a new message and has no "Insert template", issue #54, #65)
+  - Spec: `tests/composer-templates.spec.ts`.

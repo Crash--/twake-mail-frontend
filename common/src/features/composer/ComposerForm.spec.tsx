@@ -1384,6 +1384,96 @@ describe('ComposerForm', () => {
         expect(body).not.toHaveTextContent('Done this week:')
       })
 
+      describe('signature', () => {
+        function serverWithSignedTemplates(): FakeJmapServer {
+          return makeFakeJmapServer({
+            identities: [
+              makeIdentity({
+                id: 'identity-alice',
+                mayDelete: false,
+                textSignature: 'The sales team'
+              })
+            ],
+            mailboxes: [
+              ...makeDefaultMailboxes(),
+              makeMailbox({ id: 'mailbox-templates', name: 'Templates' })
+            ],
+            emails: [
+              makeEmailWithBody(
+                {
+                  id: 'template-1',
+                  mailboxIds: { 'mailbox-templates': true },
+                  keywords: { $seen: true },
+                  subject: 'Weekly report',
+                  preview: 'Done this week'
+                },
+                {
+                  html: '<div>Done this week:</div><div data-html-block="signature" data-html-block-display="inline" class="tmail-signature">-- <br>Old signature</div>'
+                }
+              ),
+              makeEmailWithBody(
+                {
+                  id: 'template-2',
+                  mailboxIds: { 'mailbox-templates': true },
+                  keywords: { $seen: true },
+                  subject: 'Welcome aboard',
+                  preview: 'Glad to have you'
+                },
+                {
+                  html: '<div>Glad to have you</div><div class="tmail-signature">-- <br>Flutter signature</div>'
+                }
+              )
+            ]
+          })
+        }
+
+        it('keeps the signature of the identity and drops the one of the template, inserted into an empty message', async () => {
+          renderComposer(serverWithSignedTemplates())
+          const composer = await openComposer()
+          const picker = await openPicker(composer)
+          await userEvent.click(
+            await within(picker).findByRole('option', {
+              name: /Weekly report/
+            })
+          )
+
+          await waitFor(() => {
+            expect(
+              within(composer).getByRole('textbox', { name: 'Message body' })
+            ).toHaveTextContent('Done this week:')
+          })
+          expect(within(composer).getAllByText(/The sales team/)).toHaveLength(
+            1
+          )
+          expect(within(composer).queryByText(/Old signature/)).toBe(null)
+        })
+
+        it('keeps one signature, the identity one, when the message replaces the old content, the template signed by tmail-flutter', async () => {
+          renderComposer(serverWithSignedTemplates())
+          const composer = await openComposer()
+          await fill(composer, { subject: 'My own subject' })
+          const picker = await openPicker(composer)
+          await userEvent.click(
+            await within(picker).findByRole('option', {
+              name: /Welcome aboard/
+            })
+          )
+          await userEvent.click(
+            await screen.findByRole('button', { name: 'Replace the message' })
+          )
+
+          await waitFor(() => {
+            expect(
+              within(composer).getByRole('textbox', { name: 'Message body' })
+            ).toHaveTextContent('Glad to have you')
+          })
+          expect(within(composer).getAllByText(/The sales team/)).toHaveLength(
+            1
+          )
+          expect(within(composer).queryByText(/Flutter signature/)).toBe(null)
+        })
+      })
+
       it('says there is no template yet', async () => {
         renderComposer()
         const composer = await openComposer()

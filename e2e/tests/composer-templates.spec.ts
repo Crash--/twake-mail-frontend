@@ -1,9 +1,4 @@
-import {
-  ComposerPage,
-  LoginPage,
-  SearchPage,
-  type MailboxPage
-} from '../pages'
+import { ComposerPage, LoginPage, SearchPage, type MailboxPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { makePng } from '../support/clipboard'
 import { expect, test } from '../support/fixtures'
@@ -324,7 +319,9 @@ test.describe('CMP composer: templates follow-ups', () => {
     await composer.chooseIdentity(team.email)
     await composer.fill({ to: [user.email], subject: 'Shared draft' })
     await composer.closeAnd('save')
-    await expect.poll(() => subjectsIn(jmap, teamDrafts)).toEqual(['Shared draft'])
+    await expect
+      .poll(() => subjectsIn(jmap, teamDrafts))
+      .toEqual(['Shared draft'])
 
     await mailbox.toggleFolder({ name: team.name })
     await mailbox.openFolder({ id: teamDrafts })
@@ -470,7 +467,9 @@ test.describe('CMP composer: templates follow-ups', () => {
       }
       await expectNoA11yViolations(page)
       await composer.templatePickerInput.fill('welc')
-      await expect(composer.templatePickerResults).toHaveText('1 template found')
+      await expect(composer.templatePickerResults).toHaveText(
+        '1 template found'
+      )
 
       await composer.templatePickerOptions.click()
 
@@ -500,5 +499,64 @@ test.describe('CMP composer: templates follow-ups', () => {
     await expect(composer.editor).toContainText('Quarterly numbers')
     expect(page.url()).not.toContain('/email/')
     await expect(mailbox.page.getByTestId('search-results')).toBeVisible()
+  })
+
+  test('CMP-99 inserting a template saved with a signature keeps the signature of the identity, once', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    // The identity has a signature; the template was written with it
+    const accountId = await jmap.accountId()
+    const [identities] = await jmap.request([
+      ['Identity/get', { accountId, ids: null }, 'i']
+    ])
+    const identityId = (identities?.[1].list as { id: string }[])[0]?.id ?? ''
+    await jmap.request([
+      [
+        'Identity/set',
+        {
+          accountId,
+          update: { [identityId]: { htmlSignature: '<p>Alice from sales</p>' } }
+        },
+        's'
+      ]
+    ])
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const author = await mailbox.compose()
+    await author.fill({ subject: 'Signed template', body: 'Template text' })
+    await expect(author.editor.getByText('Alice from sales')).toBeVisible()
+    await saveAsTemplate(author, mailbox, 'saved')
+    await author.close()
+    await expect(author.root).toBeHidden()
+
+    const composer = await mailbox.compose()
+    const signatures = composer.editor.locator(
+      '[data-html-block-view="signature"]'
+    )
+    await composer.fill({ subject: 'Mine', body: 'My own text' })
+    await expect(signatures).toHaveCount(1)
+    const dialog = page.getByTestId('confirm-dialog')
+
+    // At the cursor: the template body comes in, its signature does not
+    await composer.openTemplatePicker()
+    await composer.templatePickerOptions
+      .filter({ hasText: 'Signed template' })
+      .click()
+    await dialog.getByTestId('confirm-dialog-confirm-button').click()
+    await expect(composer.editor).toContainText('Template text')
+    await expect(composer.editor).toContainText('My own text')
+    await expect(signatures).toHaveCount(1)
+    await expect(composer.editor.getByText('Alice from sales')).toHaveCount(1)
+
+    // Replacing the message: the identity signature stays, once
+    await composer.openTemplatePicker()
+    await composer.templatePickerOptions
+      .filter({ hasText: 'Signed template' })
+      .click()
+    await dialog.getByTestId('confirm-dialog-alternative-button').click()
+    await expect(composer.editor).not.toContainText('My own text')
+    await expect(signatures).toHaveCount(1)
+    await expect(composer.editor.getByText('Alice from sales')).toHaveCount(1)
   })
 })

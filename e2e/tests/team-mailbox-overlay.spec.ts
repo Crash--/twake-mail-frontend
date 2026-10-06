@@ -33,18 +33,13 @@ body { margin: 0 }
 const overlay = document.getElementById('overlay')
 const clicks = document.getElementById('host-clicks')
 document.getElementById('host-button').onclick = () => { clicks.textContent = String(Number(clicks.textContent) + 1) }
-let intentId = null
+const facade = document.getElementById('facade')
 addEventListener('message', event => {
-  if (event.origin !== location.origin || event.source !== overlay.contentWindow) return
-  const data = event.data
-  if (data.type === 'intent:ready') {
-    intentId = crypto.randomUUID()
-    overlay.contentWindow.postMessage({ type: 'intent:init', intentId, payload: { action: 'TWAKE_SURFACE', protocol: 'twake-surface/1', slot: 'overlay' } }, location.origin)
-  } else if (data.type === 'twake-surface:region' && data.intentId === intentId) {
-    const region = data.payload.region
-    overlay.style.clipPath = region === 'full' ? 'none' : region.length === 0 ? 'inset(0 0 100% 0)'
-      : "path('" + region.map(b => 'M' + b.x + ' ' + b.y + 'h' + b.width + 'v' + b.height + 'h' + -b.width + 'Z').join(' ') + "')"
-  }
+  if (event.origin !== location.origin || event.source !== facade.contentWindow) return
+  if (event.data?.type !== 'twake-embed:overlay-region') return
+  const region = event.data.region
+  overlay.style.clipPath = region === 'full' ? 'none' : region.length === 0 ? 'inset(0 0 100% 0)'
+    : "path('" + region.map(b => 'M' + b.x + ' ' + b.y + 'h' + b.width + 'v' + b.height + 'h' + -b.width + 'Z').join(' ') + "')"
 })
 </script></body></html>`
 }

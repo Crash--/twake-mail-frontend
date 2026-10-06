@@ -19,12 +19,16 @@ function Harness({
   viewTransitionName,
   isModal = false,
   isCompact = false,
+  isTitleBarHidden = false,
+  isTitleCentered = false,
   onEscape = jest.fn(),
   onClose = jest.fn()
 }: {
   viewTransitionName?: string
   isModal?: boolean
   isCompact?: boolean
+  isTitleBarHidden?: boolean
+  isTitleCentered?: boolean
   onEscape?: () => void
   onClose?: () => void
 }): ReactElement {
@@ -36,6 +40,8 @@ function Harness({
         mode={mode}
         isModal={isModal}
         isCompact={isCompact}
+        isTitleBarHidden={isTitleBarHidden}
+        isTitleCentered={isTitleCentered}
         labels={LABELS}
         onModeChange={setMode}
         onClose={onClose}
@@ -139,5 +145,28 @@ describe('DockedWindow', () => {
     expect(screen.queryByRole('button', { name: 'Minimize' })).toBe(null)
     expect(screen.queryByRole('button', { name: 'Fullscreen' })).toBe(null)
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+  })
+
+  it('leaves the top of a phone to its content, the title staying the name of the dialog', () => {
+    renderDs(<Harness isModal isCompact isTitleBarHidden />)
+
+    expect(screen.getByRole('dialog', { name: 'New message' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Close' })).toBe(null)
+    expect(screen.getByRole('heading', { name: 'New message' })).toHaveClass(
+      'u-visuallyhidden'
+    )
+  })
+
+  it('centres the title of a tablet and keeps the three buttons', () => {
+    renderDs(<Harness isTitleCentered />)
+
+    const bar = screen
+      .getByRole('heading', { name: 'New message' })
+      .closest('div')
+    if (bar === null) throw new Error('No title bar')
+    expect(getComputedStyle(bar).gridTemplateColumns).toBe('1fr auto 1fr')
+    for (const name of ['Minimize', 'Fullscreen', 'Close']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+    }
   })
 })

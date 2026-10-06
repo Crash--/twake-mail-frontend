@@ -8,10 +8,25 @@ import {
 /** How a window of the dock shows: a mode, or in the overflow menu */
 export type FittedWindowMode = DockedWindowMode | 'overflow'
 
+/** A window does not shrink below this: a narrower screen minimizes it */
+const MIN_DOCKED_WINDOW_WIDTH = 552
+
+/**
+ * Width of a window in the dock on a screen `screenWidth` wide: 790 px,
+ * less where the screen leaves no room for it, down to 552 px (a tablet)
+ */
+export function dockedWindowWidth(screenWidth: number): number {
+  const room = screenWidth - 2 * DOCK_MARGIN
+  return room >= MIN_DOCKED_WINDOW_WIDTH
+    ? Math.min(DOCKED_WINDOW_WIDTH, room)
+    : DOCKED_WINDOW_WIDTH
+}
+
 function fitInRoom(
   wanted: readonly DockedWindowMode[],
   room: number,
-  startsWithGap: boolean
+  startsWithGap: boolean,
+  windowWidth: number
 ): FittedWindowMode[] {
   let left = room
   let isFirst = true
@@ -20,8 +35,8 @@ function fitInRoom(
     const gap = isFirst && !startsWithGap ? 0 : DOCK_GAP
     const wasFirst = isFirst
     isFirst = false
-    if (mode === 'normal' && DOCKED_WINDOW_WIDTH + gap <= left) {
-      left -= DOCKED_WINDOW_WIDTH + gap
+    if (mode === 'normal' && windowWidth + gap <= left) {
+      left -= windowWidth + gap
       return 'normal'
     }
     // The newest stays in the dock, even on a screen too narrow for it
@@ -46,8 +61,9 @@ export function fitWindows(
   screenWidth: number
 ): FittedWindowMode[] {
   const room = screenWidth - 2 * DOCK_MARGIN
-  const fitted = fitInRoom(wanted, room, false)
+  const windowWidth = dockedWindowWidth(screenWidth)
+  const fitted = fitInRoom(wanted, room, false, windowWidth)
   if (!fitted.includes('overflow')) return fitted
   // The menu sits at the start of the line: the windows share what is left
-  return fitInRoom(wanted, room - OVERFLOW_MENU_WIDTH, true)
+  return fitInRoom(wanted, room - OVERFLOW_MENU_WIDTH, true, windowWidth)
 }

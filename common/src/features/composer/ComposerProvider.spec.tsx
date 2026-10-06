@@ -466,20 +466,22 @@ describe('ComposerProvider', () => {
       expect(screen.getByRole('dialog', { name: 'Third' })).toBeVisible()
     })
 
-    it('reaches the other composers from the one filling a tablet screen', async () => {
-      mockViewport({ width: 1000, touch: true })
-      window.innerWidth = 1000
+    it('reaches the other composers from the one filling a phone screen', async () => {
+      mockViewport({ width: 390, touch: true })
+      window.innerWidth = 390
       await restoreComposers(['First', 'Second', 'Third'])
       renderComposer()
 
       const third = await screen.findByRole('dialog', { name: 'Third' })
       expect(third).toHaveAttribute('aria-modal', 'true')
       expect(screen.getAllByRole('dialog')).toHaveLength(1)
+      // Loaded: the top bar of the form holds the menu
+      await within(third).findByRole('button', { name: 'Send' })
 
       await userEvent.click(
         within(third).getByRole('button', { name: '+2 messages' })
       )
-      const menu = screen.getByRole('menu', { name: '+2 messages' })
+      const menu = await screen.findByRole('menu', { name: '+2 messages' })
       expect(
         within(menu)
           .getAllByRole('menuitem')

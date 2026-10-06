@@ -63,6 +63,44 @@ export class ComposerPage {
     this.attachments = this.root.getByTestId('composer-attachment-item')
   }
 
+  /** The title of the window (`h2`, centred on a tablet) */
+  get title(): Locator {
+    return this.root.getByRole('heading', { level: 2 })
+  }
+
+  /**
+   * The formatting toolbar: shown at once on a tablet and a desktop, behind
+   * the "Aa" button of the top bar on a phone
+   */
+  async showFormattingToolbar(): Promise<ComposerPage> {
+    if (!(await this.toolbar.isVisible())) await this.formattingButton.click()
+    await expect(this.toolbar).toBeVisible()
+    return this
+  }
+
+  /** Opens the More menu, and returns its items */
+  async openMoreMenu(): Promise<Locator> {
+    await this.moreButton.click()
+    const menu = this.page.getByRole('menu')
+    await expect(menu).toBeVisible()
+    return menu.getByRole('menuitem').or(menu.getByRole('menuitemcheckbox'))
+  }
+
+  /** The horizontal overflow of the page and of the window, in px (0: none) */
+  async horizontalOverflow(): Promise<{ page: number; window: number }> {
+    return this.page.evaluate(
+      ([testId]) => {
+        const root = document.querySelector(`[data-testid="${testId}"]`)
+        const width = document.documentElement.clientWidth
+        return {
+          page: Math.max(0, document.documentElement.scrollWidth - width),
+          window: root === null ? 0 : Math.max(0, root.scrollWidth - width)
+        }
+      },
+      ['composer']
+    )
+  }
+
   /** A button of the formatting toolbar, by its name */
   toolbarButton(name: string): Locator {
     return this.toolbar.getByRole('button', { name, exact: true })

@@ -17,6 +17,7 @@ import {
   installFakeUploads,
   type FakeUploads
 } from '@common/testing/fakeUploads'
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { parseSnapshot, type ComposerSnapshot } from './composerContent'
@@ -165,6 +166,74 @@ describe('ComposerForm', () => {
       snapshot: parseSnapshot(stored.snapshot)
     }))
   }
+
+  describe('on a phone', () => {
+    beforeEach(() => {
+      mockViewport({ width: 390, touch: true })
+    })
+
+    afterEach(() => {
+      resetViewport()
+    })
+
+    it('has a top bar instead of a footer, and shows the formatting on "Aa"', async () => {
+      renderComposer()
+      const composer = await openComposer()
+
+      const bar = within(composer).getByTestId('composer-top-bar')
+      expect(
+        within(bar)
+          .getAllByRole('button')
+          .map(button => button.getAttribute('aria-label'))
+      ).toEqual([
+        'Save & close',
+        'Formatting options',
+        'Attach file',
+        'Insert image',
+        'Send',
+        'More'
+      ])
+      expect(
+        within(composer).queryByTestId('composer-delete-draft-button')
+      ).toBe(null)
+      expect(
+        within(composer).queryByRole('toolbar', { name: 'Formatting options' })
+      ).toBe(null)
+
+      await userEvent.click(
+        within(bar).getByRole('button', { name: 'Formatting options' })
+      )
+      expect(
+        within(composer).getByRole('toolbar', { name: 'Formatting options' })
+      ).toBeVisible()
+    })
+
+    it('keeps the link and the delete in the More menu', async () => {
+      renderComposer()
+      const composer = await openComposer()
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'More' })
+      )
+      const menu = await screen.findByRole('menu')
+      expect(
+        within(menu)
+          .getAllByRole('menuitem')
+          .concat(within(menu).getAllByRole('menuitemcheckbox'))
+          .map(item => item.textContent)
+          .sort()
+      ).toEqual(
+        [
+          'Insert link',
+          'Save as draft',
+          'Save as template',
+          'Request read receipt',
+          'Mark as important',
+          'Delete draft'
+        ].sort()
+      )
+    })
+  })
 
   describe('sending', () => {
     it('sends the message, which lands in Sent, seen', async () => {

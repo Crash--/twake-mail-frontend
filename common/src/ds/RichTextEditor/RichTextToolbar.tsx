@@ -586,14 +586,14 @@ export function RichTextToolbar({
               // One line that scrolls sideways, edges faded, no scrollbar
               flexWrap: 'nowrap',
               overflowX: 'auto',
-              scrollSnapType: 'x proximity',
+              scrollSnapType: 'x mandatory',
               scrollPaddingInline: 16,
               scrollbarWidth: 'none',
               '&::-webkit-scrollbar': { display: 'none' },
               '& > *': { scrollSnapAlign: 'start' },
               maskImage: `linear-gradient(to right, ${
-                edges.start ? 'transparent 0, #000 16px' : '#000 0'
-              }, ${edges.end ? '#000 calc(100% - 16px), transparent 100%' : '#000 100%'})`
+                edges.start ? 'transparent 0, #000 24px' : '#000 0'
+              }, ${edges.end ? '#000 calc(100% - 24px), transparent 100%' : '#000 100%'})`
             }
           : { flexWrap: 'wrap' })
       }}

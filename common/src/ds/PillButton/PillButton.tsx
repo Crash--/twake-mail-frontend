@@ -14,8 +14,8 @@ export interface PillButtonProps {
   /** Fixed width, in px; the label sets it when absent */
   width?: number
   /**
-   * Only the icon, in a 44 px circle, where the width is short (phones);
-   * the label stays the accessible name
+   * Only the icon, in a round disc, where the width is short (phones): a
+   * 32 px disc in a 44 px touch target; the label stays the accessible name
    */
   isIconOnly?: boolean
   'aria-describedby'?: string
@@ -49,8 +49,16 @@ export function PillButton({
         width: isIconOnly ? 44 : width,
         minWidth: isIconOnly ? 44 : undefined,
         minHeight: isIconOnly ? 44 : 40,
-        py: '10px',
-        px: isIconOnly ? 0 : 3,
+        height: isIconOnly ? 44 : undefined,
+        // The disc is the padding box, the transparent border widens the target
+        ...(isIconOnly
+          ? {
+              p: 0,
+              border: '6px solid transparent',
+              backgroundClip: 'padding-box',
+              boxSizing: 'border-box'
+            }
+          : { py: '10px', px: 3 }),
         gap: '10px',
         borderRadius: '100px',
         fontSize: 14,

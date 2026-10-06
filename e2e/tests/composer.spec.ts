@@ -26,9 +26,7 @@ async function setSignature(jmap: JmapClient, html: string): Promise<void> {
 }
 
 /** The drafts of the account, with their HTML body */
-async function readDrafts(
-  jmap: JmapClient
-): Promise<
+async function readDrafts(jmap: JmapClient): Promise<
   {
     id: string
     subject: string
@@ -225,12 +223,17 @@ test.describe('CMP composer', () => {
       await expect(page.getByRole('dialog', { name: subject })).toBeVisible()
     }
 
-    // A tablet: the newest fills the screen, the others are in its menu
-    await page.setViewportSize({ width: 1000, height: 800 })
+    // A phone: the newest fills the screen, the others are in the menu of its top bar
+    await page.setViewportSize({ width: 390, height: 800 })
     await expect(page.getByRole('dialog', { name: 'Third' })).toHaveAttribute(
       'aria-modal',
       'true'
     )
+    await expect(
+      page
+        .getByRole('dialog', { name: 'Third' })
+        .getByTestId('composer-send-button')
+    ).toBeVisible()
     await expect(mailbox.composerOverflowButton).toHaveText('+2 messages')
     await expect(mailbox.composerOverflowButton).toHaveAttribute(
       'aria-haspopup',
@@ -661,7 +664,9 @@ test.describe('CMP composer', () => {
     await composer.showField('cc')
     await composer.showField('bcc')
     await composer.addRecipient('cc', 'carol@example.com')
-    const to = await composer.root.getByTestId('composer-to-field').boundingBox()
+    const to = await composer.root
+      .getByTestId('composer-to-field')
+      .boundingBox()
     const bcc = await composer.root
       .getByTestId('composer-bcc-field')
       .boundingBox()

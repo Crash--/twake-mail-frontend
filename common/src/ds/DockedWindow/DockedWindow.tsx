@@ -24,6 +24,7 @@ import {
 } from 'react'
 
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 
 /** Where the window is: in the dock, its title bar only, or over the page */
 export type DockedWindowMode = 'normal' | 'minimized' | 'fullscreen'
@@ -33,6 +34,8 @@ export const DOCKED_WINDOW_WIDTH = 790
 /** Width of a minimized window (its title bar), in px */
 export const MINIMIZED_WINDOW_WIDTH = 400
 const DOCKED_WINDOW_HEIGHT = 634
+/** Height of a window on a tablet, measured on the design, in px */
+const TABLET_WINDOW_HEIGHT = 710
 const TITLE_BAR_HEIGHT = 44
 /** Gap between the expanded window and the edges of the screen */
 const FULLSCREEN_INSET = {
@@ -89,6 +92,16 @@ export interface DockedWindowProps {
   isModal: boolean
   /** Small screens: no minimize nor full screen button, the window fills it */
   isCompact?: boolean
+  /**
+   * With `isCompact`: no title bar, the content has its own top bar (the
+   * title stays the accessible name, visually hidden) and the window stays
+   * above the virtual keyboard
+   */
+  isTitleBarHidden?: boolean
+  /** Tablets: the title in the middle of the bar, the buttons at the end */
+  isTitleCentered?: boolean
+  /** Tablets: taller than the window of a desktop */
+  isTall?: boolean
   /** Width in the dock, in px (the dock shrinks windows to fit) */
   width?: number
   labels: DockedWindowLabels
@@ -140,6 +153,9 @@ export function DockedWindow({
   mode,
   isModal,
   isCompact = false,
+  isTitleBarHidden = false,
+  isTitleCentered = false,
+  isTall = false,
   width = DOCKED_WINDOW_WIDTH,
   labels,
   onModeChange,
@@ -157,6 +173,10 @@ export function DockedWindow({
   const previousMode = useRef(mode)
   const isMinimized = mode === 'minimized' && !isModal
   const isFullscreen = mode === 'fullscreen' || isModal
+  const hasNoTitleBar = isCompact && isTitleBarHidden
+  const isCentered = isTitleCentered && !isMinimized
+  // The visible part above the keyboard, where the layout does not follow it
+  const visible = useVisualViewport(isFullscreen && isCompact)
 
   useEffect(() => {
     const before = previousMode.current
@@ -194,6 +214,47 @@ export function DockedWindow({
   const fullscreenLabel =
     mode === 'fullscreen' ? labels.exitFullscreen : labels.fullscreen
 
+  const controls = (
+    <>
+      {isMinimized ? null : titleBarActions}
+      {isCompact ? null : (
+        <>
+          <ActionIconButton
+            label={isMinimized ? labels.restore : labels.minimize}
+            onClick={() => {
+              onModeChange(isMinimized ? 'normal' : 'minimized')
+            }}
+            data-testid={testIds.minimize}
+          >
+            <Icon icon={Dash} size={16} aria-hidden="true" />
+          </ActionIconButton>
+          <ActionIconButton
+            label={fullscreenLabel}
+            onClick={() => {
+              onModeChange(mode === 'fullscreen' ? 'normal' : 'fullscreen')
+            }}
+            data-testid={testIds.fullscreen}
+          >
+            <SvgIcon aria-hidden="true">
+              <path
+                d={
+                  mode === 'fullscreen' ? EXIT_FULLSCREEN_PATH : FULLSCREEN_PATH
+                }
+              />
+            </SvgIcon>
+          </ActionIconButton>
+        </>
+      )}
+      <ActionIconButton
+        label={labels.close}
+        onClick={onClose}
+        data-testid={testIds.close}
+      >
+        <Icon icon={Cross} size={16} aria-hidden="true" />
+      </ActionIconButton>
+    </>
+  )
+
   return (
     <>
       {viewTransitionName === undefined ? null : (
@@ -230,7 +291,18 @@ export function DockedWindow({
               '&:focus': { outline: 'none' }
             },
             isFullscreen && isCompact
-              ? { position: 'fixed', inset: 0, borderRadius: 0 }
+              ? {
+                  position: 'fixed',
+                  inset: 0,
+                  borderRadius: 0,
+                  ...(visible === null
+                    ? {}
+                    : {
+                        top: visible.top,
+                        bottom: 'auto',
+                        height: visible.height
+                      })
+                }
               : isFullscreen
                 ? {
                     // Expanded as in the design: under the top bar of the
@@ -245,89 +317,71 @@ export function DockedWindow({
                     width: isMinimized ? MINIMIZED_WINDOW_WIDTH : width,
                     height: isMinimized
                       ? TITLE_BAR_HEIGHT
-                      : `min(${DOCKED_WINDOW_HEIGHT}px, calc(100vh - 96px))`
+                      : `min(${
+                          isTall ? TABLET_WINDOW_HEIGHT : DOCKED_WINDOW_HEIGHT
+                        }px, calc(100dvh - 96px))`
                   }
           ]}
           data-testid={testIds.window}
           data-mode={isModal ? 'fullscreen' : mode}
         >
-          <Box
-            className="u-flex u-flex-items-center u-flex-shrink-0"
-            sx={{
-              height: TITLE_BAR_HEIGHT,
-              px: 2,
-              bgcolor: 'background.default',
-              borderBottom: isMinimized ? 'none' : '1px solid',
-              borderColor: 'divider',
-              gap: 0.5
-            }}
-          >
-            {isMinimized ? (
-              <ButtonBase
-                ref={restoreRef}
-                onClick={() => {
-                  onModeChange('normal')
-                }}
-                className="u-flex-auto u-ov-hidden u-h-100"
-                sx={{ justifyContent: 'flex-start', borderRadius: 1 }}
-                aria-label={`${labels.restore}: ${title}`}
-              >
-                <Typography id={titleId} variant="h5" noWrap>
+          {hasNoTitleBar ? (
+            <h2 id={titleId} className="u-visuallyhidden">
+              {title}
+            </h2>
+          ) : (
+            <Box
+              className="u-flex u-flex-items-center u-flex-shrink-0"
+              sx={{
+                height: TITLE_BAR_HEIGHT,
+                px: 2,
+                bgcolor: 'background.default',
+                borderBottom: isMinimized ? 'none' : '1px solid',
+                borderColor: 'divider',
+                gap: 0.5,
+                ...(isCentered
+                  ? { display: 'grid', gridTemplateColumns: '1fr auto 1fr' }
+                  : {})
+              }}
+            >
+              {isCentered ? <span /> : null}
+              {isMinimized ? (
+                <ButtonBase
+                  ref={restoreRef}
+                  onClick={() => {
+                    onModeChange('normal')
+                  }}
+                  className="u-flex-auto u-ov-hidden u-h-100"
+                  sx={{ justifyContent: 'flex-start', borderRadius: 1 }}
+                  aria-label={`${labels.restore}: ${title}`}
+                >
+                  <Typography id={titleId} variant="h5" noWrap>
+                    {title}
+                  </Typography>
+                </ButtonBase>
+              ) : (
+                <Typography
+                  id={titleId}
+                  component="h2"
+                  variant="h5"
+                  noWrap
+                  className={isCentered ? undefined : 'u-flex-auto'}
+                >
                   {title}
                 </Typography>
-              </ButtonBase>
-            ) : (
-              <Typography
-                id={titleId}
-                component="h2"
-                variant="h5"
-                noWrap
-                className="u-flex-auto"
-              >
-                {title}
-              </Typography>
-            )}
-            {isMinimized ? null : titleBarActions}
-            {isCompact ? null : (
-              <>
-                <ActionIconButton
-                  label={isMinimized ? labels.restore : labels.minimize}
-                  onClick={() => {
-                    onModeChange(isMinimized ? 'normal' : 'minimized')
-                  }}
-                  data-testid={testIds.minimize}
+              )}
+              {isCentered ? (
+                <Box
+                  className="u-flex u-flex-items-center"
+                  sx={{ gap: 0.5, justifyContent: 'flex-end' }}
                 >
-                  <Icon icon={Dash} size={16} aria-hidden="true" />
-                </ActionIconButton>
-                <ActionIconButton
-                  label={fullscreenLabel}
-                  onClick={() => {
-                    onModeChange(
-                      mode === 'fullscreen' ? 'normal' : 'fullscreen'
-                    )
-                  }}
-                  data-testid={testIds.fullscreen}
-                >
-                  <SvgIcon aria-hidden="true">
-                    <path
-                      d={
-                        mode === 'fullscreen'
-                          ? EXIT_FULLSCREEN_PATH
-                          : FULLSCREEN_PATH
-                      }
-                    />
-                  </SvgIcon>
-                </ActionIconButton>
-              </>
-            )}
-            <ActionIconButton
-              label={labels.close}
-              onClick={onClose}
-              data-testid={testIds.close}
-            >
-              <Icon icon={Cross} size={16} aria-hidden="true" />
-            </ActionIconButton>
-          </Box>
+                  {controls}
+                </Box>
+              ) : (
+                controls
+              )}
+            </Box>
+          )}
           <Box
             className="u-flex u-flex-column u-flex-auto u-ov-hidden"
             onFocus={handleBodyFocus}

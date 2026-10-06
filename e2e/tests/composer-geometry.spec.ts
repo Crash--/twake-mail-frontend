@@ -107,7 +107,7 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
       const size = testInfo.project.name === 'chromium' ? 40 : 44
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
-      await expect(composer.toolbar).toBeVisible()
+      await composer.showFormattingToolbar()
       for (const button of [
         composer.closeButton,
         composer.formattingButton,

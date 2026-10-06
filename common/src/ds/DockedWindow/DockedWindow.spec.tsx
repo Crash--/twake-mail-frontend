@@ -91,6 +91,10 @@ describe('DockedWindow', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Minimize' }))
     const restore = screen.getByRole('button', { name: 'Show: New message' })
     expect(restore).toHaveFocus()
+    // The title is plain text of the button, not a heading inside it
+    expect(screen.queryByRole('heading')).toBe(null)
+    expect(restore.querySelector('h1, h2, h3, h4, h5, h6')).toBe(null)
+    expect(restore).toHaveTextContent('New message')
     expect(screen.queryByRole('textbox', { name: 'Subject' })).toBe(null)
     expect(screen.getByTestId('window')).toHaveAttribute(
       'data-mode',

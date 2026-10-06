@@ -4,6 +4,7 @@ import { createClient } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 
+import type { SpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
@@ -44,6 +45,8 @@ export interface RenderOptions {
   withJmapSession?: boolean
   /** The runtime configuration, for the screens that read it */
   config?: AppConfig
+  /** The overlay of TwakeSpace the dialogs and docked windows go onto */
+  overlay?: SpaceOverlay
 }
 
 export interface RenderWithProvidersResult extends RenderResult {
@@ -67,7 +70,8 @@ export function renderWithProviders(
     lang = 'en',
     jmapServer = makeFakeJmapServer(),
     withJmapSession = false,
-    config
+    config,
+    overlay
   }: RenderOptions = {}
 ): RenderWithProvidersResult {
   const queryClient = makeQueryClient()
@@ -90,7 +94,7 @@ export function renderWithProviders(
   )
 
   const result = render(
-    <AppProviders lang={lang} queryClient={queryClient}>
+    <AppProviders lang={lang} queryClient={queryClient} overlay={overlay}>
       <AuthProvider service={authService}>
         <JmapClientProvider
           createClient={createFakeClient}

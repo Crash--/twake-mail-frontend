@@ -1,0 +1,26 @@
+<!doctype html>
+<!--
+  Overlay of an embedded app (Twake Surface, twake-space-architecture
+  specs/twake-surface.md). TwakeSpace frames this page over its whole window
+  and clips it to what the app draws there; the app, in its own frame on the
+  same origin, renders its docked windows and dialogs into it with React
+  portals. The page itself boots nothing.
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Twake Mail</title>
+    <style>
+      /* The theme's baseline gives the body a background: the overlay stays see-through */
+      html,
+      body {
+        margin: 0;
+        background: transparent !important;
+        color-scheme: normal !important;
+      }
+    </style>
+    <script src="../.env.js"></script>
+    <script src="overlay.js"></script>
+  </head>
+  <body></body>
+</html>

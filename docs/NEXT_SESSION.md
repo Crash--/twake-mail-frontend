@@ -42,7 +42,8 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
 - **#40 (détection de pièce jointe) : ne pas implémenter** (low priority).
 - Registre d'images : **Harbor Linagora**, projet privé `twake-workplace` : `harbor.linagora.com/twake-workplace/twake-mail-frontend`.
   Publié **à la main** le 2026-10-06 (`:main-9a33376` et `:main`, amd64, test de fumée passé) avec le `docker login` de la
-  devbox. Pour que la CI publie seule (#157) : variable `IMAGE_REPOSITORY` + secrets `REGISTRY_USERNAME` / `REGISTRY_PASSWORD`
+  devbox. **Cette image date d'avant #158** : à republier depuis `main` (avec l'accord de Quentin) avant de passer la MR
+  en prête. Pour que la CI publie seule (#157) : variable `IMAGE_REPOSITORY` + secrets `REGISTRY_USERNAME` / `REGISTRY_PASSWORD`
   (compte robot Harbor de préférence) à poser par Quentin. `ghcr.io/crash--` est un nom OCI invalide.
 - Déploiement Workplace dev : une **MR en brouillon** sur le dépôt de déploiement interne remplace l'image tmail-web
   par celle-ci (même chart, mêmes values). Détails, accès et points à vérifier : `twake-mail-design-cache/deploy-workplace.md`
@@ -51,7 +52,7 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
 
 ## 4. État au moment de la passation
 
-- `main` à jour, CI verte, démo redéployée après chaque merge. Fait la nuit du 2026-10-05 au 06 (PR #119 à #165) :
+- `main` à jour, CI verte, démo redéployée après chaque merge. Fait la nuit du 2026-10-05 au 06 (PR #119 à #172) :
   - design : lecture et conversation (#148), sidebar (#149), recherche ouverte, filtres sur une ligne et recherche avancée
     (#150), libellés dans les lignes et fiche d'une adresse (#154, lignes étroites sous la taille desktop), arbre des dossiers
     au clavier (#156, motif APG), couleur libre des libellés (#165) ;
@@ -60,8 +61,14 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
     sélecteur, dossiers d'équipe, course de création (#155), gros brouillons et audit RGAA (#158, budgets dans
     `docs/perf/composer.md`, grille dans `docs/a11y/composer-audit.md`), écarts RGAA (#164) ;
   - plateforme : React 19 + twake-mui 10 (#139), image drop-in du chart (#140), Sentry avec consentement (#123), brouillons
-    locaux d'abord (#141), alertes X-TWP-Message (#143), PDF borné (#137), tests fiabilisés (#144, #152).
-- Issues fermées cette nuit : #54, #63, #102, #110, #132, #159 à #163 (et celles des PR ci-dessus).
+    locaux d'abord (#141), alertes X-TWP-Message (#143), PDF borné (#137), skeletons et bannière hors ligne (#169),
+    brouillon annulé qui ne revient plus après un rechargement rapide (#172, pierre tombale `sessionStorage`), signature qui
+    garde le curseur (#167), tests fiabilisés (#144, #152, #167, #171 ; MBX-51 seul dans le projet Playwright `bulk`).
+  - autre session : façade team-mailbox pour TwakeSpace (#168 : `TWAKE_SPACE_URL`, login silencieux dans une frame). Ses
+    worktrees (`twake-mail-frontend-embed`, `-wt/offline-messages`, `-wt/space-overlay`) et ses stacks e2e (`twakemail-e2e`,
+    `twakemail-e2e-so`) ne sont pas à toucher sans savoir où elle en est.
+- Issues fermées cette nuit : #54, #63, #102, #110, #132, #159 à #163 (et celles des PR ci-dessus). Ouverte : #173
+  (`draftId` périmé après « Save as template » + rechargement ; specs des brouillons absentes sur téléphone en CI).
 - Issues ouvertes : `gh issue list -R Crash--/twake-mail-frontend`. #96 (affichage des résultats de recherche avec les
   conversations) et #92 (largeur de sidebar) attendent une décision ; #59 reste ouverte pour « retirer une couleur »
   (tmail-backend refuse `color: null`) ; #65 pour l'audit NVDA / VoiceOver manuel.
@@ -88,7 +95,9 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
   au-delà de `maxSizeRequest` ; refonte de `ds/RecipientField` pour 200 chips ; chat proposé pour toute adresse ; nombre de
   chips de libellé ; largeur de sidebar #92 ; #96 ; plafond de 3 rangées de chips ; avertissement d'image sans alt.
   Candidats d'issues tmail-backend (rien d'ouvert) : `color: null` dans `Label/set`, `Mailbox/clear` sur team-mailbox,
-  namespaces `Delegated`, `serverFail` de la memory image, rôle `templates` absent.
+  namespaces `Delegated`, `serverFail` de la memory image, rôle `templates` absent, `ConcurrentModificationException`
+  (`Email/set` qui ne répond plus sous charge), mail détruit encore listé juste après `Email/set destroy`, « Attachment not
+  found » ~430 ms après l'upload à froid.
 
 ## 6. Devbox : ce qui a été modifié (et comment revenir en arrière)
 
@@ -128,9 +137,11 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
 ## 8. Message à coller pour démarrer la prochaine session
 
 > On reprend la réécriture React de Twake Mail. Lis `docs/NEXT_SESSION.md` puis `AGENTS.md` du dépôt
-> `~/Sites/Linagora/twake-mail-frontend`. Vérifie que les outils Figma sont disponibles, puis attaque le chantier design
-> (§5) en commençant par lire le design system du fichier Teammail 1.1 (lien dans le doc). Même façon de travailler
-> qu'avant : agents en parallèle dans des worktrees, une PR par lot mergée quand la CI est verte, redéploiement de la démo,
+> `~/Sites/Linagora/twake-mail-frontend`, puis `~/Sites/Linagora/twake-mail-design-cache/questions-quentin.md` : passe en
+> revue avec moi les décisions en attente avant de lancer un lot qui en dépend. Ensuite : finitions design restantes (§5),
+> déploiement Workplace (image Harbor à republier, MR en brouillon) et issues ouvertes. Même façon de travailler qu'avant :
+> agents en parallèle dans des worktrees, une PR par lot mergée quand la CI du HEAD est verte, redéploiement de la démo,
 > issues sur notre dépôt pour ce que je signale, rien d'externe sans mon accord.
 
-(Pour le design, commencer par `~/Sites/Linagora/twake-mail-design-cache/design-reference.md` et les questions du §5.)
+(Le design de référence reste `~/Sites/Linagora/twake-mail-design-cache/design-reference.md` ; les captures `after-*` montrent
+l'état de chaque lot.)

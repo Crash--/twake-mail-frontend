@@ -355,7 +355,8 @@ export function DockedWindow({
                   sx={{ justifyContent: 'flex-start', borderRadius: 1 }}
                   aria-label={`${labels.restore}: ${title}`}
                 >
-                  <Typography id={titleId} variant="h5" noWrap>
+                  {/* Not a heading: it would sit inside the button, where it is lost */}
+                  <Typography id={titleId} component="span" variant="h5" noWrap>
                     {title}
                   </Typography>
                 </ButtonBase>

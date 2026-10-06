@@ -5,6 +5,7 @@ import { createBrowserRouter, createRoutesFromElements } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { connectSpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 import { reportRenderError } from '@common/app/sentry'
@@ -72,6 +73,10 @@ export function App({ config }: AppProps): ReactElement {
   const [spaceBridge] = useState(() =>
     embed === null ? null : connectToSpace(config.twakeSpaceOrigin)
   )
+  // Framed by TwakeSpace, the composer and the dialogs go onto its page
+  const [overlay] = useState(() =>
+    spaceBridge === null ? null : connectSpaceOverlay()
+  )
   const [authService] = useState(() =>
     createAuthService(config, {
       framed: embed !== null && window.parent !== window
@@ -81,7 +86,12 @@ export function App({ config }: AppProps): ReactElement {
 
   return (
     <AppConfigProvider config={config}>
-      <AppProviders lang={lang} queryClient={queryClient} debug={config.debug}>
+      <AppProviders
+        lang={lang}
+        queryClient={queryClient}
+        debug={config.debug}
+        overlay={overlay}
+      >
         <ErrorBoundary
           FallbackComponent={CrashScreen}
           onError={handleRenderError}

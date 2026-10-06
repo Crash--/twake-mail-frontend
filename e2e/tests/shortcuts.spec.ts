@@ -19,6 +19,9 @@ test.describe('KBD keyboard shortcuts', () => {
     const inbox = await jmap.findMailboxByRole('inbox')
 
     const mailbox = await new LoginPage(page).loginAs(user)
+    // The list is virtualized: it draws its first row a frame before the next ones, and `j`
+    // moves to the row after the focused one in the page
+    await expect(mailbox.emailRow('older')).toBeVisible()
     await mailbox.emailRowLink('newer').focus()
     await page.keyboard.press('j')
     await expect(mailbox.emailRowLink('older')).toBeFocused()

@@ -146,6 +146,16 @@ if [ ! -f "$HTML_DIR/.env.js" ] && [ -f "$ENV_FILE" ]; then
       }
       printf "var %s = \047%s\047;\n", key, escaped
     }' >"$GENERATED_ENV_JS"
+  # Keys of this app that tmail-flutter's env.file, and so the chart that
+  # writes it, does not know: taken from the environment (the chart's
+  # extraEnv) when the env.file does not set them
+  for key in TWAKE_SPACE_URL; do
+    value=$(printenv "$key" || true)
+    [ -n "$value" ] || continue
+    grep -qE "^var $key = " "$GENERATED_ENV_JS" && continue
+    escaped=$(printf '%s' "$value" | sed -e "s/\\\\/\\\\\\\\/g" -e "s/'/\\\\'/g")
+    printf "var %s = '%s';\n" "$key" "$escaped" >>"$GENERATED_ENV_JS"
+  done
   cat >"$SERVER_CONF_DIR/env.conf" <<EOF
 location = /.env.js {
   alias $GENERATED_ENV_JS;

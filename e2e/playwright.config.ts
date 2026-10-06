@@ -25,6 +25,15 @@ function traceMode(raw: string | undefined): TraceMode {
 const RESPONSIVE_SPECS =
   /LOGIN-01|MBX-05|EML-01|EML-29|A11Y-01|RESP-|SRCH-01|SRCH-03|SRCH-13|THR-01|THR-02|@mobile/
 
+/**
+ * Specs that must have the backend to themselves: they move 50 emails or more
+ * at once, and tmail-backend (memory) leaves such a bulk `Email/set` hanging
+ * (a `ConcurrentModificationException` in its log, the request never answers)
+ * when other accounts change emails at the same moment. They run in the
+ * `bulk` project, once the other projects are done.
+ */
+const BULK_SPECS = /MBX-51/
+
 function workers(raw: string | undefined): number | undefined {
   const parsed = Number(raw)
   if (raw !== undefined && Number.isInteger(parsed) && parsed > 0) {
@@ -68,6 +77,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      grepInvert: BULK_SPECS,
       use: { ...devices['Desktop Chrome'] }
     },
     {
@@ -91,6 +101,13 @@ export default defineConfig({
         hasTouch: true,
         isMobile: true
       }
+    },
+    {
+      // The desktop screen again, alone on the backend (see BULK_SPECS)
+      name: 'bulk',
+      grep: BULK_SPECS,
+      dependencies: ['chromium', 'mobile', 'tablet'],
+      use: { ...devices['Desktop Chrome'] }
     }
   ]
 })

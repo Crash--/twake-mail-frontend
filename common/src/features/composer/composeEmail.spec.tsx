@@ -13,11 +13,14 @@ import {
   FAKE_SESSION_URL,
   makeEmail,
   makeFakeJmapServer,
+  makeMailbox,
+  makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 
 import {
   buildEmail,
+  ensureTemplatesMailbox,
   identityReplyTo,
   saveDraft,
   sendEmail,
@@ -343,5 +346,95 @@ describe('identityReplyTo', () => {
       { name: 'Support', email: 'alice@example.com' }
     ])
     expect(identityReplyTo(undefined)).toEqual([])
+  })
+})
+
+describe('ensureTemplatesMailbox', () => {
+  /** Web Locks as a browser has them: one holder at a time per name */
+  function installLocks(): () => void {
+    const queues = new Map<string, Promise<unknown>>()
+    const locks = {
+      request: (
+        name: string,
+        task: () => Promise<unknown>
+      ): Promise<unknown> => {
+        const previous = queues.get(name) ?? Promise.resolve()
+        const run = previous.then(task, task)
+        queues.set(
+          name,
+          run.catch(() => undefined)
+        )
+        return run
+      }
+    }
+    Object.defineProperty(navigator, 'locks', {
+      configurable: true,
+      value: locks
+    })
+    return () => {
+      Reflect.deleteProperty(navigator, 'locks')
+    }
+  }
+
+  function templatesFolders(server: FakeJmapServer): string[] {
+    return server.mailboxes
+      .filter(mailbox => mailbox.name === 'Templates')
+      .map(mailbox => mailbox.id)
+  }
+
+  it('makes a single folder when two composers save their first template at once', async () => {
+    const uninstall = installLocks()
+    try {
+      const server = makeFakeJmapServer()
+      // Two tabs, two clients, the same account
+      const ids = await Promise.all([
+        ensureTemplatesMailbox(makeClient(server), FAKE_ACCOUNT_ID, null),
+        ensureTemplatesMailbox(makeClient(server), FAKE_ACCOUNT_ID, null)
+      ])
+
+      expect(templatesFolders(server)).toHaveLength(1)
+      expect(ids).toEqual([
+        templatesFolders(server)[0],
+        templatesFolders(server)[0]
+      ])
+    } finally {
+      uninstall()
+    }
+  })
+
+  it('reuses a folder made since the folders were read, whatever its case', async () => {
+    const server = makeFakeJmapServer()
+    server.mailboxes.push(makeMailbox({ id: 'late', name: 'templates' }))
+
+    const id = await ensureTemplatesMailbox(
+      makeClient(server),
+      FAKE_ACCOUNT_ID,
+      null
+    )
+
+    expect(id).toBe('late')
+    expect(
+      server.mailboxes.filter(m => m.name.toLowerCase() === 'templates')
+    ).toHaveLength(1)
+  })
+
+  it('looks under the root of a team mailbox, not among the own folders', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        makeMailbox({ id: 'own-templates', name: 'Templates' }),
+        ...makeTeamMailboxes().filter(m => m.id !== 'team-templates')
+      ]
+    })
+
+    const id = await ensureTemplatesMailbox(
+      makeClient(server),
+      FAKE_ACCOUNT_ID,
+      'team'
+    )
+
+    expect(id).not.toBe('own-templates')
+    expect(server.mailboxes.find(mailbox => mailbox.id === id)?.parentId).toBe(
+      'team'
+    )
   })
 })

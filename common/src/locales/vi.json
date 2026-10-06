@@ -432,7 +432,27 @@
       "save": "Lưu thư mẫu",
       "saved": "Lưu thư mẫu thành công",
       "updated": "Chỉnh sửa thư mẫu thành công",
-      "failed": "Lưu thư mẫu thất bại"
+      "failed": "Lưu thư mẫu thất bại",
+      "insert": "Chèn mẫu",
+      "pickerTitle": "Chèn một mẫu",
+      "filter": "Tìm mẫu",
+      "list": "Mẫu",
+      "empty": "Không có mẫu nào khớp với tìm kiếm của bạn",
+      "none": "Bạn chưa có mẫu nào. Dùng “Lưu làm mẫu” để tạo một mẫu.",
+      "results": "Tìm thấy %{smart_count} mẫu",
+      "noSubject": "(Không có chủ đề)",
+      "inserted": "Đã chèn mẫu",
+      "insertFailed": "Không thể chèn mẫu",
+      "insertTitle": "Thư không trống",
+      "insertMessage": "Chèn mẫu tại vị trí con trỏ hay thay toàn bộ thư bằng mẫu?",
+      "insertHere": "Chèn tại con trỏ",
+      "replace": "Thay thế thư",
+      "shared": {
+        "title": "Xóa thư nháp dùng chung?",
+        "message": "Thư nháp này được chia sẻ với hộp thư nhóm. Lưu làm mẫu cũng sẽ xóa thư nháp đối với mọi người có thể thấy nó.",
+        "delete": "Lưu và xóa thư nháp",
+        "keep": "Lưu và giữ thư nháp"
+      }
     },
     "drive": {
       "attach": "Đính kèm từ Drive",

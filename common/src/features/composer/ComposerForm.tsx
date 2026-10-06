@@ -60,6 +60,7 @@ import {
   hasDriveCards
 } from '@common/features/drive/driveCard'
 import type { DriveFile } from '@common/features/drive/driveIntent'
+import type { TemplateSummary } from '@common/features/templates/queries'
 import { buildEmailDocument } from '@common/features/email/emailBody'
 import { scribeEndpoint } from '@common/features/scribe/scribe'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
@@ -67,7 +68,6 @@ import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
-import { findTemplatesMailboxId } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useMarkUnsubscribed } from '@common/features/email/useMarkUnsubscribed'
@@ -89,6 +89,7 @@ import {
   destroyPreviousVersions,
   findStrayVersions,
   saveDraft,
+  isInTeamMailbox,
   saveTemplate,
   sendEmail,
   type AttachedFile,
@@ -111,6 +112,8 @@ import {
   type SendOptions
 } from './composerContent'
 import { findAttachmentKeywords, writtenText } from './attachmentReminder'
+import { TemplatePicker } from './TemplatePicker'
+import { chooseTemplatesTarget, templatesTargetKey } from './templatesFolder'
 import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
 import {
   editableQuoteHtml,
@@ -295,8 +298,6 @@ interface LoadedFormProps extends ComposerFormProps {
   /** The Drafts and Sent of the user: the ones of a team mailbox follow the identity */
   ownMailboxIds: MailboxIds
   mailboxes: readonly MailboxSummary[]
-  /** The Templates folder, null until "Save as template" creates it */
-  templatesId: string | null
   images: InlineImageStore
 }
 
@@ -316,7 +317,6 @@ function LoadedComposerForm({
   identities,
   ownMailboxIds,
   mailboxes,
-  templatesId,
   images
 }: LoadedFormProps): ReactElement {
   const { t } = useI18n()
@@ -372,6 +372,8 @@ function LoadedComposerForm({
   const [subject, setSubject] = useState(content.subject)
   const [options, setOptions] = useState<SendOptions>(content.options)
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null)
+  const moreButtonRef = useRef<HTMLButtonElement>(null)
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [isSending, setIsSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
@@ -388,8 +390,8 @@ function LoadedComposerForm({
   const leftoversRef = useRef<string[]>(content.leftovers)
   /** The template "Save as template" replaces, if any */
   const templateIdRef = useRef(content.templateId)
-  /** The Templates folder a save created, before the folders know it */
-  const createdTemplatesIdRef = useRef<string | null>(null)
+  /** The Templates folders a save created (by target), before the folders know them */
+  const createdTemplatesRef = useRef(new Map<string, string>())
   /** A save lost its answer: it may have left a version (`findStrayVersions`) */
   const mayHaveStraysRef = useRef(content.mayHaveStrays)
   /** The draft was created by this composer: "Discard" may destroy it */
@@ -848,10 +850,43 @@ function LoadedComposerForm({
   }
 
   /**
-   * "Save as template" (tmail-flutter): the message goes to Templates,
-   * replacing the template it was opened from or last saved as. It is
-   * kept there: the drafts this composer made of it go, and closing it asks
-   * nothing until it changes again.
+   * A draft reopened from a team mailbox is shared: saving it as a template
+   * deletes it for everyone, so the user is asked. What they chose: the
+   * draft goes, stays, or nothing is saved.
+   */
+  const askAboutDraft = async (): Promise<'delete' | 'keep' | 'cancel'> => {
+    const draftId = draftIdRef.current
+    // Made here, it is the working copy of this message
+    if (draftId === null || createdHereRef.current) return 'delete'
+    const isShared = await isInTeamMailbox(client, accountId, draftId).catch(
+      (error: unknown) => {
+        console.warn('Draft sharing not read', error)
+        // Not known: better ask than destroy
+        return true
+      }
+    )
+    if (!isShared) return 'delete'
+    const choice = await choose({
+      title: t('composer.template.shared.title'),
+      message: t('composer.template.shared.message'),
+      confirmLabel: t('composer.template.shared.delete'),
+      alternativeLabel: t('composer.template.shared.keep'),
+      isDestructive: true
+    })
+    return choice === 'confirm'
+      ? 'delete'
+      : choice === 'alternative'
+        ? 'keep'
+        : 'cancel'
+  }
+
+  /**
+   * "Save as template" (tmail-flutter): the message goes to Templates (the
+   * one of the team mailbox of the identity, when it has one and the rights
+   * allow it), replacing the template it was opened from or last saved as.
+   * It is kept there: the draft goes, the one this composer made and the
+   * one it was opened on (asked first when it is shared), and closing it
+   * asks nothing until it changes again.
    */
   const handleSaveTemplate = (): void => {
     setMoreAnchor(null)
@@ -861,27 +896,37 @@ function LoadedComposerForm({
       if (!editor) return
       const previous = templateIdRef.current
       try {
+        const draftFate = await askAboutDraft()
+        if (draftFate === 'cancel') return
         const email = await buildEmail(
           composed(editor),
           images,
           mailboxIds,
           'template'
         )
+        const target = chooseTemplatesTarget(mailboxes, identityEmail)
+        const targetKey = templatesTargetKey(target)
         const result = await saveTemplate(
           client,
           accountId,
           email,
-          templatesId ?? createdTemplatesIdRef.current,
+          {
+            ...target,
+            mailboxId:
+              target.mailboxId ??
+              createdTemplatesRef.current.get(targetKey) ??
+              null
+          },
           previous,
           images
         )
-        createdTemplatesIdRef.current = result.mailboxId
+        createdTemplatesRef.current.set(targetKey, result.mailboxId)
         templateIdRef.current = result.emailId
         files.rebase(result.attachments)
         savedRef.current = fingerprintOf(editor)
         setSaveState('idle')
         onChange?.()
-        if (createdHereRef.current) {
+        if (draftFate === 'delete') {
           createdHereRef.current = false
           await destroyDraft().catch((error: unknown) => {
             console.warn('Drafts of a template not destroyed', error)
@@ -901,6 +946,74 @@ function LoadedComposerForm({
       }
     })
     savingRef.current = run
+  }
+
+  const handleOpenTemplatePicker = (): void => {
+    setMoreAnchor(null)
+    setIsPickerOpen(true)
+  }
+
+  const handleClosePicker = (): void => {
+    setIsPickerOpen(false)
+    moreButtonRef.current?.focus()
+  }
+
+  /**
+   * "Insert template": its subject and body (its files and recipients stay
+   * out). Into an empty message, the body goes where the cursor is, above
+   * the signature. Into a message with something written, the user says: at
+   * the cursor (the subject is kept unless it is empty), or the whole
+   * message replaced (the quote and the signature too), the one choice
+   * that loses nothing by default.
+   */
+  const handleInsertTemplate = async (
+    template: TemplateSummary
+  ): Promise<void> => {
+    const editor = editorRef.current
+    if (!editor) return
+    setIsPickerOpen(false)
+    try {
+      const loaded = await loadDraftContent(
+        client,
+        accountId,
+        template.id,
+        identities,
+        images,
+        { isTemplate: true }
+      )
+      const isEmpty =
+        subject.trim() === '' && writtenText('', editor.getHTML()).trim() === ''
+      let mode: 'insert' | 'replace' = 'insert'
+      if (!isEmpty) {
+        const choice = await choose({
+          title: t('composer.template.insertTitle'),
+          message: t('composer.template.insertMessage'),
+          confirmLabel: t('composer.template.insertHere'),
+          alternativeLabel: t('composer.template.replace')
+        })
+        if (choice === 'cancel') {
+          moreButtonRef.current?.focus()
+          return
+        }
+        mode = choice === 'confirm' ? 'insert' : 'replace'
+      }
+      if (mode === 'replace') {
+        editor.chain().focus().setContent(loaded.html).run()
+        setSubject(loaded.subject)
+      } else {
+        if (subject.trim() === '') setSubject(loaded.subject)
+        editor.chain().focus().insertContent(loaded.html).run()
+      }
+      if (loaded.hasBlockedImages) setHasBlockedImages(true)
+      markChanged()
+      notify({ message: t('composer.template.inserted'), severity: 'success' })
+    } catch (error: unknown) {
+      console.error(error)
+      notify({
+        message: t('composer.template.insertFailed'),
+        severity: 'error'
+      })
+    }
   }
 
   const handleDeleteDraft = (): void => {
@@ -1195,6 +1308,7 @@ function LoadedComposerForm({
   )
   const moreButton = (
     <ActionIconButton
+      ref={moreButtonRef}
       label={t('composer.more')}
       aria-haspopup="menu"
       aria-expanded={moreAnchor !== null}
@@ -1247,6 +1361,12 @@ function LoadedComposerForm({
         data-testid="composer-save-draft-item"
       >
         <ListItemText inset primary={t('composer.saveAsDraft')} />
+      </MenuItem>
+      <MenuItem
+        onClick={handleOpenTemplatePicker}
+        data-testid="composer-insert-template-item"
+      >
+        <ListItemText inset primary={t('composer.template.insert')} />
       </MenuItem>
       <MenuItem
         onClick={handleSaveTemplate}
@@ -1543,6 +1663,14 @@ function LoadedComposerForm({
           </Box>
         )}
         {moreMenu}
+        <TemplatePicker
+          open={isPickerOpen}
+          onClose={handleClosePicker}
+          mailboxes={mailboxes}
+          onPick={template => {
+            void handleInsertTemplate(template)
+          }}
+        />
       </div>
     </FileDropZone>
   )
@@ -1698,7 +1826,6 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
       identities={identities.data}
       ownMailboxIds={ownMailboxIds}
       mailboxes={mailboxes.data ?? []}
-      templatesId={findTemplatesMailboxId(mailboxes.data ?? [])}
       images={images}
     />
   )

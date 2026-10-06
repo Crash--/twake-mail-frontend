@@ -66,3 +66,26 @@ function acquireLock(name: string): Promise<ReleaseLock | null> {
       })
   })
 }
+
+/**
+ * Runs `task` once no other tab or composer is running one under the same
+ * name: a Web Lock, waited for (the other ones are `ifAvailable`). Where the
+ * browser has no Web Locks (nor jsdom), the task runs at once, the composers
+ * of the tab being the only ones known.
+ */
+export function runExclusive<T>(
+  name: string,
+  task: () => Promise<T>
+): Promise<T> {
+  const locks = typeof navigator === 'undefined' ? undefined : navigator.locks
+  if (!locks) return task()
+  return locks.request(name, task)
+}
+
+/** The lock serialising the creation of a Templates folder (`ensureTemplatesMailbox`) */
+export function templatesLockName(
+  accountId: string,
+  parentId: string | null
+): string {
+  return `twake-mail-templates|${accountId}|${parentId ?? 'personal'}`
+}

@@ -11,14 +11,17 @@ import {
 import { findReferencedCids } from '@common/features/email/emailBody'
 import {
   findTeamFolderByAddress,
+  isPersonalMailbox,
   TEMPLATES_NAME
 } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { IMPORTANT_HEADER_VALUES } from '@common/features/email/importance'
 
 import { htmlToText, toEmailHtml } from './emailHtml'
+import { runExclusive, templatesLockName } from './draftLocks'
 import type { InlineImageStore } from './InlineImageStore'
 import type { AnswerKeyword, Answering } from './replyContent'
+import type { TemplatesTarget } from './templatesFolder'
 
 /** Header keeping the identity of a draft (tmail-flutter reads it too) */
 export const IDENTITY_HEADER = 'header:X-JMAP-Identity:asText'
@@ -396,29 +399,110 @@ export interface TemplateSaveResult {
   leftovers: string[]
 }
 
-/** Creates the Templates folder, as tmail-flutter names it */
-async function createTemplatesMailbox(
+/**
+ * Whether an email is filed in a team mailbox, that is, seen by others: a
+ * draft reopened from the Drafts of a team mailbox is shared
+ */
+export async function isInTeamMailbox(
   client: JmapClient,
-  accountId: string
-): Promise<string> {
-  const result = await client.call('Mailbox/set', {
+  accountId: string,
+  emailId: string
+): Promise<boolean> {
+  const [emails, mailboxes] = await client.request(builder => [
+    builder.call('Email/get', {
+      accountId,
+      ids: [emailId],
+      properties: ['mailboxIds']
+    }),
+    builder.call('Mailbox/get', {
+      accountId,
+      ids: null,
+      properties: ['id', 'namespace']
+    })
+  ])
+  const filedIn = Object.keys(emails.list[0]?.mailboxIds ?? {})
+  const shared = new Set(
+    mailboxes.list
+      .filter(
+        mailbox => !isPersonalMailbox({ namespace: mailbox.namespace ?? null })
+      )
+      .map(mailbox => mailbox.id)
+  )
+  return filedIn.some(id => shared.has(id))
+}
+
+/** The Templates folder `parentId` holds, found by name among its children */
+async function findTemplatesMailbox(
+  client: JmapClient,
+  accountId: string,
+  parentId: string | null
+): Promise<string | null> {
+  const response = await client.call('Mailbox/get', {
     accountId,
-    create: { templates: { name: TEMPLATES_NAME, isSubscribed: true } }
+    ids: null,
+    properties: ['id', 'name', 'parentId', 'role', 'namespace']
   })
-  const created = result.created?.templates
-  if (!created) {
+  const wanted = TEMPLATES_NAME.toLowerCase()
+  const found = response.list.find(mailbox => {
+    const isNamed =
+      mailbox.name.toLowerCase() === wanted || mailbox.role === 'templates'
+    if (parentId !== null) {
+      return isNamed && mailbox.parentId === parentId
+    }
+    // The user's own: top level, not in a team mailbox
+    return (
+      isNamed &&
+      (mailbox.parentId ?? null) === null &&
+      isPersonalMailbox({ namespace: mailbox.namespace ?? null })
+    )
+  })
+  return found?.id ?? null
+}
+
+/**
+ * Creates the Templates folder, as tmail-flutter names it, unless another
+ * composer (of this tab or another) made it first. Two composers saving
+ * their first template at once would each create one, the folders the
+ * first one made not being known to the other yet: the creation is
+ * serialised by a Web Lock, and the folders are read again once it is held,
+ * before creating anything.
+ */
+export function ensureTemplatesMailbox(
+  client: JmapClient,
+  accountId: string,
+  parentId: string | null
+): Promise<string> {
+  return runExclusive(templatesLockName(accountId, parentId), async () => {
+    const existing = await findTemplatesMailbox(client, accountId, parentId)
+    if (existing !== null) return existing
+    const result = await client.call('Mailbox/set', {
+      accountId,
+      create: {
+        templates: {
+          name: TEMPLATES_NAME,
+          isSubscribed: true,
+          ...(parentId === null ? {} : { parentId })
+        }
+      }
+    })
+    const created = result.created?.templates
+    if (created) return created.id
+    // Refused: a server that does not take two folders of a name says one
+    // is there (made by a client without Web Locks)
+    const raced = await findTemplatesMailbox(client, accountId, parentId)
+    if (raced !== null) return raced
     throw new JmapSetError({
       notCreated: result.notCreated ?? {},
       notUpdated: {},
       notDestroyed: {}
     })
-  }
-  return created.id
+  })
 }
 
 /**
  * Saves a message as a template (tmail-flutter "Save as template"): in the
- * Templates folder, created first when there is none, seen, no `$draft`.
+ * Templates folder of `target` (the user's, or the one of the team mailbox
+ * of the identity), created first when there is none, seen, no `$draft`.
  * Like a draft, an update is a new version, and the previous one is
  * destroyed in another request once the new one exists; the files of the
  * template are read back, as `saveDraft` does. `email` is built for the
@@ -428,12 +512,13 @@ export async function saveTemplate(
   client: JmapClient,
   accountId: string,
   email: EmailCreate,
-  templatesId: string | null,
+  target: TemplatesTarget,
   previousId: string | null,
   images: InlineImageStore
 ): Promise<TemplateSaveResult> {
   const mailboxId =
-    templatesId ?? (await createTemplatesMailbox(client, accountId))
+    target.mailboxId ??
+    (await ensureTemplatesMailbox(client, accountId, target.parentId))
   const template: EmailCreate = {
     ...email,
     mailboxIds: { [mailboxId]: true },

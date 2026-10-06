@@ -69,7 +69,10 @@ export function MailSidebar({
             />
           </Box>
         ) : null}
-        <Box className="u-flex-auto u-ov-auto u-mt-1-half">
+        <Box
+          className="u-flex-auto u-ov-auto u-mt-1-half"
+          data-testid="sidebar-scroll"
+        >
           <MailboxTree />
           <LabelsSection />
         </Box>

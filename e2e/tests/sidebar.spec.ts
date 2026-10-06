@@ -165,4 +165,42 @@ test.describe('SBR sidebar rows and compose button', () => {
     await expect(field).toHaveCSS('box-shadow', 'none')
     await expect(field).toHaveCSS('height', '40px')
   })
+
+  for (const size of [
+    { width: 1440, height: 789 },
+    { width: 1280, height: 650 }
+  ]) {
+    test(`SBR-08 the scrolling folders end above the footer at ${size.width}x${size.height}`, async ({
+      page,
+      user,
+      jmap
+    }) => {
+      for (let index = 1; index <= 12; index += 1) {
+        await jmap.createMailbox({ name: `Folder ${index}` })
+        await jmap.createLabel(`Label ${index}`, '#21B930')
+      }
+      await page.setViewportSize(size)
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await expect(mailbox.folder({ name: 'Folder 12' })).toBeAttached()
+
+      const scroll = page.getByTestId('sidebar-scroll')
+      const footer = page.getByTestId('sidebar-footer')
+      await expect(footer).toBeVisible()
+      const scrollBox = await scroll.boundingBox()
+      const footerBox = await footer.boundingBox()
+      const sidebarBox = await page.getByTestId('sidebar').boundingBox()
+      expect(scrollBox).not.toBeNull()
+      expect(footerBox).not.toBeNull()
+      expect(
+        (scrollBox?.y ?? 0) + (scrollBox?.height ?? 0)
+      ).toBeLessThanOrEqual((footerBox?.y ?? 0) + 0.5)
+      // The footer stays in the sidebar, which fits the window
+      expect(
+        (footerBox?.y ?? 0) + (footerBox?.height ?? 0)
+      ).toBeLessThanOrEqual((sidebarBox?.y ?? 0) + (sidebarBox?.height ?? 0) + 0.5)
+      expect(
+        await scroll.evaluate(el => el.scrollHeight > el.clientHeight)
+      ).toBe(true)
+    })
+  }
 })

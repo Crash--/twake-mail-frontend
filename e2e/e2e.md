@@ -794,3 +794,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-07` The folder search field is the flat 40 px pill of the design system (no shadow). — web app (Figma)
   - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-08` With many folders and labels, at 1440x789 and 1280x650, the scrolling part of the sidebar ends above the footer (no overlap) and the footer stays inside the sidebar. — web app (sidebar D4)
+  - Spec: `tests/sidebar.spec.ts`.

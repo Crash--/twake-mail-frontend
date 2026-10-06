@@ -212,9 +212,17 @@ export function useDrivePicker(
           setState({ status: 'failed' })
       }
     }
-    window.addEventListener('message', handleMessage)
+    // The picker posts to its parent: the window its frame is rendered in,
+    // which is the overlay of TwakeSpace when the dialog shows there
+    const host = frameRef.current?.ownerDocument.defaultView ?? window
+    const hosts = host === window ? [window] : [window, host]
+    hosts.forEach(target => {
+      target.addEventListener('message', handleMessage)
+    })
     return () => {
-      window.removeEventListener('message', handleMessage)
+      hosts.forEach(target => {
+        target.removeEventListener('message', handleMessage)
+      })
     }
   }, [intent, close])
 

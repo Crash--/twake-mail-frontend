@@ -151,6 +151,7 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
           ? [
               'Insert link',
               'Save as draft',
+              'Insert template',
               'Save as template',
               'Request read receipt',
               'Mark as important',
@@ -158,6 +159,7 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
             ]
           : [
               'Save as draft',
+              'Insert template',
               'Save as template',
               'Request read receipt',
               'Mark as important'

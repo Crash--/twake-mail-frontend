@@ -1,8 +1,14 @@
-import { ComposerPage, LoginPage, type MailboxPage } from '../pages'
+import {
+  ComposerPage,
+  LoginPage,
+  SearchPage,
+  type MailboxPage
+} from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { makePng } from '../support/clipboard'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
+import type { E2ETeamMailbox } from '../support/users'
 
 /**
  * Templates (tmail-flutter "Save as template") and mailto links. The
@@ -166,5 +172,333 @@ test.describe('CMP composer: templates and mailto links', () => {
       'shared-recipient@example.com'
     ])
     await expectNoA11yViolations(page)
+  })
+})
+
+/** The own Templates folder, made as tmail-flutter does when it is missing */
+async function ownTemplatesFolder(jmap: JmapClient): Promise<string> {
+  return (await jmap.createMailbox({ name: 'Templates' })).id
+}
+
+/** The folders of a team mailbox, by name */
+async function teamFolder(
+  jmap: JmapClient,
+  team: E2ETeamMailbox,
+  name: string
+): Promise<string> {
+  return (
+    await jmap.findMailboxByName(name, {
+      namespace: `TeamMailbox[${team.email}]`
+    })
+  ).id
+}
+
+async function subjectsIn(
+  jmap: JmapClient,
+  mailboxId: string
+): Promise<(string | null)[]> {
+  return (await jmap.queryEmails({ inMailbox: mailboxId })).map(
+    email => email.subject
+  )
+}
+
+/** Templates written to be picked: a subject and a body */
+async function seedTemplates(
+  jmap: JmapClient,
+  folderId: string,
+  templates: Record<string, string>
+): Promise<void> {
+  for (const [subject, text] of Object.entries(templates)) {
+    await jmap.createEmailIn(folderId, { subject, html: `<p>${text}</p>` })
+  }
+}
+
+test.describe('CMP composer: templates follow-ups', () => {
+  test('CMP-91 two tabs saving their first template at the same time make a single Templates folder', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const first = await mailbox.compose()
+    await first.fill({ subject: 'First template' })
+    // The Web Lock is shared by the tabs of the browser
+    const other = await page.context().newPage()
+    const otherMailbox = await new LoginPage(other).loginAs(user)
+    const second = await otherMailbox.compose()
+    await second.fill({ subject: 'Second template' })
+
+    // Neither knows the folder the other is making
+    await first.runMoreAction('save-template')
+    await second.runMoreAction('save-template')
+
+    const personal = async (): Promise<string[]> =>
+      (await jmap.getMailboxes())
+        .filter(
+          folder =>
+            folder.name.toLowerCase() === 'templates' &&
+            folder.namespace === 'Personal'
+        )
+        .map(folder => folder.id)
+    await expect
+      .poll(async () => {
+        const [folder] = await personal()
+        return folder === undefined
+          ? []
+          : (await subjectsIn(jmap, folder)).sort()
+      })
+      .toEqual(['First template', 'Second template'])
+    expect(await personal()).toHaveLength(1)
+  })
+
+  test('CMP-92 a reopened draft saved as a template leaves no draft behind', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ to: [user.email], subject: 'Draft to template' })
+    await composer.closeAnd('save')
+    const drafts = await jmap.findMailboxByRole('drafts')
+    await expect
+      .poll(() => subjectsIn(jmap, drafts.id))
+      .toEqual(['Draft to template'])
+
+    await mailbox.openFolder({ role: 'drafts' })
+    await mailbox.emailRowLink('Draft to template').click()
+    const reopened = new ComposerPage(page)
+    await expect(reopened.subjectInput).toHaveValue('Draft to template')
+    await saveAsTemplate(reopened, mailbox, 'saved')
+
+    // Nothing to confirm: the draft is the user's own
+    await expect(page.getByTestId('confirm-dialog')).toBeHidden()
+    await expect.poll(() => subjectsIn(jmap, drafts.id)).toEqual([])
+    const templates = await jmap.findMailboxByName('Templates')
+    expect(await subjectsIn(jmap, templates.id)).toEqual(['Draft to template'])
+  })
+
+  test('CMP-93 the template of a message written as a team mailbox is filed in the Templates of the team mailbox, and opens with its identity', async ({
+    page,
+    user,
+    users,
+    jmap
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    const teamTemplates = await teamFolder(jmap, team, 'Templates')
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.chooseIdentity(team.email)
+    await composer.fill({ subject: 'Team template' })
+    await saveAsTemplate(composer, mailbox, 'saved')
+    await composer.close()
+    await expect(composer.root).toBeHidden()
+
+    await expect
+      .poll(() => subjectsIn(jmap, teamTemplates))
+      .toEqual(['Team template'])
+    // None made for the user
+    await expect(jmap.findMailboxByName('Templates')).rejects.toThrow()
+
+    await mailbox.toggleFolder({ name: team.name })
+    await mailbox.openFolder({ id: teamTemplates })
+    await mailbox.emailRowLink('Team template').click()
+    const reopened = new ComposerPage(page)
+    await expect(reopened.subjectInput).toHaveValue('Team template')
+    await expect(reopened.identitySelect).toContainText(team.email)
+  })
+
+  test('CMP-94 saving a draft of a team mailbox as a template asks before deleting it for the team', async ({
+    page,
+    user,
+    users,
+    jmap
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    const teamDrafts = await teamFolder(jmap, team, 'Drafts')
+    const teamTemplates = await teamFolder(jmap, team, 'Templates')
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.chooseIdentity(team.email)
+    await composer.fill({ to: [user.email], subject: 'Shared draft' })
+    await composer.closeAnd('save')
+    await expect.poll(() => subjectsIn(jmap, teamDrafts)).toEqual(['Shared draft'])
+
+    await mailbox.toggleFolder({ name: team.name })
+    await mailbox.openFolder({ id: teamDrafts })
+    await mailbox.emailRowLink('Shared draft').click()
+    const reopened = new ComposerPage(page)
+    await expect(reopened.subjectInput).toHaveValue('Shared draft')
+
+    await reopened.runMoreAction('save-template')
+    const dialog = page.getByTestId('confirm-dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText('Delete the shared draft?')
+    await expectNoA11yViolations(page)
+    // Cancelling saves nothing
+    await dialog.getByTestId('confirm-dialog-cancel-button').click()
+    await expect(dialog).toBeHidden()
+    expect(await subjectsIn(jmap, teamTemplates)).toEqual([])
+    expect(await subjectsIn(jmap, teamDrafts)).toEqual(['Shared draft'])
+
+    await reopened.runMoreAction('save-template')
+    await dialog.getByTestId('confirm-dialog-confirm-button').click()
+
+    await expect(mailbox.toast).toContainText(
+      'Save message to template folder successfully'
+    )
+    await expect.poll(() => subjectsIn(jmap, teamDrafts)).toEqual([])
+    expect(await subjectsIn(jmap, teamTemplates)).toEqual(['Shared draft'])
+  })
+
+  test('CMP-95 the Insert template picker lists the templates, filters them, announces the results and inserts one with the keyboard', async ({
+    page,
+    user,
+    users,
+    jmap
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    await seedTemplates(jmap, await ownTemplatesFolder(jmap), {
+      'Weekly report': 'Done this week:',
+      'Welcome aboard': 'Glad to have you with us'
+    })
+    await seedTemplates(jmap, await teamFolder(jmap, team, 'Templates'), {
+      'Team handbook': 'Read the handbook'
+    })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.openTemplatePicker()
+
+    // Named, focus in the field, the own templates and the team ones
+    await expect(composer.templatePicker).toHaveAccessibleName(
+      'Insert a template'
+    )
+    await expect(composer.templatePickerInput).toBeFocused()
+    await expect(composer.templatePickerInput).toHaveAccessibleName(
+      'Search templates'
+    )
+    await expect(composer.templatePickerOptions).toHaveCount(3)
+    await expectNoA11yViolations(page)
+
+    await page.keyboard.type('hand')
+    await expect(composer.templatePickerOptions).toHaveCount(1)
+    await expect(composer.templatePickerResults).toHaveText('1 template found')
+    await page.keyboard.press('Control+a')
+    await page.keyboard.type('we')
+    await expect(composer.templatePickerResults).toHaveText('2 templates found')
+
+    await page.keyboard.type('lcome')
+    await page.keyboard.press('Enter')
+
+    // An empty message takes the subject and the body
+    await expect(composer.templatePicker).toBeHidden()
+    await expect(composer.subjectInput).toHaveValue('Welcome aboard')
+    await expect(composer.editor).toContainText('Glad to have you with us')
+    await expect(composer.editor).toBeFocused()
+  })
+
+  test('CMP-96 inserting a template into a message that has text asks whether to insert it at the cursor or to replace the message', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await seedTemplates(jmap, await ownTemplatesFolder(jmap), {
+      'Weekly report': 'Done this week:',
+      'Welcome aboard': 'Glad to have you with us'
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({ subject: 'My own subject', body: 'My own text' })
+    const dialog = page.getByTestId('confirm-dialog')
+
+    await composer.openTemplatePicker()
+    await composer.templatePickerOptions.filter({ hasText: 'Weekly' }).click()
+    await expect(dialog).toBeVisible()
+    await expectNoA11yViolations(page)
+    await dialog.getByTestId('confirm-dialog-confirm-button').click()
+    await expect(dialog).toBeHidden()
+    // Inserted at the cursor: the subject and the text stay
+    await expect(composer.subjectInput).toHaveValue('My own subject')
+    await expect(composer.editor).toContainText('My own text')
+    await expect(composer.editor).toContainText('Done this week:')
+
+    await composer.openTemplatePicker()
+    await composer.templatePickerOptions.filter({ hasText: 'Welcome' }).click()
+    await dialog.getByTestId('confirm-dialog-alternative-button').click()
+    await expect(composer.subjectInput).toHaveValue('Welcome aboard')
+    await expect(composer.editor).toContainText('Glad to have you with us')
+    await expect(composer.editor).not.toContainText('My own text')
+
+    // Closing the picker with Escape gives the focus back to the More button
+    await composer.openTemplatePicker()
+    await page.keyboard.press('Escape')
+    await expect(composer.templatePicker).toBeHidden()
+    await expect(composer.moreButton).toBeFocused()
+  })
+
+  test(
+    'CMP-97 the Insert template picker opens as a sheet on a phone and a dialog elsewhere, and works by touch',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      await seedTemplates(jmap, await ownTemplatesFolder(jmap), {
+        'Weekly report': 'Done this week:',
+        'Welcome aboard': 'Glad to have you with us'
+      })
+      const size = page.viewportSize() ?? { width: 0, height: 0 }
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const composer = await mailbox.compose()
+      await composer.openTemplatePicker()
+
+      const box = await composer.templatePicker.boundingBox()
+      if (size.width < 600) {
+        // A sheet from the bottom edge, as wide as the screen
+        expect(box?.x).toBe(0)
+        expect(box?.width).toBe(size.width)
+        await expect
+          .poll(async () => {
+            const sheet = await composer.templatePicker.boundingBox()
+            return Math.round((sheet?.y ?? 0) + (sheet?.height ?? 0))
+          })
+          .toBe(size.height)
+      } else {
+        // A dialog, centred
+        const middle = (box?.x ?? 0) + (box?.width ?? 0) / 2
+        expect(Math.abs(middle - size.width / 2)).toBeLessThan(2)
+      }
+      await expectNoA11yViolations(page)
+      await composer.templatePickerInput.fill('welc')
+      await expect(composer.templatePickerResults).toHaveText('1 template found')
+
+      await composer.templatePickerOptions.click()
+
+      await expect(composer.templatePicker).toBeHidden()
+      await expect(composer.subjectInput).toHaveValue('Welcome aboard')
+      await expect(composer.editor).toContainText('Glad to have you with us')
+    }
+  )
+
+  test('CMP-98 a template found by a search opens in the composer, not in the reading view', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await seedTemplates(jmap, await ownTemplatesFolder(jmap), {
+      'Zebra quarterly template': 'Quarterly numbers'
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const search = new SearchPage(page)
+    await search.search('Zebra')
+    await search.expectResults()
+
+    await search.resultRow('Zebra quarterly template').click()
+
+    const composer = new ComposerPage(page)
+    await expect(composer.subjectInput).toHaveValue('Zebra quarterly template')
+    await expect(composer.editor).toContainText('Quarterly numbers')
+    expect(page.url()).not.toContain('/email/')
+    await expect(mailbox.page.getByTestId('search-results')).toBeVisible()
   })
 })

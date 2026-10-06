@@ -547,7 +547,13 @@ export class JmapClient {
    */
   async createEmailIn(
     mailboxId: string,
-    input: { subject: string; text?: string; keywords?: Keywords }
+    input: {
+      subject: string
+      text?: string
+      /** An HTML body instead of the text one */
+      html?: string
+      keywords?: Keywords
+    }
   ): Promise<Email> {
     const result = await this.#call('Email/set', {
       create: {
@@ -557,8 +563,11 @@ export class JmapClient {
           from: [{ email: (await this.getSession()).username }],
           to: [{ email: 'someone@example.com' }],
           subject: input.subject,
-          bodyStructure: { type: 'text/plain', partId: '1' },
-          bodyValues: { '1': { value: input.text ?? 'Hello' } }
+          // tmail-backend ignores `bodyStructure` on creation for an HTML body
+          ...(input.html === undefined
+            ? { bodyStructure: { type: 'text/plain', partId: '1' } }
+            : { htmlBody: [{ partId: '1', type: 'text/html' }] }),
+          bodyValues: { '1': { value: input.html ?? input.text ?? 'Hello' } }
         }
       }
     })

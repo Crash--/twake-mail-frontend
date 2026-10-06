@@ -458,3 +458,10 @@ Differences kept from the design and from tmail-flutter:
 | Visual viewport | A full-screen window that stays above the virtual keyboard where the layout viewport does not shrink (Safari; Chrome follows `interactive-widget=resizes-content`, set in `public/index.html`) | The phone composer | `ds/useVisualViewport`, used by `ds/DockedWindow` | A `useVisualViewport` hook |
 | Recipient field | The label beside the chips (not in their wrapping row) and an input of at least 56 px that stays on the row of the last chip while room is left | A "To" with long addresses, at every width | `ds/RecipientField` | The same in the upstream chips field |
 | `Dialog` loading state | The logo of the framed application in the middle and its name at the bottom instead of a progress indicator (Figma Twake Drive loading) | The Drive picker while it loads | `ds/FramedDialog` (`loadingBrand`), filled by `features/composer/DriveAttachButton.tsx` with the `Drive` and `DriveText` icons of `twake-icons` | A `loadingBrand` slot on a framed dialog |
+
+## Insert template picker (batch E6, issue #54)
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `Dialog` / `Drawer` | A picker modal: a centred dialog on desktops and tablets, a sheet rising from the bottom edge on phones (rounded top, 85 % of the screen at most, safe area padding), titled, with a close button in both; `Drawer` sits under a full-screen window (the composer on a phone) unless it takes the modal z-index | The "Insert template" picker | `ds/PickerSheet` | A `Dialog` `variant="sheet"` below the phone breakpoint, with a title slot |
+| Filter field and list | The always shown filtered list says how many options match: a live region (`role="status"`) always in the page, filled when the filter changes (no second announcement from the empty message) | The result count of the template picker | `ds/FilterableListbox` (`resultsLabel`) | A result count slot on a filtered listbox |

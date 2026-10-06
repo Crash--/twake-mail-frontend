@@ -665,9 +665,10 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
       mimeType: 'image/png',
       buffer: await makePng(page, 200, 80, 'IMG')
     })
+    // The image is found by its reference: its alt is empty, not the name of its file (#159)
     const html = await composer.editorHtml()
-    expect(html.indexOf('above.png')).toBeGreaterThan(-1)
-    expect(html.indexOf('above.png')).toBeLessThan(
+    expect(html.indexOf('data-reference=')).toBeGreaterThan(-1)
+    expect(html.indexOf('data-reference=')).toBeLessThan(
       html.indexOf('data-html-block-view="quote"')
     )
   })
@@ -688,9 +689,9 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
     })
     const html = await composer.editorHtml()
     expect(html.indexOf('SIGNATURE_MARKER')).toBeLessThan(
-      html.indexOf('between.png')
+      html.indexOf('data-reference=')
     )
-    expect(html.indexOf('between.png')).toBeLessThan(
+    expect(html.indexOf('data-reference=')).toBeLessThan(
       html.indexOf('data-html-block-view="quote"')
     )
   })

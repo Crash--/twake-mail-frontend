@@ -128,8 +128,13 @@ export interface EmailCellProps {
   openEmailId: string | null
   /** Opens a draft (`$draft`) in the composer instead of reading it */
   onOpenDraft?: (email: EmailListItemData) => void
-  /** In the Templates folder: opens the template in the composer */
+  /** Opens a template in the composer (the emails of `templateMailboxIds`) */
   onOpenTemplate?: (email: EmailListItemData) => void
+  /**
+   * The Templates folders: an email filed in one is a template, wherever the
+   * list comes from (a search finds them too); left out, every row is one
+   */
+  templateMailboxIds?: ReadonlySet<string>
   /**
    * Marks the emails their sender set important (the "Sender-set important
    * flag" preference of tmail-flutter, on by default)
@@ -169,7 +174,8 @@ export function EmailCell({
   onMove,
   openEmailId,
   onOpenDraft,
-  onOpenTemplate,
+  onOpenTemplate: openTemplate,
+  templateMailboxIds,
   showImportant = true,
   labels = [],
   showActionRequired = false,
@@ -248,6 +254,12 @@ export function EmailCell({
     />
   )
   const isDraft = hasKeyword(email, DRAFT)
+  const onOpenTemplate =
+    openTemplate !== undefined &&
+    (templateMailboxIds === undefined ||
+      Object.keys(email.mailboxIds).some(id => templateMailboxIds.has(id)))
+      ? openTemplate
+      : undefined
   const replyLabel = t('emailActions.reply.reply')
   const handleReply = (): void => {
     onReply(email)

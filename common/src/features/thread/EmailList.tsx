@@ -38,6 +38,7 @@ import {
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useDocumentTitle } from '@common/app/useDocumentTitle'
 import { useComposer } from '@common/features/composer/ComposerProvider'
+import { listTemplatesMailboxIds } from '@common/features/composer/templatesFolder'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import {
@@ -543,7 +544,12 @@ export function EmailList(props: EmailListProps): ReactElement {
     },
     [openComposer]
   )
-  // A template opens as a new message, which "Save as template" updates
+  // A template, found in its folder or by a search, opens as a new message,
+  // which "Save as template" updates
+  const templateMailboxIds = useMemo(
+    () => new Set(listTemplatesMailboxIds(mailboxes.data ?? [])),
+    [mailboxes.data]
+  )
   const handleOpenTemplate = useCallback(
     (email: { id: string }): void => {
       openComposer({ templateId: email.id })
@@ -569,7 +575,8 @@ export function EmailList(props: EmailListProps): ReactElement {
             onMove={listActions.onMove}
             openEmailId={openEmailId}
             onOpenDraft={handleOpenDraft}
-            onOpenTemplate={isTemplates ? handleOpenTemplate : undefined}
+            onOpenTemplate={handleOpenTemplate}
+            templateMailboxIds={templateMailboxIds}
             showImportant={showImportant}
             labels={labels}
             showActionRequired={showActionRequired}
@@ -592,7 +599,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       openEmailId,
       handleOpenDraft,
       handleOpenTemplate,
-      isTemplates,
+      templateMailboxIds,
       showImportant,
       labels,
       showActionRequired

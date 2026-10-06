@@ -7,10 +7,14 @@
 import { Cross, Icon } from '@linagora/twake-icons'
 import {
   Box,
+  Divider,
   IconButton,
   Paper,
   Popper,
+  type PopperProps,
   SearchBar,
+  type SxProps,
+  type Theme,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
@@ -30,7 +34,24 @@ import {
 } from 'react'
 
 const POPUP_SX = { zIndex: 'modal' } as const
-const PAPER_SX = { maxHeight: '70vh', overflowY: 'auto' } as const
+/** The field stays above the popup that starts behind it */
+const FIELD_OPEN_Z_INDEX = 1301
+/** Radius of the open panel, the field's own (a pill of 40 px) */
+const PANEL_RADIUS = 20
+type PopperModifier = NonNullable<PopperProps['modifiers']>[number]
+
+/** The popup is as wide as the field, whatever the layout does after the focus */
+const SAME_WIDTH: PopperModifier = {
+  name: 'sameWidth',
+  enabled: true,
+  phase: 'beforeWrite',
+  requires: ['computeStyles'],
+  fn: ({ state }): void => {
+    const popper = state.styles.popper
+    if (popper !== undefined) popper.width = `${state.rects.reference.width}px`
+  }
+}
+const SCROLL_SX = { maxHeight: '60vh', overflowY: 'auto' } as const
 const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 const OPTION_SX = {
   display: 'flex',
@@ -42,9 +63,17 @@ const OPTION_SX = {
   '&[aria-selected="true"]': { bgcolor: 'action.selected' },
   '&:hover': { bgcolor: 'action.hover' },
   // The highlighted words of a suggestion
-  '& mark': { bgcolor: 'warning.light', color: 'text.primary' }
+  '& mark': { bgcolor: 'transparent', color: 'inherit', fontWeight: 700 }
 } as const
 const HEADING_SX = { px: 2, pt: 1, pb: 0.5, color: 'text.primary' } as const
+const END_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+  flexShrink: 0,
+  color: 'text.secondary',
+  typography: 'body2'
+} as const
 
 export interface SearchComboboxOption {
   id: string
@@ -54,6 +83,8 @@ export interface SearchComboboxOption {
   secondary?: ReactNode
   /** An icon or an avatar before the label */
   icon?: ReactNode
+  /** At the end of the row: a date, a paper clip */
+  end?: ReactNode
   'data-testid'?: string
 }
 
@@ -61,12 +92,19 @@ export interface SearchComboboxGroup {
   id: string
   /** Visible heading naming the group, none for an untitled group */
   label: string | null
+  /**
+   * The group keeps its name for assistive technologies and shows a divider
+   * above it in place of the heading
+   */
+  isLabelHidden?: boolean
   options: readonly SearchComboboxOption[]
 }
 
 /** What a parent can do to the field, e.g. on a keyboard shortcut */
 export interface SearchComboboxActions {
   focus: () => void
+  /** The field itself, to lay something over it */
+  getField: () => HTMLElement | null
 }
 
 export interface SearchComboboxProps {
@@ -100,6 +138,30 @@ export interface SearchComboboxProps {
     listbox?: string
   }
   'data-testid'?: string
+}
+
+/**
+ * The field is flat and grey at rest; open, it is the head of the white
+ * panel (which starts behind it) and leaves its background to the panel. The
+ * focus ring only shows when the panel does not: the panel is the focus
+ * indication then.
+ */
+function fieldSx(isOpen: boolean): SxProps<Theme> {
+  return {
+    position: 'relative',
+    ...(isOpen
+      ? {
+          zIndex: FIELD_OPEN_Z_INDEX,
+          '&&': { bgcolor: 'transparent' },
+          '& .SearchBar-focusHighlight': { display: 'none' }
+        }
+      : {
+          '&:has(input:focus-visible)': {
+            outline: '2px solid',
+            outlineColor: 'primary.main'
+          }
+        })
+  }
 }
 
 /**
@@ -148,13 +210,15 @@ export function SearchCombobox({
     () => ({
       focus: () => {
         inputRef.current?.focus()
-      }
+      },
+      getField: () => anchorRef.current
     }),
     []
   )
   const [isOpen, setIsOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [anchor, setAnchor] = useState<HTMLDivElement | null>(null)
+  const fieldHeight = anchor?.offsetHeight ?? 0
   const options = useMemo(
     () => groups.flatMap(group => group.options),
     [groups]
@@ -283,6 +347,8 @@ export function SearchCombobox({
         ref={anchorRef}
         size="small"
         elevation={0}
+        disabledFocus
+        sx={fieldSx(isShown)}
         className="u-w-100"
         placeholder={label}
         value={value}
@@ -332,83 +398,107 @@ export function SearchCombobox({
         placement="bottom-start"
         disablePortal
         popperOptions={{ strategy: 'fixed' }}
-        sx={{ ...POPUP_SX, width: anchor?.offsetWidth }}
+        modifiers={[
+          { name: 'offset', options: { offset: [0, -fieldHeight] } },
+          SAME_WIDTH
+        ]}
+        sx={POPUP_SX}
       >
-        <Paper elevation={8} sx={PAPER_SX} onMouseDown={keepFocus}>
-          {header}
-          {hasOptions ? (
-            <Box
-              component="ul"
-              id={listboxId}
-              role="listbox"
-              aria-label={listLabel}
-              sx={LIST_SX}
-              data-testid={testIds.listbox}
-            >
-              {groups.map(group =>
-                group.options.length === 0 ? null : (
-                  <Box
-                    component="li"
-                    key={group.id}
-                    role="presentation"
-                    className="u-db"
-                  >
+        <Paper
+          elevation={8}
+          sx={{ borderRadius: `${PANEL_RADIUS}px`, pt: `${fieldHeight}px` }}
+          onMouseDown={keepFocus}
+        >
+          <Divider />
+          <Box sx={SCROLL_SX}>
+            {header}
+            {hasOptions ? (
+              <Box
+                component="ul"
+                id={listboxId}
+                role="listbox"
+                aria-label={listLabel}
+                sx={LIST_SX}
+                data-testid={testIds.listbox}
+              >
+                {groups.map(group =>
+                  group.options.length === 0 ? null : (
                     <Box
-                      component="ul"
-                      role="group"
-                      aria-labelledby={
-                        group.label === null ? undefined : `${id}-${group.id}`
-                      }
-                      sx={LIST_SX}
+                      component="li"
+                      key={group.id}
+                      role="presentation"
+                      className="u-db"
                     >
-                      {group.label === null ? null : (
-                        <Typography
-                          component="li"
-                          role="presentation"
-                          id={`${id}-${group.id}`}
-                          variant="subtitle2"
-                          sx={HEADING_SX}
-                        >
-                          {group.label}
-                        </Typography>
-                      )}
-                      {group.options.map(option => (
-                        // Not focusable: the field keeps the focus and
-                        // points at the active option, the keyboard acts
-                        // from there (aria-activedescendant)
-                        <Box
-                          component="li"
-                          key={option.id}
-                          id={optionId(option)}
-                          role="option"
-                          aria-selected={active?.id === option.id}
-                          sx={OPTION_SX}
-                          onClick={() => {
-                            select(option)
-                          }}
-                          data-testid={option['data-testid']}
-                        >
-                          {option.icon}
-                          <Box className="u-flex-auto u-ov-hidden">
-                            <Typography noWrap>{option.label}</Typography>
-                            {option.secondary === undefined ? null : (
-                              <Typography
-                                variant="body2"
-                                noWrap
-                                color="text.primary"
-                              >
-                                {option.secondary}
-                              </Typography>
+                      {group.isLabelHidden === true ? (
+                        <Divider component="div" aria-hidden="true" />
+                      ) : null}
+                      <Box
+                        component="ul"
+                        role="group"
+                        aria-labelledby={
+                          group.label === null ? undefined : `${id}-${group.id}`
+                        }
+                        sx={LIST_SX}
+                      >
+                        {group.label === null ? null : (
+                          <Typography
+                            component="li"
+                            role="presentation"
+                            id={`${id}-${group.id}`}
+                            variant="body2"
+                            className={
+                              group.isLabelHidden === true
+                                ? 'u-visuallyhidden'
+                                : undefined
+                            }
+                            sx={HEADING_SX}
+                          >
+                            {group.label}
+                          </Typography>
+                        )}
+                        {group.options.map(option => (
+                          // Not focusable: the field keeps the focus and
+                          // points at the active option, the keyboard acts
+                          // from there (aria-activedescendant)
+                          <Box
+                            component="li"
+                            key={option.id}
+                            id={optionId(option)}
+                            role="option"
+                            aria-selected={active?.id === option.id}
+                            sx={OPTION_SX}
+                            onClick={() => {
+                              select(option)
+                            }}
+                            data-testid={option['data-testid']}
+                          >
+                            {option.icon}
+                            <Box className="u-flex-auto u-ov-hidden">
+                              <Typography noWrap>{option.label}</Typography>
+                              {option.secondary === undefined ? null : (
+                                <Typography
+                                  variant="body2"
+                                  noWrap
+                                  color="text.primary"
+                                >
+                                  {option.secondary}
+                                </Typography>
+                              )}
+                            </Box>
+                            {option.end === undefined ? null : (
+                              <Box sx={END_SX} aria-hidden="true">
+                                {option.end}
+                              </Box>
                             )}
                           </Box>
-                        </Box>
-                      ))}
+                        ))}
+                      </Box>
                     </Box>
-                  </Box>
-                )
-              )}
-            </Box>
-          ) : null}
+                  )
+                )}
+              </Box>
+            ) : null}
+          </Box>
         </Paper>
       </Popper>
       {/* Always mounted: a live region only announces changes */}

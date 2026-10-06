@@ -1,6 +1,7 @@
 import {
   addRecentSearch,
   MAX_RECENT_SEARCHES,
+  readRecentSearchEntries,
   readRecentSearches,
   readSortOrder,
   storeSortOrder
@@ -43,6 +44,18 @@ describe('search storage', () => {
 
     expect(readRecentSearches('a', storage)).toEqual(['invoice', 'report'])
     expect(readRecentSearches('b', storage)).toEqual(['other'])
+  })
+
+  it('dates each recent search and still reads the ones stored without a date', () => {
+    const storage = makeStorage()
+    storage.setItem('twake-mail.search.recent.a', JSON.stringify(['old']))
+
+    addRecentSearch('a', 'new', storage, 1_000)
+
+    expect(readRecentSearchEntries('a', storage)).toEqual([
+      { text: 'new', at: 1_000 },
+      { text: 'old', at: null }
+    ])
   })
 
   it('keeps the ten most recent searches', () => {

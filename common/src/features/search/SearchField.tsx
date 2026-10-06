@@ -1,15 +1,25 @@
-import { Filter, Icon } from '@linagora/twake-icons'
-import { IconButton, Tooltip } from '@linagora/twake-mui'
-import { useMemo, useState, type ReactElement } from 'react'
+import {
+  Attachment,
+  ClockOutline,
+  Filter,
+  Icon,
+  Email,
+  Star
+} from '@linagora/twake-icons'
+import { Avatar, getInitials, IconButton, Tooltip } from '@linagora/twake-mui'
+import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
 import {
   SearchCombobox,
+  type SearchComboboxActions,
   type SearchComboboxGroup,
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
+import { FLAGGED } from '@common/features/email/keywords'
+import { formatListDate } from '@common/features/thread/formatListDate'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -49,13 +59,17 @@ export interface SearchFieldProps {
  * advanced search edits the same search.
  */
 export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const navigate = useNavigate()
   const { accountId, session } = useJmapSession()
   const context = useSearchContext()
   const [draft, setDraft] = useState(initialFilter)
   const [isOpen, setIsOpen] = useState(false)
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false)
+  // The form opens over the field: `anchor` is that field
+  const [advanced, setAdvanced] = useState<{
+    anchor: HTMLElement | null
+  } | null>(null)
+  const combobox = useRef<SearchComboboxActions>(null)
   const suggestions = useSearchSuggestions(draft.text, draft, context, isOpen)
   const hasText = draft.text.trim() !== ''
   // Filters picked under an empty field: an option runs them, as "Search
@@ -64,7 +78,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
 
   const runSearch = (filter: SearchFilter): void => {
     addRecentSearch(accountId, filter.text)
-    setIsAdvancedOpen(false)
+    setAdvanced(null)
     void navigate(searchPath(filter))
   }
 
@@ -97,21 +111,32 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
       {
         id: 'recent',
         label: t('search.recent'),
-        options: recent.map(text => ({
+        options: recent.map(({ text, at }) => ({
           id: `${RECENT_PREFIX}${text}`,
           label: text,
+          icon: <Icon icon={ClockOutline} className="u-flex-shrink-0" />,
+          end:
+            at === null
+              ? undefined
+              : formatListDate(new Date(at).toISOString(), lang),
           'data-testid': 'search-suggestion-recent'
         }))
       },
       {
         id: 'contacts',
         label: t('search.contacts'),
+        isLabelHidden: true,
         options: suggestions.contacts.map(contact => {
           const name = `${contact.firstname} ${contact.surname}`.trim()
           return {
             id: `${CONTACT_PREFIX}${contact.emailAddress}`,
             label: name === '' ? contact.emailAddress : name,
             secondary: name === '' ? undefined : contact.emailAddress,
+            icon: (
+              <Avatar component="span" size={40} className="u-flex-shrink-0">
+                {getInitials(name, contact.emailAddress)}
+              </Avatar>
+            ),
             'data-testid': 'search-suggestion-contact'
           }
         })
@@ -119,8 +144,21 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
       {
         id: 'emails',
         label: t('search.emails'),
+        isLabelHidden: true,
         options: suggestions.emails.map(({ email, snippet }) => ({
           id: `${EMAIL_PREFIX}${email.id}`,
+          icon: (
+            <Icon
+              icon={email.keywords[FLAGGED] === true ? Star : Email}
+              className="u-flex-shrink-0"
+            />
+          ),
+          end: (
+            <>
+              {formatListDate(email.receivedAt, lang)}
+              {email.hasAttachment ? <Icon icon={Attachment} /> : null}
+            </>
+          ),
           label: (
             <HighlightedText
               text={email.subject ?? ''}
@@ -140,7 +178,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
         }))
       }
     ]
-  }, [t, hasText, hasFiltersOnly, draft.text, suggestions])
+  }, [t, lang, hasText, hasFiltersOnly, draft.text, suggestions])
 
   const handleSelect = (option: SearchComboboxOption): void => {
     if (option.id === SHOW_ALL) {
@@ -178,6 +216,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
     <>
       <SearchCombobox
         className="u-w-100"
+        actions={combobox}
         value={draft.text}
         onChange={handleChange}
         onSubmit={handleSubmit}
@@ -202,7 +241,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
               aria-label={advancedLabel}
               aria-haspopup="dialog"
               onClick={() => {
-                setIsAdvancedOpen(true)
+                setAdvanced({ anchor: combobox.current?.getField() ?? null })
               }}
               data-testid="advanced-search-button"
             >
@@ -217,11 +256,12 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
         }}
         data-testid="search-bar"
       />
-      {isAdvancedOpen ? (
+      {advanced !== null ? (
         <AdvancedSearchDialog
           filter={withTypedText(draft, draft.text)}
+          anchorEl={advanced.anchor}
           onClose={() => {
-            setIsAdvancedOpen(false)
+            setAdvanced(null)
           }}
           onSubmit={filter => {
             storeSortOrder(filter.sort)

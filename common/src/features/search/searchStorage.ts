@@ -49,17 +49,41 @@ export function storeSortOrder(
   write(storage, SORT_ORDER_STORAGE_KEY, order)
 }
 
-/** The recent searches of an account, the newest first */
-export function readRecentSearches(
+/** A recent search and when it was made, null for one stored without a date */
+export interface RecentSearch {
+  text: string
+  at: number | null
+}
+
+function parseRecentSearch(item: unknown): RecentSearch | null {
+  if (typeof item === 'string') return { text: item, at: null }
+  if (
+    typeof item === 'object' &&
+    item !== null &&
+    'text' in item &&
+    typeof item.text === 'string'
+  ) {
+    const at = 'at' in item && typeof item.at === 'number' ? item.at : null
+    return { text: item.text, at }
+  }
+  return null
+}
+
+/**
+ * The recent searches of an account with their date, the newest first. A
+ * list stored before the dates existed (plain strings) is still read.
+ */
+export function readRecentSearchEntries(
   accountId: string,
   storage: SearchStorage | null = getStorage()
-): string[] {
+): RecentSearch[] {
   try {
     const raw = storage?.getItem(RECENT_SEARCHES_STORAGE_PREFIX + accountId)
     const parsed: unknown = raw ? JSON.parse(raw) : []
     return Array.isArray(parsed)
       ? parsed
-          .filter(item => typeof item === 'string')
+          .map(parseRecentSearch)
+          .filter((item): item is RecentSearch => item !== null)
           .slice(0, MAX_RECENT_SEARCHES)
       : []
   } catch {
@@ -68,17 +92,28 @@ export function readRecentSearches(
   }
 }
 
+/** The recent searches of an account, the newest first */
+export function readRecentSearches(
+  accountId: string,
+  storage: SearchStorage | null = getStorage()
+): string[] {
+  return readRecentSearchEntries(accountId, storage).map(item => item.text)
+}
+
 /** Puts `text` first among the recent searches of an account */
 export function addRecentSearch(
   accountId: string,
   text: string,
-  storage: SearchStorage | null = getStorage()
+  storage: SearchStorage | null = getStorage(),
+  now: number = Date.now()
 ): void {
   const trimmed = text.trim()
   if (trimmed === '') return
   const recent = [
-    trimmed,
-    ...readRecentSearches(accountId, storage).filter(item => item !== trimmed)
+    { text: trimmed, at: now },
+    ...readRecentSearchEntries(accountId, storage).filter(
+      item => item.text !== trimmed
+    )
   ].slice(0, MAX_RECENT_SEARCHES)
   write(
     storage,

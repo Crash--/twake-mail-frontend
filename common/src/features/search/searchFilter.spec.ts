@@ -37,6 +37,7 @@ describe('search filter URL', () => {
       hasAttachment: true,
       unread: true,
       starred: true,
+      notIncludeEvents: true,
       sort: 'oldest'
     })
 
@@ -137,6 +138,24 @@ describe('toJmapFilter', () => {
     ).toEqual({
       operator: 'AND',
       conditions: [{ hasKeyword: '$flagged' }, { hasKeyword: 'work' }]
+    })
+  })
+
+  it('leaves the invitations out in a condition of their own, next to unread', () => {
+    expect(
+      toJmapFilter(filter({ notIncludeEvents: true }), {
+        ...CONTEXT,
+        trashAndSpamIds: []
+      })
+    ).toEqual({ notKeyword: 'event' })
+    expect(
+      toJmapFilter(filter({ notIncludeEvents: true, unread: true }), {
+        ...CONTEXT,
+        trashAndSpamIds: []
+      })
+    ).toEqual({
+      operator: 'AND',
+      conditions: [{ notKeyword: '$seen' }, { notKeyword: 'event' }]
     })
   })
 

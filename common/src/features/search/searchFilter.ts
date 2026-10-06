@@ -4,7 +4,7 @@ import type {
   Filter
 } from 'jmap-client-ts'
 
-import { FLAGGED, SEEN } from '@common/features/email/keywords'
+import { EVENT, FLAGGED, SEEN } from '@common/features/email/keywords'
 import type { SearchRequest } from '@common/features/thread/queries'
 
 /** Received date ranges of the search, as tmail-flutter offers them */
@@ -68,6 +68,8 @@ export interface SearchFilter {
   hasAttachment: boolean
   unread: boolean
   starred: boolean
+  /** Leaves out the emails carrying a calendar invitation */
+  notIncludeEvents: boolean
   /** The keyword of a label the emails have, null for any */
   label: string | null
   sort: SortOrder
@@ -86,6 +88,7 @@ export const EMPTY_SEARCH_FILTER: SearchFilter = {
   hasAttachment: false,
   unread: false,
   starred: false,
+  notIncludeEvents: false,
   label: null,
   sort: DEFAULT_SORT_ORDER
 }
@@ -103,6 +106,7 @@ export function isEmptySearch(filter: SearchFilter): boolean {
     !filter.hasAttachment &&
     !filter.unread &&
     !filter.starred &&
+    !filter.notIncludeEvents &&
     filter.label === null
   )
 }
@@ -149,6 +153,7 @@ const PARAMS = {
   hasAttachment: 'attachment',
   unread: 'unread',
   starred: 'starred',
+  notIncludeEvents: 'noevents',
   label: 'label',
   sort: 'sort'
 } as const
@@ -202,6 +207,7 @@ export function parseSearchParams(
     hasAttachment: params.get(PARAMS.hasAttachment) === '1',
     unread: params.get(PARAMS.unread) === '1',
     starred: params.get(PARAMS.starred) === '1',
+    notIncludeEvents: params.get(PARAMS.notIncludeEvents) === '1',
     label: emptyToNull(params.get(PARAMS.label)),
     sort: isOneOf(SORT_ORDERS, sort) ? sort : defaultSort
   }
@@ -233,6 +239,7 @@ export function toSearchParams(filter: SearchFilter): URLSearchParams {
   if (filter.hasAttachment) params.set(PARAMS.hasAttachment, '1')
   if (filter.unread) params.set(PARAMS.unread, '1')
   if (filter.starred) params.set(PARAMS.starred, '1')
+  if (filter.notIncludeEvents) params.set(PARAMS.notIncludeEvents, '1')
   if (filter.label !== null) params.set(PARAMS.label, filter.label)
   params.set(PARAMS.sort, filter.sort)
   return params
@@ -343,7 +350,9 @@ export function toJmapFilter(
   }
   if (filter.from.length === 1) condition.from = filter.from[0]
 
+  // `unread` already holds `notKeyword`: the events go in a condition of their own
   const extra: Filter<EmailFilterCondition>[] = [...labelCondition]
+  if (filter.notIncludeEvents) extra.push({ notKeyword: EVENT })
   if (filter.from.length > 1) {
     extra.push(anyOf(filter.from.map(from => ({ from }))))
   }

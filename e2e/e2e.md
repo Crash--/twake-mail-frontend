@@ -870,5 +870,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `TRE-07` Typeahead: a letter goes to the next folder starting with it, the same letter again to the one after; the focused row has a visible outline; Escape is left alone; a letter no folder starts with does not reach the shortcuts of the page, `/` does. — web app, WAI-ARIA APG tree view (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
+- [x] `TRE-08` A folder name cut by the width shows in a tooltip when its row holds the keyboard focus, and on hover; the tooltip is no `aria-describedby` of the row. — web app (issue #102)
+  - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `MBX-06b` (updated, issue #102) — the order Inbox, its subfolder, Starred, Drafts is walked with the arrow keys from the Inbox, no longer with Tab.
   - Spec: `tests/folders.spec.ts`.

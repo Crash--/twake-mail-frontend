@@ -223,9 +223,15 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
         .getByTestId('composer-to-field')
         .locator('label')
       const chips = composer.recipients('to')
+      // Past 3 rows the chips scroll inside their field (#163), and the field is at its end:
+      // the label is checked at the top, the input and the end of the field at the bottom
+      await chips.first().locator('..').evaluate(content => {
+        content.scrollTop = 0
+      })
       const first = await boxOf(chips.first())
       // The label keeps the first chip company, never alone on a row
       expect(Math.abs((await boxOf(label)).y - first.y)).toBeLessThan(8)
+      await composer.recipientInput('to').scrollIntoViewIfNeeded()
       const last = await boxOf(chips.last())
       const input = await boxOf(composer.recipientInput('to'))
       const field = await boxOf(composer.root.getByTestId('composer-to-field'))

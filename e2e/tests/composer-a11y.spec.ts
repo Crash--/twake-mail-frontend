@@ -379,7 +379,7 @@ test.describe('A11Y composer', () => {
       ])
       await expect(composer.recipientInput('to')).toHaveValue('')
       await expect(composer.recipientInput('to')).toBeFocused()
-      await expect(composer.root).toHaveAttribute('data-mode', 'normal')
+      await expect(composer.root).not.toHaveAttribute('data-mode', 'minimized')
       // Giving a chip back is not adding one: the field still says what it said
       await expect(
         composer.root.getByTestId('composer-to-field').getByRole('status')

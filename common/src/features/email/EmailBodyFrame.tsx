@@ -100,7 +100,10 @@ export function EmailBodyFrame({
       )
     }
     measure()
-    const observer = new ResizeObserver(measure)
+    // The window the node is rendered in, maybe not this one (the overlay of
+    // TwakeSpace): an observer only follows the documents of its own window
+    const view = frameRef.current?.ownerDocument.defaultView ?? window
+    const observer = new view.ResizeObserver(measure)
     observer.observe(content)
     observerRef.current = observer
   }

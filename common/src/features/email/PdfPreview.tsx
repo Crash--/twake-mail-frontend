@@ -33,6 +33,7 @@ interface Opened {
 export function PdfPreview({ bytes, onError }: PdfPreviewProps): ReactElement {
   const { t } = useI18n()
   const onErrorRef = useRef(onError)
+  const rootRef = useRef<HTMLDivElement>(null)
   const [opened, setOpened] = useState<Opened | null>(null)
 
   useEffect(() => {
@@ -47,7 +48,10 @@ export function PdfPreview({ bytes, onError }: PdfPreviewProps): ReactElement {
       const { pdf } = await load.promise
       const first = await pdf.getPage(1)
       const base = first.getViewport({ scale: 1 })
-      const cssWidth = Math.min(window.innerWidth - 64, MAX_PAGE_WIDTH)
+      // The window the preview is rendered in: maybe the overlay of
+      // TwakeSpace, wider than this frame
+      const view = rootRef.current?.ownerDocument.defaultView ?? window
+      const cssWidth = Math.min(view.innerWidth - 64, MAX_PAGE_WIDTH)
       const layout = fitPage(base.width, base.height, cssWidth, 1)
       if (layout === null) throw new Error('PDF page without a size')
       if (!isCancelled) {
@@ -73,7 +77,7 @@ export function PdfPreview({ bytes, onError }: PdfPreviewProps): ReactElement {
   }
 
   return (
-    <div className="u-w-100" data-testid="pdf-preview">
+    <div ref={rootRef} className="u-w-100" data-testid="pdf-preview">
       {opened === null ? (
         <CircularProgress aria-label={t('email.preview.loading')} />
       ) : (

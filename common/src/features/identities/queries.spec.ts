@@ -37,4 +37,28 @@ describe('sortIdentities', () => {
       ]).map(item => item.id)
     ).toEqual(['zoe', 'alias', 'work'])
   })
+
+  it('puts the identity of the user before a team mailbox one among equals', () => {
+    expect(
+      sortIdentities(
+        [
+          identity('bob-guests', { sortOrder: 100, mayDelete: false }),
+          identity('bob', { sortOrder: 100, mayDelete: false })
+        ],
+        'Bob@example.com'
+      ).map(item => item.id)
+    ).toEqual(['bob', 'bob-guests'])
+  })
+
+  it('still follows sortOrder before the address of the user', () => {
+    expect(
+      sortIdentities(
+        [
+          identity('bob', { sortOrder: 100, mayDelete: false }),
+          identity('bob-guests', { sortOrder: 0, mayDelete: false })
+        ],
+        'bob@example.com'
+      ).map(item => item.id)
+    ).toEqual(['bob-guests', 'bob'])
+  })
 })

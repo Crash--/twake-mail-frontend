@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import { useDocumentTitle } from '@common/app/useDocumentTitle'
+import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { SETTINGS_PATH, type SettingsSection } from './sections'

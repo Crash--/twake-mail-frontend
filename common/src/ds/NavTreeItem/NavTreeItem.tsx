@@ -5,7 +5,9 @@
 // expand arrow after the label as a control of its own, and overlays the
 // actions on hover instead of reserving room for them.
 import { Bottom, Icon, Right } from '@linagora/twake-icons'
-import { Box, IconButton, NavItem, NavLink, Tooltip } from '@linagora/twake-mui'
+import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
+import { NavItem } from '@/ds/NavItem/NavItem'
+import { NavLink } from '@/ds/NavLink/NavLink'
 import {
   useId,
   useRef,

@@ -5,11 +5,11 @@ import {
   ListItemIcon,
   ListItemText,
   Nav,
-  NavItem,
-  NavLink,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
+import { NavItem } from '@/ds/NavItem/NavItem'
+import { NavLink } from '@/ds/NavLink/NavLink'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 

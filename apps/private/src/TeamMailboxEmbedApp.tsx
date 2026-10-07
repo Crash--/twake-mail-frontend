@@ -3,12 +3,12 @@ import { createBrowserRouter, createRoutesFromElements } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
-import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
 import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import type { TeamMailboxEmbedTarget } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { useI18n } from '@common/i18n/useI18n'
+import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScreen'
 
 import { teamMailboxEmbedRouteElements } from './TeamMailboxEmbedRoutes'
 
@@ -89,7 +89,7 @@ export function TeamMailboxEmbedApp({
     setPhase('ready')
   }
 
-  if (phase === 'callback') return <FullPageLoader />
+  if (phase === 'callback') return <TeamMailboxLoadingScreen />
 
   if (phase === 'login-required') {
     return (

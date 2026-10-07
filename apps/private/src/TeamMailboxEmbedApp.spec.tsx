@@ -116,6 +116,35 @@ describe('TeamMailboxEmbedApp', () => {
     )
   })
 
+  it('shows the rows of a list, not a spinner, while the user signs in', async () => {
+    renderEmbed(`${BASE}/mailbox/team-sent`, {
+      authService: makeFakeOidcAuthService(ANONYMOUS)
+    })
+
+    expect(await screen.findByTestId('email-list-loading')).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
+    expect(screen.getByTestId('loading-announcement')).toHaveTextContent(
+      'Loading'
+    )
+    expect(screen.queryByTestId('full-page-loader')).toBe(null)
+  })
+
+  it('shows the rows of a list while the login callback completes', async () => {
+    const authService = makeFakeOidcAuthService()
+    authService.handleCallback = jest.fn(
+      () => new Promise<never>(() => undefined)
+    )
+    renderEmbed(`${BASE}/mailbox/team-sent`, {
+      authService,
+      callbackUrl: '/callback?code=abc&state=s1'
+    })
+
+    expect(await screen.findByTestId('email-list-loading')).toBeVisible()
+    expect(screen.queryByTestId('full-page-loader')).toBe(null)
+  })
+
   it('completes a login started by the facade, then shows the page it was for', async () => {
     const authService = makeFakeOidcAuthService()
     authService.handleCallback = jest.fn(() =>

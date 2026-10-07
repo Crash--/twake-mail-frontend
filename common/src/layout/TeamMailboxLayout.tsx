@@ -1,9 +1,8 @@
 import { Pen } from '@linagora/twake-icons'
-import { Box, Layout } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Outlet, useMatch } from 'react-router'
 
-import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import {
   AlwaysFloatingAction,
   FloatingActionButton
@@ -18,6 +17,7 @@ import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { MailProviders } from './AppLayout'
+import { TeamMailboxPane } from './TeamMailboxPane'
 
 /**
  * Frame of the facade of a team mailbox (`/embed/team-mailboxes/<id>`),
@@ -62,15 +62,9 @@ function TeamMailboxFrame(): ReactElement {
       <ServerLanguageSync />
       <SentryReportingSync />
       <OfflineNotice hasFloatingAction />
-      {/* One pane and no top bar: without these, twake-mui keeps room for
-          its top bar above the content below 1 024 px */}
-      <Layout className="u-flex-auto u-ov-hidden" withTopBar={false} monoColumn>
-        <FlatMain>
-          <FlatContent data-testid="main-content">
-            <Outlet />
-          </FlatContent>
-        </FlatMain>
-      </Layout>
+      <TeamMailboxPane data-testid="main-content">
+        <Outlet />
+      </TeamMailboxPane>
       {isEmailOpen ? null : (
         <FloatingActionButton
           label={t('sidebar.newMessage')}

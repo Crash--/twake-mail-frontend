@@ -6,6 +6,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-07
+
+No setting changes from 0.2.0.
+
+### Added
+
+- In a frame of TwakeSpace, the facade reports the unread count of the Inbox
+  of every team mailbox of the user (`@linagora/twake-embed` 2.1), which
+  TwakeSpace shows on the tab of each space.
+
+### Changed
+
+- The feedback button is the shared draggable one of
+  `@linagora/twake-feedback` ("Something wrong?"): it snaps to the left or
+  right edge, keeps its position per browser, and Shift+F10 opens a menu to
+  move it.
+- The facade of a team mailbox shows the rows of its list from the first
+  paint, while the app boots, instead of a spinner.
+
+### Fixed
+
+- Keyboard and screen readers: a skip link, the focus on the main content
+  after signing in, on the password after a refused basic sign-in, kept in
+  the page after deleting or hiding a row, on the list when the open email
+  leaves it, and back on the filter button when the filter is cleared;
+  Escape closes the open email; the star toggle keeps one name; the user's
+  own reply is not announced as a new message; one loading region per page.
+- Names and texts: the label colour swatches, the sidebar storage refresh,
+  the close button of the composer header, "Last 12 months" for the 365-day
+  date filter, byte sizes in the long form, the subtitle of the Profiles
+  settings, the Inbox of a team mailbox translated, no space before the
+  question mark of the unsubscribe dialog, an empty state for Starred, a
+  generic file icon for plain-text attachments.
+- Signing out signs out only the tabs of that account; a refused
+  `Forward/set` shows an error instead of throwing; the default identity is
+  the user's own address over a team mailbox; an email whose thread is not
+  found opens alone; an email leaves the label view once its label is gone.
+- The facade of a team mailbox offers no new message (button, `c` shortcut)
+  while the team mailbox is not found, instead of writing from the personal
+  address of the user.
+
 ## [0.2.0] - 2026-10-07
 
 Upgrading from 0.1.0: see [`upgrade-instructions/0.2.0.md`](upgrade-instructions/0.2.0.md).

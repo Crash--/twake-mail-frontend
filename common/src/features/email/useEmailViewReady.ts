@@ -43,7 +43,7 @@ export function useEmailViewReady(): (
       if (showsConversation && threadId !== null) {
         loads.push(
           queryClient.query({
-            ...conversationQueryOptions(client, accountId, threadId),
+            ...conversationQueryOptions(client, accountId, threadId, emailId),
             staleTime: 'static'
           })
         )

@@ -136,6 +136,11 @@ export interface FakeJmapServer {
    */
   setErrors: Map<string, string>
   /**
+   * Threads `Thread/get` answers `notFound` though their emails exist, as
+   * tmail-backend sometimes does after destroying some of their emails
+   */
+  lostThreads: Set<string>
+  /**
    * Holds the API requests calling `method` (all of them without it) until
    * the returned function is called, to observe the screen while a request
    * is in flight.
@@ -610,6 +615,7 @@ export function makeFakeJmapServer(
     requests: [],
     methodErrors: new Map(),
     setErrors: new Map(),
+    lostThreads: new Set(),
     holdRequests,
     loseNextResponse: method => {
       losing = method
@@ -734,18 +740,19 @@ export function makeFakeJmapServer(
 
   function getThreads(args: Record<string, unknown>): unknown {
     const ids = Array.isArray(args.ids) ? args.ids : []
+    const exists = (id: unknown): boolean =>
+      !server.lostThreads.has(String(id)) &&
+      server.emails.some(email => email.threadId === id)
     const list = ids.flatMap(id => {
       const emails = sortEmails(
         server.emails.filter(email => email.threadId === id),
         [{ property: 'receivedAt', isAscending: true }]
       )
-      return emails.length > 0
+      return exists(id)
         ? [{ id, emailIds: emails.map(email => email.id) }]
         : []
     })
-    const notFound = ids.filter(
-      id => !server.emails.some(email => email.threadId === id)
-    )
+    const notFound = ids.filter(id => !exists(id))
     return { accountId: FAKE_ACCOUNT_ID, state: emailLog.state, list, notFound }
   }
 

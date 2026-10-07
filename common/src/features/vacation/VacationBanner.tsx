@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
+import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { settingsSectionPath } from '@common/features/settings/sections'
 import { formatFullDate } from '@common/features/thread/formatListDate'
@@ -33,6 +34,7 @@ export function VacationBanner(): ReactElement | null {
   const { data: vacation } = useVacation()
   const [now] = useState(() => new Date())
   const [isEnding, setIsEnding] = useState(false)
+  const focusFallbackRef = useFocusFallback<HTMLDivElement>()
   const isOnVacationSettings =
     useMatch(`${settingsSectionPath('vacation')}/*`) !== null
   const state = vacation ? vacationState(vacation, now) : 'off'
@@ -89,6 +91,7 @@ export function VacationBanner(): ReactElement | null {
 
   return (
     <Alert
+      ref={focusFallbackRef}
       severity="warning"
       className="u-m-1"
       data-testid="vacation-banner"

@@ -1,6 +1,7 @@
 import { Alert, Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { isTrashMailbox } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -22,6 +23,7 @@ export function EmptyFolderBanner({
   const { t } = useI18n()
   const emptyFolder = useEmptyFolder()
   const { data: mailboxes = [] } = useMailboxes()
+  const focusFallbackRef = useFocusFallback<HTMLDivElement>()
   const isTrash = isTrashMailbox(mailbox)
   const hasSubfolders = mailboxes.some(
     candidate => candidate.parentId === mailbox.id
@@ -39,6 +41,7 @@ export function EmptyFolderBanner({
 
   return (
     <Alert
+      ref={focusFallbackRef}
       severity="warning"
       // Part of the screen, not an event: no live announcement
       role="note"

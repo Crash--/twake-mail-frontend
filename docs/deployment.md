@@ -186,6 +186,11 @@ mounted `.env.js` takes precedence. An `env.file` alone is enough: without
 `SSO_BASE_URL` the SSO is [found by WebFinger](#finding-the-sso-webfinger),
 as in tmail-flutter (`SSO_BASE_URL` and `AUTH_MODE` override that).
 
+The env.file of the `linagora/tmail-frontend` chart has no key for the
+feedback widget: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
+environment of the container (`extraEnv` of the chart). It is added to the
+generated `/.env.js` when the `env.file` has no such key.
+
 ## Docker Compose
 
 Two examples in [`deploy/docker-compose/`](../deploy/docker-compose/), both

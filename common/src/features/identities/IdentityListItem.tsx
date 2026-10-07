@@ -22,7 +22,8 @@ export interface IdentityListItemProps {
   /** Shows the radio choosing the default identity (`sortOrder` extension) */
   withDefaultRadio: boolean
   onEdit: (identity: IdentitySummary) => void
-  onDelete: (identity: IdentitySummary) => void
+  /** `opener`: the delete button, where the focus is */
+  onDelete: (identity: IdentitySummary, opener: HTMLElement) => void
 }
 
 /**
@@ -121,8 +122,8 @@ export function IdentityListItem({
         <Tooltip title={deleteLabel}>
           <IconButton
             aria-label={deleteLabel}
-            onClick={() => {
-              onDelete(identity)
+            onClick={event => {
+              onDelete(identity, event.currentTarget)
             }}
             data-testid="identity-delete-button"
           >

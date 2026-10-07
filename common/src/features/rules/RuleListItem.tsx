@@ -17,7 +17,8 @@ import { ruleComparatorLabel, ruleConditions, ruleFieldLabel } from './rules'
 export interface RuleListItemProps {
   rule: Rule
   onEdit: () => void
-  onDelete: () => void
+  /** `opener`: the delete button, where the focus is */
+  onDelete: (opener: HTMLElement) => void
 }
 
 /**
@@ -67,7 +68,9 @@ export function RuleListItem({
       <Tooltip title={deleteLabel}>
         <IconButton
           aria-label={deleteLabel}
-          onClick={onDelete}
+          onClick={event => {
+            onDelete(event.currentTarget)
+          }}
           data-testid="email-rule-delete-button"
         >
           <Icon icon={Trash} />

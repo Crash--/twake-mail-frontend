@@ -19,8 +19,13 @@ import { useI18n } from '@common/i18n/useI18n'
 import { availableFolderActions } from './folderActionItems'
 import { useFolderActions } from './FolderActionsProvider'
 
+/**
+ * Where the menu opens: beside `element`, or at the `position` of a right
+ * click on the row `element`; the actions find the row of the folder there
+ */
 export type FolderMenuAnchor =
-  { element: HTMLElement } | { position: PopoverPosition }
+  | { element: HTMLElement }
+  | { position: PopoverPosition; element: HTMLElement }
 
 export interface FolderActionsMenuProps {
   /** The folder whose menu is open, null when closed */
@@ -79,7 +84,9 @@ export function FolderActionsMenu({
             : {})}
           onClick={() => {
             onClose()
-            if (mailbox !== null) run(item.id, mailbox)
+            if (mailbox !== null) {
+              run(item.id, mailbox, anchor?.element ?? null)
+            }
           }}
           data-testid={`mailbox-action-${item.id}`}
         >

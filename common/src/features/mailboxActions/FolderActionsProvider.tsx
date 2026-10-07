@@ -43,6 +43,10 @@ import { threadKeys } from '@common/features/thread/queries'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import {
+  focusTargetsAround,
+  keepFocusInPage
+} from '@common/utils/keepFocusInPage'
 
 import { emailSetBatchSize } from '@common/features/emailActions/sendEmailChanges'
 
@@ -54,8 +58,16 @@ import { moveFolderContent, undoMoveFolderContent } from './moveFolderContent'
 import { maxCallsInRequest, useEmptyFolder } from './useEmptyFolder'
 
 export interface FolderActions {
-  /** Runs an action of the folder menu (`availableFolderActions`) */
-  run: (id: FolderActionId, mailbox: MailboxSummary) => void
+  /**
+   * Runs an action of the folder menu (`availableFolderActions`); `opener`,
+   * in the row of the folder, tells where the focus goes on when the
+   * action removes the row (delete, hide)
+   */
+  run: (
+    id: FolderActionId,
+    mailbox: MailboxSummary,
+    opener?: Element | null
+  ) => void
   /** Creates a folder, under `parentId` (null: the top level) */
   create: (parentId: string | null) => void
 }
@@ -351,7 +363,11 @@ export function FolderActionsProvider({
   )
 
   const remove = useCallback(
-    async (mailbox: MailboxSummary): Promise<void> => {
+    async (
+      mailbox: MailboxSummary,
+      opener: Element | null
+    ): Promise<void> => {
+      const focusTargets = focusTargetsAround(opener)
       const confirmed = await confirm({
         title: t('folders.delete.title'),
         message: t('folders.delete.message', { nameMailbox: getName(mailbox) }),
@@ -371,6 +387,7 @@ export function FolderActionsProvider({
           return
         }
         notify({ message: t('folders.delete.success'), severity: 'success' })
+        keepFocusInPage(focusTargets)
         // The open folder went: back to the Inbox, as tmail-flutter
         const inboxId = findMailboxIdByRole(list, 'inbox')
         if (
@@ -439,11 +456,16 @@ export function FolderActionsProvider({
   )
 
   const hide = useCallback(
-    async (mailbox: MailboxSummary): Promise<void> => {
+    async (
+      mailbox: MailboxSummary,
+      opener: Element | null
+    ): Promise<void> => {
+      const focusTargets = focusTargetsAround(opener)
       const list = await fetchMailboxes()
       const ids = [mailbox.id, ...findDescendantIds(list, mailbox.id)]
       try {
         await setSubscribed(ids, false)
+        keepFocusInPage(focusTargets)
         notify({
           message: t('folders.hide.success'),
           severity: 'success',
@@ -480,7 +502,11 @@ export function FolderActionsProvider({
   )
 
   const run = useCallback(
-    (id: FolderActionId, mailbox: MailboxSummary): void => {
+    (
+      id: FolderActionId,
+      mailbox: MailboxSummary,
+      opener: Element | null = null
+    ): void => {
       switch (id) {
         case 'new-subfolder':
           create(mailbox.id)
@@ -504,13 +530,13 @@ export function FolderActionsProvider({
           // A link of the menu: the browser opens it
           return
         case 'delete':
-          void remove(mailbox)
+          void remove(mailbox, opener)
           return
         case 'mark-as-read':
           void markAsRead(mailbox)
           return
         case 'hide':
-          void hide(mailbox)
+          void hide(mailbox, opener)
           return
         case 'show':
           void show(mailbox)

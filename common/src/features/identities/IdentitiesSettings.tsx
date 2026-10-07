@@ -16,6 +16,10 @@ import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import {
+  focusTargetsAround,
+  keepFocusInPage
+} from '@common/utils/keepFocusInPage'
 
 import { defaultIdentityId, publicAssetIdsIn } from './identityForm'
 import { IdentityFormDialog } from './IdentityFormDialog'
@@ -85,7 +89,11 @@ export function IdentitiesSettings({
       })
   }
 
-  const handleDelete = (identity: IdentitySummary): void => {
+  const handleDelete = (
+    identity: IdentitySummary,
+    opener: HTMLElement
+  ): void => {
+    const focusTargets = focusTargetsAround(opener)
     const run = async (): Promise<void> => {
       const isConfirmed = await confirm({
         title: t('identities.delete.title'),
@@ -112,6 +120,7 @@ export function IdentitiesSettings({
           ? { message: t('identities.toasts.deleted'), severity: 'success' }
           : { message: t('identities.errors.delete'), severity: 'error' }
       )
+      if (result.ok) keepFocusInPage(focusTargets)
     }
     run().catch((error: unknown) => {
       console.error('[identities] Cannot delete the identity', error)

@@ -672,6 +672,7 @@
       "search": "Rechercher",
       "next": "Message suivant",
       "previous": "Message précédent",
+      "close": "Fermer le message et revenir à la liste",
       "star": "Ajouter ou retirer des favoris",
       "undo": "Annuler la dernière action",
       "help": "Afficher les raccourcis clavier"

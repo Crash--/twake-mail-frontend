@@ -29,8 +29,6 @@ const moduleNameMapper: Config['moduleNameMapper'] = {
   // resolution does not match: point at their entry file
   '^@linagora/twake-mui$':
     '<rootDir>/node_modules/@linagora/twake-mui/dist/index.js',
-  '^@linagora/twake-embed$':
-    '<rootDir>/node_modules/@linagora/twake-embed/dist/index.js',
   '^@linagora/twake-utils$':
     '<rootDir>/node_modules/@linagora/twake-utils/dist/index.js',
   '^@injected/(.*)$': [

@@ -211,6 +211,8 @@ describe('connectToSpace', () => {
 
       receive({ type: 'twake-embed:load', resourceId: 'a/b', path: '' })
       receive({ type: 'twake-embed:load', resourceId: 'root2', path: '/../x' })
+      receive({ type: 'twake-embed:load', resourceId: 'root2', path: '//x' })
+      receive({ type: 'twake-embed:load', resourceId: 'root2', path: '/a\\b' })
 
       expect(replaceWith).not.toHaveBeenCalled()
     })
@@ -224,7 +226,6 @@ describe('connectToSpace', () => {
       SPACE_ORIGIN
     )
   })
-
 })
 
 describe('reportOverlayRegion', () => {

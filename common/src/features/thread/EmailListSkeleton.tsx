@@ -112,6 +112,8 @@ export interface EmailListSkeletonProps {
   /** Below the desktop size the rows are the narrow ones, as in the list */
   isCompact: boolean
   className?: string
+  /** `SKELETON_DELAY_MS` by default */
+  delayMs?: number
 }
 
 /**
@@ -121,7 +123,7 @@ export interface EmailListSkeletonProps {
  */
 export function EmailListSkeleton(props: EmailListSkeletonProps): ReactElement {
   return (
-    <AfterDelay>
+    <AfterDelay delayMs={props.delayMs}>
       <EmailListRowsSkeleton {...props} />
     </AfterDelay>
   )
@@ -152,12 +154,17 @@ function EmailListRowsSkeleton({
  * The list area of a page whose folder or label is not known yet: the rows
  * of the list, as the page will show them
  */
-export function EmailListPageSkeleton(): ReactElement {
+export function EmailListPageSkeleton({
+  delayMs
+}: {
+  delayMs?: number
+}): ReactElement {
   const screenSize = useScreenSize()
   return (
     <EmailListSkeleton
       isCompact={screenSize !== 'desktop'}
       className="u-h-100"
+      delayMs={delayMs}
     />
   )
 }

@@ -15,14 +15,16 @@ export interface AfterDelayProps {
 /**
  * Renders nothing for `delayMs`, then its children: the boxes it stands for
  * are the same, so that what lands under it does not move. Unmounts with the
- * data, so a quick load costs nothing.
+ * data, so a quick load costs nothing. With no delay, the children render
+ * from the first paint.
  */
 export function AfterDelay({
   children,
   delayMs = SKELETON_DELAY_MS
 }: AfterDelayProps): ReactElement | null {
-  const [isElapsed, setIsElapsed] = useState(false)
+  const [isElapsed, setIsElapsed] = useState(delayMs <= 0)
   useEffect(() => {
+    if (delayMs <= 0) return
     const timer = setTimeout(() => {
       setIsElapsed(true)
     }, delayMs)

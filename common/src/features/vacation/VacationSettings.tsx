@@ -4,7 +4,6 @@ import {
   Button,
   CircularProgress,
   FormControlLabel,
-  ListSkeleton,
   Switch,
   TextField,
   Typography
@@ -22,6 +21,7 @@ import {
 
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import { useEditorLabels } from '@common/features/composer/useEditorLabels'
+import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
@@ -310,7 +310,7 @@ export function VacationSettings({
   return (
     <SettingsSectionLayout section={section}>
       {query.isPending ? (
-        <ListSkeleton count={3} />
+        <LoadingListSkeleton count={3} />
       ) : query.isError ? (
         <Alert
           severity="error"

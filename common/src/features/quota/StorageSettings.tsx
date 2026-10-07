@@ -1,14 +1,9 @@
-import {
-  Alert,
-  Box,
-  LinearProgress,
-  ListSkeleton,
-  Typography
-} from '@linagora/twake-mui'
+import { Alert, Box, LinearProgress, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { formatSize } from '@common/features/email/formatSize'
+import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
 import { UpgradeStorageLink } from '@common/features/paywall/UpgradeStorageLink'
@@ -32,7 +27,7 @@ export function StorageSettings({
   return (
     <SettingsSectionLayout section={section}>
       {query.isPending ? (
-        <ListSkeleton count={2} />
+        <LoadingListSkeleton count={2} />
       ) : query.isError ? (
         <SecondaryText variant="body2" component="p">
           {t('common.errorOccurredShort')}

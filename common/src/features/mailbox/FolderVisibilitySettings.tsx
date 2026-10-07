@@ -1,15 +1,9 @@
 import { Eye, EyeClosed, Icon } from '@linagora/twake-icons'
-import {
-  Box,
-  Button,
-  List,
-  ListItem,
-  ListSkeleton,
-  Typography
-} from '@linagora/twake-mui'
+import { Box, Button, List, ListItem, Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
@@ -130,7 +124,7 @@ export function FolderVisibilitySettings({
   if (!mailboxes) {
     return (
       <SettingsSectionLayout section={section}>
-        <ListSkeleton count={5} />
+        <LoadingListSkeleton count={5} />
       </SettingsSectionLayout>
     )
   }

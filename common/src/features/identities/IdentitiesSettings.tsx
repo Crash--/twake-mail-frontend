@@ -1,17 +1,12 @@
 import { Icon, Plus } from '@linagora/twake-icons'
-import {
-  Alert,
-  Button,
-  List,
-  ListSkeleton,
-  RadioGroup
-} from '@linagora/twake-mui'
+import { Alert, Button, List, RadioGroup } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, type ChangeEvent, type ReactElement } from 'react'
 
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
+import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -162,7 +157,7 @@ export function IdentitiesSettings({
       }
     >
       {query.isPending ? (
-        <ListSkeleton count={3} />
+        <LoadingListSkeleton count={3} />
       ) : query.isError ? (
         <Alert
           severity="error"

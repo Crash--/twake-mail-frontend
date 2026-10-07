@@ -1,5 +1,5 @@
 import { Filter, Icon, Plus } from '@linagora/twake-icons'
-import { Alert, Button, Empty, List, ListSkeleton } from '@linagora/twake-mui'
+import { Alert, Button, Empty, List } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useEffect, useState, type ReactElement } from 'react'
@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
+import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
@@ -151,7 +152,7 @@ export function EmailRulesSettings({
       }
     >
       {query.isPending ? (
-        <ListSkeleton count={3} />
+        <LoadingListSkeleton count={3} />
       ) : query.isError ? (
         <Alert
           severity="error"

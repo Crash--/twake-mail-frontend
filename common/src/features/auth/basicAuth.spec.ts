@@ -114,6 +114,9 @@ describe('createBasicAuthService', () => {
     await service.logout()
 
     expect(service.getState()).toEqual({ status: 'anonymous' })
-    expect(postMessage).toHaveBeenCalledWith('session-ended')
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'session-ended',
+      email: 'alice@example.com'
+    })
   })
 })

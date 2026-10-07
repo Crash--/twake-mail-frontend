@@ -10,8 +10,11 @@ import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 /** Smallest side of a touch target, in CSS pixels (WCAG 2.5.5) */
 export const TOUCH_TARGET_SIZE = 44
 
+/** Touch screens and phones, whatever pointer they report */
+export const TOUCH_QUERY = `${SCREEN_QUERIES.touch}, ${SCREEN_QUERIES.mobile}`
+
 /** On touch screens and on phones, whatever pointer they report */
-export const TOUCH_MEDIA = `@media ${SCREEN_QUERIES.touch}, ${SCREEN_QUERIES.mobile}`
+export const TOUCH_MEDIA = `@media ${TOUCH_QUERY}`
 
 const STYLES = {
   [TOUCH_MEDIA]: {

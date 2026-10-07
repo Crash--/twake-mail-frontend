@@ -22,6 +22,10 @@ export function RowDate({
         color: 'text.primary',
         fontSize: 12,
         whiteSpace: 'nowrap',
+        // Cut with an ellipsis when its cell is too narrow
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
         fontWeight: isStrong ? 600 : 400,
         lineHeight: isStrong ? '18.4px' : '12px',
         letterSpacing: isStrong ? '0.25px' : '0.15px'

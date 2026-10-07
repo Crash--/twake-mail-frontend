@@ -578,6 +578,9 @@
     "addFilter": "Thêm",
     "clearFilter": "Xoá bộ lọc",
     "advanced": "Bộ lọc nâng cao",
+    "errors": {
+      "endBeforeStart": "Ngày kết thúc phải sau ngày bắt đầu"
+    },
     "sort": {
       "mostRecent": "Gần đây nhất",
       "oldest": "Cũ nhất",

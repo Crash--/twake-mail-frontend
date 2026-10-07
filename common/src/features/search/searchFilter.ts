@@ -93,6 +93,16 @@ export const EMPTY_SEARCH_FILTER: SearchFilter = {
   sort: DEFAULT_SORT_ORDER
 }
 
+/** True when a custom range ends before it starts: it matches no email */
+export function isReversedDateRange(filter: SearchFilter): boolean {
+  return (
+    filter.dateRange === 'custom' &&
+    filter.startDate !== null &&
+    filter.endDate !== null &&
+    filter.endDate < filter.startDate
+  )
+}
+
 /** True when the filter asks for nothing: no search to run */
 export function isEmptySearch(filter: SearchFilter): boolean {
   return (

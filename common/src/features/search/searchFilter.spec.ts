@@ -1,6 +1,7 @@
 import {
   EMPTY_SEARCH_FILTER,
   isEmptySearch,
+  isReversedDateRange,
   parseSearchParams,
   searchPath,
   splitWords,
@@ -82,6 +83,27 @@ describe('search filter helpers', () => {
     expect(withTypedText(filter({ hasAttachment: true }), 'report')).toEqual(
       filter({ text: 'report', hasAttachment: true })
     )
+  })
+
+  it('tells a custom range ending before it starts', () => {
+    const custom = (
+      startDate: string | null,
+      endDate: string | null
+    ): SearchFilter => filter({ dateRange: 'custom', startDate, endDate })
+
+    expect(isReversedDateRange(custom('2026-10-10', '2026-10-01'))).toBe(true)
+    expect(isReversedDateRange(custom('2026-10-07', '2026-10-07'))).toBe(false)
+    expect(isReversedDateRange(custom('2026-10-01', '2026-10-10'))).toBe(false)
+    expect(isReversedDateRange(custom('2026-10-10', null))).toBe(false)
+    expect(
+      isReversedDateRange(
+        filter({
+          dateRange: 'last7Days',
+          startDate: '2026-10-10',
+          endDate: '2026-10-01'
+        })
+      )
+    ).toBe(false)
   })
 
   it('tells an empty search, whatever its order', () => {

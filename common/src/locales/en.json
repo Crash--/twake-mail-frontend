@@ -578,6 +578,9 @@
     "addFilter": "Add",
     "clearFilter": "Clear filter",
     "advanced": "Advanced search",
+    "errors": {
+      "endBeforeStart": "End date must be greater than start date"
+    },
     "sort": {
       "mostRecent": "Most recent",
       "oldest": "Oldest",

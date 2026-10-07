@@ -40,7 +40,7 @@ test.describe('TMB team mailboxes', () => {
     )
     await expect(section.getByTestId('mailbox-item-name')).toHaveText([
       team.name,
-      'INBOX',
+      'Inbox',
       'Drafts',
       'Outbox',
       'Sent',
@@ -278,7 +278,8 @@ test.describe('TMB team mailboxes', () => {
     await mailbox.mailboxPicker.getByTestId('mailbox-picker-search-input').fill('INBOX')
 
     await expect(
-      mailbox.mailboxPicker.getByRole('option', { name: /^INBOX/ })
+      // By its path: the Inbox of the user is named Inbox too
+      mailbox.mailboxPicker.getByRole('option', { name: `${team.name}/Inbox` })
     ).toHaveAttribute('aria-disabled', 'true')
   })
 })

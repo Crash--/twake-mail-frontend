@@ -17,6 +17,7 @@ import type { TranslationKey } from '@common/i18n/useI18n'
 import {
   isDraftsMailbox,
   isTeamFolder,
+  isTeamInbox,
   isTeamTemplates,
   isTemplatesMailbox,
   isTrashMailbox
@@ -64,12 +65,14 @@ const TEAM_ICON_ROLES: Partial<Record<string, string>> = {
 }
 
 /**
- * Translation key of the name of a system folder (by its JMAP role), null
- * for personal folders, which keep the name the user gave them.
+ * Translation key of the name of a system folder (by its JMAP role, or the
+ * Inbox of a team mailbox, which has none and is named "INBOX"), null for
+ * personal folders, which keep the name the user gave them.
  */
 export function getRoleNameKey(
-  mailbox: Pick<MailboxSummary, 'role'>
+  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace' | 'parentId'>
 ): TranslationKey | null {
+  if (isTeamInbox(mailbox)) return 'mailbox.roles.inbox'
   return (mailbox.role && ROLE_NAMES[mailbox.role]) ?? null
 }
 

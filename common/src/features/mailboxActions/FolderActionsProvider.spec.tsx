@@ -103,6 +103,13 @@ async function openMenu(name: string): Promise<HTMLElement> {
   return screen.getByRole('menu', { name: 'Folder actions' })
 }
 
+/** The Inbox of the user in a picker: the team mailbox's Inbox comes after */
+function userInboxOption(picker: HTMLElement): HTMLElement {
+  const [found] = within(picker).getAllByRole('option', { name: 'Inbox' })
+  if (!found) throw new Error('No Inbox option')
+  return found
+}
+
 function mailbox(
   server: FakeJmapServer,
   id: string
@@ -382,7 +389,7 @@ describe('Folder actions', () => {
     expect(
       within(picker).getByRole('option', { name: 'Work' })
     ).toHaveAttribute('aria-disabled', 'true')
-    await userEvent.click(within(picker).getByRole('option', { name: 'Inbox' }))
+    await userEvent.click(userInboxOption(picker))
 
     await waitFor(() => {
       expect(
@@ -418,10 +425,7 @@ describe('Folder actions', () => {
       })
     )
     await userEvent.click(
-      within(screen.getByRole('dialog', { name: 'Move To' })).getByRole(
-        'option',
-        { name: 'Inbox' }
-      )
+      userInboxOption(screen.getByRole('dialog', { name: 'Move To' }))
     )
 
     const toast = await screen.findByTestId('toast')

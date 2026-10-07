@@ -10,6 +10,7 @@ import {
 } from 'jmap-client-ts'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
+import { isSingletonUpdated } from '@common/jmap/isSingletonUpdated'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -76,7 +77,7 @@ export async function saveVacation(
     accountId,
     update: { singleton: values }
   })
-  return response.updated !== null && 'singleton' in response.updated
+  return isSingletonUpdated(response)
 }
 
 /**

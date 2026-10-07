@@ -3,6 +3,7 @@ import type { JmapClient } from 'jmap-client-ts'
 import type { Rule } from 'jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
+import { isSingletonUpdated } from '@common/jmap/isSingletonUpdated'
 
 import { rulesForUpdate } from './rules'
 
@@ -40,5 +41,5 @@ export async function saveRules(
     accountId,
     update: { singleton: rulesForUpdate(rules) }
   })
-  return response.updated !== null && 'singleton' in response.updated
+  return isSingletonUpdated(response)
 }

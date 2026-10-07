@@ -1027,7 +1027,8 @@
       "add": "Không thêm được người nhận.",
       "delete": "Xoá người nhận không thành công.",
       "localCopy": "Thay đổi lưu bản sao tin nhắn không thành công.",
-      "load": "Không thể tải cài đặt chuyển tiếp"
+      "load": "Không thể tải cài đặt chuyển tiếp",
+      "ownAddress": "Bạn không thể chuyển tiếp email đến chính địa chỉ của mình"
     },
     "externalWarning": {
       "title": "Bạn đang chuyển email đến một tên miền khác.",

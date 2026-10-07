@@ -8,7 +8,10 @@ import {
   SETTINGS_SECTIONS,
   type SettingsSection
 } from '@common/features/settings/sections'
-import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_USERNAME,
+  makeFakeJmapServer
+} from '@common/testing/fakeJmapServer'
 import {
   FAKE_LINAGORA_CAPABILITIES,
   installFakeForward
@@ -92,6 +95,23 @@ describe('ForwardSettings', () => {
     expect(
       screen.getByRole('textbox', { name: 'New recipient' })
     ).toHaveAccessibleDescription('Incorrect email format')
+    expect(fake.forward()).toMatchObject({ forwards: [] })
+  })
+
+  it('refuses the own address of the account', async () => {
+    const fake = setup()
+
+    await userEvent.type(
+      await screen.findByRole('textbox', { name: 'New recipient' }),
+      FAKE_USERNAME.toUpperCase()
+    )
+    await userEvent.click(screen.getByTestId('forward-add-button'))
+
+    expect(
+      screen.getByRole('textbox', { name: 'New recipient' })
+    ).toHaveAccessibleDescription(
+      'You cannot forward your emails to your own address'
+    )
     expect(fake.forward()).toMatchObject({ forwards: [] })
   })
 

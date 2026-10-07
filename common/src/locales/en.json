@@ -1027,7 +1027,8 @@
       "add": "Adding recipient failed.",
       "delete": "Delete recipients failed.",
       "localCopy": "Edit local copy in forward failed.",
-      "load": "The forwarding could not be loaded"
+      "load": "The forwarding could not be loaded",
+      "ownAddress": "You cannot forward your emails to your own address"
     },
     "externalWarning": {
       "title": "You are redirecting emails to another domain.",

@@ -1027,7 +1027,8 @@
       "add": "L'ajout du destinataire a échoué.",
       "delete": "Échec de la suppression des destinataires.",
       "localCopy": "Échec de l'activation de la copie locale lors d'un transfert.",
-      "load": "Le transfert n'a pas pu être chargé"
+      "load": "Le transfert n'a pas pu être chargé",
+      "ownAddress": "Vous ne pouvez pas transférer vos e-mails vers votre propre adresse"
     },
     "externalWarning": {
       "title": "Vous redirigez les e-mails vers un autre nom de domaine.",

@@ -51,9 +51,10 @@ export interface ForwardSettingsProps {
 /**
  * Settings > Forwarding (`Forward/get`, `Forward/set`), as tmail-flutter:
  * the addresses every email goes to, added after a warning when they are
- * outside the domain of the account, removed after a confirmation, and
- * "Keep a copy in Inbox" once there is one. The warning of the deployment
- * (`FORWARD_WARNING_MESSAGE`) replaces the default one.
+ * outside the domain of the account (never the account's own address),
+ * removed after a confirmation, and "Keep a copy in Inbox" once there is
+ * one. The warning of the deployment (`FORWARD_WARNING_MESSAGE`) replaces
+ * the default one.
  */
 export function ForwardSettings({
   section
@@ -75,6 +76,8 @@ export function ForwardSettings({
   const forwards = query.data?.forwards ?? []
   const isExternal = (email: string): boolean => domainOf(email) !== ownDomain
   const hasExternal = forwards.some(isExternal)
+  const isOwnAddress = (email: string): boolean =>
+    email.toLowerCase() === session.username.toLowerCase()
 
   const change = async (
     next: Partial<Parameters<typeof updateForward>[2]>,
@@ -116,6 +119,11 @@ export function ForwardSettings({
     }
     if (emails.some(email => !isValidEmail(email))) {
       setProblem('forward.errors.invalid')
+      inputRef.current?.focus()
+      return
+    }
+    if (emails.some(isOwnAddress)) {
+      setProblem('forward.errors.ownAddress')
       inputRef.current?.focus()
       return
     }

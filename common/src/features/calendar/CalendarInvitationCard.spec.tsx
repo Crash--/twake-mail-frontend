@@ -220,7 +220,10 @@ describe('CalendarInvitationCard', () => {
     ])
   })
 
-  it('says why an answer failed and keeps the previous one', async () => {
+  it('tells an answer failed, logs why and keeps the previous one', async () => {
+    const consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined)
     const server = makeServer(INVITATION, { attendance: 'tentativelyAccepted' })
     server.handlers.set('CalendarEvent/reject', args => ({
       accountId: args.accountId,
@@ -235,13 +238,18 @@ describe('CalendarInvitationCard', () => {
     ).toHaveAttribute('aria-pressed', 'true')
     await userEvent.click(screen.getByRole('button', { name: 'No' }))
 
-    expect(await screen.findByTestId('toast')).toHaveTextContent(
-      '[serverFail] No CalDAV'
+    const toast = await screen.findByTestId('toast')
+    expect(toast).toHaveTextContent('Event reply was sent unsuccessfully!')
+    expect(toast).not.toHaveTextContent('No CalDAV')
+    expect(consoleError).toHaveBeenCalledWith(
+      '[calendar] Cannot answer the invitation',
+      { type: 'serverFail', description: 'No CalDAV' }
     )
     expect(screen.getByRole('button', { name: 'Maybe' })).toHaveAttribute(
       'aria-pressed',
       'true'
     )
+    jest.restoreAllMocks()
   })
 
   it('offers only Yes on a counter proposal, which accepts it', async () => {

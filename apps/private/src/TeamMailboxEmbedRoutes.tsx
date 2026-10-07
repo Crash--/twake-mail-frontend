@@ -7,6 +7,7 @@ import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxR
 import { PushProvider } from '@common/features/push/PushProvider'
 import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 import { TeamMailboxLayout } from '@common/layout/TeamMailboxLayout'
+import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScreen'
 
 import { EmailPage } from './features/mailbox/EmailPage'
 import { MailboxPage } from './features/mailbox/MailboxPage'
@@ -16,15 +17,16 @@ import { RouteErrorScreen } from './RouteErrorScreen'
  * The routes of the facade of a team mailbox, under the base
  * `/embed/team-mailboxes/<address>`: its folders and their emails only.
  * Any other path, and a folder of another mailbox, lead to its Inbox.
+ * While the login and the session load, the rows of a list stand in.
  */
 export function teamMailboxEmbedRouteElements(): ReactElement {
   return (
     <Route errorElement={<RouteErrorScreen />}>
       <Route path="/login" element={<BasicLoginPage />} />
-      <Route element={<RequireAuth />}>
+      <Route element={<RequireAuth loading={<TeamMailboxLoadingScreen />} />}>
         <Route
           element={
-            <JmapSessionProvider>
+            <JmapSessionProvider loading={<TeamMailboxLoadingScreen />}>
               <PushProvider>
                 <TeamMailboxLayout />
               </PushProvider>

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from 'react'
+import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
 import { Navigate, Outlet, useHref, useLocation } from 'react-router'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
@@ -11,12 +11,19 @@ export interface LoginRouteState {
   returnTo: string
 }
 
+export interface RequireAuthProps {
+  /** Shown while the SSO login starts, a full-page spinner by default */
+  loading?: ReactNode
+}
+
 /**
  * Renders the nested routes for a signed-in user. Otherwise sends the user
  * to the SSO (OIDC mode) or to the login form (basic mode), remembering
  * where to come back.
  */
-export function RequireAuth(): ReactElement {
+export function RequireAuth({
+  loading = <FullPageLoader />
+}: RequireAuthProps): ReactElement {
   const { t } = useI18n()
   const service = useAuthService()
   const state = useAuthState()
@@ -69,5 +76,5 @@ export function RequireAuth(): ReactElement {
     )
   }
 
-  return <FullPageLoader />
+  return <>{loading}</>
 }

@@ -19,6 +19,8 @@ const JmapSessionContext = createContext<JmapSessionInfo | null>(null)
 
 export interface JmapSessionProviderProps {
   children: ReactNode
+  /** Shown while the session loads, a full-page spinner by default */
+  loading?: ReactNode
 }
 
 /**
@@ -27,7 +29,8 @@ export interface JmapSessionProviderProps {
  * extra capabilities of the session (team mailboxes) in every request.
  */
 export function JmapSessionProvider({
-  children
+  children,
+  loading = <FullPageLoader />
 }: JmapSessionProviderProps): ReactElement {
   const { t } = useI18n()
   const client = useJmapClient()
@@ -38,7 +41,7 @@ export function JmapSessionProvider({
     [client, extraCapabilities]
   )
 
-  if (query.isPending) return <FullPageLoader />
+  if (query.isPending) return <>{loading}</>
 
   if (query.isError) {
     const handleRetry = (): void => {

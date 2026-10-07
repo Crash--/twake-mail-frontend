@@ -13,6 +13,10 @@ import { SettingsSectionLayout } from '@common/features/settings/SettingsSection
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import {
+  focusTargetsAround,
+  keepFocusInPage
+} from '@common/utils/keepFocusInPage'
 
 import { ruleKeys, rulesQueryOptions, saveRules } from './queries'
 import { RuleFormDialog } from './RuleFormDialog'
@@ -98,9 +102,10 @@ export function EmailRulesSettings({
     return isSaved
   }
 
-  const handleDelete = (index: number): void => {
+  const handleDelete = (index: number, opener: HTMLElement): void => {
     const rule = rules[index]
     if (!rule) return
+    const focusTargets = focusTargetsAround(opener)
     const run = async (): Promise<void> => {
       const isConfirmed = await confirm({
         title: t('rules.delete.title'),
@@ -117,6 +122,7 @@ export function EmailRulesSettings({
           ? { message: t('rules.toasts.deleted'), severity: 'success' }
           : { message: t('rules.errors.delete'), severity: 'error' }
       )
+      if (isSaved) keepFocusInPage(focusTargets)
     }
     run().catch((error: unknown) => {
       console.error('[rules] Cannot delete the rule', error)
@@ -189,8 +195,8 @@ export function EmailRulesSettings({
               onEdit={() => {
                 setForm({ index, draft: null })
               }}
-              onDelete={() => {
-                handleDelete(index)
+              onDelete={opener => {
+                handleDelete(index, opener)
               }}
             />
           ))}

@@ -89,7 +89,8 @@ export function MailboxTreeItem({
       return
     }
     onOpenMenu(mailbox, {
-      position: { left: event.clientX, top: event.clientY }
+      position: { left: event.clientX, top: event.clientY },
+      element: event.currentTarget
     })
   }
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>): void => {

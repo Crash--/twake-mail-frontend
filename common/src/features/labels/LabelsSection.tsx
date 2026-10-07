@@ -17,6 +17,10 @@ import { NavTree } from '@/ds/NavTree/NavTree'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { useSidebarSections } from '@common/features/mailbox/SidebarSectionsProvider'
 import { useI18n } from '@common/i18n/useI18n'
+import {
+  focusTargetsAround,
+  keepFocusInPage
+} from '@common/utils/keepFocusInPage'
 
 import { LabelIcon } from './LabelIcon'
 import { useLabelActions } from './LabelActionsProvider'
@@ -81,8 +85,12 @@ function LabelItem({ label }: { label: Label }): ReactElement {
               </MenuItem>
               <MenuItem
                 onClick={() => {
+                  // The row leaves with the button the focus returns to
+                  const focusTargets = focusTargetsAround(anchor)
                   setAnchor(null)
-                  remove(label)
+                  void remove(label).then(isDeleted => {
+                    if (isDeleted) keepFocusInPage(focusTargets)
+                  })
                 }}
                 data-testid="label-delete-item"
               >

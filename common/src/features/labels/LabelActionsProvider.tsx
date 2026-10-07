@@ -28,7 +28,8 @@ import { labelKeys } from './queries'
 export interface LabelActions {
   create: () => void
   edit: (label: Label) => void
-  remove: (label: Label) => void
+  /** Deletes a label once confirmed; resolves to whether it went */
+  remove: (label: Label) => Promise<boolean>
   /**
    * "Label as" on emails shown in `mailboxId` (null elsewhere); resolves
    * to whether their labels changed
@@ -120,15 +121,15 @@ export function LabelActionsProvider({
   )
 
   const remove = useCallback(
-    (label: Label): void => {
-      const go = async (): Promise<void> => {
+    (label: Label): Promise<boolean> => {
+      const go = async (): Promise<boolean> => {
         const isConfirmed = await confirm({
           title: t('labels.delete.title'),
           message: t('labels.delete.message', { labelName: label.displayName }),
           confirmLabel: t('common.delete'),
           isDestructive: true
         })
-        if (!isConfirmed) return
+        if (!isConfirmed) return false
         const response = await client.call('Label/set', {
           accountId,
           destroy: [label.id]
@@ -138,17 +139,19 @@ export function LabelActionsProvider({
         })
         if (!response.destroyed?.includes(label.id)) {
           notify({ message: t('labels.errors.delete'), severity: 'error' })
-          return
+          return false
         }
         notify({
           message: t('labels.toasts.deleted', { labelName: label.displayName }),
           severity: 'success'
         })
         if (openLabelId === label.id) void navigate('/')
+        return true
       }
-      go().catch((error: unknown) => {
+      return go().catch((error: unknown) => {
         console.error('[labels] Cannot delete the label', error)
         notify({ message: t('labels.errors.delete'), severity: 'error' })
+        return false
       })
     },
     [confirm, client, accountId, queryClient, notify, t, openLabelId, navigate]
@@ -216,7 +219,7 @@ export function LabelActionsProvider({
 const NO_ACTIONS: LabelActions = {
   create: () => undefined,
   edit: () => undefined,
-  remove: () => undefined,
+  remove: () => Promise.resolve(false),
   choose: () => Promise.resolve(false),
   takeOff: () => Promise.resolve(false)
 }

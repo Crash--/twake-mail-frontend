@@ -90,6 +90,26 @@ describe('replyRecipients', () => {
     expect(emails(all.cc)).toEqual(['carol@example.com'])
   })
 
+  it('answers the team when a teammate sent the email as the team identity', () => {
+    const isMember = makeIsSelf(['bob@example.com', 'team@example.com'])
+    const fromTeammate: ReplySource = {
+      from: [address('team@example.com', 'Team')],
+      to: [address('bob@example.com')],
+      cc: [address('carol@example.com')],
+      bcc: [],
+      replyTo: null,
+      listPost: null
+    }
+    expect(emails(replyRecipients(fromTeammate, 'reply', isMember).to)).toEqual(
+      ['team@example.com']
+    )
+    const all = replyRecipients(fromTeammate, 'replyAll', isMember)
+    expect(emails(all.to)).toEqual(['team@example.com'])
+    expect(emails(all.cc)).toEqual(['carol@example.com'])
+    expect(canReplyAll(fromTeammate, isMember)).toBe(true)
+    expect(canReplyAll({ ...fromTeammate, cc: null }, isMember)).toBe(false)
+  })
+
   it('leaves every address of the user out, whatever its case', () => {
     const lists = replyRecipients(
       {

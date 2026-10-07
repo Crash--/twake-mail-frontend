@@ -116,12 +116,43 @@ export function hasListPost(source: Pick<ReplySource, 'listPost'>): boolean {
   return list.to.length + list.cc.length + list.bcc.length > 0
 }
 
-/** The user sent it (tmail-flutter ADR 0064) */
+function keyOf(email: string): string {
+  return email.trim().toLowerCase()
+}
+
+/**
+ * The user sent it (tmail-flutter ADR 0064): it comes from one of their
+ * addresses and is not addressed to another one of them. A team mailbox
+ * identity is shared: an email a teammate sent as the team to the user
+ * comes from one of the user's addresses, yet the user received it.
+ */
 export function isSentBySelf(
-  source: Pick<ReplySource, 'from'>,
+  source: Pick<ReplySource, 'from' | 'to' | 'cc' | 'bcc'>,
   isSelf: IsSelf
 ): boolean {
-  return (source.from ?? []).some(address => isSelf(address.email))
+  const from = toRecipients(source.from)
+  if (!from.some(address => isSelf(address.email))) return false
+  const senders = new Set(from.map(address => keyOf(address.email)))
+  const recipients = [
+    ...toRecipients(source.to),
+    ...toRecipients(source.cc),
+    ...toRecipients(source.bcc)
+  ]
+  return !recipients.some(
+    recipient => isSelf(recipient.email) && !senders.has(keyOf(recipient.email))
+  )
+}
+
+/**
+ * Who the user is when answering: the sender of an email they received is
+ * someone else, even when it is an identity they share (a team mailbox).
+ */
+function selfWhenAnswering(source: ReplySource, isSelf: IsSelf): IsSelf {
+  if (isSentBySelf(source, isSelf)) return isSelf
+  const senders = new Set(
+    toRecipients(source.from).map(address => keyOf(address.email))
+  )
+  return email => isSelf(email) && !senders.has(keyOf(email))
 }
 
 /**
@@ -136,7 +167,7 @@ export function canReplyAll(source: ReplySource, isSelf: IsSelf): boolean {
     ...toRecipients(source.cc),
     ...toRecipients(source.bcc)
   ]
-  return withoutSelf(everyone, isSelf).length > 1
+  return withoutSelf(everyone, selfWhenAnswering(source, isSelf)).length > 1
 }
 
 /**
@@ -154,7 +185,9 @@ export function canReplyAll(source: ReplySource, isSelf: IsSelf): boolean {
  * The user's own addresses are left out everywhere except in a plain reply
  * to an email they sent (they may have sent it to themselves). Unlike
  * tmail-flutter, every address of the user counts (identities, not only the
- * account name) and addresses compare case insensitively.
+ * account name) and addresses compare case insensitively. The sender of an
+ * email the user received is kept, even when it is a team mailbox identity
+ * the user shares.
  */
 export function replyRecipients(
   source: ReplySource,
@@ -188,6 +221,7 @@ function recipientsFor(
   const bcc = toRecipients(source.bcc)
   const replyTo = toRecipients(source.replyTo)
   const isSender = isSentBySelf(source, isSelf)
+  const isUser = selfWhenAnswering(source, isSelf)
   const isList = hasListPost(source)
   switch (action) {
     case 'forward':
@@ -204,7 +238,7 @@ function recipientsFor(
       if (isSender) return { ...none, to: unique(to) }
       return {
         ...none,
-        to: withoutSelf(isList || replyTo.length === 0 ? from : replyTo, isSelf)
+        to: withoutSelf(isList || replyTo.length === 0 ? from : replyTo, isUser)
       }
     case 'replyAll': {
       if (isSender) {
@@ -220,9 +254,9 @@ function recipientsFor(
           ? replyTo
           : from
       return {
-        to: withoutSelf([...head, ...to], isSelf),
-        cc: withoutSelf(cc, isSelf),
-        bcc: withoutSelf(bcc, isSelf)
+        to: withoutSelf([...head, ...to], isUser),
+        cc: withoutSelf(cc, isUser),
+        bcc: withoutSelf(bcc, isUser)
       }
     }
   }

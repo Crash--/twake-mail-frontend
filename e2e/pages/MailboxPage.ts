@@ -48,7 +48,6 @@ export class MailboxPage {
   /** The composers the dock has no room for: "+N messages", then a menu */
   readonly composerOverflowButton: Locator
   readonly composerOverflowMenu: Locator
-  readonly userAvatar: Locator
   readonly scrollToTopButton: Locator
   /** The toast at the bottom of the screen ("Moved to Trash", errors) */
   readonly toast: Locator
@@ -91,7 +90,6 @@ export class MailboxPage {
     this.composerOverflowMenu = page
       .getByTestId('composer-overflow-menu')
       .getByRole('menu')
-    this.userAvatar = page.getByTestId('user-avatar')
     this.scrollToTopButton = page.getByTestId('scroll-to-top-button')
     this.toast = page.getByTestId('toast')
     this.toastUndoButton = this.toast.getByTestId('toast-undo-button')
@@ -398,10 +396,9 @@ export class MailboxPage {
     return this
   }
 
-  /** Opens the settings from the account menu */
+  /** Opens the settings from their gear (search row, or top bar below the desktop size) */
   async openSettings(): Promise<SettingsPage> {
-    await this.userAvatar.click()
-    await this.page.getByTestId('settings-menu-item').click()
+    await this.page.getByTestId('settings-button').click()
     const settings = new SettingsPage(this.page)
     await expect(settings.heading).toBeVisible()
     return settings

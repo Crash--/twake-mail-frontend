@@ -151,8 +151,7 @@ test.describe('LAYOUT page scroll', () => {
           )
           await expectNoPageScroll(scope)
 
-          await scope.getByTestId('user-avatar').click()
-          await scope.getByTestId('settings-menu-item').click()
+          await scope.getByTestId('settings-button').click()
           await expect(scope.getByRole('heading', { level: 1 })).toBeVisible()
           await expectNoPageScroll(scope)
         })

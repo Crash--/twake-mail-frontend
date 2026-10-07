@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        # .env.js and appList.js are mounted with subPath, never updated in a
+        # .env.js is mounted with subPath, never updated in a
         # running pod: a change of the configuration rolls the pods
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         {{- with .Values.deployment.podAnnotations }}
@@ -92,10 +92,6 @@ spec:
             - name: config
               mountPath: /usr/share/nginx/html/.env.js
               subPath: .env.js
-              readOnly: true
-            - name: config
-              mountPath: /usr/share/nginx/html/appList.js
-              subPath: appList.js
               readOnly: true
             - name: tmp
               mountPath: /tmp

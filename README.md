@@ -26,7 +26,6 @@ Requirements: Node 24 (`nvm use`) and npm.
 ```bash
 npm ci
 cp public/.env.example.js public/.env.js         # then edit it
-cp public/appList.example.js public/appList.js   # optional: app grid
 npm start                                        # http://localhost:5000
 ```
 
@@ -74,8 +73,6 @@ The configuration is read at runtime, so one image serves every deployment:
   `common/src/window.d.ts` and validated at startup by
   `common/src/config/config.ts`. An invalid configuration shows an explicit
   screen listing the problems.
-- `appList.js`: the applications of the app grid
-  ([example](public/appList.example.js)).
 - `version.js`: the released version, written by the Docker build.
 
 None of them is cached by nginx.
@@ -145,7 +142,6 @@ e2e/                 end-to-end tests, separate npm package (not a workspace)
 docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=0.1.0 -t twake-mail-frontend .
 docker run -p 127.0.0.1:8080:80 --read-only --tmpfs /tmp \
   -v $PWD/my.env.js:/usr/share/nginx/html/.env.js:ro \
-  -v $PWD/my.appList.js:/usr/share/nginx/html/appList.js:ro \
   twake-mail-frontend
 ```
 

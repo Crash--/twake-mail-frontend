@@ -7,5 +7,3 @@ metadata:
 data:
   .env.js: |
     {{- include "twake-mail-frontend.envJs" . | nindent 4 }}
-  appList.js: |
-    {{- include "twake-mail-frontend.appListJs" . | nindent 4 }}

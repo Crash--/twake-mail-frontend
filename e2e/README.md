@@ -39,7 +39,7 @@ E2E_APP_IMAGE=twake-mail-frontend:e2e ./scripts/start.sh
 ```
 
 The image runs as in production (user 101, read-only root filesystem, `/tmp` tmpfs) behind
-the stack's nginx, which still serves `/.env.js` and `/appList.js`. Every test fails on a
+the stack's nginx, which still serves `/.env.js`. Every test fails on a
 violation of the Content-Security-Policy of the app logged in the browser console
 (`support/fixtures.ts`); the stricter policy of the email body frames is not checked, blocking
 remote content there is expected.
@@ -102,9 +102,7 @@ may still answer 401 to the first authenticated requests.
 
 **App configuration.** nginx serves `/.env.js` from [`docker/app-env.js`](docker/app-env.js),
 whatever `.env.js` the build holds: basic auth, JMAP session on the origin of the app
-(`window.location.origin + '/jmap/session'`), English UI. `/appList.js` comes from
-[`docker/app-list.js`](docker/app-list.js): three apps on hosts that do not exist (the specs
-answer them), the Drive one a URI template resolved per user. The same nginx serves a fake
+(`window.location.origin + '/jmap/session'`), English UI. The same nginx serves a fake
 Twake Drive on `http://localhost:<port>/e2e/drive/` (token exchange, intent, picker, a file)
 for the Drive specs, which need the app in OIDC mode:
 `E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`.
@@ -340,7 +338,6 @@ e2e/
 │   ├── nginx/default.conf    single origin: app + /jmap + /dex
 │   ├── nginx/app-{dist,image}.conf   the app location: bundle or image
 │   ├── app-env.js            runtime configuration of the app under test (/.env.js)
-│   ├── app-list.js           apps of its app grid (/appList.js)
 │   ├── app-env-oidc.js       the same in OIDC mode with the Drive picker (E2E_APP_ENV, DRIVE-*)
 │   ├── drive-picker.html     a fake Twake Drive picker (/e2e/drive/picker.html)
 │   ├── docker-compose.chart.yaml   overlay: the image as the chart of tmail-frontend runs it (start-chart.sh)

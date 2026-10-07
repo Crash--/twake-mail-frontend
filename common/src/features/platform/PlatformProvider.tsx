@@ -24,11 +24,12 @@ const PlatformContext = createContext<Sdk | null>(null)
 
 /**
  * Creates the client of the Twake Workplace of the user (`@linagora/twake-sdk`)
- * for the platform top bar: `TWAKE_BAR_ENABLED`, the OIDC mode, outside an
- * iframe of the Workplace (which has its own bar), and a workplace known
- * from the SSO or `WORKPLACE_FQDN_FALLBACK`. The ID token of the session is
- * exchanged for a token of the platform, kept in memory by the client; the
- * client forgets it when the session ends.
+ * for the platform top bar, except inside an iframe of the Workplace, which
+ * shows the bar itself. In OIDC mode, with a workplace known from the SSO or
+ * `WORKPLACE_FQDN_FALLBACK`, the ID token of the session is exchanged for a
+ * token of the platform, kept in memory by the client and forgotten when the
+ * session ends. Otherwise (basic mode, no workplace) the client stays
+ * `public`: the bar shows without the menus of the platform.
  */
 export function PlatformProvider({
   children
@@ -40,63 +41,69 @@ export function PlatformProvider({
   const state = useAuthState()
   const { session } = useJmapSession()
   const isEmbedded = useIsEmbedded()
-  const isEnabled =
-    config?.twakeBarEnabled === true && service.mode === 'oidc' && !isEmbedded
   const claim =
     state.status === 'authenticated' ? state.user.workplaceFqdn : null
   const fallback = config?.workplaceFqdnFallback ?? null
   const platformUrl = useMemo(
     () =>
-      isEnabled
+      service.mode === 'oidc'
         ? resolvePlatformUrl({
             username: session.username,
             workplaceFqdn: claim,
             workplaceFqdnFallback: fallback
           })
         : null,
-    [isEnabled, session.username, claim, fallback]
+    [service.mode, session.username, claim, fallback]
   )
-  // `waiting` until the effect below exchanges the ID token
-  const sdk = useMemo(
-    () =>
-      platformUrl === null ? null : createSdk({ platformURL: platformUrl }),
-    [platformUrl]
-  )
+  const sdk = useMemo(() => {
+    if (isEmbedded) return null
+    if (platformUrl !== null) {
+      // `waiting` until the effect below exchanges the ID token
+      return createSdk({ platformURL: platformUrl })
+    }
+    // No platform to ask: the bar has nothing to load
+    const offline = createSdk({ platformURL: window.location.origin })
+    offline.logout()
+    return offline
+  }, [isEmbedded, platformUrl])
 
   useEffect(() => {
-    if (sdk === null) return
+    if (sdk === null || platformUrl === null) return
     const idToken = service.mode === 'oidc' ? service.getIdToken() : null
     if (idToken === null) {
       sdk.logout()
       return
     }
     sdk.login(idToken).catch((error: unknown) => {
-      // The bar gives way to the one of the app: nothing to tell the user
+      // The bar stays, without the menus of the platform
       console.warn('[platform] Token exchange failed', error)
     })
     return () => {
       sdk.logout()
     }
-  }, [sdk, service])
+  }, [sdk, platformUrl, service])
 
   return <PlatformContext value={sdk}>{children}</PlatformContext>
 }
 
 /**
- * The client of the platform while its top bar is shown: null when the bar
- * is off, and once the platform refused the token exchange (the app then
- * shows its own logotype, app grid and account menu)
+ * The client of the platform bar: null inside an iframe of Twake Workplace,
+ * whose bar is the one of the container
  */
 export function usePlatformSdk(): Sdk | null {
+  return useContext(PlatformContext)
+}
+
+/** Where the platform bar is: `public` when the platform is out of reach */
+export function usePlatformStatus(): SdkStatus {
   const sdk = useContext(PlatformContext)
   const subscribe = useCallback(
     (listener: () => void) =>
       sdk === null ? () => undefined : sdk.onStatusChange(listener),
     [sdk]
   )
-  const status = useSyncExternalStore<SdkStatus>(
+  return useSyncExternalStore<SdkStatus>(
     subscribe,
     () => sdk?.status ?? 'public'
   )
-  return status === 'public' ? null : sdk
 }

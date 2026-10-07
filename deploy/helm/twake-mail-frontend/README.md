@@ -52,7 +52,7 @@ ingress:
 | Resource | |
 |---|---|
 | `Deployment` | 2 replicas, user 101, read-only root filesystem, no capability, `RuntimeDefault` seccomp, no service account token; `/tmp` is an `emptyDir`; probes on `/healthz` |
-| `ConfigMap` | `.env.js` and `appList.js`, rendered from `config.*`, mounted next to `index.html` (`subPath`); a checksum annotation rolls the pods when they change |
+| `ConfigMap` | `.env.js`, rendered from `config.*`, mounted next to `index.html` (`subPath`); a checksum annotation rolls the pods when it changes |
 | `Service` | `ClusterIP`, port 8080 |
 | `Ingress` | optional; can route the JMAP paths to tmail-backend (`ingress.jmap`) |
 | `PodDisruptionBudget` | on by default (`maxUnavailable: 1`) |
@@ -120,17 +120,15 @@ ingress-nginx do).
 | `config.sentry.enabled`, `dsn`, `environment` | `true`, `""`, `""` | `SENTRY_ENABLED` (true with a DSN), `SENTRY_DSN`, `SENTRY_ENVIRONMENT`; none of them is written without a DSN (unless `enabled` is false), which leaves the configuration to the ecosystem of the server |
 | `config.sentry.feedbackEnabled` | `false` | `SENTRY_FEEDBACK_ENABLED`: the feedback widget, offered to the users who opted in to error reporting (Sentry 24.4.2 or later). Written only when `true`; independent of where the DSN comes from |
 | `config.sentryDsn` | `""` | Deprecated, use `sentry.dsn` |
-| `config.appGridAvailable` | `""` | `APP_GRID_AVAILABLE`: `supported` or `unsupported`; unset: shown when `appList` has apps |
 | `config.debug` | `false` | TanStack Query devtools, nginx cache disabled |
 | `config.lang` | `en` | Default UI language: `en`, `fr`, `ru`, `vi` |
-| `config.calendarSpaUrl`, `config.chatSpaUrl`, `config.workplaceFqdnFallback` | `""` | URI templates of the other Twake apps |
-| `config.workplaceEmbedding` | `false` | Inside an iframe of Twake Workplace, leave the logotype and the app grid to the container |
+| `config.calendarSpaUrl`, `config.chatSpaUrl` | `""` | URI templates of the other Twake apps |
+| `config.workplaceFqdnFallback` | `""` | The Workplace of the user when the SSO has no `workplaceFqdn` claim (`{localpart}`), where the platform top bar exchanges the ID token; allow the Workplace hosts in `csp.connectSrc` |
+| `config.workplaceEmbedding` | `false` | Inside an iframe of Twake Workplace, leave the platform top bar to the container |
 | `config.twakeSpaceUrl` | `""` | `TWAKE_SPACE_URL`: TwakeSpace, whose Mail tab frames the facade of a team mailbox; allow it in `csp.frameAncestors` |
 | `config.forwardWarningMessage` | `""` | |
-| `config.twakeBarEnabled` | `false` | `TWAKE_BAR_ENABLED`: the top bar of Twake Workplace (OIDC only); allow the Workplace hosts in `csp.connectSrc` |
 | `config.tdrive.enabled`, `config.tdrive.intentUrl` | `false`, `""` | Twake Drive picker of the composer (OIDC only); `intentUrl` is the Drive (cozy-stack) of the user, a URI template |
 | `config.extraEnvJs` | `""` | JavaScript appended to `.env.js` as is |
-| `config.appList` | `[]` | Apps of the app grid: `name`, `link`, `icon` (URI templates allowed) |
 | `csp.autoConnectSrc` | `true` | See above |
 | `csp.connectSrc`, `csp.frameSrc` | `[]` | Extra sources |
 | `csp.frameAncestors` | `["'self'"]` | Who may frame the app |

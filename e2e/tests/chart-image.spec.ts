@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { AppGrid, LoginPage, MailboxPage } from '../pages'
+import { LoginPage, MailboxPage } from '../pages'
 import { env } from '../support/env'
 import { expect, test } from '../support/fixtures'
 
@@ -53,7 +53,7 @@ test.describe('CHART the image under the chart of tmail-frontend', () => {
     )
   })
 
-  test('CHART-01 without an SSO to find, the Basic form signs in, the apps of app_dashboard.json fill the app grid', async ({
+  test('CHART-01 without an SSO to find, the Basic form signs in', async ({
     page,
     user
   }) => {
@@ -65,26 +65,8 @@ test.describe('CHART the image under the chart of tmail-frontend', () => {
     const mailbox = await login.loginAs(user)
     await mailbox.expectFolderSelected({ role: 'inbox' })
 
-    const grid = await new AppGrid(page).open()
-    await expect(grid.items).toHaveText([
-      'Twake Chat',
-      'Twake Drive',
-      'Legacy app'
-    ])
-    await expect(grid.item('Twake Drive')).toHaveAttribute(
-      'href',
-      'https://drive.workplace.example.test/'
-    )
-    // The icons of the Flutter bundle are mapped to those of the app, the unknown one
-    // to the generic icon
-    await expect(grid.item('Twake Chat').locator('img')).toHaveAttribute(
-      'src',
-      /\/assets\/images\/svg\/app-chat\.svg$/
-    )
-    await expect(grid.item('Legacy app').locator('img')).toHaveAttribute(
-      'src',
-      /\/assets\/images\/svg\/app-generic\.svg$/
-    )
+    // app_dashboard.json is served but not read: the apps are those of the platform bar
+    await expect(page.getByTestId('twake-bar')).toBeVisible()
   })
 
   test('CHART-02 the SSO found by WebFinger on SERVER_URL signs in', async ({
@@ -110,7 +92,7 @@ test.describe('CHART the image under the chart of tmail-frontend', () => {
     expect(asked.searchParams.get('rel')).toBe(
       'http://openid.net/specs/connect/1.0/issuer'
     )
-    await expect(page.getByTestId('app-grid-toggle-button')).toBeVisible()
+    await expect(page.getByTestId('twake-bar')).toBeVisible()
   })
 })
 

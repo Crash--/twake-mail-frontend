@@ -18,18 +18,18 @@ describe('AppRoutes', () => {
   listEmailsOneByOne()
 
   it('opens the inbox of a signed-in user', async () => {
-    renderWithProviders(<AppRoutes apps={[]} />, { route: '/' })
+    renderWithProviders(<AppRoutes />, { route: '/' })
 
     expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
       'data-mailbox-id',
       'mailbox-inbox'
     )
-    expect(screen.getByTestId('top-bar')).toBeInTheDocument()
+    expect(screen.getByTestId('twake-bar')).toBeInTheDocument()
     expect(screen.getByTestId('sidebar')).toBeInTheDocument()
   })
 
   it('opens the inbox instead of a mailbox of another account', async () => {
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route: '/mailbox/not-mine'
     })
 
@@ -42,7 +42,7 @@ describe('AppRoutes', () => {
   })
 
   it('opens an email of a mailbox', async () => {
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route: '/mailbox/mailbox-inbox/email/e1',
       jmapServer: makeFakeJmapServer({
         emails: [makeEmail({ id: 'e1', subject: 'Hello Alice' })]
@@ -55,7 +55,7 @@ describe('AppRoutes', () => {
   })
 
   it('opens a mailto link in a composer, over the inbox', async () => {
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route:
         '/mailto?uri=mailto%3Ashared-recipient%40example.com%3Fsubject%3DHello%26body%3DWorld'
     })
@@ -75,7 +75,7 @@ describe('AppRoutes', () => {
   })
 
   it('sends a signed-out user to the login form in basic mode', () => {
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route: '/mailbox/m1',
       authService: makeFakeBasicAuthService(ANONYMOUS)
     })
@@ -86,7 +86,7 @@ describe('AppRoutes', () => {
 
   it('sends a signed-out user to the SSO in OIDC mode', () => {
     const authService = makeFakeOidcAuthService(ANONYMOUS)
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route: '/mailbox/m1?page=2',
       authService
     })
@@ -101,7 +101,7 @@ describe('AppRoutes', () => {
       Promise.resolve({ ok: false as const, error: 'timeout' })
     )
     jest.spyOn(console, 'error').mockImplementation(() => undefined)
-    renderWithProviders(<AppRoutes apps={[]} />, { authService })
+    renderWithProviders(<AppRoutes />, { authService })
 
     await userEvent.click(await screen.findByTestId('sso-error-action'))
 
@@ -122,7 +122,7 @@ describe('AppRoutes', () => {
           value: { returnTo: '/mailbox/mailbox-sent' }
         })
       })
-      renderWithProviders(<AppRoutes apps={[]} />, {
+      renderWithProviders(<AppRoutes />, {
         route: `${path}?code=abc&state=xyz`,
         authService
       })
@@ -140,7 +140,7 @@ describe('AppRoutes', () => {
 
   it('goes back to the app once the SSO has logged the user out', async () => {
     const authService = makeFakeOidcAuthService(ANONYMOUS)
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route: '/logout-callback.html',
       authService
     })
@@ -159,7 +159,7 @@ describe('AppRoutes', () => {
       })
     )
     jest.spyOn(console, 'error').mockImplementation(() => undefined)
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route: '/callback?code=abc',
       authService
     })
@@ -173,7 +173,7 @@ describe('AppRoutes', () => {
     afterEach(resetViewport)
 
     function renderEmail(): void {
-      renderWithProviders(<AppRoutes apps={[]} />, {
+      renderWithProviders(<AppRoutes />, {
         route: '/mailbox/mailbox-inbox/email/e1',
         jmapServer: makeFakeJmapServer({
           emails: [
@@ -211,7 +211,7 @@ describe('AppRoutes', () => {
 
     it('fills the room beside the list until an email is open', async () => {
       mockViewport({ width: 1024 })
-      renderWithProviders(<AppRoutes apps={[]} />, {
+      renderWithProviders(<AppRoutes />, {
         route: '/mailbox/mailbox-inbox',
         jmapServer: makeFakeJmapServer({
           emails: [makeEmail({ id: 'e1', subject: 'Hello Alice' })]

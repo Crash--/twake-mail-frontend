@@ -9,13 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The top bar of Twake Workplace (`@linagora/twake-bar`, through
-  `@linagora/twake-sdk`) above the webmail, behind `TWAKE_BAR_ENABLED` (Helm
-  `config.twakeBarEnabled`, off by default; OIDC only): the home of the
-  platform, the help, the apps installed on it and the account menu replace
-  the logotype, the app grid and the account menu of the app. The ID token is
+  `@linagora/twake-sdk`) at the top of the webmail: the home of the platform,
+  the Twake Mail logotype, the help, the apps installed on the Workplace and
+  its account menu (profile, storage, log out). In OIDC mode the ID token is
   exchanged on the Workplace of the user (`workplaceFqdn` claim, else
-  `WORKPLACE_FQDN_FALLBACK`); when it refuses, the app keeps its own bar.
-  Never inside an iframe of the Workplace. See `docs/deployment.md`.
+  `WORKPLACE_FQDN_FALLBACK`); without one (basic mode) or when it refuses,
+  the bar has a log out button instead of the menus. The settings are in the
+  search row on a desktop and behind a gear in the bar of the mail below.
+  Inside an iframe of the Workplace the container shows the bar. See
+  `docs/deployment.md`.
 - User feedback with Sentry: a floating "Send feedback" button (message,
   optional email, screenshot with a hide tool) in the standalone webmail, only
   when the deployment sets `SENTRY_FEEDBACK_ENABLED=true` (Helm
@@ -290,6 +292,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   actions on the selection or on what the user wrote (correct, shorter,
   longer, emojis, bullets, tone, translate) and "Help me write", the answer in
   a dialog to insert, to replace the selection with, or to cancel
+
+### Removed
+
+- The own top bar of the app: its logotype, its app grid and its account
+  menu, replaced by the platform bar. `appList.js`, `APP_GRID_AVAILABLE` and
+  `app_dashboard.json` are no longer read (Helm: `config.appList`,
+  `config.appGridAvailable` removed); the apps are those of the Workplace.
 
 ### Changed
 

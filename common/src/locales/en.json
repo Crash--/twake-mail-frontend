@@ -29,8 +29,6 @@
     "opensInNewTab": "opens in a new tab"
   },
   "topbar": {
-    "apps": "Go to applications",
-    "account": "Manage account",
     "logout": "Sign out",
     "search": "Search",
     "showFolders": "Show folders",

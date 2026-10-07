@@ -13,7 +13,7 @@
 #   SENTRY_AUTH_TOKEN=... docker build --secret id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
 #     --build-arg SENTRY_URL=... --build-arg SENTRY_ORG=... --build-arg SENTRY_PROJECT=... ...
 #
-# The runtime configuration (.env.js, appList.js) is mounted at deploy time
+# The runtime configuration (.env.js) is mounted at deploy time
 # next to index.html; see docs/deployment.md.
 
 # ---------------------------------------------------------------- build
@@ -44,12 +44,12 @@ WORKDIR /src/apps/private/dist
 # Assets pre-compressed for gzip_static.
 # Source maps are never shipped: those of a build that uploads them to Sentry
 # are deleted by the plugin already, this removes any other.
-RUN rm -f .env.js appList.js \
+RUN rm -f .env.js \
  && find . -type f -name '*.map' -delete \
  && echo "var APP_VERSION = \"${BUILD_VERSION}\";" > version.js \
  && node /src/scripts/csp-script-hashes.mjs index.html > /src/csp-script-hashes \
- && find . -type f ! -name '.env.js' ! -name 'version.js' ! -name 'appList.js' \
-      ! -name '.env.example.js' ! -name 'appList.example.js' -exec gzip -k -9 {} +
+ && find . -type f ! -name '.env.js' ! -name 'version.js' \
+      ! -name '.env.example.js' -exec gzip -k -9 {} +
 
 # ---------------------------------------------------------------- runtime
 FROM nginxinc/nginx-unprivileged:1.31-alpine

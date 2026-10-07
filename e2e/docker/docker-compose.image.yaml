@@ -3,7 +3,7 @@
 # nginx configuration and security headers). Started by `E2E_APP_IMAGE=<image> start.sh`.
 #
 # The image runs as in production: non-root, read-only root filesystem, /tmp as a tmpfs.
-# Its /.env.js and /appList.js are still served by the proxy (nginx/default.conf).
+# Its /.env.js is still served by the proxy (nginx/default.conf).
 services:
   app:
     image: ${E2E_APP_IMAGE:-twake-mail-frontend:e2e}

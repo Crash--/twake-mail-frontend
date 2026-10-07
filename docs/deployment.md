@@ -30,7 +30,7 @@ against the JMAP server).
 | User | `101` (`nginx`), never root; port 80 needs a [sysctl or a capability](#port-80-as-a-non-root-user) |
 | Root filesystem | can be read-only: nginx writes only under `/tmp` (tmpfs, `emptyDir`) |
 | Health endpoint | `GET /healthz` → `200 ok`, used by the Docker `HEALTHCHECK` |
-| Runtime configuration | `/usr/share/nginx/html/.env.js` and `/usr/share/nginx/html/appList.js`, mounted |
+| Runtime configuration | `/usr/share/nginx/html/.env.js`, mounted |
 | Logs | stdout / stderr; OIDC codes, states, tokens and tickets masked |
 
 ```bash
@@ -39,7 +39,6 @@ docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=1.2.3 -t twake
 docker run --rm -p 127.0.0.1:8080:80 \
   --read-only --tmpfs /tmp --user 101 --cap-drop ALL \
   -v $PWD/my.env.js:/usr/share/nginx/html/.env.js:ro \
-  -v $PWD/my.appList.js:/usr/share/nginx/html/appList.js:ro \
   -e CSP_CONNECT_SRC="https://jmap.example.com wss://jmap.example.com https://sso.example.com" \
   twake-mail-frontend
 ```
@@ -53,7 +52,7 @@ nginx configuration into `/tmp/nginx/conf.d/`:
   everything `no-cache` when `.env.js` sets `DEBUG = true`;
 - the [security headers](#security-headers), from the environment.
 
-`.env.js`, `appList.js` and `version.js` are never cached, so a configuration
+`.env.js` and `version.js` are never cached, so a configuration
 change is picked up on the next page load (no restart needed, except for the
 `DEBUG` cache switch and the security headers, read at startup).
 
@@ -101,19 +100,15 @@ also the Sentry release.
 
 ## Runtime configuration
 
-Two files, mounted next to `index.html`:
-
-- `.env.js`: the settings, documented in
-  [`public/.env.example.js`](../public/.env.example.js) and
-  [`upgrade-instructions/0.1.0.md`](../upgrade-instructions/0.1.0.md),
-  validated at startup (an invalid configuration shows a screen listing the
-  problems);
-- `appList.js`: the applications of the app grid
-  ([example](../public/appList.example.js)).
+`.env.js`, mounted next to `index.html`: the settings, documented in
+[`public/.env.example.js`](../public/.env.example.js) and
+[`upgrade-instructions/0.1.0.md`](../upgrade-instructions/0.1.0.md), validated
+at startup (an invalid configuration shows a screen listing the problems).
 
 Without `.env.js` (nor an `env.file`, see below) the app shows its "refresh"
-fallback page: the configuration is required. `appList.js` is optional (no
-app grid).
+fallback page: the configuration is required. The other apps are not
+configured here: the [platform top bar](#platform-top-bar) lists those of the
+Workplace of the user (`appList.js` is no longer read).
 
 ## Same configuration as tmail-flutter
 
@@ -129,7 +124,7 @@ configuration serves both apps. The values of an `env.file` are strings
 | `DOMAIN_REDIRECT_URL` | URL of the web app; OIDC redirect `<it>/login-callback.html`, post-logout `<it>/logout-callback.html` | Same, the two routes are served by the app. `SSO_REDIRECT_URI` and `SSO_POST_LOGOUT_REDIRECT` override them. Without any of them `<origin>/callback` and `<origin>/` |
 | `WEB_OIDC_CLIENT_ID` | OIDC public client of the web app | Same. Former `SSO_CLIENT_ID` still read |
 | `OIDC_SCOPES` | Scopes separated by commas, default `openid,profile,email,offline_access` | Same; spaces work too. Former `SSO_SCOPE` (spaces) still read |
-| `APP_GRID_AVAILABLE` | `supported` loads `configurations/app_dashboard.json` into the app grid, anything else hides it | `supported` shows the grid of `appList.js`, or else of `/assets/configurations/app_dashboard.json` (see [below](#app-grid-app_dashboardjson)); anything else hides it. Unset: shown when `appList.js` has apps |
+| `APP_GRID_AVAILABLE` | `supported` loads `configurations/app_dashboard.json` into the app grid, anything else hides it | Ignored: the apps are those of the Workplace, in the [platform top bar](#platform-top-bar) |
 | `FORWARD_WARNING_MESSAGE` | Warning of Settings > Forwarding | Same |
 | `SENTRY_FEEDBACK_ENABLED` | Not in tmail-flutter | `true` offers the user feedback widget to the users who opted in to error reporting (off by default; Sentry 24.4.2 or later). See [sentry.md](sentry.md) |
 | `SENTRY_ENABLED`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | Sentry starts with `SENTRY_ENABLED=true` and a DSN and an environment; a reporting preference, and the ecosystem as a fallback | Same sources: one filled key makes the configuration come from the environment (even off), none leaves it to the ecosystem of the server. Starts with `SENTRY_ENABLED=true` and a DSN, and **never before the user opted in** (Settings > Preferences, stored in the account). Without `SENTRY_ENABLED` a DSN alone still starts it, with a console warning. See [sentry.md](sentry.md) |
@@ -137,7 +132,7 @@ configuration serves both apps. The values of an `env.file` are strings
 | `PLATFORM` | `saas` enables the sign-up flow of the mobile app | Ignored |
 | `WS_ECHO_PING` | Sends an echo ping on the push WebSocket | Not supported |
 | `FORCE_EMAIL_QUERY` | Refreshes the list with `Email/query` instead of `Email/changes` | Not supported (the list is a TanStack Query cache, refetched on push) |
-| `COZY_INTEGRATION` | Loads the cozy-external-bridge script in a Cozy | Same as `WORKPLACE_EMBEDDING`: the bridge is bundled, no script is loaded. Inside an iframe of the Workplace the top bar leaves the logotype and the app grid to the container. The image logs a warning without `CSP_FRAME_ANCESTORS` |
+| `COZY_INTEGRATION` | Loads the cozy-external-bridge script in a Cozy | Same as `WORKPLACE_EMBEDDING`: the bridge is bundled, no script is loaded. Inside an iframe of the Workplace the platform top bar is left to the container. The image logs a warning without `CSP_FRAME_ANCESTORS` |
 | `COZY_EXTERNAL_BRIDGE_VERSION` | Version of the bridge script it loads | Ignored (the bridge is bundled) |
 
 Keys that only this app has: `AUTH_MODE` (`oidc` or `basic`; unset, the SSO is
@@ -146,23 +141,21 @@ tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SS
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
 `CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
 `TWAKE_SPACE_URL` (see [team-mailbox-embed.md](team-mailbox-embed.md)),
-`TDRIVE_ENABLED`, `TDRIVE_INTENT_URL`, `TWAKE_BAR_ENABLED` (see
-[below](#platform-top-bar)). tmail-flutter takes the calendar and
+`TDRIVE_ENABLED`, `TDRIVE_INTENT_URL`. tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
-upgrade (below), not for the calendar nor the Workplace host of the app grid.
+upgrade (below), not for the calendar nor the Workplace of the user.
 
 ### Platform top bar
 
-`TWAKE_BAR_ENABLED=true` shows the top bar of Twake Workplace
-([`@linagora/twake-bar`](https://github.com/linagora/twake-libs/tree/main/packages/twake-bar))
-above the app, as in the other Twake apps: the home of the platform, the
-Twake Mail logotype, the help link of the platform, the menu of the apps
-installed on it and the account menu (profile, storage, log out). It
-replaces the logotype, the app grid (`appList.js`) and the account menu of
-the app; the settings stay in the search row on a desktop, and behind a
-gear in the bar of the app, which keeps the folders and the search under
-the platform bar on smaller screens.
+The top of the app is the bar of Twake Workplace
+([`@linagora/twake-bar`](https://github.com/linagora/twake-libs/tree/main/packages/twake-bar)),
+as in the other Twake apps: the home of the platform, the Twake Mail
+logotype, the help link of the platform, the menu of the apps installed on
+it and the account menu (profile, storage, log out). The settings of the
+mail are in the search row on a desktop, and behind a gear in the bar of the
+mail, which keeps the folders and the search under the platform bar on
+smaller screens.
 
 The bar talks to the Workplace (cozy-stack) of the user through
 [`@linagora/twake-sdk`](https://github.com/linagora/twake-libs/tree/main/packages/twake-sdk):
@@ -179,9 +172,11 @@ The bar talks to the Workplace (cozy-stack) of the user through
   `https://*.workplace.example.com` for per-user hosts). Their images
   (avatar, home icon) are already allowed by `img-src`.
 
-Only in OIDC mode, and never inside an iframe of the Workplace
-(`WORKPLACE_EMBEDDING`), which shows the bar itself. When the Workplace
-refuses the exchange, the app shows its own bar instead.
+Without a Workplace to ask (basic mode, no `workplaceFqdn` nor
+`WORKPLACE_FQDN_FALLBACK`) or when it refuses the exchange, the bar shows the
+logotype only, with a log out button instead of the account menu. Inside an
+iframe of the Workplace (`WORKPLACE_EMBEDDING`), the container shows the bar:
+the app shows none.
 
 ### Storage upgrade (paywall)
 
@@ -235,7 +230,6 @@ filesystem, `/tmp` tmpfs, no capability).
 ```bash
 cd deploy/docker-compose
 cp config/.env.example.js config/.env.js          # set SERVER_URL, SSO_*, WEB_OIDC_CLIENT_ID
-cp config/appList.example.js config/appList.js
 CSP_CONNECT_SRC="https://jmap.example.com wss://jmap.example.com https://sso.example.com" \
   docker compose up -d --build
 ```
@@ -269,9 +263,9 @@ follows Linagora's Twake Workplace deployment conventions (values under
 - a `Deployment` (2 replicas) running the image as user 101 with a read-only
   root filesystem, no capability, `RuntimeDefault` seccomp, `/tmp` as an
   `emptyDir`, probes on `/healthz`;
-- a `ConfigMap` rendering `.env.js` and `appList.js` from typed values
-  (`config.serverUrl`, `config.authMode`, `config.sso.*`,
-  `config.appList`...), mounted next to `index.html`; a checksum annotation
+- a `ConfigMap` rendering `.env.js` from typed values
+  (`config.serverUrl`, `config.authMode`, `config.sso.*`...), mounted next
+  to `index.html`; a checksum annotation
   rolls the pods when it changes;
 - the Content-Security-Policy origins derived from the configuration (JMAP
   and its WebSocket, SSO, Sentry), plus `csp.*`;
@@ -303,7 +297,7 @@ What the chart imposes, and how the image answers:
 |---|---|
 | `containerPort: 80`, probes `GET /` on port 80 | Listens on port 80 by default; `/` answers `200` |
 | `env.file` rendered from `config.*`, mounted at `/usr/share/nginx/html/assets/env.file` | Converted into `/.env.js` at startup (keys [above](#same-configuration-as-tmail-flutter)) |
-| `config.appGrid` rendered to `/usr/share/nginx/html/assets/configurations/app_dashboard.json`, icons named by files of the Flutter bundle (`ic_twake_app.svg`...) | Read by the app, the icons [mapped](#app-grid-app_dashboardjson) to those it ships |
+| `config.appGrid` rendered to `/usr/share/nginx/html/assets/configurations/app_dashboard.json` | Served but not read: the apps are those of the [platform top bar](#platform-top-bar) |
 | No SSO URL | The SSO is [found by WebFinger](#finding-the-sso-webfinger) on `serverUrl`, the Basic form shows when there is none |
 | `serverUrl` on another origin than the app | The CSP `connect-src` is derived from `env.file` at startup |
 | No `securityContext` by default, writable root filesystem | Works as is; [hardened values](#port-80-as-a-non-root-user) available |
@@ -438,28 +432,6 @@ issuer is only known at runtime. The options considered:
 - **(c) `connect-src https:`**, as tmail-flutter's policy: no work, but any
   injected script could send data anywhere. Not done.
 
-### App grid (app_dashboard.json)
-
-With `APP_GRID_AVAILABLE=supported` and no app in `appList.js`, the app reads
-`/assets/configurations/app_dashboard.json` (same origin, five seconds at
-most) before it starts: `{"apps": [{"appName", "appLink", "icon"}]}`. The
-`icon` names a file of tmail-flutter's bundle; the app shows its own icon:
-
-| `icon` | Shown |
-|---|---|
-| `ic_twake_app.svg` | `app-chat.svg` |
-| `ic_tdrive_app.svg` | `app-drive.svg` |
-| `ic_tmail_app.svg` | `app-mail.svg` |
-| `ic_calendar_app.svg` | `app-calendar.svg` |
-| `ic_contacts_app.svg` | `app-contacts.svg` |
-| `ic_teleskop_app.svg` | `app-meet.svg` |
-| any other name (`ic_linshare_app.png`...) | `app-generic.svg` |
-
-An absolute URL or path as `icon`, or a `publicIconUri`, is used as is. The
-icons are in `/assets/images/svg/`. A missing or malformed file gives an empty
-grid. Fields for the mobile apps (`androidPackageId`, `iosUrlScheme`...) are
-ignored.
-
 ### Tests
 
 [`deploy/docker/smoke-test.sh`](../deploy/docker/smoke-test.sh) starts the
@@ -507,8 +479,8 @@ object-src 'none'; base-uri 'self'; form-action 'self'
 - `img-src`, `font-src`: the email reader renders each body in a sandboxed
   `blob:` frame, which inherits this policy. The frame adds its own policy:
   no remote image nor font until the user unblocks the remote content of the
-  email, then any `http:` / `https:` source. Images of the app grid may come
-  from other origins too. `cid:`: the composer keeps the inline images of a
+  email, then any `http:` / `https:` source. The images of the platform top
+  bar (avatar, icons) come from the Workplace. `cid:`: the composer keeps the inline images of a
   quoted email as `cid:` URLs, which never load (no console noise).
 - `connect-src`: JMAP (API, upload, download, push WebSocket), the SSO
   (discovery, token, userinfo) and Sentry. `<host>` is the `Host` of the
@@ -572,7 +544,7 @@ Two layouts work:
 Inside Twake Workplace, the app runs in an iframe of the Workplace container:
 
 1. set `var WORKPLACE_EMBEDDING = true` in `.env.js`: inside an iframe, the
-   top bar leaves the logotype and the app grid to the container;
+   app leaves the platform top bar to the container;
 2. allow the container to frame the app. By default only the origin of the
    app may (`frame-ancestors 'self'`); list the origins of the Workplace:
 

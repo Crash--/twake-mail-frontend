@@ -21,11 +21,9 @@
 
     <!--
       Runtime configuration, loaded before the error handlers below so that a
-      missing optional file (appList.js in development) is not mistaken for a
-      failed bundle.
+      missing optional file is not mistaken for a failed bundle.
     -->
     <script src="<%= assetPrefix %>/.env.js"></script>
-    <script src="<%= assetPrefix %>/appList.js"></script>
     <script src="<%= assetPrefix %>/version.js"></script>
     <script>
       // This catches the unexpected error while loading the JS bundle

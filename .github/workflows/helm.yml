@@ -101,7 +101,6 @@ jobs:
           for _ in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:18080/healthz && break; sleep 1; done
           set -x
           curl -fsS http://127.0.0.1:18080/.env.js | grep -q 'var AUTH_MODE = "basic"'
-          curl -fsS http://127.0.0.1:18080/appList.js | grep -q '"name": "Calendar"'
           curl -fsS -D - -o /dev/null http://127.0.0.1:18080/ \
             | grep -i '^content-security-policy:' | grep -q 'http://127.0.0.1:19000 ws://127.0.0.1:19000'
 

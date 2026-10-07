@@ -36,14 +36,12 @@ var SENTRY_DSN = 'https://publickey@sentry.example.com/42'
 var SENTRY_ENVIRONMENT = 'smoke'
 var SENTRY_FEEDBACK_ENABLED = 'true'
 EOF
-echo 'var appList = []' >"$CONFIG_DIR/appList.js"
-chmod 644 "$CONFIG_DIR"/*.js
+chmod 644 "$CONFIG_DIR/.env.js"
 
 docker run -d --name "$NAME" \
   --read-only --tmpfs /tmp --user 101 --cap-drop ALL --security-opt no-new-privileges \
   -p 127.0.0.1::8080 -e LISTEN_PORT=8080 \
   -v "$CONFIG_DIR/.env.js:/usr/share/nginx/html/.env.js:ro" \
-  -v "$CONFIG_DIR/appList.js:/usr/share/nginx/html/appList.js:ro" \
   -e CSP_CONNECT_SRC='https://jmap.example.com wss://jmap.example.com' \
   -e CSP_FRAME_ANCESTORS="'self' https://workplace.example.com" \
   "$IMAGE" >/dev/null

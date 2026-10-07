@@ -9,4 +9,3 @@ deploy/docker-compose
 deploy/helm
 docs
 public/.env.js
-public/appList.js

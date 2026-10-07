@@ -333,11 +333,30 @@ if [ -f "$SCRIPT_HASHES_FILE" ]; then
   script_hashes=$(cat "$SCRIPT_HASHES_FILE")
 fi
 
+# The policy, with the given frame-ancestors
+make_csp() {
+  policy="default-src 'self'"
+  policy="$policy; script-src 'self'${script_hashes:+ $script_hashes}"
+  policy="$policy; style-src 'self' 'unsafe-inline'"
+  policy="$policy; img-src 'self' data: blob: cid: https: http:"
+  policy="$policy; font-src 'self' data: https: http:"
+  policy="$policy; connect-src 'self' data: blob: ws://\$http_host wss://\$http_host${connect_src:+ $connect_src}"
+  policy="$policy; frame-src 'self' blob:${frame_src:+ $frame_src}"
+  policy="$policy; frame-ancestors $1"
+  policy="$policy; object-src 'none'; base-uri 'self'; form-action 'self'"
+  if [ -n "$report_uri" ]; then
+    policy="$policy; report-uri $report_uri"
+  fi
+  printf '%s' "$policy"
+}
+
 if [ -n "${CONTENT_SECURITY_POLICY:-}" ]; then
   csp=$CONTENT_SECURITY_POLICY
   check_value CONTENT_SECURITY_POLICY "$csp" '"\\$' \
     'double quotes, backslashes nor dollar signs'
   log "Content-Security-Policy replaced by CONTENT_SECURITY_POLICY"
+  intents_csp=$csp
+  log "warning: the intents page (/intents) gets CONTENT_SECURITY_POLICY too: other apps can open the composer only if its frame-ancestors lets them (docs/cozy-intents.md)"
 else
   # - script-src: the bundle, and the inline script of index.html by its hash
   # - style-src 'unsafe-inline': the styles MUI (emotion) injects at runtime
@@ -349,29 +368,27 @@ else
   #   ($http_host: 'self' does not cover ws:/wss: in every browser); data:
   #   and blob:, read with fetch() by the composer (pasted and quoted images)
   # - frame-src blob:: the email body and HTML block frames
-  csp="default-src 'self'"
-  csp="$csp; script-src 'self'${script_hashes:+ $script_hashes}"
-  csp="$csp; style-src 'self' 'unsafe-inline'"
-  csp="$csp; img-src 'self' data: blob: cid: https: http:"
-  csp="$csp; font-src 'self' data: https: http:"
-  csp="$csp; connect-src 'self' data: blob: ws://\$http_host wss://\$http_host${connect_src:+ $connect_src}"
-  csp="$csp; frame-src 'self' blob:${frame_src:+ $frame_src}"
-  csp="$csp; frame-ancestors $frame_ancestors"
-  csp="$csp; object-src 'none'; base-uri 'self'; form-action 'self'"
-  if [ -n "$report_uri" ]; then
-    csp="$csp; report-uri $report_uri"
-  fi
+  csp=$(make_csp "$frame_ancestors")
+  # The intents page (/intents) is framed by the app that starts a
+  # cozy-stack intent, whichever it is: the handshake of cozy-interapp with
+  # the origin the stack gives, and its frameAncestors, guard it
+  # (docs/cozy-intents.md)
+  intents_csp=$(make_csp '*')
 fi
 
 case "${CSP_REPORT_ONLY:-false}" in
   true | 1 | yes)
     csp_enforced=''
     csp_report_only=$csp
+    intents_csp_enforced=''
+    intents_csp_report_only=$intents_csp
     log "Content-Security-Policy in report-only mode"
     ;;
   false | 0 | no | '')
     csp_enforced=$csp
     csp_report_only=''
+    intents_csp_enforced=$intents_csp
+    intents_csp_report_only=''
     ;;
   *) fail "CSP_REPORT_ONLY must be true or false" ;;
 esac
@@ -384,8 +401,14 @@ check_value PERMISSIONS_POLICY "$permissions_policy" '"\\$;' \
   'double quotes, backslashes, dollar signs nor semicolons'
 
 cat >"$CONF_DIR/security_headers.conf" <<EOF
-map \$uri \$twake_mail_csp { default "$csp_enforced"; }
-map \$uri \$twake_mail_csp_report_only { default "$csp_report_only"; }
+map \$request_uri \$twake_mail_csp {
+  default "$csp_enforced";
+  "~*^/intents(/callback)?/?(\\?|\$)" "$intents_csp_enforced";
+}
+map \$request_uri \$twake_mail_csp_report_only {
+  default "$csp_report_only";
+  "~*^/intents(/callback)?/?(\\?|\$)" "$intents_csp_report_only";
+}
 map \$uri \$twake_mail_referrer_policy { default "$referrer_policy"; }
 map \$uri \$twake_mail_permissions_policy { default "$permissions_policy"; }
 EOF

@@ -113,6 +113,16 @@ expect 'CSP: no worker-src, no eval, no WebAssembly' \
 expect 'CSP: script-src has no blob:' \
   "$(printf '%s' "$csp" | grep -o "script-src[^;]*" | grep -q 'blob:' && echo forbidden || echo ok)" 'ok'
 expect 'CSP on the SPA fallback too' "$(header /mailbox/inbox Content-Security-Policy)" "$csp"
+expect 'CSP: any app that starts an intent frames the intents page' \
+  "$(header '/intents?intent=abc' Content-Security-Policy)" '*frame-ancestors \*;*'
+expect 'CSP: and its login callback' \
+  "$(header '/intents/callback?code=c&state=s' Content-Security-Policy)" '*frame-ancestors \*;*'
+expect 'CSP: not the login callback of the webmail' \
+  "$(header '/callback?code=c&state=s' Content-Security-Policy)" \
+  "*frame-ancestors 'self' https://workplace.example.com;*"
+expect 'CSP: the rest of the app keeps CSP_FRAME_ANCESTORS' \
+  "$(header '/mailbox/inbox' Content-Security-Policy)" \
+  "*frame-ancestors 'self' https://workplace.example.com;*"
 expect 'X-Content-Type-Options' "$(header / X-Content-Type-Options)" 'nosniff'
 expect 'Referrer-Policy' "$(header / Referrer-Policy)" 'same-origin'
 expect 'Permissions-Policy' "$(header / Permissions-Policy)" '*camera=()*'

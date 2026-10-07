@@ -59,7 +59,8 @@ function outcomeOf(
  * Answers the invitation of an email: `CalendarEvent/accept`, `maybe`,
  * `reject`, in the language of the UI when the server writes it, or
  * `CalendarEventCounter/accept` for a counter proposal. The answer shows
- * at once on the card; a failure says why, as tmail-flutter does.
+ * at once on the card; a failure shows a translated message, the server
+ * detail going to the console.
  */
 export function useCalendarReply(
   invitation: CalendarInvitation,
@@ -79,13 +80,13 @@ export function useCalendarReply(
       const capability = session.capabilities[
         LINAGORA_CAPABILITIES.calendarEvent
       ] as CalendarEventCapability | undefined
-      const fail = (error: SetError | null): void => {
-        notify({
-          message: error
-            ? `[${error.type}] ${error.description ?? ''}`.trim()
-            : t('calendar.replyFailed'),
-          severity: 'error'
-        })
+      // The server detail goes to the console (and Sentry), the user reads
+      // a translated message
+      const fail = (error: unknown): void => {
+        if (error !== null) {
+          console.error('[calendar] Cannot answer the invitation', error)
+        }
+        notify({ message: t('calendar.replyFailed'), severity: 'error' })
       }
       if (next === 'acceptCounter' && capability?.counterSupport !== true) {
         fail(null)
@@ -106,8 +107,8 @@ export function useCalendarReply(
           current ? { ...current, attendance: ATTENDANCE[next] } : current
         )
         notify({ message: t(SUCCESS[next]), severity: 'success' })
-      } catch {
-        fail(null)
+      } catch (error: unknown) {
+        fail(error)
       } finally {
         setPending(null)
       }

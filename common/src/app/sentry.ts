@@ -1,4 +1,10 @@
 import * as Sentry from '@sentry/react'
+import type { FeedbackLabels } from '@linagora/twake-feedback'
+import {
+  attachFeedback,
+  makeFeedbackIntegration,
+  type FeedbackIntegration
+} from '@linagora/twake-feedback/sentry'
 
 import {
   isFeedbackEvent,
@@ -70,7 +76,7 @@ function sameSetup(a: SentrySetup, b: SentrySetup): boolean {
  * checks, so a revocation drops what is not sent yet.
  *
  * What the SDK sends is limited by the options of `start`: no default PII, no
- * session replay, profiling nor tracing, the feedback widget only when the
+ * session replay, profiling nor tracing, the feedback form only when the
  * deployment turns it on, and every event and breadcrumb is rebuilt by
  * `sentryEvents.ts`.
  */
@@ -78,6 +84,8 @@ export class SentryLifecycle {
   private readonly options: SentryLifecycleOptions
   private wanted: SentryReporting | null = null
   private running: SentryReporting | null = null
+  private feedback: FeedbackIntegration | null = null
+  private feedbackStarts = 0
   private queue: Promise<void> = Promise.resolve()
   private readonly listeners = new Set<() => void>()
 
@@ -101,6 +109,30 @@ export class SentryLifecycle {
    */
   isFeedbackRunning(): boolean {
     return this.running?.setup.feedbackEnabled === true
+  }
+
+  /**
+   * Changes at every start with the feedback integration, 0 while it is not
+   * running: the button, keyed by it, plugs itself again on the new form.
+   * Meant for `useSyncExternalStore`, with `subscribe`.
+   */
+  feedbackGeneration(): number {
+    return this.isFeedbackRunning() ? this.feedbackStarts : 0
+  }
+
+  /**
+   * Plugs the feedback form on `el` (the button of the shell) and returns the
+   * way to detach it, which also removes the form. A no-op while the feedback
+   * is not running.
+   */
+  attachFeedback(el: HTMLElement, labels: Partial<FeedbackLabels>): () => void {
+    if (this.feedback === null) return () => undefined
+    return attachFeedback(this.feedback, el, labels)
+  }
+
+  /** Sets the colour scheme of the feedback form (no-op without feedback) */
+  setFeedbackTheme(scheme: 'light' | 'dark' | 'system'): void {
+    this.feedback?.setTheme(scheme)
   }
 
   /** Calls `listener` when the SDK starts or stops; returns the way to stop */
@@ -148,6 +180,12 @@ export class SentryLifecycle {
 
   private start(reporting: SentryReporting): void {
     const { setup } = reporting
+    // The synchronous integration, bundled with the app: the lazy one loads
+    // code from Sentry's CDN, which `script-src 'self'` refuses. No button of
+    // its own: the shell mounts the one of `twake-feedback`, which plugs the
+    // form on itself (`attachFeedback`). One per start: the SDK keeps the
+    // client it is added to
+    const feedback = setup.feedbackEnabled ? makeFeedbackIntegration() : null
     try {
       Sentry.init({
         dsn: setup.dsn,
@@ -199,28 +237,15 @@ export class SentryLifecycle {
               return this.isAllowed() ? scrubFeedbackEvent(event) : null
             }
           },
-          ...(setup.feedbackEnabled
-            ? [
-                // The synchronous integration, bundled with the app: the
-                // lazy one loads code from Sentry's CDN, which
-                // `script-src 'self'` refuses. No button of its own, the
-                // shell of the app mounts one (`FeedbackWidget`)
-                Sentry.feedbackIntegration({
-                  autoInject: false,
-                  enableScreenshot: true,
-                  showBranding: false,
-                  showName: false,
-                  showEmail: true,
-                  isEmailRequired: false
-                })
-              ]
-            : [])
+          ...(feedback ? [feedback] : [])
         ],
         beforeSend: (event, hint) =>
           this.isAllowed() ? scrubEvent(event, hint) : null,
         beforeBreadcrumb: breadcrumb =>
           this.isAllowed() ? scrubBreadcrumb(breadcrumb) : null
       })
+      this.feedback = feedback
+      if (feedback !== null) this.feedbackStarts += 1
       this.running = reporting
       this.moveUser(reporting)
       this.notify()
@@ -238,10 +263,12 @@ export class SentryLifecycle {
   private async stop(): Promise<void> {
     const hadFeedback = this.isFeedbackRunning()
     this.running = null
+    this.feedback = null
     this.notify()
-    // Neither `close` nor the `remove` of the integration takes the host of
-    // the widget out of the page (it looks for the parent of the shadow root,
-    // which has none), and the next client would add a second one
+    // The button detaches its form when it unmounts, but neither `close` nor
+    // the `remove` of the integration takes the host of the form out of the
+    // page (it looks for the parent of the shadow root, which has none), and
+    // the next client would add a second one
     if (hadFeedback) {
       Sentry.getFeedback()?.remove()
       document.getElementById(FEEDBACK_HOST_ID)?.remove()

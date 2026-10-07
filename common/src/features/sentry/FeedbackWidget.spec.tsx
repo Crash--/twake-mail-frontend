@@ -1,5 +1,6 @@
-import { act, type RenderResult } from '@testing-library/react'
+import { act, screen, type RenderResult } from '@testing-library/react'
 
+import { FLOATING_ACTION_INSET } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { resolveConfig } from '@common/config/config'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -13,42 +14,36 @@ jest.mock('cozy-external-bridge', () => ({
 
 const mockStore = {
   isRunning: false,
+  generation: 0,
   listeners: new Set<() => void>()
 }
 
 function setRunning(isRunning: boolean): void {
+  if (isRunning) mockStore.generation += 1
   mockStore.isRunning = isRunning
   for (const listener of mockStore.listeners) listener()
 }
 
+const mockDetach = jest.fn()
+const mockAttach = jest.fn(
+  (_el: HTMLElement, _labels: Record<string, string>) => mockDetach
+)
+const mockSetTheme = jest.fn()
+
 jest.mock('@common/app/sentry', () => ({
-  FEEDBACK_HOST_ID: 'sentry-feedback',
   sentryLifecycle: {
     subscribe: (listener: () => void): (() => void) => {
       mockStore.listeners.add(listener)
       return () => mockStore.listeners.delete(listener)
     },
-    isFeedbackRunning: (): boolean => mockStore.isRunning
-  }
-}))
-
-const mockRemoveFromDom = jest.fn()
-const mockCreateWidget = jest.fn((_labels: Record<string, string>) => {
-  const host = document.createElement('div')
-  host.id = 'sentry-feedback'
-  document.body.appendChild(host)
-  return {
-    removeFromDom: () => {
-      mockRemoveFromDom()
-      host.remove()
+    feedbackGeneration: (): number =>
+      mockStore.isRunning ? mockStore.generation : 0,
+    attachFeedback: (el: HTMLElement, labels: Record<string, string>) =>
+      mockAttach(el, labels),
+    setFeedbackTheme: (scheme: string): void => {
+      mockSetTheme(scheme)
     }
   }
-})
-let mockHasFeedback = true
-
-jest.mock('@sentry/react', () => ({
-  getFeedback: () =>
-    mockHasFeedback ? { createWidget: mockCreateWidget } : undefined
 }))
 
 function renderWidget({
@@ -72,48 +67,42 @@ function renderWidget({
   )
 }
 
-function getHost(): HTMLElement | null {
-  return document.getElementById('sentry-feedback')
+function queryButton(): HTMLElement | null {
+  return screen.queryByTestId('twake-feedback-button')
 }
 
 describe('FeedbackWidget', () => {
   beforeEach(() => {
-    mockHasFeedback = true
+    window.localStorage.clear()
     setRunning(false)
   })
 
   it('offers nothing while the feedback is not running', () => {
     renderWidget()
 
-    expect(mockCreateWidget).not.toHaveBeenCalled()
-    expect(getHost()).toBeNull()
+    expect(queryButton()).toBeNull()
+    expect(mockAttach).not.toHaveBeenCalled()
   })
 
-  it('mounts the button once the feedback runs, with every label translated, and removes it with the shell', () => {
+  it('mounts the shared button once the feedback runs, plugs the form on it with the labels of the language, and detaches it with the shell', () => {
     setRunning(true)
     const { unmount } = renderWidget()
 
-    expect(mockCreateWidget).toHaveBeenCalledTimes(1)
-    const labels = mockCreateWidget.mock.calls[0]?.[0] ?? {}
+    const button = queryButton()
+    expect(button).not.toBeNull()
+    expect(mockAttach).toHaveBeenCalledTimes(1)
+    expect(mockAttach.mock.calls[0]?.[0]).toBe(button)
+    const labels = mockAttach.mock.calls[0]?.[1] ?? {}
     expect(labels).toMatchObject({
-      triggerLabel: 'Send feedback',
-      triggerAriaLabel: 'Send feedback',
       formTitle: 'Send feedback',
-      emailLabel: 'Email (optional)',
-      submitButtonLabel: 'Send',
-      successMessageText: 'Thank you for your feedback!'
+      submitButtonLabel: 'Send'
     })
-    for (const value of Object.values(labels)) {
-      expect(value.trim()).not.toBe('')
-      // No missing key shown as its path
-      expect(value).not.toMatch(/^feedback\./)
-    }
-    expect(getHost()).not.toBeNull()
+    expect(mockSetTheme).toHaveBeenCalledWith('light')
 
     unmount()
 
-    expect(mockRemoveFromDom).toHaveBeenCalledTimes(1)
-    expect(getHost()).toBeNull()
+    expect(mockDetach).toHaveBeenCalledTimes(1)
+    expect(queryButton()).toBeNull()
   })
 
   it('follows the reporting: removed when it stops, back when it restarts', () => {
@@ -122,45 +111,56 @@ describe('FeedbackWidget', () => {
     act(() => {
       setRunning(true)
     })
-    expect(getHost()).not.toBeNull()
+    expect(queryButton()).not.toBeNull()
 
     act(() => {
       setRunning(false)
     })
-    expect(getHost()).toBeNull()
+    expect(queryButton()).toBeNull()
+    expect(mockDetach).toHaveBeenCalledTimes(1)
 
     act(() => {
       setRunning(true)
     })
-    expect(getHost()).not.toBeNull()
-    // Once per start: a stable `t` does not recreate the widget on a render
-    expect(mockCreateWidget).toHaveBeenCalledTimes(2)
+    expect(queryButton()).not.toBeNull()
+    // Once per start: a render does not detach the form
+    expect(mockAttach).toHaveBeenCalledTimes(2)
+  })
+
+  it('plugs itself on the new form when the reporting restarts without a render in between', () => {
+    renderWidget()
+    act(() => {
+      setRunning(true)
+    })
+    expect(mockAttach).toHaveBeenCalledTimes(1)
+
+    act(() => {
+      setRunning(false)
+      setRunning(true)
+    })
+
+    expect(queryButton()).not.toBeNull()
+    expect(mockDetach).toHaveBeenCalledTimes(1)
+    expect(mockAttach).toHaveBeenCalledTimes(2)
   })
 
   it('stays out of Twake Workplace, which owns the feedback there', () => {
     setRunning(true)
     renderWidget({ isEmbedded: true })
 
-    expect(mockCreateWidget).not.toHaveBeenCalled()
-    expect(getHost()).toBeNull()
-  })
-
-  it('does nothing when the SDK has no feedback integration', () => {
-    mockHasFeedback = false
-    setRunning(true)
-    renderWidget()
-
-    expect(mockCreateWidget).not.toHaveBeenCalled()
+    expect(queryButton()).toBeNull()
+    expect(mockAttach).not.toHaveBeenCalled()
   })
 
   it('keeps the corner, or rises above the floating button of the app', () => {
     setRunning(true)
     const first = renderWidget()
-    expect(getHost()?.style.getPropertyValue('--inset')).toBe('auto 0 0 auto')
+    const lowest = Number.parseFloat(queryButton()?.style.bottom ?? '')
     first.unmount()
 
     renderWidget({ hasFloatingAction: true })
 
-    expect(getHost()?.style.getPropertyValue('--inset')).toContain('88px')
+    const raised = Number.parseFloat(queryButton()?.style.bottom ?? '')
+    expect(raised - lowest).toBeGreaterThanOrEqual(FLOATING_ACTION_INSET - 16)
   })
 })

@@ -12,6 +12,7 @@ const ESM_PACKAGES = [
   '@linagora/twake-utils',
   '@linagora/twake-css',
   '@linagora/twake-embed',
+  '@linagora/twake-feedback',
   'openid-client',
   'oauth4webapi',
   'jose',
@@ -37,6 +38,10 @@ const moduleNameMapper: Config['moduleNameMapper'] = {
     '<rootDir>/node_modules/@linagora/twake-bar/dist/index.js',
   '^@linagora/twake-sdk$':
     '<rootDir>/node_modules/@linagora/twake-sdk/dist/index.js',
+  '^@linagora/twake-feedback$':
+    '<rootDir>/node_modules/@linagora/twake-feedback/dist/index.js',
+  '^@linagora/twake-feedback/sentry$':
+    '<rootDir>/node_modules/@linagora/twake-feedback/dist/sentry.js',
   '^@injected/(.*)$': [
     '<rootDir>/apps/private/src/$1',
     '<rootDir>/common/src/$1'

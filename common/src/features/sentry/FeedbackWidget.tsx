@@ -1,51 +1,26 @@
-import * as Sentry from '@sentry/react'
-import { useTheme } from '@linagora/twake-mui'
-import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import { FeedbackButton, getFeedbackLabels } from '@linagora/twake-feedback'
+import { useColorScheme } from '@linagora/twake-mui'
+import {
+  useCallback,
+  useEffect,
+  useSyncExternalStore,
+  type ReactElement
+} from 'react'
 
 import { FLOATING_ACTION_INSET } from '@/ds/FloatingActionButton/FloatingActionButton'
-import { placeFeedbackWidget } from '@/ds/FeedbackWidgetPlacement/placeFeedbackWidget'
-import { FEEDBACK_HOST_ID, sentryLifecycle } from '@common/app/sentry'
+import { sentryLifecycle } from '@common/app/sentry'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
-import { useI18n, type I18nApi } from '@common/i18n/useI18n'
+import { useI18n } from '@common/i18n/useI18n'
+
+/** Key of the position of the button in the local storage of the browser */
+const STORAGE_KEY = 'twake-mail'
 
 function subscribe(listener: () => void): () => void {
   return sentryLifecycle.subscribe(listener)
 }
 
-function isFeedbackRunning(): boolean {
-  return sentryLifecycle.isFeedbackRunning()
-}
-
-type FeedbackLabels = Parameters<
-  NonNullable<ReturnType<typeof Sentry.getFeedback>>['createWidget']
->[0]
-
-/** Every text of the widget, in the language of the app */
-function makeLabels(t: I18nApi['t']): FeedbackLabels {
-  return {
-    triggerLabel: t('feedback.trigger'),
-    triggerAriaLabel: t('feedback.triggerAria'),
-    formTitle: t('feedback.formTitle'),
-    messageLabel: t('feedback.messageLabel'),
-    messagePlaceholder: t('feedback.messagePlaceholder'),
-    emailLabel: t('feedback.emailLabel'),
-    emailPlaceholder: t('feedback.emailPlaceholder'),
-    submitButtonLabel: t('feedback.submit'),
-    cancelButtonLabel: t('feedback.cancel'),
-    confirmButtonLabel: t('feedback.confirm'),
-    successMessageText: t('feedback.success'),
-    isRequiredLabel: t('feedback.required'),
-    addScreenshotButtonLabel: t('feedback.addScreenshot'),
-    removeScreenshotButtonLabel: t('feedback.removeScreenshot'),
-    highlightToolText: t('feedback.highlightTool'),
-    hideToolText: t('feedback.hideTool'),
-    removeHighlightText: t('feedback.removeHighlight'),
-    errorEmptyMessageText: t('feedback.errorEmptyMessage'),
-    errorNoClientText: t('feedback.errorNoClient'),
-    errorTimeoutText: t('feedback.errorTimeout'),
-    errorForbiddenText: t('feedback.errorForbidden'),
-    errorGenericText: t('feedback.errorGeneric')
-  }
+function getFeedbackGeneration(): number {
+  return sentryLifecycle.feedbackGeneration()
 }
 
 export interface FeedbackWidgetProps {
@@ -54,40 +29,42 @@ export interface FeedbackWidgetProps {
 }
 
 /**
- * The floating "Send feedback" button of the standalone webmail (Sentry user
- * feedback). It exists only while the reporting is running with the feedback
- * integration, that is: the deployment turned it on and the user opted in to
- * error reporting. Never in the facade of a team mailbox (it does not mount
- * the shell) nor inside Twake Workplace: the container owns the feedback
- * there.
+ * The draggable "Something wrong?" button of the standalone webmail (the shared
+ * `@linagora/twake-feedback`, Sentry user feedback). It exists only while the
+ * reporting is running with the feedback integration, that is: the deployment
+ * turned it on and the user opted in to error reporting. Never in the facade
+ * of a team mailbox (it does not mount the shell) nor inside Twake Workplace:
+ * the container owns the feedback there.
  */
 export function FeedbackWidget({
   hasFloatingAction
-}: FeedbackWidgetProps): null {
-  const { t } = useI18n()
-  const theme = useTheme()
+}: FeedbackWidgetProps): ReactElement | null {
+  const { lang } = useI18n()
+  const { colorScheme = 'system' } = useColorScheme()
   const isEmbedded = useIsEmbedded()
-  const isRunning = useSyncExternalStore(subscribe, isFeedbackRunning)
-  const isShown = isRunning && !isEmbedded
-  const labels = useMemo(() => makeLabels(t), [t])
-  const zIndex = theme.zIndex.speedDial
-  const bottomClearance = hasFloatingAction ? FLOATING_ACTION_INSET : 0
+  // A new generation is a new form after a restart: the keyed button attaches
+  // to it again
+  const generation = useSyncExternalStore(subscribe, getFeedbackGeneration)
+  const isShown = generation > 0 && !isEmbedded
 
   useEffect(() => {
-    if (!isShown) return undefined
-    const widget = Sentry.getFeedback()?.createWidget(labels)
-    if (widget === undefined) return undefined
-    return () => {
-      widget.removeFromDom()
-    }
-  }, [isShown, labels])
+    if (isShown) sentryLifecycle.setFeedbackTheme(colorScheme)
+  }, [isShown, colorScheme])
 
-  // After the widget is created, and again when what it must avoid changes
-  useEffect(() => {
-    if (!isShown) return
-    const host = document.getElementById(FEEDBACK_HOST_ID)
-    if (host) placeFeedbackWidget(host, { bottomClearance, zIndex })
-  }, [isShown, labels, bottomClearance, zIndex])
+  // Memoized: a new function detaches the form and closes it if it is open
+  const attach = useCallback(
+    (el: HTMLElement) =>
+      sentryLifecycle.attachFeedback(el, getFeedbackLabels(lang)),
+    [lang]
+  )
 
-  return null
+  if (!isShown) return null
+  return (
+    <FeedbackButton
+      key={generation}
+      attach={attach}
+      storageKey={STORAGE_KEY}
+      bottomOffset={hasFloatingAction ? FLOATING_ACTION_INSET : 0}
+    />
+  )
 }

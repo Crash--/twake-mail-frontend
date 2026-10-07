@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react'
+import { waitFor } from '@testing-library/react'
 
 import { makeRecorder, parseItems } from '@common/testing/sentryRecorder'
 
@@ -18,6 +19,25 @@ const WITH_FEEDBACK: SentryReporting = {
   ...REPORTING,
   setup: { ...REPORTING.setup, feedbackEnabled: true }
 }
+
+// jsdom has no `isSecureContext`, which the form reads to offer a screenshot
+const secureContext = Object.getOwnPropertyDescriptor(
+  globalThis,
+  'isSecureContext'
+)
+beforeAll(() => {
+  Object.defineProperty(globalThis, 'isSecureContext', {
+    value: false,
+    configurable: true
+  })
+})
+afterAll(() => {
+  if (secureContext) {
+    Object.defineProperty(globalThis, 'isSecureContext', secureContext)
+  } else {
+    Reflect.deleteProperty(globalThis, 'isSecureContext')
+  }
+})
 
 const consoleMethods = { ...console }
 beforeAll(() => {
@@ -141,17 +161,38 @@ describe('SentryLifecycle, user feedback', () => {
     expect(sent.join('')).not.toContain('while closing')
   })
 
-  it('removes the widget with the client, so a restart does not add a second one', async () => {
+  it('opens the form from the button it is attached to, and removes it with the client, so a restart does not add a second one', async () => {
+    const button = document.createElement('button')
+    document.body.appendChild(button)
     await lifecycle.apply(WITH_FEEDBACK)
-    Sentry.getFeedback()?.createWidget()
-    expect(document.querySelectorAll('#sentry-feedback')).toHaveLength(1)
+    lifecycle.attachFeedback(button, {})
+    button.click()
+    await waitFor(() =>
+      expect(document.querySelectorAll('#sentry-feedback')).toHaveLength(1)
+    )
 
     await lifecycle.apply(null)
     expect(document.getElementById('sentry-feedback')).toBeNull()
 
     await lifecycle.apply(WITH_FEEDBACK)
-    Sentry.getFeedback()?.createWidget()
-    expect(document.querySelectorAll('#sentry-feedback')).toHaveLength(1)
+    lifecycle.attachFeedback(button, {})
+    button.click()
+    await waitFor(() =>
+      expect(document.querySelectorAll('#sentry-feedback')).toHaveLength(1)
+    )
+    button.remove()
+  })
+
+  it('attaches nothing while the feedback is not running', async () => {
+    const button = document.createElement('button')
+    document.body.appendChild(button)
+    await lifecycle.apply(REPORTING)
+
+    lifecycle.attachFeedback(button, {})
+    button.click()
+
+    expect(document.getElementById('sentry-feedback')).toBeNull()
+    button.remove()
   })
 
   it('tells its subscribers when the feedback starts and stops', async () => {

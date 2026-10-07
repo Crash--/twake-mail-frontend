@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createClient } from 'jmap-client-ts'
 
+import { sentryLifecycle } from '@common/app/sentry'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
@@ -110,6 +111,16 @@ describe('TeamMailboxEmbedApp', () => {
 
   afterEach(() => {
     window.history.replaceState(null, '', '/')
+  })
+
+  it('never shows the feedback button, even with the reporting and its feedback running: TwakeSpace has its own', async () => {
+    jest.spyOn(sentryLifecycle, 'isFeedbackRunning').mockReturnValue(true)
+    jest.spyOn(sentryLifecycle, 'feedbackGeneration').mockReturnValue(1)
+    jest.spyOn(sentryLifecycle, 'isRunning').mockReturnValue(true)
+    renderEmbed(`${BASE}/mailbox/team-sent`)
+
+    expect(await screen.findByTestId('mailbox-page')).toBeVisible()
+    expect(screen.queryByTestId('twake-feedback-button')).toBe(null)
   })
 
   it('comes back to the facade after the SSO', () => {

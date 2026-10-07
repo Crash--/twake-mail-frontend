@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "Twake Mail"
+    "name": "Twake Mail",
+    "skipToContent": "Перейти к основному содержимому"
   },
   "common": {
     "retry": "Повторить попытку",

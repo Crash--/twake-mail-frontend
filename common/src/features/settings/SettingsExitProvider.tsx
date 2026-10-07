@@ -40,6 +40,25 @@ export function SettingsExitProvider({
   )
 }
 
+/**
+ * The location state of "Back to mail": the focus goes back to the
+ * Settings button, which opened them
+ */
+export interface SettingsExitState {
+  fromSettings: true
+}
+
+export const SETTINGS_EXIT_STATE: SettingsExitState = { fromSettings: true }
+
+export function isSettingsExitState(state: unknown): boolean {
+  return (
+    typeof state === 'object' &&
+    state !== null &&
+    'fromSettings' in state &&
+    state.fromSettings === true
+  )
+}
+
 /** Where leaving the settings goes */
 export function useSettingsExitPath(): string {
   return useContext(SettingsExitContext)

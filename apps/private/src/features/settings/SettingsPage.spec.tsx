@@ -50,6 +50,25 @@ describe('Settings', () => {
       'data-mailbox-id',
       'mailbox-sent'
     )
+    // Back to what opened the settings, not to the page body
+    await waitFor(() => {
+      expect(screen.getByTestId('settings-button')).toHaveFocus()
+    })
+  })
+
+  it('gives the focus back to the settings button on a phone', async () => {
+    mockViewport({ width: 390, touch: true })
+    renderWithProviders(<AppRoutes />, { route: '/mailbox/mailbox-sent' })
+    await screen.findByTestId('mailbox-page')
+
+    await userEvent.click(screen.getByTestId('settings-button'))
+    await screen.findByTestId('settings-section-list')
+
+    await userEvent.click(screen.getByTestId('settings-back-button'))
+    await screen.findByTestId('mailbox-page')
+    await waitFor(() => {
+      expect(screen.getByTestId('settings-button')).toHaveFocus()
+    })
   })
 
   it('lists the sections on a phone, then opens one in their place', async () => {

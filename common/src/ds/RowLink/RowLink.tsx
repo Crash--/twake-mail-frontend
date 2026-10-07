@@ -5,6 +5,10 @@
 import { Link } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, ReactNode } from 'react'
 
+import {
+  FOCUS_RING,
+  FOCUS_RING_INSET
+} from '@/ds/FocusIndicator/focusIndicator'
 import { ROW_FOCUS_ATTRIBUTE } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 
 export interface RowLinkProps {
@@ -70,14 +74,11 @@ export function RowLink({
       className={multiline ? 'u-db u-ov-hidden' : 'u-db u-ellipsis'}
       {...{ [ROW_FOCUS_ATTRIBUTE]: true }}
       data-testid={testId}
-      sx={theme => ({
+      sx={{
         '&::after': { content: '""', position: 'absolute', inset: 0 },
         '&:focus-visible': { outline: 'none' },
-        '&:focus-visible::after': {
-          outline: `2px solid ${theme.palette.primary.main}`,
-          outlineOffset: '-2px'
-        }
-      })}
+        '&:focus-visible::after': { ...FOCUS_RING, ...FOCUS_RING_INSET }
+      }}
     >
       {children}
     </Link>

@@ -83,7 +83,8 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
   conversation « new compact » (`other-pages/threads-frame.png`). La page « COMPOSE SCREENS 1.1 » date de 2024 : à ignorer.
 - **Règles** : palette officielle telle quelle, **pas de correction de contraste** (thème dédié plus tard ; axe le signale en
   annotation). twake-mui d'abord (voir `component-check.md` : `SearchBar elevation={0}`, `Snackbar`+`Alert` pour le hors ligne,
-  `NavDesktopDropdown` pour les en-têtes repliables…), `@/ds/` sinon, pas de surcharge du thème global.
+  `NavDesktopDropdown` pour les en-têtes repliables…), `@/ds/` sinon, pas de surcharge du thème global
+  (exception voulue par Quentin : l'indicateur de focus, une règle globale dans le thème, `ds/FocusIndicator`).
 - **Fait** : sidebar, barre du haut, liste, recherche (ouverte, filtres, avancée), lecture et conversation, composer et
   éditeur (desktop, tablette, téléphone), libellés, skeletons (liste, recherche, arbre, lecture) et bannière hors ligne (D8). Captures `after-*` par lot dans le cache.
 - **Reste à faire** : mode sombre, réglages, mobile

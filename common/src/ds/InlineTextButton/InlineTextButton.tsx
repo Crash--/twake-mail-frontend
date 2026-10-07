@@ -5,6 +5,8 @@
 import { alpha, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
+
 export interface InlineTextButtonProps {
   children: ReactNode
   onClick: () => void
@@ -36,11 +38,7 @@ export function InlineTextButton({
         textDecoration: isUnderlined ? 'underline' : 'none',
         color: alpha(theme.palette.grey[900], 0.8),
         '&:hover': { bgcolor: 'action.hover' },
-        '&.Mui-focusVisible': {
-          outline: 2,
-          outlineColor: 'primary.main',
-          outlineOffset: -2
-        },
+        ...FOCUS_RING_INSET,
         ...theme.applyStyles('dark', {
           color: alpha(theme.palette.common.white, 0.8)
         })

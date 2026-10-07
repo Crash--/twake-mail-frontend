@@ -92,7 +92,7 @@ export function ColorTag({
               color: textColor,
               fontSize: '0.875rem',
               lineHeight: 1,
-              '&:focus-visible': { outline: `2px solid ${textColor}` }
+              '--focus-ring-color': textColor
             }}
           >
             ×

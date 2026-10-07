@@ -2,6 +2,8 @@
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import { useId, type ReactElement, type ReactNode, type Ref } from 'react'
 
+import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
+
 import { MESSAGE_TOGGLE_ATTRIBUTE } from './MessageThread'
 
 const ITEM_SX = {
@@ -30,11 +32,7 @@ const TOGGLE_SX = {
   px: 2,
   py: 1,
   borderRadius: 1,
-  '&.Mui-focusVisible': {
-    outline: 2,
-    outlineColor: 'primary.main',
-    outlineOffset: -2
-  },
+  ...FOCUS_RING_INSET,
   '@media (prefers-reduced-motion: reduce)': { transition: 'none' }
 } as const
 

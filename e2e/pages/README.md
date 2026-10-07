@@ -275,6 +275,7 @@ Conventions:
 | `attachment-preview` (+ `-close`, `-download`) | the full-screen dialog previewing an attachment, named after the file; `attachment-preview-image` / `-text` / `-html` / `-eml` / `-error` its content, `pdf-preview` the PDF canvases | `PDFViewer`, `HtmlAttachmentPreviewer`, `TwakeImagePreviewer` |
 | `spam-report-banner` / `spam-report-banner-view` / `spam-report-banner-dismiss` | the unread spam reminder above the lists, its "View" and close buttons | `ReportMessageBanner` |
 | `spam-report-setting-toggle` / `drive-attachment-setting-toggle` | Settings → Preferences: spam report, Drive button of the composer | `SpamReportPreferenceOption`, `DriveAttachmentPreferenceOption` |
+| `accessibility-setting-toggle` | Settings → Preferences: thick outline on the keyboard focus (not in tmail-flutter) | — |
 | `email-view-action-print` | toolbar button "Print all" of an open email (not on phones, not for a message of a conversation) | `icPrinter` button (`printAll`) |
 | `email-action-print` / `email-action-download-eml` / `email-action-edit-as-new` / `email-action-unsubscribe` | items of the "More" menu of an open email; `edit-as-new` is also in the menu of a list row (not in Drafts nor Templates) | `printAll_action`, `downloadMessageAsEML_action`, `editAsNewEmail_action`, `unsubscribe_action` |
 | `email-unsubscribe-link` | "Unsubscribe" link after the sender of an email (or message of a conversation) with a usable `List-Unsubscribe` link, not yet unsubscribed; not on phones | `unsubscribe` text button |

@@ -1,5 +1,10 @@
 import type { EmailBodyPart, EmailBodyValue } from 'jmap-client-ts'
 
+import {
+  FOCUS_RING_WIDTH,
+  type FocusIndicator
+} from '@/ds/FocusIndicator/focusIndicator'
+
 import { autolink } from './autolink'
 import {
   normalizeCid,
@@ -58,7 +63,6 @@ details.tmail-quoted-history > summary {
 }
 details.tmail-quoted-history > summary::-webkit-details-marker { display: none; }
 details.tmail-quoted-history > summary:hover { background: #cdd3dc; }
-details.tmail-quoted-history > summary:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
 details.tmail-quoted-history > summary > span { width: 4px; height: 4px; border-radius: 50%; background: #55687d; }
 `
 
@@ -144,19 +148,31 @@ export function joinHtmlValues(
 export interface EmailDocumentOptions {
   /** Lets the CSP load the remote images and fonts the content kept */
   allowRemoteContent?: boolean
+  /** The focus indicator the user chose: the theme does not reach the frame */
+  focusIndicator?: FocusIndicator
+}
+
+// The "•••" of the quoted history is the only control of the document
+// (links excepted, which keep the outline of the browser), outlined as the
+// theme does outside the frame
+function focusCss(focusIndicator: FocusIndicator): string {
+  return `details.tmail-quoted-history > summary:focus-visible { outline: ${String(FOCUS_RING_WIDTH[focusIndicator])}px solid #0a84ff; outline-offset: 2px; }`
 }
 
 /** The whole document of the iframe, around already sanitized content */
 export function buildEmailDocument(
   sanitizedContent: string,
-  { allowRemoteContent = false }: EmailDocumentOptions = {}
+  {
+    allowRemoteContent = false,
+    focusIndicator = 'discreet'
+  }: EmailDocumentOptions = {}
 ): string {
   return [
     '<!doctype html><html><head><meta charset="utf-8">',
     `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy(allowRemoteContent)}">`,
     '<meta name="referrer" content="no-referrer">',
     '<base target="_blank">',
-    `<style>${EMAIL_DOCUMENT_CSS}</style>`,
+    `<style>${EMAIL_DOCUMENT_CSS}${focusCss(focusIndicator)}</style>`,
     `</head><body><div id="${EMAIL_CONTENT_ID}">${sanitizedContent}</div></body></html>`
   ].join('')
 }

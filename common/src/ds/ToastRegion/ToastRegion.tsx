@@ -159,10 +159,7 @@ function controlStyle(theme: Theme): SystemStyleObject<Theme> {
   return {
     color: 'inherit',
     flexShrink: 0,
-    '&:focus-visible': {
-      outline: `2px solid ${theme.palette.common.white}`,
-      outlineOffset: '2px'
-    }
+    '--focus-ring-color': theme.palette.common.white
   }
 }
 

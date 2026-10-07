@@ -155,12 +155,7 @@ function fieldSx(isOpen: boolean): SxProps<Theme> {
           '&&': { bgcolor: 'transparent' },
           '& .SearchBar-focusHighlight': { display: 'none' }
         }
-      : {
-          '&:has(input:focus-visible)': {
-            outline: '2px solid',
-            outlineColor: 'primary.main'
-          }
-        })
+      : {})
   }
 }
 

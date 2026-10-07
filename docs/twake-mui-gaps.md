@@ -188,6 +188,7 @@ before that decision (`ds/EventCard`, `ds/SecondaryText`,
 | `Checkbox indeterminate` | `aria-conditional-attr` | MUI puts `aria-checked="mixed"` on an input it leaves unchecked (it does not set the `indeterminate` property) | Set `input.indeterminate` instead of `aria-checked`. Worked around: the "Select all" checkbox of the selection toolbar is never indeterminate |
 | Theme `error.main` (#ff3347) as text | `color-contrast` | 3.61:1 on white ("Delete folder", "Delete permanently" in menus) | A darker `error.main` for text. Worked around: `error.dark` for the destructive menu items |
 | `Drawer` | (review) | The paper has no role nor name: a screen reader does not know a panel opened | `role="dialog"`, `aria-modal` and a label on the temporary variant. Worked around in `ds/NavigationDrawer` |
+| Theme (focus indicator) | (review, WCAG 2.4.7) | twake-mui draws no focus style of its own, beyond the MUI tints: each component drew a 2 px outline, also shown on a click in a text field (`:focus-visible`), and nothing lets a user ask for a stronger one | A focus indicator in the theme (`discreet` / `enhanced`): one `:focus-visible` rule in `MuiCssBaseline` and `.Mui-focusVisible` in `MuiButtonBase`, set by `--focus-ring-*` custom properties. Worked around: `ds/FocusIndicator` (theme options), the choice in Settings > Preferences > Accessibility |
 | `VirtualizedTable` | (review) | No table name, header neither hideable nor hidden for screen readers only, rows not focusable, no row count | See "VirtualizedTable" above |
 
 ## Icons and twake-css

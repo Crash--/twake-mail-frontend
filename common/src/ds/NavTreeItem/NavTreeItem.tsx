@@ -19,6 +19,10 @@ import {
 } from 'react'
 
 import { DropTarget } from '@/ds/DropTarget/DropTarget'
+import {
+  FOCUS_RING,
+  FOCUS_RING_INSET
+} from '@/ds/FocusIndicator/focusIndicator'
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 
 /** Start padding of the first level (the 8 px of the row) */
@@ -171,11 +175,8 @@ export function NavTreeItem({
               inset: 0,
               borderRadius: '8px'
             },
-            '&.Mui-focusVisible::after': {
-              outline: '2px solid',
-              outlineColor: 'primary.main',
-              outlineOffset: '-2px'
-            }
+            '&.Mui-focusVisible': { outline: 'none' },
+            '&.Mui-focusVisible::after': { ...FOCUS_RING, ...FOCUS_RING_INSET }
           }}
         >
           <Box
@@ -320,12 +321,6 @@ export function NavTreeItem({
         borderRadius: '8px',
         backgroundColor: isSelected ? theme.palette.action.selected : undefined,
         '&:hover': { backgroundColor: rowBackground(theme) },
-        // A tree row holds the focus (the link is for the pointer)
-        '&[role="treeitem"]:focus-visible': {
-          outline: '2px solid',
-          outlineColor: theme.palette.primary.main,
-          outlineOffset: '-2px'
-        },
         ...(hasActions
           ? {
               '& [data-nav-actions]': { ml: 'auto' },

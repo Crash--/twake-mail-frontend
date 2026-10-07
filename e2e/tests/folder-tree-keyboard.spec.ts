@@ -285,11 +285,14 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
     await page.keyboard.press('ArrowUp')
     await mailbox.expectFolderFocused({ name: 'Starred' })
 
-    // A row with the keyboard focus has an outline
-    const outline = await mailbox
-      .folder({ name: 'Starred' })
-      .evaluate(row => getComputedStyle(row).outlineStyle)
-    expect(outline).toBe('solid')
+    // A row with the keyboard focus is outlined by the theme: a thin line
+    // by default, a thick one once the user asks for the enhanced indicator
+    const focusOutline = async (): Promise<string> =>
+      mailbox.folder({ name: 'Starred' }).evaluate(row => {
+        const style = getComputedStyle(row)
+        return `${style.outlineWidth} ${style.outlineStyle}`
+      })
+    expect(await focusOutline()).toBe('1px solid')
 
     // Escape is left alone; a letter belongs to the tree, whether a folder
     // starts with it or not ("q": none): "c" does not open the composer
@@ -301,5 +304,11 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
     // Punctuation stays for the shortcuts of the page: "/" focuses the search
     await page.keyboard.press('/')
     await expect(page.getByTestId('search-input')).toBeFocused()
+
+    await mailbox.setEnhancedFocus(true)
+    await mailbox.focusFolder({ role: 'inbox' })
+    await page.keyboard.press('ArrowDown')
+    await mailbox.expectFolderFocused({ name: 'Starred' })
+    expect(await focusOutline()).toBe('3px solid')
   })
 })

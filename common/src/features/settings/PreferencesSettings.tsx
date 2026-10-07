@@ -15,6 +15,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { PreferenceOption } from './PreferenceOption'
 import type { SettingsSection } from './sections'
+import { useAccessibilityPreference } from './accessibilityPreference'
 import { SettingsSectionLayout } from './SettingsSectionLayout'
 import {
   canChangeServerSetting,
@@ -42,7 +43,8 @@ export interface PreferencesSettingsProps {
  * only when error reporting is configured), the conversation view, the
  * spam report, the AI assistant, the labels and the Drive button of the
  * composer (kept in this browser), and, with the AI capability, the label
- * categorisation (setting of the account).
+ * categorisation (setting of the account). Then the accessibility mode
+ * (kept in this browser, not in tmail-flutter).
  */
 export function PreferencesSettings({
   section
@@ -55,6 +57,7 @@ export function PreferencesSettings({
   const threadPreference = useThreadPreference()
   const spamReport = useSpamReportPreference()
   const driveAttachment = useDriveAttachmentPreference()
+  const accessibility = useAccessibilityPreference()
   // Without a Drive for the user there is no button to show or hide
   const hasDrive = useDriveUrl() !== null
   const [isLabelVisible, setLabelVisible] = useLabelVisibility()
@@ -177,6 +180,14 @@ export function PreferencesSettings({
           data-testid="drive-attachment-setting-toggle"
         />
       ) : null}
+      <PreferenceOption
+        title={t('settings.preferences.accessibility')}
+        description={t('settings.preferences.accessibilityDescription')}
+        toggleLabel={t('settings.preferences.accessibilityToggle')}
+        isChecked={accessibility.isEnabled}
+        onChange={accessibility.setEnabled}
+        data-testid="accessibility-setting-toggle"
+      />
       {errorReporting.isConfigured && errorReporting.canChoose ? (
         <PreferenceOption
           title={t('settings.preferences.errorReporting')}

@@ -54,6 +54,15 @@ step: a feature is not done until it is accessible.
 - **Keyboard**: everything works without a mouse (Tab, Shift+Tab, Enter,
   Space, Escape, arrows where the pattern expects them), in a logical order,
   with a visible focus.
+- **Focus indicator**: the theme draws it, for the whole app, from
+  `@/ds/FocusIndicator/focusIndicator` (one `:focus-visible` /
+  `.Mui-focusVisible` rule). Two looks, chosen in Settings > Preferences >
+  Accessibility (kept in the browser, off by default): discreet, a 1 px
+  line and nothing in a text field (a click shows `:focus-visible` there
+  too); enhanced, a 3 px outline on everything that takes the focus. A
+  component never sets an `outline` on focus; in `@/ds/` only, it may change
+  the `--focus-ring-*` custom properties (another colour, drawn inside with
+  `FOCUS_RING_INSET`) or put `FOCUS_RING` on another element (`::after`).
 - **Focus management**: opening a view or a dialog moves the focus into it
   (its heading or first control); closing it gives the focus back to what
   opened it. Changing route moves the focus to the new main content.

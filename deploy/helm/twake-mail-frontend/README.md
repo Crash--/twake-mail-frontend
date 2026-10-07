@@ -127,6 +127,7 @@ ingress-nginx do).
 | `config.workplaceEmbedding` | `false` | Inside an iframe of Twake Workplace, leave the logotype and the app grid to the container |
 | `config.twakeSpaceUrl` | `""` | `TWAKE_SPACE_URL`: TwakeSpace, whose Mail tab frames the facade of a team mailbox; allow it in `csp.frameAncestors` |
 | `config.forwardWarningMessage` | `""` | |
+| `config.twakeBarEnabled` | `false` | `TWAKE_BAR_ENABLED`: the top bar of Twake Workplace (OIDC only); allow the Workplace hosts in `csp.connectSrc` |
 | `config.tdrive.enabled`, `config.tdrive.intentUrl` | `false`, `""` | Twake Drive picker of the composer (OIDC only); `intentUrl` is the Drive (cozy-stack) of the user, a URI template |
 | `config.extraEnvJs` | `""` | JavaScript appended to `.env.js` as is |
 | `config.appList` | `[]` | Apps of the app grid: `name`, `link`, `icon` (URI templates allowed) |

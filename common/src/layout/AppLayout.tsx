@@ -38,18 +38,20 @@ import {
   RecoveryProvider
 } from '@common/features/recovery/RecoveryProvider'
 import { VacationBanner } from '@common/features/vacation/VacationBanner'
+import { PlatformProvider } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { AppHeader } from './AppHeader'
 import { MailSidebar } from './MailSidebar'
 import { MailSearchRow } from './MailSearchRow'
-import { TopBar } from './TopBar'
 
 export interface AppLayoutProps {
   apps: readonly AppListEntry[]
 }
 
 /**
- * Frame of the signed-in pages: top bar, sidebar, and the routed content.
+ * Frame of the signed-in pages: top bar (the platform bar of Twake
+ * Workplace above it when it is on), sidebar, and the routed content.
  * Below the desktop size the sidebar is a drawer, closed as soon as the user
  * goes somewhere, and "New message" a floating button, hidden while an email
  * fills the screen. In the settings, a desktop shows their sections in
@@ -59,7 +61,9 @@ export interface AppLayoutProps {
 export function AppLayout(props: AppLayoutProps): ReactElement {
   return (
     <MailProviders>
-      <AppFrame {...props} />
+      <PlatformProvider>
+        <AppFrame {...props} />
+      </PlatformProvider>
     </MailProviders>
   )
 }
@@ -142,7 +146,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
       <OfflineNotice />
       <SentryReportingSync />
       <FeedbackWidget hasFloatingAction={showComposeFab} />
-      <TopBar apps={apps} onOpenFolders={handleOpenFolders} />
+      <AppHeader apps={apps} onOpenFolders={handleOpenFolders} />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}
       <Layout

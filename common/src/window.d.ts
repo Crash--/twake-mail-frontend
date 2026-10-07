@@ -67,6 +67,8 @@ declare global {
     TDRIVE_ENABLED?: boolean | string
     /** URI template of the Drive (cozy-stack) of the user */
     TDRIVE_INTENT_URL?: string
+    /** The platform top bar of Twake Workplace (twake-bar) */
+    TWAKE_BAR_ENABLED?: boolean | string
 
     APP_VERSION?: string
 

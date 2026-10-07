@@ -63,6 +63,7 @@ describe('resolveConfig', () => {
         forwardWarningMessage: null,
         workplaceEmbedding: false,
         tdriveIntentUrl: null,
+        twakeBarEnabled: false,
         appVersion: 'dev',
         appList: []
       })
@@ -91,6 +92,15 @@ describe('resolveConfig', () => {
     ).toMatchObject({
       value: { tdriveIntentUrl: 'https://{localpart}.twake.example.com' }
     })
+  })
+
+  it('shows the platform top bar only when TWAKE_BAR_ENABLED is on', () => {
+    expect(
+      resolveConfig({ ...OIDC_SOURCE, TWAKE_BAR_ENABLED: 'true' }, ORIGIN)
+    ).toMatchObject({ value: { twakeBarEnabled: true } })
+    expect(
+      resolveConfig({ ...OIDC_SOURCE, TWAKE_BAR_ENABLED: 'false' }, ORIGIN)
+    ).toMatchObject({ value: { twakeBarEnabled: false } })
   })
 
   it('accepts the basic mode without any SSO setting', () => {

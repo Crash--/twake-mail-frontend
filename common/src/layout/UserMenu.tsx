@@ -7,11 +7,12 @@ import {
   useAuthService,
   useAuthState
 } from '@common/features/auth/AuthProvider'
-import { useComposer } from '@common/features/composer/ComposerProvider'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+
+import { useLogout } from './useLogout'
 
 const TEST_IDS = {
   button: 'user-avatar',
@@ -31,7 +32,7 @@ export function UserMenu(): ReactElement {
   const { session } = useJmapSession()
   const navigate = useNavigate()
   const isEmbedded = useIsEmbedded()
-  const { saveUnsaved } = useComposer()
+  const handleLogout = useLogout()
   const user =
     state.status === 'authenticated'
       ? state.user
@@ -42,16 +43,6 @@ export function UserMenu(): ReactElement {
     service.mode === 'basic'
       ? session.username
       : (user.email ?? session.username)
-
-  const handleLogout = (): void => {
-    // Signing out forgets the composers kept in the browser: the changes the
-    // server does not have are saved first (one draft each)
-    saveUnsaved()
-      .then(() => service.logout())
-      .catch((error: unknown) => {
-        console.error('[auth] Logout failed', error)
-      })
-  }
 
   return (
     <AccountMenu

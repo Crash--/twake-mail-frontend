@@ -96,6 +96,12 @@ export interface AppConfig {
    * (cozy-stack) of the user, null when `TDRIVE_ENABLED` is off
    */
   tdriveIntentUrl: string | null
+  /**
+   * The platform top bar of Twake Workplace (`@linagora/twake-bar`) instead
+   * of the app's own logotype, app grid and account menu: on with
+   * `TWAKE_BAR_ENABLED`, in OIDC mode, outside an iframe of the Workplace
+   */
+  twakeBarEnabled: boolean
   appVersion: string
   appList: AppListEntry[]
   /**
@@ -143,6 +149,7 @@ export type RuntimeConfigKey =
   | 'TWAKE_SPACE_URL'
   | 'TDRIVE_ENABLED'
   | 'TDRIVE_INTENT_URL'
+  | 'TWAKE_BAR_ENABLED'
   | 'APP_VERSION'
   | 'appList'
 
@@ -467,6 +474,7 @@ export function resolveConfig(
       tdriveIntentUrl: toBoolean(source.TDRIVE_ENABLED)
         ? normalizeString(source.TDRIVE_INTENT_URL)
         : null,
+      twakeBarEnabled: toBoolean(source.TWAKE_BAR_ENABLED),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev',
       appList,
       appDashboardUrl:

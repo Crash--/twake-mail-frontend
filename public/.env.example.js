@@ -102,6 +102,18 @@ var WORKPLACE_EMBEDDING = false
 var TDRIVE_ENABLED = false
 var TDRIVE_INTENT_URL = 'https://{workplaceFqdn}'
 
+// The top bar of Twake Workplace (@linagora/twake-bar) instead of the app's
+// own logotype, app grid and account menu: the home of the platform, the
+// help, the other apps and the account. Needs the OIDC mode: the ID token of
+// the user is traded for a token of the platform
+// (`POST https://<workplace>/auth/token_exchange`), which its cozy-stack must
+// allow for this OIDC client (`oidc.app_token_exchange`, a `mail` app
+// installed from the registry). The platform is the `workplaceFqdn` claim of
+// the SSO, else WORKPLACE_FQDN_FALLBACK; allow it in CSP_CONNECT_SRC. When
+// the platform refuses the exchange, the app shows its own bar. Off inside an
+// iframe of the Workplace (WORKPLACE_EMBEDDING), which has the bar already.
+var TWAKE_BAR_ENABLED = false
+
 // Keys of tmail-flutter that this app ignores: FCM_AVAILABLE, IOS_FCM,
 // FIREBASE_* (push notifications of the mobile apps), PLATFORM, WS_ECHO_PING,
 // COZY_INTEGRATION, COZY_EXTERNAL_BRIDGE_VERSION, FORCE_EMAIL_QUERY.

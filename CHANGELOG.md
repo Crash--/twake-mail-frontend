@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The top bar of Twake Workplace (`@linagora/twake-bar`, through
+  `@linagora/twake-sdk`) above the webmail, behind `TWAKE_BAR_ENABLED` (Helm
+  `config.twakeBarEnabled`, off by default; OIDC only): the home of the
+  platform, the help, the apps installed on it and the account menu replace
+  the logotype, the app grid and the account menu of the app. The ID token is
+  exchanged on the Workplace of the user (`workplaceFqdn` claim, else
+  `WORKPLACE_FQDN_FALLBACK`); when it refuses, the app keeps its own bar.
+  Never inside an iframe of the Workplace. See `docs/deployment.md`.
 - User feedback with Sentry: a floating "Send feedback" button (message,
   optional email, screenshot with a hide tool) in the standalone webmail, only
   when the deployment sets `SENTRY_FEEDBACK_ENABLED=true` (Helm

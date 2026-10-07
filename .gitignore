@@ -14,7 +14,6 @@
 
 # runtime configuration (copy the *.example.js files)
 public/.env.js
-public/appList.js
 
 .DS_Store
 npm-debug.log*

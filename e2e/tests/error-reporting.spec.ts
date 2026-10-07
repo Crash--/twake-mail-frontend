@@ -198,7 +198,6 @@ test.describe('SET error reporting', () => {
       .toContain('bug after the reload')
 
     // Signing out ends the reports, and forgets the user
-    await page.getByTestId('user-avatar').click()
     await page.getByTestId('logout-button').click()
     await expect(page.getByTestId('login-username-input')).toBeVisible()
     await page.waitForTimeout(500)

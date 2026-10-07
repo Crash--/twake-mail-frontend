@@ -29,8 +29,6 @@
     "opensInNewTab": "s'ouvre dans un nouvel onglet"
   },
   "topbar": {
-    "apps": "Accéder aux applications",
-    "account": "Gérer le compte",
     "logout": "Se déconnecter",
     "search": "Rechercher",
     "showFolders": "Afficher les dossiers",

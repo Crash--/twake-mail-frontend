@@ -5,7 +5,6 @@ import type { ReactElement } from 'react'
 import { ComposeButton } from '@/ds/ComposeButton/ComposeButton'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import type { AppListEntry } from '@common/config/config'
 import { LabelsSection } from '@common/features/labels/LabelsSection'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
@@ -13,11 +12,9 @@ import { SidebarSectionsProvider } from '@common/features/mailbox/SidebarSection
 import { useI18n } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
-import { AppGridMenu } from './AppGridMenu'
 import { MailSidebarFooter } from './MailSidebarFooter'
 
 export interface MailSidebarProps {
-  apps: readonly AppListEntry[]
   /** The drawer of the folders, below the desktop size */
   isDrawerOpen: boolean
   onDrawerClose: () => void
@@ -27,11 +24,9 @@ export interface MailSidebarProps {
 /**
  * The compose button and the mailbox tree: a column on a desktop, a drawer
  * on smaller screens. There, a floating button composes, and the drawer
- * header holds the logotype, and the app grid on phones (out of room in the
- * top bar).
+ * header holds the logotype.
  */
 export function MailSidebar({
-  apps,
   isDrawerOpen,
   onDrawerClose,
   onCompose
@@ -48,12 +43,9 @@ export function MailSidebar({
         label={t('layout.navigation')}
         closeLabel={t('common.close')}
         drawerHeader={
-          <>
-            <Box className="u-flex-auto u-ov-hidden">
-              {isEmbedded ? null : <AppTitle />}
-            </Box>
-            {screenSize === 'mobile' ? <AppGridMenu apps={apps} /> : null}
-          </>
+          <Box className="u-flex-auto u-ov-hidden">
+            {isEmbedded ? null : <AppTitle />}
+          </Box>
         }
         data-testid="sidebar"
         drawerTestId="mailbox-drawer"

@@ -3,30 +3,17 @@ import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
-import type { AppListEntry } from '@common/config/config'
 import type { AuthService } from '@common/features/auth/types'
-import {
-  FAKE_USERNAME,
-  makeFakeJmapServer
-} from '@common/testing/fakeJmapServer'
-import {
-  makeFakeBasicAuthService,
-  makeFakeOidcAuthService
-} from '@common/testing/makeFakeAuthService'
+import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
+import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { AppLayout } from './AppLayout'
 
-const APPS: AppListEntry[] = [
-  { name: 'Chat', link: 'https://chat.example.com', icon: '/chat.svg' },
-  { name: 'Twake Drive', link: 'https://drive.example.com', icon: '/drive.svg' }
-]
-
 function renderLayout(
-  apps: AppListEntry[] = APPS,
   authService: AuthService = makeFakeBasicAuthService()
 ): ReturnType<typeof renderWithProviders> {
-  return renderWithProviders(<AppLayout apps={apps} />, {
+  return renderWithProviders(<AppLayout />, {
     path: '/',
     authService,
     withJmapSession: true,
@@ -62,14 +49,14 @@ describe('AppLayout', () => {
 
     const row = await screen.findByTestId('search-row')
 
-    expect(
-      within(screen.getByTestId('top-bar')).queryByTestId('search-input')
-    ).toBe(null)
+    expect(screen.queryByTestId('top-bar')).toBe(null)
     expect(within(row).getByTestId('search-input')).toBeVisible()
     expect(within(row).getByRole('button', { name: 'Settings' })).toBeVisible()
     expect(
-      within(screen.getByTestId('top-bar')).getByTestId('workplace-logo')
-    ).toBeInTheDocument()
+      within(screen.getByTestId('twake-bar')).getByRole('img', {
+        name: 'Twake Mail'
+      })
+    ).toBeVisible()
   })
 
   it('keeps the search in the top bar below the desktop size', async () => {
@@ -87,7 +74,7 @@ describe('AppLayout', () => {
     function renderWithSupport(
       support: Record<string, string> | null
     ): ReturnType<typeof renderWithProviders> {
-      return renderWithProviders(<AppLayout apps={APPS} />, {
+      return renderWithProviders(<AppLayout />, {
         path: '/',
         withJmapSession: true,
         jmapServer: makeFakeJmapServer(
@@ -106,7 +93,7 @@ describe('AppLayout', () => {
     it('is absent without the contact support capability', async () => {
       renderWithSupport(null)
 
-      await screen.findByTestId('top-bar')
+      await screen.findByTestId('twake-bar')
       expect(
         screen.queryByRole('button', { name: 'Get help or report a bug' })
       ).toBe(null)
@@ -160,73 +147,17 @@ describe('AppLayout', () => {
     }
   })
 
-  it('lists the other applications in the app grid', async () => {
-    renderLayout()
-
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Go to applications' })
-    )
-
-    const [chatLink, driveLink] = screen.getAllByTestId('app-grid-item')
-    expect(chatLink).toHaveTextContent('Chat')
-    expect(driveLink).toHaveTextContent('Twake Drive')
-    expect(driveLink).toHaveAttribute('href', 'https://drive.example.com')
-    expect(driveLink).toHaveAttribute('target', '_blank')
-    expect(driveLink).toHaveAttribute('rel', 'noopener noreferrer')
-  })
-
-  it('hides the app grid when no application is configured', async () => {
-    renderLayout([])
-
-    await screen.findByTestId('top-bar')
-    expect(screen.queryByTestId('app-grid-toggle-button')).toBe(null)
-  })
-
-  it('shows who is signed in and logs out from the user menu', async () => {
+  it('logs out from the bar when there is no platform to ask', async () => {
     const authService = makeFakeBasicAuthService()
-    renderLayout(APPS, authService)
+    renderLayout(authService)
 
-    await userEvent.click(await screen.findByTestId('user-avatar'))
+    const bar = await screen.findByTestId('twake-bar')
+    expect(bar).toHaveAttribute('data-status', 'public')
+    await userEvent.click(within(bar).getByTestId('logout-button'))
 
-    const identity = screen.getByTestId('user-menu-identity')
-    expect(identity).toHaveTextContent('Alice Martin')
-    expect(identity).toHaveTextContent('alice@example.com')
-
-    await userEvent.click(screen.getByTestId('logout-button'))
-
-    expect(authService.logout).toHaveBeenCalledTimes(1)
-  })
-
-  it('shows the username of the JMAP session when the SSO gave no email', async () => {
-    renderLayout(
-      APPS,
-      makeFakeOidcAuthService({
-        status: 'authenticated',
-        user: { email: null, name: null, workplaceFqdn: null }
-      })
-    )
-
-    await userEvent.click(await screen.findByTestId('user-avatar'))
-
-    expect(screen.getByTestId('user-menu-identity')).toHaveTextContent(
-      FAKE_USERNAME
-    )
-  })
-
-  it('shows the username of the JMAP session in basic mode', async () => {
-    renderLayout(
-      APPS,
-      makeFakeBasicAuthService({
-        status: 'authenticated',
-        user: { email: 'alice', name: null, workplaceFqdn: null }
-      })
-    )
-
-    await userEvent.click(await screen.findByTestId('user-avatar'))
-
-    expect(screen.getByTestId('user-menu-identity')).toHaveTextContent(
-      FAKE_USERNAME
-    )
+    await waitFor(() => {
+      expect(authService.logout).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('focuses the search with the / key', async () => {
@@ -242,7 +173,7 @@ describe('AppLayout', () => {
   it('keeps the drawer, the menu button and the floating button off a desktop', async () => {
     renderLayout()
 
-    await screen.findByTestId('top-bar')
+    await screen.findByTestId('twake-bar')
     expect(screen.getByTestId('sidebar')).toBeInTheDocument()
     expect(screen.queryByTestId('mobile-mailbox-menu-button')).toBe(null)
     expect(screen.getAllByTestId('compose-email-button')).toHaveLength(1)
@@ -256,7 +187,7 @@ describe('AppLayout on a phone', () => {
   afterEach(resetViewport)
 
   function renderPhoneLayout(): void {
-    renderWithProviders(<AppLayout apps={APPS} />, {
+    renderWithProviders(<AppLayout />, {
       route: '/mailbox/mailbox-inbox',
       path: '*',
       withJmapSession: true,
@@ -313,10 +244,6 @@ describe('AppLayout on a phone', () => {
     const tree = within(drawer).getByRole('tree', { name: 'Mailboxes' })
     expect(
       within(drawer).getByRole('img', { name: 'Twake Mail' })
-    ).toBeVisible()
-    // The app grid moves from the top bar to the drawer
-    expect(
-      within(drawer).getByRole('button', { name: 'Go to applications' })
     ).toBeVisible()
     expect(within(drawer).queryByTestId('compose-email-button')).toBe(null)
 

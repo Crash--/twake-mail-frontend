@@ -26,7 +26,6 @@ config:
     dsn: https://public@sentry.example.com/42
     environment: ci
     feedbackEnabled: true
-  appGridAvailable: supported
   lang: fr
   calendarSpaUrl: https://calendar.example.com
   chatSpaUrl: https://{workplaceFqdn.localpart}-chat.{workplaceFqdn.domain}/
@@ -39,13 +38,6 @@ config:
     intentUrl: https://{workplaceFqdn}
   extraEnvJs: |
     var SOME_FUTURE_SETTING = 'value'
-  appList:
-    - name: Calendar
-      link: https://calendar.example.com
-      icon: /assets/images/svg/app-calendar.svg
-    - name: Drive
-      link: https://{workplaceFqdn.localpart}-drive.{workplaceFqdn.domain}
-      icon: /assets/images/svg/app-drive.svg
 csp:
   connectSrc:
     - https://*.workplace.example.com

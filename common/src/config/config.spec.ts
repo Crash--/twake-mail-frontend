@@ -63,9 +63,7 @@ describe('resolveConfig', () => {
         forwardWarningMessage: null,
         workplaceEmbedding: false,
         tdriveIntentUrl: null,
-        twakeBarEnabled: false,
-        appVersion: 'dev',
-        appList: []
+        appVersion: 'dev'
       })
     })
   })
@@ -92,15 +90,6 @@ describe('resolveConfig', () => {
     ).toMatchObject({
       value: { tdriveIntentUrl: 'https://{localpart}.twake.example.com' }
     })
-  })
-
-  it('shows the platform top bar only when TWAKE_BAR_ENABLED is on', () => {
-    expect(
-      resolveConfig({ ...OIDC_SOURCE, TWAKE_BAR_ENABLED: 'true' }, ORIGIN)
-    ).toMatchObject({ value: { twakeBarEnabled: true } })
-    expect(
-      resolveConfig({ ...OIDC_SOURCE, TWAKE_BAR_ENABLED: 'false' }, ORIGIN)
-    ).toMatchObject({ value: { twakeBarEnabled: false } })
   })
 
   it('accepts the basic mode without any SSO setting', () => {
@@ -141,24 +130,10 @@ describe('resolveConfig', () => {
     })
   })
 
-  it('reads DEBUG written as a string and keeps only valid app list entries', () => {
-    const result = resolveConfig(
-      {
-        ...OIDC_SOURCE,
-        DEBUG: 'true',
-        appList: [
-          { name: 'Chat', link: 'https://chat.example.com', icon: '/chat.svg' },
-          { name: 'Broken' },
-          'nonsense'
-        ]
-      },
-      ORIGIN
-    )
+  it('reads DEBUG written as a string', () => {
+    const result = resolveConfig({ ...OIDC_SOURCE, DEBUG: 'true' }, ORIGIN)
 
     expect(result.ok && result.value.debug).toBe(true)
-    expect(result.ok && result.value.appList).toEqual([
-      { name: 'Chat', link: 'https://chat.example.com', icon: '/chat.svg' }
-    ])
   })
 
   describe('SERVER_URL', () => {
@@ -440,70 +415,6 @@ describe('resolveConfig', () => {
     })
   })
 
-  describe('APP_GRID_AVAILABLE', () => {
-    const appList = [
-      { name: 'Chat', link: 'https://chat.example.com', icon: '/chat.svg' }
-    ]
-
-    it.each([[undefined], ['supported']])(
-      'shows the app grid when it is %j',
-      available => {
-        const { result } = resolveWithWarnings({
-          ...OIDC_SOURCE,
-          APP_GRID_AVAILABLE: available,
-          appList
-        })
-
-        expect(result.ok && result.value.appList).toEqual(appList)
-      }
-    )
-
-    it.each(['unsupported', '', 'true'])(
-      'hides it when it is %j',
-      available => {
-        const { result } = resolveWithWarnings({
-          ...OIDC_SOURCE,
-          APP_GRID_AVAILABLE: available,
-          appList
-        })
-
-        expect(result.ok && result.value.appList).toEqual([])
-      }
-    )
-
-    it('reads the apps as tmail-flutter writes them in app_dashboard.json', () => {
-      const { result } = resolveWithWarnings({
-        ...OIDC_SOURCE,
-        appList: [
-          {
-            appName: 'TDrive',
-            icon: 'ic_tdrive_app.svg',
-            appLink: 'https://tdrive.example.com/',
-            publicIconUri: 'https://tdrive.example.com/icon.svg'
-          },
-          {
-            appName: 'Calendar',
-            icon: 'ic_calendar_app.svg',
-            appLink: 'https://x/'
-          }
-        ]
-      })
-
-      expect(result.ok && result.value.appList).toEqual([
-        {
-          name: 'TDrive',
-          link: 'https://tdrive.example.com/',
-          icon: 'https://tdrive.example.com/icon.svg'
-        },
-        {
-          name: 'Calendar',
-          link: 'https://x/',
-          icon: '/assets/images/svg/app-calendar.svg'
-        }
-      ])
-    })
-  })
-
   describe('the SSO of the server', () => {
     const NO_SSO_SOURCE = {
       SERVER_URL: 'https://jmap.example.com/',
@@ -593,31 +504,6 @@ describe('resolveConfig', () => {
         expect.stringContaining('TWAKE_SPACE_URL')
       )
     })
-  })
-
-  describe('app_dashboard.json', () => {
-    it('is read from the origin of the app when the grid is supported and appList.js has no app', () => {
-      const { result } = resolveWithWarnings({
-        ...OIDC_SOURCE,
-        APP_GRID_AVAILABLE: 'supported'
-      })
-
-      expect(result.ok && result.value.appDashboardUrl).toBe(
-        `${ORIGIN}/assets/configurations/app_dashboard.json`
-      )
-    })
-
-    it.each([undefined, 'unsupported'])(
-      'is not read when APP_GRID_AVAILABLE is %j',
-      available => {
-        const { result } = resolveWithWarnings({
-          ...OIDC_SOURCE,
-          APP_GRID_AVAILABLE: available
-        })
-
-        expect(result.ok && result.value.appDashboardUrl).toBe(null)
-      }
-    )
   })
 
   describe('an env.file of tmail-flutter', () => {

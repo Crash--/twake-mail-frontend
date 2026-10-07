@@ -14,14 +14,13 @@ describe('Settings', () => {
     resetViewport()
   })
 
-  it('opens from the account menu on Profiles, and goes back to the folder left', async () => {
-    renderWithProviders(<AppRoutes apps={[]} />, {
+  it('opens from the settings button on Profiles, and goes back to the folder left', async () => {
+    renderWithProviders(<AppRoutes />, {
       route: '/mailbox/mailbox-sent'
     })
     await screen.findByTestId('mailbox-page')
 
-    await userEvent.click(screen.getByTestId('user-avatar'))
-    await userEvent.click(screen.getByTestId('settings-menu-item'))
+    await userEvent.click(screen.getByTestId('settings-button'))
 
     const heading = await screen.findByRole('heading', {
       level: 1,
@@ -53,7 +52,7 @@ describe('Settings', () => {
 
   it('lists the sections on a phone, then opens one in their place', async () => {
     mockViewport({ width: 390, touch: true })
-    renderWithProviders(<AppRoutes apps={[]} />, { route: '/settings' })
+    renderWithProviders(<AppRoutes />, { route: '/settings' })
 
     const list = await screen.findByTestId('settings-section-list')
     expect(
@@ -78,7 +77,7 @@ describe('Settings', () => {
   })
 
   it('goes back to the settings from an unknown section', async () => {
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route: '/settings/nothing-here'
     })
 
@@ -88,7 +87,7 @@ describe('Settings', () => {
   })
 
   it('switches the conversations in Preferences', async () => {
-    renderWithProviders(<AppRoutes apps={[]} />, {
+    renderWithProviders(<AppRoutes />, {
       route: '/settings/preferences'
     })
 

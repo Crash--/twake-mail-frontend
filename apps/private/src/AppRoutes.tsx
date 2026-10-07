@@ -3,8 +3,7 @@ import { Navigate, Route, Routes } from 'react-router'
 
 import {
   LOGIN_CALLBACK_PATH,
-  LOGOUT_CALLBACK_PATH,
-  type AppListEntry
+  LOGOUT_CALLBACK_PATH
 } from '@common/config/config'
 import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
@@ -41,17 +40,13 @@ import { StarredEmailPage } from './features/starred/StarredEmailPage'
 import { StarredPage } from './features/starred/StarredPage'
 import { RouteErrorScreen } from './RouteErrorScreen'
 
-export interface AppRoutesProps {
-  apps: readonly AppListEntry[]
-}
-
 /**
  * The routes of the app, as `<Route>` elements: the data router of the app
  * is made from them (`createRoutesFromElements`), so that every page is a
  * data route and its navigations can run as view transitions; `AppRoutes`
  * renders them under any router (tests).
  */
-export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
+export function appRouteElements(): ReactElement {
   return (
     // The data router shows `errorElement` when a page fails to render
     <Route errorElement={<RouteErrorScreen />}>
@@ -68,7 +63,7 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
           element={
             <JmapSessionProvider>
               <PushProvider>
-                <AppLayout apps={apps} />
+                <AppLayout />
               </PushProvider>
             </JmapSessionProvider>
           }
@@ -176,6 +171,6 @@ export function appRouteElements({ apps }: AppRoutesProps): ReactElement {
   )
 }
 
-export function AppRoutes(props: AppRoutesProps): ReactElement {
-  return <Routes>{appRouteElements(props)}</Routes>
+export function AppRoutes(): ReactElement {
+  return <Routes>{appRouteElements()}</Routes>
 }

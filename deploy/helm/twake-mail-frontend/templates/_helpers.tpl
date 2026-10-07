@@ -180,9 +180,6 @@ var SENTRY_ENVIRONMENT = {{ include "twake-mail-frontend.jsString" ($sentry.envi
 {{- if eq (toString $sentry.feedbackEnabled) "true" }}
 var SENTRY_FEEDBACK_ENABLED = "true"
 {{- end }}
-{{- with $config.appGridAvailable }}
-var APP_GRID_AVAILABLE = {{ include "twake-mail-frontend.jsString" . }}
-{{- end }}
 var DEBUG = {{ ternary "true" "false" (eq (toString $config.debug) "true") }}
 {{- with $config.lang }}
 var LANG = {{ include "twake-mail-frontend.jsString" . }}
@@ -208,17 +205,7 @@ var TDRIVE_ENABLED = {{ ternary "true" "false" (eq (toString $tdrive.enabled) "t
 {{- with $tdrive.intentUrl }}
 var TDRIVE_INTENT_URL = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
-var TWAKE_BAR_ENABLED = {{ ternary "true" "false" (eq (toString $config.twakeBarEnabled) "true") }}
 {{- with $config.extraEnvJs }}
 {{ . | trim }}
 {{- end }}
-{{- end -}}
-
-{{/*
-appList.js: the applications of the app grid
-*/}}
-{{- define "twake-mail-frontend.appListJs" -}}
-// Applications of the app grid of Twake Mail, rendered by the Helm chart
-// {{ include "twake-mail-frontend.chart" . }} from its values (config.appList).
-var appList = {{ .Values.config.appList | default list | toPrettyJson }}
 {{- end -}}

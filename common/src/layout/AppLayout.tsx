@@ -7,7 +7,6 @@ import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import type { AppListEntry } from '@common/config/config'
 import {
   ComposerProvider,
   useComposer
@@ -45,24 +44,21 @@ import { AppHeader } from './AppHeader'
 import { MailSidebar } from './MailSidebar'
 import { MailSearchRow } from './MailSearchRow'
 
-export interface AppLayoutProps {
-  apps: readonly AppListEntry[]
-}
-
 /**
- * Frame of the signed-in pages: top bar (the platform bar of Twake
- * Workplace above it when it is on), sidebar, and the routed content.
+ * Frame of the signed-in pages: the platform bar of Twake Workplace (and
+ * the bar of the mail below the desktop size), sidebar, and the routed
+ * content.
  * Below the desktop size the sidebar is a drawer, closed as soon as the user
  * goes somewhere, and "New message" a floating button, hidden while an email
  * fills the screen. In the settings, a desktop shows their sections in
  * the sidebar. The keyboard shortcuts, the folder picker, the folder
  * actions and the composers work in all of it.
  */
-export function AppLayout(props: AppLayoutProps): ReactElement {
+export function AppLayout(): ReactElement {
   return (
     <MailProviders>
       <PlatformProvider>
-        <AppFrame {...props} />
+        <AppFrame />
       </PlatformProvider>
     </MailProviders>
   )
@@ -98,7 +94,7 @@ export function MailProviders({
   )
 }
 
-function AppFrame({ apps }: AppLayoutProps): ReactElement {
+function AppFrame(): ReactElement {
   const { t } = useI18n()
   const { undoLast } = useNotify()
   const screenSize = useScreenSize()
@@ -146,7 +142,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
       <OfflineNotice />
       <SentryReportingSync />
       <FeedbackWidget hasFloatingAction={showComposeFab} />
-      <AppHeader apps={apps} onOpenFolders={handleOpenFolders} />
+      <AppHeader onOpenFolders={handleOpenFolders} />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}
       <Layout
@@ -158,7 +154,6 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
           <SettingsSidebar />
         ) : (
           <MailSidebar
-            apps={apps}
             isDrawerOpen={isDrawerOpen}
             onDrawerClose={handleCloseFolders}
             onCompose={handleCompose}

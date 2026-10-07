@@ -1,4 +1,3 @@
-export { AppGrid } from './AppGrid'
 export {
   CalendarEventCard,
   type CalendarAnswer

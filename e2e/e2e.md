@@ -55,11 +55,11 @@ the React app. One line per Patrol test, 116 lines.
 | `RULE` | Email rules | 2 | 1 | 0 |
 | `CAL` | Calendar events | 7 | 0 | 0 |
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
-| `APPGRID` | App grid | 2 | 0 | 0 |
+| `APPGRID` | App grid and platform bar | 3 | 0 | 1 |
 | `DRIVE` | Twake Drive picker | 4 | 0 | 0 |
 | `AI` | AI assistant of the composer | 2 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **163** | **24** | **6** |
+| | **Total** | **164** | **24** | **7** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -470,13 +470,15 @@ the CalDAV server (esn-sabre) of a Twake Workplace, `CalendarEvent/accept` and
 - [x] `PUSH-04` During a search grouped by conversation, scrolled down, a push of an email in the Trash (left out of the search) queries nothing and keeps the scroll; one in the Inbox queries the results again, the loaded rows and the scroll kept, the new conversation at the top. — web app only (issue #43)
   - Spec: `tests/push.spec.ts`, 40 conversations: beyond 256 messages the memory image hangs the updates of the other tests (linagora/tmail-backend#2684); more than 256 loaded rows are measured by `PERF-05` (`docs/perf/sync.md`). Passes in CI.
 
-## APPGRID — App grid (2)
+## APPGRID — App grid and platform bar (3)
 
-- [x] `APPGRID-01` The app-grid button is visible in the thread view; opening it lists exactly the expected apps in order (iOS: "Twake Drive", "Twake Chat"), and launching each app and coming back to Twake Mail still shows the same list. — `app_grid/app_grid_test.dart` · tags: `ios (default)`
+- [ ] `APPGRID-01` The app-grid button is visible in the thread view; opening it lists exactly the expected apps in order (iOS: "Twake Drive", "Twake Chat"), and launching each app and coming back to Twake Mail still shows the same list. — `app_grid/app_grid_test.dart` · tags: `ios (default)`
   - Data: needs `APP_GRID_AVAILABLE=supported` and the server app-grid configuration. The mobile robot launches the native apps and returns via the Home button. A web robot also exists (dashboard items Twake, Contacts, Calendar, TMail, TDrive, Teleskop, each opened in a new tab then closed with Ctrl+W); port that variant.
-  - Web port: `tests/appgrid.spec.ts`, `@mobile` (in the folder drawer on phones). The apps of `docker/app-list.js` (Twake Chat, Twake Drive, Twake Calendar, hosts answered by the spec) in that order, the Drive at `https://<localpart>-drive.workplace.example.test/` (URI template), each opened in a new tab, closed, the grid still listing them; axe. Passes in CI. tmail-flutter web reads its grid from `app_dashboard.json`, not from `.well-known/linagora-ecosystem` (mobile only).
-- [x] `APPGRID-02` Inside an iframe of Twake Workplace (`WORKPLACE_EMBEDDING`), the top bar has neither the logotype nor the app grid, and a gear opens the account menu (Twake Calendar's `EmbeddingContext`). — web app only
-  - Spec: `tests/appgrid.spec.ts`; the container is `/e2e/workplace.html` of the stack, on `localhost` (another origin than the app on `127.0.0.1`). Passes in CI.
+  - N/A web: the app has no app grid of its own any more; the apps are those of the Workplace of the user, in the menu of the platform bar (`@linagora/twake-bar`), which the stack cannot serve (no cozy-stack). The bar itself is covered by APPGRID-03 and its unit specs (`common/src/layout/AppLayout.platform.spec.tsx`).
+- [ ] `APPGRID-02` Inside an iframe of Twake Workplace (`WORKPLACE_EMBEDDING`), the app shows no platform bar (the container has it) and its settings stay in the page. — web app only
+  - Spec: `tests/platform-bar.spec.ts`; the container is `/e2e/workplace.html` of the stack, on `localhost` (another origin than the app on `127.0.0.1`). CI to confirm.
+- [ ] `APPGRID-03` Without a Workplace (the stack has none), the platform bar shows the logotype and a log out button instead of the menus of the platform; the button signs out. — web app only
+  - Spec: `tests/platform-bar.spec.ts`, `@mobile`. CI to confirm.
 
 ## DRIVE — Twake Drive picker (4)
 

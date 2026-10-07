@@ -7,7 +7,7 @@ import { AppBootstrap } from './AppBootstrap'
 
 jest.mock('./App', () => ({
   App: ({ config }: { config: AppConfig }) => (
-    <div data-testid="app">{config.appList.length} apps</div>
+    <div data-testid="app">{config.authMode} mode</div>
   )
 }))
 jest.mock('@common/config/completeConfig')
@@ -26,15 +26,12 @@ function makeConfig(): AppConfig {
 describe('AppBootstrap', () => {
   it('shows a progress indicator, then the app with the completed configuration', async () => {
     const config = makeConfig()
-    completeConfigMock.mockResolvedValue({
-      ...config,
-      appList: [{ name: 'A', link: 'https://a.example.com', icon: '/a.svg' }]
-    })
+    completeConfigMock.mockResolvedValue({ ...config, authMode: 'oidc' })
 
     render(<AppBootstrap config={config} />)
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
-    expect(await screen.findByTestId('app')).toHaveTextContent('1 apps')
+    expect(await screen.findByTestId('app')).toHaveTextContent('oidc mode')
     expect(screen.queryByRole('progressbar')).toBe(null)
   })
 
@@ -43,6 +40,6 @@ describe('AppBootstrap', () => {
 
     render(<AppBootstrap config={makeConfig()} />)
 
-    expect(await screen.findByTestId('app')).toHaveTextContent('0 apps')
+    expect(await screen.findByTestId('app')).toHaveTextContent('basic mode')
   })
 })

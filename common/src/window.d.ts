@@ -1,12 +1,11 @@
-import type { AppListEntry, AuthMode } from '@common/config/config'
+import type { AuthMode } from '@common/config/config'
 
 export {}
 
 /**
- * Runtime configuration, set by `public/.env.js`, `public/appList.js` and
- * `public/version.js` before the bundle loads. These files are written by
- * operators: read the entries through `getConfigResult()`, which validates
- * them, never directly.
+ * Runtime configuration, set by `public/.env.js` and `public/version.js`
+ * before the bundle loads. These files are written by operators: read the
+ * entries through `getConfigResult()`, which validates them, never directly.
  */
 declare global {
   interface Window {
@@ -21,8 +20,6 @@ declare global {
     WEB_OIDC_CLIENT_ID?: string
     /** Separated by commas, e.g. `openid,profile,email,offline_access` (spaces work too) */
     OIDC_SCOPES?: string
-    /** `supported` shows the app grid, anything else hides it */
-    APP_GRID_AVAILABLE?: string
     /** Shown in Settings > Forwarding when set */
     FORWARD_WARNING_MESSAGE?: string
     /** `true` starts Sentry (with a DSN) */
@@ -67,11 +64,7 @@ declare global {
     TDRIVE_ENABLED?: boolean | string
     /** URI template of the Drive (cozy-stack) of the user */
     TDRIVE_INTENT_URL?: string
-    /** The platform top bar of Twake Workplace (twake-bar) */
-    TWAKE_BAR_ENABLED?: boolean | string
 
     APP_VERSION?: string
-
-    appList?: AppListEntry[]
   }
 }

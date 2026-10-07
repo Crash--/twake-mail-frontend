@@ -161,7 +161,6 @@ test.describe('composer drafts, local first', () => {
       .poll(async () => (await keptComposers(page)).length)
       .toBe(1)
 
-    await page.getByTestId('user-avatar').click()
     await page.getByTestId('logout-button').click()
     await expect(page.getByTestId('login-username-input')).toBeVisible()
 
@@ -202,7 +201,6 @@ test.describe('composer drafts, local first', () => {
     expect(await draftSubjects(jmap)).toEqual([])
     traffic.reset()
 
-    await page.getByTestId('user-avatar').click()
     await page.getByTestId('logout-button').click()
     await expect(page.getByTestId('login-username-input')).toBeVisible()
 

@@ -5,7 +5,7 @@ import { Route } from 'react-router'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
-import { resolveConfig, type AppListEntry } from '@common/config/config'
+import { resolveConfig } from '@common/config/config'
 import type { AuthService } from '@common/features/auth/types'
 import {
   makeFakeBasicAuthService,
@@ -22,10 +22,6 @@ jest.mock('cozy-external-bridge', () => ({
 }))
 
 const PLATFORM = 'https://alice.twake.example.com'
-
-const APPS: AppListEntry[] = [
-  { name: 'Chat', link: 'https://chat.example.com', icon: '/chat.svg' }
-]
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -112,15 +108,14 @@ function platformRequests(fetchMock: FetchMock): string[] {
     .filter(url => url.startsWith(PLATFORM))
 }
 
-function withConfig(ui: ReactElement, twakeBarEnabled: boolean): ReactElement {
+function withConfig(ui: ReactElement): ReactElement {
   const result = resolveConfig(
     {
       SERVER_URL: 'https://jmap.example.com',
       AUTH_MODE: 'oidc',
       SSO_BASE_URL: 'https://sso.example.com',
       WEB_OIDC_CLIENT_ID: 'twake-mail',
-      WORKPLACE_EMBEDDING: true,
-      TWAKE_BAR_ENABLED: twakeBarEnabled
+      WORKPLACE_EMBEDDING: true
     },
     'https://mail.example.com'
   )
@@ -128,26 +123,22 @@ function withConfig(ui: ReactElement, twakeBarEnabled: boolean): ReactElement {
   return <AppConfigProvider config={result.value}>{ui}</AppConfigProvider>
 }
 
-const oidcService = (): AuthService =>
+const oidcService = (
+  workplaceFqdn: string | null = 'alice.twake.example.com'
+): AuthService =>
   makeFakeOidcAuthService({
     status: 'authenticated',
-    user: {
-      email: 'alice@example.com',
-      name: 'Alice Martin',
-      workplaceFqdn: 'alice.twake.example.com'
-    }
+    user: { email: 'alice@example.com', name: 'Alice Martin', workplaceFqdn }
   })
 
 function renderLayout({
-  twakeBarEnabled = true,
   authService = oidcService(),
   route = '/'
 }: {
-  twakeBarEnabled?: boolean
   authService?: AuthService
   route?: string
 } = {}): void {
-  renderWithProviders(withConfig(<AppLayout apps={APPS} />, twakeBarEnabled), {
+  renderWithProviders(withConfig(<AppLayout />), {
     route,
     path: '*',
     authService,
@@ -173,7 +164,7 @@ describe('AppLayout with the platform bar', () => {
     resetViewport()
   })
 
-  it('exchanges the ID token and shows the bar of the platform instead of the own menus of the app', async () => {
+  it('exchanges the ID token and shows the menus of the platform', async () => {
     const fetchMock = mockPlatform()
     renderLayout()
 
@@ -182,13 +173,15 @@ describe('AppLayout with the platform bar', () => {
       await within(bar).findByRole('button', { name: 'Account' })
     ).toBeEnabled()
     expect(within(bar).getByRole('img', { name: 'Twake Mail' })).toBeVisible()
-    expect(within(bar).getByRole('link', { name: 'Home' })).toBeVisible()
+    expect(within(bar).getByRole('link', { name: 'Home' })).toHaveAttribute(
+      'href',
+      'https://alice-home.twake.example.com/'
+    )
     expect(
       within(bar).getByRole('button', { name: 'Applications' })
     ).toBeVisible()
+    expect(within(bar).queryByTestId('logout-button')).toBe(null)
     expect(screen.queryByTestId('top-bar')).toBe(null)
-    expect(screen.queryByTestId('user-avatar')).toBe(null)
-    expect(screen.queryByTestId('app-grid-toggle-button')).toBe(null)
     // The settings stay in the page, next to the search
     expect(
       within(screen.getByTestId('search-row')).getByRole('button', {
@@ -236,7 +229,7 @@ describe('AppLayout with the platform bar', () => {
     })
   })
 
-  it('keeps the bar of the app under it below the desktop size, with the folders and a gear', async () => {
+  it('keeps the bar of the mail under it below the desktop size, with the folders and a gear', async () => {
     mockViewport({ width: 390, touch: true })
     mockPlatform()
     renderLayout({ route: '/mailbox/mailbox-inbox' })
@@ -249,7 +242,6 @@ describe('AppLayout with the platform bar', () => {
     expect(
       within(topBar).getByRole('button', { name: 'Show folders' })
     ).toBeVisible()
-    expect(within(topBar).queryByTestId('user-avatar')).toBe(null)
 
     await userEvent.click(
       within(topBar).getByRole('button', { name: 'Settings' })
@@ -257,49 +249,42 @@ describe('AppLayout with the platform bar', () => {
     expect(await screen.findByText('Settings content')).toBeVisible()
   })
 
-  it('leaves the apps of the drawer to the platform bar on a phone', async () => {
-    mockViewport({ width: 390, touch: true })
-    mockPlatform()
-    renderLayout({ route: '/mailbox/mailbox-inbox' })
-
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Show folders' })
-    )
-
-    const drawer = await screen.findByRole('dialog', { name: 'Navigation' })
-    expect(
-      within(drawer).getByRole('img', { name: 'Twake Mail' })
-    ).toBeVisible()
-    expect(
-      within(drawer).queryByRole('button', { name: 'Go to applications' })
-    ).toBe(null)
-  })
-
-  it('falls back to the menus of the app when the platform refuses the token', async () => {
+  it('keeps the bar, with a log out button, when the platform refuses the token', async () => {
     jest.spyOn(console, 'warn').mockImplementation(() => undefined)
     mockPlatform(false)
-    renderLayout()
+    const authService = oidcService()
+    renderLayout({ authService })
 
-    expect(await screen.findByTestId('user-avatar')).toBeVisible()
-    expect(screen.queryByTestId('twake-bar')).toBe(null)
-    expect(screen.getByTestId('app-grid-toggle-button')).toBeVisible()
+    const bar = await screen.findByTestId('twake-bar')
+    await waitFor(() => {
+      expect(bar).toHaveAttribute('data-status', 'public')
+    })
+    expect(within(bar).queryByRole('button', { name: 'Account' })).toBe(null)
+    await userEvent.click(within(bar).getByTestId('logout-button'))
+
+    await waitFor(() => {
+      expect(authService.logout).toHaveBeenCalledTimes(1)
+    })
   })
 
-  it('stays off without TWAKE_BAR_ENABLED', async () => {
+  it('asks no platform when the SSO names no workplace', async () => {
     const fetchMock = mockPlatform()
-    renderLayout({ twakeBarEnabled: false })
+    renderLayout({ authService: oidcService(null) })
 
-    expect(await screen.findByTestId('user-avatar')).toBeVisible()
-    expect(screen.queryByTestId('twake-bar')).toBe(null)
+    const bar = await screen.findByTestId('twake-bar')
+    expect(bar).toHaveAttribute('data-status', 'public')
+    expect(within(bar).getByTestId('logout-button')).toBeVisible()
     expect(platformRequests(fetchMock)).toEqual([])
   })
 
-  it('stays off in basic mode, which has no ID token', async () => {
+  it('asks no platform in basic mode, which has no ID token', async () => {
     const fetchMock = mockPlatform()
     renderLayout({ authService: makeFakeBasicAuthService() })
 
-    expect(await screen.findByTestId('user-avatar')).toBeVisible()
-    expect(screen.queryByTestId('twake-bar')).toBe(null)
+    expect(await screen.findByTestId('twake-bar')).toHaveAttribute(
+      'data-status',
+      'public'
+    )
     expect(platformRequests(fetchMock)).toEqual([])
   })
 
@@ -308,10 +293,14 @@ describe('AppLayout with the platform bar', () => {
     const fetchMock = mockPlatform()
     renderLayout()
 
-    expect(
-      await screen.findByRole('button', { name: 'Manage account' })
-    ).toBeVisible()
+    expect(await screen.findByTestId('search-row')).toBeVisible()
     expect(screen.queryByTestId('twake-bar')).toBe(null)
+    expect(screen.queryByRole('img', { name: 'Twake Mail' })).toBe(null)
+    expect(
+      within(screen.getByTestId('search-row')).getByRole('button', {
+        name: 'Settings'
+      })
+    ).toBeVisible()
     expect(platformRequests(fetchMock)).toEqual([])
   })
 })

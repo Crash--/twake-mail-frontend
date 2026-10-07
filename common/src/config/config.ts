@@ -1,5 +1,3 @@
-import { APP_DASHBOARD_PATH, normalizeAppList } from './appDashboard'
-
 export type AuthMode = 'oidc' | 'basic'
 
 export interface OidcConfig {
@@ -9,17 +7,6 @@ export interface OidcConfig {
   scope: string
   redirectUri: string
   postLogoutRedirectUri: string
-}
-
-/**
- * An application of the app grid (`appList.js`). `link` and `icon` may be
- * URI templates (`{localpart}`, `{workplaceFqdn}`…), resolved for the user:
- * a Twake Drive lives at an address of its own.
- */
-export interface AppListEntry {
-  name: string
-  link: string
-  icon: string
 }
 
 /**
@@ -96,20 +83,7 @@ export interface AppConfig {
    * (cozy-stack) of the user, null when `TDRIVE_ENABLED` is off
    */
   tdriveIntentUrl: string | null
-  /**
-   * The platform top bar of Twake Workplace (`@linagora/twake-bar`) instead
-   * of the app's own logotype, app grid and account menu: on with
-   * `TWAKE_BAR_ENABLED`, in OIDC mode, outside an iframe of the Workplace
-   */
-  twakeBarEnabled: boolean
   appVersion: string
-  appList: AppListEntry[]
-  /**
-   * Where to read the apps when `appList.js` gives none and the grid is
-   * supported (`APP_GRID_AVAILABLE=supported`): the `app_dashboard.json` the
-   * chart of tmail-frontend mounts. Null otherwise.
-   */
-  appDashboardUrl: string | null
 }
 
 /**
@@ -121,7 +95,6 @@ export type FlutterConfigKey =
   | 'DOMAIN_REDIRECT_URL'
   | 'WEB_OIDC_CLIENT_ID'
   | 'OIDC_SCOPES'
-  | 'APP_GRID_AVAILABLE'
   | 'FORWARD_WARNING_MESSAGE'
   | 'COZY_INTEGRATION'
   | 'SENTRY_ENABLED'
@@ -149,9 +122,7 @@ export type RuntimeConfigKey =
   | 'TWAKE_SPACE_URL'
   | 'TDRIVE_ENABLED'
   | 'TDRIVE_INTENT_URL'
-  | 'TWAKE_BAR_ENABLED'
   | 'APP_VERSION'
-  | 'appList'
 
 /**
  * The runtime configuration entries as written by operators in
@@ -378,22 +349,6 @@ function resolveSentry(
 }
 
 /**
- * `APP_GRID_AVAILABLE=supported` shows the app grid, anything else hides it
- * (tmail-flutter). Without the key, the grid shows when `appList.js` has apps.
- */
-function isAppGridAvailable(source: RuntimeConfigSource): boolean {
-  return (
-    source.APP_GRID_AVAILABLE === undefined ||
-    normalizeString(source.APP_GRID_AVAILABLE) === 'supported'
-  )
-}
-
-/** `APP_GRID_AVAILABLE=supported`, written in the configuration */
-function isAppGridSupported(source: RuntimeConfigSource): boolean {
-  return normalizeString(source.APP_GRID_AVAILABLE) === 'supported'
-}
-
-/**
  * Validates the runtime configuration and fills in its defaults.
  *
  * @param source the configuration entries, usually `window`
@@ -438,10 +393,6 @@ export function resolveConfig(
     return { ok: false, errors }
   }
 
-  const appList = isAppGridAvailable(source)
-    ? normalizeAppList(source.appList)
-    : []
-
   return {
     ok: true,
     value: {
@@ -474,13 +425,7 @@ export function resolveConfig(
       tdriveIntentUrl: toBoolean(source.TDRIVE_ENABLED)
         ? normalizeString(source.TDRIVE_INTENT_URL)
         : null,
-      twakeBarEnabled: toBoolean(source.TWAKE_BAR_ENABLED),
-      appVersion: normalizeString(source.APP_VERSION) ?? 'dev',
-      appList,
-      appDashboardUrl:
-        appList.length === 0 && isAppGridSupported(source)
-          ? new URL(APP_DASHBOARD_PATH, origin).href
-          : null
+      appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }
 }

@@ -151,7 +151,7 @@ if [ ! -f "$HTML_DIR/.env.js" ] && [ -f "$ENV_FILE" ]; then
   # Keys of this app that tmail-flutter's env.file, and so the chart that
   # writes it, does not know: taken from the environment (the chart's
   # extraEnv) when the env.file does not set them
-  for key in TWAKE_SPACE_URL TWAKE_BAR_ENABLED; do
+  for key in TWAKE_SPACE_URL; do
     value=$(printenv "$key" || true)
     [ -n "$value" ] || continue
     grep -qE "^var $key = " "$GENERATED_ENV_JS" && continue

@@ -109,7 +109,7 @@ export function App({ config }: AppProps): ReactElement {
               sessionUrl={config.jmapSessionUrl}
             >
               {embed === null ? (
-                <WebmailRouter config={config} />
+                <WebmailRouter />
               ) : (
                 <TeamMailboxEmbedApp embed={embed} spaceBridge={spaceBridge} />
               )}
@@ -130,13 +130,11 @@ export function App({ config }: AppProps): ReactElement {
   )
 }
 
-function WebmailRouter({ config }: AppProps): ReactElement {
+function WebmailRouter(): ReactElement {
   // A data router: navigations of its routes can run as view transitions
   // (the `viewTransition` option of `navigate`)
   const [router] = useState(() =>
-    createBrowserRouter(
-      createRoutesFromElements(appRouteElements({ apps: config.appList }))
-    )
+    createBrowserRouter(createRoutesFromElements(appRouteElements()))
   )
 
   return <RouterProvider router={router} />

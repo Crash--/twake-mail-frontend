@@ -1,4 +1,3 @@
-import { loadAppDashboard } from './appDashboard'
 import type { AppConfig } from './config'
 import { findIssuerByWebFinger, isOpenIdIssuer } from './issuerDiscovery'
 
@@ -93,19 +92,12 @@ async function discoverIssuer(
 
 /**
  * What the runtime configuration cannot tell by itself, found before the app
- * starts: the SSO of the server when `SSO_BASE_URL` is not given, and the
- * apps of `app_dashboard.json` (mounted by the Helm chart of tmail-frontend).
- * Never fails: the app starts with what it has.
+ * starts: the SSO of the server when `SSO_BASE_URL` is not given. Never
+ * fails: the app starts with what it has.
  */
 export async function completeConfig(
   config: AppConfig,
   dependencies: CompleteConfigDependencies = makeDefaultDependencies()
 ): Promise<AppConfig> {
-  const [withIssuer, appList] = await Promise.all([
-    discoverIssuer(config, dependencies),
-    config.appDashboardUrl === null
-      ? Promise.resolve(config.appList)
-      : loadAppDashboard(config.appDashboardUrl, dependencies.fetchFn)
-  ])
-  return { ...withIssuer, appList, appDashboardUrl: null }
+  return discoverIssuer(config, dependencies)
 }

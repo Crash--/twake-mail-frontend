@@ -44,12 +44,8 @@ Conventions:
 
 | `data-testid` | Element | Flutter key |
 |---|---|---|
-| `user-avatar` | avatar button opening the account menu | `UiKeys.userAvatar` |
-| `account-menu` | the account menu (Settings, Sign out) | `<alias>_account_menu_item_tile` |
-| `logout-button` | Sign out item | — |
-| `app-grid-toggle-button` | app grid button | `UiKeys.toggleAppGridButton` |
-| `app-grid-list` | app grid panel | `UiKeys.listViewAppGrid` |
-| `app-grid-item` | one app of the grid (`data-app-name`), a link opening a new tab (`AppGrid` page object) | `AppGridDashboardItem` |
+| `twake-bar` | the platform bar of Twake Workplace (`@linagora/twake-bar`, `data-status` `public` / `waiting` / `ready`), absent inside an iframe of the Workplace; its own ids: `twake-bar-home`, `twake-bar-apps-button`, `twake-bar-user-button`, `twake-bar-logout` | `UiKeys.userAvatar`, `UiKeys.toggleAppGridButton` |
+| `logout-button` | Sign out button of the platform bar while it has no account menu (no Workplace, or the Workplace refused the token) | — |
 | `mobile-mailbox-menu-button` | top bar button opening the folder drawer, below 1200 px | `UiKeys.mobileMailboxMenuButton` |
 | `mailbox-drawer` | the folder drawer (`role="dialog"` named "Navigation"), holding `mailbox-tree` | — |
 | `mailbox-drawer-close-button` | its close button | — |
@@ -224,7 +220,6 @@ Conventions:
 | `composer-delete-draft-button` / `composer-discard-draft-button` | delete the draft and close; "Discard" of the "Draft saved" toast after a close | `discard` |
 | `composer-identity-select` | From identity picker, shown with more than one identity | `identities_list_menu_robot` |
 | `confirm-dialog-alternative-button` | the third button of a choice (`useChoose`), e.g. "Discard changes" when closing a modified message | — |
-| `settings-menu-item` | "Settings" in the account menu | `manage_account` item |
 | `settings-menu-<section>` (`profiles`, `preferences`, `keyboard-shortcuts`, later `email-rules`, `language-region`…) | settings navigation: the sidebar on a desktop, the list of sections below | `setting_preferences`, `setting_profiles`, `setting_email_rules`, `setting_language_region` |
 | `settings-sidebar` / `settings-nav` / `settings-section-list` | the settings column (desktop), its navigation, the list of the sections (phones and tablets) | `setting_menu` |
 | `settings-back-button` / `settings-section-back-button` | back to the mail; back from a section to the list (below the desktop size) | `back_to_dashboard_button` |
@@ -244,8 +239,7 @@ Conventions:
 | `toast-undo-button` / `toast-retry-button` / `toast-close-button` | its action ("Undo" after an action, "Retry" after a failure) and close | — |
 | `shortcuts-dialog` / `shortcuts-enabled-switch` / `shortcuts-dialog-close-button` | keyboard shortcuts list (`?`), the switch turning them off | `keyboardShortcuts` setting |
 | `email-list-item-avatar` | the 20 px initials avatar of the sender (decorative, `aria-hidden`) in a list row | — |
-| `search-row` / `settings-button` | desktop only: the row at the top of the page holding the search (`search-bar`) and, at its far end, the settings button (below the desktop size the search stays in `top-bar`, the settings in the account menu) | — |
-| `workplace-logo` | the Twake Workplace logo at the start of the top bar (desktop, not embedded) | — |
+| `search-row` / `settings-button` | desktop only: the row at the top of the page holding the search (`search-bar`) and, at its far end, the settings button (below the desktop size the search and `settings-button` are in `top-bar`) | `manage_account` item |
 | `list-toolbar` | the toolbar above the list while nothing is selected (a `section` named "List actions"); it becomes `selection-toolbar` once rows are selected | — |
 | `mailbox-item-address` / `folder-visibility-address` | the address of a team mailbox, beside the name of its root (sidebar, Settings > Folder visibility) | — |
 | `mailbox-search-button` (implemented) | the magnifier toggles the folder search (`aria-expanded`, `aria-controls`); Escape closes it and focuses it again | `UiKeys.mailboxSearchButton` |

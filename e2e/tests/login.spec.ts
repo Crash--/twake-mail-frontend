@@ -17,9 +17,8 @@ test.describe('LOGIN login', () => {
     await expect(mailbox.emptyListView).toBeVisible()
     await expectNoA11yViolations(page)
 
-    await mailbox.userAvatar.click()
-    await expect(page.getByTestId('user-menu-identity')).toContainText(
-      user.email
-    )
+    // No Workplace in the stack: the platform bar, with a log out button
+    await expect(page.getByTestId('twake-bar')).toBeVisible()
+    await expect(page.getByTestId('logout-button')).toBeVisible()
   })
 })

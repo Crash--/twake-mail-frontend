@@ -122,8 +122,7 @@ test.describe('STORAGE storage upgrade', () => {
     await popup.close()
 
     // Settings > Storage
-    await app.getByRole('button', { name: 'Manage account' }).click()
-    await app.getByTestId('settings-menu-item').click()
+    await app.getByTestId('settings-button').click()
     await app.getByTestId('settings-menu-storage').click()
     await expect(app.getByTestId('storage-settings')).toContainText(
       'The storage is almost full'

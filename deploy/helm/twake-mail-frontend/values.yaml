@@ -127,9 +127,6 @@ config:
     feedbackEnabled: false
   # -- Deprecated, use sentry.dsn
   sentryDsn: ""
-  # -- supported shows the app grid, unsupported hides it (APP_GRID_AVAILABLE
-  # of tmail-flutter). Unset: shown when appList has apps
-  appGridAvailable: ""
   # -- TanStack Query devtools, nginx cache disabled
   debug: false
   # -- Default UI language: en, fr, ru or vi
@@ -137,18 +134,17 @@ config:
   # -- URI templates of the other Twake applications
   calendarSpaUrl: ""
   chatSpaUrl: ""
+  # -- The Workplace of the user when the SSO has no workplaceFqdn claim
+  # ({localpart}): the platform top bar exchanges the ID token there. Allow
+  # the Workplace hosts in csp.connectSrc
   workplaceFqdnFallback: ""
-  # -- Inside an iframe of Twake Workplace, leave the logotype and the app grid
-  # to the container (allow the container in csp.frameAncestors)
+  # -- Inside an iframe of Twake Workplace, leave the platform top bar to the
+  # container (allow the container in csp.frameAncestors)
   workplaceEmbedding: false
   # -- TwakeSpace, whose Mail tab frames the facade of a team mailbox
   # (/embed/team-mailboxes/<id>); allow it in csp.frameAncestors
   twakeSpaceUrl: ""
   forwardWarningMessage: ""
-  # -- The top bar of Twake Workplace (@linagora/twake-bar), OIDC only: the ID
-  # token is exchanged on the Workplace of the user (workplaceFqdn claim, else
-  # workplaceFqdnFallback). Allow the Workplace hosts in csp.connectSrc
-  twakeBarEnabled: false
   # -- Twake Drive picker of the composer (OIDC only). intentUrl is the Drive
   # (cozy-stack) of the user, a URI template ({workplaceFqdn}...). Allow the
   # Drive hosts in csp.connectSrc and csp.frameSrc (wildcards for per-user
@@ -159,13 +155,6 @@ config:
   # -- JavaScript appended to .env.js as is, for a variable this chart does not
   # know yet
   extraEnvJs: ""
-
-  # -- Applications of the app grid (appList.js): name, link, icon. link and
-  # icon may be URI templates ({workplaceFqdn.localpart}...)
-  appList: []
-  #  - name: Calendar
-  #    link: https://calendar.example.com
-  #    icon: /assets/images/svg/app-calendar.svg
 
 # Security headers of the image (docs/deployment.md of the repository)
 csp:

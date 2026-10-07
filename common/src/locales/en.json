@@ -696,7 +696,7 @@
     "sections": {
       "profiles": {
         "title": "Profiles",
-        "description": "Select the identity or email address you want to use to send an emails"
+        "description": "Select the identity or email address you want to use to send emails"
       },
       "preferences": {
         "title": "Preferences",

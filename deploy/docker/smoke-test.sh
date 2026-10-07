@@ -133,7 +133,7 @@ ENVFILE
 chmod 644 "$CONFIG_DIR/env.file"
 docker run -d --name "$ENV_FILE_NAME" \
   --read-only --tmpfs /tmp --user 101 --cap-drop ALL --security-opt no-new-privileges \
-  -p 127.0.0.1::80 -e CSP_WEBFINGER_DISCOVERY=false \
+  -p 127.0.0.1::80 -e CSP_WEBFINGER_DISCOVERY=false -e SENTRY_FEEDBACK_ENABLED=true \
   -e "TWAKE_SPACE_URL=https://space.example.com/it's" \
   -v "$CONFIG_DIR/env.file:/usr/share/nginx/html/assets/env.file:ro" \
   "$IMAGE" >/dev/null
@@ -156,6 +156,7 @@ else
   failures=$((failures + 1))
 fi
 expect 'env.file: values stay strings' "$env_js" "*var SENTRY_ENABLED = 'false';*"
+expect 'env.file: feedback switch from the environment' "$env_js" "*var SENTRY_FEEDBACK_ENABLED = 'true';*"
 expect 'env.file: comments left out' "$env_js" "var SERVER_URL*"
 env_file_csp="$(curl -fsS -o /dev/null -D - "$ENV_FILE_BASE/" | tr -d '\r')"
 if [[ "$env_file_csp" == *ingest-off.example.com* ]]; then

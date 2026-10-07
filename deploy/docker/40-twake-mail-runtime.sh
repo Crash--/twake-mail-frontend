@@ -40,6 +40,8 @@
 # in the image of tmail-flutter, an env.file mounted at
 # /usr/share/nginx/html/assets/env.file works too (same keys, same format):
 # when no .env.js is mounted, it is converted into a /.env.js served by nginx.
+# SENTRY_FEEDBACK_ENABLED (true or false) in the environment is added to it
+# when the env.file has no such key.
 set -eu
 
 ME=$(basename "$0")
@@ -156,6 +158,17 @@ if [ ! -f "$HTML_DIR/.env.js" ] && [ -f "$ENV_FILE" ]; then
     escaped=$(printf '%s' "$value" | sed -e "s/\\\\/\\\\\\\\/g" -e "s/'/\\\\'/g")
     printf "var %s = '%s';\n" "$key" "$escaped" >>"$GENERATED_ENV_JS"
   done
+  # The env.file of the linagora/tmail-frontend chart has no key of its own
+  # for the feedback widget: the environment of the container gives it
+  case "${SENTRY_FEEDBACK_ENABLED:-}" in
+    '') ;;
+    true | false)
+      if ! grep -qE '^var SENTRY_FEEDBACK_ENABLED ' "$GENERATED_ENV_JS"; then
+        printf "var SENTRY_FEEDBACK_ENABLED = '%s';\n" "$SENTRY_FEEDBACK_ENABLED" >>"$GENERATED_ENV_JS"
+      fi
+      ;;
+    *) fail "SENTRY_FEEDBACK_ENABLED must be true or false, not '$SENTRY_FEEDBACK_ENABLED'" ;;
+  esac
   cat >"$SERVER_CONF_DIR/env.conf" <<EOF
 location = /.env.js {
   alias $GENERATED_ENV_JS;

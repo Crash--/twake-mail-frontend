@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createClient } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Routes, useLocation } from 'react-router'
@@ -115,5 +116,15 @@ describe('teamMailboxEmbedRouteElements', () => {
       await screen.findByTestId('team-mailbox-unavailable')
     ).toBeInTheDocument()
     expect(screen.queryByTestId('mailbox-page')).toBe(null)
+  })
+
+  it('offers no new message when the user is not a member of the team mailbox', async () => {
+    const user = userEvent.setup()
+    renderRoutes(`${BASE}/`, 'other')
+    await screen.findByTestId('team-mailbox-unavailable')
+
+    expect(screen.queryByTestId('compose-email-button')).toBe(null)
+    await user.keyboard('c')
+    expect(screen.queryByRole('dialog')).toBe(null)
   })
 })

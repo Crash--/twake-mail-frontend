@@ -3,6 +3,7 @@ import type { Frame, Page } from '@playwright/test'
 import { ComposerPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
+import { SPACE_GREETING_SCRIPT } from '../support/spaceGreeting'
 import type { E2ETeamMailbox, E2EUser } from '../support/users'
 import type { WebAdminClient } from '../support/webadmin'
 
@@ -28,7 +29,7 @@ const SPACE_HOST = '/space-host'
 /** A page that frames the facade, as the Mail tab of TwakeSpace does */
 function spaceHostHtml(src: string): string {
   return `<!doctype html>
-<html lang="en"><head><title>Space</title></head><body style="margin:0"><iframe src="${src}" title="Mail" style="display:block;border:0;width:100vw;height:100vh"></iframe></body></html>`
+<html lang="en"><head><title>Space</title></head><body style="margin:0">${SPACE_GREETING_SCRIPT}<iframe src="${src}" title="Mail" style="display:block;border:0;width:100vw;height:100vh"></iframe></body></html>`
 }
 
 /** Signs in with the credentials form the facade shows in basic mode */

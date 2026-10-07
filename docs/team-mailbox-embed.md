@@ -73,8 +73,10 @@ shared with the other apps TwakeSpace frames; `features/teamMailboxEmbed/spaceBr
 only plugs the facade into it. Raw `postMessage` (ADR 010 of
 twake-space-architecture). The facade does not know where TwakeSpace is: it
 learns it from the greeting `{ type: 'twake-embed:hello' }` that TwakeSpace
-posts to the frame on each of its loads. Until then the facade posts nothing;
-then it talks to the origin of the greeting only, and from it only
+posts to the frame on each of its loads. Until then the facade posts nothing
+but `{ type: 'twake-embed:ready' }` (to any origin, on connecting and when its
+history sync starts), to which TwakeSpace answers with the greeting; then it
+talks to the origin of the greeting only, and from it only
 (`event.origin` and `event.source` are checked). Outside a frame, the facade
 says nothing. `resourceId` is the root id
 of the route, and `path` the URL of the frame below

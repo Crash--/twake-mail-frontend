@@ -6,8 +6,10 @@ import {
   NodeSelection,
   Plugin,
   PluginKey,
+  Selection,
   TextSelection
 } from '@tiptap/pm/state'
+import type { EditorView } from '@tiptap/pm/view'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 
 import { HtmlBlockView } from './HtmlBlockView'
@@ -65,6 +67,40 @@ function buildBlockElement(kind: string, html: string): HTMLElement {
   element.setAttribute(HTML_BLOCK_ATTRIBUTE, kind)
   element.innerHTML = html
   return element
+}
+
+/**
+ * Moves a collapsed caret left in the editor root, between two top-level
+ * blocks, into the nearest text block (the one above first). WebKit puts it
+ * there after a tap on the non-editable view of a block: ProseMirror maps
+ * it to a text position but leaves the DOM caret where it is when that
+ * position is already selected, and typing then scrambles the text ("abc"
+ * comes out as "bca").
+ */
+function moveRootCaretIntoText(view: EditorView): void {
+  const domSelection = view.dom.ownerDocument.getSelection()
+  if (
+    !view.editable ||
+    !domSelection?.isCollapsed ||
+    domSelection.anchorNode !== view.dom ||
+    !view.hasFocus()
+  ) {
+    return
+  }
+  const { selection } = view.state
+  // A gap cursor stands between two blocks on purpose, and a range (a
+  // selected block, the whole text) must not collapse
+  if (!(selection instanceof TextSelection) || !selection.empty) return
+  const $position = view.state.doc.resolve(
+    view.posAtDOM(view.dom, domSelection.anchorOffset)
+  )
+  const target =
+    Selection.findFrom($position, -1, true) ??
+    Selection.findFrom($position, 1, true)
+  if (!target) return
+  if (!selection.eq(target)) view.dispatch(view.state.tr.setSelection(target))
+  const { node, offset } = view.domAtPos(target.head)
+  domSelection.collapse(node, offset)
 }
 
 /**
@@ -138,7 +174,35 @@ export const HtmlBlock = Node.create<HtmlBlockOptions>({
     return [
       new Plugin({
         key: new PluginKey('htmlBlockTyping'),
+        // On every selection change (the tap) and again before a key
+        // writes anything, in case WebKit put the caret back in the root.
+        // The document of the editor, maybe not this one (the overlay of
+        // TwakeSpace)
+        view: editorView => {
+          const { ownerDocument } = editorView.dom
+          const handleSelectionChange = (): void => {
+            moveRootCaretIntoText(editorView)
+          }
+          ownerDocument.addEventListener(
+            'selectionchange',
+            handleSelectionChange
+          )
+          return {
+            destroy: () => {
+              ownerDocument.removeEventListener(
+                'selectionchange',
+                handleSelectionChange
+              )
+            }
+          }
+        },
         props: {
+          handleDOMEvents: {
+            keydown: view => {
+              moveRootCaretIntoText(view)
+              return false
+            }
+          },
           // Typing on a selected block writes above it instead of
           // replacing it: a click on a quote must not lose the quote.
           // Delete and Backspace still remove it (and undo brings it back).

@@ -67,7 +67,8 @@ export function CollapsedMessageActions({
     item => item.id === 'move-to-trash' || item.id === 'delete-permanently'
   )
   const isStarred = hasKeyword(email, FLAGGED)
-  const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
+  // A toggle keeps its name: aria-pressed carries the state
+  const starLabel = t('email.starred')
   const moreLabel = t('emailActions.menu.more')
 
   const handleRun = (id: EmailActionId): void => {

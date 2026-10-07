@@ -112,7 +112,8 @@ describe('EmailViewActions', () => {
     await waitFor(() => {
       expect(star).toHaveAttribute('aria-pressed', 'true')
     })
-    expect(star).toHaveAccessibleName('Unstar')
+    // A toggle keeps its name, the state is in aria-pressed
+    expect(star).toHaveAccessibleName('Starred')
     await waitFor(() => {
       expect(server.emails[0]?.keywords).toEqual({
         $seen: true,

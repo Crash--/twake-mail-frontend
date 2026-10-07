@@ -29,7 +29,10 @@ import { ReadingLoadingView } from '@common/features/email/ReadingLoadingView'
 import { ReadingToolbar } from '@common/features/email/ReadingToolbar'
 import type { EmailViewNavigation } from '@common/features/email/useEmailViewShortcuts'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
-import { findMailboxIdByRole } from '@common/features/mailbox/mailboxTree'
+import {
+  findMailboxIdByRole,
+  findTeamHomeId
+} from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
 import {
@@ -77,6 +80,8 @@ interface ConversationContentProps {
   /** The Sent mailbox and the address of the user: their own are not news */
   sentId: string | null
   ownAddress: string
+  /** Some of its messages are in a team mailbox: no Archive nor Spam */
+  isTeam: boolean
   onBack: () => void
   navigation?: EmailViewNavigation
 }
@@ -88,6 +93,7 @@ function ConversationContent({
   fromList,
   sentId,
   ownAddress,
+  isTeam,
   onBack,
   navigation = NO_NAVIGATION
 }: ConversationContentProps): ReactElement {
@@ -219,6 +225,12 @@ function ConversationContent({
     onBack()
   }
 
+  // Team mailboxes have neither Archive nor Spam, as in the menus of a
+  // message: a shared email does not go to the personal folders of a member.
+  // Their Trash is the one of their team mailbox (useEmailActions)
+  const teamExcluded: readonly EmailActionName[] = isTeam
+    ? ['archive', 'markAsSpam']
+    : []
   const moves: {
     action: EmailActionName
     label: string
@@ -244,6 +256,7 @@ function ConversationContent({
       testId: 'conversation-mark-as-spam'
     }
   ]
+  const offeredMoves = moves.filter(move => !teamExcluded.includes(move.action))
 
   const readLabel = t(isRead ? 'email.markAsUnread' : 'email.markAsRead')
   const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
@@ -262,7 +275,7 @@ function ConversationContent({
       onSelect: handleToggleStar,
       'data-testid': 'conversation-toggle-star'
     },
-    ...moves.map(move => ({
+    ...offeredMoves.map(move => ({
       id: move.action,
       label: move.label,
       icon: move.icon,
@@ -389,7 +402,8 @@ export function ConversationView({
     conversationQueryOptions(client, accountId, threadId, emailId)
   )
   const mailboxes = useMailboxes()
-  const sentId = findMailboxIdByRole(mailboxes.data ?? [], 'sent')
+  const mailboxList = mailboxes.data ?? []
+  const sentId = findMailboxIdByRole(mailboxList, 'sent')
   const emails = useMemo(
     () =>
       (query.data?.emails ?? []).filter(
@@ -451,6 +465,7 @@ export function ConversationView({
       fromList={fromList}
       sentId={sentId}
       ownAddress={session.username}
+      isTeam={emails.some(email => findTeamHomeId(mailboxList, email) !== null)}
       onBack={onBack}
       navigation={navigation}
     />

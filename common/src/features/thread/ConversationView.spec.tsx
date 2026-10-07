@@ -5,8 +5,11 @@ import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_USERNAME,
+  makeDefaultMailboxes,
   makeEmailWithBody,
   makeFakeJmapServer,
+  makeMailbox,
+  makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import {
@@ -402,6 +405,65 @@ describe('ConversationView', () => {
         'b',
         'c'
       ])
+    })
+  })
+
+  it('offers neither Archive nor Spam in a team mailbox, its Trash being the team one', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({
+          id: 'mailbox-archive',
+          name: 'Archive',
+          role: 'archive'
+        }),
+        ...makeTeamMailboxes()
+      ],
+      emails: [
+        makeEmailWithBody(
+          {
+            id: 'c',
+            threadId: THREAD,
+            subject: 'Team mail',
+            keywords: { $seen: true },
+            mailboxIds: { 'team-inbox': true }
+          },
+          { text: 'Body of c' }
+        )
+      ]
+    })
+    renderWithProviders(
+      <ConversationView
+        threadId={THREAD}
+        emailId="c"
+        mailboxId="team-inbox"
+        onBack={jest.fn()}
+      />,
+      { withJmapSession: true, jmapServer: server }
+    )
+    await screen.findByRole('list', { name: 'Messages of the conversation' })
+
+    const menu = await openConversationMenu()
+    expect(
+      within(menu).queryByRole('menuitem', {
+        name: 'Archive the conversation'
+      })
+    ).toBe(null)
+    expect(
+      within(menu).queryByRole('menuitem', {
+        name: 'Mark the conversation as spam'
+      })
+    ).toBe(null)
+    await userEvent.click(
+      within(menu).getByRole('menuitem', {
+        name: 'Move the conversation to trash'
+      })
+    )
+
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'c')?.mailboxIds).toEqual(
+        { 'team-trash': true }
+      )
     })
   })
 

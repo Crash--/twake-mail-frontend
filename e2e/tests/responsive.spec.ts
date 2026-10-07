@@ -201,14 +201,14 @@ test.describe('RESP responsive layout', () => {
   test.describe('on a desktop', () => {
     test.use({ viewport: { width: 1440, height: 789 } })
 
-    test('RESP-06 the top bar is 50 px high and the search sits in the page under it', async ({
+    test('RESP-06 the platform bar is 48 px high and the search sits in the page under it', async ({
       page,
       user
     }) => {
       test.skip(test.info().project.name !== 'chromium', 'desktop only')
       const mailbox = await new LoginPage(page).loginAs(user)
 
-      const bar = await page.getByTestId('top-bar').boundingBox()
+      const bar = await page.getByTestId('twake-bar').boundingBox()
       const search = await page.getByTestId('search-bar').boundingBox()
       const toolbar = await page.getByTestId('list-toolbar').boundingBox()
       const settings = await page.getByTestId('settings-button').boundingBox()
@@ -220,8 +220,8 @@ test.describe('RESP responsive layout', () => {
       // Full width above the sidebar and the body
       expect(bar.x).toBe(0)
       expect(bar.width).toBe(1440)
-      expect(bar.height).toBeGreaterThanOrEqual(50)
-      expect(bar.height).toBeLessThanOrEqual(51)
+      expect(bar.height).toBeGreaterThanOrEqual(48)
+      expect(bar.height).toBeLessThanOrEqual(49)
       expect(sidebar.y).toBeGreaterThanOrEqual(bar.y + bar.height)
       // The search is in the body, under the bar, 820 px at most, and the
       // settings are at the far end of the same row

@@ -128,4 +128,12 @@ describe('BasicLoginPage', () => {
       'Connection error'
     )
   })
+
+  it('waits for the session of another tab before showing the form', () => {
+    const service = makeFakeBasicAuthService({ status: 'restoring' })
+    renderLoginPage(service)
+
+    expect(screen.getByTestId('full-page-loader')).toBeInTheDocument()
+    expect(screen.queryByTestId('login-submit-button')).toBe(null)
+  })
 })

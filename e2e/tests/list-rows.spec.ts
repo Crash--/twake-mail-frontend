@@ -1,4 +1,4 @@
-import { ComposerPage, LoginPage } from '../pages'
+import { ComposerPage, ConversationPage, LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { addReplyInInbox } from '../support/conversation'
 import { expect, test } from '../support/fixtures'
@@ -120,9 +120,11 @@ test.describe('LST email list rows', () => {
     await row.getByTestId('email-list-item-open-in-new-tab').click()
     const tab = await popup
     await expect(tab).toHaveURL(new RegExp(`/email/${email.id}$`))
-    // Tokens live in memory: a new tab signs in again (silently with the
-    // SSO), then lands on the email
-    await expect(tab.getByRole('form', { name: 'Sign In' })).toBeVisible()
+    // The credentials of a basic login live in the memory of the first tab,
+    // which hands them over to the new one: it lands on the email (shown with
+    // its conversation, the default), no sign-in
+    await new ConversationPage(tab).expectLoaded('Elsewhere')
+    await expect(tab.getByRole('form', { name: 'Sign In' })).toHaveCount(0)
     await tab.close()
 
     await row.hover()

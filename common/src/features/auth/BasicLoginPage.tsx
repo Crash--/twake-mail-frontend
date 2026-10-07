@@ -18,6 +18,7 @@ import { Navigate, useLocation } from 'react-router'
 import { CenteredCard } from '@/ds/CenteredCard/CenteredCard'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
+import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -52,6 +53,9 @@ export function BasicLoginPage(): ReactElement {
   if (state.status === 'authenticated') {
     return <Navigate to={findReturnTo(location.state)} replace />
   }
+
+  // Another tab may hand its session over
+  if (state.status === 'restoring') return <FullPageLoader />
 
   return <BasicLoginForm service={service} />
 }

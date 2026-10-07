@@ -2,6 +2,10 @@ import {
   createBasicAuthService,
   makeBasicAuthorizationHeader
 } from './basicAuth'
+import type {
+  BasicSessionSharing,
+  SharedBasicSession
+} from './basicSessionSharing'
 
 const SESSION_URL = 'https://jmap.example.com/jmap/session'
 
@@ -118,5 +122,101 @@ describe('createBasicAuthService', () => {
       type: 'session-ended',
       email: 'alice@example.com'
     })
+  })
+})
+
+/** Lets the session of the other tab arrive */
+function flush(): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, 0))
+}
+
+describe('createBasicAuthService with another tab', () => {
+  const ALICE_HEADER = makeBasicAuthorizationHeader('alice@example.com', 'x')
+
+  /** The other tabs: `answer` settles the request of the new tab */
+  function makeOtherTabs(): {
+    sessionSharing: BasicSessionSharing
+    answer: (session: SharedBasicSession | null) => void
+    getSharedSession: () => SharedBasicSession | null
+  } {
+    let answer: (value: SharedBasicSession | null) => void = () => undefined
+    let getSharedSession: () => SharedBasicSession | null = () => null
+    const request = new Promise<SharedBasicSession | null>(resolve => {
+      answer = resolve
+    })
+    return {
+      sessionSharing: {
+        request: () => request,
+        share: getSession => {
+          getSharedSession = getSession
+          return () => undefined
+        }
+      },
+      answer: value => answer(value),
+      getSharedSession: () => getSharedSession()
+    }
+  }
+
+  function makeService(
+    sessionSharing: BasicSessionSharing
+  ): ReturnType<typeof createBasicAuthService> {
+    return createBasicAuthService(
+      { jmapSessionUrl: SESSION_URL },
+      { fetch: makeFetch({ ok: true, status: 200 }), sessionSharing }
+    )
+  }
+
+  it('takes the session of a signed-in tab', async () => {
+    const { sessionSharing, answer } = makeOtherTabs()
+    const service = makeService(sessionSharing)
+
+    expect(service.getState()).toEqual({ status: 'restoring' })
+    answer({ email: 'alice@example.com', authorizationHeader: ALICE_HEADER })
+    await flush()
+
+    await expect(service.getAuthorizationHeader()).resolves.toBe(ALICE_HEADER)
+    expect(service.getState()).toEqual({
+      status: 'authenticated',
+      user: { email: 'alice@example.com', name: null, workplaceFqdn: null }
+    })
+  })
+
+  it('asks to sign in when no tab answers', async () => {
+    const { sessionSharing, answer } = makeOtherTabs()
+    const service = makeService(sessionSharing)
+
+    answer(null)
+    await flush()
+
+    expect(service.getState()).toEqual({ status: 'anonymous' })
+  })
+
+  it('keeps the account the user signed in with meanwhile', async () => {
+    const { sessionSharing, answer } = makeOtherTabs()
+    const service = makeService(sessionSharing)
+    await service.login('bob@example.com', 'secret')
+
+    answer({ email: 'alice@example.com', authorizationHeader: ALICE_HEADER })
+    await flush()
+
+    expect(service.getState()).toMatchObject({
+      user: { email: 'bob@example.com' }
+    })
+  })
+
+  it('shares its session once signed in, and no longer once signed out', async () => {
+    const { sessionSharing, answer, getSharedSession } = makeOtherTabs()
+    const service = makeService(sessionSharing)
+    answer(null)
+    expect(getSharedSession()).toBe(null)
+
+    await service.login('alice@example.com', 'x')
+    expect(getSharedSession()).toEqual({
+      email: 'alice@example.com',
+      authorizationHeader: ALICE_HEADER
+    })
+
+    service.clearLocalSession()
+    expect(getSharedSession()).toBe(null)
   })
 })

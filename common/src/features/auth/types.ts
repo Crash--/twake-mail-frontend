@@ -10,8 +10,14 @@ export interface AuthUser {
   workplaceFqdn: string | null
 }
 
+/**
+ * `restoring`: a new tab of the basic mode asks the other tabs for their
+ * session before showing the login form (`basicSessionSharing.ts`)
+ */
 export type AuthState =
-  { status: 'anonymous' } | { status: 'authenticated'; user: AuthUser }
+  | { status: 'anonymous' }
+  | { status: 'restoring' }
+  | { status: 'authenticated'; user: AuthUser }
 
 export const ANONYMOUS: AuthState = { status: 'anonymous' }
 

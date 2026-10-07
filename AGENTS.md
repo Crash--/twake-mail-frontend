@@ -133,7 +133,10 @@ In short:
   callers); back to the SSO only when the refresh fails; logout with
   `id_token_hint`.
 - `basicAuth.ts`: form credentials checked with a GET on the JMAP session URL
-  (200 ok, 401 refused), kept in memory only.
+  (200 ok, 401 refused), kept in memory only. A new tab or a reload gets
+  them from another signed-in tab over the `twake-mail-basic-session`
+  BroadcastChannel (`basicSessionSharing.ts`), and shows the login form
+  when no tab answers.
 - Both expose `getAuthorizationHeader()` and `onUnauthorized()`, which the
   JMAP client consumes (`common/src/jmap/makeJmapAuth.ts`).
 - `localSession.ts`: `endLocalSession()` broadcasts on the

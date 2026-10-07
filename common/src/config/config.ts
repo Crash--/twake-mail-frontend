@@ -72,13 +72,6 @@ export interface AppConfig {
    */
   workplaceEmbedding: boolean
   /**
-   * The origin of TwakeSpace, whose Mail tab frames the facade of a team
-   * mailbox (`/embed/team-mailboxes/<id>`): the facade talks to it
-   * through cozy-external-bridge. Null when `TWAKE_SPACE_URL` is unset or
-   * not an http(s) URL.
-   */
-  twakeSpaceOrigin: string | null
-  /**
    * The Twake Drive picker of the composer: the URI template of the Drive
    * (cozy-stack) of the user, null when `TDRIVE_ENABLED` is off
    */
@@ -119,7 +112,6 @@ export type RuntimeConfigKey =
   | 'WORKPLACE_FQDN_FALLBACK'
   | 'WORKPLACE_EMBEDDING'
   | 'SENTRY_FEEDBACK_ENABLED'
-  | 'TWAKE_SPACE_URL'
   | 'TDRIVE_ENABLED'
   | 'TDRIVE_INTENT_URL'
   | 'APP_VERSION'
@@ -155,20 +147,6 @@ function normalizeString(value: unknown): string | null {
   if (typeof value !== 'string') return null
   const trimmed = value.trim()
   return trimmed === '' ? null : trimmed
-}
-
-/** The origin of an http(s) URL, null (with a warning) for anything else */
-function toOrigin(
-  value: unknown,
-  warn: (message: string) => void
-): string | null {
-  const url = normalizeString(value)
-  if (url === null) return null
-  if (!isAbsoluteHttpUrl(url)) {
-    warn('TWAKE_SPACE_URL must be an absolute http(s) URL: ignored')
-    return null
-  }
-  return new URL(url).origin
 }
 
 function isAbsoluteHttpUrl(value: string): boolean {
@@ -421,7 +399,6 @@ export function resolveConfig(
       workplaceEmbedding:
         toBoolean(source.WORKPLACE_EMBEDDING) ||
         toBoolean(source.COZY_INTEGRATION),
-      twakeSpaceOrigin: toOrigin(source.TWAKE_SPACE_URL, warn),
       tdriveIntentUrl: toBoolean(source.TDRIVE_ENABLED)
         ? normalizeString(source.TDRIVE_INTENT_URL)
         : null,

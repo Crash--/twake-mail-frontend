@@ -43,16 +43,14 @@ function isTeamMailboxId(id: string): boolean {
 
 /**
  * The bridge to TwakeSpace (the contract of `@linagora/twake-embed`), null
- * outside a frame or without `TWAKE_SPACE_URL`: the facade only talks to
- * that origin.
+ * outside a frame. The facade does not know where TwakeSpace is: it posts
+ * nothing until TwakeSpace greets the frame, then talks to the origin of that
+ * greeting only. `frame-ancestors` says who may frame the facade.
  */
 export function connectToSpace(
-  spaceOrigin: string | null,
   _target: TeamMailboxEmbedTarget
 ): SpaceBridge | null {
-  if (spaceOrigin === null) return null
   const connection = connectToTwakeSpace({
-    hostOrigins: [spaceOrigin],
     embedPrefix: TEAM_MAILBOX_EMBED_PREFIX,
     isResourceId: isTeamMailboxId
   })
@@ -78,7 +76,7 @@ export function connectToSpace(
  * the facade draws in: it shows that part only, the rest of its page keeps its
  * clicks. Any page: the region is only boxes of the layout, and
  * `frame-ancestors` already says who may frame the facade, so the overlay
- * works without `TWAKE_SPACE_URL`.
+ * needs no origin.
  */
 export function reportOverlayRegion(region: OverlayRegion): void {
   window.parent.postMessage(overlayRegionMessage(region), '*')

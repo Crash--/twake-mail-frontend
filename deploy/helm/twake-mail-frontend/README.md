@@ -125,7 +125,7 @@ ingress-nginx do).
 | `config.calendarSpaUrl`, `config.chatSpaUrl` | `""` | URI templates of the other Twake apps |
 | `config.workplaceFqdnFallback` | `""` | The Workplace of the user when the SSO has no `workplaceFqdn` claim (`{localpart}`), where the platform top bar exchanges the ID token; allow the Workplace hosts in `csp.connectSrc` |
 | `config.workplaceEmbedding` | `false` | Inside an iframe of Twake Workplace, leave the platform top bar to the container |
-| `config.twakeSpaceUrl` | `""` | `TWAKE_SPACE_URL`: TwakeSpace, whose Mail tab frames the facade of a team mailbox; allow it in `csp.frameAncestors` |
+| `config.twakeSpaceUrl` | `""` | `TWAKE_SPACE_URL`: no longer read by the app, which learns where TwakeSpace is from its greeting; only serves `frame-ancestors`: allow TwakeSpace in `csp.frameAncestors` |
 | `config.forwardWarningMessage` | `""` | |
 | `config.tdrive.enabled`, `config.tdrive.intentUrl` | `false`, `""` | Twake Drive picker of the composer (OIDC only); `intentUrl` is the Drive (cozy-stack) of the user, a URI template |
 | `config.extraEnvJs` | `""` | JavaScript appended to `.env.js` as is |

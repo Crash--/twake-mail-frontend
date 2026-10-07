@@ -1061,6 +1061,7 @@
     "save": "Save changes",
     "errors": {
       "noStart": "Please enter a valid start date",
+      "noEnd": "Please enter a valid end date",
       "endBeforeStart": "End date must be greater than start date",
       "noMessage": "Message body cannot be blank"
     },

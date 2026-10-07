@@ -84,11 +84,63 @@ describe('VacationSettings', () => {
       id: 'singleton',
       isEnabled: true,
       fromDate: '2026-10-10T09:00:00Z',
-      toDate: '2026-10-20T00:00:00Z',
+      toDate: '2026-10-20T09:00:00Z',
       subject: 'Away',
       textBody: 'Back on the 20th',
       htmlBody: '<p>Back on the 20th</p>'
     })
+  })
+
+  it('starts from now when no start is saved, and saves what it shows', async () => {
+    const fake = setup()
+
+    await userEvent.click(
+      await screen.findByRole('switch', {
+        name: 'Automatically reply to messages when they are received.'
+      })
+    )
+    const date = screen.getByLabelText<HTMLInputElement>(/^Start date/).value
+    const time = screen.getByLabelText<HTMLInputElement>(/^Start time/).value
+    expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(time).toMatch(/^\d{2}:\d{2}$/)
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Message' }),
+      'Away'
+    )
+    await userEvent.click(screen.getByTestId('vacation-save-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Vacation settings saved'
+    )
+    // Tests run in UTC (jest.config.ts)
+    expect(fake.vacation()).toMatchObject({
+      isEnabled: true,
+      fromDate: `${date}T${time}:00Z`,
+      toDate: null
+    })
+  })
+
+  it('fills the end with the start, and refuses an end without a time', async () => {
+    const fake = setup({
+      isEnabled: true,
+      fromDate: '2026-10-10T09:00:00Z',
+      htmlBody: '<p>Away</p>'
+    })
+
+    await userEvent.click(
+      await screen.findByRole('switch', { name: 'Vacation stops at' })
+    )
+    expect(screen.getByLabelText('End date')).toHaveValue('2026-10-10')
+    expect(screen.getByLabelText('End time')).toHaveValue('09:00')
+    fireEvent.change(screen.getByLabelText('End time'), {
+      target: { value: '' }
+    })
+    await userEvent.click(screen.getByTestId('vacation-save-button'))
+
+    expect(screen.getByTestId('vacation-error')).toHaveTextContent(
+      'Please enter a valid end date'
+    )
+    expect(fake.vacation()).toMatchObject({ toDate: null })
   })
 
   it('refuses an end before the start', async () => {

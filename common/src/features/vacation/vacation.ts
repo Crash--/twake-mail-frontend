@@ -142,15 +142,24 @@ export function toLocalInputs(utc: string | null): {
 }
 
 /**
- * The UTC date of local date and time inputs (`2026-10-05`, `08:30`;
- * midnight without a time), null when the date is missing or invalid
+ * The start inputs of the form: the saved start, or `now` when there is none
+ * (as tmail-flutter), so that what the inputs show is what gets saved
+ */
+export function startInputs(
+  fromDate: string | null,
+  now: Date
+): { date: string; time: string } {
+  return toLocalInputs(fromDate ?? now.toISOString())
+}
+
+/**
+ * The UTC date of local date and time inputs (`2026-10-05`, `08:30`), null
+ * when the date or the time is missing or invalid
  */
 export function fromLocalInputs(date: string, time: string): string | null {
   const day = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date)
-  if (!day) return null
-  const [hours = 0, minutes = 0] = (/^\d{2}:\d{2}$/.test(time) ? time : '00:00')
-    .split(':')
-    .map(Number)
+  if (!day || !/^\d{2}:\d{2}$/.test(time)) return null
+  const [hours = 0, minutes = 0] = time.split(':').map(Number)
   const local = new Date(
     Number(day[1]),
     Number(day[2]) - 1,

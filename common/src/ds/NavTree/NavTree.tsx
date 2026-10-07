@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes, as a prop of `Nav`. twake-mui's `Nav` has a
-// fixed `margin: 24px 0`, which leaves a gap under a section header, and no
+// fixed `margin: 24px 0`, which leaves a gap under a section header, a
+// `<nav>` of its own that nests in the named one of a section, and no
 // keyboard pattern for the `role="tree"` it can be given.
-import { Nav } from '@linagora/twake-mui'
 import {
   useEffect,
   useRef,
@@ -10,6 +10,8 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
+
+import { NavList } from '@/ds/NavList/NavList'
 
 import {
   findTypeaheadMatch,
@@ -76,7 +78,8 @@ function toRow(item: HTMLElement): NavTreeRow {
 }
 
 /**
- * A `Nav` list of a sidebar section, without the outer margin of `Nav`.
+ * A `Nav` list of a sidebar section, without the outer margin of `Nav` nor
+ * its `<nav>`: the section around it is the navigation landmark.
  *
  * With `role="tree"` it is a tree view as the WAI-ARIA APG describes it,
  * over its `role="treeitem"` rows (flat: `aria-level` gives the depth):
@@ -245,7 +248,7 @@ export function NavTree({
   }
 
   return (
-    <Nav
+    <NavList
       ref={rootRef}
       sx={{ my: 0 }}
       role={role}
@@ -255,6 +258,6 @@ export function NavTree({
       {...props}
     >
       {children}
-    </Nav>
+    </NavList>
   )
 }

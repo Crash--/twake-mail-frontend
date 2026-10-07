@@ -1,5 +1,6 @@
-import { Box, Nav, NavIcon, Typography } from '@linagora/twake-mui'
+import { Box, NavIcon, Typography } from '@linagora/twake-mui'
 import { NavItem } from '@/ds/NavItem/NavItem'
+import { NavList } from '@/ds/NavList/NavList'
 import { NavLink } from '@/ds/NavLink/NavLink'
 import { NavText } from '@/ds/NavText/NavText'
 import { useId, type ReactElement } from 'react'
@@ -52,11 +53,11 @@ export function SettingsNav(): ReactElement {
       >
         {t('settings.title')}
       </Typography>
-      <Nav>
+      <NavList>
         {sections.map(section => (
           <SettingsNavItem key={section.id} section={section} />
         ))}
-      </Nav>
+      </NavList>
     </Box>
   )
 }

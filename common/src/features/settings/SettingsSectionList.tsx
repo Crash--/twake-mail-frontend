@@ -4,11 +4,11 @@ import {
   IconButton,
   ListItemIcon,
   ListItemText,
-  Nav,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
 import { NavItem } from '@/ds/NavItem/NavItem'
+import { NavList } from '@/ds/NavList/NavList'
 import { NavLink } from '@/ds/NavLink/NavLink'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
@@ -62,7 +62,7 @@ export function SettingsSectionList(): ReactElement {
         </Typography>
       </Box>
       <Box component="nav" aria-label={title}>
-        <Nav>
+        <NavList>
           {sections.map(section => (
             <NavItem key={section.id}>
               <NavLink
@@ -92,7 +92,7 @@ export function SettingsSectionList(): ReactElement {
               </NavLink>
             </NavItem>
           ))}
-        </Nav>
+        </NavList>
       </Box>
     </Box>
   )

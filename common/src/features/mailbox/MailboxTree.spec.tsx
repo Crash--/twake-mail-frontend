@@ -481,6 +481,27 @@ describe('MailboxTree', () => {
     ).toHaveTextContent('team@example.com')
   })
 
+  it('makes each section one named navigation landmark, none nested', async () => {
+    renderWithProviders(<MailboxTree />, {
+      route: '/mailbox/mailbox-inbox',
+      path: '/mailbox/:mailboxId',
+      withJmapSession: true,
+      jmapServer: makeFakeJmapServer({
+        mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()]
+      })
+    })
+    await screen.findByTestId('team-mailboxes-section')
+
+    const navs = screen.getAllByRole('navigation')
+    expect(navs).toEqual([
+      screen.getByRole('navigation', { name: 'Mailboxes' }),
+      screen.getByRole('navigation', { name: 'Team-mailboxes' })
+    ])
+    expect(
+      navs.filter(nav => nav.parentElement?.closest('nav') !== null)
+    ).toEqual([])
+  })
+
   describe('Action required', () => {
     const AI = { 'com:linagora:params:jmap:aibot': {} }
     const SETTINGS = {

@@ -216,94 +216,104 @@ export function MailboxTree(): ReactElement {
   const newFolderLabel = t('folders.newFolder')
   const hiddenLabel = t('folders.hidden.show')
 
-  // The titles stay outside the trees: a tree only holds tree items
+  // The titles stay outside the trees: a tree only holds tree items. Each
+  // section is one named navigation landmark, the trees in it are not
   return (
     <>
-      {/* At once, not after a delay: the titles under it would jump when it
-          appears. The page is told "Loading" by the list, not by the tree */}
-      {query.isPending ? (
-        <NavTreeSkeleton
-          rowCount={SKELETON_ROWS}
-          data-testid="mailbox-tree-loading"
-        />
-      ) : null}
-      {isSearching || query.isPending ? null : (
-        <NavTree
-          role="tree"
-          aria-label={t('sidebar.mailboxes')}
-          data-testid="mailbox-tree"
-        >
-          {systemContent}
-        </NavTree>
-      )}
-      <NavSectionHeader
-        title={t('sidebar.folders')}
-        titleId={titleId}
-        toggle={{
-          isExpanded: collapsible.isExpanded('folders'),
-          onToggle: () => {
-            collapsible.toggle('folders')
-          },
-          controlsId: isSearching ? searchId : foldersContentId,
-          'data-testid': 'folders-section-toggle'
-        }}
-        data-testid="mailbox-tree-title"
-        actions={
-          <>
-            {sections.hiddenCount > 0 ? (
+      <Box component="nav" aria-label={t('sidebar.mailboxes')}>
+        {/* At once, not after a delay: the titles under it would jump when it
+            appears. The page is told "Loading" by the list, not by the tree */}
+        {query.isPending ? (
+          <NavTreeSkeleton
+            rowCount={SKELETON_ROWS}
+            data-testid="mailbox-tree-loading"
+          />
+        ) : null}
+        {isSearching || query.isPending ? null : (
+          <NavTree
+            role="tree"
+            aria-label={t('sidebar.mailboxes')}
+            data-testid="mailbox-tree"
+          >
+            {systemContent}
+          </NavTree>
+        )}
+        <NavSectionHeader
+          title={t('sidebar.folders')}
+          titleId={titleId}
+          toggle={{
+            isExpanded: collapsible.isExpanded('folders'),
+            onToggle: () => {
+              collapsible.toggle('folders')
+            },
+            controlsId: isSearching ? searchId : foldersContentId,
+            'data-testid': 'folders-section-toggle'
+          }}
+          data-testid="mailbox-tree-title"
+          actions={
+            <>
+              {sections.hiddenCount > 0 ? (
+                <NavSectionAction
+                  label={hiddenLabel}
+                  icon={showHidden ? Eye : EyeClosed}
+                  aria-pressed={showHidden}
+                  onClick={handleToggleHidden}
+                  data-testid="show-hidden-folders-button"
+                />
+              ) : null}
               <NavSectionAction
-                label={hiddenLabel}
-                icon={showHidden ? Eye : EyeClosed}
-                aria-pressed={showHidden}
-                onClick={handleToggleHidden}
-                data-testid="show-hidden-folders-button"
+                buttonRef={searchButtonRef}
+                label={searchLabel}
+                icon={Magnifier}
+                aria-expanded={isSearching}
+                aria-controls={isSearching ? searchId : undefined}
+                onClick={handleToggleSearch}
+                data-testid="mailbox-search-button"
               />
-            ) : null}
-            <NavSectionAction
-              buttonRef={searchButtonRef}
-              label={searchLabel}
-              icon={Magnifier}
-              aria-expanded={isSearching}
-              aria-controls={isSearching ? searchId : undefined}
-              onClick={handleToggleSearch}
-              data-testid="mailbox-search-button"
-            />
-            <NavSectionAction
-              label={newFolderLabel}
-              icon={Plus}
-              onClick={handleCreate}
-              data-testid="add-new-folder-button"
-            />
-          </>
-        }
-      />
-      {isSearching ? (
-        <MailboxSearch
-          id={searchId}
-          selectedId={selectedId}
-          onClose={handleCloseSearch}
-          onOpenMenu={handleOpenMenu}
+              <NavSectionAction
+                label={newFolderLabel}
+                icon={Plus}
+                onClick={handleCreate}
+                data-testid="add-new-folder-button"
+              />
+            </>
+          }
         />
-      ) : (
-        <div id={foldersContentId} hidden={!collapsible.isExpanded('folders')}>
-          {folderRows.length > 0 ? (
-            <NavTree
-              role="tree"
-              aria-labelledby={titleId}
-              data-testid="mailbox-folders-tree"
-            >
-              <TreeRows
-                rows={folderRows}
-                selectedId={selectedId}
-                onToggle={handleToggle}
-                onOpenMenu={handleOpenMenu}
-              />
-            </NavTree>
-          ) : null}
-        </div>
-      )}
+        {isSearching ? (
+          <MailboxSearch
+            id={searchId}
+            selectedId={selectedId}
+            onClose={handleCloseSearch}
+            onOpenMenu={handleOpenMenu}
+          />
+        ) : (
+          <div
+            id={foldersContentId}
+            hidden={!collapsible.isExpanded('folders')}
+          >
+            {folderRows.length > 0 ? (
+              <NavTree
+                role="tree"
+                aria-labelledby={titleId}
+                data-testid="mailbox-folders-tree"
+              >
+                <TreeRows
+                  rows={folderRows}
+                  selectedId={selectedId}
+                  onToggle={handleToggle}
+                  onOpenMenu={handleOpenMenu}
+                />
+              </NavTree>
+            ) : null}
+          </div>
+        )}
+      </Box>
       {teamRows.length > 0 && !isSearching ? (
-        <Box data-testid="team-mailboxes-section">
+        <Box
+          component="nav"
+          aria-labelledby={teamTitleId}
+          data-testid="team-mailboxes-section"
+        >
           <NavSectionHeader
             title={t('sidebar.teamMailboxes')}
             titleId={teamTitleId}

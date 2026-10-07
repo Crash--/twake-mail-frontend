@@ -363,10 +363,7 @@ export function FolderActionsProvider({
   )
 
   const remove = useCallback(
-    async (
-      mailbox: MailboxSummary,
-      opener: Element | null
-    ): Promise<void> => {
+    async (mailbox: MailboxSummary, opener: Element | null): Promise<void> => {
       const focusTargets = focusTargetsAround(opener)
       const confirmed = await confirm({
         title: t('folders.delete.title'),
@@ -456,10 +453,7 @@ export function FolderActionsProvider({
   )
 
   const hide = useCallback(
-    async (
-      mailbox: MailboxSummary,
-      opener: Element | null
-    ): Promise<void> => {
+    async (mailbox: MailboxSummary, opener: Element | null): Promise<void> => {
       const focusTargets = focusTargetsAround(opener)
       const list = await fetchMailboxes()
       const ids = [mailbox.id, ...findDescendantIds(list, mailbox.id)]

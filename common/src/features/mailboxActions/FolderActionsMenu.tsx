@@ -24,8 +24,7 @@ import { useFolderActions } from './FolderActionsProvider'
  * click on the row `element`; the actions find the row of the folder there
  */
 export type FolderMenuAnchor =
-  | { element: HTMLElement }
-  | { position: PopoverPosition; element: HTMLElement }
+  { element: HTMLElement } | { position: PopoverPosition; element: HTMLElement }
 
 export interface FolderActionsMenuProps {
   /** The folder whose menu is open, null when closed */

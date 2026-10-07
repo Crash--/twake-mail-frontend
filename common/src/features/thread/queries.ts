@@ -437,6 +437,9 @@ export function conversationQueryOptions(
   threadId: string,
   emailId: string
 ): QueryOptionsFor<ConversationData, ConversationKey> {
+  // emailId is only the fallback of a lost thread: push and the keyword
+  // updates find the conversation by its thread alone
+  // eslint-disable-next-line @tanstack/query/exhaustive-deps
   return queryOptions({
     queryKey: conversationKeys.detail(accountId, threadId),
     queryFn: async ({ signal }): Promise<ConversationData> => {

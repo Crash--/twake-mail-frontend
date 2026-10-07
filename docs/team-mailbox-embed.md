@@ -67,12 +67,17 @@ callback first, then puts that path back in the address. Outside a frame
 
 ## Talking to TwakeSpace
 
-Raw `postMessage` (ADR 010 of twake-space-architecture), to the origin of
-`TWAKE_SPACE_URL` only, and from it only (`event.origin` and
-`event.source` are checked). Outside a frame or without `TWAKE_SPACE_URL`, the
-facade says nothing. `resourceId` is the root id of the route, and `path` the
-URL of the frame below `/embed/team-mailboxes/<rootId>` (pathname, query and
-fragment): `''` on the route itself, otherwise it starts with `/`, `?` or `#`.
+The contract (messages, checks, history, overlay) comes from
+[`@linagora/twake-embed`](https://github.com/linagora/twake-libs/tree/main/packages/twake-embed),
+shared with the other apps TwakeSpace frames; `features/teamMailboxEmbed/spaceBridge.ts`
+only plugs the facade into it. Raw `postMessage` (ADR 010 of
+twake-space-architecture), to the origin of `TWAKE_SPACE_URL` only, and from it
+only (`event.origin` and `event.source` are checked). Outside a frame or
+without `TWAKE_SPACE_URL`, the facade says nothing. `resourceId` is the root id
+of the route, and `path` the URL of the frame below
+`/embed/team-mailboxes/<rootId>` (pathname, query and fragment): `''` on the
+route itself, otherwise it starts with `/`, `?` or `#`, and it stays below the
+route once resolved.
 
 TwakeSpace owns the history of the page; the frame has no entries of its own:
 
@@ -88,8 +93,8 @@ TwakeSpace owns the history of the page; the frame has no entries of its own:
   router cannot switch mailbox in place yet (its base is read once), so the
   facade does `location.replace` to the route of `resourceId` plus `path`.
 - the facade never navigates its own document after its boot.
-- **sign in again**: `notifyLoginRequired()` of cozy-external-bridge. Until a
-  version of it has it, the facade posts `{ type: 'twake-embed:login-required' }`.
+- **sign in again**: `{ type: 'twake-embed:login-required' }`
+  (`notifyLoginRequired()` of the connection).
 
 ### Overlay
 

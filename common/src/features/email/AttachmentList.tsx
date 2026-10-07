@@ -23,7 +23,8 @@ import {
   downloadAllBaseName,
   expandDownloadAllUrl,
   getDownloadAllEndpoint,
-  isDownloadAllAvailable
+  isDownloadAllAvailable,
+  isZipArchive
 } from './downloadAll'
 import { formatSize } from './formatSize'
 
@@ -105,10 +106,14 @@ export function AttachmentList({
       expandDownloadAllUrl(endpoint, { accountId, emailId, name: baseName })
     )
     if (!response.ok) throw new Error(`Download all: HTTP ${response.status}`)
-    // The type is ours: whatever the server says, the blob is an archive
-    const archive = new Blob([await response.arrayBuffer()], {
-      type: 'application/zip'
-    })
+    const bytes = await response.arrayBuffer()
+    if (!isZipArchive(bytes)) {
+      throw new Error(
+        `Download all: not a zip archive (${response.headers.get('Content-Type') ?? 'no type'})`
+      )
+    }
+    // The type is ours: the server may label the archive with any type
+    const archive = new Blob([bytes], { type: 'application/zip' })
     saveBlob(archive, `${baseName}.zip`)
   }
 

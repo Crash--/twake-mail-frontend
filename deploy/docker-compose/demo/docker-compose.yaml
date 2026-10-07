@@ -31,7 +31,7 @@ services:
     # JMAP is on the origin of the app: the default Content-Security-Policy is enough
 
   # The browser facing origin: the app, and tmail-backend under /jmap, /upload, /download,
-  # /eventSource and /.well-known/jmap
+  # /downloadAll, /eventSource and /.well-known/jmap
   proxy:
     image: nginx:1.29-alpine
     volumes:

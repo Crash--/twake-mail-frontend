@@ -4,7 +4,8 @@ import {
   downloadAllBaseName,
   expandDownloadAllUrl,
   getDownloadAllEndpoint,
-  isDownloadAllAvailable
+  isDownloadAllAvailable,
+  isZipArchive
 } from './downloadAll'
 
 const ID = 'com:linagora:params:downloadAll'
@@ -69,6 +70,21 @@ describe('download all', () => {
         name: 'TwakeMail-x'
       })
     ).toBe('https://jmap.test/downloadAll/a1/e%201?name=TwakeMail-x')
+  })
+
+  it.each([
+    ['a local file header', [0x50, 0x4b, 0x03, 0x04, 0x14]],
+    ['an empty archive', [0x50, 0x4b, 0x05, 0x06]]
+  ])('recognizes %s as a zip archive', (_label, bytes) => {
+    expect(isZipArchive(new Uint8Array(bytes).buffer)).toBe(true)
+  })
+
+  it.each([
+    ['an HTML page', [...new TextEncoder().encode('<!doctype html>')]],
+    ['a truncated signature', [0x50, 0x4b]],
+    ['no content', []]
+  ])('rejects %s', (_label, bytes) => {
+    expect(isZipArchive(new Uint8Array(bytes).buffer)).toBe(false)
   })
 
   it('names the archive after the date, without colons', () => {

@@ -23,6 +23,7 @@ import {
 } from 'react'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import {
   isValidEmail,
@@ -68,6 +69,7 @@ export function ForwardSettings({
   const configuredWarning = useAppConfig()?.forwardWarningMessage ?? null
   const query = useQuery(forwardQueryOptions(client, accountId))
   const inputRef = useRef<HTMLInputElement>(null)
+  const focusFallbackRef = useFocusFallback<HTMLLIElement>()
   const localCopyDescriptionId = useId()
   const [typed, setTyped] = useState('')
   const [problem, setProblem] = useState<TranslationKey | null>(null)
@@ -295,6 +297,7 @@ export function ForwardSettings({
               return (
                 <ListItem
                   key={email}
+                  ref={focusFallbackRef}
                   divider
                   data-testid="forward-item"
                   data-email={email}

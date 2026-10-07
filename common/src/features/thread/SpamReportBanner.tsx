@@ -3,6 +3,7 @@ import { Alert, Button, IconButton } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
+import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -31,6 +32,7 @@ export function SpamReportBanner({
   const { data: mailboxes = [] } = useMailboxes()
   const folderActions = useFolderActions()
   const { isEnabled, lastDismissedAt, dismiss } = useSpamReportPreference()
+  const focusFallbackRef = useFocusFallback<HTMLDivElement>()
   // When the list showed: the delay is checked then, as at a refresh in tmail-flutter
   const [now] = useState(() => Date.now())
   const spam = mailboxes.find(candidate => candidate.role === 'junk') ?? null
@@ -67,6 +69,7 @@ export function SpamReportBanner({
 
   return (
     <Alert
+      ref={focusFallbackRef}
       severity="info"
       // A live region: the banner comes when the mail arrives
       role="status"

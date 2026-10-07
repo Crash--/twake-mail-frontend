@@ -70,6 +70,10 @@ describe('SpamReportBanner', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
     expect(screen.queryByTestId('spam-report-banner')).toBeNull()
+    // The focus stays in the page, not on its body (RGAA 12.8)
+    await waitFor(() => {
+      expect(document.activeElement).not.toBe(document.body)
+    })
     const stored: unknown = JSON.parse(
       window.localStorage.getItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY) ?? ''
     )

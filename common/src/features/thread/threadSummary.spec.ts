@@ -1,5 +1,9 @@
 import type { ThreadMember } from './queries'
-import { summarizeThread, type ThreadContext } from './threadSummary'
+import {
+  isReceivedFromOthers,
+  summarizeThread,
+  type ThreadContext
+} from './threadSummary'
 
 const ME = 'alice@example.com'
 
@@ -24,6 +28,26 @@ function member(
     ...overrides
   }
 }
+
+describe('isReceivedFromOthers', () => {
+  const BOB = { email: 'bob@example.com' }
+  const isReceived = (email: ThreadMember): boolean =>
+    isReceivedFromOthers(email, 'sent', ME)
+
+  it('is true for an email someone else sent to the user', () => {
+    expect(isReceived(member('m1', BOB))).toBe(true)
+  })
+
+  it('is false for an email in Sent, from the user or a draft', () => {
+    const emails = [
+      member('m1', BOB, { mailboxIds: { sent: true } }),
+      member('m2', { email: 'Alice@Example.com' }),
+      member('m3', BOB, { keywords: { $draft: true } })
+    ]
+
+    expect(emails.map(isReceived)).toEqual([false, false, false])
+  })
+})
 
 describe('summarizeThread', () => {
   it('names each participant once, in order, the user as "me"', () => {

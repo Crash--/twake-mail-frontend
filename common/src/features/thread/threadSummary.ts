@@ -1,7 +1,12 @@
 import type { EmailAddress } from 'jmap-client-ts'
 
 import { formatAddressName } from '@common/features/email/addresses'
-import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
+import {
+  DRAFT,
+  FLAGGED,
+  hasKeyword,
+  SEEN
+} from '@common/features/email/keywords'
 
 import type { ThreadMember } from './queries'
 
@@ -42,6 +47,22 @@ export function isOwnSentCopy(
     (email.from ?? []).some(isMine) &&
     (email.to ?? []).some(isMine)
   )
+}
+
+/**
+ * An email the user received from someone else: not one they sent (in Sent,
+ * or from their address) nor a draft of theirs
+ */
+export function isReceivedFromOthers(
+  email: Pick<ThreadMember, 'mailboxIds' | 'from' | 'keywords'>,
+  sentId: string | null,
+  ownAddress: string
+): boolean {
+  const isSent = sentId !== null && sentId in email.mailboxIds
+  const isFromMe = (email.from ?? []).some(address =>
+    isOwnAddress(address, ownAddress)
+  )
+  return !isSent && !isFromMe && !hasKeyword(email, DRAFT)
 }
 
 /** Where the row of a conversation stands */

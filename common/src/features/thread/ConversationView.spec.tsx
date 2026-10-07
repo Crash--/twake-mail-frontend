@@ -455,6 +455,50 @@ describe('ConversationView', () => {
     )
   })
 
+  it('adds a reply the user sent without announcing it', async () => {
+    const server = makeServer()
+    const { queryClient } = await renderConversation(server)
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'b')?.keywords).toEqual({
+        $seen: true
+      })
+    })
+
+    const sent = makeEmailWithBody(
+      {
+        id: 'd',
+        threadId: THREAD,
+        subject: 'Re: Project kick-off',
+        preview: 'my own reply',
+        receivedAt: '2026-10-05T08:00:00Z',
+        keywords: { $seen: true },
+        mailboxIds: { 'mailbox-sent': true },
+        from: [{ name: null, email: FAKE_USERNAME }],
+        to: [{ name: 'Dan', email: 'dan@example.com' }]
+      },
+      { text: 'my own reply' }
+    )
+    server.addEmail(sent)
+    act(() => {
+      queryClient.setQueryData<ConversationData>(
+        conversationKeys.detail(FAKE_ACCOUNT_ID, THREAD),
+        data =>
+          data
+            ? patchConversation(data, THREAD, {
+                changed: [sent],
+                destroyed: [],
+                newStates: new Map()
+              })
+            : data
+      )
+    })
+
+    expect(await screen.findByText('4 messages')).toBeVisible()
+    expect(
+      screen.getByTestId('conversation-announcement')
+    ).toBeEmptyDOMElement()
+  })
+
   it('marks the conversation unread, collapsed, and leaves it unread', async () => {
     const server = makeServer()
     await renderConversation(server)

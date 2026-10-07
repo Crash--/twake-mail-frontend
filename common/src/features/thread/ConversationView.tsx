@@ -46,7 +46,7 @@ import { ConversationMessage } from './ConversationMessage'
 import { ConversationReplyBar } from './ConversationReplyBar'
 import { pickTargetMessageId } from './conversationTarget'
 import { conversationQueryOptions, type EmailListItemData } from './queries'
-import { isOwnSentCopy } from './threadSummary'
+import { isOwnSentCopy, isReceivedFromOthers } from './threadSummary'
 
 /** Shown expanded when the conversation opens: unread, last, opened */
 function initiallyExpanded(
@@ -74,6 +74,9 @@ interface ConversationContentProps {
   mailboxId: string | null
   /** Opened from the row of a list, not from a result or a link */
   fromList: boolean
+  /** The Sent mailbox and the address of the user: their own are not news */
+  sentId: string | null
+  ownAddress: string
   onBack: () => void
   navigation?: EmailViewNavigation
 }
@@ -83,6 +86,8 @@ function ConversationContent({
   openedId,
   mailboxId,
   fromList,
+  sentId,
+  ownAddress,
   onBack,
   navigation = NO_NAVIGATION
 }: ConversationContentProps): ReactElement {
@@ -104,7 +109,12 @@ function ConversationContent({
   const { run } = useEmailActions()
   const subject = emails[emails.length - 1]?.subject ?? ''
   useDocumentTitle(subject)
-  const arrived = emails.filter(email => !initialIds.has(email.id))
+  // Announced: the messages received since, not the replies the user sent
+  const arrived = emails.filter(
+    email =>
+      !initialIds.has(email.id) &&
+      isReceivedFromOthers(email, sentId, ownAddress)
+  )
   const lastArrived = arrived[arrived.length - 1] ?? null
   const isRead = emails.every(email => hasKeyword(email, SEEN))
   const isStarred = emails.every(email => hasKeyword(email, FLAGGED))
@@ -429,6 +439,8 @@ export function ConversationView({
       openedId={emailId}
       mailboxId={mailboxId}
       fromList={fromList}
+      sentId={sentId}
+      ownAddress={session.username}
       onBack={onBack}
       navigation={navigation}
     />

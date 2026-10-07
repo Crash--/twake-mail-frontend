@@ -826,4 +826,34 @@ describe('EmailList', () => {
     expect(within(row).queryByText('Work')).toBe(null)
     window.localStorage.clear()
   })
+
+  it('hides the label chips once "Display labels" is turned off', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES,
+      emails: [
+        makeEmail({
+          id: 'plan',
+          subject: 'Plan',
+          keywords: { $seen: true, work: true }
+        })
+      ]
+    })
+    installFakeLabels(server, [
+      { id: 'work', displayName: 'Work', keyword: 'work', color: '#273891' }
+    ])
+    renderList(server)
+    const row = await screen.findByTestId('email-list-item')
+    expect(await within(row).findByTestId('label-chips')).toBeInTheDocument()
+
+    // The labels stay in the cache of the query this disables
+    act(() => {
+      window.localStorage.setItem('twake-mail.preferences.labels', 'false')
+      window.dispatchEvent(
+        new StorageEvent('storage', { key: 'twake-mail.preferences.labels' })
+      )
+    })
+
+    expect(within(row).queryByTestId('label-chips')).toBe(null)
+    window.localStorage.clear()
+  })
 })

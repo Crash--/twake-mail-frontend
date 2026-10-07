@@ -46,7 +46,7 @@ import {
   isTemplatesMailbox
 } from '@common/features/mailbox/mailboxTree'
 import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
-import { useLabels } from '@common/features/labels/queries'
+import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { mailboxKeys } from '@common/features/mailbox/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
@@ -522,7 +522,11 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   const { openComposer } = useComposer()
   const showImportant = useShowsSenderPriority()
-  const labels = useLabels().data?.list
+  // A disabled query keeps its cached data: "Display labels" off must hide
+  // the chips the labels loaded before
+  const labelsAvailable = useLabelsAvailable()
+  const cachedLabels = useLabels().data?.list
+  const labels = labelsAvailable ? cachedLabels : undefined
   const showActionRequired = useAiNeedsActionEnabled()
   const handleOpenDraft = useCallback(
     (email: { id: string }): void => {

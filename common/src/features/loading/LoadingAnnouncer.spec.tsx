@@ -51,6 +51,20 @@ describe('LoadingAnnouncer', () => {
     expect(screen.getByTestId('loading-announcement')).toBeEmptyDOMElement()
   })
 
+  it('keeps one region for the page when an announcer is inside another', () => {
+    renderWithProviders(
+      <LoadingAnnouncer>
+        <LoadingAnnouncer>
+          <View isLoading />
+        </LoadingAnnouncer>
+      </LoadingAnnouncer>
+    )
+
+    expect(screen.getByTestId('loading-announcement')).toHaveTextContent(
+      'Loading'
+    )
+  })
+
   it('lets a view render without the announcer', () => {
     renderWithProviders(<View isLoading />)
 

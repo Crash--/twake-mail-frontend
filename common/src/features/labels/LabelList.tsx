@@ -28,7 +28,9 @@ export function LabelList({ label }: LabelListProps): ReactElement {
     (): EmailListSearch => ({
       request: {
         filter: { hasKeyword: label.keyword },
-        sort: [{ property: 'receivedAt', isAscending: false }]
+        sort: [{ property: 'receivedAt', isAscending: false }],
+        // An email the label is taken off leaves the view
+        isListFiltered: true
       },
       emailPath: emailId => labelEmailPath(label.id, emailId),
       openEmailId,

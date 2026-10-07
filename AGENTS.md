@@ -137,7 +137,8 @@ In short:
 - Both expose `getAuthorizationHeader()` and `onUnauthorized()`, which the
   JMAP client consumes (`common/src/jmap/makeJmapAuth.ts`).
 - `localSession.ts`: `endLocalSession()` broadcasts on the
-  `twake-mail-session` BroadcastChannel so every tab signs out.
+  `twake-mail-session` BroadcastChannel so every tab signed in with the same
+  account signs out (a tab signed in with another account stays signed in).
 
 Never store tokens or passwords in web storage, never log them.
 

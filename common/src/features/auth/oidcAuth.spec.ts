@@ -583,7 +583,9 @@ describe('createOidcAuthService', () => {
 
       expect(service.getState()).toEqual({ status: 'anonymous' })
       await expect(service.getAuthorizationHeader()).resolves.toBe(null)
-      expect(postMessage).toHaveBeenCalledWith('session-ended')
+      expect(postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'session-ended' })
+      )
       expect(mockedClient.buildEndSessionUrl).toHaveBeenCalledWith(
         configuration,
         {

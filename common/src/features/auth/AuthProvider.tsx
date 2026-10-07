@@ -30,7 +30,7 @@ export function AuthProvider({
 }: AuthProviderProps): ReactElement {
   const queryClient = useQueryClient()
 
-  useEffect(() => onSessionEndedElsewhere(service.clearLocalSession), [service])
+  useEffect(() => onSessionEndedElsewhere(service), [service])
 
   useEffect(
     () =>

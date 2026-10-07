@@ -34,7 +34,7 @@ import {
   type RowAttributes
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
-import { useDocumentTitle } from '@common/app/useDocumentTitle'
+import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { listTemplatesMailboxIds } from '@common/features/composer/templatesFolder'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'

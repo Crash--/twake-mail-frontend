@@ -4,8 +4,7 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-/** Past this count the badge says "999+" */
-const MAX_COUNT = 999
+import { formatCount } from './formatCount'
 
 export interface CountBadgeProps {
   count: number
@@ -46,7 +45,7 @@ export function CountBadge({
         whiteSpace: 'nowrap'
       })}
     >
-      {count > MAX_COUNT ? `${MAX_COUNT}+` : count}
+      {formatCount(count)}
     </Box>
   )
 }

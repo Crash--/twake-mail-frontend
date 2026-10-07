@@ -210,8 +210,9 @@ test.describe('SET settings', () => {
       await settings.open('keyboard-shortcuts')
       await expect(settings.heading).toHaveText('Keyboard shortcuts')
       await expect(settings.heading).toBeFocused()
+      // After the unread count of the Inbox, if any
       await expect(page).toHaveTitle(
-        'Keyboard shortcuts - Settings - Twake Mail'
+        /^(\(\d+\+?\) )?Keyboard shortcuts - Settings - Twake Mail$/
       )
       await expect(
         page.getByRole('switch', { name: 'Enable keyboard shortcuts' })

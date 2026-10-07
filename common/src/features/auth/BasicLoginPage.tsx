@@ -16,7 +16,7 @@ import { Navigate, useLocation } from 'react-router'
 
 import { CenteredCard } from '@/ds/CenteredCard/CenteredCard'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
-import { useDocumentTitle } from '@common/app/useDocumentTitle'
+import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 

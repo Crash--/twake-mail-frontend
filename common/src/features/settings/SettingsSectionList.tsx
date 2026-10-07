@@ -14,7 +14,7 @@ import { useEffect, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
-import { useDocumentTitle } from '@common/app/useDocumentTitle'
+import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { settingsSectionPath } from './sections'

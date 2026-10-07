@@ -16,6 +16,7 @@ import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
 import { ListFilterProvider } from '@common/features/thread/ListFilterProvider'
+import { InboxUnreadTitle } from '@common/features/mailbox/InboxUnreadTitle'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -137,6 +138,7 @@ function AppFrame({ apps }: AppLayoutProps): ReactElement {
     <Box className="u-flex u-flex-column u-h-100">
       <TouchTargets />
       <ServerLanguageSync />
+      <InboxUnreadTitle />
       <OfflineNotice />
       <SentryReportingSync />
       <FeedbackWidget hasFloatingAction={showComposeFab} />

@@ -79,7 +79,8 @@ step: a feature is not done until it is accessible.
   and its row says "Unread"; starred is announced through `aria-pressed`
   and the row name).
 - **Language and titles**: `<html lang>` follows the UI language; each view
-  sets its own `<title>` (`<view> - Twake Mail`).
+  sets its own `<title>` with `useDocumentTitle` (`<view> - Twake Mail`,
+  after the unread count of the Inbox: `(3) Inbox - Twake Mail`).
 - **Frames**: the email body iframe has a `title`.
 - **Live regions**: notifications (snackbars, errors) and new emails arriving
   by push are announced through a live region (`role="status"`,

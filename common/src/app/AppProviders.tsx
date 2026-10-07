@@ -8,6 +8,7 @@ import {
   type ReactNode
 } from 'react'
 
+import { DocumentTitleProvider } from '@common/app/DocumentTitleProvider'
 import { ConfirmProvider } from '@common/features/confirm/ConfirmProvider'
 import { NotificationsProvider } from '@common/features/notifications/NotificationsProvider'
 import { useFocusIndicator } from '@common/features/settings/accessibilityPreference'
@@ -37,7 +38,8 @@ export interface AppProvidersProps {
 }
 
 /**
- * Theme (with the focus indicator the user chose), translations, data cache, notifications and confirmations: what every screen
+ * Theme (with the focus indicator the user chose), translations, title of
+ * the page, data cache, notifications and confirmations: what every screen
  * needs, including the ones shown before authentication.
  */
 export function AppProviders({
@@ -63,16 +65,18 @@ export function AppProviders({
     <TwakeMuiThemeProvider themeOptions={themeOptions}>
       <SpaceOverlayProvider overlay={overlay}>
         <I18nProvider lang={lang}>
-          <QueryClientProvider client={queryClient}>
-            <NotificationsProvider>
-              <ConfirmProvider>{children}</ConfirmProvider>
-            </NotificationsProvider>
-            {debug ? (
-              <Suspense fallback={null}>
-                <ReactQueryDevtools buttonPosition="bottom-left" />
-              </Suspense>
-            ) : null}
-          </QueryClientProvider>
+          <DocumentTitleProvider>
+            <QueryClientProvider client={queryClient}>
+              <NotificationsProvider>
+                <ConfirmProvider>{children}</ConfirmProvider>
+              </NotificationsProvider>
+              {debug ? (
+                <Suspense fallback={null}>
+                  <ReactQueryDevtools buttonPosition="bottom-left" />
+                </Suspense>
+              ) : null}
+            </QueryClientProvider>
+          </DocumentTitleProvider>
         </I18nProvider>
       </SpaceOverlayProvider>
     </TwakeMuiThemeProvider>

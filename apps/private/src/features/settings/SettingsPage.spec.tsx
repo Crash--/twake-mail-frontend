@@ -35,7 +35,8 @@ describe('Settings', () => {
       'aria-current',
       'page'
     )
-    expect(document.title).toBe('Profiles - Settings - Twake Mail')
+    // The unread count of the Inbox comes first, as on every screen
+    expect(document.title).toBe('(2) Profiles - Settings - Twake Mail')
     expect(screen.queryByTestId('mailbox-tree')).toBe(null)
 
     await userEvent.click(within(nav).getByTestId('settings-menu-preferences'))

@@ -342,7 +342,7 @@
       "minimize": "Minimize",
       "fullscreen": "Fullscreen",
       "exitFullscreen": "Exit fullscreen",
-      "close": "Save & close",
+      "close": "Close",
       "show": "Show",
       "overflow": "+%{smart_count} message |||| +%{smart_count} messages"
     },

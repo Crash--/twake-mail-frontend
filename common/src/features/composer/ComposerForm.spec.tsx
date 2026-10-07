@@ -186,7 +186,7 @@ describe('ComposerForm', () => {
           .getAllByRole('button')
           .map(button => button.getAttribute('aria-label'))
       ).toEqual([
-        'Save & close',
+        'Close',
         'Formatting options',
         'Attach file',
         'Insert image',
@@ -703,7 +703,7 @@ describe('ComposerForm', () => {
       ])
 
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'Save & close' })
+        within(composer).getByRole('button', { name: 'Close' })
       )
       const toast = await screen.findByTestId('toast')
       expect(toast).toHaveTextContent('Draft saved')
@@ -983,7 +983,7 @@ describe('ComposerForm', () => {
 
       // Never saved on the server: closing asks, what was typed is not lost
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'Save & close' })
+        within(composer).getByRole('button', { name: 'Close' })
       )
       await userEvent.click(
         await screen.findByRole('button', { name: 'Discard changes' })
@@ -1098,7 +1098,7 @@ describe('ComposerForm', () => {
       // Kept as a template: no draft left, closing asks nothing
       expect(draftsOf(jmapServer)).toEqual([])
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'Save & close' })
+        within(composer).getByRole('button', { name: 'Close' })
       )
       await waitFor(() => {
         expect(screen.queryByTestId('composer')).toBe(null)
@@ -1795,7 +1795,7 @@ describe('ComposerForm', () => {
       const [draft] = draftsOf(jmapServer)
       expect(draft?.headers?.['X-Twake-Answering']).toBe('$answered source-1')
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'Save & close' })
+        within(composer).getByRole('button', { name: 'Close' })
       )
       await waitFor(() => {
         expect(screen.queryByTestId('composer')).toBe(null)

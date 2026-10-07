@@ -48,7 +48,7 @@ test.describe('A11Y composer', () => {
         - heading "New message" [level=2]
         - button "Minimize"
         - button "Fullscreen"
-        - button "Save & close"
+        - button "Close"
         - group "To":
           - combobox "To"
         - textbox "Subject"
@@ -101,7 +101,7 @@ test.describe('A11Y composer', () => {
         - 'button "Show: Quarterly numbers"'
         - button "Show"
         - button "Fullscreen"
-        - button "Save & close"
+        - button "Close"
     `)
     await expect(
       composer.root.getByRole('button', { name: 'Show: Quarterly numbers' })

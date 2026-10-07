@@ -99,7 +99,7 @@ describe('ComposerProvider', () => {
       })
 
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'Save & close' })
+        within(composer).getByRole('button', { name: 'Close' })
       )
       await userEvent.click(
         await screen.findByTestId('confirm-dialog-alternative-button')
@@ -292,7 +292,7 @@ describe('ComposerProvider', () => {
     const composer = await openComposer()
 
     await userEvent.click(
-      within(composer).getByRole('button', { name: 'Save & close' })
+      within(composer).getByRole('button', { name: 'Close' })
     )
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBe(null)
@@ -323,7 +323,7 @@ describe('ComposerProvider', () => {
     )
 
     await userEvent.click(
-      within(composer).getByRole('button', { name: 'Save & close' })
+      within(composer).getByRole('button', { name: 'Close' })
     )
     const dialog = await screen.findByRole('dialog', { name: 'Save message' })
     expect(within(dialog).getByRole('button', { name: 'Save' })).toHaveFocus()
@@ -353,7 +353,7 @@ describe('ComposerProvider', () => {
     await userEvent.keyboard('bob@example.com,')
 
     await userEvent.click(
-      within(composer).getByRole('button', { name: 'Save & close' })
+      within(composer).getByRole('button', { name: 'Close' })
     )
     await userEvent.click(
       await screen.findByRole('button', { name: 'Discard changes' })

@@ -576,7 +576,7 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
 - [ ] `LST-02` The actions of a row replace its date on hover and on keyboard focus. — `chromium`
   project only
   - Spec: `tests/list-rows.spec.ts`.
-- [ ] `RESP-06` On a 1440 x 789 desktop, the top bar is 50 px high and full width above the
+- [ ] `RESP-06` On a 1440 x 789 desktop, the platform bar of Twake Workplace is 48 px high and full width above the
   sidebar, the search is in the page under it (820 px at most) with the settings button at the far
   end of its row, and the list toolbar sits under the search; axe. — `chromium` project only
   - Spec: `tests/responsive.spec.ts`.

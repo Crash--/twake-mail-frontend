@@ -58,9 +58,7 @@ export function focusTargetsAround(element: Element | null): Element[] {
  * the page takes it. A dialog giving the focus back to its opener, which
  * the action removed, loses it after a delay: a single check would miss it.
  */
-export function keepFocusInPage(
-  candidates: readonly (Element | null)[]
-): void {
+export function keepFocusInPage(candidates: readonly (Element | null)[]): void {
   const deadline = performance.now() + WATCH_MS
   const check = (): void => {
     if (isFocusLost()) focusFirst(candidates)

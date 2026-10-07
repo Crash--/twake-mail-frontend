@@ -110,16 +110,14 @@ export function useEmailViewShortcuts({
     }
     if (!wasInMailbox.current || email === undefined) return
     wasInMailbox.current = false
+    // Without a neighbor known, the list focuses its first row
     const { nextId, previousId } = lastNeighbors.current
-    const focusEmailId = nextId ?? previousId
+    const focusEmailId = nextId ?? previousId ?? emailId
     void navigate(backPath, {
-      state:
-        focusEmailId === null
-          ? null
-          : ({ focusEmailId } satisfies EmailListLocationState),
+      state: { focusEmailId } satisfies EmailListLocationState,
       viewTransition: prepareViewTransition('backward')
     })
-  }, [isInMailbox, email, backPath, navigate])
+  }, [isInMailbox, email, emailId, backPath, navigate])
 
   // The next email comes in like an opened one, the previous one the other way
   const open = (

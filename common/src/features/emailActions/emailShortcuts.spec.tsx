@@ -168,6 +168,20 @@ describe('Email keyboard shortcuts', () => {
     })
   })
 
+  it('closes the open email with Escape, back on its row', async () => {
+    const server = makeServer()
+    renderMailScreen(server, '/mailbox/mailbox-inbox/email/e1')
+    await screen.findByTestId('email-view-subject')
+
+    await userEvent.keyboard('{Escape}')
+
+    expect(await screen.findByText('Second')).toBeVisible()
+    expect(screen.queryByTestId('email-view')).toBe(null)
+    await waitFor(() => {
+      expect(rowLink('First')).toHaveFocus()
+    })
+  })
+
   it('opens the next and the previous email of the folder', async () => {
     const server = makeServer()
     renderMailScreen(server, '/mailbox/mailbox-inbox/email/e2')

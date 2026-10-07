@@ -2,12 +2,25 @@ import type { TranslationKey } from '@common/i18n/useI18n'
 
 /** The keys the app listens to, as `KeyboardEvent.key` gives them */
 export type ShortcutKey =
-  'c' | '/' | 'j' | 'k' | 'e' | '#' | 's' | 'u' | 'z' | 'r' | 'R' | 'f' | '?'
+  | 'c'
+  | '/'
+  | 'j'
+  | 'k'
+  | 'Escape'
+  | 'e'
+  | '#'
+  | 's'
+  | 'u'
+  | 'z'
+  | 'r'
+  | 'R'
+  | 'f'
+  | '?'
 
 /**
  * The shortcuts, in the order the help lists them; `keys` is what the help
- * shows when it is not the key itself. Reply, reply all and forward are
- * tmail-flutter's (r, Shift+R, f).
+ * shows when it is not the key itself. Reply, reply all, forward and Escape
+ * (back to the list) are tmail-flutter's (r, Shift+R, f, Esc).
  */
 export const SHORTCUTS: readonly {
   key: ShortcutKey
@@ -18,6 +31,7 @@ export const SHORTCUTS: readonly {
   { key: '/', label: 'shortcuts.actions.search' },
   { key: 'j', label: 'shortcuts.actions.next' },
   { key: 'k', label: 'shortcuts.actions.previous' },
+  { key: 'Escape', label: 'shortcuts.actions.close' },
   { key: 'e', label: 'shortcuts.actions.archive' },
   { key: '#', label: 'shortcuts.actions.delete' },
   { key: 's', label: 'shortcuts.actions.star' },

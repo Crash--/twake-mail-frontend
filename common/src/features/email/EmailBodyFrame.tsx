@@ -42,6 +42,30 @@ export function interceptMailtoLinks(
 }
 
 /**
+ * The keys pressed in the email document stay in the frame: Escape is
+ * pressed again on the frame element, so that the shortcuts of the app
+ * (back to the list) hear it. The listener lives in the app: nothing runs in
+ * the frame
+ */
+export function forwardEscapeKey(
+  frameDocument: Document,
+  frame: HTMLIFrameElement
+): void {
+  frameDocument.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || event.defaultPrevented) return
+    // The window the frame is rendered in (the overlay of TwakeSpace)
+    const view = frame.ownerDocument.defaultView ?? window
+    frame.dispatchEvent(
+      new view.KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true
+      })
+    )
+  })
+}
+
+/**
  * The body of an email, isolated in a sandboxed iframe whose height follows
  * its content, so that the reading pane scrolls as one page.
  */
@@ -79,9 +103,12 @@ export function EmailBodyFrame({
   const handleLoad = (): void => {
     observerRef.current?.disconnect()
     observerRef.current = null
-    const frameDocument = frameRef.current?.contentDocument
+    const frame = frameRef.current
+    const frameDocument = frame?.contentDocument
     const content = frameDocument?.getElementById(EMAIL_CONTENT_ID)
-    if (!frameDocument || !content) return
+    if (!frame || !frameDocument || !content) return
+
+    forwardEscapeKey(frameDocument, frame)
 
     if (onMailtoLinkRef.current) {
       interceptMailtoLinks(frameDocument, href => {

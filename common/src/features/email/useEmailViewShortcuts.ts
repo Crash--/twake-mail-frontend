@@ -69,8 +69,9 @@ export interface EmailViewShortcutsOptions {
 
 /**
  * The keyboard shortcuts of an open email (`j` / `k` open the next /
- * previous one of its folder, `e` archives, `#` deletes, `s` stars, `u`
- * marks unread and goes back to the list), unless the focus is in the list
+ * previous one of its folder, Escape goes back to the list, `e` archives,
+ * `#` deletes, `s` stars, `u` marks unread and goes back to the list),
+ * unless the focus is in the list
  * beside it. Once the email leaves its folder (archived, deleted, moved
  * here or by another client), or is deleted, the view goes back to the
  * list, on the row that took its place. Returns what the "previous" and
@@ -133,8 +134,19 @@ export function useEmailViewShortcuts({
     }
   }
 
+  /** Back to the list, the focus on the row of the email (`focusEmailId`) */
+  const backToList = (focusEmailId: string): void => {
+    void navigate(backPath, {
+      state: { focusEmailId } satisfies EmailListLocationState,
+      viewTransition: prepareViewTransition('backward')
+    })
+  }
+
   useShortcuts(
     {
+      Escape: () => {
+        backToList(emailId)
+      },
       r: () => {
         replies.open('reply')
       },
@@ -169,10 +181,7 @@ export function useEmailViewShortcuts({
         if (!email) return
         void run({ action: 'markAsUnread', emails: [email], mailboxId })
         // As tmail-flutter: an email left unread is closed
-        void navigate(backPath, {
-          state: { focusEmailId: email.id } satisfies EmailListLocationState,
-          viewTransition: prepareViewTransition('backward')
-        })
+        backToList(email.id)
       }
     },
     () => focusedEmailId() === null

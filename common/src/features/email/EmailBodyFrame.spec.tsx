@@ -1,4 +1,4 @@
-import { interceptMailtoLinks } from './EmailBodyFrame'
+import { forwardEscapeKey, interceptMailtoLinks } from './EmailBodyFrame'
 
 function frameDocument(html: string): Document {
   const document = new DOMParser().parseFromString(html, 'text/html')
@@ -32,5 +32,38 @@ describe('interceptMailtoLinks', () => {
 
     expect(onMailtoLink).not.toHaveBeenCalled()
     expect(event.defaultPrevented).toBe(false)
+  })
+})
+
+describe('forwardEscapeKey', () => {
+  function pressIn(document: Document, key: string): jest.Mock {
+    const frame = window.document.createElement('iframe')
+    window.document.body.append(frame)
+    const heard = jest.fn()
+    window.document.addEventListener('keydown', heard)
+    forwardEscapeKey(document, frame)
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key, bubbles: true })
+    )
+
+    window.document.removeEventListener('keydown', heard)
+    frame.remove()
+    return heard
+  }
+
+  it('presses Escape again on the frame, for the shortcuts of the app', () => {
+    const heard = pressIn(frameDocument('<p>Hello</p>'), 'Escape')
+
+    expect(heard).toHaveBeenCalledTimes(1)
+    expect(heard).toHaveBeenCalledWith(
+      expect.objectContaining({ key: 'Escape' })
+    )
+  })
+
+  it('keeps the other keys in the frame', () => {
+    const heard = pressIn(frameDocument('<p>Hello</p>'), 'j')
+
+    expect(heard).not.toHaveBeenCalled()
   })
 })

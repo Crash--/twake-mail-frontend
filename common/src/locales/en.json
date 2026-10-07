@@ -675,6 +675,7 @@
       "search": "Search",
       "next": "Next message",
       "previous": "Previous message",
+      "close": "Close the message and go back to the list",
       "star": "Star or unstar",
       "undo": "Undo the last action",
       "help": "Show the keyboard shortcuts"

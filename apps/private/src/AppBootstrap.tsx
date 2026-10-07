@@ -41,9 +41,10 @@ export interface AppBootstrapProps {
 
 /**
  * Starts the app once the configuration is complete (`completeConfig`),
- * under providers that stay mounted from the first render: the loading
- * screen of the facade of a team mailbox and its "Loading" live region
- * carry on into the app instead of starting over.
+ * under providers that stay mounted from the first render: the "Loading"
+ * live region of the page (and, on the facade of a team mailbox, its
+ * loading screen) carries on through the sign-in and the JMAP session into
+ * the app instead of starting over.
  */
 export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
   const [queryClient] = useState(makeQueryClient)
@@ -71,6 +72,8 @@ export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
 
   const app =
     completed === null ? null : <App config={completed} embed={embed} />
+  const loading =
+    embed === null ? <FullPageLoader /> : <TeamMailboxLoadingScreen />
   const page = (
     <AppProviders
       lang={lang}
@@ -78,13 +81,7 @@ export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
       debug={config.debug}
       overlay={overlay}
     >
-      {embed === null ? (
-        (app ?? <FullPageLoader />)
-      ) : (
-        <LoadingAnnouncer>
-          {app ?? <TeamMailboxLoadingScreen />}
-        </LoadingAnnouncer>
-      )}
+      <LoadingAnnouncer>{app ?? loading}</LoadingAnnouncer>
     </AppProviders>
   )
   if (embed === null) return page

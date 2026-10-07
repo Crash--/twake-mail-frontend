@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 
 import { completeConfig } from '@common/config/completeConfig'
 import { resolveConfig, type AppConfig } from '@common/config/config'
@@ -47,6 +47,18 @@ describe('AppBootstrap', () => {
     expect(screen.getByTestId('full-page-loader')).toBeInTheDocument()
     expect(await screen.findByTestId('app')).toHaveTextContent('oidc mode')
     expect(screen.queryByTestId('full-page-loader')).toBe(null)
+  })
+
+  it('announces the boot in the one "Loading" live region of the page, kept into the app', async () => {
+    completeConfigMock.mockResolvedValue(makeConfig())
+
+    render(<AppBootstrap config={makeConfig()} />)
+
+    const region = screen.getByTestId('loading-announcement')
+    expect(region).toHaveTextContent('Loading')
+    await screen.findByTestId('app')
+    expect(screen.getAllByTestId('loading-announcement')).toEqual([region])
+    await waitFor(() => expect(region).toBeEmptyDOMElement())
   })
 
   it('shows the rows of a list at once, not a spinner, on the facade of a team mailbox', () => {

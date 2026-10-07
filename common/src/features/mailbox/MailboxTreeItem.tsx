@@ -147,6 +147,7 @@ export function MailboxTreeItem({
           {address === null ? null : (
             <SecondaryText
               variant="caption"
+              noWrap
               className="u-ml-half"
               data-testid="mailbox-item-address"
             >

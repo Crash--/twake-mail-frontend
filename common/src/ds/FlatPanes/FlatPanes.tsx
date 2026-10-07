@@ -33,9 +33,13 @@ export function FlatMain({
   return <Main sx={inset ? INSET_MAIN_SX : MAIN_SX} {...props} />
 }
 
-/** `Content` without margin nor rounded corners */
+/**
+ * `Content` without margin nor rounded corners, nor the `main` role of
+ * twake-mui's `Content`: it sits in `FlatMain`, whose `<main>` is the landmark
+ * (two nested `main` landmarks otherwise, docs/twake-mui-gaps.md)
+ */
 export function FlatContent(
   props: ComponentProps<typeof Content>
 ): ReactElement {
-  return <Content sx={CONTENT_SX} {...props} />
+  return <Content sx={CONTENT_SX} role={undefined} {...props} />
 }

@@ -21,6 +21,18 @@ describe('FlatPanes', () => {
     })
   })
 
+  it('has a single main landmark, the main pane', () => {
+    renderDs(
+      <Layout withTopBar={false}>
+        <FlatMain data-testid="main">
+          <FlatContent>Body</FlatContent>
+        </FlatMain>
+      </Layout>
+    )
+
+    expect(screen.getByRole('main')).toBe(screen.getByTestId('main'))
+  })
+
   it('makes the main pane a card with margins when inset', () => {
     renderDs(
       <Layout withTopBar={false}>

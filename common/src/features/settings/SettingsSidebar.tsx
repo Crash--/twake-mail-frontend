@@ -6,7 +6,10 @@ import { Link } from 'react-router'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { useSettingsExitPath } from './SettingsExitProvider'
+import {
+  SETTINGS_EXIT_STATE,
+  useSettingsExitPath
+} from './SettingsExitProvider'
 import { SettingsNav } from './SettingsNav'
 
 /**
@@ -29,6 +32,7 @@ export function SettingsSidebar(): ReactElement {
         <Button
           component={Link}
           to={exitPath}
+          state={SETTINGS_EXIT_STATE}
           variant="text"
           color="inherit"
           startIcon={<Icon icon={Left} />}

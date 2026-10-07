@@ -18,7 +18,10 @@ import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { settingsSectionPath } from './sections'
-import { useSettingsExitPath } from './SettingsExitProvider'
+import {
+  SETTINGS_EXIT_STATE,
+  useSettingsExitPath
+} from './SettingsExitProvider'
 import { useSettingsSections } from './useSettingsSections'
 
 /**
@@ -45,6 +48,7 @@ export function SettingsSectionList(): ReactElement {
           <IconButton
             component={Link}
             to={exitPath}
+            state={SETTINGS_EXIT_STATE}
             aria-label={backLabel}
             data-testid="settings-back-button"
           >

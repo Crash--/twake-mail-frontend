@@ -1254,7 +1254,7 @@
     "title": "Unsubscribe mail",
     "done": "Unsubscribed from this mailing list",
     "banner": "You unsubscribe from %{senderName}",
-    "message": "Are you sure you'd like to stop receiving similar messages from %{senderName} ?"
+    "message": "Are you sure you'd like to stop receiving similar messages from %{senderName}?"
   },
   "print": {
     "inProgress": "Printing in progress",

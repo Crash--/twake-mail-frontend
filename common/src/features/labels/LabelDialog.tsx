@@ -212,9 +212,9 @@ export function LabelDialog({
           />
           <ColorSwatchPicker
             legend={t('labels.form.color')}
-            swatches={LABEL_COLORS.map(value => ({
+            swatches={LABEL_COLORS.map(({ name, value }) => ({
               value,
-              label: t('labels.colorNamed', { color: value })
+              label: t(`labels.colors.${name}`)
             }))}
             value={color}
             onChange={setColor}

@@ -546,7 +546,7 @@
       "allTime": "Toàn bộ thời gian",
       "last30Days": "30 ngày gần đây",
       "last6Months": "6 tháng gần đây",
-      "lastYear": "1 năm gần đây",
+      "lastYear": "12 tháng gần đây",
       "custom": "Khoảng thời gian",
       "range": "Từ %{startDate} đến %{endDate}"
     },

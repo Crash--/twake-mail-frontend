@@ -546,7 +546,7 @@
       "allTime": "All time",
       "last30Days": "Last 30 days",
       "last6Months": "Last 6 months",
-      "lastYear": "Last years",
+      "lastYear": "Last 12 months",
       "custom": "Custom range",
       "range": "From %{startDate} to %{endDate}"
     },

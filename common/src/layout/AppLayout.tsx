@@ -153,7 +153,8 @@ function AppFrame(): ReactElement {
       <InboxUnreadTitle />
       <OfflineNotice />
       <SentryReportingSync />
-      <FeedbackWidget hasFloatingAction={showComposeFab} />
+      {/* The reply bar of an open email is at the bottom of the screen too */}
+      <FeedbackWidget hasBottomAction={showComposeFab || isEmailOpen} />
       <AppHeader onOpenFolders={handleOpenFolders} />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}

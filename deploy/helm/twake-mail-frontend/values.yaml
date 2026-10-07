@@ -201,6 +201,7 @@ ingress:
       - /jmap
       - /upload
       - /download
+      - /downloadAll
       - /eventSource
       - /.well-known/jmap
 

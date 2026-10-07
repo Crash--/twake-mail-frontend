@@ -526,8 +526,8 @@ put that origin in `CSP_CONNECT_SRC` too.
 Two layouts work:
 
 - **Same origin** (recommended): the proxy in front of the app routes `/jmap`,
-  `/upload`, `/download`, `/eventSource` and `/.well-known/jmap` to
-  tmail-backend, and everything else to the app. No CORS, and `connect-src
+  `/upload`, `/download`, `/downloadAll`, `/eventSource` and
+  `/.well-known/jmap` to tmail-backend, and everything else to the app. No CORS, and `connect-src
   'self'` covers JMAP. tmail-backend must advertise URLs of that origin in the
   JMAP session: either `url.prefix` / `websocket.url.prefix` in its
   `jmap.properties`, or `dynamic.jmap.prefix.resolution.enabled=true` with the

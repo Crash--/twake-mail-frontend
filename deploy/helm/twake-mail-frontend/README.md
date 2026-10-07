@@ -83,7 +83,7 @@ blocking anything, for a progressive rollout.
 ## JMAP on the origin of the app
 
 With `ingress.jmap.enabled`, the ingress routes `/jmap`, `/upload`,
-`/download`, `/eventSource` and `/.well-known/jmap` of the hosts to the
+`/download`, `/downloadAll`, `/eventSource` and `/.well-known/jmap` of the hosts to the
 tmail-backend service `ingress.jmap.service`. Set `config.serverUrl: /`, and make tmail-backend advertise URLs of the host of the app
 in its JMAP session (`url.prefix=https://mail.example.com` and
 `websocket.url.prefix=wss://mail.example.com` in `jmap.properties`). The

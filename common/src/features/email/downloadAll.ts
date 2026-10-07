@@ -63,6 +63,26 @@ export function expandDownloadAllUrl(
   )
 }
 
+/** Local file header, empty archive and spanned archive signatures */
+const ZIP_SIGNATURES: readonly (readonly number[])[] = [
+  [0x50, 0x4b, 0x03, 0x04],
+  [0x50, 0x4b, 0x05, 0x06],
+  [0x50, 0x4b, 0x07, 0x08]
+]
+
+/**
+ * Whether the bytes start like a zip archive: a proxy that does not route
+ * the endpoint answers the app's `index.html` with a 200
+ */
+export function isZipArchive(bytes: ArrayBuffer): boolean {
+  const head = new Uint8Array(bytes, 0, Math.min(bytes.byteLength, 4))
+  return ZIP_SIGNATURES.some(
+    signature =>
+      head.length === signature.length &&
+      signature.every((byte, index) => head[index] === byte)
+  )
+}
+
 /**
  * The name of the archive, without `.zip` (the `name` of the URL):
  * tmail-flutter's `TwakeMail-<date>`, with a date safe in a file name

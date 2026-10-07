@@ -12,6 +12,7 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { AttachmentList } from './AttachmentList'
 
 const DOWNLOAD_ALL = 'com:linagora:params:downloadAll'
+const ZIP_BYTES = new Uint8Array([0x50, 0x4b, 0x05, 0x06])
 
 function part(
   overrides: Partial<EmailBodyPart> & Pick<EmailBodyPart, 'type'>
@@ -200,7 +201,7 @@ describe('AttachmentList', () => {
         .mockImplementation(() => undefined)
       const fetchSpy = jest.fn(
         (_url: string, _init?: RequestInit): Promise<Response> =>
-          Promise.resolve(new Response('PK', { status: 200 }))
+          Promise.resolve(new Response(ZIP_BYTES, { status: 200 }))
       )
       Object.assign(globalThis, { fetch: fetchSpy })
       renderList(attachments, {}, { [DOWNLOAD_ALL]: { endpoint } })
@@ -215,6 +216,30 @@ describe('AttachmentList', () => {
         /^https:\/\/jmap\.example\.com\/downloadAll\/[^/]+\/e1\?name=TwakeMail-/
       )
       expect(init?.headers).toMatchObject({ Authorization: expect.any(String) })
+    })
+
+    it('reports an error instead of saving a page that is not an archive', async () => {
+      const click = jest
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined)
+      jest.spyOn(console, 'error').mockImplementation(() => undefined)
+      Object.assign(globalThis, {
+        fetch: (): Promise<Response> =>
+          Promise.resolve(
+            new Response('<!doctype html><html></html>', {
+              status: 200,
+              headers: { 'Content-Type': 'text/html' }
+            })
+          )
+      })
+      renderList(attachments, {}, { [DOWNLOAD_ALL]: { endpoint } })
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Download all' })
+      )
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Attachment download failed'
+      )
+      expect(click).not.toHaveBeenCalled()
     })
   })
 })

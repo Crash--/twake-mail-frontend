@@ -7,7 +7,6 @@ import {
   IconButton,
   List,
   ListItem,
-  ListSkeleton,
   Switch,
   TextField,
   Tooltip,
@@ -30,6 +29,7 @@ import {
   parseRecipients
 } from '@common/features/composer/recipients'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
+import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
@@ -184,7 +184,7 @@ export function ForwardSettings({
   if (query.isPending) {
     return (
       <SettingsSectionLayout section={section}>
-        <ListSkeleton count={2} />
+        <LoadingListSkeleton count={2} />
       </SettingsSectionLayout>
     )
   }

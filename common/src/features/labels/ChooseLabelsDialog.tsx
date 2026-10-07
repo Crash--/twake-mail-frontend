@@ -11,7 +11,6 @@ import {
   FormControlLabel,
   List,
   ListItem,
-  ListSkeleton,
   Typography
 } from '@linagora/twake-mui'
 import type { Label } from 'jmap-client-ts/linagora'
@@ -19,6 +18,7 @@ import { useId, useState, type ReactElement } from 'react'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
+import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { LabelDialog } from './LabelDialog'
@@ -106,7 +106,7 @@ export function ChooseLabelsDialog({
             {t('labels.choose.subtitle')}
           </SecondaryText>
           {query.isPending ? (
-            <ListSkeleton count={3} />
+            <LoadingListSkeleton count={3} />
           ) : labels.length === 0 ? (
             <Empty
               icon={LabelGlyph}

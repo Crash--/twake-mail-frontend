@@ -1,4 +1,4 @@
-import { Box, Divider, ListSkeleton } from '@linagora/twake-mui'
+import { Box, Divider } from '@linagora/twake-mui'
 import { useMemo, useState, type ReactElement } from 'react'
 
 import { isUnnamedCalendarPart } from '@common/features/calendar/calendarBlobs'
@@ -8,6 +8,7 @@ import {
 } from '@common/features/calendar/CalendarInvitationCard'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { parseMailto } from '@common/features/composer/mailto'
+import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useFocusIndicator } from '@common/features/settings/accessibilityPreference'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -129,7 +130,7 @@ export function EmailMessageBody({
         />
       ) : null}
       {body === null ? (
-        <ListSkeleton count={3} />
+        <LoadingListSkeleton count={3} />
       ) : (
         <EmailBodyFrame
           document={body.document}

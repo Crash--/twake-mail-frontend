@@ -159,7 +159,7 @@ function AppFrame(): ReactElement {
             onCompose={handleCompose}
           />
         )}
-        <FlatMain>
+        <FlatMain inset={isDesktop}>
           {isDesktop && !isSettings ? <MailSearchRow /> : null}
           <VacationBanner />
           <RecoveryBanner />

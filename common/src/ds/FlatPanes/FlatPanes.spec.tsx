@@ -20,4 +20,19 @@ describe('FlatPanes', () => {
       borderRadius: '0'
     })
   })
+
+  it('makes the main pane a card with margins when inset', () => {
+    renderDs(
+      <Layout withTopBar={false}>
+        <FlatMain inset data-testid="main">
+          <FlatContent>Body</FlatContent>
+        </FlatMain>
+      </Layout>
+    )
+
+    expect(screen.getByTestId('main')).toHaveStyle({
+      margin: '16px 16px 16px 0',
+      borderRadius: '16px'
+    })
+  })
 })

@@ -6,6 +6,7 @@ import type { AppListEntry } from '@common/config/config'
 import { resolveAppList } from '@common/features/apps/appList'
 import { useAuthState } from '@common/features/auth/AuthProvider'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
+import { usePlatformSdk } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -23,7 +24,7 @@ export interface AppGridMenuProps {
  * Links to the other Twake applications, listed by `public/appList.js`,
  * their URI templates resolved for the user (the Twake Drive of each user
  * has its own address). Inside Twake Workplace the container has its own
- * grid: none here.
+ * grid, and the platform bar its menu of the apps: none here.
  */
 export function AppGridMenu({ apps }: AppGridMenuProps): ReactElement | null {
   const { t } = useI18n()
@@ -31,6 +32,7 @@ export function AppGridMenu({ apps }: AppGridMenuProps): ReactElement | null {
   const state = useAuthState()
   const { session } = useJmapSession()
   const isEmbedded = useIsEmbedded()
+  const hasPlatformBar = usePlatformSdk() !== null
   const workplaceFqdn =
     state.status === 'authenticated' ? state.user.workplaceFqdn : null
   const resolved = useMemo(
@@ -43,6 +45,6 @@ export function AppGridMenu({ apps }: AppGridMenuProps): ReactElement | null {
     [apps, session.username, workplaceFqdn, config?.workplaceFqdnFallback]
   )
 
-  if (isEmbedded) return null
+  if (isEmbedded || hasPlatformBar) return null
   return <AppGrid apps={resolved} label={t('topbar.apps')} testIds={TEST_IDS} />
 }

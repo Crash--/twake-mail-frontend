@@ -5,6 +5,8 @@ process.env.TZ = 'UTC'
 
 // Packages published as ES modules only, transpiled to CommonJS for Jest
 const ESM_PACKAGES = [
+  '@linagora/twake-bar',
+  '@linagora/twake-sdk',
   '@linagora/twake-mui',
   '@linagora/twake-icons',
   '@linagora/twake-utils',
@@ -31,6 +33,10 @@ const moduleNameMapper: Config['moduleNameMapper'] = {
     '<rootDir>/node_modules/@linagora/twake-mui/dist/index.js',
   '^@linagora/twake-utils$':
     '<rootDir>/node_modules/@linagora/twake-utils/dist/index.js',
+  '^@linagora/twake-bar$':
+    '<rootDir>/node_modules/@linagora/twake-bar/dist/index.js',
+  '^@linagora/twake-sdk$':
+    '<rootDir>/node_modules/@linagora/twake-sdk/dist/index.js',
   '^@injected/(.*)$': [
     '<rootDir>/apps/private/src/$1',
     '<rootDir>/common/src/$1'

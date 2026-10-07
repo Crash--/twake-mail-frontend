@@ -145,6 +145,10 @@ config:
   # (/embed/team-mailboxes/<id>); allow it in csp.frameAncestors
   twakeSpaceUrl: ""
   forwardWarningMessage: ""
+  # -- The top bar of Twake Workplace (@linagora/twake-bar), OIDC only: the ID
+  # token is exchanged on the Workplace of the user (workplaceFqdn claim, else
+  # workplaceFqdnFallback). Allow the Workplace hosts in csp.connectSrc
+  twakeBarEnabled: false
   # -- Twake Drive picker of the composer (OIDC only). intentUrl is the Drive
   # (cozy-stack) of the user, a URI template ({workplaceFqdn}...). Allow the
   # Drive hosts in csp.connectSrc and csp.frameSrc (wildcards for per-user

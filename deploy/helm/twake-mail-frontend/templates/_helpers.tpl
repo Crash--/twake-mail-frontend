@@ -208,6 +208,7 @@ var TDRIVE_ENABLED = {{ ternary "true" "false" (eq (toString $tdrive.enabled) "t
 {{- with $tdrive.intentUrl }}
 var TDRIVE_INTENT_URL = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
+var TWAKE_BAR_ENABLED = {{ ternary "true" "false" (eq (toString $config.twakeBarEnabled) "true") }}
 {{- with $config.extraEnvJs }}
 {{ . | trim }}
 {{- end }}

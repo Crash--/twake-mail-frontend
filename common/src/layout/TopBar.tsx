@@ -22,6 +22,7 @@ import { AppTitle } from '@injected/layout/AppTitle'
 import { AppGridMenu } from './AppGridMenu'
 import { HelpButton } from './HelpButton'
 import { MailSearchBar } from './MailSearchBar'
+import { SettingsButton } from './SettingsButton'
 import { UserMenu } from './UserMenu'
 
 const SEARCH_TEST_IDS = {
@@ -33,6 +34,11 @@ export interface TopBarProps {
   apps: readonly AppListEntry[]
   /** Opens the folder drawer, below the desktop size */
   onOpenFolders: () => void
+  /**
+   * Under the platform bar, which holds the logotype, the app grid and the
+   * account: this bar keeps the folder, the search and a settings button
+   */
+  isUnderPlatformBar?: boolean
 }
 
 /**
@@ -41,9 +47,14 @@ export interface TopBarProps {
  * logotype (which moves to the drawer, with the app grid) and fold the
  * search behind a button. Inside Twake Workplace (`WORKPLACE_EMBEDDING`),
  * the container holds the logotype and the app grid, and the account
- * button is a gear, as in Twake Calendar.
+ * button is a gear, as in Twake Calendar. Under the platform bar, the folder
+ * takes the place of the logotype and a gear opens the settings.
  */
-export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
+export function TopBar({
+  apps,
+  onOpenFolders,
+  isUnderPlatformBar = false
+}: TopBarProps): ReactElement {
   const { t } = useI18n()
   const screenSize = useScreenSize()
   const isPhone = screenSize === 'mobile'
@@ -68,12 +79,26 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
     { '/': () => searchActions.current?.focusSearch() },
     () => !isDesktop
   )
+  const folderTitle =
+    folderName === null ? null : (
+      <Typography
+        variant="h4"
+        component="span"
+        noWrap
+        data-testid="top-bar-folder-name"
+      >
+        {folderName}
+      </Typography>
+    )
 
   return (
     <AppTopBar
-      // Inside Twake Workplace, the container shows the name of the app
+      // Inside Twake Workplace, the container shows the name of the app, and
+      // the platform bar shows it above
       title={
-        isEmbedded ? null : (
+        isUnderPlatformBar ? (
+          folderTitle
+        ) : isEmbedded ? null : (
           <>
             {isDesktop ? (
               <>
@@ -95,25 +120,20 @@ export function TopBar({ apps, onOpenFolders }: TopBarProps): ReactElement {
           </>
         )
       }
-      compactTitle={
-        folderName === null ? undefined : (
-          <Typography
-            variant="h4"
-            component="span"
-            noWrap
-            data-testid="top-bar-folder-name"
-          >
-            {folderName}
-          </Typography>
-        )
-      }
+      compactTitle={folderTitle ?? undefined}
       search={<MailSearchBar />}
       actions={
         <>
           {isPhone ? <ListFilterSlot /> : null}
           <HelpButton />
-          {isPhone ? null : <AppGridMenu apps={apps} />}
-          <UserMenu />
+          {isUnderPlatformBar ? (
+            <SettingsButton />
+          ) : (
+            <>
+              {isPhone ? null : <AppGridMenu apps={apps} />}
+              <UserMenu />
+            </>
+          )}
         </>
       }
       menu={{

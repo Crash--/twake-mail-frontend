@@ -146,10 +146,42 @@ tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SS
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
 `CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
 `TWAKE_SPACE_URL` (see [team-mailbox-embed.md](team-mailbox-embed.md)),
-`TDRIVE_ENABLED`, `TDRIVE_INTENT_URL`. tmail-flutter takes the calendar and
+`TDRIVE_ENABLED`, `TDRIVE_INTENT_URL`, `TWAKE_BAR_ENABLED` (see
+[below](#platform-top-bar)). tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
 upgrade (below), not for the calendar nor the Workplace host of the app grid.
+
+### Platform top bar
+
+`TWAKE_BAR_ENABLED=true` shows the top bar of Twake Workplace
+([`@linagora/twake-bar`](https://github.com/linagora/twake-libs/tree/main/packages/twake-bar))
+above the app, as in the other Twake apps: the home of the platform, the
+Twake Mail logotype, the help link of the platform, the menu of the apps
+installed on it and the account menu (profile, storage, log out). It
+replaces the logotype, the app grid (`appList.js`) and the account menu of
+the app; the settings stay in the search row on a desktop, and behind a
+gear in the bar of the app, which keeps the folders and the search under
+the platform bar on smaller screens.
+
+The bar talks to the Workplace (cozy-stack) of the user through
+[`@linagora/twake-sdk`](https://github.com/linagora/twake-libs/tree/main/packages/twake-sdk):
+
+- the Workplace is the `workplaceFqdn` claim of the SSO (ask the SSO to put
+  it in the ID token or the userinfo of this client), else
+  `WORKPLACE_FQDN_FALLBACK`;
+- the ID token of the session is exchanged for a token of the Workplace
+  (`POST /auth/token_exchange`, `exchange_type: app`), kept in memory: the
+  cozy-stack context must list the OIDC client of the app in
+  `oidc.app_token_exchange` (`software_id: registry://mail`), and the `mail`
+  app must be installed on the instance;
+- `CSP_CONNECT_SRC` must allow the Workplace origins (a wildcard such as
+  `https://*.workplace.example.com` for per-user hosts). Their images
+  (avatar, home icon) are already allowed by `img-src`.
+
+Only in OIDC mode, and never inside an iframe of the Workplace
+(`WORKPLACE_EMBEDDING`), which shows the bar itself. When the Workplace
+refuses the exchange, the app shows its own bar instead.
 
 ### Storage upgrade (paywall)
 

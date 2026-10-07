@@ -17,7 +17,7 @@ import { normalizeHexColor } from './hexColor'
 export interface ColorSwatch {
   /** `#RRGGBB` */
   value: string
-  /** Accessible name, e.g. "Color #273891" */
+  /** Accessible name, e.g. "Navy blue" */
   label: string
 }
 

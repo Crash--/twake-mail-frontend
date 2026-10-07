@@ -67,7 +67,7 @@ describe('LabelsSection', () => {
       'Travel'
     )
     await userEvent.click(
-      within(dialog).getByRole('radio', { name: 'Color #ED20A4' })
+      within(dialog).getByRole('radio', { name: 'Magenta' })
     )
     await userEvent.click(within(dialog).getByTestId('label-save-button'))
 

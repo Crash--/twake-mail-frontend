@@ -466,11 +466,11 @@ test.describe('LBL label colours', () => {
       await labels.runMenu('Edit plain', 'edit')
       await expect(labels.colorSwatch('No color')).toBeChecked()
       await expect(labels.customColorSwatch).not.toBeChecked()
-      await labels.colorSwatch('Color #273891').check()
+      await labels.colorSwatch('Navy blue').check()
       await expect(labels.customColorHexInput).toHaveCount(0)
       // The arrows go round the group up to the custom swatch, which opens
       // its field (No color, then the custom one before the first swatch)
-      await labels.colorSwatch('Color #273891').focus()
+      await labels.colorSwatch('Navy blue').focus()
       await page.keyboard.press('ArrowLeft')
       await page.keyboard.press('ArrowLeft')
       await expect(labels.customColorSwatch).toBeChecked()

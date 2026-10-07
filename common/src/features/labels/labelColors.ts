@@ -1,23 +1,55 @@
-/** The swatches of tmail-flutter's label colour picker, in its order */
-export const LABEL_COLORS: readonly string[] = [
-  '#273891',
-  '#7E57E3',
-  '#9E83E8',
-  '#617ADB',
-  '#4896E5',
-  '#038199',
-  '#457D6C',
-  '#1EBBCC',
-  '#51B588',
-  '#E0465C',
-  '#ED20A4',
-  '#ED768D',
-  '#B85B17',
-  '#BA8144',
-  '#ED916B',
-  '#EDA91D',
-  '#EDC661',
-  '#131326',
-  '#2C2C42',
-  '#646580'
+export interface LabelColor {
+  /** Key of its name under `labels.colors` */
+  name: LabelColorName
+  /** `#RRGGBB` */
+  value: string
+}
+
+export type LabelColorName =
+  | 'navyBlue'
+  | 'purple'
+  | 'lavender'
+  | 'indigo'
+  | 'blue'
+  | 'petrolBlue'
+  | 'darkGreen'
+  | 'turquoise'
+  | 'green'
+  | 'red'
+  | 'magenta'
+  | 'pink'
+  | 'brown'
+  | 'lightBrown'
+  | 'salmon'
+  | 'orange'
+  | 'yellow'
+  | 'black'
+  | 'darkGrey'
+  | 'grey'
+
+/**
+ * The swatches of tmail-flutter's label colour picker, in its order, each
+ * with a name to announce instead of its hexadecimal code
+ */
+export const LABEL_COLORS: readonly LabelColor[] = [
+  { name: 'navyBlue', value: '#273891' },
+  { name: 'purple', value: '#7E57E3' },
+  { name: 'lavender', value: '#9E83E8' },
+  { name: 'indigo', value: '#617ADB' },
+  { name: 'blue', value: '#4896E5' },
+  { name: 'petrolBlue', value: '#038199' },
+  { name: 'darkGreen', value: '#457D6C' },
+  { name: 'turquoise', value: '#1EBBCC' },
+  { name: 'green', value: '#51B588' },
+  { name: 'red', value: '#E0465C' },
+  { name: 'magenta', value: '#ED20A4' },
+  { name: 'pink', value: '#ED768D' },
+  { name: 'brown', value: '#B85B17' },
+  { name: 'lightBrown', value: '#BA8144' },
+  { name: 'salmon', value: '#ED916B' },
+  { name: 'orange', value: '#EDA91D' },
+  { name: 'yellow', value: '#EDC661' },
+  { name: 'black', value: '#131326' },
+  { name: 'darkGrey', value: '#2C2C42' },
+  { name: 'grey', value: '#646580' }
 ]

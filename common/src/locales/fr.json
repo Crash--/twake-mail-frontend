@@ -1139,6 +1139,7 @@
     "available": "%{count} disponible",
     "outOfStorage": "Stockage épuisé",
     "state": "%{used} sur %{limit} utilisés",
+    "refresh": "Actualiser le stockage",
     "banner": {
       "full": "Vous n'avez plus d'espace de stockage libre",
       "low": "Vous manquez d'espace de stockage (90 %)",

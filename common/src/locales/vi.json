@@ -1139,6 +1139,7 @@
     "available": "%{count} khả dụng",
     "outOfStorage": "Hết dung lượng lưu trữ",
     "state": "Đã dùng %{used} / %{limit}",
+    "refresh": "Làm mới dung lượng lưu trữ",
     "banner": {
       "full": "Bạn đã hết dung lượng lưu trữ",
       "low": "Dung lượng lưu trữ của bạn gần đầy (90%)",

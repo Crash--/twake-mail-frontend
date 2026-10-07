@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-07
+
+Upgrading from 0.1.0: see [`upgrade-instructions/0.2.0.md`](upgrade-instructions/0.2.0.md).
+
 ### Added
 
 - The top bar of Twake Workplace (`@linagora/twake-bar`, through
@@ -31,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `/embed/team-mailboxes/<id of its root folder>`: its list and reading view
   without the frame of the webmail, new messages from its address, a silent
   login in a frame, and its navigation and "sign in again" sent to TwakeSpace
-  through cozy-external-bridge (`TWAKE_SPACE_URL`). See
+  through `@linagora/twake-embed`, to the origin that greets the frame. See
   `docs/team-mailbox-embed.md`.
 - Loading states on the boxes of the real content: the email list and the
   search results show skeleton rows (the 44 px desktop row, the narrow row of a
@@ -299,6 +303,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   menu, replaced by the platform bar. `appList.js`, `APP_GRID_AVAILABLE` and
   `app_dashboard.json` are no longer read (Helm: `config.appList`,
   `config.appGridAvailable` removed); the apps are those of the Workplace.
+- `TWAKE_SPACE_URL` is no longer read: the facade of a team mailbox answers
+  the origin that greets its frame, and `frame-ancestors` says who may frame
+  it (Helm `config.twakeSpaceUrl` only feeds it).
 
 ### Changed
 

@@ -10,6 +10,6 @@ describe('formatSize', () => {
   it('spells bytes out with the plural of the language', () => {
     expect(formatSize(1, 'en')).toBe('1 byte')
     expect(formatSize(29, 'en')).toBe('29 bytes')
-    expect(formatSize(29, 'fr')).toBe('29 octets')
+    expect(formatSize(29, 'fr')).toBe('29 octets')
   })
 })

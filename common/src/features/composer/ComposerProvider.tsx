@@ -22,7 +22,7 @@ import {
   fitWindows,
   type FittedWindowMode
 } from '@/ds/DockedWindow/fitWindows'
-import { useOverlayWindow } from '@/ds/SpaceOverlay/SpaceOverlay'
+import { useOverlayWindow } from '@linagora/twake-mui'
 import { WindowDock } from '@/ds/DockedWindow/WindowDock'
 import {
   WindowOverflowMenu,

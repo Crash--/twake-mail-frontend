@@ -1,6 +1,7 @@
 import { CozyBridge } from 'cozy-external-bridge'
 
-import type { OverlayRegion } from '@/ds/SpaceOverlay/spaceOverlay'
+import { overlayRegionMessage, type OverlayRegion } from '@linagora/twake-mui'
+
 import { replaceWith } from '@common/utils/navigation'
 
 import {
@@ -16,9 +17,6 @@ import {
 export const LOGIN_REQUIRED_MESSAGE = {
   type: 'twake-embed:login-required'
 } as const
-
-/** The region of the overlay TwakeSpace shows (`ds/SpaceOverlay`) */
-export const OVERLAY_REGION_MESSAGE = 'twake-embed:overlay-region'
 
 /** Every change of the URL of the facade, for TwakeSpace's own history */
 export const PATH_MESSAGE = 'twake-embed:path'
@@ -184,5 +182,5 @@ export function connectToSpace(
  * works without `TWAKE_SPACE_URL`.
  */
 export function reportOverlayRegion(region: OverlayRegion): void {
-  window.parent.postMessage({ type: OVERLAY_REGION_MESSAGE, region }, '*')
+  window.parent.postMessage(overlayRegionMessage(region), '*')
 }

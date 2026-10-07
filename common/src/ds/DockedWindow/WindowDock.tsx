@@ -2,7 +2,7 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { OverlayPortal } from '@/ds/SpaceOverlay/SpaceOverlay'
+import { OverlayPortal } from '@linagora/twake-mui'
 
 /** Space between the windows and from the edge of the screen, in px */
 export const DOCK_GAP = 8

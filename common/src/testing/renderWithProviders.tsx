@@ -4,7 +4,7 @@ import { createClient } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 
-import type { SpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
+import type { SpaceOverlay } from '@linagora/twake-mui'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'

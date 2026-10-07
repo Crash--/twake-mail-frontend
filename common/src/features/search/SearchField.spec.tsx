@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { useLocation } from 'react-router'
@@ -212,6 +212,48 @@ describe('SearchField', () => {
     expect(params.get('sort')).toBe('oldest')
     expect(window.localStorage.getItem('twake-mail.search.sort-order')).toBe(
       'oldest'
+    )
+  })
+
+  it('refuses a custom range ending before it starts', async () => {
+    await renderField(makeServer())
+    await userEvent.click(combobox())
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Advanced search' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
+    await userEvent.selectOptions(
+      within(dialog).getByLabelText('Date'),
+      'Custom range'
+    )
+    fireEvent.change(within(dialog).getByLabelText('Start date'), {
+      target: { value: '2026-10-10' }
+    })
+    fireEvent.change(within(dialog).getByLabelText('End date'), {
+      target: { value: '2026-10-01' }
+    })
+
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Search' })
+    )
+
+    const endDate = within(dialog).getByLabelText('End date')
+    expect(endDate).toHaveAccessibleDescription(
+      'End date must be greater than start date'
+    )
+    expect(endDate).toHaveAttribute('aria-invalid', 'true')
+    expect(endDate).toHaveFocus()
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/mailbox/mailbox-inbox'
+    )
+
+    fireEvent.change(endDate, { target: { value: '2026-10-10' } })
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Search' })
+    )
+
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      'date=custom&start=2026-10-10&end=2026-10-10'
     )
   })
 

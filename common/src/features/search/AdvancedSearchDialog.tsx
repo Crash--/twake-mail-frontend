@@ -20,7 +20,13 @@ import {
   FormControlLabel,
   TextField
 } from '@linagora/twake-mui'
-import { useId, useState, type SubmitEvent, type ReactElement } from 'react'
+import {
+  useId,
+  useRef,
+  useState,
+  type SubmitEvent,
+  type ReactElement
+} from 'react'
 
 import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
 import { FormRow } from '@/ds/FormRow/FormRow'
@@ -31,6 +37,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import {
   DATE_RANGES,
   EMPTY_SEARCH_FILTER,
+  isReversedDateRange,
   SORT_ORDERS,
   splitWords,
   type SearchFilter
@@ -103,7 +110,9 @@ export interface AdvancedSearchDialogProps {
  * design opening over the search field, on a phone a full screen dialog. It
  * opens on the search being typed (the quick filters picked under the field
  * are checked here) and runs it on submit; "Clear filter" empties it, the
- * order excepted; Escape (and "Cancel" on a phone) leaves it unchanged.
+ * order excepted; Escape (and "Cancel" on a phone) leaves it unchanged. A
+ * custom range ending before it starts is refused: the problem shows under
+ * the end date, tied to it, and the focus goes there.
  */
 export function AdvancedSearchDialog({
   filter,
@@ -118,6 +127,11 @@ export function AdvancedSearchDialog({
   const mailboxes = useMailboxOptions()
   const [draft, setDraft] = useState(filter)
   const [fields, setFields] = useState(() => toTextFields(filter))
+  // The range problem shows once the user tried to search: typing a year
+  // goes through earlier ones, it must not flash meanwhile
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const endDateRef = useRef<HTMLInputElement>(null)
+  const isReversedRangeShown = isSubmitted && isReversedDateRange(draft)
   const id = useId()
   const fieldId = (name: string): string => `${id}-${name}`
 
@@ -135,6 +149,11 @@ export function AdvancedSearchDialog({
 
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
+    setIsSubmitted(true)
+    if (isReversedDateRange(draft)) {
+      endDateRef.current?.focus()
+      return
+    }
     onSubmit(withTextFields(draft, fields))
   }
 
@@ -334,6 +353,7 @@ export function AdvancedSearchDialog({
           <FormRow label={t('search.fields.endDate')} htmlFor={fieldId('end')}>
             <TextField
               id={fieldId('end')}
+              inputRef={endDateRef}
               type="date"
               variant="standard"
               fullWidth
@@ -341,6 +361,10 @@ export function AdvancedSearchDialog({
               onChange={event => {
                 setDraft({ ...draft, endDate: event.target.value || null })
               }}
+              error={isReversedRangeShown}
+              helperText={
+                isReversedRangeShown ? t('search.errors.endBeforeStart') : null
+              }
               slotProps={{
                 htmlInput: { 'data-testid': 'advanced-search-end-date-input' }
               }}

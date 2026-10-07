@@ -17,7 +17,8 @@ export function useIdentities(): UseQueryResult<IdentitySummary[]> {
     identitiesQueryOptions(
       client,
       accountId,
-      IDENTITY_SORT_ORDER_CAPABILITY in session.capabilities
+      IDENTITY_SORT_ORDER_CAPABILITY in session.capabilities,
+      session.username
     )
   )
 }

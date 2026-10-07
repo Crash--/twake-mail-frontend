@@ -43,18 +43,32 @@ export const identityKeys = {
 
 const LAST = Number.MAX_SAFE_INTEGER
 
+function isOwnAddress(
+  identity: IdentitySummary,
+  ownEmail: string | null
+): boolean {
+  return (
+    ownEmail !== null && identity.email.toLowerCase() === ownEmail.toLowerCase()
+  )
+}
+
 /**
  * The identities in the order the user picks from: `sortOrder`, then the
- * identity of the account (the server made it: it cannot be deleted), then
- * by name. The first one is the default.
+ * identities the server made (they cannot be deleted), then the one sending
+ * from the user's own address (`ownEmail`, the session username: a team
+ * mailbox identity is server made too), then by name. The first one is the
+ * default.
  */
 export function sortIdentities(
-  identities: readonly IdentitySummary[]
+  identities: readonly IdentitySummary[],
+  ownEmail: string | null = null
 ): IdentitySummary[] {
   return [...identities].sort(
     (first, second) =>
       (first.sortOrder ?? LAST) - (second.sortOrder ?? LAST) ||
       Number(first.mayDelete) - Number(second.mayDelete) ||
+      Number(isOwnAddress(second, ownEmail)) -
+        Number(isOwnAddress(first, ownEmail)) ||
       first.name.localeCompare(second.name)
   )
 }
@@ -63,9 +77,10 @@ export function sortIdentities(
 export function identitiesQueryOptions(
   client: JmapClient,
   accountId: string,
-  hasSortOrder: boolean
+  hasSortOrder: boolean,
+  ownEmail: string
 ): QueryOptionsFor<IdentitySummary[], IdentityListKey> {
-  // hasSortOrder comes with the session, as the account does
+  // hasSortOrder and ownEmail come with the session, as the account does
   // eslint-disable-next-line @tanstack/query/exhaustive-deps
   return queryOptions({
     queryKey: identityKeys.list(accountId),
@@ -86,7 +101,7 @@ export function identitiesQueryOptions(
             : []
         }
       )
-      return sortIdentities(response.list)
+      return sortIdentities(response.list, ownEmail)
     },
     staleTime: 5 * 60_000
   })

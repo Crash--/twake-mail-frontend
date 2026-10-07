@@ -12,6 +12,8 @@ import {
   type ReactElement
 } from 'react'
 
+import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
+
 import { RecipientAvatar } from './RecipientAvatar'
 import {
   INVALID_CHIP_SX,
@@ -136,11 +138,7 @@ export function RecipientSummary({
         py: 0.5,
         borderBottom: '1px solid',
         borderColor: 'divider',
-        '&.Mui-focusVisible': {
-          outline: '2px solid',
-          outlineColor: 'primary.main',
-          outlineOffset: -2
-        }
+        ...FOCUS_RING_INSET
       }}
       data-testid={testId}
     >

@@ -419,6 +419,18 @@ export class MailboxPage {
     return this
   }
 
+  /** Switches the thick focus outline (Settings > Preferences > Accessibility), then back to mail */
+  async setEnhancedFocus(isEnabled: boolean): Promise<MailboxPage> {
+    const settings = await this.openSettings()
+    await settings.open('preferences')
+    const toggle = this.page.getByTestId('accessibility-setting-toggle').getByRole('switch')
+    await toggle.setChecked(isEnabled)
+    await expect(toggle).toBeChecked({ checked: isEnabled })
+    await settings.backToMail()
+    await expect(this.root).toBeVisible()
+    return this
+  }
+
   /** The number of messages a conversation row shows, absent for one email */
   emailRowThreadCount(subject: string): Locator {
     return this.emailRow(subject).getByTestId('email-list-item-thread-count')

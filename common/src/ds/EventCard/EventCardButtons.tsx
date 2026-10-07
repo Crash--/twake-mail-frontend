@@ -19,7 +19,7 @@ const PILL_SX = {
   color: '#FFFFFF',
   gap: 1,
   '&:hover': { bgcolor: '#0058B8' },
-  '&.Mui-focusVisible': { outline: '2px solid #0067D6', outlineOffset: 2 },
+  '--focus-ring-color': '#0067D6',
   // The chosen answer: grey as in the design, its text readable, a check
   '&[aria-pressed="true"]': {
     bgcolor: 'rgba(29, 25, 43, 0.12)',

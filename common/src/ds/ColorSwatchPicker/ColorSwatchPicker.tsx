@@ -9,6 +9,7 @@ import {
   type Ref
 } from 'react'
 
+import { FOCUS_RING } from '@/ds/FocusIndicator/focusIndicator'
 import { VISUALLY_HIDDEN } from '@/ds/MessageAlert/visuallyHidden'
 
 import { normalizeHexColor } from './hexColor'
@@ -175,9 +176,10 @@ export function ColorSwatchPicker({
                     : option.value === CUSTOM && background === null
                       ? RAINBOW
                       : 'none',
+                // The input is hidden: the outline goes around the swatch
                 '&:has(input:focus-visible)': {
-                  outline: `2px solid ${theme.palette.primary.main}`,
-                  outlineOffset: 4
+                  ...FOCUS_RING,
+                  '--focus-ring-offset': '4px'
                 }
               })}
             >

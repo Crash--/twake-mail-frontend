@@ -8,6 +8,7 @@ import {
 } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
+import { ACCESSIBILITY_PREFERENCE_STORAGE_KEY } from './accessibilityPreference'
 import { SPAM_REPORT_PREFERENCE_STORAGE_KEY } from './spamReportPreference'
 import { PreferencesSettings } from './PreferencesSettings'
 import { SETTINGS_SECTIONS, type SettingsSection } from './sections'
@@ -68,8 +69,9 @@ describe('PreferencesSettings', () => {
     expect(
       await screen.findByRole('switch', { name: 'Enable thread' })
     ).toBeInTheDocument()
-    // Thread and spam report: no labels, no Drive, no server settings
-    expect(screen.getAllByRole('switch')).toHaveLength(2)
+    // Thread, spam report and accessibility: no labels, no Drive, no server
+    // settings
+    expect(screen.getAllByRole('switch')).toHaveLength(3)
   })
 
   it('turns the spam report off, kept in this browser', async () => {
@@ -91,6 +93,25 @@ describe('PreferencesSettings', () => {
       )
     ).toEqual({ isEnabled: false, lastDismissedAt: 0 })
     window.localStorage.removeItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY)
+  })
+
+  it('turns the accessibility mode on, kept in this browser', async () => {
+    window.localStorage.removeItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { withJmapSession: true }
+    )
+
+    const toggle = await screen.findByRole('switch', {
+      name: 'Highlight the keyboard focus'
+    })
+    expect(toggle).not.toBeChecked()
+    await userEvent.click(toggle)
+    expect(toggle).toBeChecked()
+    expect(
+      window.localStorage.getItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
+    ).toBe('true')
+    window.localStorage.removeItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
   })
 
   it('offers the label categorisation with the AI capability only', async () => {

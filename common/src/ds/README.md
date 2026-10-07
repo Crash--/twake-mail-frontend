@@ -36,7 +36,12 @@ The design system is accessible by construction: an app using it correctly
 cannot produce an inaccessible screen. Every component here must:
 
 - work with the keyboard alone (Tab, Shift+Tab, Enter, Space, Escape, arrows
-  where the pattern expects them), with a visible focus indicator;
+  where the pattern expects them), with a visible focus indicator: the
+  theme draws it (`FocusIndicator/focusIndicator.ts`), discreet or enhanced
+  as the user chose. Never a hard-coded `outline`: set the `--focus-ring-*`
+  custom properties (`--focus-ring-color`, `FOCUS_RING_INSET` for a row a
+  scrolling parent would clip), or `FOCUS_RING` when the outline goes on
+  another element (the `::after` of a link covering its row);
 - move the focus sensibly when it opens or closes (dialogs, menus, views)
   and give it back to the element that opened it;
 - use native semantics first (`button`, `a`, `table`, `nav`, headings), ARIA

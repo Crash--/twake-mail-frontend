@@ -10,9 +10,11 @@ import {
 
 import { ConfirmProvider } from '@common/features/confirm/ConfirmProvider'
 import { NotificationsProvider } from '@common/features/notifications/NotificationsProvider'
+import { useFocusIndicator } from '@common/features/settings/accessibilityPreference'
 import { I18nProvider } from '@common/i18n/I18nProvider'
 import { overlayThemeOptions, SpaceOverlayProvider } from '@linagora/twake-mui'
 import type { SpaceOverlay } from '@linagora/twake-mui'
+import { focusIndicatorThemeOptions } from '@/ds/FocusIndicator/focusIndicator'
 import type { SupportedLanguage } from '@common/i18n/languages'
 
 // The production entry point keeps the devtools out of the main bundle:
@@ -35,7 +37,7 @@ export interface AppProvidersProps {
 }
 
 /**
- * Theme, translations, data cache, notifications and confirmations: what every screen
+ * Theme (with the focus indicator the user chose), translations, data cache, notifications and confirmations: what every screen
  * needs, including the ones shown before authentication.
  */
 export function AppProviders({
@@ -45,10 +47,18 @@ export function AppProviders({
   overlay = null,
   children
 }: AppProvidersProps): ReactElement {
-  const themeOptions = useMemo(
-    () => (overlay === null ? undefined : overlayThemeOptions(overlay)),
-    [overlay]
-  )
+  const focusIndicator = useFocusIndicator()
+  const themeOptions = useMemo(() => {
+    const focusOptions = focusIndicatorThemeOptions(focusIndicator)
+    if (overlay === null) return focusOptions
+    const overlayOptions = overlayThemeOptions(overlay)
+    // Neither styles the same components
+    return {
+      ...overlayOptions,
+      ...focusOptions,
+      components: { ...overlayOptions.components, ...focusOptions.components }
+    }
+  }, [focusIndicator, overlay])
   return (
     <TwakeMuiThemeProvider themeOptions={themeOptions}>
       <SpaceOverlayProvider overlay={overlay}>

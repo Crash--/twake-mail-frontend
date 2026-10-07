@@ -23,6 +23,8 @@ import {
   type ReactElement
 } from 'react'
 
+import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
+
 import { cleanPastedHtml } from './cleanPastedHtml'
 import { HtmlBlock, type HtmlBlockOptions } from './htmlBlock'
 import { ImageToolbar } from './ImageToolbar'
@@ -423,6 +425,8 @@ export function RichTextEditor({
               }
             : {}),
           '& .ProseMirror': {
+            // Filling a window, the outline of the focus is drawn inside
+            ...(fill ? FOCUS_RING_INSET : { '--focus-ring-offset': '1px' }),
             minHeight: fill ? undefined : 240,
             // The body of a window: 24 px above, 16 px at the sides, Inter
             // Medium 14 / 18.4 as in the design
@@ -445,11 +449,6 @@ export function RichTextEditor({
             bgcolor: 'action.disabledBackground',
             color: 'text.secondary',
             cursor: 'default'
-          },
-          '& .ProseMirror:focus-visible': {
-            outline: '2px solid',
-            outlineColor: 'primary.main',
-            outlineOffset: fill ? -2 : 1
           },
           // A long draft (a quoted thread, big tables) has thousands of nodes: the blocks
           // out of view are not laid out nor painted at each key (docs/perf/composer.md).

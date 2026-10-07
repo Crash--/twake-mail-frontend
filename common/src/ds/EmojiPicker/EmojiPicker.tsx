@@ -13,6 +13,8 @@ import {
   type ReactElement
 } from 'react'
 
+import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
+
 export const EMOJI_GROUPS = [
   'people',
   'animals',
@@ -283,7 +285,7 @@ function EmojiPickerContent({
                 goToSection(section.id)
               }}
               data-testid={testId ? `${testId}-tab-${section.id}` : undefined}
-              sx={theme => ({
+              sx={{
                 width: 32,
                 height: 32,
                 p: 0,
@@ -296,11 +298,8 @@ function EmojiPickerContent({
                 fontSize: 18,
                 lineHeight: 1,
                 filter: activeGroup === section.id ? 'none' : 'grayscale(1)',
-                opacity: activeGroup === section.id ? 1 : 0.7,
-                '&:focus-visible': {
-                  outline: `2px solid ${theme.palette.primary.main}`
-                }
-              })}
+                opacity: activeGroup === section.id ? 1 : 0.7
+              }}
             >
               <span aria-hidden="true">
                 {TAB_GLYPHS[section.id as keyof typeof TAB_GLYPHS]}
@@ -413,7 +412,7 @@ function EmojiPickerContent({
                       onFocus={() => {
                         setActiveChar(`${section.id}:${item.char}`)
                       }}
-                      sx={theme => ({
+                      sx={{
                         width: CELL,
                         height: CELL,
                         p: 0,
@@ -424,11 +423,8 @@ function EmojiPickerContent({
                         fontSize: 24,
                         lineHeight: 1,
                         '&:hover': { bgcolor: 'action.hover' },
-                        '&:focus-visible': {
-                          outline: `2px solid ${theme.palette.primary.main}`,
-                          outlineOffset: -2
-                        }
-                      })}
+                        ...FOCUS_RING_INSET
+                      }}
                     >
                       <span aria-hidden="true">{item.char}</span>
                     </Box>

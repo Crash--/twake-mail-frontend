@@ -8,6 +8,7 @@ import {
 } from '@common/features/calendar/CalendarInvitationCard'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { parseMailto } from '@common/features/composer/mailto'
+import { useFocusIndicator } from '@common/features/settings/accessibilityPreference'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { AttachmentList } from './AttachmentList'
@@ -59,6 +60,7 @@ export function EmailMessageBody({
   const { openComposer } = useComposer()
   const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
   const allowRemoteContent = isRemoteContentShown || trustedSender.isTrusted
+  const focusIndicator = useFocusIndicator()
   const trimmedContentLabel = t('email.showTrimmedContent')
   const body = useMemo(() => {
     if (inlineImages.isLoading) return null
@@ -70,7 +72,10 @@ export function EmailMessageBody({
     // The quoted history of an answer is folded behind "•••"
     const content = foldQuotedHistory(rendered.html, trimmedContentLabel)
     return {
-      document: buildEmailDocument(content, { allowRemoteContent }),
+      document: buildEmailDocument(content, {
+        allowRemoteContent,
+        focusIndicator
+      }),
       hasBlockedRemoteContent: rendered.blockedRemoteContent > 0
     }
   }, [
@@ -79,6 +84,7 @@ export function EmailMessageBody({
     inlineImages.isLoading,
     inlineImages.urls,
     allowRemoteContent,
+    focusIndicator,
     trimmedContentLabel
   ])
   // Inline images are shown in the body, not listed as attachments; nor

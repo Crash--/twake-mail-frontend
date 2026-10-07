@@ -323,7 +323,10 @@ export function EmailList(props: EmailListProps): ReactElement {
   const focusedIndex =
     focusEmailId === null
       ? null
-      : Math.max(0, emails.findIndex(email => email.id === focusEmailId))
+      : Math.max(
+          0,
+          emails.findIndex(email => email.id === focusEmailId)
+        )
   // Beside the list on large tablets: its row is highlighted like the
   // selected ones
   const openMailboxEmailId =

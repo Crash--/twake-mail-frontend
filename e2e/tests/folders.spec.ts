@@ -181,10 +181,15 @@ test.describe('MBX folders', () => {
       text: 'hello team'
     })
 
+    const teamInbox = await jmap.findMailboxByName('INBOX', {
+      namespace: `TeamMailbox[${team.email}]`
+    })
+
     const mailbox = await new LoginPage(page).loginAs(user)
     await expect(mailbox.teamMailboxesSection).toContainText('Team-mailboxes')
     await mailbox.toggleFolder({ name: team.name })
-    await mailbox.openFolder({ name: 'INBOX' })
+    // By its id: it is named Inbox, as the Inbox of the user
+    await mailbox.openFolder({ id: teamInbox.id })
 
     await expect(mailbox.emailRow('for the team')).toBeVisible()
     await expectNoA11yViolations(page)

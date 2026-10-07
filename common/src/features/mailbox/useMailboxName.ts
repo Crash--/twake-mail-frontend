@@ -10,7 +10,7 @@ import type { MailboxSummary } from './queries'
  * name given by the user otherwise.
  */
 export function useMailboxName(): (
-  mailbox: Pick<MailboxSummary, 'name' | 'role'>
+  mailbox: Pick<MailboxSummary, 'name' | 'role' | 'namespace' | 'parentId'>
 ) => string {
   const { t } = useI18n()
   return useCallback(

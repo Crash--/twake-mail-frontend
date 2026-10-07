@@ -382,7 +382,7 @@ test.describe('EML reading an email of a team mailbox', () => {
 
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.toggleFolder({ name: team.name })
-      await mailbox.openFolder({ name: 'INBOX' })
+      await mailbox.openFolder({ id: teamInbox.id })
       await mailbox.emailRow('Receipt from the team').click()
       const dialog = mailbox.confirmDialog
       await expect(dialog).toContainText('Read receipt request')

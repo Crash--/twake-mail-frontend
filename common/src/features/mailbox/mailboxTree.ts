@@ -108,6 +108,11 @@ function isTeamFolderNamed(mailbox: NamedMailbox, name: string): boolean {
   )
 }
 
+/** The Inbox of a team mailbox: no role, known by its name ("INBOX") */
+export function isTeamInbox(mailbox: NamedMailbox): boolean {
+  return isTeamFolderNamed(mailbox, 'inbox')
+}
+
 /** The Trash of a team mailbox: no role, known by its name */
 export function isTeamTrash(mailbox: NamedMailbox): boolean {
   return isTeamFolderNamed(mailbox, 'trash')

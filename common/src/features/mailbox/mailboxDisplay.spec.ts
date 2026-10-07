@@ -4,6 +4,7 @@ import { makeMailbox, makeTeamMailboxes } from '@common/testing/fakeJmapServer'
 
 import {
   getMailboxIcon,
+  getRoleNameKey,
   showsTotalCount,
   showsUnreadCount
 } from './mailboxDisplay'
@@ -33,6 +34,30 @@ describe('getMailboxIcon', () => {
     expect(getMailboxIcon(makeMailbox({ id: 'f', name: 'Trash' }))).toBe(
       FolderOutlined
     )
+  })
+})
+
+describe('getRoleNameKey', () => {
+  const team = makeTeamMailboxes()
+  const folder = (name: string): (typeof team)[number] => {
+    const found = team.find(mailbox => mailbox.name === name)
+    if (found === undefined) throw new Error(`No ${name}`)
+    return found
+  }
+
+  it('translates the Inbox of a team mailbox, which has no role, by its name', () => {
+    expect(getRoleNameKey(folder('INBOX'))).toBe('mailbox.roles.inbox')
+  })
+
+  it('translates the system folders of the user by their role', () => {
+    expect(
+      getRoleNameKey(makeMailbox({ id: 'i', name: 'INBOX', role: 'inbox' }))
+    ).toBe('mailbox.roles.inbox')
+  })
+
+  it('keeps the name of a personal folder and of a team mailbox root', () => {
+    expect(getRoleNameKey(makeMailbox({ id: 'f', name: 'INBOX' }))).toBe(null)
+    expect(getRoleNameKey(folder('team'))).toBe(null)
   })
 })
 

@@ -110,6 +110,38 @@ describe('ComposerProvider', () => {
       })
     })
 
+    it('gives the focus to "New message" when closing a composer restored after a reload (issue #277)', async () => {
+      resumeComposerStorage()
+      await putComposer({
+        accountId: FAKE_ACCOUNT_ID,
+        composerId: 'restored',
+        entry: { id: 'restored', init: {}, mode: 'normal', title: 'Restored' },
+        snapshot: null
+      })
+      renderWithProviders(
+        <ComposerProvider>
+          <button type="button" data-testid="compose-email-button">
+            New message
+          </button>
+        </ComposerProvider>,
+        { jmapServer: makeFakeJmapServer(), withJmapSession: true }
+      )
+      const composer = await screen.findByRole('dialog', { name: 'Restored' })
+
+      await userEvent.click(
+        await within(composer).findByRole('button', { name: 'Close' })
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBe(null)
+      })
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: 'New message' })
+        ).toHaveFocus()
+      })
+    })
+
     it('leaves the composers another tab holds to that tab', async () => {
       resumeComposerStorage()
       for (const id of ['mine', 'theirs']) {

@@ -76,6 +76,24 @@ const loadComposerForm = async (): Promise<{
 }
 const LazyComposerForm = lazy(loadComposerForm)
 
+/** The "New message" buttons of the layouts (sidebar, floating button) */
+const COMPOSE_BUTTON_SELECTOR = '[data-testid="compose-email-button"]'
+
+/**
+ * Gives the focus back once a composer is closed: to what opened it, or,
+ * when nothing did (a composer restored after a reload) or it is gone, to
+ * the "New message" button if the focus was left on the page body.
+ */
+const focusAfterClose = (opener: Element | null | undefined): void => {
+  if (opener instanceof HTMLElement && opener.isConnected) {
+    opener.focus()
+    return
+  }
+  const focused = document.activeElement
+  if (focused !== null && focused !== document.body) return
+  document.querySelector<HTMLElement>(COMPOSE_BUTTON_SELECTOR)?.focus()
+}
+
 function ComposerForm(
   props: ComponentProps<typeof ComposerFormType>
 ): ReactElement {
@@ -544,12 +562,10 @@ export function ComposerProvider({
       buryComposer(accountId, id)
       void removeComposer(accountId, id)
       setEntries(current => current.filter(entry => entry.id !== id))
-      if (opener instanceof HTMLElement && opener.isConnected) {
-        // Once the window is gone
-        requestAnimationFrame(() => {
-          opener.focus()
-        })
-      }
+      // Once the window is gone
+      requestAnimationFrame(() => {
+        focusAfterClose(opener)
+      })
     },
     [accountId, settleOpening]
   )

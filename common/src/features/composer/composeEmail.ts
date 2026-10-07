@@ -605,20 +605,36 @@ const SEND_FAILURES: Record<string, SendFailure> = {
   invalidArguments: 'invalidArguments'
 }
 
-function readFailure(error: SetError | undefined): {
+/**
+ * How tmail-backend names an address it cannot parse, in the description
+ * of an `invalidArguments`: `Invalid mail address: <"x..y"@example.com> in
+ * to header`
+ */
+const INVALID_ADDRESS = /^Invalid mail address: <?(.+?)>? in \S+ header$/
+
+function invalidAddressOf(error: SetError): string | null {
+  return INVALID_ADDRESS.exec(error.description ?? '')?.[1] ?? null
+}
+
+/** Why a creation was refused, with the addresses the server named */
+export function readFailure(error: SetError | undefined): {
   reason: SendFailure
   invalidRecipients: string[]
 } {
-  const invalid =
-    error &&
-    'invalidRecipients' in error &&
-    Array.isArray(error.invalidRecipients)
-      ? error.invalidRecipients.filter(item => typeof item === 'string')
-      : []
-  return {
-    reason: (error ? SEND_FAILURES[error.type] : undefined) ?? 'other',
-    invalidRecipients: invalid
+  if (!error) return { reason: 'other', invalidRecipients: [] }
+  if ('invalidRecipients' in error && Array.isArray(error.invalidRecipients)) {
+    return {
+      reason: SEND_FAILURES[error.type] ?? 'other',
+      invalidRecipients: error.invalidRecipients.filter(
+        item => typeof item === 'string'
+      )
+    }
   }
+  const invalidAddress =
+    error.type === 'invalidArguments' ? invalidAddressOf(error) : null
+  return invalidAddress === null
+    ? { reason: SEND_FAILURES[error.type] ?? 'other', invalidRecipients: [] }
+    : { reason: 'invalidRecipients', invalidRecipients: [invalidAddress] }
 }
 
 /**

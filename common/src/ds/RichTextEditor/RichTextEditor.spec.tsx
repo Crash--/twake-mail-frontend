@@ -208,8 +208,9 @@ describe('RichTextEditor', () => {
 
   it('goes to the toolbar with Alt+F10 and leaves Escape in the text to its container', async () => {
     const handleEscape = jest.fn()
+    // Like the window around the editor, which ignores a handled Escape
     const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-      if (event.key === 'Escape') handleEscape()
+      if (event.key === 'Escape' && !event.defaultPrevented) handleEscape()
     }
     renderDs(
       <div role="presentation" onKeyDown={handleKeyDown}>
@@ -239,6 +240,8 @@ describe('RichTextEditor', () => {
 
     await userEvent.keyboard('{Escape}')
     expect(handleEscape).toHaveBeenCalledTimes(1)
+    await userEvent.keyboard('{Escape}')
+    expect(handleEscape).toHaveBeenCalledTimes(2)
   })
 
   describe('image toolbar', () => {

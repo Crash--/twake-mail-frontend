@@ -8,6 +8,7 @@ import FileHandler from '@tiptap/extension-file-handler'
 import { TableKit } from '@tiptap/extension-table'
 import TextAlign from '@tiptap/extension-text-align'
 import { TextStyleKit } from '@tiptap/extension-text-style'
+import type { EditorView } from '@tiptap/pm/view'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import {
@@ -153,6 +154,23 @@ function createKeyboardExtension(actionsRef: ActionsRef): AnyExtension {
   })
 }
 
+/**
+ * ProseMirror calls `preventDefault()` on every Escape no key binding took,
+ * and what holds the editor (a window, a dialog) ignores a handled Escape.
+ * The key bindings still get it first; an Escape none of them takes goes up
+ * untouched.
+ */
+function leaveEscapeToContainer(
+  view: EditorView,
+  event: KeyboardEvent
+): boolean {
+  if (event.key !== 'Escape' || event.isComposing) return false
+  const isTaken = view.someProp('handleKeyDown', handle => handle(view, event))
+  if (isTaken === true) event.preventDefault()
+  // Keeps ProseMirror's own keydown handling away from this Escape
+  return true
+}
+
 function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
   const report = (error: unknown): void => console.error(error)
   return FileHandler.configure({
@@ -266,7 +284,8 @@ export function RichTextEditor({
         'aria-describedby': helpId,
         ...(testIds.editor ? { 'data-testid': testIds.editor } : {})
       },
-      transformPastedHTML: cleanPastedHtml
+      transformPastedHTML: cleanPastedHtml,
+      handleDOMEvents: { keydown: leaveEscapeToContainer }
     },
     onUpdate: ({ editor: updated }) => onUpdate?.(updated)
   })

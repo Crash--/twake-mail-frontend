@@ -1254,7 +1254,7 @@
     "title": "Hủy đăng ký thư",
     "done": "Đã hủy đăng ký khỏi danh sách gửi thư này",
     "banner": "Bạn hủy đăng ký khỏi %{senderName}",
-    "message": "Bạn có chắc chắn muốn ngừng nhận các tin nhắn tương tự từ %{senderName} ?"
+    "message": "Bạn có chắc chắn muốn ngừng nhận các tin nhắn tương tự từ %{senderName}?"
   },
   "print": {
     "inProgress": "Đang tiến hành in",

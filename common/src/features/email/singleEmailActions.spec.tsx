@@ -255,7 +255,7 @@ describe('actions of an open email', () => {
         name: 'Unsubscribe mail'
       })
       expect(dialog).toHaveTextContent(
-        "Are you sure you'd like to stop receiving similar messages from News Letter ?"
+        "Are you sure you'd like to stop receiving similar messages from News Letter?"
       )
       await userEvent.click(
         within(dialog).getByRole('button', { name: 'Cancel' })

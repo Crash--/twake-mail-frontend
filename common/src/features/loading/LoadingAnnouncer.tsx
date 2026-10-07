@@ -28,12 +28,15 @@ export interface LoadingAnnouncerProps {
  * mounted, whose text is set while at least one view shows its skeleton
  * (`useLoadingAnnouncement`). The folders, the list and the reading view
  * loading together are announced once, not three times; the region empties
- * when the last one is done, and says nothing more.
+ * when the last one is done, and says nothing more. Inside another
+ * announcer (the one of the whole page, while the app boots), it leaves the
+ * views to that one: the page keeps a single region.
  */
 export function LoadingAnnouncer({
   children
 }: LoadingAnnouncerProps): ReactElement {
   const { t } = useI18n()
+  const outer = useContext(LoadingContext)
   const [count, setCount] = useState(0)
   const register = useCallback<Register>(() => {
     setCount(current => current + 1)
@@ -42,6 +45,7 @@ export function LoadingAnnouncer({
     }
   }, [])
 
+  if (outer !== registerNothing) return <>{children}</>
   return (
     <LoadingContext.Provider value={register}>
       {children}

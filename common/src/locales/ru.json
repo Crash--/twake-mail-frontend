@@ -1265,29 +1265,5 @@
     "unavailableDescription": "Вы не являетесь участником этого общего почтового ящика, или он не существует.",
     "sessionExpiredTitle": "Срок действия сеанса истёк",
     "sessionExpiredDescription": "Войдите снова, чтобы открыть этот общий почтовый ящик."
-  },
-  "feedback": {
-    "trigger": "Оставить отзыв",
-    "triggerAria": "Оставить отзыв",
-    "formTitle": "Оставить отзыв",
-    "messageLabel": "Ваш отзыв",
-    "messagePlaceholder": "Что работает, что не работает, чего не хватает?",
-    "emailLabel": "Эл. почта (необязательно)",
-    "emailPlaceholder": "name@example.com",
-    "submit": "Отправить",
-    "cancel": "Отмена",
-    "confirm": "Подтвердить",
-    "success": "Спасибо за ваш отзыв!",
-    "required": "(обязательно)",
-    "addScreenshot": "Добавить снимок экрана",
-    "removeScreenshot": "Удалить снимок экрана",
-    "highlightTool": "Выделить",
-    "hideTool": "Скрыть",
-    "removeHighlight": "Убрать",
-    "errorEmptyMessage": "Напишите сообщение, прежде чем отправить отзыв.",
-    "errorNoClient": "Сейчас отправить отзыв невозможно.",
-    "errorTimeout": "Не удалось подтвердить отправку вашего отзыва.",
-    "errorForbidden": "Сервер отклонил ваш отзыв.",
-    "errorGeneric": "Не удалось отправить отзыв. Проверьте подключение или блокировщик рекламы и повторите попытку."
   }
 }

@@ -59,6 +59,9 @@ export function RequireAuth({
 
   if (state.status === 'authenticated') return <Outlet />
 
+  // Another tab may hand its session over
+  if (state.status === 'restoring') return <>{loading}</>
+
   if (service.mode === 'basic') {
     const loginState: LoginRouteState = { returnTo }
     return <Navigate to="/login" replace state={loginState} />

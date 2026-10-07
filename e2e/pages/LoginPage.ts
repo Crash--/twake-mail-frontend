@@ -46,15 +46,21 @@ export class LoginPage {
     return this.loginAs(credentials)
   }
 
-  /** Fills the form and waits for the mailbox: `await new LoginPage(page).loginAs(user)` */
+  /**
+   * Fills the form and waits for the mailbox: `await new LoginPage(page).loginAs(user)`.
+   * A tab opened next to a signed-in one gets its session without the form.
+   */
   async loginAs(credentials: Credentials): Promise<MailboxPage> {
-    if (!(await this.usernameInput.isVisible())) {
-      await this.goto()
-    }
-    await this.usernameInput.fill(credentials.email)
-    await this.passwordInput.fill(credentials.password)
-    await this.submitButton.click()
     const mailbox = new MailboxPage(this.page)
+    if (!(await this.usernameInput.isVisible())) {
+      await this.page.goto('/')
+      await expect(this.usernameInput.or(mailbox.root)).toBeVisible()
+    }
+    if (await this.usernameInput.isVisible()) {
+      await this.usernameInput.fill(credentials.email)
+      await this.passwordInput.fill(credentials.password)
+      await this.submitButton.click()
+    }
     await mailbox.expectLoaded()
     return mailbox
   }

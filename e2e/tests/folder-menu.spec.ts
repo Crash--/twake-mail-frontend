@@ -139,12 +139,13 @@ test.describe('MBX folder menu', () => {
     const opened = page.context().waitForEvent('page')
     await link.click()
 
-    // The credentials of a basic login live in the memory of the first tab:
-    // the new tab (opened without opener, so without its sessionStorage)
-    // asks to sign in.
+    // The credentials of a basic login live in the memory of the first tab,
+    // which hands them over to the new one: no sign-in asked
     const tab = await opened
     await tab.waitForLoadState()
     expect(tab.url()).toContain(new URL(page.url()).origin)
+    await expect(tab.getByTestId('mailbox-page')).toBeVisible()
+    await expect(tab.getByTestId('login-username-input')).toHaveCount(0)
   })
 
   test(

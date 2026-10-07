@@ -349,6 +349,18 @@ the origins of the Workplace in `CSP_FRAME_ANCESTORS`, or browsers refuse to
 show the app in the frame. The container logs a warning at startup when
 `COZY_INTEGRATION` is on and it is not set.
 
+### The composer in another app
+
+`/embed/compose?uri=mailto:…` is a facade of the composer for an app that
+frames Twake Mail to write an email without leaving it (Twake Chat, « Send an
+e-mail » on a profile). It signs in silently and opens a composer with what
+the link gives, as `/mailto` does; the composer renders onto
+`/embed/overlay.html`, which the app frames over its page under the name of
+the facade's frame followed by `:overlay`, as TwakeSpace does for a team
+mailbox. When the SSO needs the user, the facade posts
+`twake-embed:login-required` and the app opens Twake Mail in a tab instead.
+Give the origin of the app in `CSP_FRAME_ANCESTORS`.
+
 ### Port 80 as a non-root user
 
 The image keeps running as user 101. A non-root process may bind a port below

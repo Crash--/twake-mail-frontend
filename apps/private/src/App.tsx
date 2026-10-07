@@ -16,6 +16,7 @@ import type { AppConfig } from '@common/config/config'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import { createAuthService } from '@common/features/auth/createAuthService'
 import { peekPendingLoginReturnTo } from '@common/features/auth/oidcAuth'
+import { isComposeEmbedPath } from '@common/features/composeEmbed/composeEmbedPath'
 import {
   connectToSpace,
   reportOverlayRegion
@@ -26,6 +27,7 @@ import { findPreferredLanguage } from '@common/i18n/languages'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
 
 import { appRouteElements } from './AppRoutes'
+import { ComposeEmbedApp } from './ComposeEmbedApp'
 import {
   TeamMailboxEmbedApp,
   type TeamMailboxEmbed
@@ -68,6 +70,23 @@ function findTeamMailboxEmbed(config: AppConfig): TeamMailboxEmbed | null {
     : { target: pending, callbackUrl: new URL(href) }
 }
 
+/**
+ * The facade of the composer the page is for: its path (no callback), or
+ * the login callback of a login it started, null otherwise
+ */
+function findComposeEmbed(
+  config: AppConfig
+): { callbackUrl: URL | null } | null {
+  const { pathname, href } = window.location
+  if (isComposeEmbedPath(pathname)) return { callbackUrl: null }
+  if (config.oidc === null) return null
+  if (pathname !== new URL(config.oidc.redirectUri).pathname) return null
+  const returnTo = peekPendingLoginReturnTo()
+  return returnTo !== null && isComposeEmbedPath(returnTo)
+    ? { callbackUrl: new URL(href) }
+    : null
+}
+
 export interface AppProps {
   config: AppConfig
 }
@@ -75,16 +94,21 @@ export interface AppProps {
 export function App({ config }: AppProps): ReactElement {
   const [queryClient] = useState(makeQueryClient)
   const [embed] = useState(() => findTeamMailboxEmbed(config))
+  const [composeEmbed] = useState(() =>
+    embed === null ? findComposeEmbed(config) : null
+  )
+  const isEmbed = embed !== null || composeEmbed !== null
   const [spaceBridge] = useState(() =>
     embed === null ? null : connectToSpace(embed.target)
   )
-  // Framed by TwakeSpace, the composer and the dialogs go onto its page
+  // Framed by TwakeSpace (or Twake Chat), the composer and the dialogs go
+  // onto its page
   const [overlay] = useState(() =>
-    embed === null ? null : connectSpaceOverlay(reportOverlayRegion)
+    isEmbed ? connectSpaceOverlay(reportOverlayRegion) : null
   )
   const [authService] = useState(() =>
     createAuthService(config, {
-      framed: embed !== null && window.parent !== window
+      framed: isEmbed && window.parent !== window
     })
   )
   const [lang] = useState(() => findPreferredLanguage(config.defaultLanguage))
@@ -106,7 +130,9 @@ export function App({ config }: AppProps): ReactElement {
               createClient={createClient}
               sessionUrl={config.jmapSessionUrl}
             >
-              {embed === null ? (
+              {composeEmbed !== null ? (
+                <ComposeEmbedApp callbackUrl={composeEmbed.callbackUrl} />
+              ) : embed === null ? (
                 <WebmailRouter />
               ) : (
                 <TeamMailboxEmbedApp embed={embed} spaceBridge={spaceBridge} />
@@ -117,7 +143,7 @@ export function App({ config }: AppProps): ReactElement {
       </AppProviders>
     </AppConfigProvider>
   )
-  if (embed === null) return app
+  if (!isEmbed) return app
   // The facade is a desktop from 600 px: its frame is narrower than the
   // screen of TwakeSpace, where a tablet layout would surprise. Its "New
   // message" button floats at every size: the toasts keep above it.

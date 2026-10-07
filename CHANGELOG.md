@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `/embed/compose?uri=mailto:…`: the composer alone, for an app that frames
+  Twake Mail (Twake Chat) and shows the composer on an overlay of its page,
+  as TwakeSpace does for a team mailbox; `twake-embed:login-required` when
+  the SSO needs the user.
 - The top bar of Twake Workplace (`@linagora/twake-bar`, through
   `@linagora/twake-sdk`) at the top of the webmail: the home of the platform,
   the Twake Mail logotype, the help, the apps installed on the Workplace and

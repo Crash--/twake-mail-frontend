@@ -1,9 +1,4 @@
-import {
-  Attachment,
-  Download,
-  getFileTypeIcon,
-  Icon
-} from '@linagora/twake-icons'
+import { Attachment, Download, Icon } from '@linagora/twake-icons'
 import { Box, Button, Typography } from '@linagora/twake-mui'
 import type { EmailBodyPart } from 'jmap-client-ts'
 import { useRef, useState, type ReactElement } from 'react'
@@ -21,6 +16,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { saveBlob } from '@common/utils/saveBlob'
 
 import { AttachmentPreviewDialog } from './AttachmentPreviewDialog'
+import { attachmentIcon } from './attachmentIcon'
 import { previewKind } from './attachmentPreview'
 import {
   downloadAllBaseName,
@@ -167,7 +163,7 @@ export function AttachmentList({
         {shown.map((part, index) => {
           const name = part.name ?? t('email.attachment')
           const kind = previewKind({ type: part.type, name: part.name })
-          const FileIcon = getFileTypeIcon(name, part.type)
+          const FileIcon = attachmentIcon(name, part.type)
           const handleDownload = (): void => {
             download(part).catch(reportDownloadFailure)
           }

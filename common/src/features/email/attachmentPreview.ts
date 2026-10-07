@@ -87,7 +87,7 @@ const OTHER_KNOWN_EXTENSIONS = new Set([
 
 const OCTET_STREAM = 'application/octet-stream'
 
-function extensionOf(name: string | null): string | null {
+export function extensionOf(name: string | null): string | null {
   if (!name?.includes('.')) return null
   return name.split('.').pop()?.toLowerCase() ?? null
 }

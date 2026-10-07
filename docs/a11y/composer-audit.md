@@ -47,7 +47,7 @@ send checks and the close dialog, toasts, "Insert template" picker.
 | 11.1 Each form field has a label | C | auto (To, Subject and the body are named; the body by `aria-label`, its keyboard help by `aria-describedby`) | |
 | 11.2 The labels are pertinent | C | auto (snapshots) | |
 | 11.5, 11.6 Fields are grouped and the group is named | C | auto (`group "To"`) | |
-| 11.9 The name of a button is explicit | C | auto (every icon button has an `aria-label` and the same tooltip; `Send`, `Save & close`, `Remove report.txt`) | |
+| 11.9 The name of a button is explicit | C | auto (every icon button has an `aria-label` and the same tooltip; `Send`, `Close`, `Remove report.txt`) | |
 | 11.10, 11.11 Input is checked and helped | C | auto (`A11Y-11`, `A11Y-14`: an invalid address is named, the send checks say what is missing in a dialog) | |
 | 11.12 Data that matter can be corrected | C | auto (`A11Y-13`, the close dialog "Save message" asks before losing the message) | |
 | 11.13 The purpose of fields is defined (`autocomplete`) | NA | | They are other people's addresses and a subject |

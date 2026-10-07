@@ -103,6 +103,7 @@ function BasicLoginForm({
       setLoginError(result.error)
       // The submit button, disabled meanwhile, lost the focus: put it where
       // the user corrects the credentials
+      passwordRef.current?.focus()
       passwordRef.current?.select()
     }
   }

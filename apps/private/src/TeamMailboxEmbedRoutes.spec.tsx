@@ -13,8 +13,10 @@ import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 import {
   FAKE_SESSION_URL,
   makeDefaultMailboxes,
+  makeEmail,
   makeFakeJmapServer,
-  makeTeamMailboxes
+  makeTeamMailboxes,
+  type FakeEmail
 } from '@common/testing/fakeJmapServer'
 import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 
@@ -26,8 +28,13 @@ function LocationProbe(): ReactElement {
   return <output data-testid="location">{useLocation().pathname}</output>
 }
 
-function renderRoutes(path: string, rootId = 'team'): void {
+function renderRoutes(
+  path: string,
+  rootId = 'team',
+  emails: FakeEmail[] = []
+): void {
   const jmapServer = makeFakeJmapServer({
+    emails,
     mailboxes: [
       ...makeDefaultMailboxes(),
       ...makeTeamMailboxes({ id: 'team', address: 'team@example.com' }),
@@ -126,5 +133,47 @@ describe('teamMailboxEmbedRouteElements', () => {
     expect(screen.queryByTestId('compose-email-button')).toBe(null)
     await user.keyboard('c')
     expect(screen.queryByRole('dialog')).toBe(null)
+  })
+
+  it('opens an email of the team mailbox', async () => {
+    renderRoutes(`${BASE}/mailbox/team-inbox/email/shared`, 'team', [
+      makeEmail({ id: 'shared', mailboxIds: { 'team-inbox': true } })
+    ])
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Subject shared' })
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/mailbox/team-inbox/email/shared'
+    )
+  })
+
+  it.each(['team-inbox', 'team-trash'])(
+    'opens the Inbox of the team mailbox instead of a personal email under %s',
+    async folderId => {
+      renderRoutes(`${BASE}/mailbox/${folderId}/email/personal`, 'team', [
+        makeEmail({ id: 'personal', mailboxIds: { 'mailbox-inbox': true } })
+      ])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('location')).toHaveTextContent(
+          /\/mailbox\/team-inbox$/
+        )
+      })
+      expect(screen.queryByText('Subject personal')).toBe(null)
+    }
+  )
+
+  it('opens the Inbox of the team mailbox instead of an email of another team mailbox', async () => {
+    renderRoutes(`${BASE}/mailbox/team-inbox/email/sales`, 'team', [
+      makeEmail({ id: 'sales', mailboxIds: { 'sales-inbox': true } })
+    ])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent(
+        /\/mailbox\/team-inbox$/
+      )
+    })
+    expect(screen.queryByText('Subject sales')).toBe(null)
   })
 })

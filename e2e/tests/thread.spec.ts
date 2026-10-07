@@ -119,9 +119,8 @@ test.describe('THR thread detail', () => {
     )
     await expect(conversation.messages).toHaveCount(2)
     await expect(conversation.count).toHaveText('2 messages')
-    await expect(page.getByTestId('conversation-announcement')).toHaveText(
-      /New message from/
-    )
+    // The user's own reply is not news: nothing is announced (#229)
+    await expect(page.getByTestId('conversation-announcement')).toHaveText('')
   })
 
   test('THR-02 a conversation is one row with its message count, unread and last messages expanded', async ({

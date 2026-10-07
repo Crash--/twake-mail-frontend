@@ -64,7 +64,10 @@ export interface NavTreeItemProps {
   count?: ReactNode
   /** Said after the name by screen readers, e.g. the unread count */
   countText?: string
-  /** Short text after the name (e.g. "Hidden") */
+  /**
+   * Short text after the name (e.g. "Hidden", an address), on one line: the
+   * row cuts it before the name when it lacks room
+   */
   meta?: ReactNode
   /** A second line under the name (e.g. the path of a search result) */
   secondary?: ReactNode
@@ -223,7 +226,17 @@ export function NavTreeItem({
               </Box>
             )}
           </Box>
-          {meta}
+          {meta === undefined || meta === null ? null : (
+            // Gives way before the name: cut first, down to nothing
+            <Box
+              component="span"
+              data-nav-meta=""
+              className="u-flex u-flex-items-center"
+              sx={{ minWidth: 0, flex: '0 1000 auto' }}
+            >
+              {meta}
+            </Box>
+          )}
           {countText === undefined ? null : (
             <span className="u-visuallyhidden"> {countText}</span>
           )}
@@ -252,12 +265,13 @@ export function NavTreeItem({
               minHeight: 0,
               p: '4px',
               ml: '4px',
-              // A 44 px target on touch screens, without moving the arrow
+              // A 44 px target on touch screens, without moving the arrow nor
+              // spilling over the actions after it
               [TOUCH_MEDIA]: {
                 width: TOUCH_TARGET_SIZE,
                 height: TOUCH_TARGET_SIZE,
                 p: '14px',
-                m: '0 -14px 0 -10px'
+                m: '0 0 0 -10px'
               }
             }}
           >

@@ -2,6 +2,7 @@ import { Email, Icon } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { injectedCss } from '@/ds/testing/injectedCss'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { levelIndent, NavTreeItem, type NavTreeItemProps } from './NavTreeItem'
@@ -82,6 +83,26 @@ describe('NavTreeItem', () => {
     expect(
       screen.getByRole('button', { name: 'Actions on Inbox' })
     ).toHaveFocus()
+  })
+
+  it('cuts the text after the name before the name itself', () => {
+    renderItem({ meta: <span>team@example.com</span> })
+
+    expect(screen.getByText('team@example.com').parentElement).toHaveAttribute(
+      'data-nav-meta'
+    )
+    expect(injectedCss()).toMatch(/\{min-width:0;[^}]*flex:01000auto;\}/)
+  })
+
+  it('keeps the 44 px expand target of touch screens off the actions', () => {
+    renderItem({
+      toggle: { label: 'Expand', isExpanded: false, onToggle: jest.fn() },
+      actions: <button type="button">Actions on Inbox</button>
+    })
+
+    expect(injectedCss()).toMatch(
+      /@media\(pointer:coarse\),\(max-width:599\.95px\)\{\.css-[\w-]+\{width:44px;height:44px;padding:14px;margin:000-10px;\}/
+    )
   })
 
   it('marks the selected row', () => {

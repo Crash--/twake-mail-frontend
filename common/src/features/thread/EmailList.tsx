@@ -75,7 +75,11 @@ import {
   type SearchRequest,
   type ThreadMember
 } from './queries'
-import { summarizeThread, type ThreadSummary } from './threadSummary'
+import {
+  getTeamMailboxIds,
+  summarizeThread,
+  type ThreadSummary
+} from './threadSummary'
 import { useEmailListActions } from './useEmailListActions'
 import { useEmailListShortcuts } from './useEmailListShortcuts'
 import {
@@ -294,6 +298,10 @@ export function EmailList(props: EmailListProps): ReactElement {
   const { session, accountId } = useJmapSession()
   const meLabel = t('thread.me')
   const sentId = findMailboxIdByRole(mailboxes.data ?? [], 'sent')
+  const teamMailboxIds = useMemo(
+    () => getTeamMailboxIds(mailboxes.data ?? []),
+    [mailboxes.data]
+  )
   const emails = useMemo(
     () =>
       flattenPages(query.data, (members, rowEmailId) =>
@@ -301,10 +309,11 @@ export function EmailList(props: EmailListProps): ReactElement {
           ownAddress: session.username,
           meLabel,
           sentId,
+          teamMailboxIds,
           rowEmailId
         })
       ),
-    [query.data, session.username, meLabel, sentId]
+    [query.data, session.username, meLabel, sentId, teamMailboxIds]
   )
   const isOnline = useOnlineStatus()
   // The actions on a conversation act on all its emails

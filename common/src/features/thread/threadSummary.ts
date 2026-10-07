@@ -7,8 +7,10 @@ import {
   hasKeyword,
   SEEN
 } from '@common/features/email/keywords'
+import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
+import type { MailboxSummary } from '@common/features/mailbox/queries'
 
-import type { ThreadMember } from './queries'
+import type { MessageIdentity, ThreadMember } from './queries'
 
 /** What the row of a conversation shows of all its emails */
 export interface ThreadSummary {
@@ -65,6 +67,54 @@ export function isReceivedFromOthers(
   return !isSent && !isFromMe && !hasKeyword(email, DRAFT)
 }
 
+/** The folders of the team mailboxes the user belongs to, by id */
+export function getTeamMailboxIds(
+  mailboxes: readonly Pick<MailboxSummary, 'id' | 'namespace'>[]
+): ReadonlySet<string> {
+  return new Set(
+    mailboxes
+      .filter(mailbox => !isPersonalMailbox(mailbox))
+      .map(mailbox => mailbox.id)
+  )
+}
+
+function isTeamCopy(
+  email: Pick<ThreadMember, 'mailboxIds'>,
+  teamMailboxIds: ReadonlySet<string>
+): boolean {
+  const mailboxIds = Object.keys(email.mailboxIds)
+  return mailboxIds.length > 0 && mailboxIds.every(id => teamMailboxIds.has(id))
+}
+
+/**
+ * A mail a team mailbox sent to one of its members has two copies in the
+ * member's account, the team's in its Sent and the member's, and
+ * tmail-backend puts them in the same thread. The conversation shows the
+ * side of `keptEmailId` (the email opened, the email of the row): a copy of
+ * the other side whose Message-ID is one of this side is hidden, so that the
+ * mail is shown, counted and acted on once.
+ */
+export function withoutTeamCopies<
+  T extends Pick<ThreadMember, 'id' | 'mailboxIds'> & MessageIdentity
+>(
+  emails: readonly T[],
+  keptEmailId: string,
+  teamMailboxIds: ReadonlySet<string>
+): T[] {
+  const kept = emails.find(email => email.id === keptEmailId)
+  const isTeamSide = kept !== undefined && isTeamCopy(kept, teamMailboxIds)
+  const isOnSide = (email: T): boolean =>
+    isTeamCopy(email, teamMailboxIds) === isTeamSide
+  const sideMessageIds = new Set(
+    emails.filter(isOnSide).flatMap(email => email.messageId ?? [])
+  )
+  return emails.filter(
+    email =>
+      isOnSide(email) ||
+      !(email.messageId ?? []).some(id => sideMessageIds.has(id))
+  )
+}
+
 /** Where the row of a conversation stands */
 export interface ThreadContext {
   /** The address of the user, said "me" */
@@ -72,6 +122,8 @@ export interface ThreadContext {
   meLabel: string
   /** The Sent mailbox, whose copies of emails sent to oneself are not counted */
   sentId: string | null
+  /** The folders of the team mailboxes, whose copies of a mail are hidden */
+  teamMailboxIds: ReadonlySet<string>
   /** The email the row stands for: counted, whatever it is */
   rowEmailId: string
 }
@@ -81,11 +133,13 @@ export interface ThreadContext {
  * first): its participants, as most webmails write them ("Alice, Bob, me"),
  * its state, the state of any of its emails, and the number of messages the
  * conversation shows (not the copy in Sent of an email sent to oneself).
+ * The copies of a team mailbox on the other side than the row are left out.
  */
 export function summarizeThread(
-  members: readonly ThreadMember[],
-  { ownAddress, meLabel, sentId, rowEmailId }: ThreadContext
+  threadMembers: readonly ThreadMember[],
+  { ownAddress, meLabel, sentId, teamMailboxIds, rowEmailId }: ThreadContext
 ): ThreadSummary {
+  const members = withoutTeamCopies(threadMembers, rowEmailId, teamMailboxIds)
   const participants: string[] = []
   for (const member of members) {
     for (const address of member.from ?? []) {

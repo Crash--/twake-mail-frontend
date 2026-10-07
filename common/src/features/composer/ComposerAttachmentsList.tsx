@@ -1,9 +1,10 @@
-import { getFileTypeIcon, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { useMemo, useState, type ReactElement } from 'react'
 
 import { UploadList, type UploadListItem } from '@/ds/UploadList/UploadList'
 import { UploadPopup } from '@/ds/UploadList/UploadPopup'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { attachmentIcon } from '@common/features/email/attachmentIcon'
 import { formatSize } from '@common/features/email/formatSize'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -50,7 +51,7 @@ export function ComposerAttachmentsList({
   const items = useMemo<UploadListItem[]>(
     () =>
       files.attachments.map(file => {
-        const FileIcon = getFileTypeIcon(file.name, file.type)
+        const FileIcon = attachmentIcon(file.name, file.type)
         const thumbnailUrl = files.previews[file.id]
         return {
           id: file.id,

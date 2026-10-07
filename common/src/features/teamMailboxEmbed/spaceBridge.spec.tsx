@@ -1,11 +1,6 @@
 import { replaceWith } from '@common/utils/navigation'
 
-import {
-  connectToSpace,
-  isEmbedPath,
-  LOGIN_REQUIRED_MESSAGE,
-  reportOverlayRegion
-} from './spaceBridge'
+import { connectToSpace, reportOverlayRegion } from './spaceBridge'
 
 jest.mock('@common/utils/navigation', () => ({ replaceWith: jest.fn() }))
 
@@ -17,50 +12,52 @@ function connect(): ReturnType<typeof connectToSpace> {
   return connectToSpace(SPACE_ORIGIN, TARGET)
 }
 
-function receive(data: unknown, origin = SPACE_ORIGIN): void {
-  window.dispatchEvent(
-    new MessageEvent('message', { data, origin, source: window.parent })
-  )
-}
-
-interface FakeBridge {
-  isInIframe: jest.Mock
-  setupBridge: jest.Mock
-  notifyLoginRequired?: jest.Mock
-}
-
-let mockedBridge: FakeBridge | null = null
-
-jest.mock('cozy-external-bridge', () => ({
-  CozyBridge: jest.fn(() => mockedBridge)
-}))
-
-function mockBridge(overrides: Partial<FakeBridge> = {}): FakeBridge {
-  mockedBridge = {
-    isInIframe: jest.fn(() => true),
-    setupBridge: jest.fn(() => true),
-    ...overrides
-  }
-  return mockedBridge
-}
-
 describe('connectToSpace', () => {
-  afterEach(() => {
-    jest.restoreAllMocks()
+  const realParent = window.parent
+  let postMessage: jest.SpyInstance
+  let fakeParent: Window
+
+  function receive(data: unknown, origin = SPACE_ORIGIN): void {
+    window.dispatchEvent(
+      new MessageEvent('message', { data, origin, source: fakeParent })
+    )
+  }
+
+  function frame(parent: Window): void {
+    Object.defineProperty(window, 'parent', {
+      value: parent,
+      configurable: true
+    })
+  }
+
+  beforeEach(() => {
+    // Any other window stands for TwakeSpace's page
+    const host = document.createElement('iframe')
+    document.body.appendChild(host)
+    fakeParent = host.contentWindow ?? window
+    postMessage = jest
+      .spyOn(fakeParent, 'postMessage')
+      .mockImplementation(() => undefined)
+    frame(fakeParent)
   })
 
-  it('talks to TwakeSpace only', () => {
-    const bridge = mockBridge()
-
-    expect(connect()).not.toBe(null)
-    expect(bridge.setupBridge).toHaveBeenCalledWith(SPACE_ORIGIN)
+  afterEach(() => {
+    frame(realParent)
+    document.querySelectorAll('iframe').forEach(host => {
+      host.remove()
+    })
+    jest.clearAllMocks()
   })
 
   it('is null without the origin of TwakeSpace, or outside a frame', () => {
-    mockBridge({ isInIframe: jest.fn(() => false) })
-
     expect(connectToSpace(null, TARGET)).toBe(null)
+
+    frame(window)
     expect(connect()).toBe(null)
+  })
+
+  it('is a connection in a frame', () => {
+    expect(connect()).not.toBe(null)
   })
 
   describe('syncHistory', () => {
@@ -68,13 +65,9 @@ describe('connectToSpace', () => {
     const { pushState: originalPush, replaceState: originalReplace } =
       window.history
     let stop: (() => void) | undefined
-    let postMessage: jest.SpyInstance
 
     beforeEach(() => {
       originalReplace.call(window.history, null, '', `${BASENAME}/inbox`)
-      postMessage = jest
-        .spyOn(window.parent, 'postMessage')
-        .mockImplementation(() => undefined)
     })
 
     afterEach(() => {
@@ -89,11 +82,9 @@ describe('connectToSpace', () => {
     }
 
     it('patches the history only once started, and restores it', () => {
-      mockBridge({ isInIframe: jest.fn(() => false) })
-      expect(connect()).toBe(null)
+      connect()
       expect(window.history.pushState).toBe(originalPush)
 
-      mockBridge()
       sync()
       expect(window.history.pushState).not.toBe(originalPush)
       stop?.()
@@ -102,7 +93,6 @@ describe('connectToSpace', () => {
     })
 
     it('reports the initial path as a replace', () => {
-      mockBridge()
       sync()
 
       expect(postMessage).toHaveBeenCalledWith(
@@ -118,7 +108,6 @@ describe('connectToSpace', () => {
 
     it('reports the embed route itself as an empty path', () => {
       originalReplace.call(window.history, null, '', BASENAME)
-      mockBridge()
       sync()
 
       expect(postMessage).toHaveBeenCalledWith(
@@ -128,7 +117,6 @@ describe('connectToSpace', () => {
     })
 
     it('turns pushState into a replace that adds no entry', () => {
-      mockBridge()
       sync()
       postMessage.mockClear()
       const length = window.history.length
@@ -150,7 +138,6 @@ describe('connectToSpace', () => {
     })
 
     it('reports replaceState as a replace', () => {
-      mockBridge()
       sync()
       postMessage.mockClear()
 
@@ -163,7 +150,6 @@ describe('connectToSpace', () => {
     })
 
     it('applies a navigate for this mailbox without reporting it', async () => {
-      mockBridge()
       const applyNavigation = jest.fn((path: string) => {
         window.history.replaceState(null, '', `${BASENAME}${path}`)
       })
@@ -185,7 +171,6 @@ describe('connectToSpace', () => {
     })
 
     it('drops a navigate for another mailbox', () => {
-      mockBridge()
       const applyNavigation = jest.fn()
       sync(applyNavigation)
 
@@ -195,7 +180,6 @@ describe('connectToSpace', () => {
     })
 
     it('ignores messages from another origin', () => {
-      mockBridge()
       const applyNavigation = jest.fn()
       sync(applyNavigation)
 
@@ -213,7 +197,6 @@ describe('connectToSpace', () => {
     })
 
     it('replaces the frame for a load', () => {
-      mockBridge()
       sync()
 
       receive({ type: 'twake-embed:load', resourceId: 'root2', path: '/inbox' })
@@ -223,55 +206,25 @@ describe('connectToSpace', () => {
       )
     })
 
-    it('drops a load with a bad resource id or path', () => {
-      mockBridge()
+    it('drops a load with a bad resource id or a path leaving the route', () => {
       sync()
 
       receive({ type: 'twake-embed:load', resourceId: 'a/b', path: '' })
-      receive({ type: 'twake-embed:load', resourceId: 'root2', path: '//x' })
+      receive({ type: 'twake-embed:load', resourceId: 'root2', path: '/../x' })
 
       expect(replaceWith).not.toHaveBeenCalled()
     })
   })
 
-  describe('isEmbedPath', () => {
-    it.each(['', '/', '/inbox?x=1', '?q=a', '#top'])('accepts %j', path => {
-      expect(isEmbedPath(path)).toBe(true)
-    })
-
-    it.each(['inbox', '//evil.com', '/../x', '/a\\b', 1, null])(
-      'rejects %j',
-      path => {
-        expect(isEmbedPath(path)).toBe(false)
-      }
-    )
-  })
-
-  it('asks TwakeSpace to sign in through the bridge', () => {
-    const bridge = mockBridge({
-      notifyLoginRequired: jest.fn(() => Promise.resolve())
-    })
-    const postMessage = jest.spyOn(window.parent, 'postMessage')
-
-    connect()?.notifyLoginRequired()
-
-    expect(bridge.notifyLoginRequired).toHaveBeenCalledTimes(1)
-    expect(postMessage).not.toHaveBeenCalled()
-  })
-
-  it('posts the message to TwakeSpace with a bridge that cannot say it', () => {
-    mockBridge()
-    const postMessage = jest
-      .spyOn(window.parent, 'postMessage')
-      .mockImplementation(() => undefined)
-
+  it('asks TwakeSpace to sign in, to its origin only', () => {
     connect()?.notifyLoginRequired()
 
     expect(postMessage).toHaveBeenCalledWith(
-      LOGIN_REQUIRED_MESSAGE,
+      { type: 'twake-embed:login-required' },
       SPACE_ORIGIN
     )
   })
+
 })
 
 describe('reportOverlayRegion', () => {

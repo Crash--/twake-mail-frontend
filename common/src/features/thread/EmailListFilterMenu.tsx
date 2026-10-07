@@ -8,7 +8,7 @@ import {
   MenuItem,
   Tooltip
 } from '@linagora/twake-mui'
-import { useId, useState, type ReactElement } from 'react'
+import { useId, useRef, useState, type ReactElement } from 'react'
 
 import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
@@ -32,6 +32,7 @@ export interface EmailListFilterMenuProps {
  * "Filter" of the list toolbar, as tmail-flutter's filter button: a menu of
  * the filters, one at a time (picking the active one clears it), and a
  * button clearing the filter while one is on. Phones show the icon alone.
+ * Clearing gives the focus to the filter button, as the clear button goes.
  */
 export function EmailListFilterMenu({
   current,
@@ -44,6 +45,7 @@ export function EmailListFilterMenu({
   const isPhone = useScreenSize() === 'mobile'
   const menuId = useId()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+  const filterButtonRef = useRef<HTMLButtonElement>(null)
   const isActive = current !== 'all'
   const label = isActive
     ? t(listFilterLabelKey(current))
@@ -62,6 +64,7 @@ export function EmailListFilterMenu({
       {isPhone ? (
         <Tooltip title={t('thread.toolbar.filter')}>
           <IconButton
+            ref={filterButtonRef}
             aria-label={t('thread.toolbar.filter')}
             color={isActive ? 'primary' : 'default'}
             onClick={event => {
@@ -75,6 +78,7 @@ export function EmailListFilterMenu({
         </Tooltip>
       ) : (
         <ToolbarButton
+          ref={filterButtonRef}
           label={label}
           icon={FilterListIcon}
           hasMenu
@@ -91,7 +95,10 @@ export function EmailListFilterMenu({
           label={clearLabel}
           icon={Cross}
           iconSize={16}
-          onClick={onClear}
+          onClick={() => {
+            onClear()
+            filterButtonRef.current?.focus()
+          }}
           data-testid="list-filter-clear-button"
         />
       ) : null}

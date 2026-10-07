@@ -126,7 +126,7 @@ configuration serves both apps. The values of an `env.file` are strings
 | `OIDC_SCOPES` | Scopes separated by commas, default `openid,profile,email,offline_access` | Same; spaces work too. Former `SSO_SCOPE` (spaces) still read |
 | `APP_GRID_AVAILABLE` | `supported` loads `configurations/app_dashboard.json` into the app grid, anything else hides it | Ignored: the apps are those of the Workplace, in the [platform top bar](#platform-top-bar) |
 | `FORWARD_WARNING_MESSAGE` | Warning of Settings > Forwarding | Same |
-| `SENTRY_FEEDBACK_ENABLED` | Not in tmail-flutter | `true` offers the user feedback widget to the users who opted in to error reporting (off by default; Sentry 24.4.2 or later). See [sentry.md](sentry.md) |
+| `SENTRY_FEEDBACK_ENABLED` | Not in tmail-flutter | `true` offers the draggable user feedback button (position kept per browser, moved from the keyboard with Shift+F10) to the users who opted in to error reporting (off by default; Sentry 24.4.2 or later). See [sentry.md](sentry.md) |
 | `SENTRY_ENABLED`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | Sentry starts with `SENTRY_ENABLED=true` and a DSN and an environment; a reporting preference, and the ecosystem as a fallback | Same sources: one filled key makes the configuration come from the environment (even off), none leaves it to the ecosystem of the server. Starts with `SENTRY_ENABLED=true` and a DSN, and **never before the user opted in** (Settings > Preferences, stored in the account). Without `SENTRY_ENABLED` a DSN alone still starts it, with a console warning. See [sentry.md](sentry.md) |
 | `FCM_AVAILABLE`, `IOS_FCM`, `FIREBASE_*` | Push notifications of the mobile apps | Ignored |
 | `PLATFORM` | `saas` enables the sign-up flow of the mobile app | Ignored |
@@ -213,7 +213,7 @@ mounted `.env.js` takes precedence. An `env.file` alone is enough: without
 as in tmail-flutter (`SSO_BASE_URL` and `AUTH_MODE` override that).
 
 The env.file of the `linagora/tmail-frontend` chart has no key for the
-feedback widget: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
+feedback button: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
 environment of the container (`extraEnv` of the chart). It is added to the
 generated `/.env.js` when the `env.file` has no such key.
 

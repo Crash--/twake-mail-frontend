@@ -17,7 +17,7 @@ never sent, and the test that proves each point.
 | Signing out (or another tab signing out, or changing account) stops the reports, clears the user and the breadcrumbs, closes the client | `AuthProvider.tsx`, `SentryReportingSync.tsx` | `SentryReportingSync.spec.tsx`, e2e `SET-11` |
 | No default PII (`dataCollection.userInfo: false`, the replacement of `sendDefaultPii` in the SDK v11), no cookies, headers, request bodies nor query parameters collected | `sentry.ts` options | `sentry.spec.ts` |
 | No session replay, no profiling, no tracing, no logs, no release health sessions: none of their integrations is added and no sample rate is set | `sentry.ts` options | `sentry.spec.ts` "only sends error events", e2e `SET-10` |
-| The user feedback widget (ADR 011) is added only when the deployment sets `SENTRY_FEEDBACK_ENABLED=true` **and** the user opted in, so it follows the same gate as the errors. It is the synchronous integration, bundled with the app: nothing loads from Sentry's CDN, no worker, no change to `script-src`, `worker-src` or `img-src`. The button is mounted by the standalone webmail shell only: never in the facade of a team mailbox, never inside Twake Workplace | `sentry.ts` (`feedbackIntegration`), `FeedbackWidget.tsx`, `AppLayout.tsx` | `sentry.feedback.spec.tsx`, `FeedbackWidget.spec.tsx`, e2e `SET-15`, `smoke-test.sh` (no `worker-src`) |
+| The user feedback widget (ADR 011) is added only when the deployment sets `SENTRY_FEEDBACK_ENABLED=true` **and** the user opted in, so it follows the same gate as the errors. It is the synchronous integration, bundled with the app: nothing loads from Sentry's CDN, no worker, no change to `script-src`, `worker-src` or `img-src`. The button is the shared one of `@linagora/twake-feedback` (the integration comes from its `makeFeedbackIntegration`, the form is plugged on the button with `attachFeedback`), mounted by the standalone webmail shell only: never in the facade of a team mailbox, never inside Twake Workplace | `sentry.ts` (`makeFeedbackIntegration`, `attachFeedback`), `FeedbackWidget.tsx`, `AppLayout.tsx` | `sentry.feedback.spec.tsx`, `FeedbackWidget.spec.tsx`, e2e `SET-15`, `smoke-test.sh` (no `worker-src`) |
 | The SDK never gives a feedback to `beforeSend`: a gate of its own (`TwakeFeedbackGate`) drops it when the reporting is not allowed and rebuilds it with `scrubFeedbackEvent` | `sentry.ts`, `sentryEvents.ts` | `sentry.feedback.spec.tsx` |
 | Every event and breadcrumb is rebuilt, not filtered: only known fields leave | `common/src/app/sentryEvents.ts` | `sentry.spec.ts`, `scrubSensitiveData.spec.ts`, e2e `SET-10` |
 | The user is a pseudonym of the account (first 16 hex digits of the SHA-256 of the JMAP account id): never the address, name nor login, and not reversible without a candidate list of accounts | `sentryUserId.ts` | `SentryReportingSync.spec.tsx`, e2e `SET-10` |
@@ -98,13 +98,26 @@ before anything else is looked at.
 
 ## User feedback
 
-With `SENTRY_FEEDBACK_ENABLED` on and the user opted in, a "Send feedback"
-button floats at the bottom right of the webmail (above the compose button on
-phones and tablets, under dialogs and panels). Its form has a message, an
-optional email (empty, never pre-filled: the app puts no address nor name on
-its events), and, where the browser can share a tab, a screenshot with a
-highlight tool and a hide tool that masks a part of the page before it is
-sent. Every text of the form is translated like the rest of the app.
+With `SENTRY_FEEDBACK_ENABLED` on and the user opted in, a "Something
+wrong?" button ("Un problème ?" in French: an icon and its label) floats at
+the bottom of the webmail, on the right by default
+(above the compose button on phones and tablets, under dialogs and panels). It
+is the shared button of `@linagora/twake-feedback`: it can be dragged, it
+snaps to the left or right edge, and its position is kept per browser (local
+storage key `twake-feedback:twake-mail`, nothing is sent). Without a pointer,
+`Shift+F10` (or the context menu key) opens a menu to move it to the left or
+to the right, or to reset it. Its form has a message, an optional email
+(empty, never pre-filled: the app puts no address nor name on its events),
+and, where the browser can share a tab, a screenshot with a highlight tool
+and a hide tool that masks a part of the page before it is sent. Every text of
+the form comes from the package, in the language of the app (en, fr, de, es,
+it, ru and vi; English otherwise), and the form follows the colour scheme of
+the app.
+
+The shell mounts the button (`FeedbackWidget`) only while the lifecycle says
+the feedback is running; `SentryLifecycle` creates the integration at each
+start, hands the form to the button (`attachFeedback`) and forgets it at each
+stop, when it also removes the host of the form from the page.
 
 What is sent for a feedback: what the user typed (the message, and the email
 when they gave one), as typed; the screenshot they chose to attach (the

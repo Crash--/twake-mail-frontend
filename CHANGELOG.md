@@ -22,8 +22,11 @@ Upgrading from 0.1.0: see [`upgrade-instructions/0.2.0.md`](upgrade-instructions
   search row on a desktop and behind a gear in the bar of the mail below.
   Inside an iframe of the Workplace the container shows the bar. See
   `docs/deployment.md`.
-- User feedback with Sentry: a floating "Send feedback" button (message,
-  optional email, screenshot with a hide tool) in the standalone webmail, only
+- User feedback with Sentry: a draggable "Something wrong?" button ("Un
+  problème ?" in French; the shared `@linagora/twake-feedback`: it snaps to
+  the left or right edge, its position is kept per browser, Shift+F10 opens a
+  menu to move it; message, optional email, screenshot with a hide tool) in
+  the standalone webmail, only
   when the deployment sets `SENTRY_FEEDBACK_ENABLED=true` (Helm
   `config.sentry.feedbackEnabled`, off by default; needs a Sentry 24.4.2 or
   later) and the user opted in to error reporting. Nothing is initialised

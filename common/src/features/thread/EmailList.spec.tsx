@@ -710,10 +710,9 @@ describe('EmailList', () => {
     expect(
       within(row).getByRole('img', { name: 'Attachment' })
     ).toBeInTheDocument()
-    expect(within(row).getByRole('button', { name: 'Starred' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
+    expect(
+      within(row).getByRole('button', { name: 'Starred' })
+    ).toHaveAttribute('aria-pressed', 'true')
     window.localStorage.clear()
   })
 

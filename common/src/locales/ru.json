@@ -62,7 +62,9 @@
     "emails": "Письма",
     "starred": "Избранное",
     "actionRequired": "Требуется действие",
-    "emptyActionRequired": "У вас нет писем, требующих действия."
+    "emptyActionRequired": "У вас нет писем, требующих действия.",
+    "emptyStarred": "У вас нет избранных писем.",
+    "emptyStarredHint": "Начните добавлять письма в избранное"
   },
   "email": {
     "star": "Добавить в избранное",

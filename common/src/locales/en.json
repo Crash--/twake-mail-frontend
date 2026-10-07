@@ -62,7 +62,9 @@
     "emails": "Messages",
     "starred": "Starred",
     "actionRequired": "Action required",
-    "emptyActionRequired": "You don’t have any action required emails."
+    "emptyActionRequired": "You don’t have any action required emails.",
+    "emptyStarred": "You don’t have any starred emails.",
+    "emptyStarredHint": "Start to add starred emails"
   },
   "email": {
     "star": "Mark as starred",

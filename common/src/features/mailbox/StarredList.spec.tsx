@@ -57,7 +57,10 @@ describe('StarredList', () => {
   it('shows the empty view without starred emails', async () => {
     renderStarred(makeFakeJmapServer({ emails: [makeEmail({ id: 'c' })] }))
 
-    expect(await screen.findByTestId('empty-thread-view')).toBeVisible()
+    const empty = await screen.findByTestId('empty-thread-view')
+    expect(empty).toBeVisible()
+    expect(empty).toHaveTextContent('You don’t have any starred emails.')
+    expect(empty).toHaveTextContent('Start to add starred emails')
   })
 
   it('links each row to the email, under /starred', async () => {

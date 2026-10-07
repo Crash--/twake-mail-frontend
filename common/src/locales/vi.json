@@ -62,7 +62,9 @@
     "emails": "Thư",
     "starred": "Quan trọng",
     "actionRequired": "Cần xử lý",
-    "emptyActionRequired": "Bạn chưa có email nào cần xử lý."
+    "emptyActionRequired": "Bạn chưa có email nào cần xử lý.",
+    "emptyStarred": "Bạn không có thư quan trọng.",
+    "emptyStarredHint": "Bắt đầu thêm các thư quan trọng"
   },
   "email": {
     "star": "Đánh dấu quan trọng",

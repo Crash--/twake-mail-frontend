@@ -40,9 +40,19 @@ export const EMAIL_ROW_PROPERTIES = [
   'hasAttachment'
 ] as const
 
-/** The email properties a list row shows: the fields, the priority headers */
+/**
+ * The Message-ID of an email: tells the copies of one message in a thread
+ * (in a team mailbox and in the user's folders) apart from its other emails
+ */
+export type MessageIdentity = Partial<Pick<Email, 'messageId'>>
+
+/**
+ * The email properties a list row shows: the fields, the Message-ID, the
+ * priority headers
+ */
 export const EMAIL_LIST_PROPERTIES = [
   ...EMAIL_ROW_PROPERTIES,
+  'messageId',
   ...PRIORITY_HEADERS
 ] as const
 
@@ -50,6 +60,7 @@ export type EmailListItemData = Pick<
   Email,
   (typeof EMAIL_ROW_PROPERTIES)[number]
 > &
+  MessageIdentity &
   PriorityHeaders
 
 /**
@@ -66,13 +77,15 @@ export const THREAD_MEMBER_PROPERTIES = [
   'receivedAt',
   'from',
   'to',
-  'hasAttachment'
+  'hasAttachment',
+  'messageId'
 ] as const
 
 export type ThreadMember = Pick<
   Email,
-  (typeof THREAD_MEMBER_PROPERTIES)[number]
->
+  Exclude<(typeof THREAD_MEMBER_PROPERTIES)[number], 'messageId'>
+> &
+  MessageIdentity
 
 export interface EmailListPage {
   emails: EmailListItemData[]

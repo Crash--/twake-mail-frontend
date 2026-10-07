@@ -49,7 +49,12 @@ import { ConversationMessage } from './ConversationMessage'
 import { ConversationReplyBar } from './ConversationReplyBar'
 import { pickTargetMessageId } from './conversationTarget'
 import { conversationQueryOptions, type EmailListItemData } from './queries'
-import { isOwnSentCopy, isReceivedFromOthers } from './threadSummary'
+import {
+  getTeamMailboxIds,
+  isOwnSentCopy,
+  isReceivedFromOthers,
+  withoutTeamCopies
+} from './threadSummary'
 
 /** Shown expanded when the conversation opens: unread, last, opened */
 function initiallyExpanded(
@@ -406,12 +411,16 @@ export function ConversationView({
   const sentId = findMailboxIdByRole(mailboxList, 'sent')
   const emails = useMemo(
     () =>
-      (query.data?.emails ?? []).filter(
+      withoutTeamCopies(
+        query.data?.emails ?? [],
+        emailId,
+        getTeamMailboxIds(mailboxes.data ?? [])
+      ).filter(
         email =>
           email.id === emailId ||
           !isOwnSentCopy(email, sentId, session.username)
       ),
-    [query.data, emailId, sentId, session.username]
+    [query.data, emailId, mailboxes.data, sentId, session.username]
   )
 
   // Its last message deleted, the conversation is gone: back to the list

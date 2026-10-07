@@ -48,8 +48,8 @@ jest.mock('@common/app/sentry', () => ({
 
 function renderWidget({
   isEmbedded = false,
-  hasFloatingAction = false
-}: { isEmbedded?: boolean; hasFloatingAction?: boolean } = {}): RenderResult {
+  hasBottomAction = false
+}: { isEmbedded?: boolean; hasBottomAction?: boolean } = {}): RenderResult {
   mockIsInIframe.mockReturnValue(isEmbedded)
   const config = resolveConfig(
     {
@@ -62,7 +62,7 @@ function renderWidget({
   if (!config.ok) throw new Error('Invalid configuration')
   return renderWithProviders(
     <AppConfigProvider config={config.value}>
-      <FeedbackWidget hasFloatingAction={hasFloatingAction} />
+      <FeedbackWidget hasBottomAction={hasBottomAction} />
     </AppConfigProvider>
   )
 }
@@ -152,13 +152,13 @@ describe('FeedbackWidget', () => {
     expect(mockAttach).not.toHaveBeenCalled()
   })
 
-  it('keeps the corner, or rises above the floating button of the app', () => {
+  it('keeps the corner, or rises above what the app shows at the bottom', () => {
     setRunning(true)
     const first = renderWidget()
     const lowest = Number.parseFloat(queryButton()?.style.bottom ?? '')
     first.unmount()
 
-    renderWidget({ hasFloatingAction: true })
+    renderWidget({ hasBottomAction: true })
 
     const raised = Number.parseFloat(queryButton()?.style.bottom ?? '')
     expect(raised - lowest).toBeGreaterThanOrEqual(FLOATING_ACTION_INSET - 16)

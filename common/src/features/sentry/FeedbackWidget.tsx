@@ -24,8 +24,11 @@ function getFeedbackGeneration(): number {
 }
 
 export interface FeedbackWidgetProps {
-  /** A floating button of the app is at the bottom right: stay above it */
-  hasFloatingAction: boolean
+  /**
+   * Something of the app is at the bottom of the screen, the floating
+   * "New message" button or the reply bar of an open email: stay above it
+   */
+  hasBottomAction: boolean
 }
 
 /**
@@ -37,7 +40,7 @@ export interface FeedbackWidgetProps {
  * the container owns the feedback there.
  */
 export function FeedbackWidget({
-  hasFloatingAction
+  hasBottomAction
 }: FeedbackWidgetProps): ReactElement | null {
   const { lang } = useI18n()
   const { colorScheme = 'system' } = useColorScheme()
@@ -64,7 +67,7 @@ export function FeedbackWidget({
       key={generation}
       attach={attach}
       storageKey={STORAGE_KEY}
-      bottomOffset={hasFloatingAction ? FLOATING_ACTION_INSET : 0}
+      bottomOffset={hasBottomAction ? FLOATING_ACTION_INSET : 0}
     />
   )
 }

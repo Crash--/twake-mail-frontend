@@ -5,6 +5,7 @@ import { Outlet, useLocation, useMatch } from 'react-router'
 
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
+import { SkipLink } from '@/ds/SkipLink/SkipLink'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
@@ -43,6 +44,10 @@ import { useI18n } from '@common/i18n/useI18n'
 import { AppHeader } from './AppHeader'
 import { MailSidebar } from './MailSidebar'
 import { MailSearchRow } from './MailSearchRow'
+import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
+
+/** The target of the skip link and of the focus after a navigation */
+const MAIN_CONTENT_ID = 'main-content'
 
 /**
  * Frame of the signed-in pages: the platform bar of Twake Workplace (and
@@ -127,6 +132,8 @@ function AppFrame(): ReactElement {
     openComposer()
   }
 
+  useFocusMainOnNavigation(MAIN_CONTENT_ID)
+
   useShortcuts({
     c: handleCompose,
     z: () => {
@@ -136,6 +143,11 @@ function AppFrame(): ReactElement {
 
   return (
     <Box className="u-flex u-flex-column u-h-100">
+      <SkipLink
+        label={t('app.skipToContent')}
+        targetId={MAIN_CONTENT_ID}
+        data-testid="skip-to-content"
+      />
       <TouchTargets />
       <ServerLanguageSync />
       <InboxUnreadTitle />
@@ -164,7 +176,11 @@ function AppFrame(): ReactElement {
           <VacationBanner />
           <RecoveryBanner />
           <QuotaBanner />
-          <FlatContent data-testid="main-content">
+          <FlatContent
+            id={MAIN_CONTENT_ID}
+            tabIndex={-1}
+            data-testid="main-content"
+          >
             <Outlet />
           </FlatContent>
         </FlatMain>

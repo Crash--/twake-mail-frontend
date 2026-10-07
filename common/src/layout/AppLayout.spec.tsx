@@ -170,6 +170,30 @@ describe('AppLayout', () => {
     expect(screen.getByTestId('search-input')).toHaveValue('')
   })
 
+  it('puts the focus in the main content when it arrives with nowhere to go', async () => {
+    renderLayout()
+
+    await screen.findByText('Routed content')
+
+    expect(screen.getByTestId('main-content')).toHaveFocus()
+  })
+
+  it('starts the Tab order with a link to the main content', async () => {
+    const user = userEvent.setup()
+    renderLayout()
+    await screen.findByText('Routed content')
+    screen.getByTestId('main-content').blur()
+
+    await user.tab()
+    const skipLink = screen.getByRole('link', { name: 'Skip to main content' })
+
+    expect(skipLink).toHaveFocus()
+
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByTestId('main-content')).toHaveFocus()
+  })
+
   it('keeps the drawer, the menu button and the floating button off a desktop', async () => {
     renderLayout()
 

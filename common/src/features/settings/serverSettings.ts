@@ -7,6 +7,7 @@ import {
 } from 'jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
+import { isSingletonUpdated } from '@common/jmap/isSingletonUpdated'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -150,7 +151,7 @@ export async function updateServerSetting(
     accountId,
     update: { singleton: { [`settings/${key}`]: value } }
   })
-  return response.updated !== null && 'singleton' in response.updated
+  return isSingletonUpdated(response)
 }
 
 /** Whether the server keeps this setting and lets the user change it */

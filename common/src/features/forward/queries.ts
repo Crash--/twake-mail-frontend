@@ -3,6 +3,7 @@ import type { JmapClient } from 'jmap-client-ts'
 import type { Forward } from 'jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
+import { isSingletonUpdated } from '@common/jmap/isSingletonUpdated'
 
 export type ForwardKey = readonly ['forward', string]
 
@@ -44,7 +45,7 @@ export async function updateForward(
     accountId,
     update: { singleton: change }
   })
-  return response.updated !== null && 'singleton' in response.updated
+  return isSingletonUpdated(response)
 }
 
 /** The domain of an address, lower case */

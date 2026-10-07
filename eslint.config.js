@@ -121,7 +121,9 @@ export default defineConfig(
       '**/node_modules/',
       '.tsbuild/',
       'e2e/',
-      'public/'
+      'public/',
+      // Runtime configuration served as /.env.js to the browser, as public/.env.js
+      'scripts/qa-environment/app-env.js'
     ]
   },
 

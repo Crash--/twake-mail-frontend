@@ -168,6 +168,9 @@ export interface ComposerInit {
   unsubscribeEmailId?: string
 }
 
+/** How a message left its composer: sent, or its draft deleted */
+export type ComposerOutcome = 'sent' | 'discarded'
+
 /** What the window asks its form */
 export interface ComposerFormHandle {
   /**
@@ -209,7 +212,7 @@ export interface ComposerFormProps {
   /** The draft the composer edits changed (opened, saved, sent, deleted) */
   onDraftChange: (draftId: string | null) => void
   /** Sent, or its draft deleted: the window goes */
-  onDone: () => void
+  onDone: (outcome: ComposerOutcome) => void
   /**
    * On a phone the form has the top bar of the window (no title bar): the
    * close button asks the window to close
@@ -217,6 +220,11 @@ export interface ComposerFormProps {
   onRequestClose?: () => void
   /** On a phone, more controls of the top bar, after the close button */
   topBarActions?: ReactNode
+  /**
+   * Closed with a draft made here, a toast offers to delete it; false when
+   * the draft goes to another app (the intents page)
+   */
+  isDiscardOfferedOnClose?: boolean
 }
 
 const EMPTY_INPUTS: Record<RecipientKind, string> = {
@@ -325,6 +333,7 @@ function LoadedComposerForm({
   onDone,
   onRequestClose,
   topBarActions,
+  isDiscardOfferedOnClose = true,
   content,
   identities,
   ownMailboxIds,
@@ -686,7 +695,11 @@ function LoadedComposerForm({
     if (current === savedRef.current) {
       destroyLeftovers()
       // Saved meanwhile: say so, and offer to drop a draft made here
-      if (createdHereRef.current && draftIdRef.current !== null) {
+      if (
+        isDiscardOfferedOnClose &&
+        createdHereRef.current &&
+        draftIdRef.current !== null
+      ) {
         notify({
           message: t('composer.draft.saved'),
           severity: 'success',
@@ -1073,7 +1086,7 @@ function LoadedComposerForm({
       .then(destroyDraft)
       .then(() => {
         notify({ message: t('composer.draft.deleted') })
-        onDone()
+        onDone('discarded')
       })
       .catch((error: unknown) => {
         console.error(error)
@@ -1257,7 +1270,7 @@ function LoadedComposerForm({
             }
           )
         }
-        onDone()
+        onDone('sent')
         return
       }
       if (result.draftId !== null) {

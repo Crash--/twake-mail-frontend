@@ -27,6 +27,7 @@ import {
   MAX_TEXT_PREVIEW_BYTES,
   type PreviewKind
 } from './attachmentPreview'
+import { cleanFileName } from './cleanFileName'
 import { EmailBodyFrame } from './EmailBodyFrame'
 import { buildEmailDocument } from './emailBody'
 import { EmlPreview } from './EmlPreview'
@@ -85,7 +86,7 @@ export function AttachmentPreviewDialog({
   const { accountId } = useJmapSession()
   const { openComposer } = useComposer()
   const { notify } = useNotify()
-  const name = part.name ?? t('email.attachment')
+  const name = cleanFileName(part.name) ?? t('email.attachment')
   const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' })
   const [failed, setFailed] = useState(false)
 

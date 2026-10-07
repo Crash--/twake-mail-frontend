@@ -17,6 +17,7 @@ import { saveBlob } from '@common/utils/saveBlob'
 
 import { AttachmentPreviewDialog } from './AttachmentPreviewDialog'
 import { attachmentIcon } from './attachmentIcon'
+import { cleanFileName } from './cleanFileName'
 import { previewKind } from './attachmentPreview'
 import {
   downloadAllBaseName,
@@ -68,7 +69,7 @@ export function AttachmentList({
 
   const download = async (part: EmailBodyPart): Promise<void> => {
     if (!part.blobId) return
-    const name = part.name ?? t('email.attachment')
+    const name = cleanFileName(part.name) ?? t('email.attachment')
     const blob = await client.download({
       accountId,
       blobId: part.blobId,
@@ -161,7 +162,7 @@ export function AttachmentList({
       </Box>
       <AttachmentCardRow>
         {shown.map((part, index) => {
-          const name = part.name ?? t('email.attachment')
+          const name = cleanFileName(part.name) ?? t('email.attachment')
           const kind = previewKind({ type: part.type, name: part.name })
           const FileIcon = attachmentIcon(name, part.type)
           const handleDownload = (): void => {

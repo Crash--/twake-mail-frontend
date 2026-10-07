@@ -126,7 +126,7 @@ test.describe('TBAR toolbar buttons that depend on the server', () => {
     await stubCapabilities(page, { [SUPPORT]: null })
     await new LoginPage(page).loginAs(user)
 
-    await expect(page.getByTestId('top-bar')).toBeVisible()
+    await expect(page.getByTestId('twake-bar')).toBeVisible()
     await expect(page.getByTestId('help-button')).toHaveCount(0)
   })
 })

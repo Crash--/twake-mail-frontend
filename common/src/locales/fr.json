@@ -548,7 +548,7 @@
       "allTime": "Tout le temps",
       "last30Days": "Les 30 derniers jours",
       "last6Months": "Les 6 derniers mois",
-      "lastYear": "L'année dernière",
+      "lastYear": "Les 12 derniers mois",
       "custom": "Plage temporelle personnalisée",
       "range": "Du %{startDate} au %{endDate}"
     },

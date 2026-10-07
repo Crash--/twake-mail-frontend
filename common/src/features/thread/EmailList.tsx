@@ -3,7 +3,6 @@ import {
   Box,
   CircularProgress,
   Empty,
-  useMediaQuery,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
 } from '@linagora/twake-mui'
@@ -97,7 +96,12 @@ import { useListFilter, useListFilterSlot } from './ListFilterProvider'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { EmailListSkeleton } from './EmailListSkeleton'
 import { useNewEmailCount } from './useNewEmailCount'
-import { getTrailingWidth, LEAD_WIDTH, ROW_LAYOUT } from './emailListGeometry'
+import {
+  getLeadWidth,
+  getTrailingWidth,
+  ROW_LAYOUT,
+  useRowPointer
+} from './emailListGeometry'
 
 /** Folders whose list shows the recipients rather than the sender */
 const RECIPIENT_ROLES: readonly string[] = [
@@ -434,13 +438,13 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   // Stable, like the cell below: the rows of the table are memoized and
   // only render again when their email changes
-  const canHover = !useMediaQuery('(hover: none)')
+  const { canHover, isTouch } = useRowPointer()
   const columns = useMemo<(VirtualizedTableColumn & { id: EmailColumnId })[]>(
     () => [
       {
         id: 'lead',
         label: `${t('thread.columns.select')}, ${t('thread.columns.status')}`,
-        width: LEAD_WIDTH,
+        width: getLeadWidth(isTouch),
         sortable: false,
         disablePadding: true
       },
@@ -462,13 +466,13 @@ export function EmailList(props: EmailListProps): ReactElement {
         // beside them without hover
         id: 'trailing',
         label: `${t('email.attachment')}, ${t('thread.columns.date')}, ${t('thread.columns.actions')}`,
-        width: getTrailingWidth(canHover),
+        width: getTrailingWidth({ canHover, isTouch }),
         textAlign: 'right',
         sortable: false,
         disablePadding: true
       }
     ],
-    [t, showRecipients, canHover]
+    [t, showRecipients, canHover, isTouch]
   )
 
   // Below 600 px of list: a phone, or the list beside an open email

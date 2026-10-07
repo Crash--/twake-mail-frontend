@@ -1,4 +1,4 @@
-import { Skeleton, Typography, useMediaQuery } from '@linagora/twake-mui'
+import { Skeleton, Typography } from '@linagora/twake-mui'
 import { useMemo, type ReactElement } from 'react'
 
 import { ButtonSkeleton } from '@/ds/ListTableSkeleton/ButtonSkeleton'
@@ -13,9 +13,11 @@ import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnounce
 
 import {
   ACTION_SIZE,
+  getLeadWidth,
   getTrailingWidth,
-  LEAD_WIDTH,
-  ROW_LAYOUT
+  ROW_LAYOUT,
+  useRowPointer,
+  type RowPointer
 } from './emailListGeometry'
 
 /** More rows than the tallest screen holds: the container cuts the rest */
@@ -32,9 +34,9 @@ const CHECKBOX = (
 )
 
 /** The skeleton of the first two columns: the sender and the subject */
-function wideColumns(canHover: boolean): ListTableSkeletonColumn[] {
+function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
   return [
-    { id: 'lead', width: LEAD_WIDTH, cell: CHECKBOX },
+    { id: 'lead', width: getLeadWidth(pointer.isTouch), cell: CHECKBOX },
     {
       id: 'sender',
       width: ROW_LAYOUT.gap + 20 + 4 + SENDER_BLOCK_WIDTH,
@@ -61,7 +63,7 @@ function wideColumns(canHover: boolean): ListTableSkeletonColumn[] {
     },
     {
       id: 'trailing',
-      width: getTrailingWidth(canHover),
+      width: getTrailingWidth(pointer),
       cell: (
         <Skeleton
           width={56}
@@ -134,8 +136,11 @@ function EmailListRowsSkeleton({
   className
 }: EmailListSkeletonProps): ReactElement {
   useLoadingAnnouncement(true)
-  const canHover = !useMediaQuery('(hover: none)')
-  const columns = useMemo(() => wideColumns(canHover), [canHover])
+  const { canHover, isTouch } = useRowPointer()
+  const columns = useMemo(
+    () => wideColumns({ canHover, isTouch }),
+    [canHover, isTouch]
+  )
   return (
     <ListTableSkeleton
       columns={columns}

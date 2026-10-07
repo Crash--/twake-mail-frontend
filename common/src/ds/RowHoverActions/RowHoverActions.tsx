@@ -42,7 +42,13 @@ export function RowHoverActions({
           className="u-flex u-flex-items-center"
           sx={{
             [`${row}:hover &, ${row}:focus-within &`]: { opacity: 0 },
-            '@media (hover: none)': { opacity: 1 }
+            // Beside the actions, it gives way to them rather than spilling
+            // over the cell before
+            '@media (hover: none)': {
+              opacity: 1,
+              minWidth: 0,
+              overflow: 'hidden'
+            }
           }}
         >
           {replaces}
@@ -56,6 +62,7 @@ export function RowHoverActions({
             [`${row}:hover &, ${row}:focus-within &`]: { opacity: 1 },
             '@media (hover: none)': {
               position: 'static',
+              flexShrink: 0,
               opacity: 1,
               marginLeft: 1
             }

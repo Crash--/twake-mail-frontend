@@ -1,3 +1,6 @@
+import { useMediaQuery } from '@linagora/twake-mui'
+
+import { TOUCH_QUERY, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 import type { RowLayout } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 
 /** Padding of a row and gap between its cells, in px (Figma "Listitemmail") */
@@ -11,14 +14,43 @@ export const ROW_LAYOUT: RowLayout = {
 /** An icon button of a row, in px */
 export const ACTION_SIZE = 32
 
-/** Selection, star and reply: three icon buttons without gap */
-export const LEAD_WIDTH = ROW_LAYOUT.paddingX + 3 * ACTION_SIZE
+/**
+ * The attachment (a 32 px box and its 4 px margin), the longest list date
+ * ("Dec 30, 2025", 12 px) and the 8 px before the actions, shown beside the
+ * actions on a screen without hover
+ */
+const DATE_BLOCK_WIDTH = 36 + 80 + 8
 
-/** The actions replacing the date on hover: five icon buttons without gap */
-export const TRAILING_WIDTH =
-  ROW_LAYOUT.gap + 5 * ACTION_SIZE + ROW_LAYOUT.paddingX
+export interface RowPointer {
+  /** The screen can hover: the actions replace the date */
+  canHover: boolean
+  /** Touch screen or phone: icon buttons are 44 px touch targets */
+  isTouch: boolean
+}
 
-/** Without hover the date stays beside the (always visible) actions */
-export function getTrailingWidth(canHover: boolean): number {
-  return canHover ? TRAILING_WIDTH : TRAILING_WIDTH + 72
+function getButtonSize(isTouch: boolean): number {
+  return isTouch ? TOUCH_TARGET_SIZE : ACTION_SIZE
+}
+
+/** Selection, star and reply without gap: the checkbox keeps its size */
+export function getLeadWidth(isTouch: boolean): number {
+  return ROW_LAYOUT.paddingX + ACTION_SIZE + 2 * getButtonSize(isTouch)
+}
+
+/**
+ * The five actions without gap, which replace the date on hover; without
+ * hover the date stays beside them
+ */
+export function getTrailingWidth({ canHover, isTouch }: RowPointer): number {
+  const actionsWidth =
+    ROW_LAYOUT.gap + 5 * getButtonSize(isTouch) + ROW_LAYOUT.paddingX
+  return canHover ? actionsWidth : actionsWidth + DATE_BLOCK_WIDTH
+}
+
+/** The pointer the row cells are sized for */
+export function useRowPointer(): RowPointer {
+  return {
+    canHover: !useMediaQuery('(hover: none)'),
+    isTouch: useMediaQuery(TOUCH_QUERY)
+  }
 }

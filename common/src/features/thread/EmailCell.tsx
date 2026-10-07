@@ -464,7 +464,7 @@ export function EmailCell({
 
   // A 32 px box for the icon: the attachment lines up with the buttons
   const wideAttachment = hasAttachment ? (
-    <span className="u-flex u-flex-justify-center u-w-2 u-mr-half">
+    <span className="u-flex u-flex-justify-center u-flex-shrink-0 u-w-2 u-mr-half">
       <Icon
         icon={Attachment}
         size={20}

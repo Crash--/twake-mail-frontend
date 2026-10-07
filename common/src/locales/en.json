@@ -1293,5 +1293,35 @@
     "unavailableDescription": "You are not a member of this team mailbox, or it does not exist.",
     "sessionExpiredTitle": "Your session has expired",
     "sessionExpiredDescription": "Sign in again to see this team mailbox."
+  },
+  "intents": {
+    "unavailable": {
+      "title": "Twake Mail cannot open here",
+      "description": "Open Twake Mail to write your message."
+    },
+    "forbidden": {
+      "title": "Twake Mail is not allowed to answer here",
+      "description": "Your administrator has to let Twake Mail answer this app."
+    },
+    "failed": {
+      "title": "Twake Mail could not load",
+      "description": "Close this window and try again."
+    },
+    "sessionExpired": {
+      "title": "Your session has expired",
+      "description": "Open Twake Mail to sign in again, then try again."
+    },
+    "unsupported": {
+      "title": "Twake Mail cannot do this",
+      "description": "This app asked Twake Mail for something it does not offer."
+    },
+    "invalidData": {
+      "title": "This message cannot be written",
+      "description": "This app sent a message Twake Mail cannot read."
+    },
+    "untrustedFrame": {
+      "title": "Twake Mail cannot open in this page",
+      "description": "Another page shows this app: open Twake Mail directly to write your message."
+    }
   }
 }

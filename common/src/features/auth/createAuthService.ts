@@ -7,6 +7,8 @@ import type { AuthService } from './types'
 export interface AuthServiceOptions {
   /** Shown in the frame of another app: silent SSO logins (`OidcOptions`) */
   framed?: boolean
+  /** Where the SSO comes back instead of the configured redirect URI */
+  redirectUri?: string
 }
 
 /**
@@ -14,7 +16,7 @@ export interface AuthServiceOptions {
  */
 export function createAuthService(
   config: AppConfig,
-  { framed = false }: AuthServiceOptions = {}
+  { framed = false, redirectUri }: AuthServiceOptions = {}
 ): AuthService {
   if (config.authMode === 'basic') {
     return createBasicAuthService({ jmapSessionUrl: config.jmapSessionUrl })
@@ -22,5 +24,8 @@ export function createAuthService(
   if (!config.oidc) {
     throw new Error('OIDC mode without OIDC configuration')
   }
-  return createOidcAuthService(config.oidc, undefined, { framed })
+  return createOidcAuthService(config.oidc, undefined, {
+    framed,
+    ...(redirectUri === undefined ? {} : { redirectUri })
+  })
 }

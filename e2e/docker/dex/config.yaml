@@ -36,6 +36,7 @@ staticClients:
     redirectURIs:
       - '@PUBLIC_URL@/'
       - '@PUBLIC_URL@/callback'
+      - '@PUBLIC_URL@/intents/callback'
       - '@PUBLIC_URL@/login-callback.html'
       - '@PUBLIC_URL@/logout-callback.html'
       - '@PUBLIC_URL@/login/callback'

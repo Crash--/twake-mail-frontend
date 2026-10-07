@@ -1293,5 +1293,35 @@
     "unavailableDescription": "Bạn không phải là thành viên của hộp thư nhóm này, hoặc hộp thư này không tồn tại.",
     "sessionExpiredTitle": "Phiên của bạn đã hết hạn",
     "sessionExpiredDescription": "Hãy đăng nhập lại để xem hộp thư nhóm này."
+  },
+  "intents": {
+    "unavailable": {
+      "title": "Không thể mở Twake Mail tại đây",
+      "description": "Hãy mở Twake Mail để soạn thư của bạn."
+    },
+    "forbidden": {
+      "title": "Twake Mail không được phép phản hồi tại đây",
+      "description": "Quản trị viên cần cho phép Twake Mail phản hồi ứng dụng này."
+    },
+    "failed": {
+      "title": "Không thể tải Twake Mail",
+      "description": "Hãy đóng cửa sổ này và thử lại."
+    },
+    "sessionExpired": {
+      "title": "Phiên của bạn đã hết hạn",
+      "description": "Hãy mở Twake Mail để đăng nhập lại, sau đó thử lại."
+    },
+    "unsupported": {
+      "title": "Twake Mail không thể thực hiện việc này",
+      "description": "Ứng dụng này yêu cầu Twake Mail một thao tác mà nó không hỗ trợ."
+    },
+    "invalidData": {
+      "title": "Không thể soạn thư này",
+      "description": "Ứng dụng này đã gửi một thư mà Twake Mail không đọc được."
+    },
+    "untrustedFrame": {
+      "title": "Không thể mở Twake Mail trong trang này",
+      "description": "Một trang khác đang hiển thị ứng dụng này: hãy mở trực tiếp Twake Mail để soạn thư của bạn."
+    }
   }
 }

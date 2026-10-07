@@ -79,6 +79,12 @@ export interface OidcOptions {
    * and the page around the frame signs the user in again.
    */
   framed?: boolean
+  /**
+   * Where the SSO comes back, instead of the redirect URI of the
+   * configuration: the intents page has its own (`/intents/callback`), that
+   * other apps may frame
+   */
+  redirectUri?: string
 }
 
 function makeDefaultDependencies(): OidcDependencies {
@@ -192,7 +198,7 @@ async function discoverConfiguration(
 export function createOidcAuthService(
   config: OidcConfig,
   dependencies: OidcDependencies = makeDefaultDependencies(),
-  { framed = false }: OidcOptions = {}
+  { framed = false, redirectUri = config.redirectUri }: OidcOptions = {}
 ): OidcAuthService {
   const store = makeAuthStore()
   let tokens: OidcTokens | null = null
@@ -305,7 +311,7 @@ export function createOidcAuthService(
         JSON.stringify(pendingLogin)
       )
       const authorizationUrl = client.buildAuthorizationUrl(configuration, {
-        redirect_uri: config.redirectUri,
+        redirect_uri: redirectUri,
         scope: config.scope,
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',

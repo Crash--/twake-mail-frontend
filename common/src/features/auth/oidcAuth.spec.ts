@@ -319,6 +319,24 @@ describe('createOidcAuthService', () => {
       ).resolves.toMatchObject({ ok: false, error: 'token-exchange-failed' })
     })
 
+    it('comes back to the redirect URI it is given (the intents page)', async () => {
+      const dependencies = makeDependencies()
+      const service = createOidcAuthService(CONFIG, dependencies, {
+        ...FRAMED,
+        redirectUri: 'https://mail.example.com/intents/callback'
+      })
+
+      await service.startLogin('/intents?intent=intent-1')
+
+      expect(mockedClient.buildAuthorizationUrl).toHaveBeenCalledWith(
+        configuration,
+        expect.objectContaining({
+          redirect_uri: 'https://mail.example.com/intents/callback',
+          prompt: 'none'
+        })
+      )
+    })
+
     it('leaves the regular login as it is', async () => {
       const dependencies = makeDependencies()
       const service = createOidcAuthService(CONFIG, dependencies)

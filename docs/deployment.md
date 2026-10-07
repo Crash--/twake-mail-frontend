@@ -165,8 +165,9 @@ The bar talks to the Workplace (cozy-stack) of the user through
 - the ID token of the session is exchanged for a token of the Workplace
   (`POST /auth/token_exchange`, `exchange_type: app`), kept in memory: the
   cozy-stack context must list the OIDC client of the app in
-  `oidc.app_token_exchange` (`software_id: registry://mail`), and the `mail`
-  app must be installed on the instance;
+  `oidc.app_token_exchange` (`software_id: registry://mailng`, the standalone
+  app of this repository, which the intents need too), and the `mailng` app
+  must be installed on the instance;
 - `CSP_CONNECT_SRC` must allow the Workplace origins (a wildcard such as
   `https://*.workplace.example.com` for per-user hosts). Their images
   (avatar, home icon) are already allowed by `img-src`.
@@ -578,8 +579,30 @@ Register a public client (no secret) using Authorization Code with PKCE
 
 - redirect URI: `<DOMAIN_REDIRECT_URL>/login-callback.html` (or
   `SSO_REDIRECT_URI`), by default `https://<app>/callback`;
+- with the intents of other apps (Twake Chat): also
+  `https://<app>/intents/callback` (see
+  [`cozy-intents.md`](cozy-intents.md));
 - post-logout redirect URI: `<DOMAIN_REDIRECT_URL>/logout-callback.html` (or
   `SSO_POST_LOGOUT_REDIRECT`), by default
   `https://<app>/`;
 - scopes `openid profile email offline_access`, refresh tokens allowed;
 - the access token must be accepted by tmail-backend (its OIDC audience).
+
+## Intents served by Twake Mail
+
+Other apps of the Workplace (Twake Chat…) open the composer of Twake Mail
+through a cozy-stack intent, `CREATE io.cozy.mails`, served on `/intents`.
+Any page may frame that path and its login callback `/intents/callback`
+(`frame-ancestors *`, there only; add that redirect URI to the OIDC client):
+the handshake with the origin the cozy-stack gives guards it, see the
+security model in [`cozy-intents.md`](cozy-intents.md). Let the browser
+reach the cozy-stack of the users (OIDC only):
+
+```bash
+-e CSP_CONNECT_SRC="https://sso.example.com https://*.workplace.example.com"
+```
+
+The cozy-stack is `TDRIVE_INTENT_URL`, also when `TDRIVE_ENABLED` is off.
+The `mailng` manifest of this repository (`manifest/manifest.webapp`), the
+`mailng.embedded-app-url` flag and the token exchange to `registry://mailng`
+are described in [`cozy-intents.md`](cozy-intents.md).

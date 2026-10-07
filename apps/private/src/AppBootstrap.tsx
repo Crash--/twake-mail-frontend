@@ -11,11 +11,17 @@ import type { AppConfig } from '@common/config/config'
 import { peekPendingLoginReturnTo } from '@common/features/auth/oidcAuth'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import { reportOverlayRegion } from '@common/features/teamMailboxEmbed/spaceBridge'
+import {
+  isIntentsCallbackPath,
+  isUnderIntentsPath,
+  parseIntentPath
+} from '@common/features/intents/intentPath'
 import { parseTeamMailboxEmbedPath } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { findPreferredLanguage } from '@common/i18n/languages'
 import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScreen'
 
 import { App } from './App'
+import type { IntentsPage } from './IntentsApp'
 import type { TeamMailboxEmbed } from './TeamMailboxEmbedApp'
 
 /**
@@ -35,6 +41,27 @@ function findTeamMailboxEmbed(config: AppConfig): TeamMailboxEmbed | null {
     : { target: pending, callbackUrl: new URL(href) }
 }
 
+/**
+ * The intents page the page is for: every path under `/intents`, never the
+ * webmail (no other app may frame it). Its login callback is
+ * `/intents/callback`, with the intent of the login it started.
+ */
+function findIntentsPage(): IntentsPage | null {
+  const { pathname, search, href } = window.location
+  if (!isUnderIntentsPath(pathname)) return null
+  if (isIntentsCallbackPath(pathname)) {
+    const returnTo = peekPendingLoginReturnTo()
+    return {
+      intentId: returnTo === null ? null : parseIntentPath(returnTo),
+      callbackUrl: new URL(href)
+    }
+  }
+  return {
+    intentId: parseIntentPath(`${pathname}${search}`),
+    callbackUrl: null
+  }
+}
+
 export interface AppBootstrapProps {
   config: AppConfig
 }
@@ -50,6 +77,7 @@ export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
   const [queryClient] = useState(makeQueryClient)
   const [lang] = useState(() => findPreferredLanguage(config.defaultLanguage))
   const [embed] = useState(() => findTeamMailboxEmbed(config))
+  const [intents] = useState(findIntentsPage)
   // Framed by TwakeSpace, the composer and the dialogs go onto its page
   const [overlay] = useState(() =>
     embed === null ? null : connectSpaceOverlay(reportOverlayRegion)
@@ -71,7 +99,9 @@ export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
   }, [config])
 
   const app =
-    completed === null ? null : <App config={completed} embed={embed} />
+    completed === null ? null : (
+      <App config={completed} embed={embed} intents={intents} />
+    )
   const loading =
     embed === null ? <FullPageLoader /> : <TeamMailboxLoadingScreen />
   const page = (

@@ -46,6 +46,16 @@ No setting changes from 0.2.0.
 - The facade of a team mailbox offers no new message (button, `c` shortcut)
   while the team mailbox is not found, instead of writing from the personal
   address of the user.
+### Added
+
+- The composer as a cozy-stack intent, `CREATE io.cozy.mails`, served on
+  `/intents`: another app of the Workplace (Twake Chat) opens a new message
+  with `cozy-interapp` in its own dialog, and learns whether it was sent,
+  kept as a draft or cancelled. The page signs in silently, through its own
+  redirect URI, `/intents/callback`, to add to the OIDC client; any page may
+  frame these two paths, the handshake with the origin the cozy-stack gives
+  and, with linagora/cozy-stack#4978 (optional), its `frameAncestors` guard
+  them. See `docs/cozy-intents.md`.
 
 ## [0.2.0] - 2026-10-07
 

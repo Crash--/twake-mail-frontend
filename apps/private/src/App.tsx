@@ -1,5 +1,5 @@
 import { createClient } from 'jmap-client-ts'
-import { useState, type ReactElement } from 'react'
+import { lazy, Suspense, useState, type ReactElement } from 'react'
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary'
 import { createBrowserRouter, createRoutesFromElements } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
@@ -10,15 +10,24 @@ import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import type { AppConfig } from '@common/config/config'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import { createAuthService } from '@common/features/auth/createAuthService'
+import { intentsRedirectUri } from '@common/features/intents/intentPath'
 import { connectToSpace } from '@common/features/teamMailboxEmbed/spaceBridge'
 import { useI18n } from '@common/i18n/useI18n'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
+import { FullPageLoader } from '@common/components/FullPageLoader'
 
 import { appRouteElements } from './AppRoutes'
+import type { IntentsPage } from './IntentsApp'
 import {
   TeamMailboxEmbedApp,
   type TeamMailboxEmbed
 } from './TeamMailboxEmbedApp'
+
+// Its own chunk: the webmail does not load the intents page
+const IntentsApp = lazy(async () => {
+  const module = await import('./IntentsApp')
+  return { default: module.IntentsApp }
+})
 
 function CrashScreen({ resetErrorBoundary }: FallbackProps): ReactElement {
   const { t } = useI18n()
@@ -44,16 +53,22 @@ export interface AppProps {
   config: AppConfig
   /** Decided by `AppBootstrap` before the configuration was complete */
   embed: TeamMailboxEmbed | null
+  /** The `/intents` page, decided by `AppBootstrap` as well */
+  intents?: IntentsPage | null
 }
 
 /** The app, under the providers `AppBootstrap` mounts for the whole page */
-export function App({ config, embed }: AppProps): ReactElement {
+export function App({ config, embed, intents = null }: AppProps): ReactElement {
   const [spaceBridge] = useState(() =>
     embed === null ? null : connectToSpace(embed.target)
   )
   const [authService] = useState(() =>
     createAuthService(config, {
-      framed: embed !== null && window.parent !== window
+      framed: (embed !== null || intents !== null) && window.parent !== window,
+      // Its own callback, that the apps framing it may frame too
+      ...(intents !== null && config.oidc !== null
+        ? { redirectUri: intentsRedirectUri(config.oidc.redirectUri) }
+        : {})
     })
   )
 
@@ -68,7 +83,11 @@ export function App({ config, embed }: AppProps): ReactElement {
             createClient={createClient}
             sessionUrl={config.jmapSessionUrl}
           >
-            {embed === null ? (
+            {intents !== null ? (
+              <Suspense fallback={<FullPageLoader />}>
+                <IntentsApp page={intents} />
+              </Suspense>
+            ) : embed === null ? (
               <WebmailRouter />
             ) : (
               <TeamMailboxEmbedApp embed={embed} spaceBridge={spaceBridge} />

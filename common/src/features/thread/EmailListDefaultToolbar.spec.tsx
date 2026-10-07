@@ -125,6 +125,23 @@ describe('EmailListDefaultToolbar', () => {
     expect(filter?.onClear).toHaveBeenCalledTimes(1)
   })
 
+  it.each([
+    { device: 'desktop', width: 1440, touch: false },
+    { device: 'phone', width: 390, touch: true }
+  ])(
+    'gives the focus back to the filter button after clearing ($device)',
+    async ({ width, touch }) => {
+      mockViewport({ width, touch })
+      renderToolbar({ filter: makeFilter('starred') })
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Clear the filter' })
+      )
+
+      expect(screen.getByTestId('list-filter-button')).toHaveFocus()
+    }
+  )
+
   it('has no clear button without an active filter, nor a filter for search results', () => {
     renderToolbar()
     expect(screen.queryByTestId('list-filter-clear-button')).toBe(null)

@@ -5,7 +5,7 @@
 // (docs/twake-mui-gaps.md).
 import { Icon, Dropdown, type IconProps } from '@linagora/twake-icons'
 import { Button, Tooltip } from '@linagora/twake-mui'
-import type { MouseEvent, ReactElement } from 'react'
+import type { MouseEvent, ReactElement, Ref } from 'react'
 
 export interface ToolbarButtonProps {
   label: string
@@ -23,6 +23,7 @@ export interface ToolbarButtonProps {
   'aria-controls'?: string
   'aria-expanded'?: boolean
   'data-testid'?: string
+  ref?: Ref<HTMLButtonElement>
 }
 
 /** A text button of a list toolbar: 16 px icon, 14 px medium label. */
@@ -37,10 +38,12 @@ export function ToolbarButton({
   'aria-haspopup': hasPopup,
   'aria-controls': controls,
   'aria-expanded': expanded,
-  'data-testid': testId
+  'data-testid': testId,
+  ref
 }: ToolbarButtonProps): ReactElement {
   const button = (
     <Button
+      ref={ref}
       variant="text"
       color={isActive ? 'primary' : 'inherit'}
       onClick={onClick}

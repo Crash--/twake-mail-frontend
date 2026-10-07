@@ -92,6 +92,14 @@ describe('the storage indicator of the sidebar', () => {
     )
   })
 
+  it('names its refresh after the storage, apart from the list refresh', async () => {
+    renderWithPaywall(<QuotaIndicator />, { quotas: NEARLY_FULL })
+
+    const refresh = await screen.findByTestId('quota-refresh-button')
+    expect(refresh).toHaveAccessibleName('Refresh storage')
+    expect(screen.queryByRole('button', { name: 'Refresh' })).toBe(null)
+  })
+
   it.each(NOT_UPGRADABLE)('has no link %s', async (_n, scenario) => {
     renderWithPaywall(<QuotaIndicator />, { quotas: NEARLY_FULL, ...scenario })
 

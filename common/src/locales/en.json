@@ -1139,6 +1139,7 @@
     "available": "%{count} available",
     "outOfStorage": "Out of storage",
     "state": "%{used} of %{limit} Used",
+    "refresh": "Refresh storage",
     "banner": {
       "full": "You have run out of storage space",
       "low": "You are running low on storage (90%)",

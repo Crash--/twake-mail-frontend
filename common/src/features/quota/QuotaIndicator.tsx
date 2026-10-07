@@ -26,7 +26,6 @@ export function QuotaIndicator(): ReactElement | null {
   const percent = Math.min(100, Math.round((quota.used / quota.limit) * 100))
   const used = formatSize(quota.used, lang)
   const limit = formatSize(quota.limit, lang)
-  const refreshLabel = t('common.refresh')
 
   return (
     <Box data-testid="quota-indicator" data-used={quota.used}>
@@ -41,7 +40,7 @@ export function QuotaIndicator(): ReactElement | null {
           {t('settings.sections.storage.title')}
         </SecondaryText>
         <NavSectionAction
-          label={refreshLabel}
+          label={t('quota.refresh')}
           icon={Refresh}
           disabled={query.isFetching}
           onClick={() => {

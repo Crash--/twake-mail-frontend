@@ -41,7 +41,8 @@ export function StarredList(): ReactElement {
       empty: (
         <Empty
           icon={Star}
-          title={t('mailbox.empty')}
+          title={t('mailbox.emptyStarred')}
+          text={t('mailbox.emptyStarredHint')}
           data-testid="empty-thread-view"
         />
       )

@@ -62,7 +62,9 @@
     "emails": "Messages",
     "starred": "Favoris",
     "actionRequired": "Action requise",
-    "emptyActionRequired": "Vous n'avez aucun e-mail nécessitant une action."
+    "emptyActionRequired": "Vous n'avez aucun e-mail nécessitant une action.",
+    "emptyStarred": "Vous n'avez aucun e-mail favori.",
+    "emptyStarredHint": "Commencez à ajouter des e-mails favoris"
   },
   "email": {
     "star": "Marquer comme favori",

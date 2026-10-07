@@ -9,7 +9,7 @@ const BASENAME = '/embed/team-mailboxes/root1'
 const TARGET = { basename: BASENAME, rootId: 'root1' }
 
 function connect(): ReturnType<typeof connectToSpace> {
-  return connectToSpace(SPACE_ORIGIN, TARGET)
+  return connectToSpace(TARGET)
 }
 
 describe('connectToSpace', () => {
@@ -21,6 +21,10 @@ describe('connectToSpace', () => {
     window.dispatchEvent(
       new MessageEvent('message', { data, origin, source: fakeParent })
     )
+  }
+
+  function greet(origin = SPACE_ORIGIN): void {
+    receive({ type: 'twake-embed:hello' }, origin)
   }
 
   function frame(parent: Window): void {
@@ -49,9 +53,7 @@ describe('connectToSpace', () => {
     jest.clearAllMocks()
   })
 
-  it('is null without the origin of TwakeSpace, or outside a frame', () => {
-    expect(connectToSpace(null, TARGET)).toBe(null)
-
+  it('is null outside a frame', () => {
     frame(window)
     expect(connect()).toBe(null)
   })
@@ -78,8 +80,39 @@ describe('connectToSpace', () => {
     function sync(
       applyNavigation: (path: string) => void | Promise<void> = jest.fn()
     ): void {
-      stop = connect()?.syncHistory(applyNavigation)
+      const connection = connect()
+      greet()
+      stop = connection?.syncHistory(applyNavigation)
     }
+
+    it('posts nothing until TwakeSpace greets the frame', () => {
+      const connection = connect()
+      stop = connection?.syncHistory(jest.fn())
+      window.history.replaceState(null, '', `${BASENAME}/sent`)
+      connection?.notifyLoginRequired()
+
+      expect(postMessage).not.toHaveBeenCalled()
+
+      greet()
+
+      expect(postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'twake-embed:path', path: '/sent' }),
+        SPACE_ORIGIN
+      )
+    })
+
+    it('answers the origin of the parent that greeted', () => {
+      sync()
+      postMessage.mockClear()
+
+      greet('https://other-space.example.com')
+      window.history.replaceState(null, '', `${BASENAME}/sent`)
+
+      expect(postMessage).toHaveBeenLastCalledWith(
+        expect.objectContaining({ path: '/sent' }),
+        'https://other-space.example.com'
+      )
+    })
 
     it('patches the history only once started, and restores it', () => {
       connect()
@@ -179,17 +212,27 @@ describe('connectToSpace', () => {
       expect(applyNavigation).not.toHaveBeenCalled()
     })
 
-    it('ignores messages from another origin', () => {
+    it('ignores messages that do not come from the parent', () => {
       const applyNavigation = jest.fn()
       sync(applyNavigation)
 
-      receive(
-        { type: 'twake-embed:navigate', resourceId: 'root1', path: '/a' },
-        'https://evil.example.com'
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'twake-embed:navigate',
+            resourceId: 'root1',
+            path: '/a'
+          },
+          origin: SPACE_ORIGIN,
+          source: window
+        })
       )
-      receive(
-        { type: 'twake-embed:load', resourceId: 'root2', path: '/a' },
-        'https://evil.example.com'
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: { type: 'twake-embed:load', resourceId: 'root2', path: '/a' },
+          origin: 'https://evil.example.com',
+          source: null
+        })
       )
 
       expect(applyNavigation).not.toHaveBeenCalled()
@@ -218,8 +261,10 @@ describe('connectToSpace', () => {
     })
   })
 
-  it('asks TwakeSpace to sign in, to its origin only', () => {
-    connect()?.notifyLoginRequired()
+  it('asks TwakeSpace to sign in, to the origin that greeted only', () => {
+    const connection = connect()
+    greet()
+    connection?.notifyLoginRequired()
 
     expect(postMessage).toHaveBeenCalledWith(
       { type: 'twake-embed:login-required' },

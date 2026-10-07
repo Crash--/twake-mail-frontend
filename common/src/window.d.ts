@@ -58,8 +58,6 @@ declare global {
     WORKPLACE_EMBEDDING?: boolean | string
     /** Same as WORKPLACE_EMBEDDING, as named by tmail-flutter */
     COZY_INTEGRATION?: boolean | string
-    /** TwakeSpace, which frames the facade of a team mailbox */
-    TWAKE_SPACE_URL?: string
     /** The Twake Drive picker of the composer (as Twake Calendar) */
     TDRIVE_ENABLED?: boolean | string
     /** URI template of the Drive (cozy-stack) of the user */

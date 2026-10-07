@@ -71,9 +71,12 @@ The contract (messages, checks, history, overlay) comes from
 [`@linagora/twake-embed`](https://github.com/linagora/twake-libs/tree/main/packages/twake-embed),
 shared with the other apps TwakeSpace frames; `features/teamMailboxEmbed/spaceBridge.ts`
 only plugs the facade into it. Raw `postMessage` (ADR 010 of
-twake-space-architecture), to the origin of `TWAKE_SPACE_URL` only, and from it
-only (`event.origin` and `event.source` are checked). Outside a frame or
-without `TWAKE_SPACE_URL`, the facade says nothing. `resourceId` is the root id
+twake-space-architecture). The facade does not know where TwakeSpace is: it
+learns it from the greeting `{ type: 'twake-embed:hello' }` that TwakeSpace
+posts to the frame on each of its loads. Until then the facade posts nothing;
+then it talks to the origin of the greeting only, and from it only
+(`event.origin` and `event.source` are checked). Outside a frame, the facade
+says nothing. `resourceId` is the root id
 of the route, and `path` the URL of the frame below
 `/embed/team-mailboxes/<rootId>` (pathname, query and fragment): `''` on the
 route itself, otherwise it starts with `/`, `?` or `#`, and it stays below the
@@ -115,7 +118,7 @@ centred on it and dimming all of it.
   the overlay to show, from its own frame
   (`{ type: 'twake-embed:overlay-region', region }`): the boxes of its windows, or
   the whole page while a dialog, a menu or a full screen window is open. It
-  posts it to any origin, so the overlay needs no `TWAKE_SPACE_URL`: the
+  posts it to any origin, so the overlay needs no origin of TwakeSpace: the
   region is only boxes of the layout, and `frame-ancestors` says who may
   frame the facade.
   TwakeSpace clips the overlay to it, so the rest of its page keeps its
@@ -130,9 +133,10 @@ centred on it and dimming all of it.
 - Team mailboxes need the ACLs of James: `acl.enabled=true` in
   `cassandra.properties` (`mailRepository.cassandra.aclEnabled` in the Helm
   chart of tmail-backend).
-- `TWAKE_SPACE_URL`: the URL of TwakeSpace (its origin is kept).
-- `CSP_FRAME_ANCESTORS` must allow the origin of TwakeSpace. The header is
-  the same for every page: the SSO callback is framed too.
+- `CSP_FRAME_ANCESTORS` must allow the origin of TwakeSpace: it is the only
+  thing that says who may frame the facade, the app takes no other setting for
+  TwakeSpace (`TWAKE_SPACE_URL` is no longer read). The header is the same for
+  every page: the SSO callback is framed too.
 - TwakeSpace, the app and the SSO portal are served on one registrable
   domain (ADR 010), so that the SSO cookie reaches the frame.
 

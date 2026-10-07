@@ -76,9 +76,7 @@ export function App({ config }: AppProps): ReactElement {
   const [queryClient] = useState(makeQueryClient)
   const [embed] = useState(() => findTeamMailboxEmbed(config))
   const [spaceBridge] = useState(() =>
-    embed === null
-      ? null
-      : connectToSpace(config.twakeSpaceOrigin, embed.target)
+    embed === null ? null : connectToSpace(embed.target)
   )
   // Framed by TwakeSpace, the composer and the dialogs go onto its page
   const [overlay] = useState(() =>

@@ -18,8 +18,20 @@ export interface Recipient {
 const TOKEN =
   /(?:"([^"]*)"\s*|'([^']*)'\s*|([^,;<>"'@\n\r\t]*?)\s*)<([^<>]*)>|([^\s,;<>]+)/g
 
-const EMAIL =
-  /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:".]+$/
+/** Characters an atom of the local part or a domain label may not hold */
+const FORBIDDEN = '\\s@<>()[\\]\\\\,;:".'
+
+const ATOM = `[^${FORBIDDEN}]+`
+
+/** A domain label does not start or end with a hyphen (RFC 1035) */
+const LABEL_EDGE = `[^${FORBIDDEN}-]`
+const LABEL = `${LABEL_EDGE}(?:[^${FORBIDDEN}]*${LABEL_EDGE})?`
+
+/**
+ * A dot-atom local part (no leading, trailing or doubled dot, RFC 5322)
+ * and a domain of at least two labels
+ */
+const EMAIL = new RegExp(`^${ATOM}(?:\\.${ATOM})*@${LABEL}(?:\\.${LABEL})+$`)
 
 /** Whether an address can be sent to (a local part, a domain with a dot) */
 export function isValidEmail(email: string): boolean {

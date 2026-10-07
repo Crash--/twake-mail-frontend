@@ -24,6 +24,7 @@ import {
   ensureTemplatesMailbox,
   identityReplyTo,
   isRequestTooLarge,
+  readFailure,
   saveDraft,
   sendEmail,
   type BuildPurpose,
@@ -276,6 +277,46 @@ describe('sendEmail', () => {
 
     expect(result.ok).toBe(true)
     expect(subjectsOf(server)).toEqual([])
+  })
+})
+
+describe('readFailure', () => {
+  it('names the addresses the server refused', () => {
+    expect(
+      readFailure({
+        type: 'invalidRecipients',
+        invalidRecipients: ['bob@example.com']
+      })
+    ).toEqual({
+      reason: 'invalidRecipients',
+      invalidRecipients: ['bob@example.com']
+    })
+  })
+
+  it.each([
+    ['Invalid mail address: a@-bad-.com in to header', 'a@-bad-.com'],
+    [
+      'Invalid mail address: <"x..y"@example.com> in cc header',
+      '"x..y"@example.com'
+    ]
+  ])('reads the address named in %j', (description, address) => {
+    expect(readFailure({ type: 'invalidArguments', description })).toEqual({
+      reason: 'invalidRecipients',
+      invalidRecipients: [address]
+    })
+  })
+
+  it('keeps an invalidArguments that names no address generic', () => {
+    expect(
+      readFailure({ type: 'invalidArguments', description: 'Bad request' })
+    ).toEqual({ reason: 'invalidArguments', invalidRecipients: [] })
+  })
+
+  it('reads a missing error as another failure', () => {
+    expect(readFailure(undefined)).toEqual({
+      reason: 'other',
+      invalidRecipients: []
+    })
   })
 })
 

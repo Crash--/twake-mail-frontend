@@ -58,7 +58,14 @@ describe('isValidEmail', () => {
     ['alice@', false],
     ['@example.com', false],
     ['al ice@example.com', false],
-    ['alice@example.', false]
+    ['alice@example.', false],
+    ['jo-e@my-host.example.com', true],
+    ['x..y@example.com', false],
+    ['.alice@example.com', false],
+    ['alice.@example.com', false],
+    ['a@-bad-.com', false],
+    ['a@bad-.com', false],
+    ['alice@example..com', false]
   ])('%s is valid: %s', (email, valid) => {
     expect(isValidEmail(email)).toBe(valid)
   })

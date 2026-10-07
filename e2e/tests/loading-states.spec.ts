@@ -4,6 +4,7 @@ import { expect, test } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
 import { holdJmapMethods } from '../support/jmapGate'
 import { recordJmapTraffic } from '../support/jmapTraffic'
+import { SPACE_GREETING_SCRIPT } from '../support/spaceGreeting'
 
 const LONG_TEXT =
   'A body long enough to give the row a preview that fills two lines of the narrow rows. '.repeat(
@@ -398,7 +399,7 @@ test.describe('LOAD in the facade of a team mailbox', () => {
     await page.route(`**${host}`, route =>
       route.fulfill({
         contentType: 'text/html',
-        body: `<!doctype html><html lang="en"><head><title>Space</title></head><body style="margin:0"><iframe src="/embed/team-mailboxes/${root.mailboxId}" title="Mail" style="display:block;border:0;width:100vw;height:100vh"></iframe></body></html>`
+        body: `<!doctype html><html lang="en"><head><title>Space</title></head><body style="margin:0">${SPACE_GREETING_SCRIPT}<iframe src="/embed/team-mailboxes/${root.mailboxId}" title="Mail" style="display:block;border:0;width:100vw;height:100vh"></iframe></body></html>`
       })
     )
     await page.goto(host)

@@ -2,6 +2,7 @@ import type { FrameLocator, Page } from '@playwright/test'
 
 import { ComposerPage } from '../pages'
 import { expect, test } from '../support/fixtures'
+import { SPACE_GREETING_SCRIPT } from '../support/spaceGreeting'
 import type { E2ETeamMailbox, E2EUser } from '../support/users'
 import type { WebAdminClient } from '../support/webadmin'
 
@@ -26,6 +27,7 @@ body { margin: 0 }
 #facade { position: fixed; top: 100px; left: 200px; width: 900px; height: 600px; border: 0 }
 #overlay { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; z-index: 10; color-scheme: normal; clip-path: inset(0 0 100% 0) }
 </style></head><body>
+${SPACE_GREETING_SCRIPT}
 <button id="host-button" type="button">Host</button><output id="host-clicks">0</output>
 <iframe id="facade" name="${FRAME}" title="Mail" src="${src}"></iframe>
 <iframe id="overlay" name="${OVERLAY}" title="Mail windows" src="/embed/overlay.html"></iframe>

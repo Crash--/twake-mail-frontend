@@ -27,6 +27,12 @@ describe('connectToSpace', () => {
     receive({ type: 'twake-embed:hello' }, origin)
   }
 
+  function postedTypes(): unknown[] {
+    return postMessage.mock.calls.map(
+      ([message]: [{ type?: unknown }]) => message.type
+    )
+  }
+
   function frame(parent: Window): void {
     Object.defineProperty(window, 'parent', {
       value: parent,
@@ -85,19 +91,39 @@ describe('connectToSpace', () => {
       stop = connection?.syncHistory(applyNavigation)
     }
 
-    it('posts nothing until TwakeSpace greets the frame', () => {
+    it('posts only its readiness until TwakeSpace greets the frame', () => {
       const connection = connect()
       stop = connection?.syncHistory(jest.fn())
       window.history.replaceState(null, '', `${BASENAME}/sent`)
       connection?.notifyLoginRequired()
 
-      expect(postMessage).not.toHaveBeenCalled()
+      expect(postedTypes()).toEqual(
+        expect.arrayContaining(['twake-embed:ready'])
+      )
+      expect(postedTypes()).not.toContain('twake-embed:path')
+      expect(postedTypes()).not.toContain('twake-embed:login-required')
 
       greet()
 
       expect(postMessage).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'twake-embed:path', path: '/sent' }),
         SPACE_ORIGIN
+      )
+    })
+
+    it('says it is ready to any origin, as it does not know TwakeSpace yet', () => {
+      const connection = connect()
+      expect(postMessage).toHaveBeenCalledWith(
+        { type: 'twake-embed:ready' },
+        '*'
+      )
+
+      postMessage.mockClear()
+      stop = connection?.syncHistory(jest.fn())
+
+      expect(postMessage).toHaveBeenCalledWith(
+        { type: 'twake-embed:ready' },
+        '*'
       )
     })
 

@@ -385,7 +385,9 @@ export function ConversationView({
   const { t } = useI18n()
   const client = useJmapClient()
   const { accountId, session } = useJmapSession()
-  const query = useQuery(conversationQueryOptions(client, accountId, threadId))
+  const query = useQuery(
+    conversationQueryOptions(client, accountId, threadId, emailId)
+  )
   const mailboxes = useMailboxes()
   const sentId = findMailboxIdByRole(mailboxes.data ?? [], 'sent')
   const emails = useMemo(
@@ -424,13 +426,21 @@ export function ConversationView({
       />
     )
   }
+  // The way back to the list stays, as while it loads
   if (emails.length === 0) {
     return (
-      <Empty
-        icon={EmailOpen}
-        title={t('thread.empty')}
-        data-testid="email-not-found"
-      />
+      <ReadingPane>
+        <ReadingToolbar
+          onBack={onBack}
+          navigation={NO_NAVIGATION}
+          label={t('thread.actions')}
+        />
+        <Empty
+          icon={EmailOpen}
+          title={t('thread.empty')}
+          data-testid="email-not-found"
+        />
+      </ReadingPane>
     )
   }
   return (

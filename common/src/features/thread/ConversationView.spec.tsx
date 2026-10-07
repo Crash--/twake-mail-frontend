@@ -732,6 +732,35 @@ describe('ConversationView, an expanded message', () => {
     })
   })
 
+  it('shows the opened email alone when the server loses its thread', async () => {
+    const server = makeServer()
+    server.lostThreads.add(THREAD)
+
+    await renderConversation(server, { emailId: 'c' })
+
+    expect(toggle(/Dan/)).toBeVisible()
+    expect(screen.getAllByTestId('conversation-message-toggle')).toHaveLength(1)
+    expect(screen.queryByTestId('email-not-found')).toBe(null)
+  })
+
+  it('keeps the way back when the conversation no longer exists', async () => {
+    const server = makeServer()
+    const onBack = jest.fn()
+    renderWithProviders(
+      <ConversationView
+        threadId="thread-gone"
+        emailId="gone"
+        onBack={onBack}
+      />,
+      { withJmapSession: true, jmapServer: server }
+    )
+
+    await screen.findByTestId('email-not-found')
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(onBack).toHaveBeenCalledTimes(1)
+  })
+
   describe('a draft of the conversation', () => {
     function makeServerWithDraft(): FakeJmapServer {
       const server = makeServer()

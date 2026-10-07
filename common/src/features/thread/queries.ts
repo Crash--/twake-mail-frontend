@@ -400,18 +400,48 @@ export const conversationKeys = {
 }
 
 /**
+ * The opened email alone, when `Thread/get` does not find its thread though
+ * the email exists (tmail-backend loses threads at times): a conversation of
+ * one message rather than none
+ */
+async function fetchOpenedEmail(
+  client: JmapClient,
+  accountId: string,
+  threadId: string,
+  emailId: string,
+  signal: AbortSignal
+): Promise<ConversationData> {
+  const [emails] = await client.request(
+    builder => [
+      builder.call('Email/get', {
+        accountId,
+        ids: [emailId],
+        properties: [...EMAIL_LIST_PROPERTIES]
+      })
+    ],
+    { signal }
+  )
+  return {
+    state: emails.state,
+    emails: emails.list.filter(email => email.threadId === threadId)
+  }
+}
+
+/**
  * The emails of a conversation, the oldest first: `Thread/get`, then the
- * `Email/get` of its emails, in one request. Push keeps it up to date.
+ * `Email/get` of its emails, in one request. Its thread not found, the
+ * opened email `emailId` alone. Push keeps it up to date.
  */
 export function conversationQueryOptions(
   client: JmapClient,
   accountId: string,
-  threadId: string
+  threadId: string,
+  emailId: string
 ): QueryOptionsFor<ConversationData, ConversationKey> {
   return queryOptions({
     queryKey: conversationKeys.detail(accountId, threadId),
     queryFn: async ({ signal }): Promise<ConversationData> => {
-      const [, emails] = await client.request(
+      const [thread, emails] = await client.request(
         builder => {
           const thread = builder.call('Thread/get', {
             accountId,
@@ -426,6 +456,9 @@ export function conversationQueryOptions(
         },
         { signal }
       )
+      if (thread.list.length === 0) {
+        return fetchOpenedEmail(client, accountId, threadId, emailId, signal)
+      }
       return {
         state: emails.state,
         emails: [...emails.list].sort(byReceivedAt)

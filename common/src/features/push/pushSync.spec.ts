@@ -580,7 +580,7 @@ describe('createPushSync', () => {
     it('adds a reply to an open conversation', async () => {
       const setup = await makeSetup({ emails: threadEmails() })
       await setup.queryClient.query(
-        conversationQueryOptions(setup.client, FAKE_ACCOUNT_ID, 'thread')
+        conversationQueryOptions(setup.client, FAKE_ACCOUNT_ID, 'thread', 't1')
       )
 
       setup.server.addEmail(

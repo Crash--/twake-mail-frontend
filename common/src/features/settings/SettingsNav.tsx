@@ -1,12 +1,7 @@
-import {
-  Box,
-  Nav,
-  NavIcon,
-  NavItem,
-  NavLink,
-  NavText,
-  Typography
-} from '@linagora/twake-mui'
+import { Box, Nav, NavIcon, Typography } from '@linagora/twake-mui'
+import { NavItem } from '@/ds/NavItem/NavItem'
+import { NavLink } from '@/ds/NavLink/NavLink'
+import { NavText } from '@/ds/NavText/NavText'
 import { useId, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 

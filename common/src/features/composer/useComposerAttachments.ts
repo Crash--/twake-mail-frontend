@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useAlert } from '@common/features/confirm/ConfirmProvider'
+import { cleanFileName } from '@common/features/email/cleanFileName'
 import { formatSize } from '@common/features/email/formatSize'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -114,6 +115,7 @@ export function useComposerAttachments(
 
   const run = (id: string, file: File): void => {
     const type = file.type || 'application/octet-stream'
+    const shownName = cleanFileName(file.name) ?? t('email.attachment')
     const controller = new AbortController()
     controllers.current.set(id, controller)
     uploadBlob({
@@ -135,14 +137,14 @@ export function useComposerAttachments(
           status: 'done',
           progress: 100
         })
-        setStatus(t('composer.attachments.uploaded', { name: file.name }))
+        setStatus(t('composer.attachments.uploaded', { name: shownName }))
         onChange()
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return
         console.error(error)
         update(id, { status: 'failed', progress: 0 })
-        setStatus(t('composer.attachments.uploadFailed', { name: file.name }))
+        setStatus(t('composer.attachments.uploadFailed', { name: shownName }))
       })
       .finally(() => {
         controllers.current.delete(id)

@@ -5,6 +5,7 @@ import { UploadList, type UploadListItem } from '@/ds/UploadList/UploadList'
 import { UploadPopup } from '@/ds/UploadList/UploadPopup'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { attachmentIcon } from '@common/features/email/attachmentIcon'
+import { cleanFileName } from '@common/features/email/cleanFileName'
 import { formatSize } from '@common/features/email/formatSize'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -51,11 +52,12 @@ export function ComposerAttachmentsList({
   const items = useMemo<UploadListItem[]>(
     () =>
       files.attachments.map(file => {
-        const FileIcon = attachmentIcon(file.name, file.type)
+        const name = cleanFileName(file.name) ?? t('email.attachment')
+        const FileIcon = attachmentIcon(name, file.type)
         const thumbnailUrl = files.previews[file.id]
         return {
           id: file.id,
-          name: file.name,
+          name,
           size: formatSize(file.size, lang),
           status: file.status,
           progress: file.progress,
@@ -63,7 +65,7 @@ export function ComposerAttachmentsList({
           ...(thumbnailUrl === undefined ? {} : { thumbnailUrl })
         }
       }),
-    [files.attachments, files.previews, lang]
+    [files.attachments, files.previews, lang, t]
   )
   const inline = isPopupShown
     ? items.filter(item => item.status !== 'uploading')

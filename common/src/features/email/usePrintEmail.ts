@@ -7,6 +7,7 @@ import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { formatAddress } from './addresses'
+import { cleanFileName } from './cleanFileName'
 import {
   findReferencedCids,
   joinHtmlValues,
@@ -83,7 +84,7 @@ export function usePrintEmail(): (email: EmailDetail) => Promise<void> {
             bodyHtml: body.html,
             attachmentsTitle: `${files.length} ${t(files.length > 1 ? 'email.attachments' : 'email.attachment').toLocaleLowerCase(lang)}`,
             attachments: files.map(part => ({
-              name: part.name ?? part.blobId ?? '',
+              name: cleanFileName(part.name) ?? part.blobId ?? '',
               size: formatSize(part.size, lang)
             })),
             allowRemoteContent

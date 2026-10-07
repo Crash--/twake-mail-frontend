@@ -318,10 +318,12 @@ export function EmailList(props: EmailListProps): ReactElement {
   const total = query.data?.pages[0]?.total ?? null
   const location = useLocation()
   const focusEmailId = readFocusEmailId(location.state)
+  // Back from an email that left the list (deleted, moved), the focus goes
+  // to the list: its first row
   const focusedIndex =
     focusEmailId === null
-      ? -1
-      : emails.findIndex(email => email.id === focusEmailId)
+      ? null
+      : Math.max(0, emails.findIndex(email => email.id === focusEmailId))
   // Beside the list on large tablets: its row is highlighted like the
   // selected ones
   const openMailboxEmailId =
@@ -652,7 +654,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           computeItemKey={computeRowKey}
           getRowProps={getRowProps}
           isSelectedItem={isHighlightedRow}
-          focusedRowIndex={focusedIndex === -1 ? null : focusedIndex}
+          focusedRowIndex={focusedIndex}
           endReached={handleEndReached}
           rangeChanged={handleRangeChanged}
           increaseViewportBy={OVERSCAN_PX}

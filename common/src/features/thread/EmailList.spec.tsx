@@ -555,6 +555,36 @@ describe('EmailList', () => {
     })
   })
 
+  it('focuses the first row when that email left the list', async () => {
+    renderList(makeFakeJmapServer({ emails: makeEmails(3) }), 'mailbox-inbox', {
+      focusEmailId: 'deleted'
+    })
+
+    const [row] = await screen.findAllByTestId('email-list-item')
+    if (!row) throw new Error('No row')
+    await waitFor(() => {
+      expect(within(row).getByRole('link')).toHaveFocus()
+    })
+  })
+
+  it('focuses the row again once a closing menu dropped it', async () => {
+    renderList(makeFakeJmapServer({ emails: makeEmails(3) }), 'mailbox-inbox', {
+      focusEmailId: 'e0'
+    })
+    const [row] = await screen.findAllByTestId('email-list-item')
+    if (!row) throw new Error('No row')
+    const link = within(row).getByRole('link')
+    await waitFor(() => {
+      expect(link).toHaveFocus()
+    })
+
+    link.blur()
+
+    await waitFor(() => {
+      expect(link).toHaveFocus()
+    })
+  })
+
   describe('on a phone', () => {
     beforeEach(() => {
       mockViewport({ width: 390, touch: true })

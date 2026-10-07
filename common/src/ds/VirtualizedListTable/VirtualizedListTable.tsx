@@ -404,27 +404,34 @@ export interface VirtualizedListTableProps extends Omit<
 }
 
 /** Frames to wait for the row to focus to be rendered */
-const FOCUS_FRAMES = 30
+const FOCUS_FRAMES = 60
 
 /**
  * Focuses the `ROW_FOCUS_ATTRIBUTE` element of a row once it is rendered.
  * The list may render its rows again while it settles (React 19 commits them
- * later than React 18 did): while the frames last, a focus lost with the
- * removed row (back on the body) is given to the new one.
+ * later than React 18 did), and a menu or a dialog closing as the list
+ * shows gives the focus back to an opener now gone: while the frames last,
+ * a focus lost (back on the body) is given to the row again, at its latest
+ * index (rows above it may have left meanwhile).
  */
 function useFocusRowOnMount(tableId: string, index: number | null): void {
+  const indexRef = useRef(index)
   useEffect(() => {
-    if (index === null) return
+    indexRef.current = index
+  }, [index])
+  useEffect(() => {
+    if (indexRef.current === null) return
     let frame = 0
     let handle = 0
     let focused: HTMLElement | null = null
     const tryFocus = (): void => {
       const target = document
         .getElementById(tableId)
-        ?.querySelector(`tr[data-index="${index}"] [${ROW_FOCUS_ATTRIBUTE}]`)
+        ?.querySelector(
+          `tr[data-index="${String(indexRef.current)}"] [${ROW_FOCUS_ATTRIBUTE}]`
+        )
       const lostFocus =
-        focused === null ||
-        (!focused.isConnected && document.activeElement === document.body)
+        focused === null || document.activeElement === document.body
       if (target instanceof HTMLElement && lostFocus) {
         target.focus()
         focused = target
@@ -438,7 +445,7 @@ function useFocusRowOnMount(tableId: string, index: number | null): void {
     return () => {
       cancelAnimationFrame(handle)
     }
-    // On mount only: later changes of the index are the list moving
+    // On mount only: the frames read the latest index
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 }

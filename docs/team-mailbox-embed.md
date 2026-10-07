@@ -100,6 +100,15 @@ TwakeSpace owns the history of the page; the frame has no entries of its own:
 - the facade never navigates its own document after its boot.
 - **sign in again**: `{ type: 'twake-embed:login-required' }`
   (`notifyLoginRequired()` of the connection).
+- **badges**: `{ type: 'twake-embed:badges', badges: [{ resourceId, count }] }`
+  (`reportBadges()` of the connection, `TeamMailboxBadges`), for the tabs of
+  TwakeSpace and the totals of its spaces. One entry per team mailbox of the
+  user, not only the one shown: `resourceId` is the id of its root, `count`
+  the unread emails of its Inbox (the folder named Inbox, as the sidebar
+  counts it). Each message is the full snapshot and replaces the previous
+  one; it goes once the folders are loaded, then whenever push or the user
+  changes one of these counts, never while they load or fail. Reported before
+  the greeting, it is sent by the library once TwakeSpace greets the frame.
 
 ### Overlay
 

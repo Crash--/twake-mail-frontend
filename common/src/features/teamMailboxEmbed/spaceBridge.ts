@@ -2,6 +2,7 @@ import {
   connectToTwakeSpace,
   embedRoute,
   overlayRegionMessage,
+  type Badge,
   type OverlayRegion
 } from '@linagora/twake-embed'
 
@@ -31,6 +32,11 @@ export interface SpaceBridge {
    * the frame: TwakeSpace signs the user in again, then reloads its frames
    */
   notifyLoginRequired: () => void
+  /**
+   * The badges of every team mailbox of the user, for the tabs of TwakeSpace:
+   * each report replaces the previous one
+   */
+  reportBadges: (badges: readonly Badge[]) => void
 }
 
 function isTeamMailboxId(id: string): boolean {
@@ -67,6 +73,9 @@ export function connectToSpace(
       }),
     notifyLoginRequired: () => {
       connection.notifyLoginRequired()
+    },
+    reportBadges: badges => {
+      connection.reportBadges(badges)
     }
   }
 }

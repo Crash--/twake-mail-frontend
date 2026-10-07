@@ -280,7 +280,7 @@ test.describe('SET error reporting', () => {
   }) => {
     const ingest = await stubIngest(page)
     await openPreferences(page, user)
-    const button = page.getByRole('button', { name: 'Send feedback' })
+    const button = page.getByTestId('twake-feedback-button')
 
     // Configured, but not opted in: no button, nothing posted
     await expect(errorReportingSwitch(page)).not.toBeChecked()
@@ -293,13 +293,13 @@ test.describe('SET error reporting', () => {
     await expectNoA11yViolations(page)
 
     await button.click()
-    await expect(page.getByRole('textbox', { name: 'Your feedback' })).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'What happened?' })).toBeVisible()
     await expectNoA11yViolations(page)
     await page
-      .getByRole('textbox', { name: 'Your feedback' })
+      .getByRole('textbox', { name: 'What happened?' })
       .fill('The folder list is slow to open')
     await page.getByRole('button', { name: 'Send', exact: true }).click()
-    await expect(page.getByText('Thank you for your feedback!')).toBeVisible()
+    await expect(page.getByText('Thank you, your feedback has been sent.')).toBeVisible()
     await expect
       .poll(() => ingest.envelopes.join('\n'))
       .toContain('The folder list is slow to open')

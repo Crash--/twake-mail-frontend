@@ -52,6 +52,7 @@ Conventions:
 | `top-bar-folder-name` | name of the current folder in the top bar, on phones | — |
 | `search-open-button` | button unfolding the search over the top bar, on phones | — |
 | `search-back-button` | button folding it back (also the back button of the search, later) | `search_email_back_button` |
+| `twake-feedback-button` | the draggable "Send feedback" button of `@linagora/twake-feedback`, only with `SENTRY_FEEDBACK_ENABLED` and the opt-in to error reporting; its menu (`twake-feedback-menu`, Shift+F10) moves it to a side | — |
 | `compose-email-button` | "New message": in the sidebar on a desktop, a floating button below 1200 px | `UiKeys.composeEmailButton` |
 
 ### Folder tree (sidebar)

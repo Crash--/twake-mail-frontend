@@ -104,7 +104,7 @@ centred on it and dimming all of it.
   origin; after 5 s without it, it renders in its frame), copies
   its CSS rules into it, and renders there with React portals: the
   `WindowDock` of the composer, and every `Dialog` and temporary `Drawer`
-  through the theme (`ds/SpaceOverlay`). Menus and tooltips follow the
+  through the theme (`SpaceOverlay` of `@linagora/twake-mui`). Menus and tooltips follow the
   document of their anchor.
 - Each time what it draws changes, the facade sends TwakeSpace the region of
   the overlay to show, from its own frame

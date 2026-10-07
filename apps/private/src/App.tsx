@@ -6,7 +6,7 @@ import { RouterProvider } from 'react-router/dom'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { AlwaysFloatingAction } from '@/ds/FloatingActionButton/FloatingActionButton'
-import { connectSpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
+import { connectSpaceOverlay } from '@linagora/twake-mui'
 import { WithoutTablets } from '@/ds/useScreenSize/useScreenSize'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'

@@ -2,7 +2,7 @@ import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
-import type { SpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
+import type { SpaceOverlay } from '@linagora/twake-mui'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import { resolveConfig } from '@common/config/config'
 import { DRIVE_ATTACHMENT_PREFERENCE_STORAGE_KEY } from '@common/features/settings/driveAttachmentPreference'

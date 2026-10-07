@@ -11,11 +11,8 @@ import {
 import { ConfirmProvider } from '@common/features/confirm/ConfirmProvider'
 import { NotificationsProvider } from '@common/features/notifications/NotificationsProvider'
 import { I18nProvider } from '@common/i18n/I18nProvider'
-import {
-  overlayThemeOptions,
-  SpaceOverlayProvider
-} from '@/ds/SpaceOverlay/SpaceOverlay'
-import type { SpaceOverlay } from '@/ds/SpaceOverlay/spaceOverlay'
+import { overlayThemeOptions, SpaceOverlayProvider } from '@linagora/twake-mui'
+import type { SpaceOverlay } from '@linagora/twake-mui'
 import type { SupportedLanguage } from '@common/i18n/languages'
 
 // The production entry point keeps the devtools out of the main bundle:

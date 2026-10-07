@@ -40,4 +40,14 @@ describe('AfterDelay', () => {
 
     expect(screen.queryByText('Skeleton')).toBe(null)
   })
+
+  it('shows them from the first render without a delay', () => {
+    render(
+      <AfterDelay delayMs={0}>
+        <p>Skeleton</p>
+      </AfterDelay>
+    )
+
+    expect(screen.getByText('Skeleton')).toBeInTheDocument()
+  })
 })

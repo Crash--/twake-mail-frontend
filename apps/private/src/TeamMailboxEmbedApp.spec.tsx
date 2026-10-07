@@ -6,6 +6,7 @@ import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import type { AuthService } from '@common/features/auth/types'
+import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
 import { parseTeamMailboxEmbedPath } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
@@ -81,16 +82,18 @@ function renderEmbed(
           }
           sessionUrl={FAKE_SESSION_URL}
         >
-          <TeamMailboxEmbedApp
-            embed={{
-              target,
-              callbackUrl:
-                callbackUrl === undefined
-                  ? null
-                  : new URL(callbackUrl, window.location.origin)
-            }}
-            spaceBridge={spaceBridge}
-          />
+          <LoadingAnnouncer>
+            <TeamMailboxEmbedApp
+              embed={{
+                target,
+                callbackUrl:
+                  callbackUrl === undefined
+                    ? null
+                    : new URL(callbackUrl, window.location.origin)
+              }}
+              spaceBridge={spaceBridge}
+            />
+          </LoadingAnnouncer>
         </JmapClientProvider>
       </AuthProvider>
     </AppProviders>

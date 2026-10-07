@@ -7,6 +7,7 @@ import {
 } from '@linagora/twake-mui'
 import {
   useId,
+  useRef,
   useState,
   type ChangeEvent,
   type SubmitEvent,
@@ -75,6 +76,7 @@ function BasicLoginForm({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>(NO_FIELD_ERRORS)
   const [loginError, setLoginError] = useState<BasicLoginError | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const passwordRef = useRef<HTMLInputElement>(null)
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setUsername(event.target.value)
@@ -99,6 +101,9 @@ function BasicLoginForm({
     if (!result.ok) {
       setIsSubmitting(false)
       setLoginError(result.error)
+      // The submit button, disabled meanwhile, lost the focus: put it where
+      // the user corrects the credentials
+      passwordRef.current?.select()
     }
   }
 
@@ -157,6 +162,7 @@ function BasicLoginForm({
           fullWidth
           error={fieldErrors.password}
           helperText={fieldErrors.password ? t('login.requiredPassword') : null}
+          inputRef={passwordRef}
           slotProps={{
             htmlInput: { 'data-testid': 'login-password-input' }
           }}

@@ -92,6 +92,27 @@ describe('BasicLoginPage', () => {
     expect(screen.queryByText('Mailbox page')).toBe(null)
   })
 
+  it('puts the focus back on the password after a refused sign-in', async () => {
+    const service = makeFakeBasicAuthService({ status: 'anonymous' })
+    service.login = jest.fn(() =>
+      Promise.resolve({
+        ok: false as const,
+        error: 'invalid-credentials' as const
+      })
+    )
+    renderLoginPage(service)
+
+    await userEvent.type(
+      screen.getByTestId('login-username-input'),
+      'alice@example.com'
+    )
+    await userEvent.type(screen.getByTestId('login-password-input'), 'wrong')
+    await userEvent.click(screen.getByTestId('login-submit-button'))
+
+    await screen.findByTestId('login-error')
+    expect(screen.getByTestId('login-password-input')).toHaveFocus()
+  })
+
   it('shows a connection error when the server is unreachable', async () => {
     const service = makeFakeBasicAuthService({ status: 'anonymous' })
     service.login = jest.fn(() =>

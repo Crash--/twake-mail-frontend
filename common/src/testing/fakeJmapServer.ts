@@ -748,9 +748,7 @@ export function makeFakeJmapServer(
         server.emails.filter(email => email.threadId === id),
         [{ property: 'receivedAt', isAscending: true }]
       )
-      return exists(id)
-        ? [{ id, emailIds: emails.map(email => email.id) }]
-        : []
+      return exists(id) ? [{ id, emailIds: emails.map(email => email.id) }] : []
     })
     const notFound = ids.filter(id => !exists(id))
     return { accountId: FAKE_ACCOUNT_ID, state: emailLog.state, list, notFound }

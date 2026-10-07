@@ -42,7 +42,11 @@ export interface EmailListToolbarProps {
   mailbox: MailboxSummary | null
   /** The emails to act on: the selected ones, or the whole folder */
   resolveTargets: () => Promise<readonly TargetEmail[]>
-  /** Once an action is done: the selection is cleared */
+  /**
+   * Once an action is done, or the selection cleared from the toolbar: the
+   * selection is cleared and the focus goes back to the list, as the
+   * toolbar goes away
+   */
   onDone: () => void
 }
 
@@ -93,7 +97,7 @@ export function EmailListToolbar({
   }
 
   const handleToggleAll = (): void => {
-    if (isAllLoaded || selection.isAllInFolder) selection.clear()
+    if (isAllLoaded || selection.isAllInFolder) onDone()
     else selection.selectLoaded()
   }
 
@@ -112,7 +116,7 @@ export function EmailListToolbar({
     <Tooltip title={clearLabel}>
       <IconButton
         aria-label={clearLabel}
-        onClick={selection.clear}
+        onClick={onDone}
         data-testid="selection-toolbar-clear"
       >
         <Icon icon={Cross} />

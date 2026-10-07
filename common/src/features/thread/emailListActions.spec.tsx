@@ -204,6 +204,21 @@ describe('Acting on emails of the list', () => {
     })
   })
 
+  it('focuses the list once the selection is cleared from the toolbar', async () => {
+    await renderList(makeServer())
+    const user = userEvent.setup()
+    await user.click(checkbox('Email 1'))
+    const clear = screen.getByRole('button', { name: 'Clear the selection' })
+    clear.focus()
+
+    await user.keyboard('{Enter}')
+
+    expect(screen.queryByTestId('selection-toolbar')).toBe(null)
+    await waitFor(() => {
+      expect(within(row('Email 0')).getByRole('link')).toHaveFocus()
+    })
+  })
+
   it('opens the menu of a row on a right click, and on Shift+F10', async () => {
     const server = makeServer()
     await renderList(server)

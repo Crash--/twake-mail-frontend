@@ -30,6 +30,8 @@ describe('Settings', () => {
       expect(heading).toHaveFocus()
     })
     const nav = screen.getByRole('navigation', { name: 'Settings' })
+    // Its list is not a second, unnamed landmark inside it
+    expect(within(nav).queryByRole('navigation')).toBe(null)
     expect(within(nav).getByTestId('settings-menu-profiles')).toHaveAttribute(
       'aria-current',
       'page'

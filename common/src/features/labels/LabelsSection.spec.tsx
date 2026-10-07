@@ -39,6 +39,8 @@ describe('LabelsSection', () => {
     expect(
       await within(nav).findByRole('link', { name: 'Work' })
     ).toHaveAttribute('href', '/label/work')
+    // The list of the labels is not a second landmark inside it
+    expect(screen.getAllByRole('navigation')).toEqual([nav])
   })
 
   it('creates a label with a colour, refusing a taken name', async () => {

@@ -1062,6 +1062,7 @@
     "save": "Lưu thay đổi",
     "errors": {
       "noStart": "Vui lòng điền ngày bắt đầu",
+      "noEnd": "Vui lòng điền ngày kết thúc",
       "endBeforeStart": "Ngày kết thúc phải sau ngày bắt đầu",
       "noMessage": "Tin nhắn trống"
     },

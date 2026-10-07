@@ -33,6 +33,7 @@ import {
   disabledVacation,
   fromLocalInputs,
   saveVacation,
+  startInputs,
   toLocalInputs,
   useVacation,
   vacationKeys
@@ -58,7 +59,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
   const enableId = useId()
   const editorRef = useRef<Editor | null>(null)
-  const start = toLocalInputs(vacation.fromDate)
+  const [start] = useState(() => startInputs(vacation.fromDate, new Date()))
   const end = toLocalInputs(vacation.toDate)
   const [isEnabled, setIsEnabled] = useState(vacation.isEnabled)
   const [startDate, setStartDate] = useState(start.date)
@@ -77,6 +78,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
     const fromDate = fromLocalInputs(startDate, startTime)
     if (fromDate === null) return 'vacation.errors.noStart'
     const toDate = hasEnd ? fromLocalInputs(endDate, endTime) : null
+    if (hasEnd && toDate === null) return 'vacation.errors.noEnd'
     if (toDate !== null && Date.parse(toDate) < Date.parse(fromDate)) {
       return 'vacation.errors.endBeforeStart'
     }
@@ -187,10 +189,10 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             disabled={isOff}
             onChange={event => {
               setHasEnd(event.target.checked)
-              if (!event.target.checked) {
-                setEndDate('')
-                setEndTime('')
-              }
+              // Safari shows today in an empty date input: fill the end with
+              // the start, so that what is shown is what gets saved
+              setEndDate(event.target.checked ? startDate : '')
+              setEndTime(event.target.checked ? startTime : '')
             }}
             data-testid="vacation-end-toggle"
           />

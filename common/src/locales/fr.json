@@ -1062,6 +1062,7 @@
     "save": "Sauvegarder les modifications",
     "errors": {
       "noStart": "Veuillez entrer une date de début valide",
+      "noEnd": "Veuillez entrer une date de fin valide",
       "endBeforeStart": "La date de fin doit être supérieure à la date de début",
       "noMessage": "Le corps du message ne peut pas être vide"
     },

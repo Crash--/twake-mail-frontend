@@ -514,7 +514,7 @@ describe('ConversationView, an expanded message', () => {
     const actions = messageActions(/Dan/)
     expect(actions).toHaveAccessibleName(/^Actions on the message from Dan, /)
     expect(
-      within(actions).getByRole('button', { name: 'Mark as starred' })
+      within(actions).getByRole('button', { name: 'Starred' })
     ).toHaveAttribute('aria-pressed', 'false')
     expect(within(actions).getByRole('button', { name: 'More' })).toBeVisible()
     // No control nested in the button toggling the message
@@ -527,9 +527,7 @@ describe('ConversationView, an expanded message', () => {
     const before = server.requests.length
 
     await userEvent.click(
-      within(messageActions(/Dan/)).getByRole('button', {
-        name: 'Mark as starred'
-      })
+      within(messageActions(/Dan/)).getByRole('button', { name: 'Starred' })
     )
 
     await waitFor(() => {
@@ -539,7 +537,7 @@ describe('ConversationView, an expanded message', () => {
       'c'
     ])
     expect(
-      within(messageActions(/Dan/)).getByRole('button', { name: 'Unstar' })
+      within(messageActions(/Dan/)).getByRole('button', { name: 'Starred' })
     ).toHaveAttribute('aria-pressed', 'true')
     // The conversation is not starred: one message only is
     expect(

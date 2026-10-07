@@ -407,12 +407,14 @@ describe('EmailList', () => {
     const release = server.holdRequests('Email/set')
     renderList(server)
     const star = await screen.findByTestId('email-list-item-star')
-    expect(star).toHaveAccessibleName('Mark as starred')
+    expect(star).toHaveAccessibleName('Starred')
+    expect(star).toHaveAttribute('aria-pressed', 'false')
 
     await userEvent.click(star)
 
     expect(star).toHaveAttribute('aria-pressed', 'true')
-    expect(star).toHaveAccessibleName('Unstar')
+    // A toggle keeps its name, the state is in aria-pressed
+    expect(star).toHaveAccessibleName('Starred')
     release()
     await waitFor(() => {
       expect(server.emails[0]?.keywords).toEqual({
@@ -599,7 +601,7 @@ describe('EmailList', () => {
       const row = await screen.findByTestId('email-list-item')
 
       await userEvent.click(
-        within(row).getByRole('button', { name: 'Mark as starred' })
+        within(row).getByRole('button', { name: 'Starred' })
       )
       await userEvent.click(
         within(row).getByRole('button', { name: 'Mark as read' })
@@ -708,7 +710,7 @@ describe('EmailList', () => {
     expect(
       within(row).getByRole('img', { name: 'Attachment' })
     ).toBeInTheDocument()
-    expect(within(row).getByRole('button', { name: 'Unstar' })).toHaveAttribute(
+    expect(within(row).getByRole('button', { name: 'Starred' })).toHaveAttribute(
       'aria-pressed',
       'true'
     )
@@ -738,7 +740,7 @@ describe('EmailList', () => {
     await screen.findByTestId('email-list-item')
 
     await userEvent.click(
-      within(row()).getByRole('button', { name: 'Mark as starred' })
+      within(row()).getByRole('button', { name: 'Starred' })
     )
     await userEvent.click(
       await within(row()).findByRole('button', { name: 'Mark as read' })

@@ -239,7 +239,8 @@ export function EmailCell({
       {getInitials(avatarAddress?.name ?? '', avatarAddress?.email ?? '')}
     </Avatar>
   )
-  const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
+  // A toggle keeps its name: aria-pressed carries the state
+  const starLabel = t('email.starred')
   const handleToggleStar = (): void => {
     onToggleStar(email)
   }

@@ -95,7 +95,8 @@ export function EmailViewActions({
   const move = items.find(item => item.id === MOVES[variant])
   const deletion = items.find(item => DELETIONS.includes(item.id))
   const isStarred = hasKeyword(email, FLAGGED)
-  const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
+  // A toggle keeps its name: aria-pressed carries the state
+  const starLabel = t('email.starred')
   const moreLabel = t('emailActions.menu.more')
   const replyLabel = t('emailActions.reply.reply')
 

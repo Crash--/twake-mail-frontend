@@ -20,10 +20,12 @@ describe('AppRoutes', () => {
   it('opens the inbox of a signed-in user', async () => {
     renderWithProviders(<AppRoutes />, { route: '/' })
 
-    expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
-      'data-mailbox-id',
-      'mailbox-inbox'
-    )
+    // The first render of the whole app in this file is cold (styles, routes,
+    // session, folders and list): 0.2 s alone, 0.8 s on a loaded machine, and
+    // over the default 1 s on a busy CI runner
+    expect(
+      await screen.findByTestId('mailbox-page', {}, { timeout: 3000 })
+    ).toHaveAttribute('data-mailbox-id', 'mailbox-inbox')
     expect(screen.getByTestId('twake-bar')).toBeInTheDocument()
     expect(screen.getByTestId('sidebar')).toBeInTheDocument()
   })

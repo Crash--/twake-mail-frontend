@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { Editor } from '@tiptap/core'
-import { NodeSelection } from '@tiptap/pm/state'
+import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import userEvent from '@testing-library/user-event'
 import { useState, type KeyboardEvent, type ReactElement } from 'react'
 
@@ -239,6 +239,30 @@ describe('RichTextEditor', () => {
 
     await userEvent.keyboard('{Escape}')
     expect(handleEscape).toHaveBeenCalledTimes(1)
+  })
+
+  it('puts a caret left between the blocks (a tap on a quote in WebKit) in the paragraph above', async () => {
+    const editor = await renderEditor(
+      '<p></p><p></p><div data-html-block="quote"><blockquote>Hi</blockquote></div>'
+    )
+    const { view } = editor
+    // The end of the second paragraph, where ProseMirror maps the caret
+    // between it and the quote: already selected, it leaves the DOM alone.
+    // view.focus() focuses now, the focus command only on the next frame
+    act(() => {
+      editor.commands.setTextSelection(3)
+      view.focus()
+    })
+    const domSelection = document.getSelection()
+
+    act(() => {
+      domSelection?.collapse(view.dom, 2)
+      document.dispatchEvent(new Event('selectionchange'))
+    })
+
+    expect(editor.state.selection).toBeInstanceOf(TextSelection)
+    expect(editor.state.selection.head).toBe(3)
+    expect(domSelection?.anchorNode).toBe(view.dom.children[1])
   })
 
   describe('image toolbar', () => {

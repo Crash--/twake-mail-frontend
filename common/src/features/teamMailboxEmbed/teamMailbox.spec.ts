@@ -2,6 +2,7 @@ import { makeMailbox, makeTeamMailboxes } from '@common/testing/fakeJmapServer'
 
 import {
   findTeamInboxId,
+  findTeamMailboxBadges,
   findTeamMailboxRoot,
   isInTeamMailbox
 } from './teamMailbox'
@@ -51,5 +52,37 @@ describe('team mailbox of the facade', () => {
     const withoutInbox = MAILBOXES.filter(({ id }) => id !== 'team-inbox')
 
     expect(findTeamInboxId(withoutInbox, 'team')).toBe('team-drafts')
+  })
+
+  it('reports the unread emails of the Inbox of every team mailbox, not of its other folders', () => {
+    const mailboxes = [
+      makeMailbox({
+        id: 'inbox',
+        name: 'Inbox',
+        role: 'inbox',
+        unreadEmails: 7
+      }),
+      ...makeTeamMailboxes({ id: 'sales', address: 'sales@example.com' }).map(
+        mailbox =>
+          mailbox.id === 'sales-inbox' || mailbox.id === 'sales-trash'
+            ? { ...mailbox, unreadEmails: 3 }
+            : mailbox
+      ),
+      ...makeTeamMailboxes({ id: 'team', address: 'team@example.com' })
+    ]
+
+    expect(findTeamMailboxBadges(mailboxes)).toEqual([
+      { resourceId: 'sales', count: 3 },
+      { resourceId: 'team', count: 0 }
+    ])
+  })
+
+  it('reports no unread email for a team mailbox without an Inbox', () => {
+    const withoutInbox = MAILBOXES.filter(({ id }) => id !== 'team-inbox')
+
+    expect(findTeamMailboxBadges(withoutInbox)).toContainEqual({
+      resourceId: 'team',
+      count: 0
+    })
   })
 })

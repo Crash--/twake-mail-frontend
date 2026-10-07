@@ -297,6 +297,23 @@ describe('connectToSpace', () => {
       SPACE_ORIGIN
     )
   })
+  it('sends the badges reported before the greeting once TwakeSpace greets', () => {
+    const connection = connect()
+    const badges = [
+      { resourceId: 'root1', count: 3 },
+      { resourceId: 'root2', count: 0 }
+    ]
+    connection?.reportBadges(badges)
+
+    expect(postedTypes()).not.toContain('twake-embed:badges')
+
+    greet()
+
+    expect(postMessage).toHaveBeenCalledWith(
+      { type: 'twake-embed:badges', badges },
+      SPACE_ORIGIN
+    )
+  })
 })
 
 describe('reportOverlayRegion', () => {

@@ -141,7 +141,7 @@ function TeamMailboxRouter({
 }: TeamMailboxRouterProps): ReactElement {
   const [router] = useState(() =>
     createBrowserRouter(
-      createRoutesFromElements(teamMailboxEmbedRouteElements()),
+      createRoutesFromElements(teamMailboxEmbedRouteElements(spaceBridge)),
       { basename }
     )
   )

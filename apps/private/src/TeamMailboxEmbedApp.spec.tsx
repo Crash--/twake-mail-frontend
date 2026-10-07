@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createClient } from 'jmap-client-ts'
 
@@ -40,10 +40,12 @@ function makeServer(): FakeJmapServer {
 
 function makeSpaceBridge(): SpaceBridge & {
   notifyLoginRequired: jest.Mock
+  reportBadges: jest.Mock
 } {
   return {
     syncHistory: jest.fn(() => () => undefined),
-    notifyLoginRequired: jest.fn()
+    notifyLoginRequired: jest.fn(),
+    reportBadges: jest.fn()
   }
 }
 
@@ -167,6 +169,18 @@ describe('TeamMailboxEmbedApp', () => {
     )
     expect(authService.handleCallback).toHaveBeenCalledTimes(1)
     expect(window.location.pathname).toBe(`${BASE}/mailbox/team-sent`)
+  })
+
+  it('tells TwakeSpace the unread emails of every team mailbox of the user', async () => {
+    const spaceBridge = makeSpaceBridge()
+    renderEmbed(`${BASE}/mailbox/team-inbox`, { spaceBridge })
+
+    await waitFor(() => {
+      expect(spaceBridge.reportBadges).toHaveBeenCalledWith([
+        { resourceId: 'team', count: 0 },
+        { resourceId: 'sales', count: 0 }
+      ])
+    })
   })
 
   it('asks TwakeSpace to sign the user in again when the session expired', async () => {

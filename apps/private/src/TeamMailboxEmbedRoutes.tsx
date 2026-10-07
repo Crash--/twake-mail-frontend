@@ -5,6 +5,8 @@ import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
 import { PushProvider } from '@common/features/push/PushProvider'
+import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
+import { TeamMailboxBadges } from '@common/features/teamMailboxEmbed/TeamMailboxBadges'
 import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 import { TeamMailboxLayout } from '@common/layout/TeamMailboxLayout'
 import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScreen'
@@ -17,9 +19,12 @@ import { RouteErrorScreen } from './RouteErrorScreen'
  * The routes of the facade of a team mailbox, under the base
  * `/embed/team-mailboxes/<address>`: its folders and their emails only.
  * Any other path, and a folder of another mailbox, lead to its Inbox.
- * While the login and the session load, the rows of a list stand in.
+ * While the login and the session load, the rows of a list stand in. In a
+ * frame of TwakeSpace, the unread counts of the team mailboxes go to its tabs.
  */
-export function teamMailboxEmbedRouteElements(): ReactElement {
+export function teamMailboxEmbedRouteElements(
+  spaceBridge: SpaceBridge | null = null
+): ReactElement {
   return (
     <Route errorElement={<RouteErrorScreen />}>
       <Route path="/login" element={<BasicLoginPage />} />
@@ -28,6 +33,9 @@ export function teamMailboxEmbedRouteElements(): ReactElement {
           element={
             <JmapSessionProvider loading={<TeamMailboxLoadingScreen />}>
               <PushProvider>
+                {spaceBridge === null ? null : (
+                  <TeamMailboxBadges reportBadges={spaceBridge.reportBadges} />
+                )}
                 <TeamMailboxLayout />
               </PushProvider>
             </JmapSessionProvider>

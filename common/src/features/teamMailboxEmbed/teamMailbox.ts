@@ -1,3 +1,5 @@
+import type { Badge } from '@linagora/twake-embed'
+
 import {
   findTeamFolderId,
   isPersonalMailbox,
@@ -43,4 +45,30 @@ export function findTeamInboxId(
     mailboxes.find(mailbox => mailbox.parentId === root.id)?.id ??
     root.id
   )
+}
+
+/** Bounds of a report of badges (`@linagora/twake-embed`): past them, it is dropped */
+const MAX_BADGES = 1000
+const MAX_BADGE_COUNT = 1_000_000
+
+/**
+ * The badges of every team mailbox of the user, for the tabs of TwakeSpace
+ * and the totals of its spaces: the unread emails of its Inbox, keyed by the
+ * id of its root (the resource id of the facade). A frame can still show
+ * the team mailbox of another space: all of them are reported.
+ */
+export function findTeamMailboxBadges(
+  mailboxes: readonly MailboxSummary[]
+): Badge[] {
+  return mailboxes
+    .filter(isTeamRoot)
+    .slice(0, MAX_BADGES)
+    .map(root => {
+      const inboxId = findTeamFolderId(mailboxes, root.id, 'inbox')
+      const inbox = mailboxes.find(mailbox => mailbox.id === inboxId)
+      return {
+        resourceId: root.id,
+        count: Math.min(inbox?.unreadEmails ?? 0, MAX_BADGE_COUNT)
+      }
+    })
 }

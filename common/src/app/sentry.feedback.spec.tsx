@@ -183,6 +183,109 @@ describe('SentryLifecycle, user feedback', () => {
     button.remove()
   })
 
+  describe('focus', () => {
+    let button: HTMLButtonElement
+    let detach: () => void
+
+    function shadow(): ShadowRoot {
+      const root = document.getElementById('sentry-feedback')?.shadowRoot
+      if (!root) throw new Error('No feedback form')
+      return root
+    }
+
+    function openDialog(): HTMLDialogElement | null {
+      return shadow().querySelector('dialog[open]')
+    }
+
+    function focusables(): HTMLElement[] {
+      return Array.from(
+        openDialog()?.querySelectorAll<HTMLElement>(
+          'input:not([type="hidden"]), textarea, button'
+        ) ?? []
+      )
+    }
+
+    function pressKey(key: string, shiftKey = false): KeyboardEvent {
+      const event = new KeyboardEvent('keydown', {
+        key,
+        shiftKey,
+        bubbles: true,
+        cancelable: true,
+        composed: true
+      })
+      ;(shadow().activeElement ?? document.body).dispatchEvent(event)
+      return event
+    }
+
+    async function openForm(): Promise<void> {
+      button.focus()
+      button.click()
+      await waitFor(() => expect(openDialog()).not.toBeNull())
+    }
+
+    beforeEach(async () => {
+      button = document.createElement('button')
+      document.body.appendChild(button)
+      await lifecycle.apply(WITH_FEEDBACK)
+      detach = lifecycle.attachFeedback(button, {})
+    })
+
+    afterEach(() => {
+      detach()
+      button.remove()
+    })
+
+    it('moves the focus to the first field when the form opens', async () => {
+      await openForm()
+
+      expect(document.activeElement).toBe(
+        document.getElementById('sentry-feedback')
+      )
+      expect(shadow().activeElement).toBe(focusables()[0])
+    })
+
+    it('keeps Tab and Shift+Tab inside the form', async () => {
+      await openForm()
+      const fields = focusables()
+      const first = fields[0]
+      const last = fields[fields.length - 1]
+
+      last?.focus()
+      expect(pressKey('Tab').defaultPrevented).toBe(true)
+      expect(shadow().activeElement).toBe(first)
+
+      expect(pressKey('Tab', true).defaultPrevented).toBe(true)
+      expect(shadow().activeElement).toBe(last)
+    })
+
+    it('closes the form on Escape and gives the focus back to the button', async () => {
+      await openForm()
+
+      pressKey('Escape')
+
+      await waitFor(() => expect(openDialog()).toBeNull())
+      expect(document.activeElement).toBe(button)
+    })
+
+    it('gives the focus back to the button on Cancel', async () => {
+      await openForm()
+      const cancel = focusables().find(field => field.textContent === 'Cancel')
+
+      cancel?.click()
+
+      await waitFor(() => expect(openDialog()).toBeNull())
+      expect(document.activeElement).toBe(button)
+    })
+
+    it('leaves the keyboard alone once the form is closed', async () => {
+      await openForm()
+      pressKey('Escape')
+      await waitFor(() => expect(openDialog()).toBeNull())
+
+      expect(pressKey('Tab').defaultPrevented).toBe(false)
+    })
+  })
+
   it('attaches nothing while the feedback is not running', async () => {
     const button = document.createElement('button')
     document.body.appendChild(button)

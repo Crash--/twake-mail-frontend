@@ -1,11 +1,11 @@
 import * as Sentry from '@sentry/react'
 import type { FeedbackLabels } from '@linagora/twake-feedback'
 import {
-  attachFeedback,
   makeFeedbackIntegration,
   type FeedbackIntegration
 } from '@linagora/twake-feedback/sentry'
 
+import { makeFeedbackFocus } from '@common/app/feedbackFocus'
 import {
   isFeedbackEvent,
   scrubBreadcrumb,
@@ -122,12 +122,18 @@ export class SentryLifecycle {
 
   /**
    * Plugs the feedback form on `el` (the button of the shell) and returns the
-   * way to detach it, which also removes the form. A no-op while the feedback
-   * is not running.
+   * way to detach it, which also removes the form. The form handles the focus
+   * as the dialogs of the app (`makeFeedbackFocus`). A no-op while the
+   * feedback is not running.
    */
   attachFeedback(el: HTMLElement, labels: Partial<FeedbackLabels>): () => void {
     if (this.feedback === null) return () => undefined
-    return attachFeedback(this.feedback, el, labels)
+    const { release, ...callbacks } = makeFeedbackFocus(el, FEEDBACK_HOST_ID)
+    const detach = this.feedback.attachTo(el, { ...labels, ...callbacks })
+    return () => {
+      release()
+      detach()
+    }
   }
 
   /** Sets the colour scheme of the feedback form (no-op without feedback) */

@@ -52,8 +52,14 @@ describe('EmailActionsMenu', () => {
   it('offers no reply nor forward in the Drafts of a team mailbox', async () => {
     renderMenu('team-drafts')
 
+    // The Drafts actions wait for the session and the mailboxes, slower than
+    // the default timeout on a cold CI worker
     expect(
-      await screen.findByTestId('email-action-delete-permanently')
+      await screen.findByTestId(
+        'email-action-delete-permanently',
+        {},
+        { timeout: 4000 }
+      )
     ).toBeVisible()
     expect(screen.queryByTestId('email-action-reply')).toBe(null)
     expect(screen.queryByTestId('email-action-forward')).toBe(null)

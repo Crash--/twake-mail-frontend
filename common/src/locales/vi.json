@@ -1265,29 +1265,5 @@
     "unavailableDescription": "Bạn không phải là thành viên của hộp thư nhóm này, hoặc hộp thư này không tồn tại.",
     "sessionExpiredTitle": "Phiên của bạn đã hết hạn",
     "sessionExpiredDescription": "Hãy đăng nhập lại để xem hộp thư nhóm này."
-  },
-  "feedback": {
-    "trigger": "Gửi phản hồi",
-    "triggerAria": "Gửi phản hồi",
-    "formTitle": "Gửi phản hồi",
-    "messageLabel": "Phản hồi của bạn",
-    "messagePlaceholder": "Điều gì hoạt động tốt, điều gì chưa, còn thiếu gì?",
-    "emailLabel": "Email (không bắt buộc)",
-    "emailPlaceholder": "ten@example.com",
-    "submit": "Gửi",
-    "cancel": "Hủy",
-    "confirm": "Xác nhận",
-    "success": "Cảm ơn phản hồi của bạn!",
-    "required": "(bắt buộc)",
-    "addScreenshot": "Thêm ảnh chụp màn hình",
-    "removeScreenshot": "Xóa ảnh chụp màn hình",
-    "highlightTool": "Đánh dấu",
-    "hideTool": "Ẩn",
-    "removeHighlight": "Xóa",
-    "errorEmptyMessage": "Hãy nhập nội dung trước khi gửi phản hồi.",
-    "errorNoClient": "Hiện không thể gửi phản hồi.",
-    "errorTimeout": "Không thể xác nhận phản hồi của bạn đã được gửi.",
-    "errorForbidden": "Máy chủ đã từ chối phản hồi của bạn.",
-    "errorGeneric": "Không thể gửi phản hồi. Hãy kiểm tra kết nối hoặc trình chặn quảng cáo rồi thử lại."
   }
 }

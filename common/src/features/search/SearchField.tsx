@@ -1,5 +1,5 @@
 import { Icon } from '@linagora/twake-icons'
-import { Avatar, getInitials, IconButton, Tooltip } from '@linagora/twake-mui'
+import { getInitials, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -16,6 +16,7 @@ import {
   Star,
   StarOutline
 } from '@/ds/FlutterIcons/FlutterIcons'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED } from '@common/features/email/keywords'
@@ -150,10 +151,15 @@ export function SearchField({
             id: `${CONTACT_PREFIX}${contact.emailAddress}`,
             label: name === '' ? contact.emailAddress : name,
             secondary: name === '' ? undefined : contact.emailAddress,
+            // As tmail-flutter: a light grey disc, black initials
             icon: (
-              <Avatar component="span" size={40} className="u-flex-shrink-0">
-                {getInitials(name, contact.emailAddress)}
-              </Avatar>
+              <GradientAvatar
+                text={getInitials(name, contact.emailAddress)}
+                colorKey={contact.emailAddress}
+                size={40}
+                fontSize={16}
+                look="plain"
+              />
             ),
             'data-testid': 'search-suggestion-contact'
           }

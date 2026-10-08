@@ -47,8 +47,21 @@ export interface GradientAvatarProps {
   /** Decorative by default: the name is written next to it */
   'aria-hidden'?: boolean
   className?: string
+  /**
+   * `plain`: tmail-flutter's avatar of a suggested contact, a light grey
+   * disc with a thin border and the initials in black
+   */
+  look?: 'gradient' | 'plain'
   'data-testid'?: string
 }
+
+const PLAIN_SX = {
+  backgroundImage: 'none',
+  backgroundColor: '#F8F8F8',
+  border: '1px solid rgba(0, 0, 0, 0.08)',
+  boxSizing: 'border-box',
+  color: '#000000'
+} as const
 
 /** A round avatar on the gradient of `colorKey`, its letter in white */
 export function GradientAvatar({
@@ -58,6 +71,7 @@ export function GradientAvatar({
   fontSize = 12,
   'aria-hidden': ariaHidden = true,
   className,
+  look = 'gradient',
   'data-testid': testId
 }: GradientAvatarProps): ReactElement {
   const [from, to] = gradientOf(colorKey)
@@ -79,7 +93,8 @@ export function GradientAvatar({
         fontSize,
         fontWeight: 600,
         lineHeight: 1,
-        userSelect: 'none'
+        userSelect: 'none',
+        ...(look === 'plain' ? PLAIN_SX : {})
       }}
       data-testid={testId}
     >

@@ -194,7 +194,11 @@ export function SettingsFormDialog({
         {isPhone ? (
           <Box sx={PHONE_BAR_SX}>
             <Tooltip title={labels.back}>
-              <IconButton aria-label={labels.back} onClick={handleClose}>
+              <IconButton
+                aria-label={labels.back}
+                onClick={handleClose}
+                sx={{ color: '#1C1B1F' }}
+              >
                 <Icon icon={ArrowBack} size={24} />
               </IconButton>
             </Tooltip>
@@ -315,6 +319,54 @@ export function SettingsFormBox({
       sx={kind === 'action' ? BOX_SX : { ...BOX_SX, minHeight: 64 }}
       data-testid={testId}
     >
+      {children}
+    </Box>
+  )
+}
+
+const STACK_SX = {
+  flex: '1 1 auto',
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 1
+} as const
+
+export interface SettingsFormStackProps {
+  /** One under the other; else they stay in the row of the box */
+  isStacked: boolean
+  children: ReactNode
+}
+
+/** The fields of a box one under the other, as tmail-flutter on a phone */
+export function SettingsFormStack({
+  isStacked,
+  children
+}: SettingsFormStackProps): ReactElement {
+  return (
+    <Box sx={isStacked ? STACK_SX : { display: 'contents' }}>{children}</Box>
+  )
+}
+
+const TEXT_SX = {
+  fontSize: 14,
+  fontWeight: 400,
+  lineHeight: '18px',
+  color: '#000000'
+} as const
+
+export interface SettingsFormTextProps {
+  children: ReactNode
+  className?: string
+}
+
+/** A text between the fields ("If", "of the following…"): Regular 14 */
+export function SettingsFormText({
+  children,
+  className
+}: SettingsFormTextProps): ReactElement {
+  return (
+    <Box component="span" className={className} sx={TEXT_SX}>
       {children}
     </Box>
   )

@@ -23,6 +23,8 @@ import {
   SettingsFormFieldButton,
   SettingsFormLabel,
   SettingsFormSelect,
+  SettingsFormStack,
+  SettingsFormText,
   SettingsFormTextField,
   SettingsOutlinedButton,
   SettingsPreviewBanner,
@@ -304,13 +306,15 @@ export function RuleFormDialog({
             data-testid="rule-conditions-preview"
           />
         ) : null}
+        {/* As tmail-flutter: on a phone the select fills the row and what
+            follows it goes under it */}
         <Box className="u-flex u-flex-items-center u-flex-wrap">
-          <Typography component="span" variant="body2" className="u-mr-1">
+          <SettingsFormText className="u-mr-1">
             {t('rules.form.combinerBefore')}
-          </Typography>
+          </SettingsFormText>
           <SettingsFormSelect
             label={t('rules.form.combiner')}
-            width={158}
+            width={isPhone ? undefined : 158}
             value={draft.combiner}
             onChange={event => {
               update({ combiner: event.target.value === 'OR' ? 'OR' : 'AND' })
@@ -320,10 +324,17 @@ export function RuleFormDialog({
             <option value="AND">{t('rules.combiners.AND')}</option>
             <option value="OR">{t('rules.combiners.OR')}</option>
           </SettingsFormSelect>
-          <Typography component="span" variant="body2" className="u-ml-1">
-            {t('rules.form.combinerAfter')}
-          </Typography>
+          {isPhone ? null : (
+            <SettingsFormText className="u-ml-1">
+              {t('rules.form.combinerAfter')}
+            </SettingsFormText>
+          )}
         </Box>
+        {isPhone ? (
+          <SettingsFormText className="u-db u-mt-half">
+            {t('rules.form.combinerAfter')}
+          </SettingsFormText>
+        ) : null}
         {draft.conditions.map((condition, index) => {
           const position = index + 1
           const fieldLabel = ruleFieldLabel(condition.field)
@@ -335,67 +346,71 @@ export function RuleFormDialog({
               label={t('rules.form.condition', { position })}
               data-testid="rule-condition"
             >
-              <SettingsFormSelect
-                label={t('rules.form.field')}
-                value={condition.field}
-                onChange={event => {
-                  updateCondition(index, {
-                    field:
-                      RULE_FIELDS.find(field => field === event.target.value) ??
-                      condition.field
-                  })
-                }}
-                inputTestId="rule-condition-field-select"
-              >
-                {fieldLabel === null ? (
-                  <option value={condition.field}>{condition.field}</option>
-                ) : null}
-                {RULE_FIELDS.map(field => (
-                  <option key={field} value={field}>
-                    {t(ruleFieldLabel(field) ?? 'rules.fields.from')}
-                  </option>
-                ))}
-              </SettingsFormSelect>
-              <SettingsFormSelect
-                label={t('rules.form.comparator')}
-                value={condition.comparator}
-                onChange={event => {
-                  updateCondition(index, {
-                    comparator:
-                      RULE_COMPARATORS.find(
-                        comparator => comparator === event.target.value
-                      ) ?? condition.comparator
-                  })
-                }}
-                inputTestId="rule-condition-comparator-select"
-              >
-                {comparatorLabel === null ? (
-                  <option value={condition.comparator}>
-                    {condition.comparator}
-                  </option>
-                ) : null}
-                {RULE_COMPARATORS.map(comparator => (
-                  <option key={comparator} value={comparator}>
-                    {t(
-                      ruleComparatorLabel(comparator) ??
-                        'rules.comparators.contains'
-                    )}
-                  </option>
-                ))}
-              </SettingsFormSelect>
-              <SettingsFormTextField
-                isInRow
-                required
-                label={t('rules.form.value')}
-                placeholder={t('rules.form.value')}
-                value={condition.value}
-                onChange={event => {
-                  updateCondition(index, { value: event.target.value })
-                }}
-                error={problemKey !== null}
-                helperText={problemKey === null ? undefined : t(problemKey)}
-                inputTestId="rule-condition-value-input"
-              />
+              {/* As tmail-flutter: one under the other on a phone */}
+              <SettingsFormStack isStacked={isPhone}>
+                <SettingsFormSelect
+                  label={t('rules.form.field')}
+                  value={condition.field}
+                  onChange={event => {
+                    updateCondition(index, {
+                      field:
+                        RULE_FIELDS.find(
+                          field => field === event.target.value
+                        ) ?? condition.field
+                    })
+                  }}
+                  inputTestId="rule-condition-field-select"
+                >
+                  {fieldLabel === null ? (
+                    <option value={condition.field}>{condition.field}</option>
+                  ) : null}
+                  {RULE_FIELDS.map(field => (
+                    <option key={field} value={field}>
+                      {t(ruleFieldLabel(field) ?? 'rules.fields.from')}
+                    </option>
+                  ))}
+                </SettingsFormSelect>
+                <SettingsFormSelect
+                  label={t('rules.form.comparator')}
+                  value={condition.comparator}
+                  onChange={event => {
+                    updateCondition(index, {
+                      comparator:
+                        RULE_COMPARATORS.find(
+                          comparator => comparator === event.target.value
+                        ) ?? condition.comparator
+                    })
+                  }}
+                  inputTestId="rule-condition-comparator-select"
+                >
+                  {comparatorLabel === null ? (
+                    <option value={condition.comparator}>
+                      {condition.comparator}
+                    </option>
+                  ) : null}
+                  {RULE_COMPARATORS.map(comparator => (
+                    <option key={comparator} value={comparator}>
+                      {t(
+                        ruleComparatorLabel(comparator) ??
+                          'rules.comparators.contains'
+                      )}
+                    </option>
+                  ))}
+                </SettingsFormSelect>
+                <SettingsFormTextField
+                  isInRow
+                  required
+                  label={t('rules.form.value')}
+                  placeholder={t('rules.form.value')}
+                  value={condition.value}
+                  onChange={event => {
+                    updateCondition(index, { value: event.target.value })
+                  }}
+                  error={problemKey !== null}
+                  helperText={problemKey === null ? undefined : t(problemKey)}
+                  inputTestId="rule-condition-value-input"
+                />
+              </SettingsFormStack>
               <IconAction
                 label={t('rules.form.removeCondition', { position })}
                 icon={Trash}
@@ -471,9 +486,9 @@ export function RuleFormDialog({
               </SettingsFormSelect>
               {action.kind === 'move' ? (
                 <>
-                  <Typography component="span" variant="body2" noWrap>
+                  <SettingsFormText className="u-ellipsis">
                     {t('rules.form.toFolder')}
-                  </Typography>
+                  </SettingsFormText>
                   <SettingsFormFieldButton
                     value={folder}
                     hint={t('rules.form.chooseFolder')}

@@ -16,6 +16,7 @@ import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
+import { useSidebarSections } from '@common/features/mailbox/SidebarSectionsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import {
   focusTargetsAround,
@@ -113,6 +114,8 @@ function LabelItem({ label }: { label: Label }): ReactElement {
 export function LabelsSection(): ReactElement | null {
   const { t } = useI18n()
   const titleId = useId()
+  const contentId = useId()
+  const collapsible = useSidebarSections()
   const isAvailable = useLabelsAvailable()
   const { data } = useLabels()
   const { create } = useLabelActions()
@@ -124,6 +127,15 @@ export function LabelsSection(): ReactElement | null {
       <NavSectionHeader
         title={t('labels.title')}
         titleId={titleId}
+        // As the folders: the header folds the labels
+        toggle={{
+          isExpanded: collapsible.isExpanded('labels'),
+          onToggle: () => {
+            collapsible.toggle('labels')
+          },
+          controlsId: contentId,
+          'data-testid': 'labels-section-toggle'
+        }}
         actions={
           <NavSectionAction
             label={newLabel}
@@ -135,12 +147,13 @@ export function LabelsSection(): ReactElement | null {
           />
         }
       />
-      {/* As tmail-flutter: the labels do not fold */}
-      <NavTree>
-        {(data?.list ?? []).map(label => (
-          <LabelItem key={label.id} label={label} />
-        ))}
-      </NavTree>
+      <div id={contentId} hidden={!collapsible.isExpanded('labels')}>
+        <NavTree>
+          {(data?.list ?? []).map(label => (
+            <LabelItem key={label.id} label={label} />
+          ))}
+        </NavTree>
+      </div>
     </Box>
   )
 }

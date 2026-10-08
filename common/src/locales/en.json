@@ -550,6 +550,9 @@
       "status": "Status",
       "progress": "Progress",
       "creating": "Creating message"
+    },
+    "images": {
+      "inserting": "Inserting the image"
     }
   },
   "layout": {

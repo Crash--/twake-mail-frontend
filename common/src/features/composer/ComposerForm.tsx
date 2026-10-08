@@ -42,6 +42,7 @@ import {
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
+import { ThinProgressBar } from '@/ds/ThinProgressBar/ThinProgressBar'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
@@ -878,10 +879,17 @@ function LoadedComposerForm({
     notify({ message: t(isOn ? enabled : disabled), severity: 'success' })
   }
 
+  // As tmail-flutter: a bar at the top of the body while images go inline
+  const [inlineUploads, setInlineUploads] = useState(0)
   const handleImageFiles = async (
     added: File[]
   ): Promise<InlineImageAttributes[]> => {
-    const stored = await Promise.all(added.map(file => images.add(file)))
+    setInlineUploads(count => count + 1)
+    const stored = await Promise.all(
+      added.map(file => images.add(file))
+    ).finally(() => {
+      setInlineUploads(count => count - 1)
+    })
     return stored.map(image => ({
       src: image.url ?? '',
       // Empty: decorative until the author writes what the image says (the
@@ -1698,6 +1706,16 @@ function LoadedComposerForm({
           className="u-flex u-flex-column u-flex-auto u-ov-hidden"
           data-testid="composer-drop-zone"
         >
+          {inlineUploads > 0 ? (
+            <Box className="u-ph-1 u-flex-shrink-0">
+              <ThinProgressBar
+                value={null}
+                height={2}
+                label={t('composer.images.inserting')}
+                data-testid="composer-inline-image-progress"
+              />
+            </Box>
+          ) : null}
           <Box
             className="u-flex u-flex-column u-flex-auto u-ov-hidden"
             onFocus={event => {

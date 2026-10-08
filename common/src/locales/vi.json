@@ -550,6 +550,9 @@
       "status": "Trạng thái",
       "progress": "Tiến trình",
       "creating": "Tạo thư"
+    },
+    "images": {
+      "inserting": "Đang chèn ảnh"
     }
   },
   "layout": {

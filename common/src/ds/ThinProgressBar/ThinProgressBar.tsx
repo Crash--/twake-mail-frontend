@@ -15,6 +15,8 @@ export interface ThinProgressBarProps {
   value: number | null
   /** Accessible name of the progress bar */
   label: string
+  /** In px, 3 by default (2 for an image being inserted, as tmail-flutter) */
+  height?: number
   'data-testid'?: string
 }
 
@@ -22,6 +24,7 @@ export interface ThinProgressBarProps {
 export function ThinProgressBar({
   value,
   label,
+  height = HEIGHT,
   'data-testid': testId
 }: ThinProgressBarProps): ReactElement {
   const percent =
@@ -36,7 +39,7 @@ export function ThinProgressBar({
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        height: HEIGHT,
+        height,
         borderRadius: '4px',
         bgcolor: TRACK_COLOR
       }}

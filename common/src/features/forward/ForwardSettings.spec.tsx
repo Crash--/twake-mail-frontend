@@ -65,7 +65,7 @@ describe('ForwardSettings', () => {
     await userEvent.click(screen.getByTestId('forward-add-button'))
 
     expect(await screen.findByTestId('toast')).toHaveTextContent(
-      'The emails has been added from the recipient list.'
+      'The address has been added to the recipient list.'
     )
     expect(fake.forward()).toMatchObject({ forwards: ['bob@example.com'] })
     expect(input).toHaveValue('')
@@ -157,16 +157,14 @@ describe('ForwardSettings', () => {
     await userEvent.click(
       await screen.findByRole('button', { name: 'Remove bob@example.com' })
     )
-    const confirm = screen.getByRole('dialog', { name: 'Remove recipients' })
-    expect(confirm).toHaveTextContent(
-      'Do you want to delete email bob@example.com?'
-    )
+    const confirm = screen.getByRole('dialog', { name: 'Remove recipient' })
+    expect(confirm).toHaveTextContent('Do you want to remove bob@example.com?')
     await userEvent.click(
       within(confirm).getByTestId('confirm-dialog-confirm-button')
     )
 
     expect(await screen.findByTestId('toast')).toHaveTextContent(
-      'The email has been removed from the recipient list.'
+      'The address has been removed from the recipient list.'
     )
     expect(fake.forward()).toMatchObject({ forwards: ['carol@example.com'] })
   })

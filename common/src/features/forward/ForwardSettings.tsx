@@ -31,6 +31,7 @@ import {
 } from '@/ds/SettingsFields/SettingsFields'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import {
   isValidEmail,
@@ -79,6 +80,7 @@ export function ForwardSettings({
   const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
   const [selected, setSelected] = useState<readonly string[]>([])
   const recipientsTitleId = useId()
+  const isPhone = useScreenSize() === 'mobile'
   const [typed, setTyped] = useState('')
   const [problem, setProblem] = useState<TranslationKey | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -276,10 +278,17 @@ export function ForwardSettings({
         component="form"
         onSubmit={handleAdd}
         noValidate
-        className="u-flex u-flex-items-start u-flex-wrap"
+        // As tmail-flutter: on a phone the field and the button fill the
+        // row, one under the other
+        className={
+          isPhone
+            ? 'u-flex u-flex-column'
+            : 'u-flex u-flex-items-start u-flex-wrap'
+        }
       >
         <SettingsTextField
-          className="u-mr-1 u-mb-half"
+          className={isPhone ? 'u-mb-1' : 'u-mr-1 u-mb-half'}
+          width={isPhone ? '100%' : undefined}
           inputRef={inputRef}
           label={t('forward.inputLabel')}
           placeholder={t('forward.inputPlaceholder')}
@@ -298,6 +307,7 @@ export function ForwardSettings({
           label={t('forward.add')}
           icon={Plus}
           disabled={isSaving}
+          isFullWidth={isPhone}
           data-testid="forward-add-button"
         />
       </Box>

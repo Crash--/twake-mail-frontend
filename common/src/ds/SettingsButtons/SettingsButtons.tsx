@@ -54,6 +54,8 @@ export interface SettingsPrimaryButtonProps {
   onClick?: () => void
   type?: 'button' | 'submit'
   disabled?: boolean
+  /** As wide as its container, e.g. under a field on a phone */
+  isFullWidth?: boolean
   'data-testid'?: string
 }
 
@@ -64,6 +66,7 @@ export function SettingsPrimaryButton({
   onClick,
   type = 'button',
   disabled = false,
+  isFullWidth = false,
   'data-testid': testId
 }: SettingsPrimaryButtonProps): ReactElement {
   return (
@@ -71,7 +74,11 @@ export function SettingsPrimaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      sx={PRIMARY_SX}
+      sx={
+        isFullWidth
+          ? { ...PRIMARY_SX, width: '100%', maxWidth: 'none' }
+          : PRIMARY_SX
+      }
       data-testid={testId}
     >
       {icon === undefined ? null : (

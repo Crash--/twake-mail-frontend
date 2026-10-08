@@ -188,10 +188,19 @@ test.describe('LBL labels', () => {
     const email = await mailbox.openEmail('Needs a label')
 
     await email.runAction('label-as')
-    await labels.chooseCreateButton.click()
-    await labels.fillAndSave('Created from email')
-    await expect(labels.chooseCheckbox('Created from email')).toBeChecked()
-    await labels.chooseApplyButton.click()
+    // With a pointer, as tmail-flutter: the labels open beside "Label as",
+    // "Create a new label" puts the label created on the email; a touch
+    // screen chooses them in a dialog
+    const submenuCreate = page.getByTestId('email-action-create-label')
+    if (await submenuCreate.isVisible()) {
+      await submenuCreate.click()
+      await labels.fillAndSave('Created from email')
+    } else {
+      await labels.chooseCreateButton.click()
+      await labels.fillAndSave('Created from email')
+      await expect(labels.chooseCheckbox('Created from email')).toBeChecked()
+      await labels.chooseApplyButton.click()
+    }
 
     await expect(mailbox.toast).toContainText(
       'Label "Created from email" added to email'

@@ -5,12 +5,19 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  useMediaQuery,
   type PopoverPosition
 } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
-import { Reply, Share } from '@/ds/FlutterIcons/FlutterIcons'
+import {
+  CheckboxOff,
+  CheckboxOn,
+  Reply,
+  Share
+} from '@/ds/FlutterIcons/FlutterIcons'
+import { MenuSubmenuItem } from '@/ds/MenuSubmenu/MenuSubmenu'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
 import type { EmailDetail } from '@common/features/email/queries'
@@ -22,7 +29,8 @@ import { useUnsubscribe } from '@common/features/email/useUnsubscribe'
 import { REPLY_LABELS } from '@common/features/email/useReplyOptions'
 import { isDraftsMailbox } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
-import { useLabelsAvailable } from '@common/features/labels/queries'
+import { useLabelActions } from '@common/features/labels/LabelActionsProvider'
+import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -32,6 +40,10 @@ import {
 } from './emailActionItems'
 import type { TargetEmail } from './planEmailChanges'
 import { useRunEmailAction } from './useRunEmailAction'
+
+/** tmail-flutter's ticked box (`primaryMain`) and empty box (`steelGrayA540`) */
+const LABEL_ON_COLOR = '#0A84FF'
+const LABEL_OFF_COLOR = '#55687D'
 
 const REPLY_MENU_IDS: Record<ReplyAction, string> = {
   reply: 'reply',
@@ -149,6 +161,67 @@ export function EmailActionsMenu({
     </MenuItem>
   ))
 
+  // As tmail-flutter with a pointer: "Label as" opens the labels beside it,
+  // each one ticked when every email has it; a touch screen keeps the dialog
+  const labelActions = useLabelActions()
+  const labels = useLabels().data?.list ?? []
+  const canHover = useMediaQuery('(hover: hover) and (pointer: fine)')
+  const hasLabelSubmenu = canHover && !asSheet
+  const labelSubmenu = (item: EmailActionItem): ReactElement => (
+    <MenuSubmenuItem
+      key={item.id}
+      label={t(item.label)}
+      icon={<Icon icon={item.icon} />}
+      menuLabel={t(item.label)}
+      data-testid={`email-action-${item.id}`}
+      submenuTestId="email-action-label-as-menu"
+    >
+      {[
+        ...labels.map(label => {
+          const isOn =
+            emails.length > 0 &&
+            emails.every(email => email.keywords[label.keyword] === true)
+          return (
+            <MenuItem
+              key={label.id}
+              role="menuitemcheckbox"
+              aria-checked={isOn}
+              onClick={() => {
+                onClose()
+                void labelActions
+                  .toggle(label, !isOn, emails, mailboxId)
+                  .then(done => {
+                    if (done) onAction?.(item.id)
+                  })
+              }}
+              data-testid="email-action-label-item"
+            >
+              <ListItemIcon>
+                <Icon
+                  icon={isOn ? CheckboxOn : CheckboxOff}
+                  color={isOn ? LABEL_ON_COLOR : LABEL_OFF_COLOR}
+                />
+              </ListItemIcon>
+              <ListItemText primary={label.displayName} />
+            </MenuItem>
+          )
+        }),
+        ...(labels.length > 0 ? [<Divider key="divider-labels" />] : []),
+        <MenuItem
+          key="create-label"
+          onClick={() => {
+            onClose()
+            // As tmail-flutter: the label created goes on the emails
+            labelActions.create({ emails, mailboxId })
+          }}
+          data-testid="email-action-create-label"
+        >
+          <ListItemText primary={t('labels.form.createTitle')} />
+        </MenuItem>
+      ]}
+    </MenuSubmenuItem>
+  )
+
   const handleRun = (item: EmailActionItem): void => {
     onClose()
     let running: Promise<boolean>
@@ -172,27 +245,30 @@ export function EmailActionsMenu({
       ? [<Divider key="divider-replies" />]
       : []),
     ...items.flatMap((item, index) => {
-      const menuItem = (
-        <MenuItem
-          key={item.id}
-          onClick={() => {
-            handleRun(item)
-          }}
-          data-testid={`email-action-${item.id}`}
-        >
-          <ListItemIcon>
-            <Icon icon={item.icon} />
-          </ListItemIcon>
-          <ListItemText
-            primary={t(item.label)}
-            slotProps={{
-              primary: {
-                color: item.isDestructive ? 'error.dark' : 'inherit'
-              }
+      const menuItem =
+        item.id === 'label-as' && hasLabelSubmenu ? (
+          labelSubmenu(item)
+        ) : (
+          <MenuItem
+            key={item.id}
+            onClick={() => {
+              handleRun(item)
             }}
-          />
-        </MenuItem>
-      )
+            data-testid={`email-action-${item.id}`}
+          >
+            <ListItemIcon>
+              <Icon icon={item.icon} />
+            </ListItemIcon>
+            <ListItemText
+              primary={t(item.label)}
+              slotProps={{
+                primary: {
+                  color: item.isDestructive ? 'error.dark' : 'inherit'
+                }
+              }}
+            />
+          </MenuItem>
+        )
       return index > 0 && items[index - 1]?.group !== item.group
         ? [<Divider key={`divider-${item.id}`} />, menuItem]
         : [menuItem]
@@ -216,6 +292,8 @@ export function EmailActionsMenu({
     <Menu
       open={anchor !== null}
       onClose={onClose}
+      // The labels of "Label as" are beside it, outside the menu
+      disableEnforceFocus={hasLabelSubmenu}
       {...(anchor !== null && 'position' in anchor
         ? { anchorReference: 'anchorPosition', anchorPosition: anchor.position }
         : { anchorEl: anchor?.element ?? null })}

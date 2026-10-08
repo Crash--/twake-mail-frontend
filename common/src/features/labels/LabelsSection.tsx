@@ -128,7 +128,9 @@ export function LabelsSection(): ReactElement | null {
           <NavSectionAction
             label={newLabel}
             icon={Plus}
-            onClick={create}
+            onClick={() => {
+              create()
+            }}
             data-testid="add-new-label-button"
           />
         }

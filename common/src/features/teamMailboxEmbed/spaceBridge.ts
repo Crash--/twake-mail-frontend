@@ -37,6 +37,17 @@ export interface SpaceBridge {
    * each report replaces the previous one
    */
   reportBadges: (badges: readonly Badge[]) => void
+  /**
+   * A system notification TwakeSpace shows for the facade, whose frame may
+   * not: `resourceId`, the team mailbox it is about, whose space a click
+   * opens
+   */
+  notify: (notice: {
+    tag: string
+    title: string
+    body: string
+    resourceId: string
+  }) => void
 }
 
 function isTeamMailboxId(id: string): boolean {
@@ -76,6 +87,9 @@ export function connectToSpace(
     },
     reportBadges: badges => {
       connection.reportBadges(badges)
+    },
+    notify: notice => {
+      connection.notify(notice)
     }
   }
 }

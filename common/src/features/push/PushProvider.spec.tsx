@@ -10,10 +10,13 @@ import {
   FAKE_ACCOUNT_ID,
   FAKE_WEBSOCKET_URL,
   makeEmail,
+  makeDefaultMailboxes,
   makeFakeJmapServer,
+  makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
 
 import { PushProvider } from './PushProvider'
 
@@ -119,13 +122,18 @@ async function showListAgainAfter(delay: number): Promise<void> {
 /** The mailbox tree and the inbox list, under the push provider */
 async function renderWithPush(
   server: FakeJmapServer,
-  alertsNewEmails = false
+  alertsNewEmails = false,
+  spaceBridge: SpaceBridge | null = null
 ): Promise<{
   socket: FakeWebSocket
   result: ReturnType<typeof renderWithProviders>
 }> {
   const result = renderWithProviders(
-    <PushProvider WebSocket={FakeWebSocket} alertsNewEmails={alertsNewEmails}>
+    <PushProvider
+      WebSocket={FakeWebSocket}
+      alertsNewEmails={alertsNewEmails}
+      spaceBridge={spaceBridge}
+    >
       <MailboxTree />
       <VirtuosoMockContext.Provider
         value={{ viewportHeight: 100_000, itemHeight: 56 }}
@@ -566,7 +574,7 @@ describe('PushProvider', () => {
 
         await renderWithPush(makeServer(), true)
         expect(request).toHaveBeenCalledWith(
-          `twake-mail-new-mail-alert:${FAKE_ACCOUNT_ID}`,
+          `twake-mail-new-mail-alert:page:${FAKE_ACCOUNT_ID}`,
           expect.anything(),
           expect.any(Function)
         )
@@ -592,6 +600,66 @@ describe('PushProvider', () => {
       // The synchronization of the lists only
       expect(countCalls(server, 'Email/changes')).toBe(before + 1)
       expect(shown).toEqual([])
+    })
+
+    it('asks Twake Space to notify the new emails of a team mailbox', async () => {
+      const notify = jest.fn()
+      const bridge: SpaceBridge = {
+        syncHistory: () => () => undefined,
+        notifyLoginRequired: jest.fn(),
+        reportBadges: jest.fn(),
+        notify
+      }
+      const server = makeFakeJmapServer({
+        webSocket: true,
+        mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
+        emails: [makeEmail({ id: 'e1' })]
+      })
+      const { socket } = await renderWithPush(server, false, bridge)
+
+      server.addEmail(
+        makeEmail({
+          id: 'team-news',
+          subject: 'For the team',
+          mailboxIds: { 'team-inbox': true }
+        })
+      )
+      server.addEmail(makeEmail({ id: 'personal' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await waitFor(() => {
+        expect(notify).toHaveBeenCalledTimes(1)
+      })
+      expect(notify).toHaveBeenCalledWith({
+        tag: 'mail:team-news',
+        title: 'Bob Dupont',
+        body: 'For the team',
+        resourceId: 'team'
+      })
+      expect(shown).toEqual([])
+    })
+
+    it('asks the server nothing in Space without a team mailbox', async () => {
+      const notify = jest.fn()
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, false, {
+        syncHistory: () => () => undefined,
+        notifyLoginRequired: jest.fn(),
+        reportBadges: jest.fn(),
+        notify
+      })
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 1)
+      expect(countCalls(server, 'Email/changes')).toBe(before + 1)
+      expect(notify).not.toHaveBeenCalled()
     })
 
     it('notifies nothing unless the page asks for it', async () => {

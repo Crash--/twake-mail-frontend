@@ -11,6 +11,19 @@ import {
 } from './newMailPreferences'
 import type { NewEmail } from './newMailWatcher'
 
+/** What a notification of a new email says: its sender and its subject */
+export function describeNewEmail(
+  email: NewEmail,
+  t: (key: 'newMail.unknownSender' | 'composer.template.noSubject') => string
+): { title: string; body: string } {
+  const sender = email.from?.[0]
+  const subject = email.subject?.trim() ?? ''
+  return {
+    title: sender ? formatAddressName(sender) : t('newMail.unknownSender'),
+    body: subject === '' ? t('composer.template.noSubject') : subject
+  }
+}
+
 /** A short two-note chime, drawn by the browser: no sound file to serve */
 function playChime(): void {
   if (typeof AudioContext === 'undefined') return
@@ -51,11 +64,15 @@ export interface NewMailAlert {
   alert: (emails: readonly NewEmail[]) => void
   /** This tab alerts, and the user turned the sound or notifications on */
   isWanted: () => boolean
+  /** This page holds the lock of the alerts of the account */
+  isLeader: () => boolean
 }
 
 export function useNewMailAlert(
   accountId: string,
-  isEnabled: boolean
+  isEnabled: boolean,
+  /** The pages that share one lock: the app alone, or its frames in Space */
+  scope: 'page' | 'space' = 'page'
 ): NewMailAlert {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -71,7 +88,7 @@ export function useNewMailAlert(
     const released = new AbortController()
     navigator.locks
       .request(
-        `twake-mail-new-mail-alert:${accountId}`,
+        `twake-mail-new-mail-alert:${scope}:${accountId}`,
         { signal: released.signal },
         () =>
           new Promise<void>(resolve => {
@@ -90,7 +107,7 @@ export function useNewMailAlert(
       isLeader.current = false
       released.abort()
     }
-  }, [accountId, isEnabled])
+  }, [accountId, isEnabled, scope])
 
   const isWanted = useCallback(
     (): boolean =>
@@ -120,15 +137,8 @@ export function useNewMailAlert(
         return
       }
       for (const email of emails) {
-        const sender = email.from?.[0]
-        const subject = email.subject?.trim() ?? ''
-        const notification = new Notification(
-          sender ? formatAddressName(sender) : t('newMail.unknownSender'),
-          {
-            tag: email.id,
-            body: subject === '' ? t('composer.template.noSubject') : subject
-          }
-        )
+        const { title, body } = describeNewEmail(email, t)
+        const notification = new Notification(title, { tag: email.id, body })
         notification.onclick = () => {
           window.focus()
           void navigate(
@@ -141,5 +151,7 @@ export function useNewMailAlert(
     [navigate, t]
   )
 
-  return { alert, isWanted }
+  const isLeaderNow = useCallback((): boolean => isLeader.current, [])
+
+  return { alert, isWanted, isLeader: isLeaderNow }
 }

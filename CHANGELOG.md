@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is hidden or not focused) and a sound when an email reaches the Inbox, told by push. The
   browser asks for the permission on the click on the switch; one tab of
   the account alerts.
+- In a frame of Twake Space, a new email in a team mailbox asks Twake Space
+  to show a notification (`notify` of `@linagora/twake-embed` 3.5.0, with
+  the mailbox as `resourceId`): a click opens the space of that mailbox.
 
 ## [0.4.0] - 2026-10-08
 

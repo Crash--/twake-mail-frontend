@@ -31,7 +31,7 @@ import {
   type ReactNode,
   type Ref
 } from 'react'
-import { CrossCircle } from '@/ds/FlutterIcons/FlutterIcons'
+import { CrossCircle, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
 
 const POPUP_SX = { zIndex: 'modal' } as const
 /** The field stays above the popup that starts behind it */
@@ -223,6 +223,21 @@ function fieldSx(isOpen: boolean, isCompact: boolean): SxProps<Theme> {
       fontSize: `${isCompact ? COMPACT_FIELD.fontSize : 16}px`
     },
     '& .SearchBar-icon, & .MuiIconButton-root': { color: FIELD_ICON_COLOR },
+    // tmail-flutter's 24 px magnifier, 8 px around, and its grey hint
+    ...(isCompact
+      ? {
+          '& .SearchBar-icon': {
+            width: 40,
+            px: '8px',
+            boxSizing: 'border-box'
+          },
+          '& .SearchBar-icon svg': { width: 24, height: 24 },
+          '& .MuiInputBase-input::placeholder': {
+            color: FIELD_ICON_COLOR,
+            opacity: 1
+          }
+        }
+      : {}),
     ...(isOpen
       ? {
           zIndex: FIELD_OPEN_Z_INDEX,
@@ -419,6 +434,8 @@ export function SearchCombobox({
         elevation={0}
         disabledFocus
         sx={fieldSx(isShown, size === 'compact')}
+        // tmail-flutter's thinner magnifier (`ic_search_bar`)
+        icon={size === 'compact' ? Magnifier : undefined}
         className="u-w-100"
         placeholder={label}
         value={value}

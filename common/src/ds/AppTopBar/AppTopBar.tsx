@@ -26,17 +26,20 @@ function barSx(isPhone: boolean): Record<string, unknown> {
     alignItems: 'center',
     flexShrink: 0,
     height: BAR_HEIGHT,
-    px: isPhone ? '4px' : '20px',
+    px: isPhone ? '16px' : '32px',
     bgcolor: 'background.paper'
   }
 }
+
+/** Its menu button: tmail-flutter's light grey 28 px icon, 5 px around */
+const MENU_SX = { p: '5px', color: '#99A2AD' } as const
 
 /** Its title: Bold 21, black, 16 px after the menu button */
 const TITLE_SX = {
   flex: '1 1 auto',
   minWidth: 0,
   overflow: 'hidden',
-  ml: '4px',
+  mx: '16px',
   '& .MuiTypography-root': {
     fontSize: 21,
     fontWeight: 700,
@@ -55,12 +58,16 @@ function searchSx(isPhone: boolean): Record<string, unknown> {
   }
 }
 
-/** The actions, steel grey */
+/**
+ * The actions, as tmail-flutter's filter: a light grey 24 px icon, 8 px
+ * around, blue when on
+ */
 const ACTIONS_SX = {
   display: 'flex',
   alignItems: 'center',
-  color: '#55687D',
-  '& .MuiIconButton-root': { color: 'inherit' }
+  color: '#99A2AD',
+  '& .MuiIconButton-root': { color: 'inherit', p: '8px' },
+  '& .MuiIconButton-root.MuiIconButton-colorPrimary': { color: '#007AFF' }
 } as const
 
 export interface AppTopBarMenu {
@@ -130,10 +137,10 @@ export function AppTopBar({
             aria-label={menu.label}
             aria-haspopup="dialog"
             onClick={menu.onOpen}
-            sx={{ color: '#55687D' }}
+            sx={MENU_SX}
             data-testid={menu['data-testid']}
           >
-            <Icon icon={Burger} size={24} />
+            <Icon icon={Burger} size={28} />
           </IconButton>
         </Tooltip>
         <Box sx={TITLE_SX}>{title}</Box>

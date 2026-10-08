@@ -173,21 +173,17 @@ describe('AppLayout with the platform bar', () => {
       await within(bar).findByRole('button', { name: 'Account' })
     ).toBeEnabled()
     expect(within(bar).getByRole('img', { name: 'Twake Mail' })).toBeVisible()
-    expect(within(bar).getByRole('link', { name: 'Home' })).toHaveAttribute(
-      'href',
-      'https://alice-home.twake.example.com/'
-    )
+    // As tmail-flutter: the logotype of the app, not the home of the platform
+    expect(within(bar).queryByRole('link', { name: 'Home' })).toBe(null)
+    expect(within(bar).getByRole('img', { name: 'Twake Mail' })).toBeVisible()
     expect(
       within(bar).getByRole('button', { name: 'Applications' })
     ).toBeVisible()
     expect(within(bar).queryByTestId('logout-button')).toBe(null)
     expect(screen.queryByTestId('top-bar')).toBe(null)
-    // The settings stay in the page, next to the search
-    expect(
-      within(screen.getByTestId('search-row')).getByRole('button', {
-        name: 'Settings'
-      })
-    ).toBeVisible()
+    // The search and the settings are in the bar, as in tmail-flutter
+    expect(bar).toContainElement(screen.getByTestId('search-row'))
+    expect(within(bar).getByRole('button', { name: 'Settings' })).toBeVisible()
 
     const exchange = fetchMock.mock.calls.find(
       ([input]) => requestUrl(input) === `${PLATFORM}/auth/token_exchange`

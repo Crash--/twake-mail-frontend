@@ -14,6 +14,13 @@ export interface PlatformBarProps {
   sdk: Sdk
   /** Buttons of the app, before the help, apps and account menus */
   actions?: ReactNode
+  /**
+   * Replaces the home of the platform and the title: the logotype alone,
+   * as tmail-flutter
+   */
+  left?: ReactNode
+  /** Between the title and the menus: the search on a desktop */
+  search?: ReactNode
 }
 
 /**
@@ -22,7 +29,12 @@ export interface PlatformBarProps {
  * account, read from the platform of the user. Its log out ends the session
  * of the app, which ends the one of the SSO.
  */
-export function PlatformBar({ sdk, actions }: PlatformBarProps): ReactElement {
+export function PlatformBar({
+  sdk,
+  actions,
+  left,
+  search
+}: PlatformBarProps): ReactElement {
   const { t } = useI18n()
   const handleLogout = useLogout()
 
@@ -36,7 +48,7 @@ export function PlatformBar({ sdk, actions }: PlatformBarProps): ReactElement {
           textIcon: new URL(APP_TEXT_ICON_PATH, window.location.origin).href
         }}
         onLogOut={handleLogout}
-        slots={{ right: actions }}
+        slots={{ left, search, right: actions }}
       />
     </SdkProvider>
   )

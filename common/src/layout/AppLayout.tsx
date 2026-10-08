@@ -6,6 +6,7 @@ import { Outlet, useLocation, useMatch } from 'react-router'
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { SCRIPT_FOCUS_TARGET } from '@/ds/FocusIndicator/focusIndicator'
+import { SearchRow } from '@/ds/SearchRow/SearchRow'
 import { SkipLink } from '@/ds/SkipLink/SkipLink'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -39,12 +40,16 @@ import {
   RecoveryProvider
 } from '@common/features/recovery/RecoveryProvider'
 import { VacationBanner } from '@common/features/vacation/VacationBanner'
-import { PlatformProvider } from '@common/features/platform/PlatformProvider'
+import {
+  PlatformProvider,
+  usePlatformSdk
+} from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { AppHeader } from './AppHeader'
 import { MailSidebar } from './MailSidebar'
 import { MailSearchRow } from './MailSearchRow'
+import { SettingsButton } from './SettingsButton'
 import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
 
 /** The target of the skip link and of the focus after a navigation */
@@ -116,6 +121,8 @@ function AppFrame(): ReactElement {
   const isSearchEmailOpen = useMatch('/search/email/:emailId/*') !== null
   const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
   const isSettings = isSettingsPath(location.pathname)
+  // The search is in the platform bar, unless the Workplace frames the app
+  const hasPlatformBar = usePlatformSdk() !== null
   const showComposeFab =
     !isDesktop && !isSettings && (!isEmailOpen || screenSize === 'tabletLarge')
 
@@ -174,7 +181,13 @@ function AppFrame(): ReactElement {
           />
         )}
         <FlatMain inset={isDesktop}>
-          {isDesktop && !isSettings ? <MailSearchRow /> : null}
+          {isDesktop && !isSettings && !hasPlatformBar ? (
+            <SearchRow
+              search={<MailSearchRow />}
+              actions={<SettingsButton />}
+              data-testid="search-row"
+            />
+          ) : null}
           <VacationBanner />
           <RecoveryBanner />
           <QuotaBanner />

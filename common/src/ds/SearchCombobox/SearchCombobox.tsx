@@ -36,8 +36,13 @@ import {
 const POPUP_SX = { zIndex: 'modal' } as const
 /** The field stays above the popup that starts behind it */
 const FIELD_OPEN_Z_INDEX = 1301
-/** Radius of the open panel, the field's own (a pill of 40 px) */
-const PANEL_RADIUS = 20
+/** The field of tmail-flutter: 52 px high, rounded by 12 px, blue grey */
+const FIELD_HEIGHT = 52
+const FIELD_RADIUS = 12
+const FIELD_BACKGROUND = '#E0E9F1'
+const FIELD_ICON_COLOR = '#818C99'
+/** Radius of the open panel, as tmail-flutter's suggestions */
+const PANEL_RADIUS = 16
 type PopperModifier = NonNullable<PopperProps['modifiers']>[number]
 
 /** The popup is as wide as the field, whatever the layout does after the focus */
@@ -149,6 +154,11 @@ export interface SearchComboboxProps {
 function fieldSx(isOpen: boolean): SxProps<Theme> {
   return {
     position: 'relative',
+    height: `${FIELD_HEIGHT}px`,
+    borderRadius: `${FIELD_RADIUS}px`,
+    bgcolor: FIELD_BACKGROUND,
+    '& .MuiInputBase-root': { fontSize: '16px' },
+    '& .SearchBar-icon, & .MuiIconButton-root': { color: FIELD_ICON_COLOR },
     ...(isOpen
       ? {
           zIndex: FIELD_OPEN_Z_INDEX,

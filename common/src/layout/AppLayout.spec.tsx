@@ -43,20 +43,18 @@ describe('AppLayout', () => {
     ).toBeVisible()
   })
 
-  it('puts the search and the settings button in the page, under the top bar', async () => {
+  it('puts the logotype, the search and the settings button in the platform bar, as tmail-flutter', async () => {
     mockViewport({ width: 1440 })
     renderLayout()
 
     const row = await screen.findByTestId('search-row')
+    const bar = screen.getByTestId('twake-bar')
 
     expect(screen.queryByTestId('top-bar')).toBe(null)
+    expect(bar).toContainElement(row)
     expect(within(row).getByTestId('search-input')).toBeVisible()
-    expect(within(row).getByRole('button', { name: 'Settings' })).toBeVisible()
-    expect(
-      within(screen.getByTestId('twake-bar')).getByRole('img', {
-        name: 'Twake Mail'
-      })
-    ).toBeVisible()
+    expect(within(bar).getByRole('button', { name: 'Settings' })).toBeVisible()
+    expect(within(bar).getByRole('img', { name: 'Twake Mail' })).toBeVisible()
   })
 
   it('keeps the search in the top bar below the desktop size', async () => {

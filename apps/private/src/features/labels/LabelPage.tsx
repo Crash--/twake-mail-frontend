@@ -1,8 +1,8 @@
-import { Box, Empty } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Navigate, useOutlet, useParams } from 'react-router'
 
-import { EmailOpen } from '@/ds/FlutterIcons/FlutterIcons'
+import { DetailPlaceholder } from '@/ds/DetailPlaceholder/DetailPlaceholder'
 import { ListDetailLayout } from '@/ds/ListDetailLayout/ListDetailLayout'
 import { LabelList } from '@common/features/labels/LabelList'
 import { EmailListPageSkeleton } from '@common/features/thread/EmailListSkeleton'
@@ -34,8 +34,7 @@ export function LabelPage(): ReactElement {
         list={<LabelList key={label.id} label={label} />}
         detail={email}
         placeholder={
-          <Empty
-            icon={EmailOpen}
+          <DetailPlaceholder
             title={t('email.noneSelected')}
             data-testid="email-view-empty"
           />

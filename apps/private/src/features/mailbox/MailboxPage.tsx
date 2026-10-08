@@ -1,8 +1,8 @@
-import { Box, Empty } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { useOutlet, useParams } from 'react-router'
 
-import { EmailOpen } from '@/ds/FlutterIcons/FlutterIcons'
+import { DetailPlaceholder } from '@/ds/DetailPlaceholder/DetailPlaceholder'
 import { ListDetailLayout } from '@/ds/ListDetailLayout/ListDetailLayout'
 import { RequireKnownMailbox } from '@common/features/mailbox/RequireKnownMailbox'
 import { EmailList } from '@common/features/thread/EmailList'
@@ -29,8 +29,7 @@ export function MailboxPage(): ReactElement {
           list={<EmailList key={mailboxId} mailboxId={mailboxId} />}
           detail={email}
           placeholder={
-            <Empty
-              icon={EmailOpen}
+            <DetailPlaceholder
               title={t('email.noneSelected')}
               data-testid="email-view-empty"
             />

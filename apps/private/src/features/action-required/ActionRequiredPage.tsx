@@ -1,8 +1,8 @@
-import { Box, Empty } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Navigate, useOutlet } from 'react-router'
 
-import { EmailOpen } from '@/ds/FlutterIcons/FlutterIcons'
+import { DetailPlaceholder } from '@/ds/DetailPlaceholder/DetailPlaceholder'
 import { ListDetailLayout } from '@/ds/ListDetailLayout/ListDetailLayout'
 import { useAiNeedsAction } from '@common/features/ai/aiNeedsAction'
 import { ActionRequiredList } from '@common/features/mailbox/ActionRequiredList'
@@ -31,8 +31,7 @@ export function ActionRequiredPage(): ReactElement | null {
         list={<ActionRequiredList />}
         detail={email}
         placeholder={
-          <Empty
-            icon={EmailOpen}
+          <DetailPlaceholder
             title={t('email.noneSelected')}
             data-testid="email-view-empty"
           />

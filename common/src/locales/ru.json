@@ -544,6 +544,11 @@
         "symbols": "Символы",
         "flags": "Флаги"
       }
+    },
+    "sendingDialog": {
+      "status": "Статус",
+      "progress": "Прогресс",
+      "creating": "Создание сообщения"
     }
   },
   "layout": {

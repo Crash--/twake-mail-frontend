@@ -322,3 +322,4 @@ Conventions:
 | `login-password-toggle` | "Show password" / "Hide password" button of the password field of the basic login, as tmail-flutter's eye | — |
 | `settings-sign-out-button` | "Sign out" at the end of the settings menu of a desktop, after a divider, as tmail-flutter | `AccountMenuItem.signOut` |
 | `create-first-rule-button` | "Create My First Rule" of the empty Email rules; `add-rule-button` ("Add a rule") is now beside the title whether rules exist or not, as tmail-flutter | `createMyFirstRule` |
+| `composer-sending-dialog` | "Sending message" modal dialog while a message is built ("Creating message...") then sent ("Sending message..."), as tmail-flutter; the Send button keeps its label | `SendingMessageDialogView` |

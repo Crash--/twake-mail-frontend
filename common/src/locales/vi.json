@@ -544,6 +544,11 @@
         "symbols": "Ký hiệu",
         "flags": "Cờ"
       }
+    },
+    "sendingDialog": {
+      "status": "Trạng thái",
+      "progress": "Tiến trình",
+      "creating": "Tạo thư"
     }
   },
   "layout": {

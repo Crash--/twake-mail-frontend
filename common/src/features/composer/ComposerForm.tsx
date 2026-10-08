@@ -45,6 +45,7 @@ import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { PillButton } from '@/ds/PillButton/PillButton'
+import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
 import { FormattingIcon, SaveDraftIcon } from '@/ds/ComposerIcons/ComposerIcons'
 import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -402,6 +403,11 @@ function LoadedComposerForm({
    */
   const [saveAnnouncement, setSaveAnnouncement] = useState('')
   const [isSending, setIsSending] = useState(false)
+  // The step tmail-flutter's sending dialog says: the email is built (its
+  // images and attachments uploaded), then sent
+  const [sendingStep, setSendingStep] = useState<'creating' | 'sending'>(
+    'creating'
+  )
   const [sendError, setSendError] = useState<string | null>(null)
   const [isSendOverQuota, setIsSendOverQuota] = useState(false)
   const premiumCta = usePremiumCta()
@@ -1240,6 +1246,7 @@ function LoadedComposerForm({
     setRecipients(lists)
     setInputs(EMPTY_INPUTS)
     if (!(await checkBeforeSending(lists))) return
+    setSendingStep('creating')
     setIsSending(true)
     try {
       await flush()
@@ -1250,6 +1257,7 @@ function LoadedComposerForm({
         mailboxIds,
         'send'
       )
+      setSendingStep('sending')
       const result = await sendEmail(
         client,
         accountId,
@@ -1421,17 +1429,32 @@ function LoadedComposerForm({
     </ActionIconButton>
   )
   const sendButton = (
+    // As tmail-flutter: the button stays as it is, the sending dialog
+    // covers the window (and `handleSend` refuses a second send)
     <PillButton
-      label={isSending ? t('composer.sending') : t('composer.send')}
+      label={t('composer.send')}
       icon={Paperplane}
       width={128}
       isIconOnly={isPhone}
       onClick={() => {
         void handleSend()
       }}
-      disabled={isSending}
       aria-describedby={sendError === null ? undefined : sendErrorId}
       data-testid="composer-send-button"
+    />
+  )
+  const sendingDialog = (
+    <SendingDialog
+      open={isSending}
+      title={t('composer.sending')}
+      statusLabel={t('composer.sendingDialog.status')}
+      status={t(
+        sendingStep === 'creating'
+          ? 'composer.sendingDialog.creating'
+          : 'composer.sending'
+      )}
+      progressLabel={t('composer.sendingDialog.progress')}
+      data-testid="composer-sending-dialog"
     />
   )
   const moreMenu = (
@@ -1763,6 +1786,7 @@ function LoadedComposerForm({
           </Box>
         )}
         {moreMenu}
+        {sendingDialog}
         <TemplatePicker
           open={isPickerOpen}
           onClose={handleClosePicker}

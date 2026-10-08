@@ -544,6 +544,11 @@
         "symbols": "Symbols",
         "flags": "Flags"
       }
+    },
+    "sendingDialog": {
+      "status": "Status",
+      "progress": "Progress",
+      "creating": "Creating message"
     }
   },
   "layout": {

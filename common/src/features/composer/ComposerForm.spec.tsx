@@ -259,6 +259,40 @@ describe('ComposerForm', () => {
       expect(sent?.to).toEqual([{ name: null, email: 'bob@example.com' }])
     })
 
+    it('says it is sending in a dialog, as tmail-flutter, the Send button staying as it is', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Watched' })
+      const release = jmapServer.holdRequests('EmailSubmission/set')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Sending message'
+      })
+      expect(within(dialog).getByRole('progressbar')).toBeVisible()
+      await waitFor(() => {
+        expect(within(dialog).getByRole('status')).toHaveTextContent(
+          'Sending message...'
+        )
+      })
+      // Behind the modal dialog: hidden from the accessibility tree
+      const send = within(composer).getByTestId('composer-send-button')
+      expect(send).toHaveTextContent(/^Send$/)
+      expect(send).toBeEnabled()
+      release()
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog', { name: 'Sending message' })).toBe(
+          null
+        )
+      })
+    })
+
     it('says the user is offline when the sending fails without network, and keeps the message', async () => {
       const { jmapServer } = renderComposer()
       const composer = await openComposer()

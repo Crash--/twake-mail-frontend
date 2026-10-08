@@ -15,7 +15,10 @@ const LIST_SX = {
   m: 0,
   pl: '12px',
   pr: '24px',
-  pb: '24px'
+  pb: '24px',
+  // On a phone tmail-flutter's list starts at the edge of the screen, not
+  // within the 16 px of the section
+  [`@media ${SCREEN_QUERIES.mobile}`]: { mx: -2 }
 } as const
 
 const ITEM_SX = {

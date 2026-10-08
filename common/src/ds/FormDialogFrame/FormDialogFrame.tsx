@@ -134,6 +134,7 @@ function bodySx(isFullScreen: boolean): Record<string, unknown> {
     flex: '1 1 auto',
     overflowY: 'auto',
     px: isFullScreen ? '17px' : 4,
+    pt: isFullScreen ? 1 : 0,
     pb: isFullScreen ? 0 : 3
   }
 }
@@ -201,6 +202,15 @@ export function FormDialogFrame({
   children,
   'data-testid': testId
 }: FormDialogFrameProps): ReactElement {
+  const footer = (
+    <>
+      {footerStart}
+      <Box className="FormDialogFrame-actions" sx={ACTIONS_SX}>
+        {actions}
+      </Box>
+    </>
+  )
+
   return (
     <Dialog
       open
@@ -252,13 +262,18 @@ export function FormDialogFrame({
             </IconButton>
           </>
         )}
-        <Box sx={bodySx(isFullScreen)}>{children}</Box>
-        <Box sx={footerSx(isFullScreen)}>
-          {footerStart}
-          <Box className="FormDialogFrame-actions" sx={ACTIONS_SX}>
-            {actions}
+        {isFullScreen ? (
+          // A phone scrolls the bottom with the fields, as tmail-flutter
+          <Box sx={bodySx(true)}>
+            {children}
+            <Box sx={{ ...footerSx(true), px: 0 }}>{footer}</Box>
           </Box>
-        </Box>
+        ) : (
+          <>
+            <Box sx={bodySx(false)}>{children}</Box>
+            <Box sx={footerSx(false)}>{footer}</Box>
+          </>
+        )}
       </Box>
     </Dialog>
   )
@@ -276,8 +291,8 @@ const ROW_SX = {
 const PHONE_ROW_SX = {
   display: 'flex',
   flexDirection: 'column',
-  gap: 1,
-  mt: '15px',
+  gap: '12px',
+  mt: '24px',
   '&:first-of-type': { mt: 0 }
 } as const
 

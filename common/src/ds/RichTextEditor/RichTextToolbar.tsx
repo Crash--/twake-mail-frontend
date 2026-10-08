@@ -132,6 +132,10 @@ const ICON_SX = { fontSize: ICON_SIZE } as const
  * 20 px grey (#99A2AD), black when on; 12 px above the text
  */
 const BOXED_SX = {
+  // Wrapped on every screen, as tmail-flutter's
+  flexWrap: 'wrap',
+  overflowX: 'visible',
+  maskImage: 'none',
   gap: 1,
   pt: 0,
   pb: '12px',

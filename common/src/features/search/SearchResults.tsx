@@ -136,6 +136,7 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
       {search === null ? (
         <EmailListSkeleton
           isCompact={screenSize !== 'desktop'}
+          isSearch
           className="u-flex-auto"
         />
       ) : (

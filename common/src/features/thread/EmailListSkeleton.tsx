@@ -83,16 +83,21 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
  * tmail-flutter's compact row: the 48 px avatar, then the sender and the
  * date, the subject and the preview, on the 72 px of the real rows
  */
-function compactColumns(sides: number): ListTableSkeletonColumn[] {
+function compactColumns(
+  sides: number,
+  isTagged: boolean
+): ListTableSkeletonColumn[] {
   return [
     { id: 'select', width: sides + 48, cell: <CompactAvatarSkeleton /> },
-    { id: 'message', cell: <CompactLinesSkeleton /> }
+    { id: 'message', cell: <CompactLinesSkeleton isTagged={isTagged} /> }
   ]
 }
 
 export interface EmailListSkeletonProps {
   /** Below the desktop size the rows are the narrow ones, as in the list */
   isCompact: boolean
+  /** Search results: the folder pill makes the compact rows taller */
+  isSearch?: boolean
   className?: string
   /** `SKELETON_DELAY_MS` by default */
   delayMs?: number
@@ -113,6 +118,7 @@ export function EmailListSkeleton(props: EmailListSkeletonProps): ReactElement {
 
 function EmailListRowsSkeleton({
   isCompact,
+  isSearch = false,
   className
 }: EmailListSkeletonProps): ReactElement {
   useLoadingAnnouncement(true)
@@ -120,8 +126,8 @@ function EmailListRowsSkeleton({
   const isPhone = useScreenSize() === 'mobile'
   const compactLayout = useMemo(() => getCompactRowLayout(isPhone), [isPhone])
   const narrowColumns = useMemo(
-    () => compactColumns(compactLayout.paddingX),
-    [compactLayout]
+    () => compactColumns(compactLayout.paddingX, isSearch),
+    [compactLayout, isSearch]
   )
   const columns = useMemo(
     () => wideColumns({ canHover, isTouch }),

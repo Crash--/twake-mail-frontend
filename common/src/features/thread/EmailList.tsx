@@ -634,7 +634,11 @@ export function EmailList(props: EmailListProps): ReactElement {
     )
   } else if (query.isPending) {
     content = (
-      <EmailListSkeleton isCompact={isCompact} className="u-flex-auto" />
+      <EmailListSkeleton
+        isCompact={isCompact}
+        isSearch={search !== null}
+        className="u-flex-auto"
+      />
     )
   } else if (query.isError) {
     const handleRetry = (): void => {

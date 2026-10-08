@@ -121,6 +121,8 @@ export interface ModalDialogProps {
   /** The grey line under the title, e.g. where a new folder goes */
   subtitle?: ReactNode
   titleId: string
+  /** Id of what describes the dialog, for `aria-describedby` */
+  describedBy?: string
   /** Names the close cross */
   closeLabel: string
   onClose: () => void
@@ -148,6 +150,7 @@ export function ModalDialog({
   title,
   subtitle,
   titleId,
+  describedBy,
   closeLabel,
   onClose,
   onExited,
@@ -192,6 +195,7 @@ export function ModalDialog({
       open={open}
       onClose={onClose}
       aria-labelledby={titleId}
+      aria-describedby={describedBy}
       slotProps={{
         paper: {
           sx: { ...PAPER_SX, width: paperWidth }

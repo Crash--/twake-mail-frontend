@@ -1,14 +1,6 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Tooltip
-} from '@linagora/twake-mui'
-import { Icon } from '@linagora/twake-icons'
 import { useId, type ReactElement } from 'react'
 
-import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
+import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { ShortcutsPanel } from './ShortcutsPanel'
@@ -30,30 +22,19 @@ export function ShortcutsHelpDialog({
   const descriptionId = useId()
   const closeLabel = t('common.close')
 
+  // The frame of tmail-flutter's modals (`ds/ModalDialog`)
   return (
-    <Dialog
+    <ModalDialog
       open={open}
       onClose={onClose}
-      size="medium"
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
+      title={t('shortcuts.title')}
+      titleId={titleId}
+      describedBy={descriptionId}
+      closeLabel={closeLabel}
+      width={640}
       data-testid="shortcuts-dialog"
     >
-      <DialogTitle id={titleId} className="u-flex u-flex-items-center">
-        <span className="u-flex-auto">{t('shortcuts.title')}</span>
-        <Tooltip title={closeLabel}>
-          <IconButton
-            aria-label={closeLabel}
-            onClick={onClose}
-            data-testid="shortcuts-dialog-close-button"
-          >
-            <Icon icon={Cross} />
-          </IconButton>
-        </Tooltip>
-      </DialogTitle>
-      <DialogContent>
-        <ShortcutsPanel descriptionId={descriptionId} labelledBy={titleId} />
-      </DialogContent>
-    </Dialog>
+      <ShortcutsPanel descriptionId={descriptionId} labelledBy={titleId} />
+    </ModalDialog>
   )
 }

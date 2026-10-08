@@ -121,7 +121,8 @@ export function EmailListDefaultToolbar({
           data-testid="recover-deleted-messages-button"
         />
       ) : null}
-      {end === undefined ? null : <span className="u-ml-auto">{end}</span>}
+      {/* As tmail-flutter: right after the other buttons (the sort order) */}
+      {end === undefined ? null : end}
     </ListToolbar>
   )
 }

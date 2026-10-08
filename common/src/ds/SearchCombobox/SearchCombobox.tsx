@@ -4,10 +4,9 @@
 // Contacts) needs suggestions under its field; this is the ARIA 1.2
 // combobox pattern around `SearchBar`, with a free header (filters) above
 // the list.
-import { Cross, Icon } from '@linagora/twake-icons'
+import { CrossCircle, Icon } from '@linagora/twake-icons'
 import {
   Box,
-  Divider,
   IconButton,
   Paper,
   Popper,
@@ -58,32 +57,82 @@ const SAME_WIDTH: PopperModifier = {
 }
 const SCROLL_SX = { maxHeight: '60vh', overflowY: 'auto' } as const
 const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
+// The suggestions of tmail-flutter: 12 px around, the icon 8 px before the
+// text, the name in Inter 15 black, the details and the second line in 13
 const OPTION_SX = {
   display: 'flex',
-  alignItems: 'center',
+  // The icon on the first line, as the star of an email
+  alignItems: 'flex-start',
+  '& > svg, & > .MuiAvatar-root': { mt: '1px' },
   gap: 1,
-  px: 2,
-  py: 1,
+  p: '12px',
   cursor: 'pointer',
   '&[aria-selected="true"]': { bgcolor: 'action.selected' },
-  '&:hover': { bgcolor: 'action.hover' },
-  // The highlighted words of a suggestion
-  '& mark': { bgcolor: 'transparent', color: 'inherit', fontWeight: 700 }
+  '&:hover': { bgcolor: 'action.hover' }
 } as const
-const HEADING_SX = { px: 2, pt: 1, pb: 0.5, color: 'text.primary' } as const
+const HEADING_SX = {
+  px: '12px',
+  pt: 1,
+  pb: 0.5,
+  color: 'text.primary'
+} as const
+const LINE_SX = { display: 'flex', alignItems: 'center', minWidth: 0 } as const
+const LABEL_SX = (isStrong: boolean, isHint: boolean): SxProps<Theme> => ({
+  flex: '0 1 auto',
+  minWidth: 0,
+  color: '#000000',
+  fontSize: isHint ? 13 : 15,
+  fontWeight: isStrong ? 600 : isHint ? 500 : 400,
+  lineHeight: '20px'
+})
+const HINT_SX = {
+  flexShrink: 0,
+  mr: '4px',
+  color: '#686E76',
+  fontSize: 13,
+  fontWeight: 500,
+  lineHeight: '20px'
+} as const
+const DETAIL_SX = {
+  flex: '1 1 0',
+  minWidth: 0,
+  ml: 2,
+  color: '#000000',
+  fontSize: 13,
+  lineHeight: '20px'
+} as const
+const SECONDARY_SX = {
+  mt: '3px',
+  color: '#6D7885',
+  fontSize: 13,
+  lineHeight: '18px'
+} as const
 const END_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: 1,
   flexShrink: 0,
-  color: 'text.secondary',
-  typography: 'body2'
+  // At the end of the line, whatever comes before
+  ml: 'auto',
+  pl: 1,
+  color: '#000000',
+  fontSize: 13,
+  lineHeight: '20px'
 } as const
 
 export interface SearchComboboxOption {
   id: string
   /** What the option shows, and its accessible name */
   label: ReactNode
+  /** The label in Semi Bold (the sender of an email) */
+  isStrong?: boolean
+  /**
+   * Before the label, in grey: the label is then a small hint too
+   * ("Showing results for:" "text")
+   */
+  hint?: string
+  /** After the label, on its line, in 13 px (the subject of an email) */
+  detail?: ReactNode
   /** A second line (preview, address) */
   secondary?: ReactNode
   /** An icon or an avatar before the label */
@@ -375,7 +424,7 @@ export function SearchCombobox({
                       onClick={handleClear}
                       data-testid={testIds.clear}
                     >
-                      <Icon icon={Cross} />
+                      <Icon icon={CrossCircle} size={16} />
                     </IconButton>
                   </Tooltip>
                 )}
@@ -414,7 +463,6 @@ export function SearchCombobox({
           sx={{ borderRadius: `${PANEL_RADIUS}px`, pt: `${fieldHeight}px` }}
           onMouseDown={keepFocus}
         >
-          <Divider />
           <Box sx={SCROLL_SX}>
             {header}
             {hasOptions ? (
@@ -434,9 +482,6 @@ export function SearchCombobox({
                       role="presentation"
                       className="u-db"
                     >
-                      {group.isLabelHidden === true ? (
-                        <Divider component="div" aria-hidden="true" />
-                      ) : null}
                       <Box
                         component="ul"
                         role="group"
@@ -479,22 +524,47 @@ export function SearchCombobox({
                           >
                             {option.icon}
                             <Box className="u-flex-auto u-ov-hidden">
-                              <Typography noWrap>{option.label}</Typography>
-                              {option.secondary === undefined ? null : (
+                              <Box sx={LINE_SX}>
+                                {option.hint === undefined ? null : (
+                                  <Typography component="span" sx={HINT_SX}>
+                                    {option.hint}
+                                  </Typography>
+                                )}
                                 <Typography
-                                  variant="body2"
+                                  component="span"
                                   noWrap
-                                  color="text.primary"
+                                  sx={LABEL_SX(
+                                    option.isStrong === true,
+                                    option.hint !== undefined
+                                  )}
                                 >
+                                  {option.label}
+                                </Typography>
+                                {option.detail === undefined ? null : (
+                                  <Typography
+                                    component="span"
+                                    noWrap
+                                    sx={DETAIL_SX}
+                                  >
+                                    {option.detail}
+                                  </Typography>
+                                )}
+                                {option.end === undefined ? null : (
+                                  <Box
+                                    component="span"
+                                    sx={END_SX}
+                                    aria-hidden="true"
+                                  >
+                                    {option.end}
+                                  </Box>
+                                )}
+                              </Box>
+                              {option.secondary === undefined ? null : (
+                                <Typography noWrap sx={SECONDARY_SX}>
                                   {option.secondary}
                                 </Typography>
                               )}
                             </Box>
-                            {option.end === undefined ? null : (
-                              <Box sx={END_SX} aria-hidden="true">
-                                {option.end}
-                              </Box>
-                            )}
                           </Box>
                         ))}
                       </Box>

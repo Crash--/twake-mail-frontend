@@ -21,16 +21,25 @@ export const ROW_LAYOUT: RowLayout = {
 export const ACTION_SIZE = 32
 
 /**
- * The attachment (a 32 px box and its 4 px margin), the longest list date
- * ("Dec 30, 2025", 12 px) and the 8 px before the actions, shown beside the
+ * The attachment (16 px and its 8 px margin), the longest list date ("Dec
+ * 30, 2025", 12 px) with its 8 px and 20 px margins, shown beside the
  * actions on a screen without hover
  */
-const DATE_BLOCK_WIDTH = 36 + 80 + 8
+const DATE_BLOCK_WIDTH = 24 + 80 + 28
 
 /** The checkbox (40 px, 4 px from the edge) and the two 28 px state slots */
 const LEAD_FIXED_WIDTH = 44 + 2 * 28
 /** The star of tmail-flutter: a bare 20 px icon */
 const STAR_WIDTH = 20
+/**
+ * The folder of a search result before the attachment and the date: a pill
+ * of at most 100 px and its 8 px margin (`ds/MailboxTag`)
+ */
+export const MAILBOX_TAG_ROOM = 108
+
+/** After the actions of a hovered row, as tmail-flutter */
+const ACTIONS_END_SPACE = 16
+
 /** Between the subject and the date or actions */
 const TRAILING_GAP = 16
 
@@ -60,7 +69,10 @@ export function getLeadWidth(isTouch: boolean): number {
  */
 export function getTrailingWidth({ canHover, isTouch }: RowPointer): number {
   const actionsWidth =
-    TRAILING_GAP + 5 * getButtonSize(isTouch) + ROW_LAYOUT.paddingX
+    TRAILING_GAP +
+    5 * getButtonSize(isTouch) +
+    ACTIONS_END_SPACE +
+    ROW_LAYOUT.paddingX
   return canHover ? actionsWidth : actionsWidth + DATE_BLOCK_WIDTH
 }
 

@@ -26,6 +26,7 @@ import {
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
 import { RowDate } from '@/ds/RowDate/RowDate'
@@ -61,6 +62,9 @@ import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
+
+/** The attachment icon of a wide row (`steelGray200`) */
+const ATTACHMENT_ICON_COLOR = '#AEB7C2'
 
 /**
  * The columns of the email list, in their order, as tmail-flutter: `lead`
@@ -464,16 +468,14 @@ export function EmailCell({
         </span>
       </SecondaryText>
     )
+  // As tmail-flutter: the folder of a search result in a pill
   const mailboxLabel =
     mailboxNames === null ? null : (
-      <SecondaryText
-        variant="caption"
-        noWrap
-        className="u-flex-shrink-0 u-ml-half"
+      <MailboxTag
+        name={mailboxNames}
+        label={t('search.inMailbox', { name: mailboxNames })}
         data-testid="email-list-item-mailbox"
-      >
-        {t('search.inMailbox', { name: mailboxNames })}
-      </SecondaryText>
+      />
     )
   // Said in the name of the row link: the icon shows it to the eye
   const importantIcon = isImportant ? (
@@ -488,12 +490,14 @@ export function EmailCell({
     <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
   ) : null
 
-  // A 32 px box for the icon: the attachment lines up with the buttons
+  // As tmail-flutter: 8 px after the folder, the date 8 px after it
   const wideAttachment = hasAttachment ? (
-    <span className="u-flex u-flex-justify-center u-flex-shrink-0 u-w-2 u-mr-half">
+    <span className="u-flex u-flex-shrink-0 u-ml-half">
+      {/* As tmail-flutter: 16 px, light steel grey */}
       <Icon
         icon={Attachment}
-        size={20}
+        size={16}
+        color={ATTACHMENT_ICON_COLOR}
         role="img"
         aria-label={t('email.attachment')}
       />
@@ -571,7 +575,6 @@ export function EmailCell({
             secondary={
               <span data-testid="email-list-item-preview">{preview}</span>
             }
-            trailing={mailboxLabel}
           />
         </RowLink>
       )
@@ -581,16 +584,21 @@ export function EmailCell({
         <RowHoverActions
           replaces={
             <>
+              {/* As tmail-flutter: the folder right before the attachment */}
+              {mailboxLabel}
               {wideAttachment}
               {wideDate}
             </>
           }
         >
-          {openButton}
-          {seenButton}
-          {moveButton}
-          {removeButton}
-          {moreButton}
+          {/* As tmail-flutter: 16 px before the edge of the row */}
+          <span className="u-flex u-flex-items-center u-pr-1">
+            {openButton}
+            {seenButton}
+            {moveButton}
+            {removeButton}
+            {moreButton}
+          </span>
         </RowHoverActions>
       )
     case 'unread':

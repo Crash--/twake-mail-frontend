@@ -3,7 +3,7 @@ import {
   ClockOutline,
   Filter,
   Icon,
-  Email,
+  StarOutline,
   Star
 } from '@linagora/twake-icons'
 import { Avatar, getInitials, IconButton, Tooltip } from '@linagora/twake-mui'
@@ -38,6 +38,10 @@ import { addRecentSearch, storeSortOrder } from './searchStorage'
 import { useSearchContext } from './useSearchContext'
 import { useSearchSuggestions } from './useSearchSuggestions'
 
+/** The stars of tmail-flutter (`ic_star.svg`, `ic_unstar.svg`) */
+const STARRED_COLOR = '#FFCC00'
+const UNSTARRED_COLOR = '#959DAD'
+
 /** Recent searches suggested under a non-empty field */
 const RECENT_WITH_TEXT = 3
 
@@ -54,7 +58,7 @@ export interface SearchFieldProps {
 /**
  * The search field of the top bar. While typing, it suggests a search for
  * the text, recent searches, contacts and the first matching emails, under
- * quick filters; Enter or "Search for" shows every result
+ * quick filters; Enter or "Showing results for" shows every result
  * (`/search?…`), an email suggestion opens that email among them. The
  * advanced search edits the same search.
  */
@@ -94,13 +98,19 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
     const showAll: SearchComboboxOption[] =
       hasText || hasFiltersOnly
         ? [
-            {
-              id: SHOW_ALL,
-              label: hasText
-                ? t('search.searchFor', { text: draft.text.trim() })
-                : t('search.searchWithFilters'),
-              'data-testid': 'search-suggestion-show-all'
-            }
+            // As tmail-flutter: "Showing results for: "text""
+            hasText
+              ? {
+                  id: SHOW_ALL,
+                  hint: t('search.showingResultsFor'),
+                  label: `"${draft.text.trim()}"`,
+                  'data-testid': 'search-suggestion-show-all'
+                }
+              : {
+                  id: SHOW_ALL,
+                  label: t('search.searchWithFilters'),
+                  'data-testid': 'search-suggestion-show-all'
+                }
           ]
         : []
     const recent = hasText
@@ -147,32 +157,41 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
         isLabelHidden: true,
         options: suggestions.emails.map(({ email, snippet }) => ({
           id: `${EMAIL_PREFIX}${email.id}`,
+          // As tmail-flutter: the star, the sender then the subject, the
+          // attachment and the date, and the preview under them
           icon: (
             <Icon
-              icon={email.keywords[FLAGGED] === true ? Star : Email}
+              icon={email.keywords[FLAGGED] === true ? Star : StarOutline}
+              size={18}
+              color={
+                email.keywords[FLAGGED] === true
+                  ? STARRED_COLOR
+                  : UNSTARRED_COLOR
+              }
               className="u-flex-shrink-0"
             />
           ),
-          end: (
-            <>
-              {formatListDate(email.receivedAt, lang)}
-              {email.hasAttachment ? <Icon icon={Attachment} /> : null}
-            </>
-          ),
-          label: (
+          label: formatAddressNames(email.from),
+          isStrong: true,
+          detail: (
             <HighlightedText
               text={email.subject ?? ''}
               snippet={snippet?.subject ?? null}
             />
           ),
-          secondary: (
+          end: (
             <>
-              {`${formatAddressNames(email.from)} – `}
-              <HighlightedText
-                text={email.preview}
-                snippet={snippet?.preview ?? null}
-              />
+              {email.hasAttachment ? (
+                <Icon icon={Attachment} size={14} color={UNSTARRED_COLOR} />
+              ) : null}
+              {formatListDate(email.receivedAt, lang)}
             </>
+          ),
+          secondary: (
+            <HighlightedText
+              text={email.preview}
+              snippet={snippet?.preview ?? null}
+            />
           ),
           'data-testid': 'search-suggestion-item'
         }))

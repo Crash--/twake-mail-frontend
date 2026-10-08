@@ -28,6 +28,7 @@ import {
   isSettingsPath,
   SettingsExitProvider
 } from '@common/features/settings/SettingsExitProvider'
+import { SearchFiltersHeader } from '@common/features/search/SearchFiltersRow'
 import { FeedbackWidget } from '@common/features/sentry/FeedbackWidget'
 import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync'
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
@@ -123,6 +124,8 @@ function AppFrame(): ReactElement {
   const isMailboxEmailOpen =
     useMatch('/mailbox/:mailboxId/email/:emailId/*') !== null
   const isSearchEmailOpen = useMatch('/search/email/:emailId/*') !== null
+  // As tmail-flutter: the filters of the results above the card of the list
+  const isSearchResults = useMatch('/search') !== null
   const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
   const isSettings = isSettingsPath(location.pathname)
   // The search is in the platform bar, unless the Workplace frames the app
@@ -184,7 +187,10 @@ function AppFrame(): ReactElement {
             onCompose={handleCompose}
           />
         )}
-        <FlatMain inset={isDesktop}>
+        <FlatMain
+          inset={isDesktop}
+          header={isDesktop && isSearchResults ? <SearchFiltersHeader /> : null}
+        >
           {isDesktop && !isSettings && !hasPlatformBar ? (
             <SearchRow
               search={<MailSearchRow />}

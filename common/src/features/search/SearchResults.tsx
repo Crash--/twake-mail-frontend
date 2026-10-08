@@ -1,5 +1,4 @@
-import { Icon, Left } from '@linagora/twake-icons'
-import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
+import { Box, Typography } from '@linagora/twake-mui'
 import {
   useCallback,
   useEffect,
@@ -16,7 +15,7 @@ import { EmailList } from '@common/features/thread/EmailList'
 import { EmailListSkeleton } from '@common/features/thread/EmailListSkeleton'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { SearchFiltersBar } from './SearchFiltersBar'
+import { SearchFiltersRow } from './SearchFiltersRow'
 import { SearchSortButton } from './SearchSortButton'
 import {
   searchPath,
@@ -38,7 +37,8 @@ function hasFocusTarget(state: unknown): boolean {
  * The results of a search (`/search?…`): a heading, the filters, and the
  * emails found, the matches highlighted. Each result opens at
  * `/search/email/:emailId?…`, which keeps the search; the back button goes
- * back to the mailboxes.
+ * back to the mailboxes. On a desktop the layout shows the filters above
+ * the card of the list (`SearchFiltersHeader`), as tmail-flutter.
  */
 export function SearchResults({ filter }: SearchResultsProps): ReactElement {
   const { t } = useI18n()
@@ -82,11 +82,6 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
     [navigate]
   )
 
-  const handleBack = (): void => {
-    void navigate('/')
-  }
-
-  const backLabel = t('search.backToMailbox')
   const empty = useMemo(
     () => (
       <EmptyListView
@@ -117,29 +112,23 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
 
   return (
     <Box className="u-flex u-flex-column u-h-100" data-testid="search-results">
-      <Box className="u-flex u-flex-items-center u-ph-half u-pt-half">
-        <Tooltip title={backLabel}>
-          <IconButton
-            aria-label={backLabel}
-            onClick={handleBack}
-            data-testid="search-results-back-button"
-          >
-            <Icon icon={Left} />
-          </IconButton>
-        </Tooltip>
-        {/* The title is for the screen readers and the page title: the
-            design shows the filters right under the search */}
-        <Typography
-          ref={headingRef}
-          variant="h1"
-          tabIndex={-1}
-          className="u-visuallyhidden"
-          data-testid="search-results-title"
-        >
-          {t('search.results')}
-        </Typography>
-        <SearchFiltersBar filter={filter} onChange={handleChange} />
-      </Box>
+      {/* The title is for the screen readers and the page title: the
+          design shows the filters right under the search */}
+      <Typography
+        ref={headingRef}
+        variant="h1"
+        tabIndex={-1}
+        className="u-visuallyhidden"
+        data-testid="search-results-title"
+      >
+        {t('search.results')}
+      </Typography>
+      {/* On a desktop the layout shows them above the card, as tmail-flutter */}
+      {screenSize === 'desktop' ? null : (
+        <Box className="u-ph-half u-pt-half">
+          <SearchFiltersRow filter={filter} />
+        </Box>
+      )}
       {search === null ? (
         <EmailListSkeleton
           isCompact={screenSize !== 'desktop'}

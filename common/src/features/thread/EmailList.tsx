@@ -98,6 +98,7 @@ import { useNewEmailCount } from './useNewEmailCount'
 import {
   getLeadWidth,
   getTrailingWidth,
+  MAILBOX_TAG_ROOM,
   ROW_LAYOUT,
   useRowPointer
 } from './emailListGeometry'
@@ -438,6 +439,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   // Stable, like the cell below: the rows of the table are memoized and
   // only render again when their email changes
   const { canHover, isTouch } = useRowPointer()
+  const isSearch = search !== null
   const columns = useMemo<(VirtualizedTableColumn & { id: EmailColumnId })[]>(
     () => [
       {
@@ -465,13 +467,16 @@ export function EmailList(props: EmailListProps): ReactElement {
         // beside them without hover
         id: 'trailing',
         label: `${t('email.attachment')}, ${t('thread.columns.date')}, ${t('thread.columns.actions')}`,
-        width: getTrailingWidth({ canHover, isTouch }),
+        // Search results say their folder there too
+        width:
+          getTrailingWidth({ canHover, isTouch }) +
+          (isSearch ? MAILBOX_TAG_ROOM : 0),
         textAlign: 'right',
         sortable: false,
         disablePadding: true
       }
     ],
-    [t, showRecipients, canHover, isTouch]
+    [t, showRecipients, canHover, isTouch, isSearch]
   )
 
   // Below 600 px of list: a phone, or the list beside an open email

@@ -258,7 +258,8 @@ export function SearchFiltersBar({
           data-testid="search-filter-folder"
         />
       </Slot>
-      {labelsAvailable ? (
+      {/* As tmail-flutter: only once the account has labels */}
+      {labels.length > 0 ? (
         <Slot>
           <FilterChip
             label={labelName}

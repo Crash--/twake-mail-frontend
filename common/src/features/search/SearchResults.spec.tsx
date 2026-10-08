@@ -13,6 +13,7 @@ import {
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
+import { SearchFiltersHeader } from './SearchFiltersRow'
 import { SearchResults } from './SearchResults'
 import { useUrlSearchFilter } from './useUrlSearchFilter'
 
@@ -21,6 +22,8 @@ function SearchScreen(): ReactElement | null {
   const location = useLocation()
   return filter === null ? null : (
     <>
+      {/* Above the card of the list, as the layout shows it on a desktop */}
+      <SearchFiltersHeader />
       <SearchResults filter={filter} />
       <p data-testid="location">{`${location.pathname}${location.search}`}</p>
     </>

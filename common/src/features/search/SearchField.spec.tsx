@@ -89,7 +89,9 @@ describe('SearchField', () => {
       within(options[0] ?? emails).getAllByText('report')[0]?.tagName
     ).toBe('MARK')
     expect(
-      within(listbox).getByRole('option', { name: 'Search for "report"' })
+      within(listbox).getByRole('option', {
+        name: 'Showing results for: "report"'
+      })
     ).toBeVisible()
   })
 
@@ -155,7 +157,9 @@ describe('SearchField', () => {
     const server = makeServer()
     await renderField(server)
     await userEvent.type(combobox(), 'bob')
-    await screen.findByRole('option', { name: 'Search for "bob"' })
+    await screen.findByRole('option', {
+      name: 'Showing results for: "bob"'
+    })
 
     expect(server.calledMethods()).not.toContain('TMailContact/autocomplete')
   })

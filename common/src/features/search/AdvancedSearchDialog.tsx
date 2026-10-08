@@ -1,23 +1,10 @@
 import {
-  Account,
-  Calendar,
-  Forbidden,
-  FolderOutlined,
-  LabelOutlined,
-  Magnifier,
-  Text,
-  Swap,
-  type IconProps
-} from '@linagora/twake-icons'
-import {
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   TextField
 } from '@linagora/twake-mui'
 import {
@@ -30,6 +17,7 @@ import {
 
 import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
 import { FormRow } from '@/ds/FormRow/FormRow'
+import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
@@ -162,6 +150,7 @@ export function AdvancedSearchDialog({
   const clearButton = (
     <Button
       variant="text"
+      size="large"
       className="u-flex-shrink-0"
       onClick={handleClear}
       data-testid="advanced-search-clear-button"
@@ -173,6 +162,7 @@ export function AdvancedSearchDialog({
     <Button
       type="submit"
       variant="contained"
+      size="large"
       data-testid="advanced-search-submit-button"
     >
       {t('search.submit')}
@@ -183,11 +173,10 @@ export function AdvancedSearchDialog({
     name: keyof TextFields,
     label: string,
     placeholder: string,
-    icon: IconProps['icon'],
     testId: string,
     autoFocus = false
   ): ReactElement => (
-    <FormRow label={label} htmlFor={fieldId(name)} icon={icon}>
+    <FormRow label={label} htmlFor={fieldId(name)}>
       <TextField
         id={fieldId(name)}
         variant="standard"
@@ -207,7 +196,6 @@ export function AdvancedSearchDialog({
         'from',
         t('search.fields.from'),
         t('search.hints.address'),
-        Account,
         'advanced-search-from-input',
         true
       )}
@@ -215,35 +203,27 @@ export function AdvancedSearchDialog({
         'to',
         t('search.fields.to'),
         t('search.hints.address'),
-        Account,
         'advanced-search-to-input'
       )}
       {textRow(
         'subject',
         t('search.fields.subject'),
         t('search.hints.subject'),
-        Text,
         'advanced-search-subject-input'
       )}
       {textRow(
         'text',
         t('search.fields.text'),
         t('search.hints.words'),
-        Magnifier,
         'advanced-search-text-input'
       )}
       {textRow(
         'notWords',
         t('search.fields.notWords'),
         t('search.wordsHint'),
-        Forbidden,
         'advanced-search-not-words-input'
       )}
-      <FormRow
-        label={t('search.fields.folder')}
-        htmlFor={fieldId('folder')}
-        icon={FolderOutlined}
-      >
+      <FormRow label={t('search.fields.folder')} htmlFor={fieldId('folder')}>
         <TextField
           select
           id={fieldId('folder')}
@@ -270,11 +250,7 @@ export function AdvancedSearchDialog({
         </TextField>
       </FormRow>
       {labels.length > 0 ? (
-        <FormRow
-          label={t('search.labels.label')}
-          htmlFor={fieldId('label')}
-          icon={LabelOutlined}
-        >
+        <FormRow label={t('search.labels.label')} htmlFor={fieldId('label')}>
           <TextField
             select
             id={fieldId('label')}
@@ -301,11 +277,7 @@ export function AdvancedSearchDialog({
           </TextField>
         </FormRow>
       ) : null}
-      <FormRow
-        label={t('search.fields.date')}
-        htmlFor={fieldId('date')}
-        icon={Calendar}
-      >
+      <FormRow label={t('search.fields.date')} htmlFor={fieldId('date')}>
         <TextField
           select
           id={fieldId('date')}
@@ -372,11 +344,7 @@ export function AdvancedSearchDialog({
           </FormRow>
         </>
       ) : null}
-      <FormRow
-        label={t('search.fields.sort')}
-        htmlFor={fieldId('sort')}
-        icon={Swap}
-      >
+      <FormRow label={t('search.fields.sort')} htmlFor={fieldId('sort')}>
         <TextField
           select
           id={fieldId('sort')}
@@ -410,17 +378,13 @@ export function AdvancedSearchDialog({
             ['notIncludeEvents', 'search.filters.notIncludeEvents']
           ] as const
         ).map(([name, label]) => (
-          <FormControlLabel
+          <LabeledCheckbox
             key={name}
             label={t(label)}
-            control={
-              <Checkbox
-                checked={draft[name]}
-                onChange={event => {
-                  setDraft({ ...draft, [name]: event.target.checked })
-                }}
-              />
-            }
+            checked={draft[name]}
+            onChange={checked => {
+              setDraft({ ...draft, [name]: checked })
+            }}
           />
         ))}
       </Box>
@@ -436,11 +400,12 @@ export function AdvancedSearchDialog({
         title={t('search.advanced')}
         data-testid="advanced-search-dialog"
       >
-        <form onSubmit={handleSubmit} noValidate className="u-p-2">
+        {/* tmail-flutter: 24 px above and below, 32 px on the sides */}
+        <form onSubmit={handleSubmit} noValidate className="u-pv-1-half u-ph-2">
           {rows}
-          <Box className="u-flex u-flex-justify-end u-flex-items-center u-mt-1">
+          <Box className="u-flex u-flex-justify-end u-flex-items-center u-mt-1-half">
             {clearButton}
-            <Box className="u-ml-1">{submitButton}</Box>
+            <Box className="u-ml-half">{submitButton}</Box>
           </Box>
         </form>
       </AnchoredDialog>

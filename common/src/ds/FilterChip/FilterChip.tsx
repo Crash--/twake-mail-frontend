@@ -1,37 +1,42 @@
-// Upstream to twake-ui: yes. The search filters of the Figma "Teammail 1.1"
-// file are flat chips (#f3f6f9, no border, 8 px radius) with a 16 px icon,
-// an optional chevron, and a pale primary look with a cross once applied.
-// twake-mui's `Chip` is outlined or filled with a solid primary colour, and
-// needs `sx` for that background (docs/twake-mui-gaps.md).
+// Upstream to twake-ui: yes. The search filters of tmail-flutter
+// (`SearchFilterButton`) are flat chips (#ECEEF1, no border, a 10 px radius,
+// 12 px on the sides) with a 16 px icon and Inter Regular 13 in dark grey
+// (#686E76), an optional chevron, and the primary colour at 6 % with a cross
+// once applied. twake-mui's `Chip` is outlined or filled with a solid primary
+// colour, and needs `sx` for that background (docs/twake-mui-gaps.md).
 import { Bottom, CrossSmall, Icon, type IconProps } from '@linagora/twake-icons'
 import { Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
+const CHIP_BACKGROUND = '#ECEEF1'
+const CHIP_COLOR = '#686E76'
+
 const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
-  height: 32,
-  borderRadius: 2,
+  height: 34,
+  borderRadius: '10px',
   border: 0,
-  px: 0.5,
+  px: '4px',
   fontSize: 13,
-  fontWeight: 500,
-  color: isSelected ? 'primary.main' : 'text.primary',
+  fontWeight: 400,
+  letterSpacing: 0,
+  color: isSelected ? 'primary.main' : CHIP_COLOR,
   bgcolor: theme =>
     isSelected
-      ? `color-mix(in srgb, ${theme.palette.primary.main} 12%, transparent)`
-      : theme.palette.background.default,
+      ? `color-mix(in srgb, ${theme.palette.primary.main} 6%, transparent)`
+      : CHIP_BACKGROUND,
   '&:hover, &.Mui-focusVisible': {
     bgcolor: theme =>
       isSelected
-        ? `color-mix(in srgb, ${theme.palette.primary.main} 20%, transparent)`
-        : theme.palette.action.hover
+        ? `color-mix(in srgb, ${theme.palette.primary.main} 12%, transparent)`
+        : `color-mix(in srgb, ${CHIP_COLOR} 16%, ${CHIP_BACKGROUND})`
   },
   '& .MuiChip-icon': {
-    ml: 0.75,
+    ml: 1,
     mr: 0,
     fontSize: 16,
-    color: isSelected ? 'primary.main' : 'text.secondary'
+    color: isSelected ? 'primary.main' : CHIP_COLOR
   },
-  '& .MuiChip-label': { px: 0.5 }
+  '& .MuiChip-label': { px: 1 }
 })
 
 export interface FilterChipProps {
@@ -89,7 +94,7 @@ export function FilterChip({
       icon={icon === undefined ? undefined : <Icon icon={icon} />}
       endIcon={
         popup !== undefined ? (
-          <Icon icon={Bottom} size={12} />
+          <Icon icon={Bottom} size={16} />
         ) : isSelected ? (
           <Icon icon={CrossSmall} />
         ) : undefined

@@ -575,6 +575,25 @@ describe('PushProvider', () => {
       }
     })
 
+    it('asks the server nothing more while both switches are off', async () => {
+      window.localStorage.removeItem(
+        'twake-mail.preferences.newMailNotifications'
+      )
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 1)
+      // The synchronization of the lists only
+      expect(countCalls(server, 'Email/changes')).toBe(before + 1)
+      expect(shown).toEqual([])
+    })
+
     it('notifies nothing unless the page asks for it', async () => {
       const server = makeServer()
       const { socket } = await renderWithPush(server)

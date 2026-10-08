@@ -47,10 +47,16 @@ function playChime(): void {
  * holding the lock: each tab gets the same push. Pages that do not alert
  * (`isEnabled` false, as the facades framed by Twake Space) never take it.
  */
+export interface NewMailAlert {
+  alert: (emails: readonly NewEmail[]) => void
+  /** This tab alerts, and the user turned the sound or notifications on */
+  isWanted: () => boolean
+}
+
 export function useNewMailAlert(
   accountId: string,
   isEnabled: boolean
-): (emails: readonly NewEmail[]) => void {
+): NewMailAlert {
   const { t } = useI18n()
   const navigate = useNavigate()
   const isLeader = useRef(false)
@@ -86,7 +92,15 @@ export function useNewMailAlert(
     }
   }, [accountId, isEnabled])
 
-  return useCallback(
+  const isWanted = useCallback(
+    (): boolean =>
+      isLeader.current &&
+      (newMailSoundPreference.read() ||
+        (newMailNotificationPreference.read() && canNotify())),
+    []
+  )
+
+  const alert = useCallback(
     (emails: readonly NewEmail[]) => {
       if (!isLeader.current) return
       if (newMailSoundPreference.read()) {
@@ -126,4 +140,6 @@ export function useNewMailAlert(
     },
     [navigate, t]
   )
+
+  return { alert, isWanted }
 }

@@ -72,8 +72,9 @@ export function PushProvider({
               .getQueryData<MailboxListData>(mailboxKeys.list(accountId))
               ?.list.find(mailbox => mailbox.role === 'inbox')?.id ?? null,
           emails => {
-            alertRef.current(emails)
-          }
+            alertRef.current.alert(emails)
+          },
+          () => alertRef.current.isWanted()
         )
       : null
     // What arrived before the channel (re)opened is not new: the watcher

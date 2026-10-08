@@ -38,7 +38,9 @@ export function createNewMailWatcher(
   client: JmapClient,
   accountId: string,
   inboxId: () => string | null,
-  onNewEmails: (emails: readonly NewEmail[]) => void
+  onNewEmails: (emails: readonly NewEmail[]) => void,
+  /** Whether this page alerts now: else a push asks the server nothing */
+  isWanted: () => boolean
 ): NewMailWatcher {
   let since: string | null = null
   let isClosed = false
@@ -48,6 +50,10 @@ export function createNewMailWatcher(
     const from = since
     const inbox = inboxId()
     if (from === null || from === state) return
+    if (!isWanted()) {
+      since = state
+      return
+    }
     const [changes, created] = await client.request(builder => {
       const changesCall = builder.call('Email/changes', {
         accountId,

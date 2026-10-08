@@ -4,6 +4,8 @@
 import { Box, Typography, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
+
 /** Height of a line, divider included, in px (tmail-flutter's 48) */
 export const FIELD_LINE_HEIGHT = 48
 
@@ -24,6 +26,8 @@ export const FIELD_LINE_SX = {
   boxSizing: 'border-box',
   ml: '24px',
   pr: '24px',
+  // 16 px on phones, as tmail-flutter
+  [`@media ${SCREEN_QUERIES.mobile}`]: { ml: '16px', pr: '16px' },
   py: 0.5,
   borderBottom: '1px solid #F4F4F4',
   '& .MuiInputBase-input': { p: 0, height: '24px' },

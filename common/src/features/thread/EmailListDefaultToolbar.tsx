@@ -55,9 +55,10 @@ export function EmailListDefaultToolbar({
   end,
   isRefreshing,
   onRefresh
-}: EmailListDefaultToolbarProps): ReactElement {
+}: EmailListDefaultToolbarProps): ReactElement | null {
   const { t } = useI18n()
-  const isPhone = useScreenSize() === 'mobile'
+  const screenSize = useScreenSize()
+  const isPhone = screenSize === 'mobile'
   const recovery = useRecovery()
   const refreshLabel = t('common.refresh')
   const selectAllLabel = t('thread.toolbar.selectPage')
@@ -67,6 +68,13 @@ export function EmailListDefaultToolbar({
     mailbox.role === 'trash' &&
     isPersonalMailbox(mailbox) &&
     recovery.isAvailable
+
+  // As tmail-flutter below the desktop size: no toolbar above the list (the
+  // filter is in the bar, the avatars select), unless the Trash recovers
+  // or the results are sorted
+  if (screenSize !== 'desktop' && !canRecover && end === undefined) {
+    return null
+  }
 
   return (
     <ListToolbar label={t('thread.toolbar.label')} data-testid="list-toolbar">

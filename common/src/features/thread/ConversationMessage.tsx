@@ -9,6 +9,7 @@ import {
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { Attachment } from '@/ds/FlutterIcons/FlutterIcons'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { MessageThreadItem } from '@/ds/MessageThread/MessageThreadItem'
 import { Indent } from '@/ds/Indent/Indent'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
@@ -73,11 +74,14 @@ function SenderAvatar({
 }): ReactElement {
   const name = sender?.name ?? ''
   const address = sender?.email ?? ''
+  // tmail-flutter: 44 px on phones, 32 px elsewhere
+  const isPhone = useScreenSize() === 'mobile'
   return (
     <GradientAvatar
       text={firstLetterOf(name === '' ? address : name)}
       colorKey={address}
-      fontSize={18}
+      size={isPhone ? 44 : 32}
+      fontSize={isPhone ? 20 : 18}
     />
   )
 }

@@ -232,26 +232,21 @@ describe('AppLayout on a phone', () => {
     )
   })
 
-  it('unfolds the folded search with the / key, folded back by Escape', async () => {
+  it('shows the search under the bar, as tmail-flutter, focused with the / key', async () => {
     renderPhoneLayout()
 
     await screen.findByTestId('top-bar-folder-name')
-    expect(screen.queryByTestId('search-input')).toBe(null)
+    const input = screen.getByTestId('search-input')
+    expect(
+      within(screen.getByTestId('top-bar')).getByTestId('search-input')
+    ).toBe(input)
     await userEvent.click(screen.getByTestId('main-content'))
     await userEvent.keyboard('/')
 
     await waitFor(() => {
-      expect(screen.getByTestId('search-input')).toHaveFocus()
+      expect(input).toHaveFocus()
     })
-    expect(screen.getByTestId('search-input')).toHaveValue('')
-
-    // The first Escape closes the suggestions, the second folds the search
-    await userEvent.keyboard('{Escape}{Escape}')
-
-    await waitFor(() => {
-      expect(screen.getByTestId('search-open-button')).toHaveFocus()
-    })
-    expect(screen.queryByTestId('search-input')).toBe(null)
+    expect(input).toHaveValue('')
   })
 
   it('opens the folders in a drawer, closed once a folder is chosen', async () => {

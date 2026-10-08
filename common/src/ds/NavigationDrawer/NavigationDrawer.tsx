@@ -48,7 +48,8 @@ function wideScreenTheme(theme: Theme): Theme {
 const PAPER_SX = {
   width: DRAWER_WIDTH,
   maxWidth: `calc(100% - ${DRAWER_GAP}px)`,
-  backgroundColor: 'background.default',
+  // White, as tmail-flutter's drawer
+  backgroundColor: 'background.paper',
   // Rows and buttons of the drawer are touch targets (WCAG 2.5.5)
   [TOUCH_MEDIA]: {
     '& .MuiListItem-root': { height: TOUCH_TARGET_SIZE }

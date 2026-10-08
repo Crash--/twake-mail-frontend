@@ -4,6 +4,8 @@
 import { Box, Button, Divider } from '@linagora/twake-mui'
 import type { MouseEventHandler, ReactElement, ReactNode } from 'react'
 
+import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
+
 const BAR_SX = {
   position: 'sticky',
   bottom: 0,
@@ -30,7 +32,22 @@ const BUTTON_SX = {
   fontWeight: 500,
   letterSpacing: '0.1px',
   gap: 1,
-  '& .MuiButton-startIcon': { m: 0, '& > *:first-of-type': { fontSize: 20 } }
+  '& .MuiButton-startIcon': { m: 0, '& > *:first-of-type': { fontSize: 20 } },
+  // tmail-flutter's bottom bar of tablets: steel grey, Regular 16
+  [`@media ${SCREEN_QUERIES.belowDesktop}`]: {
+    borderRadius: 0,
+    color: '#55687D',
+    fontSize: 16,
+    fontWeight: 400,
+    letterSpacing: 0
+  },
+  // and of phones: the icon over a Regular 12 label
+  [`@media ${SCREEN_QUERIES.mobile}`]: {
+    flexDirection: 'column',
+    gap: '4px',
+    fontSize: 12,
+    lineHeight: '16px'
+  }
 } as const
 
 export interface ActionBarProps {

@@ -40,6 +40,16 @@ const FIELD_OPEN_Z_INDEX = 1301
 const FIELD_HEIGHT = 52
 const FIELD_RADIUS = 12
 const FIELD_BACKGROUND = '#E0E9F1'
+/**
+ * The search of tmail-flutter's phones and tablets (`SearchBarView`): 44 px
+ * high, a 10 px radius, light grey (#EBEDF0 at 60 %), a 17 px text
+ */
+const COMPACT_FIELD = {
+  height: 44,
+  radius: 10,
+  background: '#F3F4F6',
+  fontSize: 17
+} as const
 const FIELD_ICON_COLOR = '#818C99'
 /** Radius of the open panel, as tmail-flutter's suggestions */
 const PANEL_RADIUS = 16
@@ -185,6 +195,8 @@ export interface SearchComboboxProps {
   /** Called when the popup opens or closes */
   onOpenChange?: (isOpen: boolean) => void
   className?: string
+  /** `compact`: the field of tmail-flutter's phones and tablets */
+  size?: 'large' | 'compact'
   /** Receives `SearchComboboxActions`, as MUI's `action` props */
   actions?: Ref<SearchComboboxActions>
   testIds?: {
@@ -201,13 +213,15 @@ export interface SearchComboboxProps {
  * focus ring only shows when the panel does not: the panel is the focus
  * indication then.
  */
-function fieldSx(isOpen: boolean): SxProps<Theme> {
+function fieldSx(isOpen: boolean, isCompact: boolean): SxProps<Theme> {
   return {
     position: 'relative',
-    height: `${FIELD_HEIGHT}px`,
-    borderRadius: `${FIELD_RADIUS}px`,
-    bgcolor: FIELD_BACKGROUND,
-    '& .MuiInputBase-root': { fontSize: '16px' },
+    height: `${isCompact ? COMPACT_FIELD.height : FIELD_HEIGHT}px`,
+    borderRadius: `${isCompact ? COMPACT_FIELD.radius : FIELD_RADIUS}px`,
+    bgcolor: isCompact ? COMPACT_FIELD.background : FIELD_BACKGROUND,
+    '& .MuiInputBase-root': {
+      fontSize: `${isCompact ? COMPACT_FIELD.fontSize : 16}px`
+    },
     '& .SearchBar-icon, & .MuiIconButton-root': { color: FIELD_ICON_COLOR },
     ...(isOpen
       ? {
@@ -251,6 +265,7 @@ export function SearchCombobox({
   status,
   onOpenChange,
   className,
+  size = 'large',
   actions,
   testIds = {},
   'data-testid': testId
@@ -403,7 +418,7 @@ export function SearchCombobox({
         size="small"
         elevation={0}
         disabledFocus
-        sx={fieldSx(isShown)}
+        sx={fieldSx(isShown, size === 'compact')}
         className="u-w-100"
         placeholder={label}
         value={value}

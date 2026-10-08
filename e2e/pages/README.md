@@ -50,8 +50,6 @@ Conventions:
 | `mailbox-drawer` | the folder drawer (`role="dialog"` named "Navigation"), holding `mailbox-tree` | — |
 | `mailbox-drawer-close-button` | its close button | — |
 | `top-bar-folder-name` | name of the current folder in the top bar, on phones | — |
-| `search-open-button` | button unfolding the search over the top bar, on phones | — |
-| `search-back-button` | button folding it back (also the back button of the search, later) | `search_email_back_button` |
 | `twake-feedback-button` | the draggable "Send feedback" button of `@linagora/twake-feedback`, only with `SENTRY_FEEDBACK_ENABLED` and the opt-in to error reporting; its menu (`twake-feedback-menu`, Shift+F10) moves it to a side | — |
 | `compose-email-button` | "New message": in the sidebar on a desktop, a floating button below 1200 px | `UiKeys.composeEmailButton` |
 
@@ -325,3 +323,5 @@ Conventions:
 | `composer-sending-dialog` | "Sending message" modal dialog while a message is built ("Creating message...") then sent ("Sending message..."), as tmail-flutter; the Send button keeps its label | `SendingMessageDialogView` |
 | `shortcuts-categories` | the tabs of the keyboard shortcuts (Settings and the `?` dialog), as tmail-flutter: "Navigation & Closing", "Reading & Replying", "Message Management & Selection" | `ShortcutCategory` |
 | `email-link-tooltip` | the address of the link of the body under the pointer or holding the focus, in a black tooltip under it (decorative, `aria-hidden`), as tmail-flutter | `IframeTooltipOverlay` |
+| `drawer-header` | the top of the folder drawer below the desktop size: the logotype, and without the platform of Twake Workplace (status `public`) the `help-button`, `settings-button` and `logout-button`, as tmail-flutter's drawer (the bar of the mail then has the filter alone) | — |
+| `email-list-item-checkbox` (compact rows) | below the desktop size, the 48 px avatar of the row is its selection checkbox (`role="checkbox"`, a blue disc with a check once selected), as tmail-flutter; the compact rows have no star nor read toggle, the selection toolbar has them | — |

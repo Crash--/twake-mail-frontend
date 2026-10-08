@@ -57,6 +57,8 @@ body {
 #${EMAIL_CONTENT_ID} { overflow-x: auto; }
 img { max-width: 100%; height: auto; }
 p { margin: 0; }
+/* tmail-flutter writes 16 px on phones (the frame is as wide as the screen) */
+@media (max-width: 599px) { body { font-size: 16px; } }
 pre, .tmail-plain-text { white-space: pre-wrap; font-family: inherit; margin: 0; }
 blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid #c4c4c4; }
 details.tmail-quoted-history > summary {

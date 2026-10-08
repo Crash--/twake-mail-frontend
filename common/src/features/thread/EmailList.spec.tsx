@@ -621,7 +621,7 @@ describe('EmailList', () => {
     })
     afterEach(resetViewport)
 
-    it('shows each email on four lines, the link named by its content', async () => {
+    it('shows each email on three lines beside its avatar, as tmail-flutter, the link named by its content', async () => {
       renderList(
         makeFakeJmapServer({
           emails: [
@@ -640,7 +640,7 @@ describe('EmailList', () => {
       const row = await screen.findByTestId('email-list-item')
       expect(
         screen.getAllByRole('columnheader').map(header => header.textContent)
-      ).toEqual(['Selection', 'Status', 'Message', 'Actions'])
+      ).toEqual(['Selection', 'Message'])
       const link = within(row).getByRole('link')
       expect(link).toHaveAccessibleName(
         /^Unread, Starred, Bob Dupont Attachment .+ Fresh news Hello Alice$/
@@ -651,26 +651,21 @@ describe('EmailList', () => {
       expect(within(row).getByTestId('unread-status-icon')).toBeInTheDocument()
     })
 
-    it('keeps the star and the read toggle on each row', async () => {
-      const server = makeFakeJmapServer({
-        emails: [makeEmail({ id: 'new', subject: 'Fresh news' })]
-      })
-      renderList(server)
-      const row = await screen.findByTestId('email-list-item')
-
-      await userEvent.click(
-        within(row).getByRole('button', { name: 'Starred' })
-      )
-      await userEvent.click(
-        within(row).getByRole('button', { name: 'Mark as read' })
-      )
-
-      await waitFor(() => {
-        expect(server.emails[0]?.keywords).toEqual({
-          $flagged: true,
-          $seen: true
+    it('selects a row from its avatar, as tmail-flutter', async () => {
+      renderList(
+        makeFakeJmapServer({
+          emails: [makeEmail({ id: 'new', subject: 'Fresh news' })]
         })
+      )
+      const row = await screen.findByTestId('email-list-item')
+      const avatar = within(row).getByRole('checkbox', {
+        name: 'Select Fresh news'
       })
+      expect(avatar).toHaveAttribute('aria-checked', 'false')
+
+      await userEvent.click(avatar)
+
+      expect(avatar).toHaveAttribute('aria-checked', 'true')
     })
 
     it('leaves room for the floating button after the last row', async () => {

@@ -43,7 +43,8 @@ export function EmailListFilterMenu({
   className
 }: EmailListFilterMenuProps): ReactElement {
   const { t } = useI18n()
-  const isPhone = useScreenSize() === 'mobile'
+  // Below the desktop size it is in the bar of the mail: its icon alone
+  const isCompact = useScreenSize() !== 'desktop'
   const menuId = useId()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const filterButtonRef = useRef<HTMLButtonElement>(null)
@@ -62,7 +63,7 @@ export function EmailListFilterMenu({
     <Box
       className={`u-flex u-flex-items-center u-flex-shrink-0 ${className ?? ''}`}
     >
-      {isPhone ? (
+      {isCompact ? (
         <Tooltip title={t('thread.toolbar.filter')}>
           <IconButton
             ref={filterButtonRef}

@@ -125,22 +125,16 @@ describe('EmailListDefaultToolbar', () => {
     expect(filter?.onClear).toHaveBeenCalledTimes(1)
   })
 
-  it.each([
-    { device: 'desktop', width: 1440, touch: false },
-    { device: 'phone', width: 390, touch: true }
-  ])(
-    'gives the focus back to the filter button after clearing ($device)',
-    async ({ width, touch }) => {
-      mockViewport({ width, touch })
-      renderToolbar({ filter: makeFilter('starred') })
+  it('gives the focus back to the filter button after clearing', async () => {
+    mockViewport({ width: 1440, touch: false })
+    renderToolbar({ filter: makeFilter('starred') })
 
-      await userEvent.click(
-        screen.getByRole('button', { name: 'Clear the filter' })
-      )
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Clear the filter' })
+    )
 
-      expect(screen.getByTestId('list-filter-button')).toHaveFocus()
-    }
-  )
+    expect(screen.getByTestId('list-filter-button')).toHaveFocus()
+  })
 
   it('has no clear button without an active filter, nor a filter for search results', () => {
     renderToolbar()
@@ -153,14 +147,16 @@ describe('EmailListDefaultToolbar', () => {
     expect(screen.queryByTestId('list-filter-button')).toBe(null)
   })
 
-  it('shows icons only on a phone', () => {
-    mockViewport({ width: 390, touch: true })
-    renderToolbar()
+  it.each([
+    { device: 'phone', width: 390 },
+    { device: 'tablet', width: 820 }
+  ])(
+    'is not shown on a $device, as tmail-flutter (the filter is in the bar)',
+    ({ width }) => {
+      mockViewport({ width, touch: true })
+      renderToolbar()
 
-    expect(screen.getByTestId('list-select-all-button')).toHaveTextContent('')
-    expect(screen.getByTestId('list-filter-button')).toHaveTextContent('')
-    expect(
-      screen.getByRole('button', { name: 'Select all messages of this page' })
-    ).toBeVisible()
-  })
+      expect(screen.queryByTestId('list-toolbar')).toBe(null)
+    }
+  )
 })

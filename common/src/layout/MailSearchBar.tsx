@@ -11,10 +11,15 @@ import { useUrlSearchFilter } from '@common/features/search/useUrlSearchFilter'
 /**
  * Search field of the top bar: it starts from the search on screen, and
  * starts over when another search is shown or the user leaves the results.
+ * `isCompact`: the smaller field under the bar of phones and tablets.
  */
-export function MailSearchBar(): ReactElement {
+export function MailSearchBar({
+  isCompact = false
+}: {
+  isCompact?: boolean
+}): ReactElement {
   const urlFilter = useUrlSearchFilter()
   const filter = urlFilter ?? { ...EMPTY_SEARCH_FILTER, sort: readSortOrder() }
   const key = urlFilter === null ? 'none' : toSearchParams(urlFilter).toString()
-  return <SearchField key={key} initialFilter={filter} />
+  return <SearchField key={key} initialFilter={filter} isCompact={isCompact} />
 }

@@ -53,6 +53,8 @@ const EMAIL_PREFIX = 'email:'
 export interface SearchFieldProps {
   /** The search of the results on screen, an empty one elsewhere */
   initialFilter: SearchFilter
+  /** The smaller field of tmail-flutter's phones and tablets */
+  isCompact?: boolean
 }
 
 /**
@@ -62,7 +64,10 @@ export interface SearchFieldProps {
  * (`/search?…`), an email suggestion opens that email among them. The
  * advanced search edits the same search.
  */
-export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
+export function SearchField({
+  initialFilter,
+  isCompact = false
+}: SearchFieldProps): ReactElement {
   const { t, lang } = useI18n()
   const navigate = useNavigate()
   const { accountId, session } = useJmapSession()
@@ -235,6 +240,7 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
     <>
       <SearchCombobox
         className="u-w-100"
+        size={isCompact ? 'compact' : 'large'}
         actions={combobox}
         value={draft.text}
         onChange={handleChange}

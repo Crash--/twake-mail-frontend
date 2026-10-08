@@ -71,6 +71,11 @@ export interface RowLayout {
   gap: number
   /** The divider under the row starts after its first cell */
   insetDivider?: boolean
+  /**
+   * The divider under the row keeps this margin on both sides instead
+   * (tmail-flutter's compact rows), in px
+   */
+  dividerMarginX?: number
 }
 
 /** The divider between the rows, as tmail-flutter's */
@@ -128,9 +133,21 @@ export function makeRowLayoutSx({
   paddingTop,
   paddingBottom,
   gap,
-  insetDivider = false
-}: RowLayout): Record<string, Record<string, string>> {
+  insetDivider = false,
+  dividerMarginX
+}: RowLayout): Record<string, Record<string, string> | string> {
   return {
+    // A line drawn by the row, as wide as the row less the margins: the
+    // borders of the cells always span it all
+    ...(dividerMarginX === undefined
+      ? {}
+      : {
+          backgroundImage: `linear-gradient(${ROW_DIVIDER_COLOR}, ${ROW_DIVIDER_COLOR})`,
+          backgroundSize: `calc(100% - ${2 * dividerMarginX}px) 1px`,
+          backgroundPosition: 'center bottom',
+          backgroundRepeat: 'no-repeat',
+          '& .MuiTableCell-root.MuiTableCell-root': { borderBottom: 'none' }
+        }),
     '& .MuiTableCell-root': {
       boxSizing: 'border-box',
       padding: `${paddingTop}px 0 ${paddingBottom}px ${gap}px`,
@@ -402,6 +419,8 @@ export interface VirtualizedListTableProps extends Omit<
    * columns only (the compact ones keep the theme's cell padding)
    */
   rowLayout?: RowLayout
+  /** The same, with the compact columns */
+  compactRowLayout?: RowLayout
   /** Free room after the last row, e.g. for a floating button, in pixels */
   bottomInset?: number
   /** Number of rows of the whole list, loaded or not; null when unknown */
@@ -491,6 +510,7 @@ export function VirtualizedListTable({
   compact = false,
   bottomInset = 0,
   rowLayout,
+  compactRowLayout,
   focusedRowIndex = null,
   ...props
 }: VirtualizedListTableProps): ReactElement {
@@ -507,7 +527,7 @@ export function VirtualizedListTable({
     () => ({
       label,
       rowCount,
-      rowLayout: isCompact ? null : (rowLayout ?? null),
+      rowLayout: isCompact ? (compactRowLayout ?? null) : (rowLayout ?? null),
       columns,
       getRowProps: getRowProps ?? null,
       onRowMenu: onRowMenu ?? null,
@@ -519,6 +539,7 @@ export function VirtualizedListTable({
       rowCount,
       isCompact,
       rowLayout,
+      compactRowLayout,
       columns,
       getRowProps,
       onRowMenu,

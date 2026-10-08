@@ -25,6 +25,11 @@ import { TopBar } from './TopBar'
 export interface AppHeaderProps {
   /** Opens the folder drawer, below the desktop size */
   onOpenFolders: () => void
+  /**
+   * An email fills the screen: without the platform, the bar of the mail
+   * goes, as tmail-flutter does (the reading view has its own bar)
+   */
+  isEmailFullScreen?: boolean
 }
 
 /**
@@ -38,14 +43,25 @@ export interface AppHeaderProps {
  * Workplace, the container shows the platform bar, and the search is in the
  * page.
  */
-export function AppHeader({ onOpenFolders }: AppHeaderProps): ReactElement {
+export function AppHeader({
+  onOpenFolders,
+  isEmailFullScreen = false
+}: AppHeaderProps): ReactElement {
   const sdk = usePlatformSdk()
   const status = usePlatformStatus()
   const isDesktop = useScreenSize() === 'desktop'
   const isSettings = isSettingsPath(useLocation().pathname)
-  const mailBar = isDesktop ? null : <TopBar onOpenFolders={onOpenFolders} />
+  const mailBar =
+    isDesktop || (isEmailFullScreen && status === 'public') ? null : (
+      <TopBar onOpenFolders={onOpenFolders} />
+    )
 
-  if (sdk === null) return <>{mailBar}</>
+  // Without the platform (basic sign-in, no Workplace), phones and tablets
+  // have the bar of the mail alone, as tmail-flutter: the drawer holds the
+  // help, the settings and the log out (`DrawerHeader`)
+  if (sdk === null || (!isDesktop && status === 'public')) {
+    return <>{mailBar}</>
+  }
   if (!isDesktop) {
     return (
       <>

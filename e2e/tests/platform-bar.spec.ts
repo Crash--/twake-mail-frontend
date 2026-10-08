@@ -18,12 +18,24 @@ const WORKPLACE = `http://localhost:${new URL(env.baseUrl).port}/e2e/workplace.h
 
 test.describe('APPGRID platform bar', () => {
   test(
-    'APPGRID-03 without a Workplace the platform bar shows the logotype and signs out',
+    'APPGRID-03 without a Workplace the platform bar (the drawer below the desktop size) shows the logotype and signs out',
     { tag: '@mobile' },
     async ({ page, user }) => {
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.expectFolderSelected({ role: 'inbox' })
 
+      if (['mobile', 'tablet'].includes(test.info().project.name)) {
+        // As tmail-flutter without the platform: the bar of the mail alone,
+        // the drawer holds the log out
+        await expect(page.getByTestId('twake-bar')).toHaveCount(0)
+        await mailbox.showFolders()
+        const header = page.getByTestId('drawer-header')
+        await expect(header.getByRole('img', { name: 'Twake Mail' })).toBeVisible()
+        await expectNoA11yViolations(page)
+        await header.getByTestId('logout-button').click()
+        await expect(page.getByTestId('login-username-input')).toBeVisible()
+        return
+      }
       const bar = page.getByTestId('twake-bar')
       await expect(bar).toHaveAttribute('data-status', 'public')
       await expect(bar.getByTestId('twake-bar-apps-button')).toHaveCount(0)

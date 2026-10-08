@@ -113,28 +113,29 @@ test.describe('RESP responsive layout', () => {
     await expect(mailbox.folderMenuButton).toBeFocused()
   })
 
-  test('RESP-03 the search folds into the top bar of a phone', async ({
+  test('RESP-03 the search sits under the bar of a phone, as tmail-flutter', async ({
     page,
     user
   }) => {
     test.skip(test.info().project.name !== 'mobile', 'phones only')
     await new LoginPage(page).loginAs(user)
 
-    await page.getByTestId('search-open-button').click()
-    await expect(page.getByTestId('search-input')).toBeFocused()
+    const input = page.getByTestId('search-input')
+    const bar = await page.getByTestId('top-bar').boundingBox()
+    const field = await input.boundingBox()
+    if (bar === null || field === null) throw new Error('No bar nor search')
+    expect(field.y).toBeGreaterThan(bar.y + 40)
+    await input.click()
+    await expect(input).toBeFocused()
     await expectNoA11yViolations(page)
 
     // Escape closes the suggestions (the quick filters alone under an
-    // empty field) first, then folds the search
-    const input = page.getByTestId('search-input')
+    // empty field), the field keeps the focus
     const quickFilters = page.getByTestId('quick-search-filters')
     await expect(quickFilters).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(quickFilters).toBeHidden()
     await expect(input).toBeFocused()
-    await page.keyboard.press('Escape')
-    await expect(page.getByTestId('search-input')).toBeHidden()
-    await expect(page.getByTestId('search-open-button')).toBeFocused()
   })
 
   test.describe('on a large tablet', () => {

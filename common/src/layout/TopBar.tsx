@@ -1,6 +1,6 @@
 import { Typography } from '@linagora/twake-mui'
-import { useRef, type ReactElement } from 'react'
-import { useMatch } from 'react-router'
+import { useEffect, useRef, type ReactElement } from 'react'
+import { useLocation, useMatch } from 'react-router'
 
 import {
   AppTopBar,
@@ -11,18 +11,15 @@ import { useCurrentMailboxName } from '@common/features/mailbox/useCurrentMailbo
 import { LABEL_PATH } from '@common/features/labels/labelPaths'
 import { useLabels } from '@common/features/labels/queries'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
+import { isSettingsExitState } from '@common/features/settings/SettingsExitProvider'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { ListFilterSlot } from '@common/features/thread/ListFilterProvider'
+import { usePlatformStatus } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { HelpButton } from './HelpButton'
 import { MailSearchBar } from './MailSearchBar'
 import { SettingsButton } from './SettingsButton'
-
-const SEARCH_TEST_IDS = {
-  openSearch: 'search-open-button',
-  closeSearch: 'search-back-button'
-}
 
 export interface TopBarProps {
   /** Opens the folder drawer */
@@ -30,15 +27,16 @@ export interface TopBarProps {
 }
 
 /**
- * The bar of the mail below the desktop size, under the platform bar: a
- * button opening the folders, the current folder, the search (folded behind
- * a button on phones), the help and the settings
+ * The bar of the mail below the desktop size, as tmail-flutter's: a button
+ * opening the folders, the current folder, the filter of the list (and the
+ * help and the settings under the bar of Twake Workplace; without it the
+ * drawer holds them), and the search under it (not in the settings)
  */
 export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   const { t } = useI18n()
   const screenSize = useScreenSize()
-  const isPhone = screenSize === 'mobile'
   const isDesktop = screenSize === 'desktop'
+  const isPlatformActive = usePlatformStatus() !== 'public'
   const mailboxName = useCurrentMailboxName()
   const isSearch = useMatch('/search/*') !== null
   const isSettings = useMatch(`${SETTINGS_PATH}/*`) !== null
@@ -51,8 +49,22 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
     : isSearch
       ? t('search.title')
       : (labelName ?? mailboxName)
-  // Here, not in the field: on phones the field is not there until unfolded
   const searchActions = useRef<AppTopBarSearchActions>(null)
+  // Without the platform the settings open from the drawer, which "Back to
+  // mail" finds closed: the button that opened it takes the focus back
+  const menuRef = useRef<HTMLButtonElement>(null)
+  const location = useLocation()
+  const isBackFromSettings = isSettingsExitState(location.state)
+  useEffect(() => {
+    if (!isBackFromSettings || isPlatformActive) return undefined
+    // After the page under it took the focus on its way in
+    const timer = window.setTimeout(() => {
+      menuRef.current?.focus()
+    }, 0)
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [isBackFromSettings, isPlatformActive, location.key])
   // On desktops the search is in the page, which handles the shortcut
   useShortcuts(
     { '/': () => searchActions.current?.focusSearch() },
@@ -73,13 +85,17 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   return (
     <AppTopBar
       title={folderTitle}
-      compactTitle={folderTitle ?? undefined}
-      search={<MailSearchBar />}
+      search={isSettings ? null : <MailSearchBar isCompact />}
       actions={
         <>
-          {isPhone ? <ListFilterSlot /> : null}
-          <HelpButton />
-          <SettingsButton />
+          <ListFilterSlot />
+          {/* Without the platform they are in the drawer, as tmail-flutter */}
+          {isPlatformActive ? (
+            <>
+              <HelpButton />
+              <SettingsButton />
+            </>
+          ) : null}
         </>
       }
       menu={{
@@ -87,10 +103,8 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
         onOpen: onOpenFolders,
         'data-testid': 'mobile-mailbox-menu-button'
       }}
-      openSearchLabel={t('topbar.search')}
-      closeSearchLabel={t('common.back')}
+      menuButtonRef={menuRef}
       searchActions={searchActions}
-      testIds={SEARCH_TEST_IDS}
       data-testid="top-bar"
     />
   )

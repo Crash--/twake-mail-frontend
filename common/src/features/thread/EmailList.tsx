@@ -99,6 +99,7 @@ import {
   getLeadWidth,
   getTrailingWidth,
   MAILBOX_TAG_ROOM,
+  getCompactRowLayout,
   ROW_LAYOUT,
   useRowPointer
 } from './emailListGeometry'
@@ -479,7 +480,13 @@ export function EmailList(props: EmailListProps): ReactElement {
     [t, showRecipients, canHover, isTouch, isSearch]
   )
 
-  // Below 600 px of list: a phone, or the list beside an open email
+  // Below the desktop size, as tmail-flutter's compact tiles: the avatar
+  // (which selects the row) and the three lines of the email
+  const isPhoneList = useScreenSize() === 'mobile'
+  const compactRowLayout = useMemo(
+    () => getCompactRowLayout(isPhoneList),
+    [isPhoneList]
+  )
   const compactColumns = useMemo<
     (VirtualizedTableColumn & { id: EmailColumnId })[]
   >(
@@ -487,27 +494,18 @@ export function EmailList(props: EmailListProps): ReactElement {
       {
         id: 'select',
         label: t('thread.columns.select'),
-        width: 44,
+        width: compactRowLayout.paddingX + 48,
         sortable: false,
         disablePadding: true
       },
       {
-        id: 'unread',
-        label: t('thread.columns.status'),
-        width: 20,
-        sortable: false,
-        disablePadding: true
-      },
-      { id: 'message', label: t('thread.columns.message'), sortable: false },
-      {
-        id: 'compactActions',
-        label: t('thread.columns.actions'),
-        width: 48,
+        id: 'message',
+        label: t('thread.columns.message'),
         sortable: false,
         disablePadding: true
       }
     ],
-    [t]
+    [t, compactRowLayout]
   )
 
   const screenSize = useScreenSize()
@@ -671,6 +669,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           columns={columns}
           compactColumns={compactColumns}
           rowLayout={ROW_LAYOUT}
+          compactRowLayout={compactRowLayout}
           compact={isCompact}
           bottomInset={bottomInset}
           computeItemKey={computeRowKey}
@@ -706,7 +705,9 @@ export function EmailList(props: EmailListProps): ReactElement {
           onSelect: listFilter.select,
           onClear: listFilter.clear
         }
-  const topBarSlot = screenSize === 'mobile' ? filterSlot : null
+  // Below the desktop size the filter is in the bar of the mail, as in
+  // tmail-flutter's app bar
+  const topBarSlot = screenSize === 'desktop' ? null : filterSlot
   const filterInToolbar = topBarSlot === null
 
   return (

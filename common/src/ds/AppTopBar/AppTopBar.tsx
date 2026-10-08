@@ -1,42 +1,66 @@
 // Upstream to twake-ui: yes. twake-mui has no top bar: its `Layout` story
 // fakes one, and each Twake app builds its own (Calendar has a desktop, a
-// tablet and a mobile `Menubar`). This one has the slots and the
-// responsive behaviour they share: a menu button below the desktop size,
-// the search folded behind a button on phones.
+// tablet and a mobile `Menubar`). This one is tmail-flutter's app bar of
+// phones and tablets (`MobileAppBarThreadWidget`, `SearchBarView`): a menu
+// button, the title in Bold 21, the actions at the end, and the search under
+// the bar, as wide as the screen.
 import { Icon } from '@linagora/twake-icons'
+import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import {
-  AppBar,
-  Box,
-  IconButton,
-  Toolbar,
-  Tooltip,
-  type Theme
-} from '@linagora/twake-mui'
-import {
-  useEffect,
   useImperativeHandle,
   useRef,
-  useState,
-  type KeyboardEvent,
   type ReactElement,
   type ReactNode,
   type Ref
 } from 'react'
 
-import { Burger, Left, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
+import { Burger } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
-/** Height of the bar on desktops, as in the design */
-const DESKTOP_HEIGHT = 50
-const TABLET_SEARCH_MAX_WIDTH = 768
-// A shadow, not a border: the bar stays exactly as high as its toolbar
-const BAR_SX = {
-  boxShadow: (theme: Theme) => `0 1px 0 ${theme.palette.divider}`
+/** The bar of tmail-flutter: 52 px, 16 px in on a phone, 32 px on a tablet */
+const BAR_HEIGHT = 52
+
+function barSx(isPhone: boolean): Record<string, unknown> {
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    flexShrink: 0,
+    height: BAR_HEIGHT,
+    px: isPhone ? '4px' : '20px',
+    bgcolor: 'background.paper'
+  }
+}
+
+/** Its title: Bold 21, black, 16 px after the menu button */
+const TITLE_SX = {
+  flex: '1 1 auto',
+  minWidth: 0,
+  overflow: 'hidden',
+  ml: '4px',
+  '& .MuiTypography-root': {
+    fontSize: 21,
+    fontWeight: 700,
+    lineHeight: '28px',
+    color: '#000000'
+  }
 } as const
-const SEARCH_SX = { width: '100%', maxWidth: TABLET_SEARCH_MAX_WIDTH } as const
-// `&&`: the theme sets the height of the toolbar at each breakpoint
-const DESKTOP_TOOLBAR_SX = {
-  '&&': { minHeight: DESKTOP_HEIGHT, height: DESKTOP_HEIGHT }
+
+/** The search under it: 12 px in on a phone, 24 px on a tablet, 8 px below */
+function searchSx(isPhone: boolean): Record<string, unknown> {
+  return {
+    flexShrink: 0,
+    px: isPhone ? '12px' : '24px',
+    pb: '8px',
+    bgcolor: 'background.paper'
+  }
+}
+
+/** The actions, steel grey */
+const ACTIONS_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  color: '#55687D',
+  '& .MuiIconButton-root': { color: 'inherit' }
 } as const
 
 export interface AppTopBarMenu {
@@ -46,205 +70,80 @@ export interface AppTopBarMenu {
   'data-testid'?: string
 }
 
-export interface AppTopBarTestIds {
-  openSearch?: string
-  closeSearch?: string
-}
-
 export interface AppTopBarSearchActions {
-  /**
-   * Moves the focus into the search, unfolding it first on phones (a
-   * keyboard shortcut)
-   */
+  /** Moves the focus into the search (a keyboard shortcut) */
   focusSearch: () => void
 }
 
 export interface AppTopBarProps {
-  /** The logotype, on tablets and desktops */
+  /** The current folder */
   title: ReactNode
-  /** What phones show instead of the logotype, e.g. the current folder */
-  compactTitle?: ReactNode
-  /**
-   * A search field: centred on tablets, folded behind a button on phones.
-   * Desktops do not show it here: their search sits in the page, under the
-   * bar (`ds/SearchRow`)
-   */
-  search: ReactNode
-  /** Buttons at the end of the bar: app switcher, account */
+  /** A search field, shown under the bar; null for none */
+  search: ReactNode | null
+  /** Buttons at the end of the bar, e.g. the filter */
   actions: ReactNode
-  /** The button opening the navigation drawer, below the desktop size */
+  /** The button opening the navigation drawer */
   menu: AppTopBarMenu
-  /** Name and tooltip of the button unfolding the search on phones */
-  openSearchLabel: string
-  /** Name and tooltip of the button folding it back */
-  closeSearchLabel: string
+  /** Reaches that button, e.g. to give it the focus back */
+  menuButtonRef?: Ref<HTMLButtonElement>
   /** Receives `AppTopBarSearchActions`, as MUI's `action` props */
   searchActions?: Ref<AppTopBarSearchActions>
-  testIds?: AppTopBarTestIds
   'data-testid'?: string
 }
 
 /**
- * The bar at the top of the app.
- *
- * - Desktop (1200 px and more): 50 px high, title at the start, actions at
- *   the end; the search is in the page.
- * - Tablet: the same, after a button opening the navigation drawer.
- * - Phone (below 600 px): menu button, compact title, a search button and
- *   the actions. The search button unfolds the search over the whole bar
- *   and moves the focus into it; the back button or Escape fold it and give
- *   the focus back to the search button.
- *
- * `searchActions.focusSearch()` reaches the search on every screen size.
+ * The bar at the top of the app below the desktop size, as tmail-flutter's:
+ * the menu button, the title and the actions, then the search under it.
  */
 export function AppTopBar({
   title,
-  compactTitle,
   search,
   actions,
   menu,
-  openSearchLabel,
-  closeSearchLabel,
+  menuButtonRef,
   searchActions,
-  testIds = {},
   'data-testid': testId
 }: AppTopBarProps): ReactElement {
-  const screenSize = useScreenSize()
-  const isPhone = screenSize === 'mobile'
-  const isDesktop = screenSize === 'desktop'
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const isPhone = useScreenSize() === 'mobile'
   const searchRef = useRef<HTMLDivElement>(null)
-  const openSearchRef = useRef<HTMLButtonElement>(null)
-  // Set when the user folds the search: the focus goes back to its button
-  const restoreFocusRef = useRef(false)
-  const isSearchUnfolded = isPhone && isSearchOpen
-
-  useEffect(() => {
-    if (isSearchUnfolded) {
-      searchRef.current?.querySelector('input')?.focus()
-    } else if (restoreFocusRef.current) {
-      restoreFocusRef.current = false
-      openSearchRef.current?.focus()
-    }
-  }, [isSearchUnfolded])
 
   useImperativeHandle(
     searchActions,
     () => ({
       focusSearch: () => {
-        if (isPhone && !isSearchOpen) {
-          // Focused once unfolded, by the effect above
-          setIsSearchOpen(true)
-          return
-        }
         searchRef.current?.querySelector('input')?.focus()
       }
     }),
-    [isPhone, isSearchOpen]
+    []
   )
 
-  const handleOpenSearch = (): void => {
-    setIsSearchOpen(true)
-  }
-
-  const handleCloseSearch = (): void => {
-    restoreFocusRef.current = true
-    setIsSearchOpen(false)
-  }
-
-  const handleSearchKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (event.key !== 'Escape') return
-    event.stopPropagation()
-    handleCloseSearch()
-  }
-
-  let content: ReactElement
-  if (isSearchUnfolded) {
-    content = (
-      <>
-        <Tooltip title={closeSearchLabel}>
-          <IconButton
-            aria-label={closeSearchLabel}
-            onClick={handleCloseSearch}
-            data-testid={testIds.closeSearch}
-          >
-            <Icon icon={Left} />
-          </IconButton>
-        </Tooltip>
-        <Box
-          ref={searchRef}
-          className="u-flex u-flex-auto u-ov-hidden"
-          onKeyDown={handleSearchKeyDown}
-        >
-          {search}
-        </Box>
-      </>
-    )
-  } else {
-    const menuButton = isDesktop ? null : (
-      <Tooltip title={menu.label}>
-        <IconButton
-          edge="start"
-          aria-label={menu.label}
-          aria-haspopup="dialog"
-          onClick={menu.onOpen}
-          data-testid={menu['data-testid']}
-        >
-          <Icon icon={Burger} />
-        </IconButton>
-      </Tooltip>
-    )
-    content = isPhone ? (
-      <>
-        {menuButton}
-        <Box className="u-flex u-flex-auto u-flex-items-center u-ov-hidden u-ml-half">
-          {compactTitle ?? title}
-        </Box>
-        <Tooltip title={openSearchLabel}>
-          <IconButton
-            ref={openSearchRef}
-            aria-label={openSearchLabel}
-            onClick={handleOpenSearch}
-            data-testid={testIds.openSearch}
-          >
-            <Icon icon={Magnifier} />
-          </IconButton>
-        </Tooltip>
-        {actions}
-      </>
-    ) : (
-      <>
-        {menuButton}
-        {title}
-        {isDesktop ? (
-          <Box className="u-flex-auto" />
-        ) : (
-          <Box
-            ref={searchRef}
-            className="u-flex u-flex-auto u-flex-justify-center u-ph-2"
-          >
-            <Box sx={SEARCH_SX}>{search}</Box>
-          </Box>
-        )}
-        {actions}
-      </>
-    )
-  }
-
   return (
-    <AppBar
-      position="static"
-      color="inherit"
-      elevation={0}
-      sx={BAR_SX}
+    <Box
+      component="header"
+      className="u-flex u-flex-column"
       data-testid={testId}
     >
-      <Toolbar
-        className="u-flex u-flex-items-center"
-        sx={isDesktop ? DESKTOP_TOOLBAR_SX : undefined}
-      >
-        {content}
-      </Toolbar>
-    </AppBar>
+      <Box sx={barSx(isPhone)}>
+        <Tooltip title={menu.label}>
+          <IconButton
+            ref={menuButtonRef}
+            aria-label={menu.label}
+            aria-haspopup="dialog"
+            onClick={menu.onOpen}
+            sx={{ color: '#55687D' }}
+            data-testid={menu['data-testid']}
+          >
+            <Icon icon={Burger} size={24} />
+          </IconButton>
+        </Tooltip>
+        <Box sx={TITLE_SX}>{title}</Box>
+        <Box sx={ACTIONS_SX}>{actions}</Box>
+      </Box>
+      {search === null ? null : (
+        <Box ref={searchRef} sx={searchSx(isPhone)}>
+          {search}
+        </Box>
+      )}
+    </Box>
   )
 }

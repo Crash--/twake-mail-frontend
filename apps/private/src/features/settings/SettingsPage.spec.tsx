@@ -56,18 +56,27 @@ describe('Settings', () => {
     })
   })
 
-  it('gives the focus back to the settings button on a phone', async () => {
+  it('opens the settings from the drawer on a phone, and gives the focus back to the button that opened it', async () => {
     mockViewport({ width: 390, touch: true })
     renderWithProviders(<AppRoutes />, { route: '/mailbox/mailbox-sent' })
     await screen.findByTestId('mailbox-page')
 
-    await userEvent.click(screen.getByTestId('settings-button'))
+    // As tmail-flutter without the platform: in the drawer, not in the bar
+    expect(
+      within(screen.getByTestId('top-bar')).queryByTestId('settings-button')
+    ).toBe(null)
+    await userEvent.click(screen.getByTestId('mobile-mailbox-menu-button'))
+    await userEvent.click(
+      within(await screen.findByTestId('drawer-header')).getByTestId(
+        'settings-button'
+      )
+    )
     await screen.findByTestId('settings-section-list')
 
     await userEvent.click(screen.getByTestId('settings-back-button'))
     await screen.findByTestId('mailbox-page')
     await waitFor(() => {
-      expect(screen.getByTestId('settings-button')).toHaveFocus()
+      expect(screen.getByTestId('mobile-mailbox-menu-button')).toHaveFocus()
     })
   })
 

@@ -1,7 +1,6 @@
 import { Icon } from '@linagora/twake-icons'
 import {
   Tooltip,
-  Typography,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
 } from '@linagora/twake-mui'
@@ -19,6 +18,7 @@ import {
   FolderMoveto,
   Openwith,
   Reply,
+  Right,
   Star,
   StarOutline,
   Trash,
@@ -28,6 +28,7 @@ import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
+import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
 import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
 import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
@@ -36,6 +37,7 @@ import { RowLink } from '@/ds/RowLink/RowLink'
 import { RowSender } from '@/ds/RowSender/RowSender'
 import { RowStateSlot } from '@/ds/RowStateSlot/RowStateSlot'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
@@ -66,24 +68,19 @@ import { useEmailSelectionContext } from './useEmailSelection'
 
 /** The attachment icon of a wide row (`steelGray200`) */
 const ATTACHMENT_ICON_COLOR = '#AEB7C2'
+/** The yellow star of tmail-flutter, after the subject of a compact row */
+const STAR_COLOR = '#FFCC00'
 
 /**
  * The columns of the email list, in their order, as tmail-flutter: `lead`
  * (selection, star, answered or forwarded, unread), `sender` (avatar and
  * name), `subject` and `trailing` (attachment and date, replaced by the
- * actions on hover) on a wide list; `select`, `unread`, `message`
- * (sender, date, subject, preview on four lines) and `compactActions` on a
- * narrow one (phone, list beside an open email)
+ * actions on hover) on a wide list; `select` (the avatar, which selects
+ * the row) and `message` (sender, date, subject, preview on three lines)
+ * on a narrow one (phone, tablet)
  */
 export type EmailColumnId =
-  | 'lead'
-  | 'select'
-  | 'sender'
-  | 'subject'
-  | 'trailing'
-  | 'unread'
-  | 'message'
-  | 'compactActions'
+  'lead' | 'select' | 'sender' | 'subject' | 'trailing' | 'message'
 
 /**
  * A row of the table: an email, its snippet in search results, and in a
@@ -229,7 +226,6 @@ export function EmailCell({
         />
       </>
     )
-  const emphasis = isUnread ? 'u-fw-bold' : ''
   // Its participants ("Alice, Bob, Me") rather than the last sender
   const correspondents =
     thread !== null && !showRecipients
@@ -253,16 +249,6 @@ export function EmailCell({
   const handleToggleStar = (): void => {
     onToggleStar(email)
   }
-  const starButton = (
-    <IconAction
-      label={starLabel}
-      icon={isStarred ? Star : StarOutline}
-      tone={isStarred ? 'starred' : 'muted'}
-      aria-pressed={isStarred}
-      onClick={handleToggleStar}
-      data-testid="email-list-item-star"
-    />
-  )
   // As tmail-flutter: the star of a wide row is a bare 20 px icon
   const wideStarButton = (
     <IconAction
@@ -406,6 +392,15 @@ export function EmailCell({
   const unreadDot = isUnread ? (
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
+  const compactAvatar = (
+    <GradientAvatar
+      text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
+      colorKey={avatarEmail}
+      size={48}
+      fontSize={17}
+      data-testid="email-list-item-avatar"
+    />
+  )
   // The frame stays when the email is read: the names line up
   const framedDot = (
     <StatusDot
@@ -431,17 +426,6 @@ export function EmailCell({
       })
     })
   }
-  const date = (
-    <SecondaryText variant="caption" noWrap data-testid="email-list-item-date">
-      <time
-        className={emphasis}
-        dateTime={email.receivedAt}
-        title={formatFullDate(email.receivedAt, lang)}
-      >
-        {formatListDate(email.receivedAt, lang)}
-      </time>
-    </SecondaryText>
-  )
   const wideDate = (
     <RowDate isStrong={isUnread} data-testid="email-list-item-date">
       <time
@@ -497,9 +481,6 @@ export function EmailCell({
       data-testid="important-flag-icon"
     />
   ) : null
-  const attachmentIcon = hasAttachment ? (
-    <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
-  ) : null
 
   // As tmail-flutter: 8 px after the folder, the date 8 px after it
   const wideAttachment = hasAttachment ? (
@@ -517,7 +498,18 @@ export function EmailCell({
 
   switch (column.id as EmailColumnId) {
     case 'select':
-      return <span className="u-flex u-flex-justify-center">{checkbox}</span>
+      // As tmail-flutter: the 48 px avatar, which selects the row
+      return selection === null ? (
+        compactAvatar
+      ) : (
+        <SelectableAvatar
+          avatar={compactAvatar}
+          checked={isSelected}
+          onClick={handleSelect}
+          label={t('thread.selection.select', { subject: email.subject ?? '' })}
+          data-testid="email-list-item-checkbox"
+        />
+      )
     case 'lead':
       return (
         <span className="u-flex u-flex-items-center">
@@ -612,8 +604,6 @@ export function EmailCell({
           </span>
         </RowHoverActions>
       )
-    case 'unread':
-      return <span className="u-flex u-flex-justify-center">{unreadDot}</span>
     case 'message': {
       // Read before the content of the link: what the other cells show
       const states = [
@@ -621,6 +611,8 @@ export function EmailCell({
         isStarred ? t('email.starred') : null,
         isImportant ? t('email.important') : null
       ].filter(state => state !== null)
+      // As tmail-flutter's compact tile: sender, marks and date then a
+      // chevron; subject (the folder, the star); one line of preview
       return (
         <RowLink
           href={href}
@@ -631,58 +623,65 @@ export function EmailCell({
           {states.length > 0 ? (
             <span className="u-visuallyhidden">{`${states.join(', ')}, `}</span>
           ) : null}
-          <span className="u-flex u-flex-items-center">
-            <Typography
-              component="span"
-              noWrap
-              className="u-db u-flex-auto"
-              data-testid="email-list-item-sender"
-            >
-              <span className={emphasis}>{correspondents}</span>
-            </Typography>
-            {threadCount}
-            {attachmentIcon === null ? null : (
-              <span className="u-flex u-flex-shrink-0 u-ml-half">
-                {attachmentIcon}
-              </span>
-            )}
-            <span className="u-flex-shrink-0 u-ml-half">{date}</span>
-          </span>
-          <span className="u-flex u-flex-items-center">
-            {importantIcon}
-            <Typography component="span" noWrap className="u-db u-flex-auto">
-              <span className={emphasis} data-testid="email-list-item-subject">
+          <CompactRowLines
+            isStrong={isUnread}
+            // Said first in the name of the link: shown only
+            marker={
+              unreadDot === null ? null : (
+                <span aria-hidden="true" className="u-flex">
+                  {unreadDot}
+                </span>
+              )
+            }
+            sender={correspondents}
+            senderEnd={
+              <>
+                {threadCount}
+                {answeredState}
+                {wideAttachment}
+                {wideDate}
+              </>
+            }
+            end={
+              <Icon
+                icon={Right}
+                size={16}
+                color={ATTACHMENT_ICON_COLOR}
+                aria-hidden="true"
+                className="u-flex-shrink-0"
+              />
+            }
+            subject={
+              <>
+                {importantIcon}
                 {subject}
-              </span>
-            </Typography>
-            {mailboxLabel}
-          </span>
-          {/* As the design and tmail-flutter: the labels end the preview line */}
-          <span className="u-flex u-flex-items-end">
-            <SecondaryText
-              variant="body2"
-              lines={2}
-              className="u-flex-auto"
-              data-testid="email-list-item-preview"
-            >
-              {preview}
-            </SecondaryText>
-            <span className="u-flex u-ml-half u-flex-shrink-0">
-              {labelChips(1)}
-            </span>
-          </span>
+              </>
+            }
+            subjectEnd={
+              <>
+                {mailboxLabel}
+                {isStarred ? (
+                  <Icon
+                    icon={Star}
+                    size={15}
+                    color={STAR_COLOR}
+                    aria-hidden="true"
+                    className="u-flex-shrink-0"
+                  />
+                ) : null}
+              </>
+            }
+            preview={preview}
+            previewEnd={labelChips(1)}
+            testIds={{
+              sender: 'email-list-item-sender',
+              subject: 'email-list-item-subject',
+              preview: 'email-list-item-preview'
+            }}
+          />
         </RowLink>
       )
     }
-    case 'compactActions':
-      return (
-        // The other actions: from the selection toolbar, or a long press
-        // (the context menu of the row)
-        <span className="u-flex u-flex-column u-flex-items-center">
-          {starButton}
-          <RowHoverActions>{seenButton}</RowHoverActions>
-        </span>
-      )
     default:
       return null
   }

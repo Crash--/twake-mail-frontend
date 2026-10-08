@@ -32,9 +32,9 @@ export function TopActionBar({
         minHeight: TOP_ACTION_BAR_HEIGHT,
         px: 0.5,
         gap: 0,
-        bgcolor: 'background.default',
-        borderBottom: '1px solid',
-        borderColor: 'divider'
+        // The light grey of tmail-flutter's composer bar on phones
+        bgcolor: '#F4F4F4',
+        borderBottom: '1px solid #F4F4F4'
       }}
     >
       {start}

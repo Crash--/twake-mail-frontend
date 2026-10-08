@@ -2,7 +2,7 @@ import { Box, Layout } from '@linagora/twake-mui'
 import { useState, type ReactElement, type ReactNode } from 'react'
 import { Outlet, useLocation, useMatch } from 'react-router'
 
-import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
+import { ComposeIcon } from '@/ds/ComposerIcons/ComposerIcons'
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { SCRIPT_FOCUS_TARGET } from '@/ds/FocusIndicator/focusIndicator'
@@ -175,7 +175,10 @@ function AppFrame(): ReactElement {
       <SentryReportingSync />
       {/* The reply bar of an open email is at the bottom of the screen too */}
       <FeedbackWidget hasBottomAction={showComposeFab || isEmailOpen} />
-      <AppHeader onOpenFolders={handleOpenFolders} />
+      <AppHeader
+        onOpenFolders={handleOpenFolders}
+        isEmailFullScreen={isEmailOpen && screenSize !== 'tabletLarge'}
+      />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}
       <Layout
@@ -220,7 +223,7 @@ function AppFrame(): ReactElement {
       {showComposeFab ? (
         <FloatingActionButton
           label={t('sidebar.newMessage')}
-          icon={Pen}
+          icon={ComposeIcon}
           onClick={handleCompose}
           data-testid="compose-email-button"
         />

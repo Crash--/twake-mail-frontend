@@ -51,6 +51,7 @@ import {
 import { emailSetBatchSize } from '@common/features/emailActions/sendEmailChanges'
 
 import { destroyMailboxes } from './emptyFolder'
+import { useFolderActionProgress } from './FolderActionProgress'
 import type { FolderActionId } from './folderActionItems'
 import { validateFolderName } from './folderName'
 import { MailboxNameDialog } from './MailboxNameDialog'
@@ -103,6 +104,7 @@ export function FolderActionsProvider({
   const confirm = useConfirm()
   const pickMailbox = usePickMailbox()
   const emptyFolder = useEmptyFolder()
+  const folderProgress = useFolderActionProgress()
   const { run: runEmailAction } = useEmailActions()
   const { notify, dismiss } = useNotify()
   const getName = useMailboxName()
@@ -417,15 +419,26 @@ export function FolderActionsProvider({
   const markAsRead = useCallback(
     async (mailbox: MailboxSummary): Promise<void> => {
       const folderName = getName(mailbox)
+      // As tmail-flutter: one long folder action at a time, its progress
+      // above the list, sliding while the unread emails are fetched
+      const isStarted = folderProgress.start({
+        kind: 'markAsRead',
+        mailboxId: mailbox.id,
+        folderName,
+        total: null
+      })
+      if (!isStarted) return
       try {
         const emails = await fetchMailboxEmails(client, accountId, mailbox.id, {
           filter: { notKeyword: '$seen' }
         })
+        folderProgress.update(0, emails.length)
         const done = await runEmailAction({
           action: 'markAsRead',
           emails,
           mailboxId: mailbox.id,
-          silent: true
+          silent: true,
+          onProgress: folderProgress.update
         })
         if (!done) throw new Error('Some emails were not marked read')
         notify({
@@ -438,9 +451,11 @@ export function FolderActionsProvider({
           message: t('folders.markAsRead.failure', { folderName }),
           severity: 'error'
         })
+      } finally {
+        folderProgress.finish()
       }
     },
-    [getName, client, accountId, runEmailAction, notify, t]
+    [getName, folderProgress, client, accountId, runEmailAction, notify, t]
   )
 
   const setSubscribed = useCallback(

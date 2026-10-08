@@ -12,13 +12,19 @@ import {
   mailboxKeys,
   type MailboxSummary
 } from '@common/features/mailbox/queries'
+import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { threadKeys, type EmailListData } from '@common/features/thread/queries'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-import { emptyFolder, type SubfoldersOutcome } from './emptyFolder'
+import {
+  clearsAtOnce,
+  emptyFolder,
+  type SubfoldersOutcome
+} from './emptyFolder'
+import { useFolderActionProgress } from './FolderActionProgress'
 
 /** Default `maxCallsInRequest` of a JMAP server (RFC 8620 suggests 16) */
 const DEFAULT_MAX_CALLS = 16
@@ -67,6 +73,8 @@ export function useEmptyFolder(): (mailbox: MailboxSummary) => Promise<void> {
   const queryClient = useQueryClient()
   const confirm = useConfirm()
   const { notify } = useNotify()
+  const getName = useMailboxName()
+  const { start, update, finish } = useFolderActionProgress()
 
   return useCallback(
     async (mailbox: MailboxSummary): Promise<void> => {
@@ -87,6 +95,15 @@ export function useEmptyFolder(): (mailbox: MailboxSummary) => Promise<void> {
             }
       )
       if (!confirmed) return
+      // As tmail-flutter: one long folder action at a time, its progress
+      // above the list
+      const isStarted = start({
+        kind: 'empty',
+        mailboxId: mailbox.id,
+        folderName: getName(mailbox),
+        total: clearsAtOnce(client, mailbox) ? null : mailbox.totalEmails
+      })
+      if (!isStarted) return
       try {
         const mailboxes = await queryClient.query({
           ...mailboxesQueryOptions(client, accountId),
@@ -100,7 +117,8 @@ export function useEmptyFolder(): (mailbox: MailboxSummary) => Promise<void> {
           {
             batchSize: emailSetBatchSize(session),
             maxCalls: maxCallsInRequest(session.capabilities),
-            extraCapabilities
+            extraCapabilities,
+            onProgress: update
           }
         )
         // Empty now, at the JMAP state it was: push brings what changed
@@ -140,11 +158,17 @@ export function useEmptyFolder(): (mailbox: MailboxSummary) => Promise<void> {
             queryKey: threadKeys.list(accountId, mailbox.id)
           })
           .catch(() => undefined)
+      } finally {
+        finish()
       }
     },
     [
       confirm,
       t,
+      start,
+      getName,
+      update,
+      finish,
       queryClient,
       client,
       accountId,

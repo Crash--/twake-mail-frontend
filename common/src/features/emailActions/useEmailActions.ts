@@ -71,6 +71,8 @@ export interface EmailActionRequest {
    * back as it was when it failed
    */
   silent?: boolean
+  /** While sending: how many of the emails to change were sent so far */
+  onProgress?: (sent: number, total: number) => void
 }
 
 export interface EmailActions {
@@ -218,7 +220,8 @@ export function useEmailActions(): EmailActions {
     /** Shows the changes, sends them, rolls back the ones refused */
     async function execute(
       changes: readonly EmailChange[],
-      knownRows: ReadonlyMap<string, EmailListItemData> = new Map()
+      knownRows: ReadonlyMap<string, EmailListItemData> = new Map(),
+      onProgress?: (sent: number, total: number) => void
     ): Promise<ExecuteResult> {
       const ids = changes.map(change => change.before.id)
       // An email undone or retried may have left every loaded list
@@ -231,7 +234,11 @@ export function useEmailActions(): EmailActions {
         client,
         accountId,
         changes,
-        { batchSize, extraCapabilities }
+        {
+          batchSize,
+          extraCapabilities,
+          onProgress: onProgress && (sent => onProgress(sent, changes.length))
+        }
       )
       const failedSet = new Set(failedIds)
       const failed = changes.filter(change => failedSet.has(change.before.id))
@@ -412,7 +419,7 @@ export function useEmailActions(): EmailActions {
       }
       const changes = planned.flatMap(group => group.changes)
       if (changes.length === 0) return true
-      const result = await execute(changes)
+      const result = await execute(changes, new Map(), request.onProgress)
       if (result.failed.length > 0) {
         if (request.silent === true) {
           // The control that ran it shows the state back as it was

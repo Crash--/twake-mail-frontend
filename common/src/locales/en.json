@@ -888,7 +888,11 @@
       "failure": "Failed to move all emails from this folder to another folder.",
       "progress": "Moving emails: %{moved} of %{total}"
     },
-    "clean": "Clean"
+    "clean": "Clean",
+    "progress": {
+      "markAsRead": "Marking all messages in \"%{folderName}\" as read",
+      "empty": "Emptying \"%{folderName}\""
+    }
   },
   "identities": {
     "create": "Create new identity",

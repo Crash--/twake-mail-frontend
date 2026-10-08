@@ -16,8 +16,19 @@ import { useRecovery } from '@common/features/recovery/RecoveryProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { availableFolderActions } from './folderActionItems'
+import { useFolderActionProgress } from './FolderActionProgress'
+import {
+  availableFolderActions,
+  type FolderActionId
+} from './folderActionItems'
 import { useFolderActions } from './FolderActionsProvider'
+
+/** The actions that show their progress above the list */
+const LONG_ACTIONS: readonly FolderActionId[] = [
+  'mark-as-read',
+  'empty-trash',
+  'empty-spam'
+]
 
 /**
  * Where the menu opens: beside `element`, or at the `position` of a right
@@ -35,8 +46,9 @@ export interface FolderActionsMenuProps {
 
 /**
  * The menu of a folder of the tree (its ⋮ button, a right click, the menu
- * key or Shift+F10): the actions `availableFolderActions` gives it. It
- * closes before the action runs, giving the focus back to the folder.
+ * key or Shift+F10): the actions `availableFolderActions` gives it, the
+ * long ones disabled while one runs. It closes before the action runs,
+ * giving the focus back to the folder.
  */
 export function FolderActionsMenu({
   mailbox,
@@ -48,6 +60,8 @@ export function FolderActionsMenu({
   const { data: mailboxes = [] } = useMailboxes()
   const { session } = useJmapSession()
   const { run } = useFolderActions()
+  // One long folder action at a time, as tmail-flutter
+  const isLongActionRunning = useFolderActionProgress().progress !== null
   // Opening a folder in a new tab is a link: the browser does it
   const newTabHref = useHref(
     `/mailbox/${encodeURIComponent(mailbox?.id ?? '')}`
@@ -81,6 +95,7 @@ export function FolderActionsMenu({
                 rel: 'noopener noreferrer'
               }
             : {})}
+          disabled={isLongActionRunning && LONG_ACTIONS.includes(item.id)}
           onClick={() => {
             onClose()
             if (mailbox !== null) {

@@ -16,6 +16,9 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
+import { FolderActionProgressProvider } from './FolderActionProgress'
+import { FolderActionProgressBanner } from './FolderActionProgressBanner'
+
 function makeServer(
   role: 'trash' | 'junk',
   options: { clear?: boolean; subfolders?: boolean } = {}
@@ -78,7 +81,10 @@ async function renderFolder(
     <VirtuosoMockContext.Provider
       value={{ viewportHeight: 10_000, itemHeight: 56 }}
     >
-      <EmailList mailboxId={mailboxId} />
+      <FolderActionProgressProvider>
+        <FolderActionProgressBanner />
+        <EmailList mailboxId={mailboxId} />
+      </FolderActionProgressProvider>
     </VirtuosoMockContext.Provider>,
     {
       route: `/mailbox/${mailboxId}`,
@@ -165,6 +171,36 @@ describe('EmptyFolderBanner', () => {
     )
     expect(server.emails.map(email => email.id)).toEqual(['kept'])
     expect(server.calledMethods()).not.toContain('Mailbox/clear')
+  })
+
+  it('shows a sliding progress bar while Mailbox/clear runs, the button disabled, as tmail-flutter', async () => {
+    const server = makeServer('trash', { clear: true })
+    await renderFolder(server, 'mailbox-trash')
+    const release = server.holdRequests('Mailbox/clear')
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Empty trash now' })
+    )
+    await userEvent.click(
+      within(screen.getByRole('dialog', { name: 'Empty Trash' })).getByRole(
+        'button',
+        { name: 'Delete' }
+      )
+    )
+
+    const bar = await screen.findByRole('progressbar', {
+      name: 'Emptying "Trash"'
+    })
+    expect(bar).not.toHaveAttribute('aria-valuenow')
+    expect(
+      screen.getByRole('button', { name: 'Empty trash now' })
+    ).toBeDisabled()
+
+    release()
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'All messages have been deleted forever'
+    )
+    expect(screen.queryByRole('progressbar')).toBe(null)
   })
 
   it('empties the Trash of a team mailbox by query, and its subfolders, as the Trash', async () => {

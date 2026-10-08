@@ -888,7 +888,11 @@
       "failure": "Không thể chuyển toàn bộ thư từ thư mục này sang thư mục khác.",
       "progress": "Đang chuyển thư: %{moved}/%{total}"
     },
-    "clean": "Dọn dẹp"
+    "clean": "Dọn dẹp",
+    "progress": {
+      "markAsRead": "Đang đánh dấu tất cả thư trong \"%{folderName}\" là đã đọc",
+      "empty": "Đang dọn sạch \"%{folderName}\""
+    }
   },
   "identities": {
     "create": "Tạo danh tính mới",

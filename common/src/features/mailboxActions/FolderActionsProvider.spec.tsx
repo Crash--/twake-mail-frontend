@@ -18,6 +18,8 @@ import {
 } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
+import { FolderActionProgressProvider } from './FolderActionProgress'
+import { FolderActionProgressBanner } from './FolderActionProgressBanner'
 import { FolderActionsProvider } from './FolderActionsProvider'
 
 const TEAM = 'TeamMailbox[team@example.com]'
@@ -25,10 +27,13 @@ const TEAM = 'TeamMailbox[team@example.com]'
 function Screen(): ReactElement {
   return (
     <MailboxPickerProvider>
-      <FolderActionsProvider>
-        <MailboxTree />
-        <Outlet />
-      </FolderActionsProvider>
+      <FolderActionProgressProvider>
+        <FolderActionsProvider>
+          <FolderActionProgressBanner />
+          <MailboxTree />
+          <Outlet />
+        </FolderActionsProvider>
+      </FolderActionProgressProvider>
     </MailboxPickerProvider>
   )
 }
@@ -312,6 +317,37 @@ describe('Folder actions', () => {
         .filter(email => 'work' in email.mailboxIds)
         .every(email => '$seen' in email.keywords)
     ).toBe(true)
+  })
+
+  it('shows the progress of marking a folder read, as tmail-flutter', async () => {
+    const server = makeServer()
+    await renderTree(server)
+    const release = server.holdRequests('Email/set')
+
+    await userEvent.click(
+      within(await openMenu('Work')).getByRole('menuitem', {
+        name: 'Mark as read'
+      })
+    )
+
+    const bar = await screen.findByRole('progressbar', {
+      name: 'Marking all messages in "Work" as read'
+    })
+    await waitFor(() => {
+      expect(bar).toHaveAttribute('aria-valuenow', '0')
+    })
+    expect(
+      screen.getByTestId('folder-action-progress-status')
+    ).toHaveTextContent('Marking all messages in "Work" as read')
+
+    release()
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You’ve marked all messages in "Work" as read'
+    )
+    expect(screen.queryByRole('progressbar')).toBe(null)
+    expect(
+      screen.getByTestId('folder-action-progress-status')
+    ).toBeEmptyDOMElement()
   })
 
   it('hides a folder and its subfolders, then shows it on demand', async () => {

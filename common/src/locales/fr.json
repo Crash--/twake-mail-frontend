@@ -888,7 +888,11 @@
       "failure": "Échec lors du déplacement de tous les e-mails vers un autre dossier.",
       "progress": "Déplacement des e-mails : %{moved} sur %{total}"
     },
-    "clean": "Vider"
+    "clean": "Vider",
+    "progress": {
+      "markAsRead": "Marquage de tous les messages de « %{folderName} » comme lus",
+      "empty": "Vidage de « %{folderName} »"
+    }
   },
   "identities": {
     "create": "Créer une nouvelle identité",

@@ -20,6 +20,8 @@ import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvid
 import { ListFilterProvider } from '@common/features/thread/ListFilterProvider'
 import { InboxUnreadTitle } from '@common/features/mailbox/InboxUnreadTitle'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
+import { FolderActionProgressProvider } from '@common/features/mailboxActions/FolderActionProgress'
+import { FolderActionProgressBanner } from '@common/features/mailboxActions/FolderActionProgressBanner'
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
@@ -88,17 +90,19 @@ export function MailProviders({
     <ShortcutsProvider>
       <MailboxPickerProvider>
         <RecoveryProvider>
-          <FolderActionsProvider>
-            <LabelActionsProvider>
-              <ComposerProvider>
-                <SettingsExitProvider>
-                  <ListFilterProvider>
-                    <LoadingAnnouncer>{children}</LoadingAnnouncer>
-                  </ListFilterProvider>
-                </SettingsExitProvider>
-              </ComposerProvider>
-            </LabelActionsProvider>
-          </FolderActionsProvider>
+          <FolderActionProgressProvider>
+            <FolderActionsProvider>
+              <LabelActionsProvider>
+                <ComposerProvider>
+                  <SettingsExitProvider>
+                    <ListFilterProvider>
+                      <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                    </ListFilterProvider>
+                  </SettingsExitProvider>
+                </ComposerProvider>
+              </LabelActionsProvider>
+            </FolderActionsProvider>
+          </FolderActionProgressProvider>
         </RecoveryProvider>
       </MailboxPickerProvider>
     </ShortcutsProvider>
@@ -190,6 +194,7 @@ function AppFrame(): ReactElement {
           ) : null}
           <VacationBanner />
           <RecoveryBanner />
+          <FolderActionProgressBanner />
           <QuotaBanner />
           <FlatContent
             id={MAIN_CONTENT_ID}

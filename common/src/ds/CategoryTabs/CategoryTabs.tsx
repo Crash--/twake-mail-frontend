@@ -1,6 +1,7 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's category tabs
 // (`KeyboardShortcutsTabView`): a 52 px bar at most 618 px wide, each tab of
-// its own width, the label in Regular 14, a 1 px blue line under the
+// its own width, the label in grey Regular 14 (16 px in, on two lines when
+// it has to), a 1 px blue line under the
 // selected one, a light divider under the bar. twake-mui does not export
 // `Tab`.
 import { Box, Tab, Tabs } from '@mui/material'
@@ -16,15 +17,20 @@ const TABS_SX = {
 const TAB_SX = {
   minHeight: 52,
   minWidth: 0,
-  px: 1,
+  px: '16px',
   fontSize: 14,
   fontWeight: 400,
   lineHeight: '20px',
-  letterSpacing: 0,
+  letterSpacing: '0.25px',
   textTransform: 'none',
-  color: 'rgba(0, 0, 0, 0.6)',
-  '&.Mui-selected': { color: '#007AFF' }
+  // tmail-flutter's labels keep their grey once selected: the blue line
+  // under the tab says which one is
+  color: '#424244',
+  '&.Mui-selected': { color: '#424244' }
 } as const
+
+/** The list of the tab, 40 px under the bar */
+const PANEL_SX = { pt: '40px' } as const
 
 export interface CategoryTab {
   id: string
@@ -81,6 +87,7 @@ export function CategoryTabs({
         role="tabpanel"
         id={`${id}-panel`}
         aria-labelledby={`${id}-tab-${value}`}
+        sx={PANEL_SX}
       >
         {children}
       </Box>

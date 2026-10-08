@@ -26,8 +26,25 @@ function barSx(isPhone: boolean): Record<string, unknown> {
     alignItems: 'center',
     flexShrink: 0,
     height: BAR_HEIGHT,
+    position: 'relative',
     px: isPhone ? '16px' : '32px',
     bgcolor: 'background.paper'
+  }
+}
+
+/**
+ * Over the bar, as tall and white, hidden while empty: 16 px in on a phone,
+ * 32 px on a tablet, as tmail-flutter's selection bar
+ */
+function overlaySx(isPhone: boolean): Record<string, unknown> {
+  return {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    px: isPhone ? '16px' : '32px',
+    bgcolor: 'background.paper',
+    '&:empty': { display: 'none' }
   }
 }
 
@@ -95,6 +112,11 @@ export interface AppTopBarProps {
   menuButtonRef?: Ref<HTMLButtonElement>
   /** Receives `AppTopBarSearchActions`, as MUI's `action` props */
   searchActions?: Ref<AppTopBarSearchActions>
+  /**
+   * A place over the bar, shown once something is rendered in it (a portal):
+   * tmail-flutter's selection bar takes the place of the app bar
+   */
+  overlayRef?: Ref<HTMLDivElement>
   'data-testid'?: string
 }
 
@@ -109,6 +131,7 @@ export function AppTopBar({
   menu,
   menuButtonRef,
   searchActions,
+  overlayRef,
   'data-testid': testId
 }: AppTopBarProps): ReactElement {
   const isPhone = useScreenSize() === 'mobile'
@@ -145,6 +168,7 @@ export function AppTopBar({
         </Tooltip>
         <Box sx={TITLE_SX}>{title}</Box>
         <Box sx={ACTIONS_SX}>{actions}</Box>
+        <Box ref={overlayRef} sx={overlaySx(isPhone)} />
       </Box>
       {search === null ? null : (
         <Box ref={searchRef} sx={searchSx(isPhone)}>

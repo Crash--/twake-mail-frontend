@@ -23,6 +23,9 @@ interface ListFilterApi {
   /** Where phones show the filter button: the end of the top bar */
   slot: HTMLElement | null
   setSlot: (element: HTMLElement | null) => void
+  /** Over the bar of the mail below the desktop size: the selection bar */
+  selectionSlot: HTMLElement | null
+  setSelectionSlot: (element: HTMLElement | null) => void
   state: FilterState | null
   select: (scope: string, option: ListFilterOption) => void
   clear: () => void
@@ -60,6 +63,7 @@ export function ListFilterProvider({
   const { notify } = useNotify()
   const [state, setState] = useState<FilterState | null>(null)
   const [slot, setSlot] = useState<HTMLElement | null>(null)
+  const [selectionSlot, setSelectionSlot] = useState<HTMLElement | null>(null)
 
   const clear = useCallback((): void => {
     setState(null)
@@ -84,8 +88,16 @@ export function ListFilterProvider({
   )
 
   const api = useMemo(
-    () => ({ state, select, clear, slot, setSlot }),
-    [state, select, clear, slot]
+    () => ({
+      state,
+      select,
+      clear,
+      slot,
+      setSlot,
+      selectionSlot,
+      setSelectionSlot
+    }),
+    [state, select, clear, slot, selectionSlot]
   )
   return (
     <ListFilterContext.Provider value={api}>
@@ -103,6 +115,8 @@ export interface ListFilterControl {
 const NO_FILTER: ListFilterApi = {
   slot: null,
   setSlot: () => undefined,
+  selectionSlot: null,
+  setSelectionSlot: () => undefined,
   state: null,
   select: () => undefined,
   clear: () => undefined
@@ -144,4 +158,16 @@ export function ListFilterSlot(): ReactElement {
       data-testid="list-filter-slot"
     />
   )
+}
+
+/** Where the selection bar goes, over the bar of the mail (not on desktops) */
+export function useSelectionBarSlot(): HTMLElement | null {
+  return (useContext(ListFilterContext) ?? NO_FILTER).selectionSlot
+}
+
+/** Gives the bar of the mail as the place of the selection bar */
+export function useSelectionBarSlotRef(): (
+  element: HTMLElement | null
+) => void {
+  return (useContext(ListFilterContext) ?? NO_FILTER).setSelectionSlot
 }

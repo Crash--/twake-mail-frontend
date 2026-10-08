@@ -1,6 +1,7 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's compact rows: the
 // avatar of the sender is where a row is selected, and once selected it
-// turns into a blue disc with a white check. tmail-flutter selects with a
+// turns into a small blue disc with a white check (`ic_selected`, 24 px in
+// the middle of the 48 px). tmail-flutter selects with a
 // long press, then a tap on the avatar; here the avatar is a checkbox of
 // its own, reached by keyboard and named by its label.
 import { Icon } from '@linagora/twake-icons'
@@ -20,10 +21,10 @@ const CHECKED_SX = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: 48,
-  height: 48,
+  width: 24,
+  height: 24,
   borderRadius: '50%',
-  bgcolor: 'primary.main',
+  bgcolor: '#007AFF',
   color: '#FFFFFF'
 } as const
 
@@ -56,7 +57,7 @@ export function SelectableAvatar({
     >
       {checked ? (
         <Box component="span" sx={CHECKED_SX}>
-          <Icon icon={Check} size={24} aria-hidden="true" />
+          <Icon icon={Check} size={16} aria-hidden="true" />
         </Box>
       ) : (
         avatar

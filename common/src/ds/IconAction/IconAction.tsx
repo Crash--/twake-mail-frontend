@@ -14,6 +14,8 @@ const TONE_SX = {
   muted: { color: '#AEB7C2', '&:hover': { color: '#55687D' } },
   // The icons of tmail-flutter's reading view (`steelGrayA540`)
   steel: { color: '#55687D' },
+  // What cannot be undone, as tmail-flutter's selection bar (`redFF3347`)
+  danger: { color: '#FF3347' },
   // The refresh of tmail-flutter: a blue icon on a light grey square
   filled: {
     color: 'primary.main',
@@ -33,9 +35,10 @@ export interface IconActionProps {
    * `starred`: the yellow of a filled star; `muted`: the light grey of the
    * row icons of tmail-flutter; `filled`: a primary icon on a light grey
    * rounded square (the toolbar buttons of tmail-flutter); `steel`: the
-   * dark steel grey of its reading view
+   * dark steel grey of its reading view; `danger`: the red of what cannot
+   * be undone
    */
-  tone?: 'default' | 'starred' | 'muted' | 'filled' | 'steel'
+  tone?: 'default' | 'starred' | 'muted' | 'filled' | 'steel' | 'danger'
   /** Width and height of the button in px, 32 by default */
   size?: number
   onClick?: (event: MouseEvent<HTMLElement>) => void

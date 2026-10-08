@@ -9,6 +9,7 @@ import {
 } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
 import { Reply, Share } from '@/ds/FlutterIcons/FlutterIcons'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
@@ -70,6 +71,11 @@ export interface EmailActionsMenuProps {
    * that need all of it (Print, Download as EML, Unsubscribe)
    */
   detail?: EmailDetail
+  /**
+   * A sheet rising from the bottom edge instead of a popover, as the menus
+   * of tmail-flutter on phones and tablets
+   */
+  asSheet?: boolean
   'data-testid'?: string
 }
 
@@ -90,6 +96,7 @@ export function EmailActionsMenu({
   replies,
   answerEmailId,
   detail,
+  asSheet = false,
   'data-testid': testId = 'email-actions-menu'
 }: EmailActionsMenuProps): ReactElement {
   const { t } = useI18n()
@@ -158,6 +165,53 @@ export function EmailActionsMenu({
     })
   }
 
+  // An array, no Fragment: the menus read their children for the focus
+  const entries = [
+    ...replyItems,
+    ...(replyItems.length > 0 && items.length > 0
+      ? [<Divider key="divider-replies" />]
+      : []),
+    ...items.flatMap((item, index) => {
+      const menuItem = (
+        <MenuItem
+          key={item.id}
+          onClick={() => {
+            handleRun(item)
+          }}
+          data-testid={`email-action-${item.id}`}
+        >
+          <ListItemIcon>
+            <Icon icon={item.icon} />
+          </ListItemIcon>
+          <ListItemText
+            primary={t(item.label)}
+            slotProps={{
+              primary: {
+                color: item.isDestructive ? 'error.dark' : 'inherit'
+              }
+            }}
+          />
+        </MenuItem>
+      )
+      return index > 0 && items[index - 1]?.group !== item.group
+        ? [<Divider key={`divider-${item.id}`} />, menuItem]
+        : [menuItem]
+    })
+  ]
+
+  if (asSheet) {
+    return (
+      <ActionSheet
+        open={anchor !== null}
+        onClose={onClose}
+        label={t('emailActions.menu.label')}
+        data-testid={testId}
+      >
+        {entries}
+      </ActionSheet>
+    )
+  }
+
   return (
     <Menu
       open={anchor !== null}
@@ -168,37 +222,7 @@ export function EmailActionsMenu({
       slotProps={{ list: { 'aria-label': t('emailActions.menu.label') } }}
       data-testid={testId}
     >
-      {/* No Fragment: Menu reads its children for the keyboard focus */}
-      {replyItems}
-      {replyItems.length > 0 && items.length > 0 ? (
-        <Divider key="divider-replies" />
-      ) : null}
-      {items.flatMap((item, index) => {
-        const menuItem = (
-          <MenuItem
-            key={item.id}
-            onClick={() => {
-              handleRun(item)
-            }}
-            data-testid={`email-action-${item.id}`}
-          >
-            <ListItemIcon>
-              <Icon icon={item.icon} />
-            </ListItemIcon>
-            <ListItemText
-              primary={t(item.label)}
-              slotProps={{
-                primary: {
-                  color: item.isDestructive ? 'error.dark' : 'inherit'
-                }
-              }}
-            />
-          </MenuItem>
-        )
-        return index > 0 && items[index - 1]?.group !== item.group
-          ? [<Divider key={`divider-${item.id}`} />, menuItem]
-          : [menuItem]
-      })}
+      {entries}
     </Menu>
   )
 }

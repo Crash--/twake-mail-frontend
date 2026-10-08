@@ -13,7 +13,10 @@ import { useLabels } from '@common/features/labels/queries'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { isSettingsExitState } from '@common/features/settings/SettingsExitProvider'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
-import { ListFilterSlot } from '@common/features/thread/ListFilterProvider'
+import {
+  ListFilterSlot,
+  useSelectionBarSlotRef
+} from '@common/features/thread/ListFilterProvider'
 import { usePlatformStatus } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -50,6 +53,8 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
       ? t('search.title')
       : (labelName ?? mailboxName)
   const searchActions = useRef<AppTopBarSearchActions>(null)
+  // As tmail-flutter: the selection bar takes the place of the app bar
+  const selectionSlotRef = useSelectionBarSlotRef()
   // Without the platform the settings open from the drawer, which "Back to
   // mail" finds closed: the button that opened it takes the focus back
   const menuRef = useRef<HTMLButtonElement>(null)
@@ -105,6 +110,7 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
       }}
       menuButtonRef={menuRef}
       searchActions={searchActions}
+      overlayRef={selectionSlotRef}
       data-testid="top-bar"
     />
   )

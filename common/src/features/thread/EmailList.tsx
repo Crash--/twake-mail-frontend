@@ -91,7 +91,11 @@ import {
   withListFilter,
   type ListFilter
 } from './listFilter'
-import { useListFilter, useListFilterSlot } from './ListFilterProvider'
+import {
+  useListFilter,
+  useListFilterSlot,
+  useSelectionBarSlot
+} from './ListFilterProvider'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { EmailListSkeleton } from './EmailListSkeleton'
 import { useNewEmailCount } from './useNewEmailCount'
@@ -348,10 +352,14 @@ export function EmailList(props: EmailListProps): ReactElement {
   const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
   const selection = useEmailSelection(emails)
+  // As tmail-flutter: below the desktop size, a selected row keeps its
+  // background (its avatar is ticked); only the open email is highlighted
+  const isSelectionHighlighted = useScreenSize() === 'desktop'
   const isHighlightedRow = useCallback(
     (row: VirtualizedTableRow): boolean =>
-      row.id === openEmailId || selection.isSelected(String(row.id)),
-    [openEmailId, selection]
+      row.id === openEmailId ||
+      (isSelectionHighlighted && selection.isSelected(String(row.id))),
+    [openEmailId, selection, isSelectionHighlighted]
   )
   const { scrollerRef, focusList } = useEmailListShortcuts(
     emails,
@@ -709,12 +717,18 @@ export function EmailList(props: EmailListProps): ReactElement {
   // tmail-flutter's app bar
   const topBarSlot = screenSize === 'desktop' ? null : filterSlot
   const filterInToolbar = topBarSlot === null
+  // And the selection bar over the app bar
+  const selectionSlot = useSelectionBarSlot()
+  const selectionBarSlot = screenSize === 'desktop' ? null : selectionSlot
 
   return (
     <EmailSelectionContext.Provider value={selection}>
       {listActions.banner}
       <ListPane>
-        {listActions.toolbar ?? (
+        {selectionBarSlot !== null && listActions.toolbar !== null
+          ? createPortal(listActions.toolbar, selectionBarSlot)
+          : null}
+        {(selectionBarSlot === null ? listActions.toolbar : null) ?? (
           <EmailListDefaultToolbar
             selection={selection}
             loadedCount={emails.length}

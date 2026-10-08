@@ -45,7 +45,8 @@ import {
 import { VacationBanner } from '@common/features/vacation/VacationBanner'
 import {
   PlatformProvider,
-  usePlatformSdk
+  usePlatformSdk,
+  usePlatformStatus
 } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -129,8 +130,10 @@ function AppFrame(): ReactElement {
   const isSearchResults = useMatch('/search') !== null
   const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
   const isSettings = isSettingsPath(location.pathname)
-  // The search is in the platform bar, unless the Workplace frames the app
-  const hasPlatformBar = usePlatformSdk() !== null
+  // The search is in tmail-flutter's bar without the platform; with it (its
+  // own bar) or framed by the Workplace, it is at the top of the page
+  const platformStatus = usePlatformStatus()
+  const hasFlutterBar = usePlatformSdk() !== null && platformStatus === 'public'
   const showComposeFab =
     !isDesktop && !isSettings && (!isEmailOpen || screenSize === 'tabletLarge')
 
@@ -193,7 +196,7 @@ function AppFrame(): ReactElement {
           inset={isDesktop}
           header={isDesktop && isSearchResults ? <SearchFiltersHeader /> : null}
         >
-          {isDesktop && !isSettings && !hasPlatformBar ? (
+          {isDesktop && !isSettings && !hasFlutterBar ? (
             <SearchRow
               search={<MailSearchRow />}
               actions={<SettingsButton />}

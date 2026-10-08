@@ -21,6 +21,8 @@ const FRAME_SX = {
   }
 } as const
 
+const PLAIN_SX = { flexShrink: 0 } as const
+
 const LEFT_SX = {
   display: 'flex',
   alignItems: 'center',
@@ -37,11 +39,19 @@ const SEARCH_SX = {
 export interface AppBarFrameProps {
   /** The platform bar, a `header` */
   children: ReactNode
+  /**
+   * Leaves the bar as it is (the platform of Twake Workplace answers): the
+   * same element, so that the bar does not mount again when it changes
+   */
+  isPlain?: boolean
 }
 
 /** Around the platform bar: the height and margins of tmail-flutter */
-export function AppBarFrame({ children }: AppBarFrameProps): ReactElement {
-  return <Box sx={FRAME_SX}>{children}</Box>
+export function AppBarFrame({
+  children,
+  isPlain = false
+}: AppBarFrameProps): ReactElement {
+  return <Box sx={isPlain ? PLAIN_SX : FRAME_SX}>{children}</Box>
 }
 
 export interface AppBarLeftProps {

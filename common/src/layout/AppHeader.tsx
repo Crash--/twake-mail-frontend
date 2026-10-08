@@ -28,13 +28,15 @@ export interface AppHeaderProps {
 }
 
 /**
- * The bars at the top of the app. On a desktop, as tmail-flutter, the
- * platform bar of Twake Workplace holds the logotype, the search (out of the
- * settings), the help, the settings, the apps and the account; smaller
- * screens keep the bar of the mail under it, for the folders, the search and
- * the settings. Without the platform, a log out button stands in for its
- * account menu. Inside an iframe of the Workplace, the container shows the
- * platform bar, and the search is in the page.
+ * The bars at the top of the app. With the platform of Twake Workplace, its
+ * bar as in every app of the platform (home, title, help, apps, account),
+ * the search and the settings at the top of the page on a desktop. Without
+ * the platform (`public`), on a desktop, tmail-flutter's bar: the logotype,
+ * the search (out of the settings), the help, the settings and a log out
+ * button. Smaller screens keep the bar of the mail under the platform bar,
+ * for the folders, the search and the settings. Inside an iframe of the
+ * Workplace, the container shows the platform bar, and the search is in the
+ * page.
  */
 export function AppHeader({ onOpenFolders }: AppHeaderProps): ReactElement {
   const sdk = usePlatformSdk()
@@ -55,27 +57,33 @@ export function AppHeader({ onOpenFolders }: AppHeaderProps): ReactElement {
       </>
     )
   }
+  // With the platform (Twake Workplace), its bar stays as in every app of
+  // the platform: its home, the title, help, apps and account. The same
+  // bar, only dressed otherwise, when the platform answers late or refuses
+  const isFlutterBar = status === 'public'
   return (
-    <AppBarFrame>
+    <AppBarFrame isPlain={!isFlutterBar}>
       <PlatformBar
         sdk={sdk}
         left={
-          <AppBarLeft width={SIDEBAR_WIDTH}>
-            <AppTitle />
-          </AppBarLeft>
+          isFlutterBar ? (
+            <AppBarLeft width={SIDEBAR_WIDTH}>
+              <AppTitle />
+            </AppBarLeft>
+          ) : undefined
         }
         search={
-          isSettings ? null : (
+          isFlutterBar && !isSettings ? (
             <AppBarSearch>
               <MailSearchRow data-testid="search-row" />
             </AppBarSearch>
-          )
+          ) : null
         }
         actions={
           <>
             <HelpButton />
-            {isSettings ? null : <SettingsButton />}
-            {status === 'public' ? <LogoutButton /> : null}
+            {isFlutterBar && !isSettings ? <SettingsButton /> : null}
+            {isFlutterBar ? <LogoutButton /> : null}
           </>
         }
       />

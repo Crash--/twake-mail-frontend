@@ -67,6 +67,9 @@ export function LabelChips({
           <ColorTag
             label={label.displayName}
             color={label.color ?? DEFAULT_LABEL_COLOR}
+            // As tmail-flutter (`LabelExtension.textColor`): white, whatever
+            // the colour (its contrast waits for the dedicated theme)
+            textColor="#FFFFFF"
             size={size}
             maxLength={max === undefined ? undefined : 16}
             removeLabel={t('labels.removeFromEmail', {

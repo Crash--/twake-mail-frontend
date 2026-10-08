@@ -31,6 +31,11 @@ export interface ColorTagProps {
   size?: 'small' | 'medium'
   /** Cut the name after this many characters, with an ellipsis */
   maxLength?: number
+  /**
+   * The colour of the text; by default black or white, whichever reads
+   * best (tmail-flutter writes the labels of a list row in white)
+   */
+  textColor?: string
   'data-testid'?: string
 }
 
@@ -45,9 +50,9 @@ export function ColorTag({
   onRemove,
   maxLength,
   size = 'medium',
+  textColor = readableTextColor(color),
   'data-testid': testId
 }: ColorTagProps): ReactElement {
-  const textColor = readableTextColor(color)
   const shown =
     maxLength !== undefined && label.length > maxLength
       ? `${label.slice(0, maxLength)}…`

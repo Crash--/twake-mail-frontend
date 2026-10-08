@@ -37,7 +37,8 @@ import { useUnsubscribe } from './useUnsubscribe'
  */
 const MOVES: Record<EmailViewActionsVariant, EmailActionId> = {
   email: 'move',
-  message: 'archive'
+  // As tmail-flutter's header, on every message
+  message: 'move'
 }
 
 /** The delete button: the folder offers one of these, never both */
@@ -66,7 +67,7 @@ export interface EmailViewActionsProps {
 
 /**
  * The actions of an open email, in its header, or of a message of a
- * conversation: reply, move (archive in a conversation), star and delete as
+ * conversation: reply, move, star and delete as
  * icon buttons (the star and "More" only on phones), and every action in
  * "More". An email leaving the folder closes the view
  * (`useEmailViewShortcuts`).
@@ -115,6 +116,7 @@ export function EmailViewActions({
     >
       {isPhone || replies.actions.length === 0 ? null : (
         <IconAction
+          tone="steel"
           label={replyLabel}
           icon={Reply}
           onClick={() => {
@@ -125,6 +127,7 @@ export function EmailViewActions({
       )}
       {isPhone || move === undefined ? null : (
         <IconAction
+          tone="steel"
           label={t(move.label)}
           icon={move.id === 'move' ? FolderMoveto : Archive}
           onClick={() => {
@@ -136,7 +139,7 @@ export function EmailViewActions({
       <IconAction
         label={starLabel}
         icon={isStarred ? Star : StarOutline}
-        tone={isStarred ? 'starred' : 'default'}
+        tone={isStarred ? 'starred' : 'steel'}
         aria-pressed={isStarred}
         onClick={() => {
           handleRun(isStarred ? 'unstar' : 'star')
@@ -145,6 +148,7 @@ export function EmailViewActions({
       />
       {isPhone || deletion === undefined ? null : (
         <IconAction
+          tone="steel"
           label={t(deletion.label)}
           icon={Trash}
           onClick={() => {
@@ -154,6 +158,7 @@ export function EmailViewActions({
         />
       )}
       <IconAction
+        tone="steel"
         label={moreLabel}
         icon={Dots}
         aria-haspopup="menu"

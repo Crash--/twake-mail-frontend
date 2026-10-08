@@ -9,10 +9,12 @@ const STICKY_SX = {
   bgcolor: 'background.paper'
 } as const
 
+// The app bar of tmail-flutter's reading view: 52 px, a 0.5 px divider
 const DIVIDER_SX = {
   ...STICKY_SX,
-  borderBottom: 1,
-  borderColor: 'divider'
+  minHeight: 52,
+  boxSizing: 'border-box',
+  borderBottom: '0.5px solid #D7D8D9'
 } as const
 
 export interface StickyBarProps {

@@ -7,7 +7,7 @@ import {
   Trash,
   Warning
 } from '@linagora/twake-icons'
-import { Box, Empty, Typography } from '@linagora/twake-mui'
+import { Box, Empty } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import {
   useEffect,
@@ -18,6 +18,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageThread } from '@/ds/MessageThread/MessageThread'
@@ -306,17 +307,13 @@ function ConversationContent({
         data-testid="conversation-header"
       >
         <InlineGroup gap={2} align="center">
-          <Typography
+          <EmailSubject
             ref={subjectRef}
             id={subjectId}
-            variant="h4"
-            component="h1"
-            tabIndex={-1}
-            className="u-breakword"
             data-testid="conversation-subject"
           >
             {subject}
-          </Typography>
+          </EmailSubject>
           <EmailLabels
             emails={emails}
             mailboxId={null}

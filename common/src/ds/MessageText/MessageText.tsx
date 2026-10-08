@@ -1,32 +1,53 @@
-// Upstream to twake-ui: yes, as typography variants. The reading view and the
-// compact conversation of the Teammail 1.1 mocks use sizes the theme has no
-// variant for (Bold 17/24, Medium 15/20, Medium 14/18.4).
-import { alpha, Typography } from '@linagora/twake-mui'
+// Upstream to twake-ui: no, the look of tmail-flutter's reading view, which
+// the theme has no variants for: the sender in Medium 15/20 black, its
+// address in Medium 14 grey (#6D7885), the date in Regular 14 grey, the
+// "To:" in light steel grey (#9AA7B6) and the recipients in black.
+import { Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 /**
- * `name`: the sender of an open email (Bold 17/24); `compactName`: the
- * sender in a conversation (Medium 15/20); `address`: body1 16/21;
- * `meta`: date, recipients (Medium 14/18.4, secondary); `compact`: the time
- * and preview of a conversation message (Regular 14/20, secondary)
+ * `name`, `compactName`: the sender (Medium 15/20, black); `address`: its
+ * address (Medium 14, grey); `meta`: the date (Regular 14, grey);
+ * `compact`: the time and preview of a conversation message (Regular 14/20,
+ * grey); `label`: "To:", "Cc:" (Regular 14, light grey); `recipient`: a
+ * recipient (Regular 14, black)
  */
 export type MessageTextVariant =
-  'name' | 'compactName' | 'address' | 'meta' | 'compact'
+  | 'name'
+  | 'compactName'
+  | 'address'
+  | 'meta'
+  | 'compact'
+  | 'label'
+  | 'recipient'
+
+const BLACK = '#000000'
+const GREY = '#6D7885'
+const LIGHT_GREY = '#9AA7B6'
 
 const STYLES = {
-  name: { fontSize: 17, lineHeight: '24px', fontWeight: 700 },
-  compactName: { fontSize: 15, lineHeight: '20px', fontWeight: 500 },
-  address: { fontSize: 16, lineHeight: '21px', fontWeight: 400 },
-  meta: { fontSize: 14, lineHeight: '18.4px', fontWeight: 500 },
-  compact: { fontSize: 14, lineHeight: '20px', fontWeight: 400 }
-} as const
-
-const LETTER_SPACING = {
-  name: '-0.15px',
-  compactName: '-0.15px',
-  address: '-0.15px',
-  meta: '0.1px',
-  compact: '0.1px'
+  name: { fontSize: 15, lineHeight: '20px', fontWeight: 500, color: BLACK },
+  compactName: {
+    fontSize: 15,
+    lineHeight: '20px',
+    fontWeight: 500,
+    color: BLACK
+  },
+  address: { fontSize: 14, lineHeight: '20px', fontWeight: 500, color: GREY },
+  meta: { fontSize: 14, lineHeight: '20px', fontWeight: 400, color: GREY },
+  compact: { fontSize: 14, lineHeight: '20px', fontWeight: 400, color: GREY },
+  label: {
+    fontSize: 14,
+    lineHeight: '20px',
+    fontWeight: 400,
+    color: LIGHT_GREY
+  },
+  recipient: {
+    fontSize: 14,
+    lineHeight: '20px',
+    fontWeight: 400,
+    color: BLACK
+  }
 } as const
 
 export interface MessageTextProps {
@@ -39,10 +60,7 @@ export interface MessageTextProps {
   'data-testid'?: string
 }
 
-/**
- * A piece of text of a message header, in the size of the mocks. The
- * secondary variants use Grey 900 at 80 %, the AA contrast of `SecondaryText`.
- */
+/** A piece of text of a message header, as tmail-flutter draws it */
 export function MessageText({
   variant,
   children,
@@ -52,7 +70,6 @@ export function MessageText({
   id,
   'data-testid': testId
 }: MessageTextProps): ReactElement {
-  const isSecondary = variant === 'meta' || variant === 'compact'
   return (
     <Typography
       component={component}
@@ -60,18 +77,7 @@ export function MessageText({
       className={className}
       id={id}
       data-testid={testId}
-      sx={theme => ({
-        ...STYLES[variant],
-        letterSpacing: LETTER_SPACING[variant],
-        ...(isSecondary
-          ? {
-              color: alpha(theme.palette.grey[900], 0.8),
-              ...theme.applyStyles('dark', {
-                color: alpha(theme.palette.common.white, 0.8)
-              })
-            }
-          : {})
-      })}
+      sx={{ ...STYLES[variant], letterSpacing: 0 }}
     >
       {children}
     </Typography>

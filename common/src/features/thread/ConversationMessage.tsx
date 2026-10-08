@@ -1,7 +1,12 @@
 import { Attachment, Icon } from '@linagora/twake-icons'
-import { Avatar, getInitials, Skeleton, Typography } from '@linagora/twake-mui'
+import { Skeleton, Typography } from '@linagora/twake-mui'
+import type { EmailAddress } from 'jmap-client-ts'
 import { useRef, type ReactElement } from 'react'
 
+import {
+  firstLetterOf,
+  GradientAvatar
+} from '@/ds/GradientAvatar/GradientAvatar'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { MessageThreadItem } from '@/ds/MessageThread/MessageThreadItem'
 import { Indent } from '@/ds/Indent/Indent'
@@ -44,13 +49,7 @@ import {
 import type { EmailListItemData } from './queries'
 import { useRevealOnOpen } from './useRevealOnOpen'
 
-function DetailAvatar({
-  detail,
-  initials
-}: {
-  detail: EmailDetail
-  initials: string
-}): ReactElement {
+function DetailAvatar({ detail }: { detail: EmailDetail }): ReactElement {
   const { t } = useI18n()
   const isDangerous = hasDangerWarning(useVisibleTwpWarnings(detail))
   return isDangerous ? (
@@ -61,26 +60,39 @@ function DetailAvatar({
       data-testid="conversation-message-danger-badge"
     />
   ) : (
-    <Avatar component="span" size={32} aria-hidden="true">
-      {initials}
-    </Avatar>
+    <SenderAvatar sender={detail.from?.[0] ?? null} />
+  )
+}
+
+/** As tmail-flutter: the first letter on the gradient of the address */
+function SenderAvatar({
+  sender
+}: {
+  sender: EmailAddress | null
+}): ReactElement {
+  const name = sender?.name ?? ''
+  const address = sender?.email ?? ''
+  return (
+    <GradientAvatar
+      text={firstLetterOf(name === '' ? address : name)}
+      colorKey={address}
+      fontSize={18}
+    />
   )
 }
 
 function ExpandedAvatar({
   emailId,
-  initials
+  sender
 }: {
   emailId: string
-  initials: string
+  sender: EmailAddress | null
 }): ReactElement {
   const query = useEmail(emailId)
   return query.data ? (
-    <DetailAvatar detail={query.data} initials={initials} />
+    <DetailAvatar detail={query.data} />
   ) : (
-    <Avatar component="span" size={32} aria-hidden="true">
-      {initials}
-    </Avatar>
+    <SenderAvatar sender={sender} />
   )
 }
 
@@ -285,7 +297,6 @@ export function ConversationMessage({
   const toggleRef = useRef<HTMLButtonElement>(null)
   useRevealOnOpen(toggleRef, isTarget, describedById)
   const sender = email.from?.[0] ?? null
-  const initials = getInitials(sender?.name ?? '', sender?.email ?? '')
   const isUnread = !hasKeyword(email, SEEN)
   const isDraft = hasKeyword(email, DRAFT)
   const emphasis = isUnread ? 'u-fw-bold' : ''
@@ -302,11 +313,9 @@ export function ConversationMessage({
       component="span"
       avatar={
         isExpanded ? (
-          <ExpandedAvatar emailId={email.id} initials={initials} />
+          <ExpandedAvatar emailId={email.id} sender={sender} />
         ) : (
-          <Avatar component="span" size={32} aria-hidden="true">
-            {initials}
-          </Avatar>
+          <SenderAvatar sender={sender} />
         )
       }
       identity={

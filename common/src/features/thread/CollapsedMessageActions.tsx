@@ -1,6 +1,6 @@
 import {
-  Archive,
   Dots,
+  FolderMoveto,
   Reply,
   Star,
   StarOutline,
@@ -37,7 +37,7 @@ export interface CollapsedMessageActionsProps {
 
 /**
  * The actions of a message of a conversation that is not expanded, in its
- * row: reply, archive, star, delete and "More". The message is not loaded
+ * row: reply, move, star, delete and "More" (as tmail-flutter's header). The message is not loaded
  * in full: what a list row knows of it is enough for them, so the actions
  * that need all of it (Print, Download as EML, Unsubscribe) wait for it to be
  * expanded.
@@ -62,7 +62,7 @@ export function CollapsedMessageActions({
     canLabel,
     extras: ['edit-as-new']
   })
-  const archive = items.find(item => item.id === 'archive')
+  const move = items.find(item => item.id === 'move')
   const deletion = items.find(
     item => item.id === 'move-to-trash' || item.id === 'delete-permanently'
   )
@@ -86,6 +86,7 @@ export function CollapsedMessageActions({
     >
       {isPhone ? null : (
         <IconAction
+          tone="steel"
           label={t('emailActions.reply.reply')}
           icon={Reply}
           onClick={() => {
@@ -94,20 +95,21 @@ export function CollapsedMessageActions({
           data-testid="email-view-action-reply"
         />
       )}
-      {isPhone || archive === undefined ? null : (
+      {isPhone || move === undefined ? null : (
         <IconAction
-          label={t(archive.label)}
-          icon={Archive}
+          tone="steel"
+          label={t(move.label)}
+          icon={FolderMoveto}
           onClick={() => {
-            handleRun(archive.id)
+            handleRun(move.id)
           }}
-          data-testid="email-view-action-archive"
+          data-testid="email-view-action-move"
         />
       )}
       <IconAction
         label={starLabel}
         icon={isStarred ? Star : StarOutline}
-        tone={isStarred ? 'starred' : 'default'}
+        tone={isStarred ? 'starred' : 'steel'}
         aria-pressed={isStarred}
         onClick={() => {
           handleRun(isStarred ? 'unstar' : 'star')
@@ -116,6 +118,7 @@ export function CollapsedMessageActions({
       />
       {isPhone || deletion === undefined ? null : (
         <IconAction
+          tone="steel"
           label={t(deletion.label)}
           icon={Trash}
           onClick={() => {
@@ -125,6 +128,7 @@ export function CollapsedMessageActions({
         />
       )}
       <IconAction
+        tone="steel"
         label={moreLabel}
         icon={Dots}
         aria-haspopup="menu"

@@ -74,10 +74,10 @@ describe('EmailView', () => {
       'Bob Dupont <bob@example.com>'
     )
     expect(screen.getByTestId('email-view-to')).toHaveTextContent(
-      /^To\s*Alice Martin$/
+      /^To:\s*Alice Martin$/
     )
     expect(screen.getByTestId('email-view-cc')).toHaveTextContent(
-      /^Cc\s*carol@example.com/
+      /^Cc:\s*carol@example.com/
     )
     expect(screen.getByTestId('email-view-date')).toHaveTextContent(
       'Feb 14, 10:30 AM'

@@ -1,14 +1,13 @@
 import { EmailOpen } from '@linagora/twake-icons'
-import {
-  Avatar,
-  Box,
-  Empty,
-  getInitials,
-  Typography
-} from '@linagora/twake-mui'
+import { Box, Empty } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
+import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
+import {
+  firstLetterOf,
+  GradientAvatar
+} from '@/ds/GradientAvatar/GradientAvatar'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
@@ -112,16 +111,9 @@ function EmailContent({
       <ReadingToolbar onBack={onBack} navigation={navigation} />
       <Box className="u-ph-1 u-pt-1 u-flex-auto">
         <InlineGroup gap={2} align="center">
-          <Typography
-            ref={subjectRef}
-            variant="h4"
-            component="h1"
-            tabIndex={-1}
-            className="u-breakword"
-            data-testid="email-view-subject"
-          >
+          <EmailSubject ref={subjectRef} data-testid="email-view-subject">
             {email.subject ?? ''}
-          </Typography>
+          </EmailSubject>
           <EmailLabels
             emails={[email]}
             mailboxId={mailboxId ?? null}
@@ -140,9 +132,15 @@ function EmailContent({
                 data-testid="email-view-danger-badge"
               />
             ) : (
-              <Avatar size={40}>
-                {getInitials(sender?.name ?? '', sender?.email ?? '')}
-              </Avatar>
+              <GradientAvatar
+                text={firstLetterOf(
+                  (sender?.name ?? '') === ''
+                    ? (sender?.email ?? '')
+                    : (sender?.name ?? '')
+                )}
+                colorKey={sender?.email ?? ''}
+                fontSize={18}
+              />
             )
           }
           identity={

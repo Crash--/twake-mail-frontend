@@ -1,6 +1,7 @@
 import { Box, Divider } from '@linagora/twake-mui'
 import { useMemo, useState, type ReactElement } from 'react'
 
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { isUnnamedCalendarPart } from '@common/features/calendar/calendarBlobs'
 import {
   CalendarInvitationCard,
@@ -38,9 +39,11 @@ export interface EmailMessageBodyProps {
 }
 
 /**
- * What an email says: the card of its calendar event, the remote content
- * banner, the sanitized body with its inline images, and its attachments
- * under it, as in the mocks. Remote content (images, fonts,
+ * What an email says, in the order of tmail-flutter: its attachments, the
+ * card of its calendar event, the remote content banner, then the sanitized
+ * body with its inline images. On phones the attachments go after the body,
+ * as tmail-flutter does (issue #315: above it, a long email no longer hides
+ * them). Remote content (images, fonts,
  * backgrounds) tells the sender when and where the email is read: it waits
  * for the user, unless the sender is trusted.
  */
@@ -49,6 +52,7 @@ export function EmailMessageBody({
   onRemoteContentShown
 }: EmailMessageBodyProps): ReactElement {
   const { t } = useI18n()
+  const isPhone = useScreenSize() === 'mobile'
   const sender = email.from?.[0] ?? null
   const html = useMemo(
     () => joinHtmlValues(email.htmlBody, email.bodyValues),
@@ -113,6 +117,9 @@ export function EmailMessageBody({
   return (
     <>
       <UnsubscribedBanner email={email} />
+      {isPhone ? null : (
+        <AttachmentList attachments={attachments} emailId={email.id} />
+      )}
       {calendar.invitation ? (
         <Box className="u-mt-1">
           <CalendarInvitationCard
@@ -129,16 +136,23 @@ export function EmailMessageBody({
           onAlwaysShow={sender ? handleAlwaysShowRemoteContent : null}
         />
       ) : null}
-      {body === null ? (
-        <LoadingListSkeleton count={3} />
-      ) : (
-        <EmailBodyFrame
-          document={body.document}
-          onMailtoLink={handleMailtoLink}
-        />
-      )}
-      {attachments.length > 0 ? <Divider className="u-mt-1" /> : null}
-      <AttachmentList attachments={attachments} emailId={email.id} />
+      {/* tmail-flutter leaves room between the headers and the body */}
+      <Box className="u-mt-1">
+        {body === null ? (
+          <LoadingListSkeleton count={3} />
+        ) : (
+          <EmailBodyFrame
+            document={body.document}
+            onMailtoLink={handleMailtoLink}
+          />
+        )}
+      </Box>
+      {isPhone ? (
+        <>
+          {attachments.length > 0 ? <Divider className="u-mt-1" /> : null}
+          <AttachmentList attachments={attachments} emailId={email.id} />
+        </>
+      ) : null}
     </>
   )
 }

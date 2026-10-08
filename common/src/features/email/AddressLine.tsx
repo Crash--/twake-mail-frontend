@@ -5,7 +5,6 @@ import type { ReactElement } from 'react'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageText } from '@/ds/MessageText/MessageText'
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import { formatAddress, formatAddressName } from './addresses'
@@ -42,12 +41,12 @@ function CompactAddressLine({
   )
   return (
     <InlineGroup gap={0.5} data-testid={testId}>
-      <MessageText variant="meta">{t(label)}</MessageText>
+      <MessageText variant="label">{`${t(label)}:`}</MessageText>
       <InlineGroup gap={0.5} component="span" isWrapping>
         {addresses.map((address, index) => (
           <MessageText
             key={`${address.email}-${index}`}
-            variant="meta"
+            variant="recipient"
             className="u-mr-half"
           >
             <EmailAddressCard address={address}>
@@ -94,8 +93,8 @@ export function AddressLine({
     )
   }
   return (
-    <SecondaryText variant="body2" component="p" data-testid={testId}>
-      {t(label)}:{' '}
+    <MessageText variant="recipient" component="p" data-testid={testId}>
+      <MessageText variant="label">{`${t(label)}: `}</MessageText>
       {addresses.map((address, index) => (
         <span key={`${address.email}-${index}`}>
           {index > 0 ? ', ' : null}
@@ -104,6 +103,6 @@ export function AddressLine({
           </EmailAddressCard>
         </span>
       ))}
-    </SecondaryText>
+    </MessageText>
   )
 }

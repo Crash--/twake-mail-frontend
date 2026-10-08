@@ -5,6 +5,7 @@ import { Outlet, useLocation, useMatch } from 'react-router'
 
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
+import { SCRIPT_FOCUS_TARGET } from '@/ds/FocusIndicator/focusIndicator'
 import { SkipLink } from '@/ds/SkipLink/SkipLink'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -180,6 +181,7 @@ function AppFrame(): ReactElement {
           <FlatContent
             id={MAIN_CONTENT_ID}
             tabIndex={-1}
+            {...SCRIPT_FOCUS_TARGET}
             data-testid="main-content"
           >
             <Outlet />

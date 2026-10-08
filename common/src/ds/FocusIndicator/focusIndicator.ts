@@ -37,6 +37,13 @@ export const FOCUS_RING_INSET: CSSObject = {
   '--focus-ring-offset': 'calc(-1 * var(--focus-ring-width))'
 }
 
+/**
+ * Marks a region that takes the focus from a script only (the main content,
+ * after a navigation or the skip link): with `tabindex="-1"`, it shows no
+ * outline, as the headings that take it
+ */
+export const SCRIPT_FOCUS_TARGET = { 'data-focus-target': '' } as const
+
 /** Rows that fill their list: the outline is drawn inside */
 const INSET_ROWS =
   '.MuiMenuItem-root, .MuiListItemButton-root, .MuiTab-root, [role="treeitem"], [role="option"]'
@@ -57,8 +64,9 @@ const TEXT_FIELDS: Record<FocusIndicator, string> = {
  * keyboard focus, MUI `ButtonBase` components and native elements, set by
  * the `--focus-ring-*` custom properties a component may change (another
  * colour, drawn inside). The rule of the native elements weighs no more than
- * `:focus-visible`, so a component's own wins. The headings that take the
- * focus from a script (after a route change, `tabindex="-1"`) show none.
+ * `:focus-visible`, so a component's own wins. The headings and regions
+ * that take the focus from a script (after a route change, `tabindex="-1"`,
+ * `SCRIPT_FOCUS_TARGET`) show none.
  */
 export function focusIndicatorThemeOptions(
   focusIndicator: FocusIndicator
@@ -74,7 +82,7 @@ export function focusIndicatorThemeOptions(
             '--focus-ring-offset': '2px'
           },
           [INSET_ROWS]: FOCUS_RING_INSET,
-          [`:focus-visible:where(:not(${TEXT_FIELDS[focusIndicator]}, :is(h1, h2, h3, h4, h5, h6)[tabindex="-1"]))`]:
+          [`:focus-visible:where(:not(${TEXT_FIELDS[focusIndicator]}, :is(h1, h2, h3, h4, h5, h6, [data-focus-target])[tabindex="-1"]))`]:
             FOCUS_RING,
           // Enhanced, a MUI field is outlined around its box
           ...(focusIndicator === 'enhanced'

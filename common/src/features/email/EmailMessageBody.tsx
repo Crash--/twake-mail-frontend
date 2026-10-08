@@ -12,6 +12,7 @@ import { parseMailto } from '@common/features/composer/mailto'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useFocusIndicator } from '@common/features/settings/accessibilityPreference'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { AttachmentList } from './AttachmentList'
 import { EmailBodyFrame } from './EmailBodyFrame'
@@ -26,7 +27,7 @@ import { RemoteContentBanner } from './RemoteContentBanner'
 import { UnsubscribedBanner } from './UnsubscribedBanner'
 import { foldQuotedHistory } from './quoteToggle'
 import { normalizeCid } from './sanitizeEmailHtml'
-import { useTrustedSender } from './trustedSenders'
+import { isSameDomain, useTrustedSender } from './trustedSenders'
 import { useInlineImageUrls } from './useInlineImageUrls'
 
 export interface EmailMessageBodyProps {
@@ -64,7 +65,12 @@ export function EmailMessageBody({
   const calendar = useCalendarInvitation(email.attachments)
   const { openComposer } = useComposer()
   const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
-  const allowRemoteContent = isRemoteContentShown || trustedSender.isTrusted
+  const { session } = useJmapSession()
+  // The senders of the domain of the user are trusted, for now
+  const isColleague =
+    sender !== null && isSameDomain(sender.email, session.username)
+  const allowRemoteContent =
+    isRemoteContentShown || trustedSender.isTrusted || isColleague
   const focusIndicator = useFocusIndicator()
   const trimmedContentLabel = t('email.showTrimmedContent')
   const body = useMemo(() => {

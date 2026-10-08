@@ -1,4 +1,5 @@
 import {
+  isSameDomain,
   readTrustedSenders,
   TRUSTED_SENDERS_STORAGE_KEY,
   trustSender
@@ -39,5 +40,13 @@ describe('trustedSenders', () => {
     expect(() => {
       trustSender('bob@example.com', null)
     }).not.toThrow()
+  })
+})
+
+describe('isSameDomain', () => {
+  it('trusts the addresses of the domain of the user, whatever the case', () => {
+    expect(isSameDomain('Alice@Example.com', 'bob@example.com')).toBe(true)
+    expect(isSameDomain('alice@other.org', 'bob@example.com')).toBe(false)
+    expect(isSameDomain('no-domain', 'bob@example.com')).toBe(false)
   })
 })

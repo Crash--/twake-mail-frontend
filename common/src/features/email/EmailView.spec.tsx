@@ -265,6 +265,9 @@ describe('EmailView', () => {
   })
 
   describe('remote content', () => {
+    // Outside the domain of the user (alice@example.com)
+    const OUTSIDER = { name: 'News', email: 'news@newsletter.example.org' }
+
     afterEach(() => {
       window.localStorage.clear()
     })
@@ -272,7 +275,12 @@ describe('EmailView', () => {
     it('hides remote images until the user shows them', async () => {
       renderView(
         makeFakeJmapServer({
-          emails: [makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML })]
+          emails: [
+            makeEmailWithBody(
+              { id: 'e1', from: [OUTSIDER] },
+              { html: TRACKED_HTML }
+            )
+          ]
         })
       )
 
@@ -299,8 +307,14 @@ describe('EmailView', () => {
     it('always shows the remote images of a trusted sender', async () => {
       const server = makeFakeJmapServer({
         emails: [
-          makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML }),
-          makeEmailWithBody({ id: 'e2' }, { html: TRACKED_HTML })
+          makeEmailWithBody(
+            { id: 'e1', from: [OUTSIDER] },
+            { html: TRACKED_HTML }
+          ),
+          makeEmailWithBody(
+            { id: 'e2', from: [OUTSIDER] },
+            { html: TRACKED_HTML }
+          )
         ]
       })
       const { unmount } = renderView(server)
@@ -314,10 +328,21 @@ describe('EmailView', () => {
         JSON.parse(
           window.localStorage.getItem(TRUSTED_SENDERS_STORAGE_KEY) ?? '[]'
         )
-      ).toEqual(['bob@example.com'])
+      ).toEqual(['news@newsletter.example.org'])
       unmount()
 
       renderView(server, 'e2')
+      expect(await findBodyDocument()).toContain('tracker.example.com')
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('shows the remote images of a sender of the domain of the user', async () => {
+      renderView(
+        makeFakeJmapServer({
+          emails: [makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML })]
+        })
+      )
+
       expect(await findBodyDocument()).toContain('tracker.example.com')
       expect(screen.queryByTestId('remote-content-banner')).toBe(null)
     })

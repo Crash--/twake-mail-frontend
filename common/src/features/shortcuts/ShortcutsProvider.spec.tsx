@@ -175,7 +175,7 @@ describe('ShortcutsProvider', () => {
     expect(dialog).toHaveTextContent('Archive message')
     expect(
       within(dialog).getByRole('table', { name: 'In a message being written' })
-    ).toHaveTextContent('Ctrl + EnterSend the message')
+    ).toHaveTextContent('Send the messageCtrl + Enter')
     // Keys pressed in the dialog belong to it
     fireEvent.keyDown(dialog, { key: 'e' })
     expect(onArchive).not.toHaveBeenCalled()

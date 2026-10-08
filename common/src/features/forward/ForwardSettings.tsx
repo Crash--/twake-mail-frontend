@@ -1,14 +1,11 @@
-import { Attention, Icon, Trash } from '@linagora/twake-icons'
+import { Attention, Icon, Plus, Trash } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
   Button,
-  FormControlLabel,
   IconButton,
   List,
   ListItem,
-  Switch,
-  TextField,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
@@ -17,12 +14,17 @@ import {
   useId,
   useRef,
   useState,
-  type ChangeEvent,
   type SubmitEvent,
   type ReactElement
 } from 'react'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
+import {
+  SettingsLabelPill,
+  SettingsTextField
+} from '@/ds/SettingsFields/SettingsFields'
+import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import {
@@ -70,7 +72,7 @@ export function ForwardSettings({
   const query = useQuery(forwardQueryOptions(client, accountId))
   const inputRef = useRef<HTMLInputElement>(null)
   const focusFallbackRef = useFocusFallback<HTMLLIElement>()
-  const localCopyDescriptionId = useId()
+  const recipientsTitleId = useId()
   const [typed, setTyped] = useState('')
   const [problem, setProblem] = useState<TranslationKey | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -174,8 +176,7 @@ export function ForwardSettings({
     })
   }
 
-  const handleLocalCopy = (event: ChangeEvent<HTMLInputElement>): void => {
-    const localCopy = event.target.checked
+  const handleLocalCopy = (localCopy: boolean): void => {
     void change(
       { localCopy },
       localCopy ? 'forward.toasts.localCopyOn' : 'forward.toasts.localCopyOff',
@@ -225,40 +226,30 @@ export function ForwardSettings({
         </Alert>
       ) : null}
       {forwards.length > 0 ? (
-        <Box className="u-mb-1">
-          <FormControlLabel
-            control={
-              <Switch
-                checked={query.data.localCopy}
-                disabled={isSaving}
-                onChange={handleLocalCopy}
-                slotProps={{
-                  input: { 'aria-describedby': localCopyDescriptionId }
-                }}
-                data-testid="forward-local-copy-toggle"
-              />
-            }
-            label={t('forward.localCopy')}
-          />
-          <SecondaryText
-            id={localCopyDescriptionId}
-            variant="body2"
-            component="p"
-          >
-            {t('forward.localCopyDescription')}
-          </SecondaryText>
-        </Box>
+        <SettingsSwitchRow
+          title={t('forward.localCopy')}
+          description={t('forward.localCopyDescription')}
+          isChecked={query.data.localCopy}
+          isDisabled={isSaving}
+          onChange={handleLocalCopy}
+          data-testid="forward-local-copy-toggle"
+        />
       ) : null}
+      <SettingsLabelPill
+        component="h2"
+        id={recipientsTitleId}
+        label={t('forward.recipients')}
+        pill={t('forward.recipientCount', { smart_count: forwards.length })}
+      />
       <Box
         component="form"
         onSubmit={handleAdd}
         noValidate
         className="u-flex u-flex-items-start u-flex-wrap"
       >
-        <TextField
+        <SettingsTextField
+          className="u-mr-1 u-mb-half"
           inputRef={inputRef}
-          size="small"
-          className="u-flex-auto u-mr-half"
           label={t('forward.inputLabel')}
           placeholder={t('forward.inputPlaceholder')}
           value={typed}
@@ -267,30 +258,20 @@ export function ForwardSettings({
             setProblem(null)
           }}
           error={problem !== null}
-          helperText={problem === null ? ' ' : t(problem)}
-          slotProps={{
-            htmlInput: { inputMode: 'email', 'data-testid': 'forward-input' }
-          }}
+          helperText={problem === null ? undefined : t(problem)}
+          inputMode="email"
+          inputTestId="forward-input"
         />
-        <Button
+        <SettingsPrimaryButton
           type="submit"
-          variant="contained"
+          label={t('forward.add')}
+          icon={Plus}
           disabled={isSaving}
           data-testid="forward-add-button"
-        >
-          {t('forward.add')}
-        </Button>
+        />
       </Box>
       {forwards.length > 0 ? (
         <>
-          <Typography
-            variant="subtitle1"
-            component="h2"
-            color="textPrimary"
-            className="u-fw-bold u-mt-1"
-          >
-            {t('forward.recipients')}
-          </Typography>
           <List aria-label={t('forward.listLabel')} data-testid="forward-list">
             {forwards.map(email => {
               const removeLabel = t('forward.removeOf', { email })

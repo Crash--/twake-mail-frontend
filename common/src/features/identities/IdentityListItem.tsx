@@ -1,16 +1,12 @@
-import { Icon, Pen, Trash } from '@linagora/twake-icons'
-import {
-  Box,
-  Chip,
-  IconButton,
-  ListItem,
-  Radio,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { Pen, Trash } from '@linagora/twake-icons'
+import { Box, Chip, Radio } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { SettingsRowButton } from '@/ds/SettingsButtons/SettingsButtons'
+import {
+  SettingsListItem,
+  SettingsListText
+} from '@/ds/SettingsList/SettingsList'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { formatIdentityAddresses, signaturePreview } from './identityForm'
@@ -46,91 +42,90 @@ export function IdentityListItem({
   const signature = signaturePreview(identity)
 
   return (
-    <ListItem
-      divider
-      className="u-flex-items-start"
+    <SettingsListItem
       data-testid="identity-item"
-      data-identity-name={identity.name}
-      data-default={isDefault || undefined}
-    >
-      {withDefaultRadio ? (
-        <Radio
-          value={identity.id}
-          slotProps={{
-            input: {
-              'aria-label': t('identities.setDefaultOf', {
-                name: identity.name
-              })
-            }
-          }}
-          data-testid="identity-default-radio"
-        />
-      ) : null}
-      <Box className="u-flex-auto u-ov-hidden u-mv-half u-ml-half">
-        <Box className="u-flex u-flex-items-center u-flex-wrap">
-          <Typography
-            component="span"
-            className="u-fw-bold u-breakword u-mr-half"
-            data-testid="identity-item-name"
-          >
-            {identity.name}
-          </Typography>
-          {isDefault ? (
-            <Chip
-              size="small"
-              label={t('identities.defaultBadge')}
-              data-testid="identity-default-badge"
+      dataAttributes={{
+        'data-identity-name': identity.name,
+        'data-default': isDefault || undefined
+      }}
+      leading={
+        withDefaultRadio ? (
+          <Radio
+            value={identity.id}
+            slotProps={{
+              input: {
+                'aria-label': t('identities.setDefaultOf', {
+                  name: identity.name
+                })
+              }
+            }}
+            data-testid="identity-default-radio"
+          />
+        ) : null
+      }
+      actions={
+        <>
+          <SettingsRowButton
+            label={t('common.edit')}
+            name={editLabel}
+            icon={Pen}
+            onClick={() => {
+              onEdit(identity)
+            }}
+            data-testid="identity-edit-button"
+          />
+          {identity.mayDelete ? (
+            <SettingsRowButton
+              label={t('common.delete')}
+              name={deleteLabel}
+              icon={Trash}
+              onClick={event => {
+                onDelete(identity, event.currentTarget)
+              }}
+              data-testid="identity-delete-button"
             />
           ) : null}
-        </Box>
-        <SecondaryText variant="body2" component="p" className="u-breakword">
-          {identity.email}
-        </SecondaryText>
-        {replyTo === '' ? null : (
-          <SecondaryText variant="body2" component="p" className="u-breakword">
-            {`${t('identities.form.replyTo')}: ${replyTo}`}
-          </SecondaryText>
-        )}
-        {bcc === '' ? null : (
-          <SecondaryText variant="body2" component="p" className="u-breakword">
-            {`${t('email.bcc')}: ${bcc}`}
-          </SecondaryText>
-        )}
-        {signature === '' ? null : (
-          <SecondaryText variant="body2" component="p" className="u-ellipsis">
-            {`-- ${signature}`}
-          </SecondaryText>
-        )}
-        {identity.mayDelete ? null : (
-          <SecondaryText variant="caption" component="p">
-            {t('identities.cannotDelete')}
-          </SecondaryText>
-        )}
-      </Box>
-      <Tooltip title={editLabel}>
-        <IconButton
-          aria-label={editLabel}
-          onClick={() => {
-            onEdit(identity)
-          }}
-          data-testid="identity-edit-button"
+        </>
+      }
+    >
+      <Box className="u-flex u-flex-items-center u-flex-wrap">
+        <SettingsListText
+          variant="name"
+          className="u-mr-half"
+          data-testid="identity-item-name"
         >
-          <Icon icon={Pen} />
-        </IconButton>
-      </Tooltip>
-      {identity.mayDelete ? (
-        <Tooltip title={deleteLabel}>
-          <IconButton
-            aria-label={deleteLabel}
-            onClick={event => {
-              onDelete(identity, event.currentTarget)
-            }}
-            data-testid="identity-delete-button"
-          >
-            <Icon icon={Trash} />
-          </IconButton>
-        </Tooltip>
-      ) : null}
-    </ListItem>
+          {identity.name}
+        </SettingsListText>
+        {isDefault ? (
+          <Chip
+            size="small"
+            label={t('identities.defaultBadge')}
+            className="u-mb-half"
+            data-testid="identity-default-badge"
+          />
+        ) : null}
+      </Box>
+      <SettingsListText variant="detail">{identity.email}</SettingsListText>
+      {replyTo === '' ? null : (
+        <SettingsListText variant="detail">
+          <span className="u-uppercase">{t('identities.form.replyTo')}</span>
+          {`: ${replyTo}`}
+        </SettingsListText>
+      )}
+      {bcc === '' ? null : (
+        <SettingsListText variant="detail">
+          <span className="u-uppercase">{t('email.bcc')}</span>
+          {`: ${bcc}`}
+        </SettingsListText>
+      )}
+      {signature === '' ? null : (
+        <SettingsListText variant="detail">{`-- ${signature}`}</SettingsListText>
+      )}
+      {identity.mayDelete ? null : (
+        <SettingsListText variant="detail">
+          {t('identities.cannotDelete')}
+        </SettingsListText>
+      )}
+    </SettingsListItem>
   )
 }

@@ -321,3 +321,4 @@ Conventions:
 | `composer-save-draft-button` | "Save as draft" icon button beside "Delete" in the bottom bar of the composer (not on phones, where it is `composer-save-draft-item`) | `UiKeys.saveDraftButton` |
 | `login-password-toggle` | "Show password" / "Hide password" button of the password field of the basic login, as tmail-flutter's eye | — |
 | `settings-sign-out-button` | "Sign out" at the end of the settings menu of a desktop, after a divider, as tmail-flutter | `AccountMenuItem.signOut` |
+| `create-first-rule-button` | "Create My First Rule" of the empty Email rules; `add-rule-button` ("Add a rule") is now beside the title whether rules exist or not, as tmail-flutter | `createMyFirstRule` |

@@ -1,7 +1,8 @@
-import { Alert, Box, LinearProgress, Typography } from '@linagora/twake-mui'
-import { useId, type ReactElement } from 'react'
+import { Alert, Box } from '@linagora/twake-mui'
+import type { ReactElement } from 'react'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { StorageUsage } from '@/ds/StorageUsage/StorageUsage'
 import { formatSize } from '@common/features/email/formatSize'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import type { SettingsSection } from '@common/features/settings/sections'
@@ -20,7 +21,6 @@ export function StorageSettings({
   section
 }: StorageSettingsProps): ReactElement {
   const { t, lang } = useI18n()
-  const labelId = useId()
   const query = useStorageQuota()
   const quota = query.data
 
@@ -42,24 +42,22 @@ export function StorageSettings({
         </SecondaryText>
       ) : (
         <Box data-testid="storage-settings" data-used={quota.used}>
-          <Typography id={labelId} component="p">
-            <span className="u-fw-bold">{formatSize(quota.used, lang)}</span>{' '}
-            {t('quota.usedOf', { limit: formatSize(quota.limit, lang) })}
-          </Typography>
-          <LinearProgress
-            variant="determinate"
-            value={Math.min(100, Math.round((quota.used / quota.limit) * 100))}
-            color={
-              quota.isFull ? 'error' : quota.isWarning ? 'warning' : 'primary'
-            }
-            aria-labelledby={labelId}
-            className="u-mv-1"
-          />
-          <SecondaryText variant="body2" component="p">
-            {t('quota.availableLong', {
+          <StorageUsage
+            used={formatSize(quota.used, lang)}
+            ofLimit={t('quota.usedOf', {
+              limit: formatSize(quota.limit, lang)
+            })}
+            available={t('quota.availableLong', {
               count: formatSize(Math.max(0, quota.limit - quota.used), lang)
             })}
-          </SecondaryText>
+            percent={Math.min(
+              100,
+              Math.round((quota.used / quota.limit) * 100)
+            )}
+            state={
+              quota.isFull ? 'full' : quota.isWarning ? 'warning' : 'normal'
+            }
+          />
           {quota.isWarning ? (
             <Alert severity="warning" className="u-mt-1">
               {t('quota.almostFull')}

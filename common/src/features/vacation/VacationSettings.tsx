@@ -1,13 +1,4 @@
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  FormControlLabel,
-  Switch,
-  TextField,
-  Typography
-} from '@linagora/twake-mui'
+import { Alert, Box, Button } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
 import type { VacationResponse } from 'jmap-client-ts'
@@ -20,6 +11,18 @@ import {
 } from 'react'
 
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
+import {
+  SettingsPrimaryButton,
+  SettingsTextButton
+} from '@/ds/SettingsButtons/SettingsButtons'
+import {
+  SettingsFormColumn,
+  SettingsFormField,
+  SettingsFormRow,
+  SettingsFormRowLabel,
+  SettingsTextField
+} from '@/ds/SettingsFields/SettingsFields'
+import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
 import { useEditorLabels } from '@common/features/composer/useEditorLabels'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -57,7 +60,11 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const { accountId } = useJmapSession()
   const { notify } = useNotify()
   const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
-  const enableId = useId()
+  const startDateId = useId()
+  const startTimeId = useId()
+  const endDateId = useId()
+  const endTimeId = useId()
+  const subjectId = useId()
   const editorRef = useRef<Editor | null>(null)
   const [start] = useState(() => startInputs(vacation.fromDate, new Date()))
   const end = toLocalInputs(vacation.toDate)
@@ -136,162 +143,162 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
 
   return (
     <form onSubmit={handleSubmit} noValidate data-testid="vacation-form">
-      <FormControlLabel
-        control={
-          <Switch
-            id={enableId}
-            checked={isEnabled}
-            disabled={isSaving}
-            onChange={event => {
-              setIsEnabled(event.target.checked)
-              setProblem(null)
-            }}
-            data-testid="vacation-enable-toggle"
-          />
-        }
-        label={t('vacation.enable')}
+      <SettingsSwitchRow
+        title={t('vacation.enable')}
+        isChecked={isEnabled}
+        isDisabled={isSaving}
+        onChange={checked => {
+          setIsEnabled(checked)
+          setProblem(null)
+        }}
+        data-testid="vacation-enable-toggle"
       />
-      <Box className="u-flex u-flex-wrap u-mt-1">
-        <TextField
-          type="date"
-          className="u-mr-1 u-mb-1"
-          label={t('vacation.startDate')}
-          value={startDate}
-          disabled={isOff}
-          required={isEnabled}
-          onChange={event => {
-            setStartDate(event.target.value)
-          }}
-          slotProps={{
-            inputLabel: { shrink: true },
-            htmlInput: { 'data-testid': 'vacation-start-date-input' }
-          }}
-        />
-        <TextField
-          type="time"
-          className="u-mb-1"
-          label={t('vacation.startTime')}
-          value={startTime}
-          disabled={isOff}
-          onChange={event => {
-            setStartTime(event.target.value)
-          }}
-          slotProps={{
-            inputLabel: { shrink: true },
-            htmlInput: { 'data-testid': 'vacation-start-time-input' }
-          }}
-        />
-      </Box>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={hasEnd}
+      {/* As tmail-flutter: a column of labelled rows, 660 px wide at most */}
+      <SettingsFormColumn>
+        <SettingsFormRow
+          label={`${t('vacation.startDate')}:`}
+          htmlFor={startDateId}
+        >
+          <SettingsTextField
+            id={startDateId}
+            type="date"
+            size="form"
+            width={150}
+            label={t('vacation.startDate')}
+            value={startDate}
+            disabled={isOff}
+            required={isEnabled}
+            onChange={event => {
+              setStartDate(event.target.value)
+            }}
+            inputTestId="vacation-start-date-input"
+          />
+          <SettingsFormRowLabel htmlFor={startTimeId}>
+            {`${t('vacation.startTime')}:`}
+          </SettingsFormRowLabel>
+          <SettingsTextField
+            id={startTimeId}
+            type="time"
+            size="form"
+            width={130}
+            label={t('vacation.startTime')}
+            value={startTime}
             disabled={isOff}
             onChange={event => {
-              setHasEnd(event.target.checked)
-              // Safari shows today in an empty date input: fill the end with
-              // the start, so that what is shown is what gets saved
-              setEndDate(event.target.checked ? startDate : '')
-              setEndTime(event.target.checked ? startTime : '')
+              setStartTime(event.target.value)
             }}
-            data-testid="vacation-end-toggle"
+            inputTestId="vacation-start-time-input"
           />
-        }
-        label={t('vacation.stops')}
-      />
-      <Box className="u-flex u-flex-wrap u-mt-1">
-        <TextField
-          type="date"
-          className="u-mr-1 u-mb-1"
-          label={t('vacation.endDate')}
-          value={endDate}
-          disabled={isOff || !hasEnd}
-          onChange={event => {
-            setEndDate(event.target.value)
+        </SettingsFormRow>
+        <SettingsSwitchRow
+          title={t('vacation.stops')}
+          isChecked={hasEnd}
+          isDisabled={isOff}
+          onChange={checked => {
+            setHasEnd(checked)
+            // Safari shows today in an empty date input: fill the end with
+            // the start, so that what is shown is what gets saved
+            setEndDate(checked ? startDate : '')
+            setEndTime(checked ? startTime : '')
           }}
-          slotProps={{
-            inputLabel: { shrink: true },
-            htmlInput: { 'data-testid': 'vacation-end-date-input' }
-          }}
+          data-testid="vacation-end-toggle"
         />
-        <TextField
-          type="time"
-          className="u-mb-1"
-          label={t('vacation.endTime')}
-          value={endTime}
-          disabled={isOff || !hasEnd}
-          onChange={event => {
-            setEndTime(event.target.value)
-          }}
-          slotProps={{
-            inputLabel: { shrink: true },
-            htmlInput: { 'data-testid': 'vacation-end-time-input' }
-          }}
-        />
-      </Box>
-      <TextField
-        fullWidth
-        className="u-mb-1"
-        label={t('vacation.subject')}
-        placeholder={t('vacation.subjectPlaceholder')}
-        value={subject}
-        disabled={isOff}
-        onChange={event => {
-          setSubject(event.target.value)
-        }}
-        slotProps={{ htmlInput: { 'data-testid': 'vacation-subject-input' } }}
-      />
-      <Typography
-        variant="subtitle2"
-        component="p"
-        color="textPrimary"
-        className="u-mb-half"
-      >
-        {t('vacation.message')}
-      </Typography>
-      <Box>
-        <RichTextEditor
-          key={editorKey}
-          labels={{ ...labels, editor: t('vacation.message') }}
-          content={vacation.htmlBody ?? ''}
-          disabled={isOff}
-          colors={colors}
-          fontSizes={fontSizes}
-          fontFamilies={fontFamilies}
-          onReady={editor => {
-            editorRef.current = editor
-          }}
-          testIds={EDITOR_TEST_IDS}
-        />
-      </Box>
-      {problem === null ? null : (
-        <Alert severity="error" className="u-mt-1" data-testid="vacation-error">
-          {t(problem)}
-        </Alert>
-      )}
-      <Box className="u-flex u-flex-justify-end u-mt-1">
-        <Button
-          variant="outlined"
-          color="inherit"
-          className="u-mr-half"
-          disabled={isSaving}
-          onClick={handleCancel}
-          data-testid="vacation-cancel-button"
+        <SettingsFormRow
+          label={`${t('vacation.endDate')}:`}
+          htmlFor={endDateId}
         >
-          {t('common.cancel')}
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={isSaving}
-          startIcon={
-            isSaving ? <CircularProgress size={16} color="inherit" /> : null
-          }
-          data-testid="vacation-save-button"
+          <SettingsTextField
+            id={endDateId}
+            type="date"
+            size="form"
+            width={150}
+            label={t('vacation.endDate')}
+            value={endDate}
+            disabled={isOff || !hasEnd}
+            onChange={event => {
+              setEndDate(event.target.value)
+            }}
+            inputTestId="vacation-end-date-input"
+          />
+          <SettingsFormRowLabel htmlFor={endTimeId}>
+            {`${t('vacation.endTime')}:`}
+          </SettingsFormRowLabel>
+          <SettingsTextField
+            id={endTimeId}
+            type="time"
+            size="form"
+            width={130}
+            label={t('vacation.endTime')}
+            value={endTime}
+            disabled={isOff || !hasEnd}
+            onChange={event => {
+              setEndTime(event.target.value)
+            }}
+            inputTestId="vacation-end-time-input"
+          />
+        </SettingsFormRow>
+        <SettingsFormRow
+          label={`${t('vacation.subject')}:`}
+          htmlFor={subjectId}
         >
-          {t('vacation.save')}
-        </Button>
-      </Box>
+          <SettingsFormField>
+            <SettingsTextField
+              id={subjectId}
+              size="form"
+              width="100%"
+              label={t('vacation.subject')}
+              placeholder={t('vacation.subjectPlaceholder')}
+              value={subject}
+              disabled={isOff}
+              onChange={event => {
+                setSubject(event.target.value)
+              }}
+              inputTestId="vacation-subject-input"
+            />
+          </SettingsFormField>
+        </SettingsFormRow>
+        <SettingsFormRow label={`${t('vacation.message')}:`} alignTop>
+          <SettingsFormField>
+            <RichTextEditor
+              key={editorKey}
+              labels={{ ...labels, editor: t('vacation.message') }}
+              content={vacation.htmlBody ?? ''}
+              disabled={isOff}
+              colors={colors}
+              fontSizes={fontSizes}
+              fontFamilies={fontFamilies}
+              isToolbarBelow
+              onReady={editor => {
+                editorRef.current = editor
+              }}
+              testIds={EDITOR_TEST_IDS}
+            />
+          </SettingsFormField>
+        </SettingsFormRow>
+        {problem === null ? null : (
+          <Alert
+            severity="error"
+            className="u-mt-1"
+            data-testid="vacation-error"
+          >
+            {t(problem)}
+          </Alert>
+        )}
+        <Box className="u-flex u-flex-justify-end u-flex-items-center u-mt-1">
+          <SettingsTextButton
+            label={t('common.cancel')}
+            disabled={isSaving}
+            onClick={handleCancel}
+            data-testid="vacation-cancel-button"
+          />
+          <SettingsPrimaryButton
+            type="submit"
+            label={t('vacation.save')}
+            disabled={isSaving}
+            data-testid="vacation-save-button"
+          />
+        </Box>
+      </SettingsFormColumn>
     </form>
   )
 }

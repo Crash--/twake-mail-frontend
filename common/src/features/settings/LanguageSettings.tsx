@@ -1,7 +1,7 @@
-import { TextField } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ChangeEvent, ReactElement } from 'react'
 
+import { SettingsSelect } from '@/ds/SettingsFields/SettingsFields'
 import { useLanguage } from '@common/i18n/I18nProvider'
 import {
   LANGUAGE_NATIVE_NAMES,
@@ -57,22 +57,18 @@ export function LanguageSettings({
 
   return (
     <SettingsSectionLayout section={section}>
-      <TextField
-        select
+      <SettingsSelect
         label={t('settings.language.label')}
         value={lang}
         onChange={handleChange}
-        slotProps={{
-          select: { native: true },
-          htmlInput: { 'data-testid': 'language-select' }
-        }}
+        inputTestId="language-select"
       >
         {SUPPORTED_LANGUAGES.map(language => (
           <option key={language} value={language} lang={language}>
             {`${t(`settings.language.names.${language}`)} - ${LANGUAGE_NATIVE_NAMES[language]}`}
           </option>
         ))}
-      </TextField>
+      </SettingsSelect>
     </SettingsSectionLayout>
   )
 }

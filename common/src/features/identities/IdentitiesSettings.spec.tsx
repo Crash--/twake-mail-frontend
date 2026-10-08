@@ -70,7 +70,7 @@ describe('IdentitiesSettings', () => {
     ])
     const work = item('Alice at work')
     expect(within(work).getByText('Default')).toBeVisible()
-    expect(within(work).getByText('Reply to: team@example.com')).toBeVisible()
+    expect(work).toHaveTextContent('Reply to: team@example.com')
     expect(within(work).getByText('-- Alice CEO')).toBeVisible()
     expect(
       within(work).getByRole('radio', { name: 'Use Alice at work by default' })

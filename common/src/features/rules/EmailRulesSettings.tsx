@@ -1,11 +1,13 @@
-import { Filter, Icon, Plus } from '@linagora/twake-icons'
-import { Alert, Button, Empty, List } from '@linagora/twake-mui'
+import { Filter, Plus } from '@linagora/twake-icons'
+import { Alert, Button, List } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useEffect, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
+import { SettingsEmptyState } from '@/ds/SettingsEmptyState/SettingsEmptyState'
+import { SettingsCount } from '@/ds/SettingsFields/SettingsFields'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -139,16 +141,13 @@ export function EmailRulesSettings({
     <SettingsSectionLayout
       section={section}
       actions={
-        rules.length > 0 ? (
-          <Button
-            variant="contained"
-            startIcon={<Icon icon={Plus} />}
-            onClick={openCreator}
-            data-testid="add-rule-button"
-          >
-            {t('rules.add')}
-          </Button>
-        ) : null
+        // As tmail-flutter: there with or without rules
+        <SettingsPrimaryButton
+          label={t('rules.add')}
+          icon={Plus}
+          onClick={openCreator}
+          data-testid="add-rule-button"
+        />
       }
     >
       {query.isPending ? (
@@ -170,38 +169,40 @@ export function EmailRulesSettings({
           {t('rules.errors.load')}
         </Alert>
       ) : rules.length === 0 ? (
-        <Empty
-          icon={Filter}
-          title={t('rules.empty.title')}
-          // The text of `Empty` lacks contrast (docs/twake-mui-gaps.md)
-          text={<SecondaryText>{t('rules.empty.message')}</SecondaryText>}
-          data-testid="email-rules-empty"
-        >
-          <Button
-            variant="contained"
-            startIcon={<Icon icon={Plus} />}
-            onClick={openCreator}
-            data-testid="add-rule-button"
-          >
-            {t('rules.empty.action')}
-          </Button>
-        </Empty>
+        <>
+          <SettingsCount label={t('rules.nameOfRules')} count={0} />
+          <SettingsEmptyState
+            icon={Filter}
+            title={t('rules.empty.title')}
+            text={t('rules.empty.message')}
+            action={{
+              label: t('rules.empty.action'),
+              icon: Plus,
+              onClick: openCreator,
+              'data-testid': 'create-first-rule-button'
+            }}
+            data-testid="email-rules-empty"
+          />
+        </>
       ) : (
-        <List aria-label={t('rules.listLabel')} data-testid="email-rule-list">
-          {rules.map((rule, index) => (
-            <RuleListItem
-              // Rules have no id: their position is theirs
-              key={index}
-              rule={rule}
-              onEdit={() => {
-                setForm({ index, draft: null })
-              }}
-              onDelete={opener => {
-                handleDelete(index, opener)
-              }}
-            />
-          ))}
-        </List>
+        <>
+          <SettingsCount label={t('rules.nameOfRules')} count={rules.length} />
+          <List aria-label={t('rules.listLabel')} data-testid="email-rule-list">
+            {rules.map((rule, index) => (
+              <RuleListItem
+                // Rules have no id: their position is theirs
+                key={index}
+                rule={rule}
+                onEdit={() => {
+                  setForm({ index, draft: null })
+                }}
+                onDelete={opener => {
+                  handleDelete(index, opener)
+                }}
+              />
+            ))}
+          </List>
+        </>
       )}
       {form === null ? null : (
         <RuleFormDialog

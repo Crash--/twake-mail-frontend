@@ -40,6 +40,7 @@ const SHOW_ALL = 'show-all'
 const RECENT_PREFIX = 'recent:'
 const CONTACT_PREFIX = 'contact:'
 const EMAIL_PREFIX = 'email:'
+const NO_GROUPS: readonly SearchComboboxGroup[] = []
 
 export interface SearchOptions {
   groups: SearchComboboxGroup[]
@@ -57,11 +58,13 @@ export interface SearchOptions {
  * What a search field offers while the user types, from `draft`: a search
  * for the text, recent searches, contacts and the first matching emails.
  * Choosing an option runs its search, or opens the email among the results.
- * Nothing is fetched while `isOpen` is false.
+ * Nothing is fetched while `isOpen` is false. `extra` groups come after the
+ * search for the text; `select` leaves their options to the caller.
  */
 export function useSearchOptions(
   draft: SearchFilter,
-  isOpen: boolean
+  isOpen: boolean,
+  extra: readonly SearchComboboxGroup[] = NO_GROUPS
 ): SearchOptions {
   const { t, lang } = useI18n()
   const navigate = useNavigate()
@@ -100,6 +103,7 @@ export function useSearchOptions(
       : suggestions.recent
     return [
       { id: 'show-all', label: null, options: showAll },
+      ...extra,
       {
         id: 'recent',
         label: t('search.recent'),
@@ -170,7 +174,7 @@ export function useSearchOptions(
         }))
       }
     ]
-  }, [t, lang, hasText, hasFiltersOnly, draft.text, suggestions])
+  }, [t, lang, hasText, hasFiltersOnly, draft.text, suggestions, extra])
 
   const select = (option: SearchComboboxOption): void => {
     if (option.id === SHOW_ALL) {

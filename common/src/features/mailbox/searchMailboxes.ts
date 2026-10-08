@@ -25,6 +25,16 @@ function normalize(text: string): string {
 }
 
 /**
+ * Whether `name` holds every word of `query`, ignoring case and accents. An
+ * empty query matches nothing.
+ */
+export function nameMatches(name: string, query: string): boolean {
+  const words = normalize(query).split(/\s+/).filter(Boolean)
+  const normalized = normalize(name)
+  return words.length > 0 && words.every(word => normalized.includes(word))
+}
+
+/**
  * The folders whose displayed name holds every word of `query`, ignoring case
  * and accents: all of them, hidden ones included (they are the way back to
  * a hidden folder), the user's folders first and the team mailboxes after,
@@ -36,17 +46,13 @@ export function searchMailboxes(
   query: string,
   getName: (mailbox: MailboxSummary) => string
 ): MailboxSearchResult[] {
-  const words = normalize(query).split(/\s+/).filter(Boolean)
-  if (words.length === 0) return []
+  if (query.trim() === '') return []
 
   const { personal, team } = buildMailboxSections(mailboxes, true)
   const rows = [
     ...listVisibleMailboxes(personal, () => true),
     ...listVisibleMailboxes(team, () => true)
-  ].filter(({ mailbox }) => {
-    const name = normalize(getName(mailbox))
-    return words.every(word => name.includes(word))
-  })
+  ].filter(({ mailbox }) => nameMatches(getName(mailbox), query))
 
   return rows.map((row, index) => {
     const { mailbox } = row

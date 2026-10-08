@@ -20,6 +20,7 @@ describe('Settings', () => {
     })
     await screen.findByTestId('mailbox-page')
 
+    await userEvent.click(screen.getByTestId('account-menu-button'))
     await userEvent.click(screen.getByTestId('settings-button'))
 
     const heading = await screen.findByRole('heading', {
@@ -52,7 +53,7 @@ describe('Settings', () => {
     )
     // Back to what opened the settings, not to the page body
     await waitFor(() => {
-      expect(screen.getByTestId('settings-button')).toHaveFocus()
+      expect(screen.getByTestId('account-menu-button')).toHaveFocus()
     })
   })
 

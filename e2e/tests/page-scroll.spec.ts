@@ -3,6 +3,7 @@ import type { Frame, Page } from '@playwright/test'
 import { LoginPage } from '../pages'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
+import { openAccountMenuIfAny } from '../support/accountMenu'
 
 const EMAIL_COUNT = 40
 const SUBJECT = 'Scroll check 27'
@@ -151,6 +152,7 @@ test.describe('LAYOUT page scroll', () => {
           )
           await expectNoPageScroll(scope)
 
+          await openAccountMenuIfAny(scope)
           await scope.getByTestId('settings-button').click()
           await expect(scope.getByRole('heading', { level: 1 })).toBeVisible()
           await expectNoPageScroll(scope)

@@ -2,6 +2,7 @@ import { LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { env } from '../support/env'
 import { expect, test } from '../support/fixtures'
+import { openAccountMenuIfAny } from '../support/accountMenu'
 
 /**
  * The platform bar of Twake Workplace (@linagora/twake-bar) at the top of the app.
@@ -41,7 +42,8 @@ test.describe('APPGRID platform bar', () => {
       await expect(bar.getByTestId('twake-bar-apps-button')).toHaveCount(0)
       await expectNoA11yViolations(page)
 
-      await bar.getByTestId('logout-button').click()
+      await openAccountMenuIfAny(page)
+      await page.getByTestId('logout-button').click()
       await expect(page.getByTestId('login-username-input')).toBeVisible()
     }
   )

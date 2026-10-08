@@ -15,11 +15,11 @@ import {
 import { isSettingsPath } from '@common/features/settings/SettingsExitProvider'
 import { AppTitle } from '@injected/layout/AppTitle'
 
+import { AccountMenu } from './AccountMenu'
 import { HelpButton } from './HelpButton'
 import { LogoutButton } from './LogoutButton'
 import { MailSearchRow } from './MailSearchRow'
 import { PlatformBar } from './PlatformBar'
-import { SettingsButton } from './SettingsButton'
 import { TopBar } from './TopBar'
 
 export interface AppHeaderProps {
@@ -98,8 +98,9 @@ export function AppHeader({
         actions={
           <>
             <HelpButton />
-            {isFlutterBar && !isSettings ? <SettingsButton /> : null}
-            {isFlutterBar ? <LogoutButton /> : null}
+            {/* As tmail-flutter: the settings and the sign out are behind
+                the initial of the user */}
+            {isFlutterBar ? <AccountMenu /> : null}
           </>
         }
       />

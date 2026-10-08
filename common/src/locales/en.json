@@ -35,7 +35,8 @@
     "search": "Search",
     "showFolders": "Show folders",
     "searchPlaceholder": "Search mail",
-    "help": "Get help or report a bug"
+    "help": "Get help or report a bug",
+    "account": "Account %{address}"
   },
   "sidebar": {
     "mailboxes": "Mailboxes",

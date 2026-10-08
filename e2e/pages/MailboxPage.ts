@@ -4,6 +4,7 @@ import type { MailboxRole } from '../support/jmap'
 import { ComposerPage } from './ComposerPage'
 import { EmailPage } from './EmailPage'
 import { SettingsPage } from './SettingsPage'
+import { openAccountMenuIfAny } from '../support/accountMenu'
 
 /** A folder of the sidebar, by JMAP role (`inbox`, `trash`...) or by displayed name */
 export type FolderRef =
@@ -396,6 +397,7 @@ export class MailboxPage {
 
   /** Opens the settings from their gear (search row, or top bar below the desktop size) */
   async openSettings(): Promise<SettingsPage> {
+    await openAccountMenuIfAny(this.page)
     await this.page.getByTestId('settings-button').click()
     const settings = new SettingsPage(this.page)
     await expect(settings.heading).toBeVisible()

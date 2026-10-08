@@ -4,6 +4,7 @@ import { keptComposers } from '../support/composerStorage'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
 import { recordJmapTraffic } from '../support/jmapTraffic'
+import { openAccountMenuIfAny } from '../support/accountMenu'
 
 async function draftSubjects(jmap: JmapClient): Promise<string[]> {
   const accountId = await jmap.accountId()
@@ -161,6 +162,7 @@ test.describe('composer drafts, local first', () => {
       .poll(async () => (await keptComposers(page)).length)
       .toBe(1)
 
+    await openAccountMenuIfAny(page)
     await page.getByTestId('logout-button').click()
     await expect(page.getByTestId('login-username-input')).toBeVisible()
 
@@ -201,6 +203,7 @@ test.describe('composer drafts, local first', () => {
     expect(await draftSubjects(jmap)).toEqual([])
     traffic.reset()
 
+    await openAccountMenuIfAny(page)
     await page.getByTestId('logout-button').click()
     await expect(page.getByTestId('login-username-input')).toBeVisible()
 

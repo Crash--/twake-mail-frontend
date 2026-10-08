@@ -35,7 +35,8 @@
     "search": "Tìm kiếm",
     "showFolders": "Hiển thị thư mục",
     "searchPlaceholder": "Tìm kiếm thư",
-    "help": "Nhận trợ giúp hoặc báo cáo"
+    "help": "Nhận trợ giúp hoặc báo cáo",
+    "account": "Tài khoản %{address}"
   },
   "sidebar": {
     "mailboxes": "Hộp thư",

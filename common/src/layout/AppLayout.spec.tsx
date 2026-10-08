@@ -43,7 +43,7 @@ describe('AppLayout', () => {
     ).toBeVisible()
   })
 
-  it('puts the logotype, the search and the settings button in the platform bar, as tmail-flutter', async () => {
+  it('puts the logotype, the search and the account menu in the platform bar, as tmail-flutter', async () => {
     mockViewport({ width: 1440 })
     renderLayout()
 
@@ -53,8 +53,12 @@ describe('AppLayout', () => {
     expect(screen.queryByTestId('top-bar')).toBe(null)
     expect(bar).toContainElement(row)
     expect(within(row).getByTestId('search-input')).toBeVisible()
-    expect(within(bar).getByRole('button', { name: 'Settings' })).toBeVisible()
     expect(within(bar).getByRole('img', { name: 'Twake Mail' })).toBeVisible()
+    // As tmail-flutter: the settings behind the initial of the user
+    await userEvent.click(within(bar).getByTestId('account-menu-button'))
+    expect(
+      screen.getByRole('menuitem', { name: 'Manage account' })
+    ).toBeVisible()
   })
 
   it('keeps the search in the top bar below the desktop size', async () => {
@@ -151,7 +155,8 @@ describe('AppLayout', () => {
 
     const bar = await screen.findByTestId('twake-bar')
     expect(bar).toHaveAttribute('data-status', 'public')
-    await userEvent.click(within(bar).getByTestId('logout-button'))
+    await userEvent.click(within(bar).getByTestId('account-menu-button'))
+    await userEvent.click(screen.getByTestId('logout-button'))
 
     await waitFor(() => {
       expect(authService.logout).toHaveBeenCalledTimes(1)

@@ -17,8 +17,10 @@ test.describe('LOGIN login', () => {
     await expect(mailbox.emptyListView).toBeVisible()
     await expectNoA11yViolations(page)
 
-    // No Workplace in the stack: the platform bar, with a log out button
+    // No Workplace in the stack: tmail-flutter's bar, the log out behind
+    // the initial of the user
     await expect(page.getByTestId('twake-bar')).toBeVisible()
+    await page.getByTestId('account-menu-button').click()
     await expect(page.getByTestId('logout-button')).toBeVisible()
   })
 })

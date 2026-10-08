@@ -6,6 +6,7 @@ import { env } from '../support/env'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
 import { WebAdminClient } from '../support/webadmin'
+import { openAccountMenuIfAny } from '../support/accountMenu'
 
 /**
  * The storage upgrade of the Twake platform (tmail-flutter `premiumCtaProvider`): a way to
@@ -122,6 +123,7 @@ test.describe('STORAGE storage upgrade', () => {
     await popup.close()
 
     // Settings > Storage
+    await openAccountMenuIfAny(app)
     await app.getByTestId('settings-button').click()
     await app.getByTestId('settings-menu-storage').click()
     await expect(app.getByTestId('storage-settings')).toContainText(

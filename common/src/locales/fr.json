@@ -35,7 +35,8 @@
     "search": "Rechercher",
     "showFolders": "Afficher les dossiers",
     "searchPlaceholder": "Rechercher dans les courriers",
-    "help": "Obtenez de l'aide ou signalez un bogue"
+    "help": "Obtenez de l'aide ou signalez un bogue",
+    "account": "Compte %{address}"
   },
   "sidebar": {
     "mailboxes": "Boîtes aux lettres",

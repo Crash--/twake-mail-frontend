@@ -73,7 +73,9 @@ const TEXT_FIELDS: Record<FocusIndicator, string> = {
  * `SCRIPT_FOCUS_TARGET`) show none.
  */
 export function focusIndicatorThemeOptions(
-  focusIndicator: FocusIndicator
+  focusIndicator: FocusIndicator,
+  /** More global CSS, e.g. the scroll bars (one `MuiCssBaseline` per theme) */
+  globalCss: CSSObject = {}
 ): ThemeOptions {
   return {
     components: {
@@ -96,7 +98,8 @@ export function focusIndicatorThemeOptions(
                 '.MuiInputBase-root:has(> .MuiInputBase-input:focus-visible)':
                   FOCUS_RING
               }
-            : {})
+            : {}),
+          ...globalCss
         })
       },
       // ButtonBase removes the outline with a class: the rule goes there

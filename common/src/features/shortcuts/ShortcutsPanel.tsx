@@ -60,10 +60,14 @@ export function ShortcutsPanel({
       />
       <ShortcutsTable
         labelledBy={labelledBy}
-        rows={SHORTCUTS.map(shortcut => ({
-          keys: shortcut.keys ?? shortcut.key,
-          label: t(shortcut.label)
-        }))}
+        rows={[
+          // With a modifier: the switch above leaves it on
+          { keys: `${modifier} + K`, label: t('spotMail.shortcut') },
+          ...SHORTCUTS.map(shortcut => ({
+            keys: shortcut.keys ?? shortcut.key,
+            label: t(shortcut.label)
+          }))
+        ]}
       />
       <Typography
         id={composerTitleId}

@@ -43,6 +43,8 @@ test.describe('A11Y composer', () => {
 
     // A named, non modal dialog; the title is a level 2 heading; the live regions are there
     // before anything is announced (a region added with its text is often missed)
+    // As tmail-flutter: the footer has "Aa" (the toolbar opens with it),
+    // the insertions and More, then delete, save as draft and send
     await expect(composer.root).toMatchAriaSnapshot(`
       - dialog "New message":
         - heading "New message" [level=2]
@@ -51,17 +53,19 @@ test.describe('A11Y composer', () => {
         - button "Close"
         - group "To":
           - combobox "To"
+        - status
         - textbox "Subject"
         - textbox "Message body"
-        - toolbar "Formatting options"
         - status
+        - button "Formatting options"
         - button "Attach file"
         - button "Insert image"
         - button "Insert link"
         - button "Insert emoji"
+        - button "More"
         - status
         - button "Delete draft"
-        - button "More"
+        - button "Save as draft"
         - button "Send"
     `)
     await expect(composer.root).not.toHaveAttribute('aria-modal', 'true')
@@ -79,14 +83,14 @@ test.describe('A11Y composer', () => {
     // The focus goes through the window in the order it is read, without a trap
     expect(await tabOrder(page, composer)).toEqual([
       'Message body',
-      'Text style Normal',
       'Formatting options',
       'Attach file',
       'Insert image',
       'Insert link',
       'Insert emoji',
-      'Delete draft',
       'More',
+      'Delete draft',
+      'Save as draft',
       'Send'
     ])
     await expectNoA11yViolations(page)

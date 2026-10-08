@@ -503,9 +503,16 @@ test.describe('SRCH search', () => {
       .poll(async () => (await jmap.getEmail(email.id)).keywords.$seen)
       .toBe(true)
 
-    // Archived from the selection toolbar: the result stays, in Archive
-    await mailbox.selectEmail(subject)
-    await mailbox.runSelectionAction('archive')
+    // Archived from the selection bar of phones and tablets, from the menu
+    // of its row on a desktop (tmail-flutter's selection bar of a desktop
+    // has no archive): the result stays, in Archive
+    if (mailbox.hasFolderDrawer()) {
+      await mailbox.selectEmail(subject)
+      await mailbox.runSelectionAction('archive')
+    } else {
+      const menu = await mailbox.openEmailMenu(subject, { rightClick: true })
+      await menu.getByTestId('email-action-archive').click()
+    }
     const archive = await jmap.findMailboxByRole('archive')
     await expect
       .poll(async () => Object.keys((await jmap.getEmail(email.id)).mailboxIds))
@@ -597,13 +604,15 @@ test.describe('SRCH search', () => {
         // From the corner of the field, moved left only to stay on screen
         expect(card?.x ?? 0).toBeLessThanOrEqual((field?.x ?? 0) + 1)
         expect(card?.x ?? 0).toBeGreaterThanOrEqual((field?.x ?? 0) - 16)
-        // 700 px under the search of a desktop, at least a form's width
-        // under the narrower one of a tablet
+        // As tmail-flutter, as wide as the search of a desktop; at least
+        // a form's width under the narrower one of a tablet
         expect(card?.width).toBeGreaterThanOrEqual(
           Math.min(560, field?.width ?? 0)
         )
         if ((page.viewportSize()?.width ?? 0) >= 1200) {
-          expect(card?.width).toBeCloseTo(700, -1)
+          expect(
+            Math.abs((card?.width ?? 0) - (field?.width ?? 0))
+          ).toBeLessThan(2)
         }
       }
       await expectNoA11yViolations(page)

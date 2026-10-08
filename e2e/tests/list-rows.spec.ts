@@ -58,7 +58,7 @@ test.describe('LST email list rows', () => {
       'compact rows have no hover actions'
     )
     // The opacity is on the group of actions, and on the box around the date
-    const remove = row.getByTestId('email-list-item-remove').locator('..')
+    const remove = row.locator('[data-row-actions]')
     const date = row.getByTestId('email-list-item-date').locator('..')
 
     await page.mouse.move(0, 0)
@@ -348,8 +348,14 @@ test.describe('LST list rows at every width', () => {
         expect(overlaps, `date over the subject at ${String(width)}`).toBe(
           false
         )
+        // Its cell keeps room to read (the subject itself is as wide as
+        // its text)
+        const cell = await row
+          .getByTestId('email-list-item-subject')
+          .locator('xpath=ancestor::td[1]')
+          .boundingBox()
         expect(
-          subject?.width ?? 0,
+          cell?.width ?? 0,
           `subject at ${String(width)}`
         ).toBeGreaterThan(150)
       }).toPass()

@@ -1,12 +1,4 @@
 import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Typography
-} from '@linagora/twake-mui'
-import {
   createContext,
   useCallback,
   useContext,
@@ -18,6 +10,10 @@ import {
   type ReactNode
 } from 'react'
 
+import {
+  ConfirmDialogButton,
+  ConfirmDialogFrame
+} from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface ConfirmOptions {
@@ -165,57 +161,45 @@ export function ConfirmProvider({
   return (
     <ConfirmContext.Provider value={api}>
       {children}
-      <Dialog
+      {/* tmail-flutter's confirmation dialog: its confirming button is the
+          blue pill even when it destroys, the title says what it does */}
+      <ConfirmDialogFrame
         open={pending !== null}
+        title={pending?.title}
+        message={pending?.message}
+        closeLabel={t('common.close')}
         onClose={handleCancel}
-        size="small"
-        aria-labelledby={titleId}
-        aria-describedby={messageId}
-        slotProps={{ transition: { onExited: handleExited } }}
+        onExited={handleExited}
+        titleId={titleId}
+        messageId={messageId}
         data-testid="confirm-dialog"
       >
-        <DialogTitle id={titleId}>{pending?.title}</DialogTitle>
-        <DialogContent>
-          {/* Not DialogContentText: text.secondary is below AA contrast
-              (docs/twake-mui-gaps.md) */}
-          <Typography id={messageId} color="textPrimary">
-            {pending?.message}
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          {/* Inherit: primary text on white is below AA contrast */}
-          {isAlert ? null : (
-            <Button
-              variant="outlined"
-              color="inherit"
-              onClick={handleCancel}
-              autoFocus={!isChoice}
-              data-testid="confirm-dialog-cancel-button"
-            >
-              {pending?.cancelLabel ?? t('common.cancel')}
-            </Button>
-          )}
-          {isChoice ? (
-            <Button
-              variant="outlined"
-              color="inherit"
-              onClick={handleAlternative}
-              data-testid="confirm-dialog-alternative-button"
-            >
-              {pending?.alternativeLabel}
-            </Button>
-          ) : null}
-          <Button
-            variant="contained"
-            color={pending?.isDestructive === true ? 'error' : 'primary'}
-            onClick={handleConfirm}
-            autoFocus={isChoice || isAlert}
-            data-testid="confirm-dialog-confirm-button"
+        {isAlert ? null : (
+          <ConfirmDialogButton
+            onClick={handleCancel}
+            autoFocus={!isChoice}
+            data-testid="confirm-dialog-cancel-button"
           >
-            {pending?.confirmLabel}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            {pending?.cancelLabel ?? t('common.cancel')}
+          </ConfirmDialogButton>
+        )}
+        {isChoice ? (
+          <ConfirmDialogButton
+            onClick={handleAlternative}
+            data-testid="confirm-dialog-alternative-button"
+          >
+            {pending?.alternativeLabel}
+          </ConfirmDialogButton>
+        ) : null}
+        <ConfirmDialogButton
+          isMain
+          onClick={handleConfirm}
+          autoFocus={isChoice || isAlert}
+          data-testid="confirm-dialog-confirm-button"
+        >
+          {pending?.confirmLabel}
+        </ConfirmDialogButton>
+      </ConfirmDialogFrame>
     </ConfirmContext.Provider>
   )
 }

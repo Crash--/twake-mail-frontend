@@ -29,9 +29,11 @@ export function menuLookThemeOptions(): ThemeOptions {
         styleOverrides: {
           root: {
             minHeight: 48,
-            // MUI drops the min height from 600 px up: the padding makes 48
-            paddingTop: 15,
-            paddingBottom: 15,
+            paddingTop: 0,
+            paddingBottom: 0,
+            // MUI drops the min height from 600 px up
+            '@media (min-width: 600px)': { minHeight: 48 },
+            '& .MuiListItemText-root': { marginTop: 0, marginBottom: 0 },
             paddingLeft: 16,
             paddingRight: 16,
             fontSize: 14,

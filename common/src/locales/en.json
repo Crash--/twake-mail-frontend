@@ -144,7 +144,8 @@
       "noPreview": "No preview available",
       "open": "Preview",
       "page": "Page %{page} of %{count}",
-      "truncated": "The preview is cut here: download the file to read the rest."
+      "truncated": "The preview is cut here: download the file to read the rest.",
+      "failed": "The file cannot be opened here: download it to read it."
     },
     "attachmentsMore": "Show +%{count} more",
     "attachmentsHide": "Hide %{count}",

@@ -144,7 +144,8 @@
       "noPreview": "Không có bản xem trước",
       "open": "Xem trước",
       "page": "Trang %{page} trên %{count}",
-      "truncated": "Bản xem trước bị cắt ở đây: hãy tải tệp xuống để đọc phần còn lại."
+      "truncated": "Bản xem trước bị cắt ở đây: hãy tải tệp xuống để đọc phần còn lại.",
+      "failed": "Không thể mở tệp tại đây: hãy tải xuống để đọc."
     },
     "attachmentsMore": "Hiển thị +%{count}",
     "attachmentsHide": "Ẩn %{count}",

@@ -67,6 +67,8 @@ export interface ConfirmDialogFrameProps {
   messageId: string
   /** The actions, `ConfirmDialogButton`s, the confirming one last */
   children: ReactNode
+  /** Without the cross: a message closed by its one button (an error) */
+  hasCloseButton?: boolean
   'data-testid'?: string
 }
 
@@ -81,6 +83,7 @@ export function ConfirmDialogFrame({
   titleId,
   messageId,
   children,
+  hasCloseButton = true,
   'data-testid': testId
 }: ConfirmDialogFrameProps): ReactElement {
   return (
@@ -95,13 +98,15 @@ export function ConfirmDialogFrame({
       }}
       data-testid={testId}
     >
-      <IconButton
-        aria-label={closeLabel}
-        onClick={onClose}
-        sx={{ position: 'absolute', top: 4, right: 4, color: '#8C9CAF' }}
-      >
-        <Icon icon={CloseDialog} size={24} />
-      </IconButton>
+      {hasCloseButton ? (
+        <IconButton
+          aria-label={closeLabel}
+          onClick={onClose}
+          sx={{ position: 'absolute', top: 4, right: 4, color: '#8C9CAF' }}
+        >
+          <Icon icon={CloseDialog} size={24} />
+        </IconButton>
+      ) : null}
       <Typography id={titleId} component="h2" sx={TITLE_SX}>
         {title}
       </Typography>
@@ -138,6 +143,8 @@ export interface ConfirmDialogButtonProps {
   minWidth?: number
   /** The confirming action: a blue pill, else blue text */
   isMain?: boolean
+  /** As wide as the dialog: the one button of a message */
+  isFullWidth?: boolean
   autoFocus?: boolean
   'data-testid'?: string
 }
@@ -150,6 +157,7 @@ export function ConfirmDialogButton({
   disabled = false,
   minWidth,
   isMain = false,
+  isFullWidth = false,
   autoFocus,
   'data-testid': testId
 }: ConfirmDialogButtonProps): ReactElement {
@@ -163,6 +171,7 @@ export function ConfirmDialogButton({
       sx={{
         ...LABEL_SX,
         minWidth: minWidth ?? (isMain ? 135 : 67),
+        flex: isFullWidth ? '1 1 auto' : undefined,
         color: isMain ? '#FFFFFF' : PRIMARY,
         bgcolor: isMain ? PRIMARY : 'transparent'
       }}

@@ -144,7 +144,8 @@
       "noPreview": "Aucun aperçu disponible",
       "open": "Aperçu",
       "page": "Page %{page} sur %{count}",
-      "truncated": "L'aperçu s'arrête ici : téléchargez le fichier pour lire la suite."
+      "truncated": "L'aperçu s'arrête ici : téléchargez le fichier pour lire la suite.",
+      "failed": "Le fichier ne peut pas être ouvert ici : téléchargez-le pour le lire."
     },
     "attachmentsMore": "Afficher les %{count} autres pièces jointes",
     "attachmentsHide": "Cacher les %{count} pièces jointes",

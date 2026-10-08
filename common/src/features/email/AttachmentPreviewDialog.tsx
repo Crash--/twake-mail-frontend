@@ -4,12 +4,17 @@ import {
   lazy,
   Suspense,
   useEffect,
+  useId,
   useMemo,
   useState,
   type ReactElement,
   type MouseEvent
 } from 'react'
 
+import {
+  ConfirmDialogButton,
+  ConfirmDialogFrame
+} from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import {
   FilePreviewDialog,
   FilePreviewSurface
@@ -89,6 +94,8 @@ export function AttachmentPreviewDialog({
   const name = cleanFileName(part.name) ?? t('email.attachment')
   const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' })
   const [failed, setFailed] = useState(false)
+  const errorTitleId = useId()
+  const errorMessageId = useId()
 
   // A big PDF is neither fetched nor handed to pdf.js: the dialog offers the
   // download (the size of the part is declared by the server)
@@ -191,14 +198,29 @@ export function AttachmentPreviewDialog({
       return <CircularProgress aria-label={t('email.preview.loading')} />
     }
     if (loaded.status === 'error' || failed) {
+      // As tmail-flutter: a dialog over the viewer says it, Close leaves
       return (
-        <Alert severity="warning" data-testid="attachment-preview-error">
-          {kind === 'pdf'
-            ? t('email.preview.cannotPreviewPdf')
-            : kind === 'html'
-              ? t('email.preview.cannotPreviewHtml')
-              : t('email.preview.noPreview')}
-        </Alert>
+        <ConfirmDialogFrame
+          open
+          title={
+            kind === 'pdf'
+              ? t('email.preview.cannotPreviewPdf')
+              : kind === 'html'
+                ? t('email.preview.cannotPreviewHtml')
+                : t('email.preview.noPreview')
+          }
+          message={t('email.preview.failed')}
+          closeLabel={t('common.close')}
+          onClose={onClose}
+          titleId={errorTitleId}
+          messageId={errorMessageId}
+          hasCloseButton={false}
+          data-testid="attachment-preview-error"
+        >
+          <ConfirmDialogButton isMain isFullWidth autoFocus onClick={onClose}>
+            {t('common.close')}
+          </ConfirmDialogButton>
+        </ConfirmDialogFrame>
       )
     }
     switch (kind) {

@@ -117,8 +117,15 @@ export class MailboxPage {
 
   async expectLoaded(): Promise<MailboxPage> {
     if (this.hasFolderDrawer()) {
-      await expect(this.folderMenuButton).toBeVisible()
-      await expect(this.root).toBeVisible()
+      // As tmail-flutter, an email read on a phone fills the screen, the bar
+      // of the mail with its menu button goes (a reload on an email)
+      const readingView = this.page
+        .getByTestId('email-view')
+        .or(this.page.getByTestId('conversation-view'))
+      await expect(this.folderMenuButton.or(readingView).first()).toBeVisible()
+      if (await this.folderMenuButton.isVisible()) {
+        await expect(this.root).toBeVisible()
+      }
       return this
     }
     await expect(this.folderTree).toBeVisible()
@@ -128,6 +135,15 @@ export class MailboxPage {
 
   /** Makes the folder tree visible: opens the drawer when there is one */
   async showFolders(): Promise<MailboxPage> {
+    // An email read on a phone hides the bar of the mail: back to the list
+    if (
+      this.hasFolderDrawer() &&
+      !(await this.folderMenuButton.isVisible()) &&
+      (await this.page.getByTestId('email-view-back-button').isVisible())
+    ) {
+      await this.page.getByTestId('email-view-back-button').click()
+      await expect(this.folderMenuButton).toBeVisible()
+    }
     if (this.hasFolderDrawer() && !(await this.folderDrawer.isVisible())) {
       await this.folderMenuButton.click()
       await expect(this.folderDrawer).toBeVisible()
@@ -398,6 +414,14 @@ export class MailboxPage {
   /** Opens the settings from their gear (search row, or top bar below the desktop size) */
   async openSettings(): Promise<SettingsPage> {
     await openAccountMenuIfAny(this.page)
+    // Without the platform, phones and tablets have them in the folder
+    // drawer, as tmail-flutter
+    if (
+      this.hasFolderDrawer() &&
+      !(await this.page.getByTestId('settings-button').isVisible())
+    ) {
+      await this.showFolders()
+    }
     await this.page.getByTestId('settings-button').click()
     const settings = new SettingsPage(this.page)
     await expect(settings.heading).toBeVisible()

@@ -381,10 +381,11 @@ test.describe('A11Y composer', () => {
       await expect(composer.recipients('to')).toHaveCount(3)
       await composer.recipientInput('to').focus()
 
-      // Edit the middle one, change the text, Escape: the chip is back where it was
+      // Edit the middle one (F2: Enter opens its card, as tmail-flutter),
+      // change the text, Escape: the chip is back where it was
       await page.keyboard.press('ArrowLeft')
       await page.keyboard.press('ArrowLeft')
-      await page.keyboard.press('Enter')
+      await page.keyboard.press('F2')
       await expect(composer.recipientInput('to')).toHaveValue('bob@example.com')
       await page.keyboard.type('.fr')
       await page.keyboard.press('Escape')
@@ -570,6 +571,7 @@ test.describe('A11Y composer', () => {
       const failed = page.getByTestId('confirm-dialog')
       await expect(failed).toMatchAriaSnapshot(`
       - dialog "Sending failed":
+        - button "Close"
         - heading "Sending failed" [level=2]
         - paragraph: Your email should have at least one recipient
         - button "Add recipients"

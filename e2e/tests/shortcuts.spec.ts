@@ -104,7 +104,7 @@ test.describe('KBD keyboard shortcuts', () => {
   })
 
   test(
-    'KBD-06 "/" reaches the search, unfolding it on phones; Escape gives the focus back',
+    'KBD-06 "/" reaches the search, which stays in the bar of phones as tmail-flutter',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       await jmap.sendEmail({ to: user.email, subject: 'find me', text: 'one' })
@@ -120,11 +120,10 @@ test.describe('KBD keyboard shortcuts', () => {
       await expectNoA11yViolations(page)
 
       if (search.isPhone()) {
-        // The first Escape closes the suggestions, the second folds the field
+        // As tmail-flutter the field stays under the bar: Escape closes the
+        // suggestions, the field stays
         await page.keyboard.press('Escape')
-        await page.keyboard.press('Escape')
-        await expect(search.input).toBeHidden()
-        await expect(search.openButton).toBeFocused()
+        await expect(search.input).toBeVisible()
       }
     }
   )

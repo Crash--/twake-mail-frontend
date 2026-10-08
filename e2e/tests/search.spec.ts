@@ -487,15 +487,23 @@ test.describe('SRCH search', () => {
     await expect(row).toHaveAttribute('data-unread', 'true')
     await expectNoA11yViolations(page)
 
+    // Read from the row on a desktop; the compact rows of phones and
+    // tablets have no such toggle (tmail-flutter): from the selection
+    const mailbox = new MailboxPage(page)
     await row.hover()
-    await row.getByTestId('email-list-item-toggle-seen').click()
+    const toggle = row.getByTestId('email-list-item-toggle-seen')
+    if (await toggle.isVisible()) {
+      await toggle.click()
+    } else {
+      await mailbox.selectEmail(subject)
+      await mailbox.runSelectionAction('mark-as-read')
+    }
     await expect(row).not.toHaveAttribute('data-unread')
     await expect
       .poll(async () => (await jmap.getEmail(email.id)).keywords.$seen)
       .toBe(true)
 
     // Archived from the selection toolbar: the result stays, in Archive
-    const mailbox = new MailboxPage(page)
     await mailbox.selectEmail(subject)
     await mailbox.runSelectionAction('archive')
     const archive = await jmap.findMailboxByRole('archive')

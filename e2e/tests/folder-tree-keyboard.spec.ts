@@ -30,13 +30,14 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
       ).toHaveCount(0)
 
       await mailbox.focusFolder({ role: 'inbox' })
-      // Down: the subfolder, then Starred (after the whole subtree), then Drafts
+      // Down: the subfolder, then Starred (after the whole subtree), then
+      // Sent (the order of the server, as tmail-flutter)
       await page.keyboard.press('ArrowDown')
       await mailbox.expectFolderFocused({ name: 'Newsletters' })
       await page.keyboard.press('ArrowDown')
       await mailbox.expectFolderFocused({ name: 'Starred' })
       await page.keyboard.press('ArrowDown')
-      await mailbox.expectFolderFocused({ role: 'drafts' })
+      await mailbox.expectFolderFocused({ role: 'sent' })
       await page.keyboard.press('ArrowUp')
       await mailbox.expectFolderFocused({ name: 'Starred' })
       // The focused row is the tab stop, the others are not
@@ -279,8 +280,9 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
     // The same letter again goes on to the next one
     await page.keyboard.press('s')
     await mailbox.expectFolderFocused({ role: 'sent' })
-    await page.keyboard.press('ArrowUp')
-    await mailbox.expectFolderFocused({ name: 'Outbox' })
+    // The order of the server, as tmail-flutter: Starred, Sent, Archive
+    await page.keyboard.press('ArrowDown')
+    await mailbox.expectFolderFocused({ name: 'Archive' })
     await page.keyboard.press('ArrowUp')
     await page.keyboard.press('ArrowUp')
     await mailbox.expectFolderFocused({ name: 'Starred' })

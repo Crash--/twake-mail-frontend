@@ -71,7 +71,7 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
         await composer.sendButton.evaluate(
           element => getComputedStyle(element).borderTopLeftRadius
         )
-      ).toBe('100px')
+      ).toBe('50%')
       // No footer: nothing under the editor but the keyboard
       await expect(composer.deleteDraftButton).toHaveCount(0)
       const toolbarState =
@@ -158,7 +158,7 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
               'Delete draft'
             ]
           : [
-              'Save as draft',
+              // "Save as draft" is a button of the footer, as tmail-flutter
               'Insert template',
               'Save as template',
               'Request read receipt',

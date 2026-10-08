@@ -32,8 +32,13 @@ export function TopActionBar({
         minHeight: TOP_ACTION_BAR_HEIGHT,
         px: 0.5,
         gap: 0,
-        // The light grey of tmail-flutter's composer bar on phones
+        // The light grey of tmail-flutter's composer bar on phones, its
+        // steel grey icons
         bgcolor: '#F4F4F4',
+        color: '#55687D',
+        '& .MuiIconButton-root:not([aria-pressed="true"])': {
+          color: 'inherit'
+        },
         borderBottom: '1px solid #F4F4F4'
       }}
     >

@@ -28,6 +28,7 @@ import {
 
 import {
   Attachment,
+  Cancel,
   Check,
   Cross,
   Dots,
@@ -46,7 +47,12 @@ import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { PillButton } from '@/ds/PillButton/PillButton'
 import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
-import { FormattingIcon, SaveDraftIcon } from '@/ds/ComposerIcons/ComposerIcons'
+import {
+  FormattingIcon,
+  SaveDraftIcon,
+  SendDisabledIcon,
+  SendMobileIcon
+} from '@/ds/ComposerIcons/ComposerIcons'
 import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
@@ -1320,7 +1326,7 @@ function LoadedComposerForm({
       }}
       data-testid="composer-formatting-button"
     >
-      <Icon icon={FormattingIcon} size={24} aria-hidden="true" />
+      <Icon icon={FormattingIcon} size={isPhone ? 28 : 24} aria-hidden="true" />
     </ActionIconButton>
   )
   const attachButton = (
@@ -1428,14 +1434,32 @@ function LoadedComposerForm({
       <Icon icon={SaveDraftIcon} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
-  const sendButton = (
+  // As tmail-flutter on phones: the arrow up in a blue disc, grey while
+  // there is no recipient (a click still says why it cannot go)
+  const canSend =
+    recipients.to.length + recipients.cc.length + recipients.bcc.length > 0
+  const sendButton = isPhone ? (
+    <ActionIconButton
+      label={t('composer.send')}
+      onClick={() => {
+        void handleSend()
+      }}
+      aria-describedby={sendError === null ? undefined : sendErrorId}
+      data-testid="composer-send-button"
+    >
+      <Icon
+        icon={canSend ? SendMobileIcon : SendDisabledIcon}
+        size={30}
+        aria-hidden="true"
+      />
+    </ActionIconButton>
+  ) : (
     // As tmail-flutter: the button stays as it is, the sending dialog
     // covers the window (and `handleSend` refuses a second send)
     <PillButton
       label={t('composer.send')}
       icon={Paperplane}
       width={128}
-      isIconOnly={isPhone}
       onClick={() => {
         void handleSend()
       }}
@@ -1564,7 +1588,7 @@ function LoadedComposerForm({
                 onClick={onRequestClose}
                 data-testid="composer-close-button"
               >
-                <Icon icon={Cross} size={16} aria-hidden="true" />
+                <Icon icon={Cancel} size={24} aria-hidden="true" />
               </ActionIconButton>
             }
           >

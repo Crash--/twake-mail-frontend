@@ -15,7 +15,8 @@ import {
   type ReactNode,
   type MouseEvent
 } from 'react'
-import { Cross, Download } from '@/ds/FlutterIcons/FlutterIcons'
+import { ArrowBack, Download } from '@/ds/FlutterIcons/FlutterIcons'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FilePreviewDialogProps {
   open: boolean
@@ -31,8 +32,12 @@ export interface FilePreviewDialogProps {
   'data-testid'?: string
 }
 
+// tmail-flutter's viewer (`TopBarAttachmentViewer`, `HtmlAttachmentPreviewer`):
+// the page dimmed as behind its dialogs, a 52 px bar with the arrow back, the
+// name in 17 px and the actions, all white; the file on a white page 80 % of
+// the width (the whole width of a phone), 16 px under the bar
 const PAPER_SX = {
-  bgcolor: 'rgba(0, 0, 0, 0.85)',
+  bgcolor: 'rgba(0, 0, 0, 0.54)',
   color: 'common.white',
   backgroundImage: 'none'
 } as const
@@ -42,6 +47,7 @@ const BAR_SX = {
   alignItems: 'center',
   gap: 1,
   px: 2,
+  color: '#FFFFFF',
   height: 52,
   flexShrink: 0,
   bgcolor: 'rgba(0, 0, 0, 0.3)'
@@ -52,7 +58,7 @@ const BODY_SX = {
   minHeight: 0,
   overflow: 'auto',
   display: 'flex',
-  p: 2
+  py: 2
 } as const
 
 /**
@@ -89,7 +95,7 @@ export function FilePreviewDialog({
             autoFocus
             data-testid={testId ? `${testId}-close` : undefined}
           >
-            <Icon icon={Cross} aria-hidden="true" />
+            <Icon icon={ArrowBack} size={24} aria-hidden="true" />
           </IconButton>
         </Tooltip>
         <Typography
@@ -98,7 +104,7 @@ export function FilePreviewDialog({
           variant="subtitle1"
           noWrap
           title={title}
-          sx={{ flex: 1, minWidth: 0 }}
+          sx={{ flex: 1, minWidth: 0, fontSize: 17, color: '#FFFFFF' }}
         >
           {title}
         </Typography>
@@ -110,7 +116,7 @@ export function FilePreviewDialog({
               onClick={onDownload}
               data-testid={testId ? `${testId}-download` : undefined}
             >
-              <Icon icon={Download} aria-hidden="true" />
+              <Icon icon={Download} size={24} aria-hidden="true" />
             </IconButton>
           </Tooltip>
         ) : null}
@@ -140,6 +146,7 @@ export function FilePreviewSurface({
   children,
   'data-testid': testId
 }: FilePreviewSurfaceProps): ReactElement {
+  const width = useScreenSize() === 'mobile' ? '100vw' : '80vw'
   return (
     <Box
       component={kind === 'text' ? 'pre' : 'div'}
@@ -148,15 +155,24 @@ export function FilePreviewSurface({
           ? {
               bgcolor: '#fff',
               color: '#1b1b1f',
-              width: 'min(900px, 100vw)',
+              width,
+              boxSizing: 'border-box',
+              minHeight: 'calc(100dvh - 84px)',
               p: 2
             }
           : {
-              bgcolor: 'background.paper',
-              color: 'text.primary',
-              maxWidth: 900,
+              // A white page in the font of the app, as tmail-flutter shows
+              // a text file (turned into HTML)
+              bgcolor: '#fff',
+              color: '#1C1B1F',
+              width,
+              boxSizing: 'border-box',
+              minHeight: 'calc(100dvh - 84px)',
               m: 0,
-              p: 2,
+              p: 1,
+              fontFamily: 'inherit',
+              fontSize: 14,
+              lineHeight: '20px',
               whiteSpace: 'pre-wrap',
               overflowWrap: 'anywhere'
             }

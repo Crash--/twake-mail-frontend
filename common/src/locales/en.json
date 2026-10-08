@@ -813,7 +813,8 @@
         "vi": "Vietnamese"
       },
       "label": "Language"
-    }
+    },
+    "contactSupport": "Contact support"
   },
   "mailboxPicker": {
     "title": "Move To",

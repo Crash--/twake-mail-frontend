@@ -21,7 +21,9 @@ function itemSx(isSelected: boolean): Record<string, unknown> {
     mt: '4px',
     borderRadius: '8px',
     bgcolor: isSelected ? '#EAEDF2' : 'transparent',
-    color: '#000000',
+    // tmail-flutter's black, drawn thinner by its canvas: the near black of
+    // its title keeps the same weight to the eye
+    color: '#1C1B1F',
     fontSize: 15,
     lineHeight: '20px',
     fontWeight: isSelected ? 600 : 400,
@@ -46,7 +48,8 @@ const TITLE_SX = {
   fontSize: 17,
   lineHeight: '22px',
   fontWeight: 700,
-  color: '#000000'
+  // tmail-flutter's default text colour (`m3SurfaceBackground`)
+  color: '#1C1B1F'
 } as const
 
 const DIVIDER_SX = {
@@ -100,6 +103,10 @@ export interface SettingsMenuItemProps {
   /** A link component (e.g. the router `Link`) and where it goes */
   component?: ElementType
   to?: string
+  /** A plain link instead (a `mailto:`, a page in a new tab) */
+  href?: string
+  /** With `href`: opens it in a new tab */
+  isExternal?: boolean
   /** For an entry that acts rather than goes somewhere */
   onClick?: () => void
   'data-testid'?: string
@@ -112,10 +119,23 @@ export function SettingsMenuItem({
   isSelected = false,
   component,
   to,
+  href,
+  isExternal = false,
   onClick,
   'data-testid': testId
 }: SettingsMenuItemProps): ReactElement {
-  const linkProps = component === undefined ? {} : { component, to }
+  const linkProps =
+    href !== undefined
+      ? {
+          component: 'a',
+          href,
+          ...(isExternal
+            ? { target: '_blank', rel: 'noopener noreferrer' }
+            : {})
+        }
+      : component === undefined
+        ? {}
+        : { component, to }
   return (
     <Box component="li">
       <ButtonBase

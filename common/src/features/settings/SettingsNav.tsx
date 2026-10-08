@@ -8,7 +8,9 @@ import {
   SettingsMenuList,
   SettingsMenuTitle
 } from '@/ds/SettingsMenu/SettingsMenu'
+import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
+import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { settingsSectionPath, type SettingsSection } from './sections'
@@ -48,6 +50,7 @@ export function SettingsNav({
   const { t } = useI18n()
   const titleId = useId()
   const sections = useSettingsSections()
+  const support = useContactSupport()
 
   return (
     <Box component="nav" aria-labelledby={titleId} data-testid="settings-nav">
@@ -63,6 +66,21 @@ export function SettingsNav({
         <>
           <SettingsMenuDivider />
           <SettingsMenuList>
+            {/* As tmail-flutter: when the server tells where to ask; the
+                settings have no composer, an address opens the mail app */}
+            {support === null ? null : (
+              <SettingsMenuItem
+                icon={HelpOutlined}
+                label={t('settings.contactSupport')}
+                href={
+                  support.kind === 'address'
+                    ? `mailto:${support.address}`
+                    : support.href
+                }
+                isExternal={support.kind === 'link'}
+                data-testid="settings-contact-support"
+              />
+            )}
             <SettingsMenuItem
               icon={SignOutSettingsIcon}
               label={t('topbar.logout')}

@@ -813,7 +813,8 @@
         "vi": "Tiếng Việt"
       },
       "label": "Ngôn ngữ"
-    }
+    },
+    "contactSupport": "Hỗ trợ"
   },
   "mailboxPicker": {
     "title": "Chuyển tới",

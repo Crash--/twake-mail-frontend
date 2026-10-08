@@ -813,7 +813,8 @@
         "vi": "Vietnamien"
       },
       "label": "Langue"
-    }
+    },
+    "contactSupport": "Contacter le support"
   },
   "mailboxPicker": {
     "title": "Déplacer vers",

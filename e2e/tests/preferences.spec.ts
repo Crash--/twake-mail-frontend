@@ -52,9 +52,11 @@ test.describe('SET preferences', () => {
     await settings.open('language-region')
     const select = page.getByTestId('language-select')
 
-    await select.selectOption({ label: 'English - English' })
+    // As tmail-flutter: the field names the language, its menu lists them
+    await expect(select).toHaveText('English')
     await expect(settings.heading).toHaveText('Language')
-    await select.selectOption({ label: 'Vietnamese - Tiếng Việt' })
+    await select.click()
+    await page.getByRole('option', { name: 'Vietnamese - Tiếng Việt' }).click()
     await expect(settings.heading).toHaveText('Ngôn ngữ')
     await expect(page.locator('html')).toHaveAttribute('lang', 'vi')
     await expectNoA11yViolations(page)

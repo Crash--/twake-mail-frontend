@@ -4,7 +4,7 @@
 // label in Semi Bold 14 dark grey with a grey pill after it ("Forward to
 // [2 recipients]"); a form row with its label on the left in Regular 14
 // grey, in a column of fixed width.
-import { Box, TextField, Typography } from '@linagora/twake-mui'
+import { Box, MenuItem, TextField, Typography } from '@linagora/twake-mui'
 import {
   useId,
   type ChangeEvent,
@@ -160,6 +160,136 @@ export function SettingsSelect({
         }}
       >
         {children}
+      </TextField>
+    </Box>
+  )
+}
+
+/** The menu of tmail-flutter's language picker: a card rounded by 16 px */
+const MENU_PAPER_SX = {
+  mt: '4px',
+  p: '15px',
+  borderRadius: '16px',
+  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15)',
+  '& .MuiList-root': { p: 0 }
+} as const
+
+/** Its 51 px entries: Regular 16 grey, a blue check after the one picked */
+const MENU_ITEM_SX = {
+  minHeight: 51,
+  px: '17px',
+  borderRadius: '8px',
+  gap: '8px',
+  fontSize: 16,
+  lineHeight: '21px',
+  letterSpacing: '-0.15px',
+  color: 'rgba(66, 66, 68, 0.9)',
+  '&:hover, &.Mui-selected, &.Mui-selected:hover, &.Mui-focusVisible': {
+    bgcolor: 'rgba(235, 237, 240, 0.6)'
+  }
+} as const
+
+const CHECK_SX = { ml: 'auto', flexShrink: 0, display: 'flex' } as const
+
+function CheckedIcon(): ReactElement {
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="12" fill="#007AFF" />
+      <path
+        d="M6.5 12.5L10 16L17.5 8.5"
+        stroke="#FFFFFF"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export interface SettingsMenuSelectOption {
+  value: string
+  /** In the menu, e.g. "French - Français" */
+  label: string
+  /** Shown in the field once picked, e.g. "French" */
+  shortLabel: string
+  /** Language of the label, for screen readers */
+  lang?: string
+}
+
+export interface SettingsMenuSelectProps {
+  /** Shown above the field, and its name */
+  label: string
+  value: string
+  options: readonly SettingsMenuSelectOption[]
+  onChange: (value: string) => void
+  width?: number
+  /** On the button opening the menu */
+  inputTestId?: string
+}
+
+/**
+ * A picker of the settings as tmail-flutter's language one: the field shows
+ * the value picked, its menu lists every value with a check after the
+ * picked one (a combobox and its listbox)
+ */
+export function SettingsMenuSelect({
+  label,
+  value,
+  options,
+  onChange,
+  width = 385,
+  inputTestId
+}: SettingsMenuSelectProps): ReactElement {
+  const labelId = useId()
+  return (
+    <Box>
+      <Box id={labelId} sx={{ ...SELECT_LABEL_SX, mb: '15px' }}>
+        {label}
+      </Box>
+      <TextField
+        select
+        value={value}
+        onChange={event => {
+          onChange(event.target.value)
+        }}
+        sx={fieldSx(40, width)}
+        slotProps={{
+          select: {
+            labelId,
+            renderValue: selected =>
+              options.find(option => option.value === selected)?.shortLabel ??
+              '',
+            SelectDisplayProps: { 'data-testid': inputTestId } as Record<
+              string,
+              string | undefined
+            >,
+            MenuProps: {
+              slotProps: { paper: { sx: { ...MENU_PAPER_SX, width } } }
+            }
+          }
+        }}
+      >
+        {options.map(option => (
+          <MenuItem
+            key={option.value}
+            value={option.value}
+            lang={option.lang}
+            sx={MENU_ITEM_SX}
+          >
+            {option.label}
+            {option.value === value ? (
+              <Box component="span" sx={CHECK_SX}>
+                <CheckedIcon />
+              </Box>
+            ) : null}
+          </MenuItem>
+        ))}
       </TextField>
     </Box>
   )

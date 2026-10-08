@@ -8,6 +8,7 @@ import {
   SettingsCount,
   SettingsFormRow,
   SettingsLabelPill,
+  SettingsMenuSelect,
   SettingsSelect,
   SettingsTextField
 } from './SettingsFields'
@@ -46,6 +47,32 @@ describe('SettingsFields', () => {
     )
 
     expect(screen.getByRole('combobox', { name: 'Language' })).toHaveValue('en')
+  })
+
+  it('picks from a menu: the field shows the short name, the menu checks the value', async () => {
+    const onChange = jest.fn()
+    renderDs(
+      <SettingsMenuSelect
+        label="Language"
+        value="en"
+        options={[
+          { value: 'en', label: 'English - English', shortLabel: 'English' },
+          { value: 'fr', label: 'French - Français', shortLabel: 'French' }
+        ]}
+        onChange={onChange}
+      />
+    )
+
+    const field = screen.getByRole('combobox', { name: /^Language/ })
+    expect(field).toHaveTextContent('English')
+    await userEvent.click(field)
+    expect(
+      screen.getByRole('option', { name: 'English - English' })
+    ).toHaveAttribute('aria-selected', 'true')
+    await userEvent.click(
+      screen.getByRole('option', { name: 'French - Français' })
+    )
+    expect(onChange).toHaveBeenCalledWith('fr')
   })
 
   it('shows a label with its value', () => {

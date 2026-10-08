@@ -1,7 +1,7 @@
-import { Star } from '@linagora/twake-icons'
-import { Empty } from '@linagora/twake-mui'
 import { useMemo, type ReactElement } from 'react'
 import { useMatch } from 'react-router'
+
+import { EmptyListView } from '@/ds/EmptyListView/EmptyListView'
 
 import { FLAGGED } from '@common/features/email/keywords'
 import {
@@ -39,8 +39,7 @@ export function StarredList(): ReactElement {
       filterScope: 'starred',
       isStarredView: true,
       empty: (
-        <Empty
-          icon={Star}
+        <EmptyListView
           title={t('mailbox.emptyStarred')}
           text={t('mailbox.emptyStarredHint')}
           data-testid="empty-thread-view"

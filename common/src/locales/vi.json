@@ -44,8 +44,8 @@
     "version": "phiên bản %{version}"
   },
   "mailbox": {
-    "empty": "Bạn không có thư nào trong thư mục này.",
-    "emptyHint": "Hãy bắt đầu soạn thư.",
+    "empty": "Bạn không có thư nào\ntại thư mục này.",
+    "emptyHint": "Bắt đầu soạn thư mới.",
     "offline": "Không có kết nối mạng, thử lại sau.",
     "roles": {
       "inbox": "Hộp thư đến",
@@ -65,7 +65,8 @@
     "actionRequired": "Cần xử lý",
     "emptyActionRequired": "Bạn chưa có email nào cần xử lý.",
     "emptyStarred": "Bạn không có thư quan trọng.",
-    "emptyStarredHint": "Bắt đầu thêm các thư quan trọng"
+    "emptyStarredHint": "Bắt đầu thêm các thư quan trọng",
+    "emptyFilter": "Không có email nào phù hợp với bộ lọc hiện tại của bạn."
   },
   "email": {
     "star": "Đánh dấu quan trọng",

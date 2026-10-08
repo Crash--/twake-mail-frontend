@@ -1,8 +1,8 @@
-import { Label as LabelGlyph } from '@linagora/twake-icons'
-import { Empty } from '@linagora/twake-mui'
 import type { Label } from 'jmap-client-ts/linagora'
 import { useMemo, type ReactElement } from 'react'
 import { useMatch } from 'react-router'
+
+import { EmptyListView } from '@/ds/EmptyListView/EmptyListView'
 
 import {
   EmailList,
@@ -37,9 +37,9 @@ export function LabelList({ label }: LabelListProps): ReactElement {
       title: label.displayName,
       filterScope: `label:${label.id}`,
       empty: (
-        <Empty
-          icon={LabelGlyph}
+        <EmptyListView
           title={t('labels.emptyView')}
+          text={t('mailbox.emptyHint')}
           data-testid="empty-thread-view"
         />
       )

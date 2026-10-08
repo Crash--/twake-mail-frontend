@@ -1,11 +1,5 @@
-import { Icon, Left, Magnifier } from '@linagora/twake-icons'
-import {
-  Box,
-  Empty,
-  IconButton,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { Icon, Left } from '@linagora/twake-icons'
+import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import {
   useCallback,
   useEffect,
@@ -15,6 +9,7 @@ import {
 } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router'
 
+import { EmptyListView } from '@/ds/EmptyListView/EmptyListView'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { EmailList } from '@common/features/thread/EmailList'
@@ -94,8 +89,7 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
   const backLabel = t('search.backToMailbox')
   const empty = useMemo(
     () => (
-      <Empty
-        icon={Magnifier}
+      <EmptyListView
         title={t('search.empty')}
         data-testid="empty-search-view"
       />

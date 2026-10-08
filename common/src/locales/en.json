@@ -44,7 +44,7 @@
     "version": "version %{version}"
   },
   "mailbox": {
-    "empty": "You don't have any email in this folder.",
+    "empty": "You don’t have any emails\n in this folder.",
     "emptyHint": "Start to compose emails.",
     "offline": "No internet connection, try again later.",
     "roles": {
@@ -65,7 +65,8 @@
     "actionRequired": "Action required",
     "emptyActionRequired": "You don’t have any action required emails.",
     "emptyStarred": "You don’t have any starred emails.",
-    "emptyStarredHint": "Start to add starred emails"
+    "emptyStarredHint": "Start to add starred emails",
+    "emptyFilter": "There are no emails that match your current filter."
   },
   "email": {
     "star": "Mark as starred",

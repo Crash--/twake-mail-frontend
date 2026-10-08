@@ -1002,6 +1002,8 @@
       "noAction": "Bạn chưa thêm các hành động.",
       "noFolder": "Vui lòng chọn hộp thư để chuyển thư",
       "noSpam": "Không thấy thư mục Spam",
+      "noForwardAddress": "Vui lòng nhập ít nhất một người nhận",
+      "invalidForwardAddress": "Email không đúng định dạng",
       "load": "Không thể tải các quy tắc",
       "delete": "Không thể xóa quy tắc"
     },
@@ -1032,7 +1034,10 @@
       "rejectAlone": "Email bị từ chối không áp dụng hành động khác",
       "preview": "Xem trước",
       "conditionsPreview": "%{combiner} của điều kiện: %{conditions}",
-      "actionsPreview": "Hành động: %{actions}"
+      "actionsPreview": "Hành động: %{actions}",
+      "forwardAddresses": "Người nhận",
+      "forwardPlaceholder": "Điền địa chỉ email",
+      "keepACopy": "Giữ một bản sao"
     },
     "combiners": {
       "AND": "Tất cả",
@@ -1056,7 +1061,8 @@
       "seen": "Đánh dấu là đã đọc",
       "star": "Gắn dấu sao cho nó",
       "reject": "Từ chối nó",
-      "spam": "Đánh dấu là thư rác"
+      "spam": "Đánh dấu là thư rác",
+      "forward": "Chuyển tiếp tới"
     },
     "reject": {
       "title": "Từ chối tất cả thư với điều kiện này?",

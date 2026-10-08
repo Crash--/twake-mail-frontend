@@ -607,6 +607,8 @@ export interface SettingsFormTextFieldProps {
   helperText?: string
   /** Shares the row with the fields beside it rather than its width */
   isInRow?: boolean
+  /** The virtual keyboard to show, `email` for addresses */
+  inputMode?: 'text' | 'email'
   inputTestId?: string
 }
 
@@ -623,6 +625,7 @@ export function SettingsFormTextField({
   error = false,
   helperText,
   isInRow = false,
+  inputMode,
   inputTestId
 }: SettingsFormTextFieldProps): ReactElement {
   return (
@@ -639,7 +642,11 @@ export function SettingsFormTextField({
       fullWidth={!isInRow}
       sx={isInRow ? { ...FIELD_SX, flex: '1 1 0', minWidth: 0 } : FIELD_SX}
       slotProps={{
-        htmlInput: { 'aria-label': label, 'data-testid': inputTestId }
+        htmlInput: {
+          'aria-label': label,
+          inputMode,
+          'data-testid': inputTestId
+        }
       }}
     />
   )

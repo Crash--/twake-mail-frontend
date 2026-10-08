@@ -1002,6 +1002,8 @@
       "noAction": "Vous n'avez pas ajouté d'action à la règle.",
       "noFolder": "Veuillez sélectionner une boîte aux lettres pour déplacer le message",
       "noSpam": "Dossier Spam non trouvé",
+      "noForwardAddress": "Veuillez saisir au moins un destinataire",
+      "invalidForwardAddress": "Format d'e-mail incorrect",
       "load": "Les règles n'ont pas pu être chargées",
       "delete": "La règle n'a pas pu être supprimée"
     },
@@ -1032,7 +1034,10 @@
       "rejectAlone": "Un e-mail refusé ne reçoit aucune autre action",
       "preview": "Aperçu",
       "conditionsPreview": "%{combiner} des conditions : %{conditions}",
-      "actionsPreview": "Actions : %{actions}"
+      "actionsPreview": "Actions : %{actions}",
+      "forwardAddresses": "Destinataires",
+      "forwardPlaceholder": "Entrez l'adresse e-mail",
+      "keepACopy": "Conserver une copie"
     },
     "combiners": {
       "AND": "Toutes",
@@ -1056,7 +1061,8 @@
       "seen": "Marquer comme lu",
       "star": "Favori",
       "reject": "Rejet",
-      "spam": "Marquer comme indésirable"
+      "spam": "Marquer comme indésirable",
+      "forward": "Transférer à"
     },
     "reject": {
       "title": "Rejeter tous les e-mails qui correspondent à ce critère ?",

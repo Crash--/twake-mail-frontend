@@ -1,4 +1,10 @@
-import { Alert, Box, Typography } from '@linagora/twake-mui'
+import {
+  Alert,
+  Box,
+  Checkbox,
+  FormControlLabel,
+  Typography
+} from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
 import {
   useId,
@@ -39,6 +45,7 @@ import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import {
+  actionDraft,
   draftFromRule,
   emptyCondition,
   RULE_ACTION_KINDS,
@@ -54,8 +61,13 @@ import {
   type RuleDraft
 } from './rules'
 
-/** Most action rows: move or spam, seen, star, reject */
+/** Most action rows: move or spam, seen, star, forward (reject stays alone) */
 const MAX_ACTIONS = 4
+
+const FORWARD_PROBLEMS: readonly TranslationKey[] = [
+  'rules.errors.noForwardAddress',
+  'rules.errors.invalidForwardAddress'
+]
 
 export interface RuleFormDialogProps {
   /** The rule to edit, null to create one */
@@ -86,7 +98,7 @@ function isKindTaken(
  * Creates or edits a filtering rule, as tmail-flutter's rule creator: a
  * name, conditions on From, To, Cc, Recipient or Subject that must all or
  * any be met, and the actions (move to a folder, mark as seen, star,
- * reject, mark as spam). Rejecting asks for a confirmation.
+ * reject, mark as spam, forward). Rejecting asks for a confirmation.
  */
 export function RuleFormDialog({
   rule,
@@ -143,10 +155,7 @@ export function RuleFormDialog({
     )
     // A rejected email gets no other action (tmail-flutter)
     update({
-      actions:
-        change.kind === 'reject'
-          ? [{ kind: 'reject', mailboxId: null }]
-          : actions
+      actions: change.kind === 'reject' ? [actionDraft('reject')] : actions
     })
   }
 
@@ -227,6 +236,9 @@ export function RuleFormDialog({
       .flatMap(action => {
         if (action.kind === null) return []
         const label = t(RULE_ACTION_LABELS[action.kind])
+        if (action.kind === 'forward') {
+          return [`${label} "${action.forwardAddresses.trim()}"`]
+        }
         return action.kind === 'move'
           ? [
               `${label} ${t('rules.form.toFolder').toLowerCase()} "${folderName(action.mailboxId) ?? ''}"`
@@ -469,7 +481,7 @@ export function RuleFormDialog({
                   const kind = RULE_ACTION_KINDS.find(
                     candidate => candidate === event.target.value
                   )
-                  updateAction(index, { kind: kind ?? null, mailboxId: null })
+                  updateAction(index, actionDraft(kind ?? null))
                 }}
                 inputTestId="rule-action-select"
               >
@@ -497,6 +509,41 @@ export function RuleFormDialog({
                       handleChooseFolder(index)
                     }}
                     data-testid="rule-action-folder-button"
+                  />
+                </>
+              ) : null}
+              {action.kind === 'forward' ? (
+                <>
+                  <SettingsFormTextField
+                    isInRow
+                    required
+                    label={t('rules.form.forwardAddresses')}
+                    placeholder={t('rules.form.forwardPlaceholder')}
+                    value={action.forwardAddresses}
+                    onChange={event => {
+                      updateAction(index, {
+                        forwardAddresses: event.target.value
+                      })
+                    }}
+                    error={
+                      problem !== null && FORWARD_PROBLEMS.includes(problem)
+                    }
+                    inputMode="email"
+                    inputTestId="rule-action-forward-input"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={action.keepACopy}
+                        onChange={event => {
+                          updateAction(index, {
+                            keepACopy: event.target.checked
+                          })
+                        }}
+                      />
+                    }
+                    label={t('rules.form.keepACopy')}
+                    data-testid="rule-action-forward-keep-copy-checkbox"
                   />
                 </>
               ) : null}
@@ -530,7 +577,7 @@ export function RuleFormDialog({
             className="u-mt-1"
             onClick={() => {
               update({
-                actions: [...draft.actions, { kind: null, mailboxId: null }]
+                actions: [...draft.actions, actionDraft()]
               })
             }}
             data-testid="rule-add-action-button"

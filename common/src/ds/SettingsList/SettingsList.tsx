@@ -3,7 +3,7 @@
 // at the end, rows split by a light divider (black at 8 %) 32 px under a row
 // and 20 px above the next one, the 18 px radio of the default one in a
 // 42 px target, the content in a 280 px column on a desktop with the actions
-// right after it (under it on a phone), the name in Medium 16 black, the
+// right after it (under it below the desktop size), the name in Medium 16 black, the
 // details in 12 px steel grey, the signature as it is written.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
@@ -16,8 +16,9 @@ const LIST_SX = {
   pl: '12px',
   pr: '24px',
   pb: '24px',
-  // On a phone tmail-flutter's list starts at the edge of the screen, not
-  // within the 16 px of the section
+  // Below the desktop size tmail-flutter's list starts at the edge of the
+  // screen, not within the margins of the section (30 px, 16 on a phone)
+  [`@media ${SCREEN_QUERIES.belowDesktop}`]: { mx: '-30px' },
   [`@media ${SCREEN_QUERIES.mobile}`]: { mx: -2 }
 } as const
 
@@ -33,7 +34,7 @@ const ITEM_SX = {
   // tmail-flutter's radio: its 18 px ring, 12 px around
   '& .MuiRadio-root': { p: '12px' },
   '& .MuiRadio-root svg': { width: 18, height: 18 },
-  [`@media ${SCREEN_QUERIES.mobile}`]: { rowGap: '24px' }
+  [`@media ${SCREEN_QUERIES.belowDesktop}`]: { rowGap: '24px' }
 } as const
 
 const CONTENT_SX = {
@@ -44,14 +45,14 @@ const CONTENT_SX = {
   pr: '12px',
   boxSizing: 'border-box',
   overflowWrap: 'anywhere',
-  [`@media ${SCREEN_QUERIES.mobile}`]: { width: 'auto', flex: '1 1 0' }
+  [`@media ${SCREEN_QUERIES.belowDesktop}`]: { width: 'auto', flex: '1 1 0' }
 } as const
 
 const ACTIONS_SX = {
   display: 'flex',
   alignItems: 'center',
   pt: '10px',
-  [`@media ${SCREEN_QUERIES.mobile}`]: { flexBasis: '100%', pt: 0 }
+  [`@media ${SCREEN_QUERIES.belowDesktop}`]: { flexBasis: '100%', pt: 0 }
 } as const
 
 // tmail-flutter's Medium, drawn thinner by its canvas: Regular to the eye

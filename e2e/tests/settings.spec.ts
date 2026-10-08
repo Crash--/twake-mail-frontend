@@ -69,7 +69,11 @@ test.describe('SET settings', () => {
       'Reply to: Help desk <help@example.com>'
     )
     await expect(support).toContainText('Bcc: archive@example.com')
-    await expect(support).toContainText('-- The support team')
+    // As tmail-flutter: "--", then the signature as it is written
+    await expect(support).toContainText('--')
+    await expect(support.getByTestId('identity-item-signature')).toHaveText(
+      'The support team'
+    )
     await expect(settings.toast).toContainText(
       'You have created a new identity'
     )

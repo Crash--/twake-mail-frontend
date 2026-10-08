@@ -13,9 +13,20 @@ export interface StorageGaugeProps {
   labelledBy: string
   /** What the gauge reads, for screen readers ("1 MB of 50 MB used") */
   valueText: string
+  /**
+   * `settings`: the bar of tmail-flutter's Storage settings, 4.5 px high,
+   * rounded, light blue (#25AEFE) on a light grey track
+   */
+  look?: 'sidebar' | 'settings'
   className?: string
   'data-testid'?: string
 }
+
+const SETTINGS_BAR_COLORS = {
+  normal: '#25AEFE',
+  warning: '#FFC107',
+  full: '#E64646'
+} as const
 
 const BAR_COLORS = {
   normal: 'primary',
@@ -29,9 +40,11 @@ export function StorageGauge({
   state = 'normal',
   labelledBy,
   valueText,
+  look = 'sidebar',
   className,
   'data-testid': testId
 }: StorageGaugeProps): ReactElement {
+  const isSettings = look === 'settings'
   return (
     <LinearProgress
       variant="determinate"
@@ -41,12 +54,24 @@ export function StorageGauge({
       aria-valuetext={valueText}
       className={className}
       data-testid={testId}
-      sx={theme => ({
-        height: 3,
-        borderRadius: 0,
-        backgroundColor: theme.palette.action.selected,
-        '& .MuiLinearProgress-bar': { borderRadius: 0 }
-      })}
+      sx={theme =>
+        isSettings
+          ? {
+              height: 4.5,
+              borderRadius: '13px',
+              backgroundColor: '#F7F6F9',
+              '& .MuiLinearProgress-bar': {
+                borderRadius: '13px',
+                backgroundColor: SETTINGS_BAR_COLORS[state]
+              }
+            }
+          : {
+              height: 3,
+              borderRadius: 0,
+              backgroundColor: theme.palette.action.selected,
+              '& .MuiLinearProgress-bar': { borderRadius: 0 }
+            }
+      }
     />
   )
 }

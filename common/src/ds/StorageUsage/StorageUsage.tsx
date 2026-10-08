@@ -24,7 +24,7 @@ const CIRCLE_SX = {
   width: 64,
   height: 64,
   borderRadius: '50%',
-  bgcolor: '#F3F6F9',
+  bgcolor: '#F6FAFF',
   color: 'primary.main'
 } as const
 
@@ -93,6 +93,7 @@ export function StorageUsage({
           state={state}
           labelledBy={labelId}
           valueText={`${used} ${ofLimit}`}
+          look="settings"
           className="u-mt-half"
         />
       </Box>

@@ -1,10 +1,5 @@
-import {
-  Alert,
-  Button,
-  Stack,
-  TextField,
-  Typography
-} from '@linagora/twake-mui'
+import { Eye, EyeClosed, Icon } from '@linagora/twake-icons'
+import { IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useId,
   useRef,
@@ -15,10 +10,13 @@ import {
 } from 'react'
 import { Navigate, useLocation } from 'react-router'
 
-import { CenteredCard } from '@/ds/CenteredCard/CenteredCard'
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { LoginButton } from '@/ds/LoginButton/LoginButton'
+import { LoginFormFrame } from '@/ds/LoginFormFrame/LoginFormFrame'
+import { LoginLayout } from '@/ds/LoginLayout/LoginLayout'
+import { LoginTextField } from '@/ds/LoginTextField/LoginTextField'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { FullPageLoader } from '@common/components/FullPageLoader'
+import { useAppConfig } from '@common/config/AppConfigProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -32,6 +30,9 @@ const LOGIN_ERROR_MESSAGES: Record<BasicLoginError, TranslationKey> = {
   'unexpected-response': 'common.unknownError'
 }
 
+// The pictures of tmail-flutter's sign-in page, served by the app
+const LOGIN_ASSETS = '/assets/images/login'
+
 function findReturnTo(state: unknown): string {
   return sanitizeReturnTo(
     typeof state === 'object' && state !== null && 'returnTo' in state
@@ -41,7 +42,8 @@ function findReturnTo(state: unknown): string {
 }
 
 /**
- * `/login`: the email and password form of the basic authentication mode.
+ * `/login`: the email and password form of the basic authentication mode,
+ * laid out as tmail-flutter's web sign-in page.
  */
 export function BasicLoginPage(): ReactElement {
   const service = useAuthService()
@@ -80,7 +82,9 @@ function BasicLoginForm({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>(NO_FIELD_ERRORS)
   const [loginError, setLoginError] = useState<BasicLoginError | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPasswordShown, setIsPasswordShown] = useState(false)
   const passwordRef = useRef<HTMLInputElement>(null)
+  const config = useAppConfig()
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setUsername(event.target.value)
@@ -117,72 +121,92 @@ function BasicLoginForm({
     void submit()
   }
 
+  const asset = (name: string): string =>
+    new URL(`${LOGIN_ASSETS}/${name}`, window.location.origin).href
+  const passwordToggleLabel = t(
+    isPasswordShown ? 'login.hidePassword' : 'login.showPassword'
+  )
+
   return (
-    <CenteredCard>
-      <Stack
-        component="form"
-        spacing={2}
-        noValidate
-        aria-labelledby={titleId}
+    <LoginLayout
+      pitchTitle={t('login.pitch.title')}
+      pitchPoints={[
+        { iconSrc: asset('ic_jmap_standard.svg'), text: t('login.pitch.jmap') },
+        {
+          iconSrc: asset('ic_encrypted.svg'),
+          text: t('login.pitch.encrypted')
+        },
+        { iconSrc: asset('ic_team.svg'), text: t('login.pitch.team') },
+        {
+          iconSrc: asset('ic_integration.svg'),
+          text: t('login.pitch.integrations')
+        }
+      ]}
+      pitchImageSrc={asset('ic_login_graphic.svg')}
+      footerImageSrc={asset('power_by_linagora.svg')}
+      footerLabel={t('login.poweredBy')}
+    >
+      <LoginFormFrame
+        logo={<AppTitle />}
+        title={t('login.title')}
+        titleId={titleId}
+        message={
+          loginError === null
+            ? t('login.subtitle')
+            : t(LOGIN_ERROR_MESSAGES[loginError])
+        }
+        isError={loginError !== null}
+        version={config === null ? null : `v.${config.appVersion}`}
         onSubmit={handleSubmit}
+        button={
+          <LoginButton
+            disabled={isSubmitting}
+            data-testid="login-submit-button"
+          >
+            {t('login.submit')}
+          </LoginButton>
+        }
         data-testid="login-form"
+        data-error-testid="login-error"
       >
-        <AppTitle />
-        <div>
-          <Typography variant="h4" component="h1" id={titleId}>
-            {t('login.title')}
-          </Typography>
-          <SecondaryText variant="body2" component="p">
-            {t('login.subtitle')}
-          </SecondaryText>
-        </div>
-        {loginError !== null ? (
-          <Alert severity="error" data-testid="login-error">
-            {t(LOGIN_ERROR_MESSAGES[loginError])}
-          </Alert>
-        ) : null}
-        <TextField
+        <LoginTextField
           label={t('login.email')}
           value={username}
           onChange={handleUsernameChange}
           autoComplete="username"
+          inputMode="email"
+          autoFocus
           required
-          fullWidth
-          error={fieldErrors.username}
-          helperText={fieldErrors.username ? t('login.requiredEmail') : null}
-          slotProps={{
-            htmlInput: {
-              inputMode: 'email',
-              'data-testid': 'login-username-input'
-            }
-          }}
+          errorText={fieldErrors.username ? t('login.requiredEmail') : null}
+          data-testid="login-username-input"
         />
-        <TextField
+        <LoginTextField
           label={t('login.password')}
-          type="password"
+          type={isPasswordShown ? 'text' : 'password'}
           value={password}
           onChange={handlePasswordChange}
           autoComplete="current-password"
           required
-          fullWidth
-          error={fieldErrors.password}
-          helperText={fieldErrors.password ? t('login.requiredPassword') : null}
+          errorText={fieldErrors.password ? t('login.requiredPassword') : null}
           inputRef={passwordRef}
-          slotProps={{
-            htmlInput: { 'data-testid': 'login-password-input' }
-          }}
+          endAdornment={
+            <Tooltip title={passwordToggleLabel}>
+              <IconButton
+                aria-label={passwordToggleLabel}
+                aria-pressed={isPasswordShown}
+                edge="end"
+                onClick={() => {
+                  setIsPasswordShown(shown => !shown)
+                }}
+                data-testid="login-password-toggle"
+              >
+                <Icon icon={isPasswordShown ? EyeClosed : Eye} size={20} />
+              </IconButton>
+            </Tooltip>
+          }
+          data-testid="login-password-input"
         />
-        <Button
-          type="submit"
-          variant="contained"
-          size="large"
-          fullWidth
-          disabled={isSubmitting}
-          data-testid="login-submit-button"
-        >
-          {t('login.submit')}
-        </Button>
-      </Stack>
-    </CenteredCard>
+      </LoginFormFrame>
+    </LoginLayout>
   )
 }

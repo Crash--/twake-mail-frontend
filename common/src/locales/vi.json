@@ -166,7 +166,17 @@
     "badCredentials": "Tài khoản không hợp lệ",
     "connectionError": "Lỗi kết nối",
     "email": "Email",
-    "password": "Mật khẩu"
+    "password": "Mật khẩu",
+    "pitch": {
+      "title": "Giải pháp email doanh nghiệp\ndựa trên JMAP",
+      "jmap": "Tiêu chuẩn JMAP",
+      "encrypted": "Hòm thư mã hoá",
+      "team": "Quản lý email doanh nghiệp",
+      "integrations": "Tích hợp dễ dàng"
+    },
+    "poweredBy": "Được cung cấp bởi LINAGORA",
+    "showPassword": "Hiện mật khẩu",
+    "hidePassword": "Ẩn mật khẩu"
   },
   "config": {
     "title": "Twake Mail chưa được cấu hình",

@@ -166,7 +166,17 @@
     "badCredentials": "Неверные учетные данные",
     "connectionError": "Ошибка подключения",
     "email": "Email",
-    "password": "Пароль"
+    "password": "Пароль",
+    "pitch": {
+      "title": "Основанный на JMAP\nкорпоративный почтовый клиент",
+      "jmap": "Стандарт JMAP",
+      "encrypted": "Зашифрованный почтовый ящик",
+      "team": "Совместное управление электронной почтой",
+      "integrations": "Несколько интеграций"
+    },
+    "poweredBy": "Работает на LINAGORA",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль"
   },
   "config": {
     "title": "Twake Mail не настроен",

@@ -166,7 +166,17 @@
     "badCredentials": "Identifiants invalides",
     "connectionError": "Erreur de connexion",
     "email": "E-mail",
-    "password": "Mot de passe"
+    "password": "Mot de passe",
+    "pitch": {
+      "title": "Solution de messagerie collaborative \nbasée sur JMAP",
+      "jmap": "Standard JMAP",
+      "encrypted": "Boîte aux lettres chiffrée",
+      "team": "Gérer la boîte e-mail en équipe",
+      "integrations": "Intégrations multiples"
+    },
+    "poweredBy": "Propulsé par LINAGORA",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe"
   },
   "config": {
     "title": "Twake Mail n'est pas configuré",

@@ -319,3 +319,4 @@ Conventions:
 | `folder-visibility-folders-toggle` / `folder-visibility-folders` | Settings > Folder visibility: the "Folders" bar folding the personal folders and the team mailboxes, and what it folds | `MailboxVisibilityFoldersBarWidget` |
 | `folder-visibility-expand-button` | Settings > Folder visibility: expands or collapses the subfolders of a folder | `MailboxExpandButton` |
 | `composer-save-draft-button` | "Save as draft" icon button beside "Delete" in the bottom bar of the composer (not on phones, where it is `composer-save-draft-item`) | `UiKeys.saveDraftButton` |
+| `login-password-toggle` | "Show password" / "Hide password" button of the password field of the basic login, as tmail-flutter's eye | — |

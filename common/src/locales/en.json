@@ -166,7 +166,17 @@
     "badCredentials": "Bad credentials",
     "connectionError": "Connection error",
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "pitch": {
+      "title": "JMAP-based\ncollaborative team mail solution",
+      "jmap": "JMAP standard",
+      "encrypted": "Encrypted mailbox",
+      "team": "Manage email as a team",
+      "integrations": "Multiple integrations"
+    },
+    "poweredBy": "Powered by LINAGORA",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "config": {
     "title": "Twake Mail is not configured",

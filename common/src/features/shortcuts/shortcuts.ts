@@ -58,11 +58,28 @@ export type ShortcutCategory = 'navigation' | 'reading' | 'management'
 export const SHORTCUT_CATEGORIES: readonly {
   id: ShortcutCategory
   label: TranslationKey
+  /** Below the desktop size, as tmail-flutter */
+  shortLabel: TranslationKey
   width: number
 }[] = [
-  { id: 'navigation', label: 'shortcuts.categories.navigation', width: 174 },
-  { id: 'reading', label: 'shortcuts.categories.reading', width: 164 },
-  { id: 'management', label: 'shortcuts.categories.management', width: 280 }
+  {
+    id: 'navigation',
+    label: 'shortcuts.categories.navigation',
+    shortLabel: 'shortcuts.categories.navigationShort',
+    width: 174
+  },
+  {
+    id: 'reading',
+    label: 'shortcuts.categories.reading',
+    shortLabel: 'shortcuts.categories.readingShort',
+    width: 164
+  },
+  {
+    id: 'management',
+    label: 'shortcuts.categories.management',
+    shortLabel: 'shortcuts.categories.managementShort',
+    width: 280
+  }
 ]
 
 const KEYS = new Set<string>(SHORTCUTS.map(shortcut => shortcut.key))

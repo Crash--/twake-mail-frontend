@@ -725,7 +725,10 @@
       "navigation": "Navigation & Fermeture",
       "reading": "Lecture & Réponse",
       "management": "Gestion des messages & Sélection",
-      "label": "Catégories de raccourcis"
+      "label": "Catégories de raccourcis",
+      "navigationShort": "Navigation",
+      "readingShort": "Lecture",
+      "managementShort": "Message"
     }
   },
   "settings": {

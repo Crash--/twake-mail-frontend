@@ -725,7 +725,10 @@
       "navigation": "Điều hướng và Đóng",
       "reading": "Đọc và Trả lời email",
       "management": "Quản lý và lựa chọn tin nhắn",
-      "label": "Danh mục phím tắt"
+      "label": "Danh mục phím tắt",
+      "navigationShort": "Điều hướng",
+      "readingShort": "Đọc",
+      "managementShort": "Tin nhắn"
     }
   },
   "settings": {

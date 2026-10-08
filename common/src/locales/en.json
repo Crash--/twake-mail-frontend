@@ -725,7 +725,10 @@
       "navigation": "Navigation & Closing",
       "reading": "Reading & Replying",
       "management": "Message Management & Selection",
-      "label": "Categories of shortcuts"
+      "label": "Categories of shortcuts",
+      "navigationShort": "Navigation",
+      "readingShort": "Reading",
+      "managementShort": "Message"
     }
   },
   "settings": {

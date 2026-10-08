@@ -1,7 +1,13 @@
+import type { IconProps } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
 import { CategoryTabs } from '@/ds/CategoryTabs/CategoryTabs'
+import {
+  MessageCategory,
+  NavigationCategory,
+  ReadingCategory
+} from '@/ds/FlutterIcons/ShortcutCategoryIcons'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SettingsSubheading } from '@/ds/SettingsHeading/SettingsHeading'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
@@ -16,6 +22,13 @@ import {
   type ShortcutCategory
 } from './shortcuts'
 import { useShortcutsEnabled } from './shortcutsSetting'
+
+/** tmail-flutter's icons of the categories, on phones and tablets */
+const CATEGORY_ICONS: Record<ShortcutCategory, IconProps['icon']> = {
+  navigation: NavigationCategory,
+  reading: ReadingCategory,
+  management: MessageCategory
+}
 
 export interface ShortcutsPanelProps {
   /** Id of the description, for the dialog or region showing the panel */
@@ -57,6 +70,8 @@ export function ShortcutsPanel({
           tabs={SHORTCUT_CATEGORIES.map(tab => ({
             id: tab.id,
             label: t(tab.label),
+            shortLabel: t(tab.shortLabel),
+            icon: CATEGORY_ICONS[tab.id],
             width: tab.width
           }))}
           value={category}

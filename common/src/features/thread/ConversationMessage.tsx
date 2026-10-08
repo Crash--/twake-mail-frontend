@@ -214,9 +214,10 @@ function MessageContent({
   onRemoteContentShown
 }: MessageContentProps): ReactElement | null {
   const query = useEmail(emailId)
-  // About the height of a short message, so that the ones below the one the
+  // About the height of a short message (its sender, the line of its
+  // recipients and a short text), so that the ones below the one the
   // conversation opened on do not move when it loads
-  if (query.isPending) return <Skeleton variant="rounded" height={71} />
+  if (query.isPending) return <Skeleton variant="rounded" height={99} />
   if (query.data === null || query.data === undefined) return null
   return (
     <ExpandedBody

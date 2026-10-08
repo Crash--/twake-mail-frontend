@@ -40,6 +40,8 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await composer.editor.click()
     await page.keyboard.type('Title')
 
@@ -88,6 +90,8 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     const bob = await users.create({ prefix: 'bob' })
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await composer.fill({ to: [bob.email], subject: 'Formatting' })
     await composer.editor.click()
     await page.keyboard.type('Styled words')

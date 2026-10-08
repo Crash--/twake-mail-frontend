@@ -32,6 +32,8 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
     await page.setViewportSize({ width: 1440, height: 900 })
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await expect(composer.toolbar).toBeVisible()
 
     const root = await boxOf(composer.root)

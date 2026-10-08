@@ -206,6 +206,8 @@ test.describe('A11Y composer', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await composer.editor.focus()
     await page.keyboard.type('Hello ')
 

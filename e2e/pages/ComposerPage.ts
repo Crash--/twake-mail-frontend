@@ -75,8 +75,8 @@ export class ComposerPage {
   }
 
   /**
-   * The formatting toolbar: shown at once on a tablet and a desktop, behind
-   * the "Aa" button of the top bar on a phone
+   * The formatting toolbar: behind the "Aa" button, as tmail-flutter (its
+   * footer on a tablet and a desktop, the top bar on a phone)
    */
   async showFormattingToolbar(): Promise<ComposerPage> {
     if (!(await this.toolbar.isVisible())) await this.formattingButton.click()

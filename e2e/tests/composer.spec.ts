@@ -114,6 +114,8 @@ test.describe('CMP composer', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await composer.editor.click()
     await page.keyboard.type('Hello ')
     const bold = composer.toolbarButton('Bold')
@@ -344,6 +346,8 @@ test.describe('CMP composer', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await expect(composer.editor).toHaveAttribute('aria-multiline', 'true')
 
     // Subject -> editor -> toolbar (under the text)

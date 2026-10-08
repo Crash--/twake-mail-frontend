@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import {
   SettingsAccount,
   SettingsTile,
@@ -11,6 +12,7 @@ import {
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { useLogout } from '@common/layout/useLogout'
 
 import { settingsSectionPath } from './sections'
 import { useSettingsSections } from './useSettingsSections'
@@ -25,6 +27,7 @@ export function SettingsSectionList(): ReactElement {
   const { t } = useI18n()
   const { session } = useJmapSession()
   const sections = useSettingsSections()
+  const handleLogout = useLogout()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const headingId = useId()
   const title = t('settings.title')
@@ -81,6 +84,14 @@ export function SettingsSectionList(): ReactElement {
             data-testid={`settings-menu-${section.id}`}
           />
         ))}
+        {/* As tmail-flutter: signing out ends the list */}
+        <SettingsTile
+          icon={SignOutSettingsIcon}
+          title={t('topbar.logout')}
+          explanation={null}
+          onClick={handleLogout}
+          data-testid="settings-sign-out-button"
+        />
       </SettingsTileList>
     </Box>
   )

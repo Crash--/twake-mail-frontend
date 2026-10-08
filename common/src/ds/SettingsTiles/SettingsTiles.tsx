@@ -121,26 +121,30 @@ export interface SettingsTileProps {
   /** Under the title; null for none */
   explanation: string | null
   /** A link component (e.g. the router `Link`) and where it goes */
-  component: ElementType
-  to: string
+  component?: ElementType
+  to?: string
+  /** For an entry that acts rather than goes somewhere (sign out) */
+  onClick?: () => void
   'data-testid'?: string
 }
 
-/** An entry of the settings: a link to its section */
+/** An entry of the settings: a link to its section, or a button */
 export function SettingsTile({
   icon,
   title,
   explanation,
   component,
   to,
+  onClick,
   'data-testid': testId
 }: SettingsTileProps): ReactElement {
+  const linkProps = component === undefined ? {} : { component, to }
   const isPhone = useScreenSize() === 'mobile'
   return (
     <Box component="li">
       <ButtonBase
-        component={component}
-        to={to}
+        {...linkProps}
+        onClick={onClick}
         sx={tileSx(isPhone)}
         data-testid={testId}
       >

@@ -78,6 +78,9 @@ const ROW_SX = {
   pb: 2
 } as const
 
+/** The text of what is disabled, as tmail-flutter fades it */
+const DISABLED_TEXT = 'rgba(66, 66, 68, 0.38)'
+
 const ROW_TITLE_SX = {
   display: 'block',
   fontSize: 15,
@@ -141,7 +144,16 @@ export function SettingsSwitchRow({
         data-testid={testId}
       />
       <Box>
-        <Box component="label" htmlFor={switchId} sx={ROW_TITLE_SX}>
+        <Box
+          component="label"
+          htmlFor={switchId}
+          // As tmail-flutter: faded with its switch
+          sx={
+            isDisabled
+              ? { ...ROW_TITLE_SX, color: DISABLED_TEXT, cursor: 'default' }
+              : ROW_TITLE_SX
+          }
+        >
           {title}
         </Box>
         {description === undefined ? null : (

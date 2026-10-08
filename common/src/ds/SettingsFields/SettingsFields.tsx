@@ -413,16 +413,27 @@ export function SettingsFormColumn({
 export interface SettingsFormRowLabelProps {
   /** Id of the field it labels */
   htmlFor?: string
+  /** Faded with its field, as tmail-flutter */
+  isDisabled?: boolean
   children: ReactNode
 }
 
 /** The label of a field of a settings form row */
 export function SettingsFormRowLabel({
   htmlFor,
+  isDisabled = false,
   children
 }: SettingsFormRowLabelProps): ReactElement {
   return (
-    <Box component="label" htmlFor={htmlFor} sx={ROW_LABEL_SX}>
+    <Box
+      component="label"
+      htmlFor={htmlFor}
+      sx={
+        isDisabled
+          ? { ...ROW_LABEL_SX, color: 'rgba(66, 66, 68, 0.32)' }
+          : ROW_LABEL_SX
+      }
+    >
       {children}
     </Box>
   )
@@ -446,6 +457,8 @@ export interface SettingsFormRowProps {
   htmlFor?: string
   /** The label at the top, beside a tall field */
   alignTop?: boolean
+  /** Its fields are disabled: the label fades */
+  isDisabled?: boolean
   children: ReactNode
 }
 
@@ -454,11 +467,14 @@ export function SettingsFormRow({
   label,
   htmlFor,
   alignTop = false,
+  isDisabled = false,
   children
 }: SettingsFormRowProps): ReactElement {
   return (
     <Box sx={alignTop ? { ...ROW_SX, alignItems: 'flex-start' } : ROW_SX}>
-      <SettingsFormRowLabel htmlFor={htmlFor}>{label}</SettingsFormRowLabel>
+      <SettingsFormRowLabel htmlFor={htmlFor} isDisabled={isDisabled}>
+        {label}
+      </SettingsFormRowLabel>
       {children}
     </Box>
   )

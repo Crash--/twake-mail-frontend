@@ -158,6 +158,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
         <SettingsFormRow
           label={`${t('vacation.startDate')}:`}
           htmlFor={startDateId}
+          isDisabled={isOff}
         >
           <SettingsTextField
             id={startDateId}
@@ -173,7 +174,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             }}
             inputTestId="vacation-start-date-input"
           />
-          <SettingsFormRowLabel htmlFor={startTimeId}>
+          <SettingsFormRowLabel htmlFor={startTimeId} isDisabled={isOff}>
             {`${t('vacation.startTime')}:`}
           </SettingsFormRowLabel>
           <SettingsTextField
@@ -190,22 +191,26 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             inputTestId="vacation-start-time-input"
           />
         </SettingsFormRow>
-        <SettingsSwitchRow
-          title={t('vacation.stops')}
-          isChecked={hasEnd}
-          isDisabled={isOff}
-          onChange={checked => {
-            setHasEnd(checked)
-            // Safari shows today in an empty date input: fill the end with
-            // the start, so that what is shown is what gets saved
-            setEndDate(checked ? startDate : '')
-            setEndTime(checked ? startTime : '')
-          }}
-          data-testid="vacation-end-toggle"
-        />
+        {/* As tmail-flutter: apart from the start */}
+        <Box className="u-mt-1">
+          <SettingsSwitchRow
+            title={t('vacation.stops')}
+            isChecked={hasEnd}
+            isDisabled={isOff}
+            onChange={checked => {
+              setHasEnd(checked)
+              // Safari shows today in an empty date input: fill the end with
+              // the start, so that what is shown is what gets saved
+              setEndDate(checked ? startDate : '')
+              setEndTime(checked ? startTime : '')
+            }}
+            data-testid="vacation-end-toggle"
+          />
+        </Box>
         <SettingsFormRow
           label={`${t('vacation.endDate')}:`}
           htmlFor={endDateId}
+          isDisabled={isOff || !hasEnd}
         >
           <SettingsTextField
             id={endDateId}
@@ -220,7 +225,10 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             }}
             inputTestId="vacation-end-date-input"
           />
-          <SettingsFormRowLabel htmlFor={endTimeId}>
+          <SettingsFormRowLabel
+            htmlFor={endTimeId}
+            isDisabled={isOff || !hasEnd}
+          >
             {`${t('vacation.endTime')}:`}
           </SettingsFormRowLabel>
           <SettingsTextField
@@ -240,6 +248,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
         <SettingsFormRow
           label={`${t('vacation.subject')}:`}
           htmlFor={subjectId}
+          isDisabled={isOff}
         >
           <SettingsFormField>
             <SettingsTextField
@@ -257,7 +266,11 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             />
           </SettingsFormField>
         </SettingsFormRow>
-        <SettingsFormRow label={`${t('vacation.message')}:`} alignTop>
+        <SettingsFormRow
+          label={`${t('vacation.message')}:`}
+          alignTop
+          isDisabled={isOff}
+        >
           <SettingsFormField>
             <RichTextEditor
               key={editorKey}
@@ -267,7 +280,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
               colors={colors}
               fontSizes={fontSizes}
               fontFamilies={fontFamilies}
-              isToolbarBelow
+              // As tmail-flutter: one box, its buttons at the bottom
+              look="settings"
               onReady={editor => {
                 editorRef.current = editor
               }}

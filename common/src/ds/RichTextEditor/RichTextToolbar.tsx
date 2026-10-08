@@ -80,6 +80,10 @@ export interface RichTextToolbarProps {
   /** The editor is disabled: every button says it, and does nothing */
   disabled?: boolean
   buttonTestId?: (item: RichTextToolbarItemId) => string
+  /** These buttons only, in their usual order; all of them if absent */
+  only?: readonly RichTextToolbarItemId[]
+  /** One line scrolling sideways, whatever the screen */
+  isOneLine?: boolean
 }
 
 const BOX_HEIGHT = 32
@@ -231,9 +235,12 @@ export function RichTextToolbar({
   look = 'compact',
   actionsRef,
   disabled = false,
-  buttonTestId
+  buttonTestId,
+  only,
+  isOneLine = false
 }: RichTextToolbarProps): ReactElement {
-  const isMobile = useScreenSize() === 'mobile'
+  // One line scrolling sideways: a phone, or the editors of the settings
+  const isMobile = useScreenSize() === 'mobile' || isOneLine
   const state = useEditorState({
     editor,
     selector: ({ editor: current }) => {
@@ -434,9 +441,13 @@ export function RichTextToolbar({
     }
   ]
 
+  const shownItems =
+    only === undefined
+      ? allItems
+      : allItems.filter(item => only.includes(item.id))
   const items = disabled
-    ? allItems.map(item => ({ ...item, disabled: true }))
-    : allItems
+    ? shownItems.map(item => ({ ...item, disabled: true }))
+    : shownItems
 
   const focusItem = (index: number): void => {
     const count = items.length

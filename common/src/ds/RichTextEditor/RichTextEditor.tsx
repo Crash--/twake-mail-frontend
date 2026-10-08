@@ -44,7 +44,8 @@ import {
   type RichTextEditorTestIds,
   type RichTextFontFamily,
   type RichTextFontSize,
-  type RichTextSelectionAction
+  type RichTextSelectionAction,
+  type RichTextToolbarItemId
 } from './types'
 
 export interface RichTextEditorProps {
@@ -85,9 +86,12 @@ export interface RichTextEditorProps {
   fill?: boolean
   /**
    * `boxed`: tmail-flutter's editor of a signature, the toolbar of 40 px
-   * boxes and a 189 px text, in one frame rounded by 10 px
+   * boxes and a 189 px text, in one frame rounded by 10 px. `settings`:
+   * tmail-flutter's editors of the settings (the message of the vacation):
+   * one box rounded by 10 px holding the text and, at its bottom, one line
+   * of buttons (text style to strike); white and faded while disabled
    */
-  look?: 'compact' | 'boxed'
+  look?: 'compact' | 'boxed' | 'settings'
   /** The formatting toolbar under the text, behind a divider; above it if false */
   isToolbarBelow?: boolean
   /** Shows the toolbar; the parent can hide it (a button of its own) */
@@ -106,6 +110,28 @@ export interface RichTextEditorProps {
   /** A button under the end of the selected text */
   selectionAction?: RichTextSelectionAction
 }
+
+/** The buttons of tmail-flutter's editors of the settings */
+const SETTINGS_TOOLBAR_ITEMS: readonly RichTextToolbarItemId[] = [
+  'text-style',
+  'size',
+  'font',
+  'color',
+  'highlight',
+  'bold',
+  'italic',
+  'underline',
+  'strike'
+]
+
+const SETTINGS_FRAME_SX = {
+  border: '1px solid #E3E5E8',
+  borderRadius: '10px',
+  overflow: 'hidden',
+  bgcolor: '#FFFFFF',
+  '&[aria-disabled="true"]': { opacity: 0.5 },
+  '& [role="toolbar"]': { borderTop: 'none', px: 1, pb: 1 }
+} as const
 
 /** The image types the editor takes (paste, drop, toolbar) */
 export const IMAGE_TYPES: readonly string[] = [
@@ -247,6 +273,7 @@ export function RichTextEditor({
   testIds = {},
   selectionAction
 }: RichTextEditorProps): ReactElement {
+  const isSettingsLook = look === 'settings'
   const editorId = useId()
   const helpId = useId()
   const [container, setContainer] = useState<HTMLElement | null>(null)
@@ -424,11 +451,13 @@ export function RichTextEditor({
       onOpenLinkDialog={openLinkDialog}
       onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
       hasInsertButtons={hasInsertButtons}
-      placement={isToolbarBelow ? 'bottom' : 'top'}
-      look={look}
+      placement={isToolbarBelow || isSettingsLook ? 'bottom' : 'top'}
+      look={look === 'boxed' ? 'boxed' : 'compact'}
       actionsRef={actionsRef}
       disabled={disabled}
       buttonTestId={testIds.toolbarButton}
+      only={isSettingsLook ? SETTINGS_TOOLBAR_ITEMS : undefined}
+      isOneLine={isSettingsLook}
     />
   ) : null
 
@@ -437,13 +466,15 @@ export function RichTextEditor({
     <Box
       ref={setContainer}
       className="u-flex u-flex-column"
+      aria-disabled={isSettingsLook && disabled ? true : undefined}
       sx={{
         position: 'relative',
         ...(fill ? { flex: '1 1 auto', minHeight: 0 } : {}),
-        ...(look === 'boxed' ? BOXED_FRAME_SX : {})
+        ...(look === 'boxed' ? BOXED_FRAME_SX : {}),
+        ...(isSettingsLook ? SETTINGS_FRAME_SX : {})
       }}
     >
-      {isToolbarBelow ? null : toolbar}
+      {isToolbarBelow || isSettingsLook ? null : toolbar}
       <ImageToolbar
         editor={editor}
         labels={labels.image}
@@ -495,12 +526,25 @@ export function RichTextEditor({
               : { lineHeight: 1.5 }),
             overflowWrap: 'anywhere'
           },
-          // Greyed as the other disabled fields of twake-mui
-          '& .ProseMirror[contenteditable="false"]': {
-            bgcolor: 'action.disabledBackground',
-            color: 'text.secondary',
-            cursor: 'default'
-          },
+          // Greyed as the other disabled fields of twake-mui (the settings
+          // look fades its whole box instead)
+          '& .ProseMirror[contenteditable="false"]': isSettingsLook
+            ? { cursor: 'default' }
+            : {
+                bgcolor: 'action.disabledBackground',
+                color: 'text.secondary',
+                cursor: 'default'
+              },
+          // In the box of the settings look: no border of its own
+          ...(isSettingsLook
+            ? {
+                '& .ProseMirror.ProseMirror': {
+                  border: 'none',
+                  minHeight: 180,
+                  padding: '12px'
+                }
+              }
+            : {}),
           // A long draft (a quoted thread, big tables) has thousands of nodes: the blocks
           // out of view are not laid out nor painted at each key (docs/perf/composer.md).
           // `auto` keeps their text reachable by find and by assistive technologies
@@ -575,7 +619,7 @@ export function RichTextEditor({
           container={container}
         />
       ) : null}
-      {isToolbarBelow ? toolbar : null}
+      {isToolbarBelow || isSettingsLook ? toolbar : null}
       <input
         ref={fileInputRef}
         type="file"

@@ -56,7 +56,13 @@ const SWITCH_SX = {
     },
     '&.Mui-disabled + .MuiSwitch-track': { opacity: 0.38 }
   },
-  '& .MuiSwitch-thumb': { width: 24, height: 24, m: 0, boxShadow: 'none' },
+  // twake-mui draws the thumb in its own `switchThumb` (20 px)
+  '&& .MuiSwitch-thumb, && .switchThumb': {
+    width: 24,
+    height: 24,
+    m: 0,
+    boxShadow: 'none'
+  },
   '& .MuiSwitch-track': {
     borderRadius: '14px',
     bgcolor: '#D3D3D3',

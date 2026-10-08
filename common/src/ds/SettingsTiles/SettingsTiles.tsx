@@ -125,6 +125,10 @@ export interface SettingsTileProps {
   to?: string
   /** For an entry that acts rather than goes somewhere (sign out) */
   onClick?: () => void
+  /** A plain link out of the app (`mailto:`, a page of the support) */
+  href?: string
+  /** With `href`: opens in a new tab */
+  isExternal?: boolean
   'data-testid'?: string
 }
 
@@ -136,9 +140,22 @@ export function SettingsTile({
   component,
   to,
   onClick,
+  href,
+  isExternal = false,
   'data-testid': testId
 }: SettingsTileProps): ReactElement {
-  const linkProps = component === undefined ? {} : { component, to }
+  const linkProps =
+    href !== undefined
+      ? {
+          component: 'a' as const,
+          href,
+          ...(isExternal
+            ? { target: '_blank', rel: 'noopener noreferrer' }
+            : {})
+        }
+      : component === undefined
+        ? {}
+        : { component, to }
   const isPhone = useScreenSize() === 'mobile'
   return (
     <Box component="li">

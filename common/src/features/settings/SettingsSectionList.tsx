@@ -2,6 +2,7 @@ import { Box, Typography } from '@linagora/twake-mui'
 import { useEffect, useId, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
+import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import {
@@ -11,6 +12,7 @@ import {
 } from '@/ds/SettingsTiles/SettingsTiles'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
+import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { useLogout } from '@common/layout/useLogout'
 
@@ -28,6 +30,7 @@ export function SettingsSectionList(): ReactElement {
   const { session } = useJmapSession()
   const sections = useSettingsSections()
   const handleLogout = useLogout()
+  const support = useContactSupport()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const headingId = useId()
   const title = t('settings.title')
@@ -84,7 +87,22 @@ export function SettingsSectionList(): ReactElement {
             data-testid={`settings-menu-${section.id}`}
           />
         ))}
-        {/* As tmail-flutter: signing out ends the list */}
+        {/* As tmail-flutter: the support, when the server names one, and
+            signing out end the list */}
+        {support === null ? null : (
+          <SettingsTile
+            icon={HelpOutlined}
+            title={t('settings.contactSupport')}
+            explanation={null}
+            href={
+              support.kind === 'address'
+                ? `mailto:${support.address}`
+                : support.href
+            }
+            isExternal={support.kind === 'link'}
+            data-testid="settings-contact-support"
+          />
+        )}
         <SettingsTile
           icon={SignOutSettingsIcon}
           title={t('topbar.logout')}

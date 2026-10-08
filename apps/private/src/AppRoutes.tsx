@@ -62,7 +62,7 @@ export function appRouteElements(): ReactElement {
         <Route
           element={
             <JmapSessionProvider>
-              <PushProvider>
+              <PushProvider alertsNewEmails>
                 <AppLayout />
               </PushProvider>
             </JmapSessionProvider>

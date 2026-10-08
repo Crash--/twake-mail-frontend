@@ -4,13 +4,18 @@ import {
   type WebSocketConstructor
 } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
-import { useEffect, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
 
 import { DEFAULT_STALE_TIME } from '@common/app/queryClient'
 import { emailKeys } from '@common/features/email/queries'
 import { syncLabels } from '@common/features/labels/queries'
 import { quotaKeys } from '@common/features/quota/quota'
-import { mailboxKeys } from '@common/features/mailbox/queries'
+import {
+  mailboxKeys,
+  type MailboxListData
+} from '@common/features/mailbox/queries'
+import { createNewMailWatcher } from '@common/features/newMail/newMailWatcher'
+import { useNewMailAlert } from '@common/features/newMail/useNewMailAlert'
 import { threadKeys } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -25,6 +30,11 @@ export interface PushProviderProps {
   children: ReactNode
   /** WebSocket implementation, the browser's by default (tests) */
   WebSocket?: WebSocketConstructor
+  /**
+   * Plays the sound and shows the notifications of the emails reaching the
+   * Inbox, as the user chose (`useNewMailAlert`)
+   */
+  alertsNewEmails?: boolean
 }
 
 /**
@@ -39,14 +49,46 @@ export interface PushProviderProps {
  */
 export function PushProvider({
   children,
-  WebSocket
+  WebSocket,
+  alertsNewEmails = false
 }: PushProviderProps): ReactElement {
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const queryClient = useQueryClient()
+  const alert = useNewMailAlert(accountId)
+  const alertRef = useRef(alert)
+  useEffect(() => {
+    alertRef.current = alert
+  })
 
   useEffect(() => {
     const sync = createPushSync(queryClient, client, accountId)
+    const newMail = alertsNewEmails
+      ? createNewMailWatcher(
+          client,
+          accountId,
+          () =>
+            queryClient
+              .getQueryData<MailboxListData>(mailboxKeys.list(accountId))
+              ?.list.find(mailbox => mailbox.role === 'inbox')?.id ?? null,
+          emails => {
+            alertRef.current(emails)
+          }
+        )
+      : null
+    // What arrived before the channel (re)opened is not new: the watcher
+    // starts from the current state
+    const resetNewMail = (): void => {
+      if (newMail === null) return
+      newMail.reset(null)
+      fetchCurrentStates(client, accountId)
+        .then(states => {
+          newMail.reset(states.Email)
+        })
+        .catch((error: unknown) => {
+          console.warn('[push] Cannot read the current states', error)
+        })
+    }
     const hasLabels = client.hasCapability(LINAGORA_CAPABILITIES.labels)
     const push = client.connectWebSocket({
       dataTypes: hasLabels ? [...SYNCED_TYPES, 'Label'] : [...SYNCED_TYPES],
@@ -87,6 +129,7 @@ export function PushProvider({
       push.on('stateChange', change => {
         const states = change.changed[accountId]
         if (states) sync.stateChanged(states)
+        if (states?.Email !== undefined) newMail?.pushed(states.Email)
         if (states?.Email !== undefined) {
           // Emails in or out: the storage used changed
           void queryClient.invalidateQueries({
@@ -103,11 +146,13 @@ export function PushProvider({
         if (status !== 'open') return
         if (hasBeenOpen) {
           sync.catchUp()
+          resetNewMail()
           if (hasLabels) void syncLabels(client, queryClient, accountId, null)
         } else {
           fetchCurrentStates(client, accountId)
             .then(states => {
               sync.stateChanged({ ...states })
+              newMail?.reset(states.Email)
             })
             .catch((error: unknown) => {
               console.warn('[push] Cannot read the current states', error)
@@ -130,6 +175,7 @@ export function PushProvider({
       })
       push.close()
       sync.close()
+      newMail?.close()
       for (const queryKey of syncedKeys) {
         queryClient.setQueryDefaults(queryKey, {
           staleTime: DEFAULT_STALE_TIME,
@@ -137,7 +183,7 @@ export function PushProvider({
         })
       }
     }
-  }, [client, accountId, queryClient, WebSocket])
+  }, [client, accountId, queryClient, WebSocket, alertsNewEmails])
 
   return <>{children}</>
 }

@@ -169,38 +169,30 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
   )
 
   test(
-    'CMP-89 a tablet shows the composer as a window: 780 px wide, 710 high, the title centred, minimize, expand and close at the end',
+    'CMP-89 a tablet shows the composer as tmail-flutter: a card 24 px from the edges over the dimmed page, the title at the start, close alone',
     { tag: '@mobile' },
     async ({ page, user }) => {
-      const width = page.viewportSize()?.width ?? 0
+      const viewport = page.viewportSize()
+      const width = viewport?.width ?? 0
+      const height = viewport?.height ?? 0
       test.skip(width < 600 || width >= 900, 'tablet only')
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
-      await composer.expectMode('normal')
+      await composer.expectMode('fullscreen')
       const root = await boxOf(composer.root)
-      expect([root.width, root.height]).toEqual([width - 40, 710])
-      expect(root.x).toBe(20)
+      expect([root.x, root.y]).toEqual([24, 24])
+      expect([root.width, root.height]).toEqual([width - 48, height - 48])
       const title = await boxOf(composer.title)
-      const middle = title.x + title.width / 2
-      expect(Math.abs(middle - (root.x + root.width / 2))).toBeLessThan(2)
-      const buttons = await Promise.all(
-        [
-          composer.minimizeButton,
-          composer.fullscreenButton,
-          composer.closeButton
-        ].map(boxOf)
-      )
-      for (const box of buttons) {
-        expect(box.width).toBeGreaterThanOrEqual(44)
-        expect(box.x).toBeGreaterThan(middle)
-      }
+      expect(title.x - root.x).toBeLessThan(40)
+      await expect(composer.minimizeButton).toHaveCount(0)
+      await expect(composer.fullscreenButton).toHaveCount(0)
+      const close = await boxOf(composer.closeButton)
+      expect(close.width).toBeGreaterThanOrEqual(44)
+      expect(close.x).toBeGreaterThan(root.x + root.width / 2)
       expect(await composer.horizontalOverflow()).toEqual({
         page: 0,
         window: 0
       })
-      // Minimized, the page is usable again
-      await composer.minimizeButton.click()
-      await composer.expectMode('minimized')
     }
   )
 

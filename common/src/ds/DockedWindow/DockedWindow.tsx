@@ -43,6 +43,8 @@ export const MINIMIZED_WINDOW_WIDTH = 400
 
 /** Height of a window on a tablet, measured on the design, in px */
 const TABLET_WINDOW_HEIGHT = 710
+/** From the edges of the screen, the composer card of tablets, in px */
+const CARD_INSET = 24
 const TITLE_BAR_HEIGHT = 52
 /** The title of tmail-flutter's composer: Medium 17, black */
 const TITLE_SX = {
@@ -117,6 +119,12 @@ export interface DockedWindowProps {
   isTitleCentered?: boolean
   /** Tablets: taller than the window of a desktop */
   isTall?: boolean
+  /**
+   * With `isModal`, tmail-flutter's composer of tablets: a card over the
+   * dimmed page, 24 px from its edges (`full`), or 70 % of its width in the
+   * middle (`centered`, large tablets); only the close button
+   */
+  card?: 'full' | 'centered'
   /** Other windows share the dock: 525 px high rather than 85 % */
   isShared?: boolean
   /** Width in the dock, in px (the dock shrinks windows to fit) */
@@ -177,6 +185,7 @@ export function DockedWindow({
   isTitleBarHidden = false,
   isTitleCentered = false,
   isTall = false,
+  card,
   isShared = false,
   width = DOCKED_WINDOW_WIDTH,
   labels,
@@ -244,7 +253,7 @@ export function DockedWindow({
   const controls = (
     <>
       {isMinimized ? null : titleBarActions}
-      {isCompact ? null : (
+      {isCompact || card !== undefined ? null : (
         <>
           <ActionIconButton
             label={isMinimized ? labels.restore : labels.minimize}
@@ -277,7 +286,11 @@ export function DockedWindow({
         onClick={onClose}
         data-testid={testIds.close}
       >
-        <Icon icon={Cross} size={16} aria-hidden="true" />
+        <Icon
+          icon={Cross}
+          size={card === undefined ? 16 : 24}
+          aria-hidden="true"
+        />
       </ActionIconButton>
     </>
   )
@@ -331,26 +344,35 @@ export function DockedWindow({
                         height: visible.height
                       })
                 }
-              : isFullscreen
+              : isFullscreen && card !== undefined
                 ? {
-                    // Expanded as in the design: under the top bar of the
-                    // app, the navigation still showing at the start
                     position: 'fixed',
-                    top: FULLSCREEN_INSET.top,
-                    right: FULLSCREEN_INSET.right,
-                    bottom: FULLSCREEN_INSET.bottom,
-                    left: FULLSCREEN_INSET.left
+                    top: CARD_INSET,
+                    bottom: CARD_INSET,
+                    ...(card === 'full'
+                      ? { left: CARD_INSET, right: CARD_INSET }
+                      : { left: '15vw', right: '15vw' })
                   }
-                : {
-                    width: isMinimized ? MINIMIZED_WINDOW_WIDTH : width,
-                    height: isMinimized
-                      ? TITLE_BAR_HEIGHT
-                      : isTall
-                        ? `min(${TABLET_WINDOW_HEIGHT}px, calc(100dvh - 96px))`
-                        : isShared
-                          ? `min(${SHARED_WINDOW_HEIGHT}px, calc(100dvh - 40px))`
-                          : '85dvh'
-                  }
+                : isFullscreen
+                  ? {
+                      // Expanded as in the design: under the top bar of the
+                      // app, the navigation still showing at the start
+                      position: 'fixed',
+                      top: FULLSCREEN_INSET.top,
+                      right: FULLSCREEN_INSET.right,
+                      bottom: FULLSCREEN_INSET.bottom,
+                      left: FULLSCREEN_INSET.left
+                    }
+                  : {
+                      width: isMinimized ? MINIMIZED_WINDOW_WIDTH : width,
+                      height: isMinimized
+                        ? TITLE_BAR_HEIGHT
+                        : isTall
+                          ? `min(${TABLET_WINDOW_HEIGHT}px, calc(100dvh - 96px))`
+                          : isShared
+                            ? `min(${SHARED_WINDOW_HEIGHT}px, calc(100dvh - 40px))`
+                            : '85dvh'
+                    }
           ]}
           data-testid={testIds.window}
           data-mode={isModal ? 'fullscreen' : mode}

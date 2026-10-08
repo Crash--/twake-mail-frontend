@@ -250,11 +250,16 @@ export function ComposerProvider({
   }, [])
   const suspendShortcuts = useSuspendShortcuts()
   const screenSize = useScreenSize()
-  // Windows in the dock from a tablet up (tmail-flutter: only a phone gets
-  // the composer over the whole screen); the title of a tablet window is
-  // centred
-  const isDesktop = screenSize !== 'mobile'
-  const isTablet = screenSize === 'tablet' || screenSize === 'tabletLarge'
+  // Windows in the dock on a desktop; below, one composer at a time over
+  // the page, as tmail-flutter: the whole screen of a phone, a card on a
+  // tablet
+  const isDesktop = screenSize === 'desktop'
+  const tabletCard =
+    screenSize === 'tablet'
+      ? 'full'
+      : screenSize === 'tabletLarge'
+        ? 'centered'
+        : undefined
   const screenWidth = useWindowWidth()
   const [entries, setEntries] = useState<ComposerEntry[]>([])
   const entriesRef = useRef(entries)
@@ -669,7 +674,7 @@ export function ComposerProvider({
               entry={entry}
               mode={shownMode(fittedModes[index])}
               isModal={!isDesktop}
-              isTablet={isTablet}
+              tabletCard={tabletCard}
               isShared={entries.length > 1}
               width={dockedWindowWidth(screenWidth, entries.length)}
               // Over the page: the menu goes in the window shown
@@ -703,7 +708,8 @@ interface ComposerSlotProps {
   /** The mode shown, null when the dock has no room for it (overflow menu) */
   mode: DockedWindowMode | null
   isModal: boolean
-  isTablet: boolean
+  /** Tablets: the card of tmail-flutter rather than the whole screen */
+  tabletCard: 'full' | 'centered' | undefined
   /** Other windows share the dock */
   isShared: boolean
   /** Width of a window in the dock, in px */
@@ -728,7 +734,7 @@ function ComposerSlot({
   entry,
   mode,
   isModal,
-  isTablet,
+  tabletCard,
   isShared,
   width,
   titleBarActions,
@@ -794,10 +800,11 @@ function ComposerSlot({
         // Out of the dock (overflow menu): no focus trap fighting the one
         // of the window shown
         isModal={isModal && mode !== null}
-        isCompact={isModal}
-        isTitleBarHidden
-        isTitleCentered={isTablet}
-        isTall={isTablet}
+        isCompact={isModal && tabletCard === undefined}
+        // A phone: the form has its own top bar; a tablet card keeps the
+        // title bar of the window
+        isTitleBarHidden={tabletCard === undefined}
+        card={isModal ? tabletCard : undefined}
         isShared={isShared}
         width={width}
         titleBarActions={titleBarActions}

@@ -31,6 +31,10 @@ function playChime(): void {
     oscillator.start(start + at)
     oscillator.stop(start + 0.5)
   }
+  if (context.state === 'suspended') {
+    // The browser keeps the sound of a tab never clicked on (autoplay)
+    console.warn('[new mail] The sound waits for a click on this tab')
+  }
   setTimeout(() => {
     void context.close().catch(() => undefined)
   }, 1000)
@@ -39,17 +43,20 @@ function playChime(): void {
 /**
  * What to do when emails reach the Inbox: the sound and the notifications
  * the user turned on (Settings > Preferences), the notifications only while
- * the page is hidden. One tab of the account alerts, the one holding the
- * lock: each tab gets the same push.
+ * the page is hidden or not focused. One tab of the account alerts, the one
+ * holding the lock: each tab gets the same push. Pages that do not alert
+ * (`isEnabled` false, as the facades framed by Twake Space) never take it.
  */
 export function useNewMailAlert(
-  accountId: string
+  accountId: string,
+  isEnabled: boolean
 ): (emails: readonly NewEmail[]) => void {
   const { t } = useI18n()
   const navigate = useNavigate()
   const isLeader = useRef(false)
 
   useEffect(() => {
+    if (!isEnabled) return
     // ponytail: without Web Locks (old browsers), every tab alerts
     if (typeof navigator.locks === 'undefined') {
       isLeader.current = true
@@ -62,6 +69,10 @@ export function useNewMailAlert(
         { signal: released.signal },
         () =>
           new Promise<void>(resolve => {
+            if (released.signal.aborted) {
+              resolve()
+              return
+            }
             isLeader.current = true
             released.signal.addEventListener('abort', () => {
               resolve()
@@ -73,7 +84,7 @@ export function useNewMailAlert(
       isLeader.current = false
       released.abort()
     }
-  }, [accountId])
+  }, [accountId, isEnabled])
 
   return useCallback(
     (emails: readonly NewEmail[]) => {
@@ -88,7 +99,9 @@ export function useNewMailAlert(
       if (
         !newMailNotificationPreference.read() ||
         !canNotify() ||
-        document.visibilityState === 'visible'
+        // ponytail: the leader judges by its own page; another tab of the
+        // app may be the one in front (share the focus between tabs if so)
+        (document.visibilityState === 'visible' && document.hasFocus())
       ) {
         return
       }

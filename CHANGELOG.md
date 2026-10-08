@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Settings > Preferences can turn on a system notification (while the page
-  is hidden) and a sound when an email reaches the Inbox, told by push. The
+  is hidden or not focused) and a sound when an email reaches the Inbox, told by push. The
   browser asks for the permission on the click on the switch; one tab of
   the account alerts.
 

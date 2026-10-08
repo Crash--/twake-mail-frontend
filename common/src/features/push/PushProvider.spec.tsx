@@ -533,6 +533,48 @@ describe('PushProvider', () => {
       })
     })
 
+    it('notifies nothing while the page is in front', async () => {
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true
+      })
+      jest.spyOn(document, 'hasFocus').mockReturnValue(true)
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 2)
+      expect(shown).toEqual([])
+    })
+
+    it('takes the lock of the alerts only on a page that alerts', async () => {
+      const request = jest.fn(() => Promise.resolve())
+      Object.defineProperty(navigator, 'locks', {
+        value: { request },
+        configurable: true
+      })
+      try {
+        const facade = await renderWithPush(makeServer())
+        expect(request).not.toHaveBeenCalled()
+        facade.result.unmount()
+        FakeWebSocket.instances = []
+
+        await renderWithPush(makeServer(), true)
+        expect(request).toHaveBeenCalledWith(
+          `twake-mail-new-mail-alert:${FAKE_ACCOUNT_ID}`,
+          expect.anything(),
+          expect.any(Function)
+        )
+      } finally {
+        Reflect.deleteProperty(navigator, 'locks')
+      }
+    })
+
     it('notifies nothing unless the page asks for it', async () => {
       const server = makeServer()
       const { socket } = await renderWithPush(server)

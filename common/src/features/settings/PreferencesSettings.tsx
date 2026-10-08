@@ -4,6 +4,7 @@ import { useState, type ReactElement } from 'react'
 
 import { hasAiCapability } from '@common/features/ai/aiNeedsAction'
 import { useDriveUrl } from '@common/features/drive/useDrivePicker'
+import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { useLabelVisibility } from '@common/features/labels/labelVisibility'
 import {
   canNotify,
@@ -76,6 +77,8 @@ export function PreferencesSettings({
   const [saving, setSaving] = useState<ServerSettingKey | null>(null)
   const isNotifying = newMailNotificationPreference.useValue() && canNotify()
   const isPlayingSound = newMailSoundPreference.useValue()
+  // A frame of another origin (Twake Workplace) may not show notifications
+  const isEmbedded = useIsEmbedded()
 
   // The browser asks for the permission on this click only
   const changeNotifications = (isOn: boolean): void => {
@@ -208,7 +211,7 @@ export function PreferencesSettings({
           data-testid="drive-attachment-setting-toggle"
         />
       ) : null}
-      {typeof Notification === 'undefined' ? null : (
+      {typeof Notification === 'undefined' || isEmbedded ? null : (
         <PreferenceOption
           title={t('settings.preferences.newMailNotifications')}
           description={t(

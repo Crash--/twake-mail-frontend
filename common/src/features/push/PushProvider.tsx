@@ -55,7 +55,7 @@ export function PushProvider({
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const queryClient = useQueryClient()
-  const alert = useNewMailAlert(accountId)
+  const alert = useNewMailAlert(accountId, alertsNewEmails)
   const alertRef = useRef(alert)
   useEffect(() => {
     alertRef.current = alert

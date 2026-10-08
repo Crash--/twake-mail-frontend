@@ -93,6 +93,18 @@ async function renderFolder(
 describe('EmptyFolderBanner', () => {
   listEmailsOneByOne()
 
+  it('stays the same while emails are selected, so that the rows do not move (#294)', async () => {
+    await renderFolder(makeServer('trash'), 'mailbox-trash')
+    const banner = screen.getByTestId('empty-trash-banner')
+    const checkboxes = screen.getAllByTestId('email-list-item-checkbox')
+
+    await userEvent.click(checkboxes[0] ?? banner)
+    expect(screen.getByTestId('empty-trash-banner')).toBe(banner)
+    await userEvent.click(checkboxes[1] ?? banner)
+    expect(screen.getByTestId('empty-trash-banner')).toBe(banner)
+    expect(screen.getByText('2 selected')).toBeVisible()
+  })
+
   it('empties the Trash with Mailbox/clear, and its subfolders, after a confirmation', async () => {
     const server = makeServer('trash', { clear: true, subfolders: true })
     await renderFolder(server, 'mailbox-trash')

@@ -248,7 +248,8 @@ export function useEmailListActions({
         onDone={handleDone}
       />
     ) : null,
-    banner: hasSelection ? null : (
+    // Whatever the selection: the rows must not move under the pointer
+    banner: (
       <>
         <SpamReportBanner mailbox={mailbox} />
         {mailbox === null ? null : <EmptyFolderBanner mailbox={mailbox} />}

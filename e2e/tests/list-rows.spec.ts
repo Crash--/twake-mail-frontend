@@ -76,28 +76,25 @@ test.describe('LST email list rows', () => {
     await expect(remove).toHaveCSS('opacity', '1')
   })
 
-  test('LST-03 the reply button of a row opens the composer on a reply to it', async ({
+  test('LST-03 a row says, as tmail-flutter, that its email was answered', async ({
     page,
     user,
     jmap
   }) => {
     await jmap.sendEmail({ to: user.email, subject: 'Answer me', text: 'Hi' })
-    await jmap.waitForEmail({ subject: 'Answer me' })
+    const email = await jmap.waitForEmail({ subject: 'Answer me' })
+    await jmap.setKeywords(email.id, { $answered: true })
     const mailbox = await new LoginPage(page).loginAs(user)
     const row = mailbox.emailRow('Answer me')
     const viewport = page.viewportSize()
     test.skip(
       viewport === null || viewport.width < 1000,
-      'compact rows have no reply button'
+      'compact rows show no answered state'
     )
 
-    const reply = row.getByTestId('email-list-item-reply')
-    await expect(reply).toHaveAccessibleName('Reply')
-    await reply.click()
-
-    const composer = new ComposerPage(page)
-    await expect(composer.subjectInput).toHaveValue('Re: Answer me')
-    await composer.deleteDraftButton.click()
+    await expect(row.getByTestId('email-list-item-answered')).toHaveAccessibleName(
+      'Replied message'
+    )
   })
 
   test('LST-04 the hover actions open the email in a tab of its own, and move it', async ({
@@ -132,7 +129,7 @@ test.describe('LST email list rows', () => {
     await expect(page.getByRole('dialog')).toBeVisible()
   })
 
-  test('LST-05 the toolbar and the rows have the measures of the design', async ({
+  test('LST-05 the toolbar and the rows have the measures of tmail-flutter', async ({
     page,
     user,
     jmap
@@ -157,27 +154,24 @@ test.describe('LST email list rows', () => {
     const toolbarBox = await box(toolbar)
     const refresh = await box(page.getByTestId('list-refresh-button'))
     const selectAll = await box(page.getByTestId('list-select-all-button'))
-    // 16 px on each side of the list; 16 px above and below the 32 px buttons
+    // As tmail-flutter: the toolbar and the rows span the card, 12 px above
+    // the buttons (a 32 px refresh, 34 px text buttons), 16 px apart
     expect(rowBox.x).toBe(toolbarBox.x)
     expect(refresh.width).toBe(32)
     expect(refresh.height).toBe(32)
-    expect(selectAll.height).toBe(32)
-    expect(refresh.y - toolbarBox.y).toBe(16)
+    expect(selectAll.height).toBe(34)
+    expect(selectAll.y - toolbarBox.y).toBe(12)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
-    // 6 px above and below 32 px icon buttons
-    expect(rowBox.height).toBeGreaterThanOrEqual(43.5)
-    expect(rowBox.height).toBeLessThanOrEqual(44.5)
-    for (const id of [
-      'email-list-item-checkbox',
-      'email-list-item-star',
-      'email-list-item-reply'
-    ]) {
-      const found = await box(row.getByTestId(id))
-      expect([found.width, found.height]).toEqual([32, 32])
-    }
-    // 20 px marker frame, then the 198 px block of the sender, 4 px apart
+    // As tmail-flutter: 48 px rows, a 40 px checkbox, a bare 20 px star
+    expect(rowBox.height).toBeGreaterThanOrEqual(47.5)
+    expect(rowBox.height).toBeLessThanOrEqual(48.5)
+    const checkbox = await box(row.getByTestId('email-list-item-checkbox'))
+    expect([checkbox.width, checkbox.height]).toEqual([40, 40])
+    const star = await box(row.getByTestId('email-list-item-star'))
+    expect([star.width, star.height]).toEqual([20, 20])
+    // The 32 px gradient avatar of the sender
     const avatar = await box(row.getByTestId('email-list-item-avatar'))
-    expect([avatar.width, avatar.height]).toEqual([20, 20])
+    expect([avatar.width, avatar.height]).toEqual([32, 32])
   })
 })
 

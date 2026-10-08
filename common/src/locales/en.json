@@ -151,7 +151,10 @@
     "previousEmail": "Previous email",
     "nextEmail": "Next email",
     "showRecipients": "Show all recipients",
-    "hideRecipients": "Hide the addresses"
+    "hideRecipients": "Hide the addresses",
+    "replied": "Replied message",
+    "forwardedState": "Forwarded message",
+    "repliedAndForwarded": "Replied and Forwarded message"
   },
   "login": {
     "title": "Sign In",
@@ -199,7 +202,7 @@
     },
     "toolbar": {
       "label": "List actions",
-      "filter": "Filter",
+      "filter": "Filter messages",
       "clearFilter": "Clear the filter",
       "selectPage": "Select all messages of this page",
       "filterOn": "You’ve filtered messages by \"%{name}\"",

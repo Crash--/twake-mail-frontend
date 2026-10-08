@@ -491,7 +491,7 @@ describe('EmailList', () => {
     ])
   })
 
-  it('shows the initials of the sender, hidden from assistive technologies, and reaches the row actions by keyboard', async () => {
+  it('shows the first letter of the sender, hidden from assistive technologies, and reaches the row actions by keyboard', async () => {
     renderList(makeFakeJmapServer({ emails: makeEmails(1) }))
     const row = await screen.findByTestId('email-list-item')
 
@@ -500,8 +500,7 @@ describe('EmailList', () => {
       'true'
     )
     within(row).getByTestId('email-list-item-star').focus()
-    // Reply, the link of the row, then its actions
-    await userEvent.tab()
+    // The link of the row, then its actions
     await userEvent.tab()
     await userEvent.tab()
     await userEvent.tab()

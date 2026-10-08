@@ -81,6 +81,8 @@ export function EmailListDefaultToolbar({
         <IconAction
           label={refreshLabel}
           icon={Restore}
+          iconSize={16}
+          tone="filled"
           onClick={onRefresh}
           data-testid="list-refresh-button"
         />
@@ -95,7 +97,7 @@ export function EmailListDefaultToolbar({
         />
       ) : (
         <ToolbarButton
-          label={t('thread.selection.selectAll')}
+          label={selectAllLabel}
           tooltip={selectAllLabel}
           icon={CheckboxBlankIcon}
           disabled={loadedCount === 0}

@@ -1,5 +1,4 @@
 import {
-  Answer,
   Attachment,
   Dots,
   EmailNotification,
@@ -7,15 +6,14 @@ import {
   FolderMoveto,
   Icon,
   Openwith,
+  Reply,
   Star,
   StarOutline,
   Trash,
   WarningCircle
 } from '@linagora/twake-icons'
 import {
-  Avatar,
-  Checkbox,
-  getInitials,
+  Tooltip,
   Typography,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
@@ -23,12 +21,19 @@ import {
 import type { MouseEvent, ReactElement } from 'react'
 import { useHref, useNavigate } from 'react-router'
 
+import {
+  firstLetterOf,
+  GradientAvatar
+} from '@/ds/GradientAvatar/GradientAvatar'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
+import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
 import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
 import { RowSender } from '@/ds/RowSender/RowSender'
+import { RowStateSlot } from '@/ds/RowStateSlot/RowStateSlot'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
@@ -36,8 +41,10 @@ import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { isMarkedImportant } from '@common/features/email/importance'
 import {
+  ANSWERED,
   DRAFT,
   FLAGGED,
+  FORWARDED,
   hasKeyword,
   NEEDS_ACTION,
   SEEN
@@ -56,9 +63,10 @@ import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
 
 /**
- * The columns of the email list, in their order: `lead` (selection, star and
- * reply), `sender`, `subject` and `trailing` (attachment and date, replaced
- * by the actions on hover) on a wide list; `select`, `unread`, `message`
+ * The columns of the email list, in their order, as tmail-flutter: `lead`
+ * (selection, star, answered or forwarded, unread), `sender` (avatar and
+ * name), `subject` and `trailing` (attachment and date, replaced by the
+ * actions on hover) on a wide list; `select`, `unread`, `message`
  * (sender, date, subject, preview on four lines) and `compactActions` on a
  * narrow one (phone, list beside an open email)
  */
@@ -120,8 +128,6 @@ export interface EmailCellProps {
   deletesForever: boolean
   /** Opens the actions menu of the email under `element` */
   onOpenMenu: (email: EmailListItemData, element: HTMLElement) => void
-  /** Answers the email in the composer (not offered for drafts) */
-  onReply: (email: EmailListItemData) => void
   /** Asks for a folder, then moves the email (or its selection) there */
   onMove: (email: EmailListItemData) => void
   /** The email open beside the list, if any */
@@ -170,7 +176,6 @@ export function EmailCell({
   onRemove,
   deletesForever,
   onOpenMenu,
-  onReply,
   onMove,
   openEmailId,
   onOpenDraft,
@@ -226,18 +231,17 @@ export function EmailCell({
       ? thread.participants.join(', ')
       : formatAddressNames(showRecipients ? email.to : email.from)
 
-  // Decorative: the name of the sender is the text next to it
+  // Decorative: the name of the sender is the text next to it. As
+  // tmail-flutter: the first letter of the name on the gradient of the address
   const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
+  const avatarName = avatarAddress?.name ?? ''
+  const avatarEmail = avatarAddress?.email ?? ''
   const avatar = (
-    <Avatar
-      component="span"
-      size={20}
-      aria-hidden="true"
-      className="u-flex-shrink-0"
+    <GradientAvatar
+      text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
+      colorKey={avatarEmail}
       data-testid="email-list-item-avatar"
-    >
-      {getInitials(avatarAddress?.name ?? '', avatarAddress?.email ?? '')}
-    </Avatar>
+    />
   )
   // A toggle keeps its name: aria-pressed carries the state
   const starLabel = t('email.starred')
@@ -248,7 +252,19 @@ export function EmailCell({
     <IconAction
       label={starLabel}
       icon={isStarred ? Star : StarOutline}
-      tone={isStarred ? 'starred' : 'default'}
+      tone={isStarred ? 'starred' : 'muted'}
+      aria-pressed={isStarred}
+      onClick={handleToggleStar}
+      data-testid="email-list-item-star"
+    />
+  )
+  // As tmail-flutter: the star of a wide row is a bare 20 px icon
+  const wideStarButton = (
+    <IconAction
+      label={starLabel}
+      icon={isStarred ? Star : StarOutline}
+      tone={isStarred ? 'starred' : 'muted'}
+      size={20}
       aria-pressed={isStarred}
       onClick={handleToggleStar}
       data-testid="email-list-item-star"
@@ -261,19 +277,31 @@ export function EmailCell({
       Object.keys(email.mailboxIds).some(id => templateMailboxIds.has(id)))
       ? openTemplate
       : undefined
-  const replyLabel = t('emailActions.reply.reply')
-  const handleReply = (): void => {
-    onReply(email)
-  }
-  // A draft or a template opens in the composer: nothing to answer
-  const replyButton =
-    isDraft || onOpenTemplate ? null : (
-      <IconAction
-        label={replyLabel}
-        icon={Answer}
-        onClick={handleReply}
-        data-testid="email-list-item-reply"
-      />
+  // As tmail-flutter: whether the email was answered or forwarded, an icon
+  // named by its tooltip in a slot kept empty otherwise
+  const isAnswered = email.keywords[ANSWERED] === true
+  const isForwarded = email.keywords[FORWARDED] === true
+  const answeredLabel = isAnswered
+    ? t(isForwarded ? 'email.repliedAndForwarded' : 'email.replied')
+    : isForwarded
+      ? t('email.forwardedState')
+      : null
+  const answeredState =
+    answeredLabel === null ? null : (
+      <Tooltip title={answeredLabel}>
+        <span
+          role="img"
+          aria-label={answeredLabel}
+          className="u-flex"
+          data-testid="email-list-item-answered"
+        >
+          {isAnswered ? (
+            <Icon icon={Reply} size={16} aria-hidden="true" />
+          ) : (
+            <ForwardIcon size={16} />
+          )}
+        </span>
+      </Tooltip>
     )
   const seenLabel = t(isUnread ? 'email.markAsRead' : 'email.markAsUnread')
   const handleToggleSeen = (): void => {
@@ -284,6 +312,7 @@ export function EmailCell({
       label={seenLabel}
       icon={isUnread ? EmailOpen : EmailNotification}
       onClick={handleToggleSeen}
+      tone="muted"
       data-testid="email-list-item-toggle-seen"
     />
   )
@@ -298,6 +327,7 @@ export function EmailCell({
         label={openLabel}
         icon={Openwith}
         onClick={handleOpenInNewTab}
+        tone="muted"
         data-testid="email-list-item-open-in-new-tab"
       />
     )
@@ -310,6 +340,7 @@ export function EmailCell({
       label={moveLabel}
       icon={FolderMoveto}
       onClick={handleMove}
+      tone="muted"
       data-testid="email-list-item-move"
     />
   )
@@ -326,6 +357,7 @@ export function EmailCell({
       label={removeLabel}
       icon={Trash}
       onClick={handleRemove}
+      tone="muted"
       data-testid="email-list-item-remove"
     />
   )
@@ -339,6 +371,7 @@ export function EmailCell({
       icon={Dots}
       aria-haspopup="menu"
       onClick={handleOpenMenu}
+      tone="muted"
       data-testid="email-list-item-more"
     />
   )
@@ -348,17 +381,10 @@ export function EmailCell({
   }
   const checkbox =
     selection === null ? null : (
-      <Checkbox
-        size="small"
+      <RowCheckbox
         checked={isSelected}
         onClick={handleSelect}
-        slotProps={{
-          input: {
-            'aria-label': t('thread.selection.select', {
-              subject: email.subject ?? ''
-            })
-          }
-        }}
+        label={t('thread.selection.select', { subject: email.subject ?? '' })}
         data-testid="email-list-item-checkbox"
       />
     )
@@ -481,15 +507,15 @@ export function EmailCell({
       return (
         <span className="u-flex u-flex-items-center">
           {checkbox}
-          {starButton}
-          {replyButton}
+          {wideStarButton}
+          <RowStateSlot>{answeredState}</RowStateSlot>
+          <RowStateSlot>{framedDot}</RowStateSlot>
         </span>
       )
     case 'sender':
       return (
         // The names take the ellipsis, the number of messages stays in view
         <RowSender
-          marker={framedDot}
           avatar={avatar}
           isStrong={isUnread}
           trailing={
@@ -530,10 +556,14 @@ export function EmailCell({
           <RowLine
             isStrong={isUnread}
             leading={
-              <>
-                {importantIcon}
-                {labelChips(1)}
-              </>
+              importantIcon === null &&
+              emailLabels.length === 0 &&
+              !isActionRequired ? null : (
+                <>
+                  {importantIcon}
+                  {labelChips(1)}
+                </>
+              )
             }
             primary={
               <span data-testid="email-list-item-subject">{subject}</span>

@@ -1,10 +1,8 @@
-// Upstream to twake-ui: no, a layout detail of the Twake Mail design: the
-// toolbar above the list has 16 px of padding above and below, 16 px between
-// its controls, and a divider below at half its opacity.
+// Upstream to twake-ui: no, a layout detail of tmail-flutter: the toolbar
+// above the list has 12 px of padding above and below, 16 px on the sides
+// and between its controls, and a divider below.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-
-import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 export interface ListToolbarProps {
   /** Accessible name of the toolbar region */
@@ -24,14 +22,12 @@ export function ListToolbar({
       component="section"
       aria-label={label}
       className="u-flex u-flex-items-center u-flex-wrap"
-      sx={theme => ({
+      sx={{
         gap: 2,
-        py: 2,
-        borderBottom: 1,
-        borderColor: `color-mix(in srgb, ${theme.palette.divider} 50%, transparent)`,
-        // Phones: the list around has no padding
-        [`@media ${SCREEN_QUERIES.mobile}`]: { px: 2 }
-      })}
+        py: '12px',
+        px: 2,
+        borderBottom: '1px solid #E7E8EC'
+      }}
       data-testid={testId}
     >
       {children}

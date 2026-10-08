@@ -69,7 +69,12 @@ export interface RowLayout {
   paddingTop: number
   paddingBottom: number
   gap: number
+  /** The divider under the row starts after its first cell */
+  insetDivider?: boolean
 }
+
+/** The divider between the rows, as tmail-flutter's */
+const ROW_DIVIDER_COLOR = '#E7E8EC'
 
 interface ListTableSettings {
   label: string
@@ -120,14 +125,19 @@ export function makeRowLayoutSx({
   paddingX,
   paddingTop,
   paddingBottom,
-  gap
+  gap,
+  insetDivider = false
 }: RowLayout): Record<string, Record<string, string>> {
   return {
     '& .MuiTableCell-root': {
       boxSizing: 'border-box',
-      padding: `${paddingTop}px 0 ${paddingBottom}px ${gap}px`
+      padding: `${paddingTop}px 0 ${paddingBottom}px ${gap}px`,
+      borderBottomColor: ROW_DIVIDER_COLOR
     },
-    '& .MuiTableCell-root:first-of-type': { paddingLeft: `${paddingX}px` },
+    '& .MuiTableCell-root:first-of-type': {
+      paddingLeft: `${paddingX}px`,
+      ...(insetDivider ? { borderBottomColor: 'transparent' } : {})
+    },
     '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
   }
 }

@@ -2,14 +2,16 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { rowTextSx } from '@/ds/RowLine/rowText'
+
 export interface RowDateProps {
   children: ReactNode
-  /** The row stands out (unread): Semi Bold 12 / 18.4, else Regular 12 / 12 */
+  /** The row stands out (unread): Semi Bold and black, else steel grey */
   isStrong?: boolean
   'data-testid'?: string
 }
 
-/** The date of a list row: 12 px, Semi Bold when unread */
+/** The date of a list row, as its subject: 12 px, Semi Bold when unread */
 export function RowDate({
   children,
   isStrong = false,
@@ -19,16 +21,12 @@ export function RowDate({
     <Box
       component="span"
       sx={{
-        color: 'text.primary',
-        fontSize: 12,
+        ...rowTextSx(isStrong),
         whiteSpace: 'nowrap',
         // Cut with an ellipsis when its cell is too narrow
         minWidth: 0,
         overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        fontWeight: isStrong ? 600 : 400,
-        lineHeight: isStrong ? '18.4px' : '12px',
-        letterSpacing: isStrong ? '0.25px' : '0.15px'
+        textOverflow: 'ellipsis'
       }}
       data-testid={testId}
     >

@@ -151,7 +151,10 @@
     "previousEmail": "Message précédent",
     "nextEmail": "Message suivant",
     "showRecipients": "Afficher tous les destinataires",
-    "hideRecipients": "Masquer les adresses"
+    "hideRecipients": "Masquer les adresses",
+    "replied": "Message répondu",
+    "forwardedState": "Message transféré",
+    "repliedAndForwarded": "Message répondu et transféré"
   },
   "login": {
     "title": "Se connecter",
@@ -199,7 +202,7 @@
     },
     "toolbar": {
       "label": "Actions de la liste",
-      "filter": "Filtrer",
+      "filter": "Filtrer les messages",
       "clearFilter": "Effacer le filtre",
       "selectPage": "Sélectionner tous les messages de cette page",
       "filterOn": "Vous avez filtré les messages par « %{name} »",

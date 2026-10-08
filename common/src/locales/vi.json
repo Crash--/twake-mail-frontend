@@ -151,7 +151,10 @@
     "previousEmail": "Thư trước",
     "nextEmail": "Thư sau",
     "showRecipients": "Hiện tất cả người nhận",
-    "hideRecipients": "Ẩn địa chỉ"
+    "hideRecipients": "Ẩn địa chỉ",
+    "replied": "Tin nhắn đã trả lời",
+    "forwardedState": "Tin nhắn chuyển tiếp",
+    "repliedAndForwarded": "Tin nhắn được trả lời và chuyển tiếp"
   },
   "login": {
     "title": "Đăng nhập",
@@ -199,7 +202,7 @@
     },
     "toolbar": {
       "label": "Thao tác với danh sách",
-      "filter": "Lọc",
+      "filter": "Lọc thư",
       "clearFilter": "Xóa bộ lọc",
       "selectPage": "Chọn tất cả tin nhắn của trang này",
       "filterOn": "Bạn vừa lọc các email \"%{name}\"",

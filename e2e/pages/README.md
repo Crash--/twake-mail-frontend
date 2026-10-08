@@ -239,7 +239,7 @@ Conventions:
 | `toast` | the toast shown (`data-severity`); its message is announced by live regions always in the page (`role="status"`, `role="alert"` for errors) | — |
 | `toast-undo-button` / `toast-retry-button` / `toast-close-button` | its action ("Undo" after an action, "Retry" after a failure) and close | — |
 | `shortcuts-dialog` / `shortcuts-enabled-switch` / `shortcuts-dialog-close-button` | keyboard shortcuts list (`?`), the switch turning them off | `keyboardShortcuts` setting |
-| `email-list-item-avatar` | the 20 px initials avatar of the sender (decorative, `aria-hidden`) in a list row | — |
+| `email-list-item-avatar` | the 32 px gradient avatar of the sender, its first letter (decorative, `aria-hidden`), in a list row | — |
 | `search-row` / `settings-button` | desktop only: the row at the top of the page holding the search (`search-bar`) and, at its far end, the settings button (below the desktop size the search and `settings-button` are in `top-bar`) | `manage_account` item |
 | `list-toolbar` | the toolbar above the list while nothing is selected (a `section` named "List actions"); it becomes `selection-toolbar` once rows are selected | — |
 | `mailbox-item-address` / `folder-visibility-address` | the address of a team mailbox, beside the name of its root (sidebar, Settings > Folder visibility) | — |
@@ -260,7 +260,6 @@ Conventions:
 | `action-required-tag` (`action-required-tag-bar` on the opened email) | the "Action required" tag of an email, with a × on the opened one | `ActionRequiredTag`, `EmailActionRequiredTag` |
 | `ai-scribe-setting-toggle`, `ai-label-categorization-setting-toggle` | the AI options of Settings > Preferences | `PreferencesSettings` |
 | `composer-scribe-selection-button`, `composer-scribe-copy` | the assistant button under the selected text, the copy of its answer | `RichTextEditor` `selectionAction`, `ScribeMenu` |
-| `email-list-item-reply` | "Reply" icon button of a row (wide list, not on drafts and templates): opens the composer on a reply | `reply` row action |
 | `email-list-item-open-in-new-tab` | hover action opening the email in a tab of its own (not on drafts and templates) | `open in new` hover action |
 | `email-list-item-move` | hover action asking for a folder, then moving the email | `move_to_mailbox` hover action |
 | `list-filter-slot` | phones: the place of the filter button in the top bar (`list-filter-button` and its menu are rendered there) | `mobile_filter_message_button` |
@@ -315,3 +314,4 @@ Conventions:
 | `offline-banner` / `network-announcement` | batch D8: the red banner "No internet connection" with its "Dismiss" button (hides it for the session), shown while the browser is offline (`navigator.onLine`), and the polite live region (`role="status"`, visually hidden) saying "No internet connection", then "Back online" once | `NetworkConnectionController`, `no_internet_connection` |
 | `skip-to-content` | issue #228: the skip link, first Tab stop of the signed-in pages, visible only while focused ("Skip to main content"); following it focuses `main-content` (`tabIndex="-1"`), which also takes the focus after a navigation that left it on `<body>` (signing in) | — |
 | `compose-intent` / `intent-error-<reason>` | the `/intents` page (cozy-stack intent `CREATE io.cozy.mails`, `docs/cozy-intents.md`): the composer alone filling the frame, its title then `composer-close-button` (on a phone, the `composer-top-bar` of the form); and why an intent cannot be served, `intent-error-unavailable`, `-forbidden`, `-failed`, `-session-expired`, `-unsupported`, `-invalid-data`, `-untrusted-frame` (a page the cozy-stack does not allow frames the client app) | — |
+| `email-list-item-answered` | answered or forwarded state icon of a wide row (named "Replied message", "Forwarded message"…) | `buildIconAnsweredOrForwarded` |

@@ -7,7 +7,7 @@ import {
   type ListTableSkeletonColumn
 } from '@/ds/ListTableSkeleton/ListTableSkeleton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import { SENDER_BLOCK_WIDTH } from '@/ds/RowSender/RowSender'
+import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
 import { AfterDelay } from '@common/features/loading/AfterDelay'
 import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnouncer'
 
@@ -39,14 +39,14 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
     { id: 'lead', width: getLeadWidth(pointer.isTouch), cell: CHECKBOX },
     {
       id: 'sender',
-      width: ROW_LAYOUT.gap + 20 + 4 + SENDER_BLOCK_WIDTH,
+      width: SENDER_WIDTH,
       cell: (
         <>
           <Skeleton
             variant="circular"
-            width={20}
-            height={20}
-            className="u-flex-shrink-0 u-ml-1-half u-mr-half"
+            width={32}
+            height={32}
+            className="u-flex-shrink-0 u-mr-1"
           />
           <Skeleton width="55%" height={14} />
         </>

@@ -3,12 +3,18 @@ import { useMediaQuery } from '@linagora/twake-mui'
 import { TOUCH_QUERY, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 import type { RowLayout } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 
-/** Padding of a row and gap between its cells, in px (Figma "Listitemmail") */
+/**
+ * Padding of a row and gap between its cells, in px, as tmail-flutter: 3 px
+ * on the sides, 40 px controls 4 px below the top and 3 px above the 1 px
+ * divider (48 px rows); the widths of the cells carry their own spacing. The
+ * divider starts after the lead cell (120 px in).
+ */
 export const ROW_LAYOUT: RowLayout = {
-  paddingX: 8,
-  paddingTop: 6,
-  paddingBottom: 5,
-  gap: 8
+  paddingX: 3,
+  paddingTop: 4,
+  paddingBottom: 3,
+  gap: 0,
+  insetDivider: true
 }
 
 /** An icon button of a row, in px */
@@ -21,6 +27,13 @@ export const ACTION_SIZE = 32
  */
 const DATE_BLOCK_WIDTH = 36 + 80 + 8
 
+/** The checkbox (40 px, 4 px from the edge) and the two 28 px state slots */
+const LEAD_FIXED_WIDTH = 44 + 2 * 28
+/** The star of tmail-flutter: a bare 20 px icon */
+const STAR_WIDTH = 20
+/** Between the subject and the date or actions */
+const TRAILING_GAP = 16
+
 export interface RowPointer {
   /** The screen can hover: the actions replace the date */
   canHover: boolean
@@ -32,9 +45,13 @@ function getButtonSize(isTouch: boolean): number {
   return isTouch ? TOUCH_TARGET_SIZE : ACTION_SIZE
 }
 
-/** Selection, star and reply without gap: the checkbox keeps its size */
+/** Selection, star, answered and unread, without gap */
 export function getLeadWidth(isTouch: boolean): number {
-  return ROW_LAYOUT.paddingX + ACTION_SIZE + 2 * getButtonSize(isTouch)
+  return (
+    ROW_LAYOUT.paddingX +
+    LEAD_FIXED_WIDTH +
+    (isTouch ? TOUCH_TARGET_SIZE : STAR_WIDTH)
+  )
 }
 
 /**
@@ -43,7 +60,7 @@ export function getLeadWidth(isTouch: boolean): number {
  */
 export function getTrailingWidth({ canHover, isTouch }: RowPointer): number {
   const actionsWidth =
-    ROW_LAYOUT.gap + 5 * getButtonSize(isTouch) + ROW_LAYOUT.paddingX
+    TRAILING_GAP + 5 * getButtonSize(isTouch) + ROW_LAYOUT.paddingX
   return canHover ? actionsWidth : actionsWidth + DATE_BLOCK_WIDTH
 }
 

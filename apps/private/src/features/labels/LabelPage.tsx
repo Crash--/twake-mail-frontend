@@ -1,8 +1,8 @@
-import { EmailOpen } from '@linagora/twake-icons'
 import { Box, Empty } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Navigate, useOutlet, useParams } from 'react-router'
 
+import { EmailOpen } from '@/ds/FlutterIcons/FlutterIcons'
 import { ListDetailLayout } from '@/ds/ListDetailLayout/ListDetailLayout'
 import { LabelList } from '@common/features/labels/LabelList'
 import { EmailListPageSkeleton } from '@common/features/thread/EmailListSkeleton'

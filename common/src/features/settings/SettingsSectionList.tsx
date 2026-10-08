@@ -1,36 +1,23 @@
 import { Icon, Left } from '@linagora/twake-icons'
-import {
-  Box,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
-import { NavItem } from '@/ds/NavItem/NavItem'
-import { NavList } from '@/ds/NavList/NavList'
-import { NavLink } from '@/ds/NavLink/NavLink'
+import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { settingsSectionPath } from './sections'
 import {
   SETTINGS_EXIT_STATE,
   useSettingsExitPath
 } from './SettingsExitProvider'
-import { useSettingsSections } from './useSettingsSections'
+import { SettingsNav } from './SettingsNav'
 
 /**
- * `/settings` below the desktop size: the sections with what each is for,
- * as tmail-flutter's first level; one opens in its place.
+ * `/settings` below the desktop size: the menu of the sections, as
+ * tmail-flutter's first level; one opens in its place.
  */
 export function SettingsSectionList(): ReactElement {
   const { t } = useI18n()
-  const sections = useSettingsSections()
   const exitPath = useSettingsExitPath()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const title = t('settings.title')
@@ -65,39 +52,9 @@ export function SettingsSectionList(): ReactElement {
           {title}
         </Typography>
       </Box>
-      <Box component="nav" aria-label={title}>
-        <NavList>
-          {sections.map(section => (
-            <NavItem key={section.id}>
-              <NavLink
-                component={Link}
-                to={settingsSectionPath(section.id)}
-                data-testid={`settings-menu-${section.id}`}
-              >
-                <ListItemIcon>
-                  <Icon icon={section.icon} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography component="span" color="textPrimary">
-                      {t(section.title)}
-                    </Typography>
-                  }
-                  secondary={
-                    // The secondary text of the theme lacks contrast
-                    // (docs/twake-mui-gaps.md)
-                    section.description === null ? null : (
-                      <SecondaryText variant="body2">
-                        {t(section.description)}
-                      </SecondaryText>
-                    )
-                  }
-                />
-              </NavLink>
-            </NavItem>
-          ))}
-        </NavList>
-      </Box>
+      {/* As tmail-flutter's menu on a phone: one row per section. The nav
+          of twake-mui lays its items out as a bottom bar there */}
+      <SettingsNav />
     </Box>
   )
 }

@@ -36,13 +36,14 @@ function SettingsNavItem({
 }
 
 /**
- * The sections of the settings, in the sidebar of a desktop, as
- * tmail-flutter's menu: "Manage account", the sections, then "Sign out"
+ * The sections of the settings, as tmail-flutter's menu: "Manage account",
+ * the sections, then "Sign out" when given (the sidebar of a desktop; on
+ * smaller screens the bars at the top sign out)
  */
 export function SettingsNav({
-  onSignOut
+  onSignOut = null
 }: {
-  onSignOut: () => void
+  onSignOut?: (() => void) | null
 }): ReactElement {
   const { t } = useI18n()
   const titleId = useId()
@@ -58,15 +59,19 @@ export function SettingsNav({
           <SettingsNavItem key={section.id} section={section} />
         ))}
       </SettingsMenuList>
-      <SettingsMenuDivider />
-      <SettingsMenuList>
-        <SettingsMenuItem
-          icon={SignOutSettingsIcon}
-          label={t('topbar.logout')}
-          onClick={onSignOut}
-          data-testid="settings-sign-out-button"
-        />
-      </SettingsMenuList>
+      {onSignOut === null ? null : (
+        <>
+          <SettingsMenuDivider />
+          <SettingsMenuList>
+            <SettingsMenuItem
+              icon={SignOutSettingsIcon}
+              label={t('topbar.logout')}
+              onClick={onSignOut}
+              data-testid="settings-sign-out-button"
+            />
+          </SettingsMenuList>
+        </>
+      )}
     </Box>
   )
 }

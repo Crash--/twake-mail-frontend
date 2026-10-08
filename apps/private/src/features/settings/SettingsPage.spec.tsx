@@ -79,7 +79,11 @@ describe('Settings', () => {
     expect(
       within(list).getByRole('heading', { level: 1, name: 'Settings' })
     ).toBeVisible()
-    expect(within(list).getByText('Mailbox & email actions')).toBeVisible()
+    // As tmail-flutter's menu: the names of the sections, no descriptions
+    expect(
+      within(list).getByRole('navigation', { name: 'Manage account' })
+    ).toBeVisible()
+    expect(within(list).getByText('Preferences')).toBeVisible()
 
     await userEvent.click(
       within(list).getByTestId('settings-menu-keyboard-shortcuts')

@@ -22,9 +22,14 @@ const DESCRIPTION_SX = {
   color: 'rgba(66, 66, 68, 0.64)'
 } as const
 
+/**
+ * tmail-flutter's settings content on a desktop: its header 16 px inside a
+ * 16 px padded card, the ink of the title 24 px from the side and 35 px
+ * from the top of the card
+ */
 const PANE_SX = {
-  px: '30px',
-  pt: '22px',
+  px: '22px',
+  pt: '31px',
   pb: 3,
   '@media (max-width: 599.95px)': { px: 2, pt: 2 }
 } as const

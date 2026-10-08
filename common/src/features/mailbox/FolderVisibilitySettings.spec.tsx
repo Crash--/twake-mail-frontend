@@ -9,7 +9,9 @@ import {
 import {
   makeDefaultMailboxes,
   makeFakeJmapServer,
-  makeMailbox
+  makeMailbox,
+  makeTeamMailboxes,
+  type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -30,7 +32,65 @@ function row(name: string): HTMLElement {
   return found
 }
 
+function renderSettings(server: FakeJmapServer): void {
+  renderWithProviders(
+    <MailboxPickerProvider>
+      <FolderActionsProvider>
+        <FolderVisibilitySettings section={visibilitySection()} />
+      </FolderActionsProvider>
+    </MailboxPickerProvider>,
+    { jmapServer: server, withJmapSession: true }
+  )
+}
+
 describe('FolderVisibilitySettings', () => {
+  it('lists the system folders, then folds the folders of the user and the team mailboxes under "Folders", as tmail-flutter', async () => {
+    renderSettings(
+      makeFakeJmapServer({
+        mailboxes: [
+          ...makeDefaultMailboxes(),
+          makeMailbox({ id: 'work', name: 'Work', isSubscribed: true }),
+          makeMailbox({
+            id: 'clients',
+            name: 'Clients',
+            parentId: 'work',
+            isSubscribed: true
+          }),
+          ...makeTeamMailboxes({ address: 'sales@example.com' })
+        ]
+      })
+    )
+
+    await screen.findByText('Work')
+    const system = screen.getByTestId('folder-visibility-personal')
+    expect(within(system).getByText('Inbox')).toBeVisible()
+    expect(within(system).queryByText('Work')).toBe(null)
+    expect(
+      within(screen.getByTestId('folder-visibility-team')).getByTestId(
+        'folder-visibility-address'
+      )
+    ).toHaveTextContent('sales@example.com')
+
+    // Subfolders stay folded until their folder is expanded
+    expect(screen.queryByText('Clients')).toBe(null)
+    const expand = within(row('Work')).getByRole('button', { name: 'Expand' })
+    expect(expand).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.click(expand)
+    expect(within(row('Work')).getByText('Clients')).toBeVisible()
+    expect(
+      within(row('Work')).getByRole('button', { name: 'Collapse' })
+    ).toHaveAttribute('aria-expanded', 'true')
+
+    // "Folders" folds the folders of the user and the team mailboxes
+    const folders = screen.getByRole('button', { name: 'Folders' })
+    expect(folders).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.click(folders)
+    expect(folders).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Work')).toBe(null)
+    expect(screen.queryByTestId('folder-visibility-team')).toBe(null)
+    expect(within(system).getByText('Inbox')).toBeVisible()
+  })
+
   it('hides a folder with its subfolders, and shows it again', async () => {
     const server = makeFakeJmapServer({
       mailboxes: [
@@ -44,14 +104,7 @@ describe('FolderVisibilitySettings', () => {
         })
       ]
     })
-    renderWithProviders(
-      <MailboxPickerProvider>
-        <FolderActionsProvider>
-          <FolderVisibilitySettings section={visibilitySection()} />
-        </FolderActionsProvider>
-      </MailboxPickerProvider>,
-      { jmapServer: server, withJmapSession: true }
-    )
+    renderSettings(server)
 
     await screen.findByText('Work')
     // System folders stay

@@ -574,7 +574,7 @@ describe('PushProvider', () => {
 
         await renderWithPush(makeServer(), true)
         expect(request).toHaveBeenCalledWith(
-          `twake-mail-new-mail-alert:${FAKE_ACCOUNT_ID}`,
+          `twake-mail-new-mail-alert:page:${FAKE_ACCOUNT_ID}`,
           expect.anything(),
           expect.any(Function)
         )
@@ -639,6 +639,27 @@ describe('PushProvider', () => {
         resourceId: 'team'
       })
       expect(shown).toEqual([])
+    })
+
+    it('asks the server nothing in Space without a team mailbox', async () => {
+      const notify = jest.fn()
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, false, {
+        syncHistory: () => () => undefined,
+        notifyLoginRequired: jest.fn(),
+        reportBadges: jest.fn(),
+        notify
+      })
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 1)
+      expect(countCalls(server, 'Email/changes')).toBe(before + 1)
+      expect(notify).not.toHaveBeenCalled()
     })
 
     it('notifies nothing unless the page asks for it', async () => {

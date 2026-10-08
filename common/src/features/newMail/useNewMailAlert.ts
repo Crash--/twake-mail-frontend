@@ -64,11 +64,15 @@ export interface NewMailAlert {
   alert: (emails: readonly NewEmail[]) => void
   /** This tab alerts, and the user turned the sound or notifications on */
   isWanted: () => boolean
+  /** This page holds the lock of the alerts of the account */
+  isLeader: () => boolean
 }
 
 export function useNewMailAlert(
   accountId: string,
-  isEnabled: boolean
+  isEnabled: boolean,
+  /** The pages that share one lock: the app alone, or its frames in Space */
+  scope: 'page' | 'space' = 'page'
 ): NewMailAlert {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -84,7 +88,7 @@ export function useNewMailAlert(
     const released = new AbortController()
     navigator.locks
       .request(
-        `twake-mail-new-mail-alert:${accountId}`,
+        `twake-mail-new-mail-alert:${scope}:${accountId}`,
         { signal: released.signal },
         () =>
           new Promise<void>(resolve => {
@@ -103,7 +107,7 @@ export function useNewMailAlert(
       isLeader.current = false
       released.abort()
     }
-  }, [accountId, isEnabled])
+  }, [accountId, isEnabled, scope])
 
   const isWanted = useCallback(
     (): boolean =>
@@ -147,5 +151,7 @@ export function useNewMailAlert(
     [navigate, t]
   )
 
-  return { alert, isWanted }
+  const isLeaderNow = useCallback((): boolean => isLeader.current, [])
+
+  return { alert, isWanted, isLeader: isLeaderNow }
 }

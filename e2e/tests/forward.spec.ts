@@ -32,7 +32,7 @@ test.describe('SET forwarding', () => {
     await expect(localCopy).toBeChecked()
     // Switched once the server took it
     await localCopy.click()
-    await expect(settings.toast).toContainText('Keep local copy disable.')
+    await expect(settings.toast).toContainText('Local copy disabled.')
     await expect(localCopy).not.toBeChecked()
     await expectNoA11yViolations(page)
 
@@ -72,7 +72,7 @@ test.describe('SET forwarding', () => {
     for (const email of ['someone@elsewhere.test', bob.email]) {
       await page.getByRole('button', { name: `Remove ${email}` }).click()
       await expect(settings.confirmDialog).toContainText(
-        `Do you want to delete email ${email}?`
+        `Do you want to remove ${email}?`
       )
       await settings.confirmDialog
         .getByTestId('confirm-dialog-confirm-button')

@@ -1076,14 +1076,14 @@
     "add": "Ajouter un destinataire",
     "external": "Domaine externe",
     "delete": {
-      "title": "Supprimer des destinataires",
+      "title": "Supprimer le destinataire",
       "message": "Voulez-vous supprimer l'adresse e-mail %{emailAddress} ?"
     },
     "errors": {
       "invalid": "Format d'e-mail incorrect",
       "empty": "Veuillez saisir au moins un destinataire",
       "add": "L'ajout du destinataire a échoué.",
-      "delete": "Échec de la suppression des destinataires.",
+      "delete": "Échec de la suppression du destinataire.",
       "localCopy": "Échec de l'activation de la copie locale lors d'un transfert.",
       "load": "Le transfert n'a pas pu être chargé",
       "ownAddress": "Vous ne pouvez pas transférer vos e-mails vers votre propre adresse"
@@ -1093,10 +1093,10 @@
       "message": "Il pourrait s'agir d'une menace de sécurité ou d'une extraction illégale de données. Confirmez-vous vouloir continuer ?"
     },
     "toasts": {
-      "added": "Les adresses e-mails ont été ajoutées à partir de la liste des destinataires.",
+      "added": "L'adresse e-mail a été ajoutée à la liste des destinataires.",
       "deleted": "L'adresse e-mail a été supprimée de la liste des destinataires.",
-      "localCopyOn": "Gardez la copie locale activée.",
-      "localCopyOff": "Gardez la copie locale désactivée."
+      "localCopyOn": "Copie locale activée.",
+      "localCopyOff": "Copie locale désactivée."
     },
     "externalBanner": "Vous redirigez vos e-mails vers un autre domaine. Cela pourrait constituer une menace pour la sécurité ou être considéré comme une extraction illégale de données.",
     "listLabel": "Adresses de transfert",

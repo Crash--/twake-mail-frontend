@@ -756,7 +756,7 @@
       },
       "forwarding": {
         "title": "Forwarding",
-        "description": "Emails addresses listed below will receive your emails."
+        "description": "Email addresses listed below will receive your emails."
       },
       "languageRegion": {
         "title": "Language",
@@ -1076,14 +1076,14 @@
     "add": "Add recipient",
     "external": "External domain",
     "delete": {
-      "title": "Remove recipients",
-      "message": "Do you want to delete email %{emailAddress}?"
+      "title": "Remove recipient",
+      "message": "Do you want to remove %{emailAddress}?"
     },
     "errors": {
       "invalid": "Incorrect email format",
       "empty": "Please input at least one recipient",
       "add": "Adding recipient failed.",
-      "delete": "Delete recipients failed.",
+      "delete": "Removing recipient failed.",
       "localCopy": "Edit local copy in forward failed.",
       "load": "The forwarding could not be loaded",
       "ownAddress": "You cannot forward your emails to your own address"
@@ -1093,10 +1093,10 @@
       "message": "This could be a security threat or considered illegal data extraction. Do you want to proceed?"
     },
     "toasts": {
-      "added": "The emails has been added from the recipient list.",
-      "deleted": "The email has been removed from the recipient list.",
-      "localCopyOn": "Keep local copy enable.",
-      "localCopyOff": "Keep local copy disable."
+      "added": "The address has been added to the recipient list.",
+      "deleted": "The address has been removed from the recipient list.",
+      "localCopyOn": "Local copy enabled.",
+      "localCopyOff": "Local copy disabled."
     },
     "externalBanner": "You are redirecting emails to another domain. This could be a security threat or considered illegal data extraction.",
     "listLabel": "Forwarding addresses",

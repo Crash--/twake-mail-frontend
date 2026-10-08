@@ -117,12 +117,15 @@ async function showListAgainAfter(delay: number): Promise<void> {
 }
 
 /** The mailbox tree and the inbox list, under the push provider */
-async function renderWithPush(server: FakeJmapServer): Promise<{
+async function renderWithPush(
+  server: FakeJmapServer,
+  alertsNewEmails = false
+): Promise<{
   socket: FakeWebSocket
   result: ReturnType<typeof renderWithProviders>
 }> {
   const result = renderWithProviders(
-    <PushProvider WebSocket={FakeWebSocket}>
+    <PushProvider WebSocket={FakeWebSocket} alertsNewEmails={alertsNewEmails}>
       <MailboxTree />
       <VirtuosoMockContext.Provider
         value={{ viewportHeight: 100_000, itemHeight: 56 }}
@@ -410,5 +413,199 @@ describe('PushProvider', () => {
     result.unmount()
 
     expect(socket.isClosed).toBe(true)
+  })
+
+  describe('new email alerts', () => {
+    let shown: { title: string; body?: string; tag?: string }[] = []
+
+    beforeEach(() => {
+      shown = []
+      class FakeNotification {
+        static permission: NotificationPermission = 'granted'
+        onclick: (() => void) | null = null
+        constructor(title: string, options?: NotificationOptions) {
+          shown.push({ title, ...options })
+        }
+        close(): void {
+          this.onclick = null
+        }
+      }
+      Object.defineProperty(window, 'Notification', {
+        value: FakeNotification,
+        configurable: true
+      })
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'hidden',
+        configurable: true
+      })
+      window.localStorage.setItem(
+        'twake-mail.preferences.newMailNotifications',
+        'true'
+      )
+    })
+
+    afterEach(() => {
+      Reflect.deleteProperty(window, 'Notification')
+      Reflect.deleteProperty(document, 'visibilityState')
+      window.localStorage.removeItem(
+        'twake-mail.preferences.newMailNotifications'
+      )
+    })
+
+    /** Lets the watcher read the changes of the last push */
+    async function settled(
+      server: FakeJmapServer,
+      changes: number
+    ): Promise<void> {
+      await waitFor(() => {
+        expect(countCalls(server, 'Email/changes')).toBeGreaterThanOrEqual(
+          changes
+        )
+      })
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+    }
+
+    it('notifies an email reaching the Inbox, from its sender', async () => {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+
+      server.addEmail(makeEmail({ id: 'pushed', subject: 'Pushed news' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await waitFor(() => {
+        expect(shown).toEqual([
+          { title: 'Bob Dupont', body: 'Pushed news', tag: 'pushed' }
+        ])
+      })
+    })
+
+    it('notifies neither a changed email nor one already read', async () => {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+      const before = countCalls(server, 'Email/changes')
+
+      server.updateEmail('e1', { keywords: { $flagged: true } })
+      server.addEmail(makeEmail({ id: 'read', keywords: { $seen: true } }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 2)
+      expect(shown).toEqual([])
+    })
+
+    it('notifies nothing that arrived while the channel was down', async () => {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+
+      act(() => {
+        socket.drop()
+      })
+      server.addEmail(makeEmail({ id: 'missed' }))
+      await waitFor(
+        () => {
+          expect(FakeWebSocket.instances).toHaveLength(2)
+        },
+        { timeout: 3000 }
+      )
+      const gets = countCalls(server, 'Email/get')
+      act(() => {
+        lastSocket().open()
+      })
+      // The current states, read again once the channel reopened
+      await waitFor(() => {
+        expect(countCalls(server, 'Email/get')).toBeGreaterThan(gets)
+      })
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      server.addEmail(makeEmail({ id: 'after', subject: 'After' }))
+      act(() => {
+        lastSocket().receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await waitFor(() => {
+        expect(shown.map(({ tag }) => tag)).toEqual(['after'])
+      })
+    })
+
+    it('notifies nothing while the page is in front', async () => {
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true
+      })
+      jest.spyOn(document, 'hasFocus').mockReturnValue(true)
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 2)
+      expect(shown).toEqual([])
+    })
+
+    it('takes the lock of the alerts only on a page that alerts', async () => {
+      const request = jest.fn(() => Promise.resolve())
+      Object.defineProperty(navigator, 'locks', {
+        value: { request },
+        configurable: true
+      })
+      try {
+        const facade = await renderWithPush(makeServer())
+        expect(request).not.toHaveBeenCalled()
+        facade.result.unmount()
+        FakeWebSocket.instances = []
+
+        await renderWithPush(makeServer(), true)
+        expect(request).toHaveBeenCalledWith(
+          `twake-mail-new-mail-alert:${FAKE_ACCOUNT_ID}`,
+          expect.anything(),
+          expect.any(Function)
+        )
+      } finally {
+        Reflect.deleteProperty(navigator, 'locks')
+      }
+    })
+
+    it('asks the server nothing more while both switches are off', async () => {
+      window.localStorage.removeItem(
+        'twake-mail.preferences.newMailNotifications'
+      )
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 1)
+      // The synchronization of the lists only
+      expect(countCalls(server, 'Email/changes')).toBe(before + 1)
+      expect(shown).toEqual([])
+    })
+
+    it('notifies nothing unless the page asks for it', async () => {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server)
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 1)
+      expect(shown).toEqual([])
+    })
   })
 })

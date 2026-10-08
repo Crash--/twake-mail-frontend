@@ -769,7 +769,14 @@
       "aiLabelCategorizationToggle": "Activer la catégorisation par libellés",
       "aiScribe": "AI Scribe",
       "aiScribeDescription": "Utiliser l'IA pour vous aider à rédiger et améliorer vos e-mails",
-      "aiScribeToggle": "Activer AI Scribe"
+      "aiScribeToggle": "Activer AI Scribe",
+      "newMailNotifications": "Notifications des nouveaux mails",
+      "newMailNotificationsDescription": "Affiche une notification quand un mail arrive dans la boîte de réception pendant que Twake Mail est en arrière-plan.",
+      "newMailNotificationsToggle": "Afficher les notifications",
+      "newMailNotificationsBlocked": "Les notifications sont bloquées : autorisez-les pour Twake Mail dans les réglages du navigateur",
+      "newMailSound": "Son des nouveaux mails",
+      "newMailSoundDescription": "Joue un son quand un mail arrive dans la boîte de réception.",
+      "newMailSoundToggle": "Jouer un son"
     },
     "backToMail": "Retour aux e-mails",
     "language": {
@@ -1327,5 +1334,8 @@
       "title": "Twake Mail ne peut pas s'ouvrir dans cette page",
       "description": "Une autre page affiche cette application : ouvrez Twake Mail directement pour écrire votre message."
     }
+  },
+  "newMail": {
+    "unknownSender": "Expéditeur inconnu"
   }
 }

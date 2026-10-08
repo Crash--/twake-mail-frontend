@@ -769,7 +769,14 @@
       "aiLabelCategorizationToggle": "Enable label categorisation",
       "aiScribe": "AI Scribe",
       "aiScribeDescription": "Use AI to help write and improve your emails",
-      "aiScribeToggle": "Enable AI Scribe"
+      "aiScribeToggle": "Enable AI Scribe",
+      "newMailNotifications": "New email notifications",
+      "newMailNotificationsDescription": "Shows a notification when an email reaches the Inbox while Twake Mail is in the background.",
+      "newMailNotificationsToggle": "Show notifications",
+      "newMailNotificationsBlocked": "Notifications are blocked: allow them for Twake Mail in the settings of the browser",
+      "newMailSound": "New email sound",
+      "newMailSoundDescription": "Plays a sound when an email reaches the Inbox.",
+      "newMailSoundToggle": "Play a sound"
     },
     "backToMail": "Back to mail",
     "language": {
@@ -1327,5 +1334,8 @@
       "title": "Twake Mail cannot open in this page",
       "description": "Another page shows this app: open Twake Mail directly to write your message."
     }
+  },
+  "newMail": {
+    "unknownSender": "Unknown sender"
   }
 }

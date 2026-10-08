@@ -678,9 +678,9 @@
       "star": "Favori",
       "unstar": "Retirer des favoris",
       "label": "Actions sur le message",
-      "printAll": "Tout imprimer",
       "downloadAsEml": "Télécharger le message au format EML",
-      "editAsNew": "Modifier comme nouvel e-mail"
+      "editAsNew": "Modifier comme nouvel e-mail",
+      "print": "Imprimer"
     },
     "drag": "Déplacer %{smart_count} message |||| Déplacer %{smart_count} messages",
     "reply": {

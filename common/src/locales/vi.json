@@ -678,9 +678,9 @@
       "star": "Quan trọng",
       "unstar": "Không quan trọng",
       "label": "Thao tác với thư",
-      "printAll": "In",
       "downloadAsEml": "Tải xuống email dưới dạng EML",
-      "editAsNew": "Soạn lại dưới dạng email mới"
+      "editAsNew": "Soạn lại dưới dạng email mới",
+      "print": "In"
     },
     "drag": "Di chuyển %{smart_count} thư",
     "reply": {

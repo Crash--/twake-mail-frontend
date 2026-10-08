@@ -678,9 +678,9 @@
       "star": "Star",
       "unstar": "Unstar",
       "label": "Message actions",
-      "printAll": "Print all",
       "downloadAsEml": "Download message as EML",
-      "editAsNew": "Edit as new email"
+      "editAsNew": "Edit as new email",
+      "print": "Print"
     },
     "drag": "Move %{smart_count} message |||| Move %{smart_count} messages",
     "reply": {

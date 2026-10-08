@@ -118,7 +118,7 @@ describe('actions of an open email', () => {
 
       const menu = await openMoreMenu()
       await userEvent.click(
-        within(menu).getByRole('menuitem', { name: 'Print all' })
+        within(menu).getByRole('menuitem', { name: 'Print' })
       )
 
       await waitFor(() => {
@@ -141,7 +141,7 @@ describe('actions of an open email', () => {
       await openEmail(makeServer())
       const menu = await openMoreMenu()
       await userEvent.click(
-        within(menu).getByRole('menuitem', { name: 'Print all' })
+        within(menu).getByRole('menuitem', { name: 'Print' })
       )
       await waitFor(() => {
         expect(printHtmlDocument).toHaveBeenCalled()

@@ -137,7 +137,7 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
     group: 3
   },
   print: {
-    label: 'emailActions.menu.printAll',
+    label: 'emailActions.menu.print',
     icon: Printer,
     isDestructive: false,
     group: 3

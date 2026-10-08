@@ -3,6 +3,7 @@ import { createTheme, type Theme } from '@mui/material/styles'
 import {
   FOCUS_RING,
   focusIndicatorThemeOptions,
+  SCRIPT_FOCUS_TARGET,
   type FocusIndicator
 } from './focusIndicator'
 
@@ -59,5 +60,14 @@ describe('focusIndicatorThemeOptions', () => {
     expect(focusSelector(globalStyles('enhanced'))).not.toContain(
       'contenteditable'
     )
+  })
+
+  it('leaves alone the headings and regions a script focuses', () => {
+    const scriptFocused =
+      ':is(h1, h2, h3, h4, h5, h6, [data-focus-target])[tabindex="-1"]'
+    const styles = globalStyles('discreet')
+    expect(focusSelector(styles)).toContain(scriptFocused)
+    expect(styles[`${scriptFocused}:focus`]).toEqual({ outline: 'none' })
+    expect(SCRIPT_FOCUS_TARGET).toEqual({ 'data-focus-target': '' })
   })
 })

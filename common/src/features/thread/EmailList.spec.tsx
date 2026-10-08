@@ -23,6 +23,7 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EmailList } from './EmailList'
+import { ListFilterProvider } from './ListFilterProvider'
 import { EMAIL_LIST_PAGE_SIZE, threadKeys } from './queries'
 
 function OpenedEmail(): ReactElement {
@@ -289,9 +290,37 @@ describe('EmailList', () => {
     renderList(makeFakeJmapServer({ emails: [] }))
 
     expect(await screen.findByTestId('empty-thread-view')).toHaveTextContent(
-      "You don't have any email in this folder."
+      'You don’t have any emails in this folder.'
     )
     expect(screen.queryByTestId('email-list')).toBe(null)
+  })
+
+  it('says that no email matches the filter, without the hint', async () => {
+    renderWithProviders(
+      <ListFilterProvider>
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailList mailboxId="mailbox-inbox" />
+        </VirtuosoMockContext.Provider>
+      </ListFilterProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer({ emails: makeEmails(2) })
+      }
+    )
+    await screen.findAllByTestId('email-list-item')
+
+    await userEvent.click(screen.getByTestId('list-filter-button'))
+    await userEvent.click(await screen.findByTestId('quick-filter-unread'))
+
+    const empty = await screen.findByTestId('empty-thread-view')
+    expect(empty).toHaveTextContent(
+      'There are no emails that match your current filter.'
+    )
+    expect(empty).not.toHaveTextContent('Start to compose emails.')
   })
 
   describe('offline', () => {

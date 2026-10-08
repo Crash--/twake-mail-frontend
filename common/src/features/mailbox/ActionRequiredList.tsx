@@ -1,7 +1,7 @@
-import { EmailOpen } from '@linagora/twake-icons'
-import { Empty } from '@linagora/twake-mui'
 import { useMemo, type ReactElement } from 'react'
 import { useMatch } from 'react-router'
+
+import { EmptyListView } from '@/ds/EmptyListView/EmptyListView'
 
 import { NEEDS_ACTION, SEEN } from '@common/features/email/keywords'
 import {
@@ -39,9 +39,9 @@ export function ActionRequiredList(): ReactElement {
       filterScope: 'action-required',
       isActionRequiredView: true,
       empty: (
-        <Empty
-          icon={EmailOpen}
+        <EmptyListView
           title={t('mailbox.emptyActionRequired')}
+          text={t('mailbox.emptyHint')}
           data-testid="empty-thread-view"
         />
       )

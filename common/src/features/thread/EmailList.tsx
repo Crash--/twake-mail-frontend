@@ -1,8 +1,6 @@
-import { Email } from '@linagora/twake-icons'
 import {
   Box,
   CircularProgress,
-  Empty,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
 } from '@linagora/twake-mui'
@@ -22,6 +20,7 @@ import {
 import { createPortal } from 'react-dom'
 import { useLocation, useMatch } from 'react-router'
 
+import { EmptyListView } from '@/ds/EmptyListView/EmptyListView'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { ListPane } from '@/ds/ListPane/ListPane'
 import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
@@ -620,8 +619,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     // tmail-flutter: offline, an empty list says why, a search too. A first
     // load waits there for the network (TanStack pauses it), not on skeletons.
     content = (
-      <Empty
-        icon={Email}
+      <EmptyListView
         title={t('mailbox.offline')}
         data-testid="email-list-offline"
       />
@@ -642,12 +640,19 @@ export function EmailList(props: EmailListProps): ReactElement {
         data-testid="email-list-error"
       />
     )
+  } else if (emails.length === 0 && filter !== 'all') {
+    // tmail-flutter: a filter that leaves nothing says so, without a hint
+    content = (
+      <EmptyListView
+        title={t('mailbox.emptyFilter')}
+        data-testid="empty-thread-view"
+      />
+    )
   } else if (emails.length === 0 && search !== null) {
     content = search.empty
   } else if (emails.length === 0) {
     content = (
-      <Empty
-        icon={Email}
+      <EmptyListView
         title={t('mailbox.empty')}
         text={t('mailbox.emptyHint')}
         data-testid="empty-thread-view"

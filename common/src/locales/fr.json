@@ -44,8 +44,8 @@
     "version": "version %{version}"
   },
   "mailbox": {
-    "empty": "Vous n'avez aucun message dans ce dossier.",
-    "emptyHint": "Commencez par écrire un message.",
+    "empty": "Aucun email\n dans ce dossier.",
+    "emptyHint": "Commencer à écrire des emails.",
     "offline": "Connexion Internet indisponible, réessayez plus tard.",
     "roles": {
       "inbox": "Boîte de réception",
@@ -65,7 +65,8 @@
     "actionRequired": "Action requise",
     "emptyActionRequired": "Vous n'avez aucun e-mail nécessitant une action.",
     "emptyStarred": "Vous n'avez aucun e-mail favori.",
-    "emptyStarredHint": "Commencez à ajouter des e-mails favoris"
+    "emptyStarredHint": "Commencez à ajouter des e-mails favoris",
+    "emptyFilter": "Aucun message ne correspond à votre filtre actuel."
   },
   "email": {
     "star": "Marquer comme favori",

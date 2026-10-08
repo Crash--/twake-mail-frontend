@@ -105,7 +105,12 @@ export function ConfirmDialogFrame({
       <Typography id={titleId} component="h2" sx={TITLE_SX}>
         {title}
       </Typography>
-      <Typography id={messageId} component="div" sx={MESSAGE_SX}>
+      {/* A paragraph for a text, a block for richer content */}
+      <Typography
+        id={messageId}
+        component={typeof message === 'string' ? 'p' : 'div'}
+        sx={MESSAGE_SX}
+      >
         {message}
       </Typography>
       <Box

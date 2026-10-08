@@ -69,8 +69,9 @@ const LABEL_SX = {
   alignItems: 'center',
   flexShrink: 0,
   height: 28,
-  // tmail-flutter writes "To:"; the colon is not part of the name
-  '&::after': { content: '":"' }
+  // tmail-flutter writes "To:"; the colon is not part of the name (empty
+  // alternative text of the generated content)
+  '&::after': { content: '":" / ""' }
 } as const
 /**
  * The input follows the last chip on its row while `INPUT_MIN_WIDTH` is

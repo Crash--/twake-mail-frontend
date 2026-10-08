@@ -1,9 +1,13 @@
 import { Icon, Left } from '@linagora/twake-icons'
-import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
+import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
 import { Link } from 'react-router'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import {
+  SettingsDescription,
+  SettingsPane,
+  SettingsTitle
+} from '@/ds/SettingsHeading/SettingsHeading'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
@@ -39,13 +43,13 @@ export function SettingsSectionLayout({
   }, [section.id])
 
   return (
-    <Box
-      component="section"
-      aria-labelledby={`settings-${section.id}-title`}
-      className="u-p-1-half"
+    <SettingsPane
+      labelledBy={`settings-${section.id}-title`}
       data-testid={`settings-section-${section.id}`}
     >
-      <Box className="u-flex u-flex-items-center u-flex-wrap">
+      {/* As tmail-flutter: the title and what the section is for on the
+          left, its buttons on the right, at the top */}
+      <Box className="u-flex u-flex-items-start">
         {isDesktop ? null : (
           <Tooltip title={backLabel}>
             <IconButton
@@ -59,24 +63,17 @@ export function SettingsSectionLayout({
             </IconButton>
           </Tooltip>
         )}
-        <Typography
-          ref={headingRef}
-          id={`settings-${section.id}-title`}
-          variant="h3"
-          component="h1"
-          tabIndex={-1}
-          className="u-flex-auto"
-        >
-          {title}
-        </Typography>
+        <Box className="u-flex-auto u-mr-1">
+          <SettingsTitle ref={headingRef} id={`settings-${section.id}-title`}>
+            {title}
+          </SettingsTitle>
+          {section.description === null ? null : (
+            <SettingsDescription>{t(section.description)}</SettingsDescription>
+          )}
+        </Box>
         {actions}
       </Box>
-      {section.description === null ? null : (
-        <SecondaryText variant="body2" component="p" className="u-mt-half">
-          {t(section.description)}
-        </SecondaryText>
-      )}
-      <Box className="u-mt-1">{children}</Box>
-    </Box>
+      <Box className="u-mt-1-half">{children}</Box>
+    </SettingsPane>
   )
 }

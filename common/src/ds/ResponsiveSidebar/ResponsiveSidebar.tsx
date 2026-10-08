@@ -23,6 +23,8 @@ export interface ResponsiveSidebarProps {
   /** Top of the drawer: logo, app switcher (the sidebar has none) */
   drawerHeader?: ReactNode
   children: ReactNode
+  /** Width of the column on a desktop, `SIDEBAR_WIDTH` by default */
+  width?: number
   'data-testid'?: string
   drawerTestId?: string
   closeButtonTestId?: string
@@ -41,6 +43,7 @@ export function ResponsiveSidebar({
   closeLabel,
   drawerHeader,
   children,
+  width = SIDEBAR_WIDTH,
   'data-testid': testId,
   drawerTestId,
   closeButtonTestId
@@ -49,7 +52,7 @@ export function ResponsiveSidebar({
 
   if (screenSize === 'desktop') {
     return (
-      <Sidebar data-testid={testId} sx={{ width: SIDEBAR_WIDTH }}>
+      <Sidebar data-testid={testId} sx={{ width }}>
         {children}
       </Sidebar>
     )

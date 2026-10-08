@@ -1,11 +1,14 @@
-import { Box, NavIcon, Typography } from '@linagora/twake-mui'
-import { NavItem } from '@/ds/NavItem/NavItem'
-import { NavList } from '@/ds/NavList/NavList'
-import { NavLink } from '@/ds/NavLink/NavLink'
-import { NavText } from '@/ds/NavText/NavText'
+import { Box } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
+import {
+  SettingsMenuDivider,
+  SettingsMenuItem,
+  SettingsMenuList,
+  SettingsMenuTitle
+} from '@/ds/SettingsMenu/SettingsMenu'
+import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { settingsSectionPath, type SettingsSection } from './sections'
@@ -21,43 +24,49 @@ function SettingsNavItem({
   const isSelected = useMatch(`${path}/*`) !== null
 
   return (
-    <NavItem>
-      <NavLink
-        component={Link}
-        to={path}
-        selected={isSelected}
-        aria-current={isSelected ? 'page' : undefined}
-        data-testid={`settings-menu-${section.id}`}
-      >
-        <NavIcon icon={section.icon} />
-        <NavText className="u-ellipsis">{t(section.title)}</NavText>
-      </NavLink>
-    </NavItem>
+    <SettingsMenuItem
+      icon={section.icon}
+      label={t(section.title)}
+      isSelected={isSelected}
+      component={Link}
+      to={path}
+      data-testid={`settings-menu-${section.id}`}
+    />
   )
 }
 
-/** The sections of the settings, in the sidebar of a desktop */
-export function SettingsNav(): ReactElement {
+/**
+ * The sections of the settings, in the sidebar of a desktop, as
+ * tmail-flutter's menu: "Manage account", the sections, then "Sign out"
+ */
+export function SettingsNav({
+  onSignOut
+}: {
+  onSignOut: () => void
+}): ReactElement {
   const { t } = useI18n()
   const titleId = useId()
   const sections = useSettingsSections()
 
   return (
     <Box component="nav" aria-labelledby={titleId} data-testid="settings-nav">
-      <Typography
-        id={titleId}
-        variant="subtitle2"
-        component="p"
-        color="textPrimary"
-        className="u-mh-1 u-mv-half"
-      >
-        {t('settings.title')}
-      </Typography>
-      <NavList>
+      <SettingsMenuTitle id={titleId}>
+        {t('settings.manageAccount')}
+      </SettingsMenuTitle>
+      <SettingsMenuList>
         {sections.map(section => (
           <SettingsNavItem key={section.id} section={section} />
         ))}
-      </NavList>
+      </SettingsMenuList>
+      <SettingsMenuDivider />
+      <SettingsMenuList>
+        <SettingsMenuItem
+          icon={SignOutSettingsIcon}
+          label={t('topbar.logout')}
+          onClick={onSignOut}
+          data-testid="settings-sign-out-button"
+        />
+      </SettingsMenuList>
     </Box>
   )
 }

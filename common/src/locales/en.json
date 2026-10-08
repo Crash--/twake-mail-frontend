@@ -27,7 +27,8 @@
     "offline": "No internet connection",
     "backOnline": "Back online",
     "dismiss": "Dismiss",
-    "opensInNewTab": "opens in a new tab"
+    "opensInNewTab": "opens in a new tab",
+    "edit": "Edit"
   },
   "topbar": {
     "logout": "Sign out",
@@ -1034,7 +1035,8 @@
     "editOf": "Edit %{name}",
     "deleteOf": "Delete %{name}",
     "listLabel": "Rules",
-    "count": "%{smart_count} rule |||| %{smart_count} rules"
+    "count": "%{smart_count} rule |||| %{smart_count} rules",
+    "nameOfRules": "Name of Rules"
   },
   "forward": {
     "localCopy": "Keep a copy in Inbox",
@@ -1069,7 +1071,8 @@
     "externalBanner": "You are redirecting emails to another domain. This could be a security threat or considered illegal data extraction.",
     "listLabel": "Forwarding addresses",
     "removeOf": "Remove %{email}",
-    "inputLabel": "New recipient"
+    "inputLabel": "New recipient",
+    "recipientCount": "%{smart_count} recipient |||| %{smart_count} recipients"
   },
   "vacation": {
     "enable": "Automatically reply to messages when they are received.",

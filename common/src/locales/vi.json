@@ -27,7 +27,8 @@
     "offline": "Không có kết nối",
     "backOnline": "Đã kết nối lại",
     "dismiss": "Bỏ qua",
-    "opensInNewTab": "mở trong tab mới"
+    "opensInNewTab": "mở trong tab mới",
+    "edit": "Sửa"
   },
   "topbar": {
     "logout": "Đăng xuất",
@@ -1034,7 +1035,8 @@
     "editOf": "Sửa %{name}",
     "deleteOf": "Xóa %{name}",
     "listLabel": "Quy tắc",
-    "count": "%{smart_count} quy tắc"
+    "count": "%{smart_count} quy tắc",
+    "nameOfRules": "Tên bộ lọc"
   },
   "forward": {
     "localCopy": "Giữ bản sao trong thư mục Thư đến",
@@ -1069,7 +1071,8 @@
     "externalBanner": "Bạn đang chuyển hướng email đến một tên miền khác. Đây có thể là một mối đe dọa bảo mật hoặc được coi là trích xuất dữ liệu bất hợp pháp.",
     "listLabel": "Địa chỉ chuyển tiếp",
     "removeOf": "Xóa %{email}",
-    "inputLabel": "Người nhận mới"
+    "inputLabel": "Người nhận mới",
+    "recipientCount": "%{smart_count} người nhận"
   },
   "vacation": {
     "enable": "Tự động trả lời tin nhắn.",

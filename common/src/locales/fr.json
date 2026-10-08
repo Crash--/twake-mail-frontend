@@ -27,7 +27,8 @@
     "offline": "Aucune connexion Internet",
     "backOnline": "De nouveau en ligne",
     "dismiss": "Rejeter",
-    "opensInNewTab": "s'ouvre dans un nouvel onglet"
+    "opensInNewTab": "s'ouvre dans un nouvel onglet",
+    "edit": "Modifier"
   },
   "topbar": {
     "logout": "Se déconnecter",
@@ -1034,7 +1035,8 @@
     "editOf": "Modifier %{name}",
     "deleteOf": "Supprimer %{name}",
     "listLabel": "Règles",
-    "count": "%{smart_count} règle |||| %{smart_count} règles"
+    "count": "%{smart_count} règle |||| %{smart_count} règles",
+    "nameOfRules": "Nom des règles"
   },
   "forward": {
     "localCopy": "Conserver une copie dans la boîte de réception",
@@ -1069,7 +1071,8 @@
     "externalBanner": "Vous redirigez vos e-mails vers un autre domaine. Cela pourrait constituer une menace pour la sécurité ou être considéré comme une extraction illégale de données.",
     "listLabel": "Adresses de transfert",
     "removeOf": "Retirer %{email}",
-    "inputLabel": "Nouveau destinataire"
+    "inputLabel": "Nouveau destinataire",
+    "recipientCount": "%{smart_count} destinataire |||| %{smart_count} destinataires"
   },
   "vacation": {
     "enable": "Renvoie automatiquement une réponse aux messages reçus.",

@@ -29,7 +29,7 @@ describe('Settings', () => {
     await waitFor(() => {
       expect(heading).toHaveFocus()
     })
-    const nav = screen.getByRole('navigation', { name: 'Settings' })
+    const nav = screen.getByRole('navigation', { name: 'Manage account' })
     // Its list is not a second, unnamed landmark inside it
     expect(within(nav).queryByRole('navigation')).toBe(null)
     expect(within(nav).getByTestId('settings-menu-profiles')).toHaveAttribute(

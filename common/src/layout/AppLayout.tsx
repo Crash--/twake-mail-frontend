@@ -54,6 +54,7 @@ import { MailSidebar } from './MailSidebar'
 import { MailSearchRow } from './MailSearchRow'
 import { SettingsButton } from './SettingsButton'
 import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
+import { useLogout } from './useLogout'
 
 /** The target of the skip link and of the focus after a navigation */
 const MAIN_CONTENT_ID = 'main-content'
@@ -141,6 +142,7 @@ function AppFrame(): ReactElement {
     setDrawerLocationKey(null)
   }
 
+  const handleLogout = useLogout()
   const { openComposer } = useComposer()
   // Both "New message" buttons and the `c` shortcut
   const handleCompose = (): void => {
@@ -179,7 +181,7 @@ function AppFrame(): ReactElement {
         monoColumn={!isDesktop}
       >
         {isSettings && isDesktop ? (
-          <SettingsSidebar />
+          <SettingsSidebar onSignOut={handleLogout} />
         ) : (
           <MailSidebar
             isDrawerOpen={isDrawerOpen}

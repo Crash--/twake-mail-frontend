@@ -197,7 +197,7 @@ test.describe('SET settings', () => {
       if (isDesktop) {
         await expect(settings.heading).toHaveText('Profiles')
         await expect(
-          page.getByRole('navigation', { name: 'Settings' })
+          page.getByRole('navigation', { name: 'Manage account' })
         ).toBeVisible()
       } else {
         await expect(settings.heading).toHaveText('Settings')

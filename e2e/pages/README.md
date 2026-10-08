@@ -320,3 +320,4 @@ Conventions:
 | `folder-visibility-expand-button` | Settings > Folder visibility: expands or collapses the subfolders of a folder | `MailboxExpandButton` |
 | `composer-save-draft-button` | "Save as draft" icon button beside "Delete" in the bottom bar of the composer (not on phones, where it is `composer-save-draft-item`) | `UiKeys.saveDraftButton` |
 | `login-password-toggle` | "Show password" / "Hide password" button of the password field of the basic login, as tmail-flutter's eye | — |
+| `settings-sign-out-button` | "Sign out" at the end of the settings menu of a desktop, after a divider, as tmail-flutter | `AccountMenuItem.signOut` |

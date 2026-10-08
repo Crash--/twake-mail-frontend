@@ -77,13 +77,28 @@ export interface UploadListProps {
   testIds?: UploadTestIds
 }
 
-// Figma "Teammail 1.1" attachment chip: tokens the theme does not carry yet
-const CHIP_BORDER = '#e5ecf3'
-const SIZE_COLOR = '#8c9caf'
-const TRACK_COLOR = '#e3f1ff'
-const FILL_COLOR = '#007aff'
+// Figma "Teammail 1.1" attachment chip: tokens the theme does not carry yet,
+// as custom properties of the chip, with their values in the dark scheme
+const CHIP_TOKENS = {
+  '--upload-chip-border': '#e5ecf3',
+  '--upload-chip-size': '#8c9caf',
+  '--upload-chip-track': '#e3f1ff',
+  '--upload-chip-fill': '#007aff',
+  '--upload-chip-close': '#e9eef3'
+} as const
+const CHIP_DARK_TOKENS = {
+  '--upload-chip-border': 'rgba(255, 255, 255, 0.24)',
+  '--upload-chip-size': 'rgba(255, 255, 255, 0.7)',
+  '--upload-chip-track': 'rgba(255, 255, 255, 0.16)',
+  '--upload-chip-fill': '#7bbdff',
+  '--upload-chip-close': 'rgba(255, 255, 255, 0.16)'
+} as const
+const CHIP_BORDER = 'var(--upload-chip-border)'
+const SIZE_COLOR = 'var(--upload-chip-size)'
+const TRACK_COLOR = 'var(--upload-chip-track)'
+const FILL_COLOR = 'var(--upload-chip-fill)'
 const LINK_COLOR = '#1990ff'
-const CLOSE_BACKGROUND = '#e9eef3'
+const CLOSE_BACKGROUND = 'var(--upload-chip-close)'
 export const UPLOAD_CHIP_WIDTH = 280
 const TAIL_LENGTH = 6
 
@@ -178,7 +193,9 @@ export function UploadChip({
     <Box
       component="li"
       className="u-flex u-flex-items-center"
-      sx={{
+      sx={theme => ({
+        ...CHIP_TOKENS,
+        ...theme.applyStyles('dark', CHIP_DARK_TOKENS),
         gap: '12px',
         p: '8px',
         boxSizing: 'border-box',
@@ -189,7 +206,7 @@ export function UploadChip({
         border: '1px solid',
         borderColor: isFailed ? 'error.main' : CHIP_BORDER,
         borderRadius: '8px'
-      }}
+      })}
       data-testid={testIds.item}
       data-status={item.status}
     >

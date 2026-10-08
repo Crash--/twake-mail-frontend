@@ -87,14 +87,17 @@ export function MessageAlert({
                 disabled={action.disabled}
                 onClick={action.onClick}
                 data-testid={action['data-testid']}
-                sx={{
+                sx={theme => ({
                   borderRadius: '100px',
                   color: `${SEVERITIES[level]}.main`,
                   bgcolor: 'rgba(255, 255, 255, 0.6)',
                   textTransform: 'none',
                   fontWeight: 500,
-                  px: 2
-                }}
+                  px: 2,
+                  ...theme.applyStyles('dark', {
+                    bgcolor: 'rgba(0, 0, 0, 0.3)'
+                  })
+                })}
               >
                 {action.label}
               </Button>

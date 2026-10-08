@@ -23,6 +23,9 @@ const BADGE_BACKGROUNDS: Record<EventCardBadgeState, string> = {
 }
 
 const TEXT = 'rgba(66, 66, 68, 0.9)'
+// The same opacities of white in the dark scheme (the badges keep their
+// light backgrounds and their dark text)
+const DARK_TEXT = 'rgba(255, 255, 255, 0.9)'
 
 const CARD_SX = {
   bgcolor: '#F3F6F9',
@@ -32,6 +35,11 @@ const CARD_SX = {
   display: 'flex',
   gap: 4,
   [`@media ${SCREEN_QUERIES.mobile}`]: { px: 2, py: 3 }
+} as const
+
+const CARD_DARK_SX = {
+  bgcolor: 'rgba(255, 255, 255, 0.08)',
+  color: DARK_TEXT
 } as const
 
 const DATE_ICON_SX = {
@@ -47,6 +55,8 @@ const DATE_ICON_SX = {
   flexDirection: 'column',
   [`@media ${SCREEN_QUERIES.mobile}`]: { display: 'none' }
 } as const
+
+const DATE_ICON_DARK_SX = { bgcolor: 'rgba(255, 255, 255, 0.12)' } as const
 
 const DATE_MONTH_SX = {
   // The Twake orange is #F67E35; darkened so its white text reads (4.6:1)
@@ -67,6 +77,8 @@ const DATE_DAY_SX = {
   color: '#27292D'
 } as const
 
+const DATE_DAY_DARK_SX = { color: '#FFFFFF' } as const
+
 const BADGE_SX = {
   alignSelf: 'flex-start',
   px: 1,
@@ -86,6 +98,8 @@ const TITLE_SX = {
   color: TEXT,
   overflowWrap: 'anywhere'
 } as const
+
+const TITLE_DARK_SX = { color: DARK_TEXT } as const
 
 const DETAILS_SX = {
   display: 'grid',
@@ -111,6 +125,10 @@ const DETAILS_SX = {
     '& dt': { fontSize: 14 },
     '& dd': { fontSize: 16, mb: 1 }
   }
+} as const
+
+const DETAILS_DARK_SX = {
+  '& dt': { color: 'rgba(255, 255, 255, 0.8)' }
 } as const
 
 const ACTIONS_SX = {
@@ -178,13 +196,29 @@ export function EventCard({
     <Box
       component="section"
       aria-label={label}
-      sx={CARD_SX}
+      sx={theme => ({
+        ...CARD_SX,
+        ...theme.applyStyles('dark', CARD_DARK_SX)
+      })}
       data-testid={testId}
     >
       {date ? (
-        <Box sx={DATE_ICON_SX} aria-hidden="true">
+        <Box
+          sx={theme => ({
+            ...DATE_ICON_SX,
+            ...theme.applyStyles('dark', DATE_ICON_DARK_SX)
+          })}
+          aria-hidden="true"
+        >
           <Box sx={DATE_MONTH_SX}>{date.month}</Box>
-          <Box sx={DATE_DAY_SX}>{date.day}</Box>
+          <Box
+            sx={theme => ({
+              ...DATE_DAY_SX,
+              ...theme.applyStyles('dark', DATE_DAY_DARK_SX)
+            })}
+          >
+            {date.day}
+          </Box>
         </Box>
       ) : null}
       <Box
@@ -205,12 +239,24 @@ export function EventCard({
               {badge.content}
             </Box>
           ) : null}
-          <Typography component={headingLevel} sx={TITLE_SX}>
+          <Typography
+            component={headingLevel}
+            sx={theme => ({
+              ...TITLE_SX,
+              ...theme.applyStyles('dark', TITLE_DARK_SX)
+            })}
+          >
             {title}
           </Typography>
         </Box>
         {details.length > 0 ? (
-          <Box component="dl" sx={DETAILS_SX}>
+          <Box
+            component="dl"
+            sx={theme => ({
+              ...DETAILS_SX,
+              ...theme.applyStyles('dark', DETAILS_DARK_SX)
+            })}
+          >
             {details.map(detail => (
               <Box
                 key={detail.label}

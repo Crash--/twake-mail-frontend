@@ -68,7 +68,7 @@ export function StorageGauge({
           : {
               height: 3,
               borderRadius: 0,
-              backgroundColor: theme.palette.action.selected,
+              backgroundColor: theme.vars.palette.action.selected,
               '& .MuiLinearProgress-bar': { borderRadius: 0 }
             }
       }

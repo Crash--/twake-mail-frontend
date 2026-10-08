@@ -1,5 +1,5 @@
 import { Drive, DriveText, Icon, ToTheCloud } from '@linagora/twake-icons'
-import { Button, Typography } from '@linagora/twake-mui'
+import { Button, Typography, useColorScheme } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
@@ -37,6 +37,8 @@ export function DriveAttachButton({
   const { t } = useI18n()
   const { notify } = useNotify()
   const driveUrl = useDriveUrl()
+  // The picker of Drive is coloured as the app
+  const { colorScheme = 'light' } = useColorScheme()
   const { isEnabled: isButtonShown } = useDriveAttachmentPreference()
   const buttonRef = useRef<HTMLButtonElement>(null)
   // Where the focus goes once the dialog is closed: the message after
@@ -106,7 +108,7 @@ export function DriveAttachButton({
       linkLabel: t('composer.drive.addAsLink'),
       attachLabel: t('composer.drive.addAsAttachment'),
       maxFileSize,
-      theme: 'light'
+      theme: colorScheme
     },
     handleFiles
   )

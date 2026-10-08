@@ -32,6 +32,18 @@ const PILL_SX = {
   }
 } as const
 
+// The greys of the chosen and disabled answers, in white over the dark card
+const PILL_DARK_SX = {
+  '&[aria-pressed="true"]': {
+    bgcolor: 'rgba(255, 255, 255, 0.16)',
+    color: 'rgba(255, 255, 255, 0.9)'
+  },
+  '&.Mui-disabled': {
+    bgcolor: 'rgba(255, 255, 255, 0.12)',
+    color: 'rgba(255, 255, 255, 0.5)'
+  }
+} as const
+
 const TEXT_ACTION_SX = {
   height: 40,
   px: 1.25,
@@ -46,6 +58,10 @@ const TEXT_ACTION_SX = {
   textDecoration: 'none',
   '&:hover': { textDecoration: 'underline' },
   '& svg': { color: 'rgba(66, 66, 68, 0.8)' }
+} as const
+
+const TEXT_ACTION_DARK_SX = {
+  '& svg': { color: 'rgba(255, 255, 255, 0.8)' }
 } as const
 
 export interface EventAnswerButtonProps {
@@ -69,7 +85,7 @@ export function EventAnswerButton({
 }: EventAnswerButtonProps): ReactElement {
   return (
     <ButtonBase
-      sx={PILL_SX}
+      sx={theme => ({ ...PILL_SX, ...theme.applyStyles('dark', PILL_DARK_SX) })}
       aria-pressed={isPressed}
       aria-busy={isBusy || undefined}
       disabled={disabled}
@@ -110,13 +126,23 @@ export function EventTextAction({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      sx={TEXT_ACTION_SX}
+      sx={theme => ({
+        ...TEXT_ACTION_SX,
+        ...theme.applyStyles('dark', TEXT_ACTION_DARK_SX)
+      })}
       data-testid={testId}
     >
       {content}
     </Link>
   ) : (
-    <ButtonBase sx={TEXT_ACTION_SX} onClick={onClick} data-testid={testId}>
+    <ButtonBase
+      sx={theme => ({
+        ...TEXT_ACTION_SX,
+        ...theme.applyStyles('dark', TEXT_ACTION_DARK_SX)
+      })}
+      onClick={onClick}
+      data-testid={testId}
+    >
       {content}
     </ButtonBase>
   )

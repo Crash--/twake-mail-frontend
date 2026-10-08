@@ -35,6 +35,7 @@ import { SearchFiltersHeader } from '@common/features/search/SearchFiltersRow'
 import { FeedbackWidget } from '@common/features/sentry/FeedbackWidget'
 import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync'
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
+import { ServerThemeSync } from '@common/features/settings/ServerThemeSync'
 import { SettingsSidebar } from '@common/features/settings/SettingsSidebar'
 import {
   ShortcutsProvider,
@@ -180,6 +181,7 @@ function AppFrame(): ReactElement {
       />
       <TouchTargets />
       <ServerLanguageSync />
+      <ServerThemeSync />
       <InboxUnreadTitle />
       <OfflineNotice />
       <SentryReportingSync />

@@ -91,8 +91,12 @@ export interface NavTreeItemProps {
 
 const ROW_BACKGROUND =
   (selected: boolean) =>
-  (theme: { palette: { action: { selected: string; hover: string } } }) =>
-    selected ? theme.palette.action.selected : theme.palette.action.hover
+  (theme: {
+    vars: { palette: { action: { selected: string; hover: string } } }
+  }) =>
+    selected
+      ? theme.vars.palette.action.selected
+      : theme.vars.palette.action.hover
 
 /**
  * A row of a navigation tree: icon, name, then the arrow of a folder with
@@ -336,7 +340,9 @@ export function NavTreeItem({
         width: 'auto',
         pr: '8px',
         borderRadius: '8px',
-        backgroundColor: isSelected ? theme.palette.action.selected : undefined,
+        backgroundColor: isSelected
+          ? theme.vars.palette.action.selected
+          : undefined,
         '&:hover': { backgroundColor: rowBackground(theme) },
         ...(hasActions
           ? {

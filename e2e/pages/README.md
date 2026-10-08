@@ -208,7 +208,7 @@ Conventions:
 | `html-block-edit-<kind>` | "Edit the quoted message" (`kind` = `quote`) | — |
 | `composer-send-button` | send | `UiKeys.sendEmailButton` |
 | `composer-close-button` | close (saves a draft when dirty) | `UiKeys.closeComposerButton` |
-| `composer-more-button` + `composer-save-draft-item` (phase 3), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
+| `composer-more-button` + `composer-save-draft-item` (phones only), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu, after the link in the bottom bar as tmail-flutter (`…`) | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
 | `composer-attach-file-button` / `composer-file-input` | "Attach file" and its hidden file input | `attach_file` |
 | `composer-drive-button` | "Attach from Drive" (`TDRIVE_ENABLED`, OIDC) | `attachFromDrive` |
 | `composer-scribe-button` + `composer-scribe-menu` (`composer-scribe-action` with `data-action`, `composer-scribe-write`) | the AI assistant (with `com:linagora:params:jmap:aibot`) and its menu | `AiAssistantButton` |
@@ -318,3 +318,4 @@ Conventions:
 | `folder-action-progress-banner` / `folder-action-progress-bar` / `folder-action-progress-status` | issue #319: while every email of a folder is marked read or the Trash / Spam is emptied, the thin progress bar above the list (`role="progressbar"`, `aria-valuenow` in % once the total is known, none while `Mailbox/clear` runs) and the polite live region saying the action started; the long folder actions are disabled meanwhile | `MarkMailboxAsReadLoadingBanner` |
 | `folder-visibility-folders-toggle` / `folder-visibility-folders` | Settings > Folder visibility: the "Folders" bar folding the personal folders and the team mailboxes, and what it folds | `MailboxVisibilityFoldersBarWidget` |
 | `folder-visibility-expand-button` | Settings > Folder visibility: expands or collapses the subfolders of a folder | `MailboxExpandButton` |
+| `composer-save-draft-button` | "Save as draft" icon button beside "Delete" in the bottom bar of the composer (not on phones, where it is `composer-save-draft-item`) | `UiKeys.saveDraftButton` |

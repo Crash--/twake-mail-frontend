@@ -169,7 +169,7 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
   )
 
   test(
-    'CMP-89 a tablet shows the composer as a window: 772 px wide, 710 high, the title centred, minimize, expand and close at the end',
+    'CMP-89 a tablet shows the composer as a window: 780 px wide, 710 high, the title centred, minimize, expand and close at the end',
     { tag: '@mobile' },
     async ({ page, user }) => {
       const width = page.viewportSize()?.width ?? 0
@@ -178,8 +178,8 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
       const composer = await mailbox.compose()
       await composer.expectMode('normal')
       const root = await boxOf(composer.root)
-      expect([root.width, root.height]).toEqual([width - 48, 710])
-      expect(root.x).toBe(24)
+      expect([root.width, root.height]).toEqual([width - 40, 710])
+      expect(root.x).toBe(20)
       const title = await boxOf(composer.title)
       const middle = title.x + title.width / 2
       expect(Math.abs(middle - (root.x + root.width / 2))).toBeLessThan(2)

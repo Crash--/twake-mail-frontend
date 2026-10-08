@@ -29,14 +29,25 @@ import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 /** Where the window is: in the dock, its title bar only, or over the page */
 export type DockedWindowMode = 'normal' | 'minimized' | 'fullscreen'
 
-/** Size of a window in the dock, in px */
+/** Size of a window in the dock, in px (tmail-flutter: 792) */
 export const DOCKED_WINDOW_WIDTH = 790
 /** Width of a minimized window (its title bar), in px */
 export const MINIMIZED_WINDOW_WIDTH = 400
-const DOCKED_WINDOW_HEIGHT = 634
+/**
+ * tmail-flutter's composer reaches from under the search of the top bar to
+ * 20 px above the bottom of the screen: the height of the screen less these
+ */
+const DOCKED_WINDOW_TOP_ROOM = 138
 /** Height of a window on a tablet, measured on the design, in px */
 const TABLET_WINDOW_HEIGHT = 710
-const TITLE_BAR_HEIGHT = 44
+const TITLE_BAR_HEIGHT = 52
+/** The title of tmail-flutter's composer: Medium 17, black */
+const TITLE_SX = {
+  fontSize: 17,
+  fontWeight: 500,
+  lineHeight: '22px',
+  color: '#000000'
+} as const
 /** Gap between the expanded window and the edges of the screen */
 const FULLSCREEN_INSET = {
   top: 64,
@@ -44,9 +55,9 @@ const FULLSCREEN_INSET = {
   bottom: 72,
   left: 'min(136px, 8vw)'
 } as const
-/** Material 3 elevation 3, the shadow of the composer in the design */
+/** Material elevation 16, the shadow of tmail-flutter's composer */
 const WINDOW_SHADOW =
-  '0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15)'
+  '0 8px 10px -5px rgba(0, 0, 0, 0.2), 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12)'
 
 /** `view-transition-class` of the windows (and the backdrop) that opt in */
 const VIEW_TRANSITION_CLASS = 'docked-window'
@@ -287,7 +298,8 @@ export function DockedWindow({
           sx={[
             {
               pointerEvents: 'auto',
-              borderRadius: '8px',
+              // tmail-flutter's composer: a 28 px radius, elevation 16
+              borderRadius: isMinimized ? '8px' : '28px',
               boxShadow: WINDOW_SHADOW,
               ...(viewTransitionName === undefined
                 ? {}
@@ -326,9 +338,9 @@ export function DockedWindow({
                     width: isMinimized ? MINIMIZED_WINDOW_WIDTH : width,
                     height: isMinimized
                       ? TITLE_BAR_HEIGHT
-                      : `min(${
-                          isTall ? TABLET_WINDOW_HEIGHT : DOCKED_WINDOW_HEIGHT
-                        }px, calc(100dvh - 96px))`
+                      : isTall
+                        ? `min(${TABLET_WINDOW_HEIGHT}px, calc(100dvh - 96px))`
+                        : `calc(100dvh - ${DOCKED_WINDOW_TOP_ROOM}px)`
                   }
           ]}
           data-testid={testIds.window}
@@ -376,6 +388,7 @@ export function DockedWindow({
                   variant="h5"
                   noWrap
                   className={isCentered ? undefined : 'u-flex-auto'}
+                  sx={TITLE_SX}
                 >
                   {title}
                 </Typography>

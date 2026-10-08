@@ -6,7 +6,7 @@ import { OverlayPortal } from '@linagora/twake-mui'
 
 /** Space between the windows and from the edge of the screen, in px */
 export const DOCK_GAP = 8
-export const DOCK_MARGIN = 24
+export const DOCK_MARGIN = 20
 /** Width of the overflow menu at the start of the dock, in px */
 export const OVERFLOW_MENU_WIDTH = 160
 

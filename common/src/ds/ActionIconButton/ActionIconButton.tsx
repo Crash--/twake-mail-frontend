@@ -13,11 +13,11 @@ export interface ActionIconButtonProps extends Omit<
   label: string
 }
 
-/** Width and height of the button, in px */
-export const ACTION_ICON_BUTTON_SIZE = 40
+/** Width and height of the button, in px: a 24 px icon and 5 px around */
+export const ACTION_ICON_BUTTON_SIZE = 34
 
 /**
- * A 40 px round icon button with its tooltip. The icon keeps the size it
+ * A 34 px icon button with its tooltip, as tmail-flutter's composer. The icon keeps the size it
  * asks for: 24 px for a Material glyph, 20 px for the `twake-icons` ones,
  * whose drawing fills more of their frame than the Material icons of the
  * design.

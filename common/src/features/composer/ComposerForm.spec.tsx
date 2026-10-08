@@ -804,11 +804,9 @@ describe('ComposerForm', () => {
       const composer = await openComposer()
       await fill(composer, { to: 'bob@example.com', subject: 'By hand' })
 
+      // As tmail-flutter: a button beside "Delete", not in "More"
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'More' })
-      )
-      await userEvent.click(
-        screen.getByRole('menuitem', { name: 'Save as draft' })
+        within(composer).getByRole('button', { name: 'Save as draft' })
       )
 
       await waitFor(() => {
@@ -1783,11 +1781,9 @@ describe('ComposerForm', () => {
       const jmapServer = serverWithSource()
       renderComposer(jmapServer)
       const composer = await openComposer('Answer reply')
+      // As tmail-flutter: a button beside "Delete", not in "More"
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'More' })
-      )
-      await userEvent.click(
-        screen.getByRole('menuitem', { name: 'Save as draft' })
+        within(composer).getByRole('button', { name: 'Save as draft' })
       )
       await waitFor(() => {
         expect(draftsOf(jmapServer)).toHaveLength(1)
@@ -2003,11 +1999,9 @@ describe('ComposerForm', () => {
           within(list).getByTestId('composer-attachment-item')
         ).toHaveAttribute('data-status', 'done')
       })
+      // As tmail-flutter: a button beside "Delete", not in "More"
       await userEvent.click(
-        within(composer).getByTestId('composer-more-button')
-      )
-      await userEvent.click(
-        await screen.findByRole('menuitem', { name: 'Save as draft' })
+        within(composer).getByRole('button', { name: 'Save as draft' })
       )
       await waitFor(() => {
         expect(draftsOf(jmapServer)[0]?.attachments).toEqual([

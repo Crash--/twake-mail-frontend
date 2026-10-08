@@ -4,7 +4,6 @@ import {
   Check,
   Cross,
   Dots,
-  FileOutline,
   Icon,
   Image as ImageIcon,
   Link as LinkIcon,
@@ -45,8 +44,8 @@ import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
-import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
 import { PillButton } from '@/ds/PillButton/PillButton'
+import { FormattingIcon, SaveDraftIcon } from '@/ds/ComposerIcons/ComposerIcons'
 import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
@@ -354,7 +353,8 @@ function LoadedComposerForm({
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editorActions = useRef<RichTextEditorActions>(null)
-  const [isToolbarShown, setIsToolbarShown] = useState(!isPhone)
+  // As tmail-flutter: folded until "Aa" opens it
+  const [isToolbarShown, setIsToolbarShown] = useState(false)
   const [identityId, setIdentityId] = useState(content.identityId)
   // The identity selector opens on request (the "From" button), unless the
   // message already has its own identity (a draft, an answer, a template,
@@ -1312,7 +1312,7 @@ function LoadedComposerForm({
       }}
       data-testid="composer-formatting-button"
     >
-      <EditorIcon name="fontSize" fontSize="medium" />
+      <Icon icon={FormattingIcon} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   const attachButton = (
@@ -1332,7 +1332,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
     >
-      <Icon icon={ImageIcon} size={20} aria-hidden="true" />
+      <Icon icon={ImageIcon} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   // On a phone the link is in the More menu, as the bar has no room for it
@@ -1343,7 +1343,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
     >
-      <Icon icon={LinkIcon} size={20} aria-hidden="true" />
+      <Icon icon={LinkIcon} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   const driveButton = (
@@ -1402,14 +1402,22 @@ function LoadedComposerForm({
       aria-haspopup="menu"
       aria-expanded={moreAnchor !== null}
       onClick={handleOpenMore}
-      className={isPhone ? undefined : 'u-ml-half u-mr-1'}
+      className={gap}
       data-testid="composer-more-button"
     >
-      <Icon
-        icon={isPhone ? Dots : FileOutline}
-        size={isPhone ? 24 : 20}
-        aria-hidden="true"
-      />
+      <Icon icon={Dots} size={24} aria-hidden="true" />
+    </ActionIconButton>
+  )
+  // As tmail-flutter: "Save as draft" beside "Delete", the menu holds it
+  // on a phone only
+  const saveDraftButton = (
+    <ActionIconButton
+      label={t('composer.saveAsDraft')}
+      onClick={handleSaveDraft}
+      className="u-ml-half"
+      data-testid="composer-save-draft-button"
+    >
+      <Icon icon={SaveDraftIcon} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   const sendButton = (
@@ -1445,12 +1453,14 @@ function LoadedComposerForm({
           <ListItemText inset primary={labels.link} />
         </MenuItem>
       ) : null}
-      <MenuItem
-        onClick={handleSaveDraft}
-        data-testid="composer-save-draft-item"
-      >
-        <ListItemText inset primary={t('composer.saveAsDraft')} />
-      </MenuItem>
+      {isPhone ? (
+        <MenuItem
+          onClick={handleSaveDraft}
+          data-testid="composer-save-draft-item"
+        >
+          <ListItemText inset primary={t('composer.saveAsDraft')} />
+        </MenuItem>
+      ) : null}
       <MenuItem
         onClick={handleOpenTemplatePicker}
         data-testid="composer-insert-template-item"
@@ -1725,7 +1735,7 @@ function LoadedComposerForm({
           )}
         </Box>
         {isPhone ? null : (
-          <Box className="u-flex u-flex-items-center u-flex-shrink-0 u-flex-wrap u-p-1">
+          <Box className="u-flex u-flex-items-center u-flex-shrink-0 u-flex-wrap u-pv-1 u-ph-2">
             {formattingButton}
             {attachButton}
             {imageButton}
@@ -1738,6 +1748,7 @@ function LoadedComposerForm({
             />
             {driveButton}
             {scribeMenu}
+            {moreButton}
             {fileInput}
             {saveStatus}
             <ActionIconButton
@@ -1745,10 +1756,10 @@ function LoadedComposerForm({
               onClick={handleDeleteDraft}
               data-testid="composer-delete-draft-button"
             >
-              <Icon icon={Trash} size={20} aria-hidden="true" />
+              <Icon icon={Trash} size={24} aria-hidden="true" />
             </ActionIconButton>
-            {moreButton}
-            {sendButton}
+            {saveDraftButton}
+            <span className="u-ml-1">{sendButton}</span>
           </Box>
         )}
         {moreMenu}

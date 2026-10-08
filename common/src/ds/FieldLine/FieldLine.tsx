@@ -4,13 +4,15 @@
 import { Box, Typography, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-/** Height of a line, divider included, in px */
-export const FIELD_LINE_HEIGHT = 37
+/** Height of a line, divider included, in px (tmail-flutter's 48) */
+export const FIELD_LINE_HEIGHT = 48
 
 /**
  * The look of a line, shared with the fields that build their own markup
- * (`RecipientField`): 37 px, 16 px on each side, a divider below, and the
- * text of the inputs in it set in Inter Medium 14 / 20.
+ * (`RecipientField`), as tmail-flutter's composer: 48 px, 24 px from the
+ * start of the window (the light divider below too) and 24 px from its end,
+ * the text of the inputs in Inter Regular 15 / 24 black, the placeholders
+ * in steel grey (#8C9CAF).
  */
 export const FIELD_LINE_SX = {
   display: 'flex',
@@ -20,30 +22,31 @@ export const FIELD_LINE_SX = {
   rowGap: 0.5,
   minHeight: FIELD_LINE_HEIGHT,
   boxSizing: 'border-box',
-  px: 2,
+  ml: '24px',
+  pr: '24px',
   py: 0.5,
-  borderBottom: '1px solid',
-  borderColor: 'divider',
-  '&:focus-within': { borderColor: 'primary.main' },
-  '& .MuiInputBase-input': { p: 0, height: '20px' },
+  borderBottom: '1px solid #F4F4F4',
+  '& .MuiInputBase-input': { p: 0, height: '24px' },
   '& .MuiInputBase-input, & .MuiSelect-select': {
-    fontSize: 14,
-    fontWeight: 500,
-    lineHeight: '20px',
-    letterSpacing: '0.1px',
-    color: 'text.primary'
+    fontSize: 15,
+    fontWeight: 400,
+    lineHeight: '24px',
+    letterSpacing: 0,
+    color: '#000000'
   },
   '& .MuiInputBase-input::placeholder': {
-    color: 'text.secondary',
+    color: '#8C9CAF',
     opacity: 1
   }
 } as const satisfies SxProps<Theme>
 
-/** The label of a line: Inter Medium 14 / 18.4 in the secondary colour */
+/** The label of a line, as tmail-flutter's "To:": Regular 15 / 24, steel grey */
 export const FIELD_LABEL_SX = {
-  color: 'text.secondary',
-  pr: 1,
-  minWidth: 40
+  color: '#8C9CAF',
+  fontSize: 15,
+  fontWeight: 400,
+  lineHeight: '24px',
+  pr: 1
 } as const satisfies SxProps<Theme>
 
 /** A single control per line: it shrinks rather than wraps */

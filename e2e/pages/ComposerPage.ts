@@ -295,7 +295,13 @@ export class ComposerPage {
     return this
   }
 
-  /** More menu items: `composer-save-draft-item`, `composer-save-template-item`, `composer-insert-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` */
+  /**
+   * More menu items: `composer-save-template-item`,
+   * `composer-insert-template-item`, `composer-read-receipt-item`,
+   * `composer-mark-important-item`; "Save as draft" is the
+   * `composer-save-draft-button` beside "Delete" (as tmail-flutter), and
+   * `composer-save-draft-item` in the menu on a phone only
+   */
   async runMoreAction(
     item:
       | 'save-draft'
@@ -304,6 +310,11 @@ export class ComposerPage {
       | 'read-receipt'
       | 'mark-important'
   ): Promise<ComposerPage> {
+    const saveDraftButton = this.page.getByTestId('composer-save-draft-button')
+    if (item === 'save-draft' && (await saveDraftButton.isVisible())) {
+      await saveDraftButton.click()
+      return this
+    }
     await this.moreButton.click()
     await this.page.getByTestId(`composer-${item}-item`).click()
     return this

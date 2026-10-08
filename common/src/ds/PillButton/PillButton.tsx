@@ -23,8 +23,9 @@ export interface PillButtonProps {
 }
 
 /**
- * The main action of a form (Send): filled primary, pill radius, 40 px high
- * at least, an 18 px icon then a 14 px medium label.
+ * The main action of a form (Send), as tmail-flutter's: filled blue
+ * (#208BFF), pill radius, 46 px high, a 17 px medium label then a 24 px
+ * icon.
  */
 export function PillButton({
   label,
@@ -43,13 +44,14 @@ export function PillButton({
       disabled={disabled}
       aria-describedby={describedBy}
       aria-label={isIconOnly ? label : undefined}
-      startIcon={isIconOnly ? undefined : <Icon icon={icon} size={18} />}
+      endIcon={isIconOnly ? undefined : <Icon icon={icon} size={24} />}
       data-testid={testId}
       sx={{
         width: isIconOnly ? 44 : width,
         minWidth: isIconOnly ? 44 : undefined,
-        minHeight: isIconOnly ? 44 : 40,
+        minHeight: isIconOnly ? 44 : 46,
         height: isIconOnly ? 44 : undefined,
+        bgcolor: '#208BFF',
         // The disc is the padding box, the transparent border widens the target
         ...(isIconOnly
           ? {
@@ -58,15 +60,16 @@ export function PillButton({
               backgroundClip: 'padding-box',
               boxSizing: 'border-box'
             }
-          : { py: '10px', px: 3 }),
+          : { py: '11px', px: '11px' }),
         gap: '10px',
-        borderRadius: '100px',
-        fontSize: 14,
+        borderRadius: '60px',
+        boxShadow: 'none',
+        fontSize: 17,
         fontWeight: 500,
-        lineHeight: '20px',
-        letterSpacing: '0.1px',
+        lineHeight: '22px',
+        letterSpacing: '-0.41px',
         textTransform: 'none',
-        '& .MuiButton-startIcon': { m: 0 }
+        '& .MuiButton-endIcon': { m: 0 }
       }}
     >
       {isIconOnly ? <Icon icon={icon} size={18} aria-hidden="true" /> : label}

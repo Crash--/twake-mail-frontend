@@ -447,18 +447,19 @@ export function RichTextEditor({
             // Filling a window, the outline of the focus is drawn inside
             ...(fill ? FOCUS_RING_INSET : { '--focus-ring-offset': '1px' }),
             minHeight: fill ? undefined : 240,
-            // The body of a window: 24 px above, 16 px at the sides, Inter
-            // Medium 14 / 18.4 as in the design
-            padding: fill ? '24px 16px' : 1.5,
+            // The body of a window, as tmail-flutter's editor: 16 px above,
+            // 25 px at the sides, Inter Regular in dark grey (#222222)
+            padding: fill ? '16px 25px' : 1.5,
             border: fill ? 'none' : '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
             fontSize: DEFAULT_FONT_SIZE,
             ...(fill
               ? {
-                  fontWeight: 500,
+                  fontWeight: 400,
                   lineHeight: '18.4px',
-                  letterSpacing: '0.25px'
+                  letterSpacing: 0,
+                  color: '#222222'
                 }
               : { lineHeight: 1.5 }),
             overflowWrap: 'anywhere'

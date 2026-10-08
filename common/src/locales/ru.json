@@ -1094,7 +1094,15 @@
     "listLabel": "Адреса пересылки",
     "removeOf": "Удалить %{email}",
     "inputLabel": "Новый получатель",
-    "recipientCount": "%{smart_count} получатель |||| %{smart_count} получателя |||| %{smart_count} получателей"
+    "recipientCount": "%{smart_count} получатель |||| %{smart_count} получателя |||| %{smart_count} получателей",
+    "selectAll": "Выбрать все",
+    "selectedCount": "%{count} выбрано",
+    "deselectAll": "Отменить выбор всех (%{count})",
+    "remove": "Удалить",
+    "deleteAll": {
+      "message": "Вы уверены, что хотите удалить этих получателей? Это действие удалит их из переписки."
+    },
+    "selectOf": "Выбрать %{email}"
   },
   "vacation": {
     "enable": "Автоматически отвечайте на сообщения при получении.",

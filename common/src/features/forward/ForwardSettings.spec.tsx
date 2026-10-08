@@ -143,9 +143,12 @@ describe('ForwardSettings', () => {
       await screen.findByTestId('forward-warning-banner')
     ).toHaveTextContent('Forwarding outside is forbidden by the charter.')
     expect(fake.forward()).toMatchObject({ forwards: ['me@gmail.com'] })
-    expect(screen.getByTestId('forward-item')).toHaveTextContent(
-      'External domain'
-    )
+    // As tmail-flutter: its information icon says it
+    expect(
+      within(screen.getByTestId('forward-item')).getAllByLabelText(
+        'External domain'
+      ).length
+    ).toBeGreaterThan(0)
   })
 
   it('removes an address once confirmed', async () => {
@@ -166,5 +169,40 @@ describe('ForwardSettings', () => {
       'The email has been removed from the recipient list.'
     )
     expect(fake.forward()).toMatchObject({ forwards: ['carol@example.com'] })
+  })
+
+  it('selects recipients by their avatar and removes them at once', async () => {
+    const fake = setup([
+      'bob@example.com',
+      'carol@example.com',
+      'dave@example.com'
+    ])
+
+    await userEvent.click(
+      await screen.findByRole('checkbox', { name: 'Select bob@example.com' })
+    )
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select carol@example.com' })
+    )
+    expect(
+      screen.getByRole('button', { name: '2 selected' })
+    ).toBeInTheDocument()
+    // While some are selected, their own delete buttons go
+    expect(
+      screen.queryByRole('button', { name: 'Remove bob@example.com' })
+    ).toBe(null)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove' }))
+    const confirm = screen.getByRole('dialog', { name: 'Remove recipients' })
+    await userEvent.click(
+      within(confirm).getByTestId('confirm-dialog-confirm-button')
+    )
+
+    await waitFor(() => {
+      expect(fake.forward()).toMatchObject({ forwards: ['dave@example.com'] })
+    })
+    expect(
+      await screen.findByRole('button', { name: 'Select all' })
+    ).toBeVisible()
   })
 })

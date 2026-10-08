@@ -1,14 +1,5 @@
 import { Icon } from '@linagora/twake-icons'
-import {
-  Alert,
-  Box,
-  Button,
-  IconButton,
-  List,
-  ListItem,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { Alert, Box, Button, Tooltip } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   useId,
@@ -18,9 +9,22 @@ import {
   type ReactElement
 } from 'react'
 
-import { Attention, Plus, Trash } from '@/ds/FlutterIcons/FlutterIcons'
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import {
+  Check,
+  Cross,
+  InfoCircle,
+  Plus,
+  Trash
+} from '@/ds/FlutterIcons/FlutterIcons'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { IconAction } from '@/ds/IconAction/IconAction'
+import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
 import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
+import {
+  SettingsHeaderButton,
+  SettingsListHeader,
+  SettingsRecipientCard
+} from '@/ds/SettingsCards/SettingsCards'
 import {
   SettingsLabelPill,
   SettingsTextField
@@ -72,7 +76,8 @@ export function ForwardSettings({
   const configuredWarning = useAppConfig()?.forwardWarningMessage ?? null
   const query = useQuery(forwardQueryOptions(client, accountId))
   const inputRef = useRef<HTMLInputElement>(null)
-  const focusFallbackRef = useFocusFallback<HTMLLIElement>()
+  const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
+  const [selected, setSelected] = useState<readonly string[]>([])
   const recipientsTitleId = useId()
   const [typed, setTyped] = useState('')
   const [problem, setProblem] = useState<TranslationKey | null>(null)
@@ -81,6 +86,10 @@ export function ForwardSettings({
   const forwards = query.data?.forwards ?? []
   const isExternal = (email: string): boolean => domainOf(email) !== ownDomain
   const hasExternal = forwards.some(isExternal)
+  // The selected ones still forwarded to
+  const selection = selected.filter(email => forwards.includes(email))
+  const isAllSelected =
+    forwards.length > 0 && selection.length === forwards.length
   const isOwnAddress = (email: string): boolean =>
     email.toLowerCase() === session.username.toLowerCase()
 
@@ -174,6 +183,27 @@ export function ForwardSettings({
     }
     run().catch((error: unknown) => {
       console.error('[forward] Cannot remove the recipient', error)
+    })
+  }
+
+  const handleRemoveSelected = (): void => {
+    const run = async (): Promise<void> => {
+      const isConfirmed = await confirm({
+        title: t('forward.delete.title'),
+        message: t('forward.deleteAll.message'),
+        confirmLabel: t('forward.remove'),
+        isDestructive: true
+      })
+      if (!isConfirmed) return
+      const isSaved = await change(
+        { forwards: forwards.filter(email => !selection.includes(email)) },
+        'forward.toasts.deleted',
+        'forward.errors.delete'
+      )
+      if (isSaved) setSelected([])
+    }
+    run().catch((error: unknown) => {
+      console.error('[forward] Cannot remove the recipients', error)
     })
   }
 
@@ -273,44 +303,117 @@ export function ForwardSettings({
       </Box>
       {forwards.length > 0 ? (
         <>
-          <List aria-label={t('forward.listLabel')} data-testid="forward-list">
+          {/* As tmail-flutter: "Select all", or once some are selected the
+              cross leaving the selection with how many, and "Remove" */}
+          <SettingsListHeader>
+            {selection.length > 0 ? (
+              <SettingsHeaderButton
+                label={
+                  isAllSelected
+                    ? t('forward.deselectAll', { count: selection.length })
+                    : t('forward.selectedCount', { count: selection.length })
+                }
+                icon={<Icon icon={Cross} size={20} aria-hidden="true" />}
+                onClick={() => {
+                  setSelected([])
+                }}
+                data-testid="forward-cancel-selection-button"
+              />
+            ) : null}
+            {isAllSelected ? null : (
+              <SettingsHeaderButton
+                label={t('forward.selectAll')}
+                onClick={() => {
+                  setSelected(forwards)
+                }}
+                data-testid="forward-select-all-button"
+              />
+            )}
+            {selection.length > 0 ? (
+              <SettingsHeaderButton
+                label={t('forward.remove')}
+                tone="danger"
+                onClick={handleRemoveSelected}
+                data-testid="forward-remove-selected-button"
+              />
+            ) : null}
+          </SettingsListHeader>
+          <Box
+            component="ul"
+            aria-label={t('forward.listLabel')}
+            className="u-m-0 u-p-0 u-pb-2"
+            data-testid="forward-list"
+          >
             {forwards.map(email => {
               const removeLabel = t('forward.removeOf', { email })
+              const isSelected = selection.includes(email)
               return (
-                <ListItem
+                <SettingsRecipientCard
                   key={email}
-                  ref={focusFallbackRef}
-                  divider
-                  data-testid="forward-item"
-                  data-email={email}
-                >
-                  <Box className="u-flex-auto u-ov-hidden">
-                    <Typography className="u-breakword">{email}</Typography>
-                    {isExternal(email) ? (
-                      <Box className="u-flex u-flex-items-center">
-                        <Icon icon={Attention} size={12} aria-hidden />
-                        <SecondaryText variant="caption" className="u-ml-half">
-                          {t('forward.external')}
-                        </SecondaryText>
-                      </Box>
-                    ) : null}
-                  </Box>
-                  <Tooltip title={removeLabel}>
-                    <IconButton
-                      aria-label={removeLabel}
-                      disabled={isSaving}
+                  avatar={
+                    <SelectableAvatar
+                      size="small"
+                      checked={isSelected}
+                      label={t('forward.selectOf', { email })}
                       onClick={() => {
-                        handleRemove(email)
+                        setSelected(current =>
+                          current.includes(email)
+                            ? current.filter(other => other !== email)
+                            : [...current, email]
+                        )
                       }}
-                      data-testid="forward-remove-button"
-                    >
-                      <Icon icon={Trash} />
-                    </IconButton>
-                  </Tooltip>
-                </ListItem>
+                      avatar={
+                        <GradientAvatar
+                          text={email.slice(0, 2).toUpperCase()}
+                          colorKey={email}
+                          size={32}
+                          fontSize={14}
+                        />
+                      }
+                      data-testid="forward-select-checkbox"
+                    />
+                  }
+                  name={email}
+                  status={
+                    isExternal(email) ? (
+                      <Tooltip title={t('forward.external')}>
+                        <span className="u-flex">
+                          <Icon
+                            icon={InfoCircle}
+                            size={20}
+                            role="img"
+                            aria-label={t('forward.external')}
+                          />
+                        </span>
+                      </Tooltip>
+                    ) : (
+                      <Icon icon={Check} size={20} aria-hidden="true" />
+                    )
+                  }
+                  isSelected={isSelected}
+                  actions={
+                    selection.length > 0 ? null : (
+                      <span ref={focusFallbackRef}>
+                        <IconAction
+                          label={removeLabel}
+                          icon={Trash}
+                          tone="steel"
+                          size={36}
+                          disabled={isSaving}
+                          onClick={() => {
+                            handleRemove(email)
+                          }}
+                          data-testid="forward-remove-button"
+                        />
+                      </span>
+                    )
+                  }
+                  data-testid="forward-item"
+                  dataAttributes={{ 'data-email': email }}
+                />
               )
             })}
-          </List>
+          </Box>
         </>
       ) : null}
     </SettingsSectionLayout>

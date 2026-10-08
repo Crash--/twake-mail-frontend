@@ -1094,7 +1094,15 @@
     "listLabel": "Địa chỉ chuyển tiếp",
     "removeOf": "Xóa %{email}",
     "inputLabel": "Người nhận mới",
-    "recipientCount": "%{smart_count} người nhận"
+    "recipientCount": "%{smart_count} người nhận",
+    "selectAll": "Chọn tất cả",
+    "selectedCount": "Chọn %{count}",
+    "deselectAll": "Bỏ chọn tất cả (%{count})",
+    "remove": "Xóa",
+    "deleteAll": {
+      "message": "Bạn có chắc chắn muốn xóa những người nhận đó không? Thao tác này sẽ xóa họ khỏi danh sách."
+    },
+    "selectOf": "Chọn %{email}"
   },
   "vacation": {
     "enable": "Tự động trả lời tin nhắn.",

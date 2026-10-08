@@ -1094,7 +1094,15 @@
     "listLabel": "Adresses de transfert",
     "removeOf": "Retirer %{email}",
     "inputLabel": "Nouveau destinataire",
-    "recipientCount": "%{smart_count} destinataire |||| %{smart_count} destinataires"
+    "recipientCount": "%{smart_count} destinataire |||| %{smart_count} destinataires",
+    "selectAll": "Tout sélectionner",
+    "selectedCount": "%{count} sélectionnés",
+    "deselectAll": "Désélectionner (%{count})",
+    "remove": "Retirer",
+    "deleteAll": {
+      "message": "Voulez-vous vraiment supprimer ces destinataires ? Cela les retirera de la discussion."
+    },
+    "selectOf": "Sélectionner %{email}"
   },
   "vacation": {
     "enable": "Renvoie automatiquement une réponse aux messages reçus.",

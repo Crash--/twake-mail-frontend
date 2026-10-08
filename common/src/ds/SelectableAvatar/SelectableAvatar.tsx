@@ -35,8 +35,17 @@ export interface SelectableAvatarProps {
   onClick: (event: MouseEvent<HTMLElement>) => void
   /** Accessible name, e.g. "Select <subject>" */
   label: string
+  /**
+   * `small`: 32 px, a full blue disc once checked, as the recipients of
+   * tmail-flutter's forwarding (`ic_selected_recipient`)
+   */
+  size?: 'medium' | 'small'
   'data-testid'?: string
 }
+
+const SMALL_SX = { ...BUTTON_SX, width: 32, height: 32 } as const
+
+const SMALL_CHECKED_SX = { ...CHECKED_SX, width: 32, height: 32 } as const
 
 /** The avatar of a compact row, a checkbox selecting the row */
 export function SelectableAvatar({
@@ -44,19 +53,21 @@ export function SelectableAvatar({
   checked,
   onClick,
   label,
+  size = 'medium',
   'data-testid': testId
 }: SelectableAvatarProps): ReactElement {
+  const isSmall = size === 'small'
   return (
     <ButtonBase
       role="checkbox"
       aria-checked={checked}
       aria-label={label}
       onClick={onClick}
-      sx={BUTTON_SX}
+      sx={isSmall ? SMALL_SX : BUTTON_SX}
       data-testid={testId}
     >
       {checked ? (
-        <Box component="span" sx={CHECKED_SX}>
+        <Box component="span" sx={isSmall ? SMALL_CHECKED_SX : CHECKED_SX}>
           <Icon icon={Check} size={16} aria-hidden="true" />
         </Box>
       ) : (

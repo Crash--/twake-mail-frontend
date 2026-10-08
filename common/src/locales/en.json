@@ -1094,7 +1094,15 @@
     "listLabel": "Forwarding addresses",
     "removeOf": "Remove %{email}",
     "inputLabel": "New recipient",
-    "recipientCount": "%{smart_count} recipient |||| %{smart_count} recipients"
+    "recipientCount": "%{smart_count} recipient |||| %{smart_count} recipients",
+    "selectAll": "Select all",
+    "selectedCount": "%{count} selected",
+    "deselectAll": "Deselect all (%{count})",
+    "remove": "Remove",
+    "deleteAll": {
+      "message": "Are you sure you want to remove those recipients? Doing this will remove them from the email chain."
+    },
+    "selectOf": "Select %{email}"
   },
   "vacation": {
     "enable": "Automatically reply to messages when they are received.",

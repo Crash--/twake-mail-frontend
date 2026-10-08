@@ -52,6 +52,16 @@ const SAME_WIDTH: PopperModifier = {
   }
 }
 const SCROLL_SX = { maxHeight: '60vh', overflowY: 'auto' } as const
+/** Inline, the field and its suggestions fill the room their parent gives */
+const INLINE_ROOT_SX = {
+  display: 'flex',
+  flexDirection: 'column',
+  flex: 1,
+  minHeight: 0
+} as const
+const INLINE_SX = { flex: 1, minHeight: 0, overflowY: 'auto', mt: 1 } as const
+/** `SearchBar` grows (`flex: auto`): inline, the suggestions take the room */
+const INLINE_FIELD_SX = { flex: 'none' } as const
 const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 const OPTION_SX = {
   display: 'flex',
@@ -132,6 +142,8 @@ export interface SearchComboboxProps {
   className?: string
   /** Receives `SearchComboboxActions`, as MUI's `action` props */
   actions?: Ref<SearchComboboxActions>
+  /** The suggestions always show under the field, not in a popup */
+  inline?: boolean
   testIds?: {
     input?: string
     clear?: string
@@ -176,6 +188,9 @@ function fieldSx(isOpen: boolean): SxProps<Theme> {
  *   left out and the field stays collapsed (`aria-expanded="false"`);
  * - a right click on the field focuses it (tmail-flutter does), the
  *   browser menu still opens.
+ *
+ * `inline`, in a dialog of its own (`Spotlight`), the suggestions are always
+ * shown under the field, in its flow, and Escape is left to the dialog.
  */
 export function SearchCombobox({
   value,
@@ -192,6 +207,7 @@ export function SearchCombobox({
   onOpenChange,
   className,
   actions,
+  inline = false,
   testIds = {},
   'data-testid': testId
 }: SearchComboboxProps): ReactElement {
@@ -220,7 +236,7 @@ export function SearchCombobox({
   )
   const hasOptions = options.length > 0
   const hasContent = hasOptions || header !== undefined
-  const isShown = isOpen && hasContent
+  const isShown = (isOpen || inline) && hasContent
   // Expanded means the listbox is shown: a popup holding only the header
   // (e.g. quick filters under an empty field) leaves it collapsed
   const isExpanded = isShown && hasOptions
@@ -282,7 +298,7 @@ export function SearchCombobox({
         }
         break
       case 'Escape':
-        if (isShown) {
+        if (isShown && !inline) {
           event.preventDefault()
           event.stopPropagation()
           close()
@@ -330,20 +346,55 @@ export function SearchCombobox({
     event.preventDefault()
   }
 
+  // Inline, the suggestions follow the field in its flow; otherwise they pop
+  // up over the page, from behind the field
+  const frame = (content: ReactNode): ReactNode =>
+    inline ? (
+      isShown ? (
+        <Box sx={INLINE_SX} onMouseDown={keepFocus}>
+          <Divider />
+          {content}
+        </Box>
+      ) : null
+    ) : (
+      <Popper
+        open={isShown}
+        anchorEl={anchor}
+        placement="bottom-start"
+        disablePortal
+        popperOptions={{ strategy: 'fixed' }}
+        modifiers={[
+          { name: 'offset', options: { offset: [0, -fieldHeight] } },
+          SAME_WIDTH
+        ]}
+        sx={POPUP_SX}
+      >
+        <Paper
+          elevation={8}
+          sx={{ borderRadius: `${PANEL_RADIUS}px`, pt: `${fieldHeight}px` }}
+          onMouseDown={keepFocus}
+        >
+          <Divider />
+          <Box sx={SCROLL_SX}>{content}</Box>
+        </Paper>
+      </Popper>
+    )
+
   return (
     <Box
       ref={rootRef}
       className={className}
+      sx={inline ? INLINE_ROOT_SX : undefined}
       onBlur={handleBlur}
       onContextMenu={handleContextMenu}
       data-testid={testId}
     >
       <SearchBar
         ref={anchorRef}
-        size="small"
+        size={inline ? 'large' : 'small'}
         elevation={0}
         disabledFocus
-        sx={fieldSx(isShown)}
+        sx={inline ? INLINE_FIELD_SX : fieldSx(isShown)}
         className="u-w-100"
         placeholder={label}
         value={value}
@@ -387,115 +438,97 @@ export function SearchCombobox({
           }
         }}
       />
-      <Popper
-        open={isShown}
-        anchorEl={anchor}
-        placement="bottom-start"
-        disablePortal
-        popperOptions={{ strategy: 'fixed' }}
-        modifiers={[
-          { name: 'offset', options: { offset: [0, -fieldHeight] } },
-          SAME_WIDTH
-        ]}
-        sx={POPUP_SX}
-      >
-        <Paper
-          elevation={8}
-          sx={{ borderRadius: `${PANEL_RADIUS}px`, pt: `${fieldHeight}px` }}
-          onMouseDown={keepFocus}
-        >
-          <Divider />
-          <Box sx={SCROLL_SX}>
-            {header}
-            {hasOptions ? (
-              <Box
-                component="ul"
-                id={listboxId}
-                role="listbox"
-                aria-label={listLabel}
-                sx={LIST_SX}
-                data-testid={testIds.listbox}
-              >
-                {groups.map(group =>
-                  group.options.length === 0 ? null : (
+      {frame(
+        <>
+          {header}
+          {hasOptions ? (
+            <Box
+              component="ul"
+              id={listboxId}
+              role="listbox"
+              aria-label={listLabel}
+              sx={LIST_SX}
+              data-testid={testIds.listbox}
+            >
+              {groups.map(group =>
+                group.options.length === 0 ? null : (
+                  <Box
+                    component="li"
+                    key={group.id}
+                    role="presentation"
+                    className="u-db"
+                  >
+                    {group.isLabelHidden === true ? (
+                      <Divider component="div" aria-hidden="true" />
+                    ) : null}
                     <Box
-                      component="li"
-                      key={group.id}
-                      role="presentation"
-                      className="u-db"
+                      component="ul"
+                      role="group"
+                      aria-labelledby={
+                        group.label === null ? undefined : `${id}-${group.id}`
+                      }
+                      sx={LIST_SX}
                     >
-                      {group.isLabelHidden === true ? (
-                        <Divider component="div" aria-hidden="true" />
-                      ) : null}
-                      <Box
-                        component="ul"
-                        role="group"
-                        aria-labelledby={
-                          group.label === null ? undefined : `${id}-${group.id}`
-                        }
-                        sx={LIST_SX}
-                      >
-                        {group.label === null ? null : (
-                          <Typography
-                            component="li"
-                            role="presentation"
-                            id={`${id}-${group.id}`}
-                            variant="body2"
-                            className={
-                              group.isLabelHidden === true
-                                ? 'u-visuallyhidden'
-                                : undefined
-                            }
-                            sx={HEADING_SX}
-                          >
-                            {group.label}
-                          </Typography>
-                        )}
-                        {group.options.map(option => (
-                          // Not focusable: the field keeps the focus and
-                          // points at the active option, the keyboard acts
-                          // from there (aria-activedescendant)
-                          <Box
-                            component="li"
-                            key={option.id}
-                            id={optionId(option)}
-                            role="option"
-                            aria-selected={active?.id === option.id}
-                            sx={OPTION_SX}
-                            onClick={() => {
-                              select(option)
-                            }}
-                            data-testid={option['data-testid']}
-                          >
-                            {option.icon}
-                            <Box className="u-flex-auto u-ov-hidden">
-                              <Typography noWrap>{option.label}</Typography>
-                              {option.secondary === undefined ? null : (
-                                <Typography
-                                  variant="body2"
-                                  noWrap
-                                  color="text.primary"
-                                >
-                                  {option.secondary}
-                                </Typography>
-                              )}
-                            </Box>
-                            {option.end === undefined ? null : (
-                              <Box sx={END_SX} aria-hidden="true">
-                                {option.end}
-                              </Box>
+                      {group.label === null ? null : (
+                        <Typography
+                          component="li"
+                          role="presentation"
+                          id={`${id}-${group.id}`}
+                          variant="body2"
+                          className={
+                            group.isLabelHidden === true
+                              ? 'u-visuallyhidden'
+                              : undefined
+                          }
+                          sx={HEADING_SX}
+                        >
+                          {group.label}
+                        </Typography>
+                      )}
+                      {group.options.map(option => (
+                        // Not focusable: the field keeps the focus and
+                        // points at the active option, the keyboard acts
+                        // from there (aria-activedescendant)
+                        <Box
+                          component="li"
+                          key={option.id}
+                          id={optionId(option)}
+                          role="option"
+                          aria-selected={active?.id === option.id}
+                          sx={OPTION_SX}
+                          onClick={() => {
+                            select(option)
+                          }}
+                          data-testid={option['data-testid']}
+                        >
+                          {option.icon}
+                          <Box className="u-flex-auto u-ov-hidden">
+                            <Typography noWrap>{option.label}</Typography>
+                            {option.secondary === undefined ? null : (
+                              <Typography
+                                variant="body2"
+                                noWrap
+                                color="text.primary"
+                              >
+                                {option.secondary}
+                              </Typography>
                             )}
                           </Box>
-                        ))}
-                      </Box>
+                          {option.end === undefined ? null : (
+                            <Box sx={END_SX} aria-hidden="true">
+                              {option.end}
+                            </Box>
+                          )}
+                        </Box>
+                      ))}
                     </Box>
-                  )
-                )}
-              </Box>
-            ) : null}
-          </Box>
-        </Paper>
-      </Popper>
+                  </Box>
+                )
+              )}
+            </Box>
+          ) : null}
+        </>
+      )}
       {/* Always mounted: a live region only announces changes */}
       <Box role="status" className="u-visuallyhidden">
         {isShown ? status : null}

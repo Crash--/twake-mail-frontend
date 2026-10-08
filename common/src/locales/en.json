@@ -521,10 +521,7 @@
       "retry": "Retry",
       "copy": "Copy",
       "copied": "Result copied to clipboard",
-      "task": "What should the assistant write?",
-      "ask": "Ask",
-      "result": "Suggestion",
-      "emptyText": "Write or select some text first"
+      "result": "Suggestion"
     },
     "emoji": {
       "open": "Insert emoji",

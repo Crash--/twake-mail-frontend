@@ -521,10 +521,7 @@
       "retry": "Thử lại",
       "copy": "Sao chép",
       "copied": "Kết quả đã được sao chép vào clipboard",
-      "task": "Trợ lý nên viết gì?",
-      "ask": "Hỏi",
-      "result": "Đề xuất",
-      "emptyText": "Hãy viết hoặc chọn văn bản trước"
+      "result": "Đề xuất"
     },
     "emoji": {
       "open": "Chèn biểu tượng cảm xúc",

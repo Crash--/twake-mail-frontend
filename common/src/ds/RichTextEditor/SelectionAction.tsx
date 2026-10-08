@@ -96,9 +96,14 @@ export function SelectionAction({
           top: position.top,
           left: position.left,
           zIndex: 2,
-          bgcolor: 'background.paper',
-          boxShadow: 2,
-          '&:hover': { bgcolor: 'background.paper' }
+          // tmail-flutter's `InlineAiAssistButton`: a white disc, 6 px
+          // around a 12 px blue icon, a soft shadow
+          p: '6px',
+          color: '#0A84FF',
+          bgcolor: '#FFFFFF',
+          boxShadow:
+            '0 1.5px 3px rgba(66, 66, 68, 0.08), 0 3px 12px rgba(0, 0, 0, 0.06)',
+          '&:hover': { bgcolor: '#FFFFFF' }
         }}
       >
         {action.icon}

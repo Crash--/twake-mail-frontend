@@ -53,6 +53,8 @@ test.describe('AI composer assistant', () => {
     await page.keyboard.type('Hello Bob')
 
     await composer.root.getByTestId('composer-scribe-button').click()
+    // As tmail-flutter: the languages open beside "Translate"
+    await page.getByRole('menuitem', { name: 'Translate' }).click()
     await page.getByRole('menuitem', { name: 'French' }).click()
     const dialog = page.getByTestId('composer-scribe-dialog')
     await expect(dialog.getByRole('region', { name: 'Suggestion' })).toHaveText(
@@ -64,7 +66,7 @@ test.describe('AI composer assistant', () => {
     expect(asked[0]).toContain('Hello Bob')
 
     await dialog.getByRole('button', { name: 'Insert' }).click()
-    await expect(dialog).toBeHidden()
+    await expect(dialog).toHaveCount(0)
     await expect(composer.editor).toContainText('Bonjour Bob')
     await composer.deleteDraftButton.click()
   })
@@ -106,6 +108,7 @@ test.describe('AI composer assistant', () => {
     await page.keyboard.press('ControlOrMeta+a')
 
     await page.getByTestId('composer-scribe-selection-button').click()
+    await page.getByRole('menuitem', { name: 'Translate' }).click()
     await page.getByRole('menuitem', { name: 'French' }).click()
     const dialog = page.getByTestId('composer-scribe-dialog')
     await expect(dialog.getByRole('region', { name: 'Suggestion' })).toHaveText(
@@ -120,6 +123,41 @@ test.describe('AI composer assistant', () => {
     await dialog.getByRole('button', { name: 'Replace' }).click()
     await expect(composer.editor).toContainText('Bonjour Bob')
     await expect(composer.editor).not.toContainText('Hello Bob')
+    await composer.deleteDraftButton.click()
+  })
+
+  test('AI-07 with nothing written, the assistant offers "Help me write" alone, and writes from the prompt', async ({
+    page,
+    user
+  }) => {
+    await offerAssistant(page)
+    const asked: string[] = []
+    await page.route(ENDPOINT, async route => {
+      asked.push(route.request().postData() ?? '')
+      await route.fulfill({
+        json: {
+          choices: [{ message: { role: 'assistant', content: 'Hi Alice' } }]
+        }
+      })
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+
+    await composer.root.getByTestId('composer-scribe-button').click()
+    await expect(page.getByTestId('composer-scribe-actions')).toHaveCount(0)
+    const prompt = page.getByRole('textbox', { name: 'Help me write' })
+    await expect(prompt).toBeFocused()
+    await expectNoA11yViolations(page)
+    await prompt.fill('Greet Alice')
+    await prompt.press('Enter')
+
+    const dialog = page.getByRole('dialog', { name: 'Help me write' })
+    await expect(dialog.getByRole('region', { name: 'Suggestion' })).toHaveText(
+      'Hi Alice'
+    )
+    expect(asked[0]).toContain('Greet Alice')
+    await dialog.getByRole('button', { name: 'Insert' }).click()
+    await expect(composer.editor).toContainText('Hi Alice')
     await composer.deleteDraftButton.click()
   })
 

@@ -27,7 +27,6 @@ import {
 } from 'react'
 
 import {
-  AssistantColor,
   Attachment,
   Check,
   Cross,
@@ -35,6 +34,7 @@ import {
   Image as ImageIcon,
   Link as LinkIcon,
   Paperplane,
+  Sparkle,
   Trash,
   Warning
 } from '@/ds/FlutterIcons/FlutterIcons'
@@ -1708,13 +1708,7 @@ function LoadedComposerForm({
               hasScribe
                 ? {
                     label: t('composer.scribe.assistant'),
-                    icon: (
-                      <Icon
-                        icon={AssistantColor}
-                        size={20}
-                        aria-hidden="true"
-                      />
-                    ),
+                    icon: <Icon icon={Sparkle} size={12} aria-hidden="true" />,
                     onSelect: setScribeAnchor,
                     testId: 'composer-scribe-selection-button'
                   }

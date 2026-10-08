@@ -209,8 +209,8 @@ Conventions:
 | `composer-more-button` + `composer-save-draft-item` (phones only), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu, after the link in the bottom bar as tmail-flutter (`…`) | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
 | `composer-attach-file-button` / `composer-file-input` | "Attach file" and its hidden file input | `attach_file` |
 | `composer-drive-button` | "Attach from Drive" (`TDRIVE_ENABLED`, OIDC) | `attachFromDrive` |
-| `composer-scribe-button` + `composer-scribe-menu` (`composer-scribe-action` with `data-action`, `composer-scribe-write`) | the AI assistant (with `com:linagora:params:jmap:aibot`) and its menu | `AiAssistantButton` |
-| `composer-scribe-dialog` + `composer-scribe-task`, `composer-scribe-ask`, `composer-scribe-result`, `composer-scribe-error`, `composer-scribe-retry`, `composer-scribe-replace`, `composer-scribe-insert` | the answer of the assistant | `AiScribeSuggestion` |
+| `composer-scribe-button` + `composer-scribe-menu` (`composer-scribe-actions`: `ai-scribe-category` with `data-category`, its `ai-scribe-submenu` of `ai-scribe-action` with `data-action`; `composer-scribe-task` the "Help me write" prompt, `composer-scribe-task-send`) | the AI assistant (with `com:linagora:params:jmap:aibot`) and what it opens above its button, as tmail-flutter: the menu of categories (alone "Help me write" when nothing is written) | `AiAssistantButton`, `AiScribeContextMenu`, `AIScribeBar` |
+| `composer-scribe-dialog` + `ai-scribe-suggestion-loading`, `-result`, `-error`, `-copy`, `-retry`, `-improve` (with `composer-scribe-improve-menu`), `-replace`, `-insert`, `-close` | the answer of the assistant, a card above its button | `AiScribeSuggestionWidget` |
 | `drive-picker-dialog` + `drive-picker-frame`, `drive-picker-retry-button` | the Twake Drive picker: dialog "Twake Drive", its iframe, "Retry" after a failure | `DriveIntentWebViewModal` |
 | `composer-attachments` + `composer-attachment-item` (`data-status`: `uploading`, `done`, `failed`) + `composer-attachment-remove-button` | the attached files (a list named "Attachments (n)"), each removed (or its upload cancelled) by its button | `AttachmentItemComposerWidget` |
 | `composer-drop-zone` | the composer, where dropped files are attached | `dropFileHereToAttachThem` |
@@ -257,7 +257,7 @@ Conventions:
 | `error-reporting-setting-toggle` | switch of Settings > Preferences, "Send error reports", shown when error reporting is configured and the server keeps the setting (holds the `switch` input) | `errorReporting` option (`sentry-reporting`) |
 | `action-required-tag` (`action-required-tag-bar` on the opened email) | the "Action required" tag of an email, with a × on the opened one | `ActionRequiredTag`, `EmailActionRequiredTag` |
 | `ai-scribe-setting-toggle`, `ai-label-categorization-setting-toggle` | the AI options of Settings > Preferences | `PreferencesSettings` |
-| `composer-scribe-selection-button`, `composer-scribe-copy` | the assistant button under the selected text, the copy of its answer | `RichTextEditor` `selectionAction`, `ScribeMenu` |
+| `composer-scribe-selection-button` | the assistant button under the selected text (a white disc, a blue sparkle) | `InlineAiAssistButton` |
 | `email-list-item-open-in-new-tab` | hover action opening the email in a tab of its own (not on drafts and templates) | `open in new` hover action |
 | `email-list-item-move` | hover action asking for a folder, then moving the email | `move_to_mailbox` hover action |
 | `list-filter-slot` | phones: the place of the filter button in the top bar (`list-filter-button` and its menu are rendered there) | `mobile_filter_message_button` |

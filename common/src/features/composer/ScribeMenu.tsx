@@ -1,33 +1,44 @@
 import { Icon } from '@linagora/twake-icons'
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  IconButton,
-  ListSubheader,
-  Menu,
-  MenuItem,
-  TextField,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
-import {
   useEffect,
-  useId,
   useRef,
   useState,
-  type ReactElement,
-  type MouseEvent
+  type MouseEvent,
+  type ReactElement
 } from 'react'
 
-import { AssistantColor, Copy } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import { AiScribeBar } from '@/ds/AiScribeBar/AiScribeBar'
+import {
+  AiScribeMenu,
+  type AiScribeMenuCategory
+} from '@/ds/AiScribeMenu/AiScribeMenu'
+import { AiScribePopover } from '@/ds/AiScribePopover/AiScribePopover'
+import {
+  AiScribeSuggestion,
+  type AiScribeSuggestionState
+} from '@/ds/AiScribeSuggestion/AiScribeSuggestion'
+import {
+  AiBullets,
+  AiChangeTone,
+  AiEmojify,
+  AiGrammar,
+  AiImprove,
+  AiMoreCasual,
+  AiMoreDetail,
+  AiMorePolite,
+  AiMoreProfessional,
+  AiShorter,
+  AiTranslate,
+  AssistantColor,
+  Bottom,
+  CloseDialog,
+  Copy,
+  RetryArrows,
+  SendArrow,
+  Sparkle,
+  Warning
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -51,12 +62,27 @@ const CATEGORY_LABELS: Record<ScribeCategory, TranslationKey> = {
   translate: 'composer.scribe.translate'
 }
 
-const CATEGORIES: readonly ScribeCategory[] = [
-  'correct',
-  'improve',
-  'tone',
-  'translate'
+/** tmail-flutter's order (`AIScribeMenuCategory.values`) and icons */
+const CATEGORIES: readonly {
+  id: ScribeCategory
+  icon: AiScribeMenuCategory['icon']
+}[] = [
+  { id: 'correct', icon: AiGrammar },
+  { id: 'translate', icon: AiTranslate },
+  { id: 'tone', icon: AiChangeTone },
+  { id: 'improve', icon: AiImprove }
 ]
+
+/** The icons of the actions (`AIScribeMenuAction.getIcon`); none for a language */
+const ACTION_ICONS: Partial<Record<string, AiScribeMenuCategory['icon']>> = {
+  'make-shorter': AiShorter,
+  'expand-context': AiMoreDetail,
+  emojify: AiEmojify,
+  'transform-to-bullets': AiBullets,
+  'change-tone-professional': AiMoreProfessional,
+  'change-tone-casual': AiMoreCasual,
+  'change-tone-polite': AiMorePolite
+}
 
 /** What the assistant works on */
 export interface ScribeInput {
@@ -83,20 +109,16 @@ export interface ScribeMenuProps {
 
 type Request =
   | { kind: 'action'; action: ScribeAction; input: ScribeInput }
-  | { kind: 'write'; input: ScribeInput }
-
-type Answer =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'done'; text: string }
-  | { status: 'failed' }
+  | { kind: 'write'; task: string; input: ScribeInput }
 
 /**
- * The AI assistant of the composer, as tmail-flutter's scribe: a menu of
- * actions on the selection or on what the user wrote (correct, improve,
- * change the tone, translate) and "Help me write"; the answer shows in a
- * dialog, to insert or to replace the selection with, or to cancel.
- * Offered only when the server has an assistant
+ * The AI assistant of the composer, as tmail-flutter's scribe: its button
+ * opens, above it, the menu of the actions on the selection or on what the
+ * user wrote (correct, translate, change the tone, improve; the categories
+ * of several actions open them beside) and the "Help me write" prompt (alone
+ * when there is nothing written yet). The answer shows in a card above the
+ * button, to insert, to replace the selection with, to improve again, to
+ * copy, or to ask again. Offered only when the server has an assistant
  * (`com:linagora:params:jmap:aibot`).
  */
 export function ScribeMenu({
@@ -112,12 +134,17 @@ export function ScribeMenu({
   const { session, accountId } = useJmapSession()
   const endpoint = scribeEndpoint(session, accountId)
   const [isScribeOn] = useScribePreference()
-  const menuId = useId()
-  const titleId = useId()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+  // What the menu works on, read when it opens
+  const [menuInput, setMenuInput] = useState<ScribeInput | null>(null)
   const [request, setRequest] = useState<Request | null>(null)
-  const [task, setTask] = useState('')
-  const [answer, setAnswer] = useState<Answer>({ status: 'idle' })
+  const [answer, setAnswer] = useState<AiScribeSuggestionState>({
+    status: 'loading'
+  })
+  // The element the answer opened above
+  const [answerAnchor, setAnswerAnchor] = useState<HTMLElement | null>(null)
+  // "Improve": the menu again, on the answer
+  const [improveAnchor, setImproveAnchor] = useState<HTMLElement | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(
@@ -126,6 +153,15 @@ export function ScribeMenu({
     },
     []
   )
+
+  const menuAnchor = anchor ?? externalAnchor
+  const isMenuOpen = menuAnchor !== null
+  // The other button opened the menu: read what it works on, once
+  const [lastExternal, setLastExternal] = useState<HTMLElement | null>(null)
+  if (externalAnchor !== lastExternal) {
+    setLastExternal(externalAnchor)
+    if (externalAnchor !== null) setMenuInput(getInput())
+  }
 
   // Offered when the server has an assistant and the user did not hide it
   if (endpoint === null || !isScribeOn) return null
@@ -159,31 +195,48 @@ export function ScribeMenu({
   const messagesOf = (next: Request): ScribeMessage[] =>
     next.kind === 'action'
       ? actionMessages(next.action, next.input.text)
-      : writingMessages(task.trim(), next.input.text)
+      : writingMessages(next.task, next.input.text)
 
-  const handleAction = (action: ScribeAction): void => {
-    closeMenu()
-    const input = getInput()
-    if (input.text.trim() === '') {
-      notify({ message: t('composer.scribe.emptyText') })
-      return
-    }
-    const next: Request = { kind: 'action', action, input }
+  const run = (next: Request): void => {
     setRequest(next)
     ask(messagesOf(next))
   }
 
-  const handleWrite = (): void => {
-    closeMenu()
-    setTask('')
-    setAnswer({ status: 'idle' })
-    setRequest({ kind: 'write', input: getInput() })
-  }
-
-  const menuAnchor = anchor ?? externalAnchor
   const closeMenu = (): void => {
     setAnchor(null)
     onExternalClose?.()
+  }
+
+  const findAction = (actionId: string): ScribeAction | null =>
+    SCRIBE_ACTIONS.find(action => action.id === actionId) ?? null
+
+  const handleAction = (actionId: string): void => {
+    const action = findAction(actionId)
+    const input = menuInput ?? getInput()
+    setAnswerAnchor(menuAnchor)
+    closeMenu()
+    if (action !== null) run({ kind: 'action', action, input })
+  }
+
+  const handleWrite = (task: string): void => {
+    const input = menuInput ?? getInput()
+    setAnswerAnchor(menuAnchor)
+    closeMenu()
+    run({ kind: 'write', task, input })
+  }
+
+  // "Improve": the chosen action, on the answer
+  const handleImproveAction = (actionId: string): void => {
+    const action = findAction(actionId)
+    setImproveAnchor(null)
+    if (action === null || answer.status !== 'done' || request === null) {
+      return
+    }
+    run({
+      kind: 'action',
+      action,
+      input: { text: answer.text, isSelection: request.input.isSelection }
+    })
   }
 
   // The clipboard of the window clicked in: the menu may be on the overlay of
@@ -205,7 +258,8 @@ export function ScribeMenu({
   const handleClose = (): void => {
     abortRef.current?.abort()
     setRequest(null)
-    setAnswer({ status: 'idle' })
+    setImproveAnchor(null)
+    setAnswer({ status: 'loading' })
   }
 
   const handleRetry = (): void => {
@@ -222,173 +276,122 @@ export function ScribeMenu({
     handleClose()
   }
 
-  const title =
-    request === null
-      ? ''
-      : request.kind === 'write'
-        ? t('composer.scribe.helpMeWrite')
-        : t(request.action.label)
+  const categories: AiScribeMenuCategory[] = CATEGORIES.map(category => ({
+    id: category.id,
+    label: t(CATEGORY_LABELS[category.id]),
+    icon: category.icon,
+    actions: SCRIBE_ACTIONS.filter(
+      action => action.category === category.id
+    ).map(action => ({
+      id: action.id,
+      label: t(action.label),
+      icon: ACTION_ICONS[action.id] ?? null
+    }))
+  }))
+
+  // tmail-flutter's `getFullLabel`: "Change tone > More casual"
+  const titleOf = (next: Request): string => {
+    if (next.kind === 'write') return t('composer.scribe.helpMeWrite')
+    const { action } = next
+    const isAlone =
+      SCRIBE_ACTIONS.filter(other => other.category === action.category)
+        .length < 2
+    return isAlone
+      ? t(action.label)
+      : `${t(CATEGORY_LABELS[action.category])} > ${t(action.label)}`
+  }
+
+  const hasText = (menuInput?.text.trim() ?? '') !== ''
+  const menuLabel = t('composer.scribe.assistant')
 
   return (
     <>
       <ActionIconButton
-        label={t('composer.scribe.assistant')}
+        label={menuLabel}
         aria-haspopup="true"
-        aria-controls={menuAnchor ? menuId : undefined}
         aria-expanded={anchor ? 'true' : undefined}
         onClick={event => {
+          // Read once per opening: the selection may change while it is open
+          setMenuInput(getInput())
           setAnchor(event.currentTarget)
         }}
         className="u-ml-half"
         data-testid="composer-scribe-button"
       >
-        <Icon icon={AssistantColor} size={20} aria-hidden="true" />
+        <Icon icon={AssistantColor} size={24} aria-hidden="true" />
       </ActionIconButton>
-      <Menu
-        id={menuId}
+      <AiScribePopover
+        open={isMenuOpen}
         anchorEl={menuAnchor}
-        open={menuAnchor !== null}
         onClose={closeMenu}
+        label={menuLabel}
         data-testid="composer-scribe-menu"
       >
-        {CATEGORIES.flatMap(category => [
-          <ListSubheader key={`header-${category}`} role="presentation">
-            {t(CATEGORY_LABELS[category])}
-          </ListSubheader>,
-          ...SCRIBE_ACTIONS.filter(action => action.category === category).map(
-            action => (
-              <MenuItem
-                key={action.id}
-                onClick={() => {
-                  handleAction(action)
-                }}
-                data-testid="composer-scribe-action"
-                data-action={action.id}
-              >
-                {t(action.label)}
-              </MenuItem>
-            )
-          )
-        ])}
-        <Divider />
-        <MenuItem onClick={handleWrite} data-testid="composer-scribe-write">
-          {t('composer.scribe.helpMeWrite')}
-        </MenuItem>
-      </Menu>
-      <Dialog
+        {/* As tmail-flutter: nothing to work on yet, only the prompt */}
+        {hasText ? (
+          <AiScribeMenu
+            label={menuLabel}
+            categories={categories}
+            onSelect={handleAction}
+            data-testid="composer-scribe-actions"
+          />
+        ) : null}
+        <AiScribeBar
+          label={t('composer.scribe.helpMeWrite')}
+          sendLabel={t('composer.send')}
+          sendIcon={SendArrow}
+          onSubmit={handleWrite}
+          autoFocus
+          data-testid="composer-scribe-task"
+        />
+      </AiScribePopover>
+      <AiScribeSuggestion
         open={request !== null}
+        anchorEl={answerAnchor}
+        title={request === null ? '' : titleOf(request)}
+        state={answer}
+        labels={{
+          close: t('common.close'),
+          generating: t('composer.scribe.generating'),
+          failed: t('composer.scribe.failed'),
+          result: t('composer.scribe.result'),
+          copy: t('composer.scribe.copy'),
+          retry: t('composer.scribe.retry'),
+          improve: t('composer.scribe.improve'),
+          replace: t('composer.scribe.replace'),
+          insert: t('composer.scribe.insert')
+        }}
+        icons={{
+          sparkle: Sparkle,
+          warning: Warning,
+          close: CloseDialog,
+          copy: Copy,
+          retry: RetryArrows,
+          chevron: Bottom
+        }}
         onClose={handleClose}
-        aria-labelledby={titleId}
+        onCopy={handleCopy}
+        onRetry={handleRetry}
+        onImprove={setImproveAnchor}
+        onReplace={request?.input.isSelection === true ? handleReplace : null}
+        onInsert={handleInsert}
         data-testid="composer-scribe-dialog"
+      />
+      <AiScribePopover
+        open={improveAnchor !== null}
+        anchorEl={improveAnchor}
+        onClose={() => {
+          setImproveAnchor(null)
+        }}
+        label={t('composer.scribe.improve')}
+        data-testid="composer-scribe-improve-menu"
       >
-        <DialogTitle id={titleId}>
-          {`${t('composer.scribe.assistant')} · ${title}`}
-        </DialogTitle>
-        <DialogContent>
-          {request?.kind === 'write' ? (
-            <Box className="u-flex u-flex-items-end u-mb-1">
-              <TextField
-                label={t('composer.scribe.task')}
-                value={task}
-                onChange={event => {
-                  setTask(event.target.value)
-                }}
-                multiline
-                fullWidth
-                autoFocus
-                data-testid="composer-scribe-task"
-              />
-              <Button
-                variant="outlined"
-                color="inherit"
-                disabled={task.trim() === '' || answer.status === 'loading'}
-                onClick={() => {
-                  ask(messagesOf(request))
-                }}
-                className="u-ml-half"
-                data-testid="composer-scribe-ask"
-              >
-                {t('composer.scribe.ask')}
-              </Button>
-            </Box>
-          ) : null}
-          <Box role="status" aria-live="polite">
-            {answer.status === 'loading' ? (
-              <Box className="u-flex u-flex-items-center">
-                <CircularProgress size={20} aria-hidden="true" />
-                <Typography className="u-ml-half">
-                  {t('composer.scribe.generating')}
-                </Typography>
-              </Box>
-            ) : null}
-          </Box>
-          {answer.status === 'failed' ? (
-            <Alert severity="error" data-testid="composer-scribe-error">
-              {t('composer.scribe.failed')}
-            </Alert>
-          ) : null}
-          {answer.status === 'done' ? (
-            <Box
-              role="region"
-              aria-label={t('composer.scribe.result')}
-              tabIndex={0}
-              className="u-p-1 u-breakword"
-              data-testid="composer-scribe-result"
-            >
-              {answer.text.split('\n').map((line, index) => (
-                // The lines of a fixed answer: their position is their identity
-                <Typography key={`${index}-${line}`}>{line}</Typography>
-              ))}
-            </Box>
-          ) : null}
-        </DialogContent>
-        <DialogActions>
-          <Button variant="outlined" color="inherit" onClick={handleClose}>
-            {t('common.cancel')}
-          </Button>
-          {answer.status === 'failed' ? (
-            <Button
-              variant="outlined"
-              color="inherit"
-              onClick={handleRetry}
-              data-testid="composer-scribe-retry"
-            >
-              {t('composer.scribe.retry')}
-            </Button>
-          ) : null}
-          {answer.status === 'done' && request?.input.isSelection === true ? (
-            <Button
-              variant="outlined"
-              color="inherit"
-              onClick={handleReplace}
-              data-testid="composer-scribe-replace"
-            >
-              {t('composer.scribe.replace')}
-            </Button>
-          ) : null}
-          {answer.status === 'done' ? (
-            <Tooltip title={t('composer.scribe.copy')}>
-              <IconButton
-                aria-label={t('composer.scribe.copy')}
-                onClick={handleCopy}
-                data-testid="composer-scribe-copy"
-              >
-                <Icon icon={Copy} size={20} aria-hidden="true" />
-              </IconButton>
-            </Tooltip>
-          ) : null}
-          {answer.status === 'done' ? (
-            <Button
-              variant="contained"
-              onClick={handleInsert}
-              autoFocus
-              data-testid="composer-scribe-insert"
-            >
-              {t('composer.scribe.insert')}
-            </Button>
-          ) : null}
-        </DialogActions>
-      </Dialog>
+        <AiScribeMenu
+          label={t('composer.scribe.improve')}
+          categories={categories}
+          onSelect={handleImproveAction}
+        />
+      </AiScribePopover>
     </>
   )
 }

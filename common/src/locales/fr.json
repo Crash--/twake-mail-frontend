@@ -521,10 +521,7 @@
       "retry": "Réessayer",
       "copy": "Copier",
       "copied": "Résultat copié dans le presse-papiers",
-      "task": "Que doit écrire l'assistant ?",
-      "ask": "Demander",
-      "result": "Suggestion",
-      "emptyText": "Écrivez ou sélectionnez d'abord du texte"
+      "result": "Suggestion"
     },
     "emoji": {
       "open": "Insérer un emoji",

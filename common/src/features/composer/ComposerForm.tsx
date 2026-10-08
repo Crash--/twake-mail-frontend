@@ -1566,13 +1566,7 @@ function LoadedComposerForm({
   )
 
   return (
-    <FileDropZone
-      label={t('composer.attachments.dropHere')}
-      onFiles={files.addFiles}
-      isForChild={isImageDropOnBody}
-      className="u-flex u-flex-column u-flex-auto u-ov-hidden"
-      data-testid="composer-drop-zone"
-    >
+    <Box className="u-flex u-flex-column u-flex-auto u-ov-hidden">
       {/* Ctrl+Enter sends, from any field of the message */}
       <div
         role="presentation"
@@ -1694,62 +1688,75 @@ function LoadedComposerForm({
             />
           </Box>
         ) : null}
-        {/* Focusing the body folds the recipients, as the subject does */}
-        <Box
+        {/* Focusing the body folds the recipients, as the subject does.
+            Files dropped on the body are attached, as tmail-flutter (images
+            dropped in the text go inline) */}
+        <FileDropZone
+          label={t('composer.attachments.dropHere')}
+          onFiles={files.addFiles}
+          isForChild={isImageDropOnBody}
           className="u-flex u-flex-column u-flex-auto u-ov-hidden"
-          onFocus={event => {
-            if (event.target.getAttribute('role') === 'textbox') {
-              collapseRecipients()
-            }
-          }}
+          data-testid="composer-drop-zone"
         >
-          <RichTextEditor
-            labels={labels}
-            content={content.html}
-            colors={colors}
-            fontSizes={fontSizes}
-            fontFamilies={fontFamilies}
-            onImageFiles={handleImageFiles}
-            htmlBlock={{
-              buildFrameDocument: html =>
-                buildBlockDocument(
-                  `<div data-html-block="quote">${resolveCidSources(html, cid =>
-                    images.urlFor(cid)
-                  )}</div>`
-                ),
-              frameTitle: () => t('composer.quote.frameTitle'),
-              editLabel: kind =>
-                kind === 'quote' ? t('composer.quote.edit') : null,
-              editableHtml: (_kind, html) =>
-                editableQuoteHtml(html, cid => images.urlFor(cid)),
-              editTestId: htmlBlockEditTestId,
-              toggleLabel: kind =>
-                kind === 'signature' ? t('composer.signature') : null,
-              toggleTestId: kind =>
-                kind === 'signature' ? 'composer-signature-toggle' : undefined
+          <Box
+            className="u-flex u-flex-column u-flex-auto u-ov-hidden"
+            onFocus={event => {
+              if (event.target.getAttribute('role') === 'textbox') {
+                collapseRecipients()
+              }
             }}
-            selectionAction={
-              hasScribe
-                ? {
-                    label: t('composer.scribe.assistant'),
-                    icon: <Icon icon={Sparkle} size={12} aria-hidden="true" />,
-                    onSelect: setScribeAnchor,
-                    testId: 'composer-scribe-selection-button'
-                  }
-                : undefined
-            }
-            footerBlockKinds={['signature', 'quote']}
-            autoFocus={autoFocus && opensOnText}
-            fill
-            isToolbarBelow
-            isToolbarShown={isToolbarShown}
-            hasInsertButtons={false}
-            actions={editorActions}
-            onReady={handleEditorReady}
-            onUpdate={handleEditorUpdate}
-            testIds={EDITOR_TEST_IDS}
-          />
-        </Box>
+          >
+            <RichTextEditor
+              labels={labels}
+              content={content.html}
+              colors={colors}
+              fontSizes={fontSizes}
+              fontFamilies={fontFamilies}
+              onImageFiles={handleImageFiles}
+              htmlBlock={{
+                buildFrameDocument: html =>
+                  buildBlockDocument(
+                    `<div data-html-block="quote">${resolveCidSources(
+                      html,
+                      cid => images.urlFor(cid)
+                    )}</div>`
+                  ),
+                frameTitle: () => t('composer.quote.frameTitle'),
+                editLabel: kind =>
+                  kind === 'quote' ? t('composer.quote.edit') : null,
+                editableHtml: (_kind, html) =>
+                  editableQuoteHtml(html, cid => images.urlFor(cid)),
+                editTestId: htmlBlockEditTestId,
+                toggleLabel: kind =>
+                  kind === 'signature' ? t('composer.signature') : null,
+                toggleTestId: kind =>
+                  kind === 'signature' ? 'composer-signature-toggle' : undefined
+              }}
+              selectionAction={
+                hasScribe
+                  ? {
+                      label: t('composer.scribe.assistant'),
+                      icon: (
+                        <Icon icon={Sparkle} size={12} aria-hidden="true" />
+                      ),
+                      onSelect: setScribeAnchor,
+                      testId: 'composer-scribe-selection-button'
+                    }
+                  : undefined
+              }
+              footerBlockKinds={['signature', 'quote']}
+              autoFocus={autoFocus && opensOnText}
+              fill
+              isToolbarBelow
+              isToolbarShown={isToolbarShown}
+              hasInsertButtons={false}
+              actions={editorActions}
+              onReady={handleEditorReady}
+              onUpdate={handleEditorUpdate}
+              testIds={EDITOR_TEST_IDS}
+            />
+          </Box>
+        </FileDropZone>
         <Box className="u-flex-shrink-0">
           <ComposerAttachmentsList files={files} />
           {sendError === null ? null : (
@@ -1814,7 +1821,7 @@ function LoadedComposerForm({
           }}
         />
       </div>
-    </FileDropZone>
+    </Box>
   )
 }
 

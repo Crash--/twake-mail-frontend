@@ -63,9 +63,11 @@ describe('focusIndicatorThemeOptions', () => {
   })
 
   it('leaves alone the headings and regions a script focuses', () => {
-    expect(focusSelector(globalStyles('discreet'))).toContain(
+    const scriptFocused =
       ':is(h1, h2, h3, h4, h5, h6, [data-focus-target])[tabindex="-1"]'
-    )
+    const styles = globalStyles('discreet')
+    expect(focusSelector(styles)).toContain(scriptFocused)
+    expect(styles[`${scriptFocused}:focus`]).toEqual({ outline: 'none' })
     expect(SCRIPT_FOCUS_TARGET).toEqual({ 'data-focus-target': '' })
   })
 })

@@ -44,6 +44,10 @@ export const FOCUS_RING_INSET: CSSObject = {
  */
 export const SCRIPT_FOCUS_TARGET = { 'data-focus-target': '' } as const
 
+/** Headings and regions that take the focus from a script only */
+const SCRIPT_FOCUSED =
+  ':is(h1, h2, h3, h4, h5, h6, [data-focus-target])[tabindex="-1"]'
+
 /** Rows that fill their list: the outline is drawn inside */
 const INSET_ROWS =
   '.MuiMenuItem-root, .MuiListItemButton-root, .MuiTab-root, [role="treeitem"], [role="option"]'
@@ -82,8 +86,10 @@ export function focusIndicatorThemeOptions(
             '--focus-ring-offset': '2px'
           },
           [INSET_ROWS]: FOCUS_RING_INSET,
-          [`:focus-visible:where(:not(${TEXT_FIELDS[focusIndicator]}, :is(h1, h2, h3, h4, h5, h6, [data-focus-target])[tabindex="-1"]))`]:
+          [`:focus-visible:where(:not(${TEXT_FIELDS[focusIndicator]}, ${SCRIPT_FOCUSED}))`]:
             FOCUS_RING,
+          // Nor the outline of the browser
+          [`${SCRIPT_FOCUSED}:focus`]: { outline: 'none' },
           // Enhanced, a MUI field is outlined around its box
           ...(focusIndicator === 'enhanced'
             ? {

@@ -165,7 +165,7 @@ function EmailContent({
                   </time>
                 </MessageText>
               </SenderLine>
-              <InlineGroup gap={2}>
+              <InlineGroup gap={0.5}>
                 {recipientLines.map(({ label, addresses, testId }, index) => (
                   <AddressLine
                     key={testId}

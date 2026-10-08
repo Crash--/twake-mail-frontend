@@ -3,7 +3,6 @@ import { useState, type ReactElement } from 'react'
 
 import {
   Archive,
-  Dots,
   MoveEmail,
   Reply,
   Star,
@@ -11,6 +10,7 @@ import {
   Trash
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,
@@ -80,7 +80,13 @@ export function EmailViewActions({
   label
 }: EmailViewActionsProps): ReactElement {
   const { t } = useI18n()
-  const isPhone = useScreenSize() === 'mobile'
+  const screenSize = useScreenSize()
+  const isPhone = screenSize === 'mobile'
+  // As tmail-flutter's messages of a conversation: "Reply" and "More"
+  // below the desktop size, move, star and delete between them on desktops
+  const isMessageCompact = variant === 'message' && screenSize !== 'desktop'
+  const showsReply = variant === 'message' || !isPhone
+  const showsShortcuts = !isPhone && !isMessageCompact
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
   const runAction = useRunViewedEmailAction()
@@ -114,7 +120,7 @@ export function EmailViewActions({
       className="u-flex u-flex-items-center u-flex-justify-end"
       data-testid="email-view-actions"
     >
-      {isPhone || replies.actions.length === 0 ? null : (
+      {!showsReply || replies.actions.length === 0 ? null : (
         <IconAction
           tone="steel"
           label={replyLabel}
@@ -125,7 +131,7 @@ export function EmailViewActions({
           data-testid="email-view-action-reply"
         />
       )}
-      {isPhone || move === undefined ? null : (
+      {!showsShortcuts || move === undefined ? null : (
         <IconAction
           tone="steel"
           label={t(move.label)}
@@ -136,17 +142,19 @@ export function EmailViewActions({
           data-testid={`email-view-action-${move.id}`}
         />
       )}
-      <IconAction
-        label={starLabel}
-        icon={isStarred ? Star : StarOutline}
-        tone={isStarred ? 'starred' : 'steel'}
-        aria-pressed={isStarred}
-        onClick={() => {
-          handleRun(isStarred ? 'unstar' : 'star')
-        }}
-        data-testid="email-view-star-button"
-      />
-      {isPhone || deletion === undefined ? null : (
+      {isMessageCompact ? null : (
+        <IconAction
+          label={starLabel}
+          icon={isStarred ? Star : StarOutline}
+          tone={isStarred ? 'starred' : 'steel'}
+          aria-pressed={isStarred}
+          onClick={() => {
+            handleRun(isStarred ? 'unstar' : 'star')
+          }}
+          data-testid="email-view-star-button"
+        />
+      )}
+      {!showsShortcuts || deletion === undefined ? null : (
         <IconAction
           tone="steel"
           label={t(deletion.label)}
@@ -160,7 +168,7 @@ export function EmailViewActions({
       <IconAction
         tone="steel"
         label={moreLabel}
-        icon={Dots}
+        icon={MoreVerticalIcon}
         aria-haspopup="menu"
         aria-expanded={menuAnchor !== null}
         onClick={event => {

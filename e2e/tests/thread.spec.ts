@@ -472,12 +472,9 @@ test.describe('THR thread detail', () => {
       )
       await expectNoA11yViolations(page)
 
-      // The star of the message stars it alone
-      await conversation.starButton(carol).click()
-      await expect(conversation.starButton(carol)).toHaveAttribute(
-        'aria-pressed',
-        'true'
-      )
+      // The star of the message stars it alone (its "More" below the
+      // desktop size, as tmail-flutter)
+      await conversation.toggleStar(carol)
       await expect
         .poll(async () => (await jmap.getEmail(reply.id)).keywords.$flagged)
         .toBe(true)

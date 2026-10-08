@@ -1,7 +1,7 @@
 import { Icon } from '@linagora/twake-icons'
 import { Skeleton, Typography } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
-import { useRef, type ReactElement } from 'react'
+import { useRef, useState, type ReactElement } from 'react'
 
 import {
   firstLetterOf,
@@ -39,7 +39,7 @@ import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredT
 import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
-import { useI18n } from '@common/i18n/useI18n'
+import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import { CollapsedMessageActions } from './CollapsedMessageActions'
 import { ConversationDraftActions } from './ConversationDraftActions'
@@ -109,6 +109,16 @@ interface ExpandedBodyProps {
   onRemoteContentShown: () => void
 }
 
+const RECIPIENT_LINES: readonly {
+  label: TranslationKey
+  field: 'to' | 'cc' | 'bcc'
+  testId: string
+}[] = [
+  { label: 'email.to', field: 'to', testId: 'conversation-message-to' },
+  { label: 'email.cc', field: 'cc', testId: 'conversation-message-cc' },
+  { label: 'email.bcc', field: 'bcc', testId: 'conversation-message-bcc' }
+]
+
 /** Avatar (32) and the gap after it (10): the column of the name */
 const INDENT = 42
 
@@ -131,6 +141,11 @@ function ExpandedBody({
   const sender = detail.from?.[0] ?? null
   // A draft is not read but written: the composer edits it
   const isDraft = hasKeyword(detail, DRAFT)
+  const [isRecipientsOpen, setIsRecipientsOpen] = useState(false)
+  const recipientLines = RECIPIENT_LINES.map(line => ({
+    ...line,
+    addresses: detail[line.field]
+  })).filter(line => (line.addresses ?? []).length > 0)
   return (
     <>
       <Indent size={INDENT} pullUp={14}>
@@ -146,24 +161,26 @@ function ExpandedBody({
           }
           data-testid="conversation-message-sender"
         />
-        <AddressLine
-          label="email.to"
-          addresses={detail.to}
-          variant="full"
-          data-testid="conversation-message-to"
-        />
-        <AddressLine
-          label="email.cc"
-          addresses={detail.cc}
-          variant="full"
-          data-testid="conversation-message-cc"
-        />
-        <AddressLine
-          label="email.bcc"
-          addresses={detail.bcc}
-          variant="full"
-          data-testid="conversation-message-bcc"
-        />
+        {/* As tmail-flutter: the names on one line, the addresses once
+            the chevron is open */}
+        <InlineGroup gap={0.5}>
+          {recipientLines.map(({ label, addresses, testId }, index) => (
+            <AddressLine
+              key={testId}
+              label={label}
+              addresses={addresses}
+              isOpen={isRecipientsOpen}
+              onToggle={
+                index === recipientLines.length - 1
+                  ? () => {
+                      setIsRecipientsOpen(current => !current)
+                    }
+                  : null
+              }
+              data-testid={testId}
+            />
+          ))}
+        </InlineGroup>
       </Indent>
       <EmailActionRequiredTag email={detail} mailboxId={mailboxId} />
       <EmailLabels emails={[detail]} mailboxId={mailboxId} />
@@ -236,6 +253,7 @@ function ExpandedMessageActions({
         openedMailboxId={openedMailboxId}
         onAction={onAction}
         label={label}
+        isExpanded
       />
     )
   }

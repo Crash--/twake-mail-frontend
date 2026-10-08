@@ -13,5 +13,11 @@ describe('SCROLLBAR_CSS', () => {
     expect(SCROLLBAR_CSS['*:hover::-webkit-scrollbar-thumb']).toEqual({
       backgroundColor: '#C1C1C1'
     })
+    // No arrows, and Chromium is not given the standard properties, which
+    // would replace this look by its own bar
+    expect(SCROLLBAR_CSS['*::-webkit-scrollbar-button']).toEqual({
+      display: 'none'
+    })
+    expect(SCROLLBAR_CSS['*']).toBeUndefined()
   })
 })

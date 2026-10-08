@@ -617,6 +617,12 @@
       "label": "Label"
     }
   },
+  "spotMail": {
+    "title": "SpotMail",
+    "folders": "Folders",
+    "move": "Move",
+    "shortcut": "Search, or go to a folder or a label (SpotMail)"
+  },
   "emailActions": {
     "toast": {
       "movedTo": "Moved to %{destinationMailboxPath}",

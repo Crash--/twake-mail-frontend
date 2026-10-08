@@ -617,6 +617,12 @@
       "label": "Метка"
     }
   },
+  "spotMail": {
+    "title": "SpotMail",
+    "folders": "Папки",
+    "move": "Перемещение",
+    "shortcut": "Искать или перейти в папку или метку (SpotMail)"
+  },
   "emailActions": {
     "toast": {
       "movedTo": "Перемещено в %{destinationMailboxPath}",

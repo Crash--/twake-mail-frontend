@@ -617,6 +617,12 @@
       "label": "Libellé"
     }
   },
+  "spotMail": {
+    "title": "SpotMail",
+    "folders": "Dossiers",
+    "move": "Naviguer",
+    "shortcut": "Rechercher, ou aller dans un dossier ou un libellé (SpotMail)"
+  },
   "emailActions": {
     "toast": {
       "movedTo": "Déplacé vers %{destinationMailboxPath}",

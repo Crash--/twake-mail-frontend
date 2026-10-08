@@ -13,6 +13,14 @@ const CHECKBOX_SX = {
   ml: '4px',
   p: '10px',
   color: '#AEB7C2',
+  // The theme pads its checkbox icons by 3 px: tmail-flutter's box fills
+  // its 20 px
+  '&& svg.twake-icon': {
+    width: 20,
+    height: 20,
+    padding: 0,
+    boxSizing: 'border-box'
+  },
   '&:hover, .MuiTableRow-root:hover &, &.Mui-checked': {
     color: 'primary.main'
   }

@@ -1,6 +1,10 @@
 import { useId, useState, type ReactElement } from 'react'
 
-import { Eye, EyeClosed, FolderOutlined } from '@/ds/FlutterIcons/FlutterIcons'
+import { FolderOutlined } from '@/ds/FlutterIcons/FlutterIcons'
+import {
+  HideMailbox,
+  ShowMailbox
+} from '@/ds/FlutterIcons/MailboxVisibilityIcons'
 import { CollapsibleCategory } from '@/ds/CollapsibleCategory/CollapsibleCategory'
 import { FolderVisibilityRow } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
 import { NarrowColumn } from '@/ds/NarrowColumn/NarrowColumn'
@@ -98,7 +102,7 @@ function FolderRows({
                       : 'folders.visibility.hideOf',
                     { name }
                   )}
-                  icon={isHidden ? Eye : EyeClosed}
+                  icon={isHidden ? ShowMailbox : HideMailbox}
                   onClick={() => {
                     run(isHidden ? 'show' : 'hide', mailbox)
                   }}

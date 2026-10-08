@@ -43,7 +43,7 @@ export function VisibilityToggleButton({
       variant="text"
       color="primary"
       size="small"
-      endIcon={<Icon icon={icon} size={18} />}
+      endIcon={<Icon icon={icon} size={20} />}
       aria-label={label}
       onClick={onClick}
       sx={BUTTON_SX}

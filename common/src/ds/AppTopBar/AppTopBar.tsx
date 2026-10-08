@@ -65,6 +65,43 @@ const TITLE_SX = {
   }
 } as const
 
+/** Before and after a centred title: as wide, grey (tmail-flutter's ✕) */
+function startSx(isPlain: boolean): Record<string, unknown> {
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    width: 48,
+    flexShrink: 0,
+    // tmail-flutter's grey cross, its dark arrow back
+    color: isPlain ? '#1C1B1F' : '#99A2AD',
+    '& .MuiIconButton-root': { color: 'inherit' }
+  }
+}
+
+/** The title of tmail-flutter's settings: Bold 20, in the middle */
+const CENTERED_TITLE_SX = {
+  ...TITLE_SX,
+  mx: 0,
+  textAlign: 'center',
+  '& .MuiTypography-root': {
+    fontSize: 20,
+    fontWeight: 700,
+    lineHeight: '28px',
+    color: '#000000'
+  }
+} as const
+
+/** The title of a section of tmail-flutter's settings: Regular 16 */
+const PLAIN_TITLE_SX = {
+  ...CENTERED_TITLE_SX,
+  '& .MuiTypography-root': {
+    fontSize: 16,
+    fontWeight: 400,
+    lineHeight: '24px',
+    color: '#1C1B1F'
+  }
+} as const
+
 /** The search under it: 12 px in on a phone, 24 px on a tablet, 8 px below */
 function searchSx(isPhone: boolean): Record<string, unknown> {
   return {
@@ -140,6 +177,16 @@ export interface AppTopBarProps {
    * bar, in place of the menu, the title and the actions
    */
   back?: AppTopBarBack
+  /**
+   * In place of the menu button, e.g. the close button of tmail-flutter's
+   * settings, whose title is then in the middle of the bar
+   */
+  start?: ReactNode
+  /**
+   * With `start`: `strong`, the bold title of the menu of the settings over
+   * a divider; `plain`, the regular title of one of their sections
+   */
+  startTitle?: 'strong' | 'plain'
   'data-testid'?: string
 }
 
@@ -156,6 +203,8 @@ export function AppTopBar({
   searchActions,
   overlayRef,
   back,
+  start,
+  startTitle = 'strong',
   'data-testid': testId
 }: AppTopBarProps): ReactElement {
   const isPhone = useScreenSize() === 'mobile'
@@ -199,21 +248,43 @@ export function AppTopBar({
       className="u-flex u-flex-column"
       data-testid={testId}
     >
-      <Box sx={barSx(isPhone)}>
-        <Tooltip title={menu.label}>
-          <IconButton
-            ref={menuButtonRef}
-            aria-label={menu.label}
-            aria-haspopup="dialog"
-            onClick={menu.onOpen}
-            sx={MENU_SX}
-            data-testid={menu['data-testid']}
-          >
-            <Icon icon={Burger} size={28} />
-          </IconButton>
-        </Tooltip>
-        <Box sx={TITLE_SX}>{title}</Box>
-        <Box sx={ACTIONS_SX}>{actions}</Box>
+      <Box
+        sx={
+          start === undefined
+            ? barSx(isPhone)
+            : startTitle === 'strong'
+              ? { ...barSx(isPhone), borderBottom: '1px solid #E7E8EC' }
+              : { ...barSx(isPhone), height: 64 }
+        }
+      >
+        {start !== undefined ? (
+          <>
+            <Box sx={startSx(startTitle === 'plain')}>{start}</Box>
+            <Box
+              sx={startTitle === 'strong' ? CENTERED_TITLE_SX : PLAIN_TITLE_SX}
+            >
+              {title}
+            </Box>
+            <Box sx={startSx(startTitle === 'plain')} />
+          </>
+        ) : (
+          <>
+            <Tooltip title={menu.label}>
+              <IconButton
+                ref={menuButtonRef}
+                aria-label={menu.label}
+                aria-haspopup="dialog"
+                onClick={menu.onOpen}
+                sx={MENU_SX}
+                data-testid={menu['data-testid']}
+              >
+                <Icon icon={Burger} size={28} />
+              </IconButton>
+            </Tooltip>
+            <Box sx={TITLE_SX}>{title}</Box>
+            <Box sx={ACTIONS_SX}>{actions}</Box>
+          </>
+        )}
         <Box ref={overlayRef} sx={overlaySx(isPhone)} />
       </Box>
       {search === null ? null : (

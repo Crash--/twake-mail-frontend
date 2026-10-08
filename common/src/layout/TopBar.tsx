@@ -1,17 +1,26 @@
-import { Typography } from '@linagora/twake-mui'
+import { Icon } from '@linagora/twake-icons'
+import { IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
-import { useLocation, useMatch, useNavigate } from 'react-router'
+import { Link, useLocation, useMatch, useNavigate } from 'react-router'
 
 import {
   AppTopBar,
   type AppTopBarSearchActions
 } from '@/ds/AppTopBar/AppTopBar'
+import { ArrowBack, Cancel } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useCurrentMailboxName } from '@common/features/mailbox/useCurrentMailboxName'
 import { LABEL_PATH } from '@common/features/labels/labelPaths'
 import { useLabels } from '@common/features/labels/queries'
-import { SETTINGS_PATH } from '@common/features/settings/sections'
-import { isSettingsExitState } from '@common/features/settings/SettingsExitProvider'
+import {
+  SETTINGS_PATH,
+  SETTINGS_SECTIONS
+} from '@common/features/settings/sections'
+import {
+  isSettingsExitState,
+  SETTINGS_EXIT_STATE,
+  useSettingsExitPath
+} from '@common/features/settings/SettingsExitProvider'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import {
   ListFilterSlot,
@@ -47,12 +56,22 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   const isSearchView = useMatch('/search') !== null
   const navigate = useNavigate()
   const isSettings = useMatch(`${SETTINGS_PATH}/*`) !== null
+  // As tmail-flutter: the menu of the settings closes with a cross, its
+  // title in the middle of the bar
+  const isSettingsMenu = useMatch(SETTINGS_PATH) !== null
+  // A section of them: the arrow back to that menu, its name
+  const sectionId = useMatch(`${SETTINGS_PATH}/:sectionId/*`)?.params.sectionId
+  const section =
+    SETTINGS_SECTIONS.find(candidate => candidate.id === sectionId) ?? null
+  const settingsExitPath = useSettingsExitPath()
   const labelId = useMatch(`${LABEL_PATH}/:labelId/*`)?.params.labelId
   const labelName =
     useLabels().data?.list.find(label => label.id === labelId)?.displayName ??
     null
   const folderName = isSettings
-    ? t('settings.title')
+    ? section === null
+      ? t('settings.title')
+      : t(section.title)
     : isSearch
       ? t('search.title')
       : (labelName ?? mailboxName)
@@ -119,6 +138,33 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
       menuButtonRef={menuRef}
       searchActions={searchActions}
       overlayRef={selectionSlotRef}
+      start={
+        isSettingsMenu ? (
+          <Tooltip title={t('settings.backToMail')}>
+            <IconButton
+              component={Link}
+              to={settingsExitPath}
+              state={SETTINGS_EXIT_STATE}
+              aria-label={t('settings.backToMail')}
+              data-testid="settings-back-button"
+            >
+              <Icon icon={Cancel} size={24} />
+            </IconButton>
+          </Tooltip>
+        ) : section !== null && !isDesktop ? (
+          <Tooltip title={t('common.back')}>
+            <IconButton
+              component={Link}
+              to={SETTINGS_PATH}
+              aria-label={t('common.back')}
+              data-testid="settings-section-back-button"
+            >
+              <Icon icon={ArrowBack} size={24} />
+            </IconButton>
+          </Tooltip>
+        ) : undefined
+      }
+      startTitle={section === null ? 'strong' : 'plain'}
       back={
         isSearchView
           ? {

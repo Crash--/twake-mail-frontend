@@ -1,28 +1,35 @@
-import { Icon } from '@linagora/twake-icons'
-import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
-import { useEffect, useRef, type ReactElement } from 'react'
+import { Box, Typography } from '@linagora/twake-mui'
+import { useEffect, useId, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
-import { Left } from '@/ds/FlutterIcons/FlutterIcons'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import {
+  SettingsAccount,
+  SettingsTile,
+  SettingsTileList
+} from '@/ds/SettingsTiles/SettingsTiles'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-import {
-  SETTINGS_EXIT_STATE,
-  useSettingsExitPath
-} from './SettingsExitProvider'
-import { SettingsNav } from './SettingsNav'
+import { settingsSectionPath } from './sections'
+import { useSettingsSections } from './useSettingsSections'
 
 /**
  * `/settings` below the desktop size: the menu of the sections, as
- * tmail-flutter's first level; one opens in its place.
+ * tmail-flutter's first level (who is signed in, then one entry per
+ * section with its explanation); one opens in its place. The bar at the top
+ * holds the title and the cross going back to the mail.
  */
 export function SettingsSectionList(): ReactElement {
   const { t } = useI18n()
-  const exitPath = useSettingsExitPath()
+  const { session } = useJmapSession()
+  const sections = useSettingsSections()
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const headingId = useId()
   const title = t('settings.title')
-  const backLabel = t('settings.backToMail')
+  // As tmail-flutter's account: two letters, their own gradient
+  const initials = session.username.slice(0, 2).toUpperCase()
   useDocumentTitle(title)
 
   useEffect(() => {
@@ -30,32 +37,51 @@ export function SettingsSectionList(): ReactElement {
   }, [])
 
   return (
-    <Box className="u-p-1" data-testid="settings-section-list">
-      <Box className="u-flex u-flex-items-center">
-        <Tooltip title={backLabel}>
-          <IconButton
+    <Box
+      component="nav"
+      aria-labelledby={headingId}
+      data-testid="settings-section-list"
+    >
+      <Typography
+        ref={headingRef}
+        id={headingId}
+        variant="h3"
+        component="h1"
+        tabIndex={-1}
+        className="u-visuallyhidden"
+      >
+        {title}
+      </Typography>
+      <SettingsAccount
+        avatar={
+          <GradientAvatar
+            text={initials}
+            colorKey={initials}
+            size={51}
+            fontSize={25}
+          />
+        }
+      >
+        {session.username}
+      </SettingsAccount>
+      <SettingsTileList>
+        {sections.map(section => (
+          <SettingsTile
+            key={section.id}
+            icon={section.icon}
+            title={t(section.title)}
+            // As tmail-flutter: "Preferences" has no explanation here
+            explanation={
+              section.description === null || section.id === 'preferences'
+                ? null
+                : t(section.description)
+            }
             component={Link}
-            to={exitPath}
-            state={SETTINGS_EXIT_STATE}
-            aria-label={backLabel}
-            data-testid="settings-back-button"
-          >
-            <Icon icon={Left} />
-          </IconButton>
-        </Tooltip>
-        <Typography
-          ref={headingRef}
-          variant="h3"
-          component="h1"
-          tabIndex={-1}
-          className="u-ml-half"
-        >
-          {title}
-        </Typography>
-      </Box>
-      {/* As tmail-flutter's menu on a phone: one row per section. The nav
-          of twake-mui lays its items out as a bottom bar there */}
-      <SettingsNav />
+            to={settingsSectionPath(section.id)}
+            data-testid={`settings-menu-${section.id}`}
+          />
+        ))}
+      </SettingsTileList>
     </Box>
   )
 }

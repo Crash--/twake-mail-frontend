@@ -20,7 +20,7 @@ test.describe('SET forwarding', () => {
 
     await settings.forwardInput.fill(bob.email)
     await page.getByTestId('forward-add-button').click()
-    await expect(settings.toast).toContainText('added from the recipient list')
+    await expect(settings.toast).toContainText('added to the recipient list')
     // Its card holds the avatar of tmail-flutter, then the address
     await expect(settings.forwardItems).toContainText([bob.email])
     await expect(page.getByTestId('forward-warning-banner')).toHaveCount(0)

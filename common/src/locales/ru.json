@@ -1337,7 +1337,8 @@
       "count": "%{smart_count} раз |||| %{smart_count} раза |||| %{smart_count} раз",
       "until": "до %{date}"
     },
-    "untitled": "(Без названия)"
+    "untitled": "(Без названия)",
+    "eventMark": "Приглашение на событие"
   },
   "unsubscribe": {
     "action": "Отписаться",

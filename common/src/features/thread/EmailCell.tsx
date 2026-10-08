@@ -28,6 +28,7 @@ import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
+import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
 import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
 import { RowDate } from '@/ds/RowDate/RowDate'
@@ -39,6 +40,8 @@ import { RowStateSlot } from '@/ds/RowStateSlot/RowStateSlot'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { hasCalendarEvent } from '@common/features/calendar/calendarHeader'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
@@ -193,6 +196,7 @@ export function EmailCell({
   const selection = useEmailSelectionContext()
   const navigate = useNavigate()
   const ensureEmailViewReady = useEmailViewReady()
+  const screenSize = useScreenSize()
   const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)
 
@@ -204,6 +208,7 @@ export function EmailCell({
   const isStarred = thread?.isStarred ?? hasKeyword(email, FLAGGED)
   const hasAttachment = thread?.hasAttachment ?? email.hasAttachment
   const isImportant = showImportant && isMarkedImportant(email)
+  const isEvent = hasCalendarEvent(email)
   // As tmail-flutter: a conversation row shows the labels of the email that
   // represents it. To show the union of its emails (issue #110), pass
   // `thread.members` here instead of `email`.
@@ -472,6 +477,15 @@ export function EmailCell({
         data-testid="email-list-item-mailbox"
       />
     )
+  // As tmail-flutter: an email carrying a calendar event shows a calendar
+  // before the subject, said in the name of the row link
+  const eventMark = isEvent ? (
+    <CalendarEventMark
+      isMuted={!isUnread}
+      gap={screenSize === 'desktop' ? 12 : screenSize === 'mobile' ? 4 : 8}
+      data-testid="email-list-item-event-icon"
+    />
+  ) : null
   // Said in the name of the row link: the icon shows it to the eye
   const importantIcon = isImportant ? (
     <Icon
@@ -548,6 +562,7 @@ export function EmailCell({
         isUnread ? t('email.unread') : null,
         isStarred ? t('email.starred') : null,
         isImportant ? t('email.important') : null,
+        isEvent ? t('calendar.eventMark') : null,
         correspondents,
         threadSize === null
           ? null
@@ -563,10 +578,12 @@ export function EmailCell({
           <RowLine
             isStrong={isUnread}
             leading={
+              eventMark === null &&
               importantIcon === null &&
               emailLabels.length === 0 &&
               !isActionRequired ? null : (
                 <>
+                  {eventMark}
                   {importantIcon}
                   {labelChips(1)}
                 </>
@@ -609,7 +626,8 @@ export function EmailCell({
       const states = [
         isUnread ? t('email.unread') : null,
         isStarred ? t('email.starred') : null,
-        isImportant ? t('email.important') : null
+        isImportant ? t('email.important') : null,
+        isEvent ? t('calendar.eventMark') : null
       ].filter(state => state !== null)
       // As tmail-flutter's compact tile: sender, marks and date then a
       // chevron; subject (the folder, the star); one line of preview
@@ -653,6 +671,7 @@ export function EmailCell({
             }
             subject={
               <>
+                {eventMark}
                 {importantIcon}
                 {subject}
               </>

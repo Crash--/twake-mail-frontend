@@ -1337,7 +1337,8 @@
       "count": "%{smart_count} lần",
       "until": "đến %{date}"
     },
-    "untitled": "(Không có tiêu đề)"
+    "untitled": "(Không có tiêu đề)",
+    "eventMark": "Lời mời sự kiện"
   },
   "unsubscribe": {
     "action": "Hủy đăng ký",

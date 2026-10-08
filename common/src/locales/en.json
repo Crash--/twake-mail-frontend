@@ -1337,7 +1337,8 @@
       "count": "%{smart_count} time |||| %{smart_count} times",
       "until": "until %{date}"
     },
-    "untitled": "(No title)"
+    "untitled": "(No title)",
+    "eventMark": "Event invitation"
   },
   "unsubscribe": {
     "action": "Unsubscribe",

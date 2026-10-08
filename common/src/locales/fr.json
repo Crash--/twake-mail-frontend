@@ -1337,7 +1337,8 @@
       "count": "%{smart_count} fois |||| %{smart_count} fois",
       "until": "jusqu'au %{date}"
     },
-    "untitled": "(Sans titre)"
+    "untitled": "(Sans titre)",
+    "eventMark": "Invitation à un événement"
   },
   "unsubscribe": {
     "action": "Se désabonner",

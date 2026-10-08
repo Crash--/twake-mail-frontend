@@ -268,6 +268,28 @@ describe('EmailList', () => {
     })
   })
 
+  it('marks the emails carrying a calendar event, as tmail-flutter', async () => {
+    renderList(
+      makeFakeJmapServer({
+        emails: [
+          makeEmail({
+            id: 'invite',
+            subject: 'Team meeting',
+            headers: { 'X-MEETING-UID': 'bdbd9f3d-bcca-4da6-ab9a-12b6344eff01' }
+          }),
+          makeEmail({ id: 'plain', subject: 'Plain' })
+        ]
+      })
+    )
+
+    const link = await screen.findByRole('link', { name: /Team meeting/ })
+    expect(link).toHaveAccessibleName(/Event invitation/)
+    expect(screen.getAllByTestId('email-list-item-event-icon')).toHaveLength(1)
+    expect(
+      screen.getByRole('link', { name: /Plain/ })
+    ).not.toHaveAccessibleName(/Event invitation/)
+  })
+
   it('shows rows of skeleton, busy and hidden to screen readers, while the emails load', async () => {
     const server = makeFakeJmapServer({
       emails: [makeEmail({ id: 'e1', subject: 'Landed' })]

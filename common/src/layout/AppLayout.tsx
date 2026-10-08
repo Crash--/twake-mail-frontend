@@ -34,6 +34,7 @@ import {
   useShortcuts
 } from '@common/features/shortcuts/ShortcutsProvider'
 import { QuotaBanner } from '@common/features/quota/QuotaBanner'
+import { SpotMail } from '@common/features/search/SpotMail'
 import {
   RecoveryBanner,
   RecoveryProvider
@@ -156,6 +157,7 @@ function AppFrame(): ReactElement {
       <SentryReportingSync />
       {/* The reply bar of an open email is at the bottom of the screen too */}
       <FeedbackWidget hasBottomAction={showComposeFab || isEmailOpen} />
+      <SpotMail />
       <AppHeader onOpenFolders={handleOpenFolders} />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}

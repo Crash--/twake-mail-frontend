@@ -617,6 +617,12 @@
       "label": "Nhãn"
     }
   },
+  "spotMail": {
+    "title": "SpotMail",
+    "folders": "Thư mục",
+    "move": "Di chuyển",
+    "shortcut": "Tìm kiếm, đi tới một thư mục hay một nhãn, hoặc viết cho một liên hệ (SpotMail)"
+  },
   "emailActions": {
     "toast": {
       "movedTo": "Đã chuyển đến %{destinationMailboxPath}",

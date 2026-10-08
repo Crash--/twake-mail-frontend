@@ -15,6 +15,7 @@ import {
   ACTION_SIZE,
   getLeadWidth,
   getTrailingWidth,
+  getRowLayout,
   ROW_LAYOUT,
   useRowPointer,
   type RowPointer
@@ -147,7 +148,7 @@ function EmailListRowsSkeleton({
       compactColumns={COMPACT_COLUMNS}
       compact={isCompact}
       rowCount={ROW_COUNT}
-      rowLayout={ROW_LAYOUT}
+      rowLayout={getRowLayout(isTouch)}
       cellHeight={ACTION_SIZE}
       className={className}
       data-testid="email-list-loading"

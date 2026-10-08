@@ -1,4 +1,8 @@
-import { getLeadWidth, getTrailingWidth } from './emailListGeometry'
+import {
+  getLeadWidth,
+  getRowLayout,
+  getTrailingWidth
+} from './emailListGeometry'
 
 describe('getLeadWidth', () => {
   it('holds the checkbox, the star and the 32 px status indicator with a mouse', () => {
@@ -27,5 +31,20 @@ describe('getTrailingWidth', () => {
     expect(getTrailingWidth({ canHover: false, isTouch: false })).toBe(
       8 + 5 * 32 + 8 + 124
     )
+  })
+})
+
+describe('getRowLayout', () => {
+  const height = (isTouch: boolean, button: number): number => {
+    const { paddingTop, paddingBottom } = getRowLayout(isTouch)
+    return paddingTop + button + paddingBottom + 1
+  }
+
+  it('makes 48 px rows around 32 px buttons with a mouse', () => {
+    expect(height(false, 32)).toBe(48)
+  })
+
+  it('keeps the 56 px rows around the 44 px targets of a touch screen', () => {
+    expect(height(true, 44)).toBe(56)
   })
 })

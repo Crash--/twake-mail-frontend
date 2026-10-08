@@ -98,6 +98,7 @@ import { useNewEmailCount } from './useNewEmailCount'
 import {
   getLeadWidth,
   getTrailingWidth,
+  getRowLayout,
   ROW_LAYOUT,
   useRowPointer
 } from './emailListGeometry'
@@ -665,7 +666,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           rowCount={total}
           columns={columns}
           compactColumns={compactColumns}
-          rowLayout={ROW_LAYOUT}
+          rowLayout={getRowLayout(isTouch)}
           compact={isCompact}
           bottomInset={bottomInset}
           computeItemKey={computeRowKey}

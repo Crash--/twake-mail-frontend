@@ -946,3 +946,9 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/list-rows.spec.ts`.
 - [x] `LST-13` The actions menu of a row (the ⋮ hover action) replies to its email: the composer opens on "Re: subject". Replaces the reply button of the row (`LST-03`). — tmail-flutter (`reply` in the email actions menu)
   - Spec: `tests/list-rows.spec.ts`.
+- [x] `LST-05` Updated: the desktop rows are 48 px high (8 px above, 7 px below the 32 px buttons, and the 1 px divider), as in tmail-flutter; the toolbar measures are unchanged. — `chromium`
+  - Spec: `tests/list-rows.spec.ts`.
+- [x] `LST-11` The desktop rows are 48 px high at 1440 and at 1920 px wide, with and without the status icon. — tmail-flutter `EmailTileBuilder` (desktop)
+  - Spec: `tests/list-rows.spec.ts`.
+- [x] `LST-14` On a touch screen a desktop width row stays 56 px high (6 px above, 5 below, 1 px divider around 44 px targets), and the status icon is centred in its 44 px place. — web app (#300)
+  - Spec: `tests/list-rows.spec.ts`.

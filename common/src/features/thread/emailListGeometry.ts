@@ -3,12 +3,31 @@ import { useMediaQuery } from '@linagora/twake-mui'
 import { TOUCH_QUERY, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 import type { RowLayout } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 
-/** Padding of a row and gap between its cells, in px (Figma "Listitemmail") */
+/**
+ * Padding of a row and gap between its cells, in px. The 8 px on the sides
+ * and between the cells are those of the Figma "Listitemmail"; above and
+ * below, 8 px around 32 px icon buttons and the 1 px divider make the 48 px
+ * rows of tmail-flutter (the design has 44 px, 6 px around the buttons).
+ */
 export const ROW_LAYOUT: RowLayout = {
   paddingX: 8,
-  paddingTop: 6,
-  paddingBottom: 5,
+  paddingTop: 8,
+  paddingBottom: 7,
   gap: 8
+}
+
+/**
+ * On a touch screen the buttons are 44 px: the padding shrinks to 6 px above
+ * and 5 below, so that the rows stay the 56 px of the touch columns (#300)
+ */
+const TOUCH_ROW_LAYOUT: RowLayout = {
+  ...ROW_LAYOUT,
+  paddingTop: 6,
+  paddingBottom: 5
+}
+
+export function getRowLayout(isTouch: boolean): RowLayout {
+  return isTouch ? TOUCH_ROW_LAYOUT : ROW_LAYOUT
 }
 
 /** An icon button of a row, in px */

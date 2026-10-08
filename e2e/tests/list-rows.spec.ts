@@ -108,7 +108,7 @@ test.describe('LST email list rows', () => {
     await expect(page.getByRole('dialog')).toBeVisible()
   })
 
-  test('LST-05 the toolbar and the rows have the measures of the design', async ({
+  test('LST-05 the toolbar and the rows have the measures of the design, the rows the height of tmail-flutter', async ({
     page,
     user,
     jmap
@@ -140,9 +140,10 @@ test.describe('LST email list rows', () => {
     expect(selectAll.height).toBe(32)
     expect(refresh.y - toolbarBox.y).toBe(16)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
-    // 6 px above and below 32 px icon buttons
-    expect(rowBox.height).toBeGreaterThanOrEqual(43.5)
-    expect(rowBox.height).toBeLessThanOrEqual(44.5)
+    // 8 px above and 7 below 32 px icon buttons and the 1 px divider: the
+    // 48 px rows of tmail-flutter (the design has 44)
+    expect(rowBox.height).toBeGreaterThanOrEqual(47.5)
+    expect(rowBox.height).toBeLessThanOrEqual(48.5)
     for (const id of ['email-list-item-checkbox', 'email-list-item-star']) {
       const found = await box(row.getByTestId(id))
       expect([found.width, found.height]).toEqual([32, 32])
@@ -220,6 +221,71 @@ test.describe('LST desktop row density and icons', () => {
     const statusBox = await answered.boundingBox()
     expect(statusBox?.x).toBe((star?.x ?? 0) + (star?.width ?? 0))
     await expectNoA11yViolations(page)
+  })
+
+  test('LST-11 the rows are 48 px high at 1440 and 1920 px wide, with or without a status icon', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'Dense plain', text: 'Hi' })
+    await jmap.sendEmail({ to: user.email, subject: 'Dense replied', text: 'Hi' })
+    await jmap.waitForEmail({ subject: 'Dense plain' })
+    const replied = await jmap.waitForEmail({ subject: 'Dense replied' })
+    await jmap.setKeywords(replied.id, { $answered: true })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const viewport = page.viewportSize()
+    test.skip(
+      viewport === null || viewport.width < 1000,
+      'compact rows have other measures'
+    )
+
+    for (const [width, height] of [
+      [1440, 900],
+      [1920, 1080]
+    ] as const) {
+      await page.setViewportSize({ width, height })
+      for (const subject of ['Dense plain', 'Dense replied']) {
+        const box = await mailbox.emailRow(subject).boundingBox()
+        expect(box?.height).toBeGreaterThanOrEqual(47.5)
+        expect(box?.height).toBeLessThanOrEqual(48.5)
+      }
+    }
+  })
+})
+
+test.describe('LST desktop rows on a touch screen', () => {
+  test.use({ hasTouch: true, viewport: { width: 1280, height: 800 } })
+
+  test('LST-14 the rows keep their 56 px and the status icon is centred in the 44 px column', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'Touch row', text: 'Hi' })
+    const email = await jmap.waitForEmail({ subject: 'Touch row' })
+    await jmap.setKeywords(email.id, { $answered: true })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRow('Touch row')
+    await expect(row).toBeVisible()
+
+    // 6 px above, 5 below and the 1 px divider around 44 px touch targets
+    const box = await row.boundingBox()
+    expect(box?.height).toBeGreaterThanOrEqual(55.5)
+    expect(box?.height).toBeLessThanOrEqual(56.5)
+    const star = await row.getByTestId('email-list-item-star').boundingBox()
+    expect(star?.width).toBe(44)
+    const status = await row.getByTestId('email-list-item-status').boundingBox()
+    const icon = await row
+      .getByTestId('email-list-item-status')
+      .locator('svg')
+      .first()
+      .boundingBox()
+    expect(status?.width).toBe(44)
+    expect((icon?.x ?? 0) + (icon?.width ?? 0) / 2).toBeCloseTo(
+      (status?.x ?? 0) + 22,
+      0
+    )
   })
 })
 

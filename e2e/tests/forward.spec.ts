@@ -61,9 +61,12 @@ test.describe('SET forwarding', () => {
     await expect(page.getByTestId('forward-warning-banner')).toContainText(
       'Forwarding outside example.com breaks the e2e charter.'
     )
+    // As tmail-flutter, an information icon named so marks it
     await expect(
-      settings.forwardItems.filter({ hasText: 'someone@elsewhere.test' })
-    ).toContainText('External domain')
+      settings.forwardItems
+        .filter({ hasText: 'someone@elsewhere.test' })
+        .getByRole('img', { name: 'External domain' })
+    ).toBeVisible()
     await expectNoA11yViolations(page)
 
     for (const email of ['someone@elsewhere.test', bob.email]) {

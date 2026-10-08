@@ -179,6 +179,14 @@ describe('CalendarInvitationCard', () => {
       'Dave <dave@example.com> · maybe',
       'erin@example.com'
     ])
+    // As tmail-flutter, a person opens the card of its address
+    await userEvent.click(within(card).getByRole('link', { name: /^Alice/ }))
+    const addressCard = await screen.findByRole('dialog', { name: 'Alice' })
+    expect(within(addressCard).getByText('alice@example.com')).toBeVisible()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Alice' })).toBe(null)
+    })
     await userEvent.click(
       within(card).getByRole('button', { name: 'See all attendees (8)' })
     )

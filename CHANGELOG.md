@@ -6,6 +6,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-08
+
+### Added
+
+- The composer is served as the `CREATE io.cozy.mails` intent on
+  `/intents`, which any app of the Workplace may frame, and tells its caller
+  whether the message was sent or its draft deleted.
+- The manifest declares that intent and is published on the registry when a
+  `vX.Y.Z` tag is pushed.
+- The cozy-stack of the user is read even without the Drive picker.
+- The empty email list is drawn as in tmail-flutter.
+
+### Fixed
+
+- Team mailboxes: no Archive nor Spam on their conversations, personal
+  emails kept out of their facade, a reply to a teammate who sent as the
+  shared identity, a mail sent to one of their members shown once, their
+  row readable on wide touch screens.
+- Composer: malformed addresses flagged and those the server refuses named,
+  the focus given back when closing a restored composer, the caret kept in
+  the text after a tap on the quote, an unhandled Escape reaching the
+  composer window.
+- Keyboard and screen readers: one main landmark, one named navigation
+  landmark per sidebar section, loading announced in settings and at boot,
+  the focus kept when a banner or a row goes away, on the list when the
+  selection is cleared, on the settings button on Back to mail, in and out
+  of the feedback form; no outline around regions a script focuses.
+- The vacation reply starts from now and saves the dates the form shows; a
+  custom date range ending before it starts is refused; the basic session
+  is handed over to new tabs; the label chips are hidden when "Display
+  labels" is off; a failed invitation answer shows a translated error;
+  control and bidi characters are stripped from attachment names;
+  `/downloadAll` is routed and a non-zip archive refused; the feedback
+  button stays above the reply bar; list row columns fit touch targets.
+
 ## [0.3.0] - 2026-10-07
 
 No setting changes from 0.2.0.

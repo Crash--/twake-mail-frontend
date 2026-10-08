@@ -11,7 +11,8 @@ import type { Label } from 'jmap-client-ts/linagora'
 import { useId, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
-import { Dots, Plus } from '@/ds/FlutterIcons/FlutterIcons'
+import { Plus } from '@/ds/FlutterIcons/FlutterIcons'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
@@ -63,7 +64,7 @@ function LabelItem({ label }: { label: Label }): ReactElement {
                 }}
                 data-testid="label-item-menu-button"
               >
-                <Icon icon={Dots} />
+                <Icon icon={MoreVerticalIcon} />
               </IconButton>
             </Tooltip>
             <Menu

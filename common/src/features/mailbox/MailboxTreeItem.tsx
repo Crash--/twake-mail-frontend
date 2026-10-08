@@ -8,7 +8,8 @@ import {
 } from 'react'
 import { Link } from 'react-router'
 
-import { Dots, EyeClosed } from '@/ds/FlutterIcons/FlutterIcons'
+import { EyeClosed } from '@/ds/FlutterIcons/FlutterIcons'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { CountBadge } from '@/ds/CountBadge/CountBadge'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { RowTextAction } from '@/ds/RowTextAction/RowTextAction'
@@ -191,7 +192,8 @@ export function MailboxTreeItem({
               onClick={handleOpenMenu}
               data-testid="mailbox-more-button"
             >
-              <Icon icon={Dots} />
+              {/* As tmail-flutter: the vertical dots */}
+              <Icon icon={MoreVerticalIcon} />
             </IconButton>
           </Tooltip>
         </>

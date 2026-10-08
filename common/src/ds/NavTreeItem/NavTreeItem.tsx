@@ -351,8 +351,14 @@ export function NavTreeItem({
                   overflow: 'hidden',
                   opacity: 0
                 },
+                // At the end of the row, in place of the hidden counter
                 '&:hover [data-nav-actions], &:has(:focus-visible) [data-nav-actions]':
-                  { width: 'auto', overflow: 'visible', opacity: 1 },
+                  {
+                    width: 'auto',
+                    overflow: 'visible',
+                    opacity: 1,
+                    ml: 'auto'
+                  },
                 '&:hover [data-nav-count], &:has(:focus-visible) [data-nav-count]':
                   { display: 'none' }
               }

@@ -18,8 +18,8 @@ import {
 import {
   SettingsFormColumn,
   SettingsFormField,
+  SettingsFormPair,
   SettingsFormRow,
-  SettingsFormRowLabel,
   SettingsTextField
 } from '@/ds/SettingsFields/SettingsFields'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
@@ -155,42 +155,48 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
       />
       {/* As tmail-flutter: a column of labelled rows, 660 px wide at most */}
       <SettingsFormColumn>
-        <SettingsFormRow
-          label={`${t('vacation.startDate')}:`}
-          htmlFor={startDateId}
+        <SettingsFormPair
           isDisabled={isOff}
-        >
-          <SettingsTextField
-            id={startDateId}
-            type="date"
-            size="form"
-            width={150}
-            label={t('vacation.startDate')}
-            value={startDate}
-            disabled={isOff}
-            required={isEnabled}
-            onChange={event => {
-              setStartDate(event.target.value)
-            }}
-            inputTestId="vacation-start-date-input"
-          />
-          <SettingsFormRowLabel htmlFor={startTimeId} isDisabled={isOff}>
-            {`${t('vacation.startTime')}:`}
-          </SettingsFormRowLabel>
-          <SettingsTextField
-            id={startTimeId}
-            type="time"
-            size="form"
-            width={130}
-            label={t('vacation.startTime')}
-            value={startTime}
-            disabled={isOff}
-            onChange={event => {
-              setStartTime(event.target.value)
-            }}
-            inputTestId="vacation-start-time-input"
-          />
-        </SettingsFormRow>
+          first={{
+            label: `${t('vacation.startDate')}:`,
+            htmlFor: startDateId,
+            field: (
+              <SettingsTextField
+                id={startDateId}
+                type="date"
+                size="form"
+                width={150}
+                label={t('vacation.startDate')}
+                value={startDate}
+                disabled={isOff}
+                required={isEnabled}
+                onChange={event => {
+                  setStartDate(event.target.value)
+                }}
+                inputTestId="vacation-start-date-input"
+              />
+            )
+          }}
+          second={{
+            label: `${t('vacation.startTime')}:`,
+            htmlFor: startTimeId,
+            field: (
+              <SettingsTextField
+                id={startTimeId}
+                type="time"
+                size="form"
+                width={130}
+                label={t('vacation.startTime')}
+                value={startTime}
+                disabled={isOff}
+                onChange={event => {
+                  setStartTime(event.target.value)
+                }}
+                inputTestId="vacation-start-time-input"
+              />
+            )
+          }}
+        />
         {/* As tmail-flutter: apart from the start */}
         <Box className="u-mt-1">
           <SettingsSwitchRow
@@ -207,44 +213,47 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             data-testid="vacation-end-toggle"
           />
         </Box>
-        <SettingsFormRow
-          label={`${t('vacation.endDate')}:`}
-          htmlFor={endDateId}
+        <SettingsFormPair
           isDisabled={isOff || !hasEnd}
-        >
-          <SettingsTextField
-            id={endDateId}
-            type="date"
-            size="form"
-            width={150}
-            label={t('vacation.endDate')}
-            value={endDate}
-            disabled={isOff || !hasEnd}
-            onChange={event => {
-              setEndDate(event.target.value)
-            }}
-            inputTestId="vacation-end-date-input"
-          />
-          <SettingsFormRowLabel
-            htmlFor={endTimeId}
-            isDisabled={isOff || !hasEnd}
-          >
-            {`${t('vacation.endTime')}:`}
-          </SettingsFormRowLabel>
-          <SettingsTextField
-            id={endTimeId}
-            type="time"
-            size="form"
-            width={130}
-            label={t('vacation.endTime')}
-            value={endTime}
-            disabled={isOff || !hasEnd}
-            onChange={event => {
-              setEndTime(event.target.value)
-            }}
-            inputTestId="vacation-end-time-input"
-          />
-        </SettingsFormRow>
+          first={{
+            label: `${t('vacation.endDate')}:`,
+            htmlFor: endDateId,
+            field: (
+              <SettingsTextField
+                id={endDateId}
+                type="date"
+                size="form"
+                width={150}
+                label={t('vacation.endDate')}
+                value={endDate}
+                disabled={isOff || !hasEnd}
+                onChange={event => {
+                  setEndDate(event.target.value)
+                }}
+                inputTestId="vacation-end-date-input"
+              />
+            )
+          }}
+          second={{
+            label: `${t('vacation.endTime')}:`,
+            htmlFor: endTimeId,
+            field: (
+              <SettingsTextField
+                id={endTimeId}
+                type="time"
+                size="form"
+                width={130}
+                label={t('vacation.endTime')}
+                value={endTime}
+                disabled={isOff || !hasEnd}
+                onChange={event => {
+                  setEndTime(event.target.value)
+                }}
+                inputTestId="vacation-end-time-input"
+              />
+            )
+          }}
+        />
         <SettingsFormRow
           label={`${t('vacation.subject')}:`}
           htmlFor={subjectId}

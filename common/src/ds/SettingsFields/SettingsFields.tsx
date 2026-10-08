@@ -13,7 +13,7 @@ import {
   type Ref
 } from 'react'
 
-import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
+import { SCREEN_QUERIES, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 function fieldSx(
   height: number,
@@ -448,6 +448,68 @@ export function SettingsFormField({
   children
 }: SettingsFormFieldProps): ReactElement {
   return <Box sx={FIELD_SX}>{children}</Box>
+}
+
+export interface SettingsFormPairPart {
+  label: string
+  htmlFor: string
+  field: ReactNode
+}
+
+export interface SettingsFormPairProps {
+  first: SettingsFormPairPart
+  second: SettingsFormPairPart
+  /** Its fields are disabled: the labels fade */
+  isDisabled?: boolean
+}
+
+const PAIR_SX = { display: 'flex', gap: 2, mb: '12px' } as const
+
+const PAIR_PART_SX = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 1,
+  minWidth: 0
+} as const
+
+/**
+ * Two labelled fields of a settings form row ("Start date", "Start time"):
+ * in the row on a desktop and a tablet; side by side, each label above its
+ * field, on a phone, as tmail-flutter
+ */
+export function SettingsFormPair({
+  first,
+  second,
+  isDisabled = false
+}: SettingsFormPairProps): ReactElement {
+  const isPhone = useScreenSize() === 'mobile'
+  if (!isPhone) {
+    return (
+      <SettingsFormRow
+        label={first.label}
+        htmlFor={first.htmlFor}
+        isDisabled={isDisabled}
+      >
+        {first.field}
+        <SettingsFormRowLabel htmlFor={second.htmlFor} isDisabled={isDisabled}>
+          {second.label}
+        </SettingsFormRowLabel>
+        {second.field}
+      </SettingsFormRow>
+    )
+  }
+  return (
+    <Box sx={PAIR_SX}>
+      {[first, second].map(part => (
+        <Box key={part.htmlFor} sx={PAIR_PART_SX}>
+          <SettingsFormRowLabel htmlFor={part.htmlFor} isDisabled={isDisabled}>
+            {part.label}
+          </SettingsFormRowLabel>
+          {part.field}
+        </Box>
+      ))}
+    </Box>
+  )
 }
 
 export interface SettingsFormRowProps {

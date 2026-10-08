@@ -68,7 +68,6 @@ export class MailboxPage {
   /** The titles of the sidebar sections, buttons that collapse them */
   readonly foldersSectionToggle: Locator
   readonly teamMailboxesSectionToggle: Locator
-  readonly labelsSectionToggle: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -107,7 +106,6 @@ export class MailboxPage {
     this.teamMailboxesSectionToggle = page.getByTestId(
       'team-mailboxes-section-toggle'
     )
-    this.labelsSectionToggle = page.getByTestId('labels-section-toggle')
   }
 
   /** True when the folders are in a drawer: phones and tablets */

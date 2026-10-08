@@ -52,7 +52,7 @@ export function NavSectionHeader({
   return (
     <Box
       className="u-flex u-flex-items-center"
-      sx={{ minHeight: 32, mt: '10px', mb: '8px', pl: 2, pr: '13px' }}
+      sx={{ minHeight: 32, mt: '20px', mb: '8px', pl: 2, pr: '13px' }}
     >
       <Typography
         id={titleId}

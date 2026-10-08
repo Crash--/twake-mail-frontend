@@ -1,4 +1,8 @@
-import { Trash, FolderOutlined, Paperplane } from '@linagora/twake-icons'
+import {
+  DefaultFolderIcon,
+  SentFolderIcon,
+  TrashFolderIcon
+} from '@/ds/FolderIcons/FolderIcons'
 
 import { makeMailbox, makeTeamMailboxes } from '@common/testing/fakeJmapServer'
 
@@ -18,21 +22,21 @@ describe('getMailboxIcon', () => {
   }
 
   it('gives the system folders of a team mailbox the icon of their role, by name', () => {
-    expect(getMailboxIcon(folder('Trash'))).toBe(Trash)
-    expect(getMailboxIcon(folder('Sent'))).toBe(Paperplane)
+    expect(getMailboxIcon(folder('Trash'))).toBe(TrashFolderIcon)
+    expect(getMailboxIcon(folder('Sent'))).toBe(SentFolderIcon)
   })
 
   it('gives its root and its own folders the folder icon', () => {
-    expect(getMailboxIcon(folder('team'))).toBe(FolderOutlined)
+    expect(getMailboxIcon(folder('team'))).toBe(DefaultFolderIcon)
     expect(
       getMailboxIcon({
         ...folder('Trash'),
         name: 'Trash',
         myRights: { ...folder('Trash').myRights, mayDelete: true }
       })
-    ).toBe(FolderOutlined)
+    ).toBe(DefaultFolderIcon)
     expect(getMailboxIcon(makeMailbox({ id: 'f', name: 'Trash' }))).toBe(
-      FolderOutlined
+      DefaultFolderIcon
     )
   })
 })

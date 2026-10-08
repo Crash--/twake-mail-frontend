@@ -11,7 +11,6 @@ import { Link } from 'react-router'
 import { CountBadge } from '@/ds/CountBadge/CountBadge'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { RowTextAction } from '@/ds/RowTextAction/RowTextAction'
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useDropEmails } from '@common/features/emailActions/useDropEmails'
 import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderActionsMenu'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
@@ -113,7 +112,9 @@ export function MailboxTreeItem({
     <NavTreeItem
       level={row.level}
       icon={
-        isHidden ? (
+        // As tmail-flutter, the root of a team mailbox has no icon, its
+        // address under its name
+        address !== null ? null : isHidden ? (
           // As tmail-flutter, a hidden folder takes the icon of the hidden
           // folders, with the word for who does not see it
           <Tooltip title={t('folders.hidden.label')}>
@@ -126,7 +127,13 @@ export function MailboxTreeItem({
         )
       }
       label={name}
-      secondary={secondary}
+      secondary={
+        address === null ? (
+          secondary
+        ) : (
+          <span data-testid="mailbox-item-address">{address}</span>
+        )
+      }
       linkComponent={Link}
       to={`/mailbox/${encodeURIComponent(mailbox.id)}`}
       isSelected={isSelected}
@@ -144,16 +151,6 @@ export function MailboxTreeItem({
       }
       meta={
         <>
-          {address === null ? null : (
-            <SecondaryText
-              variant="caption"
-              noWrap
-              className="u-ml-half"
-              data-testid="mailbox-item-address"
-            >
-              {address}
-            </SecondaryText>
-          )}
           {isHidden ? (
             <span
               className="u-visuallyhidden"

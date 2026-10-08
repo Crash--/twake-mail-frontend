@@ -38,10 +38,11 @@
   },
   "sidebar": {
     "mailboxes": "Boîtes aux lettres",
-    "newMessage": "Nouveau message",
+    "newMessage": "Rédiger",
     "folders": "Dossiers",
     "teamMailboxes": "Team-mailboxes",
-    "version": "version %{version}"
+    "version": "version %{version}",
+    "personalFolders": "Dossiers personnels"
   },
   "mailbox": {
     "empty": "Aucun email\n dans ce dossier.",

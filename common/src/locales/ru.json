@@ -38,10 +38,11 @@
   },
   "sidebar": {
     "mailboxes": "Почтовые ящики",
-    "newMessage": "Новое сообщение",
+    "newMessage": "Создать",
     "folders": "Папки",
     "teamMailboxes": "Общие почтовые ящики",
-    "version": "версия %{version}"
+    "version": "версия %{version}",
+    "personalFolders": "Личные папки"
   },
   "mailbox": {
     "empty": "У вас нет писем \n в этой папке.",

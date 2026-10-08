@@ -1,7 +1,8 @@
-import { Icon, StarOutline } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import type { ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
+import { StarredFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -28,7 +29,7 @@ export function StarredTreeItem({
   return (
     <NavTreeItem
       level={1}
-      icon={<Icon icon={StarOutline} />}
+      icon={<Icon icon={StarredFolderIcon} />}
       label={t('mailbox.starred')}
       linkComponent={Link}
       to={STARRED_PATH}

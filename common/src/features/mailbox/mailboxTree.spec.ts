@@ -32,30 +32,46 @@ function names(nodes: MailboxNode[]): string[] {
 }
 
 describe('buildMailboxTree', () => {
-  it('puts system folders first, in the tmail-flutter order', () => {
+  it('puts system folders first, in the order of the server as tmail-flutter, then by role', () => {
     const tree = buildMailboxTree([
       makeMailbox({ id: '1', name: 'Projects', sortOrder: 1 }),
-      makeMailbox({ id: '2', name: 'Archive', role: 'archive', sortOrder: 0 }),
-      makeMailbox({ id: '3', name: 'Sent', role: 'sent', sortOrder: 50 }),
+      makeMailbox({ id: '2', name: 'Archive', role: 'archive', sortOrder: 30 }),
+      makeMailbox({ id: '3', name: 'Sent', role: 'sent', sortOrder: 20 }),
       makeMailbox({ id: '4', name: 'Spam', role: 'junk', sortOrder: 70 }),
       makeMailbox({ id: '5', name: 'INBOX', role: 'inbox', sortOrder: 10 }),
-      makeMailbox({ id: '6', name: 'Drafts', role: 'drafts', sortOrder: 30 }),
+      makeMailbox({ id: '6', name: 'Drafts', role: 'drafts', sortOrder: 40 }),
       makeMailbox({ id: '7', name: 'Trash', role: 'trash', sortOrder: 60 }),
-      makeMailbox({ id: '8', name: 'Templates', role: 'templates' }),
-      makeMailbox({ id: '9', name: 'Outbox', role: 'outbox' })
+      makeMailbox({
+        id: '8',
+        name: 'Templates',
+        role: 'templates',
+        sortOrder: 80
+      }),
+      makeMailbox({ id: '9', name: 'Outbox', role: 'outbox', sortOrder: 50 })
     ])
 
     expect(names(tree)).toEqual([
       'INBOX',
+      'Sent',
+      'Archive',
       'Drafts',
       'Outbox',
-      'Sent',
       'Trash',
       'Spam',
       'Templates',
-      'Archive',
       'Projects'
     ])
+  })
+
+  it('orders the system folders by role when the server gives them the same sortOrder', () => {
+    const tree = buildMailboxTree([
+      makeMailbox({ id: '1', name: 'Archive', role: 'archive' }),
+      makeMailbox({ id: '2', name: 'Sent', role: 'sent' }),
+      makeMailbox({ id: '3', name: 'INBOX', role: 'inbox' }),
+      makeMailbox({ id: '4', name: 'Drafts', role: 'drafts' })
+    ])
+
+    expect(names(tree)).toEqual(['INBOX', 'Drafts', 'Sent', 'Archive'])
   })
 
   it('orders the other folders by sortOrder, then by name', () => {

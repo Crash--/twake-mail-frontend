@@ -1,16 +1,17 @@
+import type { IconProps } from '@linagora/twake-icons'
+
 import {
-  Archive,
-  Email,
-  FileOutline,
-  FolderOutlined,
-  Note,
-  Paperplane,
-  Restore,
-  Send,
-  Trash,
-  Warning,
-  type IconProps
-} from '@linagora/twake-icons'
+  ArchiveFolderIcon,
+  DefaultFolderIcon,
+  DraftsFolderIcon,
+  InboxFolderIcon,
+  OutboxFolderIcon,
+  RecoveredFolderIcon,
+  SentFolderIcon,
+  SpamFolderIcon,
+  TemplatesFolderIcon,
+  TrashFolderIcon
+} from '@/ds/FolderIcons/FolderIcons'
 
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -39,16 +40,17 @@ const ROLE_NAMES: Partial<Record<string, TranslationKey>> = {
   'restored messages': 'mailbox.roles.restored'
 }
 
+/** The icons of tmail-flutter (`_systemFolderIconMap`) */
 const ROLE_ICONS: Partial<Record<string, MailboxIcon>> = {
-  inbox: Email,
-  drafts: FileOutline,
-  outbox: Send,
-  sent: Paperplane,
-  trash: Trash,
-  junk: Warning,
-  templates: Note,
-  archive: Archive,
-  'restored messages': Restore
+  inbox: InboxFolderIcon,
+  drafts: DraftsFolderIcon,
+  outbox: OutboxFolderIcon,
+  sent: SentFolderIcon,
+  trash: TrashFolderIcon,
+  junk: SpamFolderIcon,
+  templates: TemplatesFolderIcon,
+  archive: ArchiveFolderIcon,
+  'restored messages': RecoveredFolderIcon
 }
 
 /** The role whose icon a system folder of a team mailbox takes, by name */
@@ -82,16 +84,16 @@ export function getMailboxIcon(
     'role' | 'name' | 'namespace' | 'parentId' | 'myRights'
   >
 ): MailboxIcon {
-  if (mailbox.role) return ROLE_ICONS[mailbox.role] ?? FolderOutlined
+  if (mailbox.role) return ROLE_ICONS[mailbox.role] ?? DefaultFolderIcon
   // The system folders of a team mailbox have no role, nor can they be
   // deleted: known by their name (tmail-flutter `getMailboxIcon`)
   if (isTeamFolder(mailbox) && !mailbox.myRights.mayDelete) {
     return (
       ROLE_ICONS[TEAM_ICON_ROLES[mailbox.name.toLowerCase()] ?? ''] ??
-      FolderOutlined
+      DefaultFolderIcon
     )
   }
-  return FolderOutlined
+  return DefaultFolderIcon
 }
 
 /**

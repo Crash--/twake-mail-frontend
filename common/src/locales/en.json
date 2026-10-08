@@ -38,10 +38,11 @@
   },
   "sidebar": {
     "mailboxes": "Mailboxes",
-    "newMessage": "New message",
+    "newMessage": "Compose",
     "folders": "Folders",
     "teamMailboxes": "Team-mailboxes",
-    "version": "version %{version}"
+    "version": "version %{version}",
+    "personalFolders": "Personal folders"
   },
   "mailbox": {
     "empty": "You don’t have any emails\n in this folder.",

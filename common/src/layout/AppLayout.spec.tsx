@@ -33,7 +33,7 @@ describe('AppLayout', () => {
       'Search emails'
     )
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
-      'New message'
+      'Compose'
     )
     expect(await screen.findByRole('tree', { name: 'Mailboxes' })).toBe(
       screen.getByTestId('mailbox-tree')
@@ -228,7 +228,7 @@ describe('AppLayout on a phone', () => {
     expect(screen.queryByTestId('sidebar')).toBe(null)
     expect(screen.queryByRole('tree')).toBe(null)
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
-      'New message'
+      'Compose'
     )
   })
 

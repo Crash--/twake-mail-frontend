@@ -41,7 +41,7 @@ export function StorageSettings({
           {t('quota.unlimited')}
         </SecondaryText>
       ) : (
-        <Box data-testid="storage-settings">
+        <Box data-testid="storage-settings" data-used={quota.used}>
           <Typography id={labelId} component="p">
             <span className="u-fw-bold">{formatSize(quota.used, lang)}</span>{' '}
             {t('quota.usedOf', { limit: formatSize(quota.limit, lang) })}

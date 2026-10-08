@@ -51,8 +51,8 @@ export interface NavTreeItemToggle {
 export interface NavTreeItemProps {
   /** Level of the row, 1 for the top ones: sets the indentation */
   level: number
-  /** The icon, 16 px: an `Icon`; it takes the colour of the row */
-  icon: ReactNode
+  /** The icon, 16 px: an `Icon`; it takes the colour of the row; or none */
+  icon: ReactNode | null
   label: string
   /** The link component (e.g. the router `Link`) and where it goes */
   linkComponent: ElementType
@@ -182,14 +182,16 @@ export function NavTreeItem({
             '&.Mui-focusVisible::after': { ...FOCUS_RING, ...FOCUS_RING_INSET }
           }}
         >
-          <Box
-            component="span"
-            aria-hidden="true"
-            className="u-flex u-flex-items-center u-flex-shrink-0"
-            sx={{ mr: '12px' }}
-          >
-            {icon}
-          </Box>
+          {icon === null ? null : (
+            <Box
+              component="span"
+              aria-hidden="true"
+              className="u-flex u-flex-items-center u-flex-shrink-0"
+              sx={{ mr: '12px' }}
+            >
+              {icon}
+            </Box>
+          )}
           <Box
             component="span"
             className="u-flex u-flex-column"

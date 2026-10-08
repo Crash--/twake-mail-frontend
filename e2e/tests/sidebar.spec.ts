@@ -53,7 +53,7 @@ test.describe('SBR sidebar rows and compose button', () => {
     })
     const mailbox = await new LoginPage(page).loginAs(user)
 
-    await expect(mailbox.composeButton).toHaveText('Nouveau message')
+    await expect(mailbox.composeButton).toHaveText('Rédiger')
     const box = await mailbox.composeButton.boundingBox()
     expect(box?.height ?? 0).toBeLessThan(48)
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(39)
@@ -87,7 +87,7 @@ test.describe('SBR sidebar rows and compose button', () => {
       const archive = await top(mailbox.folder({ role: 'archive' }))
       const title = await top(page.getByTestId('mailbox-tree-title'))
       const work = await top(mailbox.folder({ name: 'Work' }))
-      const labels = await top(page.getByTestId('labels-section-toggle'))
+      const labels = await top(page.getByTestId('labels-section'))
       expect(archive).toBeLessThan(title)
       expect(title).toBeLessThan(work)
       expect(work).toBeLessThan(labels)

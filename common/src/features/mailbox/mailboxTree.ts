@@ -18,8 +18,12 @@ export interface VisibleMailbox {
 }
 
 /**
- * System folders come first, in this order, as in tmail-flutter
- * (`MailboxTreeBuilder._systemFolderRoleIndex`).
+ * The order of the system folders when the server gives them the same
+ * `sortOrder`, and of the system folders of a team mailbox, as in
+ * tmail-flutter (`MailboxTreeBuilder._systemFolderRoleIndex`). The personal
+ * ones follow the server `sortOrder` first, as tmail-flutter's default tree
+ * (tmail-backend: Inbox, Sent, Archive, Drafts, Outbox, Trash, Spam,
+ * Templates).
  */
 export const SYSTEM_ROLE_ORDER: readonly string[] = [
   'inbox',
@@ -175,13 +179,19 @@ function roleRank(mailbox: MailboxSummary, isUnderTeamRoot: boolean): number {
         : -1
     return index === -1 ? SYSTEM_ROLE_ORDER.length : index
   }
-  const index = mailbox.role ? SYSTEM_ROLE_ORDER.indexOf(mailbox.role) : -1
+  // Personal: the system folders first, among them the server's order
+  return mailbox.role ? 0 : SYSTEM_ROLE_ORDER.length
+}
+
+function personalRoleIndex(mailbox: MailboxSummary): number {
+  if (!isPersonalMailbox(mailbox) || mailbox.role === null) return 0
+  const index = SYSTEM_ROLE_ORDER.indexOf(mailbox.role)
   return index === -1 ? SYSTEM_ROLE_ORDER.length : index
 }
 
 /**
- * Sibling order: system roles first (inbox, drafts, sent…), then the server
- * `sortOrder`, then the name. In a team mailbox the system folders under its
+ * Sibling order: system folders first, then the server `sortOrder`, then the
+ * role (inbox, drafts, sent…), then the name. In a team mailbox the system folders under its
  * root come first, by name, and everything else is by name, as tmail-flutter
  * (`_applyTeamMailboxSorting`).
  */
@@ -194,6 +204,7 @@ export function compareMailboxes(
     roleRank(left, isUnderTeamRoot) - roleRank(right, isUnderTeamRoot) ||
     (isPersonalMailbox(left) ? left.sortOrder : 0) -
       (isPersonalMailbox(right) ? right.sortOrder : 0) ||
+    personalRoleIndex(left) - personalRoleIndex(right) ||
     left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }) ||
     left.id.localeCompare(right.id)
   )
@@ -438,20 +449,19 @@ export interface PersonalTrees {
 export function splitPersonalTree(
   roots: readonly MailboxNode[]
 ): PersonalTrees {
-  const rank = (mailbox: MailboxSummary): number =>
-    SYSTEM_ROLE_ORDER.indexOf(
+  const rank = (mailbox: MailboxSummary): number => {
+    const index = SYSTEM_ROLE_ORDER.indexOf(
       mailbox.role ?? (isTemplatesMailbox(mailbox) ? 'templates' : '')
     )
+    return index === -1 ? SYSTEM_ROLE_ORDER.length : index
+  }
   const system = roots.filter(node => isSystemRoot(node.mailbox))
-  // Array.prototype.sort is stable: roles of the same rank keep their order
-  system.sort((left, right) => {
-    const leftRank = rank(left.mailbox)
-    const rightRank = rank(right.mailbox)
-    return (
-      (leftRank === -1 ? SYSTEM_ROLE_ORDER.length : leftRank) -
-      (rightRank === -1 ? SYSTEM_ROLE_ORDER.length : rightRank)
-    )
-  })
+  // The server's order, then the role (Array.prototype.sort is stable)
+  system.sort(
+    (left, right) =>
+      left.mailbox.sortOrder - right.mailbox.sortOrder ||
+      rank(left.mailbox) - rank(right.mailbox)
+  )
   return {
     system,
     folders: roots.filter(node => !isSystemRoot(node.mailbox))

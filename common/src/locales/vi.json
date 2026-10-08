@@ -38,10 +38,11 @@
   },
   "sidebar": {
     "mailboxes": "Hộp thư",
-    "newMessage": "Tin nhắn mới",
+    "newMessage": "Soạn thư",
     "folders": "Thư mục",
     "teamMailboxes": "Hộp thư nhóm",
-    "version": "phiên bản %{version}"
+    "version": "phiên bản %{version}",
+    "personalFolders": "Thư mục cá nhân"
   },
   "mailbox": {
     "empty": "Bạn không có thư nào\ntại thư mục này.",

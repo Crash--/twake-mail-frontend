@@ -116,7 +116,7 @@ describe('IdentitiesSettings', () => {
     )
     const dialog = screen.getByRole('dialog', { name: 'Create new identity' })
     await userEvent.type(
-      within(dialog).getByRole('textbox', { name: 'Name' }),
+      within(dialog).getByRole('textbox', { name: 'Name (required)' }),
       'Support'
     )
     await userEvent.type(
@@ -168,7 +168,9 @@ describe('IdentitiesSettings', () => {
     )
     await userEvent.click(within(dialog).getByTestId('save-identity-button'))
 
-    const name = within(dialog).getByRole('textbox', { name: 'Name' })
+    const name = within(dialog).getByRole('textbox', {
+      name: 'Name (required)'
+    })
     expect(name).toHaveFocus()
     expect(name).toHaveAccessibleDescription('This field cannot be blank')
     expect(
@@ -188,7 +190,7 @@ describe('IdentitiesSettings', () => {
     )
     const dialog = screen.getByRole('dialog', { name: 'Edit identity' })
     expect(
-      within(dialog).getByRole('combobox', { name: 'Email address' })
+      within(dialog).getByRole('combobox', { name: 'Email' })
     ).toBeDisabled()
     const replyTo = within(dialog).getByRole('textbox', { name: 'Reply to' })
     expect(replyTo).toHaveValue('team@example.com')

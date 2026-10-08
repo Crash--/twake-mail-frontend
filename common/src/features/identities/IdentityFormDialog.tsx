@@ -1,11 +1,6 @@
+import { Icon } from '@linagora/twake-icons'
 import {
-  Button,
   Checkbox,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControlLabel,
   TextField,
   Typography
@@ -21,6 +16,12 @@ import {
   type ReactElement
 } from 'react'
 
+import { ConfirmDialogButton } from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
+import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
+import {
+  FormDialogFrame,
+  FormFieldRow
+} from '@/ds/FormDialogFrame/FormDialogFrame'
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -305,173 +306,59 @@ export function IdentityFormDialog({
       })
   }
 
-  const fieldError = (problem: FieldProblem): string =>
-    problem === null ? ' ' : t(problem)
+  // As tmail-flutter: no room kept under a field without error
+  const fieldError = (problem: FieldProblem): string | null =>
+    problem === null ? null : t(problem)
+
+  const fieldIds = {
+    name: `${titleId}-name`,
+    email: `${titleId}-email`,
+    replyTo: `${titleId}-reply-to`,
+    bcc: `${titleId}-bcc`,
+    signature: `${titleId}-signature`
+  }
 
   return (
-    <Dialog
-      open
+    <FormDialogFrame
+      title={t(identity === null ? 'identities.create' : 'identities.edit')}
+      titleId={titleId}
+      closeLabel={t(isMobile ? 'common.back' : 'common.close')}
       onClose={handleCancel}
-      size="large"
-      fullScreen={isMobile}
-      aria-labelledby={titleId}
-      data-testid="identity-form-dialog"
-    >
-      <form onSubmit={handleSubmit} noValidate>
-        <DialogTitle id={titleId}>
-          {t(identity === null ? 'identities.create' : 'identities.edit')}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            inputRef={nameRef}
-            autoFocus
-            required
-            fullWidth
-            margin="dense"
-            label={t('identities.form.name')}
-            placeholder={t('identities.form.namePlaceholder')}
-            value={name}
-            onChange={event => {
-              setName(event.target.value)
-            }}
-            error={shown(nameProblem) !== null}
-            helperText={fieldError(shown(nameProblem))}
-            slotProps={{
-              htmlInput: { 'data-testid': 'identity-name-input' }
-            }}
-          />
-          <TextField
-            select
-            fullWidth
-            margin="dense"
-            label={t('identities.form.email')}
-            value={email}
-            disabled={identity !== null}
-            onChange={event => {
-              setEmail(event.target.value)
-            }}
-            helperText=" "
-            slotProps={{
-              select: { native: true },
-              htmlInput: { 'data-testid': 'identity-email-select' }
-            }}
-          >
-            {emails.map(option => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </TextField>
-          <TextField
-            inputRef={replyToRef}
-            fullWidth
-            margin="dense"
-            label={t('identities.form.replyTo')}
-            placeholder={t('identities.form.addressPlaceholder')}
-            value={replyTo}
-            onChange={event => {
-              setReplyTo(event.target.value)
-            }}
-            error={shown(replyToProblem) !== null}
-            helperText={
-              shown(replyToProblem) === null
-                ? t('identities.form.addressesHelp')
-                : fieldError(shown(replyToProblem))
+      onSubmit={handleSubmit}
+      isFullScreen={isMobile}
+      footerStart={
+        hasSortOrder ? (
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isDefault}
+                onChange={event => {
+                  setIsDefault(event.target.checked)
+                }}
+                // tmail-flutter's own boxes
+                icon={<Icon icon={CheckboxOff} size={20} />}
+                checkedIcon={<Icon icon={CheckboxOn} size={20} />}
+              />
             }
-            slotProps={{
-              htmlInput: {
-                inputMode: 'email',
-                'data-testid': 'identity-reply-to-input'
-              }
-            }}
+            label={t('identities.form.setDefault')}
+            data-testid="identity-default-checkbox"
           />
-          <TextField
-            inputRef={bccRef}
-            fullWidth
-            margin="dense"
-            label={t('identities.form.bcc')}
-            placeholder={t('identities.form.addressPlaceholder')}
-            value={bcc}
-            onChange={event => {
-              setBcc(event.target.value)
-            }}
-            error={shown(bccProblem) !== null}
-            helperText={
-              shown(bccProblem) === null
-                ? t('identities.form.addressesHelp')
-                : fieldError(shown(bccProblem))
-            }
-            slotProps={{
-              htmlInput: {
-                inputMode: 'email',
-                'data-testid': 'identity-bcc-input'
-              }
-            }}
-          />
-          <Typography
-            variant="subtitle2"
-            component="p"
-            color="textPrimary"
-            className="u-mt-1 u-mb-half"
-          >
-            {t('identities.form.signature')}
-          </Typography>
-          <RichTextEditor
-            labels={{ ...labels, editor: t('identities.form.signature') }}
-            content={initialSignature}
-            colors={colors}
-            fontSizes={fontSizes}
-            fontFamilies={fontFamilies}
-            onImageFiles={handleImageFiles}
-            onReady={editor => {
-              editorRef.current = editor
-            }}
-            testIds={EDITOR_TEST_IDS}
-          />
-          {hasSortOrder ? (
-            <FormControlLabel
-              className="u-mt-1"
-              control={
-                <Checkbox
-                  checked={isDefault}
-                  onChange={event => {
-                    setIsDefault(event.target.checked)
-                  }}
-                />
-              }
-              label={t('identities.form.setDefault')}
-              data-testid="identity-default-checkbox"
-            />
-          ) : null}
-          {saveError === null ? null : (
-            <Typography
-              role="alert"
-              color="error"
-              variant="body2"
-              className="u-mt-1"
-              data-testid="identity-form-error"
-            >
-              {t(saveError)}
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            color="inherit"
+        ) : null
+      }
+      actions={
+        <>
+          <ConfirmDialogButton
             onClick={handleCancel}
             disabled={isSaving}
             data-testid="identity-cancel-button"
           >
             {t('common.cancel')}
-          </Button>
-          <Button
+          </ConfirmDialogButton>
+          <ConfirmDialogButton
             type="submit"
-            variant="contained"
+            isMain
+            minWidth={110}
             disabled={isSaving}
-            startIcon={
-              isSaving ? <CircularProgress size={16} color="inherit" /> : null
-            }
             data-testid="save-identity-button"
           >
             {t(
@@ -479,9 +366,140 @@ export function IdentityFormDialog({
                 ? 'identities.form.create'
                 : 'identities.form.save'
             )}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+          </ConfirmDialogButton>
+        </>
+      }
+      data-testid="identity-form-dialog"
+    >
+      <FormFieldRow
+        label={t('identities.form.nameRequired')}
+        htmlFor={fieldIds.name}
+        isStacked={isMobile}
+      >
+        <TextField
+          id={fieldIds.name}
+          inputRef={nameRef}
+          autoFocus
+          required
+          fullWidth
+          placeholder={t('identities.form.namePlaceholder')}
+          value={name}
+          onChange={event => {
+            setName(event.target.value)
+          }}
+          error={shown(nameProblem) !== null}
+          helperText={fieldError(shown(nameProblem))}
+          slotProps={{
+            htmlInput: { 'data-testid': 'identity-name-input' }
+          }}
+        />
+      </FormFieldRow>
+      <FormFieldRow
+        label={t('identities.form.emailLabel')}
+        htmlFor={fieldIds.email}
+        isStacked={isMobile}
+      >
+        <TextField
+          id={fieldIds.email}
+          select
+          fullWidth
+          value={email}
+          disabled={identity !== null}
+          onChange={event => {
+            setEmail(event.target.value)
+          }}
+          slotProps={{
+            select: { native: true },
+            htmlInput: { 'data-testid': 'identity-email-select' }
+          }}
+        >
+          {emails.map(option => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </TextField>
+      </FormFieldRow>
+      <FormFieldRow
+        label={t('identities.form.replyTo')}
+        htmlFor={fieldIds.replyTo}
+        isStacked={isMobile}
+      >
+        <TextField
+          id={fieldIds.replyTo}
+          inputRef={replyToRef}
+          fullWidth
+          placeholder={t('identities.form.addressPlaceholder')}
+          value={replyTo}
+          onChange={event => {
+            setReplyTo(event.target.value)
+          }}
+          error={shown(replyToProblem) !== null}
+          helperText={fieldError(shown(replyToProblem))}
+          slotProps={{
+            htmlInput: {
+              inputMode: 'email',
+              'aria-description': t('identities.form.addressesHelp'),
+              'data-testid': 'identity-reply-to-input'
+            }
+          }}
+        />
+      </FormFieldRow>
+      <FormFieldRow
+        label={t('identities.form.bcc')}
+        htmlFor={fieldIds.bcc}
+        isStacked={isMobile}
+      >
+        <TextField
+          id={fieldIds.bcc}
+          inputRef={bccRef}
+          fullWidth
+          placeholder={t('identities.form.addressPlaceholder')}
+          value={bcc}
+          onChange={event => {
+            setBcc(event.target.value)
+          }}
+          error={shown(bccProblem) !== null}
+          helperText={fieldError(shown(bccProblem))}
+          slotProps={{
+            htmlInput: {
+              inputMode: 'email',
+              'aria-description': t('identities.form.addressesHelp'),
+              'data-testid': 'identity-bcc-input'
+            }
+          }}
+        />
+      </FormFieldRow>
+      <FormFieldRow
+        label={t('identities.form.signature')}
+        labelId={fieldIds.signature}
+        isStacked={isMobile}
+      >
+        <RichTextEditor
+          labels={{ ...labels, editor: t('identities.form.signature') }}
+          content={initialSignature}
+          colors={colors}
+          fontSizes={fontSizes}
+          fontFamilies={fontFamilies}
+          onImageFiles={handleImageFiles}
+          onReady={editor => {
+            editorRef.current = editor
+          }}
+          testIds={EDITOR_TEST_IDS}
+          look="boxed"
+        />
+      </FormFieldRow>
+      {saveError === null ? null : (
+        <Typography
+          role="alert"
+          color="error"
+          variant="body2"
+          className="u-mt-1"
+          data-testid="identity-form-error"
+        >
+          {t(saveError)}
+        </Typography>
+      )}
+    </FormDialogFrame>
   )
 }

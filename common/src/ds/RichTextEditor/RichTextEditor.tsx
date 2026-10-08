@@ -83,6 +83,11 @@ export interface RichTextEditorProps {
    * without a border: the editor of a window
    */
   fill?: boolean
+  /**
+   * `boxed`: tmail-flutter's editor of a signature, the toolbar of 40 px
+   * boxes and a 189 px text, in one frame rounded by 10 px
+   */
+  look?: 'compact' | 'boxed'
   /** The formatting toolbar under the text, behind a divider; above it if false */
   isToolbarBelow?: boolean
   /** Shows the toolbar; the parent can hide it (a button of its own) */
@@ -196,6 +201,29 @@ function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
  * is a `textbox` (`aria-multiline`) named by `labels.editor`, the help is
  * read through `aria-describedby`.
  */
+/**
+ * The frame of the `boxed` look: a light outline rounded by 10 px holding
+ * the toolbar and a 189 px text without border of its own
+ */
+const BOXED_FRAME_SX = {
+  border: '1px solid #E6E1E5',
+  borderRadius: '10px',
+  pt: '4px',
+  px: 1,
+  pb: 1,
+  '&& .ProseMirror': {
+    border: 'none',
+    minHeight: 189,
+    height: 189,
+    overflowY: 'auto',
+    boxSizing: 'border-box',
+    px: '10px',
+    py: 1,
+    fontSize: 16,
+    color: '#000000'
+  }
+} as const
+
 export function RichTextEditor({
   labels,
   content,
@@ -209,6 +237,7 @@ export function RichTextEditor({
   autoFocus = false,
   disabled = false,
   fill = false,
+  look = 'compact',
   isToolbarBelow = false,
   isToolbarShown = true,
   hasInsertButtons = true,
@@ -396,6 +425,7 @@ export function RichTextEditor({
       onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
       hasInsertButtons={hasInsertButtons}
       placement={isToolbarBelow ? 'bottom' : 'top'}
+      look={look}
       actionsRef={actionsRef}
       disabled={disabled}
       buttonTestId={testIds.toolbarButton}
@@ -409,7 +439,8 @@ export function RichTextEditor({
       className="u-flex u-flex-column"
       sx={{
         position: 'relative',
-        ...(fill ? { flex: '1 1 auto', minHeight: 0 } : {})
+        ...(fill ? { flex: '1 1 auto', minHeight: 0 } : {}),
+        ...(look === 'boxed' ? BOXED_FRAME_SX : {})
       }}
     >
       {isToolbarBelow ? null : toolbar}

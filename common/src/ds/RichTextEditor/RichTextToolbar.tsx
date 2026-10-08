@@ -70,6 +70,11 @@ export interface RichTextToolbarProps {
   hasInsertButtons: boolean
   /** Under the text, with a divider above, or above it */
   placement: 'top' | 'bottom'
+  /**
+   * `boxed`: tmail-flutter's editor of a signature, 40 px boxes rounded by
+   * 8 px, a light outline, 20 px grey icons
+   */
+  look?: 'compact' | 'boxed'
   /** Lets the editor send the focus here (Alt+F10) */
   actionsRef: RefObject<EditorActions>
   /** The editor is disabled: every button says it, and does nothing */
@@ -120,6 +125,43 @@ const GROUP_SX = {
   borderRadius: '4px'
 } as const
 const ICON_SX = { fontSize: ICON_SIZE } as const
+
+/**
+ * tmail-flutter's toolbar of a signature (`ToolbarRichTextWidget`): 40 px
+ * boxes rounded by 8 px, outlined in #E6E1E5, 8 px apart, the icons in
+ * 20 px grey (#99A2AD), black when on; 12 px above the text
+ */
+const BOXED_SX = {
+  gap: 1,
+  pt: 0,
+  pb: '12px',
+  '& .MuiIconButton-root': {
+    height: 40,
+    px: 1,
+    borderColor: '#E6E1E5',
+    borderRadius: '8px',
+    color: '#99A2AD',
+    fontSize: 16,
+    fontWeight: 400
+  },
+  '& .RichTextToolbar-group': {
+    height: 40,
+    boxSizing: 'border-box',
+    px: '5px',
+    borderColor: '#E6E1E5',
+    borderRadius: '8px'
+  },
+  '& .RichTextToolbar-group .MuiIconButton-root': {
+    width: 30,
+    height: 30,
+    px: 0
+  },
+  '&& .MuiIconButton-root[aria-pressed="true"]': {
+    color: '#000000',
+    bgcolor: 'transparent'
+  },
+  '& .MuiSvgIcon-root': { fontSize: 20 }
+} as const
 
 const ALIGNMENTS = ['left', 'center', 'right', 'justify'] as const
 type Alignment = (typeof ALIGNMENTS)[number]
@@ -182,6 +224,7 @@ export function RichTextToolbar({
   onPickImages,
   hasInsertButtons,
   placement,
+  look = 'compact',
   actionsRef,
   disabled = false,
   buttonTestId
@@ -594,12 +637,17 @@ export function RichTextToolbar({
                 edges.start ? 'transparent 0, #000 24px' : '#000 0'
               }, ${edges.end ? '#000 calc(100% - 24px), transparent 100%' : '#000 100%'})`
             }
-          : { flexWrap: 'wrap' })
+          : { flexWrap: 'wrap' }),
+        ...(look === 'boxed' ? BOXED_SX : {})
       }}
     >
       {segments.map(segment =>
         segment.isGroup ? (
-          <Box key={segment.key} sx={GROUP_SX}>
+          <Box
+            key={segment.key}
+            className="RichTextToolbar-group"
+            sx={GROUP_SX}
+          >
             {segment.entries.map(([item, index]) => renderButton(item, index))}
           </Box>
         ) : (

@@ -939,7 +939,9 @@
       "create": "Tạo mới",
       "save": "Lưu",
       "email": "Địa chỉ email",
-      "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy"
+      "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy",
+      "nameRequired": "Tên (yêu cầu)",
+      "emailLabel": "Email"
     },
     "errors": {
       "blank": "Trường dữ liệu trống",

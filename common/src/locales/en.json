@@ -939,7 +939,9 @@
       "create": "Create",
       "save": "Save",
       "email": "Email address",
-      "addressesHelp": "Separate several addresses with commas"
+      "addressesHelp": "Separate several addresses with commas",
+      "nameRequired": "Name (required)",
+      "emailLabel": "Email"
     },
     "errors": {
       "blank": "This field cannot be blank",

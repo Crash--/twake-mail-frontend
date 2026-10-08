@@ -130,7 +130,12 @@ export function ConfirmDialogFrame({
 
 export interface ConfirmDialogButtonProps {
   children: ReactNode
-  onClick: () => void
+  /** Not needed for the submit button of a form */
+  onClick?: () => void
+  type?: 'button' | 'submit'
+  disabled?: boolean
+  /** Its least width, in px: 135 for the main one, 67 for the others */
+  minWidth?: number
   /** The confirming action: a blue pill, else blue text */
   isMain?: boolean
   autoFocus?: boolean
@@ -141,6 +146,9 @@ export interface ConfirmDialogButtonProps {
 export function ConfirmDialogButton({
   children,
   onClick,
+  type = 'button',
+  disabled = false,
+  minWidth,
   isMain = false,
   autoFocus,
   'data-testid': testId
@@ -148,11 +156,13 @@ export function ConfirmDialogButton({
   return (
     <Button
       variant={isMain ? 'contained' : 'text'}
+      type={type}
+      disabled={disabled}
       onClick={onClick}
       autoFocus={autoFocus}
       sx={{
         ...LABEL_SX,
-        minWidth: isMain ? 135 : 67,
+        minWidth: minWidth ?? (isMain ? 135 : 67),
         color: isMain ? '#FFFFFF' : PRIMARY,
         bgcolor: isMain ? PRIMARY : 'transparent'
       }}

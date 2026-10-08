@@ -939,7 +939,9 @@
       "create": "Créer",
       "save": "Sauvegarder",
       "email": "Adresse e-mail",
-      "addressesHelp": "Séparez plusieurs adresses par des virgules"
+      "addressesHelp": "Séparez plusieurs adresses par des virgules",
+      "nameRequired": "Nom (requis)",
+      "emailLabel": "E-mail"
     },
     "errors": {
       "blank": "Ce champ ne peut pas être vide",

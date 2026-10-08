@@ -72,7 +72,11 @@ export function PushProvider({
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const queryClient = useQueryClient()
-  const alert = useNewMailAlert(accountId, alertsNewEmails)
+  const alert = useNewMailAlert(
+    accountId,
+    alertsNewEmails || spaceBridge !== null,
+    spaceBridge === null ? 'page' : 'space'
+  )
   const alertRef = useRef(alert)
   const tRef = useRef(t)
   useEffect(() => {
@@ -103,8 +107,10 @@ export function PushProvider({
                 })
               }
             },
-            // ponytail: each Space tab notifies, the same tag replaces
-            () => true
+            // One frame of the account asks, and only with team mailboxes
+            () =>
+              alertRef.current.isLeader() &&
+              findTeamInboxIds(mailboxes()).length > 0
           )
         : alertsNewEmails
           ? createNewMailWatcher(

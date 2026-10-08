@@ -1,5 +1,6 @@
 // Upstream to twake-ui: yes. Picking a colour among swatches (labels,
 // calendars, tags) is common to Twake apps; twake-mui has no colour input.
+import { Icon } from '@linagora/twake-icons'
 import { Box, TextField, Typography } from '@linagora/twake-mui'
 import {
   useId,
@@ -9,8 +10,10 @@ import {
   type Ref
 } from 'react'
 
+import { Check, CloseDialog, Palette } from '@/ds/FlutterIcons/FlutterIcons'
 import { FOCUS_RING } from '@/ds/FocusIndicator/focusIndicator'
 import { VISUALLY_HIDDEN } from '@/ds/MessageAlert/visuallyHidden'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 import { normalizeHexColor } from './hexColor'
 
@@ -59,10 +62,82 @@ export interface ColorSwatchPickerProps {
    * a phone). `onChange` only receives a valid `#RRGGBB`.
    */
   custom?: CustomColor
+  /**
+   * tmail-flutter's swatches of a label (`ColorsMapWidget`): 40 px discs 10
+   * px apart, a white tick on the chosen one, "no colour" a grey ring with a
+   * cross, the custom one a gradient ring with a palette
+   */
+  isLarge?: boolean
   'data-testid'?: string
 }
 
 const SIZE = 28
+const LARGE_SIZE = 40
+
+const LARGE_LEGEND_SX = {
+  mb: '16px',
+  p: 0,
+  fontSize: 14,
+  fontWeight: 600,
+  lineHeight: '18px',
+  color: '#000000'
+} as const
+
+/** The custom swatch of tmail-flutter: a white disc in a gradient ring */
+const GRADIENT_RING =
+  'linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(135deg, #FB2C36, #AD46FF, #2B7FFF) border-box'
+
+function largeSwatchSx(
+  value: string,
+  background: string | null
+): Record<string, unknown> {
+  return value === CUSTOM && background === null
+    ? { border: '2px solid transparent', boxSizing: 'border-box' }
+    : { boxSizing: 'border-box' }
+}
+
+function largeBackgroundImage(
+  value: string,
+  background: string | null
+): string {
+  return value === CUSTOM && background === null ? GRADIENT_RING : 'none'
+}
+
+/** What a large swatch draws in its middle */
+function LargeSwatchMark({
+  kind
+}: {
+  kind: 'none' | 'custom' | 'checked' | 'plain'
+}): ReactElement | null {
+  if (kind === 'plain') return null
+  return (
+    <Box
+      component="span"
+      aria-hidden="true"
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+        color:
+          kind === 'checked'
+            ? '#FFFFFF'
+            : kind === 'none'
+              ? 'rgba(28, 27, 31, 0.48)'
+              : '#1C1B1F'
+      }}
+    >
+      <Icon
+        icon={
+          kind === 'checked' ? Check : kind === 'none' ? CloseDialog : Palette
+        }
+        size={kind === 'checked' ? 20 : 18}
+      />
+    </Box>
+  )
+}
 const CUSTOM = 'custom'
 const DEFAULT_CUSTOM = '#2196F3'
 const RAINBOW =
@@ -83,8 +158,11 @@ export function ColorSwatchPicker({
   onChange,
   noneLabel,
   custom,
+  isLarge = false,
   'data-testid': testId
 }: ColorSwatchPickerProps): ReactElement {
+  const isPhone = useScreenSize() === 'mobile'
+  const size = isLarge ? LARGE_SIZE : SIZE
   const name = useId()
   // A colour out of the swatches is a custom one
   const [isCustom, setIsCustom] = useState(
@@ -135,10 +213,27 @@ export function ColorSwatchPicker({
       sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}
       data-testid={testId}
     >
-      <Typography component="legend" variant="subtitle2" color="textPrimary">
+      <Typography
+        component="legend"
+        variant="subtitle2"
+        color="textPrimary"
+        sx={isLarge ? LARGE_LEGEND_SX : undefined}
+      >
         {legend}
       </Typography>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+      <Box
+        sx={
+          isLarge
+            ? {
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '10px',
+                pl: isPhone ? 0 : '32px',
+                pr: isPhone ? 0 : '16px'
+              }
+            : { display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }
+        }
+      >
         {options.map(option => {
           const isChecked =
             option.value === CUSTOM
@@ -160,18 +255,29 @@ export function ColorSwatchPicker({
               title={option.label}
               sx={theme => ({
                 position: 'relative',
-                width: SIZE,
-                height: SIZE,
+                width: size,
+                height: size,
+                flexShrink: 0,
                 borderRadius: '50%',
                 cursor: 'pointer',
                 backgroundColor: background ?? theme.palette.background.paper,
-                border: `1px solid ${theme.palette.divider}`,
-                boxShadow: isChecked
-                  ? `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${theme.palette.text.primary}`
-                  : 'none',
+                ...(isLarge ? largeSwatchSx(option.value, background) : {}),
+                border: isLarge
+                  ? option.value === ''
+                    ? '2px solid #CDCDCD'
+                    : option.value === CUSTOM && background === null
+                      ? '2px solid transparent'
+                      : 'none'
+                  : `1px solid ${theme.palette.divider}`,
+                boxShadow: isLarge
+                  ? 'none'
+                  : isChecked
+                    ? `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${theme.palette.text.primary}`
+                    : 'none',
                 // "No colour": a diagonal stroke
-                backgroundImage:
-                  option.value === ''
+                backgroundImage: isLarge
+                  ? largeBackgroundImage(option.value, background)
+                  : option.value === ''
                     ? `linear-gradient(135deg, transparent 45%, ${theme.palette.error.main} 45%, ${theme.palette.error.main} 55%, transparent 55%)`
                     : option.value === CUSTOM && background === null
                       ? RAINBOW
@@ -183,6 +289,19 @@ export function ColorSwatchPicker({
                 }
               })}
             >
+              {isLarge ? (
+                <LargeSwatchMark
+                  kind={
+                    option.value === ''
+                      ? 'none'
+                      : option.value === CUSTOM && background === null
+                        ? 'custom'
+                        : isChecked
+                          ? 'checked'
+                          : 'plain'
+                  }
+                />
+              ) : null}
               <Box
                 component="input"
                 type="radio"

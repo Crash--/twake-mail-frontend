@@ -12,10 +12,20 @@ import { syncLabels } from '@common/features/labels/queries'
 import { quotaKeys } from '@common/features/quota/quota'
 import {
   mailboxKeys,
-  type MailboxListData
+  type MailboxListData,
+  type MailboxSummary
 } from '@common/features/mailbox/queries'
 import { createNewMailWatcher } from '@common/features/newMail/newMailWatcher'
-import { useNewMailAlert } from '@common/features/newMail/useNewMailAlert'
+import {
+  describeNewEmail,
+  useNewMailAlert
+} from '@common/features/newMail/useNewMailAlert'
+import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
+import {
+  findTeamInboxIds,
+  findTeamRootOf
+} from '@common/features/teamMailboxEmbed/teamMailbox'
+import { useI18n } from '@common/i18n/useI18n'
 import { threadKeys } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -35,6 +45,11 @@ export interface PushProviderProps {
    * Inbox, as the user chose (`useNewMailAlert`)
    */
   alertsNewEmails?: boolean
+  /**
+   * In a frame of TwakeSpace: the new emails of the user's team mailboxes go
+   * to TwakeSpace, which shows them and opens the space of the mailbox
+   */
+  spaceBridge?: SpaceBridge | null
 }
 
 /**
@@ -50,33 +65,61 @@ export interface PushProviderProps {
 export function PushProvider({
   children,
   WebSocket,
-  alertsNewEmails = false
+  alertsNewEmails = false,
+  spaceBridge = null
 }: PushProviderProps): ReactElement {
+  const { t } = useI18n()
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const queryClient = useQueryClient()
   const alert = useNewMailAlert(accountId, alertsNewEmails)
   const alertRef = useRef(alert)
+  const tRef = useRef(t)
   useEffect(() => {
     alertRef.current = alert
+    tRef.current = t
   })
 
   useEffect(() => {
     const sync = createPushSync(queryClient, client, accountId)
-    const newMail = alertsNewEmails
-      ? createNewMailWatcher(
-          client,
-          accountId,
-          () =>
-            queryClient
-              .getQueryData<MailboxListData>(mailboxKeys.list(accountId))
-              ?.list.find(mailbox => mailbox.role === 'inbox')?.id ?? null,
-          emails => {
-            alertRef.current.alert(emails)
-          },
-          () => alertRef.current.isWanted()
-        )
-      : null
+    const mailboxes = (): readonly MailboxSummary[] =>
+      queryClient.getQueryData<MailboxListData>(mailboxKeys.list(accountId))
+        ?.list ?? []
+    const newMail =
+      spaceBridge !== null
+        ? createNewMailWatcher(
+            client,
+            accountId,
+            () => findTeamInboxIds(mailboxes()),
+            emails => {
+              const list = mailboxes()
+              for (const email of emails) {
+                const root = findTeamRootOf(list, email.inboxId)
+                if (root === null) continue
+                spaceBridge.notify({
+                  tag: `mail:${email.id}`,
+                  ...describeNewEmail(email, tRef.current),
+                  resourceId: root
+                })
+              }
+            },
+            // ponytail: each Space tab notifies, the same tag replaces
+            () => true
+          )
+        : alertsNewEmails
+          ? createNewMailWatcher(
+              client,
+              accountId,
+              () =>
+                mailboxes()
+                  .filter(mailbox => mailbox.role === 'inbox')
+                  .map(mailbox => mailbox.id),
+              emails => {
+                alertRef.current.alert(emails)
+              },
+              () => alertRef.current.isWanted()
+            )
+          : null
     // What arrived before the channel (re)opened is not new: the watcher
     // starts from the current state
     const resetNewMail = (): void => {
@@ -184,7 +227,7 @@ export function PushProvider({
         })
       }
     }
-  }, [client, accountId, queryClient, WebSocket, alertsNewEmails])
+  }, [client, accountId, queryClient, WebSocket, alertsNewEmails, spaceBridge])
 
   return <>{children}</>
 }

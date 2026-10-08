@@ -11,6 +11,19 @@ import {
 } from './newMailPreferences'
 import type { NewEmail } from './newMailWatcher'
 
+/** What a notification of a new email says: its sender and its subject */
+export function describeNewEmail(
+  email: NewEmail,
+  t: (key: 'newMail.unknownSender' | 'composer.template.noSubject') => string
+): { title: string; body: string } {
+  const sender = email.from?.[0]
+  const subject = email.subject?.trim() ?? ''
+  return {
+    title: sender ? formatAddressName(sender) : t('newMail.unknownSender'),
+    body: subject === '' ? t('composer.template.noSubject') : subject
+  }
+}
+
 /** A short two-note chime, drawn by the browser: no sound file to serve */
 function playChime(): void {
   if (typeof AudioContext === 'undefined') return
@@ -120,15 +133,8 @@ export function useNewMailAlert(
         return
       }
       for (const email of emails) {
-        const sender = email.from?.[0]
-        const subject = email.subject?.trim() ?? ''
-        const notification = new Notification(
-          sender ? formatAddressName(sender) : t('newMail.unknownSender'),
-          {
-            tag: email.id,
-            body: subject === '' ? t('composer.template.noSubject') : subject
-          }
-        )
+        const { title, body } = describeNewEmail(email, t)
+        const notification = new Notification(title, { tag: email.id, body })
         notification.onclick = () => {
           window.focus()
           void navigate(

@@ -29,7 +29,7 @@ interface NewEmailCandidate {
 }
 
 /**
- * Tells about the emails created in the Inbox, unread and not drafts, from
+ * Tells about the emails created in an Inbox followed, unread and not drafts, from
  * one pushed `Email` state to the next (`Email/changes` and the `Email/get`
  * of what was created, in one request). Never about what arrived before the
  * last `reset`, so that a reconnection does not bring a burst of alerts.
@@ -37,7 +37,8 @@ interface NewEmailCandidate {
 export function createNewMailWatcher(
   client: JmapClient,
   accountId: string,
-  inboxId: () => string | null,
+  /** The Inboxes followed: the user's, or those of their team mailboxes */
+  inboxIds: () => readonly string[],
   onNewEmails: (emails: readonly NewEmail[]) => void,
   /** Whether this page alerts now: else a push asks the server nothing */
   isWanted: () => boolean
@@ -48,7 +49,7 @@ export function createNewMailWatcher(
 
   async function check(state: string): Promise<void> {
     const from = since
-    const inbox = inboxId()
+    const inboxes = inboxIds()
     if (from === null || from === state) return
     if (!isWanted()) {
       since = state
@@ -70,20 +71,15 @@ export function createNewMailWatcher(
     if (since !== from || isClosed) return
     // ponytail: a burst too big for one round is skipped, not paged
     since = changes.hasMoreChanges ? state : changes.newState
-    if (changes.hasMoreChanges || inbox === null) return
-    const emails = (created.list as NewEmailCandidate[])
-      .filter(
-        email =>
-          email.mailboxIds?.[inbox] === true &&
-          email.keywords?.$seen !== true &&
-          email.keywords?.$draft !== true
-      )
-      .map(email => ({
-        id: email.id,
-        inboxId: inbox,
-        from: email.from,
-        subject: email.subject
-      }))
+    if (changes.hasMoreChanges) return
+    const emails = (created.list as NewEmailCandidate[]).flatMap(email => {
+      const inboxId = inboxes.find(id => email.mailboxIds?.[id] === true)
+      return inboxId === undefined ||
+        email.keywords?.$seen === true ||
+        email.keywords?.$draft === true
+        ? []
+        : [{ id: email.id, inboxId, from: email.from, subject: email.subject }]
+    })
     if (emails.length > 0) onNewEmails(emails)
   }
 

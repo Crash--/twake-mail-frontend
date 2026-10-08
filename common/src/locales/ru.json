@@ -965,11 +965,9 @@
     },
     "editAction": "Изменить",
     "defaultGroup": "Аккаунт по умолчанию",
-    "defaultBadge": "По умолчанию",
     "setDefaultOf": "Использовать %{name} по умолчанию",
     "editOf": "Изменить %{name}",
     "deleteOf": "Удалить %{name}",
-    "cannotDelete": "Создан вместе с вашей учётной записью, его нельзя удалить",
     "listLabel": "Аккаунты"
   },
   "rules": {

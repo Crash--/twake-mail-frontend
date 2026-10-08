@@ -965,11 +965,9 @@
     },
     "editAction": "Edit",
     "defaultGroup": "Default identity",
-    "defaultBadge": "Default",
     "setDefaultOf": "Use %{name} by default",
     "editOf": "Edit %{name}",
     "deleteOf": "Delete %{name}",
-    "cannotDelete": "Created with your account, it cannot be deleted",
     "listLabel": "Identities"
   },
   "rules": {

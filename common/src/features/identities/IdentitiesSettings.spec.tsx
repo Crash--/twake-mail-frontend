@@ -69,20 +69,18 @@ describe('IdentitiesSettings', () => {
       'Alice Martin'
     ])
     const work = item('Alice at work')
-    expect(within(work).getByText('Default')).toBeVisible()
     expect(work).toHaveTextContent('Reply to: team@example.com')
-    expect(within(work).getByText('-- Alice CEO')).toBeVisible()
+    // As tmail-flutter: "--", then the signature as it is written
+    expect(within(work).getByText('--')).toBeVisible()
+    expect(
+      within(work).getByTestId('identity-item-signature')
+    ).toHaveTextContent(/^Alice\s*CEO$/)
     expect(
       within(work).getByRole('radio', { name: 'Use Alice at work by default' })
     ).toBeChecked()
     // The identity of the account cannot be deleted
     const server = item('Alice Martin')
     expect(within(server).queryByTestId('identity-delete-button')).toBe(null)
-    expect(
-      within(server).getByText(
-        'Created with your account, it cannot be deleted'
-      )
-    ).toBeVisible()
   })
 
   it('makes another identity the default one', async () => {

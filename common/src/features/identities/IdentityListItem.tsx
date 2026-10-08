@@ -1,15 +1,22 @@
-import { Box, Chip, Radio } from '@linagora/twake-mui'
+import { Icon } from '@linagora/twake-icons'
+import { Radio } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { Pen, Trash } from '@/ds/FlutterIcons/FlutterIcons'
+import {
+  DeleteFilled,
+  EditPen,
+  RadioOff,
+  RadioOn
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { SettingsRowButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {
+  SettingsListHtml,
   SettingsListItem,
   SettingsListText
 } from '@/ds/SettingsList/SettingsList'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { formatIdentityAddresses, signaturePreview } from './identityForm'
+import { formatIdentityAddresses, signatureHtml } from './identityForm'
 import type { IdentitySummary } from './queries'
 
 export interface IdentityListItemProps {
@@ -23,9 +30,10 @@ export interface IdentityListItemProps {
 }
 
 /**
- * An identity in Settings > Profiles, as tmail-flutter lists it: name,
- * address, Reply-To, Bcc and the start of the signature, the radio making
- * it the default one, edit and delete (not for the identity of the account).
+ * An identity in Settings > Profiles, as tmail-flutter lists it: the radio
+ * making it the default one, name, address, Reply-To, Bcc, "--" and the
+ * signature as it is written, then "Edit" and "Delete" (no delete for the
+ * identity of the account, which the server keeps).
  */
 export function IdentityListItem({
   identity,
@@ -39,7 +47,7 @@ export function IdentityListItem({
   const deleteLabel = t('identities.deleteOf', { name: identity.name })
   const replyTo = formatIdentityAddresses(identity.replyTo)
   const bcc = formatIdentityAddresses(identity.bcc)
-  const signature = signaturePreview(identity)
+  const signature = signatureHtml(identity)
 
   return (
     <SettingsListItem
@@ -52,6 +60,9 @@ export function IdentityListItem({
         withDefaultRadio ? (
           <Radio
             value={identity.id}
+            // tmail-flutter's ring, filled once it is the default one
+            icon={<Icon icon={RadioOff} size={18} />}
+            checkedIcon={<Icon icon={RadioOn} size={18} />}
             slotProps={{
               input: {
                 'aria-label': t('identities.setDefaultOf', {
@@ -68,7 +79,7 @@ export function IdentityListItem({
           <SettingsRowButton
             label={t('common.edit')}
             name={editLabel}
-            icon={Pen}
+            icon={EditPen}
             onClick={() => {
               onEdit(identity)
             }}
@@ -78,7 +89,7 @@ export function IdentityListItem({
             <SettingsRowButton
               label={t('common.delete')}
               name={deleteLabel}
-              icon={Trash}
+              icon={DeleteFilled}
               onClick={event => {
                 onDelete(identity, event.currentTarget)
               }}
@@ -88,23 +99,9 @@ export function IdentityListItem({
         </>
       }
     >
-      <Box className="u-flex u-flex-items-center u-flex-wrap">
-        <SettingsListText
-          variant="name"
-          className="u-mr-half"
-          data-testid="identity-item-name"
-        >
-          {identity.name}
-        </SettingsListText>
-        {isDefault ? (
-          <Chip
-            size="small"
-            label={t('identities.defaultBadge')}
-            className="u-mb-half"
-            data-testid="identity-default-badge"
-          />
-        ) : null}
-      </Box>
+      <SettingsListText variant="name" data-testid="identity-item-name">
+        {identity.name}
+      </SettingsListText>
       <SettingsListText variant="detail">{identity.email}</SettingsListText>
       {replyTo === '' ? null : (
         <SettingsListText variant="detail">
@@ -119,12 +116,13 @@ export function IdentityListItem({
         </SettingsListText>
       )}
       {signature === '' ? null : (
-        <SettingsListText variant="detail">{`-- ${signature}`}</SettingsListText>
-      )}
-      {identity.mayDelete ? null : (
-        <SettingsListText variant="detail">
-          {t('identities.cannotDelete')}
-        </SettingsListText>
+        <>
+          <SettingsListText variant="mark">--</SettingsListText>
+          <SettingsListHtml
+            html={signature}
+            data-testid="identity-item-signature"
+          />
+        </>
       )}
     </SettingsListItem>
   )

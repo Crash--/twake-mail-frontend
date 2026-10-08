@@ -965,11 +965,9 @@
     },
     "editAction": "Sửa",
     "defaultGroup": "Định danh mặc định",
-    "defaultBadge": "Mặc định",
     "setDefaultOf": "Dùng %{name} làm mặc định",
     "editOf": "Sửa %{name}",
     "deleteOf": "Xóa %{name}",
-    "cannotDelete": "Được tạo cùng tài khoản của bạn, không thể xóa",
     "listLabel": "Định danh"
   },
   "rules": {

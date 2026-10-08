@@ -178,6 +178,22 @@ export function publicAssetIdsIn(html: string): string[] {
 
 const BLOCKS = 'p, div, br, li, tr, h1, h2, h3, h4, h5, h6, blockquote'
 
+/**
+ * The signature of an identity as the list of identities shows it, as
+ * tmail-flutter: its HTML, safe, or its text with its line breaks; empty
+ * without signature
+ */
+export function signatureHtml(
+  identity: Pick<IdentitySummary, 'htmlSignature' | 'textSignature'>
+): string {
+  const html = identity.htmlSignature.trim()
+  if (html !== '') return sanitizeSignature(html)
+  const text = identity.textSignature.trim()
+  return text === ''
+    ? ''
+    : `<p>${escapeHtml(text).replaceAll('\n', '<br>')}</p>`
+}
+
 /** A short text of a signature, for the list of identities */
 export function signaturePreview(
   identity: Pick<IdentitySummary, 'htmlSignature' | 'textSignature'>

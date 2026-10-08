@@ -1510,3 +1510,72 @@ export function ArrowBack(props: SvgProps): ReactElement {
     </svg>
   )
 }
+
+/** `ic_add_identity`: the thin plus of the main buttons of the settings */
+export function AddThin(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="M12 3.5C12.5523 3.5 13 3.94772 13 4.5L13 11H19.5C20.0523 11 20.5 11.4477 20.5 12C20.5 12.5523 20.0523 13 19.5 13H13L13 19.5001C13 20.0524 12.5523 20.5001 12 20.5001C11.4477 20.5001 11 20.0524 11 19.5001L10.999 13H4.5C3.94772 13 3.5 12.5523 3.5 12C3.5 11.4477 3.94772 11 4.5 11H10.999L11 4.5C11 3.94772 11.4477 3.5 12 3.5Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+/** `ic_compose`: the pen of "Edit" in the lists of the settings */
+export function EditPen(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" {...props}>
+      <path
+        d="M11.8233 5.22705L14.7725 8.17622L7.58679 15.3629C6.94241 16.0072 6.14959 16.4833 5.27805 16.7494L2.8593 17.4878C2.7124 17.5326 2.55696 17.4499 2.51212 17.303C2.49596 17.2501 2.49596 17.1935 2.51212 17.1406L3.25045 14.7221C3.51657 13.8504 3.99282 13.0575 4.63732 12.413L11.8233 5.22705ZM15.9492 2.86975L17.1311 4.05164C17.5888 4.50925 17.6174 5.23347 17.217 5.72444L17.1311 5.81937L15.6567 7.29288L12.7067 4.34288L14.1814 2.86971C14.6696 2.38163 15.4611 2.38165 15.9492 2.86975Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+/** `ic_delete_rule`: the filled bin of "Delete" in the lists of the settings */
+export function DeleteFilled(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 21 21" fill="none" {...props}>
+      <path
+        d="M7.58333 18H13.4167C14.5673 18 15.5 17.0673 15.5 15.9167V6.33333H5.5V15.9167C5.5 17.0673 6.43274 18 7.58333 18ZM4.875 5.5C4.75994 5.5 4.66667 5.40673 4.66667 5.29167V4.66667C4.66667 4.20643 5.03976 3.83333 5.5 3.83333L7.80634 3.83327C8.09452 3.33514 8.63312 3 9.25 3H11.75C12.3669 3 12.9055 3.33514 13.1937 3.83327L15.5 3.83333C15.9602 3.83333 16.3333 4.20643 16.3333 4.66667V5.29167C16.3333 5.40673 16.2401 5.5 16.125 5.5H4.875Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+/** `ic_radio`: an option not chosen, a grey ring */
+export function RadioOff(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 18 18" fill="none" {...props}>
+      <path
+        d="M9 0.700195C13.584 0.700195 17.2998 4.41604 17.2998 9C17.2998 13.584 13.584 17.2998 9 17.2998C4.41604 17.2998 0.700195 13.584 0.700195 9C0.700195 4.41604 4.41604 0.700195 9 0.700195Z"
+        fill="none"
+        stroke="#86888B"
+        strokeWidth="1.4"
+      />
+    </svg>
+  )
+}
+
+/** `ic_radio_selected`: the option chosen, a blue ring and dot */
+export function RadioOn(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 18 18" fill="none" {...props}>
+      <rect
+        x="0.7"
+        y="0.7"
+        width="16.6"
+        height="16.6"
+        rx="8.3"
+        fill="none"
+        stroke="#007AFF"
+        strokeWidth="1.4"
+      />
+      <rect x="4" y="4" width="10" height="10" rx="5" fill="#007AFF" />
+    </svg>
+  )
+}

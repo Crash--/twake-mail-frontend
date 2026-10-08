@@ -16,7 +16,8 @@ const PRIMARY_SX = {
   maxWidth: 300,
   px: 4,
   borderRadius: '100px',
-  bgcolor: 'primary.main',
+  // tmail-flutter's `primaryMain`
+  bgcolor: '#0A84FF',
   color: '#FFFFFF',
   fontSize: 14,
   lineHeight: '20px',

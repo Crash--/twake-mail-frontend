@@ -15,7 +15,6 @@ import { AfterDelay } from '@common/features/loading/AfterDelay'
 import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnouncer'
 
 import {
-  ACTION_SIZE,
   getCompactRowLayout,
   getLeadWidth,
   getTrailingWidth,
@@ -23,6 +22,9 @@ import {
   useRowPointer,
   type RowPointer
 } from './emailListGeometry'
+
+/** The target of the checkbox of a row, its tallest control */
+const ROW_CHECKBOX_SIZE = 40
 
 /** More rows than the tallest screen holds: the container cuts the rest */
 const ROW_COUNT = 20
@@ -141,7 +143,8 @@ function EmailListRowsSkeleton({
       compact={isCompact}
       rowCount={ROW_COUNT}
       rowLayout={ROW_LAYOUT}
-      cellHeight={ACTION_SIZE}
+      // The 40 px checkbox of the row sets its height (48 px with the padding)
+      cellHeight={ROW_CHECKBOX_SIZE}
       className={className}
       data-testid="email-list-loading"
     />

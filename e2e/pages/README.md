@@ -324,3 +324,4 @@ Conventions:
 | `create-first-rule-button` | "Create My First Rule" of the empty Email rules; `add-rule-button` ("Add a rule") is now beside the title whether rules exist or not, as tmail-flutter | `createMyFirstRule` |
 | `composer-sending-dialog` | "Sending message" modal dialog while a message is built ("Creating message...") then sent ("Sending message..."), as tmail-flutter; the Send button keeps its label | `SendingMessageDialogView` |
 | `shortcuts-categories` | the tabs of the keyboard shortcuts (Settings and the `?` dialog), as tmail-flutter: "Navigation & Closing", "Reading & Replying", "Message Management & Selection" | `ShortcutCategory` |
+| `email-link-tooltip` | the address of the link of the body under the pointer or holding the focus, in a black tooltip under it (decorative, `aria-hidden`), as tmail-flutter | `IframeTooltipOverlay` |

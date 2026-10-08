@@ -28,7 +28,8 @@ export function DrawerHeader(): ReactElement {
       data-testid="drawer-header"
     >
       <Box className="u-flex-auto u-ov-hidden">
-        {sdk === null ? null : <AppTitle />}
+        {/* As tmail-flutter's drawer: a smaller logotype */}
+        {sdk === null ? null : <AppTitle height={22} />}
       </Box>
       {isPlatformActive ? null : (
         <>

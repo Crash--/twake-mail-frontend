@@ -1,6 +1,6 @@
 import { Typography } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
-import { useLocation, useMatch } from 'react-router'
+import { useLocation, useMatch, useNavigate } from 'react-router'
 
 import {
   AppTopBar,
@@ -42,6 +42,10 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   const isPlatformActive = usePlatformStatus() !== 'public'
   const mailboxName = useCurrentMailboxName()
   const isSearch = useMatch('/search/*') !== null
+  // As tmail-flutter's search view: the back button and the search fill
+  // the bar while results show
+  const isSearchView = useMatch('/search') !== null
+  const navigate = useNavigate()
   const isSettings = useMatch(`${SETTINGS_PATH}/*`) !== null
   const labelId = useMatch(`${LABEL_PATH}/:labelId/*`)?.params.labelId
   const labelName =
@@ -90,7 +94,11 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   return (
     <AppTopBar
       title={folderTitle}
-      search={isSettings ? null : <MailSearchBar isCompact />}
+      search={
+        isSettings ? null : (
+          <MailSearchBar size={isSearchView ? 'bare' : 'compact'} />
+        )
+      }
       actions={
         <>
           <ListFilterSlot />
@@ -111,6 +119,17 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
       menuButtonRef={menuRef}
       searchActions={searchActions}
       overlayRef={selectionSlotRef}
+      back={
+        isSearchView
+          ? {
+              label: t('search.backToMailbox'),
+              onBack: () => {
+                void navigate('/')
+              },
+              'data-testid': 'search-results-back-button'
+            }
+          : undefined
+      }
       data-testid="top-bar"
     />
   )

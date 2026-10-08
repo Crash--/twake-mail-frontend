@@ -91,9 +91,13 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
     ),
     [t]
   )
+  // Below the desktop size the order is the last chip of the filters
   const toolbarEnd = useMemo(
-    () => <SearchSortButton filter={filter} onChange={handleChange} />,
-    [filter, handleChange]
+    () =>
+      screenSize === 'desktop' ? (
+        <SearchSortButton filter={filter} onChange={handleChange} />
+      ) : undefined,
+    [filter, handleChange, screenSize]
   )
   const search = useMemo(
     () =>

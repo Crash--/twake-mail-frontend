@@ -57,6 +57,8 @@ export interface SearchFiltersBarProps {
   filter: SearchFilter
   /** Runs the search with the changed filter */
   onChange: (filter: SearchFilter) => void
+  /** The last chip, e.g. the order of the results */
+  trailing?: ReactElement
 }
 
 /**
@@ -67,7 +69,8 @@ export interface SearchFiltersBarProps {
  */
 export function SearchFiltersBar({
   filter,
-  onChange
+  onChange,
+  trailing
 }: SearchFiltersBarProps): ReactElement {
   const { t } = useI18n()
   const mailboxes = useMailboxOptions()
@@ -354,6 +357,7 @@ export function SearchFiltersBar({
           data-testid="search-filter-not-include-events"
         />
       </Slot>
+      {trailing === undefined ? null : <Slot>{trailing}</Slot>}
       {canClear ? (
         <Button
           variant="text"

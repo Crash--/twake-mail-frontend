@@ -53,8 +53,11 @@ const EMAIL_PREFIX = 'email:'
 export interface SearchFieldProps {
   /** The search of the results on screen, an empty one elsewhere */
   initialFilter: SearchFilter
-  /** The smaller field of tmail-flutter's phones and tablets */
-  isCompact?: boolean
+  /**
+   * `compact`: the smaller field of tmail-flutter's phones and tablets;
+   * `bare`: the white field of the bar of their search view
+   */
+  size?: 'large' | 'compact' | 'bare'
 }
 
 /**
@@ -66,7 +69,7 @@ export interface SearchFieldProps {
  */
 export function SearchField({
   initialFilter,
-  isCompact = false
+  size = 'large'
 }: SearchFieldProps): ReactElement {
   const { t, lang } = useI18n()
   const navigate = useNavigate()
@@ -240,7 +243,7 @@ export function SearchField({
     <>
       <SearchCombobox
         className="u-w-100"
-        size={isCompact ? 'compact' : 'large'}
+        size={size}
         actions={combobox}
         value={draft.text}
         onChange={handleChange}

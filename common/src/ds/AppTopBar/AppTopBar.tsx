@@ -14,7 +14,7 @@ import {
   type Ref
 } from 'react'
 
-import { Burger } from '@/ds/FlutterIcons/FlutterIcons'
+import { Burger, Left } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /** The bar of tmail-flutter: 52 px, 16 px in on a phone, 32 px on a tablet */
@@ -94,6 +94,24 @@ export interface AppTopBarMenu {
   'data-testid'?: string
 }
 
+/** The back button of the search view, in place of the menu button */
+export interface AppTopBarBack {
+  /** Name and tooltip of the button, e.g. "Back to the mailbox" */
+  label: string
+  onBack: () => void
+  'data-testid'?: string
+}
+
+/** tmail-flutter's blue back arrow, 8 px in on a phone, 24 px on a tablet */
+function searchBarSx(isPhone: boolean): Record<string, unknown> {
+  return {
+    ...barSx(isPhone),
+    px: isPhone ? '8px' : '24px',
+    borderBottom: '1px solid #E7E8EC',
+    '& > .MuiIconButton-root': { color: '#007AFF' }
+  }
+}
+
 export interface AppTopBarSearchActions {
   /** Moves the focus into the search (a keyboard shortcut) */
   focusSearch: () => void
@@ -117,6 +135,11 @@ export interface AppTopBarProps {
    * tmail-flutter's selection bar takes the place of the app bar
    */
   overlayRef?: Ref<HTMLDivElement>
+  /**
+   * The search view of tmail-flutter: the back button and the search in the
+   * bar, in place of the menu, the title and the actions
+   */
+  back?: AppTopBarBack
   'data-testid'?: string
 }
 
@@ -132,6 +155,7 @@ export function AppTopBar({
   menuButtonRef,
   searchActions,
   overlayRef,
+  back,
   'data-testid': testId
 }: AppTopBarProps): ReactElement {
   const isPhone = useScreenSize() === 'mobile'
@@ -146,6 +170,28 @@ export function AppTopBar({
     }),
     []
   )
+
+  if (back !== undefined) {
+    return (
+      <Box component="header" data-testid={testId}>
+        <Box sx={searchBarSx(isPhone)}>
+          <Tooltip title={back.label}>
+            <IconButton
+              aria-label={back.label}
+              onClick={back.onBack}
+              data-testid={back['data-testid']}
+            >
+              <Icon icon={Left} size={24} />
+            </IconButton>
+          </Tooltip>
+          <Box ref={searchRef} className="u-flex-auto u-ov-hidden">
+            {search}
+          </Box>
+          <Box ref={overlayRef} sx={overlaySx(isPhone)} />
+        </Box>
+      </Box>
+    )
+  }
 
   return (
     <Box

@@ -195,8 +195,11 @@ export interface SearchComboboxProps {
   /** Called when the popup opens or closes */
   onOpenChange?: (isOpen: boolean) => void
   className?: string
-  /** `compact`: the field of tmail-flutter's phones and tablets */
-  size?: 'large' | 'compact'
+  /**
+   * `compact`: the field of tmail-flutter's phones and tablets; `bare`: the
+   * white field of the bar of its search view
+   */
+  size?: 'large' | 'compact' | 'bare'
   /** Receives `SearchComboboxActions`, as MUI's `action` props */
   actions?: Ref<SearchComboboxActions>
   testIds?: {
@@ -213,7 +216,11 @@ export interface SearchComboboxProps {
  * focus ring only shows when the panel does not: the panel is the focus
  * indication then.
  */
-function fieldSx(isOpen: boolean, isCompact: boolean): SxProps<Theme> {
+function fieldSx(
+  isOpen: boolean,
+  size: 'large' | 'compact' | 'bare'
+): SxProps<Theme> {
+  const isCompact = size !== 'large'
   return {
     position: 'relative',
     height: `${isCompact ? COMPACT_FIELD.height : FIELD_HEIGHT}px`,
@@ -236,6 +243,18 @@ function fieldSx(isOpen: boolean, isCompact: boolean): SxProps<Theme> {
             color: FIELD_ICON_COLOR,
             opacity: 1
           }
+        }
+      : {}),
+    // tmail-flutter's search view: the field of the bar, white, without
+    // magnifier, in 16 px
+    ...(size === 'bare'
+      ? {
+          bgcolor: 'transparent',
+          borderRadius: 0,
+          '& .MuiInputBase-root': { fontSize: '16px', color: '#000000' },
+          '& .SearchBar-icon': { display: 'none' },
+          '& .MuiIconButton-root svg': { width: 18, height: 18 },
+          '& .MuiInputBase-input': { pl: '12px' }
         }
       : {}),
     ...(isOpen
@@ -433,7 +452,7 @@ export function SearchCombobox({
         size="small"
         elevation={0}
         disabledFocus
-        sx={fieldSx(isShown, size === 'compact')}
+        sx={fieldSx(isShown, size)}
         // tmail-flutter's thinner magnifier (`ic_search_bar`)
         icon={size === 'compact' ? Magnifier : undefined}
         className="u-w-100"

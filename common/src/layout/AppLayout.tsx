@@ -143,6 +143,8 @@ function AppFrame(): ReactElement {
     !isDesktop &&
     !isSettings &&
     !isSelectingEmails &&
+    // Nor on the search results, as tmail-flutter's search view
+    !isSearchResults &&
     (!isEmailOpen || screenSize === 'tabletLarge')
 
   const handleOpenFolders = (): void => {

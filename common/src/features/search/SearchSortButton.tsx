@@ -2,6 +2,7 @@ import { Swap } from '@linagora/twake-icons'
 import { Menu, MenuItem } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
+import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -17,6 +18,11 @@ export interface SearchSortButtonProps {
   filter: SearchFilter
   /** Runs the search with the changed order */
   onChange: (filter: SearchFilter) => void
+  /**
+   * `chip`: the last chip of the filters, as tmail-flutter's search view of
+   * phones and tablets
+   */
+  variant?: 'button' | 'chip'
 }
 
 /**
@@ -26,7 +32,8 @@ export interface SearchSortButtonProps {
  */
 export function SearchSortButton({
   filter,
-  onChange
+  onChange,
+  variant = 'button'
 }: SearchSortButtonProps): ReactElement {
   const { t } = useI18n()
   const menuId = useId()
@@ -34,19 +41,33 @@ export function SearchSortButton({
 
   return (
     <>
-      <ToolbarButton
-        label={t(SORT_LABELS[filter.sort])}
-        icon={Swap}
-        hasMenu
-        isActive={filter.sort !== DEFAULT_SORT_ORDER}
-        onClick={event => {
-          setAnchor(event.currentTarget)
-        }}
-        aria-haspopup="menu"
-        aria-controls={anchor === null ? undefined : menuId}
-        aria-expanded={anchor !== null}
-        data-testid="search-filter-sort-by"
-      />
+      {variant === 'chip' ? (
+        <FilterChip
+          label={t(SORT_LABELS[filter.sort])}
+          icon={Swap}
+          popup="menu"
+          isSelected={filter.sort !== DEFAULT_SORT_ORDER}
+          isExpanded={anchor !== null}
+          onClick={event => {
+            setAnchor(event.currentTarget)
+          }}
+          data-testid="search-filter-sort-by"
+        />
+      ) : (
+        <ToolbarButton
+          label={t(SORT_LABELS[filter.sort])}
+          icon={Swap}
+          hasMenu
+          isActive={filter.sort !== DEFAULT_SORT_ORDER}
+          onClick={event => {
+            setAnchor(event.currentTarget)
+          }}
+          aria-haspopup="menu"
+          aria-controls={anchor === null ? undefined : menuId}
+          aria-expanded={anchor !== null}
+          data-testid="search-filter-sort-by"
+        />
+      )}
       <Menu
         id={menuId}
         open={anchor !== null}

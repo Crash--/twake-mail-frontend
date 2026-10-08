@@ -82,6 +82,8 @@ export interface RowLayout {
 const ROW_DIVIDER_COLOR = '#E7E8EC'
 /** The background of a hovered row, as tmail-flutter's */
 const ROW_HOVER_COLOR = '#F4F4F5'
+/** The background of a selected row, as tmail-flutter's (`blue100`) */
+const ROW_SELECTED_COLOR = '#DFEEFF'
 
 interface ListTableSettings {
   label: string
@@ -156,6 +158,16 @@ export function makeRowLayoutSx({
     '& .MuiTableCell-root:first-of-type': {
       paddingLeft: `${paddingX}px`,
       ...(insetDivider ? { borderBottomColor: 'transparent' } : {})
+    },
+    // tmail-flutter's selected row: light blue, rounded by 8 px
+    '&.Mui-selected, &.Mui-selected:hover': { backgroundColor: 'transparent' },
+    '&.Mui-selected .MuiTableCell-root, &.Mui-selected:hover .MuiTableCell-root':
+      { backgroundColor: ROW_SELECTED_COLOR },
+    '&.Mui-selected .MuiTableCell-root:first-of-type': {
+      borderRadius: '8px 0 0 8px'
+    },
+    '&.Mui-selected .MuiTableCell-root:last-of-type': {
+      borderRadius: '0 8px 8px 0'
     },
     // tmail-flutter's hovered row: light grey, rounded by 14 px
     '&.MuiTableRow-hover:hover': { backgroundColor: 'transparent' },

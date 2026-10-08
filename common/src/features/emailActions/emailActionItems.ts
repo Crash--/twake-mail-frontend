@@ -14,19 +14,19 @@ import {
 } from '@common/features/mailbox/mailboxTree'
 import {
   Archive,
-  CheckCircle,
   Download,
   Email,
   EmailNotification,
   EmailOpen,
   MoveEmail,
-  Label,
+  NotSpam,
   Pen,
   Printer,
+  Spam,
   Star,
   StarOutline,
-  Trash,
-  Warning
+  Tag,
+  Trash
 } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
@@ -66,7 +66,7 @@ export interface EmailActionItem {
 const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   'not-spam': {
     label: 'emailActions.menu.removeFromSpam',
-    icon: CheckCircle,
+    icon: NotSpam,
     isDestructive: false,
     group: 0
   },
@@ -120,13 +120,13 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   },
   'mark-as-spam': {
     label: 'emailActions.menu.markAsSpam',
-    icon: Warning,
+    icon: Spam,
     isDestructive: false,
     group: 2
   },
   'label-as': {
     label: 'labels.labelAs',
-    icon: Label,
+    icon: Tag,
     isDestructive: false,
     group: 2
   },

@@ -1,15 +1,10 @@
-import { Icon } from '@linagora/twake-icons'
-import {
-  Box,
-  Button,
-  Checkbox,
-  IconButton,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Box, Button, Checkbox, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
-import { Cross, Dots } from '@/ds/FlutterIcons/FlutterIcons'
+import { Cross, Dots, MoveMailbox, Star } from '@/ds/FlutterIcons/FlutterIcons'
+import { IconAction } from '@/ds/IconAction/IconAction'
+import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,
@@ -27,6 +22,26 @@ import type { EmailSelection } from './useEmailSelection'
 
 /** Buttons shown before the "More" menu, on phones */
 const PHONE_BUTTONS = 3
+
+/**
+ * The actions of tmail-flutter's selection bar on a desktop
+ * (`TopBarThreadSelection`), in its order: read, star, move, label, spam,
+ * delete; the others (archive…) are in the menus of the rows
+ */
+const DESKTOP_ACTIONS: readonly (readonly EmailActionId[])[] = [
+  ['mark-as-read', 'mark-as-unread'],
+  ['star', 'unstar'],
+  ['move'],
+  ['label-as'],
+  ['mark-as-spam', 'not-spam'],
+  ['move-to-trash', 'delete-permanently']
+]
+
+/** tmail-flutter's icons of its selection bar, where they differ */
+const DESKTOP_ICONS: Partial<Record<EmailActionId, IconProps['icon']>> = {
+  star: Star,
+  move: MoveMailbox
+}
 
 export interface EmailListToolbarProps {
   selection: EmailSelection
@@ -80,7 +95,13 @@ export function EmailListToolbar({
   const items = availableEmailActions(selectedTargets, mailbox, mailboxes, {
     canLabel
   })
-  const buttons = isPhone ? items.slice(0, PHONE_BUTTONS) : items
+  const buttons = isPhone
+    ? items.slice(0, PHONE_BUTTONS)
+    : isDesktop
+      ? DESKTOP_ACTIONS.flatMap(ids =>
+          items.filter(item => ids.includes(item.id))
+        )
+      : items
   const isAllLoaded = selection.selected.length === loadedCount
   const canSelectFolder =
     mailbox !== null &&
@@ -120,7 +141,7 @@ export function EmailListToolbar({
         onClick={onDone}
         data-testid="selection-toolbar-clear"
       >
-        <Icon icon={Cross} />
+        <Icon icon={Cross} size={20} color="#55687D" />
       </IconButton>
     </Tooltip>
   )
@@ -129,7 +150,7 @@ export function EmailListToolbar({
     <Box
       component="section"
       aria-label={t('thread.selection.toolbar')}
-      className="u-flex u-flex-items-center u-flex-wrap u-ph-half"
+      className="u-flex u-flex-items-center u-flex-wrap u-ph-1"
       data-testid="selection-toolbar"
     >
       {isDesktop ? null : (
@@ -144,28 +165,14 @@ export function EmailListToolbar({
           />
         </Tooltip>
       )}
-      <Typography
-        role="status"
-        variant="body2"
-        className="u-fw-bold u-mr-half"
-        data-testid="selection-toolbar-count"
-      >
+      <SelectionCount data-testid="selection-toolbar-count">
         {selection.isAllInFolder
           ? t('thread.selection.allInFolderSelected', { smart_count: count })
           : t('thread.selection.count', { count })}
-      </Typography>
+      </SelectionCount>
       {isDesktop ? clearButton : null}
-      {isDesktop && !isAllLoaded && !selection.isAllInFolder ? (
-        <Button
-          size="small"
-          variant="text"
-          color="inherit"
-          onClick={handleToggleAll}
-          data-testid="selection-toolbar-select-all"
-        >
-          {selectAllLabel}
-        </Button>
-      ) : null}
+      {/* As tmail-flutter: 30 px before the actions */}
+      {isDesktop ? <span className="u-mr-1-half" /> : null}
       {canSelectFolder ? (
         <Button
           size="small"
@@ -179,19 +186,19 @@ export function EmailListToolbar({
       ) : null}
       {isDesktop ? null : <Box className="u-flex-auto" />}
       {buttons.map(item => (
-        <Tooltip key={item.id} title={t(item.label)}>
-          <IconButton
-            aria-label={t(item.label)}
-            onClick={() => {
-              handleRun(item.id)
-            }}
-            data-testid={`selected-email-action-${item.id}`}
-          >
-            <Icon icon={item.icon} />
-          </IconButton>
-        </Tooltip>
+        <IconAction
+          key={item.id}
+          label={t(item.label)}
+          icon={isDesktop ? (DESKTOP_ICONS[item.id] ?? item.icon) : item.icon}
+          tone={item.id === 'star' ? 'starred' : 'steel'}
+          size={36}
+          onClick={() => {
+            handleRun(item.id)
+          }}
+          data-testid={`selected-email-action-${item.id}`}
+        />
       ))}
-      {buttons.length < items.length ? (
+      {buttons.length < items.length && !isDesktop ? (
         <Tooltip title={moreLabel}>
           <IconButton
             aria-label={moreLabel}

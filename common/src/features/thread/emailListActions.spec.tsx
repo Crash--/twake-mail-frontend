@@ -181,9 +181,11 @@ describe('Acting on emails of the list', () => {
       jmapServer: server
     })
     await screen.findAllByTestId('email-list-item')
-    // Only the first page: no scroll to load the next one
-    await userEvent.click(checkbox('Email 0'))
-    await userEvent.click(screen.getByRole('button', { name: 'Select all' }))
+    // Only the first page: no scroll to load the next one. As tmail-flutter,
+    // "Select all messages of this page" from the toolbar of the list
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Select all messages of this page' })
+    )
 
     await userEvent.click(
       screen.getByRole('button', {
@@ -194,12 +196,12 @@ describe('Acting on emails of the list', () => {
       `All ${total} messages in this folder are selected`
     )
     await userEvent.click(
-      screen.getByRole('button', { name: 'Archive message' })
+      screen.getByTestId('selected-email-action-move-to-trash')
     )
 
     await waitFor(() => {
       expect(
-        server.emails.filter(email => 'mailbox-archive' in email.mailboxIds)
+        server.emails.filter(email => 'mailbox-trash' in email.mailboxIds)
       ).toHaveLength(total)
     })
   })

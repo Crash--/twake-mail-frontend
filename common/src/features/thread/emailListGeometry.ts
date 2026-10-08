@@ -17,8 +17,11 @@ export const ROW_LAYOUT: RowLayout = {
   insetDivider: true
 }
 
-/** An icon button of a row, in px */
-export const ACTION_SIZE = 32
+/** An icon button of a row, in px: tmail-flutter's 16 px icon and 5 px around */
+export const ACTION_SIZE = 26
+
+/** Between the actions of a hovered row, as tmail-flutter */
+export const ACTION_GAP = 11
 
 /**
  * The attachment (16 px and its 8 px margin), the longest list date ("Dec
@@ -38,7 +41,7 @@ const STAR_WIDTH = 20
 export const MAILBOX_TAG_ROOM = 108
 
 /** After the actions of a hovered row, as tmail-flutter */
-const ACTIONS_END_SPACE = 16
+const ACTIONS_END_SPACE = 20
 
 /** Between the subject and the date or actions */
 const TRAILING_GAP = 16
@@ -64,13 +67,14 @@ export function getLeadWidth(isTouch: boolean): number {
 }
 
 /**
- * The five actions without gap, which replace the date on hover; without
+ * The five actions, 11 px apart, which replace the date on hover; without
  * hover the date stays beside them
  */
 export function getTrailingWidth({ canHover, isTouch }: RowPointer): number {
   const actionsWidth =
     TRAILING_GAP +
     5 * getButtonSize(isTouch) +
+    4 * ACTION_GAP +
     ACTIONS_END_SPACE +
     ROW_LAYOUT.paddingX
   return canHover ? actionsWidth : actionsWidth + DATE_BLOCK_WIDTH

@@ -75,6 +75,8 @@ export interface RowLayout {
 
 /** The divider between the rows, as tmail-flutter's */
 const ROW_DIVIDER_COLOR = '#E7E8EC'
+/** The background of a hovered row, as tmail-flutter's */
+const ROW_HOVER_COLOR = '#F4F4F5'
 
 interface ListTableSettings {
   label: string
@@ -137,6 +139,17 @@ export function makeRowLayoutSx({
     '& .MuiTableCell-root:first-of-type': {
       paddingLeft: `${paddingX}px`,
       ...(insetDivider ? { borderBottomColor: 'transparent' } : {})
+    },
+    // tmail-flutter's hovered row: light grey, rounded by 14 px
+    '&.MuiTableRow-hover:hover': { backgroundColor: 'transparent' },
+    '&.MuiTableRow-hover:hover .MuiTableCell-root': {
+      backgroundColor: ROW_HOVER_COLOR
+    },
+    '&.MuiTableRow-hover:hover .MuiTableCell-root:first-of-type': {
+      borderRadius: '14px 0 0 14px'
+    },
+    '&.MuiTableRow-hover:hover .MuiTableCell-root:last-of-type': {
+      borderRadius: '0 14px 14px 0'
     },
     '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
   }

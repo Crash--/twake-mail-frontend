@@ -16,6 +16,7 @@ import { I18nProvider } from '@common/i18n/I18nProvider'
 import { overlayThemeOptions, SpaceOverlayProvider } from '@linagora/twake-mui'
 import type { SpaceOverlay } from '@linagora/twake-mui'
 import { focusIndicatorThemeOptions } from '@/ds/FocusIndicator/focusIndicator'
+import { menuLookThemeOptions } from '@/ds/MenuLook/menuLook'
 import type { SupportedLanguage } from '@common/i18n/languages'
 
 // The production entry point keeps the devtools out of the main bundle:
@@ -52,13 +53,19 @@ export function AppProviders({
   const focusIndicator = useFocusIndicator()
   const themeOptions = useMemo(() => {
     const focusOptions = focusIndicatorThemeOptions(focusIndicator)
-    if (overlay === null) return focusOptions
+    // The menus of tmail-flutter: none of the others styles them
+    const menuOptions = menuLookThemeOptions()
+    const ownOptions = {
+      ...focusOptions,
+      components: { ...menuOptions.components, ...focusOptions.components }
+    }
+    if (overlay === null) return ownOptions
     const overlayOptions = overlayThemeOptions(overlay)
     // Neither styles the same components
     return {
       ...overlayOptions,
-      ...focusOptions,
-      components: { ...overlayOptions.components, ...focusOptions.components }
+      ...ownOptions,
+      components: { ...overlayOptions.components, ...ownOptions.components }
     }
   }, [focusIndicator, overlay])
   return (

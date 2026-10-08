@@ -1,6 +1,5 @@
 import {
   Attachment,
-  Dots,
   EmailNotification,
   EmailOpen,
   FolderMoveto,
@@ -26,6 +25,7 @@ import {
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
@@ -58,6 +58,7 @@ import type { Label } from 'jmap-client-ts/linagora'
 import { HighlightedText } from '@common/features/search/HighlightedText'
 
 import type { ConversationOpenState } from './conversationTarget'
+import { ACTION_SIZE } from './emailListGeometry'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
@@ -316,7 +317,9 @@ export function EmailCell({
       label={seenLabel}
       icon={isUnread ? EmailOpen : EmailNotification}
       onClick={handleToggleSeen}
-      tone="muted"
+      tone="steel"
+      iconSize={16}
+      size={ACTION_SIZE}
       data-testid="email-list-item-toggle-seen"
     />
   )
@@ -331,7 +334,9 @@ export function EmailCell({
         label={openLabel}
         icon={Openwith}
         onClick={handleOpenInNewTab}
-        tone="muted"
+        tone="steel"
+        iconSize={16}
+        size={ACTION_SIZE}
         data-testid="email-list-item-open-in-new-tab"
       />
     )
@@ -344,7 +349,9 @@ export function EmailCell({
       label={moveLabel}
       icon={FolderMoveto}
       onClick={handleMove}
-      tone="muted"
+      tone="steel"
+      iconSize={16}
+      size={ACTION_SIZE}
       data-testid="email-list-item-move"
     />
   )
@@ -361,7 +368,9 @@ export function EmailCell({
       label={removeLabel}
       icon={Trash}
       onClick={handleRemove}
-      tone="muted"
+      tone="steel"
+      iconSize={16}
+      size={ACTION_SIZE}
       data-testid="email-list-item-remove"
     />
   )
@@ -372,10 +381,12 @@ export function EmailCell({
   const moreButton = (
     <IconAction
       label={moreLabel}
-      icon={Dots}
+      icon={MoreVerticalIcon}
       aria-haspopup="menu"
       onClick={handleOpenMenu}
-      tone="muted"
+      tone="steel"
+      iconSize={16}
+      size={ACTION_SIZE}
       data-testid="email-list-item-more"
     />
   )

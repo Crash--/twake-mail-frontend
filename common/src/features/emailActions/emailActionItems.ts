@@ -228,8 +228,9 @@ export function availableEmailActions(
     emails.every(email => hasKeyword(email, FLAGGED)) ? 'unstar' : 'star'
   )
   ids.push('move')
-  if (!isTeam && !isSpam && role !== 'drafts') ids.push('mark-as-spam')
+  // As tmail-flutter's menu: "Label as", then "Mark as spam"
   if (canLabel) ids.push('label-as')
+  if (!isTeam && !isSpam && role !== 'drafts') ids.push('mark-as-spam')
   if (emails.length === 1) {
     // A draft or a template is edited, not copied
     const templatesId = findTemplatesMailboxId(mailboxes)

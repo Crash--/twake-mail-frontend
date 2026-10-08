@@ -952,3 +952,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/list-rows.spec.ts`.
 - [x] `LST-14` On a touch screen a desktop width row stays 56 px high (6 px above, 5 below, 1 px divider around 44 px targets), and the status icon is centred in its 44 px place. — web app (#300)
   - Spec: `tests/list-rows.spec.ts`.
+- [x] `LST-12` The hover actions have 16 px icons in the secondary text grey (`rgba(66, 66, 68, 0.64)`), in 32 px click areas side by side, the star keeps its 20 px icon; axe. — tmail-flutter `DesktopListEmailActionHoverWidget`, Figma "Listitemmail"
+  - Spec: `tests/list-rows.spec.ts`.

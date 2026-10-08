@@ -291,11 +291,14 @@ export function EmailCell({
   const handleToggleSeen = (): void => {
     onToggleSeen(email)
   }
-  const seenButton = (
+  // The compact rows keep the icon of the other buttons; the wide ones draw
+  // it as the hover actions do
+  const renderSeenButton = (isQuiet: boolean): ReactElement => (
     <IconAction
       label={seenLabel}
       icon={isUnread ? EmailOpen : EmailNotification}
       onClick={handleToggleSeen}
+      {...(isQuiet ? { iconSize: ACTION_ICON_SIZE, tone: 'secondary' } : {})}
       data-testid="email-list-item-toggle-seen"
     />
   )
@@ -310,6 +313,8 @@ export function EmailCell({
         label={openLabel}
         icon={Openwith}
         onClick={handleOpenInNewTab}
+        iconSize={ACTION_ICON_SIZE}
+        tone="secondary"
         data-testid="email-list-item-open-in-new-tab"
       />
     )
@@ -322,6 +327,8 @@ export function EmailCell({
       label={moveLabel}
       icon={FolderMoveto}
       onClick={handleMove}
+      iconSize={ACTION_ICON_SIZE}
+      tone="secondary"
       data-testid="email-list-item-move"
     />
   )
@@ -338,6 +345,8 @@ export function EmailCell({
       label={removeLabel}
       icon={Trash}
       onClick={handleRemove}
+      iconSize={ACTION_ICON_SIZE}
+      tone="secondary"
       data-testid="email-list-item-remove"
     />
   )
@@ -351,6 +360,8 @@ export function EmailCell({
       icon={Dots}
       aria-haspopup="menu"
       onClick={handleOpenMenu}
+      iconSize={ACTION_ICON_SIZE}
+      tone="secondary"
       data-testid="email-list-item-more"
     />
   )
@@ -571,7 +582,7 @@ export function EmailCell({
           }
         >
           {openButton}
-          {seenButton}
+          {renderSeenButton(true)}
           {moveButton}
           {removeButton}
           {moreButton}
@@ -647,7 +658,7 @@ export function EmailCell({
         // (the context menu of the row)
         <span className="u-flex u-flex-column u-flex-items-center">
           {starButton}
-          <RowHoverActions>{seenButton}</RowHoverActions>
+          <RowHoverActions>{renderSeenButton(false)}</RowHoverActions>
         </span>
       )
     default:

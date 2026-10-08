@@ -506,5 +506,6 @@ Differences kept from the design and from tmail-flutter:
 
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
+| `IconButton` | A quiet tone (`text.secondary`) and a 16 px icon in the 32 px round button, as the hover actions of tmail-flutter (16 px icons); the design has 20 px icons | The hover actions of a desktop list row | `ds/IconAction` (`tone="secondary"`, `iconSize`) | A `color="secondary"` that reads `text.secondary` and an icon size prop on `IconButton` |
 | `Icon` (replied, forwarded) | twake-icons has only `Reply`: "Forwarded" is its mirror and "replied and forwarded" two arrows side by side, as the tmail-flutter `icReply`, `icForwarded`, `icReplyAndForward` | The status indicator of a list row | `ds/ReplyIcons` (`ForwardIcon`, `ReplyForwardIcon`) | Reply, forward and reply-and-forward icons in twake-icons |
 | `StatusIcon` | A passive state shown as an icon: decorative (the row says it) with a tooltip for the mouse (none on touch), neither a button nor a tab stop | Replied / forwarded on a list row | `ds/RowStatusIcon` | A non interactive icon with a tooltip (twake-ui has only buttons and chips) |

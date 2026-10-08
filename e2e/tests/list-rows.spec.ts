@@ -252,6 +252,51 @@ test.describe('LST desktop row density and icons', () => {
       }
     }
   })
+
+  test('LST-12 the hover actions have 16 px icons in the secondary grey, in 32 px click areas', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'Quiet actions', text: 'Hi' })
+    await jmap.waitForEmail({ subject: 'Quiet actions' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const viewport = page.viewportSize()
+    test.skip(
+      viewport === null || viewport.width < 1000,
+      'compact rows have no hover actions'
+    )
+    const row = mailbox.emailRow('Quiet actions')
+    await row.hover()
+
+    let previousRight: number | null = null
+    for (const id of [
+      'open-in-new-tab',
+      'toggle-seen',
+      'move',
+      'remove',
+      'more'
+    ]) {
+      const button = row.getByTestId(`email-list-item-${id}`)
+      await expect(button).toHaveCSS('color', SECONDARY)
+      const box = await button.boundingBox()
+      // At least 24 px (WCAG 2.5.8) to click, 32 px as in the design
+      expect(box?.width).toBe(32)
+      expect(box?.height).toBe(32)
+      const icon = await button.locator('svg').first().boundingBox()
+      expect([icon?.width, icon?.height]).toEqual([16, 16])
+      if (previousRight !== null) expect(box?.x).toBe(previousRight)
+      previousRight = (box?.x ?? 0) + (box?.width ?? 0)
+    }
+    // The star keeps its 20 px icon
+    const star = await row
+      .getByTestId('email-list-item-star')
+      .locator('svg')
+      .first()
+      .boundingBox()
+    expect([star?.width, star?.height]).toEqual([20, 20])
+    await expectNoA11yViolations(page)
+  })
 })
 
 test.describe('LST desktop rows on a touch screen', () => {

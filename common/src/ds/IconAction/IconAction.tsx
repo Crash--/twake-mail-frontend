@@ -13,8 +13,11 @@ export interface IconActionProps {
   icon: IconProps['icon']
   /** Icon size in px, 20 by default */
   iconSize?: number
-  /** `starred`: the yellow of a filled star */
-  tone?: 'default' | 'starred'
+  /**
+   * `starred`: the yellow of a filled star; `secondary`: the grey of the
+   * secondary text, for the quiet actions of a row
+   */
+  tone?: 'default' | 'starred' | 'secondary'
   onClick?: (event: MouseEvent<HTMLElement>) => void
   'aria-pressed'?: boolean
   'aria-haspopup'?: 'menu'
@@ -53,7 +56,8 @@ export function IconAction({
       width: 32,
       height: 32,
       p: 0,
-      ...(tone === 'starred' ? { color: 'warning.light' } : {})
+      ...(tone === 'starred' ? { color: 'warning.light' } : {}),
+      ...(tone === 'secondary' ? { color: 'text.secondary' } : {})
     }
   } as const
   // A disabled button takes no pointer event, so the tooltip needs a wrapper

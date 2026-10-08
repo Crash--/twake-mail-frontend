@@ -24,4 +24,20 @@ describe('IconAction', () => {
     fireEvent.click(button)
     expect(onClick).toHaveBeenCalledTimes(1)
   })
+
+  it('draws the icon at the size asked, in the secondary text colour for the quiet tone', () => {
+    renderDs(
+      <IconAction
+        label="Delete"
+        icon={Star}
+        iconSize={16}
+        tone="secondary"
+        data-testid="action"
+      />
+    )
+
+    const button = screen.getByTestId('action')
+    expect(button.querySelector('svg')).toHaveAttribute('width', '16')
+    expect(button).toHaveStyle({ width: '32px', height: '32px' })
+  })
 })

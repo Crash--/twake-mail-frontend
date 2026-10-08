@@ -130,23 +130,26 @@ function MiddleEllipsis({ name }: { name: string }): ReactElement {
   const tail = name.length > TAIL_LENGTH * 2 ? name.slice(-TAIL_LENGTH) : ''
   const head = tail === '' ? name : name.slice(0, -TAIL_LENGTH)
   return (
-    <Typography component="span" title={name} sx={NAME_SX}>
-      <Box
-        component="span"
-        sx={{
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap'
-        }}
-      >
-        {head}
-      </Box>
-      {tail === '' ? null : (
-        <Box component="span" sx={{ flexShrink: 0, whiteSpace: 'pre' }}>
-          {tail}
+    // The whole name in the tooltip of the app (not the browser's)
+    <Tooltip title={name}>
+      <Typography component="span" sx={NAME_SX}>
+        <Box
+          component="span"
+          sx={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {head}
         </Box>
-      )}
-    </Typography>
+        {tail === '' ? null : (
+          <Box component="span" sx={{ flexShrink: 0, whiteSpace: 'pre' }}>
+            {tail}
+          </Box>
+        )}
+      </Typography>
+    </Tooltip>
   )
 }
 
@@ -171,7 +174,6 @@ export function UploadChip({
 }: UploadChipProps): ReactElement {
   const isFailed = item.status === 'failed'
   const isUploading = item.status === 'uploading'
-  const barValue = item.status === 'done' ? 100 : item.progress
   return (
     <Box
       component="li"
@@ -245,31 +247,36 @@ export function UploadChip({
             </>
           ) : null}
         </Box>
-        <Box
-          role={isUploading ? 'progressbar' : undefined}
-          aria-hidden={isUploading ? undefined : 'true'}
-          aria-label={isUploading ? labels.progress(item.name) : undefined}
-          aria-valuemin={isUploading ? 0 : undefined}
-          aria-valuemax={isUploading ? 100 : undefined}
-          aria-valuenow={isUploading ? item.progress : undefined}
-          sx={{
-            height: 2,
-            borderRadius: '1px',
-            bgcolor: TRACK_COLOR,
-            overflow: 'hidden'
-          }}
-        >
+        {/* As tmail-flutter: a bar while the file uploads, none once it
+            is uploaded or failed */}
+        {isUploading ? (
           <Box
+            role="progressbar"
+            aria-label={labels.progress(item.name)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={item.progress}
             sx={{
-              height: '100%',
-              width: `${String(barValue)}%`,
-              borderRadius: '6px',
-              bgcolor: isFailed ? 'error.main' : FILL_COLOR,
-              transition: 'width 200ms',
-              '@media (prefers-reduced-motion: reduce)': { transition: 'none' }
+              height: 2,
+              borderRadius: '1px',
+              bgcolor: TRACK_COLOR,
+              overflow: 'hidden'
             }}
-          />
-        </Box>
+          >
+            <Box
+              sx={{
+                height: '100%',
+                width: `${String(item.progress)}%`,
+                borderRadius: '6px',
+                bgcolor: FILL_COLOR,
+                transition: 'width 200ms',
+                '@media (prefers-reduced-motion: reduce)': {
+                  transition: 'none'
+                }
+              }}
+            />
+          </Box>
+        ) : null}
       </Box>
       {isFailed ? (
         <Tooltip title={labels.retry(item.name)}>

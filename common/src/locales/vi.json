@@ -482,7 +482,8 @@
         "message": "Thư nháp này được chia sẻ với hộp thư nhóm. Lưu làm mẫu cũng sẽ xóa thư nháp đối với mọi người có thể thấy nó.",
         "delete": "Lưu và xóa thư nháp",
         "keep": "Lưu và giữ thư nháp"
-      }
+      },
+      "saving": "Đang lưu thư mẫu"
     },
     "drive": {
       "attach": "Đính kèm từ Drive",

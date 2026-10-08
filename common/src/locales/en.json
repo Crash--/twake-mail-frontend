@@ -482,7 +482,8 @@
         "message": "This draft is shared with a team mailbox. Saving it as a template also deletes the draft for everyone who can see it.",
         "delete": "Save and delete the draft",
         "keep": "Save and keep the draft"
-      }
+      },
+      "saving": "Saving template"
     },
     "drive": {
       "attach": "Attach from Drive",

@@ -482,7 +482,8 @@
         "message": "Ce brouillon est partagé avec une boîte d’équipe. L’enregistrer comme modèle supprime aussi le brouillon pour tous ceux qui le voient.",
         "delete": "Enregistrer et supprimer le brouillon",
         "keep": "Enregistrer et garder le brouillon"
-      }
+      },
+      "saving": "Enregistrement du modèle"
     },
     "drive": {
       "attach": "Joindre depuis Drive",

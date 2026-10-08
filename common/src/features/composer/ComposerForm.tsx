@@ -967,6 +967,8 @@ function LoadedComposerForm({
    * one it was opened on (asked first when it is shared), and closing it
    * asks nothing until it changes again.
    */
+  // As tmail-flutter (`SavingTemplateDialogView`): a dialog while it saves
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const handleSaveTemplate = (): void => {
     setMoreAnchor(null)
     cancelAutosave()
@@ -977,6 +979,7 @@ function LoadedComposerForm({
       try {
         const draftFate = await askAboutDraft()
         if (draftFate === 'cancel') return
+        setIsSavingTemplate(true)
         const email = await buildEmail(
           composed(editor),
           images,
@@ -1022,6 +1025,8 @@ function LoadedComposerForm({
       } catch (error: unknown) {
         console.error(error)
         notify({ message: t('composer.template.failed'), severity: 'error' })
+      } finally {
+        setIsSavingTemplate(false)
       }
     })
     savingRef.current = run
@@ -1492,6 +1497,16 @@ function LoadedComposerForm({
       data-testid="composer-sending-dialog"
     />
   )
+  const savingTemplateDialog = (
+    <SendingDialog
+      open={isSavingTemplate}
+      title={t('composer.template.saving')}
+      statusLabel={t('composer.sendingDialog.status')}
+      status={t('composer.sendingDialog.creating')}
+      progressLabel={t('composer.sendingDialog.progress')}
+      data-testid="composer-saving-template-dialog"
+    />
+  )
   const moreMenu = (
     <Menu
       anchorEl={moreAnchor}
@@ -1839,6 +1854,7 @@ function LoadedComposerForm({
         )}
         {moreMenu}
         {sendingDialog}
+        {savingTemplateDialog}
         <TemplatePicker
           open={isPickerOpen}
           onClose={handleClosePicker}

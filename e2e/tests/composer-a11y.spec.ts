@@ -162,7 +162,7 @@ test.describe('A11Y composer', () => {
     `)
       const first = composer.recipients('to').first()
       await expect(first).toHaveAccessibleDescription(
-        'Delete removes the address, Enter edits it.'
+        'Enter opens the card of the address, F2 edits it, Delete removes it.'
       )
       // Not by colour alone: the invalid one is named so, and outlined with a warning icon
       await expect(composer.recipients('to').last()).toHaveAttribute(
@@ -171,10 +171,18 @@ test.describe('A11Y composer', () => {
       )
       await expectNoA11yViolations(page)
 
-      // Backspace reaches the last chip with the focus; Enter edits it in the field
+      // Backspace reaches the last chip with the focus; Enter opens its card
+      // (tmail-flutter's), Escape gives the focus back; F2 edits it in the field
       await page.keyboard.press('Backspace')
       await expect(composer.recipients('to').last()).toBeFocused()
       await page.keyboard.press('Enter')
+      const card = page.getByRole('dialog', { name: 'wrong' })
+      await expect(card).toBeVisible()
+      await expectNoA11yViolations(page)
+      await page.keyboard.press('Escape')
+      await expect(card).toBeHidden()
+      await expect(composer.recipients('to').last()).toBeFocused()
+      await page.keyboard.press('F2')
       await expect(composer.recipientInput('to')).toBeFocused()
       await expect(composer.recipientInput('to')).toHaveValue('wrong')
 

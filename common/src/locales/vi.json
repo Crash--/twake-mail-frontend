@@ -387,14 +387,16 @@
     "recipients": {
       "suggestions": "Gợi ý liên hệ",
       "invalid": "địa chỉ không hợp lệ",
-      "chipHelp": "Delete xóa địa chỉ, Enter để sửa.",
+      "chipHelp": "Enter mở thẻ địa chỉ, F2 để sửa, Delete để xóa.",
       "removed": "Đã xóa %{address}",
       "added": "Đã thêm %{address}",
       "addedMany": "Đã thêm %{smart_count} người nhận",
       "suggestionCount": "%{smart_count} gợi ý",
       "summary": "Hiện tất cả người nhận:",
       "others": "+%{smart_count}",
-      "alreadyAdded": "đã thêm"
+      "alreadyAdded": "đã thêm",
+      "editEmail": "Sửa địa chỉ",
+      "createRule": "Tạo quy tắc thư"
     },
     "limit": "Bạn có thể soạn %{smart_count} thư cùng lúc. Hãy đóng một thư để bắt đầu thư khác.",
     "sent": "Tin nhắn đã được gửi",

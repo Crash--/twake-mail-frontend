@@ -293,7 +293,7 @@ test.describe('CMP composer', () => {
         'wrong, invalid address'
       )
 
-      // Backspace reaches the last chip, Delete removes it, Enter edits one
+      // Backspace reaches the last chip, Delete removes it, F2 edits one
       await page.keyboard.press('Backspace')
       await expect(composer.recipients('to').last()).toBeFocused()
       await page.keyboard.press('Delete')
@@ -306,7 +306,7 @@ test.describe('CMP composer', () => {
       await page.keyboard.press('ArrowLeft')
       await page.keyboard.press('ArrowLeft')
       await expect(composer.recipients('to').first()).toBeFocused()
-      await page.keyboard.press('Enter')
+      await page.keyboard.press('F2')
       await expect(to).toBeFocused()
       await expect(to).toHaveValue('alice@example.com')
       await page.keyboard.press('Enter')

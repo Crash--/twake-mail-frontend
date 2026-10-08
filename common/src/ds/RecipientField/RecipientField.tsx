@@ -23,8 +23,14 @@ import {
 
 import { Warning } from '@/ds/FlutterIcons/FlutterIcons'
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
+import {
+  RecipientCard,
+  type RecipientCardLabels,
+  type RecipientCardProps
+} from '@/ds/RecipientCard/RecipientCard'
 import { RemoveRecipientIcon } from '@/ds/RecipientIcons/RecipientIcons'
 
+import { initialsOf } from './initials'
 import { RecipientAvatar } from './RecipientAvatar'
 import { SuggestionOption } from './SuggestionOption'
 
@@ -154,6 +160,18 @@ export interface RecipientFieldChip {
   avatar?: string
   /** Picks the colours of the avatar, e.g. the address */
   avatarKey?: string
+  /** What its card shows: the name, if any, and the address */
+  name?: string | null
+  address?: string
+}
+
+/** The card a tag opens (tmail-flutter's), and what its actions do */
+export interface RecipientFieldCard {
+  labels: RecipientCardLabels
+  onCopy: (id: string) => void
+  /** None without filtering rules */
+  onCreateRule: ((id: string) => void) | null
+  testIds?: RecipientCardProps['testIds']
 }
 
 /** A suggestion of the list under the field */
@@ -204,6 +222,11 @@ export interface RecipientFieldProps {
   /** The chip goes back into the input, to be corrected */
   onEdit: (id: string) => void
   /**
+   * The card a click (or Enter) on a tag opens, as tmail-flutter's: copy,
+   * edit, create a rule. Without it a click edits the tag
+   */
+  card?: RecipientFieldCard
+  /**
    * Escape while a chip is edited: the chip comes back as it was and the
    * input is emptied (the field does not touch its input itself)
    */
@@ -241,9 +264,10 @@ export interface RecipientFieldProps {
  *   Escape closes the suggestions, and only then reaches the page;
  * - the chips are out of the tab order: ArrowLeft (or Backspace) at the
  *   start of the input goes to the last one, arrows move between them,
- *   Delete or Backspace removes one (announced), Enter, F2 or a double
- *   click edits it; Escape then gives the chip back as it was, and stops
- *   there (a second Escape reaches the page);
+ *   Delete or Backspace removes one (announced), a click or Enter opens its
+ *   card (`card`: copy, edit, create a rule, as tmail-flutter), F2 or a
+ *   double click edits it; Escape then gives the chip back as it was, and
+ *   stops there (a second Escape reaches the page);
  * - an invalid chip says so in its accessible name and with an icon, not
  *   by its colour only.
  */
@@ -255,6 +279,7 @@ export function RecipientField({
   onCommit,
   onRemove,
   onEdit,
+  card,
   onCancelEdit,
   suggestions,
   onSelectSuggestion,
@@ -279,6 +304,12 @@ export function RecipientField({
   const [isOpen, setIsOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
+  /** The tag whose card is open, and the element it opens under */
+  const [openCard, setOpenCard] = useState<{
+    index: number
+    anchor: HTMLElement
+  } | null>(null)
+  const cardIndex = openCard?.index ?? null
   /** Chip to focus once the chips change (after a removal), -1 for the input */
   const pendingFocus = useRef<number | null>(null)
   /**
@@ -575,10 +606,18 @@ export function RecipientField({
               }
               aria-describedby={chipHelpId}
               tabIndex={-1}
-              // Enter (a click without a pointer) or a double click edits;
-              // a single click only selects the chip
+              aria-haspopup={card === undefined ? undefined : 'dialog'}
+              aria-expanded={
+                card === undefined ? undefined : cardIndex === index
+              }
+              // A click or Enter opens its card (tmail-flutter); without one,
+              // Enter (a click without a pointer) edits it
               onClick={event => {
-                if (event.detail === 0) editChip(index)
+                if (card !== undefined) {
+                  setOpenCard({ index, anchor: event.currentTarget })
+                } else if (event.detail === 0) {
+                  editChip(index)
+                }
               }}
               onDoubleClick={() => {
                 editChip(index)
@@ -669,11 +708,69 @@ export function RecipientField({
       <Box id={chipHelpId} className="u-visuallyhidden">
         {labels.chipHelp}
       </Box>
+      {card === undefined ? null : (
+        <ChipCard
+          card={card}
+          chip={cardIndex === null ? null : (chips[cardIndex] ?? null)}
+          anchorEl={openCard?.anchor ?? null}
+          onClose={() => {
+            setOpenCard(null)
+          }}
+          onEdit={() => {
+            const index = cardIndex
+            setOpenCard(null)
+            if (index !== null) editChip(index)
+          }}
+        />
+      )}
       {/* Always mounted: a live region only announces changes */}
       <Box role="status" className="u-visuallyhidden">
         {announcement}
         {isShown && status ? ` ${status}` : null}
       </Box>
     </Box>
+  )
+}
+
+/** The card of the tag `chip`, closed without one */
+function ChipCard({
+  card,
+  chip,
+  anchorEl,
+  onClose,
+  onEdit
+}: {
+  card: RecipientFieldCard
+  chip: RecipientFieldChip | null
+  anchorEl: HTMLElement | null
+  onClose: () => void
+  onEdit: () => void
+}): ReactElement {
+  const name = chip?.name ?? null
+  const address = chip?.address ?? chip?.label ?? ''
+  const { onCreateRule } = card
+  return (
+    <RecipientCard
+      open={chip !== null && anchorEl !== null}
+      anchorEl={anchorEl}
+      onClose={onClose}
+      name={name}
+      address={address}
+      initials={initialsOf(name ?? address)}
+      labels={card.labels}
+      onCopy={() => {
+        if (chip !== null) card.onCopy(chip.id)
+      }}
+      onEdit={onEdit}
+      onCreateRule={
+        onCreateRule === null
+          ? null
+          : () => {
+              onClose()
+              if (chip !== null) onCreateRule(chip.id)
+            }
+      }
+      testIds={card.testIds}
+    />
   )
 }

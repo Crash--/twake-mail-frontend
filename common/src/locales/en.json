@@ -387,14 +387,16 @@
     "recipients": {
       "suggestions": "Contact suggestions",
       "invalid": "invalid address",
-      "chipHelp": "Delete removes the address, Enter edits it.",
+      "chipHelp": "Enter opens the card of the address, F2 edits it, Delete removes it.",
       "removed": "%{address} removed",
       "added": "%{address} added",
       "addedMany": "%{smart_count} recipient added |||| %{smart_count} recipients added",
       "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
       "summary": "Show all the recipients:",
       "others": "+%{smart_count}",
-      "alreadyAdded": "already added"
+      "alreadyAdded": "already added",
+      "editEmail": "Edit email",
+      "createRule": "Create a rule"
     },
     "limit": "You can write %{smart_count} messages at once. Close one to start another.",
     "sent": "Message has been sent successfully",

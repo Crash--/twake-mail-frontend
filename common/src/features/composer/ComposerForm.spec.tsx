@@ -639,7 +639,7 @@ describe('ComposerForm', () => {
           .getAllByTestId('recipient-chip')
           .map(chip => chip.getAttribute('aria-label'))
 
-      await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{Enter}')
+      await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{F2}')
       expect(names()).toEqual(['a@example.com', 'c@example.com'])
       expect(input).toHaveValue('b@example.com')
       await userEvent.type(input, 'xx')

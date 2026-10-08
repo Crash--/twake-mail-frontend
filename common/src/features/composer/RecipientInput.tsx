@@ -1,3 +1,4 @@
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import {
   useMemo,
   useRef,
@@ -5,12 +6,18 @@ import {
   type ReactNode,
   type Ref
 } from 'react'
+import { useNavigate } from 'react-router'
 
 import {
   RecipientField,
-  type RecipientFieldActions
+  type RecipientFieldActions,
+  type RecipientFieldCard
 } from '@/ds/RecipientField/RecipientField'
+import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import type { NewRuleLocationState } from '@common/features/rules/EmailRulesSettings'
+import { settingsSectionPath } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import {
   formatRecipient,
@@ -67,6 +74,10 @@ export function RecipientInput({
   actions
 }: RecipientInputProps): ReactElement {
   const { t } = useI18n()
+  const navigate = useNavigate()
+  const { notify } = useNotify()
+  const { session } = useJmapSession()
+  const hasRules = LINAGORA_CAPABILITIES.filter in session.capabilities
   const contacts = useContactSuggestions(inputValue)
   // As tmail-flutter: the contacts already entered stay, ticked
   const suggestions = useMemo(
@@ -123,6 +134,41 @@ export function RecipientInput({
     ])
   }
 
+  // tmail-flutter's card of a recipient: copy the address, edit it, or
+  // create a filtering rule from it
+  const card: RecipientFieldCard = {
+    labels: {
+      copy: t('email.address.copy'),
+      edit: t('composer.recipients.editEmail'),
+      createRule: t('composer.recipients.createRule'),
+      close: t('email.address.close')
+    },
+    onCopy: id => {
+      window.navigator.clipboard
+        .writeText(id)
+        .then(() => {
+          notify({ message: t('email.address.copied'), severity: 'success' })
+        })
+        .catch((error: unknown) => {
+          console.warn('[composer] Cannot copy the address', error)
+        })
+    },
+    onCreateRule: hasRules
+      ? id => {
+          void navigate(settingsSectionPath('email-rules'), {
+            state: { newRuleFrom: id } satisfies NewRuleLocationState
+          })
+        }
+      : null,
+    testIds: {
+      card: 'recipient-card',
+      copy: 'recipient-card-copy-button',
+      edit: 'recipient-card-edit-button',
+      createRule: 'recipient-card-create-rule-button',
+      close: 'recipient-card-close-button'
+    }
+  }
+
   const handleSelect = (id: string): void => {
     edited.current = null
     const contact = contacts.find(candidate => candidate.emailAddress === id)
@@ -156,6 +202,7 @@ export function RecipientInput({
       onCommit={handleCommit}
       onRemove={handleRemove}
       onEdit={handleEdit}
+      card={card}
       onCancelEdit={handleCancelEdit}
       suggestions={suggestions}
       onSelectSuggestion={handleSelect}

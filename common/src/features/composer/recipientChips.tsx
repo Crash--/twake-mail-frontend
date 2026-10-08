@@ -18,7 +18,9 @@ export function recipientChips(
       title: formatRecipient(recipient),
       isInvalid: !isValidEmail(recipient.email),
       avatar: label,
-      avatarKey: recipient.email
+      avatarKey: recipient.email,
+      name: recipient.name,
+      address: recipient.email
     }
   })
 }

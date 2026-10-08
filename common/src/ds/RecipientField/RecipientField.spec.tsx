@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRef, useState, type KeyboardEvent, type ReactElement } from 'react'
 
@@ -6,6 +6,7 @@ import { renderDs } from '@/ds/testing/renderDs'
 
 import {
   RecipientField,
+  type RecipientFieldCard,
   type RecipientFieldChip,
   type RecipientFieldSuggestion
 } from './RecipientField'
@@ -35,10 +36,12 @@ function toChip(text: string): RecipientFieldChip {
 /** The field with the state a caller keeps: chips split on commas */
 function Harness({
   initial = [],
-  onEscape = jest.fn()
+  onEscape = jest.fn(),
+  card
 }: {
   initial?: string[]
   onEscape?: () => void
+  card?: RecipientFieldCard
 }): ReactElement {
   const [chips, setChips] = useState(initial.map(toChip))
   const [input, setInput] = useState('')
@@ -100,6 +103,7 @@ function Harness({
           add([id])
         }}
         isList={text => /[,;\s]/.test(text.trim())}
+        card={card}
         testIds={{ input: 'to-input', chip: 'chip' }}
       />
       <button type="button">Next field</button>
@@ -114,6 +118,43 @@ function chipNames(): string[] {
 }
 
 describe('RecipientField', () => {
+  it('opens the card of a tag on a click or Enter, as tmail-flutter, and edits it from there', async () => {
+    const card: RecipientFieldCard = {
+      labels: {
+        copy: 'Copy the email address',
+        edit: 'Edit email',
+        createRule: 'Create a rule',
+        close: 'Close'
+      },
+      onCopy: jest.fn(),
+      onCreateRule: jest.fn()
+    }
+    renderDs(<Harness initial={['a@example.com']} card={card} />)
+    const chip = screen.getByTestId('chip')
+
+    await userEvent.click(chip)
+    const dialog = screen.getByRole('dialog', { name: 'a@example.com' })
+    expect(chip).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Copy the email address' })
+    )
+    expect(card.onCopy).toHaveBeenCalledWith('a@example.com')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(dialog).not.toBeInTheDocument()
+    })
+    expect(chip).toHaveFocus()
+
+    await userEvent.keyboard('{Enter}')
+    await userEvent.click(screen.getByRole('button', { name: 'Edit email' }))
+    const input = screen.getByRole('combobox', { name: 'To' })
+    await waitFor(() => {
+      expect(input).toHaveFocus()
+    })
+    expect(input).toHaveValue('a@example.com')
+    expect(chipNames()).toEqual([])
+  })
+
   it('is a combobox named by its visible label, in a group of the same name', () => {
     renderDs(<Harness />)
 

@@ -47,10 +47,11 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
         '0'
       )
 
+      // The last visible folder: Spam, in the order of the server
       await page.keyboard.press('End')
-      await mailbox.expectFolderFocused({ role: 'archive' })
+      await mailbox.expectFolderFocused({ role: 'junk' })
       await page.keyboard.press('ArrowDown')
-      await mailbox.expectFolderFocused({ role: 'archive' })
+      await mailbox.expectFolderFocused({ role: 'junk' })
       await page.keyboard.press('Home')
       await mailbox.expectFolderFocused({ role: 'inbox' })
       await page.keyboard.press('ArrowUp')

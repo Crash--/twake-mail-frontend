@@ -22,15 +22,22 @@ export function AppTitle({
   return (
     <Stack
       direction="row"
-      spacing={1}
+      spacing={0.5}
       className="u-flex-items-center"
       role="img"
       aria-label={label}
       data-testid={testId}
     >
-      <Icon icon={Mail} size={32} preserveColor aria-hidden="true" />
-      <Icon icon={TwakeText} width={58} height={22} aria-hidden="true" />
-      <Icon icon={MailText} width={54} height={22} aria-hidden="true" />
+      {/* tmail-flutter's logotype: "Twake" in black, 24 px high */}
+      <Icon icon={Mail} size={30} preserveColor aria-hidden="true" />
+      <Icon
+        icon={TwakeText}
+        width={64}
+        height={24}
+        color="#000000"
+        aria-hidden="true"
+      />
+      <Icon icon={MailText} width={58} height={24} aria-hidden="true" />
     </Stack>
   )
 }

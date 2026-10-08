@@ -9,6 +9,8 @@ import type { ReactElement, ReactNode } from 'react'
 export const APP_BAR_HEIGHT = 80
 /** The search of tmail-flutter: half the room, at least this wide */
 const SEARCH_MIN_WIDTH = 576
+/** The 30 px margins of the bar and the sidebar under its start (236 px) */
+const APP_BAR_ROOM = 30 + 236
 
 const FRAME_SX = {
   flexShrink: 0,
@@ -25,8 +27,10 @@ const LEFT_SX = {
   flexShrink: 0
 } as const
 
+// Half the room after the start of the bar and its margins, as tmail-flutter
+// computes it (not the slot, which the buttons at the end shorten)
 const SEARCH_SX = {
-  width: `max(50%, ${SEARCH_MIN_WIDTH}px)`,
+  width: `max(calc((100vw - ${APP_BAR_ROOM}px) / 2), ${SEARCH_MIN_WIDTH}px)`,
   maxWidth: '100%'
 } as const
 

@@ -1,8 +1,8 @@
-import { Restore, RestoreStraight, SelectAll } from '@linagora/twake-icons'
+import { RestoreStraight, SelectAll } from '@linagora/twake-icons'
 import { CircularProgress } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { CheckboxBlankIcon } from '@/ds/ListIcons/ListIcons'
+import { CheckboxBlankIcon, RefreshIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
@@ -80,7 +80,7 @@ export function EmailListDefaultToolbar({
       ) : (
         <IconAction
           label={refreshLabel}
-          icon={Restore}
+          icon={RefreshIcon}
           iconSize={16}
           tone="filled"
           onClick={onRefresh}

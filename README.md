@@ -168,6 +168,13 @@ Pushing a `vX.Y.Z` tag publishes it on the dev channel of the registry with
 [`publish-manifest.yml`](.github/workflows/publish-manifest.yml); the version
 comes from the tag and must equal the one in `package.json`.
 
+The manifest also declares the intent other apps of the Workplace open the
+composer with, `CREATE io.cozy.mails`, served on `/intents` of the same
+origin (`service_url_flag`: `mailng.embedded-app-url` again): see
+`docs/cozy-intents.md` (#269). The OIDC client of the app is exchanged for a
+token of the `mailng` app (`registry://mailng` in `oidc.app_token_exchange` of
+the cozy-stack), the only one the stack lets read the intent.
+
 ## Error reporting
 
 Set `SENTRY_ENABLED = true` and `SENTRY_DSN` in `.env.js` to report errors; events are scrubbed of query

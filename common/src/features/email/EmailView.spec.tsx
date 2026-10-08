@@ -380,7 +380,7 @@ describe('EmailView', () => {
         answers.querySelectorAll('button'),
         button => button.textContent
       )
-    ).toEqual(['Reply all', 'Reply', 'Reply to list', 'Forward'])
+    ).toEqual(['Reply all', 'Reply to list', 'Reply', 'Forward'])
   })
 
   it('offers no "Reply all" to an email between the sender and the user', async () => {

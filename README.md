@@ -159,6 +159,15 @@ embedding in Twake Workplace, Docker Compose, Helm) is in
 backend: `cd deploy/docker-compose/demo && docker compose up -d --build`, then
 <http://localhost:8080> as `alice@example.com` / `alice`.
 
+## Registry
+
+The app shows in the Twake Workplace home and bar as a standalone app: the
+archive is [`manifest/manifest.webapp`](manifest/manifest.webapp) and its icon,
+no code, and the home opens the URL held by the `mailng.embedded-app-url` flag.
+Pushing a `vX.Y.Z` tag publishes it on the dev channel of the registry with
+[`publish-manifest.yml`](.github/workflows/publish-manifest.yml); the version
+comes from the tag and must equal the one in `package.json`.
+
 ## Error reporting
 
 Set `SENTRY_ENABLED = true` and `SENTRY_DSN` in `.env.js` to report errors; events are scrubbed of query

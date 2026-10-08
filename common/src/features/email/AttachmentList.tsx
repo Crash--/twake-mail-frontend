@@ -1,13 +1,17 @@
-import { Attachment, Download, Icon } from '@linagora/twake-icons'
-import { Box, Button, Typography } from '@linagora/twake-mui'
 import type { EmailBodyPart } from 'jmap-client-ts'
 import { useRef, useState, type ReactElement } from 'react'
 
 import {
   AttachmentCard,
   AttachmentCardRow,
-  AttachmentMoreCard
+  AttachmentDownloadAll,
+  AttachmentHeader,
+  AttachmentListFrame,
+  AttachmentTextButton,
+  useElementWidth,
+  visibleAttachmentCount
 } from '@/ds/AttachmentCard/AttachmentCard'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
@@ -28,9 +32,6 @@ import {
 } from './downloadAll'
 import { formatSize } from './formatSize'
 
-/** Cards shown before "+N more" */
-export const COLLAPSED_ATTACHMENT_COUNT = 3
-
 const JMAP_ACCEPT = 'application/json; jmapVersion=rfc-8621'
 
 export interface AttachmentListProps {
@@ -40,10 +41,11 @@ export interface AttachmentListProps {
 }
 
 /**
- * The attachments of an email: a header (count, total size, "Download all"
- * when the server offers it) over cards that preview the file when it can
- * be, and download it otherwise; the download action of each card is always
- * there.
+ * The attachments of an email, as tmail-flutter: a header (count, total
+ * size, "Download all" when the server offers it) over chips that preview
+ * the file when it can be, and download it otherwise, with a download
+ * button each. Collapsed, a desktop shows the chips that fit on one row and
+ * a phone three, then "Show +N more"; expanded, all of them and "Hide N".
  */
 export function AttachmentList({
   attachments,
@@ -55,6 +57,8 @@ export function AttachmentList({
   const { notify } = useNotify()
   const { accountId, session } = useJmapSession()
   const [isExpanded, setIsExpanded] = useState(false)
+  const isPhone = useScreenSize() === 'mobile'
+  const row = useElementWidth()
   const [previewed, setPreviewed] = useState<{
     part: EmailBodyPart
     kind: NonNullable<ReturnType<typeof previewKind>>
@@ -121,12 +125,14 @@ export function AttachmentList({
   const canDownloadAll =
     emailId !== undefined &&
     isDownloadAllAvailable(session, accountId, attachments.length)
-  const hiddenCount = isExpanded
-    ? 0
-    : Math.max(attachments.length - COLLAPSED_ATTACHMENT_COUNT, 0)
-  const shown = isExpanded
-    ? attachments
-    : attachments.slice(0, COLLAPSED_ATTACHMENT_COUNT)
+  const collapsedCount = visibleAttachmentCount(
+    attachments.length,
+    row.width,
+    isPhone
+  )
+  // Hidden while collapsed: what "Hide N" brings back
+  const collapsedHidden = attachments.length - collapsedCount
+  const shown = isExpanded ? attachments : attachments.slice(0, collapsedCount)
 
   const handleDownloadAll = (): void => {
     downloadAll().catch(reportDownloadFailure)
@@ -139,33 +145,53 @@ export function AttachmentList({
     element?.focus()
   }
 
+  const showMore =
+    !isExpanded && collapsedHidden > 0 ? (
+      <AttachmentTextButton
+        label={t('email.attachmentsMore', { count: collapsedHidden })}
+        onClick={() => {
+          setIsExpanded(true)
+        }}
+        data-testid="attachment-show-more"
+      />
+    ) : null
+  const showLess =
+    isExpanded && collapsedHidden > 0 ? (
+      <AttachmentTextButton
+        label={t('email.attachmentsHide', { count: collapsedHidden })}
+        onClick={() => {
+          setIsExpanded(false)
+        }}
+        data-testid="attachment-show-less"
+      />
+    ) : null
+
   return (
-    <Box className="u-mt-1" data-testid="attachment-list">
-      <Box className="u-flex u-flex-items-center u-mb-half">
-        <Icon icon={Attachment} aria-hidden="true" />
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          component="h3"
-          className="u-ml-half u-mr-1"
-        >
-          {t('email.attachmentsTitle', {
+    <AttachmentListFrame
+      data-testid="attachment-list"
+      header={
+        <AttachmentHeader
+          title={t('email.attachmentsTitle', {
             smart_count: attachments.length,
             size: formatSize(totalSize, lang)
           })}
-        </Typography>
-        {canDownloadAll ? (
-          <Button
-            size="small"
-            endIcon={<Icon icon={Download} aria-hidden="true" />}
-            onClick={handleDownloadAll}
-            data-testid="download-all-attachments-button"
-          >
-            {t('email.downloadAll')}
-          </Button>
-        ) : null}
-      </Box>
-      <AttachmentCardRow>
+          action={
+            canDownloadAll ? (
+              <AttachmentDownloadAll
+                label={t('email.downloadAll')}
+                onClick={handleDownloadAll}
+                data-testid="download-all-attachments-button"
+              />
+            ) : null
+          }
+        />
+      }
+    >
+      <AttachmentCardRow
+        isColumn={isPhone}
+        isExpanded={isExpanded}
+        rowRef={row.ref}
+      >
         {shown.map((part, index) => {
           const name = cleanFileName(part.name) ?? t('email.attachment')
           const kind = previewKind({ type: part.type, name: part.name })
@@ -200,30 +226,9 @@ export function AttachmentList({
             />
           )
         })}
-        {hiddenCount > 0 ? (
-          <AttachmentMoreCard
-            label={t('email.attachmentsMore', { count: hiddenCount })}
-            onClick={() => {
-              setIsExpanded(true)
-            }}
-            data-testid="attachment-show-more"
-          />
-        ) : null}
+        {isPhone ? null : (showMore ?? showLess)}
       </AttachmentCardRow>
-      {isExpanded && attachments.length > COLLAPSED_ATTACHMENT_COUNT ? (
-        <Button
-          size="small"
-          className="u-mt-half"
-          onClick={() => {
-            setIsExpanded(false)
-          }}
-          data-testid="attachment-show-less"
-        >
-          {t('email.attachmentsHide', {
-            count: attachments.length - COLLAPSED_ATTACHMENT_COUNT
-          })}
-        </Button>
-      ) : null}
+      {isPhone ? (showMore ?? showLess) : null}
       {previewed ? (
         <AttachmentPreviewDialog
           part={previewed.part}
@@ -231,6 +236,6 @@ export function AttachmentList({
           onClose={handleClose}
         />
       ) : null}
-    </Box>
+    </AttachmentListFrame>
   )
 }

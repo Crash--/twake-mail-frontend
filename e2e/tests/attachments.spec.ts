@@ -196,15 +196,20 @@ test.describe('ATT attachments', () => {
           content: 'hello <b>notes</b>'
         },
         { name: 'data.zip', type: 'application/zip', content: 'PK' },
-        { name: 'more.zip', type: 'application/zip', content: 'PK' }
+        { name: 'more.zip', type: 'application/zip', content: 'PK' },
+        { name: 'extra.zip', type: 'application/zip', content: 'PK' },
+        { name: 'last.zip', type: 'application/zip', content: 'PK' }
       ]
     })
     await jmap.waitForEmail({ subject: 'with files' })
     const mailbox = await new LoginPage(page).loginAs(user)
     const email = await mailbox.openEmail('with files')
 
-    await expect(email.root.getByText('4 Attachments')).toBeVisible()
-    await expect(email.attachments).toHaveCount(3)
+    await expect(email.root.getByText('6 Attachments')).toBeVisible()
+    // As tmail-flutter: the chips that fit on one row (three on a phone),
+    // then "Show +N more"
+    await expect(email.root.getByTestId('attachment-show-more')).toBeVisible()
+    expect(await email.attachments.count()).toBeLessThan(6)
     await expectNoA11yViolations(page)
 
     const card = page.getByRole('button', { name: /^Preview photo\.png/ })
@@ -231,7 +236,7 @@ test.describe('ATT attachments', () => {
     await page.getByRole('button', { name: 'Close' }).click()
 
     await email.root.getByTestId('attachment-show-more').click()
-    await expect(email.attachments).toHaveCount(4)
+    await expect(email.attachments).toHaveCount(6)
   })
 
   test(

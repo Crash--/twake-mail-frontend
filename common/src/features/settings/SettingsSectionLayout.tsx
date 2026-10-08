@@ -37,7 +37,19 @@ export function SettingsSectionLayout({
   useDocumentTitle(`${title} - ${t('settings.title')}`)
 
   useEffect(() => {
-    headingRef.current?.focus()
+    const heading = headingRef.current
+    heading?.focus()
+    // The page starts at its top, whatever the scroll of the list of
+    // sections it was opened from (phones): the heading is visually hidden
+    // there, so its scrolling ancestor goes back to the top itself
+    let area = heading?.parentElement ?? null
+    while (
+      area !== null &&
+      !['auto', 'scroll'].includes(getComputedStyle(area).overflowY)
+    ) {
+      area = area.parentElement
+    }
+    area?.scrollTo({ top: 0 })
   }, [section.id])
 
   return (
@@ -73,18 +85,16 @@ export function SettingsSectionLayout({
             {title}
           </SettingsTitle>
           {section.description === null ? null : (
-            <Box className="u-ta-center">
-              <SettingsDescription>
-                {t(section.description)}
-              </SettingsDescription>
-            </Box>
+            <SettingsDescription isCentered>
+              {t(section.description)}
+            </SettingsDescription>
           )}
           {actions === undefined ? null : (
             <Box className="u-flex u-flex-justify-center u-mt-1">{actions}</Box>
           )}
         </>
       )}
-      <Box className="u-mt-1-half">{children}</Box>
+      <Box className={isDesktop ? 'u-mt-1-half' : 'u-mt-1'}>{children}</Box>
     </SettingsPane>
   )
 }

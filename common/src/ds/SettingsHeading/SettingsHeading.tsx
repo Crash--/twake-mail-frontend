@@ -4,6 +4,8 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, Ref } from 'react'
 
+import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
+
 const TITLE_SX = {
   fontSize: 24,
   lineHeight: '28px',
@@ -31,7 +33,10 @@ const PANE_SX = {
   px: '22px',
   pt: '31px',
   pb: 3,
-  '@media (max-width: 599.95px)': { px: 2, pt: 2 }
+  // Below, as tmail-flutter: what the section is for right under the bar,
+  // 32 px in on a tablet, 16 px on a phone
+  [`@media ${SCREEN_QUERIES.belowDesktop}`]: { px: '32px', pt: 0 },
+  [`@media ${SCREEN_QUERIES.mobile}`]: { px: 2, pt: 0 }
 } as const
 
 export interface SettingsPaneProps {
@@ -119,15 +124,28 @@ export function SettingsSubheading({
 }
 
 export interface SettingsDescriptionProps {
+  /**
+   * Below the desktop size, as tmail-flutter's `SettingExplanationWidget`:
+   * in the middle, right under the bar (which has the title), 16 px in
+   */
+  isCentered?: boolean
   children: ReactNode
 }
 
+const CENTERED_SX = {
+  ...DESCRIPTION_SX,
+  mt: 0,
+  px: '16px',
+  textAlign: 'center'
+} as const
+
 /** What a settings section is for, under its title */
 export function SettingsDescription({
+  isCentered = false,
   children
 }: SettingsDescriptionProps): ReactElement {
   return (
-    <Box component="p" sx={DESCRIPTION_SX}>
+    <Box component="p" sx={isCentered ? CENTERED_SX : DESCRIPTION_SX}>
       {children}
     </Box>
   )

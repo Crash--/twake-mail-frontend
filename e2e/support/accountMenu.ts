@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 /** A page, a frame or a frame locator: where the test ids are looked up */
 type Scope = Pick<Page, 'getByTestId'>
@@ -29,6 +29,12 @@ export async function revealSettingsButton(
   // An email read on a phone or a tablet hides the bar of the mail
   const back = scope.getByTestId('email-view-back-button')
   const menu = scope.getByTestId('mobile-mailbox-menu-button')
-  if (!(await menu.isVisible()) && (await back.isVisible())) await back.click()
-  if (await menu.isVisible()) await menu.click()
+  if (!(await menu.isVisible()) && (await back.isVisible())) {
+    await back.click()
+    await expect(menu).toBeVisible()
+  }
+  if (await menu.isVisible()) {
+    await menu.click()
+    await expect(scope.getByTestId('settings-button')).toBeVisible()
+  }
 }

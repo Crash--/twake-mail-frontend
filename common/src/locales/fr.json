@@ -821,7 +821,11 @@
     "search": "Rechercher dans les dossiers",
     "empty": "Aucun dossier ne correspond à votre recherche",
     "personalFolders": "Dossiers personnels",
-    "allFolders": "Tous les dossiers"
+    "allFolders": "Tous les dossiers",
+    "selectParent": "Sélectionnez le dossier parent",
+    "collapsed": "sous-dossiers masqués",
+    "expanded": "sous-dossiers affichés",
+    "current": "dossier actuel"
   },
   "spamReport": {
     "banner": "%{smart_count} message(s) indésirable(s)",

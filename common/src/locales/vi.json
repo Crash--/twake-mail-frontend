@@ -821,7 +821,11 @@
     "search": "Thư mục tìm kiếm",
     "empty": "Không có thư mục nào khớp với tìm kiếm",
     "personalFolders": "Thư mục cá nhân",
-    "allFolders": "Tất cả thư mục"
+    "allFolders": "Tất cả thư mục",
+    "selectParent": "Chọn thư mục cha",
+    "collapsed": "thư mục con đã ẩn",
+    "expanded": "thư mục con đang hiển thị",
+    "current": "thư mục hiện tại"
   },
   "spamReport": {
     "banner": "%{smart_count} thư trong Spam",

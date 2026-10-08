@@ -217,8 +217,9 @@ export function FolderActionsProvider({
   const move = useCallback(
     async (mailbox: MailboxSummary): Promise<void> => {
       const list = await loadMailboxes()
+      // As tmail-flutter: "Move To", "All folders" first, the folder and
+      // its subfolders faded
       const destination = await pickMailbox({
-        title: t('folders.menu.move'),
         rootLabel: t('mailboxPicker.allFolders'),
         personalOnly: true,
         disabledIds: [mailbox.id, ...findDescendantIds(list, mailbox.id)]
@@ -275,7 +276,7 @@ export function FolderActionsProvider({
     async (mailbox: MailboxSummary): Promise<void> => {
       const list = await loadMailboxes()
       const destination = await pickMailbox({
-        disabledIds: [mailbox.id],
+        currentId: mailbox.id,
         requireAddItems: true
       })
       if (destination === null || destination === PICKED_ROOT) return
@@ -582,10 +583,12 @@ export function FolderActionsProvider({
   if (dialog?.mode === 'create') {
     const { parentId } = dialog
     const changeLocation = (): void => {
+      // As tmail-flutter: "All folders" first, the location chosen checked
       void pickMailbox({
-        title: t('folders.create.location'),
-        rootLabel: t('mailboxPicker.personalFolders'),
-        personalOnly: true
+        title: t('mailboxPicker.selectParent'),
+        rootLabel: t('mailboxPicker.allFolders'),
+        personalOnly: true,
+        currentId: parentId ?? PICKED_ROOT
       }).then(destination => {
         if (destination === null) return
         setDialog({
@@ -602,7 +605,7 @@ export function FolderActionsProvider({
         location={{
           path:
             parentId === null
-              ? t('mailboxPicker.personalFolders')
+              ? t('mailboxPicker.allFolders')
               : mailboxPath(mailboxes, parentId, getName),
           onChange: changeLocation
         }}

@@ -1,16 +1,7 @@
-import { Icon } from '@linagora/twake-icons'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Tooltip
-} from '@linagora/twake-mui'
 import {
   createContext,
   useCallback,
   useContext,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -18,11 +9,12 @@ import {
   type ReactNode
 } from 'react'
 
+import { DefaultFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import {
-  FilterableListbox,
-  type FilterableListboxOption
-} from '@/ds/FilterableListbox/FilterableListbox'
-import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
+  FolderPicker,
+  type FolderPickerOption,
+  type FolderPickerSection
+} from '@/ds/FolderPicker/FolderPicker'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { getMailboxIcon } from './mailboxDisplay'
@@ -31,7 +23,9 @@ import {
   isTeamRoot,
   listVisibleMailboxes,
   mailboxPath,
-  teamMailboxAddress
+  splitPersonalTree,
+  teamMailboxAddress,
+  type MailboxNode
 } from './mailboxTree'
 import type { MailboxSummary } from './queries'
 import { useMailboxes } from './useMailboxes'
@@ -40,8 +34,14 @@ import { useMailboxName } from './useMailboxName'
 export interface PickMailboxOptions {
   /** Title of the dialog, "Move To" by default */
   title?: string
-  /** Listed but not selectable, e.g. the folder the emails are in */
+  /** Listed faded, not selectable, e.g. the subfolders of a folder to move */
   disabledIds?: readonly string[]
+  /**
+   * The folder concerned (the one the emails are in, the folder to move,
+   * `PICKED_ROOT` for the top level): bold with a check, not selectable,
+   * shown unfolded
+   */
+  currentId?: string
   /**
    * A first option standing for the top level ("Personal folders"), for a
    * folder to create or move: chosen, it resolves to `PICKED_ROOT`
@@ -88,7 +88,6 @@ export function MailboxPickerProvider({
   children
 }: MailboxPickerProviderProps): ReactElement {
   const { t } = useI18n()
-  const titleId = useId()
   const getName = useMailboxName()
   const { data: mailboxes = [] } = useMailboxes()
   const [pending, setPending] = useState<PendingPick | null>(null)
@@ -111,36 +110,89 @@ export function MailboxPickerProvider({
     setPending(null)
   }
 
-  const options = useMemo((): FilterableListboxOption[] => {
-    const disabled = new Set(pending?.disabledIds ?? [])
+  const sections = useMemo((): FolderPickerSection[] => {
+    if (pending === null) return []
+    const disabled = new Set(pending.disabledIds ?? [])
     const { personal, team } = buildMailboxSections(mailboxes, false)
-    const trees =
-      pending?.personalOnly === true ? personal : [...personal, ...team]
-    const folders = listVisibleMailboxes(trees, () => true).map(
-      ({ mailbox, level }): FilterableListboxOption => ({
-        id: mailbox.id,
-        label: getName(mailbox),
-        // The root of a team mailbox is found by its address too
-        secondary: isTeamRoot(mailbox)
-          ? (teamMailboxAddress(mailbox) ?? mailbox.name)
-          : mailboxPath(mailboxes, mailbox.id, getName),
-        level,
-        icon: getMailboxIcon(mailbox),
-        disabled:
-          disabled.has(mailbox.id) ||
-          (pending?.requireAddItems === true && !mailbox.myRights.mayAddItems)
-      })
-    )
-    const rootLabel = pending?.rootLabel
-    return rootLabel === undefined
-      ? folders
-      : [
-          { id: ROOT_OPTION_ID, label: rootLabel, secondary: rootLabel },
-          ...folders
-        ]
-  }, [mailboxes, getName, pending])
+    const { system, folders } = splitPersonalTree(personal)
+    const toOptions = (trees: readonly MailboxNode[]): FolderPickerOption[] =>
+      listVisibleMailboxes(trees, () => true).map(
+        ({ mailbox, level, hasChildren }): FolderPickerOption => {
+          const isRoot = isTeamRoot(mailbox)
+          return {
+            id: mailbox.id,
+            label: getName(mailbox),
+            // Searched by its path; a team mailbox by its address too
+            secondary: mailboxPath(mailboxes, mailbox.id, getName),
+            // As tmail-flutter: a team mailbox shows its address, no icon
+            subtitle: isRoot
+              ? (teamMailboxAddress(mailbox) ?? mailbox.name)
+              : null,
+            level,
+            parentId: mailbox.parentId,
+            hasChildren,
+            icon: isRoot ? null : getMailboxIcon(mailbox),
+            isCurrent: mailbox.id === pending.currentId,
+            disabled:
+              disabled.has(mailbox.id) ||
+              (pending.requireAddItems === true &&
+                !mailbox.myRights.mayAddItems)
+          }
+        }
+      )
+    const rootLabel = pending.rootLabel
+    const root: FolderPickerOption[] =
+      rootLabel === undefined
+        ? []
+        : [
+            {
+              id: ROOT_OPTION_ID,
+              label: rootLabel,
+              secondary: rootLabel,
+              level: 1,
+              parentId: null,
+              hasChildren: false,
+              icon: DefaultFolderIcon,
+              isCurrent: pending.currentId === PICKED_ROOT
+            }
+          ]
+    return [
+      { id: 'system', label: null, options: [...root, ...toOptions(system)] },
+      {
+        id: 'personal',
+        label: t('mailboxPicker.personalFolders'),
+        options: toOptions(folders)
+      },
+      ...(pending.personalOnly === true
+        ? []
+        : [
+            {
+              id: 'team',
+              label: t('sidebar.teamMailboxes'),
+              options: toOptions(team)
+            }
+          ])
+    ]
+  }, [mailboxes, getName, pending, t])
 
-  const handleSelect = (option: FilterableListboxOption): void => {
+  // The way to the folder concerned (or the first one left out, the folder
+  // to move), unfolded
+  const expandedIds = useMemo((): string[] => {
+    const currentId = pending?.currentId ?? pending?.disabledIds?.[0]
+    if (currentId === undefined || currentId === PICKED_ROOT) return []
+    const ids: string[] = []
+    let parentId =
+      mailboxes.find(mailbox => mailbox.id === currentId)?.parentId ?? null
+    while (parentId !== null) {
+      ids.push(parentId)
+      const parent = parentId
+      parentId =
+        mailboxes.find(mailbox => mailbox.id === parent)?.parentId ?? null
+    }
+    return ids
+  }, [mailboxes, pending])
+
+  const handleSelect = (option: FolderPickerOption): void => {
     if (option.id === ROOT_OPTION_ID) {
       close(PICKED_ROOT)
       return
@@ -150,49 +202,33 @@ export function MailboxPickerProvider({
   const handleClose = (): void => {
     close(null)
   }
-  const closeLabel = t('common.close')
 
   return (
     <PickMailboxContext.Provider value={pick}>
       {children}
-      <Dialog
+      <FolderPicker
         open={pending !== null}
+        labels={{
+          title: pending?.title ?? t('mailboxPicker.title'),
+          close: t('common.close'),
+          search: t('mailboxPicker.search'),
+          empty: t('mailboxPicker.empty'),
+          collapsed: t('mailboxPicker.collapsed'),
+          expanded: t('mailboxPicker.expanded'),
+          current: t('mailboxPicker.current')
+        }}
+        sections={sections}
+        initiallyExpandedIds={expandedIds}
+        onSelect={handleSelect}
         onClose={handleClose}
-        size="small"
-        aria-labelledby={titleId}
-        data-testid="mailbox-picker"
-      >
-        <DialogTitle id={titleId} className="u-flex u-flex-items-center">
-          <span className="u-flex-auto">
-            {pending?.title ?? t('mailboxPicker.title')}
-          </span>
-          <Tooltip title={closeLabel}>
-            <IconButton
-              aria-label={closeLabel}
-              onClick={handleClose}
-              data-testid="mailbox-picker-close-button"
-            >
-              <Icon icon={Cross} />
-            </IconButton>
-          </Tooltip>
-        </DialogTitle>
-        <DialogContent>
-          {pending === null ? null : (
-            <FilterableListbox
-              options={options}
-              onSelect={handleSelect}
-              filterLabel={t('mailboxPicker.search')}
-              listLabel={t('sidebar.folders')}
-              emptyLabel={t('mailboxPicker.empty')}
-              testIds={{
-                input: 'mailbox-picker-search-input',
-                listbox: 'mailbox-picker-list',
-                option: 'mailbox-picker-item'
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+        testIds={{
+          dialog: 'mailbox-picker',
+          close: 'mailbox-picker-close-button',
+          input: 'mailbox-picker-search-input',
+          listbox: 'mailbox-picker-list',
+          option: 'mailbox-picker-item'
+        }}
+      />
     </PickMailboxContext.Provider>
   )
 }

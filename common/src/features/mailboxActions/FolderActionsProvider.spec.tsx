@@ -171,12 +171,12 @@ describe('Folder actions', () => {
     await userEvent.click(location)
     await userEvent.click(
       within(
-        screen.getByRole('dialog', { name: 'Select the folder location' })
-      ).getByRole('option', { name: 'Personal folders' })
+        screen.getByRole('dialog', { name: 'Select parent folder' })
+      ).getByRole('option', { name: 'All folders' })
     )
     // Once the picker went
     expect(
-      await within(dialog).findByRole('button', { name: 'Personal folders' })
+      await within(dialog).findByRole('button', { name: 'All folders' })
     ).toBeVisible()
     await userEvent.type(
       within(dialog).getByRole('textbox', { name: 'Folder Name' }),
@@ -221,7 +221,8 @@ describe('Folder actions', () => {
         name: 'Move folder'
       })
     )
-    const picker = screen.getByRole('dialog', { name: 'Move folder' })
+    // As tmail-flutter: "Move To", the folder faded
+    const picker = screen.getByRole('dialog', { name: 'Move To' })
     expect(
       within(picker).getByRole('option', { name: 'Clients' })
     ).toHaveAttribute('aria-disabled', 'true')

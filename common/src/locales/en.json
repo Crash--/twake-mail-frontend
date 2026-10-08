@@ -821,7 +821,11 @@
     "search": "Search folders",
     "empty": "No folder matches your search",
     "personalFolders": "Personal folders",
-    "allFolders": "All folders"
+    "allFolders": "All folders",
+    "selectParent": "Select parent folder",
+    "collapsed": "subfolders hidden",
+    "expanded": "subfolders shown",
+    "current": "current folder"
   },
   "spamReport": {
     "banner": "%{smart_count} message in spam |||| %{smart_count} messages in spam",

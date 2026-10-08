@@ -821,7 +821,11 @@
     "search": "Поиск папок",
     "empty": "Нет папок, соответствующих запросу",
     "personalFolders": "Личные папки",
-    "allFolders": "Все папки"
+    "allFolders": "Все папки",
+    "selectParent": "Выберите корневую папку",
+    "collapsed": "вложенные папки скрыты",
+    "expanded": "вложенные папки показаны",
+    "current": "текущая папка"
   },
   "spamReport": {
     "banner": "%{smart_count} сообщений в Спаме",

@@ -1,7 +1,10 @@
-import { Skeleton, Typography } from '@linagora/twake-mui'
+import { Skeleton } from '@linagora/twake-mui'
 import { useMemo, type ReactElement } from 'react'
 
-import { ButtonSkeleton } from '@/ds/ListTableSkeleton/ButtonSkeleton'
+import {
+  CompactAvatarSkeleton,
+  CompactLinesSkeleton
+} from '@/ds/ListTableSkeleton/CompactRowSkeleton'
 import {
   ListTableSkeleton,
   type ListTableSkeletonColumn
@@ -13,6 +16,7 @@ import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnounce
 
 import {
   ACTION_SIZE,
+  getCompactRowLayout,
   getLeadWidth,
   getTrailingWidth,
   ROW_LAYOUT,
@@ -75,40 +79,16 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
   ]
 }
 
-/** Sender and date, subject, then two lines of preview: a narrow row */
-const NARROW_MESSAGE = (
-  <div>
-    <Typography variant="body1" component="div" className="u-flex">
-      <Skeleton width="40%" className="u-flex-auto" />
-      <Skeleton width={48} className="u-ml-1" />
-    </Typography>
-    <Typography variant="body1" component="div">
-      <Skeleton width="65%" />
-    </Typography>
-    <Typography variant="body2" component="div">
-      <Skeleton width="95%" />
-    </Typography>
-    <Typography variant="body2" component="div">
-      <Skeleton width="55%" />
-    </Typography>
-  </div>
-)
-
-const COMPACT_COLUMNS: ListTableSkeletonColumn[] = [
-  { id: 'select', width: 44, cell: CHECKBOX },
-  { id: 'unread', width: 20, cell: null },
-  { id: 'message', paddingStart: 4, cell: NARROW_MESSAGE },
-  {
-    id: 'compactActions',
-    width: 48,
-    cell: (
-      <div className="u-flex u-flex-column u-flex-items-center">
-        <ButtonSkeleton />
-        <ButtonSkeleton />
-      </div>
-    )
-  }
-]
+/**
+ * tmail-flutter's compact row: the 48 px avatar, then the sender and the
+ * date, the subject and the preview, on the 72 px of the real rows
+ */
+function compactColumns(sides: number): ListTableSkeletonColumn[] {
+  return [
+    { id: 'select', width: sides + 48, cell: <CompactAvatarSkeleton /> },
+    { id: 'message', cell: <CompactLinesSkeleton /> }
+  ]
+}
 
 export interface EmailListSkeletonProps {
   /** Below the desktop size the rows are the narrow ones, as in the list */
@@ -137,6 +117,12 @@ function EmailListRowsSkeleton({
 }: EmailListSkeletonProps): ReactElement {
   useLoadingAnnouncement(true)
   const { canHover, isTouch } = useRowPointer()
+  const isPhone = useScreenSize() === 'mobile'
+  const compactLayout = useMemo(() => getCompactRowLayout(isPhone), [isPhone])
+  const narrowColumns = useMemo(
+    () => compactColumns(compactLayout.paddingX),
+    [compactLayout]
+  )
   const columns = useMemo(
     () => wideColumns({ canHover, isTouch }),
     [canHover, isTouch]
@@ -144,7 +130,8 @@ function EmailListRowsSkeleton({
   return (
     <ListTableSkeleton
       columns={columns}
-      compactColumns={COMPACT_COLUMNS}
+      compactColumns={narrowColumns}
+      compactRowLayout={compactLayout}
       compact={isCompact}
       rowCount={ROW_COUNT}
       rowLayout={ROW_LAYOUT}

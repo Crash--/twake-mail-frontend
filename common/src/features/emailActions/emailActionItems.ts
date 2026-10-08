@@ -1,20 +1,4 @@
-import {
-  Archive,
-  CheckCircle,
-  Download,
-  Email,
-  EmailNotification,
-  EmailOpen,
-  FolderMoveto,
-  Label,
-  Pen,
-  Printer,
-  Star,
-  StarOutline,
-  Trash,
-  Warning,
-  type IconProps
-} from '@linagora/twake-icons'
+import { type IconProps } from '@linagora/twake-icons'
 
 import {
   DRAFT,
@@ -28,6 +12,22 @@ import {
   findTemplatesMailboxId,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
+import {
+  Archive,
+  CheckCircle,
+  Download,
+  Email,
+  EmailNotification,
+  EmailOpen,
+  MoveEmail,
+  Label,
+  Pen,
+  Printer,
+  Star,
+  StarOutline,
+  Trash,
+  Warning
+} from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -114,7 +114,7 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   },
   move: {
     label: 'emailActions.menu.moveMessage',
-    icon: FolderMoveto,
+    icon: MoveEmail,
     isDestructive: false,
     group: 2
   },

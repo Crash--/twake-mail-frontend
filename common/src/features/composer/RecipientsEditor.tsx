@@ -1,7 +1,8 @@
-import { Bottom, Cross, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useRef, useState, type ReactElement, type ReactNode } from 'react'
 
+import { Bottom, Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { FieldTextButton } from '@/ds/FieldTextButton/FieldTextButton'
 import type { RecipientFieldActions } from '@/ds/RecipientField/RecipientField'

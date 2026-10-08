@@ -1,8 +1,9 @@
-import { Icon, Left } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
+import { Left } from '@/ds/FlutterIcons/FlutterIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { searchPath, type SearchFilter } from './searchFilter'

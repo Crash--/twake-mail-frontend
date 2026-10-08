@@ -1,7 +1,8 @@
-import { Email, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { Email } from '@/ds/FlutterIcons/FlutterIcons'
 import { injectedCss } from '@/ds/testing/injectedCss'
 import { renderDs } from '@/ds/testing/renderDs'
 

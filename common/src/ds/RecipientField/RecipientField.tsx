@@ -2,7 +2,7 @@
 // suggestions; Mail (recipients), Calendar (attendees) and Drive (sharing)
 // all need one. The ARIA 1.2 combobox of `SearchCombobox`, with the chips
 // of what was already entered before the input.
-import { Cross, Icon, Warning } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, InputBase, Paper, Popper, Typography } from '@linagora/twake-mui'
 // Not twake-mui's Chip: it drops its ref, which the keyboard needs to move
 // the focus between chips (docs/twake-mui-gaps.md)
@@ -21,6 +21,7 @@ import {
   type Ref
 } from 'react'
 
+import { Cross, Warning } from '@/ds/FlutterIcons/FlutterIcons'
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
 import { RecipientAvatar } from './RecipientAvatar'
 

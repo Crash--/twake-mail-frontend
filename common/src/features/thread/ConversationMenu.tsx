@@ -1,7 +1,8 @@
-import { Dots, Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import { ListItemIcon, ListItemText, Menu, MenuItem } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
+import { Dots } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { useI18n } from '@common/i18n/useI18n'
 

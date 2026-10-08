@@ -1,15 +1,15 @@
+import { Box } from '@linagora/twake-mui'
+import { useState, type ReactElement } from 'react'
+
 import {
   Archive,
   Dots,
-  FolderMoveto,
+  MoveEmail,
   Reply,
   Star,
   StarOutline,
   Trash
-} from '@linagora/twake-icons'
-import { Box } from '@linagora/twake-mui'
-import { useState, type ReactElement } from 'react'
-
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
@@ -129,7 +129,7 @@ export function EmailViewActions({
         <IconAction
           tone="steel"
           label={t(move.label)}
-          icon={move.id === 'move' ? FolderMoveto : Archive}
+          icon={move.id === 'move' ? MoveEmail : Archive}
           onClick={() => {
             handleRun(move.id)
           }}

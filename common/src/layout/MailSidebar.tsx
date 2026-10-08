@@ -1,7 +1,7 @@
-import { Pen } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
 import { ComposeButton } from '@/ds/ComposeButton/ComposeButton'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'

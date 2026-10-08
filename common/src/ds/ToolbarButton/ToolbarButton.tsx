@@ -3,9 +3,10 @@
 // grey (#EBEDF0 at 60 %) rounded rectangles, 34 px high with a 10 px radius,
 // a 16 px icon and Inter Regular 13 in dark grey; twake-mui has no such
 // button (docs/twake-mui-gaps.md).
-import { Icon, Dropdown, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
+import { Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
 
 /** `colorFilterMessageButton` at 60 % on white, its text and icon colour */
 export const TOOLBAR_BUTTON_BACKGROUND = 'rgba(235, 237, 240, 0.6)'

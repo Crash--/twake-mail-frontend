@@ -1,6 +1,6 @@
-import { Eye, EyeClosed, FolderOutlined } from '@linagora/twake-icons'
 import { useId, useState, type ReactElement } from 'react'
 
+import { Eye, EyeClosed, FolderOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import { CollapsibleCategory } from '@/ds/CollapsibleCategory/CollapsibleCategory'
 import { FolderVisibilityRow } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
 import { NarrowColumn } from '@/ds/NarrowColumn/NarrowColumn'

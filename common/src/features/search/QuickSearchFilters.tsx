@@ -1,12 +1,12 @@
+import { Box } from '@linagora/twake-mui'
+import type { ReactElement } from 'react'
+
 import {
   Account,
   Attachment,
   Calendar,
   StarOutline
-} from '@linagora/twake-icons'
-import { Box } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
-
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { useI18n } from '@common/i18n/useI18n'
 

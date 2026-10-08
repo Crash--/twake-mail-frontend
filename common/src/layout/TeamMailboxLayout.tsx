@@ -1,4 +1,3 @@
-import { Pen } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Outlet, useMatch } from 'react-router'
@@ -7,6 +6,7 @@ import {
   AlwaysFloatingAction,
   FloatingActionButton
 } from '@/ds/FloatingActionButton/FloatingActionButton'
+import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { OfflineNotice } from '@common/features/network/OfflineNotice'

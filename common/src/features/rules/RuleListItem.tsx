@@ -1,4 +1,4 @@
-import { Icon, Pen, Trash } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -9,6 +9,7 @@ import {
 import type { Rule } from 'jmap-client-ts/linagora'
 import type { ReactElement } from 'react'
 
+import { Pen, Trash } from '@/ds/FlutterIcons/FlutterIcons'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useI18n } from '@common/i18n/useI18n'
 

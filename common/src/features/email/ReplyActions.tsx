@@ -1,6 +1,7 @@
-import { Icon, Reply } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import type { ReactElement, ReactNode } from 'react'
 
+import { Reply } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionBar, ActionBarButton } from '@/ds/ActionBar/ActionBar'
 import { ForwardIcon, ReplyAllIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { useI18n } from '@common/i18n/useI18n'

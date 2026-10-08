@@ -1,9 +1,9 @@
 // Upstream to twake-ui: yes, as a variant of `Empty`. Every Twake app
 // shows full-page errors (session, crash, unreachable server) with a
 // recovery action; twake-mui only has the empty state it is built on.
-import { Warning } from '@linagora/twake-icons'
 import { Box, Button, Empty } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
+import { Warning } from '@/ds/FlutterIcons/FlutterIcons'
 
 export interface ErrorScreenProps {
   title: string

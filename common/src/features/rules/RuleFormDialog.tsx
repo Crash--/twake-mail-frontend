@@ -1,4 +1,4 @@
-import { Cross, Icon, Plus } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -22,6 +22,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { Cross, Plus } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import { validateIdentityName } from '@common/features/identities/identityForm'

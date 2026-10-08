@@ -1,11 +1,4 @@
-import {
-  Attachment,
-  ClockOutline,
-  Filter,
-  Icon,
-  StarOutline,
-  Star
-} from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Avatar, getInitials, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
@@ -16,6 +9,13 @@ import {
   type SearchComboboxGroup,
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
+import {
+  Attachment,
+  ClockOutline,
+  Filter,
+  Star,
+  StarOutline
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED } from '@common/features/email/keywords'

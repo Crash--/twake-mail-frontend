@@ -1,7 +1,7 @@
-import { Pen } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { FloatingActionButton } from './FloatingActionButton'

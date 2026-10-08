@@ -1,13 +1,13 @@
+import { useState, type ReactElement } from 'react'
+
 import {
   Dots,
-  FolderMoveto,
+  MoveEmail,
   Reply,
   Star,
   StarOutline,
   Trash
-} from '@linagora/twake-icons'
-import { useState, type ReactElement } from 'react'
-
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
@@ -99,7 +99,7 @@ export function CollapsedMessageActions({
         <IconAction
           tone="steel"
           label={t(move.label)}
-          icon={FolderMoveto}
+          icon={MoveEmail}
           onClick={() => {
             handleRun(move.id)
           }}

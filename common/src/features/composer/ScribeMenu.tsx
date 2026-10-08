@@ -1,4 +1,4 @@
-import { AssistantColor, Copy, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -26,6 +26,7 @@ import {
   type MouseEvent
 } from 'react'
 
+import { AssistantColor, Copy } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useScribePreference } from '@common/features/scribe/scribePreference'

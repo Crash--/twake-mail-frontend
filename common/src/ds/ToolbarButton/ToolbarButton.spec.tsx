@@ -1,6 +1,6 @@
-import { SelectAll } from '@linagora/twake-icons'
 import { fireEvent, screen } from '@testing-library/react'
 
+import { SelectAll } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { ToolbarButton } from './ToolbarButton'

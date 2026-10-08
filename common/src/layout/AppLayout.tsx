@@ -1,8 +1,8 @@
-import { Pen } from '@linagora/twake-icons'
 import { Box, Layout } from '@linagora/twake-mui'
 import { useState, type ReactElement, type ReactNode } from 'react'
 import { Outlet, useLocation, useMatch } from 'react-router'
 
+import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { SCRIPT_FOCUS_TARGET } from '@/ds/FocusIndicator/focusIndicator'

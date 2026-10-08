@@ -1,9 +1,10 @@
 // Upstream to twake-ui: with HtmlBlock (see htmlBlock.ts).
-import { Bottom, Icon, Top } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, Button } from '@linagora/twake-mui'
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
+import { Bottom, Top } from '@/ds/FlutterIcons/FlutterIcons'
 import type { HtmlBlockOptions } from './htmlBlock'
 
 const MIN_FRAME_HEIGHT = 24

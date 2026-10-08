@@ -1,7 +1,7 @@
-import { RestoreStraight, SelectAll } from '@linagora/twake-icons'
 import { CircularProgress } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { RestoreStraight, SelectAll } from '@/ds/FlutterIcons/FlutterIcons'
 import { CheckboxBlankIcon, RefreshIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'

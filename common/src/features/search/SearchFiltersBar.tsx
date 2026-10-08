@@ -1,14 +1,4 @@
 import {
-  Account,
-  Attachment,
-  Calendar,
-  CalendarToday,
-  Email,
-  FolderOutlined,
-  LabelOutlined,
-  StarOutline
-} from '@linagora/twake-icons'
-import {
   Box,
   Button,
   Menu,
@@ -23,6 +13,16 @@ import {
   type ReactElement
 } from 'react'
 
+import {
+  Account,
+  Attachment,
+  Calendar,
+  CalendarToday,
+  Email,
+  FolderOutlined,
+  LabelOutlined,
+  StarOutline
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { ScrollRow } from '@/ds/ScrollRow/ScrollRow'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'

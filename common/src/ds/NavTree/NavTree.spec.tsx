@@ -1,8 +1,9 @@
-import { Email, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
+import { Email } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { NavTreeItem } from '../NavTreeItem/NavTreeItem'

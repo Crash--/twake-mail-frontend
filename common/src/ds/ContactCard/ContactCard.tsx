@@ -3,7 +3,7 @@
 // wide screen and a bottom sheet on a phone, as the address dialog of
 // tmail-flutter. twake-mui has neither a contact card nor a bottom sheet
 // (see docs/twake-mui-gaps.md).
-import { Copy, Cross, Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -20,6 +20,7 @@ import {
   type MouseEvent
 } from 'react'
 
+import { Copy, Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 

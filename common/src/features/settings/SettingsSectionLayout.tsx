@@ -1,4 +1,4 @@
-import { Icon, Left } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
 import { Link } from 'react-router'
@@ -8,6 +8,7 @@ import {
   SettingsPane,
   SettingsTitle
 } from '@/ds/SettingsHeading/SettingsHeading'
+import { Left } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'

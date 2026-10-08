@@ -1,7 +1,8 @@
-import { Cloud, Icon, Refresh } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
+import { Cloud, Refresh } from '@/ds/FlutterIcons/FlutterIcons'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'

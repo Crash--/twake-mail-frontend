@@ -1,10 +1,10 @@
-import { Filter, Plus } from '@linagora/twake-icons'
 import { Alert, Button, List } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useEffect, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
+import { Filter, Plus } from '@/ds/FlutterIcons/FlutterIcons'
 import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import { SettingsEmptyState } from '@/ds/SettingsEmptyState/SettingsEmptyState'
 import { SettingsCount } from '@/ds/SettingsFields/SettingsFields'

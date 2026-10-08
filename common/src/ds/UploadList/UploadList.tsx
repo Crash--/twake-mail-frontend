@@ -2,15 +2,7 @@
 // message, files of a chat or a Drive upload): type icon or thumbnail, name,
 // size, progress, retry, remove, and a "show more / less" fold. twake-mui
 // has neither the list nor the item.
-import {
-  Bottom,
-  CheckCircle,
-  Cross,
-  Icon,
-  Refresh,
-  Top,
-  Warning
-} from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -19,6 +11,14 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import { useState, type ReactElement, type ReactNode } from 'react'
+import {
+  Bottom,
+  CheckCircle,
+  Cross,
+  Refresh,
+  Top,
+  Warning
+} from '@/ds/FlutterIcons/FlutterIcons'
 
 export type UploadStatus = 'uploading' | 'done' | 'failed'
 

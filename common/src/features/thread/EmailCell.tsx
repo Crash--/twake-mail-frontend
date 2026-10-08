@@ -1,16 +1,4 @@
-import {
-  Attachment,
-  EmailNotification,
-  EmailOpen,
-  FolderMoveto,
-  Icon,
-  Openwith,
-  Reply,
-  Star,
-  StarOutline,
-  Trash,
-  WarningCircle
-} from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Tooltip,
   Typography,
@@ -24,6 +12,18 @@ import {
   firstLetterOf,
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
+import {
+  Attachment,
+  EmailNotification,
+  EmailOpen,
+  FolderMoveto,
+  Openwith,
+  Reply,
+  Star,
+  StarOutline,
+  Trash,
+  WarningCircle
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'

@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Eye } from '@linagora/twake-icons'
 
+import { Eye } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { VisibilityToggleButton } from './VisibilityToggleButton'

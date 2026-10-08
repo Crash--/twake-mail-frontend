@@ -1,4 +1,4 @@
-import { Cross, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import {
   FilterableListbox,
   type FilterableListboxOption
 } from '@/ds/FilterableListbox/FilterableListbox'
+import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { getMailboxIcon } from './mailboxDisplay'

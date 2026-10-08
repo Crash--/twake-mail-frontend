@@ -1,8 +1,9 @@
-import { Cross, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Alert, Button, IconButton } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
+import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import type { MailboxSummary } from '@common/features/mailbox/queries'

@@ -1,7 +1,7 @@
-import { Filter, Plus } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { Filter, Plus } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { SettingsEmptyState } from './SettingsEmptyState'

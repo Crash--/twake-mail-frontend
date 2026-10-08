@@ -1,16 +1,4 @@
-import {
-  Attachment,
-  AssistantColor,
-  Check,
-  Cross,
-  Dots,
-  Icon,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Paperplane,
-  Trash,
-  Warning
-} from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   InputBase,
@@ -38,6 +26,18 @@ import {
   type ReactNode
 } from 'react'
 
+import {
+  AssistantColor,
+  Attachment,
+  Check,
+  Cross,
+  Dots,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Paperplane,
+  Trash,
+  Warning
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'

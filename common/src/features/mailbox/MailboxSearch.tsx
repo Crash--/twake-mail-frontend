@@ -1,4 +1,4 @@
-import { Cross, Eye, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -19,6 +19,7 @@ import {
 } from 'react'
 import { Link, useNavigate } from 'react-router'
 
+import { Cross, Eye } from '@/ds/FlutterIcons/FlutterIcons'
 import { NavTree } from '@/ds/NavTree/NavTree'
 import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderActionsMenu'
 import { settingsSectionPath } from '@common/features/settings/sections'

@@ -5,9 +5,10 @@ import {
   IconButton,
   Tooltip
 } from '@linagora/twake-mui'
-import { Cross, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { useId, type ReactElement } from 'react'
 
+import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { ShortcutsPanel } from './ShortcutsPanel'

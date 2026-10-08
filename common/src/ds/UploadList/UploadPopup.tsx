@@ -2,7 +2,7 @@
 // Twake Mail design, shown on desktop and tablet when more than 9 files
 // upload at once: a floating panel that lists them, so that the form is not
 // pushed away by dozens of chips.
-import { Cross, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -18,6 +18,7 @@ import {
   type UploadListLabels,
   type UploadTestIds
 } from './UploadList'
+import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
 
 export interface UploadPopupProps {
   items: readonly UploadListItem[]

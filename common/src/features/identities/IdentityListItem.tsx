@@ -1,7 +1,7 @@
-import { Pen, Trash } from '@linagora/twake-icons'
 import { Box, Chip, Radio } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { Pen, Trash } from '@/ds/FlutterIcons/FlutterIcons'
 import { SettingsRowButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {
   SettingsListItem,

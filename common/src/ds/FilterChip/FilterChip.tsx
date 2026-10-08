@@ -4,9 +4,10 @@
 // (#686E76), an optional chevron, and the primary colour at 6 % with a cross
 // once applied. twake-mui's `Chip` is outlined or filled with a solid primary
 // colour, and needs `sx` for that background (docs/twake-mui-gaps.md).
-import { Bottom, CrossSmall, Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
+import { Bottom, CrossSmall } from '@/ds/FlutterIcons/FlutterIcons'
 
 const CHIP_BACKGROUND = '#ECEEF1'
 const CHIP_COLOR = '#686E76'

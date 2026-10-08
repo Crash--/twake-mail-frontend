@@ -1,12 +1,3 @@
-import {
-  Archive,
-  Email as EmailIcon,
-  EmailOpen,
-  Star,
-  StarOutline,
-  Trash,
-  Warning
-} from '@linagora/twake-icons'
 import { Box, Empty } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -18,6 +9,15 @@ import {
   type ReactElement
 } from 'react'
 
+import {
+  Archive,
+  Email as EmailIcon,
+  EmailOpen,
+  Star,
+  StarOutline,
+  Trash,
+  Warning
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'

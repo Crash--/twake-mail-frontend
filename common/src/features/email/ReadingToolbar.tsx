@@ -1,7 +1,7 @@
-import { Left, Right } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { Left, Right } from '@/ds/FlutterIcons/FlutterIcons'
 import { BackButton } from '@/ds/BackButton/BackButton'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { StickyBar } from '@/ds/StickyBar/StickyBar'

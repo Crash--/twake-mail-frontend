@@ -1,4 +1,4 @@
-import { Icon, Reply, Share } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Divider,
   ListItemIcon,
@@ -9,6 +9,7 @@ import {
 } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { Reply, Share } from '@/ds/FlutterIcons/FlutterIcons'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
 import type { EmailDetail } from '@common/features/email/queries'

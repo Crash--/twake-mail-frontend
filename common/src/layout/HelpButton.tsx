@@ -1,4 +1,4 @@
-import { HelpOutlined, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   LINAGORA_CAPABILITIES,
@@ -7,6 +7,7 @@ import {
 import type { ReactElement } from 'react'
 import { useMatch } from 'react-router'
 
+import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'

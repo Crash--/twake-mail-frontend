@@ -1,4 +1,4 @@
-import { Check, Cross, Filter, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -10,6 +10,7 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useRef, useState, type ReactElement } from 'react'
 
+import { Check, Cross, Filter } from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'

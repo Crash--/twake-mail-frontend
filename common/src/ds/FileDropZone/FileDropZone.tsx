@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes. Dropping files on a panel (a message, a
 // conversation, a folder) is common to Mail, Chat and Drive; twake-mui has
 // no drop zone.
-import { File, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import {
   useRef,
@@ -10,6 +10,7 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
+import { File } from '@/ds/FlutterIcons/FlutterIcons'
 
 // Figma "Teammail 1.1" tokens the theme does not carry
 const DASH_COLOR = '#5aa9ff'

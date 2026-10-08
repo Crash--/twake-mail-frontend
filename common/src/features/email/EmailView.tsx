@@ -1,8 +1,8 @@
-import { EmailOpen } from '@linagora/twake-icons'
 import { Box, Empty } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
+import { EmailOpen } from '@/ds/FlutterIcons/FlutterIcons'
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
 import {
   firstLetterOf,

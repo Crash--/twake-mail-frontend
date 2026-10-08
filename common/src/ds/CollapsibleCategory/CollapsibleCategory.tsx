@@ -4,10 +4,11 @@
 // Inter 14 / 18 black, the chevron right after it, and what it holds below,
 // shown while expanded. `NavSectionHeader` is the 12 px grey title of the
 // sidebar.
-import { Bottom, Icon, type IconProps, Right } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
 import { NESTED_LIST_SX } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
 
 const HEADING_SX = {

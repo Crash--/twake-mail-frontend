@@ -1,4 +1,4 @@
-import { Cross, Dots, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -9,6 +9,7 @@ import {
 } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
+import { Cross, Dots } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,

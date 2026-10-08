@@ -2,10 +2,11 @@
 // (`StorageView`): a cloud in a 64 px light circle, then in a 350 px column
 // the space used in Medium 17 black, "of … used" and "Available: …" in 10 px
 // grey, over a thin gauge.
-import { Cloud, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
+import { Cloud } from '@/ds/FlutterIcons/FlutterIcons'
 import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'
 
 const ROOT_SX = {

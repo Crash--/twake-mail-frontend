@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { FolderOutlined } from '@linagora/twake-icons'
 
+import { FolderOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { FolderVisibilityRow } from './FolderVisibilityRow'

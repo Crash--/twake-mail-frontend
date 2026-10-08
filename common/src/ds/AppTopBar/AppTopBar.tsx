@@ -3,7 +3,7 @@
 // tablet and a mobile `Menubar`). This one has the slots and the
 // responsive behaviour they share: a menu button below the desktop size,
 // the search folded behind a button on phones.
-import { Burger, Icon, Left, Magnifier } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   AppBar,
   Box,
@@ -23,6 +23,7 @@ import {
   type Ref
 } from 'react'
 
+import { Burger, Left, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /** Height of the bar on desktops, as in the design */

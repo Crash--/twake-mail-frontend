@@ -1,52 +1,21 @@
-// Upstream to twake-icons: yes. The icon set has `Reply` only: "Reply all"
-// (two arrows) and "Forward" (the arrow turned around) are drawn from it
-// until twake-icons has them (docs/twake-mui-gaps.md "Reply all, Forward").
-import { Icon, Reply } from '@linagora/twake-icons'
-import { Box } from '@linagora/twake-mui'
+// Upstream to twake-icons: yes. "Reply all" and "Forward" of tmail-flutter
+// (`ds/FlutterIcons`), at the size of the reply actions.
+import { Icon } from '@linagora/twake-icons'
 import type { ReactElement } from 'react'
+
+import { Forward, ReplyAll } from '@/ds/FlutterIcons/FlutterIcons'
 
 export interface ReplyIconProps {
   /** Side of the icon, in px */
   size?: number
 }
 
-/** Two arrows, one behind the other */
+/** tmail-flutter's "Reply all": two arrows */
 export function ReplyAllIcon({ size = 20 }: ReplyIconProps): ReactElement {
-  return (
-    <Box
-      component="span"
-      aria-hidden="true"
-      sx={{
-        position: 'relative',
-        display: 'inline-flex',
-        width: size,
-        height: size,
-        '& > svg': { position: 'absolute', top: 0, width: size, height: size },
-        '& > svg:first-of-type': { left: -size * 0.2 },
-        '& > svg:last-of-type': { left: size * 0.2 }
-      }}
-    >
-      <Icon icon={Reply} aria-hidden="true" />
-      <Icon icon={Reply} aria-hidden="true" />
-    </Box>
-  )
+  return <Icon icon={ReplyAll} size={size} aria-hidden="true" />
 }
 
-/** The reply arrow, turned around */
+/** tmail-flutter's "Forward" */
 export function ForwardIcon({ size = 20 }: ReplyIconProps): ReactElement {
-  return (
-    <Box
-      component="span"
-      aria-hidden="true"
-      sx={{
-        display: 'inline-flex',
-        width: size,
-        height: size,
-        transform: 'scaleX(-1)',
-        '& > svg': { width: size, height: size }
-      }}
-    >
-      <Icon icon={Reply} aria-hidden="true" />
-    </Box>
-  )
+  return <Icon icon={Forward} size={size} aria-hidden="true" />
 }

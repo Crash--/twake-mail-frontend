@@ -1,8 +1,8 @@
-import { Plus } from '@linagora/twake-icons'
 import { Alert, Button, RadioGroup } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, type ChangeEvent, type ReactElement } from 'react'
 
+import { Plus } from '@/ds/FlutterIcons/FlutterIcons'
 import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import { SettingsList } from '@/ds/SettingsList/SettingsList'
 import type { SettingsSection } from '@common/features/settings/sections'

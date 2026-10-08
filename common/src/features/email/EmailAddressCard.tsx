@@ -1,4 +1,3 @@
-import { CalendarToday, Discuss, Filter, Pen } from '@linagora/twake-icons'
 import { Avatar, getInitials, Link } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
@@ -14,6 +13,12 @@ import {
   ContactCard,
   type ContactCardAction
 } from '@/ds/ContactCard/ContactCard'
+import {
+  CalendarToday,
+  Discuss,
+  Filter,
+  Pen
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'

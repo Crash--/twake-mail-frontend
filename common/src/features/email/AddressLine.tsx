@@ -1,7 +1,7 @@
-import { Dropdown, Dropup } from '@linagora/twake-icons'
 import type { EmailAddress } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 
+import { Dropdown, Dropup } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageText } from '@/ds/MessageText/MessageText'

@@ -2,9 +2,10 @@
 // ("Personal folders", "Team-mailboxes" under "Folders"): a 36 px row like a
 // folder (a 16 px icon, the name, the chevron right after it) that expands
 // and collapses the tree under it, indented by 8 px.
-import { Bottom, Icon, type IconProps, Right } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
+import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
 
 const BUTTON_SX = {
   display: 'flex',

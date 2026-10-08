@@ -1,8 +1,9 @@
-import { Icon, Left } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
+import { Left } from '@/ds/FlutterIcons/FlutterIcons'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
 

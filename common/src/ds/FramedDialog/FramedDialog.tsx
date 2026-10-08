@@ -4,7 +4,7 @@
 // focus moved into the frame then, the size the framed page asks for, a
 // close button the framed page can take over, full screen on phones.
 // twake-mui's Dialog has no such variant.
-import { Cross, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   CircularProgress,
@@ -22,6 +22,7 @@ import {
   type RefObject
 } from 'react'
 
+import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /**

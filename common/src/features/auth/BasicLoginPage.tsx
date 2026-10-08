@@ -1,4 +1,4 @@
-import { Eye, EyeClosed, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useId,
@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { Navigate, useLocation } from 'react-router'
 
+import { Eye, EyeClosed } from '@/ds/FlutterIcons/FlutterIcons'
 import { LoginButton } from '@/ds/LoginButton/LoginButton'
 import { LoginFormFrame } from '@/ds/LoginFormFrame/LoginFormFrame'
 import { LoginLayout } from '@/ds/LoginLayout/LoginLayout'

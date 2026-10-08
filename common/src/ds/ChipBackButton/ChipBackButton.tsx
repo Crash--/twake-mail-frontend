@@ -1,9 +1,10 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's "Back" of the
 // settings (`back_to_dashboard_button`): a light grey (#EAEDF2) chip with a
 // radius of 8, a 9 px chevron and the label in Medium 12 blue.
-import { Icon, Left } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { ButtonBase } from '@linagora/twake-mui'
 import type { ElementType, ReactElement } from 'react'
+import { Left } from '@/ds/FlutterIcons/FlutterIcons'
 
 const CHIP_SX = {
   display: 'inline-flex',

@@ -1,7 +1,8 @@
-import { Icon, Logout } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { Logout } from '@/ds/FlutterIcons/FlutterIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { useLogout } from './useLogout'

@@ -1,4 +1,4 @@
-import { Attention, Icon, Plus, Trash } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -18,6 +18,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { Attention, Plus, Trash } from '@/ds/FlutterIcons/FlutterIcons'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {

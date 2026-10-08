@@ -1,9 +1,10 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's back button of the
 // reading view (`EmailViewBackButtonStyles`): a 20 px chevron and the name
 // of the folder in Regular 15/20, both steel grey (#55687D).
-import { Icon, Left } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+import { Left } from '@/ds/FlutterIcons/FlutterIcons'
 
 const BUTTON_SX = {
   minWidth: 0,

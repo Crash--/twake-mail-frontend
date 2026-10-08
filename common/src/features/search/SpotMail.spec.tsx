@@ -2,7 +2,9 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { useLocation } from 'react-router'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
+import { ComposerProvider } from '@common/features/composer/ComposerProvider'
 import {
   makeDefaultMailboxes,
   makeEmail,
@@ -22,12 +24,12 @@ async function renderSpotMail(
   extra: ReactElement | null = null
 ): Promise<void> {
   renderWithProviders(
-    <>
+    <ComposerProvider>
       <button type="button">Elsewhere</button>
       <SpotMail />
       <Location />
       {extra}
-    </>,
+    </ComposerProvider>,
     {
       route: '/mailbox/mailbox-inbox',
       path: '*',
@@ -37,7 +39,18 @@ async function renderSpotMail(
           ...makeDefaultMailboxes(),
           ...makeTeamMailboxes({ id: 'sales', address: 'sales@example.com' })
         ],
-        emails: [makeEmail({ id: 'report', subject: 'Quarterly report' })]
+        emails: [makeEmail({ id: 'report', subject: 'Quarterly report' })],
+        capabilities: {
+          [LINAGORA_CAPABILITIES.contactAutocomplete]: { minInputLength: 2 }
+        },
+        contacts: [
+          {
+            id: 'c1',
+            firstname: 'Bob',
+            surname: 'Dupont',
+            emailAddress: 'bob@example.com'
+          }
+        ]
       })
     }
   )
@@ -83,6 +96,27 @@ describe('SpotMail', () => {
       expect(location()).toBe('/mailbox/sales')
     })
     expect(screen.queryByRole('dialog')).toBe(null)
+  })
+
+  it('writes to a contact it finds, in a new message', async () => {
+    await renderSpotMail()
+    const dialog = await openSpotMail()
+
+    await userEvent.keyboard('bob')
+    const contacts = await within(dialog).findByRole('group', {
+      name: 'Compose email'
+    })
+    await userEvent.click(
+      await within(contacts).findByRole('option', {
+        name: /Bob Dupont bob@example\.com/
+      })
+    )
+
+    const composer = await screen.findByRole('dialog', { name: 'New message' })
+    expect(
+      await within(composer).findByRole('button', { name: /bob@example.com/ })
+    ).toBeVisible()
+    expect(location()).toBe('/mailbox/mailbox-inbox')
   })
 
   it('opens an email the search finds, among its results', async () => {

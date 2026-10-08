@@ -164,7 +164,7 @@ Conventions:
 | `email-list-item-mailbox` | the folders of a result, in its row | `mailboxContain` |
 | `empty-search-view` | no result | `UiKeys.emptySearchEmailView` |
 | `spotmail-dialog` | SpotMail, Ctrl+K (⌘K) anywhere: `role="dialog"` named "SpotMail", the field focused on open | — |
-| `spotmail-input` / `spotmail-clear-button` / `spotmail-suggestions` | its field (`role="combobox"`), clear button and suggestions (`role="listbox"`, groups "Folders", "Labels", then those of `search-suggestions`, with the same `search-suggestion-*` ids) | — |
+| `spotmail-input` / `spotmail-clear-button` / `spotmail-suggestions` | its field (`role="combobox"`), clear button and suggestions (`role="listbox"`, groups "Folders", "Labels", then those of `search-suggestions`, with the same `search-suggestion-*` ids; there the contacts are under "Compose email" and `search-suggestion-contact` opens a new message to the contact) | — |
 | `spotmail-folder` / `spotmail-label` | a folder, a team mailbox, Starred or Action required, or a label whose name holds the text: opens it | — |
 
 ## Phase 2 — conversations (`ConversationPage`)

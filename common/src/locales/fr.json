@@ -621,7 +621,7 @@
     "title": "SpotMail",
     "folders": "Dossiers",
     "move": "Naviguer",
-    "shortcut": "Rechercher, ou aller dans un dossier ou un libellé (SpotMail)"
+    "shortcut": "Rechercher, aller dans un dossier ou un libellé, ou écrire à un contact (SpotMail)"
   },
   "emailActions": {
     "toast": {

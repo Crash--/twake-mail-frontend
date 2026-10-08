@@ -621,7 +621,7 @@
     "title": "SpotMail",
     "folders": "Папки",
     "move": "Перемещение",
-    "shortcut": "Искать или перейти в папку или метку (SpotMail)"
+    "shortcut": "Искать, перейти в папку или метку или написать контакту (SpotMail)"
   },
   "emailActions": {
     "toast": {

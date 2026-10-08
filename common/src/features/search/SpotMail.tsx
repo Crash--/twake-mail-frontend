@@ -6,6 +6,7 @@ import {
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
 import { Spotlight } from '@/ds/Spotlight/Spotlight'
+import { useComposer } from '@common/features/composer/ComposerProvider'
 import { modifierKeyName } from '@common/features/shortcuts/shortcuts'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -29,7 +30,8 @@ function isOtherPopupOpen(): boolean {
 /**
  * SpotMail: Ctrl+K (⌘K on a Mac) anywhere, again to close it. The search of
  * the top bar in a dialog of its own, which also goes to the folders, the
- * team mailboxes and the labels whose name holds the text.
+ * team mailboxes and the labels whose name holds the text, and writes to the
+ * contacts it finds.
  */
 export function SpotMail(): ReactElement | null {
   const [isOpen, setIsOpen] = useState(false)
@@ -72,8 +74,17 @@ function SpotMailDialog({ onClose }: { onClose: () => void }): ReactElement {
     ...EMPTY_SEARCH_FILTER,
     sort: readSortOrder()
   }))
+  const { openComposer } = useComposer()
   const destinations = useDestinationOptions(draft.text)
-  const search = useSearchOptions(draft, true, destinations)
+  const search = useSearchOptions(draft, true, {
+    extra: destinations,
+    // A quick way to write: the contact found is the recipient
+    onContact: address => {
+      openComposer({
+        mailto: { to: [address], cc: [], bcc: [], subject: null, body: null }
+      })
+    }
+  })
 
   const handleSelect = (option: SearchComboboxOption): void => {
     onClose()

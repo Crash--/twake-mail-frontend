@@ -59,13 +59,21 @@ export interface SearchOptions {
  * for the text, recent searches, contacts and the first matching emails.
  * Choosing an option runs its search, or opens the email among the results.
  * Nothing is fetched while `isOpen` is false. `extra` groups come after the
- * search for the text; `select` leaves their options to the caller.
+ * search for the text; `select` leaves their options to the caller. With
+ * `onContact`, a contact is someone to write to, not a sender to search for.
  */
 export function useSearchOptions(
   draft: SearchFilter,
   isOpen: boolean,
-  extra: readonly SearchComboboxGroup[] = NO_GROUPS
+  {
+    extra = NO_GROUPS,
+    onContact = null
+  }: {
+    extra?: readonly SearchComboboxGroup[]
+    onContact?: ((address: string) => void) | null
+  } = {}
 ): SearchOptions {
+  const writesToContacts = onContact !== null
   const { t, lang } = useI18n()
   const navigate = useNavigate()
   const { accountId } = useJmapSession()
@@ -120,8 +128,11 @@ export function useSearchOptions(
       },
       {
         id: 'contacts',
-        label: t('search.contacts'),
-        isLabelHidden: true,
+        // Named after what choosing one does, when it writes to them
+        label: writesToContacts
+          ? t('email.address.compose')
+          : t('search.contacts'),
+        isLabelHidden: !writesToContacts,
         options: suggestions.contacts.map(contact => {
           const name = `${contact.firstname} ${contact.surname}`.trim()
           return {
@@ -174,13 +185,24 @@ export function useSearchOptions(
         }))
       }
     ]
-  }, [t, lang, hasText, hasFiltersOnly, draft.text, suggestions, extra])
+  }, [
+    t,
+    lang,
+    hasText,
+    hasFiltersOnly,
+    draft.text,
+    suggestions,
+    extra,
+    writesToContacts
+  ])
 
   const select = (option: SearchComboboxOption): void => {
     if (option.id === SHOW_ALL) {
       submit()
     } else if (option.id.startsWith(RECENT_PREFIX)) {
       run(withTypedText(draft, option.id.slice(RECENT_PREFIX.length)))
+    } else if (option.id.startsWith(CONTACT_PREFIX) && onContact !== null) {
+      onContact(option.id.slice(CONTACT_PREFIX.length))
     } else if (option.id.startsWith(CONTACT_PREFIX)) {
       // As tmail-flutter: the emails of that contact, nothing else
       run({

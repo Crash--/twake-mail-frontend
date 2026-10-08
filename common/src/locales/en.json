@@ -621,7 +621,7 @@
     "title": "SpotMail",
     "folders": "Folders",
     "move": "Move",
-    "shortcut": "Search, or go to a folder or a label (SpotMail)"
+    "shortcut": "Search, go to a folder or a label, or write to a contact (SpotMail)"
   },
   "emailActions": {
     "toast": {

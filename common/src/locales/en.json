@@ -872,7 +872,8 @@
       "location": "Select the folder location",
       "submit": "Create folder",
       "success": "You successfully created %{folderName} folder",
-      "failure": "Create new folder failure"
+      "failure": "Create new folder failure",
+      "subtitle": "New folder will be created inside %{folderName}"
     },
     "rename": {
       "submit": "Rename",

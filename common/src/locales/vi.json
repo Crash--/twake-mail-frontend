@@ -872,7 +872,8 @@
       "location": "Chọn vị trí thư mục",
       "submit": "Tạo thư mục",
       "success": "Bạn đã tạo thành công thư mục %{folderName}",
-      "failure": "Tạo thư mục mới thất bại"
+      "failure": "Tạo thư mục mới thất bại",
+      "subtitle": "Thư mục mới sẽ được tạo bên trong %{folderName}"
     },
     "rename": {
       "submit": "Đổi tên",

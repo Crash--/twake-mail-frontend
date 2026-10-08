@@ -872,7 +872,8 @@
       "location": "Sélectionnez l'emplacement du dossier",
       "submit": "Créer le dossier",
       "success": "Vous avez créé avec succès le dossier %{folderName}",
-      "failure": "Échec de la création d'un nouveau dossier"
+      "failure": "Échec de la création d'un nouveau dossier",
+      "subtitle": "Le nouveau dossier sera créé dans %{folderName}"
     },
     "rename": {
       "submit": "Renommer",

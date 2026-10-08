@@ -1,19 +1,29 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's Settings > Storage
 // (`StorageView`): a cloud in a 64 px light circle, then in a 350 px column
-// the space used in Medium 17 black, "of … used" and "Available: …" in 10 px
-// grey, over a thin gauge.
+// the space used in Semi Bold 18 black, "of … used" and "Available: …" in
+// 9 px grey, over a thin gauge; on a phone the cloud above the line.
 import { Icon } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
 import { Cloud } from '@/ds/FlutterIcons/FlutterIcons'
 import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const ROOT_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: 3,
   pl: 2
+} as const
+
+/** On a phone, as tmail-flutter: the cloud above, the line as wide as the screen */
+const PHONE_ROOT_SX = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '8px',
+  px: '8px'
 } as const
 
 const CIRCLE_SX = {
@@ -28,17 +38,19 @@ const CIRCLE_SX = {
   color: 'primary.main'
 } as const
 
-const COLUMN_SX = { width: 350, maxWidth: '100%', minWidth: 0 } as const
+const COLUMN_SX = { width: 351, maxWidth: '100%', minWidth: 0 } as const
+
+const PHONE_COLUMN_SX = { width: '100%', minWidth: 0 } as const
 
 const USED_SX = {
-  fontSize: 17,
-  lineHeight: '24px',
-  fontWeight: 500,
+  fontSize: 18,
+  lineHeight: '23px',
+  fontWeight: 600,
   color: '#000000'
 } as const
 
 const SMALL_SX = {
-  fontSize: 10,
+  fontSize: 9,
   lineHeight: '14px',
   color: 'rgba(66, 66, 68, 0.9)'
 } as const
@@ -68,12 +80,17 @@ export function StorageUsage({
   'data-used': dataUsed
 }: StorageUsageProps): ReactElement {
   const labelId = useId()
+  const isPhone = useScreenSize() === 'mobile'
   return (
-    <Box sx={ROOT_SX} data-testid={testId} data-used={dataUsed}>
+    <Box
+      sx={isPhone ? PHONE_ROOT_SX : ROOT_SX}
+      data-testid={testId}
+      data-used={dataUsed}
+    >
       <Box sx={CIRCLE_SX} aria-hidden="true">
         <Icon icon={Cloud} size={28} />
       </Box>
-      <Box sx={COLUMN_SX}>
+      <Box sx={isPhone ? PHONE_COLUMN_SX : COLUMN_SX}>
         <Box className="u-flex u-flex-items-baseline">
           <Typography id={labelId} component="p" sx={{ m: 0 }}>
             <Box component="span" sx={USED_SX}>

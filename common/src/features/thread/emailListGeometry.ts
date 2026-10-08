@@ -14,6 +14,9 @@ export const ROW_LAYOUT: RowLayout = {
 /** An icon button of a row, in px */
 export const ACTION_SIZE = 32
 
+/** The icon of the hover actions and of the replied / forwarded indicator */
+export const ACTION_ICON_SIZE = 16
+
 /**
  * The attachment (a 32 px box and its 4 px margin), the longest list date
  * ("Dec 30, 2025", 12 px) and the 8 px before the actions, shown beside the
@@ -32,7 +35,11 @@ function getButtonSize(isTouch: boolean): number {
   return isTouch ? TOUCH_TARGET_SIZE : ACTION_SIZE
 }
 
-/** Selection, star and reply without gap: the checkbox keeps its size */
+/**
+ * Selection, star and the replied / forwarded indicator without gap: the
+ * checkbox keeps its size. The indicator is no control, but its column keeps
+ * the width the touch targets of the tablet were given (#300).
+ */
 export function getLeadWidth(isTouch: boolean): number {
   return ROW_LAYOUT.paddingX + ACTION_SIZE + 2 * getButtonSize(isTouch)
 }

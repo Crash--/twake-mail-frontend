@@ -50,3 +50,26 @@ export function ForwardIcon({ size = 20 }: ReplyIconProps): ReactElement {
     </Box>
   )
 }
+
+/**
+ * The reply arrow and the forward arrow, side by side at three quarters of
+ * the size each: "replied and forwarded". Twice as wide as one arrow.
+ */
+export function ReplyForwardIcon({ size = 20 }: ReplyIconProps): ReactElement {
+  const arrow = Math.round(size * 0.75)
+  return (
+    <Box
+      component="span"
+      aria-hidden="true"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        '& > svg': { width: arrow, height: arrow },
+        '& > svg:last-of-type': { transform: 'scaleX(-1)' }
+      }}
+    >
+      <Icon icon={Reply} aria-hidden="true" />
+      <Icon icon={Reply} aria-hidden="true" />
+    </Box>
+  )
+}

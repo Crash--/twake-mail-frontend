@@ -501,3 +501,10 @@ Differences kept from the design and from tmail-flutter:
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
 | `Empty` | The empty list of tmail-flutter (`EmptyEmailsWidget`): its empty folder drawing (160 px, not a twake-icons glyph), a 352 px column, a 24 px semi-bold title that keeps the line breaks of its translations, a 16 px grey hint, at the top of the pane on a phone. `Empty` takes only a glyph icon, an h3 title and the theme sizes | Every empty email list: a folder, a filter that leaves nothing, Starred, Action required, a label, a search, offline | `ds/EmptyListView` (+ `EmptyFolderIllustration`), used by `features/thread/EmailList.tsx`, `features/mailbox/StarredList.tsx`, `ActionRequiredList.tsx`, `features/labels/LabelList.tsx`, `features/search/SearchResults.tsx` | An illustration slot and a "list" size on `Empty`, if the other Twake apps want the same look |
+
+## Desktop list row density (replied / forwarded indicator)
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `Icon` (replied, forwarded) | twake-icons has only `Reply`: "Forwarded" is its mirror and "replied and forwarded" two arrows side by side, as the tmail-flutter `icReply`, `icForwarded`, `icReplyAndForward` | The status indicator of a list row | `ds/ReplyIcons` (`ForwardIcon`, `ReplyForwardIcon`) | Reply, forward and reply-and-forward icons in twake-icons |
+| `StatusIcon` | A passive state shown as an icon: decorative (the row says it) with a tooltip for the mouse (none on touch), neither a button nor a tab stop | Replied / forwarded on a list row | `ds/RowStatusIcon` | A non interactive icon with a tooltip (twake-ui has only buttons and chips) |

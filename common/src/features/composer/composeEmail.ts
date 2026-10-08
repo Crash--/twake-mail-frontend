@@ -9,6 +9,7 @@ import {
   type SetError
 } from 'jmap-client-ts'
 
+import { ANSWERED, FORWARDED } from '@common/features/email/keywords'
 import { findReferencedCids } from '@common/features/email/emailBody'
 import {
   findTeamFolderByAddress,
@@ -48,7 +49,7 @@ export const READ_RECEIPT_REQUEST_HEADER =
 /** tmail-flutter writes the address of the read receipts there too */
 export const RETURN_PATH_HEADER = 'header:Return-Path:asText'
 
-const ANSWER_KEYWORDS: readonly string[] = ['$answered', '$forwarded']
+const ANSWER_KEYWORDS: readonly string[] = [ANSWERED, FORWARDED]
 
 function isAnswerKeyword(value: string): value is AnswerKeyword {
   return ANSWER_KEYWORDS.includes(value)

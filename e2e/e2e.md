@@ -941,3 +941,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/loading-states.spec.ts`.
 - [x] `LOAD-06` Framed, the facade of a team mailbox (no sidebar) shows the list skeleton (busy, "Loading" once) and the first row lands on its first row; offline, the banner sits above the floating "New message" button. — web app (batch D8, `@mobile`)
   - Spec: `tests/loading-states.spec.ts`.
+- [x] `LST-03` Retired: the row no longer has a reply button (the third place of a row is the replied / forwarded indicator, `LST-10`, as in tmail-flutter `buildIconAnsweredOrForwarded`); replying stays in the actions menu of the row and in the reading view. — web app (issue: desktop row density)
+- [x] `LST-10` A replied (`$answered`), forwarded (`$forwarded`) or both replied and forwarded email shows a 16 px secondary grey icon right after the star, hidden from assistive technologies (it is no button, no tab stop): the link of the row says "Replied", "Forwarded" or both, like unread and starred; absent on the other emails; axe. — tmail-flutter `buildIconAnsweredOrForwarded`, `messageToolTipForAnsweredOrForwarded`
+  - Spec: `tests/list-rows.spec.ts`.
+- [x] `LST-13` The actions menu of a row (the ⋮ hover action) replies to its email: the composer opens on "Re: subject". Replaces the reply button of the row (`LST-03`). — tmail-flutter (`reply` in the email actions menu)
+  - Spec: `tests/list-rows.spec.ts`.

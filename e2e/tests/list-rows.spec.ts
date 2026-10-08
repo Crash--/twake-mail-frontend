@@ -76,30 +76,6 @@ test.describe('LST email list rows', () => {
     await expect(remove).toHaveCSS('opacity', '1')
   })
 
-  test('LST-03 the reply button of a row opens the composer on a reply to it', async ({
-    page,
-    user,
-    jmap
-  }) => {
-    await jmap.sendEmail({ to: user.email, subject: 'Answer me', text: 'Hi' })
-    await jmap.waitForEmail({ subject: 'Answer me' })
-    const mailbox = await new LoginPage(page).loginAs(user)
-    const row = mailbox.emailRow('Answer me')
-    const viewport = page.viewportSize()
-    test.skip(
-      viewport === null || viewport.width < 1000,
-      'compact rows have no reply button'
-    )
-
-    const reply = row.getByTestId('email-list-item-reply')
-    await expect(reply).toHaveAccessibleName('Reply')
-    await reply.click()
-
-    const composer = new ComposerPage(page)
-    await expect(composer.subjectInput).toHaveValue('Re: Answer me')
-    await composer.deleteDraftButton.click()
-  })
-
   test('LST-04 the hover actions open the email in a tab of its own, and move it', async ({
     page,
     user,
@@ -167,17 +143,109 @@ test.describe('LST email list rows', () => {
     // 6 px above and below 32 px icon buttons
     expect(rowBox.height).toBeGreaterThanOrEqual(43.5)
     expect(rowBox.height).toBeLessThanOrEqual(44.5)
-    for (const id of [
-      'email-list-item-checkbox',
-      'email-list-item-star',
-      'email-list-item-reply'
-    ]) {
+    for (const id of ['email-list-item-checkbox', 'email-list-item-star']) {
       const found = await box(row.getByTestId(id))
       expect([found.width, found.height]).toEqual([32, 32])
     }
     // 20 px marker frame, then the 198 px block of the sender, 4 px apart
     const avatar = await box(row.getByTestId('email-list-item-avatar'))
     expect([avatar.width, avatar.height]).toEqual([20, 20])
+  })
+})
+
+test.describe('LST desktop row density and icons', () => {
+  const SECONDARY = 'rgba(66, 66, 68, 0.64)'
+
+  test('LST-10 a replied or forwarded email shows a quiet status icon in the third place, said by the row link, which is not a control; the others show nothing', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const subjects = ['Was answered', 'Was forwarded', 'Was both', 'Was plain']
+    const ids: string[] = []
+    for (const subject of subjects) {
+      await jmap.sendEmail({ to: user.email, subject, text: 'Hi' })
+      ids.push((await jmap.waitForEmail({ subject })).id)
+    }
+    await jmap.setKeywords(ids[0] ?? '', { $answered: true })
+    await jmap.setKeywords(ids[1] ?? '', { $forwarded: true })
+    await jmap.setKeywords(ids[2] ?? '', { $answered: true, $forwarded: true })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const viewport = page.viewportSize()
+    test.skip(
+      viewport === null || viewport.width < 1000,
+      'compact rows have no status column'
+    )
+
+    const status = (subject: string) =>
+      mailbox.emailRow(subject).getByTestId('email-list-item-status')
+    // The row link says it, like unread and starred
+    await expect(mailbox.emailRowLink('Was answered')).toHaveAccessibleName(
+      /Replied/
+    )
+    await expect(mailbox.emailRowLink('Was forwarded')).toHaveAccessibleName(
+      /Forwarded/
+    )
+    await expect(mailbox.emailRowLink('Was both')).toHaveAccessibleName(
+      /Replied, Forwarded/
+    )
+    await expect(mailbox.emailRowLink('Was plain')).not.toHaveAccessibleName(
+      /Replied|Forwarded/
+    )
+    await expect(status('Was plain')).toHaveCount(0)
+
+    // A decorative image, not a button: no reply on the row, nothing to focus
+    const answered = status('Was answered')
+    await expect(answered).toHaveAttribute('aria-hidden', 'true')
+    await expect(answered).not.toHaveAttribute('tabindex', /.*/)
+    await expect(
+      mailbox.emailList.getByTestId('email-list-item-reply')
+    ).toHaveCount(0)
+    await mailbox
+      .emailRow('Was answered')
+      .getByTestId('email-list-item-star')
+      .focus()
+    await page.keyboard.press('Tab')
+    await expect(mailbox.emailRowLink('Was answered')).toBeFocused()
+
+    // 16 px, secondary grey, centred in the third 32 px place after the star
+    const icon = answered.locator('svg').first()
+    const iconBox = await icon.boundingBox()
+    expect([iconBox?.width, iconBox?.height]).toEqual([16, 16])
+    await expect(answered).toHaveCSS('color', SECONDARY)
+    const star = await mailbox
+      .emailRow('Was answered')
+      .getByTestId('email-list-item-star')
+      .boundingBox()
+    const statusBox = await answered.boundingBox()
+    expect(statusBox?.x).toBe((star?.x ?? 0) + (star?.width ?? 0))
+    await expectNoA11yViolations(page)
+  })
+})
+
+test.describe('LST reply from the row', () => {
+  test('LST-13 the actions menu of a row replies to its email', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'Answer me', text: 'Hi' })
+    await jmap.waitForEmail({ subject: 'Answer me' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const viewport = page.viewportSize()
+    test.skip(
+      viewport === null || viewport.width < 1000,
+      'compact rows have no hover actions'
+    )
+    const row = mailbox.emailRow('Answer me')
+
+    await row.hover()
+    await row.getByTestId('email-list-item-more').click()
+    await page.getByTestId('email-action-reply').click()
+
+    const composer = new ComposerPage(page)
+    await expect(composer.subjectInput).toHaveValue('Re: Answer me')
+    await composer.deleteDraftButton.click()
   })
 })
 

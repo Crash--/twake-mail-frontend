@@ -120,6 +120,8 @@
       "sent": "Xác nhận đã đọc được gửi."
     },
     "important": "Quan trọng",
+    "answered": "Đã trả lời",
+    "forwarded": "Đã chuyển tiếp",
     "address": {
       "createRule": "Tạo một quy tắc với email này",
       "compose": "Soạn thư",
@@ -220,7 +222,10 @@
       "deleteTo": "Xóa thư nháp gửi %{recipients}"
     },
     "row": {
-      "openInNewTab": "Mở trong tab mới"
+      "openInNewTab": "Mở trong tab mới",
+      "replied": "Tin nhắn đã trả lời",
+      "forwarded": "Tin nhắn chuyển tiếp",
+      "repliedAndForwarded": "Tin nhắn được trả lời và chuyển tiếp"
     }
   },
   "push": {

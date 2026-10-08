@@ -120,6 +120,8 @@
       "sent": "Un accusé de lecture a été envoyé."
     },
     "important": "Important",
+    "answered": "Répondu",
+    "forwarded": "Transféré",
     "address": {
       "createRule": "Créer une règle à partir de ce message",
       "compose": "Rédiger un message",
@@ -220,7 +222,10 @@
       "deleteTo": "Supprimer le brouillon pour %{recipients}"
     },
     "row": {
-      "openInNewTab": "Ouvrir dans un nouvel onglet"
+      "openInNewTab": "Ouvrir dans un nouvel onglet",
+      "replied": "Message répondu",
+      "forwarded": "Message transféré",
+      "repliedAndForwarded": "Message répondu et transféré"
     }
   },
   "push": {

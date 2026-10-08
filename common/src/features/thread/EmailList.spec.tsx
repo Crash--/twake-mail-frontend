@@ -500,8 +500,7 @@ describe('EmailList', () => {
       'true'
     )
     within(row).getByTestId('email-list-item-star').focus()
-    // Reply, the link of the row, then its actions
-    await userEvent.tab()
+    // The link of the row, then its actions
     await userEvent.tab()
     await userEvent.tab()
     await userEvent.tab()
@@ -509,6 +508,51 @@ describe('EmailList', () => {
     expect(
       within(row).getByRole('button', { name: 'Mark as unread' })
     ).toHaveFocus()
+  })
+
+  it('shows a replied or forwarded email as a state, not as an action, and nothing on the others', async () => {
+    renderList(
+      makeFakeJmapServer({
+        emails: [
+          makeEmail({
+            id: 'a',
+            subject: 'Answered',
+            keywords: { $seen: true, $answered: true }
+          }),
+          makeEmail({
+            id: 'f',
+            subject: 'Forwarded',
+            keywords: { $seen: true, $forwarded: true }
+          }),
+          makeEmail({
+            id: 'af',
+            subject: 'Both',
+            keywords: { $seen: true, $answered: true, $forwarded: true }
+          }),
+          makeEmail({ id: 'n', subject: 'Plain' })
+        ]
+      })
+    )
+    const rows = await screen.findAllByTestId('email-list-item')
+
+    const [answered, forwarded, both, plain] = rows.map(row => ({
+      status: within(row).queryByTestId('email-list-item-status'),
+      link: within(row).getByRole('link')
+    }))
+    // The row link says it, like unread and starred; the image is for the eye
+    expect(answered?.link).toHaveAccessibleName(/Replied/)
+    expect(answered?.link).not.toHaveAccessibleName(/Forwarded/)
+    expect(forwarded?.link).toHaveAccessibleName(/Forwarded/)
+    expect(both?.link).toHaveAccessibleName(/Replied, Forwarded/)
+    expect(plain?.link).not.toHaveAccessibleName(/Replied|Forwarded/)
+    expect(plain?.status).toBeNull()
+    expect(answered?.status).toHaveAttribute('aria-hidden', 'true')
+    expect(forwarded?.status).toHaveAttribute('aria-hidden', 'true')
+    expect(both?.status).toHaveAttribute('aria-hidden', 'true')
+    // A passive image: no button to reply to from the row, nothing to focus
+    expect(answered?.status).not.toHaveAttribute('tabindex')
+    expect(screen.queryByTestId('email-list-item-reply')).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Reply/ })).toBeNull()
   })
 
   it('opens an email from the keyboard', async () => {

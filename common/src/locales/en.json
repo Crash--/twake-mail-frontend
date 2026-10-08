@@ -120,6 +120,8 @@
       "sent": "A read receipt has been sent."
     },
     "important": "Important",
+    "answered": "Replied",
+    "forwarded": "Forwarded",
     "address": {
       "createRule": "Create a rule with this email",
       "compose": "Compose email",
@@ -220,7 +222,10 @@
       "deleteTo": "Delete draft to %{recipients}"
     },
     "row": {
-      "openInNewTab": "Open in new tab"
+      "openInNewTab": "Open in new tab",
+      "replied": "Replied message",
+      "forwarded": "Forwarded message",
+      "repliedAndForwarded": "Replied and Forwarded message"
     }
   },
   "push": {

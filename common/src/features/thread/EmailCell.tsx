@@ -1,5 +1,4 @@
 import {
-  Answer,
   Attachment,
   Dots,
   EmailNotification,
@@ -7,6 +6,7 @@ import {
   FolderMoveto,
   Icon,
   Openwith,
+  Reply,
   Star,
   StarOutline,
   Trash,
@@ -29,6 +29,8 @@ import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
 import { RowSender } from '@/ds/RowSender/RowSender'
+import { RowStatusIcon } from '@/ds/RowStatusIcon/RowStatusIcon'
+import { ForwardIcon, ReplyForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
@@ -36,8 +38,10 @@ import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { isMarkedImportant } from '@common/features/email/importance'
 import {
+  ANSWERED,
   DRAFT,
   FLAGGED,
+  FORWARDED,
   hasKeyword,
   NEEDS_ACTION,
   SEEN
@@ -53,13 +57,14 @@ import type { ConversationOpenState } from './conversationTarget'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
+import { ACTION_ICON_SIZE } from './emailListGeometry'
 import { useEmailSelectionContext } from './useEmailSelection'
 
 /**
  * The columns of the email list, in their order: `lead` (selection, star and
- * reply), `sender`, `subject` and `trailing` (attachment and date, replaced
- * by the actions on hover) on a wide list; `select`, `unread`, `message`
- * (sender, date, subject, preview on four lines) and `compactActions` on a
+ * the replied / forwarded indicator), `sender`, `subject` and `trailing`
+ * (attachment and date, replaced by the actions on hover) on a wide list;
+ * `select`, `unread`, `message` (sender, date, subject, preview on four lines) and `compactActions` on a
  * narrow one (phone, list beside an open email)
  */
 export type EmailColumnId =
@@ -120,8 +125,6 @@ export interface EmailCellProps {
   deletesForever: boolean
   /** Opens the actions menu of the email under `element` */
   onOpenMenu: (email: EmailListItemData, element: HTMLElement) => void
-  /** Answers the email in the composer (not offered for drafts) */
-  onReply: (email: EmailListItemData) => void
   /** Asks for a folder, then moves the email (or its selection) there */
   onMove: (email: EmailListItemData) => void
   /** The email open beside the list, if any */
@@ -170,7 +173,6 @@ export function EmailCell({
   onRemove,
   deletesForever,
   onOpenMenu,
-  onReply,
   onMove,
   openEmailId,
   onOpenDraft,
@@ -261,20 +263,30 @@ export function EmailCell({
       Object.keys(email.mailboxIds).some(id => templateMailboxIds.has(id)))
       ? openTemplate
       : undefined
-  const replyLabel = t('emailActions.reply.reply')
-  const handleReply = (): void => {
-    onReply(email)
-  }
-  // A draft or a template opens in the composer: nothing to answer
-  const replyButton =
-    isDraft || onOpenTemplate ? null : (
-      <IconAction
-        label={replyLabel}
-        icon={Answer}
-        onClick={handleReply}
-        data-testid="email-list-item-reply"
-      />
+  // As tmail-flutter: a state the email has (the keywords $answered and
+  // $forwarded, set by whoever answered or forwarded it), not an action. The
+  // row link says it; the image and its tooltip are for the eye and the mouse.
+  const isAnswered = hasKeyword(email, ANSWERED)
+  const isForwarded = hasKeyword(email, FORWARDED)
+  let statusIndicator: ReactElement | null = null
+  if (isAnswered || isForwarded) {
+    const statusLabel = isAnswered
+      ? t(isForwarded ? 'thread.row.repliedAndForwarded' : 'thread.row.replied')
+      : t('thread.row.forwarded')
+    const statusIcon =
+      isAnswered && isForwarded ? (
+        <ReplyForwardIcon size={ACTION_ICON_SIZE} />
+      ) : isAnswered ? (
+        <Icon icon={Reply} size={ACTION_ICON_SIZE} aria-hidden="true" />
+      ) : (
+        <ForwardIcon size={ACTION_ICON_SIZE} />
+      )
+    statusIndicator = (
+      <RowStatusIcon label={statusLabel} data-testid="email-list-item-status">
+        {statusIcon}
+      </RowStatusIcon>
     )
+  }
   const seenLabel = t(isUnread ? 'email.markAsRead' : 'email.markAsUnread')
   const handleToggleSeen = (): void => {
     onToggleSeen(email)
@@ -482,7 +494,7 @@ export function EmailCell({
         <span className="u-flex u-flex-items-center">
           {checkbox}
           {starButton}
-          {replyButton}
+          {statusIndicator}
         </span>
       )
     case 'sender':
@@ -515,6 +527,8 @@ export function EmailCell({
         isUnread ? t('email.unread') : null,
         isStarred ? t('email.starred') : null,
         isImportant ? t('email.important') : null,
+        isAnswered ? t('email.answered') : null,
+        isForwarded ? t('email.forwarded') : null,
         correspondents,
         threadSize === null
           ? null
@@ -570,7 +584,9 @@ export function EmailCell({
       const states = [
         isUnread ? t('email.unread') : null,
         isStarred ? t('email.starred') : null,
-        isImportant ? t('email.important') : null
+        isImportant ? t('email.important') : null,
+        isAnswered ? t('email.answered') : null,
+        isForwarded ? t('email.forwarded') : null
       ].filter(state => state !== null)
       return (
         <RowLink

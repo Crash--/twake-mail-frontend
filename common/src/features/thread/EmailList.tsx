@@ -546,12 +546,6 @@ export function EmailList(props: EmailListProps): ReactElement {
     },
     [openComposer]
   )
-  const handleReply = useCallback(
-    (email: { id: string }): void => {
-      openComposer({ reply: { emailId: email.id, action: 'reply' } })
-    },
-    [openComposer]
-  )
   // A template, found in its folder or by a search, opens as a new message,
   // which "Save as template" updates
   const templateMailboxIds = useMemo(
@@ -579,7 +573,6 @@ export function EmailList(props: EmailListProps): ReactElement {
             onRemove={listActions.onRemove}
             deletesForever={listActions.deletesForever}
             onOpenMenu={listActions.onOpenMenu}
-            onReply={handleReply}
             onMove={listActions.onMove}
             openEmailId={openEmailId}
             onOpenDraft={handleOpenDraft}
@@ -602,7 +595,6 @@ export function EmailList(props: EmailListProps): ReactElement {
       listActions.onRemove,
       listActions.deletesForever,
       listActions.onOpenMenu,
-      handleReply,
       listActions.onMove,
       openEmailId,
       handleOpenDraft,

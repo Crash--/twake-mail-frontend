@@ -120,7 +120,7 @@ export interface EmailListSkeletonProps {
 
 /**
  * The rows of the email list while it loads, on the boxes of the real ones:
- * a desktop row is 44 px, a narrow one (a phone, a tablet, the list beside
+ * a desktop row is 48 px, a narrow one (a phone, a tablet, the list beside
  * an open email) holds the sender, the subject and two lines of preview.
  */
 export function EmailListSkeleton(props: EmailListSkeletonProps): ReactElement {

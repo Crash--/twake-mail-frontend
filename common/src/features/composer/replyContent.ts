@@ -5,6 +5,7 @@ import {
   joinHtmlValues,
   plainTextToHtml
 } from '@common/features/email/emailBody'
+import { ANSWERED, FORWARDED } from '@common/features/email/keywords'
 import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 import { LIST_POST_HEADER } from '@common/features/email/queries'
 import { identityForEmail } from '@common/features/identities/identityForEmail'
@@ -76,7 +77,7 @@ type SourceEmail = Pick<
 > & { [LIST_POST_HEADER]?: string[] | null }
 
 /** The keyword the answered email gets once the answer is sent */
-export type AnswerKeyword = '$answered' | '$forwarded'
+export type AnswerKeyword = typeof ANSWERED | typeof FORWARDED
 
 /** The email a composer answers */
 export interface Answering {
@@ -235,7 +236,7 @@ export async function loadReplyContent(
     ...threadHeaders(source, action),
     answering: {
       emailId: source.id,
-      keyword: isForward ? '$forwarded' : '$answered'
+      keyword: isForward ? FORWARDED : ANSWERED
     },
     hasBlockedImages: false,
     draftSession: crypto.randomUUID(),

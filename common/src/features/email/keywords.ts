@@ -2,6 +2,9 @@
 export const SEEN = '$seen'
 export const FLAGGED = '$flagged'
 export const DRAFT = '$draft'
+/** Set once the email was replied to or forwarded (by any client) */
+export const ANSWERED = '$answered'
+export const FORWARDED = '$forwarded'
 /** Set on the emails carrying a calendar invitation */
 export const EVENT = 'event'
 /** Set by the server's AI on the emails that need an answer or a task */
@@ -13,6 +16,8 @@ export type EmailKeyword =
   | typeof SEEN
   | typeof FLAGGED
   | typeof DRAFT
+  | typeof ANSWERED
+  | typeof FORWARDED
   | typeof NEEDS_ACTION
   | typeof UNSUBSCRIBED
 

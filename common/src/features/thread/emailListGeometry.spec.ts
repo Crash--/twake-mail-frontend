@@ -1,11 +1,11 @@
 import { getLeadWidth, getTrailingWidth } from './emailListGeometry'
 
 describe('getLeadWidth', () => {
-  it('holds the checkbox and two 32 px buttons with a mouse', () => {
+  it('holds the checkbox, the star and the 32 px status indicator with a mouse', () => {
     expect(getLeadWidth(false)).toBe(8 + 32 + 2 * 32)
   })
 
-  it('holds the checkbox and two 44 px touch targets on a touch screen', () => {
+  it('keeps the width of the checkbox and two 44 px touch targets on a touch screen', () => {
     expect(getLeadWidth(true)).toBe(8 + 32 + 2 * 44)
   })
 })

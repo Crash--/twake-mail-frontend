@@ -1,16 +1,14 @@
 import { Icon } from '@linagora/twake-icons'
-import {
-  Box,
-  IconButton,
-  ListItem,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
-import type { ReactElement } from 'react'
+import { useRef, useState, type ReactElement } from 'react'
 
-import { Pen, Trash } from '@/ds/FlutterIcons/FlutterIcons'
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
+import { Edit, Trash } from '@/ds/FlutterIcons/FlutterIcons'
+import { IconAction } from '@/ds/IconAction/IconAction'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import { SettingsCard } from '@/ds/SettingsCards/SettingsCards'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { ruleComparatorLabel, ruleConditions, ruleFieldLabel } from './rules'
@@ -18,14 +16,15 @@ import { ruleComparatorLabel, ruleConditions, ruleFieldLabel } from './rules'
 export interface RuleListItemProps {
   rule: Rule
   onEdit: () => void
-  /** `opener`: the delete button, where the focus is */
+  /** `opener`: the button the deletion came from, where the focus is */
   onDelete: (opener: HTMLElement) => void
 }
 
 /**
- * A rule in Settings > Email rules: its name and its first condition, as
- * tmail-flutter shows them ("From, contains: alice@example.com"), then
- * edit and delete
+ * A rule in Settings > Email rules, as tmail-flutter's card: its name, its
+ * first condition in a grey pill ("From, contains: alice@example.com"),
+ * then edit and delete; on a phone the name alone and "More", opening them
+ * in a sheet from the bottom edge
  */
 export function RuleListItem({
   rule,
@@ -33,6 +32,9 @@ export function RuleListItem({
   onDelete
 }: RuleListItemProps): ReactElement {
   const { t } = useI18n()
+  const isPhone = useScreenSize() === 'mobile'
+  const moreRef = useRef<HTMLButtonElement>(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [first] = ruleConditions(rule)
   const field = first ? ruleFieldLabel(first.field) : null
   const comparator = first ? ruleComparatorLabel(first.comparator) : null
@@ -42,41 +44,92 @@ export function RuleListItem({
   const editLabel = t('rules.editOf', { name: rule.name })
   const deleteLabel = t('rules.deleteOf', { name: rule.name })
 
-  return (
-    <ListItem divider data-testid="email-rule-item" data-rule-name={rule.name}>
-      <Box className="u-flex-auto u-ov-hidden u-mv-half">
-        <Typography
-          className="u-fw-bold u-breakword"
-          data-testid="email-rule-name"
-        >
-          {rule.name}
-        </Typography>
-        {summary === null ? null : (
-          <SecondaryText variant="body2" className="u-breakword">
-            {summary}
-          </SecondaryText>
-        )}
-      </Box>
-      <Tooltip title={editLabel}>
-        <IconButton
-          aria-label={editLabel}
-          onClick={onEdit}
-          data-testid="email-rule-edit-button"
-        >
-          <Icon icon={Pen} />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={deleteLabel}>
-        <IconButton
-          aria-label={deleteLabel}
-          onClick={event => {
-            onDelete(event.currentTarget)
+  const actions = isPhone ? (
+    <>
+      <span ref={moreRef}>
+        <IconAction
+          label={t('emailActions.menu.more')}
+          icon={MoreVerticalIcon}
+          tone="steel"
+          size={36}
+          aria-haspopup="menu"
+          aria-expanded={isSheetOpen}
+          onClick={() => {
+            setIsSheetOpen(true)
           }}
-          data-testid="email-rule-delete-button"
-        >
-          <Icon icon={Trash} />
-        </IconButton>
-      </Tooltip>
-    </ListItem>
+          data-testid="email-rule-more-button"
+        />
+      </span>
+      <ActionSheet
+        open={isSheetOpen}
+        onClose={() => {
+          setIsSheetOpen(false)
+        }}
+        label={rule.name}
+        data-testid="email-rule-menu"
+      >
+        {[
+          <MenuItem
+            key="edit"
+            onClick={() => {
+              setIsSheetOpen(false)
+              onEdit()
+            }}
+            data-testid="email-rule-edit-button"
+          >
+            <ListItemIcon>
+              <Icon icon={Edit} />
+            </ListItemIcon>
+            <ListItemText primary={t('common.edit')} />
+          </MenuItem>,
+          <MenuItem
+            key="delete"
+            onClick={() => {
+              setIsSheetOpen(false)
+              const opener = moreRef.current?.querySelector('button')
+              if (opener) onDelete(opener)
+            }}
+            data-testid="email-rule-delete-button"
+          >
+            <ListItemIcon>
+              <Icon icon={Trash} />
+            </ListItemIcon>
+            <ListItemText primary={t('common.delete')} />
+          </MenuItem>
+        ]}
+      </ActionSheet>
+    </>
+  ) : (
+    <>
+      <IconAction
+        label={editLabel}
+        icon={Edit}
+        tone="steel"
+        size={36}
+        onClick={onEdit}
+        data-testid="email-rule-edit-button"
+      />
+      <IconAction
+        label={deleteLabel}
+        icon={Trash}
+        tone="steel"
+        size={36}
+        onClick={event => {
+          onDelete(event.currentTarget)
+        }}
+        data-testid="email-rule-delete-button"
+      />
+    </>
+  )
+
+  return (
+    <SettingsCard
+      title={rule.name}
+      pill={isPhone ? null : summary}
+      actions={actions}
+      titleTestId="email-rule-name"
+      data-testid="email-rule-item"
+      dataAttributes={{ 'data-rule-name': rule.name }}
+    />
   )
 }

@@ -1021,7 +1021,10 @@
       "action": "Действие %{position}",
       "condition": "Условие %{position}",
       "chooseFolder": "Выбрать папку",
-      "rejectAlone": "К отклонённым письмам другие действия не применяются"
+      "rejectAlone": "К отклонённым письмам другие действия не применяются",
+      "preview": "Предпросмотр",
+      "conditionsPreview": "%{combiner} условий: %{conditions}",
+      "actionsPreview": "Действия: %{actions}"
     },
     "combiners": {
       "AND": "Все",

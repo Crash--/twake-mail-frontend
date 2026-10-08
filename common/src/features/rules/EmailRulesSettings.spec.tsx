@@ -166,13 +166,35 @@ describe('EmailRulesSettings', () => {
     expect(server.callsOf('Filter/set')).toEqual([])
   })
 
+  it('says in words what the rule does once "Preview" is on', async () => {
+    setup([NEWSLETTERS])
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Edit Newsletters' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Edit Rule' })
+    const toggle = within(dialog).getByRole('button', { name: 'Preview' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    expect(within(dialog).queryByTestId('rule-conditions-preview')).toBe(null)
+
+    await userEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(dialog).getByTestId('rule-conditions-preview')
+    ).toHaveTextContent('Preview: ALL of the conditions: From contains "news@"')
+    expect(
+      within(dialog).getByTestId('rule-actions-preview')
+    ).toHaveTextContent(/^Preview: Actions: /)
+  })
+
   it('edits a rule in place, adding conditions and actions', async () => {
     const { filter } = setup([NEWSLETTERS])
 
     await userEvent.click(
       await screen.findByRole('button', { name: 'Edit Newsletters' })
     )
-    const dialog = screen.getByRole('dialog', { name: 'Edit rule' })
+    const dialog = screen.getByRole('dialog', { name: 'Edit Rule' })
     await userEvent.selectOptions(
       within(dialog).getByRole('combobox', { name: 'Conditions to meet' }),
       'Any'

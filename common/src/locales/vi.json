@@ -1021,7 +1021,10 @@
       "action": "Hành động %{position}",
       "condition": "Điều kiện %{position}",
       "chooseFolder": "Chọn thư mục",
-      "rejectAlone": "Email bị từ chối không áp dụng hành động khác"
+      "rejectAlone": "Email bị từ chối không áp dụng hành động khác",
+      "preview": "Xem trước",
+      "conditionsPreview": "%{combiner} của điều kiện: %{conditions}",
+      "actionsPreview": "Hành động: %{actions}"
     },
     "combiners": {
       "AND": "Tất cả",

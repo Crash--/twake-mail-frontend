@@ -1,7 +1,8 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's empty lists of the
-// settings ("No Rules Configured"): a 96 px light blue circle holding the
-// icon, the title in Semi Bold 22 dark grey, what to do in Regular 16 grey,
-// and an outlined blue pill to start.
+// settings ("No Rules Configured", `NoRulesWidget`): a 98 px light blue
+// disc holding the icon, the title in Semi Bold 24 dark grey 12 px under it,
+// what to do in Regular 16 grey, and 24 px lower an outlined blue pill at
+// least 230 px wide to start.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
@@ -20,31 +21,32 @@ const CIRCLE_SX = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: 96,
-  height: 96,
+  width: 98,
+  height: 98,
   borderRadius: '50%',
-  bgcolor: '#DFEEFF',
-  color: '#8EB8EE'
+  bgcolor: '#E0EDFF',
+  color: '#9EBFEB'
 } as const
 
 const TITLE_SX = {
-  mt: 2,
-  fontSize: 22,
+  mt: '12px',
+  fontSize: 24,
   lineHeight: '28px',
   fontWeight: 600,
   color: 'rgba(66, 66, 68, 0.9)'
 } as const
 
 const TEXT_SX = {
-  mt: 2,
+  mt: '24px',
   fontSize: 16,
   lineHeight: '21px',
   color: 'rgba(66, 66, 68, 0.64)'
 } as const
 
 const BUTTON_SX = {
-  mt: 3,
+  mt: '24px',
   gap: 1,
+  minWidth: 230,
   height: 48,
   px: 4,
   borderRadius: '100px',
@@ -83,7 +85,8 @@ export function SettingsEmptyState({
   return (
     <Box sx={ROOT_SX} data-testid={testId}>
       <Box sx={CIRCLE_SX} aria-hidden="true">
-        <Icon icon={icon} size={48} />
+        {/* tmail-flutter's drawings fill the disc: their frame is its size */}
+        <Icon icon={icon} size={98} />
       </Box>
       <Typography component="h2" sx={TITLE_SX}>
         {title}

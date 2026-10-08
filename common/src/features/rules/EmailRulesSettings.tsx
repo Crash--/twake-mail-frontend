@@ -1,11 +1,12 @@
-import { Alert, Button, List } from '@linagora/twake-mui'
+import { Alert, Button } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useEffect, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-import { Filter, Plus } from '@/ds/FlutterIcons/FlutterIcons'
+import { NoRules, Plus } from '@/ds/FlutterIcons/FlutterIcons'
 import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
+import { SettingsCardList } from '@/ds/SettingsCards/SettingsCards'
 import { SettingsEmptyState } from '@/ds/SettingsEmptyState/SettingsEmptyState'
 import { SettingsCount } from '@/ds/SettingsFields/SettingsFields'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
@@ -172,7 +173,7 @@ export function EmailRulesSettings({
         <>
           <SettingsCount label={t('rules.nameOfRules')} count={0} />
           <SettingsEmptyState
-            icon={Filter}
+            icon={NoRules}
             title={t('rules.empty.title')}
             text={t('rules.empty.message')}
             action={{
@@ -187,7 +188,10 @@ export function EmailRulesSettings({
       ) : (
         <>
           <SettingsCount label={t('rules.nameOfRules')} count={rules.length} />
-          <List aria-label={t('rules.listLabel')} data-testid="email-rule-list">
+          <SettingsCardList
+            label={t('rules.listLabel')}
+            data-testid="email-rule-list"
+          >
             {rules.map((rule, index) => (
               <RuleListItem
                 // Rules have no id: their position is theirs
@@ -201,7 +205,7 @@ export function EmailRulesSettings({
                 }}
               />
             ))}
-          </List>
+          </SettingsCardList>
         </>
       )}
       {form === null ? null : (

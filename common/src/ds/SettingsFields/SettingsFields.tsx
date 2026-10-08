@@ -353,7 +353,9 @@ export function SettingsCount({
   count
 }: SettingsCountProps): ReactElement {
   return (
-    <Typography component="p" sx={{ ...LABEL_SX, mt: 2, mb: 2 }}>
+    // As tmail-flutter (`CountNameOfRulesWidget`): the list follows right
+    // after it
+    <Typography component="p" sx={{ ...LABEL_SX, mt: 2, mb: 0 }}>
       {label}{' '}
       <Box component="span" sx={{ fontWeight: 400 }}>
         {count}

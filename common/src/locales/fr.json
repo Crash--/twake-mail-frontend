@@ -1021,7 +1021,10 @@
       "action": "Action %{position}",
       "condition": "Condition %{position}",
       "chooseFolder": "Choisir un dossier",
-      "rejectAlone": "Un e-mail refusé ne reçoit aucune autre action"
+      "rejectAlone": "Un e-mail refusé ne reçoit aucune autre action",
+      "preview": "Aperçu",
+      "conditionsPreview": "%{combiner} des conditions : %{conditions}",
+      "actionsPreview": "Actions : %{actions}"
     },
     "combiners": {
       "AND": "Toutes",

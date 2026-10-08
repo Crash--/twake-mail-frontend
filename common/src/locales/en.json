@@ -999,7 +999,7 @@
     },
     "form": {
       "createTitle": "Create a New Rule",
-      "editTitle": "Edit rule",
+      "editTitle": "Edit Rule",
       "create": "Create Rule",
       "name": "Rule Name",
       "namePlaceholder": "Enter the rule name",
@@ -1021,7 +1021,10 @@
       "action": "Action %{position}",
       "condition": "Condition %{position}",
       "chooseFolder": "Choose a folder",
-      "rejectAlone": "Rejected emails get no other action"
+      "rejectAlone": "Rejected emails get no other action",
+      "preview": "Preview",
+      "conditionsPreview": "%{combiner} of the conditions: %{conditions}",
+      "actionsPreview": "Actions: %{actions}"
     },
     "combiners": {
       "AND": "All",

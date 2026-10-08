@@ -259,9 +259,10 @@ export function EmailListToolbar({
         }}
         emails={targets}
         mailboxId={mailbox?.id ?? null}
-        // As tmail-flutter below the desktop size: all the actions, in a
-        // sheet from the bottom edge
-        exclude={isDesktop ? buttons.map(item => item.id) : []}
+        // As tmail-flutter below the desktop size: all the actions on a
+        // selection (no answer), in a sheet from the bottom edge
+        exclude={isDesktop ? buttons.map(item => item.id) : ['edit-as-new']}
+        replies={[]}
         asSheet={!isDesktop}
         onAction={onDone}
         data-testid="selection-toolbar-menu"

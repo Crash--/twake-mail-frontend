@@ -20,16 +20,21 @@ export const ROW_LAYOUT: RowLayout = {
 /**
  * The compact rows of tmail-flutter (phones and tablets): 72 px high, 12 px
  * at the sides on a phone, 24 px on a tablet, the three lines 12 px after the
- * 48 px avatar, a divider within the side margins
+ * 48 px avatar, a divider within the side margins, white while emails are
+ * selected
  */
-export function getCompactRowLayout(isPhone: boolean): RowLayout {
+export function getCompactRowLayout(
+  isPhone: boolean,
+  isSelecting = false
+): RowLayout {
   const sides = isPhone ? 12 : 24
   return {
     paddingX: sides,
     paddingTop: 8,
     paddingBottom: 8,
     gap: 12,
-    dividerMarginX: sides
+    dividerMarginX: sides,
+    hideDivider: isSelecting
   }
 }
 

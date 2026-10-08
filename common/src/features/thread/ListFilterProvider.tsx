@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactElement,
@@ -26,6 +27,9 @@ interface ListFilterApi {
   /** Over the bar of the mail below the desktop size: the selection bar */
   selectionSlot: HTMLElement | null
   setSelectionSlot: (element: HTMLElement | null) => void
+  /** Emails are selected in the list: "New message" makes way */
+  isSelecting: boolean
+  setSelecting: (isSelecting: boolean) => void
   state: FilterState | null
   select: (scope: string, option: ListFilterOption) => void
   clear: () => void
@@ -64,6 +68,7 @@ export function ListFilterProvider({
   const [state, setState] = useState<FilterState | null>(null)
   const [slot, setSlot] = useState<HTMLElement | null>(null)
   const [selectionSlot, setSelectionSlot] = useState<HTMLElement | null>(null)
+  const [isSelecting, setSelecting] = useState(false)
 
   const clear = useCallback((): void => {
     setState(null)
@@ -95,9 +100,11 @@ export function ListFilterProvider({
       slot,
       setSlot,
       selectionSlot,
-      setSelectionSlot
+      setSelectionSlot,
+      isSelecting,
+      setSelecting
     }),
-    [state, select, clear, slot, selectionSlot]
+    [state, select, clear, slot, selectionSlot, isSelecting]
   )
   return (
     <ListFilterContext.Provider value={api}>
@@ -117,6 +124,8 @@ const NO_FILTER: ListFilterApi = {
   setSlot: () => undefined,
   selectionSlot: null,
   setSelectionSlot: () => undefined,
+  isSelecting: false,
+  setSelecting: () => undefined,
   state: null,
   select: () => undefined,
   clear: () => undefined
@@ -170,4 +179,20 @@ export function useSelectionBarSlotRef(): (
   element: HTMLElement | null
 ) => void {
   return (useContext(ListFilterContext) ?? NO_FILTER).setSelectionSlot
+}
+
+/** Emails are selected in the list shown */
+export function useIsSelectingEmails(): boolean {
+  return (useContext(ListFilterContext) ?? NO_FILTER).isSelecting
+}
+
+/** Tells the frame whether emails are selected in the list */
+export function useReportSelecting(isSelecting: boolean): void {
+  const { setSelecting } = useContext(ListFilterContext) ?? NO_FILTER
+  useEffect(() => {
+    setSelecting(isSelecting)
+    return () => {
+      setSelecting(false)
+    }
+  }, [isSelecting, setSelecting])
 }

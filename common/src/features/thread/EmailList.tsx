@@ -94,6 +94,7 @@ import {
 import {
   useListFilter,
   useListFilterSlot,
+  useReportSelecting,
   useSelectionBarSlot
 } from './ListFilterProvider'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
@@ -491,9 +492,13 @@ export function EmailList(props: EmailListProps): ReactElement {
   // Below the desktop size, as tmail-flutter's compact tiles: the avatar
   // (which selects the row) and the three lines of the email
   const isPhoneList = useScreenSize() === 'mobile'
+  // As tmail-flutter: while emails are selected, "New message" makes way
+  // and the dividers go
+  const isSelecting = selection.selected.length > 0 || selection.isAllInFolder
+  useReportSelecting(isSelecting)
   const compactRowLayout = useMemo(
-    () => getCompactRowLayout(isPhoneList),
-    [isPhoneList]
+    () => getCompactRowLayout(isPhoneList, isSelecting),
+    [isPhoneList, isSelecting]
   )
   const compactColumns = useMemo<
     (VirtualizedTableColumn & { id: EmailColumnId })[]

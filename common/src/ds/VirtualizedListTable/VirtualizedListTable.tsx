@@ -76,6 +76,8 @@ export interface RowLayout {
    * (tmail-flutter's compact rows), in px
    */
   dividerMarginX?: number
+  /** With `dividerMarginX`: the room of the divider stays, blank */
+  hideDivider?: boolean
 }
 
 /** The divider between the rows, as tmail-flutter's */
@@ -136,7 +138,8 @@ export function makeRowLayoutSx({
   paddingBottom,
   gap,
   insetDivider = false,
-  dividerMarginX
+  dividerMarginX,
+  hideDivider = false
 }: RowLayout): Record<string, Record<string, string> | string> {
   return {
     // A line drawn by the row, as wide as the row less the margins: the
@@ -144,10 +147,14 @@ export function makeRowLayoutSx({
     ...(dividerMarginX === undefined
       ? {}
       : {
-          backgroundImage: `linear-gradient(${ROW_DIVIDER_COLOR}, ${ROW_DIVIDER_COLOR})`,
-          backgroundSize: `calc(100% - ${2 * dividerMarginX}px) 1px`,
-          backgroundPosition: 'center bottom',
-          backgroundRepeat: 'no-repeat',
+          ...(hideDivider
+            ? {}
+            : {
+                backgroundImage: `linear-gradient(${ROW_DIVIDER_COLOR}, ${ROW_DIVIDER_COLOR})`,
+                backgroundSize: `calc(100% - ${2 * dividerMarginX}px) 1px`,
+                backgroundPosition: 'center bottom',
+                backgroundRepeat: 'no-repeat'
+              }),
           '& .MuiTableCell-root.MuiTableCell-root': { borderBottom: 'none' }
         }),
     '& .MuiTableCell-root': {

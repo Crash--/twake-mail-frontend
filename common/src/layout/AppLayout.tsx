@@ -17,7 +17,10 @@ import {
 import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
-import { ListFilterProvider } from '@common/features/thread/ListFilterProvider'
+import {
+  ListFilterProvider,
+  useIsSelectingEmails
+} from '@common/features/thread/ListFilterProvider'
 import { InboxUnreadTitle } from '@common/features/mailbox/InboxUnreadTitle'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
 import { FolderActionProgressProvider } from '@common/features/mailboxActions/FolderActionProgress'
@@ -134,8 +137,13 @@ function AppFrame(): ReactElement {
   // own bar) or framed by the Workplace, it is at the top of the page
   const platformStatus = usePlatformStatus()
   const hasFlutterBar = usePlatformSdk() !== null && platformStatus === 'public'
+  // As tmail-flutter, it makes way for the selection
+  const isSelectingEmails = useIsSelectingEmails()
   const showComposeFab =
-    !isDesktop && !isSettings && (!isEmailOpen || screenSize === 'tabletLarge')
+    !isDesktop &&
+    !isSettings &&
+    !isSelectingEmails &&
+    (!isEmailOpen || screenSize === 'tabletLarge')
 
   const handleOpenFolders = (): void => {
     setDrawerLocationKey(location.key)

@@ -20,7 +20,7 @@ The chart is also published as an OCI artifact by the CI of the repository
 when its owner can publish packages (see `docs/deployment.md`):
 
 ```bash
-helm install twake-mail oci://ghcr.io/<owner>/charts/twake-mail-frontend --version 0.3.0 -f my-values.yaml
+helm install twake-mail oci://ghcr.io/<owner>/charts/twake-mail-frontend --version 0.4.0 -f my-values.yaml
 ```
 
 Minimal values, JMAP and the SSO on their own hosts:

@@ -14,6 +14,7 @@ import {
   Dialog,
   IconButton,
   InputBase,
+  NativeSelect,
   Tooltip,
   Typography,
   type InputBaseProps
@@ -136,6 +137,10 @@ export interface ModalDialogProps {
   actions?: ReactNode
   /** `small`: 383 px, as the dialog renaming a folder */
   size?: 'large' | 'small'
+  /** The title in Semi Bold (`textStyleM3HeadlineSmall`), as the recovery form */
+  isTitleStrong?: boolean
+  /** `body`: the subtitle in Regular 16 / 24, dark (`LimitsBanner`) */
+  subtitleLook?: 'caption' | 'body'
   /** Wider or narrower than 554 px */
   width?: number
   'data-testid'?: string
@@ -158,6 +163,8 @@ export function ModalDialog({
   children,
   actions,
   size = 'large',
+  isTitleStrong = false,
+  subtitleLook = 'caption',
   width,
   'data-testid': testId
 }: ModalDialogProps): ReactElement {
@@ -168,12 +175,32 @@ export function ModalDialog({
       <Typography
         id={titleId}
         component="h2"
-        sx={isSmall ? SMALL_TITLE_SX : TITLE_SX}
+        sx={
+          isSmall
+            ? SMALL_TITLE_SX
+            : isTitleStrong
+              ? { ...TITLE_SX, fontWeight: 600 }
+              : TITLE_SX
+        }
       >
         {title}
       </Typography>
       {subtitle === undefined ? null : (
-        <Typography component="p" sx={SUBTITLE_SX}>
+        <Typography
+          id={describedBy}
+          component="p"
+          sx={
+            subtitleLook === 'body'
+              ? {
+                  ...SUBTITLE_SX,
+                  fontSize: 16,
+                  lineHeight: '24px',
+                  letterSpacing: '-0.15px',
+                  color: TEXT_COLOR
+                }
+              : SUBTITLE_SX
+          }
+        >
           {subtitle}
         </Typography>
       )}
@@ -306,6 +333,18 @@ const LABEL_SX = {
   color: '#000000'
 } as const
 
+const INLINE_LABEL_SX = {
+  width: 112,
+  flexShrink: 0,
+  minHeight: 40,
+  display: 'flex',
+  alignItems: 'center',
+  fontSize: 14,
+  fontWeight: 400,
+  lineHeight: '18px',
+  color: '#000000'
+} as const
+
 export interface ModalFieldProps {
   label: ReactNode
   /** The control the label names */
@@ -314,6 +353,11 @@ export interface ModalFieldProps {
   children: ReactNode
   /** Space above, in px: 0 for the first field */
   spaceAbove?: number
+  /**
+   * The label at the start of the row, 112 px wide, in Regular 14
+   * (`DefaultLabelFieldWidget`, the recovery form)
+   */
+  isInline?: boolean
 }
 
 /** A field of `ModalDialog`: its Semi Bold label above the control */
@@ -322,8 +366,31 @@ export function ModalField({
   htmlFor,
   id,
   children,
-  spaceAbove = 26
+  spaceAbove = 26,
+  isInline = false
 }: ModalFieldProps): ReactElement {
+  if (isInline) {
+    return (
+      <Box
+        sx={{
+          mt: `${spaceAbove}px`,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '12px'
+        }}
+      >
+        <Typography
+          component={htmlFor === undefined ? 'span' : 'label'}
+          htmlFor={htmlFor}
+          id={id}
+          sx={INLINE_LABEL_SX}
+        >
+          {label}
+        </Typography>
+        <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>{children}</Box>
+      </Box>
+    )
+  }
   return (
     <Box sx={{ mt: `${spaceAbove}px` }}>
       <Typography
@@ -475,5 +542,64 @@ export function ModalSelectButton({
         <Icon icon={Dropdown} size={20} />
       </span>
     </Button>
+  )
+}
+
+export interface ModalNativeSelectProps {
+  id?: string
+  value: string
+  onChange: (value: string) => void
+  /** `option`s */
+  children: ReactNode
+  'data-testid'?: string
+}
+
+/** A list of choices in a field of `ModalDialog`, with its chevron */
+export function ModalNativeSelect({
+  id,
+  value,
+  onChange,
+  children,
+  'data-testid': testId
+}: ModalNativeSelectProps): ReactElement {
+  return (
+    <NativeSelect
+      value={value}
+      onChange={event => {
+        onChange(event.target.value)
+      }}
+      IconComponent={SelectChevron}
+      input={<InputBase id={id} inputProps={{ 'data-testid': testId }} />}
+      // The select passes its own `sx` to the input it renders
+      sx={{
+        ...inputSx(false, false),
+        pr: 0,
+        '& .MuiNativeSelect-select': {
+          pr: '32px !important',
+          py: 0,
+          height: 38,
+          lineHeight: '38px',
+          fontSize: 14,
+          color: TEXT_COLOR
+        },
+        '& .ModalSelect-chevron': {
+          position: 'absolute',
+          right: 8,
+          pointerEvents: 'none',
+          color: HINT_COLOR,
+          display: 'flex'
+        }
+      }}
+    >
+      {children}
+    </NativeSelect>
+  )
+}
+
+function SelectChevron(): ReactElement {
+  return (
+    <span className="ModalSelect-chevron" aria-hidden="true">
+      <Icon icon={Dropdown} size={20} />
+    </span>
   )
 }

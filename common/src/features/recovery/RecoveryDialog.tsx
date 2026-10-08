@@ -1,17 +1,18 @@
 import {
   Alert,
-  Button,
   Checkbox,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControlLabel,
-  TextField
+  Typography
 } from '@linagora/twake-mui'
 import { useId, useState, type SubmitEvent, type ReactElement } from 'react'
 
+import {
+  ModalDialog,
+  ModalDialogButton,
+  ModalField,
+  ModalNativeSelect,
+  ModalTextInput
+} from '@/ds/ModalDialog/ModalDialog'
 import {
   isValidEmail,
   parseRecipients
@@ -55,6 +56,13 @@ export function RecoveryDialog({
   const { t } = useI18n()
   const titleId = useId()
   const descriptionId = useId()
+  const deletionId = useId()
+  const receptionId = useId()
+  const subjectId = useId()
+  const recipientsId = useId()
+  const recipientsErrorId = useId()
+  const senderId = useId()
+  const senderErrorId = useId()
   const deletions = deletionRanges(horizon)
   const [deletion, setDeletion] = useState<RecoveryRange>(
     deletions[0] ?? 'last7Days'
@@ -105,160 +113,176 @@ export function RecoveryDialog({
       })
   }
 
+  // As tmail-flutter's recovery form (`EmailRecoveryFormDesktopBuilder`):
+  // 576 px, the title in Semi Bold, the horizon under it, the labels at the
+  // start of the rows
   return (
-    <Dialog
-      open
-      onClose={isSaving ? undefined : onClose}
-      size="medium"
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
-      data-testid="recovery-dialog"
-    >
-      <form onSubmit={handleSubmit} noValidate>
-        <DialogTitle id={titleId}>{t('recovery.title')}</DialogTitle>
-        <DialogContent>
-          <Alert severity="info" id={descriptionId} className="u-mb-1">
-            {t('recovery.horizon', {
-              period: t('recovery.days', { smart_count: horizon })
-            })}
-          </Alert>
-          <TextField
-            select
-            fullWidth
-            margin="dense"
-            label={t('recovery.deletionDate')}
-            value={deletion}
-            onChange={event => {
-              setDeletion(rangeOf(event.target.value, deletions))
-            }}
-            slotProps={{
-              select: { native: true },
-              htmlInput: { 'data-testid': 'recovery-deletion-select' }
-            }}
-          >
-            {deletions.map(range => (
-              <option key={range} value={range}>
-                {t(RANGE_LABELS[range])}
-              </option>
-            ))}
-          </TextField>
-          <TextField
-            select
-            fullWidth
-            margin="dense"
-            label={t('recovery.receptionDate')}
-            value={reception}
-            onChange={event => {
-              setReception(rangeOf(event.target.value, RECEPTION_RANGES))
-            }}
-            slotProps={{
-              select: { native: true },
-              htmlInput: { 'data-testid': 'recovery-reception-select' }
-            }}
-          >
-            {RECEPTION_RANGES.map(range => (
-              <option key={range} value={range}>
-                {t(RANGE_LABELS[range])}
-              </option>
-            ))}
-          </TextField>
-          <TextField
-            fullWidth
-            margin="dense"
-            label={t('recovery.subject')}
-            placeholder={t('recovery.subjectPlaceholder')}
-            value={subject}
-            onChange={event => {
-              setSubject(event.target.value)
-            }}
-            slotProps={{
-              htmlInput: { 'data-testid': 'recovery-subject-input' }
-            }}
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label={t('recovery.recipients')}
-            placeholder={t('recovery.addressPlaceholder')}
-            value={recipients}
-            onChange={event => {
-              setRecipients(event.target.value)
-            }}
-            error={recipientsProblem !== null}
-            helperText={
-              recipientsProblem === null
-                ? t('recovery.addressesHelp')
-                : t(recipientsProblem)
-            }
-            slotProps={{
-              htmlInput: {
-                inputMode: 'email',
-                'data-testid': 'recovery-recipients-input'
-              }
-            }}
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label={t('recovery.sender')}
-            placeholder={t('recovery.addressPlaceholder')}
-            value={sender}
-            onChange={event => {
-              setSender(event.target.value)
-            }}
-            error={senderProblem !== null}
-            helperText={senderProblem === null ? ' ' : t(senderProblem)}
-            slotProps={{
-              htmlInput: {
-                inputMode: 'email',
-                'data-testid': 'recovery-sender-input'
-              }
-            }}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={hasAttachment}
-                onChange={event => {
-                  setHasAttachment(event.target.checked)
-                }}
-              />
-            }
-            label={t('recovery.hasAttachment')}
-          />
-          {problem === null ? null : (
-            <Alert
-              severity="error"
-              className="u-mt-1"
-              data-testid="recovery-error"
-            >
-              {t(problem)}
-            </Alert>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            color="inherit"
+    <ModalDialog
+      title={t('recovery.title')}
+      titleId={titleId}
+      isTitleStrong
+      subtitle={t('recovery.horizon', {
+        period: t('recovery.days', { smart_count: horizon })
+      })}
+      subtitleLook="body"
+      describedBy={descriptionId}
+      closeLabel={t('common.close')}
+      onClose={isSaving ? () => undefined : onClose}
+      onSubmit={handleSubmit}
+      width={576}
+      actions={
+        <>
+          <ModalDialogButton
             onClick={onClose}
             disabled={isSaving}
             data-testid="recovery-cancel-button"
           >
             {t('common.cancel')}
-          </Button>
-          <Button
+          </ModalDialogButton>
+          <ModalDialogButton
             type="submit"
-            variant="contained"
+            isMain
             disabled={isSaving}
-            startIcon={
-              isSaving ? <CircularProgress size={16} color="inherit" /> : null
-            }
             data-testid="recovery-restore-button"
           >
             {t('recovery.restore')}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+          </ModalDialogButton>
+        </>
+      }
+      data-testid="recovery-dialog"
+    >
+      <ModalField
+        label={t('recovery.deletionDate')}
+        htmlFor={deletionId}
+        isInline
+        spaceAbove={8}
+      >
+        <ModalNativeSelect
+          id={deletionId}
+          value={deletion}
+          onChange={value => {
+            setDeletion(rangeOf(value, deletions))
+          }}
+          data-testid="recovery-deletion-select"
+        >
+          {deletions.map(range => (
+            <option key={range} value={range}>
+              {t(RANGE_LABELS[range])}
+            </option>
+          ))}
+        </ModalNativeSelect>
+      </ModalField>
+      <ModalField
+        label={t('recovery.receptionDate')}
+        htmlFor={receptionId}
+        isInline
+        spaceAbove={12}
+      >
+        <ModalNativeSelect
+          id={receptionId}
+          value={reception}
+          onChange={value => {
+            setReception(rangeOf(value, RECEPTION_RANGES))
+          }}
+          data-testid="recovery-reception-select"
+        >
+          {RECEPTION_RANGES.map(range => (
+            <option key={range} value={range}>
+              {t(RANGE_LABELS[range])}
+            </option>
+          ))}
+        </ModalNativeSelect>
+      </ModalField>
+      <ModalField
+        label={t('recovery.subject')}
+        htmlFor={subjectId}
+        isInline
+        spaceAbove={12}
+      >
+        <ModalTextInput
+          id={subjectId}
+          placeholder={t('recovery.subjectPlaceholder')}
+          value={subject}
+          onChange={event => {
+            setSubject(event.target.value)
+          }}
+          inputProps={{ 'data-testid': 'recovery-subject-input' }}
+        />
+      </ModalField>
+      <ModalField
+        label={t('recovery.recipients')}
+        htmlFor={recipientsId}
+        isInline
+        spaceAbove={12}
+      >
+        <ModalTextInput
+          id={recipientsId}
+          placeholder={t('recovery.addressPlaceholder')}
+          value={recipients}
+          onChange={event => {
+            setRecipients(event.target.value)
+          }}
+          error={recipientsProblem === null ? null : t(recipientsProblem)}
+          errorId={recipientsErrorId}
+          inputProps={{
+            inputMode: 'email',
+            'aria-invalid': recipientsProblem !== null,
+            'aria-describedby': recipientsErrorId,
+            'data-testid': 'recovery-recipients-input'
+          }}
+        />
+        {recipientsProblem === null ? (
+          <Typography
+            id={recipientsErrorId}
+            variant="caption"
+            color="textSecondary"
+            className="u-db u-mt-half"
+          >
+            {t('recovery.addressesHelp')}
+          </Typography>
+        ) : null}
+      </ModalField>
+      <ModalField
+        label={t('recovery.sender')}
+        htmlFor={senderId}
+        isInline
+        spaceAbove={12}
+      >
+        <ModalTextInput
+          id={senderId}
+          placeholder={t('recovery.addressPlaceholder')}
+          value={sender}
+          onChange={event => {
+            setSender(event.target.value)
+          }}
+          error={senderProblem === null ? null : t(senderProblem)}
+          errorId={senderErrorId}
+          inputProps={{
+            inputMode: 'email',
+            'aria-invalid': senderProblem !== null,
+            'aria-describedby':
+              senderProblem === null ? undefined : senderErrorId,
+            'data-testid': 'recovery-sender-input'
+          }}
+        />
+      </ModalField>
+      <FormControlLabel
+        className="u-mt-1"
+        control={
+          <Checkbox
+            checked={hasAttachment}
+            onChange={event => {
+              setHasAttachment(event.target.checked)
+            }}
+          />
+        }
+        label={t('recovery.hasAttachment')}
+      />
+      {problem === null ? null : (
+        <Alert severity="error" className="u-mt-1" data-testid="recovery-error">
+          {t(problem)}
+        </Alert>
+      )}
+    </ModalDialog>
   )
 }

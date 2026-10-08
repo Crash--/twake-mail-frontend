@@ -133,6 +133,7 @@ export function FileDropZone({
       onDragLeaveCapture={handleDragLeave}
       onDropCapture={handleDrop}
       sx={{ position: 'relative' }}
+      data-file-drop-zone=""
       data-testid={testId}
     >
       {children}
@@ -152,4 +153,24 @@ export function FileDropZone({
       ) : null}
     </Box>
   )
+}
+
+/**
+ * Files dropped out of every drop zone of an area do nothing (the browser
+ * would open them in place of the app): handlers for the area around zones
+ */
+export function ignoreFileDropsOutsideZones(
+  event: DragEvent<HTMLElement>
+): void {
+  if (!hasFiles(event) || event.defaultPrevented) return
+  // Not `instanceof`: the area may be in another document (an overlay)
+  const target = event.target as Element
+  if (
+    target.nodeType === Node.ELEMENT_NODE &&
+    target.closest('[data-file-drop-zone]') !== null
+  ) {
+    return
+  }
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'none'
 }

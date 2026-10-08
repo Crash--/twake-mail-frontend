@@ -41,7 +41,10 @@ import {
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
-import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
+import {
+  FileDropZone,
+  ignoreFileDropsOutsideZones
+} from '@/ds/FileDropZone/FileDropZone'
 import { ThinProgressBar } from '@/ds/ThinProgressBar/ThinProgressBar'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
@@ -1574,7 +1577,13 @@ function LoadedComposerForm({
   )
 
   return (
-    <Box className="u-flex u-flex-column u-flex-auto u-ov-hidden">
+    // Only the body takes dropped files, as tmail-flutter: elsewhere they
+    // do nothing
+    <Box
+      className="u-flex u-flex-column u-flex-auto u-ov-hidden"
+      onDragOver={ignoreFileDropsOutsideZones}
+      onDrop={ignoreFileDropsOutsideZones}
+    >
       {/* Ctrl+Enter sends, from any field of the message */}
       <div
         role="presentation"

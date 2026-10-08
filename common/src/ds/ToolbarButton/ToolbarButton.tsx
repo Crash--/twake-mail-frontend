@@ -4,7 +4,7 @@
 // a 16 px icon and Inter Regular 13 in dark grey; twake-mui has no such
 // button (docs/twake-mui-gaps.md).
 import { Icon, Dropdown, type IconProps } from '@linagora/twake-icons'
-import { Button, Tooltip } from '@linagora/twake-mui'
+import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
 
 /** `colorFilterMessageButton` at 60 % on white, its text and icon colour */
@@ -75,12 +75,22 @@ export function ToolbarButton({
         letterSpacing: 0,
         textTransform: 'none',
         whiteSpace: 'nowrap',
+        // A label longer than 250 px (French) is cut with an ellipsis, as
+        // tmail-flutter's, rather than spilling over the buttons around
+        justifyContent: 'flex-start',
+        overflow: 'hidden',
+        flexShrink: 0,
         '&:hover': { bgcolor: TOOLBAR_BUTTON_HOVER },
         '& .MuiButton-startIcon, & .MuiButton-endIcon': { m: 0 },
         ...(isActive ? {} : { color: TOOLBAR_BUTTON_COLOR })
       }}
     >
-      {label}
+      <Box
+        component="span"
+        sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
+      >
+        {label}
+      </Box>
     </Button>
   )
   return tooltip === undefined || disabled ? (

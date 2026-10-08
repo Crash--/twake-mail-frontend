@@ -13,7 +13,7 @@ import {
 } from '@linagora/twake-mui'
 import { useId, type ReactElement, type ReactNode } from 'react'
 
-import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
+import { CloseDialog, Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface PickerSheetProps {
@@ -32,6 +32,33 @@ export interface PickerSheetProps {
   'data-testid'?: string
   closeButtonTestId?: string
 }
+
+/** tmail-flutter's modal (`ds/ModalDialog`): 554 px, rounded by 16 px */
+const MODAL_PAPER_SX = {
+  width: 554,
+  maxWidth: 'calc(100% - 32px)',
+  borderRadius: '16px',
+  position: 'relative'
+} as const
+
+const MODAL_HEADER_SX = { minHeight: 64, pt: '16px', px: '56px' } as const
+
+const MODAL_TITLE_SX = {
+  m: 0,
+  textAlign: 'center',
+  fontSize: 24,
+  fontWeight: 400,
+  lineHeight: '32px',
+  color: '#1C1B1F'
+} as const
+
+const MODAL_CLOSE_SX = {
+  position: 'absolute',
+  top: 4,
+  right: 4,
+  p: '10px',
+  color: '#8C9CAF'
+} as const
 
 const SHEET_SX = {
   borderTopLeftRadius: 16,
@@ -58,13 +85,22 @@ export function PickerSheet({
 }: PickerSheetProps): ReactElement {
   const titleId = useId()
   const isPhone = useScreenSize() === 'mobile'
+  // A dialog takes the frame of tmail-flutter's modals: the title in the
+  // middle, the close cross at the top end
   const header = (
-    <Box className="u-flex u-flex-items-center u-ph-1 u-pt-half">
+    <Box
+      className={
+        isPhone
+          ? 'u-flex u-flex-items-center u-ph-1 u-pt-half'
+          : 'u-flex u-flex-items-center'
+      }
+      sx={isPhone ? undefined : MODAL_HEADER_SX}
+    >
       <Box
         component="h2"
         id={titleId}
         className="u-flex-auto"
-        sx={{ typography: 'h6', m: 0, px: 1 }}
+        sx={isPhone ? { typography: 'h6', m: 0, px: 1 } : MODAL_TITLE_SX}
       >
         {title}
       </Box>
@@ -73,8 +109,13 @@ export function PickerSheet({
           aria-label={closeLabel}
           onClick={onClose}
           data-testid={closeButtonTestId}
+          sx={isPhone ? undefined : MODAL_CLOSE_SX}
         >
-          <Icon icon={Cross} aria-hidden="true" />
+          <Icon
+            icon={isPhone ? Cross : CloseDialog}
+            size={isPhone ? undefined : 24}
+            aria-hidden="true"
+          />
         </IconButton>
       </Tooltip>
     </Box>
@@ -119,11 +160,11 @@ export function PickerSheet({
       disableRestoreFocus={disableRestoreFocus}
       slotProps={{
         // @ts-expect-error data attributes are valid on the paper
-        paper: { 'data-testid': testId }
+        paper: { 'data-testid': testId, sx: MODAL_PAPER_SX }
       }}
     >
       {header}
-      <DialogContent>{children}</DialogContent>
+      <DialogContent sx={{ px: '32px', pb: '32px' }}>{children}</DialogContent>
     </Dialog>
   )
 }

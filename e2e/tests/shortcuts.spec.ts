@@ -76,9 +76,13 @@ test.describe('KBD keyboard shortcuts', () => {
     await page.keyboard.press('?')
 
     await expect(mailbox.shortcutsDialog).toBeVisible()
-    await expect(
-      page.getByRole('dialog', { name: 'Keyboard shortcuts' })
-    ).toContainText('Archive message')
+    const dialog = page.getByRole('dialog', { name: 'Keyboard shortcuts' })
+    await expect(dialog).toContainText('Open new message')
+    // As tmail-flutter, by category: archiving is a matter of management
+    await dialog
+      .getByRole('tab', { name: 'Message Management & Selection' })
+      .click()
+    await expect(dialog).toContainText('Archive message')
     await expectNoA11yViolations(page)
     await page
       .getByRole('switch', { name: 'Enable keyboard shortcuts' })

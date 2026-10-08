@@ -172,6 +172,13 @@ describe('ShortcutsProvider', () => {
     const dialog = await screen.findByRole('dialog', {
       name: 'Keyboard shortcuts'
     })
+    // As tmail-flutter, by category: archiving is a matter of management
+    expect(dialog).toHaveTextContent('Open new message')
+    await userEvent.click(
+      within(dialog).getByRole('tab', {
+        name: 'Message Management & Selection'
+      })
+    )
     expect(dialog).toHaveTextContent('Archive message')
     expect(
       within(dialog).getByRole('table', { name: 'In a message being written' })

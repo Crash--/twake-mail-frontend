@@ -716,6 +716,12 @@
       "plainPaste": "Paste as plain text",
       "bold": "Bold, italic, underline",
       "escape": "Minimize the window (close it in full screen)"
+    },
+    "categories": {
+      "navigation": "Navigation & Closing",
+      "reading": "Reading & Replying",
+      "management": "Message Management & Selection",
+      "label": "Categories of shortcuts"
     }
   },
   "settings": {

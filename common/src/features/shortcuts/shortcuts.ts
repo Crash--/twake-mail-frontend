@@ -26,21 +26,43 @@ export const SHORTCUTS: readonly {
   key: ShortcutKey
   keys?: string
   label: TranslationKey
+  category: ShortcutCategory
 }[] = [
-  { key: 'c', label: 'shortcuts.actions.compose' },
-  { key: '/', label: 'shortcuts.actions.search' },
-  { key: 'j', label: 'shortcuts.actions.next' },
-  { key: 'k', label: 'shortcuts.actions.previous' },
-  { key: 'Escape', label: 'shortcuts.actions.close' },
-  { key: 'e', label: 'shortcuts.actions.archive' },
-  { key: '#', label: 'shortcuts.actions.delete' },
-  { key: 's', label: 'shortcuts.actions.star' },
-  { key: 'u', label: 'shortcuts.actions.markAsUnread' },
-  { key: 'r', label: 'emailActions.reply.reply' },
-  { key: 'R', keys: 'Shift + R', label: 'emailActions.reply.replyAll' },
-  { key: 'f', label: 'emailActions.reply.forward' },
-  { key: 'z', label: 'shortcuts.actions.undo' },
-  { key: '?', label: 'shortcuts.actions.help' }
+  { key: 'c', label: 'shortcuts.actions.compose', category: 'navigation' },
+  { key: '/', label: 'shortcuts.actions.search', category: 'navigation' },
+  { key: 'j', label: 'shortcuts.actions.next', category: 'navigation' },
+  { key: 'k', label: 'shortcuts.actions.previous', category: 'navigation' },
+  { key: 'Escape', label: 'shortcuts.actions.close', category: 'navigation' },
+  { key: 'e', label: 'shortcuts.actions.archive', category: 'management' },
+  { key: '#', label: 'shortcuts.actions.delete', category: 'management' },
+  { key: 's', label: 'shortcuts.actions.star', category: 'management' },
+  { key: 'u', label: 'shortcuts.actions.markAsUnread', category: 'reading' },
+  { key: 'r', label: 'emailActions.reply.reply', category: 'reading' },
+  {
+    key: 'R',
+    keys: 'Shift + R',
+    label: 'emailActions.reply.replyAll',
+    category: 'reading'
+  },
+  { key: 'f', label: 'emailActions.reply.forward', category: 'reading' },
+  { key: 'z', label: 'shortcuts.actions.undo', category: 'management' },
+  { key: '?', label: 'shortcuts.actions.help', category: 'navigation' }
+]
+
+/**
+ * tmail-flutter's categories of shortcuts (`ShortcutCategory`), in its
+ * order, with the width of their tab
+ */
+export type ShortcutCategory = 'navigation' | 'reading' | 'management'
+
+export const SHORTCUT_CATEGORIES: readonly {
+  id: ShortcutCategory
+  label: TranslationKey
+  width: number
+}[] = [
+  { id: 'navigation', label: 'shortcuts.categories.navigation', width: 174 },
+  { id: 'reading', label: 'shortcuts.categories.reading', width: 164 },
+  { id: 'management', label: 'shortcuts.categories.management', width: 280 }
 ]
 
 const KEYS = new Set<string>(SHORTCUTS.map(shortcut => shortcut.key))

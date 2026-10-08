@@ -716,6 +716,12 @@
       "plainPaste": "Coller en texte brut",
       "bold": "Gras, italique, souligné",
       "escape": "Réduire la fenêtre (la fermer en plein écran)"
+    },
+    "categories": {
+      "navigation": "Navigation & Fermeture",
+      "reading": "Lecture & Réponse",
+      "management": "Gestion des messages & Sélection",
+      "label": "Catégories de raccourcis"
     }
   },
   "settings": {

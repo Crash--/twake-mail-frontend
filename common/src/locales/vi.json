@@ -716,6 +716,12 @@
       "plainPaste": "Dán dưới dạng văn bản thuần",
       "bold": "In đậm, in nghiêng, gạch chân",
       "escape": "Thu nhỏ cửa sổ (đóng khi ở chế độ toàn màn hình)"
+    },
+    "categories": {
+      "navigation": "Điều hướng và Đóng",
+      "reading": "Đọc và Trả lời email",
+      "management": "Quản lý và lựa chọn tin nhắn",
+      "label": "Danh mục phím tắt"
     }
   },
   "settings": {

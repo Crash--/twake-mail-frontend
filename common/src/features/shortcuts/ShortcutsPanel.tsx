@@ -1,13 +1,20 @@
 import { Box } from '@linagora/twake-mui'
-import { useId, type ReactElement } from 'react'
+import { useId, useState, type ReactElement } from 'react'
 
+import { CategoryTabs } from '@/ds/CategoryTabs/CategoryTabs'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SettingsSubheading } from '@/ds/SettingsHeading/SettingsHeading'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
 import { ShortcutList } from '@/ds/ShortcutList/ShortcutList'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { COMPOSER_SHORTCUTS, modifierKeyName, SHORTCUTS } from './shortcuts'
+import {
+  COMPOSER_SHORTCUTS,
+  modifierKeyName,
+  SHORTCUT_CATEGORIES,
+  SHORTCUTS,
+  type ShortcutCategory
+} from './shortcuts'
 import { useShortcutsEnabled } from './shortcutsSetting'
 
 export interface ShortcutsPanelProps {
@@ -29,6 +36,8 @@ export function ShortcutsPanel({
   const [isEnabled, setEnabled] = useShortcutsEnabled()
   const composerTitleId = useId()
   const modifier = modifierKeyName(navigator.userAgent)
+  // As tmail-flutter: one tab per category
+  const [category, setCategory] = useState<ShortcutCategory>('navigation')
 
   return (
     <>
@@ -44,15 +53,31 @@ export function ShortcutsPanel({
         data-testid="shortcuts-enabled-switch"
       />
       <Box className="u-mt-1">
-        <ShortcutList
-          labelledBy={labelledBy}
-          actionHeader={t('shortcuts.action')}
-          keyHeader={t('shortcuts.key')}
-          rows={SHORTCUTS.map(shortcut => ({
-            keys: shortcut.keys ?? shortcut.key,
-            label: t(shortcut.label)
+        <CategoryTabs
+          tabs={SHORTCUT_CATEGORIES.map(tab => ({
+            id: tab.id,
+            label: t(tab.label),
+            width: tab.width
           }))}
-        />
+          value={category}
+          onChange={id => {
+            setCategory(id as ShortcutCategory)
+          }}
+          label={t('shortcuts.categories.label')}
+          data-testid="shortcuts-categories"
+        >
+          <ShortcutList
+            labelledBy={labelledBy}
+            actionHeader={t('shortcuts.action')}
+            keyHeader={t('shortcuts.key')}
+            rows={SHORTCUTS.filter(
+              shortcut => shortcut.category === category
+            ).map(shortcut => ({
+              keys: shortcut.keys ?? shortcut.key,
+              label: t(shortcut.label)
+            }))}
+          />
+        </CategoryTabs>
       </Box>
       <SettingsSubheading id={composerTitleId} component="h3">
         {t('shortcuts.composerTitle')}

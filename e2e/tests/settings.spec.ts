@@ -201,9 +201,11 @@ test.describe('SET settings', () => {
         ).toBeVisible()
       } else {
         await expect(settings.heading).toHaveText('Settings')
+        // As tmail-flutter's menu: the names, every section in view
         await expect(settings.menuItem('keyboard-shortcuts')).toContainText(
-          'Mailbox & email actions'
+          'Keyboard shortcuts'
         )
+        await expect(settings.menuItem('storage')).toBeVisible()
       }
       await expectNoA11yViolations(page)
 

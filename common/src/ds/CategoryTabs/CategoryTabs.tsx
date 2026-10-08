@@ -1,7 +1,7 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's category tabs
-// (`KeyboardShortcutsTabView`): a 52 px bar at most 618 px wide, each tab of
-// its own width, the label in grey Regular 14 (16 px in, on two lines when
-// it has to), a 1 px blue line under the
+// (`KeyboardShortcutsTabView`): a 52 px bar, each tab
+// as wide as its label, in grey Regular 14 on one line (16 px in), a 1 px
+// blue line under the
 // selected one, a light divider under the bar. Below the desktop size, as
 // wide as the screen, each tab its share, 82 px high: a 20 px grey icon over
 // a shorter label. twake-mui does not export `Tab`.
@@ -13,7 +13,6 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const TABS_SX = {
   minHeight: 52,
-  maxWidth: 618,
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   '& .MuiTabs-indicator': { height: '1px', backgroundColor: '#007AFF' }
 } as const
@@ -22,6 +21,8 @@ const TAB_SX = {
   minHeight: 52,
   minWidth: 0,
   px: '16px',
+  // Each label on one line (tmail-flutter's fixed widths wrap two of them)
+  whiteSpace: 'nowrap',
   fontSize: 14,
   fontWeight: 400,
   lineHeight: '20px',

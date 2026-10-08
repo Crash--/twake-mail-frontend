@@ -51,7 +51,7 @@ export const SHORTCUTS: readonly {
 
 /**
  * tmail-flutter's categories of shortcuts (`ShortcutCategory`), in its
- * order, with the width of their tab
+ * order
  */
 export type ShortcutCategory = 'navigation' | 'reading' | 'management'
 
@@ -60,25 +60,21 @@ export const SHORTCUT_CATEGORIES: readonly {
   label: TranslationKey
   /** Below the desktop size, as tmail-flutter */
   shortLabel: TranslationKey
-  width: number
 }[] = [
   {
     id: 'navigation',
     label: 'shortcuts.categories.navigation',
-    shortLabel: 'shortcuts.categories.navigationShort',
-    width: 174
+    shortLabel: 'shortcuts.categories.navigationShort'
   },
   {
     id: 'reading',
     label: 'shortcuts.categories.reading',
-    shortLabel: 'shortcuts.categories.readingShort',
-    width: 164
+    shortLabel: 'shortcuts.categories.readingShort'
   },
   {
     id: 'management',
     label: 'shortcuts.categories.management',
-    shortLabel: 'shortcuts.categories.managementShort',
-    width: 280
+    shortLabel: 'shortcuts.categories.managementShort'
   }
 ]
 

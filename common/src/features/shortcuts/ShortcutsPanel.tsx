@@ -71,8 +71,7 @@ export function ShortcutsPanel({
             id: tab.id,
             label: t(tab.label),
             shortLabel: t(tab.shortLabel),
-            icon: CATEGORY_ICONS[tab.id],
-            width: tab.width
+            icon: CATEGORY_ICONS[tab.id]
           }))}
           value={category}
           onChange={id => {

@@ -3,10 +3,10 @@
 // wide screen and a bottom sheet on a phone, as the address dialog of
 // tmail-flutter. twake-mui has neither a contact card nor a bottom sheet
 // (see docs/twake-mui-gaps.md).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
-  Button,
+  ButtonBase,
   Dialog,
   Drawer,
   IconButton,
@@ -20,30 +20,78 @@ import {
   type MouseEvent
 } from 'react'
 
-import { Copy, Cross } from '@/ds/FlutterIcons/FlutterIcons'
-import { IconAction } from '@/ds/IconAction/IconAction'
+import { CloseCardIcon, CopyIcon } from '@/ds/RecipientIcons/RecipientIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /** tmail-flutter `EmailAddressDialogBuilder` */
 const CARD_WIDTH = 383
 const CARD_RADIUS = 16
 
+const PRIMARY = '#0A84FF'
+/** `textSecondary` at 48 %, the address and its copy button */
+const MUTED = 'rgba(28, 27, 31, 0.48)'
+
 const CONTENT_SX = {
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: 1,
   px: 4,
   py: 3
 } as const
 
-const CLOSE_SX = { position: 'absolute', top: 8, right: 8 } as const
+const CLOSE_SX = {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  p: '10px',
+  color: '#8C9CAF'
+} as const
+
+/** tmail-flutter's `textStyleM3HeadlineSmall` in `textPrimary` */
+const NAME_SX = {
+  mt: 3,
+  mb: 1,
+  fontSize: 24,
+  lineHeight: '32px',
+  fontWeight: 600,
+  letterSpacing: 0,
+  color: '#424244'
+} as const
+
+/** tmail-flutter's `textStyleM3BodyMedium` */
+const ADDRESS_SX = {
+  fontSize: 14,
+  lineHeight: '20px',
+  fontWeight: 500,
+  letterSpacing: '0.25px',
+  color: MUTED
+} as const
+
+function actionSx(isPrimary: boolean): Record<string, unknown> {
+  return {
+    width: '100%',
+    height: 48,
+    boxSizing: 'border-box',
+    px: '10px',
+    borderRadius: '100px',
+    border: `1px solid ${PRIMARY}`,
+    bgcolor: isPrimary ? PRIMARY : '#FFFFFF',
+    color: isPrimary ? '#FFFFFF' : PRIMARY,
+    fontSize: 14,
+    lineHeight: '20px',
+    fontWeight: 500,
+    letterSpacing: '0.1px',
+    textAlign: 'center',
+    textDecoration: 'none',
+    '&:hover': { bgcolor: isPrimary ? '#0067D6' : 'rgba(10, 132, 255, 0.06)' }
+  }
+}
 
 export interface ContactCardAction {
   id: string
+  /** On one line, without an icon, as tmail-flutter */
   label: string
-  icon: IconProps['icon']
   /** Runs when the button is pressed; the card does not close by itself */
   onClick?: () => void
   /** Makes it a link, opened in a new tab */
@@ -69,29 +117,29 @@ export interface ContactCardProps {
   'data-testid'?: string
 }
 
+/** A 48 px pill as wide as the card: filled for the main action */
 function ActionButton({ action }: { action: ContactCardAction }): ReactElement {
-  const content = {
-    variant: action.isPrimary === true ? 'contained' : 'outlined',
-    fullWidth: true,
-    startIcon: <Icon icon={action.icon} size={20} aria-hidden="true" />,
-    sx: { minHeight: 48 },
-    'data-testid': action['data-testid']
-  } as const
+  const sx = actionSx(action.isPrimary === true)
   return action.href === undefined ? (
-    <Button {...content} onClick={action.onClick}>
+    <ButtonBase
+      onClick={action.onClick}
+      sx={sx}
+      data-testid={action['data-testid']}
+    >
       {action.label}
-    </Button>
+    </ButtonBase>
   ) : (
-    <Button
-      {...content}
+    <ButtonBase
       component="a"
       href={action.href}
       target="_blank"
       rel="noopener noreferrer"
       onClick={action.onClick}
+      sx={sx}
+      data-testid={action['data-testid']}
     >
       {action.label}
-    </Button>
+    </ButtonBase>
   )
 }
 
@@ -118,16 +166,16 @@ function Content({
           sx={CLOSE_SX}
           data-testid="contact-card-close"
         >
-          <Icon icon={Cross} aria-hidden="true" />
+          <Icon icon={CloseCardIcon} size={24} aria-hidden="true" />
         </IconButton>
       </Tooltip>
       {avatar}
       {hasName ? (
         <Typography
-          variant="h5"
           component="h2"
           id={titleId}
           className="u-breakword u-ta-center"
+          sx={NAME_SX}
           data-testid="contact-card-name"
         >
           {name}
@@ -135,29 +183,32 @@ function Content({
       ) : null}
       <Box
         className="u-flex u-flex-items-center u-flex-justify-center"
-        sx={{ gap: 0.5, maxWidth: '100%' }}
+        sx={{ maxWidth: '100%', ...(hasName ? {} : { mt: 3 }) }}
       >
         <Typography
-          variant="body1"
           component={hasName ? 'p' : 'h2'}
           id={hasName ? undefined : titleId}
-          color="text.secondary"
           className="u-breakword"
+          sx={ADDRESS_SX}
           data-testid="contact-card-address"
         >
           {address}
         </Typography>
-        <IconAction
-          label={copyLabel}
-          icon={Copy}
-          onClick={onCopy}
-          data-testid="contact-card-copy"
-        />
+        <Tooltip title={copyLabel}>
+          <IconButton
+            aria-label={copyLabel}
+            onClick={onCopy}
+            sx={{ p: '5px', color: MUTED }}
+            data-testid="contact-card-copy"
+          >
+            <Icon icon={CopyIcon} size={20} aria-hidden="true" />
+          </IconButton>
+        </Tooltip>
       </Box>
       {actions.length > 0 ? (
         <Box
           className="u-flex u-flex-column u-w-100"
-          sx={{ gap: 1.5, mt: 2 }}
+          sx={{ gap: '14px', mt: 3 }}
           data-testid="contact-card-actions"
         >
           {actions.map(action => (

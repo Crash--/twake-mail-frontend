@@ -1,4 +1,4 @@
-import { Avatar, getInitials, Link } from '@linagora/twake-mui'
+import { Link } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import {
@@ -13,12 +13,8 @@ import {
   ContactCard,
   type ContactCardAction
 } from '@/ds/ContactCard/ContactCard'
-import {
-  CalendarToday,
-  Discuss,
-  Filter,
-  Pen
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { initialsOf } from '@/ds/RecipientField/initials'
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -100,21 +96,22 @@ function AddressCardDialog({
     workplaceFqdnFallback: config?.workplaceFqdnFallback ?? null,
     username: session.username
   })
-  const actions: ContactCardAction[] = [
-    {
-      id: 'compose',
-      label: t('email.address.compose'),
-      icon: Pen,
-      isPrimary: true,
-      onClick: handleCompose,
-      'data-testid': 'email-address-compose-item'
-    }
-  ]
+  // As tmail-flutter: "Create a rule with this email", then "Compose
+  // email", the main action, last; between them what Twake adds (an event,
+  // a chat)
+  const actions: ContactCardAction[] = []
+  if (hasRules) {
+    actions.push({
+      id: 'create-rule',
+      label: t('email.address.createRule'),
+      onClick: handleCreateRule,
+      'data-testid': 'email-address-create-rule-item'
+    })
+  }
   if (links.invite !== null) {
     actions.push({
       id: 'invite',
       label: t('email.address.invite'),
-      icon: CalendarToday,
       href: links.invite,
       onClick: handleClose,
       'data-testid': 'email-address-invite-item'
@@ -124,21 +121,19 @@ function AddressCardDialog({
     actions.push({
       id: 'chat',
       label: t('email.address.chat'),
-      icon: Discuss,
       href: links.chat,
       onClick: handleClose,
       'data-testid': 'email-address-chat-item'
     })
   }
-  if (hasRules) {
-    actions.push({
-      id: 'create-rule',
-      label: t('email.address.createRule'),
-      icon: Filter,
-      onClick: handleCreateRule,
-      'data-testid': 'email-address-create-rule-item'
-    })
-  }
+  actions.push({
+    id: 'compose',
+    label: t('email.address.compose'),
+    isPrimary: true,
+    onClick: handleCompose,
+    'data-testid': 'email-address-compose-item'
+  })
+  const initials = initialsOf(name === '' ? address.email : name)
 
   return (
     <>
@@ -146,9 +141,12 @@ function AddressCardDialog({
         open={isOpen}
         onClose={onClose}
         avatar={
-          <Avatar size={64} aria-hidden="true">
-            {getInitials(name, address.email)}
-          </Avatar>
+          <GradientAvatar
+            text={initials}
+            colorKey={initials}
+            size={67}
+            fontSize={33}
+          />
         }
         name={name}
         address={address.email}

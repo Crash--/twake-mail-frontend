@@ -1,7 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
-import { Mail } from '@linagora/twake-icons'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderDs } from '@/ds/testing/renderDs'
@@ -72,11 +71,10 @@ describe('ContactCard', () => {
     renderDs(
       <Harness
         actions={[
-          { id: 'write', label: 'Write', icon: Mail, onClick: onWrite },
+          { id: 'write', label: 'Write', onClick: onWrite },
           {
             id: 'chat',
             label: 'Chat',
-            icon: Mail,
             href: 'https://chat.test/bob'
           }
         ]}

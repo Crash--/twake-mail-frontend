@@ -260,7 +260,8 @@ export function ColorSwatchPicker({
                 flexShrink: 0,
                 borderRadius: '50%',
                 cursor: 'pointer',
-                backgroundColor: background ?? theme.palette.background.paper,
+                backgroundColor:
+                  background ?? theme.vars.palette.background.paper,
                 ...(isLarge ? largeSwatchSx(option.value, background) : {}),
                 border: isLarge
                   ? option.value === ''
@@ -268,17 +269,17 @@ export function ColorSwatchPicker({
                     : option.value === CUSTOM && background === null
                       ? '2px solid transparent'
                       : 'none'
-                  : `1px solid ${theme.palette.divider}`,
+                  : `1px solid ${theme.vars.palette.divider}`,
                 boxShadow: isLarge
                   ? 'none'
                   : isChecked
-                    ? `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${theme.palette.text.primary}`
+                    ? `0 0 0 2px ${theme.vars.palette.background.paper}, 0 0 0 4px ${theme.vars.palette.text.primary}`
                     : 'none',
                 // "No colour": a diagonal stroke
                 backgroundImage: isLarge
                   ? largeBackgroundImage(option.value, background)
                   : option.value === ''
-                    ? `linear-gradient(135deg, transparent 45%, ${theme.palette.error.main} 45%, ${theme.palette.error.main} 55%, transparent 55%)`
+                    ? `linear-gradient(135deg, transparent 45%, ${theme.vars.palette.error.main} 45%, ${theme.vars.palette.error.main} 55%, transparent 55%)`
                     : option.value === CUSTOM && background === null
                       ? RAINBOW
                       : 'none',
@@ -381,7 +382,7 @@ export function ColorSwatchPicker({
               p: 0.5,
               cursor: 'pointer',
               bgcolor: 'transparent',
-              border: theme => `1px solid ${theme.palette.divider}`,
+              border: theme => `1px solid ${theme.vars.palette.divider}`,
               borderRadius: 1
             }}
           />

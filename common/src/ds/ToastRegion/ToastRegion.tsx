@@ -139,19 +139,33 @@ const SEVERITY_STYLES: Record<
   ToastSeverity,
   (theme: Theme) => SystemStyleObject<Theme>
 > = {
-  // The dark surface of a snackbar: white on Grey 900, 15:1
+  // The dark surface of a snackbar: white on Grey 900, 15:1; the other way
+  // round in the dark scheme, where a dark toast would melt into the page
   info: theme => ({
     backgroundColor: theme.palette.grey[900],
-    color: theme.palette.common.white
+    color: theme.palette.common.white,
+    ...theme.applyStyles('dark', {
+      backgroundColor: theme.palette.grey[100],
+      color: theme.palette.grey[900]
+    })
   }),
   success: theme => ({
     backgroundColor: theme.palette.grey[900],
-    color: theme.palette.common.white
+    color: theme.palette.common.white,
+    ...theme.applyStyles('dark', {
+      backgroundColor: theme.palette.grey[100],
+      color: theme.palette.grey[900]
+    })
   }),
-  // White on error.dark (#c62828 in MUI), 5.6:1
+  // White on error.dark (#c62828 in MUI), 5.6:1; in the dark scheme Grey
+  // 900 on the light error of the palette (#ff939d), 5.2:1
   error: theme => ({
-    backgroundColor: theme.palette.error.dark,
-    color: theme.palette.common.white
+    backgroundColor: theme.vars.palette.error.dark,
+    color: theme.palette.common.white,
+    ...theme.applyStyles('dark', {
+      backgroundColor: '#ff939d',
+      color: theme.palette.grey[900]
+    })
   })
 }
 
@@ -160,7 +174,10 @@ function controlStyle(theme: Theme): SystemStyleObject<Theme> {
   return {
     color: 'inherit',
     flexShrink: 0,
-    '--focus-ring-color': theme.palette.common.white
+    '--focus-ring-color': theme.palette.common.white,
+    ...theme.applyStyles('dark', {
+      '--focus-ring-color': theme.palette.grey[900]
+    })
   }
 }
 

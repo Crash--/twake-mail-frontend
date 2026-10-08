@@ -34,8 +34,8 @@ export function WarningAvatarBadge({
       aria-label={label}
       data-testid={testId}
       sx={theme => ({
-        bgcolor: theme.palette.error.main,
-        color: theme.palette.error.contrastText
+        bgcolor: theme.vars.palette.error.main,
+        color: theme.vars.palette.error.contrastText
       })}
     >
       <Icon icon={WarningCircle} />

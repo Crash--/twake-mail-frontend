@@ -13,6 +13,7 @@ import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync'
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
+import { ServerThemeSync } from '@common/features/settings/ServerThemeSync'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { useTeamMailboxRoot } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { useI18n } from '@common/i18n/useI18n'
@@ -64,6 +65,7 @@ function TeamMailboxFrame(): ReactElement {
     <Box className="u-flex u-flex-column u-h-100">
       <TouchTargets />
       <ServerLanguageSync />
+      <ServerThemeSync />
       <SentryReportingSync />
       <OfflineNotice hasFloatingAction />
       <TeamMailboxPane data-testid="main-content">

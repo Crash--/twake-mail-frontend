@@ -28,7 +28,13 @@ export function SidebarFooter({
           component="p"
           align="center"
           data-testid={versionTestId}
-          sx={{ mt: 1, mb: 0, color: '#818C99', textTransform: 'none' }}
+          sx={theme => ({
+            mt: 1,
+            mb: 0,
+            color: '#818C99',
+            textTransform: 'none',
+            ...theme.applyStyles('dark', { color: 'rgba(255, 255, 255, 0.64)' })
+          })}
         >
           {version}
         </Typography>

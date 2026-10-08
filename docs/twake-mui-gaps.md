@@ -545,3 +545,16 @@ Differences kept from the design and from tmail-flutter:
 | `Menu` (submenu) | tmail-flutter's submenu of a menu entry (`PopupSubmenuController`): a 249 px panel, elevation 8, rounded by 6 px, at most 400 px high, beside the entry (on its left without room), which shows a small triangle while it is open; hover, ArrowRight / ArrowLeft, Escape | "Label as" in the menus of an email | `ds/MenuSubmenu` | A nested menu in twake-mui |
 | `Dialog` (modal) | tmail-flutter's modals (`MailboxCreatorView`, `CreateNewLabelModal`, `EditTextDialogBuilder`): 554 px (383 px for the small one), a 16 px radius, the close cross at the top end, the title centred (24 / 32), a grey subtitle, Semi Bold 14 labels above 40 px fields rounded by 10 px (#E6E1E5, blue when focused), a text button and a 48 px blue pill (153 px, 119 px small) | Folder creation and renaming, label creation and edition | `ds/ModalDialog` | A modal variant of `Dialog` and a field look in the Twake theme |
 | Calendar event mark | tmail-flutter's mark of the rows carrying a calendar event (`buildCalendarEventIcon`): a 20 px calendar before the subject, light steel grey once read, black while unread, 12 / 8 / 4 px after it on a desktop, a tablet, a phone | The rows of the lists and the search results | `ds/CalendarEventMark` | None (the look of tmail-flutter) |
+
+## Dark mode
+
+twake-mui 12 builds both colour schemes (`colorSchemes.light` / `.dark`, CSS
+variables, `data-theme` on `<html>`) and the app switches them with MUI's
+`useColorScheme()` (the `appearance.theme` setting of the account, no choice
+in the app). What is missing around it:
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `TwakeMuiThemeProvider` | The scheme before the first paint: the page starts light (`defaultMode="light"`) until React mounts, and its `mode` prop cannot say `system` | A dark page that never flashes white | An inline script of `public/index.html` (hashed in the CSP) sets `data-theme` and `color-scheme` from the copy of the account setting kept in this browser; `ColorSchemeSync` then calls `setMode()` from a layout effect | An `InitColorSchemeScript` of twake-mui (the MUI one is for SSR) and `mode="system"` |
+| Theme | The dark values of the tokens the palette does not carry: the Figma greys of the event card (#F3F6F9, #424244), the attachment chip (#e5ecf3, #8c9caf, #e3f1ff, #e9eef3), the drop zone (#f5faff, #d4e8ff), the empty list (#424244 at 90 % and 64 %), the version line (#818C99) | Those components in the dark scheme | `theme.applyStyles('dark', …)` in `ds/EventCard`, `ds/UploadList`, `ds/FileDropZone`, `ds/EmptyListView`, `ds/SidebarFooter`, `ds/ToastRegion`, `ds/MessageAlert`, `ds/DockedWindow/WindowOverflowMenu` | Those tokens in the palette of twake-css, with a dark value |
+| `@linagora/twake-embed` | The `twake-space:theme` message of TwakeSpace is received but not exposed by `connectToTwakeSpace` | A framed facade coloured as the page framing it | Not followed: the facade follows the setting of the account | A `onTheme` handler (or the theme in `HelloMessage`) of the connection |

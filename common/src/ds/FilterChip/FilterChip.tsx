@@ -23,12 +23,12 @@ const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
   color: isSelected ? 'primary.main' : CHIP_COLOR,
   bgcolor: theme =>
     isSelected
-      ? `color-mix(in srgb, ${theme.palette.primary.main} 6%, transparent)`
+      ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 6%, transparent)`
       : CHIP_BACKGROUND,
   '&:hover, &.Mui-focusVisible': {
     bgcolor: theme =>
       isSelected
-        ? `color-mix(in srgb, ${theme.palette.primary.main} 12%, transparent)`
+        ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 12%, transparent)`
         : `color-mix(in srgb, ${CHIP_COLOR} 16%, ${CHIP_BACKGROUND})`
   },
   '& .MuiChip-icon': {

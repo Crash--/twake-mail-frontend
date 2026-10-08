@@ -94,15 +94,16 @@ export function WindowOverflowMenu({
         <Paper
           elevation={8}
           className="u-flex u-flex-shrink-0 u-ov-hidden"
-          sx={{
+          sx={theme => ({
             pointerEvents: 'auto',
             width: OVERFLOW_MENU_WIDTH,
             height: TITLE_BAR_HEIGHT,
             borderRadius: 2,
             borderBottomLeftRadius: 0,
             borderBottomRightRadius: 0,
-            bgcolor: 'grey.100'
-          }}
+            bgcolor: 'grey.100',
+            ...theme.applyStyles('dark', { bgcolor: 'grey.800' })
+          })}
         >
           <ButtonBase
             {...buttonProps}

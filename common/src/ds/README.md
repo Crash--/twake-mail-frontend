@@ -51,6 +51,11 @@ cannot produce an inaccessible screen. Every component here must:
 - use the official Twake palette as is (colour contrast is deferred to a
   dedicated theme), and never carry information by colour alone (an unread row is
   bold *and* says "Unread");
+- draw both colour schemes: palette tokens (`primary.main`, `background.paper`,
+  `divider`…) follow the scheme by themselves, and so does `theme.vars.palette.*`
+  in a style function; `theme.palette.*` there is the light value for good
+  (the greys and `common` excepted, the same in both schemes); a colour the
+  palette does not carry gets its dark value through `theme.applyStyles('dark', …)`;
 - announce changes that happen away from the focus through a live region
   (`role="status"` / `aria-live="polite"`, `role="alert"` for errors);
 - respect `prefers-reduced-motion` for any animation or smooth scrolling it

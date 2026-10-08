@@ -43,8 +43,12 @@ function contentSecurityPolicy(allowRemoteContent: boolean): string {
 // reach inside the iframe. Images never overflow the reading pane, as in
 // tmail-flutter (EML-04). Its text style too (`HtmlTemplate.defaultFontStyle`):
 // Regular 14 in black, the default line height, paragraphs without margins.
+// The document stays light whatever the colour scheme of the app: an email is
+// designed for a white page, and the colours it sets would not read on a dark
+// one.
 const EMAIL_DOCUMENT_CSS = `
 html, body { margin: 0; padding: 0; }
+html { background: #ffffff; color-scheme: light; }
 body {
   font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;

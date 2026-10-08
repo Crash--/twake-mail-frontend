@@ -7,6 +7,37 @@
       content="width=device-width, initial-scale=1, interactive-widget=resizes-content"
     />
     <meta name="theme-color" content="#ffffff" />
+    <script>
+      // The colour scheme before the app is loaded, so that the page never
+      // flashes white: the copy of the `appearance.theme` setting of the
+      // account kept in this browser (see ColorSchemeSync): dark, light (the
+      // default), or the one of the system. The app colours itself the same
+      // way once loaded.
+      ;(function () {
+        var scheme = 'light'
+        try {
+          var preference = localStorage.getItem('twake-mail.preferences.theme')
+          if (
+            preference === 'dark' ||
+            (preference === 'system' &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          ) {
+            scheme = 'dark'
+          }
+        } catch (e) {
+          // Storage disabled by the browser settings: light
+        }
+        var root = document.documentElement
+        root.setAttribute('data-theme', scheme)
+        root.style.colorScheme = scheme
+        if (scheme === 'dark') {
+          // background.default of the dark scheme of twake-mui (Grey A400)
+          var themeColor = document.querySelector('meta[name="theme-color"]')
+          if (themeColor) themeColor.setAttribute('content', '#2c3039')
+        }
+      })()
+    </script>
     <meta name="robots" content="noindex" />
     <link
       rel="icon"

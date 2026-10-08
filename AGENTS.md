@@ -8,7 +8,7 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
 - npm workspaces: `apps/private` (the application) and `common` (shared
   code). Node 24 (`nvm use 24`), npm.
 - Rsbuild, React 19, TypeScript strict, react-router 7.
-- UI: `@linagora/twake-mui` 10.x, `@linagora/twake-icons`,
+- UI: `@linagora/twake-mui` 12.x, `@linagora/twake-icons`,
   `@linagora/twake-css` utility classes, `twake-i18n`, `@linagora/twake-utils`.
 - Data: TanStack Query v5. No Redux.
 - JMAP: `jmap-client-ts` v2 (contract: `jmap-client-ts/docs/v2-api.md`),

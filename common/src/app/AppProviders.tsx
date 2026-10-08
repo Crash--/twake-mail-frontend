@@ -8,6 +8,7 @@ import {
   type ReactNode
 } from 'react'
 
+import { ColorSchemeSync } from '@common/app/ColorSchemeSync'
 import { DocumentTitleProvider } from '@common/app/DocumentTitleProvider'
 import { ConfirmProvider } from '@common/features/confirm/ConfirmProvider'
 import { NotificationsProvider } from '@common/features/notifications/NotificationsProvider'
@@ -40,9 +41,10 @@ export interface AppProvidersProps {
 }
 
 /**
- * Theme (with the focus indicator the user chose), translations, title of
- * the page, data cache, notifications and confirmations: what every screen
- * needs, including the ones shown before authentication.
+ * Theme (with the focus indicator and the colour scheme the user chose),
+ * translations, title of the page, data cache, notifications and
+ * confirmations: what every screen needs, including the ones shown before
+ * authentication.
  */
 export function AppProviders({
   lang,
@@ -75,6 +77,7 @@ export function AppProviders({
   }, [focusIndicator, overlay])
   return (
     <TwakeMuiThemeProvider themeOptions={themeOptions}>
+      <ColorSchemeSync />
       <SpaceOverlayProvider overlay={overlay}>
         <I18nProvider lang={lang}>
           <DocumentTitleProvider>

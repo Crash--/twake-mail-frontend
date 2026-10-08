@@ -50,7 +50,11 @@ const moduleNameMapper: Config['moduleNameMapper'] = {
   // Before `@/`: the local design system lives in common, not in the app
   '^@/ds/(.*)$': '<rootDir>/common/src/ds/$1',
   '^@/(.*)$': '<rootDir>/apps/private/src/$1',
-  '\\.css$': '<rootDir>/common/src/testing/styleMock.ts'
+  '\\.css$': '<rootDir>/common/src/testing/styleMock.ts',
+  // ES modules only, imported by twake-mui for a component the app never
+  // renders: a stand-in instead of their whole dependency tree
+  '^react-markdown$': '<rootDir>/common/src/testing/markdownMock.ts',
+  '^remark-gfm$': '<rootDir>/common/src/testing/markdownMock.ts'
 }
 
 const shared = {

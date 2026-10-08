@@ -393,7 +393,8 @@
       "addedMany": "%{smart_count} destinataire ajouté |||| %{smart_count} destinataires ajoutés",
       "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
       "summary": "Afficher tous les destinataires :",
-      "others": "+%{smart_count}"
+      "others": "+%{smart_count}",
+      "alreadyAdded": "déjà ajouté"
     },
     "limit": "Vous pouvez écrire %{smart_count} messages à la fois. Fermez-en un pour en commencer un autre.",
     "sent": "Le message a bien été envoyé",

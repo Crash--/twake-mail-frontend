@@ -21,20 +21,28 @@ import {
   type Ref
 } from 'react'
 
-import { Cross, Warning } from '@/ds/FlutterIcons/FlutterIcons'
+import { Warning } from '@/ds/FlutterIcons/FlutterIcons'
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
+import { RemoveRecipientIcon } from '@/ds/RecipientIcons/RecipientIcons'
+
 import { RecipientAvatar } from './RecipientAvatar'
+import { SuggestionOption } from './SuggestionOption'
 
 const POPUP_SX = { zIndex: 'modal' } as const
-const PAPER_SX = { maxHeight: 320, overflowY: 'auto' } as const
-const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
-const OPTION_SX = {
-  px: 2,
-  py: 1,
-  cursor: 'pointer',
-  '&[aria-selected="true"]': { bgcolor: 'action.selected' },
-  '&:hover': { bgcolor: 'action.hover' }
+/**
+ * tmail-flutter's suggestions: as wide as the chips and the input, white,
+ * rounded by 20 px, elevation 20, at most 300 px high
+ */
+const PAPER_SX = {
+  mt: 0.5,
+  maxHeight: 300,
+  overflowY: 'auto',
+  borderRadius: '20px',
+  bgcolor: '#FFFFFF',
+  boxShadow:
+    '0 10px 13px -6px rgba(0, 0, 0, 0.2), 0 20px 31px 3px rgba(0, 0, 0, 0.14), 0 8px 38px 7px rgba(0, 0, 0, 0.12)'
 } as const
+const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 /**
  * The line keeps its end actions on the first row: the label, chips and
  * input wrap in a box of their own
@@ -84,22 +92,53 @@ const CONTENT_SX = {
   minHeight: 28
 } as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
-/** Figma "Teammail 1.1" recipient chip: 32 px high, grey, rounded */
+/**
+ * tmail-flutter's recipient tag: 32 px high, rounded by 10 px, light grey
+ * (#F3F6F9), a 20 px gradient avatar, the name in Regular 17 black, a grey
+ * cross; light blue with a blue border while it has the focus
+ */
 export const RECIPIENT_CHIP_SX = {
   height: 32,
-  maxWidth: '100%',
+  maxWidth: 267,
+  boxSizing: 'border-box',
   borderRadius: '10px',
-  bgcolor: 'background.default',
-  fontSize: 14,
-  fontWeight: 500,
-  letterSpacing: '0.25px',
-  '& .MuiChip-avatar': { ml: '6px', mr: '-2px' },
-  '& .MuiChip-deleteIcon': { color: 'text.secondary', flexShrink: 0 }
+  border: '1px solid #F3F6F9',
+  bgcolor: '#F3F6F9',
+  color: '#000000',
+  fontSize: 17,
+  fontWeight: 400,
+  letterSpacing: '-0.17px',
+  pl: 1,
+  pr: 0.5,
+  '&& .MuiChip-avatar, && .MuiChip-icon': { ml: 0, mr: 0 },
+  '&& .MuiChip-label': {
+    pl: '4px',
+    pr: '4px',
+    fontSize: 17,
+    fontWeight: 400,
+    letterSpacing: '-0.17px'
+  },
+  '& .MuiChip-deleteIcon': {
+    color: '#AEAEC0',
+    flexShrink: 0,
+    m: 0,
+    p: '4px',
+    width: 28,
+    height: 28,
+    boxSizing: 'border-box',
+    borderRadius: '50%'
+  },
+  '&:focus, &.Mui-focusVisible': {
+    bgcolor: '#DFEEFF',
+    borderColor: '#007AFF'
+  }
 } as const
+/** An invalid tag, as tmail-flutter's: white, with a red border */
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
-  borderColor: 'error.main',
-  bgcolor: 'background.paper'
+  borderColor: '#FF3347',
+  bgcolor: '#FFFFFF',
+  '&& .MuiChip-icon': { ml: 0, mr: 0, color: '#FF3347' }
 } as const
 
 /** Something already entered in the field */
@@ -113,6 +152,8 @@ export interface RecipientFieldChip {
   isInvalid: boolean
   /** Shows a decorative avatar of this name before the label */
   avatar?: string
+  /** Picks the colours of the avatar, e.g. the address */
+  avatarKey?: string
 }
 
 /** A suggestion of the list under the field */
@@ -120,6 +161,8 @@ export interface RecipientFieldSuggestion {
   id: string
   label: string
   secondary?: string
+  /** Already entered: listed with a tick, as tmail-flutter, not picked again */
+  isAdded?: boolean
 }
 
 export interface RecipientFieldLabels {
@@ -127,6 +170,8 @@ export interface RecipientFieldLabels {
   field: string
   /** Name of the list of suggestions */
   suggestions: string
+  /** Said after a suggestion already entered */
+  alreadyAdded: string
   /** Appended to the name of an invalid chip */
   invalid: string
   /** How to act on a chip, read after its name */
@@ -185,11 +230,14 @@ export interface RecipientFieldProps {
 
 /**
  * A field of chips with suggestions (ARIA 1.2 combobox, "list autocomplete
- * with manual selection"), for recipients, attendees, people to share with:
+ * with automatic selection", as tmail-flutter: the first suggestion is
+ * highlighted), for recipients, attendees, people to share with:
  *
  * - the input (`role="combobox"`) is named by the visible label; ArrowDown
- *   and ArrowUp move in the suggestions, Enter picks one or commits the
- *   text, as do a comma, a semicolon, leaving the field and pasting a list;
+ *   and ArrowUp move in the suggestions, Enter picks the highlighted one, or
+ *   commits the text without suggestions, as do a comma, a semicolon,
+ *   leaving the field and pasting a list; what is typed is in bold in the
+ *   suggestions, and the ones already entered are ticked;
  *   Escape closes the suggestions, and only then reaches the page;
  * - the chips are out of the tab order: ArrowLeft (or Backspace) at the
  *   start of the input goes to the last one, arrows move between them,
@@ -256,7 +304,10 @@ export function RecipientField({
 
   const isShown = isOpen && suggestions.length > 0
   const activeIndex = suggestions.findIndex(option => option.id === activeId)
-  const active = isShown ? (suggestions[activeIndex] ?? null) : null
+  // The first one is highlighted until the arrows move, as tmail-flutter
+  const active = isShown
+    ? (suggestions[activeIndex] ?? suggestions[0] ?? null)
+    : null
   const optionId = (optionKey: string): string => `${id}-option-${optionKey}`
 
   useEffect(() => {
@@ -333,12 +384,8 @@ export function RecipientField({
   const move = (delta: number): void => {
     if (suggestions.length === 0) return
     setIsOpen(true)
-    const next =
-      activeIndex === -1
-        ? delta > 0
-          ? 0
-          : suggestions.length - 1
-        : (activeIndex + delta + suggestions.length) % suggestions.length
+    const current = activeIndex === -1 ? 0 : activeIndex
+    const next = (current + delta + suggestions.length) % suggestions.length
     setActiveId(suggestions[next]?.id ?? null)
   }
 
@@ -506,15 +553,21 @@ export function RecipientField({
               variant={chip.isInvalid ? 'outlined' : 'filled'}
               avatar={
                 chip.isInvalid || chip.avatar === undefined ? undefined : (
-                  <RecipientAvatar of={chip.avatar} />
+                  <RecipientAvatar
+                    of={chip.avatar}
+                    colorKey={chip.avatarKey ?? chip.avatar}
+                  />
                 )
               }
               icon={
+                // Not by its colour only: the icon says it too
                 chip.isInvalid ? (
-                  <Icon icon={Warning} aria-hidden="true" />
+                  <Icon icon={Warning} size={20} aria-hidden="true" />
                 ) : undefined
               }
-              deleteIcon={<Icon icon={Cross} size={12} aria-hidden="true" />}
+              deleteIcon={
+                <Icon icon={RemoveRecipientIcon} size={20} aria-hidden="true" />
+              }
               label={chip.label}
               title={chip.title ?? chip.label}
               aria-label={
@@ -580,13 +633,13 @@ export function RecipientField({
       </Box>
       <Popper
         open={isShown}
-        anchorEl={field}
+        anchorEl={content}
         placement="bottom-start"
         // Next to the field: inside the focus trap of a dialog holding it
         disablePortal
-        sx={{ ...POPUP_SX, width: field?.offsetWidth }}
+        sx={{ ...POPUP_SX, width: content?.offsetWidth }}
       >
-        <Paper elevation={8} sx={PAPER_SX} onMouseDown={keepFocus}>
+        <Paper elevation={0} sx={PAPER_SX} onMouseDown={keepFocus}>
           <Box
             component="ul"
             id={listboxId}
@@ -596,24 +649,19 @@ export function RecipientField({
             data-testid={testIds.listbox}
           >
             {suggestions.map(suggestion => (
-              <Box
-                component="li"
+              <SuggestionOption
                 key={suggestion.id}
                 id={optionId(suggestion.id)}
-                role="option"
-                aria-selected={active?.id === suggestion.id}
-                sx={OPTION_SX}
-                onClick={() => {
+                label={suggestion.label}
+                secondary={suggestion.secondary}
+                isAdded={suggestion.isAdded === true}
+                addedLabel={labels.alreadyAdded}
+                query={inputValue.trim()}
+                isActive={active?.id === suggestion.id}
+                onSelect={() => {
                   select(suggestion)
                 }}
-              >
-                <Typography noWrap>{suggestion.label}</Typography>
-                {suggestion.secondary === undefined ? null : (
-                  <Typography variant="body2" noWrap color="text.primary">
-                    {suggestion.secondary}
-                  </Typography>
-                )}
-              </Box>
+              />
             ))}
           </Box>
         </Paper>

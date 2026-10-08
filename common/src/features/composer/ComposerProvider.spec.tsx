@@ -252,7 +252,7 @@ describe('ComposerProvider', () => {
     expect(within(composer).getByRole('combobox', { name: 'Cc' })).toBeVisible()
   })
 
-  it('suggests the contacts of the server, without the ones already there', async () => {
+  it('suggests the contacts of the server, the ones already there ticked, as tmail-flutter', async () => {
     renderComposer(
       makeFakeJmapServer({
         capabilities: {
@@ -282,7 +282,9 @@ describe('ComposerProvider', () => {
     const option = await within(composer).findByRole('option', {
       name: /Zelda Contact/
     })
-    expect(within(composer).queryByRole('option', { name: /Zoe/ })).toBe(null)
+    expect(
+      within(composer).getByRole('option', { name: /Zoe.*already added/ })
+    ).toHaveAttribute('aria-disabled', 'true')
     await userEvent.click(option)
     expect(
       within(composer)

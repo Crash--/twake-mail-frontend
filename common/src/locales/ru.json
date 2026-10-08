@@ -393,7 +393,8 @@
       "addedMany": "Добавлен %{smart_count} получатель |||| Добавлено %{smart_count} получателя |||| Добавлено %{smart_count} получателей",
       "suggestionCount": "%{smart_count} предложение |||| %{smart_count} предложения |||| %{smart_count} предложений",
       "summary": "Показать всех получателей:",
-      "others": "+%{smart_count}"
+      "others": "+%{smart_count}",
+      "alreadyAdded": "уже добавлен"
     },
     "limit": "Можно писать не более %{smart_count} писем одновременно. Закройте одно, чтобы начать новое.",
     "sent": "Сообщение успешно отправлено",

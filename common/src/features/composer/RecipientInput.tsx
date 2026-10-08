@@ -68,18 +68,18 @@ export function RecipientInput({
 }: RecipientInputProps): ReactElement {
   const { t } = useI18n()
   const contacts = useContactSuggestions(inputValue)
+  // As tmail-flutter: the contacts already entered stay, ticked
   const suggestions = useMemo(
     () =>
-      contacts
-        .filter(contact => !hasRecipient(recipients, contact.emailAddress))
-        .map(contact => {
-          const name = contactName(contact)
-          return {
-            id: contact.emailAddress,
-            label: name ?? contact.emailAddress,
-            ...(name === null ? {} : { secondary: contact.emailAddress })
-          }
-        }),
+      contacts.map(contact => {
+        const name = contactName(contact)
+        return {
+          id: contact.emailAddress,
+          label: name ?? contact.emailAddress,
+          ...(name === null ? {} : { secondary: contact.emailAddress }),
+          isAdded: hasRecipient(recipients, contact.emailAddress)
+        }
+      }),
     [contacts, recipients]
   )
 
@@ -139,6 +139,7 @@ export function RecipientInput({
       labels={{
         field: label,
         suggestions: t('composer.recipients.suggestions'),
+        alreadyAdded: t('composer.recipients.alreadyAdded'),
         invalid: t('composer.recipients.invalid'),
         chipHelp: t('composer.recipients.chipHelp'),
         removed: address => t('composer.recipients.removed', { address }),

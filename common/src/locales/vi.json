@@ -393,7 +393,8 @@
       "addedMany": "Đã thêm %{smart_count} người nhận",
       "suggestionCount": "%{smart_count} gợi ý",
       "summary": "Hiện tất cả người nhận:",
-      "others": "+%{smart_count}"
+      "others": "+%{smart_count}",
+      "alreadyAdded": "đã thêm"
     },
     "limit": "Bạn có thể soạn %{smart_count} thư cùng lúc. Hãy đóng một thư để bắt đầu thư khác.",
     "sent": "Tin nhắn đã được gửi",

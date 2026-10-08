@@ -3,8 +3,9 @@ import type { RecipientFieldChip } from '@/ds/RecipientField/RecipientField'
 import { formatRecipient, isValidEmail, type Recipient } from './recipients'
 
 /**
- * The chips of recipients: their name or address, a one letter avatar
- * (decorative: the label is next to it), invalid ones flagged
+ * The chips of recipients: their name or address, a one letter avatar on
+ * the gradient of the address (decorative: the label is next to it), invalid
+ * ones flagged
  */
 export function recipientChips(
   recipients: readonly Recipient[]
@@ -16,7 +17,8 @@ export function recipientChips(
       label,
       title: formatRecipient(recipient),
       isInvalid: !isValidEmail(recipient.email),
-      avatar: label
+      avatar: label,
+      avatarKey: recipient.email
     }
   })
 }

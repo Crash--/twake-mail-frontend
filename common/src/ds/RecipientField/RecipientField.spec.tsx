@@ -13,6 +13,7 @@ import {
 const LABELS = {
   field: 'To',
   suggestions: 'Suggestions',
+  alreadyAdded: 'already added',
   invalid: 'invalid address',
   chipHelp: 'Delete removes, Enter edits',
   removed: (label: string) => `${label} removed`,
@@ -48,7 +49,10 @@ function Harness({
     input.length >= 2
       ? CONTACTS.filter(contact =>
           contact.label.toLowerCase().startsWith(input)
-        )
+        ).map(contact => ({
+          ...contact,
+          isAdded: chips.some(chip => chip.id === contact.id)
+        }))
       : []
   const add = (texts: string[]): void => {
     setChips(current => [
@@ -179,7 +183,7 @@ describe('RecipientField', () => {
     expect(input).toHaveFocus()
   })
 
-  it('picks a suggestion with the arrows and Enter', async () => {
+  it('highlights the first suggestion, as tmail-flutter, and picks one with the arrows and Enter', async () => {
     renderDs(<Harness />)
     const input = screen.getByRole('combobox', { name: 'To' })
 
@@ -187,7 +191,15 @@ describe('RecipientField', () => {
     expect(input).toHaveAttribute('aria-expanded', 'true')
     const listbox = screen.getByRole('listbox', { name: 'Suggestions' })
     expect(input).toHaveAttribute('aria-controls', listbox.id)
-    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    expect(input).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: /Alice/ }).id
+    )
+    // What is typed is in bold
+    expect(
+      screen.getByRole('option', { name: /Alice/ }).querySelector('b')
+    ).toHaveTextContent('Al')
+    await userEvent.keyboard('{ArrowDown}')
     expect(input).toHaveAttribute(
       'aria-activedescendant',
       screen.getByRole('option', { name: /Albert/ }).id
@@ -196,6 +208,17 @@ describe('RecipientField', () => {
     await userEvent.keyboard('{Enter}')
     expect(chipNames()).toEqual(['albert@example.com'])
     expect(screen.queryByRole('listbox')).toBe(null)
+  })
+
+  it('lists a suggestion already entered with a tick, and does not add it twice', async () => {
+    renderDs(<Harness initial={['alice@example.com']} />)
+    const input = screen.getByRole('combobox', { name: 'To' })
+
+    await userEvent.type(input, 'al')
+    const alice = screen.getByRole('option', { name: /Alice.*already added/ })
+    expect(alice).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(alice)
+    expect(chipNames()).toEqual(['alice@example.com'])
   })
 
   it('closes the suggestions with Escape before letting Escape go', async () => {

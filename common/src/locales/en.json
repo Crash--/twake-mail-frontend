@@ -393,7 +393,8 @@
       "addedMany": "%{smart_count} recipient added |||| %{smart_count} recipients added",
       "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
       "summary": "Show all the recipients:",
-      "others": "+%{smart_count}"
+      "others": "+%{smart_count}",
+      "alreadyAdded": "already added"
     },
     "limit": "You can write %{smart_count} messages at once. Close one to start another.",
     "sent": "Message has been sent successfully",

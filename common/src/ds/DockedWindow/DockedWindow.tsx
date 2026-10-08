@@ -30,15 +30,17 @@ import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 /** Where the window is: in the dock, its title bar only, or over the page */
 export type DockedWindowMode = 'normal' | 'minimized' | 'fullscreen'
 
-/** Size of a window in the dock, in px (tmail-flutter: 792) */
+/**
+ * A window alone in the dock is 55 % of the screen wide and 85 % high, as
+ * tmail-flutter's (`DesktopResponsiveContainerView`); several are 600 × 525
+ * px each
+ */
 export const DOCKED_WINDOW_WIDTH = 790
+export const SHARED_WINDOW_WIDTH = 600
+const SHARED_WINDOW_HEIGHT = 525
 /** Width of a minimized window (its title bar), in px */
 export const MINIMIZED_WINDOW_WIDTH = 400
-/**
- * tmail-flutter's composer reaches from under the search of the top bar to
- * 20 px above the bottom of the screen: the height of the screen less these
- */
-const DOCKED_WINDOW_TOP_ROOM = 138
+
 /** Height of a window on a tablet, measured on the design, in px */
 const TABLET_WINDOW_HEIGHT = 710
 const TITLE_BAR_HEIGHT = 52
@@ -50,11 +52,12 @@ const TITLE_SX = {
   color: '#000000'
 } as const
 /** Gap between the expanded window and the edges of the screen */
+// tmail-flutter's full screen composer: 85 % × 90 % of the screen, centred
 const FULLSCREEN_INSET = {
-  top: 64,
-  right: 'min(80px, 5vw)',
-  bottom: 72,
-  left: 'min(136px, 8vw)'
+  top: '5vh',
+  right: '7.5vw',
+  bottom: '5vh',
+  left: '7.5vw'
 } as const
 /** Material elevation 16, the shadow of tmail-flutter's composer */
 const WINDOW_SHADOW =
@@ -114,6 +117,8 @@ export interface DockedWindowProps {
   isTitleCentered?: boolean
   /** Tablets: taller than the window of a desktop */
   isTall?: boolean
+  /** Other windows share the dock: 525 px high rather than 85 % */
+  isShared?: boolean
   /** Width in the dock, in px (the dock shrinks windows to fit) */
   width?: number
   labels: DockedWindowLabels
@@ -172,6 +177,7 @@ export function DockedWindow({
   isTitleBarHidden = false,
   isTitleCentered = false,
   isTall = false,
+  isShared = false,
   width = DOCKED_WINDOW_WIDTH,
   labels,
   onModeChange,
@@ -341,7 +347,9 @@ export function DockedWindow({
                       ? TITLE_BAR_HEIGHT
                       : isTall
                         ? `min(${TABLET_WINDOW_HEIGHT}px, calc(100dvh - 96px))`
-                        : `calc(100dvh - ${DOCKED_WINDOW_TOP_ROOM}px)`
+                        : isShared
+                          ? `min(${SHARED_WINDOW_HEIGHT}px, calc(100dvh - 40px))`
+                          : '85dvh'
                   }
           ]}
           data-testid={testIds.window}
@@ -420,10 +428,10 @@ export function DockedWindow({
       {isFullscreen ? (
         <Backdrop
           open
-          // The dock lets clicks through: not the backdrop. Not dimmed
-          // outside the compact layout: the design shows the page as is
+          // The dock lets clicks through: not the backdrop
           sx={{
-            ...(isCompact ? {} : { backgroundColor: 'transparent' }),
+            // tmail-flutter dims the page behind (black at 38 %)
+            ...(isCompact ? {} : { backgroundColor: 'rgba(0, 0, 0, 0.38)' }),
             zIndex: theme => theme.zIndex.modal - 1,
             pointerEvents: 'auto',
             ...(viewTransitionName === undefined

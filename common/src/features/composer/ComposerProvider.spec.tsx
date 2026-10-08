@@ -470,7 +470,7 @@ describe('ComposerProvider', () => {
     }
 
     it('lists the composers the dock has no room for, and brings one back', async () => {
-      window.innerWidth = 1700
+      window.innerWidth = 1300
       await restoreComposers(['First', 'Second', 'Third'])
       renderComposer()
 

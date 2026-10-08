@@ -670,7 +670,8 @@ export function ComposerProvider({
               mode={shownMode(fittedModes[index])}
               isModal={!isDesktop}
               isTablet={isTablet}
-              width={dockedWindowWidth(screenWidth)}
+              isShared={entries.length > 1}
+              width={dockedWindowWidth(screenWidth, entries.length)}
               // Over the page: the menu goes in the window shown
               titleBarActions={!isDesktop && index === 0 ? overflowMenu : null}
               setMode={setMode}
@@ -703,6 +704,8 @@ interface ComposerSlotProps {
   mode: DockedWindowMode | null
   isModal: boolean
   isTablet: boolean
+  /** Other windows share the dock */
+  isShared: boolean
   /** Width of a window in the dock, in px */
   width: number
   titleBarActions: ReactNode
@@ -726,6 +729,7 @@ function ComposerSlot({
   mode,
   isModal,
   isTablet,
+  isShared,
   width,
   titleBarActions,
   setMode,
@@ -794,6 +798,7 @@ function ComposerSlot({
         isTitleBarHidden
         isTitleCentered={isTablet}
         isTall={isTablet}
+        isShared={isShared}
         width={width}
         titleBarActions={titleBarActions}
         // Its own layer in the view transitions of the navigations: not

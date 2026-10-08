@@ -2,6 +2,7 @@ import { DOCK_GAP, DOCK_MARGIN, OVERFLOW_MENU_WIDTH } from './WindowDock'
 import {
   DOCKED_WINDOW_WIDTH,
   MINIMIZED_WINDOW_WIDTH,
+  SHARED_WINDOW_WIDTH,
   type DockedWindowMode
 } from './DockedWindow'
 
@@ -11,15 +12,27 @@ export type FittedWindowMode = DockedWindowMode | 'overflow'
 /** A window does not shrink below this: a narrower screen minimizes it */
 const MIN_DOCKED_WINDOW_WIDTH = 552
 
+/** From this width, tmail-flutter's desktop composer */
+const DESKTOP_SCREEN_WIDTH = 1200
+
 /**
- * Width of a window in the dock on a screen `screenWidth` wide: 790 px,
- * less where the screen leaves no room for it, down to 552 px (a tablet)
+ * Width of a window in the dock on a screen `screenWidth` wide, as
+ * tmail-flutter: on a desktop, 55 % of the screen when it is alone, 600 px
+ * each when the dock holds several; 790 px on a tablet; less where the
+ * screen leaves no room for it, down to 552 px (a tablet)
  */
-export function dockedWindowWidth(screenWidth: number): number {
+export function dockedWindowWidth(
+  screenWidth: number,
+  windowCount = 1
+): number {
+  const wanted =
+    windowCount > 1
+      ? SHARED_WINDOW_WIDTH
+      : screenWidth >= DESKTOP_SCREEN_WIDTH
+        ? Math.round(screenWidth * 0.55)
+        : DOCKED_WINDOW_WIDTH
   const room = screenWidth - 2 * DOCK_MARGIN
-  return room >= MIN_DOCKED_WINDOW_WIDTH
-    ? Math.min(DOCKED_WINDOW_WIDTH, room)
-    : DOCKED_WINDOW_WIDTH
+  return room >= MIN_DOCKED_WINDOW_WIDTH ? Math.min(wanted, room) : wanted
 }
 
 function fitInRoom(
@@ -61,7 +74,7 @@ export function fitWindows(
   screenWidth: number
 ): FittedWindowMode[] {
   const room = screenWidth - 2 * DOCK_MARGIN
-  const windowWidth = dockedWindowWidth(screenWidth)
+  const windowWidth = dockedWindowWidth(screenWidth, wanted.length)
   const fitted = fitInRoom(wanted, room, false, windowWidth)
   if (!fitted.includes('overflow')) return fitted
   // The menu sits at the start of the line: the windows share what is left

@@ -1001,6 +1001,8 @@
       "noAction": "You have not added a action to the rule.",
       "noFolder": "Please select a mailbox to move the message",
       "noSpam": "Spam folder not found",
+      "noForwardAddress": "Please input at least one recipient",
+      "invalidForwardAddress": "Incorrect email format",
       "load": "The rules could not be loaded",
       "delete": "The rule could not be deleted"
     },
@@ -1031,7 +1033,10 @@
       "rejectAlone": "Rejected emails get no other action",
       "preview": "Preview",
       "conditionsPreview": "%{combiner} of the conditions: %{conditions}",
-      "actionsPreview": "Actions: %{actions}"
+      "actionsPreview": "Actions: %{actions}",
+      "forwardAddresses": "Recipients",
+      "forwardPlaceholder": "Enter email address",
+      "keepACopy": "Keep a copy"
     },
     "combiners": {
       "AND": "All",
@@ -1055,7 +1060,8 @@
       "seen": "Mark as seen",
       "star": "Star it",
       "reject": "Reject it",
-      "spam": "Mark as spam"
+      "spam": "Mark as spam",
+      "forward": "Forward to"
     },
     "reject": {
       "title": "Reject all emails matching this condition?",

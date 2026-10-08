@@ -1,6 +1,7 @@
 import type { Rule } from 'jmap-client-ts/linagora'
 
 import {
+  actionDraft,
   draftFromRule,
   newRuleDraft,
   ruleDraftProblem,
@@ -34,33 +35,33 @@ describe('rules', () => {
       conditions: [
         { field: 'from', comparator: 'contains', value: 'bob@example.com' }
       ],
-      actions: [{ kind: null, mailboxId: null }]
+      actions: [actionDraft()]
     })
   })
 
   it('starts a rule from a folder with the action moving to it', () => {
     expect(newRuleDraft(null, { id: 'work', role: null }).actions).toEqual([
-      { kind: 'move', mailboxId: 'work' }
+      actionDraft('move', { mailboxId: 'work' })
     ])
   })
 
   it('starts a rule from Spam with the action marking as spam', () => {
     expect(newRuleDraft(null, { id: 'spam', role: 'junk' }).actions).toEqual([
-      { kind: 'spam', mailboxId: null }
+      actionDraft('spam')
     ])
   })
 
   it('edits a rule and keeps what the creator does not show', () => {
     const draft = draftFromRule(ARCHIVE_RULE, SPAM)
     expect(draft.actions).toEqual([
-      { kind: 'move', mailboxId: 'mailbox-archive' },
-      { kind: 'seen', mailboxId: null }
+      actionDraft('move', { mailboxId: 'mailbox-archive' }),
+      actionDraft('seen')
     ])
 
     const saved = ruleFromDraft(
       {
         ...draft,
-        actions: [...draft.actions, { kind: 'star', mailboxId: null }]
+        actions: [...draft.actions, actionDraft('star')]
       },
       SPAM,
       ARCHIVE_RULE
@@ -74,7 +75,8 @@ describe('rules', () => {
         markAsSeen: true,
         markAsImportant: true,
         reject: false,
-        withKeywords: ['list']
+        withKeywords: ['list'],
+        forwardTo: null
       }
     })
   })
@@ -84,15 +86,55 @@ describe('rules', () => {
       {
         ...newRuleDraft('spammer@example.com'),
         name: ' Spam ',
-        actions: [{ kind: 'spam', mailboxId: null }]
+        actions: [actionDraft('spam')]
       },
       SPAM
     )
     expect(rule.name).toBe('Spam')
     expect(rule.action.appendIn.mailboxIds).toEqual([SPAM])
+    expect(draftFromRule(rule, SPAM).actions).toEqual([actionDraft('spam')])
+  })
+
+  it('forwards to the typed addresses, keeping a copy or not', () => {
+    const rule = ruleFromDraft(
+      {
+        ...newRuleDraft('boss@example.com'),
+        name: 'Boss',
+        actions: [
+          actionDraft('forward', {
+            forwardAddresses: 'alice@example.com, Bob <bob@example.com>',
+            keepACopy: false
+          })
+        ]
+      },
+      SPAM
+    )
+    expect(rule.action.forwardTo).toEqual({
+      addresses: ['alice@example.com', 'bob@example.com'],
+      keepACopy: false
+    })
     expect(draftFromRule(rule, SPAM).actions).toEqual([
-      { kind: 'spam', mailboxId: null }
+      actionDraft('forward', {
+        forwardAddresses: 'alice@example.com, bob@example.com',
+        keepACopy: false
+      })
     ])
+  })
+
+  it('drops the forward of a rule when its action is removed', () => {
+    const forwarding: Rule = {
+      ...ARCHIVE_RULE,
+      action: {
+        ...ARCHIVE_RULE.action,
+        forwardTo: { addresses: ['alice@example.com'], keepACopy: true }
+      }
+    }
+    const saved = ruleFromDraft(
+      { ...draftFromRule(forwarding, SPAM), actions: [actionDraft('seen')] },
+      SPAM,
+      forwarding
+    )
+    expect(saved.action.forwardTo).toBe(null)
   })
 
   it('rejects without any other action', () => {
@@ -100,8 +142,9 @@ describe('rules', () => {
       {
         ...newRuleDraft('x@example.com'),
         actions: [
-          { kind: 'reject', mailboxId: null },
-          { kind: 'seen', mailboxId: null }
+          actionDraft('reject'),
+          actionDraft('seen'),
+          actionDraft('forward', { forwardAddresses: 'alice@example.com' })
         ]
       },
       SPAM
@@ -110,7 +153,8 @@ describe('rules', () => {
       appendIn: { mailboxIds: [] },
       markAsSeen: false,
       markAsImportant: false,
-      reject: true
+      reject: true,
+      forwardTo: null
     })
   })
 
@@ -138,22 +182,29 @@ describe('rules', () => {
     )
     expect(ruleDraftProblem(draft, SPAM)).toBe('rules.errors.noAction')
     expect(
-      ruleDraftProblem(
-        { ...draft, actions: [{ kind: 'move', mailboxId: null }] },
-        SPAM
-      )
+      ruleDraftProblem({ ...draft, actions: [actionDraft('move')] }, SPAM)
     ).toBe('rules.errors.noFolder')
     expect(
-      ruleDraftProblem(
-        { ...draft, actions: [{ kind: 'spam', mailboxId: null }] },
-        null
-      )
+      ruleDraftProblem({ ...draft, actions: [actionDraft('spam')] }, null)
     ).toBe('rules.errors.noSpam')
     expect(
+      ruleDraftProblem({ ...draft, actions: [actionDraft('forward')] }, SPAM)
+    ).toBe('rules.errors.noForwardAddress')
+    expect(
       ruleDraftProblem(
-        { ...draft, actions: [{ kind: 'seen', mailboxId: null }] },
+        {
+          ...draft,
+          actions: [
+            actionDraft('forward', {
+              forwardAddresses: 'alice@example.com, bob'
+            })
+          ]
+        },
         SPAM
       )
+    ).toBe('rules.errors.invalidForwardAddress')
+    expect(
+      ruleDraftProblem({ ...draft, actions: [actionDraft('seen')] }, SPAM)
     ).toBe(null)
   })
 })

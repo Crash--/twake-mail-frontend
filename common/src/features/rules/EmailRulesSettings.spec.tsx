@@ -125,7 +125,8 @@ describe('EmailRulesSettings', () => {
           appendIn: { mailboxIds: [] },
           markAsSeen: false,
           markAsImportant: false,
-          reject: true
+          reject: true,
+          forwardTo: null
         }
       },
       NEWSLETTERS
@@ -238,7 +239,65 @@ describe('EmailRulesSettings', () => {
           markAsSeen: true,
           markAsImportant: true,
           reject: false,
-          withKeywords: []
+          withKeywords: [],
+          forwardTo: null
+        }
+      }
+    ])
+  })
+
+  it('creates a rule forwarding to valid addresses', async () => {
+    const { filter } = setup([], { newRuleFrom: 'boss@example.com' })
+
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Create a New Rule'
+    })
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Rule Name' }),
+      'Boss'
+    )
+    await userEvent.selectOptions(
+      within(dialog).getByRole('combobox', { name: 'Action 1' }),
+      'Forward to'
+    )
+    const recipients = within(dialog).getByRole('textbox', {
+      name: 'Recipients'
+    })
+    await userEvent.type(recipients, 'alice@example.com, bob')
+    await userEvent.click(within(dialog).getByTestId('create-rule-button'))
+
+    expect(within(dialog).getByRole('alert')).toHaveTextContent(
+      'Incorrect email format'
+    )
+    expect(recipients).toHaveAttribute('aria-invalid', 'true')
+
+    await userEvent.type(recipients, '@example.com')
+    await userEvent.click(
+      within(dialog).getByRole('checkbox', { name: 'Keep a copy' })
+    )
+    await userEvent.click(within(dialog).getByTestId('create-rule-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'New filter was created'
+    )
+    expect(filter.rules()).toEqual([
+      {
+        name: 'Boss',
+        conditionGroup: {
+          conditionCombiner: 'AND',
+          conditions: [
+            { field: 'from', comparator: 'contains', value: 'boss@example.com' }
+          ]
+        },
+        action: {
+          appendIn: { mailboxIds: [] },
+          markAsSeen: false,
+          markAsImportant: false,
+          reject: false,
+          forwardTo: {
+            addresses: ['alice@example.com', 'bob@example.com'],
+            keepACopy: false
+          }
         }
       }
     ])

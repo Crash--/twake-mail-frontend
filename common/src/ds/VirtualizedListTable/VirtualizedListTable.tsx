@@ -176,17 +176,16 @@ export function makeRowLayoutSx({
     '&.Mui-selected .MuiTableCell-root:last-of-type': {
       borderRadius: '0 8px 8px 0'
     },
-    // tmail-flutter's hovered row: light grey, rounded by 14 px
+    // tmail-flutter's hovered row: light grey, rounded by 14 px; a selected
+    // one stays light blue under the pointer
     '&.MuiTableRow-hover:hover': { backgroundColor: 'transparent' },
-    '&.MuiTableRow-hover:hover .MuiTableCell-root': {
+    '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root': {
       backgroundColor: ROW_HOVER_COLOR
     },
-    '&.MuiTableRow-hover:hover .MuiTableCell-root:first-of-type': {
-      borderRadius: '14px 0 0 14px'
-    },
-    '&.MuiTableRow-hover:hover .MuiTableCell-root:last-of-type': {
-      borderRadius: '0 14px 14px 0'
-    },
+    '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root:first-of-type':
+      { borderRadius: '14px 0 0 14px' },
+    '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root:last-of-type':
+      { borderRadius: '0 14px 14px 0' },
     '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
   }
 }

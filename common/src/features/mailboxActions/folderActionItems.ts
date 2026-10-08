@@ -1,4 +1,4 @@
-import { Tab, type IconProps } from '@linagora/twake-icons'
+import type { IconProps } from '@linagora/twake-icons'
 
 import {
   isHiddenMailbox,
@@ -13,6 +13,7 @@ import {
   FolderAdd,
   MoveMailbox,
   Moveto,
+  Openwith,
   Rename,
   Restore,
   Trash
@@ -45,7 +46,8 @@ export interface FolderActionItem {
 const ITEMS: Record<FolderActionId, Omit<FolderActionItem, 'id'>> = {
   'open-in-new-tab': {
     label: 'folders.menu.openInNewTab',
-    icon: Tab,
+    // tmail-flutter's `ic_open_in_new_tab`
+    icon: Openwith,
     isDestructive: false
   },
   'create-filter': {

@@ -55,6 +55,7 @@ export function RowHoverActions({
         </Box>
         <Box
           className="u-flex u-flex-items-center u-flex-justify-end"
+          data-row-actions=""
           sx={{
             position: 'absolute',
             right: 0,
@@ -78,6 +79,7 @@ export function RowHoverActions({
   return (
     <Box
       className="u-flex u-flex-items-center u-flex-justify-end"
+      data-row-actions=""
       sx={{
         // Transparent rather than hidden: the actions stay in the tab
         // order, in both directions, and show up once they get the focus

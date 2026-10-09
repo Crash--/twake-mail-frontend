@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { EmailOpen } from '@/ds/FlutterIcons/FlutterIcons'
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
+import { EmailSubjectBar } from '@/ds/EmailSubject/EmailSubjectBar'
 import {
   firstLetterOf,
   GradientAvatar
@@ -109,22 +110,25 @@ function EmailContent({
   return (
     <ReadingPane data-testid="email-view">
       <ReadingToolbar onBack={onBack} navigation={navigation} />
-      <Box className="u-ph-1 u-pt-1 u-flex-auto">
-        <InlineGroup gap={2} align="center">
-          <EmailSubject ref={subjectRef} data-testid="email-view-subject">
-            {email.subject ?? ''}
-          </EmailSubject>
+      <EmailSubjectBar
+        end={
           <EmailLabels
             emails={[email]}
             mailboxId={mailboxId ?? null}
             size="small"
             className=""
           />
-        </InlineGroup>
+        }
+      >
+        <EmailSubject ref={subjectRef} data-testid="email-view-subject">
+          {email.subject ?? ''}
+        </EmailSubject>
+      </EmailSubjectBar>
+      {/* As tmail-flutter: 16 px under the subject, 16 more over the header */}
+      <Box className="u-ph-1 u-pt-1 u-flex-auto">
         {showsImportant ? <ImportantMark showLabel /> : null}
         <EmailActionRequiredTag email={email} mailboxId={mailboxId ?? null} />
         <MessageHeader
-          className="u-mt-1"
           avatar={
             isDangerous ? (
               <WarningAvatarBadge

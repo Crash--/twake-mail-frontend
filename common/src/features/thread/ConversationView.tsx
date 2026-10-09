@@ -19,8 +19,8 @@ import {
   Warning
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
+import { EmailSubjectBar } from '@/ds/EmailSubject/EmailSubjectBar'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
-import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageThread } from '@/ds/MessageThread/MessageThread'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
@@ -302,25 +302,24 @@ function ConversationContent({
       >
         <ConversationMenu items={menuItems} />
       </ReadingToolbar>
-      <Box
-        className="u-ph-1 u-pt-1 u-pb-half"
-        data-testid="conversation-header"
-      >
-        <InlineGroup gap={2} align="center">
-          <EmailSubject
-            ref={subjectRef}
-            id={subjectId}
-            data-testid="conversation-subject"
-          >
-            {subject}
-          </EmailSubject>
+      <EmailSubjectBar
+        end={
           <EmailLabels
             emails={emails}
             mailboxId={null}
             size="small"
             className=""
           />
-        </InlineGroup>
+        }
+        data-testid="conversation-header"
+      >
+        <EmailSubject
+          ref={subjectRef}
+          id={subjectId}
+          data-testid="conversation-subject"
+        >
+          {subject}
+        </EmailSubject>
         <SecondaryText
           variant="body2"
           component="p"
@@ -330,7 +329,7 @@ function ConversationContent({
         >
           {t('thread.messageCount', { smart_count: emails.length })}
         </SecondaryText>
-      </Box>
+      </EmailSubjectBar>
       <MessageThread label={t('thread.messages')} data-testid="conversation">
         {emails.map(email => (
           <ConversationMessage

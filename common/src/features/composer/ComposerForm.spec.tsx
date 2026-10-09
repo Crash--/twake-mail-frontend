@@ -2052,7 +2052,8 @@ describe('ComposerForm', () => {
       expect(
         within(composer).queryByRole('list', { name: /Attachments/ })
       ).toBe(null)
-    })
+      // An upload, a save and a removal: over 5 s on a loaded CI runner
+    }, 15_000)
 
     it('cancels an upload removed while it runs', async () => {
       const jmapServer = makeFakeJmapServer()

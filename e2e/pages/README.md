@@ -337,3 +337,4 @@ Conventions:
 | `composer-saving-template-dialog` | the dialog shown while "Save as template" saves, as tmail-flutter (`SavingTemplateDialogView`): title, status and an indeterminate progress | — |
 | `labels-section-toggle` | the header of the labels of the sidebar folds them, as the folders (`folders-section-toggle`) | — |
 | `email-list-item-event-icon` | the calendar of a row whose email carries a calendar event (`X-MEETING-UID` header), before the subject, as tmail-flutter; decorative, the row link says "Event invitation" | — |
+| `theme-setting` / `theme-setting-light` / `theme-setting-dark` / `theme-setting-auto` | Settings > Preferences: the theme (`role="radiogroup"`), the `appearance.theme` setting of the account; only when the server lets it change (not in `readOnlyProperties`) | — |

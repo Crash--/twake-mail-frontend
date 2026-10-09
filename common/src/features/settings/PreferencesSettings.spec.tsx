@@ -1,7 +1,10 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_ACCOUNT_ID,
+  makeFakeJmapServer
+} from '@common/testing/fakeJmapServer'
 import {
   FAKE_LINAGORA_CAPABILITIES,
   installFakeSettings
@@ -12,6 +15,7 @@ import { ACCESSIBILITY_PREFERENCE_STORAGE_KEY } from './accessibilityPreference'
 import { SPAM_REPORT_PREFERENCE_STORAGE_KEY } from './spamReportPreference'
 import { PreferencesSettings } from './PreferencesSettings'
 import { SETTINGS_SECTIONS, type SettingsSection } from './sections'
+import { THEME_PREFERENCE_STORAGE_KEY } from './themePreference'
 
 function preferencesSection(): SettingsSection {
   const section = SETTINGS_SECTIONS.find(({ id }) => id === 'preferences')
@@ -20,6 +24,99 @@ function preferencesSection(): SettingsSection {
 }
 
 describe('PreferencesSettings', () => {
+  afterEach(() => {
+    window.localStorage.removeItem(THEME_PREFERENCE_STORAGE_KEY)
+  })
+
+  it('offers the theme, shown at once and kept on the server', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    const settings = installFakeSettings(server)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { jmapServer: server, withJmapSession: true }
+    )
+
+    const themes = await screen.findByRole('radiogroup', { name: 'Theme' })
+    expect(themes).toHaveAccessibleDescription(
+      'The colours of the app. Auto follows the setting of your device.'
+    )
+    // Light without a setting of the account
+    expect(screen.getByRole('radio', { name: 'Light' })).toBeChecked()
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Dark' }))
+    expect(screen.getByRole('radio', { name: 'Dark' })).toBeChecked()
+    expect(window.localStorage.getItem(THEME_PREFERENCE_STORAGE_KEY)).toBe(
+      'dark'
+    )
+    await waitFor(() => {
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    })
+    await waitFor(() => {
+      expect(settings.settings()).toEqual({ 'appearance.theme': 'dark' })
+    })
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Auto' }))
+    await waitFor(() => {
+      expect(settings.settings()).toEqual({ 'appearance.theme': 'auto' })
+    })
+    expect(window.localStorage.getItem(THEME_PREFERENCE_STORAGE_KEY)).toBe(
+      'auto'
+    )
+  })
+
+  it('goes back to the previous theme when the server refuses it', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeSettings(server)
+    server.handlers.set('Settings/set', () => ({
+      accountId: FAKE_ACCOUNT_ID,
+      notUpdated: { singleton: { type: 'forbidden' } }
+    }))
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { jmapServer: server, withJmapSession: true }
+    )
+
+    await userEvent.click(await screen.findByRole('radio', { name: 'Dark' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Light' })).toBeChecked()
+    })
+    expect(window.localStorage.getItem(THEME_PREFERENCE_STORAGE_KEY)).toBe(
+      'light'
+    )
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'An error occurred'
+    )
+  })
+
+  it('does not offer the theme when the server keeps it read-only', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: {
+        ...FAKE_LINAGORA_CAPABILITIES,
+        'com:linagora:params:jmap:settings': {
+          readOnlyProperties: ['appearance.theme']
+        }
+      }
+    })
+    installFakeSettings(server, { 'appearance.theme': 'dark' })
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { jmapServer: server, withJmapSession: true }
+    )
+
+    // The other settings of the account are there
+    expect(
+      await screen.findByRole('switch', {
+        name: 'Always request read receipts with outgoing messages'
+      })
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Theme' })).toBe(null)
+  })
+
   it('changes the server preferences, with their defaults', async () => {
     const server = makeFakeJmapServer({
       capabilities: FAKE_LINAGORA_CAPABILITIES
@@ -72,6 +169,7 @@ describe('PreferencesSettings', () => {
     // Thread, spam report and accessibility: no labels, no Drive, no server
     // settings
     expect(screen.getAllByRole('switch')).toHaveLength(3)
+    expect(screen.queryByRole('radiogroup', { name: 'Theme' })).toBe(null)
   })
 
   it('turns the spam report off, kept in this browser', async () => {

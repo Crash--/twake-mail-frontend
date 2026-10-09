@@ -18,7 +18,8 @@ export function ColorSchemeSync(): ReactElement | null {
 
   // Before the first paint: twake-mui starts light whatever the page says
   useLayoutEffect(() => {
-    setMode(preference)
+    // `auto` of the setting is the `system` mode of twake-mui
+    setMode(preference === 'auto' ? 'system' : preference)
   }, [preference, setMode])
 
   useEffect(() => {

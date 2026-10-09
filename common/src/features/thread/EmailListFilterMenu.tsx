@@ -12,10 +12,10 @@ import { useId, useRef, useState, type ReactElement } from 'react'
 
 import {
   Attachment,
-  Check,
   Cross,
   EmailNotification,
   Filter,
+  FilterSelected,
   StarOutline
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
@@ -33,6 +33,9 @@ const OPTION_ICONS: Readonly<Record<ListFilterOption, IconProps['icon']>> = {
   unread: EmailNotification,
   starred: StarOutline
 }
+
+/** tmail-flutter's `AppColor.primaryMain` */
+const SELECTED_COLOR = '#0A84FF'
 
 export interface EmailListFilterMenuProps {
   current: ListFilter
@@ -140,12 +143,20 @@ export function EmailListFilterMenu({
             }}
             data-testid={`quick-filter-${option}`}
           >
-            {/* As tmail-flutter: the icon of the filter, the tick after */}
+            {/* As tmail-flutter: the icon of the filter, then its blue disc
+                with a tick (icFilterSelected) 16 px after the name */}
             <ListItemIcon>
               <Icon icon={OPTION_ICONS[option]} />
             </ListItemIcon>
             <ListItemText primary={t(listFilterLabelKey(option))} />
-            {current === option ? <Icon icon={Check} /> : null}
+            {current === option ? (
+              <Icon
+                icon={FilterSelected}
+                size={16}
+                color={SELECTED_COLOR}
+                className="u-ml-1 u-flex-shrink-0"
+              />
+            ) : null}
           </MenuItem>
         ))}
       </Menu>

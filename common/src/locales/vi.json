@@ -1107,6 +1107,7 @@
     "deselectAll": "Bỏ chọn tất cả (%{count})",
     "remove": "Xóa",
     "deleteAll": {
+      "title": "Xoá người nhận",
       "message": "Bạn có chắc chắn muốn xóa những người nhận đó không? Thao tác này sẽ xóa họ khỏi danh sách."
     },
     "selectOf": "Chọn %{email}"

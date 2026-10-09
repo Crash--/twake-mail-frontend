@@ -191,7 +191,7 @@ export function ForwardSettings({
   const handleRemoveSelected = (): void => {
     const run = async (): Promise<void> => {
       const isConfirmed = await confirm({
-        title: t('forward.delete.title'),
+        title: t('forward.deleteAll.title'),
         message: t('forward.deleteAll.message'),
         confirmLabel: t('forward.remove'),
         isDestructive: true

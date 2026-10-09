@@ -1107,6 +1107,7 @@
     "deselectAll": "Deselect all (%{count})",
     "remove": "Remove",
     "deleteAll": {
+      "title": "Remove recipients",
       "message": "Are you sure you want to remove those recipients? Doing this will remove them from the email chain."
     },
     "selectOf": "Select %{email}"

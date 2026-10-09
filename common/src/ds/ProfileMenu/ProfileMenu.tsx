@@ -25,14 +25,19 @@ import { Copy, CrossSmall } from '@/ds/FlutterIcons/FlutterIcons'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BUTTON_SX = {
+  // tmail-flutter's `SizedBox(width: 16)` before the avatar
+  ml: '16px',
   width: 48,
   height: 48,
   borderRadius: '50%',
   bgcolor: TMAIL.surface,
   color: TMAIL.textBlack,
+  // A button does not inherit the font of the page: Inter, as tmail-flutter
+  fontFamily: 'inherit',
   fontSize: 20,
   fontWeight: 500,
-  boxShadow: '0 0.5px 1px 1px rgba(0, 0, 0, 0.04)'
+  // tmail-flutter's `colorShadowBgContentEmail` (#14000000)
+  boxShadow: '0 0.5px 1px 1px rgba(0, 0, 0, 0.08)'
 } as const
 
 const PAPER_SX = {

@@ -2,11 +2,11 @@ import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import {
-  Account,
-  Attachment,
-  Calendar,
+  AttachmentSB,
+  CalendarSB,
   SelectedCheck,
-  StarOutline
+  StarOutline,
+  UserSB
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { useI18n } from '@common/i18n/useI18n'
@@ -47,7 +47,7 @@ export function QuickSearchFilters({
       <span className="u-mr-half u-mb-half">
         <FilterChip
           label={t('search.filters.hasAttachment')}
-          icon={Attachment}
+          icon={AttachmentSB}
           selectedIcon={SelectedCheck}
           isSelected={filter.hasAttachment}
           keepFocus
@@ -60,7 +60,7 @@ export function QuickSearchFilters({
       <span className="u-mr-half u-mb-half">
         <FilterChip
           label={t('search.dates.last7Days')}
-          icon={Calendar}
+          icon={CalendarSB}
           selectedIcon={SelectedCheck}
           isSelected={isLast7Days}
           keepFocus
@@ -78,7 +78,7 @@ export function QuickSearchFilters({
       <span className="u-mr-half u-mb-half">
         <FilterChip
           label={t('search.filters.fromMe')}
-          icon={Account}
+          icon={UserSB}
           selectedIcon={SelectedCheck}
           isSelected={isFromMe}
           keepFocus

@@ -1,17 +1,26 @@
 // Upstream to twake-ui: yes. The search filters of tmail-flutter
 // (`SearchFilterButton`) are flat chips (#ECEEF1, no border, a 10 px radius,
-// 12 px on the sides) with a 16 px icon and Inter Regular 13 in dark grey
-// (#686E76), an optional chevron, and the primary colour at 6 % with a cross
-// once applied. twake-mui's `Chip` is outlined or filled with a solid primary
+// 12 px on the sides) with a 16 px icon 4 px before Inter Regular 13 in dark
+// grey (#686E76), an optional grey chevron 8 px after it, and the primary
+// colour at 6 % (on the background and the icon only) with a 10 px grey
+// cross once applied. twake-mui's `Chip` is outlined or filled with a solid primary
 // colour, and needs `sx` for that background (docs/twake-mui-gaps.md).
 import { Icon, type IconProps } from '@linagora/twake-icons'
-import { Chip, type SxProps, type Theme } from '@linagora/twake-mui'
+import { Box, Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
-import { Bottom, CrossSmall } from '@/ds/FlutterIcons/FlutterIcons'
+import { DeleteSelection, Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const CHIP_BACKGROUND = TMAIL.fillChip
 const CHIP_COLOR = TMAIL.greyDark
+
+/** `AppColor.colorTextBody`: the chevron and the cross */
+const END_COLOR = TMAIL.grey
+
+/** icDeleteSelection: 10 px, its 8 px padding taken by the label gap */
+const CROSS_SX = { display: 'flex', px: '3px', color: END_COLOR } as const
+
+const CHEVRON_SX = { display: 'flex', color: END_COLOR } as const
 
 const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
   height: 34,
@@ -21,7 +30,7 @@ const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
   fontSize: 13,
   fontWeight: 400,
   letterSpacing: 0,
-  color: isSelected ? 'primary.main' : CHIP_COLOR,
+  color: CHIP_COLOR,
   bgcolor: theme =>
     isSelected
       ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 6%, transparent)`
@@ -33,12 +42,13 @@ const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
         : `color-mix(in srgb, ${CHIP_COLOR} 16%, ${CHIP_BACKGROUND})`
   },
   '& .MuiChip-icon': {
-    ml: 1,
+    ml: '8px',
     mr: 0,
     fontSize: 16,
     color: isSelected ? 'primary.main' : CHIP_COLOR
   },
-  '& .MuiChip-label': { px: 1 }
+  '& .MuiChip-label': { pl: '8px', pr: '8px' },
+  '& .MuiChip-icon + .MuiChip-label': { pl: '4px' }
 })
 
 export interface FilterChipProps {
@@ -101,9 +111,13 @@ export function FilterChip({
       icon={leadingIcon === undefined ? undefined : <Icon icon={leadingIcon} />}
       endIcon={
         popup !== undefined ? (
-          <Icon icon={Bottom} size={16} />
+          <Box component="span" sx={CHEVRON_SX}>
+            <Icon icon={Dropdown} size={16} />
+          </Box>
         ) : isSelected ? (
-          <Icon icon={CrossSmall} />
+          <Box component="span" sx={CROSS_SX}>
+            <Icon icon={DeleteSelection} size={10} />
+          </Box>
         ) : undefined
       }
       sx={CHIP_SX(isSelected)}

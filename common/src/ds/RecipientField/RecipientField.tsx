@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
   type ClipboardEvent,
+  type DragEvent,
   type FocusEvent,
   type KeyboardEvent,
   type ReactElement,
@@ -33,6 +34,13 @@ import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { initialsOf } from './initials'
 import { RecipientAvatar } from './RecipientAvatar'
+import {
+  currentRecipientDrag,
+  endRecipientDrag,
+  readRecipientDrag,
+  RECIPIENT_DRAG_TYPE,
+  startRecipientDrag
+} from './recipientDrag'
 import { SuggestionOption } from './SuggestionOption'
 
 const POPUP_SX = { zIndex: 'modal' } as const
@@ -141,6 +149,58 @@ export const RECIPIENT_CHIP_SX = {
     borderColor: TMAIL.primary
   }
 } as const
+/**
+ * A tag being dragged, and the copy under the pointer: tmail-flutter's
+ * `DraggableRecipientTagWidget`, blue with a white name
+ */
+const DRAGGED_CHIP_SX = {
+  ...RECIPIENT_CHIP_SX,
+  borderColor: '#007AFF',
+  bgcolor: '#007AFF',
+  color: '#FFFFFF',
+  '&:focus, &.Mui-focusVisible': {
+    bgcolor: '#007AFF',
+    borderColor: '#007AFF'
+  }
+} as const
+/** Tags that can be dragged show it (tmail-flutter's `grab` cursor) */
+const GRAB_SX = { cursor: 'grab' } as const
+/**
+ * A field a dragged tag (or email) may land in: tmail-flutter's 1 px blue
+ * border, rounded by 10 px, drawn inside so nothing moves
+ */
+const DROP_OVER_SX = {
+  borderRadius: '10px',
+  boxShadow: 'inset 0 0 0 1px #007AFF'
+} as const
+/**
+ * tmail-flutter's advanced search field of addresses: 40 px high at
+ * least, a 1 px #E6E1E5 border rounded by 10 px (blue while it has the
+ * focus or a tag is dragged over it), white, the chips 4 px apart
+ */
+const OUTLINED_SX = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  minHeight: 40,
+  boxSizing: 'border-box',
+  px: '12px',
+  py: '3px',
+  border: '1px solid #E6E1E5',
+  borderRadius: '10px',
+  bgcolor: '#FFFFFF',
+  '&:focus-within': { borderColor: '#007AFF' },
+  // The row of a form outlines its inputs: not the one inside the field
+  '&& .MuiInputBase-root': {
+    border: 'none',
+    minHeight: 32,
+    p: 0,
+    bgcolor: 'transparent'
+  },
+  '&& .MuiInputBase-input': { p: 0, height: '24px', fontSize: 14 }
+} as const
+const OUTLINED_OVER_SX = { ...OUTLINED_SX, borderColor: '#007AFF' } as const
+const OUTLINED_CONTENT_SX = { ...CONTENT_SX, minHeight: 32 } as const
+
 /** An invalid tag, as tmail-flutter's: white, with a red border */
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
@@ -205,6 +265,29 @@ export interface RecipientFieldLabels {
   added: (labels: readonly string[]) => string
 }
 
+/**
+ * Tags moving between the fields of a group by drag and drop, as in
+ * tmail-flutter (To, Cc and Bcc of a composer), and other things dropped
+ * on the field (emails of the list)
+ */
+export interface RecipientFieldDnd {
+  /** Fields of one group exchange tags, e.g. those of one composer */
+  group: string
+  /** This field, in its group */
+  field: string
+  /** The tag `id` of the field `from` of the group was dropped here */
+  onMoveIn: (from: string, id: string) => void
+  /**
+   * The keyboard way of the same move (dragging is pointer only): Alt +
+   * ArrowUp or ArrowDown on a tag moves it to the field before or after.
+   * Says what to announce, null when it did not move
+   */
+  onMoveBy?: (id: string, delta: -1 | 1) => string | null
+  /** Whether other things dragged (their types) may land here */
+  accepts?: (types: readonly string[]) => boolean
+  onDrop?: (dataTransfer: DataTransfer) => void
+}
+
 /** What a parent can do to the field */
 export interface RecipientFieldActions {
   focus: () => void
@@ -245,6 +328,17 @@ export interface RecipientFieldProps {
   /** Takes the focus once shown */
   autoFocus?: boolean
   actions?: Ref<RecipientFieldActions>
+  /** Tags dragged between fields, things dropped on the field */
+  dnd?: RecipientFieldDnd
+  /**
+   * `line`: a line of the composer, its label at the start; `outlined`: a
+   * field of a form (tmail-flutter's advanced search) whose visible label
+   * is the caller's, tied to the input by `inputId`
+   */
+  look?: 'line' | 'outlined'
+  inputId?: string
+  /** Shown in the empty input while there are no chips */
+  placeholder?: string
   testIds?: {
     field?: string
     input?: string
@@ -291,10 +385,14 @@ export function RecipientField({
   onFocus,
   autoFocus = false,
   actions,
+  dnd,
+  look = 'line',
+  inputId: givenInputId,
+  placeholder,
   testIds = {}
 }: RecipientFieldProps): ReactElement {
   const id = useId()
-  const inputId = `${id}-input`
+  const inputId = givenInputId ?? `${id}-input`
   const labelId = `${id}-label`
   const listboxId = `${id}-listbox`
   const chipHelpId = `${id}-chip-help`
@@ -324,6 +422,11 @@ export function RecipientField({
   const previousIds = useRef<readonly string[] | null>(null)
   /** The chips changed because an edit was cancelled: nothing was added */
   const isRestoring = useRef(false)
+  /** The tag being dragged out of this field */
+  const [draggedId, setDraggedId] = useState<string | null>(null)
+  const [isDropOver, setIsDropOver] = useState(false)
+  // dragenter and dragleave also fire on the children: count them
+  const dropDepth = useRef(0)
 
   useImperativeHandle(
     actions,
@@ -496,6 +599,59 @@ export function RecipientField({
     onRemove(chip.id)
   }
 
+  const moveChip = (index: number, delta: -1 | 1): void => {
+    const chip = chips[index]
+    if (!chip || dnd?.onMoveBy === undefined) return
+    pendingFocus.current = index < chips.length - 1 ? index : -1
+    const said = dnd.onMoveBy(chip.id, delta)
+    if (said === null) {
+      pendingFocus.current = null
+      return
+    }
+    setAnnouncement(said)
+  }
+
+  /** Whether what is dragged may land here */
+  const isDropAccepted = (event: DragEvent<HTMLElement>): boolean => {
+    if (dnd === undefined) return false
+    const types = Array.from(event.dataTransfer.types)
+    if (types.includes(RECIPIENT_DRAG_TYPE)) {
+      const drag = currentRecipientDrag()
+      return (
+        drag !== null && drag.group === dnd.group && drag.field !== dnd.field
+      )
+    }
+    return dnd.accepts?.(types) ?? false
+  }
+
+  const handleDragEnter = (event: DragEvent<HTMLElement>): void => {
+    if (!isDropAccepted(event)) return
+    dropDepth.current += 1
+    setIsDropOver(true)
+  }
+  const handleDragOver = (event: DragEvent<HTMLElement>): void => {
+    if (!isDropAccepted(event)) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+  }
+  const handleDragLeave = (event: DragEvent<HTMLElement>): void => {
+    if (!isDropAccepted(event)) return
+    dropDepth.current = Math.max(0, dropDepth.current - 1)
+    if (dropDepth.current === 0) setIsDropOver(false)
+  }
+  const handleDrop = (event: DragEvent<HTMLElement>): void => {
+    if (dnd === undefined || !isDropAccepted(event)) return
+    event.preventDefault()
+    dropDepth.current = 0
+    setIsDropOver(false)
+    const drag = readRecipientDrag(event.dataTransfer)
+    if (drag === null) {
+      dnd.onDrop?.(event.dataTransfer)
+    } else if (drag.group === dnd.group && drag.field !== dnd.field) {
+      dnd.onMoveIn(drag.field, drag.id)
+    }
+  }
+
   const editChip = (index: number): void => {
     const chip = chips[index]
     if (!chip) return
@@ -520,6 +676,13 @@ export function RecipientField({
         case 'F2':
           event.preventDefault()
           editChip(index)
+          break
+        case 'ArrowUp':
+        case 'ArrowDown':
+          if (event.altKey && dnd?.onMoveBy !== undefined) {
+            event.preventDefault()
+            moveChip(index, event.key === 'ArrowUp' ? -1 : 1)
+          }
           break
         default:
           break
@@ -557,25 +720,53 @@ export function RecipientField({
   }
 
   return (
-    <Box ref={rootRef} onBlur={handleBlur} data-testid={testIds.field}>
+    <Box
+      ref={rootRef}
+      onBlur={handleBlur}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      data-drop-over={isDropOver || undefined}
+      data-testid={testIds.field}
+    >
       {/* The chips belong to the field the label names */}
       <Box
         ref={setField}
         role="group"
         aria-labelledby={labelId}
-        sx={LINE_SX}
+        sx={
+          look === 'outlined'
+            ? isDropOver
+              ? OUTLINED_OVER_SX
+              : OUTLINED_SX
+            : isDropOver
+              ? { ...LINE_SX, ...DROP_OVER_SX }
+              : LINE_SX
+        }
         onClick={handleFieldClick}
       >
-        <Typography
-          component="label"
-          id={labelId}
-          htmlFor={inputId}
-          variant="body2"
-          sx={chips.length === 0 ? LABEL_SX : CHIPS_LABEL_SX}
+        {look === 'outlined' ? (
+          // The visible label is the form's: this one names the group
+          <span id={labelId} className="u-visuallyhidden">
+            {labels.field}
+          </span>
+        ) : (
+          <Typography
+            component="label"
+            id={labelId}
+            htmlFor={inputId}
+            variant="body2"
+            sx={chips.length === 0 ? LABEL_SX : CHIPS_LABEL_SX}
+          >
+            {labels.field}
+          </Typography>
+        )}
+        <Box
+          ref={setContent}
+          className="u-flex-auto"
+          sx={look === 'outlined' ? OUTLINED_CONTENT_SX : CONTENT_SX}
         >
-          {labels.field}
-        </Typography>
-        <Box ref={setContent} className="u-flex-auto" sx={CONTENT_SX}>
           {chips.map((chip, index) => (
             <Chip
               key={chip.id}
@@ -632,7 +823,35 @@ export function RecipientField({
                 removeChip(index)
               }}
               onKeyDown={handleChipKeyDown(index)}
-              sx={chip.isInvalid ? INVALID_CHIP_SX : RECIPIENT_CHIP_SX}
+              draggable={dnd === undefined ? undefined : true}
+              onDragStart={
+                dnd === undefined
+                  ? undefined
+                  : (event: DragEvent<HTMLDivElement>) => {
+                      startRecipientDrag(event, {
+                        group: dnd.group,
+                        field: dnd.field,
+                        id: chip.id
+                      })
+                      setDraggedId(chip.id)
+                    }
+              }
+              onDragEnd={
+                dnd === undefined
+                  ? undefined
+                  : () => {
+                      endRecipientDrag()
+                      setDraggedId(null)
+                    }
+              }
+              sx={[
+                draggedId === chip.id
+                  ? DRAGGED_CHIP_SX
+                  : chip.isInvalid
+                    ? INVALID_CHIP_SX
+                    : RECIPIENT_CHIP_SX,
+                dnd === undefined ? false : GRAB_SX
+              ]}
               data-testid={testIds.chip}
               data-invalid={chip.isInvalid ? 'true' : undefined}
             />
@@ -650,6 +869,7 @@ export function RecipientField({
               onFocus?.()
             }}
             onPaste={handlePaste}
+            placeholder={chips.length === 0 ? placeholder : undefined}
             sx={INPUT_SX}
             inputProps={{
               id: inputId,

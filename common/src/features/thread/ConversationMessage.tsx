@@ -279,7 +279,7 @@ function MessageContent({
   // conversation opened on do not move when it loads; on a phone the
   // recipients are under the date rather than pulled up beside the avatar
   if (query.isPending) {
-    return <Skeleton variant="rounded" height={isPhone ? 81 : 70} />
+    return <Skeleton variant="rounded" height={isPhone ? 108 : 70} />
   }
   if (query.data === null || query.data === undefined) return null
   return (

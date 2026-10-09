@@ -9,9 +9,10 @@ import { Box, ListItemText, Menu, MenuItem } from '@mui/material'
 import type { ReactElement } from 'react'
 
 import { FilterSelected } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** `AppColor.primaryMain` */
-const MARK_COLOR = '#0A84FF'
+const MARK_COLOR = TMAIL.primary0A
 
 const MARK_SX = {
   display: 'flex',

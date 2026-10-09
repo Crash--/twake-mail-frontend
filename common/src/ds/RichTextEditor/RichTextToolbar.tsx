@@ -21,7 +21,6 @@ import {
   type RefObject
 } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 import {

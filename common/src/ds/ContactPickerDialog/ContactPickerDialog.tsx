@@ -36,12 +36,13 @@ import {
   firstLetterOf
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-const PRIMARY = '#007AFF'
+const PRIMARY = TMAIL.primary
 /** `AppColor.colorHintSearchBar`, `colorCloseButton` */
-const HINT = '#818C99'
+const HINT = TMAIL.grey
 /** `AppColor.colorDivider` */
-const DIVIDER = '#E7E8EC'
+const DIVIDER = TMAIL.divider
 
 function paperSx(isPhone: boolean): Record<string, unknown> {
   return isPhone
@@ -70,7 +71,7 @@ const TITLE_SX = {
   fontSize: 20,
   fontWeight: 700,
   lineHeight: '28px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis'
@@ -95,9 +96,13 @@ const SEARCH_SX = {
   mx: '16px',
   my: '10px',
   borderRadius: '12px',
-  bgcolor: 'rgba(235, 237, 240, 0.6)',
+  bgcolor: TMAIL.fillToolbar,
   color: HINT,
-  '& .MuiInputBase-root': { flex: '1 1 auto', fontSize: 15, color: '#000000' },
+  '& .MuiInputBase-root': {
+    flex: '1 1 auto',
+    fontSize: 15,
+    color: TMAIL.textBlack
+  },
   '& .MuiInputBase-input::placeholder': { color: HINT, opacity: 1 },
   // Its own clear button only
   '& .MuiInputBase-input::-webkit-search-cancel-button': { display: 'none' }
@@ -105,7 +110,7 @@ const SEARCH_SX = {
 
 const SEARCH_ICON_SX = { display: 'flex', mx: '16px' } as const
 
-const CLEAR_SX = { mx: '8px', p: '8px', color: '#99A2AD' } as const
+const CLEAR_SX = { mx: '8px', p: '8px', color: TMAIL.greyIcon } as const
 
 const LIST_SX = {
   flex: '1 1 auto',
@@ -130,7 +135,7 @@ const ROW_SX = {
   px: '16px',
   py: '11px',
   textAlign: 'start',
-  '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+  '&:hover': { bgcolor: TMAIL.hoverBlack }
 } as const
 
 const TEXT_SX = { flex: '1 1 auto', minWidth: 0 } as const
@@ -140,7 +145,7 @@ const NAME_SX = {
   fontSize: 15,
   fontWeight: 600,
   lineHeight: '20px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -151,7 +156,7 @@ const ADDRESS_SX = {
   mt: '2px',
   fontSize: 13,
   lineHeight: '18px',
-  color: '#6D7885',
+  color: TMAIL.greySlate,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -162,7 +167,7 @@ function checkboxSx(isChecked: boolean): Record<string, unknown> {
     display: 'flex',
     flexShrink: 0,
     mx: '12px',
-    color: isChecked ? PRIMARY : '#AEB7C2'
+    color: isChecked ? PRIMARY : TMAIL.greyFaint
   }
 }
 

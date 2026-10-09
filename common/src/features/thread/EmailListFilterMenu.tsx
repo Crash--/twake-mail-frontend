@@ -26,6 +26,7 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import type { ListFilter, ListFilterOption } from './listFilter'
 import { listFilterLabelKey } from './ListFilterProvider'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** tmail-flutter's icons of the filters in its menu */
 const OPTION_ICONS: Readonly<Record<ListFilterOption, IconProps['icon']>> = {
@@ -35,7 +36,7 @@ const OPTION_ICONS: Readonly<Record<ListFilterOption, IconProps['icon']>> = {
 }
 
 /** tmail-flutter's `AppColor.primaryMain` */
-const SELECTED_COLOR = '#0A84FF'
+const SELECTED_COLOR = TMAIL.primary0A
 
 export interface EmailListFilterMenuProps {
   current: ListFilter

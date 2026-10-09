@@ -7,6 +7,7 @@ import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 export interface ComposeButtonProps {
   label: string
@@ -54,7 +55,7 @@ export function ComposeButton({
           : { minHeight: 40, py: '8px' }),
         px: 2,
         borderRadius: '12px',
-        bgcolor: '#0A84FF',
+        bgcolor: TMAIL.primary0A,
         color: '#FFFFFF',
         fontSize: 14,
         fontWeight: 500,
@@ -63,12 +64,12 @@ export function ComposeButton({
         textTransform: 'none',
         boxShadow: 'none',
         '&:hover': {
-          bgcolor: '#0A84FF',
+          bgcolor: TMAIL.primary0A,
           backgroundImage: OVERLAY_HOVER,
           boxShadow: 'none'
         },
         '&:active, &.Mui-focusVisible': {
-          bgcolor: '#0A84FF',
+          bgcolor: TMAIL.primary0A,
           backgroundImage: OVERLAY_PRESSED,
           boxShadow: 'none'
         },

@@ -232,13 +232,17 @@ test.describe('A11Y composer', () => {
     await expect(composer.editor).toBeFocused()
     await expect(composer.toolbar).toMatchAriaSnapshot(`
       - toolbar "Formatting options":
+        - button "Text style Normal"
+        - button "Text Size 14"
+        - button "Font Sans Serif"
+        - button "Text Color"
+        - button "Highlight color"
         - button "Bold" [pressed=false]
         - button "Italic" [pressed=false]
         - button "Underline" [pressed=false]
         - button "Strikethrough" [pressed=false]
-        - button "Undo"
-        - button "Redo" [disabled]
-        - button "Clear formatting"
+        - button "Paragraph"
+        - button "Lists and indentation"
     `)
 
     // The link dialog: named, the focus goes in, Escape gives it back to the text

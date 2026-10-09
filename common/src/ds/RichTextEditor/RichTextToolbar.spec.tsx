@@ -119,9 +119,13 @@ describe('RichTextToolbar controls', () => {
   it('has the buttons of the composer of tmail-flutter, its text styles in its order', async () => {
     await renderEditor()
 
-    // Ctrl+Z and Ctrl+Y undo and redo: no button, as tmail-flutter
+    // Ctrl+Z and Ctrl+Y undo and redo: no button, nor clearing, as
+    // tmail-flutter
     expect(screen.queryByRole('button', { name: 'Undo' })).toBe(null)
     expect(screen.queryByRole('button', { name: 'Redo' })).toBe(null)
+    expect(screen.queryByRole('button', { name: 'Clear formatting' })).toBe(
+      null
+    )
     await userEvent.click(
       screen.getByRole('button', { name: 'Text style Normal' })
     )

@@ -481,8 +481,9 @@ export function RichTextToolbar({
   ]
 
   // The boxed look: tmail-flutter's buttons and order, the image on its own.
-  // The composer: no undo nor redo (Ctrl+Z and Ctrl+Y do it), so that the
-  // bar holds on one line
+  // The composer: tmail-flutter's buttons, no undo nor redo (Ctrl+Z and
+  // Ctrl+Y do it) nor clearing, so that the bar holds on one line in a
+  // window of 724 px (a 1280 px screen)
   const lookItems = isBoxed
     ? BOXED_ITEMS.flatMap(id => {
         const item = allItems.find(entry => entry.id === id)
@@ -490,7 +491,9 @@ export function RichTextToolbar({
         return [id === 'image' ? { ...item, group: undefined } : item]
       })
     : isComposer
-      ? allItems.filter(item => item.group !== 'history')
+      ? allItems.filter(
+          item => item.group !== 'history' && item.id !== 'clear-formatting'
+        )
       : allItems
   const shownItems =
     only === undefined

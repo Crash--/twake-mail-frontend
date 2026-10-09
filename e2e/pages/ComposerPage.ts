@@ -114,6 +114,9 @@ export class ComposerPage {
 
   /** Opens a menu of the formatting toolbar and chooses one of its items */
   async chooseFromMenu(button: string, item: string): Promise<void> {
+    // As a hand leaving "Aa": its tooltip may cover the second row of the
+    // toolbar, which wraps in a narrow window as tmail-flutter's
+    await this.root.page().mouse.move(0, 0)
     await this.toolbarButton(button).click()
     await this.root
       .page()

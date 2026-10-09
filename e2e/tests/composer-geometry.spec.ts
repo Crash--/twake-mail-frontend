@@ -122,7 +122,9 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
       const style = await boxOf(composer.toolbarButton('Text style Normal'))
       expect(style.height).toBe(size === 34 ? 40 : 44)
       const toolbar = await boxOf(composer.toolbar)
-      if (size === 34) expect(toolbar.height).toBe(56)
+      // In the 704 px window of a 1280 px screen the lists go to a second
+      // row, as tmail-flutter's (two 40 px rows 8 px apart, 8 px around)
+      if (size === 34) expect(toolbar.height).toBe(104)
       else expect(toolbar.height).toBeGreaterThanOrEqual(60)
     }
   )

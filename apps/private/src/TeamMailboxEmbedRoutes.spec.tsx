@@ -176,4 +176,61 @@ describe('teamMailboxEmbedRouteElements', () => {
     })
     expect(screen.queryByText('Subject sales')).toBe(null)
   })
+
+  it('opens an email by its id, in the folder of the team mailbox that holds it', async () => {
+    renderRoutes(`${BASE}/email/archived`, 'team', [
+      makeEmail({ id: 'archived', mailboxIds: { 'team-trash': true } })
+    ])
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Subject archived' })
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/mailbox/team-trash/email/archived'
+    )
+  })
+
+  it('skips the folders of the user when an email is in both', async () => {
+    renderRoutes(`${BASE}/email/both`, 'team', [
+      makeEmail({
+        id: 'both',
+        mailboxIds: { 'mailbox-inbox': true, 'team-inbox': true }
+      })
+    ])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent(
+        '/mailbox/team-inbox/email/both'
+      )
+    })
+  })
+
+  it.each([
+    ['a personal email', 'personal', { 'mailbox-inbox': true }],
+    ['an email of another team mailbox', 'sales', { 'sales-inbox': true }]
+  ] as const)(
+    'opens the Inbox of the team mailbox instead of %s found by its id',
+    async (_name, id, mailboxIds) => {
+      renderRoutes(`${BASE}/email/${id}`, 'team', [
+        makeEmail({ id, mailboxIds })
+      ])
+
+      await waitFor(() => {
+        expect(screen.getByTestId('location')).toHaveTextContent(
+          /\/mailbox\/team-inbox$/
+        )
+      })
+      expect(screen.queryByText(`Subject ${id}`)).toBe(null)
+    }
+  )
+
+  it('opens the Inbox of the team mailbox when the email no longer exists', async () => {
+    renderRoutes(`${BASE}/email/gone`)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent(
+        /\/mailbox\/team-inbox$/
+      )
+    })
+  })
 })

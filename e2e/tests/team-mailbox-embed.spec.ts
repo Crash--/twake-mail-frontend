@@ -169,4 +169,33 @@ test.describe('TMB team mailbox facade', () => {
     await expect(page.getByTestId('mailbox-page')).toBeHidden()
     await expectNoA11yViolations(page)
   })
+
+  test('TMB-16 the link of an activity opens the email, in its folder', async ({
+    page,
+    user,
+    users,
+    jmap,
+    webadmin
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    const teamInbox = (await jmap.getMailboxes()).find(
+      mailbox =>
+        mailbox.namespace === `TeamMailbox[${team.email}]` &&
+        mailbox.name === 'INBOX'
+    )
+    if (teamInbox === undefined) throw new Error('No INBOX in the team mailbox')
+    const { id: emailId } = await jmap.createEmailIn(teamInbox.id, {
+      subject: 'The one in the feed'
+    })
+
+    await page.goto(`${await facadePath(webadmin, team)}/email/${emailId}`)
+    await signIn(page, user)
+
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'The one in the feed' })
+    ).toBeVisible()
+    await expect(page).toHaveURL(
+      new RegExp(`/mailbox/${teamInbox.id}/email/${emailId}$`)
+    )
+  })
 })

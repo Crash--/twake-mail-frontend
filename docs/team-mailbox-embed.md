@@ -8,7 +8,15 @@ iframe contract for the Drive, Mail, Chat, Calendar and Tasks tabs).
 
 ```
 /embed/team-mailboxes/<id>[/mailbox/<folder id>[/email/<email id>]]
+/embed/team-mailboxes/<id>/email/<email id>
 ```
+
+The second form is the link TwakeSpace builds from an activity of the team
+mailbox (`com.twake.mail.message.*`), which names the JMAP email id and not
+its folder. The facade looks the email up and replaces the URL with
+`/mailbox/<folder id>/email/<email id>`, the folder being the first of the
+team mailbox that holds the email. An email that does not exist, or that is
+in no folder of the team mailbox, leads to its Inbox.
 
 - `<id>` is the id of the root folder of the team mailbox, the resource id
   the mail side service publishes in `com.twake.mail.space.provisioned.v1`

@@ -1,3 +1,5 @@
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 import { menuLookThemeOptions } from './menuLook'
 
 describe('menuLookThemeOptions', () => {
@@ -12,7 +14,7 @@ describe('menuLookThemeOptions', () => {
     expect(components?.MuiMenuItem?.styleOverrides?.root).toMatchObject({
       minHeight: 48,
       fontSize: 14,
-      color: '#000000'
+      color: TMAIL.textBlack
     })
   })
 })

@@ -28,6 +28,7 @@ import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
 import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
@@ -70,7 +71,7 @@ import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
 
 /** The attachment icon of a wide row (`steelGray200`) */
-const ATTACHMENT_ICON_COLOR = '#AEB7C2'
+const ATTACHMENT_ICON_COLOR = TMAIL.greyFaint
 /** The yellow star of tmail-flutter, after the subject of a compact row */
 const STAR_COLOR = '#FFCC00'
 

@@ -21,6 +21,7 @@ import {
   type RefObject
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 import { ColorMenu } from './ColorMenu'
@@ -146,9 +147,9 @@ const BOXED_SX = {
   '& .MuiIconButton-root': {
     height: 40,
     px: 1,
-    borderColor: '#E6E1E5',
+    borderColor: TMAIL.outline,
     borderRadius: '8px',
-    color: '#99A2AD',
+    color: TMAIL.greyIcon,
     fontSize: 16,
     fontWeight: 400
   },
@@ -156,7 +157,7 @@ const BOXED_SX = {
     height: 40,
     boxSizing: 'border-box',
     px: '5px',
-    borderColor: '#E6E1E5',
+    borderColor: TMAIL.outline,
     borderRadius: '8px'
   },
   '& .RichTextToolbar-group .MuiIconButton-root': {
@@ -165,7 +166,7 @@ const BOXED_SX = {
     px: 0
   },
   '&& .MuiIconButton-root[aria-pressed="true"]': {
-    color: '#000000',
+    color: TMAIL.textBlack,
     bgcolor: 'transparent'
   },
   '& .MuiSvgIcon-root': { fontSize: 20 }

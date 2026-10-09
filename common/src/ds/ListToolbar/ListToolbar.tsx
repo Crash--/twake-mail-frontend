@@ -4,6 +4,8 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 export interface ListToolbarProps {
   /** Accessible name of the toolbar region */
   label: string
@@ -26,7 +28,7 @@ export function ListToolbar({
         gap: 2,
         py: '12px',
         px: 2,
-        borderBottom: '1px solid #E7E8EC'
+        borderBottom: `1px solid ${TMAIL.divider}`
       }}
       data-testid={testId}
     >

@@ -7,6 +7,8 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const ROW_SX = {
   display: 'grid',
   gridTemplateColumns: '112px minmax(0, 1fr)',
@@ -18,11 +20,11 @@ const ROW_SX = {
     minHeight: 40,
     boxSizing: 'border-box',
     px: '12px',
-    border: '1px solid #E6E1E5',
+    border: `1px solid ${TMAIL.outline}`,
     borderRadius: '10px',
-    bgcolor: '#FFFFFF',
+    bgcolor: TMAIL.surface,
     fontSize: 14,
-    color: '#1C1B1F'
+    color: TMAIL.textOnSurface
   },
   '& .MuiInputBase-root.Mui-error': { borderColor: 'error.main' },
   // The outline is the field: no underline
@@ -38,7 +40,7 @@ const ROW_SX = {
     opacity: 1
   }
 } as const
-const LABEL_SX = { color: '#000000', fontSize: 14 } as const
+const LABEL_SX = { color: TMAIL.textBlack, fontSize: 14 } as const
 
 export interface FormRowProps {
   /** Name of the field, visible; `htmlFor` ties it to the control */

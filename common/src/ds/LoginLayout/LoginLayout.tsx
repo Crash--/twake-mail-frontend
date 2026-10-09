@@ -8,6 +8,7 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 export interface LoginPitchPoint {
@@ -32,7 +33,7 @@ export interface LoginLayoutProps {
 const PAGE_SX = {
   minHeight: '100%',
   boxSizing: 'border-box',
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'flex-start',
@@ -57,7 +58,7 @@ const PITCH_TITLE_SX = {
   fontSize: 36,
   fontWeight: 700,
   lineHeight: '52px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   whiteSpace: 'pre-line'
 } as const
 
@@ -72,7 +73,7 @@ const POINT_SX = {
   fontWeight: 400,
   lineHeight: 'normal',
   letterSpacing: '0.5px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 const CARD_COLUMN_SX = {
@@ -93,7 +94,7 @@ const CARD_SX = {
   boxSizing: 'border-box',
   px: '31px',
   borderRadius: '20px',
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   boxShadow: '0 2px 40px 2px rgba(188, 188, 188, 0.24)',
   overflow: 'hidden',
   display: 'flex',

@@ -8,9 +8,12 @@ import { Box, Button, Dialog, IconButton, Typography } from '@mui/material'
 import type { ReactElement, ReactNode } from 'react'
 
 import { CloseDialog } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-const TEXT_COLOR = '#424244'
-const PRIMARY = '#0A84FF'
+const TEXT_COLOR = TMAIL.textGrey
+const PRIMARY = TMAIL.primary0A
+/** The confirming pill keeps that blue, its label white, in both schemes */
+const PRIMARY_FILL = '#0A84FF'
 
 const PAPER_SX = {
   width: 421,
@@ -102,7 +105,12 @@ export function ConfirmDialogFrame({
         <IconButton
           aria-label={closeLabel}
           onClick={onClose}
-          sx={{ position: 'absolute', top: 4, right: 4, color: '#8C9CAF' }}
+          sx={{
+            position: 'absolute',
+            top: 4,
+            right: 4,
+            color: TMAIL.steelLight
+          }}
         >
           <Icon icon={CloseDialog} size={24} />
         </IconButton>
@@ -173,7 +181,7 @@ export function ConfirmDialogButton({
         minWidth: minWidth ?? (isMain ? 135 : 67),
         flex: isFullWidth ? '1 1 auto' : undefined,
         color: isMain ? '#FFFFFF' : PRIMARY,
-        bgcolor: isMain ? PRIMARY : 'transparent'
+        bgcolor: isMain ? PRIMARY_FILL : 'transparent'
       }}
       data-testid={testId}
     >

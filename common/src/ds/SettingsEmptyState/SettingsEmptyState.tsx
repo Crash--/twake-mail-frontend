@@ -7,6 +7,8 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const ROOT_SX = {
   display: 'flex',
   flexDirection: 'column',
@@ -24,7 +26,7 @@ const CIRCLE_SX = {
   width: 98,
   height: 98,
   borderRadius: '50%',
-  bgcolor: '#E0EDFF',
+  bgcolor: TMAIL.bluePale,
   color: '#9EBFEB'
 } as const
 
@@ -33,14 +35,14 @@ const TITLE_SX = {
   fontSize: 24,
   lineHeight: '28px',
   fontWeight: 600,
-  color: 'rgba(66, 66, 68, 0.9)'
+  color: TMAIL.textGrey90
 } as const
 
 const TEXT_SX = {
   mt: '24px',
   fontSize: 16,
   lineHeight: '21px',
-  color: 'rgba(66, 66, 68, 0.64)'
+  color: TMAIL.textGrey64
 } as const
 
 const BUTTON_SX = {
@@ -57,7 +59,7 @@ const BUTTON_SX = {
   lineHeight: '20px',
   fontWeight: 500,
   letterSpacing: '0.1px',
-  '&:hover': { bgcolor: 'rgba(0, 122, 255, 0.08)' }
+  '&:hover': { bgcolor: TMAIL.blueHover }
 } as const
 
 export interface SettingsEmptyStateProps {

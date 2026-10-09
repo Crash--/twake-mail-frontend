@@ -21,15 +21,18 @@ import {
 } from 'react'
 
 import { CloseCardIcon, CopyIcon } from '@/ds/RecipientIcons/RecipientIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /** tmail-flutter `EmailAddressDialogBuilder` */
 const CARD_WIDTH = 383
 const CARD_RADIUS = 16
 
-const PRIMARY = '#0A84FF'
+const PRIMARY = TMAIL.primary0A
+/** The primary action keeps that blue, its label white, in both schemes */
+const PRIMARY_FILL = '#0A84FF'
 /** `textSecondary` at 48 %, the address and its copy button */
-const MUTED = 'rgba(28, 27, 31, 0.48)'
+const MUTED = TMAIL.textOnSurface48
 
 const CONTENT_SX = {
   position: 'relative',
@@ -45,7 +48,7 @@ const CLOSE_SX = {
   top: 0,
   right: 0,
   p: '10px',
-  color: '#8C9CAF'
+  color: TMAIL.steelLight
 } as const
 
 /** tmail-flutter's `textStyleM3HeadlineSmall` in `textPrimary` */
@@ -56,7 +59,7 @@ const NAME_SX = {
   lineHeight: '32px',
   fontWeight: 600,
   letterSpacing: 0,
-  color: '#424244'
+  color: TMAIL.textGrey
 } as const
 
 /** tmail-flutter's `textStyleM3BodyMedium` */
@@ -75,8 +78,8 @@ function actionSx(isPrimary: boolean): Record<string, unknown> {
     boxSizing: 'border-box',
     px: '10px',
     borderRadius: '100px',
-    border: `1px solid ${PRIMARY}`,
-    bgcolor: isPrimary ? PRIMARY : '#FFFFFF',
+    border: `1px solid ${isPrimary ? PRIMARY_FILL : PRIMARY}`,
+    bgcolor: isPrimary ? PRIMARY_FILL : TMAIL.surface,
     color: isPrimary ? '#FFFFFF' : PRIMARY,
     fontSize: 14,
     lineHeight: '20px',
@@ -84,7 +87,7 @@ function actionSx(isPrimary: boolean): Record<string, unknown> {
     letterSpacing: '0.1px',
     textAlign: 'center',
     textDecoration: 'none',
-    '&:hover': { bgcolor: isPrimary ? '#0067D6' : 'rgba(10, 132, 255, 0.06)' }
+    '&:hover': { bgcolor: isPrimary ? '#0067D6' : TMAIL.blueHover06 }
   }
 }
 

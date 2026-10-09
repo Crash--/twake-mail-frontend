@@ -18,6 +18,7 @@ import {
   Share
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { MenuSubmenuItem } from '@/ds/MenuSubmenu/MenuSubmenu'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
 import type { EmailDetail } from '@common/features/email/queries'
@@ -42,8 +43,8 @@ import type { TargetEmail } from './planEmailChanges'
 import { useRunEmailAction } from './useRunEmailAction'
 
 /** tmail-flutter's ticked box (`primaryMain`) and empty box (`steelGrayA540`) */
-const LABEL_ON_COLOR = '#0A84FF'
-const LABEL_OFF_COLOR = '#55687D'
+const LABEL_ON_COLOR = TMAIL.primary0A
+const LABEL_OFF_COLOR = TMAIL.steel
 
 const REPLY_MENU_IDS: Record<ReplyAction, string> = {
   reply: 'reply',

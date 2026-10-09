@@ -18,6 +18,7 @@ import { overlayThemeOptions, SpaceOverlayProvider } from '@linagora/twake-mui'
 import type { SpaceOverlay } from '@linagora/twake-mui'
 import { focusIndicatorThemeOptions } from '@/ds/FocusIndicator/focusIndicator'
 import { menuLookThemeOptions } from '@/ds/MenuLook/menuLook'
+import { tmailColorsThemeOptions } from '@/ds/TmailColors/tmailColors'
 import { SCROLLBAR_CSS } from '@/ds/ScrollbarLook/scrollbarLook'
 import type { SupportedLanguage } from '@common/i18n/languages'
 
@@ -62,8 +63,11 @@ export function AppProviders({
     )
     // The menus of tmail-flutter: none of the others styles them
     const menuOptions = menuLookThemeOptions()
+    // tmail-flutter's colours, and their counterparts in the dark scheme
+    const colorOptions = tmailColorsThemeOptions()
     const ownOptions = {
       ...focusOptions,
+      ...colorOptions,
       components: { ...menuOptions.components, ...focusOptions.components }
     }
     if (overlay === null) return ownOptions

@@ -6,6 +6,8 @@ import { type IconProps, Icon } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const LIST_SX = { listStyle: 'none', m: 0, px: 1, py: 0 } as const
 
 function itemSx(isSelected: boolean): Record<string, unknown> {
@@ -20,17 +22,17 @@ function itemSx(isSelected: boolean): Record<string, unknown> {
     p: 1,
     mt: '4px',
     borderRadius: '8px',
-    bgcolor: isSelected ? '#EAEDF2' : 'transparent',
+    bgcolor: isSelected ? TMAIL.fillSelected : 'transparent',
     // tmail-flutter's black, drawn thinner by its canvas: the near black of
     // its title keeps the same weight to the eye
-    color: '#1C1B1F',
+    color: TMAIL.textOnSurface,
     fontSize: 15,
     lineHeight: '20px',
     fontWeight: isSelected ? 600 : 400,
     letterSpacing: 0,
     textAlign: 'start',
-    '& .SettingsMenu-icon': { color: '#007AFF', display: 'flex' },
-    '&:hover': { bgcolor: isSelected ? '#EAEDF2' : 'rgba(0, 0, 0, 0.04)' }
+    '& .SettingsMenu-icon': { color: TMAIL.primary, display: 'flex' },
+    '&:hover': { bgcolor: isSelected ? TMAIL.fillSelected : TMAIL.hoverBlack }
   }
 }
 
@@ -49,14 +51,14 @@ const TITLE_SX = {
   lineHeight: '22px',
   fontWeight: 700,
   // tmail-flutter's default text colour (`m3SurfaceBackground`)
-  color: '#1C1B1F'
+  color: TMAIL.textOnSurface
 } as const
 
 const DIVIDER_SX = {
   mt: '20px',
   mb: '12px',
   border: 0,
-  borderTop: '1px solid rgba(0, 0, 0, 0.12)'
+  borderTop: `1px solid ${TMAIL.divider12}`
 } as const
 
 export interface SettingsMenuTitleProps {

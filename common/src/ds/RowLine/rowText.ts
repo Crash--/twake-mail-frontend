@@ -1,6 +1,8 @@
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 /** Black for an unread email, steel grey (`steelGray400`) once read */
-export const ROW_STRONG_COLOR = '#000000'
-export const ROW_MUTED_COLOR = '#818C99'
+export const ROW_STRONG_COLOR = TMAIL.textBlack
+export const ROW_MUTED_COLOR = TMAIL.grey
 
 /**
  * The subject, preview and date of a mail list row, as tmail-flutter

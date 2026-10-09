@@ -4,6 +4,8 @@
 import { LinearProgress } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 export interface StorageGaugeProps {
   /** Share used, from 0 to 100 */
   value: number
@@ -59,7 +61,7 @@ export function StorageGauge({
           ? {
               height: 4.5,
               borderRadius: '13px',
-              backgroundColor: '#F7F6F9',
+              backgroundColor: TMAIL.fillF7,
               '& .MuiLinearProgress-bar': {
                 borderRadius: '13px',
                 backgroundColor: SETTINGS_BAR_COLORS[state]

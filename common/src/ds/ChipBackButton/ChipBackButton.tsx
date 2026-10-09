@@ -5,6 +5,7 @@ import { Icon } from '@linagora/twake-icons'
 import { ButtonBase } from '@linagora/twake-mui'
 import type { ElementType, ReactElement } from 'react'
 import { Left } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const CHIP_SX = {
   display: 'inline-flex',
@@ -17,14 +18,14 @@ const CHIP_SX = {
   pr: '12px',
   py: '8px',
   borderRadius: '8px',
-  bgcolor: '#EAEDF2',
-  color: '#0F76E7',
+  bgcolor: TMAIL.fillSelected,
+  color: TMAIL.primaryBack,
   fontSize: 12,
   fontWeight: 500,
   lineHeight: '16px',
   letterSpacing: '0.4px',
-  '& svg': { color: '#007AFF' },
-  '&:hover': { bgcolor: '#DFE3EA' }
+  '& svg': { color: TMAIL.primary },
+  '&:hover': { bgcolor: TMAIL.fillSelectedHover }
 } as const
 
 export interface ChipBackButtonProps {

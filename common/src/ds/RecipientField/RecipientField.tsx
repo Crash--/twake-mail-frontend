@@ -29,6 +29,7 @@ import {
   type RecipientCardProps
 } from '@/ds/RecipientCard/RecipientCard'
 import { RemoveRecipientIcon } from '@/ds/RecipientIcons/RecipientIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { initialsOf } from './initials'
 import { RecipientAvatar } from './RecipientAvatar'
@@ -44,7 +45,7 @@ const PAPER_SX = {
   maxHeight: 300,
   overflowY: 'auto',
   borderRadius: '20px',
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   boxShadow:
     '0 10px 13px -6px rgba(0, 0, 0, 0.2), 0 20px 31px 3px rgba(0, 0, 0, 0.14), 0 8px 38px 7px rgba(0, 0, 0, 0.12)'
 } as const
@@ -109,9 +110,9 @@ export const RECIPIENT_CHIP_SX = {
   maxWidth: 267,
   boxSizing: 'border-box',
   borderRadius: '10px',
-  border: '1px solid #F3F6F9',
-  bgcolor: '#F3F6F9',
-  color: '#000000',
+  border: `1px solid ${TMAIL.outlineChip}`,
+  bgcolor: TMAIL.background,
+  color: TMAIL.textBlack,
   fontSize: 17,
   fontWeight: 400,
   letterSpacing: '-0.17px',
@@ -126,7 +127,7 @@ export const RECIPIENT_CHIP_SX = {
     letterSpacing: '-0.17px'
   },
   '& .MuiChip-deleteIcon': {
-    color: '#AEAEC0',
+    color: TMAIL.greyBlueFaint,
     flexShrink: 0,
     m: 0,
     p: '4px',
@@ -136,16 +137,16 @@ export const RECIPIENT_CHIP_SX = {
     borderRadius: '50%'
   },
   '&:focus, &.Mui-focusVisible': {
-    bgcolor: '#DFEEFF',
-    borderColor: '#007AFF'
+    bgcolor: TMAIL.blueSelected,
+    borderColor: TMAIL.primary
   }
 } as const
 /** An invalid tag, as tmail-flutter's: white, with a red border */
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
-  borderColor: '#FF3347',
-  bgcolor: '#FFFFFF',
-  '&& .MuiChip-icon': { ml: 0, mr: 0, color: '#FF3347' }
+  borderColor: TMAIL.error,
+  bgcolor: TMAIL.surface,
+  '&& .MuiChip-icon': { ml: 0, mr: 0, color: TMAIL.error }
 } as const
 
 /** Something already entered in the field */

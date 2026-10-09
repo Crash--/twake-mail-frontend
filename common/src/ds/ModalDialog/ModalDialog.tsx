@@ -27,16 +27,19 @@ import {
 } from 'react'
 
 import { CloseDialog, Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** `AppColor.m3SurfaceBackground` */
-const TEXT_COLOR = '#1C1B1F'
+const TEXT_COLOR = TMAIL.textOnSurface
 /** `AppColor.primaryMain` */
-const PRIMARY = '#0A84FF'
+const PRIMARY = TMAIL.primary0A
+/** The confirming pill keeps that blue, its label white, in both schemes */
+const PRIMARY_FILL = '#0A84FF'
 /** `AppColor.m3Neutral90`: the border of the fields */
-const FIELD_BORDER = '#E6E1E5'
+const FIELD_BORDER = TMAIL.outline
 /** `AppColor.m3Tertiary`: hints and the close cross */
-const HINT_COLOR = '#8C9CAF'
-const ERROR_COLOR = '#FF3347'
+const HINT_COLOR = TMAIL.steelLight
+const ERROR_COLOR = TMAIL.error
 
 const PAPER_SX = {
   width: 554,
@@ -94,7 +97,7 @@ const SUBTITLE_SX = {
   textAlign: 'center',
   fontSize: 13,
   lineHeight: '20px',
-  color: '#55687D'
+  color: TMAIL.steel
 } as const
 
 const BODY_SX = {
@@ -310,11 +313,11 @@ export function ModalDialogButton({
         // The small modal's pill is narrower
         '.ModalDialog-small &': { minWidth: isMain ? 119 : 67 },
         color: isMain ? '#FFFFFF' : PRIMARY,
-        bgcolor: isMain ? PRIMARY : 'transparent',
+        bgcolor: isMain ? PRIMARY_FILL : 'transparent',
         '&.Mui-disabled': {
           // `profileMenuDivider` at 12 %, its label at 38 %
-          bgcolor: isMain ? 'rgba(28, 27, 31, 0.12)' : 'transparent',
-          color: 'rgba(28, 27, 31, 0.38)'
+          bgcolor: isMain ? TMAIL.disabledFill : 'transparent',
+          color: TMAIL.textOnSurface38
         }
       }}
       data-testid={testId}
@@ -330,7 +333,7 @@ const LABEL_SX = {
   fontSize: 14,
   fontWeight: 600,
   lineHeight: '18px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 const INLINE_LABEL_SX = {
@@ -342,7 +345,7 @@ const INLINE_LABEL_SX = {
   fontSize: 14,
   fontWeight: 400,
   lineHeight: '18px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 export interface ModalFieldProps {
@@ -420,7 +423,7 @@ function inputSx(
     border: '1px solid',
     borderColor: hasError ? ERROR_COLOR : FIELD_BORDER,
     borderRadius: '10px',
-    bgcolor: hasError ? '#FFF6F6' : '#FFFFFF',
+    bgcolor: hasError ? TMAIL.redWash : TMAIL.surface,
     fontSize: 14,
     lineHeight: '18px',
     color: TEXT_COLOR,
@@ -512,8 +515,8 @@ export function ModalSelectButton({
         fontWeight: 400,
         lineHeight: '18px',
         color: TEXT_COLOR,
-        bgcolor: '#FFFFFF',
-        '&:hover': { bgcolor: 'rgba(28, 27, 31, 0.04)' },
+        bgcolor: TMAIL.surface,
+        '&:hover': { bgcolor: TMAIL.hoverOnSurface },
         '& .ModalSelectButton-icon': { display: 'flex', color: PRIMARY },
         '& .ModalSelectButton-arrow': {
           display: 'flex',

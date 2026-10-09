@@ -17,9 +17,12 @@ import { useId, useState, type ReactElement } from 'react'
 
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { CloseCardIcon, CopyIcon } from '@/ds/RecipientIcons/RecipientIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const CARD_WIDTH = 361
-const PRIMARY = '#0A84FF'
+const PRIMARY = TMAIL.primary0A
+/** The filled pill keeps that blue, its label white, in both schemes */
+const PRIMARY_FILL = '#0A84FF'
 
 const PAPER_SX = {
   position: 'relative',
@@ -31,7 +34,7 @@ const PAPER_SX = {
   px: 2,
   pb: '12px',
   borderRadius: '16px',
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   boxShadow: '0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3)'
 } as const
 
@@ -42,7 +45,7 @@ const NAME_SX = {
   lineHeight: '24px',
   fontWeight: 500,
   letterSpacing: '0.15px',
-  color: '#424244',
+  color: TMAIL.textGrey,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -52,7 +55,7 @@ const ADDRESS_SX = {
   minWidth: 0,
   fontSize: 15,
   lineHeight: '20px',
-  color: '#818C99',
+  color: TMAIL.grey,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -66,15 +69,15 @@ function pillSx(isFilled: boolean): Record<string, unknown> {
     boxSizing: 'border-box',
     px: '10px',
     borderRadius: '100px',
-    border: `1px solid ${PRIMARY}`,
-    bgcolor: isFilled ? PRIMARY : '#FFFFFF',
+    border: `1px solid ${isFilled ? PRIMARY_FILL : PRIMARY}`,
+    bgcolor: isFilled ? PRIMARY_FILL : TMAIL.surface,
     color: isFilled ? '#FFFFFF' : PRIMARY,
     fontSize: 14,
     lineHeight: '20px',
     fontWeight: 500,
     letterSpacing: '0.1px',
     whiteSpace: 'nowrap',
-    '&:hover': { bgcolor: isFilled ? '#0067D6' : 'rgba(10, 132, 255, 0.06)' }
+    '&:hover': { bgcolor: isFilled ? '#0067D6' : TMAIL.blueHover06 }
   }
 }
 
@@ -188,7 +191,7 @@ export function RecipientCard({
                 <IconButton
                   aria-label={labels.copy}
                   onClick={onCopy}
-                  sx={{ ml: '7px', p: '4px', color: '#818C99' }}
+                  sx={{ ml: '7px', p: '4px', color: TMAIL.grey }}
                   data-testid={testIds.copy}
                 >
                   <Icon icon={CopyIcon} size={20} aria-hidden="true" />
@@ -224,7 +227,7 @@ export function RecipientCard({
               top: 0,
               right: 0,
               p: '10px',
-              color: '#8C9CAF'
+              color: TMAIL.steelLight
             }}
             data-testid={testIds.close}
           >

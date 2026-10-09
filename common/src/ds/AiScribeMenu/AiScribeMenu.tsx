@@ -15,6 +15,7 @@ import {
 } from 'react'
 
 import { Right } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const MENU_WIDTH = 191
 const MENU_MAX_HEIGHT = 352
@@ -28,7 +29,7 @@ const CARD_SX = {
   maxHeight: MENU_MAX_HEIGHT,
   py: 1,
   boxSizing: 'border-box',
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   borderRadius: '6px',
   boxShadow: SHADOW
 } as const
@@ -48,16 +49,16 @@ function rowSx(inset: number): Record<string, unknown> {
     lineHeight: '21px',
     letterSpacing: '-0.15px',
     fontWeight: 400,
-    color: 'rgba(66, 66, 68, 0.9)',
-    '&:hover, &[aria-expanded="true"]': { bgcolor: '#F3F6F9' },
+    color: TMAIL.textGrey90,
+    '&:hover, &[aria-expanded="true"]': { bgcolor: TMAIL.hoverBackground },
     '& .AiScribeMenu-icon': {
       display: 'flex',
-      color: 'rgba(66, 66, 68, 0.72)'
+      color: TMAIL.textGrey72
     },
     '& .AiScribeMenu-chevron': {
       display: 'flex',
       ml: 'auto',
-      color: '#777778'
+      color: TMAIL.grey777
     }
   }
 }

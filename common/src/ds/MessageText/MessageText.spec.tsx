@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { MessageText } from './MessageText'
@@ -17,12 +18,12 @@ describe('MessageText', () => {
       fontSize: '15px',
       lineHeight: '20px',
       fontWeight: 500,
-      color: '#000000'
+      color: TMAIL.textBlack
     })
     expect(screen.getByText('28 Jul')).toHaveStyle({
       fontSize: '14px',
       fontWeight: 400,
-      color: '#6D7885'
+      color: TMAIL.greySlate
     })
   })
 
@@ -34,7 +35,7 @@ describe('MessageText', () => {
       </>
     )
 
-    expect(screen.getByText('To:')).toHaveStyle({ color: '#9AA7B6' })
-    expect(screen.getByText('Gustav')).toHaveStyle({ color: '#000000' })
+    expect(screen.getByText('To:')).toHaveStyle({ color: TMAIL.steelPale })
+    expect(screen.getByText('Gustav')).toHaveStyle({ color: TMAIL.textBlack })
   })
 })

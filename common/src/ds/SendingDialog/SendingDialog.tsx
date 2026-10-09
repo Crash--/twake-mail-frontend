@@ -13,23 +13,25 @@ import {
 } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const PAPER_SX = {
   width: 'min(400px, calc(100% - 48px))',
   m: '16px 24px',
   borderRadius: '12px',
-  backgroundColor: '#FFFFFF'
+  backgroundColor: TMAIL.surface
 } as const
 
 const TITLE_SX = {
   py: 1,
   px: 1.5,
   borderRadius: '12px',
-  backgroundColor: '#F2F3F5',
+  backgroundColor: TMAIL.fillF2,
   textAlign: 'center',
   fontSize: 17,
   fontWeight: 700,
   lineHeight: '22px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 const LABEL_SX = {
@@ -37,13 +39,13 @@ const LABEL_SX = {
   fontSize: 14,
   fontWeight: 500,
   lineHeight: '20px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 const VALUE_SX = {
   fontSize: 14,
   lineHeight: '20px',
-  color: '#71767C'
+  color: TMAIL.greyMid
 } as const
 
 const BAR_SX = {

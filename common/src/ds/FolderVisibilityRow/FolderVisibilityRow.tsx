@@ -8,11 +8,12 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** tmail-flutter's `steelGrayA540`, `steelGray200` and `steelGray400` */
-const ICON_COLOR = '#55687D'
-const ICON_MUTED_COLOR = '#AEB7C2'
-const TEXT_MUTED_COLOR = '#818C99'
+const ICON_COLOR = TMAIL.steel
+const ICON_MUTED_COLOR = TMAIL.greyFaint
+const TEXT_MUTED_COLOR = TMAIL.grey
 
 /** The nested list of a row, or of a category: no bullet, 10 px further in */
 export const NESTED_LIST_SX = {
@@ -87,7 +88,7 @@ export function FolderVisibilityRow({
   'data-testid': testId,
   dataAttributes
 }: FolderVisibilityRowProps): ReactElement {
-  const nameColor = isMuted ? TEXT_MUTED_COLOR : 'common.black'
+  const nameColor = isMuted ? TEXT_MUTED_COLOR : TMAIL.textBlack
   const expandButton =
     expand === null ? null : (
       <Tooltip title={expand.label}>

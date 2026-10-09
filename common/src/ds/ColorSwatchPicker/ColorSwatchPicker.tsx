@@ -13,6 +13,7 @@ import {
 import { Check, CloseDialog, Palette } from '@/ds/FlutterIcons/FlutterIcons'
 import { FOCUS_RING } from '@/ds/FocusIndicator/focusIndicator'
 import { VISUALLY_HIDDEN } from '@/ds/MessageAlert/visuallyHidden'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 import { normalizeHexColor } from './hexColor'
@@ -80,12 +81,11 @@ const LARGE_LEGEND_SX = {
   fontSize: 14,
   fontWeight: 600,
   lineHeight: '18px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 /** The custom swatch of tmail-flutter: a white disc in a gradient ring */
-const GRADIENT_RING =
-  'linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(135deg, #FB2C36, #AD46FF, #2B7FFF) border-box'
+const GRADIENT_RING = `linear-gradient(${TMAIL.surface}, ${TMAIL.surface}) padding-box, linear-gradient(135deg, #FB2C36, #AD46FF, #2B7FFF) border-box`
 
 function largeSwatchSx(
   value: string,
@@ -125,8 +125,8 @@ function LargeSwatchMark({
           kind === 'checked'
             ? '#FFFFFF'
             : kind === 'none'
-              ? 'rgba(28, 27, 31, 0.48)'
-              : '#1C1B1F'
+              ? TMAIL.textOnSurface48
+              : TMAIL.textOnSurface
       }}
     >
       <Icon
@@ -265,7 +265,7 @@ export function ColorSwatchPicker({
                 ...(isLarge ? largeSwatchSx(option.value, background) : {}),
                 border: isLarge
                   ? option.value === ''
-                    ? '2px solid #CDCDCD'
+                    ? `2px solid ${TMAIL.outlineSwatch}`
                     : option.value === CUSTOM && background === null
                       ? '2px solid transparent'
                       : 'none'

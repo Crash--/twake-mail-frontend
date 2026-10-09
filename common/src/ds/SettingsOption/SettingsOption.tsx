@@ -6,6 +6,8 @@
 import { Box, Switch, Typography } from '@linagora/twake-mui'
 import { useId, type ChangeEvent, type ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const SECTION_SX = { mb: '49px', '&:last-child': { mb: 0 } } as const
 
 const TITLE_SX = {
@@ -14,7 +16,7 @@ const TITLE_SX = {
   lineHeight: '20px',
   fontWeight: 600,
   letterSpacing: '0.25px',
-  color: '#424244'
+  color: TMAIL.textGrey
 } as const
 
 const DESCRIPTION_SX = {
@@ -23,7 +25,7 @@ const DESCRIPTION_SX = {
   lineHeight: '21px',
   fontWeight: 400,
   letterSpacing: '-0.15px',
-  color: 'rgba(66, 66, 68, 0.64)'
+  color: TMAIL.textGrey64
 } as const
 
 const LABEL_SX = {
@@ -35,7 +37,7 @@ const LABEL_SX = {
   fontSize: 15,
   lineHeight: '20px',
   fontWeight: 400,
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 // tmail-flutter's switch (`DefaultSwitchIconWidget`): 44 × 28, a 24 px white
@@ -65,7 +67,7 @@ const SWITCH_SX = {
   },
   '& .MuiSwitch-track': {
     borderRadius: '14px',
-    bgcolor: '#D3D3D3',
+    bgcolor: TMAIL.fillSwitchOff,
     opacity: 1
   }
 } as const
@@ -79,13 +81,13 @@ const ROW_SX = {
 } as const
 
 /** The text of what is disabled, as tmail-flutter fades it */
-const DISABLED_TEXT = 'rgba(66, 66, 68, 0.38)'
+const DISABLED_TEXT = TMAIL.textGrey38
 
 const ROW_TITLE_SX = {
   display: 'block',
   fontSize: 15,
   lineHeight: '20px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   cursor: 'pointer'
 } as const
 
@@ -94,7 +96,7 @@ const ROW_DESCRIPTION_SX = {
   mb: 0,
   fontSize: 15,
   lineHeight: '20px',
-  color: 'rgba(66, 66, 68, 0.64)'
+  color: TMAIL.textGrey64
 } as const
 
 export interface SettingsSwitchRowProps {

@@ -28,6 +28,8 @@ import {
   type ReactNode
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 /** Leaving the entry for the panel crosses a gap: closing waits a little */
 const CLOSE_DELAY_MS = 150
 
@@ -40,7 +42,7 @@ const PAPER_SX = {
 
 const LIST_SX = { py: 0 } as const
 
-const CARET_SX = { display: 'flex', color: '#55687D', ml: '16px' } as const
+const CARET_SX = { display: 'flex', color: TMAIL.steel, ml: '16px' } as const
 
 /** `ic_thumbs_up` of tmail-flutter: a small triangle pointing to the panel */
 function Caret(): ReactElement {

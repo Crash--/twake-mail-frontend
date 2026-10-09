@@ -4,6 +4,7 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, Ref } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 const TITLE_SX = {
@@ -11,7 +12,7 @@ const TITLE_SX = {
   lineHeight: '28px',
   fontWeight: 600,
   letterSpacing: 0,
-  color: 'rgba(0, 0, 0, 0.9)'
+  color: TMAIL.textBlack90
 } as const
 
 const DESCRIPTION_SX = {
@@ -21,7 +22,7 @@ const DESCRIPTION_SX = {
   lineHeight: '21px',
   fontWeight: 400,
   letterSpacing: '-0.15px',
-  color: 'rgba(66, 66, 68, 0.64)'
+  color: TMAIL.textGrey64
 } as const
 
 /**
@@ -100,7 +101,7 @@ const SUBHEADING_SX = {
   lineHeight: '20px',
   fontWeight: 600,
   letterSpacing: '0.25px',
-  color: '#424244'
+  color: TMAIL.textGrey
 } as const
 
 export interface SettingsSubheadingProps {

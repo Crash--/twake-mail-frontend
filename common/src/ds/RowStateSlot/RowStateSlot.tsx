@@ -4,6 +4,8 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const SLOT_SX = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -11,7 +13,7 @@ const SLOT_SX = {
   flexShrink: 0,
   width: 28,
   height: 28,
-  color: '#AEB7C2'
+  color: TMAIL.greyFaint
 } as const
 
 export interface RowStateSlotProps {

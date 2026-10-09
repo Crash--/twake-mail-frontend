@@ -10,6 +10,7 @@ import type { ReactElement, ReactNode } from 'react'
 
 import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
 import { NESTED_LIST_SX } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const HEADING_SX = {
   display: 'flex',
@@ -23,7 +24,7 @@ const BUTTON_SX = {
   minHeight: 32,
   px: '2px',
   borderRadius: '8px',
-  color: 'common.black',
+  color: TMAIL.textBlack,
   fontSize: 14,
   fontWeight: 400,
   lineHeight: '18px',
@@ -72,7 +73,11 @@ export function CollapsibleCategory({
           data-testid={toggleTestId}
         >
           {icon === null ? null : (
-            <Box component="span" className="u-flex" sx={{ color: '#55687D' }}>
+            <Box
+              component="span"
+              className="u-flex"
+              sx={{ color: TMAIL.steel }}
+            >
               <Icon icon={icon} size={20} aria-hidden="true" />
             </Box>
           )}

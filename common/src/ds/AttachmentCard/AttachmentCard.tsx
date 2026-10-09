@@ -9,6 +9,7 @@ import { Icon } from '@linagora/twake-icons'
 import { Box, ButtonBase, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
 import { Attachment, Download } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** `EmailUtils.desktopItemMaxWidth`, `attachmentItemHeight`, `…Spacing` */
 export const ATTACHMENT_CARD_WIDTH = 260
@@ -20,7 +21,7 @@ const ICON_SIZE = 20
 /** Shown before "+N more" on a phone, or before the row is measured */
 export const COLLAPSED_ATTACHMENT_COUNT = 3
 
-const HOVER = 'rgba(28, 27, 31, 0.08)'
+const HOVER = TMAIL.hoverOnSurface08
 
 const CHIP_SX = {
   display: 'flex',
@@ -31,7 +32,7 @@ const CHIP_SX = {
   height: CHIP_HEIGHT,
   pl: 1,
   pr: 1,
-  border: '1px solid #E5ECF3',
+  border: `1px solid ${TMAIL.outlineCard}`,
   borderRadius: '8px',
   '&:hover': { bgcolor: HOVER }
 } as const
@@ -53,7 +54,7 @@ const NAME_SX = {
   display: 'flex',
   flex: '1 1 auto',
   minWidth: 0,
-  color: '#1C1B1F',
+  color: TMAIL.textOnSurface,
   fontSize: 14,
   fontWeight: 500,
   lineHeight: '20px',
@@ -65,7 +66,7 @@ const SIZE_SX = {
   flexShrink: 0,
   ml: 1,
   mr: '3px',
-  color: '#8C9CAF',
+  color: TMAIL.steelLight,
   fontSize: 11,
   fontWeight: 500,
   lineHeight: '16px',
@@ -76,7 +77,7 @@ const SIZE_SX = {
 const DOWNLOAD_SX = {
   flexShrink: 0,
   p: '7px',
-  color: '#007AFF',
+  color: TMAIL.primary,
   '& svg': { width: 16, height: 16 }
 } as const
 
@@ -85,13 +86,13 @@ const TEXT_BUTTON_SX = {
   px: '10px',
   gap: 1,
   borderRadius: '5px',
-  color: '#818C99',
+  color: TMAIL.grey,
   fontSize: 16,
   fontWeight: 500,
   lineHeight: '20px',
   whiteSpace: 'nowrap',
   '&:hover': { bgcolor: HOVER },
-  '& .AttachmentCard-icon': { color: '#55687D', display: 'flex' }
+  '& .AttachmentCard-icon': { color: TMAIL.steel, display: 'flex' }
 } as const
 
 /** "report.final.pdf" → ["report.final", ".pdf"]: the extension stays */
@@ -308,7 +309,7 @@ export function AttachmentHeader({
       <Box
         component="span"
         className="u-flex u-flex-shrink-0"
-        sx={{ color: '#959DAD' }}
+        sx={{ color: TMAIL.greyStar }}
         aria-hidden="true"
       >
         <Icon icon={Attachment} size={14} />
@@ -322,7 +323,7 @@ export function AttachmentHeader({
           m: 0,
           ml: 1,
           mr: '3px',
-          color: '#99A2AD',
+          color: TMAIL.greyIcon,
           fontSize: 15,
           fontWeight: 400,
           lineHeight: '20px',

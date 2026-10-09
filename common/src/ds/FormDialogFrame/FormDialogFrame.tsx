@@ -19,14 +19,15 @@ import {
 import type { ReactElement, ReactNode, SubmitEvent } from 'react'
 
 import { ArrowBack, CloseDialog } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-const TEXT_COLOR = '#1C1B1F'
+const TEXT_COLOR = TMAIL.textOnSurface
 
 /** The fields of tmail-flutter's forms, and their label */
 const FIELDS_SX = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '10px',
-    bgcolor: '#FFFFFF',
+    bgcolor: TMAIL.surface,
     fontSize: 14,
     lineHeight: '18px',
     color: TEXT_COLOR
@@ -36,24 +37,27 @@ const FIELDS_SX = {
     py: '11px',
     px: '12px'
   },
-  '& .MuiOutlinedInput-input::placeholder': { color: '#A9B4C2', opacity: 1 },
+  '& .MuiOutlinedInput-input::placeholder': {
+    color: TMAIL.greyPlaceholder,
+    opacity: 1
+  },
   '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'rgba(0, 0, 0, 0.12)'
+    borderColor: TMAIL.divider12
   },
   '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'rgba(0, 0, 0, 0.24)'
+    borderColor: TMAIL.outline24
   },
   '&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#007AFF',
+    borderColor: TMAIL.primary,
     borderWidth: '1px'
   },
-  '&& .MuiOutlinedInput-root.Mui-error': { bgcolor: '#FAEBEB' },
+  '&& .MuiOutlinedInput-root.Mui-error': { bgcolor: TMAIL.redPale },
   '&& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#E64646'
+    borderColor: TMAIL.errorLogin
   },
-  '&& .MuiOutlinedInput-root.Mui-disabled': { bgcolor: '#F4F4F4' },
+  '&& .MuiOutlinedInput-root.Mui-disabled': { bgcolor: TMAIL.fillF4 },
   '&& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#E6E1E5'
+    borderColor: TMAIL.outline
   },
   '& .MuiOutlinedInput-input.Mui-disabled': {
     color: TEXT_COLOR,
@@ -72,8 +76,8 @@ const FIELDS_SX = {
     padding: 0,
     boxSizing: 'border-box'
   },
-  '& .MuiCheckbox-root': { color: '#AEB7C2' },
-  '& .MuiCheckbox-root.Mui-checked': { color: '#007AFF' },
+  '& .MuiCheckbox-root': { color: TMAIL.greyFaint },
+  '& .MuiCheckbox-root.Mui-checked': { color: TMAIL.primary },
   '& .MuiFormControlLabel-label': {
     fontSize: 14,
     lineHeight: '18px',
@@ -83,7 +87,7 @@ const FIELDS_SX = {
 
 function paperSx(isFullScreen: boolean): Record<string, unknown> {
   return isFullScreen
-    ? { ...FIELDS_SX, m: 0, borderRadius: 0, bgcolor: '#FFFFFF' }
+    ? { ...FIELDS_SX, m: 0, borderRadius: 0, bgcolor: TMAIL.surface }
     : {
         ...FIELDS_SX,
         position: 'relative',
@@ -256,7 +260,12 @@ export function FormDialogFrame({
             <IconButton
               aria-label={closeLabel}
               onClick={onClose}
-              sx={{ position: 'absolute', top: 4, right: 4, color: '#8C9CAF' }}
+              sx={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                color: TMAIL.steelLight
+              }}
             >
               <Icon icon={CloseDialog} size={24} />
             </IconButton>
@@ -301,7 +310,7 @@ const LABEL_SX = {
   fontSize: 14,
   lineHeight: '18px',
   fontWeight: 400,
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 const PHONE_LABEL_SX = { ...LABEL_SX, pt: 0 } as const

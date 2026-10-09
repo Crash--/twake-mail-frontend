@@ -8,20 +8,22 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const TONE_SX = {
   default: {},
   starred: { color: '#FFCC00' },
-  muted: { color: '#AEB7C2', '&:hover': { color: '#55687D' } },
+  muted: { color: TMAIL.greyFaint, '&:hover': { color: TMAIL.steel } },
   // The icons of tmail-flutter's reading view (`steelGrayA540`)
-  steel: { color: '#55687D' },
+  steel: { color: TMAIL.steel },
   // What cannot be undone, as tmail-flutter's selection bar (`redFF3347`)
-  danger: { color: '#FF3347' },
+  danger: { color: TMAIL.error },
   // The refresh of tmail-flutter: a blue icon on a light grey square
   filled: {
     color: 'primary.main',
     borderRadius: '10px',
-    bgcolor: 'rgba(235, 237, 240, 0.6)',
-    '&:hover': { bgcolor: 'rgba(235, 237, 240, 1)' }
+    bgcolor: TMAIL.fillToolbar,
+    '&:hover': { bgcolor: TMAIL.fillToolbarHover }
   }
 } as const
 

@@ -8,6 +8,7 @@ import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
 
 import { Right } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 function sides(isPhone: boolean): string {
@@ -25,7 +26,7 @@ function listSx(isPhone: boolean): Record<string, unknown> {
       display: 'block',
       height: '1px',
       mx: sides(isPhone),
-      bgcolor: 'rgba(0, 0, 0, 0.12)'
+      bgcolor: TMAIL.divider12
     }
   }
 }
@@ -39,7 +40,7 @@ function tileSx(isPhone: boolean): Record<string, unknown> {
     px: sides(isPhone),
     gap: '12px',
     textAlign: 'start',
-    color: '#000000',
+    color: TMAIL.textBlack,
     textDecoration: 'none'
   }
 }
@@ -51,9 +52,9 @@ const NAME_SX = {
   fontSize: 16,
   fontWeight: 400,
   lineHeight: '24px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   // The blue icons of tmail-flutter's settings
-  '& svg': { color: '#007AFF', flexShrink: 0 }
+  '& svg': { color: TMAIL.primary, flexShrink: 0 }
 } as const
 
 const EXPLANATION_SX = {
@@ -62,10 +63,10 @@ const EXPLANATION_SX = {
   ml: '36px',
   fontSize: 13,
   lineHeight: '18px',
-  color: '#6D7885'
+  color: TMAIL.greySlate
 } as const
 
-const CHEVRON_SX = { display: 'flex', color: '#B8C1CC' } as const
+const CHEVRON_SX = { display: 'flex', color: TMAIL.greyChevron } as const
 
 const ACCOUNT_SX = {
   display: 'flex',
@@ -74,7 +75,7 @@ const ACCOUNT_SX = {
   py: '12px',
   fontSize: 17,
   fontWeight: 500,
-  color: '#000000',
+  color: TMAIL.textBlack,
   wordBreak: 'break-all'
 } as const
 

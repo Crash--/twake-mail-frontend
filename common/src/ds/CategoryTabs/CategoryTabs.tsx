@@ -9,12 +9,13 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, Tab, Tabs } from '@mui/material'
 import { useId, type ReactElement, type ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const TABS_SX = {
   minHeight: 52,
-  borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
-  '& .MuiTabs-indicator': { height: '1px', backgroundColor: '#007AFF' }
+  borderBottom: `1px solid ${TMAIL.divider12}`,
+  '& .MuiTabs-indicator': { height: '1px', backgroundColor: TMAIL.primary }
 } as const
 
 const TAB_SX = {
@@ -30,8 +31,8 @@ const TAB_SX = {
   textTransform: 'none',
   // tmail-flutter's labels keep their grey once selected: the blue line
   // under the tab says which one is
-  color: '#424244',
-  '&.Mui-selected': { color: '#424244' }
+  color: TMAIL.textGrey,
+  '&.Mui-selected': { color: TMAIL.textGrey }
 } as const
 
 const COMPACT_TABS_SX = {
@@ -45,7 +46,7 @@ const COMPACT_TAB_SX = {
   flex: '1 1 0',
   minHeight: 82,
   gap: '10px',
-  '& .MuiTab-iconWrapper': { m: 0, color: '#686E76' }
+  '& .MuiTab-iconWrapper': { m: 0, color: TMAIL.greyDark }
 } as const
 
 /** The list of the tab, 40 px under the bar */

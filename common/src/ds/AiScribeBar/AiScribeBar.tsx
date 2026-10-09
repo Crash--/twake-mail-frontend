@@ -12,6 +12,8 @@ import {
   type SubmitEvent
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const BAR_WIDTH = 405
 const GRADIENT =
   'linear-gradient(90deg, rgba(0, 183, 255, 0.9) 0%, rgba(224, 109, 209, 0.9) 75%, rgba(232, 167, 138, 0.9) 100%)'
@@ -31,7 +33,7 @@ const FIELD_SX = {
   minHeight: 44,
   px: 2,
   borderRadius: '8px',
-  bgcolor: '#FFFFFF'
+  bgcolor: TMAIL.surface
 } as const
 
 const INPUT_SX = {
@@ -40,11 +42,11 @@ const INPUT_SX = {
   fontSize: 14,
   lineHeight: '24px',
   letterSpacing: '0.4px',
-  color: 'rgba(0, 0, 0, 0.85)',
+  color: TMAIL.textBlack85,
   '& textarea': { maxHeight: 76, overflowY: 'auto' },
   '& textarea::placeholder': {
     fontWeight: 500,
-    color: 'rgba(155, 155, 155, 0.85)',
+    color: TMAIL.textPlaceholderAi,
     opacity: 1
   }
 } as const
@@ -56,9 +58,9 @@ function sendSx(isEnabled: boolean): Record<string, unknown> {
     height: 32,
     p: 1,
     color: '#FFFFFF',
-    bgcolor: isEnabled ? '#208BFF' : '#D2E9FF',
-    '&:hover': { bgcolor: isEnabled ? '#0A84FF' : '#D2E9FF' },
-    '&.Mui-disabled': { color: '#FFFFFF', bgcolor: '#D2E9FF' }
+    bgcolor: isEnabled ? '#208BFF' : TMAIL.blueDisabled,
+    '&:hover': { bgcolor: isEnabled ? '#0A84FF' : TMAIL.blueDisabled },
+    '&.Mui-disabled': { color: '#FFFFFF', bgcolor: TMAIL.blueDisabled }
   }
 }
 

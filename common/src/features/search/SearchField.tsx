@@ -17,6 +17,7 @@ import {
   StarOutline
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED } from '@common/features/email/keywords'
@@ -41,7 +42,7 @@ import { useSearchSuggestions } from './useSearchSuggestions'
 
 /** The stars of tmail-flutter (`ic_star.svg`, `ic_unstar.svg`) */
 const STARRED_COLOR = '#FFCC00'
-const UNSTARRED_COLOR = '#959DAD'
+const UNSTARRED_COLOR = TMAIL.greyStar
 
 /** Recent searches suggested under a non-empty field */
 const RECENT_WITH_TEXT = 3

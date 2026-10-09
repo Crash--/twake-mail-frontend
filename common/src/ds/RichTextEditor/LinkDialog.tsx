@@ -16,6 +16,8 @@ import {
   type SVGAttributes
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 import type { RichTextLinkDialogLabels } from './types'
 
 export interface LinkDialogValue {
@@ -74,8 +76,8 @@ function LinkIcon(props: SVGAttributes<SVGSVGElement>): ReactElement {
 }
 
 /** `AppColor.m3Neutral90` */
-const BORDER = '#E6E1E5'
-const PRIMARY = '#0A84FF'
+const BORDER = TMAIL.outline
+const PRIMARY = TMAIL.primary0A
 
 const PAPER_SX = {
   borderRadius: '10px',
@@ -89,7 +91,7 @@ const ROW_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
-  color: '#55687D'
+  color: TMAIL.steel
 } as const
 
 const INPUT_SX = {
@@ -102,10 +104,10 @@ const INPUT_SX = {
   borderRadius: '10px',
   fontSize: 14,
   lineHeight: '18px',
-  color: '#222222',
+  color: TMAIL.textInk,
   '&.Mui-focused': { borderColor: PRIMARY },
   '& .MuiInputBase-input': { p: 0 },
-  '& .MuiInputBase-input::placeholder': { color: '#818C99', opacity: 1 }
+  '& .MuiInputBase-input::placeholder': { color: TMAIL.grey, opacity: 1 }
 } as const
 
 const TEXT_BUTTON_SX = {
@@ -119,7 +121,7 @@ const TEXT_BUTTON_SX = {
   color: PRIMARY,
   bgcolor: 'transparent',
   boxShadow: 'none',
-  '&.Mui-disabled': { color: '#939393' }
+  '&.Mui-disabled': { color: TMAIL.grey939 }
 } as const
 
 /** Where the caret is: the card opens under it, as tmail-flutter's */
@@ -250,7 +252,7 @@ export function LinkDialog({
             <Button
               variant="text"
               onClick={onRemove}
-              sx={{ ...TEXT_BUTTON_SX, color: '#FF3347' }}
+              sx={{ ...TEXT_BUTTON_SX, color: TMAIL.error }}
             >
               {labels.remove}
             </Button>

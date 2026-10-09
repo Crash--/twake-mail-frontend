@@ -102,6 +102,7 @@ import { EmailListSkeleton } from './EmailListSkeleton'
 import { useNewEmailCount } from './useNewEmailCount'
 import {
   getLeadWidth,
+  getHoverActionsRoom,
   getTrailingWidth,
   MAILBOX_TAG_ROOM,
   getCompactRowLayout,
@@ -477,10 +478,11 @@ export function EmailList(props: EmailListProps): ReactElement {
         // beside them without hover
         id: 'trailing',
         label: `${t('email.attachment')}, ${t('thread.columns.date')}, ${t('thread.columns.actions')}`,
-        // Search results say their folder there too
+        // Search results say their folder there too; with hover all of it
+        // runs out of the cell, over the room kept in the subject
         width:
           getTrailingWidth({ canHover, isTouch }) +
-          (isSearch ? MAILBOX_TAG_ROOM : 0),
+          (isSearch && !canHover ? MAILBOX_TAG_ROOM : 0),
         textAlign: 'right',
         sortable: false,
         disablePadding: true
@@ -594,11 +596,13 @@ export function EmailList(props: EmailListProps): ReactElement {
             showImportant={showImportant}
             labels={labels}
             showActionRequired={showActionRequired}
+            hoverActionsRoom={getHoverActionsRoom(isTouch)}
           />
         )
       }
     }),
     [
+      isTouch,
       getEmailPath,
       openState,
       getMailboxNames,

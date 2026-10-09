@@ -597,7 +597,8 @@
     },
     "scope": {
       "default": "All email",
-      "everywhere": "All Email, trash & spam"
+      "everywhere": "All Email, trash & spam",
+      "selected": "selected"
     },
     "submit": "Search",
     "hints": {
@@ -649,7 +650,8 @@
       "chipHelp": "Enter or F2 edits it, Delete removes it.",
       "added": "%{address} added",
       "addedMany": "%{smart_count} address added |||| %{smart_count} addresses added"
-    }
+    },
+    "selectFolder": "Select Folder"
   },
   "emailActions": {
     "toast": {

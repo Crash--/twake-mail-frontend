@@ -8,12 +8,14 @@ import {
 
 import {
   Account,
+  AllEmail,
   Attachment,
   Calendar,
   CalendarToday,
   Email,
   FolderOutlined,
   LabelOutlined,
+  MoveFolderContent,
   SelectedCheck,
   StarOutline
 } from '@/ds/FlutterIcons/FlutterIcons'
@@ -21,6 +23,7 @@ import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { ScrollRow } from '@/ds/ScrollRow/ScrollRow'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
+import { usePickFolderOrChoice } from '@common/features/mailbox/MailboxPickerProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -33,7 +36,11 @@ import {
 import { DATE_LABELS } from './searchLabels'
 import { useMailboxOptions } from './useMailboxOptions'
 
-type MenuName = 'folder' | 'labels' | 'date'
+type MenuName = 'labels' | 'date'
+
+/** The scopes listed before the folders; not mailbox ids: they hold a space */
+const DEFAULT_SCOPE_ID = 'all email'
+const EVERYWHERE_SCOPE_ID = 'all email trash spam'
 type AddressField = 'from' | 'to'
 
 interface MenuChoice {
@@ -77,6 +84,8 @@ export function SearchFiltersBar({
     anchor: HTMLElement
     value: string
   } | null>(null)
+  const pickFolderOrChoice = usePickFolderOrChoice()
+  const [isPickingFolder, setIsPickingFolder] = useState(false)
   const [menu, setMenu] = useState<{
     name: MenuName
     anchor: HTMLElement
@@ -114,37 +123,6 @@ export function SearchFiltersBar({
 
   const choices = (name: MenuName): MenuChoice[] => {
     switch (name) {
-      case 'folder':
-        return [
-          {
-            key: 'default',
-            label: t('search.scope.default'),
-            isSelected: scope.kind === 'default',
-            apply: () => {
-              onChange({ ...filter, scope: { kind: 'default' } })
-            }
-          },
-          {
-            key: 'everywhere',
-            label: t('search.scope.everywhere'),
-            isSelected: scope.kind === 'everywhere',
-            apply: () => {
-              onChange({ ...filter, scope: { kind: 'everywhere' } })
-            }
-          },
-          ...mailboxes.map(mailbox => ({
-            key: mailbox.id,
-            label: mailbox.label,
-            isSelected:
-              scope.kind === 'mailbox' && scope.mailboxId === mailbox.id,
-            apply: () => {
-              onChange({
-                ...filter,
-                scope: { kind: 'mailbox', mailboxId: mailbox.id }
-              })
-            }
-          }))
-        ]
       case 'labels':
         return [
           {
@@ -180,6 +158,55 @@ export function SearchFiltersBar({
           }
         }))
     }
+  }
+
+  // As tmail-flutter: the destination picker, "All email" and "All Email,
+  // trash & spam" before the folders, the current scope marked
+  const pickScope = (): void => {
+    setIsPickingFolder(true)
+    pickFolderOrChoice({
+      title: t('search.selectFolder'),
+      currentLabel: t('search.scope.selected'),
+      currentId:
+        scope.kind === 'mailbox'
+          ? scope.mailboxId
+          : scope.kind === 'everywhere'
+            ? EVERYWHERE_SCOPE_ID
+            : DEFAULT_SCOPE_ID,
+      choices: [
+        {
+          id: DEFAULT_SCOPE_ID,
+          label: t('search.scope.default'),
+          icon: AllEmail
+        },
+        {
+          id: EVERYWHERE_SCOPE_ID,
+          label: t('search.scope.everywhere'),
+          icon: MoveFolderContent
+        }
+      ]
+    })
+      .then(picked => {
+        setIsPickingFolder(false)
+        if (picked === null) return
+        if ('icon' in picked) {
+          onChange({
+            ...filter,
+            scope: {
+              kind: picked.id === EVERYWHERE_SCOPE_ID ? 'everywhere' : 'default'
+            }
+          })
+          return
+        }
+        onChange({
+          ...filter,
+          scope: { kind: 'mailbox', mailboxId: picked.id }
+        })
+      })
+      .catch((error: unknown) => {
+        setIsPickingFolder(false)
+        console.warn('[search] Cannot pick the folder', error)
+      })
   }
 
   const removable = [
@@ -250,9 +277,9 @@ export function SearchFiltersBar({
           label={scopeLabel}
           icon={FolderOutlined}
           isSelected={scope.kind !== 'default'}
-          popup="menu"
-          isExpanded={menu?.name === 'folder'}
-          onClick={openMenu('folder')}
+          popup="dialog"
+          isExpanded={isPickingFolder}
+          onClick={pickScope}
           data-testid="search-filter-folder"
         />
       </Slot>

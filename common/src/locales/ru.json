@@ -597,7 +597,8 @@
     },
     "scope": {
       "default": "Вся почта",
-      "everywhere": "Вся почта, корзина и спам"
+      "everywhere": "Вся почта, корзина и спам",
+      "selected": "выбрано"
     },
     "submit": "Поиск",
     "hints": {
@@ -649,7 +650,8 @@
       "chipHelp": "Enter или F2 изменяет его, Delete удаляет.",
       "added": "%{address} добавлен",
       "addedMany": "Добавлен %{smart_count} адрес |||| Добавлено %{smart_count} адреса |||| Добавлено %{smart_count} адресов"
-    }
+    },
+    "selectFolder": "Выбрать папку"
   },
   "emailActions": {
     "toast": {

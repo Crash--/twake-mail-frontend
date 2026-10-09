@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createClient } from 'jmap-client-ts'
 
@@ -8,7 +8,10 @@ import { makeQueryClient } from '@common/app/queryClient'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import type { AuthService } from '@common/features/auth/types'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
-import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
+import type {
+  SpaceBridge,
+  SpaceNavigation
+} from '@common/features/teamMailboxEmbed/spaceBridge'
 import { parseTeamMailboxEmbedPath } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
@@ -40,11 +43,12 @@ function makeServer(): FakeJmapServer {
 }
 
 function makeSpaceBridge(): SpaceBridge & {
+  syncHistory: jest.Mock<() => void, [SpaceNavigation]>
   notifyLoginRequired: jest.Mock
   reportBadges: jest.Mock
 } {
   return {
-    syncHistory: jest.fn(() => () => undefined),
+    syncHistory: jest.fn((_apply: SpaceNavigation) => () => undefined),
     notifyLoginRequired: jest.fn(),
     reportBadges: jest.fn()
   }
@@ -192,6 +196,37 @@ describe('TeamMailboxEmbedApp', () => {
         { resourceId: 'sales', count: 0 }
       ])
     })
+  })
+
+  it('shows the mailbox TwakeSpace loads in the same document, its badges kept', async () => {
+    const spaceBridge = makeSpaceBridge()
+    renderEmbed(`${BASE}/mailbox/team-inbox`, { spaceBridge })
+    expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
+      'data-mailbox-id',
+      'team-inbox'
+    )
+    await waitFor(() => {
+      expect(spaceBridge.reportBadges).toHaveBeenCalled()
+    })
+    const apply = spaceBridge.syncHistory.mock.calls[0]?.[0]
+    if (apply === undefined) throw new Error('The history is not synced')
+
+    act(() => {
+      window.history.replaceState(
+        null,
+        '',
+        '/embed/team-mailboxes/sales/mailbox/sales-inbox'
+      )
+      apply.load({ basename: '/embed/team-mailboxes/sales', rootId: 'sales' })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mailbox-page')).toHaveAttribute(
+        'data-mailbox-id',
+        'sales-inbox'
+      )
+    })
+    expect(screen.queryByTestId('email-list-loading')).toBe(null)
   })
 
   it('asks TwakeSpace to sign the user in again when the session expired', async () => {

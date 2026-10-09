@@ -1,8 +1,4 @@
-import { replaceWith } from '@common/utils/navigation'
-
 import { connectToSpace, reportOverlayRegion } from './spaceBridge'
-
-jest.mock('@common/utils/navigation', () => ({ replaceWith: jest.fn() }))
 
 const SPACE_ORIGIN = 'https://space.example.com'
 const BASENAME = '/embed/team-mailboxes/root1'
@@ -84,16 +80,17 @@ describe('connectToSpace', () => {
     })
 
     function sync(
-      applyNavigation: (path: string) => void | Promise<void> = jest.fn()
+      applyNavigation: (path: string) => void | Promise<void> = jest.fn(),
+      load: (target: typeof TARGET) => void = jest.fn()
     ): void {
       const connection = connect()
       greet()
-      stop = connection?.syncHistory(applyNavigation)
+      stop = connection?.syncHistory({ navigate: applyNavigation, load })
     }
 
     it('posts only its readiness until TwakeSpace greets the frame', () => {
       const connection = connect()
-      stop = connection?.syncHistory(jest.fn())
+      stop = connection?.syncHistory({ navigate: jest.fn(), load: jest.fn() })
       window.history.replaceState(null, '', `${BASENAME}/sent`)
       connection?.notifyLoginRequired()
 
@@ -119,7 +116,7 @@ describe('connectToSpace', () => {
       )
 
       postMessage.mockClear()
-      stop = connection?.syncHistory(jest.fn())
+      stop = connection?.syncHistory({ navigate: jest.fn(), load: jest.fn() })
 
       expect(postMessage).toHaveBeenCalledWith(
         { type: 'twake-embed:ready' },
@@ -240,7 +237,8 @@ describe('connectToSpace', () => {
 
     it('ignores messages that do not come from the parent', () => {
       const applyNavigation = jest.fn()
-      sync(applyNavigation)
+      const load = jest.fn()
+      sync(applyNavigation, load)
 
       window.dispatchEvent(
         new MessageEvent('message', {
@@ -262,28 +260,36 @@ describe('connectToSpace', () => {
       )
 
       expect(applyNavigation).not.toHaveBeenCalled()
-      expect(replaceWith).not.toHaveBeenCalled()
+      expect(load).not.toHaveBeenCalled()
     })
 
-    it('replaces the frame for a load', () => {
-      sync()
+    it('shows another mailbox for a load in the same document, without reporting its address', async () => {
+      const load = jest.fn()
+      sync(jest.fn(), load)
+      postMessage.mockClear()
 
       receive({ type: 'twake-embed:load', resourceId: 'root2', path: '/inbox' })
+      await Promise.resolve()
 
-      expect(replaceWith).toHaveBeenCalledWith(
-        '/embed/team-mailboxes/root2/inbox'
-      )
+      expect(window.location.pathname).toBe('/embed/team-mailboxes/root2/inbox')
+      expect(load).toHaveBeenCalledWith({
+        basename: '/embed/team-mailboxes/root2',
+        rootId: 'root2'
+      })
+      expect(postMessage).not.toHaveBeenCalled()
     })
 
     it('drops a load with a bad resource id or a path leaving the route', () => {
-      sync()
+      const load = jest.fn()
+      sync(jest.fn(), load)
 
       receive({ type: 'twake-embed:load', resourceId: 'a/b', path: '' })
       receive({ type: 'twake-embed:load', resourceId: 'root2', path: '/../x' })
       receive({ type: 'twake-embed:load', resourceId: 'root2', path: '//x' })
       receive({ type: 'twake-embed:load', resourceId: 'root2', path: '/a\\b' })
 
-      expect(replaceWith).not.toHaveBeenCalled()
+      expect(load).not.toHaveBeenCalled()
+      expect(window.location.pathname).toBe(`${BASENAME}/inbox`)
     })
   })
 

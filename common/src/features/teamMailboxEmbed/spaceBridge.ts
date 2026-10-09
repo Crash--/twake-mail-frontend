@@ -6,27 +6,34 @@ import {
   type OverlayRegion
 } from '@linagora/twake-embed'
 
-import { replaceWith } from '@common/utils/navigation'
-
 import {
   parseTeamMailboxEmbedPath,
   TEAM_MAILBOX_EMBED_PREFIX,
   type TeamMailboxEmbedTarget
 } from './teamMailboxEmbedPath'
 
+/** What TwakeSpace asks the facade to show */
+export interface SpaceNavigation {
+  /** A path under the base of the facade (a `twake-embed:navigate`) */
+  navigate: (path: string) => void | Promise<void>
+  /**
+   * Another team mailbox (a `twake-embed:load`), already in the address:
+   * the facade shows it in the same document, its folders and its session
+   * kept, so the counts it reports never go away
+   */
+  load: (target: TeamMailboxEmbedTarget) => void
+}
+
 /** What the facade of a team mailbox tells TwakeSpace, around its frame */
 export interface SpaceBridge {
   /**
    * TwakeSpace owns the history of the page, the frame has none: from now
    * on `pushState` replaces the entry of the frame, and every change of its
-   * URL is sent to TwakeSpace, the initial one too. `applyNavigation` shows
-   * a path under the base of the facade (a `twake-embed:navigate` of
-   * TwakeSpace), without reporting the URL it writes. Returns the function
-   * that stops all this.
+   * URL is sent to TwakeSpace, the initial one too. What TwakeSpace asks
+   * goes to `apply`, and the URL it writes is not reported. Returns the
+   * function that stops all this.
    */
-  syncHistory: (
-    applyNavigation: (path: string) => void | Promise<void>
-  ) => () => void
+  syncHistory: (apply: SpaceNavigation) => () => void
   /**
    * The session expired and the silent login cannot show the SSO portal in
    * the frame: TwakeSpace signs the user in again, then reloads its frames
@@ -63,12 +70,16 @@ export function connectToSpace(
   if (connection === null) return null
 
   return {
-    syncHistory: applyNavigation =>
+    syncHistory: apply =>
       connection.syncHistory({
         onNavigate: (_id, path) =>
-          applyNavigation(path.startsWith('/') ? path : `/${path}`),
+          apply.navigate(path.startsWith('/') ? path : `/${path}`),
         onLoad: (id, path) => {
-          replaceWith(embedRoute(TEAM_MAILBOX_EMBED_PREFIX, id) + path)
+          const url = embedRoute(TEAM_MAILBOX_EMBED_PREFIX, id) + path
+          const target = parseTeamMailboxEmbedPath(url)
+          if (target === null) return
+          window.history.replaceState(null, '', url)
+          apply.load(target)
         }
       }),
     notifyLoginRequired: () => {

@@ -31,7 +31,7 @@ import {
   type ReactNode,
   type Ref
 } from 'react'
-import { CrossCircle, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
+import { ClearTextSearch, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const POPUP_SX = { zIndex: 'modal' } as const
@@ -119,6 +119,8 @@ const SECONDARY_SX = {
   fontSize: 13,
   lineHeight: '18px'
 } as const
+const CLEAR_SX = { p: '10px', color: TMAIL.grey } as const
+
 const END_SX = {
   display: 'flex',
   alignItems: 'center',
@@ -227,6 +229,8 @@ function fieldSx(
     height: `${isCompact ? COMPACT_FIELD.height : FIELD_HEIGHT}px`,
     borderRadius: `${isCompact ? COMPACT_FIELD.radius : FIELD_RADIUS}px`,
     bgcolor: isCompact ? COMPACT_FIELD.background : FIELD_BACKGROUND,
+    // tmail-flutter's end button keeps its own 12 px from the end
+    ...(size === 'large' ? { pr: 0 } : {}),
     '& .MuiInputBase-root': {
       fontSize: `${isCompact ? COMPACT_FIELD.fontSize : 16}px`
     },
@@ -475,9 +479,11 @@ export function SearchCombobox({
                       size="small"
                       aria-label={clearLabel}
                       onClick={handleClear}
+                      // Where tmail-flutter draws its clear button, steel grey
+                      sx={CLEAR_SX}
                       data-testid={testIds.clear}
                     >
-                      <Icon icon={CrossCircle} size={16} />
+                      <Icon icon={ClearTextSearch} size={16} />
                     </IconButton>
                   </Tooltip>
                 )}

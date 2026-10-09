@@ -1,6 +1,7 @@
 import {
   EMPTY_SEARCH_FILTER,
   isEmptySearch,
+  usesAdvancedFields,
   isReversedDateRange,
   parseSearchParams,
   searchPath,
@@ -241,5 +242,20 @@ describe('toSearchRequest', () => {
     expect(
       toSearchRequest(filter({ sort: 'senderDescending' }), CONTEXT).sort
     ).toEqual([{ property: 'from', isAscending: false }])
+  })
+
+  it('tells a search using what only the advanced search sets', () => {
+    expect(usesAdvancedFields(filter({ text: 'x', starred: true }))).toBe(false)
+    expect(usesAdvancedFields(filter({ subject: 'report' }))).toBe(true)
+    expect(usesAdvancedFields(filter({ notWords: ['draft'] }))).toBe(true)
+    expect(
+      usesAdvancedFields(
+        filter({
+          dateRange: 'custom',
+          startDate: '2026-01-01',
+          endDate: '2026-02-01'
+        })
+      )
+    ).toBe(true)
   })
 })

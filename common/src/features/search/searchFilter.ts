@@ -121,6 +121,18 @@ export function isEmptySearch(filter: SearchFilter): boolean {
   )
 }
 
+/**
+ * True when the filter asks for what only the advanced search sets (a
+ * subject, words to leave out, a custom range): its button then shows it
+ */
+export function usesAdvancedFields(filter: SearchFilter): boolean {
+  return (
+    filter.subject.trim() !== '' ||
+    filter.notWords.length > 0 ||
+    filter.dateRange === 'custom'
+  )
+}
+
 /** Splits "a, b ,c" into words, as the "Doesn't have" field does */
 export function splitWords(value: string): string[] {
   return value

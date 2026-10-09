@@ -1,5 +1,5 @@
 import { Icon } from '@linagora/twake-icons'
-import { getInitials, IconButton, Tooltip } from '@linagora/twake-mui'
+import { getInitials } from '@linagora/twake-mui'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -12,11 +12,12 @@ import {
 import {
   Attachment,
   ClockOutline,
-  Filter,
+  FilterAdvanced,
   Star,
   StarOutline
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { SearchBarAction } from '@/ds/SearchBarAction/SearchBarAction'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
@@ -33,6 +34,7 @@ import {
   isEmptySearch,
   searchPath,
   toSearchParams,
+  usesAdvancedFields,
   withTypedText,
   type SearchFilter
 } from './searchFilter'
@@ -244,7 +246,6 @@ export function SearchField({
     if (count === 0 && !hasText) return t('search.quickFiltersOnly')
     return t('search.suggestionCount', { smart_count: count })
   })()
-  const advancedLabel = t('search.advanced')
 
   return (
     <>
@@ -270,19 +271,18 @@ export function SearchField({
         clearLabel={t('search.clear')}
         status={status}
         endActions={
-          <Tooltip title={advancedLabel}>
-            <IconButton
-              size="small"
-              aria-label={advancedLabel}
-              aria-haspopup="dialog"
-              onClick={() => {
-                setAdvanced({ anchor: combobox.current?.getField() ?? null })
-              }}
-              data-testid="advanced-search-button"
-            >
-              <Icon icon={Filter} />
-            </IconButton>
-          </Tooltip>
+          // As tmail-flutter: hidden while the advanced search is open
+          <SearchBarAction
+            label={t('search.advanced')}
+            icon={FilterAdvanced}
+            isActive={usesAdvancedFields(initialFilter)}
+            isHidden={advanced !== null}
+            aria-haspopup="dialog"
+            onClick={() => {
+              setAdvanced({ anchor: combobox.current?.getField() ?? null })
+            }}
+            data-testid="advanced-search-button"
+          />
         }
         testIds={{
           input: 'search-input',

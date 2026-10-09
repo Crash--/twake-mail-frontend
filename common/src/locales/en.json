@@ -980,7 +980,9 @@
       "imageTooLarge": "Please choose an image with size less than %{maxSize}KB",
       "save": "The identity could not be saved",
       "forbiddenFrom": "You cannot send from this address",
-      "load": "The identities could not be loaded"
+      "load": "The identities could not be loaded",
+      "imageCompress": "Cannot compress image",
+      "notAnImage": "Can not upload this file to signature"
     },
     "delete": {
       "title": "Delete identity",

@@ -980,7 +980,9 @@
       "imageTooLarge": "Merci de choisir une taille d'image inférieure à %{maxSize}Ko",
       "save": "L'identité n'a pas pu être enregistrée",
       "forbiddenFrom": "Vous ne pouvez pas envoyer depuis cette adresse",
-      "load": "Les identités n'ont pas pu être chargées"
+      "load": "Les identités n'ont pas pu être chargées",
+      "imageCompress": "Impossible de compresser l'image",
+      "notAnImage": "Impossible de téléverser ce fichier dans la signature"
     },
     "delete": {
       "title": "Supprimer l'identité",

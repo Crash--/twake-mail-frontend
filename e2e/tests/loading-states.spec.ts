@@ -374,7 +374,7 @@ test.describe('OFF offline banner', () => {
 })
 
 test.describe('LOAD in the facade of a team mailbox', () => {
-  test('LOAD-06 framed, the facade shows the list skeleton without a sidebar, and the offline banner above its floating button', { tag: '@mobile' }, async ({
+  test('LOAD-06 framed, the facade shows the list skeleton without a sidebar, and the offline banner clear of New message', { tag: '@mobile' }, async ({
     page,
     context,
     user,
@@ -434,11 +434,19 @@ test.describe('LOAD in the facade of a team mailbox', () => {
     const banner = frame.getByTestId('offline-banner')
     await expect(banner).toBeVisible()
     const bannerBox = await banner.boundingBox()
-    const fabBox = await frame.getByTestId('compose-email-button').boundingBox()
-    // Above the floating button, not under it
-    expect((bannerBox?.y ?? 0) + (bannerBox?.height ?? 0)).toBeLessThanOrEqual(
-      (fabBox?.y ?? 0) + 1
-    )
+    const composeBox = await frame
+      .getByTestId('compose-email-button')
+      .boundingBox()
+    // Never over "New message": above it while it floats (below 600 px),
+    // elsewhere once it is at the end of the list toolbar
+    const bannerArea = bannerBox ?? { x: 0, y: 0, width: 0, height: 0 }
+    const compose = composeBox ?? { x: 0, y: 0, width: 0, height: 0 }
+    const overlaps =
+      bannerArea.x < compose.x + compose.width &&
+      compose.x < bannerArea.x + bannerArea.width &&
+      bannerArea.y < compose.y + compose.height &&
+      compose.y < bannerArea.y + bannerArea.height
+    expect(overlaps).toBe(false)
     await context.setOffline(false)
     await expect(banner).toBeHidden()
   })

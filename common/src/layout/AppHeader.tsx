@@ -97,7 +97,7 @@ export function AppHeader({
         }
         actions={
           <>
-            <HelpButton />
+            <HelpButton isFlutterLook={isFlutterBar} />
             {/* As tmail-flutter: the settings and the sign out are behind
                 the initial of the user */}
             {isFlutterBar ? <AccountMenu /> : null}

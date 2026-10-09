@@ -20,9 +20,18 @@ export interface ComposeButtonProps {
   'data-testid'?: string
 }
 
+/** White over the button on hover, then on press and focus (tmail-flutter) */
+const OVERLAY_HOVER =
+  'linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08))'
+const OVERLAY_PRESSED =
+  'linear-gradient(rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12))'
+
 /**
- * The main action of a sidebar or a toolbar: a button, 12 px radius, 14 px
- * medium label and a 12 px icon, white on the primary colour.
+ * The main action of a sidebar or a toolbar, as tmail-flutter's
+ * `LinagoraSidebarPrimaryAction`: in a sidebar a full width button 40 px
+ * high, in a toolbar as wide as its label and 34 px high; 12 px radius,
+ * 16 px side padding, 14 px medium label and a 12 px icon 7 px before it,
+ * white on #0A84FF, lightened by white on hover and press.
  */
 export function ComposeButton({
   label,
@@ -42,16 +51,25 @@ export function ComposeButton({
       sx={{
         ...(isInToolbar
           ? { height: 34, minHeight: 34, py: 0, whiteSpace: 'nowrap' }
-          : { minHeight: 39, py: '10.5px' }),
+          : { minHeight: 40, py: '8px' }),
         px: 2,
         borderRadius: '12px',
+        bgcolor: '#0A84FF',
+        color: '#FFFFFF',
         fontSize: 14,
         fontWeight: 500,
         lineHeight: '18.4px',
         letterSpacing: 0.25,
         textTransform: 'none',
         boxShadow: 'none',
-        '&:hover, &:active': {
+        '&:hover': {
+          bgcolor: '#0A84FF',
+          backgroundImage: OVERLAY_HOVER,
+          boxShadow: 'none'
+        },
+        '&:active, &.Mui-focusVisible': {
+          bgcolor: '#0A84FF',
+          backgroundImage: OVERLAY_PRESSED,
           boxShadow: 'none'
         },
         '& .MuiButton-startIcon': { mr: '7px', ml: 0 },

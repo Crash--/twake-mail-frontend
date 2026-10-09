@@ -399,7 +399,9 @@
       "others": "+%{smart_count}",
       "alreadyAdded": "déjà ajouté",
       "editEmail": "Modifier l’adresse",
-      "createRule": "Créer une règle"
+      "createRule": "Créer une règle",
+      "moveHelp": "Alt+Haut ou Alt+Bas la déplace dans le champ du dessus ou du dessous.",
+      "moved": "%{address} déplacé dans %{field}"
     },
     "limit": "Vous pouvez écrire %{smart_count} messages à la fois. Fermez-en un pour en commencer un autre.",
     "sent": "Le message a bien été envoyé",
@@ -642,6 +644,11 @@
     "labels": {
       "all": "Tous les libellés",
       "label": "Libellé"
+    },
+    "addresses": {
+      "chipHelp": "Entrée ou F2 la modifie, Suppr la retire.",
+      "added": "%{address} ajouté",
+      "addedMany": "%{smart_count} adresse ajoutée |||| %{smart_count} adresses ajoutées"
     }
   },
   "emailActions": {

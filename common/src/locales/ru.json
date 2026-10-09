@@ -399,7 +399,9 @@
       "others": "+%{smart_count}",
       "alreadyAdded": "уже добавлен",
       "editEmail": "Изменить адрес",
-      "createRule": "Создать правило"
+      "createRule": "Создать правило",
+      "moveHelp": "Alt+Вверх или Alt+Вниз переносит его в поле выше или ниже.",
+      "moved": "%{address} перенесён в поле %{field}"
     },
     "limit": "Можно писать не более %{smart_count} писем одновременно. Закройте одно, чтобы начать новое.",
     "sent": "Сообщение успешно отправлено",
@@ -642,6 +644,11 @@
     "labels": {
       "all": "Все метки",
       "label": "Метка"
+    },
+    "addresses": {
+      "chipHelp": "Enter или F2 изменяет его, Delete удаляет.",
+      "added": "%{address} добавлен",
+      "addedMany": "Добавлен %{smart_count} адрес |||| Добавлено %{smart_count} адреса |||| Добавлено %{smart_count} адресов"
     }
   },
   "emailActions": {

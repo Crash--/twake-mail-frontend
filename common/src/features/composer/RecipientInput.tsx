@@ -11,7 +11,8 @@ import { useNavigate } from 'react-router'
 import {
   RecipientField,
   type RecipientFieldActions,
-  type RecipientFieldCard
+  type RecipientFieldCard,
+  type RecipientFieldDnd
 } from '@/ds/RecipientField/RecipientField'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { NewRuleLocationState } from '@common/features/rules/EmailRulesSettings'
@@ -54,6 +55,8 @@ export interface RecipientInputProps {
   onFocus?: () => void
   autoFocus?: boolean
   actions?: Ref<RecipientFieldActions>
+  /** Recipients dragged to another field, emails dropped here */
+  dnd?: RecipientFieldDnd
 }
 
 /**
@@ -71,7 +74,8 @@ export function RecipientInput({
   endActions,
   onFocus,
   autoFocus,
-  actions
+  actions,
+  dnd
 }: RecipientInputProps): ReactElement {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -187,7 +191,10 @@ export function RecipientInput({
         suggestions: t('composer.recipients.suggestions'),
         alreadyAdded: t('composer.recipients.alreadyAdded'),
         invalid: t('composer.recipients.invalid'),
-        chipHelp: t('composer.recipients.chipHelp'),
+        chipHelp:
+          dnd?.onMoveBy === undefined
+            ? t('composer.recipients.chipHelp')
+            : `${t('composer.recipients.chipHelp')} ${t('composer.recipients.moveHelp')}`,
         removed: address => t('composer.recipients.removed', { address }),
         added: addresses =>
           addresses.length === 1
@@ -214,6 +221,7 @@ export function RecipientInput({
       onFocus={onFocus}
       autoFocus={autoFocus}
       actions={actions}
+      dnd={dnd}
       testIds={{
         field: `composer-${field}-field`,
         input: `composer-${field}-input`,

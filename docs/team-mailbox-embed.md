@@ -28,8 +28,9 @@ in no folder of the team mailbox, leads to its Inbox.
   is renamed. The app never receives a space id.
 - The facade is the list and the reading view of the team mailbox, opened
   on its Inbox: no top bar, sidebar (no folder tree), app grid, account
-  menu, labels nor banners. "New message" is a floating button at every
-  size, hidden while an email fills the screen. The other folders of the
+  menu, labels nor banners. "New message" ends the toolbar above the list,
+  and is a floating button on phones (below 600 px, where the list has no
+  toolbar), hidden while an email fills the screen. The other folders of the
   team mailbox open by their path (`/mailbox/<folder id>`).
 - Two layouts only: the mobile one below 600 px, the desktop one from there
   (`WithoutTablets`). The frame is narrower than the screen of TwakeSpace:

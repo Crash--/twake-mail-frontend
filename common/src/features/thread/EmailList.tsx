@@ -543,9 +543,6 @@ export function EmailList(props: EmailListProps): ReactElement {
   // wide tile is for `isWebDesktop` only); the table also measures itself for
   // the other cases (zoom, an email open beside the list)
   const isCompact = screenSize !== 'desktop'
-  // The floating "New message" button covers the end of the list below the
-  // desktop size (layout/AppLayout.tsx), and on a desktop in the facade of a
-  // team mailbox (layout/TeamMailboxLayout.tsx)
   const bottomInset = useFloatingActionInset()
 
   const { openComposer } = useComposer()

@@ -8,12 +8,7 @@ import {
   type SxProps,
   type Theme
 } from '@linagora/twake-mui'
-import {
-  createContext,
-  useContext,
-  type ReactElement,
-  type ReactNode
-} from 'react'
+import type { ReactElement } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
@@ -23,35 +18,12 @@ const OFFSET = 2
 /** Room the button takes at the bottom of the screen, for the content under it */
 export const FLOATING_ACTION_INSET = 88
 
-const AlwaysFloatingContext = createContext(false)
-
-/**
- * The screens below show their floating button on a desktop too (a layout
- * without sidebar, where the main action has no other place)
- */
-export function AlwaysFloatingAction({
-  children
-}: {
-  children: ReactNode
-}): ReactElement {
-  return (
-    <AlwaysFloatingContext.Provider value>
-      {children}
-    </AlwaysFloatingContext.Provider>
-  )
-}
-
 /**
  * The room to keep free at the end of scrolling content: the floating
- * button is there below the desktop size, and on a desktop under
- * `AlwaysFloatingAction`
+ * button is there below the desktop size
  */
 export function useFloatingActionInset(): number {
-  const screenSize = useScreenSize()
-  const isAlwaysFloating = useContext(AlwaysFloatingContext)
-  return isAlwaysFloating || screenSize !== 'desktop'
-    ? FLOATING_ACTION_INSET
-    : 0
+  return useScreenSize() === 'desktop' ? 0 : FLOATING_ACTION_INSET
 }
 
 // tmail-flutter's "Compose" button (`ComposeFloatingButton`): a 60 px blue

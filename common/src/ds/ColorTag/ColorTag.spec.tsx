@@ -23,7 +23,7 @@ describe('ColorTag', () => {
       />
     )
 
-    expect(screen.getByText('A very lon…')).toBeVisible()
+    expect(screen.getByText('A very lo...')).toBeVisible()
     await userEvent.click(
       screen.getByRole('button', { name: 'Remove the label' })
     )

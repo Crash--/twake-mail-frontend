@@ -96,6 +96,7 @@ export function CollapsedMessageActions({
     >
       {
         <IconAction
+          size={36}
           tone="steel"
           label={t('emailActions.reply.reply')}
           icon={Reply}
@@ -107,6 +108,7 @@ export function CollapsedMessageActions({
       }
       {!showsShortcuts || move === undefined ? null : (
         <IconAction
+          size={36}
           tone="steel"
           label={t(move.label)}
           icon={MoveEmail}
@@ -118,6 +120,7 @@ export function CollapsedMessageActions({
       )}
       {showsShortcuts ? (
         <IconAction
+          size={36}
           label={starLabel}
           icon={isStarred ? Star : StarOutline}
           tone={isStarred ? 'starred' : 'steel'}
@@ -130,6 +133,7 @@ export function CollapsedMessageActions({
       ) : null}
       {!showsShortcuts || deletion === undefined ? null : (
         <IconAction
+          size={36}
           tone="steel"
           label={t(deletion.label)}
           icon={Trash}
@@ -141,6 +145,7 @@ export function CollapsedMessageActions({
       )}
       {isExpanded ? (
         <IconAction
+          size={36}
           tone="steel"
           label={moreLabel}
           icon={MoreVerticalIcon}

@@ -134,6 +134,11 @@ jest.mock('./draftPolicy', () => ({
   DRAFT_IDLE_MS: 1500
 }))
 
+// The composer renders the whole editor and talks to the fake JMAP server
+// through the real client: on a loaded CI runner many of its tests come
+// near the default 5 s, and some went over it
+jest.setTimeout(15_000)
+
 describe('ComposerForm', () => {
   let uploads: FakeUploads | null = null
 
@@ -944,8 +949,7 @@ describe('ComposerForm', () => {
         { timeout: 4000 }
       )
       warn.mockRestore()
-      // Three autosaves
-    }, 15_000)
+    })
 
     it('destroys with the next save a version whose answer was lost', async () => {
       const { jmapServer } = renderComposer()
@@ -979,7 +983,7 @@ describe('ComposerForm', () => {
         draftsOf(jmapServer)[0]?.headers?.['X-Twake-Draft-Session']
       ).toMatch(/^[0-9a-f-]{36}$/)
       error.mockRestore()
-    }, 15_000)
+    })
 
     it('comes back after a reload, until closed', async () => {
       const snapshot: ComposerSnapshot = {
@@ -1850,9 +1854,7 @@ describe('ComposerForm', () => {
       )
       expect(sent?.inReplyTo).toEqual(['plans@example.com'])
       expect(sent?.headers?.['X-Twake-Answering']).toBeUndefined()
-      // A reply saved, reopened from Drafts and sent: over 5 s on a loaded
-      // CI runner
-    }, 15_000)
+    })
 
     describe('back after a reload', () => {
       async function restoreReply(
@@ -2054,8 +2056,7 @@ describe('ComposerForm', () => {
       expect(
         within(composer).queryByRole('list', { name: /Attachments/ })
       ).toBe(null)
-      // An upload, a save and a removal: over 5 s on a loaded CI runner
-    }, 15_000)
+    })
 
     it('cancels an upload removed while it runs', async () => {
       const jmapServer = makeFakeJmapServer()

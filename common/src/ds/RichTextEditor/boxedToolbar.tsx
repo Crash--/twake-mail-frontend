@@ -207,7 +207,11 @@ export function BoxedContent({
     case 'color':
       return (
         <>
-          <Icon icon={StyleColor} size={28} color={state.color || TMAIL.textBlack} />
+          <Icon
+            icon={StyleColor}
+            size={28}
+            color={state.color || TMAIL.textBlack}
+          />
           <Arrow />
         </>
       )

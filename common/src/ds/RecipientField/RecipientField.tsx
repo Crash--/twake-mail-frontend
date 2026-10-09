@@ -53,7 +53,7 @@ const PAPER_SX = {
   maxHeight: 300,
   overflowY: 'auto',
   borderRadius: '20px',
-  bgcolor: TMAIL.surface,
+  bgcolor: '#FFFFFF',
   boxShadow:
     '0 10px 13px -6px rgba(0, 0, 0, 0.2), 0 20px 31px 3px rgba(0, 0, 0, 0.14), 0 8px 38px 7px rgba(0, 0, 0, 0.12)'
 } as const
@@ -155,12 +155,12 @@ export const RECIPIENT_CHIP_SX = {
  */
 const DRAGGED_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
-  borderColor: '#007AFF',
-  bgcolor: '#007AFF',
+  borderColor: TMAIL.primary,
+  bgcolor: TMAIL.primary,
   color: '#FFFFFF',
   '&:focus, &.Mui-focusVisible': {
-    bgcolor: '#007AFF',
-    borderColor: '#007AFF'
+    bgcolor: TMAIL.primary,
+    borderColor: TMAIL.primary
   }
 } as const
 /** Tags that can be dragged show it (tmail-flutter's `grab` cursor) */
@@ -188,7 +188,7 @@ const OUTLINED_SX = {
   border: '1px solid #E6E1E5',
   borderRadius: '10px',
   bgcolor: '#FFFFFF',
-  '&:focus-within': { borderColor: '#007AFF' },
+  '&:focus-within': { borderColor: TMAIL.primary },
   // The row of a form outlines its inputs: not the one inside the field
   '&& .MuiInputBase-root': {
     border: 'none',
@@ -198,14 +198,14 @@ const OUTLINED_SX = {
   },
   '&& .MuiInputBase-input': { p: 0, height: '24px', fontSize: 14 }
 } as const
-const OUTLINED_OVER_SX = { ...OUTLINED_SX, borderColor: '#007AFF' } as const
+const OUTLINED_OVER_SX = { ...OUTLINED_SX, borderColor: TMAIL.primary } as const
 const OUTLINED_CONTENT_SX = { ...CONTENT_SX, minHeight: 32 } as const
 
 /** An invalid tag, as tmail-flutter's: white, with a red border */
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
   borderColor: TMAIL.error,
-  bgcolor: TMAIL.surface,
+  bgcolor: '#FFFFFF',
   '&& .MuiChip-icon': { ml: 0, mr: 0, color: TMAIL.error }
 } as const
 

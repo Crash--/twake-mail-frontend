@@ -4,6 +4,7 @@
 // version centred in 11/14 regular text, Steel gray 400.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 export interface SidebarFooterProps {
   children?: ReactNode
@@ -33,7 +34,7 @@ export function SidebarFooter({
             m: 0,
             // 12 px under what comes before, as tmail-flutter's footer
             '* + &': { mt: '12px' },
-            color: '#818C99',
+            color: TMAIL.grey,
             fontSize: 11,
             fontWeight: 400,
             lineHeight: '14px',

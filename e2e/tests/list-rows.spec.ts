@@ -315,9 +315,18 @@ test.describe('LST labels in the list rows', () => {
 
     const chip = row.getByTestId('label-chip')
     await expect(chip).toHaveCount(1)
-    // Cut with an ellipsis, the whole name in its title
-    await expect(chip).toContainText('…')
-    await expect(chip).toHaveAttribute('title', long.displayName)
+    // Cut as tmail-flutter ("..."), the whole name in its tooltip and for
+    // assistive technologies
+    await expect(chip).toContainText('...')
+    await expect(chip).toContainText(long.displayName)
+    await chip.hover()
+    // The one under the chip (the label of the sidebar may still show its own)
+    await expect(
+      page
+        .getByRole('tooltip')
+        .filter({ hasText: long.displayName })
+        .and(page.locator('[data-popper-placement="bottom"]'))
+    ).toBeVisible()
     expect(
       Math.abs(((await row.boundingBox())?.height ?? 0) - (inboxHeight ?? 99))
     ).toBeLessThan(1)

@@ -63,6 +63,11 @@ export interface PickChoice {
   id: string
   label: string
   icon: IconProps['icon']
+  /**
+   * `top`: first of the system folders (default); `section`: in a block
+   * of its own after them, as tmail-flutter's "All Email, trash & spam"
+   */
+  placement?: 'top' | 'section'
 }
 
 export interface PickFolderOrChoiceOptions extends PickMailboxOptions {
@@ -204,24 +209,30 @@ export function MailboxPickerProvider({
               isCurrent: pending.currentId === PICKED_ROOT
             }
           ]
-    const choices = (pending.choices ?? []).map(
-      (choice): FolderPickerOption => ({
-        id: choice.id,
-        label: choice.label,
-        secondary: choice.label,
-        level: 1,
-        parentId: null,
-        hasChildren: false,
-        icon: choice.icon,
-        isCurrent: pending.currentId === choice.id
-      })
-    )
+    const toChoiceOption = (choice: PickChoice): FolderPickerOption => ({
+      id: choice.id,
+      label: choice.label,
+      secondary: choice.label,
+      level: 1,
+      parentId: null,
+      hasChildren: false,
+      icon: choice.icon,
+      isCurrent: pending.currentId === choice.id
+    })
+    const choices = pending.choices ?? []
+    const top = choices
+      .filter(choice => choice.placement !== 'section')
+      .map(toChoiceOption)
+    const own = choices
+      .filter(choice => choice.placement === 'section')
+      .map(toChoiceOption)
     return [
       {
         id: 'system',
         label: null,
-        options: [...choices, ...root, ...toOptions(system)]
+        options: [...top, ...root, ...toOptions(system)]
       },
+      { id: 'choices', label: null, options: own },
       {
         id: 'personal',
         label: t('mailboxPicker.personalFolders'),

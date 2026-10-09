@@ -606,7 +606,6 @@
       "subject": "Введите тему",
       "words": "Введите предложения"
     },
-    "addFilter": "Добавить",
     "clearFilter": "Сбросить фильтры",
     "advanced": "Расширенный поиск",
     "errors": {
@@ -651,7 +650,14 @@
       "added": "%{address} добавлен",
       "addedMany": "Добавлен %{smart_count} адрес |||| Добавлено %{smart_count} адреса |||| Добавлено %{smart_count} адресов"
     },
-    "selectFolder": "Выбрать папку"
+    "selectFolder": "Выбрать папку",
+    "contactPicker": {
+      "from": "Найти письма от",
+      "to": "Найти письма кому",
+      "hint": "Введите имя или адрес",
+      "clearFilter": "Сбросить фильтры",
+      "done": "Готово"
+    }
   },
   "emailActions": {
     "toast": {

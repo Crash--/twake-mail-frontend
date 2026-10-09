@@ -606,7 +606,6 @@
       "subject": "Điền tiêu đề",
       "words": "Nhập một số gợi ý"
     },
-    "addFilter": "Thêm",
     "clearFilter": "Xoá bộ lọc",
     "advanced": "Bộ lọc nâng cao",
     "errors": {
@@ -651,7 +650,14 @@
       "added": "Đã thêm %{address}",
       "addedMany": "Đã thêm %{smart_count} địa chỉ"
     },
-    "selectFolder": "Chọn thư mục"
+    "selectFolder": "Chọn thư mục",
+    "contactPicker": {
+      "from": "Tìm kiếm email từ",
+      "to": "Tìm kiếm email đến",
+      "hint": "Điền tên hoặc email",
+      "clearFilter": "Xoá bộ lọc",
+      "done": "Xong"
+    }
   },
   "emailActions": {
     "toast": {

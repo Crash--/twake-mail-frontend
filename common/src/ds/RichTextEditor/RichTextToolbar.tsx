@@ -24,6 +24,13 @@ import {
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
+import {
+  BOXED_FONT_SIZE,
+  BOXED_ITEMS,
+  BOXED_TOOLBAR_SX,
+  BoxedContent,
+  boxedClassName
+} from './boxedToolbar'
 import { ColorMenu } from './ColorMenu'
 import { EditorIcon, type EditorIconName } from './editorIcons'
 import {
@@ -72,8 +79,8 @@ export interface RichTextToolbarProps {
   /** Under the text, with a divider above, or above it */
   placement: 'top' | 'bottom'
   /**
-   * `boxed`: tmail-flutter's editor of a signature, 40 px boxes rounded by
-   * 8 px, a light outline, 20 px grey icons
+   * `boxed`: tmail-flutter's toolbar of a signature (see boxedToolbar): the
+   * image first, its icons and boxes, no history, link nor clearing
    */
   look?: 'compact' | 'boxed'
   /** Lets the editor send the focus here (Alt+F10) */
@@ -130,47 +137,6 @@ const GROUP_SX = {
   borderRadius: '4px'
 } as const
 const ICON_SX = { fontSize: ICON_SIZE } as const
-
-/**
- * tmail-flutter's toolbar of a signature (`ToolbarRichTextWidget`): 40 px
- * boxes rounded by 8 px, outlined in #E6E1E5, 8 px apart, the icons in
- * 20 px grey (#99A2AD), black when on; 12 px above the text
- */
-const BOXED_SX = {
-  // Wrapped on every screen, as tmail-flutter's
-  flexWrap: 'wrap',
-  overflowX: 'visible',
-  maskImage: 'none',
-  gap: 1,
-  pt: 0,
-  pb: '12px',
-  '& .MuiIconButton-root': {
-    height: 40,
-    px: 1,
-    borderColor: TMAIL.outline,
-    borderRadius: '8px',
-    color: TMAIL.greyIcon,
-    fontSize: 16,
-    fontWeight: 400
-  },
-  '& .RichTextToolbar-group': {
-    height: 40,
-    boxSizing: 'border-box',
-    px: '5px',
-    borderColor: TMAIL.outline,
-    borderRadius: '8px'
-  },
-  '& .RichTextToolbar-group .MuiIconButton-root': {
-    width: 30,
-    height: 30,
-    px: 0
-  },
-  '&& .MuiIconButton-root[aria-pressed="true"]': {
-    color: TMAIL.textBlack,
-    bgcolor: 'transparent'
-  },
-  '& .MuiSvgIcon-root': { fontSize: 20 }
-} as const
 
 const ALIGNMENTS = ['left', 'center', 'right', 'justify'] as const
 type Alignment = (typeof ALIGNMENTS)[number]
@@ -242,6 +208,8 @@ export function RichTextToolbar({
 }: RichTextToolbarProps): ReactElement {
   // One line scrolling sideways: a phone, or the editors of the settings
   const isMobile = useScreenSize() === 'mobile' || isOneLine
+  const isBoxed = look === 'boxed'
+  const defaultSize = isBoxed ? BOXED_FONT_SIZE : DEFAULT_FONT_SIZE
   const state = useEditorState({
     editor,
     selector: ({ editor: current }) => {
@@ -284,7 +252,7 @@ export function RichTextToolbar({
   } | null>(null)
   const sizeLabel = state.fontSize
     ? String(Number.parseInt(state.fontSize, 10))
-    : String(DEFAULT_FONT_SIZE)
+    : String(defaultSize)
   const currentFont =
     fontFamilies.find(
       family => familyKey(family.value) === familyKey(state.fontFamily)
@@ -442,10 +410,18 @@ export function RichTextToolbar({
     }
   ]
 
+  // The boxed look: tmail-flutter's buttons and order, the image on its own
+  const lookItems = isBoxed
+    ? BOXED_ITEMS.flatMap(id => {
+        const item = allItems.find(entry => entry.id === id)
+        if (!item) return []
+        return [id === 'image' ? { ...item, group: undefined } : item]
+      })
+    : allItems
   const shownItems =
     only === undefined
-      ? allItems
-      : allItems.filter(item => only.includes(item.id))
+      ? lookItems
+      : lookItems.filter(item => only.includes(item.id))
   const items = disabled
     ? shownItems.map(item => ({ ...item, disabled: true }))
     : shownItems
@@ -582,6 +558,7 @@ export function RichTextToolbar({
           // Keep the editor selection while clicking
           onMouseDown={event => event.preventDefault()}
           data-testid={buttonTestId?.(item.id)}
+          className={isBoxed ? boxedClassName(item.id) : undefined}
           sx={{
             ...(isGrouped ? GROUP_BUTTON_SX : BUTTON_SX),
             opacity: item.disabled ? 0.4 : 1,
@@ -590,7 +567,21 @@ export function RichTextToolbar({
               : {})
           }}
         >
-          {renderContent(item)}
+          {isBoxed ? (
+            <BoxedContent
+              id={item.id}
+              state={{
+                size: sizeLabel,
+                font: currentFont?.label ?? '',
+                color: state.color,
+                highlight: state.backgroundColor,
+                align: state.align,
+                isOrderedList: state.orderedList
+              }}
+            />
+          ) : (
+            renderContent(item)
+          )}
         </IconButton>
       </Tooltip>
     )
@@ -654,7 +645,7 @@ export function RichTextToolbar({
               }, ${edges.end ? '#000 calc(100% - 24px), transparent 100%' : '#000 100%'})`
             }
           : { flexWrap: 'wrap' }),
-        ...(look === 'boxed' ? BOXED_SX : {})
+        ...(isBoxed ? BOXED_TOOLBAR_SX : {})
       }}
     >
       {segments.map(segment =>
@@ -749,8 +740,8 @@ export function RichTextToolbar({
             key={size.value ?? 'default'}
             role="menuitemradio"
             aria-checked={
-              (state.fontSize || `${DEFAULT_FONT_SIZE}px`) ===
-              (size.value ?? `${DEFAULT_FONT_SIZE}px`)
+              (state.fontSize || `${defaultSize}px`) ===
+              (size.value ?? `${defaultSize}px`)
             }
             onClick={applyAndClose(() =>
               size.value === null

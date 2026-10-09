@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { RichTextEditor } from './RichTextEditor'
+import { RichTextEditor, type RichTextEditorProps } from './RichTextEditor'
 import type { RichTextEditorLabels } from './types'
 
 const LABELS: RichTextEditorLabels = {
@@ -71,7 +71,10 @@ const LABELS: RichTextEditorLabels = {
   }
 }
 
-async function renderEditor(content = '<p>Hello</p>'): Promise<Editor> {
+async function renderEditor(
+  content = '<p>Hello</p>',
+  props: Partial<RichTextEditorProps> = {}
+): Promise<Editor> {
   const created: { editor: Editor | null } = { editor: null }
   renderDs(
     <RichTextEditor
@@ -94,6 +97,7 @@ async function renderEditor(content = '<p>Hello</p>'): Promise<Editor> {
       onReady={editor => {
         created.editor = editor
       }}
+      {...props}
     />
   )
   await screen.findByRole('textbox', { name: 'Message body' })
@@ -207,5 +211,33 @@ describe('RichTextToolbar controls', () => {
       expect(screen.queryByRole('menu')).toBe(null)
     })
     expect(button).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('has the buttons of tmail-flutter in its boxed look, the image first', async () => {
+    await renderEditor('<p>Hello</p>', {
+      look: 'boxed',
+      onImageFiles: () => Promise.resolve([])
+    })
+
+    const names = within(
+      screen.getByRole('toolbar', { name: 'Formatting options' })
+    )
+      .getAllByRole('button')
+      .map(button => button.getAttribute('aria-label'))
+    expect(names).toEqual([
+      'Insert image',
+      'Text style Normal',
+      // tmail-flutter's signature is written in 16 px
+      'Text size 16',
+      'Font Sans Serif',
+      'Text color',
+      'Highlight color',
+      'Bold',
+      'Italic',
+      'Underline',
+      'Strikethrough',
+      'Paragraph',
+      'Lists and indentation'
+    ])
   })
 })

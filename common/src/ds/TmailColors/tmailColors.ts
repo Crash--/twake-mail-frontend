@@ -63,6 +63,7 @@ const TOKENS = {
   greyFaint: ['#AEB7C2', DARK.textDisabled],
   greyPlaceholder: ['#A9B4C2', DARK.textDisabled],
   greyBlueFaint: ['#AEAEC0', DARK.textDisabled],
+  greySizeLabel: ['#ADADC0', DARK.textDisabled],
   greyChevron: ['#B8C1CC', DARK.textDisabled],
   greyHandle: ['#49454F', DARK.textDisabled],
   grey939: ['#939393', DARK.textDisabled],

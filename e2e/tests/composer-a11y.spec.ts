@@ -102,10 +102,10 @@ test.describe('A11Y composer', () => {
     await composer.expectMode('minimized')
     await expect(composer.root).toMatchAriaSnapshot(`
       - dialog "Quarterly numbers":
-        - 'button "Show: Quarterly numbers"'
-        - button "Show"
-        - button "Fullscreen"
         - button "Close"
+        - button "Fullscreen"
+        - button "Show"
+        - 'button "Show: Quarterly numbers"'
     `)
     await expect(
       composer.root.getByRole('button', { name: 'Show: Quarterly numbers' })

@@ -11,6 +11,11 @@ export interface ActionIconButtonProps extends Omit<
 > {
   /** Tooltip and accessible name */
   label: string
+  /**
+   * Width and height in px; 26 for the title bar of the composer
+   * (tmail-flutter: a 20 px icon and 3 px around)
+   */
+  size?: number
 }
 
 /** Width and height of the button, in px: a 24 px icon and 5 px around */
@@ -25,7 +30,10 @@ export const ACTION_ICON_BUTTON_SIZE = 34
 export const ActionIconButton = forwardRef<
   HTMLButtonElement,
   ActionIconButtonProps
->(function ActionIconButton({ label, children, ...props }, ref): ReactElement {
+>(function ActionIconButton(
+  { label, size = ACTION_ICON_BUTTON_SIZE, children, ...props },
+  ref
+): ReactElement {
   return (
     <Tooltip title={label}>
       <IconButton
@@ -33,8 +41,8 @@ export const ActionIconButton = forwardRef<
         aria-label={label}
         {...props}
         sx={{
-          width: ACTION_ICON_BUTTON_SIZE,
-          height: ACTION_ICON_BUTTON_SIZE,
+          width: size,
+          height: size,
           p: 0,
           flexShrink: 0,
           // A toggle that is on (Aa showing the formatting): the light blue

@@ -3,6 +3,7 @@ import type { Label } from 'jmap-client-ts/linagora'
 import type { ReactElement } from 'react'
 
 import { ColorTag } from '@/ds/ColorTag/ColorTag'
+import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { DEFAULT_LABEL_COLOR } from './queries'
@@ -48,22 +49,18 @@ export function LabelChips({
     .join(', ')
 
   return (
-    <Box
+    // tmail-flutter's `LabelTagListWidget`: 12 px between the tags
+    <InlineGroup
       component="span"
       role="list"
       aria-label={t('labels.listLabel')}
-      className={`u-flex ${nowrap ? 'u-flex-nowrap' : 'u-flex-wrap'} u-flex-items-center ${className ?? ''}`}
+      gap={1.5}
+      isWrapping={!nowrap}
+      className={className}
       data-testid="label-chips"
     >
-      {shown.map((label, index) => (
-        <Box
-          component="span"
-          role="listitem"
-          key={label.id}
-          className={
-            index < shown.length - 1 || hidden > 0 ? 'u-mr-half' : undefined
-          }
-        >
+      {shown.map(label => (
+        <Box component="span" role="listitem" key={label.id}>
           <ColorTag
             label={label.displayName}
             color={label.color ?? DEFAULT_LABEL_COLOR}
@@ -72,6 +69,7 @@ export function LabelChips({
             textColor="#FFFFFF"
             size={size}
             maxLength={max === undefined ? undefined : 16}
+            hasTooltip
             removeLabel={t('labels.removeFromEmail', {
               name: label.displayName
             })}
@@ -103,6 +101,6 @@ export function LabelChips({
           </span>
         </Box>
       ) : null}
-    </Box>
+    </InlineGroup>
   )
 }

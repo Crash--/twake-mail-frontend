@@ -17,6 +17,7 @@ import {
 import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
+import { EmailSelectionStoreProvider } from '@common/features/thread/EmailSelectionStore'
 import {
   ListFilterProvider,
   useIsSelectingEmails
@@ -103,7 +104,9 @@ export function MailProviders({
                 <ComposerProvider>
                   <SettingsExitProvider>
                     <ListFilterProvider>
-                      <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                      <EmailSelectionStoreProvider>
+                        <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                      </EmailSelectionStoreProvider>
                     </ListFilterProvider>
                   </SettingsExitProvider>
                 </ComposerProvider>

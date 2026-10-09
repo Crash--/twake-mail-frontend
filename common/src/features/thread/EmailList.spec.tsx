@@ -23,6 +23,7 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EmailList } from './EmailList'
+import { EmailSelectionStoreProvider } from './EmailSelectionStore'
 import { ListFilterProvider } from './ListFilterProvider'
 import { EMAIL_LIST_PAGE_SIZE, threadKeys } from './queries'
 
@@ -688,6 +689,83 @@ describe('EmailList', () => {
       await userEvent.click(avatar)
 
       expect(avatar).toHaveAttribute('aria-checked', 'true')
+    })
+
+    it('keeps the selection while an email replaces the list, not across folders', async () => {
+      const server = makeFakeJmapServer({
+        emails: [
+          makeEmail({ id: 'one', subject: 'First news' }),
+          makeEmail({ id: 'two', subject: 'Second news' }),
+          makeEmail({
+            id: 'sent',
+            subject: 'Sent news',
+            mailboxIds: { 'mailbox-sent': true }
+          })
+        ]
+      })
+      function SwitchableList(): ReactElement {
+        const [shown, setShown] = useState<string | null>('mailbox-inbox')
+        const handleOpen = (): void => {
+          setShown(null)
+        }
+        const handleInbox = (): void => {
+          setShown('mailbox-inbox')
+        }
+        const handleSent = (): void => {
+          setShown('mailbox-sent')
+        }
+        return (
+          <>
+            <button type="button" onClick={handleOpen}>
+              Open an email
+            </button>
+            <button type="button" onClick={handleInbox}>
+              Show the Inbox
+            </button>
+            <button type="button" onClick={handleSent}>
+              Show the Sent folder
+            </button>
+            {shown === null ? null : (
+              <EmailList key={shown} mailboxId={shown} />
+            )}
+          </>
+        )
+      }
+      renderWithProviders(
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailSelectionStoreProvider>
+            <SwitchableList />
+          </EmailSelectionStoreProvider>
+        </VirtuosoMockContext.Provider>,
+        {
+          route: '/mailbox/mailbox-inbox',
+          path: '/mailbox/:mailboxId',
+          withJmapSession: true,
+          jmapServer: server
+        }
+      )
+      const checkbox = (name: string): HTMLElement =>
+        screen.getByRole('checkbox', { name: `Select ${name}` })
+      const press = (name: string): Promise<void> =>
+        userEvent.click(screen.getByRole('button', { name }))
+      await screen.findByText('First news')
+      await userEvent.click(checkbox('First news'))
+
+      await press('Open an email')
+      await press('Show the Inbox')
+
+      await screen.findByText('First news')
+      expect(checkbox('First news')).toHaveAttribute('aria-checked', 'true')
+      expect(checkbox('Second news')).toHaveAttribute('aria-checked', 'false')
+
+      await press('Show the Sent folder')
+      await screen.findByText('Sent news')
+      await press('Show the Inbox')
+
+      await screen.findByText('First news')
+      expect(checkbox('First news')).toHaveAttribute('aria-checked', 'false')
     })
 
     it('leaves room for the floating button after the last row', async () => {

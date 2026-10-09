@@ -353,7 +353,10 @@ export function EmailList(props: EmailListProps): ReactElement {
     useMatch('/mailbox/:mailboxId/email/:emailId')?.params.emailId ?? null
   const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
-  const selection = useEmailSelection(emails)
+  // A search has no filter scope: its request names the list
+  const selectionScope =
+    filterScope ?? `search:${JSON.stringify(search?.request ?? null)}`
+  const selection = useEmailSelection(emails, selectionScope)
   // As tmail-flutter: below the desktop size, a selected row keeps its
   // background (its avatar is ticked); only the open email is highlighted
   const isSelectionHighlighted = useScreenSize() === 'desktop'

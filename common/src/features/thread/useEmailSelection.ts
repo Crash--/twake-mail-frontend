@@ -1,11 +1,9 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState
-} from 'react'
+import { createContext, useCallback, useContext, useMemo } from 'react'
 
+import {
+  EMPTY_SELECTION,
+  useScopedSelectionState
+} from './EmailSelectionStore'
 import type { EmailListItemData } from './queries'
 
 export interface EmailSelection {
@@ -26,28 +24,18 @@ export interface EmailSelection {
   clear: () => void
 }
 
-interface SelectionState {
-  ids: ReadonlySet<string>
-  /** The last email toggled, where a range starts */
-  anchorId: string | null
-  isAllInFolder: boolean
-}
-
-const EMPTY: SelectionState = {
-  ids: new Set(),
-  anchorId: null,
-  isAllInFolder: false
-}
-
 /**
  * The emails selected in a list, as tmail-flutter's selection mode: rows
  * toggled one by one or by range, the loaded ones, or the whole folder.
- * Emails leaving the list leave the selection.
+ * Emails leaving the list leave the selection. It is kept for the list
+ * `scope` while one of its emails is open, and cleared when another list
+ * shows.
  */
 export function useEmailSelection(
-  emails: readonly EmailListItemData[]
+  emails: readonly EmailListItemData[],
+  scope: string
 ): EmailSelection {
-  const [state, setState] = useState<SelectionState>(EMPTY)
+  const [state, setState] = useScopedSelectionState(scope)
 
   const selected = useMemo(
     () =>
@@ -90,24 +78,24 @@ export function useEmailSelection(
         return { ids, anchorId: emailId, isAllInFolder: false }
       })
     },
-    [emails]
+    [emails, setState]
   )
 
   const selectLoaded = useCallback((): void => {
-    setState({
+    setState(() => ({
       ids: new Set(emails.map(email => email.id)),
       anchorId: null,
       isAllInFolder: false
-    })
-  }, [emails])
+    }))
+  }, [emails, setState])
 
   const selectAllInFolder = useCallback((): void => {
-    setState({ ids: new Set(), anchorId: null, isAllInFolder: true })
-  }, [])
+    setState(() => ({ ids: new Set(), anchorId: null, isAllInFolder: true }))
+  }, [setState])
 
   const clear = useCallback((): void => {
-    setState(EMPTY)
-  }, [])
+    setState(() => EMPTY_SELECTION)
+  }, [setState])
 
   return useMemo(
     () => ({

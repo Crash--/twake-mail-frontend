@@ -6,7 +6,7 @@
 import { Icon } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
+import { DisclosureDown, DisclosureRight } from '@/ds/NavIcons/NavIcons'
 
 export interface NavSectionToggle {
   isExpanded: boolean
@@ -31,17 +31,21 @@ const TITLE_SX = {
   color: 'text.secondary',
   fontSize: 12,
   fontWeight: 500,
-  lineHeight: '15.8px',
+  lineHeight: '16px',
   letterSpacing: 0.5,
-  py: 0
+  py: 0,
+  // The toggle is a flex item, not an inline box sitting on the baseline
+  display: 'flex',
+  alignItems: 'center'
 } as const
 
 /**
- * The title of a section of a sidebar ("Folders", "Labels"): a heading in
- * 12/500 secondary text, outside the list it titles, and its actions,
- * 32 px high with 10 px above and 8 px below. With
- * `toggle`, the title is a button holding the chevron of the section, 8 px
- * after the text (Figma), that expands and collapses it.
+ * The title of a section of a sidebar ("Folders", "Labels"), as
+ * tmail-flutter's `LinagoraSidebarSectionHeader`: a heading in 12/500
+ * secondary text, outside the list it titles, and its actions, 24 px high
+ * with 24 px above (what comes under it sets its own gap). With `toggle`,
+ * the title is a button holding the arrow of the section, in a 24 px box
+ * right after the text, that expands and collapses it.
  */
 export function NavSectionHeader({
   title,
@@ -53,7 +57,9 @@ export function NavSectionHeader({
   return (
     <Box
       className="u-flex u-flex-items-center"
-      sx={{ minHeight: 32, mt: '20px', mb: '8px', pl: 2, pr: '13px' }}
+      // The actions are 24 px boxes around 16.67 px glyphs: their glyphs end
+      // 16 px before the edge, as tmail-flutter's
+      sx={{ minHeight: 24, mt: '24px', pl: 2, pr: '12px' }}
     >
       <Typography
         id={titleId}
@@ -75,14 +81,14 @@ export function NavSectionHeader({
               font: 'inherit',
               letterSpacing: 'inherit',
               color: 'inherit',
-              gap: 1,
-              minHeight: 32,
+              gap: '4px',
+              minHeight: 24,
               borderRadius: 1
             }}
           >
             {title}
             <Icon
-              icon={toggle.isExpanded ? Bottom : Right}
+              icon={toggle.isExpanded ? DisclosureDown : DisclosureRight}
               size={16}
               aria-hidden
             />

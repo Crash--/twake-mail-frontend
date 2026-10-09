@@ -10,7 +10,8 @@ import {
 } from 'react'
 import { useMatch } from 'react-router'
 
-import { Eye, EyeClosed, Magnifier, Plus } from '@/ds/FlutterIcons/FlutterIcons'
+import { Eye, EyeClosed, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
+import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { DefaultFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import { NavCategory } from '@/ds/NavCategory/NavCategory'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
@@ -276,7 +277,7 @@ export function MailboxTree(): ReactElement {
               />
               <NavSectionAction
                 label={newFolderLabel}
-                icon={Plus}
+                icon={AddNewFolder}
                 onClick={handleCreate}
                 data-testid="add-new-folder-button"
               />
@@ -294,6 +295,7 @@ export function MailboxTree(): ReactElement {
           <div
             id={foldersContentId}
             hidden={!collapsible.isExpanded('folders')}
+            className="u-pt-1"
           >
             {/* As tmail-flutter: the folders of the user and the team
                 mailboxes are two categories of the "Folders" section */}

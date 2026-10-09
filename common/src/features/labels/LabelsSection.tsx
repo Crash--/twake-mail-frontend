@@ -11,8 +11,8 @@ import type { Label } from 'jmap-client-ts/linagora'
 import { useId, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
-import { Plus } from '@/ds/FlutterIcons/FlutterIcons'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
@@ -122,6 +122,9 @@ export function LabelsSection(): ReactElement | null {
   const { create } = useLabelActions()
   if (!isAvailable) return null
   const newLabel = t('labels.new')
+  const labels = data?.list ?? []
+  // As tmail-flutter: no arrow while there is no label to fold
+  const hasLabels = labels.length > 0
 
   return (
     <Box component="nav" aria-labelledby={titleId} data-testid="labels-section">
@@ -129,18 +132,22 @@ export function LabelsSection(): ReactElement | null {
         title={t('labels.title')}
         titleId={titleId}
         // As the folders: the header folds the labels
-        toggle={{
-          isExpanded: collapsible.isExpanded('labels'),
-          onToggle: () => {
-            collapsible.toggle('labels')
-          },
-          controlsId: contentId,
-          'data-testid': 'labels-section-toggle'
-        }}
+        toggle={
+          hasLabels
+            ? {
+                isExpanded: collapsible.isExpanded('labels'),
+                onToggle: () => {
+                  collapsible.toggle('labels')
+                },
+                controlsId: contentId,
+                'data-testid': 'labels-section-toggle'
+              }
+            : undefined
+        }
         actions={
           <NavSectionAction
             label={newLabel}
-            icon={Plus}
+            icon={AddNewFolder}
             onClick={() => {
               create()
             }}
@@ -148,9 +155,13 @@ export function LabelsSection(): ReactElement | null {
           />
         }
       />
-      <div id={contentId} hidden={!collapsible.isExpanded('labels')}>
+      <div
+        id={contentId}
+        hidden={!hasLabels || !collapsible.isExpanded('labels')}
+        className="u-pt-half"
+      >
         <NavTree>
-          {(data?.list ?? []).map(label => (
+          {labels.map(label => (
             <LabelItem key={label.id} label={label} />
           ))}
         </NavTree>

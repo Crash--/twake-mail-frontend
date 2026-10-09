@@ -655,6 +655,15 @@ test.describe('SRCH search', () => {
     await waitInInbox(jmap, plain)
     const event = await waitInInbox(jmap, invitation)
     await jmap.setKeywords(event.id, { event: true })
+    // The search index takes the keyword asynchronously, late when the
+    // stack is busy: wait for a search to find the invitation by it
+    await expect
+      .poll(async () =>
+        (await jmap.queryEmails({ text: 'report', hasKeyword: 'event' })).some(
+          email => email.id === event.id
+        )
+      )
+      .toBe(true)
 
     await new LoginPage(page).loginAs(user)
     const search = await new SearchPage(page).search('report')

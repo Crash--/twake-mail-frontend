@@ -3,11 +3,7 @@ import { useCallback } from 'react'
 
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-type RemoteContentConsentKey = readonly [
-  'remoteContentConsent',
-  string,
-  string
-]
+type RemoteContentConsentKey = readonly ['remoteContentConsent', string, string]
 
 const remoteContentConsentKey = (
   accountId: string,
@@ -26,10 +22,9 @@ export function useRemoteContentConsent(
 ): [boolean, () => void] {
   const queryClient = useQueryClient()
   const { accountId } = useJmapSession()
-  const queryKey = remoteContentConsentKey(accountId, emailId)
   const { data: isShown } = useQuery({
-    queryKey,
-    queryFn: (): boolean =>
+    queryKey: remoteContentConsentKey(accountId, emailId),
+    queryFn: ({ queryKey }): boolean =>
       queryClient.getQueryData<boolean>(queryKey) ?? false,
     initialData: false,
     staleTime: 'static',

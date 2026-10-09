@@ -116,6 +116,21 @@ async function choose(button: string, item: string): Promise<void> {
 }
 
 describe('RichTextToolbar controls', () => {
+  it('has the buttons of the composer of tmail-flutter, its text styles in its order', async () => {
+    await renderEditor()
+
+    // Ctrl+Z and Ctrl+Y undo and redo: no button, as tmail-flutter
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBe(null)
+    expect(screen.queryByRole('button', { name: 'Redo' })).toBe(null)
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Text style Normal' })
+    )
+    const styles = within(await screen.findByRole('menu'))
+      .getAllByRole('menuitemradio')
+      .map(item => item.textContent)
+    expect(styles.slice(0, 4)).toEqual(['Normal', 'Quote', 'Code', 'Header 1'])
+  })
+
   it('applies a text style from the "Aa" menu and says which one is current', async () => {
     const editor = await renderEditor()
 

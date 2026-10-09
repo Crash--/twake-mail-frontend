@@ -351,11 +351,9 @@ test.describe('CMP composer', () => {
     await composer.showFormattingToolbar()
     await expect(composer.editor).toHaveAttribute('aria-multiline', 'true')
 
-    // Subject -> editor -> toolbar (under the text)
-    await expect(composer.toolbarButton('Undo')).toHaveAttribute(
-      'aria-disabled',
-      'true'
-    )
+    // Subject -> editor -> toolbar (under the text); as tmail-flutter, no undo
+    // nor redo button (Ctrl+Z, Ctrl+Y)
+    await expect(composer.toolbarButton('Undo')).toHaveCount(0)
     await composer.subjectInput.focus()
     await page.keyboard.press('Tab')
     await expect(composer.editor).toBeFocused()

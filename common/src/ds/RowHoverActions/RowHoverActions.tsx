@@ -4,22 +4,23 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { ROW_CONTAINERS } from './rowContainers'
+
 export interface RowHoverActionsProps {
   children: ReactNode
   /** What holds the actions: a table row, or a list item (a folder) */
-  in?: 'tableRow' | 'listItem'
+  in?: keyof typeof ROW_CONTAINERS
   /**
    * What the actions take the place of on hover or focus (a date): it stays
    * in the DOM and the layout, only faded. On a screen without hover the
-   * actions are shown beside it instead.
+   * actions are shown beside it instead. With hover it keeps its whole
+   * width and runs out of a narrower cell to the left, over the room
+   * `RowHoverSpace` keeps at the end of the cell before.
    */
   replaces?: ReactNode
+  /** With `replaces`: room after the actions, in px */
+  endGap?: number
 }
-
-const CONTAINERS = {
-  tableRow: '.MuiTableRow-root',
-  listItem: '.MuiListItem-root'
-} as const
 
 /**
  * Actions of a table row (or a list item), shown when it is hovered or holds the focus:
@@ -29,9 +30,10 @@ const CONTAINERS = {
 export function RowHoverActions({
   children,
   in: container = 'tableRow',
-  replaces
+  replaces,
+  endGap = 0
 }: RowHoverActionsProps): ReactElement {
-  const row = CONTAINERS[container]
+  const row = ROW_CONTAINERS[container]
   if (replaces !== undefined) {
     return (
       <Box
@@ -42,6 +44,8 @@ export function RowHoverActions({
           className="u-flex u-flex-items-center"
           sx={{
             [`${row}:hover &, ${row}:focus-within &`]: { opacity: 0 },
+            // Never cut: it runs out of its cell to the left
+            '@media (hover: hover)': { flex: 'none' },
             // Beside the actions, it gives way to them rather than spilling
             // over the cell before
             '@media (hover: none)': {
@@ -59,12 +63,16 @@ export function RowHoverActions({
           sx={{
             position: 'absolute',
             right: 0,
+            // As wide as they are, whatever the width of the cell
+            width: 'max-content',
             // tmail-flutter's actions are 11 px apart
             gap: '11px',
+            pr: `${endGap}px`,
             opacity: 0,
             [`${row}:hover &, ${row}:focus-within &`]: { opacity: 1 },
             '@media (hover: none)': {
               position: 'static',
+              width: 'auto',
               flexShrink: 0,
               opacity: 1,
               marginLeft: 1

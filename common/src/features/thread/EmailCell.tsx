@@ -34,6 +34,7 @@ import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
 import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
 import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
+import { RowHoverSpace } from '@/ds/RowHoverActions/RowHoverSpace'
 import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
 import { RowSender } from '@/ds/RowSender/RowSender'
@@ -64,7 +65,11 @@ import type { Label } from 'jmap-client-ts/linagora'
 import { HighlightedText } from '@common/features/search/HighlightedText'
 
 import type { ConversationOpenState } from './conversationTarget'
-import { ACTION_SIZE } from './emailListGeometry'
+import {
+  ACTION_SIZE,
+  getHoverActionsRoom,
+  HOVER_DATE_GAP
+} from './emailListGeometry'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
@@ -159,6 +164,11 @@ export interface EmailCellProps {
    * AI feature of tmail-flutter, on when the server offers it)
    */
   showActionRequired?: boolean
+  /**
+   * The room of the actions of a hovered row at the end of the subject
+   * (`getHoverActionsRoom`: 44 px actions on a touch screen)
+   */
+  hoverActionsRoom?: number
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -190,6 +200,7 @@ export function EmailCell({
   showImportant = true,
   labels = [],
   showActionRequired = false,
+  hoverActionsRoom = getHoverActionsRoom(false),
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -598,13 +609,33 @@ export function EmailCell({
             secondary={
               <span data-testid="email-list-item-preview">{preview}</span>
             }
+            trailing={
+              // As tmail-flutter: the preview stops before the date of the
+              // row, and before the actions on hover (they run out of the
+              // narrow cell of the date over this room)
+              <RowHoverSpace gap={HOVER_DATE_GAP} hoverWidth={hoverActionsRoom}>
+                {mailboxNames === null ? null : (
+                  <MailboxTag name={mailboxNames} label={mailboxNames} />
+                )}
+                {hasAttachment ? (
+                  <span className="u-flex u-flex-shrink-0 u-ml-half">
+                    <Icon icon={Attachment} size={16} />
+                  </span>
+                ) : null}
+                <RowDate isStrong={isUnread}>
+                  {formatListDate(email.receivedAt, lang)}
+                </RowDate>
+              </RowHoverSpace>
+            }
           />
         </RowLink>
       )
     }
     case 'trailing':
       return (
+        // As tmail-flutter: the actions 11 px apart, 16 px before the edge
         <RowHoverActions
+          endGap={16}
           replaces={
             <>
               {/* As tmail-flutter: the folder right before the attachment */}
@@ -614,14 +645,11 @@ export function EmailCell({
             </>
           }
         >
-          {/* As tmail-flutter: 16 px before the edge of the row */}
-          <span className="u-flex u-flex-items-center u-pr-1">
-            {openButton}
-            {seenButton}
-            {moveButton}
-            {removeButton}
-            {moreButton}
-          </span>
+          {openButton}
+          {seenButton}
+          {moveButton}
+          {removeButton}
+          {moreButton}
         </RowHoverActions>
       )
     case 'message': {

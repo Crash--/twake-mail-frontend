@@ -17,7 +17,7 @@ import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnounce
 import {
   getCompactRowLayout,
   getLeadWidth,
-  getTrailingWidth,
+  getSkeletonTrailingWidth,
   ROW_LAYOUT,
   useRowPointer,
   type RowPointer
@@ -69,7 +69,7 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
     },
     {
       id: 'trailing',
-      width: getTrailingWidth(pointer),
+      width: getSkeletonTrailingWidth(pointer),
       cell: (
         <Skeleton
           width={56}

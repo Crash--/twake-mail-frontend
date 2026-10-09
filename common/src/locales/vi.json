@@ -145,7 +145,11 @@
       "open": "Xem trước",
       "page": "Trang %{page} trên %{count}",
       "truncated": "Bản xem trước bị cắt ở đây: hãy tải tệp xuống để đọc phần còn lại.",
-      "failed": "Không thể mở tệp tại đây: hãy tải xuống để đọc."
+      "failed": "Không thể mở tệp tại đây: hãy tải xuống để đọc.",
+      "passwordProtected": "Tệp PDF này được bảo vệ bằng mật khẩu",
+      "password": "Mật khẩu",
+      "wrongPassword": "Mật khẩu không đúng, hãy thử lại.",
+      "openPdf": "Mở"
     },
     "attachmentsMore": "Hiển thị +%{count}",
     "attachmentsHide": "Ẩn %{count}",

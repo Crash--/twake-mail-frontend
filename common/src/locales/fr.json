@@ -597,7 +597,8 @@
     },
     "scope": {
       "default": "Tous les messages",
-      "everywhere": "Tous les messages, corbeille & spam"
+      "everywhere": "Tous les messages, corbeille & spam",
+      "selected": "sélectionné"
     },
     "submit": "Rechercher",
     "hints": {
@@ -649,7 +650,8 @@
       "chipHelp": "Entrée ou F2 la modifie, Suppr la retire.",
       "added": "%{address} ajouté",
       "addedMany": "%{smart_count} adresse ajoutée |||| %{smart_count} adresses ajoutées"
-    }
+    },
+    "selectFolder": "Sélectionner le dossier"
   },
   "emailActions": {
     "toast": {

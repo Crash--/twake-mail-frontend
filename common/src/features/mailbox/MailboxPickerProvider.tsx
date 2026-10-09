@@ -9,6 +9,8 @@ import {
   type ReactNode
 } from 'react'
 
+import type { IconProps } from '@linagora/twake-icons'
+
 import { DefaultFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import {
   FolderPicker,
@@ -51,7 +53,24 @@ export interface PickMailboxOptions {
   requireAddItems?: boolean
   /** The personal folders only, not the team mailboxes */
   personalOnly?: boolean
+  /** Said after the folder concerned, "current folder" by default */
+  currentLabel?: string
 }
+
+/** A choice listed before the folders, e.g. "All email" for a search */
+export interface PickChoice {
+  /** Not a mailbox id: holds a space */
+  id: string
+  label: string
+  icon: IconProps['icon']
+}
+
+export interface PickFolderOrChoiceOptions extends PickMailboxOptions {
+  choices: readonly PickChoice[]
+}
+
+/** What the picker resolves to */
+type Picked = MailboxSummary | typeof PICKED_ROOT | PickChoice | null
 
 /** The top level, when `rootLabel` is given */
 export const PICKED_ROOT = 'root'
@@ -64,13 +83,27 @@ export type PickMailbox = (
   options?: PickMailboxOptions
 ) => Promise<MailboxSummary | typeof PICKED_ROOT | null>
 
-const PickMailboxContext = createContext<PickMailbox | null>(null)
+/**
+ * Asks for a folder or one of the choices listed before them; resolves to
+ * it, or null when the user closes
+ */
+export type PickFolderOrChoice = (
+  options: PickFolderOrChoiceOptions
+) => Promise<MailboxSummary | PickChoice | null>
+
+interface PickContext {
+  pick: PickMailbox
+  pickFolderOrChoice: PickFolderOrChoice
+}
+
+const PickMailboxContext = createContext<PickContext | null>(null)
 
 /** Not a mailbox id: JMAP ids never hold a space */
 const ROOT_OPTION_ID = 'top level'
 
 interface PendingPick extends PickMailboxOptions {
-  resolve: (mailbox: MailboxSummary | typeof PICKED_ROOT | null) => void
+  choices?: readonly PickChoice[]
+  resolve: (picked: Picked) => void
 }
 
 export interface MailboxPickerProviderProps {
@@ -93,9 +126,9 @@ export function MailboxPickerProvider({
   const [pending, setPending] = useState<PendingPick | null>(null)
   const pendingRef = useRef<PendingPick | null>(null)
 
-  const pick = useCallback<PickMailbox>(
-    (options = {}) =>
-      new Promise(resolve => {
+  const open = useCallback(
+    (options: PickMailboxOptions & { choices?: readonly PickChoice[] }) =>
+      new Promise<Picked>(resolve => {
         pendingRef.current?.resolve(null)
         const next = { ...options, resolve }
         pendingRef.current = next
@@ -103,9 +136,24 @@ export function MailboxPickerProvider({
       }),
     []
   )
+  const context = useMemo(
+    (): PickContext => ({
+      pick: async (options = {}) => {
+        const picked = await open(options)
+        return typeof picked === 'object' && picked !== null && 'icon' in picked
+          ? null
+          : picked
+      },
+      pickFolderOrChoice: async options => {
+        const picked = await open(options)
+        return picked === PICKED_ROOT ? null : picked
+      }
+    }),
+    [open]
+  )
 
-  const close = (mailbox: MailboxSummary | typeof PICKED_ROOT | null): void => {
-    pendingRef.current?.resolve(mailbox)
+  const close = (picked: Picked): void => {
+    pendingRef.current?.resolve(picked)
     pendingRef.current = null
     setPending(null)
   }
@@ -156,8 +204,24 @@ export function MailboxPickerProvider({
               isCurrent: pending.currentId === PICKED_ROOT
             }
           ]
+    const choices = (pending.choices ?? []).map(
+      (choice): FolderPickerOption => ({
+        id: choice.id,
+        label: choice.label,
+        secondary: choice.label,
+        level: 1,
+        parentId: null,
+        hasChildren: false,
+        icon: choice.icon,
+        isCurrent: pending.currentId === choice.id
+      })
+    )
     return [
-      { id: 'system', label: null, options: [...root, ...toOptions(system)] },
+      {
+        id: 'system',
+        label: null,
+        options: [...choices, ...root, ...toOptions(system)]
+      },
       {
         id: 'personal',
         label: t('mailboxPicker.personalFolders'),
@@ -197,6 +261,11 @@ export function MailboxPickerProvider({
       close(PICKED_ROOT)
       return
     }
+    const choice = pending?.choices?.find(item => item.id === option.id)
+    if (choice !== undefined) {
+      close(choice)
+      return
+    }
     close(mailboxes.find(mailbox => mailbox.id === option.id) ?? null)
   }
   const handleClose = (): void => {
@@ -204,7 +273,7 @@ export function MailboxPickerProvider({
   }
 
   return (
-    <PickMailboxContext.Provider value={pick}>
+    <PickMailboxContext.Provider value={context}>
       {children}
       <FolderPicker
         open={pending !== null}
@@ -215,7 +284,7 @@ export function MailboxPickerProvider({
           empty: t('mailboxPicker.empty'),
           collapsed: t('mailboxPicker.collapsed'),
           expanded: t('mailboxPicker.expanded'),
-          current: t('mailboxPicker.current')
+          current: pending?.currentLabel ?? t('mailboxPicker.current')
         }}
         sections={sections}
         initiallyExpandedIds={expandedIds}
@@ -235,7 +304,12 @@ export function MailboxPickerProvider({
 
 /** The folder picker; without its provider (tests), it picks nothing */
 export function usePickMailbox(): PickMailbox {
-  return useContext(PickMailboxContext) ?? noPick
+  return useContext(PickMailboxContext)?.pick ?? noPick
+}
+
+/** The folder picker with choices before the folders, e.g. a search scope */
+export function usePickFolderOrChoice(): PickFolderOrChoice {
+  return useContext(PickMailboxContext)?.pickFolderOrChoice ?? noPick
 }
 
 function noPick(): Promise<null> {

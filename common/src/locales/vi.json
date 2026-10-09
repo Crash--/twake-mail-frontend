@@ -597,7 +597,8 @@
     },
     "scope": {
       "default": "Tất cả thư",
-      "everywhere": "Tất cả thư, thư rác và spam"
+      "everywhere": "Tất cả thư, thư rác và spam",
+      "selected": "đã chọn"
     },
     "submit": "Tìm kiếm",
     "hints": {
@@ -649,7 +650,8 @@
       "chipHelp": "Enter hoặc F2 để sửa, Delete để xóa.",
       "added": "Đã thêm %{address}",
       "addedMany": "Đã thêm %{smart_count} địa chỉ"
-    }
+    },
+    "selectFolder": "Chọn thư mục"
   },
   "emailActions": {
     "toast": {

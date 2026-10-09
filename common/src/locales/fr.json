@@ -145,7 +145,11 @@
       "open": "Aperçu",
       "page": "Page %{page} sur %{count}",
       "truncated": "L'aperçu s'arrête ici : téléchargez le fichier pour lire la suite.",
-      "failed": "Le fichier ne peut pas être ouvert ici : téléchargez-le pour le lire."
+      "failed": "Le fichier ne peut pas être ouvert ici : téléchargez-le pour le lire.",
+      "passwordProtected": "Ce PDF est protégé par un mot de passe",
+      "password": "Mot de passe",
+      "wrongPassword": "Mot de passe incorrect, réessayez.",
+      "openPdf": "Ouvrir"
     },
     "attachmentsMore": "Afficher les %{count} autres pièces jointes",
     "attachmentsHide": "Cacher les %{count} pièces jointes",

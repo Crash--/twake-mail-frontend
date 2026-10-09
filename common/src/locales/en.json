@@ -145,7 +145,11 @@
       "open": "Preview",
       "page": "Page %{page} of %{count}",
       "truncated": "The preview is cut here: download the file to read the rest.",
-      "failed": "The file cannot be opened here: download it to read it."
+      "failed": "The file cannot be opened here: download it to read it.",
+      "passwordProtected": "This PDF is protected by a password",
+      "password": "Password",
+      "wrongPassword": "Incorrect password, try again.",
+      "openPdf": "Open"
     },
     "attachmentsMore": "Show +%{count} more",
     "attachmentsHide": "Hide %{count}",

@@ -11,6 +11,7 @@ import {
 } from '@linagora/twake-mui'
 import {
   useId,
+  useRef,
   type ReactElement,
   type ReactNode,
   type MouseEvent
@@ -64,7 +65,8 @@ const BODY_SX = {
 /**
  * A full-screen modal showing one file. A named dialog (focus trapped then
  * given back to what opened it, Escape closes it, MUI), with its own close
- * and download buttons in a top bar.
+ * and download buttons in a top bar. A click on the dark background around
+ * the file closes it too, as a click on a dialog's backdrop.
  */
 export function FilePreviewDialog({
   open,
@@ -77,6 +79,17 @@ export function FilePreviewDialog({
   'data-testid': testId
 }: FilePreviewDialogProps): ReactElement {
   const titleId = useId()
+  // As MUI's backdrop: the press must start on the background too, so that
+  // a text selection dragged out of the file does not close the preview
+  const isPressOnBackgroundRef = useRef(false)
+  const handleBodyMouseDown = (event: MouseEvent<HTMLElement>): void => {
+    isPressOnBackgroundRef.current = event.target === event.currentTarget
+  }
+  const handleBodyClick = (event: MouseEvent<HTMLElement>): void => {
+    const isClickOnBackground = event.target === event.currentTarget
+    if (isClickOnBackground && isPressOnBackgroundRef.current) onClose()
+    isPressOnBackgroundRef.current = false
+  }
   return (
     <Dialog
       open={open}
@@ -121,8 +134,16 @@ export function FilePreviewDialog({
           </Tooltip>
         ) : null}
       </Box>
-      {/* Focusable, so that the keyboard scrolls a long file */}
-      <Box sx={BODY_SX} tabIndex={0} role="region" aria-label={title}>
+      {/* Focusable, so that the keyboard scrolls a long file. A click on the
+          background is a mouse shortcut of Escape and of the close button */}
+      <Box
+        sx={BODY_SX}
+        tabIndex={0}
+        role="region"
+        aria-label={title}
+        onMouseDown={handleBodyMouseDown}
+        onClick={handleBodyClick}
+      >
         <Box sx={{ m: 'auto', maxWidth: '100%' }}>{children}</Box>
       </Box>
     </Dialog>

@@ -41,7 +41,8 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
     expect([root.width, root.height]).toEqual([792, 765])
     expect(await styleOf(composer.root, 'border-top-left-radius')).toBe('28px')
 
-    // Title bar: 52 px high, three 34 px buttons 4 px apart, 16 px from the end
+    // Title bar: 52 px high, three 26 px buttons 8 px apart, 24 px from the end
+    // (tmail-flutter's `AppBarComposerWidgetStyle`: 20 px icons, 3 px around)
     const to = await boxOf(composer.root.getByTestId('composer-to-field'))
     expect(to.y - root.y).toBe(52)
     expect(to.height).toBe(48)
@@ -53,12 +54,12 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
       ].map(boxOf)
     )
     for (const box of header) {
-      expect([box.width, box.height]).toEqual([34, 34])
+      expect([box.width, box.height]).toEqual([26, 26])
     }
     const [minimize, expand, close] = header as [Box, Box, Box]
-    expect(expand.x - (minimize.x + 34)).toBe(4)
-    expect(close.x - (expand.x + 34)).toBe(4)
-    expect(root.x + root.width - (close.x + 34)).toBe(16)
+    expect(expand.x - (minimize.x + 26)).toBe(8)
+    expect(close.x - (expand.x + 26)).toBe(8)
+    expect(root.x + root.width - (close.x + 26)).toBe(24)
 
     // Formatting toolbar: 40 px under a 1 px rule, boxes 32 px high, 8 px apart
     const toolbar = await boxOf(composer.toolbar)
@@ -102,8 +103,12 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
       await composer.showFormattingToolbar()
+      // The close button of the title bar: 26 px with a mouse
+      // (tmail-flutter's title bar), 44 px on touch
+      const close = await boxOf(composer.closeButton)
+      const closeSize = size === 34 ? 26 : 44
+      expect([close.width, close.height]).toEqual([closeSize, closeSize])
       for (const button of [
-        composer.closeButton,
         composer.formattingButton,
         composer.attachFileButton,
         composer.insertImageButton,

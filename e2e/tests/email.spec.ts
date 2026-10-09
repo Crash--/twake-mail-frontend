@@ -161,6 +161,7 @@ test.describe('EML reading an email', () => {
     })
     await jmap.importEmlContent(newsletterEml('first', user.email))
     await jmap.importEmlContent(newsletterEml('second', user.email))
+    await jmap.importEmlContent(newsletterEml('third', user.email))
 
     const mailbox = await new LoginPage(page).loginAs(user)
     let email = await mailbox.openEmail('first newsletter')
@@ -189,17 +190,35 @@ test.describe('EML reading an email', () => {
     // The sender does not learn where the email is read
     expect(referrers).toEqual([])
 
-    // Shown for this opening only: the banner comes back
+    // Asked once per email: another layout mounts the reading view again,
+    // and the banner does not come back
+    const viewport = page.viewportSize()
+    if (viewport === null) throw new Error('The page has no viewport')
+    await page.setViewportSize({
+      width: viewport.width < 1024 ? 1280 : 600,
+      height: viewport.height
+    })
+    await expect(email.body()).toContainText('first news')
+    await expect(email.remoteContentBanner).toBeHidden()
+    await page.setViewportSize(viewport)
+
+    // Nor when the email opens again
     await email.back()
     email = await mailbox.openEmail('first newsletter')
+    await expect(email.body()).toContainText('first news')
+    await expect(email.remoteContentBanner).toBeHidden()
+
+    // Only this email: the next one of the sender asks
+    await email.back()
+    email = await mailbox.openEmail('second newsletter')
     await expect(email.remoteContentBanner).toBeVisible()
     await email.alwaysShowRemoteContentButton.click()
     await email.back()
 
-    email = await mailbox.openEmail('second newsletter')
-    await expect(email.body()).toContainText('second news')
+    email = await mailbox.openEmail('third newsletter')
+    await expect(email.body()).toContainText('third news')
     await expect(email.remoteContentBanner).toBeHidden()
-    await expect.poll(() => requested).toContain('/second/pixel.png')
+    await expect.poll(() => requested).toContain('/third/pixel.png')
   })
 
   test('EML-29b the remote images of a sender of the domain of the user show without asking', async ({

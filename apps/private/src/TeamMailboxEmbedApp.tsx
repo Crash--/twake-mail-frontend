@@ -47,6 +47,7 @@ export function TeamMailboxEmbedApp({
     embed.callbackUrl === null ? 'ready' : 'callback'
   )
   const hasRun = useRef(false)
+  const [target, setTarget] = useState(embed.target)
 
   useEffect(() => {
     const { callbackUrl } = embed
@@ -114,11 +115,14 @@ export function TeamMailboxEmbedApp({
     )
   }
 
+  // The base of the router is the mailbox: another one gets its own router
   return (
-    <TeamMailboxEmbedProvider rootId={embed.target.rootId}>
+    <TeamMailboxEmbedProvider rootId={target.rootId}>
       <TeamMailboxRouter
-        basename={embed.target.basename}
+        key={target.basename}
+        basename={target.basename}
         spaceBridge={spaceBridge}
+        onLoad={setTarget}
       />
     </TeamMailboxEmbedProvider>
   )
@@ -132,12 +136,14 @@ function leaveCallback(path: string): void {
 interface TeamMailboxRouterProps {
   basename: string
   spaceBridge: SpaceBridge | null
+  onLoad: (target: TeamMailboxEmbedTarget) => void
 }
 
 /** Created once the address is a path of the facade: the router reads it */
 function TeamMailboxRouter({
   basename,
-  spaceBridge
+  spaceBridge,
+  onLoad
 }: TeamMailboxRouterProps): ReactElement {
   const [router] = useState(() =>
     createBrowserRouter(
@@ -148,10 +154,16 @@ function TeamMailboxRouter({
 
   useEffect(
     () =>
-      spaceBridge?.syncHistory(path =>
-        router.navigate(path, { replace: true })
-      ),
-    [router, spaceBridge]
+      spaceBridge?.syncHistory({
+        navigate: path => router.navigate(path, { replace: true }),
+        // RouterProvider never disposes its router: this one goes with its
+        // mailbox. Not in a cleanup, which strict mode runs on a live router
+        load: next => {
+          router.dispose()
+          onLoad(next)
+        }
+      }),
+    [router, spaceBridge, onLoad]
   )
 
   return <RouterProvider router={router} />

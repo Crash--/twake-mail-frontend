@@ -98,6 +98,7 @@ const TOKENS = {
   hoverBlack: ['rgba(0, 0, 0, 0.04)', DARK.hover],
   hoverBackground: ['#F3F6F9', DARK.hover],
   hoverInk: ['rgba(29, 25, 43, 0.04)', DARK.hover],
+  selectedInk: ['rgba(29, 25, 43, 0.08)', DARK.selected],
   hoverOnSurface: ['rgba(28, 27, 31, 0.04)', DARK.hover],
   hoverOnSurface08: ['rgba(28, 27, 31, 0.08)', DARK.hover],
   disabledFill: ['rgba(28, 27, 31, 0.12)', DARK.disabledBackground],

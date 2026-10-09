@@ -5,7 +5,7 @@
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
+import { DisclosureDown, DisclosureRight } from '@/ds/NavIcons/NavIcons'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BUTTON_SX = {
@@ -14,7 +14,7 @@ const BUTTON_SX = {
   mx: '16px',
   width: 'calc(100% - 32px)',
   justifyContent: 'flex-start',
-  gap: '12px',
+  gap: '8px',
   minHeight: 36,
   pl: '8px',
   pr: '8px',
@@ -28,9 +28,9 @@ const BUTTON_SX = {
   '&:hover': { bgcolor: TMAIL.hoverInk }
 } as const
 
+/** The arrow, in the 24 px box tmail-flutter puts 4 px after the name */
 const CHEVRON_SX = {
   display: 'flex',
-  ml: '-4px',
   color: TMAIL.textGrey66At64
 } as const
 
@@ -79,7 +79,7 @@ export function NavCategory({
           <span id={titleId}>{title}</span>
           <Box component="span" sx={CHEVRON_SX}>
             <Icon
-              icon={isExpanded ? Bottom : Right}
+              icon={isExpanded ? DisclosureDown : DisclosureRight}
               size={16}
               aria-hidden="true"
             />

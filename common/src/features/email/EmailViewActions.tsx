@@ -122,6 +122,7 @@ export function EmailViewActions({
     >
       {!showsReply || replies.actions.length === 0 ? null : (
         <IconAction
+          size={36}
           tone="steel"
           label={replyLabel}
           icon={Reply}
@@ -133,6 +134,7 @@ export function EmailViewActions({
       )}
       {!showsShortcuts || move === undefined ? null : (
         <IconAction
+          size={36}
           tone="steel"
           label={t(move.label)}
           icon={move.id === 'move' ? MoveEmail : Archive}
@@ -144,6 +146,7 @@ export function EmailViewActions({
       )}
       {isMessageCompact ? null : (
         <IconAction
+          size={36}
           label={starLabel}
           icon={isStarred ? Star : StarOutline}
           tone={isStarred ? 'starred' : 'steel'}
@@ -156,6 +159,7 @@ export function EmailViewActions({
       )}
       {!showsShortcuts || deletion === undefined ? null : (
         <IconAction
+          size={36}
           tone="steel"
           label={t(deletion.label)}
           icon={Trash}
@@ -166,6 +170,7 @@ export function EmailViewActions({
         />
       )}
       <IconAction
+        size={36}
         tone="steel"
         label={moreLabel}
         icon={MoreVerticalIcon}

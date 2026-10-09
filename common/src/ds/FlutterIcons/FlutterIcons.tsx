@@ -2078,3 +2078,39 @@ export function FullscreenExit(props: SvgProps): ReactElement {
     </svg>
   )
 }
+
+/** tmail-flutter's ic_back.svg: the chevron of the back button, 9 × 16 */
+export function Back(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 9 16" fill="none" {...iconProps(props)}>
+      <path
+        d="M7.22114 15.6933C7.41487 15.8918 7.66145 16 7.95205 16C8.53327 16 9 15.531 9 14.9357C9 14.6381 8.87671 14.3675 8.67417 14.1601L2.50978 7.99098L8.67417 1.83991C8.87671 1.63247 9 1.35287 9 1.06426C9 0.468997 8.53327 0 7.95205 0C7.66145 0 7.41487 0.10823 7.22114 0.306652L0.369863 7.16122C0.123288 7.39572 0.00880626 7.68433 0 8C0 8.31567 0.123288 8.58625 0.369863 8.82976L7.22114 15.6933Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+/** tmail-flutter's ic_newer.svg: the previous (newer) email */
+export function Newer(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...iconProps(props)}>
+      <path
+        d="M10.6409 12.0001L15.6062 7.03477C15.9409 6.70003 15.9409 6.15732 15.6062 5.82258C15.2715 5.48785 14.7287 5.48785 14.394 5.82258L8.82258 11.394C8.48785 11.7287 8.48785 12.2715 8.82258 12.6062L14.394 18.1776C14.7287 18.5124 15.2715 18.5124 15.6062 18.1776C15.9409 17.8429 15.9409 17.3002 15.6062 16.9654L10.6409 12.0001Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+/** tmail-flutter's ic_older.svg: the next (older) email */
+export function Older(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...iconProps(props)}>
+      <path
+        d="M13.7879 12.0001L8.82258 16.9654C8.48785 17.3002 8.48785 17.8429 8.82258 18.1776C9.15732 18.5124 9.70003 18.5124 10.0348 18.1776L15.6062 12.6062C15.9409 12.2715 15.9409 11.7287 15.6062 11.394L10.0348 5.82258C9.70003 5.48785 9.15732 5.48785 8.82258 5.82258C8.48785 6.15732 8.48785 6.70003 8.82258 7.03477L13.7879 12.0001Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}

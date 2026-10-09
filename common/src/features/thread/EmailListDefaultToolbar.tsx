@@ -93,6 +93,8 @@ export function EmailListDefaultToolbar({
           label={refreshLabel}
           icon={RefreshIcon}
           iconSize={16}
+          // As tmail-flutter: its 26 x 24 drawing, 16 px high
+          iconWidth={(16 * 26) / 24}
           tone="filled"
           onClick={onRefresh}
           data-testid="list-refresh-button"
@@ -111,6 +113,7 @@ export function EmailListDefaultToolbar({
           label={selectAllLabel}
           tooltip={selectAllLabel}
           icon={CheckboxBlankIcon}
+          isAtMaxWidth
           disabled={loadedCount === 0}
           onClick={selection.selectLoaded}
           data-testid="list-select-all-button"

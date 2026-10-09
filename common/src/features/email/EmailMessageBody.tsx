@@ -1,5 +1,5 @@
 import { Box, Divider } from '@linagora/twake-mui'
-import { useMemo, useState, type ReactElement } from 'react'
+import { useMemo, type ReactElement } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { isUnnamedCalendarPart } from '@common/features/calendar/calendarBlobs'
@@ -26,6 +26,7 @@ import type { EmailDetail } from './queries'
 import { RemoteContentBanner } from './RemoteContentBanner'
 import { UnsubscribedBanner } from './UnsubscribedBanner'
 import { foldQuotedHistory } from './quoteToggle'
+import { useRemoteContentConsent } from './remoteContentConsent'
 import { normalizeCid } from './sanitizeEmailHtml'
 import { isSameDomain, useTrustedSender } from './trustedSenders'
 import { useInlineImageUrls } from './useInlineImageUrls'
@@ -64,7 +65,9 @@ export function EmailMessageBody({
   const trustedSender = useTrustedSender(sender?.email ?? null)
   const calendar = useCalendarInvitation(email.attachments)
   const { openComposer } = useComposer()
-  const [isRemoteContentShown, setIsRemoteContentShown] = useState(false)
+  const [isRemoteContentShown, showRemoteContent] = useRemoteContentConsent(
+    email.id
+  )
   const { session } = useJmapSession()
   // The senders of the domain of the user are trusted, for now
   const isColleague =
@@ -107,7 +110,7 @@ export function EmailMessageBody({
   )
 
   const handleShowRemoteContent = (): void => {
-    setIsRemoteContentShown(true)
+    showRemoteContent()
     onRemoteContentShown()
   }
   const handleAlwaysShowRemoteContent = (): void => {

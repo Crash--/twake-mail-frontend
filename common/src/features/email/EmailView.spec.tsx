@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState, type ReactElement } from 'react'
 import { Route } from 'react-router'
 
 import {
@@ -302,6 +303,45 @@ describe('EmailView', () => {
       })
       expect(await findBodyDocument()).toContain('referrerpolicy="no-referrer"')
       expect(screen.getByTestId('email-view-subject')).toHaveFocus()
+    })
+
+    it('does not ask again when the view mounts again', async () => {
+      // Resizing the window switches the layout, which mounts the view again
+      function RemountableView(): ReactElement {
+        const [mount, setMount] = useState(0)
+        return (
+          <>
+            <button type="button" onClick={() => setMount(mount + 1)}>
+              Remount
+            </button>
+            <EmailView
+              key={mount}
+              emailId="e1"
+              backPath="/mailbox/mailbox-inbox"
+            />
+          </>
+        )
+      }
+      renderWithProviders(<RemountableView />, {
+        route: '/mailbox/mailbox-inbox/email/e1',
+        path: '/mailbox/:mailboxId/email/:emailId',
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer({
+          emails: [
+            makeEmailWithBody(
+              { id: 'e1', from: [OUTSIDER] },
+              { html: TRACKED_HTML }
+            )
+          ]
+        })
+      })
+
+      await screen.findByTestId('remote-content-banner')
+      await userEvent.click(screen.getByRole('button', { name: 'Show' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Remount' }))
+
+      expect(await findBodyDocument()).toContain('tracker.example.com')
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
     })
 
     it('always shows the remote images of a trusted sender', async () => {

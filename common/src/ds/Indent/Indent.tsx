@@ -5,7 +5,7 @@ import type { ReactElement, ReactNode } from 'react'
 export interface IndentProps {
   /** Start margin in px: e.g. an avatar and its gap, to line up under a name */
   size: number
-  /** Pulls the content up under the line above, in px */
+  /** Pulls the content up under the line above, in px; negative pushes it down */
   pullUp?: number
   children: ReactNode
 }
@@ -16,5 +16,5 @@ export function Indent({
   pullUp = 0,
   children
 }: IndentProps): ReactElement {
-  return <Box sx={{ ml: `${size}px`, mt: `-${pullUp}px` }}>{children}</Box>
+  return <Box sx={{ ml: `${size}px`, mt: `${-pullUp}px` }}>{children}</Box>
 }

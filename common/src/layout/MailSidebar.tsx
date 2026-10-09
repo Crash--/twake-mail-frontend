@@ -55,8 +55,10 @@ export function MailSidebar({
             />
           </Box>
         ) : null}
+        {/* As tmail-flutter: 24 px under the compose button (8 + 16), 16
+            under the top of the drawer */}
         <Box
-          className="u-flex-auto u-ov-auto u-mt-1-half"
+          className={`u-flex-auto u-ov-auto ${screenSize === 'desktop' ? 'u-mt-1-half' : 'u-mt-1'}`}
           data-testid="sidebar-scroll"
         >
           <MailboxTree />

@@ -16,9 +16,16 @@ import { useId, type ReactElement, type ReactNode } from 'react'
 
 import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
-/** tmail-flutter `ResponsiveUtils.mobileLeftMenuSize` */
+/**
+ * tmail-flutter's `ResponsiveUtils.mobileLeftMenuSize` on phones and small
+ * tablets, `defaultSizeLeftMenuMobile` on large tablets
+ */
 const DRAWER_WIDTH = 339
+const LARGE_DRAWER_WIDTH = 375
+/** tmail-flutter's `MailboxAppBar`: 50 px high, 16 px on the sides, 4 above */
+const HEADER_SX = { height: 50, px: 2, py: '4px' } as const
 /** Room left on the side to see the page and tap outside */
 const DRAWER_GAP = 40
 
@@ -46,7 +53,6 @@ function wideScreenTheme(theme: Theme): Theme {
 }
 
 const PAPER_SX = {
-  width: DRAWER_WIDTH,
   maxWidth: `calc(100% - ${DRAWER_GAP}px)`,
   // White, as tmail-flutter's drawer
   backgroundColor: 'background.paper',
@@ -89,6 +95,8 @@ export function NavigationDrawer({
   closeButtonTestId
 }: NavigationDrawerProps): ReactElement {
   const labelId = useId()
+  const width =
+    useScreenSize() === 'tabletLarge' ? LARGE_DRAWER_WIDTH : DRAWER_WIDTH
 
   return (
     <Drawer
@@ -106,12 +114,12 @@ export function NavigationDrawer({
           'aria-labelledby': labelId,
           // @ts-expect-error data attributes are valid on the paper
           'data-testid': testId,
-          sx: PAPER_SX
+          sx: { ...PAPER_SX, width }
         }
       }}
     >
       <ThemeProvider theme={wideScreenTheme}>
-        <Box className="u-flex u-flex-items-center u-ph-1 u-pv-half">
+        <Box className="u-flex u-flex-items-center" sx={HEADER_SX}>
           <span id={labelId} className="u-visuallyhidden">
             {label}
           </span>

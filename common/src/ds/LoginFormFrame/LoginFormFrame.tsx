@@ -52,6 +52,12 @@ const BUTTON_SX = {
   pb: '16px'
 } as const
 
+const FOOTER_SX = {
+  fontSize: 14,
+  lineHeight: '20px',
+  textAlign: 'center'
+} as const
+
 const VERSION_SX = {
   pt: '8px',
   fontSize: 12,
@@ -73,6 +79,8 @@ export interface LoginFormFrameProps {
   children: ReactNode
   /** The submit button */
   button: ReactNode
+  /** Under the button, e.g. the link to the privacy policy */
+  footer?: ReactNode
   /** e.g. "v.0.39.0", null to show none */
   version?: string | null
   onSubmit: (event: SubmitEvent<HTMLFormElement>) => void
@@ -89,6 +97,7 @@ export function LoginFormFrame({
   isError = false,
   children,
   button,
+  footer = null,
   version = null,
   onSubmit,
   'data-testid': testId,
@@ -117,6 +126,11 @@ export function LoginFormFrame({
       </Typography>
       <Box sx={FIELDS_SX}>{children}</Box>
       <Box sx={BUTTON_SX}>{button}</Box>
+      {footer === null ? null : (
+        <Typography component="p" sx={FOOTER_SX}>
+          {footer}
+        </Typography>
+      )}
       {version === null ? null : (
         <Typography component="p" sx={VERSION_SX}>
           {version}

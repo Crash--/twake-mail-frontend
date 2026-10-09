@@ -179,7 +179,8 @@
     },
     "poweredBy": "Được cung cấp bởi LINAGORA",
     "showPassword": "Hiện mật khẩu",
-    "hidePassword": "Ẩn mật khẩu"
+    "hidePassword": "Ẩn mật khẩu",
+    "privacyPolicy": "Chính sách bảo mật"
   },
   "config": {
     "title": "Twake Mail chưa được cấu hình",

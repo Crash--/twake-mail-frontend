@@ -39,6 +39,7 @@ Conventions:
 | `login-submit-button` | submit button | `loginSubmitForm` |
 | `login-error` | error message (bad credentials, server unreachable) | — |
 | `login-sso-button` | "Sign in with SSO" (OIDC, phase 1) | — |
+| `login-privacy-policy-link` | issue #225: "Privacy policy" link under the submit button (new tab) | `PrivacyLinkWidget` |
 
 ### Application shell
 

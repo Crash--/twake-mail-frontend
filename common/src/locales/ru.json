@@ -179,7 +179,8 @@
     },
     "poweredBy": "Работает на LINAGORA",
     "showPassword": "Показать пароль",
-    "hidePassword": "Скрыть пароль"
+    "hidePassword": "Скрыть пароль",
+    "privacyPolicy": "Политика конфиденциальности"
   },
   "config": {
     "title": "Twake Mail не настроен",

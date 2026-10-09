@@ -179,7 +179,8 @@
     },
     "poweredBy": "Propulsé par LINAGORA",
     "showPassword": "Afficher le mot de passe",
-    "hidePassword": "Masquer le mot de passe"
+    "hidePassword": "Masquer le mot de passe",
+    "privacyPolicy": "Politique de confidentialité"
   },
   "config": {
     "title": "Twake Mail n'est pas configuré",

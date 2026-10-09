@@ -684,8 +684,18 @@ test.describe('SRCH search', () => {
 
     // A sender nobody has: nothing is left, the chip shows the filter
     await search.filterChip('from').click()
-    await page.getByTestId('search-filter-address-input').fill('nobody@x.org')
-    await page.keyboard.press('Enter')
+    const picker = page.getByTestId('search-contact-picker')
+    await expect(
+      picker.getByRole('heading', { name: 'Find emails from' })
+    ).toBeVisible()
+    await page.getByTestId('search-contact-picker-input').fill('nobody@x.org')
+    await picker
+      .getByTestId('search-contact-picker-item')
+      .filter({ hasText: 'nobody@x.org' })
+      .click()
+    await expectNoA11yViolations(page)
+    await page.getByTestId('search-contact-picker-done-button').click()
+    await expect(picker).toBeHidden()
 
     await expect(page.getByTestId('search-filter-removable')).toHaveText(
       'From: nobody@x.org'

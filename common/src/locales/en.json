@@ -606,7 +606,6 @@
       "subject": "Enter a subject",
       "words": "Enter some suggestions"
     },
-    "addFilter": "Add",
     "clearFilter": "Clear filter",
     "advanced": "Advanced search",
     "errors": {
@@ -651,7 +650,14 @@
       "added": "%{address} added",
       "addedMany": "%{smart_count} address added |||| %{smart_count} addresses added"
     },
-    "selectFolder": "Select Folder"
+    "selectFolder": "Select Folder",
+    "contactPicker": {
+      "from": "Find emails from",
+      "to": "Find emails to",
+      "hint": "Enter name or email",
+      "clearFilter": "Clear Filter",
+      "done": "Done"
+    }
   },
   "emailActions": {
     "toast": {

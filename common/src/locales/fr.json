@@ -606,7 +606,6 @@
       "subject": "Entrer un sujet",
       "words": "Entrez quelques mots"
     },
-    "addFilter": "Ajouter",
     "clearFilter": "Effacer les filtres",
     "advanced": "Recherche avancée",
     "errors": {
@@ -651,7 +650,14 @@
       "added": "%{address} ajouté",
       "addedMany": "%{smart_count} adresse ajoutée |||| %{smart_count} adresses ajoutées"
     },
-    "selectFolder": "Sélectionner le dossier"
+    "selectFolder": "Sélectionner le dossier",
+    "contactPicker": {
+      "from": "Trouver des messages de",
+      "to": "Trouver des messages à",
+      "hint": "Entrez le nom ou l’adresse e-mail",
+      "clearFilter": "Effacer les filtres",
+      "done": "Terminé"
+    }
   },
   "emailActions": {
     "toast": {

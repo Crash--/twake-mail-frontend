@@ -2,8 +2,8 @@
 // (`PopupMenuItemActionRequiredSelectedIcon`: the date, the order and the
 // label of a search): the names in black, the one chosen followed by
 // icFilterSelected, a 16 px blue disc holding a white tick, 16 px after
-// it; 400 px high at most. twake-mui's `MenuItem` marks the chosen one with
-// a background.
+// it; 400 px high at most for the labels. twake-mui's `MenuItem` marks the
+// chosen one with a background.
 import { Icon } from '@linagora/twake-icons'
 import { Box, ListItemText, Menu, MenuItem } from '@mui/material'
 import type { ReactElement } from 'react'
@@ -12,8 +12,6 @@ import { FilterSelected } from '@/ds/FlutterIcons/FlutterIcons'
 
 /** `AppColor.primaryMain` */
 const MARK_COLOR = '#0A84FF'
-
-const PAPER_SX = { maxHeight: 400 } as const
 
 const MARK_SX = {
   display: 'flex',
@@ -34,6 +32,8 @@ export interface ChoiceMenuProps {
   anchorEl: HTMLElement | null
   items: readonly ChoiceMenuItem[]
   onClose: () => void
+  /** In px, e.g. 400 for the labels as tmail-flutter */
+  maxHeight?: number
   id?: string
   'data-testid'?: string
 }
@@ -46,6 +46,7 @@ export function ChoiceMenu({
   anchorEl,
   items,
   onClose,
+  maxHeight,
   id,
   'data-testid': testId
 }: ChoiceMenuProps): ReactElement {
@@ -55,7 +56,7 @@ export function ChoiceMenu({
       open={anchorEl !== null}
       anchorEl={anchorEl}
       onClose={onClose}
-      slotProps={{ paper: { sx: PAPER_SX } }}
+      slotProps={{ paper: { sx: { maxHeight } } }}
       data-testid={testId}
     >
       {items.map(item => (

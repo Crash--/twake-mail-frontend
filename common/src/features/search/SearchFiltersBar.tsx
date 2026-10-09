@@ -1,23 +1,18 @@
-import { Box, Button, Popover, TextField } from '@linagora/twake-mui'
-import {
-  useState,
-  type SubmitEvent,
-  type MouseEvent,
-  type ReactElement
-} from 'react'
+import { Button } from '@linagora/twake-mui'
+import { useState, type MouseEvent, type ReactElement } from 'react'
 
 import {
-  Account,
   AllEmail,
-  Attachment,
-  Calendar,
-  CalendarToday,
-  Email,
+  AttachmentSB,
+  CalendarEvent,
+  CalendarSB,
+  EmailNotification,
   FolderOutlined,
   LabelOutlined,
   MoveFolderContent,
   SelectedCheck,
-  StarOutline
+  StarOutline,
+  UserSB
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
@@ -33,6 +28,7 @@ import {
   isEmptySearch,
   type SearchFilter
 } from './searchFilter'
+import { SearchAddressDialog } from './SearchAddressDialog'
 import { DATE_LABELS } from './searchLabels'
 import { useMailboxOptions } from './useMailboxOptions'
 
@@ -79,11 +75,7 @@ export function SearchFiltersBar({
   const labelsAvailable = useLabelsAvailable()
   const labelList = useLabels().data?.list
   const labels = labelsAvailable ? (labelList ?? []) : []
-  const [address, setAddress] = useState<{
-    field: AddressField
-    anchor: HTMLElement
-    value: string
-  } | null>(null)
+  const [addressField, setAddressField] = useState<AddressField | null>(null)
   const pickFolderOrChoice = usePickFolderOrChoice()
   const [isPickingFolder, setIsPickingFolder] = useState(false)
   const [menu, setMenu] = useState<{
@@ -182,7 +174,8 @@ export function SearchFiltersBar({
         {
           id: EVERYWHERE_SCOPE_ID,
           label: t('search.scope.everywhere'),
-          icon: MoveFolderContent
+          icon: MoveFolderContent,
+          placement: 'section'
         }
       ]
     })
@@ -255,19 +248,6 @@ export function SearchFiltersBar({
     labels.find(label => label.keyword === filter.label)?.displayName ??
     t('search.labels.all')
 
-  const handleAddress = (event: SubmitEvent<HTMLFormElement>): void => {
-    event.preventDefault()
-    if (address === null) return
-    const value = address.value.trim()
-    if (value !== '' && !filter[address.field].includes(value)) {
-      onChange({
-        ...filter,
-        [address.field]: [...filter[address.field], value]
-      })
-    }
-    setAddress(null)
-  }
-
   const canClear = !isEmptySearch(filter) || filter.sort !== DEFAULT_SORT_ORDER
 
   return (
@@ -301,12 +281,12 @@ export function SearchFiltersBar({
         <Slot key={field}>
           <FilterChip
             label={t(`search.fields.${field}`)}
-            icon={Account}
+            icon={UserSB}
             isSelected={filter[field].length > 0}
             popup="dialog"
-            isExpanded={address?.field === field}
-            onClick={event => {
-              setAddress({ field, anchor: event.currentTarget, value: '' })
+            isExpanded={addressField === field}
+            onClick={() => {
+              setAddressField(field)
             }}
             data-testid={`search-filter-${field}`}
           />
@@ -327,7 +307,7 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={dateLabel}
-          icon={Calendar}
+          icon={CalendarSB}
           isSelected={filter.dateRange !== 'allTime'}
           popup="menu"
           isExpanded={menu?.name === 'date'}
@@ -338,7 +318,7 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={t('search.filters.hasAttachment')}
-          icon={Attachment}
+          icon={AttachmentSB}
           selectedIcon={SelectedCheck}
           isSelected={filter.hasAttachment}
           onClick={() => {
@@ -362,7 +342,7 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={t('search.filters.unread')}
-          icon={Email}
+          icon={EmailNotification}
           selectedIcon={SelectedCheck}
           isSelected={filter.unread}
           onClick={() => {
@@ -374,7 +354,7 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={t('search.filters.notIncludeEvents')}
-          icon={CalendarToday}
+          icon={CalendarEvent}
           isSelected={filter.notIncludeEvents}
           onClick={() => {
             onChange({ ...filter, notIncludeEvents: !filter.notIncludeEvents })
@@ -395,56 +375,20 @@ export function SearchFiltersBar({
           {t('search.clearFilter')}
         </Button>
       ) : null}
-      <Popover
-        open={address !== null}
-        anchorEl={address?.anchor ?? null}
-        onClose={() => {
-          setAddress(null)
-        }}
-        slotProps={{
-          paper: {
-            role: 'dialog',
-            'aria-label':
-              address === null ? undefined : t(`search.fields.${address.field}`)
-          }
-        }}
-        data-testid="search-filter-address-popover"
-      >
-        {address === null ? null : (
-          <Box
-            component="form"
-            className="u-flex u-flex-items-center u-p-1"
-            onSubmit={handleAddress}
-          >
-            <TextField
-              autoFocus
-              size="small"
-              label={t(`search.fields.${address.field}`)}
-              placeholder={t('search.hints.address')}
-              value={address.value}
-              onChange={event => {
-                setAddress({ ...address, value: event.target.value })
-              }}
-              slotProps={{
-                htmlInput: { 'data-testid': 'search-filter-address-input' }
-              }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              size="small"
-              className="u-ml-half"
-              disabled={address.value.trim() === ''}
-              data-testid="search-filter-address-add-button"
-            >
-              {t('search.addFilter')}
-            </Button>
-          </Box>
-        )}
-      </Popover>
+      {addressField === null ? null : (
+        <SearchAddressDialog
+          field={addressField}
+          filter={filter}
+          onChange={onChange}
+          onClose={() => {
+            setAddressField(null)
+          }}
+        />
+      )}
       <ChoiceMenu
         anchorEl={menu?.anchor ?? null}
         onClose={closeMenu}
+        maxHeight={menu?.name === 'labels' ? 400 : undefined}
         items={(menu === null ? [] : choices(menu.name)).map(choice => ({
           key: choice.key,
           label: choice.label,

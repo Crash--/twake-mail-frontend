@@ -31,6 +31,46 @@ describe('FilePreviewDialog', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('closes on a click on the background, not on the file', async () => {
+    const onClose = jest.fn()
+    renderDs(
+      <FilePreviewDialog
+        open
+        title="notes.txt"
+        closeLabel="Close"
+        onClose={onClose}
+      >
+        <p>content</p>
+      </FilePreviewDialog>
+    )
+    await userEvent.click(screen.getByText('content'))
+    expect(onClose).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('region', { name: 'notes.txt' }))
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('stays open when a selection dragged out of the file ends on the background', async () => {
+    const onClose = jest.fn()
+    renderDs(
+      <FilePreviewDialog
+        open
+        title="notes.txt"
+        closeLabel="Close"
+        onClose={onClose}
+      >
+        <p>content</p>
+      </FilePreviewDialog>
+    )
+    await userEvent.pointer([
+      { keys: '[MouseLeft>]', target: screen.getByText('content') },
+      {
+        keys: '[/MouseLeft]',
+        target: screen.getByRole('region', { name: 'notes.txt' })
+      }
+    ])
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
   it('has no download button until the file is loaded', () => {
     renderDs(
       <FilePreviewDialog open title="a" closeLabel="Close" onClose={jest.fn()}>

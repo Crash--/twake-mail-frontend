@@ -61,6 +61,11 @@ export interface FileDropZoneProps {
    * images inline): true for the drags the zone must ignore
    */
   isForChild?: (event: DragEvent<HTMLElement>) => boolean
+  /**
+   * The panel covers the whole zone instead of 8 px in (tmail-flutter's
+   * zone of a signature, `margin: EdgeInsets.zero`)
+   */
+  isFlush?: boolean
   children: ReactNode
   className?: string
   'data-testid'?: string
@@ -80,6 +85,7 @@ export function FileDropZone({
   label,
   onFiles,
   isForChild = () => false,
+  isFlush = false,
   children,
   className,
   'data-testid': testId
@@ -145,7 +151,7 @@ export function FileDropZone({
         <Box
           aria-hidden="true"
           className="u-flex u-flex-column u-flex-items-center u-flex-justify-center"
-          sx={OVERLAY_SX}
+          sx={isFlush ? { ...OVERLAY_SX, inset: 0 } : OVERLAY_SX}
         >
           <DropIcon />
           <Typography component="p" sx={LABEL_SX}>

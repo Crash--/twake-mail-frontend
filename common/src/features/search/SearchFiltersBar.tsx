@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  Menu,
-  MenuItem,
-  Popover,
-  TextField
-} from '@linagora/twake-mui'
+import { Box, Button, Popover, TextField } from '@linagora/twake-mui'
 import {
   useState,
   type SubmitEvent,
@@ -24,6 +17,7 @@ import {
   SelectedCheck,
   StarOutline
 } from '@/ds/FlutterIcons/FlutterIcons'
+import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { ScrollRow } from '@/ds/ScrollRow/ScrollRow'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
@@ -421,27 +415,17 @@ export function SearchFiltersBar({
           </Box>
         )}
       </Popover>
-      <Menu
-        open={menu !== null}
+      <ChoiceMenu
         anchorEl={menu?.anchor ?? null}
         onClose={closeMenu}
+        items={(menu === null ? [] : choices(menu.name)).map(choice => ({
+          key: choice.key,
+          label: choice.label,
+          isSelected: choice.isSelected,
+          onSelect: choice.apply
+        }))}
         data-testid="search-filter-menu"
-      >
-        {(menu === null ? [] : choices(menu.name)).map(choice => (
-          <MenuItem
-            key={choice.key}
-            role="menuitemradio"
-            aria-checked={choice.isSelected}
-            selected={choice.isSelected}
-            onClick={() => {
-              closeMenu()
-              choice.apply()
-            }}
-          >
-            {choice.label}
-          </MenuItem>
-        ))}
-      </Menu>
+      />
     </ScrollRow>
   )
 }

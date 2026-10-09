@@ -94,7 +94,10 @@ export function ColorTag({
         fontSize: size === 'small' ? '11px' : '0.75rem',
         lineHeight: size === 'small' ? '14px' : 1.5,
         whiteSpace: 'nowrap',
-        verticalAlign: 'middle'
+        verticalAlign: 'middle',
+        // Above the overlay of a row link (its `::after`), so that the
+        // pointer reaches the tooltip; a click still goes to the link
+        ...(hasTooltip ? { position: 'relative', zIndex: 1 } : {})
       }}
     >
       {hasTooltip ? (

@@ -235,6 +235,23 @@ function fieldSx(
       fontSize: `${isCompact ? COMPACT_FIELD.fontSize : 16}px`
     },
     '& .SearchBar-icon, & .MuiIconButton-root': { color: FIELD_ICON_COLOR },
+    // tmail-flutter's desktop field: its 22 px magnifier, 16 px around
+    // (12 + 4 of its button), and its grey hint in 15 px
+    ...(size === 'large'
+      ? {
+          '& .SearchBar-icon': {
+            width: 54,
+            px: '16px',
+            boxSizing: 'border-box'
+          },
+          '& .SearchBar-icon svg': { width: 22, height: 22 },
+          '& .MuiInputBase-input::placeholder': {
+            color: FIELD_ICON_COLOR,
+            opacity: 1,
+            fontSize: '15px'
+          }
+        }
+      : {}),
     // tmail-flutter's 24 px magnifier, 8 px around, and its grey hint
     ...(isCompact
       ? {
@@ -459,7 +476,7 @@ export function SearchCombobox({
         disabledFocus
         sx={fieldSx(isShown, size)}
         // tmail-flutter's thinner magnifier (`ic_search_bar`)
-        icon={size === 'compact' ? Magnifier : undefined}
+        icon={size === 'bare' ? undefined : Magnifier}
         className="u-w-100"
         placeholder={label}
         value={value}

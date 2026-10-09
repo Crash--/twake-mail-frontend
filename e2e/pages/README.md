@@ -338,3 +338,4 @@ Conventions:
 | `labels-section-toggle` | the header of the labels of the sidebar folds them, as the folders (`folders-section-toggle`) | — |
 | `email-list-item-event-icon` | the calendar of a row whose email carries a calendar event (`X-MEETING-UID` header), before the subject, as tmail-flutter; decorative, the row link says "Event invitation" | — |
 | `theme-setting` / `theme-setting-light` / `theme-setting-dark` / `theme-setting-auto` | Settings > Preferences: the theme (`role="radiogroup"`), the `appearance.theme` setting of the account; only when the server lets it change (not in `readOnlyProperties`) | — |
+| `advanced-search-from-field` / `advanced-search-to-field` + `advanced-search-address-chip` | From and To of the advanced search: fields of tags, as tmail-flutter, with contacts suggested (`advanced-search-{from,to}-suggestions`); a tag dragged to the other field moves there | — |

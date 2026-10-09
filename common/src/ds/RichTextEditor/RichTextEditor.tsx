@@ -2,7 +2,7 @@
 // TipTap (MIT) dressed in twake-mui, accessible (RGAA), and knows nothing
 // about email: images, quoted content and signatures arrive through props
 // and generic extensions (InlineImage, HtmlBlock).
-import { Box } from '@linagora/twake-mui'
+import { Box, CircularProgress } from '@linagora/twake-mui'
 import { Extension, type AnyExtension } from '@tiptap/core'
 import FileHandler from '@tiptap/extension-file-handler'
 import { TableKit } from '@tiptap/extension-table'
@@ -33,6 +33,7 @@ import { ImageToolbar } from './ImageToolbar'
 import { Indent } from './indent'
 import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
+import { createPastedDataImages } from './pastedDataImages'
 import { RichTextToolbar } from './RichTextToolbar'
 import { SelectionAction } from './SelectionAction'
 import { SmartTrailingBlock } from './smartTrailingBlock'
@@ -63,6 +64,16 @@ export interface RichTextEditorProps {
    * takes no image file.
    */
   onImageFiles?: (files: File[]) => Promise<InlineImageAttributes[]>
+  /**
+   * With `onImageFiles`: the images pasted inside HTML as `data:` URLs go
+   * through it too, and the ones it does not take are removed
+   */
+  shouldStorePastedDataImages?: boolean
+  /**
+   * Images are being stored: a spinner named so over the text; null for
+   * none
+   */
+  busyLabel?: string | null
   /** How HtmlBlock nodes render (frame document, titles, edit button) */
   htmlBlock?: Partial<HtmlBlockOptions>
   /**
@@ -153,6 +164,8 @@ async function insertImages(
   const store = actionsRef.current.storeImages
   if (!store) return
   const images = await store(files)
+  // The store said why it took none
+  if (images.length === 0) return
   const nodes = images.map(attributes => ({
     type: 'image',
     attrs: { ...attributes }
@@ -258,6 +271,8 @@ export function RichTextEditor({
   fontSizes,
   fontFamilies,
   onImageFiles,
+  shouldStorePastedDataImages = false,
+  busyLabel = null,
   htmlBlock,
   footerBlockKinds = [],
   extensions = [],
@@ -327,6 +342,10 @@ export function RichTextEditor({
       createKeyboardExtension(actionsRef),
       // eslint-disable-next-line react-hooks/refs
       ...(onImageFiles ? [createImageFileHandler(actionsRef)] : []),
+      ...(onImageFiles && shouldStorePastedDataImages
+        ? // eslint-disable-next-line react-hooks/refs
+          [createPastedDataImages(actionsRef, IMAGE_TYPES)]
+        : []),
       ...extensions
     ],
     content,
@@ -391,6 +410,11 @@ export function RichTextEditor({
         if (!onImageFiles) return false
         fileInputRef.current?.click()
         return true
+      },
+      insertImages: files => {
+        void insertImages(actionsRef, editor, files, null).catch(
+          (error: unknown) => console.error(error)
+        )
       },
       insertText: text => {
         editor.chain().focus().insertContent(text).run()
@@ -613,6 +637,15 @@ export function RichTextEditor({
       >
         <EditorContent editor={editor} />
       </Box>
+      {busyLabel === null ? null : (
+        // tmail-flutter's spinner over the editor (`InsertImageLoadingIndicator`)
+        <Box
+          className="u-flex u-flex-items-center u-flex-justify-center"
+          sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+        >
+          <CircularProgress aria-label={busyLabel} />
+        </Box>
+      )}
       {selectionAction ? (
         <SelectionAction
           editor={editor}

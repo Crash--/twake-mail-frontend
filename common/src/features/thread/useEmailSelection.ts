@@ -1,9 +1,6 @@
 import { createContext, useCallback, useContext, useMemo } from 'react'
 
-import {
-  EMPTY_SELECTION,
-  useScopedSelectionState
-} from './EmailSelectionStore'
+import { EMPTY_SELECTION, useScopedSelectionState } from './EmailSelectionStore'
 import type { EmailListItemData } from './queries'
 
 export interface EmailSelection {

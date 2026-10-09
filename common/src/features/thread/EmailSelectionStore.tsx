@@ -89,9 +89,7 @@ export function useScopedSelectionState(
     next => {
       setStored(previous => ({
         scope,
-        state: next(
-          previous.scope === scope ? previous.state : EMPTY_SELECTION
-        )
+        state: next(previous.scope === scope ? previous.state : EMPTY_SELECTION)
       }))
     },
     [scope, setStored]

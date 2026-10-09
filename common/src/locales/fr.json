@@ -837,7 +837,7 @@
   },
   "spamReport": {
     "banner": "%{smart_count} message(s) indésirable(s)",
-    "view": "Vue",
+    "view": "Voir",
     "dismiss": "Rejeter"
   },
   "emptyFolder": {

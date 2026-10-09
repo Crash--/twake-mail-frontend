@@ -19,11 +19,14 @@ export const DATE_RANGES = [
 
 export type DateRange = (typeof DATE_RANGES)[number]
 
-/** Orders of the results; `relevance` lets the server rank them */
+/**
+ * Orders of the results, in the order of tmail-flutter's menu
+ * (`EmailSortOrderType`); `relevance` lets the server rank them
+ */
 export const SORT_ORDERS = [
-  'relevance',
   'mostRecent',
   'oldest',
+  'relevance',
   'senderAscending',
   'senderDescending',
   'subjectAscending',

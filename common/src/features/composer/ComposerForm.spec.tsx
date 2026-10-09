@@ -1850,7 +1850,9 @@ describe('ComposerForm', () => {
       )
       expect(sent?.inReplyTo).toEqual(['plans@example.com'])
       expect(sent?.headers?.['X-Twake-Answering']).toBeUndefined()
-    })
+      // A reply saved, reopened from Drafts and sent: over 5 s on a loaded
+      // CI runner
+    }, 15_000)
 
     describe('back after a reload', () => {
       async function restoreReply(

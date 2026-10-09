@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -17,13 +18,15 @@ import {
 } from 'react'
 
 import { ConfirmDialogButton } from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
+import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
 import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   FormDialogFrame,
   FormFieldRow
 } from '@/ds/FormDialogFrame/FormDialogFrame'
-import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
+import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
+import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useEditorLabels } from '@common/features/composer/useEditorLabels'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -52,6 +55,7 @@ import {
   publishSignatureImage,
   signatureAssetChanges
 } from './signatureAssets'
+import { shrinkSignatureImage, signatureImageMaxWidth } from './signatureImage'
 
 export interface IdentityFormDialogProps {
   /** The identity to edit, null to create one */
@@ -97,13 +101,15 @@ export function IdentityFormDialog({
   const queryClient = useQueryClient()
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
-  const isMobile = useScreenSize() === 'mobile'
+  const screenSize = useScreenSize()
+  const isMobile = screenSize === 'mobile'
   const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
   const titleId = useId()
   const nameRef = useRef<HTMLInputElement>(null)
   const replyToRef = useRef<HTMLInputElement>(null)
   const bccRef = useRef<HTMLInputElement>(null)
   const editorRef = useRef<Editor | null>(null)
+  const editorActionsRef = useRef<RichTextEditorActions>(null)
   const [initialSignature] = useState(() =>
     identity === null ? '' : signatureToEditorHtml(identity)
   )
@@ -111,6 +117,9 @@ export function IdentityFormDialog({
     identity === null ? [] : publicAssetIdsIn(identity.htmlSignature)
   )
   const publishedRef = useRef<string[]>([])
+  // Saved or cancelled: the images published meanwhile are taken care of
+  const isSettledRef = useRef(false)
+  const [storingCount, setStoringCount] = useState(0)
   const wasDefault = identity !== null && identities[0]?.id === identity.id
   const emails = allowedIdentityEmails(identities, session.username)
   const [name, setName] = useState(identity?.name ?? '')
@@ -132,6 +141,20 @@ export function IdentityFormDialog({
       { maxSizeUpload?: number } | undefined
   )?.maxSizeUpload
 
+  // Left another way (the browser back, a link): as tmail-flutter, the
+  // images published for nothing are destroyed
+  useEffect(() => {
+    const published = publishedRef.current
+    return () => {
+      if (isSettledRef.current) return
+      discardSignatureImages(client, accountId, published).catch(
+        (error: unknown) => {
+          console.warn('[identities] Images left unused on the server', error)
+        }
+      )
+    }
+  }, [client, accountId])
+
   const nameProblem: FieldProblem = validateIdentityName(name)
   const replyToResult = parseIdentityAddresses(replyTo)
   const bccResult = parseIdentityAddresses(bcc)
@@ -144,58 +167,97 @@ export function IdentityFormDialog({
   const shown = (problem: FieldProblem): FieldProblem =>
     isTouched ? problem : null
 
+  const storeImage = async (
+    original: File
+  ): Promise<InlineImageAttributes | null> => {
+    const file = await shrinkSignatureImage(
+      original,
+      maxUploadSize ?? Number.POSITIVE_INFINITY,
+      signatureImageMaxWidth(window.innerWidth, screenSize === 'desktop')
+    )
+    if (file === null) {
+      notify({
+        message: t('identities.errors.imageCompress'),
+        severity: 'error'
+      })
+      return null
+    }
+    if (maxUploadSize !== undefined && file.size > maxUploadSize) {
+      notify({
+        message: t('identities.errors.imageTooLarge', {
+          maxSize: Math.floor(maxUploadSize / 1024)
+        }),
+        severity: 'error'
+      })
+      return null
+    }
+    if (!canPublishImages) {
+      // Without PublicAssets, the image travels inside the signature
+      return {
+        src: await readAsDataUrl(file),
+        alt: original.name,
+        reference: null,
+        width: null
+      }
+    }
+    const published = await publishSignatureImage(
+      client,
+      accountId,
+      file,
+      identity?.id ?? null
+    )
+    if (!published.ok) {
+      const { type, description } = published.error
+      // The server says how much room the images may take
+      notify({
+        message:
+          type === 'overQuota' && description
+            ? description
+            : t('identities.errors.imageUpload'),
+        severity: 'error'
+      })
+      return null
+    }
+    publishedRef.current.push(published.value.assetId)
+    return {
+      src: published.value.publicUri,
+      alt: original.name,
+      reference: published.value.assetId,
+      width: null
+    }
+  }
+
   const handleImageFiles = async (
     files: File[]
   ): Promise<InlineImageAttributes[]> => {
+    const accepted = files.filter(file => IMAGE_TYPES.includes(file.type))
+    if (accepted.length === 0) {
+      notify({ message: t('identities.errors.notAnImage'), severity: 'error' })
+      return []
+    }
+    setStoringCount(count => count + 1)
     const images: InlineImageAttributes[] = []
-    for (const file of files) {
-      if (maxUploadSize !== undefined && file.size > maxUploadSize) {
-        notify({
-          message: t('identities.errors.imageTooLarge', {
-            maxSize: Math.floor(maxUploadSize / 1024)
-          }),
-          severity: 'error'
-        })
-        continue
-      }
-      try {
-        if (canPublishImages) {
-          const published = await publishSignatureImage(
-            client,
-            accountId,
-            file,
-            identity?.id ?? null
-          )
-          if (!published) throw new Error('PublicAsset not created')
-          publishedRef.current.push(published.assetId)
-          images.push({
-            src: published.publicUri,
-            alt: file.name,
-            reference: published.assetId,
-            width: null
+    try {
+      for (const file of accepted) {
+        const image = await storeImage(file).catch((error: unknown) => {
+          console.error('[identities] Cannot add the image', error)
+          notify({
+            message: t('identities.errors.imageUpload'),
+            severity: 'error'
           })
-        } else {
-          // Without PublicAssets, the image travels inside the signature
-          images.push({
-            src: await readAsDataUrl(file),
-            alt: file.name,
-            reference: null,
-            width: null
-          })
-        }
-      } catch (error: unknown) {
-        console.error('[identities] Cannot add the image', error)
-        notify({
-          message: t('identities.errors.imageUpload'),
-          severity: 'error'
+          return null
         })
+        if (image) images.push(image)
       }
+    } finally {
+      setStoringCount(count => count - 1)
     }
     return images
   }
 
   const handleCancel = (): void => {
     if (isSaving) return
+    isSettledRef.current = true
     discardSignatureImages(client, accountId, publishedRef.current).catch(
       (error: unknown) => {
         console.warn('[identities] Images left unused on the server', error)
@@ -284,6 +346,7 @@ export function IdentityFormDialog({
           setIsSaving(false)
           return
         }
+        isSettledRef.current = true
         await queryClient.invalidateQueries({
           queryKey: identityKeys.all(accountId)
         })
@@ -475,19 +538,32 @@ export function IdentityFormDialog({
         labelId={fieldIds.signature}
         isStacked={isMobile}
       >
-        <RichTextEditor
-          labels={{ ...labels, editor: t('identities.form.signature') }}
-          content={initialSignature}
-          colors={colors}
-          fontSizes={fontSizes}
-          fontFamilies={fontFamilies}
-          onImageFiles={handleImageFiles}
-          onReady={editor => {
-            editorRef.current = editor
+        {/* As tmail-flutter, files dropped anywhere on the editor */}
+        <FileDropZone
+          label={t('composer.attachments.dropHere')}
+          onFiles={files => {
+            editorActionsRef.current?.insertImages(files)
           }}
-          testIds={EDITOR_TEST_IDS}
-          look="boxed"
-        />
+          isFlush
+          data-testid="identity-signature-drop-zone"
+        >
+          <RichTextEditor
+            labels={{ ...labels, editor: t('identities.form.signature') }}
+            content={initialSignature}
+            colors={colors}
+            fontSizes={fontSizes}
+            fontFamilies={fontFamilies}
+            onImageFiles={handleImageFiles}
+            shouldStorePastedDataImages={canPublishImages}
+            busyLabel={storingCount > 0 ? t('composer.images.inserting') : null}
+            actions={editorActionsRef}
+            onReady={editor => {
+              editorRef.current = editor
+            }}
+            testIds={EDITOR_TEST_IDS}
+            look="boxed"
+          />
+        </FileDropZone>
       </FormFieldRow>
       {saveError === null ? null : (
         <Typography

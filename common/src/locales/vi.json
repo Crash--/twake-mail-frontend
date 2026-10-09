@@ -980,7 +980,9 @@
       "imageTooLarge": "Vui lòng chọn kích thước hình ảnh nhỏ hơn %{maxSize}KB",
       "save": "Không thể lưu định danh",
       "forbiddenFrom": "Bạn không thể gửi từ địa chỉ này",
-      "load": "Không thể tải các định danh"
+      "load": "Không thể tải các định danh",
+      "imageCompress": "Không thể nén hình ảnh",
+      "notAnImage": "Tải lên hình ảnh không thành công"
     },
     "delete": {
       "title": "Xoá định danh",

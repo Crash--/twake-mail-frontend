@@ -399,7 +399,9 @@
       "others": "+%{smart_count}",
       "alreadyAdded": "đã thêm",
       "editEmail": "Sửa địa chỉ",
-      "createRule": "Tạo quy tắc thư"
+      "createRule": "Tạo quy tắc thư",
+      "moveHelp": "Alt+Lên hoặc Alt+Xuống để chuyển sang trường phía trên hoặc phía dưới.",
+      "moved": "Đã chuyển %{address} sang %{field}"
     },
     "limit": "Bạn có thể soạn %{smart_count} thư cùng lúc. Hãy đóng một thư để bắt đầu thư khác.",
     "sent": "Tin nhắn đã được gửi",
@@ -642,6 +644,11 @@
     "labels": {
       "all": "Tất cả nhãn",
       "label": "Nhãn"
+    },
+    "addresses": {
+      "chipHelp": "Enter hoặc F2 để sửa, Delete để xóa.",
+      "added": "Đã thêm %{address}",
+      "addedMany": "Đã thêm %{smart_count} địa chỉ"
     }
   },
   "emailActions": {

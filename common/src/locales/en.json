@@ -399,7 +399,9 @@
       "others": "+%{smart_count}",
       "alreadyAdded": "already added",
       "editEmail": "Edit email",
-      "createRule": "Create a rule"
+      "createRule": "Create a rule",
+      "moveHelp": "Alt+Up or Alt+Down moves it to the field above or below.",
+      "moved": "%{address} moved to %{field}"
     },
     "limit": "You can write %{smart_count} messages at once. Close one to start another.",
     "sent": "Message has been sent successfully",
@@ -642,6 +644,11 @@
     "labels": {
       "all": "All labels",
       "label": "Label"
+    },
+    "addresses": {
+      "chipHelp": "Enter or F2 edits it, Delete removes it.",
+      "added": "%{address} added",
+      "addedMany": "%{smart_count} address added |||| %{smart_count} addresses added"
     }
   },
   "emailActions": {

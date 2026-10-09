@@ -1,23 +1,46 @@
 import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
-import { useRef, useState, type ReactElement, type ReactNode } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode
+} from 'react'
 
 import { Bottom, Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { FieldTextButton } from '@/ds/FieldTextButton/FieldTextButton'
-import type { RecipientFieldActions } from '@/ds/RecipientField/RecipientField'
+import type {
+  RecipientFieldActions,
+  RecipientFieldDnd
+} from '@/ds/RecipientField/RecipientField'
 import { RecipientSummary } from '@/ds/RecipientField/RecipientSummary'
+import { fetchEmailSenders } from '@common/features/thread/emailSenders'
+import {
+  DRAGGED_EMAILS_TYPE,
+  readDraggedEmails
+} from '@common/features/thread/useEmailListActions'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapClient } from '@common/jmap/JmapClientProvider'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { RecipientInput } from './RecipientInput'
 import { recipientChips } from './recipientChips'
-import type { Recipient } from './recipients'
+import { hasRecipient, mergeRecipients, type Recipient } from './recipients'
 
 export type RecipientKind = 'to' | 'cc' | 'bcc' | 'replyTo'
 
 export type RecipientLists = Record<RecipientKind, Recipient[]>
 
 const OPTIONAL_KINDS = ['cc', 'bcc', 'replyTo'] as const
+
+const KINDS: readonly RecipientKind[] = ['to', ...OPTIONAL_KINDS]
+
+function isRecipientKind(value: string): value is RecipientKind {
+  return KINDS.some(kind => kind === value)
+}
 
 /** Kebab case, for the `data-testid` of a field */
 const FIELD_IDS: Record<RecipientKind, string> = {
@@ -63,6 +86,10 @@ export interface RecipientsEditorProps {
  * and Reply to; once the focus moved on (subject, body) they fold into
  * a one line summary, as in tmail-flutter, which unfolds them on click and
  * gives the focus to To.
+ *
+ * As in tmail-flutter, a recipient dragged to another field moves there
+ * (Alt + ArrowUp or ArrowDown from the keyboard), and emails dragged from
+ * the list add their senders to the field they are dropped on.
  */
 export function RecipientsEditor({
   recipients,
@@ -80,6 +107,15 @@ export function RecipientsEditor({
 }: RecipientsEditorProps): ReactElement {
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
+  const client = useJmapClient()
+  const { accountId } = useJmapSession()
+  /** Fields of this composer only exchange recipients */
+  const dragGroup = useId()
+  /** The recipients now, for the senders of dropped emails, read later */
+  const latest = useRef(recipients)
+  useEffect(() => {
+    latest.current = recipients
+  }, [recipients])
   /** The field to focus when it shows */
   const [focused, setFocused] = useState<RecipientKind | null>(
     autoFocusTo ? 'to' : null
@@ -135,6 +171,75 @@ export function RecipientsEditor({
     )
   }
 
+  /**
+   * tmail-flutter's move: the recipient joins `to` unless already there,
+   * and leaves `from` anyway
+   */
+  const moveRecipient = (
+    from: RecipientKind,
+    to: RecipientKind,
+    email: string
+  ): boolean => {
+    const recipient = recipients[from].find(other => other.email === email)
+    if (from === to || recipient === undefined) return false
+    if (!hasRecipient(recipients[to], email)) {
+      onChange(to, [...recipients[to], recipient])
+    }
+    onChange(
+      from,
+      recipients[from].filter(other => other !== recipient)
+    )
+    return true
+  }
+
+  const dropEmails = (
+    kind: RecipientKind,
+    dataTransfer: DataTransfer
+  ): void => {
+    const dragged = readDraggedEmails(dataTransfer)
+    if (dragged === null) return
+    fetchEmailSenders(client, accountId, dragged.emailIds)
+      .then(senders => {
+        // The field as it is once the senders arrived
+        onChange(kind, mergeRecipients(latest.current[kind], senders))
+      })
+      .catch((error: unknown) => {
+        console.warn('[composer] Cannot read the senders of the emails', error)
+      })
+  }
+
+  const dndOf = (
+    kind: RecipientKind,
+    kinds: RecipientKind[]
+  ): RecipientFieldDnd => ({
+    group: dragGroup,
+    field: kind,
+    onMoveIn: (from, email) => {
+      if (isRecipientKind(from)) moveRecipient(from, kind, email)
+    },
+    // Said in the help of the tags only when there is another field
+    ...(kinds.length < 2
+      ? {}
+      : {
+          onMoveBy: (email: string, delta: -1 | 1): string | null => {
+            const target = kinds[kinds.indexOf(kind) + delta]
+            const recipient = recipients[kind].find(
+              other => other.email === email
+            )
+            if (target === undefined || recipient === undefined) return null
+            moveRecipient(kind, target, email)
+            return t('composer.recipients.moved', {
+              address: recipient.name ?? recipient.email,
+              field: t(LABEL_KEYS[target])
+            })
+          }
+        }),
+    accepts: types => types.includes(DRAGGED_EMAILS_TYPE),
+    onDrop: dataTransfer => {
+      dropEmails(kind, dataTransfer)
+    }
+  })
+
   const hideLabel = (kind: RecipientKind): string =>
     t('composer.fields.hide', { field: t(LABEL_KEYS[kind]) })
 
@@ -162,6 +267,7 @@ export function RecipientsEditor({
           }}
           autoFocus={focused === kind}
           actions={kind === 'to' ? toRef : undefined}
+          dnd={dndOf(kind, kinds)}
           endActions={
             kind === 'to' ? (
               isPhone ? (

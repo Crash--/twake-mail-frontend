@@ -1,5 +1,5 @@
 import { Icon } from '@linagora/twake-icons'
-import { IconButton, Tooltip } from '@linagora/twake-mui'
+import { IconButton, Link, Tooltip } from '@linagora/twake-mui'
 import {
   useId,
   useRef,
@@ -33,6 +33,10 @@ const LOGIN_ERROR_MESSAGES: Record<BasicLoginError, TranslationKey> = {
 
 // The pictures of tmail-flutter's sign-in page, served by the app
 const LOGIN_ASSETS = '/assets/images/login'
+
+/** The privacy policy tmail-flutter links to from its login page */
+const PRIVACY_POLICY_URL =
+  'https://github.com/linagora/tmail-flutter/blob/master/privacy.md'
 
 function findReturnTo(state: unknown): string {
   return sanitizeReturnTo(
@@ -127,6 +131,7 @@ function BasicLoginForm({
   const passwordToggleLabel = t(
     isPasswordShown ? 'login.hidePassword' : 'login.showPassword'
   )
+  const privacyPolicyLabel = t('login.privacyPolicy')
 
   return (
     <LoginLayout
@@ -166,6 +171,17 @@ function BasicLoginForm({
           >
             {t('login.submit')}
           </LoginButton>
+        }
+        footer={
+          <Link
+            href={PRIVACY_POLICY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${privacyPolicyLabel} (${t('common.opensInNewTab')})`}
+            data-testid="login-privacy-policy-link"
+          >
+            {privacyPolicyLabel}
+          </Link>
         }
         data-testid="login-form"
         data-error-testid="login-error"

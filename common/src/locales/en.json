@@ -179,7 +179,8 @@
     },
     "poweredBy": "Powered by LINAGORA",
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "privacyPolicy": "Privacy policy"
   },
   "config": {
     "title": "Twake Mail is not configured",

@@ -1,6 +1,8 @@
 // Upstream to twake-ui: yes, as a `LinearProgress` variant. The sidebar
-// gauge of the design is 3 px high, square, on `action.selected`, filled with
-// the primary colour; twake-mui's progress bar is thicker and rounded.
+// gauge of tmail-flutter (`LinagoraSidebarStorage`) is 3 px high, rounded by
+// 1.5 px, on the selected tint of the sidebar, filled with #0A84FF, #FFB300
+// past the warning limit, #FF3347 when full; twake-mui's progress bar is
+// thicker and in the theme colours.
 import { LinearProgress } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
@@ -27,13 +29,19 @@ export interface StorageGaugeProps {
 const SETTINGS_BAR_COLORS = {
   normal: '#25AEFE',
   warning: '#FFC107',
-  full: '#E64646'
+  full: TMAIL.errorLogin
 } as const
 
 const BAR_COLORS = {
   normal: 'primary',
   warning: 'warning',
   full: 'error'
+} as const
+
+const SIDEBAR_BAR_COLORS = {
+  normal: TMAIL.primary0A,
+  warning: '#FFB300',
+  full: TMAIL.error
 } as const
 
 /** The thin gauge of the used storage, at the foot of the sidebar */
@@ -56,7 +64,7 @@ export function StorageGauge({
       aria-valuetext={valueText}
       className={className}
       data-testid={testId}
-      sx={theme =>
+      sx={
         isSettings
           ? {
               height: 4.5,
@@ -69,9 +77,12 @@ export function StorageGauge({
             }
           : {
               height: 3,
-              borderRadius: 0,
-              backgroundColor: theme.vars.palette.action.selected,
-              '& .MuiLinearProgress-bar': { borderRadius: 0 }
+              borderRadius: '1.5px',
+              backgroundColor: TMAIL.selectedInk,
+              '& .MuiLinearProgress-bar': {
+                borderRadius: '1.5px',
+                backgroundColor: SIDEBAR_BAR_COLORS[state]
+              }
             }
       }
     />

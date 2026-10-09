@@ -12,29 +12,37 @@ export interface ComposeButtonProps {
   label: string
   icon: IconProps['icon']
   onClick: () => void
+  /**
+   * `sidebar`: the width of its column; `toolbar`: the width of its label
+   * and the 34 px of the other controls of the row
+   */
+  placement?: 'sidebar' | 'toolbar'
   'data-testid'?: string
 }
 
 /**
- * The main action of a sidebar: a full width button, 12 px radius, 14 px
+ * The main action of a sidebar or a toolbar: a button, 12 px radius, 14 px
  * medium label and a 12 px icon, white on the primary colour.
  */
 export function ComposeButton({
   label,
   icon,
   onClick,
+  placement = 'sidebar',
   'data-testid': testId
 }: ComposeButtonProps): ReactElement {
+  const isInToolbar = placement === 'toolbar'
   return (
     <Button
       variant="contained"
-      fullWidth
+      fullWidth={!isInToolbar}
       onClick={onClick}
       startIcon={<Icon icon={icon} size={12} />}
       data-testid={testId}
       sx={{
-        minHeight: 39,
-        py: '10.5px',
+        ...(isInToolbar
+          ? { height: 34, minHeight: 34, py: 0, whiteSpace: 'nowrap' }
+          : { minHeight: 39, py: '10.5px' }),
         px: 2,
         borderRadius: '12px',
         fontSize: 14,

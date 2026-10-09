@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react'
 
-import { AlwaysFloatingAction } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { WithoutTablets } from '@/ds/useScreenSize/useScreenSize'
 import { connectSpaceOverlay } from '@linagora/twake-mui'
 import { AppProviders } from '@common/app/AppProviders'
@@ -116,11 +115,6 @@ export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
   )
   if (embed === null) return page
   // The facade is a desktop from 600 px: its frame is narrower than the
-  // screen of TwakeSpace, where a tablet layout would surprise. Its "New
-  // message" button floats at every size: the toasts keep above it.
-  return (
-    <WithoutTablets>
-      <AlwaysFloatingAction>{page}</AlwaysFloatingAction>
-    </WithoutTablets>
-  )
+  // screen of TwakeSpace, where a tablet layout would surprise.
+  return <WithoutTablets>{page}</WithoutTablets>
 }

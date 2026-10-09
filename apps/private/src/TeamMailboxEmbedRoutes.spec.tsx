@@ -1,9 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createClient } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Routes, useLocation } from 'react-router'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
@@ -70,6 +71,7 @@ function renderRoutes(
 
 describe('teamMailboxEmbedRouteElements', () => {
   listEmailsOneByOne()
+  afterEach(resetViewport)
 
   it('opens the Inbox of the team mailbox, without the frame of the webmail', async () => {
     renderRoutes(`${BASE}/`)
@@ -78,10 +80,26 @@ describe('teamMailboxEmbedRouteElements', () => {
       'data-mailbox-id',
       'team-inbox'
     )
-    expect(screen.getByTestId('compose-email-button')).toBeInTheDocument()
+    expect(
+      await within(screen.getByTestId('list-toolbar')).findByRole('button', {
+        name: 'Compose'
+      })
+    ).toHaveAttribute('data-testid', 'compose-email-button')
     expect(screen.queryByTestId('sidebar')).toBe(null)
     expect(screen.queryByTestId('mailbox-tree')).toBe(null)
     expect(screen.queryByTestId('top-bar')).toBe(null)
+  })
+
+  it('offers a new message in a floating button on a phone, where the list has no toolbar', async () => {
+    mockViewport({ width: 390, touch: true })
+    renderRoutes(`${BASE}/`)
+
+    await screen.findByTestId('mailbox-page')
+    expect(
+      await screen.findByRole('button', { name: 'Compose' })
+    ).toHaveAttribute('data-testid', 'compose-email-button')
+    expect(screen.getAllByTestId('compose-email-button')).toHaveLength(1)
+    expect(screen.queryByTestId('list-toolbar')).toBe(null)
   })
 
   it('opens the Inbox of the team mailbox instead of a folder of the user', async () => {

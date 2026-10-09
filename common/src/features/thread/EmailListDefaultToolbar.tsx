@@ -1,4 +1,4 @@
-import { CircularProgress } from '@linagora/twake-mui'
+import { Box, CircularProgress } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { RestoreStraight, SelectAll } from '@/ds/FlutterIcons/FlutterIcons'
@@ -14,6 +14,7 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import { EmailListFilterMenu } from './EmailListFilterMenu'
 import type { ListFilter, ListFilterOption } from './listFilter'
+import { useListToolbarAction } from './ListToolbarAction'
 import type { EmailSelection } from './useEmailSelection'
 
 export interface ListToolbarFilter {
@@ -43,8 +44,9 @@ export interface EmailListDefaultToolbarProps {
  * Above the list while nothing is selected, as tmail-flutter's: refresh
  * (a spinner while it runs), select all the messages of the page (hidden
  * for an empty list), the filter, and in the personal Trash the recovery of
- * deleted messages. Selecting a row turns it into the selection toolbar.
- * Phones show icons only.
+ * deleted messages; at its far end, the main action of the screen when it
+ * has no sidebar (`ListToolbarActionProvider`). Selecting a row turns it
+ * into the selection toolbar. Phones show icons only.
  */
 export function EmailListDefaultToolbar({
   selection,
@@ -60,6 +62,7 @@ export function EmailListDefaultToolbar({
   const screenSize = useScreenSize()
   const isPhone = screenSize === 'mobile'
   const recovery = useRecovery()
+  const action = useListToolbarAction()
   const refreshLabel = t('common.refresh')
   const selectAllLabel = t('thread.toolbar.selectPage')
   const recoverLabel = t('recovery.title')
@@ -131,6 +134,7 @@ export function EmailListDefaultToolbar({
       ) : null}
       {/* As tmail-flutter: right after the other buttons (the sort order) */}
       {end === undefined ? null : end}
+      {action === null ? null : <Box className="u-ml-auto">{action}</Box>}
     </ListToolbar>
   )
 }

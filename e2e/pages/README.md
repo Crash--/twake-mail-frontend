@@ -52,7 +52,7 @@ Conventions:
 | `mailbox-drawer-close-button` | its close button | — |
 | `top-bar-folder-name` | name of the current folder in the top bar, on phones | — |
 | `twake-feedback-button` | the draggable "Send feedback" button of `@linagora/twake-feedback`, only with `SENTRY_FEEDBACK_ENABLED` and the opt-in to error reporting; its menu (`twake-feedback-menu`, Shift+F10) moves it to a side | — |
-| `compose-email-button` | "New message": in the sidebar on a desktop, a floating button below 1200 px | `UiKeys.composeEmailButton` |
+| `compose-email-button` | "New message": in the sidebar on a desktop, a floating button below 1200 px; in the facade of a team mailbox, at the end of the list toolbar, a floating button below 600 px | `UiKeys.composeEmailButton` |
 
 ### Folder tree (sidebar)
 
@@ -72,7 +72,7 @@ Conventions:
 | `mailbox-name-dialog` / `mailbox-name-input` / `mailbox-name-location-button` / `mailbox-name-submit-button` / `mailbox-name-cancel-button` | the dialog naming a folder to create or rename it, and where it goes | `create_new_mailbox_*` |
 | `mailbox-search-button` | magnifier in the "Folders" header | `UiKeys.mailboxSearchButton` |
 | `team-mailboxes-section` | "Team-mailboxes" category of the Folders section and its tree, after the folders of the user; its roots have no icon and their address on a second line | — |
-| `team-mailbox-unavailable` / `team-mailbox-session-expired` | the facade of a team mailbox (`/embed/team-mailboxes/<id of its root>`, TwakeSpace, no sidebar: `compose-email-button` floats at every size): the screen of a mailbox the user is not a member of, the screen of a silent login refused by the SSO (`-action` retries) | — |
+| `team-mailbox-unavailable` / `team-mailbox-session-expired` | the facade of a team mailbox (`/embed/team-mailboxes/<id of its root>`, TwakeSpace, no sidebar: `compose-email-button` ends the list toolbar): the screen of a mailbox the user is not a member of, the screen of a silent login refused by the SSO (`-action` retries) | — |
 | `mailbox-item` with `data-mailbox-role="favorite"` | the Starred virtual folder (`/starred`), after the Inbox | `favorite` folder |
 | `quota-indicator` (`data-used`) + `quota-refresh-button`, `quota-text` / `quota-banner` / `storage-settings` | the storage used at the bottom of the sidebar, the banner past the warning limit, Settings > Storage | `MailboxSidebarFooter`, `QuotasBannerWidget` |
 | `mailbox-action-recover-deleted-messages` / `recovery-dialog` + `recovery-deletion-select`, `recovery-reception-select`, `recovery-subject-input`, `recovery-recipients-input`, `recovery-sender-input`, `recovery-cancel-button`, `recovery-restore-button`, `recovery-error` / `recovery-banner` / `recovery-open-button` | "Recover deleted messages" of the Trash menu, its progress banner and the "Open" of its toast | `recoverDeletedMessages` |

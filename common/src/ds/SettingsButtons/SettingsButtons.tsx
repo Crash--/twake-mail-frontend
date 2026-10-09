@@ -7,6 +7,8 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { ButtonBase, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const PRIMARY_SX = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -43,7 +45,7 @@ const ROW_SX = {
   fontWeight: 500,
   letterSpacing: '0.39px',
   whiteSpace: 'nowrap',
-  '&:hover': { bgcolor: 'rgba(0, 122, 255, 0.08)' }
+  '&:hover': { bgcolor: TMAIL.blueHover }
 } as const
 
 export interface SettingsPrimaryButtonProps {
@@ -98,7 +100,7 @@ const TEXT_SX = {
   lineHeight: '20px',
   fontWeight: 500,
   letterSpacing: '0.1px',
-  '&:hover': { bgcolor: 'rgba(0, 122, 255, 0.08)' },
+  '&:hover': { bgcolor: TMAIL.blueHover },
   '&.Mui-disabled': { opacity: 0.38 }
 } as const
 

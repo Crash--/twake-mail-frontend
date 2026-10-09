@@ -6,7 +6,9 @@
 // focus indicator, from the theme (AGENTS.md).
 import type { ThemeOptions } from '@mui/material/styles'
 
-const ICON_COLOR = '#55687D'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
+const ICON_COLOR = TMAIL.steel
 
 /** The theme options giving the menus the look of tmail-flutter */
 export function menuLookThemeOptions(): ThemeOptions {
@@ -18,7 +20,7 @@ export function menuLookThemeOptions(): ThemeOptions {
             borderRadius: 6,
             minWidth: 178,
             maxWidth: 300,
-            backgroundColor: '#FFFFFF',
+            backgroundColor: TMAIL.surface,
             boxShadow:
               '0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12)'
           },
@@ -40,11 +42,11 @@ export function menuLookThemeOptions(): ThemeOptions {
             lineHeight: '18px',
             fontWeight: 400,
             letterSpacing: 0,
-            color: '#000000',
+            color: TMAIL.textBlack,
             '& .MuiListItemText-primary': {
               fontSize: 14,
               lineHeight: '18px',
-              color: '#000000'
+              color: TMAIL.textBlack
             },
             '& .MuiListItemIcon-root': {
               minWidth: 36,

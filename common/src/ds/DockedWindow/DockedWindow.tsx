@@ -25,6 +25,7 @@ import {
 
 import { Cross, Dash } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 
 /** Where the window is: in the dock, its title bar only, or over the page */
@@ -51,7 +52,7 @@ const TITLE_SX = {
   fontSize: 17,
   fontWeight: 500,
   lineHeight: '22px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 /** Gap between the expanded window and the edges of the screen */
 // tmail-flutter's full screen composer: 85 % × 90 % of the screen, centred

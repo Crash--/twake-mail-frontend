@@ -36,6 +36,8 @@ import {
   type ReactElement
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 /** `data-*` and `aria-*` attributes put on a row */
 export type RowAttributes = Partial<
   Record<`data-${string}` | `aria-${string}`, string | number | boolean>
@@ -81,11 +83,11 @@ export interface RowLayout {
 }
 
 /** The divider between the rows, as tmail-flutter's */
-const ROW_DIVIDER_COLOR = '#E7E8EC'
+const ROW_DIVIDER_COLOR = TMAIL.divider
 /** The background of a hovered row, as tmail-flutter's */
-const ROW_HOVER_COLOR = '#F4F4F5'
+const ROW_HOVER_COLOR = TMAIL.fillF4F5
 /** The background of a selected row, as tmail-flutter's (`blue100`) */
-const ROW_SELECTED_COLOR = '#DFEEFF'
+const ROW_SELECTED_COLOR = TMAIL.blueSelected
 
 interface ListTableSettings {
   label: string

@@ -5,12 +5,13 @@ import { Icon } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Left } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BUTTON_SX = {
   minWidth: 0,
   px: 1,
   gap: '4px',
-  color: '#55687D',
+  color: TMAIL.steel,
   fontSize: 15,
   fontWeight: 400,
   lineHeight: '20px',

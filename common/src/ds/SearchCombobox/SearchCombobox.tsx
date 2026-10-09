@@ -32,6 +32,7 @@ import {
   type Ref
 } from 'react'
 import { CrossCircle, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const POPUP_SX = { zIndex: 'modal' } as const
 /** The field stays above the popup that starts behind it */
@@ -39,7 +40,7 @@ const FIELD_OPEN_Z_INDEX = 1301
 /** The field of tmail-flutter: 52 px high, rounded by 12 px, blue grey */
 const FIELD_HEIGHT = 52
 const FIELD_RADIUS = 12
-const FIELD_BACKGROUND = '#E0E9F1'
+const FIELD_BACKGROUND = TMAIL.fillSearch
 /**
  * The search of tmail-flutter's phones and tablets (`SearchBarView`): 44 px
  * high, a 10 px radius, light grey (#EBEDF0 at 60 %), a 17 px text
@@ -47,10 +48,10 @@ const FIELD_BACKGROUND = '#E0E9F1'
 const COMPACT_FIELD = {
   height: 44,
   radius: 10,
-  background: '#F3F4F6',
+  background: TMAIL.fillF3,
   fontSize: 17
 } as const
-const FIELD_ICON_COLOR = '#818C99'
+const FIELD_ICON_COLOR = TMAIL.grey
 /** Radius of the open panel, as tmail-flutter's suggestions */
 const PANEL_RADIUS = 16
 type PopperModifier = NonNullable<PopperProps['modifiers']>[number]
@@ -91,7 +92,7 @@ const LINE_SX = { display: 'flex', alignItems: 'center', minWidth: 0 } as const
 const LABEL_SX = (isStrong: boolean, isHint: boolean): SxProps<Theme> => ({
   flex: '0 1 auto',
   minWidth: 0,
-  color: '#000000',
+  color: TMAIL.textBlack,
   fontSize: isHint ? 13 : 15,
   fontWeight: isStrong ? 600 : isHint ? 500 : 400,
   lineHeight: '20px'
@@ -99,7 +100,7 @@ const LABEL_SX = (isStrong: boolean, isHint: boolean): SxProps<Theme> => ({
 const HINT_SX = {
   flexShrink: 0,
   mr: '4px',
-  color: '#686E76',
+  color: TMAIL.greyDark,
   fontSize: 13,
   fontWeight: 500,
   lineHeight: '20px'
@@ -108,13 +109,13 @@ const DETAIL_SX = {
   flex: '1 1 0',
   minWidth: 0,
   ml: 2,
-  color: '#000000',
+  color: TMAIL.textBlack,
   fontSize: 13,
   lineHeight: '20px'
 } as const
 const SECONDARY_SX = {
   mt: '3px',
-  color: '#6D7885',
+  color: TMAIL.greySlate,
   fontSize: 13,
   lineHeight: '18px'
 } as const
@@ -126,7 +127,7 @@ const END_SX = {
   // At the end of the line, whatever comes before
   ml: 'auto',
   pl: 1,
-  color: '#000000',
+  color: TMAIL.textBlack,
   fontSize: 13,
   lineHeight: '20px'
 } as const
@@ -251,7 +252,7 @@ function fieldSx(
       ? {
           bgcolor: 'transparent',
           borderRadius: 0,
-          '& .MuiInputBase-root': { fontSize: '16px', color: '#000000' },
+          '& .MuiInputBase-root': { fontSize: '16px', color: TMAIL.textBlack },
           '& .SearchBar-icon': { display: 'none' },
           '& .MuiIconButton-root svg': { width: 18, height: 18 },
           '& .MuiInputBase-input': { pl: '12px' }

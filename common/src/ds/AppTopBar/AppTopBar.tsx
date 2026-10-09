@@ -15,6 +15,7 @@ import {
 } from 'react'
 
 import { Burger, Left } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /** The bar of tmail-flutter: 52 px, 16 px in on a phone, 32 px on a tablet */
@@ -49,7 +50,7 @@ function overlaySx(isPhone: boolean): Record<string, unknown> {
 }
 
 /** Its menu button: tmail-flutter's light grey 28 px icon, 5 px around */
-const MENU_SX = { p: '5px', color: '#99A2AD' } as const
+const MENU_SX = { p: '5px', color: TMAIL.greyIcon } as const
 
 /** Its title: Bold 21, black, 16 px after the menu button */
 const TITLE_SX = {
@@ -61,7 +62,7 @@ const TITLE_SX = {
     fontSize: 21,
     fontWeight: 700,
     lineHeight: '28px',
-    color: '#000000'
+    color: TMAIL.textBlack
   }
 } as const
 
@@ -73,7 +74,7 @@ function startSx(isPlain: boolean): Record<string, unknown> {
     width: 48,
     flexShrink: 0,
     // tmail-flutter's grey cross, its dark arrow back
-    color: isPlain ? '#1C1B1F' : '#99A2AD',
+    color: isPlain ? TMAIL.textOnSurface : TMAIL.greyIcon,
     '& .MuiIconButton-root': { color: 'inherit' }
   }
 }
@@ -87,7 +88,7 @@ const CENTERED_TITLE_SX = {
     fontSize: 20,
     fontWeight: 700,
     lineHeight: '28px',
-    color: '#000000'
+    color: TMAIL.textBlack
   }
 } as const
 
@@ -98,7 +99,7 @@ const PLAIN_TITLE_SX = {
     fontSize: 16,
     fontWeight: 400,
     lineHeight: '24px',
-    color: '#1C1B1F'
+    color: TMAIL.textOnSurface
   }
 } as const
 
@@ -119,9 +120,9 @@ function searchSx(isPhone: boolean): Record<string, unknown> {
 const ACTIONS_SX = {
   display: 'flex',
   alignItems: 'center',
-  color: '#99A2AD',
+  color: TMAIL.greyIcon,
   '& .MuiIconButton-root': { color: 'inherit', p: '8px' },
-  '& .MuiIconButton-root.MuiIconButton-colorPrimary': { color: '#007AFF' }
+  '& .MuiIconButton-root.MuiIconButton-colorPrimary': { color: TMAIL.primary }
 } as const
 
 export interface AppTopBarMenu {
@@ -144,8 +145,8 @@ function searchBarSx(isPhone: boolean): Record<string, unknown> {
   return {
     ...barSx(isPhone),
     px: isPhone ? '8px' : '24px',
-    borderBottom: '1px solid #E7E8EC',
-    '& > .MuiIconButton-root': { color: '#007AFF' }
+    borderBottom: `1px solid ${TMAIL.divider}`,
+    '& > .MuiIconButton-root': { color: TMAIL.primary }
   }
 }
 
@@ -253,7 +254,10 @@ export function AppTopBar({
           start === undefined
             ? barSx(isPhone)
             : startTitle === 'strong'
-              ? { ...barSx(isPhone), borderBottom: '1px solid #E7E8EC' }
+              ? {
+                  ...barSx(isPhone),
+                  borderBottom: `1px solid ${TMAIL.divider}`
+                }
               : { ...barSx(isPhone), height: 64 }
         }
       >

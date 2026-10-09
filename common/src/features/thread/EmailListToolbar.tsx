@@ -13,6 +13,7 @@ import {
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,
@@ -166,7 +167,7 @@ export function EmailListToolbar({
         onClick={onDone}
         data-testid="selection-toolbar-clear"
       >
-        <Icon icon={Cross} size={20} color="#55687D" />
+        <Icon icon={Cross} size={20} color={TMAIL.steel} />
       </IconButton>
     </Tooltip>
   )

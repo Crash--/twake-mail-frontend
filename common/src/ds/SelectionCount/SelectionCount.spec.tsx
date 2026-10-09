@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { SelectionCount } from './SelectionCount'
@@ -11,7 +12,7 @@ describe('SelectionCount', () => {
     expect(screen.getByRole('status')).toHaveTextContent('2 selected')
     expect(screen.getByRole('status')).toHaveStyle({
       fontSize: '15px',
-      color: '#55687D'
+      color: TMAIL.steel
     })
   })
 })

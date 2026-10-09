@@ -8,9 +8,10 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 import { Bottom, CrossSmall } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-const CHIP_BACKGROUND = '#ECEEF1'
-const CHIP_COLOR = '#686E76'
+const CHIP_BACKGROUND = TMAIL.fillChip
+const CHIP_COLOR = TMAIL.greyDark
 
 const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
   height: 34,

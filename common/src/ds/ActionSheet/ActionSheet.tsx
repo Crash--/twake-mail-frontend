@@ -6,6 +6,8 @@
 import { Box, Drawer, MenuList } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const PAPER_SX = {
   borderTopLeftRadius: 16,
   borderTopRightRadius: 16,
@@ -22,7 +24,7 @@ const HANDLE_SX = {
   mt: '22px',
   mb: '22px',
   borderRadius: 2,
-  bgcolor: '#49454F'
+  bgcolor: TMAIL.greyHandle
 } as const
 
 /** Over the menu look of the theme (`ds/MenuLook`): grey, 16 px, wider */
@@ -35,24 +37,24 @@ const LIST_SX = {
     fontSize: 16,
     lineHeight: '21px',
     letterSpacing: '-0.15px',
-    color: 'rgba(66, 66, 68, 0.9)'
+    color: TMAIL.textGrey90
   },
   '&& .MuiListItemText-primary': {
     fontSize: 16,
     lineHeight: '21px',
     letterSpacing: '-0.15px',
-    color: 'rgba(66, 66, 68, 0.9)'
+    color: TMAIL.textGrey90
   },
   '&& .MuiListItemIcon-root': {
     width: 20,
     minWidth: 20,
     mr: '24px',
-    color: 'rgba(66, 66, 68, 0.72)'
+    color: TMAIL.textGrey72
   },
   '&& .MuiListItemIcon-root svg': { width: 20, height: 20 },
   '&& .MuiDivider-root': {
     my: '8px',
-    borderColor: 'rgba(66, 66, 68, 0.12)'
+    borderColor: TMAIL.dividerGrey12
   }
 } as const
 

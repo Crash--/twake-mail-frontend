@@ -16,11 +16,13 @@ import {
 } from '@linagora/twake-mui'
 import { useId, type MouseEvent, type ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const SCREEN_MARGIN = 16
 const ANCHOR_GAP = 8
 const SHADOW =
   '0 0 0 0.5px rgba(66, 66, 68, 0.12), 0 6px 26px 2px rgba(66, 66, 68, 0.11)'
-const SECONDARY_ICON = 'rgba(66, 66, 68, 0.72)'
+const SECONDARY_ICON = TMAIL.textGrey72
 const PRIMARY = '#0A84FF'
 
 const TITLE_SX = {
@@ -31,7 +33,7 @@ const TITLE_SX = {
   lineHeight: '22px',
   letterSpacing: '0.4px',
   fontWeight: 700,
-  color: 'rgba(26, 26, 26, 0.85)',
+  color: TMAIL.textInk85,
   overflow: 'hidden',
   display: '-webkit-box',
   WebkitLineClamp: 2,
@@ -43,7 +45,7 @@ const TEXT_SX = {
   lineHeight: '22px',
   letterSpacing: '0.4px',
   fontWeight: 400,
-  color: 'rgba(26, 26, 26, 0.85)'
+  color: TMAIL.textInk85
 } as const
 
 const PULSE_SX = {
@@ -81,8 +83,8 @@ const IMPROVE_SX = {
   pl: '14px',
   pr: '10px',
   borderRadius: '4px',
-  bgcolor: 'rgba(109, 120, 133, 0.08)',
-  color: '#686E76',
+  bgcolor: TMAIL.fillSlate,
+  color: TMAIL.greyDark,
   fontSize: 14,
   lineHeight: '18px',
   fontWeight: 500
@@ -98,10 +100,10 @@ function pillSx(isFilled: boolean): Record<string, unknown> {
     lineHeight: '20px',
     letterSpacing: '0.1px',
     fontWeight: 500,
-    color: isFilled ? '#FFFFFF' : PRIMARY,
+    color: isFilled ? '#FFFFFF' : TMAIL.primary0A,
     bgcolor: isFilled ? PRIMARY : 'transparent',
     '&:hover': {
-      bgcolor: isFilled ? '#0067D6' : 'rgba(121, 116, 126, 0.08)'
+      bgcolor: isFilled ? '#0067D6' : TMAIL.fillNeutral
     }
   }
 }
@@ -255,7 +257,7 @@ export function AiScribeSuggestion({
           sx={{ gap: 1, pl: 1, pb: 1 }}
           data-testid="ai-scribe-suggestion-error"
         >
-          <Box component="span" sx={{ display: 'flex', color: '#FF3347' }}>
+          <Box component="span" sx={{ display: 'flex', color: TMAIL.error }}>
             <Icon icon={icons.warning} size={22} aria-hidden="true" />
           </Box>
           <Box component="span" sx={TEXT_SX}>
@@ -274,7 +276,7 @@ export function AiScribeSuggestion({
             tabIndex={0}
             sx={{
               ...TEXT_SX,
-              color: 'rgba(0, 0, 0, 0.85)',
+              color: TMAIL.textBlack85,
               whiteSpace: 'pre-wrap',
               overflowWrap: 'anywhere',
               overflowY: 'auto',

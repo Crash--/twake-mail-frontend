@@ -8,6 +8,7 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 const LIST_SX = {
@@ -30,7 +31,7 @@ const ITEM_SX = {
   pt: '20px',
   pb: '32px',
   '&:first-of-type': { pt: 0 },
-  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+  borderBottom: `1px solid ${TMAIL.divider08}`,
   // tmail-flutter's radio: its 18 px ring, 12 px around
   '& .MuiRadio-root': { p: '12px' },
   '& .MuiRadio-root svg': { width: 18, height: 18 },
@@ -60,7 +61,7 @@ const NAME_SX = {
   fontSize: 16,
   lineHeight: '20px',
   fontWeight: 400,
-  color: '#000000',
+  color: TMAIL.textBlack,
   mb: 1
 } as const
 
@@ -69,7 +70,7 @@ const DETAIL_SX = {
   lineHeight: '16px',
   fontWeight: 500,
   letterSpacing: '0.4px',
-  color: '#818C99',
+  color: TMAIL.grey,
   mb: 1
 } as const
 
@@ -78,7 +79,7 @@ const MARK_SX = {
   fontSize: 15,
   lineHeight: '20px',
   fontWeight: 400,
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 /** A signature as the mail shows it, 150 px high at most */
@@ -86,7 +87,7 @@ const HTML_SX = {
   maxHeight: 150,
   overflow: 'hidden',
   fontSize: 16,
-  color: '#000000',
+  color: TMAIL.textBlack,
   '& img': { maxWidth: '100%', height: 'auto' }
 } as const
 

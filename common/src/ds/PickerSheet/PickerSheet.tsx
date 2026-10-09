@@ -14,6 +14,7 @@ import {
 import { useId, type ReactElement, type ReactNode } from 'react'
 
 import { CloseDialog, Cross } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface PickerSheetProps {
@@ -49,7 +50,7 @@ const MODAL_TITLE_SX = {
   fontSize: 24,
   fontWeight: 400,
   lineHeight: '32px',
-  color: '#1C1B1F'
+  color: TMAIL.textOnSurface
 } as const
 
 const MODAL_CLOSE_SX = {
@@ -57,7 +58,7 @@ const MODAL_CLOSE_SX = {
   top: 4,
   right: 4,
   p: '10px',
-  color: '#8C9CAF'
+  color: TMAIL.steelLight
 } as const
 
 const SHEET_SX = {

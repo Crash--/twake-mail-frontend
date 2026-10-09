@@ -5,6 +5,7 @@ import { Box, Typography, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** Height of a line, divider included, in px (tmail-flutter's 48) */
 export const FIELD_LINE_HEIGHT = 48
@@ -29,24 +30,24 @@ export const FIELD_LINE_SX = {
   // 16 px on phones, as tmail-flutter
   [`@media ${SCREEN_QUERIES.mobile}`]: { ml: '16px', pr: '16px' },
   py: 0.5,
-  borderBottom: '1px solid #F4F4F4',
+  borderBottom: `1px solid ${TMAIL.outlineF4}`,
   '& .MuiInputBase-input': { p: 0, height: '24px' },
   '& .MuiInputBase-input, & .MuiSelect-select': {
     fontSize: 15,
     fontWeight: 400,
     lineHeight: '24px',
     letterSpacing: 0,
-    color: '#000000'
+    color: TMAIL.textBlack
   },
   '& .MuiInputBase-input::placeholder': {
-    color: '#8C9CAF',
+    color: TMAIL.steelLight,
     opacity: 1
   }
 } as const satisfies SxProps<Theme>
 
 /** The label of a line, as tmail-flutter's "To:": Regular 15 / 24, steel grey */
 export const FIELD_LABEL_SX = {
-  color: '#8C9CAF',
+  color: TMAIL.steelLight,
   fontSize: 15,
   fontWeight: 400,
   lineHeight: '24px',

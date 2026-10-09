@@ -4,6 +4,8 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 /** Height of the bar, in px (tmail-flutter `MobileAppBarComposerWidgetStyle`) */
 export const TOP_ACTION_BAR_HEIGHT = 56
 
@@ -34,12 +36,12 @@ export function TopActionBar({
         gap: 0,
         // The light grey of tmail-flutter's composer bar on phones, its
         // steel grey icons
-        bgcolor: '#F4F4F4',
-        color: '#55687D',
+        bgcolor: TMAIL.fillF4,
+        color: TMAIL.steel,
         '& .MuiIconButton-root:not([aria-pressed="true"])': {
           color: 'inherit'
         },
-        borderBottom: '1px solid #F4F4F4'
+        borderBottom: `1px solid ${TMAIL.outlineF4}`
       }}
     >
       {start}

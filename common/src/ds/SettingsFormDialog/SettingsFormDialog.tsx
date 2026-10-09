@@ -31,9 +31,12 @@ import {
   CloseDialog,
   Dropdown
 } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
-const PRIMARY = '#007AFF'
+const PRIMARY = TMAIL.primary
+// The confirming pill keeps its blue, under its white label
+const PRIMARY_FILL = '#007AFF'
 
 const PAPER_SX = {
   width: 612,
@@ -61,7 +64,7 @@ const TITLE_SX = {
   fontSize: 24,
   fontWeight: 600,
   lineHeight: '32px',
-  color: '#1C1B1F'
+  color: TMAIL.textOnSurface
 } as const
 
 const PHONE_BAR_SX = {
@@ -82,7 +85,7 @@ const PHONE_TITLE_SX = {
   fontSize: 16,
   fontWeight: 400,
   lineHeight: '24px',
-  color: '#1C1B1F'
+  color: TMAIL.textOnSurface
 } as const
 
 const CLOSE_SX = {
@@ -90,7 +93,7 @@ const CLOSE_SX = {
   top: 4,
   right: 4,
   p: '10px',
-  color: '#8C9CAF'
+  color: TMAIL.steelLight
 } as const
 
 function bodySx(isPhone: boolean): Record<string, unknown> {
@@ -124,7 +127,7 @@ const TEXT_BUTTON_SX = {
   fontWeight: 500,
   lineHeight: '20px',
   letterSpacing: '0.1px',
-  '&:hover': { bgcolor: 'rgba(0, 122, 255, 0.08)' },
+  '&:hover': { bgcolor: TMAIL.blueHover },
   '&.Mui-disabled': { opacity: 0.38 }
 } as const
 
@@ -133,7 +136,7 @@ const MAIN_BUTTON_SX = {
   minWidth: 143,
   px: 3,
   color: '#FFFFFF',
-  bgcolor: PRIMARY,
+  bgcolor: PRIMARY_FILL,
   '&:hover': { bgcolor: '#0062CC' }
 } as const
 
@@ -197,7 +200,7 @@ export function SettingsFormDialog({
               <IconButton
                 aria-label={labels.back}
                 onClick={handleClose}
-                sx={{ color: '#1C1B1F' }}
+                sx={{ color: TMAIL.textOnSurface }}
               >
                 <Icon icon={ArrowBack} size={24} />
               </IconButton>
@@ -250,7 +253,7 @@ const LABEL_SX = {
   fontSize: 14,
   fontWeight: 600,
   lineHeight: '18px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 export interface SettingsFormLabelProps {
@@ -293,7 +296,7 @@ const BOX_SX = {
   py: '12px',
   pl: '12px',
   borderRadius: '10px',
-  bgcolor: '#F9FAFB'
+  bgcolor: TMAIL.fillF9
 } as const
 
 export interface SettingsFormBoxProps {
@@ -352,7 +355,7 @@ const TEXT_SX = {
   fontSize: 14,
   fontWeight: 400,
   lineHeight: '18px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 export interface SettingsFormTextProps {
@@ -382,13 +385,13 @@ const OUTLINED_SX = {
   px: 2,
   borderRadius: '100px',
   border: `1px solid ${PRIMARY}`,
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   color: PRIMARY,
   fontSize: 14,
   fontWeight: 500,
   lineHeight: '20px',
   letterSpacing: '0.1px',
-  '&:hover': { bgcolor: 'rgba(0, 122, 255, 0.08)' }
+  '&:hover': { bgcolor: TMAIL.blueHover }
 } as const
 
 export interface SettingsOutlinedButtonProps {
@@ -424,20 +427,20 @@ const FIELD_SX = {
   '& .MuiOutlinedInput-root': {
     height: 40,
     borderRadius: '10px',
-    bgcolor: '#FFFFFF',
+    bgcolor: TMAIL.surface,
     fontSize: 14,
     lineHeight: '20px',
-    color: '#000000',
-    '& fieldset': { borderColor: '#E6E1E5' },
-    '&:hover fieldset': { borderColor: '#C6CBD1' },
+    color: TMAIL.textBlack,
+    '& fieldset': { borderColor: TMAIL.outline },
+    '&:hover fieldset': { borderColor: TMAIL.outlineHover },
     '&.Mui-focused fieldset': { borderColor: PRIMARY, borderWidth: 1 },
-    '&.Mui-error fieldset': { borderColor: '#FF3347' }
+    '&.Mui-error fieldset': { borderColor: TMAIL.error }
   },
   '& .MuiOutlinedInput-input': {
     pl: '12px',
-    '&::placeholder': { color: '#818C99', opacity: 1 }
+    '&::placeholder': { color: TMAIL.grey, opacity: 1 }
   },
-  '& .MuiNativeSelect-icon, & .MuiSelect-icon': { color: '#818C99' },
+  '& .MuiNativeSelect-icon, & .MuiSelect-icon': { color: TMAIL.grey },
   '& .MuiFormHelperText-root': { mx: 0 }
 } as const
 
@@ -508,7 +511,7 @@ const PREVIEW_TOGGLE_SX = {
   fontSize: 11,
   fontWeight: 500,
   lineHeight: '16px',
-  '&:hover': { bgcolor: 'rgba(0, 122, 255, 0.08)' }
+  '&:hover': { bgcolor: TMAIL.blueHover }
 } as const
 
 export interface SettingsPreviewToggleProps {
@@ -656,12 +659,12 @@ const FIELD_BUTTON_SX = {
   pl: '12px',
   pr: '10px',
   borderRadius: '10px',
-  border: '1px solid #E6E1E5',
-  bgcolor: '#FFFFFF',
+  border: `1px solid ${TMAIL.outline}`,
+  bgcolor: TMAIL.surface,
   fontSize: 14,
   lineHeight: '20px',
   textAlign: 'start',
-  '&:hover': { borderColor: '#C6CBD1' }
+  '&:hover': { borderColor: TMAIL.outlineHover }
 } as const
 
 export interface SettingsFormFieldButtonProps {
@@ -690,8 +693,8 @@ export function SettingsFormFieldButton({
       aria-label={value === null ? label : `${label}: ${value}`}
       sx={{
         ...FIELD_BUTTON_SX,
-        color: value === null ? '#757575' : '#000000',
-        ...(hasError ? { borderColor: '#FF3347' } : {})
+        color: value === null ? TMAIL.grey757 : TMAIL.textBlack,
+        ...(hasError ? { borderColor: TMAIL.error } : {})
       }}
       data-testid={testId}
     >
@@ -705,7 +708,7 @@ export function SettingsFormFieldButton({
       >
         {value ?? hint}
       </Box>
-      <Box component="span" sx={{ display: 'flex', color: '#818C99' }}>
+      <Box component="span" sx={{ display: 'flex', color: TMAIL.grey }}>
         <Icon icon={Dropdown} size={16} aria-hidden="true" />
       </Box>
     </ButtonBase>

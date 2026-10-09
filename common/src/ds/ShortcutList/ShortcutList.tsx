@@ -6,6 +6,8 @@
 import { Box } from '@linagora/twake-mui'
 import { Fragment, type ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const TABLE_SX = {
   width: '100%',
   maxWidth: 440,
@@ -17,7 +19,7 @@ const LABEL_SX = {
   fontSize: 14,
   lineHeight: '20px',
   fontWeight: 400,
-  color: '#000000',
+  color: TMAIL.textBlack,
   textAlign: 'start'
 } as const
 
@@ -33,14 +35,14 @@ const CAP_SX = {
   ml: '4px',
   p: '6px',
   borderRadius: '2px',
-  border: '1px solid #CCCCCC',
-  bgcolor: '#DFEEFF',
+  border: `1px solid ${TMAIL.outlineKey}`,
+  bgcolor: TMAIL.blueSelected,
   fontFamily: 'inherit',
   fontSize: 12,
   lineHeight: '16px',
   fontWeight: 500,
   letterSpacing: '0.4px',
-  color: 'rgba(0, 0, 0, 0.88)',
+  color: TMAIL.textBlack88,
   textTransform: 'uppercase'
 } as const
 

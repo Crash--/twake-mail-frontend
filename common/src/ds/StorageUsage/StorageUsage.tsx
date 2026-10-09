@@ -8,6 +8,7 @@ import { useId, type ReactElement } from 'react'
 
 import { Cloud } from '@/ds/FlutterIcons/FlutterIcons'
 import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const ROOT_SX = {
@@ -34,7 +35,7 @@ const CIRCLE_SX = {
   width: 64,
   height: 64,
   borderRadius: '50%',
-  bgcolor: '#F6FAFF',
+  bgcolor: TMAIL.blueWash,
   color: 'primary.main'
 } as const
 
@@ -46,13 +47,13 @@ const USED_SX = {
   fontSize: 18,
   lineHeight: '23px',
   fontWeight: 600,
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 const SMALL_SX = {
   fontSize: 9,
   lineHeight: '14px',
-  color: 'rgba(66, 66, 68, 0.9)'
+  color: TMAIL.textGrey90
 } as const
 
 export interface StorageUsageProps {

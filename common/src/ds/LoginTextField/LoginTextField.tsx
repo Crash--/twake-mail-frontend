@@ -12,20 +12,25 @@ import {
   type Ref
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const FIELD_SX = {
   width: '100%',
   height: 48,
   boxSizing: 'border-box',
   px: '27px',
   borderRadius: '10px',
-  border: '1px solid #F2F3F5',
-  bgcolor: '#F2F3F5',
+  border: `1px solid ${TMAIL.fillF2}`,
+  bgcolor: TMAIL.fillF2,
   fontSize: 16,
-  color: '#000000',
-  '&.Mui-focused': { border: '2px solid #007AFF', px: '26px' },
-  '& .MuiIconButton-root': { color: '#7E869B' },
-  '&.Mui-error': { borderColor: '#E64646' },
-  '& .MuiInputBase-input::placeholder': { color: '#7E869B', opacity: 1 }
+  color: TMAIL.textBlack,
+  '&.Mui-focused': { border: `2px solid ${TMAIL.primary}`, px: '26px' },
+  '& .MuiIconButton-root': { color: TMAIL.greyLavender },
+  '&.Mui-error': { borderColor: TMAIL.errorLogin },
+  '& .MuiInputBase-input::placeholder': {
+    color: TMAIL.greyLavender,
+    opacity: 1
+  }
 } as const
 
 const ERROR_SX = { mx: '24px' } as const

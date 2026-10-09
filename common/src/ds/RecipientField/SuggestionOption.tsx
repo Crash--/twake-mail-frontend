@@ -8,6 +8,7 @@ import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { SelectedIcon } from '@/ds/RecipientIcons/RecipientIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { initialsOf, splitMatches } from './initials'
 
@@ -19,9 +20,9 @@ const OPTION_SX = {
   boxSizing: 'border-box',
   px: 2,
   cursor: 'pointer',
-  bgcolor: '#FFFFFF',
-  '&[aria-selected="true"]': { bgcolor: '#F2F3F5' },
-  '&:hover': { bgcolor: '#F2F3F5' }
+  bgcolor: TMAIL.surface,
+  '&[aria-selected="true"]': { bgcolor: TMAIL.fillF2 },
+  '&:hover': { bgcolor: TMAIL.fillF2 }
 } as const
 
 const ADDED_OPTION_SX = {
@@ -29,8 +30,8 @@ const ADDED_OPTION_SX = {
   m: 1,
   borderRadius: '20px',
   cursor: 'default',
-  bgcolor: 'rgba(222, 226, 231, 0.5)',
-  '&[aria-selected="true"], &:hover': { bgcolor: 'rgba(222, 226, 231, 0.5)' }
+  bgcolor: TMAIL.fillSuggestion,
+  '&[aria-selected="true"], &:hover': { bgcolor: TMAIL.fillSuggestion }
 } as const
 
 const AVATAR_SX = {
@@ -42,9 +43,9 @@ const AVATAR_SX = {
   height: 40,
   boxSizing: 'border-box',
   borderRadius: '50%',
-  bgcolor: '#F8F8F8',
-  border: '1px solid rgba(0, 0, 0, 0.08)',
-  color: '#000000',
+  bgcolor: TMAIL.fillF8,
+  border: `1px solid ${TMAIL.divider08}`,
+  color: TMAIL.textBlack,
   fontSize: 16,
   fontWeight: 600,
   lineHeight: 1,
@@ -63,7 +64,7 @@ const LINES_SX = {
 const PRIMARY_SX = {
   fontSize: 16,
   lineHeight: '20px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -74,8 +75,8 @@ const SECONDARY_SX = {
   ...PRIMARY_SX,
   fontSize: 13,
   lineHeight: '16px',
-  color: '#818C99',
-  '& b': { fontWeight: 700, color: '#000000' }
+  color: TMAIL.grey,
+  '& b': { fontWeight: 700, color: TMAIL.textBlack }
 } as const
 
 function Highlighted({
@@ -150,7 +151,7 @@ export function SuggestionOption({
         )}
       </Box>
       {isAdded ? (
-        <Box component="span" className="u-flex" sx={{ color: '#007AFF' }}>
+        <Box component="span" className="u-flex" sx={{ color: TMAIL.primary }}>
           <Icon icon={SelectedIcon} size={24} aria-hidden="true" />
         </Box>
       ) : null}

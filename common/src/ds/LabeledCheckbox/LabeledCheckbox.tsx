@@ -5,12 +5,14 @@
 import { Checkbox, FormControlLabel } from '@linagora/twake-mui'
 import type { ChangeEvent, ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const LABEL_SX = {
   mr: 3,
   ml: '-9px',
   '& .MuiFormControlLabel-label': {
     fontSize: 14,
-    color: '#000000',
+    color: TMAIL.textBlack,
     letterSpacing: 0
   }
 } as const

@@ -32,6 +32,7 @@ import {
 } from 'react'
 
 import { Bottom, Check, Magnifier, Right } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FolderPickerOption {
@@ -90,8 +91,8 @@ export interface FolderPickerProps {
   }
 }
 
-const PRIMARY = '#007AFF'
-const DIVIDER = 'rgba(0, 0, 0, 0.12)'
+const PRIMARY = TMAIL.primary
+const DIVIDER = TMAIL.divider12
 
 function paperSx(isPhone: boolean): Record<string, unknown> {
   return isPhone
@@ -122,14 +123,14 @@ const CLOSE_SX = {
   left: 8,
   top: '50%',
   transform: 'translateY(-50%)',
-  color: '#7E869B'
+  color: TMAIL.greyLavender
 } as const
 
 const TITLE_SX = {
   fontSize: 20,
   fontWeight: 700,
   lineHeight: '28px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis'
@@ -143,10 +144,14 @@ const SEARCH_SX = {
   height: 44,
   m: '16px',
   borderRadius: '10px',
-  bgcolor: 'rgba(235, 237, 240, 0.6)',
-  color: '#818C99',
-  '& .MuiInputBase-root': { flex: '1 1 auto', fontSize: 17, color: '#000000' },
-  '& .MuiInputBase-input::placeholder': { color: '#818C99', opacity: 1 }
+  bgcolor: TMAIL.fillToolbar,
+  color: TMAIL.grey,
+  '& .MuiInputBase-root': {
+    flex: '1 1 auto',
+    fontSize: 17,
+    color: TMAIL.textBlack
+  },
+  '& .MuiInputBase-input::placeholder': { color: TMAIL.grey, opacity: 1 }
 } as const
 
 const MAGNIFIER_SX = { display: 'flex', px: '8px' } as const
@@ -159,7 +164,7 @@ const HEADER_SX = {
   py: '8px',
   fontSize: 14,
   lineHeight: '18px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   borderRadius: '8px'
 } as const
 
@@ -189,9 +194,9 @@ function rowSx(
     borderRadius: isPhone ? '10px' : '8px',
     cursor: option.disabled === true ? 'default' : 'pointer',
     opacity: option.disabled === true ? 0.3 : 1,
-    bgcolor: isActive ? '#F2F3F5' : 'transparent',
+    bgcolor: isActive ? TMAIL.fillF2 : 'transparent',
     '&:hover': {
-      bgcolor: option.disabled === true ? undefined : '#EBEDF0'
+      bgcolor: option.disabled === true ? undefined : TMAIL.fillEB
     }
   }
 }
@@ -208,7 +213,7 @@ function nameSx(isCurrent: boolean): Record<string, unknown> {
     fontSize: 14,
     lineHeight: '18px',
     fontWeight: isCurrent ? 700 : 400,
-    color: '#000000'
+    color: TMAIL.textBlack
   }
 }
 
@@ -216,13 +221,17 @@ const SECONDARY_SX = {
   display: 'block',
   fontSize: 14,
   lineHeight: '18px',
-  color: '#818C99',
+  color: TMAIL.grey,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
 } as const
 
-const CHEVRON_SX = { display: 'flex', color: '#000000', p: '3px' } as const
+const CHEVRON_SX = {
+  display: 'flex',
+  color: TMAIL.textBlack,
+  p: '3px'
+} as const
 
 /** `ic_composer_close`: two 2 px strokes, 24 px */
 function CloseIcon(): ReactElement {

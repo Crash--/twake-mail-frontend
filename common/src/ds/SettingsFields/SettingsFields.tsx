@@ -13,6 +13,7 @@ import {
   type Ref
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 function fieldSx(
@@ -25,19 +26,19 @@ function fieldSx(
     '& .MuiOutlinedInput-root': {
       height,
       borderRadius: '10px',
-      bgcolor: '#FFFFFF',
+      bgcolor: TMAIL.surface,
       fontSize: 14,
       lineHeight: '20px',
-      color: '#000000',
-      '& fieldset': { borderColor: '#E3E5E8' },
-      '&:hover fieldset': { borderColor: '#C6CBD1' },
+      color: TMAIL.textBlack,
+      '& fieldset': { borderColor: TMAIL.outlineField },
+      '&:hover fieldset': { borderColor: TMAIL.outlineHover },
       '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 1 },
       '&.Mui-error fieldset': { borderColor: 'error.main' },
-      '&.Mui-disabled': { bgcolor: '#FFFFFF', opacity: 0.6 }
+      '&.Mui-disabled': { bgcolor: TMAIL.surface, opacity: 0.6 }
     },
     '& .MuiOutlinedInput-input': {
       px: '12px',
-      '&::placeholder': { color: '#818C99', opacity: 1 }
+      '&::placeholder': { color: TMAIL.grey, opacity: 1 }
     },
     '& .MuiFormHelperText-root': { mx: 0 }
   }
@@ -119,7 +120,7 @@ const SELECT_LABEL_SX = {
   mb: '12px',
   fontSize: 14,
   lineHeight: '20px',
-  color: 'rgba(66, 66, 68, 0.64)'
+  color: TMAIL.textGrey64
 } as const
 
 export interface SettingsSelectProps {
@@ -183,9 +184,9 @@ const MENU_ITEM_SX = {
   fontSize: 16,
   lineHeight: '21px',
   letterSpacing: '-0.15px',
-  color: 'rgba(66, 66, 68, 0.9)',
+  color: TMAIL.textGrey90,
   '&:hover, &.Mui-selected, &.Mui-selected:hover, &.Mui-focusVisible': {
-    bgcolor: 'rgba(235, 237, 240, 0.6)'
+    bgcolor: TMAIL.fillToolbar
   }
 } as const
 
@@ -300,7 +301,7 @@ const LABEL_SX = {
   lineHeight: '20px',
   fontWeight: 600,
   letterSpacing: '0.25px',
-  color: '#424244'
+  color: TMAIL.textGrey
 } as const
 
 const PILL_SX = {
@@ -308,10 +309,10 @@ const PILL_SX = {
   px: '12px',
   py: '4px',
   borderRadius: '16px',
-  bgcolor: 'rgba(73, 69, 79, 0.08)',
+  bgcolor: TMAIL.fillTonal,
   fontSize: 14,
   lineHeight: '18px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 export interface SettingsLabelPillProps {
@@ -385,7 +386,7 @@ const ROW_LABEL_SX = {
   fontSize: 14,
   lineHeight: '20px',
   fontWeight: 400,
-  color: 'rgba(66, 66, 68, 0.64)'
+  color: TMAIL.textGrey64
 } as const
 
 const FIELD_SX = {
@@ -429,9 +430,7 @@ export function SettingsFormRowLabel({
       component="label"
       htmlFor={htmlFor}
       sx={
-        isDisabled
-          ? { ...ROW_LABEL_SX, color: 'rgba(66, 66, 68, 0.32)' }
-          : ROW_LABEL_SX
+        isDisabled ? { ...ROW_LABEL_SX, color: TMAIL.textGrey32 } : ROW_LABEL_SX
       }
     >
       {children}

@@ -3,11 +3,13 @@
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const COUNT_SX = {
   fontSize: 15,
   fontWeight: 400,
   lineHeight: '20px',
-  color: '#55687D',
+  color: TMAIL.steel,
   mr: 1
 } as const
 

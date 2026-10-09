@@ -6,13 +6,14 @@ import { Checkbox } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
 import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const CHECKBOX_SX = {
   width: 40,
   height: 40,
   ml: '4px',
   p: '10px',
-  color: '#AEB7C2',
+  color: TMAIL.greyFaint,
   // The theme pads its checkbox icons by 3 px: tmail-flutter's box fills
   // its 20 px
   '&& svg.twake-icon': {

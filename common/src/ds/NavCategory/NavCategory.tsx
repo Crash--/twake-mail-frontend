@@ -6,6 +6,7 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BUTTON_SX = {
   display: 'flex',
@@ -18,19 +19,19 @@ const BUTTON_SX = {
   pl: '8px',
   pr: '8px',
   borderRadius: '8px',
-  color: 'rgba(66, 66, 68, 0.9)',
+  color: TMAIL.textGrey90,
   fontSize: 14,
   fontWeight: 500,
   lineHeight: '18.4px',
   letterSpacing: 0.25,
   textAlign: 'start',
-  '&:hover': { bgcolor: 'rgba(29, 25, 43, 0.04)' }
+  '&:hover': { bgcolor: TMAIL.hoverInk }
 } as const
 
 const CHEVRON_SX = {
   display: 'flex',
   ml: '-4px',
-  color: 'rgba(66, 66, 66, 0.64)'
+  color: TMAIL.textGrey66At64
 } as const
 
 export interface NavCategoryProps {

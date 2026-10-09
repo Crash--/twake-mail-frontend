@@ -6,6 +6,7 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, SubmitEvent } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 const LOGO_SX = {
@@ -21,7 +22,7 @@ const TITLE_SX = {
   fontSize: 32,
   fontWeight: 700,
   lineHeight: '44px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   textAlign: 'center'
 } as const
 
@@ -57,7 +58,7 @@ const VERSION_SX = {
   fontSize: 12,
   fontWeight: 500,
   letterSpacing: '0.4px',
-  color: '#818C99',
+  color: TMAIL.grey,
   textAlign: 'center'
 } as const
 
@@ -110,7 +111,10 @@ export function LoginFormFrame({
       <Typography
         component="p"
         role={isError ? 'alert' : undefined}
-        sx={{ ...MESSAGE_SX, color: isError ? '#E64646' : '#000000' }}
+        sx={{
+          ...MESSAGE_SX,
+          color: isError ? TMAIL.errorLogin : TMAIL.textBlack
+        }}
         data-testid={isError ? errorTestId : undefined}
       >
         {message}

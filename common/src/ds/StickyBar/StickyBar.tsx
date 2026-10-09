@@ -2,6 +2,8 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const STICKY_SX = {
   position: 'sticky',
   top: 0,
@@ -14,7 +16,7 @@ const DIVIDER_SX = {
   ...STICKY_SX,
   minHeight: 52,
   boxSizing: 'border-box',
-  borderBottom: '0.5px solid #D7D8D9'
+  borderBottom: `0.5px solid ${TMAIL.outlineSticky}`
 } as const
 
 export interface StickyBarProps {

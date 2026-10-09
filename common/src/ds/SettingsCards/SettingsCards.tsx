@@ -7,6 +7,8 @@
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const LIST_SX = { listStyle: 'none', m: 0, p: 0, pt: '12px', pb: 2 } as const
 
 const CARD_SX = {
@@ -16,7 +18,7 @@ const CARD_SX = {
   mt: 1,
   px: 4,
   borderRadius: '10px',
-  bgcolor: '#F9FAFB'
+  bgcolor: TMAIL.fillF9
 } as const
 
 const TITLE_SX = {
@@ -27,7 +29,7 @@ const TITLE_SX = {
   whiteSpace: 'nowrap',
   fontSize: 14,
   lineHeight: '20px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 const PILL_ROW_SX = {
@@ -42,13 +44,13 @@ const PILL_SX = {
   px: '12px',
   py: '4px',
   borderRadius: '16px',
-  bgcolor: 'rgba(73, 69, 79, 0.08)',
+  bgcolor: TMAIL.fillTonal,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
   fontSize: 14,
   lineHeight: '20px',
-  color: '#000000'
+  color: TMAIL.textBlack
 } as const
 
 const ACTIONS_SX = {
@@ -68,8 +70,8 @@ const RECIPIENT_SX = {
   mt: '4px',
   px: 2,
   borderRadius: '10px',
-  bgcolor: '#F9FAFB',
-  '&[data-selected="true"]': { bgcolor: '#DFEEFF' }
+  bgcolor: TMAIL.fillF9,
+  '&[data-selected="true"]': { bgcolor: TMAIL.blueSelected }
 } as const
 
 const RECIPIENT_NAME_SX = {
@@ -80,7 +82,7 @@ const RECIPIENT_NAME_SX = {
   gap: '4px',
   fontSize: 14,
   lineHeight: '20px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   '& > span:first-of-type': {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -91,7 +93,7 @@ const RECIPIENT_NAME_SX = {
 const RECIPIENT_STATUS_SX = {
   display: 'flex',
   flexShrink: 0,
-  color: '#007AFF'
+  color: TMAIL.primary
 } as const
 
 export interface SettingsRecipientCardProps {
@@ -160,9 +162,9 @@ const HEADER_BUTTON_SX = {
   fontWeight: 600,
   lineHeight: '20px',
   letterSpacing: '0.25px',
-  color: '#424244',
-  '&[data-tone="danger"]': { color: '#FF3347', ml: 'auto' },
-  '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+  color: TMAIL.textGrey,
+  '&[data-tone="danger"]': { color: TMAIL.error, ml: 'auto' },
+  '&:hover': { bgcolor: TMAIL.hoverBlack }
 } as const
 
 export interface SettingsListHeaderProps {

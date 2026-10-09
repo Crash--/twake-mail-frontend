@@ -25,6 +25,7 @@ import {
 } from 'react'
 
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { cleanPastedHtml } from './cleanPastedHtml'
 import { HtmlBlock, type HtmlBlockOptions } from './htmlBlock'
@@ -125,10 +126,10 @@ const SETTINGS_TOOLBAR_ITEMS: readonly RichTextToolbarItemId[] = [
 ]
 
 const SETTINGS_FRAME_SX = {
-  border: '1px solid #E3E5E8',
+  border: `1px solid ${TMAIL.outlineField}`,
   borderRadius: '10px',
   overflow: 'hidden',
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   '&[aria-disabled="true"]': { opacity: 0.5 },
   '& [role="toolbar"]': { borderTop: 'none', px: 1, pb: 1 }
 } as const
@@ -232,7 +233,7 @@ function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
  * the toolbar and a 189 px text without border of its own
  */
 const BOXED_FRAME_SX = {
-  border: '1px solid #E6E1E5',
+  border: `1px solid ${TMAIL.outline}`,
   borderRadius: '10px',
   pt: '4px',
   px: 1,
@@ -246,7 +247,7 @@ const BOXED_FRAME_SX = {
     px: '10px',
     py: 1,
     fontSize: 16,
-    color: '#000000'
+    color: TMAIL.textBlack
   }
 } as const
 
@@ -521,7 +522,7 @@ export function RichTextEditor({
                   fontWeight: 400,
                   lineHeight: '18.4px',
                   letterSpacing: 0,
-                  color: '#222222'
+                  color: TMAIL.textInk
                 }
               : { lineHeight: 1.5 }),
             overflowWrap: 'anywhere'

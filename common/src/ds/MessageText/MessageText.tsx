@@ -5,6 +5,8 @@
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 /**
  * `name`, `compactName`: the sender (Medium 15/20, black); `address`: its
  * address (Medium 14, grey); `meta`: the date (Regular 14, grey);
@@ -21,9 +23,9 @@ export type MessageTextVariant =
   | 'label'
   | 'recipient'
 
-const BLACK = '#000000'
-const GREY = '#6D7885'
-const LIGHT_GREY = '#9AA7B6'
+const BLACK = TMAIL.textBlack
+const GREY = TMAIL.greySlate
+const LIGHT_GREY = TMAIL.steelPale
 
 const STYLES = {
   name: { fontSize: 15, lineHeight: '20px', fontWeight: 500, color: BLACK },

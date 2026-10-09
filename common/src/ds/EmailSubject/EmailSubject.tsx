@@ -4,12 +4,14 @@
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, Ref } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const SUBJECT_SX = {
   fontSize: 24,
   fontWeight: 500,
   lineHeight: '30px',
   letterSpacing: '-0.24px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   overflowWrap: 'anywhere'
 } as const
 

@@ -22,13 +22,14 @@ import {
 } from 'react'
 
 import { Copy, CrossSmall } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BUTTON_SX = {
   width: 48,
   height: 48,
   borderRadius: '50%',
-  bgcolor: '#FFFFFF',
-  color: '#000000',
+  bgcolor: TMAIL.surface,
+  color: TMAIL.textBlack,
   fontSize: 20,
   fontWeight: 500,
   boxShadow: '0 0.5px 1px 1px rgba(0, 0, 0, 0.04)'
@@ -51,7 +52,7 @@ const ADDRESS_SX = {
   pb: '4px',
   fontSize: 14,
   fontWeight: 400,
-  color: '#818C99',
+  color: TMAIL.grey,
   wordBreak: 'break-all'
 } as const
 
@@ -61,7 +62,7 @@ const CLOSE_SX = { position: 'absolute', top: 6, right: 6 } as const
 const LIST_SX = {
   pt: 0,
   pb: '8px',
-  '&& .MuiListItemIcon-root': { color: '#686E76' }
+  '&& .MuiListItemIcon-root': { color: TMAIL.greyDark }
 } as const
 
 export interface ProfileMenuLabels {

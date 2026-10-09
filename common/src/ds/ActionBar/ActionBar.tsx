@@ -5,6 +5,7 @@ import { Box, Button, Divider } from '@linagora/twake-mui'
 import type { MouseEventHandler, ReactElement, ReactNode } from 'react'
 
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BAR_SX = {
   position: 'sticky',
@@ -36,7 +37,7 @@ const BUTTON_SX = {
   // tmail-flutter's bottom bar of tablets: steel grey, Regular 16
   [`@media ${SCREEN_QUERIES.belowDesktop}`]: {
     borderRadius: 0,
-    color: '#55687D',
+    color: TMAIL.steel,
     fontSize: 16,
     fontWeight: 400,
     letterSpacing: 0

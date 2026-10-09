@@ -5,7 +5,9 @@
 // global CSS of the theme (`MuiCssBaseline`), merged in `AppProviders`.
 import type { CSSObject } from '@mui/material/styles'
 
-const THUMB_COLOR = '#C1C1C1'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
+const THUMB_COLOR = TMAIL.scrollbarThumb
 
 /** The global CSS drawing the scroll bars of tmail-flutter */
 export const SCROLLBAR_CSS: CSSObject = {

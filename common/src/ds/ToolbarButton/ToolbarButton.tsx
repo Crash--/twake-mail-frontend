@@ -7,11 +7,12 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
 import { Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** `colorFilterMessageButton` at 60 % on white, its text and icon colour */
-export const TOOLBAR_BUTTON_BACKGROUND = 'rgba(235, 237, 240, 0.6)'
-const TOOLBAR_BUTTON_HOVER = 'rgba(235, 237, 240, 1)'
-const TOOLBAR_BUTTON_COLOR = '#686E76'
+export const TOOLBAR_BUTTON_BACKGROUND = TMAIL.fillToolbar
+const TOOLBAR_BUTTON_HOVER = TMAIL.fillToolbarHover
+const TOOLBAR_BUTTON_COLOR = TMAIL.greyDark
 
 export interface ToolbarButtonProps {
   label: string

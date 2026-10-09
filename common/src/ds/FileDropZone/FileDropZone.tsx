@@ -10,6 +10,8 @@ import {
   type ReactNode
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const OVERLAY_SX = {
   position: 'absolute',
   inset: '8px',
@@ -21,13 +23,13 @@ const OVERLAY_SX = {
   border: '2px dashed #46A2FF',
   borderRadius: '16px',
   // #F6FAFF at 70 %: what is under it still shows
-  bgcolor: 'rgba(246, 250, 255, 0.7)'
+  bgcolor: TMAIL.blueDropVeil
 } as const
 
 const LABEL_SX = {
   fontSize: 22,
   fontWeight: 600,
-  color: '#000000',
+  color: TMAIL.textBlack,
   textAlign: 'center'
 } as const
 

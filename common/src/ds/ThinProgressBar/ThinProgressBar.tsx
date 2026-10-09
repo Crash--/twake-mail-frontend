@@ -6,8 +6,10 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 /** `AppColor.colorBgMailboxSelected` of tmail-flutter */
-const TRACK_COLOR = 'rgba(228, 232, 236, 0.6)'
+const TRACK_COLOR = TMAIL.fillTrack
 const HEIGHT = 3
 
 export interface ThinProgressBarProps {

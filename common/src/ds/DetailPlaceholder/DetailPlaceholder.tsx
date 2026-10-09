@@ -4,6 +4,8 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const ROOT_SX = {
   display: 'flex',
   alignItems: 'center',
@@ -16,7 +18,7 @@ const TITLE_SX = {
   fontSize: 20,
   fontWeight: 700,
   lineHeight: '24px',
-  color: '#000000',
+  color: TMAIL.textBlack,
   textAlign: 'center'
 } as const
 

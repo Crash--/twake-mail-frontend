@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { Attachment } from '@/ds/FlutterIcons/FlutterIcons'
+import { Attachment, SelectedCheck } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { FilterChip } from './FilterChip'
@@ -23,6 +23,26 @@ describe('FilterChip', () => {
     await userEvent.click(chip)
 
     expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('draws its applied icon once applied, as tmail-flutter its check', () => {
+    const iconPath = (isSelected: boolean): string | null => {
+      const { container, unmount } = renderDs(
+        <FilterChip
+          label="Has attachment"
+          icon={Attachment}
+          selectedIcon={SelectedCheck}
+          isSelected={isSelected}
+          onClick={jest.fn()}
+        />
+      )
+      const path = container.querySelector('path')?.getAttribute('d') ?? null
+      unmount()
+      return path
+    }
+
+    expect(iconPath(true)).not.toBe(iconPath(false))
+    expect(iconPath(true)).toMatch(/^M6.00001 10.1997/)
   })
 
   it('opens a menu rather than toggling when it has one', () => {

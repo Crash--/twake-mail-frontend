@@ -5,6 +5,7 @@ import {
   Account,
   Attachment,
   Calendar,
+  SelectedCheck,
   StarOutline
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
@@ -47,6 +48,7 @@ export function QuickSearchFilters({
         <FilterChip
           label={t('search.filters.hasAttachment')}
           icon={Attachment}
+          selectedIcon={SelectedCheck}
           isSelected={filter.hasAttachment}
           keepFocus
           onClick={() => {
@@ -59,6 +61,7 @@ export function QuickSearchFilters({
         <FilterChip
           label={t('search.dates.last7Days')}
           icon={Calendar}
+          selectedIcon={SelectedCheck}
           isSelected={isLast7Days}
           keepFocus
           onClick={() => {
@@ -76,6 +79,7 @@ export function QuickSearchFilters({
         <FilterChip
           label={t('search.filters.fromMe')}
           icon={Account}
+          selectedIcon={SelectedCheck}
           isSelected={isFromMe}
           keepFocus
           onClick={() => {
@@ -93,6 +97,7 @@ export function QuickSearchFilters({
         <FilterChip
           label={t('search.filters.starred')}
           icon={StarOutline}
+          selectedIcon={SelectedCheck}
           isSelected={filter.starred}
           keepFocus
           onClick={() => {

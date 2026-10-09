@@ -45,6 +45,8 @@ export interface FilterChipProps {
   label: string
   /** The icon before the label */
   icon?: IconProps['icon']
+  /** Replaces `icon` once applied, e.g. tmail-flutter's blue check */
+  selectedIcon?: IconProps['icon']
   /** Applied: the pale primary look, a cross, and `aria-pressed` */
   isSelected: boolean
   onClick: (event: MouseEvent<HTMLElement>) => void
@@ -73,6 +75,7 @@ function preventFocus(event: MouseEvent<HTMLElement>): void {
 export function FilterChip({
   label,
   icon,
+  selectedIcon,
   isSelected,
   onClick,
   popup,
@@ -88,12 +91,14 @@ export function FilterChip({
       : isRemovable
         ? {}
         : { 'aria-pressed': isSelected }
+  const leadingIcon =
+    isSelected && selectedIcon !== undefined ? selectedIcon : icon
   return (
     <Chip
       label={label}
       clickable
       variant="filled"
-      icon={icon === undefined ? undefined : <Icon icon={icon} />}
+      icon={leadingIcon === undefined ? undefined : <Icon icon={leadingIcon} />}
       endIcon={
         popup !== undefined ? (
           <Icon icon={Bottom} size={16} />

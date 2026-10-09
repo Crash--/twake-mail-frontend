@@ -21,6 +21,7 @@ import {
   Email,
   FolderOutlined,
   LabelOutlined,
+  SelectedCheck,
   StarOutline
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
@@ -317,6 +318,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.hasAttachment')}
           icon={Attachment}
+          selectedIcon={SelectedCheck}
           isSelected={filter.hasAttachment}
           onClick={() => {
             onChange({ ...filter, hasAttachment: !filter.hasAttachment })
@@ -328,6 +330,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.starred')}
           icon={StarOutline}
+          selectedIcon={SelectedCheck}
           isSelected={filter.starred}
           onClick={() => {
             onChange({ ...filter, starred: !filter.starred })
@@ -339,6 +342,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.unread')}
           icon={Email}
+          selectedIcon={SelectedCheck}
           isSelected={filter.unread}
           onClick={() => {
             onChange({ ...filter, unread: !filter.unread })

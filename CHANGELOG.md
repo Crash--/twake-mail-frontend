@@ -6,6 +6,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-09
+
+No setting changes from 0.4.0.
+
+### Added
+
+- The webmail takes the look of tmail-flutter: the top bar with the search,
+  the list and its toolbar, the sidebar, the reading view, the composer, the
+  settings, the sign-in page, the dialogs, the icons, the logotype and the
+  scroll bars.
+- Phones and tablets get their own screens: the bar, the selection of emails,
+  the search results, the settings, the composer card, with the support
+  and "Sign out" at the end of the settings.
+- The composer suggests recipients and opens their card on a click, files
+  are dropped on the body only, and a bar tells that images go inline.
+- The shortcuts are listed by category, a link of an email shows where it
+  leads, and the remote images of the senders of the domain are shown.
+- Emails carrying a calendar event are marked in the list, and the card of
+  the address of a person of an event opens.
+- The labels of the sidebar fold from their header, and open beside
+  "Label as".
+- The progress of marking a folder read or emptying it is shown.
+- In the facade of a team mailbox, an email opens by its id.
+
+### Fixed
+
+- The "Forward to" action is offered in the rules, and the forwarding
+  strings are corrected.
+- The login form links to the privacy policy.
+- The loading rows of the list, of the search and of a conversation have
+  the height of the rows they stand for.
+- A selected row stays light blue under the pointer, and the keyboard
+  shortcut tabs stay on one line.
+- Files dropped out of the body of the composer are ignored, and an attachment
+  drops its progress bar once uploaded.
+- A recipient field is named without its colon, and the message of a
+  confirmation is a paragraph.
+- The platform top bar is kept as it is with Twake Workplace.
+
 ## [0.4.0] - 2026-10-08
 
 ### Added

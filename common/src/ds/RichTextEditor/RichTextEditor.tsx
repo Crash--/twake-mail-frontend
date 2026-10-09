@@ -477,7 +477,9 @@ export function RichTextEditor({
       onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
       hasInsertButtons={hasInsertButtons}
       placement={isToolbarBelow || isSettingsLook ? 'bottom' : 'top'}
-      look={look === 'boxed' ? 'boxed' : 'compact'}
+      look={
+        look === 'boxed' ? 'boxed' : isSettingsLook ? 'compact' : 'composer'
+      }
       actionsRef={actionsRef}
       disabled={disabled}
       buttonTestId={testIds.toolbarButton}

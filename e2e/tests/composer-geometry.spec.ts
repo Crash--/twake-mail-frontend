@@ -61,22 +61,23 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
     expect(close.x - (expand.x + 26)).toBe(8)
     expect(root.x + root.width - (close.x + 26)).toBe(24)
 
-    // Formatting toolbar: 40 px under a 1 px rule, boxes 32 px high, 8 px apart
+    // Formatting toolbar (tmail-flutter's): boxes 40 px high, 8 px apart and
+    // 8 px from the top and bottom of the bar
     const toolbar = await boxOf(composer.toolbar)
-    expect(toolbar.height).toBe(41)
+    expect(toolbar.height).toBe(56)
     const controls = await Promise.all(
       ['Text style Normal', 'Text Size 14', 'Text Color'].map(name =>
         boxOf(composer.root.getByRole('button', { name }))
       )
     )
-    for (const box of controls) expect(box.height).toBe(32)
+    for (const box of controls) expect(box.height).toBe(40)
     const [first, second] = controls as [Box, Box, Box]
     expect(Math.round(second.x - (first.x + first.width))).toBe(8)
     const bold = await boxOf(composer.toolbarButton('Bold'))
-    expect(bold.height).toBe(28)
-    // The B I U S group: one 114 x 32 box
+    expect(bold.height).toBe(38)
+    // The B I U S group: one 154 x 40 box, four 38 px buttons in a 1 px outline
     const group = await boxOf(composer.toolbarButton('Bold').locator('..'))
-    expect([group.width, group.height]).toEqual([114, 32])
+    expect([group.width, group.height]).toEqual([154, 40])
 
     // Footer: 32 px in, 34 px icon buttons 8 px apart, Send a 128 x 46 pill
     const footer = await Promise.all(
@@ -94,7 +95,7 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
   })
 
   test(
-    'CMP-85 the footer icon buttons are 34 px (44 on touch) round buttons, the toolbar boxes 32 px high (44 on touch), at every width',
+    'CMP-85 the footer icon buttons are 34 px (44 on touch) round buttons, the toolbar boxes 40 px high (44 on touch), at every width',
     { tag: '@mobile' },
     async ({ page, user }, testInfo) => {
       // tmail-flutter's 34 px buttons (a 24 px icon, 5 px around); touch
@@ -119,10 +120,10 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
         expect(await styleOf(button, 'border-top-left-radius')).toBe('50%')
       }
       const style = await boxOf(composer.toolbarButton('Text style Normal'))
-      expect(style.height).toBe(size === 34 ? 32 : 44)
+      expect(style.height).toBe(size === 34 ? 40 : 44)
       const toolbar = await boxOf(composer.toolbar)
-      if (size === 34) expect(toolbar.height).toBe(41)
-      else expect(toolbar.height).toBeGreaterThanOrEqual(53)
+      if (size === 34) expect(toolbar.height).toBe(56)
+      else expect(toolbar.height).toBeGreaterThanOrEqual(60)
     }
   )
 

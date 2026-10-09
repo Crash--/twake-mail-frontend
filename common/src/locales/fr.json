@@ -1108,6 +1108,7 @@
     "deselectAll": "Désélectionner (%{count})",
     "remove": "Retirer",
     "deleteAll": {
+      "title": "Supprimer les destinataires",
       "message": "Voulez-vous vraiment supprimer ces destinataires ? Cela les retirera de la discussion."
     },
     "selectOf": "Sélectionner %{email}"

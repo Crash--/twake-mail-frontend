@@ -215,6 +215,8 @@ export function EmailCell({
   // `thread.members` here instead of `email`.
   const emailLabels = labelsOfEmail(labels, email)
   const isActionRequired = showActionRequired && hasKeyword(email, NEEDS_ACTION)
+  // As tmail-flutter (`LabelTagListWidget`): 3 tags on a desktop, 1 below
+  const maxLabels = screenSize === 'desktop' ? 3 : 1
   const labelChips = (max: number): ReactElement | null =>
     emailLabels.length === 0 && !isActionRequired ? null : (
       <>
@@ -586,7 +588,7 @@ export function EmailCell({
                 <>
                   {eventMark}
                   {importantIcon}
-                  {labelChips(1)}
+                  {labelChips(maxLabels)}
                 </>
               )
             }
@@ -692,7 +694,7 @@ export function EmailCell({
               </>
             }
             preview={preview}
-            previewEnd={labelChips(1)}
+            previewEnd={labelChips(maxLabels)}
             testIds={{
               sender: 'email-list-item-sender',
               subject: 'email-list-item-subject',

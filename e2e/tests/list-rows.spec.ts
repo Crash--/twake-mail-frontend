@@ -177,7 +177,7 @@ test.describe('LST email list rows', () => {
 
 test.describe('LST labels in the list rows', () => {
   test(
-    'LST-06 a row shows one label chip then "+N" naming the others, at the end of the preview on a phone and a tablet, before the subject without growing the row on a desktop',
+    'LST-06 a row shows one label chip then "+N" naming the others at the end of the preview on a phone and a tablet, three chips before the subject without growing the row on a desktop',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       const design = await jmap.createLabel('Design', '#2196F3')
@@ -200,15 +200,29 @@ test.describe('LST labels in the list rows', () => {
       const mailbox = await new LoginPage(page).loginAs(user)
       const row = mailbox.emailRow('Three labels row')
 
-      await expect(row.getByTestId('label-chip')).toHaveCount(1)
-      await expect(row.getByTestId('label-chip')).toHaveText('Design')
-      await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
-      // The hidden labels are named for assistive technologies
-      await expect(
-        row.getByRole('list', { name: 'Labels of the email' })
-      ).toContainText('2 more labels: Personal, Urgent')
+      const isDesktop = (page.viewportSize()?.width ?? 0) >= 1000
+      if (isDesktop) {
+        // As tmail-flutter: up to 3 tags on a desktop
+        await expect(row.getByTestId('label-chip')).toHaveText([
+          'Design',
+          'Personal',
+          'Urgent'
+        ])
+        await expect(row.getByTestId('label-chip-more')).toHaveCount(0)
+      } else {
+        await expect(row.getByTestId('label-chip')).toHaveCount(1)
+        await expect(row.getByTestId('label-chip')).toHaveText('Design')
+        await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
+        // The hidden labels are named for assistive technologies
+        await expect(
+          row.getByRole('list', { name: 'Labels of the email' })
+        ).toContainText('2 more labels: Personal, Urgent')
+      }
       const rowBox = await row.boundingBox()
-      const chipBox = await row.getByTestId('label-chip').boundingBox()
+      const chipBox = await row
+        .getByTestId('label-chip')
+        .first()
+        .boundingBox()
       const subjectBox = await row
         .getByTestId('email-list-item-subject')
         .boundingBox()

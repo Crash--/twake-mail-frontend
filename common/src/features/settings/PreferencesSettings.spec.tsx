@@ -189,7 +189,7 @@ describe('PreferencesSettings', () => {
       JSON.parse(
         window.localStorage.getItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY) ?? ''
       )
-    ).toEqual({ isEnabled: false, lastDismissedAt: 0 })
+    ).toEqual({ isEnabled: false, lastDismissedAt: 0, lastShownAt: 0 })
     window.localStorage.removeItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY)
   })
 

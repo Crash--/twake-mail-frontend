@@ -21,8 +21,9 @@ export interface SpamReportBannerProps {
 
 /**
  * Above the lists, the unread emails of Spam, as tmail-flutter's spam
- * report: not in Spam itself, not within 24 hours of its dismissal or of
- * the view of Spam, and unless turned off in Settings > Preferences.
+ * report: not in Spam itself, not within 24 hours of its dismissal, of
+ * the view of Spam or of its last display (it stays until the list is
+ * left), and unless turned off in Settings > Preferences.
  * "View" opens Spam; closing it hides it for 24 hours and marks Spam as read.
  */
 export function SpamReportBanner({
@@ -32,10 +33,15 @@ export function SpamReportBanner({
   const navigate = useNavigate()
   const { data: mailboxes = [] } = useMailboxes()
   const folderActions = useFolderActions()
-  const { isEnabled, lastDismissedAt, dismiss } = useSpamReportPreference()
+  const { isEnabled, lastDismissedAt, lastShownAt, dismiss, markShown } =
+    useSpamReportPreference()
   const focusFallbackRef = useFocusFallback<HTMLDivElement>()
   // When the list showed: the delay is checked then, as at a refresh in tmail-flutter
   const [now] = useState(() => Date.now())
+  // Shown at most once a day: a display recorded by this very banner keeps it
+  const [isDueSinceLastShown] = useState(() =>
+    isSpamReportIntervalElapsed(lastShownAt, now)
+  )
   const spam = mailboxes.find(candidate => candidate.role === 'junk') ?? null
   const unread = spam?.unreadEmails ?? 0
   const isShown =
@@ -43,7 +49,16 @@ export function SpamReportBanner({
     spam !== null &&
     spam.id !== mailbox?.id &&
     unread > 0 &&
+    isDueSinceLastShown &&
     isSpamReportIntervalElapsed(lastDismissedAt, now)
+
+  const isShownRecordedRef = useRef(false)
+  useEffect(() => {
+    if (isShown && !isShownRecordedRef.current) {
+      isShownRecordedRef.current = true
+      markShown()
+    }
+  }, [isShown, markShown])
 
   // All read (in Spam, elsewhere) while the banner shows: nothing to remind
   // for 24 hours, as tmail-flutter

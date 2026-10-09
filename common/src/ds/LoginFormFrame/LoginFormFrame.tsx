@@ -59,8 +59,14 @@ const FOOTER_SX = {
   textAlign: 'center'
 } as const
 
+// A build version can be one long word (a commit hash): it breaks anywhere
+// rather than scroll a narrow screen sideways
 const VERSION_SX = {
+  maxWidth: '100%',
+  boxSizing: 'border-box',
   pt: '8px',
+  px: '24px',
+  overflowWrap: 'anywhere',
   fontSize: 12,
   fontWeight: 500,
   letterSpacing: '0.4px',

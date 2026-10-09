@@ -698,10 +698,9 @@ describe('ConversationView, an expanded message', () => {
     const server = makeServer(FAKE_LINAGORA_CAPABILITIES)
     await renderRead(server)
 
+    // As tmail-flutter, on the line of the name, out of the toggle
     await userEvent.click(
-      within(screen.getByRole('region', { name: /Dan/ })).getByRole('button', {
-        name: '<dan@example.com>'
-      })
+      screen.getByRole('button', { name: 'Dan <dan@example.com>' })
     )
 
     const card = await screen.findByRole('dialog', { name: /Dan/ })

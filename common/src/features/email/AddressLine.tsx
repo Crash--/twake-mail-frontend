@@ -1,7 +1,10 @@
 import type { EmailAddress } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 
-import { Dropdown, Dropup } from '@/ds/FlutterIcons/FlutterIcons'
+import {
+  ChevronDownOutline,
+  ChevronUpOutline
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageText } from '@/ds/MessageText/MessageText'
@@ -59,8 +62,11 @@ function CompactAddressLine({
       {onToggle !== null ? (
         <IconAction
           label={toggleLabel}
-          icon={isOpen ? Dropup : Dropdown}
-          iconSize={16}
+          // tmail-flutter: a 20 px chevron, 2 px around, in steel grey
+          icon={isOpen ? ChevronUpOutline : ChevronDownOutline}
+          iconSize={20}
+          size={24}
+          tone="slate"
           aria-expanded={isOpen}
           onClick={onToggle}
           data-testid="email-view-recipients-toggle"

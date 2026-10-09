@@ -90,6 +90,12 @@ function EmailContent({
     ...line,
     addresses: email[line.field]
   })).filter(line => (line.addresses ?? []).length > 0)
+  // As tmail-flutter: a chevron shows the addresses of several recipients
+  const hasSeveralRecipients =
+    recipientLines.reduce(
+      (count, line) => count + (line.addresses?.length ?? 0),
+      0
+    ) > 1
 
   // The list the email replaces is gone: the focus moves to the subject,
   // where a screen reader starts reading the email
@@ -177,6 +183,7 @@ function EmailContent({
                     addresses={addresses}
                     isOpen={isRecipientsOpen}
                     onToggle={
+                      hasSeveralRecipients &&
                       index === recipientLines.length - 1
                         ? () => {
                             setIsRecipientsOpen(current => !current)

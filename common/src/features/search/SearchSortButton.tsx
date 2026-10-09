@@ -1,8 +1,8 @@
-import { Swap } from '@linagora/twake-icons'
 import { useId, useState, type ReactElement } from 'react'
 
 import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
+import { FilterSB } from '@/ds/FlutterIcons/FlutterIcons'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -44,7 +44,7 @@ export function SearchSortButton({
       {variant === 'chip' ? (
         <FilterChip
           label={t(SORT_LABELS[filter.sort])}
-          icon={Swap}
+          icon={FilterSB}
           popup="menu"
           isSelected={filter.sort !== DEFAULT_SORT_ORDER}
           isExpanded={anchor !== null}
@@ -56,7 +56,7 @@ export function SearchSortButton({
       ) : (
         <ToolbarButton
           label={t(SORT_LABELS[filter.sort])}
-          icon={Swap}
+          icon={FilterSB}
           hasMenu
           isActive={filter.sort !== DEFAULT_SORT_ORDER}
           onClick={event => {

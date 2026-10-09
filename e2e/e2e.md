@@ -295,7 +295,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `EML-28` Opening an unread email marks it read: its row loses the unread marker, the Inbox counter goes down, and the email has `$seen` on the server. — web app only, no Patrol test (Patrol relies on it implicitly in EML-11)
   - Spec: `tests/email.spec.ts`. Passes in CI.
 
-- [x] `EML-29` Remote images of an email (img, CSS background) are not requested until the user clicks "Show" in the "Remote images hidden" banner; "Always show for this sender" then shows them right away in the other emails of that sender. — web app only, no Patrol test (tmail-flutter always loads remote images).
+- [x] `EML-29` Remote images of an email (img, CSS background) are not requested until the user clicks "Show" in the "Remote images hidden" banner, asked once per email (opening it again or switching layout does not ask again); "Always show for this sender" then shows them right away in the other emails of that sender. — web app only, no Patrol test (tmail-flutter always loads remote images).
   - Spec: `tests/email.spec.ts`, also run on the `mobile` and `tablet` projects. The remote host is served by `page.route`, which counts the requests.
 - [x] `EML-30` In the Trash, "Delete permanently" from the more menu of an open email asks first ("Delete message forever"); confirming closes the email and destroys it on the server. — web app only, no Patrol test (Patrol covers the delete forever dialog nowhere)
   - Spec: `tests/actions.spec.ts`. Passes in CI.

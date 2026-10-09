@@ -25,6 +25,12 @@ export interface ToolbarButtonProps {
   isActive?: boolean
   /** Takes no click, and no tooltip (a disabled button gets no pointer event) */
   disabled?: boolean
+  /**
+   * Always 250 px wide, the content centred: tmail-flutter's "Select all
+   * messages of this page" (`ElevatedButton.icon`, `maximumSize` 250, whose
+   * label grows to it)
+   */
+  isAtMaxWidth?: boolean
   onClick: (event: MouseEvent<HTMLElement>) => void
   'aria-haspopup'?: 'menu'
   'aria-controls'?: string
@@ -41,6 +47,7 @@ export function ToolbarButton({
   hasMenu = false,
   isActive = false,
   disabled = false,
+  isAtMaxWidth = false,
   onClick,
   'aria-haspopup': hasPopup,
   'aria-controls': controls,
@@ -56,7 +63,8 @@ export function ToolbarButton({
       onClick={onClick}
       disabled={disabled}
       startIcon={<Icon icon={icon} size={16} />}
-      endIcon={hasMenu ? <Icon icon={Dropdown} size={16} /> : undefined}
+      // tmail-flutter's 18 px arrow, 8 px after the label
+      endIcon={hasMenu ? <Icon icon={Dropdown} size={18} /> : undefined}
       aria-haspopup={hasPopup}
       aria-controls={controls}
       aria-expanded={expanded}
@@ -80,6 +88,7 @@ export function ToolbarButton({
         // A label longer than 250 px (French) is cut with an ellipsis, as
         // tmail-flutter's, rather than spilling over the buttons around
         justifyContent: 'flex-start',
+        ...(isAtMaxWidth ? { width: 250, justifyContent: 'center' } : {}),
         overflow: 'hidden',
         flexShrink: 0,
         '&:hover': { bgcolor: TOOLBAR_BUTTON_HOVER },

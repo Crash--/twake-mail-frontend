@@ -19,12 +19,15 @@ const TONE_SX = {
   slate: { color: TMAIL.grey },
   // What cannot be undone, as tmail-flutter's selection bar (`redFF3347`)
   danger: { color: TMAIL.error },
-  // The refresh of tmail-flutter: a blue icon on a light grey square
+  // The refresh of tmail-flutter (`TMailButtonWidget.fromIcon`): a blue icon
+  // on a light grey rounded box, 8 px around the icon
   filled: {
     color: 'primary.main',
     borderRadius: '10px',
     bgcolor: TMAIL.fillToolbar,
-    '&:hover': { bgcolor: TMAIL.fillToolbarHover }
+    '&:hover': { bgcolor: TMAIL.fillToolbarHover },
+    width: 'auto',
+    p: '8px'
   }
 } as const
 
@@ -34,6 +37,11 @@ export interface IconActionProps {
   icon: IconProps['icon']
   /** Icon size in px, 20 by default */
   iconSize?: number
+  /**
+   * Icon width in px when it is not square (a 26 x 24 drawing 16 px high
+   * is 17.33 px wide in tmail-flutter)
+   */
+  iconWidth?: number
   /**
    * `starred`: the yellow of a filled star; `muted`: the light grey of the
    * row icons of tmail-flutter; `filled`: a primary icon on a light grey
@@ -61,6 +69,7 @@ export function IconAction({
   label,
   icon,
   iconSize = 20,
+  iconWidth,
   tone = 'default',
   size = 32,
   onClick,
@@ -70,7 +79,7 @@ export function IconAction({
   'aria-expanded': expanded,
   'data-testid': testId
 }: IconActionProps): ReactElement {
-  const content = <Icon icon={icon} size={iconSize} />
+  const content = <Icon icon={icon} size={iconSize} width={iconWidth} />
   const common = {
     size: 'small',
     'aria-label': label,

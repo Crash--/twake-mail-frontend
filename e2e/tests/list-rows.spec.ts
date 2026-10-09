@@ -155,11 +155,13 @@ test.describe('LST email list rows', () => {
     const refresh = await box(page.getByTestId('list-refresh-button'))
     const selectAll = await box(page.getByTestId('list-select-all-button'))
     // As tmail-flutter: the toolbar and the rows span the card, 12 px above
-    // the buttons (a 32 px refresh, 34 px text buttons), 16 px apart
+    // the buttons (a 32 px high refresh around its 26 x 24 icon, 34 px text
+    // buttons, the select all one always 250 px wide), 16 px apart
     expect(rowBox.x).toBe(toolbarBox.x)
-    expect(refresh.width).toBe(32)
+    expect(refresh.width).toBeCloseTo(16 + (16 * 26) / 24, 1)
     expect(refresh.height).toBe(32)
     expect(selectAll.height).toBe(34)
+    expect(selectAll.width).toBe(250)
     expect(selectAll.y - toolbarBox.y).toBe(12)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
     // As tmail-flutter: 48 px rows, a 40 px checkbox, a bare 20 px star

@@ -8,6 +8,7 @@ import {
   TextField
 } from '@linagora/twake-mui'
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -19,8 +20,18 @@ import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
 import { FormRow } from '@/ds/FormRow/FormRow'
 import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import type { RecipientFieldDnd } from '@/ds/RecipientField/RecipientField'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
+import { fetchEmailSenders } from '@common/features/thread/emailSenders'
+import {
+  DRAGGED_EMAILS_TYPE,
+  readDraggedEmails
+} from '@common/features/thread/useEmailListActions'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapClient } from '@common/jmap/JmapClientProvider'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+
+import { AddressFilterField, mergeEntries } from './AddressFilterField'
 
 import {
   DATE_RANGES,
@@ -32,6 +43,8 @@ import {
 } from './searchFilter'
 import { DATE_LABELS, SORT_LABELS } from './searchLabels'
 import { useMailboxOptions } from './useMailboxOptions'
+
+type AddressKind = 'from' | 'to'
 
 /** `<select>` values of the scope: default, everywhere, or a mailbox id */
 const SCOPE_DEFAULT = ''
@@ -50,8 +63,6 @@ function toScope(value: string): SearchFilter['scope'] {
 
 /** The text fields, as typed: lists are split when the form is submitted */
 interface TextFields {
-  from: string
-  to: string
   subject: string
   text: string
   notWords: string
@@ -59,8 +70,6 @@ interface TextFields {
 
 function toTextFields(filter: SearchFilter): TextFields {
   return {
-    from: filter.from.join(', '),
-    to: filter.to.join(', '),
     subject: filter.subject,
     text: filter.text,
     notWords: filter.notWords.join(', ')
@@ -73,8 +82,6 @@ function withTextFields(
 ): SearchFilter {
   return {
     ...filter,
-    from: splitWords(fields.from),
-    to: splitWords(fields.to),
     subject: fields.subject.trim(),
     text: fields.text.trim(),
     notWords: splitWords(fields.notWords)
@@ -122,6 +129,60 @@ export function AdvancedSearchDialog({
   const isReversedRangeShown = isSubmitted && isReversedDateRange(draft)
   const id = useId()
   const fieldId = (name: string): string => `${id}-${name}`
+  const client = useJmapClient()
+  const { accountId } = useJmapSession()
+  /** The addresses now, for the senders of dropped emails, read later */
+  const latest = useRef(draft)
+  useEffect(() => {
+    latest.current = draft
+  }, [draft])
+
+  /**
+   * As tmail-flutter: a tag dragged to the other field moves there (Alt +
+   * ArrowUp or ArrowDown from the keyboard), joining it unless already
+   * there; emails dragged from the list add their senders
+   */
+  const moveAddress = (from: AddressKind, entry: string): void => {
+    const to: AddressKind = from === 'from' ? 'to' : 'from'
+    setDraft(current => ({
+      ...current,
+      [to]: mergeEntries(current[to], [entry]),
+      [from]: current[from].filter(other => other !== entry)
+    }))
+  }
+  const dndOf = (kind: AddressKind): RecipientFieldDnd => ({
+    group: id,
+    field: kind,
+    onMoveIn: (from, entry) => {
+      if (from === 'from' || from === 'to') moveAddress(from, entry)
+    },
+    onMoveBy: (entry, delta) => {
+      if ((kind === 'from') !== (delta === 1)) return null
+      moveAddress(kind, entry)
+      return t('composer.recipients.moved', {
+        address: entry,
+        field: t(kind === 'from' ? 'search.fields.to' : 'search.fields.from')
+      })
+    },
+    accepts: types => types.includes(DRAGGED_EMAILS_TYPE),
+    onDrop: dataTransfer => {
+      const dragged = readDraggedEmails(dataTransfer)
+      if (dragged === null) return
+      fetchEmailSenders(client, accountId, dragged.emailIds)
+        .then(senders => {
+          setDraft({
+            ...latest.current,
+            [kind]: mergeEntries(
+              latest.current[kind],
+              senders.map(sender => sender.email)
+            )
+          })
+        })
+        .catch((error: unknown) => {
+          console.warn('[search] Cannot read the senders of the emails', error)
+        })
+    }
+  })
 
   const handleText =
     (name: keyof TextFields) =>
@@ -190,21 +251,27 @@ export function AdvancedSearchDialog({
     </FormRow>
   )
 
+  const addressRow = (kind: AddressKind, label: string): ReactElement => (
+    <FormRow label={label} htmlFor={fieldId(kind)}>
+      <AddressFilterField
+        label={label}
+        inputId={fieldId(kind)}
+        placeholder={t('search.hints.address')}
+        values={draft[kind]}
+        onChange={values => {
+          setDraft(current => ({ ...current, [kind]: values }))
+        }}
+        dnd={dndOf(kind)}
+        autoFocus={kind === 'from'}
+        field={kind}
+      />
+    </FormRow>
+  )
+
   const rows = (
     <Box className="u-flex u-flex-column">
-      {textRow(
-        'from',
-        t('search.fields.from'),
-        t('search.hints.address'),
-        'advanced-search-from-input',
-        true
-      )}
-      {textRow(
-        'to',
-        t('search.fields.to'),
-        t('search.hints.address'),
-        'advanced-search-to-input'
-      )}
+      {addressRow('from', t('search.fields.from'))}
+      {addressRow('to', t('search.fields.to'))}
       {textRow(
         'subject',
         t('search.fields.subject'),

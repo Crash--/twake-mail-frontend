@@ -4,12 +4,20 @@ import { useCallback } from 'react'
 import { createLocalPreference } from './localPreference'
 
 /**
- * The colour scheme of the app: light (the default), dark, or the one of
- * the system. The app offers no choice of its own: it is the
- * `appearance.theme` setting of the account (tmail-backend), copied in this
- * browser so that the next load starts with it (`ServerThemeSync`).
+ * The colour scheme of the app: light (the default), dark, or `auto`, the
+ * one of the system. It is the `appearance.theme` setting of the account
+ * (tmail-backend), chosen in Settings > Preferences when the server lets it
+ * change, and copied in this browser so that the next load starts with it
+ * (`ServerThemeSync`).
  */
-export type ThemePreference = 'system' | 'light' | 'dark'
+export type ThemePreference = 'light' | 'dark' | 'auto'
+
+/** The choices of Settings > Preferences, in their order */
+export const THEME_PREFERENCES: readonly ThemePreference[] = [
+  'light',
+  'dark',
+  'auto'
+]
 
 /** Without a setting of the account */
 export const DEFAULT_THEME: ThemePreference = 'light'
@@ -27,7 +35,7 @@ export const THEME_PREFERENCE_STORAGE_KEY = 'twake-mail.preferences.theme'
 export function toThemePreference(
   raw: string | null | undefined
 ): ThemePreference | null {
-  return raw === 'system' || raw === 'light' || raw === 'dark' ? raw : null
+  return raw === 'light' || raw === 'dark' || raw === 'auto' ? raw : null
 }
 
 export const themePreference = createLocalPreference<ThemePreference>({

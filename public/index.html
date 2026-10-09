@@ -11,7 +11,7 @@
       // The colour scheme before the app is loaded, so that the page never
       // flashes white: the copy of the `appearance.theme` setting of the
       // account kept in this browser (see ColorSchemeSync): dark, light (the
-      // default), or the one of the system. The app colours itself the same
+      // default), or `auto`, the one of the system. The app colours itself the same
       // way once loaded.
       ;(function () {
         var scheme = 'light'
@@ -19,7 +19,7 @@
           var preference = localStorage.getItem('twake-mail.preferences.theme')
           if (
             preference === 'dark' ||
-            (preference === 'system' &&
+            (preference === 'auto' &&
               window.matchMedia &&
               window.matchMedia('(prefers-color-scheme: dark)').matches)
           ) {

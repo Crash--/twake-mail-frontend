@@ -33,8 +33,8 @@ describe('theme preference', () => {
   it('only knows the values of the server setting', () => {
     expect(toThemePreference('light')).toBe('light')
     expect(toThemePreference('dark')).toBe('dark')
-    expect(toThemePreference('system')).toBe('system')
-    expect(toThemePreference('auto')).toBe(null)
+    expect(toThemePreference('auto')).toBe('auto')
+    expect(toThemePreference('system')).toBe(null)
     expect(toThemePreference(undefined)).toBe(null)
   })
 })

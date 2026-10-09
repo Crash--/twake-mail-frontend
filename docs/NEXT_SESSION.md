@@ -87,12 +87,13 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
   (exception voulue par Quentin : l'indicateur de focus, une règle globale dans le thème, `ds/FocusIndicator`).
 - **Fait** : sidebar, barre du haut, liste, recherche (ouverte, filtres, avancée), lecture et conversation, composer et
   éditeur (desktop, tablette, téléphone), libellés, skeletons (liste, recherche, arbre, lecture) et bannière hors ligne (D8). Captures `after-*` par lot dans le cache.
-- **Mode sombre** (fait le 2026-10-08) : pas de choix dans l'app, on ne compte que sur le backend : le schéma est le réglage
-  `appearance.theme` du compte (tmail-backend, `light`/`dark`/`system`), clair quand il est absent ; copie dans le
-  navigateur pour le premier rendu ; schéma
-  sombre de twake-mui, script de premier rendu dans `index.html`, variantes sombres des composants `@/ds/` à couleurs
-  figées (`theme.applyStyles('dark', …)`), `theme.vars.palette.*` dans les fonctions de style. Le corps des mails reste
-  sur fond blanc (voir `emailBody.ts`). Pas de maquette Figma sombre : à faire valider par Quentin.
+- **Mode sombre** (fait le 2026-10-08/09) : le schéma est le réglage `appearance.theme` du compte (tmail-backend,
+  `light`/`dark`/`auto`), clair quand il est absent ; choix Clair / Sombre / Automatique dans Réglages > Préférences,
+  seulement quand le serveur le laisse modifier (absent de `readOnlyProperties`) ; copie dans le navigateur pour le
+  premier rendu (script de `index.html`) ; schéma sombre de twake-mui. Les couleurs de tmail-flutter de `@/ds/` sont
+  des jetons `TMAIL` (`ds/TmailColors`) : valeur exacte en clair, couleur de twake-mui de même rôle en sombre ;
+  `theme.vars.palette.*` dans les fonctions de style. Le corps des mails reste sur fond blanc (voir `emailBody.ts`).
+  Pas de maquette Figma sombre : à faire valider par Quentin.
 - **Reste à faire** : réglages, mobile
   hors composer (`n29045`, menus `n29085…`), pages Figma sans équivalent Flutter (multi-comptes, délégation, migration,
   automatisations : périmètre à décider).

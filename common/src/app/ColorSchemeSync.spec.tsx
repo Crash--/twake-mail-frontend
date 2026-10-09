@@ -29,4 +29,33 @@ describe('ColorSchemeSync', () => {
     })
     expect(document.documentElement.style.colorScheme).toBe('light')
   })
+
+  it('follows the system with `auto`', async () => {
+    const original = Object.getOwnPropertyDescriptor(window, 'matchMedia')
+    // A system in the dark scheme
+    window.matchMedia = (query: string): MediaQueryList => ({
+      matches: query.includes('dark'),
+      media: query,
+      onchange: null,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      dispatchEvent: () => false
+    })
+    try {
+      window.localStorage.setItem(THEME_PREFERENCE_STORAGE_KEY, 'auto')
+      renderWithProviders(<div />)
+
+      await waitFor(() => {
+        expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      })
+    } finally {
+      if (original === undefined) {
+        Reflect.deleteProperty(window, 'matchMedia')
+      } else {
+        Object.defineProperty(window, 'matchMedia', original)
+      }
+    }
+  })
 })

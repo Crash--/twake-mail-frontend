@@ -69,12 +69,19 @@ export function connectToSpace(
   })
   if (connection === null) return null
 
+  const routerPath = (path: string): string =>
+    path.startsWith('/') ? path : `/${path}`
+
   return {
     syncHistory: apply =>
       connection.syncHistory({
-        onNavigate: (_id, path) =>
-          apply.navigate(path.startsWith('/') ? path : `/${path}`),
+        onNavigate: (_id, path) => apply.navigate(routerPath(path)),
         onLoad: (id, path) => {
+          // TwakeSpace tells a load again when a report of the previous
+          // mailbox reaches it late: the mailbox shown only navigates
+          if (connection.location()?.resourceId === id) {
+            return apply.navigate(routerPath(path))
+          }
           const url = embedRoute(TEAM_MAILBOX_EMBED_PREFIX, id) + path
           const target = parseTeamMailboxEmbedPath(url)
           if (target === null) return

@@ -156,7 +156,12 @@ function TeamMailboxRouter({
     () =>
       spaceBridge?.syncHistory({
         navigate: path => router.navigate(path, { replace: true }),
-        load: onLoad
+        // RouterProvider never disposes its router: this one goes with its
+        // mailbox. Not in a cleanup, which strict mode runs on a live router
+        load: next => {
+          router.dispose()
+          onLoad(next)
+        }
       }),
     [router, spaceBridge, onLoad]
   )

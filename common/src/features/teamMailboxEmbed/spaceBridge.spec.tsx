@@ -279,6 +279,20 @@ describe('connectToSpace', () => {
       expect(postMessage).not.toHaveBeenCalled()
     })
 
+    it('navigates for a load of the mailbox it shows, without reporting it', async () => {
+      const applyNavigation = jest.fn()
+      const load = jest.fn()
+      sync(applyNavigation, load)
+      postMessage.mockClear()
+
+      receive({ type: 'twake-embed:load', resourceId: 'root1', path: '' })
+      await Promise.resolve()
+
+      expect(applyNavigation).toHaveBeenCalledWith('/')
+      expect(load).not.toHaveBeenCalled()
+      expect(postMessage).not.toHaveBeenCalled()
+    })
+
     it('drops a load with a bad resource id or a path leaving the route', () => {
       const load = jest.fn()
       sync(jest.fn(), load)

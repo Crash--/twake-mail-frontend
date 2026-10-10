@@ -59,6 +59,18 @@ describe('RecipientCard', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps the tooltip of the copy button off the way of the pills', async () => {
+    const { onCreateRule } = renderCard()
+
+    await userEvent.hover(
+      screen.getByRole('button', { name: 'Copy the email address' })
+    )
+    const tooltip = await screen.findByRole('tooltip')
+    expect(getComputedStyle(tooltip).pointerEvents).toBe('none')
+    await userEvent.click(screen.getByRole('button', { name: 'Create a rule' }))
+    expect(onCreateRule).toHaveBeenCalledTimes(1)
+  })
+
   it('is named by the address without a name, and has no rule without rules', () => {
     renderCard({ name: null, onCreateRule: null })
 

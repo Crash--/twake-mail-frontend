@@ -9,6 +9,7 @@ import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/Team
 import type { TeamMailboxEmbedTarget } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { useI18n } from '@common/i18n/useI18n'
 import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScreen'
+import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 
 import { teamMailboxEmbedRouteElements } from './TeamMailboxEmbedRoutes'
 
@@ -94,24 +95,28 @@ export function TeamMailboxEmbedApp({
 
   if (phase === 'login-required') {
     return (
-      <ErrorScreen
-        title={t('teamMailboxEmbed.sessionExpiredTitle')}
-        description={t('teamMailboxEmbed.sessionExpiredDescription')}
-        actionLabel={t('common.retry')}
-        onAction={handleRetry}
-        data-testid="team-mailbox-session-expired"
-      />
+      <TeamMailboxPane>
+        <ErrorScreen
+          title={t('teamMailboxEmbed.sessionExpiredTitle')}
+          description={t('teamMailboxEmbed.sessionExpiredDescription')}
+          actionLabel={t('common.retry')}
+          onAction={handleRetry}
+          data-testid="team-mailbox-session-expired"
+        />
+      </TeamMailboxPane>
     )
   }
 
   if (phase === 'failed') {
     return (
-      <ErrorScreen
-        title={t('common.errorOccurred')}
-        actionLabel={t('common.reconnect')}
-        onAction={handleRetry}
-        data-testid="callback-error"
-      />
+      <TeamMailboxPane>
+        <ErrorScreen
+          title={t('common.errorOccurred')}
+          actionLabel={t('common.reconnect')}
+          onAction={handleRetry}
+          data-testid="callback-error"
+        />
+      </TeamMailboxPane>
     )
   }
 

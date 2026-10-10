@@ -47,6 +47,7 @@ import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { mailboxKeys } from '@common/features/mailbox/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
+import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useOnlineStatus } from '@common/features/network/useOnlineStatus'
@@ -546,6 +547,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   // the other cases (zoom, an email open beside the list)
   const isCompact = screenSize !== 'desktop'
   const bottomInset = useFloatingActionInset()
+  const isFramed = useTeamMailboxEmbed() !== null
 
   const { openComposer } = useComposer()
   const showImportant = useShowsSenderPriority()
@@ -761,7 +763,17 @@ export function EmailList(props: EmailListProps): ReactElement {
               topBarSlot
             )
           : null}
-        {content}
+        {isFramed ? (
+          // The facade of a team mailbox scrolls its rows 16 px inside the
+          // sides and the bottom of the frame, clear of its rounded corner
+          // (ADR 010 of twake-space-architecture). Not on the scroller:
+          // virtuoso lays the rows over its padding
+          <Box className="u-flex u-flex-column u-flex-auto u-ov-hidden u-ph-1 u-pb-1">
+            {content}
+          </Box>
+        ) : (
+          content
+        )}
       </ListPane>
       {listActions.menu}
       {/* Always mounted: a live region only announces changes */}

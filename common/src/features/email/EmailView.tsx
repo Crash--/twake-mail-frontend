@@ -13,7 +13,7 @@ import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
-import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
+import { ReadingPane, useIsReadingInset } from '@/ds/ReadingPane/ReadingPane'
 import { MessageText } from '@/ds/MessageText/MessageText'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
@@ -78,6 +78,7 @@ function EmailContent({
 }: EmailContentProps): ReactElement {
   const { t, lang } = useI18n()
   const { canUnsubscribe, unsubscribe } = useUnsubscribe()
+  const isInset = useIsReadingInset()
   useMarkAsReadOnOpen(email)
   useReadReceiptRequest(email)
   const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
@@ -114,8 +115,11 @@ function EmailContent({
   }
 
   return (
-    <ReadingPane data-testid="email-view">
-      <ReadingToolbar onBack={onBack} navigation={navigation} />
+    <ReadingPane
+      toolbar={<ReadingToolbar onBack={onBack} navigation={navigation} />}
+      replyBar={<ReplyActions email={email} />}
+      data-testid="email-view"
+    >
       <EmailSubjectBar
         end={
           <EmailLabels
@@ -131,7 +135,11 @@ function EmailContent({
         </EmailSubject>
       </EmailSubjectBar>
       {/* As tmail-flutter: 16 px under the subject, 16 more over the header */}
-      <Box className="u-ph-1 u-pt-1 u-flex-auto">
+      <Box
+        className={
+          isInset ? 'u-ph-half u-pt-1 u-flex-auto' : 'u-ph-1 u-pt-1 u-flex-auto'
+        }
+      >
         {showsImportant ? <ImportantMark showLabel /> : null}
         <EmailActionRequiredTag email={email} mailboxId={mailboxId ?? null} />
         <MessageHeader
@@ -210,7 +218,6 @@ function EmailContent({
           onRemoteContentShown={handleRemoteContentShown}
         />
       </Box>
-      <ReplyActions email={email} />
     </ReadingPane>
   )
 }

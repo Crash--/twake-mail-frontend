@@ -292,16 +292,21 @@ function ConversationContent({
   const lastSender = lastArrived?.from?.[0] ?? null
 
   return (
-    <ReadingPane data-testid="conversation-view">
-      {/* Stays in view over a long conversation */}
-      <ReadingToolbar
-        onBack={onBack}
-        navigation={navigation}
-        label={t('thread.actions')}
-        data-testid="conversation-toolbar"
-      >
-        <ConversationMenu items={menuItems} />
-      </ReadingToolbar>
+    <ReadingPane
+      // Stays in view over a long conversation
+      toolbar={
+        <ReadingToolbar
+          onBack={onBack}
+          navigation={navigation}
+          label={t('thread.actions')}
+          data-testid="conversation-toolbar"
+        >
+          <ConversationMenu items={menuItems} />
+        </ReadingToolbar>
+      }
+      replyBar={<ConversationReplyBar emails={emails} />}
+      data-testid="conversation-view"
+    >
       <EmailSubjectBar
         end={
           <EmailLabels
@@ -359,7 +364,6 @@ function ConversationContent({
           </span>
         )}
       </Box>
-      <ConversationReplyBar emails={emails} />
     </ReadingPane>
   )
 }
@@ -448,12 +452,15 @@ export function ConversationView({
   // The way back to the list stays, as while it loads
   if (emails.length === 0) {
     return (
-      <ReadingPane>
-        <ReadingToolbar
-          onBack={onBack}
-          navigation={NO_NAVIGATION}
-          label={t('thread.actions')}
-        />
+      <ReadingPane
+        toolbar={
+          <ReadingToolbar
+            onBack={onBack}
+            navigation={NO_NAVIGATION}
+            label={t('thread.actions')}
+          />
+        }
+      >
         <Empty
           icon={EmailOpen}
           title={t('thread.empty')}

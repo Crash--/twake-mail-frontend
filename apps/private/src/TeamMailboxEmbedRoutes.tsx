@@ -11,6 +11,7 @@ import { TeamMailboxBadges } from '@common/features/teamMailboxEmbed/TeamMailbox
 import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 import { TeamMailboxLayout } from '@common/layout/TeamMailboxLayout'
 import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScreen'
+import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 
 import { EmailPage } from './features/mailbox/EmailPage'
 import { MailboxPage } from './features/mailbox/MailboxPage'
@@ -28,7 +29,13 @@ export function teamMailboxEmbedRouteElements(
   spaceBridge: SpaceBridge | null = null
 ): ReactElement {
   return (
-    <Route errorElement={<RouteErrorScreen />}>
+    <Route
+      errorElement={
+        <TeamMailboxPane>
+          <RouteErrorScreen />
+        </TeamMailboxPane>
+      }
+    >
       <Route path="/login" element={<BasicLoginPage />} />
       <Route element={<RequireAuth loading={<TeamMailboxLoadingScreen />} />}>
         <Route

@@ -593,6 +593,36 @@ describe('EmailList', () => {
     )
   })
 
+  it('does not announce the drafts and sent messages the user saves', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(2) })
+    const { queryClient } = renderList(server)
+    await screen.findAllByTestId('email-list-item')
+
+    server.emails.push(
+      makeEmail({
+        id: 'draft',
+        subject: 'Saved draft',
+        receivedAt: '2026-06-01T00:00:00Z',
+        keywords: { $draft: true, $seen: true }
+      }),
+      makeEmail({
+        id: 'sent',
+        subject: 'Sent copy',
+        receivedAt: '2026-06-01T00:00:01Z',
+        keywords: { $seen: true }
+      })
+    )
+    await act(async () => {
+      await queryClient.invalidateQueries({
+        queryKey: threadKeys.all(FAKE_ACCOUNT_ID)
+      })
+    })
+
+    expect(await screen.findByText('Sent copy')).toBeVisible()
+    expect(screen.getByText('Saved draft')).toBeVisible()
+    expect(screen.getByTestId('new-emails-status')).toHaveTextContent(/^$/)
+  })
+
   it('gives the focus back to the email the user comes back from', async () => {
     renderList(makeFakeJmapServer({ emails: makeEmails(3) }), 'mailbox-inbox', {
       focusEmailId: 'e0'

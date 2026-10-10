@@ -187,7 +187,9 @@ export function RecipientCard({
               >
                 {address}
               </Box>
-              <Tooltip title={labels.copy}>
+              {/* Above and click-through: below, it covered the pills and
+                  swallowed their clicks */}
+              <Tooltip title={labels.copy} placement="top" disableInteractive>
                 <IconButton
                   aria-label={labels.copy}
                   onClick={onCopy}

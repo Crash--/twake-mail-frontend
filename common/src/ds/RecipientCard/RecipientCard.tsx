@@ -187,7 +187,9 @@ export function RecipientCard({
               >
                 {address}
               </Box>
-              <Tooltip title={labels.copy}>
+              {/* Above and non-interactive: below, it would cover the
+                  card's actions and swallow their clicks. */}
+              <Tooltip title={labels.copy} placement="top" disableInteractive>
                 <IconButton
                   aria-label={labels.copy}
                   onClick={onCopy}

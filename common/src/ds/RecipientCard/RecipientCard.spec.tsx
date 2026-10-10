@@ -66,6 +66,8 @@ describe('RecipientCard', () => {
       screen.getByRole('button', { name: 'Copy the email address' })
     )
     const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip).toHaveTextContent('Copy the email address')
+    expect(tooltip).not.toHaveClass('MuiTooltip-popperInteractive')
     expect(getComputedStyle(tooltip).pointerEvents).toBe('none')
     await userEvent.click(screen.getByRole('button', { name: 'Create a rule' }))
     expect(onCreateRule).toHaveBeenCalledTimes(1)

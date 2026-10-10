@@ -5,6 +5,7 @@ import {
 } from '@common/testing/fakeJmapServer'
 
 import {
+  findTeamFolderIds,
   findTemplatesMailboxId,
   findTrashAndSpamIds,
   isDraftsMailbox,
@@ -402,6 +403,32 @@ describe('findTrashAndSpamIds', () => {
     ])
 
     expect(ids.sort()).toEqual(['a-trash', 'b-trash', 'spam', 'trash'])
+  })
+})
+
+describe('findTeamFolderIds', () => {
+  it('lists the folders of each team mailbox by its root, its Trash left out', () => {
+    const ids = findTeamFolderIds([
+      makeMailbox({ id: 'inbox', name: 'INBOX', role: 'inbox' }),
+      ...makeTeamMailboxes({ id: 'a', address: 'a@x.org' }),
+      makeMailbox({
+        id: 'a-project',
+        name: 'Project',
+        parentId: 'a-inbox',
+        namespace: teamNamespace('a@x.org')
+      })
+    ])
+
+    expect(ids).toEqual({
+      a: [
+        'a-drafts',
+        'a-inbox',
+        'a-outbox',
+        'a-project',
+        'a-sent',
+        'a-templates'
+      ]
+    })
   })
 })
 

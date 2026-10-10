@@ -283,6 +283,11 @@ export function searchPath(filter: SearchFilter): string {
 export interface SearchContext {
   /** Ids of the trash and spam mailboxes, left out by default */
   trashAndSpamIds: readonly string[]
+  /**
+   * The folders of each team mailbox, by the id of its root: the root holds
+   * no email, a search in it looks in its folders
+   */
+  teamFolderIds: Readonly<Record<string, readonly string[]>>
   /** The day the relative date ranges count from, `YYYY-MM-DD` */
   today: string
 }
@@ -352,7 +357,7 @@ function anyOf(
  */
 export function toJmapFilter(
   filter: SearchFilter,
-  { trashAndSpamIds, today }: SearchContext
+  { trashAndSpamIds, teamFolderIds, today }: SearchContext
 ): Filter<EmailFilterCondition> {
   const condition: EmailFilterCondition = { ...dateBounds(filter, today) }
   const text = filter.text.trim()
@@ -368,7 +373,11 @@ export function toJmapFilter(
     else labelCondition.push({ hasKeyword: filter.label })
   }
   if (filter.unread) condition.notKeyword = SEEN
-  if (filter.scope.kind === 'mailbox') {
+  const teamFolders =
+    filter.scope.kind === 'mailbox'
+      ? (teamFolderIds[filter.scope.mailboxId] ?? [])
+      : []
+  if (filter.scope.kind === 'mailbox' && teamFolders.length === 0) {
     condition.inMailbox = filter.scope.mailboxId
   } else if (filter.scope.kind === 'default' && trashAndSpamIds.length > 0) {
     condition.inMailboxOtherThan = [...trashAndSpamIds]
@@ -377,6 +386,10 @@ export function toJmapFilter(
 
   // `unread` already holds `notKeyword`: the events go in a condition of their own
   const extra: Filter<EmailFilterCondition>[] = [...labelCondition]
+  // A team mailbox: any of its folders (one `inMailbox` per condition)
+  if (teamFolders.length > 0) {
+    extra.push(anyOf(teamFolders.map(inMailbox => ({ inMailbox }))))
+  }
   if (filter.notIncludeEvents) extra.push({ notKeyword: EVENT })
   if (filter.from.length > 1) {
     extra.push(anyOf(filter.from.map(from => ({ from }))))

@@ -169,6 +169,25 @@ export function findTrashAndSpamIds(
     .map(mailbox => mailbox.id)
 }
 
+/**
+ * The folders of each team mailbox, by the id of its root, its Trash and
+ * Spam left out as in the default search: what a search in a team mailbox
+ * looks in, its root holding no email
+ */
+export function findTeamFolderIds(
+  mailboxes: readonly MailboxSummary[]
+): Record<string, string[]> {
+  const trashAndSpam = new Set(findTrashAndSpamIds(mailboxes))
+  return Object.fromEntries(
+    mailboxes.filter(isTeamRoot).map((root): [string, string[]] => [
+      root.id,
+      findDescendantIds(mailboxes, root.id)
+        .filter(id => !trashAndSpam.has(id))
+        .sort()
+    ])
+  )
+}
+
 function roleRank(mailbox: MailboxSummary, isUnderTeamRoot: boolean): number {
   if (!isPersonalMailbox(mailbox)) {
     // Under the root of a team mailbox, its system folders come first, known

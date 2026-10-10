@@ -13,7 +13,11 @@ import {
   type SearchFilter
 } from './searchFilter'
 
-const CONTEXT = { trashAndSpamIds: ['trash', 'spam'], today: '2026-10-04' }
+const CONTEXT = {
+  trashAndSpamIds: ['trash', 'spam'],
+  teamFolderIds: { team: ['team-inbox', 'team-sent'], empty: [] },
+  today: '2026-10-04'
+}
 
 function filter(overrides: Partial<SearchFilter>): SearchFilter {
   return { ...EMPTY_SEARCH_FILTER, ...overrides }
@@ -131,6 +135,33 @@ describe('toJmapFilter', () => {
     expect(
       toJmapFilter(filter({ scope: { kind: 'everywhere' } }), CONTEXT)
     ).toEqual({})
+  })
+
+  it('searches the folders of a team mailbox picked by its root', () => {
+    expect(
+      toJmapFilter(
+        filter({
+          text: 'TEAM',
+          scope: { kind: 'mailbox', mailboxId: 'team' }
+        }),
+        CONTEXT
+      )
+    ).toEqual({
+      operator: 'AND',
+      conditions: [
+        { text: 'TEAM' },
+        {
+          operator: 'OR',
+          conditions: [{ inMailbox: 'team-inbox' }, { inMailbox: 'team-sent' }]
+        }
+      ]
+    })
+    expect(
+      toJmapFilter(
+        filter({ scope: { kind: 'mailbox', mailboxId: 'empty' } }),
+        CONTEXT
+      )
+    ).toEqual({ inMailbox: 'empty' })
   })
 
   it('maps the quick filters to keywords and attachments', () => {

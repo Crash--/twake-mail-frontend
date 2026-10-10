@@ -4,6 +4,7 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { useIsReadingInset } from '@/ds/ReadingPane/ReadingPane'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 const BAR_SX = {
@@ -13,6 +14,11 @@ const BAR_SX = {
   gap: '10px',
   p: '16px',
   [`@media ${SCREEN_QUERIES.mobile}`]: { p: '12px' }
+} as const
+const INSET_BAR_SX = {
+  ...BAR_SX,
+  px: 0,
+  [`@media ${SCREEN_QUERIES.mobile}`]: { py: '12px', px: 0 }
 } as const
 
 export interface EmailSubjectBarProps {
@@ -30,7 +36,7 @@ export function EmailSubjectBar({
   'data-testid': testId
 }: EmailSubjectBarProps): ReactElement {
   return (
-    <Box sx={BAR_SX} data-testid={testId}>
+    <Box sx={useIsReadingInset() ? INSET_BAR_SX : BAR_SX} data-testid={testId}>
       {children}
       {end}
     </Box>

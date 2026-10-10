@@ -19,6 +19,7 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { ComposerProvider } from '@common/features/composer/ComposerProvider'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
+import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 
 import { ConversationView } from './ConversationView'
 import { patchConversation } from './patchConversation'
@@ -124,6 +125,26 @@ function messageActions(name: RegExp): HTMLElement {
 }
 
 describe('ConversationView', () => {
+  it('scrolls its messages between its bars, 16 px inside the sides, in the pane of a team mailbox', async () => {
+    renderWithProviders(
+      <TeamMailboxPane>
+        <ConversationView threadId={THREAD} emailId="c" onBack={jest.fn()} />
+      </TeamMailboxPane>,
+      { withJmapSession: true, jmapServer: makeServer() }
+    )
+    const replyActions = await screen.findByTestId('email-reply-actions')
+    const [toolbar, scroller, replyBar] = Array.from(
+      screen.getByTestId('conversation-view').children
+    )
+    expect(toolbar).toBe(screen.getByTestId('conversation-toolbar'))
+    expect(scroller).toHaveStyle({ marginLeft: '16px', marginRight: '16px' })
+    expect(scroller).toContainElement(
+      screen.getByRole('list', { name: 'Messages of the conversation' })
+    )
+    expect(scroller).not.toContainElement(replyActions)
+    expect(replyBar).toContainElement(replyActions)
+  })
+
   it('shows the messages of the thread, unread and last ones expanded', async () => {
     await renderConversation(makeServer())
 

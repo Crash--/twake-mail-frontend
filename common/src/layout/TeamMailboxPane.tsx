@@ -2,6 +2,7 @@ import { Layout } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
+import { ReadingInsetContext } from '@/ds/ReadingPane/ReadingPane'
 
 export interface TeamMailboxPaneProps {
   children: ReactNode
@@ -11,7 +12,8 @@ export interface TeamMailboxPaneProps {
 /**
  * The one pane of the facade of a team mailbox, the same while it loads and
  * once it shows a folder: what lands in it does not move. It starts 16 px
- * below the tabs of TwakeSpace (ADR 010 of twake-space-architecture).
+ * below the tabs of TwakeSpace, and an open email scrolls 16 px inside its
+ * sides (ADR 010 of twake-space-architecture).
  */
 export function TeamMailboxPane({
   children,
@@ -26,7 +28,11 @@ export function TeamMailboxPane({
       monoColumn
     >
       <FlatMain>
-        <FlatContent data-testid={testId}>{children}</FlatContent>
+        <FlatContent data-testid={testId}>
+          <ReadingInsetContext.Provider value>
+            {children}
+          </ReadingInsetContext.Provider>
+        </FlatContent>
       </FlatMain>
     </Layout>
   )

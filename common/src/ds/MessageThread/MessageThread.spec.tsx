@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
+import { ReadingInsetContext } from '@/ds/ReadingPane/ReadingPane'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { MessageThread } from './MessageThread'
@@ -74,5 +75,39 @@ describe('MessageThread', () => {
     expect(b).toHaveFocus()
     await userEvent.keyboard('{Home}')
     expect(a).toHaveFocus()
+  })
+
+  it('keeps 8 px at the sides of a reading view inset in its frame, more otherwise', () => {
+    const { unmount } = renderDs(<Thread />)
+    expect(screen.getByRole('region', { name: 'Message c' })).not.toHaveStyle({
+      paddingLeft: '8px'
+    })
+    unmount()
+
+    renderDs(
+      <ReadingInsetContext.Provider value>
+        <Thread />
+      </ReadingInsetContext.Provider>
+    )
+    expect(screen.getByRole('region', { name: 'Message c' })).toHaveStyle({
+      paddingLeft: '8px'
+    })
+  })
+
+  it('stops a message scrolled to below the sticky bar, unless the bar is out of the scrolling area', () => {
+    const { unmount } = renderDs(<Thread />)
+    expect(screen.getByRole('button', { name: 'Message a' })).toHaveStyle({
+      scrollMarginTop: '4rem'
+    })
+    unmount()
+
+    renderDs(
+      <ReadingInsetContext.Provider value>
+        <Thread />
+      </ReadingInsetContext.Provider>
+    )
+    expect(screen.getByRole('button', { name: 'Message a' })).toHaveStyle({
+      scrollMarginTop: '0'
+    })
   })
 })

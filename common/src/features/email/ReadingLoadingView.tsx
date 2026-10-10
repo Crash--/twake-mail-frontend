@@ -31,12 +31,15 @@ export function ReadingLoadingView({
 }: ReadingLoadingViewProps): ReactElement {
   const { t } = useI18n()
   return (
-    <ReadingPane>
-      <ReadingToolbar
-        onBack={onBack}
-        navigation={NO_NAVIGATION}
-        label={t('thread.actions')}
-      />
+    <ReadingPane
+      toolbar={
+        <ReadingToolbar
+          onBack={onBack}
+          navigation={NO_NAVIGATION}
+          label={t('thread.actions')}
+        />
+      }
+    >
       <AfterDelay>
         <ReadingShapes />
       </AfterDelay>

@@ -52,4 +52,24 @@ describe('AnchoredDialog', () => {
     })
     expect(opener).toHaveFocus()
   })
+
+  it('lets the page around take the pointer, closing on a click outside', async () => {
+    renderDs(<Harness />)
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }))
+    const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
+
+    // The modal root, and its invisible backdrop, let the pointer through
+    expect(dialog.parentElement).toHaveStyle({ pointerEvents: 'none' })
+    expect(dialog).toHaveStyle({ pointerEvents: 'auto' })
+
+    await userEvent.click(screen.getByRole('textbox', { name: 'Name' }))
+
+    expect(dialog).toBeVisible()
+
+    await userEvent.click(screen.getByText('Anchor'))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+  })
 })

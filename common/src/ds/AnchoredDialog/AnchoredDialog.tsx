@@ -4,6 +4,7 @@
 // middle of the screen with a dimmed backdrop. twake-mui's `Dialog` is always centred; MUI's `Popover`
 // has the placement but is not a dialog (no name, no role).
 import { Fade, Popover } from '@linagora/twake-mui'
+import { ClickAwayListener } from '@mui/material'
 import { useId, type ReactElement, type ReactNode } from 'react'
 
 const PANEL_RADIUS = 16
@@ -31,6 +32,11 @@ export interface AnchoredDialogProps {
  * its bottom left corner, a white card with a soft shadow, scrolling when the screen is too
  * short. The focus is trapped inside, Escape and a click outside close it,
  * and the focus goes back to what opened it. Named by `title`.
+ *
+ * The page around stays under the pointer (no backdrop catching it): an
+ * element of the page can be dragged onto the panel, as tmail-flutter lets
+ * emails of the list be dropped on the advanced search. A drag is not a
+ * click, so it leaves the panel open.
  */
 export function AnchoredDialog({
   open,
@@ -56,6 +62,8 @@ export function AnchoredDialog({
       slots={{ transition: Fade }}
       transitionDuration={150}
       slotProps={{
+        // The invisible backdrop would cover the page: let the pointer through
+        root: { sx: { pointerEvents: 'none' } },
         paper: {
           role: 'dialog',
           'aria-labelledby': titleId,
@@ -64,6 +72,7 @@ export function AnchoredDialog({
             minWidth: `min(${MIN_WIDTH}px, calc(100% - ${2 * SCREEN_MARGIN}px))`,
             maxWidth: `calc(100% - ${2 * SCREEN_MARGIN}px)`,
             mt: '2px',
+            pointerEvents: 'auto',
             borderRadius: `${PANEL_RADIUS}px`,
             boxShadow: PANEL_SHADOW,
             '@media (prefers-reduced-motion: reduce)': {
@@ -73,10 +82,15 @@ export function AnchoredDialog({
         }
       }}
     >
-      <h2 id={titleId} className="u-visuallyhidden">
-        {title}
-      </h2>
-      {children}
+      {/* A click outside, the backdrop no longer receiving it */}
+      <ClickAwayListener onClickAway={onClose}>
+        <div>
+          <h2 id={titleId} className="u-visuallyhidden">
+            {title}
+          </h2>
+          {children}
+        </div>
+      </ClickAwayListener>
     </Popover>
   )
 }

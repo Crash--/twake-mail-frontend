@@ -245,9 +245,9 @@ describe('TeamMailboxEmbedApp', () => {
       spaceBridge
     })
 
-    expect(
-      await screen.findByTestId('team-mailbox-session-expired')
-    ).toBeInTheDocument()
+    const expired = await screen.findByTestId('team-mailbox-session-expired')
+    // On the pane of the facade, not on the background of the page
+    expect(expired.closest('.u-pt-1')).not.toBe(null)
     expect(spaceBridge.notifyLoginRequired).toHaveBeenCalledTimes(1)
     expect(window.location.pathname).toBe(`${BASE}/mailbox/team-sent`)
     // No silent login again until asked: it would fail the same way

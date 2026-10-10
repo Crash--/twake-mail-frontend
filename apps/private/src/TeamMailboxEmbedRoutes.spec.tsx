@@ -1,8 +1,13 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createClient } from 'jmap-client-ts'
-import type { ReactElement } from 'react'
-import { MemoryRouter, Routes, useLocation } from 'react-router'
+import { isValidElement, type ReactElement } from 'react'
+import {
+  createRoutesFromElements,
+  MemoryRouter,
+  Routes,
+  useLocation
+} from 'react-router'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { AppProviders } from '@common/app/AppProviders'
@@ -10,6 +15,7 @@ import { makeQueryClient } from '@common/app/queryClient'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
+import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 import {
   FAKE_SESSION_URL,
@@ -163,6 +169,15 @@ describe('teamMailboxEmbedRouteElements', () => {
     ).toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent(
       '/mailbox/team-inbox/email/shared'
+    )
+  })
+
+  // Declarative `<Routes>` ignore `errorElement`: the tree says where it goes
+  it('shows a page that failed to render in the pane of the facade', () => {
+    const [root] = createRoutesFromElements(teamMailboxEmbedRouteElements())
+    const errorElement = root?.errorElement
+    expect(isValidElement(errorElement) && errorElement.type).toBe(
+      TeamMailboxPane
     )
   })
 

@@ -59,6 +59,18 @@ describe('RecipientCard', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps the copy tooltip out of the way of the pointer', async () => {
+    renderCard()
+
+    await userEvent.hover(
+      screen.getByRole('button', { name: 'Copy the email address' })
+    )
+
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip).toHaveTextContent('Copy the email address')
+    expect(tooltip).not.toHaveClass('MuiTooltip-popperInteractive')
+  })
+
   it('is named by the address without a name, and has no rule without rules', () => {
     renderCard({ name: null, onCreateRule: null })
 

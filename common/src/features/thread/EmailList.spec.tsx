@@ -19,6 +19,7 @@ import {
   FAKE_LINAGORA_CAPABILITIES,
   installFakeLabels
 } from '@common/testing/fakeLinagora'
+import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
@@ -306,6 +307,34 @@ describe('EmailList', () => {
 
     expect(await screen.findByText('Landed')).toBeVisible()
     expect(screen.queryByTestId('email-list-loading')).toBe(null)
+  })
+
+  it('scrolls its rows 16 px inside the sides and the bottom of the frame of a team mailbox only', async () => {
+    const server = makeFakeJmapServer({
+      emails: [makeEmail({ id: 'e1', subject: 'Landed' })]
+    })
+    const { unmount } = renderList(server)
+    const list = await screen.findByTestId('email-list')
+    expect(list.closest('.u-ph-1, .u-pb-1')).toBe(null)
+    unmount()
+
+    renderWithProviders(
+      <TeamMailboxEmbedProvider rootId="team-root">
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailList mailboxId="mailbox-inbox" />
+        </VirtuosoMockContext.Provider>
+      </TeamMailboxEmbedProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    const framed = await screen.findByTestId('email-list')
+    expect(framed.closest('.u-ph-1.u-pb-1')).not.toBe(null)
   })
 
   it('shows the empty view for a mailbox without emails', async () => {

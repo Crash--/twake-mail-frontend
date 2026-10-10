@@ -13,6 +13,7 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
 import { AfterDelay } from '@common/features/loading/AfterDelay'
 import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnouncer'
+import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 
 import {
   getCompactRowLayout,
@@ -153,19 +154,16 @@ function EmailListRowsSkeleton({
 
 /**
  * The list area of a page whose folder or label is not known yet: the rows
- * of the list, as the page will show them
+ * of the list, as the page will show them (16 px inside the frame in the
+ * facade of a team mailbox)
  */
-export function EmailListPageSkeleton({
-  delayMs
-}: {
-  delayMs?: number
-}): ReactElement {
+export function EmailListPageSkeleton(): ReactElement {
   const screenSize = useScreenSize()
+  const inFacade = useTeamMailboxEmbed() !== null
   return (
     <EmailListSkeleton
       isCompact={screenSize !== 'desktop'}
-      className="u-h-100"
-      delayMs={delayMs}
+      className={inFacade ? 'u-h-100 u-ph-1 u-pb-1' : 'u-h-100'}
     />
   )
 }

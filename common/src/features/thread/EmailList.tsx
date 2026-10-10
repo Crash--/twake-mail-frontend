@@ -65,6 +65,8 @@ import {
 } from './EmailCell'
 import {
   emailListSourceQueryOptions,
+  mailboxFilterScope,
+  mailboxListSource,
   type EmailListSource
 } from './emailListSource'
 import {
@@ -87,7 +89,6 @@ import {
 import { EmailListFilterMenu } from './EmailListFilterMenu'
 import {
   availableListFilters,
-  mailboxFilterRequest,
   withListFilter,
   type ListFilter
 } from './listFilter'
@@ -223,22 +224,13 @@ function useListQuery(
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const { isEnabled: collapseThreads } = useThreadPreference()
-  let source: EmailListSource
-  if ('search' in props) {
-    source = {
-      kind: 'search',
-      request: withListFilter(props.search.request, filter)
-    }
-  } else if (filter === 'all') {
-    source = { kind: 'mailbox', mailboxId: props.mailboxId, collapseThreads }
-  } else {
-    // A folder narrowed by a filter is a query list, which push keeps up to
-    // date with its paging
-    source = {
-      kind: 'search',
-      request: mailboxFilterRequest(props.mailboxId, filter, collapseThreads)
-    }
-  }
+  const source: EmailListSource =
+    'search' in props
+      ? {
+          kind: 'search',
+          request: withListFilter(props.search.request, filter)
+        }
+      : mailboxListSource(props.mailboxId, filter, collapseThreads)
   return useInfiniteQuery(
     emailListSourceQueryOptions(client, accountId, source)
   )
@@ -260,7 +252,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     mailboxes.data?.find(candidate => candidate.id === mailboxId) ?? null
   const filterScope =
     search === null
-      ? `mailbox:${mailboxId ?? ''}`
+      ? mailboxFilterScope(mailboxId ?? '')
       : (search.filterScope ?? null)
   const listFilter = useListFilter(filterScope)
   // Nothing to filter in an empty Trash or Spam: the filters are gone

@@ -9,12 +9,18 @@ import {
 import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useRemoveEmails } from '@common/features/emailActions/useRemoveEmails'
+import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { OPENED_FROM_LIST } from '@common/features/thread/conversationTarget'
 import { emailPath } from '@common/features/thread/EmailCell'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
+import {
+  emailListSourceQueryOptions,
+  mailboxFilterScope,
+  mailboxListSource
+} from '@common/features/thread/emailListSource'
+import { useListFilter } from '@common/features/thread/ListFilterProvider'
 import { focusedEmailId } from '@common/features/thread/useEmailListShortcuts'
-import { emailListQueryOptions } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -28,12 +34,23 @@ interface Neighbors {
   nextId: string | null
 }
 
-/** The emails around `emailId` in the list of its folder, if any */
+/**
+ * The emails around `emailId` in the list of its folder, if any: the list
+ * its rows show (conversations, filter), so that both follow one order
+ */
 function useNeighbors(mailboxId: string | null, emailId: string): Neighbors {
   const client = useJmapClient()
   const { accountId } = useJmapSession()
+  const { isEnabled: collapseThreads } = useThreadPreference()
+  const { filter } = useListFilter(
+    mailboxId === null ? null : mailboxFilterScope(mailboxId)
+  )
   const { data } = useInfiniteQuery({
-    ...emailListQueryOptions(client, accountId, mailboxId ?? ''),
+    ...emailListSourceQueryOptions(
+      client,
+      accountId,
+      mailboxListSource(mailboxId ?? '', filter, collapseThreads)
+    ),
     enabled: mailboxId !== null
   })
   return useMemo(() => {

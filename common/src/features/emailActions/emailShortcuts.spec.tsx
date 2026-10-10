@@ -199,3 +199,31 @@ describe('Email keyboard shortcuts', () => {
     })
   })
 })
+
+describe('Previous / Next with conversations', () => {
+  it('follows the rows of the list: one per conversation', async () => {
+    const server = makeServer()
+    // "Second" is a reply in the conversation of "First": one row for both
+    server.emails.forEach(email => {
+      if (email.id === 'e2') email.threadId = 'thread-e1'
+    })
+    renderMailScreen(server, '/mailbox/mailbox-inbox/email/e1')
+    expect(await screen.findByTestId('conversation-subject')).toHaveTextContent(
+      'First'
+    )
+
+    // The top row: nothing above it
+    await waitFor(() => {
+      expect(screen.getByTestId('email-view-next-button')).toBeEnabled()
+    })
+    expect(screen.getByTestId('email-view-previous-button')).toBeDisabled()
+    await userEvent.click(screen.getByTestId('email-view-next-button'))
+
+    // The next row, not "Second", the other message of the conversation
+    await waitFor(() => {
+      expect(screen.getByTestId('conversation-subject')).toHaveTextContent(
+        'Third'
+      )
+    })
+  })
+})

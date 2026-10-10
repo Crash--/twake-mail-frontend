@@ -179,14 +179,12 @@ export function findTeamFolderIds(
 ): Record<string, string[]> {
   const trashAndSpam = new Set(findTrashAndSpamIds(mailboxes))
   return Object.fromEntries(
-    mailboxes
-      .filter(isTeamRoot)
-      .map((root): [string, string[]] => [
-        root.id,
-        findDescendantIds(mailboxes, root.id)
-          .filter(id => !trashAndSpam.has(id))
-          .sort()
-      ])
+    mailboxes.filter(isTeamRoot).map((root): [string, string[]] => [
+      root.id,
+      findDescendantIds(mailboxes, root.id)
+        .filter(id => !trashAndSpam.has(id))
+        .sort()
+    ])
   )
 }
 

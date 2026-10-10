@@ -152,10 +152,7 @@ describe('toJmapFilter', () => {
         { text: 'TEAM' },
         {
           operator: 'OR',
-          conditions: [
-            { inMailbox: 'team-inbox' },
-            { inMailbox: 'team-sent' }
-          ]
+          conditions: [{ inMailbox: 'team-inbox' }, { inMailbox: 'team-sent' }]
         }
       ]
     })

@@ -1,5 +1,9 @@
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
+
 import { CalendarEventCard, LoginPage, SearchPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
+import { env } from '../support/env'
 import { expect, test } from '../support/fixtures'
 
 /**
@@ -8,19 +12,49 @@ import { expect, test } from '../support/fixtures'
  * attendees". The fixtures name `bob@example.com` as attendee, replaced by
  * the test user on import.
  *
- * The memory image of tmail-backend parses events, but answering needs the
- * CalDAV server of a Twake Workplace (esn-sabre): `CalendarEvent/accept`,
- * `maybe`, `reject`, `CalendarEventCounter/accept` and
- * `CalendarEventAttendance/get` answer `serverFail` ("Failed to resolve
- * 'esn_sabre'"). Those answers are checked on a Workplace instead.
+ * Answering (`CalendarEvent/accept`, `maybe`, `reject`,
+ * `CalendarEventCounter/accept`) and reading the answer back
+ * (`CalendarEventAttendance/get`) go through the CalDAV server of a Twake
+ * Workplace (esn-sabre): the stack runs a fake of it, docker/fake-dav.mjs,
+ * reachable on /e2e/caldav/ to put an event in a calendar first.
  */
 
 const COUNTER_EML = 'calendar/calendar_counter_web.eml'
 const REQUEST_EML = 'calendar/calendar_request.eml'
 const CANCEL_EML = 'calendar/calendar_cancel.eml'
+/** The event of the organizer that the counter proposal of COUNTER_EML changes */
+const COUNTER_ORIGINAL_ICS = 'calendar/calendar_counter_original.ics'
+const COUNTER_UID = 'a0b97e6e-3c82-4ef1-9837-56c168959f3d'
+const REQUEST_UID = 'twake-e2e-weekly-sync'
 
-const NO_CALDAV =
-  'memory image: answering an invitation needs esn-sabre (CalDAV), CalendarEvent/accept answers serverFail "Failed to resolve \'esn_sabre\'"'
+/** A fixture of e2e/fixtures/eml, `bob@example.com` replaced by `email` */
+async function readFixture(file: string, email: string): Promise<string> {
+  const text = await readFile(
+    path.join(__dirname, '../fixtures/eml', file),
+    'utf8'
+  )
+  return text.replaceAll('bob@example.com', email)
+}
+
+/**
+ * Puts an event in the calendar of `email` on the fake CalDAV server, as
+ * esn-sabre does when an invitation arrives
+ */
+async function putCalendarEvent(
+  email: string,
+  uid: string,
+  ics: string
+): Promise<void> {
+  const calendar = `${env.baseUrl}/e2e/caldav/calendars/${email}/${email}`
+  const response = await fetch(`${calendar}/${uid}.ics`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'text/calendar' },
+    body: ics
+  })
+  if (!response.ok) {
+    throw new Error(`PUT of event ${uid} on the fake CalDAV: ${response.status}`)
+  }
+}
 
 test.describe('CAL calendar events', () => {
   test.describe('reading one email at a time', () => {
@@ -188,7 +222,12 @@ test.describe('CAL calendar events', () => {
       user,
       jmap
     }) => {
-      test.fixme(true, NO_CALDAV)
+      const request = await readFixture(REQUEST_EML, user.email)
+      const invitation = /BEGIN:VCALENDAR[\s\S]*?END:VCALENDAR\r?\n/.exec(
+        request
+      )?.[0]
+      if (invitation === undefined) throw new Error(`${REQUEST_EML}: no .ics`)
+      await putCalendarEvent(user.email, REQUEST_UID, invitation)
       await jmap.importEml(REQUEST_EML, 'inbox', {
         replace: { 'bob@example.com': user.email }
       })
@@ -207,7 +246,9 @@ test.describe('CAL calendar events', () => {
         'aria-pressed',
         'true'
       )
+      // Basic credentials live in memory: sign in again, back on the email
       await page.reload()
+      await new LoginPage(page).loginAfterReload(user)
       await expect(card.answerButton('maybe')).toHaveAttribute(
         'aria-pressed',
         'true'
@@ -219,7 +260,11 @@ test.describe('CAL calendar events', () => {
       user,
       jmap
     }) => {
-      test.fixme(true, NO_CALDAV)
+      await putCalendarEvent(
+        user.email,
+        COUNTER_UID,
+        await readFixture(COUNTER_ORIGINAL_ICS, user.email)
+      )
       await jmap.importEml(COUNTER_EML, 'inbox', {
         replace: { 'bob@example.com': user.email }
       })

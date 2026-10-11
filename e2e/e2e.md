@@ -438,10 +438,9 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 The card is tmail-flutter's "Orange Bar" design (linagora/tmail-flutter#4623, #4831, #4851). The
 fixtures (`fixtures/eml/calendar/`) carry their `.ics` in 8 bit so that `importEml({ replace })`
 can put the test user among the attendees; `calendar_counter_web.eml` is `calendar_counter.eml`
-without its base64 parts. The memory image parses events but cannot answer them: answering needs
-the CalDAV server (esn-sabre) of a Twake Workplace, `CalendarEvent/accept` and
-`CalendarEventAttendance/get` answer `serverFail` ("Failed to resolve 'esn_sabre'"). `CAL-06` and
-`CAL-07` are `fixme` for that reason and were checked on the devbox.
+without its base64 parts. Answering goes through the CalDAV server (esn-sabre) of a Twake
+Workplace: the stack runs a fake of it (`docker/fake-dav.mjs`), in which `CAL-06` and `CAL-07`
+put the event first, as esn-sabre does when the invitation arrives.
 
 - [x] `CAL-01` Searching "Proposed new time" (show all results) and opening that COUNTER iMIP email shows an event card with "Yes" and "Mail to attendees" buttons, no "No"/"Maybe" buttons, and the banner text "… has proposed changes to the event". — `calendar/calendar_event_counter_test.dart` · tags: `ios (default)`
   - Data: bob backup.zip, "Calendar" folder (from `eml/calendar/calendar_counter.eml`, METHOD:COUNTER, event "Come for a chat").
@@ -453,10 +452,11 @@ the CalDAV server (esn-sabre) of a Twake Workplace, `CalendarEvent/accept` and
   - Spec: `tests/calendar.spec.ts`, `@mobile`. Passes in CI.
 - [x] `CAL-04` A cancellation (CANCEL) shows "<organizer> has canceled a meeting" and offers no answer, only "Mail to attendees"; axe. — web app only
 - [x] `CAL-05` An invitation the user is not part of says "You are not invited to this event…", without answers nor calendar link. — web app only
-- [ ] `CAL-06` Maybe answers the invitation (`CalendarEvent/maybe`): toast "You may attend this meeting", the button pressed, still after a reload (`CalendarEventAttendance/get`). — web app only
-  - `fixme` on the memory image (no esn-sabre); checked on the devbox.
-- [ ] `CAL-07` Yes on a counter proposal (`CalendarEventCounter/accept`): toast "You accepted the proposed time for this meeting". — web app only
-  - `fixme` on the memory image (no esn-sabre).
+- [x] `CAL-06` Maybe answers the invitation (`CalendarEvent/maybe`): toast "You may attend this meeting", the button pressed, still after a reload (`CalendarEventAttendance/get`). — web app only
+  - Spec: `tests/calendar.spec.ts`, against the fake CalDAV server. Passes in CI.
+- [x] `CAL-07` Yes on a counter proposal (`CalendarEventCounter/accept`): toast "You accepted the proposed time for this meeting". — web app only
+  - Data: the organizer's event in the fake CalDAV server (`calendar/calendar_counter_original.ics`).
+  - Spec: `tests/calendar.spec.ts`. Passes in CI.
 
 ## PUSH — Real-time updates (1)
 

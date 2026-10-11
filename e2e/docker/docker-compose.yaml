@@ -55,6 +55,14 @@ services:
     depends_on:
       - james
 
+  # A fake OpenPaaS API and CalDAV server (esn-sabre) of a Twake Workplace, for the calendar
+  # answers (CAL-06, CAL-07): see fake-dav.mjs. james/openpaas.properties points to it.
+  dav:
+    image: node:24-alpine
+    command: ['node', '/srv/fake-dav.mjs']
+    volumes:
+      - ./fake-dav.mjs:/srv/fake-dav.mjs:ro
+
   dex:
     profiles: ['oidc']
     image: ghcr.io/dexidp/dex:v2.41.1

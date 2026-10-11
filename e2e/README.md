@@ -112,6 +112,12 @@ Twake Drive on `http://localhost:<port>/e2e/drive/` (token exchange, intent, pic
 for the Drive specs, which need the app in OIDC mode:
 `E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`.
 
+**Fake CalDAV.** Answering an invitation goes through the CalDAV server of a Twake Workplace
+(esn-sabre) and the OpenPaaS API: the `dav` service ([`docker/fake-dav.mjs`](docker/fake-dav.mjs),
+`node:24-alpine`) answers the few requests tmail-backend makes, with one calendar per user kept
+in memory, and `docker/james/openpaas.properties` points to it. The proxy exposes it on
+`/e2e/caldav/`, where a spec puts the event in the calendar first (`CAL-06`, `CAL-07`).
+
 **Same origin.** The app and JMAP share `http://127.0.0.1:18302`, so the browser never
 makes a cross origin call and the JMAP session advertises `http://127.0.0.1:18302/jmap`
 (`url.prefix`). tmail-backend does answer CORS itself (`Access-Control-Allow-Origin: *`,
@@ -345,6 +351,7 @@ e2e/
 │   ├── app-env.js            runtime configuration of the app under test (/.env.js)
 │   ├── app-env-oidc.js       the same in OIDC mode with the Drive picker (E2E_APP_ENV, DRIVE-*)
 │   ├── drive-picker.html     a fake Twake Drive picker (/e2e/drive/picker.html)
+│   ├── fake-dav.mjs          a fake OpenPaaS API + CalDAV server (service dav, /e2e/caldav/)
 │   ├── docker-compose.chart.yaml   overlay: the image as the chart of tmail-frontend runs it (start-chart.sh)
 │   ├── nginx/chart.conf, chart/    its proxy, and the app_dashboard.json it mounts
 │   ├── dex/config.yaml       OIDC provider (profile oidc)

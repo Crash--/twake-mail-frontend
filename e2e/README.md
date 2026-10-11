@@ -72,6 +72,11 @@ Three Playwright projects, all in Chromium: `chromium` (a desktop, the whole sui
 `playwright.config.ts`). Below 1200 px the folders are in a drawer: `MailboxPage` opens it when a
 method needs the tree (`showFolders`, `openFolder`, `expectFolderSelected`).
 
+A spec that only makes sense on some screens gets a tag, never a `test.skip` on the project
+name or the viewport (a skip shows in every report): `@desktop-only` (`chromium`),
+`@phone-only` (`mobile`), `@tablet-only` (`tablet`), `@touch-only` (`mobile` and `tablet`). The
+projects select them with `grep` / `grepInvert`.
+
 A fourth project, `bulk`, replays on a desktop the specs that must be alone on the backend
 (`BULK_SPECS` in `playwright.config.ts`, today `MBX-51`, a 55 email move): it starts once the
 other three are done. tmail-backend (memory) leaves a bulk `Email/set` hanging when other

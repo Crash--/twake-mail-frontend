@@ -34,6 +34,18 @@ const RESPONSIVE_SPECS =
  */
 const BULK_SPECS = /MBX-51/
 
+/**
+ * Specs that only make sense on some screens, tagged instead of skipped so that
+ * no project lists a test it cannot run: `@desktop-only` (chromium),
+ * `@phone-only` (mobile), `@tablet-only` (tablet), `@touch-only` (mobile and
+ * tablet).
+ */
+const NOT_ON_DESKTOP = /@phone-only|@tablet-only|@touch-only/
+const PHONE_SPECS = /@phone-only|@touch-only/
+const NOT_ON_PHONE = /@desktop-only|@tablet-only/
+const TABLET_SPECS = /@tablet-only|@touch-only/
+const NOT_ON_TABLET = /@desktop-only|@phone-only/
+
 function workers(raw: string | undefined): number | undefined {
   const parsed = Number(raw)
   if (raw !== undefined && Number.isInteger(parsed) && parsed > 0) {
@@ -77,13 +89,14 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      grepInvert: BULK_SPECS,
+      grepInvert: [BULK_SPECS, NOT_ON_DESKTOP],
       use: { ...devices['Desktop Chrome'] }
     },
     {
       // An iPhone 12 to 15 sized screen, in Chromium
       name: 'mobile',
-      grep: RESPONSIVE_SPECS,
+      grep: [RESPONSIVE_SPECS, PHONE_SPECS],
+      grepInvert: NOT_ON_PHONE,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 390, height: 844 },
@@ -94,7 +107,8 @@ export default defineConfig({
     {
       // An iPad Air sized screen, in Chromium
       name: 'tablet',
-      grep: RESPONSIVE_SPECS,
+      grep: [RESPONSIVE_SPECS, TABLET_SPECS],
+      grepInvert: NOT_ON_TABLET,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 820, height: 1180 },

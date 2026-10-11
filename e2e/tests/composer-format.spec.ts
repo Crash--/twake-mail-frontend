@@ -173,12 +173,8 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
 
   test(
     'CMP-83 on a phone the footer stays on one line, without emoji button, and the toolbar scrolls',
-    { tag: '@mobile' },
+    { tag: '@phone-only' },
     async ({ page, user }) => {
-      test.skip(
-        (page.viewportSize()?.width ?? 0) >= 600,
-        'The top bar of the phones'
-      )
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
 

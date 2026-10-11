@@ -23,9 +23,8 @@ function isPhone(width: number | undefined): boolean {
 test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobile frames)', () => {
   test(
     'CMP-86 on a phone the top bar holds close, then Aa, attach, image, a round Send and More, with no footer',
-    { tag: '@mobile' },
+    { tag: '@phone-only' },
     async ({ page, user }) => {
-      test.skip(!isPhone(page.viewportSize()?.width), 'phone only')
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
       await expect(composer.sendButton).toBeVisible()
@@ -83,9 +82,8 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
 
   test(
     'CMP-87 the formatting toolbar shows on "Aa", scrolls sideways without cutting a group, and nothing overflows the screen',
-    { tag: '@mobile' },
+    { tag: '@phone-only' },
     async ({ page, user }) => {
-      test.skip(!isPhone(page.viewportSize()?.width), 'phone only')
       const mailbox = await new LoginPage(page).loginAs(user)
       for (const width of [390, 360]) {
         await page.setViewportSize({ width, height: 740 })
@@ -170,12 +168,11 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
 
   test(
     'CMP-89 a tablet shows the composer as tmail-flutter: a card 24 px from the edges over the dimmed page, the title at the start, close alone',
-    { tag: '@mobile' },
+    { tag: '@tablet-only' },
     async ({ page, user }) => {
       const viewport = page.viewportSize()
       const width = viewport?.width ?? 0
       const height = viewport?.height ?? 0
-      test.skip(width < 600 || width >= 900, 'tablet only')
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
       await composer.expectMode('fullscreen')

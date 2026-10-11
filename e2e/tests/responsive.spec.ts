@@ -32,17 +32,13 @@ test.describe('RESP responsive layout', () => {
     test.describe(`at ${viewport.width} px`, () => {
       test.use({ viewport })
 
-      test(`RESP-01 the screens reflow at ${viewport.width} px without horizontal scrolling`, async ({
+      test(`RESP-01 the screens reflow at ${viewport.width} px without horizontal scrolling`, { tag: '@desktop-only' }, async ({
         page,
         user,
         jmap
       }) => {
         // A browser window zoomed to 400 % (320 px) or 200 % (640 px): the
         // phone and tablet projects have their own screens
-        test.skip(
-          test.info().project.name !== 'chromium',
-          'desktop browser zoom'
-        )
         await jmap.sendEmail({
           to: user.email,
           subject: LONG_SUBJECT,
@@ -79,12 +75,10 @@ test.describe('RESP responsive layout', () => {
     })
   }
 
-  test('RESP-02 the folder drawer keeps the focus and gives it back', async ({
+  test('RESP-02 the folder drawer keeps the focus and gives it back', { tag: '@touch-only' }, async ({
     page,
-    user,
-    isMobile
+    user
   }) => {
-    test.skip(!isMobile, 'no drawer on a desktop')
     const mailbox = await new LoginPage(page).loginAs(user)
     const drawerHasFocus = (): Promise<boolean> =>
       page.evaluate(
@@ -113,11 +107,10 @@ test.describe('RESP responsive layout', () => {
     await expect(mailbox.folderMenuButton).toBeFocused()
   })
 
-  test('RESP-03 the search sits under the bar of a phone, as tmail-flutter', async ({
+  test('RESP-03 the search sits under the bar of a phone, as tmail-flutter', { tag: '@phone-only' }, async ({
     page,
     user
   }) => {
-    test.skip(test.info().project.name !== 'mobile', 'phones only')
     await new LoginPage(page).loginAs(user)
 
     const input = page.getByTestId('search-input')
@@ -141,12 +134,11 @@ test.describe('RESP responsive layout', () => {
   test.describe('on a large tablet', () => {
     test.use({ viewport: { width: 1024, height: 768 } })
 
-    test('RESP-04 the list stays beside the email being read', async ({
+    test('RESP-04 the list stays beside the email being read', { tag: '@desktop-only' }, async ({
       page,
       user,
       jmap
     }) => {
-      test.skip(test.info().project.name !== 'chromium', 'one run is enough')
       await jmap.sendEmail({ to: user.email, subject: 'first', text: 'one' })
       await jmap.waitForEmail({ subject: 'first' })
       await jmap.sendEmail({ to: user.email, subject: 'second', text: 'two' })
@@ -177,12 +169,11 @@ test.describe('RESP responsive layout', () => {
       isMobile: true
     })
 
-    test('RESP-05 the list and the email work in landscape', async ({
+    test('RESP-05 the list and the email work in landscape', { tag: '@desktop-only' }, async ({
       page,
       user,
       jmap
     }) => {
-      test.skip(test.info().project.name !== 'chromium', 'one run is enough')
       await jmap.sendEmail({
         to: user.email,
         subject: 'sideways',
@@ -202,11 +193,10 @@ test.describe('RESP responsive layout', () => {
   test.describe('on a desktop', () => {
     test.use({ viewport: { width: 1440, height: 789 } })
 
-    test('RESP-06 without the platform, the bar of tmail-flutter holds the logotype, the search and the account', async ({
+    test('RESP-06 without the platform, the bar of tmail-flutter holds the logotype, the search and the account', { tag: '@desktop-only' }, async ({
       page,
       user
     }) => {
-      test.skip(test.info().project.name !== 'chromium', 'desktop only')
       const mailbox = await new LoginPage(page).loginAs(user)
 
       const bar = await page.getByTestId('twake-bar').boundingBox()

@@ -46,12 +46,28 @@ remote content there is expected.
 
 Or test the image as the Helm chart of Linagora's `tmail-frontend` runs it (port 80, an
 `env.file` and an `app_dashboard.json` mounted in the image, no `.env.js`, no CSP variable, JMAP
-on another origin than the app), specs `tests/chart-image.spec.ts`:
+on another origin than the app), specs `tests/chart-image.spec.ts` and `tests/chart-image-sso.spec.ts`:
 
 ```bash
 E2E_CHART_IMAGE=twake-mail-frontend:e2e ./scripts/start-chart.sh            # no SSO: the Basic form
+E2E_SUITE=chart npx playwright test
 E2E_OIDC=1 E2E_CHART_IMAGE=twake-mail-frontend:e2e ./scripts/start-chart.sh # Dex found by WebFinger
+E2E_OIDC=1 E2E_SUITE=chart-sso npx playwright test
 ```
+
+**Suites.** The specs that need another stack than the default one run only when `E2E_SUITE`
+selects them ([`support/suites.ts`](support/suites.ts)), and the default run (`main`) leaves
+them out, so that no run skips a spec:
+
+| `E2E_SUITE` | Stack | Specs |
+|---|---|---|
+| `main` (unset) | `./scripts/start.sh` | all the others |
+| `oidc` | `E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh` | `drive.spec.ts`, `infra-oidc.spec.ts` |
+| `chart` | `E2E_CHART_IMAGE=<image> ./scripts/start-chart.sh` | `chart-image.spec.ts` |
+| `chart-sso` | `E2E_OIDC=1 E2E_CHART_IMAGE=<image> ./scripts/start-chart.sh` | `chart-image-sso.spec.ts` |
+
+Run the `oidc`, `chart-sso` suites with `E2E_OIDC=1` (the harness then checks Dex too). A
+suite started against the wrong stack fails in its `beforeAll`, with the command to run.
 
 Run a subset:
 
@@ -110,7 +126,8 @@ whatever `.env.js` the build holds: basic auth, JMAP session on the origin of th
 (`window.location.origin + '/jmap/session'`), English UI. The same nginx serves a fake
 Twake Drive on `http://localhost:<port>/e2e/drive/` (token exchange, intent, picker, a file)
 for the Drive specs, which need the app in OIDC mode:
-`E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`.
+`E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`, then
+`E2E_OIDC=1 E2E_SUITE=oidc npx playwright test`.
 
 **Fake CalDAV.** Answering an invitation goes through the CalDAV server of a Twake Workplace
 (esn-sabre) and the OpenPaaS API: the `dav` service ([`docker/fake-dav.mjs`](docker/fake-dav.mjs),
@@ -132,6 +149,7 @@ origin setup would work too, but that is not what runs here. `127.0.0.1` is a se
 | `E2E_APP_DIR` | `docker/app-placeholder` | `start.sh`: directory with the built app (`index.html`) |
 | `E2E_APP_IMAGE` | | `start.sh`: Docker image of the app, proxied instead of `E2E_APP_DIR` (`docker/docker-compose.image.yaml`) |
 | `E2E_OIDC` | `0` | `start.sh` (Dex + `OidcAuthenticationStrategy`), the OIDC specs |
+| `E2E_SUITE` | `main` | Playwright: the specs of one stack, `main`, `oidc`, `chart` or `chart-sso` (`support/suites.ts`) |
 | `E2E_PUBLIC_URL` | `http://127.0.0.1:18302` | `start.sh`: origin advertised by JMAP and used as Dex issuer |
 | `E2E_JMAP_PORT` / `E2E_WEBADMIN_PORT` / `E2E_APP_PORT` | `18300` / `18301` / `18302` | `start.sh` |
 | `E2E_BASE_URL` | `http://127.0.0.1:18302` | Playwright `baseURL` |
@@ -241,7 +259,7 @@ The result is cached (`oidc.token.cache.expiration`, 60 s here). No JWT validati
 check: an opaque token would do, as long as the provider introspects it.
 
 Dex (v2.41.1) has both endpoints: `/dex/token/introspect` (returns `active`, `exp`, `aud`,
-`iss`…) and `/dex/userinfo` (returns `email`). Measured end to end:
+`iss`…) and `/dex/userinfo` (returns `email`). Measured end to end (`tests/infra-oidc.spec.ts`, suite `oidc`):
 
 - `INFRA-10`: a Dex token (password grant) opens a JMAP session as `alice@example.com`;
 - `INFRA-11`: a forged token gets 401;
@@ -370,6 +388,8 @@ e2e/
 │   ├── users.ts              per-test accounts and team mailboxes
 │   ├── webadmin.ts           WebAdmin client
 │   ├── oidc.ts               Dex tokens without a browser
+│   ├── suites.ts             E2E_SUITE: the specs of each stack
+│   ├── chart.ts              what the stack of start-chart.sh answers
 │   ├── env.ts                environment variables
 │   └── global-setup.ts       fails fast when the stack is down
 ├── pages/                    page objects + README.md (the data-testid contract)
@@ -381,10 +401,11 @@ e2e/
 
 ## CI
 
-[`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml): builds the Docker image of the app, starts the stack with
-`E2E_APP_IMAGE` (the suite runs against the production image and its security headers), runs the suite on Chromium, publishes the HTML report (always) and the
-traces, videos and backend logs (on failure), and a JUnit summary. Run manually with `oidc`
-checked to add Dex and the OIDC specs.
+[`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml): builds the Docker image of the app once (job `image`),
+then runs each suite (`E2E_SUITE`: `main`, `oidc`, `chart`, `chart-sso`) in its own job, which starts
+its stack with that image (the suite runs against the production image and its security headers),
+runs Playwright on Chromium, publishes the HTML report (always) and the traces, videos and
+backend logs (on failure), and a JUnit summary, all named after the suite.
 
 ## Known backend quirks
 

@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 import { env } from './support/env'
+import { suiteSelection } from './support/suites'
 
 const isCI = process.env.CI !== undefined && process.env.CI !== ''
 
@@ -62,6 +63,8 @@ function workers(raw: string | undefined): number | undefined {
  */
 export default defineConfig({
   testDir: './tests',
+  // The specs of the other stacks (OIDC, chart) run only in their suite: support/suites.ts
+  ...suiteSelection(process.env.E2E_SUITE),
   outputDir: './test-results/artifacts',
   globalSetup: './support/global-setup.ts',
   fullyParallel: true,

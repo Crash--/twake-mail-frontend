@@ -13,7 +13,7 @@ import { expect, test } from '../support/fixtures'
  * must run in OIDC mode (Dex), with docker/app-env-oidc.js.
  *
  *   E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh
- *   npx playwright test tests/drive.spec.ts
+ *   E2E_SUITE=oidc npx playwright test tests/drive.spec.ts
  *
  * The account is Dex's static alice: each spec deletes the draft it made.
  */
@@ -78,16 +78,22 @@ async function pickerOptions(page: Page): Promise<Record<string, unknown>> {
 }
 
 async function deleteDraft(composer: ComposerPage): Promise<void> {
-  await composer.deleteDraftButton.click()
+  if (await composer.deleteDraftButton.isVisible()) {
+    await composer.deleteDraftButton.click()
+  } else {
+    // On a phone, no footer: "Delete draft" is in the More menu
+    const items = await composer.openMoreMenu()
+    await items.filter({ hasText: 'Delete draft' }).click()
+  }
   await expect(composer.root).toBeHidden()
 }
 
 test.describe('DRIVE Twake Drive picker', () => {
   test.beforeAll(async () => {
-    test.skip(
-      !(await appRunsInOidcMode()),
+    expect(
+      await appRunsInOidcMode(),
       'needs the app in OIDC mode with the fake Drive: E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh'
-    )
+    ).toBe(true)
   })
 
   test(

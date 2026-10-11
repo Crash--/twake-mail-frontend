@@ -486,8 +486,8 @@ put the event first, as esn-sabre does when the invitation arrives.
 `/e2e/drive/` locations of `docker/nginx/default.conf`: token exchange, intent, a picker
 speaking the cozy-interapp protocol, a file to download). The picker trades the ID token of
 the session: the specs need the app in OIDC mode, `E2E_OIDC=1
-E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`, and skip otherwise (CI runs them only
-when the workflow is started with `oidc`). They sign in as Dex's static alice.
+E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`, and run in the `oidc` suite
+(`E2E_SUITE=oidc`, its own CI job). They sign in as Dex's static alice.
 
 - [ ] `DRIVE-01` "Attach from Drive" opens the picker in a dialog named "Twake Drive" (full screen on phones; axe; both actions sent, no `displayCloseButton`); "Add as link" closes it and inserts a Drive card (`a.tmail-file-link-card`) at the caret, the focus back in the message. — web app only (tmail-flutter `workplace/`)
 - [ ] `DRIVE-02` "Add as attachment" downloads the file and attaches it (`report.txt`, uploaded). — web app only

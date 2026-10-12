@@ -484,4 +484,35 @@ test.describe('WPUSH web push of new emails', () => {
     ])
     expect(pushService.of('PushVerification')).toHaveLength(1)
   })
+
+  test('WPUSH-12 a tab left open renews its subscription every day', async ({
+    page,
+    user,
+    jmap,
+    pushService
+  }) => {
+    // The timers of the page follow a clock the test moves
+    await page.clock.install()
+    await subscribe(page, user, jmap, pushService)
+    const [before] = await serverSubscriptions(jmap)
+
+    const renewed = page.waitForRequest(
+      request => request.postData()?.includes('"expires"') ?? false
+    )
+    await page.clock.fastForward('24:00:01')
+    const request = await renewed
+
+    // A week from the day it is renewed, not from the day it was created
+    const { methodCalls } = request.postDataJSON() as {
+      methodCalls: [string, { update: Record<string, { expires: string }> }][]
+    }
+    const expires = methodCalls[0]?.[1].update[before?.id ?? '']?.expires
+    expect(Date.parse(expires ?? '') - Date.now()).toBeGreaterThan(
+      7 * 24 * 60 * 60 * 1000
+    )
+    expect(await serverSubscriptions(jmap)).toEqual([
+      expect.objectContaining({ id: before?.id })
+    ])
+    expect(pushService.of('PushVerification')).toHaveLength(1)
+  })
 })

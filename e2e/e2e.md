@@ -470,23 +470,24 @@ the CalDAV server (esn-sabre) of a Twake Workplace, `CalendarEvent/accept` and
 - [x] `PUSH-04` During a search grouped by conversation, scrolled down, a push of an email in the Trash (left out of the search) queries nothing and keeps the scroll; one in the Inbox queries the results again, the loaded rows and the scroll kept, the new conversation at the top. — web app only (issue #43)
   - Spec: `tests/push.spec.ts`, 40 conversations: beyond 256 messages the memory image hangs the updates of the other tests (linagora/tmail-backend#2684); more than 256 loaded rows are measured by `PERF-05` (`docs/perf/sync.md`). Passes in CI.
 
-## WPUSH — Web push of new emails (11)
+## WPUSH — Web push of new emails (12)
 
 Web app only (issue #350). Chromium has no push service under Playwright: the test plays it
 (`support/webPush.ts`), so James really verifies the subscription and posts every push, which
-the test hands to the service worker of the app. Spec: `tests/web-push.spec.ts`.
+the test hands to the service worker of the app. Spec: `tests/web-push.spec.ts`. Pass in CI.
 
-- [ ] `WPUSH-01` Turning "Show notifications" on creates one `PushSubscription` at the server, for `EmailDelivery` only, verified with the code James pushed; a delivery is then pushed to the endpoint of the browser.
-- [ ] `WPUSH-02` With the app in the background, a delivery shows one notification with the sender and the subject, none from the worker itself; a click on it opens the email.
-- [ ] `WPUSH-03` With no tab of the app left, a delivery shows the notification of the worker ("New email"), without sender nor subject.
-- [ ] `WPUSH-04` A tab whose live channel is down cannot read the new emails: the worker shows its notification; a click on it brings the tab back to the mail.
-- [ ] `WPUSH-05` Turning the notifications off removes the subscription from the server and the browser: a delivery is not pushed any more.
-- [ ] `WPUSH-06` Signing out removes the subscription from the server and the browser.
-- [ ] `WPUSH-07` Opening the app again renews the subscription (same id, no new verification), still pushed to.
-- [ ] `WPUSH-08` A subscription whose verification code never reached the browser is replaced at the next opening, by one that is verified and pushed to.
-- [ ] `WPUSH-09` With the app in French, the notification of the worker is in French.
-- [ ] `WPUSH-10` Two tabs of the account keep one subscription (the second renews it) and a delivery shows one notification.
-- [ ] `WPUSH-11` A second tab opened while the first subscription still waits for its verification code does not replace it.
+- [x] `WPUSH-01` Turning "Show notifications" on creates one `PushSubscription` at the server, for `EmailDelivery` only, verified with the code James pushed; a delivery is then pushed to the endpoint of the browser.
+- [x] `WPUSH-02` With the app in the background, a delivery shows one notification with the sender and the subject, none from the worker itself; a click on it opens the email.
+- [x] `WPUSH-03` With no tab of the app left, a delivery shows the notification of the worker ("New email"), without sender nor subject.
+- [x] `WPUSH-04` A tab whose live channel is down cannot read the new emails: the worker shows its notification; a click on it brings the tab back to the mail.
+- [x] `WPUSH-05` Turning the notifications off removes the subscription from the server and the browser: a delivery is not pushed any more.
+- [x] `WPUSH-06` Signing out removes the subscription from the server and the browser.
+- [x] `WPUSH-07` Opening the app again renews the subscription (same id, no new verification), still pushed to.
+- [x] `WPUSH-08` A subscription whose verification code never reached the browser is replaced at the next opening, by one that is verified and pushed to.
+- [x] `WPUSH-09` With the app in French, the notification of the worker is in French.
+- [x] `WPUSH-10` Two tabs of the account keep one subscription (the second renews it) and a delivery shows one notification.
+- [x] `WPUSH-11` A second tab opened while the first subscription still waits for its verification code does not replace it.
+- [x] `WPUSH-12` A tab left open renews its subscription every day (the clock of the page moved by 24 h): same id, a new `expires`.
   - Not covered here, unit tests only (`webPush.spec.tsx`, `PushProvider.spec.tsx`, `scripts/push-worker.spec.mjs`): two accounts in one browser (the basic mode gives a new tab the session of the first one), a session lost without a sign-out, a click with every tab closed (a worker may open a window on a real click only).
 
 ## APPGRID — App grid and platform bar (3)

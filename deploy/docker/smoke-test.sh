@@ -85,6 +85,9 @@ expect 'unknown routes fall back to index.html' "$(body "$BASE/mailbox/inbox")" 
 expect 'index.html is never cached' "$(header / Cache-Control)" 'no-store*'
 expect '/.env.js is the mounted one' "$(body "$BASE/.env.js")" '*jmap.example.com*'
 expect '/.env.js is never cached' "$(header /.env.js Cache-Control)" 'no-store*'
+expect '/push-worker.js is never cached' "$(header /push-worker.js Cache-Control)" 'no-store*'
+expect '/push-worker.js is served as JavaScript' \
+  "$(header /push-worker.js Content-Type)" '*javascript*'
 expect '/version.js is written by the build' "$(body "$BASE/version.js")" 'var APP_VERSION = *'
 script="$(body "$BASE/" | grep -o 'src="/static/js/index[^"]*"' | head -1 | cut -d'"' -f2)"
 expect 'hashed assets are cached for a year' "$(header "$script" Cache-Control)" '*immutable*'

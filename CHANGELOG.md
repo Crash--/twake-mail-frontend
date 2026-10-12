@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is hidden or not focused) and a sound when an email reaches the Inbox, told by push. The
   browser asks for the permission on the click on the switch; one tab of
   the account alerts.
+- With the notifications on, the browser subscribes to the web push of the
+  server (JMAP `PushSubscription`, deliveries of emails only): a service
+  worker (`/push-worker.js`) notifies with every tab closed, without the
+  sender nor the subject as it holds no credentials. The subscription is
+  renewed at each opening and removed on sign-out. Chrome and Safari need
+  the VAPID key of the server in the session (RFC 9749), which James does
+  not give yet.
 - In a frame of Twake Space, a new email in a team mailbox asks Twake Space
   to show a notification (`notify` of `@linagora/twake-embed` 3.5.0, with
   the mailbox as `resourceId`): a click opens the space of that mailbox.

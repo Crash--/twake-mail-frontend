@@ -1,5 +1,5 @@
 import { createClient, type JmapClient } from 'jmap-client-ts'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { METHOD_CAPABILITIES } from '@common/jmap/pushSubscription'
 
 import {
   FAKE_ACCOUNT_ID,
@@ -19,7 +19,7 @@ function makeClient(server: FakeJmapServer): JmapClient {
   return createClient({
     sessionUrl: FAKE_SESSION_URL,
     fetch: server.fetch,
-    methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+    methodCapabilities: METHOD_CAPABILITIES
   })
 }
 

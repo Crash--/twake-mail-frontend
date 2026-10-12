@@ -1429,6 +1429,8 @@
     }
   },
   "newMail": {
-    "unknownSender": "Unknown sender"
+    "unknownSender": "Unknown sender",
+    "pushTitle": "New email",
+    "pushBody": "An email reached your Inbox."
   }
 }

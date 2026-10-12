@@ -2,11 +2,13 @@ import { useCallback } from 'react'
 
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useComposer } from '@common/features/composer/ComposerProvider'
+import { endWebPush } from '@common/features/newMail/webPush'
 
 /**
  * Signs out, from the account menu of the app or of the platform bar.
  * Signing out forgets the composers kept in the browser: the changes the
- * server does not have are saved first (one draft each).
+ * server does not have are saved first (one draft each), and the server
+ * stops pushing new emails to this browser.
  */
 export function useLogout(): () => void {
   const service = useAuthService()
@@ -14,6 +16,7 @@ export function useLogout(): () => void {
 
   return useCallback(() => {
     saveUnsaved()
+      .then(() => endWebPush())
       .then(() => service.logout())
       .catch((error: unknown) => {
         console.error('[auth] Logout failed', error)

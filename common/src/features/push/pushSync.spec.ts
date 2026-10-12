@@ -1,6 +1,6 @@
 import { InfiniteQueryObserver, QueryClient } from '@tanstack/react-query'
 import { createClient, type JmapClient } from 'jmap-client-ts'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { METHOD_CAPABILITIES } from '@common/jmap/pushSubscription'
 
 import {
   mailboxesQueryOptions,
@@ -58,7 +58,7 @@ async function makeSetup(
     sessionUrl: FAKE_SESSION_URL,
     auth: { getAuthorizationHeader: () => Promise.resolve('Basic dGVzdA==') },
     fetch: server.fetch,
-    methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+    methodCapabilities: METHOD_CAPABILITIES
   })
   await client.getSession()
   const queryClient = new QueryClient({

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router'
 
 import { formatAddressName } from '@common/features/email/addresses'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapClient } from '@common/jmap/JmapClientProvider'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import {
   canNotify,
@@ -10,6 +12,12 @@ import {
   newMailSoundPreference
 } from './newMailPreferences'
 import type { NewEmail } from './newMailWatcher'
+import {
+  confirmWebPush,
+  getPushRegistration,
+  syncWebPush,
+  type PushWorkerMessage
+} from './webPush'
 
 /** What a notification of a new email says: its sender and its subject */
 export function describeNewEmail(
@@ -59,9 +67,17 @@ function playChime(): void {
  * the page is hidden or not focused. One tab of the account alerts, the one
  * holding the lock: each tab gets the same push. Pages that do not alert
  * (`isEnabled` false, as the facades framed by Twake Space) never take it.
+ *
+ * The app alone (`scope` `page`) also keeps the web push of the browser in
+ * line with the notifications switch (`syncWebPush`), so that the server
+ * wakes the service worker with every tab closed. Its notifications then go
+ * through the worker, which opens the email on a click.
  */
 export interface NewMailAlert {
-  alert: (emails: readonly NewEmail[]) => void
+  /** Resolves once the notifications are shown */
+  alert: (emails: readonly NewEmail[]) => Promise<void>
+  /** This tab shows the notifications of the new emails */
+  notifies: () => boolean
   /** This tab alerts, and the user turned the sound or notifications on */
   isWanted: () => boolean
   /** This page holds the lock of the alerts of the account */
@@ -76,7 +92,47 @@ export function useNewMailAlert(
 ): NewMailAlert {
   const { t } = useI18n()
   const navigate = useNavigate()
+  const client = useJmapClient()
+  const { session } = useJmapSession()
   const isLeader = useRef(false)
+  const hasWebPush = isEnabled && scope === 'page'
+  const isNotifying = newMailNotificationPreference.useValue() && canNotify()
+  const pushTitle = t('newMail.pushTitle')
+  const pushBody = t('newMail.pushBody')
+
+  useEffect(() => {
+    if (!hasWebPush) return
+    syncWebPush(client, session, isNotifying, {
+      title: pushTitle,
+      body: pushBody
+    }).catch((error: unknown) => {
+      console.warn('[web push] Cannot set the subscription', error)
+    })
+  }, [client, session, hasWebPush, isNotifying, pushTitle, pushBody])
+
+  useEffect(() => {
+    if (!hasWebPush || !('serviceWorker' in navigator)) return
+    const handleMessage = (event: MessageEvent<PushWorkerMessage>): void => {
+      const message = event.data
+      if (message.type === 'twake-mail-push-verification') {
+        confirmWebPush(
+          client,
+          message.pushSubscriptionId,
+          message.verificationCode
+        ).catch((error: unknown) => {
+          console.warn('[web push] Cannot confirm the subscription', error)
+        })
+      }
+      // A notification clicked: its email, an in-app path
+      if (message.type === 'twake-mail-open' && message.url.startsWith('/')) {
+        void navigate(message.url)
+      }
+    }
+    navigator.serviceWorker.addEventListener('message', handleMessage)
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleMessage)
+    }
+  }, [client, hasWebPush, navigate])
 
   useEffect(() => {
     if (!isEnabled) return
@@ -117,8 +173,14 @@ export function useNewMailAlert(
     []
   )
 
+  const notifies = useCallback(
+    (): boolean =>
+      isLeader.current && newMailNotificationPreference.read() && canNotify(),
+    []
+  )
+
   const alert = useCallback(
-    (emails: readonly NewEmail[]) => {
+    async (emails: readonly NewEmail[]): Promise<void> => {
       if (!isLeader.current) return
       if (newMailSoundPreference.read()) {
         try {
@@ -136,14 +198,24 @@ export function useNewMailAlert(
       ) {
         return
       }
+      // Through the worker when there is one: it then knows a notification
+      // is shown for the push it got, and handles the click
+      const registration = await getPushRegistration().catch(() => null)
       for (const email of emails) {
         const { title, body } = describeNewEmail(email, t)
+        const url = `/mailbox/${encodeURIComponent(email.inboxId)}/email/${encodeURIComponent(email.id)}`
+        if (registration !== null) {
+          await registration.showNotification(title, {
+            tag: email.id,
+            body,
+            data: { url }
+          })
+          continue
+        }
         const notification = new Notification(title, { tag: email.id, body })
         notification.onclick = () => {
           window.focus()
-          void navigate(
-            `/mailbox/${encodeURIComponent(email.inboxId)}/email/${encodeURIComponent(email.id)}`
-          )
+          void navigate(url)
           notification.close()
         }
       }
@@ -153,5 +225,5 @@ export function useNewMailAlert(
 
   const isLeaderNow = useCallback((): boolean => isLeader.current, [])
 
-  return { alert, isWanted, isLeader: isLeaderNow }
+  return { alert, notifies, isWanted, isLeader: isLeaderNow }
 }

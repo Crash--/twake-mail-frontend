@@ -1429,6 +1429,8 @@
     }
   },
   "newMail": {
-    "unknownSender": "Expéditeur inconnu"
+    "unknownSender": "Expéditeur inconnu",
+    "pushTitle": "Nouveau mail",
+    "pushBody": "Un mail est arrivé dans votre boîte de réception."
   }
 }

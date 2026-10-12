@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   server (JMAP `PushSubscription`, deliveries of emails only): a service
   worker (`/push-worker.js`) notifies with every tab closed, without the
   sender nor the subject as it holds no credentials. The subscription is
-  renewed at each opening and removed on sign-out; the accounts with a tab
+  renewed at each opening, then every day while a tab stays open, and
+  removed on sign-out; the accounts with a tab
   open share the endpoint of the browser. Chrome and Safari need the VAPID
   key of the server in the session (RFC 9749).
 - In a frame of Twake Space, a new email in a team mailbox asks Twake Space

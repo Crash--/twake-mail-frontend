@@ -7,7 +7,10 @@ export const PUSH_WORKER_URL = '/push-worker.js'
 /** Tag of the notification the worker shows alone (`public/push-worker.js`) */
 export const GENERIC_NOTIFICATION_TAG = 'twake-mail-new-mail'
 const RECORDS_KEY = 'twake-mail.push.subscriptions'
-/** James keeps a subscription 7 days at most: renewed at each opening */
+/**
+ * James keeps a subscription 7 days at most: renewed at each opening, then
+ * every day while a tab stays open
+ */
 const LIFETIME_MS = (7 * 24 - 1) * 60 * 60 * 1000
 /** A worker that does not activate must not hold the tabs back for ever */
 const WORKER_READY_MS = 10_000
@@ -18,6 +21,12 @@ const SIGN_OUT_MS = 3000
  * before the subscription counts as lost and is replaced
  */
 const VERIFICATION_GRACE_MS = 60_000
+/**
+ * How often a tab left open renews its subscription: the server forgets
+ * the ones nobody renews (RFC 8620 §7.2), which cleans up after the
+ * browsers that are gone
+ */
+export const RENEWAL_INTERVAL_MS = 24 * 60 * 60 * 1000
 const SYNC_LOCK = 'twake-mail-web-push'
 const PRESENCE_LOCK = 'twake-mail-web-push-account:'
 

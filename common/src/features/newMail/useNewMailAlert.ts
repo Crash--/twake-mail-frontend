@@ -20,6 +20,7 @@ import {
   getPushRegistration,
   holdWebPushPresence,
   onWebPushChangedElsewhere,
+  RENEWAL_INTERVAL_MS,
   syncWebPush,
   type PushWorkerMessage
 } from './webPush'
@@ -112,7 +113,8 @@ export function useNewMailAlert(
       isLeader.current && newMailNotificationPreference.read() && canNotify(),
     []
   )
-  // Bumped when another tab replaced the endpoint of the browser
+  // Bumped to bring the web push in line again: another tab replaced the
+  // endpoint of the browser, or the subscription is due for its renewal
   const [pushEpoch, setPushEpoch] = useState(0)
   const hasWebPush = isEnabled && scope === 'page'
   const isNotifying = newMailNotificationPreference.useValue() && canNotify()
@@ -132,6 +134,9 @@ export function useNewMailAlert(
   useEffect(() => {
     if (!hasWebPush) return
     const release = holdWebPushPresence(username)
+    const renewal = setInterval(() => {
+      setPushEpoch(epoch => epoch + 1)
+    }, RENEWAL_INTERVAL_MS)
     const stopListening = onWebPushChangedElsewhere(username, () => {
       setPushEpoch(epoch => epoch + 1)
     })
@@ -144,6 +149,7 @@ export function useNewMailAlert(
     })
     return () => {
       release()
+      clearInterval(renewal)
       stopListening()
       unsubscribe()
     }

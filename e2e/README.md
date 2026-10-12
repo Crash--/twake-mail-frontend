@@ -128,6 +128,7 @@ origin setup would work too, but that is not what runs here. `127.0.0.1` is a se
 | `E2E_WEBADMIN_URL` | `http://127.0.0.1:18301` | user fixtures |
 | `E2E_DOMAIN` | `example.com` | user fixtures |
 | `E2E_OIDC_ISSUER` | `$E2E_BASE_URL/dex` | `support/oidc.ts` |
+| `E2E_PUSH_HOST` | `host.docker.internal` | `support/webPush.ts`: the name James reaches the test runner by, for the web push specs |
 | `E2E_WORKERS` | CPU based (2 on CI) | Playwright workers |
 | `E2E_HEADLESS=false` / `E2E_SLOWMO=300` | | watch the browser |
 | `E2E_TRACE` | `retain-on-failure` | `on` to record a trace for every test |
@@ -358,6 +359,7 @@ e2e/
 │   ├── users.ts              per-test accounts and team mailboxes
 │   ├── webadmin.ts           WebAdmin client
 │   ├── oidc.ts               Dex tokens without a browser
+│   ├── webPush.ts            the push service of the browser, played by the test (WPUSH)
 │   ├── env.ts                environment variables
 │   └── global-setup.ts       fails fast when the stack is down
 ├── pages/                    page objects + README.md (the data-testid contract)

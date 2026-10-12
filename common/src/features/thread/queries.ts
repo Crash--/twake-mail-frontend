@@ -220,15 +220,24 @@ export function byReceivedAt<T extends Pick<Email, 'receivedAt'>>(
   return left.receivedAt.localeCompare(right.receivedAt)
 }
 
-/** The members of the threads `ids`, by thread id, the oldest first */
+/**
+ * The members of the threads of `listed`, by thread id, the oldest first.
+ * A listed email missing from its thread stays one of its members:
+ * tmail-backend answers `Thread/get` with `notFound` for some threads whose
+ * emails exist.
+ */
 export function groupThreadMembers(
-  threadIds: readonly string[],
+  listed: readonly ThreadMember[],
   members: readonly ThreadMember[]
 ): Record<string, ThreadMember[]> {
   const threads: Record<string, ThreadMember[]> = Object.fromEntries(
-    threadIds.map(id => [id, []])
+    listed.map(email => [email.threadId, []])
   )
   for (const member of members) threads[member.threadId]?.push(member)
+  for (const email of listed) {
+    const list = threads[email.threadId]
+    if (list?.some(member => member.id === email.id) === false) list.push(email)
+  }
   for (const list of Object.values(threads)) list.sort(byReceivedAt)
   return threads
 }
@@ -345,10 +354,7 @@ export async function fetchListPage(
       : {}),
     ...(membersResult?.ok
       ? {
-          threads: groupThreadMembers(
-            listed.map(email => email.threadId),
-            membersResult.value.list
-          )
+          threads: groupThreadMembers(listed, membersResult.value.list)
         }
       : {})
   }

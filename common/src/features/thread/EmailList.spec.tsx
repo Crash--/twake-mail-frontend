@@ -850,6 +850,29 @@ describe('EmailList', () => {
     window.localStorage.clear()
   })
 
+  it('shows the email of a conversation whose thread the server lost', async () => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+    const server = makeFakeJmapServer({
+      emails: [
+        makeEmail({
+          id: 'orphan',
+          threadId: 'lost',
+          subject: 'Old news',
+          from: [{ name: 'Bob Dupont', email: 'bob@example.com' }]
+        })
+      ]
+    })
+    server.lostThreads.add('lost')
+    renderList(server)
+
+    const row = await screen.findByTestId('email-list-item')
+    expect(row).toHaveAttribute('data-unread', 'true')
+    expect(within(row).getByTestId('email-list-item-sender')).toHaveTextContent(
+      /^Bob Dupont$/
+    )
+    window.localStorage.clear()
+  })
+
   it('reads and stars every email of a conversation from its row', async () => {
     window.localStorage.setItem('twake-mail.preferences.thread', 'true')
     const server = makeFakeJmapServer({

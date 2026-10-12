@@ -13,6 +13,11 @@ const LIFETIME_MS = (7 * 24 - 1) * 60 * 60 * 1000
 const WORKER_READY_MS = 10_000
 /** Signing out never waits longer for the server to forget this browser */
 const SIGN_OUT_MS = 3000
+/**
+ * How long the verification code of a new subscription is waited for,
+ * before the subscription counts as lost and is replaced
+ */
+const VERIFICATION_GRACE_MS = 60_000
 const SYNC_LOCK = 'twake-mail-web-push'
 const PRESENCE_LOCK = 'twake-mail-web-push-account:'
 
@@ -41,6 +46,8 @@ interface PushRecord {
   endpoint: string
   /** The server got its verification code back: it pushes */
   isVerified: boolean
+  /** When it was created, in ms */
+  createdAt: number
 }
 
 /** By username: the accounts signed in in this browser share its endpoint */
@@ -295,6 +302,16 @@ async function syncUnlocked(
   }
 
   const known = records[username] ?? null
+  // Just created, here or in another tab of the account: its code is on
+  // its way
+  if (
+    known?.endpoint === subscription.endpoint &&
+    !known.isVerified &&
+    Date.now() - known.createdAt < VERIFICATION_GRACE_MS
+  ) {
+    writeRecords(records)
+    return
+  }
   // Never verified (the page closed before the code came): a new one,
   // whose code the server pushes again
   if (known?.endpoint === subscription.endpoint && known.isVerified) {
@@ -336,7 +353,8 @@ async function syncUnlocked(
     [username]: {
       id: created.id,
       endpoint: subscription.endpoint,
-      isVerified: false
+      isVerified: false,
+      createdAt: Date.now()
     }
   })
   const earlyCode = earlyCodes.get(created.id)
@@ -405,14 +423,27 @@ export async function confirmWebPush(
 }
 
 /**
- * Calls back when another tab changed the subscriptions of this browser
- * (an endpoint replaced): this tab then brings its own in line.
+ * Calls back when another tab replaced the endpoint of the browser, or
+ * forgot the subscription of this account: this tab then brings its own in
+ * line. Not when a tab of the same account only wrote about the same
+ * endpoint (created, verified).
  *
  * @returns a function that stops listening
  */
-export function onWebPushChangedElsewhere(listener: () => void): () => void {
+export function onWebPushChangedElsewhere(
+  username: string,
+  listener: () => void
+): () => void {
   const handleStorage = (event: StorageEvent): void => {
-    if (event.key === RECORDS_KEY) listener()
+    if (event.key !== RECORDS_KEY) return
+    const records = readRecords()
+    const mine = records[username]
+    if (
+      mine === undefined ||
+      Object.values(records).some(other => other.endpoint !== mine.endpoint)
+    ) {
+      listener()
+    }
   }
   window.addEventListener('storage', handleStorage)
   return () => {

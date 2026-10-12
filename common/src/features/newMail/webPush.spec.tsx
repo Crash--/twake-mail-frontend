@@ -12,6 +12,7 @@ import {
   confirmWebPush,
   endWebPush,
   forgetWebPush,
+  onWebPushChangedElsewhere,
   syncWebPush
 } from './webPush'
 
@@ -251,10 +252,23 @@ describe('syncWebPush', () => {
     )
   })
 
+  it('waits for the verification code of a subscription just created, as another tab of the account does', async () => {
+    installBrowserPush()
+    const { client, session, calls } = await makeAccount()
+    await syncWebPush(client, session, true, TEXTS)
+
+    await syncWebPush(client, session, true, TEXTS)
+    await syncWebPush(client, session, true, TEXTS)
+
+    expect(calls).toHaveLength(1)
+  })
+
   it('replaces a subscription whose verification code never came', async () => {
     installBrowserPush()
     const { client, session, calls } = await makeAccount()
     await syncWebPush(client, session, true, TEXTS)
+    const now = Date.now()
+    jest.spyOn(Date, 'now').mockReturnValue(now + 61_000)
 
     await syncWebPush(client, session, true, TEXTS)
 
@@ -454,5 +468,48 @@ describe('syncWebPush', () => {
     await syncWebPush(client, session, true, TEXTS)
 
     expect(calls).toHaveLength(0)
+  })
+
+  describe('onWebPushChangedElsewhere', () => {
+    function store(records: Record<string, { endpoint: string }>): void {
+      window.localStorage.setItem(
+        'twake-mail.push.subscriptions',
+        JSON.stringify(records)
+      )
+      window.dispatchEvent(
+        new StorageEvent('storage', { key: 'twake-mail.push.subscriptions' })
+      )
+    }
+
+    it('stays quiet when a tab of the account wrote about the same endpoint', () => {
+      const listener = jest.fn()
+      const stop = onWebPushChangedElsewhere('me@example.com', listener)
+
+      store({ 'me@example.com': { endpoint: 'https://push.example.com/1' } })
+      store({
+        'me@example.com': { endpoint: 'https://push.example.com/1' },
+        [OTHER]: { endpoint: 'https://push.example.com/1' }
+      })
+
+      expect(listener).not.toHaveBeenCalled()
+      stop()
+    })
+
+    it('tells when the endpoint of the browser was replaced, or the subscription forgotten', () => {
+      const listener = jest.fn()
+      const stop = onWebPushChangedElsewhere('me@example.com', listener)
+
+      store({
+        'me@example.com': { endpoint: 'https://push.example.com/1' },
+        [OTHER]: { endpoint: 'https://push.example.com/2' }
+      })
+      expect(listener).toHaveBeenCalledTimes(1)
+      store({ [OTHER]: { endpoint: 'https://push.example.com/2' } })
+      expect(listener).toHaveBeenCalledTimes(2)
+
+      stop()
+      store({})
+      expect(listener).toHaveBeenCalledTimes(2)
+    })
   })
 })

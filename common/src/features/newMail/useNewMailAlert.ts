@@ -132,7 +132,7 @@ export function useNewMailAlert(
   useEffect(() => {
     if (!hasWebPush) return
     const release = holdWebPushPresence(username)
-    const stopListening = onWebPushChangedElsewhere(() => {
+    const stopListening = onWebPushChangedElsewhere(username, () => {
       setPushEpoch(epoch => epoch + 1)
     })
     // Credentials refused, no sign-out: the server cannot be told any more

@@ -7,6 +7,7 @@ import { openAccountMenuIfAny } from '../support/accountMenu'
 import { expect, test as base } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
 import {
+  ageSubscriptions,
   browserEndpoint,
   clickNotification,
   PushService,
@@ -348,6 +349,8 @@ test.describe('WPUSH web push of new emails', () => {
     await jmap.waitForEmail({ subject: 'Not pushed' })
     expect(pushService.of('StateChange')).toEqual([])
 
+    // Opened again later: the code is no longer waited for
+    await ageSubscriptions(page)
     await pushService.deliverThrough(page)
     const verified = page.waitForRequest(
       request => request.postData()?.includes('verificationCode') ?? false
@@ -409,5 +412,76 @@ test.describe('WPUSH web push of new emails', () => {
           body: 'Ouvrez Twake Mail pour le lire.'
         })
       ])
+  })
+
+  test('WPUSH-10 two tabs of the account share one subscription and show one notification', async ({
+    page,
+    context,
+    user,
+    users,
+    jmap,
+    jmapFor,
+    pushService
+  }) => {
+    const sender = await users.create({ prefix: 'sender' })
+    await subscribe(page, user, jmap, pushService)
+    const [first] = await serverSubscriptions(jmap)
+    // The basic mode gives a new tab the session of the first one
+    const second = await context.newPage()
+    const renewed = second.waitForRequest(
+      request => request.postData()?.includes('"expires"') ?? false
+    )
+    await new LoginPage(second).loginAs(user)
+    await renewed
+    await putInBackground(page)
+    await putInBackground(second)
+
+    await jmapFor(sender).sendEmail({
+      to: user.email,
+      subject: 'Told once',
+      text: 'hi'
+    })
+
+    const email = await jmap.waitForEmail({ subject: 'Told once' })
+    await expect.poll(() => pushService.of('StateChange').length).toBe(1)
+    await expect
+      .poll(() => shownNotifications(second))
+      .toEqual([expect.objectContaining({ tag: email.id, body: 'Told once' })])
+    expect(await serverSubscriptions(jmap)).toEqual([
+      expect.objectContaining({ id: first?.id })
+    ])
+    expect(pushService.of('PushVerification')).toHaveLength(1)
+  })
+
+  test('WPUSH-11 a second tab does not replace a subscription still waiting for its verification code', async ({
+    page,
+    context,
+    user,
+    users,
+    jmap,
+    jmapFor,
+    pushService
+  }) => {
+    const sender = await users.create({ prefix: 'sender' })
+    // Nothing delivers the pushes yet: the code of the first tab is late
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await turnNotifications(page, mailbox, true)
+    await expect.poll(() => pushService.of('PushVerification').length).toBe(1)
+    const [waiting] = await serverSubscriptions(jmap)
+
+    const second = await context.newPage()
+    const secondMailbox = await new LoginPage(second).loginAs(user)
+    // Long after the second tab brought the web push in line
+    await jmapFor(sender).sendEmail({
+      to: user.email,
+      subject: 'Seen by both',
+      text: 'hi'
+    })
+    await expect(secondMailbox.emailRow('Seen by both')).toBeVisible()
+
+    expect(await serverSubscriptions(jmap)).toEqual([
+      expect.objectContaining({ id: waiting?.id })
+    ])
+    expect(pushService.of('PushVerification')).toHaveLength(1)
   })
 })

@@ -250,3 +250,19 @@ export async function putInBackground(page: Page): Promise<void> {
 export async function browserEndpoint(page: Page): Promise<string | null> {
   return page.evaluate(key => window.localStorage.getItem(key), ENDPOINT_KEY)
 }
+
+/**
+ * As if the app had been closed for a while: the subscriptions it remembers
+ * (common/src/features/newMail/webPush.ts) are old, so the verification
+ * code of one never verified is no longer waited for.
+ */
+export async function ageSubscriptions(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const key = 'twake-mail.push.subscriptions'
+    const records = JSON.parse(
+      window.localStorage.getItem(key) ?? '{}'
+    ) as Record<string, { createdAt: number }>
+    for (const record of Object.values(records)) record.createdAt = 0
+    window.localStorage.setItem(key, JSON.stringify(records))
+  })
+}

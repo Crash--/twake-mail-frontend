@@ -16,4 +16,19 @@ describe('LabeledCheckbox', () => {
 
     expect(onChange).toHaveBeenCalledWith(true)
   })
+
+  it('draws the checked box as large as the empty one', () => {
+    const { container } = renderDs(
+      <LabeledCheckbox label="Starred" checked onChange={jest.fn()} />
+    )
+
+    const icon = container.querySelector('svg.twake-icon')
+    if (icon === null) throw new Error('No checked icon')
+    const style = getComputedStyle(icon)
+    expect([style.width, style.height, style.padding]).toEqual([
+      '15px',
+      '15px',
+      '2.5px'
+    ])
+  })
 })

@@ -17,9 +17,21 @@ const LABEL_SX = {
   }
 } as const
 
+const ICON_SIZE = 20
+/** twake-mui draws its glyph in 18 px out of 24: the same share of 20 px */
+const TWAKE_ICON_PADDING = 2.5
+
 const CHECKBOX_SX = {
   color: 'primary.main',
-  '& .MuiSvgIcon-root': { fontSize: 20 }
+  // The empty box: MUI's icon
+  '& .MuiSvgIcon-root': { fontSize: ICON_SIZE },
+  // The checked one: twake-mui's, 24 px by default, which would make the
+  // line taller when the box gets checked
+  '& svg.twake-icon': {
+    width: ICON_SIZE - 2 * TWAKE_ICON_PADDING,
+    height: ICON_SIZE - 2 * TWAKE_ICON_PADDING,
+    padding: `${TWAKE_ICON_PADDING}px`
+  }
 } as const
 
 export interface LabeledCheckboxProps {

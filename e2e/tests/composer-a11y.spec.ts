@@ -43,6 +43,8 @@ test.describe('A11Y composer', () => {
 
     // A named, non modal dialog; the title is a level 2 heading; the live regions are there
     // before anything is announced (a region added with its text is often missed)
+    // As tmail-flutter: the footer has "Aa" (the toolbar opens with it),
+    // the insertions and More, then delete, save as draft and send
     await expect(composer.root).toMatchAriaSnapshot(`
       - dialog "New message":
         - heading "New message" [level=2]
@@ -51,17 +53,19 @@ test.describe('A11Y composer', () => {
         - button "Close"
         - group "To":
           - combobox "To"
+        - status
         - textbox "Subject"
         - textbox "Message body"
-        - toolbar "Formatting options"
         - status
+        - button "Formatting options"
         - button "Attach file"
         - button "Insert image"
         - button "Insert link"
         - button "Insert emoji"
+        - button "More"
         - status
         - button "Delete draft"
-        - button "More"
+        - button "Save as draft"
         - button "Send"
     `)
     await expect(composer.root).not.toHaveAttribute('aria-modal', 'true')
@@ -79,14 +83,14 @@ test.describe('A11Y composer', () => {
     // The focus goes through the window in the order it is read, without a trap
     expect(await tabOrder(page, composer)).toEqual([
       'Message body',
-      'Text style Normal',
       'Formatting options',
       'Attach file',
       'Insert image',
       'Insert link',
       'Insert emoji',
-      'Delete draft',
       'More',
+      'Delete draft',
+      'Save as draft',
       'Send'
     ])
     await expectNoA11yViolations(page)
@@ -98,10 +102,10 @@ test.describe('A11Y composer', () => {
     await composer.expectMode('minimized')
     await expect(composer.root).toMatchAriaSnapshot(`
       - dialog "Quarterly numbers":
-        - 'button "Show: Quarterly numbers"'
-        - button "Show"
-        - button "Fullscreen"
         - button "Close"
+        - button "Fullscreen"
+        - button "Show"
+        - 'button "Show: Quarterly numbers"'
     `)
     await expect(
       composer.root.getByRole('button', { name: 'Show: Quarterly numbers' })
@@ -162,7 +166,7 @@ test.describe('A11Y composer', () => {
     `)
       const first = composer.recipients('to').first()
       await expect(first).toHaveAccessibleDescription(
-        'Delete removes the address, Enter edits it.'
+        'Enter opens the card of the address, F2 edits it, Delete removes it.'
       )
       // Not by colour alone: the invalid one is named so, and outlined with a warning icon
       await expect(composer.recipients('to').last()).toHaveAttribute(
@@ -171,10 +175,18 @@ test.describe('A11Y composer', () => {
       )
       await expectNoA11yViolations(page)
 
-      // Backspace reaches the last chip with the focus; Enter edits it in the field
+      // Backspace reaches the last chip with the focus; Enter opens its card
+      // (tmail-flutter's), Escape gives the focus back; F2 edits it in the field
       await page.keyboard.press('Backspace')
       await expect(composer.recipients('to').last()).toBeFocused()
       await page.keyboard.press('Enter')
+      const card = page.getByRole('dialog', { name: 'wrong' })
+      await expect(card).toBeVisible()
+      await expectNoA11yViolations(page)
+      await page.keyboard.press('Escape')
+      await expect(card).toBeHidden()
+      await expect(composer.recipients('to').last()).toBeFocused()
+      await page.keyboard.press('F2')
       await expect(composer.recipientInput('to')).toBeFocused()
       await expect(composer.recipientInput('to')).toHaveValue('wrong')
 
@@ -198,6 +210,8 @@ test.describe('A11Y composer', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await composer.editor.focus()
     await page.keyboard.type('Hello ')
 
@@ -218,13 +232,17 @@ test.describe('A11Y composer', () => {
     await expect(composer.editor).toBeFocused()
     await expect(composer.toolbar).toMatchAriaSnapshot(`
       - toolbar "Formatting options":
+        - button "Text style Normal"
+        - button "Text Size 14"
+        - button "Font Sans Serif"
+        - button "Text Color"
+        - button "Highlight color"
         - button "Bold" [pressed=false]
         - button "Italic" [pressed=false]
         - button "Underline" [pressed=false]
         - button "Strikethrough" [pressed=false]
-        - button "Undo"
-        - button "Redo" [disabled]
-        - button "Clear formatting"
+        - button "Paragraph"
+        - button "Lists and indentation"
     `)
 
     // The link dialog: named, the focus goes in, Escape gives it back to the text
@@ -373,10 +391,11 @@ test.describe('A11Y composer', () => {
       await expect(composer.recipients('to')).toHaveCount(3)
       await composer.recipientInput('to').focus()
 
-      // Edit the middle one, change the text, Escape: the chip is back where it was
+      // Edit the middle one (F2: Enter opens its card, as tmail-flutter),
+      // change the text, Escape: the chip is back where it was
       await page.keyboard.press('ArrowLeft')
       await page.keyboard.press('ArrowLeft')
-      await page.keyboard.press('Enter')
+      await page.keyboard.press('F2')
       await expect(composer.recipientInput('to')).toHaveValue('bob@example.com')
       await page.keyboard.type('.fr')
       await page.keyboard.press('Escape')
@@ -562,6 +581,7 @@ test.describe('A11Y composer', () => {
       const failed = page.getByTestId('confirm-dialog')
       await expect(failed).toMatchAriaSnapshot(`
       - dialog "Sending failed":
+        - button "Close"
         - heading "Sending failed" [level=2]
         - paragraph: Your email should have at least one recipient
         - button "Add recipients"

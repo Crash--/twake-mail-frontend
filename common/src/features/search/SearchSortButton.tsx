@@ -1,7 +1,8 @@
-import { Swap } from '@linagora/twake-icons'
-import { Menu, MenuItem } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
+import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
+import { FilterChip } from '@/ds/FilterChip/FilterChip'
+import { FilterSB } from '@/ds/FlutterIcons/FlutterIcons'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -17,6 +18,11 @@ export interface SearchSortButtonProps {
   filter: SearchFilter
   /** Runs the search with the changed order */
   onChange: (filter: SearchFilter) => void
+  /**
+   * `chip`: the last chip of the filters, as tmail-flutter's search view of
+   * phones and tablets
+   */
+  variant?: 'button' | 'chip'
 }
 
 /**
@@ -26,7 +32,8 @@ export interface SearchSortButtonProps {
  */
 export function SearchSortButton({
   filter,
-  onChange
+  onChange,
+  variant = 'button'
 }: SearchSortButtonProps): ReactElement {
   const { t } = useI18n()
   const menuId = useId()
@@ -34,44 +41,50 @@ export function SearchSortButton({
 
   return (
     <>
-      <ToolbarButton
-        label={t(SORT_LABELS[filter.sort])}
-        icon={Swap}
-        hasMenu
-        isActive={filter.sort !== DEFAULT_SORT_ORDER}
-        onClick={event => {
-          setAnchor(event.currentTarget)
-        }}
-        aria-haspopup="menu"
-        aria-controls={anchor === null ? undefined : menuId}
-        aria-expanded={anchor !== null}
-        data-testid="search-filter-sort-by"
-      />
-      <Menu
+      {variant === 'chip' ? (
+        <FilterChip
+          label={t(SORT_LABELS[filter.sort])}
+          icon={FilterSB}
+          popup="menu"
+          isSelected={filter.sort !== DEFAULT_SORT_ORDER}
+          isExpanded={anchor !== null}
+          onClick={event => {
+            setAnchor(event.currentTarget)
+          }}
+          data-testid="search-filter-sort-by"
+        />
+      ) : (
+        <ToolbarButton
+          label={t(SORT_LABELS[filter.sort])}
+          icon={FilterSB}
+          hasMenu
+          isActive={filter.sort !== DEFAULT_SORT_ORDER}
+          onClick={event => {
+            setAnchor(event.currentTarget)
+          }}
+          aria-haspopup="menu"
+          aria-controls={anchor === null ? undefined : menuId}
+          aria-expanded={anchor !== null}
+          data-testid="search-filter-sort-by"
+        />
+      )}
+      <ChoiceMenu
         id={menuId}
-        open={anchor !== null}
         anchorEl={anchor}
         onClose={() => {
           setAnchor(null)
         }}
+        items={SORT_ORDERS.map(order => ({
+          key: order,
+          label: t(SORT_LABELS[order]),
+          isSelected: filter.sort === order,
+          onSelect: () => {
+            storeSortOrder(order)
+            onChange({ ...filter, sort: order })
+          }
+        }))}
         data-testid="search-filter-menu"
-      >
-        {SORT_ORDERS.map(order => (
-          <MenuItem
-            key={order}
-            role="menuitemradio"
-            aria-checked={filter.sort === order}
-            selected={filter.sort === order}
-            onClick={() => {
-              setAnchor(null)
-              storeSortOrder(order)
-              onChange({ ...filter, sort: order })
-            }}
-          >
-            {t(SORT_LABELS[order])}
-          </MenuItem>
-        ))}
-      </Menu>
+      />
     </>
   )
 }

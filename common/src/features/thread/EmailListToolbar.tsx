@@ -1,14 +1,19 @@
-import { Cross, Dots, Icon } from '@linagora/twake-icons'
-import {
-  Box,
-  Button,
-  Checkbox,
-  IconButton,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
+import {
+  Cancel,
+  CheckboxOn,
+  Cross,
+  EmailNotification,
+  MoveMailbox,
+  Star
+} from '@/ds/FlutterIcons/FlutterIcons'
+import { IconAction } from '@/ds/IconAction/IconAction'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,
@@ -24,8 +29,40 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import type { EmailSelection } from './useEmailSelection'
 
-/** Buttons shown before the "More" menu, on phones */
-const PHONE_BUTTONS = 3
+/**
+ * The actions of tmail-flutter's selection bar on a desktop
+ * (`TopBarThreadSelection`), in its order: read, star, move, label, spam,
+ * delete; the others (archive…) are in the menus of the rows
+ */
+const DESKTOP_ACTIONS: readonly (readonly EmailActionId[])[] = [
+  ['mark-as-read', 'mark-as-unread'],
+  ['star', 'unstar'],
+  ['move'],
+  ['label-as'],
+  ['mark-as-spam', 'not-spam'],
+  ['move-to-trash', 'delete-permanently']
+]
+
+/**
+ * The actions of tmail-flutter's selection bar on phones and tablets (in
+ * its app bar, `MobileAppBarThreadWidget`), after "Select all": archive,
+ * delete, read or unread; the others in "More"
+ */
+const COMPACT_ACTIONS: readonly (readonly EmailActionId[])[] = [
+  ['archive'],
+  ['move-to-trash', 'delete-permanently'],
+  ['mark-as-read', 'mark-as-unread']
+]
+
+/**
+ * tmail-flutter's icons of its selection bar (`EmailSelectionActionType`),
+ * where they differ from the menus
+ */
+const SELECTION_ICONS: Partial<Record<EmailActionId, IconProps['icon']>> = {
+  star: Star,
+  move: MoveMailbox,
+  'mark-as-unread': EmailNotification
+}
 
 export interface EmailListToolbarProps {
   selection: EmailSelection
@@ -66,7 +103,6 @@ export function EmailListToolbar({
 }: EmailListToolbarProps): ReactElement {
   const { t } = useI18n()
   const screenSize = useScreenSize()
-  const isPhone = screenSize === 'mobile'
   const isDesktop = screenSize === 'desktop'
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
@@ -79,7 +115,9 @@ export function EmailListToolbar({
   const items = availableEmailActions(selectedTargets, mailbox, mailboxes, {
     canLabel
   })
-  const buttons = isPhone ? items.slice(0, PHONE_BUTTONS) : items
+  const buttons = (isDesktop ? DESKTOP_ACTIONS : COMPACT_ACTIONS).flatMap(ids =>
+    items.filter(item => ids.includes(item.id))
+  )
   const isAllLoaded = selection.selected.length === loadedCount
   const canSelectFolder =
     mailbox !== null &&
@@ -112,14 +150,24 @@ export function EmailListToolbar({
   const clearLabel = t('thread.selection.clear')
   const moreLabel = t('emailActions.menu.more')
 
-  const clearButton = (
+  // tmail-flutter's `ic_cancel` before how many below the desktop size
+  const clearButton = !isDesktop ? (
+    <IconAction
+      label={clearLabel}
+      icon={Cancel}
+      tone="steel"
+      size={36}
+      onClick={onDone}
+      data-testid="selection-toolbar-clear"
+    />
+  ) : (
     <Tooltip title={clearLabel}>
       <IconButton
         aria-label={clearLabel}
         onClick={onDone}
         data-testid="selection-toolbar-clear"
       >
-        <Icon icon={Cross} />
+        <Icon icon={Cross} size={20} color={TMAIL.steel} />
       </IconButton>
     </Tooltip>
   )
@@ -128,44 +176,25 @@ export function EmailListToolbar({
     <Box
       component="section"
       aria-label={t('thread.selection.toolbar')}
-      className="u-flex u-flex-items-center u-flex-wrap u-ph-half"
+      className={
+        isDesktop
+          ? 'u-flex u-flex-items-center u-flex-wrap u-ph-1'
+          : 'u-flex u-flex-items-center u-w-100 u-h-100'
+      }
       data-testid="selection-toolbar"
     >
-      {isDesktop ? null : (
-        <Tooltip title={selectAllLabel}>
-          <Checkbox
-            // Not indeterminate: MUI then says aria-checked="mixed" on an
-            // unchecked input, which axe refuses (docs/twake-mui-gaps.md)
-            checked={isAllLoaded || selection.isAllInFolder}
-            onChange={handleToggleAll}
-            slotProps={{ input: { 'aria-label': selectAllLabel } }}
-            data-testid="selection-toolbar-select-all"
-          />
-        </Tooltip>
-      )}
-      <Typography
-        role="status"
-        variant="body2"
-        className="u-fw-bold u-mr-half"
-        data-testid="selection-toolbar-count"
-      >
+      {/* As tmail-flutter's app bar below the desktop size: the cross
+          first, then how many */}
+      {isDesktop ? null : clearButton}
+      <SelectionCount data-testid="selection-toolbar-count">
         {selection.isAllInFolder
           ? t('thread.selection.allInFolderSelected', { smart_count: count })
           : t('thread.selection.count', { count })}
-      </Typography>
+      </SelectionCount>
       {isDesktop ? clearButton : null}
-      {isDesktop && !isAllLoaded && !selection.isAllInFolder ? (
-        <Button
-          size="small"
-          variant="text"
-          color="inherit"
-          onClick={handleToggleAll}
-          data-testid="selection-toolbar-select-all"
-        >
-          {selectAllLabel}
-        </Button>
-      ) : null}
-      {canSelectFolder ? (
+      {/* As tmail-flutter: 30 px before the actions */}
+      {isDesktop ? <span className="u-mr-1-half" /> : null}
+      {canSelectFolder && isDesktop ? (
         <Button
           size="small"
           variant="outlined"
@@ -176,36 +205,54 @@ export function EmailListToolbar({
           {t('thread.selection.selectAllInFolder', { smart_count: total })}
         </Button>
       ) : null}
-      {isDesktop ? null : <Box className="u-flex-auto" />}
+      {isDesktop ? null : (
+        <>
+          <Box className="u-flex-auto" />
+          {/* tmail-flutter's "Select all": its ticked box */}
+          <IconAction
+            label={selectAllLabel}
+            icon={CheckboxOn}
+            tone="steel"
+            size={36}
+            aria-pressed={isAllLoaded || selection.isAllInFolder}
+            onClick={handleToggleAll}
+            data-testid="selection-toolbar-select-all"
+          />
+        </>
+      )}
       {buttons.map(item => (
-        <Tooltip key={item.id} title={t(item.label)}>
-          <IconButton
-            aria-label={t(item.label)}
-            onClick={() => {
-              handleRun(item.id)
-            }}
-            data-testid={`selected-email-action-${item.id}`}
-          >
-            <Icon icon={item.icon} />
-          </IconButton>
-        </Tooltip>
+        <IconAction
+          key={item.id}
+          label={t(item.label)}
+          icon={SELECTION_ICONS[item.id] ?? item.icon}
+          tone={
+            item.id === 'star'
+              ? 'starred'
+              : item.id === 'delete-permanently' && !isDesktop
+                ? 'danger'
+                : 'steel'
+          }
+          size={36}
+          onClick={() => {
+            handleRun(item.id)
+          }}
+          data-testid={`selected-email-action-${item.id}`}
+        />
       ))}
-      {buttons.length < items.length ? (
-        <Tooltip title={moreLabel}>
-          <IconButton
-            aria-label={moreLabel}
-            aria-haspopup="menu"
-            aria-expanded={moreAnchor !== null}
-            onClick={event => {
-              handleOpenMore(event.currentTarget)
-            }}
-            data-testid="selected-email-action-more"
-          >
-            <Icon icon={Dots} />
-          </IconButton>
-        </Tooltip>
+      {!isDesktop ? (
+        <IconAction
+          label={moreLabel}
+          icon={MoreVerticalIcon}
+          tone="steel"
+          size={36}
+          aria-haspopup="menu"
+          aria-expanded={moreAnchor !== null}
+          onClick={event => {
+            handleOpenMore(event.currentTarget)
+          }}
+          data-testid="selected-email-action-more"
+        />
       ) : null}
-      {isDesktop ? null : clearButton}
       <EmailActionsMenu
         anchor={moreAnchor === null ? null : { element: moreAnchor }}
         onClose={() => {
@@ -213,7 +260,11 @@ export function EmailListToolbar({
         }}
         emails={targets}
         mailboxId={mailbox?.id ?? null}
-        exclude={buttons.map(item => item.id)}
+        // As tmail-flutter below the desktop size: all the actions on a
+        // selection (no answer), in a sheet from the bottom edge
+        exclude={isDesktop ? buttons.map(item => item.id) : ['edit-as-new']}
+        replies={[]}
+        asSheet={!isDesktop}
         onAction={onDone}
         data-testid="selection-toolbar-menu"
       />

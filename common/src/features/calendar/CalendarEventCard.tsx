@@ -1,4 +1,4 @@
-import { CalendarToday, Copy, Icon, WarningCircle } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -18,6 +18,11 @@ import {
   EventAnswerButton,
   EventTextAction
 } from '@/ds/EventCard/EventCardButtons'
+import {
+  CalendarToday,
+  Copy,
+  WarningCircle
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import type { IsSelf } from '@common/features/composer/replyRecipients'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'

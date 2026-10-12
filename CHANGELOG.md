@@ -15,6 +15,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In a frame of Twake Space, a new email in a team mailbox asks Twake Space
   to show a notification (`notify` of `@linagora/twake-embed` 3.5.0, with
   the mailbox as `resourceId`): a click opens the space of that mailbox.
+## [0.6.0] - 2026-10-11
+
+No setting changes from 0.5.0.
+
+### Added
+
+- Dark mode, from the `appearance.theme` setting of the account, and the
+  choice of the theme (Light, Dark or Auto) in Settings > Preferences.
+- Recipients move between To, Cc and Bcc by drag and drop, and dropping
+  emails on a field adds their senders.
+- In the advanced search, From and To take tags that drag between them,
+  the people are picked in a contact view and the folder in the
+  destination picker.
+- A desktop list row shows up to 3 labels.
+- The preview asks the password of an encrypted PDF.
+- The images pasted as data URLs in the editor are stored, with a spinner
+  while they upload.
+- In the facade of a team mailbox, New message sits at the end of the list
+  toolbar.
+
+### Fixed
+
+- The sidebar, the reading view, the composer, the search bar, the list
+  and the colours follow tmail-flutter more closely, and today's emails
+  show their time on 24 hours.
+- The signature images are scaled down and published as tmail-flutter
+  does, with the message of the server when it refuses them.
+- The facade of a team mailbox shows another mailbox without reloading,
+  keeps 16 px inside the frame of TwakeSpace, scrolls the reading view
+  inside it, and shows its error screens on its pane.
+- The spam report banner shows once a day, and its button reads « Voir »
+  in French.
+- A click on the background closes the file preview.
+- A long version breaks on the sign-in card, the pointer reaches the
+  tooltip of a label in a row, and a message loading on a phone keeps the
+  height it lands with.
+
+## [0.5.0] - 2026-10-09
+
+No setting changes from 0.4.0.
+
+### Added
+
+- The webmail takes the look of tmail-flutter: the top bar with the search,
+  the list and its toolbar, the sidebar, the reading view, the composer, the
+  settings, the sign-in page, the dialogs, the icons, the logotype and the
+  scroll bars.
+- Phones and tablets get their own screens: the bar, the selection of emails,
+  the search results, the settings, the composer card, with the support
+  and "Sign out" at the end of the settings.
+- The composer suggests recipients and opens their card on a click, files
+  are dropped on the body only, and a bar tells that images go inline.
+- The shortcuts are listed by category, a link of an email shows where it
+  leads, and the remote images of the senders of the domain are shown.
+- Emails carrying a calendar event are marked in the list, and the card of
+  the address of a person of an event opens.
+- The labels of the sidebar fold from their header, and open beside
+  "Label as".
+- The progress of marking a folder read or emptying it is shown.
+- In the facade of a team mailbox, an email opens by its id.
+
+### Fixed
+
+- The "Forward to" action is offered in the rules, and the forwarding
+  strings are corrected.
+- The login form links to the privacy policy.
+- The loading rows of the list, of the search and of a conversation have
+  the height of the rows they stand for.
+- A selected row stays light blue under the pointer, and the keyboard
+  shortcut tabs stay on one line.
+- Files dropped out of the body of the composer are ignored, and an attachment
+  drops its progress bar once uploaded.
+- A recipient field is named without its colon, and the message of a
+  confirmation is a paragraph.
+- The platform top bar is kept as it is with Twake Workplace.
 
 ## [0.4.0] - 2026-10-08
 

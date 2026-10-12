@@ -4,8 +4,9 @@
 // puts the background on the row, indents by level without a cap, puts the
 // expand arrow after the label as a control of its own, and overlays the
 // actions on hover instead of reserving room for them.
-import { Bottom, Icon, Right } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
+import { DisclosureDown, DisclosureRight } from '@/ds/NavIcons/NavIcons'
 import { NavItem } from '@/ds/NavItem/NavItem'
 import { NavLink } from '@/ds/NavLink/NavLink'
 import {
@@ -24,19 +25,34 @@ import {
   FOCUS_RING_INSET
 } from '@/ds/FocusIndicator/focusIndicator'
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-/** Start padding of the first level (the 8 px of the row) */
-const BASE_INDENT = 8
-/** Padding of the second level: 8 + icon 16 + gap 12 + 8 (Figma) */
-const SECOND_LEVEL_INDENT = 44
-/** What each level below the second adds */
+/** What each level below the first moves the whole row (tmail-flutter) */
 const LEVEL_STEP = 8
+/** Start padding of the row, before its icon */
+const ROW_PADDING = 8
+/** The icon, and the gap after it */
+const ICON_SIZE = 16
+const ICON_GAP = 8
+/** Height of the name line and of the second line, and the gap between */
+const NAME_LINE = 18.4
+const SECONDARY_LINE = 16
+const SECONDARY_GAP = 2
+/** The box of the arrow, which sets the height of the name line it is on */
+const TOGGLE_SIZE = 24
 
-/** Start padding of the link of a row of the given level (1 = top), no cap */
+/**
+ * How far a row of the given level (1 = top) moves in, as tmail-flutter's
+ * `LinagoraSidebarSubItem`: 8 px a level, background included, no cap
+ */
 export function levelIndent(level: number): number {
-  if (level <= 1) return BASE_INDENT
-  return SECOND_LEVEL_INDENT + (level - 2) * LEVEL_STEP
+  return Math.max(0, level - 1) * LEVEL_STEP
 }
+
+/** tmail-flutter's sidebar colours (`LinagoraSidebarStyle.light`) */
+const SELECTED_BACKGROUND = TMAIL.selectedInk
+const HOVER_BACKGROUND = TMAIL.hoverInk
+const ARROW_COLOR = TMAIL.textGrey66At64
 
 type DataAttributes = Record<`data-${string}`, string | boolean | undefined>
 
@@ -51,8 +67,8 @@ export interface NavTreeItemToggle {
 export interface NavTreeItemProps {
   /** Level of the row, 1 for the top ones: sets the indentation */
   level: number
-  /** The icon, 16 px: an `Icon`; it takes the colour of the row */
-  icon: ReactNode
+  /** The icon, 16 px: an `Icon`; it takes the colour of the row; or none */
+  icon: ReactNode | null
   label: string
   /** The link component (e.g. the router `Link`) and where it goes */
   linkComponent: ElementType
@@ -88,11 +104,6 @@ export interface NavTreeItemProps {
   nameTestId?: string
 }
 
-const ROW_BACKGROUND =
-  (selected: boolean) =>
-  (theme: { palette: { action: { selected: string; hover: string } } }) =>
-    selected ? theme.palette.action.selected : theme.palette.action.hover
-
 /**
  * A row of a navigation tree: icon, name, then the arrow of a folder with
  * children, the counter and the actions. The whole row (36 px at least,
@@ -126,7 +137,9 @@ export function NavTreeItem({
   const [isTooltipOpen, setIsTooltipOpen] = useState(false)
   const [isTruncated, setIsTruncated] = useState(false)
   const hasActions = actions !== undefined && actions !== null
-  const rowBackground = ROW_BACKGROUND(isSelected)
+  const hasSecondary = secondary !== undefined && secondary !== null
+  // Over a second line, the name line is as high as the arrow on it
+  const firstLine = toggle ? TOGGLE_SIZE : NAME_LINE
 
   const handleTooltipOpen = (): void => {
     const name = nameRef.current
@@ -163,8 +176,16 @@ export function NavTreeItem({
             m: 0,
             minHeight: 36,
             height: 'auto',
-            py: '5px',
-            pl: `${levelIndent(level)}px`,
+            // A second line hangs under the name, as tmail-flutter, without
+            // pushing the arrow after it: the arrow follows the name
+            // A pixel lower than centred: where tmail-flutter's text
+            // lands on its line
+            pt: hasSecondary ? `${(firstLine - NAME_LINE) / 2 + 1}px` : '5px',
+            pb: hasSecondary
+              ? `${(firstLine - NAME_LINE) / 2 - 1 + SECONDARY_GAP + SECONDARY_LINE}px`
+              : '5px',
+            alignSelf: hasSecondary ? 'flex-start' : undefined,
+            pl: `${ROW_PADDING}px`,
             pr: 0,
             '&, &:hover, &.Mui-selected, &.Mui-selected:hover, &.Mui-focusVisible':
               { backgroundColor: 'transparent' },
@@ -182,14 +203,16 @@ export function NavTreeItem({
             '&.Mui-focusVisible::after': { ...FOCUS_RING, ...FOCUS_RING_INSET }
           }}
         >
-          <Box
-            component="span"
-            aria-hidden="true"
-            className="u-flex u-flex-items-center u-flex-shrink-0"
-            sx={{ mr: '12px' }}
-          >
-            {icon}
-          </Box>
+          {icon === null ? null : (
+            <Box
+              component="span"
+              aria-hidden="true"
+              className="u-flex u-flex-items-center u-flex-shrink-0"
+              sx={{ mr: `${ICON_GAP}px` }}
+            >
+              {icon}
+            </Box>
+          )}
           <Box
             component="span"
             className="u-flex u-flex-column"
@@ -204,27 +227,33 @@ export function NavTreeItem({
                 minWidth: 0,
                 fontSize: 14,
                 fontWeight: 500,
-                lineHeight: '18.4px',
+                lineHeight: `${NAME_LINE}px`,
                 letterSpacing: 0.25
               }}
             >
               {label}
             </Box>
-            {secondary === undefined || secondary === null ? null : (
+            {hasSecondary ? (
+              // On the row, under the name, as wide as the row: out of the
+              // width of the name, which the arrow follows
               <Box
                 component="span"
                 className="u-ellipsis"
                 sx={{
-                  minWidth: 0,
-                  color: 'text.secondary',
+                  position: 'absolute',
+                  insetInlineStart: `${ROW_PADDING + (icon === null ? 0 : ICON_SIZE + ICON_GAP)}px`,
+                  insetInlineEnd: '8px',
+                  top: `${firstLine + SECONDARY_GAP}px`,
+                  color: 'inherit',
                   fontSize: 12,
-                  lineHeight: '15.8px',
+                  fontWeight: 500,
+                  lineHeight: `${SECONDARY_LINE}px`,
                   letterSpacing: 0.4
                 }}
               >
                 {secondary}
               </Box>
-            )}
+            ) : null}
           </Box>
           {meta === undefined || meta === null ? null : (
             // Gives way before the name: cut first, down to nothing
@@ -259,12 +288,15 @@ export function NavTreeItem({
               zIndex: 1,
               flex: 'none',
               boxSizing: 'border-box',
-              width: 24,
-              height: 24,
+              width: TOGGLE_SIZE,
+              height: TOGGLE_SIZE,
               minWidth: 0,
               minHeight: 0,
               p: '4px',
               ml: '4px',
+              color: ARROW_COLOR,
+              // On the name line, when a second line hangs under it
+              alignSelf: hasSecondary ? 'flex-start' : undefined,
               // A 44 px target on touch screens, without moving the arrow nor
               // spilling over the actions after it
               [TOUCH_MEDIA]: {
@@ -275,7 +307,10 @@ export function NavTreeItem({
               }
             }}
           >
-            <Icon icon={toggle.isExpanded ? Bottom : Right} size={16} />
+            <Icon
+              icon={toggle.isExpanded ? DisclosureDown : DisclosureRight}
+              size={16}
+            />
           </IconButton>
         </Tooltip>
       ) : null}
@@ -323,22 +358,27 @@ export function NavTreeItem({
         if (event.target === event.currentTarget) handleTooltipClose()
       }}
       data-testid={testId}
-      sx={theme => ({
+      sx={{
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
         height: 'auto',
-        minHeight: 36,
-        mx: 2,
+        minHeight: hasSecondary
+          ? `${firstLine + SECONDARY_GAP + SECONDARY_LINE}px`
+          : 36,
+        mr: 2,
+        ml: `${16 + levelIndent(level)}px`,
         width: 'auto',
         pr: '8px',
         borderRadius: '8px',
-        backgroundColor: isSelected ? theme.palette.action.selected : undefined,
-        '&:hover': { backgroundColor: rowBackground(theme) },
+        backgroundColor: isSelected ? SELECTED_BACKGROUND : undefined,
+        '&:hover': {
+          backgroundColor: isSelected ? SELECTED_BACKGROUND : HOVER_BACKGROUND
+        },
         ...(hasActions
           ? {
               '& [data-nav-actions]': { ml: 'auto' },
-              '& [data-nav-count] ~ [data-nav-actions]': { ml: 0.5 },
+              '& [data-nav-count] ~ [data-nav-actions]': { ml: 1 },
               // Without a pointer to hover, the actions are always there. With
               // one, they take no room until the row is hovered or holds the
               // keyboard focus, then replace the counter (they stay focusable)
@@ -348,15 +388,22 @@ export function NavTreeItem({
                   overflow: 'hidden',
                   opacity: 0
                 },
+                // At the end of the row, in place of the hidden counter
+                '& [data-nav-count] ~ [data-nav-actions]': { ml: 0 },
                 '&:hover [data-nav-actions], &:has(:focus-visible) [data-nav-actions]':
-                  { width: 'auto', overflow: 'visible', opacity: 1 },
+                  {
+                    width: 'auto',
+                    overflow: 'visible',
+                    opacity: 1,
+                    ml: 'auto'
+                  },
                 '&:hover [data-nav-count], &:has(:focus-visible) [data-nav-count]':
                   { display: 'none' }
               }
             }
           : {}),
         [TOUCH_MEDIA]: { minHeight: TOUCH_TARGET_SIZE }
-      })}
+      }}
     >
       {drop ? (
         <DropTarget

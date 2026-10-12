@@ -133,16 +133,17 @@ test.describe('MBX folders', () => {
 
       const rows = mailbox.folderTree.getByTestId('mailbox-item')
       const names = rows.getByTestId('mailbox-item-name')
+      // The order of the server (`sortOrder`), as tmail-flutter
       await expect(names).toHaveText([
         'Inbox',
         'Newsletters',
         'Starred',
+        'Sent',
+        'Archive',
         'Drafts',
         'Outbox',
-        'Sent',
         'Trash',
-        'Spam',
-        'Archive'
+        'Spam'
       ])
       await expect(
         rows.evaluateAll(items =>
@@ -154,17 +155,17 @@ test.describe('MBX folders', () => {
       await expect(starred).toHaveAttribute('aria-setsize', '8')
       await expect(mailbox.folder({ name: 'Drafts' })).toHaveAttribute(
         'aria-posinset',
-        '3'
+        '5'
       )
 
-      // The arrows go Inbox, then its subfolder, then Starred, then Drafts
+      // The arrows go Inbox, then its subfolder, then Starred, then Sent
       await mailbox.focusFolder({ role: 'inbox' })
       const visited = [await mailbox.focusedFolderName()]
       for (let step = 0; step < 3; step++) {
         await page.keyboard.press('ArrowDown')
         visited.push(await mailbox.focusedFolderName())
       }
-      expect(visited).toEqual(['Inbox', 'Newsletters', 'Starred', 'Drafts'])
+      expect(visited).toEqual(['Inbox', 'Newsletters', 'Starred', 'Sent'])
     }
   )
 

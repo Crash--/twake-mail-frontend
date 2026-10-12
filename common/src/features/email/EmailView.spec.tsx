@@ -11,6 +11,7 @@ import {
   makeMailbox,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 import { readObjectUrl } from '@common/testing/objectUrls'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
@@ -74,10 +75,10 @@ describe('EmailView', () => {
       'Bob Dupont <bob@example.com>'
     )
     expect(screen.getByTestId('email-view-to')).toHaveTextContent(
-      /^To\s*Alice Martin$/
+      /^To:\s*Alice Martin$/
     )
     expect(screen.getByTestId('email-view-cc')).toHaveTextContent(
-      /^Cc\s*carol@example.com/
+      /^Cc:\s*carol@example.com/
     )
     expect(screen.getByTestId('email-view-date')).toHaveTextContent(
       'Feb 14, 10:30 AM'
@@ -265,6 +266,9 @@ describe('EmailView', () => {
   })
 
   describe('remote content', () => {
+    // Outside the domain of the user (alice@example.com)
+    const OUTSIDER = { name: 'News', email: 'news@newsletter.example.org' }
+
     afterEach(() => {
       window.localStorage.clear()
     })
@@ -272,7 +276,12 @@ describe('EmailView', () => {
     it('hides remote images until the user shows them', async () => {
       renderView(
         makeFakeJmapServer({
-          emails: [makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML })]
+          emails: [
+            makeEmailWithBody(
+              { id: 'e1', from: [OUTSIDER] },
+              { html: TRACKED_HTML }
+            )
+          ]
         })
       )
 
@@ -299,8 +308,14 @@ describe('EmailView', () => {
     it('always shows the remote images of a trusted sender', async () => {
       const server = makeFakeJmapServer({
         emails: [
-          makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML }),
-          makeEmailWithBody({ id: 'e2' }, { html: TRACKED_HTML })
+          makeEmailWithBody(
+            { id: 'e1', from: [OUTSIDER] },
+            { html: TRACKED_HTML }
+          ),
+          makeEmailWithBody(
+            { id: 'e2', from: [OUTSIDER] },
+            { html: TRACKED_HTML }
+          )
         ]
       })
       const { unmount } = renderView(server)
@@ -314,10 +329,21 @@ describe('EmailView', () => {
         JSON.parse(
           window.localStorage.getItem(TRUSTED_SENDERS_STORAGE_KEY) ?? '[]'
         )
-      ).toEqual(['bob@example.com'])
+      ).toEqual(['news@newsletter.example.org'])
       unmount()
 
       renderView(server, 'e2')
+      expect(await findBodyDocument()).toContain('tracker.example.com')
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('shows the remote images of a sender of the domain of the user', async () => {
+      renderView(
+        makeFakeJmapServer({
+          emails: [makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML })]
+        })
+      )
+
       expect(await findBodyDocument()).toContain('tracker.example.com')
       expect(screen.queryByTestId('remote-content-banner')).toBe(null)
     })
@@ -355,7 +381,49 @@ describe('EmailView', () => {
         answers.querySelectorAll('button'),
         button => button.textContent
       )
-    ).toEqual(['Reply all', 'Reply', 'Reply to list', 'Forward'])
+    ).toEqual(['Reply all', 'Reply to list', 'Reply', 'Forward'])
+  })
+
+  it('scrolls between its bars, 16 px inside the sides, in the pane of a team mailbox only', async () => {
+    const server = makeFakeJmapServer({
+      emails: [makeEmailWithBody({ id: 'e1' }, { text: 'Hello' })]
+    })
+    const { unmount } = renderView(server)
+    const subject = await screen.findByTestId('email-view-subject')
+    const view = screen.getByTestId('email-view')
+    // The subject bar sits in the column itself, and pads itself
+    expect(subject.parentElement?.parentElement).toBe(view)
+    expect(subject.parentElement).toHaveStyle({ paddingLeft: '16px' })
+    expect(subject.parentElement?.nextElementSibling).toHaveClass('u-ph-1')
+    unmount()
+
+    renderWithProviders(
+      <TeamMailboxPane>
+        <EmailView emailId="e1" backPath="/mailbox/mailbox-inbox" />
+      </TeamMailboxPane>,
+      {
+        route: '/mailbox/mailbox-inbox/email/e1',
+        path: '/mailbox/:mailboxId/email/:emailId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    const insetSubject = await screen.findByTestId('email-view-subject')
+    const [toolbar, scroller, replyBar] = Array.from(
+      screen.getByTestId('email-view').children
+    )
+    expect(toolbar).toContainElement(
+      screen.getByTestId('email-view-back-button')
+    )
+    expect(replyBar).toContainElement(
+      screen.getByRole('group', { name: 'Reply actions' })
+    )
+    expect(scroller).toContainElement(insetSubject)
+    expect(scroller).toHaveStyle({ marginLeft: '16px', marginRight: '16px' })
+    expect(insetSubject.parentElement).toHaveStyle({ paddingLeft: '0px' })
+    expect(insetSubject.parentElement?.nextElementSibling).toHaveClass(
+      'u-ph-half'
+    )
   })
 
   it('offers no "Reply all" to an email between the sender and the user', async () => {

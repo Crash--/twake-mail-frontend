@@ -109,9 +109,14 @@ test.describe('MBX recovery and quota', () => {
       jmap
     }) => {
       const mailbox = await new LoginPage(page).loginAs(user)
-      const indicator = page.getByTestId('quota-indicator')
-      await expect(indicator).toContainText('50 MB available')
-      const before = Number(await indicator.getAttribute('data-used'))
+      // As tmail-flutter, the sidebar shows the storage past 80 % only
+      await expect(page.getByTestId('quota-indicator')).toHaveCount(0)
+      const settings = await mailbox.openSettings()
+      await settings.open('storage')
+      const storage = page.getByTestId('storage-settings')
+      await expect(storage).toContainText('of 50 MB used')
+      await expect(storage).toContainText('Available:')
+      const before = Number(await storage.getAttribute('data-used'))
 
       await jmap.sendEmail({
         to: user.email,
@@ -125,18 +130,8 @@ test.describe('MBX recovery and quota', () => {
 
       // Push brings the new quota
       await expect
-        .poll(async () => Number(await indicator.getAttribute('data-used')))
+        .poll(async () => Number(await storage.getAttribute('data-used')))
         .toBeGreaterThan(before)
-      await expectNoA11yViolations(page)
-
-      const settings = await mailbox.openSettings()
-      await settings.open('storage')
-      await expect(page.getByTestId('storage-settings')).toContainText(
-        'of 50 MB used'
-      )
-      await expect(page.getByTestId('storage-settings')).toContainText(
-        'Available:'
-      )
       await expectNoA11yViolations(page)
     })
   })

@@ -1,49 +1,109 @@
 import type { ReactElement } from 'react'
+import { useLocation } from 'react-router'
 
+import {
+  AppBarFrame,
+  AppBarLeft,
+  AppBarSearch
+} from '@/ds/AppBarFrame/AppBarFrame'
+import { SIDEBAR_WIDTH } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   usePlatformSdk,
   usePlatformStatus
 } from '@common/features/platform/PlatformProvider'
+import { isSettingsPath } from '@common/features/settings/SettingsExitProvider'
+import { AppTitle } from '@injected/layout/AppTitle'
 
+import { AccountMenu } from './AccountMenu'
 import { HelpButton } from './HelpButton'
 import { LogoutButton } from './LogoutButton'
+import { MailSearchRow } from './MailSearchRow'
 import { PlatformBar } from './PlatformBar'
 import { TopBar } from './TopBar'
 
 export interface AppHeaderProps {
   /** Opens the folder drawer, below the desktop size */
   onOpenFolders: () => void
+  /**
+   * An email fills the screen: without the platform, the bar of the mail
+   * goes, as tmail-flutter does (the reading view has its own bar)
+   */
+  isEmailFullScreen?: boolean
 }
 
 /**
- * The bars at the top of the app. The platform bar of Twake Workplace holds
- * the logotype, the apps and the account, and the help of the mail server on
- * a desktop, whose search and settings are in the page; smaller screens keep
- * the bar of the mail under it, for the folders, the search and the
- * settings. Without the platform, a log out button stands in for its
- * account menu. Inside an iframe of the Workplace, the container shows the
- * platform bar.
+ * The bars at the top of the app. With the platform of Twake Workplace, its
+ * bar as in every app of the platform (home, title, help, apps, account),
+ * the search and the settings at the top of the page on a desktop. Without
+ * the platform (`public`), on a desktop, tmail-flutter's bar: the logotype,
+ * the search (out of the settings), the help, the settings and a log out
+ * button. Smaller screens keep the bar of the mail under the platform bar,
+ * for the folders, the search and the settings. Inside an iframe of the
+ * Workplace, the container shows the platform bar, and the search is in the
+ * page.
  */
-export function AppHeader({ onOpenFolders }: AppHeaderProps): ReactElement {
+export function AppHeader({
+  onOpenFolders,
+  isEmailFullScreen = false
+}: AppHeaderProps): ReactElement {
   const sdk = usePlatformSdk()
   const status = usePlatformStatus()
   const isDesktop = useScreenSize() === 'desktop'
-  const mailBar = isDesktop ? null : <TopBar onOpenFolders={onOpenFolders} />
+  const isSettings = isSettingsPath(useLocation().pathname)
+  const mailBar =
+    isDesktop || (isEmailFullScreen && status === 'public') ? null : (
+      <TopBar onOpenFolders={onOpenFolders} />
+    )
 
-  if (sdk === null) return <>{mailBar}</>
+  // Without the platform (basic sign-in, no Workplace), phones and tablets
+  // have the bar of the mail alone, as tmail-flutter: the drawer holds the
+  // help, the settings and the log out (`DrawerHeader`)
+  if (sdk === null || (!isDesktop && status === 'public')) {
+    return <>{mailBar}</>
+  }
+  if (!isDesktop) {
+    return (
+      <>
+        <PlatformBar
+          sdk={sdk}
+          actions={status === 'public' ? <LogoutButton /> : null}
+        />
+        {mailBar}
+      </>
+    )
+  }
+  // With the platform (Twake Workplace), its bar stays as in every app of
+  // the platform: its home, the title, help, apps and account. The same
+  // bar, only dressed otherwise, when the platform answers late or refuses
+  const isFlutterBar = status === 'public'
   return (
-    <>
+    <AppBarFrame isPlain={!isFlutterBar}>
       <PlatformBar
         sdk={sdk}
+        left={
+          isFlutterBar ? (
+            <AppBarLeft width={SIDEBAR_WIDTH}>
+              <AppTitle />
+            </AppBarLeft>
+          ) : undefined
+        }
+        search={
+          isFlutterBar && !isSettings ? (
+            <AppBarSearch>
+              <MailSearchRow data-testid="search-row" />
+            </AppBarSearch>
+          ) : null
+        }
         actions={
           <>
-            {isDesktop ? <HelpButton /> : null}
-            {status === 'public' ? <LogoutButton /> : null}
+            <HelpButton isFlutterLook={isFlutterBar} />
+            {/* As tmail-flutter: the settings and the sign out are behind
+                the initial of the user */}
+            {isFlutterBar ? <AccountMenu /> : null}
           </>
         }
       />
-      {mailBar}
-    </>
+    </AppBarFrame>
   )
 }

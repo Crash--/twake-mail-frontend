@@ -76,9 +76,13 @@ test.describe('KBD keyboard shortcuts', () => {
     await page.keyboard.press('?')
 
     await expect(mailbox.shortcutsDialog).toBeVisible()
-    await expect(
-      page.getByRole('dialog', { name: 'Keyboard shortcuts' })
-    ).toContainText('Archive message')
+    const dialog = page.getByRole('dialog', { name: 'Keyboard shortcuts' })
+    await expect(dialog).toContainText('Open new message')
+    // As tmail-flutter, by category: archiving is a matter of management
+    await dialog
+      .getByRole('tab', { name: 'Message Management & Selection' })
+      .click()
+    await expect(dialog).toContainText('Archive message')
     await expectNoA11yViolations(page)
     await page
       .getByRole('switch', { name: 'Enable keyboard shortcuts' })
@@ -100,7 +104,7 @@ test.describe('KBD keyboard shortcuts', () => {
   })
 
   test(
-    'KBD-06 "/" reaches the search, unfolding it on phones; Escape gives the focus back',
+    'KBD-06 "/" reaches the search, which stays in the bar of phones as tmail-flutter',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       await jmap.sendEmail({ to: user.email, subject: 'find me', text: 'one' })
@@ -116,11 +120,10 @@ test.describe('KBD keyboard shortcuts', () => {
       await expectNoA11yViolations(page)
 
       if (search.isPhone()) {
-        // The first Escape closes the suggestions, the second folds the field
+        // As tmail-flutter the field stays under the bar: Escape closes the
+        // suggestions, the field stays
         await page.keyboard.press('Escape')
-        await page.keyboard.press('Escape')
-        await expect(search.input).toBeHidden()
-        await expect(search.openButton).toBeFocused()
+        await expect(search.input).toBeVisible()
       }
     }
   )

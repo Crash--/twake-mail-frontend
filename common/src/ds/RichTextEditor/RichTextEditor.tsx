@@ -2,7 +2,7 @@
 // TipTap (MIT) dressed in twake-mui, accessible (RGAA), and knows nothing
 // about email: images, quoted content and signatures arrive through props
 // and generic extensions (InlineImage, HtmlBlock).
-import { Box } from '@linagora/twake-mui'
+import { Box, CircularProgress } from '@linagora/twake-mui'
 import { Extension, type AnyExtension } from '@tiptap/core'
 import FileHandler from '@tiptap/extension-file-handler'
 import { TableKit } from '@tiptap/extension-table'
@@ -25,6 +25,7 @@ import {
 } from 'react'
 
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { cleanPastedHtml } from './cleanPastedHtml'
 import { HtmlBlock, type HtmlBlockOptions } from './htmlBlock'
@@ -32,6 +33,7 @@ import { ImageToolbar } from './ImageToolbar'
 import { Indent } from './indent'
 import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
+import { createPastedDataImages } from './pastedDataImages'
 import { RichTextToolbar } from './RichTextToolbar'
 import { SelectionAction } from './SelectionAction'
 import { SmartTrailingBlock } from './smartTrailingBlock'
@@ -44,7 +46,8 @@ import {
   type RichTextEditorTestIds,
   type RichTextFontFamily,
   type RichTextFontSize,
-  type RichTextSelectionAction
+  type RichTextSelectionAction,
+  type RichTextToolbarItemId
 } from './types'
 
 export interface RichTextEditorProps {
@@ -61,6 +64,16 @@ export interface RichTextEditorProps {
    * takes no image file.
    */
   onImageFiles?: (files: File[]) => Promise<InlineImageAttributes[]>
+  /**
+   * With `onImageFiles`: the images pasted inside HTML as `data:` URLs go
+   * through it too, and the ones it does not take are removed
+   */
+  shouldStorePastedDataImages?: boolean
+  /**
+   * Images are being stored: a spinner named so over the text; null for
+   * none
+   */
+  busyLabel?: string | null
   /** How HtmlBlock nodes render (frame document, titles, edit button) */
   htmlBlock?: Partial<HtmlBlockOptions>
   /**
@@ -83,6 +96,14 @@ export interface RichTextEditorProps {
    * without a border: the editor of a window
    */
   fill?: boolean
+  /**
+   * `boxed`: tmail-flutter's editor of a signature, the toolbar of 40 px
+   * boxes and a 189 px text, in one frame rounded by 10 px. `settings`:
+   * tmail-flutter's editors of the settings (the message of the vacation):
+   * one box rounded by 10 px holding the text and, at its bottom, one line
+   * of buttons (text style to strike); white and faded while disabled
+   */
+  look?: 'compact' | 'boxed' | 'settings'
   /** The formatting toolbar under the text, behind a divider; above it if false */
   isToolbarBelow?: boolean
   /** Shows the toolbar; the parent can hide it (a button of its own) */
@@ -101,6 +122,28 @@ export interface RichTextEditorProps {
   /** A button under the end of the selected text */
   selectionAction?: RichTextSelectionAction
 }
+
+/** The buttons of tmail-flutter's editors of the settings */
+const SETTINGS_TOOLBAR_ITEMS: readonly RichTextToolbarItemId[] = [
+  'text-style',
+  'size',
+  'font',
+  'color',
+  'highlight',
+  'bold',
+  'italic',
+  'underline',
+  'strike'
+]
+
+const SETTINGS_FRAME_SX = {
+  border: `1px solid ${TMAIL.outlineField}`,
+  borderRadius: '10px',
+  overflow: 'hidden',
+  bgcolor: TMAIL.surface,
+  '&[aria-disabled="true"]': { opacity: 0.5 },
+  '& [role="toolbar"]': { borderTop: 'none', px: 1, pb: 1 }
+} as const
 
 /** The image types the editor takes (paste, drop, toolbar) */
 export const IMAGE_TYPES: readonly string[] = [
@@ -121,6 +164,8 @@ async function insertImages(
   const store = actionsRef.current.storeImages
   if (!store) return
   const images = await store(files)
+  // The store said why it took none
+  if (images.length === 0) return
   const nodes = images.map(attributes => ({
     type: 'image',
     attrs: { ...attributes }
@@ -196,6 +241,29 @@ function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
  * is a `textbox` (`aria-multiline`) named by `labels.editor`, the help is
  * read through `aria-describedby`.
  */
+/**
+ * The frame of the `boxed` look: a light outline rounded by 10 px holding
+ * the toolbar and a 189 px text without border of its own
+ */
+const BOXED_FRAME_SX = {
+  border: `1px solid ${TMAIL.outline}`,
+  borderRadius: '10px',
+  pt: '4px',
+  px: 1,
+  pb: 1,
+  '&& .ProseMirror': {
+    border: 'none',
+    minHeight: 189,
+    height: 189,
+    overflowY: 'auto',
+    boxSizing: 'border-box',
+    px: '10px',
+    py: 1,
+    fontSize: 16,
+    color: TMAIL.textBlack
+  }
+} as const
+
 export function RichTextEditor({
   labels,
   content,
@@ -203,12 +271,15 @@ export function RichTextEditor({
   fontSizes,
   fontFamilies,
   onImageFiles,
+  shouldStorePastedDataImages = false,
+  busyLabel = null,
   htmlBlock,
   footerBlockKinds = [],
   extensions = [],
   autoFocus = false,
   disabled = false,
   fill = false,
+  look = 'compact',
   isToolbarBelow = false,
   isToolbarShown = true,
   hasInsertButtons = true,
@@ -218,6 +289,7 @@ export function RichTextEditor({
   testIds = {},
   selectionAction
 }: RichTextEditorProps): ReactElement {
+  const isSettingsLook = look === 'settings'
   const editorId = useId()
   const helpId = useId()
   const [container, setContainer] = useState<HTMLElement | null>(null)
@@ -270,6 +342,10 @@ export function RichTextEditor({
       createKeyboardExtension(actionsRef),
       // eslint-disable-next-line react-hooks/refs
       ...(onImageFiles ? [createImageFileHandler(actionsRef)] : []),
+      ...(onImageFiles && shouldStorePastedDataImages
+        ? // eslint-disable-next-line react-hooks/refs
+          [createPastedDataImages(actionsRef, IMAGE_TYPES)]
+        : []),
       ...extensions
     ],
     content,
@@ -335,6 +411,11 @@ export function RichTextEditor({
         fileInputRef.current?.click()
         return true
       },
+      insertImages: files => {
+        void insertImages(actionsRef, editor, files, null).catch(
+          (error: unknown) => console.error(error)
+        )
+      },
       insertText: text => {
         editor.chain().focus().insertContent(text).run()
       },
@@ -395,10 +476,15 @@ export function RichTextEditor({
       onOpenLinkDialog={openLinkDialog}
       onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
       hasInsertButtons={hasInsertButtons}
-      placement={isToolbarBelow ? 'bottom' : 'top'}
+      placement={isToolbarBelow || isSettingsLook ? 'bottom' : 'top'}
+      look={
+        look === 'boxed' ? 'boxed' : isSettingsLook ? 'compact' : 'composer'
+      }
       actionsRef={actionsRef}
       disabled={disabled}
       buttonTestId={testIds.toolbarButton}
+      only={isSettingsLook ? SETTINGS_TOOLBAR_ITEMS : undefined}
+      isOneLine={isSettingsLook}
     />
   ) : null
 
@@ -407,12 +493,15 @@ export function RichTextEditor({
     <Box
       ref={setContainer}
       className="u-flex u-flex-column"
+      aria-disabled={isSettingsLook && disabled ? true : undefined}
       sx={{
         position: 'relative',
-        ...(fill ? { flex: '1 1 auto', minHeight: 0 } : {})
+        ...(fill ? { flex: '1 1 auto', minHeight: 0 } : {}),
+        ...(look === 'boxed' ? BOXED_FRAME_SX : {}),
+        ...(isSettingsLook ? SETTINGS_FRAME_SX : {})
       }}
     >
-      {isToolbarBelow ? null : toolbar}
+      {isToolbarBelow || isSettingsLook ? null : toolbar}
       <ImageToolbar
         editor={editor}
         labels={labels.image}
@@ -447,28 +536,42 @@ export function RichTextEditor({
             // Filling a window, the outline of the focus is drawn inside
             ...(fill ? FOCUS_RING_INSET : { '--focus-ring-offset': '1px' }),
             minHeight: fill ? undefined : 240,
-            // The body of a window: 24 px above, 16 px at the sides, Inter
-            // Medium 14 / 18.4 as in the design
-            padding: fill ? '24px 16px' : 1.5,
+            // The body of a window, as tmail-flutter's editor: 16 px above,
+            // 25 px at the sides, Inter Regular in dark grey (#222222)
+            padding: fill ? '16px 25px' : 1.5,
             border: fill ? 'none' : '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
             fontSize: DEFAULT_FONT_SIZE,
             ...(fill
               ? {
-                  fontWeight: 500,
+                  fontWeight: 400,
                   lineHeight: '18.4px',
-                  letterSpacing: '0.25px'
+                  letterSpacing: 0,
+                  color: TMAIL.textInk
                 }
               : { lineHeight: 1.5 }),
             overflowWrap: 'anywhere'
           },
-          // Greyed as the other disabled fields of twake-mui
-          '& .ProseMirror[contenteditable="false"]': {
-            bgcolor: 'action.disabledBackground',
-            color: 'text.secondary',
-            cursor: 'default'
-          },
+          // Greyed as the other disabled fields of twake-mui (the settings
+          // look fades its whole box instead)
+          '& .ProseMirror[contenteditable="false"]': isSettingsLook
+            ? { cursor: 'default' }
+            : {
+                bgcolor: 'action.disabledBackground',
+                color: 'text.secondary',
+                cursor: 'default'
+              },
+          // In the box of the settings look: no border of its own
+          ...(isSettingsLook
+            ? {
+                '& .ProseMirror.ProseMirror': {
+                  border: 'none',
+                  minHeight: 180,
+                  padding: '12px'
+                }
+              }
+            : {}),
           // A long draft (a quoted thread, big tables) has thousands of nodes: the blocks
           // out of view are not laid out nor painted at each key (docs/perf/composer.md).
           // `auto` keeps their text reachable by find and by assistive technologies
@@ -536,6 +639,15 @@ export function RichTextEditor({
       >
         <EditorContent editor={editor} />
       </Box>
+      {busyLabel === null ? null : (
+        // tmail-flutter's spinner over the editor (`InsertImageLoadingIndicator`)
+        <Box
+          className="u-flex u-flex-items-center u-flex-justify-center"
+          sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+        >
+          <CircularProgress aria-label={busyLabel} />
+        </Box>
+      )}
       {selectionAction ? (
         <SelectionAction
           editor={editor}
@@ -543,7 +655,7 @@ export function RichTextEditor({
           container={container}
         />
       ) : null}
-      {isToolbarBelow ? toolbar : null}
+      {isToolbarBelow || isSettingsLook ? toolbar : null}
       <input
         ref={fileInputRef}
         type="file"

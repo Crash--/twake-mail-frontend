@@ -1,16 +1,16 @@
+import { Box } from '@linagora/twake-mui'
+import { useState, type ReactElement } from 'react'
+
 import {
   Archive,
-  Dots,
-  FolderMoveto,
+  MoveEmail,
   Reply,
   Star,
   StarOutline,
   Trash
-} from '@linagora/twake-icons'
-import { Box } from '@linagora/twake-mui'
-import { useState, type ReactElement } from 'react'
-
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,
@@ -37,7 +37,8 @@ import { useUnsubscribe } from './useUnsubscribe'
  */
 const MOVES: Record<EmailViewActionsVariant, EmailActionId> = {
   email: 'move',
-  message: 'archive'
+  // As tmail-flutter's header, on every message
+  message: 'move'
 }
 
 /** The delete button: the folder offers one of these, never both */
@@ -66,7 +67,7 @@ export interface EmailViewActionsProps {
 
 /**
  * The actions of an open email, in its header, or of a message of a
- * conversation: reply, move (archive in a conversation), star and delete as
+ * conversation: reply, move, star and delete as
  * icon buttons (the star and "More" only on phones), and every action in
  * "More". An email leaving the folder closes the view
  * (`useEmailViewShortcuts`).
@@ -79,7 +80,13 @@ export function EmailViewActions({
   label
 }: EmailViewActionsProps): ReactElement {
   const { t } = useI18n()
-  const isPhone = useScreenSize() === 'mobile'
+  const screenSize = useScreenSize()
+  const isPhone = screenSize === 'mobile'
+  // As tmail-flutter's messages of a conversation: "Reply" and "More"
+  // below the desktop size, move, star and delete between them on desktops
+  const isMessageCompact = variant === 'message' && screenSize !== 'desktop'
+  const showsReply = variant === 'message' || !isPhone
+  const showsShortcuts = !isPhone && !isMessageCompact
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
   const runAction = useRunViewedEmailAction()
@@ -113,8 +120,10 @@ export function EmailViewActions({
       className="u-flex u-flex-items-center u-flex-justify-end"
       data-testid="email-view-actions"
     >
-      {isPhone || replies.actions.length === 0 ? null : (
+      {!showsReply || replies.actions.length === 0 ? null : (
         <IconAction
+          size={36}
+          tone="steel"
           label={replyLabel}
           icon={Reply}
           onClick={() => {
@@ -123,28 +132,35 @@ export function EmailViewActions({
           data-testid="email-view-action-reply"
         />
       )}
-      {isPhone || move === undefined ? null : (
+      {!showsShortcuts || move === undefined ? null : (
         <IconAction
+          size={36}
+          tone="steel"
           label={t(move.label)}
-          icon={move.id === 'move' ? FolderMoveto : Archive}
+          icon={move.id === 'move' ? MoveEmail : Archive}
           onClick={() => {
             handleRun(move.id)
           }}
           data-testid={`email-view-action-${move.id}`}
         />
       )}
-      <IconAction
-        label={starLabel}
-        icon={isStarred ? Star : StarOutline}
-        tone={isStarred ? 'starred' : 'default'}
-        aria-pressed={isStarred}
-        onClick={() => {
-          handleRun(isStarred ? 'unstar' : 'star')
-        }}
-        data-testid="email-view-star-button"
-      />
-      {isPhone || deletion === undefined ? null : (
+      {isMessageCompact ? null : (
         <IconAction
+          size={36}
+          label={starLabel}
+          icon={isStarred ? Star : StarOutline}
+          tone={isStarred ? 'starred' : 'steel'}
+          aria-pressed={isStarred}
+          onClick={() => {
+            handleRun(isStarred ? 'unstar' : 'star')
+          }}
+          data-testid="email-view-star-button"
+        />
+      )}
+      {!showsShortcuts || deletion === undefined ? null : (
+        <IconAction
+          size={36}
+          tone="steel"
           label={t(deletion.label)}
           icon={Trash}
           onClick={() => {
@@ -154,8 +170,10 @@ export function EmailViewActions({
         />
       )}
       <IconAction
+        size={36}
+        tone="steel"
         label={moreLabel}
-        icon={Dots}
+        icon={MoreVerticalIcon}
         aria-haspopup="menu"
         aria-expanded={menuAnchor !== null}
         onClick={event => {

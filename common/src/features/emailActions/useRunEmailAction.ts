@@ -45,7 +45,7 @@ export function useRunEmailAction(): (
       if (id === 'move') {
         const destination = await pickMailbox({
           requireAddItems: true,
-          disabledIds: mailboxId === null ? [] : [mailboxId]
+          ...(mailboxId === null ? {} : { currentId: mailboxId })
         })
         if (destination === null || destination === PICKED_ROOT) return false
         return run({

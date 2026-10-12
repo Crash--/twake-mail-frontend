@@ -7,6 +7,10 @@ import type {
   RuleUpdate
 } from 'jmap-client-ts/linagora'
 
+import {
+  isValidEmail,
+  parseRecipients
+} from '@common/features/composer/recipients'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -52,18 +56,21 @@ export function ruleComparatorLabel(comparator: string): TranslationKey | null {
 }
 
 /**
- * The actions of the rule creator, as tmail-flutter offers them: move to a
- * folder, mark as seen, star (`markAsImportant`), reject, or mark as spam
- * (moved to the spam folder)
+ * The actions of the rule creator, as tmail-flutter defines them: move to a
+ * folder, mark as seen, star (`markAsImportant`), reject, mark as spam
+ * (moved to the spam folder), or forward to addresses (`forwardTo`, which
+ * tmail-flutter hides but James applies)
  */
-export type RuleActionKind = 'move' | 'seen' | 'star' | 'reject' | 'spam'
+export type RuleActionKind =
+  'move' | 'seen' | 'star' | 'reject' | 'spam' | 'forward'
 
 export const RULE_ACTION_KINDS: readonly RuleActionKind[] = [
   'move',
   'seen',
   'star',
   'reject',
-  'spam'
+  'spam',
+  'forward'
 ]
 
 export const RULE_ACTION_LABELS: Record<RuleActionKind, TranslationKey> = {
@@ -71,7 +78,8 @@ export const RULE_ACTION_LABELS: Record<RuleActionKind, TranslationKey> = {
   seen: 'rules.actions.seen',
   star: 'rules.actions.star',
   reject: 'rules.actions.reject',
-  spam: 'rules.actions.spam'
+  spam: 'rules.actions.spam',
+  forward: 'rules.actions.forward'
 }
 
 /** An action row of the creator; `kind` null until one is picked */
@@ -79,6 +87,30 @@ export interface RuleActionDraft {
   kind: RuleActionKind | null
   /** The folder of `move` */
   mailboxId: string | null
+  /** The addresses of `forward`, as typed (separated by commas) */
+  forwardAddresses: string
+  /** Whether `forward` also keeps the email for the user */
+  keepACopy: boolean
+}
+
+export function actionDraft(
+  kind: RuleActionKind | null = null,
+  change: Partial<Omit<RuleActionDraft, 'kind'>> = {}
+): RuleActionDraft {
+  return {
+    kind,
+    mailboxId: null,
+    forwardAddresses: '',
+    keepACopy: true,
+    ...change
+  }
+}
+
+/** The addresses of a `forward` action, invalid ones included */
+export function forwardAddresses(action: RuleActionDraft): string[] {
+  return parseRecipients(action.forwardAddresses).map(
+    recipient => recipient.email
+  )
 }
 
 export interface RuleDraft {
@@ -103,10 +135,10 @@ export function newRuleDraft(
 ): RuleDraft {
   const action: RuleActionDraft =
     folder === null
-      ? { kind: null, mailboxId: null }
+      ? actionDraft()
       : folder.role === 'junk'
-        ? { kind: 'spam', mailboxId: null }
-        : { kind: 'move', mailboxId: folder.id }
+        ? actionDraft('spam')
+        : actionDraft('move', { mailboxId: folder.id })
   return {
     name: '',
     combiner: 'AND',
@@ -130,29 +162,34 @@ export function draftFromRule(rule: Rule, spamId: string | null): RuleDraft {
   if (folderId !== null) {
     actions.push(
       folderId === spamId
-        ? { kind: 'spam', mailboxId: null }
-        : { kind: 'move', mailboxId: folderId }
+        ? actionDraft('spam')
+        : actionDraft('move', { mailboxId: folderId })
     )
   }
-  if (rule.action.markAsSeen === true)
-    actions.push({ kind: 'seen', mailboxId: null })
-  if (rule.action.markAsImportant === true) {
-    actions.push({ kind: 'star', mailboxId: null })
+  if (rule.action.markAsSeen === true) actions.push(actionDraft('seen'))
+  if (rule.action.markAsImportant === true) actions.push(actionDraft('star'))
+  if (rule.action.reject === true) actions.push(actionDraft('reject'))
+  const forward = rule.action.forwardTo
+  if (forward && forward.addresses.length > 0) {
+    actions.push(
+      actionDraft('forward', {
+        forwardAddresses: forward.addresses.join(', '),
+        keepACopy: forward.keepACopy
+      })
+    )
   }
-  if (rule.action.reject === true)
-    actions.push({ kind: 'reject', mailboxId: null })
   return {
     name: rule.name,
     combiner: rule.conditionGroup.conditionCombiner,
     conditions: ruleConditions(rule).map(condition => ({ ...condition })),
-    actions: actions.length > 0 ? actions : [{ kind: null, mailboxId: null }]
+    actions: actions.length > 0 ? actions : [actionDraft()]
   }
 }
 
 /**
  * The rule a draft saves. What the creator does not show (keywords,
- * forwards, `moveTo` set by another client) is kept from `original`; a
- * rejected email gets no other action.
+ * `moveTo` set by another client) is kept from `original`; a rejected email
+ * gets no other action.
  */
 export function ruleFromDraft(
   draft: RuleDraft,
@@ -162,6 +199,7 @@ export function ruleFromDraft(
   const kinds = new Set(draft.actions.map(action => action.kind))
   const isRejected = kinds.has('reject')
   const move = draft.actions.find(action => action.kind === 'move')
+  const forward = draft.actions.find(action => action.kind === 'forward')
   const mailboxIds = isRejected
     ? []
     : move?.mailboxId
@@ -174,7 +212,14 @@ export function ruleFromDraft(
     appendIn: { mailboxIds },
     markAsSeen: !isRejected && kinds.has('seen'),
     markAsImportant: !isRejected && kinds.has('star'),
-    reject: isRejected
+    reject: isRejected,
+    forwardTo:
+      isRejected || forward === undefined
+        ? null
+        : {
+            addresses: forwardAddresses(forward),
+            keepACopy: forward.keepACopy
+          }
   }
   return {
     name: draft.name.trim(),
@@ -208,6 +253,16 @@ export type RuleProblem =
   | 'rules.errors.noAction'
   | 'rules.errors.noFolder'
   | 'rules.errors.noSpam'
+  | 'rules.errors.noForwardAddress'
+  | 'rules.errors.invalidForwardAddress'
+
+function forwardProblem(action: RuleActionDraft): RuleProblem | null {
+  const addresses = forwardAddresses(action)
+  if (addresses.length === 0) return 'rules.errors.noForwardAddress'
+  return addresses.every(isValidEmail)
+    ? null
+    : 'rules.errors.invalidForwardAddress'
+}
 
 /** What stops a draft from being saved, beyond its fields (tmail-flutter) */
 export function ruleDraftProblem(
@@ -223,5 +278,6 @@ export function ruleDraftProblem(
   if (actions.some(action => action.kind === 'spam') && spamId === null) {
     return 'rules.errors.noSpam'
   }
-  return null
+  const forward = actions.find(action => action.kind === 'forward')
+  return forward === undefined ? null : forwardProblem(forward)
 }

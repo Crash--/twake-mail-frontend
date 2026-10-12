@@ -1,7 +1,6 @@
-import { Box, FormControlLabel, Switch, Typography } from '@linagora/twake-mui'
-import { useId, type ChangeEvent, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { SettingsOption } from '@/ds/SettingsOption/SettingsOption'
 
 export interface PreferenceOptionProps {
   title: string
@@ -18,50 +17,6 @@ export interface PreferenceOptionProps {
  * An option of Settings > Preferences, as tmail-flutter shows it: its
  * title, what it does, and the switch (described by both)
  */
-export function PreferenceOption({
-  title,
-  description,
-  toggleLabel,
-  isChecked,
-  isDisabled = false,
-  onChange,
-  'data-testid': testId
-}: PreferenceOptionProps): ReactElement {
-  const titleId = useId()
-  const descriptionId = useId()
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    onChange(event.target.checked)
-  }
-
-  return (
-    <Box component="section" aria-labelledby={titleId} className="u-mb-1-half">
-      <Typography
-        id={titleId}
-        variant="subtitle1"
-        component="h2"
-        color="textPrimary"
-        className="u-fw-bold"
-      >
-        {title}
-      </Typography>
-      <SecondaryText id={descriptionId} variant="body2" component="p">
-        {description}
-      </SecondaryText>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={isChecked}
-            disabled={isDisabled}
-            onChange={handleChange}
-            slotProps={{
-              input: { 'aria-describedby': `${titleId} ${descriptionId}` }
-            }}
-            data-testid={testId}
-          />
-        }
-        label={toggleLabel}
-      />
-    </Box>
-  )
+export function PreferenceOption(props: PreferenceOptionProps): ReactElement {
+  return <SettingsOption {...props} />
 }

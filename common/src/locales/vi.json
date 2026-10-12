@@ -27,21 +27,24 @@
     "offline": "Không có kết nối",
     "backOnline": "Đã kết nối lại",
     "dismiss": "Bỏ qua",
-    "opensInNewTab": "mở trong tab mới"
+    "opensInNewTab": "mở trong tab mới",
+    "edit": "Sửa"
   },
   "topbar": {
     "logout": "Đăng xuất",
     "search": "Tìm kiếm",
     "showFolders": "Hiển thị thư mục",
     "searchPlaceholder": "Tìm kiếm thư",
-    "help": "Nhận trợ giúp hoặc báo cáo"
+    "help": "Nhận trợ giúp hoặc báo cáo",
+    "account": "Tài khoản %{address}"
   },
   "sidebar": {
     "mailboxes": "Hộp thư",
-    "newMessage": "Tin nhắn mới",
+    "newMessage": "Soạn thư",
     "folders": "Thư mục",
     "teamMailboxes": "Hộp thư nhóm",
-    "version": "phiên bản %{version}"
+    "version": "phiên bản %{version}",
+    "personalFolders": "Thư mục cá nhân"
   },
   "mailbox": {
     "empty": "Bạn không có thư nào\ntại thư mục này.",
@@ -141,7 +144,12 @@
       "noPreview": "Không có bản xem trước",
       "open": "Xem trước",
       "page": "Trang %{page} trên %{count}",
-      "truncated": "Bản xem trước bị cắt ở đây: hãy tải tệp xuống để đọc phần còn lại."
+      "truncated": "Bản xem trước bị cắt ở đây: hãy tải tệp xuống để đọc phần còn lại.",
+      "failed": "Không thể mở tệp tại đây: hãy tải xuống để đọc.",
+      "passwordProtected": "Tệp PDF này được bảo vệ bằng mật khẩu",
+      "password": "Mật khẩu",
+      "wrongPassword": "Mật khẩu không đúng, hãy thử lại.",
+      "openPdf": "Mở"
     },
     "attachmentsMore": "Hiển thị +%{count}",
     "attachmentsHide": "Ẩn %{count}",
@@ -151,7 +159,10 @@
     "previousEmail": "Thư trước",
     "nextEmail": "Thư sau",
     "showRecipients": "Hiện tất cả người nhận",
-    "hideRecipients": "Ẩn địa chỉ"
+    "hideRecipients": "Ẩn địa chỉ",
+    "replied": "Tin nhắn đã trả lời",
+    "forwardedState": "Tin nhắn chuyển tiếp",
+    "repliedAndForwarded": "Tin nhắn được trả lời và chuyển tiếp"
   },
   "login": {
     "title": "Đăng nhập",
@@ -162,7 +173,18 @@
     "badCredentials": "Tài khoản không hợp lệ",
     "connectionError": "Lỗi kết nối",
     "email": "Email",
-    "password": "Mật khẩu"
+    "password": "Mật khẩu",
+    "pitch": {
+      "title": "Giải pháp email doanh nghiệp\ndựa trên JMAP",
+      "jmap": "Tiêu chuẩn JMAP",
+      "encrypted": "Hòm thư mã hoá",
+      "team": "Quản lý email doanh nghiệp",
+      "integrations": "Tích hợp dễ dàng"
+    },
+    "poweredBy": "Được cung cấp bởi LINAGORA",
+    "showPassword": "Hiện mật khẩu",
+    "hidePassword": "Ẩn mật khẩu",
+    "privacyPolicy": "Chính sách bảo mật"
   },
   "config": {
     "title": "Twake Mail chưa được cấu hình",
@@ -199,7 +221,7 @@
     },
     "toolbar": {
       "label": "Thao tác với danh sách",
-      "filter": "Lọc",
+      "filter": "Lọc thư",
       "clearFilter": "Xóa bộ lọc",
       "selectPage": "Chọn tất cả tin nhắn của trang này",
       "filterOn": "Bạn vừa lọc các email \"%{name}\"",
@@ -372,13 +394,18 @@
     "recipients": {
       "suggestions": "Gợi ý liên hệ",
       "invalid": "địa chỉ không hợp lệ",
-      "chipHelp": "Delete xóa địa chỉ, Enter để sửa.",
+      "chipHelp": "Enter mở thẻ địa chỉ, F2 để sửa, Delete để xóa.",
       "removed": "Đã xóa %{address}",
       "added": "Đã thêm %{address}",
       "addedMany": "Đã thêm %{smart_count} người nhận",
       "suggestionCount": "%{smart_count} gợi ý",
       "summary": "Hiện tất cả người nhận:",
-      "others": "+%{smart_count}"
+      "others": "+%{smart_count}",
+      "alreadyAdded": "đã thêm",
+      "editEmail": "Sửa địa chỉ",
+      "createRule": "Tạo quy tắc thư",
+      "moveHelp": "Alt+Lên hoặc Alt+Xuống để chuyển sang trường phía trên hoặc phía dưới.",
+      "moved": "Đã chuyển %{address} sang %{field}"
     },
     "limit": "Bạn có thể soạn %{smart_count} thư cùng lúc. Hãy đóng một thư để bắt đầu thư khác.",
     "sent": "Tin nhắn đã được gửi",
@@ -463,7 +490,8 @@
         "message": "Thư nháp này được chia sẻ với hộp thư nhóm. Lưu làm mẫu cũng sẽ xóa thư nháp đối với mọi người có thể thấy nó.",
         "delete": "Lưu và xóa thư nháp",
         "keep": "Lưu và giữ thư nháp"
-      }
+      },
+      "saving": "Đang lưu thư mẫu"
     },
     "drive": {
       "attach": "Đính kèm từ Drive",
@@ -506,10 +534,7 @@
       "retry": "Thử lại",
       "copy": "Sao chép",
       "copied": "Kết quả đã được sao chép vào clipboard",
-      "task": "Trợ lý nên viết gì?",
-      "ask": "Hỏi",
-      "result": "Đề xuất",
-      "emptyText": "Hãy viết hoặc chọn văn bản trước"
+      "result": "Đề xuất"
     },
     "emoji": {
       "open": "Chèn biểu tượng cảm xúc",
@@ -529,6 +554,14 @@
         "symbols": "Ký hiệu",
         "flags": "Cờ"
       }
+    },
+    "sendingDialog": {
+      "status": "Trạng thái",
+      "progress": "Tiến trình",
+      "creating": "Tạo thư"
+    },
+    "images": {
+      "inserting": "Đang chèn ảnh"
     }
   },
   "layout": {
@@ -568,7 +601,8 @@
     },
     "scope": {
       "default": "Tất cả thư",
-      "everywhere": "Tất cả thư, thư rác và spam"
+      "everywhere": "Tất cả thư, thư rác và spam",
+      "selected": "đã chọn"
     },
     "submit": "Tìm kiếm",
     "hints": {
@@ -576,7 +610,6 @@
       "subject": "Điền tiêu đề",
       "words": "Nhập một số gợi ý"
     },
-    "addFilter": "Thêm",
     "clearFilter": "Xoá bộ lọc",
     "advanced": "Bộ lọc nâng cao",
     "errors": {
@@ -615,6 +648,19 @@
     "labels": {
       "all": "Tất cả nhãn",
       "label": "Nhãn"
+    },
+    "addresses": {
+      "chipHelp": "Enter hoặc F2 để sửa, Delete để xóa.",
+      "added": "Đã thêm %{address}",
+      "addedMany": "Đã thêm %{smart_count} địa chỉ"
+    },
+    "selectFolder": "Chọn thư mục",
+    "contactPicker": {
+      "from": "Tìm kiếm email từ",
+      "to": "Tìm kiếm email đến",
+      "hint": "Điền tên hoặc email",
+      "clearFilter": "Xoá bộ lọc",
+      "done": "Xong"
     }
   },
   "emailActions": {
@@ -654,9 +700,9 @@
       "star": "Quan trọng",
       "unstar": "Không quan trọng",
       "label": "Thao tác với thư",
-      "printAll": "In",
       "downloadAsEml": "Tải xuống email dưới dạng EML",
-      "editAsNew": "Soạn lại dưới dạng email mới"
+      "editAsNew": "Soạn lại dưới dạng email mới",
+      "print": "In"
     },
     "drag": "Di chuyển %{smart_count} thư",
     "reply": {
@@ -696,6 +742,15 @@
       "plainPaste": "Dán dưới dạng văn bản thuần",
       "bold": "In đậm, in nghiêng, gạch chân",
       "escape": "Thu nhỏ cửa sổ (đóng khi ở chế độ toàn màn hình)"
+    },
+    "categories": {
+      "navigation": "Điều hướng và Đóng",
+      "reading": "Đọc và Trả lời email",
+      "management": "Quản lý và lựa chọn tin nhắn",
+      "label": "Danh mục phím tắt",
+      "navigationShort": "Điều hướng",
+      "readingShort": "Đọc",
+      "managementShort": "Tin nhắn"
     }
   },
   "settings": {
@@ -761,6 +816,11 @@
       "accessibility": "Trợ năng",
       "accessibilityDescription": "Hiển thị viền đậm quanh phần tử đang có tiêu điểm bàn phím, ở mọi nơi trong ứng dụng",
       "accessibilityToggle": "Làm nổi bật tiêu điểm bàn phím",
+      "theme": "Giao diện",
+      "themeDescription": "Màu sắc của ứng dụng. Tự động theo cài đặt của thiết bị.",
+      "themeLight": "Sáng",
+      "themeDark": "Tối",
+      "themeAuto": "Tự động",
       "errorReporting": "Báo cáo lỗi",
       "errorReportingDescription": "Gửi báo cáo sự cố và lỗi để nhóm hỗ trợ có thể chẩn đoán các vấn đề bạn gặp phải. Email của bạn, nội dung và người nhận không bao giờ được đưa vào.",
       "errorReportingToggle": "Gửi báo cáo lỗi",
@@ -787,14 +847,19 @@
         "vi": "Tiếng Việt"
       },
       "label": "Ngôn ngữ"
-    }
+    },
+    "contactSupport": "Hỗ trợ"
   },
   "mailboxPicker": {
     "title": "Chuyển tới",
     "search": "Thư mục tìm kiếm",
     "empty": "Không có thư mục nào khớp với tìm kiếm",
     "personalFolders": "Thư mục cá nhân",
-    "allFolders": "Tất cả thư mục"
+    "allFolders": "Tất cả thư mục",
+    "selectParent": "Chọn thư mục cha",
+    "collapsed": "thư mục con đã ẩn",
+    "expanded": "thư mục con đang hiển thị",
+    "current": "thư mục hiện tại"
   },
   "spamReport": {
     "banner": "%{smart_count} thư trong Spam",
@@ -841,7 +906,8 @@
       "location": "Chọn vị trí thư mục",
       "submit": "Tạo thư mục",
       "success": "Bạn đã tạo thành công thư mục %{folderName}",
-      "failure": "Tạo thư mục mới thất bại"
+      "failure": "Tạo thư mục mới thất bại",
+      "subtitle": "Thư mục mới sẽ được tạo bên trong %{folderName}"
     },
     "rename": {
       "submit": "Đổi tên",
@@ -892,7 +958,11 @@
       "failure": "Không thể chuyển toàn bộ thư từ thư mục này sang thư mục khác.",
       "progress": "Đang chuyển thư: %{moved}/%{total}"
     },
-    "clean": "Dọn dẹp"
+    "clean": "Dọn dẹp",
+    "progress": {
+      "markAsRead": "Đang đánh dấu tất cả thư trong \"%{folderName}\" là đã đọc",
+      "empty": "Đang dọn sạch \"%{folderName}\""
+    }
   },
   "identities": {
     "create": "Tạo danh tính mới",
@@ -908,7 +978,9 @@
       "create": "Tạo mới",
       "save": "Lưu",
       "email": "Địa chỉ email",
-      "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy"
+      "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy",
+      "nameRequired": "Tên (yêu cầu)",
+      "emailLabel": "Email"
     },
     "errors": {
       "blank": "Trường dữ liệu trống",
@@ -919,7 +991,9 @@
       "imageTooLarge": "Vui lòng chọn kích thước hình ảnh nhỏ hơn %{maxSize}KB",
       "save": "Không thể lưu định danh",
       "forbiddenFrom": "Bạn không thể gửi từ địa chỉ này",
-      "load": "Không thể tải các định danh"
+      "load": "Không thể tải các định danh",
+      "imageCompress": "Không thể nén hình ảnh",
+      "notAnImage": "Tải lên hình ảnh không thành công"
     },
     "delete": {
       "title": "Xoá định danh",
@@ -934,11 +1008,9 @@
     },
     "editAction": "Sửa",
     "defaultGroup": "Định danh mặc định",
-    "defaultBadge": "Mặc định",
     "setDefaultOf": "Dùng %{name} làm mặc định",
     "editOf": "Sửa %{name}",
     "deleteOf": "Xóa %{name}",
-    "cannotDelete": "Được tạo cùng tài khoản của bạn, không thể xóa",
     "listLabel": "Định danh"
   },
   "rules": {
@@ -963,6 +1035,8 @@
       "noAction": "Bạn chưa thêm các hành động.",
       "noFolder": "Vui lòng chọn hộp thư để chuyển thư",
       "noSpam": "Không thấy thư mục Spam",
+      "noForwardAddress": "Vui lòng nhập ít nhất một người nhận",
+      "invalidForwardAddress": "Email không đúng định dạng",
       "load": "Không thể tải các quy tắc",
       "delete": "Không thể xóa quy tắc"
     },
@@ -990,7 +1064,13 @@
       "action": "Hành động %{position}",
       "condition": "Điều kiện %{position}",
       "chooseFolder": "Chọn thư mục",
-      "rejectAlone": "Email bị từ chối không áp dụng hành động khác"
+      "rejectAlone": "Email bị từ chối không áp dụng hành động khác",
+      "preview": "Xem trước",
+      "conditionsPreview": "%{combiner} của điều kiện: %{conditions}",
+      "actionsPreview": "Hành động: %{actions}",
+      "forwardAddresses": "Người nhận",
+      "forwardPlaceholder": "Điền địa chỉ email",
+      "keepACopy": "Giữ một bản sao"
     },
     "combiners": {
       "AND": "Tất cả",
@@ -1014,7 +1094,8 @@
       "seen": "Đánh dấu là đã đọc",
       "star": "Gắn dấu sao cho nó",
       "reject": "Từ chối nó",
-      "spam": "Đánh dấu là thư rác"
+      "spam": "Đánh dấu là thư rác",
+      "forward": "Chuyển tiếp tới"
     },
     "reject": {
       "title": "Từ chối tất cả thư với điều kiện này?",
@@ -1023,7 +1104,8 @@
     "editOf": "Sửa %{name}",
     "deleteOf": "Xóa %{name}",
     "listLabel": "Quy tắc",
-    "count": "%{smart_count} quy tắc"
+    "count": "%{smart_count} quy tắc",
+    "nameOfRules": "Tên bộ lọc"
   },
   "forward": {
     "localCopy": "Giữ bản sao trong thư mục Thư đến",
@@ -1058,7 +1140,17 @@
     "externalBanner": "Bạn đang chuyển hướng email đến một tên miền khác. Đây có thể là một mối đe dọa bảo mật hoặc được coi là trích xuất dữ liệu bất hợp pháp.",
     "listLabel": "Địa chỉ chuyển tiếp",
     "removeOf": "Xóa %{email}",
-    "inputLabel": "Người nhận mới"
+    "inputLabel": "Người nhận mới",
+    "recipientCount": "%{smart_count} người nhận",
+    "selectAll": "Chọn tất cả",
+    "selectedCount": "Chọn %{count}",
+    "deselectAll": "Bỏ chọn tất cả (%{count})",
+    "remove": "Xóa",
+    "deleteAll": {
+      "title": "Xoá người nhận",
+      "message": "Bạn có chắc chắn muốn xóa những người nhận đó không? Thao tác này sẽ xóa họ khỏi danh sách."
+    },
+    "selectOf": "Chọn %{email}"
   },
   "vacation": {
     "enable": "Tự động trả lời tin nhắn.",
@@ -1286,7 +1378,8 @@
       "count": "%{smart_count} lần",
       "until": "đến %{date}"
     },
-    "untitled": "(Không có tiêu đề)"
+    "untitled": "(Không có tiêu đề)",
+    "eventMark": "Lời mời sự kiện"
   },
   "unsubscribe": {
     "action": "Hủy đăng ký",

@@ -1,7 +1,8 @@
-import { Email, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { Email } from '@/ds/FlutterIcons/FlutterIcons'
 import { injectedCss } from '@/ds/testing/injectedCss'
 import { renderDs } from '@/ds/testing/renderDs'
 
@@ -24,8 +25,8 @@ function renderItem(props: Partial<NavTreeItemProps> = {}): void {
 }
 
 describe('levelIndent', () => {
-  it('indents by 8, 44, 52, then 8 more per level, without a cap', () => {
-    expect([1, 2, 3, 4, 10].map(levelIndent)).toEqual([8, 44, 52, 60, 108])
+  it('moves each level 8 px further in, without a cap', () => {
+    expect([1, 2, 3, 4, 10].map(levelIndent)).toEqual([0, 8, 16, 24, 72])
   })
 })
 

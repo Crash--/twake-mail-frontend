@@ -14,6 +14,9 @@ export interface InlineGroupProps {
   align?: 'center' | 'baseline' | 'flex-start'
   component?: 'div' | 'span' | 'p'
   className?: string
+  /** e.g. `list`, its children being `listitem`s */
+  role?: 'list' | 'group'
+  'aria-label'?: string
   'data-testid'?: string
 }
 
@@ -25,12 +28,16 @@ export function InlineGroup({
   align = 'center',
   component = 'div',
   className,
+  role,
+  'aria-label': ariaLabel,
   'data-testid': testId
 }: InlineGroupProps): ReactElement {
   return (
     <Box
       component={component}
       className={className}
+      role={role}
+      aria-label={ariaLabel}
       data-testid={testId}
       sx={{
         display: 'flex',

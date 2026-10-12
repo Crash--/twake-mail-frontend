@@ -14,6 +14,10 @@ import type {
 } from 'jmap-client-ts'
 
 import {
+  CALENDAR_EVENT_HEADER,
+  type CalendarEventHeader
+} from '@common/features/calendar/calendarHeader'
+import {
   PRIORITY_HEADERS,
   type PriorityHeaders
 } from '@common/features/email/importance'
@@ -48,12 +52,13 @@ export type MessageIdentity = Partial<Pick<Email, 'messageId'>>
 
 /**
  * The email properties a list row shows: the fields, the Message-ID, the
- * priority headers
+ * priority headers and the header of a calendar event
  */
 export const EMAIL_LIST_PROPERTIES = [
   ...EMAIL_ROW_PROPERTIES,
   'messageId',
-  ...PRIORITY_HEADERS
+  ...PRIORITY_HEADERS,
+  CALENDAR_EVENT_HEADER
 ] as const
 
 export type EmailListItemData = Pick<
@@ -61,7 +66,8 @@ export type EmailListItemData = Pick<
   (typeof EMAIL_ROW_PROPERTIES)[number]
 > &
   MessageIdentity &
-  PriorityHeaders
+  PriorityHeaders &
+  CalendarEventHeader
 
 /**
  * What a list of conversations knows of every email of a listed thread:

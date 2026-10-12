@@ -1,40 +1,41 @@
-import { Icon, Left } from '@linagora/twake-icons'
-import {
-  Box,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
-import { NavItem } from '@/ds/NavItem/NavItem'
-import { NavList } from '@/ds/NavList/NavList'
-import { NavLink } from '@/ds/NavLink/NavLink'
-import { useEffect, useRef, type ReactElement } from 'react'
+import { Box, Typography } from '@linagora/twake-mui'
+import { useEffect, useId, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
+import {
+  SettingsAccount,
+  SettingsTile,
+  SettingsTileList
+} from '@/ds/SettingsTiles/SettingsTiles'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
+import { useContactSupport } from '@common/features/support/useContactSupport'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { useLogout } from '@common/layout/useLogout'
 
 import { settingsSectionPath } from './sections'
-import {
-  SETTINGS_EXIT_STATE,
-  useSettingsExitPath
-} from './SettingsExitProvider'
 import { useSettingsSections } from './useSettingsSections'
 
 /**
- * `/settings` below the desktop size: the sections with what each is for,
- * as tmail-flutter's first level; one opens in its place.
+ * `/settings` below the desktop size: the menu of the sections, as
+ * tmail-flutter's first level (who is signed in, then one entry per
+ * section with its explanation); one opens in its place. The bar at the top
+ * holds the title and the cross going back to the mail.
  */
 export function SettingsSectionList(): ReactElement {
   const { t } = useI18n()
+  const { session } = useJmapSession()
   const sections = useSettingsSections()
-  const exitPath = useSettingsExitPath()
+  const handleLogout = useLogout()
+  const support = useContactSupport()
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const headingId = useId()
   const title = t('settings.title')
-  const backLabel = t('settings.backToMail')
+  // As tmail-flutter's account: two letters, their own gradient
+  const initials = session.username.slice(0, 2).toUpperCase()
   useDocumentTitle(title)
 
   useEffect(() => {
@@ -42,62 +43,74 @@ export function SettingsSectionList(): ReactElement {
   }, [])
 
   return (
-    <Box className="u-p-1" data-testid="settings-section-list">
-      <Box className="u-flex u-flex-items-center">
-        <Tooltip title={backLabel}>
-          <IconButton
+    <Box
+      component="nav"
+      aria-labelledby={headingId}
+      data-testid="settings-section-list"
+    >
+      <Typography
+        ref={headingRef}
+        id={headingId}
+        variant="h3"
+        component="h1"
+        tabIndex={-1}
+        className="u-visuallyhidden"
+      >
+        {title}
+      </Typography>
+      <SettingsAccount
+        avatar={
+          <GradientAvatar
+            text={initials}
+            colorKey={initials}
+            size={51}
+            fontSize={25}
+          />
+        }
+      >
+        {session.username}
+      </SettingsAccount>
+      <SettingsTileList>
+        {sections.map(section => (
+          <SettingsTile
+            key={section.id}
+            icon={section.icon}
+            title={t(section.title)}
+            // As tmail-flutter: "Preferences" has no explanation here
+            explanation={
+              section.description === null || section.id === 'preferences'
+                ? null
+                : t(section.description)
+            }
             component={Link}
-            to={exitPath}
-            state={SETTINGS_EXIT_STATE}
-            aria-label={backLabel}
-            data-testid="settings-back-button"
-          >
-            <Icon icon={Left} />
-          </IconButton>
-        </Tooltip>
-        <Typography
-          ref={headingRef}
-          variant="h3"
-          component="h1"
-          tabIndex={-1}
-          className="u-ml-half"
-        >
-          {title}
-        </Typography>
-      </Box>
-      <Box component="nav" aria-label={title}>
-        <NavList>
-          {sections.map(section => (
-            <NavItem key={section.id}>
-              <NavLink
-                component={Link}
-                to={settingsSectionPath(section.id)}
-                data-testid={`settings-menu-${section.id}`}
-              >
-                <ListItemIcon>
-                  <Icon icon={section.icon} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography component="span" color="textPrimary">
-                      {t(section.title)}
-                    </Typography>
-                  }
-                  secondary={
-                    // The secondary text of the theme lacks contrast
-                    // (docs/twake-mui-gaps.md)
-                    section.description === null ? null : (
-                      <SecondaryText variant="body2">
-                        {t(section.description)}
-                      </SecondaryText>
-                    )
-                  }
-                />
-              </NavLink>
-            </NavItem>
-          ))}
-        </NavList>
-      </Box>
+            to={settingsSectionPath(section.id)}
+            data-testid={`settings-menu-${section.id}`}
+          />
+        ))}
+        {/* As tmail-flutter: the support, when the server names one, and
+            signing out end the list */}
+        {support === null ? null : (
+          <SettingsTile
+            icon={HelpOutlined}
+            title={t('settings.contactSupport')}
+            explanation={null}
+            href={
+              support.kind === 'address'
+                ? `mailto:${support.address}`
+                : support.href
+            }
+            isExternal={support.kind === 'link'}
+            data-testid="settings-contact-support"
+          />
+        )}
+        <SettingsTile
+          icon={SignOutSettingsIcon}
+          title={t('topbar.logout')}
+          explanation={null}
+          onClick={handleLogout}
+          data-testid="settings-sign-out-button"
+        />
+      </SettingsTileList>
     </Box>
   )
 }

@@ -20,16 +20,31 @@ describe('spam report preference', () => {
     const storage = makeStorage()
     expect(spamReportPreference.read(storage)).toEqual({
       isEnabled: true,
-      lastDismissedAt: 0
+      lastDismissedAt: 0,
+      lastShownAt: 0
     })
 
     spamReportPreference.write(
-      { isEnabled: false, lastDismissedAt: 5 },
+      { isEnabled: false, lastDismissedAt: 5, lastShownAt: 3 },
       storage
     )
     expect(spamReportPreference.read(storage)).toEqual({
       isEnabled: false,
-      lastDismissedAt: 5
+      lastDismissedAt: 5,
+      lastShownAt: 3
+    })
+  })
+
+  it('reads an entry stored before the display was recorded', () => {
+    const storage = makeStorage()
+    storage.setItem(
+      SPAM_REPORT_PREFERENCE_STORAGE_KEY,
+      JSON.stringify({ isEnabled: true, lastDismissedAt: 5 })
+    )
+    expect(spamReportPreference.read(storage)).toEqual({
+      isEnabled: true,
+      lastDismissedAt: 5,
+      lastShownAt: 0
     })
   })
 

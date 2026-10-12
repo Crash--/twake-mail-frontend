@@ -36,6 +36,8 @@ import {
   type ReactElement
 } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 /** `data-*` and `aria-*` attributes put on a row */
 export type RowAttributes = Partial<
   Record<`data-${string}` | `aria-${string}`, string | number | boolean>
@@ -69,7 +71,23 @@ export interface RowLayout {
   paddingTop: number
   paddingBottom: number
   gap: number
+  /** The divider under the row starts after its first cell */
+  insetDivider?: boolean
+  /**
+   * The divider under the row keeps this margin on both sides instead
+   * (tmail-flutter's compact rows), in px
+   */
+  dividerMarginX?: number
+  /** With `dividerMarginX`: the room of the divider stays, blank */
+  hideDivider?: boolean
 }
+
+/** The divider between the rows, as tmail-flutter's */
+const ROW_DIVIDER_COLOR = TMAIL.divider
+/** The background of a hovered row, as tmail-flutter's */
+const ROW_HOVER_COLOR = TMAIL.fillF4F5
+/** The background of a selected row, as tmail-flutter's (`blue100`) */
+const ROW_SELECTED_COLOR = TMAIL.blueSelected
 
 interface ListTableSettings {
   label: string
@@ -120,14 +138,56 @@ export function makeRowLayoutSx({
   paddingX,
   paddingTop,
   paddingBottom,
-  gap
-}: RowLayout): Record<string, Record<string, string>> {
+  gap,
+  insetDivider = false,
+  dividerMarginX,
+  hideDivider = false
+}: RowLayout): Record<string, Record<string, string> | string> {
   return {
+    // A line drawn by the row, as wide as the row less the margins: the
+    // borders of the cells always span it all
+    ...(dividerMarginX === undefined
+      ? {}
+      : {
+          ...(hideDivider
+            ? {}
+            : {
+                backgroundImage: `linear-gradient(${ROW_DIVIDER_COLOR}, ${ROW_DIVIDER_COLOR})`,
+                backgroundSize: `calc(100% - ${2 * dividerMarginX}px) 1px`,
+                backgroundPosition: 'center bottom',
+                backgroundRepeat: 'no-repeat'
+              }),
+          '& .MuiTableCell-root.MuiTableCell-root': { borderBottom: 'none' }
+        }),
     '& .MuiTableCell-root': {
       boxSizing: 'border-box',
-      padding: `${paddingTop}px 0 ${paddingBottom}px ${gap}px`
+      padding: `${paddingTop}px 0 ${paddingBottom}px ${gap}px`,
+      borderBottomColor: ROW_DIVIDER_COLOR
     },
-    '& .MuiTableCell-root:first-of-type': { paddingLeft: `${paddingX}px` },
+    '& .MuiTableCell-root:first-of-type': {
+      paddingLeft: `${paddingX}px`,
+      ...(insetDivider ? { borderBottomColor: 'transparent' } : {})
+    },
+    // tmail-flutter's selected row: light blue, rounded by 8 px
+    '&.Mui-selected, &.Mui-selected:hover': { backgroundColor: 'transparent' },
+    '&.Mui-selected .MuiTableCell-root, &.Mui-selected:hover .MuiTableCell-root':
+      { backgroundColor: ROW_SELECTED_COLOR },
+    '&.Mui-selected .MuiTableCell-root:first-of-type': {
+      borderRadius: '8px 0 0 8px'
+    },
+    '&.Mui-selected .MuiTableCell-root:last-of-type': {
+      borderRadius: '0 8px 8px 0'
+    },
+    // tmail-flutter's hovered row: light grey, rounded by 14 px; a selected
+    // one stays light blue under the pointer
+    '&.MuiTableRow-hover:hover': { backgroundColor: 'transparent' },
+    '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root': {
+      backgroundColor: ROW_HOVER_COLOR
+    },
+    '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root:first-of-type':
+      { borderRadius: '14px 0 0 14px' },
+    '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root:last-of-type':
+      { borderRadius: '0 14px 14px 0' },
     '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
   }
 }
@@ -379,6 +439,8 @@ export interface VirtualizedListTableProps extends Omit<
    * columns only (the compact ones keep the theme's cell padding)
    */
   rowLayout?: RowLayout
+  /** The same, with the compact columns */
+  compactRowLayout?: RowLayout
   /** Free room after the last row, e.g. for a floating button, in pixels */
   bottomInset?: number
   /** Number of rows of the whole list, loaded or not; null when unknown */
@@ -468,6 +530,7 @@ export function VirtualizedListTable({
   compact = false,
   bottomInset = 0,
   rowLayout,
+  compactRowLayout,
   focusedRowIndex = null,
   ...props
 }: VirtualizedListTableProps): ReactElement {
@@ -484,7 +547,7 @@ export function VirtualizedListTable({
     () => ({
       label,
       rowCount,
-      rowLayout: isCompact ? null : (rowLayout ?? null),
+      rowLayout: isCompact ? (compactRowLayout ?? null) : (rowLayout ?? null),
       columns,
       getRowProps: getRowProps ?? null,
       onRowMenu: onRowMenu ?? null,
@@ -496,6 +559,7 @@ export function VirtualizedListTable({
       rowCount,
       isCompact,
       rowLayout,
+      compactRowLayout,
       columns,
       getRowProps,
       onRowMenu,

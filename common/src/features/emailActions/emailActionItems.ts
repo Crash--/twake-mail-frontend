@@ -1,20 +1,4 @@
-import {
-  Archive,
-  CheckCircle,
-  Download,
-  Email,
-  EmailNotification,
-  EmailOpen,
-  FolderMoveto,
-  Label,
-  Pen,
-  Printer,
-  Star,
-  StarOutline,
-  Trash,
-  Warning,
-  type IconProps
-} from '@linagora/twake-icons'
+import { type IconProps } from '@linagora/twake-icons'
 
 import {
   DRAFT,
@@ -28,6 +12,22 @@ import {
   findTemplatesMailboxId,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
+import {
+  Archive,
+  Download,
+  Email,
+  EmailNotification,
+  EmailOpen,
+  MoveEmail,
+  NotSpam,
+  Pen,
+  Printer,
+  Spam,
+  Star,
+  StarOutline,
+  Tag,
+  Trash
+} from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -66,7 +66,7 @@ export interface EmailActionItem {
 const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   'not-spam': {
     label: 'emailActions.menu.removeFromSpam',
-    icon: CheckCircle,
+    icon: NotSpam,
     isDestructive: false,
     group: 0
   },
@@ -114,19 +114,19 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   },
   move: {
     label: 'emailActions.menu.moveMessage',
-    icon: FolderMoveto,
+    icon: MoveEmail,
     isDestructive: false,
     group: 2
   },
   'mark-as-spam': {
     label: 'emailActions.menu.markAsSpam',
-    icon: Warning,
+    icon: Spam,
     isDestructive: false,
     group: 2
   },
   'label-as': {
     label: 'labels.labelAs',
-    icon: Label,
+    icon: Tag,
     isDestructive: false,
     group: 2
   },
@@ -137,7 +137,7 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
     group: 3
   },
   print: {
-    label: 'emailActions.menu.printAll',
+    label: 'emailActions.menu.print',
     icon: Printer,
     isDestructive: false,
     group: 3
@@ -228,8 +228,9 @@ export function availableEmailActions(
     emails.every(email => hasKeyword(email, FLAGGED)) ? 'unstar' : 'star'
   )
   ids.push('move')
-  if (!isTeam && !isSpam && role !== 'drafts') ids.push('mark-as-spam')
+  // As tmail-flutter's menu: "Label as", then "Mark as spam"
   if (canLabel) ids.push('label-as')
+  if (!isTeam && !isSpam && role !== 'drafts') ids.push('mark-as-spam')
   if (emails.length === 1) {
     // A draft or a template is edited, not copied
     const templatesId = findTemplatesMailboxId(mailboxes)

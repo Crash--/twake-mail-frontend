@@ -33,6 +33,8 @@ export interface ListTableSkeletonProps {
   rowLayout: RowLayout
   /** Height of the content of a cell of the wide rows (an icon button) */
   cellHeight: number
+  /** The padding and gap of the real compact rows, when they have their own */
+  compactRowLayout?: RowLayout
   className?: string
   'data-testid'?: string
 }
@@ -68,6 +70,7 @@ export function ListTableSkeleton({
   rowCount,
   rowLayout,
   cellHeight,
+  compactRowLayout,
   className,
   'data-testid': testId
 }: ListTableSkeletonProps): ReactElement {
@@ -75,7 +78,8 @@ export function ListTableSkeleton({
   const isNarrow = useIsNarrow(node)
   const isCompact = compact || isNarrow
   const columns = isCompact ? compactColumns : wideColumns
-  const rowSx = isCompact ? undefined : makeRowLayoutSx(rowLayout)
+  const layout = isCompact ? compactRowLayout : rowLayout
+  const rowSx = layout === undefined ? undefined : makeRowLayoutSx(layout)
   const rows = Array.from({ length: rowCount }, (_, index) => index)
   return (
     <SkeletonRegion
@@ -100,7 +104,11 @@ export function ListTableSkeleton({
                 {columns.map(column => (
                   <TableCell
                     key={column.id}
-                    sx={{ py: 1, pr: 0, pl: `${column.paddingStart ?? 0}px` }}
+                    sx={
+                      layout === undefined
+                        ? { py: 1, pr: 0, pl: `${column.paddingStart ?? 0}px` }
+                        : undefined
+                    }
                   >
                     {isCompact ? (
                       column.cell

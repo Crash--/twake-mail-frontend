@@ -1,43 +1,58 @@
+import { Icon } from '@linagora/twake-icons'
 import {
-  Answer,
-  Attachment,
-  Dots,
-  EmailNotification,
-  EmailOpen,
-  FolderMoveto,
-  Icon,
-  Openwith,
-  Star,
-  StarOutline,
-  Trash,
-  WarningCircle
-} from '@linagora/twake-icons'
-import {
-  Avatar,
-  Checkbox,
-  getInitials,
-  Typography,
+  Tooltip,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
 } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 import { useHref, useNavigate } from 'react-router'
 
+import {
+  firstLetterOf,
+  GradientAvatar
+} from '@/ds/GradientAvatar/GradientAvatar'
+import {
+  Attachment,
+  EmailNotification,
+  EmailOpen,
+  FolderMoveto,
+  Openwith,
+  Reply,
+  Right,
+  Star,
+  StarOutline,
+  Trash,
+  WarningCircle
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
+import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
+import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
+import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
 import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
+import { RowHoverSpace } from '@/ds/RowHoverActions/RowHoverSpace'
 import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
 import { RowSender } from '@/ds/RowSender/RowSender'
+import { RowStateSlot } from '@/ds/RowStateSlot/RowStateSlot'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { hasCalendarEvent } from '@common/features/calendar/calendarHeader'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { isMarkedImportant } from '@common/features/email/importance'
 import {
+  ANSWERED,
   DRAFT,
   FLAGGED,
+  FORWARDED,
   hasKeyword,
   NEEDS_ACTION,
   SEEN
@@ -50,27 +65,31 @@ import type { Label } from 'jmap-client-ts/linagora'
 import { HighlightedText } from '@common/features/search/HighlightedText'
 
 import type { ConversationOpenState } from './conversationTarget'
+import {
+  ACTION_SIZE,
+  getHoverActionsRoom,
+  HOVER_DATE_GAP
+} from './emailListGeometry'
 import { formatFullDate, formatListDate } from './formatListDate'
 import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
 
+/** The attachment icon of a wide row (`steelGray200`) */
+const ATTACHMENT_ICON_COLOR = TMAIL.greyFaint
+/** The yellow star of tmail-flutter, after the subject of a compact row */
+const STAR_COLOR = '#FFCC00'
+
 /**
- * The columns of the email list, in their order: `lead` (selection, star and
- * reply), `sender`, `subject` and `trailing` (attachment and date, replaced
- * by the actions on hover) on a wide list; `select`, `unread`, `message`
- * (sender, date, subject, preview on four lines) and `compactActions` on a
- * narrow one (phone, list beside an open email)
+ * The columns of the email list, in their order, as tmail-flutter: `lead`
+ * (selection, star, answered or forwarded, unread), `sender` (avatar and
+ * name), `subject` and `trailing` (attachment and date, replaced by the
+ * actions on hover) on a wide list; `select` (the avatar, which selects
+ * the row) and `message` (sender, date, subject, preview on three lines)
+ * on a narrow one (phone, tablet)
  */
 export type EmailColumnId =
-  | 'lead'
-  | 'select'
-  | 'sender'
-  | 'subject'
-  | 'trailing'
-  | 'unread'
-  | 'message'
-  | 'compactActions'
+  'lead' | 'select' | 'sender' | 'subject' | 'trailing' | 'message'
 
 /**
  * A row of the table: an email, its snippet in search results, and in a
@@ -120,8 +139,6 @@ export interface EmailCellProps {
   deletesForever: boolean
   /** Opens the actions menu of the email under `element` */
   onOpenMenu: (email: EmailListItemData, element: HTMLElement) => void
-  /** Answers the email in the composer (not offered for drafts) */
-  onReply: (email: EmailListItemData) => void
   /** Asks for a folder, then moves the email (or its selection) there */
   onMove: (email: EmailListItemData) => void
   /** The email open beside the list, if any */
@@ -147,6 +164,11 @@ export interface EmailCellProps {
    * AI feature of tmail-flutter, on when the server offers it)
    */
   showActionRequired?: boolean
+  /**
+   * The room of the actions of a hovered row at the end of the subject
+   * (`getHoverActionsRoom`: 44 px actions on a touch screen)
+   */
+  hoverActionsRoom?: number
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -170,7 +192,6 @@ export function EmailCell({
   onRemove,
   deletesForever,
   onOpenMenu,
-  onReply,
   onMove,
   openEmailId,
   onOpenDraft,
@@ -179,6 +200,7 @@ export function EmailCell({
   showImportant = true,
   labels = [],
   showActionRequired = false,
+  hoverActionsRoom = getHoverActionsRoom(false),
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -186,6 +208,7 @@ export function EmailCell({
   const selection = useEmailSelectionContext()
   const navigate = useNavigate()
   const ensureEmailViewReady = useEmailViewReady()
+  const screenSize = useScreenSize()
   const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)
 
@@ -197,11 +220,14 @@ export function EmailCell({
   const isStarred = thread?.isStarred ?? hasKeyword(email, FLAGGED)
   const hasAttachment = thread?.hasAttachment ?? email.hasAttachment
   const isImportant = showImportant && isMarkedImportant(email)
+  const isEvent = hasCalendarEvent(email)
   // As tmail-flutter: a conversation row shows the labels of the email that
   // represents it. To show the union of its emails (issue #110), pass
   // `thread.members` here instead of `email`.
   const emailLabels = labelsOfEmail(labels, email)
   const isActionRequired = showActionRequired && hasKeyword(email, NEEDS_ACTION)
+  // As tmail-flutter (`LabelTagListWidget`): 3 tags on a desktop, 1 below
+  const maxLabels = screenSize === 'desktop' ? 3 : 1
   const labelChips = (max: number): ReactElement | null =>
     emailLabels.length === 0 && !isActionRequired ? null : (
       <>
@@ -219,36 +245,36 @@ export function EmailCell({
         />
       </>
     )
-  const emphasis = isUnread ? 'u-fw-bold' : ''
   // Its participants ("Alice, Bob, Me") rather than the last sender
   const correspondents =
     thread !== null && !showRecipients
       ? thread.participants.join(', ')
       : formatAddressNames(showRecipients ? email.to : email.from)
 
-  // Decorative: the name of the sender is the text next to it
+  // Decorative: the name of the sender is the text next to it. As
+  // tmail-flutter: the first letter of the name on the gradient of the address
   const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
+  const avatarName = avatarAddress?.name ?? ''
+  const avatarEmail = avatarAddress?.email ?? ''
   const avatar = (
-    <Avatar
-      component="span"
-      size={20}
-      aria-hidden="true"
-      className="u-flex-shrink-0"
+    <GradientAvatar
+      text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
+      colorKey={avatarEmail}
       data-testid="email-list-item-avatar"
-    >
-      {getInitials(avatarAddress?.name ?? '', avatarAddress?.email ?? '')}
-    </Avatar>
+    />
   )
   // A toggle keeps its name: aria-pressed carries the state
   const starLabel = t('email.starred')
   const handleToggleStar = (): void => {
     onToggleStar(email)
   }
-  const starButton = (
+  // As tmail-flutter: the star of a wide row is a bare 20 px icon
+  const wideStarButton = (
     <IconAction
       label={starLabel}
       icon={isStarred ? Star : StarOutline}
-      tone={isStarred ? 'starred' : 'default'}
+      tone={isStarred ? 'starred' : 'muted'}
+      size={20}
       aria-pressed={isStarred}
       onClick={handleToggleStar}
       data-testid="email-list-item-star"
@@ -261,19 +287,31 @@ export function EmailCell({
       Object.keys(email.mailboxIds).some(id => templateMailboxIds.has(id)))
       ? openTemplate
       : undefined
-  const replyLabel = t('emailActions.reply.reply')
-  const handleReply = (): void => {
-    onReply(email)
-  }
-  // A draft or a template opens in the composer: nothing to answer
-  const replyButton =
-    isDraft || onOpenTemplate ? null : (
-      <IconAction
-        label={replyLabel}
-        icon={Answer}
-        onClick={handleReply}
-        data-testid="email-list-item-reply"
-      />
+  // As tmail-flutter: whether the email was answered or forwarded, an icon
+  // named by its tooltip in a slot kept empty otherwise
+  const isAnswered = email.keywords[ANSWERED] === true
+  const isForwarded = email.keywords[FORWARDED] === true
+  const answeredLabel = isAnswered
+    ? t(isForwarded ? 'email.repliedAndForwarded' : 'email.replied')
+    : isForwarded
+      ? t('email.forwardedState')
+      : null
+  const answeredState =
+    answeredLabel === null ? null : (
+      <Tooltip title={answeredLabel}>
+        <span
+          role="img"
+          aria-label={answeredLabel}
+          className="u-flex"
+          data-testid="email-list-item-answered"
+        >
+          {isAnswered ? (
+            <Icon icon={Reply} size={16} aria-hidden="true" />
+          ) : (
+            <ForwardIcon size={16} />
+          )}
+        </span>
+      </Tooltip>
     )
   const seenLabel = t(isUnread ? 'email.markAsRead' : 'email.markAsUnread')
   const handleToggleSeen = (): void => {
@@ -284,6 +322,9 @@ export function EmailCell({
       label={seenLabel}
       icon={isUnread ? EmailOpen : EmailNotification}
       onClick={handleToggleSeen}
+      tone="steel"
+      iconSize={16}
+      size={ACTION_SIZE}
       data-testid="email-list-item-toggle-seen"
     />
   )
@@ -298,6 +339,9 @@ export function EmailCell({
         label={openLabel}
         icon={Openwith}
         onClick={handleOpenInNewTab}
+        tone="steel"
+        iconSize={16}
+        size={ACTION_SIZE}
         data-testid="email-list-item-open-in-new-tab"
       />
     )
@@ -310,6 +354,9 @@ export function EmailCell({
       label={moveLabel}
       icon={FolderMoveto}
       onClick={handleMove}
+      tone="steel"
+      iconSize={16}
+      size={ACTION_SIZE}
       data-testid="email-list-item-move"
     />
   )
@@ -326,6 +373,9 @@ export function EmailCell({
       label={removeLabel}
       icon={Trash}
       onClick={handleRemove}
+      tone="steel"
+      iconSize={16}
+      size={ACTION_SIZE}
       data-testid="email-list-item-remove"
     />
   )
@@ -336,9 +386,12 @@ export function EmailCell({
   const moreButton = (
     <IconAction
       label={moreLabel}
-      icon={Dots}
+      icon={MoreVerticalIcon}
       aria-haspopup="menu"
       onClick={handleOpenMenu}
+      tone="steel"
+      iconSize={16}
+      size={ACTION_SIZE}
       data-testid="email-list-item-more"
     />
   )
@@ -348,23 +401,25 @@ export function EmailCell({
   }
   const checkbox =
     selection === null ? null : (
-      <Checkbox
-        size="small"
+      <RowCheckbox
         checked={isSelected}
         onClick={handleSelect}
-        slotProps={{
-          input: {
-            'aria-label': t('thread.selection.select', {
-              subject: email.subject ?? ''
-            })
-          }
-        }}
+        label={t('thread.selection.select', { subject: email.subject ?? '' })}
         data-testid="email-list-item-checkbox"
       />
     )
   const unreadDot = isUnread ? (
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
+  const compactAvatar = (
+    <GradientAvatar
+      text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
+      colorKey={avatarEmail}
+      size={48}
+      fontSize={17}
+      data-testid="email-list-item-avatar"
+    />
+  )
   // The frame stays when the email is read: the names line up
   const framedDot = (
     <StatusDot
@@ -390,17 +445,6 @@ export function EmailCell({
       })
     })
   }
-  const date = (
-    <SecondaryText variant="caption" noWrap data-testid="email-list-item-date">
-      <time
-        className={emphasis}
-        dateTime={email.receivedAt}
-        title={formatFullDate(email.receivedAt, lang)}
-      >
-        {formatListDate(email.receivedAt, lang)}
-      </time>
-    </SecondaryText>
-  )
   const wideDate = (
     <RowDate isStrong={isUnread} data-testid="email-list-item-date">
       <time
@@ -438,17 +482,24 @@ export function EmailCell({
         </span>
       </SecondaryText>
     )
+  // As tmail-flutter: the folder of a search result in a pill
   const mailboxLabel =
     mailboxNames === null ? null : (
-      <SecondaryText
-        variant="caption"
-        noWrap
-        className="u-flex-shrink-0 u-ml-half"
+      <MailboxTag
+        name={mailboxNames}
+        label={t('search.inMailbox', { name: mailboxNames })}
         data-testid="email-list-item-mailbox"
-      >
-        {t('search.inMailbox', { name: mailboxNames })}
-      </SecondaryText>
+      />
     )
+  // As tmail-flutter: an email carrying a calendar event shows a calendar
+  // before the subject, said in the name of the row link
+  const eventMark = isEvent ? (
+    <CalendarEventMark
+      isMuted={!isUnread}
+      gap={screenSize === 'desktop' ? 12 : screenSize === 'mobile' ? 4 : 8}
+      data-testid="email-list-item-event-icon"
+    />
+  ) : null
   // Said in the name of the row link: the icon shows it to the eye
   const importantIcon = isImportant ? (
     <Icon
@@ -458,16 +509,15 @@ export function EmailCell({
       data-testid="important-flag-icon"
     />
   ) : null
-  const attachmentIcon = hasAttachment ? (
-    <Icon icon={Attachment} role="img" aria-label={t('email.attachment')} />
-  ) : null
 
-  // A 32 px box for the icon: the attachment lines up with the buttons
+  // As tmail-flutter: 8 px after the folder, the date 8 px after it
   const wideAttachment = hasAttachment ? (
-    <span className="u-flex u-flex-justify-center u-flex-shrink-0 u-w-2 u-mr-half">
+    <span className="u-flex u-flex-shrink-0 u-ml-half">
+      {/* As tmail-flutter: 16 px, light steel grey */}
       <Icon
         icon={Attachment}
-        size={20}
+        size={16}
+        color={ATTACHMENT_ICON_COLOR}
         role="img"
         aria-label={t('email.attachment')}
       />
@@ -476,20 +526,31 @@ export function EmailCell({
 
   switch (column.id as EmailColumnId) {
     case 'select':
-      return <span className="u-flex u-flex-justify-center">{checkbox}</span>
+      // As tmail-flutter: the 48 px avatar, which selects the row
+      return selection === null ? (
+        compactAvatar
+      ) : (
+        <SelectableAvatar
+          avatar={compactAvatar}
+          checked={isSelected}
+          onClick={handleSelect}
+          label={t('thread.selection.select', { subject: email.subject ?? '' })}
+          data-testid="email-list-item-checkbox"
+        />
+      )
     case 'lead':
       return (
         <span className="u-flex u-flex-items-center">
           {checkbox}
-          {starButton}
-          {replyButton}
+          {wideStarButton}
+          <RowStateSlot>{answeredState}</RowStateSlot>
+          <RowStateSlot>{framedDot}</RowStateSlot>
         </span>
       )
     case 'sender':
       return (
         // The names take the ellipsis, the number of messages stays in view
         <RowSender
-          marker={framedDot}
           avatar={avatar}
           isStrong={isUnread}
           trailing={
@@ -515,6 +576,7 @@ export function EmailCell({
         isUnread ? t('email.unread') : null,
         isStarred ? t('email.starred') : null,
         isImportant ? t('email.important') : null,
+        isEvent ? t('calendar.eventMark') : null,
         correspondents,
         threadSize === null
           ? null
@@ -530,10 +592,16 @@ export function EmailCell({
           <RowLine
             isStrong={isUnread}
             leading={
-              <>
-                {importantIcon}
-                {labelChips(1)}
-              </>
+              eventMark === null &&
+              importantIcon === null &&
+              emailLabels.length === 0 &&
+              !isActionRequired ? null : (
+                <>
+                  {eventMark}
+                  {importantIcon}
+                  {labelChips(maxLabels)}
+                </>
+              )
             }
             primary={
               <span data-testid="email-list-item-subject">{subject}</span>
@@ -541,16 +609,37 @@ export function EmailCell({
             secondary={
               <span data-testid="email-list-item-preview">{preview}</span>
             }
-            trailing={mailboxLabel}
+            trailing={
+              // As tmail-flutter: the preview stops before the date of the
+              // row, and before the actions on hover (they run out of the
+              // narrow cell of the date over this room)
+              <RowHoverSpace gap={HOVER_DATE_GAP} hoverWidth={hoverActionsRoom}>
+                {mailboxNames === null ? null : (
+                  <MailboxTag name={mailboxNames} label={mailboxNames} />
+                )}
+                {hasAttachment ? (
+                  <span className="u-flex u-flex-shrink-0 u-ml-half">
+                    <Icon icon={Attachment} size={16} />
+                  </span>
+                ) : null}
+                <RowDate isStrong={isUnread}>
+                  {formatListDate(email.receivedAt, lang)}
+                </RowDate>
+              </RowHoverSpace>
+            }
           />
         </RowLink>
       )
     }
     case 'trailing':
       return (
+        // As tmail-flutter: the actions 11 px apart, 16 px before the edge
         <RowHoverActions
+          endGap={16}
           replaces={
             <>
+              {/* As tmail-flutter: the folder right before the attachment */}
+              {mailboxLabel}
               {wideAttachment}
               {wideDate}
             </>
@@ -563,15 +652,16 @@ export function EmailCell({
           {moreButton}
         </RowHoverActions>
       )
-    case 'unread':
-      return <span className="u-flex u-flex-justify-center">{unreadDot}</span>
     case 'message': {
       // Read before the content of the link: what the other cells show
       const states = [
         isUnread ? t('email.unread') : null,
         isStarred ? t('email.starred') : null,
-        isImportant ? t('email.important') : null
+        isImportant ? t('email.important') : null,
+        isEvent ? t('calendar.eventMark') : null
       ].filter(state => state !== null)
+      // As tmail-flutter's compact tile: sender, marks and date then a
+      // chevron; subject (the folder, the star); one line of preview
       return (
         <RowLink
           href={href}
@@ -582,58 +672,66 @@ export function EmailCell({
           {states.length > 0 ? (
             <span className="u-visuallyhidden">{`${states.join(', ')}, `}</span>
           ) : null}
-          <span className="u-flex u-flex-items-center">
-            <Typography
-              component="span"
-              noWrap
-              className="u-db u-flex-auto"
-              data-testid="email-list-item-sender"
-            >
-              <span className={emphasis}>{correspondents}</span>
-            </Typography>
-            {threadCount}
-            {attachmentIcon === null ? null : (
-              <span className="u-flex u-flex-shrink-0 u-ml-half">
-                {attachmentIcon}
-              </span>
-            )}
-            <span className="u-flex-shrink-0 u-ml-half">{date}</span>
-          </span>
-          <span className="u-flex u-flex-items-center">
-            {importantIcon}
-            <Typography component="span" noWrap className="u-db u-flex-auto">
-              <span className={emphasis} data-testid="email-list-item-subject">
+          <CompactRowLines
+            isStrong={isUnread}
+            // Said first in the name of the link: shown only
+            marker={
+              unreadDot === null ? null : (
+                <span aria-hidden="true" className="u-flex">
+                  {unreadDot}
+                </span>
+              )
+            }
+            sender={correspondents}
+            senderEnd={
+              <>
+                {threadCount}
+                {answeredState}
+                {wideAttachment}
+                {wideDate}
+              </>
+            }
+            end={
+              <Icon
+                icon={Right}
+                size={16}
+                color={ATTACHMENT_ICON_COLOR}
+                aria-hidden="true"
+                className="u-flex-shrink-0"
+              />
+            }
+            subject={
+              <>
+                {eventMark}
+                {importantIcon}
                 {subject}
-              </span>
-            </Typography>
-            {mailboxLabel}
-          </span>
-          {/* As the design and tmail-flutter: the labels end the preview line */}
-          <span className="u-flex u-flex-items-end">
-            <SecondaryText
-              variant="body2"
-              lines={2}
-              className="u-flex-auto"
-              data-testid="email-list-item-preview"
-            >
-              {preview}
-            </SecondaryText>
-            <span className="u-flex u-ml-half u-flex-shrink-0">
-              {labelChips(1)}
-            </span>
-          </span>
+              </>
+            }
+            subjectEnd={
+              <>
+                {mailboxLabel}
+                {isStarred ? (
+                  <Icon
+                    icon={Star}
+                    size={15}
+                    color={STAR_COLOR}
+                    aria-hidden="true"
+                    className="u-flex-shrink-0"
+                  />
+                ) : null}
+              </>
+            }
+            preview={preview}
+            previewEnd={labelChips(maxLabels)}
+            testIds={{
+              sender: 'email-list-item-sender',
+              subject: 'email-list-item-subject',
+              preview: 'email-list-item-preview'
+            }}
+          />
         </RowLink>
       )
     }
-    case 'compactActions':
-      return (
-        // The other actions: from the selection toolbar, or a long press
-        // (the context menu of the row)
-        <span className="u-flex u-flex-column u-flex-items-center">
-          {starButton}
-          <RowHoverActions>{seenButton}</RowHoverActions>
-        </span>
-      )
     default:
       return null
   }

@@ -27,21 +27,24 @@
     "offline": "No internet connection",
     "backOnline": "Back online",
     "dismiss": "Dismiss",
-    "opensInNewTab": "opens in a new tab"
+    "opensInNewTab": "opens in a new tab",
+    "edit": "Edit"
   },
   "topbar": {
     "logout": "Sign out",
     "search": "Search",
     "showFolders": "Show folders",
     "searchPlaceholder": "Search mail",
-    "help": "Get help or report a bug"
+    "help": "Get help or report a bug",
+    "account": "Account %{address}"
   },
   "sidebar": {
     "mailboxes": "Mailboxes",
-    "newMessage": "New message",
+    "newMessage": "Compose",
     "folders": "Folders",
     "teamMailboxes": "Team-mailboxes",
-    "version": "version %{version}"
+    "version": "version %{version}",
+    "personalFolders": "Personal folders"
   },
   "mailbox": {
     "empty": "You don’t have any emails\n in this folder.",
@@ -141,7 +144,12 @@
       "noPreview": "No preview available",
       "open": "Preview",
       "page": "Page %{page} of %{count}",
-      "truncated": "The preview is cut here: download the file to read the rest."
+      "truncated": "The preview is cut here: download the file to read the rest.",
+      "failed": "The file cannot be opened here: download it to read it.",
+      "passwordProtected": "This PDF is protected by a password",
+      "password": "Password",
+      "wrongPassword": "Incorrect password, try again.",
+      "openPdf": "Open"
     },
     "attachmentsMore": "Show +%{count} more",
     "attachmentsHide": "Hide %{count}",
@@ -151,7 +159,10 @@
     "previousEmail": "Previous email",
     "nextEmail": "Next email",
     "showRecipients": "Show all recipients",
-    "hideRecipients": "Hide the addresses"
+    "hideRecipients": "Hide the addresses",
+    "replied": "Replied message",
+    "forwardedState": "Forwarded message",
+    "repliedAndForwarded": "Replied and Forwarded message"
   },
   "login": {
     "title": "Sign In",
@@ -162,7 +173,18 @@
     "badCredentials": "Bad credentials",
     "connectionError": "Connection error",
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "pitch": {
+      "title": "JMAP-based\ncollaborative team mail solution",
+      "jmap": "JMAP standard",
+      "encrypted": "Encrypted mailbox",
+      "team": "Manage email as a team",
+      "integrations": "Multiple integrations"
+    },
+    "poweredBy": "Powered by LINAGORA",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "privacyPolicy": "Privacy policy"
   },
   "config": {
     "title": "Twake Mail is not configured",
@@ -199,7 +221,7 @@
     },
     "toolbar": {
       "label": "List actions",
-      "filter": "Filter",
+      "filter": "Filter messages",
       "clearFilter": "Clear the filter",
       "selectPage": "Select all messages of this page",
       "filterOn": "You’ve filtered messages by \"%{name}\"",
@@ -372,13 +394,18 @@
     "recipients": {
       "suggestions": "Contact suggestions",
       "invalid": "invalid address",
-      "chipHelp": "Delete removes the address, Enter edits it.",
+      "chipHelp": "Enter opens the card of the address, F2 edits it, Delete removes it.",
       "removed": "%{address} removed",
       "added": "%{address} added",
       "addedMany": "%{smart_count} recipient added |||| %{smart_count} recipients added",
       "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
       "summary": "Show all the recipients:",
-      "others": "+%{smart_count}"
+      "others": "+%{smart_count}",
+      "alreadyAdded": "already added",
+      "editEmail": "Edit email",
+      "createRule": "Create a rule",
+      "moveHelp": "Alt+Up or Alt+Down moves it to the field above or below.",
+      "moved": "%{address} moved to %{field}"
     },
     "limit": "You can write %{smart_count} messages at once. Close one to start another.",
     "sent": "Message has been sent successfully",
@@ -463,7 +490,8 @@
         "message": "This draft is shared with a team mailbox. Saving it as a template also deletes the draft for everyone who can see it.",
         "delete": "Save and delete the draft",
         "keep": "Save and keep the draft"
-      }
+      },
+      "saving": "Saving template"
     },
     "drive": {
       "attach": "Attach from Drive",
@@ -506,10 +534,7 @@
       "retry": "Retry",
       "copy": "Copy",
       "copied": "Result copied to clipboard",
-      "task": "What should the assistant write?",
-      "ask": "Ask",
-      "result": "Suggestion",
-      "emptyText": "Write or select some text first"
+      "result": "Suggestion"
     },
     "emoji": {
       "open": "Insert emoji",
@@ -529,6 +554,14 @@
         "symbols": "Symbols",
         "flags": "Flags"
       }
+    },
+    "sendingDialog": {
+      "status": "Status",
+      "progress": "Progress",
+      "creating": "Creating message"
+    },
+    "images": {
+      "inserting": "Inserting the image"
     }
   },
   "layout": {
@@ -568,7 +601,8 @@
     },
     "scope": {
       "default": "All email",
-      "everywhere": "All Email, trash & spam"
+      "everywhere": "All Email, trash & spam",
+      "selected": "selected"
     },
     "submit": "Search",
     "hints": {
@@ -576,7 +610,6 @@
       "subject": "Enter a subject",
       "words": "Enter some suggestions"
     },
-    "addFilter": "Add",
     "clearFilter": "Clear filter",
     "advanced": "Advanced search",
     "errors": {
@@ -615,6 +648,19 @@
     "labels": {
       "all": "All labels",
       "label": "Label"
+    },
+    "addresses": {
+      "chipHelp": "Enter or F2 edits it, Delete removes it.",
+      "added": "%{address} added",
+      "addedMany": "%{smart_count} address added |||| %{smart_count} addresses added"
+    },
+    "selectFolder": "Select Folder",
+    "contactPicker": {
+      "from": "Find emails from",
+      "to": "Find emails to",
+      "hint": "Enter name or email",
+      "clearFilter": "Clear Filter",
+      "done": "Done"
     }
   },
   "emailActions": {
@@ -654,9 +700,9 @@
       "star": "Star",
       "unstar": "Unstar",
       "label": "Message actions",
-      "printAll": "Print all",
       "downloadAsEml": "Download message as EML",
-      "editAsNew": "Edit as new email"
+      "editAsNew": "Edit as new email",
+      "print": "Print"
     },
     "drag": "Move %{smart_count} message |||| Move %{smart_count} messages",
     "reply": {
@@ -696,6 +742,15 @@
       "plainPaste": "Paste as plain text",
       "bold": "Bold, italic, underline",
       "escape": "Minimize the window (close it in full screen)"
+    },
+    "categories": {
+      "navigation": "Navigation & Closing",
+      "reading": "Reading & Replying",
+      "management": "Message Management & Selection",
+      "label": "Categories of shortcuts",
+      "navigationShort": "Navigation",
+      "readingShort": "Reading",
+      "managementShort": "Message"
     }
   },
   "settings": {
@@ -720,7 +775,7 @@
       },
       "forwarding": {
         "title": "Forwarding",
-        "description": "Emails addresses listed below will receive your emails."
+        "description": "Email addresses listed below will receive your emails."
       },
       "languageRegion": {
         "title": "Language",
@@ -761,6 +816,11 @@
       "accessibility": "Accessibility",
       "accessibilityDescription": "Show a thick outline around the element that has the keyboard focus, everywhere in the app",
       "accessibilityToggle": "Highlight the keyboard focus",
+      "theme": "Theme",
+      "themeDescription": "The colours of the app. Auto follows the setting of your device.",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeAuto": "Auto",
       "errorReporting": "Error reporting",
       "errorReportingDescription": "Send crash and error reports so the support team can diagnose problems you run into. Your emails, their content and their recipients are never included.",
       "errorReportingToggle": "Send error reports",
@@ -787,14 +847,19 @@
         "vi": "Vietnamese"
       },
       "label": "Language"
-    }
+    },
+    "contactSupport": "Contact support"
   },
   "mailboxPicker": {
     "title": "Move To",
     "search": "Search folders",
     "empty": "No folder matches your search",
     "personalFolders": "Personal folders",
-    "allFolders": "All folders"
+    "allFolders": "All folders",
+    "selectParent": "Select parent folder",
+    "collapsed": "subfolders hidden",
+    "expanded": "subfolders shown",
+    "current": "current folder"
   },
   "spamReport": {
     "banner": "%{smart_count} message in spam |||| %{smart_count} messages in spam",
@@ -841,7 +906,8 @@
       "location": "Select the folder location",
       "submit": "Create folder",
       "success": "You successfully created %{folderName} folder",
-      "failure": "Create new folder failure"
+      "failure": "Create new folder failure",
+      "subtitle": "New folder will be created inside %{folderName}"
     },
     "rename": {
       "submit": "Rename",
@@ -892,7 +958,11 @@
       "failure": "Failed to move all emails from this folder to another folder.",
       "progress": "Moving emails: %{moved} of %{total}"
     },
-    "clean": "Clean"
+    "clean": "Clean",
+    "progress": {
+      "markAsRead": "Marking all messages in \"%{folderName}\" as read",
+      "empty": "Emptying \"%{folderName}\""
+    }
   },
   "identities": {
     "create": "Create new identity",
@@ -908,7 +978,9 @@
       "create": "Create",
       "save": "Save",
       "email": "Email address",
-      "addressesHelp": "Separate several addresses with commas"
+      "addressesHelp": "Separate several addresses with commas",
+      "nameRequired": "Name (required)",
+      "emailLabel": "Email"
     },
     "errors": {
       "blank": "This field cannot be blank",
@@ -919,7 +991,9 @@
       "imageTooLarge": "Please choose an image with size less than %{maxSize}KB",
       "save": "The identity could not be saved",
       "forbiddenFrom": "You cannot send from this address",
-      "load": "The identities could not be loaded"
+      "load": "The identities could not be loaded",
+      "imageCompress": "Cannot compress image",
+      "notAnImage": "Can not upload this file to signature"
     },
     "delete": {
       "title": "Delete identity",
@@ -934,11 +1008,9 @@
     },
     "editAction": "Edit",
     "defaultGroup": "Default identity",
-    "defaultBadge": "Default",
     "setDefaultOf": "Use %{name} by default",
     "editOf": "Edit %{name}",
     "deleteOf": "Delete %{name}",
-    "cannotDelete": "Created with your account, it cannot be deleted",
     "listLabel": "Identities"
   },
   "rules": {
@@ -963,12 +1035,14 @@
       "noAction": "You have not added a action to the rule.",
       "noFolder": "Please select a mailbox to move the message",
       "noSpam": "Spam folder not found",
+      "noForwardAddress": "Please input at least one recipient",
+      "invalidForwardAddress": "Incorrect email format",
       "load": "The rules could not be loaded",
       "delete": "The rule could not be deleted"
     },
     "form": {
       "createTitle": "Create a New Rule",
-      "editTitle": "Edit rule",
+      "editTitle": "Edit Rule",
       "create": "Create Rule",
       "name": "Rule Name",
       "namePlaceholder": "Enter the rule name",
@@ -990,7 +1064,13 @@
       "action": "Action %{position}",
       "condition": "Condition %{position}",
       "chooseFolder": "Choose a folder",
-      "rejectAlone": "Rejected emails get no other action"
+      "rejectAlone": "Rejected emails get no other action",
+      "preview": "Preview",
+      "conditionsPreview": "%{combiner} of the conditions: %{conditions}",
+      "actionsPreview": "Actions: %{actions}",
+      "forwardAddresses": "Recipients",
+      "forwardPlaceholder": "Enter email address",
+      "keepACopy": "Keep a copy"
     },
     "combiners": {
       "AND": "All",
@@ -1014,7 +1094,8 @@
       "seen": "Mark as seen",
       "star": "Star it",
       "reject": "Reject it",
-      "spam": "Mark as spam"
+      "spam": "Mark as spam",
+      "forward": "Forward to"
     },
     "reject": {
       "title": "Reject all emails matching this condition?",
@@ -1023,7 +1104,8 @@
     "editOf": "Edit %{name}",
     "deleteOf": "Delete %{name}",
     "listLabel": "Rules",
-    "count": "%{smart_count} rule |||| %{smart_count} rules"
+    "count": "%{smart_count} rule |||| %{smart_count} rules",
+    "nameOfRules": "Name of Rules"
   },
   "forward": {
     "localCopy": "Keep a copy in Inbox",
@@ -1033,14 +1115,14 @@
     "add": "Add recipient",
     "external": "External domain",
     "delete": {
-      "title": "Remove recipients",
-      "message": "Do you want to delete email %{emailAddress}?"
+      "title": "Remove recipient",
+      "message": "Do you want to remove %{emailAddress}?"
     },
     "errors": {
       "invalid": "Incorrect email format",
       "empty": "Please input at least one recipient",
       "add": "Adding recipient failed.",
-      "delete": "Delete recipients failed.",
+      "delete": "Removing recipient failed.",
       "localCopy": "Edit local copy in forward failed.",
       "load": "The forwarding could not be loaded",
       "ownAddress": "You cannot forward your emails to your own address"
@@ -1050,15 +1132,25 @@
       "message": "This could be a security threat or considered illegal data extraction. Do you want to proceed?"
     },
     "toasts": {
-      "added": "The emails has been added from the recipient list.",
-      "deleted": "The email has been removed from the recipient list.",
-      "localCopyOn": "Keep local copy enable.",
-      "localCopyOff": "Keep local copy disable."
+      "added": "The address has been added to the recipient list.",
+      "deleted": "The address has been removed from the recipient list.",
+      "localCopyOn": "Local copy enabled.",
+      "localCopyOff": "Local copy disabled."
     },
     "externalBanner": "You are redirecting emails to another domain. This could be a security threat or considered illegal data extraction.",
     "listLabel": "Forwarding addresses",
     "removeOf": "Remove %{email}",
-    "inputLabel": "New recipient"
+    "inputLabel": "New recipient",
+    "recipientCount": "%{smart_count} recipient |||| %{smart_count} recipients",
+    "selectAll": "Select all",
+    "selectedCount": "%{count} selected",
+    "deselectAll": "Deselect all (%{count})",
+    "remove": "Remove",
+    "deleteAll": {
+      "title": "Remove recipients",
+      "message": "Are you sure you want to remove those recipients? Doing this will remove them from the email chain."
+    },
+    "selectOf": "Select %{email}"
   },
   "vacation": {
     "enable": "Automatically reply to messages when they are received.",
@@ -1286,7 +1378,8 @@
       "count": "%{smart_count} time |||| %{smart_count} times",
       "until": "until %{date}"
     },
-    "untitled": "(No title)"
+    "untitled": "(No title)",
+    "eventMark": "Event invitation"
   },
   "unsubscribe": {
     "action": "Unsubscribe",

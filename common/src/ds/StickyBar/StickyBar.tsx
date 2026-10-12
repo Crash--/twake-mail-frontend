@@ -2,6 +2,8 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
 const STICKY_SX = {
   position: 'sticky',
   top: 0,
@@ -9,10 +11,12 @@ const STICKY_SX = {
   bgcolor: 'background.paper'
 } as const
 
+// The app bar of tmail-flutter's reading view: 52 px, a 0.5 px divider
 const DIVIDER_SX = {
   ...STICKY_SX,
-  borderBottom: 1,
-  borderColor: 'divider'
+  minHeight: 52,
+  boxSizing: 'border-box',
+  borderBottom: `0.5px solid ${TMAIL.outlineSticky}`
 } as const
 
 export interface StickyBarProps {

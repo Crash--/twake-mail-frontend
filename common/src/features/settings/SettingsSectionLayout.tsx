@@ -1,14 +1,16 @@
-import { Icon, Left } from '@linagora/twake-icons'
-import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
-import { Link } from 'react-router'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import {
+  SettingsDescription,
+  SettingsPane,
+  SettingsTitle
+} from '@/ds/SettingsHeading/SettingsHeading'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { SETTINGS_PATH, type SettingsSection } from './sections'
+import type { SettingsSection } from './sections'
 
 export interface SettingsSectionLayoutProps {
   section: SettingsSection
@@ -19,8 +21,9 @@ export interface SettingsSectionLayoutProps {
 
 /**
  * A settings section: its title (the heading of the page, focused when the
- * section opens), what it is for, and its content. Below the desktop size a
- * back button returns to the list of sections.
+ * section opens), what it is for, and its content. Below the desktop size
+ * the bar at the top has its name and the arrow back to the list of
+ * sections.
  */
 export function SettingsSectionLayout({
   section,
@@ -31,52 +34,67 @@ export function SettingsSectionLayout({
   const isDesktop = useScreenSize() === 'desktop'
   const headingRef = useRef<HTMLHeadingElement>(null)
   const title = t(section.title)
-  const backLabel = t('common.back')
   useDocumentTitle(`${title} - ${t('settings.title')}`)
 
   useEffect(() => {
-    headingRef.current?.focus()
+    const heading = headingRef.current
+    heading?.focus()
+    // The page starts at its top, whatever the scroll of the list of
+    // sections it was opened from (phones): the heading is visually hidden
+    // there, so its scrolling ancestor goes back to the top itself
+    let area = heading?.parentElement ?? null
+    while (
+      area !== null &&
+      !['auto', 'scroll'].includes(getComputedStyle(area).overflowY)
+    ) {
+      area = area.parentElement
+    }
+    area?.scrollTo({ top: 0 })
   }, [section.id])
 
   return (
-    <Box
-      component="section"
-      aria-labelledby={`settings-${section.id}-title`}
-      className="u-p-1-half"
+    <SettingsPane
+      labelledBy={`settings-${section.id}-title`}
       data-testid={`settings-section-${section.id}`}
     >
-      <Box className="u-flex u-flex-items-center u-flex-wrap">
-        {isDesktop ? null : (
-          <Tooltip title={backLabel}>
-            <IconButton
-              component={Link}
-              to={SETTINGS_PATH}
-              aria-label={backLabel}
-              className="u-mr-half"
-              data-testid="settings-section-back-button"
-            >
-              <Icon icon={Left} />
-            </IconButton>
-          </Tooltip>
-        )}
-        <Typography
-          ref={headingRef}
-          id={`settings-${section.id}-title`}
-          variant="h3"
-          component="h1"
-          tabIndex={-1}
-          className="u-flex-auto"
-        >
-          {title}
-        </Typography>
-        {actions}
-      </Box>
-      {section.description === null ? null : (
-        <SecondaryText variant="body2" component="p" className="u-mt-half">
-          {t(section.description)}
-        </SecondaryText>
+      {/* As tmail-flutter: the title and what the section is for on the
+          left, its buttons on the right, at the top; below the desktop
+          size the bar at the top has the title and the arrow back, what
+          the section is for and its buttons are in the middle */}
+      {isDesktop ? (
+        <Box className="u-flex u-flex-items-start">
+          <Box className="u-flex-auto u-mr-1">
+            <SettingsTitle ref={headingRef} id={`settings-${section.id}-title`}>
+              {title}
+            </SettingsTitle>
+            {section.description === null ? null : (
+              <SettingsDescription>
+                {t(section.description)}
+              </SettingsDescription>
+            )}
+          </Box>
+          {actions}
+        </Box>
+      ) : (
+        <>
+          <SettingsTitle
+            ref={headingRef}
+            id={`settings-${section.id}-title`}
+            className="u-visuallyhidden"
+          >
+            {title}
+          </SettingsTitle>
+          {section.description === null ? null : (
+            <SettingsDescription isCentered>
+              {t(section.description)}
+            </SettingsDescription>
+          )}
+          {actions === undefined ? null : (
+            <Box className="u-flex u-flex-justify-center u-mt-1">{actions}</Box>
+          )}
+        </>
       )}
-      <Box className="u-mt-1">{children}</Box>
-    </Box>
+      <Box className={isDesktop ? 'u-mt-1-half' : 'u-mt-1'}>{children}</Box>
+    </SettingsPane>
   )
 }

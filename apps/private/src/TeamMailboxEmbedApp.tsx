@@ -9,6 +9,7 @@ import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/Team
 import type { TeamMailboxEmbedTarget } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { useI18n } from '@common/i18n/useI18n'
 import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScreen'
+import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 
 import { teamMailboxEmbedRouteElements } from './TeamMailboxEmbedRoutes'
 
@@ -47,6 +48,7 @@ export function TeamMailboxEmbedApp({
     embed.callbackUrl === null ? 'ready' : 'callback'
   )
   const hasRun = useRef(false)
+  const [target, setTarget] = useState(embed.target)
 
   useEffect(() => {
     const { callbackUrl } = embed
@@ -93,32 +95,39 @@ export function TeamMailboxEmbedApp({
 
   if (phase === 'login-required') {
     return (
-      <ErrorScreen
-        title={t('teamMailboxEmbed.sessionExpiredTitle')}
-        description={t('teamMailboxEmbed.sessionExpiredDescription')}
-        actionLabel={t('common.retry')}
-        onAction={handleRetry}
-        data-testid="team-mailbox-session-expired"
-      />
+      <TeamMailboxPane>
+        <ErrorScreen
+          title={t('teamMailboxEmbed.sessionExpiredTitle')}
+          description={t('teamMailboxEmbed.sessionExpiredDescription')}
+          actionLabel={t('common.retry')}
+          onAction={handleRetry}
+          data-testid="team-mailbox-session-expired"
+        />
+      </TeamMailboxPane>
     )
   }
 
   if (phase === 'failed') {
     return (
-      <ErrorScreen
-        title={t('common.errorOccurred')}
-        actionLabel={t('common.reconnect')}
-        onAction={handleRetry}
-        data-testid="callback-error"
-      />
+      <TeamMailboxPane>
+        <ErrorScreen
+          title={t('common.errorOccurred')}
+          actionLabel={t('common.reconnect')}
+          onAction={handleRetry}
+          data-testid="callback-error"
+        />
+      </TeamMailboxPane>
     )
   }
 
+  // The base of the router is the mailbox: another one gets its own router
   return (
-    <TeamMailboxEmbedProvider rootId={embed.target.rootId}>
+    <TeamMailboxEmbedProvider rootId={target.rootId}>
       <TeamMailboxRouter
-        basename={embed.target.basename}
+        key={target.basename}
+        basename={target.basename}
         spaceBridge={spaceBridge}
+        onLoad={setTarget}
       />
     </TeamMailboxEmbedProvider>
   )
@@ -132,12 +141,14 @@ function leaveCallback(path: string): void {
 interface TeamMailboxRouterProps {
   basename: string
   spaceBridge: SpaceBridge | null
+  onLoad: (target: TeamMailboxEmbedTarget) => void
 }
 
 /** Created once the address is a path of the facade: the router reads it */
 function TeamMailboxRouter({
   basename,
-  spaceBridge
+  spaceBridge,
+  onLoad
 }: TeamMailboxRouterProps): ReactElement {
   const [router] = useState(() =>
     createBrowserRouter(
@@ -148,10 +159,16 @@ function TeamMailboxRouter({
 
   useEffect(
     () =>
-      spaceBridge?.syncHistory(path =>
-        router.navigate(path, { replace: true })
-      ),
-    [router, spaceBridge]
+      spaceBridge?.syncHistory({
+        navigate: path => router.navigate(path, { replace: true }),
+        // RouterProvider never disposes its router: this one goes with its
+        // mailbox. Not in a cleanup, which strict mode runs on a live router
+        load: next => {
+          router.dispose()
+          onLoad(next)
+        }
+      }),
+    [router, spaceBridge, onLoad]
   )
 
   return <RouterProvider router={router} />

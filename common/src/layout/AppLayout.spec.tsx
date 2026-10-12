@@ -33,7 +33,7 @@ describe('AppLayout', () => {
       'Search emails'
     )
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
-      'New message'
+      'Compose'
     )
     expect(await screen.findByRole('tree', { name: 'Mailboxes' })).toBe(
       screen.getByTestId('mailbox-tree')
@@ -43,19 +43,21 @@ describe('AppLayout', () => {
     ).toBeVisible()
   })
 
-  it('puts the search and the settings button in the page, under the top bar', async () => {
+  it('puts the logotype, the search and the account menu in the platform bar, as tmail-flutter', async () => {
     mockViewport({ width: 1440 })
     renderLayout()
 
     const row = await screen.findByTestId('search-row')
+    const bar = screen.getByTestId('twake-bar')
 
     expect(screen.queryByTestId('top-bar')).toBe(null)
+    expect(bar).toContainElement(row)
     expect(within(row).getByTestId('search-input')).toBeVisible()
-    expect(within(row).getByRole('button', { name: 'Settings' })).toBeVisible()
+    expect(within(bar).getByRole('img', { name: 'Twake Mail' })).toBeVisible()
+    // As tmail-flutter: the settings behind the initial of the user
+    await userEvent.click(within(bar).getByTestId('account-menu-button'))
     expect(
-      within(screen.getByTestId('twake-bar')).getByRole('img', {
-        name: 'Twake Mail'
-      })
+      screen.getByRole('menuitem', { name: 'Manage account' })
     ).toBeVisible()
   })
 
@@ -153,7 +155,8 @@ describe('AppLayout', () => {
 
     const bar = await screen.findByTestId('twake-bar')
     expect(bar).toHaveAttribute('data-status', 'public')
-    await userEvent.click(within(bar).getByTestId('logout-button'))
+    await userEvent.click(within(bar).getByTestId('account-menu-button'))
+    await userEvent.click(screen.getByTestId('logout-button'))
 
     await waitFor(() => {
       expect(authService.logout).toHaveBeenCalledTimes(1)
@@ -230,30 +233,25 @@ describe('AppLayout on a phone', () => {
     expect(screen.queryByTestId('sidebar')).toBe(null)
     expect(screen.queryByRole('tree')).toBe(null)
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
-      'New message'
+      'Compose'
     )
   })
 
-  it('unfolds the folded search with the / key, folded back by Escape', async () => {
+  it('shows the search under the bar, as tmail-flutter, focused with the / key', async () => {
     renderPhoneLayout()
 
     await screen.findByTestId('top-bar-folder-name')
-    expect(screen.queryByTestId('search-input')).toBe(null)
+    const input = screen.getByTestId('search-input')
+    expect(
+      within(screen.getByTestId('top-bar')).getByTestId('search-input')
+    ).toBe(input)
     await userEvent.click(screen.getByTestId('main-content'))
     await userEvent.keyboard('/')
 
     await waitFor(() => {
-      expect(screen.getByTestId('search-input')).toHaveFocus()
+      expect(input).toHaveFocus()
     })
-    expect(screen.getByTestId('search-input')).toHaveValue('')
-
-    // The first Escape closes the suggestions, the second folds the search
-    await userEvent.keyboard('{Escape}{Escape}')
-
-    await waitFor(() => {
-      expect(screen.getByTestId('search-open-button')).toHaveFocus()
-    })
-    expect(screen.queryByTestId('search-input')).toBe(null)
+    expect(input).toHaveValue('')
   })
 
   it('opens the folders in a drawer, closed once a folder is chosen', async () => {

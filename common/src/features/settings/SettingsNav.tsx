@@ -1,11 +1,16 @@
-import { Box, NavIcon, Typography } from '@linagora/twake-mui'
-import { NavItem } from '@/ds/NavItem/NavItem'
-import { NavList } from '@/ds/NavList/NavList'
-import { NavLink } from '@/ds/NavLink/NavLink'
-import { NavText } from '@/ds/NavText/NavText'
+import { Box } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
+import {
+  SettingsMenuDivider,
+  SettingsMenuItem,
+  SettingsMenuList,
+  SettingsMenuTitle
+} from '@/ds/SettingsMenu/SettingsMenu'
+import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
+import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
+import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { settingsSectionPath, type SettingsSection } from './sections'
@@ -21,43 +26,70 @@ function SettingsNavItem({
   const isSelected = useMatch(`${path}/*`) !== null
 
   return (
-    <NavItem>
-      <NavLink
-        component={Link}
-        to={path}
-        selected={isSelected}
-        aria-current={isSelected ? 'page' : undefined}
-        data-testid={`settings-menu-${section.id}`}
-      >
-        <NavIcon icon={section.icon} />
-        <NavText className="u-ellipsis">{t(section.title)}</NavText>
-      </NavLink>
-    </NavItem>
+    <SettingsMenuItem
+      icon={section.icon}
+      label={t(section.title)}
+      isSelected={isSelected}
+      component={Link}
+      to={path}
+      data-testid={`settings-menu-${section.id}`}
+    />
   )
 }
 
-/** The sections of the settings, in the sidebar of a desktop */
-export function SettingsNav(): ReactElement {
+/**
+ * The sections of the settings, as tmail-flutter's menu: "Manage account",
+ * the sections, then "Sign out" when given (the sidebar of a desktop; on
+ * smaller screens the bars at the top sign out)
+ */
+export function SettingsNav({
+  onSignOut = null
+}: {
+  onSignOut?: (() => void) | null
+}): ReactElement {
   const { t } = useI18n()
   const titleId = useId()
   const sections = useSettingsSections()
+  const support = useContactSupport()
 
   return (
     <Box component="nav" aria-labelledby={titleId} data-testid="settings-nav">
-      <Typography
-        id={titleId}
-        variant="subtitle2"
-        component="p"
-        color="textPrimary"
-        className="u-mh-1 u-mv-half"
-      >
-        {t('settings.title')}
-      </Typography>
-      <NavList>
+      <SettingsMenuTitle id={titleId}>
+        {t('settings.manageAccount')}
+      </SettingsMenuTitle>
+      <SettingsMenuList>
         {sections.map(section => (
           <SettingsNavItem key={section.id} section={section} />
         ))}
-      </NavList>
+      </SettingsMenuList>
+      {onSignOut === null ? null : (
+        <>
+          <SettingsMenuDivider />
+          <SettingsMenuList>
+            {/* As tmail-flutter: when the server tells where to ask; the
+                settings have no composer, an address opens the mail app */}
+            {support === null ? null : (
+              <SettingsMenuItem
+                icon={HelpOutlined}
+                label={t('settings.contactSupport')}
+                href={
+                  support.kind === 'address'
+                    ? `mailto:${support.address}`
+                    : support.href
+                }
+                isExternal={support.kind === 'link'}
+                data-testid="settings-contact-support"
+              />
+            )}
+            <SettingsMenuItem
+              icon={SignOutSettingsIcon}
+              label={t('topbar.logout')}
+              onClick={onSignOut}
+              data-testid="settings-sign-out-button"
+            />
+          </SettingsMenuList>
+        </>
+      )}
     </Box>
   )
 }

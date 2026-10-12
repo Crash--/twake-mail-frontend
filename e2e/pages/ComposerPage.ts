@@ -75,8 +75,8 @@ export class ComposerPage {
   }
 
   /**
-   * The formatting toolbar: shown at once on a tablet and a desktop, behind
-   * the "Aa" button of the top bar on a phone
+   * The formatting toolbar: behind the "Aa" button, as tmail-flutter (its
+   * footer on a tablet and a desktop, the top bar on a phone)
    */
   async showFormattingToolbar(): Promise<ComposerPage> {
     if (!(await this.toolbar.isVisible())) await this.formattingButton.click()
@@ -114,6 +114,9 @@ export class ComposerPage {
 
   /** Opens a menu of the formatting toolbar and chooses one of its items */
   async chooseFromMenu(button: string, item: string): Promise<void> {
+    // As a hand leaving "Aa": its tooltip may cover the second row of the
+    // toolbar, which wraps in a narrow window as tmail-flutter's
+    await this.root.page().mouse.move(0, 0)
     await this.toolbarButton(button).click()
     await this.root
       .page()
@@ -295,7 +298,13 @@ export class ComposerPage {
     return this
   }
 
-  /** More menu items: `composer-save-draft-item`, `composer-save-template-item`, `composer-insert-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` */
+  /**
+   * More menu items: `composer-save-template-item`,
+   * `composer-insert-template-item`, `composer-read-receipt-item`,
+   * `composer-mark-important-item`; "Save as draft" is the
+   * `composer-save-draft-button` beside "Delete" (as tmail-flutter), and
+   * `composer-save-draft-item` in the menu on a phone only
+   */
   async runMoreAction(
     item:
       | 'save-draft'
@@ -304,6 +313,11 @@ export class ComposerPage {
       | 'read-receipt'
       | 'mark-important'
   ): Promise<ComposerPage> {
+    const saveDraftButton = this.page.getByTestId('composer-save-draft-button')
+    if (item === 'save-draft' && (await saveDraftButton.isVisible())) {
+      await saveDraftButton.click()
+      return this
+    }
     await this.moreButton.click()
     await this.page.getByTestId(`composer-${item}-item`).click()
     return this

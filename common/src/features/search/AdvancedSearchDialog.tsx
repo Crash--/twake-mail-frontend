@@ -1,26 +1,14 @@
 import {
-  Account,
-  Calendar,
-  Forbidden,
-  FolderOutlined,
-  LabelOutlined,
-  Magnifier,
-  Text,
-  Swap,
-  type IconProps
-} from '@linagora/twake-icons'
-import {
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   TextField
 } from '@linagora/twake-mui'
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -30,9 +18,20 @@ import {
 
 import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
 import { FormRow } from '@/ds/FormRow/FormRow'
+import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import type { RecipientFieldDnd } from '@/ds/RecipientField/RecipientField'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
+import { fetchEmailSenders } from '@common/features/thread/emailSenders'
+import {
+  DRAGGED_EMAILS_TYPE,
+  readDraggedEmails
+} from '@common/features/thread/useEmailListActions'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapClient } from '@common/jmap/JmapClientProvider'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+
+import { AddressFilterField, mergeEntries } from './AddressFilterField'
 
 import {
   DATE_RANGES,
@@ -44,6 +43,8 @@ import {
 } from './searchFilter'
 import { DATE_LABELS, SORT_LABELS } from './searchLabels'
 import { useMailboxOptions } from './useMailboxOptions'
+
+type AddressKind = 'from' | 'to'
 
 /** `<select>` values of the scope: default, everywhere, or a mailbox id */
 const SCOPE_DEFAULT = ''
@@ -62,8 +63,6 @@ function toScope(value: string): SearchFilter['scope'] {
 
 /** The text fields, as typed: lists are split when the form is submitted */
 interface TextFields {
-  from: string
-  to: string
   subject: string
   text: string
   notWords: string
@@ -71,8 +70,6 @@ interface TextFields {
 
 function toTextFields(filter: SearchFilter): TextFields {
   return {
-    from: filter.from.join(', '),
-    to: filter.to.join(', '),
     subject: filter.subject,
     text: filter.text,
     notWords: filter.notWords.join(', ')
@@ -85,8 +82,6 @@ function withTextFields(
 ): SearchFilter {
   return {
     ...filter,
-    from: splitWords(fields.from),
-    to: splitWords(fields.to),
     subject: fields.subject.trim(),
     text: fields.text.trim(),
     notWords: splitWords(fields.notWords)
@@ -134,6 +129,60 @@ export function AdvancedSearchDialog({
   const isReversedRangeShown = isSubmitted && isReversedDateRange(draft)
   const id = useId()
   const fieldId = (name: string): string => `${id}-${name}`
+  const client = useJmapClient()
+  const { accountId } = useJmapSession()
+  /** The addresses now, for the senders of dropped emails, read later */
+  const latest = useRef(draft)
+  useEffect(() => {
+    latest.current = draft
+  }, [draft])
+
+  /**
+   * As tmail-flutter: a tag dragged to the other field moves there (Alt +
+   * ArrowUp or ArrowDown from the keyboard), joining it unless already
+   * there; emails dragged from the list add their senders
+   */
+  const moveAddress = (from: AddressKind, entry: string): void => {
+    const to: AddressKind = from === 'from' ? 'to' : 'from'
+    setDraft(current => ({
+      ...current,
+      [to]: mergeEntries(current[to], [entry]),
+      [from]: current[from].filter(other => other !== entry)
+    }))
+  }
+  const dndOf = (kind: AddressKind): RecipientFieldDnd => ({
+    group: id,
+    field: kind,
+    onMoveIn: (from, entry) => {
+      if (from === 'from' || from === 'to') moveAddress(from, entry)
+    },
+    onMoveBy: (entry, delta) => {
+      if ((kind === 'from') !== (delta === 1)) return null
+      moveAddress(kind, entry)
+      return t('composer.recipients.moved', {
+        address: entry,
+        field: t(kind === 'from' ? 'search.fields.to' : 'search.fields.from')
+      })
+    },
+    accepts: types => types.includes(DRAGGED_EMAILS_TYPE),
+    onDrop: dataTransfer => {
+      const dragged = readDraggedEmails(dataTransfer)
+      if (dragged === null) return
+      fetchEmailSenders(client, accountId, dragged.emailIds)
+        .then(senders => {
+          setDraft({
+            ...latest.current,
+            [kind]: mergeEntries(
+              latest.current[kind],
+              senders.map(sender => sender.email)
+            )
+          })
+        })
+        .catch((error: unknown) => {
+          console.warn('[search] Cannot read the senders of the emails', error)
+        })
+    }
+  })
 
   const handleText =
     (name: keyof TextFields) =>
@@ -162,6 +211,7 @@ export function AdvancedSearchDialog({
   const clearButton = (
     <Button
       variant="text"
+      size="large"
       className="u-flex-shrink-0"
       onClick={handleClear}
       data-testid="advanced-search-clear-button"
@@ -173,6 +223,7 @@ export function AdvancedSearchDialog({
     <Button
       type="submit"
       variant="contained"
+      size="large"
       data-testid="advanced-search-submit-button"
     >
       {t('search.submit')}
@@ -183,11 +234,10 @@ export function AdvancedSearchDialog({
     name: keyof TextFields,
     label: string,
     placeholder: string,
-    icon: IconProps['icon'],
     testId: string,
     autoFocus = false
   ): ReactElement => (
-    <FormRow label={label} htmlFor={fieldId(name)} icon={icon}>
+    <FormRow label={label} htmlFor={fieldId(name)}>
       <TextField
         id={fieldId(name)}
         variant="standard"
@@ -201,49 +251,46 @@ export function AdvancedSearchDialog({
     </FormRow>
   )
 
+  const addressRow = (kind: AddressKind, label: string): ReactElement => (
+    <FormRow label={label} htmlFor={fieldId(kind)}>
+      <AddressFilterField
+        label={label}
+        inputId={fieldId(kind)}
+        placeholder={t('search.hints.address')}
+        values={draft[kind]}
+        onChange={values => {
+          setDraft(current => ({ ...current, [kind]: values }))
+        }}
+        dnd={dndOf(kind)}
+        autoFocus={kind === 'from'}
+        field={kind}
+      />
+    </FormRow>
+  )
+
   const rows = (
     <Box className="u-flex u-flex-column">
-      {textRow(
-        'from',
-        t('search.fields.from'),
-        t('search.hints.address'),
-        Account,
-        'advanced-search-from-input',
-        true
-      )}
-      {textRow(
-        'to',
-        t('search.fields.to'),
-        t('search.hints.address'),
-        Account,
-        'advanced-search-to-input'
-      )}
+      {addressRow('from', t('search.fields.from'))}
+      {addressRow('to', t('search.fields.to'))}
       {textRow(
         'subject',
         t('search.fields.subject'),
         t('search.hints.subject'),
-        Text,
         'advanced-search-subject-input'
       )}
       {textRow(
         'text',
         t('search.fields.text'),
         t('search.hints.words'),
-        Magnifier,
         'advanced-search-text-input'
       )}
       {textRow(
         'notWords',
         t('search.fields.notWords'),
         t('search.wordsHint'),
-        Forbidden,
         'advanced-search-not-words-input'
       )}
-      <FormRow
-        label={t('search.fields.folder')}
-        htmlFor={fieldId('folder')}
-        icon={FolderOutlined}
-      >
+      <FormRow label={t('search.fields.folder')} htmlFor={fieldId('folder')}>
         <TextField
           select
           id={fieldId('folder')}
@@ -270,11 +317,7 @@ export function AdvancedSearchDialog({
         </TextField>
       </FormRow>
       {labels.length > 0 ? (
-        <FormRow
-          label={t('search.labels.label')}
-          htmlFor={fieldId('label')}
-          icon={LabelOutlined}
-        >
+        <FormRow label={t('search.labels.label')} htmlFor={fieldId('label')}>
           <TextField
             select
             id={fieldId('label')}
@@ -301,11 +344,7 @@ export function AdvancedSearchDialog({
           </TextField>
         </FormRow>
       ) : null}
-      <FormRow
-        label={t('search.fields.date')}
-        htmlFor={fieldId('date')}
-        icon={Calendar}
-      >
+      <FormRow label={t('search.fields.date')} htmlFor={fieldId('date')}>
         <TextField
           select
           id={fieldId('date')}
@@ -372,11 +411,7 @@ export function AdvancedSearchDialog({
           </FormRow>
         </>
       ) : null}
-      <FormRow
-        label={t('search.fields.sort')}
-        htmlFor={fieldId('sort')}
-        icon={Swap}
-      >
+      <FormRow label={t('search.fields.sort')} htmlFor={fieldId('sort')}>
         <TextField
           select
           id={fieldId('sort')}
@@ -410,17 +445,13 @@ export function AdvancedSearchDialog({
             ['notIncludeEvents', 'search.filters.notIncludeEvents']
           ] as const
         ).map(([name, label]) => (
-          <FormControlLabel
+          <LabeledCheckbox
             key={name}
             label={t(label)}
-            control={
-              <Checkbox
-                checked={draft[name]}
-                onChange={event => {
-                  setDraft({ ...draft, [name]: event.target.checked })
-                }}
-              />
-            }
+            checked={draft[name]}
+            onChange={checked => {
+              setDraft({ ...draft, [name]: checked })
+            }}
           />
         ))}
       </Box>
@@ -436,11 +467,12 @@ export function AdvancedSearchDialog({
         title={t('search.advanced')}
         data-testid="advanced-search-dialog"
       >
-        <form onSubmit={handleSubmit} noValidate className="u-p-2">
+        {/* tmail-flutter: 24 px above and below, 32 px on the sides */}
+        <form onSubmit={handleSubmit} noValidate className="u-pv-1-half u-ph-2">
           {rows}
-          <Box className="u-flex u-flex-justify-end u-flex-items-center u-mt-1">
+          <Box className="u-flex u-flex-justify-end u-flex-items-center u-mt-1-half">
             {clearButton}
-            <Box className="u-ml-1">{submitButton}</Box>
+            <Box className="u-ml-half">{submitButton}</Box>
           </Box>
         </form>
       </AnchoredDialog>

@@ -1,36 +1,40 @@
 // Upstream to twake-ui: yes, with `VirtualizedTable` row layouts. The sender
-// cell of the mail list: a 20 px marker frame, then a block of fixed width
-// (198 px in the design) holding an avatar and the name, so that the
-// subjects line up whatever the names.
+// cell of the mail list, as tmail-flutter: a 32 px avatar, 10 px, then the
+// name in a block of fixed width (160 px), so that the subjects line up
+// whatever the names, 24 px after it.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { rowTextSx } from '@/ds/RowLine/rowText'
+import { rowSenderSx } from '@/ds/RowLine/rowText'
 
-/** Width of the avatar and name block, in px (Figma) */
-export const SENDER_BLOCK_WIDTH = 198
+/** Width of the avatar, in px */
+const AVATAR_WIDTH = 32
+/** Between the avatar and the name, in px */
+const AVATAR_GAP = 10
+/** Width of the name block, in px */
+export const SENDER_BLOCK_WIDTH = 160
+/** Between the name block and the subject, in px */
+const SENDER_GAP = 24
 
-/** Width of the marker, the gap and the block, in px */
-export const SENDER_WIDTH = 20 + 4 + SENDER_BLOCK_WIDTH
+/** Width of the avatar, the name block and the gap after it, in px */
+export const SENDER_WIDTH =
+  AVATAR_WIDTH + AVATAR_GAP + SENDER_BLOCK_WIDTH + SENDER_GAP
 
 export interface RowSenderProps {
-  /** The 20 px frame before the block (the unread dot, or an empty frame) */
-  marker: ReactNode
-  /** A 20 px avatar */
+  /** A 32 px avatar */
   avatar: ReactNode
   /** The name(s) of the sender, cut with an ellipsis */
   children: ReactNode
   /** After the name, never cut (the number of messages of a conversation) */
   trailing?: ReactNode
-  /** The row stands out (unread): the name is Semi Bold */
+  /** The row stands out (unread): the name is Semi Bold and black */
   isStrong?: boolean
   /** On the name */
   'data-testid'?: string
 }
 
-/** The marker, avatar and name of a sender in a list row. */
+/** The avatar and name of a sender in a list row. */
 export function RowSender({
-  marker,
   avatar,
   children,
   trailing,
@@ -41,19 +45,18 @@ export function RowSender({
     <Box
       component="span"
       className="u-flex u-flex-items-center"
-      sx={{ gap: '4px' }}
+      sx={{ gap: `${AVATAR_GAP}px`, pr: `${SENDER_GAP}px` }}
     >
-      {marker}
+      {avatar}
       <Box
         component="span"
         className="u-flex u-flex-items-center"
-        sx={{ width: SENDER_BLOCK_WIDTH, minWidth: 0, gap: 1 }}
+        sx={{ width: SENDER_BLOCK_WIDTH, minWidth: 0 }}
       >
-        {avatar}
         <Box
           component="span"
           className="u-ellipsis"
-          sx={{ ...rowTextSx(isStrong), flex: '0 1 auto', minWidth: 0 }}
+          sx={{ ...rowSenderSx(isStrong), flex: '0 1 auto', minWidth: 0 }}
           data-testid={testId}
         >
           {children}

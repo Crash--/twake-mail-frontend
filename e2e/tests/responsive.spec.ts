@@ -113,28 +113,29 @@ test.describe('RESP responsive layout', () => {
     await expect(mailbox.folderMenuButton).toBeFocused()
   })
 
-  test('RESP-03 the search folds into the top bar of a phone', async ({
+  test('RESP-03 the search sits under the bar of a phone, as tmail-flutter', async ({
     page,
     user
   }) => {
     test.skip(test.info().project.name !== 'mobile', 'phones only')
     await new LoginPage(page).loginAs(user)
 
-    await page.getByTestId('search-open-button').click()
-    await expect(page.getByTestId('search-input')).toBeFocused()
+    const input = page.getByTestId('search-input')
+    const bar = await page.getByTestId('top-bar').boundingBox()
+    const field = await input.boundingBox()
+    if (bar === null || field === null) throw new Error('No bar nor search')
+    expect(field.y).toBeGreaterThan(bar.y + 40)
+    await input.click()
+    await expect(input).toBeFocused()
     await expectNoA11yViolations(page)
 
     // Escape closes the suggestions (the quick filters alone under an
-    // empty field) first, then folds the search
-    const input = page.getByTestId('search-input')
+    // empty field), the field keeps the focus
     const quickFilters = page.getByTestId('quick-search-filters')
     await expect(quickFilters).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(quickFilters).toBeHidden()
     await expect(input).toBeFocused()
-    await page.keyboard.press('Escape')
-    await expect(page.getByTestId('search-input')).toBeHidden()
-    await expect(page.getByTestId('search-open-button')).toBeFocused()
   })
 
   test.describe('on a large tablet', () => {
@@ -201,7 +202,7 @@ test.describe('RESP responsive layout', () => {
   test.describe('on a desktop', () => {
     test.use({ viewport: { width: 1440, height: 789 } })
 
-    test('RESP-06 the platform bar is 48 px high and the search sits in the page under it', async ({
+    test('RESP-06 without the platform, the bar of tmail-flutter holds the logotype, the search and the account', async ({
       page,
       user
     }) => {
@@ -211,31 +212,28 @@ test.describe('RESP responsive layout', () => {
       const bar = await page.getByTestId('twake-bar').boundingBox()
       const search = await page.getByTestId('search-bar').boundingBox()
       const toolbar = await page.getByTestId('list-toolbar').boundingBox()
-      const settings = await page.getByTestId('settings-button').boundingBox()
+      const account = await page
+        .getByTestId('account-menu-button')
+        .boundingBox()
       const sidebar = await page.getByTestId('mailbox-tree').boundingBox()
 
-      if (!bar || !search || !toolbar || !settings || !sidebar) {
+      if (!bar || !search || !toolbar || !account || !sidebar) {
         throw new Error('A part of the top of the page is not shown')
       }
-      // Full width above the sidebar and the body
+      // Full width above the sidebar and the body, 80 px high
       expect(bar.x).toBe(0)
       expect(bar.width).toBe(1440)
-      expect(bar.height).toBeGreaterThanOrEqual(48)
-      expect(bar.height).toBeLessThanOrEqual(49)
+      expect(Math.abs(bar.height - 80)).toBeLessThanOrEqual(1)
       expect(sidebar.y).toBeGreaterThanOrEqual(bar.y + bar.height)
-      // The search is in the body, under the bar, 820 px at most, and the
-      // settings are at the far end of the same row
-      expect(search.y).toBeGreaterThanOrEqual(bar.y + bar.height)
-      expect(search.width).toBeLessThanOrEqual(820)
-      expect(search.width).toBeGreaterThan(600)
-      expect(settings.x).toBeGreaterThan(search.x + search.width)
+      // The search is in the bar, the initial of the user at its far end
+      expect(search.y).toBeGreaterThanOrEqual(bar.y)
+      expect(search.y + search.height).toBeLessThanOrEqual(bar.y + bar.height)
+      expect(account.x).toBeGreaterThan(search.x + search.width)
       expect(
-        Math.abs(
-          settings.y + settings.height / 2 - (search.y + search.height / 2)
-        )
+        Math.abs(account.y + account.height / 2 - (bar.y + bar.height / 2))
       ).toBeLessThan(8)
-      // The list toolbar is under the search
-      expect(toolbar.y).toBeGreaterThanOrEqual(search.y + search.height)
+      // The list toolbar is under the bar
+      expect(toolbar.y).toBeGreaterThanOrEqual(bar.y + bar.height)
       await expect(mailbox.selectionToolbar).toBeHidden()
       await expectNoA11yViolations(page)
     })

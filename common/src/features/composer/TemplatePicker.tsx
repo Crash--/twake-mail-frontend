@@ -1,4 +1,3 @@
-import { Note } from '@linagora/twake-icons'
 import { Typography } from '@linagora/twake-mui'
 import { useMemo, type ReactElement } from 'react'
 
@@ -6,6 +5,7 @@ import {
   FilterableListbox,
   type FilterableListboxOption
 } from '@/ds/FilterableListbox/FilterableListbox'
+import { Note } from '@/ds/FlutterIcons/FlutterIcons'
 import { PickerSheet } from '@/ds/PickerSheet/PickerSheet'
 import {
   isTeamTemplates,

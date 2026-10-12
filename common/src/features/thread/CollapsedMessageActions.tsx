@@ -1,14 +1,14 @@
+import { useState, type ReactElement } from 'react'
+
 import {
-  Archive,
-  Dots,
+  MoveEmail,
   Reply,
   Star,
   StarOutline,
   Trash
-} from '@linagora/twake-icons'
-import { useState, type ReactElement } from 'react'
-
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
 import { messageMailboxId } from '@common/features/email/messageMailbox'
@@ -33,11 +33,17 @@ export interface CollapsedMessageActionsProps {
   onAction: (id: EmailActionId) => void
   /** Names the group, e.g. with the sender and date of the message */
   label: string
+  /**
+   * The message is expanded and loading: the actions of an expanded one;
+   * else "Reply" alone, as tmail-flutter's collapsed messages
+   */
+  isExpanded?: boolean
 }
 
 /**
  * The actions of a message of a conversation that is not expanded, in its
- * row: reply, archive, star, delete and "More". The message is not loaded
+ * row: "Reply" alone, as tmail-flutter's (and the actions of an expanded
+ * message while it loads). The message is not loaded
  * in full: what a list row knows of it is enough for them, so the actions
  * that need all of it (Print, Download as EML, Unsubscribe) wait for it to be
  * expanded.
@@ -46,10 +52,14 @@ export function CollapsedMessageActions({
   email,
   openedMailboxId,
   onAction,
-  label
+  label,
+  isExpanded = false
 }: CollapsedMessageActionsProps): ReactElement {
   const { t } = useI18n()
-  const isPhone = useScreenSize() === 'mobile'
+  // As tmail-flutter: move, star and delete on an expanded message of a
+  // desktop, "More" on any expanded message
+  const isDesktop = useScreenSize() === 'desktop'
+  const showsShortcuts = isExpanded && isDesktop
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
@@ -62,7 +72,7 @@ export function CollapsedMessageActions({
     canLabel,
     extras: ['edit-as-new']
   })
-  const archive = items.find(item => item.id === 'archive')
+  const move = items.find(item => item.id === 'move')
   const deletion = items.find(
     item => item.id === 'move-to-trash' || item.id === 'delete-permanently'
   )
@@ -84,8 +94,10 @@ export function CollapsedMessageActions({
       className="u-flex u-flex-items-center"
       data-testid="conversation-message-row-actions"
     >
-      {isPhone ? null : (
+      {
         <IconAction
+          size={36}
+          tone="steel"
           label={t('emailActions.reply.reply')}
           icon={Reply}
           onClick={() => {
@@ -93,29 +105,36 @@ export function CollapsedMessageActions({
           }}
           data-testid="email-view-action-reply"
         />
-      )}
-      {isPhone || archive === undefined ? null : (
+      }
+      {!showsShortcuts || move === undefined ? null : (
         <IconAction
-          label={t(archive.label)}
-          icon={Archive}
+          size={36}
+          tone="steel"
+          label={t(move.label)}
+          icon={MoveEmail}
           onClick={() => {
-            handleRun(archive.id)
+            handleRun(move.id)
           }}
-          data-testid="email-view-action-archive"
+          data-testid="email-view-action-move"
         />
       )}
-      <IconAction
-        label={starLabel}
-        icon={isStarred ? Star : StarOutline}
-        tone={isStarred ? 'starred' : 'default'}
-        aria-pressed={isStarred}
-        onClick={() => {
-          handleRun(isStarred ? 'unstar' : 'star')
-        }}
-        data-testid="email-view-star-button"
-      />
-      {isPhone || deletion === undefined ? null : (
+      {showsShortcuts ? (
         <IconAction
+          size={36}
+          label={starLabel}
+          icon={isStarred ? Star : StarOutline}
+          tone={isStarred ? 'starred' : 'steel'}
+          aria-pressed={isStarred}
+          onClick={() => {
+            handleRun(isStarred ? 'unstar' : 'star')
+          }}
+          data-testid="email-view-star-button"
+        />
+      ) : null}
+      {!showsShortcuts || deletion === undefined ? null : (
+        <IconAction
+          size={36}
+          tone="steel"
           label={t(deletion.label)}
           icon={Trash}
           onClick={() => {
@@ -124,16 +143,20 @@ export function CollapsedMessageActions({
           data-testid={`email-view-action-${deletion.id}`}
         />
       )}
-      <IconAction
-        label={moreLabel}
-        icon={Dots}
-        aria-haspopup="menu"
-        aria-expanded={menuAnchor !== null}
-        onClick={event => {
-          setMenuAnchor(event.currentTarget)
-        }}
-        data-testid="email-view-more-button"
-      />
+      {isExpanded ? (
+        <IconAction
+          size={36}
+          tone="steel"
+          label={moreLabel}
+          icon={MoreVerticalIcon}
+          aria-haspopup="menu"
+          aria-expanded={menuAnchor !== null}
+          onClick={event => {
+            setMenuAnchor(event.currentTarget)
+          }}
+          data-testid="email-view-more-button"
+        />
+      ) : null}
       <EmailActionsMenu
         anchor={menuAnchor === null ? null : { element: menuAnchor }}
         onClose={() => {

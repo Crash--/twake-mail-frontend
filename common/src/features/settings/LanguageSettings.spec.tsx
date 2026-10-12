@@ -33,9 +33,13 @@ describe('LanguageSettings', () => {
       withJmapSession: true
     })
 
-    await userEvent.selectOptions(
-      await screen.findByRole('combobox', { name: 'Language' }),
-      'Vietnamese - Tiếng Việt'
+    // As tmail-flutter: the field names the language, its menu lists each
+    // language in the language of the app and in its own
+    const field = await screen.findByRole('combobox', { name: /^Language/ })
+    expect(field).toHaveTextContent('English')
+    await userEvent.click(field)
+    await userEvent.click(
+      screen.getByRole('option', { name: 'Vietnamese - Tiếng Việt' })
     )
 
     expect(

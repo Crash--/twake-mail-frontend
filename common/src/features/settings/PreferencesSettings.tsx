@@ -2,6 +2,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
 
+import { SettingsChoiceOption } from '@/ds/SettingsOption/SettingsOption'
+
 import { hasAiCapability } from '@common/features/ai/aiNeedsAction'
 import { useDriveUrl } from '@common/features/drive/useDrivePicker'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
@@ -16,7 +18,7 @@ import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { scribeEndpoint } from '@common/features/scribe/scribe'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { useSentryReporting } from '@common/features/sentry/useSentryReporting'
-import { useI18n } from '@common/i18n/useI18n'
+import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -37,7 +39,19 @@ import {
 } from './serverSettings'
 import { useDriveAttachmentPreference } from './driveAttachmentPreference'
 import { useSpamReportPreference } from './spamReportPreference'
+import {
+  THEME_PREFERENCES,
+  THEME_SETTING_KEY,
+  type ThemePreference,
+  useThemePreference
+} from './themePreference'
 import { useThreadPreference } from './threadPreference'
+
+const THEME_LABELS: Record<ThemePreference, TranslationKey> = {
+  light: 'settings.preferences.themeLight',
+  dark: 'settings.preferences.themeDark',
+  auto: 'settings.preferences.themeAuto'
+}
 
 export interface PreferencesSettingsProps {
   section: SettingsSection
@@ -52,7 +66,8 @@ export interface PreferencesSettingsProps {
  * composer (kept in this browser), and, with the AI capability, the label
  * categorisation (setting of the account). Then the notifications and the
  * sound of new emails and the accessibility mode (kept in this browser, not
- * in tmail-flutter).
+ * in tmail-flutter). First of all, the theme (`appearance.theme` of the
+ * account, not in tmail-flutter), when the server lets it change.
  */
 export function PreferencesSettings({
   section
@@ -74,6 +89,7 @@ export function PreferencesSettings({
   const hasScribe = scribeEndpoint(session, accountId) !== null
   const { settings } = useServerSettings()
   const errorReporting = useSentryReporting()
+  const theme = useThemePreference()
   const [saving, setSaving] = useState<ServerSettingKey | null>(null)
   const isNotifying = newMailNotificationPreference.useValue() && canNotify()
   const isPlayingSound = newMailSoundPreference.useValue()
@@ -99,9 +115,13 @@ export function PreferencesSettings({
       })
   }
 
-  const changeServerSetting = (key: ServerSettingKey, isOn: boolean): void => {
+  const changeServerSetting = (
+    key: ServerSettingKey,
+    value: string,
+    onRefused?: () => void
+  ): void => {
     setSaving(key)
-    updateServerSetting(client, accountId, key, String(isOn))
+    updateServerSetting(client, accountId, key, value)
       .then(async isSaved => {
         if (!isSaved) throw new Error(`Settings/set refused ${key}`)
         await queryClient.invalidateQueries({
@@ -110,6 +130,7 @@ export function PreferencesSettings({
       })
       .catch((error: unknown) => {
         console.error('[settings] Cannot change a preference', error)
+        onRefused?.()
         notify({ message: t('common.errorOccurredShort'), severity: 'error' })
       })
       .finally(() => {
@@ -120,8 +141,32 @@ export function PreferencesSettings({
   const serverOption = (key: ServerSettingKey): boolean =>
     settings !== null && canChangeServerSetting(session, key)
 
+  // Shown at once; back to the previous theme if the server refuses it
+  const changeTheme = (next: ThemePreference): void => {
+    const previous = theme.preference
+    if (next === previous) return
+    theme.setPreference(next)
+    changeServerSetting(THEME_SETTING_KEY, next, () => {
+      theme.setPreference(previous)
+    })
+  }
+
   return (
     <SettingsSectionLayout section={section}>
+      {serverOption(THEME_SETTING_KEY) ? (
+        <SettingsChoiceOption
+          title={t('settings.preferences.theme')}
+          description={t('settings.preferences.themeDescription')}
+          value={theme.preference}
+          choices={THEME_PREFERENCES.map(value => ({
+            value,
+            label: t(THEME_LABELS[value])
+          }))}
+          isDisabled={saving === THEME_SETTING_KEY}
+          onChange={changeTheme}
+          data-testid="theme-setting"
+        />
+      ) : null}
       {serverOption('read.receipts.always') && settings !== null ? (
         <PreferenceOption
           title={t('settings.preferences.readReceipts')}
@@ -130,7 +175,7 @@ export function PreferencesSettings({
           isChecked={isAlwaysRequestingReadReceipts(settings)}
           isDisabled={saving === 'read.receipts.always'}
           onChange={isOn => {
-            changeServerSetting('read.receipts.always', isOn)
+            changeServerSetting('read.receipts.always', String(isOn))
           }}
           data-testid="read-receipts-setting-toggle"
         />
@@ -143,7 +188,7 @@ export function PreferencesSettings({
           isChecked={isShowingSenderPriority(settings)}
           isDisabled={saving === 'display.sender.priority'}
           onChange={isOn => {
-            changeServerSetting('display.sender.priority', isOn)
+            changeServerSetting('display.sender.priority', String(isOn))
           }}
           data-testid="sender-priority-setting-toggle"
         />
@@ -186,7 +231,7 @@ export function PreferencesSettings({
           isChecked={isLabelCategorizationOn(settings)}
           isDisabled={saving === AI_LABEL_CATEGORIZATION_KEY}
           onChange={isOn => {
-            changeServerSetting(AI_LABEL_CATEGORIZATION_KEY, isOn)
+            changeServerSetting(AI_LABEL_CATEGORIZATION_KEY, String(isOn))
           }}
           data-testid="ai-label-categorization-setting-toggle"
         />
@@ -247,7 +292,7 @@ export function PreferencesSettings({
           isChecked={errorReporting.isOptedIn}
           isDisabled={saving === 'sentry.user-opt-in'}
           onChange={isOn => {
-            changeServerSetting('sentry.user-opt-in', isOn)
+            changeServerSetting('sentry.user-opt-in', String(isOn))
           }}
           data-testid="error-reporting-setting-toggle"
         />

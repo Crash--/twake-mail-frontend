@@ -47,4 +47,18 @@ describe('FlatPanes', () => {
       borderRadius: '16px'
     })
   })
+
+  it('puts a header above the card, inside the main landmark', () => {
+    renderDs(
+      <Layout withTopBar={false}>
+        <FlatMain inset header={<p>Filters</p>} data-testid="main">
+          <FlatContent>Body</FlatContent>
+        </FlatMain>
+      </Layout>
+    )
+
+    const main = screen.getByRole('main')
+    expect(main).toHaveTextContent('FiltersBody')
+    expect(main).toHaveStyle({ margin: '0 16px 16px 0' })
+  })
 })

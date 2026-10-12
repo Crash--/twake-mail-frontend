@@ -10,9 +10,12 @@ import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 import { EmptyFolderIllustration } from './EmptyFolderIllustration'
 
-// tmail-flutter's AppColor.gray424244, at the opacities of the widget
+// tmail-flutter's AppColor.gray424244, at the opacities of the widget;
+// white at the same opacities in the dark scheme
 const TITLE_COLOR = 'rgba(66, 66, 68, 0.9)'
 const TEXT_COLOR = 'rgba(66, 66, 68, 0.64)'
+const DARK_TITLE_COLOR = 'rgba(255, 255, 255, 0.9)'
+const DARK_TEXT_COLOR = 'rgba(255, 255, 255, 0.64)'
 
 const Root = styled('div')({
   display: 'flex',
@@ -53,7 +56,8 @@ const Title = styled('p')(({ theme }) => ({
   letterSpacing: 0,
   color: TITLE_COLOR,
   // The translations break the line where tmail-flutter does
-  whiteSpace: 'pre-line'
+  whiteSpace: 'pre-line',
+  ...theme.applyStyles('dark', { color: DARK_TITLE_COLOR })
 }))
 
 // ThemeUtils.textStyleInter400, as the widget overrides it
@@ -64,7 +68,8 @@ const Text = styled('p')(({ theme }) => ({
   fontSize: 16,
   lineHeight: 21.01 / 16,
   letterSpacing: -0.15,
-  color: TEXT_COLOR
+  color: TEXT_COLOR,
+  ...theme.applyStyles('dark', { color: DARK_TEXT_COLOR })
 }))
 
 export interface EmptyListViewProps {

@@ -40,6 +40,8 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await composer.editor.click()
     await page.keyboard.type('Title')
 
@@ -54,7 +56,8 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     await expect(styleById).toHaveAttribute('aria-expanded', 'true')
     await expect(page.getByRole('menu')).toBeVisible()
     await expectNoA11yViolations(page)
-    await page.keyboard.press('ArrowDown')
+    // tmail-flutter's order: Normal, Quote, Code, Header 1…
+    for (let step = 0; step < 3; step++) await page.keyboard.press('ArrowDown')
     await page.keyboard.press('Enter')
     await expect(page.getByRole('menu')).toBeHidden()
     await expect(composer.editor.locator('h1')).toHaveText('Title')
@@ -88,6 +91,8 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     const bob = await users.create({ prefix: 'bob' })
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await composer.fill({ to: [bob.email], subject: 'Formatting' })
     await composer.editor.click()
     await page.keyboard.type('Styled words')
@@ -198,10 +203,11 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
       await composer.showFormattingToolbar()
       const toolbarBox = await composer.toolbar.boundingBox()
       expect(toolbarBox?.height).toBeLessThan(70)
-      const clear = composer.toolbarButton('Clear formatting')
-      await clear.scrollIntoViewIfNeeded()
-      await expect(clear).toBeInViewport()
-      await clear.click()
+      const last = composer.toolbarButton('Lists and indentation')
+      await last.scrollIntoViewIfNeeded()
+      await expect(last).toBeInViewport()
+      await last.click()
+      await page.keyboard.press('Escape')
       await expectNoA11yViolations(page)
     }
   )

@@ -35,6 +35,41 @@ describe('BasicLoginPage', () => {
     )
   })
 
+  it('shows and masks the password again with the toggle', async () => {
+    renderLoginPage()
+    const toggle = screen.getByTestId('login-password-toggle')
+    const passwordInput = screen.getByTestId('login-password-input')
+
+    expect(toggle).toHaveAccessibleName('Show password')
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+
+    await userEvent.click(toggle)
+
+    expect(passwordInput).toHaveAttribute('type', 'text')
+    expect(toggle).toHaveAccessibleName('Hide password')
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.click(toggle)
+
+    expect(passwordInput).toHaveAttribute('type', 'password')
+    expect(toggle).toHaveAccessibleName('Show password')
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('links to the privacy policy in a new tab', () => {
+    renderLoginPage()
+
+    const link = screen.getByRole('link', {
+      name: 'Privacy policy (opens in a new tab)'
+    })
+    expect(link).toHaveAttribute(
+      'href',
+      'https://github.com/linagora/tmail-flutter/blob/master/privacy.md'
+    )
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
   it('asks for the missing fields without calling the server', async () => {
     const service = makeFakeBasicAuthService({ status: 'anonymous' })
     renderLoginPage(service)

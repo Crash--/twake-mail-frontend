@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
+import { LinkTooltip, type LinkRect } from '@/ds/LinkTooltip/LinkTooltip'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { EMAIL_CONTENT_ID } from './emailBody'
@@ -66,8 +67,56 @@ export function forwardEscapeKey(
 }
 
 /**
+ * Reports the link under the pointer or holding the focus in the email
+ * document, its place in the window of `frame`, and null once left
+ */
+function followLinks(
+  frameDocument: Document,
+  frame: HTMLIFrameElement,
+  onLink: (link: { href: string; rect: LinkRect } | null) => void
+): void {
+  const show = (target: EventTarget | null): void => {
+    // The elements of the frame are of its own window
+    const FrameElement = frameDocument.defaultView?.Element
+    const link =
+      FrameElement !== undefined && target instanceof FrameElement
+        ? target.closest('a[href]')
+        : null
+    const href = link?.getAttribute('href') ?? ''
+    if (link === null || href === '' || href.startsWith('#')) {
+      onLink(null)
+      return
+    }
+    const frameBox = frame.getBoundingClientRect()
+    const box = link.getBoundingClientRect()
+    onLink({
+      href,
+      rect: {
+        top: frameBox.top + box.top,
+        left: frameBox.left + box.left,
+        bottom: frameBox.top + box.bottom
+      }
+    })
+  }
+  frameDocument.addEventListener('mouseover', event => {
+    show(event.target)
+  })
+  frameDocument.addEventListener('focusin', event => {
+    show(event.target)
+  })
+  // The reading pane scrolls with the wheel over the frame: the link moves
+  for (const type of ['focusout', 'wheel'] as const) {
+    frameDocument.addEventListener(type, () => {
+      onLink(null)
+    })
+  }
+}
+
+/**
  * The body of an email, isolated in a sandboxed iframe whose height follows
- * its content, so that the reading pane scrolls as one page.
+ * its content, so that the reading pane scrolls as one page. As
+ * tmail-flutter, the address of a link shows in a tooltip while the pointer
+ * is on it.
  */
 export function EmailBodyFrame({
   document,
@@ -78,6 +127,9 @@ export function EmailBodyFrame({
   const observerRef = useRef<ResizeObserver | null>(null)
   const onMailtoLinkRef = useRef(onMailtoLink)
   const [height, setHeight] = useState(MIN_HEIGHT)
+  const [link, setLink] = useState<{ href: string; rect: LinkRect } | null>(
+    null
+  )
 
   useEffect(() => {
     onMailtoLinkRef.current = onMailtoLink
@@ -109,6 +161,8 @@ export function EmailBodyFrame({
     if (!frame || !frameDocument || !content) return
 
     forwardEscapeKey(frameDocument, frame)
+    setLink(null)
+    followLinks(frameDocument, frame, setLink)
 
     if (onMailtoLinkRef.current) {
       interceptMailtoLinks(frameDocument, href => {
@@ -136,16 +190,28 @@ export function EmailBodyFrame({
   }
 
   return (
-    <iframe
-      ref={frameRef}
-      title={t('email.content')}
-      sandbox={EMAIL_FRAME_SANDBOX}
-      referrerPolicy="no-referrer"
-      width="100%"
-      height={height}
-      className="u-db u-bdw-0"
-      onLoad={handleLoad}
-      data-testid="email-view-body"
-    />
+    <>
+      <iframe
+        ref={frameRef}
+        title={t('email.content')}
+        sandbox={EMAIL_FRAME_SANDBOX}
+        referrerPolicy="no-referrer"
+        width="100%"
+        height={height}
+        className="u-db u-bdw-0"
+        onLoad={handleLoad}
+        data-testid="email-view-body"
+        onMouseLeave={() => {
+          setLink(null)
+        }}
+      />
+      {link === null ? null : (
+        <LinkTooltip
+          href={link.href}
+          rect={link.rect}
+          data-testid="email-link-tooltip"
+        />
+      )}
+    </>
   )
 }

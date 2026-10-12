@@ -69,7 +69,11 @@ test.describe('SET settings', () => {
       'Reply to: Help desk <help@example.com>'
     )
     await expect(support).toContainText('Bcc: archive@example.com')
-    await expect(support).toContainText('-- The support team')
+    // As tmail-flutter: "--", then the signature as it is written
+    await expect(support).toContainText('--')
+    await expect(support.getByTestId('identity-item-signature')).toHaveText(
+      'The support team'
+    )
     await expect(settings.toast).toContainText(
       'You have created a new identity'
     )
@@ -197,13 +201,15 @@ test.describe('SET settings', () => {
       if (isDesktop) {
         await expect(settings.heading).toHaveText('Profiles')
         await expect(
-          page.getByRole('navigation', { name: 'Settings' })
+          page.getByRole('navigation', { name: 'Manage account' })
         ).toBeVisible()
       } else {
         await expect(settings.heading).toHaveText('Settings')
+        // As tmail-flutter's menu: the names, every section in view
         await expect(settings.menuItem('keyboard-shortcuts')).toContainText(
-          'Mailbox & email actions'
+          'Keyboard shortcuts'
         )
+        await expect(settings.menuItem('storage')).toBeVisible()
       }
       await expectNoA11yViolations(page)
 

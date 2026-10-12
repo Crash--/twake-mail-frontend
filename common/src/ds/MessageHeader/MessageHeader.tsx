@@ -10,7 +10,8 @@ const ROOT_SX = {
   display: 'grid',
   gridTemplateColumns: 'auto minmax(0, 1fr) auto',
   gridTemplateAreas: '"avatar identity actions"',
-  columnGap: 1.25,
+  // tmail-flutter: 16 px between the avatar and the name
+  columnGap: 2,
   rowGap: 0.5,
   alignItems: 'start',
   // Long addresses wrap instead of widening the page (RGAA 10.11)
@@ -19,6 +20,14 @@ const ROOT_SX = {
     gridTemplateColumns: 'auto minmax(0, 1fr)',
     gridTemplateAreas: '"avatar identity" ". actions"'
   }
+} as const
+
+/** Without actions, no third column: its gap would push what follows */
+const NO_ACTIONS_SX = {
+  ...ROOT_SX,
+  gridTemplateColumns: 'auto minmax(0, 1fr)',
+  gridTemplateAreas: '"avatar identity"',
+  [`@media ${SCREEN_QUERIES.mobile}`]: {}
 } as const
 
 export interface MessageHeaderProps {
@@ -47,15 +56,20 @@ export function MessageHeader({
   className,
   component = 'div'
 }: MessageHeaderProps): ReactElement {
+  const hasActions = actions !== undefined && actions !== null
   return (
-    <Box component={component} className={className} sx={ROOT_SX}>
+    <Box
+      component={component}
+      className={className}
+      sx={hasActions ? ROOT_SX : NO_ACTIONS_SX}
+    >
       <Box component={component} sx={{ gridArea: 'avatar' }}>
         {avatar}
       </Box>
       <Box component={component} sx={{ gridArea: 'identity', minWidth: 0 }}>
         {identity}
       </Box>
-      {actions === undefined || actions === null ? null : (
+      {!hasActions ? null : (
         <Box component={component} sx={{ gridArea: 'actions' }}>
           {actions}
         </Box>

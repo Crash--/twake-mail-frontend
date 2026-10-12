@@ -1,41 +1,128 @@
 // Upstream to twake-ui: yes. twake-mui has no top bar: its `Layout` story
 // fakes one, and each Twake app builds its own (Calendar has a desktop, a
-// tablet and a mobile `Menubar`). This one has the slots and the
-// responsive behaviour they share: a menu button below the desktop size,
-// the search folded behind a button on phones.
-import { Burger, Icon, Left, Magnifier } from '@linagora/twake-icons'
+// tablet and a mobile `Menubar`). This one is tmail-flutter's app bar of
+// phones and tablets (`MobileAppBarThreadWidget`, `SearchBarView`): a menu
+// button, the title in Bold 21, the actions at the end, and the search under
+// the bar, as wide as the screen.
+import { Icon } from '@linagora/twake-icons'
+import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import {
-  AppBar,
-  Box,
-  IconButton,
-  Toolbar,
-  Tooltip,
-  type Theme
-} from '@linagora/twake-mui'
-import {
-  useEffect,
   useImperativeHandle,
   useRef,
-  useState,
-  type KeyboardEvent,
   type ReactElement,
   type ReactNode,
   type Ref
 } from 'react'
 
+import { Burger, Left } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
-/** Height of the bar on desktops, as in the design */
-const DESKTOP_HEIGHT = 50
-const TABLET_SEARCH_MAX_WIDTH = 768
-// A shadow, not a border: the bar stays exactly as high as its toolbar
-const BAR_SX = {
-  boxShadow: (theme: Theme) => `0 1px 0 ${theme.palette.divider}`
+/** The bar of tmail-flutter: 52 px, 16 px in on a phone, 32 px on a tablet */
+const BAR_HEIGHT = 52
+
+function barSx(isPhone: boolean): Record<string, unknown> {
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    flexShrink: 0,
+    height: BAR_HEIGHT,
+    position: 'relative',
+    px: isPhone ? '16px' : '32px',
+    bgcolor: 'background.paper'
+  }
+}
+
+/**
+ * Over the bar, as tall and white, hidden while empty: 16 px in on a phone,
+ * 32 px on a tablet, as tmail-flutter's selection bar
+ */
+function overlaySx(isPhone: boolean): Record<string, unknown> {
+  return {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    px: isPhone ? '16px' : '32px',
+    bgcolor: 'background.paper',
+    '&:empty': { display: 'none' }
+  }
+}
+
+/** Its menu button: tmail-flutter's light grey 28 px icon, 5 px around */
+const MENU_SX = { p: '5px', color: TMAIL.greyIcon } as const
+
+/** Its title: Bold 21, black, 16 px after the menu button */
+const TITLE_SX = {
+  flex: '1 1 auto',
+  minWidth: 0,
+  overflow: 'hidden',
+  mx: '16px',
+  '& .MuiTypography-root': {
+    fontSize: 21,
+    fontWeight: 700,
+    lineHeight: '28px',
+    color: TMAIL.textBlack
+  }
 } as const
-const SEARCH_SX = { width: '100%', maxWidth: TABLET_SEARCH_MAX_WIDTH } as const
-// `&&`: the theme sets the height of the toolbar at each breakpoint
-const DESKTOP_TOOLBAR_SX = {
-  '&&': { minHeight: DESKTOP_HEIGHT, height: DESKTOP_HEIGHT }
+
+/** Before and after a centred title: as wide, grey (tmail-flutter's ✕) */
+function startSx(isPlain: boolean): Record<string, unknown> {
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    width: 48,
+    flexShrink: 0,
+    // tmail-flutter's grey cross, its dark arrow back
+    color: isPlain ? TMAIL.textOnSurface : TMAIL.greyIcon,
+    '& .MuiIconButton-root': { color: 'inherit' }
+  }
+}
+
+/** The title of tmail-flutter's settings: Bold 20, in the middle */
+const CENTERED_TITLE_SX = {
+  ...TITLE_SX,
+  mx: 0,
+  textAlign: 'center',
+  '& .MuiTypography-root': {
+    fontSize: 20,
+    fontWeight: 700,
+    lineHeight: '28px',
+    color: TMAIL.textBlack
+  }
+} as const
+
+/** The title of a section of tmail-flutter's settings: Regular 16 */
+const PLAIN_TITLE_SX = {
+  ...CENTERED_TITLE_SX,
+  '& .MuiTypography-root': {
+    fontSize: 16,
+    fontWeight: 400,
+    lineHeight: '24px',
+    color: TMAIL.textOnSurface
+  }
+} as const
+
+/** The search under it: 12 px in on a phone, 24 px on a tablet, 8 px below */
+function searchSx(isPhone: boolean): Record<string, unknown> {
+  return {
+    flexShrink: 0,
+    px: isPhone ? '12px' : '24px',
+    pb: '8px',
+    bgcolor: 'background.paper'
+  }
+}
+
+/**
+ * The actions, as tmail-flutter's filter: a light grey 24 px icon, 8 px
+ * around, blue when on
+ */
+const ACTIONS_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  color: TMAIL.greyIcon,
+  '& .MuiIconButton-root': { color: 'inherit', p: '8px' },
+  '& .MuiIconButton-root.MuiIconButton-colorPrimary': { color: TMAIL.primary }
 } as const
 
 export interface AppTopBarMenu {
@@ -45,205 +132,170 @@ export interface AppTopBarMenu {
   'data-testid'?: string
 }
 
-export interface AppTopBarTestIds {
-  openSearch?: string
-  closeSearch?: string
+/** The back button of the search view, in place of the menu button */
+export interface AppTopBarBack {
+  /** Name and tooltip of the button, e.g. "Back to the mailbox" */
+  label: string
+  onBack: () => void
+  'data-testid'?: string
+}
+
+/** tmail-flutter's blue back arrow, 8 px in on a phone, 24 px on a tablet */
+function searchBarSx(isPhone: boolean): Record<string, unknown> {
+  return {
+    ...barSx(isPhone),
+    px: isPhone ? '8px' : '24px',
+    borderBottom: `1px solid ${TMAIL.divider}`,
+    '& > .MuiIconButton-root': { color: TMAIL.primary }
+  }
 }
 
 export interface AppTopBarSearchActions {
-  /**
-   * Moves the focus into the search, unfolding it first on phones (a
-   * keyboard shortcut)
-   */
+  /** Moves the focus into the search (a keyboard shortcut) */
   focusSearch: () => void
 }
 
 export interface AppTopBarProps {
-  /** The logotype, on tablets and desktops */
+  /** The current folder */
   title: ReactNode
-  /** What phones show instead of the logotype, e.g. the current folder */
-  compactTitle?: ReactNode
-  /**
-   * A search field: centred on tablets, folded behind a button on phones.
-   * Desktops do not show it here: their search sits in the page, under the
-   * bar (`ds/SearchRow`)
-   */
-  search: ReactNode
-  /** Buttons at the end of the bar: app switcher, account */
+  /** A search field, shown under the bar; null for none */
+  search: ReactNode | null
+  /** Buttons at the end of the bar, e.g. the filter */
   actions: ReactNode
-  /** The button opening the navigation drawer, below the desktop size */
+  /** The button opening the navigation drawer */
   menu: AppTopBarMenu
-  /** Name and tooltip of the button unfolding the search on phones */
-  openSearchLabel: string
-  /** Name and tooltip of the button folding it back */
-  closeSearchLabel: string
+  /** Reaches that button, e.g. to give it the focus back */
+  menuButtonRef?: Ref<HTMLButtonElement>
   /** Receives `AppTopBarSearchActions`, as MUI's `action` props */
   searchActions?: Ref<AppTopBarSearchActions>
-  testIds?: AppTopBarTestIds
+  /**
+   * A place over the bar, shown once something is rendered in it (a portal):
+   * tmail-flutter's selection bar takes the place of the app bar
+   */
+  overlayRef?: Ref<HTMLDivElement>
+  /**
+   * The search view of tmail-flutter: the back button and the search in the
+   * bar, in place of the menu, the title and the actions
+   */
+  back?: AppTopBarBack
+  /**
+   * In place of the menu button, e.g. the close button of tmail-flutter's
+   * settings, whose title is then in the middle of the bar
+   */
+  start?: ReactNode
+  /**
+   * With `start`: `strong`, the bold title of the menu of the settings over
+   * a divider; `plain`, the regular title of one of their sections
+   */
+  startTitle?: 'strong' | 'plain'
   'data-testid'?: string
 }
 
 /**
- * The bar at the top of the app.
- *
- * - Desktop (1200 px and more): 50 px high, title at the start, actions at
- *   the end; the search is in the page.
- * - Tablet: the same, after a button opening the navigation drawer.
- * - Phone (below 600 px): menu button, compact title, a search button and
- *   the actions. The search button unfolds the search over the whole bar
- *   and moves the focus into it; the back button or Escape fold it and give
- *   the focus back to the search button.
- *
- * `searchActions.focusSearch()` reaches the search on every screen size.
+ * The bar at the top of the app below the desktop size, as tmail-flutter's:
+ * the menu button, the title and the actions, then the search under it.
  */
 export function AppTopBar({
   title,
-  compactTitle,
   search,
   actions,
   menu,
-  openSearchLabel,
-  closeSearchLabel,
+  menuButtonRef,
   searchActions,
-  testIds = {},
+  overlayRef,
+  back,
+  start,
+  startTitle = 'strong',
   'data-testid': testId
 }: AppTopBarProps): ReactElement {
-  const screenSize = useScreenSize()
-  const isPhone = screenSize === 'mobile'
-  const isDesktop = screenSize === 'desktop'
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const isPhone = useScreenSize() === 'mobile'
   const searchRef = useRef<HTMLDivElement>(null)
-  const openSearchRef = useRef<HTMLButtonElement>(null)
-  // Set when the user folds the search: the focus goes back to its button
-  const restoreFocusRef = useRef(false)
-  const isSearchUnfolded = isPhone && isSearchOpen
-
-  useEffect(() => {
-    if (isSearchUnfolded) {
-      searchRef.current?.querySelector('input')?.focus()
-    } else if (restoreFocusRef.current) {
-      restoreFocusRef.current = false
-      openSearchRef.current?.focus()
-    }
-  }, [isSearchUnfolded])
 
   useImperativeHandle(
     searchActions,
     () => ({
       focusSearch: () => {
-        if (isPhone && !isSearchOpen) {
-          // Focused once unfolded, by the effect above
-          setIsSearchOpen(true)
-          return
-        }
         searchRef.current?.querySelector('input')?.focus()
       }
     }),
-    [isPhone, isSearchOpen]
+    []
   )
 
-  const handleOpenSearch = (): void => {
-    setIsSearchOpen(true)
-  }
-
-  const handleCloseSearch = (): void => {
-    restoreFocusRef.current = true
-    setIsSearchOpen(false)
-  }
-
-  const handleSearchKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (event.key !== 'Escape') return
-    event.stopPropagation()
-    handleCloseSearch()
-  }
-
-  let content: ReactElement
-  if (isSearchUnfolded) {
-    content = (
-      <>
-        <Tooltip title={closeSearchLabel}>
-          <IconButton
-            aria-label={closeSearchLabel}
-            onClick={handleCloseSearch}
-            data-testid={testIds.closeSearch}
-          >
-            <Icon icon={Left} />
-          </IconButton>
-        </Tooltip>
-        <Box
-          ref={searchRef}
-          className="u-flex u-flex-auto u-ov-hidden"
-          onKeyDown={handleSearchKeyDown}
-        >
-          {search}
-        </Box>
-      </>
-    )
-  } else {
-    const menuButton = isDesktop ? null : (
-      <Tooltip title={menu.label}>
-        <IconButton
-          edge="start"
-          aria-label={menu.label}
-          aria-haspopup="dialog"
-          onClick={menu.onOpen}
-          data-testid={menu['data-testid']}
-        >
-          <Icon icon={Burger} />
-        </IconButton>
-      </Tooltip>
-    )
-    content = isPhone ? (
-      <>
-        {menuButton}
-        <Box className="u-flex u-flex-auto u-flex-items-center u-ov-hidden u-ml-half">
-          {compactTitle ?? title}
-        </Box>
-        <Tooltip title={openSearchLabel}>
-          <IconButton
-            ref={openSearchRef}
-            aria-label={openSearchLabel}
-            onClick={handleOpenSearch}
-            data-testid={testIds.openSearch}
-          >
-            <Icon icon={Magnifier} />
-          </IconButton>
-        </Tooltip>
-        {actions}
-      </>
-    ) : (
-      <>
-        {menuButton}
-        {title}
-        {isDesktop ? (
-          <Box className="u-flex-auto" />
-        ) : (
-          <Box
-            ref={searchRef}
-            className="u-flex u-flex-auto u-flex-justify-center u-ph-2"
-          >
-            <Box sx={SEARCH_SX}>{search}</Box>
+  if (back !== undefined) {
+    return (
+      <Box component="header" data-testid={testId}>
+        <Box sx={searchBarSx(isPhone)}>
+          <Tooltip title={back.label}>
+            <IconButton
+              aria-label={back.label}
+              onClick={back.onBack}
+              data-testid={back['data-testid']}
+            >
+              <Icon icon={Left} size={24} />
+            </IconButton>
+          </Tooltip>
+          <Box ref={searchRef} className="u-flex-auto u-ov-hidden">
+            {search}
           </Box>
-        )}
-        {actions}
-      </>
+          <Box ref={overlayRef} sx={overlaySx(isPhone)} />
+        </Box>
+      </Box>
     )
   }
 
   return (
-    <AppBar
-      position="static"
-      color="inherit"
-      elevation={0}
-      sx={BAR_SX}
+    <Box
+      component="header"
+      className="u-flex u-flex-column"
       data-testid={testId}
     >
-      <Toolbar
-        className="u-flex u-flex-items-center"
-        sx={isDesktop ? DESKTOP_TOOLBAR_SX : undefined}
+      <Box
+        sx={
+          start === undefined
+            ? barSx(isPhone)
+            : startTitle === 'strong'
+              ? {
+                  ...barSx(isPhone),
+                  borderBottom: `1px solid ${TMAIL.divider}`
+                }
+              : { ...barSx(isPhone), height: 64 }
+        }
       >
-        {content}
-      </Toolbar>
-    </AppBar>
+        {start !== undefined ? (
+          <>
+            <Box sx={startSx(startTitle === 'plain')}>{start}</Box>
+            <Box
+              sx={startTitle === 'strong' ? CENTERED_TITLE_SX : PLAIN_TITLE_SX}
+            >
+              {title}
+            </Box>
+            <Box sx={startSx(startTitle === 'plain')} />
+          </>
+        ) : (
+          <>
+            <Tooltip title={menu.label}>
+              <IconButton
+                ref={menuButtonRef}
+                aria-label={menu.label}
+                aria-haspopup="dialog"
+                onClick={menu.onOpen}
+                sx={MENU_SX}
+                data-testid={menu['data-testid']}
+              >
+                <Icon icon={Burger} size={28} />
+              </IconButton>
+            </Tooltip>
+            <Box sx={TITLE_SX}>{title}</Box>
+            <Box sx={ACTIONS_SX}>{actions}</Box>
+          </>
+        )}
+        <Box ref={overlayRef} sx={overlaySx(isPhone)} />
+      </Box>
+      {search === null ? null : (
+        <Box ref={searchRef} sx={searchSx(isPhone)}>
+          {search}
+        </Box>
+      )}
+    </Box>
   )
 }

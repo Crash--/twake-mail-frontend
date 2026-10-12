@@ -1,11 +1,12 @@
-import { Pen } from '@linagora/twake-icons'
 import { Box, Layout } from '@linagora/twake-mui'
 import { useState, type ReactElement, type ReactNode } from 'react'
 import { Outlet, useLocation, useMatch } from 'react-router'
 
+import { ComposeIcon } from '@/ds/ComposerIcons/ComposerIcons'
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { SCRIPT_FOCUS_TARGET } from '@/ds/FocusIndicator/focusIndicator'
+import { SearchRow } from '@/ds/SearchRow/SearchRow'
 import { SkipLink } from '@/ds/SkipLink/SkipLink'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -16,18 +17,25 @@ import {
 import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
-import { ListFilterProvider } from '@common/features/thread/ListFilterProvider'
+import {
+  ListFilterProvider,
+  useIsSelectingEmails
+} from '@common/features/thread/ListFilterProvider'
 import { InboxUnreadTitle } from '@common/features/mailbox/InboxUnreadTitle'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
+import { FolderActionProgressProvider } from '@common/features/mailboxActions/FolderActionProgress'
+import { FolderActionProgressBanner } from '@common/features/mailboxActions/FolderActionProgressBanner'
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
   isSettingsPath,
   SettingsExitProvider
 } from '@common/features/settings/SettingsExitProvider'
+import { SearchFiltersHeader } from '@common/features/search/SearchFiltersRow'
 import { FeedbackWidget } from '@common/features/sentry/FeedbackWidget'
 import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync'
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
+import { ServerThemeSync } from '@common/features/settings/ServerThemeSync'
 import { SettingsSidebar } from '@common/features/settings/SettingsSidebar'
 import {
   ShortcutsProvider,
@@ -39,13 +47,19 @@ import {
   RecoveryProvider
 } from '@common/features/recovery/RecoveryProvider'
 import { VacationBanner } from '@common/features/vacation/VacationBanner'
-import { PlatformProvider } from '@common/features/platform/PlatformProvider'
+import {
+  PlatformProvider,
+  usePlatformSdk,
+  usePlatformStatus
+} from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { AppHeader } from './AppHeader'
 import { MailSidebar } from './MailSidebar'
 import { MailSearchRow } from './MailSearchRow'
+import { SettingsButton } from './SettingsButton'
 import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
+import { useLogout } from './useLogout'
 
 /** The target of the skip link and of the focus after a navigation */
 const MAIN_CONTENT_ID = 'main-content'
@@ -83,17 +97,19 @@ export function MailProviders({
     <ShortcutsProvider>
       <MailboxPickerProvider>
         <RecoveryProvider>
-          <FolderActionsProvider>
-            <LabelActionsProvider>
-              <ComposerProvider>
-                <SettingsExitProvider>
-                  <ListFilterProvider>
-                    <LoadingAnnouncer>{children}</LoadingAnnouncer>
-                  </ListFilterProvider>
-                </SettingsExitProvider>
-              </ComposerProvider>
-            </LabelActionsProvider>
-          </FolderActionsProvider>
+          <FolderActionProgressProvider>
+            <FolderActionsProvider>
+              <LabelActionsProvider>
+                <ComposerProvider>
+                  <SettingsExitProvider>
+                    <ListFilterProvider>
+                      <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                    </ListFilterProvider>
+                  </SettingsExitProvider>
+                </ComposerProvider>
+              </LabelActionsProvider>
+            </FolderActionsProvider>
+          </FolderActionProgressProvider>
         </RecoveryProvider>
       </MailboxPickerProvider>
     </ShortcutsProvider>
@@ -114,10 +130,23 @@ function AppFrame(): ReactElement {
   const isMailboxEmailOpen =
     useMatch('/mailbox/:mailboxId/email/:emailId/*') !== null
   const isSearchEmailOpen = useMatch('/search/email/:emailId/*') !== null
+  // As tmail-flutter: the filters of the results above the card of the list
+  const isSearchResults = useMatch('/search') !== null
   const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
   const isSettings = isSettingsPath(location.pathname)
+  // The search is in tmail-flutter's bar without the platform; with it (its
+  // own bar) or framed by the Workplace, it is at the top of the page
+  const platformStatus = usePlatformStatus()
+  const hasFlutterBar = usePlatformSdk() !== null && platformStatus === 'public'
+  // As tmail-flutter, it makes way for the selection
+  const isSelectingEmails = useIsSelectingEmails()
   const showComposeFab =
-    !isDesktop && !isSettings && (!isEmailOpen || screenSize === 'tabletLarge')
+    !isDesktop &&
+    !isSettings &&
+    !isSelectingEmails &&
+    // Nor on the search results, as tmail-flutter's search view
+    !isSearchResults &&
+    (!isEmailOpen || screenSize === 'tabletLarge')
 
   const handleOpenFolders = (): void => {
     setDrawerLocationKey(location.key)
@@ -127,6 +156,7 @@ function AppFrame(): ReactElement {
     setDrawerLocationKey(null)
   }
 
+  const handleLogout = useLogout()
   const { openComposer } = useComposer()
   // Both "New message" buttons and the `c` shortcut
   const handleCompose = (): void => {
@@ -151,12 +181,16 @@ function AppFrame(): ReactElement {
       />
       <TouchTargets />
       <ServerLanguageSync />
+      <ServerThemeSync />
       <InboxUnreadTitle />
       <OfflineNotice />
       <SentryReportingSync />
       {/* The reply bar of an open email is at the bottom of the screen too */}
       <FeedbackWidget hasBottomAction={showComposeFab || isEmailOpen} />
-      <AppHeader onOpenFolders={handleOpenFolders} />
+      <AppHeader
+        onOpenFolders={handleOpenFolders}
+        isEmailFullScreen={isEmailOpen && screenSize !== 'tabletLarge'}
+      />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}
       <Layout
@@ -165,7 +199,7 @@ function AppFrame(): ReactElement {
         monoColumn={!isDesktop}
       >
         {isSettings && isDesktop ? (
-          <SettingsSidebar />
+          <SettingsSidebar onSignOut={handleLogout} />
         ) : (
           <MailSidebar
             isDrawerOpen={isDrawerOpen}
@@ -173,10 +207,20 @@ function AppFrame(): ReactElement {
             onCompose={handleCompose}
           />
         )}
-        <FlatMain inset={isDesktop}>
-          {isDesktop && !isSettings ? <MailSearchRow /> : null}
+        <FlatMain
+          inset={isDesktop}
+          header={isDesktop && isSearchResults ? <SearchFiltersHeader /> : null}
+        >
+          {isDesktop && !isSettings && !hasFlutterBar ? (
+            <SearchRow
+              search={<MailSearchRow />}
+              actions={<SettingsButton />}
+              data-testid="search-row"
+            />
+          ) : null}
           <VacationBanner />
           <RecoveryBanner />
+          <FolderActionProgressBanner />
           <QuotaBanner />
           <FlatContent
             id={MAIN_CONTENT_ID}
@@ -191,7 +235,7 @@ function AppFrame(): ReactElement {
       {showComposeFab ? (
         <FloatingActionButton
           label={t('sidebar.newMessage')}
-          icon={Pen}
+          icon={ComposeIcon}
           onClick={handleCompose}
           data-testid="compose-email-button"
         />

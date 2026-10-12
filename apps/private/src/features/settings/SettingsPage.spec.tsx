@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
+import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { AppRoutes } from '../../AppRoutes'
@@ -20,6 +21,7 @@ describe('Settings', () => {
     })
     await screen.findByTestId('mailbox-page')
 
+    await userEvent.click(screen.getByTestId('account-menu-button'))
     await userEvent.click(screen.getByTestId('settings-button'))
 
     const heading = await screen.findByRole('heading', {
@@ -29,7 +31,7 @@ describe('Settings', () => {
     await waitFor(() => {
       expect(heading).toHaveFocus()
     })
-    const nav = screen.getByRole('navigation', { name: 'Settings' })
+    const nav = screen.getByRole('navigation', { name: 'Manage account' })
     // Its list is not a second, unnamed landmark inside it
     expect(within(nav).queryByRole('navigation')).toBe(null)
     expect(within(nav).getByTestId('settings-menu-profiles')).toHaveAttribute(
@@ -52,22 +54,31 @@ describe('Settings', () => {
     )
     // Back to what opened the settings, not to the page body
     await waitFor(() => {
-      expect(screen.getByTestId('settings-button')).toHaveFocus()
+      expect(screen.getByTestId('account-menu-button')).toHaveFocus()
     })
   })
 
-  it('gives the focus back to the settings button on a phone', async () => {
+  it('opens the settings from the drawer on a phone, and gives the focus back to the button that opened it', async () => {
     mockViewport({ width: 390, touch: true })
     renderWithProviders(<AppRoutes />, { route: '/mailbox/mailbox-sent' })
     await screen.findByTestId('mailbox-page')
 
-    await userEvent.click(screen.getByTestId('settings-button'))
+    // As tmail-flutter without the platform: in the drawer, not in the bar
+    expect(
+      within(screen.getByTestId('top-bar')).queryByTestId('settings-button')
+    ).toBe(null)
+    await userEvent.click(screen.getByTestId('mobile-mailbox-menu-button'))
+    await userEvent.click(
+      within(await screen.findByTestId('drawer-header')).getByTestId(
+        'settings-button'
+      )
+    )
     await screen.findByTestId('settings-section-list')
 
     await userEvent.click(screen.getByTestId('settings-back-button'))
     await screen.findByTestId('mailbox-page')
     await waitFor(() => {
-      expect(screen.getByTestId('settings-button')).toHaveFocus()
+      expect(screen.getByTestId('mobile-mailbox-menu-button')).toHaveFocus()
     })
   })
 
@@ -79,7 +90,15 @@ describe('Settings', () => {
     expect(
       within(list).getByRole('heading', { level: 1, name: 'Settings' })
     ).toBeVisible()
-    expect(within(list).getByText('Mailbox & email actions')).toBeVisible()
+    // As tmail-flutter's menu: who is signed in, then each section with
+    // what it is for ("Preferences" without)
+    expect(screen.getByRole('navigation', { name: 'Settings' })).toBe(list)
+    expect(
+      within(list).getByRole('link', { name: /^Profiles Select the identity/ })
+    ).toBeVisible()
+    expect(
+      within(list).getByRole('link', { name: 'Preferences' })
+    ).toBeVisible()
 
     await userEvent.click(
       within(list).getByTestId('settings-menu-keyboard-shortcuts')
@@ -105,6 +124,32 @@ describe('Settings', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Profiles' })
     ).toBeVisible()
+  })
+
+  it('offers "Contact support" above "Sign out" when the server names a support', async () => {
+    renderWithProviders(<AppRoutes />, {
+      route: '/settings/profiles',
+      jmapServer: makeFakeJmapServer({
+        capabilities: {
+          'com:linagora:params:jmap:contact:support': {
+            supportMailAddress: 'support@example.com'
+          }
+        }
+      })
+    })
+
+    const support = await screen.findByRole('link', {
+      name: 'Contact support'
+    })
+    expect(support).toHaveAttribute('href', 'mailto:support@example.com')
+    expect(screen.getByTestId('settings-sign-out-button')).toBeVisible()
+  })
+
+  it('has no "Contact support" without a support', async () => {
+    renderWithProviders(<AppRoutes />, { route: '/settings/profiles' })
+
+    await screen.findByRole('heading', { level: 1, name: 'Profiles' })
+    expect(screen.queryByRole('link', { name: 'Contact support' })).toBe(null)
   })
 
   it('switches the conversations in Preferences', async () => {

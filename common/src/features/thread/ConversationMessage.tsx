@@ -1,8 +1,15 @@
-import { Attachment, Icon } from '@linagora/twake-icons'
-import { Avatar, getInitials, Skeleton, Typography } from '@linagora/twake-mui'
-import { useRef, type ReactElement } from 'react'
+import { Icon } from '@linagora/twake-icons'
+import { Skeleton, Typography } from '@linagora/twake-mui'
+import type { EmailAddress } from 'jmap-client-ts'
+import { useRef, useState, type ReactElement, type ReactNode } from 'react'
 
+import {
+  firstLetterOf,
+  GradientAvatar
+} from '@/ds/GradientAvatar/GradientAvatar'
+import { Attachment } from '@/ds/FlutterIcons/FlutterIcons'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { MessageThreadItem } from '@/ds/MessageThread/MessageThreadItem'
 import { Indent } from '@/ds/Indent/Indent'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
@@ -32,7 +39,7 @@ import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredT
 import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
-import { useI18n } from '@common/i18n/useI18n'
+import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import { CollapsedMessageActions } from './CollapsedMessageActions'
 import { ConversationDraftActions } from './ConversationDraftActions'
@@ -44,13 +51,7 @@ import {
 import type { EmailListItemData } from './queries'
 import { useRevealOnOpen } from './useRevealOnOpen'
 
-function DetailAvatar({
-  detail,
-  initials
-}: {
-  detail: EmailDetail
-  initials: string
-}): ReactElement {
+function DetailAvatar({ detail }: { detail: EmailDetail }): ReactElement {
   const { t } = useI18n()
   const isDangerous = hasDangerWarning(useVisibleTwpWarnings(detail))
   return isDangerous ? (
@@ -61,26 +62,42 @@ function DetailAvatar({
       data-testid="conversation-message-danger-badge"
     />
   ) : (
-    <Avatar component="span" size={32} aria-hidden="true">
-      {initials}
-    </Avatar>
+    <SenderAvatar sender={detail.from?.[0] ?? null} />
+  )
+}
+
+/** As tmail-flutter: the first letter on the gradient of the address */
+function SenderAvatar({
+  sender
+}: {
+  sender: EmailAddress | null
+}): ReactElement {
+  const name = sender?.name ?? ''
+  const address = sender?.email ?? ''
+  // tmail-flutter: 44 px on phones, 32 px elsewhere
+  const isPhone = useScreenSize() === 'mobile'
+  return (
+    <GradientAvatar
+      text={firstLetterOf(name === '' ? address : name)}
+      colorKey={address}
+      size={isPhone ? 44 : 32}
+      fontSize={isPhone ? 20 : 18}
+    />
   )
 }
 
 function ExpandedAvatar({
   emailId,
-  initials
+  sender
 }: {
   emailId: string
-  initials: string
+  sender: EmailAddress | null
 }): ReactElement {
   const query = useEmail(emailId)
   return query.data ? (
-    <DetailAvatar detail={query.data} initials={initials} />
+    <DetailAvatar detail={query.data} />
   ) : (
-    <Avatar component="span" size={32} aria-hidden="true">
-      {initials}
-    </Avatar>
+    <SenderAvatar sender={sender} />
   )
 }
 
@@ -92,8 +109,84 @@ interface ExpandedBodyProps {
   onRemoteContentShown: () => void
 }
 
-/** Avatar (32) and the gap after it (10): the column of the name */
-const INDENT = 42
+const RECIPIENT_LINES: readonly {
+  label: TranslationKey
+  field: 'to' | 'cc' | 'bcc'
+  testId: string
+}[] = [
+  { label: 'email.to', field: 'to', testId: 'conversation-message-to' },
+  { label: 'email.cc', field: 'cc', testId: 'conversation-message-cc' },
+  { label: 'email.bcc', field: 'bcc', testId: 'conversation-message-bcc' }
+]
+
+/**
+ * Where the recipients of an expanded message go, as tmail-flutter: in the
+ * column of the name (the avatar, 32 px, and 16 px; on a phone 44 and 16,
+ * less the 4 px the body has more than the header), under the 28 px line of
+ * the name rather than the avatar (11 px up), under the line of the date on
+ * a phone
+ */
+function useRecipientsPlace(): { indent: number; pullUp: number } {
+  return useScreenSize() === 'mobile'
+    ? { indent: 56, pullUp: 0 }
+    : { indent: 48, pullUp: 11 }
+}
+
+interface ExpandedSenderProps {
+  emailId: string
+  sender: EmailAddress | null
+  openedMailboxId: string | null
+  /** The date: after the sender, under it on a phone */
+  date: ReactNode
+}
+
+/**
+ * As tmail-flutter, the first line of an expanded message, out of its
+ * toggle: the name and address of the sender as the button of its card,
+ * "Unsubscribe" once the message is loaded, then the date. Read in the
+ * toggle already, the name and date are hidden from assistive technologies
+ * here but for the button.
+ */
+function ExpandedSender({
+  emailId,
+  sender,
+  openedMailboxId,
+  date
+}: ExpandedSenderProps): ReactElement {
+  const query = useEmail(emailId)
+  const { canUnsubscribe, unsubscribe } = useUnsubscribe()
+  const { data: mailboxes = [] } = useMailboxes()
+  const isPhone = useScreenSize() === 'mobile'
+  const detail = query.data ?? null
+  const shownDate = <span aria-hidden="true">{date}</span>
+  return (
+    <>
+      <SenderLine
+        sender={detail?.from?.[0] ?? sender}
+        onUnsubscribe={
+          detail !== null && canUnsubscribe(detail)
+            ? () => {
+                void unsubscribe(
+                  detail,
+                  messageMailboxId(detail, openedMailboxId, mailboxes)
+                )
+              }
+            : null
+        }
+        data-testid="conversation-message-sender"
+      >
+        {isPhone ? null : shownDate}
+      </SenderLine>
+      {/* tmail-flutter: 5 px above and below the date (a line of 14), under
+          the 28 px line of the name */}
+      {isPhone ? (
+        <Indent size={0} pullUp={-3}>
+          {shownDate}
+        </Indent>
+      ) : null}
+    </>
+  )
+}
 
 /**
  * The content of an expanded message: its sender (with the address menu),
@@ -108,45 +201,45 @@ function ExpandedBody({
   onRemoteContentShown
 }: ExpandedBodyProps): ReactElement {
   useReadReceiptRequest(detail)
-  const { canUnsubscribe, unsubscribe } = useUnsubscribe()
   const { data: mailboxes = [] } = useMailboxes()
   const mailboxId = messageMailboxId(detail, openedMailboxId, mailboxes)
-  const sender = detail.from?.[0] ?? null
+  const { indent, pullUp } = useRecipientsPlace()
   // A draft is not read but written: the composer edits it
   const isDraft = hasKeyword(detail, DRAFT)
+  const [isRecipientsOpen, setIsRecipientsOpen] = useState(false)
+  const recipientLines = RECIPIENT_LINES.map(line => ({
+    ...line,
+    addresses: detail[line.field]
+  })).filter(line => (line.addresses ?? []).length > 0)
+  // As tmail-flutter: a chevron shows the addresses of several recipients
+  const hasSeveralRecipients =
+    recipientLines.reduce(
+      (count, line) => count + (line.addresses?.length ?? 0),
+      0
+    ) > 1
   return (
     <>
-      <Indent size={INDENT} pullUp={14}>
-        <SenderLine
-          sender={sender}
-          variant="address"
-          onUnsubscribe={
-            canUnsubscribe(detail)
-              ? () => {
-                  void unsubscribe(detail, mailboxId)
-                }
-              : null
-          }
-          data-testid="conversation-message-sender"
-        />
-        <AddressLine
-          label="email.to"
-          addresses={detail.to}
-          variant="full"
-          data-testid="conversation-message-to"
-        />
-        <AddressLine
-          label="email.cc"
-          addresses={detail.cc}
-          variant="full"
-          data-testid="conversation-message-cc"
-        />
-        <AddressLine
-          label="email.bcc"
-          addresses={detail.bcc}
-          variant="full"
-          data-testid="conversation-message-bcc"
-        />
+      <Indent size={indent} pullUp={pullUp}>
+        {/* As tmail-flutter: the names on one line, the addresses once
+            the chevron is open */}
+        <InlineGroup gap={0.5}>
+          {recipientLines.map(({ label, addresses, testId }, index) => (
+            <AddressLine
+              key={testId}
+              label={label}
+              addresses={addresses}
+              isOpen={isRecipientsOpen}
+              onToggle={
+                hasSeveralRecipients && index === recipientLines.length - 1
+                  ? () => {
+                      setIsRecipientsOpen(current => !current)
+                    }
+                  : null
+              }
+              data-testid={testId}
+            />
+          ))}
+        </InlineGroup>
       </Indent>
       <EmailActionRequiredTag email={detail} mailboxId={mailboxId} />
       <EmailLabels emails={[detail]} mailboxId={mailboxId} />
@@ -180,9 +273,14 @@ function MessageContent({
   onRemoteContentShown
 }: MessageContentProps): ReactElement | null {
   const query = useEmail(emailId)
-  // About the height of a short message, so that the ones below the one the
-  // conversation opened on do not move when it loads
-  if (query.isPending) return <Skeleton variant="rounded" height={71} />
+  const isPhone = useScreenSize() === 'mobile'
+  // About the height of a short message (the line of its recipients, under
+  // the name, and a short text), so that the ones below the one the
+  // conversation opened on do not move when it loads; on a phone the
+  // recipients are under the date rather than pulled up beside the avatar
+  if (query.isPending) {
+    return <Skeleton variant="rounded" height={isPhone ? 108 : 70} />
+  }
   if (query.data === null || query.data === undefined) return null
   return (
     <ExpandedBody
@@ -219,6 +317,7 @@ function ExpandedMessageActions({
         openedMailboxId={openedMailboxId}
         onAction={onAction}
         label={label}
+        isExpanded
       />
     )
   }
@@ -285,11 +384,11 @@ export function ConversationMessage({
   const toggleRef = useRef<HTMLButtonElement>(null)
   useRevealOnOpen(toggleRef, isTarget, describedById)
   const sender = email.from?.[0] ?? null
-  const initials = getInitials(sender?.name ?? '', sender?.email ?? '')
   const isUnread = !hasKeyword(email, SEEN)
   const isDraft = hasKeyword(email, DRAFT)
   const emphasis = isUnread ? 'u-fw-bold' : ''
   const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
+  const headerDate = formatHeaderDate(email.receivedAt, lang)
 
   const handleAction = (id: EmailActionId): void => {
     onAction(email.id, id)
@@ -302,11 +401,9 @@ export function ConversationMessage({
       component="span"
       avatar={
         isExpanded ? (
-          <ExpandedAvatar emailId={email.id} initials={initials} />
+          <ExpandedAvatar emailId={email.id} sender={sender} />
         ) : (
-          <Avatar component="span" size={32} aria-hidden="true">
-            {initials}
-          </Avatar>
+          <SenderAvatar sender={sender} />
         )
       }
       identity={
@@ -332,26 +429,34 @@ export function ConversationMessage({
                 {t('thread.draft.marker')}
               </Typography>
             ) : null}
-            <MessageText variant="compactName" className={emphasis}>
-              {sender ? formatAddressName(sender) : ''}
-            </MessageText>
-            {email.hasAttachment ? (
-              <Icon
-                icon={Attachment}
-                size={16}
-                aria-label={t('email.attachment')}
-              />
-            ) : null}
-            <MessageText variant="compact">
-              <time
-                dateTime={email.receivedAt}
-                title={formatFullDate(email.receivedAt, lang)}
-              >
-                {isExpanded
-                  ? formatHeaderDate(email.receivedAt, lang)
-                  : formatListDate(email.receivedAt, lang)}
-              </time>
-            </MessageText>
+            {isExpanded ? (
+              // Read as the name of the toggle; shown after it, as the button
+              // of the card of the sender, then the date
+              <span className="u-visuallyhidden">
+                {`${sender ? formatAddressName(sender) : ''} ${headerDate}`}
+              </span>
+            ) : (
+              <>
+                <MessageText variant="compactName" className={emphasis}>
+                  {sender ? formatAddressName(sender) : ''}
+                </MessageText>
+                {email.hasAttachment ? (
+                  <Icon
+                    icon={Attachment}
+                    size={16}
+                    aria-label={t('email.attachment')}
+                  />
+                ) : null}
+                <MessageText variant="compact">
+                  <time
+                    dateTime={email.receivedAt}
+                    title={formatFullDate(email.receivedAt, lang)}
+                  >
+                    {formatListDate(email.receivedAt, lang)}
+                  </time>
+                </MessageText>
+              </>
+            )}
           </InlineGroup>
           {isExpanded ? null : (
             <MessageText
@@ -368,6 +473,24 @@ export function ConversationMessage({
     />
   )
 
+  const headerEnd = isExpanded ? (
+    <ExpandedSender
+      emailId={email.id}
+      sender={sender}
+      openedMailboxId={openedMailboxId}
+      date={
+        <MessageText variant="meta">
+          <time
+            dateTime={email.receivedAt}
+            title={formatFullDate(email.receivedAt, lang)}
+          >
+            {headerDate}
+          </time>
+        </MessageText>
+      }
+    />
+  ) : null
+
   const actionsLabel = t('thread.messageActions', {
     name: sender === null ? '' : formatAddressName(sender),
     date: formatFullDate(email.receivedAt, lang)
@@ -380,6 +503,7 @@ export function ConversationMessage({
         onToggle(email.id)
       }}
       header={header}
+      headerEnd={headerEnd}
       actions={
         isDraft ? null : (
           <MessageActions

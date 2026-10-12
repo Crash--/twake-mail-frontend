@@ -1,4 +1,4 @@
-import { Dots, Icon, Plus } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -11,6 +11,8 @@ import type { Label } from 'jmap-client-ts/linagora'
 import { useId, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
+import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
@@ -62,7 +64,7 @@ function LabelItem({ label }: { label: Label }): ReactElement {
                 }}
                 data-testid="label-item-menu-button"
               >
-                <Icon icon={Dots} />
+                <Icon icon={MoreVerticalIcon} />
               </IconButton>
             </Tooltip>
             <Menu
@@ -114,38 +116,52 @@ export function LabelsSection(): ReactElement | null {
   const { t } = useI18n()
   const titleId = useId()
   const contentId = useId()
-  const sections = useSidebarSections()
+  const collapsible = useSidebarSections()
   const isAvailable = useLabelsAvailable()
   const { data } = useLabels()
   const { create } = useLabelActions()
   if (!isAvailable) return null
   const newLabel = t('labels.new')
+  const labels = data?.list ?? []
+  // As tmail-flutter: no arrow while there is no label to fold
+  const hasLabels = labels.length > 0
 
   return (
     <Box component="nav" aria-labelledby={titleId} data-testid="labels-section">
       <NavSectionHeader
         title={t('labels.title')}
         titleId={titleId}
-        toggle={{
-          isExpanded: sections.isExpanded('labels'),
-          onToggle: () => {
-            sections.toggle('labels')
-          },
-          controlsId: contentId,
-          'data-testid': 'labels-section-toggle'
-        }}
+        // As the folders: the header folds the labels
+        toggle={
+          hasLabels
+            ? {
+                isExpanded: collapsible.isExpanded('labels'),
+                onToggle: () => {
+                  collapsible.toggle('labels')
+                },
+                controlsId: contentId,
+                'data-testid': 'labels-section-toggle'
+              }
+            : undefined
+        }
         actions={
           <NavSectionAction
             label={newLabel}
-            icon={Plus}
-            onClick={create}
+            icon={AddNewFolder}
+            onClick={() => {
+              create()
+            }}
             data-testid="add-new-label-button"
           />
         }
       />
-      <div id={contentId} hidden={!sections.isExpanded('labels')}>
+      <div
+        id={contentId}
+        hidden={!hasLabels || !collapsible.isExpanded('labels')}
+        className="u-pt-half"
+      >
         <NavTree>
-          {(data?.list ?? []).map(label => (
+          {labels.map(label => (
             <LabelItem key={label.id} label={label} />
           ))}
         </NavTree>

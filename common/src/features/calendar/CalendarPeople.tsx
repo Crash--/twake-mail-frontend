@@ -2,6 +2,7 @@ import { Box, Button, Typography } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import { EmailAddressCard } from '@common/features/email/EmailAddressCard'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import type { CalendarPerson, ParticipationStatus } from './calendarEvent'
@@ -29,7 +30,8 @@ export interface CalendarPeopleProps {
 /**
  * The organizer and the attendees of an event, each with the answer the
  * event file gives (Twake Calendar shows them, tmail-flutter does not); a
- * long list shows its first people until "See all attendees".
+ * long list shows its first people until "See all attendees". Each opens
+ * the card of its address, as tmail-flutter.
  */
 export function CalendarPeople({ people }: CalendarPeopleProps): ReactElement {
   const { t } = useI18n()
@@ -59,10 +61,21 @@ export function CalendarPeople({ people }: CalendarPeopleProps): ReactElement {
             className="u-breakword u-db"
             data-testid="calendar-event-person"
           >
-            <span className="u-fw-bold">{person.name ?? person.email}</span>
-            {person.name && person.email ? (
-              <SecondaryText component="span">{` <${person.email}>`}</SecondaryText>
-            ) : null}
+            {/* As tmail-flutter: the person opens the card of the address
+                (copy, write, a rule) */}
+            {person.email === '' ? (
+              <span className="u-fw-bold">{person.name}</span>
+            ) : (
+              <EmailAddressCard
+                address={{ name: person.name, email: person.email }}
+                isInline
+              >
+                <span className="u-fw-bold">{person.name ?? person.email}</span>
+                {person.name ? (
+                  <SecondaryText component="span">{` <${person.email}>`}</SecondaryText>
+                ) : null}
+              </EmailAddressCard>
+            )}
             {person.isOrganizer ? (
               <SecondaryText component="span">
                 {` - ${t('calendar.organizer')}`}

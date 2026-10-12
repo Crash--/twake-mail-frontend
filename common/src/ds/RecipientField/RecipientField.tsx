@@ -2,7 +2,7 @@
 // suggestions; Mail (recipients), Calendar (attendees) and Drive (sharing)
 // all need one. The ARIA 1.2 combobox of `SearchCombobox`, with the chips
 // of what was already entered before the input.
-import { Cross, Icon, Warning } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, InputBase, Paper, Popper, Typography } from '@linagora/twake-mui'
 // Not twake-mui's Chip: it drops its ref, which the keyboard needs to move
 // the focus between chips (docs/twake-mui-gaps.md)
@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
   type ClipboardEvent,
+  type DragEvent,
   type FocusEvent,
   type KeyboardEvent,
   type ReactElement,
@@ -21,19 +22,42 @@ import {
   type Ref
 } from 'react'
 
+import { Warning } from '@/ds/FlutterIcons/FlutterIcons'
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
+import {
+  RecipientCard,
+  type RecipientCardLabels,
+  type RecipientCardProps
+} from '@/ds/RecipientCard/RecipientCard'
+import { RemoveRecipientIcon } from '@/ds/RecipientIcons/RecipientIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
+import { initialsOf } from './initials'
 import { RecipientAvatar } from './RecipientAvatar'
+import {
+  currentRecipientDrag,
+  endRecipientDrag,
+  readRecipientDrag,
+  RECIPIENT_DRAG_TYPE,
+  startRecipientDrag
+} from './recipientDrag'
+import { SuggestionOption } from './SuggestionOption'
 
 const POPUP_SX = { zIndex: 'modal' } as const
-const PAPER_SX = { maxHeight: 320, overflowY: 'auto' } as const
-const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
-const OPTION_SX = {
-  px: 2,
-  py: 1,
-  cursor: 'pointer',
-  '&[aria-selected="true"]': { bgcolor: 'action.selected' },
-  '&:hover': { bgcolor: 'action.hover' }
+/**
+ * tmail-flutter's suggestions: as wide as the chips and the input, white,
+ * rounded by 20 px, elevation 20, at most 300 px high
+ */
+const PAPER_SX = {
+  mt: 0.5,
+  maxHeight: 300,
+  overflowY: 'auto',
+  borderRadius: '20px',
+  bgcolor: '#FFFFFF',
+  boxShadow:
+    '0 10px 13px -6px rgba(0, 0, 0, 0.2), 0 20px 31px 3px rgba(0, 0, 0, 0.14), 0 8px 38px 7px rgba(0, 0, 0, 0.12)'
 } as const
+const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 /**
  * The line keeps its end actions on the first row: the label, chips and
  * input wrap in a box of their own
@@ -53,7 +77,10 @@ const LABEL_SX = {
   display: 'flex',
   alignItems: 'center',
   flexShrink: 0,
-  height: 28
+  height: 28,
+  // tmail-flutter writes "To:"; the colon is not part of the name (empty
+  // alternative text of the generated content)
+  '&::after': { content: '":" / ""' }
 } as const
 /**
  * The input follows the last chip on its row while `INPUT_MIN_WIDTH` is
@@ -81,22 +108,105 @@ const CONTENT_SX = {
   minHeight: 28
 } as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
-/** Figma "Teammail 1.1" recipient chip: 32 px high, grey, rounded */
+/**
+ * tmail-flutter's recipient tag: 32 px high, rounded by 10 px, light grey
+ * (#F3F6F9), a 20 px gradient avatar, the name in Regular 17 black, a grey
+ * cross; light blue with a blue border while it has the focus
+ */
 export const RECIPIENT_CHIP_SX = {
   height: 32,
-  maxWidth: '100%',
+  maxWidth: 267,
+  boxSizing: 'border-box',
   borderRadius: '10px',
-  bgcolor: 'background.default',
-  fontSize: 14,
-  fontWeight: 500,
-  letterSpacing: '0.25px',
-  '& .MuiChip-avatar': { ml: '6px', mr: '-2px' },
-  '& .MuiChip-deleteIcon': { color: 'text.secondary', flexShrink: 0 }
+  border: `1px solid ${TMAIL.outlineChip}`,
+  bgcolor: TMAIL.background,
+  color: TMAIL.textBlack,
+  fontSize: 17,
+  fontWeight: 400,
+  letterSpacing: '-0.17px',
+  pl: 1,
+  pr: 0.5,
+  '&& .MuiChip-avatar, && .MuiChip-icon': { ml: 0, mr: 0 },
+  '&& .MuiChip-label': {
+    pl: '4px',
+    pr: '4px',
+    fontSize: 17,
+    fontWeight: 400,
+    letterSpacing: '-0.17px'
+  },
+  '& .MuiChip-deleteIcon': {
+    color: TMAIL.greyBlueFaint,
+    flexShrink: 0,
+    m: 0,
+    p: '4px',
+    width: 28,
+    height: 28,
+    boxSizing: 'border-box',
+    borderRadius: '50%'
+  },
+  '&:focus, &.Mui-focusVisible': {
+    bgcolor: TMAIL.blueSelected,
+    borderColor: TMAIL.primary
+  }
 } as const
+/**
+ * A tag being dragged, and the copy under the pointer: tmail-flutter's
+ * `DraggableRecipientTagWidget`, blue with a white name
+ */
+const DRAGGED_CHIP_SX = {
+  ...RECIPIENT_CHIP_SX,
+  borderColor: TMAIL.primary,
+  bgcolor: TMAIL.primary,
+  color: '#FFFFFF',
+  '&:focus, &.Mui-focusVisible': {
+    bgcolor: TMAIL.primary,
+    borderColor: TMAIL.primary
+  }
+} as const
+/** Tags that can be dragged show it (tmail-flutter's `grab` cursor) */
+const GRAB_SX = { cursor: 'grab' } as const
+/**
+ * A field a dragged tag (or email) may land in: tmail-flutter's 1 px blue
+ * border, rounded by 10 px, drawn inside so nothing moves
+ */
+const DROP_OVER_SX = {
+  borderRadius: '10px',
+  boxShadow: 'inset 0 0 0 1px #007AFF'
+} as const
+/**
+ * tmail-flutter's advanced search field of addresses: 40 px high at
+ * least, a 1 px #E6E1E5 border rounded by 10 px (blue while it has the
+ * focus or a tag is dragged over it), white, the chips 4 px apart
+ */
+const OUTLINED_SX = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  minHeight: 40,
+  boxSizing: 'border-box',
+  px: '12px',
+  py: '3px',
+  border: '1px solid #E6E1E5',
+  borderRadius: '10px',
+  bgcolor: '#FFFFFF',
+  '&:focus-within': { borderColor: TMAIL.primary },
+  // The row of a form outlines its inputs: not the one inside the field
+  '&& .MuiInputBase-root': {
+    border: 'none',
+    minHeight: 32,
+    p: 0,
+    bgcolor: 'transparent'
+  },
+  '&& .MuiInputBase-input': { p: 0, height: '24px', fontSize: 14 }
+} as const
+const OUTLINED_OVER_SX = { ...OUTLINED_SX, borderColor: TMAIL.primary } as const
+const OUTLINED_CONTENT_SX = { ...CONTENT_SX, minHeight: 32 } as const
+
+/** An invalid tag, as tmail-flutter's: white, with a red border */
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
-  borderColor: 'error.main',
-  bgcolor: 'background.paper'
+  borderColor: TMAIL.error,
+  bgcolor: '#FFFFFF',
+  '&& .MuiChip-icon': { ml: 0, mr: 0, color: TMAIL.error }
 } as const
 
 /** Something already entered in the field */
@@ -110,6 +220,20 @@ export interface RecipientFieldChip {
   isInvalid: boolean
   /** Shows a decorative avatar of this name before the label */
   avatar?: string
+  /** Picks the colours of the avatar, e.g. the address */
+  avatarKey?: string
+  /** What its card shows: the name, if any, and the address */
+  name?: string | null
+  address?: string
+}
+
+/** The card a tag opens (tmail-flutter's), and what its actions do */
+export interface RecipientFieldCard {
+  labels: RecipientCardLabels
+  onCopy: (id: string) => void
+  /** None without filtering rules */
+  onCreateRule: ((id: string) => void) | null
+  testIds?: RecipientCardProps['testIds']
 }
 
 /** A suggestion of the list under the field */
@@ -117,6 +241,8 @@ export interface RecipientFieldSuggestion {
   id: string
   label: string
   secondary?: string
+  /** Already entered: listed with a tick, as tmail-flutter, not picked again */
+  isAdded?: boolean
 }
 
 export interface RecipientFieldLabels {
@@ -124,6 +250,8 @@ export interface RecipientFieldLabels {
   field: string
   /** Name of the list of suggestions */
   suggestions: string
+  /** Said after a suggestion already entered */
+  alreadyAdded: string
   /** Appended to the name of an invalid chip */
   invalid: string
   /** How to act on a chip, read after its name */
@@ -135,6 +263,29 @@ export interface RecipientFieldLabels {
    * (a pasted list can add hundreds)
    */
   added: (labels: readonly string[]) => string
+}
+
+/**
+ * Tags moving between the fields of a group by drag and drop, as in
+ * tmail-flutter (To, Cc and Bcc of a composer), and other things dropped
+ * on the field (emails of the list)
+ */
+export interface RecipientFieldDnd {
+  /** Fields of one group exchange tags, e.g. those of one composer */
+  group: string
+  /** This field, in its group */
+  field: string
+  /** The tag `id` of the field `from` of the group was dropped here */
+  onMoveIn: (from: string, id: string) => void
+  /**
+   * The keyboard way of the same move (dragging is pointer only): Alt +
+   * ArrowUp or ArrowDown on a tag moves it to the field before or after.
+   * Says what to announce, null when it did not move
+   */
+  onMoveBy?: (id: string, delta: -1 | 1) => string | null
+  /** Whether other things dragged (their types) may land here */
+  accepts?: (types: readonly string[]) => boolean
+  onDrop?: (dataTransfer: DataTransfer) => void
 }
 
 /** What a parent can do to the field */
@@ -156,6 +307,11 @@ export interface RecipientFieldProps {
   /** The chip goes back into the input, to be corrected */
   onEdit: (id: string) => void
   /**
+   * The card a click (or Enter) on a tag opens, as tmail-flutter's: copy,
+   * edit, create a rule. Without it a click edits the tag
+   */
+  card?: RecipientFieldCard
+  /**
    * Escape while a chip is edited: the chip comes back as it was and the
    * input is emptied (the field does not touch its input itself)
    */
@@ -172,6 +328,17 @@ export interface RecipientFieldProps {
   /** Takes the focus once shown */
   autoFocus?: boolean
   actions?: Ref<RecipientFieldActions>
+  /** Tags dragged between fields, things dropped on the field */
+  dnd?: RecipientFieldDnd
+  /**
+   * `line`: a line of the composer, its label at the start; `outlined`: a
+   * field of a form (tmail-flutter's advanced search) whose visible label
+   * is the caller's, tied to the input by `inputId`
+   */
+  look?: 'line' | 'outlined'
+  inputId?: string
+  /** Shown in the empty input while there are no chips */
+  placeholder?: string
   testIds?: {
     field?: string
     input?: string
@@ -182,17 +349,21 @@ export interface RecipientFieldProps {
 
 /**
  * A field of chips with suggestions (ARIA 1.2 combobox, "list autocomplete
- * with manual selection"), for recipients, attendees, people to share with:
+ * with automatic selection", as tmail-flutter: the first suggestion is
+ * highlighted), for recipients, attendees, people to share with:
  *
  * - the input (`role="combobox"`) is named by the visible label; ArrowDown
- *   and ArrowUp move in the suggestions, Enter picks one or commits the
- *   text, as do a comma, a semicolon, leaving the field and pasting a list;
+ *   and ArrowUp move in the suggestions, Enter picks the highlighted one, or
+ *   commits the text without suggestions, as do a comma, a semicolon,
+ *   leaving the field and pasting a list; what is typed is in bold in the
+ *   suggestions, and the ones already entered are ticked;
  *   Escape closes the suggestions, and only then reaches the page;
  * - the chips are out of the tab order: ArrowLeft (or Backspace) at the
  *   start of the input goes to the last one, arrows move between them,
- *   Delete or Backspace removes one (announced), Enter, F2 or a double
- *   click edits it; Escape then gives the chip back as it was, and stops
- *   there (a second Escape reaches the page);
+ *   Delete or Backspace removes one (announced), a click or Enter opens its
+ *   card (`card`: copy, edit, create a rule, as tmail-flutter), F2 or a
+ *   double click edits it; Escape then gives the chip back as it was, and
+ *   stops there (a second Escape reaches the page);
  * - an invalid chip says so in its accessible name and with an icon, not
  *   by its colour only.
  */
@@ -204,6 +375,7 @@ export function RecipientField({
   onCommit,
   onRemove,
   onEdit,
+  card,
   onCancelEdit,
   suggestions,
   onSelectSuggestion,
@@ -213,10 +385,14 @@ export function RecipientField({
   onFocus,
   autoFocus = false,
   actions,
+  dnd,
+  look = 'line',
+  inputId: givenInputId,
+  placeholder,
   testIds = {}
 }: RecipientFieldProps): ReactElement {
   const id = useId()
-  const inputId = `${id}-input`
+  const inputId = givenInputId ?? `${id}-input`
   const labelId = `${id}-label`
   const listboxId = `${id}-listbox`
   const chipHelpId = `${id}-chip-help`
@@ -228,6 +404,12 @@ export function RecipientField({
   const [isOpen, setIsOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
+  /** The tag whose card is open, and the element it opens under */
+  const [openCard, setOpenCard] = useState<{
+    index: number
+    anchor: HTMLElement
+  } | null>(null)
+  const cardIndex = openCard?.index ?? null
   /** Chip to focus once the chips change (after a removal), -1 for the input */
   const pendingFocus = useRef<number | null>(null)
   /**
@@ -240,6 +422,11 @@ export function RecipientField({
   const previousIds = useRef<readonly string[] | null>(null)
   /** The chips changed because an edit was cancelled: nothing was added */
   const isRestoring = useRef(false)
+  /** The tag being dragged out of this field */
+  const [draggedId, setDraggedId] = useState<string | null>(null)
+  const [isDropOver, setIsDropOver] = useState(false)
+  // dragenter and dragleave also fire on the children: count them
+  const dropDepth = useRef(0)
 
   useImperativeHandle(
     actions,
@@ -253,7 +440,10 @@ export function RecipientField({
 
   const isShown = isOpen && suggestions.length > 0
   const activeIndex = suggestions.findIndex(option => option.id === activeId)
-  const active = isShown ? (suggestions[activeIndex] ?? null) : null
+  // The first one is highlighted until the arrows move, as tmail-flutter
+  const active = isShown
+    ? (suggestions[activeIndex] ?? suggestions[0] ?? null)
+    : null
   const optionId = (optionKey: string): string => `${id}-option-${optionKey}`
 
   useEffect(() => {
@@ -330,12 +520,8 @@ export function RecipientField({
   const move = (delta: number): void => {
     if (suggestions.length === 0) return
     setIsOpen(true)
-    const next =
-      activeIndex === -1
-        ? delta > 0
-          ? 0
-          : suggestions.length - 1
-        : (activeIndex + delta + suggestions.length) % suggestions.length
+    const current = activeIndex === -1 ? 0 : activeIndex
+    const next = (current + delta + suggestions.length) % suggestions.length
     setActiveId(suggestions[next]?.id ?? null)
   }
 
@@ -413,6 +599,59 @@ export function RecipientField({
     onRemove(chip.id)
   }
 
+  const moveChip = (index: number, delta: -1 | 1): void => {
+    const chip = chips[index]
+    if (!chip || dnd?.onMoveBy === undefined) return
+    pendingFocus.current = index < chips.length - 1 ? index : -1
+    const said = dnd.onMoveBy(chip.id, delta)
+    if (said === null) {
+      pendingFocus.current = null
+      return
+    }
+    setAnnouncement(said)
+  }
+
+  /** Whether what is dragged may land here */
+  const isDropAccepted = (event: DragEvent<HTMLElement>): boolean => {
+    if (dnd === undefined) return false
+    const types = Array.from(event.dataTransfer.types)
+    if (types.includes(RECIPIENT_DRAG_TYPE)) {
+      const drag = currentRecipientDrag()
+      return (
+        drag !== null && drag.group === dnd.group && drag.field !== dnd.field
+      )
+    }
+    return dnd.accepts?.(types) ?? false
+  }
+
+  const handleDragEnter = (event: DragEvent<HTMLElement>): void => {
+    if (!isDropAccepted(event)) return
+    dropDepth.current += 1
+    setIsDropOver(true)
+  }
+  const handleDragOver = (event: DragEvent<HTMLElement>): void => {
+    if (!isDropAccepted(event)) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+  }
+  const handleDragLeave = (event: DragEvent<HTMLElement>): void => {
+    if (!isDropAccepted(event)) return
+    dropDepth.current = Math.max(0, dropDepth.current - 1)
+    if (dropDepth.current === 0) setIsDropOver(false)
+  }
+  const handleDrop = (event: DragEvent<HTMLElement>): void => {
+    if (dnd === undefined || !isDropAccepted(event)) return
+    event.preventDefault()
+    dropDepth.current = 0
+    setIsDropOver(false)
+    const drag = readRecipientDrag(event.dataTransfer)
+    if (drag === null) {
+      dnd.onDrop?.(event.dataTransfer)
+    } else if (drag.group === dnd.group && drag.field !== dnd.field) {
+      dnd.onMoveIn(drag.field, drag.id)
+    }
+  }
+
   const editChip = (index: number): void => {
     const chip = chips[index]
     if (!chip) return
@@ -437,6 +676,13 @@ export function RecipientField({
         case 'F2':
           event.preventDefault()
           editChip(index)
+          break
+        case 'ArrowUp':
+        case 'ArrowDown':
+          if (event.altKey && dnd?.onMoveBy !== undefined) {
+            event.preventDefault()
+            moveChip(index, event.key === 'ArrowUp' ? -1 : 1)
+          }
           break
         default:
           break
@@ -474,25 +720,53 @@ export function RecipientField({
   }
 
   return (
-    <Box ref={rootRef} onBlur={handleBlur} data-testid={testIds.field}>
+    <Box
+      ref={rootRef}
+      onBlur={handleBlur}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      data-drop-over={isDropOver || undefined}
+      data-testid={testIds.field}
+    >
       {/* The chips belong to the field the label names */}
       <Box
         ref={setField}
         role="group"
         aria-labelledby={labelId}
-        sx={LINE_SX}
+        sx={
+          look === 'outlined'
+            ? isDropOver
+              ? OUTLINED_OVER_SX
+              : OUTLINED_SX
+            : isDropOver
+              ? { ...LINE_SX, ...DROP_OVER_SX }
+              : LINE_SX
+        }
         onClick={handleFieldClick}
       >
-        <Typography
-          component="label"
-          id={labelId}
-          htmlFor={inputId}
-          variant="body2"
-          sx={chips.length === 0 ? LABEL_SX : CHIPS_LABEL_SX}
+        {look === 'outlined' ? (
+          // The visible label is the form's: this one names the group
+          <span id={labelId} className="u-visuallyhidden">
+            {labels.field}
+          </span>
+        ) : (
+          <Typography
+            component="label"
+            id={labelId}
+            htmlFor={inputId}
+            variant="body2"
+            sx={chips.length === 0 ? LABEL_SX : CHIPS_LABEL_SX}
+          >
+            {labels.field}
+          </Typography>
+        )}
+        <Box
+          ref={setContent}
+          className="u-flex-auto"
+          sx={look === 'outlined' ? OUTLINED_CONTENT_SX : CONTENT_SX}
         >
-          {labels.field}
-        </Typography>
-        <Box ref={setContent} className="u-flex-auto" sx={CONTENT_SX}>
           {chips.map((chip, index) => (
             <Chip
               key={chip.id}
@@ -503,15 +777,21 @@ export function RecipientField({
               variant={chip.isInvalid ? 'outlined' : 'filled'}
               avatar={
                 chip.isInvalid || chip.avatar === undefined ? undefined : (
-                  <RecipientAvatar of={chip.avatar} />
+                  <RecipientAvatar
+                    of={chip.avatar}
+                    colorKey={chip.avatarKey ?? chip.avatar}
+                  />
                 )
               }
               icon={
+                // Not by its colour only: the icon says it too
                 chip.isInvalid ? (
-                  <Icon icon={Warning} aria-hidden="true" />
+                  <Icon icon={Warning} size={20} aria-hidden="true" />
                 ) : undefined
               }
-              deleteIcon={<Icon icon={Cross} size={12} aria-hidden="true" />}
+              deleteIcon={
+                <Icon icon={RemoveRecipientIcon} size={20} aria-hidden="true" />
+              }
               label={chip.label}
               title={chip.title ?? chip.label}
               aria-label={
@@ -519,10 +799,18 @@ export function RecipientField({
               }
               aria-describedby={chipHelpId}
               tabIndex={-1}
-              // Enter (a click without a pointer) or a double click edits;
-              // a single click only selects the chip
+              aria-haspopup={card === undefined ? undefined : 'dialog'}
+              aria-expanded={
+                card === undefined ? undefined : cardIndex === index
+              }
+              // A click or Enter opens its card (tmail-flutter); without one,
+              // Enter (a click without a pointer) edits it
               onClick={event => {
-                if (event.detail === 0) editChip(index)
+                if (card !== undefined) {
+                  setOpenCard({ index, anchor: event.currentTarget })
+                } else if (event.detail === 0) {
+                  editChip(index)
+                }
               }}
               onDoubleClick={() => {
                 editChip(index)
@@ -535,7 +823,35 @@ export function RecipientField({
                 removeChip(index)
               }}
               onKeyDown={handleChipKeyDown(index)}
-              sx={chip.isInvalid ? INVALID_CHIP_SX : RECIPIENT_CHIP_SX}
+              draggable={dnd === undefined ? undefined : true}
+              onDragStart={
+                dnd === undefined
+                  ? undefined
+                  : (event: DragEvent<HTMLDivElement>) => {
+                      startRecipientDrag(event, {
+                        group: dnd.group,
+                        field: dnd.field,
+                        id: chip.id
+                      })
+                      setDraggedId(chip.id)
+                    }
+              }
+              onDragEnd={
+                dnd === undefined
+                  ? undefined
+                  : () => {
+                      endRecipientDrag()
+                      setDraggedId(null)
+                    }
+              }
+              sx={[
+                draggedId === chip.id
+                  ? DRAGGED_CHIP_SX
+                  : chip.isInvalid
+                    ? INVALID_CHIP_SX
+                    : RECIPIENT_CHIP_SX,
+                dnd === undefined ? false : GRAB_SX
+              ]}
               data-testid={testIds.chip}
               data-invalid={chip.isInvalid ? 'true' : undefined}
             />
@@ -553,6 +869,7 @@ export function RecipientField({
               onFocus?.()
             }}
             onPaste={handlePaste}
+            placeholder={chips.length === 0 ? placeholder : undefined}
             sx={INPUT_SX}
             inputProps={{
               id: inputId,
@@ -577,13 +894,13 @@ export function RecipientField({
       </Box>
       <Popper
         open={isShown}
-        anchorEl={field}
+        anchorEl={content}
         placement="bottom-start"
         // Next to the field: inside the focus trap of a dialog holding it
         disablePortal
-        sx={{ ...POPUP_SX, width: field?.offsetWidth }}
+        sx={{ ...POPUP_SX, width: content?.offsetWidth }}
       >
-        <Paper elevation={8} sx={PAPER_SX} onMouseDown={keepFocus}>
+        <Paper elevation={0} sx={PAPER_SX} onMouseDown={keepFocus}>
           <Box
             component="ul"
             id={listboxId}
@@ -593,24 +910,19 @@ export function RecipientField({
             data-testid={testIds.listbox}
           >
             {suggestions.map(suggestion => (
-              <Box
-                component="li"
+              <SuggestionOption
                 key={suggestion.id}
                 id={optionId(suggestion.id)}
-                role="option"
-                aria-selected={active?.id === suggestion.id}
-                sx={OPTION_SX}
-                onClick={() => {
+                label={suggestion.label}
+                secondary={suggestion.secondary}
+                isAdded={suggestion.isAdded === true}
+                addedLabel={labels.alreadyAdded}
+                query={inputValue.trim()}
+                isActive={active?.id === suggestion.id}
+                onSelect={() => {
                   select(suggestion)
                 }}
-              >
-                <Typography noWrap>{suggestion.label}</Typography>
-                {suggestion.secondary === undefined ? null : (
-                  <Typography variant="body2" noWrap color="text.primary">
-                    {suggestion.secondary}
-                  </Typography>
-                )}
-              </Box>
+              />
             ))}
           </Box>
         </Paper>
@@ -618,11 +930,69 @@ export function RecipientField({
       <Box id={chipHelpId} className="u-visuallyhidden">
         {labels.chipHelp}
       </Box>
+      {card === undefined ? null : (
+        <ChipCard
+          card={card}
+          chip={cardIndex === null ? null : (chips[cardIndex] ?? null)}
+          anchorEl={openCard?.anchor ?? null}
+          onClose={() => {
+            setOpenCard(null)
+          }}
+          onEdit={() => {
+            const index = cardIndex
+            setOpenCard(null)
+            if (index !== null) editChip(index)
+          }}
+        />
+      )}
       {/* Always mounted: a live region only announces changes */}
       <Box role="status" className="u-visuallyhidden">
         {announcement}
         {isShown && status ? ` ${status}` : null}
       </Box>
     </Box>
+  )
+}
+
+/** The card of the tag `chip`, closed without one */
+function ChipCard({
+  card,
+  chip,
+  anchorEl,
+  onClose,
+  onEdit
+}: {
+  card: RecipientFieldCard
+  chip: RecipientFieldChip | null
+  anchorEl: HTMLElement | null
+  onClose: () => void
+  onEdit: () => void
+}): ReactElement {
+  const name = chip?.name ?? null
+  const address = chip?.address ?? chip?.label ?? ''
+  const { onCreateRule } = card
+  return (
+    <RecipientCard
+      open={chip !== null && anchorEl !== null}
+      anchorEl={anchorEl}
+      onClose={onClose}
+      name={name}
+      address={address}
+      initials={initialsOf(name ?? address)}
+      labels={card.labels}
+      onCopy={() => {
+        if (chip !== null) card.onCopy(chip.id)
+      }}
+      onEdit={onEdit}
+      onCreateRule={
+        onCreateRule === null
+          ? null
+          : () => {
+              onClose()
+              if (chip !== null) onCreateRule(chip.id)
+            }
+      }
+      testIds={card.testIds}
+    />
   )
 }

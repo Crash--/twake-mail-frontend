@@ -111,7 +111,7 @@ describe('MailboxTree', () => {
     await screen.findAllByTestId('mailbox-item')
 
     const system = screen.getByRole('tree', { name: 'Mailboxes' })
-    const folders = screen.getByRole('tree', { name: 'Folders' })
+    const folders = screen.getByRole('tree', { name: 'Personal folders' })
     expect(system).toBe(screen.getByTestId('mailbox-tree'))
     expect(folders).toBe(screen.getByTestId('mailbox-folders-tree'))
     expect(within(system).getByText('Inbox')).toBeInTheDocument()
@@ -481,7 +481,7 @@ describe('MailboxTree', () => {
     ).toHaveTextContent('team@example.com')
   })
 
-  it('makes each section one named navigation landmark, none nested', async () => {
+  it('makes the folders one named navigation landmark, the team mailboxes a category in it', async () => {
     renderWithProviders(<MailboxTree />, {
       route: '/mailbox/mailbox-inbox',
       path: '/mailbox/:mailboxId',
@@ -492,14 +492,15 @@ describe('MailboxTree', () => {
     })
     await screen.findByTestId('team-mailboxes-section')
 
-    const navs = screen.getAllByRole('navigation')
-    expect(navs).toEqual([
-      screen.getByRole('navigation', { name: 'Mailboxes' }),
-      screen.getByRole('navigation', { name: 'Team-mailboxes' })
-    ])
+    // As tmail-flutter: the team mailboxes are under the Folders section
+    const nav = screen.getByRole('navigation', { name: 'Mailboxes' })
+    expect(screen.getAllByRole('navigation')).toEqual([nav])
     expect(
-      navs.filter(nav => nav.parentElement?.closest('nav') !== null)
-    ).toEqual([])
+      within(nav).getByRole('heading', { name: 'Team-mailboxes' })
+    ).toBeVisible()
+    expect(
+      within(nav).getByRole('tree', { name: 'Team-mailboxes' })
+    ).toBeVisible()
   })
 
   describe('Action required', () => {

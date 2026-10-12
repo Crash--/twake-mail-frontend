@@ -1,11 +1,13 @@
-import { Dropdown, Dropup } from '@linagora/twake-icons'
 import type { EmailAddress } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 
+import {
+  ChevronDownOutline,
+  ChevronUpOutline
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageText } from '@/ds/MessageText/MessageText'
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import { formatAddress, formatAddressName } from './addresses'
@@ -42,12 +44,12 @@ function CompactAddressLine({
   )
   return (
     <InlineGroup gap={0.5} data-testid={testId}>
-      <MessageText variant="meta">{t(label)}</MessageText>
+      <MessageText variant="label">{`${t(label)}:`}</MessageText>
       <InlineGroup gap={0.5} component="span" isWrapping>
         {addresses.map((address, index) => (
           <MessageText
             key={`${address.email}-${index}`}
-            variant="meta"
+            variant="recipient"
             className="u-mr-half"
           >
             <EmailAddressCard address={address}>
@@ -60,8 +62,11 @@ function CompactAddressLine({
       {onToggle !== null ? (
         <IconAction
           label={toggleLabel}
-          icon={isOpen ? Dropup : Dropdown}
-          iconSize={16}
+          // tmail-flutter: a 20 px chevron, 2 px around, in steel grey
+          icon={isOpen ? ChevronUpOutline : ChevronDownOutline}
+          iconSize={20}
+          size={24}
+          tone="slate"
           aria-expanded={isOpen}
           onClick={onToggle}
           data-testid="email-view-recipients-toggle"
@@ -94,8 +99,8 @@ export function AddressLine({
     )
   }
   return (
-    <SecondaryText variant="body2" component="p" data-testid={testId}>
-      {t(label)}:{' '}
+    <MessageText variant="recipient" component="p" data-testid={testId}>
+      <MessageText variant="label">{`${t(label)}: `}</MessageText>
       {addresses.map((address, index) => (
         <span key={`${address.email}-${index}`}>
           {index > 0 ? ', ' : null}
@@ -104,6 +109,6 @@ export function AddressLine({
           </EmailAddressCard>
         </span>
       ))}
-    </SecondaryText>
+    </MessageText>
   )
 }

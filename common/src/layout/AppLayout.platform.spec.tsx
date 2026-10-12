@@ -182,7 +182,8 @@ describe('AppLayout with the platform bar', () => {
     ).toBeVisible()
     expect(within(bar).queryByTestId('logout-button')).toBe(null)
     expect(screen.queryByTestId('top-bar')).toBe(null)
-    // The settings stay in the page, next to the search
+    // With the platform its bar stays as in every app of the platform: the
+    // settings stay in the page, next to the search
     expect(
       within(screen.getByTestId('search-row')).getByRole('button', {
         name: 'Settings'
@@ -260,7 +261,8 @@ describe('AppLayout with the platform bar', () => {
       expect(bar).toHaveAttribute('data-status', 'public')
     })
     expect(within(bar).queryByRole('button', { name: 'Account' })).toBe(null)
-    await userEvent.click(within(bar).getByTestId('logout-button'))
+    await userEvent.click(within(bar).getByTestId('account-menu-button'))
+    await userEvent.click(screen.getByTestId('logout-button'))
 
     await waitFor(() => {
       expect(authService.logout).toHaveBeenCalledTimes(1)
@@ -273,7 +275,7 @@ describe('AppLayout with the platform bar', () => {
 
     const bar = await screen.findByTestId('twake-bar')
     expect(bar).toHaveAttribute('data-status', 'public')
-    expect(within(bar).getByTestId('logout-button')).toBeVisible()
+    expect(within(bar).getByTestId('account-menu-button')).toBeVisible()
     expect(platformRequests(fetchMock)).toEqual([])
   })
 

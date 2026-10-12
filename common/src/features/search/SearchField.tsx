@@ -1,12 +1,5 @@
-import {
-  Attachment,
-  ClockOutline,
-  Filter,
-  Icon,
-  Email,
-  Star
-} from '@linagora/twake-icons'
-import { Avatar, getInitials, IconButton, Tooltip } from '@linagora/twake-mui'
+import { Icon } from '@linagora/twake-icons'
+import { getInitials } from '@linagora/twake-mui'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -16,6 +9,16 @@ import {
   type SearchComboboxGroup,
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
+import {
+  Attachment,
+  ClockOutline,
+  FilterAdvanced,
+  Star,
+  StarOutline
+} from '@/ds/FlutterIcons/FlutterIcons'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { SearchBarAction } from '@/ds/SearchBarAction/SearchBarAction'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED } from '@common/features/email/keywords'
@@ -31,12 +34,17 @@ import {
   isEmptySearch,
   searchPath,
   toSearchParams,
+  usesAdvancedFields,
   withTypedText,
   type SearchFilter
 } from './searchFilter'
 import { addRecentSearch, storeSortOrder } from './searchStorage'
 import { useSearchContext } from './useSearchContext'
 import { useSearchSuggestions } from './useSearchSuggestions'
+
+/** The stars of tmail-flutter (`ic_star.svg`, `ic_unstar.svg`) */
+const STARRED_COLOR = '#FFCC00'
+const UNSTARRED_COLOR = TMAIL.greyStar
 
 /** Recent searches suggested under a non-empty field */
 const RECENT_WITH_TEXT = 3
@@ -49,16 +57,24 @@ const EMAIL_PREFIX = 'email:'
 export interface SearchFieldProps {
   /** The search of the results on screen, an empty one elsewhere */
   initialFilter: SearchFilter
+  /**
+   * `compact`: the smaller field of tmail-flutter's phones and tablets;
+   * `bare`: the white field of the bar of their search view
+   */
+  size?: 'large' | 'compact' | 'bare'
 }
 
 /**
  * The search field of the top bar. While typing, it suggests a search for
  * the text, recent searches, contacts and the first matching emails, under
- * quick filters; Enter or "Search for" shows every result
+ * quick filters; Enter or "Showing results for" shows every result
  * (`/search?…`), an email suggestion opens that email among them. The
  * advanced search edits the same search.
  */
-export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
+export function SearchField({
+  initialFilter,
+  size = 'large'
+}: SearchFieldProps): ReactElement {
   const { t, lang } = useI18n()
   const navigate = useNavigate()
   const { accountId, session } = useJmapSession()
@@ -94,13 +110,19 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
     const showAll: SearchComboboxOption[] =
       hasText || hasFiltersOnly
         ? [
-            {
-              id: SHOW_ALL,
-              label: hasText
-                ? t('search.searchFor', { text: draft.text.trim() })
-                : t('search.searchWithFilters'),
-              'data-testid': 'search-suggestion-show-all'
-            }
+            // As tmail-flutter: "Showing results for: "text""
+            hasText
+              ? {
+                  id: SHOW_ALL,
+                  hint: t('search.showingResultsFor'),
+                  label: `"${draft.text.trim()}"`,
+                  'data-testid': 'search-suggestion-show-all'
+                }
+              : {
+                  id: SHOW_ALL,
+                  label: t('search.searchWithFilters'),
+                  'data-testid': 'search-suggestion-show-all'
+                }
           ]
         : []
     const recent = hasText
@@ -132,10 +154,15 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
             id: `${CONTACT_PREFIX}${contact.emailAddress}`,
             label: name === '' ? contact.emailAddress : name,
             secondary: name === '' ? undefined : contact.emailAddress,
+            // As tmail-flutter: a light grey disc, black initials
             icon: (
-              <Avatar component="span" size={40} className="u-flex-shrink-0">
-                {getInitials(name, contact.emailAddress)}
-              </Avatar>
+              <GradientAvatar
+                text={getInitials(name, contact.emailAddress)}
+                colorKey={contact.emailAddress}
+                size={40}
+                fontSize={16}
+                look="plain"
+              />
             ),
             'data-testid': 'search-suggestion-contact'
           }
@@ -147,32 +174,41 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
         isLabelHidden: true,
         options: suggestions.emails.map(({ email, snippet }) => ({
           id: `${EMAIL_PREFIX}${email.id}`,
+          // As tmail-flutter: the star, the sender then the subject, the
+          // attachment and the date, and the preview under them
           icon: (
             <Icon
-              icon={email.keywords[FLAGGED] === true ? Star : Email}
+              icon={email.keywords[FLAGGED] === true ? Star : StarOutline}
+              size={18}
+              color={
+                email.keywords[FLAGGED] === true
+                  ? STARRED_COLOR
+                  : UNSTARRED_COLOR
+              }
               className="u-flex-shrink-0"
             />
           ),
-          end: (
-            <>
-              {formatListDate(email.receivedAt, lang)}
-              {email.hasAttachment ? <Icon icon={Attachment} /> : null}
-            </>
-          ),
-          label: (
+          label: formatAddressNames(email.from),
+          isStrong: true,
+          detail: (
             <HighlightedText
               text={email.subject ?? ''}
               snippet={snippet?.subject ?? null}
             />
           ),
-          secondary: (
+          end: (
             <>
-              {`${formatAddressNames(email.from)} – `}
-              <HighlightedText
-                text={email.preview}
-                snippet={snippet?.preview ?? null}
-              />
+              {email.hasAttachment ? (
+                <Icon icon={Attachment} size={14} color={UNSTARRED_COLOR} />
+              ) : null}
+              {formatListDate(email.receivedAt, lang)}
             </>
+          ),
+          secondary: (
+            <HighlightedText
+              text={email.preview}
+              snippet={snippet?.preview ?? null}
+            />
           ),
           'data-testid': 'search-suggestion-item'
         }))
@@ -210,12 +246,12 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
     if (count === 0 && !hasText) return t('search.quickFiltersOnly')
     return t('search.suggestionCount', { smart_count: count })
   })()
-  const advancedLabel = t('search.advanced')
 
   return (
     <>
       <SearchCombobox
         className="u-w-100"
+        size={size}
         actions={combobox}
         value={draft.text}
         onChange={handleChange}
@@ -235,19 +271,18 @@ export function SearchField({ initialFilter }: SearchFieldProps): ReactElement {
         clearLabel={t('search.clear')}
         status={status}
         endActions={
-          <Tooltip title={advancedLabel}>
-            <IconButton
-              size="small"
-              aria-label={advancedLabel}
-              aria-haspopup="dialog"
-              onClick={() => {
-                setAdvanced({ anchor: combobox.current?.getField() ?? null })
-              }}
-              data-testid="advanced-search-button"
-            >
-              <Icon icon={Filter} />
-            </IconButton>
-          </Tooltip>
+          // As tmail-flutter: hidden while the advanced search is open
+          <SearchBarAction
+            label={t('search.advanced')}
+            icon={FilterAdvanced}
+            isActive={usesAdvancedFields(initialFilter)}
+            isHidden={advanced !== null}
+            aria-haspopup="dialog"
+            onClick={() => {
+              setAdvanced({ anchor: combobox.current?.getField() ?? null })
+            }}
+            data-testid="advanced-search-button"
+          />
         }
         testIds={{
           input: 'search-input',

@@ -18,6 +18,8 @@ import {
 } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
+import { FolderActionProgressProvider } from './FolderActionProgress'
+import { FolderActionProgressBanner } from './FolderActionProgressBanner'
 import { FolderActionsProvider } from './FolderActionsProvider'
 
 const TEAM = 'TeamMailbox[team@example.com]'
@@ -25,10 +27,13 @@ const TEAM = 'TeamMailbox[team@example.com]'
 function Screen(): ReactElement {
   return (
     <MailboxPickerProvider>
-      <FolderActionsProvider>
-        <MailboxTree />
-        <Outlet />
-      </FolderActionsProvider>
+      <FolderActionProgressProvider>
+        <FolderActionsProvider>
+          <FolderActionProgressBanner />
+          <MailboxTree />
+          <Outlet />
+        </FolderActionsProvider>
+      </FolderActionProgressProvider>
     </MailboxPickerProvider>
   )
 }
@@ -166,12 +171,12 @@ describe('Folder actions', () => {
     await userEvent.click(location)
     await userEvent.click(
       within(
-        screen.getByRole('dialog', { name: 'Select the folder location' })
-      ).getByRole('option', { name: 'Personal folders' })
+        screen.getByRole('dialog', { name: 'Select parent folder' })
+      ).getByRole('option', { name: 'All folders' })
     )
     // Once the picker went
     expect(
-      await within(dialog).findByRole('button', { name: 'Personal folders' })
+      await within(dialog).findByRole('button', { name: 'All folders' })
     ).toBeVisible()
     await userEvent.type(
       within(dialog).getByRole('textbox', { name: 'Folder Name' }),
@@ -216,7 +221,8 @@ describe('Folder actions', () => {
         name: 'Move folder'
       })
     )
-    const picker = screen.getByRole('dialog', { name: 'Move folder' })
+    // As tmail-flutter: "Move To", the folder faded
+    const picker = screen.getByRole('dialog', { name: 'Move To' })
     expect(
       within(picker).getByRole('option', { name: 'Clients' })
     ).toHaveAttribute('aria-disabled', 'true')
@@ -312,6 +318,37 @@ describe('Folder actions', () => {
         .filter(email => 'work' in email.mailboxIds)
         .every(email => '$seen' in email.keywords)
     ).toBe(true)
+  })
+
+  it('shows the progress of marking a folder read, as tmail-flutter', async () => {
+    const server = makeServer()
+    await renderTree(server)
+    const release = server.holdRequests('Email/set')
+
+    await userEvent.click(
+      within(await openMenu('Work')).getByRole('menuitem', {
+        name: 'Mark as read'
+      })
+    )
+
+    const bar = await screen.findByRole('progressbar', {
+      name: 'Marking all messages in "Work" as read'
+    })
+    await waitFor(() => {
+      expect(bar).toHaveAttribute('aria-valuenow', '0')
+    })
+    expect(
+      screen.getByTestId('folder-action-progress-status')
+    ).toHaveTextContent('Marking all messages in "Work" as read')
+
+    release()
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You’ve marked all messages in "Work" as read'
+    )
+    expect(screen.queryByRole('progressbar')).toBe(null)
+    expect(
+      screen.getByTestId('folder-action-progress-status')
+    ).toBeEmptyDOMElement()
   })
 
   it('hides a folder and its subfolders, then shows it on demand', async () => {

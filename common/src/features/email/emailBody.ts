@@ -41,19 +41,28 @@ function contentSecurityPolicy(allowRemoteContent: boolean): string {
 
 // The stylesheet of the email document, not of the app: twake-mui does not
 // reach inside the iframe. Images never overflow the reading pane, as in
-// tmail-flutter (EML-04).
+// tmail-flutter (EML-04). Its text style too (`HtmlTemplate.defaultFontStyle`):
+// Regular 14 in black, the default line height, paragraphs without margins.
+// The document stays light whatever the colour scheme of the app: an email is
+// designed for a white page, and the colours it sets would not read on a dark
+// one.
 const EMAIL_DOCUMENT_CSS = `
 html, body { margin: 0; padding: 0; }
+html { background: #ffffff; color-scheme: light; }
 body {
   font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
-  line-height: 1.5;
-  color: #1b1b1f;
+  font-weight: 400;
+  line-height: normal;
+  color: #000000;
   overflow-wrap: anywhere;
   overflow-y: hidden;
 }
 #${EMAIL_CONTENT_ID} { overflow-x: auto; }
 img { max-width: 100%; height: auto; }
+p { margin: 0; }
+/* tmail-flutter writes 16 px on phones (the frame is as wide as the screen) */
+@media (max-width: 599px) { body { font-size: 16px; } }
 pre, .tmail-plain-text { white-space: pre-wrap; font-family: inherit; margin: 0; }
 blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid #c4c4c4; }
 details.tmail-quoted-history > summary {

@@ -1,7 +1,8 @@
-import { ClockOutline, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import type { ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
+import { ActionRequiredFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -30,7 +31,7 @@ export function ActionRequiredTreeItem({
   return (
     <NavTreeItem
       level={1}
-      icon={<Icon icon={ClockOutline} />}
+      icon={<Icon icon={ActionRequiredFolderIcon} />}
       label={t('mailbox.actionRequired')}
       linkComponent={Link}
       to={ACTION_REQUIRED_PATH}

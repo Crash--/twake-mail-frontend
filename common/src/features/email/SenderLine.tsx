@@ -13,12 +13,6 @@ import { EmailAddressCard } from './EmailAddressCard'
 export interface SenderLineProps {
   sender: EmailAddress | null
   /**
-   * `full`: the name in bold, then the address (an open email); `address`:
-   * the address alone, where the name is already shown above (a message of
-   * a conversation)
-   */
-  variant?: 'full' | 'address'
-  /**
    * Offers "Unsubscribe" after the address (not on phones, where it is in
    * the "More" menu, as in tmail-flutter)
    */
@@ -29,13 +23,12 @@ export interface SenderLineProps {
 }
 
 /**
- * The sender of an email, its name and its address, as the button of its
- * address menu (copy, compose, "Create a rule with this email"), the
+ * The sender of an email, its name and its address (the name alone, larger,
+ * on a phone, as tmail-flutter), as the button of its card, the
  * "Unsubscribe" button and the date, in one line that wraps
  */
 export function SenderLine({
   sender,
-  variant = 'full',
   onUnsubscribe = null,
   children,
   'data-testid': testId
@@ -47,18 +40,12 @@ export function SenderLine({
     <InlineGroup gap={1} data-testid={testId}>
       {sender ? (
         <EmailAddressCard address={sender}>
-          {variant === 'full' ? (
-            <>
-              <MessageText variant="name">
-                {formatAddressName(sender)}
-              </MessageText>
-              {hasName ? (
-                <MessageText variant="address">{` <${sender.email}>`}</MessageText>
-              ) : null}
-            </>
-          ) : (
-            <MessageText variant="meta">{`<${sender.email}>`}</MessageText>
-          )}
+          <MessageText variant={isPhone ? 'phoneName' : 'name'}>
+            {formatAddressName(sender)}
+          </MessageText>
+          {hasName && !isPhone ? (
+            <MessageText variant="address">{` <${sender.email}>`}</MessageText>
+          ) : null}
         </EmailAddressCard>
       ) : null}
       {onUnsubscribe !== null && !isPhone ? (

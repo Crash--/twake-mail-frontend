@@ -1,5 +1,5 @@
 // Upstream to twake-ui: with RecipientField.
-import { Icon, Warning } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 // Not twake-mui's Chip, as in RecipientField (docs/twake-mui-gaps.md)
 import Chip from '@mui/material/Chip'
@@ -12,6 +12,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { Warning } from '@/ds/FlutterIcons/FlutterIcons'
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
 
 import { RecipientAvatar } from './RecipientAvatar'

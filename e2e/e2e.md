@@ -939,5 +939,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/loading-states.spec.ts`.
 - [x] `OFF-04` A message sent offline stays in the composer, which says "You are offline. It looks like you are not connected." (tmail-flutter reads the connectivity when the sending fails, `SendEmailExceptionThrower`); back online, Send sends it. — web app (`@mobile`)
   - Spec: `tests/loading-states.spec.ts`.
-- [x] `LOAD-06` Framed, the facade of a team mailbox (no sidebar) shows the list skeleton (busy, "Loading" once) and the first row lands on its first row; offline, the banner sits above the floating "New message" button. — web app (batch D8, `@mobile`)
+- [x] `LOAD-06` Framed, the facade of a team mailbox (no sidebar) shows the list skeleton (busy, "Loading" once) and the first row lands on its first row; offline, the banner never covers "New message" (above it while it floats, below 600 px; elsewhere once it is at the end of the list toolbar). — web app (batch D8, `@mobile`)
   - Spec: `tests/loading-states.spec.ts`.

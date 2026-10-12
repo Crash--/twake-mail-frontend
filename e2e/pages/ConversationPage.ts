@@ -84,6 +84,26 @@ export class ConversationPage {
     return this.actions(message).getByTestId('email-view-star-button')
   }
 
+  /**
+   * Stars or unstars an expanded message: its star button on desktops, its
+   * "More" menu below (as tmail-flutter)
+   */
+  async toggleStar(message: Locator): Promise<void> {
+    const button = this.starButton(message)
+    if (await button.isVisible()) {
+      const wasPressed = (await button.getAttribute('aria-pressed')) === 'true'
+      await button.click()
+      await expect(button).toHaveAttribute(
+        'aria-pressed',
+        wasPressed ? 'false' : 'true'
+      )
+      return
+    }
+    const menu = await this.openMore(message)
+    await menu.getByTestId(/^email-action-(un)?star$/).click()
+    await expect(menu).toBeHidden()
+  }
+
   /** Opens the "More" menu of an expanded message */
   async openMore(message: Locator): Promise<Locator> {
     await this.actions(message).getByTestId('email-view-more-button').click()

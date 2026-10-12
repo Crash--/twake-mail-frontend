@@ -40,6 +40,7 @@ export const FAKE_ACCOUNT_ID = 'account-alice'
 export const FAKE_USERNAME = 'alice@example.com'
 
 const DOWNLOAD_PREFIX = `${FAKE_JMAP_ORIGIN}/download/`
+const UPLOAD_PREFIX = `${FAKE_JMAP_ORIGIN}/upload/`
 
 /** The email properties the fake server stores */
 export type FakeEmail = Pick<
@@ -661,6 +662,7 @@ export function makeFakeJmapServer(
   const maxObjectsInSet = init.maxObjectsInSet ?? 500
   let held: { method: string | null; released: Promise<void> } | null = null
   let losing: string | null = null
+  let uploadCounter = 0
 
   function holdRequests(method?: string): () => void {
     let release = (): void => undefined
@@ -1389,6 +1391,19 @@ export function makeFakeJmapServer(
       : new Response(content, { status: 200 })
   }
 
+  /** `JmapClient.upload` (attachments go through `fakeUploads`) */
+  function handleUpload(body: Blob): Response {
+    uploadCounter += 1
+    const blobId = `fetched-upload-${uploadCounter}`
+    server.blobs.set(blobId, '')
+    return jsonResponse({
+      accountId: 'account',
+      blobId,
+      type: body.type,
+      size: body.size
+    })
+  }
+
   async function handleFetch(
     input: string,
     init?: RequestInit
@@ -1399,6 +1414,9 @@ export function makeFakeJmapServer(
       )
     }
     if (input.startsWith(DOWNLOAD_PREFIX)) return handleDownload(input)
+    if (input.startsWith(UPLOAD_PREFIX) && init?.body instanceof Blob) {
+      return handleUpload(init.body)
+    }
     if (input === FAKE_API_URL && typeof init?.body === 'string') {
       const request = parseRequest(JSON.parse(init.body))
       server.requests.push(request)

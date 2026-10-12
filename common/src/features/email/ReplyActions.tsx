@@ -1,6 +1,7 @@
-import { Icon, Reply } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import type { ReactElement, ReactNode } from 'react'
 
+import { Reply } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionBar, ActionBarButton } from '@/ds/ActionBar/ActionBar'
 import { ForwardIcon, ReplyAllIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { useI18n } from '@common/i18n/useI18n'
@@ -27,14 +28,14 @@ const ICONS: Record<ReplyAction, ReactNode> = {
 /** The order of the mock: Reply all, Reply, Reply to list, Forward */
 const ORDER: readonly ReplyAction[] = [
   'replyAll',
-  'reply',
   'replyToList',
+  'reply',
   'forward'
 ]
 
 /**
  * The answers to an email, in the bar at the bottom of it, as the mocks and
- * tmail-flutter: Reply all, Reply, Reply to list and Forward, on every
+ * tmail-flutter: Reply all, Reply to list, Reply and Forward, on every
  * screen size.
  */
 export function ReplyActions({ email }: ReplyActionsProps): ReactElement {

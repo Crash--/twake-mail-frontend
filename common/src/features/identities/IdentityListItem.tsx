@@ -1,19 +1,22 @@
-import { Icon, Pen, Trash } from '@linagora/twake-icons'
-import {
-  Box,
-  Chip,
-  IconButton,
-  ListItem,
-  Radio,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { Icon } from '@linagora/twake-icons'
+import { Radio } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
+import {
+  DeleteFilled,
+  EditPen,
+  RadioOff,
+  RadioOn
+} from '@/ds/FlutterIcons/FlutterIcons'
+import { SettingsRowButton } from '@/ds/SettingsButtons/SettingsButtons'
+import {
+  SettingsListHtml,
+  SettingsListItem,
+  SettingsListText
+} from '@/ds/SettingsList/SettingsList'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { formatIdentityAddresses, signaturePreview } from './identityForm'
+import { formatIdentityAddresses, signatureHtml } from './identityForm'
 import type { IdentitySummary } from './queries'
 
 export interface IdentityListItemProps {
@@ -27,9 +30,10 @@ export interface IdentityListItemProps {
 }
 
 /**
- * An identity in Settings > Profiles, as tmail-flutter lists it: name,
- * address, Reply-To, Bcc and the start of the signature, the radio making
- * it the default one, edit and delete (not for the identity of the account).
+ * An identity in Settings > Profiles, as tmail-flutter lists it: the radio
+ * making it the default one, name, address, Reply-To, Bcc, "--" and the
+ * signature as it is written, then "Edit" and "Delete" (no delete for the
+ * identity of the account, which the server keeps).
  */
 export function IdentityListItem({
   identity,
@@ -43,94 +47,83 @@ export function IdentityListItem({
   const deleteLabel = t('identities.deleteOf', { name: identity.name })
   const replyTo = formatIdentityAddresses(identity.replyTo)
   const bcc = formatIdentityAddresses(identity.bcc)
-  const signature = signaturePreview(identity)
+  const signature = signatureHtml(identity)
 
   return (
-    <ListItem
-      divider
-      className="u-flex-items-start"
+    <SettingsListItem
       data-testid="identity-item"
-      data-identity-name={identity.name}
-      data-default={isDefault || undefined}
-    >
-      {withDefaultRadio ? (
-        <Radio
-          value={identity.id}
-          slotProps={{
-            input: {
-              'aria-label': t('identities.setDefaultOf', {
-                name: identity.name
-              })
-            }
-          }}
-          data-testid="identity-default-radio"
-        />
-      ) : null}
-      <Box className="u-flex-auto u-ov-hidden u-mv-half u-ml-half">
-        <Box className="u-flex u-flex-items-center u-flex-wrap">
-          <Typography
-            component="span"
-            className="u-fw-bold u-breakword u-mr-half"
-            data-testid="identity-item-name"
-          >
-            {identity.name}
-          </Typography>
-          {isDefault ? (
-            <Chip
-              size="small"
-              label={t('identities.defaultBadge')}
-              data-testid="identity-default-badge"
+      dataAttributes={{
+        'data-identity-name': identity.name,
+        'data-default': isDefault || undefined
+      }}
+      leading={
+        withDefaultRadio ? (
+          <Radio
+            value={identity.id}
+            // tmail-flutter's ring, filled once it is the default one
+            icon={<Icon icon={RadioOff} size={18} />}
+            checkedIcon={<Icon icon={RadioOn} size={18} />}
+            slotProps={{
+              input: {
+                'aria-label': t('identities.setDefaultOf', {
+                  name: identity.name
+                })
+              }
+            }}
+            data-testid="identity-default-radio"
+          />
+        ) : null
+      }
+      actions={
+        <>
+          <SettingsRowButton
+            label={t('common.edit')}
+            name={editLabel}
+            icon={EditPen}
+            onClick={() => {
+              onEdit(identity)
+            }}
+            data-testid="identity-edit-button"
+          />
+          {identity.mayDelete ? (
+            <SettingsRowButton
+              label={t('common.delete')}
+              name={deleteLabel}
+              icon={DeleteFilled}
+              onClick={event => {
+                onDelete(identity, event.currentTarget)
+              }}
+              data-testid="identity-delete-button"
             />
           ) : null}
-        </Box>
-        <SecondaryText variant="body2" component="p" className="u-breakword">
-          {identity.email}
-        </SecondaryText>
-        {replyTo === '' ? null : (
-          <SecondaryText variant="body2" component="p" className="u-breakword">
-            {`${t('identities.form.replyTo')}: ${replyTo}`}
-          </SecondaryText>
-        )}
-        {bcc === '' ? null : (
-          <SecondaryText variant="body2" component="p" className="u-breakword">
-            {`${t('email.bcc')}: ${bcc}`}
-          </SecondaryText>
-        )}
-        {signature === '' ? null : (
-          <SecondaryText variant="body2" component="p" className="u-ellipsis">
-            {`-- ${signature}`}
-          </SecondaryText>
-        )}
-        {identity.mayDelete ? null : (
-          <SecondaryText variant="caption" component="p">
-            {t('identities.cannotDelete')}
-          </SecondaryText>
-        )}
-      </Box>
-      <Tooltip title={editLabel}>
-        <IconButton
-          aria-label={editLabel}
-          onClick={() => {
-            onEdit(identity)
-          }}
-          data-testid="identity-edit-button"
-        >
-          <Icon icon={Pen} />
-        </IconButton>
-      </Tooltip>
-      {identity.mayDelete ? (
-        <Tooltip title={deleteLabel}>
-          <IconButton
-            aria-label={deleteLabel}
-            onClick={event => {
-              onDelete(identity, event.currentTarget)
-            }}
-            data-testid="identity-delete-button"
-          >
-            <Icon icon={Trash} />
-          </IconButton>
-        </Tooltip>
-      ) : null}
-    </ListItem>
+        </>
+      }
+    >
+      <SettingsListText variant="name" data-testid="identity-item-name">
+        {identity.name}
+      </SettingsListText>
+      <SettingsListText variant="detail">{identity.email}</SettingsListText>
+      {replyTo === '' ? null : (
+        <SettingsListText variant="detail">
+          <span className="u-uppercase">{t('identities.form.replyTo')}</span>
+          {`: ${replyTo}`}
+        </SettingsListText>
+      )}
+      {bcc === '' ? null : (
+        <SettingsListText variant="detail">
+          <span className="u-uppercase">{t('email.bcc')}</span>
+          {`: ${bcc}`}
+        </SettingsListText>
+      )}
+      {signature === '' ? null : (
+        <>
+          <SettingsListText variant="mark">--</SettingsListText>
+          <SettingsListHtml
+            html={signature}
+            data-testid="identity-item-signature"
+          />
+        </>
+      )}
+    </SettingsListItem>
   )
 }

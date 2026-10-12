@@ -19,6 +19,7 @@ import {
   FAKE_LINAGORA_CAPABILITIES,
   installFakeLabels
 } from '@common/testing/fakeLinagora'
+import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
@@ -268,6 +269,28 @@ describe('EmailList', () => {
     })
   })
 
+  it('marks the emails carrying a calendar event, as tmail-flutter', async () => {
+    renderList(
+      makeFakeJmapServer({
+        emails: [
+          makeEmail({
+            id: 'invite',
+            subject: 'Team meeting',
+            headers: { 'X-MEETING-UID': 'bdbd9f3d-bcca-4da6-ab9a-12b6344eff01' }
+          }),
+          makeEmail({ id: 'plain', subject: 'Plain' })
+        ]
+      })
+    )
+
+    const link = await screen.findByRole('link', { name: /Team meeting/ })
+    expect(link).toHaveAccessibleName(/Event invitation/)
+    expect(screen.getAllByTestId('email-list-item-event-icon')).toHaveLength(1)
+    expect(
+      screen.getByRole('link', { name: /Plain/ })
+    ).not.toHaveAccessibleName(/Event invitation/)
+  })
+
   it('shows rows of skeleton, busy and hidden to screen readers, while the emails load', async () => {
     const server = makeFakeJmapServer({
       emails: [makeEmail({ id: 'e1', subject: 'Landed' })]
@@ -284,6 +307,34 @@ describe('EmailList', () => {
 
     expect(await screen.findByText('Landed')).toBeVisible()
     expect(screen.queryByTestId('email-list-loading')).toBe(null)
+  })
+
+  it('scrolls its rows 16 px inside the sides and the bottom of the frame of a team mailbox only', async () => {
+    const server = makeFakeJmapServer({
+      emails: [makeEmail({ id: 'e1', subject: 'Landed' })]
+    })
+    const { unmount } = renderList(server)
+    const list = await screen.findByTestId('email-list')
+    expect(list.closest('.u-ph-1, .u-pb-1')).toBe(null)
+    unmount()
+
+    renderWithProviders(
+      <TeamMailboxEmbedProvider rootId="team-root">
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailList mailboxId="mailbox-inbox" />
+        </VirtuosoMockContext.Provider>
+      </TeamMailboxEmbedProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    const framed = await screen.findByTestId('email-list')
+    expect(framed.closest('.u-ph-1.u-pb-1')).not.toBe(null)
   })
 
   it('shows the empty view for a mailbox without emails', async () => {
@@ -491,7 +542,7 @@ describe('EmailList', () => {
     ])
   })
 
-  it('shows the initials of the sender, hidden from assistive technologies, and reaches the row actions by keyboard', async () => {
+  it('shows the first letter of the sender, hidden from assistive technologies, and reaches the row actions by keyboard', async () => {
     renderList(makeFakeJmapServer({ emails: makeEmails(1) }))
     const row = await screen.findByTestId('email-list-item')
 
@@ -500,8 +551,7 @@ describe('EmailList', () => {
       'true'
     )
     within(row).getByTestId('email-list-item-star').focus()
-    // Reply, the link of the row, then its actions
-    await userEvent.tab()
+    // The link of the row, then its actions
     await userEvent.tab()
     await userEvent.tab()
     await userEvent.tab()
@@ -572,6 +622,36 @@ describe('EmailList', () => {
     )
   })
 
+  it('does not announce the drafts and sent messages the user saves', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(2) })
+    const { queryClient } = renderList(server)
+    await screen.findAllByTestId('email-list-item')
+
+    server.emails.push(
+      makeEmail({
+        id: 'draft',
+        subject: 'Saved draft',
+        receivedAt: '2026-06-01T00:00:00Z',
+        keywords: { $draft: true, $seen: true }
+      }),
+      makeEmail({
+        id: 'sent',
+        subject: 'Sent copy',
+        receivedAt: '2026-06-01T00:00:01Z',
+        keywords: { $seen: true }
+      })
+    )
+    await act(async () => {
+      await queryClient.invalidateQueries({
+        queryKey: threadKeys.all(FAKE_ACCOUNT_ID)
+      })
+    })
+
+    expect(await screen.findByText('Sent copy')).toBeVisible()
+    expect(screen.getByText('Saved draft')).toBeVisible()
+    expect(screen.getByTestId('new-emails-status')).toHaveTextContent(/^$/)
+  })
+
   it('gives the focus back to the email the user comes back from', async () => {
     renderList(makeFakeJmapServer({ emails: makeEmails(3) }), 'mailbox-inbox', {
       focusEmailId: 'e0'
@@ -622,7 +702,7 @@ describe('EmailList', () => {
     })
     afterEach(resetViewport)
 
-    it('shows each email on four lines, the link named by its content', async () => {
+    it('shows each email on three lines beside its avatar, as tmail-flutter, the link named by its content', async () => {
       renderList(
         makeFakeJmapServer({
           emails: [
@@ -641,7 +721,7 @@ describe('EmailList', () => {
       const row = await screen.findByTestId('email-list-item')
       expect(
         screen.getAllByRole('columnheader').map(header => header.textContent)
-      ).toEqual(['Selection', 'Status', 'Message', 'Actions'])
+      ).toEqual(['Selection', 'Message'])
       const link = within(row).getByRole('link')
       expect(link).toHaveAccessibleName(
         /^Unread, Starred, Bob Dupont Attachment .+ Fresh news Hello Alice$/
@@ -652,26 +732,21 @@ describe('EmailList', () => {
       expect(within(row).getByTestId('unread-status-icon')).toBeInTheDocument()
     })
 
-    it('keeps the star and the read toggle on each row', async () => {
-      const server = makeFakeJmapServer({
-        emails: [makeEmail({ id: 'new', subject: 'Fresh news' })]
-      })
-      renderList(server)
-      const row = await screen.findByTestId('email-list-item')
-
-      await userEvent.click(
-        within(row).getByRole('button', { name: 'Starred' })
-      )
-      await userEvent.click(
-        within(row).getByRole('button', { name: 'Mark as read' })
-      )
-
-      await waitFor(() => {
-        expect(server.emails[0]?.keywords).toEqual({
-          $flagged: true,
-          $seen: true
+    it('selects a row from its avatar, as tmail-flutter', async () => {
+      renderList(
+        makeFakeJmapServer({
+          emails: [makeEmail({ id: 'new', subject: 'Fresh news' })]
         })
+      )
+      const row = await screen.findByTestId('email-list-item')
+      const avatar = within(row).getByRole('checkbox', {
+        name: 'Select Fresh news'
       })
+      expect(avatar).toHaveAttribute('aria-checked', 'false')
+
+      await userEvent.click(avatar)
+
+      expect(avatar).toHaveAttribute('aria-checked', 'true')
     })
 
     it('leaves room for the floating button after the last row', async () => {

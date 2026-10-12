@@ -15,8 +15,8 @@ export interface NavTreeSkeletonProps {
 }
 
 /**
- * The rows of a `NavTreeItem` (36 px, 8 px of padding, an icon of 16 px and a
- * name) while the folders load.
+ * The rows of a `NavTreeItem` (36 px, 8 px of padding, an icon of 16 px, a
+ * gap of 8 px and a name) while the folders load.
  */
 export function NavTreeSkeleton({
   rowCount,
@@ -29,7 +29,7 @@ export function NavTreeSkeleton({
         <Box
           key={row}
           className="u-flex u-flex-items-center u-ph-half"
-          sx={theme => ({ height: 36, gap: theme.spacing(1.5) })}
+          sx={{ height: 36, gap: 1 }}
         >
           <Skeleton variant="rounded" width={16} height={16} />
           <Skeleton

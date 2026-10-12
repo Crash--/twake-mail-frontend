@@ -179,6 +179,14 @@ describe('CalendarInvitationCard', () => {
       'Dave <dave@example.com> · maybe',
       'erin@example.com'
     ])
+    // As tmail-flutter, a person opens the card of its address
+    await userEvent.click(within(card).getByRole('link', { name: /^Alice/ }))
+    const addressCard = await screen.findByRole('dialog', { name: 'Alice' })
+    expect(within(addressCard).getByText('alice@example.com')).toBeVisible()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Alice' })).toBe(null)
+    })
     await userEvent.click(
       within(card).getByRole('button', { name: 'See all attendees (8)' })
     )
@@ -191,8 +199,10 @@ describe('CalendarInvitationCard', () => {
       { accountId: 'account-alice', blobIds: ['b-ics'] }
     ])
     // The nameless calendar part is the card; the named file stays listed
-    expect(screen.getByText(/invite\.ics/)).toBeVisible()
     expect(screen.getAllByTestId('attachment-item')).toHaveLength(1)
+    expect(
+      within(screen.getByTestId('attachment-item')).getByTitle('invite.ics')
+    ).toBeVisible()
   })
 
   it('answers Yes in the UI language and shows the answer', async () => {

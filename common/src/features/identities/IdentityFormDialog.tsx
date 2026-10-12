@@ -1,11 +1,6 @@
+import { Icon } from '@linagora/twake-icons'
 import {
-  Button,
   Checkbox,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControlLabel,
   TextField,
   Typography
@@ -14,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -21,8 +17,16 @@ import {
   type ReactElement
 } from 'react'
 
-import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
+import { ConfirmDialogButton } from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
+import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
+import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
+import {
+  FormDialogFrame,
+  FormFieldRow
+} from '@/ds/FormDialogFrame/FormDialogFrame'
+import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
+import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useEditorLabels } from '@common/features/composer/useEditorLabels'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -51,6 +55,7 @@ import {
   publishSignatureImage,
   signatureAssetChanges
 } from './signatureAssets'
+import { shrinkSignatureImage, signatureImageMaxWidth } from './signatureImage'
 
 export interface IdentityFormDialogProps {
   /** The identity to edit, null to create one */
@@ -96,13 +101,15 @@ export function IdentityFormDialog({
   const queryClient = useQueryClient()
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
-  const isMobile = useScreenSize() === 'mobile'
+  const screenSize = useScreenSize()
+  const isMobile = screenSize === 'mobile'
   const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
   const titleId = useId()
   const nameRef = useRef<HTMLInputElement>(null)
   const replyToRef = useRef<HTMLInputElement>(null)
   const bccRef = useRef<HTMLInputElement>(null)
   const editorRef = useRef<Editor | null>(null)
+  const editorActionsRef = useRef<RichTextEditorActions>(null)
   const [initialSignature] = useState(() =>
     identity === null ? '' : signatureToEditorHtml(identity)
   )
@@ -110,6 +117,9 @@ export function IdentityFormDialog({
     identity === null ? [] : publicAssetIdsIn(identity.htmlSignature)
   )
   const publishedRef = useRef<string[]>([])
+  // Saved or cancelled: the images published meanwhile are taken care of
+  const isSettledRef = useRef(false)
+  const [storingCount, setStoringCount] = useState(0)
   const wasDefault = identity !== null && identities[0]?.id === identity.id
   const emails = allowedIdentityEmails(identities, session.username)
   const [name, setName] = useState(identity?.name ?? '')
@@ -131,6 +141,20 @@ export function IdentityFormDialog({
       { maxSizeUpload?: number } | undefined
   )?.maxSizeUpload
 
+  // Left another way (the browser back, a link): as tmail-flutter, the
+  // images published for nothing are destroyed
+  useEffect(() => {
+    const published = publishedRef.current
+    return () => {
+      if (isSettledRef.current) return
+      discardSignatureImages(client, accountId, published).catch(
+        (error: unknown) => {
+          console.warn('[identities] Images left unused on the server', error)
+        }
+      )
+    }
+  }, [client, accountId])
+
   const nameProblem: FieldProblem = validateIdentityName(name)
   const replyToResult = parseIdentityAddresses(replyTo)
   const bccResult = parseIdentityAddresses(bcc)
@@ -143,58 +167,97 @@ export function IdentityFormDialog({
   const shown = (problem: FieldProblem): FieldProblem =>
     isTouched ? problem : null
 
+  const storeImage = async (
+    original: File
+  ): Promise<InlineImageAttributes | null> => {
+    const file = await shrinkSignatureImage(
+      original,
+      maxUploadSize ?? Number.POSITIVE_INFINITY,
+      signatureImageMaxWidth(window.innerWidth, screenSize === 'desktop')
+    )
+    if (file === null) {
+      notify({
+        message: t('identities.errors.imageCompress'),
+        severity: 'error'
+      })
+      return null
+    }
+    if (maxUploadSize !== undefined && file.size > maxUploadSize) {
+      notify({
+        message: t('identities.errors.imageTooLarge', {
+          maxSize: Math.floor(maxUploadSize / 1024)
+        }),
+        severity: 'error'
+      })
+      return null
+    }
+    if (!canPublishImages) {
+      // Without PublicAssets, the image travels inside the signature
+      return {
+        src: await readAsDataUrl(file),
+        alt: original.name,
+        reference: null,
+        width: null
+      }
+    }
+    const published = await publishSignatureImage(
+      client,
+      accountId,
+      file,
+      identity?.id ?? null
+    )
+    if (!published.ok) {
+      const { type, description } = published.error
+      // The server says how much room the images may take
+      notify({
+        message:
+          type === 'overQuota' && description
+            ? description
+            : t('identities.errors.imageUpload'),
+        severity: 'error'
+      })
+      return null
+    }
+    publishedRef.current.push(published.value.assetId)
+    return {
+      src: published.value.publicUri,
+      alt: original.name,
+      reference: published.value.assetId,
+      width: null
+    }
+  }
+
   const handleImageFiles = async (
     files: File[]
   ): Promise<InlineImageAttributes[]> => {
+    const accepted = files.filter(file => IMAGE_TYPES.includes(file.type))
+    if (accepted.length === 0) {
+      notify({ message: t('identities.errors.notAnImage'), severity: 'error' })
+      return []
+    }
+    setStoringCount(count => count + 1)
     const images: InlineImageAttributes[] = []
-    for (const file of files) {
-      if (maxUploadSize !== undefined && file.size > maxUploadSize) {
-        notify({
-          message: t('identities.errors.imageTooLarge', {
-            maxSize: Math.floor(maxUploadSize / 1024)
-          }),
-          severity: 'error'
-        })
-        continue
-      }
-      try {
-        if (canPublishImages) {
-          const published = await publishSignatureImage(
-            client,
-            accountId,
-            file,
-            identity?.id ?? null
-          )
-          if (!published) throw new Error('PublicAsset not created')
-          publishedRef.current.push(published.assetId)
-          images.push({
-            src: published.publicUri,
-            alt: file.name,
-            reference: published.assetId,
-            width: null
+    try {
+      for (const file of accepted) {
+        const image = await storeImage(file).catch((error: unknown) => {
+          console.error('[identities] Cannot add the image', error)
+          notify({
+            message: t('identities.errors.imageUpload'),
+            severity: 'error'
           })
-        } else {
-          // Without PublicAssets, the image travels inside the signature
-          images.push({
-            src: await readAsDataUrl(file),
-            alt: file.name,
-            reference: null,
-            width: null
-          })
-        }
-      } catch (error: unknown) {
-        console.error('[identities] Cannot add the image', error)
-        notify({
-          message: t('identities.errors.imageUpload'),
-          severity: 'error'
+          return null
         })
+        if (image) images.push(image)
       }
+    } finally {
+      setStoringCount(count => count - 1)
     }
     return images
   }
 
   const handleCancel = (): void => {
     if (isSaving) return
+    isSettledRef.current = true
     discardSignatureImages(client, accountId, publishedRef.current).catch(
       (error: unknown) => {
         console.warn('[identities] Images left unused on the server', error)
@@ -283,6 +346,7 @@ export function IdentityFormDialog({
           setIsSaving(false)
           return
         }
+        isSettledRef.current = true
         await queryClient.invalidateQueries({
           queryKey: identityKeys.all(accountId)
         })
@@ -305,173 +369,59 @@ export function IdentityFormDialog({
       })
   }
 
-  const fieldError = (problem: FieldProblem): string =>
-    problem === null ? ' ' : t(problem)
+  // As tmail-flutter: no room kept under a field without error
+  const fieldError = (problem: FieldProblem): string | null =>
+    problem === null ? null : t(problem)
+
+  const fieldIds = {
+    name: `${titleId}-name`,
+    email: `${titleId}-email`,
+    replyTo: `${titleId}-reply-to`,
+    bcc: `${titleId}-bcc`,
+    signature: `${titleId}-signature`
+  }
 
   return (
-    <Dialog
-      open
+    <FormDialogFrame
+      title={t(identity === null ? 'identities.create' : 'identities.edit')}
+      titleId={titleId}
+      closeLabel={t(isMobile ? 'common.back' : 'common.close')}
       onClose={handleCancel}
-      size="large"
-      fullScreen={isMobile}
-      aria-labelledby={titleId}
-      data-testid="identity-form-dialog"
-    >
-      <form onSubmit={handleSubmit} noValidate>
-        <DialogTitle id={titleId}>
-          {t(identity === null ? 'identities.create' : 'identities.edit')}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            inputRef={nameRef}
-            autoFocus
-            required
-            fullWidth
-            margin="dense"
-            label={t('identities.form.name')}
-            placeholder={t('identities.form.namePlaceholder')}
-            value={name}
-            onChange={event => {
-              setName(event.target.value)
-            }}
-            error={shown(nameProblem) !== null}
-            helperText={fieldError(shown(nameProblem))}
-            slotProps={{
-              htmlInput: { 'data-testid': 'identity-name-input' }
-            }}
-          />
-          <TextField
-            select
-            fullWidth
-            margin="dense"
-            label={t('identities.form.email')}
-            value={email}
-            disabled={identity !== null}
-            onChange={event => {
-              setEmail(event.target.value)
-            }}
-            helperText=" "
-            slotProps={{
-              select: { native: true },
-              htmlInput: { 'data-testid': 'identity-email-select' }
-            }}
-          >
-            {emails.map(option => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </TextField>
-          <TextField
-            inputRef={replyToRef}
-            fullWidth
-            margin="dense"
-            label={t('identities.form.replyTo')}
-            placeholder={t('identities.form.addressPlaceholder')}
-            value={replyTo}
-            onChange={event => {
-              setReplyTo(event.target.value)
-            }}
-            error={shown(replyToProblem) !== null}
-            helperText={
-              shown(replyToProblem) === null
-                ? t('identities.form.addressesHelp')
-                : fieldError(shown(replyToProblem))
+      onSubmit={handleSubmit}
+      isFullScreen={isMobile}
+      footerStart={
+        hasSortOrder ? (
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isDefault}
+                onChange={event => {
+                  setIsDefault(event.target.checked)
+                }}
+                // tmail-flutter's own boxes
+                icon={<Icon icon={CheckboxOff} size={20} />}
+                checkedIcon={<Icon icon={CheckboxOn} size={20} />}
+              />
             }
-            slotProps={{
-              htmlInput: {
-                inputMode: 'email',
-                'data-testid': 'identity-reply-to-input'
-              }
-            }}
+            label={t('identities.form.setDefault')}
+            data-testid="identity-default-checkbox"
           />
-          <TextField
-            inputRef={bccRef}
-            fullWidth
-            margin="dense"
-            label={t('identities.form.bcc')}
-            placeholder={t('identities.form.addressPlaceholder')}
-            value={bcc}
-            onChange={event => {
-              setBcc(event.target.value)
-            }}
-            error={shown(bccProblem) !== null}
-            helperText={
-              shown(bccProblem) === null
-                ? t('identities.form.addressesHelp')
-                : fieldError(shown(bccProblem))
-            }
-            slotProps={{
-              htmlInput: {
-                inputMode: 'email',
-                'data-testid': 'identity-bcc-input'
-              }
-            }}
-          />
-          <Typography
-            variant="subtitle2"
-            component="p"
-            color="textPrimary"
-            className="u-mt-1 u-mb-half"
-          >
-            {t('identities.form.signature')}
-          </Typography>
-          <RichTextEditor
-            labels={{ ...labels, editor: t('identities.form.signature') }}
-            content={initialSignature}
-            colors={colors}
-            fontSizes={fontSizes}
-            fontFamilies={fontFamilies}
-            onImageFiles={handleImageFiles}
-            onReady={editor => {
-              editorRef.current = editor
-            }}
-            testIds={EDITOR_TEST_IDS}
-          />
-          {hasSortOrder ? (
-            <FormControlLabel
-              className="u-mt-1"
-              control={
-                <Checkbox
-                  checked={isDefault}
-                  onChange={event => {
-                    setIsDefault(event.target.checked)
-                  }}
-                />
-              }
-              label={t('identities.form.setDefault')}
-              data-testid="identity-default-checkbox"
-            />
-          ) : null}
-          {saveError === null ? null : (
-            <Typography
-              role="alert"
-              color="error"
-              variant="body2"
-              className="u-mt-1"
-              data-testid="identity-form-error"
-            >
-              {t(saveError)}
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            color="inherit"
+        ) : null
+      }
+      actions={
+        <>
+          <ConfirmDialogButton
             onClick={handleCancel}
             disabled={isSaving}
             data-testid="identity-cancel-button"
           >
             {t('common.cancel')}
-          </Button>
-          <Button
+          </ConfirmDialogButton>
+          <ConfirmDialogButton
             type="submit"
-            variant="contained"
+            isMain
+            minWidth={110}
             disabled={isSaving}
-            startIcon={
-              isSaving ? <CircularProgress size={16} color="inherit" /> : null
-            }
             data-testid="save-identity-button"
           >
             {t(
@@ -479,9 +429,153 @@ export function IdentityFormDialog({
                 ? 'identities.form.create'
                 : 'identities.form.save'
             )}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+          </ConfirmDialogButton>
+        </>
+      }
+      data-testid="identity-form-dialog"
+    >
+      <FormFieldRow
+        label={t('identities.form.nameRequired')}
+        htmlFor={fieldIds.name}
+        isStacked={isMobile}
+      >
+        <TextField
+          id={fieldIds.name}
+          inputRef={nameRef}
+          autoFocus
+          required
+          fullWidth
+          placeholder={t('identities.form.namePlaceholder')}
+          value={name}
+          onChange={event => {
+            setName(event.target.value)
+          }}
+          error={shown(nameProblem) !== null}
+          helperText={fieldError(shown(nameProblem))}
+          slotProps={{
+            htmlInput: { 'data-testid': 'identity-name-input' }
+          }}
+        />
+      </FormFieldRow>
+      <FormFieldRow
+        label={t('identities.form.emailLabel')}
+        htmlFor={fieldIds.email}
+        isStacked={isMobile}
+      >
+        <TextField
+          id={fieldIds.email}
+          select
+          fullWidth
+          value={email}
+          disabled={identity !== null}
+          onChange={event => {
+            setEmail(event.target.value)
+          }}
+          slotProps={{
+            select: { native: true },
+            htmlInput: { 'data-testid': 'identity-email-select' }
+          }}
+        >
+          {emails.map(option => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </TextField>
+      </FormFieldRow>
+      <FormFieldRow
+        label={t('identities.form.replyTo')}
+        htmlFor={fieldIds.replyTo}
+        isStacked={isMobile}
+      >
+        <TextField
+          id={fieldIds.replyTo}
+          inputRef={replyToRef}
+          fullWidth
+          placeholder={t('identities.form.addressPlaceholder')}
+          value={replyTo}
+          onChange={event => {
+            setReplyTo(event.target.value)
+          }}
+          error={shown(replyToProblem) !== null}
+          helperText={fieldError(shown(replyToProblem))}
+          slotProps={{
+            htmlInput: {
+              inputMode: 'email',
+              'aria-description': t('identities.form.addressesHelp'),
+              'data-testid': 'identity-reply-to-input'
+            }
+          }}
+        />
+      </FormFieldRow>
+      <FormFieldRow
+        label={t('identities.form.bcc')}
+        htmlFor={fieldIds.bcc}
+        isStacked={isMobile}
+      >
+        <TextField
+          id={fieldIds.bcc}
+          inputRef={bccRef}
+          fullWidth
+          placeholder={t('identities.form.addressPlaceholder')}
+          value={bcc}
+          onChange={event => {
+            setBcc(event.target.value)
+          }}
+          error={shown(bccProblem) !== null}
+          helperText={fieldError(shown(bccProblem))}
+          slotProps={{
+            htmlInput: {
+              inputMode: 'email',
+              'aria-description': t('identities.form.addressesHelp'),
+              'data-testid': 'identity-bcc-input'
+            }
+          }}
+        />
+      </FormFieldRow>
+      <FormFieldRow
+        label={t('identities.form.signature')}
+        labelId={fieldIds.signature}
+        isStacked={isMobile}
+      >
+        {/* As tmail-flutter, files dropped anywhere on the editor */}
+        <FileDropZone
+          label={t('composer.attachments.dropHere')}
+          onFiles={files => {
+            editorActionsRef.current?.insertImages(files)
+          }}
+          isFlush
+          data-testid="identity-signature-drop-zone"
+        >
+          <RichTextEditor
+            labels={{ ...labels, editor: t('identities.form.signature') }}
+            content={initialSignature}
+            colors={colors}
+            fontSizes={fontSizes}
+            fontFamilies={fontFamilies}
+            onImageFiles={handleImageFiles}
+            shouldStorePastedDataImages={canPublishImages}
+            busyLabel={storingCount > 0 ? t('composer.images.inserting') : null}
+            actions={editorActionsRef}
+            onReady={editor => {
+              editorRef.current = editor
+            }}
+            testIds={EDITOR_TEST_IDS}
+            look="boxed"
+          />
+        </FileDropZone>
+      </FormFieldRow>
+      {saveError === null ? null : (
+        <Typography
+          role="alert"
+          color="error"
+          variant="body2"
+          className="u-mt-1"
+          data-testid="identity-form-error"
+        >
+          {t(saveError)}
+        </Typography>
+      )}
+    </FormDialogFrame>
   )
 }

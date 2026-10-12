@@ -8,12 +8,7 @@ import {
   type SxProps,
   type Theme
 } from '@linagora/twake-mui'
-import {
-  createContext,
-  useContext,
-  type ReactElement,
-  type ReactNode
-} from 'react'
+import type { ReactElement } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
@@ -23,45 +18,36 @@ const OFFSET = 2
 /** Room the button takes at the bottom of the screen, for the content under it */
 export const FLOATING_ACTION_INSET = 88
 
-const AlwaysFloatingContext = createContext(false)
-
-/**
- * The screens below show their floating button on a desktop too (a layout
- * without sidebar, where the main action has no other place)
- */
-export function AlwaysFloatingAction({
-  children
-}: {
-  children: ReactNode
-}): ReactElement {
-  return (
-    <AlwaysFloatingContext.Provider value>
-      {children}
-    </AlwaysFloatingContext.Provider>
-  )
-}
-
 /**
  * The room to keep free at the end of scrolling content: the floating
- * button is there below the desktop size, and on a desktop under
- * `AlwaysFloatingAction`
+ * button is there below the desktop size
  */
 export function useFloatingActionInset(): number {
-  const screenSize = useScreenSize()
-  const isAlwaysFloating = useContext(AlwaysFloatingContext)
-  return isAlwaysFloating || screenSize !== 'desktop'
-    ? FLOATING_ACTION_INSET
-    : 0
+  return useScreenSize() === 'desktop' ? 0 : FLOATING_ACTION_INSET
 }
 
+// tmail-flutter's "Compose" button (`ComposeFloatingButton`): a 60 px blue
+// (#208BFF) pill, a 28 px white icon and a white Medium 16 label
 const FAB_SX: SxProps<Theme> = theme => ({
   position: 'fixed',
   right: `calc(${theme.spacing(OFFSET)} + env(safe-area-inset-right))`,
   bottom: `calc(${theme.spacing(OFFSET)} + env(safe-area-inset-bottom))`,
   zIndex: theme.zIndex.speedDial,
-  // twake-mui writes primary.dark on primary.light: 4.1:1, below the 4.5:1
-  // of RGAA 3.2 for its 16 px label (docs/twake-mui-gaps.md); 5.3:1 here (#005ab7)
-  color: darken(theme.palette.primary.dark, 0.15)
+  height: 60,
+  minWidth: 154,
+  pl: '20px',
+  pr: '24px',
+  gap: '12px',
+  borderRadius: '30px',
+  bgcolor: '#208BFF',
+  color: '#FFFFFF',
+  fontSize: 16,
+  fontWeight: 500,
+  textTransform: 'none',
+  boxShadow: 'none',
+  '&:hover': { bgcolor: darken('#208BFF', 0.1), boxShadow: 'none' },
+  '& svg': { width: 28, height: 28 },
+  '& .MuiFab-label, & > span': { gap: '12px' }
 })
 
 export interface FloatingActionButtonProps {

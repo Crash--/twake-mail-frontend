@@ -101,3 +101,18 @@ export function useTrustedSender(email: string | null): TrustedSender {
     trust
   }
 }
+
+function domainOf(address: string): string | null {
+  const at = address.lastIndexOf('@')
+  return at === -1 ? null : normalize(address.slice(at + 1))
+}
+
+/**
+ * Whether two addresses share their domain: the remote content of a sender
+ * of the domain of the user shows without asking (for now: the From of an
+ * email can be forged)
+ */
+export function isSameDomain(sender: string, user: string): boolean {
+  const domain = domainOf(sender)
+  return domain !== null && domain !== '' && domain === domainOf(user)
+}

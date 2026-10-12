@@ -4,36 +4,47 @@ import { createLocalPreference } from './localPreference'
 
 /**
  * The "Spam reports" preference of tmail-flutter (Settings > Preferences,
- * `SpamReportConfig`): the banner reminding the unread spam, and when the
- * user last dismissed it. Both on this device, in one entry as in
+ * `SpamReportConfig`): the banner reminding the unread spam, and when it
+ * was last shown and dismissed. All on this device, in one entry as in
  * tmail-flutter.
  */
 export const SPAM_REPORT_PREFERENCE_STORAGE_KEY =
   'twake-mail.preferences.spamReport'
 
-/** The banner comes back after this delay (`spamReportBannerDisplayIntervalInHours`) */
+/**
+ * The banner comes back after this delay once shown or dismissed
+ * (`spamReportBannerDisplayIntervalInHours`)
+ */
 export const SPAM_REPORT_INTERVAL_MS = 24 * 60 * 60 * 1000
 
 export interface SpamReportConfig {
   isEnabled: boolean
   /** Epoch ms, 0 when never dismissed */
   lastDismissedAt: number
+  /** Epoch ms, 0 when never shown */
+  lastShownAt: number
 }
 
-const INITIAL_CONFIG: SpamReportConfig = { isEnabled: true, lastDismissedAt: 0 }
+const INITIAL_CONFIG: SpamReportConfig = {
+  isEnabled: true,
+  lastDismissedAt: 0,
+  lastShownAt: 0
+}
+
+function parseTimestamp(value: unknown): number {
+  return typeof value === 'number' && value > 0 ? value : 0
+}
 
 function parseConfig(raw: string | null): SpamReportConfig {
   if (raw === null) return INITIAL_CONFIG
   try {
     const value: unknown = JSON.parse(raw)
     if (typeof value !== 'object' || value === null) return INITIAL_CONFIG
-    const { isEnabled, lastDismissedAt } = value as Record<string, unknown>
+    const stored = value as Record<string, unknown>
     return {
-      isEnabled: isEnabled !== false,
-      lastDismissedAt:
-        typeof lastDismissedAt === 'number' && lastDismissedAt > 0
-          ? lastDismissedAt
-          : 0
+      isEnabled: stored.isEnabled !== false,
+      lastDismissedAt: parseTimestamp(stored.lastDismissedAt),
+      lastShownAt: parseTimestamp(stored.lastShownAt)
     }
   } catch {
     return INITIAL_CONFIG
@@ -48,15 +59,15 @@ export const spamReportPreference = createLocalPreference<SpamReportConfig>({
 
 /**
  * Whether the banner may show: not within 24 hours of the last dismissal
- * (a dismissal in the future, a clock set back, counts for a day at most),
- * as tmail-flutter's `GetSpamMailboxCachedInteractor`
+ * or display (one in the future, a clock set back, counts for a day at
+ * most), as tmail-flutter's `GetSpamMailboxCachedInteractor`
  */
 export function isSpamReportIntervalElapsed(
-  lastDismissedAt: number,
+  lastEventAt: number,
   now: number
 ): boolean {
-  if (lastDismissedAt <= 0) return true
-  const elapsed = now - lastDismissedAt
+  if (lastEventAt <= 0) return true
+  const elapsed = now - lastEventAt
   if (elapsed < 0) return Math.abs(elapsed) >= SPAM_REPORT_INTERVAL_MS
   return elapsed >= SPAM_REPORT_INTERVAL_MS
 }
@@ -65,6 +76,8 @@ export interface SpamReportPreference extends SpamReportConfig {
   setEnabled: (isEnabled: boolean) => void
   /** Hides the banner for 24 hours */
   dismiss: () => void
+  /** Records that the banner showed: it does not come back for 24 hours */
+  markShown: () => void
 }
 
 export function useSpamReportPreference(): SpamReportPreference {
@@ -81,5 +94,11 @@ export function useSpamReportPreference(): SpamReportPreference {
       lastDismissedAt: Date.now()
     })
   }, [])
-  return { ...config, setEnabled, dismiss }
+  const markShown = useCallback(() => {
+    spamReportPreference.write({
+      ...spamReportPreference.read(),
+      lastShownAt: Date.now()
+    })
+  }, [])
+  return { ...config, setEnabled, dismiss, markShown }
 }

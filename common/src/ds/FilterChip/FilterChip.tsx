@@ -1,43 +1,62 @@
-// Upstream to twake-ui: yes. The search filters of the Figma "Teammail 1.1"
-// file are flat chips (#f3f6f9, no border, 8 px radius) with a 16 px icon,
-// an optional chevron, and a pale primary look with a cross once applied.
-// twake-mui's `Chip` is outlined or filled with a solid primary colour, and
-// needs `sx` for that background (docs/twake-mui-gaps.md).
-import { Bottom, CrossSmall, Icon, type IconProps } from '@linagora/twake-icons'
-import { Chip, type SxProps, type Theme } from '@linagora/twake-mui'
+// Upstream to twake-ui: yes. The search filters of tmail-flutter
+// (`SearchFilterButton`) are flat chips (#ECEEF1, no border, a 10 px radius,
+// 12 px on the sides) with a 16 px icon 4 px before Inter Regular 13 in dark
+// grey (#686E76), an optional grey chevron 8 px after it, and the primary
+// colour at 6 % (on the background and the icon only) with a 10 px grey
+// cross once applied. twake-mui's `Chip` is outlined or filled with a solid primary
+// colour, and needs `sx` for that background (docs/twake-mui-gaps.md).
+import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Box, Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
+import { DeleteSelection, Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
+const CHIP_BACKGROUND = TMAIL.fillChip
+const CHIP_COLOR = TMAIL.greyDark
+
+/** `AppColor.colorTextBody`: the chevron and the cross */
+const END_COLOR = TMAIL.grey
+
+/** icDeleteSelection: 10 px, its 8 px padding taken by the label gap */
+const CROSS_SX = { display: 'flex', px: '3px', color: END_COLOR } as const
+
+const CHEVRON_SX = { display: 'flex', color: END_COLOR } as const
 
 const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
-  height: 32,
-  borderRadius: 2,
+  height: 34,
+  borderRadius: '10px',
   border: 0,
-  px: 0.5,
+  px: '4px',
   fontSize: 13,
-  fontWeight: 500,
-  color: isSelected ? 'primary.main' : 'text.primary',
+  fontWeight: 400,
+  letterSpacing: 0,
+  color: CHIP_COLOR,
   bgcolor: theme =>
     isSelected
-      ? `color-mix(in srgb, ${theme.palette.primary.main} 12%, transparent)`
-      : theme.palette.background.default,
+      ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 6%, transparent)`
+      : CHIP_BACKGROUND,
   '&:hover, &.Mui-focusVisible': {
     bgcolor: theme =>
       isSelected
-        ? `color-mix(in srgb, ${theme.palette.primary.main} 20%, transparent)`
-        : theme.palette.action.hover
+        ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 12%, transparent)`
+        : `color-mix(in srgb, ${CHIP_COLOR} 16%, ${CHIP_BACKGROUND})`
   },
   '& .MuiChip-icon': {
-    ml: 0.75,
+    ml: '8px',
     mr: 0,
     fontSize: 16,
-    color: isSelected ? 'primary.main' : 'text.secondary'
+    color: isSelected ? 'primary.main' : CHIP_COLOR
   },
-  '& .MuiChip-label': { px: 0.5 }
+  '& .MuiChip-label': { pl: '8px', pr: '8px' },
+  '& .MuiChip-icon + .MuiChip-label': { pl: '4px' }
 })
 
 export interface FilterChipProps {
   label: string
   /** The icon before the label */
   icon?: IconProps['icon']
+  /** Replaces `icon` once applied, e.g. tmail-flutter's blue check */
+  selectedIcon?: IconProps['icon']
   /** Applied: the pale primary look, a cross, and `aria-pressed` */
   isSelected: boolean
   onClick: (event: MouseEvent<HTMLElement>) => void
@@ -66,6 +85,7 @@ function preventFocus(event: MouseEvent<HTMLElement>): void {
 export function FilterChip({
   label,
   icon,
+  selectedIcon,
   isSelected,
   onClick,
   popup,
@@ -81,17 +101,23 @@ export function FilterChip({
       : isRemovable
         ? {}
         : { 'aria-pressed': isSelected }
+  const leadingIcon =
+    isSelected && selectedIcon !== undefined ? selectedIcon : icon
   return (
     <Chip
       label={label}
       clickable
       variant="filled"
-      icon={icon === undefined ? undefined : <Icon icon={icon} />}
+      icon={leadingIcon === undefined ? undefined : <Icon icon={leadingIcon} />}
       endIcon={
         popup !== undefined ? (
-          <Icon icon={Bottom} size={12} />
+          <Box component="span" sx={CHEVRON_SX}>
+            <Icon icon={Dropdown} size={16} />
+          </Box>
         ) : isSelected ? (
-          <Icon icon={CrossSmall} />
+          <Box component="span" sx={CROSS_SX}>
+            <Icon icon={DeleteSelection} size={10} />
+          </Box>
         ) : undefined
       }
       sx={CHIP_SX(isSelected)}

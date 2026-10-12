@@ -173,6 +173,8 @@ export interface RichTextEditorActions {
   openLinkDialog: () => void
   /** Opens the picker of the images to insert; false if images are not handled */
   pickImages: () => boolean
+  /** Stores the image files (`onImageFiles`) and inserts them at the caret */
+  insertImages: (files: File[]) => void
   /** Types text at the caret (an emoji) and puts the focus back in the text */
   insertText: (text: string) => void
   /** Puts the focus back in the text */

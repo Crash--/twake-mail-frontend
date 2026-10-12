@@ -114,6 +114,8 @@ test.describe('CMP composer', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await composer.editor.click()
     await page.keyboard.type('Hello ')
     const bold = composer.toolbarButton('Bold')
@@ -250,8 +252,9 @@ test.describe('CMP composer', () => {
     await expect(first.root).toHaveAttribute('aria-modal', 'true')
     await expect(page.getByRole('dialog', { name: 'Third' })).toBeHidden()
 
-    // A narrow desktop: two in the dock, the oldest in the menu at its start
-    await page.setViewportSize({ width: 1700, height: 800 })
+    // A narrow desktop: two shared windows (600 px) in the dock, no room
+    // left for a minimized one (400 px), the oldest in the menu at its start
+    await page.setViewportSize({ width: 1420, height: 800 })
     await expect(page.getByRole('dialog', { name: 'First' })).toBeVisible()
     await expect(page.getByRole('dialog', { name: 'Third' })).toBeVisible()
     await expect(page.getByRole('dialog', { name: 'Second' })).toBeHidden()
@@ -293,7 +296,7 @@ test.describe('CMP composer', () => {
         'wrong, invalid address'
       )
 
-      // Backspace reaches the last chip, Delete removes it, Enter edits one
+      // Backspace reaches the last chip, Delete removes it, F2 edits one
       await page.keyboard.press('Backspace')
       await expect(composer.recipients('to').last()).toBeFocused()
       await page.keyboard.press('Delete')
@@ -306,7 +309,7 @@ test.describe('CMP composer', () => {
       await page.keyboard.press('ArrowLeft')
       await page.keyboard.press('ArrowLeft')
       await expect(composer.recipients('to').first()).toBeFocused()
-      await page.keyboard.press('Enter')
+      await page.keyboard.press('F2')
       await expect(to).toBeFocused()
       await expect(to).toHaveValue('alice@example.com')
       await page.keyboard.press('Enter')
@@ -344,13 +347,14 @@ test.describe('CMP composer', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await expect(composer.editor).toHaveAttribute('aria-multiline', 'true')
 
-    // Subject -> editor -> toolbar (under the text)
-    await expect(composer.toolbarButton('Undo')).toHaveAttribute(
-      'aria-disabled',
-      'true'
-    )
+    // Subject -> editor -> toolbar (under the text); as tmail-flutter, no undo
+    // nor redo button (Ctrl+Z, Ctrl+Y) nor clearing
+    await expect(composer.toolbarButton('Undo')).toHaveCount(0)
+    await expect(composer.toolbarButton('Clear formatting')).toHaveCount(0)
     await composer.subjectInput.focus()
     await page.keyboard.press('Tab')
     await expect(composer.editor).toBeFocused()
@@ -360,7 +364,7 @@ test.describe('CMP composer', () => {
     for (let step = 0; step < 5; step++) await page.keyboard.press('ArrowRight')
     await expect(composer.toolbarButton('Bold')).toBeFocused()
     await page.keyboard.press('End')
-    await expect(composer.toolbarButton('Clear formatting')).toBeFocused()
+    await expect(composer.toolbarButton('Lists and indentation')).toBeFocused()
     await page.keyboard.press('Home')
     await expect(first).toBeFocused()
     await page.keyboard.press('Shift+Tab')
@@ -486,6 +490,8 @@ test.describe('CMP composer', () => {
     await setSignature(jmap, '<p>SIGNATURE_MARKER</p>')
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
+    // As tmail-flutter the formatting toolbar opens with "Aa"
+    await composer.showFormattingToolbar()
     await expect(composer.editor).toContainText('SIGNATURE_MARKER')
     await composer.editor.click({ position: { x: 20, y: 10 } })
     await composer.chooseFromMenu('Lists and indentation', 'Bulleted list')
@@ -671,7 +677,8 @@ test.describe('CMP composer', () => {
       .getByTestId('composer-bcc-field')
       .boundingBox()
     expect(bcc?.width).toBe(to?.width)
-    expect(bcc?.height).toBe(37)
+    // The 48 px lines of tmail-flutter's composer
+    expect(bcc?.height).toBe(48)
     await expectNoA11yViolations(page)
 
     await composer.root.getByTestId('composer-hide-cc-button').click()
@@ -687,21 +694,24 @@ test.describe('CMP composer', () => {
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
-    await expect(composer.toolbar).toBeVisible()
-    const editor = await composer.editor.boundingBox()
-    const toolbar = await composer.toolbar.boundingBox()
-    expect(toolbar?.y).toBeGreaterThan(editor?.y ?? Infinity)
-    await expect(composer.formattingButton).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
-
-    await composer.formattingButton.click()
+    // As tmail-flutter: hidden until "Aa" shows it
     await expect(composer.toolbar).toBeHidden()
     await expect(composer.formattingButton).toHaveAttribute(
       'aria-pressed',
       'false'
     )
+    await composer.formattingButton.click()
+    await expect(composer.toolbar).toBeVisible()
+    await expect(composer.formattingButton).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    const editor = await composer.editor.boundingBox()
+    const toolbar = await composer.toolbar.boundingBox()
+    expect(toolbar?.y).toBeGreaterThan(editor?.y ?? Infinity)
+
+    await composer.formattingButton.click()
+    await expect(composer.toolbar).toBeHidden()
     await composer.formattingButton.click()
     await expect(composer.toolbar).toBeVisible()
 
@@ -712,7 +722,7 @@ test.describe('CMP composer', () => {
     await expectNoA11yViolations(page)
   })
 
-  test('CMP-64 the expanded composer sits under the top bar with the page still showing around it, and the page is not dimmed', async ({
+  test('CMP-64 the expanded composer is centred over the dimmed page, as tmail-flutter', async ({
     page,
     user
   }, testInfo) => {
@@ -725,15 +735,17 @@ test.describe('CMP composer', () => {
     const viewport = page.viewportSize()
     expect(box).not.toBeNull()
     expect(viewport).not.toBeNull()
-    expect(box?.y).toBeGreaterThanOrEqual(60)
-    expect(box?.x).toBeGreaterThan(100)
-    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThan(
-      (viewport?.width ?? 0) - 50
-    )
-    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThan(
-      (viewport?.height ?? 0) - 50
-    )
-    await expect(mailbox.composeButton).toBeVisible()
+    const width = viewport?.width ?? 0
+    const height = viewport?.height ?? 0
+    // 85 % of the width, 90 % of the height, in the middle
+    expect(Math.abs((box?.width ?? 0) - width * 0.85)).toBeLessThan(2)
+    expect(Math.abs((box?.height ?? 0) - height * 0.9)).toBeLessThan(2)
+    expect(
+      Math.abs((box?.x ?? 0) + (box?.width ?? 0) / 2 - width / 2)
+    ).toBeLessThan(2)
+    expect(
+      Math.abs((box?.y ?? 0) + (box?.height ?? 0) / 2 - height / 2)
+    ).toBeLessThan(2)
     await composer.fullscreenButton.click()
     await composer.expectMode('normal')
   })

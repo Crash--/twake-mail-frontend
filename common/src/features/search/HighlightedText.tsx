@@ -1,5 +1,7 @@
 import { useMemo, type ReactElement } from 'react'
 
+import { Highlight } from '@/ds/Highlight/Highlight'
+
 import { parseSnippet } from './snippet'
 
 export interface HighlightedTextProps {
@@ -28,7 +30,11 @@ export function HighlightedText({
   return (
     <>
       {segments.map((segment, index) =>
-        segment.isMatch ? <mark key={index}>{segment.text}</mark> : segment.text
+        segment.isMatch ? (
+          <Highlight key={index}>{segment.text}</Highlight>
+        ) : (
+          segment.text
+        )
       )}
     </>
   )

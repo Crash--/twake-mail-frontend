@@ -51,6 +51,7 @@ import {
 import { emailSetBatchSize } from '@common/features/emailActions/sendEmailChanges'
 
 import { destroyMailboxes } from './emptyFolder'
+import { useFolderActionProgress } from './FolderActionProgress'
 import type { FolderActionId } from './folderActionItems'
 import { validateFolderName } from './folderName'
 import { MailboxNameDialog } from './MailboxNameDialog'
@@ -103,6 +104,7 @@ export function FolderActionsProvider({
   const confirm = useConfirm()
   const pickMailbox = usePickMailbox()
   const emptyFolder = useEmptyFolder()
+  const folderProgress = useFolderActionProgress()
   const { run: runEmailAction } = useEmailActions()
   const { notify, dismiss } = useNotify()
   const getName = useMailboxName()
@@ -215,8 +217,9 @@ export function FolderActionsProvider({
   const move = useCallback(
     async (mailbox: MailboxSummary): Promise<void> => {
       const list = await loadMailboxes()
+      // As tmail-flutter: "Move To", "All folders" first, the folder and
+      // its subfolders faded
       const destination = await pickMailbox({
-        title: t('folders.menu.move'),
         rootLabel: t('mailboxPicker.allFolders'),
         personalOnly: true,
         disabledIds: [mailbox.id, ...findDescendantIds(list, mailbox.id)]
@@ -273,7 +276,7 @@ export function FolderActionsProvider({
     async (mailbox: MailboxSummary): Promise<void> => {
       const list = await loadMailboxes()
       const destination = await pickMailbox({
-        disabledIds: [mailbox.id],
+        currentId: mailbox.id,
         requireAddItems: true
       })
       if (destination === null || destination === PICKED_ROOT) return
@@ -417,15 +420,26 @@ export function FolderActionsProvider({
   const markAsRead = useCallback(
     async (mailbox: MailboxSummary): Promise<void> => {
       const folderName = getName(mailbox)
+      // As tmail-flutter: one long folder action at a time, its progress
+      // above the list, sliding while the unread emails are fetched
+      const isStarted = folderProgress.start({
+        kind: 'markAsRead',
+        mailboxId: mailbox.id,
+        folderName,
+        total: null
+      })
+      if (!isStarted) return
       try {
         const emails = await fetchMailboxEmails(client, accountId, mailbox.id, {
           filter: { notKeyword: '$seen' }
         })
+        folderProgress.update(0, emails.length)
         const done = await runEmailAction({
           action: 'markAsRead',
           emails,
           mailboxId: mailbox.id,
-          silent: true
+          silent: true,
+          onProgress: folderProgress.update
         })
         if (!done) throw new Error('Some emails were not marked read')
         notify({
@@ -438,9 +452,11 @@ export function FolderActionsProvider({
           message: t('folders.markAsRead.failure', { folderName }),
           severity: 'error'
         })
+      } finally {
+        folderProgress.finish()
       }
     },
-    [getName, client, accountId, runEmailAction, notify, t]
+    [getName, folderProgress, client, accountId, runEmailAction, notify, t]
   )
 
   const setSubscribed = useCallback(
@@ -567,10 +583,12 @@ export function FolderActionsProvider({
   if (dialog?.mode === 'create') {
     const { parentId } = dialog
     const changeLocation = (): void => {
+      // As tmail-flutter: "All folders" first, the location chosen checked
       void pickMailbox({
-        title: t('folders.create.location'),
-        rootLabel: t('mailboxPicker.personalFolders'),
-        personalOnly: true
+        title: t('mailboxPicker.selectParent'),
+        rootLabel: t('mailboxPicker.allFolders'),
+        personalOnly: true,
+        currentId: parentId ?? PICKED_ROOT
       }).then(destination => {
         if (destination === null) return
         setDialog({
@@ -587,7 +605,7 @@ export function FolderActionsProvider({
         location={{
           path:
             parentId === null
-              ? t('mailboxPicker.personalFolders')
+              ? t('mailboxPicker.allFolders')
               : mailboxPath(mailboxes, parentId, getName),
           onChange: changeLocation
         }}

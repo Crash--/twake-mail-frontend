@@ -38,10 +38,10 @@ test.describe('EML the reading view of the new design', () => {
         actions.getByRole('button', { name: 'Move to trash' })
       ).toBeVisible()
       await expect(email.moreButton).toBeVisible()
-      // "To" with the names, and the chevron showing the addresses
+      // "To" with the names; as tmail-flutter, no chevron for one recipient
       await expect(
         email.root.getByTestId('email-view-recipients-toggle')
-      ).toHaveAttribute('aria-expanded', 'false')
+      ).toHaveCount(0)
       await expect(
         email.root.getByRole('group', { name: 'Reply actions' })
       ).toBeVisible()

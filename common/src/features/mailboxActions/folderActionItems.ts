@@ -1,23 +1,23 @@
-import {
-  Eye,
-  EyeClosed,
-  FolderAdd,
-  Filter,
-  FolderMoveto,
-  Moveto,
-  Rename,
-  Restore,
-  Tab,
-  Trash,
-  EmailOpen,
-  type IconProps
-} from '@linagora/twake-icons'
+import type { IconProps } from '@linagora/twake-icons'
 
 import {
   isHiddenMailbox,
   isPersonalMailbox,
   isTeamTrash
 } from '@common/features/mailbox/mailboxTree'
+import {
+  EmailOpen,
+  Eye,
+  EyeClosed,
+  Filter,
+  FolderAdd,
+  MoveMailbox,
+  Moveto,
+  Openwith,
+  Rename,
+  Restore,
+  Trash
+} from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -46,7 +46,8 @@ export interface FolderActionItem {
 const ITEMS: Record<FolderActionId, Omit<FolderActionItem, 'id'>> = {
   'open-in-new-tab': {
     label: 'folders.menu.openInNewTab',
-    icon: Tab,
+    // tmail-flutter's `ic_open_in_new_tab`
+    icon: Openwith,
     isDestructive: false
   },
   'create-filter': {
@@ -81,7 +82,7 @@ const ITEMS: Record<FolderActionId, Omit<FolderActionItem, 'id'>> = {
   },
   move: {
     label: 'folders.menu.move',
-    icon: FolderMoveto,
+    icon: MoveMailbox,
     isDestructive: false
   },
   rename: { label: 'folders.menu.rename', icon: Rename, isDestructive: false },

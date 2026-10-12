@@ -99,6 +99,19 @@ describe('destroyMailboxEmails', () => {
     })
   })
 
+  it('reports how many emails went after each page', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(5) })
+    const client = makeClient(server)
+    const onProgress = jest.fn()
+
+    await destroyMailboxEmails(client, FAKE_ACCOUNT_ID, 'mailbox-inbox', {
+      batchSize: 2,
+      onProgress
+    })
+
+    expect(onProgress.mock.calls).toEqual([[2], [4], [5], [5]])
+  })
+
   it('stops when the server refuses to destroy', async () => {
     const server = makeFakeJmapServer({ emails: makeEmails(2) })
     server.setErrors.set('e0', 'forbidden')

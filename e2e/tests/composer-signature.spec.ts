@@ -113,7 +113,7 @@ test.describe('CMP: signatures and images', () => {
     )
   })
 
-  test('CMP-44 an image dropped on the body goes inline where it is dropped; other files are attached', async ({
+  test('CMP-44 an image dropped on the text goes inline where it is dropped; on the rest of the body it is attached, elsewhere ignored', async ({
     page,
     user,
     jmap
@@ -131,8 +131,17 @@ test.describe('CMP: signatures and images', () => {
     await expect(composer.editor.locator('img[data-reference]')).toHaveCount(1)
     await expect(composer.attachments).toHaveCount(0)
 
-    // The same image dropped on the subject is attached
-    await dropPng(composer.subjectInput, png, 'attached.png')
+    // Dropped on the subject: nothing, as tmail-flutter only the body
+    // takes files
+    await dropPng(composer.subjectInput, png, 'ignored.png')
+    await expect(composer.attachments).toHaveCount(0)
+
+    // The same image dropped on the body out of the text is attached
+    await dropPng(
+      composer.root.getByTestId('composer-drop-zone'),
+      png,
+      'attached.png'
+    )
     await expect(composer.attachments).toHaveText([/attached\.png/])
     await expect(composer.attachments.first()).toHaveAttribute(
       'data-status',

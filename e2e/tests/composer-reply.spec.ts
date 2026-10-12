@@ -458,9 +458,12 @@ test.describe('CMP: the quote', () => {
       await route.fulfill({ status: 204 })
     })
     const mailbox = await new LoginPage(page).loginAs(user)
-    const composer = await (
-      await openReceived(mailbox, 'Tracked newsletter')
-    ).forward()
+    const received = await openReceived(mailbox, 'Tracked newsletter')
+    // Bob is of the domain of the user: the reading view shows his remote
+    // images. The composer must load none
+    await page.waitForTimeout(500)
+    remote.length = 0
+    const composer = await received.forward()
     await expect(quoteFrame(composer).locator('blockquote')).toContainText(
       'Background'
     )

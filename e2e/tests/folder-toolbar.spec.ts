@@ -4,13 +4,29 @@ import { expect, test } from '../support/fixtures'
 
 test.describe('FBAR folder action bar', () => {
   test(
-    'FBAR-01 the inbox offers refresh, select all and the three filters',
+    'FBAR-01 the inbox offers refresh, select all and the three filters (the filter in the bar below the desktop size)',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       await jmap.sendEmail({ to: user.email, subject: 'First', text: 'Hi' })
       await jmap.waitForEmail({ subject: 'First' })
       const mailbox = await new LoginPage(page).loginAs(user)
 
+      if (['mobile', 'tablet'].includes(test.info().project.name)) {
+        // As tmail-flutter below the desktop size: no toolbar above the
+        // list, the filter in the bar, the avatar selects its row
+        await expect(page.getByTestId('list-toolbar')).toHaveCount(0)
+        await page.getByTestId('top-bar').getByTestId('list-filter-button').click()
+        await expect(
+          page.getByTestId('list-filter-menu').getByRole('menuitemradio')
+        ).toHaveCount(3)
+        await expectNoA11yViolations(page)
+        await page.keyboard.press('Escape')
+
+        await mailbox.selectEmail('First')
+        await expect(mailbox.selectionToolbar).toContainText('1 selected')
+        await expectNoA11yViolations(page)
+        return
+      }
       const toolbar = page.getByTestId('list-toolbar')
       await expect(toolbar).toBeVisible()
       await expect(toolbar.getByTestId('list-refresh-button')).toBeVisible()

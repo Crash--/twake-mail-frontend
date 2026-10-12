@@ -487,17 +487,32 @@ test.describe('SRCH search', () => {
     await expect(row).toHaveAttribute('data-unread', 'true')
     await expectNoA11yViolations(page)
 
+    // Read from the row on a desktop; the compact rows of phones and
+    // tablets have no such toggle (tmail-flutter): from the selection
+    const mailbox = new MailboxPage(page)
     await row.hover()
-    await row.getByTestId('email-list-item-toggle-seen').click()
+    const toggle = row.getByTestId('email-list-item-toggle-seen')
+    if (await toggle.isVisible()) {
+      await toggle.click()
+    } else {
+      await mailbox.selectEmail(subject)
+      await mailbox.runSelectionAction('mark-as-read')
+    }
     await expect(row).not.toHaveAttribute('data-unread')
     await expect
       .poll(async () => (await jmap.getEmail(email.id)).keywords.$seen)
       .toBe(true)
 
-    // Archived from the selection toolbar: the result stays, in Archive
-    const mailbox = new MailboxPage(page)
-    await mailbox.selectEmail(subject)
-    await mailbox.runSelectionAction('archive')
+    // Archived from the selection bar of phones and tablets, from the menu
+    // of its row on a desktop (tmail-flutter's selection bar of a desktop
+    // has no archive): the result stays, in Archive
+    if (mailbox.hasFolderDrawer()) {
+      await mailbox.selectEmail(subject)
+      await mailbox.runSelectionAction('archive')
+    } else {
+      const menu = await mailbox.openEmailMenu(subject, { rightClick: true })
+      await menu.getByTestId('email-action-archive').click()
+    }
     const archive = await jmap.findMailboxByRole('archive')
     await expect
       .poll(async () => Object.keys((await jmap.getEmail(email.id)).mailboxIds))
@@ -589,13 +604,15 @@ test.describe('SRCH search', () => {
         // From the corner of the field, moved left only to stay on screen
         expect(card?.x ?? 0).toBeLessThanOrEqual((field?.x ?? 0) + 1)
         expect(card?.x ?? 0).toBeGreaterThanOrEqual((field?.x ?? 0) - 16)
-        // 700 px under the search of a desktop, at least a form's width
-        // under the narrower one of a tablet
+        // As tmail-flutter, as wide as the search of a desktop; at least
+        // a form's width under the narrower one of a tablet
         expect(card?.width).toBeGreaterThanOrEqual(
           Math.min(560, field?.width ?? 0)
         )
         if ((page.viewportSize()?.width ?? 0) >= 1200) {
-          expect(card?.width).toBeCloseTo(700, -1)
+          expect(
+            Math.abs((card?.width ?? 0) - (field?.width ?? 0))
+          ).toBeLessThan(2)
         }
       }
       await expectNoA11yViolations(page)
@@ -638,6 +655,15 @@ test.describe('SRCH search', () => {
     await waitInInbox(jmap, plain)
     const event = await waitInInbox(jmap, invitation)
     await jmap.setKeywords(event.id, { event: true })
+    // The search index takes the keyword asynchronously, late when the
+    // stack is busy: wait for a search to find the invitation by it
+    await expect
+      .poll(async () =>
+        (await jmap.queryEmails({ text: 'report', hasKeyword: 'event' })).some(
+          email => email.id === event.id
+        )
+      )
+      .toBe(true)
 
     await new LoginPage(page).loginAs(user)
     const search = await new SearchPage(page).search('report')
@@ -658,8 +684,18 @@ test.describe('SRCH search', () => {
 
     // A sender nobody has: nothing is left, the chip shows the filter
     await search.filterChip('from').click()
-    await page.getByTestId('search-filter-address-input').fill('nobody@x.org')
-    await page.keyboard.press('Enter')
+    const picker = page.getByTestId('search-contact-picker')
+    await expect(
+      picker.getByRole('heading', { name: 'Find emails from' })
+    ).toBeVisible()
+    await page.getByTestId('search-contact-picker-input').fill('nobody@x.org')
+    await picker
+      .getByTestId('search-contact-picker-item')
+      .filter({ hasText: 'nobody@x.org' })
+      .click()
+    await expectNoA11yViolations(page)
+    await page.getByTestId('search-contact-picker-done-button').click()
+    await expect(picker).toBeHidden()
 
     await expect(page.getByTestId('search-filter-removable')).toHaveText(
       'From: nobody@x.org'

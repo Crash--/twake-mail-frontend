@@ -9,7 +9,8 @@ import {
 } from 'react'
 
 /** The sections of the sidebar that collapse */
-export type SidebarSectionId = 'folders' | 'teamMailboxes' | 'labels'
+export type SidebarSectionId =
+  'folders' | 'personalFolders' | 'teamMailboxes' | 'labels'
 
 export interface SidebarSections {
   isExpanded: (id: SidebarSectionId) => boolean

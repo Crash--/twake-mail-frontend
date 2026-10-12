@@ -1,13 +1,4 @@
-import {
-  Archive,
-  Email as EmailIcon,
-  EmailOpen,
-  Star,
-  StarOutline,
-  Trash,
-  Warning
-} from '@linagora/twake-icons'
-import { Box, Empty, Typography } from '@linagora/twake-mui'
+import { Box, Empty } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import {
   useEffect,
@@ -18,8 +9,18 @@ import {
   type ReactElement
 } from 'react'
 
+import {
+  Archive,
+  Email as EmailIcon,
+  EmailOpen,
+  Star,
+  StarOutline,
+  Trash,
+  Warning
+} from '@/ds/FlutterIcons/FlutterIcons'
+import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
+import { EmailSubjectBar } from '@/ds/EmailSubject/EmailSubjectBar'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
-import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageThread } from '@/ds/MessageThread/MessageThread'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
@@ -291,39 +292,39 @@ function ConversationContent({
   const lastSender = lastArrived?.from?.[0] ?? null
 
   return (
-    <ReadingPane data-testid="conversation-view">
-      {/* Stays in view over a long conversation */}
-      <ReadingToolbar
-        onBack={onBack}
-        navigation={navigation}
-        label={t('thread.actions')}
-        data-testid="conversation-toolbar"
-      >
-        <ConversationMenu items={menuItems} />
-      </ReadingToolbar>
-      <Box
-        className="u-ph-1 u-pt-1 u-pb-half"
-        data-testid="conversation-header"
-      >
-        <InlineGroup gap={2} align="center">
-          <Typography
-            ref={subjectRef}
-            id={subjectId}
-            variant="h4"
-            component="h1"
-            tabIndex={-1}
-            className="u-breakword"
-            data-testid="conversation-subject"
-          >
-            {subject}
-          </Typography>
+    <ReadingPane
+      // Stays in view over a long conversation
+      toolbar={
+        <ReadingToolbar
+          onBack={onBack}
+          navigation={navigation}
+          label={t('thread.actions')}
+          data-testid="conversation-toolbar"
+        >
+          <ConversationMenu items={menuItems} />
+        </ReadingToolbar>
+      }
+      replyBar={<ConversationReplyBar emails={emails} />}
+      data-testid="conversation-view"
+    >
+      <EmailSubjectBar
+        end={
           <EmailLabels
             emails={emails}
             mailboxId={null}
             size="small"
             className=""
           />
-        </InlineGroup>
+        }
+        data-testid="conversation-header"
+      >
+        <EmailSubject
+          ref={subjectRef}
+          id={subjectId}
+          data-testid="conversation-subject"
+        >
+          {subject}
+        </EmailSubject>
         <SecondaryText
           variant="body2"
           component="p"
@@ -333,7 +334,7 @@ function ConversationContent({
         >
           {t('thread.messageCount', { smart_count: emails.length })}
         </SecondaryText>
-      </Box>
+      </EmailSubjectBar>
       <MessageThread label={t('thread.messages')} data-testid="conversation">
         {emails.map(email => (
           <ConversationMessage
@@ -363,7 +364,6 @@ function ConversationContent({
           </span>
         )}
       </Box>
-      <ConversationReplyBar emails={emails} />
     </ReadingPane>
   )
 }
@@ -452,12 +452,15 @@ export function ConversationView({
   // The way back to the list stays, as while it loads
   if (emails.length === 0) {
     return (
-      <ReadingPane>
-        <ReadingToolbar
-          onBack={onBack}
-          navigation={NO_NAVIGATION}
-          label={t('thread.actions')}
-        />
+      <ReadingPane
+        toolbar={
+          <ReadingToolbar
+            onBack={onBack}
+            navigation={NO_NAVIGATION}
+            label={t('thread.actions')}
+          />
+        }
+      >
         <Empty
           icon={EmailOpen}
           title={t('thread.empty')}

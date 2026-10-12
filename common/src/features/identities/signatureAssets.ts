@@ -12,13 +12,24 @@ export interface PublishedImage {
   publicUri: string
 }
 
+/** Why the server did not publish an image */
+export interface PublishError {
+  /** The SetError type: `overQuota` when the images take too much room */
+  type: string
+  /** What the server says, shown as is when the quota is reached */
+  description: string | null
+}
+
+export type PublishResult =
+  { ok: true; value: PublishedImage } | { ok: false; error: PublishError }
+
 /** Uploads an image and publishes it, tied to the identity when it exists */
 export async function publishSignatureImage(
   client: JmapClient,
   accountId: string,
   file: Blob,
   identityId: string | null
-): Promise<PublishedImage | null> {
+): Promise<PublishResult> {
   const { blobId } = await client.upload(accountId, file)
   const response = await client.call('PublicAsset/set', {
     accountId,
@@ -30,8 +41,20 @@ export async function publishSignatureImage(
     }
   })
   const created = response.created?.image
-  if (!created?.publicURI) return null
-  return { assetId: created.id, publicUri: created.publicURI }
+  if (created?.publicURI) {
+    return {
+      ok: true,
+      value: { assetId: created.id, publicUri: created.publicURI }
+    }
+  }
+  const refused = response.notCreated?.image
+  return {
+    ok: false,
+    error: {
+      type: refused?.type ?? 'serverFail',
+      description: refused?.description ?? null
+    }
+  }
 }
 
 export interface SignatureAssetChanges {

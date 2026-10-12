@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactElement,
@@ -23,6 +24,12 @@ interface ListFilterApi {
   /** Where phones show the filter button: the end of the top bar */
   slot: HTMLElement | null
   setSlot: (element: HTMLElement | null) => void
+  /** Over the bar of the mail below the desktop size: the selection bar */
+  selectionSlot: HTMLElement | null
+  setSelectionSlot: (element: HTMLElement | null) => void
+  /** Emails are selected in the list: "New message" makes way */
+  isSelecting: boolean
+  setSelecting: (isSelecting: boolean) => void
   state: FilterState | null
   select: (scope: string, option: ListFilterOption) => void
   clear: () => void
@@ -60,6 +67,8 @@ export function ListFilterProvider({
   const { notify } = useNotify()
   const [state, setState] = useState<FilterState | null>(null)
   const [slot, setSlot] = useState<HTMLElement | null>(null)
+  const [selectionSlot, setSelectionSlot] = useState<HTMLElement | null>(null)
+  const [isSelecting, setSelecting] = useState(false)
 
   const clear = useCallback((): void => {
     setState(null)
@@ -84,8 +93,18 @@ export function ListFilterProvider({
   )
 
   const api = useMemo(
-    () => ({ state, select, clear, slot, setSlot }),
-    [state, select, clear, slot]
+    () => ({
+      state,
+      select,
+      clear,
+      slot,
+      setSlot,
+      selectionSlot,
+      setSelectionSlot,
+      isSelecting,
+      setSelecting
+    }),
+    [state, select, clear, slot, selectionSlot, isSelecting]
   )
   return (
     <ListFilterContext.Provider value={api}>
@@ -103,6 +122,10 @@ export interface ListFilterControl {
 const NO_FILTER: ListFilterApi = {
   slot: null,
   setSlot: () => undefined,
+  selectionSlot: null,
+  setSelectionSlot: () => undefined,
+  isSelecting: false,
+  setSelecting: () => undefined,
   state: null,
   select: () => undefined,
   clear: () => undefined
@@ -144,4 +167,32 @@ export function ListFilterSlot(): ReactElement {
       data-testid="list-filter-slot"
     />
   )
+}
+
+/** Where the selection bar goes, over the bar of the mail (not on desktops) */
+export function useSelectionBarSlot(): HTMLElement | null {
+  return (useContext(ListFilterContext) ?? NO_FILTER).selectionSlot
+}
+
+/** Gives the bar of the mail as the place of the selection bar */
+export function useSelectionBarSlotRef(): (
+  element: HTMLElement | null
+) => void {
+  return (useContext(ListFilterContext) ?? NO_FILTER).setSelectionSlot
+}
+
+/** Emails are selected in the list shown */
+export function useIsSelectingEmails(): boolean {
+  return (useContext(ListFilterContext) ?? NO_FILTER).isSelecting
+}
+
+/** Tells the frame whether emails are selected in the list */
+export function useReportSelecting(isSelecting: boolean): void {
+  const { setSelecting } = useContext(ListFilterContext) ?? NO_FILTER
+  useEffect(() => {
+    setSelecting(isSelecting)
+    return () => {
+      setSelecting(false)
+    }
+  }, [isSelecting, setSelecting])
 }

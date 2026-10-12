@@ -1,31 +1,24 @@
+import { Button } from '@linagora/twake-mui'
+import { useState, type MouseEvent, type ReactElement } from 'react'
+
 import {
-  Account,
-  Attachment,
-  Calendar,
-  CalendarToday,
-  Email,
+  AllEmail,
+  AttachmentSB,
+  CalendarEvent,
+  CalendarSB,
+  EmailNotification,
   FolderOutlined,
   LabelOutlined,
-  StarOutline
-} from '@linagora/twake-icons'
-import {
-  Box,
-  Button,
-  Menu,
-  MenuItem,
-  Popover,
-  TextField
-} from '@linagora/twake-mui'
-import {
-  useState,
-  type SubmitEvent,
-  type MouseEvent,
-  type ReactElement
-} from 'react'
-
+  MoveFolderContent,
+  SelectedCheck,
+  StarOutline,
+  UserSB
+} from '@/ds/FlutterIcons/FlutterIcons'
+import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { ScrollRow } from '@/ds/ScrollRow/ScrollRow'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
+import { usePickFolderOrChoice } from '@common/features/mailbox/MailboxPickerProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -35,10 +28,15 @@ import {
   isEmptySearch,
   type SearchFilter
 } from './searchFilter'
+import { SearchAddressDialog } from './SearchAddressDialog'
 import { DATE_LABELS } from './searchLabels'
 import { useMailboxOptions } from './useMailboxOptions'
 
-type MenuName = 'folder' | 'labels' | 'date'
+type MenuName = 'labels' | 'date'
+
+/** The scopes listed before the folders; not mailbox ids: they hold a space */
+const DEFAULT_SCOPE_ID = 'all email'
+const EVERYWHERE_SCOPE_ID = 'all email trash spam'
 type AddressField = 'from' | 'to'
 
 interface MenuChoice {
@@ -57,6 +55,8 @@ export interface SearchFiltersBarProps {
   filter: SearchFilter
   /** Runs the search with the changed filter */
   onChange: (filter: SearchFilter) => void
+  /** The last chip, e.g. the order of the results */
+  trailing?: ReactElement
 }
 
 /**
@@ -67,18 +67,17 @@ export interface SearchFiltersBarProps {
  */
 export function SearchFiltersBar({
   filter,
-  onChange
+  onChange,
+  trailing
 }: SearchFiltersBarProps): ReactElement {
   const { t } = useI18n()
   const mailboxes = useMailboxOptions()
   const labelsAvailable = useLabelsAvailable()
   const labelList = useLabels().data?.list
   const labels = labelsAvailable ? (labelList ?? []) : []
-  const [address, setAddress] = useState<{
-    field: AddressField
-    anchor: HTMLElement
-    value: string
-  } | null>(null)
+  const [addressField, setAddressField] = useState<AddressField | null>(null)
+  const pickFolderOrChoice = usePickFolderOrChoice()
+  const [isPickingFolder, setIsPickingFolder] = useState(false)
   const [menu, setMenu] = useState<{
     name: MenuName
     anchor: HTMLElement
@@ -116,37 +115,6 @@ export function SearchFiltersBar({
 
   const choices = (name: MenuName): MenuChoice[] => {
     switch (name) {
-      case 'folder':
-        return [
-          {
-            key: 'default',
-            label: t('search.scope.default'),
-            isSelected: scope.kind === 'default',
-            apply: () => {
-              onChange({ ...filter, scope: { kind: 'default' } })
-            }
-          },
-          {
-            key: 'everywhere',
-            label: t('search.scope.everywhere'),
-            isSelected: scope.kind === 'everywhere',
-            apply: () => {
-              onChange({ ...filter, scope: { kind: 'everywhere' } })
-            }
-          },
-          ...mailboxes.map(mailbox => ({
-            key: mailbox.id,
-            label: mailbox.label,
-            isSelected:
-              scope.kind === 'mailbox' && scope.mailboxId === mailbox.id,
-            apply: () => {
-              onChange({
-                ...filter,
-                scope: { kind: 'mailbox', mailboxId: mailbox.id }
-              })
-            }
-          }))
-        ]
       case 'labels':
         return [
           {
@@ -182,6 +150,56 @@ export function SearchFiltersBar({
           }
         }))
     }
+  }
+
+  // As tmail-flutter: the destination picker, "All email" and "All Email,
+  // trash & spam" before the folders, the current scope marked
+  const pickScope = (): void => {
+    setIsPickingFolder(true)
+    pickFolderOrChoice({
+      title: t('search.selectFolder'),
+      currentLabel: t('search.scope.selected'),
+      currentId:
+        scope.kind === 'mailbox'
+          ? scope.mailboxId
+          : scope.kind === 'everywhere'
+            ? EVERYWHERE_SCOPE_ID
+            : DEFAULT_SCOPE_ID,
+      choices: [
+        {
+          id: DEFAULT_SCOPE_ID,
+          label: t('search.scope.default'),
+          icon: AllEmail
+        },
+        {
+          id: EVERYWHERE_SCOPE_ID,
+          label: t('search.scope.everywhere'),
+          icon: MoveFolderContent,
+          placement: 'section'
+        }
+      ]
+    })
+      .then(picked => {
+        setIsPickingFolder(false)
+        if (picked === null) return
+        if ('icon' in picked) {
+          onChange({
+            ...filter,
+            scope: {
+              kind: picked.id === EVERYWHERE_SCOPE_ID ? 'everywhere' : 'default'
+            }
+          })
+          return
+        }
+        onChange({
+          ...filter,
+          scope: { kind: 'mailbox', mailboxId: picked.id }
+        })
+      })
+      .catch((error: unknown) => {
+        setIsPickingFolder(false)
+        console.warn('[search] Cannot pick the folder', error)
+      })
   }
 
   const removable = [
@@ -230,19 +248,6 @@ export function SearchFiltersBar({
     labels.find(label => label.keyword === filter.label)?.displayName ??
     t('search.labels.all')
 
-  const handleAddress = (event: SubmitEvent<HTMLFormElement>): void => {
-    event.preventDefault()
-    if (address === null) return
-    const value = address.value.trim()
-    if (value !== '' && !filter[address.field].includes(value)) {
-      onChange({
-        ...filter,
-        [address.field]: [...filter[address.field], value]
-      })
-    }
-    setAddress(null)
-  }
-
   const canClear = !isEmptySearch(filter) || filter.sort !== DEFAULT_SORT_ORDER
 
   return (
@@ -252,13 +257,14 @@ export function SearchFiltersBar({
           label={scopeLabel}
           icon={FolderOutlined}
           isSelected={scope.kind !== 'default'}
-          popup="menu"
-          isExpanded={menu?.name === 'folder'}
-          onClick={openMenu('folder')}
+          popup="dialog"
+          isExpanded={isPickingFolder}
+          onClick={pickScope}
           data-testid="search-filter-folder"
         />
       </Slot>
-      {labelsAvailable ? (
+      {/* As tmail-flutter: only once the account has labels */}
+      {labels.length > 0 ? (
         <Slot>
           <FilterChip
             label={labelName}
@@ -275,12 +281,12 @@ export function SearchFiltersBar({
         <Slot key={field}>
           <FilterChip
             label={t(`search.fields.${field}`)}
-            icon={Account}
+            icon={UserSB}
             isSelected={filter[field].length > 0}
             popup="dialog"
-            isExpanded={address?.field === field}
-            onClick={event => {
-              setAddress({ field, anchor: event.currentTarget, value: '' })
+            isExpanded={addressField === field}
+            onClick={() => {
+              setAddressField(field)
             }}
             data-testid={`search-filter-${field}`}
           />
@@ -301,7 +307,7 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={dateLabel}
-          icon={Calendar}
+          icon={CalendarSB}
           isSelected={filter.dateRange !== 'allTime'}
           popup="menu"
           isExpanded={menu?.name === 'date'}
@@ -312,7 +318,8 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={t('search.filters.hasAttachment')}
-          icon={Attachment}
+          icon={AttachmentSB}
+          selectedIcon={SelectedCheck}
           isSelected={filter.hasAttachment}
           onClick={() => {
             onChange({ ...filter, hasAttachment: !filter.hasAttachment })
@@ -324,6 +331,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.starred')}
           icon={StarOutline}
+          selectedIcon={SelectedCheck}
           isSelected={filter.starred}
           onClick={() => {
             onChange({ ...filter, starred: !filter.starred })
@@ -334,7 +342,8 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={t('search.filters.unread')}
-          icon={Email}
+          icon={EmailNotification}
+          selectedIcon={SelectedCheck}
           isSelected={filter.unread}
           onClick={() => {
             onChange({ ...filter, unread: !filter.unread })
@@ -345,7 +354,7 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={t('search.filters.notIncludeEvents')}
-          icon={CalendarToday}
+          icon={CalendarEvent}
           isSelected={filter.notIncludeEvents}
           onClick={() => {
             onChange({ ...filter, notIncludeEvents: !filter.notIncludeEvents })
@@ -353,6 +362,7 @@ export function SearchFiltersBar({
           data-testid="search-filter-not-include-events"
         />
       </Slot>
+      {trailing === undefined ? null : <Slot>{trailing}</Slot>}
       {canClear ? (
         <Button
           variant="text"
@@ -365,74 +375,28 @@ export function SearchFiltersBar({
           {t('search.clearFilter')}
         </Button>
       ) : null}
-      <Popover
-        open={address !== null}
-        anchorEl={address?.anchor ?? null}
-        onClose={() => {
-          setAddress(null)
-        }}
-        slotProps={{
-          paper: {
-            role: 'dialog',
-            'aria-label':
-              address === null ? undefined : t(`search.fields.${address.field}`)
-          }
-        }}
-        data-testid="search-filter-address-popover"
-      >
-        {address === null ? null : (
-          <Box
-            component="form"
-            className="u-flex u-flex-items-center u-p-1"
-            onSubmit={handleAddress}
-          >
-            <TextField
-              autoFocus
-              size="small"
-              label={t(`search.fields.${address.field}`)}
-              placeholder={t('search.hints.address')}
-              value={address.value}
-              onChange={event => {
-                setAddress({ ...address, value: event.target.value })
-              }}
-              slotProps={{
-                htmlInput: { 'data-testid': 'search-filter-address-input' }
-              }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              size="small"
-              className="u-ml-half"
-              disabled={address.value.trim() === ''}
-              data-testid="search-filter-address-add-button"
-            >
-              {t('search.addFilter')}
-            </Button>
-          </Box>
-        )}
-      </Popover>
-      <Menu
-        open={menu !== null}
+      {addressField === null ? null : (
+        <SearchAddressDialog
+          field={addressField}
+          filter={filter}
+          onChange={onChange}
+          onClose={() => {
+            setAddressField(null)
+          }}
+        />
+      )}
+      <ChoiceMenu
         anchorEl={menu?.anchor ?? null}
         onClose={closeMenu}
+        maxHeight={menu?.name === 'labels' ? 400 : undefined}
+        items={(menu === null ? [] : choices(menu.name)).map(choice => ({
+          key: choice.key,
+          label: choice.label,
+          isSelected: choice.isSelected,
+          onSelect: choice.apply
+        }))}
         data-testid="search-filter-menu"
-      >
-        {(menu === null ? [] : choices(menu.name)).map(choice => (
-          <MenuItem
-            key={choice.key}
-            role="menuitemradio"
-            aria-checked={choice.isSelected}
-            selected={choice.isSelected}
-            onClick={() => {
-              closeMenu()
-              choice.apply()
-            }}
-          >
-            {choice.label}
-          </MenuItem>
-        ))}
-      </Menu>
+      />
     </ScrollRow>
   )
 }

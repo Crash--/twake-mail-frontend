@@ -190,9 +190,7 @@ describe('RichTextEditor', () => {
     await userEvent.keyboard('{ArrowRight>5/}')
     expect(bold).toHaveFocus()
     await userEvent.keyboard('{End}')
-    expect(
-      screen.getByRole('button', { name: 'Clear formatting' })
-    ).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Insert link' })).toHaveFocus()
   })
 
   it('says which formatting the selection has', async () => {

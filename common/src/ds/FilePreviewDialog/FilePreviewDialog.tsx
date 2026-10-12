@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes, as a full-screen file viewer shell (top bar with
 // close, title and download over a dark backdrop, content slot), shared by
 // Mail, Drive and Chat. Meanwhile local, on twake-mui `Dialog`.
-import { Cross, Download, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   Dialog,
@@ -11,10 +11,13 @@ import {
 } from '@linagora/twake-mui'
 import {
   useId,
+  useRef,
   type ReactElement,
   type ReactNode,
   type MouseEvent
 } from 'react'
+import { ArrowBack, Download } from '@/ds/FlutterIcons/FlutterIcons'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FilePreviewDialogProps {
   open: boolean
@@ -30,8 +33,12 @@ export interface FilePreviewDialogProps {
   'data-testid'?: string
 }
 
+// tmail-flutter's viewer (`TopBarAttachmentViewer`, `HtmlAttachmentPreviewer`):
+// the page dimmed as behind its dialogs, a 52 px bar with the arrow back, the
+// name in 17 px and the actions, all white; the file on a white page 80 % of
+// the width (the whole width of a phone), 16 px under the bar
 const PAPER_SX = {
-  bgcolor: 'rgba(0, 0, 0, 0.85)',
+  bgcolor: 'rgba(0, 0, 0, 0.54)',
   color: 'common.white',
   backgroundImage: 'none'
 } as const
@@ -41,6 +48,7 @@ const BAR_SX = {
   alignItems: 'center',
   gap: 1,
   px: 2,
+  color: '#FFFFFF',
   height: 52,
   flexShrink: 0,
   bgcolor: 'rgba(0, 0, 0, 0.3)'
@@ -51,13 +59,14 @@ const BODY_SX = {
   minHeight: 0,
   overflow: 'auto',
   display: 'flex',
-  p: 2
+  py: 2
 } as const
 
 /**
  * A full-screen modal showing one file. A named dialog (focus trapped then
  * given back to what opened it, Escape closes it, MUI), with its own close
- * and download buttons in a top bar.
+ * and download buttons in a top bar. A click on the dark background around
+ * the file closes it too, as a click on a dialog's backdrop.
  */
 export function FilePreviewDialog({
   open,
@@ -70,6 +79,17 @@ export function FilePreviewDialog({
   'data-testid': testId
 }: FilePreviewDialogProps): ReactElement {
   const titleId = useId()
+  // As MUI's backdrop: the press must start on the background too, so that
+  // a text selection dragged out of the file does not close the preview
+  const isPressOnBackgroundRef = useRef(false)
+  const handleBodyMouseDown = (event: MouseEvent<HTMLElement>): void => {
+    isPressOnBackgroundRef.current = event.target === event.currentTarget
+  }
+  const handleBodyClick = (event: MouseEvent<HTMLElement>): void => {
+    const isClickOnBackground = event.target === event.currentTarget
+    if (isClickOnBackground && isPressOnBackgroundRef.current) onClose()
+    isPressOnBackgroundRef.current = false
+  }
   return (
     <Dialog
       open={open}
@@ -88,7 +108,7 @@ export function FilePreviewDialog({
             autoFocus
             data-testid={testId ? `${testId}-close` : undefined}
           >
-            <Icon icon={Cross} aria-hidden="true" />
+            <Icon icon={ArrowBack} size={24} aria-hidden="true" />
           </IconButton>
         </Tooltip>
         <Typography
@@ -97,7 +117,7 @@ export function FilePreviewDialog({
           variant="subtitle1"
           noWrap
           title={title}
-          sx={{ flex: 1, minWidth: 0 }}
+          sx={{ flex: 1, minWidth: 0, fontSize: 17, color: '#FFFFFF' }}
         >
           {title}
         </Typography>
@@ -109,13 +129,21 @@ export function FilePreviewDialog({
               onClick={onDownload}
               data-testid={testId ? `${testId}-download` : undefined}
             >
-              <Icon icon={Download} aria-hidden="true" />
+              <Icon icon={Download} size={24} aria-hidden="true" />
             </IconButton>
           </Tooltip>
         ) : null}
       </Box>
-      {/* Focusable, so that the keyboard scrolls a long file */}
-      <Box sx={BODY_SX} tabIndex={0} role="region" aria-label={title}>
+      {/* Focusable, so that the keyboard scrolls a long file. A click on the
+          background is a mouse shortcut of Escape and of the close button */}
+      <Box
+        sx={BODY_SX}
+        tabIndex={0}
+        role="region"
+        aria-label={title}
+        onMouseDown={handleBodyMouseDown}
+        onClick={handleBodyClick}
+      >
         <Box sx={{ m: 'auto', maxWidth: '100%' }}>{children}</Box>
       </Box>
     </Dialog>
@@ -139,6 +167,7 @@ export function FilePreviewSurface({
   children,
   'data-testid': testId
 }: FilePreviewSurfaceProps): ReactElement {
+  const width = useScreenSize() === 'mobile' ? '100vw' : '80vw'
   return (
     <Box
       component={kind === 'text' ? 'pre' : 'div'}
@@ -147,15 +176,24 @@ export function FilePreviewSurface({
           ? {
               bgcolor: '#fff',
               color: '#1b1b1f',
-              width: 'min(900px, 100vw)',
+              width,
+              boxSizing: 'border-box',
+              minHeight: 'calc(100dvh - 84px)',
               p: 2
             }
           : {
-              bgcolor: 'background.paper',
-              color: 'text.primary',
-              maxWidth: 900,
+              // A white page in the font of the app, as tmail-flutter shows
+              // a text file (turned into HTML)
+              bgcolor: '#fff',
+              color: '#1C1B1F',
+              width,
+              boxSizing: 'border-box',
+              minHeight: 'calc(100dvh - 84px)',
               m: 0,
-              p: 2,
+              p: 1,
+              fontFamily: 'inherit',
+              fontSize: 14,
+              lineHeight: '20px',
               whiteSpace: 'pre-wrap',
               overflowWrap: 'anywhere'
             }

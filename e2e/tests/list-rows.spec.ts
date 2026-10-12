@@ -58,7 +58,7 @@ test.describe('LST email list rows', () => {
       'compact rows have no hover actions'
     )
     // The opacity is on the group of actions, and on the box around the date
-    const remove = row.getByTestId('email-list-item-remove').locator('..')
+    const remove = row.locator('[data-row-actions]')
     const date = row.getByTestId('email-list-item-date').locator('..')
 
     await page.mouse.move(0, 0)
@@ -76,28 +76,25 @@ test.describe('LST email list rows', () => {
     await expect(remove).toHaveCSS('opacity', '1')
   })
 
-  test('LST-03 the reply button of a row opens the composer on a reply to it', async ({
+  test('LST-03 a row says, as tmail-flutter, that its email was answered', async ({
     page,
     user,
     jmap
   }) => {
     await jmap.sendEmail({ to: user.email, subject: 'Answer me', text: 'Hi' })
-    await jmap.waitForEmail({ subject: 'Answer me' })
+    const email = await jmap.waitForEmail({ subject: 'Answer me' })
+    await jmap.setKeywords(email.id, { $answered: true })
     const mailbox = await new LoginPage(page).loginAs(user)
     const row = mailbox.emailRow('Answer me')
     const viewport = page.viewportSize()
     test.skip(
       viewport === null || viewport.width < 1000,
-      'compact rows have no reply button'
+      'compact rows show no answered state'
     )
 
-    const reply = row.getByTestId('email-list-item-reply')
-    await expect(reply).toHaveAccessibleName('Reply')
-    await reply.click()
-
-    const composer = new ComposerPage(page)
-    await expect(composer.subjectInput).toHaveValue('Re: Answer me')
-    await composer.deleteDraftButton.click()
+    await expect(row.getByTestId('email-list-item-answered')).toHaveAccessibleName(
+      'Replied message'
+    )
   })
 
   test('LST-04 the hover actions open the email in a tab of its own, and move it', async ({
@@ -132,7 +129,7 @@ test.describe('LST email list rows', () => {
     await expect(page.getByRole('dialog')).toBeVisible()
   })
 
-  test('LST-05 the toolbar and the rows have the measures of the design', async ({
+  test('LST-05 the toolbar and the rows have the measures of tmail-flutter', async ({
     page,
     user,
     jmap
@@ -157,33 +154,32 @@ test.describe('LST email list rows', () => {
     const toolbarBox = await box(toolbar)
     const refresh = await box(page.getByTestId('list-refresh-button'))
     const selectAll = await box(page.getByTestId('list-select-all-button'))
-    // 16 px on each side of the list; 16 px above and below the 32 px buttons
+    // As tmail-flutter: the toolbar and the rows span the card, 12 px above
+    // the buttons (a 32 px high refresh around its 26 x 24 icon, 34 px text
+    // buttons, the select all one always 250 px wide), 16 px apart
     expect(rowBox.x).toBe(toolbarBox.x)
-    expect(refresh.width).toBe(32)
+    expect(refresh.width).toBeCloseTo(16 + (16 * 26) / 24, 1)
     expect(refresh.height).toBe(32)
-    expect(selectAll.height).toBe(32)
-    expect(refresh.y - toolbarBox.y).toBe(16)
+    expect(selectAll.height).toBe(34)
+    expect(selectAll.width).toBe(250)
+    expect(selectAll.y - toolbarBox.y).toBe(12)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
-    // 6 px above and below 32 px icon buttons
-    expect(rowBox.height).toBeGreaterThanOrEqual(43.5)
-    expect(rowBox.height).toBeLessThanOrEqual(44.5)
-    for (const id of [
-      'email-list-item-checkbox',
-      'email-list-item-star',
-      'email-list-item-reply'
-    ]) {
-      const found = await box(row.getByTestId(id))
-      expect([found.width, found.height]).toEqual([32, 32])
-    }
-    // 20 px marker frame, then the 198 px block of the sender, 4 px apart
+    // As tmail-flutter: 48 px rows, a 40 px checkbox, a bare 20 px star
+    expect(rowBox.height).toBeGreaterThanOrEqual(47.5)
+    expect(rowBox.height).toBeLessThanOrEqual(48.5)
+    const checkbox = await box(row.getByTestId('email-list-item-checkbox'))
+    expect([checkbox.width, checkbox.height]).toEqual([40, 40])
+    const star = await box(row.getByTestId('email-list-item-star'))
+    expect([star.width, star.height]).toEqual([20, 20])
+    // The 32 px gradient avatar of the sender
     const avatar = await box(row.getByTestId('email-list-item-avatar'))
-    expect([avatar.width, avatar.height]).toEqual([20, 20])
+    expect([avatar.width, avatar.height]).toEqual([32, 32])
   })
 })
 
 test.describe('LST labels in the list rows', () => {
   test(
-    'LST-06 a row shows one label chip then "+N" naming the others, at the end of the preview on a phone and a tablet, before the subject without growing the row on a desktop',
+    'LST-06 a row shows one label chip then "+N" naming the others at the end of the preview on a phone and a tablet, three chips before the subject without growing the row on a desktop',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       const design = await jmap.createLabel('Design', '#2196F3')
@@ -206,15 +202,29 @@ test.describe('LST labels in the list rows', () => {
       const mailbox = await new LoginPage(page).loginAs(user)
       const row = mailbox.emailRow('Three labels row')
 
-      await expect(row.getByTestId('label-chip')).toHaveCount(1)
-      await expect(row.getByTestId('label-chip')).toHaveText('Design')
-      await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
-      // The hidden labels are named for assistive technologies
-      await expect(
-        row.getByRole('list', { name: 'Labels of the email' })
-      ).toContainText('2 more labels: Personal, Urgent')
+      const isDesktop = (page.viewportSize()?.width ?? 0) >= 1000
+      if (isDesktop) {
+        // As tmail-flutter: up to 3 tags on a desktop
+        await expect(row.getByTestId('label-chip')).toHaveText([
+          'Design',
+          'Personal',
+          'Urgent'
+        ])
+        await expect(row.getByTestId('label-chip-more')).toHaveCount(0)
+      } else {
+        await expect(row.getByTestId('label-chip')).toHaveCount(1)
+        await expect(row.getByTestId('label-chip')).toHaveText('Design')
+        await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
+        // The hidden labels are named for assistive technologies
+        await expect(
+          row.getByRole('list', { name: 'Labels of the email' })
+        ).toContainText('2 more labels: Personal, Urgent')
+      }
       const rowBox = await row.boundingBox()
-      const chipBox = await row.getByTestId('label-chip').boundingBox()
+      const chipBox = await row
+        .getByTestId('label-chip')
+        .first()
+        .boundingBox()
       const subjectBox = await row
         .getByTestId('email-list-item-subject')
         .boundingBox()
@@ -305,9 +315,18 @@ test.describe('LST labels in the list rows', () => {
 
     const chip = row.getByTestId('label-chip')
     await expect(chip).toHaveCount(1)
-    // Cut with an ellipsis, the whole name in its title
-    await expect(chip).toContainText('…')
-    await expect(chip).toHaveAttribute('title', long.displayName)
+    // Cut as tmail-flutter ("..."), the whole name in its tooltip and for
+    // assistive technologies
+    await expect(chip).toContainText('...')
+    await expect(chip).toContainText(long.displayName)
+    await chip.hover()
+    // The one under the chip (the label of the sidebar may still show its own)
+    await expect(
+      page
+        .getByRole('tooltip')
+        .filter({ hasText: long.displayName })
+        .and(page.locator('[data-popper-placement="bottom"]'))
+    ).toBeVisible()
     expect(
       Math.abs(((await row.boundingBox())?.height ?? 0) - (inboxHeight ?? 99))
     ).toBeLessThan(1)
@@ -354,8 +373,14 @@ test.describe('LST list rows at every width', () => {
         expect(overlaps, `date over the subject at ${String(width)}`).toBe(
           false
         )
+        // Its cell keeps room to read (the subject itself is as wide as
+        // its text)
+        const cell = await row
+          .getByTestId('email-list-item-subject')
+          .locator('xpath=ancestor::td[1]')
+          .boundingBox()
         expect(
-          subject?.width ?? 0,
+          cell?.width ?? 0,
           `subject at ${String(width)}`
         ).toBeGreaterThan(150)
       }).toPass()

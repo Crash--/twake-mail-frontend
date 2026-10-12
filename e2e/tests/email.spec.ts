@@ -18,6 +18,26 @@ function newsletter(name: string): string {
   ].join('')
 }
 
+/**
+ * A newsletter from outside the domain of the user, as a message to import:
+ * the remote content of the senders of the domain shows without asking
+ */
+function newsletterEml(name: string, to: string): Buffer {
+  return Buffer.from(
+    [
+      'From: News <news@newsletter.example.org>',
+      `To: ${to}`,
+      `Subject: ${name} newsletter`,
+      `Message-ID: <${name}-${Date.now()}@newsletter.example.org>`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/html; charset=utf-8',
+      '',
+      newsletter(name)
+    ].join('\r\n'),
+    'utf8'
+  )
+}
+
 const SENTENCE =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
 
@@ -139,18 +159,8 @@ test.describe('EML reading an email', () => {
       if (referrer !== undefined) referrers.push(referrer)
       await route.fulfill({ contentType: 'image/png', body: PNG })
     })
-    await jmap.sendEmail({
-      to: user.email,
-      subject: 'first newsletter',
-      html: newsletter('first')
-    })
-    await jmap.waitForEmail({ subject: 'first newsletter' })
-    await jmap.sendEmail({
-      to: user.email,
-      subject: 'second newsletter',
-      html: newsletter('second')
-    })
-    await jmap.waitForEmail({ subject: 'second newsletter' })
+    await jmap.importEmlContent(newsletterEml('first', user.email))
+    await jmap.importEmlContent(newsletterEml('second', user.email))
 
     const mailbox = await new LoginPage(page).loginAs(user)
     let email = await mailbox.openEmail('first newsletter')
@@ -190,6 +200,28 @@ test.describe('EML reading an email', () => {
     await expect(email.body()).toContainText('second news')
     await expect(email.remoteContentBanner).toBeHidden()
     await expect.poll(() => requested).toContain('/second/pixel.png')
+  })
+
+  test('EML-29b the remote images of a sender of the domain of the user show without asking', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await page.route(`${REMOTE_HOST}/**`, async route => {
+      await route.fulfill({ contentType: 'image/png', body: PNG })
+    })
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'colleague newsletter',
+      html: newsletter('colleague')
+    })
+    await jmap.waitForEmail({ subject: 'colleague newsletter' })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const email = await mailbox.openEmail('colleague newsletter')
+
+    await expect(email.body()).toContainText('colleague news')
+    await expect(email.remoteContentBanner).toBeHidden()
   })
 
   test('EML-28 opening an unread email marks it read', async ({

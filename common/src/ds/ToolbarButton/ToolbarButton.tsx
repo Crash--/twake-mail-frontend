@@ -1,11 +1,18 @@
-// Upstream to twake-ui: yes, as a `size` of `Button variant="text"`. The
-// "button medium" of the Twake Mail design is Inter Medium 14 / 20 with a
-// 0.1 letter spacing, 32 px high, a 100 px radius and a 16 px icon, in the
-// primary text colour; twake-mui draws 16 px text buttons
-// (docs/twake-mui-gaps.md).
-import { Icon, Dropdown, type IconProps } from '@linagora/twake-icons'
-import { Button, Tooltip } from '@linagora/twake-mui'
+// Upstream to twake-ui: no, the look of tmail-flutter. The buttons above its
+// list ("Select all messages of this page", "Filter messages") are light
+// grey (#EBEDF0 at 60 %) rounded rectangles, 34 px high with a 10 px radius,
+// a 16 px icon and Inter Regular 13 in dark grey; twake-mui has no such
+// button (docs/twake-mui-gaps.md).
+import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
+import { Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
+/** `colorFilterMessageButton` at 60 % on white, its text and icon colour */
+export const TOOLBAR_BUTTON_BACKGROUND = TMAIL.fillToolbar
+const TOOLBAR_BUTTON_HOVER = TMAIL.fillToolbarHover
+const TOOLBAR_BUTTON_COLOR = TMAIL.greyDark
 
 export interface ToolbarButtonProps {
   label: string
@@ -18,6 +25,12 @@ export interface ToolbarButtonProps {
   isActive?: boolean
   /** Takes no click, and no tooltip (a disabled button gets no pointer event) */
   disabled?: boolean
+  /**
+   * Always 250 px wide, the content centred: tmail-flutter's "Select all
+   * messages of this page" (`ElevatedButton.icon`, `maximumSize` 250, whose
+   * label grows to it)
+   */
+  isAtMaxWidth?: boolean
   onClick: (event: MouseEvent<HTMLElement>) => void
   'aria-haspopup'?: 'menu'
   'aria-controls'?: string
@@ -26,7 +39,7 @@ export interface ToolbarButtonProps {
   ref?: Ref<HTMLButtonElement>
 }
 
-/** A text button of a list toolbar: 16 px icon, 14 px medium label. */
+/** A button of a list toolbar: 16 px icon, 13 px label on light grey. */
 export function ToolbarButton({
   label,
   tooltip,
@@ -34,6 +47,7 @@ export function ToolbarButton({
   hasMenu = false,
   isActive = false,
   disabled = false,
+  isAtMaxWidth = false,
   onClick,
   'aria-haspopup': hasPopup,
   'aria-controls': controls,
@@ -49,27 +63,45 @@ export function ToolbarButton({
       onClick={onClick}
       disabled={disabled}
       startIcon={<Icon icon={icon} size={16} />}
-      endIcon={hasMenu ? <Icon icon={Dropdown} size={16} /> : undefined}
+      // tmail-flutter's 18 px arrow, 8 px after the label
+      endIcon={hasMenu ? <Icon icon={Dropdown} size={18} /> : undefined}
       aria-haspopup={hasPopup}
       aria-controls={controls}
       aria-expanded={expanded}
       data-testid={testId}
       sx={{
-        minHeight: 32,
+        height: 34,
+        minHeight: 34,
         minWidth: 0,
-        py: '6px',
-        px: '6px',
+        maxWidth: 250,
+        py: 0,
+        px: '12px',
         gap: 1,
-        borderRadius: '100px',
-        fontSize: 14,
-        fontWeight: 500,
-        lineHeight: '20px',
-        letterSpacing: '0.1px',
+        borderRadius: '10px',
+        bgcolor: TOOLBAR_BUTTON_BACKGROUND,
+        fontSize: 13,
+        fontWeight: 400,
+        lineHeight: '16px',
+        letterSpacing: 0,
+        textTransform: 'none',
+        whiteSpace: 'nowrap',
+        // A label longer than 250 px (French) is cut with an ellipsis, as
+        // tmail-flutter's, rather than spilling over the buttons around
+        justifyContent: 'flex-start',
+        ...(isAtMaxWidth ? { width: 250, justifyContent: 'center' } : {}),
+        overflow: 'hidden',
+        flexShrink: 0,
+        '&:hover': { bgcolor: TOOLBAR_BUTTON_HOVER },
         '& .MuiButton-startIcon, & .MuiButton-endIcon': { m: 0 },
-        ...(isActive ? {} : { color: 'text.primary' })
+        ...(isActive ? {} : { color: TOOLBAR_BUTTON_COLOR })
       }}
     >
-      {label}
+      <Box
+        component="span"
+        sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
+      >
+        {label}
+      </Box>
     </Button>
   )
   return tooltip === undefined || disabled ? (

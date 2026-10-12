@@ -1,7 +1,8 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { EmailListPageSkeleton } from '@common/features/thread/EmailListSkeleton'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { EmailListSkeleton } from '@common/features/thread/EmailListSkeleton'
 
 import { TeamMailboxPane } from './TeamMailboxPane'
 
@@ -12,10 +13,15 @@ import { TeamMailboxPane } from './TeamMailboxPane'
  * at every handover. `AppBootstrap` mounts the "Loading" live region.
  */
 export function TeamMailboxLoadingScreen(): ReactElement {
+  const screenSize = useScreenSize()
   return (
     <Box className="u-flex u-flex-column u-h-100">
       <TeamMailboxPane>
-        <EmailListPageSkeleton delayMs={0} />
+        <EmailListSkeleton
+          isCompact={screenSize !== 'desktop'}
+          className="u-h-100 u-ph-1 u-pb-1"
+          delayMs={0}
+        />
       </TeamMailboxPane>
     </Box>
   )

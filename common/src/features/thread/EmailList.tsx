@@ -47,6 +47,7 @@ import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { mailboxKeys } from '@common/features/mailbox/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
+import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useOnlineStatus } from '@common/features/network/useOnlineStatus'
@@ -91,13 +92,21 @@ import {
   withListFilter,
   type ListFilter
 } from './listFilter'
-import { useListFilter, useListFilterSlot } from './ListFilterProvider'
+import {
+  useListFilter,
+  useListFilterSlot,
+  useReportSelecting,
+  useSelectionBarSlot
+} from './ListFilterProvider'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { EmailListSkeleton } from './EmailListSkeleton'
 import { useNewEmailCount } from './useNewEmailCount'
 import {
   getLeadWidth,
+  getHoverActionsRoom,
   getTrailingWidth,
+  MAILBOX_TAG_ROOM,
+  getCompactRowLayout,
   ROW_LAYOUT,
   useRowPointer
 } from './emailListGeometry'
@@ -346,10 +355,14 @@ export function EmailList(props: EmailListProps): ReactElement {
   const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
   const selection = useEmailSelection(emails)
+  // As tmail-flutter: below the desktop size, a selected row keeps its
+  // background (its avatar is ticked); only the open email is highlighted
+  const isSelectionHighlighted = useScreenSize() === 'desktop'
   const isHighlightedRow = useCallback(
     (row: VirtualizedTableRow): boolean =>
-      row.id === openEmailId || selection.isSelected(String(row.id)),
-    [openEmailId, selection]
+      row.id === openEmailId ||
+      (isSelectionHighlighted && selection.isSelected(String(row.id))),
+    [openEmailId, selection, isSelectionHighlighted]
   )
   const { scrollerRef, focusList } = useEmailListShortcuts(
     emails,
@@ -438,6 +451,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   // Stable, like the cell below: the rows of the table are memoized and
   // only render again when their email changes
   const { canHover, isTouch } = useRowPointer()
+  const isSearch = search !== null
   const columns = useMemo<(VirtualizedTableColumn & { id: EmailColumnId })[]>(
     () => [
       {
@@ -450,7 +464,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       {
         id: 'sender',
         label: t(showRecipients ? 'email.to' : 'thread.columns.sender'),
-        width: ROW_LAYOUT.gap + SENDER_WIDTH,
+        width: SENDER_WIDTH,
         sortable: false,
         disablePadding: true
       },
@@ -465,16 +479,30 @@ export function EmailList(props: EmailListProps): ReactElement {
         // beside them without hover
         id: 'trailing',
         label: `${t('email.attachment')}, ${t('thread.columns.date')}, ${t('thread.columns.actions')}`,
-        width: getTrailingWidth({ canHover, isTouch }),
+        // Search results say their folder there too; with hover all of it
+        // runs out of the cell, over the room kept in the subject
+        width:
+          getTrailingWidth({ canHover, isTouch }) +
+          (isSearch && !canHover ? MAILBOX_TAG_ROOM : 0),
         textAlign: 'right',
         sortable: false,
         disablePadding: true
       }
     ],
-    [t, showRecipients, canHover, isTouch]
+    [t, showRecipients, canHover, isTouch, isSearch]
   )
 
-  // Below 600 px of list: a phone, or the list beside an open email
+  // Below the desktop size, as tmail-flutter's compact tiles: the avatar
+  // (which selects the row) and the three lines of the email
+  const isPhoneList = useScreenSize() === 'mobile'
+  // As tmail-flutter: while emails are selected, "New message" makes way
+  // and the dividers go
+  const isSelecting = selection.selected.length > 0 || selection.isAllInFolder
+  useReportSelecting(isSelecting)
+  const compactRowLayout = useMemo(
+    () => getCompactRowLayout(isPhoneList, isSelecting),
+    [isPhoneList, isSelecting]
+  )
   const compactColumns = useMemo<
     (VirtualizedTableColumn & { id: EmailColumnId })[]
   >(
@@ -482,27 +510,18 @@ export function EmailList(props: EmailListProps): ReactElement {
       {
         id: 'select',
         label: t('thread.columns.select'),
-        width: 44,
+        width: compactRowLayout.paddingX + 48,
         sortable: false,
         disablePadding: true
       },
       {
-        id: 'unread',
-        label: t('thread.columns.status'),
-        width: 20,
-        sortable: false,
-        disablePadding: true
-      },
-      { id: 'message', label: t('thread.columns.message'), sortable: false },
-      {
-        id: 'compactActions',
-        label: t('thread.columns.actions'),
-        width: 48,
+        id: 'message',
+        label: t('thread.columns.message'),
         sortable: false,
         disablePadding: true
       }
     ],
-    [t]
+    [t, compactRowLayout]
   )
 
   const screenSize = useScreenSize()
@@ -527,10 +546,8 @@ export function EmailList(props: EmailListProps): ReactElement {
   // wide tile is for `isWebDesktop` only); the table also measures itself for
   // the other cases (zoom, an email open beside the list)
   const isCompact = screenSize !== 'desktop'
-  // The floating "New message" button covers the end of the list below the
-  // desktop size (layout/AppLayout.tsx), and on a desktop in the facade of a
-  // team mailbox (layout/TeamMailboxLayout.tsx)
   const bottomInset = useFloatingActionInset()
+  const isFramed = useTeamMailboxEmbed() !== null
 
   const { openComposer } = useComposer()
   const showImportant = useShowsSenderPriority()
@@ -543,12 +560,6 @@ export function EmailList(props: EmailListProps): ReactElement {
   const handleOpenDraft = useCallback(
     (email: { id: string }): void => {
       openComposer({ draftId: email.id })
-    },
-    [openComposer]
-  )
-  const handleReply = useCallback(
-    (email: { id: string }): void => {
-      openComposer({ reply: { emailId: email.id, action: 'reply' } })
     },
     [openComposer]
   )
@@ -579,7 +590,6 @@ export function EmailList(props: EmailListProps): ReactElement {
             onRemove={listActions.onRemove}
             deletesForever={listActions.deletesForever}
             onOpenMenu={listActions.onOpenMenu}
-            onReply={handleReply}
             onMove={listActions.onMove}
             openEmailId={openEmailId}
             onOpenDraft={handleOpenDraft}
@@ -588,11 +598,13 @@ export function EmailList(props: EmailListProps): ReactElement {
             showImportant={showImportant}
             labels={labels}
             showActionRequired={showActionRequired}
+            hoverActionsRoom={getHoverActionsRoom(isTouch)}
           />
         )
       }
     }),
     [
+      isTouch,
       getEmailPath,
       openState,
       getMailboxNames,
@@ -602,7 +614,6 @@ export function EmailList(props: EmailListProps): ReactElement {
       listActions.onRemove,
       listActions.deletesForever,
       listActions.onOpenMenu,
-      handleReply,
       listActions.onMove,
       openEmailId,
       handleOpenDraft,
@@ -626,7 +637,11 @@ export function EmailList(props: EmailListProps): ReactElement {
     )
   } else if (query.isPending) {
     content = (
-      <EmailListSkeleton isCompact={isCompact} className="u-flex-auto" />
+      <EmailListSkeleton
+        isCompact={isCompact}
+        isSearch={search !== null}
+        className="u-flex-auto"
+      />
     )
   } else if (query.isError) {
     const handleRetry = (): void => {
@@ -674,6 +689,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           columns={columns}
           compactColumns={compactColumns}
           rowLayout={ROW_LAYOUT}
+          compactRowLayout={compactRowLayout}
           compact={isCompact}
           bottomInset={bottomInset}
           computeItemKey={computeRowKey}
@@ -709,14 +725,22 @@ export function EmailList(props: EmailListProps): ReactElement {
           onSelect: listFilter.select,
           onClear: listFilter.clear
         }
-  const topBarSlot = screenSize === 'mobile' ? filterSlot : null
+  // Below the desktop size the filter is in the bar of the mail, as in
+  // tmail-flutter's app bar
+  const topBarSlot = screenSize === 'desktop' ? null : filterSlot
   const filterInToolbar = topBarSlot === null
+  // And the selection bar over the app bar
+  const selectionSlot = useSelectionBarSlot()
+  const selectionBarSlot = screenSize === 'desktop' ? null : selectionSlot
 
   return (
     <EmailSelectionContext.Provider value={selection}>
       {listActions.banner}
       <ListPane>
-        {listActions.toolbar ?? (
+        {selectionBarSlot !== null && listActions.toolbar !== null
+          ? createPortal(listActions.toolbar, selectionBarSlot)
+          : null}
+        {(selectionBarSlot === null ? listActions.toolbar : null) ?? (
           <EmailListDefaultToolbar
             selection={selection}
             loadedCount={emails.length}
@@ -739,7 +763,17 @@ export function EmailList(props: EmailListProps): ReactElement {
               topBarSlot
             )
           : null}
-        {content}
+        {isFramed ? (
+          // The facade of a team mailbox scrolls its rows 16 px inside the
+          // sides and the bottom of the frame, clear of its rounded corner
+          // (ADR 010 of twake-space-architecture). Not on the scroller:
+          // virtuoso lays the rows over its padding
+          <Box className="u-flex u-flex-column u-flex-auto u-ov-hidden u-ph-1 u-pb-1">
+            {content}
+          </Box>
+        ) : (
+          content
+        )}
       </ListPane>
       {listActions.menu}
       {/* Always mounted: a live region only announces changes */}

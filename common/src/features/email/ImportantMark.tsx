@@ -1,7 +1,8 @@
-import { Icon, WarningCircle } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { WarningCircle } from '@/ds/FlutterIcons/FlutterIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface ImportantMarkProps {

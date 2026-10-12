@@ -1,8 +1,10 @@
-import { Icon, Plus } from '@linagora/twake-icons'
-import { Alert, Button, List, RadioGroup } from '@linagora/twake-mui'
+import { Alert, Button, RadioGroup } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, type ChangeEvent, type ReactElement } from 'react'
 
+import { AddThin } from '@/ds/FlutterIcons/FlutterIcons'
+import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
+import { SettingsList } from '@/ds/SettingsList/SettingsList'
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
@@ -124,7 +126,7 @@ export function IdentitiesSettings({
   }
 
   const list = (
-    <List aria-label={t('identities.listLabel')} data-testid="identity-list">
+    <SettingsList label={t('identities.listLabel')} data-testid="identity-list">
       {identities.map(identity => (
         <IdentityListItem
           key={identity.id}
@@ -137,23 +139,21 @@ export function IdentitiesSettings({
           onDelete={handleDelete}
         />
       ))}
-    </List>
+    </SettingsList>
   )
 
   return (
     <SettingsSectionLayout
       section={section}
       actions={
-        <Button
-          variant="contained"
-          startIcon={<Icon icon={Plus} />}
+        <SettingsPrimaryButton
+          label={t('identities.create')}
+          icon={AddThin}
           onClick={() => {
             setForm({ identity: null })
           }}
           data-testid="create-new-identity-button"
-        >
-          {t('identities.create')}
-        </Button>
+        />
       }
     >
       {query.isPending ? (

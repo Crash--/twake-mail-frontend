@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRef, useState, type KeyboardEvent, type ReactElement } from 'react'
 
@@ -6,6 +6,7 @@ import { renderDs } from '@/ds/testing/renderDs'
 
 import {
   RecipientField,
+  type RecipientFieldCard,
   type RecipientFieldChip,
   type RecipientFieldSuggestion
 } from './RecipientField'
@@ -13,6 +14,7 @@ import {
 const LABELS = {
   field: 'To',
   suggestions: 'Suggestions',
+  alreadyAdded: 'already added',
   invalid: 'invalid address',
   chipHelp: 'Delete removes, Enter edits',
   removed: (label: string) => `${label} removed`,
@@ -34,10 +36,12 @@ function toChip(text: string): RecipientFieldChip {
 /** The field with the state a caller keeps: chips split on commas */
 function Harness({
   initial = [],
-  onEscape = jest.fn()
+  onEscape = jest.fn(),
+  card
 }: {
   initial?: string[]
   onEscape?: () => void
+  card?: RecipientFieldCard
 }): ReactElement {
   const [chips, setChips] = useState(initial.map(toChip))
   const [input, setInput] = useState('')
@@ -48,7 +52,10 @@ function Harness({
     input.length >= 2
       ? CONTACTS.filter(contact =>
           contact.label.toLowerCase().startsWith(input)
-        )
+        ).map(contact => ({
+          ...contact,
+          isAdded: chips.some(chip => chip.id === contact.id)
+        }))
       : []
   const add = (texts: string[]): void => {
     setChips(current => [
@@ -96,6 +103,7 @@ function Harness({
           add([id])
         }}
         isList={text => /[,;\s]/.test(text.trim())}
+        card={card}
         testIds={{ input: 'to-input', chip: 'chip' }}
       />
       <button type="button">Next field</button>
@@ -110,6 +118,43 @@ function chipNames(): string[] {
 }
 
 describe('RecipientField', () => {
+  it('opens the card of a tag on a click or Enter, as tmail-flutter, and edits it from there', async () => {
+    const card: RecipientFieldCard = {
+      labels: {
+        copy: 'Copy the email address',
+        edit: 'Edit email',
+        createRule: 'Create a rule',
+        close: 'Close'
+      },
+      onCopy: jest.fn(),
+      onCreateRule: jest.fn()
+    }
+    renderDs(<Harness initial={['a@example.com']} card={card} />)
+    const chip = screen.getByTestId('chip')
+
+    await userEvent.click(chip)
+    const dialog = screen.getByRole('dialog', { name: 'a@example.com' })
+    expect(chip).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Copy the email address' })
+    )
+    expect(card.onCopy).toHaveBeenCalledWith('a@example.com')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(dialog).not.toBeInTheDocument()
+    })
+    expect(chip).toHaveFocus()
+
+    await userEvent.keyboard('{Enter}')
+    await userEvent.click(screen.getByRole('button', { name: 'Edit email' }))
+    const input = screen.getByRole('combobox', { name: 'To' })
+    await waitFor(() => {
+      expect(input).toHaveFocus()
+    })
+    expect(input).toHaveValue('a@example.com')
+    expect(chipNames()).toEqual([])
+  })
+
   it('is a combobox named by its visible label, in a group of the same name', () => {
     renderDs(<Harness />)
 
@@ -179,7 +224,7 @@ describe('RecipientField', () => {
     expect(input).toHaveFocus()
   })
 
-  it('picks a suggestion with the arrows and Enter', async () => {
+  it('highlights the first suggestion, as tmail-flutter, and picks one with the arrows and Enter', async () => {
     renderDs(<Harness />)
     const input = screen.getByRole('combobox', { name: 'To' })
 
@@ -187,7 +232,15 @@ describe('RecipientField', () => {
     expect(input).toHaveAttribute('aria-expanded', 'true')
     const listbox = screen.getByRole('listbox', { name: 'Suggestions' })
     expect(input).toHaveAttribute('aria-controls', listbox.id)
-    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    expect(input).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: /Alice/ }).id
+    )
+    // What is typed is in bold
+    expect(
+      screen.getByRole('option', { name: /Alice/ }).querySelector('b')
+    ).toHaveTextContent('Al')
+    await userEvent.keyboard('{ArrowDown}')
     expect(input).toHaveAttribute(
       'aria-activedescendant',
       screen.getByRole('option', { name: /Albert/ }).id
@@ -196,6 +249,17 @@ describe('RecipientField', () => {
     await userEvent.keyboard('{Enter}')
     expect(chipNames()).toEqual(['albert@example.com'])
     expect(screen.queryByRole('listbox')).toBe(null)
+  })
+
+  it('lists a suggestion already entered with a tick, and does not add it twice', async () => {
+    renderDs(<Harness initial={['alice@example.com']} />)
+    const input = screen.getByRole('combobox', { name: 'To' })
+
+    await userEvent.type(input, 'al')
+    const alice = screen.getByRole('option', { name: /Alice.*already added/ })
+    expect(alice).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(alice)
+    expect(chipNames()).toEqual(['alice@example.com'])
   })
 
   it('closes the suggestions with Escape before letting Escape go', async () => {

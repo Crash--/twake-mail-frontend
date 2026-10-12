@@ -1,4 +1,4 @@
-import { Check, Cross, Filter, Icon } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -10,6 +10,14 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useRef, useState, type ReactElement } from 'react'
 
+import {
+  Attachment,
+  Cross,
+  EmailNotification,
+  Filter,
+  FilterSelected,
+  StarOutline
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
@@ -18,6 +26,17 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import type { ListFilter, ListFilterOption } from './listFilter'
 import { listFilterLabelKey } from './ListFilterProvider'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
+
+/** tmail-flutter's icons of the filters in its menu */
+const OPTION_ICONS: Readonly<Record<ListFilterOption, IconProps['icon']>> = {
+  attachments: Attachment,
+  unread: EmailNotification,
+  starred: StarOutline
+}
+
+/** tmail-flutter's `AppColor.primaryMain` */
+const SELECTED_COLOR = TMAIL.primary0A
 
 export interface EmailListFilterMenuProps {
   current: ListFilter
@@ -42,7 +61,8 @@ export function EmailListFilterMenu({
   className
 }: EmailListFilterMenuProps): ReactElement {
   const { t } = useI18n()
-  const isPhone = useScreenSize() === 'mobile'
+  // Below the desktop size it is in the bar of the mail: its icon alone
+  const isCompact = useScreenSize() !== 'desktop'
   const menuId = useId()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const filterButtonRef = useRef<HTMLButtonElement>(null)
@@ -61,7 +81,7 @@ export function EmailListFilterMenu({
     <Box
       className={`u-flex u-flex-items-center u-flex-shrink-0 ${className ?? ''}`}
     >
-      {isPhone ? (
+      {isCompact ? (
         <Tooltip title={t('thread.toolbar.filter')}>
           <IconButton
             ref={filterButtonRef}
@@ -73,7 +93,7 @@ export function EmailListFilterMenu({
             data-testid="list-filter-button"
             {...menuProps}
           >
-            <Icon icon={Filter} />
+            <Icon icon={Filter} size={24} />
           </IconButton>
         </Tooltip>
       ) : (
@@ -106,6 +126,8 @@ export function EmailListFilterMenu({
         id={menuId}
         anchorEl={anchor}
         open={anchor !== null}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         onClose={() => {
           setAnchor(null)
         }}
@@ -122,10 +144,20 @@ export function EmailListFilterMenu({
             }}
             data-testid={`quick-filter-${option}`}
           >
+            {/* As tmail-flutter: the icon of the filter, then its blue disc
+                with a tick (icFilterSelected) 16 px after the name */}
             <ListItemIcon>
-              {current === option ? <Icon icon={Check} /> : null}
+              <Icon icon={OPTION_ICONS[option]} />
             </ListItemIcon>
             <ListItemText primary={t(listFilterLabelKey(option))} />
+            {current === option ? (
+              <Icon
+                icon={FilterSelected}
+                size={16}
+                color={SELECTED_COLOR}
+                className="u-ml-1 u-flex-shrink-0"
+              />
+            ) : null}
           </MenuItem>
         ))}
       </Menu>

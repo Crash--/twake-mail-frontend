@@ -1,17 +1,4 @@
-import {
-  Attachment,
-  AssistantColor,
-  Check,
-  Cross,
-  Dots,
-  FileOutline,
-  Icon,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Paperplane,
-  Trash,
-  Warning
-} from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   InputBase,
@@ -39,14 +26,37 @@ import {
   type ReactNode
 } from 'react'
 
+import {
+  Attachment,
+  Cancel,
+  Check,
+  Cross,
+  Dots,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Paperplane,
+  Sparkle,
+  Trash,
+  Warning
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
-import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
+import {
+  FileDropZone,
+  ignoreFileDropsOutsideZones
+} from '@/ds/FileDropZone/FileDropZone'
+import { ThinProgressBar } from '@/ds/ThinProgressBar/ThinProgressBar'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
-import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
 import { PillButton } from '@/ds/PillButton/PillButton'
+import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
+import {
+  FormattingIcon,
+  SaveDraftIcon,
+  SendDisabledIcon,
+  SendMobileIcon
+} from '@/ds/ComposerIcons/ComposerIcons'
 import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
@@ -354,7 +364,8 @@ function LoadedComposerForm({
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editorActions = useRef<RichTextEditorActions>(null)
-  const [isToolbarShown, setIsToolbarShown] = useState(!isPhone)
+  // As tmail-flutter: folded until "Aa" opens it
+  const [isToolbarShown, setIsToolbarShown] = useState(false)
   const [identityId, setIdentityId] = useState(content.identityId)
   // The identity selector opens on request (the "From" button), unless the
   // message already has its own identity (a draft, an answer, a template,
@@ -402,6 +413,11 @@ function LoadedComposerForm({
    */
   const [saveAnnouncement, setSaveAnnouncement] = useState('')
   const [isSending, setIsSending] = useState(false)
+  // The step tmail-flutter's sending dialog says: the email is built (its
+  // images and attachments uploaded), then sent
+  const [sendingStep, setSendingStep] = useState<'creating' | 'sending'>(
+    'creating'
+  )
   const [sendError, setSendError] = useState<string | null>(null)
   const [isSendOverQuota, setIsSendOverQuota] = useState(false)
   const premiumCta = usePremiumCta()
@@ -866,10 +882,17 @@ function LoadedComposerForm({
     notify({ message: t(isOn ? enabled : disabled), severity: 'success' })
   }
 
+  // As tmail-flutter: a bar at the top of the body while images go inline
+  const [inlineUploads, setInlineUploads] = useState(0)
   const handleImageFiles = async (
     added: File[]
   ): Promise<InlineImageAttributes[]> => {
-    const stored = await Promise.all(added.map(file => images.add(file)))
+    setInlineUploads(count => count + 1)
+    const stored = await Promise.all(
+      added.map(file => images.add(file))
+    ).finally(() => {
+      setInlineUploads(count => count - 1)
+    })
     return stored.map(image => ({
       src: image.url ?? '',
       // Empty: decorative until the author writes what the image says (the
@@ -944,6 +967,8 @@ function LoadedComposerForm({
    * one it was opened on (asked first when it is shared), and closing it
    * asks nothing until it changes again.
    */
+  // As tmail-flutter (`SavingTemplateDialogView`): a dialog while it saves
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const handleSaveTemplate = (): void => {
     setMoreAnchor(null)
     cancelAutosave()
@@ -954,6 +979,7 @@ function LoadedComposerForm({
       try {
         const draftFate = await askAboutDraft()
         if (draftFate === 'cancel') return
+        setIsSavingTemplate(true)
         const email = await buildEmail(
           composed(editor),
           images,
@@ -999,6 +1025,8 @@ function LoadedComposerForm({
       } catch (error: unknown) {
         console.error(error)
         notify({ message: t('composer.template.failed'), severity: 'error' })
+      } finally {
+        setIsSavingTemplate(false)
       }
     })
     savingRef.current = run
@@ -1240,6 +1268,7 @@ function LoadedComposerForm({
     setRecipients(lists)
     setInputs(EMPTY_INPUTS)
     if (!(await checkBeforeSending(lists))) return
+    setSendingStep('creating')
     setIsSending(true)
     try {
       await flush()
@@ -1250,6 +1279,7 @@ function LoadedComposerForm({
         mailboxIds,
         'send'
       )
+      setSendingStep('sending')
       const result = await sendEmail(
         client,
         accountId,
@@ -1312,7 +1342,7 @@ function LoadedComposerForm({
       }}
       data-testid="composer-formatting-button"
     >
-      <EditorIcon name="fontSize" fontSize="medium" />
+      <Icon icon={FormattingIcon} size={isPhone ? 28 : 24} aria-hidden="true" />
     </ActionIconButton>
   )
   const attachButton = (
@@ -1332,7 +1362,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
     >
-      <Icon icon={ImageIcon} size={20} aria-hidden="true" />
+      <Icon icon={ImageIcon} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   // On a phone the link is in the More menu, as the bar has no room for it
@@ -1343,7 +1373,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
     >
-      <Icon icon={LinkIcon} size={20} aria-hidden="true" />
+      <Icon icon={LinkIcon} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   const driveButton = (
@@ -1402,28 +1432,79 @@ function LoadedComposerForm({
       aria-haspopup="menu"
       aria-expanded={moreAnchor !== null}
       onClick={handleOpenMore}
-      className={isPhone ? undefined : 'u-ml-half u-mr-1'}
+      className={gap}
       data-testid="composer-more-button"
     >
-      <Icon
-        icon={isPhone ? Dots : FileOutline}
-        size={isPhone ? 24 : 20}
-        aria-hidden="true"
-      />
+      <Icon icon={Dots} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
-  const sendButton = (
-    <PillButton
-      label={isSending ? t('composer.sending') : t('composer.send')}
-      icon={Paperplane}
-      width={128}
-      isIconOnly={isPhone}
+  // As tmail-flutter: "Save as draft" beside "Delete", the menu holds it
+  // on a phone only
+  const saveDraftButton = (
+    <ActionIconButton
+      label={t('composer.saveAsDraft')}
+      onClick={handleSaveDraft}
+      className="u-ml-half"
+      data-testid="composer-save-draft-button"
+    >
+      <Icon icon={SaveDraftIcon} size={24} aria-hidden="true" />
+    </ActionIconButton>
+  )
+  // As tmail-flutter on phones: the arrow up in a blue disc, grey while
+  // there is no recipient (a click still says why it cannot go)
+  const canSend =
+    recipients.to.length + recipients.cc.length + recipients.bcc.length > 0
+  const sendButton = isPhone ? (
+    <ActionIconButton
+      label={t('composer.send')}
       onClick={() => {
         void handleSend()
       }}
-      disabled={isSending}
       aria-describedby={sendError === null ? undefined : sendErrorId}
       data-testid="composer-send-button"
+    >
+      <Icon
+        icon={canSend ? SendMobileIcon : SendDisabledIcon}
+        size={30}
+        aria-hidden="true"
+      />
+    </ActionIconButton>
+  ) : (
+    // As tmail-flutter: the button stays as it is, the sending dialog
+    // covers the window (and `handleSend` refuses a second send)
+    <PillButton
+      label={t('composer.send')}
+      icon={Paperplane}
+      width={128}
+      onClick={() => {
+        void handleSend()
+      }}
+      aria-describedby={sendError === null ? undefined : sendErrorId}
+      data-testid="composer-send-button"
+    />
+  )
+  const sendingDialog = (
+    <SendingDialog
+      open={isSending}
+      title={t('composer.sending')}
+      statusLabel={t('composer.sendingDialog.status')}
+      status={t(
+        sendingStep === 'creating'
+          ? 'composer.sendingDialog.creating'
+          : 'composer.sending'
+      )}
+      progressLabel={t('composer.sendingDialog.progress')}
+      data-testid="composer-sending-dialog"
+    />
+  )
+  const savingTemplateDialog = (
+    <SendingDialog
+      open={isSavingTemplate}
+      title={t('composer.template.saving')}
+      statusLabel={t('composer.sendingDialog.status')}
+      status={t('composer.sendingDialog.creating')}
+      progressLabel={t('composer.sendingDialog.progress')}
+      data-testid="composer-saving-template-dialog"
     />
   )
   const moreMenu = (
@@ -1445,12 +1526,14 @@ function LoadedComposerForm({
           <ListItemText inset primary={labels.link} />
         </MenuItem>
       ) : null}
-      <MenuItem
-        onClick={handleSaveDraft}
-        data-testid="composer-save-draft-item"
-      >
-        <ListItemText inset primary={t('composer.saveAsDraft')} />
-      </MenuItem>
+      {isPhone ? (
+        <MenuItem
+          onClick={handleSaveDraft}
+          data-testid="composer-save-draft-item"
+        >
+          <ListItemText inset primary={t('composer.saveAsDraft')} />
+        </MenuItem>
+      ) : null}
       <MenuItem
         onClick={handleOpenTemplatePicker}
         data-testid="composer-insert-template-item"
@@ -1509,12 +1592,12 @@ function LoadedComposerForm({
   )
 
   return (
-    <FileDropZone
-      label={t('composer.attachments.dropHere')}
-      onFiles={files.addFiles}
-      isForChild={isImageDropOnBody}
+    // Only the body takes dropped files, as tmail-flutter: elsewhere they
+    // do nothing
+    <Box
       className="u-flex u-flex-column u-flex-auto u-ov-hidden"
-      data-testid="composer-drop-zone"
+      onDragOver={ignoreFileDropsOutsideZones}
+      onDrop={ignoreFileDropsOutsideZones}
     >
       {/* Ctrl+Enter sends, from any field of the message */}
       <div
@@ -1531,7 +1614,7 @@ function LoadedComposerForm({
                 onClick={onRequestClose}
                 data-testid="composer-close-button"
               >
-                <Icon icon={Cross} size={16} aria-hidden="true" />
+                <Icon icon={Cancel} size={24} aria-hidden="true" />
               </ActionIconButton>
             }
           >
@@ -1637,68 +1720,85 @@ function LoadedComposerForm({
             />
           </Box>
         ) : null}
-        {/* Focusing the body folds the recipients, as the subject does */}
-        <Box
+        {/* Focusing the body folds the recipients, as the subject does.
+            Files dropped on the body are attached, as tmail-flutter (images
+            dropped in the text go inline) */}
+        <FileDropZone
+          label={t('composer.attachments.dropHere')}
+          onFiles={files.addFiles}
+          isForChild={isImageDropOnBody}
           className="u-flex u-flex-column u-flex-auto u-ov-hidden"
-          onFocus={event => {
-            if (event.target.getAttribute('role') === 'textbox') {
-              collapseRecipients()
-            }
-          }}
+          data-testid="composer-drop-zone"
         >
-          <RichTextEditor
-            labels={labels}
-            content={content.html}
-            colors={colors}
-            fontSizes={fontSizes}
-            fontFamilies={fontFamilies}
-            onImageFiles={handleImageFiles}
-            htmlBlock={{
-              buildFrameDocument: html =>
-                buildBlockDocument(
-                  `<div data-html-block="quote">${resolveCidSources(html, cid =>
-                    images.urlFor(cid)
-                  )}</div>`
-                ),
-              frameTitle: () => t('composer.quote.frameTitle'),
-              editLabel: kind =>
-                kind === 'quote' ? t('composer.quote.edit') : null,
-              editableHtml: (_kind, html) =>
-                editableQuoteHtml(html, cid => images.urlFor(cid)),
-              editTestId: htmlBlockEditTestId,
-              toggleLabel: kind =>
-                kind === 'signature' ? t('composer.signature') : null,
-              toggleTestId: kind =>
-                kind === 'signature' ? 'composer-signature-toggle' : undefined
+          {inlineUploads > 0 ? (
+            <Box className="u-ph-1 u-flex-shrink-0">
+              <ThinProgressBar
+                value={null}
+                height={2}
+                label={t('composer.images.inserting')}
+                data-testid="composer-inline-image-progress"
+              />
+            </Box>
+          ) : null}
+          <Box
+            className="u-flex u-flex-column u-flex-auto u-ov-hidden"
+            onFocus={event => {
+              if (event.target.getAttribute('role') === 'textbox') {
+                collapseRecipients()
+              }
             }}
-            selectionAction={
-              hasScribe
-                ? {
-                    label: t('composer.scribe.assistant'),
-                    icon: (
-                      <Icon
-                        icon={AssistantColor}
-                        size={20}
-                        aria-hidden="true"
-                      />
-                    ),
-                    onSelect: setScribeAnchor,
-                    testId: 'composer-scribe-selection-button'
-                  }
-                : undefined
-            }
-            footerBlockKinds={['signature', 'quote']}
-            autoFocus={autoFocus && opensOnText}
-            fill
-            isToolbarBelow
-            isToolbarShown={isToolbarShown}
-            hasInsertButtons={false}
-            actions={editorActions}
-            onReady={handleEditorReady}
-            onUpdate={handleEditorUpdate}
-            testIds={EDITOR_TEST_IDS}
-          />
-        </Box>
+          >
+            <RichTextEditor
+              labels={labels}
+              content={content.html}
+              colors={colors}
+              fontSizes={fontSizes}
+              fontFamilies={fontFamilies}
+              onImageFiles={handleImageFiles}
+              htmlBlock={{
+                buildFrameDocument: html =>
+                  buildBlockDocument(
+                    `<div data-html-block="quote">${resolveCidSources(
+                      html,
+                      cid => images.urlFor(cid)
+                    )}</div>`
+                  ),
+                frameTitle: () => t('composer.quote.frameTitle'),
+                editLabel: kind =>
+                  kind === 'quote' ? t('composer.quote.edit') : null,
+                editableHtml: (_kind, html) =>
+                  editableQuoteHtml(html, cid => images.urlFor(cid)),
+                editTestId: htmlBlockEditTestId,
+                toggleLabel: kind =>
+                  kind === 'signature' ? t('composer.signature') : null,
+                toggleTestId: kind =>
+                  kind === 'signature' ? 'composer-signature-toggle' : undefined
+              }}
+              selectionAction={
+                hasScribe
+                  ? {
+                      label: t('composer.scribe.assistant'),
+                      icon: (
+                        <Icon icon={Sparkle} size={12} aria-hidden="true" />
+                      ),
+                      onSelect: setScribeAnchor,
+                      testId: 'composer-scribe-selection-button'
+                    }
+                  : undefined
+              }
+              footerBlockKinds={['signature', 'quote']}
+              autoFocus={autoFocus && opensOnText}
+              fill
+              isToolbarBelow
+              isToolbarShown={isToolbarShown}
+              hasInsertButtons={false}
+              actions={editorActions}
+              onReady={handleEditorReady}
+              onUpdate={handleEditorUpdate}
+              testIds={EDITOR_TEST_IDS}
+            />
+          </Box>
+        </FileDropZone>
         <Box className="u-flex-shrink-0">
           <ComposerAttachmentsList files={files} />
           {sendError === null ? null : (
@@ -1725,7 +1825,7 @@ function LoadedComposerForm({
           )}
         </Box>
         {isPhone ? null : (
-          <Box className="u-flex u-flex-items-center u-flex-shrink-0 u-flex-wrap u-p-1">
+          <Box className="u-flex u-flex-items-center u-flex-shrink-0 u-flex-wrap u-pv-1 u-ph-2">
             {formattingButton}
             {attachButton}
             {imageButton}
@@ -1738,6 +1838,7 @@ function LoadedComposerForm({
             />
             {driveButton}
             {scribeMenu}
+            {moreButton}
             {fileInput}
             {saveStatus}
             <ActionIconButton
@@ -1745,13 +1846,15 @@ function LoadedComposerForm({
               onClick={handleDeleteDraft}
               data-testid="composer-delete-draft-button"
             >
-              <Icon icon={Trash} size={20} aria-hidden="true" />
+              <Icon icon={Trash} size={24} aria-hidden="true" />
             </ActionIconButton>
-            {moreButton}
-            {sendButton}
+            {saveDraftButton}
+            <span className="u-ml-1">{sendButton}</span>
           </Box>
         )}
         {moreMenu}
+        {sendingDialog}
+        {savingTemplateDialog}
         <TemplatePicker
           open={isPickerOpen}
           onClose={handleClosePicker}
@@ -1761,7 +1864,7 @@ function LoadedComposerForm({
           }}
         />
       </div>
-    </FileDropZone>
+    </Box>
   )
 }
 

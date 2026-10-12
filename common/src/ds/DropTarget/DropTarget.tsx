@@ -72,9 +72,11 @@ export function DropTarget({
       data-testid={testId}
       sx={theme => ({
         borderRadius: 1,
-        outline: isOver ? `2px dashed ${theme.palette.primary.main}` : 'none',
+        outline: isOver
+          ? `2px dashed ${theme.vars.palette.primary.main}`
+          : 'none',
         outlineOffset: '-2px',
-        backgroundColor: isOver ? theme.palette.action.hover : undefined
+        backgroundColor: isOver ? theme.vars.palette.action.hover : undefined
       })}
     >
       {children}

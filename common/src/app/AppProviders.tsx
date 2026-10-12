@@ -8,6 +8,7 @@ import {
   type ReactNode
 } from 'react'
 
+import { ColorSchemeSync } from '@common/app/ColorSchemeSync'
 import { DocumentTitleProvider } from '@common/app/DocumentTitleProvider'
 import { ConfirmProvider } from '@common/features/confirm/ConfirmProvider'
 import { NotificationsProvider } from '@common/features/notifications/NotificationsProvider'
@@ -16,6 +17,10 @@ import { I18nProvider } from '@common/i18n/I18nProvider'
 import { overlayThemeOptions, SpaceOverlayProvider } from '@linagora/twake-mui'
 import type { SpaceOverlay } from '@linagora/twake-mui'
 import { focusIndicatorThemeOptions } from '@/ds/FocusIndicator/focusIndicator'
+import { menuLookThemeOptions } from '@/ds/MenuLook/menuLook'
+import { tmailColorsThemeOptions } from '@/ds/TmailColors/tmailColors'
+import { SCROLLBAR_CSS } from '@/ds/ScrollbarLook/scrollbarLook'
+import { TEXT_LOOK_CSS } from '@/ds/TextLook/textLook'
 import type { SupportedLanguage } from '@common/i18n/languages'
 
 // The production entry point keeps the devtools out of the main bundle:
@@ -38,9 +43,10 @@ export interface AppProvidersProps {
 }
 
 /**
- * Theme (with the focus indicator the user chose), translations, title of
- * the page, data cache, notifications and confirmations: what every screen
- * needs, including the ones shown before authentication.
+ * Theme (with the focus indicator and the colour scheme the user chose),
+ * translations, title of the page, data cache, notifications and
+ * confirmations: what every screen needs, including the ones shown before
+ * authentication.
  */
 export function AppProviders({
   lang,
@@ -51,18 +57,32 @@ export function AppProviders({
 }: AppProvidersProps): ReactElement {
   const focusIndicator = useFocusIndicator()
   const themeOptions = useMemo(() => {
-    const focusOptions = focusIndicatorThemeOptions(focusIndicator)
-    if (overlay === null) return focusOptions
+    // With tmail-flutter's scroll bars and text, global CSS as the focus ring
+    const focusOptions = focusIndicatorThemeOptions(focusIndicator, {
+      ...SCROLLBAR_CSS,
+      ...TEXT_LOOK_CSS
+    })
+    // The menus of tmail-flutter: none of the others styles them
+    const menuOptions = menuLookThemeOptions()
+    // tmail-flutter's colours, and their counterparts in the dark scheme
+    const colorOptions = tmailColorsThemeOptions()
+    const ownOptions = {
+      ...focusOptions,
+      ...colorOptions,
+      components: { ...menuOptions.components, ...focusOptions.components }
+    }
+    if (overlay === null) return ownOptions
     const overlayOptions = overlayThemeOptions(overlay)
     // Neither styles the same components
     return {
       ...overlayOptions,
-      ...focusOptions,
-      components: { ...overlayOptions.components, ...focusOptions.components }
+      ...ownOptions,
+      components: { ...overlayOptions.components, ...ownOptions.components }
     }
   }, [focusIndicator, overlay])
   return (
     <TwakeMuiThemeProvider themeOptions={themeOptions}>
+      <ColorSchemeSync />
       <SpaceOverlayProvider overlay={overlay}>
         <I18nProvider lang={lang}>
           <DocumentTitleProvider>

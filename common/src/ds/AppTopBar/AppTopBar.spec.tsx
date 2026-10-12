@@ -1,133 +1,59 @@
-import { act, screen, waitFor } from '@testing-library/react'
-import { createRef } from 'react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { createRef, type RefObject } from 'react'
 
-import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderDs } from '@/ds/testing/renderDs'
+import { mockViewport } from '@/ds/testing/mockViewport'
 
 import { AppTopBar, type AppTopBarSearchActions } from './AppTopBar'
 
-const searchActions = createRef<AppTopBarSearchActions>()
-
-function renderBar(onOpenMenu = jest.fn()): jest.Mock {
+function renderBar(
+  search: boolean,
+  onOpen = jest.fn()
+): {
+  onOpen: jest.Mock
+  actions: RefObject<AppTopBarSearchActions | null>
+} {
+  const actions = createRef<AppTopBarSearchActions>()
   renderDs(
     <AppTopBar
-      searchActions={searchActions}
-      title={<span>Twake Mail</span>}
-      compactTitle={<span>Inbox</span>}
-      search={<input aria-label="Search mail" />}
-      actions={<button type="button">My account</button>}
-      menu={{ label: 'Show folders', onOpen: onOpenMenu }}
-      openSearchLabel="Search"
-      closeSearchLabel="Back"
-      data-testid="top-bar"
+      title={<span>Inbox</span>}
+      search={search ? <input aria-label="Search emails" /> : null}
+      actions={<button type="button">Filter</button>}
+      menu={{ label: 'Show folders', onOpen, 'data-testid': 'menu' }}
+      searchActions={actions}
+      data-testid="bar"
     />
   )
-  return onOpenMenu
+  return { onOpen, actions }
 }
 
 describe('AppTopBar', () => {
-  afterEach(resetViewport)
-
-  it('shows the title and the actions on a desktop, 50 px high, no menu nor search', () => {
-    mockViewport({ width: 1440 })
-
-    renderBar()
-
-    expect(screen.getByText('Twake Mail')).toBeVisible()
-    expect(screen.getByTestId('top-bar').firstElementChild).toHaveStyle({
-      minHeight: '50px'
-    })
-    expect(screen.queryByRole('textbox')).toBe(null)
-    expect(screen.getByRole('button', { name: 'My account' })).toBeVisible()
-    expect(screen.queryByRole('button', { name: 'Show folders' })).toBe(null)
-    expect(screen.queryByText('Inbox')).toBe(null)
-  })
-
-  it('adds the menu button on a tablet', async () => {
-    mockViewport({ width: 820, touch: true })
-
-    const onOpenMenu = renderBar()
-    await userEvent.click(screen.getByRole('button', { name: 'Show folders' }))
-
-    expect(onOpenMenu).toHaveBeenCalledTimes(1)
-    expect(screen.getByText('Twake Mail')).toBeVisible()
-    expect(screen.getByRole('textbox', { name: 'Search mail' })).toBeVisible()
-  })
-
-  it('folds the search behind a button on a phone, with the compact title', () => {
+  beforeEach(() => {
     mockViewport({ width: 390, touch: true })
+  })
 
-    renderBar()
+  it('shows the menu button, the title, the actions and the search under them', async () => {
+    const { onOpen } = renderBar(true)
 
     expect(screen.getByText('Inbox')).toBeVisible()
-    expect(screen.queryByText('Twake Mail')).toBe(null)
-    expect(screen.queryByRole('textbox')).toBe(null)
-    expect(screen.getByRole('button', { name: 'Show folders' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'My account' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Filter' })).toBeVisible()
+    expect(screen.getByRole('textbox', { name: 'Search emails' })).toBeVisible()
+    await userEvent.click(screen.getByRole('button', { name: 'Show folders' }))
+    expect(onOpen).toHaveBeenCalledTimes(1)
   })
 
-  it('unfolds the search with the focus in it, and folds it back with Escape', async () => {
-    mockViewport({ width: 390, touch: true })
-    renderBar()
+  it('focuses the search when asked', () => {
+    const { actions } = renderBar(true)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Search' }))
+    actions.current?.focusSearch()
 
-    const input = screen.getByRole('textbox', { name: 'Search mail' })
-    await waitFor(() => {
-      expect(input).toHaveFocus()
-    })
-    expect(screen.queryByRole('button', { name: 'Show folders' })).toBe(null)
-
-    await userEvent.keyboard('{Escape}')
-
-    expect(screen.queryByRole('textbox')).toBe(null)
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Search' })).toHaveFocus()
-    })
+    expect(screen.getByRole('textbox', { name: 'Search emails' })).toHaveFocus()
   })
 
-  it('folds the search back with the back button', async () => {
-    mockViewport({ width: 390, touch: true })
-    renderBar()
-
-    await userEvent.click(screen.getByRole('button', { name: 'Search' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+  it('leaves the search out when there is none', () => {
+    renderBar(false)
 
     expect(screen.queryByRole('textbox')).toBe(null)
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Search' })).toHaveFocus()
-    })
-  })
-
-  it('focuses the search on demand on a tablet', () => {
-    mockViewport({ width: 820, touch: true })
-    renderBar()
-
-    act(() => {
-      searchActions.current?.focusSearch()
-    })
-
-    expect(screen.getByRole('textbox', { name: 'Search mail' })).toHaveFocus()
-  })
-
-  it('unfolds the search on demand on a phone, then focuses it', async () => {
-    mockViewport({ width: 390, touch: true })
-    renderBar()
-
-    act(() => {
-      searchActions.current?.focusSearch()
-    })
-
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', { name: 'Search mail' })).toHaveFocus()
-    })
-
-    await userEvent.keyboard('{Escape}')
-
-    expect(screen.queryByRole('textbox')).toBe(null)
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Search' })).toHaveFocus()
-    })
   })
 })

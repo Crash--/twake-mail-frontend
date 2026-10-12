@@ -55,7 +55,7 @@ export interface NotificationsProviderProps {
 /**
  * The toasts of the app: `useNotify().notify({ message, action })` shows
  * one at the bottom of the screen (above the floating "New message" button
- * on phones and tablets, and on desktops under `AlwaysFloatingAction`), announced to screen readers (`ds/ToastRegion`).
+ * on phones and tablets), announced to screen readers (`ds/ToastRegion`).
  */
 export function NotificationsProvider({
   children

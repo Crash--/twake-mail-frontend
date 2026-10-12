@@ -26,7 +26,11 @@ import { LABEL_PATH } from './labelPaths'
 import { labelKeys } from './queries'
 
 export interface LabelActions {
-  create: () => void
+  /** Creates a label; with emails, puts it on them once created */
+  create: (target?: {
+    emails: readonly TargetEmail[]
+    mailboxId: string | null
+  }) => void
   edit: (label: Label) => void
   /** Deletes a label once confirmed; resolves to whether it went */
   remove: (label: Label) => Promise<boolean>
@@ -35,6 +39,13 @@ export interface LabelActions {
    * to whether their labels changed
    */
   choose: (
+    emails: readonly TargetEmail[],
+    mailboxId: string | null
+  ) => Promise<boolean>
+  /** Puts a label on emails, or takes it off ("Label as" submenu) */
+  toggle: (
+    label: Label,
+    isOn: boolean,
     emails: readonly TargetEmail[],
     mailboxId: string | null
   ) => Promise<boolean>
@@ -49,7 +60,12 @@ export interface LabelActions {
 const LabelActionsContext = createContext<LabelActions | null>(null)
 
 type DialogState =
-  | { kind: 'edit'; label: Label | null }
+  | {
+      kind: 'edit'
+      label: Label | null
+      /** The emails the label created goes on */
+      target?: { emails: readonly TargetEmail[]; mailboxId: string | null }
+    }
   | {
       kind: 'choose'
       emails: readonly TargetEmail[]
@@ -159,8 +175,12 @@ export function LabelActionsProvider({
 
   const api = useMemo(
     (): LabelActions => ({
-      create: () => {
-        setDialog({ kind: 'edit', label: null })
+      create: target => {
+        setDialog({
+          kind: 'edit',
+          label: null,
+          ...(target === undefined ? {} : { target })
+        })
       },
       edit: label => {
         setDialog({ kind: 'edit', label })
@@ -172,6 +192,14 @@ export function LabelActionsProvider({
           pendingChoice.current = resolve
           setDialog({ kind: 'choose', emails, mailboxId })
         }),
+      toggle: (label, isOn, emails, mailboxId) =>
+        apply(
+          isOn
+            ? { added: [label], removed: [] }
+            : { added: [], removed: [label] },
+          emails,
+          mailboxId
+        ),
       takeOff: (label, emails, mailboxId) =>
         apply({ added: [], removed: [label] }, emails, mailboxId)
     }),
@@ -190,6 +218,21 @@ export function LabelActionsProvider({
       {dialog?.kind === 'edit' ? (
         <LabelDialog
           label={dialog.label}
+          {...(dialog.target === undefined
+            ? {}
+            : {
+                onCreated: (created: Label) => {
+                  const { emails, mailboxId } = dialog.target ?? {
+                    emails: [],
+                    mailboxId: null
+                  }
+                  void apply(
+                    { added: [created], removed: [] },
+                    emails,
+                    mailboxId
+                  )
+                }
+              })}
           onClose={() => {
             close(false)
           }}
@@ -221,6 +264,7 @@ const NO_ACTIONS: LabelActions = {
   edit: () => undefined,
   remove: () => Promise.resolve(false),
   choose: () => Promise.resolve(false),
+  toggle: () => Promise.resolve(false),
   takeOff: () => Promise.resolve(false)
 }
 

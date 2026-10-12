@@ -2,14 +2,13 @@
 // the bottom of the screen that can be minimized or put full screen while
 // the page stays usable (Gmail's composer, chat windows): Mail needs them
 // for the composer, Chat could for conversations.
-import { Cross, Dash, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Backdrop,
   Box,
   ButtonBase,
   GlobalStyles,
   Paper,
-  SvgIcon,
   Typography
 } from '@linagora/twake-mui'
 import FocusTrap from '@mui/material/Unstable_TrapFocus'
@@ -17,36 +16,71 @@ import {
   useEffect,
   useId,
   useRef,
+  type ComponentProps,
   type FocusEvent,
   type KeyboardEvent,
   type ReactElement,
   type ReactNode
 } from 'react'
 
+import {
+  Cancel,
+  Dash,
+  Fullscreen,
+  FullscreenExit,
+  Top
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 
 /** Where the window is: in the dock, its title bar only, or over the page */
 export type DockedWindowMode = 'normal' | 'minimized' | 'fullscreen'
 
-/** Size of a window in the dock, in px */
+/**
+ * A window alone in the dock is 55 % of the screen wide and 85 % high, as
+ * tmail-flutter's (`DesktopResponsiveContainerView`); several are 600 × 525
+ * px each
+ */
 export const DOCKED_WINDOW_WIDTH = 790
+export const SHARED_WINDOW_WIDTH = 600
+const SHARED_WINDOW_HEIGHT = 525
 /** Width of a minimized window (its title bar), in px */
 export const MINIMIZED_WINDOW_WIDTH = 400
-const DOCKED_WINDOW_HEIGHT = 634
+
 /** Height of a window on a tablet, measured on the design, in px */
 const TABLET_WINDOW_HEIGHT = 710
-const TITLE_BAR_HEIGHT = 44
-/** Gap between the expanded window and the edges of the screen */
-const FULLSCREEN_INSET = {
-  top: 64,
-  right: 'min(80px, 5vw)',
-  bottom: 72,
-  left: 'min(136px, 8vw)'
+/** From the edges of the screen, the composer card of tablets, in px */
+const CARD_INSET = 24
+const TITLE_BAR_HEIGHT = 52
+/**
+ * tmail-flutter's `AppBarComposerWidgetStyle`: 24 px from the edges, 20 px
+ * black icons in 26 px buttons, 8 px apart
+ */
+const TITLE_BAR_PADDING = '24px'
+const TITLE_BAR_BUTTON_SIZE = 26
+const TITLE_BAR_ICON_SIZE = 20
+const TITLE_BAR_GAP = '8px'
+const TITLE_BAR_ICON_COLOR = TMAIL.textBlack
+/** The title of tmail-flutter's composer: Medium 17 / 22, black, no tracking */
+const TITLE_SX = {
+  fontSize: 17,
+  fontWeight: 500,
+  lineHeight: '22px',
+  letterSpacing: 0,
+  color: TMAIL.textBlack
 } as const
-/** Material 3 elevation 3, the shadow of the composer in the design */
+/** Gap between the expanded window and the edges of the screen */
+// tmail-flutter's full screen composer: 85 % × 90 % of the screen, centred
+const FULLSCREEN_INSET = {
+  top: '5vh',
+  right: '7.5vw',
+  bottom: '5vh',
+  left: '7.5vw'
+} as const
+/** Material elevation 16, the shadow of tmail-flutter's composer */
 const WINDOW_SHADOW =
-  '0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15)'
+  '0 8px 10px -5px rgba(0, 0, 0, 0.2), 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12)'
 
 /** `view-transition-class` of the windows (and the backdrop) that opt in */
 const VIEW_TRANSITION_CLASS = 'docked-window'
@@ -65,12 +99,6 @@ const VIEW_TRANSITION_STYLES = {
   [`::view-transition-old(*.${VIEW_TRANSITION_CLASS})`]: { display: 'none' },
   [`::view-transition-new(*.${VIEW_TRANSITION_CLASS})`]: { animation: 'none' }
 } as const
-
-// Material Icons paths (Apache-2.0): twake-icons has no "open in full" nor
-// "close full screen" icon (docs/twake-mui-gaps.md)
-const FULLSCREEN_PATH = 'M21 11V3h-8l3.29 3.29-10 10L3 13v8h8l-3.29-3.29 10-10z'
-const EXIT_FULLSCREEN_PATH =
-  'M22 3.41 16.71 8.7 20 12h-8V4l3.29 3.29L20.59 2zM2 20.59 7.29 15.3 4 12h8v8l-3.29-3.29L3.41 22z'
 
 export interface DockedWindowLabels {
   minimize: string
@@ -102,6 +130,14 @@ export interface DockedWindowProps {
   isTitleCentered?: boolean
   /** Tablets: taller than the window of a desktop */
   isTall?: boolean
+  /**
+   * With `isModal`, tmail-flutter's composer of tablets: a card over the
+   * dimmed page, 24 px from its edges (`full`), or 70 % of its width in the
+   * middle (`centered`, large tablets); only the close button
+   */
+  card?: 'full' | 'centered'
+  /** Other windows share the dock: 525 px high rather than 85 % */
+  isShared?: boolean
   /** Width in the dock, in px (the dock shrinks windows to fit) */
   width?: number
   labels: DockedWindowLabels
@@ -127,6 +163,37 @@ export interface DockedWindowProps {
     fullscreen?: string
     close?: string
   }
+}
+
+interface TitleBarButtonProps {
+  label: string
+  icon: ComponentProps<typeof Icon>['icon']
+  onClick: () => void
+  'data-testid'?: string
+}
+
+/** A button of the title bar: a 20 px black icon in 26 px */
+function TitleBarButton({
+  label,
+  icon,
+  onClick,
+  'data-testid': testId
+}: TitleBarButtonProps): ReactElement {
+  return (
+    <ActionIconButton
+      label={label}
+      size={TITLE_BAR_BUTTON_SIZE}
+      onClick={onClick}
+      data-testid={testId}
+    >
+      <Icon
+        icon={icon}
+        size={TITLE_BAR_ICON_SIZE}
+        color={TITLE_BAR_ICON_COLOR}
+        aria-hidden="true"
+      />
+    </ActionIconButton>
+  )
 }
 
 /**
@@ -160,6 +227,8 @@ export function DockedWindow({
   isTitleBarHidden = false,
   isTitleCentered = false,
   isTall = false,
+  card,
+  isShared = false,
   width = DOCKED_WINDOW_WIDTH,
   labels,
   onModeChange,
@@ -175,6 +244,9 @@ export function DockedWindow({
   const restoreRef = useRef<HTMLButtonElement>(null)
   const lastFocused = useRef<HTMLElement | null>(null)
   const previousMode = useRef(mode)
+  // Minimized by its button, which leaves with the click (the minimized bar
+  // has other buttons): the focus goes to the bar all the same
+  const isMinimizing = useRef(false)
   const isMinimized = mode === 'minimized' && !isModal
   const isFullscreen = mode === 'fullscreen' || isModal
   const hasNoTitleBar = isCompact && isTitleBarHidden
@@ -193,7 +265,9 @@ export function DockedWindow({
     const active = page.activeElement
     // Brought back from its title bar, whose button went with the click
     const wasRestored = before === 'minimized' && active === page.body
-    if (!root.contains(active) && !wasRestored) return
+    const wasMinimizedHere = isMinimizing.current
+    isMinimizing.current = false
+    if (!root.contains(active) && !wasRestored && !wasMinimizedHere) return
     if (mode === 'minimized') {
       restoreRef.current?.focus()
     } else if (before === 'minimized') {
@@ -223,44 +297,63 @@ export function DockedWindow({
   const fullscreenLabel =
     mode === 'fullscreen' ? labels.exitFullscreen : labels.fullscreen
 
+  const handleMinimize = (): void => {
+    isMinimizing.current = true
+    onModeChange('minimized')
+  }
+  const closeButton = (
+    <TitleBarButton
+      label={labels.close}
+      icon={Cancel}
+      onClick={onClose}
+      data-testid={testIds.close}
+    />
+  )
+  const fullscreenButton = (
+    <TitleBarButton
+      label={fullscreenLabel}
+      icon={mode === 'fullscreen' ? FullscreenExit : Fullscreen}
+      onClick={() => {
+        onModeChange(mode === 'fullscreen' ? 'normal' : 'fullscreen')
+      }}
+      data-testid={testIds.fullscreen}
+    />
+  )
+
+  // tmail-flutter's `DesktopAppBarComposerWidget`: minimize, full screen,
+  // close at the end; the composers of tablets only close
   const controls = (
     <>
-      {isMinimized ? null : titleBarActions}
-      {isCompact ? null : (
+      {titleBarActions}
+      {isCompact || card !== undefined ? null : (
         <>
-          <ActionIconButton
-            label={isMinimized ? labels.restore : labels.minimize}
-            onClick={() => {
-              onModeChange(isMinimized ? 'normal' : 'minimized')
-            }}
+          <TitleBarButton
+            label={labels.minimize}
+            icon={Dash}
+            onClick={handleMinimize}
             data-testid={testIds.minimize}
-          >
-            <Icon icon={Dash} size={16} aria-hidden="true" />
-          </ActionIconButton>
-          <ActionIconButton
-            label={fullscreenLabel}
-            onClick={() => {
-              onModeChange(mode === 'fullscreen' ? 'normal' : 'fullscreen')
-            }}
-            data-testid={testIds.fullscreen}
-          >
-            <SvgIcon aria-hidden="true">
-              <path
-                d={
-                  mode === 'fullscreen' ? EXIT_FULLSCREEN_PATH : FULLSCREEN_PATH
-                }
-              />
-            </SvgIcon>
-          </ActionIconButton>
+          />
+          {fullscreenButton}
         </>
       )}
-      <ActionIconButton
-        label={labels.close}
-        onClick={onClose}
-        data-testid={testIds.close}
-      >
-        <Icon icon={Cross} size={16} aria-hidden="true" />
-      </ActionIconButton>
+      {closeButton}
+    </>
+  )
+
+  // tmail-flutter's `MinimizeComposerWidget`: close, full screen and show
+  // first, then the title
+  const minimizedControls = (
+    <>
+      {closeButton}
+      {fullscreenButton}
+      <TitleBarButton
+        label={labels.restore}
+        icon={Top}
+        onClick={() => {
+          onModeChange('normal')
+        }}
+        data-testid={testIds.minimize}
+      />
     </>
   )
 
@@ -287,7 +380,9 @@ export function DockedWindow({
           sx={[
             {
               pointerEvents: 'auto',
-              borderRadius: '8px',
+              // tmail-flutter's composer: a 28 px radius, elevation 16
+              // Minimized: tmail-flutter's white bar rounded by 24
+              borderRadius: isMinimized ? '24px' : '28px',
               boxShadow: WINDOW_SHADOW,
               ...(viewTransitionName === undefined
                 ? {}
@@ -312,24 +407,35 @@ export function DockedWindow({
                         height: visible.height
                       })
                 }
-              : isFullscreen
+              : isFullscreen && card !== undefined
                 ? {
-                    // Expanded as in the design: under the top bar of the
-                    // app, the navigation still showing at the start
                     position: 'fixed',
-                    top: FULLSCREEN_INSET.top,
-                    right: FULLSCREEN_INSET.right,
-                    bottom: FULLSCREEN_INSET.bottom,
-                    left: FULLSCREEN_INSET.left
+                    top: CARD_INSET,
+                    bottom: CARD_INSET,
+                    ...(card === 'full'
+                      ? { left: CARD_INSET, right: CARD_INSET }
+                      : { left: '15vw', right: '15vw' })
                   }
-                : {
-                    width: isMinimized ? MINIMIZED_WINDOW_WIDTH : width,
-                    height: isMinimized
-                      ? TITLE_BAR_HEIGHT
-                      : `min(${
-                          isTall ? TABLET_WINDOW_HEIGHT : DOCKED_WINDOW_HEIGHT
-                        }px, calc(100dvh - 96px))`
-                  }
+                : isFullscreen
+                  ? {
+                      // Expanded as in the design: under the top bar of the
+                      // app, the navigation still showing at the start
+                      position: 'fixed',
+                      top: FULLSCREEN_INSET.top,
+                      right: FULLSCREEN_INSET.right,
+                      bottom: FULLSCREEN_INSET.bottom,
+                      left: FULLSCREEN_INSET.left
+                    }
+                  : {
+                      width: isMinimized ? MINIMIZED_WINDOW_WIDTH : width,
+                      height: isMinimized
+                        ? TITLE_BAR_HEIGHT
+                        : isTall
+                          ? `min(${TABLET_WINDOW_HEIGHT}px, calc(100dvh - 96px))`
+                          : isShared
+                            ? `min(${SHARED_WINDOW_HEIGHT}px, calc(100dvh - 40px))`
+                            : '85dvh'
+                    }
           ]}
           data-testid={testIds.window}
           data-mode={isModal ? 'fullscreen' : mode}
@@ -343,17 +449,17 @@ export function DockedWindow({
               className="u-flex u-flex-items-center u-flex-shrink-0"
               sx={{
                 height: TITLE_BAR_HEIGHT,
-                px: 2,
-                bgcolor: 'background.default',
-                borderBottom: isMinimized ? 'none' : '1px solid',
-                borderColor: 'divider',
-                gap: 0.5,
+                px: TITLE_BAR_PADDING,
+                // No rule under it: the grey bar meets the white fields
+                bgcolor: isMinimized ? TMAIL.surface : TMAIL.background,
+                gap: TITLE_BAR_GAP,
                 ...(isCentered
                   ? { display: 'grid', gridTemplateColumns: '1fr auto 1fr' }
                   : {})
               }}
             >
               {isCentered ? <span /> : null}
+              {isMinimized ? minimizedControls : null}
               {isMinimized ? (
                 <ButtonBase
                   ref={restoreRef}
@@ -365,7 +471,13 @@ export function DockedWindow({
                   aria-label={`${labels.restore}: ${title}`}
                 >
                   {/* Not a heading: it would sit inside the button, where it is lost */}
-                  <Typography id={titleId} component="span" variant="h5" noWrap>
+                  <Typography
+                    id={titleId}
+                    component="span"
+                    variant="h5"
+                    noWrap
+                    sx={TITLE_SX}
+                  >
                     {title}
                   </Typography>
                 </ButtonBase>
@@ -376,6 +488,7 @@ export function DockedWindow({
                   variant="h5"
                   noWrap
                   className={isCentered ? undefined : 'u-flex-auto'}
+                  sx={TITLE_SX}
                 >
                   {title}
                 </Typography>
@@ -383,11 +496,11 @@ export function DockedWindow({
               {isCentered ? (
                 <Box
                   className="u-flex u-flex-items-center"
-                  sx={{ gap: 0.5, justifyContent: 'flex-end' }}
+                  sx={{ gap: TITLE_BAR_GAP, justifyContent: 'flex-end' }}
                 >
                   {controls}
                 </Box>
-              ) : (
+              ) : isMinimized ? null : (
                 controls
               )}
             </Box>
@@ -406,10 +519,10 @@ export function DockedWindow({
       {isFullscreen ? (
         <Backdrop
           open
-          // The dock lets clicks through: not the backdrop. Not dimmed
-          // outside the compact layout: the design shows the page as is
+          // The dock lets clicks through: not the backdrop
           sx={{
-            ...(isCompact ? {} : { backgroundColor: 'transparent' }),
+            // tmail-flutter dims the page behind (black at 38 %)
+            ...(isCompact ? {} : { backgroundColor: 'rgba(0, 0, 0, 0.38)' }),
             zIndex: theme => theme.zIndex.modal - 1,
             pointerEvents: 'auto',
             ...(viewTransitionName === undefined

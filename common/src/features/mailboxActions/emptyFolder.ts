@@ -23,6 +23,8 @@ export interface EmptyFolderOptions {
   /** Most method calls in one request (`maxCallsInRequest`) */
   maxCalls: number
   extraCapabilities?: readonly string[]
+  /** After each page of emails destroyed: how many went so far */
+  onProgress?: (destroyed: number) => void
 }
 
 /**
@@ -34,7 +36,10 @@ export async function destroyMailboxes(
   client: JmapClient,
   accountId: string,
   ids: readonly string[],
-  { maxCalls, extraCapabilities = [] }: Omit<EmptyFolderOptions, 'batchSize'>
+  {
+    maxCalls,
+    extraCapabilities = []
+  }: Omit<EmptyFolderOptions, 'batchSize' | 'onProgress'>
 ): Promise<string[]> {
   const failed: string[] = []
   for (let start = 0; start < ids.length; start += maxCalls) {
@@ -64,6 +69,22 @@ export async function destroyMailboxes(
 }
 
 /**
+ * Whether `emptyFolder` empties the folder in one call (`Mailbox/clear`),
+ * which reports no progress. tmail-flutter does not clear the folders of a
+ * team mailbox (its `Mailbox/clear` is for the folders of the user, known by
+ * their role).
+ */
+export function clearsAtOnce(
+  client: JmapClient,
+  mailbox: MailboxSummary
+): boolean {
+  return (
+    isPersonalMailbox(mailbox) &&
+    client.hasCapability(LINAGORA_CAPABILITIES.mailboxClear)
+  )
+}
+
+/**
  * Empties a folder as tmail-flutter: its emails go for good, with
  * `Mailbox/clear` when the server has it (not in a team mailbox), by pages of `Email/query` and
  * `Email/set` destroy otherwise; the Trash also loses its subfolders.
@@ -77,12 +98,7 @@ export async function emptyFolder(
   options: EmptyFolderOptions
 ): Promise<EmptyFolderResult> {
   let deleted: number
-  // tmail-flutter does not clear the folders of a team mailbox (its
-  // `Mailbox/clear` is for the folders of the user, known by their role)
-  if (
-    isPersonalMailbox(mailbox) &&
-    client.hasCapability(LINAGORA_CAPABILITIES.mailboxClear)
-  ) {
+  if (clearsAtOnce(client, mailbox)) {
     const response = await client.call(
       'Mailbox/clear',
       { accountId, mailboxId: mailbox.id },

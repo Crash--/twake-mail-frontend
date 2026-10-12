@@ -21,6 +21,7 @@ function Harness({
   isCompact = false,
   isTitleBarHidden = false,
   isTitleCentered = false,
+  card,
   onEscape = jest.fn(),
   onClose = jest.fn()
 }: {
@@ -29,6 +30,7 @@ function Harness({
   isCompact?: boolean
   isTitleBarHidden?: boolean
   isTitleCentered?: boolean
+  card?: 'full' | 'centered'
   onEscape?: () => void
   onClose?: () => void
 }): ReactElement {
@@ -42,6 +44,7 @@ function Harness({
         isCompact={isCompact}
         isTitleBarHidden={isTitleBarHidden}
         isTitleCentered={isTitleCentered}
+        card={card}
         labels={LABELS}
         onModeChange={setMode}
         onClose={onClose}
@@ -172,5 +175,18 @@ describe('DockedWindow', () => {
     for (const name of ['Minimize', 'Fullscreen', 'Close']) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument()
     }
+  })
+
+  it('shows the card of a tablet as a named modal dialog with its title and close alone', () => {
+    renderDs(<Harness isModal card="full" />)
+
+    expect(screen.getByRole('dialog', { name: 'New message' })).toHaveAttribute(
+      'aria-modal',
+      'true'
+    )
+    expect(screen.getByRole('heading', { name: 'New message' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Close' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Minimize' })).toBe(null)
+    expect(screen.queryByRole('button', { name: 'Fullscreen' })).toBe(null)
   })
 })

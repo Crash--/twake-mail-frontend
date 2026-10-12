@@ -20,8 +20,9 @@ test.describe('SET forwarding', () => {
 
     await settings.forwardInput.fill(bob.email)
     await page.getByTestId('forward-add-button').click()
-    await expect(settings.toast).toContainText('added from the recipient list')
-    await expect(settings.forwardItems).toHaveText([bob.email])
+    await expect(settings.toast).toContainText('added to the recipient list')
+    // Its card holds the avatar of tmail-flutter, then the address
+    await expect(settings.forwardItems).toContainText([bob.email])
     await expect(page.getByTestId('forward-warning-banner')).toHaveCount(0)
 
     // A copy stays in the Inbox unless turned off
@@ -31,7 +32,7 @@ test.describe('SET forwarding', () => {
     await expect(localCopy).toBeChecked()
     // Switched once the server took it
     await localCopy.click()
-    await expect(settings.toast).toContainText('Keep local copy disable.')
+    await expect(settings.toast).toContainText('Local copy disabled.')
     await expect(localCopy).not.toBeChecked()
     await expectNoA11yViolations(page)
 
@@ -60,15 +61,18 @@ test.describe('SET forwarding', () => {
     await expect(page.getByTestId('forward-warning-banner')).toContainText(
       'Forwarding outside example.com breaks the e2e charter.'
     )
+    // As tmail-flutter, an information icon named so marks it
     await expect(
-      settings.forwardItems.filter({ hasText: 'someone@elsewhere.test' })
-    ).toContainText('External domain')
+      settings.forwardItems
+        .filter({ hasText: 'someone@elsewhere.test' })
+        .getByRole('img', { name: 'External domain' })
+    ).toBeVisible()
     await expectNoA11yViolations(page)
 
     for (const email of ['someone@elsewhere.test', bob.email]) {
       await page.getByRole('button', { name: `Remove ${email}` }).click()
       await expect(settings.confirmDialog).toContainText(
-        `Do you want to delete email ${email}?`
+        `Do you want to remove ${email}?`
       )
       await settings.confirmDialog
         .getByTestId('confirm-dialog-confirm-button')

@@ -5,7 +5,7 @@
 // `role="alert"` of MUI, and an action beside a labelled dismiss button
 // (MUI's `action` replaces its own close button). See
 // docs/twake-mui-gaps.md "Message alerts".
-import { Cross, Icon } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import {
   Alert,
   AlertTitle,
@@ -16,6 +16,7 @@ import {
 } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
+import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { VISUALLY_HIDDEN } from './visuallyHidden'
 
 export type MessageAlertLevel = 'info' | 'warn' | 'error'
@@ -86,14 +87,17 @@ export function MessageAlert({
                 disabled={action.disabled}
                 onClick={action.onClick}
                 data-testid={action['data-testid']}
-                sx={{
+                sx={theme => ({
                   borderRadius: '100px',
                   color: `${SEVERITIES[level]}.main`,
                   bgcolor: 'rgba(255, 255, 255, 0.6)',
                   textTransform: 'none',
                   fontWeight: 500,
-                  px: 2
-                }}
+                  px: 2,
+                  ...theme.applyStyles('dark', {
+                    bgcolor: 'rgba(0, 0, 0, 0.3)'
+                  })
+                })}
               >
                 {action.label}
               </Button>

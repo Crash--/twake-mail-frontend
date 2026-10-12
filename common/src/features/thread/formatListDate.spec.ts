@@ -7,8 +7,8 @@ import {
 const NOW = new Date('2026-10-04T15:00:00Z')
 
 describe('formatListDate', () => {
-  it('shows the time of the emails of the day', () => {
-    expect(formatListDate('2026-10-04T08:05:00Z', 'en', NOW)).toBe('8:05 AM')
+  it('shows the time of the emails of the day, on 24 hours as tmail-flutter', () => {
+    expect(formatListDate('2026-10-04T08:05:00Z', 'en', NOW)).toBe('8:05')
     expect(formatListDate('2026-10-04T08:05:00Z', 'fr', NOW)).toBe('8:05')
   })
 

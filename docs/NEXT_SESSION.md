@@ -34,7 +34,7 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
 - **Accessibilité RGAA 4.1 obligatoire** (jsx-a11y, axe dans chaque spec e2e, navigation clavier). **Responsive** (desktop, tablette, mobile).
 - Données : TanStack Query. Synchronisation incrémentale par `/changes` (pas de refetch global).
 - Langues : en, fr, ru, vi (import des ARB Flutter via `scripts/import-flutter-arb.mjs`) ; les 9 langues = issue #62.
-- React 19 (depuis #63) : `@linagora/twake-mui` 10, `@linagora/twake-icons` 2.13 et `twake-i18n` 0.6 l'acceptent (twake-ui#130 et cozy-libs#3165 publiées). Pas d'`overrides`. Types dépréciés (`FormEvent`, `MutableRefObject`) remplacés par `SubmitEvent` et `RefObject`.
+- React 19 (depuis #63) : `@linagora/twake-mui` 12 (depuis le mode sombre : 10 lisait encore `theme.palette.*`, figé en clair ; 12 ajoute les pairs `cozy-intent` et `@linagora/twake-css`, et importe `react-markdown`, remplacé par `common/src/testing/markdownMock.ts` dans Jest), `@linagora/twake-icons` 2.13 et `twake-i18n` 0.6 l'acceptent (twake-ui#130 et cozy-libs#3165 publiées). Pas d'`overrides`. Types dépréciés (`FormEvent`, `MutableRefObject`) remplacés par `SubmitEvent` et `RefObject`.
 - Workflow : **une branche + une PR par lot sur `Crash--/twake-mail-frontend`, merge en rebase quand la CI est verte**, puis redéploiement démo (`deploy.sh`). Conventional Commits, trailer `Co-Authored-By: Claude …`.
 - Issues : Quentin en crée souvent en cours de route → les créer sur **notre** dépôt (anglais, checklist, labels existants).
   **Rien d'externe** (tmail-backend, twake-ui, Drive…) sans son feu vert.
@@ -87,7 +87,14 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
   (exception voulue par Quentin : l'indicateur de focus, une règle globale dans le thème, `ds/FocusIndicator`).
 - **Fait** : sidebar, barre du haut, liste, recherche (ouverte, filtres, avancée), lecture et conversation, composer et
   éditeur (desktop, tablette, téléphone), libellés, skeletons (liste, recherche, arbre, lecture) et bannière hors ligne (D8). Captures `after-*` par lot dans le cache.
-- **Reste à faire** : mode sombre, réglages, mobile
+- **Mode sombre** (fait le 2026-10-08/09) : le schéma est le réglage `appearance.theme` du compte (tmail-backend,
+  `light`/`dark`/`auto`), clair quand il est absent ; choix Clair / Sombre / Automatique dans Réglages > Préférences,
+  seulement quand le serveur le laisse modifier (absent de `readOnlyProperties`) ; copie dans le navigateur pour le
+  premier rendu (script de `index.html`) ; schéma sombre de twake-mui. Les couleurs de tmail-flutter de `@/ds/` sont
+  des jetons `TMAIL` (`ds/TmailColors`) : valeur exacte en clair, couleur de twake-mui de même rôle en sombre ;
+  `theme.vars.palette.*` dans les fonctions de style. Le corps des mails reste sur fond blanc (voir `emailBody.ts`).
+  Pas de maquette Figma sombre : à faire valider par Quentin.
+- **Reste à faire** : réglages, mobile
   hors composer (`n29045`, menus `n29085…`), pages Figma sans équivalent Flutter (multi-comptes, délégation, migration,
   automatisations : périmètre à décider).
 - **Décisions en attente de Quentin** : toutes dans `twake-mail-design-cache/questions-quentin.md` (une ligne par lot).

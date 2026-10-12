@@ -69,20 +69,18 @@ describe('IdentitiesSettings', () => {
       'Alice Martin'
     ])
     const work = item('Alice at work')
-    expect(within(work).getByText('Default')).toBeVisible()
-    expect(within(work).getByText('Reply to: team@example.com')).toBeVisible()
-    expect(within(work).getByText('-- Alice CEO')).toBeVisible()
+    expect(work).toHaveTextContent('Reply to: team@example.com')
+    // As tmail-flutter: "--", then the signature as it is written
+    expect(within(work).getByText('--')).toBeVisible()
+    expect(
+      within(work).getByTestId('identity-item-signature')
+    ).toHaveTextContent(/^Alice\s*CEO$/)
     expect(
       within(work).getByRole('radio', { name: 'Use Alice at work by default' })
     ).toBeChecked()
     // The identity of the account cannot be deleted
     const server = item('Alice Martin')
     expect(within(server).queryByTestId('identity-delete-button')).toBe(null)
-    expect(
-      within(server).getByText(
-        'Created with your account, it cannot be deleted'
-      )
-    ).toBeVisible()
   })
 
   it('makes another identity the default one', async () => {
@@ -118,7 +116,7 @@ describe('IdentitiesSettings', () => {
     )
     const dialog = screen.getByRole('dialog', { name: 'Create new identity' })
     await userEvent.type(
-      within(dialog).getByRole('textbox', { name: 'Name' }),
+      within(dialog).getByRole('textbox', { name: 'Name (required)' }),
       'Support'
     )
     await userEvent.type(
@@ -170,7 +168,9 @@ describe('IdentitiesSettings', () => {
     )
     await userEvent.click(within(dialog).getByTestId('save-identity-button'))
 
-    const name = within(dialog).getByRole('textbox', { name: 'Name' })
+    const name = within(dialog).getByRole('textbox', {
+      name: 'Name (required)'
+    })
     expect(name).toHaveFocus()
     expect(name).toHaveAccessibleDescription('This field cannot be blank')
     expect(
@@ -190,7 +190,7 @@ describe('IdentitiesSettings', () => {
     )
     const dialog = screen.getByRole('dialog', { name: 'Edit identity' })
     expect(
-      within(dialog).getByRole('combobox', { name: 'Email address' })
+      within(dialog).getByRole('combobox', { name: 'Email' })
     ).toBeDisabled()
     const replyTo = within(dialog).getByRole('textbox', { name: 'Reply to' })
     expect(replyTo).toHaveValue('team@example.com')

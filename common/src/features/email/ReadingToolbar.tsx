@@ -1,7 +1,8 @@
-import { Icon, Left, Right } from '@linagora/twake-icons'
-import { Box, Button } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { Newer, Older } from '@/ds/FlutterIcons/FlutterIcons'
+import { BackButton } from '@/ds/BackButton/BackButton'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { StickyBar } from '@/ds/StickyBar/StickyBar'
 import { useCurrentMailboxName } from '@common/features/mailbox/useCurrentMailboxName'
@@ -43,31 +44,31 @@ export function ReadingToolbar({
       role={label === undefined ? undefined : 'toolbar'}
       label={label}
       hasDivider
-      className="u-flex u-flex-items-center u-ph-half u-pv-half"
+      className="u-flex u-flex-items-center u-ph-1"
       data-testid={testId}
     >
-      <Button
-        variant="text"
-        color="inherit"
-        size="small"
-        startIcon={<Icon icon={Left} aria-hidden="true" />}
+      <BackButton
+        label={backLabel}
         onClick={onBack}
-        aria-label={backLabel}
         data-testid="email-view-back-button"
       >
         {mailboxName ?? t('common.back')}
-      </Button>
+      </BackButton>
       <Box className="u-flex u-flex-items-center u-flex-auto u-flex-justify-end">
         <IconAction
+          size={36}
+          tone="steel"
           label={previousLabel}
-          icon={Left}
+          icon={Newer}
           disabled={navigation.openPrevious === null}
           onClick={navigation.openPrevious ?? undefined}
           data-testid="email-view-previous-button"
         />
         <IconAction
+          size={36}
+          tone="steel"
           label={nextLabel}
-          icon={Right}
+          icon={Older}
           disabled={navigation.openNext === null}
           onClick={navigation.openNext ?? undefined}
           data-testid="email-view-next-button"

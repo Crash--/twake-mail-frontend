@@ -100,7 +100,7 @@ function transitionStyles(theme: Theme, slideBreakpoint: number): CSSObject {
     // The panes are transparent: opaque pictures, or the one sliding over the
     // other would mix with it
     [`::view-transition-old(${PANE_TRANSITION}), ::view-transition-new(${PANE_TRANSITION}), ::view-transition-old(${ITEM_TRANSITION}), ::view-transition-new(${ITEM_TRANSITION})`]:
-      { backgroundColor: theme.palette.background.paper },
+      { backgroundColor: theme.vars.palette.background.paper },
     // The pane leaving on top when going back
     [`${backward}::view-transition-old(${PANE_TRANSITION})`]: { zIndex: 1 },
     [`@media (max-width:${slideBreakpoint - 0.05}px)`]: {

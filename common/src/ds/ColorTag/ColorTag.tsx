@@ -29,8 +29,18 @@ export interface ColorTagProps {
   onRemove?: () => void
   /** `small`: 11 / 14 text and 4 px of padding, the tags of a list row */
   size?: 'small' | 'medium'
-  /** Cut the name after this many characters, with an ellipsis */
+  /**
+   * Cut the name to this many characters, ellipsis included (tmail-flutter's
+   * `LabelUtils.truncateLabel`: 15 characters and "...")
+   */
   maxLength?: number
+  /** Shows the whole name in a tooltip on hover (tmail-flutter on the web) */
+  hasTooltip?: boolean
+  /**
+   * The colour of the text; by default black or white, whichever reads
+   * best (tmail-flutter writes the labels of a list row in white)
+   */
+  textColor?: string
   'data-testid'?: string
 }
 
@@ -44,19 +54,33 @@ export function ColorTag({
   removeLabel,
   onRemove,
   maxLength,
+  hasTooltip = false,
   size = 'medium',
+  textColor = readableTextColor(color),
   'data-testid': testId
 }: ColorTagProps): ReactElement {
-  const textColor = readableTextColor(color)
   const shown =
     maxLength !== undefined && label.length > maxLength
-      ? `${label.slice(0, maxLength)}…`
+      ? `${label.slice(0, maxLength - 1)}...`
       : label
+  const isCut = shown !== label
+  const text = (
+    <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      {isCut ? (
+        <>
+          <span aria-hidden="true">{shown}</span>
+          <span className="u-visuallyhidden">{label}</span>
+        </>
+      ) : (
+        label
+      )}
+    </Box>
+  )
 
   return (
     <Box
       component="span"
-      title={shown === label ? undefined : label}
+      title={!hasTooltip && isCut ? label : undefined}
       data-testid={testId}
       sx={{
         display: 'inline-flex',
@@ -70,15 +94,19 @@ export function ColorTag({
         fontSize: size === 'small' ? '11px' : '0.75rem',
         lineHeight: size === 'small' ? '14px' : 1.5,
         whiteSpace: 'nowrap',
-        verticalAlign: 'middle'
+        verticalAlign: 'middle',
+        // Above the overlay of a row link (its `::after`), so that the
+        // pointer reaches the tooltip; a click still goes to the link
+        ...(hasTooltip ? { position: 'relative', zIndex: 1 } : {})
       }}
     >
-      <Box
-        component="span"
-        sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
-      >
-        {shown}
-      </Box>
+      {hasTooltip ? (
+        <Tooltip title={label} describeChild disableInteractive>
+          {text}
+        </Tooltip>
+      ) : (
+        text
+      )}
       {onRemove && removeLabel ? (
         <Tooltip title={removeLabel}>
           <ButtonBase

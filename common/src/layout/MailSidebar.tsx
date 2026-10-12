@@ -1,17 +1,16 @@
-import { Pen } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
 import { ComposeButton } from '@/ds/ComposeButton/ComposeButton'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { LabelsSection } from '@common/features/labels/LabelsSection'
-import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { SidebarSectionsProvider } from '@common/features/mailbox/SidebarSectionsProvider'
 import { useI18n } from '@common/i18n/useI18n'
-import { AppTitle } from '@injected/layout/AppTitle'
 
+import { DrawerHeader } from './DrawerHeader'
 import { MailSidebarFooter } from './MailSidebarFooter'
 
 export interface MailSidebarProps {
@@ -33,7 +32,6 @@ export function MailSidebar({
 }: MailSidebarProps): ReactElement {
   const { t } = useI18n()
   const screenSize = useScreenSize()
-  const isEmbedded = useIsEmbedded()
 
   return (
     <SidebarSectionsProvider>
@@ -42,11 +40,7 @@ export function MailSidebar({
         onClose={onDrawerClose}
         label={t('layout.navigation')}
         closeLabel={t('common.close')}
-        drawerHeader={
-          <Box className="u-flex-auto u-ov-hidden">
-            {isEmbedded ? null : <AppTitle />}
-          </Box>
-        }
+        drawerHeader={<DrawerHeader />}
         data-testid="sidebar"
         drawerTestId="mailbox-drawer"
         closeButtonTestId="mailbox-drawer-close-button"
@@ -61,8 +55,10 @@ export function MailSidebar({
             />
           </Box>
         ) : null}
+        {/* As tmail-flutter: 24 px under the compose button (8 + 16), 16
+            under the top of the drawer */}
         <Box
-          className="u-flex-auto u-ov-auto u-mt-1-half"
+          className={`u-flex-auto u-ov-auto ${screenSize === 'desktop' ? 'u-mt-1-half' : 'u-mt-1'}`}
           data-testid="sidebar-scroll"
         >
           <MailboxTree />

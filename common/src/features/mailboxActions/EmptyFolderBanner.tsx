@@ -7,6 +7,7 @@ import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { useFolderActionProgress } from './FolderActionProgress'
 import { isEmptiableFolder, useEmptyFolder } from './useEmptyFolder'
 
 export interface EmptyFolderBannerProps {
@@ -22,6 +23,8 @@ export function EmptyFolderBanner({
 }: EmptyFolderBannerProps): ReactElement | null {
   const { t } = useI18n()
   const emptyFolder = useEmptyFolder()
+  // One long folder action at a time, as tmail-flutter
+  const isLongActionRunning = useFolderActionProgress().progress !== null
   const { data: mailboxes = [] } = useMailboxes()
   const focusFallbackRef = useFocusFallback<HTMLDivElement>()
   const isTrash = isTrashMailbox(mailbox)
@@ -50,6 +53,7 @@ export function EmptyFolderBanner({
         <Button
           color="inherit"
           size="small"
+          disabled={isLongActionRunning}
           onClick={handleEmpty}
           data-testid="empty-trash-banner-button"
         >

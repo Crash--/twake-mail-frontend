@@ -89,7 +89,9 @@ describe('SearchField', () => {
       within(options[0] ?? emails).getAllByText('report')[0]?.tagName
     ).toBe('MARK')
     expect(
-      within(listbox).getByRole('option', { name: 'Search for "report"' })
+      within(listbox).getByRole('option', {
+        name: 'Showing results for: "report"'
+      })
     ).toBeVisible()
   })
 
@@ -155,7 +157,9 @@ describe('SearchField', () => {
     const server = makeServer()
     await renderField(server)
     await userEvent.type(combobox(), 'bob')
-    await screen.findByRole('option', { name: 'Search for "bob"' })
+    await screen.findByRole('option', {
+      name: 'Showing results for: "bob"'
+    })
 
     expect(server.calledMethods()).not.toContain('TMailContact/autocomplete')
   })
@@ -213,6 +217,61 @@ describe('SearchField', () => {
     expect(window.localStorage.getItem('twake-mail.search.sort-order')).toBe(
       'oldest'
     )
+  })
+
+  it('takes From and To as tags, suggests contacts, and moves a tag dragged to the other field', async () => {
+    await renderField(makeServer(true))
+    await userEvent.click(combobox())
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Advanced search' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
+    const from = within(dialog).getByRole('combobox', { name: 'From' })
+    expect(from).toHaveFocus()
+
+    await userEvent.type(from, 'bo')
+    await userEvent.click(
+      await within(dialog).findByRole('option', { name: /Bob Dupont/ })
+    )
+    await userEvent.type(from, 'carol, dan,')
+    const tags = (): string[] =>
+      within(dialog)
+        .queryAllByTestId('advanced-search-address-chip')
+        .map(chip => chip.getAttribute('aria-label') ?? '')
+    expect(tags()).toEqual(['bob@example.com', 'carol', 'dan'])
+
+    // Dragged from From to To (the browser hands one object to the events)
+    const data = new Map<string, string>()
+    const dataTransfer = {
+      get types() {
+        return [...data.keys()]
+      },
+      setData: (type: string, value: string) => {
+        data.set(type, value)
+      },
+      getData: (type: string) => data.get(type) ?? '',
+      setDragImage: jest.fn()
+    }
+    const carol = within(dialog).getAllByTestId(
+      'advanced-search-address-chip'
+    )[1]
+    if (!carol) throw new Error('No tag')
+    const to = within(dialog).getByTestId('advanced-search-to-field')
+    fireEvent.dragStart(carol, { dataTransfer })
+    fireEvent.dragEnter(to, { dataTransfer })
+    fireEvent.dragOver(to, { dataTransfer })
+    fireEvent.drop(to, { dataTransfer })
+    fireEvent.dragEnd(carol, { dataTransfer })
+
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Search' })
+    )
+
+    const params = new URLSearchParams(
+      screen.getByTestId('location').textContent.split('?')[1] ?? ''
+    )
+    expect(params.getAll('from')).toEqual(['bob@example.com', 'dan'])
+    expect(params.getAll('to')).toEqual(['carol'])
   })
 
   it('refuses a custom range ending before it starts', async () => {

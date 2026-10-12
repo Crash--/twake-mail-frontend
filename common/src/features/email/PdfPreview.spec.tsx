@@ -1,4 +1,5 @@
 import { act, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -125,6 +126,67 @@ describe('PdfPreview', () => {
     )
     unmount()
     expect(destroy).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks the password of an encrypted document, again while it is wrong', async () => {
+    const getPage = jest
+      .fn()
+      .mockResolvedValue({ getViewport: () => ({ width: 100, height: 100 }) })
+    const answers: (string | null)[] = []
+    mockedLoadPdf.mockImplementation((_data, requestPassword) => ({
+      promise: (async () => {
+        answers.push(await requestPassword(false))
+        answers.push(await requestPassword(true))
+        return { pdf: makePdf(1, getPage) as never }
+      })(),
+      destroy: jest.fn().mockResolvedValue(undefined)
+    }))
+    const user = userEvent.setup()
+    renderWithProviders(
+      <PdfPreview bytes={new Uint8Array([1])} onError={jest.fn()} />
+    )
+
+    const form = await screen.findByRole('form', {
+      name: 'This PDF is protected by a password'
+    })
+    expect(form).toBeVisible()
+    const field = screen.getByLabelText('Password')
+    expect(field).toHaveFocus()
+    expect(field).not.toHaveAttribute('aria-invalid', 'true')
+    await user.type(field, 'wrong')
+    await user.keyboard('{Enter}')
+
+    expect(
+      await screen.findByText('Incorrect password, try again.')
+    ).toBeVisible()
+    const retryField = screen.getByLabelText('Password')
+    expect(retryField).toHaveAttribute('aria-invalid', 'true')
+    await user.type(retryField, 'secret')
+    await user.click(screen.getByRole('button', { name: 'Open' }))
+
+    expect(
+      await screen.findByRole('img', { name: 'Page 1 of 1' })
+    ).toBeVisible()
+    expect(answers).toEqual(['wrong', 'secret'])
+    expect(screen.queryByTestId('pdf-password-form')).toBe(null)
+  })
+
+  it('gives up the password and terminates the worker when closed while asking it', async () => {
+    const destroy = jest.fn().mockResolvedValue(undefined)
+    let answer: Promise<string | null> | null = null
+    mockedLoadPdf.mockImplementation((_data, requestPassword) => {
+      answer = requestPassword(false)
+      return { promise: new Promise(() => undefined), destroy }
+    })
+    const { unmount } = renderWithProviders(
+      <PdfPreview bytes={new Uint8Array([1])} onError={jest.fn()} />
+    )
+    expect(await screen.findByTestId('pdf-password-form')).toBeVisible()
+
+    unmount()
+
+    expect(destroy).toHaveBeenCalledTimes(1)
+    await expect(answer).resolves.toBe(null)
   })
 
   it('reports a document pdf.js cannot read', async () => {

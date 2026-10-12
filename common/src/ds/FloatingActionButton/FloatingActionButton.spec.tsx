@@ -1,7 +1,7 @@
-import { Pen } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { FloatingActionButton } from './FloatingActionButton'
@@ -22,8 +22,8 @@ describe('FloatingActionButton', () => {
     expect(button).toHaveTextContent('New message')
     expect(button).toBe(screen.getByTestId('fab'))
     expect(getComputedStyle(button).position).toBe('fixed')
-    // Darker than twake-mui's primary.dark (#006bd8), 4.1:1 on its background
-    expect(getComputedStyle(button).color).toBe('rgb(0, 90, 183)')
+    // tmail-flutter's: white on its blue (#208BFF)
+    expect(getComputedStyle(button).color).toBe('rgb(255, 255, 255)')
 
     await userEvent.click(button)
 

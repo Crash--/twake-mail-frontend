@@ -1,7 +1,8 @@
-import { TextField } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
-import type { ChangeEvent, ReactElement } from 'react'
+import type { ReactElement } from 'react'
 
+import { SettingsMenuSelect } from '@/ds/SettingsFields/SettingsFields'
 import { useLanguage } from '@common/i18n/I18nProvider'
 import {
   LANGUAGE_NATIVE_NAMES,
@@ -38,8 +39,8 @@ export function LanguageSettings({
   const queryClient = useQueryClient()
   const { accountId, session } = useJmapSession()
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const next = toSupportedLanguage(event.target.value)
+  const handleChange = (value: string): void => {
+    const next = toSupportedLanguage(value)
     if (next === null || next === lang) return
     setLanguage(next)
     if (!canChangeServerSetting(session, 'language')) return
@@ -57,22 +58,23 @@ export function LanguageSettings({
 
   return (
     <SettingsSectionLayout section={section}>
-      <TextField
-        select
-        label={t('settings.language.label')}
-        value={lang}
-        onChange={handleChange}
-        slotProps={{
-          select: { native: true },
-          htmlInput: { 'data-testid': 'language-select' }
-        }}
-      >
-        {SUPPORTED_LANGUAGES.map(language => (
-          <option key={language} value={language} lang={language}>
-            {`${t(`settings.language.names.${language}`)} - ${LANGUAGE_NATIVE_NAMES[language]}`}
-          </option>
-        ))}
-      </TextField>
+      {/* As tmail-flutter: 39 px under the header, the field names the
+          language picked, its menu each language in the language of the
+          app and in its own */}
+      <Box className="u-mt-1">
+        <SettingsMenuSelect
+          label={t('settings.language.label')}
+          value={lang}
+          options={SUPPORTED_LANGUAGES.map(language => ({
+            value: language,
+            label: `${t(`settings.language.names.${language}`)} - ${LANGUAGE_NATIVE_NAMES[language]}`,
+            shortLabel: t(`settings.language.names.${language}`),
+            lang: language
+          }))}
+          onChange={handleChange}
+          inputTestId="language-select"
+        />
+      </Box>
     </SettingsSectionLayout>
   )
 }

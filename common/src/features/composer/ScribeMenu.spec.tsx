@@ -47,25 +47,81 @@ function renderMenu(
   return { onInsert, onReplace }
 }
 
-async function runAction(name: string): Promise<HTMLElement> {
+async function openAssistant(): Promise<void> {
   await userEvent.click(
     await screen.findByRole('button', { name: 'AI assistant' })
   )
-  await userEvent.click(screen.getByRole('menuitem', { name }))
+}
+
+/** A category, then its action when it has several (as tmail-flutter) */
+async function runAction(
+  category: string,
+  action: string | null = null
+): Promise<HTMLElement> {
+  await openAssistant()
+  await userEvent.click(screen.getByRole('menuitem', { name: category }))
+  if (action !== null) {
+    await userEvent.click(
+      within(screen.getByRole('menu', { name: category })).getByRole(
+        'menuitem',
+        { name: action }
+      )
+    )
+  }
   return screen.getByRole('dialog')
 }
 
 describe('ScribeMenu', () => {
+  it('lists the categories of tmail-flutter, the ones of several actions opening them beside', async () => {
+    renderMenu({ text: 'Hello Bob', isSelection: false })
+    await openAssistant()
+
+    const menu = screen.getByRole('menu', { name: 'AI assistant' })
+    const categories = within(menu)
+      .getAllByRole('menuitem')
+      .map(item => item.textContent)
+    expect(categories).toEqual([
+      'Correct',
+      'Translate',
+      'Change tone',
+      'Improve'
+    ])
+    const tone = within(menu).getByRole('menuitem', { name: 'Change tone' })
+    expect(tone).toHaveAttribute('aria-haspopup', 'menu')
+    expect(tone).toHaveAttribute('aria-expanded', 'false')
+
+    tone.focus()
+    await userEvent.keyboard('{ArrowRight}')
+    const submenu = screen.getByRole('menu', { name: 'Change tone' })
+    expect(tone).toHaveAttribute('aria-expanded', 'true')
+    expect(
+      within(submenu)
+        .getAllByRole('menuitem')
+        .map(item => item.textContent)
+    ).toEqual(['More professional', 'More casual', 'More polite'])
+    await waitFor(() => {
+      expect(
+        within(submenu).getByRole('menuitem', { name: 'More professional' })
+      ).toHaveFocus()
+    })
+
+    await userEvent.keyboard('{ArrowLeft}')
+    expect(screen.queryByRole('menu', { name: 'Change tone' })).toBe(null)
+    expect(tone).toHaveFocus()
+    expect(screen.getByRole('textbox', { name: 'Help me write' })).toBeVisible()
+  })
+
   it('translates the selection, which the answer can replace', async () => {
     const { onReplace } = renderMenu({
       text: 'Hello Bob, thanks!',
       isSelection: true
     })
-    const dialog = await runAction('French')
+    const dialog = await runAction('Translate', 'French')
 
+    expect(dialog).toHaveAccessibleName('Translate > French')
     expect(
       await within(dialog).findByRole('region', { name: 'Suggestion' })
-    ).toHaveTextContent('Bonjour Bob,Merci !')
+    ).toHaveTextContent('Bonjour Bob, Merci !')
     const [url, init] = fetchMock.mock.calls[0] ?? []
     expect(url).toBe(ENDPOINT)
     const body: unknown = JSON.parse(
@@ -87,10 +143,28 @@ describe('ScribeMenu', () => {
     expect(onReplace).toHaveBeenCalledWith('Bonjour Bob,\nMerci !')
   })
 
-  it('inserts the answer for the whole text, without offering to replace it', async () => {
+  it('says it is generating the response, then inserts it for the whole text, without offering to replace it', async () => {
+    let answer: (response: Response) => void = () => undefined
+    fetchMock.mockReturnValueOnce(
+      new Promise(resolve => {
+        answer = resolve
+      })
+    )
     const { onInsert } = renderMenu({ text: 'Hello Bob', isSelection: false })
-    const dialog = await runAction('Make it shorter')
+    const dialog = await runAction('Correct')
 
+    expect(dialog).toHaveAccessibleName('Correct')
+    expect(within(dialog).getByRole('status')).toHaveTextContent(
+      'Generating response'
+    )
+    answer(
+      new Response(
+        JSON.stringify({
+          choices: [{ message: { content: 'Bonjour Bob,\nMerci !' } }]
+        }),
+        { status: 200 }
+      )
+    )
     await within(dialog).findByRole('region', { name: 'Suggestion' })
     expect(within(dialog).queryByRole('button', { name: 'Replace' })).toBe(null)
     await userEvent.click(
@@ -102,32 +176,58 @@ describe('ScribeMenu', () => {
     })
   })
 
+  it('improves the answer with another action', async () => {
+    renderMenu({ text: 'Hello Bob', isSelection: false })
+    const dialog = await runAction('Correct')
+    await within(dialog).findByRole('region', { name: 'Suggestion' })
+
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Improve' })
+    )
+    await userEvent.click(
+      screen.getAllByRole('menuitem', { name: 'Improve' }).at(-1) ??
+        document.body
+    )
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'Make it shorter' })
+    )
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+    })
+    const [, init] = fetchMock.mock.calls[1] ?? []
+    expect(typeof init?.body === 'string' ? init.body : '').toContain(
+      'Bonjour Bob,\\nMerci !'
+    )
+  })
+
   it('says when the assistant fails, and tries again', async () => {
     fetchMock.mockResolvedValueOnce(new Response('{}', { status: 502 }))
     renderMenu({ text: 'Hello', isSelection: false })
     const dialog = await runAction('Correct')
 
-    expect(
-      await within(dialog).findByTestId('composer-scribe-error')
-    ).toHaveTextContent('Failed to generate AI response')
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Failed to generate AI response'
+    )
     await userEvent.click(within(dialog).getByRole('button', { name: 'Retry' }))
     expect(
       await within(dialog).findByRole('region', { name: 'Suggestion' })
     ).toBeVisible()
   })
 
-  it('writes from the task of the user', async () => {
+  it('offers only "Help me write" when nothing is written, and writes from the prompt on Enter', async () => {
     renderMenu({ text: '', isSelection: false })
-    const dialog = await runAction('Help me write')
+    await openAssistant()
 
-    await userEvent.type(
-      within(dialog).getByRole('textbox', {
-        name: 'What should the assistant write?'
-      }),
-      'Thank Bob'
-    )
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Ask' }))
+    expect(screen.queryByRole('menu', { name: 'AI assistant' })).toBe(null)
+    const prompt = screen.getByRole('textbox', { name: 'Help me write' })
+    await waitFor(() => {
+      expect(prompt).toHaveFocus()
+    })
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
+    await userEvent.type(prompt, 'Thank Bob{Enter}')
 
+    const dialog = screen.getByRole('dialog', { name: 'Help me write' })
     expect(
       await within(dialog).findByRole('region', { name: 'Suggestion' })
     ).toBeVisible()
@@ -135,19 +235,6 @@ describe('ScribeMenu', () => {
     expect(typeof init?.body === 'string' ? init.body : '').toContain(
       'Thank Bob'
     )
-  })
-
-  it('asks for a text first, and calls nothing', async () => {
-    renderMenu({ text: '  ', isSelection: false })
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'AI assistant' })
-    )
-    await userEvent.click(screen.getByRole('menuitem', { name: 'Emojify' }))
-
-    expect(await screen.findByTestId('toast')).toHaveTextContent(
-      'Write or select some text first'
-    )
-    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('is not offered without the aibot capability', async () => {

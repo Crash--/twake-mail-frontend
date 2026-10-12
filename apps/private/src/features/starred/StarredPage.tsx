@@ -1,8 +1,8 @@
-import { EmailOpen } from '@linagora/twake-icons'
-import { Box, Empty } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { useOutlet } from 'react-router'
 
+import { DetailPlaceholder } from '@/ds/DetailPlaceholder/DetailPlaceholder'
 import { ListDetailLayout } from '@/ds/ListDetailLayout/ListDetailLayout'
 import { StarredList } from '@common/features/mailbox/StarredList'
 import { useI18n } from '@common/i18n/useI18n'
@@ -21,8 +21,7 @@ export function StarredPage(): ReactElement {
         list={<StarredList />}
         detail={email}
         placeholder={
-          <Empty
-            icon={EmailOpen}
+          <DetailPlaceholder
             title={t('email.noneSelected')}
             data-testid="email-view-empty"
           />

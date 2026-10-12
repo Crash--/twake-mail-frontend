@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 import { LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test, type E2EUser } from '../support/fixtures'
+import { openAccountMenuIfAny } from '../support/accountMenu'
 
 /**
  * Error reporting (tmail-flutter's `sentry.user-opt-in` preference), against
@@ -198,6 +199,7 @@ test.describe('SET error reporting', () => {
       .toContain('bug after the reload')
 
     // Signing out ends the reports, and forgets the user
+    await openAccountMenuIfAny(page)
     await page.getByTestId('logout-button').click()
     await expect(page.getByTestId('login-username-input')).toBeVisible()
     await page.waitForTimeout(500)

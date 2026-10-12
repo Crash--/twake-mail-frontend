@@ -1,9 +1,10 @@
 // Upstream to twake-ui: yes, as a `color`/`icon` variant of `Avatar`:
 // twake-mui's `Avatar` shows initials or a picture, not a state. See
 // docs/twake-mui-gaps.md "Message alerts".
-import { Icon, WarningCircle } from '@linagora/twake-icons'
+import { Icon } from '@linagora/twake-icons'
 import { Avatar, type AvatarProps } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+import { WarningCircle } from '@/ds/FlutterIcons/FlutterIcons'
 
 export interface WarningAvatarBadgeProps {
   /** What it says, e.g. "Dangerous message": it replaces the sender avatar */
@@ -33,8 +34,8 @@ export function WarningAvatarBadge({
       aria-label={label}
       data-testid={testId}
       sx={theme => ({
-        bgcolor: theme.palette.error.main,
-        color: theme.palette.error.contrastText
+        bgcolor: theme.vars.palette.error.main,
+        color: theme.vars.palette.error.contrastText
       })}
     >
       <Icon icon={WarningCircle} />

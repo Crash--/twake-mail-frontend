@@ -35,8 +35,8 @@ function makeServer(unreadSpam = 3): FakeJmapServer {
 async function renderFolder(
   server: FakeJmapServer,
   mailboxId: string
-): Promise<void> {
-  renderWithProviders(
+): Promise<{ unmount: () => void }> {
+  const { unmount } = renderWithProviders(
     <VirtuosoMockContext.Provider
       value={{ viewportHeight: 10_000, itemHeight: 56 }}
     >
@@ -52,6 +52,7 @@ async function renderFolder(
     }
   )
   await screen.findAllByTestId('email-list-item')
+  return { unmount }
 }
 
 describe('SpamReportBanner', () => {
@@ -79,7 +80,8 @@ describe('SpamReportBanner', () => {
     )
     expect(stored).toEqual({
       isEnabled: true,
-      lastDismissedAt: expect.any(Number)
+      lastDismissedAt: expect.any(Number),
+      lastShownAt: expect.any(Number)
     })
     // As tmail-flutter, Spam is marked as read
     await waitFor(() => {
@@ -125,6 +127,36 @@ describe('SpamReportBanner', () => {
       JSON.stringify({
         isEnabled: true,
         lastDismissedAt: Date.now() - SPAM_REPORT_INTERVAL_MS - 1000
+      })
+    )
+    await renderFolder(makeServer(), 'mailbox-inbox')
+    expect(await screen.findByTestId('spam-report-banner')).toBeVisible()
+  })
+
+  it('is shown once a day, even when not dismissed', async () => {
+    const server = makeServer()
+    const { unmount } = await renderFolder(server, 'mailbox-inbox')
+    expect(await screen.findByTestId('spam-report-banner')).toBeVisible()
+    await waitFor(() => {
+      expect(
+        window.localStorage.getItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY)
+      ).toContain('lastShownAt')
+    })
+    // Still there while the list shows
+    expect(screen.getByTestId('spam-report-banner')).toBeVisible()
+    unmount()
+
+    await renderFolder(server, 'mailbox-inbox')
+    expect(screen.queryByTestId('spam-report-banner')).toBeNull()
+  })
+
+  it('is back 24 hours after its last display', async () => {
+    window.localStorage.setItem(
+      SPAM_REPORT_PREFERENCE_STORAGE_KEY,
+      JSON.stringify({
+        isEnabled: true,
+        lastDismissedAt: 0,
+        lastShownAt: Date.now() - SPAM_REPORT_INTERVAL_MS - 1000
       })
     )
     await renderFolder(makeServer(), 'mailbox-inbox')

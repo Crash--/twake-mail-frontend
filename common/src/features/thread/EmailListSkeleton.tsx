@@ -1,24 +1,31 @@
-import { Skeleton, Typography } from '@linagora/twake-mui'
+import { Skeleton } from '@linagora/twake-mui'
 import { useMemo, type ReactElement } from 'react'
 
-import { ButtonSkeleton } from '@/ds/ListTableSkeleton/ButtonSkeleton'
+import {
+  CompactAvatarSkeleton,
+  CompactLinesSkeleton
+} from '@/ds/ListTableSkeleton/CompactRowSkeleton'
 import {
   ListTableSkeleton,
   type ListTableSkeletonColumn
 } from '@/ds/ListTableSkeleton/ListTableSkeleton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import { SENDER_BLOCK_WIDTH } from '@/ds/RowSender/RowSender'
+import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
 import { AfterDelay } from '@common/features/loading/AfterDelay'
 import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnouncer'
+import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 
 import {
-  ACTION_SIZE,
+  getCompactRowLayout,
   getLeadWidth,
-  getTrailingWidth,
+  getSkeletonTrailingWidth,
   ROW_LAYOUT,
   useRowPointer,
   type RowPointer
 } from './emailListGeometry'
+
+/** The target of the checkbox of a row, its tallest control */
+const ROW_CHECKBOX_SIZE = 40
 
 /** More rows than the tallest screen holds: the container cuts the rest */
 const ROW_COUNT = 20
@@ -39,14 +46,14 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
     { id: 'lead', width: getLeadWidth(pointer.isTouch), cell: CHECKBOX },
     {
       id: 'sender',
-      width: ROW_LAYOUT.gap + 20 + 4 + SENDER_BLOCK_WIDTH,
+      width: SENDER_WIDTH,
       cell: (
         <>
           <Skeleton
             variant="circular"
-            width={20}
-            height={20}
-            className="u-flex-shrink-0 u-ml-1-half u-mr-half"
+            width={32}
+            height={32}
+            className="u-flex-shrink-0 u-mr-1"
           />
           <Skeleton width="55%" height={14} />
         </>
@@ -63,7 +70,7 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
     },
     {
       id: 'trailing',
-      width: getTrailingWidth(pointer),
+      width: getSkeletonTrailingWidth(pointer),
       cell: (
         <Skeleton
           width={56}
@@ -75,44 +82,25 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
   ]
 }
 
-/** Sender and date, subject, then two lines of preview: a narrow row */
-const NARROW_MESSAGE = (
-  <div>
-    <Typography variant="body1" component="div" className="u-flex">
-      <Skeleton width="40%" className="u-flex-auto" />
-      <Skeleton width={48} className="u-ml-1" />
-    </Typography>
-    <Typography variant="body1" component="div">
-      <Skeleton width="65%" />
-    </Typography>
-    <Typography variant="body2" component="div">
-      <Skeleton width="95%" />
-    </Typography>
-    <Typography variant="body2" component="div">
-      <Skeleton width="55%" />
-    </Typography>
-  </div>
-)
-
-const COMPACT_COLUMNS: ListTableSkeletonColumn[] = [
-  { id: 'select', width: 44, cell: CHECKBOX },
-  { id: 'unread', width: 20, cell: null },
-  { id: 'message', paddingStart: 4, cell: NARROW_MESSAGE },
-  {
-    id: 'compactActions',
-    width: 48,
-    cell: (
-      <div className="u-flex u-flex-column u-flex-items-center">
-        <ButtonSkeleton />
-        <ButtonSkeleton />
-      </div>
-    )
-  }
-]
+/**
+ * tmail-flutter's compact row: the 48 px avatar, then the sender and the
+ * date, the subject and the preview, on the 72 px of the real rows
+ */
+function compactColumns(
+  sides: number,
+  isTagged: boolean
+): ListTableSkeletonColumn[] {
+  return [
+    { id: 'select', width: sides + 48, cell: <CompactAvatarSkeleton /> },
+    { id: 'message', cell: <CompactLinesSkeleton isTagged={isTagged} /> }
+  ]
+}
 
 export interface EmailListSkeletonProps {
   /** Below the desktop size the rows are the narrow ones, as in the list */
   isCompact: boolean
+  /** Search results: the folder pill makes the compact rows taller */
+  isSearch?: boolean
   className?: string
   /** `SKELETON_DELAY_MS` by default */
   delayMs?: number
@@ -133,10 +121,17 @@ export function EmailListSkeleton(props: EmailListSkeletonProps): ReactElement {
 
 function EmailListRowsSkeleton({
   isCompact,
+  isSearch = false,
   className
 }: EmailListSkeletonProps): ReactElement {
   useLoadingAnnouncement(true)
   const { canHover, isTouch } = useRowPointer()
+  const isPhone = useScreenSize() === 'mobile'
+  const compactLayout = useMemo(() => getCompactRowLayout(isPhone), [isPhone])
+  const narrowColumns = useMemo(
+    () => compactColumns(compactLayout.paddingX, isSearch),
+    [compactLayout, isSearch]
+  )
   const columns = useMemo(
     () => wideColumns({ canHover, isTouch }),
     [canHover, isTouch]
@@ -144,11 +139,13 @@ function EmailListRowsSkeleton({
   return (
     <ListTableSkeleton
       columns={columns}
-      compactColumns={COMPACT_COLUMNS}
+      compactColumns={narrowColumns}
+      compactRowLayout={compactLayout}
       compact={isCompact}
       rowCount={ROW_COUNT}
       rowLayout={ROW_LAYOUT}
-      cellHeight={ACTION_SIZE}
+      // The 40 px checkbox of the row sets its height (48 px with the padding)
+      cellHeight={ROW_CHECKBOX_SIZE}
       className={className}
       data-testid="email-list-loading"
     />
@@ -157,19 +154,16 @@ function EmailListRowsSkeleton({
 
 /**
  * The list area of a page whose folder or label is not known yet: the rows
- * of the list, as the page will show them
+ * of the list, as the page will show them (16 px inside the frame in the
+ * facade of a team mailbox)
  */
-export function EmailListPageSkeleton({
-  delayMs
-}: {
-  delayMs?: number
-}): ReactElement {
+export function EmailListPageSkeleton(): ReactElement {
   const screenSize = useScreenSize()
+  const inFacade = useTeamMailboxEmbed() !== null
   return (
     <EmailListSkeleton
       isCompact={screenSize !== 'desktop'}
-      className="u-h-100"
-      delayMs={delayMs}
+      className={inFacade ? 'u-h-100 u-ph-1 u-pb-1' : 'u-h-100'}
     />
   )
 }

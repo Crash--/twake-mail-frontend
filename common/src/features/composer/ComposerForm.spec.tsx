@@ -134,6 +134,11 @@ jest.mock('./draftPolicy', () => ({
   DRAFT_IDLE_MS: 1500
 }))
 
+// The composer renders the whole editor and talks to the fake JMAP server
+// through the real client: on a loaded CI runner many of its tests come
+// near the default 5 s, and some went over it
+jest.setTimeout(15_000)
+
 describe('ComposerForm', () => {
   let uploads: FakeUploads | null = null
 
@@ -257,6 +262,40 @@ describe('ComposerForm', () => {
       expect(sent?.mailboxIds).toEqual({ 'mailbox-sent': true })
       expect(sent?.keywords).toEqual({ $seen: true })
       expect(sent?.to).toEqual([{ name: null, email: 'bob@example.com' }])
+    })
+
+    it('says it is sending in a dialog, as tmail-flutter, the Send button staying as it is', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Watched' })
+      const release = jmapServer.holdRequests('EmailSubmission/set')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Sending message'
+      })
+      expect(within(dialog).getByRole('progressbar')).toBeVisible()
+      await waitFor(() => {
+        expect(within(dialog).getByRole('status')).toHaveTextContent(
+          'Sending message...'
+        )
+      })
+      // Behind the modal dialog: hidden from the accessibility tree
+      const send = within(composer).getByTestId('composer-send-button')
+      expect(send).toHaveTextContent(/^Send$/)
+      expect(send).toBeEnabled()
+      release()
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog', { name: 'Sending message' })).toBe(
+          null
+        )
+      })
     })
 
     it('says the user is offline when the sending fails without network, and keeps the message', async () => {
@@ -605,7 +644,7 @@ describe('ComposerForm', () => {
           .getAllByTestId('recipient-chip')
           .map(chip => chip.getAttribute('aria-label'))
 
-      await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{Enter}')
+      await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{F2}')
       expect(names()).toEqual(['a@example.com', 'c@example.com'])
       expect(input).toHaveValue('b@example.com')
       await userEvent.type(input, 'xx')
@@ -804,11 +843,9 @@ describe('ComposerForm', () => {
       const composer = await openComposer()
       await fill(composer, { to: 'bob@example.com', subject: 'By hand' })
 
+      // As tmail-flutter: a button beside "Delete", not in "More"
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'More' })
-      )
-      await userEvent.click(
-        screen.getByRole('menuitem', { name: 'Save as draft' })
+        within(composer).getByRole('button', { name: 'Save as draft' })
       )
 
       await waitFor(() => {
@@ -912,8 +949,7 @@ describe('ComposerForm', () => {
         { timeout: 4000 }
       )
       warn.mockRestore()
-      // Three autosaves
-    }, 15_000)
+    })
 
     it('destroys with the next save a version whose answer was lost', async () => {
       const { jmapServer } = renderComposer()
@@ -947,7 +983,7 @@ describe('ComposerForm', () => {
         draftsOf(jmapServer)[0]?.headers?.['X-Twake-Draft-Session']
       ).toMatch(/^[0-9a-f-]{36}$/)
       error.mockRestore()
-    }, 15_000)
+    })
 
     it('comes back after a reload, until closed', async () => {
       const snapshot: ComposerSnapshot = {
@@ -1783,11 +1819,9 @@ describe('ComposerForm', () => {
       const jmapServer = serverWithSource()
       renderComposer(jmapServer)
       const composer = await openComposer('Answer reply')
+      // As tmail-flutter: a button beside "Delete", not in "More"
       await userEvent.click(
-        within(composer).getByRole('button', { name: 'More' })
-      )
-      await userEvent.click(
-        screen.getByRole('menuitem', { name: 'Save as draft' })
+        within(composer).getByRole('button', { name: 'Save as draft' })
       )
       await waitFor(() => {
         expect(draftsOf(jmapServer)).toHaveLength(1)
@@ -2003,11 +2037,9 @@ describe('ComposerForm', () => {
           within(list).getByTestId('composer-attachment-item')
         ).toHaveAttribute('data-status', 'done')
       })
+      // As tmail-flutter: a button beside "Delete", not in "More"
       await userEvent.click(
-        within(composer).getByTestId('composer-more-button')
-      )
-      await userEvent.click(
-        await screen.findByRole('menuitem', { name: 'Save as draft' })
+        within(composer).getByRole('button', { name: 'Save as draft' })
       )
       await waitFor(() => {
         expect(draftsOf(jmapServer)[0]?.attachments).toEqual([

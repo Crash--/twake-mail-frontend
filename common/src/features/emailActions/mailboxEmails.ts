@@ -63,8 +63,14 @@ export async function destroyMailboxEmails(
   mailboxId: string,
   {
     batchSize,
-    extraCapabilities = []
-  }: { batchSize: number; extraCapabilities?: readonly string[] }
+    extraCapabilities = [],
+    onProgress
+  }: {
+    batchSize: number
+    extraCapabilities?: readonly string[]
+    /** After each page: how many emails went so far */
+    onProgress?: (destroyed: number) => void
+  }
 ): Promise<number> {
   let destroyed = 0
   for (;;) {
@@ -85,6 +91,7 @@ export async function destroyMailboxEmails(
     )
     const count = set.destroyed?.length ?? 0
     destroyed += count
+    onProgress?.(destroyed)
     if (query.ids.length === 0 || count === 0) return destroyed
   }
 }

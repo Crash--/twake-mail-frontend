@@ -9,7 +9,8 @@ const ROW_SX = {
   display: 'flex',
   flexWrap: 'nowrap',
   alignItems: 'center',
-  gap: 0.75,
+  // 8 px between the chips, as tmail-flutter
+  gap: 1,
   minWidth: 0,
   overflowX: 'auto',
   // Hidden, not auto: the focus ring of a chip must not add a vertical bar

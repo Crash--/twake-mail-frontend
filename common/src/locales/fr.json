@@ -27,21 +27,24 @@
     "offline": "Aucune connexion Internet",
     "backOnline": "De nouveau en ligne",
     "dismiss": "Rejeter",
-    "opensInNewTab": "s'ouvre dans un nouvel onglet"
+    "opensInNewTab": "s'ouvre dans un nouvel onglet",
+    "edit": "Modifier"
   },
   "topbar": {
     "logout": "Se déconnecter",
     "search": "Rechercher",
     "showFolders": "Afficher les dossiers",
     "searchPlaceholder": "Rechercher dans les courriers",
-    "help": "Obtenez de l'aide ou signalez un bogue"
+    "help": "Obtenez de l'aide ou signalez un bogue",
+    "account": "Compte %{address}"
   },
   "sidebar": {
     "mailboxes": "Boîtes aux lettres",
-    "newMessage": "Nouveau message",
+    "newMessage": "Rédiger",
     "folders": "Dossiers",
     "teamMailboxes": "Team-mailboxes",
-    "version": "version %{version}"
+    "version": "version %{version}",
+    "personalFolders": "Dossiers personnels"
   },
   "mailbox": {
     "empty": "Aucun email\n dans ce dossier.",
@@ -141,7 +144,12 @@
       "noPreview": "Aucun aperçu disponible",
       "open": "Aperçu",
       "page": "Page %{page} sur %{count}",
-      "truncated": "L'aperçu s'arrête ici : téléchargez le fichier pour lire la suite."
+      "truncated": "L'aperçu s'arrête ici : téléchargez le fichier pour lire la suite.",
+      "failed": "Le fichier ne peut pas être ouvert ici : téléchargez-le pour le lire.",
+      "passwordProtected": "Ce PDF est protégé par un mot de passe",
+      "password": "Mot de passe",
+      "wrongPassword": "Mot de passe incorrect, réessayez.",
+      "openPdf": "Ouvrir"
     },
     "attachmentsMore": "Afficher les %{count} autres pièces jointes",
     "attachmentsHide": "Cacher les %{count} pièces jointes",
@@ -151,7 +159,10 @@
     "previousEmail": "Message précédent",
     "nextEmail": "Message suivant",
     "showRecipients": "Afficher tous les destinataires",
-    "hideRecipients": "Masquer les adresses"
+    "hideRecipients": "Masquer les adresses",
+    "replied": "Message répondu",
+    "forwardedState": "Message transféré",
+    "repliedAndForwarded": "Message répondu et transféré"
   },
   "login": {
     "title": "Se connecter",
@@ -162,7 +173,18 @@
     "badCredentials": "Identifiants invalides",
     "connectionError": "Erreur de connexion",
     "email": "E-mail",
-    "password": "Mot de passe"
+    "password": "Mot de passe",
+    "pitch": {
+      "title": "Solution de messagerie collaborative \nbasée sur JMAP",
+      "jmap": "Standard JMAP",
+      "encrypted": "Boîte aux lettres chiffrée",
+      "team": "Gérer la boîte e-mail en équipe",
+      "integrations": "Intégrations multiples"
+    },
+    "poweredBy": "Propulsé par LINAGORA",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
+    "privacyPolicy": "Politique de confidentialité"
   },
   "config": {
     "title": "Twake Mail n'est pas configuré",
@@ -199,7 +221,7 @@
     },
     "toolbar": {
       "label": "Actions de la liste",
-      "filter": "Filtrer",
+      "filter": "Filtrer les messages",
       "clearFilter": "Effacer le filtre",
       "selectPage": "Sélectionner tous les messages de cette page",
       "filterOn": "Vous avez filtré les messages par « %{name} »",
@@ -372,13 +394,18 @@
     "recipients": {
       "suggestions": "Suggestions de contacts",
       "invalid": "adresse invalide",
-      "chipHelp": "Suppr retire l'adresse, Entrée la modifie.",
+      "chipHelp": "Entrée ouvre la fiche de l’adresse, F2 la modifie, Suppr la retire.",
       "removed": "%{address} retiré",
       "added": "%{address} ajouté",
       "addedMany": "%{smart_count} destinataire ajouté |||| %{smart_count} destinataires ajoutés",
       "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
       "summary": "Afficher tous les destinataires :",
-      "others": "+%{smart_count}"
+      "others": "+%{smart_count}",
+      "alreadyAdded": "déjà ajouté",
+      "editEmail": "Modifier l’adresse",
+      "createRule": "Créer une règle",
+      "moveHelp": "Alt+Haut ou Alt+Bas la déplace dans le champ du dessus ou du dessous.",
+      "moved": "%{address} déplacé dans %{field}"
     },
     "limit": "Vous pouvez écrire %{smart_count} messages à la fois. Fermez-en un pour en commencer un autre.",
     "sent": "Le message a bien été envoyé",
@@ -463,7 +490,8 @@
         "message": "Ce brouillon est partagé avec une boîte d’équipe. L’enregistrer comme modèle supprime aussi le brouillon pour tous ceux qui le voient.",
         "delete": "Enregistrer et supprimer le brouillon",
         "keep": "Enregistrer et garder le brouillon"
-      }
+      },
+      "saving": "Enregistrement du modèle"
     },
     "drive": {
       "attach": "Joindre depuis Drive",
@@ -506,10 +534,7 @@
       "retry": "Réessayer",
       "copy": "Copier",
       "copied": "Résultat copié dans le presse-papiers",
-      "task": "Que doit écrire l'assistant ?",
-      "ask": "Demander",
-      "result": "Suggestion",
-      "emptyText": "Écrivez ou sélectionnez d'abord du texte"
+      "result": "Suggestion"
     },
     "emoji": {
       "open": "Insérer un emoji",
@@ -529,6 +554,14 @@
         "symbols": "Symboles",
         "flags": "Drapeaux"
       }
+    },
+    "sendingDialog": {
+      "status": "Statut",
+      "progress": "Progression",
+      "creating": "Création du message"
+    },
+    "images": {
+      "inserting": "Insertion de l’image"
     }
   },
   "layout": {
@@ -568,7 +601,8 @@
     },
     "scope": {
       "default": "Tous les messages",
-      "everywhere": "Tous les messages, corbeille & spam"
+      "everywhere": "Tous les messages, corbeille & spam",
+      "selected": "sélectionné"
     },
     "submit": "Rechercher",
     "hints": {
@@ -576,7 +610,6 @@
       "subject": "Entrer un sujet",
       "words": "Entrez quelques mots"
     },
-    "addFilter": "Ajouter",
     "clearFilter": "Effacer les filtres",
     "advanced": "Recherche avancée",
     "errors": {
@@ -615,6 +648,19 @@
     "labels": {
       "all": "Tous les libellés",
       "label": "Libellé"
+    },
+    "addresses": {
+      "chipHelp": "Entrée ou F2 la modifie, Suppr la retire.",
+      "added": "%{address} ajouté",
+      "addedMany": "%{smart_count} adresse ajoutée |||| %{smart_count} adresses ajoutées"
+    },
+    "selectFolder": "Sélectionner le dossier",
+    "contactPicker": {
+      "from": "Trouver des messages de",
+      "to": "Trouver des messages à",
+      "hint": "Entrez le nom ou l’adresse e-mail",
+      "clearFilter": "Effacer les filtres",
+      "done": "Terminé"
     }
   },
   "emailActions": {
@@ -654,9 +700,9 @@
       "star": "Favori",
       "unstar": "Retirer des favoris",
       "label": "Actions sur le message",
-      "printAll": "Tout imprimer",
       "downloadAsEml": "Télécharger le message au format EML",
-      "editAsNew": "Modifier comme nouvel e-mail"
+      "editAsNew": "Modifier comme nouvel e-mail",
+      "print": "Imprimer"
     },
     "drag": "Déplacer %{smart_count} message |||| Déplacer %{smart_count} messages",
     "reply": {
@@ -696,6 +742,15 @@
       "plainPaste": "Coller en texte brut",
       "bold": "Gras, italique, souligné",
       "escape": "Réduire la fenêtre (la fermer en plein écran)"
+    },
+    "categories": {
+      "navigation": "Navigation & Fermeture",
+      "reading": "Lecture & Réponse",
+      "management": "Gestion des messages & Sélection",
+      "label": "Catégories de raccourcis",
+      "navigationShort": "Navigation",
+      "readingShort": "Lecture",
+      "managementShort": "Message"
     }
   },
   "settings": {
@@ -761,6 +816,11 @@
       "accessibility": "Accessibilité",
       "accessibilityDescription": "Afficher un contour épais autour de l'élément qui a le focus clavier, partout dans l'application",
       "accessibilityToggle": "Mettre en évidence le focus clavier",
+      "theme": "Thème",
+      "themeDescription": "Les couleurs de l'application. Automatique suit le réglage de votre appareil.",
+      "themeLight": "Clair",
+      "themeDark": "Sombre",
+      "themeAuto": "Automatique",
       "errorReporting": "Rapports d'erreurs",
       "errorReportingDescription": "Envoyer des rapports de plantage et d'erreur pour que l'équipe d'assistance puisse diagnostiquer les problèmes que vous rencontrez. Vos e-mails, leur contenu et leurs destinataires ne sont jamais inclus.",
       "errorReportingToggle": "Envoyer des rapports d'erreurs",
@@ -787,18 +847,23 @@
         "vi": "Vietnamien"
       },
       "label": "Langue"
-    }
+    },
+    "contactSupport": "Contacter le support"
   },
   "mailboxPicker": {
     "title": "Déplacer vers",
     "search": "Rechercher dans les dossiers",
     "empty": "Aucun dossier ne correspond à votre recherche",
     "personalFolders": "Dossiers personnels",
-    "allFolders": "Tous les dossiers"
+    "allFolders": "Tous les dossiers",
+    "selectParent": "Sélectionnez le dossier parent",
+    "collapsed": "sous-dossiers masqués",
+    "expanded": "sous-dossiers affichés",
+    "current": "dossier actuel"
   },
   "spamReport": {
     "banner": "%{smart_count} message(s) indésirable(s)",
-    "view": "Vue",
+    "view": "Voir",
     "dismiss": "Rejeter"
   },
   "emptyFolder": {
@@ -841,7 +906,8 @@
       "location": "Sélectionnez l'emplacement du dossier",
       "submit": "Créer le dossier",
       "success": "Vous avez créé avec succès le dossier %{folderName}",
-      "failure": "Échec de la création d'un nouveau dossier"
+      "failure": "Échec de la création d'un nouveau dossier",
+      "subtitle": "Le nouveau dossier sera créé dans %{folderName}"
     },
     "rename": {
       "submit": "Renommer",
@@ -892,7 +958,11 @@
       "failure": "Échec lors du déplacement de tous les e-mails vers un autre dossier.",
       "progress": "Déplacement des e-mails : %{moved} sur %{total}"
     },
-    "clean": "Vider"
+    "clean": "Vider",
+    "progress": {
+      "markAsRead": "Marquage de tous les messages de « %{folderName} » comme lus",
+      "empty": "Vidage de « %{folderName} »"
+    }
   },
   "identities": {
     "create": "Créer une nouvelle identité",
@@ -908,7 +978,9 @@
       "create": "Créer",
       "save": "Sauvegarder",
       "email": "Adresse e-mail",
-      "addressesHelp": "Séparez plusieurs adresses par des virgules"
+      "addressesHelp": "Séparez plusieurs adresses par des virgules",
+      "nameRequired": "Nom (requis)",
+      "emailLabel": "E-mail"
     },
     "errors": {
       "blank": "Ce champ ne peut pas être vide",
@@ -919,7 +991,9 @@
       "imageTooLarge": "Merci de choisir une taille d'image inférieure à %{maxSize}Ko",
       "save": "L'identité n'a pas pu être enregistrée",
       "forbiddenFrom": "Vous ne pouvez pas envoyer depuis cette adresse",
-      "load": "Les identités n'ont pas pu être chargées"
+      "load": "Les identités n'ont pas pu être chargées",
+      "imageCompress": "Impossible de compresser l'image",
+      "notAnImage": "Impossible de téléverser ce fichier dans la signature"
     },
     "delete": {
       "title": "Supprimer l'identité",
@@ -934,11 +1008,9 @@
     },
     "editAction": "Modifier",
     "defaultGroup": "Identité par défaut",
-    "defaultBadge": "Par défaut",
     "setDefaultOf": "Utiliser %{name} par défaut",
     "editOf": "Modifier %{name}",
     "deleteOf": "Supprimer %{name}",
-    "cannotDelete": "Créée avec votre compte, elle ne peut pas être supprimée",
     "listLabel": "Identités"
   },
   "rules": {
@@ -963,6 +1035,8 @@
       "noAction": "Vous n'avez pas ajouté d'action à la règle.",
       "noFolder": "Veuillez sélectionner une boîte aux lettres pour déplacer le message",
       "noSpam": "Dossier Spam non trouvé",
+      "noForwardAddress": "Veuillez saisir au moins un destinataire",
+      "invalidForwardAddress": "Format d'e-mail incorrect",
       "load": "Les règles n'ont pas pu être chargées",
       "delete": "La règle n'a pas pu être supprimée"
     },
@@ -990,7 +1064,13 @@
       "action": "Action %{position}",
       "condition": "Condition %{position}",
       "chooseFolder": "Choisir un dossier",
-      "rejectAlone": "Un e-mail refusé ne reçoit aucune autre action"
+      "rejectAlone": "Un e-mail refusé ne reçoit aucune autre action",
+      "preview": "Aperçu",
+      "conditionsPreview": "%{combiner} des conditions : %{conditions}",
+      "actionsPreview": "Actions : %{actions}",
+      "forwardAddresses": "Destinataires",
+      "forwardPlaceholder": "Entrez l'adresse e-mail",
+      "keepACopy": "Conserver une copie"
     },
     "combiners": {
       "AND": "Toutes",
@@ -1014,7 +1094,8 @@
       "seen": "Marquer comme lu",
       "star": "Favori",
       "reject": "Rejet",
-      "spam": "Marquer comme indésirable"
+      "spam": "Marquer comme indésirable",
+      "forward": "Transférer à"
     },
     "reject": {
       "title": "Rejeter tous les e-mails qui correspondent à ce critère ?",
@@ -1023,7 +1104,8 @@
     "editOf": "Modifier %{name}",
     "deleteOf": "Supprimer %{name}",
     "listLabel": "Règles",
-    "count": "%{smart_count} règle |||| %{smart_count} règles"
+    "count": "%{smart_count} règle |||| %{smart_count} règles",
+    "nameOfRules": "Nom des règles"
   },
   "forward": {
     "localCopy": "Conserver une copie dans la boîte de réception",
@@ -1033,14 +1115,14 @@
     "add": "Ajouter un destinataire",
     "external": "Domaine externe",
     "delete": {
-      "title": "Supprimer des destinataires",
+      "title": "Supprimer le destinataire",
       "message": "Voulez-vous supprimer l'adresse e-mail %{emailAddress} ?"
     },
     "errors": {
       "invalid": "Format d'e-mail incorrect",
       "empty": "Veuillez saisir au moins un destinataire",
       "add": "L'ajout du destinataire a échoué.",
-      "delete": "Échec de la suppression des destinataires.",
+      "delete": "Échec de la suppression du destinataire.",
       "localCopy": "Échec de l'activation de la copie locale lors d'un transfert.",
       "load": "Le transfert n'a pas pu être chargé",
       "ownAddress": "Vous ne pouvez pas transférer vos e-mails vers votre propre adresse"
@@ -1050,15 +1132,25 @@
       "message": "Il pourrait s'agir d'une menace de sécurité ou d'une extraction illégale de données. Confirmez-vous vouloir continuer ?"
     },
     "toasts": {
-      "added": "Les adresses e-mails ont été ajoutées à partir de la liste des destinataires.",
+      "added": "L'adresse e-mail a été ajoutée à la liste des destinataires.",
       "deleted": "L'adresse e-mail a été supprimée de la liste des destinataires.",
-      "localCopyOn": "Gardez la copie locale activée.",
-      "localCopyOff": "Gardez la copie locale désactivée."
+      "localCopyOn": "Copie locale activée.",
+      "localCopyOff": "Copie locale désactivée."
     },
     "externalBanner": "Vous redirigez vos e-mails vers un autre domaine. Cela pourrait constituer une menace pour la sécurité ou être considéré comme une extraction illégale de données.",
     "listLabel": "Adresses de transfert",
     "removeOf": "Retirer %{email}",
-    "inputLabel": "Nouveau destinataire"
+    "inputLabel": "Nouveau destinataire",
+    "recipientCount": "%{smart_count} destinataire |||| %{smart_count} destinataires",
+    "selectAll": "Tout sélectionner",
+    "selectedCount": "%{count} sélectionnés",
+    "deselectAll": "Désélectionner (%{count})",
+    "remove": "Retirer",
+    "deleteAll": {
+      "title": "Supprimer les destinataires",
+      "message": "Voulez-vous vraiment supprimer ces destinataires ? Cela les retirera de la discussion."
+    },
+    "selectOf": "Sélectionner %{email}"
   },
   "vacation": {
     "enable": "Renvoie automatiquement une réponse aux messages reçus.",
@@ -1286,7 +1378,8 @@
       "count": "%{smart_count} fois |||| %{smart_count} fois",
       "until": "jusqu'au %{date}"
     },
-    "untitled": "(Sans titre)"
+    "untitled": "(Sans titre)",
+    "eventMark": "Invitation à un événement"
   },
   "unsubscribe": {
     "action": "Se désabonner",

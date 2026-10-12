@@ -6,7 +6,7 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
-import { METHOD_CAPABILITIES } from '@common/jmap/pushSubscription'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {
   useAuthService,

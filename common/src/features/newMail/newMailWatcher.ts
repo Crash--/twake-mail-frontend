@@ -19,7 +19,8 @@ export interface NewMailWatcher {
   pushed: (state: string) => void
   /**
    * Reads the new emails now, as the web push asks without telling a state.
-   * Resolves once they were told about; false when not watching.
+   * Resolves true once they were read and told about; false when they were
+   * not (not watching, request failed, too many at once).
    */
   poll: () => Promise<boolean>
   close: () => void
@@ -52,14 +53,18 @@ export function createNewMailWatcher(
   let isClosed = false
   let queue = Promise.resolve()
 
-  /** `state` null: asked without a pushed state (`poll`) */
-  async function check(state: string | null): Promise<void> {
+  /**
+   * `state` null: asked without a pushed state (`poll`). Resolves whether
+   * the emails created since the last check were read and told about.
+   */
+  async function check(state: string | null): Promise<boolean> {
     const from = since
     const inboxes = inboxIds()
-    if (from === null || from === state) return
+    if (from === null) return false
+    if (from === state) return true
     if (!isWanted()) {
       since = state ?? from
-      return
+      return false
     }
     const [changes, created] = await client.request(builder => {
       const changesCall = builder.call('Email/changes', {
@@ -74,12 +79,12 @@ export function createNewMailWatcher(
       return [changesCall, getCall]
     })
     // Reset while the request ran
-    if (since !== from || isClosed) return
+    if (since !== from || isClosed) return false
     // ponytail: a burst too big for one round is skipped, not paged
     since = changes.hasMoreChanges
       ? (state ?? changes.newState)
       : changes.newState
-    if (changes.hasMoreChanges) return
+    if (changes.hasMoreChanges) return false
     const emails = (created.list as NewEmailCandidate[]).flatMap(email => {
       const inboxId = inboxes.find(id => email.mailboxIds?.[id] === true)
       return inboxId === undefined ||
@@ -89,6 +94,7 @@ export function createNewMailWatcher(
         : [{ id: email.id, inboxId, from: email.from, subject: email.subject }]
     })
     if (emails.length > 0) await onNewEmails(emails)
+    return true
   }
 
   return {
@@ -98,6 +104,7 @@ export function createNewMailWatcher(
     pushed: state => {
       queue = queue
         .then(() => check(state))
+        .then(() => undefined)
         .catch((error: unknown) => {
           console.warn('[new mail] Cannot read the new emails', error)
           // Starts again from what the server last said
@@ -105,13 +112,14 @@ export function createNewMailWatcher(
         })
     },
     poll: () => {
-      if (since === null) return Promise.resolve(false)
-      queue = queue
-        .then(() => check(null))
-        .catch((error: unknown) => {
+      const read = queue.then(() => check(null))
+      queue = read.then(
+        () => undefined,
+        (error: unknown) => {
           console.warn('[new mail] Cannot read the new emails', error)
-        })
-      return queue.then(() => true)
+        }
+      )
+      return read.catch(() => false)
     },
     close: () => {
       isClosed = true

@@ -7,7 +7,7 @@ import {
   type FetchFunction,
   type JmapClient
 } from 'jmap-client-ts'
-import { METHOD_CAPABILITIES } from '@common/jmap/pushSubscription'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {
   FAKE_ACCOUNT_ID,

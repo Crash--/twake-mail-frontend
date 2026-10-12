@@ -675,5 +675,259 @@ describe('PushProvider', () => {
       await settled(server, before + 1)
       expect(shown).toEqual([])
     })
+    describe('with the service worker of the web push', () => {
+      interface WorkerNotification {
+        title: string
+        tag?: string
+        body?: string
+        data?: unknown
+        close: () => void
+      }
+      let workerShown: WorkerNotification[] = []
+      let listeners: ((event: Event) => void)[] = []
+
+      /** What a page answers on the port of a message of the worker */
+      function tell(message: unknown): string[] {
+        const answers: string[] = []
+        const port = {
+          postMessage: (answer: string) => {
+            answers.push(answer)
+          }
+        }
+        const event = Object.assign(new Event('message'), {
+          data: message,
+          ports: [port]
+        })
+        act(() => {
+          listeners.forEach(listener => {
+            listener(event)
+          })
+        })
+        return answers
+      }
+
+      function servePushSubscriptions(server: FakeJmapServer): void {
+        server.handlers.set('PushSubscription/set', args => ({
+          created: 'create' in args ? { push: { id: 'ps1' } } : null,
+          updated: null,
+          destroyed: null,
+          notCreated: null,
+          notUpdated: null,
+          notDestroyed: null
+        }))
+      }
+
+      beforeEach(() => {
+        workerShown = []
+        listeners = []
+        const registration = {
+          showNotification: (title: string, options?: NotificationOptions) => {
+            const notification: WorkerNotification = {
+              title,
+              ...options,
+              close: () => {
+                workerShown = workerShown.filter(one => one !== notification)
+              }
+            }
+            workerShown.push(notification)
+            return Promise.resolve()
+          },
+          getNotifications: (filter?: { tag?: string }) =>
+            Promise.resolve(
+              workerShown.filter(
+                one => filter?.tag === undefined || one.tag === filter.tag
+              )
+            ),
+          pushManager: {
+            getSubscription: () => Promise.resolve(null),
+            subscribe: () =>
+              Promise.resolve({
+                endpoint: 'https://push.example.com/1',
+                options: { applicationServerKey: null },
+                toJSON: () => ({ keys: { p256dh: 'cDI1Ng', auth: 'YXV0aA' } })
+              })
+          }
+        }
+        Object.defineProperty(navigator, 'serviceWorker', {
+          configurable: true,
+          value: {
+            register: () => Promise.resolve(registration),
+            ready: Promise.resolve(registration),
+            getRegistration: () => Promise.resolve(registration),
+            addEventListener: (_type: string, listener: (e: Event) => void) => {
+              listeners.push(listener)
+            },
+            removeEventListener: (
+              _type: string,
+              listener: (e: Event) => void
+            ) => {
+              listeners = listeners.filter(one => one !== listener)
+            }
+          }
+        })
+        Object.defineProperty(globalThis, 'PushManager', {
+          configurable: true,
+          value: {}
+        })
+      })
+
+      afterEach(() => {
+        Reflect.deleteProperty(navigator, 'serviceWorker')
+        Reflect.deleteProperty(globalThis, 'PushManager')
+        window.localStorage.removeItem('twake-mail.push.subscriptions')
+      })
+
+      it('reads the new emails on a web push, shows them through the worker, then tells it', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        server.addEmail(makeEmail({ id: 'pushed', subject: 'Pushed news' }))
+        workerShown.push({
+          title: 'New email',
+          tag: 'twake-mail-new-mail',
+          close: () => {
+            workerShown = workerShown.filter(
+              one => one.tag !== 'twake-mail-new-mail'
+            )
+          }
+        })
+
+        const answers = tell({
+          type: 'twake-mail-push',
+          accountIds: [FAKE_ACCOUNT_ID]
+        })
+
+        expect(answers).toEqual(['reading'])
+        await waitFor(() => {
+          expect(answers).toEqual(['reading', 'shown'])
+        })
+        // The notification the worker showed alone meanwhile is gone
+        expect(
+          workerShown.map(({ title, tag, body, data }) => ({
+            title,
+            tag,
+            body,
+            data
+          }))
+        ).toEqual([
+          {
+            title: 'Bob Dupont',
+            tag: 'pushed',
+            body: 'Pushed news',
+            data: {
+              url: '/mailbox/mailbox-inbox/email/pushed',
+              accountId: FAKE_ACCOUNT_ID
+            }
+          }
+        ])
+        // Not through the page: the worker handles the click
+        expect(shown).toEqual([])
+      })
+
+      it('tells the worker when the new emails cannot be read', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        server.addEmail(makeEmail({ id: 'pushed' }))
+        server.methodErrors.set('Email/changes', 'serverFail')
+        jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+        const answers = tell({ type: 'twake-mail-push', accountIds: null })
+
+        await waitFor(() => {
+          expect(answers).toEqual(['reading', 'failed'])
+        })
+        expect(workerShown).toEqual([])
+      })
+
+      it('leaves the web push of another account to its own tab', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        const before = countCalls(server, 'Email/changes')
+
+        const answers = tell({
+          type: 'twake-mail-push',
+          accountIds: ['another-account']
+        })
+
+        await act(async () => {
+          await new Promise(resolve => setTimeout(resolve, 0))
+        })
+        expect(answers).toEqual([])
+        expect(countCalls(server, 'Email/changes')).toBe(before)
+      })
+
+      it('leaves the web push to the worker when notifications are off', async () => {
+        window.localStorage.setItem(
+          'twake-mail.preferences.newMailNotifications',
+          'false'
+        )
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+
+        expect(tell({ type: 'twake-mail-push', accountIds: null })).toEqual([])
+      })
+
+      it('takes the email of a clicked notification of its account only', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        // The test router has no route for an email
+        jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+        const open = (url: string, accountId: string | null): string[] =>
+          tell({ type: 'twake-mail-open', url, accountId })
+
+        expect(open('/mailbox/mailbox-inbox/email/e1', 'another')).toEqual([])
+        expect(open('//evil.example.com', FAKE_ACCOUNT_ID)).toEqual([])
+        expect(open('https://evil.example.com', null)).toEqual([])
+        expect(
+          open('/mailbox/mailbox-inbox/email/e1', FAKE_ACCOUNT_ID)
+        ).toEqual(['opened'])
+      })
+
+      it('takes the click on the notification the worker showed alone', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+        expect(
+          tell({ type: 'twake-mail-open', url: '/', accountId: null })
+        ).toEqual(['opened'])
+      })
+
+      it('sends the verification code of its subscription back to the server', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        await waitFor(() => {
+          expect(countCalls(server, 'PushSubscription/set')).toBe(1)
+        })
+        await waitFor(() => {
+          expect(
+            window.localStorage.getItem('twake-mail.push.subscriptions')
+          ).toContain('ps1')
+        })
+
+        tell({
+          type: 'twake-mail-push-verification',
+          pushSubscriptionId: 'ps1',
+          verificationCode: 'code'
+        })
+
+        await waitFor(() => {
+          expect(countCalls(server, 'PushSubscription/set')).toBe(2)
+        })
+        const call = server.requests
+          .flatMap(request => request.methodCalls)
+          .filter(([name]) => name === 'PushSubscription/set')
+          .at(-1)
+        expect(call?.[1]).toEqual({
+          update: { ps1: { verificationCode: 'code' } }
+        })
+      })
+    })
   })
 })

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { useNavigate } from 'react-router'
 
+import { useAuthService } from '@common/features/auth/AuthProvider'
 import { formatAddressName } from '@common/features/email/addresses'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -14,7 +15,11 @@ import {
 import type { NewEmail } from './newMailWatcher'
 import {
   confirmWebPush,
+  forgetWebPush,
+  GENERIC_NOTIFICATION_TAG,
   getPushRegistration,
+  holdWebPushPresence,
+  onWebPushChangedElsewhere,
   syncWebPush,
   type PushWorkerMessage
 } from './webPush'
@@ -88,13 +93,27 @@ export function useNewMailAlert(
   accountId: string,
   isEnabled: boolean,
   /** The pages that share one lock: the app alone, or its frames in Space */
-  scope: 'page' | 'space' = 'page'
+  scope: 'page' | 'space' = 'page',
+  /**
+   * Reads the new emails and alerts about them, when a web push reached the
+   * worker: resolves whether it did (`NewMailWatcher.poll`)
+   */
+  pollNewMail: RefObject<(() => Promise<boolean>) | null> | null = null
 ): NewMailAlert {
   const { t } = useI18n()
   const navigate = useNavigate()
   const client = useJmapClient()
   const { session } = useJmapSession()
+  const service = useAuthService()
+  const username = session.username
   const isLeader = useRef(false)
+  const notifies = useCallback(
+    (): boolean =>
+      isLeader.current && newMailNotificationPreference.read() && canNotify(),
+    []
+  )
+  // Bumped when another tab replaced the endpoint of the browser
+  const [pushEpoch, setPushEpoch] = useState(0)
   const hasWebPush = isEnabled && scope === 'page'
   const isNotifying = newMailNotificationPreference.useValue() && canNotify()
   const pushTitle = t('newMail.pushTitle')
@@ -108,31 +127,84 @@ export function useNewMailAlert(
     }).catch((error: unknown) => {
       console.warn('[web push] Cannot set the subscription', error)
     })
-  }, [client, session, hasWebPush, isNotifying, pushTitle, pushBody])
+  }, [client, session, hasWebPush, isNotifying, pushTitle, pushBody, pushEpoch])
 
   useEffect(() => {
+    if (!hasWebPush) return
+    const release = holdWebPushPresence(username)
+    const stopListening = onWebPushChangedElsewhere(() => {
+      setPushEpoch(epoch => epoch + 1)
+    })
+    // Credentials refused, no sign-out: the server cannot be told any more
+    const unsubscribe = service.subscribe(() => {
+      if (service.getState().status === 'authenticated') return
+      forgetWebPush(username).catch((error: unknown) => {
+        console.warn('[web push] Cannot give the endpoint up', error)
+      })
+    })
+    return () => {
+      release()
+      stopListening()
+      unsubscribe()
+    }
+  }, [hasWebPush, service, username])
+
+  // The one place where the pages hear the worker (`public/push-worker.js`)
+  useEffect(() => {
     if (!hasWebPush || !('serviceWorker' in navigator)) return
-    const handleMessage = (event: MessageEvent<PushWorkerMessage>): void => {
+    const handleMessage = (
+      event: MessageEvent<PushWorkerMessage | null>
+    ): void => {
       const message = event.data
+      const port = event.ports[0]
+      if (message === null || typeof message !== 'object') return
       if (message.type === 'twake-mail-push-verification') {
         confirmWebPush(
           client,
+          username,
           message.pushSubscriptionId,
           message.verificationCode
         ).catch((error: unknown) => {
           console.warn('[web push] Cannot confirm the subscription', error)
         })
+        return
       }
-      // A notification clicked: its email, an in-app path
-      if (message.type === 'twake-mail-open' && message.url.startsWith('/')) {
+      if (message.type === 'twake-mail-push') {
+        // The tab that notifies for this account reads the new emails and
+        // shows them; any other one leaves the push to it, or to the worker
+        const poll = pollNewMail?.current ?? null
+        if (
+          poll === null ||
+          !(message.accountIds?.includes(accountId) ?? true) ||
+          !notifies()
+        ) {
+          return
+        }
+        port?.postMessage('reading')
+        poll()
+          .catch(() => false)
+          .then(isShown => {
+            port?.postMessage(isShown ? 'shown' : 'failed')
+          })
+          .catch(() => undefined)
+        return
+      }
+      // A notification clicked: its email, an in-app path of this account
+      if (
+        (message.accountId === null || message.accountId === accountId) &&
+        message.url.startsWith('/') &&
+        !message.url.startsWith('//')
+      ) {
+        port?.postMessage('opened')
         void navigate(message.url)
       }
     }
-    navigator.serviceWorker.addEventListener('message', handleMessage)
+    const worker = navigator.serviceWorker
+    worker.addEventListener('message', handleMessage)
     return () => {
-      navigator.serviceWorker.removeEventListener('message', handleMessage)
+      worker.removeEventListener('message', handleMessage)
     }
-  }, [client, hasWebPush, navigate])
+  }, [accountId, client, hasWebPush, navigate, notifies, pollNewMail, username])
 
   useEffect(() => {
     if (!isEnabled) return
@@ -173,12 +245,6 @@ export function useNewMailAlert(
     []
   )
 
-  const notifies = useCallback(
-    (): boolean =>
-      isLeader.current && newMailNotificationPreference.read() && canNotify(),
-    []
-  )
-
   const alert = useCallback(
     async (emails: readonly NewEmail[]): Promise<void> => {
       if (!isLeader.current) return
@@ -208,7 +274,7 @@ export function useNewMailAlert(
           await registration.showNotification(title, {
             tag: email.id,
             body,
-            data: { url }
+            data: { url, accountId }
           })
           continue
         }
@@ -219,8 +285,15 @@ export function useNewMailAlert(
           notification.close()
         }
       }
+      // The worker may have shown its own while this page was reading
+      const generic = await registration?.getNotifications({
+        tag: GENERIC_NOTIFICATION_TAG
+      })
+      generic?.forEach(notification => {
+        notification.close()
+      })
     },
-    [navigate, t]
+    [accountId, navigate, t]
   )
 
   const isLeaderNow = useCallback((): boolean => isLeader.current, [])

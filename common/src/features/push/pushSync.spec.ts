@@ -1,6 +1,6 @@
 import { InfiniteQueryObserver, QueryClient } from '@tanstack/react-query'
 import { createClient, type JmapClient } from 'jmap-client-ts'
-import { METHOD_CAPABILITIES } from '@common/jmap/pushSubscription'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {
   mailboxesQueryOptions,

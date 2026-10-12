@@ -8,7 +8,10 @@ const SOURCE = readFileSync(
   'utf8'
 )
 
-/** Runs `public/push-worker.js` in a fake service worker scope */
+/**
+ * Runs `public/push-worker.js` in a fake service worker scope, its waits
+ * 100 times shorter
+ */
 function loadWorker(pages = []) {
   const listeners = {}
   const shown = []
@@ -23,7 +26,7 @@ function loadWorker(pages = []) {
     skipWaiting: () => Promise.resolve(),
     clients: {
       claim: () => Promise.resolve(),
-      matchAll: () => Promise.resolve(pages),
+      matchAll: () => Promise.resolve([...pages]),
       openWindow: url => {
         opened.push(url)
         return Promise.resolve(null)
@@ -40,7 +43,7 @@ function loadWorker(pages = []) {
     self,
     URL,
     MessageChannel,
-    setTimeout: callback => setTimeout(callback, 20),
+    setTimeout: (callback, ms) => setTimeout(callback, ms / 100),
     clearTimeout
   })
   const dispatch = async (type, event) => {
@@ -56,15 +59,32 @@ function loadWorker(pages = []) {
   return { shown, opened, dispatch }
 }
 
-function makePage({ answers = false, focused = false } = {}) {
+/**
+ * A tab of the origin. `answers`: what it says on the port of a message,
+ * in order, each after `delay` ms.
+ */
+function makePage({
+  answers = [],
+  delay = 0,
+  focused = false,
+  visibilityState = 'hidden',
+  frameType = 'top-level'
+} = {}) {
   const page = {
     focused,
+    visibilityState,
+    frameType,
     messages: [],
     hasFocus: false,
     postMessage: (message, ports = []) => {
       // Copied: the worker runs in another realm, with its own prototypes
       page.messages.push(JSON.parse(JSON.stringify(message)))
-      if (answers) ports[0]?.postMessage('shown')
+      let wait = Promise.resolve()
+      for (const answer of answers) {
+        wait = wait
+          .then(() => new Promise(resolve => setTimeout(resolve, delay)))
+          .then(() => ports[0]?.postMessage(answer))
+      }
     },
     focus: () => {
       page.hasFocus = true
@@ -81,6 +101,10 @@ const stateChange = {
   })
 }
 
+const click = (data, onClose = () => undefined) => ({
+  notification: { data, close: onClose }
+})
+
 test('with every tab closed, a push shows the notification of the worker', async () => {
   const worker = loadWorker()
 
@@ -89,16 +113,45 @@ test('with every tab closed, a push shows the notification of the worker', async
   assert.equal(worker.shown.length, 1)
   assert.equal(worker.shown[0].title, 'T')
   assert.equal(worker.shown[0].body, 'B')
+  assert.equal(worker.shown[0].tag, 'twake-mail-new-mail')
 })
 
 test('a page that shows the new emails keeps the worker quiet', async () => {
-  const page = makePage({ answers: true })
+  const page = makePage({ answers: ['reading', 'shown'] })
   const worker = loadWorker([page])
 
   await worker.dispatch('push', { data: stateChange })
 
-  assert.deepEqual(page.messages, [{ type: 'twake-mail-push' }])
+  assert.deepEqual(page.messages, [
+    { type: 'twake-mail-push', accountIds: ['a1'] }
+  ])
   assert.equal(worker.shown.length, 0)
+})
+
+test('a page that reads for longer than the first wait is still waited for', async () => {
+  // 4 s to say it reads, 20 s to show: here 40 ms and 200 ms
+  const page = makePage({ answers: ['reading', 'shown'], delay: 30 })
+  const worker = loadWorker([page])
+
+  await worker.dispatch('push', { data: stateChange })
+
+  assert.equal(worker.shown.length, 0)
+})
+
+test('a page that never ends its reading leaves the notification to the worker', async () => {
+  const worker = loadWorker([makePage({ answers: ['reading'] })])
+
+  await worker.dispatch('push', { data: stateChange })
+
+  assert.equal(worker.shown.length, 1)
+})
+
+test('a page that fails to read leaves the notification to the worker', async () => {
+  const worker = loadWorker([makePage({ answers: ['reading', 'failed'] })])
+
+  await worker.dispatch('push', { data: stateChange })
+
+  assert.equal(worker.shown.length, 1)
 })
 
 test('a page that does not answer leaves the notification to the worker', async () => {
@@ -107,6 +160,35 @@ test('a page that does not answer leaves the notification to the worker', async 
   await worker.dispatch('push', { data: stateChange })
 
   assert.equal(worker.shown.length, 1)
+})
+
+test('a frame of the origin is not asked', async () => {
+  const frame = makePage({ answers: ['shown'], frameType: 'nested' })
+  const worker = loadWorker([frame])
+
+  await worker.dispatch('push', { data: stateChange })
+
+  assert.deepEqual(frame.messages, [])
+  assert.equal(worker.shown.length, 1)
+})
+
+test('a push that is not JSON is one of an unknown account', async () => {
+  const page = makePage({ answers: ['shown'] })
+  const worker = loadWorker([page])
+
+  await worker.dispatch('push', {
+    data: {
+      json: () => {
+        throw new SyntaxError('not JSON')
+      }
+    }
+  })
+  await worker.dispatch('push', { data: null })
+
+  assert.deepEqual(page.messages, [
+    { type: 'twake-mail-push', accountIds: null },
+    { type: 'twake-mail-push', accountIds: null }
+  ])
 })
 
 test('the verification code goes to the pages, without a notification', async () => {
@@ -133,35 +215,48 @@ test('the verification code goes to the pages, without a notification', async ()
   assert.equal(worker.shown.length, 0)
 })
 
-test('a click opens the email in the focused page of the app', async () => {
-  const other = makePage()
-  const front = makePage({ focused: true })
-  const worker = loadWorker([other, front])
+test('a click opens the email in one page of the app, the one in front first', async () => {
+  const hidden = makePage({ answers: ['opened'] })
+  const front = makePage({ answers: ['opened'], focused: true })
+  const worker = loadWorker([hidden, front])
   let isClosed = false
 
-  await worker.dispatch('notificationclick', {
-    notification: {
-      data: { url: '/mailbox/in/email/e1' },
-      close: () => {
-        isClosed = true
-      }
-    }
-  })
+  await worker.dispatch(
+    'notificationclick',
+    click({ url: '/mailbox/in/email/e1', accountId: 'a1' }, () => {
+      isClosed = true
+    })
+  )
 
   assert.equal(isClosed, true)
   assert.deepEqual(front.messages, [
-    { type: 'twake-mail-open', url: '/mailbox/in/email/e1' }
+    { type: 'twake-mail-open', url: '/mailbox/in/email/e1', accountId: 'a1' }
   ])
   assert.equal(front.hasFocus, true)
-  assert.deepEqual(other.messages, [])
+  assert.deepEqual(hidden.messages, [])
+  assert.deepEqual(worker.opened, [])
 })
 
-test('a click opens the app when no page is left', async () => {
-  const worker = loadWorker()
+test('a click skips the pages that do not take the email', async () => {
+  const other = makePage({ focused: true })
+  const mine = makePage({ answers: ['opened'] })
+  const worker = loadWorker([other, mine])
 
-  await worker.dispatch('notificationclick', {
-    notification: { data: { url: '/' }, close: () => undefined }
-  })
+  await worker.dispatch(
+    'notificationclick',
+    click({ url: '/', accountId: 'a1' })
+  )
 
-  assert.deepEqual(worker.opened, ['/'])
+  assert.equal(other.hasFocus, false)
+  assert.equal(mine.hasFocus, true)
+  assert.deepEqual(worker.opened, [])
+})
+
+test('a click opens the app when no page takes the email', async () => {
+  const worker = loadWorker([makePage()])
+
+  await worker.dispatch('notificationclick', click({ url: '/mailbox/x' }))
+  await worker.dispatch('notificationclick', click(null))
+
+  assert.deepEqual(worker.opened, ['/mailbox/x', '/'])
 })

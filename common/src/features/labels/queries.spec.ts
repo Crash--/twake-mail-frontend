@@ -1,5 +1,5 @@
 import { createClient } from 'jmap-client-ts'
-import { METHOD_CAPABILITIES } from '@common/jmap/pushSubscription'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import { makeQueryClient } from '@common/app/queryClient'
 import {

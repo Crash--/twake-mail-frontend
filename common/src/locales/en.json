@@ -1431,6 +1431,6 @@
   "newMail": {
     "unknownSender": "Unknown sender",
     "pushTitle": "New email",
-    "pushBody": "An email reached your Inbox."
+    "pushBody": "Open Twake Mail to read it."
   }
 }

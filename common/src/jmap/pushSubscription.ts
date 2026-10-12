@@ -1,5 +1,4 @@
-import { CAPABILITIES, type SetError } from 'jmap-client-ts'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import type { CAPABILITIES, SetError } from 'jmap-client-ts'
 
 /** RFC 9749: the session gives the VAPID public key of the server */
 export const WEBPUSH_VAPID_CAPABILITY = 'urn:ietf:params:jmap:webpush-vapid'
@@ -41,10 +40,4 @@ declare module 'jmap-client-ts' {
       response: PushSubscriptionSetResponse
     }
   }
-}
-
-/** `methodCapabilities` of `createClient`: every method the app declares */
-export const METHOD_CAPABILITIES = {
-  ...LINAGORA_METHOD_CAPABILITIES,
-  'PushSubscription/set': CAPABILITIES.core
 }

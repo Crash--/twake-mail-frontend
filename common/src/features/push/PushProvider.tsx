@@ -20,7 +20,6 @@ import {
   describeNewEmail,
   useNewMailAlert
 } from '@common/features/newMail/useNewMailAlert'
-import type { PushWorkerMessage } from '@common/features/newMail/webPush'
 import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
 import {
   findTeamInboxIds,
@@ -73,10 +72,12 @@ export function PushProvider({
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const queryClient = useQueryClient()
+  const pollNewMail = useRef<(() => Promise<boolean>) | null>(null)
   const alert = useNewMailAlert(
     accountId,
     alertsNewEmails || spaceBridge !== null,
-    spaceBridge === null ? 'page' : 'space'
+    spaceBridge === null ? 'page' : 'space',
+    pollNewMail
   )
   const alertRef = useRef(alert)
   const tRef = useRef(t)
@@ -138,24 +139,9 @@ export function PushProvider({
           console.warn('[push] Cannot read the current states', error)
         })
     }
-    // A web push reached the worker (`public/push-worker.js`): the page
-    // that notifies reads the new emails, then tells the worker they are
-    // shown. Without an answer the worker shows a notification of its own
-    const handleWorkerMessage = (
-      event: MessageEvent<PushWorkerMessage>
-    ): void => {
-      if (event.data.type !== 'twake-mail-push') return
-      if (newMail === null || !alertRef.current.notifies()) return
-      const port = event.ports[0]
-      void newMail.poll().then(isRead => {
-        if (isRead) port?.postMessage('shown')
-      })
-    }
-    const worker =
-      alertsNewEmails && 'serviceWorker' in navigator
-        ? navigator.serviceWorker
-        : null
-    worker?.addEventListener('message', handleWorkerMessage)
+    // A web push reached the worker: this page reads the new emails
+    pollNewMail.current =
+      newMail !== null && alertsNewEmails ? () => newMail.poll() : null
     const hasLabels = client.hasCapability(LINAGORA_CAPABILITIES.labels)
     const push = client.connectWebSocket({
       dataTypes: hasLabels ? [...SYNCED_TYPES, 'Label'] : [...SYNCED_TYPES],
@@ -237,7 +223,7 @@ export function PushProvider({
     ]
     return () => {
       window.removeEventListener('online', handleOnline)
-      worker?.removeEventListener('message', handleWorkerMessage)
+      pollNewMail.current = null
       unsubscribers.forEach(unsubscribe => {
         unsubscribe()
       })

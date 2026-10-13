@@ -6,7 +6,7 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {
   useAuthService,
@@ -47,7 +47,7 @@ export function JmapClientProvider({
         ? createClient({
             sessionUrl,
             auth: makeJmapAuth(authService),
-            methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+            methodCapabilities: METHOD_CAPABILITIES
           })
         : null,
     [createClient, sessionUrl, authService, status]

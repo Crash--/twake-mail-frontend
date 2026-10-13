@@ -829,7 +829,14 @@
       "aiLabelCategorizationToggle": "Включить категоризацию меток",
       "aiScribe": "AI Scribe",
       "aiScribeDescription": "Используйте ИИ для помощи в написании и улучшении ваших электронных писем",
-      "aiScribeToggle": "Включить AI Scribe"
+      "aiScribeToggle": "Включить AI Scribe",
+      "newMailNotifications": "Уведомления о новых письмах",
+      "newMailNotificationsDescription": "Показывает уведомление, когда письмо приходит во «Входящие», пока Twake Mail работает в фоне.",
+      "newMailNotificationsToggle": "Показать Уведомления",
+      "newMailNotificationsBlocked": "Уведомления заблокированы: разрешите их для Twake Mail в настройках браузера",
+      "newMailSound": "Звук новых писем",
+      "newMailSoundDescription": "Воспроизводит звук, когда письмо приходит во «Входящие».",
+      "newMailSoundToggle": "Воспроизводить звук"
     },
     "backToMail": "Вернуться к почте",
     "language": {
@@ -1420,5 +1427,10 @@
       "title": "Twake Mail не может открыться на этой странице",
       "description": "Это приложение показано на другой странице: откройте Twake Mail напрямую, чтобы написать сообщение."
     }
+  },
+  "newMail": {
+    "unknownSender": "Неизвестный отправитель",
+    "pushTitle": "Новое письмо",
+    "pushBody": "Откройте Twake Mail, чтобы прочитать его."
   }
 }

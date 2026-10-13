@@ -24,6 +24,10 @@ services:
       - ./james/openpaas.properties:/root/conf/openpaas.properties:ro
     environment:
       - DOMAIN=example.com
+    # The web push specs stand in for the push service of the browser, on
+    # the test runner (support/webPush.ts): James posts its pushes there
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     ports:
       - '127.0.0.1:${E2E_JMAP_PORT:-18300}:80'
       - '127.0.0.1:${E2E_WEBADMIN_PORT:-18301}:8000'

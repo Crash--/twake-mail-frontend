@@ -50,7 +50,8 @@ function makeSpaceBridge(): SpaceBridge & {
   return {
     syncHistory: jest.fn((_apply: SpaceNavigation) => () => undefined),
     notifyLoginRequired: jest.fn(),
-    reportBadges: jest.fn()
+    reportBadges: jest.fn(),
+    notify: jest.fn()
   }
 }
 

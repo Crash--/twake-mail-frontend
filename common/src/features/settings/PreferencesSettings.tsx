@@ -6,7 +6,14 @@ import { SettingsChoiceOption } from '@/ds/SettingsOption/SettingsOption'
 
 import { hasAiCapability } from '@common/features/ai/aiNeedsAction'
 import { useDriveUrl } from '@common/features/drive/useDrivePicker'
+import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { useLabelVisibility } from '@common/features/labels/labelVisibility'
+import {
+  canNotify,
+  enableNewMailNotifications,
+  newMailNotificationPreference,
+  newMailSoundPreference
+} from '@common/features/newMail/newMailPreferences'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { scribeEndpoint } from '@common/features/scribe/scribe'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
@@ -57,10 +64,10 @@ export interface PreferencesSettingsProps {
  * only when error reporting is configured), the conversation view, the
  * spam report, the AI assistant, the labels and the Drive button of the
  * composer (kept in this browser), and, with the AI capability, the label
- * categorisation (setting of the account). Then the accessibility mode
- * (kept in this browser, not in tmail-flutter). First of all, the theme
- * (`appearance.theme` of the account, not in tmail-flutter), when the
- * server lets it change.
+ * categorisation (setting of the account). Then the notifications and the
+ * sound of new emails and the accessibility mode (kept in this browser, not
+ * in tmail-flutter). First of all, the theme (`appearance.theme` of the
+ * account, not in tmail-flutter), when the server lets it change.
  */
 export function PreferencesSettings({
   section
@@ -84,6 +91,29 @@ export function PreferencesSettings({
   const errorReporting = useSentryReporting()
   const theme = useThemePreference()
   const [saving, setSaving] = useState<ServerSettingKey | null>(null)
+  const isNotifying = newMailNotificationPreference.useValue() && canNotify()
+  const isPlayingSound = newMailSoundPreference.useValue()
+  // A frame of another origin (Twake Workplace) may not show notifications
+  const isEmbedded = useIsEmbedded()
+
+  // The browser asks for the permission on this click only
+  const changeNotifications = (isOn: boolean): void => {
+    if (!isOn) {
+      newMailNotificationPreference.write(false)
+      return
+    }
+    enableNewMailNotifications()
+      .then(isEnabled => {
+        if (isEnabled) return
+        notify({
+          message: t('settings.preferences.newMailNotificationsBlocked'),
+          severity: 'error'
+        })
+      })
+      .catch((error: unknown) => {
+        console.error('[settings] Cannot turn the notifications on', error)
+      })
+  }
 
   const changeServerSetting = (
     key: ServerSettingKey,
@@ -226,6 +256,26 @@ export function PreferencesSettings({
           data-testid="drive-attachment-setting-toggle"
         />
       ) : null}
+      {typeof Notification === 'undefined' || isEmbedded ? null : (
+        <PreferenceOption
+          title={t('settings.preferences.newMailNotifications')}
+          description={t(
+            'settings.preferences.newMailNotificationsDescription'
+          )}
+          toggleLabel={t('settings.preferences.newMailNotificationsToggle')}
+          isChecked={isNotifying}
+          onChange={changeNotifications}
+          data-testid="new-mail-notifications-setting-toggle"
+        />
+      )}
+      <PreferenceOption
+        title={t('settings.preferences.newMailSound')}
+        description={t('settings.preferences.newMailSoundDescription')}
+        toggleLabel={t('settings.preferences.newMailSoundToggle')}
+        isChecked={isPlayingSound}
+        onChange={newMailSoundPreference.write}
+        data-testid="new-mail-sound-setting-toggle"
+      />
       <PreferenceOption
         title={t('settings.preferences.accessibility')}
         description={t('settings.preferences.accessibilityDescription')}

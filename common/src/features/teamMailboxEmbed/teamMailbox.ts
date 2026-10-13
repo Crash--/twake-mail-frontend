@@ -47,6 +47,32 @@ export function findTeamInboxId(
   )
 }
 
+/** The Inboxes of every team mailbox of the user */
+export function findTeamInboxIds(
+  mailboxes: readonly MailboxSummary[]
+): string[] {
+  return mailboxes
+    .filter(mailbox => isTeamRoot(mailbox))
+    .flatMap(root => {
+      const inbox = findTeamFolderId(mailboxes, root.id, 'inbox')
+      return inbox === null ? [] : [inbox]
+    })
+}
+
+/** The root of the team mailbox a folder belongs to: its resource id */
+export function findTeamRootOf(
+  mailboxes: readonly MailboxSummary[],
+  folderId: string
+): string | null {
+  const folder = mailboxes.find(mailbox => mailbox.id === folderId)
+  if (folder === undefined) return null
+  return (
+    mailboxes.find(
+      mailbox => isTeamRoot(mailbox) && isInTeamMailbox(folder, mailbox)
+    )?.id ?? null
+  )
+}
+
 /** Bounds of a report of badges (`@linagora/twake-embed`): past them, it is dropped */
 const MAX_BADGES = 1000
 const MAX_BADGE_COUNT = 1_000_000

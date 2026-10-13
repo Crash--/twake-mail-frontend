@@ -23,6 +23,10 @@ view.email.query.enabled=false
 calendarEvent.reply.mailTemplateLocation=file://eml-template/
 calendarEvent.reply.supportedLanguages=en,fr,mn
 
+# The web push specs give James a push URL on the test runner, a private
+# address: James refuses those by default (server side request forgery)
+webpush.prevent.server.side.request.forgery=false
+
 authentication.strategy.rfc8621=@AUTH_STRATEGIES@
 url.prefix=@PUBLIC_URL@
 websocket.url.prefix=@WEBSOCKET_URL@

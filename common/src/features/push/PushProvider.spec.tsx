@@ -10,10 +10,13 @@ import {
   FAKE_ACCOUNT_ID,
   FAKE_WEBSOCKET_URL,
   makeEmail,
+  makeDefaultMailboxes,
   makeFakeJmapServer,
+  makeTeamMailboxes,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
 
 import { PushProvider } from './PushProvider'
 
@@ -117,12 +120,20 @@ async function showListAgainAfter(delay: number): Promise<void> {
 }
 
 /** The mailbox tree and the inbox list, under the push provider */
-async function renderWithPush(server: FakeJmapServer): Promise<{
+async function renderWithPush(
+  server: FakeJmapServer,
+  alertsNewEmails = false,
+  spaceBridge: SpaceBridge | null = null
+): Promise<{
   socket: FakeWebSocket
   result: ReturnType<typeof renderWithProviders>
 }> {
   const result = renderWithProviders(
-    <PushProvider WebSocket={FakeWebSocket}>
+    <PushProvider
+      WebSocket={FakeWebSocket}
+      alertsNewEmails={alertsNewEmails}
+      spaceBridge={spaceBridge}
+    >
       <MailboxTree />
       <VirtuosoMockContext.Provider
         value={{ viewportHeight: 100_000, itemHeight: 56 }}
@@ -410,5 +421,513 @@ describe('PushProvider', () => {
     result.unmount()
 
     expect(socket.isClosed).toBe(true)
+  })
+
+  describe('new email alerts', () => {
+    let shown: { title: string; body?: string; tag?: string }[] = []
+
+    beforeEach(() => {
+      shown = []
+      class FakeNotification {
+        static permission: NotificationPermission = 'granted'
+        onclick: (() => void) | null = null
+        constructor(title: string, options?: NotificationOptions) {
+          shown.push({ title, ...options })
+        }
+        close(): void {
+          this.onclick = null
+        }
+      }
+      Object.defineProperty(window, 'Notification', {
+        value: FakeNotification,
+        configurable: true
+      })
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'hidden',
+        configurable: true
+      })
+      window.localStorage.setItem(
+        'twake-mail.preferences.newMailNotifications',
+        'true'
+      )
+    })
+
+    afterEach(() => {
+      Reflect.deleteProperty(window, 'Notification')
+      Reflect.deleteProperty(document, 'visibilityState')
+      window.localStorage.removeItem(
+        'twake-mail.preferences.newMailNotifications'
+      )
+    })
+
+    /** Lets the watcher read the changes of the last push */
+    async function settled(
+      server: FakeJmapServer,
+      changes: number
+    ): Promise<void> {
+      await waitFor(() => {
+        expect(countCalls(server, 'Email/changes')).toBeGreaterThanOrEqual(
+          changes
+        )
+      })
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+    }
+
+    it('notifies an email reaching the Inbox, from its sender', async () => {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+
+      server.addEmail(makeEmail({ id: 'pushed', subject: 'Pushed news' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await waitFor(() => {
+        expect(shown).toEqual([
+          { title: 'Bob Dupont', body: 'Pushed news', tag: 'pushed' }
+        ])
+      })
+    })
+
+    it('notifies neither a changed email nor one already read', async () => {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+      const before = countCalls(server, 'Email/changes')
+
+      server.updateEmail('e1', { keywords: { $flagged: true } })
+      server.addEmail(makeEmail({ id: 'read', keywords: { $seen: true } }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 2)
+      expect(shown).toEqual([])
+    })
+
+    it('notifies nothing that arrived while the channel was down', async () => {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+
+      act(() => {
+        socket.drop()
+      })
+      server.addEmail(makeEmail({ id: 'missed' }))
+      await waitFor(
+        () => {
+          expect(FakeWebSocket.instances).toHaveLength(2)
+        },
+        { timeout: 3000 }
+      )
+      const gets = countCalls(server, 'Email/get')
+      act(() => {
+        lastSocket().open()
+      })
+      // The current states, read again once the channel reopened
+      await waitFor(() => {
+        expect(countCalls(server, 'Email/get')).toBeGreaterThan(gets)
+      })
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+      server.addEmail(makeEmail({ id: 'after', subject: 'After' }))
+      act(() => {
+        lastSocket().receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await waitFor(() => {
+        expect(shown.map(({ tag }) => tag)).toEqual(['after'])
+      })
+    })
+
+    it('notifies nothing while the page is in front', async () => {
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true
+      })
+      jest.spyOn(document, 'hasFocus').mockReturnValue(true)
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 2)
+      expect(shown).toEqual([])
+    })
+
+    it('takes the lock of the alerts only on a page that alerts', async () => {
+      const request = jest.fn(() => Promise.resolve())
+      Object.defineProperty(navigator, 'locks', {
+        value: { request },
+        configurable: true
+      })
+      try {
+        const facade = await renderWithPush(makeServer())
+        expect(request).not.toHaveBeenCalled()
+        facade.result.unmount()
+        FakeWebSocket.instances = []
+
+        await renderWithPush(makeServer(), true)
+        expect(request).toHaveBeenCalledWith(
+          `twake-mail-new-mail-alert:page:${FAKE_ACCOUNT_ID}`,
+          expect.anything(),
+          expect.any(Function)
+        )
+      } finally {
+        Reflect.deleteProperty(navigator, 'locks')
+      }
+    })
+
+    it('asks the server nothing more while both switches are off', async () => {
+      window.localStorage.removeItem(
+        'twake-mail.preferences.newMailNotifications'
+      )
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, true)
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 1)
+      // The synchronization of the lists only
+      expect(countCalls(server, 'Email/changes')).toBe(before + 1)
+      expect(shown).toEqual([])
+    })
+
+    it('asks Twake Space to notify the new emails of a team mailbox', async () => {
+      const notify = jest.fn()
+      const bridge: SpaceBridge = {
+        syncHistory: () => () => undefined,
+        notifyLoginRequired: jest.fn(),
+        reportBadges: jest.fn(),
+        notify
+      }
+      const server = makeFakeJmapServer({
+        webSocket: true,
+        mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
+        emails: [makeEmail({ id: 'e1' })]
+      })
+      const { socket } = await renderWithPush(server, false, bridge)
+
+      server.addEmail(
+        makeEmail({
+          id: 'team-news',
+          subject: 'For the team',
+          mailboxIds: { 'team-inbox': true }
+        })
+      )
+      server.addEmail(makeEmail({ id: 'personal' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await waitFor(() => {
+        expect(notify).toHaveBeenCalledTimes(1)
+      })
+      expect(notify).toHaveBeenCalledWith({
+        tag: 'mail:team-news',
+        title: 'Bob Dupont',
+        body: 'For the team',
+        resourceId: 'team'
+      })
+      expect(shown).toEqual([])
+    })
+
+    it('asks the server nothing in Space without a team mailbox', async () => {
+      const notify = jest.fn()
+      const server = makeServer()
+      const { socket } = await renderWithPush(server, false, {
+        syncHistory: () => () => undefined,
+        notifyLoginRequired: jest.fn(),
+        reportBadges: jest.fn(),
+        notify
+      })
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 1)
+      expect(countCalls(server, 'Email/changes')).toBe(before + 1)
+      expect(notify).not.toHaveBeenCalled()
+    })
+
+    it('notifies nothing unless the page asks for it', async () => {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server)
+      const before = countCalls(server, 'Email/changes')
+
+      server.addEmail(makeEmail({ id: 'pushed' }))
+      act(() => {
+        socket.receive(stateChange(FAKE_ACCOUNT_ID, server.states()))
+      })
+
+      await settled(server, before + 1)
+      expect(shown).toEqual([])
+    })
+    describe('with the service worker of the web push', () => {
+      interface WorkerNotification {
+        title: string
+        tag?: string
+        body?: string
+        data?: unknown
+        close: () => void
+      }
+      let workerShown: WorkerNotification[] = []
+      let listeners: ((event: Event) => void)[] = []
+
+      /** What a page answers on the port of a message of the worker */
+      function tell(message: unknown): string[] {
+        const answers: string[] = []
+        const port = {
+          postMessage: (answer: string) => {
+            answers.push(answer)
+          }
+        }
+        const event = Object.assign(new Event('message'), {
+          data: message,
+          ports: [port]
+        })
+        act(() => {
+          listeners.forEach(listener => {
+            listener(event)
+          })
+        })
+        return answers
+      }
+
+      function servePushSubscriptions(server: FakeJmapServer): void {
+        server.handlers.set('PushSubscription/set', args => ({
+          created: 'create' in args ? { push: { id: 'ps1' } } : null,
+          updated: null,
+          destroyed: null,
+          notCreated: null,
+          notUpdated: null,
+          notDestroyed: null
+        }))
+      }
+
+      beforeEach(() => {
+        workerShown = []
+        listeners = []
+        const registration = {
+          showNotification: (title: string, options?: NotificationOptions) => {
+            const notification: WorkerNotification = {
+              title,
+              ...options,
+              close: () => {
+                workerShown = workerShown.filter(one => one !== notification)
+              }
+            }
+            workerShown.push(notification)
+            return Promise.resolve()
+          },
+          getNotifications: (filter?: { tag?: string }) =>
+            Promise.resolve(
+              workerShown.filter(
+                one => filter?.tag === undefined || one.tag === filter.tag
+              )
+            ),
+          pushManager: {
+            getSubscription: () => Promise.resolve(null),
+            subscribe: () =>
+              Promise.resolve({
+                endpoint: 'https://push.example.com/1',
+                options: { applicationServerKey: null },
+                toJSON: () => ({ keys: { p256dh: 'cDI1Ng', auth: 'YXV0aA' } })
+              })
+          }
+        }
+        Object.defineProperty(navigator, 'serviceWorker', {
+          configurable: true,
+          value: {
+            register: () => Promise.resolve(registration),
+            ready: Promise.resolve(registration),
+            getRegistration: () => Promise.resolve(registration),
+            addEventListener: (_type: string, listener: (e: Event) => void) => {
+              listeners.push(listener)
+            },
+            removeEventListener: (
+              _type: string,
+              listener: (e: Event) => void
+            ) => {
+              listeners = listeners.filter(one => one !== listener)
+            }
+          }
+        })
+        Object.defineProperty(globalThis, 'PushManager', {
+          configurable: true,
+          value: {}
+        })
+      })
+
+      afterEach(() => {
+        Reflect.deleteProperty(navigator, 'serviceWorker')
+        Reflect.deleteProperty(globalThis, 'PushManager')
+        window.localStorage.removeItem('twake-mail.push.subscriptions')
+      })
+
+      it('reads the new emails on a web push, shows them through the worker, then tells it', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        server.addEmail(makeEmail({ id: 'pushed', subject: 'Pushed news' }))
+        workerShown.push({
+          title: 'New email',
+          tag: 'twake-mail-new-mail',
+          close: () => {
+            workerShown = workerShown.filter(
+              one => one.tag !== 'twake-mail-new-mail'
+            )
+          }
+        })
+
+        const answers = tell({
+          type: 'twake-mail-push',
+          accountIds: [FAKE_ACCOUNT_ID]
+        })
+
+        expect(answers).toEqual(['reading'])
+        await waitFor(() => {
+          expect(answers).toEqual(['reading', 'shown'])
+        })
+        // The notification the worker showed alone meanwhile is gone
+        expect(
+          workerShown.map(({ title, tag, body, data }) => ({
+            title,
+            tag,
+            body,
+            data
+          }))
+        ).toEqual([
+          {
+            title: 'Bob Dupont',
+            tag: 'pushed',
+            body: 'Pushed news',
+            data: {
+              url: '/mailbox/mailbox-inbox/email/pushed',
+              accountId: FAKE_ACCOUNT_ID
+            }
+          }
+        ])
+        // Not through the page: the worker handles the click
+        expect(shown).toEqual([])
+      })
+
+      it('tells the worker when the new emails cannot be read', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        server.addEmail(makeEmail({ id: 'pushed' }))
+        server.methodErrors.set('Email/changes', 'serverFail')
+        jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+        const answers = tell({ type: 'twake-mail-push', accountIds: null })
+
+        await waitFor(() => {
+          expect(answers).toEqual(['reading', 'failed'])
+        })
+        expect(workerShown).toEqual([])
+      })
+
+      it('leaves the web push of another account to its own tab', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        const before = countCalls(server, 'Email/changes')
+
+        const answers = tell({
+          type: 'twake-mail-push',
+          accountIds: ['another-account']
+        })
+
+        await act(async () => {
+          await new Promise(resolve => setTimeout(resolve, 0))
+        })
+        expect(answers).toEqual([])
+        expect(countCalls(server, 'Email/changes')).toBe(before)
+      })
+
+      it('leaves the web push to the worker when notifications are off', async () => {
+        window.localStorage.setItem(
+          'twake-mail.preferences.newMailNotifications',
+          'false'
+        )
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+
+        expect(tell({ type: 'twake-mail-push', accountIds: null })).toEqual([])
+      })
+
+      it('takes the email of a clicked notification of its account only', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        // The test router has no route for an email
+        jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+        const open = (url: string, accountId: string | null): string[] =>
+          tell({ type: 'twake-mail-open', url, accountId })
+
+        expect(open('/mailbox/mailbox-inbox/email/e1', 'another')).toEqual([])
+        expect(open('//evil.example.com', FAKE_ACCOUNT_ID)).toEqual([])
+        expect(open('https://evil.example.com', null)).toEqual([])
+        expect(
+          open('/mailbox/mailbox-inbox/email/e1', FAKE_ACCOUNT_ID)
+        ).toEqual(['opened'])
+      })
+
+      it('takes the click on the notification the worker showed alone', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+        expect(
+          tell({ type: 'twake-mail-open', url: '/', accountId: null })
+        ).toEqual(['opened'])
+      })
+
+      it('sends the verification code of its subscription back to the server', async () => {
+        const server = makeServer()
+        servePushSubscriptions(server)
+        await renderWithPush(server, true)
+        await waitFor(() => {
+          expect(countCalls(server, 'PushSubscription/set')).toBe(1)
+        })
+        await waitFor(() => {
+          expect(
+            window.localStorage.getItem('twake-mail.push.subscriptions')
+          ).toContain('ps1')
+        })
+
+        tell({
+          type: 'twake-mail-push-verification',
+          pushSubscriptionId: 'ps1',
+          verificationCode: 'code'
+        })
+
+        await waitFor(() => {
+          expect(countCalls(server, 'PushSubscription/set')).toBe(2)
+        })
+        const call = server.requests
+          .flatMap(request => request.methodCalls)
+          .filter(([name]) => name === 'PushSubscription/set')
+          .at(-1)
+        expect(call?.[1]).toEqual({
+          update: { ps1: { verificationCode: 'code' } }
+        })
+      })
+    })
   })
 })

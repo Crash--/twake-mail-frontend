@@ -166,9 +166,9 @@ describe('PreferencesSettings', () => {
     expect(
       await screen.findByRole('switch', { name: 'Enable thread' })
     ).toBeInTheDocument()
-    // Thread, spam report and accessibility: no labels, no Drive, no server
-    // settings
-    expect(screen.getAllByRole('switch')).toHaveLength(3)
+    // Thread, spam report, new email sound and accessibility: no labels, no
+    // Drive, no server settings, no notifications in jsdom
+    expect(screen.getAllByRole('switch')).toHaveLength(4)
     expect(screen.queryByRole('radiogroup', { name: 'Theme' })).toBe(null)
   })
 

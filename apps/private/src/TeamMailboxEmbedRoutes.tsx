@@ -41,7 +41,7 @@ export function teamMailboxEmbedRouteElements(
         <Route
           element={
             <JmapSessionProvider loading={<TeamMailboxLoadingScreen />}>
-              <PushProvider>
+              <PushProvider spaceBridge={spaceBridge}>
                 {spaceBridge === null ? null : (
                   <TeamMailboxBadges reportBadges={spaceBridge.reportBadges} />
                 )}

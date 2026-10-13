@@ -1,5 +1,5 @@
 import { createClient } from 'jmap-client-ts'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import { makeQueryClient } from '@common/app/queryClient'
 import {
@@ -51,7 +51,7 @@ describe('labels', () => {
     const client = createClient({
       sessionUrl: FAKE_SESSION_URL,
       fetch: server.fetch,
-      methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+      methodCapabilities: METHOD_CAPABILITIES
     })
     await client.getSession()
     const queryClient = makeQueryClient()

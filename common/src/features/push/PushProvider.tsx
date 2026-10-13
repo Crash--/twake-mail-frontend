@@ -4,13 +4,28 @@ import {
   type WebSocketConstructor
 } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
-import { useEffect, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
 
 import { DEFAULT_STALE_TIME } from '@common/app/queryClient'
 import { emailKeys } from '@common/features/email/queries'
 import { syncLabels } from '@common/features/labels/queries'
 import { quotaKeys } from '@common/features/quota/quota'
-import { mailboxKeys } from '@common/features/mailbox/queries'
+import {
+  mailboxKeys,
+  type MailboxListData,
+  type MailboxSummary
+} from '@common/features/mailbox/queries'
+import { createNewMailWatcher } from '@common/features/newMail/newMailWatcher'
+import {
+  describeNewEmail,
+  useNewMailAlert
+} from '@common/features/newMail/useNewMailAlert'
+import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
+import {
+  findTeamInboxIds,
+  findTeamRootOf
+} from '@common/features/teamMailboxEmbed/teamMailbox'
+import { useI18n } from '@common/i18n/useI18n'
 import { threadKeys } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -25,6 +40,16 @@ export interface PushProviderProps {
   children: ReactNode
   /** WebSocket implementation, the browser's by default (tests) */
   WebSocket?: WebSocketConstructor
+  /**
+   * Plays the sound and shows the notifications of the emails reaching the
+   * Inbox, as the user chose (`useNewMailAlert`)
+   */
+  alertsNewEmails?: boolean
+  /**
+   * In a frame of TwakeSpace: the new emails of the user's team mailboxes go
+   * to TwakeSpace, which shows them and opens the space of the mailbox
+   */
+  spaceBridge?: SpaceBridge | null
 }
 
 /**
@@ -39,14 +64,84 @@ export interface PushProviderProps {
  */
 export function PushProvider({
   children,
-  WebSocket
+  WebSocket,
+  alertsNewEmails = false,
+  spaceBridge = null
 }: PushProviderProps): ReactElement {
+  const { t } = useI18n()
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const queryClient = useQueryClient()
+  const pollNewMail = useRef<(() => Promise<boolean>) | null>(null)
+  const alert = useNewMailAlert(
+    accountId,
+    alertsNewEmails || spaceBridge !== null,
+    spaceBridge === null ? 'page' : 'space',
+    pollNewMail
+  )
+  const alertRef = useRef(alert)
+  const tRef = useRef(t)
+  useEffect(() => {
+    alertRef.current = alert
+    tRef.current = t
+  })
 
   useEffect(() => {
     const sync = createPushSync(queryClient, client, accountId)
+    const mailboxes = (): readonly MailboxSummary[] =>
+      queryClient.getQueryData<MailboxListData>(mailboxKeys.list(accountId))
+        ?.list ?? []
+    const newMail =
+      spaceBridge !== null
+        ? createNewMailWatcher(
+            client,
+            accountId,
+            () => findTeamInboxIds(mailboxes()),
+            emails => {
+              const list = mailboxes()
+              for (const email of emails) {
+                const root = findTeamRootOf(list, email.inboxId)
+                if (root === null) continue
+                spaceBridge.notify({
+                  tag: `mail:${email.id}`,
+                  ...describeNewEmail(email, tRef.current),
+                  resourceId: root
+                })
+              }
+            },
+            // One frame of the account asks, and only with team mailboxes
+            () =>
+              alertRef.current.isLeader() &&
+              findTeamInboxIds(mailboxes()).length > 0
+          )
+        : alertsNewEmails
+          ? createNewMailWatcher(
+              client,
+              accountId,
+              () =>
+                mailboxes()
+                  .filter(mailbox => mailbox.role === 'inbox')
+                  .map(mailbox => mailbox.id),
+              emails => alertRef.current.alert(emails),
+              () => alertRef.current.isWanted()
+            )
+          : null
+    // What arrived before the channel (re)opened is not new: the watcher
+    // starts from the current state
+    const resetNewMail = (): void => {
+      if (newMail === null) return
+      newMail.reset(null)
+      fetchCurrentStates(client, accountId)
+        .then(states => {
+          newMail.reset(states.Email)
+        })
+        .catch((error: unknown) => {
+          console.warn('[push] Cannot read the current states', error)
+        })
+    }
+    // A web push reached the worker: this page reads the new emails
+    pollNewMail.current =
+      newMail !== null && alertsNewEmails ? () => newMail.poll() : null
     const hasLabels = client.hasCapability(LINAGORA_CAPABILITIES.labels)
     const push = client.connectWebSocket({
       dataTypes: hasLabels ? [...SYNCED_TYPES, 'Label'] : [...SYNCED_TYPES],
@@ -87,6 +182,7 @@ export function PushProvider({
       push.on('stateChange', change => {
         const states = change.changed[accountId]
         if (states) sync.stateChanged(states)
+        if (states?.Email !== undefined) newMail?.pushed(states.Email)
         if (states?.Email !== undefined) {
           // Emails in or out: the storage used changed
           void queryClient.invalidateQueries({
@@ -103,11 +199,13 @@ export function PushProvider({
         if (status !== 'open') return
         if (hasBeenOpen) {
           sync.catchUp()
+          resetNewMail()
           if (hasLabels) void syncLabels(client, queryClient, accountId, null)
         } else {
           fetchCurrentStates(client, accountId)
             .then(states => {
               sync.stateChanged({ ...states })
+              newMail?.reset(states.Email)
             })
             .catch((error: unknown) => {
               console.warn('[push] Cannot read the current states', error)
@@ -125,11 +223,13 @@ export function PushProvider({
     ]
     return () => {
       window.removeEventListener('online', handleOnline)
+      pollNewMail.current = null
       unsubscribers.forEach(unsubscribe => {
         unsubscribe()
       })
       push.close()
       sync.close()
+      newMail?.close()
       for (const queryKey of syncedKeys) {
         queryClient.setQueryDefaults(queryKey, {
           staleTime: DEFAULT_STALE_TIME,
@@ -137,7 +237,7 @@ export function PushProvider({
         })
       }
     }
-  }, [client, accountId, queryClient, WebSocket])
+  }, [client, accountId, queryClient, WebSocket, alertsNewEmails, spaceBridge])
 
   return <>{children}</>
 }

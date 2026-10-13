@@ -297,6 +297,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 
 - [x] `EML-29` Remote images of an email (img, CSS background) are not requested until the user clicks "Show" in the "Remote images hidden" banner; "Always show for this sender" then shows them right away in the other emails of that sender. — web app only, no Patrol test (tmail-flutter always loads remote images).
   - Spec: `tests/email.spec.ts`, also run on the `mobile` and `tablet` projects. The remote host is served by `page.route`, which counts the requests.
+- [x] `EML-29c` After "Show" in the "Remote images hidden" banner, the browser back button goes back to the list (the new body does not add a history entry to the frame). — web app only, no Patrol test
+  - Spec: `tests/email.spec.ts`.
 - [x] `EML-30` In the Trash, "Delete permanently" from the more menu of an open email asks first ("Delete message forever"); confirming closes the email and destroys it on the server. — web app only, no Patrol test (Patrol covers the delete forever dialog nowhere)
   - Spec: `tests/actions.spec.ts`. Passes in CI.
 - [x] `EML-31` In Spam, "Remove from spam" from the more menu of an open email puts it back in the Inbox ("Marked as not spam"). — web app only, no Patrol test

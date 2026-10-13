@@ -224,6 +224,29 @@ test.describe('EML reading an email', () => {
     await expect(email.remoteContentBanner).toBeHidden()
   })
 
+  test('EML-29c the browser back button leaves an email whose remote images were shown', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await page.route(`${REMOTE_HOST}/**`, async route => {
+      await route.fulfill({ contentType: 'image/png', body: PNG })
+    })
+    await jmap.importEmlContent(newsletterEml('back', user.email))
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const listUrl = page.url()
+    const email = await mailbox.openEmail('back newsletter')
+    await expect(email.body()).toContainText('back news')
+    await email.showRemoteContentButton.click()
+    await expect(email.remoteContentBanner).toBeHidden()
+
+    await page.goBack()
+
+    await expect(page).toHaveURL(listUrl)
+    await expect(mailbox.emailRow('back newsletter')).toBeVisible()
+  })
+
   test('EML-28 opening an unread email marks it read', async ({
     page,
     user,

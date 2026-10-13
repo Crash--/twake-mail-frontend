@@ -191,7 +191,10 @@ export function EmailBodyFrame({
 
   return (
     <>
+      {/* A new frame per document: a new `src` on the same frame adds a
+          history entry, and Back would load the revoked blob */}
       <iframe
+        key={document}
         ref={frameRef}
         title={t('email.content')}
         sandbox={EMAIL_FRAME_SANDBOX}

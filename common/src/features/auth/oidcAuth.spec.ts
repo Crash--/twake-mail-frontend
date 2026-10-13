@@ -1,3 +1,4 @@
+import * as twakeOidc from '@linagora/twake-oidc'
 import * as client from 'openid-client'
 
 import type { OidcConfig } from '@common/config/config'
@@ -5,26 +6,28 @@ import type { OidcConfig } from '@common/config/config'
 import {
   createOidcAuthService,
   peekPendingLoginReturnTo,
-  PENDING_LOGIN_STORAGE_KEY,
-  type OidcDependencies
+  type OidcDependencies,
+  type OidcOptions
 } from './oidcAuth'
+
+jest.mock('@linagora/twake-oidc', () => ({
+  ...jest.requireActual<typeof twakeOidc>('@linagora/twake-oidc'),
+  configureAuth: jest.fn(),
+  startLogin: jest.fn(),
+  completeLogin: jest.fn(),
+  getPendingReturnTo: jest.fn()
+}))
 
 jest.mock('openid-client', () => ({
   clockSkew: Symbol('clockSkew'),
   discovery: jest.fn(),
   None: jest.fn(),
   allowInsecureRequests: jest.fn(),
-  randomPKCECodeVerifier: jest.fn(),
-  calculatePKCECodeChallenge: jest.fn(),
-  randomState: jest.fn(),
-  buildAuthorizationUrl: jest.fn(),
-  authorizationCodeGrant: jest.fn(),
   refreshTokenGrant: jest.fn(),
-  buildEndSessionUrl: jest.fn(),
-  fetchUserInfo: jest.fn(),
-  skipSubjectCheck: Symbol('skipSubjectCheck')
+  buildEndSessionUrl: jest.fn()
 }))
 
+const mockedOidc = jest.mocked(twakeOidc)
 const mockedClient = jest.mocked(client)
 
 const CONFIG: OidcConfig = {
@@ -35,22 +38,22 @@ const CONFIG: OidcConfig = {
   postLogoutRedirectUri: 'https://mail.example.com/'
 }
 
-const CALLBACK_URL = new URL(
-  'https://mail.example.com/callback?code=abc&state=state-1'
-)
+const OPTIONS: OidcOptions = {
+  apiUrl: 'https://jmap.example.com/jmap/session'
+}
 
-type TokenResponse = Awaited<ReturnType<typeof client.refreshTokenGrant>>
+type TokenSet = twakeOidc.TokenSet
 
 const FULL_PROFILE = { email: 'alice@example.com', name: 'Alice Martin' }
 const FULL_USER = { ...FULL_PROFILE, workplaceFqdn: null }
 
-function makeTokenResponse(
+function makeTokenSet(
   accessToken: string,
   {
     expiresIn = 300,
     profile = FULL_PROFILE
   }: { expiresIn?: number; profile?: Record<string, string> } = {}
-): TokenResponse {
+): TokenSet {
   const response: client.TokenEndpointResponse = {
     access_token: accessToken,
     refresh_token: `refresh-of-${accessToken}`,
@@ -72,38 +75,28 @@ function makeTokenResponse(
   return Object.assign(response, helpers)
 }
 
-function makeMemoryStorage(): OidcDependencies['storage'] {
-  const items = new Map<string, string>()
-  return {
-    getItem: key => items.get(key) ?? null,
-    setItem: (key, value) => {
-      items.set(key, value)
-    },
-    removeItem: key => {
-      items.delete(key)
-    }
-  }
+function makeLoginResult(
+  tokenSet: TokenSet,
+  {
+    userinfo = {},
+    returnTo = '/mailbox/inbox'
+  }: { userinfo?: Record<string, string>; returnTo?: string } = {}
+): twakeOidc.LoginResult {
+  return { tokenSet, userinfo: { sub: 'alice', ...userinfo }, returnTo }
 }
 
 function makeDependencies(): OidcDependencies {
-  return {
-    storage: makeMemoryStorage(),
-    redirect: jest.fn(),
-    replace: jest.fn(),
-    getCurrentPath: () => '/mailbox/inbox?page=2',
-    now: () => Date.now()
-  }
+  return { redirect: jest.fn(), now: () => Date.now() }
 }
 
 async function signIn(
-  dependencies: OidcDependencies
+  dependencies: OidcDependencies = makeDependencies()
 ): Promise<ReturnType<typeof createOidcAuthService>> {
-  const service = createOidcAuthService(CONFIG, dependencies)
-  await service.startLogin('/mailbox/inbox')
-  mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
-    makeTokenResponse('access-1')
+  const service = createOidcAuthService(CONFIG, OPTIONS, dependencies)
+  mockedOidc.completeLogin.mockResolvedValueOnce(
+    makeLoginResult(makeTokenSet('access-1'))
   )
-  await service.handleCallback(CALLBACK_URL)
+  await service.handleCallback()
   return service
 }
 
@@ -119,99 +112,89 @@ describe('createOidcAuthService', () => {
     jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] })
     jest.setSystemTime(new Date('2026-01-01T00:00:00Z'))
     mockedClient.discovery.mockResolvedValue(configuration)
-    mockedClient.randomPKCECodeVerifier.mockReturnValue('verifier-1')
-    mockedClient.calculatePKCECodeChallenge.mockResolvedValue('challenge-1')
-    mockedClient.randomState.mockReturnValue('state-1')
-    mockedClient.buildAuthorizationUrl.mockReturnValue(
-      new URL('https://sso.example.com/authorize?client_id=twake-mail')
-    )
     mockedClient.buildEndSessionUrl.mockReturnValue(
       new URL('https://sso.example.com/logout')
     )
+    mockedOidc.startLogin.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
+    twakeOidc.clearTokenSet()
     jest.clearAllTimers()
     jest.useRealTimers()
   })
 
-  describe('startLogin', () => {
-    it('saves the PKCE verifier and state, then redirects to the SSO', async () => {
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies)
+  describe('configuration', () => {
+    it('configures twake-oidc with the SSO and the JMAP server', () => {
+      createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
 
-      await expect(service.startLogin('/mailbox/inbox')).resolves.toEqual({
-        ok: true
+      expect(mockedOidc.configureAuth).toHaveBeenCalledWith({
+        ssoUrl: CONFIG.issuerUrl,
+        clientId: CONFIG.clientId,
+        scope: CONFIG.scope,
+        redirectUri: CONFIG.redirectUri,
+        postLogoutRedirectUri: CONFIG.postLogoutRedirectUri,
+        apiUrl: OPTIONS.apiUrl,
+        framed: false
       })
+    })
 
-      expect(mockedClient.buildAuthorizationUrl).toHaveBeenCalledWith(
-        configuration,
+    it('logs in silently in a frame, back to the redirect URI it is given', () => {
+      createOidcAuthService(
+        CONFIG,
         {
-          redirect_uri: CONFIG.redirectUri,
-          scope: CONFIG.scope,
-          code_challenge: 'challenge-1',
-          code_challenge_method: 'S256',
-          state: 'state-1'
-        }
+          ...OPTIONS,
+          framed: true,
+          redirectUri: 'https://mail.example.com/intents/callback'
+        },
+        makeDependencies()
       )
-      expect(
-        JSON.parse(
-          dependencies.storage.getItem(PENDING_LOGIN_STORAGE_KEY) ?? 'null'
-        )
-      ).toEqual({
-        codeVerifier: 'verifier-1',
-        state: 'state-1',
-        returnTo: '/mailbox/inbox'
-      })
-      expect(dependencies.redirect).toHaveBeenCalledWith(
-        'https://sso.example.com/authorize?client_id=twake-mail'
+
+      expect(mockedOidc.configureAuth).toHaveBeenCalledWith(
+        expect.objectContaining({
+          redirectUri: 'https://mail.example.com/intents/callback',
+          framed: true
+        })
       )
     })
+  })
 
-    it('never sends the user back outside the application', async () => {
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies)
+  describe('startLogin', () => {
+    it('leaves for the SSO once, however many callers ask', async () => {
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
 
-      await service.startLogin('https://evil.example.com/')
+      await expect(service.startLogin()).resolves.toEqual({ ok: true })
+      await expect(service.startLogin()).resolves.toEqual({ ok: true })
 
-      expect(dependencies.storage.getItem(PENDING_LOGIN_STORAGE_KEY)).toContain(
-        '"returnTo":"/"'
-      )
+      expect(mockedOidc.startLogin).toHaveBeenCalledTimes(1)
     })
 
-    it('reports an unreachable SSO', async () => {
-      mockedClient.discovery.mockRejectedValueOnce(new Error('timeout'))
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies)
+    it('reports an unreachable SSO, and lets the user try again', async () => {
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      mockedOidc.startLogin.mockRejectedValueOnce(new Error('timeout'))
 
-      await expect(service.startLogin('/')).resolves.toEqual({
+      await expect(service.startLogin()).resolves.toEqual({
         ok: false,
         error: 'timeout'
       })
-      expect(dependencies.redirect).not.toHaveBeenCalled()
+      await expect(service.startLogin()).resolves.toEqual({ ok: true })
+      expect(mockedOidc.startLogin).toHaveBeenCalledTimes(2)
     })
   })
 
   describe('handleCallback', () => {
-    it('exchanges the code with the saved verifier and state', async () => {
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies)
-      await service.startLogin('/mailbox/inbox')
-      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-1')
+    it('signs in with the tokens of the SSO and comes back where the login started', async () => {
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      mockedOidc.completeLogin.mockResolvedValueOnce(
+        makeLoginResult(makeTokenSet('access-1'), {
+          returnTo: '/mailbox/inbox?page=2'
+        })
       )
 
-      const result = await service.handleCallback(CALLBACK_URL)
-
-      expect(result).toEqual({
+      await expect(service.handleCallback()).resolves.toEqual({
         ok: true,
-        value: { returnTo: '/mailbox/inbox' }
+        value: { returnTo: '/mailbox/inbox?page=2' }
       })
-      expect(mockedClient.authorizationCodeGrant).toHaveBeenCalledWith(
-        configuration,
-        CALLBACK_URL,
-        { pkceCodeVerifier: 'verifier-1', expectedState: 'state-1' }
-      )
       expect(service.getState()).toEqual({
         status: 'authenticated',
         user: FULL_USER
@@ -219,170 +202,94 @@ describe('createOidcAuthService', () => {
       await expect(service.getAuthorizationHeader()).resolves.toBe(
         'Bearer access-1'
       )
-      expect(dependencies.storage.getItem(PENDING_LOGIN_STORAGE_KEY)).toBe(null)
+    })
+
+    it('never sends the user back outside the application', async () => {
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      mockedOidc.completeLogin.mockResolvedValueOnce(
+        makeLoginResult(makeTokenSet('access-1'), {
+          returnTo: '//evil.example.com'
+        })
+      )
+
+      await expect(service.handleCallback()).resolves.toEqual({
+        ok: true,
+        value: { returnTo: '/' }
+      })
     })
 
     it('fails without a pending login', async () => {
-      const service = createOidcAuthService(CONFIG, makeDependencies())
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      mockedOidc.completeLogin.mockResolvedValueOnce(null)
 
-      await expect(service.handleCallback(CALLBACK_URL)).resolves.toEqual({
+      await expect(service.handleCallback()).resolves.toEqual({
         ok: false,
         error: 'missing-login-state'
       })
-      expect(mockedClient.authorizationCodeGrant).not.toHaveBeenCalled()
+    })
+
+    it('says when the SSO needs the user for a silent login', async () => {
+      const service = createOidcAuthService(
+        CONFIG,
+        { ...OPTIONS, framed: true },
+        makeDependencies()
+      )
+      mockedOidc.completeLogin.mockRejectedValueOnce(
+        new twakeOidc.LoginRequiredError('/embed/team-mailboxes/a@b.c/')
+      )
+
+      await expect(service.handleCallback()).resolves.toEqual({
+        ok: false,
+        error: 'login-required',
+        returnTo: '/embed/team-mailboxes/a@b.c/'
+      })
+      expect(service.getState()).toEqual({ status: 'anonymous' })
     })
 
     it('fails when the SSO refuses the code', async () => {
-      const service = createOidcAuthService(CONFIG, makeDependencies())
-      await service.startLogin('/')
-      mockedClient.authorizationCodeGrant.mockRejectedValueOnce(
-        new Error('invalid_grant')
-      )
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      mockedOidc.completeLogin.mockRejectedValueOnce(new Error('invalid_grant'))
 
-      await expect(service.handleCallback(CALLBACK_URL)).resolves.toEqual({
+      await expect(service.handleCallback()).resolves.toEqual({
         ok: false,
         error: 'token-exchange-failed',
         detail: 'invalid_grant'
       })
       expect(service.getState()).toEqual({ status: 'anonymous' })
     })
-  })
 
-  describe('in the frame of another app', () => {
-    const FRAMED = { framed: true }
+    it('lets a later 401 leave for the SSO again', async () => {
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      await service.startLogin()
+      mockedOidc.completeLogin.mockResolvedValueOnce(null)
 
-    it('logs in silently, without a history entry', async () => {
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies, FRAMED)
+      await service.handleCallback()
+      await service.startLogin()
 
-      await service.startLogin('/embed/team-mailboxes/team/')
-
-      expect(mockedClient.buildAuthorizationUrl).toHaveBeenCalledWith(
-        configuration,
-        expect.objectContaining({ prompt: 'none', state: 'state-1' })
-      )
-      expect(dependencies.replace).toHaveBeenCalledWith(
-        'https://sso.example.com/authorize?client_id=twake-mail'
-      )
-      expect(dependencies.redirect).not.toHaveBeenCalled()
-      expect(peekPendingLoginReturnTo(dependencies.storage)).toBe(
-        '/embed/team-mailboxes/team/'
-      )
-    })
-
-    it('goes back silently when a request is refused', async () => {
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies, FRAMED)
-
-      await service.onUnauthorized()
-
-      expect(dependencies.replace).toHaveBeenCalledTimes(1)
-      expect(dependencies.redirect).not.toHaveBeenCalled()
-    })
-
-    it.each([
-      'login_required',
-      'interaction_required',
-      'consent_required',
-      'account_selection_required'
-    ])('says the user must sign in when the SSO answers %s', async error => {
-      const service = createOidcAuthService(CONFIG, makeDependencies(), FRAMED)
-      await service.startLogin('/embed/team-mailboxes/team/')
-
-      await expect(
-        service.handleCallback(
-          new URL(
-            `https://mail.example.com/callback?error=${error}&state=state-1`
-          )
-        )
-      ).resolves.toEqual({
-        ok: false,
-        error: 'login-required',
-        returnTo: '/embed/team-mailboxes/team/'
-      })
-      expect(mockedClient.authorizationCodeGrant).not.toHaveBeenCalled()
-    })
-
-    it('does not take an answer of another login for its own', async () => {
-      const service = createOidcAuthService(CONFIG, makeDependencies(), FRAMED)
-      await service.startLogin('/')
-      mockedClient.authorizationCodeGrant.mockRejectedValueOnce(
-        new Error('state mismatch')
-      )
-
-      await expect(
-        service.handleCallback(
-          new URL(
-            'https://mail.example.com/callback?error=login_required&state=other'
-          )
-        )
-      ).resolves.toMatchObject({ ok: false, error: 'token-exchange-failed' })
-    })
-
-    it('comes back to the redirect URI it is given (the intents page)', async () => {
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies, {
-        ...FRAMED,
-        redirectUri: 'https://mail.example.com/intents/callback'
-      })
-
-      await service.startLogin('/intents?intent=intent-1')
-
-      expect(mockedClient.buildAuthorizationUrl).toHaveBeenCalledWith(
-        configuration,
-        expect.objectContaining({
-          redirect_uri: 'https://mail.example.com/intents/callback',
-          prompt: 'none'
-        })
-      )
-    })
-
-    it('leaves the regular login as it is', async () => {
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies)
-      await service.startLogin('/')
-      mockedClient.authorizationCodeGrant.mockRejectedValueOnce(
-        new Error('login_required')
-      )
-
-      await expect(
-        service.handleCallback(
-          new URL(
-            'https://mail.example.com/callback?error=login_required&state=state-1'
-          )
-        )
-      ).resolves.toMatchObject({ ok: false, error: 'token-exchange-failed' })
-      expect(dependencies.replace).not.toHaveBeenCalled()
+      expect(mockedOidc.startLogin).toHaveBeenCalledTimes(2)
     })
   })
 
   describe('peekPendingLoginReturnTo', () => {
-    it('reads where the pending login comes back to, and leaves it', async () => {
-      const dependencies = makeDependencies()
-      const service = createOidcAuthService(CONFIG, dependencies)
-      await service.startLogin('/mailbox/inbox')
+    it('reads where the pending login comes back to', () => {
+      mockedOidc.getPendingReturnTo.mockReturnValueOnce('/intents?intent=i1')
 
-      expect(peekPendingLoginReturnTo(dependencies.storage)).toBe(
-        '/mailbox/inbox'
-      )
-      expect(dependencies.storage.getItem(PENDING_LOGIN_STORAGE_KEY)).not.toBe(
-        null
-      )
+      expect(peekPendingLoginReturnTo()).toBe('/intents?intent=i1')
     })
 
-    it('is null without a pending login, or with a broken one', () => {
-      const storage = makeMemoryStorage()
-      expect(peekPendingLoginReturnTo(storage)).toBe(null)
+    it('is null without a pending login, / outside the application', () => {
+      mockedOidc.getPendingReturnTo.mockReturnValueOnce(null)
+      expect(peekPendingLoginReturnTo()).toBe(null)
 
-      storage.setItem(PENDING_LOGIN_STORAGE_KEY, '{')
-      expect(peekPendingLoginReturnTo(storage)).toBe(null)
+      mockedOidc.getPendingReturnTo.mockReturnValueOnce('https://evil.com/')
+      expect(peekPendingLoginReturnTo()).toBe('/')
     })
   })
 
   describe('refresh', () => {
     it('sends a single refresh request for concurrent callers', async () => {
-      const service = await signIn(makeDependencies())
-      let resolveRefresh: (response: TokenResponse) => void = () => undefined
+      const service = await signIn()
+      let resolveRefresh: (response: TokenSet) => void = () => undefined
       mockedClient.refreshTokenGrant.mockReturnValueOnce(
         new Promise(resolve => {
           resolveRefresh = resolve
@@ -394,7 +301,7 @@ describe('createOidcAuthService', () => {
         service.refresh(),
         service.onUnauthorized()
       ])
-      resolveRefresh(makeTokenResponse('access-2'))
+      resolveRefresh(makeTokenSet('access-2'))
 
       await expect(results).resolves.toEqual([true, true, true])
       expect(mockedClient.refreshTokenGrant).toHaveBeenCalledTimes(1)
@@ -405,13 +312,14 @@ describe('createOidcAuthService', () => {
       await expect(service.getAuthorizationHeader()).resolves.toBe(
         'Bearer access-2'
       )
+      expect(twakeOidc.getAccessToken()).toBe('access-2')
     })
 
     it('starts a new request once the previous one is over', async () => {
-      const service = await signIn(makeDependencies())
+      const service = await signIn()
       mockedClient.refreshTokenGrant
-        .mockResolvedValueOnce(makeTokenResponse('access-2'))
-        .mockResolvedValueOnce(makeTokenResponse('access-3'))
+        .mockResolvedValueOnce(makeTokenSet('access-2'))
+        .mockResolvedValueOnce(makeTokenSet('access-3'))
 
       await service.refresh()
       await service.refresh()
@@ -424,9 +332,9 @@ describe('createOidcAuthService', () => {
     })
 
     it('renews the tokens a minute before they expire', async () => {
-      const service = await signIn(makeDependencies())
+      const service = await signIn()
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-2')
+        makeTokenSet('access-2')
       )
 
       await jest.advanceTimersByTimeAsync(239_000)
@@ -440,12 +348,12 @@ describe('createOidcAuthService', () => {
     })
 
     it('renews an expired token before sending it', async () => {
-      const service = await signIn(makeDependencies())
+      const service = await signIn()
       // The scheduled refresh did not run, e.g. the computer was asleep
       jest.clearAllTimers()
       jest.setSystemTime(Date.now() + 300_000)
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-2')
+        makeTokenSet('access-2')
       )
 
       await expect(service.getAuthorizationHeader()).resolves.toBe(
@@ -456,21 +364,17 @@ describe('createOidcAuthService', () => {
 
   describe('onUnauthorized', () => {
     it('lets the request be retried when the refresh succeeds', async () => {
-      const dependencies = makeDependencies()
-      const service = await signIn(dependencies)
-      jest.mocked(dependencies.redirect).mockClear()
+      const service = await signIn()
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-2')
+        makeTokenSet('access-2')
       )
 
       await expect(service.onUnauthorized()).resolves.toBe(true)
-      expect(dependencies.redirect).not.toHaveBeenCalled()
+      expect(mockedOidc.startLogin).not.toHaveBeenCalled()
     })
 
-    it('goes back to the SSO, then to the current page, when the refresh fails', async () => {
-      const dependencies = makeDependencies()
-      const service = await signIn(dependencies)
-      jest.mocked(dependencies.redirect).mockClear()
+    it('goes back to the SSO when the refresh fails', async () => {
+      const service = await signIn()
       mockedClient.refreshTokenGrant.mockRejectedValueOnce(
         new Error('invalid_grant')
       )
@@ -478,36 +382,34 @@ describe('createOidcAuthService', () => {
 
       await expect(service.onUnauthorized()).resolves.toBe(false)
 
-      expect(dependencies.redirect).toHaveBeenCalledWith(
-        'https://sso.example.com/authorize?client_id=twake-mail'
-      )
-      expect(dependencies.storage.getItem(PENDING_LOGIN_STORAGE_KEY)).toContain(
-        '"returnTo":"/mailbox/inbox?page=2"'
-      )
+      expect(mockedOidc.startLogin).toHaveBeenCalledTimes(1)
     })
   })
 
   describe('user', () => {
     it('reads the name and email from the ID token', async () => {
-      const service = await signIn(makeDependencies())
+      const service = await signIn()
 
       expect(service.getState()).toEqual({
         status: 'authenticated',
         user: FULL_USER
       })
-      expect(mockedClient.fetchUserInfo).not.toHaveBeenCalled()
     })
 
     it('reads the Twake Workplace of the user from its claim', async () => {
-      const service = createOidcAuthService(CONFIG, makeDependencies())
-      await service.startLogin('/')
-      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-1', {
-          profile: { ...FULL_PROFILE, workplaceFqdn: 'acme.twake.example.com' }
-        })
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      mockedOidc.completeLogin.mockResolvedValueOnce(
+        makeLoginResult(
+          makeTokenSet('access-1', {
+            profile: {
+              ...FULL_PROFILE,
+              workplaceFqdn: 'acme.twake.example.com'
+            }
+          })
+        )
       )
 
-      await service.handleCallback(CALLBACK_URL)
+      await service.handleCallback()
 
       expect(service.getState()).toEqual({
         status: 'authenticated',
@@ -516,32 +418,24 @@ describe('createOidcAuthService', () => {
     })
 
     it('gives the ID token of the session, none once signed out', async () => {
-      const service = await signIn(makeDependencies())
+      const service = await signIn()
 
       expect(service.getIdToken()).toBe('id-of-access-1')
       service.clearLocalSession()
       expect(service.getIdToken()).toBe(null)
+      await expect(service.getAuthorizationHeader()).resolves.toBe(null)
     })
 
-    it('asks userinfo for what the ID token does not say', async () => {
-      const service = createOidcAuthService(CONFIG, makeDependencies())
-      await service.startLogin('/')
-      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-1', { profile: {} })
+    it('reads from userinfo what the ID token does not say', async () => {
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      mockedOidc.completeLogin.mockResolvedValueOnce(
+        makeLoginResult(makeTokenSet('access-1', { profile: {} }), {
+          userinfo: FULL_PROFILE
+        })
       )
-      mockedClient.fetchUserInfo.mockResolvedValueOnce({
-        sub: 'alice',
-        email: 'alice@example.com',
-        name: 'Alice Martin'
-      })
 
-      await service.handleCallback(CALLBACK_URL)
+      await service.handleCallback()
 
-      expect(mockedClient.fetchUserInfo).toHaveBeenCalledWith(
-        configuration,
-        'access-1',
-        'alice'
-      )
       expect(service.getState()).toEqual({
         status: 'authenticated',
         user: FULL_USER
@@ -549,18 +443,15 @@ describe('createOidcAuthService', () => {
     })
 
     it('keeps that user when a renewed ID token says less', async () => {
-      const service = createOidcAuthService(CONFIG, makeDependencies())
-      await service.startLogin('/')
-      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-1', { profile: {} })
+      const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
+      mockedOidc.completeLogin.mockResolvedValueOnce(
+        makeLoginResult(makeTokenSet('access-1', { profile: {} }), {
+          userinfo: FULL_PROFILE
+        })
       )
-      mockedClient.fetchUserInfo.mockResolvedValueOnce({
-        sub: 'alice',
-        ...FULL_PROFILE
-      })
-      await service.handleCallback(CALLBACK_URL)
+      await service.handleCallback()
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-2', { profile: {} })
+        makeTokenSet('access-2', { profile: {} })
       )
 
       await service.refresh()
@@ -568,25 +459,6 @@ describe('createOidcAuthService', () => {
       expect(service.getState()).toEqual({
         status: 'authenticated',
         user: FULL_USER
-      })
-    })
-
-    it('signs in without a name nor an email when userinfo fails', async () => {
-      const service = createOidcAuthService(CONFIG, makeDependencies())
-      await service.startLogin('/')
-      mockedClient.authorizationCodeGrant.mockResolvedValueOnce(
-        makeTokenResponse('access-1', { profile: {} })
-      )
-      mockedClient.fetchUserInfo.mockRejectedValueOnce(new Error('timeout'))
-      jest.spyOn(console, 'warn').mockImplementation(() => undefined)
-
-      await expect(service.handleCallback(CALLBACK_URL)).resolves.toEqual({
-        ok: true,
-        value: { returnTo: '/' }
-      })
-      expect(service.getState()).toEqual({
-        status: 'authenticated',
-        user: { email: null, name: null, workplaceFqdn: null }
       })
     })
   })
@@ -601,6 +473,7 @@ describe('createOidcAuthService', () => {
 
       expect(service.getState()).toEqual({ status: 'anonymous' })
       await expect(service.getAuthorizationHeader()).resolves.toBe(null)
+      expect(twakeOidc.getAccessToken()).toBe(undefined)
       expect(postMessage).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'session-ended' })
       )
@@ -619,11 +492,10 @@ describe('createOidcAuthService', () => {
     it('starts no login while leaving for the SSO logout', async () => {
       const dependencies = makeDependencies()
       const service = await signIn(dependencies)
-      mockedClient.buildAuthorizationUrl.mockClear()
       // As RequireAuth does when the user becomes anonymous
       const unsubscribe = service.subscribe(() => {
         if (service.getState().status === 'anonymous') {
-          void service.startLogin('/mailbox/inbox')
+          void service.startLogin()
         }
       })
 
@@ -631,7 +503,7 @@ describe('createOidcAuthService', () => {
       await jest.runAllTimersAsync()
       unsubscribe()
 
-      expect(mockedClient.buildAuthorizationUrl).not.toHaveBeenCalled()
+      expect(mockedOidc.startLogin).not.toHaveBeenCalled()
       expect(dependencies.redirect).toHaveBeenLastCalledWith(
         'https://sso.example.com/logout'
       )

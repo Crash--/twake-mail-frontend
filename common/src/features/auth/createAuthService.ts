@@ -24,7 +24,8 @@ export function createAuthService(
   if (!config.oidc) {
     throw new Error('OIDC mode without OIDC configuration')
   }
-  return createOidcAuthService(config.oidc, undefined, {
+  return createOidcAuthService(config.oidc, {
+    apiUrl: config.jmapSessionUrl,
     framed,
     ...(redirectUri === undefined ? {} : { redirectUri })
   })

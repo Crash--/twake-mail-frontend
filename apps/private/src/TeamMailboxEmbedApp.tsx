@@ -62,7 +62,7 @@ export function TeamMailboxEmbedApp({
         setPhase('ready')
         return
       }
-      const result = await service.handleCallback(callbackUrl)
+      const result = await service.handleCallback()
       if (result.ok) {
         leaveCallback(result.value.returnTo)
         setPhase('ready')

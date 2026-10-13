@@ -13,7 +13,8 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
 - Data: TanStack Query v5. No Redux.
 - JMAP: `jmap-client-ts` v2 (contract: `jmap-client-ts/docs/v2-api.md`),
   installed from `github:Crash--/jmap-client-ts#v2` until it is published.
-- Auth: OIDC (`openid-client` v6) by default, HTTP Basic as an option.
+- Auth: OIDC (`@linagora/twake-oidc`, `openid-client` v6) by default, HTTP
+  Basic as an option.
 - Tests: Jest 30 + ts-jest + Testing Library. End-to-end tests (Playwright)
   live in `e2e/`, a separate npm package outside the workspaces: never add
   anything there from this package, and keep it out of lint and Jest.
@@ -127,11 +128,12 @@ In short:
 
 `common/src/features/auth/`:
 
-- `oidcAuth.ts`: Authorization Code + PKCE (S256); verifier, state and return
-  path in `sessionStorage` during the SSO round trip; tokens in memory only;
-  refresh before expiry and on 401 (`refresh()` is shared by concurrent
-  callers); back to the SSO only when the refresh fails; logout with
-  `id_token_hint`.
+- `oidcAuth.ts`: `@linagora/twake-oidc` signs in (Authorization Code + PKCE
+  S256, silent in a frame; verifier, state and return path in
+  `sessionStorage` during the SSO round trip) and holds the access token, in
+  memory only; `openid-client` for what it lacks: refresh before expiry and
+  on 401 (`refresh()` is shared by concurrent callers); back to the SSO only
+  when the refresh fails; logout with `id_token_hint`.
 - `basicAuth.ts`: form credentials checked with a GET on the JMAP session URL
   (200 ok, 401 refused), kept in memory only. A new tab or a reload gets
   them from another signed-in tab over the `twake-mail-basic-session`
@@ -174,8 +176,8 @@ Never store tokens or passwords in web storage, never log them.
 - Render with `renderWithProviders` (`common/src/testing/`); query by role or
   label first, `data-testid` otherwise; `queryBy…` + `toBe(null)` for
   absence.
-- Mock at the boundaries (`openid-client`, `fetch`, the auth service), not
-  the code under test.
+- Mock at the boundaries (`@linagora/twake-oidc`, `openid-client`, `fetch`,
+  the auth service), not the code under test.
 
 ## Before committing
 

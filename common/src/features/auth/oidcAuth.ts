@@ -1,11 +1,18 @@
+import {
+  clearTokenSet,
+  completeLogin,
+  configureAuth,
+  getAccessToken,
+  getPendingReturnTo,
+  LoginRequiredError,
+  setTokenSet,
+  startLogin as startSsoLogin,
+  type TokenSet
+} from '@linagora/twake-oidc'
 import * as client from 'openid-client'
 
 import type { OidcConfig } from '@common/config/config'
-import {
-  getCurrentPath,
-  redirectTo,
-  replaceWith
-} from '@common/utils/navigation'
+import { redirectTo } from '@common/utils/navigation'
 
 import { makeAuthStore } from './authStore'
 import { endLocalSession } from './localSession'
@@ -18,9 +25,6 @@ import {
   type StartLoginResult
 } from './types'
 
-/** sessionStorage key of the PKCE verifier, state and return path of a login */
-export const PENDING_LOGIN_STORAGE_KEY = 'twake-mail.oidc.pending-login'
-
 /** Timeout of the discovery, then of every request to the SSO, in seconds */
 const SSO_TIMEOUT_S = 10
 /** Tolerated clock difference between the browser and the SSO, in seconds */
@@ -29,48 +33,27 @@ const CLOCK_SKEW_S = 300
 const REFRESH_AHEAD_MS = 60_000
 /** A token closer than this to its expiry is renewed before being sent */
 const EXPIRY_LEEWAY_MS = 10_000
-/**
- * Answers of the SSO to a silent login (`prompt=none`) when it would need
- * to show a page: no session, consent, account choice (OpenID Connect Core
- * 1.0, 3.1.2.6)
- */
-const LOGIN_REQUIRED_ERRORS = new Set([
-  'login_required',
-  'interaction_required',
-  'consent_required',
-  'account_selection_required'
-])
 
+/**
+ * What the session keeps besides the access token, which
+ * `@linagora/twake-oidc` holds
+ */
 interface OidcTokens {
-  accessToken: string
   refreshToken: string | null
   idToken: string | null
   /** Epoch milliseconds, null when the SSO does not tell */
   expiresAt: number | null
 }
 
-interface PendingLogin {
-  codeVerifier: string
-  state: string
-  returnTo: string
-  /** A login without any page of the SSO (`prompt=none`) */
-  silent?: boolean
-}
-
-type TokenResponse = client.TokenEndpointResponse &
-  client.TokenEndpointResponseHelpers
-
 export interface OidcDependencies {
-  /** Holds the pending login across the SSO round trip */
-  storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+  /** Leaves for the SSO logout endpoint */
   redirect: (url: string) => void
-  /** Leaves for the SSO without adding a history entry */
-  replace: (url: string) => void
-  getCurrentPath: () => string
   now: () => number
 }
 
 export interface OidcOptions {
+  /** The JMAP server: the only one `@linagora/twake-oidc` gives the token to */
+  apiUrl: string
   /**
    * The app is shown in the frame of another app (TwakeSpace, ADR 010): the
    * SSO refuses to show its portal there, so every login is silent, and
@@ -88,44 +71,16 @@ export interface OidcOptions {
 }
 
 function makeDefaultDependencies(): OidcDependencies {
-  return {
-    storage: window.sessionStorage,
-    redirect: redirectTo,
-    replace: replaceWith,
-    getCurrentPath,
-    now: () => Date.now()
-  }
-}
-
-function isPendingLogin(value: unknown): value is PendingLogin {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'codeVerifier' in value &&
-    typeof value.codeVerifier === 'string' &&
-    'state' in value &&
-    typeof value.state === 'string' &&
-    'returnTo' in value &&
-    typeof value.returnTo === 'string' &&
-    (!('silent' in value) || typeof value.silent === 'boolean')
-  )
+  return { redirect: redirectTo, now: () => Date.now() }
 }
 
 /**
  * Where the pending login comes back to, without consuming it: the app
  * reads it on its callback page to know which screen the login is for.
  */
-export function peekPendingLoginReturnTo(
-  storage: Pick<Storage, 'getItem'> = window.sessionStorage
-): string | null {
-  const raw = storage.getItem(PENDING_LOGIN_STORAGE_KEY)
-  if (raw === null) return null
-  try {
-    const parsed: unknown = JSON.parse(raw)
-    return isPendingLogin(parsed) ? sanitizeReturnTo(parsed.returnTo) : null
-  } catch {
-    return null
-  }
+export function peekPendingLoginReturnTo(): string | null {
+  const returnTo = getPendingReturnTo()
+  return returnTo === null ? null : sanitizeReturnTo(returnTo)
 }
 
 /** Claims of an ID token or of a userinfo response */
@@ -158,14 +113,15 @@ function mergeUsers(primary: AuthUser, fallback: AuthUser): AuthUser {
   }
 }
 
-function isCompleteUser(user: AuthUser): boolean {
-  return user.email !== null && user.name !== null
-}
-
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
+/**
+ * The SSO, for what `@linagora/twake-oidc` does not do: renewing the tokens
+ * and the logout with `id_token_hint` (without it, LemonLDAP::NG asks the
+ * user to confirm)
+ */
 async function discoverConfiguration(
   config: OidcConfig
 ): Promise<client.Configuration> {
@@ -188,7 +144,9 @@ async function discoverConfiguration(
 }
 
 /**
- * OpenID Connect authentication: Authorization Code flow with PKCE (S256).
+ * OpenID Connect authentication: `@linagora/twake-oidc` signs the user in
+ * (Authorization Code flow with PKCE) and holds the access token; this
+ * service renews the tokens with the refresh token and ends the session.
  *
  * The tokens are held in memory only: web storage is readable by any script
  * of the page, so a single XSS would hand them over. A reload goes through
@@ -197,9 +155,18 @@ async function discoverConfiguration(
  */
 export function createOidcAuthService(
   config: OidcConfig,
-  dependencies: OidcDependencies = makeDefaultDependencies(),
-  { framed = false, redirectUri = config.redirectUri }: OidcOptions = {}
+  { apiUrl, framed = false, redirectUri = config.redirectUri }: OidcOptions,
+  dependencies: OidcDependencies = makeDefaultDependencies()
 ): OidcAuthService {
+  configureAuth({
+    ssoUrl: config.issuerUrl,
+    clientId: config.clientId,
+    scope: config.scope,
+    redirectUri,
+    postLogoutRedirectUri: config.postLogoutRedirectUri,
+    apiUrl,
+    framed
+  })
   const store = makeAuthStore()
   let tokens: OidcTokens | null = null
   let configurationPromise: Promise<client.Configuration> | null = null
@@ -242,16 +209,16 @@ export function createOidcAuthService(
    * token, completed by `knownUser` (userinfo, or the user signed in before
    * a refresh): a renewed ID token may carry fewer claims.
    */
-  function saveTokens(response: TokenResponse, knownUser: AuthUser): void {
-    const expiresIn = response.expiresIn()
+  function saveTokens(tokenSet: TokenSet, knownUser: AuthUser): void {
+    const expiresIn = tokenSet.expiresIn()
+    setTokenSet(tokenSet)
     tokens = {
-      accessToken: response.access_token,
-      refreshToken: response.refresh_token ?? tokens?.refreshToken ?? null,
-      idToken: response.id_token ?? tokens?.idToken ?? null,
+      refreshToken: tokenSet.refresh_token ?? tokens?.refreshToken ?? null,
+      idToken: tokenSet.id_token ?? tokens?.idToken ?? null,
       expiresAt:
         expiresIn === undefined ? null : dependencies.now() + expiresIn * 1000
     }
-    const user = mergeUsers(normalizeUser(response.claims()), knownUser)
+    const user = mergeUsers(normalizeUser(tokenSet.claims()), knownUser)
     store.setState({ status: 'authenticated', user })
     scheduleRefresh()
   }
@@ -263,66 +230,11 @@ export function createOidcAuthService(
       : { email: null, name: null, workplaceFqdn: null }
   }
 
-  /**
-   * Who signed in, when the ID token does not say (LemonLDAP::NG puts the
-   * profile in userinfo only, depending on its configuration): asks the
-   * userinfo endpoint. Null fields when it cannot tell either.
-   */
-  async function fetchUserInfo(
-    configuration: client.Configuration,
-    response: TokenResponse
-  ): Promise<AuthUser> {
-    const claims = response.claims()
-    if (isCompleteUser(normalizeUser(claims))) return normalizeUser(claims)
-    try {
-      const userInfo = await client.fetchUserInfo(
-        configuration,
-        response.access_token,
-        claims?.sub ??
-          // No ID token to compare the subject with: the access token was
-          // just obtained from the token endpoint over TLS
-          // eslint-disable-next-line @typescript-eslint/no-deprecated
-          client.skipSubjectCheck
-      )
-      return normalizeUser(userInfo)
-    } catch (error) {
-      console.warn('[auth] Userinfo unavailable', getErrorMessage(error))
-      return { email: null, name: null, workplaceFqdn: null }
-    }
-  }
-
-  async function startLogin(returnTo: string): Promise<StartLoginResult> {
+  async function startLogin(): Promise<StartLoginResult> {
     if (isRedirecting) return { ok: true }
     isRedirecting = true
     try {
-      const configuration = await fetchConfiguration()
-      const codeVerifier = client.randomPKCECodeVerifier()
-      const codeChallenge =
-        await client.calculatePKCECodeChallenge(codeVerifier)
-      const state = client.randomState()
-      const pendingLogin: PendingLogin = {
-        codeVerifier,
-        state,
-        returnTo: sanitizeReturnTo(returnTo),
-        ...(framed ? { silent: true } : {})
-      }
-      dependencies.storage.setItem(
-        PENDING_LOGIN_STORAGE_KEY,
-        JSON.stringify(pendingLogin)
-      )
-      const authorizationUrl = client.buildAuthorizationUrl(configuration, {
-        redirect_uri: redirectUri,
-        scope: config.scope,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-        state,
-        ...(framed ? { prompt: 'none' } : {})
-      })
-      if (framed) {
-        dependencies.replace(authorizationUrl.href)
-      } else {
-        dependencies.redirect(authorizationUrl.href)
-      }
+      await startSsoLogin()
       return { ok: true }
     } catch (error) {
       isRedirecting = false
@@ -330,50 +242,25 @@ export function createOidcAuthService(
     }
   }
 
-  function takePendingLogin(): PendingLogin | null {
-    const raw = dependencies.storage.getItem(PENDING_LOGIN_STORAGE_KEY)
-    dependencies.storage.removeItem(PENDING_LOGIN_STORAGE_KEY)
-    if (raw === null) return null
-    try {
-      const parsed: unknown = JSON.parse(raw)
-      return isPendingLogin(parsed) ? parsed : null
-    } catch {
-      return null
-    }
-  }
-
-  async function handleCallback(
-    callbackUrl: URL
-  ): Promise<LoginCallbackResult> {
+  async function handleCallback(): Promise<LoginCallbackResult> {
     // The SSO round trip is over: a later 401 may start a new one
     isRedirecting = false
-    const pendingLogin = takePendingLogin()
-    if (!pendingLogin) return { ok: false, error: 'missing-login-state' }
-
-    const returnTo = sanitizeReturnTo(pendingLogin.returnTo)
-    const ssoError = callbackUrl.searchParams.get('error')
-    if (
-      pendingLogin.silent === true &&
-      ssoError !== null &&
-      LOGIN_REQUIRED_ERRORS.has(ssoError) &&
-      callbackUrl.searchParams.get('state') === pendingLogin.state
-    ) {
-      return { ok: false, error: 'login-required', returnTo }
-    }
-
     try {
-      const configuration = await fetchConfiguration()
-      const response = await client.authorizationCodeGrant(
-        configuration,
-        callbackUrl,
-        {
-          pkceCodeVerifier: pendingLogin.codeVerifier,
-          expectedState: pendingLogin.state
-        }
-      )
-      saveTokens(response, await fetchUserInfo(configuration, response))
-      return { ok: true, value: { returnTo } }
+      const result = await completeLogin()
+      if (result === null) return { ok: false, error: 'missing-login-state' }
+      saveTokens(result.tokenSet, normalizeUser(result.userinfo))
+      return {
+        ok: true,
+        value: { returnTo: sanitizeReturnTo(result.returnTo) }
+      }
     } catch (error) {
+      if (error instanceof LoginRequiredError) {
+        return {
+          ok: false,
+          error: 'login-required',
+          returnTo: sanitizeReturnTo(error.returnTo)
+        }
+      }
       return {
         ok: false,
         error: 'token-exchange-failed',
@@ -419,18 +306,20 @@ export function createOidcAuthService(
     ) {
       await refresh()
     }
-    return tokens ? `Bearer ${tokens.accessToken}` : null
+    const accessToken = getAccessToken()
+    return accessToken === undefined ? null : `Bearer ${accessToken}`
   }
 
   async function onUnauthorized(): Promise<boolean> {
     if (await refresh()) return true
-    await startLogin(dependencies.getCurrentPath())
+    await startLogin()
     return false
   }
 
   function clearLocalSession(): void {
     cancelScheduledRefresh()
     tokens = null
+    clearTokenSet()
     store.setState(ANONYMOUS)
   }
 

@@ -129,11 +129,15 @@ describe('TeamMailboxEmbedApp', () => {
 
   it('comes back to the facade after the SSO', () => {
     const authService = makeFakeOidcAuthService(ANONYMOUS)
+    const leftFrom: string[] = []
+    // twake-oidc comes back to the address the login leaves from
+    authService.startLogin = jest.fn(() => {
+      leftFrom.push(`${window.location.pathname}${window.location.search}`)
+      return Promise.resolve({ ok: true as const })
+    })
     renderEmbed(`${BASE}/mailbox/team-sent?page=2`, { authService })
 
-    expect(authService.startLogin).toHaveBeenCalledWith(
-      `${BASE}/mailbox/team-sent?page=2`
-    )
+    expect(leftFrom).toEqual([`${BASE}/mailbox/team-sent?page=2`])
   })
 
   it('shows the rows of a list, not a spinner, while the user signs in', async () => {
@@ -257,8 +261,7 @@ describe('TeamMailboxEmbedApp', () => {
       screen.getByTestId('team-mailbox-session-expired-action')
     )
 
-    expect(authService.startLogin).toHaveBeenCalledWith(
-      `${BASE}/mailbox/team-sent`
-    )
+    expect(authService.startLogin).toHaveBeenCalledTimes(1)
+    expect(window.location.pathname).toBe(`${BASE}/mailbox/team-sent`)
   })
 })

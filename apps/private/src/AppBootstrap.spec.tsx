@@ -115,9 +115,10 @@ describe('AppBootstrap', () => {
   it('brings the login callback of the intents page back to it', async () => {
     const config = makeOidcConfig()
     window.sessionStorage.setItem(
-      'twake-mail.oidc.pending-login',
+      // The login twake-oidc leaves pending during the SSO round trip
+      'redirectState',
       JSON.stringify({
-        codeVerifier: 'verifier',
+        code_verifier: 'verifier',
         state: 'state',
         returnTo: '/intents?intent=intent-1',
         silent: true
@@ -141,9 +142,10 @@ describe('AppBootstrap', () => {
   it('serves no intent when the login of its callback was for another page', async () => {
     const config = makeOidcConfig()
     window.sessionStorage.setItem(
-      'twake-mail.oidc.pending-login',
+      // The login twake-oidc leaves pending during the SSO round trip
+      'redirectState',
       JSON.stringify({
-        codeVerifier: 'verifier',
+        code_verifier: 'verifier',
         state: 'state',
         returnTo: '/mailbox/inbox'
       })

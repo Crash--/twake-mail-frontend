@@ -31,7 +31,7 @@ function OidcCallback({ service }: { service: OidcAuthService }): ReactElement {
     hasRun.current = true
 
     const completeLogin = async (): Promise<void> => {
-      const result = await service.handleCallback(new URL(window.location.href))
+      const result = await service.handleCallback()
       if (result.ok) {
         await navigate(result.value.returnTo, { replace: true })
         return

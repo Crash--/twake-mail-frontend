@@ -14,7 +14,7 @@ search, actions on emails and settings come next.
 
 Rsbuild, React 19, TypeScript (strict), react-router 7,
 [`@linagora/twake-mui`](https://github.com/linagora/twake-ui) and
-`@linagora/twake-icons`, TanStack Query 5, `twake-i18n`, `openid-client` 6,
+`@linagora/twake-icons`, TanStack Query 5, `twake-i18n`, `@linagora/twake-oidc`,
 jmap-client-ts 2, DOMPurify, Sentry, Jest 30 + Testing
 Library, Playwright. Contributors and AI agents: read
 [AGENTS.md](AGENTS.md) first.
@@ -82,7 +82,8 @@ None of them is cached by nginx.
 `AUTH_MODE` selects the mode:
 
 - `oidc` (default): Authorization Code flow with PKCE (S256) through
-  `openid-client`. The SSO comes back to `/callback`, then the user lands on
+  [`@linagora/twake-oidc`](https://github.com/linagora/twake-libs/tree/main/packages/twake-oidc),
+  `openid-client` for the refresh and the logout. The SSO comes back to `/callback`, then the user lands on
   the page first asked for. Tokens stay in memory: a reload goes through the
   SSO again, silently while the SSO session lasts. The access token is
   renewed with the refresh token one minute before it expires, and when the

@@ -93,7 +93,7 @@ describe('AppRoutes', () => {
       authService
     })
 
-    expect(authService.startLogin).toHaveBeenCalledWith('/mailbox/m1?page=2')
+    expect(authService.startLogin).toHaveBeenCalledTimes(1)
     expect(screen.queryByTestId('full-page-loader')).toBeInTheDocument()
   })
 

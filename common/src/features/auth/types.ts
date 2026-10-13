@@ -61,10 +61,10 @@ export type LoginCallbackResult =
 
 export interface OidcAuthService extends AuthServiceBase {
   readonly mode: 'oidc'
-  /** Leaves for the SSO; `returnTo` is the in-app path to land on afterwards */
-  startLogin: (returnTo: string) => Promise<StartLoginResult>
-  /** Exchanges the authorization code of the `/callback` URL for tokens */
-  handleCallback: (callbackUrl: URL) => Promise<LoginCallbackResult>
+  /** Leaves for the SSO, which comes back to the current page afterwards */
+  startLogin: () => Promise<StartLoginResult>
+  /** Exchanges the authorization code of the callback page for tokens */
+  handleCallback: () => Promise<LoginCallbackResult>
   /**
    * Renews the tokens with the refresh token. Concurrent calls share the
    * same request. Resolves false when there is no refresh token or the SSO

@@ -15,7 +15,8 @@ jest.mock('@linagora/twake-oidc', () => ({
   configureAuth: jest.fn(),
   startLogin: jest.fn(),
   completeLogin: jest.fn(),
-  getPendingReturnTo: jest.fn()
+  getPendingReturnTo: jest.fn(),
+  logOut: jest.fn()
 }))
 
 jest.mock('openid-client', () => ({
@@ -23,8 +24,7 @@ jest.mock('openid-client', () => ({
   discovery: jest.fn(),
   None: jest.fn(),
   allowInsecureRequests: jest.fn(),
-  refreshTokenGrant: jest.fn(),
-  buildEndSessionUrl: jest.fn()
+  refreshTokenGrant: jest.fn()
 }))
 
 const mockedOidc = jest.mocked(twakeOidc)
@@ -86,7 +86,7 @@ function makeLoginResult(
 }
 
 function makeDependencies(): OidcDependencies {
-  return { redirect: jest.fn(), now: () => Date.now() }
+  return { now: () => Date.now() }
 }
 
 async function signIn(
@@ -112,9 +112,7 @@ describe('createOidcAuthService', () => {
     jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] })
     jest.setSystemTime(new Date('2026-01-01T00:00:00Z'))
     mockedClient.discovery.mockResolvedValue(configuration)
-    mockedClient.buildEndSessionUrl.mockReturnValue(
-      new URL('https://sso.example.com/logout')
-    )
+    mockedOidc.logOut.mockResolvedValue(undefined)
     mockedOidc.startLogin.mockResolvedValue(undefined)
   })
 
@@ -426,6 +424,24 @@ describe('createOidcAuthService', () => {
       await expect(service.getAuthorizationHeader()).resolves.toBe(null)
     })
 
+    it('keeps the ID token when a renewed token set has none', async () => {
+      const service = await signIn()
+      const { id_token: _, ...withoutIdToken } = makeTokenSet('access-2')
+      mockedClient.refreshTokenGrant.mockResolvedValueOnce(
+        Object.assign(withoutIdToken, {
+          expiresIn: () => 300,
+          claims: () => undefined
+        })
+      )
+
+      await service.refresh()
+
+      expect(service.getIdToken()).toBe('id-of-access-1')
+      await expect(service.getAuthorizationHeader()).resolves.toBe(
+        'Bearer access-2'
+      )
+    })
+
     it('reads from userinfo what the ID token does not say', async () => {
       const service = createOidcAuthService(CONFIG, OPTIONS, makeDependencies())
       mockedOidc.completeLogin.mockResolvedValueOnce(
@@ -464,34 +480,28 @@ describe('createOidcAuthService', () => {
   })
 
   describe('logout', () => {
-    it('ends the local session, then the SSO session with the id token', async () => {
-      const dependencies = makeDependencies()
-      const service = await signIn(dependencies)
+    it('signs the other tabs out, then leaves through twake-oidc with the ID token', async () => {
+      const service = await signIn()
       const postMessage = jest.spyOn(BroadcastChannel.prototype, 'postMessage')
+      const idTokensAtLogOut: (string | undefined)[] = []
+      mockedOidc.logOut.mockImplementationOnce(() => {
+        idTokensAtLogOut.push(twakeOidc.getIdToken())
+        return Promise.resolve()
+      })
 
       await service.logout()
 
       expect(service.getState()).toEqual({ status: 'anonymous' })
-      await expect(service.getAuthorizationHeader()).resolves.toBe(null)
-      expect(twakeOidc.getAccessToken()).toBe(undefined)
-      expect(postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'session-ended' })
-      )
-      expect(mockedClient.buildEndSessionUrl).toHaveBeenCalledWith(
-        configuration,
-        {
-          post_logout_redirect_uri: CONFIG.postLogoutRedirectUri,
-          id_token_hint: 'id-of-access-1'
-        }
-      )
-      expect(dependencies.redirect).toHaveBeenLastCalledWith(
-        'https://sso.example.com/logout'
-      )
+      expect(postMessage).toHaveBeenCalledWith({
+        type: 'session-ended',
+        email: 'alice@example.com'
+      })
+      // logOut hands it to the SSO as id_token_hint
+      expect(idTokensAtLogOut).toEqual(['id-of-access-1'])
     })
 
     it('starts no login while leaving for the SSO logout', async () => {
-      const dependencies = makeDependencies()
-      const service = await signIn(dependencies)
+      const service = await signIn()
       // As RequireAuth does when the user becomes anonymous
       const unsubscribe = service.subscribe(() => {
         if (service.getState().status === 'anonymous') {
@@ -504,24 +514,7 @@ describe('createOidcAuthService', () => {
       unsubscribe()
 
       expect(mockedOidc.startLogin).not.toHaveBeenCalled()
-      expect(dependencies.redirect).toHaveBeenLastCalledWith(
-        'https://sso.example.com/logout'
-      )
-    })
-
-    it('falls back to the post-logout page when the SSO cannot end its session', async () => {
-      const dependencies = makeDependencies()
-      const service = await signIn(dependencies)
-      mockedClient.buildEndSessionUrl.mockImplementationOnce(() => {
-        throw new Error('end_session_endpoint missing')
-      })
-      jest.spyOn(console, 'warn').mockImplementation(() => undefined)
-
-      await service.logout()
-
-      expect(dependencies.redirect).toHaveBeenLastCalledWith(
-        CONFIG.postLogoutRedirectUri
-      )
+      expect(mockedOidc.logOut).toHaveBeenCalledTimes(1)
     })
   })
 })

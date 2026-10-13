@@ -83,7 +83,7 @@ None of them is cached by nginx.
 
 - `oidc` (default): Authorization Code flow with PKCE (S256) through
   [`@linagora/twake-oidc`](https://github.com/linagora/twake-libs/tree/main/packages/twake-oidc),
-  `openid-client` for the refresh and the logout. The SSO comes back to `/callback`, then the user lands on
+  `openid-client` for the refresh. The SSO comes back to `/callback`, then the user lands on
   the page first asked for. Tokens stay in memory: a reload goes through the
   SSO again, silently while the SSO session lasts. The access token is
   renewed with the refresh token one minute before it expires, and when the

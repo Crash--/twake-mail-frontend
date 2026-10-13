@@ -3,8 +3,10 @@ import {
   completeLogin,
   configureAuth,
   getAccessToken,
+  getIdToken,
   getPendingReturnTo,
   LoginRequiredError,
+  logOut,
   setTokenSet,
   startLogin as startSsoLogin,
   type TokenSet
@@ -12,7 +14,6 @@ import {
 import * as client from 'openid-client'
 
 import type { OidcConfig } from '@common/config/config'
-import { redirectTo } from '@common/utils/navigation'
 
 import { makeAuthStore } from './authStore'
 import { endLocalSession } from './localSession'
@@ -35,19 +36,16 @@ const REFRESH_AHEAD_MS = 60_000
 const EXPIRY_LEEWAY_MS = 10_000
 
 /**
- * What the session keeps besides the access token, which
+ * What the refresh needs besides the access and ID tokens, which
  * `@linagora/twake-oidc` holds
  */
-interface OidcTokens {
+interface RefreshState {
   refreshToken: string | null
-  idToken: string | null
   /** Epoch milliseconds, null when the SSO does not tell */
   expiresAt: number | null
 }
 
 export interface OidcDependencies {
-  /** Leaves for the SSO logout endpoint */
-  redirect: (url: string) => void
   now: () => number
 }
 
@@ -71,7 +69,7 @@ export interface OidcOptions {
 }
 
 function makeDefaultDependencies(): OidcDependencies {
-  return { redirect: redirectTo, now: () => Date.now() }
+  return { now: () => Date.now() }
 }
 
 /**
@@ -117,11 +115,7 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
-/**
- * The SSO, for what `@linagora/twake-oidc` does not do: renewing the tokens
- * and the logout with `id_token_hint` (without it, LemonLDAP::NG asks the
- * user to confirm)
- */
+/** The SSO, for the refresh that `@linagora/twake-oidc` does not do */
 async function discoverConfiguration(
   config: OidcConfig
 ): Promise<client.Configuration> {
@@ -145,8 +139,8 @@ async function discoverConfiguration(
 
 /**
  * OpenID Connect authentication: `@linagora/twake-oidc` signs the user in
- * (Authorization Code flow with PKCE) and holds the access token; this
- * service renews the tokens with the refresh token and ends the session.
+ * (Authorization Code flow with PKCE), holds the tokens and signs out; this
+ * service renews the tokens with the refresh token.
  *
  * The tokens are held in memory only: web storage is readable by any script
  * of the page, so a single XSS would hand them over. A reload goes through
@@ -168,7 +162,7 @@ export function createOidcAuthService(
     framed
   })
   const store = makeAuthStore()
-  let tokens: OidcTokens | null = null
+  let tokens: RefreshState | null = null
   let configurationPromise: Promise<client.Configuration> | null = null
   let pendingRefresh: Promise<boolean> | null = null
   let refreshTimer: ReturnType<typeof setTimeout> | null = null
@@ -211,10 +205,15 @@ export function createOidcAuthService(
    */
   function saveTokens(tokenSet: TokenSet, knownUser: AuthUser): void {
     const expiresIn = tokenSet.expiresIn()
-    setTokenSet(tokenSet)
+    // A refresh response may carry no ID token: keep the one of the session,
+    // for the logout and the token exchanges of the other apps
+    const idToken = tokenSet.id_token ?? getIdToken()
+    setTokenSet({
+      access_token: tokenSet.access_token,
+      ...(idToken === undefined ? {} : { id_token: idToken })
+    })
     tokens = {
       refreshToken: tokenSet.refresh_token ?? tokens?.refreshToken ?? null,
-      idToken: tokenSet.id_token ?? tokens?.idToken ?? null,
       expiresAt:
         expiresIn === undefined ? null : dependencies.now() + expiresIn * 1000
     }
@@ -316,11 +315,16 @@ export function createOidcAuthService(
     return false
   }
 
-  function clearLocalSession(): void {
+  /** Signs this tab out, the tokens of `@linagora/twake-oidc` aside */
+  function endSession(): void {
     cancelScheduledRefresh()
     tokens = null
-    clearTokenSet()
     store.setState(ANONYMOUS)
+  }
+
+  function clearLocalSession(): void {
+    endSession()
+    clearTokenSet()
   }
 
   const service: OidcAuthService = {
@@ -334,29 +338,17 @@ export function createOidcAuthService(
     startLogin,
     handleCallback,
     refresh,
-    getIdToken: () => tokens?.idToken ?? null
+    getIdToken: () => getIdToken() ?? null
   }
 
   async function logout(): Promise<void> {
-    const idToken = tokens?.idToken ?? null
     // Leaving for the SSO logout: the anonymous state must not start a login
     // (RequireAuth does), whose redirection would replace this one
     isRedirecting = true
-    endLocalSession(service)
-    try {
-      const configuration = await fetchConfiguration()
-      const parameters: Record<string, string> = {
-        post_logout_redirect_uri: config.postLogoutRedirectUri
-      }
-      if (idToken) parameters.id_token_hint = idToken
-      dependencies.redirect(
-        client.buildEndSessionUrl(configuration, parameters).href
-      )
-    } catch (error) {
-      // No end_session_endpoint, or the SSO is unreachable
-      console.warn('[auth] SSO logout unavailable', getErrorMessage(error))
-      dependencies.redirect(config.postLogoutRedirectUri)
-    }
+    // The other tabs of the account sign out, the composers go; the tokens
+    // stay for `logOut`, which hands the ID token to the SSO (`id_token_hint`)
+    endLocalSession({ getState: store.getState, clearLocalSession: endSession })
+    await logOut()
   }
 
   return service

@@ -130,10 +130,10 @@ In short:
 
 - `oidcAuth.ts`: `@linagora/twake-oidc` signs in (Authorization Code + PKCE
   S256, silent in a frame; verifier, state and return path in
-  `sessionStorage` during the SSO round trip) and holds the access token, in
-  memory only; `openid-client` for what it lacks: refresh before expiry and
-  on 401 (`refresh()` is shared by concurrent callers); back to the SSO only
-  when the refresh fails; logout with `id_token_hint`.
+  `sessionStorage` during the SSO round trip), holds the tokens, in memory
+  only, and signs out (`id_token_hint`); `openid-client` for what it lacks:
+  refresh before expiry and on 401 (`refresh()` is shared by concurrent
+  callers); back to the SSO only when the refresh fails.
 - `basicAuth.ts`: form credentials checked with a GET on the JMAP session URL
   (200 ok, 401 refused), kept in memory only. A new tab or a reload gets
   them from another signed-in tab over the `twake-mail-basic-session`

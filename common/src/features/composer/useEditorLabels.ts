@@ -152,6 +152,7 @@ export function useEditorLabels(): EditorLabels {
     quote: {
       replyHeader: (sentDate, emailAddress) =>
         t('composer.quote.replyHeader', { sentDate, emailAddress }),
+      dateTime: (date, time) => t('composer.quote.dateTime', { date, time }),
       forwarded: t('composer.quote.forwarded'),
       subject: t('composer.quote.subject'),
       date: t('composer.quote.date'),

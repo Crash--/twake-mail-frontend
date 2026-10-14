@@ -337,7 +337,8 @@
       "title": "Insert link"
     },
     "quote": {
-      "replyHeader": "On %{sentDate}, from %{emailAddress}",
+      "replyHeader": "On %{sentDate}, %{emailAddress} wrote:",
+      "dateTime": "%{date} at %{time}",
       "forwarded": "Forwarded message",
       "subject": "Subject",
       "from": "From",

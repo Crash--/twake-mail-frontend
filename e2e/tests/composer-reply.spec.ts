@@ -399,7 +399,7 @@ test.describe('CMP and EML: replying and forwarding', () => {
     expect(received.inReplyTo).toEqual(original?.messageId)
     expect(received.references).toEqual(original?.messageId)
     expect(received.html).toContain('<div>Noon is fine.</div>')
-    expect(received.html).toMatch(/<cite[^>]*>On .*, from &lt;/)
+    expect(received.html).toMatch(/<cite[^>]*>On .* at .*, .*&lt;.*&gt; wrote:<\/cite>/)
     expect(received.html).toContain('<b>noon</b>')
     expect(received.html).toContain('<td>Cell</td>')
     expect(received.text).toContain('> Shall we meet at noon?')

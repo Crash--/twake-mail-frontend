@@ -337,7 +337,8 @@
       "title": "Insérer un lien"
     },
     "quote": {
-      "replyHeader": "Le %{sentDate}, de %{emailAddress}",
+      "replyHeader": "Le %{sentDate}, %{emailAddress} a écrit :",
+      "dateTime": "%{date} à %{time}",
       "forwarded": "Message transféré",
       "subject": "Sujet",
       "from": "De",

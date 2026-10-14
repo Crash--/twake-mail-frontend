@@ -2,7 +2,8 @@ import { buildQuoteHtml, prefixSubject, type QuoteLabels } from './quote'
 import { threadHeaders } from './replyContent'
 
 const LABELS: QuoteLabels = {
-  replyHeader: (date, address) => `Le ${date}, de ${address}`,
+  replyHeader: (date, address) => `Le ${date}, ${address} a écrit :`,
+  dateTime: (date, time) => `${date} à ${time}`,
   forwarded: 'Message transféré',
   subject: 'Sujet',
   date: 'Date',
@@ -27,7 +28,7 @@ describe('buildQuoteHtml', () => {
   const email = {
     receivedAt: '2026-03-05T14:04:00Z',
     subject: 'Plans <draft>',
-    from: [{ name: 'Emma', email: 'emma@example.com' }],
+    from: [{ name: 'Emma MARTIN', email: 'emma@example.com' }],
     to: [{ name: null, email: 'bob@example.com' }],
     cc: null,
     bcc: null,
@@ -37,17 +38,35 @@ describe('buildQuoteHtml', () => {
 
   it('quotes a reply under a localized header, sanitized', () => {
     const html = buildQuoteHtml('reply', email, LABELS, 'fr')
-    expect(html).toContain('Le ')
-    expect(html).toContain('de Emma &lt;emma@example.com&gt;')
+    expect(html).toContain(
+      '>Le 5 mars 2026 à 14:04, Emma MARTIN &lt;emma@example.com&gt; a écrit :</cite>'
+    )
     expect(html).toContain('<blockquote')
     expect(html).toContain('<p>Hello</p>')
     expect(html).not.toContain('script')
+  })
+
+  it('writes the English date and time as tmail-flutter does', () => {
+    const html = buildQuoteHtml(
+      'reply',
+      email,
+      {
+        ...LABELS,
+        replyHeader: (date, address) => `On ${date}, ${address} wrote:`,
+        dateTime: (date, time) => `${date} at ${time}`
+      },
+      'en'
+    )
+    expect(html).toContain(
+      '>On Mar 5, 2026 at 2:04 PM, Emma MARTIN &lt;emma@example.com&gt; wrote:</cite>'
+    )
   })
 
   it('lists the fields of a forwarded email, the empty ones left out', () => {
     const html = buildQuoteHtml('forward', email, LABELS, 'fr')
     expect(html).toContain('------- Message transféré -------')
     expect(html).toContain('Sujet: Plans &lt;draft&gt;')
+    expect(html).toContain('Date: 5 mars 2026 à 14:04')
     expect(html).toContain('À: &lt;bob@example.com&gt;')
     expect(html).not.toContain('Copie à')
   })

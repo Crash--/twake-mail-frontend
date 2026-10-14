@@ -338,6 +338,7 @@
     },
     "quote": {
       "replyHeader": "Vào ngày %{sentDate}, từ %{emailAddress}",
+      "dateTime": "%{date} lúc %{time}",
       "forwarded": "Chuyển tiếp tin nhắn",
       "subject": "Tiêu đề",
       "from": "Từ",

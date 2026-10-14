@@ -9,7 +9,7 @@ import { BLOCKQUOTE_STYLE } from './emailHtml'
  * Quoting an email in a reply or a forward, as tmail-flutter does
  * (editor_view_mixin.dart, email_action_type_extension.dart):
  *
- *   <cite style="text-align: left;display: block;">On Mar 5, 2026 3:04 PM, from John &lt;john@x&gt;</cite>
+ *   <cite style="text-align: left;display: block;">On Mar 5, 2026 at 3:04 PM, John &lt;john@x&gt; wrote:</cite>
  *   <blockquote style="margin-left:8px;…;border-left:5px solid #eee;">ORIGINAL</blockquote>
  *
  * tmail-flutter writes `</br>` between the forward header lines; this
@@ -31,8 +31,10 @@ export interface QuotedEmail {
 }
 
 export interface QuoteLabels {
-  /** `On %{sentDate}, from %{emailAddress}`, already interpolated */
+  /** `On %{sentDate}, %{emailAddress} wrote:`, already interpolated */
   replyHeader: (sentDate: string, emailAddress: string) => string
+  /** `%{date} at %{time}`, already interpolated */
+  dateTime: (date: string, time: string) => string
   forwarded: string
   subject: string
   date: string
@@ -66,19 +68,26 @@ export function formatAddresses(addresses: EmailAddress[] | null): string {
   )
 }
 
-/** tmail-flutter's `MMM d, y h:mm a`, in the UI language */
-export function formatQuoteDate(isoDate: string, locale: string): string {
+/**
+ * tmail-flutter's `yMMMd` date and `jm` time, in the UI language, joined by
+ * the localized `%{date} at %{time}`
+ */
+export function formatQuoteDate(
+  isoDate: string,
+  locale: string,
+  labels: Pick<QuoteLabels, 'dateTime'>
+): string {
   const date = new Date(isoDate)
   const day = new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
     month: 'short',
-    day: 'numeric',
-    year: 'numeric'
+    day: 'numeric'
   }).format(date)
   const time = new Intl.DateTimeFormat(locale, {
     hour: 'numeric',
     minute: '2-digit'
   }).format(date)
-  return `${day} ${time}`
+  return labels.dateTime(day, time)
 }
 
 /**
@@ -170,7 +179,10 @@ function forwardHeader(
 ): string {
   const lines: [string, string][] = [
     [labels.subject, escapeHtml(email.subject ?? '')],
-    [labels.date, escapeHtml(formatQuoteDate(email.receivedAt, locale))],
+    [
+      labels.date,
+      escapeHtml(formatQuoteDate(email.receivedAt, locale, labels))
+    ],
     [labels.from, formatAddresses(email.from)],
     [labels.to, formatAddresses(email.to)],
     [labels.cc, formatAddresses(email.cc)],
@@ -196,7 +208,7 @@ export function buildQuoteHtml(
     mode === 'reply'
       ? escapeHtml(
           labels.replyHeader(
-            formatQuoteDate(email.receivedAt, locale),
+            formatQuoteDate(email.receivedAt, locale, labels),
             // Escaped once, as a whole, below
             (email.from ?? [])
               .map(address =>

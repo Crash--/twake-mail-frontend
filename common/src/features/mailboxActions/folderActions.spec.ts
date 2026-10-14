@@ -154,7 +154,8 @@ describe('availableFolderActions', () => {
   })
 
   it('follows the rights of a team mailbox', () => {
-    expect(ids('team')).toEqual(['open-in-new-tab', 'hide'])
+    // Its root is a container, not a folder: no tab of its own
+    expect(ids('team')).toEqual(['hide'])
     expect(ids('team-trash')).toEqual(['open-in-new-tab', 'empty-trash'])
   })
 })

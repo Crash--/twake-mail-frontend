@@ -52,7 +52,9 @@ function isMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
  * linking to the folder, where dragged emails can drop; its menu opens from
  * the ⋮ button shown on hover or focus, a right click, the menu key or
  * Shift+F10. On the Spam, "Clean" empties it. A hidden folder, shown on
- * demand, has the icon of hidden folders and says so.
+ * demand, has the icon of hidden folders and says so. The root of a team
+ * mailbox is a container, as tmail-flutter: no link, no drop, a click opens
+ * or closes it.
  */
 export function MailboxTreeItem({
   row,
@@ -70,8 +72,9 @@ export function MailboxTreeItem({
   const dropEmails = useDropEmails(mailbox)
   const name = getName(mailbox)
   const isHidden = isHiddenMailbox(mailbox)
+  const isContainer = isTeamRoot(mailbox)
   // The root of a team mailbox says its address
-  const address = isTeamRoot(mailbox) ? teamMailboxAddress(mailbox) : null
+  const address = isContainer ? teamMailboxAddress(mailbox) : null
   const shownCount = showsUnreadCount(mailbox)
     ? { count: mailbox.unreadEmails, testId: 'mailbox-unread-count' }
     : showsTotalCount(mailbox)
@@ -136,8 +139,12 @@ export function MailboxTreeItem({
           <span data-testid="mailbox-item-address">{address}</span>
         )
       }
-      linkComponent={Link}
-      to={`/mailbox/${encodeURIComponent(mailbox.id)}`}
+      {...(isContainer
+        ? {}
+        : {
+            linkComponent: Link,
+            to: `/mailbox/${encodeURIComponent(mailbox.id)}`
+          })}
       isSelected={isSelected}
       toggle={
         row.hasChildren
@@ -198,7 +205,7 @@ export function MailboxTreeItem({
           </Tooltip>
         </>
       }
-      drop={dropEmails}
+      drop={isContainer ? undefined : dropEmails}
       nameTestId="mailbox-item-name"
       data-testid="mailbox-item"
       itemProps={{

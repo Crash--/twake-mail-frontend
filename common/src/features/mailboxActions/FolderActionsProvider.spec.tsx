@@ -446,7 +446,7 @@ describe('Folder actions', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map(item => item.textContent)
-    ).toEqual(['Open in new tab', 'Hide folder'])
+    ).toEqual(['Hide folder'])
   })
 
   it('moves the content of a folder to another, and back with Undo', async () => {

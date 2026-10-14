@@ -3,6 +3,7 @@ import type { IconProps } from '@linagora/twake-icons'
 import {
   isHiddenMailbox,
   isPersonalMailbox,
+  isTeamRoot,
   isTeamTrash
 } from '@common/features/mailbox/mailboxTree'
 import {
@@ -110,7 +111,8 @@ export interface FolderActionOptions {
 /**
  * The actions of a folder, as tmail-flutter's folder menu:
  *
- * - every folder not hidden: open in a new tab;
+ * - every folder not hidden, but the root of a team mailbox (a container,
+ *   not a folder): open in a new tab;
  * - a system folder: new subfolder, create a filter, then, for the Trash,
  *   move its content, "Empty Trash" and recover deleted messages; for Spam,
  *   move its content and "Delete all spam emails" (when not empty); for the
@@ -137,7 +139,10 @@ export function availableFolderActions(
   const ids: FolderActionId[] = []
   const visibility: FolderActionId = isHiddenMailbox(mailbox) ? 'show' : 'hide'
   const canMoveContent = rights.mayRemoveItems && mailbox.totalEmails > 0
-  if (mailbox.role !== null || !isHiddenMailbox(mailbox)) {
+  if (
+    !isTeamRoot(mailbox) &&
+    (mailbox.role !== null || !isHiddenMailbox(mailbox))
+  ) {
     ids.push('open-in-new-tab')
   }
 

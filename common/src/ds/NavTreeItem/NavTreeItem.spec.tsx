@@ -73,6 +73,22 @@ describe('NavTreeItem', () => {
     expect(onToggle).toHaveBeenCalledTimes(2)
   })
 
+  it('is a container without `to`: no link, and a click on it toggles', async () => {
+    const onToggle = jest.fn()
+    renderItem({
+      linkComponent: undefined,
+      to: undefined,
+      toggle: { label: 'Expand', isExpanded: false, onToggle }
+    })
+
+    expect(screen.queryByRole('link')).toBe(null)
+    expect(screen.getAllByRole('button')).toEqual([
+      screen.getByRole('button', { name: 'Expand' })
+    ])
+    await userEvent.click(screen.getByText('Inbox'))
+    expect(onToggle).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the actions reachable by keyboard', async () => {
     renderItem({
       actions: <button type="button">Actions on Inbox</button>

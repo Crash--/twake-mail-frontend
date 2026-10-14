@@ -25,6 +25,7 @@ import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderAct
 import { settingsSectionPath } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { isTeamRoot } from './mailboxTree'
 import { MailboxTreeItem } from './MailboxTreeItem'
 import type { MailboxSummary } from './queries'
 import { searchMailboxes } from './searchMailboxes'
@@ -110,7 +111,8 @@ export function MailboxSearch({
       }
     } else if (event.key === 'Enter') {
       event.preventDefault()
-      const first = results[0]
+      // The root of a team mailbox is a container, not a place to go
+      const first = results.find(({ row }) => !isTeamRoot(row.mailbox))
       if (first) {
         void navigate(`/mailbox/${encodeURIComponent(first.row.mailbox.id)}`)
       }

@@ -90,7 +90,7 @@ function toRow(item: HTMLElement): NavTreeRow {
  * - Down / Up: next / previous row; Home / End: first / last;
  * - Right: expands a collapsed row (its `[data-nav-toggle]` button), or goes
  *   to its first child; Left: collapses an expanded row, or goes to its
- *   parent; Enter: follows the link of the row; letters: typeahead;
+ *   parent; Enter: follows the link of the row (or toggles a row without one); letters: typeahead;
  * - when the row holding the focus leaves the tree, the focus goes to the
  *   row that takes its place instead of falling back to the page.
  * The DOM is read and its `tabindex` kept in step by a `MutationObserver`,
@@ -240,7 +240,10 @@ export function NavTree({
       event.preventDefault()
       toggle.click()
     } else {
-      const link = target.querySelector<HTMLElement>(ROW_LINK)
+      // A row without a link, a container, opens or closes instead
+      const link =
+        target.querySelector<HTMLElement>(ROW_LINK) ??
+        target.querySelector<HTMLElement>('[data-nav-toggle]')
       if (link === null) return
       event.preventDefault()
       link.click()

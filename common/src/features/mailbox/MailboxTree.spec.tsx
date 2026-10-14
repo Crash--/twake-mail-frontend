@@ -1,6 +1,7 @@
-import { act, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { DRAGGED_EMAILS_TYPE } from '@common/features/thread/useEmailListActions'
 import type { SupportedLanguage } from '@common/i18n/languages'
 import {
   makeDefaultMailboxes,
@@ -479,6 +480,71 @@ describe('MailboxTree', () => {
     expect(
       within(section).getByTestId('mailbox-item-address')
     ).toHaveTextContent('team@example.com')
+  })
+
+  describe('the root of a team mailbox, a container', () => {
+    function renderTeamTree(): void {
+      renderWithProviders(<MailboxTree />, {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer({
+          mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()]
+        })
+      })
+    }
+
+    it('is no link, and opens or closes on a click', async () => {
+      renderTeamTree()
+      await screen.findByTestId('team-mailboxes-section')
+      const root = folder('team')
+      expect(within(root).queryByRole('link')).toBe(null)
+      expect(root).toHaveAttribute('aria-expanded', 'false')
+
+      await userEvent.click(within(root).getByTestId('mailbox-item-name'))
+
+      expect(root).toHaveAttribute('aria-expanded', 'true')
+      expect(folderNames()).toContain('Inbox')
+      await userEvent.click(within(root).getByTestId('mailbox-item-name'))
+      expect(root).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('opens or closes with Enter', async () => {
+      renderTeamTree()
+      await screen.findByTestId('team-mailboxes-section')
+      act(() => {
+        folder('team').focus()
+      })
+
+      await userEvent.keyboard('{Enter}')
+
+      expect(folder('team')).toHaveAttribute('aria-expanded', 'true')
+      expect(folder('team')).toHaveFocus()
+    })
+
+    it('takes no dropped emails, unlike its folders', async () => {
+      renderTeamTree()
+      await screen.findByTestId('team-mailboxes-section')
+      const dataTransfer = { types: [DRAGGED_EMAILS_TYPE] }
+
+      fireEvent.dragEnter(
+        within(folder('team')).getByTestId('mailbox-item-name'),
+        { dataTransfer }
+      )
+      expect(folder('team').querySelector('[data-drop-over]')).toBe(null)
+
+      await userEvent.click(
+        within(folder('team')).getByTestId('mailbox-item-name')
+      )
+      const teamInbox = screen
+        .getAllByTestId('mailbox-item')
+        .find(item => item.getAttribute('data-mailbox-id') === 'team-inbox')
+      if (teamInbox === undefined) throw new Error('No team Inbox')
+      fireEvent.dragEnter(within(teamInbox).getByTestId('mailbox-item-name'), {
+        dataTransfer
+      })
+      expect(teamInbox.querySelector('[data-drop-over]')).not.toBe(null)
+    })
   })
 
   it('makes the folders one named navigation landmark, the team mailboxes a category in it', async () => {

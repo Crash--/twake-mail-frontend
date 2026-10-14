@@ -432,9 +432,10 @@ describe('EmailView', () => {
     const subject = await screen.findByTestId('email-view-subject')
     const view = screen.getByTestId('email-view')
     // The subject bar sits in the column itself, and pads itself
-    expect(subject.parentElement?.parentElement).toBe(view)
-    expect(subject.parentElement).toHaveStyle({ paddingLeft: '16px' })
-    expect(subject.parentElement?.nextElementSibling).toHaveClass('u-ph-1')
+    const subjectBar = subject.parentElement?.parentElement
+    expect(subjectBar?.parentElement).toBe(view)
+    expect(subjectBar).toHaveStyle({ paddingLeft: '16px' })
+    expect(subjectBar?.nextElementSibling).toHaveClass('u-ph-1')
     unmount()
 
     renderWithProviders(
@@ -460,10 +461,9 @@ describe('EmailView', () => {
     )
     expect(scroller).toContainElement(insetSubject)
     expect(scroller).toHaveStyle({ marginLeft: '16px', marginRight: '16px' })
-    expect(insetSubject.parentElement).toHaveStyle({ paddingLeft: '0px' })
-    expect(insetSubject.parentElement?.nextElementSibling).toHaveClass(
-      'u-ph-half'
-    )
+    const insetSubjectBar = insetSubject.parentElement?.parentElement
+    expect(insetSubjectBar).toHaveStyle({ paddingLeft: '0px' })
+    expect(insetSubjectBar?.nextElementSibling).toHaveClass('u-ph-half')
   })
 
   it('offers no "Reply all" to an email between the sender and the user', async () => {

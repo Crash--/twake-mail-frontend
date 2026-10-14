@@ -59,6 +59,22 @@ describe('ShortcutsProvider', () => {
     expect(onArchive).toHaveBeenCalledTimes(1)
   })
 
+  it('runs the handler of a key pressed on a checkbox, which is no text field', async () => {
+    const onArchive = jest.fn()
+    function SelectScreen(): ReactElement {
+      useShortcuts({ e: onArchive })
+      return <input type="checkbox" aria-label="Select Hello" />
+    }
+    renderShortcuts(<SelectScreen />)
+
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Hello' })
+    )
+    await userEvent.keyboard('e')
+
+    expect(onArchive).toHaveBeenCalledTimes(1)
+  })
+
   it('ignores keys with a modifier', () => {
     const onArchive = jest.fn()
     renderShortcuts(<Screen onArchive={onArchive} />)

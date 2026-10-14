@@ -1,4 +1,5 @@
 import { env } from './env'
+import { isDexReachable } from './oidc'
 import { WebAdminClient } from './webadmin'
 
 /**
@@ -43,15 +44,7 @@ export default async function globalSetup(): Promise<void> {
         async () => (await fetch(`${env.baseUrl}/jmap/session`)).status === 401
       ),
       env.oidc
-        ? probe(
-            `Dex ${env.oidcIssuer}`,
-            async () =>
-              (
-                await fetch(
-                  `${env.oidcIssuer}/.well-known/openid-configuration`
-                )
-              ).ok
-          )
+        ? probe(`Dex ${env.oidcIssuer}`, isDexReachable)
         : Promise.resolve(null)
     ])
   ).filter((problem): problem is string => problem !== null)

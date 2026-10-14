@@ -5,7 +5,8 @@
 #
 #   127.0.0.1:18300  JMAP, straight to tmail-backend (provisioning from the tests)
 #   127.0.0.1:18301  WebAdmin (users, domains, quotas, team mailboxes)
-#   127.0.0.1:18302  the browser facing origin: the app under test + /jmap + /dex (nginx)
+#   127.0.0.1:18302  the browser facing origin: the app under test + /jmap (nginx)
+#   127.0.0.1:18303  Dex over HTTPS, self-signed (nginx, profile `oidc`)
 name: twakemail-e2e
 
 services:
@@ -50,8 +51,12 @@ services:
       - ${E2E_APP_ENV:-./app-env.js}:/etc/nginx/e2e/app-env.js:ro
       - ./drive-picker.html:/etc/nginx/e2e/drive-picker.html:ro
       - ${E2E_APP_DIR:-./app-placeholder}:/usr/share/nginx/html:ro
+      - ./nginx/sso.conf:/etc/nginx/conf.d/sso.conf:ro
+      - ./.generated/sso.crt:/etc/nginx/e2e/sso.crt:ro
+      - ./.generated/sso.key:/etc/nginx/e2e/sso.key:ro
     ports:
       - '127.0.0.1:${E2E_APP_PORT:-18302}:80'
+      - '127.0.0.1:${E2E_SSO_PORT:-18303}:443'
     depends_on:
       - james
 

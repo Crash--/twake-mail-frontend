@@ -3,7 +3,7 @@
  * e2e/scripts/start.sh, so a local run needs no variable at all.
  */
 export interface E2EEnv {
-  /** Browser facing origin: the app and, through the nginx proxy, /jmap and /dex */
+  /** Browser facing origin: the app and, through the nginx proxy, /jmap */
   baseUrl: string
   /** JMAP endpoint used by the provisioning client (tmail-backend, direct) */
   jmapUrl: string
@@ -13,7 +13,7 @@ export interface E2EEnv {
   domain: string
   /** True when the stack runs the `oidc` profile (Dex) */
   oidc: boolean
-  /** Dex issuer, as seen from the test runner */
+  /** Dex issuer, as seen from the test runner: HTTPS, self-signed (support/oidc.ts) */
   oidcIssuer: string
 }
 
@@ -30,5 +30,8 @@ export const env: E2EEnv = {
   webadminUrl: readUrl('E2E_WEBADMIN_URL', 'http://127.0.0.1:18301'),
   domain: process.env.E2E_DOMAIN ?? 'example.com',
   oidc: process.env.E2E_OIDC === '1',
-  oidcIssuer: readUrl('E2E_OIDC_ISSUER', `${baseUrl}/dex`)
+  oidcIssuer: readUrl(
+    'E2E_OIDC_ISSUER',
+    `https://${new URL(baseUrl).hostname}:${process.env.E2E_SSO_PORT ?? '18303'}/dex`
+  )
 }

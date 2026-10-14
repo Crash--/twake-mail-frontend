@@ -13,10 +13,12 @@
 #   E2E_JMAP_PORT      default 18300   (127.0.0.1 only)
 #   E2E_WEBADMIN_PORT  default 18301   (127.0.0.1 only)
 #   E2E_APP_PORT       default 18302   (127.0.0.1 only)
+#   E2E_SSO_PORT       default 18303   (127.0.0.1 only): Dex over HTTPS, self-signed
 #   E2E_OIDC           1 to add the `oidc` profile (Dex) and OidcAuthenticationStrategy
 #   E2E_START_TIMEOUT  seconds to wait for James, default 180
 #   E2E_PROJECT        compose project name, default twakemail-e2e (run a second stack side by side)
-#   E2E_APP_ENV        runtime configuration served as /.env.js, default docker/app-env.js
+#   E2E_APP_ENV        runtime configuration served as /.env.js, default docker/app-env.js;
+#                      @SSO_URL@ in it becomes the origin of Dex
 #   E2E_COMPOSE_EXTRA  an extra compose file layered on top (e.g. docker/docker-compose.spike.yaml)
 set -euo pipefail
 
@@ -29,8 +31,13 @@ DOMAIN=example.com
 export E2E_JMAP_PORT="${E2E_JMAP_PORT:-18300}"
 export E2E_WEBADMIN_PORT="${E2E_WEBADMIN_PORT:-18301}"
 export E2E_APP_PORT="${E2E_APP_PORT:-18302}"
+export E2E_SSO_PORT="${E2E_SSO_PORT:-18303}"
 PUBLIC_URL="${E2E_PUBLIC_URL:-http://127.0.0.1:$E2E_APP_PORT}"
 PUBLIC_URL="${PUBLIC_URL%/}"
+# Dex, over HTTPS on its own port, on the host of the app
+PUBLIC_HOST="${PUBLIC_URL#*://}"
+PUBLIC_HOST="${PUBLIC_HOST%%[:/]*}"
+SSO_URL="https://$PUBLIC_HOST:$E2E_SSO_PORT"
 WEBSOCKET_URL="${PUBLIC_URL/#http/ws}"
 WEBADMIN="http://127.0.0.1:$E2E_WEBADMIN_PORT"
 TIMEOUT="${E2E_START_TIMEOUT:-180}"
@@ -55,12 +62,13 @@ compose() {
   docker compose -p "$PROJECT" "${files[@]}" "${profiles[@]}" "$@"
 }
 
-if [[ -n "${E2E_APP_ENV:-}" ]]; then
-  E2E_APP_ENV="$(cd "$(dirname "$E2E_APP_ENV")" && pwd)/$(basename "$E2E_APP_ENV")"
-  export E2E_APP_ENV
-fi
-
 mkdir -p "$GENERATED"
+
+if [[ -n "${E2E_APP_ENV:-}" ]]; then
+  sed "s|@SSO_URL@|$SSO_URL|g" "$E2E_APP_ENV" > "$GENERATED/app-env.js"
+  chmod 644 "$GENERATED/app-env.js"
+  export E2E_APP_ENV="$GENERATED/app-env.js"
+fi
 
 # JWT keys, same as tmail-flutter scripts/patrol-web-integration-test-with-docker.sh
 if [[ ! -f "$GENERATED/jwt_privatekey" ]]; then
@@ -69,6 +77,15 @@ if [[ ! -f "$GENERATED/jwt_privatekey" ]]; then
   openssl rsa -in "$GENERATED/jwt_privatekey" -pubout -out "$GENERATED/jwt_publickey" 2>/dev/null
   # James runs as root in the container, but keep them readable for rootless docker
   chmod 644 "$GENERATED/jwt_privatekey" "$GENERATED/jwt_publickey"
+fi
+
+# Certificate of Dex over HTTPS (nginx/sso.conf), self-signed: Playwright accepts it
+if [[ ! -f "$GENERATED/sso.crt" ]]; then
+  echo "Generating the certificate of Dex..."
+  openssl req -x509 -newkey rsa:2048 -nodes -days 365 -subj "/CN=$PUBLIC_HOST" \
+    -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
+    -keyout "$GENERATED/sso.key" -out "$GENERATED/sso.crt" 2>/dev/null
+  chmod 644 "$GENERATED/sso.key" "$GENERATED/sso.crt"
 fi
 
 STRATEGIES="BasicAuthenticationStrategy,com.linagora.tmail.james.jmap.ticket.TicketAuthenticationStrategy"
@@ -81,7 +98,8 @@ awk -v strategies="$STRATEGIES" -v public="$PUBLIC_URL" -v ws="$WEBSOCKET_URL" -
   { gsub(/@AUTH_STRATEGIES@/, strategies); gsub(/@PUBLIC_URL@/, public); gsub(/@WEBSOCKET_URL@/, ws) }
   /@OIDC_BLOCK@/ { print oidc; next }
   { print }' "$DOCKER_DIR/james/jmap.properties.template" > "$GENERATED/jmap.properties"
-sed "s|@PUBLIC_URL@|$PUBLIC_URL|g" "$DOCKER_DIR/dex/config.yaml" > "$GENERATED/dex-config.yaml"
+sed -e "s|@PUBLIC_URL@|$PUBLIC_URL|g" -e "s|@SSO_URL@|$SSO_URL|g" \
+  "$DOCKER_DIR/dex/config.yaml" > "$GENERATED/dex-config.yaml"
 
 echo "Starting compose project $PROJECT (public URL $PUBLIC_URL, OIDC=${E2E_OIDC:-0}${E2E_APP_IMAGE:+, app image $E2E_APP_IMAGE})..."
 # --force-recreate: rendered configuration may have changed since the last run
@@ -124,7 +142,7 @@ if [[ -n "$E2E_APP_IMAGE" ]]; then
   done
 fi
 if [[ "${E2E_OIDC:-0}" == "1" ]]; then
-  until curl -fsS -o /dev/null "$PUBLIC_URL/dex/.well-known/openid-configuration"; do
+  until curl -fsSk -o /dev/null "$SSO_URL/dex/.well-known/openid-configuration"; do
     if (( SECONDS > deadline )); then echo "Dex not ready" >&2; exit 1; fi
     sleep 1
   done
@@ -163,3 +181,6 @@ e2e stack ready
   JMAP (direct)        http://127.0.0.1:$E2E_JMAP_PORT
   WebAdmin             $WEBADMIN
 INFO
+if [[ "${E2E_OIDC:-0}" == "1" ]]; then
+  echo "  Dex (HTTPS)          $SSO_URL/dex"
+fi

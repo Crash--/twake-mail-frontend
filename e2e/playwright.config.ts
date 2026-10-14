@@ -80,6 +80,8 @@ export default defineConfig({
   ],
   use: {
     baseURL: env.baseUrl,
+    // Dex is served over HTTPS with a self-signed certificate (scripts/start.sh)
+    ignoreHTTPSErrors: true,
     testIdAttribute: 'data-testid',
     locale: 'en-US',
     timezoneId: 'Europe/Paris',

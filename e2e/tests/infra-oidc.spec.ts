@@ -3,7 +3,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { env } from '../support/env'
 import { expect, test } from '../support/fixtures'
 import { JmapClient } from '../support/jmap'
-import { getOidcTokens } from '../support/oidc'
+import { getOidcTokens, isDexReachable } from '../support/oidc'
 
 /**
  * Smoke tests of the harness with Dex, without the app: the `oidc` suite (support/suites.ts).
@@ -14,11 +14,8 @@ import { getOidcTokens } from '../support/oidc'
 
 test.describe('INFRA OIDC', () => {
   test.beforeAll(async () => {
-    const discovery = await fetch(
-      `${env.oidcIssuer}/.well-known/openid-configuration`
-    ).catch(() => null)
     expect(
-      discovery?.ok,
+      await isDexReachable(),
       'needs the oidc profile: E2E_OIDC=1 ./scripts/start.sh, then E2E_SUITE=oidc'
     ).toBe(true)
   })
@@ -70,10 +67,11 @@ test.describe('INFRA OIDC', () => {
     // A static page of the app origin, without the app, to run the exchange from
     await page.goto(`${env.baseUrl}/__e2e/health`)
     expect(code).not.toBeNull()
-    // Same origin as the app: what the SPA will do, token exchange and JMAP included
+    // From the app origin: what the SPA will do, token exchange (Dex, another origin, CORS)
+    // and JMAP included
     const username = await page.evaluate(
-      async ({ code, verifier, redirectUri }) => {
-        const tokenResponse = await fetch('/dex/token', {
+      async ({ code, verifier, redirectUri, issuer }) => {
+        const tokenResponse = await fetch(`${issuer}/token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({
@@ -103,7 +101,7 @@ test.describe('INFRA OIDC', () => {
           ? session.username
           : JSON.stringify(session)
       },
-      { code: code ?? '', verifier, redirectUri }
+      { code: code ?? '', verifier, redirectUri, issuer: env.oidcIssuer }
     )
     expect(username).toBe('bob@example.com')
   })

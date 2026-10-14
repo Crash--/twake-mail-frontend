@@ -21,6 +21,10 @@ export E2E_CHART_IMAGE
 APP_PORT="${E2E_APP_PORT:-18302}"
 PUBLIC_URL="${E2E_PUBLIC_URL:-http://127.0.0.1:$APP_PORT}"
 PUBLIC_URL="${PUBLIC_URL%/}"
+# Dex over HTTPS on its own port, as start.sh serves it
+PUBLIC_HOST="${PUBLIC_URL#*://}"
+PUBLIC_HOST="${PUBLIC_HOST%%[:/]*}"
+SSO_URL="https://$PUBLIC_HOST:${E2E_SSO_PORT:-18303}"
 SERVER_URL="${E2E_CHART_SERVER_URL:-http://localhost:$APP_PORT}"
 WEBFINGER="${E2E_CHART_WEBFINGER:-$([[ "${E2E_OIDC:-0}" == 1 ]] && echo on || echo off)}"
 
@@ -42,7 +46,7 @@ if [[ "$WEBFINGER" == on ]]; then
   cat >"$GENERATED/chart-webfinger.conf" <<WEBFINGER_CONF
 add_header Access-Control-Allow-Origin * always;
 default_type application/jrd+json;
-return 200 '{"subject":"\$arg_resource","links":[{"rel":"http://openid.net/specs/connect/1.0/issuer","href":"$PUBLIC_URL/dex"}]}';
+return 200 '{"subject":"\$arg_resource","links":[{"rel":"http://openid.net/specs/connect/1.0/issuer","href":"$SSO_URL/dex"}]}';
 WEBFINGER_CONF
 else
   cat >"$GENERATED/chart-webfinger.conf" <<'WEBFINGER_CONF'

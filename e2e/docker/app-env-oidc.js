@@ -4,7 +4,8 @@
 // The specs of the basic mode do not run against it.
 var SERVER_URL = window.location.origin
 var AUTH_MODE = 'oidc'
-var SSO_BASE_URL = window.location.origin + '/dex'
+// Dex over HTTPS on its own port (docker/nginx/sso.conf): start.sh writes its origin
+var SSO_BASE_URL = '@SSO_URL@/dex'
 var WEB_OIDC_CLIENT_ID = 'twake-mail'
 var OIDC_SCOPES = 'openid,profile,email,offline_access'
 // The redirect URIs are <DOMAIN_REDIRECT_URL>/login-callback.html and

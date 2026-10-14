@@ -1,12 +1,13 @@
 # Dex, the OIDC provider of the `oidc` compose profile (E2E_OIDC=1).
 #
-# The issuer is the browser facing URL: nginx proxies /dex/ to this container, so the SPA
-# talks to its own origin (no CORS, and 127.0.0.1 is a secure context, which PKCE needs for
-# crypto.subtle). tmail-backend never uses the issuer: it calls Dex directly on the compose
-# network (http://dex:5556/dex/...) to introspect tokens and read the userinfo.
+# The issuer is the browser facing URL: nginx serves /dex/ of this container over HTTPS on
+# its own port (nginx/sso.conf), as the SSO of the app must be (@linagora/twake-oidc).
+# Another origin than the app: the SPA calls it with CORS (allowedOrigins below).
+# tmail-backend never uses the issuer: it calls Dex directly on the compose network
+# (http://dex:5556/dex/...) to introspect tokens and read the userinfo.
 #
-# Change the issuer together with E2E_PUBLIC_URL (start.sh renders it).
-issuer: @PUBLIC_URL@/dex
+# start.sh renders the issuer (E2E_SSO_PORT) and the redirect URIs (E2E_PUBLIC_URL).
+issuer: @SSO_URL@/dex
 
 storage:
   type: memory

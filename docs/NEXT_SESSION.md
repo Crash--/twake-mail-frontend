@@ -131,7 +131,7 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
 - La CI e2e tourne **contre l'image Docker** avec une **garde CSP** : toute violation fait échouer le test.
 - Prettier : toujours depuis la racine du dépôt (lancé dans `e2e/`, il reformate des specs).
 - Node 24 : `source ~/.nvm/nvm.sh && nvm use 24`.
-- E2E en parallèle : chaque agent a son `E2E_PROJECT` et ses ports (`E2E_JMAP_PORT`, `E2E_WEBADMIN_PORT`, `E2E_APP_PORT`) **et** exporte
+- E2E en parallèle : chaque agent a son `E2E_PROJECT` et ses ports (`E2E_JMAP_PORT`, `E2E_WEBADMIN_PORT`, `E2E_APP_PORT`, `E2E_SSO_PORT`) **et** exporte
   `E2E_BASE_URL`, `E2E_JMAP_URL`, `E2E_WEBADMIN_URL` pour Playwright ; toujours passer son `E2E_PROJECT` à `stop.sh`.
 - Avant de merger : vérifier la CI du **commit de tête** (`gh run list --commit <sha>`), pas seulement `statusCheckRollup`.
   `twake-mail-design-cache/tools/automerge.sh <pr> <worktree>` le fait : attend la CI du HEAD, relance une fois les jobs en

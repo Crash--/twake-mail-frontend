@@ -109,9 +109,10 @@ the copies overlap by construction.
 |---|---|---|
 | `james` | `127.0.0.1:18300` | tmail-backend `memory-1.0.21.2`, JMAP (direct, used by the provisioning client) |
 | `james` | `127.0.0.1:18301` | WebAdmin (users, domains, quotas, team mailboxes) |
-| `proxy` | `127.0.0.1:18302` | **the browser facing origin**: nginx serving the app and its runtime configuration, proxying `/jmap`, `/upload`, `/download`, `/eventSource`, `/.well-known/*` to James and `/dex/` to Dex |
+| `proxy` | `127.0.0.1:18302` | **the browser facing origin**: nginx serving the app and its runtime configuration, proxying `/jmap`, `/upload`, `/download`, `/eventSource`, `/.well-known/*` to James |
+| `proxy` | `127.0.0.1:18303` | Dex over HTTPS (`/dex/`), with the self-signed certificate `start.sh` generates (`nginx/sso.conf`) |
 | `app` | — | the Docker image of the app, only with `E2E_APP_IMAGE`, reached through the proxy |
-| `dex` | — | OIDC provider, only with `E2E_OIDC=1` (profile `oidc`), reached through `/dex/` |
+| `dex` | — | OIDC provider, only with `E2E_OIDC=1` (profile `oidc`), reached through the proxy on `https://127.0.0.1:18303/dex` |
 
 The James configuration is copied from tmail-flutter `backend-docker/` (`docker/james/`);
 `jmap.properties` is rendered by `start.sh` from `jmap.properties.template`, and the JWT keys
@@ -142,6 +143,16 @@ methods `GET, POST, OPTIONS`, headers `Content-Type, Authorization, Accept`), so
 origin setup would work too, but that is not what runs here. `127.0.0.1` is a secure context:
 `crypto.subtle` (PKCE) is available without https.
 
+**Dex over HTTPS.** The SSO of the app must be served over HTTPS (`@linagora/twake-oidc`), so
+the proxy serves Dex on its own port, `https://127.0.0.1:18303/dex` (`E2E_SSO_PORT`), another
+origin than the app: the app calls it with CORS (Dex `allowedOrigins`), and the CSP of the
+image lists it (`CSP_CONNECT_SRC` in `docker-compose.image.yaml` and
+`docker-compose.chart.yaml`). `start.sh` generates a self-signed certificate for it in
+`docker/.generated/`; the browser accepts it through `ignoreHTTPSErrors`
+(`playwright.config.ts`), the harness through Playwright's request context
+(`support/oidc.ts`), and `start.sh` with `curl -k`. `@SSO_URL@` in `E2E_APP_ENV` becomes the
+origin of Dex (`docker/app-env-oidc.js`).
+
 ### Variables
 
 | Variable | Default | Used by |
@@ -150,13 +161,14 @@ origin setup would work too, but that is not what runs here. `127.0.0.1` is a se
 | `E2E_APP_IMAGE` | | `start.sh`: Docker image of the app, proxied instead of `E2E_APP_DIR` (`docker/docker-compose.image.yaml`) |
 | `E2E_OIDC` | `0` | `start.sh` (Dex + `OidcAuthenticationStrategy`), the OIDC specs |
 | `E2E_SUITE` | `main` | Playwright: the specs of one stack, `main`, `oidc`, `chart` or `chart-sso` (`support/suites.ts`) |
-| `E2E_PUBLIC_URL` | `http://127.0.0.1:18302` | `start.sh`: origin advertised by JMAP and used as Dex issuer |
+| `E2E_PUBLIC_URL` | `http://127.0.0.1:18302` | `start.sh`: origin advertised by JMAP; Dex is on its host |
 | `E2E_JMAP_PORT` / `E2E_WEBADMIN_PORT` / `E2E_APP_PORT` | `18300` / `18301` / `18302` | `start.sh` |
+| `E2E_SSO_PORT` | `18303` | `start.sh`, `start-chart.sh`, Playwright: Dex over HTTPS |
 | `E2E_BASE_URL` | `http://127.0.0.1:18302` | Playwright `baseURL` |
 | `E2E_JMAP_URL` | `http://127.0.0.1:18300` | provisioning JMAP client |
 | `E2E_WEBADMIN_URL` | `http://127.0.0.1:18301` | user fixtures |
 | `E2E_DOMAIN` | `example.com` | user fixtures |
-| `E2E_OIDC_ISSUER` | `$E2E_BASE_URL/dex` | `support/oidc.ts` |
+| `E2E_OIDC_ISSUER` | `https://<host of E2E_BASE_URL>:$E2E_SSO_PORT/dex` | `support/oidc.ts` |
 | `E2E_WORKERS` | CPU based (2 on CI) | Playwright workers |
 | `E2E_HEADLESS=false` / `E2E_SLOWMO=300` | | watch the browser |
 | `E2E_TRACE` | `retain-on-failure` | `on` to record a trace for every test |
@@ -264,14 +276,14 @@ Dex (v2.41.1) has both endpoints: `/dex/token/introspect` (returns `active`, `ex
 - `INFRA-10`: a Dex token (password grant) opens a JMAP session as `alice@example.com`;
 - `INFRA-11`: a forged token gets 401;
 - `INFRA-12`: the SPA flow in the browser — authorization code + PKCE for the public client
-  `twake-mail`, Dex login form, token exchange on `/dex/token` and JMAP call with the bearer,
-  all on the app origin — ends in a JMAP session as `bob@example.com`.
+  `twake-mail`, Dex login form, token exchange on `/dex/token` (from the app origin, with
+  CORS) and JMAP call with the bearer — ends in a JMAP session as `bob@example.com`.
 
 Configuration (`docker/dex/config.yaml`, `docker/james/oidc.properties.fragment`):
 
 | | |
 |---|---|
-| Issuer | `http://127.0.0.1:18302/dex` (browser facing, through nginx) |
+| Issuer | `https://127.0.0.1:18303/dex` (browser facing, through nginx, self-signed) |
 | SPA client | `twake-mail`, public, PKCE, redirect URIs `/`, `/callback`, `/login/callback`, `/auth/callback` of the app origin (Dex has no wildcard: add the app's real callback there) |
 | Introspection client | `tmail-backend` / `secret123` (`oidc.introspect.credentials=Basic …`) |
 | Harness client | `e2e-harness`, password grant, for `support/oidc.ts` |
@@ -364,7 +376,8 @@ e2e/
 │   ├── docker-compose.yaml   project twakemail-e2e
 │   ├── james/                tmail-backend configuration (from tmail-flutter backend-docker/)
 │   ├── docker-compose.image.yaml   overlay: the app from its Docker image (E2E_APP_IMAGE)
-│   ├── nginx/default.conf    single origin: app + /jmap + /dex
+│   ├── nginx/default.conf    single origin: app + /jmap
+│   ├── nginx/sso.conf        Dex over HTTPS on its own port
 │   ├── nginx/app-{dist,image}.conf   the app location: bundle or image
 │   ├── app-env.js            runtime configuration of the app under test (/.env.js)
 │   ├── app-env-oidc.js       the same in OIDC mode with the Drive picker (E2E_APP_ENV, DRIVE-*)

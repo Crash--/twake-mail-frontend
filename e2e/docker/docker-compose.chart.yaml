@@ -6,6 +6,11 @@
 services:
   app:
     image: ${E2E_CHART_IMAGE:-twake-mail-frontend:e2e}
+    environment:
+      # The origin of Dex (nginx/sso.conf), found by WebFinger. The image asks WebFinger once
+      # at startup to add it to connect-src, but SERVER_URL (localhost) is not the stack from
+      # inside the container: give it, as a deployment does through the extraEnv of the chart
+      CSP_CONNECT_SRC: 'https://127.0.0.1:${E2E_SSO_PORT:-18303}'
     volumes:
       - ./.generated/chart-env.file:/usr/share/nginx/html/assets/env.file:ro
       - ./chart/app_dashboard.json:/usr/share/nginx/html/assets/configurations/app_dashboard.json:ro

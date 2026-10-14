@@ -53,6 +53,23 @@ describe('getRoleNameKey', () => {
     expect(getRoleNameKey(folder('INBOX'))).toBe('mailbox.roles.inbox')
   })
 
+  it('translates the other system folders of a team mailbox, like their icon', () => {
+    expect(getRoleNameKey(folder('Drafts'))).toBe('mailbox.roles.drafts')
+    expect(getRoleNameKey(folder('Sent'))).toBe('mailbox.roles.sent')
+    expect(getRoleNameKey(folder('Trash'))).toBe('mailbox.roles.trash')
+    expect(getRoleNameKey(folder('Templates'))).toBe('mailbox.roles.templates')
+    expect(getRoleNameKey(folder('Outbox'))).toBe('mailbox.roles.outbox')
+  })
+
+  it('keeps the name of a team folder that can be deleted', () => {
+    expect(
+      getRoleNameKey({
+        ...folder('Trash'),
+        myRights: { ...folder('Trash').myRights, mayDelete: true }
+      })
+    ).toBe(null)
+  })
+
   it('translates the system folders of the user by their role', () => {
     expect(
       getRoleNameKey(makeMailbox({ id: 'i', name: 'INBOX', role: 'inbox' }))

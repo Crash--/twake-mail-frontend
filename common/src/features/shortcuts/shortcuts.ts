@@ -88,10 +88,15 @@ export function isShortcutKey(key: string): key is ShortcutKey {
  * Where a key press is not a shortcut: typing in a field, a key with Ctrl,
  * Alt or Meta (browser and screen reader commands; AltGr types a character), a composition (IME), a
  * key some control already handled, or one pressed in a dialog, a menu or a
- * list box, whose keys belong to them.
+ * list box, whose keys belong to them. A checkbox, a radio button or an
+ * input button takes no letter: it is no text field.
  */
+const NOT_TYPED_IN = ['checkbox', 'radio', 'button', 'submit', 'reset']
+  .map(type => `:not([type="${type}"])`)
+  .join('')
+
 const OWNED_BY_CONTROL = [
-  'input',
+  `input${NOT_TYPED_IN}`,
   'textarea',
   'select',
   '[contenteditable]:not([contenteditable="false"])',

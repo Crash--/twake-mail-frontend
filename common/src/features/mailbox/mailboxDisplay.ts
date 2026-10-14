@@ -18,7 +18,6 @@ import type { TranslationKey } from '@common/i18n/useI18n'
 import {
   isDraftsMailbox,
   isTeamFolder,
-  isTeamInbox,
   isTeamTemplates,
   isTemplatesMailbox,
   isTrashMailbox
@@ -53,8 +52,8 @@ const ROLE_ICONS: Partial<Record<string, MailboxIcon>> = {
   'restored messages': RecoveredFolderIcon
 }
 
-/** The role whose icon a system folder of a team mailbox takes, by name */
-const TEAM_ICON_ROLES: Partial<Record<string, string>> = {
+/** The role whose name and icon a system folder of a team mailbox takes */
+const TEAM_ROLES: Partial<Record<string, string>> = {
   inbox: 'inbox',
   drafts: 'drafts',
   outbox: 'outbox',
@@ -66,34 +65,39 @@ const TEAM_ICON_ROLES: Partial<Record<string, string>> = {
   archive: 'archive'
 }
 
+type DisplayedMailbox = Pick<
+  MailboxSummary,
+  'role' | 'name' | 'namespace' | 'parentId' | 'myRights'
+>
+
 /**
- * Translation key of the name of a system folder (by its JMAP role, or the
- * Inbox of a team mailbox, which has none and is named "INBOX"), null for
- * personal folders, which keep the name the user gave them.
+ * The role of a folder, or the one a system folder of a team mailbox takes:
+ * these have no role, nor can they be deleted, and are known by their name
+ * (tmail-flutter `getMailboxIcon`)
  */
-export function getRoleNameKey(
-  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace' | 'parentId'>
-): TranslationKey | null {
-  if (isTeamInbox(mailbox)) return 'mailbox.roles.inbox'
-  return (mailbox.role && ROLE_NAMES[mailbox.role]) ?? null
+function getDisplayedRole(mailbox: DisplayedMailbox): string | null {
+  if (mailbox.role) return mailbox.role
+  if (isTeamFolder(mailbox) && !mailbox.myRights.mayDelete) {
+    return TEAM_ROLES[mailbox.name.toLowerCase()] ?? null
+  }
+  return null
 }
 
-export function getMailboxIcon(
-  mailbox: Pick<
-    MailboxSummary,
-    'role' | 'name' | 'namespace' | 'parentId' | 'myRights'
-  >
-): MailboxIcon {
-  if (mailbox.role) return ROLE_ICONS[mailbox.role] ?? DefaultFolderIcon
-  // The system folders of a team mailbox have no role, nor can they be
-  // deleted: known by their name (tmail-flutter `getMailboxIcon`)
-  if (isTeamFolder(mailbox) && !mailbox.myRights.mayDelete) {
-    return (
-      ROLE_ICONS[TEAM_ICON_ROLES[mailbox.name.toLowerCase()] ?? ''] ??
-      DefaultFolderIcon
-    )
-  }
-  return DefaultFolderIcon
+/**
+ * Translation key of the name of a system folder (by its JMAP role, or, for
+ * a team mailbox, by the same rule as its icon), null for personal folders,
+ * which keep the name the user gave them.
+ */
+export function getRoleNameKey(
+  mailbox: DisplayedMailbox
+): TranslationKey | null {
+  const role = getDisplayedRole(mailbox)
+  return role === null ? null : (ROLE_NAMES[role] ?? null)
+}
+
+export function getMailboxIcon(mailbox: DisplayedMailbox): MailboxIcon {
+  const role = getDisplayedRole(mailbox)
+  return (role === null ? null : ROLE_ICONS[role]) ?? DefaultFolderIcon
 }
 
 /**

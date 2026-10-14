@@ -915,7 +915,7 @@
       "spaces": "Dữ liệu không hợp lệ",
       "taken": "Tên thư mục đã tồn tại",
       "sameName": "Thư mục đã tồn tại",
-      "characters": "Tên thư mục không thể chứa kí tự đặc biệt"
+      "characters": "Tên thư mục không thể chứa . % * hoặc dấu xuống dòng, cũng không thể bắt đầu bằng #"
     },
     "delete": {
       "title": "Xoá thư mục",

@@ -6,9 +6,9 @@ function startOfDay(date: Date): number {
 
 /**
  * Date of an email in the list, as tmail-flutter shows it
- * (`DateTime.toPattern`): the time today (`H:mm`, 24 hours in every
- * language), the weekday yesterday, the day and month this year, the full
- * date before.
+ * (`DateTime.toPattern`): the time today (on the clock of the language, as
+ * the reading view and the event card), the weekday yesterday, the day and
+ * month this year, the full date before.
  */
 export function formatListDate(
   isoDate: string,
@@ -21,11 +21,10 @@ export function formatListDate(
   const dayDifference = Math.round(
     (startOfDay(now) - startOfDay(date)) / DAY_MS
   )
-  if (dayDifference === 0) {
-    return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
-  }
   let options: Intl.DateTimeFormatOptions
-  if (dayDifference === 1) {
+  if (dayDifference === 0) {
+    options = { hour: 'numeric', minute: '2-digit' }
+  } else if (dayDifference === 1) {
     options = { weekday: 'short' }
   } else if (date.getFullYear() === now.getFullYear()) {
     options = { month: 'short', day: 'numeric' }

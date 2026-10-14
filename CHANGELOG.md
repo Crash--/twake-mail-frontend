@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Today's emails in the list show their time on the clock of the language
+  (9:33 PM in English, 21:33 in French), as the reading view and the event
+  card do.
+
 ## [0.6.0] - 2026-10-11
 
 No setting changes from 0.5.0.

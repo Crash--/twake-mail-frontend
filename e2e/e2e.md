@@ -943,3 +943,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/loading-states.spec.ts`.
 - [x] `LOAD-06` Framed, the facade of a team mailbox (no sidebar) shows the list skeleton (busy, "Loading" once) and the first row lands on its first row; offline, the banner never covers "New message" (above it while it floats, below 600 px; elsewhere once it is at the end of the list toolbar). — web app (batch D8, `@mobile`)
   - Spec: `tests/loading-states.spec.ts`.
+- [x] `CMP-105` A sending refused with `forbiddenToSend` (tmail-backend, domain whose mail DNS configuration is not validated yet) keeps the composer open, says the domain is still being activated, and the message stays in Drafts, nothing in Sent. — web app only, no Patrol test (the `EmailSubmission/set` answer is rewritten: the memory image cannot reach that state)
+  - Spec: `tests/composer-send.spec.ts`.
+- [x] `CMP-106` A sending refused with `invalidRecipients` flags the refused addresses as invalid chips ("invalid address" in their name) and names them in a toast and in the composer; once removed, the message is sent. — web app only, no Patrol test (the `EmailSubmission/set` answer is rewritten)
+  - Spec: `tests/composer-send.spec.ts`.

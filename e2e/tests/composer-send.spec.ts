@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test'
+
 import { ComposerPage, EmailPage, LoginPage, type MailboxPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { makePng } from '../support/clipboard'
@@ -82,6 +84,59 @@ async function readMailbox(
     ]
   ])
   return (got?.[1].list ?? []) as ReadEmail[]
+}
+
+type JmapInvocation = [string, Record<string, unknown>, string]
+
+/**
+ * The next `EmailSubmission/set` refused with `error`, as tmail-backend does
+ * in states the memory image cannot reach (a domain whose mail DNS is not
+ * validated yet). The rest of the request reaches the server: the message
+ * is created in Drafts, and nothing is submitted.
+ */
+async function refuseNextSubmission(
+  page: Page,
+  error: Record<string, unknown>
+): Promise<void> {
+  let refused = false
+  await page.route('**/jmap', async route => {
+    const request = route.request().postDataJSON() as {
+      methodCalls?: JmapInvocation[]
+    } | null
+    const calls = request?.methodCalls ?? []
+    const submission = calls.find(([name]) => name === 'EmailSubmission/set')
+    if (refused || !request || !submission) {
+      await route.continue()
+      return
+    }
+    refused = true
+    const response = await route.fetch({
+      postData: JSON.stringify({
+        ...request,
+        methodCalls: calls.filter(call => call !== submission)
+      })
+    })
+    const body = (await response.json()) as {
+      methodResponses: JmapInvocation[]
+    }
+    await route.fulfill({
+      response,
+      json: {
+        ...body,
+        methodResponses: [
+          ...body.methodResponses,
+          [
+            'EmailSubmission/set',
+            {
+              accountId: submission[1].accountId,
+              notCreated: { submission: error }
+            },
+            submission[2]
+          ]
+        ]
+      }
+    })
+  })
 }
 
 async function emailState(jmap: JmapClient): Promise<string> {
@@ -652,6 +707,83 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
         .toEqual([...left].sort())
       const { created } = await emailChanges(jmap, since)
       expect(await subjectsOf(jmap, created)).toEqual(['Fourth version'])
+    })
+  })
+
+  test('CMP-105 a sending refused while the domain is being activated stays in Drafts, the reason said', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await refuseNextSubmission(page, {
+      type: 'forbiddenToSend',
+      description:
+        'Domain activation is pending: mail DNS configuration is not validated'
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({
+      to: [user.email],
+      subject: 'Domain not active yet',
+      body: 'Hello'
+    })
+
+    await composer.sendButton.click()
+
+    await expect(composer.sendError).toContainText(
+      'your domain is still being activated'
+    )
+    await expect(composer.root).toBeVisible()
+    await expect
+      .poll(async () =>
+        (await readMailbox(jmap, 'drafts')).map(draft => draft.subject)
+      )
+      .toEqual(['Domain not active yet'])
+    expect(await readMailbox(jmap, 'sent')).toEqual([])
+    await expectNoA11yViolations(page)
+  })
+
+  test('CMP-106 the recipients the server refuses are flagged invalid and named in a toast, until the next sending', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const refused = 'stranger@example.com'
+    await refuseNextSubmission(page, {
+      type: 'invalidRecipients',
+      invalidRecipients: [refused]
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.fill({
+      to: [user.email, refused],
+      subject: 'Refused recipient',
+      body: 'Hello'
+    })
+
+    await composer.sendButton.click()
+
+    const message = `because these recipients are invalid: ${refused}`
+    await expect(mailbox.toast).toContainText(message)
+    await expect(composer.sendError).toContainText(message)
+    await expect(composer.root).toBeVisible()
+    const chips = composer.recipients('to')
+    await expect(chips).toHaveCount(2)
+    await expect(chips.nth(0)).not.toHaveAttribute('data-invalid', 'true')
+    await expect(chips.nth(1)).toHaveAttribute('data-invalid', 'true')
+    await expect(chips.nth(1)).toHaveAccessibleName(
+      `${refused}, invalid address`
+    )
+    await expectNoA11yViolations(page)
+
+    // The refused address removed, the message goes and nothing stays flagged
+    await composer.recipientInput('to').press('Backspace')
+    await page.keyboard.press('Backspace')
+    await expect(chips).toHaveCount(1)
+    await composer.send()
+    await jmap.waitForEmail({
+      subject: 'Refused recipient',
+      mailboxRole: 'sent'
     })
   })
 

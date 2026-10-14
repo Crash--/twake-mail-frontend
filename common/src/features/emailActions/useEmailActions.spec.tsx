@@ -20,6 +20,7 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { findCachedEmail } from './optimisticEmailChanges'
+import type { TargetEmail } from './planEmailChanges'
 import { useEmailActions, type EmailActionName } from './useEmailActions'
 
 interface ActionButtonProps {
@@ -318,6 +319,110 @@ describe('useEmailActions out of a folder', () => {
         { 'team-trash': true }
       ])
     })
+  })
+})
+
+interface TeamActionButtonProps {
+  action: EmailActionName
+  mailboxId: string | null
+}
+
+const THEIRS: TargetEmail = {
+  id: 'theirs',
+  mailboxIds: { 'team-inbox': true },
+  keywords: {}
+}
+
+const MINE: TargetEmail = {
+  id: 'mine',
+  mailboxIds: { 'mailbox-inbox': true },
+  keywords: {}
+}
+
+/**
+ * Runs an action on a team email, and a personal one out of a folder, as a
+ * shortcut does
+ */
+function TeamActionButton({
+  action,
+  mailboxId
+}: TeamActionButtonProps): ReactElement {
+  const { run } = useEmailActions()
+  const handleClick = (): void => {
+    void run({
+      action,
+      mailboxId,
+      emails: mailboxId === null ? [THEIRS, MINE] : [THEIRS]
+    })
+  }
+  return (
+    <button type="button" onClick={handleClick}>
+      {`Run ${action}`}
+    </button>
+  )
+}
+
+describe('useEmailActions on team emails', () => {
+  function makeTeamServer(): FakeJmapServer {
+    return makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({
+          id: 'mailbox-archive',
+          name: 'Archive',
+          role: 'archive'
+        }),
+        ...makeTeamMailboxes()
+      ],
+      emails: [
+        makeEmail({ id: 'theirs', mailboxIds: { 'team-inbox': true } }),
+        makeEmail({ id: 'mine', mailboxIds: { 'mailbox-inbox': true } })
+      ]
+    })
+  }
+
+  it.each<EmailActionName>(['archive', 'markAsSpam'])(
+    'refuses %s in a team mailbox, as its menus, and sends nothing',
+    async action => {
+      const server = makeTeamServer()
+      renderWithProviders(
+        <TeamActionButton action={action} mailboxId="team-inbox" />,
+        { withJmapSession: true, jmapServer: server }
+      )
+
+      await userEvent.click(
+        await screen.findByRole('button', { name: `Run ${action}` })
+      )
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'This action is not available in a team mailbox.'
+      )
+      expect(emailSets(server)).toEqual([])
+      expect(
+        server.emails.find(email => email.id === 'theirs')?.mailboxIds
+      ).toEqual({ 'team-inbox': true })
+    }
+  )
+
+  it('archives only the personal emails out of a folder', async () => {
+    const server = makeTeamServer()
+    renderWithProviders(
+      <TeamActionButton action="archive" mailboxId={null} />,
+      { withJmapSession: true, jmapServer: server }
+    )
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Run archive' })
+    )
+
+    await waitFor(() => {
+      expect(
+        server.emails.find(email => email.id === 'mine')?.mailboxIds
+      ).toEqual({ 'mailbox-archive': true })
+    })
+    expect(
+      server.emails.find(email => email.id === 'theirs')?.mailboxIds
+    ).toEqual({ 'team-inbox': true })
   })
 })
 

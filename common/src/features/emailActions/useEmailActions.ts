@@ -113,6 +113,30 @@ export function findActionDestination(
 }
 
 /**
+ * The actions team mailboxes do not have, as their menus (they have neither
+ * Archive nor Spam): refused here too, for the shortcuts that run them
+ */
+const PERSONAL_ONLY_ACTIONS: readonly EmailActionName[] = [
+  'archive',
+  'markAsSpam'
+]
+
+/**
+ * Whether the email is a team one: by the folder it is shown in, or out of
+ * a folder by the folders it is in (as `availableEmailActions`)
+ */
+function isTeamEmail(
+  email: TargetEmail,
+  mailboxes: readonly MailboxSummary[],
+  fromMailboxId: string | null
+): boolean {
+  const from = mailboxes.find(mailbox => mailbox.id === fromMailboxId)
+  return from === undefined
+    ? findTeamHomeId(mailboxes, email) !== null
+    : !isPersonalMailbox(from)
+}
+
+/**
  * The emails of a request by the folder they are taken out of. Shown in a
  * folder they are all in it. In a search or in Starred, an email of a team
  * mailbox is taken out of its own folder, so that its Trash is the one of
@@ -380,6 +404,20 @@ export function useEmailActions(): EmailActions {
             })
             .catch(() => null)
         )?.list ?? []
+      // What team mailboxes do not have would move them to personal folders
+      if (PERSONAL_ONLY_ACTIONS.includes(request.action)) {
+        const personal = request.emails.filter(
+          email => !isTeamEmail(email, list, request.mailboxId)
+        )
+        if (personal.length < request.emails.length) {
+          notify({
+            message: t('emailActions.notInTeamMailbox'),
+            severity: 'error'
+          })
+          if (personal.length === 0) return false
+          request = { ...request, emails: personal }
+        }
+      }
       // What the rights of the folders forbid is refused, with its reason
       const right = rightForAction(request.action)
       const allowed = request.emails.filter(email =>

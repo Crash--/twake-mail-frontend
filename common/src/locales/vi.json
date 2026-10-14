@@ -713,6 +713,7 @@
       "label": "Hành động trả lời"
     },
     "noRights": "Bạn không có quyền thực hiện thao tác này trong thư mục này.",
+    "notInTeamMailbox": "Thao tác này không khả dụng trong hộp thư nhóm.",
     "noRightsDestination": "Bạn không thể thêm thư vào thư mục này."
   },
   "shortcuts": {

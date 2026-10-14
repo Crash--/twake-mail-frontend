@@ -713,6 +713,7 @@
       "label": "Actions de réponse"
     },
     "noRights": "Vous n’avez pas le droit de faire cela dans ce dossier.",
+    "notInTeamMailbox": "Cette action n’est pas disponible dans une boîte mail d’équipe.",
     "noRightsDestination": "Vous ne pouvez pas ajouter de messages dans ce dossier."
   },
   "shortcuts": {

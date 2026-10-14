@@ -713,6 +713,7 @@
       "label": "Reply actions"
     },
     "noRights": "You do not have the right to do this in this folder.",
+    "notInTeamMailbox": "This action is not available in a team mailbox.",
     "noRightsDestination": "You cannot add messages to this folder."
   },
   "shortcuts": {

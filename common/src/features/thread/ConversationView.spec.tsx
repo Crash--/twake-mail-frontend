@@ -17,6 +17,9 @@ import {
   installFakeLabels
 } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { AIBOT_CAPABILITY } from '@common/features/scribe/scribe'
+import { AI_LABEL_CATEGORIZATION_KEY } from '@common/features/settings/serverSettings'
+import { NEEDS_ACTION } from '@common/features/email/keywords'
 import { ComposerProvider } from '@common/features/composer/ComposerProvider'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
 import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
@@ -770,6 +773,36 @@ describe('ConversationView, an expanded message', () => {
     expect(server.emails.find(email => email.id === 'b')?.keywords).toEqual({
       $seen: true,
       work: true
+    })
+  })
+
+  it('puts the "Action required" tag on the line of its subject, the × taking it off every message', async () => {
+    const server = makeServer({
+      ...FAKE_LINAGORA_CAPABILITIES,
+      [AIBOT_CAPABILITY]: {}
+    })
+    server.settings[AI_LABEL_CATEGORIZATION_KEY] = 'true'
+    for (const email of server.emails) {
+      if (email.id === 'b' || email.id === 'c') {
+        email.keywords = { ...email.keywords, [NEEDS_ACTION]: true }
+      }
+    }
+    await renderConversation(server)
+
+    const header = screen.getByTestId('conversation-header')
+    const tag = await within(header).findByTestId('action-required-tag')
+    expect(screen.getAllByTestId('action-required-tag')).toEqual([tag])
+
+    await userEvent.click(
+      within(tag).getByRole('button', {
+        name: 'Remove the Action Required tag'
+      })
+    )
+
+    await waitFor(() => {
+      expect(
+        server.emails.filter(email => NEEDS_ACTION in email.keywords)
+      ).toEqual([])
     })
   })
 

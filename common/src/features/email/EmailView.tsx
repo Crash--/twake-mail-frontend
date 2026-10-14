@@ -122,12 +122,18 @@ function EmailContent({
     >
       <EmailSubjectBar
         end={
-          <EmailLabels
-            emails={[email]}
-            mailboxId={mailboxId ?? null}
-            size="small"
-            className=""
-          />
+          <InlineGroup gap={1.5}>
+            <EmailActionRequiredTag
+              emails={[email]}
+              mailboxId={mailboxId ?? null}
+            />
+            <EmailLabels
+              emails={[email]}
+              mailboxId={mailboxId ?? null}
+              size="small"
+              className=""
+            />
+          </InlineGroup>
         }
       >
         <EmailSubject ref={subjectRef} data-testid="email-view-subject">
@@ -141,7 +147,6 @@ function EmailContent({
         }
       >
         {showsImportant ? <ImportantMark showLabel /> : null}
-        <EmailActionRequiredTag email={email} mailboxId={mailboxId ?? null} />
         <MessageHeader
           avatar={
             isDangerous ? (

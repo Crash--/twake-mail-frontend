@@ -21,6 +21,7 @@ import {
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
 import { EmailSubjectBar } from '@/ds/EmailSubject/EmailSubjectBar'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageThread } from '@/ds/MessageThread/MessageThread'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
@@ -40,6 +41,7 @@ import {
   useEmailActions,
   type EmailActionName
 } from '@common/features/emailActions/useEmailActions'
+import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredTag'
 import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -309,12 +311,15 @@ function ConversationContent({
     >
       <EmailSubjectBar
         end={
-          <EmailLabels
-            emails={emails}
-            mailboxId={null}
-            size="small"
-            className=""
-          />
+          <InlineGroup gap={1.5}>
+            <EmailActionRequiredTag emails={emails} mailboxId={null} />
+            <EmailLabels
+              emails={emails}
+              mailboxId={null}
+              size="small"
+              className=""
+            />
+          </InlineGroup>
         }
         data-testid="conversation-header"
       >

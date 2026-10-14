@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 import { Route } from 'react-router'
+import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import {
   makeBodyPart,
@@ -12,6 +13,8 @@ import {
   makeMailbox,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+import { AIBOT_CAPABILITY } from '@common/features/scribe/scribe'
+import { AI_LABEL_CATEGORIZATION_KEY } from '@common/features/settings/serverSettings'
 import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 import { readObjectUrl } from '@common/testing/objectUrls'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -19,6 +22,7 @@ import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EMAIL_FRAME_SANDBOX } from './EmailBodyFrame'
 import { EmailView } from './EmailView'
+import { NEEDS_ACTION } from './keywords'
 import { TRUSTED_SENDERS_STORAGE_KEY } from './trustedSenders'
 
 const TRACKED_HTML =
@@ -464,6 +468,29 @@ describe('EmailView', () => {
     const insetSubjectBar = insetSubject.parentElement?.parentElement
     expect(insetSubjectBar).toHaveStyle({ paddingLeft: '0px' })
     expect(insetSubjectBar?.nextElementSibling).toHaveClass('u-ph-half')
+  })
+
+  it('puts the "Action required" tag on the line of the subject, as tmail-flutter', async () => {
+    renderView(
+      makeFakeJmapServer({
+        capabilities: {
+          [AIBOT_CAPABILITY]: {},
+          [LINAGORA_CAPABILITIES.settings]: {}
+        },
+        settings: { [AI_LABEL_CATEGORIZATION_KEY]: 'true' },
+        emails: [
+          makeEmailWithBody(
+            { id: 'e1', keywords: { $seen: true, [NEEDS_ACTION]: true } },
+            { text: 'Hello' }
+          )
+        ]
+      })
+    )
+
+    const tag = await screen.findByTestId('action-required-tag')
+    const subjectBar =
+      screen.getByTestId('email-view-subject').parentElement?.parentElement
+    expect(subjectBar).toContainElement(tag)
   })
 
   it('offers no "Reply all" to an email between the sender and the user', async () => {

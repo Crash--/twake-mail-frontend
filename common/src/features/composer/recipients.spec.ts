@@ -53,7 +53,9 @@ describe('isValidEmail', () => {
   it.each([
     ['alice@example.com', true],
     ['alice.martin+news@mail.example.co.uk', true],
-    ['alice@localhost', false],
+    ['alice@localhost', true],
+    ['bob@intranet', true],
+    ['alice@-localhost', false],
     ['alice', false],
     ['alice@', false],
     ['@example.com', false],

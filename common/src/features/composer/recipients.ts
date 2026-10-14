@@ -29,11 +29,12 @@ const LABEL = `${LABEL_EDGE}(?:[^${FORBIDDEN}]*${LABEL_EDGE})?`
 
 /**
  * A dot-atom local part (no leading, trailing or doubled dot, RFC 5322)
- * and a domain of at least two labels
+ * and a domain of one or more labels: a single-label domain (`localhost`,
+ * an intranet host) is accepted, as tmail-flutter does
  */
-const EMAIL = new RegExp(`^${ATOM}(?:\\.${ATOM})*@${LABEL}(?:\\.${LABEL})+$`)
+const EMAIL = new RegExp(`^${ATOM}(?:\\.${ATOM})*@${LABEL}(?:\\.${LABEL})*$`)
 
-/** Whether an address can be sent to (a local part, a domain with a dot) */
+/** Whether an address can be sent to (a local part and a domain) */
 export function isValidEmail(email: string): boolean {
   return EMAIL.test(email)
 }

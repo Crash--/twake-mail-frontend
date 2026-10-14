@@ -24,6 +24,7 @@ import {
   findDescendantIds,
   findMailboxIdByRole,
   listVisibleMailboxes,
+  pruneMailboxRoles,
   teamMailboxAddress,
   type MailboxNode
 } from './mailboxTree'
@@ -447,5 +448,46 @@ describe('splitPersonalTree', () => {
 
     expect(names(system)).toEqual(['INBOX', 'Spam', 'templates', 'Archive'])
     expect(names(folders)).toEqual(['Clients', 'Projects'])
+  })
+})
+
+describe('pruneMailboxRoles', () => {
+  it('leaves out the folders of the roles and what they hold, in the team mailboxes too', () => {
+    const tree = buildMailboxTree([
+      makeMailbox({ id: 'inbox', name: 'INBOX', role: 'inbox' }),
+      makeMailbox({ id: 'outbox', name: 'Outbox', role: 'outbox' }),
+      makeMailbox({ id: 'drafts', name: 'Drafts', role: 'drafts' }),
+      makeMailbox({ id: 'old', name: 'Old', parentId: 'drafts' }),
+      makeMailbox({ id: 'templates', name: 'Templates' }),
+      makeMailbox({ id: 'projects', name: 'Projects' }),
+      makeMailbox({ id: 'sub', name: 'Drafts', parentId: 'projects' }),
+      ...makeTeamMailboxes({ id: 'team' })
+    ])
+
+    const pruned = pruneMailboxRoles(tree, ['outbox', 'drafts', 'templates'])
+
+    expect(
+      listVisibleMailboxes(pruned, () => true)
+        .map(({ mailbox }) => mailbox.id)
+        .sort()
+    ).toEqual(
+      [
+        'inbox',
+        'projects',
+        'sub',
+        'team',
+        'team-inbox',
+        'team-sent',
+        'team-trash'
+      ].sort()
+    )
+  })
+
+  it('keeps every folder without roles to leave out', () => {
+    const tree = buildMailboxTree([
+      makeMailbox({ id: 'outbox', name: 'Outbox', role: 'outbox' })
+    ])
+
+    expect(names(pruneMailboxRoles(tree, []))).toEqual(['Outbox'])
   })
 })

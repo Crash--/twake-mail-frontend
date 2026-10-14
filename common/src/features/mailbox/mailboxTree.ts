@@ -344,6 +344,35 @@ export function isTemplatesMailbox(
   )
 }
 
+/**
+ * Whether a folder holds a system role: its JMAP role, the folder of that
+ * name in a team mailbox (they have no role), the Templates folder of the
+ * user without role
+ */
+export function hasMailboxRole(
+  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace' | 'parentId'>,
+  role: string
+): boolean {
+  return (
+    mailbox.role === role ||
+    isTeamFolderNamed(mailbox, role) ||
+    (role === 'templates' && isTemplatesMailbox(mailbox))
+  )
+}
+
+/** The trees without the folders of these roles, nor what they hold */
+export function pruneMailboxRoles(
+  trees: readonly MailboxNode[],
+  roles: readonly string[]
+): MailboxNode[] {
+  return trees
+    .filter(node => !roles.some(role => hasMailboxRole(node.mailbox, role)))
+    .map(node => ({
+      mailbox: node.mailbox,
+      children: pruneMailboxRoles(node.children, roles)
+    }))
+}
+
 /** The Templates folder, null before it is created */
 export function findTemplatesMailboxId(
   mailboxes: readonly MailboxSummary[]

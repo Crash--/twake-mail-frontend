@@ -64,6 +64,12 @@ import {
 /** Most action rows: move or spam, seen, star, forward (reject stays alone) */
 const MAX_ACTIONS = 4
 
+/**
+ * Folders a rule cannot file into (tmail-flutter#4871): an email in the
+ * Outbox can be picked up for sending
+ */
+const RULE_EXCLUDED_ROLES: readonly string[] = ['outbox', 'drafts', 'templates']
+
 const FORWARD_PROBLEMS: readonly TranslationKey[] = [
   'rules.errors.noForwardAddress',
   'rules.errors.invalidForwardAddress'
@@ -160,7 +166,10 @@ export function RuleFormDialog({
   }
 
   const handleChooseFolder = (index: number): void => {
-    pickMailbox({ title: t('rules.form.chooseFolder') })
+    pickMailbox({
+      title: t('rules.form.chooseFolder'),
+      excludedRoles: RULE_EXCLUDED_ROLES
+    })
       .then(mailbox => {
         if (mailbox !== null && typeof mailbox !== 'string') {
           updateAction(index, { mailboxId: mailbox.id })

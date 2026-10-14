@@ -25,6 +25,7 @@ import {
   isTeamRoot,
   listVisibleMailboxes,
   mailboxPath,
+  pruneMailboxRoles,
   splitPersonalTree,
   teamMailboxAddress,
   type MailboxNode
@@ -53,6 +54,11 @@ export interface PickMailboxOptions {
   requireAddItems?: boolean
   /** The personal folders only, not the team mailboxes */
   personalOnly?: boolean
+  /**
+   * The folders of these roles (and what they hold) are not offered, in the
+   * team mailboxes too, e.g. Outbox, Drafts and Templates for a rule
+   */
+  excludedRoles?: readonly string[]
   /** Said after the folder concerned, "current folder" by default */
   currentLabel?: string
 }
@@ -168,31 +174,32 @@ export function MailboxPickerProvider({
     const disabled = new Set(pending.disabledIds ?? [])
     const { personal, team } = buildMailboxSections(mailboxes, false)
     const { system, folders } = splitPersonalTree(personal)
+    const excludedRoles = pending.excludedRoles ?? []
     const toOptions = (trees: readonly MailboxNode[]): FolderPickerOption[] =>
-      listVisibleMailboxes(trees, () => true).map(
-        ({ mailbox, level, hasChildren }): FolderPickerOption => {
-          const isRoot = isTeamRoot(mailbox)
-          return {
-            id: mailbox.id,
-            label: getName(mailbox),
-            // Searched by its path; a team mailbox by its address too
-            secondary: mailboxPath(mailboxes, mailbox.id, getName),
-            // As tmail-flutter: a team mailbox shows its address, no icon
-            subtitle: isRoot
-              ? (teamMailboxAddress(mailbox) ?? mailbox.name)
-              : null,
-            level,
-            parentId: mailbox.parentId,
-            hasChildren,
-            icon: isRoot ? null : getMailboxIcon(mailbox),
-            isCurrent: mailbox.id === pending.currentId,
-            disabled:
-              disabled.has(mailbox.id) ||
-              (pending.requireAddItems === true &&
-                !mailbox.myRights.mayAddItems)
-          }
+      listVisibleMailboxes(
+        pruneMailboxRoles(trees, excludedRoles),
+        () => true
+      ).map(({ mailbox, level, hasChildren }): FolderPickerOption => {
+        const isRoot = isTeamRoot(mailbox)
+        return {
+          id: mailbox.id,
+          label: getName(mailbox),
+          // Searched by its path; a team mailbox by its address too
+          secondary: mailboxPath(mailboxes, mailbox.id, getName),
+          // As tmail-flutter: a team mailbox shows its address, no icon
+          subtitle: isRoot
+            ? (teamMailboxAddress(mailbox) ?? mailbox.name)
+            : null,
+          level,
+          parentId: mailbox.parentId,
+          hasChildren,
+          icon: isRoot ? null : getMailboxIcon(mailbox),
+          isCurrent: mailbox.id === pending.currentId,
+          disabled:
+            disabled.has(mailbox.id) ||
+            (pending.requireAddItems === true && !mailbox.myRights.mayAddItems)
         }
-      )
+      })
     const rootLabel = pending.rootLabel
     const root: FolderPickerOption[] =
       rootLabel === undefined

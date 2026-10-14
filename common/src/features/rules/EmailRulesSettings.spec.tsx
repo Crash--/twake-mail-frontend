@@ -2,12 +2,15 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Rule } from 'jmap-client-ts/linagora'
 
+import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
 import {
   SETTINGS_SECTIONS,
   type SettingsSection
 } from '@common/features/settings/sections'
 import {
+  makeDefaultMailboxes,
   makeFakeJmapServer,
+  makeMailbox,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import {
@@ -244,6 +247,45 @@ describe('EmailRulesSettings', () => {
         }
       }
     ])
+  })
+
+  it('does not offer to file into the Outbox, Drafts or Templates', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES,
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'mailbox-outbox', name: 'Outbox', role: 'outbox' }),
+        makeMailbox({ id: 'mailbox-templates', name: 'Templates' }),
+        makeMailbox({ id: 'mailbox-work', name: 'Work' })
+      ]
+    })
+    installFakeFilter(server, [NEWSLETTERS])
+    renderWithProviders(
+      <MailboxPickerProvider>
+        <EmailRulesSettings section={rulesSection()} />
+      </MailboxPickerProvider>,
+      {
+        jmapServer: server,
+        withJmapSession: true,
+        route: { pathname: '/settings/email-rules' }
+      }
+    )
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Edit Newsletters' })
+    )
+    await userEvent.click(screen.getByTestId('rule-action-folder-button'))
+
+    const picker = await screen.findByRole('dialog', {
+      name: 'Choose a folder'
+    })
+    expect(within(picker).getByRole('option', { name: /Inbox/ })).toBeVisible()
+    expect(within(picker).getByRole('option', { name: /Work/ })).toBeVisible()
+    expect(within(picker).queryByRole('option', { name: /Outbox/ })).toBe(null)
+    expect(within(picker).queryByRole('option', { name: /Drafts/ })).toBe(null)
+    expect(within(picker).queryByRole('option', { name: /Templates/ })).toBe(
+      null
+    )
   })
 
   it('creates a rule forwarding to valid addresses', async () => {

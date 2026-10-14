@@ -26,10 +26,15 @@ import { useEmailActions, type EmailActionName } from './useEmailActions'
 interface ActionButtonProps {
   action: EmailActionName
   emailIds: string[]
+  destinationId?: string
 }
 
 /** Runs an action on emails of the cache, as the screens will */
-function ActionButton({ action, emailIds }: ActionButtonProps): ReactElement {
+function ActionButton({
+  action,
+  emailIds,
+  destinationId
+}: ActionButtonProps): ReactElement {
   const { run } = useEmailActions()
   const queryClient = useQueryClient()
   const handleClick = (): void => {
@@ -37,7 +42,7 @@ function ActionButton({ action, emailIds }: ActionButtonProps): ReactElement {
       const email = findCachedEmail(queryClient, FAKE_ACCOUNT_ID, id)
       return email === null ? [] : [email]
     })
-    void run({ action, emails, mailboxId: 'mailbox-inbox' })
+    void run({ action, emails, mailboxId: 'mailbox-inbox', destinationId })
   }
   return (
     <button type="button" onClick={handleClick}>
@@ -161,6 +166,44 @@ describe('useEmailActions', () => {
         server.emails.find(email => email.id === 'e1')?.mailboxIds
       ).toEqual({ 'mailbox-inbox': true })
     })
+  })
+
+  it('marks the emails moved to Spam as read', async () => {
+    const server = makeServer()
+    await renderActions(server, [
+      { action: 'moveTo', emailIds: ['e1'], destinationId: 'mailbox-spam' }
+    ])
+
+    await userEvent.click(screen.getByRole('button', { name: 'Run moveTo' }))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Moved to Spam'
+    )
+    expect(unreadCount('junk')).toBe(null)
+    expect(emailSets(server)).toEqual([
+      {
+        accountId: FAKE_ACCOUNT_ID,
+        update: {
+          e1: {
+            'mailboxIds/mailbox-inbox': null,
+            'mailboxIds/mailbox-spam': true,
+            'keywords/$seen': true
+          }
+        }
+      }
+    ])
+  })
+
+  it('keeps the emails moved to another folder unread', async () => {
+    const server = makeServer()
+    await renderActions(server, [
+      { action: 'moveTo', emailIds: ['e1'], destinationId: 'mailbox-archive' }
+    ])
+
+    await userEvent.click(screen.getByRole('button', { name: 'Run moveTo' }))
+
+    await screen.findByTestId('toast')
+    expect(server.emails.find(email => email.id === 'e1')?.keywords).toEqual({})
   })
 
   it('sends a selection in batches of the server limit', async () => {

@@ -189,9 +189,17 @@ function toOperation(
         ? null
         : { kind: 'keyword', keyword, isSet: true }
     case 'moveTo':
+      // Into Spam it is read, as "Mark as spam" (tmail-flutter #2203)
       return destinationId === undefined
         ? null
-        : { kind: 'move', from: mailboxId, to: destinationId }
+        : {
+            kind: 'move',
+            from: mailboxId,
+            to: destinationId,
+            markSeen: mailboxes.some(
+              mailbox => mailbox.id === destinationId && mailbox.role === 'junk'
+            )
+          }
     default: {
       const to = findActionDestination(mailboxes, action, mailboxId)
       return to === null

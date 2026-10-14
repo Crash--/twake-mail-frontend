@@ -142,28 +142,25 @@ export function AdvancedSearchDialog({
    * ArrowUp or ArrowDown from the keyboard), joining it unless already
    * there; emails dragged from the list add their senders
    */
-  const moveAddress = (from: AddressKind, entry: string): void => {
+  const moveAddress = (from: AddressKind, entry: string): string => {
     const to: AddressKind = from === 'from' ? 'to' : 'from'
     setDraft(current => ({
       ...current,
       [to]: mergeEntries(current[to], [entry]),
       [from]: current[from].filter(other => other !== entry)
     }))
+    return t('composer.recipients.moved', {
+      address: entry,
+      field: t(to === 'from' ? 'search.fields.from' : 'search.fields.to')
+    })
   }
   const dndOf = (kind: AddressKind): RecipientFieldDnd => ({
     group: id,
     field: kind,
-    onMoveIn: (from, entry) => {
-      if (from === 'from' || from === 'to') moveAddress(from, entry)
-    },
-    onMoveBy: (entry, delta) => {
-      if ((kind === 'from') !== (delta === 1)) return null
-      moveAddress(kind, entry)
-      return t('composer.recipients.moved', {
-        address: entry,
-        field: t(kind === 'from' ? 'search.fields.to' : 'search.fields.from')
-      })
-    },
+    onMoveIn: (from, entry) =>
+      from === 'from' || from === 'to' ? moveAddress(from, entry) : null,
+    onMoveBy: (entry, delta) =>
+      (kind === 'from') === (delta === 1) ? moveAddress(kind, entry) : null,
     accepts: types => types.includes(DRAGGED_EMAILS_TYPE),
     onDrop: dataTransfer => {
       const dragged = readDraggedEmails(dataTransfer)

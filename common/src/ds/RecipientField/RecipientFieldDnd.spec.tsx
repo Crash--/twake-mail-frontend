@@ -52,6 +52,7 @@ function Harness({
     to: ['alice@example.com', 'bob@example.com'],
     cc: ['bob@example.com']
   })
+  const [inputs, setInputs] = useState<Record<string, string>>({})
   const kinds = ['to', 'cc']
   const move = (from: string, to: string, id: string): void => {
     setLists(current => ({
@@ -69,9 +70,17 @@ function Harness({
           key={kind}
           labels={{ ...LABELS, field: kind === 'to' ? 'To' : 'Cc' }}
           chips={(lists[kind] ?? []).map(toChip)}
-          inputValue=""
-          onInputChange={jest.fn()}
-          onCommit={jest.fn()}
+          inputValue={inputs[kind] ?? ''}
+          onInputChange={value => {
+            setInputs(current => ({ ...current, [kind]: value }))
+          }}
+          onCommit={text => {
+            setInputs(current => ({ ...current, [kind]: '' }))
+            setLists(current => ({
+              ...current,
+              [kind]: [...(current[kind] ?? []), text]
+            }))
+          }}
           onRemove={jest.fn()}
           onEdit={jest.fn()}
           onCancelEdit={jest.fn()}
@@ -82,6 +91,7 @@ function Harness({
             field: kind,
             onMoveIn: (from, id) => {
               move(from, kind, id)
+              return `${id} moved to ${kind}`
             },
             onMoveBy: (id, delta) => {
               const target = kinds[kinds.indexOf(kind) + delta]
@@ -103,6 +113,10 @@ function chipsOf(kind: string): string[] {
   return screen
     .queryAllByTestId(`${kind}-chip`)
     .map(chip => chip.getAttribute('aria-label') ?? '')
+}
+
+function statusOf(kind: string): HTMLElement {
+  return within(screen.getByTestId(`${kind}-field`)).getByRole('status')
 }
 
 function drag(chip: HTMLElement, target: HTMLElement): void {
@@ -183,9 +197,9 @@ describe('RecipientField drag and drop', () => {
 
     expect(chipsOf('to')).toEqual(['bob@example.com'])
     expect(chipsOf('cc')).toEqual(['bob@example.com', 'alice@example.com'])
-    expect(
-      within(screen.getByTestId('to-field')).getByRole('status')
-    ).toHaveTextContent('alice@example.com moved to cc')
+    expect(statusOf('to')).toHaveTextContent('alice@example.com moved to cc')
+    // Once: the field it joins does not say it was added
+    expect(statusOf('cc')).toHaveTextContent('')
     // The next tag of the field takes the focus, as after a removal
     expect(screen.getAllByTestId('to-chip')[0]).toHaveFocus()
 
@@ -195,5 +209,41 @@ describe('RecipientField drag and drop', () => {
     await userEvent.keyboard('{Alt>}{ArrowUp}{/Alt}')
     expect(chipsOf('to')).toEqual(['bob@example.com'])
     expect(bob).toHaveFocus()
+  })
+
+  it('says a dropped tag moved, once, in the field it joins', async () => {
+    renderDs(<Harness />)
+    const alice = screen.getAllByTestId('to-chip')[0]
+    if (!alice) throw new Error('No tag')
+    act(() => {
+      alice.focus()
+    })
+    await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}')
+    const moved = screen.getAllByTestId('cc-chip')[1]
+    if (!moved) throw new Error('No tag')
+
+    drag(moved, screen.getByTestId('to-field'))
+
+    expect(chipsOf('to')).toEqual(['bob@example.com', 'alice@example.com'])
+    expect(statusOf('to')).toHaveTextContent('alice@example.com moved to to')
+    expect(statusOf('cc')).toHaveTextContent('')
+  })
+
+  it('says an address typed after a move was added', async () => {
+    renderDs(<Harness />)
+    const alice = screen.getAllByTestId('to-chip')[0]
+    if (!alice) throw new Error('No tag')
+    act(() => {
+      alice.focus()
+    })
+    await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}')
+
+    await userEvent.type(
+      within(screen.getByTestId('to-field')).getByRole('combobox'),
+      'alice@example.com{Enter}'
+    )
+
+    expect(chipsOf('to')).toEqual(['bob@example.com', 'alice@example.com'])
+    expect(statusOf('to')).toHaveTextContent('alice@example.com added')
   })
 })

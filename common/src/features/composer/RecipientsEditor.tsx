@@ -173,15 +173,16 @@ export function RecipientsEditor({
 
   /**
    * tmail-flutter's move: the recipient joins `to` unless already there,
-   * and leaves `from` anyway
+   * and leaves `from` anyway. Says what to announce, null when it did not
+   * move
    */
   const moveRecipient = (
     from: RecipientKind,
     to: RecipientKind,
     email: string
-  ): boolean => {
+  ): string | null => {
     const recipient = recipients[from].find(other => other.email === email)
-    if (from === to || recipient === undefined) return false
+    if (from === to || recipient === undefined) return null
     if (!hasRecipient(recipients[to], email)) {
       onChange(to, [...recipients[to], recipient])
     }
@@ -189,7 +190,10 @@ export function RecipientsEditor({
       from,
       recipients[from].filter(other => other !== recipient)
     )
-    return true
+    return t('composer.recipients.moved', {
+      address: recipient.name ?? recipient.email,
+      field: t(LABEL_KEYS[to])
+    })
   }
 
   const dropEmails = (
@@ -214,24 +218,17 @@ export function RecipientsEditor({
   ): RecipientFieldDnd => ({
     group: dragGroup,
     field: kind,
-    onMoveIn: (from, email) => {
-      if (isRecipientKind(from)) moveRecipient(from, kind, email)
-    },
+    onMoveIn: (from, email) =>
+      isRecipientKind(from) ? moveRecipient(from, kind, email) : null,
     // Said in the help of the tags only when there is another field
     ...(kinds.length < 2
       ? {}
       : {
           onMoveBy: (email: string, delta: -1 | 1): string | null => {
             const target = kinds[kinds.indexOf(kind) + delta]
-            const recipient = recipients[kind].find(
-              other => other.email === email
-            )
-            if (target === undefined || recipient === undefined) return null
-            moveRecipient(kind, target, email)
-            return t('composer.recipients.moved', {
-              address: recipient.name ?? recipient.email,
-              field: t(LABEL_KEYS[target])
-            })
+            return target === undefined
+              ? null
+              : moveRecipient(kind, target, email)
           }
         }),
     accepts: types => types.includes(DRAGGED_EMAILS_TYPE),

@@ -80,3 +80,25 @@ export function readRecipientDrag(
   }
   return null
 }
+
+/**
+ * The last tag moved between the fields of a group (dropped, or Alt + an
+ * arrow), and the field that says so: the move is announced once, by it,
+ * not as an address added by the field it joins
+ */
+export interface RecipientMove {
+  group: string
+  id: string
+  announcer: string
+}
+
+let lastMove: RecipientMove | null = null
+
+/** A tag moves (null: whatever the user does next is not a move) */
+export function noteRecipientMove(move: RecipientMove | null): void {
+  lastMove = move
+}
+
+export function lastRecipientMove(): RecipientMove | null {
+  return lastMove
+}

@@ -37,6 +37,8 @@ import { RecipientAvatar } from './RecipientAvatar'
 import {
   currentRecipientDrag,
   endRecipientDrag,
+  lastRecipientMove,
+  noteRecipientMove,
   readRecipientDrag,
   RECIPIENT_DRAG_TYPE,
   startRecipientDrag
@@ -275,8 +277,11 @@ export interface RecipientFieldDnd {
   group: string
   /** This field, in its group */
   field: string
-  /** The tag `id` of the field `from` of the group was dropped here */
-  onMoveIn: (from: string, id: string) => void
+  /**
+   * The tag `id` of the field `from` of the group was dropped here. Says
+   * what to announce, null when it did not move
+   */
+  onMoveIn: (from: string, id: string) => string | null
   /**
    * The keyboard way of the same move (dragging is pointer only): Alt +
    * ArrowUp or ArrowDown on a tag moves it to the field before or after.
@@ -482,17 +487,31 @@ export function RecipientField({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
-  // Adding chips is announced as removing one is
+  // Adding chips is announced as removing one is; a tag moved between
+  // fields only by the field saying it moved
   useEffect(() => {
     const before = previousIds.current
-    previousIds.current = chips.map(chip => chip.id)
+    const ids = chips.map(chip => chip.id)
+    previousIds.current = ids
     if (before === null) return
     const known = new Set(before)
-    const added = chips.filter(chip => !known.has(chip.id))
+    const lastMove = lastRecipientMove()
+    const move =
+      dnd !== undefined && lastMove?.group === dnd.group ? lastMove : null
+    const added = chips.filter(
+      chip => !known.has(chip.id) && chip.id !== move?.id
+    )
     const restored = isRestoring.current
     isRestoring.current = false
     if (added.length > 0 && !restored) {
       setAnnouncement(labels.added(added.map(chip => chip.label)))
+    } else if (
+      move !== null &&
+      move.announcer !== dnd?.field &&
+      known.has(move.id) !== ids.includes(move.id)
+    ) {
+      // What it said before is not about this move
+      setAnnouncement('')
     }
     // The text is the caller's: only a change of the chips is said
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -507,12 +526,14 @@ export function RecipientField({
     if (text.trim() === '') return
     close()
     isEditing.current = false
+    noteRecipientMove(null)
     onCommit(text)
   }
 
   const select = (suggestion: RecipientFieldSuggestion): void => {
     close()
     isEditing.current = false
+    noteRecipientMove(null)
     onSelectSuggestion(suggestion.id)
     inputRef.current?.focus()
   }
@@ -596,6 +617,7 @@ export function RecipientField({
     // The next chip takes the focus, or the input after the last one
     pendingFocus.current = index < chips.length - 1 ? index : -1
     setAnnouncement(labels.removed(chip.label))
+    noteRecipientMove(null)
     onRemove(chip.id)
   }
 
@@ -603,9 +625,11 @@ export function RecipientField({
     const chip = chips[index]
     if (!chip || dnd?.onMoveBy === undefined) return
     pendingFocus.current = index < chips.length - 1 ? index : -1
+    noteRecipientMove({ group: dnd.group, id: chip.id, announcer: dnd.field })
     const said = dnd.onMoveBy(chip.id, delta)
     if (said === null) {
       pendingFocus.current = null
+      noteRecipientMove(null)
       return
     }
     setAnnouncement(said)
@@ -646,9 +670,16 @@ export function RecipientField({
     setIsDropOver(false)
     const drag = readRecipientDrag(event.dataTransfer)
     if (drag === null) {
+      noteRecipientMove(null)
       dnd.onDrop?.(event.dataTransfer)
     } else if (drag.group === dnd.group && drag.field !== dnd.field) {
-      dnd.onMoveIn(drag.field, drag.id)
+      noteRecipientMove({ group: dnd.group, id: drag.id, announcer: dnd.field })
+      const said = dnd.onMoveIn(drag.field, drag.id)
+      if (said === null) {
+        noteRecipientMove(null)
+      } else {
+        setAnnouncement(said)
+      }
     }
   }
 
@@ -657,6 +688,7 @@ export function RecipientField({
     if (!chip) return
     pendingFocus.current = -1
     isEditing.current = true
+    noteRecipientMove(null)
     onEdit(chip.id)
   }
 

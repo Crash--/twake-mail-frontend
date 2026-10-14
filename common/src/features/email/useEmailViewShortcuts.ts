@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import {
@@ -34,11 +34,39 @@ interface Neighbors {
   nextId: string | null
 }
 
+const NO_NEIGHBORS: Neighbors = { previousId: null, nextId: null }
+
+interface KnownNeighbors {
+  emailId: string
+  neighbors: Neighbors
+}
+
 /**
  * The emails around `emailId` in the list of its folder, if any: the list
- * its rows show (conversations, filter), so that both follow one order
+ * its rows show (conversations, filter), so that both follow one order.
+ * Once the email leaves that list (read under the Unread filter, archived…),
+ * they stay the ones of the rows shown when it was in it
  */
 function useNeighbors(mailboxId: string | null, emailId: string): Neighbors {
+  const listed = useListedNeighbors(mailboxId, emailId)
+  const [known, setKnown] = useState<KnownNeighbors | null>(null)
+  if (
+    listed !== null &&
+    (known?.emailId !== emailId ||
+      known.neighbors.previousId !== listed.previousId ||
+      known.neighbors.nextId !== listed.nextId)
+  ) {
+    setKnown({ emailId, neighbors: listed })
+  }
+  if (listed !== null) return listed
+  return known?.emailId === emailId ? known.neighbors : NO_NEIGHBORS
+}
+
+/** The emails around `emailId` in the list, null when it is not listed */
+function useListedNeighbors(
+  mailboxId: string | null,
+  emailId: string
+): Neighbors | null {
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const { isEnabled: collapseThreads } = useThreadPreference()
@@ -58,7 +86,7 @@ function useNeighbors(mailboxId: string | null, emailId: string): Neighbors {
       page.emails.map(email => email.id)
     )
     const index = ids.indexOf(emailId)
-    if (index === -1) return { previousId: null, nextId: null }
+    if (index === -1) return null
     return {
       previousId: ids[index - 1] ?? null,
       nextId: ids[index + 1] ?? null
@@ -106,14 +134,7 @@ export function useEmailViewShortcuts({
   const removeEmails = useRemoveEmails()
   const neighbors = useNeighbors(mailboxId, emailId)
   const replies = useReplyOptions(email)
-  const lastNeighbors = useRef(neighbors)
   const wasInMailbox = useRef(false)
-
-  useEffect(() => {
-    if (neighbors.previousId !== null || neighbors.nextId !== null) {
-      lastNeighbors.current = neighbors
-    }
-  }, [neighbors])
 
   const isInMailbox =
     !leavesWhenMoved ||
@@ -128,13 +149,13 @@ export function useEmailViewShortcuts({
     if (!wasInMailbox.current || email === undefined) return
     wasInMailbox.current = false
     // Without a neighbor known, the list focuses its first row
-    const { nextId, previousId } = lastNeighbors.current
+    const { nextId, previousId } = neighbors
     const focusEmailId = nextId ?? previousId ?? emailId
     void navigate(backPath, {
       state: { focusEmailId } satisfies EmailListLocationState,
       viewTransition: prepareViewTransition('backward')
     })
-  }, [isInMailbox, email, emailId, backPath, navigate])
+  }, [isInMailbox, email, emailId, neighbors, backPath, navigate])
 
   // The next email comes in like an opened one, the previous one the other way
   const open = (

@@ -7,6 +7,7 @@ import { Outlet, Route, useParams } from 'react-router'
 import { EmailView } from '@common/features/email/EmailView'
 import { ShortcutsProvider } from '@common/features/shortcuts/ShortcutsProvider'
 import { EmailList } from '@common/features/thread/EmailList'
+import { ListFilterProvider } from '@common/features/thread/ListFilterProvider'
 import {
   makeDefaultMailboxes,
   makeEmailWithBody,
@@ -20,11 +21,13 @@ import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 function MailScreen(): ReactElement {
   return (
     <ShortcutsProvider>
-      <VirtuosoMockContext.Provider
-        value={{ viewportHeight: 10_000, itemHeight: 56 }}
-      >
-        <Outlet />
-      </VirtuosoMockContext.Provider>
+      <ListFilterProvider>
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 10_000, itemHeight: 56 }}
+        >
+          <Outlet />
+        </VirtuosoMockContext.Provider>
+      </ListFilterProvider>
     </ShortcutsProvider>
   )
 }
@@ -223,6 +226,46 @@ describe('Previous / Next with conversations', () => {
     await waitFor(() => {
       expect(screen.getByTestId('conversation-subject')).toHaveTextContent(
         'Third'
+      )
+    })
+  })
+})
+
+describe('Previous / Next with the Unread filter', () => {
+  listEmailsOneByOne()
+
+  it('keeps the rows shown when the email opened, though it is now read', async () => {
+    const server = makeServer()
+    server.emails.forEach(email => {
+      email.keywords = {}
+    })
+    renderMailScreen(server, '/mailbox/mailbox-inbox')
+    await screen.findByText('First')
+    await userEvent.click(screen.getByTestId('list-filter-button'))
+    await userEvent.click(await screen.findByTestId('quick-filter-unread'))
+
+    await userEvent.click(rowLink('Second'))
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'e2')?.keywords).toEqual({
+        $seen: true
+      })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('email-view-next-button')).toBeEnabled()
+    })
+    expect(screen.getByTestId('email-view-previous-button')).toBeEnabled()
+    await userEvent.keyboard('j')
+    await waitFor(() => {
+      expect(screen.getByTestId('email-view-subject')).toHaveTextContent(
+        'Third'
+      )
+    })
+    // "Second" left the filtered rows: above "Third" is now "First"
+    await userEvent.click(screen.getByTestId('email-view-previous-button'))
+    await waitFor(() => {
+      expect(screen.getByTestId('email-view-subject')).toHaveTextContent(
+        'First'
       )
     })
   })

@@ -1255,7 +1255,7 @@
     "colorHexInvalid": "Enter a color as #RRGGBB, for example #1A2B3C",
     "colorPicker": "Open the color picker",
     "removeFromEmail": "Remove the label %{name}",
-    "moreNames": "%{count} more labels: %{names}",
+    "moreNames": "%{smart_count} more label: %{names} |||| %{smart_count} more labels: %{names}",
     "listLabel": "Labels of the email"
   },
   "quota": {

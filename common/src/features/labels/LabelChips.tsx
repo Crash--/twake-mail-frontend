@@ -97,7 +97,7 @@ export function LabelChips({
             </span>
           </Tooltip>
           <span className="u-visuallyhidden">
-            {t('labels.moreNames', { count: hidden, names: hiddenNames })}
+            {t('labels.moreNames', { smart_count: hidden, names: hiddenNames })}
           </span>
         </Box>
       ) : null}

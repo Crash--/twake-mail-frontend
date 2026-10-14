@@ -1255,7 +1255,7 @@
     "colorHexInvalid": "Saisissez une couleur au format #RRGGBB, par exemple #1A2B3C",
     "colorPicker": "Ouvrir le sélecteur de couleur",
     "removeFromEmail": "Retirer le libellé %{name}",
-    "moreNames": "%{count} autres libellés : %{names}",
+    "moreNames": "%{smart_count} autre libellé : %{names} |||| %{smart_count} autres libellés : %{names}",
     "listLabel": "Libellés de l'e-mail"
   },
   "quota": {

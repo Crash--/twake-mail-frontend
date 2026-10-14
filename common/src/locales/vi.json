@@ -1255,7 +1255,7 @@
     "colorHexInvalid": "Nhập màu theo định dạng #RRGGBB, ví dụ #1A2B3C",
     "colorPicker": "Mở bộ chọn màu",
     "removeFromEmail": "Gỡ nhãn %{name}",
-    "moreNames": "%{count} nhãn khác: %{names}",
+    "moreNames": "%{smart_count} nhãn khác: %{names}",
     "listLabel": "Nhãn của email"
   },
   "quota": {

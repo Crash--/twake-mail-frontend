@@ -30,6 +30,14 @@ describe('LabelChips', () => {
     expect(list).toHaveTextContent('2 more labels: Urgent, Personal')
   })
 
+  it('names a single hidden label in the singular', () => {
+    renderWithProviders(<LabelChips labels={LABELS} max={2} size="small" />)
+
+    const list = screen.getByRole('list', { name: 'Labels of the email' })
+    expect(within(list).getByTestId('label-chip-more')).toHaveTextContent('+1')
+    expect(list).toHaveTextContent('1 more label: Personal')
+  })
+
   it('shows every label without a maximum', () => {
     renderWithProviders(<LabelChips labels={LABELS} />)
 

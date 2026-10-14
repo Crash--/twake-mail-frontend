@@ -70,9 +70,13 @@ export interface NavTreeItemProps {
   /** The icon, 16 px: an `Icon`; it takes the colour of the row; or none */
   icon: ReactNode | null
   label: string
-  /** The link component (e.g. the router `Link`) and where it goes */
-  linkComponent: ElementType
-  to: string
+  /**
+   * The link component (e.g. the router `Link`) and where it goes. Without
+   * them the row is no link, only a container: a click on it presses its
+   * arrow, as Enter does
+   */
+  linkComponent?: ElementType
+  to?: string
   isSelected?: boolean
   /** The arrow after the label, for a row with children */
   toggle?: NavTreeItemToggle
@@ -112,7 +116,8 @@ export interface NavTreeItemProps {
  * `role="treeitem"` of a `NavTree` the row itself holds the keyboard focus
  * (its name is the one of the link), the arrow keys of the tree drive the
  * arrow, and Tab reaches the buttons of the focused row. A name cut by the
- * width shows in a tooltip.
+ * width shows in a tooltip. A row without `to` is a container (e.g. the
+ * root of a team mailbox): no link, a click opens or closes it.
  */
 export function NavTreeItem({
   level,
@@ -140,6 +145,7 @@ export function NavTreeItem({
   const hasSecondary = secondary !== undefined && secondary !== null
   // Over a second line, the name line is as high as the arrow on it
   const firstLine = toggle ? TOGGLE_SIZE : NAME_LINE
+  const isLink = linkComponent !== undefined && to !== undefined
 
   const handleTooltipOpen = (): void => {
     const name = nameRef.current
@@ -162,9 +168,17 @@ export function NavTreeItem({
         enterDelay={500}
       >
         <NavLink
-          component={linkComponent}
           id={linkId}
-          to={to}
+          {...(isLink
+            ? { component: linkComponent, to }
+            : {
+                // Not a control of its own: the row holds the focus, its
+                // arrow is the control
+                component: 'span',
+                role: undefined,
+                tabIndex: -1,
+                onClick: toggle?.onToggle
+              })}
           selected={isSelected}
           // Tooltip would name the link by the title: the content does it
           aria-label={undefined}

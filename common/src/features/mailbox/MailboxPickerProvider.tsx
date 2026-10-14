@@ -119,7 +119,8 @@ export interface MailboxPickerProviderProps {
  * The folder picker, as tmail-flutter's destination picker: a dialog with
  * the tree of the folders and a field filtering them by name or path
  * (`ds/FilterableListbox`), the personal folders then the team mailboxes;
- * hidden folders are not offered. `await pickMailbox()` resolves to the
+ * hidden folders are not offered, and the root of a team mailbox, a
+ * container, is never a destination. `await pickMailbox()` resolves to the
  * folder chosen; the focus goes back to what opened it.
  */
 export function MailboxPickerProvider({
@@ -187,6 +188,7 @@ export function MailboxPickerProvider({
             icon: isRoot ? null : getMailboxIcon(mailbox),
             isCurrent: mailbox.id === pending.currentId,
             disabled:
+              isRoot ||
               disabled.has(mailbox.id) ||
               (pending.requireAddItems === true &&
                 !mailbox.myRights.mayAddItems)

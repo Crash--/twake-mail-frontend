@@ -13,6 +13,7 @@ import {
   makeEmail,
   makeFakeJmapServer,
   makeMailbox,
+  makeTeamMailboxes,
   type FakeEmail,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
@@ -285,6 +286,26 @@ describe('Acting on emails of the list', () => {
     expect(await screen.findByTestId('toast')).toHaveTextContent(
       'Moved to Work'
     )
+  })
+
+  it('offers not the root of a team mailbox, a container, as a destination', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
+      emails: makeEmails(1)
+    })
+    await renderList(server)
+
+    await userEvent.click(
+      within(row('Email 0')).getByRole('button', { name: 'Message actions' })
+    )
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'Move message' })
+    )
+    const picker = await screen.findByRole('dialog', { name: 'Move To' })
+
+    expect(
+      within(picker).getByRole('option', { name: /^team\b/ })
+    ).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('deletes forever from the Trash after a confirmation', async () => {

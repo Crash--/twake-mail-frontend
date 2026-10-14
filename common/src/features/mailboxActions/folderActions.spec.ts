@@ -178,6 +178,9 @@ describe('validateFolderName', () => {
     expect(validateFolderName('100%', at(null))).toBe(
       'folders.validation.characters'
     )
+    expect(validateFolderName('v1.2', at(null))).toBe(
+      'folders.validation.characters'
+    )
     expect(validateFolderName('work', at(null))).toBe(
       'folders.validation.taken'
     )

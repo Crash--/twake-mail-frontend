@@ -915,7 +915,7 @@
       "spaces": "This field cannot contain only spaces",
       "taken": "This folder name is already taken",
       "sameName": "There is already folder with the same name",
-      "characters": "Folder name cannot contain special characters"
+      "characters": "Folder name cannot contain . % * or a line break, nor start with #"
     },
     "delete": {
       "title": "Delete folders",

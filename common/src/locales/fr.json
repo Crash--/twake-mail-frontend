@@ -915,7 +915,7 @@
       "spaces": "Ce champ ne peut pas contenir uniquement des espaces",
       "taken": "Ce nom de dossier est déjà pris",
       "sameName": "Il y a déjà un dossier avec le même nom",
-      "characters": "Le nom du dossier ne peut pas contenir de caractères spéciaux"
+      "characters": "Le nom du dossier ne peut contenir ni . % * ni retour à la ligne, ni commencer par #"
     },
     "delete": {
       "title": "Suppression des dossiers",

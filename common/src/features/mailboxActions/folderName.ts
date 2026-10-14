@@ -1,8 +1,11 @@
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
-/** A leading `#`, or `%`, `*`, a line break: refused by tmail-flutter */
-const FORBIDDEN = /^#|[%*\r\n]/
+/**
+ * A leading `#`, or `%`, `*`, a line break: refused by tmail-flutter; and
+ * `.`, the hierarchy delimiter of James, which refuses it (tf#4867)
+ */
+const FORBIDDEN = /^#|[.%*\r\n]/
 
 /**
  * Checks a folder name as tmail-flutter does before creating or renaming:

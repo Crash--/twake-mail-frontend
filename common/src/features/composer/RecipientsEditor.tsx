@@ -79,6 +79,8 @@ export interface RecipientsEditorProps {
   onExpand: () => void
   /** To takes the focus once shown (a new message) */
   autoFocusTo?: boolean
+  /** The addresses the server refused to send to, flagged as invalid */
+  refused?: readonly string[]
 }
 
 /**
@@ -103,7 +105,8 @@ export function RecipientsEditor({
   onShowFrom,
   isCollapsed,
   onExpand,
-  autoFocusTo = false
+  autoFocusTo = false,
+  refused = []
 }: RecipientsEditorProps): ReactElement {
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
@@ -155,11 +158,10 @@ export function RecipientsEditor({
       <>
         {fromLine}
         <RecipientSummary
-          chips={recipientChips([
-            ...recipients.to,
-            ...recipients.cc,
-            ...recipients.bcc
-          ])}
+          chips={recipientChips(
+            [...recipients.to, ...recipients.cc, ...recipients.bcc],
+            refused
+          )}
           label={t('composer.recipients.summary')}
           moreLabel={count =>
             t('composer.recipients.others', { smart_count: count })
@@ -268,6 +270,7 @@ export function RecipientsEditor({
           autoFocus={focused === kind}
           actions={kind === 'to' ? toRef : undefined}
           dnd={dndOf(kind, kinds)}
+          refused={refused}
           endActions={
             kind === 'to' ? (
               isPhone ? (

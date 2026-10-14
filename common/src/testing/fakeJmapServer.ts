@@ -137,6 +137,11 @@ export interface FakeJmapServer {
    */
   setErrors: Map<string, string>
   /**
+   * More properties of the SetError of a refused submission, by creation
+   * id (`description`, `invalidRecipients`)
+   */
+  setErrorProperties: Map<string, Record<string, unknown>>
+  /**
    * Threads `Thread/get` answers `notFound` though their emails exist, as
    * tmail-backend sometimes does after destroying some of their emails
    */
@@ -616,6 +621,7 @@ export function makeFakeJmapServer(
     requests: [],
     methodErrors: new Map(),
     setErrors: new Map(),
+    setErrorProperties: new Map(),
     lostThreads: new Set(),
     holdRequests,
     loseNextResponse: method => {
@@ -1003,7 +1009,8 @@ export function makeFakeJmapServer(
   /**
    * Submits created emails (nothing is delivered), then applies
    * `onSuccessUpdateEmail` to the emails of the submissions created;
-   * `setErrors` refuses a submission by its creation id
+   * `setErrors` refuses a submission by its creation id, with the
+   * `setErrorProperties` of that id
    */
   function setSubmissions(args: Record<string, unknown>): unknown {
     const create = isRecord(args.create) ? args.create : {}
@@ -1016,7 +1023,10 @@ export function makeFakeJmapServer(
         : undefined
       const refusal = server.setErrors.get(creationId)
       if (refusal !== undefined || !email) {
-        notCreated[creationId] = { type: refusal ?? 'invalidArguments' }
+        notCreated[creationId] = {
+          type: refusal ?? 'invalidArguments',
+          ...server.setErrorProperties.get(creationId)
+        }
         continue
       }
       submissions += 1

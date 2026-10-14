@@ -428,6 +428,7 @@
       "invalidRecipients": "Échec de l'envoi de votre message, car ces destinataires sont invalides : %{invalidRecipients}",
       "generic": "L'envoi du message a échoué.\nUne erreur s'est produite lors de l'envoi du message.",
       "forbiddenFrom": "Échec de l'envoi de votre message, car vous ne pouvez pas envoyer depuis cette adresse.",
+      "forbiddenToSend": "Votre message ne peut pas encore être envoyé : votre domaine est en cours d'activation. L'envoi sera possible une fois sa configuration DNS de messagerie validée. Votre message est conservé dans les brouillons.",
       "offline": "Vous êtes hors ligne. Veuillez vérifier votre connexion."
     },
     "attachments": {

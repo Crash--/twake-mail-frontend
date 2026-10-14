@@ -714,6 +714,64 @@ describe('ComposerForm', () => {
         'Refused'
       ])
     })
+
+    it('explains that sending waits for the domain activation', async () => {
+      const jmapServer = makeFakeJmapServer()
+      jmapServer.setErrors.set('submission', 'forbiddenToSend')
+      jmapServer.setErrorProperties.set('submission', {
+        description:
+          'Domain activation is pending: mail DNS configuration is not validated'
+      })
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Pending' })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      expect(await within(composer).findByRole('alert')).toHaveTextContent(
+        'your domain is still being activated'
+      )
+      expect(draftsOf(jmapServer).map(email => email.subject)).toEqual([
+        'Pending'
+      ])
+    })
+
+    it('flags the recipients the server refused and names them in a toast', async () => {
+      const jmapServer = makeFakeJmapServer()
+      jmapServer.setErrors.set('submission', 'invalidRecipients')
+      jmapServer.setErrorProperties.set('submission', {
+        invalidRecipients: ['bob@example.com']
+      })
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await fill(composer, {
+        to: 'alice@example.com,bob@example.com',
+        subject: 'Refused recipient'
+      })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Failure to send your message, because these recipients are invalid: bob@example.com'
+      )
+      const chips = within(composer).getAllByTestId('recipient-chip')
+      expect(
+        chips.map(chip => [
+          chip.getAttribute('aria-label'),
+          chip.getAttribute('data-invalid')
+        ])
+      ).toEqual([
+        ['alice@example.com', null],
+        ['bob@example.com, invalid address', 'true']
+      ])
+      expect(
+        screen.getByRole('dialog', { name: 'Refused recipient' })
+      ).toBeVisible()
+    })
   })
 
   describe('drafts', () => {

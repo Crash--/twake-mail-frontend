@@ -257,6 +257,7 @@ const SEND_FAILURE_KEYS: Record<SendFailure, TranslationKey> = {
   tooLarge: 'composer.sendErrors.tooLarge',
   overQuota: 'composer.sendErrors.overQuota',
   forbiddenFrom: 'composer.sendErrors.forbiddenFrom',
+  forbiddenToSend: 'composer.sendErrors.forbiddenToSend',
   invalidRecipients: 'composer.sendErrors.invalidRecipients',
   invalidArguments: 'composer.sendErrors.generic',
   other: 'composer.sendErrors.generic'
@@ -420,6 +421,8 @@ function LoadedComposerForm({
   )
   const [sendError, setSendError] = useState<string | null>(null)
   const [isSendOverQuota, setIsSendOverQuota] = useState(false)
+  /** The addresses the server refused at the last sending */
+  const [refusedRecipients, setRefusedRecipients] = useState<string[]>([])
   const premiumCta = usePremiumCta()
   const [hasBlockedImages, setHasBlockedImages] = useState(
     content.hasBlockedImages
@@ -1264,6 +1267,7 @@ function LoadedComposerForm({
     if (!editor || !identity || isSending) return
     setSendError(null)
     setIsSendOverQuota(false)
+    setRefusedRecipients([])
     const lists = allRecipients()
     setRecipients(lists)
     setInputs(EMPTY_INPUTS)
@@ -1310,11 +1314,16 @@ function LoadedComposerForm({
         savedRef.current = fingerprintOf(editor)
       }
       setIsSendOverQuota(result.reason === 'overQuota')
-      setSendError(
-        t(SEND_FAILURE_KEYS[result.reason], {
-          invalidRecipients: result.invalidRecipients.join(', ')
-        })
-      )
+      const message = t(SEND_FAILURE_KEYS[result.reason], {
+        invalidRecipients: result.invalidRecipients.join(', ')
+      })
+      setSendError(message)
+      if (result.invalidRecipients.length > 0) {
+        // The refused addresses show in red, in the fields unfolded
+        setRefusedRecipients(result.invalidRecipients)
+        setIsCollapsed(false)
+        notify({ message, severity: 'error' })
+      }
     } catch (error: unknown) {
       console.error(error)
       setSendError(t(sendErrorKey(error)))
@@ -1689,6 +1698,7 @@ function LoadedComposerForm({
                 : null
             }
             isCollapsed={isCollapsed}
+            refused={refusedRecipients}
             onExpand={() => {
               setIsCollapsed(false)
             }}

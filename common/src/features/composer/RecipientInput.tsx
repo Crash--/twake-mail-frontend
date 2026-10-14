@@ -57,6 +57,8 @@ export interface RecipientInputProps {
   actions?: Ref<RecipientFieldActions>
   /** Recipients dragged to another field, emails dropped here */
   dnd?: RecipientFieldDnd
+  /** The addresses the server refused to send to, flagged as invalid */
+  refused?: readonly string[]
 }
 
 /**
@@ -75,7 +77,8 @@ export function RecipientInput({
   onFocus,
   autoFocus,
   actions,
-  dnd
+  dnd,
+  refused = []
 }: RecipientInputProps): ReactElement {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -98,7 +101,7 @@ export function RecipientInput({
     [contacts, recipients]
   )
 
-  const chips = recipientChips(recipients)
+  const chips = recipientChips(recipients, refused)
   /** The recipient taken back into the input, and where it stood */
   const edited = useRef<{ recipient: Recipient; index: number } | null>(null)
 

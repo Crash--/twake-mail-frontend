@@ -567,6 +567,7 @@ export type SendFailure =
   | 'tooLarge'
   | 'overQuota'
   | 'forbiddenFrom'
+  | 'forbiddenToSend'
   | 'invalidRecipients'
   | 'invalidArguments'
   | 'other'
@@ -601,6 +602,12 @@ const SEND_FAILURES: Record<string, SendFailure> = {
   forbiddenFrom: 'forbiddenFrom',
   // What tmail-backend answers instead of the forbiddenFrom of RFC 8621
   forbiddenMailFrom: 'forbiddenFrom',
+  /**
+   * Sending blocked for the whole account, as tmail-backend does while
+   * the mail DNS configuration of a newly provisioned domain is not
+   * validated: the mailbox works, nothing goes out yet
+   */
+  forbiddenToSend: 'forbiddenToSend',
   invalidRecipients: 'invalidRecipients',
   invalidArguments: 'invalidArguments'
 }

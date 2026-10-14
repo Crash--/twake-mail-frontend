@@ -428,6 +428,7 @@
       "invalidRecipients": "Không thể gửi thư của bạn vì những người nhận sau không hợp lệ: %{invalidRecipients}",
       "generic": "Gửi thư không thành công.\nCó lỗi trong quá trình gửi thư.",
       "forbiddenFrom": "Không thể gửi thư vì bạn không được phép gửi từ địa chỉ này.",
+      "forbiddenToSend": "Chưa thể gửi thư của bạn: tên miền của bạn đang được kích hoạt. Bạn có thể gửi thư sau khi cấu hình DNS thư của tên miền được xác thực. Thư của bạn được lưu trong Thư nháp.",
       "offline": "Bạn đang ngoại tuyến."
     },
     "attachments": {

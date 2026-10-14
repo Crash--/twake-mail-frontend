@@ -306,6 +306,16 @@ describe('readFailure', () => {
     })
   })
 
+  it('reads a sending blocked until the domain is activated', () => {
+    expect(
+      readFailure({
+        type: 'forbiddenToSend',
+        description:
+          'Domain activation is pending: mail DNS configuration is not validated'
+      })
+    ).toEqual({ reason: 'forbiddenToSend', invalidRecipients: [] })
+  })
+
   it('keeps an invalidArguments that names no address generic', () => {
     expect(
       readFailure({ type: 'invalidArguments', description: 'Bad request' })

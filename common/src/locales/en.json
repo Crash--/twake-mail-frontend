@@ -428,6 +428,7 @@
       "invalidRecipients": "Failure to send your message, because these recipients are invalid: %{invalidRecipients}",
       "generic": "Sending of the message failed.\nAn error occurred while sending mail.",
       "forbiddenFrom": "Failure to send your message, because you may not send from this address.",
+      "forbiddenToSend": "Your message could not be sent yet: your domain is still being activated. Sending will be possible once its mail DNS configuration is validated. Your message is kept in Drafts.",
       "offline": "You are offline. It looks like you are not connected."
     },
     "attachments": {

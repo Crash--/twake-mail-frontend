@@ -22,6 +22,7 @@ import {
 import {
   buildEmail,
   ensureTemplatesMailbox,
+  IDENTITY_HEADER,
   identityReplyTo,
   isRequestTooLarge,
   readFailure,
@@ -358,8 +359,18 @@ describe('buildEmail', () => {
       'send'
     )
     expect(Object.keys(plain).filter(key => key.startsWith('header:'))).toEqual(
-      ['header:X-JMAP-Identity:asText']
+      []
     )
+  })
+
+  it('keeps the identity in the drafts and templates, not in the message sent', async () => {
+    expect((await build(message, 'draft'))[IDENTITY_HEADER]).toBe(
+      'identity-alice'
+    )
+    expect((await build(message, 'template'))[IDENTITY_HEADER]).toBe(
+      'identity-alice'
+    )
+    expect(IDENTITY_HEADER in (await build(message, 'send'))).toBe(false)
   })
 
   it('sends with the Reply-To of the identity when none is typed, drafts without', async () => {

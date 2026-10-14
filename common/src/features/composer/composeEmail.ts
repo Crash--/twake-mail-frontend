@@ -24,7 +24,11 @@ import type { InlineImageStore } from './InlineImageStore'
 import type { AnswerKeyword, Answering } from './replyContent'
 import type { TemplatesTarget } from './templatesFolder'
 
-/** Header keeping the identity of a draft (tmail-flutter reads it too) */
+/**
+ * Header keeping the identity of a draft or a template (tmail-flutter reads
+ * it too). The message sent leaves it out, as tmail-flutter: the recipients
+ * have no use for an internal id.
+ */
 export const IDENTITY_HEADER = 'header:X-JMAP-Identity:asText'
 
 /**
@@ -73,7 +77,7 @@ export function parseAnswering(
 }
 
 export interface ComposedMessage {
-  /** Identity sending it, kept in the drafts (`IDENTITY_HEADER`) */
+  /** Identity sending it, kept in the drafts and templates (`IDENTITY_HEADER`) */
   identityId: string | null
   from: EmailAddress
   to: EmailAddress[]
@@ -198,6 +202,7 @@ export async function buildEmail(
   purpose: BuildPurpose = 'draft'
 ): Promise<EmailCreate> {
   const html = await uploadDataImages(toEmailHtml(message.editorHtml), images)
+  const identityId = purpose === 'send' ? null : message.identityId
   const answering = purpose === 'draft' ? (message.answering ?? null) : null
   const draftSession =
     purpose === 'draft' ? (message.draftSession ?? null) : null
@@ -218,9 +223,7 @@ export async function buildEmail(
     bcc: message.bcc ?? [],
     replyTo: replyTo.length > 0 ? replyTo : null,
     subject: message.subject,
-    ...(message.identityId === null
-      ? {}
-      : { [IDENTITY_HEADER]: message.identityId }),
+    ...(identityId === null ? {} : { [IDENTITY_HEADER]: identityId }),
     ...(answering === null
       ? {}
       : { [ANSWERING_HEADER]: formatAnswering(answering) }),

@@ -1854,6 +1854,7 @@ describe('ComposerForm', () => {
       )
       expect(sent?.inReplyTo).toEqual(['plans@example.com'])
       expect(sent?.headers?.['X-Twake-Answering']).toBeUndefined()
+      expect(sent?.headers?.['X-JMAP-Identity']).toBeUndefined()
     })
 
     describe('back after a reload', () => {

@@ -57,7 +57,8 @@ const LABELS: RichTextEditorLabels = {
     url: 'URL',
     apply: 'Apply',
     cancel: 'Cancel',
-    remove: 'Remove link'
+    remove: 'Remove link',
+    invalidUrl: 'This link is not supported'
   },
   image: {
     toolbar: 'Image options',

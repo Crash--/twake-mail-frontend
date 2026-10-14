@@ -45,6 +45,8 @@ export interface RichTextLinkDialogLabels {
   apply: string
   cancel: string
   remove: string
+  /** Shown under the URL when the editor refuses it (`javascript:`…) */
+  invalidUrl: string
 }
 
 /** The image sizes the image toolbar offers, in % of the image's own width */

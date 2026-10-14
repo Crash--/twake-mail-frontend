@@ -334,7 +334,8 @@
       "apply": "Apply",
       "cancel": "Cancel",
       "remove": "Remove link",
-      "title": "Insert link"
+      "title": "Insert link",
+      "invalidUrl": "This link is not supported. Use a web address (https://…), mailto: or tel:."
     },
     "quote": {
       "replyHeader": "On %{sentDate}, from %{emailAddress}",

@@ -334,7 +334,8 @@
       "apply": "Применить",
       "cancel": "Отмена",
       "remove": "Удалить ссылку",
-      "title": "Вставить ссылку"
+      "title": "Вставить ссылку",
+      "invalidUrl": "Эта ссылка не поддерживается. Используйте веб-адрес (https://…), mailto: или tel:."
     },
     "quote": {
       "replyHeader": "%{sentDate}, от %{emailAddress}",

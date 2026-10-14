@@ -118,7 +118,8 @@ export function useEditorLabels(): EditorLabels {
         url: t('composer.link.url'),
         apply: t('composer.link.apply'),
         cancel: t('composer.link.cancel'),
-        remove: t('composer.link.remove')
+        remove: t('composer.link.remove'),
+        invalidUrl: t('composer.link.invalidUrl')
       },
       image: {
         toolbar: t('composer.editor.image.toolbar'),

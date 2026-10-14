@@ -59,7 +59,8 @@ const LABELS: RichTextEditorLabels = {
     url: 'URL',
     apply: 'Apply',
     cancel: 'Cancel',
-    remove: 'Remove link'
+    remove: 'Remove link',
+    invalidUrl: 'This link is not supported'
   },
   image: {
     toolbar: 'Image options',
@@ -518,6 +519,39 @@ describe('RichTextEditor', () => {
     expect(
       await screen.findByRole('dialog', { name: 'Insert link' })
     ).toBeVisible()
+  })
+
+  it('keeps the link dialog open and says why when the URL is refused', async () => {
+    const editor = await renderEditor()
+    act(() => {
+      editor.commands.setTextSelection({ from: 1, to: 6 })
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Insert link' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Insert link' })
+    const url = within(dialog).getByRole('textbox', { name: 'URL' })
+
+    await userEvent.type(url, 'javascript:alert(1)')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
+
+    expect(dialog).toBeVisible()
+    expect(url).toHaveAttribute('aria-invalid', 'true')
+    expect(url).toHaveAccessibleDescription('This link is not supported')
+    expect(within(dialog).getByRole('alert')).toHaveTextContent(
+      'This link is not supported'
+    )
+    expect(url).toHaveFocus()
+    expect(editor.getHTML()).not.toContain('<a')
+
+    await userEvent.clear(url)
+    expect(url).toHaveAttribute('aria-invalid', 'false')
+    expect(within(dialog).getByRole('alert')).toHaveTextContent('')
+
+    await userEvent.type(url, 'https://example.com{Enter}')
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Insert link' })).toBe(null)
+    })
+    expect(editor.getHTML()).toContain('href="https://example.com"')
   })
 
   it('hides the toolbar on demand', async () => {

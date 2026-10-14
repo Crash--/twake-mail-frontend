@@ -334,7 +334,8 @@
       "apply": "Áp dụng",
       "cancel": "Hủy",
       "remove": "Gỡ liên kết",
-      "title": "Chèn liên kết"
+      "title": "Chèn liên kết",
+      "invalidUrl": "Liên kết này không được hỗ trợ. Hãy dùng địa chỉ web (https://…), mailto: hoặc tel:."
     },
     "quote": {
       "replyHeader": "Vào ngày %{sentDate}, từ %{emailAddress}",

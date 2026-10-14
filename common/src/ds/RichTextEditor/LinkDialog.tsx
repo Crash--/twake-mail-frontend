@@ -7,6 +7,7 @@ import {
   Popover,
   type PopoverPosition
 } from '@linagora/twake-mui'
+import { isAllowedUri } from '@tiptap/extension-link'
 import {
   useId,
   useRef,
@@ -107,8 +108,27 @@ const INPUT_SX = {
   color: TMAIL.textInk,
   '&.Mui-focused': { borderColor: PRIMARY },
   '& .MuiInputBase-input': { p: 0 },
-  '& .MuiInputBase-input::placeholder': { color: TMAIL.grey, opacity: 1 }
+  '& .MuiInputBase-input::placeholder': { color: TMAIL.grey, opacity: 1 },
+  '&.Mui-error': { borderColor: TMAIL.error }
 } as const
+
+/** Under the URL, aligned with the fields (icon 24 px + gap 10 px) */
+const ERROR_SX = {
+  maxWidth: 320,
+  pl: '34px',
+  fontSize: 12,
+  lineHeight: '16px',
+  color: TMAIL.error,
+  '&:not(:empty)': { mt: '6px' }
+} as const
+
+/**
+ * The address can be a link: the check the Link extension makes before it
+ * sets one (it drops `javascript:` and other schemes silently)
+ */
+function isSupportedUrl(url: string): boolean {
+  return Boolean(isAllowedUri(url))
+}
 
 const TEXT_BUTTON_SX = {
   minWidth: 0,
@@ -137,7 +157,9 @@ function caretPosition(): PopoverPosition | null {
  * Text and URL of a link, as tmail-flutter's link card
  * (`LinkEditDialogOverlayOptions`): under the caret, the text with its icon,
  * then the URL with its icon and "Apply", enabled once the URL is not blank;
- * Enter in the text goes to the URL, Escape closes it. A named dialog that
+ * Enter in the text goes to the URL, Escape closes it. A URL the editor
+ * refuses (`javascript:`…) keeps it open, the field marked invalid and the
+ * reason announced. A named dialog that
  * keeps the focus while open.
  */
 export function LinkDialog({
@@ -153,11 +175,13 @@ export function LinkDialog({
   applyButtonTestId
 }: LinkDialogProps): ReactElement {
   const titleId = useId()
+  const errorId = useId()
   const urlRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState(initialValue.text)
   const [url, setUrl] = useState(initialValue.url)
   const [opened, setOpened] = useState(open)
   const [position, setPosition] = useState<PopoverPosition | null>(null)
+  const [invalid, setInvalid] = useState(false)
   // Reset the fields at each opening (state derived from props)
   if (open !== opened) {
     setOpened(open)
@@ -165,13 +189,20 @@ export function LinkDialog({
       setText(initialValue.text)
       setUrl(initialValue.url)
       setPosition(caretPosition())
+      setInvalid(false)
     }
   }
 
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
-    if (url.trim() === '') return
-    onApply({ text: text.trim(), url: url.trim() })
+    const trimmedUrl = url.trim()
+    if (trimmedUrl === '') return
+    if (!isSupportedUrl(trimmedUrl)) {
+      setInvalid(true)
+      urlRef.current?.focus()
+      return
+    }
+    onApply({ text: text.trim(), url: trimmedUrl })
   }
 
   return (
@@ -228,13 +259,17 @@ export function LinkDialog({
             value={url}
             onChange={event => {
               setUrl(event.target.value)
+              setInvalid(false)
             }}
             type="url"
             required
+            error={invalid}
             placeholder={labels.url}
             inputRef={urlRef}
             inputProps={{
               'aria-label': labels.url,
+              'aria-invalid': invalid,
+              'aria-describedby': invalid ? errorId : undefined,
               'data-testid': urlInputTestId
             }}
             sx={INPUT_SX}
@@ -257,6 +292,11 @@ export function LinkDialog({
               {labels.remove}
             </Button>
           ) : null}
+        </Box>
+        {/* Always mounted: a live region that appears with its text is
+            often missed by screen readers */}
+        <Box id={errorId} role="alert" sx={ERROR_SX}>
+          {invalid ? labels.invalidUrl : null}
         </Box>
       </Box>
     </Popover>

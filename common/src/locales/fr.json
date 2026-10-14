@@ -334,7 +334,8 @@
       "apply": "Appliquer",
       "cancel": "Annuler",
       "remove": "Supprimer le lien",
-      "title": "Insérer un lien"
+      "title": "Insérer un lien",
+      "invalidUrl": "Ce lien n'est pas pris en charge. Utilisez une adresse web (https://…), mailto: ou tel:."
     },
     "quote": {
       "replyHeader": "Le %{sentDate}, de %{emailAddress}",

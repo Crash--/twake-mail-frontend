@@ -392,6 +392,56 @@ test.describe('EML reading an email', () => {
   )
 
   test(
+    'EML-39 a body that fits in its frame does not scroll in it',
+    async ({ page, user, jmap }) => {
+      // Paragraphs as Twake Mail writes them: their lines add up to a fraction
+      // of a pixel over the rounded height of the frame
+      const paragraph = (text: string): string =>
+        `<p align="left" style="line-height: 100%; margin-bottom: 0in">${text}</p>`
+      const lines = [
+        'Dear Alice,&nbsp;',
+        '<br>',
+        'Could you please approve the payment below?',
+        '<b>Amount:&nbsp; 1,000 EUR&nbsp;</b>',
+        '<i>(100 EUR * 10 items)&nbsp;</i>',
+        '<br>',
+        '<i><u>Transfer information</u></i>:&nbsp;',
+        ...Array.from({ length: 8 }, (_, index) => `Detail ${index + 1}`),
+        '<br>',
+        'Thanks &amp; best regards,',
+        '<br>',
+        'Bob'
+      ]
+      await jmap.sendEmail({
+        to: user.email,
+        subject: 'Fitting body',
+        html: lines.map(paragraph).join('')
+      })
+      await jmap.waitForEmail({ subject: 'Fitting body' })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await mailbox.openEmail('Fitting body')
+      const body = email.body()
+      await expect(body.getByText('Bob', { exact: true })).toBeVisible()
+
+      // The wheel over the body scrolls the reading pane, never the body
+      await body.getByText('Detail 4').hover()
+      await page.mouse.wheel(0, 100)
+      await expect
+        .poll(() =>
+          body.locator('#tmail-content').evaluate(element => element.scrollTop)
+        )
+        .toBe(0)
+      expect(
+        await body.evaluate(element => ({
+          html: element.ownerDocument.documentElement.scrollTop,
+          body: element.scrollTop
+        }))
+      ).toEqual({ html: 0, body: 0 })
+    }
+  )
+
+  test(
     'EML-36 the quoted history of an answer is folded behind a button',
     {
       tag: '@mobile'

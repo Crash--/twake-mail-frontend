@@ -58,7 +58,11 @@ body {
   overflow-wrap: anywhere;
   overflow-y: hidden;
 }
-#${EMAIL_CONTENT_ID} { overflow-x: auto; }
+/* A wide table scrolls sideways. Never up and down: the frame takes the
+   height of the content, and \`overflow-x: auto\` alone would also make the
+   wrapper scroll vertically for the fraction of a pixel that its lines add up
+   to over its rounded height */
+#${EMAIL_CONTENT_ID} { overflow-x: auto; overflow-y: hidden; }
 img { max-width: 100%; height: auto; }
 p { margin: 0; }
 /* tmail-flutter writes 16 px on phones (the frame is as wide as the screen) */

@@ -49,6 +49,8 @@ export interface PickMailboxOptions {
    * folder to create or move: chosen, it resolves to `PICKED_ROOT`
    */
   rootLabel?: string
+  /** The top level (`rootLabel`) listed faded, not selectable */
+  isRootDisabled?: boolean
   /** Folders emails cannot be added to (`mayAddItems`) are listed, not selectable */
   requireAddItems?: boolean
   /** The personal folders only, not the team mailboxes */
@@ -206,7 +208,8 @@ export function MailboxPickerProvider({
               parentId: null,
               hasChildren: false,
               icon: DefaultFolderIcon,
-              isCurrent: pending.currentId === PICKED_ROOT
+              isCurrent: pending.currentId === PICKED_ROOT,
+              disabled: pending.isRootDisabled === true
             }
           ]
     const toChoiceOption = (choice: PickChoice): FolderPickerOption => ({

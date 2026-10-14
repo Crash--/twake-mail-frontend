@@ -244,6 +244,42 @@ describe('Folder actions', () => {
     })
   })
 
+  it('does not offer to move a folder where one has its name already', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'work', name: 'Work' }),
+        makeMailbox({ id: 'work-archive', name: 'Archive', parentId: 'work' }),
+        makeMailbox({ id: 'archive', name: 'archive' }),
+        makeMailbox({ id: 'projects', name: 'Projects' }),
+        makeMailbox({
+          id: 'projects-archive',
+          name: 'ARCHIVE',
+          parentId: 'projects'
+        })
+      ]
+    })
+    await renderTree(server, '/mailbox/work-archive')
+    await userEvent.click(
+      within(await openMenu('Archive')).getByRole('menuitem', {
+        name: 'Move folder'
+      })
+    )
+
+    const picker = screen.getByRole('dialog', { name: 'Move To' })
+    expect(
+      within(picker).getByRole('option', { name: 'All folders' })
+    ).toHaveAttribute('aria-disabled', 'true')
+    expect(
+      within(picker).getByRole('option', { name: 'Projects' })
+    ).toHaveAttribute('aria-disabled', 'true')
+    expect(userInboxOption(picker)).not.toHaveAttribute('aria-disabled')
+    await userEvent.click(
+      within(picker).getByRole('option', { name: 'All folders' })
+    )
+    expect(mailbox(server, 'work-archive')?.parentId).toBe('work')
+  })
+
   it('deletes a folder with its subfolders and emails, and leaves it for the Inbox', async () => {
     const server = makeServer()
     await renderTree(server, '/mailbox/work')

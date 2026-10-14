@@ -53,7 +53,7 @@ import { emailSetBatchSize } from '@common/features/emailActions/sendEmailChange
 import { destroyMailboxes } from './emptyFolder'
 import { useFolderActionProgress } from './FolderActionProgress'
 import type { FolderActionId } from './folderActionItems'
-import { validateFolderName } from './folderName'
+import { findClashingParentIds, validateFolderName } from './folderName'
 import { MailboxNameDialog } from './MailboxNameDialog'
 import { moveFolderContent, undoMoveFolderContent } from './moveFolderContent'
 import { maxCallsInRequest, useEmptyFolder } from './useEmptyFolder'
@@ -218,11 +218,18 @@ export function FolderActionsProvider({
     async (mailbox: MailboxSummary): Promise<void> => {
       const list = await loadMailboxes()
       // As tmail-flutter: "Move To", "All folders" first, the folder and
-      // its subfolders faded
+      // its subfolders faded; so are the places holding a folder of the
+      // same name, which the server refuses
+      const clashingIds = findClashingParentIds(list, mailbox)
       const destination = await pickMailbox({
         rootLabel: t('mailboxPicker.allFolders'),
+        isRootDisabled: clashingIds.includes(null),
         personalOnly: true,
-        disabledIds: [mailbox.id, ...findDescendantIds(list, mailbox.id)]
+        disabledIds: [
+          mailbox.id,
+          ...findDescendantIds(list, mailbox.id),
+          ...clashingIds.filter(id => id !== null)
+        ]
       })
       if (destination === null) return
       const parentId = destination === PICKED_ROOT ? null : destination.id

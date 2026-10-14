@@ -67,8 +67,41 @@ describe('buildQuoteHtml', () => {
     expect(html).toContain('------- Message transféré -------')
     expect(html).toContain('Sujet: Plans &lt;draft&gt;')
     expect(html).toContain('Date: 5 mars 2026 à 14:04')
-    expect(html).toContain('À: &lt;bob@example.com&gt;')
+    expect(html).toContain('À: bob@example.com')
     expect(html).not.toContain('Copie à')
+  })
+
+  it('writes an address without a name, or named after itself, bare', () => {
+    const html = buildQuoteHtml(
+      'forward',
+      {
+        ...email,
+        from: [{ name: 'alice@example.com', email: 'alice@example.com' }],
+        to: [
+          { name: null, email: 'bob@example.com' },
+          { name: '', email: 'carol@example.com' },
+          { name: 'Dan', email: 'dan@example.com' }
+        ],
+        replyTo: [{ name: 'Alice@Example.com ', email: 'alice@example.com' }]
+      },
+      LABELS,
+      'fr'
+    )
+    expect(html).toContain('De: alice@example.com<br>')
+    expect(html).toContain(
+      'À: bob@example.com, carol@example.com, Dan &lt;dan@example.com&gt;'
+    )
+    expect(html).toContain('Répondre à: alice@example.com</cite>')
+  })
+
+  it('names a sender without a display name by their bare address in a reply', () => {
+    const html = buildQuoteHtml(
+      'reply',
+      { ...email, from: [{ name: null, email: 'emma@example.com' }] },
+      LABELS,
+      'fr'
+    )
+    expect(html).toContain(', emma@example.com a écrit :</cite>')
   })
 })
 

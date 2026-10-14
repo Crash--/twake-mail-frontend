@@ -55,17 +55,28 @@ function escapeHtml(text: string): string {
     .replaceAll('"', '&quot;')
 }
 
-/** `Name <email>` or `<email>`, comma separated, escaped (tmail-flutter) */
+function hasDisplayName(address: EmailAddress): boolean {
+  const name = address.name?.trim() ?? ''
+  return name !== '' && name.toLowerCase() !== address.email.toLowerCase()
+}
+
+/**
+ * `Name <email>`, or the bare `email` when there is no name or the name is
+ * the address itself (tmail-flutter), comma separated, not escaped
+ */
+function addressList(addresses: EmailAddress[] | null): string {
+  return (addresses ?? [])
+    .map(address =>
+      hasDisplayName(address)
+        ? `${address.name} <${address.email}>`
+        : address.email
+    )
+    .join(', ')
+}
+
+/** {@link addressList}, escaped */
 export function formatAddresses(addresses: EmailAddress[] | null): string {
-  return escapeHtml(
-    (addresses ?? [])
-      .map(address =>
-        address.name
-          ? `${address.name} <${address.email}>`
-          : `<${address.email}>`
-      )
-      .join(', ')
-  )
+  return escapeHtml(addressList(addresses))
 }
 
 /**
@@ -210,13 +221,7 @@ export function buildQuoteHtml(
           labels.replyHeader(
             formatQuoteDate(email.receivedAt, locale, labels),
             // Escaped once, as a whole, below
-            (email.from ?? [])
-              .map(address =>
-                address.name
-                  ? `${address.name} <${address.email}>`
-                  : `<${address.email}>`
-              )
-              .join(', ')
+            addressList(email.from)
           )
         )
       : forwardHeader(email, labels, locale)

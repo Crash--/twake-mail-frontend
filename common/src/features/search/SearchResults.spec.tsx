@@ -254,9 +254,7 @@ describe('SearchResults', () => {
       )
     })
     expect(
-      screen.getByRole('button', {
-        name: 'Remove the filter From: alice@example.com'
-      })
+      screen.getByRole('button', { name: 'From: alice@example.com' })
     ).toBeVisible()
 
     await userEvent.click(

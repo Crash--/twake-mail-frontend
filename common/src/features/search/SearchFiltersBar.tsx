@@ -61,9 +61,10 @@ export interface SearchFiltersBarProps {
 
 /**
  * The filters of the list toolbar while a search runs, in place of the
- * filter of a folder, as in tmail-flutter: folder, senders and
- * recipients (removable), date, attachment, starred, unread and order. Each
- * change runs the search again; "Clear filter" keeps the order only.
+ * filter of a folder, as in tmail-flutter: folder, senders, recipients,
+ * subject and excluded words (removable), date, attachment, starred, unread
+ * and order. Each change runs the search again; "Clear filter" keeps the
+ * order only.
  */
 export function SearchFiltersBar({
   filter,
@@ -203,23 +204,6 @@ export function SearchFiltersBar({
   }
 
   const removable = [
-    ...filter.from.map(value => ({
-      key: `from:${value}`,
-      label: `${t('search.fields.from')}: ${value}`,
-      remove: () => {
-        onChange({
-          ...filter,
-          from: filter.from.filter(item => item !== value)
-        })
-      }
-    })),
-    ...filter.to.map(value => ({
-      key: `to:${value}`,
-      label: `${t('search.fields.to')}: ${value}`,
-      remove: () => {
-        onChange({ ...filter, to: filter.to.filter(item => item !== value) })
-      }
-    })),
     ...(filter.subject === ''
       ? []
       : [
@@ -243,6 +227,15 @@ export function SearchFiltersBar({
           }
         ])
   ]
+
+  // As tmail-flutter: one chip per field, naming the addresses once chosen;
+  // they are removed in its dialog
+  const addressLabel = (field: AddressField): string => {
+    const name = t(`search.fields.${field}`)
+    return filter[field].length === 0
+      ? name
+      : `${name}: ${filter[field].join(', ')}`
+  }
 
   const labelName =
     labels.find(label => label.keyword === filter.label)?.displayName ??
@@ -280,7 +273,7 @@ export function SearchFiltersBar({
       {(['from', 'to'] as const).map(field => (
         <Slot key={field}>
           <FilterChip
-            label={t(`search.fields.${field}`)}
+            label={addressLabel(field)}
             icon={UserSB}
             isSelected={filter[field].length > 0}
             popup="dialog"

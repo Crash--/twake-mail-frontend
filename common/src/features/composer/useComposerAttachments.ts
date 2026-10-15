@@ -46,6 +46,11 @@ export function useUploadLimits(): UploadLimits {
 
 export interface ComposerAttachments {
   attachments: ComposerAttachment[]
+  /**
+   * Whether files of these sizes fit in the limits, with the files and the
+   * inline images already there; says why when they do not
+   */
+  fits: (sizes: number[]) => boolean
   /** Checks the limits, then uploads the files */
   addFiles: (files: File[]) => void
   /** Removes a file, cancelling its upload */
@@ -195,21 +200,25 @@ export function useComposerAttachments(
     })
   }
 
-  const addFiles = (files: File[]): void => {
+  const fits = (sizes: number[]): boolean => {
     const { maxFileSize, maxTotalSize } = limits
-    if (maxFileSize !== null && files.some(file => file.size > maxFileSize)) {
+    if (maxFileSize !== null && sizes.some(size => size > maxFileSize)) {
       refuse(maxFileSize)
-      return
+      return false
     }
     const current = attachmentsRef.current
       .filter(item => item.status !== 'failed')
       .reduce((total, item) => total + item.size, 0)
-    const added = files.reduce((total, file) => total + file.size, 0)
+    const added = sizes.reduce((total, size) => total + size, 0)
     if (maxTotalSize !== null && current + otherSize() + added > maxTotalSize) {
       refuse(maxTotalSize)
-      return
+      return false
     }
-    files.forEach(upload)
+    return true
+  }
+
+  const addFiles = (files: File[]): void => {
+    if (fits(files.map(file => file.size))) files.forEach(upload)
   }
 
   const remove = (id: string): void => {
@@ -253,6 +262,7 @@ export function useComposerAttachments(
 
   return {
     attachments,
+    fits,
     addFiles,
     remove,
     retry,

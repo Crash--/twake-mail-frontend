@@ -130,7 +130,7 @@ import { chooseTemplatesTarget, templatesTargetKey } from './templatesFolder'
 import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
 import { editableQuoteHtml, resolveCidSources } from './emailHtml'
 import { showBlockedImages } from './editorImages'
-import { InlineImageStore } from './InlineImageStore'
+import { InlineImageStore, resizeImage } from './InlineImageStore'
 import type { MailtoFields } from './mailto'
 import {
   RecipientsEditor,
@@ -891,9 +891,16 @@ function LoadedComposerForm({
     added: File[]
   ): Promise<InlineImageAttributes[]> => {
     setInlineUploads(count => count + 1)
-    const stored = await Promise.all(
-      added.map(file => images.add(file))
-    ).finally(() => {
+    const stored = await (async () => {
+      // Checked once resized: a big photo shrinks, a GIF stays as it is
+      const resized = await Promise.all(
+        added.map(async file => ({ file, resize: await resizeImage(file) }))
+      )
+      if (!files.fits(resized.map(({ resize }) => resize.blob.size))) return []
+      return Promise.all(
+        resized.map(({ file, resize }) => images.add(file, resize))
+      )
+    })().finally(() => {
       setInlineUploads(count => count - 1)
     })
     return stored.map(image => ({

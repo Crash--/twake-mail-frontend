@@ -60,7 +60,13 @@ export function LabelChips({
       data-testid="label-chips"
     >
       {shown.map(label => (
-        <Box component="span" role="listitem" key={label.id}>
+        // No wider than the list: a long name is cut, its × stays in view
+        <Box
+          component="span"
+          role="listitem"
+          key={label.id}
+          className="u-maw-100"
+        >
           <ColorTag
             label={label.displayName}
             color={label.color ?? DEFAULT_LABEL_COLOR}

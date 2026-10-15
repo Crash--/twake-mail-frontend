@@ -45,6 +45,14 @@ describe('LabelChips', () => {
     expect(screen.queryByTestId('label-chip-more')).toBe(null)
   })
 
+  it('keeps each label within the width of the list', () => {
+    renderWithProviders(<LabelChips labels={LABELS} onRemove={jest.fn()} />)
+
+    for (const item of screen.getAllByRole('listitem')) {
+      expect(item).toHaveClass('u-maw-100')
+    }
+  })
+
   it('keeps the labels of an email, in the order of the account', () => {
     expect(
       labelsOfEmail(LABELS, { keywords: { personal: true, design: true } }).map(

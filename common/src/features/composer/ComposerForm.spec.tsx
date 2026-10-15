@@ -2253,6 +2253,95 @@ describe('ComposerForm', () => {
       })
     })
 
+    const failUpload = async (
+      composer: HTMLElement,
+      fakeUploads: FakeUploads
+    ): Promise<void> => {
+      jest.spyOn(console, 'error').mockImplementation(() => undefined)
+      fakeUploads.hold()
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        new File(['zip'], 'big.zip', { type: 'application/zip' })
+      )
+      await within(composer).findByRole('progressbar', {
+        name: 'Uploading big.zip'
+      })
+      act(() => {
+        fakeUploads.held[0]?.fail(500)
+      })
+      await waitFor(() => {
+        expect(
+          within(composer).getByTestId('composer-attachment-item')
+        ).toHaveAttribute('data-status', 'failed')
+      })
+    }
+
+    it('asks before sending without a failed file, then reminds it', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Report' })
+      await userEvent.click(
+        within(composer).getByRole('textbox', { name: 'Message body' })
+      )
+      await userEvent.keyboard('The PJ is there')
+      await failUpload(composer, uploads)
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Attachment not uploaded'
+      })
+      expect(dialog).toHaveTextContent('"big.zip" could not be attached.')
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Cancel' })
+      )
+      expect(jmapServer.submitted).toEqual([])
+      // The composer stays aria-hidden until the dialog has finished closing,
+      // which takes more than the default second on a loaded machine
+      await userEvent.click(
+        await within(composer).findByRole(
+          'button',
+          { name: 'Send' },
+          { timeout: 4000 }
+        )
+      )
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Send without' })
+      )
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Send message' })
+      )
+      await waitFor(() => {
+        expect(jmapServer.submitted).toHaveLength(1)
+      })
+    })
+
+    it('uploads the failed files again instead of sending', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Report' })
+      await failUpload(composer, uploads)
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Retry' })
+      )
+
+      expect(
+        await within(composer).findByRole('progressbar', {
+          name: 'Uploading big.zip'
+        })
+      ).toBeInTheDocument()
+      expect(jmapServer.submitted).toEqual([])
+    })
+
     it('folds a long list of files, and shows the rest again', async () => {
       const jmapServer = makeFakeJmapServer()
       uploads = installFakeUploads(jmapServer)

@@ -421,7 +421,11 @@
       "emptySubjectTitle": "Tiêu đề rỗng",
       "emptySubject": "Bạn có chắc chắn sẽ gửi tin nhắn không có tiêu đề?",
       "sendAnyway": "Tiếp tục gửi",
-      "uploading": "Không thể gửi tin nhắn khi đính kèm đang được tải lên"
+      "uploading": "Không thể gửi tin nhắn khi đính kèm đang được tải lên",
+      "failedUploadsTitle": "Tệp đính kèm chưa được tải lên",
+      "failedUploads": "Không thể đính kèm %{names}. Gửi thư mà không có tệp này, hay tải lên lại?",
+      "sendWithout": "Gửi không kèm tệp",
+      "retryUploads": "Thử lại"
     },
     "gotIt": "Xác nhận",
     "sendErrors": {

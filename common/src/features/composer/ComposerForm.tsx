@@ -1246,6 +1246,7 @@ function LoadedComposerForm({
       })
       return false
     }
+    if (!(await checkFailedUploads())) return false
     if (
       subject.trim() === '' &&
       !(await confirm({
@@ -1260,14 +1261,41 @@ function LoadedComposerForm({
   }
 
   /**
+   * Files whose upload failed would not leave with the message: asks
+   * whether to send without them, or to upload them again
+   */
+  const checkFailedUploads = async (): Promise<boolean> => {
+    const failed = files.attachments.filter(file => file.status === 'failed')
+    if (failed.length === 0) return true
+    const choice = await choose({
+      title: t('composer.sendChecks.failedUploadsTitle', {
+        smart_count: failed.length
+      }),
+      message: t('composer.sendChecks.failedUploads', {
+        smart_count: failed.length,
+        names: failed.map(file => `"${file.name}"`).join(', ')
+      }),
+      confirmLabel: t('composer.sendChecks.sendWithout'),
+      alternativeLabel: t('composer.sendChecks.retryUploads')
+    })
+    if (choice === 'alternative') {
+      failed.forEach(file => {
+        files.retry(file.id)
+      })
+    }
+    return choice === 'confirm'
+  }
+
+  /**
    * A message saying a file is attached, without any: asks before sending
-   * (tmail-flutter `validateAttachmentReminder`). Inline images are no
-   * attachment; the quote and the signature are not read. A Twake Drive
+   * (tmail-flutter `validateAttachmentReminder`). Inline images and files
+   * whose upload failed are no attachment; the quote and the signature are not read. A Twake Drive
    * card is a file shared: no reminder.
    */
   const checkAttachmentReminder = async (): Promise<boolean> => {
     const editor = editorRef.current
-    if (!editor || files.attachments.length > 0) return true
+    const attached = files.attachments.filter(file => file.status !== 'failed')
+    if (!editor || attached.length > 0) return true
     if (hasDriveCards(getEditorHtml(editor))) return true
     const keywords = findAttachmentKeywords(
       writtenText(subject, getEditorHtml(editor))

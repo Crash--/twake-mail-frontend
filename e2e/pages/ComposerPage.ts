@@ -125,9 +125,13 @@ export class ComposerPage {
       .click()
   }
 
-  /** The HTML of the editing area, as the browser shows it */
+  /**
+   * The HTML of the editing area, as the browser shows it, without the mark
+   * the editor puts on the blocks holding the caret
+   */
   async editorHtml(): Promise<string> {
-    return this.editor.innerHTML()
+    const html = await this.editor.innerHTML()
+    return html.replaceAll(' data-caret-block=""', '')
   }
 
   /** `normal`, `minimized` or `fullscreen` */

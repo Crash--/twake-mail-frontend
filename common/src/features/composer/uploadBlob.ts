@@ -21,7 +21,15 @@ export interface UploadOptions {
   /** Bytes sent so far, out of the total */
   onProgress?: (loaded: number, total: number) => void
   signal?: AbortSignal
+  /**
+   * Fails the upload when its progress has not moved, or when the server
+   * has not answered once the body is sent, for this long (milliseconds)
+   */
+  stallTimeout?: number
 }
+
+/** A stalled upload fails after this long, so it can be retried */
+export const UPLOAD_STALL_TIMEOUT = 60_000
 
 export class UploadError extends Error {
   readonly status: number
@@ -49,7 +57,14 @@ function abortError(): DOMException {
 }
 
 function send(
-  { url, blob, type, onProgress, signal }: UploadOptions,
+  {
+    url,
+    blob,
+    type,
+    onProgress,
+    signal,
+    stallTimeout = UPLOAD_STALL_TIMEOUT
+  }: UploadOptions,
   authorization: string
 ): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
@@ -58,30 +73,51 @@ function send(
       return
     }
     const request = new XMLHttpRequest()
+    let watchdog: ReturnType<typeof setTimeout> | null = null
+    const settle = (): void => {
+      if (watchdog !== null) clearTimeout(watchdog)
+      signal?.removeEventListener('abort', handleAbort)
+    }
     const handleAbort = (): void => {
       request.abort()
+    }
+    // Rejected before the abort, so the upload fails instead of being
+    // taken for a cancellation
+    const handleStall = (): void => {
+      settle()
+      reject(new UploadError(0))
+      request.abort()
+    }
+    const rearm = (): void => {
+      if (watchdog !== null) clearTimeout(watchdog)
+      watchdog = setTimeout(handleStall, stallTimeout)
     }
     request.open('POST', url)
     request.setRequestHeader('Authorization', authorization)
     request.setRequestHeader('Content-Type', type)
     request.upload.onprogress = event => {
+      rearm()
       onProgress?.(
         event.loaded,
         event.lengthComputable ? event.total : blob.size
       )
     }
+    // The body is sent: the server now has as long to answer
+    request.upload.onload = rearm
     request.onload = () => {
-      signal?.removeEventListener('abort', handleAbort)
+      settle()
       resolve({ status: request.status, body: request.responseText })
     }
     request.onerror = () => {
-      signal?.removeEventListener('abort', handleAbort)
+      settle()
       reject(new UploadError(0))
     }
     request.onabort = () => {
+      settle()
       reject(abortError())
     }
     signal?.addEventListener('abort', handleAbort)
+    rearm()
     request.send(blob)
   })
 }
@@ -90,7 +126,8 @@ function send(
  * Uploads a blob to the JMAP upload endpoint with progress events and
  * cancellation, which `fetch` cannot report (jmap-client-ts' `upload` is
  * fetch based). Renews the credentials once on a 401, as the client does.
- * Rejects with an `AbortError` `DOMException` when cancelled.
+ * Rejects with an `AbortError` `DOMException` when cancelled, and with an
+ * `UploadError` when it stalls (see `stallTimeout`).
  */
 export async function uploadBlob(
   options: UploadOptions

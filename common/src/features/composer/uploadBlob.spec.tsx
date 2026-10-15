@@ -113,4 +113,68 @@ describe('uploadBlob', () => {
     await expect(done).rejects.toMatchObject({ name: 'AbortError' })
     expect(uploads.held[0]?.isAborted()).toBe(true)
   })
+
+  describe('when the upload stalls', () => {
+    const STALL_TIMEOUT = 1_000
+
+    beforeEach(() => {
+      jest.useFakeTimers()
+      uploads.hold()
+    })
+
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    function start(): Promise<unknown> {
+      const done = uploadBlob({
+        url: URL_TEMPLATE,
+        blob: new Blob(['some bytes']),
+        type: 'application/octet-stream',
+        auth: makeAuth(),
+        stallTimeout: STALL_TIMEOUT
+      })
+      // Observed at once, so the rejection is never unhandled
+      done.catch(() => undefined)
+      return done
+    }
+
+    it('fails when the progress does not move', async () => {
+      const done = start()
+      await jest.advanceTimersByTimeAsync(0)
+      uploads.held[0]?.progress()
+
+      await jest.advanceTimersByTimeAsync(STALL_TIMEOUT)
+
+      await expect(done).rejects.toEqual(new UploadError(0))
+      expect(uploads.held[0]?.isAborted()).toBe(true)
+    })
+
+    it('fails when the server does not answer once the body is sent', async () => {
+      const done = start()
+      await jest.advanceTimersByTimeAsync(0)
+      uploads.held[0]?.bodySent()
+
+      await jest.advanceTimersByTimeAsync(STALL_TIMEOUT)
+
+      await expect(done).rejects.toEqual(new UploadError(0))
+      expect(uploads.held[0]?.isAborted()).toBe(true)
+    })
+
+    it('goes on while the progress moves', async () => {
+      const done = start()
+      await jest.advanceTimersByTimeAsync(0)
+
+      await jest.advanceTimersByTimeAsync(STALL_TIMEOUT - 1)
+      uploads.held[0]?.progress()
+      await jest.advanceTimersByTimeAsync(STALL_TIMEOUT - 1)
+      uploads.held[0]?.bodySent()
+      await jest.advanceTimersByTimeAsync(STALL_TIMEOUT - 1)
+      uploads.held[0]?.finish()
+      await jest.advanceTimersByTimeAsync(0)
+
+      await expect(done).resolves.toMatchObject({ blobId: 'uploaded-1' })
+      expect(uploads.held[0]?.isAborted()).toBe(false)
+    })
+  })
 })

@@ -293,6 +293,38 @@ describe('ComposerProvider', () => {
     ).toEqual(['zoe@example.com', 'Zelda Contact <zelda@example.com>'])
   })
 
+  it('adds the address typed with Enter, not a suggestion containing it, as tmail-flutter', async () => {
+    renderComposer(
+      makeFakeJmapServer({
+        capabilities: {
+          'com:linagora:params:jmap:contact:autocomplete': {
+            minInputLength: 1
+          }
+        },
+        contacts: [
+          {
+            id: 'c1',
+            firstname: 'Smtp',
+            surname: 'Newcomer',
+            emailAddress: 'smtp-newcomer@example.com'
+          }
+        ]
+      })
+    )
+    const composer = await openComposer()
+    await userEvent.keyboard('newcomer@example.com')
+
+    await within(composer).findByRole('option', { name: /Smtp Newcomer/ })
+    const options = within(composer).getAllByRole('option')
+    expect(options[0]).toHaveAccessibleName(/^newcomer@example\.com/)
+    await userEvent.keyboard('{Enter}')
+    expect(
+      within(composer)
+        .getAllByTestId('recipient-chip')
+        .map(chip => chip.getAttribute('title'))
+    ).toEqual(['newcomer@example.com'])
+  })
+
   it('names the window after the subject', async () => {
     renderComposer()
     const composer = await openComposer()

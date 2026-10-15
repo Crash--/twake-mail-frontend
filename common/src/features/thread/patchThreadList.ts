@@ -183,10 +183,15 @@ export function patchThreadList(
     if (row !== null) rows.set(email.id, row)
     const threadId = email.threadId ?? threadOf.get(email.id)
     // Not of a conversation the list knows, nor coming into the mailbox
-    if (threadId === undefined || changes.threads?.has(threadId) === true) {
+    if (threadId === undefined) continue
+    const thread = members.get(threadId)
+    // The members read again win, but they may lag behind the changes: a
+    // server answering `Thread/get` from its search index (James memory)
+    // does not list an email just delivered yet, which would then never
+    // show
+    if (changes.threads?.has(threadId) === true && thread?.has(email.id)) {
       continue
     }
-    const thread = members.get(threadId)
     if (thread === undefined) {
       if (
         mailboxId in email.mailboxIds &&

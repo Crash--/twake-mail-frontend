@@ -237,6 +237,37 @@ describe('patchThreadList', () => {
     expect(memberIds(data, 'e')).toEqual(['e0', 'e1'])
   })
 
+  it('brings in a new email the members read again do not list yet', () => {
+    const fresh = email('e1', 'e', 17)
+
+    // `Thread/get` answered from a search index not updated yet
+    const { data } = patchThreadList(
+      conversations(),
+      INBOX,
+      changes({ changed: [fresh], threads: new Map([['e', []]]) })
+    )
+
+    expect(rows(data)).toEqual(['a2', 'b1', 'e1', 'c1', 'd1'])
+    expect(memberIds(data, 'e')).toEqual(['e1'])
+  })
+
+  it('adds a new reply to the members read again that lack it', () => {
+    const older = email('e0', 'e', 2, { mailboxIds: { [ARCHIVE]: true } })
+    const fresh = email('e1', 'e', 17)
+
+    const { data } = patchThreadList(
+      conversations(),
+      INBOX,
+      changes({
+        changed: [fresh],
+        threads: new Map([['e', [member(older)]]])
+      })
+    )
+
+    expect(rows(data)).toEqual(['a2', 'b1', 'e1', 'c1', 'd1'])
+    expect(memberIds(data, 'e')).toEqual(['e0', 'e1'])
+  })
+
   it('brings in a conversation whose email has no sender nor recipient', () => {
     // As James sends it: the properties without value are left out
     const { from: _from, to: _to, ...template } = email('t1', 't', 17)

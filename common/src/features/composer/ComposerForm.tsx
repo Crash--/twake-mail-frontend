@@ -59,6 +59,7 @@ import {
 } from '@/ds/ComposerIcons/ComposerIcons'
 import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { useAppConfig } from '@common/config/AppConfigProvider'
 import {
   useAlert,
   useChoose,
@@ -103,6 +104,7 @@ import {
   saveDraft,
   isInTeamMailbox,
   isRequestTooLarge,
+  mailUserAgent,
   saveTemplate,
   sendEmail,
   type AttachedFile,
@@ -357,7 +359,8 @@ function LoadedComposerForm({
   mailboxes,
   images
 }: LoadedFormProps): ReactElement {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const appConfig = useAppConfig()
   const client = useJmapClient()
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
@@ -510,7 +513,12 @@ function LoadedComposerForm({
         ? (content.readReceiptAddress ?? session.username)
         : null,
       isImportant: options.isImportant,
-      identityReplyTo: identityReplyTo(identity)
+      identityReplyTo: identityReplyTo(identity),
+      userAgent: mailUserAgent(
+        appConfig?.appVersion ?? 'dev',
+        navigator.userAgent
+      ),
+      language: lang
     }
   }
 

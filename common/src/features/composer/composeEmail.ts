@@ -52,6 +52,34 @@ export const READ_RECEIPT_REQUEST_HEADER =
 /** tmail-flutter writes the address of the read receipts there too */
 export const RETURN_PATH_HEADER = 'header:Return-Path:asText'
 
+/**
+ * The client that wrote the message, on every email created (tmail-flutter
+ * tf#1139, tf#221): without it, Rspamd takes a webmail message for a spoofed
+ * one
+ */
+export const USER_AGENT_HEADER = 'header:User-Agent:asText'
+/**
+ * The language of the UI, on every email created (tf#2215). On the text and
+ * HTML parts: RFC 8621 forbids `Content-*` on the Email object, and James
+ * refuses it there (and ignores the `language` of a part on creation)
+ */
+export const CONTENT_LANGUAGE_HEADER = 'header:Content-Language:asText'
+/** The language of the UI, the one answers are best written in (tf#2215) */
+export const ACCEPT_LANGUAGE_HEADER = 'header:Accept-Language:asText'
+
+const USER_AGENT_PRODUCT = 'Twake-Mail'
+
+/** The User-Agent of the emails: `Twake-Mail/<version> <browser user agent>` */
+export function mailUserAgent(
+  appVersion: string,
+  browserUserAgent: string
+): string {
+  // A header value holds no line break
+  const browser = browserUserAgent.replace(/\s+/g, ' ').trim()
+  const product = `${USER_AGENT_PRODUCT}/${appVersion.trim() || 'dev'}`
+  return browser === '' ? product : `${product} ${browser}`
+}
+
 const ANSWER_KEYWORDS: readonly string[] = ['$answered', '$forwarded']
 
 function isAnswerKeyword(value: string): value is AnswerKeyword {
@@ -108,6 +136,10 @@ export interface ComposedMessage {
    * only what was typed
    */
   identityReplyTo?: EmailAddress[]
+  /** `User-Agent` of the email (`mailUserAgent`); none when null */
+  userAgent?: string | null
+  /** Language of the UI: `Content-Language` and `Accept-Language` */
+  language?: string | null
 }
 
 /**
@@ -219,6 +251,10 @@ export async function buildEmail(
         ? (message.identityReplyTo ?? [])
         : []
   const readReceiptTo = message.readReceiptTo ?? null
+  const userAgent = message.userAgent ?? ''
+  const language = message.language ?? ''
+  const partLanguage =
+    language === '' ? {} : { [CONTENT_LANGUAGE_HEADER]: language }
   return {
     mailboxIds: { [mailboxIds.drafts]: true },
     keywords: { $draft: true, $seen: true },
@@ -240,14 +276,16 @@ export async function buildEmail(
           [RETURN_PATH_HEADER]: readReceiptTo
         }),
     ...(message.isImportant === true ? IMPORTANT_HEADER_VALUES : {}),
+    ...(userAgent === '' ? {} : { [USER_AGENT_HEADER]: userAgent }),
+    ...(language === '' ? {} : { [ACCEPT_LANGUAGE_HEADER]: language }),
     inReplyTo: message.inReplyTo,
     references: message.references,
     bodyValues: {
       html: { value: html },
       text: { value: htmlToText(html) }
     },
-    htmlBody: [{ partId: 'html', type: 'text/html' }],
-    textBody: [{ partId: 'text', type: 'text/plain' }],
+    htmlBody: [{ partId: 'html', type: 'text/html', ...partLanguage }],
+    textBody: [{ partId: 'text', type: 'text/plain', ...partLanguage }],
     attachments: [
       ...images.attachmentsFor(findReferencedCids(html)),
       ...(message.attachments ?? []).map((file): EmailBodyPartCreate => ({

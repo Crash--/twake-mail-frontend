@@ -25,6 +25,7 @@ import {
   IDENTITY_HEADER,
   identityReplyTo,
   isRequestTooLarge,
+  mailUserAgent,
   readFailure,
   saveDraft,
   sendEmail,
@@ -433,6 +434,41 @@ describe('buildEmail', () => {
         disposition: 'attachment'
       }
     ])
+  })
+
+  it('names the client and the language of the UI on every email created', async () => {
+    const described = {
+      ...message,
+      userAgent: 'Twake-Mail/1.2.3 Mozilla/5.0',
+      language: 'fr'
+    }
+    const purposes: BuildPurpose[] = ['draft', 'template', 'send']
+    for (const purpose of purposes) {
+      const email = await build(described, purpose)
+      expect(email).toMatchObject({
+        'header:User-Agent:asText': 'Twake-Mail/1.2.3 Mozilla/5.0',
+        'header:Accept-Language:asText': 'fr',
+        htmlBody: [{ 'header:Content-Language:asText': 'fr' }],
+        textBody: [{ 'header:Content-Language:asText': 'fr' }]
+      })
+      // RFC 8621: no Content-* header on the Email object, James refuses it
+      expect(email).not.toHaveProperty(['header:Content-Language:asText'])
+    }
+  })
+})
+
+describe('mailUserAgent', () => {
+  it('names Twake Mail and its version, then the browser', () => {
+    expect(mailUserAgent('1.2.3', 'Mozilla/5.0 (X11; Linux x86_64)')).toBe(
+      'Twake-Mail/1.2.3 Mozilla/5.0 (X11; Linux x86_64)'
+    )
+  })
+
+  it('keeps the header on one line, and a version when none is known', () => {
+    expect(mailUserAgent('', 'Mozilla/5.0\r\n  Gecko ')).toBe(
+      'Twake-Mail/dev Mozilla/5.0 Gecko'
+    )
+    expect(mailUserAgent('1.2.3', '')).toBe('Twake-Mail/1.2.3')
   })
 })
 

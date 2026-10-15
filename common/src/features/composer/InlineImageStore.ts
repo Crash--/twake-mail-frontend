@@ -90,9 +90,11 @@ export class InlineImageStore {
     this.#accountId = accountId
   }
 
-  /** Resizes, uploads and registers an image file */
-  async add(file: File): Promise<StoredImage & { resize: ResizeResult }> {
-    const resize = await resizeImage(file)
+  /** Uploads and registers an image file, as `resizeImage` left it */
+  async add(
+    file: File,
+    resize: ResizeResult
+  ): Promise<StoredImage & { resize: ResizeResult }> {
     const type = resize.blob.type || file.type
     const uploaded = await this.#client.upload(
       this.#accountId,

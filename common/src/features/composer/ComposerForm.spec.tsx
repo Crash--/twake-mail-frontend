@@ -2271,5 +2271,41 @@ describe('ComposerForm', () => {
       expect(dialog).toHaveTextContent('20 MB')
       expect(uploads.received).toEqual([])
     })
+
+    it('refuses an inline image above the size limit of the server', async () => {
+      // jsdom draws no image: a GIF is never resized, its size is read only
+      Object.defineProperty(globalThis, 'createImageBitmap', {
+        value: () =>
+          Promise.resolve({ width: 10, height: 10, close: jest.fn() }),
+        configurable: true,
+        writable: true
+      })
+      const jmapServer = makeFakeJmapServer()
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      const imageInput = composer.querySelector<HTMLInputElement>(
+        'input[type="file"]:not([data-testid])'
+      )
+      if (!imageInput) throw new Error('No image input')
+
+      await userEvent.upload(
+        imageInput,
+        new File([new Uint8Array(20_000_001)], 'huge.gif', {
+          type: 'image/gif'
+        })
+      )
+
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Maximum files size'
+      })
+      Reflect.deleteProperty(globalThis, 'createImageBitmap')
+      expect(dialog).toHaveTextContent('20 MB')
+      expect(
+        Array.from(jmapServer.blobs.keys()).filter(blobId =>
+          blobId.startsWith('fetched-upload-')
+        )
+      ).toEqual([])
+      expect(composer.querySelector('.ProseMirror img')).toBe(null)
+    })
   })
 })

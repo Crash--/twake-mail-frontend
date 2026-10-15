@@ -5,6 +5,8 @@ export interface HeldUpload {
   name: string
   /** Reports half of the bytes sent */
   progress: () => void
+  /** Reports the whole body sent, the answer still to come */
+  bodySent: () => void
   /** Ends it, the blob stored */
   finish: () => void
   /** Ends it with an HTTP error */
@@ -36,6 +38,7 @@ function readText(blob: Blob): Promise<string> {
 }
 
 type ProgressHandler = ((event: ProgressEvent) => void) | null
+type EventHandler = (() => void) | null
 
 /**
  * Replaces `XMLHttpRequest` (the upload of attachments, which reports its
@@ -67,7 +70,10 @@ export function installFakeUploads(server: FakeJmapServer): FakeUploads {
     onload: (() => void) | null = null
     onerror: (() => void) | null = null
     onabort: (() => void) | null = null
-    readonly upload: { onprogress: ProgressHandler } = { onprogress: null }
+    readonly upload: { onprogress: ProgressHandler; onload: EventHandler } = {
+      onprogress: null,
+      onload: null
+    }
     #url = ''
     #type = ''
     #aborted = false
@@ -100,6 +106,9 @@ export function installFakeUploads(server: FakeJmapServer): FakeUploads {
           })
         )
       }
+      const bodySent = (): void => {
+        this.upload.onload?.()
+      }
       const finish = (): void => {
         if (this.#done) return
         this.#done = true
@@ -128,6 +137,7 @@ export function installFakeUploads(server: FakeJmapServer): FakeUploads {
         fake.held.push({
           name,
           progress,
+          bodySent,
           finish,
           fail,
           isAborted: () => this.#aborted

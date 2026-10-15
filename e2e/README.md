@@ -468,10 +468,10 @@ backend logs (on failure), and a JUnit summary, all named after the suite.
     `ConcurrentModificationException`; the suite is stable with the 2
     workers of CI (`E2E_WORKERS=2`).
 - **Creating emails** (`tests/backend.spec.ts`, `INFRA-13` to `INFRA-17`, what the composer
-  relies on): `bodyStructure` is ignored on creation (tmail-backend#2685), so the composer sends
-  `htmlBody` + `textBody` + `attachments`; one `Email/set` creates before it destroys and
-  `Email/get` reads `#creationId`; `Email/get` answers `serverFail` when `attachments` comes
-  before any body property (#2686); a refused creation does not stop the destroy of the same
+  relies on): `bodyStructure` is refused on creation (`invalidProperties`, tmail-backend#2685,
+  1.0.22), so the composer sends `htmlBody` + `textBody` + `attachments`; one `Email/set`
+  creates before it destroys and `Email/get` reads `#creationId`; `Email/get` answers whatever
+  the order of `attachments` and the body properties (#2686, fixed in 1.0.22); a refused creation does not stop the destroy of the same
   `Email/set` (`INFRA-16`), so a draft is saved in two requests, the previous version destroyed
   only once the new one exists (`CMP-37`); destroying two emails in one `Email/set` drops the
   other emails of their mailbox from `Email/query` (`INFRA-17`, memory image: they are still

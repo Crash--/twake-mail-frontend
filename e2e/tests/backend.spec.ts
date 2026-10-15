@@ -4,7 +4,8 @@ import type { JmapClient } from '../support/jmap'
 /**
  * What tmail-backend does with the requests of the composer, checked
  * without the app: the composer relies on it (features/composer/
- * composeEmail.ts), and tmail-backend#2685 / #2686 track the gaps.
+ * composeEmail.ts). tmail-backend 1.0.22 fixed #2685 (bodyStructure now
+ * refused on creation) and #2686 (serverFail of Email/get).
  */
 
 // 1x1 red PNG
@@ -85,7 +86,7 @@ async function structureOf(jmap: JmapClient, id: string): Promise<string> {
 }
 
 test.describe('INFRA tmail-backend and the composer', () => {
-  test('INFRA-13 htmlBody, textBody and inline attachments make multipart/related; bodyStructure is ignored on creation (#2685)', async ({
+  test('INFRA-13 htmlBody, textBody and inline attachments make multipart/related; bodyStructure is refused on creation (#2685)', async ({
     jmap,
     user
   }) => {
@@ -107,16 +108,20 @@ test.describe('INFRA tmail-backend and the composer', () => {
       string,
       { id: string }
     >
-    expect(Object.keys(created).sort()).toEqual(['parts', 'structure'])
+    expect(Object.keys(created)).toEqual(['parts'])
+    const notCreated = result(responses, 0).notCreated as Record<
+      string,
+      { type: string; properties?: string[] }
+    >
+    expect(notCreated.structure).toMatchObject({
+      type: 'invalidProperties',
+      properties: ['bodyStructure']
+    })
 
     const parts = await structureOf(jmap, created.parts?.id ?? '')
     expect(parts).toContain('multipart/related')
     expect(parts).toContain('multipart/alternative')
     expect(parts).toContain('img1@e2e')
-    // When this fails, tmail-backend#2685 is fixed
-    expect(await structureOf(jmap, created.structure?.id ?? '')).not.toContain(
-      'multipart/related'
-    )
   })
 
   test('INFRA-14 one Email/set creates before it destroys, the new version keeping the parts of the old one; Email/get reads #creationId', async ({
@@ -191,7 +196,7 @@ test.describe('INFRA tmail-backend and the composer', () => {
     expect(v2Parts?.[0]?.blobId).toContain(`${v2Id}_`)
   })
 
-  test('INFRA-15 Email/get answers serverFail when attachments come before any body property (#2686)', async ({
+  test('INFRA-15 Email/get answers whatever the order of attachments and the body properties (#2686)', async ({
     jmap,
     user
   }) => {
@@ -208,16 +213,14 @@ test.describe('INFRA tmail-backend and the composer', () => {
     ])
     const id =
       (created?.[1].created as Record<string, { id: string }>).d?.id ?? ''
-    // When this fails, tmail-backend#2686 is fixed
-    await expect(
-      jmap.request([
-        [
-          'Email/get',
-          { accountId, ids: [id], properties: ['attachments', 'bodyValues'] },
-          'bad'
-        ]
-      ])
-    ).rejects.toThrow(/serverFail/)
+    const [first] = await jmap.request([
+      [
+        'Email/get',
+        { accountId, ids: [id], properties: ['attachments', 'bodyValues'] },
+        'first'
+      ]
+    ])
+    expect(first?.[0]).toBe('Email/get')
     const [good] = await jmap.request([
       [
         'Email/get',

@@ -228,8 +228,8 @@ async function uploadDataImages(
 
 /**
  * The JMAP Email of a message, in Drafts. `htmlBody` + `textBody` +
- * inline `attachments` (not `bodyStructure`: tmail-backend 1.0.21 ignores
- * it on creation) give multipart/related[multipart/alternative[text, html],
+ * inline `attachments` (not `bodyStructure`: tmail-backend refuses it on
+ * creation) give multipart/related[multipart/alternative[text, html],
  * images].
  */
 export async function buildEmail(

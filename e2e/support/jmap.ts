@@ -575,9 +575,9 @@ export class JmapClient {
           from: [{ email: (await this.getSession()).username }],
           to: [{ email: 'someone@example.com' }],
           subject: input.subject,
-          // tmail-backend ignores `bodyStructure` on creation for an HTML body
+          // tmail-backend refuses `bodyStructure` on creation (since 1.0.22)
           ...(input.html === undefined
-            ? { bodyStructure: { type: 'text/plain', partId: '1' } }
+            ? { textBody: [{ partId: '1', type: 'text/plain' }] }
             : { htmlBody: [{ partId: '1', type: 'text/html' }] }),
           bodyValues: { '1': { value: input.html ?? input.text ?? 'Hello' } }
         }

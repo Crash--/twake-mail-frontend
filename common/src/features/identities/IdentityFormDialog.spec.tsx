@@ -90,6 +90,30 @@ describe('IdentityFormDialog signature images', () => {
     )
   })
 
+  it('gives a wide image the signature width as a width attribute', async () => {
+    Object.defineProperty(window, 'createImageBitmap', {
+      configurable: true,
+      value: () =>
+        Promise.resolve({ width: 1600, height: 900, close: jest.fn() })
+    })
+    try {
+      const server = makeServer()
+      renderDialog(server)
+      const area = await screen.findByTestId('identity-signature-editor')
+      const editor = (area as HTMLElement & { editor?: Editor }).editor
+      if (!editor) throw new Error('No editor')
+
+      await userEvent.upload(fileInput(), png())
+
+      // What the signature saves
+      await waitFor(() => {
+        expect(editor.getHTML()).toMatch(/<img [^>]*width="800"/)
+      })
+    } finally {
+      Reflect.deleteProperty(window, 'createImageBitmap')
+    }
+  })
+
   it('says what the server says when the images take too much room', async () => {
     const server = makeServer()
     server.handlers.set('PublicAsset/set', () => ({

@@ -55,7 +55,7 @@ import {
   publishSignatureImage,
   signatureAssetChanges
 } from './signatureAssets'
-import { shrinkSignatureImage, signatureImageMaxWidth } from './signatureImage'
+import { prepareSignatureImage, signatureImageMaxWidth } from './signatureImage'
 
 export interface IdentityFormDialogProps {
   /** The identity to edit, null to create one */
@@ -170,34 +170,31 @@ export function IdentityFormDialog({
   const storeImage = async (
     original: File
   ): Promise<InlineImageAttributes | null> => {
-    const file = await shrinkSignatureImage(
+    const image = await prepareSignatureImage(
       original,
-      maxUploadSize ?? Number.POSITIVE_INFINITY,
-      signatureImageMaxWidth(window.innerWidth, screenSize === 'desktop')
+      signatureImageMaxWidth(screenSize === 'desktop'),
+      maxUploadSize ?? Number.POSITIVE_INFINITY
     )
-    if (file === null) {
+    if (image === null) {
       notify({
-        message: t('identities.errors.imageCompress'),
+        message:
+          maxUploadSize === undefined
+            ? t('identities.errors.imageCompress')
+            : t('identities.errors.imageTooLarge', {
+                maxSize: Math.floor(maxUploadSize / 1024)
+              }),
         severity: 'error'
       })
       return null
     }
-    if (maxUploadSize !== undefined && file.size > maxUploadSize) {
-      notify({
-        message: t('identities.errors.imageTooLarge', {
-          maxSize: Math.floor(maxUploadSize / 1024)
-        }),
-        severity: 'error'
-      })
-      return null
-    }
+    const { file, width } = image
     if (!canPublishImages) {
       // Without PublicAssets, the image travels inside the signature
       return {
         src: await readAsDataUrl(file),
         alt: original.name,
         reference: null,
-        width: null
+        width
       }
     }
     const published = await publishSignatureImage(
@@ -223,7 +220,7 @@ export function IdentityFormDialog({
       src: published.value.publicUri,
       alt: original.name,
       reference: published.value.assetId,
-      width: null
+      width
     }
   }
 

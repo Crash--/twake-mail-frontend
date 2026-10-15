@@ -697,11 +697,13 @@ test.describe('SRCH search', () => {
     await page.getByTestId('search-contact-picker-done-button').click()
     await expect(picker).toBeHidden()
 
-    await expect(page.getByTestId('search-filter-removable')).toHaveText(
-      'From: nobody@x.org'
-    )
+    // As tmail-flutter: one chip, naming the sender (#441)
+    await expect(search.filterChip('from')).toHaveText('From: nobody@x.org')
+    await expect(page.getByTestId('search-filter-removable')).toHaveCount(0)
     await expect(search.emptyView).toBeVisible()
-    await page.getByTestId('search-filter-removable').click()
+    await search.filterChip('from').click()
+    await page.getByTestId('search-contact-picker-clear-filter-button').click()
+    await expect(search.filterChip('from')).toHaveText('From')
     await expect(search.resultRow(plain)).toBeVisible()
   })
 

@@ -93,10 +93,29 @@ describe('SearchFiltersBar', () => {
     })
   })
 
+  it('shows the senders and recipients in their chip, as tmail-flutter', async () => {
+    renderBar({
+      ...EMPTY_SEARCH_FILTER,
+      from: ['me@x.org', 'zelda@example.com'],
+      to: ['bob@x.org']
+    })
+
+    expect(
+      await screen.findByRole('button', {
+        name: 'From: me@x.org, zelda@example.com'
+      })
+    ).toHaveAttribute('aria-haspopup', 'dialog')
+    expect(screen.getByRole('button', { name: 'To: bob@x.org' })).toBeTruthy()
+    // Not a second, removable chip per address
+    expect(screen.queryByTestId('search-filter-removable')).toBe(null)
+  })
+
   it('picks the senders in the contact view of tmail-flutter', async () => {
     const onChange = renderBar({ ...EMPTY_SEARCH_FILTER, from: ['me@x.org'] })
 
-    await userEvent.click(await screen.findByRole('button', { name: 'From' }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'From: me@x.org' })
+    )
 
     const picker = await screen.findByRole('dialog', {
       name: 'Find emails from'
@@ -125,7 +144,9 @@ describe('SearchFiltersBar', () => {
   it('offers the address typed, and clears the recipients', async () => {
     const onChange = renderBar({ ...EMPTY_SEARCH_FILTER, to: ['me@x.org'] })
 
-    await userEvent.click(await screen.findByRole('button', { name: 'To' }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'To: me@x.org' })
+    )
     const picker = await screen.findByRole('dialog', { name: 'Find emails to' })
     await userEvent.type(
       within(picker).getByRole('searchbox', { name: 'Enter name or email' }),

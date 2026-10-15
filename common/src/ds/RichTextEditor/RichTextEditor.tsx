@@ -27,6 +27,7 @@ import {
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
+import { CARET_BLOCK_ATTRIBUTE, CaretBlock } from './caretBlock'
 import { cleanPastedHtml } from './cleanPastedHtml'
 import { HtmlBlock, type HtmlBlockOptions } from './htmlBlock'
 import { ImageToolbar } from './ImageToolbar'
@@ -330,6 +331,7 @@ export function RichTextEditor({
       // Tables pasted from a spreadsheet or a page keep their cells
       TableKit.configure({ table: { resizable: false } }),
       InlineImage,
+      CaretBlock,
       HtmlBlock.configure(htmlBlock ?? {}),
       SmartTrailingBlock.configure({
         isFooter: node =>
@@ -578,6 +580,11 @@ export function RichTextEditor({
           '& .ProseMirror > *': {
             contentVisibility: 'auto',
             containIntrinsicSize: 'auto 300px'
+          },
+          // Except where the caret is: Chrome lays a new block out a frame late, and the
+          // keys typed meanwhile in it (right after Enter) land before the caret (#429)
+          [`& .ProseMirror > [${CARET_BLOCK_ATTRIBUTE}]`]: {
+            contentVisibility: 'visible'
           },
           '& .ProseMirror p': {
             margin: 0,

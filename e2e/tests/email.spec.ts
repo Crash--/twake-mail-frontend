@@ -418,6 +418,9 @@ test.describe('EML reading an email', () => {
         html: lines.map(paragraph).join('')
       })
       await jmap.waitForEmail({ subject: 'Fitting body' })
+      // The body may show while the email slides in: a pointer over it hits
+      // the view transition, not the frame, until the transition ends
+      await page.emulateMedia({ reducedMotion: 'reduce' })
 
       const mailbox = await new LoginPage(page).loginAs(user)
       const email = await mailbox.openEmail('Fitting body')

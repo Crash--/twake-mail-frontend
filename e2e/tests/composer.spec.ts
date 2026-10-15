@@ -358,6 +358,11 @@ test.describe('CMP composer', () => {
     await composer.subjectInput.focus()
     await page.keyboard.press('Tab')
     await expect(composer.editor).toBeFocused()
+    // Tab writes a tab (#470); Ctrl+Shift+M makes it move the focus
+    await page.keyboard.press('Tab')
+    await expect(composer.editor).toBeFocused()
+    expect(await composer.editorHtml()).toContain('&nbsp;&nbsp;&nbsp;&nbsp;')
+    await page.keyboard.press('Control+Shift+M')
     await page.keyboard.press('Tab')
     const first = composer.toolbar.getByRole('button').first()
     await expect(first).toBeFocused()
@@ -379,14 +384,17 @@ test.describe('CMP composer', () => {
     await expect(composer.editor).toBeFocused()
     await composer.expectMode('normal')
 
-    // In a list, Tab indents; at the first item it cannot, so it leaves
+    // Back to writing tabs: in a list, Tab indents; at the first item it cannot, so it
+    // writes a tab
+    await page.keyboard.press('Control+Shift+M')
     await page.keyboard.press('Enter')
     await composer.chooseFromMenu('Lists and indentation', 'Bulleted list')
     await page.keyboard.type('item')
     await page.keyboard.press('Tab')
-    await expect(composer.editor).not.toBeFocused()
-    await composer.editor.getByText('item').click()
-    await page.keyboard.press('End')
+    await expect(composer.editor).toBeFocused()
+    expect(await composer.editorHtml()).toContain(
+      '<ul><li><p>item&nbsp;&nbsp;&nbsp;&nbsp;</p></li></ul>'
+    )
     await page.keyboard.press('Enter')
     await page.keyboard.type('nested')
     await page.keyboard.press('Tab')

@@ -272,7 +272,7 @@
       "blockquote": "Trích dẫn",
       "clearFormatting": "Xóa định dạng",
       "name": "Nội dung thư",
-      "keyboardHelp": "Tab thụt lề mục danh sách hoặc rời trình soạn thảo. Alt+F10 chuyển đến thanh định dạng. Ctrl+K chèn liên kết. Với ảnh được chọn bằng phím mũi tên, Enter hiển thị tùy chọn kích thước.",
+      "keyboardHelp": "Tab chèn một tab hoặc thụt lề mục danh sách. Shift+Tab rời trình soạn thảo. Ctrl+Shift+M chuyển Tab giữa việc di chuyển tiêu điểm và chèn tab. Alt+F10 chuyển đến thanh định dạng. Ctrl+K chèn liên kết. Với ảnh được chọn bằng phím mũi tên, Enter hiển thị tùy chọn kích thước.",
       "colors": {
         "black": "Đen",
         "darkGrey": "Xám đậm",

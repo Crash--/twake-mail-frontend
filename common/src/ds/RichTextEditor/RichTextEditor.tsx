@@ -201,6 +201,38 @@ function createKeyboardExtension(actionsRef: ActionsRef): AnyExtension {
 }
 
 /**
+ * What Tab writes: four non-breaking spaces, as Summernote (tmail-flutter's
+ * editor) does; a tab character would collapse to one space in the mail
+ */
+export const TAB_TEXT = '\u00a0'.repeat(4)
+
+/**
+ * Tab writes a tab in the text (#470). Last of the Tab bindings: in a list
+ * it still indents the item, in a table it goes to the next cell. No
+ * keyboard trap: Shift+Tab is left alone (it outdents in a list, else it
+ * leaves the editor), and Ctrl+Shift+M, as on GitHub, switches Tab between
+ * writing a tab and moving the focus on
+ */
+const TabKey = Extension.create<object, { isMovingFocus: boolean }>({
+  name: 'richTextTab',
+  priority: 10,
+  addStorage() {
+    return { isMovingFocus: false }
+  },
+  addKeyboardShortcuts() {
+    return {
+      Tab: () =>
+        !this.storage.isMovingFocus &&
+        this.editor.commands.insertContent({ type: 'text', text: TAB_TEXT }),
+      'Ctrl-Shift-m': () => {
+        this.storage.isMovingFocus = !this.storage.isMovingFocus
+        return true
+      }
+    }
+  }
+})
+
+/**
  * ProseMirror calls `preventDefault()` on every Escape no key binding took,
  * and what holds the editor (a window, a dialog) ignores a handled Escape.
  * The key bindings still get it first; an Escape none of them takes goes up
@@ -233,8 +265,10 @@ function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
 /**
  * A rich text editor with its toolbar.
  *
- * Keyboard: Tab leaves the editor (in a list, it indents the item first;
- * Shift+Tab outdents), Alt+F10 goes to the toolbar and Escape comes back,
+ * Keyboard: Tab writes a tab (in a list, it indents the item; in a table,
+ * it goes to the next cell), Shift+Tab leaves the editor (in a list, it
+ * outdents the item first), Ctrl+Shift+M makes Tab move the focus instead
+ * (and back), Alt+F10 goes to the toolbar and Escape comes back,
  * Ctrl/Cmd+K opens the link dialog, Ctrl+Shift+V pastes as plain text.
  * Arrows select an image in the text and Enter opens its toolbar (sizes,
  * removal: the keyboard alternative to the resize handles). Escape in the
@@ -342,6 +376,7 @@ export function RichTextEditor({
       // rendering: the compiler cannot see it through the TipTap options
       // eslint-disable-next-line react-hooks/refs
       createKeyboardExtension(actionsRef),
+      TabKey,
       // eslint-disable-next-line react-hooks/refs
       ...(onImageFiles ? [createImageFileHandler(actionsRef)] : []),
       ...(onImageFiles && shouldStorePastedDataImages

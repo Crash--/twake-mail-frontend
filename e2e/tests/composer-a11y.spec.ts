@@ -12,7 +12,10 @@ import { expect, test } from '../support/fixtures'
  * checked here: the grid marks it "à vérifier au lecteur d'écran".
  */
 
-/** Tab stops from the first field of the window to the Send button, by accessible name */
+/**
+ * Tab stops from the first field of the window to the Send button, by accessible name; in the
+ * body, Ctrl+Shift+M first, for Tab to move the focus on
+ */
 async function tabOrder(page: Page, composer: ComposerPage): Promise<string[]> {
   await composer.subjectInput.focus()
   const order: string[] = []
@@ -29,6 +32,8 @@ async function tabOrder(page: Page, composer: ComposerPage): Promise<string[]> {
     })
     order.push(name)
     if (name === 'Send') break
+    // Tab writes a tab in the body: Ctrl+Shift+M makes it move the focus on
+    if (name === 'Message body') await page.keyboard.press('Control+Shift+M')
   }
   return order
 }

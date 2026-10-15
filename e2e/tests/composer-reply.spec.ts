@@ -497,6 +497,8 @@ test.describe('CMP: the quote', () => {
       await openReceived(mailbox, 'ACME Weekly newsletter')
     ).reply()
     await expect(composer.editor).toBeFocused()
+    // Tab writes a tab in the body: Ctrl+Shift+M makes it move the focus on
+    await page.keyboard.press('Control+Shift+M')
     await page.keyboard.press('Tab')
     const edit = composer.root.getByRole('button', {
       name: 'Edit the quoted message'

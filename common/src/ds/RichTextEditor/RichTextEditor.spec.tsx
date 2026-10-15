@@ -6,7 +6,7 @@ import { useState, type KeyboardEvent, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { RichTextEditor } from './RichTextEditor'
+import { RichTextEditor, TAB_TEXT } from './RichTextEditor'
 import type { RichTextEditorActions, RichTextEditorLabels } from './types'
 
 const LABELS: RichTextEditorLabels = {
@@ -154,6 +154,17 @@ function DisabledEditor({
   )
 }
 
+/** Ctrl+Shift+M, with the keyCode the browsers give and ProseMirror reads */
+function pressToggleTab(area: HTMLElement): void {
+  fireEvent.keyDown(area, {
+    key: 'M',
+    code: 'KeyM',
+    keyCode: 77,
+    ctrlKey: true,
+    shiftKey: true
+  })
+}
+
 const IMAGE_WIDTH = 800
 const IMAGE_HEIGHT = 400
 
@@ -241,6 +252,62 @@ describe('RichTextEditor', () => {
     expect(handleEscape).toHaveBeenCalledTimes(1)
     await userEvent.keyboard('{Escape}')
     expect(handleEscape).toHaveBeenCalledTimes(2)
+  })
+
+  it('writes a tab with Tab and leaves with Shift+Tab', async () => {
+    const editor = await renderEditor('<p>Hello</p>')
+    const text = screen.getByRole('textbox', { name: 'Message body' })
+    act(() => {
+      editor.commands.setTextSelection(1)
+      editor.view.focus()
+    })
+
+    await userEvent.keyboard('{Tab}')
+
+    expect(text).toHaveFocus()
+    expect(editor.getText()).toBe(`${TAB_TEXT}Hello`)
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+    expect(text).not.toHaveFocus()
+  })
+
+  it('switches Tab to moving the focus with Ctrl+Shift+M, and back', async () => {
+    const editor = await renderEditor('<p>Hello</p>')
+    const text = screen.getByRole('textbox', { name: 'Message body' })
+    act(() => {
+      editor.commands.setTextSelection(1)
+      editor.view.focus()
+    })
+
+    pressToggleTab(text)
+    await userEvent.keyboard('{Tab}')
+
+    expect(text).not.toHaveFocus()
+    expect(editor.getText()).toBe('Hello')
+
+    act(() => {
+      editor.view.focus()
+    })
+    pressToggleTab(text)
+    await userEvent.keyboard('{Tab}')
+
+    expect(text).toHaveFocus()
+    expect(editor.getText()).toBe(`${TAB_TEXT}Hello`)
+  })
+
+  it('still indents a list item with Tab', async () => {
+    const editor = await renderEditor(
+      '<ul><li><p>one</p></li><li><p>two</p></li></ul>'
+    )
+    act(() => {
+      editor.commands.setTextSelection(editor.state.doc.content.size - 3)
+      editor.view.focus()
+    })
+
+    await userEvent.keyboard('{Tab}')
+
+    expect(editor.getHTML()).toBe(
+      '<ul><li><p>one</p><ul><li><p>two</p></li></ul></li></ul>'
+    )
   })
 
   it('puts a caret left between the blocks (a tap on a quote in WebKit) in the paragraph above', async () => {

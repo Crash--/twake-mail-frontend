@@ -29,6 +29,7 @@ import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useEditorLabels } from '@common/features/composer/useEditorLabels'
+import { formatSize } from '@common/features/email/formatSize'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -96,7 +97,7 @@ export function IdentityFormDialog({
   hasSortOrder,
   onClose
 }: IdentityFormDialogProps): ReactElement {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const client = useJmapClient()
   const queryClient = useQueryClient()
   const { accountId, session } = useJmapSession()
@@ -185,7 +186,7 @@ export function IdentityFormDialog({
     if (maxUploadSize !== undefined && file.size > maxUploadSize) {
       notify({
         message: t('identities.errors.imageTooLarge', {
-          maxSize: Math.floor(maxUploadSize / 1024)
+          maxSize: formatSize(maxUploadSize, lang)
         }),
         severity: 'error'
       })

@@ -985,7 +985,7 @@
       "invalidAddress": "Cette adresse e-mail n'est pas valide",
       "imageUpload": "Une erreur est survenue pendant le téléversement de l'image. Réessayez plus tard.",
       "delete": "Échec de la suppression",
-      "imageTooLarge": "Merci de choisir une taille d'image inférieure à %{maxSize}Ko",
+      "imageTooLarge": "Merci de choisir une taille d'image inférieure à %{maxSize}",
       "save": "L'identité n'a pas pu être enregistrée",
       "forbiddenFrom": "Vous ne pouvez pas envoyer depuis cette adresse",
       "load": "Les identités n'ont pas pu être chargées",

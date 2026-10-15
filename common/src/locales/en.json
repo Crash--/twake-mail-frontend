@@ -985,7 +985,7 @@
       "invalidAddress": "This email address invalid",
       "imageUpload": "There was an error while uploading the image. Please try again.",
       "delete": "Delete Failed",
-      "imageTooLarge": "Please choose an image with size less than %{maxSize}KB",
+      "imageTooLarge": "Please choose an image with size less than %{maxSize}",
       "save": "The identity could not be saved",
       "forbiddenFrom": "You cannot send from this address",
       "load": "The identities could not be loaded",

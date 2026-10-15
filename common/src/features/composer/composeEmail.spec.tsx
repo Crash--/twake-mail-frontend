@@ -25,6 +25,7 @@ import {
   IDENTITY_HEADER,
   identityReplyTo,
   isRequestTooLarge,
+  mailUserAgent,
   readFailure,
   saveDraft,
   sendEmail,
@@ -392,6 +393,37 @@ describe('buildEmail', () => {
     expect(
       (await build({ ...message, replyTo: typed }, 'send')).replyTo
     ).toEqual(typed)
+  })
+
+  it('names the client and the language of the UI on every email created', async () => {
+    const described = {
+      ...message,
+      userAgent: 'Twake-Mail/1.2.3 Mozilla/5.0',
+      language: 'fr'
+    }
+    const purposes: BuildPurpose[] = ['draft', 'template', 'send']
+    for (const purpose of purposes) {
+      expect(await build(described, purpose)).toMatchObject({
+        'header:User-Agent:asText': 'Twake-Mail/1.2.3 Mozilla/5.0',
+        'header:Content-Language:asText': 'fr',
+        'header:Accept-Language:asText': 'fr'
+      })
+    }
+  })
+})
+
+describe('mailUserAgent', () => {
+  it('names Twake Mail and its version, then the browser', () => {
+    expect(mailUserAgent('1.2.3', 'Mozilla/5.0 (X11; Linux x86_64)')).toBe(
+      'Twake-Mail/1.2.3 Mozilla/5.0 (X11; Linux x86_64)'
+    )
+  })
+
+  it('keeps the header on one line, and a version when none is known', () => {
+    expect(mailUserAgent('', 'Mozilla/5.0\r\n  Gecko ')).toBe(
+      'Twake-Mail/dev Mozilla/5.0 Gecko'
+    )
+    expect(mailUserAgent('1.2.3', '')).toBe('Twake-Mail/1.2.3')
   })
 })
 

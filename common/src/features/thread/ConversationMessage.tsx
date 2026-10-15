@@ -1,7 +1,13 @@
 import { Icon } from '@linagora/twake-icons'
 import { Skeleton, Typography } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
-import { useRef, useState, type ReactElement, type ReactNode } from 'react'
+import {
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+  type RefObject
+} from 'react'
 
 import {
   firstLetterOf,
@@ -362,6 +368,8 @@ export interface ConversationMessageProps {
   isTarget?: boolean
   /** Id of the subject and count of the conversation, read with the target */
   describedById?: string
+  /** Kept in view instead of the header when it opens (first message) */
+  revealedHeading?: RefObject<HTMLElement | null> | null
 }
 
 /**
@@ -378,11 +386,12 @@ export function ConversationMessage({
   onAction,
   onRemoteContentShown,
   isTarget = false,
-  describedById = ''
+  describedById = '',
+  revealedHeading = null
 }: ConversationMessageProps): ReactElement {
   const { t, lang } = useI18n()
   const toggleRef = useRef<HTMLButtonElement>(null)
-  useRevealOnOpen(toggleRef, isTarget, describedById)
+  useRevealOnOpen(toggleRef, isTarget, describedById, revealedHeading)
   const sender = email.from?.[0] ?? null
   const isUnread = !hasKeyword(email, SEEN)
   const isDraft = hasKeyword(email, DRAFT)

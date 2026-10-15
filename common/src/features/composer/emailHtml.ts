@@ -323,8 +323,17 @@ function collectLines(node: Node, context: TextContext, out: string[]): void {
   if (isBlock) newLine()
 }
 
+/** `-- ` (quoted or not) with its trailing space: the RFC 3676 delimiter */
+const SIGNATURE_DELIMITER = /^((?:> ?)*--)[ \t]+$/
+
+function trimTrailingSpaces(line: string): string {
+  return SIGNATURE_DELIMITER.test(line)
+    ? line.replace(SIGNATURE_DELIMITER, '$1 ')
+    : line.replace(/[ \t]+$/g, '')
+}
+
 function trimEmptyLines(lines: string[]): string[] {
-  const trimmed = lines.map(line => line.replace(/[ \t]+$/g, ''))
+  const trimmed = lines.map(trimTrailingSpaces)
   while (trimmed[0] === '') trimmed.shift()
   while (trimmed[trimmed.length - 1] === '') trimmed.pop()
   return trimmed.filter(

@@ -1847,6 +1847,40 @@ describe('ComposerForm', () => {
       })
     })
 
+    it('quotes a plain-text email with its line breaks inline, for other mail clients', async () => {
+      const jmapServer = makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'source-1',
+              subject: 'Plans',
+              from: [{ name: 'Emma', email: 'emma@example.com' }]
+            },
+            { text: 'First line\nSecond line' }
+          )
+        ]
+      })
+      renderComposer(jmapServer)
+      const composer = await openComposer('Answer reply')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      const sent = jmapServer.emails.find(
+        email => email.id === jmapServer.submitted[0]
+      )
+      const html = Object.values(sent?.bodyValues ?? {})
+        .map(value => value.value)
+        .join('')
+      // Not the reader's stylesheet: other mail clients never get it
+      expect(html).toMatch(
+        /<div class="tmail-plain-text" style="white-space: ?pre-wrap;?">First line<br>Second line<\/div>/
+      )
+    })
+
     it('brings back the answer already open instead of a second one', async () => {
       renderComposer(serverWithSource())
       const composer = await openComposer('Answer reply')

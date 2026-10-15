@@ -48,7 +48,7 @@ describe('renderBodyParts', () => {
     )
 
     expect(content.html).toBe(
-      `${plainTextToHtml('a < b\nsecond line')}<b>bold</b>`
+      '<div class="tmail-plain-text">a &lt; b\nsecond line</div><b>bold</b>'
     )
     expect(content.html).toContain('a &lt; b\nsecond line')
   })
@@ -104,7 +104,15 @@ describe('plainTextToLinkedHtml', () => {
 
   it('is not what the composer quotes: plainTextToHtml keeps URLs as text', () => {
     expect(plainTextToHtml('https://example.com')).toBe(
-      '<div class="tmail-plain-text">https://example.com</div>'
+      '<div class="tmail-plain-text" style="white-space:pre-wrap;">https://example.com</div>'
+    )
+  })
+})
+
+describe('plainTextToHtml', () => {
+  it('keeps the lines without the app stylesheet, for other mail clients', () => {
+    expect(plainTextToHtml('a < b\r\nsecond  line\n\nlast')).toBe(
+      '<div class="tmail-plain-text" style="white-space:pre-wrap;">a &lt; b<br>second  line<br><br>last</div>'
     )
   })
 })

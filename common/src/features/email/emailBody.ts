@@ -88,9 +88,17 @@ function escapeHtml(text: string): string {
     .replaceAll("'", '&#39;')
 }
 
-/** Plain text as HTML, line breaks and spaces kept */
+/** Inline: this HTML leaves the app, where the reader's stylesheet is absent */
+const PLAIN_TEXT_STYLE = 'white-space:pre-wrap;'
+
+/**
+ * Plain text as HTML for an email the app sends (a quote, a draft): line
+ * breaks become `<br>` and spaces are kept by an inline style, as other mail
+ * clients ignore the reader's stylesheet
+ */
 export function plainTextToHtml(text: string): string {
-  return `<div class="tmail-plain-text">${escapeHtml(text)}</div>`
+  const lines = escapeHtml(text).split(/\r?\n/).join('<br>')
+  return `<div class="tmail-plain-text" style="${PLAIN_TEXT_STYLE}">${lines}</div>`
 }
 
 /**

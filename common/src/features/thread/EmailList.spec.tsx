@@ -25,7 +25,8 @@ import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EmailList } from './EmailList'
 import { ListFilterProvider } from './ListFilterProvider'
-import { EMAIL_LIST_PAGE_SIZE, threadKeys } from './queries'
+import { keepFirstPage } from './patchEmailList'
+import { EMAIL_LIST_PAGE_SIZE, threadKeys, type EmailListData } from './queries'
 
 function OpenedEmail(): ReactElement {
   const { mailboxId, emailId } = useParams()
@@ -191,6 +192,45 @@ describe('EmailList', () => {
     })
     fireEvent.scroll(scroller, { target: { scrollTop: 56 * total } })
     expect(await screen.findByText(`Email ${total - 1}`)).toBeVisible()
+  })
+
+  it('fills the viewport again after a refetch cut the list to its first page', async () => {
+    const server = makeFakeJmapServer({
+      emails: makeEmails(EMAIL_LIST_PAGE_SIZE * 2 + 5)
+    })
+    const { queryClient } = renderList(server, 'mailbox-inbox', null, 56 * 25)
+    const queriedPositions = (): unknown[] =>
+      server.requests.flatMap(({ methodCalls }) =>
+        methodCalls
+          .filter(([name]) => name === 'Email/query')
+          .map(([, args]) => args.position)
+      )
+    await waitFor(() => {
+      expect(queriedPositions()).toEqual([0, EMAIL_LIST_PAGE_SIZE])
+    })
+
+    // As push when it cannot compute the changes (many emails moved): the
+    // first page alone, fetched again, leaves the end of the viewport near.
+    // The list shows it while it is fetched again
+    const key = threadKeys.list(FAKE_ACCOUNT_ID, 'mailbox-inbox')
+    const release = server.holdRequests('Email/query')
+    await act(async () => {
+      queryClient.setQueryData<EmailListData>(key, data =>
+        data ? keepFirstPage(data) : data
+      )
+      queryClient.invalidateQueries({ queryKey: key }).catch(() => undefined)
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    release()
+
+    await waitFor(() => {
+      expect(queriedPositions()).toEqual([
+        0,
+        EMAIL_LIST_PAGE_SIZE,
+        0,
+        EMAIL_LIST_PAGE_SIZE
+      ])
+    })
   })
 
   it('reloads a list shown again once stale, even after its last page', async () => {

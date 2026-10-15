@@ -374,7 +374,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   })
   const { run: runEmailAction } = useEmailActions()
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query
+  const { hasNextPage, isFetching, isFetchingNextPage, fetchNextPage } = query
 
   // The table reports the end of the list again while a page loads, and
   // may call a stale handler: never cancel the fetch in flight, and read
@@ -395,22 +395,19 @@ export function EmailList(props: EmailListProps): ReactElement {
   }, [])
 
   // endReached is not reported again when the page just appended still
-  // ends in view: check after each page, and fetch a few rows ahead
+  // ends in view: check after each page, and fetch a few rows ahead. Not
+  // during a refetch (push cuts the list to its first page when it cannot
+  // compute the changes): the call would not fetch, and the refetch may
+  // leave as many rows; check again once it is done
   useEffect(() => {
     if (
       hasNextPage &&
-      !isFetchingNextPage &&
+      !isFetching &&
       lastVisibleIndex >= emails.length - 1 - PRELOAD_ROWS
     ) {
       void fetchNextPage({ cancelRefetch: false })
     }
-  }, [
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-    lastVisibleIndex,
-    emails.length
-  ])
+  }, [hasNextPage, isFetching, fetchNextPage, lastVisibleIndex, emails.length])
 
   // A conversation is starred, or unread, when one of its emails is: the
   // toggles apply to all of them

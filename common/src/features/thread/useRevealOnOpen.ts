@@ -20,15 +20,29 @@ const USER_EVENTS = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
  * Does nothing when `isTarget` is false. `describedById` is the element read with the header the first time it
  * has the focus (subject and count of the conversation, which the focus
  * moving away from the subject would otherwise skip).
+ *
+ * `heading`, given when the target is the first message, is what is kept in
+ * view instead (the subject of the conversation): nothing above the target
+ * is worth skipping, and scrolling its header to the top would hide the
+ * subject of a long message.
  */
 export function useRevealOnOpen(
   target: RefObject<HTMLElement | null>,
   isTarget: boolean,
-  describedById: string
+  describedById: string,
+  heading: RefObject<HTMLElement | null> | null = null
 ): void {
   useLayoutEffect(() => {
     const element = target.current
     if (!isTarget || element === null) return undefined
+    const reveal = (): void => {
+      const top = heading?.current ?? null
+      if (top === null) {
+        element.scrollIntoView({ block: 'start', behavior: 'instant' })
+      } else {
+        top.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+      }
+    }
 
     element.setAttribute('aria-describedby', describedById)
     const clearDescription = (): void => {
@@ -37,7 +51,7 @@ export function useRevealOnOpen(
     element.addEventListener('blur', clearDescription, { once: true })
 
     element.focus({ preventScroll: true })
-    element.scrollIntoView({ block: 'start', behavior: 'instant' })
+    reveal()
 
     let isSettling = true
     const list = element.closest('ol')
@@ -52,9 +66,7 @@ export function useRevealOnOpen(
             const height = list?.getBoundingClientRect().height ?? 0
             if (height === lastHeight) return
             lastHeight = height
-            if (isSettling) {
-              element.scrollIntoView({ block: 'start', behavior: 'instant' })
-            }
+            if (isSettling) reveal()
           })
     const timer = window.setTimeout(() => {
       stop()

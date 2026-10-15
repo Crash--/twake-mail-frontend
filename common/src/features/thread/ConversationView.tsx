@@ -352,6 +352,7 @@ function ConversationContent({
             onRemoteContentShown={handleFocusSubject}
             isTarget={email.id === targetId}
             describedById={`${subjectId} ${countId}`}
+            revealedHeading={email.id === emails[0]?.id ? subjectRef : null}
           />
         ))}
       </MessageThread>
@@ -395,7 +396,8 @@ export interface ConversationViewProps {
  * Unread messages, the last one and the one opened are expanded (and the
  * unread ones marked read, in one request), the others collapsed; a reply
  * arriving while it is open joins it collapsed (push) and is announced.
- * It opens scrolled to, and focused on, the header of the message to read.
+ * It opens scrolled to, and focused on, the header of the message to read;
+ * on the first message, the subject stays in view above it.
  */
 export function ConversationView({
   threadId,

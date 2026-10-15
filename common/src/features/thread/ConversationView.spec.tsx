@@ -221,15 +221,28 @@ describe('ConversationView', () => {
     })
 
     it('is the email opened from a search result or a link, focused and scrolled to', async () => {
+      await renderConversation(makeServer(), { emailId: 'b' })
+
+      expect(toggle(/Carol/)).toHaveFocus()
+      expect(scrollIntoView).toHaveBeenCalledWith({
+        block: 'start',
+        behavior: 'instant'
+      })
+      expect(scrollIntoView.mock.contexts[0]).toBe(toggle(/Carol/))
+    })
+
+    it('keeps the subject in view, not scrolled past, when it is the first message', async () => {
       await renderConversation(makeServer(), { emailId: 'a' })
 
       expect(toggle(/Bob Dupont/)).toHaveFocus()
       expect(toggle(/Bob Dupont/)).toHaveAttribute('aria-expanded', 'true')
       expect(scrollIntoView).toHaveBeenCalledWith({
-        block: 'start',
+        block: 'nearest',
         behavior: 'instant'
       })
-      expect(scrollIntoView.mock.contexts[0]).toBe(toggle(/Bob Dupont/))
+      for (const context of scrollIntoView.mock.contexts) {
+        expect(context).toBe(screen.getByTestId('conversation-subject'))
+      }
     })
 
     it('is the first unread message from a list', async () => {

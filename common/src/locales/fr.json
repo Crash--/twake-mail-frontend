@@ -272,7 +272,7 @@
       "blockquote": "Citation",
       "clearFormatting": "Effacer la mise en forme",
       "name": "Corps du message",
-      "keyboardHelp": "Tab indente un élément de liste ou quitte l'éditeur. Alt+F10 va à la barre de mise en forme. Ctrl+K insère un lien. Sur une image sélectionnée avec les flèches, Entrée affiche ses options de taille.",
+      "keyboardHelp": "Tab insère une tabulation, ou indente un élément de liste. Maj+Tab quitte l'éditeur. Ctrl+Maj+M fait passer Tab au champ suivant, ou de nouveau écrire une tabulation. Alt+F10 va à la barre de mise en forme. Ctrl+K insère un lien. Sur une image sélectionnée avec les flèches, Entrée affiche ses options de taille.",
       "colors": {
         "black": "Noir",
         "darkGrey": "Gris foncé",

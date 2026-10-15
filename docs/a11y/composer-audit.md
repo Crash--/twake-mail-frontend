@@ -52,8 +52,8 @@ send checks and the close dialog, toasts, "Insert template" picker.
 | 11.12 Data that matter can be corrected | C | auto (`A11Y-13`, the close dialog "Save message" asks before losing the message) | |
 | 11.13 The purpose of fields is defined (`autocomplete`) | NA | | They are other people's addresses and a subject |
 | 12.6 The zones of the page can be reached | C | auto (landmarks of the page; the window is a dialog reachable by Tab and its minimized title) | |
-| 12.8 The tab order is coherent | C | auto (`A11Y-10`: body, toolbar (one stop), footer buttons, Send) | |
-| 12.9 No keyboard trap | C | auto (`CMP-29`: Tab leaves the editor; Alt+F10 and Escape go to the toolbar and back) | |
+| 12.8 The tab order is coherent | C | auto (`A11Y-10`: body, toolbar (one stop), footer buttons, Send; Tab moves the focus out of the body after Ctrl+Shift+M) | |
+| 12.9 No keyboard trap | C | auto (`CMP-29`: Tab writes a tab in the body, Shift+Tab leaves it, Ctrl+Shift+M makes Tab move the focus; Alt+F10 and Escape go to the toolbar and back) | |
 | 12.10 Single-key shortcuts can be turned off | C | auto (`KBD-02`); the composer only adds Alt+F10 and Ctrl+K, which use a modifier | |
 | 13.1 The user controls time limits | C | auto (the toasts stop their countdown while hovered or focused, `ToastRegion.spec`); the draft is kept in the browser | |
 | 13.2 No window opens without warning | NA | | |

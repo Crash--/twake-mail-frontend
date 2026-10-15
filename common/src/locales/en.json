@@ -272,7 +272,7 @@
       "blockquote": "Quote",
       "clearFormatting": "Clear formatting",
       "name": "Message body",
-      "keyboardHelp": "Tab indents a list item or leaves the editor. Alt+F10 goes to the formatting toolbar. Ctrl+K inserts a link. On an image selected with the arrow keys, Enter shows its size options.",
+      "keyboardHelp": "Tab inserts a tab, or indents a list item. Shift+Tab leaves the editor. Ctrl+Shift+M makes Tab move the focus, or write a tab again. Alt+F10 goes to the formatting toolbar. Ctrl+K inserts a link. On an image selected with the arrow keys, Enter shows its size options.",
       "colors": {
         "black": "Black",
         "darkGrey": "Dark grey",

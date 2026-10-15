@@ -64,8 +64,13 @@ export function ColorTag({
       ? `${label.slice(0, maxLength - 1)}...`
       : label
   const isCut = shown !== label
+  // A name too long for the room left ends with an ellipsis, rather than
+  // pushing the × out of its line
   const text = (
-    <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    <Box
+      component="span"
+      sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
+    >
       {isCut ? (
         <>
           <span aria-hidden="true">{shown}</span>
@@ -113,6 +118,7 @@ export function ColorTag({
             aria-label={removeLabel}
             onClick={onRemove}
             sx={{
+              flexShrink: 0,
               ml: 0.5,
               width: 16,
               height: 16,

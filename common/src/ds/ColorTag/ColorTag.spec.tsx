@@ -29,4 +29,23 @@ describe('ColorTag', () => {
     )
     expect(onRemove).toHaveBeenCalledTimes(1)
   })
+
+  it('cuts its name rather than its × when the room runs out', () => {
+    renderDs(
+      <ColorTag
+        label="Infrastructure maintenance notices"
+        color="#273891"
+        removeLabel="Remove the label"
+        onRemove={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('Infrastructure maintenance notices')).toHaveStyle({
+      minWidth: '0',
+      textOverflow: 'ellipsis'
+    })
+    expect(
+      screen.getByRole('button', { name: 'Remove the label' })
+    ).toHaveStyle({ flexShrink: '0' })
+  })
 })

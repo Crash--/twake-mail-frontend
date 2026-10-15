@@ -163,4 +163,16 @@ describe('FeedbackWidget', () => {
     const raised = Number.parseFloat(queryButton()?.style.bottom ?? '')
     expect(raised - lowest).toBeGreaterThanOrEqual(FLOATING_ACTION_INSET - 16)
   })
+
+  it('is drawn below the drawers, the dialogs and the composer, never over their controls', () => {
+    setRunning(true)
+    renderWidget()
+
+    const button = screen.getByTestId('twake-feedback-button')
+    const zIndex = Number(getComputedStyle(button).zIndex)
+    // twake-mui's `zIndex.drawer`, under the dialogs and the docked composer
+    expect(zIndex).toBeLessThan(1200)
+    // and above the app bar and the floating "New message" button
+    expect(zIndex).toBeGreaterThan(1100)
+  })
 })

@@ -7,6 +7,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { BelowDrawers } from '@/ds/BelowDrawers/BelowDrawers'
 import { FLOATING_ACTION_INSET } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { sentryLifecycle } from '@common/app/sentry'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
@@ -37,7 +38,9 @@ export interface FeedbackWidgetProps {
  * reporting is running with the feedback integration, that is: the deployment
  * turned it on and the user opted in to error reporting. Never in the facade
  * of a team mailbox (it does not mount the shell) nor inside Twake Workplace:
- * the container owns the feedback there.
+ * the container owns the feedback there. Drawn below the drawers, the dialogs
+ * and the composer: it must never cover one of their controls (the library
+ * puts it above the modals).
  */
 export function FeedbackWidget({
   hasBottomAction
@@ -63,11 +66,13 @@ export function FeedbackWidget({
 
   if (!isShown) return null
   return (
-    <FeedbackButton
-      key={generation}
-      attach={attach}
-      storageKey={STORAGE_KEY}
-      bottomOffset={hasBottomAction ? FLOATING_ACTION_INSET : 0}
-    />
+    <BelowDrawers>
+      <FeedbackButton
+        key={generation}
+        attach={attach}
+        storageKey={STORAGE_KEY}
+        bottomOffset={hasBottomAction ? FLOATING_ACTION_INSET : 0}
+      />
+    </BelowDrawers>
   )
 }

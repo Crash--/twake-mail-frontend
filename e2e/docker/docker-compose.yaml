@@ -11,7 +11,7 @@ name: twakemail-e2e
 
 services:
   james:
-    image: linagora/tmail-backend:memory-1.0.21.2
+    image: linagora/tmail-backend:memory-1.0.22
     # Copied from tmail-flutter backend-docker/, see e2e/docker/james/
     volumes:
       - ./.generated/jwt_publickey:/root/conf/jwt_publickey:ro

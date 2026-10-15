@@ -10,17 +10,6 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { IdentityFormDialog } from './IdentityFormDialog'
-import { shrinkSignatureImage } from './signatureImage'
-import type * as SignatureImage from './signatureImage'
-
-// jsdom has no canvas: the shrinking is the browser's
-jest.mock('./signatureImage', () => {
-  const actual = jest.requireActual<typeof SignatureImage>('./signatureImage')
-  return {
-    ...actual,
-    shrinkSignatureImage: jest.fn(actual.shrinkSignatureImage)
-  }
-})
 
 const PUBLIC_ASSETS = 'com:linagora:params:jmap:public:assets'
 const PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgo='
@@ -101,6 +90,30 @@ describe('IdentityFormDialog signature images', () => {
     )
   })
 
+  it('gives a wide image the signature width as a width attribute', async () => {
+    Object.defineProperty(window, 'createImageBitmap', {
+      configurable: true,
+      value: () =>
+        Promise.resolve({ width: 1600, height: 900, close: jest.fn() })
+    })
+    try {
+      const server = makeServer()
+      renderDialog(server)
+      const area = await screen.findByTestId('identity-signature-editor')
+      const editor = (area as HTMLElement & { editor?: Editor }).editor
+      if (!editor) throw new Error('No editor')
+
+      await userEvent.upload(fileInput(), png())
+
+      // What the signature saves
+      await waitFor(() => {
+        expect(editor.getHTML()).toMatch(/<img [^>]*width="800"/)
+      })
+    } finally {
+      Reflect.deleteProperty(window, 'createImageBitmap')
+    }
+  })
+
   it('says what the server says when the images take too much room', async () => {
     const server = makeServer()
     server.handlers.set('PublicAsset/set', () => ({
@@ -169,11 +182,11 @@ describe('IdentityFormDialog signature images', () => {
     const tooLarge = png()
     // The fake server accepts 20,000,000 bytes at most
     Object.defineProperty(tooLarge, 'size', { value: 20_000_001 })
-    jest.mocked(shrinkSignatureImage).mockResolvedValueOnce(tooLarge)
     renderDialog(server)
     await screen.findByTestId('identity-signature-editor')
 
-    await userEvent.upload(fileInput(), png())
+    // jsdom decodes no image: one too large is refused as it is
+    await userEvent.upload(fileInput(), tooLarge)
 
     expect(await screen.findByTestId('toast')).toHaveTextContent(
       'Please choose an image with size less than 20 MB'

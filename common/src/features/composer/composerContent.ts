@@ -267,7 +267,8 @@ const DRAFT_BODY_PROPERTIES = [
   'size',
   'name',
   'disposition',
-  'cid'
+  'cid',
+  'charset'
 ] as const
 
 type DraftEmail = Pick<
@@ -375,6 +376,7 @@ export async function loadDraftContent(
         type: part.type,
         name: part.name ?? part.blobId,
         size: part.size,
+        charset: part.charset,
         status: 'done',
         progress: 100
       })

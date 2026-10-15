@@ -8,6 +8,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import type { ComposerAttachment } from './composerContent'
+import { fileCharset } from './textCharset'
 import { uploadBlob, uploadUrlFor } from './uploadBlob'
 
 /** The size limits of the server, null when it gives none */
@@ -118,22 +119,26 @@ export function useComposerAttachments(
     const shownName = cleanFileName(file.name) ?? t('email.attachment')
     const controller = new AbortController()
     controllers.current.set(id, controller)
-    uploadBlob({
-      url: uploadUrlFor(session.uploadUrl, accountId),
-      blob: file,
-      type,
-      auth: authService,
-      signal: controller.signal,
-      onProgress: (loaded, total) => {
-        update(id, {
-          progress: total > 0 ? Math.round((loaded / total) * 100) : 0
-        })
-      }
-    })
-      .then(uploaded => {
+    Promise.all([
+      uploadBlob({
+        url: uploadUrlFor(session.uploadUrl, accountId),
+        blob: file,
+        type,
+        auth: authService,
+        signal: controller.signal,
+        onProgress: (loaded, total) => {
+          update(id, {
+            progress: total > 0 ? Math.round((loaded / total) * 100) : 0
+          })
+        }
+      }),
+      fileCharset(file, type)
+    ])
+      .then(([uploaded, charset]) => {
         update(id, {
           blobId: uploaded.blobId,
           size: uploaded.size,
+          charset,
           status: 'done',
           progress: 100
         })

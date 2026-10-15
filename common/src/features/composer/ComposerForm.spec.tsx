@@ -2117,6 +2117,45 @@ describe('ComposerForm', () => {
       ).toBe(null)
     })
 
+    it('sends a text file with the charset of its bytes', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        [
+          new File([new TextEncoder().encode('Café')], 'utf8.txt', {
+            type: 'text/plain'
+          }),
+          new File([new Uint8Array([0x43, 0x61, 0x66, 0xe9])], 'latin1.txt', {
+            type: 'text/plain'
+          })
+        ]
+      )
+
+      const list = await within(composer).findByRole('list', {
+        name: 'Attachments (2)'
+      })
+      await waitFor(() => {
+        expect(
+          within(list)
+            .getAllByTestId('composer-attachment-item')
+            .map(item => item.getAttribute('data-status'))
+        ).toEqual(['done', 'done'])
+      })
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Save as draft' })
+      )
+      await waitFor(() => {
+        expect(draftsOf(jmapServer)[0]?.attachments).toEqual([
+          expect.objectContaining({ name: 'utf8.txt', charset: 'UTF-8' }),
+          expect.objectContaining({ name: 'latin1.txt', charset: 'ISO-8859-1' })
+        ])
+      })
+    })
+
     it('cancels an upload removed while it runs', async () => {
       const jmapServer = makeFakeJmapServer()
       uploads = installFakeUploads(jmapServer)

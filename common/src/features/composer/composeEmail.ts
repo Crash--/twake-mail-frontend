@@ -143,6 +143,11 @@ export interface AttachedFile {
   type: string
   name: string
   size: number
+  /**
+   * Charset of a text file (`textCharset`), sent with its part: null or
+   * absent for other files, or when its type names one
+   */
+  charset?: string | null
 }
 
 export interface MailboxIds {
@@ -249,7 +254,8 @@ export async function buildEmail(
         blobId: file.blobId,
         type: file.type,
         name: file.name,
-        disposition: 'attachment'
+        disposition: 'attachment',
+        ...((file.charset ?? null) === null ? {} : { charset: file.charset })
       }))
     ]
   }

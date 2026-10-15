@@ -393,6 +393,47 @@ describe('buildEmail', () => {
       (await build({ ...message, replyTo: typed }, 'send')).replyTo
     ).toEqual(typed)
   })
+
+  it('sends the charset of a text file with its part, none for other files', async () => {
+    const email = await build(
+      {
+        ...message,
+        attachments: [
+          {
+            blobId: 'blob-notes',
+            type: 'text/plain',
+            name: 'notes.txt',
+            size: 5,
+            charset: 'ISO-8859-1'
+          },
+          {
+            blobId: 'blob-report',
+            type: 'application/pdf',
+            name: 'report.pdf',
+            size: 6,
+            charset: null
+          }
+        ]
+      },
+      'send'
+    )
+
+    expect(email.attachments).toEqual([
+      {
+        blobId: 'blob-notes',
+        type: 'text/plain',
+        name: 'notes.txt',
+        disposition: 'attachment',
+        charset: 'ISO-8859-1'
+      },
+      {
+        blobId: 'blob-report',
+        type: 'application/pdf',
+        name: 'report.pdf',
+        disposition: 'attachment'
+      }
+    ])
+  })
 })
 
 describe('identityReplyTo', () => {

@@ -274,7 +274,13 @@ function uploadedFiles(
 ): AttachedFile[] {
   return attachments
     .filter(file => file.status === 'done')
-    .map(({ blobId, type, name, size }) => ({ blobId, type, name, size }))
+    .map(({ blobId, type, name, size, charset }) => ({
+      blobId,
+      type,
+      name,
+      size,
+      charset: charset ?? null
+    }))
 }
 
 /**

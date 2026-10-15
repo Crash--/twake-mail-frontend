@@ -41,6 +41,7 @@ import { useEmail } from '@common/features/email/useEmail'
 import { useReadReceiptRequest } from '@common/features/email/useReadReceiptRequest'
 import { useUnsubscribe } from '@common/features/email/useUnsubscribe'
 import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
+import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredTag'
 import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
@@ -246,6 +247,11 @@ function ExpandedBody({
           ))}
         </InlineGroup>
       </Indent>
+      <EmailActionRequiredTag
+        emails={[detail]}
+        mailboxId={mailboxId}
+        className="u-mt-half"
+      />
       <EmailLabels emails={[detail]} mailboxId={mailboxId} />
       <TwpWarningBanners email={detail} mailboxId={mailboxId} />
       <EmailMessageBody

@@ -256,7 +256,7 @@ Conventions:
 | `composer-formatting-button` | footer, first button: shows or hides the formatting toolbar (`aria-pressed`, shown by default) | — |
 | `rich-text-link-button` / `rich-text-image-button` | the link and image buttons moved from the formatting toolbar to the footer of the composer (same ids; the vacation editor keeps them in its toolbar) | `insertLinkButton`, `insertImageButton` |
 | `error-reporting-setting-toggle` | switch of Settings > Preferences, "Send error reports", shown when error reporting is configured and the server keeps the setting (holds the `switch` input) | `errorReporting` option (`sentry-reporting`) |
-| `action-required-tag` | the "Action required" tag of an email, with a × on the line of the subject of the opened email or conversation | `ActionRequiredTag`, `EmailActionRequiredTag` |
+| `action-required-tag` | the "Action required" tag of an email, with a × on the line of the subject of the opened email, under the header of a message of a conversation | `ActionRequiredTag`, `EmailActionRequiredTag` |
 | `ai-scribe-setting-toggle`, `ai-label-categorization-setting-toggle` | the AI options of Settings > Preferences | `PreferencesSettings` |
 | `composer-scribe-selection-button` | the assistant button under the selected text (a white disc, a blue sparkle) | `InlineAiAssistButton` |
 | `email-list-item-open-in-new-tab` | hover action opening the email in a tab of its own (not on drafts and templates) | `open in new` hover action |

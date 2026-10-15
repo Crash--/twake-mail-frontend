@@ -789,34 +789,23 @@ describe('ConversationView, an expanded message', () => {
     })
   })
 
-  it('puts the "Action required" tag on the line of its subject, the × taking it off every message', async () => {
+  it('keeps the "Action required" tag on its message, not on the line of the subject', async () => {
     const server = makeServer({
       ...FAKE_LINAGORA_CAPABILITIES,
       [AIBOT_CAPABILITY]: {}
     })
     server.settings[AI_LABEL_CATEGORIZATION_KEY] = 'true'
     for (const email of server.emails) {
-      if (email.id === 'b' || email.id === 'c') {
+      if (email.id === 'c') {
         email.keywords = { ...email.keywords, [NEEDS_ACTION]: true }
       }
     }
     await renderConversation(server)
 
-    const header = screen.getByTestId('conversation-header')
-    const tag = await within(header).findByTestId('action-required-tag')
+    const dan = await screen.findByRole('region', { name: /Dan/ })
+    const tag = await within(dan).findByTestId('action-required-tag')
     expect(screen.getAllByTestId('action-required-tag')).toEqual([tag])
-
-    await userEvent.click(
-      within(tag).getByRole('button', {
-        name: 'Remove the Action Required tag'
-      })
-    )
-
-    await waitFor(() => {
-      expect(
-        server.emails.filter(email => NEEDS_ACTION in email.keywords)
-      ).toEqual([])
-    })
+    expect(screen.getByTestId('conversation-header')).not.toContainElement(tag)
   })
 
   it('leaves once none of its messages is left in the folder', async () => {

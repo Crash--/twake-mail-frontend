@@ -206,7 +206,45 @@ export function replyRecipients(
   const bcc = lists.bcc.filter(
     recipient => !taken.has(recipient.email.toLowerCase())
   )
-  return { to: lists.to, cc, bcc }
+  const withName = withKnownName(source)
+  return {
+    to: lists.to.map(withName),
+    cc: cc.map(withName),
+    bcc: bcc.map(withName)
+  }
+}
+
+function hasName(recipient: Recipient): boolean {
+  return (recipient.name ?? '').trim() !== ''
+}
+
+/**
+ * Gives a recipient without a name the one the email answered shows for the
+ * same address in its From, To or Cc (tmail-flutter ADR 0065): Reply-To
+ * often carries the bare address.
+ */
+function withKnownName(
+  source: ReplySource
+): (recipient: Recipient) => Recipient {
+  const named = [
+    ...toRecipients(source.from),
+    ...toRecipients(source.to),
+    ...toRecipients(source.cc)
+  ].filter(hasName)
+  // The first name of an address wins
+  const names = new Map(
+    named
+      .reverse()
+      .map((recipient): [string, string] => [
+        keyOf(recipient.email),
+        recipient.name ?? ''
+      ])
+  )
+  return recipient => {
+    if (hasName(recipient)) return recipient
+    const name = names.get(keyOf(recipient.email))
+    return name === undefined ? recipient : { ...recipient, name }
+  }
 }
 
 function recipientsFor(

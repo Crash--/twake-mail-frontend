@@ -123,6 +123,39 @@ describe('replyRecipients', () => {
     expect(emails(lists.to)).toEqual(['emma@example.com', 'dan@example.com'])
   })
 
+  it('names a bare Reply-To address after the From, To or Cc (ADR 0065)', () => {
+    const bare = {
+      ...EMMA,
+      to: [address('bob@example.com'), address('dan@example.com')],
+      cc: [address('alice@example.com', 'Alice')],
+      replyTo: [address('EMMA@example.com')]
+    }
+    expect(replyRecipients(bare, 'reply', isSelf).to).toEqual([
+      address('EMMA@example.com', 'Emma')
+    ])
+    expect(
+      replyRecipients(
+        { ...bare, replyTo: [address('alice@example.com')] },
+        'replyAll',
+        isSelf
+      )
+    ).toEqual({
+      to: [address('alice@example.com', 'Alice'), address('dan@example.com')],
+      cc: [],
+      bcc: [address('brian@example.com')]
+    })
+  })
+
+  it('keeps the name a recipient already has', () => {
+    const named = {
+      ...EMMA,
+      replyTo: [address('emma@example.com', 'Emma Support')]
+    }
+    expect(replyRecipients(named, 'reply', isSelf).to).toEqual([
+      address('emma@example.com', 'Emma Support')
+    ])
+  })
+
   it('puts nobody in a forward', () => {
     expect(replyRecipients(EMMA, 'forward', isSelf)).toEqual({
       to: [],

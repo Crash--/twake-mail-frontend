@@ -5,6 +5,7 @@ import {
   type RecipientFieldChip,
   type RecipientFieldDnd
 } from '@/ds/RecipientField/RecipientField'
+import { withTypedAddressFirst } from '@common/features/composer/recipients'
 import { useContactSuggestions } from '@common/features/composer/useContactSuggestions'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -80,16 +81,26 @@ export function AddressFilterField({
   const contacts = useContactSuggestions(input)
   const suggestions = useMemo(
     () =>
-      contacts.map(contact => {
-        const name = `${contact.firstname} ${contact.surname}`.trim()
-        return {
-          id: contact.emailAddress,
-          label: name === '' ? contact.emailAddress : name,
-          ...(name === '' ? {} : { secondary: contact.emailAddress }),
-          isAdded: values.some(value => sameEntry(value, contact.emailAddress))
-        }
-      }),
-    [contacts, values]
+      withTypedAddressFirst(
+        contacts.map(contact => {
+          const name = `${contact.firstname} ${contact.surname}`.trim()
+          return {
+            id: contact.emailAddress,
+            label: name === '' ? contact.emailAddress : name,
+            ...(name === '' ? {} : { secondary: contact.emailAddress }),
+            isAdded: values.some(value =>
+              sameEntry(value, contact.emailAddress)
+            )
+          }
+        }),
+        input,
+        email => ({
+          id: email,
+          label: email,
+          isAdded: values.some(value => sameEntry(value, email))
+        })
+      ),
+    [contacts, values, input]
   )
 
   /** The tag taken back into the input, and where it stood */

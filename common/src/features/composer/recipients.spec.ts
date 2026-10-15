@@ -3,8 +3,44 @@ import {
   hasRecipient,
   isValidEmail,
   mergeRecipients,
-  parseRecipients
+  parseRecipients,
+  withTypedAddressFirst
 } from './recipients'
+
+describe('withTypedAddressFirst', () => {
+  const typed = (email: string): { id: string } => ({ id: email })
+
+  it('lists a complete address missing from the suggestions first', () => {
+    expect(
+      withTypedAddressFirst(
+        [{ id: 'smtp-newcomer@example.com' }],
+        ' newcomer@example.com ',
+        typed
+      )
+    ).toEqual([
+      { id: 'newcomer@example.com' },
+      { id: 'smtp-newcomer@example.com' }
+    ])
+  })
+
+  it('moves the suggestion of the typed address first, whatever its case', () => {
+    const match = { id: 'Newcomer@example.com', label: 'Newcomer' }
+    expect(
+      withTypedAddressFirst(
+        [{ id: 'smtp-newcomer@example.com', label: 'Smtp' }, match],
+        'newcomer@EXAMPLE.com',
+        email => ({ id: email, label: email })
+      )
+    ).toEqual([match, { id: 'smtp-newcomer@example.com', label: 'Smtp' }])
+  })
+
+  it.each([
+    ['an incomplete address', [{ id: 'newcomer@example.com' }], 'newcomer'],
+    ['no suggestions', [], 'newcomer@example.com']
+  ])('keeps the suggestions as they are with %s', (_, suggestions, text) => {
+    expect(withTypedAddressFirst(suggestions, text, typed)).toEqual(suggestions)
+  })
+})
 
 describe('parseRecipients', () => {
   it.each([

@@ -93,6 +93,26 @@ export function formatRecipient(recipient: Recipient): string {
     : `${recipient.name} <${recipient.email}>`
 }
 
+/**
+ * The suggestions of a recipient field, the typed text first when it is a
+ * complete address (tmail-flutter): Enter picks what was typed, not a
+ * contact whose address merely contains it, nor a suggestion left from a
+ * shorter text while the lookup waits. The matching contact moves first,
+ * or `typedSuggestion` makes one for the address. Without suggestions
+ * nothing is listed: Enter commits the text.
+ */
+export function withTypedAddressFirst<Suggestion extends { id: string }>(
+  suggestions: readonly Suggestion[],
+  typed: string,
+  typedSuggestion: (email: string) => Suggestion
+): Suggestion[] {
+  const email = typed.trim()
+  if (suggestions.length === 0 || !isValidEmail(email)) return [...suggestions]
+  const match = suggestions.find(suggestion => sameEmail(suggestion.id, email))
+  const others = suggestions.filter(suggestion => suggestion !== match)
+  return [match ?? typedSuggestion(email), ...others]
+}
+
 /** Whether `email` is one of `recipients` */
 export function hasRecipient(
   recipients: readonly Recipient[],

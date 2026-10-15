@@ -25,6 +25,7 @@ import {
   hasRecipient,
   mergeRecipients,
   parseRecipients,
+  withTypedAddressFirst,
   type Recipient
 } from './recipients'
 import { recipientChips } from './recipientChips'
@@ -89,16 +90,24 @@ export function RecipientInput({
   // As tmail-flutter: the contacts already entered stay, ticked
   const suggestions = useMemo(
     () =>
-      contacts.map(contact => {
-        const name = contactName(contact)
-        return {
-          id: contact.emailAddress,
-          label: name ?? contact.emailAddress,
-          ...(name === null ? {} : { secondary: contact.emailAddress }),
-          isAdded: hasRecipient(recipients, contact.emailAddress)
-        }
-      }),
-    [contacts, recipients]
+      withTypedAddressFirst(
+        contacts.map(contact => {
+          const name = contactName(contact)
+          return {
+            id: contact.emailAddress,
+            label: name ?? contact.emailAddress,
+            ...(name === null ? {} : { secondary: contact.emailAddress }),
+            isAdded: hasRecipient(recipients, contact.emailAddress)
+          }
+        }),
+        inputValue,
+        email => ({
+          id: email,
+          label: email,
+          isAdded: hasRecipient(recipients, email)
+        })
+      ),
+    [contacts, recipients, inputValue]
   )
 
   const chips = recipientChips(recipients, refused)

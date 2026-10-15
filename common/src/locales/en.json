@@ -421,7 +421,11 @@
       "emptySubjectTitle": "Empty subject",
       "emptySubject": "Are you sure to send messages without a subject?",
       "sendAnyway": "Send anyway",
-      "uploading": "Your message could not be sent because it uploading attachment"
+      "uploading": "Your message could not be sent because it uploading attachment",
+      "failedUploadsTitle": "Attachment not uploaded |||| Attachments not uploaded",
+      "failedUploads": "%{names} could not be attached. Send the message without it, or upload it again? |||| %{names} could not be attached. Send the message without them, or upload them again?",
+      "sendWithout": "Send without",
+      "retryUploads": "Retry"
     },
     "gotIt": "Got it",
     "sendErrors": {

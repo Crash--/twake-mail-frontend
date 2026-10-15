@@ -421,7 +421,11 @@
       "emptySubjectTitle": "Sujet vide",
       "emptySubject": "Voulez-vous vraiment envoyer des messages sans sujet ?",
       "sendAnyway": "Envoyer quand même",
-      "uploading": "Votre message n'a pas pu être envoyé car une pièce jointe est en cours de téléversement"
+      "uploading": "Votre message n'a pas pu être envoyé car une pièce jointe est en cours de téléversement",
+      "failedUploadsTitle": "Pièce jointe non envoyée |||| Pièces jointes non envoyées",
+      "failedUploads": "%{names} n'a pas pu être joint. Envoyer le message sans ce fichier, ou réessayer ? |||| %{names} n'ont pas pu être joints. Envoyer le message sans ces fichiers, ou réessayer ?",
+      "sendWithout": "Envoyer sans",
+      "retryUploads": "Réessayer"
     },
     "gotIt": "Compris",
     "sendErrors": {

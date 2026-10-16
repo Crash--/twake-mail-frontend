@@ -37,10 +37,12 @@ import { RecipientAvatar } from './RecipientAvatar'
 import {
   currentRecipientDrag,
   endRecipientDrag,
+  focusMovedRecipient,
   lastRecipientMove,
   noteRecipientMove,
   readRecipientDrag,
   RECIPIENT_DRAG_TYPE,
+  registerRecipientField,
   startRecipientDrag
 } from './recipientDrag'
 import { SuggestionOption } from './SuggestionOption'
@@ -417,6 +419,10 @@ export function RecipientField({
   const cardIndex = openCard?.index ?? null
   /** Chip to focus once the chips change (after a removal), -1 for the input */
   const pendingFocus = useRef<number | null>(null)
+  /** The tag moved to another field from the keyboard, which keeps the focus */
+  const movedId = useRef<string | null>(null)
+  /** The chips by their id, for a tag moved here to take the focus */
+  const chipElements = useRef(new Map<string, HTMLDivElement>())
   /**
    * Backspace in the input moved the focus to a chip: the key going up
    * there must not remove it (MUI's Chip deletes on key up)
@@ -457,16 +463,41 @@ export function RecipientField({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const dndGroup = dnd?.group ?? null
+  const dndField = dnd?.field ?? null
+
   useEffect(() => {
+    if (dndGroup === null || dndField === null) return
+    return registerRecipientField(dndGroup, dndField, chipId => {
+      const chip = chipElements.current.get(chipId)
+      chip?.focus()
+      return chip !== undefined
+    })
+  }, [dndGroup, dndField])
+
+  useEffect(() => {
+    const moved = movedId.current
+    movedId.current = null
     const index = pendingFocus.current
     if (index === null) return
     pendingFocus.current = null
+    // The moved tag keeps the focus in the field it joined
+    if (
+      moved !== null &&
+      dndGroup !== null &&
+      dndField !== null &&
+      focusMovedRecipient(dndGroup, dndField, moved)
+    ) {
+      return
+    }
     const chip = index >= 0 ? chipRefs.current[index] : null
     if (chip) {
       chip.focus()
     } else {
       inputRef.current?.focus()
     }
+    // Only once the chips changed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chips])
 
   // Chips added above the input push it down in the scrolled field
@@ -624,10 +655,13 @@ export function RecipientField({
   const moveChip = (index: number, delta: -1 | 1): void => {
     const chip = chips[index]
     if (!chip || dnd?.onMoveBy === undefined) return
+    // The focus follows it to the other field; if it cannot, as a removal
+    movedId.current = chip.id
     pendingFocus.current = index < chips.length - 1 ? index : -1
     noteRecipientMove({ group: dnd.group, id: chip.id, announcer: dnd.field })
     const said = dnd.onMoveBy(chip.id, delta)
     if (said === null) {
+      movedId.current = null
       pendingFocus.current = null
       noteRecipientMove(null)
       return
@@ -804,6 +838,11 @@ export function RecipientField({
               key={chip.id}
               ref={(element: HTMLDivElement | null) => {
                 chipRefs.current[index] = element
+                if (element === null) {
+                  chipElements.current.delete(chip.id)
+                } else {
+                  chipElements.current.set(chip.id, element)
+                }
               }}
               size="small"
               variant={chip.isInvalid ? 'outlined' : 'filled'}

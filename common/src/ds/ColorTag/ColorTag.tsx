@@ -106,7 +106,9 @@ export function ColorTag({
       }}
     >
       {hasTooltip ? (
-        <Tooltip title={label} describeChild disableInteractive>
+        // Interactive: the pointer may move onto it without closing it
+        // (WCAG 1.4.13, content on hover is hoverable)
+        <Tooltip title={label} describeChild>
           {text}
         </Tooltip>
       ) : (

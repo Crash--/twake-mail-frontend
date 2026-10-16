@@ -123,12 +123,20 @@ export class SentryLifecycle {
   /**
    * Plugs the feedback form on `el` (the button of the shell) and returns the
    * way to detach it, which also removes the form. The form handles the focus
-   * as the dialogs of the app (`makeFeedbackFocus`). A no-op while the
-   * feedback is not running.
+   * as the dialogs of the app (`makeFeedbackFocus`), and `onSent` is called
+   * once a feedback is sent. A no-op while the feedback is not running.
    */
-  attachFeedback(el: HTMLElement, labels: Partial<FeedbackLabels>): () => void {
+  attachFeedback(
+    el: HTMLElement,
+    labels: Partial<FeedbackLabels>,
+    onSent?: () => void
+  ): () => void {
     if (this.feedback === null) return () => undefined
-    const { release, ...callbacks } = makeFeedbackFocus(el, FEEDBACK_HOST_ID)
+    const { release, ...callbacks } = makeFeedbackFocus(
+      el,
+      FEEDBACK_HOST_ID,
+      onSent
+    )
     const detach = this.feedback.attachTo(el, { ...labels, ...callbacks })
     return () => {
       release()

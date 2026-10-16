@@ -54,11 +54,14 @@ function cycleFocus(dialog: HTMLDialogElement, event: KeyboardEvent): void {
  * shadow root and relies on `autofocus`, which the browser ignores because
  * the trigger keeps the focus. Opening moves the focus to its first field,
  * Tab stays inside it, Escape closes it, and closing it (Escape, Cancel, the
- * backdrop, a sent feedback) gives the focus back to `trigger`.
+ * backdrop, a sent feedback) gives the focus back to `trigger`. A sent
+ * feedback also calls `onSent`: the SDK shows its confirmation without a live
+ * region, the app has to announce it.
  */
 export function makeFeedbackFocus(
   trigger: HTMLElement,
-  hostId: string
+  hostId: string,
+  onSent: () => void = () => undefined
 ): FeedbackFocus {
   const onKeyDown = (event: KeyboardEvent): void => {
     const dialog = findOpenDialog(hostId)
@@ -89,7 +92,10 @@ export function makeFeedbackFocus(
       if (dialog !== null) focusablesOf(dialog).at(0)?.focus()
     },
     onFormClose: giveFocusBack,
-    onSubmitSuccess: giveFocusBack,
+    onSubmitSuccess: () => {
+      giveFocusBack()
+      onSent()
+    },
     release
   }
 }

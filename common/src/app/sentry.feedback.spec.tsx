@@ -277,6 +277,25 @@ describe('SentryLifecycle, user feedback', () => {
       expect(document.activeElement).toBe(button)
     })
 
+    it('gives the focus back to the button and tells the app once a feedback is sent', async () => {
+      detach()
+      const onSent = jest.fn()
+      detach = lifecycle.attachFeedback(button, {}, onSent)
+      await openForm()
+      const message = openDialog()?.querySelector('textarea')
+      if (!message) throw new Error('No message field')
+      message.value = 'The folder list is slow to open'
+      message.dispatchEvent(new Event('input', { bubbles: true }))
+      openDialog()
+        ?.querySelector('form')
+        ?.dispatchEvent(
+          new Event('submit', { bubbles: true, cancelable: true })
+        )
+
+      await waitFor(() => expect(onSent).toHaveBeenCalledTimes(1))
+      expect(document.activeElement).toBe(button)
+    })
+
     it('leaves the keyboard alone once the form is closed', async () => {
       await openForm()
       pressKey('Escape')

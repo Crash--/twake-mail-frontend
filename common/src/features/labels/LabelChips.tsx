@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 
 import { ColorTag } from '@/ds/ColorTag/ColorTag'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
+import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { DEFAULT_LABEL_COLOR } from './queries'
@@ -39,6 +40,8 @@ export function LabelChips({
   className
 }: LabelChipsProps): ReactElement | null {
   const { t } = useI18n()
+  // A chip taken off with its × leaves the focus on the next control
+  const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
   if (labels.length === 0) return null
   const shown = max === undefined ? labels : labels.slice(0, max)
   const hidden = labels.length - shown.length
@@ -65,6 +68,7 @@ export function LabelChips({
           component="span"
           role="listitem"
           key={label.id}
+          ref={focusFallbackRef}
           className="u-maw-100"
         >
           <ColorTag

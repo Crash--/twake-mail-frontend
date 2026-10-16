@@ -1,5 +1,7 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { Label } from 'jmap-client-ts/linagora'
+import { useState, type ReactElement } from 'react'
 
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -19,6 +21,21 @@ const LABELS = [
   makeLabel('Urgent', '#F44336'),
   makeLabel('Personal', '#4CAF50')
 ]
+
+function RemovableChips(): ReactElement {
+  const [labels, setLabels] = useState(LABELS)
+  return (
+    <>
+      <LabelChips
+        labels={labels}
+        onRemove={removed => {
+          setLabels(current => current.filter(label => label !== removed))
+        }}
+      />
+      <button type="button">More</button>
+    </>
+  )
+}
 
 describe('LabelChips', () => {
   it('shows the first labels then "+N", naming the others for assistive technologies', () => {
@@ -51,6 +68,32 @@ describe('LabelChips', () => {
     for (const item of screen.getAllByRole('listitem')) {
       expect(item).toHaveClass('u-maw-100')
     }
+  })
+
+  it('gives the focus to the next chip when a chip is taken off', async () => {
+    renderWithProviders(<RemovableChips />)
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove the label Design' })
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Remove the label Urgent' })
+      ).toHaveFocus()
+    })
+  })
+
+  it('gives the focus to the next control when the last chip is taken off', async () => {
+    renderWithProviders(<RemovableChips />)
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove the label Personal' })
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'More' })).toHaveFocus()
+    })
   })
 
   it('keeps the labels of an email, in the order of the account', () => {

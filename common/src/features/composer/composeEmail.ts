@@ -58,7 +58,11 @@ export const RETURN_PATH_HEADER = 'header:Return-Path:asText'
  * one
  */
 export const USER_AGENT_HEADER = 'header:User-Agent:asText'
-/** The language of the UI, on every email created (tf#2215) */
+/**
+ * The language of the UI, on every email created (tf#2215). On the text and
+ * HTML parts: RFC 8621 forbids `Content-*` on the Email object, and James
+ * refuses it there (and ignores the `language` of a part on creation)
+ */
 export const CONTENT_LANGUAGE_HEADER = 'header:Content-Language:asText'
 /** The language of the UI, the one answers are best written in (tf#2215) */
 export const ACCEPT_LANGUAGE_HEADER = 'header:Accept-Language:asText'
@@ -244,6 +248,8 @@ export async function buildEmail(
   const readReceiptTo = message.readReceiptTo ?? null
   const userAgent = message.userAgent ?? ''
   const language = message.language ?? ''
+  const partLanguage =
+    language === '' ? {} : { [CONTENT_LANGUAGE_HEADER]: language }
   return {
     mailboxIds: { [mailboxIds.drafts]: true },
     keywords: { $draft: true, $seen: true },
@@ -266,20 +272,15 @@ export async function buildEmail(
         }),
     ...(message.isImportant === true ? IMPORTANT_HEADER_VALUES : {}),
     ...(userAgent === '' ? {} : { [USER_AGENT_HEADER]: userAgent }),
-    ...(language === ''
-      ? {}
-      : {
-          [CONTENT_LANGUAGE_HEADER]: language,
-          [ACCEPT_LANGUAGE_HEADER]: language
-        }),
+    ...(language === '' ? {} : { [ACCEPT_LANGUAGE_HEADER]: language }),
     inReplyTo: message.inReplyTo,
     references: message.references,
     bodyValues: {
       html: { value: html },
       text: { value: htmlToText(html) }
     },
-    htmlBody: [{ partId: 'html', type: 'text/html' }],
-    textBody: [{ partId: 'text', type: 'text/plain' }],
+    htmlBody: [{ partId: 'html', type: 'text/html', ...partLanguage }],
+    textBody: [{ partId: 'text', type: 'text/plain', ...partLanguage }],
     attachments: [
       ...images.attachmentsFor(findReferencedCids(html)),
       ...(message.attachments ?? []).map((file): EmailBodyPartCreate => ({

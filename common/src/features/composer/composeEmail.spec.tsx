@@ -403,11 +403,15 @@ describe('buildEmail', () => {
     }
     const purposes: BuildPurpose[] = ['draft', 'template', 'send']
     for (const purpose of purposes) {
-      expect(await build(described, purpose)).toMatchObject({
+      const email = await build(described, purpose)
+      expect(email).toMatchObject({
         'header:User-Agent:asText': 'Twake-Mail/1.2.3 Mozilla/5.0',
-        'header:Content-Language:asText': 'fr',
-        'header:Accept-Language:asText': 'fr'
+        'header:Accept-Language:asText': 'fr',
+        htmlBody: [{ 'header:Content-Language:asText': 'fr' }],
+        textBody: [{ 'header:Content-Language:asText': 'fr' }]
       })
+      // RFC 8621: no Content-* header on the Email object, James refuses it
+      expect(email).not.toHaveProperty(['header:Content-Language:asText'])
     }
   })
 })

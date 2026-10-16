@@ -1,4 +1,4 @@
-import type { JmapClient, SearchSnippet } from 'jmap-client-ts'
+import type { JmapClient, SearchSnippet, Thread } from 'jmap-client-ts'
 
 import { hasSearchedWords } from '@common/features/search/queries'
 import { settle } from '@common/jmap/settle'
@@ -7,8 +7,8 @@ import {
   byReceivedAt,
   EMAIL_LIST_PAGE_SIZE,
   EMAIL_LIST_PROPERTIES,
+  fetchThreadMembersInChunks,
   orderByIds,
-  THREAD_MEMBER_PROPERTIES,
   type EmailListData,
   type EmailListItemData,
   type EmailListPage,
@@ -32,9 +32,10 @@ export const MAX_REFRESHED_RESULTS = 8 * QUERY_CHUNK_SIZE
  * of a mailbox), after changes the client cannot place: James has no
  * `Email/queryChanges`. The `Email/query` of the ids, by chunks of 256 in
  * one request (the loaded rows stay, and the scroll position with them),
- * then, when new ids appear, one request with the `Email/get` and `SearchSnippet/get` of the
- * new ids and, for conversations, the `Thread/get` of their threads and
- * the `Email/get` of their members. The emails already listed are kept as
+ * then, when new ids appear, one request with the `Email/get` and
+ * `SearchSnippet/get` of the new ids and, for conversations, the
+ * `Thread/get` of their threads, then the `Email/get` of their members in
+ * chunks of `maxObjectsInGet`. The emails already listed are kept as
  * they are, with their members (push patched them). Null when the window
  * is too large.
  */
@@ -88,7 +89,7 @@ export async function refreshQueryList(
       current: {
         emails: PromiseLike<{ list: EmailListItemData[] }>
         snippets: PromiseLike<{ list: SearchSnippet[] }>
-        members: PromiseLike<{ list: ThreadMember[] }> | null
+        threadsOfNew: PromiseLike<{ list: Pick<Thread, 'emailIds'>[] }> | null
       } | null
     } = { current: null }
     await client.requestSettled(builder => {
@@ -109,28 +110,26 @@ export async function refreshQueryList(
             '#ids': emails.ref('/list/*/threadId')
           })
         : null
-      const members = threadsOfNew
-        ? builder.call('Email/get', {
-            accountId,
-            '#ids': threadsOfNew.ref('/list/*/emailIds'),
-            properties: [...THREAD_MEMBER_PROPERTIES]
-          })
-        : null
-      calls.current = { emails, snippets, members }
-      return [
-        emails,
-        snippets,
-        ...(threadsOfNew && members ? [threadsOfNew, members] : [])
-      ]
+      calls.current = { emails, snippets, threadsOfNew }
+      return [emails, snippets, ...(threadsOfNew ? [threadsOfNew] : [])]
     })
     if (calls.current === null) throw new Error('The request was not built')
-    const { members } = calls.current
-    const [emails, found, membersResult] = await Promise.all([
+    const { threadsOfNew } = calls.current
+    const [emails, found, threadsResult] = await Promise.all([
       settle(calls.current.emails),
       settle(calls.current.snippets),
-      members === null ? null : settle(members)
+      threadsOfNew === null ? null : settle(threadsOfNew)
     ])
     if (!emails.ok) throw emails.error
+    const membersResult = threadsResult?.ok
+      ? await settle(
+          fetchThreadMembersInChunks(
+            client,
+            accountId,
+            threadsResult.value.list.flatMap(thread => thread.emailIds)
+          )
+        )
+      : null
     for (const email of orderByIds(emails.value.list, missing)) {
       known.set(email.id, email)
     }

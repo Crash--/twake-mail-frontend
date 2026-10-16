@@ -37,10 +37,10 @@ describe('ErrorScreen', () => {
     expect(screen.getByRole('button', { name: 'Retry' })).toHaveFocus()
   })
 
-  it('moves the focus to the error without an action', () => {
+  it('moves the focus to the title without an action', () => {
     renderDs(<ErrorScreen title="Broken" focusOnMount />)
 
-    expect(screen.getByRole('alert')).toHaveFocus()
+    expect(screen.getByRole('heading', { name: 'Broken' })).toHaveFocus()
   })
 
   it('has no action without a label and a handler', () => {
@@ -48,5 +48,21 @@ describe('ErrorScreen', () => {
 
     expect(screen.queryByRole('button')).toBe(null)
     expect(screen.getByTestId('broken')).toHaveTextContent('Broken')
+  })
+
+  it('leaves the focus alone, under a level-3 title, by default', () => {
+    renderDs(<ErrorScreen title="Broken" />)
+
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Broken' })
+    ).not.toHaveFocus()
+  })
+
+  it('puts the focus on its title at the level it is given', () => {
+    renderDs(<ErrorScreen title="Broken" headingLevel="h1" focusOnMount />)
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Broken' })
+    ).toHaveFocus()
   })
 })

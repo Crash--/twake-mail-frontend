@@ -10,8 +10,10 @@ export interface ErrorScreenProps {
   description?: ReactNode
   actionLabel?: string
   onAction?: () => void
+  /** The level of the title: `h1` when the error is the whole view */
+  headingLevel?: 'h1' | 'h2' | 'h3'
   /**
-   * Moves the focus to the action, or to the error without one, when the
+   * Moves the focus to the action, or to the title without one, when the
    * screen shows in place of a view
    */
   focusOnMount?: boolean
@@ -27,28 +29,35 @@ export function ErrorScreen({
   description,
   actionLabel,
   onAction,
+  headingLevel = 'h3',
   focusOnMount = false,
   'data-testid': testId = 'error-screen'
 }: ErrorScreenProps): ReactElement {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const titleRef = useRef<HTMLElement>(null)
   const actionRef = useRef<HTMLButtonElement>(null)
   const hasAction = Boolean(actionLabel && onAction)
 
   useEffect(() => {
     if (!focusOnMount) return
-    const target = actionRef.current ?? containerRef.current
+    const target = actionRef.current ?? titleRef.current
     target?.focus()
   }, [focusOnMount])
 
   return (
-    <Box
-      ref={containerRef}
-      className="u-flex u-h-100"
-      role="alert"
-      tabIndex={focusOnMount && !hasAction ? -1 : undefined}
-      data-testid={testId}
-    >
-      <Empty icon={Warning} iconSize="normal" title={title} text={description}>
+    <Box className="u-flex u-h-100" role="alert" data-testid={testId}>
+      <Empty
+        icon={Warning}
+        iconSize="normal"
+        title={title}
+        text={description}
+        componentsProps={{
+          title: {
+            ref: titleRef,
+            component: headingLevel,
+            tabIndex: focusOnMount && !hasAction ? -1 : undefined
+          }
+        }}
+      >
         {hasAction ? (
           <Button
             ref={actionRef}

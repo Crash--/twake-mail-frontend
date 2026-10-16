@@ -272,6 +272,10 @@ const Scroller = forwardRef<HTMLDivElement, ScrollerProps>(function Scroller(
   return (
     <TableContainer
       {...props}
+      // Virtuoso makes its scroller a tab stop, with no role nor name: Tab
+      // goes from the toolbar straight to the first row, whose controls
+      // scroll the list as they take the focus
+      tabIndex={-1}
       ref={handleRef}
       component={Paper}
       elevation={0}

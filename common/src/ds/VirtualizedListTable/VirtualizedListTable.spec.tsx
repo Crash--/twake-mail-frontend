@@ -87,6 +87,32 @@ describe('VirtualizedListTable', () => {
     expect(screen.getByTestId('files')).toContainElement(table)
   })
 
+  it('goes from the control before it to the first row with Tab', async () => {
+    renderDs(
+      <>
+        <button type="button">Before</button>
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 10_000, itemHeight: 40 }}
+        >
+          <VirtualizedListTable
+            label="Files"
+            rows={ROWS}
+            columns={COLUMNS}
+            computeItemKey={(_index, row) => String(row.id)}
+            componentsProps={{ rowContent: { children: <NameCell /> } }}
+            data-testid="files"
+          />
+        </VirtuosoMockContext.Provider>
+      </>
+    )
+    screen.getByRole('button', { name: 'Before' }).focus()
+
+    await userEvent.tab()
+
+    expect(screen.getByRole('button', { name: 'Alpha' })).toHaveFocus()
+    expect(screen.getByTestId('files')).toHaveAttribute('tabindex', '-1')
+  })
+
   it('puts the attributes of each row on its table row', () => {
     renderTable()
 

@@ -172,6 +172,9 @@
     "requiredPassword": "Password is required",
     "badCredentials": "Bad credentials",
     "connectionError": "Connection error",
+    "startErrorTitle": "Error",
+    "ssoUnreachableTitle": "Cannot reach the sign-in service",
+    "ssoUnreachableDescription": "Check your connection, then try again.",
     "email": "Email",
     "password": "Password",
     "pitch": {

@@ -5,10 +5,25 @@ import {
 } from './issuerDiscovery'
 
 const SERVER = 'https://jmap.example.com'
+const ABSENT = { ok: false, error: 'absent' }
+const UNAVAILABLE = { ok: false, error: 'unavailable' }
 
 function urlOf(input: string | URL | Request): string {
   if (typeof input === 'string') return input
   return input instanceof URL ? input.href : input.url
+}
+
+/** A page reached through redirections: the login of an auth proxy */
+function redirected(body: string): Response {
+  return Object.defineProperty(new Response(body), 'redirected', {
+    value: true
+  })
+}
+
+function htmlPage(): Response {
+  return new Response('<html>', {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  })
 }
 
 function makeFetch(
@@ -32,7 +47,10 @@ describe('findIssuerByWebFinger', () => {
 
     const issuer = await findIssuerByWebFinger(`${SERVER}/`, fetchFn)
 
-    expect(issuer).toBe('https://sso.example.com/realms/x')
+    expect(issuer).toEqual({
+      ok: true,
+      value: 'https://sso.example.com/realms/x'
+    })
     const [input, init] = fetchFn.mock.calls[0] ?? ['', {}]
     const url = urlOf(input)
     const requested = new URL(url)
@@ -72,9 +90,10 @@ describe('findIssuerByWebFinger', () => {
       })
     )
 
-    await expect(findIssuerByWebFinger(SERVER, fetchFn)).resolves.toBe(
-      'https://sso.example.com'
-    )
+    await expect(findIssuerByWebFinger(SERVER, fetchFn)).resolves.toEqual({
+      ok: true,
+      value: 'https://sso.example.com'
+    })
   })
 
   it('takes the first link when none has the relation, as tmail-flutter', async () => {
@@ -82,13 +101,30 @@ describe('findIssuerByWebFinger', () => {
       Response.json({ links: [{ rel: 'x', href: 'https://sso.example.com' }] })
     )
 
-    await expect(findIssuerByWebFinger(SERVER, fetchFn)).resolves.toBe(
-      'https://sso.example.com'
+    await expect(findIssuerByWebFinger(SERVER, fetchFn)).resolves.toEqual({
+      ok: true,
+      value: 'https://sso.example.com'
+    })
+  })
+
+  it('reads the document it was redirected to (RFC 7033 §4.2)', async () => {
+    const fetchFn = makeFetch(
+      redirected(
+        JSON.stringify({
+          links: [{ rel: ISSUER_REL, href: 'https://sso.example.com' }]
+        })
+      )
     )
+
+    await expect(findIssuerByWebFinger(SERVER, fetchFn)).resolves.toEqual({
+      ok: true,
+      value: 'https://sso.example.com'
+    })
   })
 
   it.each([
-    ['an error status', new Response('', { status: 404 })],
+    ['a 404 status', new Response('', { status: 404 })],
+    ['a 410 status', new Response('', { status: 410 })],
     ['a body that is not JSON', new Response('<html>')],
     ['no link', Response.json({ subject: SERVER, links: [] })],
     ['a link without href', Response.json({ links: [{ rel: ISSUER_REL }] })],
@@ -97,18 +133,53 @@ describe('findIssuerByWebFinger', () => {
       Response.json({
         links: [{ rel: ISSUER_REL, href: 'javascript:alert(1)' }]
       })
-    ],
-    ['a network error', new TypeError('Failed to fetch')]
-  ])('finds nothing after %s', async (_name, response) => {
+    ]
+  ])('finds none after %s', async (_name, response) => {
     await expect(
       findIssuerByWebFinger(SERVER, makeFetch(response))
-    ).resolves.toBe(null)
+    ).resolves.toEqual(ABSENT)
+  })
+
+  it.each([
+    ['a 503 status', new Response('', { status: 503 })],
+    ['a 500 status', new Response('', { status: 500 })],
+    // An expired session in front of the SSO (tf#4794)
+    ['a 401 status', new Response('', { status: 401 })],
+    ['a 403 status', new Response('', { status: 403 })],
+    ['a 408 status', new Response('', { status: 408 })],
+    ['a 429 status', new Response('', { status: 429 })],
+    ['a login page it was redirected to', redirected('<form>')],
+    ['an HTML page', htmlPage()],
+    ['a network error', new TypeError('Failed to fetch')],
+    [
+      'a timeout',
+      Object.assign(new Error('timed out'), { name: 'TimeoutError' })
+    ]
+  ])('is unavailable after %s', async (_name, response) => {
+    await expect(
+      findIssuerByWebFinger(SERVER, makeFetch(response))
+    ).resolves.toEqual(UNAVAILABLE)
+  })
+
+  it('is unavailable when the body is cut off', async () => {
+    const response = new Response('{}')
+    jest
+      .spyOn(response, 'json')
+      .mockRejectedValue(
+        Object.assign(new Error('timed out'), { name: 'TimeoutError' })
+      )
+
+    await expect(
+      findIssuerByWebFinger(SERVER, makeFetch(response))
+    ).resolves.toEqual(UNAVAILABLE)
   })
 
   it('does not ask for a server that is not an http(s) URL', async () => {
     const fetchFn = makeFetch()
 
-    await expect(findIssuerByWebFinger('ftp://x', fetchFn)).resolves.toBe(null)
+    await expect(findIssuerByWebFinger('ftp://x', fetchFn)).resolves.toEqual(
+      ABSENT
+    )
     expect(fetchFn).not.toHaveBeenCalled()
   })
 })
@@ -117,20 +188,46 @@ describe('isOpenIdIssuer', () => {
   it('is true when the OpenID configuration answers', async () => {
     const fetchFn = makeFetch(Response.json({ issuer: SERVER }))
 
-    await expect(isOpenIdIssuer(`${SERVER}/`, fetchFn)).resolves.toBe(true)
+    await expect(isOpenIdIssuer(`${SERVER}/`, fetchFn)).resolves.toEqual({
+      ok: true,
+      value: true
+    })
     expect(fetchFn.mock.calls[0]?.[0]).toBe(
       `${SERVER}/.well-known/openid-configuration`
     )
+  })
+
+  it('is true when the OpenID configuration answers after a redirection', async () => {
+    const fetchFn = makeFetch(redirected(JSON.stringify({ issuer: SERVER })))
+
+    await expect(isOpenIdIssuer(SERVER, fetchFn)).resolves.toEqual({
+      ok: true,
+      value: true
+    })
   })
 
   it.each([
     new Response('', { status: 404 }),
     new Response('<html>'),
     Response.json({ foo: 1 }),
-    new TypeError('offline')
-  ])('is false otherwise', async response => {
-    await expect(isOpenIdIssuer(SERVER, makeFetch(response))).resolves.toBe(
-      false
+    // A 404 without CORS headers fails the fetch
+    new TypeError('Failed to fetch')
+  ])('is absent otherwise', async response => {
+    await expect(isOpenIdIssuer(SERVER, makeFetch(response))).resolves.toEqual(
+      ABSENT
+    )
+  })
+
+  it.each([
+    new Response('', { status: 503 }),
+    new Response('', { status: 401 }),
+    new Response('', { status: 403 }),
+    redirected('<form>'),
+    htmlPage(),
+    Object.assign(new Error('timed out'), { name: 'TimeoutError' })
+  ])('is unavailable when the server does not answer', async response => {
+    await expect(isOpenIdIssuer(SERVER, makeFetch(response))).resolves.toEqual(
+      UNAVAILABLE
     )
   })
 })

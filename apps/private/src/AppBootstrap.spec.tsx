@@ -1,6 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 
-import { completeConfig } from '@common/config/completeConfig'
+import {
+  completeConfig,
+  type CompleteConfigResult
+} from '@common/config/completeConfig'
 import { resolveConfig, type AppConfig } from '@common/config/config'
 
 import { AppBootstrap } from './AppBootstrap'
@@ -29,6 +33,10 @@ jest.mock('./App', () => ({
 jest.mock('@common/config/completeConfig')
 
 const completeConfigMock = jest.mocked(completeConfig)
+
+function completed(value: AppConfig): CompleteConfigResult {
+  return { ok: true, value }
+}
 
 function makeOidcConfig(): AppConfig {
   const result = resolveConfig(
@@ -59,7 +67,9 @@ describe('AppBootstrap', () => {
 
   it('shows a progress indicator, then the app with the completed configuration', async () => {
     const config = makeConfig()
-    completeConfigMock.mockResolvedValue({ ...config, authMode: 'oidc' })
+    completeConfigMock.mockResolvedValue(
+      completed({ ...config, authMode: 'oidc' })
+    )
 
     render(<AppBootstrap config={config} />)
 
@@ -69,7 +79,7 @@ describe('AppBootstrap', () => {
   })
 
   it('announces the boot in the one "Loading" live region of the page, kept into the app', async () => {
-    completeConfigMock.mockResolvedValue(makeConfig())
+    completeConfigMock.mockResolvedValue(completed(makeConfig()))
 
     render(<AppBootstrap config={makeConfig()} />)
 
@@ -92,7 +102,7 @@ describe('AppBootstrap', () => {
 
   it('starts the facade with the team mailbox it found before completing the configuration', async () => {
     window.history.replaceState(null, '', '/embed/team-mailboxes/team-root')
-    completeConfigMock.mockResolvedValue(makeConfig())
+    completeConfigMock.mockResolvedValue(completed(makeConfig()))
 
     render(<AppBootstrap config={makeConfig()} />)
 
@@ -103,7 +113,7 @@ describe('AppBootstrap', () => {
 
   it('starts the intents page with the intent of its address', async () => {
     window.history.replaceState(null, '', '/intents?intent=intent-1')
-    completeConfigMock.mockResolvedValue(makeConfig())
+    completeConfigMock.mockResolvedValue(completed(makeConfig()))
 
     render(<AppBootstrap config={makeConfig()} />)
 
@@ -129,7 +139,7 @@ describe('AppBootstrap', () => {
       '',
       '/intents/callback?code=c&state=state'
     )
-    completeConfigMock.mockResolvedValue(config)
+    completeConfigMock.mockResolvedValue(completed(config))
 
     render(<AppBootstrap config={config} />)
 
@@ -155,7 +165,7 @@ describe('AppBootstrap', () => {
       '',
       '/intents/callback?code=c&state=state'
     )
-    completeConfigMock.mockResolvedValue(config)
+    completeConfigMock.mockResolvedValue(completed(config))
 
     render(<AppBootstrap config={config} />)
 
@@ -167,18 +177,88 @@ describe('AppBootstrap', () => {
 
   it('never starts the webmail under /intents, where other apps may frame it', async () => {
     window.history.replaceState(null, '', '/intents/settings')
-    completeConfigMock.mockResolvedValue(makeConfig())
+    completeConfigMock.mockResolvedValue(completed(makeConfig()))
 
     render(<AppBootstrap config={makeConfig()} />)
 
     expect(await screen.findByTestId('app')).toHaveTextContent('intent none')
   })
 
-  it('starts the app with the configuration it has when completing it fails', async () => {
+  it('offers a retry when the SSO cannot be reached, then starts the app', async () => {
+    const config = makeConfig()
+    completeConfigMock
+      .mockResolvedValueOnce({ ok: false, error: 'sso-unreachable' })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: { ...config, authMode: 'oidc' }
+      })
+
+    render(<AppBootstrap config={config} />)
+
+    expect(await screen.findByTestId('sso-unreachable')).toHaveTextContent(
+      'Cannot reach the sign-in service'
+    )
+    expect(screen.queryByTestId('app')).toBe(null)
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByTestId('app')).toHaveTextContent('oidc mode')
+    expect(screen.queryByTestId('sso-unreachable')).toBe(null)
+    expect(completeConfigMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('names the page and focuses Retry, which keeps the focus through a failed retry', async () => {
+    completeConfigMock.mockResolvedValue({
+      ok: false,
+      error: 'sso-unreachable'
+    })
+
+    render(<AppBootstrap config={makeConfig()} />)
+
+    const retry = await screen.findByRole('button', { name: 'Retry' })
+    expect(retry).toHaveFocus()
+    expect(document.title).toBe('Cannot reach the sign-in service - Twake Mail')
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => {
+      expect(completeConfigMock).toHaveBeenCalledTimes(2)
+    })
+    expect(screen.getByRole('button', { name: 'Retry' })).toHaveFocus()
+  })
+
+  it('keeps the error screen while a retry runs, a second click starting none', async () => {
+    const config = makeConfig()
+    let finishRetry: (result: CompleteConfigResult) => void = () => undefined
+    completeConfigMock
+      .mockResolvedValueOnce({ ok: false, error: 'sso-unreachable' })
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          finishRetry = resolve
+        })
+      )
+
+    render(<AppBootstrap config={config} />)
+    const retry = await screen.findByRole('button', { name: 'Retry' })
+    await userEvent.dblClick(retry)
+
+    expect(screen.getByTestId('sso-unreachable')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Retry' })).toBe(retry)
+    expect(retry).toHaveFocus()
+    expect(completeConfigMock).toHaveBeenCalledTimes(2)
+    finishRetry(completed(config))
+    expect(await screen.findByTestId('app')).toHaveTextContent('basic mode')
+  })
+
+  it('shows the generic error screen when completing the configuration fails otherwise', async () => {
     completeConfigMock.mockRejectedValue(new Error('boom'))
 
     render(<AppBootstrap config={makeConfig()} />)
 
-    expect(await screen.findByTestId('app')).toHaveTextContent('basic mode')
+    expect(await screen.findByTestId('start-error')).toHaveTextContent(
+      'An error occurred'
+    )
+    expect(screen.queryByText('Check your connection, then try again.')).toBe(
+      null
+    )
+    expect(document.title).toBe('Error - Twake Mail')
+    expect(screen.queryByTestId('sso-unreachable')).toBe(null)
+    expect(screen.queryByTestId('app')).toBe(null)
   })
 })

@@ -21,6 +21,7 @@ import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScree
 
 import { App } from './App'
 import type { IntentsPage } from './IntentsApp'
+import { SsoUnreachableScreen } from './SsoUnreachableScreen'
 import type { TeamMailboxEmbed } from './TeamMailboxEmbedApp'
 
 /**
@@ -82,27 +83,50 @@ export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
     embed === null ? null : connectSpaceOverlay(reportOverlayRegion)
   )
   const [completed, setCompleted] = useState<AppConfig | null>(null)
+  const [failure, setFailure] = useState<
+    'sso-unreachable' | 'unexpected' | null
+  >(null)
+  const [attempt, setAttempt] = useState(0)
+  const [isRetrying, setIsRetrying] = useState(false)
 
   useEffect(() => {
     let isCurrent = true
     completeConfig(config)
       .then(result => {
-        if (isCurrent) setCompleted(result)
+        if (!isCurrent) return
+        if (result.ok) setCompleted(result.value)
+        else setFailure(result.error)
       })
       .catch(() => {
-        if (isCurrent) setCompleted(config)
+        // The issuer is still a guess: no sign-in can start from it
+        if (isCurrent) setFailure('unexpected')
+      })
+      .finally(() => {
+        if (isCurrent) setIsRetrying(false)
       })
     return () => {
       isCurrent = false
     }
-  }, [config])
+  }, [config, attempt])
+
+  // The error screen stays while the next attempt runs: Retry keeps the focus
+  function handleRetry(): void {
+    if (isRetrying) return
+    setIsRetrying(true)
+    setAttempt(previous => previous + 1)
+  }
 
   const app =
     completed === null ? null : (
       <App config={completed} embed={embed} intents={intents} />
     )
-  const loading =
-    embed === null ? <FullPageLoader /> : <TeamMailboxLoadingScreen />
+  const loading = failure ? (
+    <SsoUnreachableScreen reason={failure} onRetry={handleRetry} />
+  ) : embed === null ? (
+    <FullPageLoader />
+  ) : (
+    <TeamMailboxLoadingScreen />
+  )
   const page = (
     <AppProviders
       lang={lang}

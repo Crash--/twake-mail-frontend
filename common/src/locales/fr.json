@@ -172,6 +172,9 @@
     "requiredPassword": "Mot de passe requis",
     "badCredentials": "Identifiants invalides",
     "connectionError": "Erreur de connexion",
+    "startErrorTitle": "Erreur",
+    "ssoUnreachableTitle": "Impossible de joindre le service de connexion",
+    "ssoUnreachableDescription": "Vérifiez votre connexion, puis réessayez.",
     "email": "E-mail",
     "password": "Mot de passe",
     "pitch": {

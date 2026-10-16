@@ -172,6 +172,9 @@
     "requiredPassword": "Требуется пароль",
     "badCredentials": "Неверные учетные данные",
     "connectionError": "Ошибка подключения",
+    "startErrorTitle": "Ошибка",
+    "ssoUnreachableTitle": "Не удается подключиться к службе входа",
+    "ssoUnreachableDescription": "Проверьте подключение и повторите попытку.",
     "email": "Email",
     "password": "Пароль",
     "pitch": {

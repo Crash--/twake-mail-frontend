@@ -31,6 +31,30 @@ function item(
 }
 
 describe('UploadList', () => {
+  it('opens an uploaded file from its chip, not one still uploading', async () => {
+    const onOpen = jest.fn()
+    renderDs(
+      <UploadList
+        items={[
+          { ...item('1'), openLabel: 'Preview' },
+          { ...item('2', 'uploading'), openLabel: 'Preview' },
+          item('3')
+        ]}
+        labels={LABELS}
+        onRemove={jest.fn()}
+        onRetry={jest.fn()}
+        onOpen={onOpen}
+        testIds={{ open: 'open' }}
+      />
+    )
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Preview file-1.pdf (12 KB)' })
+    )
+    expect(onOpen).toHaveBeenCalledWith('1')
+    expect(screen.getAllByTestId('open')).toHaveLength(1)
+  })
+
   it('lists the files with their state, and removes or retries one', async () => {
     const onRemove = jest.fn()
     const onRetry = jest.fn()

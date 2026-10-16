@@ -2151,6 +2151,49 @@ describe('ComposerForm', () => {
       ).toBe(null)
     })
 
+    it('previews an uploaded file from its chip, and downloads one it cannot preview', async () => {
+      const click = jest
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined)
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        [
+          new File(['Meeting notes'], 'notes.txt', { type: 'text/plain' }),
+          new File(['PK'], 'archive.zip', { type: 'application/zip' })
+        ]
+      )
+
+      const preview = await within(composer).findByRole('button', {
+        name: /^Preview notes\.txt \(/
+      })
+      await userEvent.click(preview)
+      const dialog = await screen.findByTestId('attachment-preview')
+      expect(
+        await within(dialog).findByTestId('attachment-preview-text')
+      ).toHaveTextContent('Meeting notes')
+      await userEvent.keyboard('{Escape}')
+      await waitFor(() => {
+        expect(screen.queryByTestId('attachment-preview')).toBe(null)
+      })
+      expect(preview).toHaveFocus()
+
+      await userEvent.click(
+        within(composer).getByRole('button', {
+          name: /^Download archive\.zip \(/
+        })
+      )
+      await waitFor(() => {
+        expect(click).toHaveBeenCalledTimes(1)
+      })
+      expect(screen.queryByTestId('attachment-preview')).toBe(null)
+      click.mockRestore()
+    })
+
     it('sends a text file with the charset of its bytes', async () => {
       const jmapServer = makeFakeJmapServer()
       uploads = installFakeUploads(jmapServer)

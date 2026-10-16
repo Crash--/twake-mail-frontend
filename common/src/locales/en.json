@@ -356,6 +356,7 @@
     },
     "send": "Send",
     "saveAsDraft": "Save as draft",
+    "print": "Print",
     "signature": "Signature",
     "fields": {
       "to": "To",

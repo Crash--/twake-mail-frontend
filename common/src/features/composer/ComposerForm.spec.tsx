@@ -18,6 +18,7 @@ import {
   type FakeUploads
 } from '@common/testing/fakeUploads'
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
+import { printHtmlDocument } from '@common/features/email/printDocument'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { parseSnapshot, type ComposerSnapshot } from './composerContent'
@@ -128,6 +129,11 @@ function draftsOf(server: FakeJmapServer): typeof server.emails {
   return server.emails.filter(email => 'mailbox-drafts' in email.mailboxIds)
 }
 
+jest.mock('@common/features/email/printDocument', () => ({
+  ...jest.requireActual<object>('@common/features/email/printDocument'),
+  printHtmlDocument: jest.fn().mockResolvedValue(undefined)
+}))
+
 // The saves are tested with the real delay in draftPolicy.spec.tsx
 jest.mock('./draftPolicy', () => ({
   LOCAL_SAVE_DELAY_MS: 800,
@@ -233,6 +239,7 @@ describe('ComposerForm', () => {
           'Insert template',
           'Save as draft',
           'Save as template',
+          'Print',
           'Request read receipt',
           'Mark as important',
           'Delete draft'
@@ -1127,6 +1134,56 @@ describe('ComposerForm', () => {
       await new Promise(resolve => setTimeout(resolve, 100))
 
       expect(await kept()).toEqual([])
+    })
+  })
+
+  describe('print', () => {
+    beforeEach(() => {
+      jest.mocked(printHtmlDocument).mockClear()
+    })
+
+    it('prints the message as written: sender, recipients, subject and body', async () => {
+      renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Printed draft' })
+      await userEvent.click(
+        within(composer).getByRole('textbox', { name: 'Message body' })
+      )
+      await userEvent.paste('Hello <Bob>')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'More' })
+      )
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Print' }))
+
+      await waitFor(() => {
+        expect(printHtmlDocument).toHaveBeenCalledTimes(1)
+      })
+      const document = jest.mocked(printHtmlDocument).mock.calls[0]?.[0] ?? ''
+      expect(document).toContain('<title>Twake Mail - Printed draft</title>')
+      expect(document).toContain('<b>Alice Martin</b> &lt;')
+      expect(document).toContain('To: bob@example.com')
+      expect(document).toContain('Hello &lt;Bob&gt;')
+      expect(screen.queryByRole('menu')).toBe(null)
+    })
+
+    it('says so when printing failed', async () => {
+      jest
+        .mocked(printHtmlDocument)
+        .mockRejectedValueOnce(new Error('No frame'))
+      jest.spyOn(console, 'error').mockImplementation(() => undefined)
+      renderComposer()
+      const composer = await openComposer()
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'More' })
+      )
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Print' }))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('toast')).toHaveTextContent('Printing failed')
+      })
+      jest.mocked(console.error).mockRestore()
     })
   })
 

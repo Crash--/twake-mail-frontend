@@ -159,6 +159,7 @@ import {
   useUploadLimits
 } from './useComposerAttachments'
 import { useEditorLabels } from './useEditorLabels'
+import { usePrintDraft } from './usePrintDraft'
 
 /**
  * What a composer opens: a new message, a draft of the server, or the
@@ -459,6 +460,7 @@ function LoadedComposerForm({
     setChanges(count => count + 1)
   }
   const uploadLimits = useUploadLimits()
+  const printDraft = usePrintDraft(images)
   const files = useComposerAttachments(
     content.attachments,
     () => images.totalSize(),
@@ -939,6 +941,14 @@ function LoadedComposerForm({
 
   const handleOpenMore = (event: MouseEvent<HTMLElement>): void => {
     setMoreAnchor(event.currentTarget)
+  }
+
+  /** Prints the message as written; remote images when they are shown */
+  const handlePrint = (): void => {
+    setMoreAnchor(null)
+    const editor = editorRef.current
+    if (!editor) return
+    void printDraft(composed(editor), !hasBlockedImages)
   }
 
   const handleSaveDraft = (): void => {
@@ -1603,6 +1613,9 @@ function LoadedComposerForm({
         data-testid="composer-save-template-item"
       >
         <ListItemText inset primary={t('composer.template.save')} />
+      </MenuItem>
+      <MenuItem onClick={handlePrint} data-testid="composer-print-item">
+        <ListItemText inset primary={t('composer.print')} />
       </MenuItem>
       {(
         [

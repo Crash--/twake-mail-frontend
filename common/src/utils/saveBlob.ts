@@ -3,14 +3,17 @@
  * endpoint needs the Authorization header, so a plain link cannot be used.
  * The link is clicked in `page`, the document the user clicked in: a frame
  * the user did not click in (the app's, under the overlay of TwakeSpace)
- * may not start a download.
+ * may not start a download. Saved as `application/octet-stream`: Chrome adds
+ * the extension of the type to a name without one (`README.txt`).
  */
 export function saveBlob(
   blob: Blob,
   fileName: string,
   page: Document = document
 ): void {
-  const url = URL.createObjectURL(blob)
+  const url = URL.createObjectURL(
+    blob.slice(0, blob.size, 'application/octet-stream')
+  )
   const link = page.createElement('a')
   link.href = url
   link.download = fileName

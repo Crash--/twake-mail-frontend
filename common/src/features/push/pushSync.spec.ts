@@ -312,21 +312,111 @@ describe('createPushSync', () => {
     )
   })
 
-  it('refetches the first page when the changes never end', async () => {
-    const setup = await makeSetup({ emails: makeEmails(3), maxChanges: 1 })
+  it('follows the changes round after round, whatever their number', async () => {
+    // 21 rounds of 128
+    const setup = await makeSetup({ emails: makeEmails(20 * 128 + 1) })
     await loadInbox(setup, 1)
 
-    for (let index = 0; index <= MAX_CHANGES_ROUNDS; index++) {
-      setup.server.addEmail(
-        makeEmail({ id: `n${index}`, receivedAt: '2026-09-02T00:00:00Z' })
-      )
+    for (const { id } of [...setup.server.emails]) {
+      setup.server.updateEmail(id, { keywords: { $seen: true } })
     }
+    await pushNow(setup)
+
+    expect(setup.server.callsOf('Email/changes')).toHaveLength(21)
+    const state = setup.queryClient.getQueryState(
+      threadKeys.list(FAKE_ACCOUNT_ID, INBOX)
+    )
+    expect(state?.isInvalidated).toBe(false)
+  })
+
+  it('refetches the mailboxes when their changes do not move on', async () => {
+    // The server says it has more, and reports none
+    const setup = await makeSetup({ emails: makeEmails(3), maxChanges: 0 })
+    await setup.queryClient.query(
+      mailboxesQueryOptions(setup.client, FAKE_ACCOUNT_ID)
+    )
+
+    setup.server.updateMailbox(INBOX, { unreadEmails: 9 })
+    await pushNow(setup)
+
+    expect(setup.server.callsOf('Mailbox/changes')).toHaveLength(1)
+    expect(
+      setup.queryClient.getQueryState(['mailbox', FAKE_ACCOUNT_ID, 'list'])
+        ?.isInvalidated
+    ).toBe(true)
+  })
+
+  it('refetches the first page when the changes do not move on', async () => {
+    // The server says it has more, and reports none
+    const setup = await makeSetup({ emails: makeEmails(3), maxChanges: 0 })
+    await loadInbox(setup, 1)
+
+    setup.server.addEmail(
+      makeEmail({ id: 'new', receivedAt: '2026-09-02T00:00:00Z' })
+    )
     await pushNow(setup)
 
     const state = setup.queryClient.getQueryState(
       threadKeys.list(FAKE_ACCOUNT_ID, INBOX)
     )
     expect(state?.isInvalidated).toBe(true)
+  })
+
+  it('refetches the first page after MAX_CHANGES_ROUNDS of states reporting no change', async () => {
+    const setup = await makeSetup({ emails: makeEmails(3) })
+    await loadInbox(setup, 1)
+    let round = 0
+    // The server moves on, has more changes, and never reports any
+    setup.server.handlers.set('Email/changes', args => {
+      round += 1
+      return {
+        accountId: FAKE_ACCOUNT_ID,
+        oldState: args.sinceState,
+        newState: `state-email-elsewhere-${round}`,
+        hasMoreChanges: true,
+        created: [],
+        updated: [],
+        destroyed: []
+      }
+    })
+
+    setup.sync.stateChanged({ Email: 'state-email-elsewhere-0' })
+    await setup.sync.whenIdle()
+
+    expect(round).toBe(MAX_CHANGES_ROUNDS)
+    const state = setup.queryClient.getQueryState(
+      threadKeys.list(FAKE_ACCOUNT_ID, INBOX)
+    )
+    expect(state?.isInvalidated).toBe(true)
+  })
+
+  it('refetches the mailboxes after MAX_CHANGES_ROUNDS of states reporting no change', async () => {
+    const setup = await makeSetup()
+    await setup.queryClient.query(
+      mailboxesQueryOptions(setup.client, FAKE_ACCOUNT_ID)
+    )
+    let round = 0
+    setup.server.handlers.set('Mailbox/changes', args => {
+      round += 1
+      return {
+        accountId: FAKE_ACCOUNT_ID,
+        oldState: args.sinceState,
+        newState: `state-mailbox-elsewhere-${round}`,
+        hasMoreChanges: true,
+        created: [],
+        updated: [],
+        destroyed: []
+      }
+    })
+
+    setup.sync.stateChanged({ Mailbox: 'state-mailbox-elsewhere-0' })
+    await setup.sync.whenIdle()
+
+    expect(round).toBe(MAX_CHANGES_ROUNDS)
+    expect(
+      setup.queryClient.getQueryState(['mailbox', FAKE_ACCOUNT_ID, 'list'])
+        ?.isInvalidated
+    ).toBe(true)
   })
 
   it('catches up a page fetched while the changes were applied', async () => {

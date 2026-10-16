@@ -9,8 +9,12 @@ import {
   type EmailListItemData
 } from '@common/features/thread/queries'
 
-/** `/changes` requests in a row before giving up on `hasMoreChanges` */
-export const MAX_CHANGES_ROUNDS = 5
+/**
+ * `/changes` requests in a row before giving up on `hasMoreChanges`, as
+ * tmail-flutter (`ThreadDataSourceImpl.getAllEmailChanges`): past them,
+ * refetching the lists costs less
+ */
+export const MAX_CHANGES_ROUNDS = 100
 
 /**
  * Most changes one `/changes` reports, as tmail-flutter (`ThreadAPI`,
@@ -86,7 +90,14 @@ async function readRound<T extends { id: string }>(
     settle(handles.created),
     settle(handles.updated)
   ])
-  if (!changes.ok || !created.ok || !updated.ok) {
+  // A server with more changes that does not move on would loop forever, as
+  // tmail-flutter stops it; Mailbox/changes too, though tmail-flutter does
+  // not follow its `hasMoreChanges`
+  const isStuck =
+    changes.ok &&
+    changes.value.hasMoreChanges &&
+    changes.value.newState === branch.cursor
+  if (!changes.ok || !created.ok || !updated.ok || isStuck) {
     branch.failed = true
     return
   }
@@ -123,7 +134,8 @@ function result<T extends { id: string }>(
  * round: `Mailbox/changes` and `Email/changes`, each followed by the
  * `Mailbox/get` / `Email/get` of its created and updated ids through
  * back-references (the list properties for emails). Another round follows
- * while the server has more changes, up to `MAX_CHANGES_ROUNDS`.
+ * while the server has more changes and moves on, up to
+ * `MAX_CHANGES_ROUNDS`.
  *
  * A type whose changes fail (`cannotCalculateChanges`, an unknown state, too
  * many changes) comes back `null`: its cache has to be refetched.

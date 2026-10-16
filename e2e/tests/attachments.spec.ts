@@ -548,4 +548,24 @@ test.describe('ATT attachments', () => {
       )
     }
   )
+
+  test('ATT-11 a file without an extension is saved under its own name', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await send(jmap, {
+      to: user.email,
+      subject: 'build file',
+      text: 'See attached',
+      attachments: [{ name: 'Makefile', type: 'text/plain', content: 'all:' }]
+    })
+    await jmap.waitForEmail({ subject: 'build file' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.openEmail('build file')
+
+    const download = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'Download Makefile' }).click()
+    expect((await download).suggestedFilename()).toBe('Makefile')
+  })
 })

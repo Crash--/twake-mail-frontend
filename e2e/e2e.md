@@ -719,6 +719,8 @@ finishes issue #112.
   - Spec: `tests/attachments.spec.ts`.
 - [x] `ATT-10` A 400-page PDF has one canvas per page but draws only the pages in view (fewer than 10 drawn at once); scrolled to the end, the last page is drawn and the first is released. — web app only
   - Spec: `tests/attachments.spec.ts`.
+- [x] `ATT-11` A text/plain attachment named `Makefile` is downloaded as `Makefile`, without the `.txt` Chrome adds for its type. — tmail-flutter `tf#4674`
+  - Spec: `tests/attachments.spec.ts`.
 
 ## CMP — Drafts, local first (#134)
 

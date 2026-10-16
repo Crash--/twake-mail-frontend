@@ -237,9 +237,12 @@ export function SearchFiltersBar({
       : `${name}: ${filter[field].join(', ')}`
   }
 
+  // A keyword no label has (e.g. a deleted one) still filters: say so
   const labelName =
-    labels.find(label => label.keyword === filter.label)?.displayName ??
-    t('search.labels.all')
+    filter.label === null
+      ? t('search.labels.all')
+      : (labels.find(label => label.keyword === filter.label)?.displayName ??
+        t('search.labels.unknown'))
 
   const canClear = !isEmptySearch(filter) || filter.sort !== DEFAULT_SORT_ORDER
 

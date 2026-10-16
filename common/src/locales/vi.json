@@ -650,7 +650,8 @@
     "quickFiltersOnly": "Không có gợi ý. Các bộ lọc nhanh nằm sau ô tìm kiếm.",
     "labels": {
       "all": "Tất cả nhãn",
-      "label": "Nhãn"
+      "label": "Nhãn",
+      "unknown": "Nhãn không xác định"
     },
     "addresses": {
       "chipHelp": "Enter hoặc F2 để sửa, Delete để xóa.",

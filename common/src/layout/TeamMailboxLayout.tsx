@@ -18,8 +18,9 @@ import { useTeamMailboxRoot } from '@common/features/teamMailboxEmbed/TeamMailbo
 import { ListToolbarActionProvider } from '@common/features/thread/ListToolbarAction'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { MailProviders } from './AppLayout'
+import { MAIN_CONTENT_ID, MailProviders } from './AppLayout'
 import { TeamMailboxPane } from './TeamMailboxPane'
+import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
 
 /**
  * Frame of the facade of a team mailbox (`/embed/team-mailboxes/<id>`),
@@ -54,6 +55,9 @@ function TeamMailboxFrame(): ReactElement {
     if (canCompose) openComposer()
   }
 
+  // After signing in, as in the webmail
+  useFocusMainOnNavigation(MAIN_CONTENT_ID)
+
   useShortcuts({
     c: handleCompose,
     z: () => {
@@ -84,7 +88,7 @@ function TeamMailboxFrame(): ReactElement {
           ) : null
         }
       >
-        <TeamMailboxPane data-testid="main-content">
+        <TeamMailboxPane id={MAIN_CONTENT_ID} data-testid="main-content">
           <Outlet />
         </TeamMailboxPane>
       </ListToolbarActionProvider>

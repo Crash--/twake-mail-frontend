@@ -2,10 +2,13 @@ import { Layout } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
+import { SCRIPT_FOCUS_TARGET } from '@/ds/FocusIndicator/focusIndicator'
 import { ReadingInsetContext } from '@/ds/ReadingPane/ReadingPane'
 
 export interface TeamMailboxPaneProps {
   children: ReactNode
+  /** Makes the pane the main content, focused after a navigation */
+  id?: string
   'data-testid'?: string
 }
 
@@ -17,6 +20,7 @@ export interface TeamMailboxPaneProps {
  */
 export function TeamMailboxPane({
   children,
+  id,
   'data-testid': testId
 }: TeamMailboxPaneProps): ReactElement {
   return (
@@ -28,7 +32,12 @@ export function TeamMailboxPane({
       monoColumn
     >
       <FlatMain>
-        <FlatContent data-testid={testId}>
+        <FlatContent
+          data-testid={testId}
+          {...(id === undefined
+            ? {}
+            : { id, tabIndex: -1, ...SCRIPT_FOCUS_TARGET })}
+        >
           <ReadingInsetContext.Provider value>
             {children}
           </ReadingInsetContext.Provider>

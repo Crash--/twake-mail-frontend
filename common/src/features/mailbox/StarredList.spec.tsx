@@ -28,6 +28,14 @@ function renderStarred(server: FakeJmapServer): void {
 }
 
 describe('StarredList', () => {
+  it('names the view in a level-1 heading', async () => {
+    renderStarred(makeFakeJmapServer({ emails: [] }))
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Starred' })
+    ).toBeInTheDocument()
+  })
+
   it('lists the starred emails of every folder, and drops one unstarred', async () => {
     const server = makeFakeJmapServer({
       emails: [

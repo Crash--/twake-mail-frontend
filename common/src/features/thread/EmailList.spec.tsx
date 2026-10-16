@@ -377,6 +377,16 @@ describe('EmailList', () => {
     expect(framed.closest('.u-ph-1.u-pb-1')).not.toBe(null)
   })
 
+  it('names the folder in a level-1 heading, for the screen readers', async () => {
+    renderList(makeFakeJmapServer({ emails: [] }))
+
+    const heading = await screen.findByRole('heading', {
+      level: 1,
+      name: 'Inbox'
+    })
+    expect(heading).toHaveClass('u-visuallyhidden')
+  })
+
   it('shows the empty view for a mailbox without emails', async () => {
     renderList(makeFakeJmapServer({ emails: [] }))
 

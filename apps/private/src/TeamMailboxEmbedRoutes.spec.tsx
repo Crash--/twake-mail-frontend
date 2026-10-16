@@ -101,6 +101,15 @@ describe('teamMailboxEmbedRouteElements', () => {
     expect(screen.queryByTestId('top-bar')).toBe(null)
   })
 
+  it('puts the focus in the main content, as the webmail after signing in', async () => {
+    renderRoutes(`${BASE}/`)
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Inbox' })
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('main-content')).toHaveFocus()
+  })
+
   it('offers a new message in a floating button on a phone, where the list has no toolbar', async () => {
     mockViewport({ width: 390, touch: true })
     renderRoutes(`${BASE}/`)

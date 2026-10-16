@@ -73,9 +73,24 @@ describe('findLinks', () => {
     expect(findLinks(text)).toEqual([])
   })
 
-  it('encodes the characters that could leave the attribute', () => {
-    const [match] = findLinks('https://example.com/"onmouseover=alert(1)')
-    expect(match?.href).toBe('https://example.com/%22onmouseover=alert(1)')
+  it.each([
+    [
+      'HTML written in a text part (tf#558)',
+      '<a href="https://ci.example.com/job/566/">james/master #566</a>',
+      'https://ci.example.com/job/566/'
+    ],
+    [
+      'an attribute after the URL',
+      'https://example.com/"onmouseover=alert(1)',
+      'https://example.com/'
+    ],
+    [
+      'a tag right after the URL',
+      'https://example.com/a<br>',
+      'https://example.com/a'
+    ]
+  ])('ends a URL at a quote or an angle bracket: %s', (_, text, href) => {
+    expect(findLinks(text).map(match => match.href)).toEqual([href])
   })
 })
 
@@ -137,7 +152,8 @@ describe('autolink', () => {
 
     expect(container.querySelector('img')).toBe(null)
     expect(container.querySelector('script')).toBe(null)
-    expect(hrefs(container)).toEqual(['https://example.com/%3Cscript%3E'])
+    expect(hrefs(container)).toEqual(['https://example.com/'])
+    expect(container.textContent).toContain('<script>')
   })
 
   it('links several matches in one text node', () => {

@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
 import type { VacationResponse } from 'jmap-client-ts'
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -20,7 +21,8 @@ import {
   SettingsFormField,
   SettingsFormPair,
   SettingsFormRow,
-  SettingsTextField
+  SettingsTextField,
+  type SettingsTextFieldProps
 } from '@/ds/SettingsFields/SettingsFields'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
 import { useEditorLabels } from '@common/features/composer/useEditorLabels'
@@ -52,6 +54,24 @@ interface VacationFormProps {
 
 const EDITOR_TEST_IDS = { editor: 'vacation-message-editor' }
 
+type VacationField =
+  'startDate' | 'startTime' | 'endDate' | 'endTime' | 'message'
+
+/** Why the form cannot be saved, and the field to fix */
+interface VacationProblem {
+  key: TranslationKey
+  field: VacationField
+}
+
+/** The part of a date and a time that is not a valid moment */
+function invalidPart(
+  date: string,
+  time: string,
+  fields: { date: VacationField; time: VacationField }
+): VacationField {
+  return fromLocalInputs(date, '00:00') === null ? fields.date : fields.time
+}
+
 /** The form, filled with the vacation response of the server */
 function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const { t } = useI18n()
@@ -65,6 +85,11 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const endDateId = useId()
   const endTimeId = useId()
   const subjectId = useId()
+  const problemId = useId()
+  const startDateRef = useRef<HTMLInputElement>(null)
+  const startTimeRef = useRef<HTMLInputElement>(null)
+  const endDateRef = useRef<HTMLInputElement>(null)
+  const endTimeRef = useRef<HTMLInputElement>(null)
   const editorRef = useRef<Editor | null>(null)
   const [start] = useState(() => startInputs(vacation.fromDate, new Date()))
   const end = toLocalInputs(vacation.toDate)
@@ -75,22 +100,57 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const [endDate, setEndDate] = useState(end.date)
   const [endTime, setEndTime] = useState(end.time)
   const [subject, setSubject] = useState(vacation.subject ?? '')
-  const [problem, setProblem] = useState<TranslationKey | null>(null)
+  const [problem, setProblem] = useState<VacationProblem | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [editorKey, setEditorKey] = useState(0)
   const isOff = !isEnabled || isSaving
 
-  const values = (): VacationResponse | TranslationKey => {
+  // The faulty field takes the focus, its error read with it
+  useEffect(() => {
+    if (problem === null) return
+    if (problem.field === 'message') {
+      editorRef.current?.commands.focus()
+      return
+    }
+    const inputs = {
+      startDate: startDateRef,
+      startTime: startTimeRef,
+      endDate: endDateRef,
+      endTime: endTimeRef
+    }
+    inputs[problem.field].current?.focus()
+  }, [problem])
+
+  const values = (): VacationResponse | VacationProblem => {
     if (!isEnabled) return { id: 'singleton', ...disabledVacation(vacation) }
     const fromDate = fromLocalInputs(startDate, startTime)
-    if (fromDate === null) return 'vacation.errors.noStart'
+    if (fromDate === null) {
+      return {
+        key: 'vacation.errors.noStart',
+        field: invalidPart(startDate, startTime, {
+          date: 'startDate',
+          time: 'startTime'
+        })
+      }
+    }
     const toDate = hasEnd ? fromLocalInputs(endDate, endTime) : null
-    if (hasEnd && toDate === null) return 'vacation.errors.noEnd'
+    if (hasEnd && toDate === null) {
+      return {
+        key: 'vacation.errors.noEnd',
+        field: invalidPart(endDate, endTime, {
+          date: 'endDate',
+          time: 'endTime'
+        })
+      }
+    }
     if (toDate !== null && Date.parse(toDate) < Date.parse(fromDate)) {
-      return 'vacation.errors.endBeforeStart'
+      // As the advanced search: the end is the one to change
+      return { key: 'vacation.errors.endBeforeStart', field: 'endDate' }
     }
     const editor = editorRef.current
-    if (!editor || editor.isEmpty) return 'vacation.errors.noMessage'
+    if (!editor || editor.isEmpty) {
+      return { key: 'vacation.errors.noMessage', field: 'message' }
+    }
     return {
       id: 'singleton',
       isEnabled: true,
@@ -105,7 +165,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const handleSubmit = (event: SubmitEvent): void => {
     event.preventDefault()
     const result = values()
-    if (typeof result === 'string') {
+    if ('key' in result) {
       setProblem(result)
       return
     }
@@ -141,6 +201,27 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
     setEditorKey(key => key + 1)
   }
 
+  /** Marks the field the problem is about, described by its error */
+  const problemProps = (
+    field: VacationField
+  ): Pick<SettingsTextFieldProps, 'error' | 'describedBy'> =>
+    problem?.field === field ? { error: true, describedBy: problemId } : {}
+
+  /** The error, under the fields it is about */
+  const problemAlert = (
+    fields: readonly VacationField[]
+  ): ReactElement | null =>
+    problem !== null && fields.includes(problem.field) ? (
+      <Alert
+        id={problemId}
+        severity="error"
+        className="u-mb-1"
+        data-testid="vacation-error"
+      >
+        {t(problem.key)}
+      </Alert>
+    ) : null
+
   return (
     <form onSubmit={handleSubmit} noValidate data-testid="vacation-form">
       <SettingsSwitchRow
@@ -168,6 +249,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 width={150}
                 label={t('vacation.startDate')}
                 value={startDate}
+                inputRef={startDateRef}
+                {...problemProps('startDate')}
                 disabled={isOff}
                 required={isEnabled}
                 onChange={event => {
@@ -188,6 +271,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 width={130}
                 label={t('vacation.startTime')}
                 value={startTime}
+                inputRef={startTimeRef}
+                {...problemProps('startTime')}
                 disabled={isOff}
                 onChange={event => {
                   setStartTime(event.target.value)
@@ -197,6 +282,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             )
           }}
         />
+        {problemAlert(['startDate', 'startTime'])}
         {/* As tmail-flutter: apart from the start */}
         <Box className="u-mt-1">
           <SettingsSwitchRow
@@ -226,6 +312,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 width={150}
                 label={t('vacation.endDate')}
                 value={endDate}
+                inputRef={endDateRef}
+                {...problemProps('endDate')}
                 disabled={isOff || !hasEnd}
                 onChange={event => {
                   setEndDate(event.target.value)
@@ -245,6 +333,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 width={130}
                 label={t('vacation.endTime')}
                 value={endTime}
+                inputRef={endTimeRef}
+                {...problemProps('endTime')}
                 disabled={isOff || !hasEnd}
                 onChange={event => {
                   setEndTime(event.target.value)
@@ -254,6 +344,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             )
           }}
         />
+        {problemAlert(['endDate', 'endTime'])}
         <SettingsFormRow
           label={`${t('vacation.subject')}:`}
           htmlFor={subjectId}
@@ -286,6 +377,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
               labels={{ ...labels, editor: t('vacation.message') }}
               content={vacation.htmlBody ?? ''}
               disabled={isOff}
+              errorId={problem?.field === 'message' ? problemId : null}
               colors={colors}
               fontSizes={fontSizes}
               fontFamilies={fontFamilies}
@@ -298,15 +390,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             />
           </SettingsFormField>
         </SettingsFormRow>
-        {problem === null ? null : (
-          <Alert
-            severity="error"
-            className="u-mt-1"
-            data-testid="vacation-error"
-          >
-            {t(problem)}
-          </Alert>
-        )}
+        {problemAlert(['message'])}
         <Box className="u-flex u-flex-justify-end u-flex-items-center u-mt-1">
           <SettingsTextButton
             label={t('common.cancel')}

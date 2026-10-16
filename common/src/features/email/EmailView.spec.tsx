@@ -95,6 +95,66 @@ describe('EmailView', () => {
     expect(screen.queryByTestId('email-view-bcc')).toBe(null)
   })
 
+  it.each([
+    [
+      'Good signature',
+      'email-smime-good-signature',
+      'The authenticity of this message had been verified with SMime signature.'
+    ],
+    [
+      'Bad signature',
+      'email-smime-bad-signature',
+      'This message failed SMime signature verification.'
+    ]
+  ])(
+    'shows the S/MIME status "%s" next to the sender, explained in a tooltip',
+    async (status, testId, text) => {
+      const user = userEvent.setup()
+      renderView(
+        makeFakeJmapServer({
+          emails: [
+            makeEmailWithBody(
+              { id: 'e1', headers: { 'X-SMIME-Status': status } },
+              { text: 'Hello' }
+            )
+          ]
+        })
+      )
+
+      const sender = await screen.findByTestId('email-view-from')
+      const mark = within(sender).getByRole('img', { name: text })
+      expect(mark).toHaveAttribute('data-testid', testId)
+
+      await user.hover(mark)
+
+      expect(await screen.findByRole('tooltip')).toHaveTextContent(text)
+    }
+  )
+
+  it.each([['Not signed'], [undefined]])(
+    'shows no S/MIME status when the header says %s',
+    async status => {
+      renderView(
+        makeFakeJmapServer({
+          emails: [
+            makeEmailWithBody(
+              {
+                id: 'e1',
+                headers:
+                  status === undefined ? {} : { 'X-SMIME-Status': status }
+              },
+              { text: 'Hello' }
+            )
+          ]
+        })
+      )
+
+      await screen.findByTestId('email-view-from')
+      expect(screen.queryByTestId('email-smime-good-signature')).toBe(null)
+      expect(screen.queryByTestId('email-smime-bad-signature')).toBe(null)
+    }
+  )
+
   it('renders the sanitized body in an iframe that cannot run scripts', async () => {
     const server = makeFakeJmapServer({
       emails: [

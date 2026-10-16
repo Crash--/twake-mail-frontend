@@ -162,7 +162,11 @@
     "hideRecipients": "Hide the addresses",
     "replied": "Replied message",
     "forwardedState": "Forwarded message",
-    "repliedAndForwarded": "Replied and Forwarded message"
+    "repliedAndForwarded": "Replied and Forwarded message",
+    "smime": {
+      "good": "The authenticity of this message had been verified with SMime signature.",
+      "bad": "This message failed SMime signature verification."
+    }
   },
   "login": {
     "title": "Sign In",

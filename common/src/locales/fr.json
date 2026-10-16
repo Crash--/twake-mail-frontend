@@ -162,7 +162,11 @@
     "hideRecipients": "Masquer les adresses",
     "replied": "Message répondu",
     "forwardedState": "Message transféré",
-    "repliedAndForwarded": "Message répondu et transféré"
+    "repliedAndForwarded": "Message répondu et transféré",
+    "smime": {
+      "good": "L'authenticité de ce message a été vérifiée via la signature SMIME.",
+      "bad": "La vérification de la signature SMIME de ce message a échoué."
+    }
   },
   "login": {
     "title": "Se connecter",

@@ -9,9 +9,13 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import { formatAddressName } from './addresses'
 import { EmailAddressCard } from './EmailAddressCard'
+import type { SmimeStatus } from './smimeStatus'
+import { SmimeStatusMark } from './SmimeStatusMark'
 
 export interface SenderLineProps {
   sender: EmailAddress | null
+  /** The S/MIME signature check, its icon after the address */
+  smimeStatus?: SmimeStatus
   /**
    * Offers "Unsubscribe" after the address (not on phones, where it is in
    * the "More" menu, as in tmail-flutter)
@@ -29,6 +33,7 @@ export interface SenderLineProps {
  */
 export function SenderLine({
   sender,
+  smimeStatus = 'not-signed',
   onUnsubscribe = null,
   children,
   'data-testid': testId
@@ -48,6 +53,7 @@ export function SenderLine({
           ) : null}
         </EmailAddressCard>
       ) : null}
+      <SmimeStatusMark status={smimeStatus} />
       {onUnsubscribe !== null && !isPhone ? (
         <InlineTextButton
           isUnderlined

@@ -16,13 +16,16 @@ import {
 } from './RecipientsEditor'
 
 /** What the browser hands to the drag events, shared by one drag */
-function makeDataTransfer(): DataTransfer {
+function makeDataTransfer(files: File[] = []): DataTransfer {
   const data = new Map<string, string>()
   const transfer = {
     dropEffect: 'none',
     effectAllowed: 'all',
+    files: Object.assign([...files], {
+      item: (index: number) => files[index] ?? null
+    }),
     get types() {
-      return [...data.keys()]
+      return files.length > 0 ? ['Files', ...data.keys()] : [...data.keys()]
     },
     setData: (type: string, value: string) => {
       data.set(type, value)
@@ -169,5 +172,55 @@ describe('RecipientsEditor', () => {
     await waitFor(() => {
       expect(chipsIn('cc')).toEqual(['Carol'])
     })
+  })
+
+  it('adds the addresses of a text file dropped on a field', async () => {
+    await renderEditor()
+    const cc = screen.getByTestId('composer-cc-field')
+    const file = new File(
+      [
+        [
+          '# The team',
+          'carol@example.com',
+          '',
+          'not an address',
+          'Erin <erin@example.com>',
+          'dan@'
+        ].join('\n')
+      ],
+      'team.txt',
+      { type: 'text/plain' }
+    )
+    const dataTransfer = makeDataTransfer([file])
+
+    fireEvent.dragEnter(cc, { dataTransfer })
+    fireEvent.dragOver(cc, { dataTransfer })
+    expect(dataTransfer.dropEffect).toBe('copy')
+    fireEvent.drop(cc, { dataTransfer })
+
+    await waitFor(() => {
+      expect(chipsIn('cc')).toEqual(['carol@example.com', 'Erin'])
+    })
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'team.txt: lines 4, 6 are not valid addresses.'
+    )
+    expect(chipsIn('to')).toEqual(['Alice Martin', 'dan@example.com'])
+  })
+
+  it('says a dropped file that is not text is not read', async () => {
+    await renderEditor()
+    const to = screen.getByTestId('composer-to-field')
+    const dataTransfer = makeDataTransfer([
+      new File(['%PDF'], 'report.pdf', { type: 'application/pdf' })
+    ])
+
+    fireEvent.dragEnter(to, { dataTransfer })
+    fireEvent.dragOver(to, { dataTransfer })
+    fireEvent.drop(to, { dataTransfer })
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'report.pdf is not a text file of addresses.'
+    )
+    expect(chipsIn('to')).toEqual(['Alice Martin', 'dan@example.com'])
   })
 })

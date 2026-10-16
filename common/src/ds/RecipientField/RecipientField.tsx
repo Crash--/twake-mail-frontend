@@ -690,7 +690,10 @@ export function RecipientField({
   const handleDragOver = (event: DragEvent<HTMLElement>): void => {
     if (!isDropAccepted(event)) return
     event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
+    // Files are copied: a move would refuse those the browser only copies
+    event.dataTransfer.dropEffect = event.dataTransfer.types.includes('Files')
+      ? 'copy'
+      : 'move'
   }
   const handleDragLeave = (event: DragEvent<HTMLElement>): void => {
     if (!isDropAccepted(event)) return

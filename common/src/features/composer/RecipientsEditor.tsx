@@ -22,6 +22,7 @@ import {
   IDENTITY_SORT_ORDER_CAPABILITY,
   identitiesQueryOptions
 } from '@common/features/identities/queries'
+import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { fetchEmailSenders } from '@common/features/thread/emailSenders'
 import {
   DRAGGED_EMAILS_TYPE,
@@ -31,10 +32,12 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import { isAddressFile, parseAddressFile } from './addressFile'
 import { RecipientInput } from './RecipientInput'
 import { recipientChips } from './recipientChips'
 import { hasRecipient, mergeRecipients, type Recipient } from './recipients'
 import { makeIsSelf } from './replyRecipients'
+import { readText } from './textCharset'
 
 export type RecipientKind = 'to' | 'cc' | 'bcc' | 'replyTo'
 
@@ -43,6 +46,14 @@ export type RecipientLists = Record<RecipientKind, Recipient[]>
 const OPTIONAL_KINDS = ['cc', 'bcc', 'replyTo'] as const
 
 const KINDS: readonly RecipientKind[] = ['to', ...OPTIONAL_KINDS]
+
+/** The invalid lines of a dropped file listed in its notification */
+const MAX_INVALID_LINES_SHOWN = 10
+
+function listLines(lines: readonly number[]): string {
+  const shown = lines.slice(0, MAX_INVALID_LINES_SHOWN).join(', ')
+  return lines.length > MAX_INVALID_LINES_SHOWN ? `${shown}…` : shown
+}
 
 function isRecipientKind(value: string): value is RecipientKind {
   return KINDS.some(kind => kind === value)
@@ -98,7 +109,9 @@ export interface RecipientsEditorProps {
  * As in tmail-flutter, a recipient dragged to another field moves there
  * (Alt + ArrowUp or ArrowDown from the keyboard), and emails dragged from
  * the list add their senders to the field they are dropped on, except the
- * user's own addresses, as when replying.
+ * user's own addresses, as when replying. A text file dropped on a field
+ * adds its addresses, one per line (`tf#3268`), and says which lines are
+ * not addresses.
  */
 export function RecipientsEditor({
   recipients,
@@ -120,6 +133,7 @@ export function RecipientsEditor({
   const client = useJmapClient()
   const { accountId, session } = useJmapSession()
   const queryClient = useQueryClient()
+  const { notify } = useNotify()
   /** Fields of this composer only exchange recipients */
   const dragGroup = useId()
   /** The recipients now, for the senders of dropped emails, read later */
@@ -239,6 +253,56 @@ export function RecipientsEditor({
       })
   }
 
+  const dropAddressFiles = (kind: RecipientKind, dropped: File[]): void => {
+    const notes = dropped
+      .filter(file => !isAddressFile(file))
+      .map(file => t('composer.recipients.notAddressFile', { file: file.name }))
+    Promise.all(
+      dropped.filter(isAddressFile).map(async file => ({
+        name: file.name,
+        ...parseAddressFile(await readText(file))
+      }))
+    )
+      .then(files => {
+        const added = files.flatMap(file => file.recipients)
+        // The field as it is once the files are read
+        if (added.length > 0) {
+          onChange(kind, mergeRecipients(latest.current[kind], added))
+        }
+        const said = [
+          ...notes,
+          ...files
+            .filter(file => file.invalidLines.length > 0)
+            .map(file =>
+              t('composer.recipients.invalidLines', {
+                smart_count: file.invalidLines.length,
+                file: file.name,
+                lines: listLines(file.invalidLines)
+              })
+            )
+        ]
+        if (said.length > 0) {
+          notify({ message: said.join(' '), severity: 'error' })
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn('[composer] Cannot read the dropped files', error)
+        notify({
+          message: t('composer.recipients.fileUnreadable'),
+          severity: 'error'
+        })
+      })
+  }
+
+  const dropOn = (kind: RecipientKind, dataTransfer: DataTransfer): void => {
+    const dropped = Array.from(dataTransfer.files)
+    if (dropped.length > 0) {
+      dropAddressFiles(kind, dropped)
+    } else {
+      dropEmails(kind, dataTransfer)
+    }
+  }
+
   const dndOf = (
     kind: RecipientKind,
     kinds: RecipientKind[]
@@ -258,9 +322,10 @@ export function RecipientsEditor({
               : moveRecipient(kind, target, email)
           }
         }),
-    accepts: types => types.includes(DRAGGED_EMAILS_TYPE),
+    accepts: types =>
+      types.includes(DRAGGED_EMAILS_TYPE) || types.includes('Files'),
     onDrop: dataTransfer => {
-      dropEmails(kind, dataTransfer)
+      dropOn(kind, dataTransfer)
     }
   })
 

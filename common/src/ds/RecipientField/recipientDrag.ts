@@ -102,3 +102,41 @@ export function noteRecipientMove(move: RecipientMove | null): void {
 export function lastRecipientMove(): RecipientMove | null {
   return lastMove
 }
+
+/** Focuses a tag of a field, false when the field does not have it */
+export type FocusRecipientTag = (id: string) => boolean
+
+/** The fields shown in this page, by group then by field */
+const fieldsByGroup = new Map<string, Map<string, FocusRecipientTag>>()
+
+/** A field of a group is shown: a tag moved to it can take the focus there */
+export function registerRecipientField(
+  group: string,
+  field: string,
+  focusTag: FocusRecipientTag
+): () => void {
+  const fields =
+    fieldsByGroup.get(group) ?? new Map<string, FocusRecipientTag>()
+  fields.set(field, focusTag)
+  fieldsByGroup.set(group, fields)
+  return () => {
+    if (fields.get(field) !== focusTag) return
+    fields.delete(field)
+    if (fields.size === 0) fieldsByGroup.delete(group)
+  }
+}
+
+/**
+ * The focus follows a tag moved from the keyboard to another field of its
+ * group, so the next Alt + arrow still acts on it: false when no other field
+ * has it
+ */
+export function focusMovedRecipient(
+  group: string,
+  from: string,
+  id: string
+): boolean {
+  const fields = fieldsByGroup.get(group)
+  if (fields === undefined) return false
+  return [...fields].some(([field, focusTag]) => field !== from && focusTag(id))
+}

@@ -200,15 +200,46 @@ describe('RecipientField drag and drop', () => {
     expect(statusOf('to')).toHaveTextContent('alice@example.com moved to cc')
     // Once: the field it joins does not say it was added
     expect(statusOf('cc')).toHaveTextContent('')
-    // The next tag of the field takes the focus, as after a removal
-    expect(screen.getAllByTestId('to-chip')[0]).toHaveFocus()
+    // The moved tag keeps the focus, in the field it joined
+    expect(screen.getAllByTestId('cc-chip')[1]).toHaveFocus()
 
-    // Nothing above To
-    const bob = screen.getAllByTestId('to-chip')[0]
-    if (!bob) throw new Error('No tag')
+    // Nothing below Cc: it stays there, focused
+    await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}')
+    expect(chipsOf('cc')).toEqual(['bob@example.com', 'alice@example.com'])
+    expect(screen.getAllByTestId('cc-chip')[1]).toHaveFocus()
+  })
+
+  it('moves the same tag again on a second Alt + arrow', async () => {
+    renderDs(<Harness />)
+    const alice = screen.getAllByTestId('to-chip')[0]
+    if (!alice) throw new Error('No tag')
+    act(() => {
+      alice.focus()
+    })
+    await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}')
+    expect(screen.getAllByTestId('cc-chip')[1]).toHaveFocus()
     await userEvent.keyboard('{Alt>}{ArrowUp}{/Alt}')
-    expect(chipsOf('to')).toEqual(['bob@example.com'])
-    expect(bob).toHaveFocus()
+
+    // alice went back to To; bob, never selected, stayed in Cc
+    expect(chipsOf('to')).toEqual(['bob@example.com', 'alice@example.com'])
+    expect(chipsOf('cc')).toEqual(['bob@example.com'])
+    expect(screen.getAllByTestId('to-chip')[1]).toHaveFocus()
+  })
+
+  it('focuses the tag already in the field a tag moves to', async () => {
+    renderDs(<Harness />)
+    const bob = screen.getAllByTestId('to-chip')[1]
+    if (!bob) throw new Error('No tag')
+    act(() => {
+      bob.focus()
+    })
+
+    // bob is already in Cc: the field it joins focuses its own tag
+    await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}')
+
+    expect(chipsOf('to')).toEqual(['alice@example.com'])
+    expect(chipsOf('cc')).toEqual(['bob@example.com'])
+    expect(screen.getAllByTestId('cc-chip')[0]).toHaveFocus()
   })
 
   it('says a dropped tag moved, once, in the field it joins', async () => {

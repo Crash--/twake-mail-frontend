@@ -30,6 +30,27 @@ describe('ColorTag', () => {
     expect(onRemove).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps the tooltip of a cut name while the pointer is over it', async () => {
+    const user = userEvent.setup()
+    renderDs(
+      <ColorTag
+        label="A very long label name"
+        color="#273891"
+        maxLength={10}
+        hasTooltip
+      />
+    )
+
+    await user.hover(screen.getByText('A very lo...'))
+    const tooltip = await screen.findByRole('tooltip')
+    await user.hover(tooltip)
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent(
+      'A very long label name'
+    )
+    expect(getComputedStyle(tooltip).pointerEvents).not.toBe('none')
+  })
+
   it('cuts its name rather than its × when the room runs out', () => {
     renderDs(
       <ColorTag

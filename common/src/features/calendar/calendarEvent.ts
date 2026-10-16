@@ -325,6 +325,9 @@ export function videoConferenceLinks(event: CalendarEvent): string[] {
 
 const VIDEO_CONFERENCE_SECTION = /-_-_-_-_-_-_-_-[\s\S]*?-_-_-_-_-_-_-_-/g
 
+/** `Join online meeting<https://…>` (Outlook, Teams): a URL, not a tag */
+const BRACKETED_URL = /<((?:https?|mailto):[^\s<>]*)>/gi
+
 /**
  * The description as text: without the video conference section Twake
  * Calendar and Google add between `-_-_-_-…` markers, nor any HTML markup
@@ -337,9 +340,12 @@ export function descriptionText(
     VIDEO_CONFERENCE_SECTION,
     ''
   )
-  const text = /<[a-z][^>]*>/i.test(withoutSection)
+  const text = /<[a-z][^>]*>/i.test(withoutSection.replace(BRACKETED_URL, ''))
     ? new DOMParser().parseFromString(
-        withoutSection.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n'),
+        withoutSection
+          .replace(BRACKETED_URL, '&lt;$1&gt;')
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/p>/gi, '\n'),
         'text/html'
       ).body.textContent
     : withoutSection

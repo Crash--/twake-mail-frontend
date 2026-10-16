@@ -428,7 +428,9 @@
       "failedUploadsTitle": "Pièce jointe non envoyée |||| Pièces jointes non envoyées",
       "failedUploads": "%{names} n'a pas pu être joint. Envoyer le message sans ce fichier, ou réessayer ? |||| %{names} n'ont pas pu être joints. Envoyer le message sans ces fichiers, ou réessayer ?",
       "sendWithout": "Envoyer sans",
-      "retryUploads": "Réessayer"
+      "retryUploads": "Réessayer",
+      "largeMessageTitle": "Message volumineux",
+      "largeMessage": "Votre message dépasse la taille généralement acceptée pour un email. Si vous confirmez l'envoi il y a un risque que le mail soit rejeté par le système de votre interlocuteur."
     },
     "gotIt": "Compris",
     "sendErrors": {

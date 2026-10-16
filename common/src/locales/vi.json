@@ -428,7 +428,9 @@
       "failedUploadsTitle": "Tệp đính kèm chưa được tải lên",
       "failedUploads": "Không thể đính kèm %{names}. Gửi thư mà không có tệp này, hay tải lên lại?",
       "sendWithout": "Gửi không kèm tệp",
-      "retryUploads": "Thử lại"
+      "retryUploads": "Thử lại",
+      "largeMessageTitle": "Thư có dung lượng lớn",
+      "largeMessage": "Thư của bạn lớn hơn kích thước thường được hệ thống email của bên thứ ba chấp nhận. Nếu bạn xác nhận đã gửi thư này, có nguy cơ nó sẽ bị hệ thống người nhận từ chối."
     },
     "gotIt": "Xác nhận",
     "sendErrors": {

@@ -2342,6 +2342,68 @@ describe('ComposerForm', () => {
       expect(jmapServer.submitted).toEqual([])
     })
 
+    it('warns before sending more than 10 MB of attachments', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Video' })
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'video.zip', {
+          type: 'application/zip'
+        })
+      )
+      await waitFor(() => {
+        expect(
+          within(composer).getByTestId('composer-attachment-item')
+        ).toHaveAttribute('data-status', 'done')
+      })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Large message'
+      })
+      expect(dialog).toHaveTextContent(
+        'Your message is larger than the size generally accepted'
+      )
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Send anyway' })
+      )
+      await waitFor(() => {
+        expect(jmapServer.submitted).toHaveLength(1)
+      })
+    })
+
+    it('does not warn at 10 MB of attachments', async () => {
+      const jmapServer = makeFakeJmapServer()
+      uploads = installFakeUploads(jmapServer)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Video' })
+      await userEvent.upload(
+        within(composer).getByTestId('composer-file-input'),
+        new File([new Uint8Array(10 * 1024 * 1024)], 'video.zip', {
+          type: 'application/zip'
+        })
+      )
+      await waitFor(() => {
+        expect(
+          within(composer).getByTestId('composer-attachment-item')
+        ).toHaveAttribute('data-status', 'done')
+      })
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      await waitFor(() => {
+        expect(jmapServer.submitted).toHaveLength(1)
+      })
+      expect(screen.queryByRole('dialog', { name: 'Large message' })).toBe(null)
+    })
+
     it('folds a long list of files, and shows the rest again', async () => {
       const jmapServer = makeFakeJmapServer()
       uploads = installFakeUploads(jmapServer)

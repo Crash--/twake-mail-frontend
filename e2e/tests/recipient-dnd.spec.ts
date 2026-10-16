@@ -48,11 +48,14 @@ test.describe('CMP recipients dragged between fields', () => {
   test('CMP-104 an email dragged from the list onto To adds its sender', async ({
     page,
     user,
-    jmap
+    users,
+    jmap,
+    jmapFor
   }) => {
-    await jmap.sendEmail({
+    // From someone else: the user's own address is never a dropped sender
+    const alice = await users.create({ prefix: 'alice' })
+    await jmapFor(alice).sendEmail({
       to: user.email,
-      saveTo: 'inbox',
       subject: 'Dragged to the composer',
       text: 'Hi'
     })
@@ -67,7 +70,7 @@ test.describe('CMP recipients dragged between fields', () => {
         sourcePosition: { x: 160, y: 20 }
       })
 
-    await expect(composer.recipients('to')).toHaveText([user.email])
+    await expect(composer.recipients('to')).toHaveText([alice.email])
     // Still in the Inbox: a drop on a field moves nothing
     await expect(mailbox.emailRow('Dragged to the composer')).toBeVisible()
   })

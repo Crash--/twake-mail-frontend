@@ -72,6 +72,10 @@ import {
 } from '@common/features/drive/driveCard'
 import type { DriveFile } from '@common/features/drive/driveIntent'
 import type { TemplateSummary } from '@common/features/templates/queries'
+import {
+  ATTACHMENT_DRAG_TYPE,
+  readAttachmentDrag
+} from '@common/features/email/attachmentDrag'
 import { buildEmailDocument } from '@common/features/email/emailBody'
 import { scribeEndpoint } from '@common/features/scribe/scribe'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
@@ -1413,6 +1417,21 @@ function LoadedComposerForm({
       <Icon icon={FormattingIcon} size={isPhone ? 28 : 24} aria-hidden="true" />
     </ActionIconButton>
   )
+
+  /** An attachment of an open email dropped on the body (`tf#2172`) */
+  const handleAttachmentDrop = (value: string): void => {
+    const dragged = readAttachmentDrag(value)
+    // A blob of another account (another tab) cannot be attached here
+    if (dragged?.accountId !== accountId) return
+    files.addUploaded({
+      blobId: dragged.blobId,
+      type: dragged.type,
+      name: dragged.name,
+      size: dragged.size,
+      charset: dragged.charset
+    })
+  }
+
   const attachButton = (
     <ActionIconButton
       label={t('composer.attachments.attach')}
@@ -1798,6 +1817,8 @@ function LoadedComposerForm({
         <FileDropZone
           label={t('composer.attachments.dropHere')}
           onFiles={files.addFiles}
+          dataType={ATTACHMENT_DRAG_TYPE}
+          onData={handleAttachmentDrop}
           isForChild={isImageDropOnBody}
           className="u-flex u-flex-column u-flex-auto u-ov-hidden"
           data-testid="composer-drop-zone"

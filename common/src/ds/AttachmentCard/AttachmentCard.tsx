@@ -7,7 +7,13 @@
 // `Tooltip`.
 import { Icon } from '@linagora/twake-icons'
 import { Box, ButtonBase, IconButton, Tooltip } from '@linagora/twake-mui'
-import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
+import {
+  useEffect,
+  useState,
+  type DragEvent,
+  type ReactElement,
+  type ReactNode
+} from 'react'
 import { Attachment, Download } from '@/ds/FlutterIcons/FlutterIcons'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
@@ -114,6 +120,11 @@ export interface AttachmentCardProps {
   downloadLabel: string
   onOpen: () => void
   onDownload: () => void
+  /**
+   * Makes the chip draggable (into a message being written): sets what
+   * the drag carries
+   */
+  onDragStart?: (event: DragEvent<HTMLElement>) => void
   'data-testid'?: string
 }
 
@@ -130,11 +141,17 @@ export function AttachmentCard({
   downloadLabel,
   onOpen,
   onDownload,
+  onDragStart,
   'data-testid': testId
 }: AttachmentCardProps): ReactElement {
   const [stem, extension] = splitName(name)
   return (
-    <Box sx={CHIP_SX} data-testid={testId}>
+    <Box
+      sx={CHIP_SX}
+      draggable={onDragStart !== undefined}
+      onDragStart={onDragStart}
+      data-testid={testId}
+    >
       <ButtonBase
         sx={MAIN_SX}
         onClick={onOpen}

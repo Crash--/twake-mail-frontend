@@ -57,6 +57,12 @@ export interface FileDropZoneProps {
   label: string
   onFiles: (files: File[]) => void
   /**
+   * A type of data dragged inside the app that the zone takes too (a file
+   * of another message), lower case: `onData` gets its value when dropped
+   */
+  dataType?: string
+  onData?: (value: string) => void
+  /**
    * Leaves a drag to what is under the pointer (an editor taking dropped
    * images inline): true for the drags the zone must ignore
    */
@@ -79,15 +85,27 @@ function hasFiles({
   return dataTransfer?.types.includes('Files') === true
 }
 
+function hasData(
+  { dataTransfer }: { dataTransfer: DataTransfer | null },
+  dataType: string | undefined
+): boolean {
+  return (
+    dataType !== undefined && dataTransfer?.types.includes(dataType) === true
+  )
+}
+
 /**
  * A zone taking the files dropped on it (from the file manager), with a
- * label over it while they are dragged. Dragged text and links are left
- * to what is under it. The same files can be picked with a button, which
+ * label over it while they are dragged, and the data of `dataType`
+ * dragged inside the app. Dragged text and links are left to what is
+ * under it. The same files can be picked with a button, which
  * is the keyboard way: this only adds the mouse one.
  */
 export function FileDropZone({
   label,
   onFiles,
+  dataType,
+  onData,
   isForChild = () => false,
   isFlush = false,
   children,
@@ -97,16 +115,19 @@ export function FileDropZone({
   const [isOver, setIsOver] = useState(false)
   // dragenter and dragleave fire for every child crossed
   const depth = useRef(0)
+  // Only the type of dragged data can be read before the drop
+  const accepts = (event: DragEvent<HTMLDivElement>): boolean =>
+    hasFiles(event) || hasData(event, dataType)
 
   const handleDragEnter = (event: DragEvent<HTMLDivElement>): void => {
-    if (!hasFiles(event)) return
+    if (!accepts(event)) return
     event.preventDefault()
     depth.current += 1
     setIsOver(true)
   }
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>): void => {
-    if (!hasFiles(event)) return
+    if (!accepts(event)) return
     // Over the child, the child shows where the files go
     const isChild = isForChild(event)
     setIsOver(!isChild)
@@ -116,13 +137,13 @@ export function FileDropZone({
   }
 
   const handleDragLeave = (event: DragEvent<HTMLDivElement>): void => {
-    if (!hasFiles(event)) return
+    if (!accepts(event)) return
     depth.current = Math.max(depth.current - 1, 0)
     if (depth.current === 0) setIsOver(false)
   }
 
   const handleDrop = (event: DragEvent<HTMLDivElement>): void => {
-    if (!hasFiles(event)) return
+    if (!accepts(event)) return
     if (isForChild(event)) {
       depth.current = 0
       setIsOver(false)
@@ -132,6 +153,11 @@ export function FileDropZone({
     event.stopPropagation()
     depth.current = 0
     setIsOver(false)
+    const value = dataType ? event.dataTransfer.getData(dataType) : ''
+    if (value !== '') {
+      onData?.(value)
+      return
+    }
     const files = Array.from(event.dataTransfer.files)
     if (files.length > 0) onFiles(files)
   }

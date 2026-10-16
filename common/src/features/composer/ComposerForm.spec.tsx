@@ -1,4 +1,4 @@
-import { act, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
@@ -19,6 +19,7 @@ import {
 } from '@common/testing/fakeUploads'
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { printHtmlDocument } from '@common/features/email/printDocument'
+import { ATTACHMENT_DRAG_TYPE } from '@common/features/email/attachmentDrag'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { parseSnapshot, type ComposerSnapshot } from './composerContent'
@@ -2168,6 +2169,58 @@ describe('ComposerForm', () => {
   })
 
   describe('attachments', () => {
+    it('attaches a file of an open email dropped on the body, without uploading it', async () => {
+      const jmapServer = makeFakeJmapServer()
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      const drag = (
+        accountId: string
+      ): { types: string[]; files: File[]; getData: () => string } => ({
+        types: [ATTACHMENT_DRAG_TYPE],
+        files: [],
+        getData: () =>
+          JSON.stringify({
+            accountId,
+            blobId: 'blob-report',
+            type: 'application/pdf',
+            name: 'report.pdf',
+            size: 2048,
+            charset: null
+          })
+      })
+      const zone = within(composer).getByTestId('composer-drop-zone')
+
+      fireEvent.drop(zone, { dataTransfer: drag('another-account') })
+      expect(
+        within(composer).queryByRole('list', { name: /Attachments/ })
+      ).toBe(null)
+
+      fireEvent.dragEnter(zone, { dataTransfer: drag(FAKE_ACCOUNT_ID) })
+      expect(
+        within(composer).getByText('Drop file here to attach them')
+      ).toBeInTheDocument()
+      fireEvent.drop(zone, { dataTransfer: drag(FAKE_ACCOUNT_ID) })
+
+      const list = await within(composer).findByRole('list', {
+        name: 'Attachments (1)'
+      })
+      expect(
+        within(list).getByTestId('composer-attachment-item')
+      ).toHaveAttribute('data-status', 'done')
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Save as draft' })
+      )
+      await waitFor(() => {
+        expect(draftsOf(jmapServer)[0]?.attachments).toEqual([
+          expect.objectContaining({
+            type: 'application/pdf',
+            name: 'report.pdf',
+            disposition: 'attachment'
+          })
+        ])
+      })
+    })
+
     it('uploads the files picked, which go with the draft, and removes them', async () => {
       const jmapServer = makeFakeJmapServer()
       uploads = installFakeUploads(jmapServer)

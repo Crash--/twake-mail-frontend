@@ -43,7 +43,7 @@ the React app. One line per Patrol test, 116 lines.
 
 | Prefix | Domain | Entries | Tagged `web` in Patrol | N/A web |
 |---|---|---|---|---|
-| `LOGIN` | Login | 1 | 1 | 0 |
+| `LOGIN` | Login | 4 | 1 | 0 |
 | `MBX` | Mailbox and folders | 25 | 3 | 2 |
 | `CMP` | Composer | 48 | 7 | 3 |
 | `ATT` | Attachments | 2 | 1 | 0 |
@@ -59,7 +59,7 @@ the React app. One line per Patrol test, 116 lines.
 | `DRIVE` | Twake Drive picker | 4 | 0 | 0 |
 | `AI` | AI assistant of the composer | 2 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **164** | **24** | **7** |
+| | **Total** | **167** | **24** | **7** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -71,11 +71,17 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 ---
 
 
-## LOGIN — Login (1)
+## LOGIN — Login (4)
 
 - [x] `LOGIN-01` Logging in with basic auth (email + password; on mobile after "Use company server" → username → server URL) as the provisioned user lands on the thread (email list) view. — `login/login_with_basic_auth_test.dart` · tags: `web` `android` `ios`
   - Spec: `tests/login.spec.ts`. Passes in CI.
   - Data: the only test that does NOT seed credentials into app storage (every other test starts already logged in as bob@example.com); uses `USERNAME`, `BASIC_AUTH_URL`, `BASIC_AUTH_EMAIL`, `PASSWORD` dart-defines.
+- [x] `LOGIN-02` A wrong password is refused: `login-error` is a `role="alert"` saying "Bad credentials", the URL stays `/login`, no folder tree; the right password then signs in. — no Patrol counterpart
+  - Spec: `tests/login.spec.ts`.
+- [x] `LOGIN-03` A new tab of the same browser gets the Basic session of a signed-in tab (`twake-mail-basic-session` BroadcastChannel) without the form showing, a reload next to it stays signed in, no password in web storage; a lone reload shows the form and signing in returns to the same folder. — no Patrol counterpart
+  - Spec: `tests/login.spec.ts`.
+- [x] `LOGIN-04` Signing out ends every tab of the account (`twake-mail-session`), a deep link then shows the form, and another account in another browser context stays signed in (#236). — no Patrol counterpart
+  - Spec: `tests/login.spec.ts`.
 
 ## MBX — Mailbox and folders (25)
 

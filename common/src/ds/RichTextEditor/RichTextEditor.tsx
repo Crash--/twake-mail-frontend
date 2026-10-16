@@ -34,6 +34,7 @@ import { ImageToolbar } from './ImageToolbar'
 import { Indent } from './indent'
 import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
+import { toLinkUrl } from './linkUrl'
 import { createPastedDataImages } from './pastedDataImages'
 import { RichTextToolbar } from './RichTextToolbar'
 import { SelectionAction } from './SelectionAction'
@@ -435,8 +436,11 @@ export function RichTextEditor({
   const openLinkDialog = (): void => {
     const { from, to } = editor.state.selection
     const href = String(editor.getAttributes('link').href ?? '')
+    const text = editor.state.doc.textBetween(from, to, ' ')
+    // A selected address fills the URL too, as tmail-flutter's (tf#4162)
+    const url = href === '' && toLinkUrl(text) !== null ? text.trim() : href
     setLinkDialog({
-      value: { text: editor.state.doc.textBetween(from, to, ' '), url: href },
+      value: { text, url },
       canRemove: href !== ''
     })
   }

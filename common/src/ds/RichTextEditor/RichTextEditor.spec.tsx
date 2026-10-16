@@ -645,6 +645,47 @@ describe('RichTextEditor', () => {
     expect(editor.getHTML()).toContain('href="https://example.org/x"')
   })
 
+  it('fills the URL of the link dialog when the selection is an address', async () => {
+    const editor = await renderEditor('<p>see twake.app now</p>')
+    act(() => {
+      editor.commands.setTextSelection({ from: 5, to: 14 })
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Insert link' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Insert link' })
+
+    expect(within(dialog).getByRole('textbox', { name: 'Text' })).toHaveValue(
+      'twake.app'
+    )
+    expect(within(dialog).getByRole('textbox', { name: 'URL' })).toHaveValue(
+      'twake.app'
+    )
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Insert link' })).toBe(null)
+    })
+    expect(editor.getHTML()).toContain('href="https://twake.app"')
+  })
+
+  it('leaves the URL of the link dialog empty when the selection is plain text', async () => {
+    const editor = await renderEditor('<p>Twake</p>')
+    act(() => {
+      editor.commands.setTextSelection({ from: 1, to: 6 })
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Insert link' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Insert link' })
+    const url = within(dialog).getByRole('textbox', { name: 'URL' })
+
+    expect(within(dialog).getByRole('textbox', { name: 'Text' })).toHaveValue(
+      'Twake'
+    )
+    expect(url).toHaveValue('')
+    await waitFor(() => {
+      expect(url).toHaveFocus()
+    })
+  })
+
   it('hides the toolbar on demand', async () => {
     renderDs(
       <RichTextEditor

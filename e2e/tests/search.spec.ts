@@ -36,6 +36,63 @@ async function waitInInbox(jmap: JmapClient, subject: string): Promise<Email> {
   return found
 }
 
+/**
+ * The emails of the advanced search criteria, created at once: "Quarterly
+ * kept" and "Quarterly excluded" (with "confidential" in its body) in the
+ * Inbox now, "Quarterly archived" in the Archive in January 2025
+ */
+async function createQuarterlyEmails(jmap: JmapClient): Promise<void> {
+  const accountId = await jmap.accountId()
+  const inbox = await jmap.findMailboxByRole('inbox')
+  const archive = await jmap.findMailboxByRole('archive')
+  const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+  const email = (
+    subject: string,
+    text: string,
+    mailboxId: string,
+    receivedAt: string
+  ): Record<string, unknown> => ({
+    mailboxIds: { [mailboxId]: true },
+    keywords: { $seen: true },
+    from: [{ email: 'carol@example.com' }],
+    subject,
+    receivedAt,
+    textBody: [{ partId: 'text', type: 'text/plain' }],
+    bodyValues: { text: { value: text } }
+  })
+  await jmap.request([
+    [
+      'Email/set',
+      {
+        accountId,
+        create: {
+          kept: email('Quarterly kept', 'budget numbers', inbox.id, now),
+          excluded: email(
+            'Quarterly excluded',
+            'budget numbers confidential',
+            inbox.id,
+            now
+          ),
+          archived: email(
+            'Quarterly archived',
+            'budget numbers',
+            archive.id,
+            '2025-01-10T10:00:00Z'
+          )
+        }
+      },
+      'c'
+    ]
+  ])
+  // Searchable once indexed
+  await jmap.waitForEmail({ subject: 'Quarterly kept' })
+  await jmap.waitForEmail({ subject: 'Quarterly excluded' })
+  await jmap.waitForEmail({
+    subject: 'Quarterly archived',
+    mailboxId: archive.id
+  })
+}
+
 /** The subjects of a search as the server sorts them */
 async function serverOrder(
   jmap: JmapClient,
@@ -751,5 +808,75 @@ test.describe('SRCH search', () => {
     await search.pickFilter('sort-by', 'Oldest')
     await expect(sort).toHaveText('Oldest')
     await expectNoA11yViolations(page)
+  })
+
+  test('SRCH-19 subject, words, excluded words, folder and a custom range of the advanced search narrow the results', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await createQuarterlyEmails(jmap)
+    await new LoginPage(page).loginAs(user)
+    const search = new SearchPage(page)
+    const dialog = search.advancedDialog
+    const subjectInput = dialog.getByTestId('advanced-search-subject-input')
+    const textInput = dialog.getByTestId('advanced-search-text-input')
+    const notWordsInput = dialog.getByTestId('advanced-search-not-words-input')
+    const folderSelect = dialog.getByTestId('advanced-search-folder-select')
+    const dateSelect = dialog.getByTestId('advanced-search-date-select')
+    const startDateInput = dialog.getByTestId(
+      'advanced-search-start-date-input'
+    )
+    const endDateInput = dialog.getByTestId('advanced-search-end-date-input')
+
+    // Subject, words, excluded words and folder: the email with the
+    // excluded word and the archived one are left out
+    await search.openAdvanced()
+    await subjectInput.fill('Quarterly')
+    await textInput.fill('budget')
+    await notWordsInput.fill('confidential')
+    await folderSelect.selectOption({ label: 'Inbox' })
+    await expectNoA11yViolations(page)
+    await search.advancedSubmitButton.click()
+    await search.expectResults()
+    await expect.poll(() => search.resultSubjects()).toEqual(['Quarterly kept'])
+    const params = new URL(page.url()).searchParams
+    expect(params.get('subject')).toBe('Quarterly')
+    expect(params.get('q')).toBe('budget')
+    expect(params.get('not')).toBe('confidential')
+    expect(params.get('in')).not.toBe(null)
+
+    // The dialog reopens on the criteria; all folders over January 2025:
+    // the archived email alone
+    await search.openAdvanced()
+    await expect(subjectInput).toHaveValue('Quarterly')
+    await expect(textInput).toHaveValue('budget')
+    await expect(notWordsInput).toHaveValue('confidential')
+    await notWordsInput.fill('')
+    await folderSelect.selectOption({ label: 'All email' })
+    await dateSelect.selectOption({ label: 'Custom range' })
+    await startDateInput.fill('2025-01-01')
+    await endDateInput.fill('2025-01-31')
+    await search.advancedSubmitButton.click()
+    await expect(page).toHaveURL(/date=custom/)
+    await expect
+      .poll(() => search.resultSubjects())
+      .toEqual(['Quarterly archived'])
+    await expect(search.filterChip('date-time')).toHaveText(
+      'From 2025-01-01 to 2025-01-31'
+    )
+
+    // "Clear filter" empties the form, and the next search has no criteria
+    await search.openAdvanced()
+    await expect(startDateInput).toHaveValue('2025-01-01')
+    await dialog.getByTestId('advanced-search-clear-button').click()
+    await expect(subjectInput).toHaveValue('')
+    await expect(textInput).toHaveValue('')
+    await expect(notWordsInput).toHaveValue('')
+    await expect(folderSelect).toHaveValue('')
+    await expect(dateSelect).toHaveValue('allTime')
+    await expect(startDateInput).toHaveCount(0)
+    await search.advancedSubmitButton.click()
+    await expect(page).not.toHaveURL(/[?&](subject|q|not|in|date)=/)
   })
 })

@@ -954,3 +954,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/email.spec.ts`.
 - [x] `EML-40` A link to an anchor of the email (`href="#closing"`) scrolls the reading pane to the element of that id, in the same tab: no new tab opens. — tmail-flutter `tf#4796`
   - Spec: `tests/email.spec.ts`.
+- [x] `SRCH-19` Given "Quarterly kept" (Inbox, "budget numbers"), "Quarterly excluded" (Inbox, "budget numbers confidential") and "Quarterly archived" (Archive, "budget numbers", January 2025), the advanced search with Subject "Quarterly", Has the words "budget", Doesn't have "confidential" and Folder "Inbox" lists "Quarterly kept" alone, the URL carrying `subject`, `q`, `not` and `in`. The dialog reopens on these criteria; without the excluded word, in "All email" over the custom range 2025-01-01 to 2025-01-31, it lists "Quarterly archived" alone and the date chip says "From 2025-01-01 to 2025-01-31". "Clear filter" empties the fields, and the search that follows has no criteria in its URL. axe on the dialog. — web app (issue #524)
+  - Spec: `tests/search.spec.ts`.

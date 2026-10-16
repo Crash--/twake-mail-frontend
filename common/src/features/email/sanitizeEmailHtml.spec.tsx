@@ -231,6 +231,24 @@ describe('sanitizeEmailHtml', () => {
       )
     })
 
+    it('starts the scoped rules on html and body at the scope root', () => {
+      const result = sanitizeEmailHtml(
+        '<style>body { color: red } html body p, BODY > table { margin: 0 } @media print { html { color: blue } } bodyx, .body, p body { color: green }</style><p>x</p>',
+        { styleScope: '.content' }
+      )
+
+      expect(result.html).toBe(
+        [
+          '<style>@scope (.content) {',
+          ':is(:where(:scope), body) { color: red }',
+          ':is(:where(:scope), body) p, :is(:where(:scope), body) > table { margin: 0 }',
+          '@media print { :is(:where(:scope), body) { color: blue } }',
+          'bodyx, .body, p body { color: green }',
+          '}</style><p>x</p>'
+        ].join('\n')
+      )
+    })
+
     it('drops a scoped selector holding a string, a comment or a url(, which could close the @scope', () => {
       const result = sanitizeEmailHtml(
         '<style>p"\n" { font-family: x"\n"\ny } b /* { color: red } a[x=\'y\'] { color: red } i\\"x" { color: red } s URL( { color: rgb(1, 2, 3) } u { color: blue }</style><p>x</p>',

@@ -82,7 +82,7 @@ test.describe('EACT email actions of the reading view', () => {
       subject: 'Styled invoice',
       html: [
         // :scope is the body itself: it must not undo the clip either
-        '<style>.user, .subject, .sender, .recipient { display: none } :scope { padding: 0; overflow: visible } p { color: rgb(255, 0, 0) }</style>',
+        '<style>.user, .subject, .sender, .recipient { display: none } :scope { padding: 0; overflow: visible } p { color: rgb(255, 0, 0) } body { font-style: italic }</style>',
         '<p class="fake" style="margin-top: -300px; padding-bottom: 300px; background-color: white; opacity: .99">From: Your bank</p>'
       ].join('')
     })
@@ -112,6 +112,9 @@ test.describe('EACT email actions of the reading view', () => {
     })
     expect(senderOnTop).toBe(true)
     await expect(paper.locator('.fake')).toHaveCSS('color', 'rgb(255, 0, 0)')
+    // The rules of the email on its body style the printed body only
+    await expect(paper.locator('.fake')).toHaveCSS('font-style', 'italic')
+    await expect(paper.locator('.sender')).toHaveCSS('font-style', 'normal')
     await paper.close()
   })
 

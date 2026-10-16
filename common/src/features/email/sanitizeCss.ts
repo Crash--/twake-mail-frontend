@@ -311,10 +311,29 @@ function sanitizeRules(
     if (selector.startsWith('@')) continue
     const declarations = sanitizeDeclarations(body, options)
     blockedRemoteContent += declarations.blockedRemoteContent
-    if (declarations.css !== '')
-      rules.push(`${selector} { ${declarations.css} }`)
+    if (declarations.css !== '') {
+      const scoped =
+        options.scope === undefined ? selector : startAtScopeRoot(selector)
+      rules.push(`${scoped} { ${declarations.css} }`)
+    }
   }
   return { css: rules.join('\n'), blockedRemoteContent }
+}
+
+/** `html`, `body`, `html body` or `html > body` at the start of a selector */
+const ROOT_TYPE_SELECTOR = /^(?:html(?:\s+|\s*>\s*))?(?:html|body)(?![-\w])/i
+
+/**
+ * Under `@scope`, `html` and `body` match nothing: a selector starting with
+ * them starts at the scope root instead, with the weight of `body`
+ * (tmail-flutter `CssScopeUtils`)
+ */
+function startAtScopeRoot(selector: string): string {
+  return splitTopLevel(selector, ',')
+    .map(part =>
+      part.trim().replace(ROOT_TYPE_SELECTOR, ':is(:where(:scope), body)')
+    )
+    .join(', ')
 }
 
 /** A font loaded from `https`, once the user allowed remote content */

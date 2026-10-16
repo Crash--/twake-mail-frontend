@@ -453,10 +453,18 @@ export function makeTeamMailboxes({
 
 export const FAKE_WEBSOCKET_URL = 'wss://jmap.example.com/jmap/ws'
 
+/** The limits of `urn:ietf:params:jmap:core` the fake server tells */
+interface FakeLimits {
+  maxCallsInRequest: number
+  /** Null: not told */
+  maxObjectsInGet: number | null
+  maxObjectsInSet: number
+}
+
 function makeSession(
   webSocket: boolean,
   extraCapabilities: Readonly<Record<string, unknown>>,
-  maxObjectsInSet: number
+  { maxCallsInRequest, maxObjectsInGet, maxObjectsInSet }: FakeLimits
 ): Record<string, unknown> {
   return {
     capabilities: {
@@ -471,8 +479,8 @@ function makeSession(
         : {}),
       'urn:ietf:params:jmap:core': {
         maxSizeUpload: 20_000_000,
-        maxCallsInRequest: 16,
-        maxObjectsInGet: 500,
+        maxCallsInRequest,
+        ...(maxObjectsInGet === null ? {} : { maxObjectsInGet }),
         maxObjectsInSet
       },
       'urn:ietf:params:jmap:mail': {}
@@ -603,6 +611,19 @@ export function makeFakeJmapServer(
     capabilities?: Record<string, unknown>
     contacts?: FakeContact[]
     identities?: Identity[]
+    /**
+     * `maxObjectsInGet` of the session, 500 by default, null to tell none:
+     * an `Email/get` or a `Thread/get` of more ids fails with
+     * `requestTooLarge`
+     */
+    maxObjectsInGet?: number | null
+    /** The limit applied instead, for a server lying about it */
+    actualMaxObjectsInGet?: number
+    /**
+     * `maxCallsInRequest` of the session, 16 by default: a request of more
+     * calls is refused (`urn:ietf:params:jmap:error:limit`)
+     */
+    maxCallsInRequest?: number
     /** `maxObjectsInSet` of the session, 500 by default */
     maxObjectsInSet?: number
     settings?: Record<string, string>
@@ -665,6 +686,11 @@ export function makeFakeJmapServer(
   const mailboxLog = new ChangeLog('state-mailbox-', maxChanges)
   const advertisesWebSocket = init.webSocket ?? false
   const extraCapabilities = init.capabilities ?? {}
+  const toldMaxObjectsInGet =
+    init.maxObjectsInGet === undefined ? 500 : init.maxObjectsInGet
+  const maxObjectsInGet =
+    init.actualMaxObjectsInGet ?? toldMaxObjectsInGet ?? 500
+  const maxCallsInRequest = init.maxCallsInRequest ?? 16
   const maxObjectsInSet = init.maxObjectsInSet ?? 500
   let held: { method: string | null; released: Promise<void> } | null = null
   let losing: string | null = null
@@ -748,6 +774,7 @@ export function makeFakeJmapServer(
 
   function getThreads(args: Record<string, unknown>): unknown {
     const ids = Array.isArray(args.ids) ? args.ids : []
+    if (ids.length > maxObjectsInGet) return { error: 'requestTooLarge' }
     const exists = (id: unknown): boolean =>
       !server.lostThreads.has(String(id)) &&
       server.emails.some(email => email.threadId === id)
@@ -780,6 +807,7 @@ export function makeFakeJmapServer(
 
   function getEmails(args: Record<string, unknown>): unknown {
     const ids = Array.isArray(args.ids) ? args.ids : []
+    if (ids.length > maxObjectsInGet) return { error: 'requestTooLarge' }
     const list = ids.flatMap(id => {
       const email = server.emails.find(candidate => candidate.id === id)
       if (!email) return []
@@ -1353,6 +1381,16 @@ export function makeFakeJmapServer(
   }
 
   function respond({ methodCalls }: FakeJmapRequest): Response {
+    if (methodCalls.length > maxCallsInRequest) {
+      return jsonResponse(
+        {
+          type: 'urn:ietf:params:jmap:error:limit',
+          limit: 'maxCallsInRequest',
+          status: 400
+        },
+        400
+      )
+    }
     const methodResponses: FakeInvocation[] = []
     /** Ids of the objects created by the request, by creation id */
     const createdIds = new Map<string, string>()
@@ -1420,7 +1458,11 @@ export function makeFakeJmapServer(
   ): Promise<Response> {
     if (input === FAKE_SESSION_URL) {
       return jsonResponse(
-        makeSession(advertisesWebSocket, extraCapabilities, maxObjectsInSet)
+        makeSession(advertisesWebSocket, extraCapabilities, {
+          maxCallsInRequest,
+          maxObjectsInGet: toldMaxObjectsInGet,
+          maxObjectsInSet
+        })
       )
     }
     if (input.startsWith(DOWNLOAD_PREFIX)) return handleDownload(input)

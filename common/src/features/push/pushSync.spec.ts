@@ -222,6 +222,30 @@ describe('createPushSync', () => {
     expect(listedIds(setup)).toEqual(serverInboxIds(setup))
   })
 
+  it('catches up its changes 128 at a time, as tmail-flutter', async () => {
+    const setup = await makeSetup({ emails: makeEmails(300) })
+    await loadInbox(setup, 1)
+
+    // Read in another client while the tab was hidden
+    for (const { id } of [...setup.server.emails]) {
+      setup.server.updateEmail(id, { keywords: { $seen: true } })
+    }
+    await pushNow(setup)
+
+    expect(
+      setup.server.callsOf('Email/changes').map(args => args.maxChanges)
+    ).toEqual([128, 128, 128])
+    expect(
+      inboxData(setup).pages[0]?.emails.every(
+        email => email.keywords.$seen === true
+      )
+    ).toBe(true)
+    const state = setup.queryClient.getQueryState(
+      threadKeys.list(FAKE_ACCOUNT_ID, INBOX)
+    )
+    expect(state?.isInvalidated).toBe(false)
+  })
+
   it.each([
     ['the server cannot calculate the changes', 'cannotCalculateChanges'],
     ['the state is unknown to the server', 'invalidArguments']
@@ -676,7 +700,7 @@ describe('createPushSync', () => {
       unsubscribe()
     })
 
-    it('brings in a new conversation with one request for its members', async () => {
+    it('brings in a new conversation with its thread, then its members', async () => {
       const setup = await makeSetup({ emails: threadEmails() })
       const observer = new InfiniteQueryObserver(
         setup.queryClient,
@@ -706,7 +730,9 @@ describe('createPushSync', () => {
         requests.map(request => request.methodCalls.map(([name]) => name))
       ).toEqual([
         ['Email/changes', 'Email/get', 'Email/get'],
-        ['Thread/get', 'Email/get', 'Email/get']
+        ['Thread/get'],
+        ['Email/get'],
+        ['Email/get']
       ])
       unsubscribe()
     })

@@ -12,6 +12,13 @@ import {
 /** `/changes` requests in a row before giving up on `hasMoreChanges` */
 export const MAX_CHANGES_ROUNDS = 5
 
+/**
+ * Most changes one `/changes` reports, as tmail-flutter (`ThreadAPI`,
+ * `MailboxAPI`): the `/get` of its created and updated ids by
+ * back-reference asks as many
+ */
+export const MAX_CHANGES_PER_CALL = 128
+
 /** Changes of one data type since one state, accumulated over the rounds */
 export interface TypeChanges<T extends { id: string }> {
   sinceState: string
@@ -144,7 +151,8 @@ export async function fetchChanges(
       if (pendingMailbox) {
         const changes = builder.call('Mailbox/changes', {
           accountId,
-          sinceState: pendingMailbox.cursor
+          sinceState: pendingMailbox.cursor,
+          maxChanges: MAX_CHANGES_PER_CALL
         })
         const created = builder.call('Mailbox/get', {
           accountId,
@@ -162,7 +170,8 @@ export async function fetchChanges(
       for (const branch of pendingEmails) {
         const changes = builder.call('Email/changes', {
           accountId,
-          sinceState: branch.cursor
+          sinceState: branch.cursor,
+          maxChanges: MAX_CHANGES_PER_CALL
         })
         const created = builder.call('Email/get', {
           accountId,

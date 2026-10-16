@@ -137,6 +137,7 @@ import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
 import { editableQuoteHtml, resolveCidSources } from './emailHtml'
 import { showBlockedImages } from './editorImages'
 import { InlineImageStore, resizeImage } from './InlineImageStore'
+import { isLargeMessage } from './largeMessage'
 import type { MailtoFields } from './mailto'
 import {
   RecipientsEditor,
@@ -1271,7 +1272,22 @@ function LoadedComposerForm({
     ) {
       return false
     }
-    return checkAttachmentReminder()
+    if (!(await checkAttachmentReminder())) return false
+    return checkLargeMessage()
+  }
+
+  /**
+   * More than 10 MB of regular attachments may be refused by the mail
+   * systems of the recipients (tmail-flutter `tf#2644`, `tf#3151`): asks
+   * before sending. Inline images are not counted.
+   */
+  const checkLargeMessage = async (): Promise<boolean> => {
+    if (!isLargeMessage(files.attachments)) return true
+    return confirm({
+      title: t('composer.sendChecks.largeMessageTitle'),
+      message: t('composer.sendChecks.largeMessage'),
+      confirmLabel: t('composer.sendChecks.sendAnyway')
+    })
   }
 
   /**

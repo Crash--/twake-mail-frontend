@@ -554,6 +554,30 @@ describe('RichTextEditor', () => {
     expect(editor.getHTML()).toContain('href="https://example.com"')
   })
 
+  it('refuses a relative address and completes a bare host in the link dialog', async () => {
+    const editor = await renderEditor()
+    act(() => {
+      editor.commands.setTextSelection({ from: 1, to: 6 })
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Insert link' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Insert link' })
+    const url = within(dialog).getByRole('textbox', { name: 'URL' })
+
+    await userEvent.type(url, 'not a url{Enter}')
+
+    expect(dialog).toBeVisible()
+    expect(url).toHaveAttribute('aria-invalid', 'true')
+    expect(editor.getHTML()).not.toContain('<a')
+
+    await userEvent.clear(url)
+    await userEvent.type(url, 'example.org/x{Enter}')
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Insert link' })).toBe(null)
+    })
+    expect(editor.getHTML()).toContain('href="https://example.org/x"')
+  })
+
   it('hides the toolbar on demand', async () => {
     renderDs(
       <RichTextEditor

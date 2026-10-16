@@ -7,7 +7,6 @@ import {
   Popover,
   type PopoverPosition
 } from '@linagora/twake-mui'
-import { isAllowedUri } from '@tiptap/extension-link'
 import {
   useId,
   useRef,
@@ -19,6 +18,7 @@ import {
 
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
+import { toLinkUrl } from './linkUrl'
 import type { RichTextLinkDialogLabels } from './types'
 
 export interface LinkDialogValue {
@@ -122,14 +122,6 @@ const ERROR_SX = {
   '&:not(:empty)': { mt: '6px' }
 } as const
 
-/**
- * The address can be a link: the check the Link extension makes before it
- * sets one (it drops `javascript:` and other schemes silently)
- */
-function isSupportedUrl(url: string): boolean {
-  return Boolean(isAllowedUri(url))
-}
-
 const TEXT_BUTTON_SX = {
   minWidth: 0,
   px: '8px',
@@ -157,8 +149,9 @@ function caretPosition(): PopoverPosition | null {
  * Text and URL of a link, as tmail-flutter's link card
  * (`LinkEditDialogOverlayOptions`): under the caret, the text with its icon,
  * then the URL with its icon and "Apply", enabled once the URL is not blank;
- * Enter in the text goes to the URL, Escape closes it. A URL the editor
- * refuses (`javascript:`…) keeps it open, the field marked invalid and the
+ * Enter in the text goes to the URL, Escape closes it. A bare host gets
+ * `https://`; any other URL that is not absolute, or whose scheme is not
+ * supported (`javascript:`…), keeps it open, the field marked invalid and the
  * reason announced. A named dialog that
  * keeps the focus while open.
  */
@@ -195,14 +188,14 @@ export function LinkDialog({
 
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
-    const trimmedUrl = url.trim()
-    if (trimmedUrl === '') return
-    if (!isSupportedUrl(trimmedUrl)) {
+    if (url.trim() === '') return
+    const linkUrl = toLinkUrl(url)
+    if (linkUrl === null) {
       setInvalid(true)
       urlRef.current?.focus()
       return
     }
-    onApply({ text: text.trim(), url: trimmedUrl })
+    onApply({ text: text.trim(), url: linkUrl })
   }
 
   return (

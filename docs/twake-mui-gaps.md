@@ -132,6 +132,11 @@ What it adds, each a candidate for the PR below:
     contextmenu event sent after the menu key ignored.
 16. **No draggable rows.** Wrapper: `onRowDragStart(row, event)` makes the
     rows `draggable` and lets the app set the dragged data.
+17. **The scroller is a tab stop.** Virtuoso gives its scroller
+    `tabIndex={0}`, with no role nor name: Tab stops on an empty box between
+    the toolbar and the first row, where the arrows only scroll (#501).
+    Wrapper: `tabIndex={-1}` on the `Scroller`; the row controls scroll the
+    list as they take the focus.
 
 **Proposed twake-ui PR**, "feat(VirtualizedTable): list mode with row
 attributes, hidden header and row links":

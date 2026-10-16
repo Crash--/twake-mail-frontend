@@ -361,6 +361,29 @@ describe('Acting on emails of the list', () => {
     })
   })
 
+  it('offers neither the Outbox nor Drafts as a destination', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'mailbox-outbox', name: 'Outbox', role: 'outbox' })
+      ],
+      emails: makeEmails(1)
+    })
+    await renderList(server)
+
+    await userEvent.click(
+      within(row('Email 0')).getByRole('button', { name: 'Message actions' })
+    )
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'Move message' })
+    )
+    const picker = await screen.findByRole('dialog', { name: 'Move To' })
+
+    expect(within(picker).getByRole('option', { name: 'Sent' })).toBeVisible()
+    expect(within(picker).queryByRole('option', { name: 'Outbox' })).toBe(null)
+    expect(within(picker).queryByRole('option', { name: 'Drafts' })).toBe(null)
+  })
+
   it('offers not the root of a team mailbox, a container, as a destination', async () => {
     const server = makeFakeJmapServer({
       mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
@@ -437,6 +460,29 @@ describe('Acting on emails of the list', () => {
           .map(email => email.id)
       ).toEqual(['e0', 'e1'])
     })
+  })
+
+  it('refuses the emails dropped on the Outbox or Drafts', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'mailbox-outbox', name: 'Outbox', role: 'outbox' })
+      ],
+      emails: makeEmails(1)
+    })
+    await renderList(server)
+    const dataTransfer = { types: [DRAGGED_EMAILS_TYPE] }
+
+    for (const name of ['Outbox', 'Drafts']) {
+      fireEvent.dragEnter(within(folder(name)).getByRole('link'), {
+        dataTransfer
+      })
+      expect(folder(name).querySelector('[data-drop-over]')).toBe(null)
+    }
+    fireEvent.dragEnter(within(folder('Sent')).getByRole('link'), {
+      dataTransfer
+    })
+    expect(folder('Sent').querySelector('[data-drop-over]')).not.toBe(null)
   })
 
   it('acts on every email of a conversation from its menu and the selection', async () => {

@@ -360,6 +360,20 @@ export function hasMailboxRole(
   )
 }
 
+/**
+ * Folders an email is not moved into, from a menu or by a drop, as the
+ * rules (#421): an email in the Outbox can be picked up for sending, Drafts
+ * holds the messages being written
+ */
+export const MOVE_EXCLUDED_ROLES: readonly string[] = ['outbox', 'drafts']
+
+/** Whether emails may be moved into the folder (`MOVE_EXCLUDED_ROLES`) */
+export function acceptsMovedEmails(
+  mailbox: Pick<MailboxSummary, 'role' | 'name' | 'namespace' | 'parentId'>
+): boolean {
+  return !MOVE_EXCLUDED_ROLES.some(role => hasMailboxRole(mailbox, role))
+}
+
 /** The trees without the folders of these roles, nor what they hold */
 export function pruneMailboxRoles(
   trees: readonly MailboxNode[],

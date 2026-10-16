@@ -62,6 +62,8 @@ const PAPER_SX = {
     '0 10px 13px -6px rgba(0, 0, 0, 0.2), 0 20px 31px 3px rgba(0, 0, 0, 0.14), 0 8px 38px 7px rgba(0, 0, 0, 0.12)'
 } as const
 const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
+/** How close to the end of the suggestions scrolling asks for more, in px */
+const LOAD_MORE_THRESHOLD = 60
 /**
  * The line keeps its end actions on the first row: the label, chips and
  * input wrap in a box of their own
@@ -325,6 +327,11 @@ export interface RecipientFieldProps {
   onCancelEdit: () => void
   suggestions: readonly RecipientFieldSuggestion[]
   onSelectSuggestion: (id: string) => void
+  /**
+   * The suggestions were scrolled to their end, or the arrows reached the
+   * last one: there may be more to show (tmail-flutter)
+   */
+  onLoadMore?: (() => void) | null
   /** Whether pasted text holds several entries, committed at once */
   isList?: (text: string) => boolean
   /** Announced politely, e.g. the number of suggestions */
@@ -386,6 +393,7 @@ export function RecipientField({
   onCancelEdit,
   suggestions,
   onSelectSuggestion,
+  onLoadMore = null,
   isList,
   status,
   endActions,
@@ -575,6 +583,7 @@ export function RecipientField({
     const current = activeIndex === -1 ? 0 : activeIndex
     const next = (current + delta + suggestions.length) % suggestions.length
     setActiveId(suggestions[next]?.id ?? null)
+    if (next === suggestions.length - 1) onLoadMore?.()
   }
 
   const focusChip = (index: number): void => {
@@ -971,7 +980,17 @@ export function RecipientField({
         disablePortal
         sx={{ ...POPUP_SX, width: content?.offsetWidth }}
       >
-        <Paper elevation={0} sx={PAPER_SX} onMouseDown={keepFocus}>
+        <Paper
+          elevation={0}
+          sx={PAPER_SX}
+          onMouseDown={keepFocus}
+          onScroll={event => {
+            const paper = event.currentTarget
+            const rest =
+              paper.scrollHeight - paper.scrollTop - paper.clientHeight
+            if (rest <= LOAD_MORE_THRESHOLD) onLoadMore?.()
+          }}
+        >
           <Box
             component="ul"
             id={listboxId}

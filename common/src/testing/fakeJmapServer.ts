@@ -796,7 +796,8 @@ export function makeFakeJmapServer(
       isRecord(args.filter) && typeof args.filter.text === 'string'
         ? args.filter.text.toLowerCase()
         : ''
-    const limit = typeof args.limit === 'number' ? args.limit : 10
+    // James' default limit
+    const limit = typeof args.limit === 'number' ? args.limit : 256
     const list = server.contacts
       .filter(
         contact =>

@@ -86,7 +86,7 @@ export function RecipientInput({
   const { notify } = useNotify()
   const { session } = useJmapSession()
   const hasRules = LINAGORA_CAPABILITIES.filter in session.capabilities
-  const contacts = useContactSuggestions(inputValue)
+  const { contacts, loadMore } = useContactSuggestions(inputValue)
   // As tmail-flutter: the contacts already entered stay, ticked
   const suggestions = useMemo(
     () =>
@@ -224,6 +224,7 @@ export function RecipientInput({
       card={card}
       onCancelEdit={handleCancelEdit}
       suggestions={suggestions}
+      onLoadMore={loadMore}
       onSelectSuggestion={handleSelect}
       isList={isList}
       status={t('composer.recipients.suggestionCount', {

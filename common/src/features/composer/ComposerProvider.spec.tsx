@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { Link, Route, Routes } from 'react-router'
@@ -291,6 +291,82 @@ describe('ComposerProvider', () => {
         .getAllByTestId('recipient-chip')
         .map(chip => chip.getAttribute('title'))
     ).toEqual(['zoe@example.com', 'Zelda Contact <zelda@example.com>'])
+  })
+
+  describe('beyond the first 8 contacts (issue #551)', () => {
+    const contactServer = (count: number): FakeJmapServer =>
+      makeFakeJmapServer({
+        capabilities: {
+          'com:linagora:params:jmap:contact:autocomplete': {
+            minInputLength: 1
+          }
+        },
+        contacts: Array.from({ length: count }, (_, index) => ({
+          id: `c${index}`,
+          firstname: 'Zed',
+          surname: `Number${index}`,
+          emailAddress: `zed${index}@example.com`
+        }))
+      })
+
+    it('loads all the contacts once the suggestions are scrolled to their end, as tmail-flutter', async () => {
+      const jmapServer = contactServer(12)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await userEvent.keyboard('zed')
+      const listbox = await within(composer).findByTestId(
+        'composer-to-suggestions'
+      )
+      await waitFor(() => {
+        expect(within(listbox).getAllByRole('option')).toHaveLength(8)
+      })
+
+      fireEvent.scroll(listbox.parentElement ?? listbox)
+
+      await waitFor(() => {
+        expect(within(listbox).getAllByRole('option')).toHaveLength(12)
+      })
+      const calls = jmapServer.callsOf('TMailContact/autocomplete')
+      expect(calls.map(call => call.limit)).toEqual([8, undefined])
+    })
+
+    it('loads them when the arrows reach the last suggestion', async () => {
+      renderComposer(contactServer(12))
+      const composer = await openComposer()
+      await userEvent.keyboard('zed')
+      const listbox = await within(composer).findByTestId(
+        'composer-to-suggestions'
+      )
+      await waitFor(() => {
+        expect(within(listbox).getAllByRole('option')).toHaveLength(8)
+      })
+
+      await userEvent.keyboard('{ArrowUp}')
+
+      await waitFor(() => {
+        expect(within(listbox).getAllByRole('option')).toHaveLength(12)
+      })
+    })
+
+    it('asks no more when the first answer holds them all', async () => {
+      const jmapServer = contactServer(5)
+      renderComposer(jmapServer)
+      const composer = await openComposer()
+      await userEvent.keyboard('zed')
+      const listbox = await within(composer).findByTestId(
+        'composer-to-suggestions'
+      )
+      await waitFor(() => {
+        expect(within(listbox).getAllByRole('option')).toHaveLength(5)
+      })
+
+      fireEvent.scroll(listbox.parentElement ?? listbox)
+      await userEvent.keyboard('{ArrowUp}')
+
+      expect(
+        jmapServer.callsOf('TMailContact/autocomplete').map(call => call.limit)
+      ).toEqual([8])
+    })
   })
 
   it('adds the address typed with Enter, not a suggestion containing it, as tmail-flutter', async () => {

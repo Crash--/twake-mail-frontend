@@ -5,7 +5,10 @@ import {
   type TMailContact
 } from 'jmap-client-ts/linagora'
 
-import { contactAutocompleteQueryOptions } from '@common/features/contacts/queries'
+import {
+  CONTACT_SUGGESTION_LIMIT,
+  contactAutocompleteQueryOptions
+} from '@common/features/contacts/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -23,15 +26,27 @@ function readMinInputLength(capability: unknown): number | null {
     : DEFAULT_MIN_LENGTH
 }
 
+export interface ContactSuggestions {
+  contacts: TMailContact[]
+  /**
+   * Asks for the contacts beyond the first ones, once the user scrolled to
+   * the end of them (tmail-flutter); `null` when there are no others
+   */
+  loadMore: (() => void) | null
+}
+
 /**
  * The contacts matching what is typed in a recipient field, when the
  * server autocompletes them (`TMailContact/autocomplete`): none without
- * the capability, nor below its shortest text.
+ * the capability, nor below its shortest text. The first ones only, until
+ * `loadMore` asks for all of them, for this text.
  */
-export function useContactSuggestions(typed: string): TMailContact[] {
+export function useContactSuggestions(typed: string): ContactSuggestions {
   const client = useJmapClient()
   const { accountId, session } = useJmapSession()
   const [text, setText] = useState(typed.trim())
+  /** The text all the contacts were asked for */
+  const [loadedText, setLoadedText] = useState<string | null>(null)
   useEffect(() => {
     const timer = setTimeout(() => {
       setText(typed.trim())
@@ -43,9 +58,28 @@ export function useContactSuggestions(typed: string): TMailContact[] {
   const minLength = readMinInputLength(
     session.capabilities[LINAGORA_CAPABILITIES.contactAutocomplete]
   )
-  const query = useQuery({
+  const isEnabled = minLength !== null && text.length >= minLength
+  const first = useQuery({
     ...contactAutocompleteQueryOptions(client, accountId, text),
-    enabled: minLength !== null && text.length >= minLength
+    enabled: isEnabled
   })
-  return typed.trim() === '' ? [] : (query.data ?? [])
+  const isAllAsked = loadedText === text
+  const all = useQuery({
+    ...contactAutocompleteQueryOptions(client, accountId, text, 'all'),
+    enabled: isEnabled && isAllAsked
+  })
+  // The first ones stay while the others load
+  const contacts = (isAllAsked ? all.data : undefined) ?? first.data ?? []
+  const hasMore =
+    !isAllAsked && (first.data?.length ?? 0) >= CONTACT_SUGGESTION_LIMIT
+  return typed.trim() === ''
+    ? { contacts: [], loadMore: null }
+    : {
+        contacts,
+        loadMore: hasMore
+          ? () => {
+              setLoadedText(text)
+            }
+          : null
+      }
 }

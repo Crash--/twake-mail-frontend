@@ -78,7 +78,7 @@ export function AddressFilterField({
 }: AddressFilterFieldProps): ReactElement {
   const { t } = useI18n()
   const [input, setInput] = useState('')
-  const contacts = useContactSuggestions(input)
+  const { contacts, loadMore } = useContactSuggestions(input)
   const suggestions = useMemo(
     () =>
       withTypedAddressFirst(
@@ -155,6 +155,7 @@ export function AddressFilterField({
         ])
       }}
       suggestions={suggestions}
+      onLoadMore={loadMore}
       onSelectSuggestion={id => {
         add([id])
       }}

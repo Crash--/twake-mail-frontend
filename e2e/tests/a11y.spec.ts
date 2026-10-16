@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { LoginPage, MailboxPage } from '../pages'
+import { ComposerPage, LoginPage, MailboxPage } from '../pages'
 import { expect, test } from '../support/fixtures'
 
 /** Presses Tab (or `key`) until the focused element matches `selector`; fails after `max` presses */
@@ -30,6 +30,13 @@ async function isFocusIn(page: Page, selector: string): Promise<boolean> {
     sel =>
       document.querySelector(sel)?.contains(document.activeElement) ?? false,
     selector
+  )
+}
+
+/** The test id of the focused element, `null` for an element without one */
+async function focusedTestId(page: Page): Promise<string | null> {
+  return page.evaluate(
+    () => document.activeElement?.getAttribute('data-testid') ?? null
   )
 }
 
@@ -142,5 +149,99 @@ test.describe('A11Y accessibility', () => {
     await expect(view).toBeHidden()
     // Back on the list, the focus returns to the email that was open
     await expect(row.locator('[data-row-focus]')).toBeFocused()
+  })
+
+  test('A11Y-02 write and send a message with the keyboard only', async ({
+    page,
+    user,
+    users,
+    jmap,
+    jmapFor
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    await jmap.sendEmail({ to: user.email, subject: 'Start here', text: 'hi' })
+    await jmap.waitForEmail({ subject: 'Start here' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRowLink('Start here')
+    await row.focus()
+
+    await page.keyboard.press('c')
+    const composer = new ComposerPage(page)
+    await expect(composer.recipientInput('to')).toBeFocused()
+    await page.keyboard.type(bob.email)
+    await page.keyboard.press('Enter')
+    await expect(composer.recipients('to')).toHaveText([bob.email])
+
+    // To the subject through the buttons of the optional lines, each one
+    // named, nothing hidden in between (From only with several identities)
+    const stops: (string | null)[] = []
+    for (let presses = 0; presses < 8; presses += 1) {
+      await page.keyboard.press('Tab')
+      stops.push(await focusedTestId(page))
+      if (stops.at(-1) === 'composer-subject-input') break
+    }
+    expect(stops.filter(stop => stop !== 'composer-show-from-button')).toEqual([
+      'composer-show-cc-button',
+      'composer-show-bcc-button',
+      'composer-show-reply-to-button',
+      'composer-subject-input'
+    ])
+    await page.keyboard.type('Sent from the keyboard')
+    await page.keyboard.press('Tab')
+    await expect(composer.editor).toBeFocused()
+    await page.keyboard.type('No mouse at all')
+    await page.keyboard.press('ControlOrMeta+Enter')
+
+    await expect(composer.root).toBeHidden()
+    await expect(mailbox.toast).toContainText(
+      'Message has been sent successfully'
+    )
+    // Closing the composer gives the focus back to what opened it
+    await expect(row).toBeFocused()
+    const received = await jmapFor(bob).waitForEmail({
+      subject: 'Sent from the keyboard'
+    })
+    expect(received.preview).toContain('No mouse at all')
+  })
+
+  test('A11Y-03 reply with the keyboard only', async ({
+    page,
+    user,
+    users,
+    jmapFor
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    await jmapFor(bob).sendEmail({
+      to: user.email,
+      subject: 'Answer me',
+      text: 'hi'
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRowLink('Answer me')
+    await row.focus()
+    await page.keyboard.press('Enter')
+
+    const view = page.getByTestId('email-view')
+    const subject = view.getByTestId('email-view-subject')
+    await expect(subject).toHaveText('Answer me')
+    await expect(subject).toBeFocused()
+
+    await page.keyboard.press('r')
+    const composer = new ComposerPage(page)
+    await expect(composer.subjectInput).toHaveValue('Re: Answer me')
+    await expect(composer.editor).toBeFocused()
+    await page.keyboard.type('Replied without a mouse')
+    await page.keyboard.press('ControlOrMeta+Enter')
+
+    await expect(composer.root).toBeHidden()
+    await expect(mailbox.toast).toContainText(
+      'Message has been sent successfully'
+    )
+    // The focus is back in the reading view, not lost on the page
+    await expect(subject).toBeFocused()
+    const received = await jmapFor(bob).waitForEmail({
+      subject: 'Re: Answer me'
+    })
+    expect(received.preview).toContain('Replied without a mouse')
   })
 })

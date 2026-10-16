@@ -519,6 +519,10 @@ listed in `docs/twake-mui-gaps.md`.
   - Spec: `tests/a11y.spec.ts`. Passes in CI. On phones and tablets (Playwright projects `mobile`
     and `tablet`) the tree is in a drawer: the menu button opens it with the focus inside, choosing
     a folder closes it and gives the focus back to the button.
+- [x] `A11Y-02` Without a mouse, write and send a message: from a row of the list `c` opens the composer with the focus in To, an address and Enter make a chip, Tab goes through the buttons of the optional lines (From, Cc, Bcc, Reply to) to the subject, then to the body, Ctrl+Enter sends ("Message has been sent successfully"), the focus returns to the row and the recipient gets the subject and body. — no Patrol test
+  - Spec: `tests/a11y.spec.ts` (issue #525).
+- [x] `A11Y-03` Without a mouse, reply: open an email with Enter (the focus on its subject), `r` opens the reply with the focus in the body, Ctrl+Enter sends it, the focus returns to the subject and the sender gets the reply. — no Patrol test
+  - Spec: `tests/a11y.spec.ts` (issue #525).
 
 ## KBD — Keyboard shortcuts (no Patrol counterpart)
 

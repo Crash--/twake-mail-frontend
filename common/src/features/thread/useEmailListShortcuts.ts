@@ -30,6 +30,20 @@ export interface EmailListKeyboard {
   scrollerRef: RefCallback<HTMLElement | Window | null>
   /** Focuses the first row, e.g. once the selection toolbar went */
   focusList: () => void
+  /**
+   * While `action` runs on the row of `emailId` and a few frames after,
+   * a focus lost (on the page body) once the row left goes to the row that
+   * took its place, or the previous one at the end of the list
+   */
+  keepFocusAfterRow: (emailId: string, action: Promise<boolean>) => void
+}
+
+/** Frames the focus is still watched for once the action is done */
+const FOCUS_FRAMES = 60
+
+function isFocusLost(): boolean {
+  const active = document.activeElement
+  return active === null || active === document.body
 }
 
 /**
@@ -59,6 +73,11 @@ export function useEmailListShortcuts(
   useEffect(() => {
     selectionRef.current = selection
   }, [selection])
+  // Read by `keepFocusAfterRow`, stable for the memoized rows
+  const emailsRef = useRef(emails)
+  useEffect(() => {
+    emailsRef.current = emails
+  }, [emails])
 
   const handleKeyDown = useCallback((event: KeyboardEvent): void => {
     const current = selectionRef.current
@@ -86,6 +105,45 @@ export function useEmailListShortcuts(
   const focusList = useCallback((): void => {
     if (scroller.current !== null) moveRowFocus(scroller.current, null, 1)
   }, [])
+
+  // The row goes away under the focus as soon as the cache drops it, long
+  // before the server answers; a dialog (folder picker, confirmation) gives
+  // the focus back to its opener once closed, gone by then too
+  const keepFocusAfterRow = useCallback(
+    (emailId: string, action: Promise<boolean>): void => {
+      const list = emailsRef.current
+      const index = list.findIndex(email => email.id === emailId)
+      const neighbours = [list[index + 1]?.id, list[index - 1]?.id].filter(
+        id => id !== undefined
+      )
+      const rowFocus = (id: string): Element | null =>
+        scroller.current?.querySelector(
+          `tr[data-email-id="${CSS.escape(id)}"] [${ROW_FOCUS_ATTRIBUTE}]`
+        ) ?? null
+      let isSettled = false
+      let isCancelled = false
+      let framesLeft = FOCUS_FRAMES
+      const watch = (): void => {
+        if (isCancelled) return
+        if (rowFocus(emailId) === null && isFocusLost()) {
+          const target = neighbours.map(rowFocus).find(found => found !== null)
+          if (target instanceof HTMLElement) target.focus()
+        }
+        if (isSettled) framesLeft -= 1
+        if (framesLeft > 0) requestAnimationFrame(watch)
+      }
+      void action
+        .then(done => {
+          isSettled = true
+          isCancelled = !done
+        })
+        .catch(() => {
+          isCancelled = true
+        })
+      requestAnimationFrame(watch)
+    },
+    []
+  )
 
   const focusedEmail = (): EmailListItemData | null => {
     const id = focusedEmailId()
@@ -185,5 +243,5 @@ export function useEmailListShortcuts(
       selection.selected.length > 0
   )
 
-  return { scrollerRef, focusList }
+  return { scrollerRef, focusList, keepFocusAfterRow }
 }

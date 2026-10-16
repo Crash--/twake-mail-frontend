@@ -378,7 +378,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       (isSelectionHighlighted && selection.isSelected(String(row.id))),
     [openEmailId, selection, isSelectionHighlighted]
   )
-  const { scrollerRef, focusList } = useEmailListShortcuts(
+  const { scrollerRef, focusList, keepFocusAfterRow } = useEmailListShortcuts(
     emails,
     mailboxId,
     openEmailId,
@@ -392,7 +392,8 @@ export function EmailList(props: EmailListProps): ReactElement {
     mailboxId,
     total,
     expandTargets,
-    onFocusList: focusList
+    onFocusList: focusList,
+    keepFocusAfterRow
   })
   const { run: runEmailAction } = useEmailActions()
   const [lastVisibleIndex, setLastVisibleIndex] = useState(0)

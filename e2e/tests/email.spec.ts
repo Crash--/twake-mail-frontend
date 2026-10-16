@@ -444,6 +444,35 @@ test.describe('EML reading an email', () => {
     }
   )
 
+  test('EML-40 a link to an anchor of the email scrolls the reading pane to it, in the same tab', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Table of contents',
+      html: [
+        '<p><a href="#closing">Go to the closing words</a></p>',
+        ...Array.from({ length: 80 }, (_, index) => `<p>Line ${index + 1}</p>`),
+        '<h2 id="closing">Closing words</h2>'
+      ].join('')
+    })
+    await jmap.waitForEmail({ subject: 'Table of contents' })
+    // No view transition over the body to click through
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const email = await mailbox.openEmail('Table of contents')
+    const closing = email.body().getByRole('heading', { name: 'Closing words' })
+    await expect(closing).not.toBeInViewport()
+
+    await email.bodyLink('Go to the closing words').click()
+
+    await expect(closing).toBeInViewport()
+    expect(page.context().pages()).toHaveLength(1)
+  })
+
   test(
     'EML-36 the quoted history of an answer is folded behind a button',
     {

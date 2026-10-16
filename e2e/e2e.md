@@ -950,3 +950,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-send.spec.ts`.
 - [x] `EML-39` An HTML body that fits in its frame (paragraphs whose lines add up to a fraction of a pixel over the frame height) has no scrollbar of its own: the wheel over it scrolls the reading pane, never the body. — web app only, no Patrol test
   - Spec: `tests/email.spec.ts`.
+- [x] `EML-40` A link to an anchor of the email (`href="#closing"`) scrolls the reading pane to the element of that id, in the same tab: no new tab opens. — tmail-flutter `tf#4796`
+  - Spec: `tests/email.spec.ts`.

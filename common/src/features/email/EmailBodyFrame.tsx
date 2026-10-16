@@ -43,6 +43,39 @@ export function interceptMailtoLinks(
 }
 
 /**
+ * Follows the links to an anchor of the email (`#x`) in the reading pane
+ * rather than in a new tab, without animation (reduced motion or not)
+ */
+export function interceptAnchorLinks(frameDocument: Document): void {
+  frameDocument.querySelectorAll('a[href]').forEach(link => {
+    const href = link.getAttribute('href')?.trim() ?? ''
+    if (!href.startsWith('#')) return
+    // The middle button would open the blob document in a new tab
+    link.addEventListener('auxclick', event => {
+      event.preventDefault()
+    })
+    link.addEventListener('click', event => {
+      event.preventDefault()
+      let name = href.slice(1)
+      try {
+        // As the browser does: `#r%C3%A9sum%C3%A9` reaches `name="résumé"`
+        name = decodeURIComponent(name)
+      } catch {
+        // A broken escape is kept as written
+      }
+      const target =
+        name === '' || name.toLowerCase() === 'top'
+          ? frameDocument.body
+          : (frameDocument.getElementById(name) ??
+            Array.from(frameDocument.querySelectorAll('a[name]')).find(
+              anchor => anchor.getAttribute('name') === name
+            ))
+      target?.scrollIntoView({ block: 'start' })
+    })
+  })
+}
+
+/**
  * The keys pressed in the email document stay in the frame: Escape is
  * pressed again on the frame element, so that the shortcuts of the app
  * (back to the list) hear it. The listener lives in the app: nothing runs in
@@ -163,6 +196,7 @@ export function EmailBodyFrame({
     forwardEscapeKey(frameDocument, frame)
     setLink(null)
     followLinks(frameDocument, frame, setLink)
+    interceptAnchorLinks(frameDocument)
 
     if (onMailtoLinkRef.current) {
       interceptMailtoLinks(frameDocument, href => {

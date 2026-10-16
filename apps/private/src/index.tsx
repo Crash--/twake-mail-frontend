@@ -8,6 +8,7 @@ import { makeQueryClient } from '@common/app/queryClient'
 import { ConfigErrorScreen } from '@common/components/ConfigErrorScreen'
 import { getConfigResult } from '@common/config/config'
 import { findPreferredLanguage } from '@common/i18n/languages'
+import { ignoreFileDropsOnPage } from '@/ds/FileDropZone/FileDropZone'
 
 import { AppBootstrap } from './AppBootstrap'
 
@@ -20,6 +21,8 @@ function ConfigErrorApp({ errors }: { errors: string[] }): ReactElement {
     </AppProviders>
   )
 }
+
+ignoreFileDropsOnPage(window)
 
 const container = document.getElementById('root')
 if (!container) throw new Error('Root element #root not found')

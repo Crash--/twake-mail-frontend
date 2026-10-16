@@ -24,6 +24,25 @@ describe('ErrorScreen', () => {
     expect(onAction).toHaveBeenCalledTimes(1)
   })
 
+  it('moves the focus to its action when asked to', () => {
+    renderDs(
+      <ErrorScreen
+        title="Broken"
+        actionLabel="Retry"
+        onAction={jest.fn()}
+        focusOnMount
+      />
+    )
+
+    expect(screen.getByRole('button', { name: 'Retry' })).toHaveFocus()
+  })
+
+  it('moves the focus to the error without an action', () => {
+    renderDs(<ErrorScreen title="Broken" focusOnMount />)
+
+    expect(screen.getByRole('alert')).toHaveFocus()
+  })
+
   it('has no action without a label and a handler', () => {
     renderDs(<ErrorScreen title="Broken" data-testid="broken" />)
 

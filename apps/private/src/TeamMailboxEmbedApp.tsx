@@ -8,8 +8,8 @@ import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
 import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import type { TeamMailboxEmbedTarget } from '@common/features/teamMailboxEmbed/teamMailboxEmbedPath'
 import { useI18n } from '@common/i18n/useI18n'
+import { TeamMailboxErrorPane } from '@common/layout/TeamMailboxErrorPane'
 import { TeamMailboxLoadingScreen } from '@common/layout/TeamMailboxLoadingScreen'
-import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 
 import { teamMailboxEmbedRouteElements } from './TeamMailboxEmbedRoutes'
 
@@ -95,7 +95,7 @@ export function TeamMailboxEmbedApp({
 
   if (phase === 'login-required') {
     return (
-      <TeamMailboxPane>
+      <TeamMailboxErrorPane>
         <ErrorScreen
           title={t('teamMailboxEmbed.sessionExpiredTitle')}
           description={t('teamMailboxEmbed.sessionExpiredDescription')}
@@ -103,20 +103,20 @@ export function TeamMailboxEmbedApp({
           onAction={handleRetry}
           data-testid="team-mailbox-session-expired"
         />
-      </TeamMailboxPane>
+      </TeamMailboxErrorPane>
     )
   }
 
   if (phase === 'failed') {
     return (
-      <TeamMailboxPane>
+      <TeamMailboxErrorPane>
         <ErrorScreen
           title={t('common.errorOccurred')}
           actionLabel={t('common.reconnect')}
           onAction={handleRetry}
           data-testid="callback-error"
         />
-      </TeamMailboxPane>
+      </TeamMailboxErrorPane>
     )
   }
 

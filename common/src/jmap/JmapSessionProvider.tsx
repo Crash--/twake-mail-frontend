@@ -8,6 +8,7 @@ import {
 } from 'react'
 
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -21,6 +22,12 @@ export interface JmapSessionProviderProps {
   children: ReactNode
   /** Shown while the session loads, a full-page spinner by default */
   loading?: ReactNode
+  /** Puts the error screen in a frame, shown bare by default */
+  renderError?: (errorScreen: ReactElement) => ReactNode
+}
+
+function showBare(errorScreen: ReactElement): ReactNode {
+  return errorScreen
 }
 
 /**
@@ -30,9 +37,9 @@ export interface JmapSessionProviderProps {
  */
 export function JmapSessionProvider({
   children,
-  loading = <FullPageLoader />
+  loading = <FullPageLoader />,
+  renderError = showBare
 }: JmapSessionProviderProps): ReactElement {
-  const { t } = useI18n()
   const client = useJmapClient()
   const query = useQuery(sessionQueryOptions(client))
   const extraCapabilities = query.data?.extraCapabilities
@@ -47,20 +54,34 @@ export function JmapSessionProvider({
     const handleRetry = (): void => {
       void query.refetch()
     }
-    return (
-      <ErrorScreen
-        title={t('common.errorOccurred')}
-        actionLabel={t('common.retry')}
-        onAction={handleRetry}
-        data-testid="session-error"
-      />
-    )
+    return <>{renderError(<SessionErrorScreen onRetry={handleRetry} />)}</>
   }
 
   return (
     <JmapSessionContext.Provider value={query.data}>
       <ScopedJmapClient client={scopedClient}>{children}</ScopedJmapClient>
     </JmapSessionContext.Provider>
+  )
+}
+
+interface SessionErrorScreenProps {
+  onRetry: () => void
+}
+
+/** Takes the focus and the title of the page, as the view it replaces */
+function SessionErrorScreen({
+  onRetry
+}: SessionErrorScreenProps): ReactElement {
+  const { t } = useI18n()
+  useDocumentTitle(t('common.connectionError'))
+  return (
+    <ErrorScreen
+      title={t('common.errorOccurred')}
+      actionLabel={t('common.retry')}
+      onAction={onRetry}
+      focusOnMount
+      data-testid="session-error"
+    />
   )
 }
 

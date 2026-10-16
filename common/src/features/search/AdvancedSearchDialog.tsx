@@ -333,6 +333,11 @@ export function AdvancedSearchDialog({
             }}
           >
             <option value="">{t('search.labels.all')}</option>
+            {/* A keyword no label has (e.g. a deleted one) still filters */}
+            {draft.label !== null &&
+            !labels.some(label => label.keyword === draft.label) ? (
+              <option value={draft.label}>{t('search.labels.unknown')}</option>
+            ) : null}
             {labels.map(label => (
               <option key={label.id} value={label.keyword}>
                 {label.displayName}

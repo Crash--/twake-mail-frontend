@@ -7,6 +7,10 @@ import {
   makeFakeJmapServer,
   makeMailbox
 } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeLabels
+} from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { EMPTY_SEARCH_FILTER, type SearchFilter } from './searchFilter'
@@ -14,31 +18,36 @@ import { SearchFiltersBar } from './SearchFiltersBar'
 
 function renderBar(filter: SearchFilter = EMPTY_SEARCH_FILTER): jest.Mock {
   const onChange = jest.fn()
+  const server = makeFakeJmapServer({
+    capabilities: {
+      ...FAKE_LINAGORA_CAPABILITIES,
+      'com:linagora:params:jmap:contact:autocomplete': {
+        minInputLength: 1
+      }
+    },
+    contacts: [
+      {
+        id: 'c1',
+        firstname: 'Zelda',
+        surname: 'Contact',
+        emailAddress: 'zelda@example.com'
+      }
+    ],
+    mailboxes: [
+      ...makeDefaultMailboxes(),
+      makeMailbox({ id: 'work', name: 'Work' })
+    ]
+  })
+  installFakeLabels(server, [
+    { id: 'design', displayName: 'Design', keyword: 'design', color: '#2196F3' }
+  ])
   renderWithProviders(
     <MailboxPickerProvider>
       <SearchFiltersBar filter={filter} onChange={onChange} />
     </MailboxPickerProvider>,
     {
       withJmapSession: true,
-      jmapServer: makeFakeJmapServer({
-        capabilities: {
-          'com:linagora:params:jmap:contact:autocomplete': {
-            minInputLength: 1
-          }
-        },
-        contacts: [
-          {
-            id: 'c1',
-            firstname: 'Zelda',
-            surname: 'Contact',
-            emailAddress: 'zelda@example.com'
-          }
-        ],
-        mailboxes: [
-          ...makeDefaultMailboxes(),
-          makeMailbox({ id: 'work', name: 'Work' })
-        ]
-      })
+      jmapServer: server
     }
   )
   return onChange
@@ -162,5 +171,29 @@ describe('SearchFiltersBar', () => {
     )
 
     expect(onChange).toHaveBeenCalledWith({ ...EMPTY_SEARCH_FILTER, to: [] })
+  })
+
+  it('names the chip of a label filter after its label', async () => {
+    renderBar({ ...EMPTY_SEARCH_FILTER, label: 'design' })
+
+    expect(
+      await screen.findByRole('button', { name: 'Design' })
+    ).toHaveAttribute('data-selected', 'true')
+  })
+
+  it('says so when the label of the filter no longer exists', async () => {
+    renderBar({ ...EMPTY_SEARCH_FILTER, label: 'deleted-label' })
+
+    const chip = await screen.findByTestId('search-filter-labels')
+    expect(chip).toHaveAccessibleName('Unknown label')
+    expect(chip).toHaveAttribute('data-selected', 'true')
+  })
+
+  it('names the chip "All labels" without a label filter', async () => {
+    renderBar()
+
+    expect(
+      await screen.findByTestId('search-filter-labels')
+    ).toHaveAccessibleName('All labels')
   })
 })

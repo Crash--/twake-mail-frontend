@@ -657,7 +657,8 @@
     "quickFiltersOnly": "No suggestions. The quick filters follow the search field.",
     "labels": {
       "all": "All labels",
-      "label": "Label"
+      "label": "Label",
+      "unknown": "Unknown label"
     },
     "addresses": {
       "chipHelp": "Enter or F2 edits it, Delete removes it.",

@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 
+import { acceptsMovedEmails } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import {
   DRAGGED_EMAILS_TYPE,
@@ -21,13 +22,14 @@ export interface DropEmails {
 /**
  * Emails dragged from a list onto a folder of the tree move there, as
  * tmail-flutter: to the Trash, to Spam (marked read), or to the folder.
- * Folders where emails cannot be added refuse them.
+ * Folders where emails cannot be added refuse them, and so do the Outbox
+ * and Drafts (`MOVE_EXCLUDED_ROLES`).
  */
 export function useDropEmails(mailbox: MailboxSummary): DropEmails {
   const queryClient = useQueryClient()
   const { accountId } = useJmapSession()
   const { run } = useEmailActions()
-  const mayAdd = mailbox.myRights.mayAddItems
+  const mayAdd = mailbox.myRights.mayAddItems && acceptsMovedEmails(mailbox)
 
   const accepts = useCallback(
     (types: readonly string[]): boolean =>

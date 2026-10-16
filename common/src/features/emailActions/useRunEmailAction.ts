@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 
 import { useLabelActions } from '@common/features/labels/LabelActionsProvider'
+import { MOVE_EXCLUDED_ROLES } from '@common/features/mailbox/mailboxTree'
 import {
   PICKED_ROOT,
   usePickMailbox
@@ -25,7 +26,8 @@ const ACTION_NAMES: Partial<Record<EmailActionId, EmailActionName>> = {
 /**
  * Runs an action of the menus and toolbars (`availableEmailActions`) on
  * emails shown in `mailboxId` (null in search results): "Delete
- * permanently" asks first, "Move message" opens the folder picker.
+ * permanently" asks first, "Move message" opens the folder picker, without
+ * the Outbox and Drafts (`MOVE_EXCLUDED_ROLES`).
  * Resolves to whether the emails changed.
  */
 export function useRunEmailAction(): (
@@ -45,6 +47,7 @@ export function useRunEmailAction(): (
       if (id === 'move') {
         const destination = await pickMailbox({
           requireAddItems: true,
+          excludedRoles: MOVE_EXCLUDED_ROLES,
           ...(mailboxId === null ? {} : { currentId: mailboxId })
         })
         if (destination === null || destination === PICKED_ROOT) return false

@@ -18,6 +18,10 @@ import { AI_LABEL_CATEGORIZATION_KEY } from '@common/features/settings/serverSet
 import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 import { readObjectUrl } from '@common/testing/objectUrls'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeLabels
+} from '@common/testing/fakeLinagora'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EMAIL_FRAME_SANDBOX } from './EmailBodyFrame'
@@ -491,6 +495,34 @@ describe('EmailView', () => {
     const subjectBar =
       screen.getByTestId('email-view-subject').parentElement?.parentElement
     expect(subjectBar).toContainElement(tag)
+  })
+
+  it('gives the "Action required" tag the height of the labels on the line of the subject', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: {
+        ...FAKE_LINAGORA_CAPABILITIES,
+        [AIBOT_CAPABILITY]: {}
+      },
+      settings: { [AI_LABEL_CATEGORIZATION_KEY]: 'true' },
+      emails: [
+        makeEmailWithBody(
+          {
+            id: 'e1',
+            keywords: { $seen: true, [NEEDS_ACTION]: true, hr: true }
+          },
+          { text: 'Hello' }
+        )
+      ]
+    })
+    installFakeLabels(server, [
+      { id: 'hr', displayName: 'vietnam-rh', keyword: 'hr', color: '#273891' }
+    ])
+    renderView(server)
+
+    const tag = await screen.findByTestId('action-required-tag')
+    const label = await screen.findByTestId('label-chip')
+    expect(tag).toHaveStyle({ height: '16px' })
+    expect(label).toHaveStyle({ height: '16px' })
   })
 
   it('offers no "Reply all" to an email between the sender and the user', async () => {

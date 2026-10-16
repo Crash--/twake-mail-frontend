@@ -126,6 +126,7 @@ function EmailContent({
             <EmailActionRequiredTag
               emails={[email]}
               mailboxId={mailboxId ?? null}
+              size="small"
             />
             <EmailLabels
               emails={[email]}

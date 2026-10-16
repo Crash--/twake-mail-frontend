@@ -17,6 +17,8 @@ export interface EmailActionRequiredTagProps {
   /** Put the tag in a block of its own with these classes (a message of a
    * conversation, under its header), inline otherwise */
   className?: string | null
+  /** `small` on the line of the subject, next to the small label tags */
+  size?: 'small' | 'medium'
 }
 
 /**
@@ -28,7 +30,8 @@ export interface EmailActionRequiredTagProps {
 export function EmailActionRequiredTag({
   emails,
   mailboxId,
-  className = null
+  className = null,
+  size = 'medium'
 }: EmailActionRequiredTagProps): ReactElement | null {
   const { t } = useI18n()
   const isEnabled = useAiNeedsActionEnabled()
@@ -45,6 +48,6 @@ export function EmailActionRequiredTag({
     })
   }
 
-  const tag = <ActionRequiredTag onRemove={handleRemove} />
+  const tag = <ActionRequiredTag onRemove={handleRemove} size={size} />
   return className === null ? tag : <Box className={className}>{tag}</Box>
 }

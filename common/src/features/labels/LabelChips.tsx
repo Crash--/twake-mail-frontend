@@ -63,13 +63,15 @@ export function LabelChips({
       data-testid="label-chips"
     >
       {shown.map(label => (
-        // No wider than the list: a long name is cut, its × stays in view
+        // No wider than the list: a long name is cut, its × stays in view.
+        // A flex box: no line box, so the tag lines up with the other tags
+        // of the line instead of sitting on a text baseline
         <Box
           component="span"
           role="listitem"
           key={label.id}
           ref={focusFallbackRef}
-          className="u-maw-100"
+          className="u-flex u-maw-100"
         >
           <ColorTag
             label={label.displayName}
@@ -95,9 +97,9 @@ export function LabelChips({
         </Box>
       ))}
       {hidden > 0 ? (
-        <Box component="span" role="listitem">
+        <Box component="span" role="listitem" className="u-flex">
           <Tooltip title={hiddenNames}>
-            <span aria-hidden>
+            <span aria-hidden className="u-flex">
               <ColorTag
                 label={`+${hidden}`}
                 color="#F3F6F9"

@@ -47,7 +47,7 @@ export function SearchAddressDialog({
   const [selected, setSelected] = useState<readonly string[]>(filter[field])
   // The names of the contacts ticked, to show them once the search is empty
   const [names, setNames] = useState<ReadonlyMap<string, string>>(new Map())
-  const contacts = useContactSuggestions(query)
+  const { contacts } = useContactSuggestions(query)
   const typed = query.trim()
 
   const items = useMemo((): ContactPickerItem[] => {

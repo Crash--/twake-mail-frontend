@@ -614,8 +614,8 @@ export function makeFakeJmapServer(
     identities?: Identity[]
     /**
      * `maxObjectsInGet` of the session, 500 by default, null to tell none:
-     * an `Email/get` or a `Thread/get` of more ids fails with
-     * `requestTooLarge`
+     * an `Email/get`, a `Thread/get` or a `SearchSnippet/get` of more ids
+     * fails with `requestTooLarge`
      */
     maxObjectsInGet?: number | null
     /** The limit applied instead, for a server lying about it */
@@ -754,6 +754,7 @@ export function makeFakeJmapServer(
 
   function getSnippets(args: Record<string, unknown>): unknown {
     const ids = Array.isArray(args.emailIds) ? args.emailIds : []
+    if (ids.length > maxObjectsInGet) return { error: 'requestTooLarge' }
     const words = filterWords(args.filter)
     const list = ids.flatMap(id => {
       const email = server.emails.find(candidate => candidate.id === id)

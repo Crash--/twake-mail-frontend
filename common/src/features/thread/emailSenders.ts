@@ -1,5 +1,7 @@
 import type { JmapClient } from 'jmap-client-ts'
 
+import { getInChunks } from '@common/jmap/maxObjectsInGet'
+
 /** The sender of an email: its name, if any, and its address */
 export interface EmailSender {
   name: string | null
@@ -16,13 +18,13 @@ export async function fetchEmailSenders(
   emailIds: readonly string[]
 ): Promise<EmailSender[]> {
   if (emailIds.length === 0) return []
-  const [found] = await client.request(builder => [
+  const found = await getInChunks(client, emailIds, (builder, chunk) =>
     builder.call('Email/get', {
       accountId,
-      ids: [...emailIds],
+      ids: chunk,
       properties: ['id', 'from']
     })
-  ])
+  )
   const byId = new Map(found.list.map(email => [email.id, email]))
   const seen = new Set<string>()
   const senders: EmailSender[] = []

@@ -195,3 +195,66 @@ describe('more threads than maxObjectsInGet', () => {
     expect(updates.threads.size).toBe(MAX_OBJECTS_IN_GET + 10)
   })
 })
+
+describe('more new emails than maxObjectsInGet in a list queried again', () => {
+  it('brings them all, with the members of their conversations', async () => {
+    const server = makeFakeJmapServer({ maxObjectsInGet: 10 })
+    const client = makeClient(server)
+    const request: SearchRequest = {
+      filter: { inMailbox: 'mailbox-inbox' },
+      sort: MAILBOX_SORT,
+      collapseThreads: true
+    }
+    const page = await fetchListPage(client, FAKE_ACCOUNT_ID, request, {
+      position: 0,
+      limit: EMAIL_LIST_PAGE_SIZE,
+      withSnippets: false
+    })
+    for (let index = 0; index < 20; index++) {
+      server.addEmail(
+        makeEmail({
+          id: `n${index}`,
+          receivedAt: new Date(Date.UTC(2026, 8, 1, 0, index)).toISOString()
+        })
+      )
+    }
+
+    const refreshed = await refreshQueryList(client, FAKE_ACCOUNT_ID, request, {
+      pages: [page],
+      pageParams: [0]
+    })
+
+    expect(refreshed?.pages[0]?.emails).toHaveLength(20)
+    expect(Object.keys(refreshed?.pages[0]?.threads ?? {})).toHaveLength(20)
+  })
+
+  it('keeps the snippets of all the new results of a search', async () => {
+    const server = makeFakeJmapServer({ maxObjectsInGet: 10 })
+    const client = makeClient(server)
+    const request: SearchRequest = {
+      filter: { text: 'report' },
+      sort: MAILBOX_SORT
+    }
+    const page = await fetchListPage(client, FAKE_ACCOUNT_ID, request, {
+      position: 0,
+      limit: EMAIL_LIST_PAGE_SIZE,
+      withSnippets: true
+    })
+    for (let index = 0; index < 20; index++) {
+      server.addEmail(
+        makeEmail({
+          id: `n${index}`,
+          subject: `Report ${index}`,
+          receivedAt: new Date(Date.UTC(2026, 8, 1, 0, index)).toISOString()
+        })
+      )
+    }
+
+    const refreshed = await refreshQueryList(client, FAKE_ACCOUNT_ID, request, {
+      pages: [page],
+      pageParams: [0]
+    })
+
+    expect(Object.keys(refreshed?.pages[0]?.snippets ?? {})).toHaveLength(20)
+  })
+})

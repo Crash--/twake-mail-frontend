@@ -572,7 +572,8 @@ describe('createPushSync', () => {
       expect(methodsSince(setup, before)).toEqual([
         ['Email/changes', 'Email/get', 'Email/get'],
         ['Email/query'],
-        ['Email/get', 'SearchSnippet/get']
+        ['Email/get'],
+        ['SearchSnippet/get']
       ])
       unsubscribe()
     })
@@ -642,7 +643,8 @@ describe('createPushSync', () => {
       expect(methodsSince(setup, before)).toEqual([
         ['Email/changes', 'Email/get', 'Email/get'],
         ['Email/query', 'Email/query'],
-        ['Email/get', 'SearchSnippet/get']
+        ['Email/get'],
+        ['SearchSnippet/get']
       ])
       // The window keeps its size: the oldest comes with the next page
       const ids = resultIds(setup)

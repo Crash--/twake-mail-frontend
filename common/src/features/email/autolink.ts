@@ -63,7 +63,9 @@ function hrefOf(type: string, value: string): string | null {
 export function findLinks(text: string): AutolinkMatch[] {
   const matches: AutolinkMatch[] = []
   for (const found of find(text)) {
-    const value = found.value.replace(TRAILING_QUOTES, '')
+    // HTML written in a text part (Jenkins): `https://…/566/">james/…`
+    const [beforeMarkup = ''] = found.value.split(/["<>]/)
+    const value = beforeMarkup.replace(TRAILING_QUOTES, '')
     const href = hrefOf(found.type, value)
     if (href === null) continue
     matches.push({

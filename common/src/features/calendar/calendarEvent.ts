@@ -323,14 +323,16 @@ export function videoConferenceLinks(event: CalendarEvent): string[] {
   return [...new Set(links)]
 }
 
-const VIDEO_CONFERENCE_SECTION = /-_-_-_-_-_-_-_-[\s\S]*?-_-_-_-_-_-_-_-/g
+const VIDEO_CONFERENCE_SECTION =
+  /-_-_-_-_-_-_-_-[\s\S]*?-_-_-_-_-_-_-_-|-::~:~::~(?::~){0,200}::~:~::-[\s\S]*?-::~:~::~(?::~){0,200}::~:~::-/g
 
 /** `Join online meeting<https://…>` (Outlook, Teams): a URL, not a tag */
 const BRACKETED_URL = /<((?:https?|mailto):[^\s<>]*)>/gi
 
 /**
  * The description as text: without the video conference section Twake
- * Calendar and Google add between `-_-_-_-…` markers, nor any HTML markup
+ * Calendar and Google add between `-_-_-_-…` markers, or the `-::~:~…::-`
+ * ones of Google and older Twake Calendar versions, nor any HTML markup
  * (read as text, never rendered), its blank lines squeezed.
  */
 export function descriptionText(

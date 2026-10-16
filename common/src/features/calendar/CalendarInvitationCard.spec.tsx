@@ -341,6 +341,20 @@ describe('CalendarInvitationCard', () => {
     }
   )
 
+  it('leaves out the video conference block of the old marker (tf#4819)', async () => {
+    const marker =
+      '-::~:~::~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~::~:~::-'
+    renderView(
+      makeServer({
+        ...INVITATION,
+        description: `Agenda: roadmap\n\n${marker}\nVisio: https://meet.example.com/x\n\nPlease do not edit this section.\n${marker}`
+      })
+    )
+
+    const text = await screen.findByTestId('calendar-event-description')
+    expect(text).toHaveTextContent(/^Description\s*Agenda: roadmap$/)
+  })
+
   it('reads no event without the capability', async () => {
     const server = makeServer(INVITATION, { capability: null })
     renderView(server)

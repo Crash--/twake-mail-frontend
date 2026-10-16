@@ -5,7 +5,7 @@
 // has the placement but is not a dialog (no name, no role).
 import { Fade, Popover } from '@linagora/twake-mui'
 import { ClickAwayListener } from '@mui/material'
-import { useId, type ReactElement, type ReactNode } from 'react'
+import { useId, useRef, type ReactElement, type ReactNode } from 'react'
 
 const PANEL_RADIUS = 16
 /** tmail-flutter's `colorShadowComposer` (32 px) and drop shadow (4 px) */
@@ -30,13 +30,16 @@ export interface AnchoredDialogProps {
 /**
  * A modal dialog laid under `anchorEl`: as wide as it (560 px at least), from
  * its bottom left corner, a white card with a soft shadow, scrolling when the screen is too
- * short. The focus is trapped inside, Escape and a click outside close it,
- * and the focus goes back to what opened it. Named by `title`.
+ * short. The focus moves into it, Tab cycles inside, Escape and a click
+ * outside close it, and the focus goes back to what opened it. Named by
+ * `title`.
  *
  * The page around stays under the pointer (no backdrop catching it): an
  * element of the page can be dragged onto the panel, as tmail-flutter lets
- * emails of the list be dropped on the advanced search. A drag is not a
- * click, so it leaves the panel open.
+ * emails of the list be dropped on the advanced search. Pressing on that
+ * element focuses it, so the focus is not pulled back into the panel (the
+ * browser would not start the drag), and a press outside released inside
+ * the panel is not a click outside, so it leaves the panel open.
  */
 export function AnchoredDialog({
   open,
@@ -47,6 +50,16 @@ export function AnchoredDialog({
   'data-testid': testId
 }: AnchoredDialogProps): ReactElement {
   const titleId = useId()
+  // The last release of the pointer was inside the panel: the click that
+  // follows lands on a common ancestor, outside, yet is not a click outside
+  const releasedInsideRef = useRef(false)
+  const handleClickAway = (): void => {
+    if (releasedInsideRef.current) {
+      releasedInsideRef.current = false
+      return
+    }
+    onClose()
+  }
   return (
     <Popover
       open={open}
@@ -56,6 +69,8 @@ export function AnchoredDialog({
       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       // No shift of the page when the scroll bar goes
       disableScrollLock
+      // Pressing on an element of the page to drag it focuses it
+      disableEnforceFocus
       marginThreshold={SCREEN_MARGIN}
       data-testid={testId}
       // A fade: the card keeps its size while it shows (no scale from a corner)
@@ -83,8 +98,15 @@ export function AnchoredDialog({
       }}
     >
       {/* A click outside, the backdrop no longer receiving it */}
-      <ClickAwayListener onClickAway={onClose}>
-        <div>
+      <ClickAwayListener onClickAway={handleClickAway}>
+        <div
+          onPointerUp={() => {
+            releasedInsideRef.current = true
+          }}
+          onClick={() => {
+            releasedInsideRef.current = false
+          }}
+        >
           <h2 id={titleId} className="u-visuallyhidden">
             {title}
           </h2>

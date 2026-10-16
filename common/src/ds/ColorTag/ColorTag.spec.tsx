@@ -51,6 +51,27 @@ describe('ColorTag', () => {
     expect(getComputedStyle(tooltip).pointerEvents).not.toBe('none')
   })
 
+  it('keeps the same height whatever its name and its ×', () => {
+    renderDs(
+      <>
+        <ColorTag label="Work" color="#273891" size="small" data-testid="a" />
+        <ColorTag
+          label="🚀 Ünïcödé ждать"
+          color="#273891"
+          size="small"
+          removeLabel="Remove the label"
+          onRemove={jest.fn()}
+          data-testid="b"
+        />
+        <ColorTag label="Work" color="#273891" data-testid="c" />
+      </>
+    )
+
+    expect(screen.getByTestId('a')).toHaveStyle({ height: '16px' })
+    expect(screen.getByTestId('b')).toHaveStyle({ height: '16px' })
+    expect(screen.getByTestId('c')).toHaveStyle({ height: '20px' })
+  })
+
   it('cuts its name rather than its × when the room runs out', () => {
     renderDs(
       <ColorTag

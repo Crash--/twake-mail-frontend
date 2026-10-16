@@ -71,8 +71,12 @@ export interface FileDropZoneProps {
   'data-testid'?: string
 }
 
-function hasFiles(event: DragEvent<HTMLElement>): boolean {
-  return Array.from(event.dataTransfer.types).includes('Files')
+function hasFiles({
+  dataTransfer
+}: {
+  dataTransfer: DataTransfer | null
+}): boolean {
+  return dataTransfer?.types.includes('Files') === true
 }
 
 /**
@@ -168,17 +172,36 @@ export function FileDropZone({
  * would open them in place of the app): handlers for the area around zones
  */
 export function ignoreFileDropsOutsideZones(
-  event: DragEvent<HTMLElement>
+  event: Pick<
+    globalThis.DragEvent,
+    'dataTransfer' | 'target' | 'defaultPrevented' | 'preventDefault'
+  >
 ): void {
-  if (!hasFiles(event) || event.defaultPrevented) return
+  const { dataTransfer } = event
+  if (dataTransfer === null || !hasFiles(event) || event.defaultPrevented) {
+    return
+  }
   // Not `instanceof`: the area may be in another document (an overlay)
-  const target = event.target as Element
+  const target = event.target as Element | null
   if (
-    target.nodeType === Node.ELEMENT_NODE &&
+    target?.nodeType === Node.ELEMENT_NODE &&
     target.closest('[data-file-drop-zone]') !== null
   ) {
     return
   }
   event.preventDefault()
-  event.dataTransfer.dropEffect = 'none'
+  dataTransfer.dropEffect = 'none'
+}
+
+/**
+ * The same for the whole page (`tf#2600`). Returns the function that
+ * removes the listeners
+ */
+export function ignoreFileDropsOnPage(page: Window): () => void {
+  page.addEventListener('dragover', ignoreFileDropsOutsideZones)
+  page.addEventListener('drop', ignoreFileDropsOutsideZones)
+  return () => {
+    page.removeEventListener('dragover', ignoreFileDropsOutsideZones)
+    page.removeEventListener('drop', ignoreFileDropsOutsideZones)
+  }
 }

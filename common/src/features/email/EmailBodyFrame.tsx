@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
+import { ignoreFileDropsOnPage } from '@/ds/FileDropZone/FileDropZone'
 import { LinkTooltip, type LinkRect } from '@/ds/LinkTooltip/LinkTooltip'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -197,6 +198,10 @@ export function EmailBodyFrame({
     setLink(null)
     followLinks(frameDocument, frame, setLink)
     interceptAnchorLinks(frameDocument)
+    // Drag events do not leave the frame: the page listeners miss them
+    if (frameDocument.defaultView) {
+      ignoreFileDropsOnPage(frameDocument.defaultView)
+    }
 
     if (onMailtoLinkRef.current) {
       interceptMailtoLinks(frameDocument, href => {

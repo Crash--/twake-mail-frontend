@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { FileDropZone } from './FileDropZone'
+import { FileDropZone, ignoreFileDropsOnPage } from './FileDropZone'
 
 /** What the zone reads of a drag: its types and its files */
 function transfer(files: File[]): { types: string[]; files: File[] } {
@@ -77,5 +77,48 @@ describe('FileDropZone', () => {
     })
     expect(onFiles).not.toHaveBeenCalled()
     expect(onChildDrop).toHaveBeenCalled()
+  })
+})
+
+describe('ignoreFileDropsOnPage (tf#2600)', () => {
+  it('keeps the browser from opening a file dropped out of every zone', () => {
+    const onFiles = jest.fn()
+    renderDs(
+      <>
+        <p>The list</p>
+        <FileDropZone
+          label="Drop file here"
+          onFiles={onFiles}
+          data-testid="zone"
+        >
+          <p>Content</p>
+        </FileDropZone>
+      </>
+    )
+    const removeListeners = ignoreFileDropsOnPage(window)
+    const file = new File(['x'], 'report.pdf', { type: 'application/pdf' })
+
+    expect(
+      fireEvent.dragOver(screen.getByText('The list'), {
+        dataTransfer: transfer([file])
+      })
+    ).toBe(false)
+    expect(
+      fireEvent.drop(screen.getByText('The list'), {
+        dataTransfer: transfer([file])
+      })
+    ).toBe(false)
+    // Dragged text keeps what the browser does with it
+    expect(
+      fireEvent.drop(screen.getByText('The list'), {
+        dataTransfer: { types: ['text/plain'], files: [] }
+      })
+    ).toBe(true)
+    // The zone still takes its files
+    fireEvent.drop(screen.getByTestId('zone'), {
+      dataTransfer: transfer([file])
+    })
+    expect(onFiles).toHaveBeenCalledWith([file])
+    removeListeners()
   })
 })

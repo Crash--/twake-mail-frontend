@@ -151,6 +151,7 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
               'Save as draft',
               'Insert template',
               'Save as template',
+              'Print',
               'Request read receipt',
               'Mark as important',
               'Delete draft'
@@ -159,6 +160,7 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
               // "Save as draft" is a button of the footer, as tmail-flutter
               'Insert template',
               'Save as template',
+              'Print',
               'Request read receipt',
               'Mark as important'
             ]

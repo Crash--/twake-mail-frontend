@@ -72,4 +72,31 @@ describe('AnchoredDialog', () => {
       expect(screen.queryByRole('dialog')).toBe(null)
     })
   })
+
+  it('lets a press outside released inside start a drag, staying open', async () => {
+    renderDs(<Harness />)
+    const opener = screen.getByRole('button', { name: 'Open' })
+    await userEvent.click(opener)
+    const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
+    const field = screen.getByRole('textbox', { name: 'Name' })
+
+    // Pressing on an element of the page focuses it: the focus stays there
+    await userEvent.pointer({ keys: '[MouseLeft>]', target: opener })
+
+    expect(opener).toHaveFocus()
+
+    await userEvent.pointer([
+      { target: field },
+      { keys: '[/MouseLeft]', target: field }
+    ])
+
+    expect(dialog).toBeVisible()
+
+    // The next click outside still closes it
+    await userEvent.click(screen.getByText('Anchor'))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+  })
 })

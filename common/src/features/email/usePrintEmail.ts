@@ -15,7 +15,11 @@ import {
 } from './emailBody'
 import { normalizeCid } from './sanitizeEmailHtml'
 import { formatSize } from './formatSize'
-import { buildPrintDocument, printHtmlDocument } from './printDocument'
+import {
+  buildPrintDocument,
+  PRINT_BODY_SELECTOR,
+  printHtmlDocument
+} from './printDocument'
 import type { EmailDetail } from './queries'
 import { isTrustedSender } from './trustedSenders'
 import {
@@ -57,7 +61,8 @@ export function usePrintEmail(): (email: EmailDetail) => Promise<void> {
         const body = renderBodyParts(email.htmlBody, email.bodyValues, {
           inlineImageUrls: urls,
           allowRemoteContent,
-          normalizeImageSizes: true
+          normalizeImageSizes: true,
+          styleScope: PRINT_BODY_SELECTOR
         })
         const files = email.attachments.filter(
           part => !part.cid || !cids.has(normalizeCid(part.cid))

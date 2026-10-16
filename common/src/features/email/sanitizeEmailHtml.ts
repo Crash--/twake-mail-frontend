@@ -93,6 +93,11 @@ export interface SanitizeOptions {
    * for the reader, not for what the composer sends again (quote, signature)
    */
   normalizeImageSizes?: boolean
+  /**
+   * Confines the `<style>` elements to the elements under this selector, for
+   * a document that shows more than the email (the printed headers)
+   */
+  styleScope?: string
 }
 
 export interface SanitizedEmailHtml {
@@ -147,6 +152,7 @@ interface Run {
   inlineImageUrls: ReadonlyMap<string, string>
   allowRemoteContent: boolean
   normalizeImageSizes: boolean
+  styleScope: string | undefined
   blockedRemoteContent: number
 }
 
@@ -243,7 +249,8 @@ function sanitizeStyleElement(node: Node): void {
   }
   const state = currentRun()
   const { css, blockedRemoteContent } = sanitizeStyleSheet(node.textContent, {
-    allowRemoteContent: state.allowRemoteContent
+    allowRemoteContent: state.allowRemoteContent,
+    scope: state.styleScope
   })
   state.blockedRemoteContent += blockedRemoteContent
   node.textContent = css
@@ -323,13 +330,15 @@ export function sanitizeEmailHtml(
     inlineImageUrls = new Map(),
     allowRemoteContent = false,
     autolink: withAutolink = false,
-    normalizeImageSizes = false
+    normalizeImageSizes = false,
+    styleScope
   }: SanitizeOptions = {}
 ): SanitizedEmailHtml {
   run = {
     inlineImageUrls,
     allowRemoteContent,
     normalizeImageSizes,
+    styleScope,
     blockedRemoteContent: 0
   }
   try {

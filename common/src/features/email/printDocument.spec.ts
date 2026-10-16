@@ -1,4 +1,8 @@
-import { buildPrintDocument, type PrintDocumentContent } from './printDocument'
+import {
+  buildPrintDocument,
+  PRINT_BODY_SELECTOR,
+  type PrintDocumentContent
+} from './printDocument'
 
 const CONTENT: PrintDocumentContent = {
   lang: 'en',
@@ -30,6 +34,16 @@ describe('buildPrintDocument', () => {
     expect(html).toContain('a&lt;script&gt;.pdf')
     expect(html).not.toContain('<script>')
     expect(html).toContain('<p>Body</p>')
+  })
+
+  it('clips the body in a frame out of reach of its scoped CSS (tf#4873)', () => {
+    const html = buildPrintDocument(CONTENT)
+    expect(html).toContain(
+      `<div class="frame"><div class="${PRINT_BODY_SELECTOR.slice(1)}"><p>Body</p></div></div>`
+    )
+    // `:scope { padding: 0; overflow: visible }` reaches the body, not this
+    expect(html).toContain('.frame { overflow-y: clip; display: flow-root; }')
+    expect(html).not.toMatch(/\.content \{[^}]*overflow/)
   })
 
   it('leaves out empty recipient lines and attachments', () => {

@@ -123,6 +123,12 @@ const URL_FUNCTION = /url\(\s*(['"]?)([^'")]*)\1\s*\)/gi
 export interface CssOptions {
   /** Keeps `http(s)` URLs (images, fonts) */
   allowRemoteContent: boolean
+  /**
+   * Confines the rules of a style sheet to the elements under this selector
+   * (`@scope`), for a document that shows more than the email. Drops
+   * `@font-face`, which `@scope` does not confine
+   */
+  scope?: string
 }
 
 export interface SanitizedCss {
@@ -200,7 +206,8 @@ export function sanitizeDeclarations(
     const value = declaration.slice(colon + 1).trim()
     if (!ALLOWED_PROPERTIES.has(property) || value === '') continue
     if (FORBIDDEN_VALUE.test(value) || value.startsWith('//')) continue
-    if (/[<>{}]/.test(value)) continue
+    // A comment left open past the bounded COMMENT pattern
+    if (/[<>{}]|\/\*|\*\//.test(value)) continue
     if (
       OVERFLOW_PROPERTIES.has(property) &&
       !OVERFLOW_VALUES.has(value.replace(/\s*!important$/i, '').toLowerCase())
@@ -274,6 +281,15 @@ function sanitizeRules(
   for (const { prelude, body } of blocks) {
     const selector = prelude.trim()
     if (selector === '' || /[<{}]/.test(selector)) continue
+    // A string, a comment or a url( the browser reads differently from
+    // readBlocks could swallow the `{` of the rule and let its `}` close the
+    // @scope
+    if (
+      options.scope !== undefined &&
+      /["'\\]|\/\*|\*\/|url\(/i.test(selector)
+    ) {
+      continue
+    }
     if (/^@media\b/i.test(selector)) {
       const inner = sanitizeRules(body, options, nesting + 1)
       blockedRemoteContent += inner.blockedRemoteContent
@@ -281,6 +297,7 @@ function sanitizeRules(
       continue
     }
     if (/^@font-face\b/i.test(selector)) {
+      if (options.scope !== undefined) continue
       // Fonts are remote content
       if (!options.allowRemoteContent) {
         blockedRemoteContent += 1
@@ -334,7 +351,9 @@ function sanitizeFontFace(body: string): string {
  * their filtered declarations, `@media` blocks are filtered recursively,
  * every other at-rule is dropped (`@import`, `@font-face` unless remote
  * content is allowed…). `<` never survives, so the text cannot close its
- * `<style>` element.
+ * `<style>` element. Braces are balanced, values hold no comment and, under
+ * `options.scope`, selectors hold no string, comment nor `url(`, so the
+ * rules cannot close the `@scope` block.
  */
 export function sanitizeStyleSheet(
   css: string,
@@ -345,8 +364,12 @@ export function sanitizeStyleSheet(
   const blockedImports = options.allowRemoteContent
     ? 0
     : (css.match(/@import\b/gi) ?? []).length
+  const rules = result.css.replaceAll('<', '')
   return {
-    css: result.css.replaceAll('<', ''),
+    css:
+      options.scope === undefined || rules === ''
+        ? rules
+        : `@scope (${options.scope}) {\n${rules}\n}`,
     blockedRemoteContent: result.blockedRemoteContent + blockedImports
   }
 }

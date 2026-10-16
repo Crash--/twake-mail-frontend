@@ -44,6 +44,9 @@ function escapeHtml(text: string): string {
     .replaceAll("'", '&#39;')
 }
 
+/** The element holding the body, to which the CSS of the email is scoped */
+export const PRINT_BODY_SELECTOR = '.content'
+
 const PRINT_CSS = `
 body, td { font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 13px; }
 body { margin: 0; color: #1b1b1f; overflow-wrap: anywhere; }
@@ -56,7 +59,9 @@ blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid #c4c4c
 .subject { font-size: 1.2em; font-weight: bold; margin: 8px 0; }
 .sender { display: flex; justify-content: space-between; gap: 16px; font-size: 0.9em; }
 .recipient { padding-bottom: 4px; font-size: 0.9em; }
-.content { padding: 12px 0; }
+/* Out of reach of the email CSS, which can style the body itself (:scope) */
+.frame { overflow-y: clip; display: flow-root; }
+${PRINT_BODY_SELECTOR} { padding: 12px 0; }
 .attachments { margin: 8px 0; padding: 0; list-style: none; }
 .attachments li { padding: 4px 0; }
 `
@@ -96,7 +101,7 @@ export function buildPrintDocument(content: PrintDocumentContent): string {
     `<div class="subject">${escapeHtml(content.subject)}</div><hr>`,
     `<div class="sender"><span>${escapeHtml(content.fromLabel)}: <b>${escapeHtml(content.senderName)}</b> &lt;${escapeHtml(content.senderAddress)}&gt;</span><span>${escapeHtml(content.date)}</span></div>`,
     recipients,
-    `<div class="content">${content.bodyHtml}</div>`,
+    `<div class="frame"><div class="content">${content.bodyHtml}</div></div>`,
     attachments,
     '</body></html>'
   ].join('')

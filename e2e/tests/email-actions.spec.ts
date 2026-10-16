@@ -71,6 +71,50 @@ test.describe('EACT email actions of the reading view', () => {
     await expectNoA11yViolations(page)
   })
 
+  test('EACT-08 the CSS of the email styles its body only, never the printed headers', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await recordPrintedDocuments(page)
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Styled invoice',
+      html: [
+        // :scope is the body itself: it must not undo the clip either
+        '<style>.user, .subject, .sender, .recipient { display: none } :scope { padding: 0; overflow: visible } p { color: rgb(255, 0, 0) }</style>',
+        '<p class="fake" style="margin-top: -300px; padding-bottom: 300px; background-color: white; opacity: .99">From: Your bank</p>'
+      ].join('')
+    })
+    await jmap.waitForEmail({ subject: 'Styled invoice' })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const email = await mailbox.openEmail('Styled invoice')
+    await email.print()
+
+    await expect.poll(async () => (await printedDocuments(page)).length).toBe(1)
+    const [printed = ''] = await printedDocuments(page)
+    const paper = await page.context().newPage()
+    await paper.setContent(printed)
+    for (const header of ['.user', '.subject', '.sender']) {
+      await expect(paper.locator(header)).toBeVisible()
+    }
+    // The paragraph pulled up by its negative margin does not cover the sender
+    const senderOnTop = await paper.evaluate(() => {
+      const sender = document.querySelector('.sender')
+      if (!sender) return false
+      const box = sender.getBoundingClientRect()
+      const hit = document.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2
+      )
+      return hit !== null && sender.contains(hit)
+    })
+    expect(senderOnTop).toBe(true)
+    await expect(paper.locator('.fake')).toHaveCSS('color', 'rgb(255, 0, 0)')
+    await paper.close()
+  })
+
   test('EACT-02 Download message as EML saves the message under the name of its subject', async ({
     page,
     user,

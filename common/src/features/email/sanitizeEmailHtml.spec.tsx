@@ -219,6 +219,39 @@ describe('sanitizeEmailHtml', () => {
         )
       ).toBe('<style>p { color: red }</style><p>x</p>')
     })
+
+    it('confines <style> elements to styleScope and drops their fonts (tf#4873)', () => {
+      const result = sanitizeEmailHtml(
+        '<style>.sender { display: none } @font-face { font-family: Inter; src: url(https://fonts.example.com/fake.woff2) } @media print { p { color: red } }</style><style>@font-face { font-family: Inter; src: url(https://fonts.example.com/fake.woff2) }</style><p>x</p>',
+        { allowRemoteContent: true, styleScope: '.content' }
+      )
+
+      expect(result.html).toBe(
+        '<style>@scope (.content) {\n.sender { display: none }\n@media print { p { color: red } }\n}</style><style></style><p>x</p>'
+      )
+    })
+
+    it('drops a scoped selector holding a string, a comment or a url(, which could close the @scope', () => {
+      const result = sanitizeEmailHtml(
+        '<style>p"\n" { font-family: x"\n"\ny } b /* { color: red } a[x=\'y\'] { color: red } i\\"x" { color: red } s URL( { color: rgb(1, 2, 3) } u { color: blue }</style><p>x</p>',
+        { styleScope: '.content' }
+      )
+
+      expect(result.html).toBe(
+        '<style>@scope (.content) {\nu { color: blue }\n}</style><p>x</p>'
+      )
+    })
+
+    it('drops a value holding a comment left open past the comment pattern', () => {
+      const filler = 'i { color: red }\n'.repeat(1300)
+      const result = sanitizeEmailHtml(
+        `<style>p { color: a /* }\n${filler}@media print { b { color: */ red } } u { color: blue }</style><p>x</p>`,
+        { styleScope: '.content' }
+      )
+
+      expect(result.html).not.toMatch(/\/\*|\*\//)
+      expect(result.html).toContain('u { color: blue }')
+    })
   })
 
   describe('inline images', () => {

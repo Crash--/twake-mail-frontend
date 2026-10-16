@@ -301,7 +301,10 @@ test.describe('SET error reporting', () => {
       .getByRole('textbox', { name: 'What happened?' })
       .fill('The folder list is slow to open')
     await page.getByRole('button', { name: 'Send', exact: true }).click()
-    await expect(page.getByText('Thank you, your feedback has been sent.')).toBeVisible()
+    const sent = 'Thank you, your feedback has been sent.'
+    await expect(page.locator('#sentry-feedback').getByText(sent)).toBeVisible()
+    // The widget of the SDK has no live region: the app announces it
+    await expect(page.getByTestId('feedback-announcement')).toHaveText(sent)
     await expect
       .poll(() => ingest.envelopes.join('\n'))
       .toContain('The folder list is slow to open')

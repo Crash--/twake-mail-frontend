@@ -26,7 +26,8 @@ function setRunning(isRunning: boolean): void {
 
 const mockDetach = jest.fn()
 const mockAttach = jest.fn(
-  (_el: HTMLElement, _labels: Record<string, string>) => mockDetach
+  (_el: HTMLElement, _labels: Record<string, string>, _onSent?: () => void) =>
+    mockDetach
 )
 const mockSetTheme = jest.fn()
 
@@ -38,8 +39,11 @@ jest.mock('@common/app/sentry', () => ({
     },
     feedbackGeneration: (): number =>
       mockStore.isRunning ? mockStore.generation : 0,
-    attachFeedback: (el: HTMLElement, labels: Record<string, string>) =>
-      mockAttach(el, labels),
+    attachFeedback: (
+      el: HTMLElement,
+      labels: Record<string, string>,
+      onSent?: () => void
+    ) => mockAttach(el, labels, onSent),
     setFeedbackTheme: (scheme: string): void => {
       mockSetTheme(scheme)
     }
@@ -142,6 +146,29 @@ describe('FeedbackWidget', () => {
     expect(queryButton()).not.toBeNull()
     expect(mockDetach).toHaveBeenCalledTimes(1)
     expect(mockAttach).toHaveBeenCalledTimes(2)
+  })
+
+  it('announces a sent feedback through a live region, then empties it', () => {
+    jest.useFakeTimers()
+    try {
+      setRunning(true)
+      renderWidget()
+      const region = screen.getByTestId('feedback-announcement')
+      expect(region.getAttribute('role')).toBe('status')
+      expect(region.textContent).toBe('')
+
+      act(() => {
+        mockAttach.mock.calls.at(-1)?.[2]?.()
+      })
+      expect(region.textContent).toBe('Thank you, your feedback has been sent.')
+
+      act(() => {
+        jest.advanceTimersByTime(5_000)
+      })
+      expect(region.textContent).toBe('')
+    } finally {
+      jest.useRealTimers()
+    }
   })
 
   it('stays out of Twake Workplace, which owns the feedback there', () => {

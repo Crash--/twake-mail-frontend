@@ -15,7 +15,7 @@ import { makeQueryClient } from '@common/app/queryClient'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
-import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
+import { TeamMailboxErrorPane } from '@common/layout/TeamMailboxErrorPane'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 import {
   FAKE_SESSION_URL,
@@ -38,7 +38,8 @@ function LocationProbe(): ReactElement {
 function renderRoutes(
   path: string,
   rootId = 'team',
-  emails: FakeEmail[] = []
+  emails: FakeEmail[] = [],
+  isSessionAvailable = true
 ): void {
   const jmapServer = makeFakeJmapServer({
     emails,
@@ -48,6 +49,10 @@ function renderRoutes(
       ...makeTeamMailboxes({ id: 'sales', address: 'sales@example.com' })
     ]
   })
+  if (!isSessionAvailable) {
+    jmapServer.fetch = () =>
+      Promise.resolve(new Response('Unavailable', { status: 500 }))
+  }
   const queryClient = makeQueryClient()
   queryClient.setDefaultOptions({
     ...queryClient.getDefaultOptions(),
@@ -177,8 +182,21 @@ describe('teamMailboxEmbedRouteElements', () => {
     const [root] = createRoutesFromElements(teamMailboxEmbedRouteElements())
     const errorElement = root?.errorElement
     expect(isValidElement(errorElement) && errorElement.type).toBe(
-      TeamMailboxPane
+      TeamMailboxErrorPane
     )
+  })
+
+  it('shows a session that cannot load in the pane of the facade, with the focus on Retry', async () => {
+    renderRoutes(`${BASE}/`, 'team', [], false)
+
+    const retryButton = await screen.findByTestId('session-error-action')
+    expect(screen.getByTestId('team-mailbox-error-pane')).toContainElement(
+      retryButton
+    )
+    expect(retryButton).toHaveFocus()
+    await waitFor(() => {
+      expect(document.title).toBe('Connection error - Twake Mail')
+    })
   })
 
   it.each(['team-inbox', 'team-trash'])(

@@ -77,6 +77,7 @@ import {
   type ThreadMember
 } from './queries'
 import {
+  getFolderSides,
   getTeamMailboxIds,
   summarizeThread,
   type ThreadSummary
@@ -306,21 +307,42 @@ export function EmailList(props: EmailListProps): ReactElement {
     () => getTeamMailboxIds(mailboxes.data ?? []),
     [mailboxes.data]
   )
+  const sides = useMemo(
+    () => getFolderSides(mailboxes.data ?? []),
+    [mailboxes.data]
+  )
+  // Until the folders tell the sides apart (loading, or failed), a
+  // conversation row stands for its email alone: shown, counted and acted on
+  const hasSides = mailboxes.data !== undefined
   const emails = useMemo(
     () =>
       flattenPages(query.data, (members, rowEmailId) =>
-        summarizeThread(members, {
-          ownAddress: session.username,
-          meLabel,
-          sentId,
-          teamMailboxIds,
-          rowEmailId
-        })
+        summarizeThread(
+          hasSides
+            ? members
+            : members.filter(member => member.id === rowEmailId),
+          {
+            ownAddress: session.username,
+            meLabel,
+            sentId,
+            teamMailboxIds,
+            sides,
+            rowEmailId
+          }
+        )
       ),
-    [query.data, session.username, meLabel, sentId, teamMailboxIds]
+    [
+      query.data,
+      hasSides,
+      session.username,
+      meLabel,
+      sentId,
+      teamMailboxIds,
+      sides
+    ]
   )
   const isOnline = useOnlineStatus()
-  // The actions on a conversation act on all its emails
+  // The actions on a conversation act on all its emails of its side
   const expandTargets = useCallback(
     (rows: readonly EmailListItemData[]): TargetEmail[] => {
       const byId = new Map(emails.map(row => [row.id, row]))
@@ -416,12 +438,12 @@ export function EmailList(props: EmailListProps): ReactElement {
       const isStarred = row.thread?.isStarred ?? hasKeyword(row, FLAGGED)
       void runEmailAction({
         action: isStarred ? 'unstar' : 'star',
-        emails: row.thread?.members ?? [row],
+        emails: expandTargets([row]),
         mailboxId,
         silent: true
       })
     },
-    [runEmailAction, mailboxId]
+    [runEmailAction, expandTargets, mailboxId]
   )
 
   const handleToggleSeen = useCallback(
@@ -429,12 +451,12 @@ export function EmailList(props: EmailListProps): ReactElement {
       const isUnread = row.thread?.isUnread ?? !hasKeyword(row, SEEN)
       void runEmailAction({
         action: isUnread ? 'markAsRead' : 'markAsUnread',
-        emails: row.thread?.members ?? [row],
+        emails: expandTargets([row]),
         mailboxId,
         silent: true
       })
     },
-    [runEmailAction, mailboxId]
+    [runEmailAction, expandTargets, mailboxId]
   )
 
   // Stable, like the cell below: the rows of the table are memoized and

@@ -51,9 +51,12 @@ import { ConversationReplyBar } from './ConversationReplyBar'
 import { pickTargetMessageId } from './conversationTarget'
 import { conversationQueryOptions, type EmailListItemData } from './queries'
 import {
+  getFolderSides,
   getTeamMailboxIds,
   isOwnSentCopy,
   isReceivedFromOthers,
+  onSide,
+  sideOfEmail,
   withoutTeamCopies
 } from './threadSummary'
 
@@ -153,8 +156,9 @@ function ConversationContent({
   }, [])
 
   // Once none of its messages is left in the folder (moved by the actions of
-  // a message, or by another client), back to the list; a message moved
-  // elsewhere stays in the conversation with its new folder
+  // a message, or by another client), back to the list; a message moved to
+  // a folder of the same side stays in the conversation, one moved to
+  // another side (Trash, Spam) leaves it
   const isInMailbox =
     mailboxId === null || emails.some(email => mailboxId in email.mailboxIds)
   const wasInMailboxRef = useRef(isInMailbox)
@@ -206,8 +210,9 @@ function ConversationContent({
     if (id === 'delete-permanently') handleFocusSubject()
   }
 
-  // The actions apply to every message of the conversation (tmail-flutter
-  // ADR 0068), with the toasts, undo and retry of the email actions
+  // The actions apply to every message the conversation shows, its side
+  // (tmail-flutter ADR 0068), with the toasts, undo and retry of the email
+  // actions
   const runOnAll = (action: EmailActionName): void => {
     void run({ action, emails, mailboxId: null })
   }
@@ -411,19 +416,60 @@ export function ConversationView({
   const mailboxes = useMailboxes()
   const mailboxList = mailboxes.data ?? []
   const sentId = findMailboxIdByRole(mailboxList, 'sent')
-  const emails = useMemo(
-    () =>
-      withoutTeamCopies(
-        query.data?.emails ?? [],
-        emailId,
-        getTeamMailboxIds(mailboxes.data ?? [])
-      ).filter(
-        email =>
-          email.id === emailId ||
-          !isOwnSentCopy(email, sentId, session.username)
-      ),
-    [query.data, emailId, mailboxes.data, sentId, session.username]
+  const sides = useMemo(
+    () => getFolderSides(mailboxes.data ?? []),
+    [mailboxes.data]
   )
+  // Out of a folder (a search result, a link), the side is the one of the
+  // opened message when it opened, so moving it to Trash does not switch the
+  // conversation to its Trash side
+  const openedEmailSide = sideOfEmail(
+    query.data?.emails.find(email => email.id === emailId),
+    sides
+  )
+  const [openedSide, setOpenedSide] = useState<{
+    emailId: string
+    side: string | null
+  } | null>(null)
+  if (
+    query.data !== undefined &&
+    mailboxes.data !== undefined &&
+    openedSide?.emailId !== emailId
+  ) {
+    setOpenedSide({ emailId, side: openedEmailSide })
+  }
+  const side =
+    mailboxId === null
+      ? openedSide?.emailId === emailId
+        ? openedSide.side
+        : openedEmailSide
+      : (sides.sideOf.get(mailboxId) ?? null)
+  // Failed once, the folders are not waited for again: each component
+  // reading them asks again, and the conversation would go back to loading
+  const hasNoFolders =
+    mailboxes.data === undefined && mailboxes.errorUpdateCount > 0
+  const emails = useMemo(() => {
+    const all = query.data?.emails ?? []
+    // Without the folders, the sides are unknown: the opened message alone
+    if (hasNoFolders) return all.filter(email => email.id === emailId)
+    return onSide(
+      withoutTeamCopies(all, emailId, getTeamMailboxIds(mailboxes.data ?? [])),
+      side,
+      sides
+    ).filter(
+      email =>
+        email.id === emailId || !isOwnSentCopy(email, sentId, session.username)
+    )
+  }, [
+    query.data,
+    hasNoFolders,
+    emailId,
+    mailboxes.data,
+    side,
+    sides,
+    sentId,
+    session.username
+  ])
 
   // Its last message deleted, the conversation is gone: back to the list
   const hasEmails = emails.length > 0
@@ -437,7 +483,11 @@ export function ConversationView({
     }
   }, [hasEmails, onBack])
 
-  if (query.isPending) return <ReadingLoadingView onBack={onBack} />
+  // The folders tell the sides apart: the conversation waits for them, and
+  // shows the opened message alone if they fail to load
+  if (query.isPending || (mailboxes.data === undefined && !hasNoFolders)) {
+    return <ReadingLoadingView onBack={onBack} />
+  }
   if (query.isError) {
     const handleRetry = (): void => {
       void query.refetch()

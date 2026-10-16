@@ -20,6 +20,9 @@ export function readableTextColor(background: string): '#000000' | '#FFFFFF' {
     : '#000000'
 }
 
+/** The height of a tag: its line, and room for its 16 px × */
+const TAG_HEIGHT = { small: '16px', medium: '20px' } as const
+
 export interface ColorTagProps {
   label: string
   /** `#RRGGBB` */
@@ -91,9 +94,12 @@ export function ColorTag({
         display: 'inline-flex',
         alignItems: 'center',
         maxWidth: '100%',
+        // The same height whatever the name (an emoji, a glyph from a
+        // fallback font) and with or without its ×
+        boxSizing: 'border-box',
+        height: TAG_HEIGHT[size],
         borderRadius: '4px',
         px: size === 'small' ? 0.5 : 0.75,
-        py: size === 'small' ? 0 : 0.125,
         backgroundColor: color,
         color: textColor,
         fontSize: size === 'small' ? '11px' : '0.75rem',

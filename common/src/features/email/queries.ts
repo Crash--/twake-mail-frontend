@@ -4,6 +4,7 @@ import type { Email, JmapClient } from 'jmap-client-ts'
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 
 import { PRIORITY_HEADERS, type PriorityHeaders } from './importance'
+import { SMIME_STATUS_HEADER } from './smimeStatus'
 import { TWP_MESSAGE_HEADER } from './twpWarnings'
 
 /** The email properties the reading view shows */
@@ -45,6 +46,7 @@ export type EmailDetail = Pick<
     [LIST_UNSUBSCRIBE_HEADER]?: string[] | null
     [READ_RECEIPT_HEADER]?: string | null
     [TWP_MESSAGE_HEADER]?: string[] | null
+    [SMIME_STATUS_HEADER]?: string | null
   }
 
 export type EmailDetailKey = readonly ['email', string, 'detail', string]
@@ -81,6 +83,7 @@ export function emailQueryOptions(
             LIST_UNSUBSCRIBE_HEADER,
             READ_RECEIPT_HEADER,
             TWP_MESSAGE_HEADER,
+            SMIME_STATUS_HEADER,
             ...PRIORITY_HEADERS
           ],
           fetchHTMLBodyValues: true

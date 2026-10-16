@@ -162,7 +162,11 @@
     "hideRecipients": "Ẩn địa chỉ",
     "replied": "Tin nhắn đã trả lời",
     "forwardedState": "Tin nhắn chuyển tiếp",
-    "repliedAndForwarded": "Tin nhắn được trả lời và chuyển tiếp"
+    "repliedAndForwarded": "Tin nhắn được trả lời và chuyển tiếp",
+    "smime": {
+      "good": "Tin nhắn đã được xác thực với chữ kí SMime.",
+      "bad": "Xác thực SMime không thành công."
+    }
   },
   "login": {
     "title": "Đăng nhập",

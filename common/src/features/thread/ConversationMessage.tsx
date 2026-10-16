@@ -33,6 +33,10 @@ import { messageMailboxId } from '@common/features/email/messageMailbox'
 import type { EmailDetail } from '@common/features/email/queries'
 import { SenderLine } from '@common/features/email/SenderLine'
 import {
+  parseSmimeStatus,
+  SMIME_STATUS_HEADER
+} from '@common/features/email/smimeStatus'
+import {
   TwpWarningBanners,
   useVisibleTwpWarnings
 } from '@common/features/email/TwpWarningBanners'
@@ -169,6 +173,7 @@ function ExpandedSender({
     <>
       <SenderLine
         sender={detail?.from?.[0] ?? sender}
+        smimeStatus={parseSmimeStatus(detail?.[SMIME_STATUS_HEADER])}
         onUnsubscribe={
           detail !== null && canUnsubscribe(detail)
             ? () => {

@@ -40,6 +40,7 @@ import { ReadingLoadingView } from './ReadingLoadingView'
 import { ReadingToolbar } from './ReadingToolbar'
 import { ReplyActions } from './ReplyActions'
 import { SenderLine } from './SenderLine'
+import { parseSmimeStatus, SMIME_STATUS_HEADER } from './smimeStatus'
 import { hasDangerWarning } from './twpWarnings'
 import { TwpWarningBanners, useVisibleTwpWarnings } from './TwpWarningBanners'
 import type { EmailDetail } from './queries'
@@ -171,6 +172,7 @@ function EmailContent({
             <>
               <SenderLine
                 sender={sender}
+                smimeStatus={parseSmimeStatus(email[SMIME_STATUS_HEADER])}
                 onUnsubscribe={
                   canUnsubscribe(email)
                     ? () => {

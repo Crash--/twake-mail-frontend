@@ -1,8 +1,9 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { EmailBodyPart } from 'jmap-client-ts'
 
 import {
+  FAKE_ACCOUNT_ID,
   makeBodyPart,
   makeFakeJmapServer
 } from '@common/testing/fakeJmapServer'
@@ -10,6 +11,7 @@ import { readObjectUrl } from '@common/testing/objectUrls'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { AttachmentList } from './AttachmentList'
+import { ATTACHMENT_DRAG_TYPE, readAttachmentDrag } from './attachmentDrag'
 
 const DOWNLOAD_ALL = 'com:linagora:params:downloadAll'
 const ZIP_BYTES = new Uint8Array([0x50, 0x4b, 0x05, 0x06])
@@ -40,6 +42,38 @@ describe('AttachmentList', () => {
     renderList([])
     await waitFor(() => {
       expect(screen.queryByTestId('attachment-list')).toBeNull()
+    })
+  })
+
+  it('lets a file be dragged into a message being written, with its blob', async () => {
+    renderList([
+      part({
+        blobId: 'b1',
+        name: 'report.pdf',
+        type: 'application/pdf',
+        size: 1000
+      })
+    ])
+    const item = await screen.findByTestId('attachment-item')
+    expect(item).toHaveAttribute('draggable', 'true')
+    const data = new Map<string, string>()
+    const dataTransfer = {
+      effectAllowed: 'none',
+      setData: (type: string, value: string): void => {
+        data.set(type, value)
+      }
+    }
+
+    fireEvent.dragStart(item, { dataTransfer })
+
+    expect(dataTransfer.effectAllowed).toBe('copy')
+    expect(readAttachmentDrag(data.get(ATTACHMENT_DRAG_TYPE) ?? '')).toEqual({
+      accountId: FAKE_ACCOUNT_ID,
+      blobId: 'b1',
+      type: 'application/pdf',
+      name: 'report.pdf',
+      size: 1000,
+      charset: null
     })
   })
 

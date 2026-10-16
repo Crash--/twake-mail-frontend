@@ -7,6 +7,7 @@ import { formatSize } from '@common/features/email/formatSize'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import type { AttachedFile } from './composeEmail'
 import type { ComposerAttachment } from './composerContent'
 import { fileCharset } from './textCharset'
 import { uploadBlob, uploadUrlFor } from './uploadBlob'
@@ -54,6 +55,11 @@ export interface ComposerAttachments {
   fits: (sizes: number[]) => boolean
   /** Checks the limits, then uploads the files */
   addFiles: (files: File[]) => void
+  /**
+   * Checks the limits, then attaches a file already on the server (one of
+   * another message, dragged here): nothing to upload
+   */
+  addUploaded: (file: AttachedFile) => void
   /** Removes a file, cancelling its upload */
   remove: (id: string) => void
   /** Uploads again a file whose upload failed */
@@ -226,6 +232,20 @@ export function useComposerAttachments(
     if (fits(files.map(file => file.size))) files.forEach(upload)
   }
 
+  const addUploaded = (file: AttachedFile): void => {
+    if (!fits([file.size])) return
+    setAttachments(current => [
+      ...current,
+      { ...file, id: crypto.randomUUID(), status: 'done', progress: 100 }
+    ])
+    setStatus(
+      t('composer.attachments.uploaded', {
+        name: cleanFileName(file.name) ?? t('email.attachment')
+      })
+    )
+    onChange()
+  }
+
   const remove = (id: string): void => {
     controllers.current.get(id)?.abort()
     controllers.current.delete(id)
@@ -269,6 +289,7 @@ export function useComposerAttachments(
     attachments,
     fits,
     addFiles,
+    addUploaded,
     remove,
     retry,
     previews,

@@ -34,6 +34,37 @@ describe('FileDropZone', () => {
     expect(screen.queryByText('Drop file here to attach them')).toBe(null)
   })
 
+  it('takes the data of its type dragged inside the app', () => {
+    const onFiles = jest.fn()
+    const onData = jest.fn()
+    renderDs(
+      <FileDropZone
+        label="Drop file here"
+        onFiles={onFiles}
+        dataType="application/x-thing"
+        onData={onData}
+        data-testid="zone"
+      >
+        <p>Content</p>
+      </FileDropZone>
+    )
+    const zone = screen.getByTestId('zone')
+    const dataTransfer = {
+      types: ['application/x-thing'],
+      files: [],
+      getData: (type: string): string =>
+        type === 'application/x-thing' ? 'value' : ''
+    }
+
+    fireEvent.dragEnter(zone, { dataTransfer })
+    expect(screen.getByText('Drop file here')).toBeInTheDocument()
+    fireEvent.drop(zone, { dataTransfer })
+
+    expect(onData).toHaveBeenCalledWith('value')
+    expect(onFiles).not.toHaveBeenCalled()
+    expect(screen.queryByText('Drop file here')).toBe(null)
+  })
+
   it('leaves dragged text alone', () => {
     const onFiles = jest.fn()
     renderDs(

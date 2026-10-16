@@ -1,5 +1,5 @@
 import type { EmailBodyPart } from 'jmap-client-ts'
-import { useRef, useState, type ReactElement } from 'react'
+import { useRef, useState, type DragEvent, type ReactElement } from 'react'
 
 import {
   AttachmentCard,
@@ -20,6 +20,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { saveBlob } from '@common/utils/saveBlob'
 
 import { AttachmentPreviewDialog } from './AttachmentPreviewDialog'
+import { writeAttachmentDrag } from './attachmentDrag'
 import { attachmentIcon } from './attachmentIcon'
 import { cleanFileName } from './cleanFileName'
 import { previewKind } from './attachmentPreview'
@@ -210,6 +211,21 @@ export function AttachmentList({
                 : null
             setPreviewed({ part, kind })
           }
+          // Dropped in a message being written, the file is attached
+          // there (tmail-flutter `tf#2172`)
+          const { blobId } = part
+          const handleDragStart = blobId
+            ? (event: DragEvent<HTMLElement>): void => {
+                writeAttachmentDrag(event.dataTransfer, {
+                  accountId,
+                  blobId,
+                  type: part.type,
+                  name,
+                  size: part.size,
+                  charset: part.charset ?? null
+                })
+              }
+            : undefined
           return (
             <AttachmentCard
               key={part.partId ?? part.blobId ?? index}
@@ -222,6 +238,7 @@ export function AttachmentList({
               downloadLabel={t('email.download')}
               onOpen={handleOpen}
               onDownload={handleDownload}
+              onDragStart={handleDragStart}
               data-testid="attachment-item"
             />
           )

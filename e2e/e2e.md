@@ -954,3 +954,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/email.spec.ts`.
 - [x] `EML-40` A link to an anchor of the email (`href="#closing"`) scrolls the reading pane to the element of that id, in the same tab: no new tab opens. — tmail-flutter `tf#4796`
   - Spec: `tests/email.spec.ts`.
+- [x] `SET-16` In Settings → Preferences, the "Theme" radio group (Light checked by default): Dark turns the page dark at once (`color-scheme`, body background), without a reload, and stores `appearance.theme: "dark"` in the account; axe in dark. Auto follows `prefers-color-scheme` live; Light ignores it and restores the light look. Another browser of the user (empty storage) is dark once signed in, and dark from the first paint of the next page load (the inline script of `index.html`); another account signing in after it in that browser is light. — web app only (issue #527)
+  - Spec: `tests/preferences.spec.ts`.

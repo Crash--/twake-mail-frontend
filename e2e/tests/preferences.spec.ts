@@ -1,8 +1,42 @@
+import type { Page } from '@playwright/test'
+
 import { LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
+import { openAccountMenuIfAny } from '../support/accountMenu'
 import { expect, test } from '../support/fixtures'
+import type { JmapClient } from '../support/jmap'
 
 const SETTINGS = 'com:linagora:params:jmap:settings'
+
+/** The colour scheme the document is drawn with (public/index.html, ColorSchemeSync) */
+const colorScheme = (page: Page): Promise<string> =>
+  page.evaluate(() => document.documentElement.style.colorScheme)
+
+const bodyBackground = (page: Page): Promise<string> =>
+  page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+
+const serverTheme = async (jmap: JmapClient): Promise<string | undefined> => {
+  const result = await jmap.call('Settings/get', { ids: null }, [SETTINGS])
+  return (result.list as { settings: Record<string, string> }[])[0]?.settings[
+    'appearance.theme'
+  ]
+}
+
+/**
+ * Records, on `<html data-first-paint-scheme>`, the colour scheme set by the inline script of
+ * index.html once the document is parsed: before the app scripts run, so before React applies
+ * the setting of the account.
+ */
+const recordFirstPaintScheme = async (page: Page): Promise<void> => {
+  await page.addInitScript(() => {
+    document.addEventListener('readystatechange', () => {
+      const root = document.documentElement
+      if (document.readyState === 'interactive') {
+        root.dataset.firstPaintScheme = root.style.colorScheme
+      }
+    })
+  })
+}
 
 test.describe('SET preferences', () => {
   test('SET-01 toggling "Thread" and "Sender-set important flag" in Preferences', async ({
@@ -236,5 +270,74 @@ test.describe('SET preferences', () => {
     await settings.backToMail()
     await expect(mailbox.root).toBeVisible()
     await expect(banner).toHaveCount(0)
+  })
+
+  test('SET-16 the theme applies at once, Auto follows the device, and the account keeps it from the first paint', async ({
+    page,
+    user,
+    users,
+    jmap
+  }) => {
+    await recordFirstPaintScheme(page)
+    await page.emulateMedia({ colorScheme: 'light' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const settings = await mailbox.openSettings()
+    await settings.open('preferences')
+    const theme = page.getByRole('radiogroup', { name: 'Theme' })
+    await expect(theme.getByRole('radio', { name: 'Light' })).toBeChecked()
+    await expect.poll(() => colorScheme(page)).toBe('light')
+    const lightBackground = await bodyBackground(page)
+
+    // Dark: the whole page at once, without a reload, and kept by the account
+    await page.getByTestId('theme-setting-dark').click()
+    await expect(theme.getByRole('radio', { name: 'Dark' })).toBeChecked()
+    await expect.poll(() => colorScheme(page)).toBe('dark')
+    await expect.poll(() => bodyBackground(page)).not.toBe(lightBackground)
+    await expect.poll(() => serverTheme(jmap)).toBe('dark')
+    await expectNoA11yViolations(page)
+
+    // Auto follows the device live
+    await page.getByTestId('theme-setting-auto').click()
+    await expect.poll(() => serverTheme(jmap)).toBe('auto')
+    await expect.poll(() => colorScheme(page)).toBe('light')
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await expect.poll(() => colorScheme(page)).toBe('dark')
+    await page.emulateMedia({ colorScheme: 'light' })
+    await expect.poll(() => colorScheme(page)).toBe('light')
+
+    // Light ignores the device and restores the light look
+    await page.getByTestId('theme-setting-light').click()
+    await expect.poll(() => serverTheme(jmap)).toBe('light')
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await expect.poll(() => colorScheme(page)).toBe('light')
+    await expect.poll(() => bodyBackground(page)).toBe(lightBackground)
+    await page.emulateMedia({ colorScheme: 'light' })
+
+    await page.getByTestId('theme-setting-dark').click()
+    await expect.poll(() => serverTheme(jmap)).toBe('dark')
+
+    // Another browser of the user (nothing in its storage) follows the account
+    await page.context().clearCookies()
+    await page.evaluate(() => {
+      window.localStorage.clear()
+    })
+    await new LoginPage(page).loginAs(user)
+    await expect.poll(() => colorScheme(page)).toBe('dark')
+
+    // ... and is dark from the first paint of the next page load
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-first-paint-scheme',
+      'dark'
+    )
+    await new LoginPage(page).loginAfterReload(user)
+    await expect.poll(() => colorScheme(page)).toBe('dark')
+
+    // Another account signing in after it in that browser is light
+    await openAccountMenuIfAny(page)
+    await page.getByTestId('logout-button').click()
+    await expect(page.getByTestId('login-username-input')).toBeVisible()
+    await new LoginPage(page).loginAs(await users.create({ prefix: 'other' }))
+    await expect.poll(() => colorScheme(page)).toBe('light')
   })
 })

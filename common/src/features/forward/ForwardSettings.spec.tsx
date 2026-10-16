@@ -69,6 +69,7 @@ describe('ForwardSettings', () => {
     )
     expect(fake.forward()).toMatchObject({ forwards: ['bob@example.com'] })
     expect(input).toHaveValue('')
+    expect(input).toHaveFocus()
     const list = await screen.findByRole('list', {
       name: 'Forwarding addresses'
     })

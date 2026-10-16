@@ -170,7 +170,28 @@ describe('sanitizeEmailHtml', () => {
       expect(clean('<p id="good:id">x</p>')).toBe('<p id="good:id">x</p>')
     })
 
-    it('allows http, https, mailto and relative links only', () => {
+    it('opens a www. host in https and drops the other relative links (tf#4874)', () => {
+      expect(clean('<a href="www.linagora.com">site</a>')).toContain(
+        'href="https://www.linagora.com/"'
+      )
+      expect(clean('<a href=" WWW.linagora.com/a?b=1">site</a>')).toContain(
+        'href="https://www.linagora.com/a?b=1"'
+      )
+      expect(clean('<a href="setup.zip">zip</a>')).toBe('<a>zip</a>')
+      expect(clean('<a href="/inbox">app</a>')).toBe('<a>app</a>')
+      expect(clean('<a href="www.x@evil.example.com">x</a>')).toBe('<a>x</a>')
+      expect(clean('<blockquote cite="www.linagora.com">q</blockquote>')).toBe(
+        '<blockquote cite="https://www.linagora.com/">q</blockquote>'
+      )
+    })
+
+    it('writes an anchor without the leading control characters that hide it', () => {
+      expect(clean('<a href="\u0001 #part">part</a>')).toContain('href="#part"')
+      // As the browser does, `#my part` reaches `<a name="my part">`
+      expect(clean('<a href="#my part">part</a>')).toContain('href="#my part"')
+    })
+
+    it('allows http, https, mailto and anchor links only', () => {
       expect(clean('<a href="mailto:bob@example.com">mail</a>')).toContain(
         'href="mailto:bob@example.com"'
       )

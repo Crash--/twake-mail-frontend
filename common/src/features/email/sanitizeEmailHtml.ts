@@ -123,12 +123,32 @@ function compactUrl(value: string): string {
     .join('')
 }
 
-/** tmail-flutter `validLink`: http(s), mailto, or relative (anchors) */
-function isValidLink(value: string): boolean {
+/**
+ * tmail-flutter `validLink`: the link to keep, null for none. http(s) and
+ * mailto as written; anchors without the leading spaces and control
+ * characters that would hide them from `interceptAnchorLinks` (inner spaces
+ * kept, as the browser does); a `www.` host in https (`tf#4874`); no other
+ * relative link, which would resolve against the frame document
+ */
+function safeLink(value: string): string | null {
   const url = compactUrl(value)
-  if (url.startsWith('//')) return false
+  // Only spaces and control characters come before the first `#`
+  if (url.startsWith('#')) return value.slice(value.indexOf('#'))
+  if (/^www\./i.test(url)) {
+    try {
+      const link = new URL(`https://${url}`)
+      // `www.x@evil.example` names another host
+      return /^www\./i.test(link.hostname) && link.username === ''
+        ? link.href
+        : null
+    } catch {
+      return null
+    }
+  }
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(url)?.[1]?.toLowerCase()
-  return scheme === undefined || ['http', 'https', 'mailto'].includes(scheme)
+  return scheme !== undefined && ['http', 'https', 'mailto'].includes(scheme)
+    ? value
+    : null
 }
 
 type ImageSource = 'remote' | 'cid' | 'data' | 'invalid'
@@ -208,12 +228,14 @@ function checkAttribute(
       data.keepAttr = data.attrValue !== ''
       return
     case 'href':
-      data.keepAttr = isValidLink(attrValue)
-      return
-    case 'cite':
+    case 'cite': {
+      const link = safeLink(attrValue)
       data.keepAttr =
-        isValidLink(attrValue) && !/^mailto:/i.test(compactUrl(attrValue))
+        link !== null &&
+        (attrName === 'href' || !/^mailto:/i.test(compactUrl(link)))
+      if (link !== null) data.attrValue = link
       return
+    }
     case 'src':
     case 'longdesc':
       data.keepAttr = classifyImageSource(attrValue) !== 'invalid'

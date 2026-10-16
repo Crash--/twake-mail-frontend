@@ -298,3 +298,35 @@ describe('applyEmailChanges', () => {
     ).toEqual(['o1'])
   })
 })
+
+describe('findCachedEmail', () => {
+  it('finds the emails of a conversation its row does not stand for', () => {
+    const queryClient = setUp()
+    const first = email('t1', 10, {
+      threadId: 't',
+      keywords: { $seen: true }
+    })
+    const last = email('t2', 20, { threadId: 't' })
+    queryClient.setQueryData<EmailListData>(
+      threadKeys.threads(ACCOUNT, INBOX),
+      {
+        pages: [
+          {
+            emails: [last],
+            position: 0,
+            count: 1,
+            total: 1,
+            isLast: true,
+            state: 's1',
+            threads: { t: [first, last] }
+          }
+        ],
+        pageParams: [0]
+      }
+    )
+
+    expect(findCachedEmail(queryClient, ACCOUNT, 't1')).toEqual(first)
+    expect(findCachedEmail(queryClient, ACCOUNT, 't2')).toEqual(last)
+    expect(findCachedEmail(queryClient, ACCOUNT, 'unknown')).toBe(null)
+  })
+})

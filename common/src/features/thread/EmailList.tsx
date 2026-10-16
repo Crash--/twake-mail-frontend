@@ -1,6 +1,7 @@
 import {
   Box,
   CircularProgress,
+  Typography,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
 } from '@linagora/twake-mui'
@@ -272,6 +273,14 @@ export function EmailList(props: EmailListProps): ReactElement {
         : getMailboxName(mailbox)
       : (search.title ?? t('search.title'))
   )
+  // The heading of the view: the name of the folder, or of a virtual one
+  // (Starred, a label). The results of a search have their own.
+  const heading =
+    search === null
+      ? mailbox === null
+        ? null
+        : getMailboxName(mailbox)
+      : (search.title ?? null)
   const isTemplates = mailbox !== null && isTemplatesMailbox(mailbox)
   // The Drafts and Templates of a team mailbox are known by their name
   const showRecipients =
@@ -729,6 +738,17 @@ export function EmailList(props: EmailListProps): ReactElement {
     <EmailSelectionContext.Provider value={selection}>
       {listActions.banner}
       <ListPane>
+        {/* For the screen readers: the design names the view in the
+            sidebar only */}
+        {heading === null ? null : (
+          <Typography
+            variant="h1"
+            className="u-visuallyhidden"
+            data-testid="email-list-title"
+          >
+            {heading}
+          </Typography>
+        )}
         {selectionBarSlot !== null && listActions.toolbar !== null
           ? createPortal(listActions.toolbar, selectionBarSlot)
           : null}

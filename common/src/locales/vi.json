@@ -414,7 +414,10 @@
       "editEmail": "Sửa địa chỉ",
       "createRule": "Tạo quy tắc thư",
       "moveHelp": "Alt+Lên hoặc Alt+Xuống để chuyển sang trường phía trên hoặc phía dưới.",
-      "moved": "Đã chuyển %{address} sang %{field}"
+      "moved": "Đã chuyển %{address} sang %{field}",
+      "invalidLines": "%{file}: dòng %{lines} không phải là địa chỉ hợp lệ.",
+      "notAddressFile": "%{file} không phải là tệp văn bản chứa địa chỉ.",
+      "fileUnreadable": "Không thể đọc tệp đã thả."
     },
     "limit": "Bạn có thể soạn %{smart_count} thư cùng lúc. Hãy đóng một thư để bắt đầu thư khác.",
     "sent": "Tin nhắn đã được gửi",

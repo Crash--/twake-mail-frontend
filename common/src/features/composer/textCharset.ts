@@ -69,3 +69,9 @@ export async function fileCharset(
   if (!needsCharset(type)) return null
   return detectCharset(await readBytes(file))
 }
+
+/** The text of a file, decoded with its charset */
+export async function readText(file: Blob): Promise<string> {
+  const bytes = await readBytes(file)
+  return new TextDecoder(detectCharset(bytes)).decode(bytes)
+}

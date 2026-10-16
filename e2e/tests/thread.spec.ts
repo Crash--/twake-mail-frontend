@@ -510,8 +510,8 @@ test.describe('THR thread detail', () => {
         .toBe(undefined)
       expect((await jmap.getEmail(original.id)).keywords.$seen).toBe(true)
 
-      // Moved to the Trash, the first message stays in the conversation,
-      // the conversation stays open: the reply is still in the Inbox
+      // Moved to the Trash, the first message leaves the conversation, which
+      // stays open: the reply is still in the Inbox
       await conversation.toggle(first).click()
       await (
         await conversation.openMore(first)
@@ -524,7 +524,7 @@ test.describe('THR thread detail', () => {
           Object.keys((await jmap.getEmail(original.id)).mailboxIds)
         )
         .toEqual([trash.id])
-      await expect(conversation.messages).toHaveCount(2)
+      await expect(conversation.messages).toHaveCount(1)
       await expect(conversation.subject).toBeVisible()
     }
   )

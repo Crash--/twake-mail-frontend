@@ -433,4 +433,50 @@ describe('Acting on emails of the list', () => {
       window.localStorage.clear()
     }
   })
+
+  it.each([
+    ['Trash', 'mailbox-trash', {}],
+    ['Spam', 'mailbox-spam', {}],
+    ['Drafts', 'mailbox-drafts', { $draft: true as const }]
+  ])(
+    'deletes forever only the emails in %s of a conversation shown there',
+    async (_folder, mailboxId, keywords) => {
+      window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+      const server = makeServer([
+        makeEmail({
+          id: 'deleted',
+          threadId: 'plan',
+          subject: 'Plan',
+          mailboxIds: { [mailboxId]: true },
+          keywords,
+          receivedAt: '2026-01-01T08:00:00Z'
+        }),
+        makeEmail({
+          id: 'reply',
+          threadId: 'plan',
+          subject: 'Re: Plan',
+          receivedAt: '2026-01-02T08:00:00Z'
+        })
+      ])
+      try {
+        await renderList(server, mailboxId)
+
+        fireEvent.contextMenu(row('Plan'), { clientX: 120, clientY: 80 })
+        await userEvent.click(
+          await screen.findByRole('menuitem', { name: 'Delete permanently' })
+        )
+        await userEvent.click(
+          within(await screen.findByRole('dialog')).getByRole('button', {
+            name: 'Delete'
+          })
+        )
+
+        await waitFor(() => {
+          expect(server.emails.map(email => email.id)).toEqual(['reply'])
+        })
+      } finally {
+        window.localStorage.clear()
+      }
+    }
+  )
 })

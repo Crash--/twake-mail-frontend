@@ -445,6 +445,32 @@ describe('ConversationView', () => {
     })
   })
 
+  it('leaves out its messages in Trash, and moves the others only', async () => {
+    const server = makeServer()
+    server.updateEmail('a', { mailboxIds: { 'mailbox-trash': true } })
+    await renderConversation(server)
+    expect(screen.getAllByTestId('conversation-message-toggle')).toHaveLength(2)
+    const before = server.requests.length
+
+    await userEvent.click(
+      within(await openConversationMenu()).getByRole('menuitem', {
+        name: 'Mark the conversation as spam'
+      })
+    )
+
+    await waitFor(() => {
+      const updated = server.requests
+        .slice(before)
+        .flatMap(request => request.methodCalls)
+        .filter(([name]) => name === 'Email/set')
+        .flatMap(([, args]) => Object.keys(args.update ?? {}))
+      expect(updated.sort()).toEqual(['b', 'c'])
+    })
+    expect(server.emails.find(email => email.id === 'a')?.mailboxIds).toEqual({
+      'mailbox-trash': true
+    })
+  })
+
   it('offers neither Archive nor Spam in a team mailbox, its Trash being the team one', async () => {
     const server = makeFakeJmapServer({
       mailboxes: [
@@ -711,11 +737,47 @@ describe('ConversationView, an expanded message', () => {
     })
   })
 
-  it('offers the actions of the folder of the message', async () => {
+  it('reads none of its messages in Trash when the folders load after it', async () => {
     const server = makeServer()
-    const bob = server.emails.find(email => email.id === 'a')
-    if (bob) bob.mailboxIds = { 'mailbox-trash': true }
-    await renderRead(server)
+    // Both unread: Carol's in Trash, Bob's in the Inbox
+    server.updateEmail('b', { mailboxIds: { 'mailbox-trash': true } })
+    server.updateEmail('a', { keywords: {} })
+    const release = server.holdRequests('Mailbox/get')
+    renderWithProviders(
+      <ConversationView threadId={THREAD} emailId="c" onBack={jest.fn()} />,
+      { withJmapSession: true, jmapServer: server }
+    )
+    await waitFor(() => {
+      expect(server.calledMethods()).toContain('Thread/get')
+    })
+    release()
+
+    await screen.findByRole('list', { name: 'Messages of the conversation' })
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'a')?.keywords).toEqual({
+        $seen: true
+      })
+    })
+    expect(server.emails.find(email => email.id === 'b')?.keywords).toEqual({})
+  })
+
+  it('offers the actions of Trash to its messages in Trash, shown from Trash', async () => {
+    const server = makeServer()
+    for (const email of server.emails) {
+      if (email.id === 'a' || email.id === 'b') {
+        email.mailboxIds = { 'mailbox-trash': true }
+      }
+    }
+    renderWithProviders(
+      <ConversationView
+        threadId={THREAD}
+        emailId="b"
+        mailboxId="mailbox-trash"
+        onBack={jest.fn()}
+      />,
+      { withJmapSession: true, jmapServer: server }
+    )
+    await screen.findByRole('list', { name: 'Messages of the conversation' })
 
     await userEvent.click(toggle(/Bob Dupont/))
 
@@ -724,11 +786,55 @@ describe('ConversationView, an expanded message', () => {
         name: 'Delete permanently'
       })
     ).toBeVisible()
+    // Dan's reply, in the Inbox, stays out of it
+    expect(screen.getAllByTestId('conversation-message-toggle')).toHaveLength(2)
+  })
+
+  it('offers the actions of the Inbox to its messages in the Inbox, its message in Trash left out', async () => {
+    const server = makeServer()
+    server.updateEmail('a', { mailboxIds: { 'mailbox-trash': true } })
+    renderWithProviders(
+      <ConversationView
+        threadId={THREAD}
+        emailId="c"
+        mailboxId="mailbox-inbox"
+        onBack={jest.fn()}
+      />,
+      { withJmapSession: true, jmapServer: server }
+    )
+    await screen.findByRole('list', { name: 'Messages of the conversation' })
+
     expect(
       within(messageActions(/Dan/)).getByRole('button', {
         name: 'Move to trash'
       })
     ).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Delete permanently' })).toBe(
+      null
+    )
+    expect(
+      screen
+        .getAllByTestId('conversation-message-toggle')
+        .map(element => element.textContent)
+    ).toEqual([expect.stringMatching(/Carol/), expect.stringMatching(/Dan/)])
+  })
+
+  it('shows and reads the opened message alone when the folders cannot load', async () => {
+    const server = makeServer()
+    // Bob's and Carol's messages are unread, the opened one is read
+    server.updateEmail('a', { keywords: {} })
+    server.methodErrors.set('Mailbox/get', 'serverFail')
+    renderWithProviders(
+      <ConversationView threadId={THREAD} emailId="c" onBack={jest.fn()} />,
+      { withJmapSession: true, jmapServer: server }
+    )
+    await screen.findByRole('list', { name: 'Messages of the conversation' })
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
+
+    expect(screen.getAllByTestId('conversation-message-toggle')).toHaveLength(1)
+    expect(server.callsOf('Email/set')).toEqual([])
   })
 
   it('opens the contact card of its sender', async () => {
@@ -838,14 +944,40 @@ describe('ConversationView, an expanded message', () => {
         { 'mailbox-trash': true }
       )
     })
-    // Still in the conversation, with its new folder
-    expect(toggle(/Dan/)).toBeVisible()
+    // In Trash, it leaves the conversation, which stays open
+    await waitFor(() => {
+      expect(screen.getAllByTestId('conversation-message-toggle')).toHaveLength(
+        2
+      )
+    })
     expect(onBack).not.toHaveBeenCalled()
 
     await trash(/Carol/)
     await trash(/Bob Dupont/)
     await waitFor(() => {
       expect(onBack).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('keeps the other messages when the result it was opened from goes to Trash', async () => {
+    const server = makeServer()
+    await renderConversation(server)
+
+    await userEvent.click(
+      await within(messageActions(/Dan/)).findByRole('button', {
+        name: 'Move to trash'
+      })
+    )
+
+    await waitFor(() => {
+      expect(
+        screen
+          .getAllByTestId('conversation-message-toggle')
+          .map(element => element.textContent)
+      ).toEqual([
+        expect.stringMatching(/Bob Dupont/),
+        expect.stringMatching(/Carol/)
+      ])
     })
   })
 

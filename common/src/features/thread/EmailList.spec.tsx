@@ -912,6 +912,51 @@ describe('EmailList', () => {
     window.localStorage.clear()
   })
 
+  it('stands a conversation row for its email alone until the folders load', async () => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+    const server = makeFakeJmapServer({
+      emails: [
+        makeEmail({
+          id: 'deleted',
+          threadId: 'plan',
+          subject: 'Plan',
+          mailboxIds: { 'mailbox-trash': true },
+          receivedAt: '2026-10-01T08:00:00Z'
+        }),
+        makeEmail({
+          id: 'reply',
+          threadId: 'plan',
+          subject: 'Re: Plan',
+          receivedAt: '2026-10-03T08:00:00Z'
+        })
+      ]
+    })
+    const release = server.holdRequests('Mailbox/get')
+    try {
+      renderList(server)
+      const row = await screen.findByTestId('email-list-item')
+      expect(
+        screen.getByRole('link', { name: /Re: Plan/ })
+      ).not.toHaveAccessibleName(/2 messages/)
+
+      await userEvent.click(
+        within(row).getByRole('button', { name: 'Mark as read' })
+      )
+      release()
+
+      await waitFor(() => {
+        const updated = server.requests
+          .flatMap(request => request.methodCalls)
+          .filter(([name]) => name === 'Email/set')
+          .flatMap(([, args]) => Object.keys(args.update ?? {}))
+        expect(updated).toEqual(['reply'])
+      })
+    } finally {
+      release()
+      window.localStorage.clear()
+    }
+  })
+
   it('shows on a conversation row the labels of the email that stands for it', async () => {
     window.localStorage.setItem('twake-mail.preferences.thread', 'true')
     const server = makeFakeJmapServer({

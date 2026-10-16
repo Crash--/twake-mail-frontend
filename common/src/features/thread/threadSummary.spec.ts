@@ -1,15 +1,30 @@
+import { normalizeMailbox } from '@common/features/mailbox/queries'
+import { makeMailbox } from '@common/testing/fakeJmapServer'
+
 import type { ThreadMember } from './queries'
 import {
+  getFolderSides,
   getTeamMailboxIds,
   isReceivedFromOthers,
+  onSide,
   summarizeThread,
   withoutTeamCopies,
+  type FolderSides,
   type ThreadContext
 } from './threadSummary'
 
 const ME = 'alice@example.com'
 const TEAM_SENT = 'team-sent'
 const TEAM_MAILBOX_IDS: ReadonlySet<string> = new Set([TEAM_SENT])
+const SIDES: FolderSides = {
+  sideOf: new Map([
+    ['trash', 'trash'],
+    ['trash-old', 'trash'],
+    ['spam', 'spam'],
+    ['drafts', 'drafts']
+  ]),
+  keptElsewhere: new Set(['drafts'])
+}
 
 function context(rowEmailId = 'm1'): ThreadContext {
   return {
@@ -17,6 +32,7 @@ function context(rowEmailId = 'm1'): ThreadContext {
     meLabel: 'Me',
     sentId: 'sent',
     teamMailboxIds: TEAM_MAILBOX_IDS,
+    sides: SIDES,
     rowEmailId
   }
 }
@@ -195,5 +211,72 @@ describe('getTeamMailboxIds', () => {
         { id: TEAM_SENT, namespace: 'TeamMailbox[team@example.com]' }
       ])
     ).toEqual(new Set([TEAM_SENT]))
+  })
+})
+
+describe('onSide', () => {
+  const BOB = { email: 'bob@example.com' }
+  const deleted = member('m1', BOB, { mailboxIds: { trash: true } })
+  const reply = member('m2', BOB)
+  const draft = member('m3', { email: ME }, { mailboxIds: { drafts: true } })
+  const spam = member('m4', BOB, { mailboxIds: { spam: true } })
+  const filed = member('m5', BOB, { mailboxIds: { 'trash-old': true } })
+  const emails = [deleted, reply, draft, spam, filed]
+  const ids = (side: string | null): string[] =>
+    onSide(emails, side, SIDES).map(email => email.id)
+
+  it('leaves the emails of Trash and Spam out of a conversation shown elsewhere, not its drafts', () => {
+    expect(ids(null)).toEqual(['m2', 'm3'])
+  })
+
+  it('keeps only the emails of Trash, its subfolders included, shown from Trash', () => {
+    expect(ids('trash')).toEqual(['m1', 'm5'])
+  })
+
+  it('keeps only the emails of Spam shown from Spam', () => {
+    expect(ids('spam')).toEqual(['m4'])
+  })
+
+  it('keeps only the drafts shown from Drafts', () => {
+    expect(ids('drafts')).toEqual(['m3'])
+  })
+
+  it('leaves them out of the members a conversation row acts on', () => {
+    expect(
+      summarizeThread([deleted, reply], context('m2')).members.map(
+        email => email.id
+      )
+    ).toEqual(['m2'])
+  })
+})
+
+describe('getFolderSides', () => {
+  it('puts each folder on the side of the folder deleting forever it is in', () => {
+    const team = 'TeamMailbox[team@example.com]'
+    const sides = getFolderSides(
+      [
+        makeMailbox({ id: 'trash', name: 'Trash', role: 'trash' }),
+        makeMailbox({ id: 'trash-old', name: 'Old', parentId: 'trash' }),
+        makeMailbox({ id: 'inbox', name: 'INBOX', role: 'inbox' }),
+        makeMailbox({ id: 'spam', name: 'Spam', role: 'junk' }),
+        makeMailbox({ id: 'drafts', name: 'Drafts', role: 'drafts' }),
+        makeMailbox({ id: 'team', name: 'team', namespace: team }),
+        makeMailbox({
+          id: 'team-trash',
+          name: 'Trash',
+          namespace: team,
+          parentId: 'team'
+        })
+      ].map(normalizeMailbox)
+    )
+
+    expect(Object.fromEntries(sides.sideOf)).toEqual({
+      trash: 'trash',
+      'trash-old': 'trash',
+      spam: 'spam',
+      drafts: 'drafts',
+      'team-trash': 'team-trash'
+    })
+    expect(sides.keptElsewhere).toEqual(new Set(['drafts']))
   })
 })

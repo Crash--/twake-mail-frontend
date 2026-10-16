@@ -7,7 +7,11 @@ import {
   hasKeyword,
   SEEN
 } from '@common/features/email/keywords'
-import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
+import { deletesForever } from '@common/features/emailActions/useRemoveEmails'
+import {
+  isDraftsMailbox,
+  isPersonalMailbox
+} from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 
 import type { MessageIdentity, ThreadMember } from './queries'
@@ -115,6 +119,73 @@ export function withoutTeamCopies<
   )
 }
 
+/**
+ * The folders whose emails are deleted forever (Trash, Spam and Drafts,
+ * the Trash and Drafts of the team mailboxes, and their subfolders): the
+ * sides a conversation is shown from
+ */
+export interface FolderSides {
+  /** The folder deleting forever that each folder is in, by folder id */
+  sideOf: ReadonlyMap<string, string>
+  /** The Drafts: their emails stay in the conversations shown elsewhere */
+  keptElsewhere: ReadonlySet<string>
+}
+
+export function getFolderSides(
+  mailboxes: readonly MailboxSummary[]
+): FolderSides {
+  const byId = new Map(mailboxes.map(mailbox => [mailbox.id, mailbox]))
+  const sideOf = new Map<string, string>()
+  for (const mailbox of mailboxes) {
+    let current: MailboxSummary | undefined = mailbox
+    while (current !== undefined && !deletesForever(current)) {
+      current =
+        current.parentId === null ? undefined : byId.get(current.parentId)
+    }
+    if (current !== undefined) sideOf.set(mailbox.id, current.id)
+  }
+  return {
+    sideOf,
+    keptElsewhere: new Set(
+      mailboxes.filter(mailbox => isDraftsMailbox(mailbox)).map(({ id }) => id)
+    )
+  }
+}
+
+/** The folder deleting forever an email is in; null for the others */
+export function sideOfEmail(
+  email: Pick<ThreadMember, 'mailboxIds'> | undefined,
+  sides: FolderSides
+): string | null {
+  for (const id of Object.keys(email?.mailboxIds ?? {})) {
+    const side = sides.sideOf.get(id)
+    if (side !== undefined) return side
+  }
+  return null
+}
+
+/**
+ * A thread can hold emails the user deleted (in Trash), others in Spam,
+ * drafts and the rest. The conversation shows one side: shown from a folder
+ * deleting forever, only its emails, so that deleting it forever destroys
+ * none of the others; shown elsewhere (`side` null), none of the emails of
+ * Trash and Spam, so that archiving it does not take them out. Its drafts
+ * stay there, to be edited.
+ */
+export function onSide<T extends Pick<ThreadMember, 'mailboxIds'>>(
+  emails: readonly T[],
+  side: string | null,
+  sides: FolderSides
+): T[] {
+  return emails.filter(email => {
+    const own = sideOfEmail(email, sides)
+    return (
+      own === side ||
+      (side === null && own !== null && sides.keptElsewhere.has(own))
+    )
+  })
+}
+
 /** Where the row of a conversation stands */
 export interface ThreadContext {
   /** The address of the user, said "me" */
@@ -124,6 +195,8 @@ export interface ThreadContext {
   sentId: string | null
   /** The folders of the team mailboxes, whose copies of a mail are hidden */
   teamMailboxIds: ReadonlySet<string>
+  /** The folders deleting forever, whose emails stay apart (`onSide`) */
+  sides: FolderSides
   /** The email the row stands for: counted, whatever it is */
   rowEmailId: string
 }
@@ -133,13 +206,33 @@ export interface ThreadContext {
  * first): its participants, as most webmails write them ("Alice, Bob, me"),
  * its state, the state of any of its emails, and the number of messages the
  * conversation shows (not the copy in Sent of an email sent to oneself).
- * The copies of a team mailbox on the other side than the row are left out.
+ * The copies of a team mailbox, and the emails of another side than the
+ * row (`onSide`), are left out.
  */
 export function summarizeThread(
   threadMembers: readonly ThreadMember[],
-  { ownAddress, meLabel, sentId, teamMailboxIds, rowEmailId }: ThreadContext
+  {
+    ownAddress,
+    meLabel,
+    sentId,
+    teamMailboxIds,
+    sides,
+    rowEmailId
+  }: ThreadContext
 ): ThreadSummary {
-  const members = withoutTeamCopies(threadMembers, rowEmailId, teamMailboxIds)
+  const sideMembers = withoutTeamCopies(
+    threadMembers,
+    rowEmailId,
+    teamMailboxIds
+  )
+  const members = onSide(
+    sideMembers,
+    sideOfEmail(
+      sideMembers.find(member => member.id === rowEmailId),
+      sides
+    ),
+    sides
+  )
   const participants: string[] = []
   for (const member of members) {
     for (const address of member.from ?? []) {

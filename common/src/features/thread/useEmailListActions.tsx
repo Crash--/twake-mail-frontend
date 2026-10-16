@@ -95,7 +95,8 @@ export function useEmailListActions({
   mailboxId,
   total,
   expandTargets = rows => [...rows],
-  onFocusList
+  onFocusList,
+  keepFocusAfterRow
 }: {
   emails: readonly EmailListItemData[]
   selection: EmailSelection
@@ -107,6 +108,8 @@ export function useEmailListActions({
   expandTargets?: (rows: readonly EmailListItemData[]) => TargetEmail[]
   /** Gives the focus back to the list once the selection went */
   onFocusList: () => void
+  /** Keeps the focus in the list while a row acted on leaves it */
+  keepFocusAfterRow: (emailId: string, action: Promise<boolean>) => void
 }): EmailListActions {
   const { t } = useI18n()
   const client = useJmapClient()
@@ -168,24 +171,40 @@ export function useEmailListActions({
     onFocusList()
   }, [selection, onFocusList])
 
+  /**
+   * Runs the action of a row button: on the selection the row is in, the
+   * focus then goes back to the list; on the row alone, to the row taking
+   * its place
+   */
+  const actOnRow = useCallback(
+    (
+      email: EmailListItemData,
+      act: (targets: readonly TargetEmail[]) => Promise<boolean>
+    ): void => {
+      const action = act(targetsOf(email))
+      if (selection.isSelected(email.id) && selection.selected.length > 1) {
+        void action.then(done => {
+          if (done) handleDone()
+        })
+      } else {
+        keepFocusAfterRow(email.id, action)
+      }
+    },
+    [targetsOf, selection, handleDone, keepFocusAfterRow]
+  )
+
   const onRemove = useCallback(
     (email: EmailListItemData): void => {
-      const targets = targetsOf(email)
-      void removeEmails(targets, mailboxId).then(done => {
-        if (done && targets.length > 1) handleDone()
-      })
+      actOnRow(email, targets => removeEmails(targets, mailboxId))
     },
-    [targetsOf, removeEmails, mailboxId, handleDone]
+    [actOnRow, removeEmails, mailboxId]
   )
 
   const onMove = useCallback(
     (email: EmailListItemData): void => {
-      const targets = targetsOf(email)
-      void runEmailAction('move', targets, mailboxId).then(done => {
-        if (done && targets.length > 1) handleDone()
-      })
+      actOnRow(email, targets => runEmailAction('move', targets, mailboxId))
     },
-    [targetsOf, runEmailAction, mailboxId, handleDone]
+    [actOnRow, runEmailAction, mailboxId]
   )
 
   const onOpenMenu = useCallback(

@@ -1,5 +1,5 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { useParams } from 'react-router'
@@ -286,6 +286,53 @@ describe('Acting on emails of the list', () => {
     expect(await screen.findByTestId('toast')).toHaveTextContent(
       'Moved to Work'
     )
+  })
+
+  it('focuses the row taking the place of the one moved to the Trash from its button', async () => {
+    await renderList(makeServer())
+    const user = userEvent.setup()
+    act(() => {
+      within(row('Email 1'))
+        .getByRole('button', { name: 'Move to trash' })
+        .focus()
+    })
+
+    await user.keyboard('{Enter}')
+
+    await waitFor(() => {
+      expect(within(row('Email 2')).getByRole('link')).toHaveFocus()
+    })
+  })
+
+  it('focuses the previous row when the last one leaves from its button', async () => {
+    await renderList(makeServer())
+    await userEvent.click(
+      within(row('Email 3')).getByRole('button', { name: 'Move to trash' })
+    )
+
+    await waitFor(() => {
+      expect(within(row('Email 2')).getByRole('link')).toHaveFocus()
+    })
+  })
+
+  it('focuses the row taking the place of the one moved from its button', async () => {
+    const server = makeServer()
+    await renderList(server)
+
+    await userEvent.click(
+      within(row('Email 1')).getByRole('button', { name: 'Move message' })
+    )
+    await screen.findByRole('dialog', { name: 'Move To' })
+    await userEvent.keyboard('wor{Enter}')
+
+    await waitFor(() => {
+      expect(
+        server.emails.find(email => email.id === 'e1')?.mailboxIds
+      ).toEqual({ work: true })
+    })
+    await waitFor(() => {
+      expect(within(row('Email 2')).getByRole('link')).toHaveFocus()
+    })
   })
 
   it('offers not the root of a team mailbox, a container, as a destination', async () => {

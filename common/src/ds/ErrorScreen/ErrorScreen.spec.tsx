@@ -30,4 +30,20 @@ describe('ErrorScreen', () => {
     expect(screen.queryByRole('button')).toBe(null)
     expect(screen.getByTestId('broken')).toHaveTextContent('Broken')
   })
+
+  it('leaves the focus alone, under a level-3 title, by default', () => {
+    renderDs(<ErrorScreen title="Broken" />)
+
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Broken' })
+    ).not.toHaveFocus()
+  })
+
+  it('puts the focus on its title at the level it is given', () => {
+    renderDs(<ErrorScreen title="Broken" headingLevel="h1" autoFocus />)
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Broken' })
+    ).toHaveFocus()
+  })
 })

@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import { Navigate } from 'react-router'
 
 import { Folder } from '@/ds/FlutterIcons/FlutterIcons'
-import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
+import { ViewErrorScreen } from '@common/components/ViewErrorScreen'
 import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { findTeamInboxId } from '@common/features/teamMailboxEmbed/teamMailbox'
 import { EmailListPageSkeleton } from '@common/features/thread/EmailListSkeleton'
@@ -28,7 +28,7 @@ export function DefaultMailboxRedirect(): ReactElement {
       void query.refetch()
     }
     return (
-      <ErrorScreen
+      <ViewErrorScreen
         title={t('common.errorOccurred')}
         actionLabel={t('common.retry')}
         onAction={handleRetry}
@@ -41,7 +41,7 @@ export function DefaultMailboxRedirect(): ReactElement {
     const teamInboxId = findTeamInboxId(query.data, teamRootId)
     if (teamInboxId === null) {
       return (
-        <ErrorScreen
+        <ViewErrorScreen
           title={t('teamMailboxEmbed.unavailableTitle')}
           description={t('teamMailboxEmbed.unavailableDescription')}
           data-testid="team-mailbox-unavailable"

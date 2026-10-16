@@ -149,6 +149,21 @@ describe('teamMailboxEmbedRouteElements', () => {
     expect(screen.queryByTestId('mailbox-page')).toBe(null)
   })
 
+  it('names the page and focuses its heading when the team mailbox is not available', async () => {
+    renderRoutes(`${BASE}/`, 'other')
+
+    const heading = await screen.findByRole('heading', {
+      level: 1,
+      name: 'This team mailbox is not available'
+    })
+    expect(heading).toHaveFocus()
+    await waitFor(() => {
+      expect(document.title).toBe(
+        'This team mailbox is not available - Twake Mail'
+      )
+    })
+  })
+
   it('offers no new message when the user is not a member of the team mailbox', async () => {
     const user = userEvent.setup()
     renderRoutes(`${BASE}/`, 'other')

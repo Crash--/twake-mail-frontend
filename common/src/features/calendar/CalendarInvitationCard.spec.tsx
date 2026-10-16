@@ -323,6 +323,24 @@ describe('CalendarInvitationCard', () => {
     expect(screen.queryByRole('group', { name: 'Attending?' })).toBe(null)
   })
 
+  it.each([
+    ['plain text', 'Join online meeting<https://join.skype.com/x>'],
+    ['HTML', '<p>Join online meeting<https://join.skype.com/x></p>']
+  ])(
+    'shows the meeting link Outlook writes in angle brackets, in %s (tf#3347)',
+    async (_, description) => {
+      renderView(makeServer({ ...INVITATION, description }))
+
+      const text = await screen.findByTestId('calendar-event-description')
+      expect(text).toHaveTextContent(
+        'Join online meeting<https://join.skype.com/x>'
+      )
+      expect(
+        within(text).getByRole('link', { name: 'https://join.skype.com/x' })
+      ).toHaveAttribute('href', 'https://join.skype.com/x')
+    }
+  )
+
   it('reads no event without the capability', async () => {
     const server = makeServer(INVITATION, { capability: null })
     renderView(server)

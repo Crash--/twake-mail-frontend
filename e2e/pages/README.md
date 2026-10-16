@@ -345,3 +345,4 @@ Conventions:
 | `pdf-password-form` / `pdf-password-input` | in `pdf-preview`, the form asking the password of an encrypted PDF (title, password field, "Open"); shown again with "Incorrect password" while it is wrong | — |
 | `advanced-search-start-date-input` / `advanced-search-end-date-input` | the start and end dates of the advanced search (`type="date"`), shown when its date is "Custom range"; the end date carries the error of a range ending before it starts | — |
 | `composer-print-item` | issue #548: "Print" in the More menu of the composer (every width), after "Save as template": prints the message as written (identity, recipients, body, attached files) through `print-frame` | `printDraft` (tf#3427) |
+| `composer-attachment-open-button` | an uploaded file of the composer, opened from its chip as an attachment of a received email: previewed (`attachment-preview`) when it can be, downloaded otherwise (tmail-flutter #4050) | `AttachmentItemComposerWidget` |

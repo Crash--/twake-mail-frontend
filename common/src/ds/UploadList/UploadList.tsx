@@ -6,6 +6,7 @@ import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   Button,
+  ButtonBase,
   IconButton,
   Tooltip,
   Typography
@@ -34,6 +35,11 @@ export interface UploadListItem {
   icon: ReactNode
   /** A small picture of the file (an image), replacing the icon */
   thumbnailUrl?: string
+  /**
+   * What a click on an uploaded file does, e.g. "Preview" or "Download":
+   * the file can be opened when the list has `onOpen` and the item a label
+   */
+  openLabel?: string
 }
 
 export interface UploadListLabels {
@@ -56,6 +62,7 @@ export interface UploadListLabels {
 export interface UploadTestIds {
   list?: string
   item?: string
+  open?: string
   remove?: string
   retry?: string
   toggle?: string
@@ -66,6 +73,8 @@ export interface UploadListProps {
   labels: UploadListLabels
   onRemove: (id: string) => void
   onRetry: (id: string) => void
+  /** Opens (previews or downloads) an uploaded file */
+  onOpen?: (id: string) => void
   /**
    * Files shown while the list is folded. The fold is offered only when
    * every file is uploaded and there are more than this (tmail-flutter);
@@ -131,6 +140,15 @@ const NAME_SX = {
   color: 'text.primary'
 } as const
 
+/** The open button lays out its icon, name and size as the chip does */
+const OPEN_SX = {
+  gap: '8px',
+  minWidth: 0,
+  justifyContent: 'flex-start',
+  textAlign: 'start',
+  borderRadius: '4px'
+} as const
+
 const SIZE_SX = {
   flexShrink: 0,
   fontSize: 11,
@@ -176,19 +194,64 @@ export interface UploadChipProps {
   >
   onRemove: (id: string) => void
   onRetry: (id: string) => void
+  onOpen?: (id: string) => void
   testIds?: UploadTestIds
 }
 
-/** One file: icon, name, size, progress bar, retry and remove buttons */
+/**
+ * One file: icon, name, size, progress bar, retry and remove buttons. Once
+ * uploaded, its icon, name and size may be a button opening it
+ */
 export function UploadChip({
   item,
   labels,
   onRemove,
   onRetry,
+  onOpen,
   testIds = {}
 }: UploadChipProps): ReactElement {
   const isFailed = item.status === 'failed'
   const isUploading = item.status === 'uploading'
+  const summary = (
+    <>
+      {item.thumbnailUrl === undefined ? (
+        <Box
+          className="u-flex u-flex-shrink-0"
+          sx={{
+            color: isFailed ? 'error.main' : undefined,
+            '& svg': { width: 20, height: 20 }
+          }}
+          aria-hidden="true"
+        >
+          {isFailed ? (
+            <Icon icon={Warning} size={20} color="currentColor" />
+          ) : (
+            item.icon
+          )}
+        </Box>
+      ) : (
+        <Box
+          component="img"
+          src={item.thumbnailUrl}
+          alt=""
+          sx={{
+            width: 20,
+            height: 20,
+            flexShrink: 0,
+            borderRadius: '2px',
+            objectFit: 'cover'
+          }}
+        />
+      )}
+      <MiddleEllipsis name={item.name} />
+      <Typography
+        component="span"
+        sx={{ ...SIZE_SX, color: isFailed ? 'error.main' : SIZE_COLOR }}
+      >
+        {isFailed ? labels.failed : item.size}
+      </Typography>
+    </>
+  )
   return (
     <Box
       component="li"
@@ -215,42 +278,23 @@ export function UploadChip({
         sx={{ gap: '6px', minWidth: 0 }}
       >
         <Box className="u-flex u-flex-items-center" sx={{ gap: '8px' }}>
-          {item.thumbnailUrl === undefined ? (
-            <Box
-              className="u-flex u-flex-shrink-0"
-              sx={{
-                color: isFailed ? 'error.main' : undefined,
-                '& svg': { width: 20, height: 20 }
+          {onOpen !== undefined &&
+          item.openLabel !== undefined &&
+          item.status === 'done' ? (
+            <ButtonBase
+              className="u-flex u-flex-items-center u-flex-auto"
+              sx={OPEN_SX}
+              aria-label={`${item.openLabel} ${item.name} (${item.size})`}
+              onClick={() => {
+                onOpen(item.id)
               }}
-              aria-hidden="true"
+              data-testid={testIds.open}
             >
-              {isFailed ? (
-                <Icon icon={Warning} size={20} color="currentColor" />
-              ) : (
-                item.icon
-              )}
-            </Box>
+              {summary}
+            </ButtonBase>
           ) : (
-            <Box
-              component="img"
-              src={item.thumbnailUrl}
-              alt=""
-              sx={{
-                width: 20,
-                height: 20,
-                flexShrink: 0,
-                borderRadius: '2px',
-                objectFit: 'cover'
-              }}
-            />
+            summary
           )}
-          <MiddleEllipsis name={item.name} />
-          <Typography
-            component="span"
-            sx={{ ...SIZE_SX, color: isFailed ? 'error.main' : SIZE_COLOR }}
-          >
-            {isFailed ? labels.failed : item.size}
-          </Typography>
           {item.status === 'done' ? (
             <>
               <Box
@@ -349,6 +393,7 @@ export function UploadList({
   labels,
   onRemove,
   onRetry,
+  onOpen,
   foldedCount = null,
   status,
   testIds = {}
@@ -388,6 +433,7 @@ export function UploadList({
               labels={labels}
               onRemove={onRemove}
               onRetry={onRetry}
+              {...(onOpen === undefined ? {} : { onOpen })}
               testIds={testIds}
             />
           ))}

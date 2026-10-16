@@ -907,14 +907,21 @@ export function makeFakeJmapServer(
             Object.keys(value).map(key => [key, true as const])
           )
         : {}
+    /** The part gets its own blob id, serving the content of its upload */
+    const partBlobId = (blobId: unknown, index: number): string | null => {
+      if (typeof blobId !== 'string') return null
+      const partId = `${id}_${index + 3}`
+      const content = server.blobs.get(blobId)
+      if (content !== undefined) server.blobs.set(partId, content)
+      return partId
+    }
     const parts = (value: unknown): EmailBodyPart[] =>
       Array.isArray(value)
         ? value.filter(isRecord).map((part, index) =>
             makeBodyPart({
               ...part,
               type: typeof part.type === 'string' ? part.type : 'text/plain',
-              blobId:
-                typeof part.blobId === 'string' ? `${id}_${index + 3}` : null,
+              blobId: partBlobId(part.blobId, index),
               partId: typeof part.partId === 'string' ? part.partId : null
             })
           )

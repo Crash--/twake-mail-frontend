@@ -207,6 +207,32 @@ describe('Acting on emails of the list', () => {
     })
   })
 
+  it('focuses the selection toolbar once the page is selected from the toolbar of the list', async () => {
+    await renderList(makeServer())
+    const user = userEvent.setup()
+    screen
+      .getByRole('button', { name: 'Select all messages of this page' })
+      .focus()
+
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByTestId('selection-toolbar-count')).toHaveTextContent(
+      '4 selected'
+    )
+    expect(
+      screen.getByRole('button', { name: 'Clear the selection' })
+    ).toHaveFocus()
+  })
+
+  it('keeps the focus on the row ticked to select it', async () => {
+    await renderList(makeServer())
+    const user = userEvent.setup()
+
+    await user.click(checkbox('Email 1'))
+
+    expect(checkbox('Email 1')).toHaveFocus()
+  })
+
   it('focuses the list once the selection is cleared from the toolbar', async () => {
     await renderList(makeServer())
     const user = userEvent.setup()

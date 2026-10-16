@@ -1,6 +1,6 @@
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
-import { useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 
 import {
   Cancel,
@@ -109,6 +109,18 @@ export function EmailListToolbar({
   const runAction = useRunEmailAction()
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null)
   const [targets, setTargets] = useState<readonly TargetEmail[]>([])
+  const toolbarRef = useRef<HTMLElement>(null)
+  // This toolbar replaces the one of the list: when the focused control
+  // went away with it ("Select all messages of this page"), the focus goes
+  // to the first control here (clear the selection) instead of the body
+  useEffect(() => {
+    if (
+      document.activeElement === null ||
+      document.activeElement === document.body
+    ) {
+      toolbarRef.current?.querySelector<HTMLElement>('button')?.focus()
+    }
+  }, [])
   const count = selection.isAllInFolder
     ? (total ?? loadedCount)
     : selection.selected.length
@@ -174,6 +186,7 @@ export function EmailListToolbar({
 
   return (
     <Box
+      ref={toolbarRef}
       component="section"
       aria-label={t('thread.selection.toolbar')}
       className={

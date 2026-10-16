@@ -96,7 +96,32 @@ export function findListRows(
   return rows
 }
 
-/** The current state of an email, from the lists or the opened email */
+/**
+ * An email of a conversation listed by a list of conversations: the row
+ * stands for one of them only, the others are its thread members
+ */
+function findThreadMember(
+  queryClient: QueryClient,
+  accountId: string,
+  id: string
+): TargetEmail | null {
+  for (const [, data] of queryClient.getQueriesData<EmailListData>({
+    queryKey: threadKeys.all(accountId)
+  })) {
+    for (const page of data?.pages ?? []) {
+      const member = Object.values(page.threads ?? {})
+        .flat()
+        .find(candidate => candidate.id === id)
+      if (member) return member
+    }
+  }
+  return null
+}
+
+/**
+ * The current state of an email, from the lists (their rows, then the
+ * members of their conversations) or the opened email
+ */
 export function findCachedEmail(
   queryClient: QueryClient,
   accountId: string,
@@ -105,9 +130,11 @@ export function findCachedEmail(
   const row = findListRows(queryClient, accountId, [id]).get(id)
   if (row) return row
   return (
+    findThreadMember(queryClient, accountId, id) ??
     queryClient.getQueryData<EmailDetail | null>(
       emailKeys.detail(accountId, id)
-    ) ?? null
+    ) ??
+    null
   )
 }
 

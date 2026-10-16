@@ -215,6 +215,36 @@ describe('sanitizeEmailHtml', () => {
       ).toBe('<img>')
     })
 
+    it.each([
+      ['0.1', null],
+      ['0.79em', null],
+      ['1em', null],
+      ['79%', null],
+      ['100%', null],
+      ['1px', null],
+      ['0.5PT !important', null],
+      ['0', '0'],
+      ['0px', '0px'],
+      ['0.8', '0.8'],
+      ['1', '1'],
+      ['90%', '90%'],
+      ['0.9em', '0.9em'],
+      ['0.5rem', '0.5rem'],
+      ['1.5px', '1.5px'],
+      ['normal', 'normal']
+    ])(
+      'drops a line height that overlaps the lines: %s (tf#4720)',
+      (lineHeight, kept) => {
+        expect(
+          clean(`<p style="line-height: ${lineHeight}; color: red">x</p>`)
+        ).toBe(
+          kept === null
+            ? '<p style="color: red">x</p>'
+            : `<p style="line-height: ${kept}; color: red">x</p>`
+        )
+      }
+    )
+
     it('filters the CSS of style attributes', () => {
       expect(
         clean(

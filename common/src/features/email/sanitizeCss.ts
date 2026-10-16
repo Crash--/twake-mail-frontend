@@ -161,6 +161,35 @@ function judgeUrls(value: string): UrlVerdict {
   return urlCount === readCount ? verdict : 'unsafe'
 }
 
+/** Bounded and anchored, after ADR 0069 (ReDoS) */
+const LINE_HEIGHT_NUMBER =
+  /^\+?(\d{1,9}(?:\.\d{0,9})?|\.\d{1,9})(px|pt|em|rem|%)?$/i
+
+/**
+ * tmail-flutter `NormalizeLineHeightInStyleTransformer` (`tf#4720`): a line
+ * height that makes the lines overlap (`0.1` in Gmail and Element
+ * signatures), or the `100%` / `1em` Flutter already dropped (`tf#3964`).
+ * `0` is the spacer trick around images, `rem` cannot be judged: both stay
+ */
+function isDegenerateLineHeight(value: string): boolean {
+  const match = LINE_HEIGHT_NUMBER.exec(value.replace(/\s*!\s*important$/i, ''))
+  const number = Number(match?.[1])
+  if (!match || !(number > 0)) return false
+  switch (match[2]?.toLowerCase()) {
+    case '%':
+      return number < 80 || number === 100
+    case 'em':
+      return number < 0.8 || number === 1
+    case 'rem':
+      return false
+    case 'px':
+    case 'pt':
+      return number <= 1
+    default:
+      return number < 0.8
+  }
+}
+
 /** Splits on `separator` outside quotes and parentheses */
 function splitTopLevel(text: string, separator: string): string[] {
   const parts: string[] = []
@@ -205,6 +234,7 @@ export function sanitizeDeclarations(
     const property = declaration.slice(0, colon).trim().toLowerCase()
     const value = declaration.slice(colon + 1).trim()
     if (!ALLOWED_PROPERTIES.has(property) || value === '') continue
+    if (property === 'line-height' && isDegenerateLineHeight(value)) continue
     if (FORBIDDEN_VALUE.test(value) || value.startsWith('//')) continue
     // A comment left open past the bounded COMMENT pattern
     if (/[<>{}]|\/\*|\*\//.test(value)) continue

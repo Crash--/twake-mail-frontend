@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import {
@@ -17,6 +18,10 @@ import type {
   RecipientFieldDnd
 } from '@/ds/RecipientField/RecipientField'
 import { RecipientSummary } from '@/ds/RecipientField/RecipientSummary'
+import {
+  IDENTITY_SORT_ORDER_CAPABILITY,
+  identitiesQueryOptions
+} from '@common/features/identities/queries'
 import { fetchEmailSenders } from '@common/features/thread/emailSenders'
 import {
   DRAGGED_EMAILS_TYPE,
@@ -29,6 +34,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { RecipientInput } from './RecipientInput'
 import { recipientChips } from './recipientChips'
 import { hasRecipient, mergeRecipients, type Recipient } from './recipients'
+import { makeIsSelf } from './replyRecipients'
 
 export type RecipientKind = 'to' | 'cc' | 'bcc' | 'replyTo'
 
@@ -91,7 +97,8 @@ export interface RecipientsEditorProps {
  *
  * As in tmail-flutter, a recipient dragged to another field moves there
  * (Alt + ArrowUp or ArrowDown from the keyboard), and emails dragged from
- * the list add their senders to the field they are dropped on.
+ * the list add their senders to the field they are dropped on, except the
+ * user's own addresses, as when replying.
  */
 export function RecipientsEditor({
   recipients,
@@ -111,7 +118,8 @@ export function RecipientsEditor({
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
   const client = useJmapClient()
-  const { accountId } = useJmapSession()
+  const { accountId, session } = useJmapSession()
+  const queryClient = useQueryClient()
   /** Fields of this composer only exchange recipients */
   const dragGroup = useId()
   /** The recipients now, for the senders of dropped emails, read later */
@@ -204,10 +212,27 @@ export function RecipientsEditor({
   ): void => {
     const dragged = readDraggedEmails(dataTransfer)
     if (dragged === null) return
-    fetchEmailSenders(client, accountId, dragged.emailIds)
-      .then(senders => {
+    Promise.all([
+      fetchEmailSenders(client, accountId, dragged.emailIds),
+      queryClient.query({
+        ...identitiesQueryOptions(
+          client,
+          accountId,
+          IDENTITY_SORT_ORDER_CAPABILITY in session.capabilities,
+          session.username
+        ),
+        staleTime: Infinity
+      })
+    ])
+      .then(([senders, identities]) => {
+        // The user's own addresses are left out, as when replying
+        const isSelf = makeIsSelf([
+          session.username,
+          ...identities.map(identity => identity.email)
+        ])
+        const others = senders.filter(sender => !isSelf(sender.email))
         // The field as it is once the senders arrived
-        onChange(kind, mergeRecipients(latest.current[kind], senders))
+        onChange(kind, mergeRecipients(latest.current[kind], others))
       })
       .catch((error: unknown) => {
         console.warn('[composer] Cannot read the senders of the emails', error)

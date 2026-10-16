@@ -1,7 +1,11 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { useState, type ReactElement } from 'react'
 
-import { makeEmail, makeFakeJmapServer } from '@common/testing/fakeJmapServer'
+import {
+  makeEmail,
+  makeFakeJmapServer,
+  makeIdentity
+} from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { DRAGGED_EMAILS_TYPE } from '@common/features/thread/useEmailListActions'
 
@@ -81,6 +85,17 @@ async function renderEditor(): Promise<void> {
         makeEmail({
           id: 'e3',
           from: [{ name: null, email: 'ALICE@example.com' }]
+        }),
+        makeEmail({
+          id: 'e4',
+          from: [{ name: 'Alice', email: 'Alice.Martin@example.com' }]
+        })
+      ],
+      identities: [
+        makeIdentity({ id: 'identity-alice' }),
+        makeIdentity({
+          id: 'identity-alias',
+          email: 'alice.martin@example.com'
         })
       ]
     })
@@ -133,5 +148,26 @@ describe('RecipientsEditor', () => {
       ])
     })
     expect(chipsIn('cc')).toEqual([])
+  })
+
+  it("leaves the user's own addresses out of the senders dropped", async () => {
+    await renderEditor()
+    const cc = screen.getByTestId('composer-cc-field')
+    const dataTransfer = makeDataTransfer()
+    dataTransfer.setData(
+      DRAGGED_EMAILS_TYPE,
+      JSON.stringify({
+        mailboxId: 'mailbox-inbox',
+        emailIds: ['e3', 'e2', 'e4']
+      })
+    )
+
+    fireEvent.dragEnter(cc, { dataTransfer })
+    fireEvent.dragOver(cc, { dataTransfer })
+    fireEvent.drop(cc, { dataTransfer })
+
+    await waitFor(() => {
+      expect(chipsIn('cc')).toEqual(['Carol'])
+    })
   })
 })

@@ -172,6 +172,9 @@
     "requiredPassword": "Thiếu mật khẩu",
     "badCredentials": "Tài khoản không hợp lệ",
     "connectionError": "Lỗi kết nối",
+    "startErrorTitle": "Lỗi",
+    "ssoUnreachableTitle": "Không thể kết nối đến dịch vụ đăng nhập",
+    "ssoUnreachableDescription": "Hãy kiểm tra kết nối của bạn, rồi thử lại.",
     "email": "Email",
     "password": "Mật khẩu",
     "pitch": {

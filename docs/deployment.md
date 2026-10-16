@@ -298,7 +298,7 @@ What the chart imposes, and how the image answers:
 | `containerPort: 80`, probes `GET /` on port 80 | Listens on port 80 by default; `/` answers `200` |
 | `env.file` rendered from `config.*`, mounted at `/usr/share/nginx/html/assets/env.file` | Converted into `/.env.js` at startup (keys [above](#same-configuration-as-tmail-flutter)) |
 | `config.appGrid` rendered to `/usr/share/nginx/html/assets/configurations/app_dashboard.json` | Served but not read: the apps are those of the [platform top bar](#platform-top-bar) |
-| No SSO URL | The SSO is [found by WebFinger](#finding-the-sso-webfinger) on `serverUrl`, the Basic form shows when there is none |
+| No SSO URL | The SSO is [found by WebFinger](#finding-the-sso-webfinger) on `serverUrl`, the Basic form shows when the server says it has none |
 | `serverUrl` on another origin than the app | The CSP `connect-src` is derived from `env.file` at startup |
 | No `securityContext` by default, writable root filesystem | Works as is; [hardened values](#port-80-as-a-non-root-user) available |
 
@@ -401,6 +401,18 @@ tmail-flutter does, before it starts:
 3. otherwise the Basic form (credentials checked against the JMAP session), as
    tmail-flutter's login page. With `AUTH_MODE=oidc` explicit the SSO is
    required: no fallback.
+
+The Basic form shows only when both requests got an answer saying there is no
+SSO (a 404 or a 410, a JSON document without an issuer, or a 2xx body that is
+neither JSON nor HTML). When a request fails (any other error status, an HTML
+page, a page that is not JSON reached through a redirection, a timeout) and no
+issuer is found, the app shows an error screen with a Retry button instead. A
+JSON document reached through a redirection (http to https, another host) is
+read as any other. A network error, which a browser also reports for an answer without
+CORS headers, counts as a failure on WebFinger and as "no SSO" on
+`/.well-known/openid-configuration`. A server without SSO on another origin
+whose WebFinger 404 has no CORS headers therefore shows the Retry screen: set
+`AUTH_MODE=basic` for it.
 
 `SSO_BASE_URL` skips the lookup; `AUTH_MODE=basic` too. The issuer found is
 kept in `sessionStorage` for the round trip to the SSO. The server must answer

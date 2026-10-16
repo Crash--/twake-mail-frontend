@@ -5,6 +5,16 @@ import {
 } from './completeConfig'
 import { resolveConfig, type AppConfig } from './config'
 
+/** The configuration `completeConfig` completes, when it does */
+async function completedOrThrow(
+  config: AppConfig,
+  dependencies: CompleteConfigDependencies
+): Promise<AppConfig> {
+  const result = await completeConfig(config, dependencies)
+  if (!result.ok) throw new Error(result.error)
+  return result.value
+}
+
 function makeConfig(source: Record<string, unknown>): AppConfig {
   const result = resolveConfig(
     {
@@ -69,7 +79,10 @@ describe('completeConfig', () => {
         SSO_BASE_URL: 'https://sso.example.com'
       })
 
-      const completed = await completeConfig(config, makeDependencies(fetchFn))
+      const completed = await completedOrThrow(
+        config,
+        makeDependencies(fetchFn)
+      )
 
       expect(completed.oidc?.issuerUrl).toBe('https://sso.example.com')
       expect(fetchFn).not.toHaveBeenCalled()
@@ -83,7 +96,7 @@ describe('completeConfig', () => {
       })
       const dependencies = makeDependencies(fetchFn)
 
-      const completed = await completeConfig(
+      const completed = await completedOrThrow(
         makeConfig(OIDC_SOURCE),
         dependencies
       )
@@ -109,7 +122,7 @@ describe('completeConfig', () => {
         })
       })
 
-      const completed = await completeConfig(
+      const completed = await completedOrThrow(
         makeConfig(OIDC_SOURCE),
         makeDependencies(fetchFn, storage)
       )
@@ -131,7 +144,7 @@ describe('completeConfig', () => {
         })
       })
 
-      const completed = await completeConfig(
+      const completed = await completedOrThrow(
         makeConfig(OIDC_SOURCE),
         makeDependencies(fetchFn, storage)
       )
@@ -146,7 +159,7 @@ describe('completeConfig', () => {
         }
       })
 
-      const completed = await completeConfig(
+      const completed = await completedOrThrow(
         makeConfig(OIDC_SOURCE),
         makeDependencies(fetchFn)
       )
@@ -158,7 +171,7 @@ describe('completeConfig', () => {
     it('falls back to the Basic form when there is none, like tmail-flutter', async () => {
       const dependencies = makeDependencies(makeServerFetch({}))
 
-      const completed = await completeConfig(
+      const completed = await completedOrThrow(
         makeConfig(OIDC_SOURCE),
         dependencies
       )
@@ -169,8 +182,94 @@ describe('completeConfig', () => {
       expect(dependencies.storage.data.size).toBe(0)
     })
 
+    it('falls back to the Basic form when the server blocks its OpenID configuration', async () => {
+      const responses = [
+        new Response('', { status: 404 }),
+        // A 404 without CORS headers fails the fetch
+        new TypeError('Failed to fetch')
+      ]
+      const fetchFn = jest.fn(() => {
+        const next = responses.shift()
+        return next instanceof Response
+          ? Promise.resolve(next)
+          : Promise.reject(next ?? new Error('unexpected request'))
+      })
+
+      const completed = await completedOrThrow(
+        makeConfig(OIDC_SOURCE),
+        makeDependencies(fetchFn)
+      )
+
+      expect(completed.authMode).toBe('basic')
+    })
+
+    it.each([
+      [
+        '503 answers',
+        [new Response('', { status: 503 }), new Response('', { status: 503 })]
+      ],
+      [
+        'a network error',
+        [new TypeError('Failed to fetch'), new Response('', { status: 404 })]
+      ],
+      [
+        'an unavailable OpenID configuration',
+        [new Response('', { status: 404 }), new Response('', { status: 502 })]
+      ]
+    ])(
+      'is reported unreachable, not the Basic form, after %s',
+      async (_name, responses) => {
+        const queue = [...responses]
+        const fetchFn = jest.fn(() => {
+          const next = queue.shift() ?? new Error('unexpected request')
+          return next instanceof Error
+            ? Promise.reject(next)
+            : Promise.resolve(next)
+        })
+        const dependencies = makeDependencies(fetchFn)
+
+        const result = await completeConfig(
+          makeConfig(OIDC_SOURCE),
+          dependencies
+        )
+
+        expect(result).toEqual({ ok: false, error: 'sso-unreachable' })
+        expect(dependencies.storage.data.size).toBe(0)
+      }
+    )
+
+    it('still finds the server as an issuer when WebFinger is unavailable', async () => {
+      const fetchFn = jest.fn((input: string | URL | Request) =>
+        Promise.resolve(
+          (input instanceof Request ? input.url : input.toString()).includes(
+            'webfinger'
+          )
+            ? new Response('', { status: 503 })
+            : Response.json({ issuer: 'https://jmap.example.com' })
+        )
+      )
+
+      const completed = await completedOrThrow(
+        makeConfig(OIDC_SOURCE),
+        makeDependencies(fetchFn)
+      )
+
+      expect(completed.oidc?.issuerUrl).toBe('https://jmap.example.com')
+    })
+
+    it('is reported unreachable even when AUTH_MODE=oidc is explicit', async () => {
+      const result = await completeConfig(
+        makeConfig({ ...OIDC_SOURCE, AUTH_MODE: 'oidc' }),
+        makeDependencies(
+          jest.fn(() => Promise.resolve(new Response('', { status: 503 })))
+        )
+      )
+
+      expect(result).toEqual({ ok: false, error: 'sso-unreachable' })
+    })
+
     it('does not fall back when AUTH_MODE=oidc is explicit', async () => {
-      const completed = await completeConfig(
+      const completed = await completedOrThrow(
         makeConfig({ ...OIDC_SOURCE, AUTH_MODE: 'oidc' }),
         makeDependencies(makeServerFetch({}))
       )
@@ -182,7 +281,7 @@ describe('completeConfig', () => {
     it('does not look for an SSO in basic mode', async () => {
       const fetchFn = makeServerFetch({})
 
-      const completed = await completeConfig(
+      const completed = await completedOrThrow(
         makeConfig({ AUTH_MODE: 'basic' }),
         makeDependencies(fetchFn)
       )

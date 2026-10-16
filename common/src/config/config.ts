@@ -17,8 +17,9 @@ export interface IssuerDiscovery {
   /** `SERVER_URL`, without trailing slash: WebFinger is asked there */
   serverUrl: string
   /**
-   * Sign in with the Basic form when no SSO is found, as tmail-flutter does.
-   * Off when `AUTH_MODE=oidc` is explicit: the SSO is then required.
+   * Sign in with the Basic form when the server says it has no SSO, as
+   * tmail-flutter does. Off when `AUTH_MODE=oidc` is explicit: the SSO is
+   * then required.
    */
   fallbackToBasic: boolean
 }

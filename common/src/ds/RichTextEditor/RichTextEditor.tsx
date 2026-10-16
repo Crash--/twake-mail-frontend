@@ -93,6 +93,11 @@ export interface RichTextEditorProps {
    */
   disabled?: boolean
   /**
+   * Id of the error the text was refused for, shown elsewhere: the editing
+   * area says `aria-invalid` and is described by it too; null when valid
+   */
+  errorId?: string | null
+  /**
    * Fills the height of its container (a flex column) and scrolls inside,
    * without a border: the editor of a window
    */
@@ -279,6 +284,7 @@ export function RichTextEditor({
   extensions = [],
   autoFocus = false,
   disabled = false,
+  errorId = null,
   fill = false,
   look = 'compact',
   isToolbarBelow = false,
@@ -359,7 +365,8 @@ export function RichTextEditor({
         role: 'textbox',
         'aria-multiline': 'true',
         'aria-label': labels.editor,
-        'aria-describedby': helpId,
+        'aria-describedby': errorId === null ? helpId : `${errorId} ${helpId}`,
+        ...(errorId === null ? {} : { 'aria-invalid': 'true' }),
         ...(testIds.editor ? { 'data-testid': testIds.editor } : {})
       },
       transformPastedHTML: cleanPastedHtml,

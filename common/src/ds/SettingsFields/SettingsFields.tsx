@@ -55,6 +55,8 @@ export interface SettingsTextFieldProps {
   error?: boolean
   /** Under the field, e.g. the error */
   helperText?: string
+  /** Id of an element describing the field elsewhere, e.g. its error */
+  describedBy?: string
   disabled?: boolean
   required?: boolean
   /** `form`: 40 px high, in a `SettingsFormRow` */
@@ -78,6 +80,7 @@ export function SettingsTextField({
   inputRef,
   error = false,
   helperText,
+  describedBy,
   disabled = false,
   required = false,
   size = 'large',
@@ -106,6 +109,9 @@ export function SettingsTextField({
       slotProps={{
         htmlInput: {
           'aria-label': label,
+          ...(describedBy === undefined
+            ? {}
+            : { 'aria-describedby': describedBy }),
           inputMode,
           'data-testid': inputTestId
         }

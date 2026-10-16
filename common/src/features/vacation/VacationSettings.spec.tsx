@@ -137,8 +137,15 @@ describe('VacationSettings', () => {
     })
     await userEvent.click(screen.getByTestId('vacation-save-button'))
 
-    expect(screen.getByTestId('vacation-error')).toHaveTextContent(
-      'Please enter a valid end date'
+    const error = screen.getByTestId('vacation-error')
+    expect(error).toHaveTextContent('Please enter a valid end date')
+    const endTime = screen.getByLabelText('End time')
+    expect(endTime).toHaveAttribute('aria-invalid', 'true')
+    expect(endTime).toHaveAttribute('aria-describedby', error.id)
+    expect(endTime).toHaveFocus()
+    expect(screen.getByLabelText('End date')).toHaveAttribute(
+      'aria-invalid',
+      'false'
     )
     expect(fake.vacation()).toMatchObject({ toDate: null })
   })
@@ -158,10 +165,31 @@ describe('VacationSettings', () => {
     })
     await userEvent.click(screen.getByTestId('vacation-save-button'))
 
-    expect(screen.getByTestId('vacation-error')).toHaveTextContent(
-      'End date must be greater than start date'
-    )
+    const error = screen.getByTestId('vacation-error')
+    expect(error).toHaveTextContent('End date must be greater than start date')
+    const endDate = screen.getByLabelText('End date')
+    expect(endDate).toHaveAttribute('aria-invalid', 'true')
+    expect(endDate).toHaveAttribute('aria-describedby', error.id)
+    expect(endDate).toHaveFocus()
     expect(fake.vacation()).toMatchObject({ toDate: null })
+  })
+
+  it('ties a blank message to the editor, and focuses it', async () => {
+    setup({ isEnabled: true, fromDate: '2026-10-10T09:00:00Z' })
+
+    const editor = await screen.findByRole('textbox', { name: 'Message' })
+    await userEvent.click(screen.getByTestId('vacation-save-button'))
+
+    const error = screen.getByTestId('vacation-error')
+    expect(error).toHaveTextContent('Message body cannot be blank')
+    expect(editor).toHaveAttribute('aria-invalid', 'true')
+    expect(editor.getAttribute('aria-describedby')?.split(' ')).toContain(
+      error.id
+    )
+    // TipTap focuses on the next frame
+    await waitFor(() => {
+      expect(editor).toHaveFocus()
+    })
   })
 
   it('turns it off, keeping the message for next time', async () => {

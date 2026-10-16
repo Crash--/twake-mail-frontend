@@ -77,6 +77,7 @@ export function ForwardSettings({
   const configuredWarning = useAppConfig()?.forwardWarningMessage ?? null
   const query = useQuery(forwardQueryOptions(client, accountId))
   const inputRef = useRef<HTMLInputElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
   const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
   const [selected, setSelected] = useState<readonly string[]>([])
   const recipientsTitleId = useId()
@@ -125,6 +126,17 @@ export function ForwardSettings({
     }
   }
 
+  // The "Add recipient" button, disabled while saving, drops the focus on
+  // the page body: give it back to the field, ready for the next address,
+  // unless it went elsewhere meanwhile (RGAA 12.8)
+  const refocusInput = (): void => {
+    const active = document.activeElement
+    const isLost = active === null || active === document.body
+    if (isLost || formRef.current?.contains(active) === true) {
+      inputRef.current?.focus()
+    }
+  }
+
   const handleAdd = (event: SubmitEvent): void => {
     event.preventDefault()
     const emails = parseRecipients(typed).map(recipient => recipient.email)
@@ -163,9 +175,11 @@ export function ForwardSettings({
       )
       if (isSaved) setTyped('')
     }
-    run().catch((error: unknown) => {
-      console.error('[forward] Cannot add the recipients', error)
-    })
+    run()
+      .catch((error: unknown) => {
+        console.error('[forward] Cannot add the recipients', error)
+      })
+      .finally(refocusInput)
   }
 
   const handleRemove = (email: string): void => {
@@ -276,6 +290,7 @@ export function ForwardSettings({
       />
       <Box
         component="form"
+        ref={formRef}
         onSubmit={handleAdd}
         noValidate
         // As tmail-flutter: on a phone the field and the button fill the

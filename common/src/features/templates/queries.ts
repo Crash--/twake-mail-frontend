@@ -2,6 +2,7 @@ import { queryOptions } from '@tanstack/react-query'
 import type { JmapClient } from 'jmap-client-ts'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
+import { maxObjectsInGet } from '@common/jmap/maxObjectsInGet'
 
 /** The templates asked of each Templates folder: more is not a list to pick from */
 export const TEMPLATES_LIMIT = 200
@@ -37,7 +38,8 @@ export const templateKeys = {
 /**
  * The templates of the given Templates folders (the user's and the ones of
  * the team mailboxes they can read), newest first: per folder, `Email/query`
- * then `Email/get` of its ids by back-reference. It is read each time the
+ * then `Email/get` of its ids by back-reference, as many as
+ * `maxObjectsInGet` allows. It is read each time the
  * picker opens (`staleTime` 0): templates are saved from composers and from
  * other clients.
  */
@@ -50,6 +52,10 @@ export function templatesQueryOptions(
     queryKey: templateKeys.list(accountId, mailboxIds),
     staleTime: 0,
     queryFn: async ({ signal }) => {
+      const limit = Math.min(
+        TEMPLATES_LIMIT,
+        maxObjectsInGet(await client.getSession())
+      )
       const perFolder = await Promise.all(
         mailboxIds.map(async mailboxId => {
           const [, found] = await client.request(
@@ -58,7 +64,7 @@ export function templatesQueryOptions(
                 accountId,
                 filter: { inMailbox: mailboxId },
                 sort: [{ property: 'receivedAt', isAscending: false }],
-                limit: TEMPLATES_LIMIT
+                limit
               })
               const get = builder.call('Email/get', {
                 accountId,

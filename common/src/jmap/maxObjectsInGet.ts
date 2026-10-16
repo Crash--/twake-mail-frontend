@@ -33,6 +33,12 @@ function isRequestTooLarge(error: unknown): boolean {
   return error instanceof JmapMethodError && error.type === 'requestTooLarge'
 }
 
+/** What a `/get` answers; `SearchSnippet/get` has no state */
+interface GetResponse<T> {
+  state?: string
+  list: T[]
+}
+
 interface GetResult<T> {
   state: string
   list: T[]
@@ -55,12 +61,12 @@ export async function getInChunks<T>(
   get: (
     builder: RequestBuilder,
     chunk: string[]
-  ) => AnyCallHandle & PromiseLike<GetResult<T>>,
+  ) => AnyCallHandle & PromiseLike<GetResponse<T>>,
   { fallbackSize, ...options }: ChunkOptions = {}
 ): Promise<GetResult<T>> {
   const size = maxObjectsInGet(await client.getSession(), fallbackSize)
   // A server refusing fewer ids than it tells gets them in halves
-  const getChunk = async (chunk: string[]): Promise<GetResult<T>[]> => {
+  const getChunk = async (chunk: string[]): Promise<GetResponse<T>[]> => {
     try {
       return await client.request(builder => [get(builder, chunk)], options)
     } catch (error: unknown) {

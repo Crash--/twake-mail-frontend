@@ -1,5 +1,7 @@
 import type { EmailFilterCondition, JmapClient } from 'jmap-client-ts'
 
+import { maxObjectsInGet } from '@common/jmap/maxObjectsInGet'
+
 import type { TargetEmail } from './planEmailChanges'
 
 /** Emails asked per `Email/query` when going through a whole mailbox */
@@ -14,8 +16,9 @@ export interface MailboxEmailsOptions {
 /**
  * Every email of a mailbox (matching `filter`), with what an action needs
  * (`mailboxIds`, `keywords`): one request per page, `Email/query` then
- * `Email/get` of its ids by back-reference. James caps the page size: it
- * goes on until a page comes back shorter than the limit it applied.
+ * `Email/get` of its ids by back-reference, a page within
+ * `maxObjectsInGet`. James caps the page size: it goes on until a page
+ * comes back shorter than the limit it applied.
  */
 export async function fetchMailboxEmails(
   client: JmapClient,
@@ -23,6 +26,10 @@ export async function fetchMailboxEmails(
   mailboxId: string,
   { extraCapabilities = [], filter = {} }: MailboxEmailsOptions = {}
 ): Promise<TargetEmail[]> {
+  const pageSize = Math.min(
+    MAILBOX_PAGE_SIZE,
+    maxObjectsInGet(await client.getSession())
+  )
   const emails = new Map<string, TargetEmail>()
   for (let position = 0; ;) {
     const [query, found] = await client.request(
@@ -32,7 +39,7 @@ export async function fetchMailboxEmails(
           filter: { ...filter, inMailbox: mailboxId },
           sort: [{ property: 'receivedAt', isAscending: false }],
           position,
-          limit: MAILBOX_PAGE_SIZE
+          limit: pageSize
         })
         const getCall = builder.call('Email/get', {
           accountId,
@@ -44,7 +51,7 @@ export async function fetchMailboxEmails(
       { extraCapabilities }
     )
     for (const email of found.list) emails.set(email.id, email)
-    const limit = query.limit ?? MAILBOX_PAGE_SIZE
+    const limit = query.limit ?? pageSize
     if (query.ids.length === 0 || query.ids.length < limit) break
     position += query.ids.length
   }

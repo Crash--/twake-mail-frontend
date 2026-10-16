@@ -59,6 +59,24 @@ describe('fetchMailboxEmails', () => {
     ])
   })
 
+  it('asks pages within maxObjectsInGet', async () => {
+    const server = makeFakeJmapServer({
+      emails: makeEmails(120),
+      maxObjectsInGet: 50
+    })
+
+    const emails = await fetchMailboxEmails(
+      makeClient(server),
+      FAKE_ACCOUNT_ID,
+      'mailbox-inbox'
+    )
+
+    expect(emails).toHaveLength(120)
+    expect(server.callsOf('Email/query').map(args => args.limit)).toEqual([
+      50, 50, 50
+    ])
+  })
+
   it('keeps the conditions given, e.g. the unread emails', async () => {
     const server = makeFakeJmapServer({ emails: makeEmails(6) })
     const client = makeClient(server)

@@ -23,7 +23,10 @@ import { MessageText } from '@/ds/MessageText/MessageText'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { AddressLine } from '@common/features/email/AddressLine'
-import { formatAddressName } from '@common/features/email/addresses'
+import {
+  addressDisplayName,
+  formatAddressName
+} from '@common/features/email/addresses'
 import { EmailMessageBody } from '@common/features/email/EmailMessageBody'
 import { EmailViewActions } from '@common/features/email/EmailViewActions'
 import { isMarkedImportant } from '@common/features/email/importance'
@@ -82,7 +85,7 @@ function SenderAvatar({
 }: {
   sender: EmailAddress | null
 }): ReactElement {
-  const name = sender?.name ?? ''
+  const name = sender === null ? '' : addressDisplayName(sender)
   const address = sender?.email ?? ''
   // tmail-flutter: 44 px on phones, 32 px elsewhere
   const isPhone = useScreenSize() === 'mobile'

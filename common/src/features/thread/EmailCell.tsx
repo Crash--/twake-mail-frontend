@@ -46,7 +46,10 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { hasCalendarEvent } from '@common/features/calendar/calendarHeader'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
-import { formatAddressNames } from '@common/features/email/addresses'
+import {
+  addressDisplayName,
+  formatAddressNames
+} from '@common/features/email/addresses'
 import { isMarkedImportant } from '@common/features/email/importance'
 import {
   ANSWERED,
@@ -259,7 +262,8 @@ export function EmailCell({
   // Decorative: the name of the sender is the text next to it. As
   // tmail-flutter: the first letter of the name on the gradient of the address
   const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
-  const avatarName = avatarAddress?.name ?? ''
+  const avatarName =
+    avatarAddress === null ? '' : addressDisplayName(avatarAddress)
   const avatarEmail = avatarAddress?.email ?? ''
   const avatar = (
     <GradientAvatar

@@ -7,7 +7,7 @@ import { MessageText } from '@/ds/MessageText/MessageText'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { formatAddressName } from './addresses'
+import { addressDisplayName, formatAddressName } from './addresses'
 import { EmailAddressCard } from './EmailAddressCard'
 import type { SmimeStatus } from './smimeStatus'
 import { SmimeStatusMark } from './SmimeStatusMark'
@@ -43,7 +43,7 @@ export function SenderLine({
 }: SenderLineProps): ReactElement {
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
-  const hasName = (sender?.name ?? '').trim() !== ''
+  const hasName = sender !== null && addressDisplayName(sender) !== ''
   return (
     <InlineGroup gap={1} data-testid={testId}>
       {sender ? (

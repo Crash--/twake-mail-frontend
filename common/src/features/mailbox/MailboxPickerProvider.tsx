@@ -57,6 +57,11 @@ export interface PickMailboxOptions {
   /** The personal folders only, not the team mailboxes */
   personalOnly?: boolean
   /**
+   * The root of a team mailbox, a container, is selectable, e.g. a search
+   * scope covering all its folders; never a destination otherwise
+   */
+  isTeamRootPickable?: boolean
+  /**
    * The folders of these roles (and what they hold) are not offered, in the
    * team mailboxes too, e.g. Outbox, Drafts and Templates for a rule
    */
@@ -128,7 +133,8 @@ export interface MailboxPickerProviderProps {
  * the tree of the folders and a field filtering them by name or path
  * (`ds/FilterableListbox`), the personal folders then the team mailboxes;
  * hidden folders are not offered, and the root of a team mailbox, a
- * container, is never a destination. `await pickMailbox()` resolves to the
+ * container, is never a destination (`isTeamRootPickable` for a search
+ * scope). `await pickMailbox()` resolves to the
  * folder chosen; the focus goes back to what opened it.
  */
 export function MailboxPickerProvider({
@@ -199,7 +205,7 @@ export function MailboxPickerProvider({
           icon: isRoot ? null : getMailboxIcon(mailbox),
           isCurrent: mailbox.id === pending.currentId,
           disabled:
-            isRoot ||
+            (isRoot && pending.isTeamRootPickable !== true) ||
             disabled.has(mailbox.id) ||
             (pending.requireAddItems === true && !mailbox.myRights.mayAddItems)
         }

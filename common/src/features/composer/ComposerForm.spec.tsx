@@ -31,6 +31,14 @@ import {
 } from './composerStorage'
 import { ComposerProvider, useComposer } from './ComposerProvider'
 
+// The real delay, unless a test shortens it
+let mockSendSlowMs = 20_000
+jest.mock('./sendPolicy', () => ({
+  get SEND_SLOW_MS(): number {
+    return mockSendSlowMs
+  }
+}))
+
 function Opener(): ReactElement {
   const { openComposer } = useComposer()
   return (
@@ -304,6 +312,52 @@ describe('ComposerForm', () => {
           null
         )
       })
+    })
+
+    it('lets the user close the dialog of a sending that does not answer, never sending it again', async () => {
+      mockSendSlowMs = 0
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Slow' })
+      const release = jmapServer.holdRequests('EmailSubmission/set')
+
+      try {
+        await userEvent.click(
+          within(composer).getByRole('button', { name: 'Send' })
+        )
+        const dialog = await screen.findByRole('dialog', {
+          name: 'Sending message'
+        })
+        expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+          'The server is taking longer than usual to answer.'
+        )
+        await userEvent.click(
+          within(dialog).getByRole('button', { name: 'Close' })
+        )
+        await waitFor(() => {
+          expect(
+            screen.queryByRole('dialog', { name: 'Sending message' })
+          ).toBe(null)
+        })
+
+        // Sent once: a second Send says it is still sending
+        await userEvent.click(
+          within(composer).getByRole('button', { name: 'Send' })
+        )
+        expect(await screen.findByTestId('toast')).toHaveTextContent(
+          'The message is still being sent.'
+        )
+        expect(jmapServer.callsOf('EmailSubmission/set')).toHaveLength(1)
+      } finally {
+        mockSendSlowMs = 20_000
+        release()
+      }
+      await waitFor(() => {
+        expect(screen.getByTestId('toast')).toHaveTextContent(
+          'Message has been sent successfully'
+        )
+      })
+      expect(jmapServer.submitted).toHaveLength(1)
     })
 
     it('says the user is offline when the sending fails without network, and keeps the message', async () => {

@@ -288,6 +288,44 @@ describe('EmailRulesSettings', () => {
     )
   })
 
+  it('files into a folder created from the folder picker', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeFilter(server, [NEWSLETTERS])
+    renderWithProviders(
+      <MailboxPickerProvider>
+        <EmailRulesSettings section={rulesSection()} />
+      </MailboxPickerProvider>,
+      {
+        jmapServer: server,
+        withJmapSession: true,
+        route: { pathname: '/settings/email-rules' }
+      }
+    )
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Edit Newsletters' })
+    )
+    await userEvent.click(screen.getByTestId('rule-action-folder-button'))
+    const picker = await screen.findByRole('dialog', {
+      name: 'Choose a folder'
+    })
+    await userEvent.click(
+      within(picker).getByRole('button', { name: 'New folder' })
+    )
+    await userEvent.type(
+      within(
+        screen.getByRole('dialog', { name: 'Create a New Folder' })
+      ).getByRole('textbox', { name: 'Folder Name' }),
+      'Receipts{Enter}'
+    )
+
+    expect(
+      await screen.findByRole('button', { name: /Receipts/ })
+    ).toHaveAttribute('data-testid', 'rule-action-folder-button')
+  })
+
   it('creates a rule forwarding to valid addresses', async () => {
     const { filter } = setup([], { newRuleFrom: 'boss@example.com' })
 

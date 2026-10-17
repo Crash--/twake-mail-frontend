@@ -17,6 +17,9 @@ import {
   type FolderPickerOption,
   type FolderPickerSection
 } from '@/ds/FolderPicker/FolderPicker'
+import { validateFolderName } from '@common/features/mailboxActions/folderName'
+import { MailboxNameDialog } from '@common/features/mailboxActions/MailboxNameDialog'
+import { useCreateFolder } from '@common/features/mailboxActions/useCreateFolder'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { getMailboxIcon } from './mailboxDisplay'
@@ -68,6 +71,11 @@ export interface PickMailboxOptions {
   excludedRoles?: readonly string[]
   /** Said after the folder concerned, "current folder" by default */
   currentLabel?: string
+  /**
+   * A "New folder" button, as tmail-flutter (tf#899): the folder created
+   * is the one picked
+   */
+  canCreateFolder?: boolean
 }
 
 /** A choice listed before the folders, e.g. "All email" for a search */
@@ -119,9 +127,21 @@ const PickMailboxContext = createContext<PickContext | null>(null)
 /** Not a mailbox id: JMAP ids never hold a space */
 const ROOT_OPTION_ID = 'top level'
 
-interface PendingPick extends PickMailboxOptions {
+interface PickerView extends PickMailboxOptions {
   choices?: readonly PickChoice[]
+}
+
+interface PendingPick extends PickerView {
   resolve: (picked: Picked) => void
+}
+
+/**
+ * A folder created from the picker: named (`name`), its location chosen
+ * in the picker (`parent`), or sent to the server (`saving`)
+ */
+interface Creation {
+  parentId: string | null
+  stage: 'name' | 'parent' | 'saving'
 }
 
 export interface MailboxPickerProviderProps {
@@ -135,7 +155,10 @@ export interface MailboxPickerProviderProps {
  * hidden folders are not offered, and the root of a team mailbox, a
  * container, is never a destination (`isTeamRootPickable` for a search
  * scope). `await pickMailbox()` resolves to the
- * folder chosen; the focus goes back to what opened it.
+ * folder chosen; the focus goes back to what opened it. With
+ * `canCreateFolder`, its "New folder" button opens the dialog creating a
+ * folder; the folder created is picked, and cancelling goes back to the
+ * picker.
  */
 export function MailboxPickerProvider({
   children
@@ -143,16 +166,19 @@ export function MailboxPickerProvider({
   const { t } = useI18n()
   const getName = useMailboxName()
   const { data: mailboxes = [] } = useMailboxes()
+  const createFolder = useCreateFolder()
   const [pending, setPending] = useState<PendingPick | null>(null)
   const pendingRef = useRef<PendingPick | null>(null)
+  const [creation, setCreation] = useState<Creation | null>(null)
 
   const open = useCallback(
-    (options: PickMailboxOptions & { choices?: readonly PickChoice[] }) =>
+    (options: PickerView) =>
       new Promise<Picked>(resolve => {
         pendingRef.current?.resolve(null)
         const next = { ...options, resolve }
         pendingRef.current = next
         setPending(next)
+        setCreation(null)
       }),
     []
   )
@@ -176,14 +202,30 @@ export function MailboxPickerProvider({
     pendingRef.current?.resolve(picked)
     pendingRef.current = null
     setPending(null)
+    setCreation(null)
   }
 
+  // What the picker lists: the folders asked for, or where the folder
+  // created goes, as the folder actions ask it ("All folders" first)
+  const creationStage = creation?.stage ?? null
+  const creationParentId = creation?.parentId ?? null
+  const view = useMemo((): PickerView | null => {
+    if (pending === null || creationStage === null) return pending
+    if (creationStage !== 'parent') return null
+    return {
+      title: t('mailboxPicker.selectParent'),
+      rootLabel: t('mailboxPicker.allFolders'),
+      personalOnly: true,
+      currentId: creationParentId ?? PICKED_ROOT
+    }
+  }, [pending, creationStage, creationParentId, t])
+
   const sections = useMemo((): FolderPickerSection[] => {
-    if (pending === null) return []
-    const disabled = new Set(pending.disabledIds ?? [])
+    if (view === null) return []
+    const disabled = new Set(view.disabledIds ?? [])
     const { personal, team } = buildMailboxSections(mailboxes, false)
     const { system, folders } = splitPersonalTree(personal)
-    const excludedRoles = pending.excludedRoles ?? []
+    const excludedRoles = view.excludedRoles ?? []
     const toOptions = (trees: readonly MailboxNode[]): FolderPickerOption[] =>
       listVisibleMailboxes(
         pruneMailboxRoles(trees, excludedRoles),
@@ -203,14 +245,14 @@ export function MailboxPickerProvider({
           parentId: mailbox.parentId,
           hasChildren,
           icon: isRoot ? null : getMailboxIcon(mailbox),
-          isCurrent: mailbox.id === pending.currentId,
+          isCurrent: mailbox.id === view.currentId,
           disabled:
-            (isRoot && pending.isTeamRootPickable !== true) ||
+            (isRoot && view.isTeamRootPickable !== true) ||
             disabled.has(mailbox.id) ||
-            (pending.requireAddItems === true && !mailbox.myRights.mayAddItems)
+            (view.requireAddItems === true && !mailbox.myRights.mayAddItems)
         }
       })
-    const rootLabel = pending.rootLabel
+    const rootLabel = view.rootLabel
     const root: FolderPickerOption[] =
       rootLabel === undefined
         ? []
@@ -223,8 +265,8 @@ export function MailboxPickerProvider({
               parentId: null,
               hasChildren: false,
               icon: DefaultFolderIcon,
-              isCurrent: pending.currentId === PICKED_ROOT,
-              disabled: pending.isRootDisabled === true
+              isCurrent: view.currentId === PICKED_ROOT,
+              disabled: view.isRootDisabled === true
             }
           ]
     const toChoiceOption = (choice: PickChoice): FolderPickerOption => ({
@@ -235,9 +277,9 @@ export function MailboxPickerProvider({
       parentId: null,
       hasChildren: false,
       icon: choice.icon,
-      isCurrent: pending.currentId === choice.id
+      isCurrent: view.currentId === choice.id
     })
-    const choices = pending.choices ?? []
+    const choices = view.choices ?? []
     const top = choices
       .filter(choice => choice.placement !== 'section')
       .map(toChoiceOption)
@@ -256,7 +298,7 @@ export function MailboxPickerProvider({
         label: t('mailboxPicker.personalFolders'),
         options: toOptions(folders)
       },
-      ...(pending.personalOnly === true
+      ...(view.personalOnly === true
         ? []
         : [
             {
@@ -266,12 +308,12 @@ export function MailboxPickerProvider({
             }
           ])
     ]
-  }, [mailboxes, getName, pending, t])
+  }, [mailboxes, getName, view, t])
 
   // The way to the folder concerned (or the first one left out, the folder
   // to move), unfolded
   const expandedIds = useMemo((): string[] => {
-    const currentId = pending?.currentId ?? pending?.disabledIds?.[0]
+    const currentId = view?.currentId ?? view?.disabledIds?.[0]
     if (currentId === undefined || currentId === PICKED_ROOT) return []
     const ids: string[] = []
     let parentId =
@@ -283,9 +325,17 @@ export function MailboxPickerProvider({
         mailboxes.find(mailbox => mailbox.id === parent)?.parentId ?? null
     }
     return ids
-  }, [mailboxes, pending])
+  }, [mailboxes, view])
 
   const handleSelect = (option: FolderPickerOption): void => {
+    if (creation !== null) {
+      // Where the folder created goes
+      setCreation({
+        parentId: option.id === ROOT_OPTION_ID ? null : option.id,
+        stage: 'name'
+      })
+      return
+    }
     if (option.id === ROOT_OPTION_ID) {
       close(PICKED_ROOT)
       return
@@ -298,35 +348,94 @@ export function MailboxPickerProvider({
     close(mailboxes.find(mailbox => mailbox.id === option.id) ?? null)
   }
   const handleClose = (): void => {
+    if (creation !== null) {
+      setCreation({ ...creation, stage: 'name' })
+      return
+    }
     close(null)
+  }
+
+  const handleCreate = async (
+    name: string,
+    parentId: string | null
+  ): Promise<void> => {
+    const asked = pendingRef.current
+    setCreation({ parentId, stage: 'saving' })
+    const created = await createFolder(name, parentId)
+    // Another pick started meanwhile
+    if (pendingRef.current !== asked) return
+    if (created === null) setCreation(null)
+    else close(created)
   }
 
   return (
     <PickMailboxContext.Provider value={context}>
       {children}
       <FolderPicker
-        open={pending !== null}
+        // A picker of its own for where the folder created goes, mounted
+        // over the dialog naming it: reopened, the first one would stay
+        // hidden from assistive technologies behind that dialog
+        key={creationStage === 'parent' ? 'parent' : 'pick'}
+        open={view !== null}
         labels={{
-          title: pending?.title ?? t('mailboxPicker.title'),
+          title: view?.title ?? t('mailboxPicker.title'),
           close: t('common.close'),
           search: t('mailboxPicker.search'),
           empty: t('mailboxPicker.empty'),
           collapsed: t('mailboxPicker.collapsed'),
           expanded: t('mailboxPicker.expanded'),
-          current: pending?.currentLabel ?? t('mailboxPicker.current')
+          current: view?.currentLabel ?? t('mailboxPicker.current'),
+          create: t('folders.newFolder')
         }}
         sections={sections}
         initiallyExpandedIds={expandedIds}
         onSelect={handleSelect}
         onClose={handleClose}
+        onCreate={
+          view?.canCreateFolder === true
+            ? () => {
+                setCreation({ parentId: null, stage: 'name' })
+              }
+            : null
+        }
         testIds={{
           dialog: 'mailbox-picker',
           close: 'mailbox-picker-close-button',
+          create: 'mailbox-picker-new-folder-button',
           input: 'mailbox-picker-search-input',
           listbox: 'mailbox-picker-list',
           option: 'mailbox-picker-item'
         }}
       />
+      {creation === null || creation.stage === 'saving' ? null : (
+        <MailboxNameDialog
+          title={t('folders.create.title')}
+          submitLabel={t('folders.create.submit')}
+          initialName=""
+          location={{
+            path:
+              creation.parentId === null
+                ? t('mailboxPicker.allFolders')
+                : mailboxPath(mailboxes, creation.parentId, getName),
+            onChange: () => {
+              setCreation({ ...creation, stage: 'parent' })
+            }
+          }}
+          validate={name =>
+            validateFolderName(name, {
+              mailboxes,
+              parentId: creation.parentId
+            })
+          }
+          onSubmit={name => {
+            void handleCreate(name, creation.parentId)
+          }}
+          onClose={() => {
+            // Back to the folders
+            setCreation(null)
+          }}
+        />
+      )}
     </PickMailboxContext.Provider>
   )
 }

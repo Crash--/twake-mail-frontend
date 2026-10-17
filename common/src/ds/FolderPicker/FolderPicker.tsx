@@ -10,7 +10,8 @@
 // listbox per block; ArrowDown / ArrowUp move the active folder, ArrowRight
 // and ArrowLeft unfold and fold its subfolders, Enter picks it; a disabled
 // folder with subfolders is reached too (`aria-disabled`, Enter ignored) to
-// unfold it; the headers of the blocks are buttons (`aria-expanded`).
+// unfold it; the headers of the blocks are buttons (`aria-expanded`). An
+// optional "New folder" icon button, with its tooltip, ends the bar.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Box,
@@ -33,6 +34,7 @@ import {
 } from 'react'
 
 import { Bottom, Check, Magnifier, Right } from '@/ds/FlutterIcons/FlutterIcons'
+import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
@@ -73,6 +75,8 @@ export interface FolderPickerLabels {
   expanded: string
   /** Said after the folder concerned */
   current: string
+  /** The button creating a folder, when `onCreate` is given */
+  create?: string
 }
 
 export interface FolderPickerProps {
@@ -83,9 +87,12 @@ export interface FolderPickerProps {
   initiallyExpandedIds?: readonly string[]
   onSelect: (option: FolderPickerOption) => void
   onClose: () => void
+  /** A "New folder" button at the end of the bar (tf#899) */
+  onCreate?: (() => void) | null
   testIds?: {
     dialog?: string
     close?: string
+    create?: string
     input?: string
     listbox?: string
     option?: string
@@ -125,6 +132,13 @@ const CLOSE_SX = {
   top: '50%',
   transform: 'translateY(-50%)',
   color: TMAIL.greyLavender
+} as const
+
+const CREATE_SX = {
+  ...CLOSE_SX,
+  left: 'auto',
+  right: 8,
+  color: PRIMARY
 } as const
 
 const TITLE_SX = {
@@ -304,6 +318,7 @@ export function FolderPicker({
   initiallyExpandedIds = [],
   onSelect,
   onClose,
+  onCreate = null,
   testIds = {}
 }: FolderPickerProps): ReactElement {
   const id = useId()
@@ -477,6 +492,18 @@ export function FolderPicker({
         <Typography id={titleId} component="h2" sx={TITLE_SX}>
           {labels.title}
         </Typography>
+        {onCreate === null ? null : (
+          <Tooltip title={labels.create}>
+            <IconButton
+              aria-label={labels.create}
+              onClick={onCreate}
+              sx={CREATE_SX}
+              data-testid={testIds.create}
+            >
+              <Icon icon={AddNewFolder} size={24} aria-hidden="true" />
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
       <Box ref={bodyRef} sx={BODY_SX}>
         <Box sx={SEARCH_SX}>

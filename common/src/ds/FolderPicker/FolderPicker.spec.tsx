@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
@@ -183,5 +184,26 @@ describe('FolderPicker', () => {
     )
     expect(screen.getAllByRole('option')).toHaveLength(1)
     expect(screen.getByRole('option', { name: /^Alpha/ })).toBeVisible()
+  })
+
+  it('offers a "New folder" button only when asked', async () => {
+    const onCreate = jest.fn()
+    const picker = (create: (() => void) | null): ReactElement => (
+      <FolderPicker
+        open
+        labels={{ ...LABELS, create: 'New folder' }}
+        sections={SECTIONS}
+        onSelect={jest.fn()}
+        onClose={jest.fn()}
+        onCreate={create}
+      />
+    )
+    const { unmount } = renderDs(picker(null))
+    expect(screen.queryByRole('button', { name: 'New folder' })).toBe(null)
+    unmount()
+
+    renderDs(picker(onCreate))
+    await userEvent.click(screen.getByRole('button', { name: 'New folder' }))
+    expect(onCreate).toHaveBeenCalledTimes(1)
   })
 })

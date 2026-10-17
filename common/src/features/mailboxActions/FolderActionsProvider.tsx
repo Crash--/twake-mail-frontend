@@ -56,6 +56,7 @@ import type { FolderActionId } from './folderActionItems'
 import { findClashingParentIds, validateFolderName } from './folderName'
 import { MailboxNameDialog } from './MailboxNameDialog'
 import { moveFolderContent, undoMoveFolderContent } from './moveFolderContent'
+import { useCreateFolder } from './useCreateFolder'
 import { maxCallsInRequest, useEmptyFolder } from './useEmptyFolder'
 
 export interface FolderActions {
@@ -117,6 +118,7 @@ export function FolderActionsProvider({
   const [mailboxes, setMailboxes] = useState<readonly MailboxSummary[]>([])
   const [ruleFolder, setRuleFolder] = useState<MailboxSummary | null>(null)
   const addRule = useAddRule()
+  const createFolder = useCreateFolder()
 
   const loadMailboxes = useCallback(async (): Promise<MailboxSummary[]> => {
     const data = await queryClient.query({
@@ -147,20 +149,11 @@ export function FolderActionsProvider({
   /** One `Mailbox/set`; throws when the server refuses any part of it */
   const sendMailboxSet = useCallback(
     async (args: {
-      create?: Record<
-        string,
-        { name: string; parentId: string | null; isSubscribed: boolean }
-      >
-      update?: Record<string, PatchObject<Mailbox>>
-    }): Promise<Record<string, { id: string }>> => {
+      update: Record<string, PatchObject<Mailbox>>
+    }): Promise<void> => {
       const response = await client.call('Mailbox/set', { accountId, ...args })
       assertSetSucceeded(response)
       refreshMailboxes()
-      const created: Record<string, { id: string }> = {}
-      for (const [key, value] of Object.entries(response.created ?? {})) {
-        created[key] = { id: value.id }
-      }
-      return created
     },
     [client, accountId, refreshMailboxes]
   )
@@ -188,22 +181,9 @@ export function FolderActionsProvider({
     parentId: string | null
   ): Promise<void> => {
     setDialog(null)
-    try {
-      const created = await sendMailboxSet({
-        create: { folder: { name, parentId, isSubscribed: true } }
-      })
-      notify({
-        message: t('folders.create.success', { folderName: name }),
-        severity: 'success'
-      })
-      const id = created.folder?.id
-      // The folder must be known before the app shows it: no redirection
-      await queryClient
-        .invalidateQueries({ queryKey: mailboxKeys.list(accountId) })
-        .catch(() => undefined)
-      if (id !== undefined) void navigate(`/mailbox/${encodeURIComponent(id)}`)
-    } catch (error: unknown) {
-      fail('folders.create.failure', error)
+    const created = await createFolder(name, parentId)
+    if (created !== null) {
+      void navigate(`/mailbox/${encodeURIComponent(created.id)}`)
     }
   }
 

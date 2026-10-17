@@ -4,7 +4,10 @@ import { Route } from 'react-router'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import type { AuthService } from '@common/features/auth/types'
-import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
+import {
+  makeFakeJmapServer,
+  makeIdentity
+} from '@common/testing/fakeJmapServer'
 import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -59,6 +62,51 @@ describe('AppLayout', () => {
     expect(
       screen.getByRole('menuitem', { name: 'Manage account' })
     ).toBeVisible()
+  })
+
+  describe('account menu', () => {
+    function renderWithIdentities(
+      identities: ReturnType<typeof makeIdentity>[]
+    ): ReturnType<typeof renderWithProviders> {
+      return renderWithProviders(<AppLayout />, {
+        path: '/',
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer({ identities }),
+        childRoutes: <Route index element={<p>Routed content</p>} />
+      })
+    }
+
+    it('shows the name of the identity of the own address above it', async () => {
+      renderWithIdentities([
+        makeIdentity({
+          id: 'support',
+          name: 'Support',
+          email: 'support@example.com'
+        }),
+        makeIdentity({ id: 'own', name: 'Zoé Martin' })
+      ])
+
+      const button = await screen.findByTestId('account-menu-button')
+      await waitFor(() => {
+        expect(button).toHaveTextContent('Z')
+      })
+      await userEvent.click(button)
+
+      expect(screen.getByText('Zoé Martin')).toBeVisible()
+      expect(screen.getByText('alice@example.com')).toBeVisible()
+      expect(screen.queryByText('Support')).toBe(null)
+    })
+
+    it('shows the address alone when the own identity has no name', async () => {
+      renderWithIdentities([makeIdentity({ id: 'own', name: '' })])
+
+      const button = await screen.findByTestId('account-menu-button')
+      await userEvent.click(button)
+
+      expect(button).toHaveTextContent('A')
+      expect(screen.getByText('alice@example.com')).toBeVisible()
+      expect(screen.queryByText('Alice Martin')).toBe(null)
+    })
   })
 
   it('keeps the search in the top bar below the desktop size', async () => {

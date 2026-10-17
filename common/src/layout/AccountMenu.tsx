@@ -5,6 +5,8 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { Logout, Setting } from '@/ds/FlutterIcons/FlutterIcons'
 import { ProfileMenu } from '@/ds/ProfileMenu/ProfileMenu'
+import { ownName } from '@common/features/identities/ownName'
+import { useIdentities } from '@common/features/identities/useIdentities'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { isSettingsExitState } from '@common/features/settings/SettingsExitProvider'
@@ -15,8 +17,9 @@ import { useLogout } from './useLogout'
 
 /**
  * The account of the user at the end of tmail-flutter's bar, without the
- * platform: its initial, opening the address, "Manage account" (the
- * settings) and "Sign out"
+ * platform: its initial, opening its display name (the name of the identity
+ * of its own address, tmail-flutter#2756), the address, "Manage account"
+ * (the settings) and "Sign out"
  */
 export function AccountMenu(): ReactElement {
   const { t } = useI18n()
@@ -25,6 +28,8 @@ export function AccountMenu(): ReactElement {
   const navigate = useNavigate()
   const handleLogout = useLogout()
   const address = session.username
+  const identities = useIdentities().data ?? []
+  const name = ownName(identities, address)
   // "Back to mail" gives the focus back to the button the settings came from
   const buttonRef = useRef<HTMLButtonElement>(null)
   const location = useLocation()
@@ -46,7 +51,8 @@ export function AccountMenu(): ReactElement {
 
   return (
     <ProfileMenu
-      initial={address.charAt(0).toUpperCase()}
+      initial={(name ?? address).charAt(0).toUpperCase()}
+      name={name}
       address={address}
       labels={{
         open: t('topbar.account', { address }),

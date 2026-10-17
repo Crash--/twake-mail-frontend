@@ -245,7 +245,9 @@
       "deleteTo": "Delete draft to %{recipients}"
     },
     "row": {
-      "openInNewTab": "Open in new tab"
+      "openInNewTab": "Open in new tab",
+      "noRecipient": "No recipient",
+      "noSender": "No sender"
     }
   },
   "push": {

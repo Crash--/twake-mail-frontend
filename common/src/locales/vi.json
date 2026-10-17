@@ -245,7 +245,9 @@
       "deleteTo": "Xóa thư nháp gửi %{recipients}"
     },
     "row": {
-      "openInNewTab": "Mở trong tab mới"
+      "openInNewTab": "Mở trong tab mới",
+      "noRecipient": "Không có người nhận",
+      "noSender": "Không có người gửi"
     }
   },
   "push": {

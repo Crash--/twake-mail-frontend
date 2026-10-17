@@ -3,7 +3,10 @@ import { resolveUriTemplate } from '@linagora/twake-utils'
 import { useMemo } from 'react'
 
 import { useAppConfig } from '@common/config/AppConfigProvider'
-import { useAuthState } from '@common/features/auth/AuthProvider'
+import {
+  useAuthService,
+  useAuthState
+} from '@common/features/auth/AuthProvider'
 import { useIsEmbedded } from '@common/features/embedding/embedding'
 import { ecosystemQueryOptions } from '@common/features/ecosystem/ecosystem'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -28,6 +31,7 @@ import { readSaasCapability } from './saasCapability'
 export function usePremiumCta(): PremiumCtaState {
   const { session, accountId } = useJmapSession()
   const config = useAppConfig()
+  const authService = useAuthService()
   const auth = useAuthState()
   const isInsideWorkplace = useIsEmbedded()
   const claim = auth.status === 'authenticated' ? auth.user.workplaceFqdn : null
@@ -56,7 +60,7 @@ export function usePremiumCta(): PremiumCtaState {
     isPremiumCtaPossible(capability, isInsideWorkplace) &&
     !hasLocalPaywallUrl(workplaceFqdn)
   const query = useQuery({
-    ...ecosystemQueryOptions(ecosystemUrl ?? ''),
+    ...ecosystemQueryOptions(ecosystemUrl ?? '', authService),
     enabled: needsEcosystem
   })
 

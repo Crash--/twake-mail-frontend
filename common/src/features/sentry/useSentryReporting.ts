@@ -4,6 +4,7 @@ import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import type { SentrySetup } from '@common/app/sentry'
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import type { AppConfig } from '@common/config/config'
+import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import {
   canChangeServerSetting,
@@ -69,11 +70,12 @@ export function resolveSentrySetup(
  */
 export function useSentryReporting(): SentryReportingState {
   const config = useAppConfig()
+  const authService = useAuthService()
   const { session } = useJmapSession()
   const { settings, isRead } = useServerSettings()
   const isEnvOff = config?.sentrySource === 'env' && config.sentryDsn === null
   const ecosystem = useQuery({
-    ...ecosystemQueryOptions(config?.ecosystemUrl ?? ''),
+    ...ecosystemQueryOptions(config?.ecosystemUrl ?? '', authService),
     enabled: config !== null && !isEnvOff
   })
 

@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
+import type { AuthServiceBase } from '@common/features/auth/types'
 
 import { parseEcosystemSentry, type EcosystemSentry } from './sentrySection'
 
@@ -25,6 +26,12 @@ export interface LinagoraEcosystem {
 }
 
 export type EcosystemKey = ['ecosystem', string]
+
+/** The credentials of the user: the server answers 401 without them */
+export type EcosystemAuth = Pick<
+  AuthServiceBase,
+  'getAuthorizationHeader' | 'onUnauthorized'
+>
 
 const ECOSYSTEM_TIMEOUT = 5_000
 
@@ -61,13 +68,43 @@ export function parseEcosystem(document: unknown): LinagoraEcosystem | null {
   }
 }
 
+async function requestEcosystem(
+  url: string,
+  authorization: string,
+  signal: AbortSignal
+): Promise<Response> {
+  return fetch(url, {
+    credentials: 'omit',
+    referrerPolicy: 'no-referrer',
+    headers: { Accept: 'application/json', Authorization: authorization },
+    signal
+  })
+}
+
+async function readEcosystem(response: Response): Promise<LinagoraEcosystem> {
+  if (!response.ok) {
+    throw new EcosystemError(`The ecosystem answered ${response.status}`)
+  }
+  const text = await response.text()
+  if (text.length > MAX_ECOSYSTEM_LENGTH) {
+    throw new EcosystemError('The ecosystem document is too big')
+  }
+  const ecosystem = parseEcosystem(JSON.parse(text))
+  if (ecosystem === null) {
+    throw new EcosystemError('The ecosystem document is not an object')
+  }
+  return ecosystem
+}
+
 /**
- * The ecosystem document of the server. Asked without credentials nor
- * referrer: it is public information, and nothing of the user goes with the
- * request. Throws when the server serves none.
+ * The ecosystem document of the server. The server serves it to signed-in
+ * users only: asked with their credentials, renewed once on a 401 as the
+ * JMAP client does, but without cookies nor referrer. Throws when the server
+ * serves none, or the user is signed out.
  */
 export async function fetchEcosystem(
   url: string,
+  auth: EcosystemAuth,
   signal?: AbortSignal
 ): Promise<LinagoraEcosystem> {
   const controller = new AbortController()
@@ -79,24 +116,26 @@ export async function fetchEcosystem(
   }
   signal?.addEventListener('abort', abort)
   try {
-    const response = await fetch(url, {
-      credentials: 'omit',
-      referrerPolicy: 'no-referrer',
-      headers: { Accept: 'application/json' },
-      signal: controller.signal
-    })
-    if (!response.ok) {
-      throw new EcosystemError(`The ecosystem answered ${response.status}`)
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const authorization = await auth.getAuthorizationHeader()
+      if (authorization === null) {
+        throw new EcosystemError('No credentials to ask the ecosystem')
+      }
+      const response = await requestEcosystem(
+        url,
+        authorization,
+        controller.signal
+      )
+      if (
+        response.status === 401 &&
+        attempt === 0 &&
+        (await auth.onUnauthorized())
+      ) {
+        continue
+      }
+      return await readEcosystem(response)
     }
-    const text = await response.text()
-    if (text.length > MAX_ECOSYSTEM_LENGTH) {
-      throw new EcosystemError('The ecosystem document is too big')
-    }
-    const ecosystem = parseEcosystem(JSON.parse(text))
-    if (ecosystem === null) {
-      throw new EcosystemError('The ecosystem document is not an object')
-    }
-    return ecosystem
+    throw new EcosystemError('The ecosystem answered 401')
   } finally {
     clearTimeout(timer)
     signal?.removeEventListener('abort', abort)
@@ -105,11 +144,14 @@ export async function fetchEcosystem(
 
 /** The document is the same for every account of the server */
 export function ecosystemQueryOptions(
-  url: string
+  url: string,
+  auth: EcosystemAuth
 ): QueryOptionsFor<LinagoraEcosystem, EcosystemKey> {
+  // auth only signs the request: the cache is cleared with the session
+  // eslint-disable-next-line @tanstack/query/exhaustive-deps
   return queryOptions({
     queryKey: ['ecosystem', url],
-    queryFn: ({ signal }) => fetchEcosystem(url, signal),
+    queryFn: ({ signal }) => fetchEcosystem(url, auth, signal),
     staleTime: 60 * 60_000,
     // tmail-flutter never retries it
     retry: false

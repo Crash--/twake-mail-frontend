@@ -1,4 +1,4 @@
-import { fetchEcosystem, parseEcosystem } from './ecosystem'
+import { fetchEcosystem, parseEcosystem, type EcosystemAuth } from './ecosystem'
 
 describe('parseEcosystem', () => {
   it('reads the templates, trimmed', () => {
@@ -51,19 +51,26 @@ describe('fetchEcosystem', () => {
     Parameters<typeof fetch>
   >()
 
+  const auth = {
+    getAuthorizationHeader: jest.fn<Promise<string | null>, []>(),
+    onUnauthorized: jest.fn<Promise<boolean>, []>()
+  } satisfies EcosystemAuth
+
   beforeEach(() => {
     fetchMock.mockReset()
     globalThis.fetch = fetchMock
+    auth.getAuthorizationHeader.mockReset().mockResolvedValue('Bearer token')
+    auth.onUnauthorized.mockReset().mockResolvedValue(false)
   })
 
   function answer(body: string, status = 200): void {
     fetchMock.mockResolvedValue(new Response(body, { status }))
   }
 
-  it('asks the document without credentials nor referrer', async () => {
+  it('asks the document with the credentials of the user, without cookies nor referrer', async () => {
     answer('{"paywallUrlTemplate":"https://pay.domain.tld/"}')
 
-    const ecosystem = await fetchEcosystem('https://jmap.tld/eco')
+    const ecosystem = await fetchEcosystem('https://jmap.tld/eco', auth)
 
     expect(ecosystem.paywallUrlTemplate).toBe('https://pay.domain.tld/')
     expect(fetchMock).toHaveBeenCalledWith(
@@ -71,21 +78,66 @@ describe('fetchEcosystem', () => {
       expect.objectContaining({
         credentials: 'omit',
         referrerPolicy: 'no-referrer',
-        headers: { Accept: 'application/json' }
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'Bearer token'
+        }
       })
     )
+  })
+
+  it('asks again once the credentials are renewed after a 401', async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response('', { status: 401 }))
+      .mockResolvedValueOnce(
+        new Response('{"scribePromptUrl":"https://prompts.tld/p.json"}')
+      )
+    auth.onUnauthorized.mockResolvedValue(true)
+    auth.getAuthorizationHeader
+      .mockResolvedValueOnce('Bearer old')
+      .mockResolvedValueOnce('Bearer new')
+
+    const ecosystem = await fetchEcosystem('https://jmap.tld/eco', auth)
+
+    expect(ecosystem.scribePromptUrl).toBe('https://prompts.tld/p.json')
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      'https://jmap.tld/eco',
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer new' })
+      })
+    )
+  })
+
+  it('throws on a 401 the credentials cannot get past', async () => {
+    answer('', 401)
+
+    await expect(fetchEcosystem('https://jmap.tld/eco', auth)).rejects.toThrow(
+      '401'
+    )
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('throws without asking when the user is signed out', async () => {
+    auth.getAuthorizationHeader.mockResolvedValue(null)
+
+    await expect(fetchEcosystem('https://jmap.tld/eco', auth)).rejects.toThrow(
+      'No credentials'
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('throws when the server has none', async () => {
     answer('Not found', 404)
 
-    await expect(fetchEcosystem('https://jmap.tld/eco')).rejects.toThrow('404')
+    await expect(fetchEcosystem('https://jmap.tld/eco', auth)).rejects.toThrow(
+      '404'
+    )
   })
 
   it('throws on a document that is not an object', async () => {
     answer('[1, 2]')
 
-    await expect(fetchEcosystem('https://jmap.tld/eco')).rejects.toThrow(
+    await expect(fetchEcosystem('https://jmap.tld/eco', auth)).rejects.toThrow(
       'not an object'
     )
   })
@@ -93,13 +145,13 @@ describe('fetchEcosystem', () => {
   it('throws on a document that is not JSON', async () => {
     answer('<html></html>')
 
-    await expect(fetchEcosystem('https://jmap.tld/eco')).rejects.toThrow()
+    await expect(fetchEcosystem('https://jmap.tld/eco', auth)).rejects.toThrow()
   })
 
   it('throws on a document too big to be one', async () => {
     answer(JSON.stringify({ filler: 'x'.repeat(70_000) }))
 
-    await expect(fetchEcosystem('https://jmap.tld/eco')).rejects.toThrow(
+    await expect(fetchEcosystem('https://jmap.tld/eco', auth)).rejects.toThrow(
       'too big'
     )
   })

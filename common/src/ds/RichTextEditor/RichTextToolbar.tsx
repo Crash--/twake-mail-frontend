@@ -117,7 +117,7 @@ export interface RichTextToolbarProps {
   placement: 'top' | 'bottom'
   /**
    * `boxed`: tmail-flutter's toolbar of a signature (see boxedToolbar): the
-   * image first, its icons and boxes, no history, link nor clearing;
+   * image and the link first, its icons and boxes, no history nor clearing;
    * `composer`: tmail-flutter's toolbar of the composer, 40 px boxes around
    * its own 28 px icons, each menu with its arrow, on a white bar with a
    * soft shadow
@@ -480,7 +480,8 @@ export function RichTextToolbar({
     }
   ]
 
-  // The boxed look: tmail-flutter's buttons and order, the image on its own.
+  // The boxed look: tmail-flutter's buttons and order, the image and the
+  // link each in a box of their own.
   // The composer: tmail-flutter's buttons, no undo nor redo (Ctrl+Z and
   // Ctrl+Y do it) nor clearing, so that the bar holds on one line in a
   // window of 724 px (a 1280 px screen)
@@ -488,7 +489,7 @@ export function RichTextToolbar({
     ? BOXED_ITEMS.flatMap(id => {
         const item = allItems.find(entry => entry.id === id)
         if (!item) return []
-        return [id === 'image' ? { ...item, group: undefined } : item]
+        return [item.group === 'insert' ? { ...item, group: undefined } : item]
       })
     : isComposer
       ? allItems.filter(

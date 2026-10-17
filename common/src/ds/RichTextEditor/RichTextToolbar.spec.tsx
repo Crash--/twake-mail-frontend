@@ -246,6 +246,7 @@ describe('RichTextToolbar controls', () => {
       .map(button => button.getAttribute('aria-label'))
     expect(names).toEqual([
       'Insert image',
+      'Insert link',
       'Text style Normal',
       // tmail-flutter's signature is written in 16 px
       'Text size 16',
@@ -259,5 +260,15 @@ describe('RichTextToolbar controls', () => {
       'Paragraph',
       'Lists and indentation'
     ])
+  })
+
+  it('opens the link dialog from its button in the boxed look', async () => {
+    await renderEditor('<p>Hello</p>', { look: 'boxed' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Insert link' }))
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Insert link' })
+    ).toBeInTheDocument()
   })
 })

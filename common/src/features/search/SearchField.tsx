@@ -20,6 +20,7 @@ import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { SearchBarAction } from '@/ds/SearchBarAction/SearchBarAction'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
+import { uniqueByAddress } from '@common/features/composer/recipients'
 import { formatAddressNames } from '@common/features/email/addresses'
 import { FLAGGED } from '@common/features/email/keywords'
 import { formatListDate } from '@common/features/thread/formatListDate'
@@ -148,7 +149,10 @@ export function SearchField({
         id: 'contacts',
         label: t('search.contacts'),
         isLabelHidden: true,
-        options: suggestions.contacts.map(contact => {
+        options: uniqueByAddress(
+          suggestions.contacts,
+          contact => contact.emailAddress
+        ).map(contact => {
           const name = `${contact.firstname} ${contact.surname}`.trim()
           return {
             id: `${CONTACT_PREFIX}${contact.emailAddress}`,

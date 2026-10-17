@@ -968,3 +968,9 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/preferences.spec.ts`.
 - [x] `SRCH-19` Given "Quarterly kept" (Inbox, "budget numbers"), "Quarterly excluded" (Inbox, "budget numbers confidential") and "Quarterly archived" (Archive, "budget numbers", January 2025), the advanced search with Subject "Quarterly", Has the words "budget", Doesn't have "confidential" and Folder "Inbox" lists "Quarterly kept" alone, the URL carrying `subject`, `q`, `not` and `in`. The dialog reopens on these criteria; without the excluded word, in "All email" over the custom range 2025-01-01 to 2025-01-31, it lists "Quarterly archived" alone and the date chip says "From 2025-01-01 to 2025-01-31". "Clear filter" empties the fields, and the search that follows has no criteria in its URL. axe on the dialog. — web app (issue #524)
   - Spec: `tests/search.spec.ts`.
+- [x] `MBX-57` A personal folder ("Projects") dragged in the tree onto another ("Work") moves under it ("Moved to Work", Work now expands), and the toast's Undo puts it back at the top; Inbox is not draggable. — tmail-flutter `tf#1633`, `tf#2192` (issue #586)
+  - Spec: `tests/folder-menu.spec.ts`.
+- [x] `MBX-58` A dragged folder is not taken (no drop outline) by itself, one of its subfolders, its own parent, nor a folder already holding one of its name; a folder that takes it shows the outline, and the drop moves it. — tmail-flutter `tf#1633` (issue #586)
+  - Spec: `tests/folder-menu.spec.ts`.
+- [x] `CMP-107` With an email to "Bob Dupont" (To) and "Carol Petit" (Cc) open, Bob's address dragged onto To and Carol's onto Bcc of a message being written are added there; Bob dragged onto To again is not added twice, and the email still shows both, with no card opened. — web app (issue #577)
+  - Spec: `tests/recipient-dnd.spec.ts`.

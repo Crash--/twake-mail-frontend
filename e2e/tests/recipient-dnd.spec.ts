@@ -76,6 +76,49 @@ test.describe('CMP recipients dragged between fields', () => {
   })
 })
 
+test.describe('CMP addresses of an open email dragged to the composer', () => {
+  test.use({ emailsOneByOne: true })
+
+  test('CMP-107 the recipients of an open email dragged onto To and Bcc are added there, once', async ({
+    page,
+    user,
+    users,
+    jmap
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    const carol = await users.create({ prefix: 'carol' })
+    await jmap.sendEmail({
+      to: [{ name: 'Bob Dupont', email: bob.email }],
+      cc: [{ name: 'Carol Petit', email: carol.email }],
+      saveTo: 'inbox',
+      subject: 'Addresses to drag',
+      text: 'hello'
+    })
+    await jmap.waitForEmail({ subject: 'Addresses to drag' })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const email = await mailbox.openEmail('Addresses to drag')
+    const composer = await mailbox.compose()
+    await composer.showField('bcc')
+
+    const bobButton = email.addressButton(email.to, 'Bob Dupont')
+    await bobButton.dragTo(composer.root.getByTestId('composer-to-field'))
+    await expect(composer.recipients('to')).toHaveText([/Bob Dupont/])
+
+    await email
+      .addressButton(email.cc, 'Carol Petit')
+      .dragTo(composer.root.getByTestId('composer-bcc-field'))
+    await expect(composer.recipients('bcc')).toHaveText([/Carol Petit/])
+
+    // Already in To: it is not added twice
+    await bobButton.dragTo(composer.root.getByTestId('composer-to-field'))
+    await expect(composer.recipients('to')).toHaveCount(1)
+    // Copied, not moved: the email still shows them, and no card opened
+    await expect(bobButton).toBeVisible()
+    await expect(email.addressCard).toBeHidden()
+  })
+})
+
 test.describe('SRCH addresses of the advanced search', () => {
   test('SRCH-18 From and To take tags, which drag from one to the other', async ({
     page,

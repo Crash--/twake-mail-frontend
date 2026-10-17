@@ -1,5 +1,6 @@
 import {
   prepareSignatureImage,
+  rasterizeSvg,
   scaledImageSize,
   SIGNATURE_IMAGE_BUDGET,
   signatureImageMaxWidth
@@ -16,17 +17,24 @@ function decodesAs(width: number, height: number): void {
   })
 }
 
-/** The canvas encodes a JPEG of `size` bytes, or nothing */
-function encodesAs(size: number | null): { drawImage: jest.Mock } {
-  const context = { fillStyle: '', fillRect: jest.fn(), drawImage: jest.fn() }
-  const canvas = {
-    width: 0,
-    height: 0,
-    getContext: () => context,
-    toBlob: (resolve: (blob: Blob | null) => void) => {
-      resolve(size === null ? null : new Blob([new Uint8Array(size)]))
-    }
+interface FakeContext {
+  fillRect: jest.Mock
+  drawImage: jest.Mock
+  toBlob: jest.Mock
+}
+
+/** The canvas encodes an image of `size` bytes, or nothing */
+function encodesAs(size: number | null): FakeContext {
+  const toBlob = jest.fn((resolve: (blob: Blob | null) => void) => {
+    resolve(size === null ? null : new Blob([new Uint8Array(size)]))
+  })
+  const context = {
+    fillStyle: '',
+    fillRect: jest.fn(),
+    drawImage: jest.fn(),
+    toBlob
   }
+  const canvas = { width: 0, height: 0, getContext: () => context, toBlob }
   Object.defineProperty(globalThis, 'document', {
     configurable: true,
     value: { createElement: () => canvas }
@@ -34,10 +42,36 @@ function encodesAs(size: number | null): { drawImage: jest.Mock } {
   return context
 }
 
+const svgFile = (name = 'logo.svg'): File =>
+  new File(['<svg xmlns="http://www.w3.org/2000/svg"/>'], name, {
+    type: 'image/svg+xml'
+  })
+
+/** The browser loads an image of that natural size, or fails to (null) */
+function loadsAs(size: { width: number; height: number } | null): void {
+  class FakeImage {
+    naturalWidth = size?.width ?? 0
+    naturalHeight = size?.height ?? 0
+    onload: (() => void) | null = null
+    onerror: (() => void) | null = null
+    set src(_url: string) {
+      queueMicrotask(() => {
+        if (size === null) this.onerror?.()
+        else this.onload?.()
+      })
+    }
+  }
+  Object.defineProperty(globalThis, 'Image', {
+    configurable: true,
+    value: FakeImage
+  })
+}
+
 describe('signatureImage', () => {
   afterEach(() => {
     Reflect.deleteProperty(globalThis, 'createImageBitmap')
     Reflect.deleteProperty(globalThis, 'document')
+    Reflect.deleteProperty(globalThis, 'Image')
   })
 
   it('lets a signature image be 800 px wide on a desktop and 700 px elsewhere', () => {
@@ -134,5 +168,54 @@ describe('signatureImage', () => {
       width: null
     })
     expect(await prepareSignatureImage(file, 800, file.size - 1)).toBe(null)
+  })
+
+  it('draws an SVG into a transparent PNG at most at the signature width', async () => {
+    loadsAs({ width: 1600, height: 400 })
+    const context = encodesAs(5000)
+
+    const png = await rasterizeSvg(svgFile(), 800)
+
+    expect(context.fillRect).not.toHaveBeenCalled()
+    expect(context.drawImage).toHaveBeenCalledWith(
+      expect.anything(),
+      0,
+      0,
+      800,
+      200
+    )
+    expect(context.toBlob).toHaveBeenCalledWith(
+      expect.any(Function),
+      'image/png',
+      expect.anything()
+    )
+    expect(png?.name).toBe('logo.png')
+    expect(png?.type).toBe('image/png')
+    expect(png?.size).toBe(5000)
+  })
+
+  it('draws an SVG without a size of its own at 300 by 150 px', async () => {
+    loadsAs({ width: 0, height: 0 })
+    const context = encodesAs(5000)
+
+    await rasterizeSvg(svgFile(), 800)
+
+    expect(context.drawImage).toHaveBeenCalledWith(
+      expect.anything(),
+      0,
+      0,
+      300,
+      150
+    )
+  })
+
+  it('gives no PNG for an SVG the browser cannot read or draw', async () => {
+    loadsAs(null)
+    encodesAs(5000)
+    expect(await rasterizeSvg(svgFile(), 800)).toBe(null)
+
+    loadsAs({ width: 100, height: 100 })
+    encodesAs(null)
+    expect(await rasterizeSvg(svgFile(), 800)).toBe(null)
   })
 })

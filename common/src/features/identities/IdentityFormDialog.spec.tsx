@@ -194,6 +194,71 @@ describe('IdentityFormDialog signature images', () => {
     expect(server.callsOf('PublicAsset/set')).toEqual([])
   })
 
+  it('publishes a picked SVG image drawn into a PNG', async () => {
+    class LoadedImage {
+      naturalWidth = 200
+      naturalHeight = 50
+      onload: (() => void) | null = null
+      set src(_url: string) {
+        queueMicrotask(() => this.onload?.())
+      }
+    }
+    const originalImage = window.Image
+    Object.defineProperty(window, 'Image', {
+      configurable: true,
+      value: LoadedImage
+    })
+    const canvas = HTMLCanvasElement.prototype
+    const originalCanvas = {
+      getContext: Object.getOwnPropertyDescriptor(canvas, 'getContext'),
+      toBlob: Object.getOwnPropertyDescriptor(canvas, 'toBlob')
+    }
+    const toBlob = jest.fn((resolve: (blob: Blob | null) => void) => {
+      resolve(new Blob([new Uint8Array([137, 80, 78, 71])]))
+    })
+    Object.defineProperties(canvas, {
+      getContext: {
+        configurable: true,
+        value: () => ({ drawImage: jest.fn() })
+      },
+      toBlob: { configurable: true, value: toBlob }
+    })
+    try {
+      const server = makeServer()
+      renderDialog(server)
+      const editor = await screen.findByTestId('identity-signature-editor')
+      const svg = new File(
+        ['<svg xmlns="http://www.w3.org/2000/svg"/>'],
+        'logo.svg',
+        {
+          type: 'image/svg+xml'
+        }
+      )
+
+      expect(fileInput().accept).toContain('image/svg+xml')
+      await userEvent.upload(fileInput(), svg)
+
+      await waitFor(() => {
+        expect(editor.querySelector(IMAGE)?.getAttribute('src')).toBe(
+          'https://jmap.example.com/publicAsset/asset-1'
+        )
+      })
+      expect(toBlob).toHaveBeenCalledWith(
+        expect.any(Function),
+        'image/png',
+        expect.anything()
+      )
+    } finally {
+      Object.entries(originalCanvas).forEach(([name, descriptor]) => {
+        if (descriptor) Object.defineProperty(canvas, name, descriptor)
+      })
+      Object.defineProperty(window, 'Image', {
+        configurable: true,
+        value: originalImage
+      })
+    }
+  })
+
   it('refuses a dropped file that is not an image', async () => {
     renderDialog(makeServer())
     const zone = await screen.findByTestId('identity-signature-drop-zone')

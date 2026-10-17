@@ -1377,6 +1377,7 @@
       "no": "You will not attend this meeting"
     },
     "replyFailed": "Event reply was sent unsuccessfully!",
+    "alreadyAnswered": "You have already given this answer to the invitation",
     "counterAccepted": "You accepted the proposed time for this meeting",
     "eventLabel": "Event: %{title}",
     "allDay": "All day",

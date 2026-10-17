@@ -262,6 +262,69 @@ describe('CalendarInvitationCard', () => {
     jest.restoreAllMocks()
   })
 
+  it('tells an answer given elsewhere and reads the answer again', async () => {
+    const server = makeServer(INVITATION)
+    server.handlers.set('CalendarEvent/accept', args => {
+      // Answered from another client after the card loaded
+      server.handlers.set('CalendarEventAttendance/get', attendanceArgs => ({
+        accountId: attendanceArgs.accountId,
+        list: [
+          { blobId: 'b-ics', eventAttendanceStatus: 'accepted', isFree: true }
+        ]
+      }))
+      return {
+        accountId: args.accountId,
+        notAccepted: { 'b-ics': { type: 'invalidPatch', description: null } }
+      }
+    })
+    renderView(server)
+
+    const yes = await screen.findByRole('button', { name: 'Yes' })
+    expect(yes).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(yes)
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You have already given this answer to the invitation'
+    )
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Yes' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    })
+  })
+
+  it('reads the answer again after a failure', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined)
+    const server = makeServer(INVITATION)
+    server.handlers.set('CalendarEvent/maybe', args => {
+      server.handlers.set('CalendarEventAttendance/get', attendanceArgs => ({
+        accountId: attendanceArgs.accountId,
+        list: [
+          { blobId: 'b-ics', eventAttendanceStatus: 'rejected', isFree: true }
+        ]
+      }))
+      return {
+        accountId: args.accountId,
+        notMaybe: { 'b-ics': { type: 'serverFail', description: 'No CalDAV' } }
+      }
+    })
+    renderView(server)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Maybe' }))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Event reply was sent unsuccessfully!'
+    )
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'No' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    })
+    jest.restoreAllMocks()
+  })
+
   it('offers only Yes on a counter proposal, which accepts it', async () => {
     const server = makeServer({ ...INVITATION, method: 'COUNTER' })
     server.handlers.set('CalendarEventCounter/accept', args => ({

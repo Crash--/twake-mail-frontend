@@ -1373,6 +1373,7 @@
       "no": "Vous ne participerez pas à cette réunion"
     },
     "replyFailed": "La réponse à l'évènement n'a pas été envoyée !",
+    "alreadyAnswered": "Vous avez déjà donné cette réponse à l'invitation",
     "counterAccepted": "Vous avez accepté le créneau horaire proposé pour cette réunion",
     "eventLabel": "Événement : %{title}",
     "allDay": "Toute la journée",

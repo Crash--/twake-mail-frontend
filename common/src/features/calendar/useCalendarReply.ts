@@ -56,11 +56,24 @@ function outcomeOf(
 }
 
 /**
+ * tmail-backend refuses with `invalidPatch` an answer the event already
+ * holds: the reply is a no-op
+ */
+function isAlreadyAnswered(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'type' in error &&
+    error.type === 'invalidPatch'
+  )
+}
+
+/**
  * Answers the invitation of an email: `CalendarEvent/accept`, `maybe`,
  * `reject`, in the language of the UI when the server writes it, or
  * `CalendarEventCounter/accept` for a counter proposal. The answer shows
  * at once on the card; a failure shows a translated message, the server
- * detail going to the console.
+ * detail going to the console, and reads the answer on the card again.
  */
 export function useCalendarReply(
   invitation: CalendarInvitation,
@@ -80,6 +93,10 @@ export function useCalendarReply(
       const capability = session.capabilities[
         LINAGORA_CAPABILITIES.calendarEvent
       ] as CalendarEventCapability | undefined
+      const key: CalendarInvitationKey = calendarKeys.invitation(
+        accountId,
+        blobIds
+      )
       // The server detail goes to the console (and Sentry), the user reads
       // a translated message
       const fail = (error: unknown): void => {
@@ -96,21 +113,28 @@ export function useCalendarReply(
       try {
         const outcome = await sendAnswer(next)
         if (!outcome.ok) {
-          fail(outcome.error)
+          answerFailed(outcome.error)
           return
         }
-        const key: CalendarInvitationKey = calendarKeys.invitation(
-          accountId,
-          blobIds
-        )
         queryClient.setQueryData<CalendarInvitation | null>(key, current =>
           current ? { ...current, attendance: ATTENDANCE[next] } : current
         )
         notify({ message: t(SUCCESS[next]), severity: 'success' })
       } catch (error: unknown) {
-        fail(error)
+        answerFailed(error)
       } finally {
         setPending(null)
+      }
+
+      // The answer on the card may be out of date (given elsewhere, or read
+      // from another copy of the event): read it again
+      function answerFailed(error: unknown): void {
+        queryClient.invalidateQueries({ queryKey: key }).catch(() => undefined)
+        if (isAlreadyAnswered(error)) {
+          notify({ message: t('calendar.alreadyAnswered'), severity: 'info' })
+          return
+        }
+        fail(error)
       }
 
       async function sendAnswer(

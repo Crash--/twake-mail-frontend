@@ -1373,6 +1373,7 @@
       "no": "Bạn sẽ không tham gia sự kiện"
     },
     "replyFailed": "Hồi đáp sự kiện không thành công!",
+    "alreadyAnswered": "Bạn đã gửi câu trả lời này cho lời mời",
     "counterAccepted": "Bạn đã chấp nhận một đề xuất thời gian mới cho cuộc họp này",
     "eventLabel": "Sự kiện: %{title}",
     "allDay": "Cả ngày",

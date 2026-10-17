@@ -94,20 +94,42 @@ export function formatRecipient(recipient: Recipient): string {
 }
 
 /**
- * The suggestions of a recipient field, the typed text first when it is a
- * complete address (tmail-flutter): Enter picks what was typed, not a
- * contact whose address merely contains it, nor a suggestion left from a
- * shorter text while the lookup waits. The matching contact moves first,
- * or `typedSuggestion` makes one for the address. Without suggestions
- * nothing is listed: Enter commits the text.
+ * `items` without the ones whose address, whatever its case, came earlier
+ * (tf#1763): the server may return the same contact twice, and two options
+ * would share a DOM id, breaking `aria-activedescendant`
+ */
+export function uniqueByAddress<Item>(
+  items: readonly Item[],
+  addressOf: (item: Item) => string
+): Item[] {
+  const seen = new Set<string>()
+  return items.filter(item => {
+    const address = addressOf(item).toLowerCase()
+    if (seen.has(address)) return false
+    seen.add(address)
+    return true
+  })
+}
+
+/**
+ * The suggestions of a recipient field, each address once, the typed text
+ * first when it is a complete address (tmail-flutter): Enter picks what was
+ * typed, not a contact whose address merely contains it, nor a suggestion
+ * left from a shorter text while the lookup waits. The matching contact
+ * moves first, or `typedSuggestion` makes one for the address. Without
+ * suggestions nothing is listed: Enter commits the text.
  */
 export function withTypedAddressFirst<Suggestion extends { id: string }>(
-  suggestions: readonly Suggestion[],
+  allSuggestions: readonly Suggestion[],
   typed: string,
   typedSuggestion: (email: string) => Suggestion
 ): Suggestion[] {
+  const suggestions = uniqueByAddress(
+    allSuggestions,
+    suggestion => suggestion.id
+  )
   const email = typed.trim()
-  if (suggestions.length === 0 || !isValidEmail(email)) return [...suggestions]
+  if (suggestions.length === 0 || !isValidEmail(email)) return suggestions
   const match = suggestions.find(suggestion => sameEmail(suggestion.id, email))
   const others = suggestions.filter(suggestion => suggestion !== match)
   return [match ?? typedSuggestion(email), ...others]

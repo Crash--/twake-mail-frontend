@@ -4,6 +4,7 @@ import {
   isValidEmail,
   mergeRecipients,
   parseRecipients,
+  uniqueByAddress,
   withTypedAddressFirst
 } from './recipients'
 
@@ -39,6 +40,45 @@ describe('withTypedAddressFirst', () => {
     ['no suggestions', [], 'newcomer@example.com']
   ])('keeps the suggestions as they are with %s', (_, suggestions, text) => {
     expect(withTypedAddressFirst(suggestions, text, typed)).toEqual(suggestions)
+  })
+
+  it.each([
+    ['an incomplete address', 'alice'],
+    ['a complete address', 'alice@example.com']
+  ])(
+    'lists an address returned twice once, whatever its case, with %s',
+    (_, text) => {
+      const first = { id: 'alice@example.com', label: 'Alice' }
+      expect(
+        withTypedAddressFirst(
+          [
+            first,
+            { id: 'Alice@Example.com', label: 'Alice again' },
+            { id: 'alice@example.com', label: 'Alice once more' }
+          ],
+          text,
+          email => ({ id: email, label: email })
+        )
+      ).toEqual([first])
+    }
+  )
+})
+
+describe('uniqueByAddress', () => {
+  it('keeps the first item of each address, whatever its case, in order', () => {
+    expect(
+      uniqueByAddress(
+        [
+          { emailAddress: 'bob@example.com', name: 'Bob' },
+          { emailAddress: 'alice@example.com', name: 'Alice' },
+          { emailAddress: 'BOB@example.com', name: 'Bob again' }
+        ],
+        contact => contact.emailAddress
+      )
+    ).toEqual([
+      { emailAddress: 'bob@example.com', name: 'Bob' },
+      { emailAddress: 'alice@example.com', name: 'Alice' }
+    ])
   })
 })
 

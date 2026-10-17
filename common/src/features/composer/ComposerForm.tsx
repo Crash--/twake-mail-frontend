@@ -428,6 +428,9 @@ function LoadedComposerForm({
   const [isSendSlow, setIsSendSlow] = useState(false)
   const [isSendingDialogClosed, setIsSendingDialogClosed] = useState(false)
   const sendSlowTimerRef = useRef<number | null>(null)
+  // Set synchronously: two clicks or Ctrl+Enter in a row both read the
+  // same `isSending` from their render, before it turns true
+  const sendingRef = useRef(false)
   // The step tmail-flutter's sending dialog says: the email is built (its
   // images and attachments uploaded), then sent
   const [sendingStep, setSendingStep] = useState<'creating' | 'sending'>(
@@ -1372,13 +1375,22 @@ function LoadedComposerForm({
   )
 
   const handleSend = async (): Promise<void> => {
-    const editor = editorRef.current
-    const identity = identities.find(item => item.id === identityId)
-    if (isSendingRef.current) {
+    if (sendingRef.current) {
       // Never sent again blindly: the first sending may reach the server
       if (isSendingDialogClosed) notifyStillSending()
       return
     }
+    sendingRef.current = true
+    try {
+      await send()
+    } finally {
+      sendingRef.current = false
+    }
+  }
+
+  const send = async (): Promise<void> => {
+    const editor = editorRef.current
+    const identity = identities.find(item => item.id === identityId)
     if (!editor || !identity) return
     setSendError(null)
     setIsSendOverQuota(false)

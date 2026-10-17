@@ -360,6 +360,28 @@ describe('ComposerForm', () => {
       expect(jmapServer.submitted).toHaveLength(1)
     })
 
+    it('sends once when Send is clicked twice and Ctrl+Enter pressed in a row', async () => {
+      const { jmapServer } = renderComposer()
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Once' })
+      const release = jmapServer.holdRequests('EmailSubmission/set')
+      const send = within(composer).getByTestId('composer-send-button')
+
+      fireEvent.click(send)
+      fireEvent.click(send)
+      fireEvent.keyDown(
+        within(composer).getByRole('textbox', { name: 'Subject' }),
+        { key: 'Enter', ctrlKey: true }
+      )
+      await screen.findByRole('dialog', { name: 'Sending message' })
+      release()
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      expect(jmapServer.submitted).toHaveLength(1)
+    })
+
     it('says the user is offline when the sending fails without network, and keeps the message', async () => {
       const { jmapServer } = renderComposer()
       const composer = await openComposer()

@@ -24,7 +24,7 @@ import {
   FormDialogFrame,
   FormFieldRow
 } from '@/ds/FormDialogFrame/FormDialogFrame'
-import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
+import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -61,7 +61,13 @@ import {
   publishSignatureImage,
   signatureAssetChanges
 } from './signatureAssets'
-import { prepareSignatureImage, signatureImageMaxWidth } from './signatureImage'
+import {
+  prepareSignatureImage,
+  rasterizeSvg,
+  SIGNATURE_IMAGE_TYPES,
+  signatureImageMaxWidth,
+  SVG_TYPE
+} from './signatureImage'
 
 export interface IdentityFormDialogProps {
   /** The identity to edit, null to create one */
@@ -243,9 +249,19 @@ export function IdentityFormDialog({
   const storeImage = async (
     original: File
   ): Promise<InlineImageAttributes | null> => {
+    const maxWidth = signatureImageMaxWidth(screenSize === 'desktop')
+    // Gmail and Outlook show no SVG: it is published as a PNG (tf#2401)
+    const source =
+      original.type === SVG_TYPE
+        ? await rasterizeSvg(original, maxWidth)
+        : original
+    if (source === null) {
+      notify({ message: t('identities.errors.notAnImage'), severity: 'error' })
+      return null
+    }
     const image = await prepareSignatureImage(
-      original,
-      signatureImageMaxWidth(screenSize === 'desktop'),
+      source,
+      maxWidth,
       maxUploadSize ?? Number.POSITIVE_INFINITY
     )
     if (image === null) {
@@ -300,7 +316,9 @@ export function IdentityFormDialog({
   const handleImageFiles = async (
     files: File[]
   ): Promise<InlineImageAttributes[]> => {
-    const accepted = files.filter(file => IMAGE_TYPES.includes(file.type))
+    const accepted = files.filter(file =>
+      SIGNATURE_IMAGE_TYPES.includes(file.type)
+    )
     if (accepted.length === 0) {
       notify({ message: t('identities.errors.notAnImage'), severity: 'error' })
       return []
@@ -630,6 +648,7 @@ export function IdentityFormDialog({
             fontFamilies={fontFamilies}
             onImageFiles={handleImageFiles}
             shouldStorePastedDataImages={canPublishImages}
+            imageTypes={SIGNATURE_IMAGE_TYPES}
             busyLabel={storingCount > 0 ? t('composer.images.inserting') : null}
             actions={editorActionsRef}
             onReady={editor => {

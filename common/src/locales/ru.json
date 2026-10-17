@@ -249,7 +249,9 @@
       "deleteTo": "Удалить черновик для %{recipients}"
     },
     "row": {
-      "openInNewTab": "Открыть в новой вкладке"
+      "openInNewTab": "Открыть в новой вкладке",
+      "noRecipient": "Нет получателя",
+      "noSender": "Нет отправителя"
     }
   },
   "push": {

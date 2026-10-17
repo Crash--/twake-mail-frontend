@@ -249,7 +249,9 @@
       "deleteTo": "Supprimer le brouillon pour %{recipients}"
     },
     "row": {
-      "openInNewTab": "Ouvrir dans un nouvel onglet"
+      "openInNewTab": "Ouvrir dans un nouvel onglet",
+      "noRecipient": "Aucun destinataire",
+      "noSender": "Aucun expéditeur"
     }
   },
   "push": {

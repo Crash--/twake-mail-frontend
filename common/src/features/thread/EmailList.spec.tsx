@@ -524,6 +524,31 @@ describe('EmailList', () => {
     ).toHaveTextContent('Bob Dupont')
   })
 
+  it('says that a draft has no recipient yet', async () => {
+    renderList(
+      makeFakeJmapServer({
+        emails: [
+          makeEmail({
+            id: 'draft',
+            subject: 'QA tpl',
+            mailboxIds: { 'mailbox-drafts': true },
+            keywords: { $draft: true, $seen: true },
+            to: []
+          })
+        ]
+      }),
+      'mailbox-drafts'
+    )
+
+    const row = await screen.findByTestId('email-list-item')
+    expect(within(row).getByTestId('email-list-item-sender')).toHaveTextContent(
+      'No recipient'
+    )
+    expect(within(row).getByRole('link')).toHaveAccessibleName(
+      /^No recipient, QA tpl/
+    )
+  })
+
   it('opens an email on click', async () => {
     renderList(makeFakeJmapServer({ emails: makeEmails(1) }))
 

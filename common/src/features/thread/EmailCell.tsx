@@ -246,10 +246,15 @@ export function EmailCell({
       </>
     )
   // Its participants ("Alice, Bob, Me") rather than the last sender
-  const correspondents =
+  const names =
     thread !== null && !showRecipients
       ? thread.participants.join(', ')
       : formatAddressNames(showRecipients ? email.to : email.from)
+  // As mail clients do for a draft without recipient: never a blank column
+  const correspondents =
+    names !== ''
+      ? names
+      : t(showRecipients ? 'thread.row.noRecipient' : 'thread.row.noSender')
 
   // Decorative: the name of the sender is the text next to it. As
   // tmail-flutter: the first letter of the name on the gradient of the address
@@ -588,7 +593,9 @@ export function EmailCell({
           onNavigate={handleNavigate}
           current={email.id === openEmailId}
         >
-          <span className="u-visuallyhidden">{`${context.join(', ')}, `}</span>
+          {context.length > 0 ? (
+            <span className="u-visuallyhidden">{`${context.join(', ')}, `}</span>
+          ) : null}
           <RowLine
             isStrong={isUnread}
             leading={

@@ -22,6 +22,15 @@ function find(id: string): (typeof mailboxes)[number] {
 }
 
 describe('validateFolderName', () => {
+  it.each(['\n', '\v', '\f', '\r', '\u0085', '\u2028', '\u2029'])(
+    'refuses a name holding the line break %j',
+    lineBreak => {
+      expect(
+        validateFolderName(`q${lineBreak}z`, { mailboxes, parentId: null })
+      ).toBe('folders.validation.characters')
+    }
+  )
+
   it('refuses the name of another folder at the same place, whatever the case', () => {
     expect(
       validateFolderName('NOTES', { mailboxes, parentId: 'projects' })

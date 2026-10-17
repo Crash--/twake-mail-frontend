@@ -266,3 +266,135 @@ describe('IdentitiesSettings', () => {
     ).toBe(null)
   })
 })
+
+describe('IdentitiesSettings across a reload (tf#3082)', () => {
+  const DRAFT_KEY = 'twake-mail-identity-form|account-alice'
+
+  function keep(draft: Record<string, unknown>): void {
+    sessionStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({
+        identityId: null,
+        name: '',
+        email: 'alice@example.com',
+        replyTo: '',
+        bcc: '',
+        isDefault: false,
+        signatureHtml: '',
+        published: [],
+        ...draft
+      })
+    )
+  }
+
+  afterEach(() => {
+    sessionStorage.clear()
+  })
+
+  async function editWork(): Promise<HTMLElement> {
+    await userEvent.click(
+      within(await waitFor(() => item('Alice at work'))).getByRole('button', {
+        name: 'Edit Alice at work'
+      })
+    )
+    return screen.getByRole('dialog', { name: 'Edit identity' })
+  }
+
+  /** @returns whether the browser is asked to warn */
+  function leavePage(): boolean {
+    const beforeUnload = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(beforeUnload)
+    window.dispatchEvent(new Event('pagehide'))
+    return beforeUnload.defaultPrevented
+  }
+
+  it('lets the page go without a word while nothing changed', async () => {
+    renderSettings(makeServer())
+    await editWork()
+
+    expect(leavePage()).toBe(false)
+    expect(sessionStorage.getItem(DRAFT_KEY)).toBe(null)
+  })
+
+  it('warns before leaving a changed form and keeps it for the next page', async () => {
+    renderSettings(makeServer())
+    const dialog = await editWork()
+    const name = within(dialog).getByRole('textbox', {
+      name: 'Name (required)'
+    })
+    await userEvent.clear(name)
+    await userEvent.type(name, 'Alice on leave')
+
+    expect(leavePage()).toBe(true)
+    expect(JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? 'null')).toEqual(
+      expect.objectContaining({
+        identityId: 'work',
+        name: 'Alice on leave',
+        replyTo: 'team@example.com',
+        signatureHtml: '<p>Alice</p><p>CEO</p>'
+      })
+    )
+  })
+
+  it('reopens the identity being edited as it was left', async () => {
+    keep({
+      identityId: 'work',
+      name: 'Alice on leave',
+      bcc: 'archive@example.com',
+      isDefault: true,
+      signatureHtml: '<p>Back on Monday</p>'
+    })
+    const server = makeServer()
+    renderSettings(server)
+
+    const dialog = await screen.findByRole('dialog', { name: 'Edit identity' })
+    expect(
+      within(dialog).getByRole('textbox', { name: 'Name (required)' })
+    ).toHaveValue('Alice on leave')
+    expect(within(dialog).getByRole('textbox', { name: 'Bcc to' })).toHaveValue(
+      'archive@example.com'
+    )
+    expect(await within(dialog).findByText('Back on Monday')).toBeVisible()
+    await userEvent.click(within(dialog).getByTestId('save-identity-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You’ve changed your identity successfully'
+    )
+    const [args] = server.callsOf('Identity/set')
+    expect(args?.update).toEqual({
+      work: {
+        name: 'Alice on leave',
+        replyTo: [],
+        bcc: [{ name: null, email: 'archive@example.com' }],
+        htmlSignature: '<p>Back on Monday</p>',
+        textSignature: 'Back on Monday'
+      }
+    })
+    expect(sessionStorage.getItem(DRAFT_KEY)).toBe(null)
+  })
+
+  it('forgets the kept form once cancelled', async () => {
+    keep({ name: 'Support' })
+    renderSettings(makeServer())
+
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Create new identity'
+    })
+    expect(
+      within(dialog).getByRole('textbox', { name: 'Name (required)' })
+    ).toHaveValue('Support')
+    await userEvent.click(within(dialog).getByTestId('identity-cancel-button'))
+
+    expect(screen.queryByRole('dialog')).toBe(null)
+    expect(sessionStorage.getItem(DRAFT_KEY)).toBe(null)
+  })
+
+  it('reopens nothing when the identity was deleted meanwhile', async () => {
+    keep({ identityId: 'gone', name: 'Gone' })
+    renderSettings(makeServer())
+
+    await screen.findByText('Alice at work')
+    expect(screen.queryByRole('dialog')).toBe(null)
+    expect(sessionStorage.getItem(DRAFT_KEY)).toBe(null)
+  })
+})

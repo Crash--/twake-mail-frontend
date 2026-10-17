@@ -1,4 +1,5 @@
 import { clearComposerStorage } from '@common/features/composer/composerStorage'
+import { clearIdentityFormStorage } from '@common/features/identities/identityFormStorage'
 
 import type { AuthServiceBase, AuthState } from './types'
 
@@ -18,10 +19,12 @@ type LocalSession = Pick<AuthServiceBase, 'clearLocalSession' | 'getState'>
 
 /**
  * The composers kept in the browser (`features/composer/composerStorage.ts`)
- * go when the session ends, as tmail-flutter does (ADR 0112)
+ * go when the session ends, as tmail-flutter does (ADR 0112), and so does
+ * the identity form kept for a reload
  */
 function forgetComposers(): void {
   void clearComposerStorage()
+  clearIdentityFormStorage()
 }
 
 function openChannel(): BroadcastChannel | null {

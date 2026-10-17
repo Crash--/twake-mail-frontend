@@ -23,6 +23,14 @@ export function StorageSettings({
   const { t, lang } = useI18n()
   const query = useStorageQuota()
   const quota = query.data
+  const upgradeButton = (
+    <UpgradeStorageLink
+      label={t('quota.upgrade')}
+      appearance="button"
+      className="u-mt-1"
+      data-testid="storage-upgrade-button"
+    />
+  )
 
   return (
     <SettingsSectionLayout section={section}>
@@ -33,13 +41,16 @@ export function StorageSettings({
           {t('common.errorOccurredShort')}
         </SecondaryText>
       ) : !quota ? (
-        <SecondaryText
-          variant="body2"
-          component="p"
-          data-testid="storage-unlimited"
-        >
-          {t('quota.unlimited')}
-        </SecondaryText>
+        <Box>
+          <SecondaryText
+            variant="body2"
+            component="p"
+            data-testid="storage-unlimited"
+          >
+            {t('quota.unlimited')}
+          </SecondaryText>
+          {upgradeButton}
+        </Box>
       ) : (
         <Box data-testid="storage-settings" data-used={quota.used}>
           <StorageUsage
@@ -63,12 +74,7 @@ export function StorageSettings({
               {t('quota.almostFull')}
             </Alert>
           ) : null}
-          <UpgradeStorageLink
-            label={t('quota.upgrade')}
-            appearance="button"
-            className="u-mt-1"
-            data-testid="storage-upgrade-button"
-          />
+          {upgradeButton}
         </Box>
       )}
     </SettingsSectionLayout>

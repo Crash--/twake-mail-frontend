@@ -72,6 +72,11 @@ export interface RichTextEditorProps {
    */
   shouldStorePastedDataImages?: boolean
   /**
+   * With `onImageFiles`: the image types the editor takes (paste, drop,
+   * toolbar); IMAGE_TYPES by default
+   */
+  imageTypes?: readonly string[]
+  /**
    * Images are being stored: a spinner named so over the text; null for
    * none
    */
@@ -255,10 +260,13 @@ function leaveEscapeToContainer(
   return true
 }
 
-function createImageFileHandler(actionsRef: ActionsRef): AnyExtension {
+function createImageFileHandler(
+  actionsRef: ActionsRef,
+  imageTypes: readonly string[]
+): AnyExtension {
   const report = (error: unknown): void => console.error(error)
   return FileHandler.configure({
-    allowedMimeTypes: [...IMAGE_TYPES],
+    allowedMimeTypes: [...imageTypes],
     onPaste: (editor, files) => {
       void insertImages(actionsRef, editor, files, null).catch(report)
     },
@@ -313,6 +321,7 @@ export function RichTextEditor({
   fontFamilies,
   onImageFiles,
   shouldStorePastedDataImages = false,
+  imageTypes = IMAGE_TYPES,
   busyLabel = null,
   htmlBlock,
   footerBlockKinds = [],
@@ -385,10 +394,10 @@ export function RichTextEditor({
       createKeyboardExtension(actionsRef),
       TabKey,
       // eslint-disable-next-line react-hooks/refs
-      ...(onImageFiles ? [createImageFileHandler(actionsRef)] : []),
+      ...(onImageFiles ? [createImageFileHandler(actionsRef, imageTypes)] : []),
       ...(onImageFiles && shouldStorePastedDataImages
         ? // eslint-disable-next-line react-hooks/refs
-          [createPastedDataImages(actionsRef, IMAGE_TYPES)]
+          [createPastedDataImages(actionsRef, imageTypes)]
         : []),
       ...extensions
     ],
@@ -712,7 +721,7 @@ export function RichTextEditor({
       <input
         ref={fileInputRef}
         type="file"
-        accept={IMAGE_TYPES.join(',')}
+        accept={imageTypes.join(',')}
         multiple
         hidden
         onChange={handleFiles}

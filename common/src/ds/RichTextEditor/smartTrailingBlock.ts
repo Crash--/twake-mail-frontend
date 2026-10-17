@@ -51,6 +51,16 @@ export function findTrailingBlock(
   }
 }
 
+/** Whether `position` is inside a top-level block that is not a footer */
+export function isInEditableBlock(
+  doc: ProseMirrorNode,
+  position: number,
+  isFooter: (node: ProseMirrorNode) => boolean
+): boolean {
+  const resolved = doc.resolve(position)
+  return resolved.depth > 0 && !isFooter(resolved.node(1))
+}
+
 /**
  * A paragraph at the start of a document made of footer blocks only, null
  * when the document has something to type in.
@@ -130,8 +140,16 @@ export const SmartTrailingBlock = Extension.create<SmartTrailingBlockOptions>({
                 left: event.clientX,
                 top: event.clientY
               })
-              // A click in the editable content: ProseMirror's business
+              // A click in the editable content, or in a block after the
+              // footer that is not one (a quote the user edits):
+              // ProseMirror's business
               if (position && position.pos < info.editableEnd) return false
+              if (
+                position &&
+                isInEditableBlock(view.state.doc, position.pos, isFooter)
+              ) {
+                return false
+              }
               // A click on a footer when the content ends with a text
               // block: the mouse selects that block (Delete removes it)
               if (!info.needsParagraph && lastPointerType === 'mouse') {

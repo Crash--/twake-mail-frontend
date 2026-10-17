@@ -36,6 +36,7 @@ import { InlineImage, type InlineImageAttributes } from './inlineImage'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
 import { toLinkUrl } from './linkUrl'
 import { createPastedDataImages } from './pastedDataImages'
+import { QuoteBlock, QuoteCite, QuoteKeys } from './quoteBlock'
 import { RichTextToolbar } from './RichTextToolbar'
 import { SelectionAction } from './SelectionAction'
 import { SmartTrailingBlock } from './smartTrailingBlock'
@@ -374,6 +375,11 @@ export function RichTextEditor({
       InlineImage,
       CaretBlock,
       HtmlBlock.configure(htmlBlock ?? {}),
+      // After the paragraph: the first block of the schema fills the
+      // empty documents
+      QuoteBlock,
+      QuoteCite,
+      QuoteKeys,
       SmartTrailingBlock.configure({
         isFooter: node =>
           node.type.name === HtmlBlock.name &&

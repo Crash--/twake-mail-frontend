@@ -21,7 +21,9 @@ const IMAGE_STYLE = 'max-width:100%;'
 const TABLE_STYLE = 'border-collapse:collapse;'
 const CELL_STYLE = 'border:1px solid #ccc;padding:4px 8px;vertical-align:top;'
 
-const HTML_BLOCK_SELECTOR = '[data-html-block]'
+// The quote is edited as the rest of the text (the editor's QuoteBlock): only
+// its wrapper sets it apart
+const HTML_BLOCK_SELECTOR = '[data-html-block]:not([data-html-block="quote"])'
 
 function parse(html: string): HTMLElement {
   return new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html')
@@ -150,20 +152,6 @@ export function toStorageHtml(editorHtml: string): string {
   )
 }
 
-/**
- * A quote made editable: its `cid:` images shown (`fromEmailHtml`), its
- * remote images kept but not loaded (`data-blocked-src`, given back by
- * `toEmailHtml`), as the reader blocks them
- */
-export function editableQuoteHtml(
-  html: string,
-  urlFor: (cid: string) => string | null
-): string {
-  const root = parse(fromEmailHtml(html, urlFor))
-  blockRemoteSources(Array.from(root.querySelectorAll('img')))
-  return root.innerHTML
-}
-
 /** Keeps the remote sources of images without loading them; how many */
 function blockRemoteSources(images: readonly Element[]): number {
   let count = 0
@@ -192,17 +180,6 @@ export function blockRemoteImages(editorHtml: string): string {
 /** Whether editor HTML holds images blocked by `blockRemoteImages` */
 export function hasBlockedImages(editorHtml: string): boolean {
   return editorElements(parse(editorHtml), 'img[data-blocked-src]').length > 0
-}
-
-/** Replaces `cid:` sources by display URLs, for a frame that shows HTML */
-export function resolveCidSources(
-  html: string,
-  urlFor: (cid: string) => string | null
-): string {
-  return html.replace(/(["'])cid:([^"']+)\1/gi, (match, quote, cid) => {
-    const url = urlFor(String(cid))
-    return url === null ? match : `${String(quote)}${url}${String(quote)}`
-  })
 }
 
 // --- text alternative -------------------------------------------------------

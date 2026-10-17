@@ -18,6 +18,7 @@ import {
   type ComposerContent,
   type SendOptions
 } from './composerContent'
+import { blockRemoteImages, fromEmailHtml, hasBlockedImages } from './emailHtml'
 import type { InlineImageStore } from './InlineImageStore'
 import { buildQuoteHtml, prefixSubject, type QuoteLabels } from './quote'
 import { mergeRecipients } from './recipients'
@@ -215,6 +216,18 @@ export async function loadReplyContent(
   )
   const { identity } = identityForEmail(source, { identities, mailboxes })
   const signature = identity ? signatureHtml(identity) : null
+  // The quote is text to edit: its cid images shown, its remote ones waiting
+  // for the user, as in the reader (the signature block keeps its own)
+  const editorHtml = blockRemoteImages(
+    fromEmailHtml(
+      [
+        '<p></p><p></p>',
+        signature === null ? '' : signatureBlock(signature),
+        `<div data-html-block="quote">${quote}</div>`
+      ].join(''),
+      cid => images.urlFor(cid)
+    )
+  )
   const bcc = mergeRecipients(recipients.bcc, identityBcc(identity))
   return {
     identityId: identity?.id ?? null,
@@ -225,11 +238,7 @@ export async function loadReplyContent(
     subject: isForward
       ? prefixSubject(source.subject, 'Fwd:', labels.forwardPrefix)
       : prefixSubject(source.subject, 'Re:', labels.replyPrefix),
-    html: [
-      '<p></p><p></p>',
-      signature === null ? '' : signatureBlock(signature),
-      `<div data-html-block="quote">${quote}</div>`
-    ].join(''),
+    html: editorHtml,
     attachments,
     draftId: null,
     leftovers: [],
@@ -239,7 +248,7 @@ export async function loadReplyContent(
       emailId: source.id,
       keyword: isForward ? '$forwarded' : '$answered'
     },
-    hasBlockedImages: false,
+    hasBlockedImages: hasBlockedImages(editorHtml),
     draftSession: crypto.randomUUID(),
     mayHaveStrays: false,
     options,

@@ -6,9 +6,11 @@ import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import StarterKit from '@tiptap/starter-kit'
 
 import { HtmlBlock } from './htmlBlock'
+import { QuoteBlock } from './quoteBlock'
 import {
   ensureEditableBlock,
   findTrailingBlock,
+  isInEditableBlock,
   SmartTrailingBlock
 } from './smartTrailingBlock'
 
@@ -92,6 +94,30 @@ describe('SmartTrailingBlock', () => {
     expect(
       ensureEditableBlock(editor.state.doc, editor.state.tr, isFooter)
     ).toBe(null)
+    editor.destroy()
+  })
+})
+
+describe('isInEditableBlock', () => {
+  it('tells the editable quote after the signature from the gaps around the signature', () => {
+    const editor = new Editor({
+      extensions: [
+        StarterKit.configure({ trailingNode: false }),
+        HtmlBlock,
+        QuoteBlock,
+        SmartTrailingBlock.configure({ isFooter })
+      ],
+      content: `<p>Hello</p>${SIGNATURE}${QUOTE}`
+    })
+    const { doc } = editor.state
+    // <p>Hello</p> is 7 long, the signature (an atom) 1
+    const inQuote = 7 + 1 + 3
+
+    expect(doc.child(2).type.name).toBe('quoteBlock')
+    expect(isInEditableBlock(doc, inQuote, isFooter)).toBe(true)
+    // Next to the signature (an atom has no position inside): in no block
+    expect(isInEditableBlock(doc, 7, isFooter)).toBe(false)
+    expect(isInEditableBlock(doc, 8, isFooter)).toBe(false)
     editor.destroy()
   })
 })

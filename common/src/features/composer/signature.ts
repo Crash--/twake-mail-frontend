@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/core'
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import type { Identity } from 'jmap-client-ts'
 
 import { sanitizeEmailHtml } from '@common/features/email/sanitizeEmailHtml'
@@ -75,20 +76,30 @@ export function removeSignatures(html: string): string {
   return root.innerHTML
 }
 
-function findBlock(
+/** The editable quote (QuoteBlock): a signature in it is quoted content */
+const QUOTE_NODE = 'quoteBlock'
+
+function findNode(
   editor: Editor,
-  kind: string
+  matches: (node: ProseMirrorNode) => boolean
 ): { pos: number; size: number } | null {
   let found: { pos: number; size: number } | null = null
   editor.state.doc.descendants((node, pos) => {
     if (found) return false
-    if (node.type.name === 'htmlBlock' && node.attrs.kind === kind) {
+    if (matches(node)) {
       found = { pos, size: node.nodeSize }
       return false
     }
-    return true
+    return node.type.name !== QUOTE_NODE
   })
   return found
+}
+
+function findSignature(editor: Editor): { pos: number; size: number } | null {
+  return findNode(
+    editor,
+    node => node.type.name === 'htmlBlock' && node.attrs.kind === 'signature'
+  )
 }
 
 /**
@@ -98,7 +109,7 @@ function findBlock(
  * selection included, stays as it is.
  */
 export function replaceSignature(editor: Editor, html: string | null): void {
-  const current = findBlock(editor, 'signature')
+  const current = findSignature(editor)
   if (current) {
     const { tr } = editor.state
     if (html === null) {
@@ -110,7 +121,7 @@ export function replaceSignature(editor: Editor, html: string | null): void {
     return
   }
   if (html === null) return
-  const quote = findBlock(editor, 'quote')
+  const quote = findNode(editor, node => node.type.name === QUOTE_NODE)
   const node = editor.schema.nodes.htmlBlock?.create({
     html,
     kind: 'signature',

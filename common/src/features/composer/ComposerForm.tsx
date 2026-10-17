@@ -76,7 +76,6 @@ import {
   ATTACHMENT_DRAG_TYPE,
   readAttachmentDrag
 } from '@common/features/email/attachmentDrag'
-import { buildEmailDocument } from '@common/features/email/emailBody'
 import { scribeEndpoint } from '@common/features/scribe/scribe'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
@@ -133,8 +132,7 @@ import {
 import { findAttachmentKeywords, writtenText } from './attachmentReminder'
 import { TemplatePicker } from './TemplatePicker'
 import { chooseTemplatesTarget, templatesTargetKey } from './templatesFolder'
-import { EDITOR_TEST_IDS, htmlBlockEditTestId } from './editorTestIds'
-import { editableQuoteHtml, resolveCidSources } from './emailHtml'
+import { EDITOR_TEST_IDS } from './editorTestIds'
 import { showBlockedImages } from './editorImages'
 import { InlineImageStore, resizeImage } from './InlineImageStore'
 import { isLargeMessage } from './largeMessage'
@@ -289,15 +287,6 @@ function uploadedFiles(
       size,
       charset: charset ?? null
     }))
-}
-
-/**
- * The frame of a kept HTML block (the quoted email): its remote images,
- * backgrounds and fonts stay in the message, but are blocked here as in the
- * reader (CSP, no referrer)
- */
-function buildBlockDocument(content: string): string {
-  return buildEmailDocument(content, { allowRemoteContent: false })
 }
 
 /**
@@ -1865,19 +1854,6 @@ function LoadedComposerForm({
               fontFamilies={fontFamilies}
               onImageFiles={handleImageFiles}
               htmlBlock={{
-                buildFrameDocument: html =>
-                  buildBlockDocument(
-                    `<div data-html-block="quote">${resolveCidSources(
-                      html,
-                      cid => images.urlFor(cid)
-                    )}</div>`
-                  ),
-                frameTitle: () => t('composer.quote.frameTitle'),
-                editLabel: kind =>
-                  kind === 'quote' ? t('composer.quote.edit') : null,
-                editableHtml: (_kind, html) =>
-                  editableQuoteHtml(html, cid => images.urlFor(cid)),
-                editTestId: htmlBlockEditTestId,
                 toggleLabel: kind =>
                   kind === 'signature' ? t('composer.signature') : null,
                 toggleTestId: kind =>
@@ -1895,7 +1871,7 @@ function LoadedComposerForm({
                     }
                   : undefined
               }
-              footerBlockKinds={['signature', 'quote']}
+              footerBlockKinds={['signature']}
               autoFocus={autoFocus && opensOnText}
               fill
               isToolbarBelow

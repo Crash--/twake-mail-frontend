@@ -124,12 +124,6 @@ async function unfold(composer: ComposerPage): Promise<void> {
   await composer.recipientsSummary.click()
 }
 
-/** The quote of the composer: a frame, in the editor */
-function quoteFrame(composer: ComposerPage): ReturnType<Page['frameLocator']> {
-  return composer.page.frameLocator(
-    '[data-testid="composer"] [data-html-block-view="quote"] iframe'
-  )
-}
 
 async function openReceived(
   mailbox: MailboxPage,
@@ -177,7 +171,7 @@ test.describe('CMP and EML: replying and forwarding', () => {
       await expect(composer.editor).toBeFocused()
       await unfold(composer)
       await expect(composer.recipients('to')).toHaveText(['emma@example.com'])
-      await expect(quoteFrame(composer).locator('blockquote')).toContainText(
+      await expect(composer.quote.locator('blockquote')).toContainText(
         'Reply email without Reply-To'
       )
       await expectNoA11yViolations(page)
@@ -287,7 +281,7 @@ test.describe('CMP and EML: replying and forwarding', () => {
     await expect(composer.subjectInput).toHaveValue('Fwd: Forward email')
     await expect(composer.recipientInput('to')).toBeFocused()
     await expect(composer.recipients('to')).toHaveCount(0)
-    const header = quoteFrame(composer).locator('cite')
+    const header = composer.quote.locator('cite')
     await expect(header).toContainText('------- Forwarded message -------')
     for (const label of ['Subject:', 'Date:', 'From:', 'To:', 'Cc:', 'Bcc:']) {
       await expect(header).toContainText(label)
@@ -402,8 +396,8 @@ test.describe('CMP and EML: replying and forwarding', () => {
     // A sender without a display name is written bare (#437)
     expect(received.html).toMatch(/<cite[^>]*>On .* at .*, [^<&]+ wrote:<\/cite>/)
     expect(received.html).toContain(`, ${bob.email} wrote:</cite>`)
-    expect(received.html).toContain('<b>noon</b>')
-    expect(received.html).toContain('<td>Cell</td>')
+    expect(received.html).toMatch(/<(b|strong)>noon<\/(b|strong)>/)
+    expect(received.html).toMatch(/<td[^>]*>(<div>)?Cell/)
     expect(received.text).toContain('> Shall we meet at noon?')
     await expect
       .poll(
@@ -466,14 +460,11 @@ test.describe('CMP: the quote', () => {
     await page.waitForTimeout(500)
     remote.length = 0
     const composer = await received.forward()
-    await expect(quoteFrame(composer).locator('blockquote')).toContainText(
+    await expect(composer.quote.locator('blockquote')).toContainText(
       'Background'
     )
-    // Editing the quote keeps the remote image without loading it
-    await composer.root.getByTestId('html-block-edit-quote').click()
-    await expect(composer.editor.locator('img[data-blocked-src]')).toHaveCount(
-      1
-    )
+    // The quote is text to edit: its remote image is kept without loading it
+    await expect(composer.quote.locator('img[data-blocked-src]')).toHaveCount(1)
     await page.waitForTimeout(500)
     expect(remote).toEqual([])
 
@@ -484,7 +475,7 @@ test.describe('CMP: the quote', () => {
     expect(remote).toEqual([])
   })
 
-  test('CMP-39 "Edit the quoted message" is reached with Tab and turns the quote into text', async ({
+  test('CMP-39 the quote is text of the message: the arrows reach it from the text, and it is edited in place', async ({
     page,
     user,
     jmap
@@ -497,24 +488,128 @@ test.describe('CMP: the quote', () => {
       await openReceived(mailbox, 'ACME Weekly newsletter')
     ).reply()
     await expect(composer.editor).toBeFocused()
-    // Tab writes a tab in the body: Ctrl+Shift+M makes it move the focus on
-    await page.keyboard.press('Control+Shift+M')
-    await page.keyboard.press('Tab')
-    const edit = composer.root.getByRole('button', {
-      name: 'Edit the quoted message'
-    })
-    await expect(edit).toBeFocused()
-    await page.keyboard.press('Enter')
+    // No button to unlock it, no frame: the quote is in the text
     await expect(
-      composer.root.locator('[data-html-block-view="quote"]')
+      composer.root.getByRole('button', { name: 'Edit the quoted message' })
     ).toHaveCount(0)
-    await expect(composer.editor).toContainText(
+    await expect(composer.root.locator('[data-html-block-view="quote"]')
+    ).toHaveCount(0)
+    await expect(composer.quote).toContainText(
       'The ACME Weekly, October edition'
     )
     // The cid logo of the newsletter shows in the text
     await expect(
-      composer.editor.locator('img[data-reference="logo@newsletter"]')
+      composer.quote.locator('img[data-reference="logo@newsletter"]')
     ).toHaveAttribute('src', /^blob:/)
+
+    // From the empty lines above it, Ctrl+End goes to its end, where typing writes in it
+    await page.keyboard.press('Control+End')
+    await page.keyboard.type(' EDITED_BY_KEYBOARD')
+    await expect(composer.quote).toContainText('EDITED_BY_KEYBOARD')
+    await expectNoA11yViolations(page)
+  })
+
+  test('CMP-108 the quote is edited in place, and Enter in it writes at the level of the message, between its two halves', async ({
+    page,
+    user,
+    users,
+    jmapFor
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    const bobJmap = jmapFor(bob)
+    await bobJmap.sendEmail({
+      to: user.email,
+      subject: 'Edit my quote',
+      html: '<p>First line of the original.</p><p>Second line of the original.</p><p>Last line of the original.</p>'
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await (await openReceived(mailbox, 'Edit my quote')).reply()
+    await expect(composer.editor).toBeFocused()
+    const quoteLine = (text: string) =>
+      composer.quote.locator('p', { hasText: text })
+
+    // Edited where it is, as the rest of the text
+    await quoteLine('Second line').click()
+    await page.keyboard.press('End')
+    await page.keyboard.type(' EDITED')
+    await expect(quoteLine('Second line')).toHaveText(
+      'Second line of the original. EDITED'
+    )
+
+    // Enter cuts the quote: what follows is written out of it
+    await quoteLine('First line').click()
+    await page.keyboard.press('End')
+    await page.keyboard.press('Enter')
+    await page.keyboard.type('MY ANSWER')
+    await expect(composer.quote).toHaveCount(2)
+    const answer = composer.editor.locator('p', { hasText: 'MY ANSWER' })
+    await expect(answer).toHaveCount(1)
+    expect(
+      await answer.evaluate(
+        line => line.closest('blockquote, [data-html-block]') === null
+      )
+    ).toBe(true)
+    // No empty quoted line left on either side of the cut
+    await expect(composer.quote.first().locator('blockquote p')).toHaveText([
+      'First line of the original.'
+    ])
+    await expect(composer.quote.last().locator('blockquote p')).toHaveText([
+      'Second line of the original. EDITED',
+      'Last line of the original.'
+    ])
+
+    // At the end of the last quoted line, Enter writes after the quote
+    await quoteLine('Last line').click()
+    await page.keyboard.press('End')
+    await page.keyboard.press('Enter')
+    await page.keyboard.type('AFTER THE QUOTE')
+    const after = composer.editor.locator('p', { hasText: 'AFTER THE QUOTE' })
+    expect(
+      await after.evaluate(
+        line => line.closest('blockquote, [data-html-block]') === null
+      )
+    ).toBe(true)
+    await expect(composer.quote).toHaveCount(2)
+    await expectNoA11yViolations(page)
+
+    await composer.send()
+    const received = await waitForReceived(bobJmap, 'Re: Edit my quote')
+    const layout = await page.evaluate(source => {
+      const body = new DOMParser().parseFromString(source, 'text/html').body
+      const find = (text: string): Element | undefined =>
+        Array.from(body.querySelectorAll('div, p')).find(
+          element =>
+            element.children.length === 0 &&
+            element.textContent.includes(text)
+        )
+      const quoted = (text: string): boolean =>
+        find(text)?.closest('blockquote') !== null
+      return {
+        order: [
+          'First line',
+          'MY ANSWER',
+          'Second line of the original. EDITED',
+          'Last line',
+          'AFTER THE QUOTE'
+        ].map(text => source.indexOf(text)),
+        quoted: {
+          first: quoted('First line'),
+          answer: quoted('MY ANSWER'),
+          second: quoted('Second line'),
+          last: quoted('Last line'),
+          after: quoted('AFTER THE QUOTE')
+        }
+      }
+    }, received.html)
+    expect(layout.order.every(index => index !== -1)).toBe(true)
+    expect(layout.order).toEqual([...layout.order].sort((a, b) => a - b))
+    expect(layout.quoted).toEqual({
+      first: true,
+      answer: false,
+      second: true,
+      last: true,
+      after: false
+    })
   })
 
   test('CMP-40 a reply saved as a draft reopens with its quote, and is sent in the thread, the original answered', async ({
@@ -547,7 +642,7 @@ test.describe('CMP: the quote', () => {
     await mailbox.emailRowLink('Re: Draft me').click()
     composer = new ComposerPage(page)
     await expect(composer.subjectInput).toHaveValue('Re: Draft me')
-    await expect(quoteFrame(composer).locator('blockquote')).toContainText(
+    await expect(composer.quote.locator('blockquote')).toContainText(
       'Original text'
     )
     await expect(composer.editor).toContainText('Answer kept')
@@ -582,7 +677,7 @@ test.describe('CMP: the quote', () => {
     ])
   })
 
-  test('CMP-41 the quote of a newsletter keeps its tables, images, links and styles', async ({
+  test('CMP-41 the quote of a newsletter keeps its tables, images and links', async ({
     page,
     user,
     jmap
@@ -612,8 +707,9 @@ test.describe('CMP: the quote', () => {
       }, html)
     expect(await count(sent.html)).toEqual(await count(original?.html ?? ''))
     expect(sent.html).toContain('src="cid:logo@newsletter"')
-    // The styles of the newsletter only apply to the quote
-    expect(sent.html).toContain('[data-html-block="quote"] .heading')
+    // Edited as text: its style sheet is not kept, so it cannot restyle the
+    // message
+    expect(sent.html).not.toContain('.heading')
   })
 })
 
@@ -632,9 +728,7 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
     const composer = await (
       await openReceived(mailbox, 'Reply all email')
     ).reply()
-    await expect(
-      composer.root.locator('[data-html-block-view="quote"] iframe')
-    ).toBeVisible()
+    await expect(composer.quote.locator('blockquote')).toBeVisible()
     return composer
   }
 
@@ -655,7 +749,7 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
       html.indexOf('SIGNATURE_MARKER')
     )
     expect(html.indexOf('SIGNATURE_MARKER')).toBeLessThan(
-      html.indexOf('data-html-block-view="quote"')
+      html.indexOf('<blockquote')
     )
   })
 
@@ -665,8 +759,7 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
     jmap
   }) => {
     const composer = await openReply(page, user, jmap)
-    await composer.root.locator('[data-html-block-view="quote"]').click()
-    await page.keyboard.press('ArrowLeft')
+    await composer.placeCaretAtQuoteStart()
     await composer.insertImage({
       name: 'above.png',
       mimeType: 'image/png',
@@ -676,7 +769,7 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
     const html = await composer.editorHtml()
     expect(html.indexOf('data-reference=')).toBeGreaterThan(-1)
     expect(html.indexOf('data-reference=')).toBeLessThan(
-      html.indexOf('data-html-block-view="quote"')
+      html.indexOf('<blockquote')
     )
   })
 
@@ -687,7 +780,7 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
   }) => {
     await setSignature(jmap, '<p>SIGNATURE_MARKER</p>')
     const composer = await openReply(page, user, jmap)
-    await composer.placeCaretAboveQuote()
+    await composer.placeCaretAtQuoteStart()
     await composer.insertImage({
       name: 'between.png',
       mimeType: 'image/png',
@@ -698,7 +791,7 @@ test.describe('CMP: images of an answer (CMP-10 to CMP-12)', () => {
       html.indexOf('data-reference=')
     )
     expect(html.indexOf('data-reference=')).toBeLessThan(
-      html.indexOf('data-html-block-view="quote"')
+      html.indexOf('<blockquote')
     )
   })
 })

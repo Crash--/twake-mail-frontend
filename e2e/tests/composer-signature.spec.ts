@@ -83,7 +83,7 @@ test.describe('CMP: signatures and images', () => {
     expect(html).not.toContain('onerror')
     expect(html).not.toContain('<style')
     expect(html.indexOf('SIGNATURE_MARKER')).toBeLessThan(
-      html.indexOf('data-html-block-view="quote"')
+      html.indexOf('data-html-block="quote"')
     )
 
     await page.keyboard.type('Body text')
@@ -95,7 +95,7 @@ test.describe('CMP: signatures and images', () => {
       html.indexOf('WORK_SIGNATURE')
     )
     expect(html.indexOf('WORK_SIGNATURE')).toBeLessThan(
-      html.indexOf('data-html-block-view="quote"')
+      html.indexOf('data-html-block="quote"')
     )
     await expectNoA11yViolations(page)
 

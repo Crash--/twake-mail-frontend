@@ -204,7 +204,6 @@ Conventions:
 | `rich-text-<item>-button` (`undo`, `redo`, `bold`, `italic`, `underline`, `strike`, `color`, `size`, `align`, `bullet-list`, `ordered-list`, `blockquote`, `link`, `image`, `clear-formatting`) | buttons of the formatting toolbar (Alt+F10) | — |
 | `link-dialog-text-input` / `link-dialog-url-input` / `link-dialog-apply-button` | the insert link dialog (Ctrl+K) | — |
 | `rich-text-image-toolbar` + `rich-text-image-<item>-button` (`small`, `medium`, `large`, `original`, `smaller`, `larger`, `remove`) | toolbar of the selected image (arrows select it, Enter opens it) | — |
-| `html-block-edit-<kind>` | "Edit the quoted message" (`kind` = `quote`) | — |
 | `composer-send-button` | send | `UiKeys.sendEmailButton` |
 | `composer-close-button` | close (saves a draft when dirty) | `UiKeys.closeComposerButton` |
 | `composer-more-button` + `composer-save-draft-item` (phones only), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu, after the link in the bottom bar as tmail-flutter (`…`) | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |

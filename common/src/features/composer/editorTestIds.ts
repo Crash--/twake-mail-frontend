@@ -14,8 +14,3 @@ export const EDITOR_TEST_IDS: RichTextEditorTestIds = {
   imageAltInput: 'rich-text-image-alt-input',
   imageButton: item => `rich-text-image-${item}-button`
 }
-
-/** The `data-testid` of the "edit the quoted message" button of a block */
-export function htmlBlockEditTestId(kind: string): string {
-  return `html-block-edit-${kind}`
-}

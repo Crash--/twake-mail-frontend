@@ -1872,7 +1872,13 @@ describe('ComposerForm', () => {
           within(composer).getByRole('textbox', { name: 'Message body' })
         ).toHaveFocus()
       })
-      expect(within(composer).getByTitle('Quoted message')).toBeVisible()
+      // The quote is text of the message, edited as the rest
+      const body = within(composer).getByRole('textbox', {
+        name: 'Message body'
+      })
+      expect(within(body).getByText('plans').closest('blockquote')).not.toBe(
+        null
+      )
       expect(
         within(composer).queryAllByTestId('composer-attachment-item')
       ).toEqual([])
@@ -1897,7 +1903,7 @@ describe('ComposerForm', () => {
         .map(value => value.value)
         .join('')
       expect(html).toContain('On ')
-      expect(html).toContain('<b>plans</b>')
+      expect(html).toContain('The original <strong>plans</strong>')
       await waitFor(() => {
         expect(
           jmapServer.emails.find(email => email.id === 'source-1')?.keywords
@@ -1935,7 +1941,7 @@ describe('ComposerForm', () => {
         .join('')
       // Not the reader's stylesheet: other mail clients never get it
       expect(html).toMatch(
-        /<div class="tmail-plain-text" style="white-space: ?pre-wrap;?">First line<br>Second line<\/div>/
+        /<blockquote[^>]*><div>First line<br>Second line<\/div>/
       )
     })
 

@@ -1,5 +1,6 @@
 import {
-  editableQuoteHtml,
+  BLOCKQUOTE_STYLE,
+  blockRemoteImages,
   fromEmailHtml,
   htmlToText,
   toEmailHtml
@@ -38,25 +39,34 @@ describe('toEmailHtml', () => {
 
   it('leaves kept HTML blocks alone and marks the signature for tmail-flutter', () => {
     const html =
-      '<div data-html-block="signature" data-html-block-display="inline"><p>Sig</p></div>' +
-      '<div data-html-block="quote"><p>Q</p><ul><li><p>x</p></li></ul></div>'
+      '<div data-html-block="signature" data-html-block-display="inline"><p>Sig</p><ul><li><p>x</p></li></ul></div>'
 
     expect(toEmailHtml(html)).toBe(
-      '<div data-html-block="signature" data-html-block-display="inline" class="tmail-signature" style="clear: both; display: block;"><p>Sig</p></div>' +
-        '<div data-html-block="quote"><p>Q</p><ul><li><p>x</p></li></ul></div>'
+      '<div data-html-block="signature" data-html-block-display="inline" class="tmail-signature" style="clear: both; display: block;"><p>Sig</p><ul><li><p>x</p></li></ul></div>'
+    )
+  })
+
+  it('writes the quote as the rest of the text, in its wrapper', () => {
+    const html =
+      '<div data-html-block="quote"><cite style="text-align: left;display: block;">On Monday, Bob wrote:</cite>' +
+      '<blockquote><p>Q</p><p></p><ul><li><p>x</p></li></ul></blockquote></div>'
+
+    expect(toEmailHtml(html)).toBe(
+      '<div data-html-block="quote"><cite style="text-align: left;display: block;">On Monday, Bob wrote:</cite>' +
+        `<blockquote style="${BLOCKQUOTE_STYLE}"><div>Q</div><div><br></div><ul style="margin:0 0 0 0;padding-left:24px;"><li>x</li></ul></blockquote></div>`
     )
   })
 })
 
 describe('fromEmailHtml', () => {
-  it('shows cid images of the message, not those of a kept block', () => {
+  it('shows cid images of the message and of its quote, not those of a kept block', () => {
     expect(
       fromEmailHtml(
-        '<div><img src="cid:a"></div><div data-html-block="quote"><img src="cid:b"></div>',
+        '<div><img src="cid:a"></div><div data-html-block="signature"><img src="cid:b"></div><div data-html-block="quote"><img src="cid:c"></div>',
         cid => `blob:${cid}`
       )
     ).toBe(
-      '<div><img src="blob:a" data-reference="a"></div><div data-html-block="quote"><img src="cid:b"></div>'
+      '<div><img src="blob:a" data-reference="a"></div><div data-html-block="signature"><img src="cid:b"></div><div data-html-block="quote"><img src="blob:c" data-reference="c"></div>'
     )
   })
 })
@@ -104,11 +114,13 @@ describe('htmlToText', () => {
   })
 })
 
-describe('editableQuoteHtml', () => {
-  it('shows the cid images and keeps the remote ones without loading them', () => {
-    const editable = editableQuoteHtml(
-      '<blockquote><img src="cid:logo"><img src="https://tracker.example/p.png" srcset="https://tracker.example/p2.png 2x"></blockquote>',
-      cid => (cid === 'logo' ? 'blob:logo' : null)
+describe('the quote, edited as the rest of the text', () => {
+  it('shows its cid images and keeps the remote ones without loading them', () => {
+    const editable = blockRemoteImages(
+      fromEmailHtml(
+        '<div data-html-block="quote"><blockquote><img src="cid:logo"><img src="https://tracker.example/p.png" srcset="https://tracker.example/p2.png 2x"></blockquote></div>',
+        cid => (cid === 'logo' ? 'blob:logo' : null)
+      )
     )
     expect(editable).toContain('src="blob:logo" data-reference="logo"')
     expect(editable).toContain(

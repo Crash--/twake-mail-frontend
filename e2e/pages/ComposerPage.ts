@@ -164,19 +164,17 @@ export class ComposerPage {
   }
 
   /**
-   * Puts the caret in the gap just above the quote (between the signature
-   * and the quote): click the quote, then ArrowLeft. ProseMirror may read the
-   * stale DOM selection (the start of the text) between the two and drop the
-   * selected quote, so the gesture is repeated until the gap cursor is there
+   * The quote of an answer, in the text: edited as the rest of it (the
+   * `data-html-block="quote"` wrapper keeps it apart)
    */
-  async placeCaretAboveQuote(): Promise<ComposerPage> {
-    await expect(async () => {
-      await this.root.locator('[data-html-block-view="quote"]').click()
-      await this.page.keyboard.press('ArrowLeft')
-      await expect(this.editor.locator('.ProseMirror-gapcursor')).toBeAttached({
-        timeout: 1_000
-      })
-    }).toPass({ timeout: 15_000 })
+  get quote(): Locator {
+    return this.editor.locator('[data-html-block="quote"]')
+  }
+
+  /** Puts the caret at the start of the quote: its cite line ("On …, … wrote:") */
+  async placeCaretAtQuoteStart(): Promise<ComposerPage> {
+    await this.quote.locator('cite').click()
+    await this.page.keyboard.press('Home')
     return this
   }
 

@@ -2,6 +2,7 @@ import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 
 import { HtmlBlock } from '@/ds/RichTextEditor/htmlBlock'
+import { QuoteBlock } from '@/ds/RichTextEditor/quoteBlock'
 
 import { removeSignatures, replaceSignature, signatureHtml } from './signature'
 
@@ -76,7 +77,11 @@ describe('replaceSignature', () => {
 
   function makeEditor(content: string): Editor {
     return new Editor({
-      extensions: [StarterKit.configure({ trailingNode: false }), HtmlBlock],
+      extensions: [
+        StarterKit.configure({ trailingNode: false }),
+        HtmlBlock,
+        QuoteBlock
+      ],
       content
     })
   }
@@ -91,7 +96,7 @@ describe('replaceSignature', () => {
     const kinds = editor.state.doc.content.content.map(node =>
       node.type.name === 'htmlBlock' ? String(node.attrs.kind) : node.type.name
     )
-    expect(kinds).toEqual(['paragraph', 'paragraph', 'signature', 'quote'])
+    expect(kinds).toEqual(['paragraph', 'paragraph', 'signature', 'quoteBlock'])
     expect(
       editor.state.doc.content.content.slice(0, 2).map(node => node.textContent)
     ).toEqual(typed.slice(0, 2))

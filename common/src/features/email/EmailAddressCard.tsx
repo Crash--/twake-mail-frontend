@@ -26,6 +26,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { writeAddressDrag } from './addressDrag'
+import { addressDisplayName } from './addresses'
 import { contactLinks } from './contactLinks'
 
 export interface EmailAddressCardProps {
@@ -57,7 +58,7 @@ function AddressCardDialog({
   const { session } = useJmapSession()
   const config = useAppConfig()
   const hasRules = LINAGORA_CAPABILITIES.filter in session.capabilities
-  const name = (address.name ?? '').trim()
+  const name = addressDisplayName(address)
 
   const handleClose = onClose
 

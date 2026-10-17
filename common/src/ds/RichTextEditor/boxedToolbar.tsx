@@ -12,6 +12,7 @@ import {
   AlignLeft,
   AlignRight,
   FormatColorFill,
+  Link,
   List,
   Number as NumberIcon,
   StyleArrowDown,
@@ -32,10 +33,12 @@ export const BOXED_FONT_SIZE = 16
 /**
  * The buttons of tmail-flutter's toolbar, in its order: the image first,
  * then text style, size, font, colour, highlight, bold to strike, alignment
- * and lists. No history, link nor clearing.
+ * and lists. The link follows the image, so that a link can be added without
+ * knowing Ctrl+K (tf#3633). No history nor clearing.
  */
 export const BOXED_ITEMS: readonly RichTextToolbarItemId[] = [
   'image',
+  'link',
   'text-style',
   'size',
   'font',
@@ -139,6 +142,7 @@ const FONT_LABEL_SX = {
 
 const STYLE_ICONS: Partial<Record<RichTextToolbarItemId, IconProps['icon']>> = {
   image: AddPicture,
+  link: Link,
   'text-style': StyleHeader,
   bold: StyleBold,
   italic: StyleItalic,

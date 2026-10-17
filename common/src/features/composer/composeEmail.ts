@@ -692,9 +692,19 @@ export function readFailure(error: SetError | undefined): {
 }
 
 /**
+ * The patch moving a sent message from Drafts to Sent. Without a Sent
+ * folder it stays in Drafts: an email patched to no mailbox at all is
+ * refused, or lost (tmail-flutter#4797)
+ */
+function moveToSent({ drafts, sent }: MailboxIds): Record<string, true | null> {
+  if (sent === null) return {}
+  return { [`mailboxIds/${drafts}`]: null, [`mailboxIds/${sent}`]: true }
+}
+
+/**
  * Sends a message, in one request: `Email/set` creates it in Drafts, then
- * `EmailSubmission/set` submits it and, once submitted, moves it to Sent,
- * marks it seen and drops `$draft` (`onSuccessUpdateEmail`).
+ * `EmailSubmission/set` submits it and, once submitted, moves it to Sent
+ * (when the account has one), marks it seen and drops `$draft` (`onSuccessUpdateEmail`).
  *
  * The previous versions of the draft are destroyed afterwards, in their
  * own request, and only when the message was created: JMAP would run a
@@ -721,10 +731,7 @@ export async function sendEmail(
       create: { submission: { identityId, emailId: '#message' } },
       onSuccessUpdateEmail: {
         '#submission': {
-          [`mailboxIds/${mailboxIds.drafts}`]: null,
-          ...(mailboxIds.sent === null
-            ? {}
-            : { [`mailboxIds/${mailboxIds.sent}`]: true }),
+          ...moveToSent(mailboxIds),
           'keywords/$draft': null,
           'keywords/$seen': true
         }

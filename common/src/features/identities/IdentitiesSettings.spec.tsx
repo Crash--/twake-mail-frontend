@@ -179,6 +179,23 @@ describe('IdentitiesSettings', () => {
     expect(server.callsOf('Identity/set')).toEqual([])
   })
 
+  it('says that recipients see the name', async () => {
+    const server = makeServer()
+    renderSettings(server)
+
+    await userEvent.click(
+      await screen.findByTestId('create-new-identity-button')
+    )
+
+    expect(
+      within(screen.getByRole('dialog')).getByRole('textbox', {
+        name: 'Name (required)'
+      })
+    ).toHaveAccessibleDescription(
+      'Recipients see this name as the sender of your emails'
+    )
+  })
+
   it('edits an identity without changing its address', async () => {
     const server = makeServer()
     renderSettings(server)

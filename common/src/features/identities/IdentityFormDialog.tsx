@@ -449,7 +449,10 @@ export function IdentityFormDialog({
             setName(event.target.value)
           }}
           error={shown(nameProblem) !== null}
-          helperText={fieldError(shown(nameProblem))}
+          // The name is the sender name recipients see (tf#3149)
+          helperText={
+            fieldError(shown(nameProblem)) ?? t('identities.form.nameHelp')
+          }
           slotProps={{
             htmlInput: { 'data-testid': 'identity-name-input' }
           }}

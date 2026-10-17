@@ -22,6 +22,7 @@ import {
 } from '@common/features/emailActions/useRemoveEmails'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { EmptyFolderBanner } from '@common/features/mailboxActions/EmptyFolderBanner'
+import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -116,6 +117,7 @@ export function useEmailListActions({
   const { accountId, extraCapabilities } = useJmapSession()
   const removeEmails = useRemoveEmails()
   const runEmailAction = useRunEmailAction()
+  const isFramed = useTeamMailboxEmbed() !== null
   const [menu, setMenu] = useState<{
     anchor: EmailActionsMenuAnchor
     emails: readonly TargetEmail[]
@@ -270,7 +272,8 @@ export function useEmailListActions({
     // Whatever the selection: the rows must not move under the pointer
     banner: (
       <>
-        <SpamReportBanner mailbox={mailbox} />
+        {/* The facade of a team mailbox cannot show the user's own Spam */}
+        {isFramed ? null : <SpamReportBanner mailbox={mailbox} />}
         {mailbox === null ? null : <EmptyFolderBanner mailbox={mailbox} />}
       </>
     ),

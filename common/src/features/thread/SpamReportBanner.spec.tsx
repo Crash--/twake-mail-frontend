@@ -7,6 +7,7 @@ import {
   SPAM_REPORT_INTERVAL_MS,
   SPAM_REPORT_PREFERENCE_STORAGE_KEY
 } from '@common/features/settings/spamReportPreference'
+import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 import {
   makeDefaultMailboxes,
@@ -34,16 +35,26 @@ function makeServer(unreadSpam = 3): FakeJmapServer {
 
 async function renderFolder(
   server: FakeJmapServer,
-  mailboxId: string
+  mailboxId: string,
+  { isFramed = false }: { isFramed?: boolean } = {}
 ): Promise<{ unmount: () => void }> {
-  const { unmount } = renderWithProviders(
+  const list = (
     <VirtuosoMockContext.Provider
       value={{ viewportHeight: 10_000, itemHeight: 56 }}
     >
       <FolderActionsProvider>
         <EmailList mailboxId={mailboxId} />
       </FolderActionsProvider>
-    </VirtuosoMockContext.Provider>,
+    </VirtuosoMockContext.Provider>
+  )
+  const { unmount } = renderWithProviders(
+    isFramed ? (
+      <TeamMailboxEmbedProvider rootId="team-root">
+        {list}
+      </TeamMailboxEmbedProvider>
+    ) : (
+      list
+    ),
     {
       route: `/mailbox/${mailboxId}`,
       path: '/mailbox/:mailboxId',
@@ -94,6 +105,15 @@ describe('SpamReportBanner', () => {
   it('is not shown in Spam itself', async () => {
     await renderFolder(makeServer(), 'mailbox-spam')
     expect(screen.queryByTestId('spam-report-banner')).toBeNull()
+  })
+
+  it("is not shown in the facade of a team mailbox, which cannot show the user's Spam", async () => {
+    await renderFolder(makeServer(), 'mailbox-inbox', { isFramed: true })
+    expect(screen.queryByTestId('spam-report-banner')).toBeNull()
+    // Nor recorded as shown: the full webmail still shows it today
+    expect(
+      window.localStorage.getItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY)
+    ).toBeNull()
   })
 
   it('is not shown without unread emails in Spam', async () => {

@@ -17,6 +17,7 @@ import {
 import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { ScrollRow } from '@/ds/ScrollRow/ScrollRow'
+import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { usePickFolderOrChoice } from '@common/features/mailbox/MailboxPickerProvider'
 import { useI18n } from '@common/i18n/useI18n'
@@ -128,7 +129,7 @@ export function SearchFiltersBar({
           },
           ...labels.map(label => ({
             key: label.id,
-            label: label.displayName,
+            label: labelDisplayName(label, t),
             isSelected: filter.label === label.keyword,
             apply: () => {
               onChange({ ...filter, label: label.keyword })
@@ -240,11 +241,16 @@ export function SearchFiltersBar({
   }
 
   // A keyword no label has (e.g. a deleted one) still filters: say so
+  const filterLabel =
+    filter.label === null
+      ? null
+      : (labels.find(label => label.keyword === filter.label) ?? null)
   const labelName =
     filter.label === null
       ? t('search.labels.all')
-      : (labels.find(label => label.keyword === filter.label)?.displayName ??
-        t('search.labels.unknown'))
+      : filterLabel === null
+        ? t('search.labels.unknown')
+        : labelDisplayName(filterLabel, t)
 
   const canClear = !isEmptySearch(filter) || filter.sort !== DEFAULT_SORT_ORDER
 

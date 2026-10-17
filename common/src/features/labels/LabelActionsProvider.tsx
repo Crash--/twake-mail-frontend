@@ -21,6 +21,7 @@ import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { ChooseLabelsDialog, type LabelChoice } from './ChooseLabelsDialog'
+import { labelDisplayName } from './labelDisplayName'
 import { LabelDialog } from './LabelDialog'
 import { LABEL_PATH } from './labelPaths'
 import { labelKeys } from './queries'
@@ -126,7 +127,7 @@ export function LabelActionsProvider({
                       ? 'labels.toasts.addedToEmail'
                       : 'labels.toasts.addedToEmails'
                     : 'labels.toasts.removedFromEmail',
-                  { labelName: only?.displayName ?? '' }
+                  { labelName: only ? labelDisplayName(only, t) : '' }
                 ),
                 severity: 'success'
               }
@@ -141,7 +142,9 @@ export function LabelActionsProvider({
       const go = async (): Promise<boolean> => {
         const isConfirmed = await confirm({
           title: t('labels.delete.title'),
-          message: t('labels.delete.message', { labelName: label.displayName }),
+          message: t('labels.delete.message', {
+            labelName: labelDisplayName(label, t)
+          }),
           confirmLabel: t('common.delete'),
           isDestructive: true
         })
@@ -158,7 +161,9 @@ export function LabelActionsProvider({
           return false
         }
         notify({
-          message: t('labels.toasts.deleted', { labelName: label.displayName }),
+          message: t('labels.toasts.deleted', {
+            labelName: labelDisplayName(label, t)
+          }),
           severity: 'success'
         })
         if (openLabelId === label.id) void navigate('/')

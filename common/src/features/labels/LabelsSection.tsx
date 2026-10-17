@@ -26,6 +26,7 @@ import {
 
 import { LabelIcon } from './LabelIcon'
 import { useLabelActions } from './LabelActionsProvider'
+import { labelDisplayName } from './labelDisplayName'
 import { LABEL_PATH, labelPath } from './labelPaths'
 import { useLabels, useLabelsAvailable } from './queries'
 
@@ -35,14 +36,15 @@ function LabelItem({ label }: { label: Label }): ReactElement {
   const isSelected =
     useMatch(`${LABEL_PATH}/:labelId/*`)?.params.labelId === label.id
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
-  const menuLabel = t('labels.menuOf', { name: label.displayName })
+  const name = labelDisplayName(label, t)
+  const menuLabel = t('labels.menuOf', { name })
   const canChange = label.readOnly !== true
 
   return (
     <NavTreeItem
       level={1}
       icon={<LabelIcon color={label.color} />}
-      label={label.displayName}
+      label={name}
       linkComponent={Link}
       to={labelPath(label.id)}
       isSelected={isSelected}

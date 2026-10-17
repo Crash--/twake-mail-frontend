@@ -31,6 +31,7 @@ import { REPLY_LABELS } from '@common/features/email/useReplyOptions'
 import { isDraftsMailbox } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useLabelActions } from '@common/features/labels/LabelActionsProvider'
+import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -203,7 +204,7 @@ export function EmailActionsMenu({
                   color={isOn ? LABEL_ON_COLOR : LABEL_OFF_COLOR}
                 />
               </ListItemIcon>
-              <ListItemText primary={label.displayName} />
+              <ListItemText primary={labelDisplayName(label, t)} />
             </MenuItem>
           )
         }),

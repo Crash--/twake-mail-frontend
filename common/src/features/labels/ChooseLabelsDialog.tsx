@@ -22,6 +22,7 @@ import type { TargetEmail } from '@common/features/emailActions/planEmailChanges
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { labelDisplayName } from './labelDisplayName'
 import { LabelDialog } from './LabelDialog'
 import { LabelIcon } from './LabelIcon'
 import { useLabels } from './queries'
@@ -150,7 +151,9 @@ export function ChooseLabelsDialog({
                       label={
                         <Box className="u-flex u-flex-items-center">
                           <LabelIcon color={label.color} />
-                          <span className="u-ml-half">{label.displayName}</span>
+                          <span className="u-ml-half">
+                            {labelDisplayName(label, t)}
+                          </span>
                         </Box>
                       }
                     />

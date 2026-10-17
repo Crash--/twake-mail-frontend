@@ -10,6 +10,7 @@ import {
 } from '@common/features/thread/EmailList'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { labelDisplayName } from './labelDisplayName'
 import { LABEL_PATH, labelEmailPath } from './labelPaths'
 
 export interface LabelListProps {
@@ -34,7 +35,7 @@ export function LabelList({ label }: LabelListProps): ReactElement {
       },
       emailPath: emailId => labelEmailPath(label.id, emailId),
       openEmailId,
-      title: label.displayName,
+      title: labelDisplayName(label, t),
       filterScope: `label:${label.id}`,
       empty: (
         <EmptyListView

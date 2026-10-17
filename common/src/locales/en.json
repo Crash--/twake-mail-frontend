@@ -1250,6 +1250,7 @@
       "emptyMessage": "Create your first label to organize your emails more efficiently."
     },
     "more": "More",
+    "unnamed": "(No name)",
     "menuOf": "Actions on %{name}",
     "edit": "Edit",
     "colorNone": "No color",

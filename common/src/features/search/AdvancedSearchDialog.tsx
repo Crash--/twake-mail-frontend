@@ -21,6 +21,7 @@ import { FormRow } from '@/ds/FormRow/FormRow'
 import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { RecipientFieldDnd } from '@/ds/RecipientField/RecipientField'
+import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { fetchEmailSenders } from '@common/features/thread/emailSenders'
 import {
@@ -340,7 +341,7 @@ export function AdvancedSearchDialog({
             ) : null}
             {labels.map(label => (
               <option key={label.id} value={label.keyword}>
-                {label.displayName}
+                {labelDisplayName(label, t)}
               </option>
             ))}
           </TextField>

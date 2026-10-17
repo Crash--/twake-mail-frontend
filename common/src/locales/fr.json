@@ -1250,6 +1250,7 @@
       "emptyMessage": "Créez votre premier libellé pour mieux organiser vos messages."
     },
     "more": "Plus",
+    "unnamed": "(Sans nom)",
     "menuOf": "Actions sur %{name}",
     "edit": "Modifier",
     "colorNone": "Sans couleur",

@@ -987,6 +987,7 @@
     "form": {
       "name": "Nom",
       "namePlaceholder": "Entrez le nom",
+      "nameHelp": "Les destinataires voient ce nom comme expéditeur de vos e-mails",
       "replyTo": "Répondre à",
       "bcc": "Cci à",
       "addressPlaceholder": "Entrez l'adresse e-mail",

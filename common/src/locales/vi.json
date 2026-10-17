@@ -987,6 +987,7 @@
     "form": {
       "name": "Tên",
       "namePlaceholder": "Điền tên",
+      "nameHelp": "Người nhận sẽ thấy tên này là người gửi email của bạn",
       "replyTo": "Trả lời",
       "bcc": "Bcc",
       "addressPlaceholder": "Điền địa chỉ email",

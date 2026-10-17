@@ -987,6 +987,7 @@
     "form": {
       "name": "Name",
       "namePlaceholder": "Enter name",
+      "nameHelp": "Recipients see this name as the sender of your emails",
       "replyTo": "Reply to",
       "bcc": "Bcc to",
       "addressPlaceholder": "Enter email address",

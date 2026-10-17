@@ -43,15 +43,20 @@ import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
-  actionMessages,
   askScribe,
   SCRIBE_ACTIONS,
   scribeEndpoint,
-  writingMessages,
   type ScribeAction,
   type ScribeCategory,
-  type ScribeMessage
+  type ScribeResult
 } from '@common/features/scribe/scribe'
+import {
+  promptMessages,
+  WRITING_PROMPT_NAME,
+  type ScribeMessage,
+  type ScribePrompts
+} from '@common/features/scribe/scribePrompts'
+import { useScribePrompts } from '@common/features/scribe/useScribePrompts'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -134,6 +139,7 @@ export function ScribeMenu({
   const { session, accountId } = useJmapSession()
   const endpoint = scribeEndpoint(session, accountId)
   const [isScribeOn] = useScribePreference()
+  const loadPrompts = useScribePrompts()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   // What the menu works on, read when it opens
   const [menuInput, setMenuInput] = useState<ScribeInput | null>(null)
@@ -166,18 +172,28 @@ export function ScribeMenu({
   // Offered when the server has an assistant and the user did not hide it
   if (endpoint === null || !isScribeOn) return null
 
-  const ask = (messages: ScribeMessage[]): void => {
+  const messagesOf = (
+    prompts: ScribePrompts,
+    next: Request
+  ): ScribeMessage[] | null =>
+    next.kind === 'action'
+      ? promptMessages(prompts, next.action.id, next.input.text)
+      : promptMessages(prompts, WRITING_PROMPT_NAME, next.input.text, next.task)
+
+  const ask = (next: Request): void => {
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
     setAnswer({ status: 'loading' })
-    service
-      .getAuthorizationHeader()
-      .then(authorization =>
-        askScribe(endpoint, messages, authorization, {
-          signal: controller.signal
-        })
-      )
+    Promise.all([service.getAuthorizationHeader(), loadPrompts()])
+      .then(([authorization, prompts]): Promise<ScribeResult> => {
+        const messages = messagesOf(prompts, next)
+        return messages === null
+          ? Promise.resolve({ ok: false })
+          : askScribe(endpoint, messages, authorization, {
+              signal: controller.signal
+            })
+      })
       .then(result => {
         if (controller.signal.aborted) return
         setAnswer(
@@ -192,14 +208,9 @@ export function ScribeMenu({
       })
   }
 
-  const messagesOf = (next: Request): ScribeMessage[] =>
-    next.kind === 'action'
-      ? actionMessages(next.action, next.input.text)
-      : writingMessages(next.task, next.input.text)
-
   const run = (next: Request): void => {
     setRequest(next)
-    ask(messagesOf(next))
+    ask(next)
   }
 
   const closeMenu = (): void => {
@@ -263,7 +274,7 @@ export function ScribeMenu({
   }
 
   const handleRetry = (): void => {
-    if (request !== null) ask(messagesOf(request))
+    if (request !== null) ask(request)
   }
 
   const handleInsert = (): void => {

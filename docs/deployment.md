@@ -532,7 +532,10 @@ then, endpoints of the SSO on other origins) put it in `CSP_CONNECT_SRC`, or
 the login fails ("Refused to connect" in the browser console). Check the
 browser console after any change of the configuration that adds an origin. The AI assistant of the composer, when tmail-backend
 advertises `com:linagora:params:jmap:aibot`, talks to its `scribeEndpoint`:
-put that origin in `CSP_CONNECT_SRC` too.
+put that origin in `CSP_CONNECT_SRC` too. Its prompts are the built-in ones of
+tmail-flutter, unless the ecosystem document gives a `scribePromptUrl` (the
+format of tmail-flutter's `scribe/assets/prompts.json`, asked without
+credentials): put that origin there as well, or the built-in prompts stay.
 
 ## Reverse proxy, JMAP on the same origin or not
 

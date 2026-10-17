@@ -1,10 +1,5 @@
-import {
-  actionMessages,
-  askScribe,
-  SCRIBE_ACTIONS,
-  scribeEndpoint,
-  writingMessages
-} from './scribe'
+import { askScribe, SCRIBE_ACTIONS, scribeEndpoint } from './scribe'
+import { BUILT_IN_PROMPTS, promptMessages } from './scribePrompts'
 import { editorText, suggestionHtml } from './scribeText'
 
 const SESSION = {
@@ -59,10 +54,11 @@ describe('scribe', () => {
       'translate-russian',
       'translate-vietnamese'
     ])
-    const [system, user] = actionMessages(
-      { instruction: 'Translate the text to French.' },
-      'Hello'
-    )
+    expect(
+      SCRIBE_ACTIONS.every(action => BUILT_IN_PROMPTS.has(action.id))
+    ).toBe(true)
+    const [system, user] =
+      promptMessages(BUILT_IN_PROMPTS, 'translate-french', 'Hello') ?? []
     expect(system?.content).toContain(
       'You are a text editing assistant, NOT a chatbot.'
     )
@@ -70,9 +66,14 @@ describe('scribe', () => {
       role: 'user',
       content: 'INSTRUCTION:\nTranslate the text to French.\n\nTEXT:\nHello\n'
     })
-    expect(writingMessages('Thank Bob', '')[1]?.content).toBe(
-      'INSTRUCTION:\nThank Bob\n\nTEXT:\n'
-    )
+    expect(
+      promptMessages(
+        BUILT_IN_PROMPTS,
+        'custom-prompt-mail',
+        '',
+        'Thank Bob'
+      )?.[1]?.content
+    ).toBe('INSTRUCTION:\nThank Bob\n\nTEXT:\n')
   })
 
   it('reads the answer of the assistant, with the JMAP credentials', async () => {

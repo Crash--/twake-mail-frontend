@@ -24,6 +24,7 @@ function ecosystemOf(
       paywallUrlTemplate: null,
       workplaceFqdnFallbackTemplate: null,
       sentry: null,
+      scribePromptUrl: null,
       document: {},
       ...parts
     }

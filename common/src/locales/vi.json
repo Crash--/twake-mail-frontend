@@ -149,7 +149,9 @@
       "passwordProtected": "Tệp PDF này được bảo vệ bằng mật khẩu",
       "password": "Mật khẩu",
       "wrongPassword": "Mật khẩu không đúng, hãy thử lại.",
-      "openPdf": "Mở"
+      "openPdf": "Mở",
+      "print": "In",
+      "printTooLong": "Tệp PDF này có hơn %{count} trang: hãy tải xuống để in."
     },
     "attachmentsMore": "Hiển thị +%{count}",
     "attachmentsHide": "Ẩn %{count}",

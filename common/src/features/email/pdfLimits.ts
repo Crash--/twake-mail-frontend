@@ -45,5 +45,22 @@ export const PDF_DOCUMENT_OPTIONS = {
   verbosity: 0
 } as const
 
-/** `AnnotationMode.DISABLE`: no link, form field nor script of the page */
+/**
+ * `AnnotationMode.DISABLE`: no link, form field nor script of the page.
+ * The links are drawn by the app (`pdfLinks.ts`), the URLs alone
+ */
 export const ANNOTATIONS_DISABLED = 0
+
+/** The links of a page that open (a new tab; mailto: the composer) */
+export const PDF_LINK_PROTOCOLS: ReadonlySet<string> = new Set([
+  'http:',
+  'https:',
+  'mailto:'
+])
+
+/**
+ * Printing draws each page as an image, at 150 dpi (a PDF unit is 1/72
+ * inch); a longer document is downloaded to be printed
+ */
+export const PRINT_SCALE = 150 / 72
+export const MAX_PRINT_PAGES = 200

@@ -16,7 +16,7 @@ import {
   type ReactNode,
   type MouseEvent
 } from 'react'
-import { ArrowBack, Download } from '@/ds/FlutterIcons/FlutterIcons'
+import { ArrowBack, Download, Printer } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FilePreviewDialogProps {
@@ -29,6 +29,9 @@ export interface FilePreviewDialogProps {
   onClose: () => void
   /** The click's event tells which document the dialog is rendered in */
   onDownload?: (event: MouseEvent<HTMLElement>) => void
+  /** Absent: no print button (the file cannot be printed, or not yet) */
+  printLabel?: string
+  onPrint?: () => void
   children: ReactNode
   'data-testid'?: string
 }
@@ -64,8 +67,8 @@ const BODY_SX = {
 
 /**
  * A full-screen modal showing one file. A named dialog (focus trapped then
- * given back to what opened it, Escape closes it, MUI), with its own close
- * and download buttons in a top bar. A click on the dark background around
+ * given back to what opened it, Escape closes it, MUI), with its own close,
+ * download and print buttons in a top bar. A click on the dark background around
  * the file closes it too, as a click on a dialog's backdrop.
  */
 export function FilePreviewDialog({
@@ -75,6 +78,8 @@ export function FilePreviewDialog({
   downloadLabel,
   onClose,
   onDownload,
+  printLabel,
+  onPrint,
   children,
   'data-testid': testId
 }: FilePreviewDialogProps): ReactElement {
@@ -121,6 +126,18 @@ export function FilePreviewDialog({
         >
           {title}
         </Typography>
+        {printLabel !== undefined && onPrint ? (
+          <Tooltip title={printLabel}>
+            <IconButton
+              color="inherit"
+              aria-label={printLabel}
+              onClick={onPrint}
+              data-testid={testId ? `${testId}-print` : undefined}
+            >
+              <Icon icon={Printer} size={24} aria-hidden="true" />
+            </IconButton>
+          </Tooltip>
+        ) : null}
         {downloadLabel !== undefined && onDownload ? (
           <Tooltip title={downloadLabel}>
             <IconButton

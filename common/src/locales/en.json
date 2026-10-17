@@ -149,7 +149,9 @@
       "passwordProtected": "This PDF is protected by a password",
       "password": "Password",
       "wrongPassword": "Incorrect password, try again.",
-      "openPdf": "Open"
+      "openPdf": "Open",
+      "print": "Print",
+      "printTooLong": "This PDF has more than %{count} pages: download it to print it."
     },
     "attachmentsMore": "Show +%{count} more",
     "attachmentsHide": "Hide %{count}",

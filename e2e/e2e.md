@@ -718,7 +718,7 @@ finishes issue #112.
   - Spec: `tests/attachments.spec.ts`.
 - [x] `ATT-05` A hostile SVG attachment (script, handler, remote image), whatever type the sender gives it, is shown by an `<img>`: no frame, object nor embed, no dialog, no request outside the app. — web app only
   - Spec: `tests/attachments.spec.ts`.
-- [x] `ATT-06` A PDF with a JavaScript open action and a link annotation is drawn page by page on canvases (pdf.js, worker served by the app under its CSP): no dialog, no request outside the app (axe). — tmail-flutter `PDFViewer` (no Patrol test)
+- [x] `ATT-06` A PDF with a JavaScript open action and a link annotation is drawn page by page on canvases (pdf.js, worker served by the app under its CSP): the link is an `<a>` of the app to its URL (new tab, `noopener noreferrer`), the viewer bar offers Print, no dialog, no request outside the app (axe). — tmail-flutter `PDFViewer` (no Patrol test)
   - Spec: `tests/attachments.spec.ts`.
 - [x] `ATT-07` A .eml attachment is parsed by the server and shown as an email (subject, From/To, sanitized body in the sandboxed frame): no dialog, no request outside the app (axe). — tmail-flutter `EmailPreviewerController` (opens a window there, a dialog here; no Patrol test)
   - Spec: `tests/attachments.spec.ts`.
@@ -727,7 +727,7 @@ finishes issue #112.
   - Spec: `tests/attachments.spec.ts`.
 - [x] `ATT-09` A PDF whose part is declared larger than 30 MB is not fetched nor drawn: the dialog says to download it, the viewer bar downloads it (axe). — web app only
   - Spec: `tests/attachments.spec.ts`.
-- [x] `ATT-10` A 400-page PDF has one canvas per page but draws only the pages in view (fewer than 10 drawn at once); scrolled to the end, the last page is drawn and the first is released. — web app only
+- [x] `ATT-10` A 400-page PDF has one canvas per page but draws only the pages in view (fewer than 10 drawn at once), its text laid over the drawn pages; scrolled to the end, the last page is drawn and the first is released. — web app only
   - Spec: `tests/attachments.spec.ts`.
 - [x] `ATT-11` A text/plain attachment named `Makefile` is downloaded as `Makefile`, without the `.txt` Chrome adds for its type. — tmail-flutter `tf#4674`
   - Spec: `tests/attachments.spec.ts`.

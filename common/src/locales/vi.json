@@ -1247,6 +1247,7 @@
       "emptyMessage": "Tạo nhãn để tổ chức thư dễ dàng hơn."
     },
     "more": "Tiếp",
+    "unnamed": "(Không có tên)",
     "menuOf": "Thao tác với %{name}",
     "edit": "Sửa",
     "colorNone": "Không màu",

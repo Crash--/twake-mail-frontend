@@ -7,6 +7,7 @@ import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { labelDisplayName } from './labelDisplayName'
 import { DEFAULT_LABEL_COLOR } from './queries'
 
 /** The labels of an email among `labels`, in their order */
@@ -48,7 +49,7 @@ export function LabelChips({
   // The names of the labels the "+N" stands for
   const hiddenNames = labels
     .slice(shown.length)
-    .map(label => label.displayName)
+    .map(label => labelDisplayName(label, t))
     .join(', ')
 
   return (
@@ -74,7 +75,7 @@ export function LabelChips({
           className="u-flex u-maw-100"
         >
           <ColorTag
-            label={label.displayName}
+            label={labelDisplayName(label, t)}
             color={label.color ?? DEFAULT_LABEL_COLOR}
             // As tmail-flutter (`LabelExtension.textColor`): white, whatever
             // the colour (its contrast waits for the dedicated theme)
@@ -83,7 +84,7 @@ export function LabelChips({
             maxLength={max === undefined ? undefined : 16}
             hasTooltip
             removeLabel={t('labels.removeFromEmail', {
-              name: label.displayName
+              name: labelDisplayName(label, t)
             })}
             onRemove={
               onRemove

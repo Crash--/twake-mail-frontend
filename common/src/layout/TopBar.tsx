@@ -10,6 +10,7 @@ import {
 import { ArrowBack, Cancel } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useCurrentMailboxName } from '@common/features/mailbox/useCurrentMailboxName'
+import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { LABEL_PATH } from '@common/features/labels/labelPaths'
 import { useLabels } from '@common/features/labels/queries'
 import {
@@ -65,9 +66,9 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
     SETTINGS_SECTIONS.find(candidate => candidate.id === sectionId) ?? null
   const settingsExitPath = useSettingsExitPath()
   const labelId = useMatch(`${LABEL_PATH}/:labelId/*`)?.params.labelId
-  const labelName =
-    useLabels().data?.list.find(label => label.id === labelId)?.displayName ??
-    null
+  const openLabel =
+    useLabels().data?.list.find(label => label.id === labelId) ?? null
+  const labelName = openLabel === null ? null : labelDisplayName(openLabel, t)
   const folderName = isSettings
     ? section === null
       ? t('settings.title')

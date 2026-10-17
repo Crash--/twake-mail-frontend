@@ -11,13 +11,15 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { LabelActionsProvider } from './LabelActionsProvider'
 import { LabelsSection } from './LabelsSection'
 
-function setup(): ReturnType<typeof installFakeLabels> {
+function setup(
+  labels: Parameters<typeof installFakeLabels>[1] = [
+    { id: 'work', displayName: 'Work', keyword: 'work', color: '#273891' }
+  ]
+): ReturnType<typeof installFakeLabels> {
   const server = makeFakeJmapServer({
     capabilities: FAKE_LINAGORA_CAPABILITIES
   })
-  const fake = installFakeLabels(server, [
-    { id: 'work', displayName: 'Work', keyword: 'work', color: '#273891' }
-  ])
+  const fake = installFakeLabels(server, labels)
   renderWithProviders(
     <LabelActionsProvider>
       <LabelsSection />
@@ -41,6 +43,18 @@ describe('LabelsSection', () => {
     ).toHaveAttribute('href', '/label/work')
     // The list of the labels is not a second landmark inside it
     expect(screen.getAllByRole('navigation')).toEqual([nav])
+  })
+
+  it('names a label another client left without a name', async () => {
+    setup([{ id: 'blank', displayName: ' ', keyword: 'blank', color: null }])
+
+    const nav = await screen.findByRole('navigation', { name: 'Labels' })
+    expect(
+      await within(nav).findByRole('link', { name: '(No name)' })
+    ).toHaveAttribute('href', '/label/blank')
+    expect(
+      within(nav).getByRole('button', { name: 'Actions on (No name)' })
+    ).toBeVisible()
   })
 
   it('creates a label with a colour, refusing a taken name', async () => {

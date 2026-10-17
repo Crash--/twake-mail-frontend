@@ -17,6 +17,7 @@ import {
   type MailboxListData,
   type MailboxSummary
 } from '@common/features/mailbox/queries'
+import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import type { EmailListItemData } from '@common/features/thread/queries'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -380,12 +381,14 @@ export function useEmailActions(): EmailActions {
         case 'addLabel':
           return count === 1
             ? t('labels.toasts.addedToEmail', {
-                labelName: request.label?.displayName ?? ''
+                labelName: request.label
+                  ? labelDisplayName(request.label, t)
+                  : ''
               })
             : t('labels.toasts.addedToEmails')
         case 'removeLabel':
           return t('labels.toasts.removedFromEmail', {
-            labelName: request.label?.displayName ?? ''
+            labelName: request.label ? labelDisplayName(request.label, t) : ''
           })
         case 'markUnsubscribed':
           return t('unsubscribe.done')

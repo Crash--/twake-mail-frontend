@@ -18,6 +18,8 @@ export interface LinagoraEcosystem {
   workplaceFqdnFallbackTemplate: string | null
   /** The `sentry` section: error reporting of the deployment */
   sentry: EcosystemSentry | null
+  /** `scribePromptUrl`: the prompts of the AI assistant */
+  scribePromptUrl: string | null
   /** The whole document, for the features that read another section */
   document: Readonly<Record<string, unknown>>
 }
@@ -54,6 +56,7 @@ export function parseEcosystem(document: unknown): LinagoraEcosystem | null {
     paywallUrlTemplate: toTemplate(document.paywallUrlTemplate),
     workplaceFqdnFallbackTemplate: toTemplate(document.workplaceFqdnFallback),
     sentry: parseEcosystemSentry(document),
+    scribePromptUrl: toTemplate(document.scribePromptUrl),
     document
   }
 }

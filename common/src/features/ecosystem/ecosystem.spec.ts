@@ -5,12 +5,14 @@ describe('parseEcosystem', () => {
     const ecosystem = parseEcosystem({
       paywallUrlTemplate: '  https://pay.domain.tld/{localPart}  ',
       workplaceFqdnFallback: '{localPart}.twake.linagora.com',
+      scribePromptUrl: ' https://prompts.domain.tld/prompts.json ',
       sentry: { enabled: true }
     })
 
     expect(ecosystem).toMatchObject({
       paywallUrlTemplate: 'https://pay.domain.tld/{localPart}',
-      workplaceFqdnFallbackTemplate: '{localPart}.twake.linagora.com'
+      workplaceFqdnFallbackTemplate: '{localPart}.twake.linagora.com',
+      scribePromptUrl: 'https://prompts.domain.tld/prompts.json'
     })
     expect(ecosystem?.sentry).toMatchObject({ enabled: true })
     expect(ecosystem?.document.sentry).toEqual({ enabled: true })
@@ -25,11 +27,13 @@ describe('parseEcosystem', () => {
     expect(
       parseEcosystem({
         paywallUrlTemplate: value,
-        workplaceFqdnFallback: value
+        workplaceFqdnFallback: value,
+        scribePromptUrl: value
       })
     ).toMatchObject({
       paywallUrlTemplate: null,
-      workplaceFqdnFallbackTemplate: null
+      workplaceFqdnFallbackTemplate: null,
+      scribePromptUrl: null
     })
   })
 

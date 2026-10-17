@@ -1,12 +1,43 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { resolveConfig, type AppConfig } from '@common/config/config'
 import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { ScribeMenu, type ScribeInput } from './ScribeMenu'
 
 const ENDPOINT = 'https://ai.example.com/chat/completions'
+const ECOSYSTEM_URL = 'https://jmap.example.com/.well-known/linagora-ecosystem'
+const PROMPTS_URL = 'https://prompts.example.com/prompts.json'
+
+function makeConfig(): AppConfig {
+  const config = resolveConfig(
+    { SERVER_URL: 'https://jmap.example.com', AUTH_MODE: 'basic' },
+    'https://mail.example.com'
+  )
+  if (!config.ok) throw new Error('Invalid configuration')
+  return config.value
+}
+
+/** The chat answer, and the given documents of the server by URL */
+function serveDocuments(documents: Record<string, Response>): void {
+  fetchMock.mockImplementation(input => {
+    const url = typeof input === 'string' ? input : new Request(input).url
+    return Promise.resolve(
+      documents[url] ??
+        new Response(
+          JSON.stringify({ choices: [{ message: { content: 'Bonjour' } }] }),
+          { status: 200 }
+        )
+    )
+  })
+}
+
+function sentMessages(): unknown {
+  const [, init] = fetchMock.mock.calls.find(([url]) => url === ENDPOINT) ?? []
+  return JSON.parse(typeof init?.body === 'string' ? init.body : '')
+}
 
 const fetchMock = jest.fn<Promise<Response>, Parameters<typeof fetch>>()
 const originalFetch = global.fetch
@@ -32,7 +63,8 @@ function renderMenu(
   input: ScribeInput,
   capabilities: Record<string, unknown> = {
     'com:linagora:params:jmap:aibot': { scribeEndpoint: ENDPOINT }
-  }
+  },
+  config?: AppConfig
 ): { onInsert: jest.Mock; onReplace: jest.Mock } {
   const onInsert = jest.fn()
   const onReplace = jest.fn()
@@ -42,7 +74,11 @@ function renderMenu(
       onInsert={onInsert}
       onReplace={onReplace}
     />,
-    { withJmapSession: true, jmapServer: makeFakeJmapServer({ capabilities }) }
+    {
+      withJmapSession: true,
+      jmapServer: makeFakeJmapServer({ capabilities }),
+      ...(config === undefined ? {} : { config })
+    }
   )
   return { onInsert, onReplace }
 }
@@ -199,6 +235,68 @@ describe('ScribeMenu', () => {
     expect(typeof init?.body === 'string' ? init.body : '').toContain(
       'Bonjour Bob,\\nMerci !'
     )
+  })
+
+  it('asks with the prompts of the ecosystem of the server', async () => {
+    serveDocuments({
+      [ECOSYSTEM_URL]: new Response(
+        JSON.stringify({ scribePromptUrl: PROMPTS_URL })
+      ),
+      [PROMPTS_URL]: new Response(
+        JSON.stringify({
+          prompts: [
+            {
+              name: 'translate-french',
+              messages: [
+                { role: 'system', content: 'Server system prompt' },
+                { role: 'user', content: 'To French: {{ input }}' }
+              ]
+            }
+          ]
+        })
+      )
+    })
+    renderMenu(
+      { text: 'Hello Bob', isSelection: true },
+      undefined,
+      makeConfig()
+    )
+    const dialog = await runAction('Translate', 'French')
+
+    await within(dialog).findByRole('region', { name: 'Suggestion' })
+    expect(sentMessages()).toEqual({
+      messages: [
+        { role: 'system', content: 'Server system prompt' },
+        { role: 'user', content: 'To French: Hello Bob' }
+      ]
+    })
+    expect(fetchMock).toHaveBeenCalledWith(
+      PROMPTS_URL,
+      expect.objectContaining({ credentials: 'omit' })
+    )
+  })
+
+  it('falls back on the built-in prompts when the server has none, or they fail', async () => {
+    serveDocuments({
+      [ECOSYSTEM_URL]: new Response(
+        JSON.stringify({ scribePromptUrl: PROMPTS_URL })
+      ),
+      [PROMPTS_URL]: new Response('Not found', { status: 404 })
+    })
+    renderMenu({ text: 'Hello', isSelection: false }, undefined, makeConfig())
+    const dialog = await runAction('Correct')
+
+    await within(dialog).findByRole('region', { name: 'Suggestion' })
+    expect(sentMessages()).toMatchObject({
+      messages: [
+        { role: 'system' },
+        {
+          role: 'user',
+          content:
+            'INSTRUCTION:\nCorrect the grammar and spelling of the text.\n\nTEXT:\nHello\n'
+        }
+      ]
+    })
   })
 
   it('says when the assistant fails, and tries again', async () => {

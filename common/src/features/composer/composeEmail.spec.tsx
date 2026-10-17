@@ -280,6 +280,44 @@ describe('sendEmail', () => {
     expect(result.ok).toBe(true)
     expect(subjectsOf(server)).toEqual([])
   })
+
+  it('moves the sent message from Drafts to Sent', async () => {
+    const server = makeFakeJmapServer()
+    const client = makeClient(server)
+
+    const result = await sendEmail(
+      client,
+      FAKE_ACCOUNT_ID,
+      'identity-alice',
+      draft('Sent'),
+      MAILBOX_IDS,
+      []
+    )
+
+    expect(result.ok).toBe(true)
+    const sent = server.emails.find(email => email.subject === 'Sent')
+    expect(sent?.mailboxIds).toEqual({ [MAILBOX_IDS.sent]: true })
+    expect(sent?.keywords).toEqual({ $seen: true })
+  })
+
+  it('leaves the sent message in Drafts when there is no Sent folder', async () => {
+    const server = makeFakeJmapServer()
+    const client = makeClient(server)
+
+    const result = await sendEmail(
+      client,
+      FAKE_ACCOUNT_ID,
+      'identity-alice',
+      draft('No Sent folder'),
+      { drafts: MAILBOX_IDS.drafts, sent: null },
+      []
+    )
+
+    expect(result.ok).toBe(true)
+    const sent = server.emails.find(email => email.subject === 'No Sent folder')
+    expect(sent?.mailboxIds).toEqual({ [MAILBOX_IDS.drafts]: true })
+    expect(sent?.keywords).toEqual({ $seen: true })
+  })
 })
 
 describe('readFailure', () => {

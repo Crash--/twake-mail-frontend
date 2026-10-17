@@ -5,7 +5,8 @@ import {
   useState,
   type MouseEvent,
   type ReactElement,
-  type ReactNode
+  type ReactNode,
+  type Ref
 } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -34,6 +35,8 @@ export interface EmailAddressCardProps {
    * card, not a button, which would never break across lines with the text
    */
   isInline?: boolean
+  /** The button opening the card, for another way to open it (the avatar) */
+  buttonRef?: Ref<HTMLButtonElement>
 }
 
 function AddressCardDialog({
@@ -171,7 +174,8 @@ function AddressCardDialog({
 export function EmailAddressCard({
   address,
   children,
-  isInline = false
+  isInline = false,
+  buttonRef
 }: EmailAddressCardProps): ReactElement {
   const [isOpen, setIsOpen] = useState(false)
   // Mounted at the first opening: a long conversation has many addresses
@@ -188,22 +192,24 @@ export function EmailAddressCard({
     setIsOpen(false)
   }
 
+  const opener = {
+    color: 'inherit',
+    underline: 'hover',
+    className: 'u-ta-left',
+    'aria-haspopup': 'dialog',
+    'aria-expanded': isOpen,
+    onClick: handleOpen,
+    'data-testid': 'email-address',
+    children
+  } as const
+
   return (
     <>
-      <Link
-        {...(isInline
-          ? { href: `mailto:${address.email}` }
-          : { component: 'button', type: 'button' })}
-        color="inherit"
-        underline="hover"
-        className="u-ta-left"
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-        onClick={handleOpen}
-        data-testid="email-address"
-      >
-        {children}
-      </Link>
+      {isInline ? (
+        <Link href={`mailto:${address.email}`} {...opener} />
+      ) : (
+        <Link component="button" type="button" ref={buttonRef} {...opener} />
+      )}
       {hasOpened ? (
         <AddressCardDialog
           address={address}

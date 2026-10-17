@@ -1,4 +1,5 @@
 import { Box, Empty } from '@linagora/twake-mui'
+import type { EmailAddress } from 'jmap-client-ts'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -15,6 +16,7 @@ import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { ReadingPane, useIsReadingInset } from '@/ds/ReadingPane/ReadingPane'
 import { MessageText } from '@/ds/MessageText/MessageText'
+import { PointerShortcut } from '@/ds/PointerShortcut/PointerShortcut'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
@@ -71,6 +73,35 @@ const RECIPIENT_LINES: readonly {
   { label: 'email.bcc', field: 'bcc', testId: 'email-view-bcc' }
 ]
 
+/**
+ * As tmail-flutter: the avatar of the sender opens its card too, for the
+ * mouse only (the keyboard and screen readers have the name)
+ */
+function SenderAvatar({
+  sender,
+  onClick
+}: {
+  sender: EmailAddress | null
+  onClick: () => void
+}): ReactElement {
+  const name = sender?.name ?? ''
+  const address = sender?.email ?? ''
+  const avatar = (
+    <GradientAvatar
+      text={firstLetterOf(name === '' ? address : name)}
+      colorKey={address}
+      fontSize={18}
+    />
+  )
+  return sender === null ? (
+    avatar
+  ) : (
+    <PointerShortcut onClick={onClick} data-testid="email-view-sender-avatar">
+      {avatar}
+    </PointerShortcut>
+  )
+}
+
 function EmailContent({
   email,
   mailboxId,
@@ -87,6 +118,7 @@ function EmailContent({
   const isDangerous = hasDangerWarning(useVisibleTwpWarnings(email))
   useDocumentTitle(email.subject ?? '')
   const subjectRef = useRef<HTMLHeadingElement>(null)
+  const senderCardRef = useRef<HTMLButtonElement>(null)
   const [isRecipientsOpen, setIsRecipientsOpen] = useState(false)
   const recipientLines = RECIPIENT_LINES.map(line => ({
     ...line,
@@ -108,6 +140,12 @@ function EmailContent({
   // As tmail-flutter: an email marked unread is closed
   const handleAction = (id: EmailActionId): void => {
     if (id === 'mark-as-unread') onBack()
+  }
+
+  // The card gives the focus back to the name, as when the name opened it
+  const handleAvatarClick = (): void => {
+    senderCardRef.current?.focus()
+    senderCardRef.current?.click()
   }
 
   // The banner goes away with its buttons: the focus goes back to the email
@@ -157,21 +195,14 @@ function EmailContent({
                 data-testid="email-view-danger-badge"
               />
             ) : (
-              <GradientAvatar
-                text={firstLetterOf(
-                  (sender?.name ?? '') === ''
-                    ? (sender?.email ?? '')
-                    : (sender?.name ?? '')
-                )}
-                colorKey={sender?.email ?? ''}
-                fontSize={18}
-              />
+              <SenderAvatar sender={sender} onClick={handleAvatarClick} />
             )
           }
           identity={
             <>
               <SenderLine
                 sender={sender}
+                cardButtonRef={senderCardRef}
                 smimeStatus={parseSmimeStatus(email[SMIME_STATUS_HEADER])}
                 onUnsubscribe={
                   canUnsubscribe(email)

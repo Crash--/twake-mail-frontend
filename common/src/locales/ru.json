@@ -1044,7 +1044,8 @@
     "toasts": {
       "created": "Создан новый фильтр",
       "updated": "Фильтр обновлен",
-      "deleted": "Правило удалено."
+      "deleted": "Правило удалено.",
+      "moved": "Правило «%{name}» перемещено на позицию %{position} из %{count}"
     },
     "errors": {
       "save": "Создать правило фильтра не удалось",
@@ -1055,7 +1056,10 @@
       "noForwardAddress": "Укажите хотя бы одного получателя",
       "invalidForwardAddress": "Неверный формат электронной почты",
       "load": "Не удалось загрузить правила",
-      "delete": "Не удалось удалить правило"
+      "delete": "Не удалось удалить правило",
+      "noHeaderName": "Введите имя заголовка",
+      "invalidHeaderName": "Имя заголовка не содержит пробелов и двоеточий",
+      "move": "Не удалось переместить правило"
     },
     "form": {
       "createTitle": "Создать новое правило",
@@ -1087,7 +1091,9 @@
       "actionsPreview": "Действия: %{actions}",
       "forwardAddresses": "Получатели",
       "forwardPlaceholder": "Введите адрес электронной почты",
-      "keepACopy": "Сохранить копию"
+      "keepACopy": "Сохранить копию",
+      "headerName": "Имя заголовка",
+      "headerNamePlaceholder": "например, List-Id"
     },
     "combiners": {
       "AND": "Все",
@@ -1098,7 +1104,8 @@
       "to": "Кому",
       "cc": "Копия",
       "recipient": "Получатель",
-      "subject": "Тема"
+      "subject": "Тема",
+      "header": "Заголовок"
     },
     "comparators": {
       "contains": "Содержит",
@@ -1122,7 +1129,11 @@
     "deleteOf": "Удалить %{name}",
     "listLabel": "Правила",
     "count": "%{smart_count} правило |||| %{smart_count} правила |||| %{smart_count} правил",
-    "nameOfRules": "Название правил"
+    "nameOfRules": "Название правил",
+    "moveUp": "Переместить вверх",
+    "moveDown": "Переместить вниз",
+    "moveUpOf": "Переместить %{name} вверх",
+    "moveDownOf": "Переместить %{name} вниз"
   },
   "forward": {
     "localCopy": "Сохранить копию в папке «Входящие»",

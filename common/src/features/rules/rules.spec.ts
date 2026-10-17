@@ -3,9 +3,16 @@ import type { Rule } from 'jmap-client-ts/linagora'
 import {
   actionDraft,
   draftFromRule,
+  headerField,
+  isValidHeaderName,
+  moveRule,
   newRuleDraft,
   ruleDraftProblem,
+  ruleFieldChoice,
+  ruleFieldLabel,
+  ruleFieldText,
   ruleFromDraft,
+  ruleHeaderName,
   rulesForUpdate
 } from './rules'
 
@@ -206,5 +213,90 @@ describe('rules', () => {
     expect(
       ruleDraftProblem({ ...draft, actions: [actionDraft('seen')] }, SPAM)
     ).toBe(null)
+  })
+
+  it('tests another header with a header:<name> field', () => {
+    expect(headerField('List-Id')).toBe('header:List-Id')
+    expect(ruleHeaderName('header:List-Id')).toBe('List-Id')
+    expect(ruleHeaderName('subject')).toBe(null)
+    expect(ruleFieldChoice('header:List-Id')).toBe('header')
+    expect(ruleFieldChoice('subject')).toBe('subject')
+    expect(ruleFieldChoice('sentDate')).toBe(null)
+    expect(ruleFieldLabel('header:List-Id')).toBe('rules.fields.header')
+    expect(ruleFieldLabel('sentDate')).toBe(null)
+  })
+
+  it('says a field in words, with its header name', () => {
+    const t = (key: string): string =>
+      key === 'rules.fields.header' ? 'Header' : 'From'
+    expect(ruleFieldText('header:List-Id', t)).toBe('Header List-Id')
+    expect(ruleFieldText('from', t)).toBe('From')
+    expect(ruleFieldText('sentDate', t)).toBe('sentDate')
+  })
+
+  it('takes a header name without space nor colon', () => {
+    expect(isValidHeaderName('List-Id')).toBe(true)
+    expect(isValidHeaderName('X-Spam_Flag.1')).toBe(true)
+    expect(isValidHeaderName('List Id')).toBe(false)
+    expect(isValidHeaderName('List-Id:')).toBe(false)
+    expect(isValidHeaderName('Liste-Identité')).toBe(false)
+    expect(isValidHeaderName('')).toBe(false)
+  })
+
+  it('saves a header condition with its trimmed name and edits it back', () => {
+    const rule = ruleFromDraft(
+      {
+        ...newRuleDraft(),
+        name: 'Lists',
+        conditions: [
+          {
+            field: headerField(' List-Id '),
+            comparator: 'contains',
+            value: ' team.example.com '
+          }
+        ],
+        actions: [actionDraft('seen')]
+      },
+      SPAM
+    )
+    expect(rule.conditionGroup.conditions).toEqual([
+      {
+        field: 'header:List-Id',
+        comparator: 'contains',
+        value: 'team.example.com'
+      }
+    ])
+    expect(draftFromRule(rule, SPAM).conditions).toEqual(
+      rule.conditionGroup.conditions
+    )
+  })
+
+  it('wants a valid header name in a header condition', () => {
+    const draft = {
+      ...newRuleDraft(),
+      actions: [actionDraft('seen')]
+    }
+    const withHeader = (name: string): typeof draft => ({
+      ...draft,
+      conditions: [
+        { field: headerField(name), comparator: 'contains', value: 'x' }
+      ]
+    })
+    expect(ruleDraftProblem(withHeader(' '), SPAM)).toBe(
+      'rules.errors.noHeaderName'
+    )
+    expect(ruleDraftProblem(withHeader('List Id'), SPAM)).toBe(
+      'rules.errors.invalidHeaderName'
+    )
+    expect(ruleDraftProblem(withHeader('List-Id'), SPAM)).toBe(null)
+  })
+
+  it('moves a rule up or down, the others keeping their order', () => {
+    expect(moveRule(['a', 'b', 'c'], 2, 1)).toEqual(['a', 'c', 'b'])
+    expect(moveRule(['a', 'b', 'c'], 0, 1)).toEqual(['b', 'a', 'c'])
+    expect(moveRule(['a', 'b', 'c'], 0, 2)).toEqual(['b', 'c', 'a'])
+    expect(moveRule(['a', 'b', 'c'], 0, -1)).toEqual(['a', 'b', 'c'])
+    expect(moveRule(['a', 'b', 'c'], 2, 3)).toEqual(['a', 'b', 'c'])
+    expect(moveRule(['a', 'b', 'c'], 5, 0)).toEqual(['a', 'b', 'c'])
   })
 })

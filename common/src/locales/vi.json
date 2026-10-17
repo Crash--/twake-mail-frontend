@@ -1044,7 +1044,8 @@
     "toasts": {
       "created": "Bộ lọc mới đã được tạo",
       "updated": "Bộ lọc của bạn đã được cập nhật",
-      "deleted": "Bộ lọc đã được loại bỏ."
+      "deleted": "Bộ lọc đã được loại bỏ.",
+      "moved": "Đã chuyển quy tắc \"%{name}\" đến vị trí %{position} trên %{count}"
     },
     "errors": {
       "save": "Tạo bộ lọc không thành công",
@@ -1055,7 +1056,10 @@
       "noForwardAddress": "Vui lòng nhập ít nhất một người nhận",
       "invalidForwardAddress": "Email không đúng định dạng",
       "load": "Không thể tải các quy tắc",
-      "delete": "Không thể xóa quy tắc"
+      "delete": "Không thể xóa quy tắc",
+      "noHeaderName": "Vui lòng nhập tên trường tiêu đề",
+      "invalidHeaderName": "Tên trường tiêu đề không có dấu cách và dấu hai chấm",
+      "move": "Không thể di chuyển quy tắc"
     },
     "form": {
       "createTitle": "Tạo bộ lọc mới",
@@ -1087,7 +1091,9 @@
       "actionsPreview": "Hành động: %{actions}",
       "forwardAddresses": "Người nhận",
       "forwardPlaceholder": "Điền địa chỉ email",
-      "keepACopy": "Giữ một bản sao"
+      "keepACopy": "Giữ một bản sao",
+      "headerName": "Tên trường tiêu đề",
+      "headerNamePlaceholder": "ví dụ: List-Id"
     },
     "combiners": {
       "AND": "Tất cả",
@@ -1098,7 +1104,8 @@
       "to": "Đến",
       "cc": "Cc",
       "recipient": "Nguời nhận",
-      "subject": "Tiêu đề"
+      "subject": "Tiêu đề",
+      "header": "Trường tiêu đề thư"
     },
     "comparators": {
       "contains": "Bao gồm",
@@ -1122,7 +1129,11 @@
     "deleteOf": "Xóa %{name}",
     "listLabel": "Quy tắc",
     "count": "%{smart_count} quy tắc",
-    "nameOfRules": "Tên bộ lọc"
+    "nameOfRules": "Tên bộ lọc",
+    "moveUp": "Di chuyển lên",
+    "moveDown": "Di chuyển xuống",
+    "moveUpOf": "Di chuyển %{name} lên",
+    "moveDownOf": "Di chuyển %{name} xuống"
   },
   "forward": {
     "localCopy": "Giữ bản sao trong thư mục Thư đến",

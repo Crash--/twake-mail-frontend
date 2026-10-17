@@ -48,17 +48,23 @@ import {
   actionDraft,
   draftFromRule,
   emptyCondition,
+  headerField,
+  headerNameProblem,
   RULE_ACTION_KINDS,
   RULE_ACTION_LABELS,
   RULE_COMPARATORS,
-  RULE_FIELDS,
+  RULE_FIELD_CHOICES,
   ruleComparatorLabel,
   ruleDraftProblem,
+  ruleFieldChoice,
   ruleFieldLabel,
+  ruleFieldText,
   ruleFromDraft,
+  ruleHeaderName,
   type RuleActionDraft,
   type RuleActionKind,
-  type RuleDraft
+  type RuleDraft,
+  type RuleFieldChoice
 } from './rules'
 
 /** Most action rows: move or spam, seen, star, forward (reject stays alone) */
@@ -100,10 +106,20 @@ function isKindTaken(
   )
 }
 
+/** The field a condition gets when `choice` is picked in its field select */
+function fieldOfChoice(
+  choice: RuleFieldChoice,
+  current: RuleDraft['conditions'][number]['field']
+): RuleDraft['conditions'][number]['field'] {
+  if (choice !== 'header') return choice
+  return headerField(ruleHeaderName(current) ?? '')
+}
+
 /**
  * Creates or edits a filtering rule, as tmail-flutter's rule creator: a
- * name, conditions on From, To, Cc, Recipient or Subject that must all or
- * any be met, and the actions (move to a folder, mark as seen, star,
+ * name, conditions on From, To, Cc, Recipient, Subject or another header
+ * (`header:<name>`, the Linagora `Filter` extension) that must all or any
+ * be met, and the actions (move to a folder, mark as seen, star,
  * reject, mark as spam, forward). Rejecting asks for a confirmation.
  */
 export function RuleFormDialog({
@@ -189,7 +205,9 @@ export function RuleFormDialog({
     }
     if (
       draft.conditions.some(
-        condition => validateIdentityName(condition.value) !== null
+        condition =>
+          validateIdentityName(condition.value) !== null ||
+          headerNameProblem(condition) !== null
       )
     ) {
       return
@@ -234,9 +252,8 @@ export function RuleFormDialog({
     combiner: t(`rules.combiners.${draft.combiner}`).toUpperCase(),
     conditions: draft.conditions
       .map(condition => {
-        const field = ruleFieldLabel(condition.field)
         const comparator = ruleComparatorLabel(condition.comparator)
-        return `${field === null ? condition.field : t(field)} ${(comparator === null ? condition.comparator : t(comparator)).toLowerCase()} "${condition.value}"`
+        return `${ruleFieldText(condition.field, t)} ${(comparator === null ? condition.comparator : t(comparator)).toLowerCase()} "${condition.value}"`
       })
       .join(', ')
   })
@@ -361,6 +378,8 @@ export function RuleFormDialog({
           const fieldLabel = ruleFieldLabel(condition.field)
           const comparatorLabel = ruleComparatorLabel(condition.comparator)
           const problemKey = valueProblem(condition.value)
+          const headerName = ruleHeaderName(condition.field)
+          const headerProblem = isTouched ? headerNameProblem(condition) : null
           return (
             <SettingsFormBox
               key={index}
@@ -371,13 +390,14 @@ export function RuleFormDialog({
               <SettingsFormStack isStacked={isPhone}>
                 <SettingsFormSelect
                   label={t('rules.form.field')}
-                  value={condition.field}
+                  value={ruleFieldChoice(condition.field) ?? condition.field}
                   onChange={event => {
+                    const choice = RULE_FIELD_CHOICES.find(
+                      candidate => candidate === event.target.value
+                    )
+                    if (choice === undefined) return
                     updateCondition(index, {
-                      field:
-                        RULE_FIELDS.find(
-                          field => field === event.target.value
-                        ) ?? condition.field
+                      field: fieldOfChoice(choice, condition.field)
                     })
                   }}
                   inputTestId="rule-condition-field-select"
@@ -385,12 +405,31 @@ export function RuleFormDialog({
                   {fieldLabel === null ? (
                     <option value={condition.field}>{condition.field}</option>
                   ) : null}
-                  {RULE_FIELDS.map(field => (
-                    <option key={field} value={field}>
-                      {t(ruleFieldLabel(field) ?? 'rules.fields.from')}
+                  {RULE_FIELD_CHOICES.map(choice => (
+                    <option key={choice} value={choice}>
+                      {t(ruleFieldLabel(choice) ?? 'rules.fields.from')}
                     </option>
                   ))}
                 </SettingsFormSelect>
+                {headerName === null ? null : (
+                  <SettingsFormTextField
+                    isInRow
+                    required
+                    label={t('rules.form.headerName')}
+                    placeholder={t('rules.form.headerNamePlaceholder')}
+                    value={headerName}
+                    onChange={event => {
+                      updateCondition(index, {
+                        field: headerField(event.target.value)
+                      })
+                    }}
+                    error={headerProblem !== null}
+                    helperText={
+                      headerProblem === null ? undefined : t(headerProblem)
+                    }
+                    inputTestId="rule-condition-header-input"
+                  />
+                )}
                 <SettingsFormSelect
                   label={t('rules.form.comparator')}
                   value={condition.comparator}

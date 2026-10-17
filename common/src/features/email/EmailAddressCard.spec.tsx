@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
@@ -8,6 +8,7 @@ import { FAKE_LINAGORA_CAPABILITIES } from '@common/testing/fakeLinagora'
 import { resolveConfig, type AppConfig } from '@common/config/config'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
+import { readAddressDrag } from './addressDrag'
 import { EmailAddressCard } from './EmailAddressCard'
 
 const BOB = { name: 'Bob', email: 'bob@example.com' }
@@ -224,5 +225,29 @@ describe('EmailAddressCard', () => {
     await userEvent.click(link)
 
     expect(await screen.findByRole('dialog', { name: 'Bob' })).toBeVisible()
+  })
+
+  it('can be dragged, carrying the address to copy', async () => {
+    renderWithProviders(
+      <EmailAddressCard address={BOB}>Bob</EmailAddressCard>,
+      { withJmapSession: true }
+    )
+    const data = new Map<string, string>()
+    const transfer = {
+      effectAllowed: 'all',
+      setData: (type: string, value: string) => {
+        data.set(type, value)
+      },
+      getData: (type: string) => data.get(type) ?? ''
+    }
+    const dataTransfer = transfer as Partial<DataTransfer> as DataTransfer
+
+    const button = await screen.findByRole('button', { name: 'Bob' })
+    expect(button).toHaveAttribute('draggable', 'true')
+    fireEvent.dragStart(button, { dataTransfer })
+
+    expect(readAddressDrag(dataTransfer)).toEqual(BOB)
+    expect(dataTransfer.effectAllowed).toBe('copy')
+    expect(data.get('text/plain')).toBe('Bob <bob@example.com>')
   })
 })

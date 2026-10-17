@@ -3,6 +3,7 @@ import type { EmailAddress } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import {
   useState,
+  type DragEvent,
   type MouseEvent,
   type ReactElement,
   type ReactNode
@@ -23,6 +24,7 @@ import { settingsSectionPath } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import { writeAddressDrag } from './addressDrag'
 import { contactLinks } from './contactLinks'
 
 export interface EmailAddressCardProps {
@@ -167,6 +169,9 @@ function AddressCardDialog({
  * "Compose email" and, when the server has filtering rules, "Create a rule
  * with this email". As in Twake Calendar's attendees, "Invite to an event"
  * and "Chat" appear when `CALENDAR_SPA_URL` and `CHAT_SPA_URL` are set.
+ *
+ * The address can be dragged to a recipient field of a message being
+ * written, which adds it there.
  */
 export function EmailAddressCard({
   address,
@@ -188,6 +193,10 @@ export function EmailAddressCard({
     setIsOpen(false)
   }
 
+  const handleDragStart = (event: DragEvent<HTMLElement>): void => {
+    writeAddressDrag(event.dataTransfer, address)
+  }
+
   return (
     <>
       <Link
@@ -200,6 +209,8 @@ export function EmailAddressCard({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         onClick={handleOpen}
+        draggable
+        onDragStart={handleDragStart}
         data-testid="email-address"
       >
         {children}

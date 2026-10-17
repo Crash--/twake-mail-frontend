@@ -699,10 +699,13 @@ export function RecipientField({
   const handleDragOver = (event: DragEvent<HTMLElement>): void => {
     if (!isDropAccepted(event)) return
     event.preventDefault()
-    // Files are copied: a move would refuse those the browser only copies
-    event.dataTransfer.dropEffect = event.dataTransfer.types.includes('Files')
-      ? 'copy'
-      : 'move'
+    // Files, and what is only copied (an address of an email), are copied:
+    // a move would refuse them
+    event.dataTransfer.dropEffect =
+      event.dataTransfer.types.includes('Files') ||
+      event.dataTransfer.effectAllowed === 'copy'
+        ? 'copy'
+        : 'move'
   }
   const handleDragLeave = (event: DragEvent<HTMLElement>): void => {
     if (!isDropAccepted(event)) return

@@ -8,6 +8,7 @@ import {
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { DRAGGED_EMAILS_TYPE } from '@common/features/thread/useEmailListActions'
+import { writeAddressDrag } from '@common/features/email/addressDrag'
 
 import {
   RecipientsEditor,
@@ -221,6 +222,26 @@ describe('RecipientsEditor', () => {
     expect(await screen.findByTestId('toast')).toHaveTextContent(
       'report.pdf is not a text file of addresses.'
     )
+    expect(chipsIn('to')).toEqual(['Alice Martin', 'dan@example.com'])
+  })
+
+  it('adds an address of an open email dropped on a field, once', async () => {
+    await renderEditor()
+    const cc = screen.getByTestId('composer-cc-field')
+    const drop = (address: { name: string | null; email: string }): string => {
+      const dataTransfer = makeDataTransfer()
+      writeAddressDrag(dataTransfer, address)
+      fireEvent.dragEnter(cc, { dataTransfer })
+      fireEvent.dragOver(cc, { dataTransfer })
+      fireEvent.drop(cc, { dataTransfer })
+      return dataTransfer.dropEffect
+    }
+
+    expect(drop({ name: 'Carol', email: 'carol@example.com' })).toBe('copy')
+    expect(chipsIn('cc')).toEqual(['Carol'])
+    drop({ name: null, email: 'CAROL@example.com' })
+
+    expect(chipsIn('cc')).toEqual(['Carol'])
     expect(chipsIn('to')).toEqual(['Alice Martin', 'dan@example.com'])
   })
 })

@@ -28,6 +28,10 @@ import {
   DRAGGED_EMAILS_TYPE,
   readDraggedEmails
 } from '@common/features/thread/useEmailListActions'
+import {
+  ADDRESS_DRAG_TYPE,
+  readAddressDrag
+} from '@common/features/email/addressDrag'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -109,7 +113,8 @@ export interface RecipientsEditorProps {
  * As in tmail-flutter, a recipient dragged to another field moves there
  * (Alt + ArrowUp or ArrowDown from the keyboard), and emails dragged from
  * the list add their senders to the field they are dropped on, except the
- * user's own addresses, as when replying. A text file dropped on a field
+ * user's own addresses, as when replying. An address of an open email (its
+ * sender, a recipient) dropped on a field is added there. A text file dropped on a field
  * adds its addresses, one per line (`tf#3268`), and says which lines are
  * not addresses.
  */
@@ -294,10 +299,21 @@ export function RecipientsEditor({
       })
   }
 
+  const dropAddress = (
+    kind: RecipientKind,
+    dataTransfer: DataTransfer
+  ): void => {
+    const address = readAddressDrag(dataTransfer)
+    if (address === null) return
+    onChange(kind, mergeRecipients(recipients[kind], [address]))
+  }
+
   const dropOn = (kind: RecipientKind, dataTransfer: DataTransfer): void => {
     const dropped = Array.from(dataTransfer.files)
     if (dropped.length > 0) {
       dropAddressFiles(kind, dropped)
+    } else if (dataTransfer.types.includes(ADDRESS_DRAG_TYPE)) {
+      dropAddress(kind, dataTransfer)
     } else {
       dropEmails(kind, dataTransfer)
     }
@@ -323,7 +339,9 @@ export function RecipientsEditor({
           }
         }),
     accepts: types =>
-      types.includes(DRAGGED_EMAILS_TYPE) || types.includes('Files'),
+      types.includes(DRAGGED_EMAILS_TYPE) ||
+      types.includes(ADDRESS_DRAG_TYPE) ||
+      types.includes('Files'),
     onDrop: dataTransfer => {
       dropOn(kind, dataTransfer)
     }

@@ -21,20 +21,21 @@ const SHOWN_FROM = 0.8
  * once more than 80 % is used, the cloud and "Storage" with a refresh, a
  * thin gauge (warning, full) and what is left, or that it is full and how
  * much is used; and, where the storage can be upgraded (Twake Workplace),
- * the way to do it
+ * the way to do it, even when the quota is unlimited or unknown
  */
 export function QuotaIndicator(): ReactElement | null {
   const { t, lang } = useI18n()
   const labelId = useId()
   const query = useStorageQuota()
   const quota = query.data
-  if (!quota) return null
   const upgradeLink = (
     <UpgradeStorageLink
       label={t('quota.increase')}
       data-testid="quota-upgrade-link"
     />
   )
+  // Without a finite quota, the upgrade stays offered (tmail-flutter#4616)
+  if (!quota) return upgradeLink
   if (quota.used <= quota.limit * SHOWN_FROM) return upgradeLink
   const percent = Math.min(100, Math.round((quota.used / quota.limit) * 100))
   const used = formatSize(quota.used, lang)

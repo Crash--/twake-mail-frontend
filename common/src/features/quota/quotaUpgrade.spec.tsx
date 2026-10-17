@@ -25,6 +25,7 @@ const PAYWALL = 'https://acme.twake.example.com/settings/premium'
 const NEARLY_FULL = [octetsQuota(9_500_000, 10_000_000, 9_000_000)]
 const FULL = [octetsQuota(10_000_000, 10_000_000, 9_000_000)]
 const ROOMY = [octetsQuota(1_000_000, 10_000_000, 9_000_000)]
+const UNLIMITED: unknown[] = []
 
 function storageSection(): SettingsSection {
   const section = SETTINGS_SECTIONS.find(({ id }) => id === 'storage')
@@ -100,6 +101,16 @@ describe('the storage indicator of the sidebar', () => {
     expect(screen.queryByRole('button', { name: 'Refresh' })).toBe(null)
   })
 
+  it('offers the upgrade with an unlimited quota', async () => {
+    renderWithPaywall(<QuotaIndicator />, { quotas: UNLIMITED })
+
+    expect(await screen.findByTestId('quota-upgrade-link')).toHaveAttribute(
+      'href',
+      PAYWALL
+    )
+    expect(screen.queryByTestId('quota-indicator')).toBe(null)
+  })
+
   it.each(NOT_UPGRADABLE)('has no link %s', async (_n, scenario) => {
     renderWithPaywall(<QuotaIndicator />, { quotas: NEARLY_FULL, ...scenario })
 
@@ -133,6 +144,18 @@ describe('Settings > Storage', () => {
     const storage = await screen.findByTestId('storage-settings')
     expect(storage).not.toHaveTextContent('almost full')
     expect(screen.getByTestId('storage-upgrade-button')).toBeInTheDocument()
+  })
+
+  it('offers the upgrade with an unlimited quota', async () => {
+    renderWithPaywall(<StorageSettings section={storageSection()} />, {
+      quotas: UNLIMITED
+    })
+
+    expect(await screen.findByTestId('storage-unlimited')).toBeInTheDocument()
+    expect(await screen.findByTestId('storage-upgrade-button')).toHaveAttribute(
+      'href',
+      PAYWALL
+    )
   })
 
   it.each(NOT_UPGRADABLE)('has no button %s', async (_n, scenario) => {

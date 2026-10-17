@@ -168,7 +168,8 @@ export function RuleFormDialog({
   const handleChooseFolder = (index: number): void => {
     pickMailbox({
       title: t('rules.form.chooseFolder'),
-      excludedRoles: RULE_EXCLUDED_ROLES
+      excludedRoles: RULE_EXCLUDED_ROLES,
+      canCreateFolder: true
     })
       .then(mailbox => {
         if (mailbox !== null && typeof mailbox !== 'string') {

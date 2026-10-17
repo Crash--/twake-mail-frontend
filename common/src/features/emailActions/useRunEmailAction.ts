@@ -48,6 +48,7 @@ export function useRunEmailAction(): (
         const destination = await pickMailbox({
           requireAddItems: true,
           excludedRoles: MOVE_EXCLUDED_ROLES,
+          canCreateFolder: true,
           ...(mailboxId === null ? {} : { currentId: mailboxId })
         })
         if (destination === null || destination === PICKED_ROOT) return false

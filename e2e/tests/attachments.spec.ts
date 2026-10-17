@@ -338,8 +338,15 @@ test.describe('ATT attachments', () => {
       timeout: 15_000
     })
     await expect(page.getByTestId('attachment-preview-error')).toHaveCount(0)
+    // The web link of the page is a link of the app, opening a new tab
+    // without opener nor referrer; the open action never runs
+    const link = page.getByTestId('pdf-preview-link')
+    await expect(link).toHaveCount(1)
+    await expect(link).toHaveAttribute('href', `${EVIL}/pdf`)
+    await expect(link).toHaveAttribute('target', '_blank')
+    await expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+    await expect(page.getByTestId('attachment-preview-print')).toBeVisible()
     await expectNoA11yViolations(page)
-    await page.getByTestId('pdf-preview').click({ position: { x: 20, y: 20 } })
     expect(seen).toEqual({ dialogs: [], external: [] })
   })
 
@@ -467,6 +474,10 @@ test.describe('ATT attachments', () => {
     await expect(canvases).toHaveCount(400, { timeout: 30_000 })
     const drawn = page.locator('canvas[data-rendered="true"]')
     await expect(drawn.first()).toBeVisible({ timeout: 15_000 })
+    // The text of a drawn page is laid over it
+    await expect(
+      page.getByTestId('pdf-preview').getByText('Page 1', { exact: true })
+    ).toBeAttached()
     expect(await drawn.count()).toBeLessThan(10)
     expect(await page.locator('canvas[data-page="400"][data-rendered]').count()).toBe(0)
 

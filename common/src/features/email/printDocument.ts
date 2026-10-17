@@ -35,7 +35,7 @@ export interface PrintDocumentContent {
   allowRemoteContent: boolean
 }
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -115,9 +115,13 @@ const PRINT_FRAME_TIMEOUT_MS = 120_000
  * pop-up is needed. The frame is sandboxed without `allow-scripts`: nothing
  * in the document runs; the app calls `print()` itself. Resolves once the
  * print dialog was shown (and closed, where the browser tells), rejects
- * when the document cannot be loaded.
+ * when the document cannot be loaded. `onRemoved` is called once the frame
+ * is gone: the object URLs of the document can then be revoked.
  */
-export function printHtmlDocument(html: string): Promise<void> {
+export function printHtmlDocument(
+  html: string,
+  onRemoved?: () => void
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const frame = document.createElement('iframe')
     frame.setAttribute('sandbox', 'allow-same-origin allow-modals')
@@ -131,6 +135,7 @@ export function printHtmlDocument(html: string): Promise<void> {
     const cleanup = (): void => {
       clearTimeout(timer)
       frame.remove()
+      onRemoved?.()
     }
     frame.addEventListener('load', () => {
       const printWindow = frame.contentWindow

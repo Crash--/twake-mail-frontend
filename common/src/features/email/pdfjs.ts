@@ -1,4 +1,4 @@
-import type { PDFDocumentProxy } from 'pdfjs-dist'
+import type { PDFDocumentProxy, PDFPageProxy, PageViewport } from 'pdfjs-dist'
 
 import { LOAD_TIMEOUT_MS, PDF_DOCUMENT_OPTIONS } from './pdfLimits'
 
@@ -97,4 +97,47 @@ export function loadPdf(
     open().then(resolve, reject).finally(stopTimer)
   })
   return { promise, destroy }
+}
+
+export interface TextLayerTask {
+  /** Rejects when cancelled */
+  promise: Promise<void>
+  cancel: () => void
+}
+
+/**
+ * Fills `container` with the text of `page` (pdf.js `TextLayer`): runs of
+ * transparent text over the canvas, laid out for `viewport` (CSS pixels),
+ * which can be selected, copied, searched and read by a screen reader.
+ */
+export function renderTextLayer(
+  page: PDFPageProxy,
+  viewport: PageViewport,
+  container: HTMLElement
+): TextLayerTask {
+  let isCancelled = false
+  let cancelLayer: (() => void) | null = null
+  const render = async (): Promise<void> => {
+    const { TextLayer } = await import('pdfjs-dist')
+    if (isCancelled) throw new Error('PDF text layer cancelled')
+    const layer = new TextLayer({
+      textContentSource: page.streamTextContent({
+        includeMarkedContent: true,
+        disableNormalization: true
+      }),
+      container,
+      viewport
+    })
+    cancelLayer = () => {
+      layer.cancel()
+    }
+    await layer.render()
+  }
+  return {
+    promise: render(),
+    cancel: () => {
+      isCancelled = true
+      cancelLayer?.()
+    }
+  }
 }

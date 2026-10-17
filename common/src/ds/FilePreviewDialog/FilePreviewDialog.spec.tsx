@@ -78,5 +78,24 @@ describe('FilePreviewDialog', () => {
       </FilePreviewDialog>
     )
     expect(screen.queryByRole('button', { name: 'Download' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Print' })).toBeNull()
+  })
+
+  it('prints from its bar when the file can be printed', async () => {
+    const onPrint = jest.fn()
+    renderDs(
+      <FilePreviewDialog
+        open
+        title="a.pdf"
+        closeLabel="Close"
+        printLabel="Print"
+        onClose={jest.fn()}
+        onPrint={onPrint}
+      >
+        <p>pages</p>
+      </FilePreviewDialog>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Print' }))
+    expect(onPrint).toHaveBeenCalledTimes(1)
   })
 })

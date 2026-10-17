@@ -1,11 +1,13 @@
 import { Alert, CircularProgress } from '@linagora/twake-mui'
 import type { EmailBodyPart } from 'jmap-client-ts'
+import type { PDFDocumentProxy } from 'pdfjs-dist'
 import {
   lazy,
   Suspense,
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
   type MouseEvent
@@ -37,7 +39,8 @@ import { EmailBodyFrame } from './EmailBodyFrame'
 import { buildEmailDocument } from './emailBody'
 import { EmlPreview } from './EmlPreview'
 import { formatSize } from './formatSize'
-import { MAX_PDF_PREVIEW_BYTES } from './pdfLimits'
+import { MAX_PDF_PREVIEW_BYTES, MAX_PRINT_PAGES } from './pdfLimits'
+import { printPdf } from './printPdf'
 import { sanitizeEmailHtml } from './sanitizeEmailHtml'
 
 // pdf.js and its worker load with the first PDF only
@@ -77,7 +80,8 @@ function decodeText(bytes: Uint8Array, charset: string | null): string {
  *   email body, remote content blocked;
  * - images, SVG included: an `<img>`, where nothing runs and nothing else
  *   loads, from a blob of a known image type;
- * - text: escaped by React; PDF: drawn by pdf.js, see `PdfPreview`.
+ * - text: escaped by React; PDF: drawn by pdf.js, see `PdfPreview`, and
+ *   printed as images of its pages (`printPdf`).
  *
  * No blob is ever navigated to, and each object URL is revoked on close.
  */
@@ -96,6 +100,16 @@ export function AttachmentPreviewDialog({
   const [failed, setFailed] = useState(false)
   const errorTitleId = useId()
   const errorMessageId = useId()
+  const [openedPdf, setOpenedPdf] = useState<PDFDocumentProxy | null>(null)
+  // The printing in progress, stopped when the preview closes
+  const printingRef = useRef<AbortController | null>(null)
+
+  useEffect(
+    () => () => {
+      printingRef.current?.abort()
+    },
+    []
+  )
 
   // A big PDF is neither fetched nor handed to pdf.js: the dialog offers the
   // download (the size of the part is declared by the server)
@@ -183,6 +197,32 @@ export function AttachmentPreviewDialog({
   const handleFailed = (): void => {
     setFailed(true)
   }
+  const handlePrint = (): void => {
+    if (openedPdf === null || printingRef.current !== null) return
+    if (openedPdf.numPages > MAX_PRINT_PAGES) {
+      notify({
+        message: t('email.preview.printTooLong', { count: MAX_PRINT_PAGES })
+      })
+      return
+    }
+    const controller = new AbortController()
+    printingRef.current = controller
+    notify({ message: t('print.inProgress') })
+    printPdf(openedPdf, {
+      lang,
+      title: name,
+      pageLabel: (page, count) => t('email.preview.page', { page, count }),
+      signal: controller.signal
+    })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return
+        console.error('[email] PDF printing failed', error)
+        notify({ message: t('print.failed'), severity: 'error' })
+      })
+      .finally(() => {
+        if (printingRef.current === controller) printingRef.current = null
+      })
+  }
 
   const renderContent = (): ReactElement => {
     if (isDeclaredTooLarge || loaded.status === 'tooLarge') {
@@ -253,7 +293,12 @@ export function AttachmentPreviewDialog({
               <CircularProgress aria-label={t('email.preview.loading')} />
             }
           >
-            <PdfPreview bytes={loaded.bytes} onError={handleFailed} />
+            <PdfPreview
+              bytes={loaded.bytes}
+              onError={handleFailed}
+              onMailtoLink={handleMailtoLink}
+              onOpened={setOpenedPdf}
+            />
           </Suspense>
         )
       case 'html':
@@ -295,8 +340,12 @@ export function AttachmentPreviewDialog({
           ? t('email.download')
           : undefined
       }
+      printLabel={
+        openedPdf !== null && !failed ? t('email.preview.print') : undefined
+      }
       onClose={onClose}
       onDownload={handleDownload}
+      onPrint={handlePrint}
       data-testid="attachment-preview"
     >
       {renderContent()}

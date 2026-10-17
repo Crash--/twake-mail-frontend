@@ -149,7 +149,9 @@
       "passwordProtected": "Ce PDF est protégé par un mot de passe",
       "password": "Mot de passe",
       "wrongPassword": "Mot de passe incorrect, réessayez.",
-      "openPdf": "Ouvrir"
+      "openPdf": "Ouvrir",
+      "print": "Imprimer",
+      "printTooLong": "Ce PDF a plus de %{count} pages : téléchargez-le pour l'imprimer."
     },
     "attachmentsMore": "Afficher les %{count} autres pièces jointes",
     "attachmentsHide": "Cacher les %{count} pièces jointes",

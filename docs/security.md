@@ -68,8 +68,22 @@ Options of `getDocument` (`PDF_DOCUMENT_OPTIONS`, checked by a unit test):
 No `cMapUrl`, `standardFontDataUrl`, `iccUrl` nor `wasmUrl`: nothing is
 loaded from anywhere. `stopAtErrors` stays off: pdf.js recovers what it can
 of damaged files, and a hard failure already ends in "Cannot preview" with
-the download. Annotations are not drawn (`AnnotationMode.DISABLE`): no link,
-form nor script.
+the download. Annotations are not drawn (`AnnotationMode.DISABLE`): no
+form nor script. The app draws the links itself (`pdfLinks.ts`): only the
+URL of a `Link` annotation is read, kept when it parses as `http:`,
+`https:` or `mailto:` (`PDF_LINK_PROTOCOLS`), and becomes an `<a>` over its
+rectangle (bounded to the page) with `target="_blank"` and
+`rel="noopener noreferrer"`; a `mailto:` link opens the composer. Links to
+another place of the document, actions and scripts are ignored. The text
+layer (pdf.js `TextLayer`) puts the text of a drawn page in transparent
+`<span>`s, as text content (never HTML), in the generic font families.
+
+Print (`printPdf.ts`): each page is drawn again by pdf.js at 150 dpi (same
+canvas bounds), turned into a PNG blob and printed as an `<img>` of the
+sandboxed print frame (`printHtmlDocument`, no `allow-scripts`; its CSP
+allows `img-src blob:` only). Up to 200 pages (`MAX_PRINT_PAGES`), above
+which the user is asked to download the file; the object URLs are revoked
+once the frame is removed, and closing the preview stops the drawing.
 
 Bounds against denial of service:
 

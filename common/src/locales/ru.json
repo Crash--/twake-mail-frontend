@@ -149,7 +149,9 @@
       "passwordProtected": "Этот PDF защищён паролем",
       "password": "Пароль",
       "wrongPassword": "Неверный пароль, попробуйте ещё раз.",
-      "openPdf": "Открыть"
+      "openPdf": "Открыть",
+      "print": "Печать",
+      "printTooLong": "В этом PDF больше %{count} страниц: скачайте его, чтобы распечатать."
     },
     "attachmentsMore": "Показать еще %{count}",
     "attachmentsHide": "Скрыть %{count}",

@@ -12,6 +12,10 @@ import { loadPdf } from './pdfjs'
 export interface PdfPreviewProps {
   bytes: Uint8Array
   onError: () => void
+  /** A mailto: link of the document was followed */
+  onMailtoLink: (href: string) => void
+  /** The document once open (it can be printed), null again when closed */
+  onOpened?: (pdf: PDFDocumentProxy | null) => void
 }
 
 const MAX_PAGE_WIDTH = 900
@@ -33,15 +37,23 @@ interface PasswordPrompt {
 /**
  * A PDF drawn on canvases by pdf.js, in the app and not in a browser plugin:
  * the document never runs a script (no JavaScript actions, no forms, no
- * annotations), and a browser PDF viewer cannot be used in a sandboxed
- * frame nor under the CSP `object-src 'none'`. The pages are drawn when
+ * annotations but the web and mailto: links, drawn by the app), and a
+ * browser PDF viewer cannot be used in a sandboxed frame nor under the CSP
+ * `object-src 'none'`. The text of each page is laid over it, so that it can
+ * be selected and read by a screen reader. The pages are drawn when
  * scrolled into view (`PdfPage`); closing the preview terminates the worker,
  * even while the document is still loading. An encrypted document asks its
  * password first, again while it is wrong.
  */
-export function PdfPreview({ bytes, onError }: PdfPreviewProps): ReactElement {
+export function PdfPreview({
+  bytes,
+  onError,
+  onMailtoLink,
+  onOpened
+}: PdfPreviewProps): ReactElement {
   const { t } = useI18n()
   const onErrorRef = useRef(onError)
+  const onOpenedRef = useRef(onOpened)
   const rootRef = useRef<HTMLDivElement>(null)
   const [opened, setOpened] = useState<Opened | null>(null)
   const [passwordPrompt, setPasswordPrompt] = useState<PasswordPrompt | null>(
@@ -50,7 +62,8 @@ export function PdfPreview({ bytes, onError }: PdfPreviewProps): ReactElement {
 
   useEffect(() => {
     onErrorRef.current = onError
-  }, [onError])
+    onOpenedRef.current = onOpened
+  }, [onError, onOpened])
 
   useEffect(() => {
     let isCancelled = false
@@ -90,6 +103,7 @@ export function PdfPreview({ bytes, onError }: PdfPreviewProps): ReactElement {
       if (layout === null) throw new Error('PDF page without a size')
       if (!isCancelled) {
         setOpened({ pdf, cssWidth, estimatedHeight: layout.cssHeight })
+        onOpenedRef.current?.(pdf)
       }
     }
     open().catch((error: unknown) => {
@@ -100,6 +114,7 @@ export function PdfPreview({ bytes, onError }: PdfPreviewProps): ReactElement {
     return () => {
       isCancelled = true
       setOpened(null)
+      onOpenedRef.current?.(null)
       setPasswordPrompt(null)
       giveUpPassword?.()
       load.destroy().catch((error: unknown) => {
@@ -131,6 +146,7 @@ export function PdfPreview({ bytes, onError }: PdfPreviewProps): ReactElement {
             cssWidth={opened.cssWidth}
             estimatedHeight={opened.estimatedHeight}
             onError={handlePageError}
+            onMailtoLink={onMailtoLink}
           />
         ))
       )}

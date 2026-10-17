@@ -153,6 +153,7 @@ import { makeIsSelf, type ReplyAction } from './replyRecipients'
 import { ComposerAttachmentsList } from './ComposerAttachmentsList'
 import { removeSignatures, replaceSignature, signatureHtml } from './signature'
 import { DRAFT_IDLE_MS } from './draftPolicy'
+import { SEND_SLOW_MS } from './sendPolicy'
 import { getEditorHtml, getEditorStorageHtml } from './editorHtml'
 import { EmojiButton } from './EmojiButton'
 import { DriveAttachButton } from './DriveAttachButton'
@@ -418,6 +419,15 @@ function LoadedComposerForm({
    */
   const [saveAnnouncement, setSaveAnnouncement] = useState('')
   const [isSending, setIsSending] = useState(false)
+  /**
+   * A sending under way, read by the saves and the closing: the dialog
+   * may be closed while it goes on (`tf#2603`)
+   */
+  const isSendingRef = useRef(false)
+  /** The server is slow to answer the sending: the dialog may be closed */
+  const [isSendSlow, setIsSendSlow] = useState(false)
+  const [isSendingDialogClosed, setIsSendingDialogClosed] = useState(false)
+  const sendSlowTimerRef = useRef<number | null>(null)
   // The step tmail-flutter's sending dialog says: the email is built (its
   // images and attachments uploaded), then sent
   const [sendingStep, setSendingStep] = useState<'creating' | 'sending'>(
@@ -550,6 +560,11 @@ function LoadedComposerForm({
     }
   }
 
+  /** Said when the user acts on a message whose sending is not answered */
+  const notifyStillSending = (): void => {
+    notify({ message: t('composer.sendingDialog.stillSending') })
+  }
+
   /**
    * Saves the message as a draft, one save at a time (each replaces the
    * previous version, destroyed once the new one exists). An autosave
@@ -560,6 +575,12 @@ function LoadedComposerForm({
     const run = savingRef.current.then(async (): Promise<boolean> => {
       const editor = editorRef.current
       if (!editor) return false
+      // The sending may create the draft or destroy its versions: a save
+      // meanwhile would leave a copy of the message
+      if (isSendingRef.current) {
+        if (kind === 'manual') notifyStillSending()
+        return false
+      }
       const current = fingerprintOf(editor)
       const isUnchanged = current === savedRef.current
       if (isUnchanged && (kind === 'auto' || draftIdRef.current !== null)) {
@@ -718,6 +739,11 @@ function LoadedComposerForm({
   }
 
   const requestClose = async (): Promise<boolean> => {
+    if (isSendingRef.current) {
+      // Neither saved nor discarded while the server may be sending it
+      notifyStillSending()
+      return false
+    }
     await flush()
     const current = currentFingerprint()
     if (current === null) return true
@@ -1329,10 +1355,31 @@ function LoadedComposerForm({
     })
   }
 
+  const clearSendSlowTimer = (): void => {
+    if (sendSlowTimerRef.current !== null) {
+      window.clearTimeout(sendSlowTimerRef.current)
+      sendSlowTimerRef.current = null
+    }
+  }
+
+  useEffect(
+    () => () => {
+      if (sendSlowTimerRef.current !== null) {
+        window.clearTimeout(sendSlowTimerRef.current)
+      }
+    },
+    []
+  )
+
   const handleSend = async (): Promise<void> => {
     const editor = editorRef.current
     const identity = identities.find(item => item.id === identityId)
-    if (!editor || !identity || isSending) return
+    if (isSendingRef.current) {
+      // Never sent again blindly: the first sending may reach the server
+      if (isSendingDialogClosed) notifyStillSending()
+      return
+    }
+    if (!editor || !identity) return
     setSendError(null)
     setIsSendOverQuota(false)
     setRefusedRecipients([])
@@ -1341,7 +1388,14 @@ function LoadedComposerForm({
     setInputs(EMPTY_INPUTS)
     if (!(await checkBeforeSending(lists))) return
     setSendingStep('creating')
+    isSendingRef.current = true
     setIsSending(true)
+    setIsSendSlow(false)
+    setIsSendingDialogClosed(false)
+    sendSlowTimerRef.current = window.setTimeout(() => {
+      sendSlowTimerRef.current = null
+      setIsSendSlow(true)
+    }, SEND_SLOW_MS)
     try {
       await flush()
       await collectStrays()
@@ -1396,6 +1450,8 @@ function LoadedComposerForm({
       console.error(error)
       setSendError(t(sendErrorKey(error)))
     } finally {
+      clearSendSlowTimer()
+      isSendingRef.current = false
       setIsSending(false)
     }
   }
@@ -1577,7 +1633,7 @@ function LoadedComposerForm({
   )
   const sendingDialog = (
     <SendingDialog
-      open={isSending}
+      open={isSending && !isSendingDialogClosed}
       title={t('composer.sending')}
       statusLabel={t('composer.sendingDialog.status')}
       status={t(
@@ -1586,6 +1642,11 @@ function LoadedComposerForm({
           : 'composer.sending'
       )}
       progressLabel={t('composer.sendingDialog.progress')}
+      slowMessage={isSendSlow ? t('composer.sendingDialog.slow') : null}
+      closeLabel={t('common.close')}
+      onClose={() => {
+        setIsSendingDialogClosed(true)
+      }}
       data-testid="composer-sending-dialog"
     />
   )

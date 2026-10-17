@@ -580,7 +580,9 @@
     "sendingDialog": {
       "status": "Statut",
       "progress": "Progression",
-      "creating": "Création du message"
+      "creating": "Création du message",
+      "slow": "Le serveur met plus de temps que d'habitude à répondre. Vous pouvez fermer cette fenêtre : le message n'est pas renvoyé, et vous serez prévenu à la fin de l'envoi.",
+      "stillSending": "Le message est toujours en cours d'envoi. Attendez la réponse du serveur."
     },
     "images": {
       "inserting": "Insertion de l’image"

@@ -115,6 +115,25 @@ function userInboxOption(picker: HTMLElement): HTMLElement {
   return found
 }
 
+/** What a drag carries, as the browser gives it to the handlers */
+function makeDataTransfer(): Pick<
+  DataTransfer,
+  'setData' | 'getData' | 'types' | 'effectAllowed' | 'dropEffect'
+> {
+  const data = new Map<string, string>()
+  return {
+    setData: (type: string, value: string): void => {
+      data.set(type, value)
+    },
+    getData: (type: string): string => data.get(type) ?? '',
+    get types(): string[] {
+      return [...data.keys()]
+    },
+    effectAllowed: 'none',
+    dropEffect: 'none'
+  }
+}
+
 function mailbox(
   server: FakeJmapServer,
   id: string
@@ -278,6 +297,75 @@ describe('Folder actions', () => {
       within(picker).getByRole('option', { name: 'All folders' })
     )
     expect(mailbox(server, 'work-archive')?.parentId).toBe('work')
+  })
+
+  it('moves a folder dropped onto another under it, and back with Undo', async () => {
+    const server = makeServer()
+    await renderTree(server, '/mailbox/clients')
+    const dataTransfer = makeDataTransfer()
+
+    expect(folder('Clients')).toHaveAttribute('draggable', 'true')
+    fireEvent.dragStart(folder('Clients'), { dataTransfer })
+    const target = within(folder('Inbox')).getByRole('link')
+    fireEvent.dragEnter(target, { dataTransfer })
+    expect(folder('Inbox').querySelector('[data-drop-over]')).not.toBe(null)
+    fireEvent.dragOver(target, { dataTransfer })
+    fireEvent.drop(target, { dataTransfer })
+    fireEvent.dragEnd(folder('Clients'), { dataTransfer })
+
+    await waitFor(() => {
+      expect(mailbox(server, 'clients')?.parentId).toBe('mailbox-inbox')
+    })
+    const toast = await screen.findByTestId('toast')
+    expect(toast).toHaveTextContent('Moved to Inbox')
+    await userEvent.click(
+      await within(toast).findByRole('button', { name: 'Undo' })
+    )
+    await waitFor(() => {
+      expect(mailbox(server, 'clients')?.parentId).toBe('work')
+    })
+  })
+
+  it('refuses a folder dropped onto itself, a subfolder of its own, its parent or a folder with its name', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'work', name: 'Work' }),
+        makeMailbox({ id: 'clients', name: 'Clients', parentId: 'work' }),
+        makeMailbox({ id: 'projects', name: 'Projects' }),
+        makeMailbox({ id: 'other', name: 'clients', parentId: 'projects' })
+      ]
+    })
+    await renderTree(server, '/mailbox/clients')
+    const isDropOver = (
+      name: string,
+      dataTransfer: ReturnType<typeof makeDataTransfer>
+    ): boolean => {
+      const target = within(folder(name)).getByRole('link')
+      fireEvent.dragEnter(target, { dataTransfer })
+      const isOver = folder(name).querySelector('[data-drop-over]') !== null
+      fireEvent.dragLeave(target, { dataTransfer })
+      return isOver
+    }
+
+    // System folders do not move, as their menu says
+    expect(folder('Inbox')).not.toHaveAttribute('draggable')
+    const workDrag = makeDataTransfer()
+    fireEvent.dragStart(folder('Work'), { dataTransfer: workDrag })
+    expect(isDropOver('Work', workDrag)).toBe(false)
+    expect(isDropOver('Clients', workDrag)).toBe(false)
+    expect(isDropOver('Projects', workDrag)).toBe(true)
+    fireEvent.dragEnd(folder('Work'), { dataTransfer: workDrag })
+
+    const clientsDrag = makeDataTransfer()
+    fireEvent.dragStart(folder('Clients'), { dataTransfer: clientsDrag })
+    expect(isDropOver('Work', clientsDrag)).toBe(false)
+    expect(isDropOver('Projects', clientsDrag)).toBe(false)
+    fireEvent.drop(within(folder('Projects')).getByRole('link'), {
+      dataTransfer: clientsDrag
+    })
+    fireEvent.dragEnd(folder('Clients'), { dataTransfer: clientsDrag })
+    expect(mailbox(server, 'clients')?.parentId).toBe('work')
   })
 
   it('deletes a folder with its subfolders and emails, and leaves it for the Inbox', async () => {

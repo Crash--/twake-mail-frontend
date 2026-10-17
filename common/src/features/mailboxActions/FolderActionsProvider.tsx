@@ -71,6 +71,11 @@ export interface FolderActions {
   ) => void
   /** Creates a folder, under `parentId` (null: the top level) */
   create: (parentId: string | null) => void
+  /**
+   * Moves a folder under `parentId` (null: the top level), with Undo; what
+   * a folder dropped onto another does
+   */
+  moveUnder: (mailbox: MailboxSummary, parentId: string | null) => void
 }
 
 const FolderActionsContext = createContext<FolderActions | null>(null)
@@ -214,26 +219,10 @@ export function FolderActionsProvider({
     }
   }
 
-  const move = useCallback(
-    async (mailbox: MailboxSummary): Promise<void> => {
-      const list = await loadMailboxes()
-      // As tmail-flutter: "Move To", "All folders" first, the folder and
-      // its subfolders faded; so are the places holding a folder of the
-      // same name, which the server refuses
-      const clashingIds = findClashingParentIds(list, mailbox)
-      const destination = await pickMailbox({
-        rootLabel: t('mailboxPicker.allFolders'),
-        isRootDisabled: clashingIds.includes(null),
-        personalOnly: true,
-        disabledIds: [
-          mailbox.id,
-          ...findDescendantIds(list, mailbox.id),
-          ...clashingIds.filter(id => id !== null)
-        ]
-      })
-      if (destination === null) return
-      const parentId = destination === PICKED_ROOT ? null : destination.id
+  const moveUnder = useCallback(
+    async (mailbox: MailboxSummary, parentId: string | null): Promise<void> => {
       if (parentId === mailbox.parentId) return
+      const list = await loadMailboxes()
       const previousParentId = mailbox.parentId
       try {
         await sendMailboxSet({ update: { [mailbox.id]: { parentId } } })
@@ -262,7 +251,33 @@ export function FolderActionsProvider({
         fail('common.unknownError', error)
       }
     },
-    [loadMailboxes, pickMailbox, t, sendMailboxSet, notify, getName, fail]
+    [loadMailboxes, t, sendMailboxSet, notify, getName, fail]
+  )
+
+  const move = useCallback(
+    async (mailbox: MailboxSummary): Promise<void> => {
+      const list = await loadMailboxes()
+      // As tmail-flutter: "Move To", "All folders" first, the folder and
+      // its subfolders faded; so are the places holding a folder of the
+      // same name, which the server refuses
+      const clashingIds = findClashingParentIds(list, mailbox)
+      const destination = await pickMailbox({
+        rootLabel: t('mailboxPicker.allFolders'),
+        isRootDisabled: clashingIds.includes(null),
+        personalOnly: true,
+        disabledIds: [
+          mailbox.id,
+          ...findDescendantIds(list, mailbox.id),
+          ...clashingIds.filter(id => id !== null)
+        ]
+      })
+      if (destination === null) return
+      await moveUnder(
+        mailbox,
+        destination === PICKED_ROOT ? null : destination.id
+      )
+    },
+    [loadMailboxes, pickMailbox, t, moveUnder]
   )
 
   const refreshEmailLists = useCallback(
@@ -580,7 +595,18 @@ export function FolderActionsProvider({
     ]
   )
 
-  const api = useMemo<FolderActions>(() => ({ run, create }), [run, create])
+  const api = useMemo<FolderActions>(
+    () => ({
+      run,
+      create,
+      moveUnder: (mailbox, parentId) => {
+        moveUnder(mailbox, parentId).catch((error: unknown) => {
+          fail('common.unknownError', error)
+        })
+      }
+    }),
+    [run, create, moveUnder, fail]
+  )
 
   const handleClose = (): void => {
     setDialog(null)
@@ -670,7 +696,8 @@ export function FolderActionsProvider({
 
 const NO_FOLDER_ACTIONS: FolderActions = {
   run: () => undefined,
-  create: () => undefined
+  create: () => undefined,
+  moveUnder: () => undefined
 }
 
 /** The folder actions; without their provider (tests), none */

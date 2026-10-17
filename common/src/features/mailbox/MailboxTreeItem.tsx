@@ -2,6 +2,7 @@ import { Icon } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useRef,
+  type DragEvent,
   type KeyboardEvent,
   type MouseEvent,
   type ReactElement
@@ -16,6 +17,13 @@ import { RowTextAction } from '@/ds/RowTextAction/RowTextAction'
 import { useDropEmails } from '@common/features/emailActions/useDropEmails'
 import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderActionsMenu'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
+import {
+  DRAGGED_FOLDER_TYPE,
+  endFolderDrag,
+  isMovableFolder,
+  startFolderDrag
+} from '@common/features/mailboxActions/folderDrag'
+import { useDropFolder } from '@common/features/mailboxActions/useDropFolder'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -49,7 +57,9 @@ function isMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
 
 /**
  * A folder of the sidebar tree: icon, name, expand arrow and unread count,
- * linking to the folder, where dragged emails can drop; its menu opens from
+ * linking to the folder, where dragged emails can drop; a personal folder
+ * dragged onto another moves under it (from the keyboard: "Move folder" in
+ * its menu). Its menu opens from
  * the ⋮ button shown on hover or focus, a right click, the menu key or
  * Shift+F10. On the Spam, "Clean" empties it. A hidden folder, shown on
  * demand, has the icon of hidden folders and says so. The root of a team
@@ -70,6 +80,8 @@ export function MailboxTreeItem({
   const toggleLabel = t(row.isExpanded ? 'mailbox.collapse' : 'mailbox.expand')
   // Keyboard users move emails from their menus: "Move message"
   const dropEmails = useDropEmails(mailbox)
+  const dropFolder = useDropFolder(mailbox)
+  const isDraggable = isMovableFolder(mailbox)
   const name = getName(mailbox)
   const isHidden = isHiddenMailbox(mailbox)
   const isContainer = isTeamRoot(mailbox)
@@ -111,6 +123,20 @@ export function MailboxTreeItem({
   }
   const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>): void => {
     onOpenMenu(mailbox, { element: event.currentTarget })
+  }
+  const handleDragStart = (event: DragEvent<HTMLElement>): void => {
+    startFolderDrag(event.dataTransfer, mailbox.id)
+  }
+  const drop = {
+    accepts: (types: readonly string[]): boolean =>
+      dropEmails.accepts(types) || dropFolder.accepts(types),
+    onDrop: (dataTransfer: DataTransfer): void => {
+      if (Array.from(dataTransfer.types).includes(DRAGGED_FOLDER_TYPE)) {
+        dropFolder.onDrop(dataTransfer)
+      } else {
+        dropEmails.onDrop(dataTransfer)
+      }
+    }
   }
 
   return (
@@ -205,7 +231,7 @@ export function MailboxTreeItem({
           </Tooltip>
         </>
       }
-      drop={isContainer ? undefined : dropEmails}
+      drop={isContainer ? undefined : drop}
       nameTestId="mailbox-item-name"
       data-testid="mailbox-item"
       itemProps={{
@@ -220,7 +246,14 @@ export function MailboxTreeItem({
         'data-mailbox-role': mailbox.role ?? undefined,
         'data-hidden': isHidden || undefined,
         onContextMenu: handleContextMenu,
-        onKeyDown: handleKeyDown
+        onKeyDown: handleKeyDown,
+        ...(isDraggable
+          ? {
+              draggable: true,
+              onDragStart: handleDragStart,
+              onDragEnd: endFolderDrag
+            }
+          : {})
       }}
     />
   )

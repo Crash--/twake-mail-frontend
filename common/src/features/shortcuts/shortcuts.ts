@@ -15,27 +15,71 @@ export type ShortcutKey =
   | 'r'
   | 'R'
   | 'f'
+  | 'q'
   | '?'
+  | 'n'
+  | 'Delete'
+  | 'Backspace'
+  | 'ArrowLeft'
+  | 'ArrowRight'
+
+/**
+ * tmail-flutter's keys for the shortcuts of the app (N, Delete, Backspace),
+ * standing for the same ones: screens bind the key on the right only
+ */
+const ALIASES: Partial<Record<ShortcutKey, ShortcutKey>> = {
+  n: 'c',
+  Delete: '#',
+  Backspace: '#'
+}
 
 /**
  * The shortcuts, in the order the help lists them; `keys` is what the help
- * shows when it is not the key itself. Reply, reply all, forward and Escape
- * (back to the list) are tmail-flutter's (r, Shift+R, f, Esc).
+ * shows when it is not the key itself, and `alternatives` the other keys
+ * doing the same. Reply, reply all, forward, mark as read and Escape (back
+ * to the list) are tmail-flutter's (r, Shift+R, f, q, Esc), as the
+ * alternatives: N, Delete and Backspace (`ALIASES`), and ← / → in an open
+ * email.
  */
 export const SHORTCUTS: readonly {
   key: ShortcutKey
   keys?: string
+  alternatives?: readonly { key: ShortcutKey; keys: string }[]
   label: TranslationKey
   category: ShortcutCategory
 }[] = [
-  { key: 'c', label: 'shortcuts.actions.compose', category: 'navigation' },
+  {
+    key: 'c',
+    alternatives: [{ key: 'n', keys: 'n' }],
+    label: 'shortcuts.actions.compose',
+    category: 'navigation'
+  },
   { key: '/', label: 'shortcuts.actions.search', category: 'navigation' },
-  { key: 'j', label: 'shortcuts.actions.next', category: 'navigation' },
-  { key: 'k', label: 'shortcuts.actions.previous', category: 'navigation' },
+  {
+    key: 'j',
+    alternatives: [{ key: 'ArrowRight', keys: '→' }],
+    label: 'shortcuts.actions.next',
+    category: 'navigation'
+  },
+  {
+    key: 'k',
+    alternatives: [{ key: 'ArrowLeft', keys: '←' }],
+    label: 'shortcuts.actions.previous',
+    category: 'navigation'
+  },
   { key: 'Escape', label: 'shortcuts.actions.close', category: 'navigation' },
   { key: 'e', label: 'shortcuts.actions.archive', category: 'management' },
-  { key: '#', label: 'shortcuts.actions.delete', category: 'management' },
+  {
+    key: '#',
+    alternatives: [
+      { key: 'Delete', keys: 'Delete' },
+      { key: 'Backspace', keys: 'Backspace' }
+    ],
+    label: 'shortcuts.actions.delete',
+    category: 'management'
+  },
   { key: 's', label: 'shortcuts.actions.star', category: 'management' },
+  { key: 'q', label: 'shortcuts.actions.markAsRead', category: 'reading' },
   { key: 'u', label: 'shortcuts.actions.markAsUnread', category: 'reading' },
   { key: 'r', label: 'emailActions.reply.reply', category: 'reading' },
   {
@@ -78,7 +122,12 @@ export const SHORTCUT_CATEGORIES: readonly {
   }
 ]
 
-const KEYS = new Set<string>(SHORTCUTS.map(shortcut => shortcut.key))
+const KEYS = new Set<string>(
+  SHORTCUTS.flatMap(shortcut => [
+    shortcut.key,
+    ...(shortcut.alternatives ?? []).map(alternative => alternative.key)
+  ])
+)
 
 export function isShortcutKey(key: string): key is ShortcutKey {
   return KEYS.has(key)
@@ -108,8 +157,33 @@ const OWNED_BY_CONTROL = [
 ].join(',')
 
 /**
- * The shortcut a key press stands for. A letter is read with Shift, not
- * with its case: Caps Lock turns `r` into `R`, which is no Shift+R.
+ * Where the arrows move within a control (a slider, tabs, a tree, a
+ * toolbar…), or the caret of any input: no shortcut
+ */
+const OWNS_ARROWS = [
+  'input',
+  'video',
+  'audio',
+  '[role="tree"]',
+  '[role="treegrid"]',
+  '[role="grid"]',
+  '[role="tablist"]',
+  '[role="toolbar"]',
+  '[role="menubar"]',
+  '[role="radiogroup"]',
+  '[role="slider"]',
+  '[role="spinbutton"]',
+  '[role="scrollbar"]'
+].join(',')
+
+function isArrow(key: string): boolean {
+  return key.startsWith('Arrow')
+}
+
+/**
+ * The shortcut a key press stands for, an alias giving the key it stands
+ * for (`n` gives `c`). A letter is read with Shift, not with its case: Caps
+ * Lock turns `r` into `R`, which is no Shift+R.
  */
 export function shortcutKeyOf(
   event: Pick<KeyboardEvent, 'key' | 'shiftKey'>
@@ -121,7 +195,7 @@ export function shortcutKeyOf(
       ? key.toUpperCase()
       : key.toLowerCase()
     : key
-  return isShortcutKey(pressed) ? pressed : null
+  return isShortcutKey(pressed) ? (ALIASES[pressed] ?? pressed) : null
 }
 
 export function isShortcutEvent(event: KeyboardEvent): boolean {
@@ -135,6 +209,13 @@ export function isShortcutEvent(event: KeyboardEvent): boolean {
   }
   const target = event.target
   if (target instanceof Element && target.closest(OWNED_BY_CONTROL) !== null) {
+    return false
+  }
+  if (
+    isArrow(event.key) &&
+    target instanceof Element &&
+    target.closest(OWNS_ARROWS) !== null
+  ) {
     return false
   }
   return shortcutKeyOf(event) !== null

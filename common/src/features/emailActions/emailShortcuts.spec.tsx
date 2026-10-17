@@ -201,6 +201,50 @@ describe('Email keyboard shortcuts', () => {
       )
     })
   })
+
+  it('opens the next and the previous email with the arrows, as tmail-flutter', async () => {
+    const server = makeServer()
+    renderMailScreen(server, '/mailbox/mailbox-inbox/email/e2')
+    await screen.findByTestId('email-view-subject')
+
+    await userEvent.keyboard('{ArrowRight}')
+    expect(await screen.findByTestId('email-view-subject')).toHaveTextContent(
+      'Third'
+    )
+    await userEvent.keyboard('{ArrowLeft}')
+    await waitFor(() => {
+      expect(screen.getByTestId('email-view-subject')).toHaveTextContent(
+        'Second'
+      )
+    })
+  })
+
+  it('marks the focused row read with q, and deletes it with Delete', async () => {
+    const server = makeServer()
+    server.emails.forEach(email => {
+      email.keywords = {}
+    })
+    renderMailScreen(server, '/mailbox/mailbox-inbox')
+    await screen.findByText('First')
+    rowLink('First').focus()
+
+    await userEvent.keyboard('q')
+
+    await waitFor(() => {
+      expect(server.emails.find(email => email.id === 'e1')?.keywords).toEqual({
+        $seen: true
+      })
+    })
+    expect(rowLink('First')).toHaveFocus()
+
+    await userEvent.keyboard('{Delete}')
+
+    await waitFor(() => {
+      expect(
+        server.emails.find(email => email.id === 'e1')?.mailboxIds
+      ).toEqual({ 'mailbox-trash': true })
+    })
+  })
 })
 
 describe('Previous / Next with conversations', () => {

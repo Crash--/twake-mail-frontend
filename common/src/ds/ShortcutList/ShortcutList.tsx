@@ -46,6 +46,13 @@ const CAP_SX = {
   textTransform: 'uppercase'
 } as const
 
+const OR_SX = {
+  ml: '4px',
+  fontSize: 12,
+  lineHeight: '16px',
+  color: TMAIL.textBlack88
+} as const
+
 /** "Ctrl+Enter" → ["Ctrl", "Enter"]; "+" and "Ctrl++" keep their plus */
 export function splitKeys(keys: string): string[] {
   if (keys === '+') return ['+']
@@ -62,6 +69,8 @@ export function splitKeys(keys: string): string[] {
 export interface ShortcutListRow {
   /** The keys, joined by "+", e.g. "Ctrl+Enter" */
   keys: string
+  /** Other keys doing the same, each joined by "+" too */
+  alternatives?: readonly string[]
   label: string
 }
 
@@ -71,7 +80,26 @@ export interface ShortcutListProps {
   /** Header of the columns, for assistive technologies */
   actionHeader: string
   keyHeader: string
+  /** Between the alternatives of a row, e.g. "or" */
+  orLabel: string
   rows: readonly ShortcutListRow[]
+}
+
+/** The key caps of one combination, read with a plus between them */
+function KeyCombination({ keys }: { keys: string }): ReactElement {
+  return (
+    <kbd>
+      {splitKeys(keys).map((key, index) => (
+        <Fragment key={`${key}-${index}`}>
+          {/* Read between the key caps, which the eye sees */}
+          {index > 0 ? <span className="u-visuallyhidden"> + </span> : null}
+          <Box component="kbd" sx={CAP_SX}>
+            {key}
+          </Box>
+        </Fragment>
+      ))}
+    </kbd>
+  )
 }
 
 /** A group of keyboard shortcuts: what each does, then its keys */
@@ -79,6 +107,7 @@ export function ShortcutList({
   labelledBy,
   actionHeader,
   keyHeader,
+  orLabel,
   rows
 }: ShortcutListProps): ReactElement {
   return (
@@ -96,19 +125,16 @@ export function ShortcutList({
               {row.label}
             </Box>
             <Box component="td" sx={KEYS_SX}>
-              <kbd>
-                {splitKeys(row.keys).map((key, index) => (
-                  <Fragment key={`${key}-${index}`}>
-                    {/* Read between the key caps, which the eye sees */}
-                    {index > 0 ? (
-                      <span className="u-visuallyhidden"> + </span>
-                    ) : null}
-                    <Box component="kbd" sx={CAP_SX}>
-                      {key}
+              {[row.keys, ...(row.alternatives ?? [])].map((keys, index) => (
+                <Fragment key={keys}>
+                  {index > 0 ? (
+                    <Box component="span" sx={OR_SX}>
+                      {` ${orLabel} `}
                     </Box>
-                  </Fragment>
-                ))}
-              </kbd>
+                  ) : null}
+                  <KeyCombination keys={keys} />
+                </Fragment>
+              ))}
             </Box>
           </tr>
         ))}

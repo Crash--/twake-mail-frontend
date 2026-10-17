@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
@@ -214,6 +214,22 @@ describe('TwpWarningBanners', () => {
 
     expect(await screen.findByTestId('twp-warning-0')).toBeInTheDocument()
     expect(screen.queryByTestId('twp-warning-dismiss-0')).toBeNull()
+  })
+
+  it('disables the dismissal while offline, and enables it back online', async () => {
+    const onLine = jest.spyOn(window.navigator, 'onLine', 'get')
+    onLine.mockReturnValue(false)
+    renderView(makeServer(['level:warn A']))
+
+    expect(await screen.findByTestId('twp-warning-dismiss-0')).toBeDisabled()
+
+    onLine.mockReturnValue(true)
+    act(() => {
+      window.dispatchEvent(new Event('online'))
+    })
+
+    expect(screen.getByTestId('twp-warning-dismiss-0')).toBeEnabled()
+    onLine.mockRestore()
   })
 
   it('offers Not spam for an error in Spam, and moves the email to the Inbox', async () => {

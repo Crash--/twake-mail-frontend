@@ -38,6 +38,7 @@ export interface MessageAlertDismiss {
   /** Name and tooltip of the button, e.g. "Dismiss" */
   label: string
   onClick: () => void
+  disabled?: boolean
   'data-testid'?: string
 }
 
@@ -104,15 +105,20 @@ export function MessageAlert({
             ) : null}
             {dismiss ? (
               <Tooltip title={dismiss.label}>
-                <IconButton
-                  size="small"
-                  color="inherit"
-                  aria-label={dismiss.label}
-                  onClick={dismiss.onClick}
-                  data-testid={dismiss['data-testid']}
-                >
-                  <Icon icon={Cross} size={16} />
-                </IconButton>
+                {/* A disabled button gets no pointer events: the tooltip
+                    listens on its wrapper */}
+                <span>
+                  <IconButton
+                    size="small"
+                    color="inherit"
+                    aria-label={dismiss.label}
+                    disabled={dismiss.disabled}
+                    onClick={dismiss.onClick}
+                    data-testid={dismiss['data-testid']}
+                  >
+                    <Icon icon={Cross} size={16} />
+                  </IconButton>
+                </span>
               </Tooltip>
             ) : null}
           </Box>

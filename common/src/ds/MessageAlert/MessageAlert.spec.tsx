@@ -74,6 +74,17 @@ describe('MessageAlert', () => {
     expect(screen.getByRole('button', { name: 'Not spam' })).toBeDisabled()
   })
 
+  it('disables its dismiss, still named by its label', () => {
+    renderDs(
+      <MessageAlert
+        {...BASE}
+        dismiss={{ label: 'Dismiss', onClick: jest.fn(), disabled: true }}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeDisabled()
+  })
+
   it('reaches both buttons with the keyboard, the action first', async () => {
     const user = userEvent.setup()
     renderDs(

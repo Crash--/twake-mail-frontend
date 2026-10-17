@@ -7,6 +7,7 @@ import { mayOnEmail } from '@common/features/emailActions/emailRights'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useRunEmailAction } from '@common/features/emailActions/useRunEmailAction'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useOnlineStatus } from '@common/features/network/useOnlineStatus'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -51,7 +52,8 @@ export interface TwpWarningBannersProps {
  * between its header and its body. Known codes have a localized text, any
  * other warning shows the text of the server as plain text. Dismissing
  * sets a keyword, shown at once and put back when the server refuses it;
- * it needs the right to set keywords in the folder. An error-level warning
+ * it needs the right to set keywords in the folder and is disabled offline,
+ * as in tmail-flutter. An error-level warning
  * on an email in Spam offers "Not spam".
  */
 export function TwpWarningBanners({
@@ -65,6 +67,7 @@ export function TwpWarningBanners({
   const { run } = useEmailActions()
   const runAction = useRunEmailAction()
   const { notify } = useNotify()
+  const isOnline = useOnlineStatus()
   if (warnings.length === 0) return null
 
   const folderId = messageMailboxId(email, mailboxId, mailboxes)
@@ -120,6 +123,7 @@ export function TwpWarningBanners({
               canDismiss
                 ? {
                     label: t('common.dismiss'),
+                    disabled: !isOnline,
                     onClick: () => {
                       handleDismiss(warning)
                     },

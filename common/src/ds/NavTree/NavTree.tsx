@@ -108,6 +108,9 @@ export function NavTree({
   const hasFocusRef = useRef(false)
   const typedRef = useRef('')
   const typedTimerRef = useRef<number | null>(null)
+  const isPressedRef = useRef(false)
+  // Ends the wait for the press to end before the row takes the focus
+  const stopDeferredFocusRef = useRef<(() => void) | null>(null)
   const isTree = role === 'tree'
 
   useEffect(() => {
@@ -157,9 +160,40 @@ export function NavTree({
       if (typedTimerRef.current !== null) {
         window.clearTimeout(typedTimerRef.current)
       }
+      stopDeferredFocusRef.current?.()
     },
     []
   )
+
+  const handlePointerDown = (): void => {
+    isPressedRef.current = true
+    const release = (): void => {
+      isPressedRef.current = false
+    }
+    window.addEventListener('pointerup', release, { once: true })
+    window.addEventListener('dragend', release, { once: true })
+  }
+
+  /**
+   * Moving the focus while the button is pressed cancels the drag the
+   * press may start (a row dragged onto another): the row takes it once
+   * the press, or the drag, ends
+   */
+  const focusAfterPress = (item: HTMLElement): void => {
+    stopDeferredFocusRef.current?.()
+    const handleEnd = (): void => {
+      stop()
+      if (item.isConnected) item.focus({ preventScroll: true })
+    }
+    const stop = (): void => {
+      window.removeEventListener('pointerup', handleEnd)
+      window.removeEventListener('dragend', handleEnd)
+      stopDeferredFocusRef.current = null
+    }
+    window.addEventListener('pointerup', handleEnd)
+    window.addEventListener('dragend', handleEnd)
+    stopDeferredFocusRef.current = stop
+  }
 
   const handleFocus = (event: FocusEvent<HTMLElement>): void => {
     const root = rootRef.current
@@ -170,7 +204,11 @@ export function NavTree({
     // Reached with the pointer, the link hands the focus to its row, which
     // is where the arrow keys start from
     if (target !== item && target.matches(ROW_LINK)) {
-      item.focus({ preventScroll: true })
+      if (isPressedRef.current) {
+        focusAfterPress(item)
+      } else {
+        item.focus({ preventScroll: true })
+      }
       return
     }
     const items = getItems(root)
@@ -255,6 +293,7 @@ export function NavTree({
       ref={rootRef}
       sx={{ my: 0 }}
       role={role}
+      onPointerDown={handlePointerDown}
       onFocus={handleFocus}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}

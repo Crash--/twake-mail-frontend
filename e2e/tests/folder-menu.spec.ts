@@ -1,3 +1,5 @@
+import type { Locator } from '@playwright/test'
+
 import { LoginPage, SettingsPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
@@ -211,4 +213,97 @@ test.describe('MBX folder menu', () => {
       await expect(mailbox.folder({ role: 'inbox' })).toBeVisible()
     }
   )
+})
+
+// Dragging is a pointer gesture of the desktop: the keyboard way is "Move
+// folder" in the folder menu (MBX folder menu above)
+test.describe('MBX folders dragged in the tree', () => {
+  test('MBX-57 a folder dragged onto another moves under it, and Undo puts it back', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const work = await jmap.createMailbox({ name: 'Work' })
+    const projects = await jmap.createMailbox({ name: 'Projects' })
+    const parentOf = async (id: string): Promise<string | null | undefined> =>
+      (await jmap.getMailboxes()).find(mailbox => mailbox.id === id)?.parentId
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await expect(mailbox.folder({ role: 'inbox' })).not.toHaveAttribute(
+      'draggable'
+    )
+    await mailbox
+      .folder({ name: 'Projects' })
+      .getByTestId('mailbox-item-name')
+      .dragTo(mailbox.folder({ name: 'Work' }).getByTestId('mailbox-item-name'))
+
+    await expect(mailbox.toast).toContainText('Moved to Work')
+    await expect.poll(() => parentOf(projects.id)).toBe(work.id)
+    // Work has a subfolder now: it expands
+    await expect(mailbox.folder({ id: work.id })).toHaveAttribute(
+      'aria-expanded'
+    )
+
+    await mailbox.toastUndoButton.click()
+    await expect.poll(() => parentOf(projects.id)).toBe(null)
+    await expect(mailbox.folder({ id: work.id })).not.toHaveAttribute(
+      'aria-expanded'
+    )
+  })
+
+  test('MBX-58 a folder is not taken by itself, one of its subfolders, its parent, nor a folder holding one of its name', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const work = await jmap.createMailbox({ name: 'Work' })
+    const clients = await jmap.createMailbox({
+      name: 'Clients',
+      parentId: work.id
+    })
+    const projects = await jmap.createMailbox({ name: 'Projects' })
+    await jmap.createMailbox({ name: 'Clients', parentId: projects.id })
+    const parentOf = async (id: string): Promise<string | null | undefined> =>
+      (await jmap.getMailboxes()).find(mailbox => mailbox.id === id)?.parentId
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    for (const parent of [work, projects]) {
+      const folder = mailbox.folder({ id: parent.id })
+      if ((await folder.getAttribute('aria-expanded')) === 'false') {
+        await mailbox.toggleFolder({ id: parent.id })
+      }
+    }
+    const row = (id: string): Locator =>
+      mailbox.folder({ id }).getByTestId('mailbox-item-name')
+    /** Drags `source` over `target`: whether the target shows it takes it, then drops */
+    const isTakenBy = async (
+      source: Locator,
+      target: Locator
+    ): Promise<boolean> => {
+      const from = await source.boundingBox()
+      const to = await target.boundingBox()
+      if (from === null || to === null) throw new Error('A row is not shown')
+      await page.mouse.move(from.x + 5, from.y + from.height / 2)
+      await page.mouse.down()
+      await page.mouse.move(from.x + 15, from.y + from.height / 2, { steps: 3 })
+      await page.mouse.move(to.x + 5, to.y + to.height / 2, { steps: 5 })
+      const isOver =
+        (await page.locator('[data-drop-over]').count()) > 0
+      await page.mouse.up()
+      return isOver
+    }
+
+    // Itself, one of its subfolders, its parent, a folder holding a "Clients"
+    expect(await isTakenBy(row(work.id), row(work.id))).toBe(false)
+    expect(await isTakenBy(row(work.id), row(clients.id))).toBe(false)
+    expect(await isTakenBy(row(clients.id), row(work.id))).toBe(false)
+    expect(await isTakenBy(row(clients.id), row(projects.id))).toBe(false)
+    // The check itself: a folder that takes it shows so, and the drop moves it
+    expect(await isTakenBy(row(work.id), row(projects.id))).toBe(true)
+    await expect(mailbox.toast).toContainText('Moved to Projects')
+    await mailbox.toastUndoButton.click()
+
+    await expect.poll(() => parentOf(work.id)).toBe(null)
+    expect(await parentOf(clients.id)).toBe(work.id)
+  })
 })

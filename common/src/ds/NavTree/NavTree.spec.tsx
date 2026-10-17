@@ -234,6 +234,19 @@ describe('NavTree', () => {
     expect(item('Drafts')).toHaveAttribute('tabindex', '0')
   })
 
+  it('leaves the focus on the pressed link until the drag it starts ends', async () => {
+    renderDs(<Tree folders={FOLDERS} />)
+    const link = screen.getByRole('link', { name: 'Drafts' })
+
+    // Moving the focus during the press would cancel the drag in Chromium
+    await userEvent.pointer({ keys: '[MouseLeft>]', target: link })
+    expect(link).toHaveFocus()
+    act(() => {
+      link.dispatchEvent(new Event('dragend', { bubbles: true }))
+    })
+    expect(item('Drafts')).toHaveFocus()
+  })
+
   it('does not take the keys of a plain list', () => {
     renderDs(
       <NavTree>

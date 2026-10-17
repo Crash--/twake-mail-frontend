@@ -577,6 +577,8 @@ export function IdentityFormDialog({
           slotProps={{
             htmlInput: {
               inputMode: 'email',
+              // Addresses, not words: no misspelling underline (tf#2699)
+              spellCheck: false,
               'aria-description': t('identities.form.addressesHelp'),
               'data-testid': 'identity-reply-to-input'
             }
@@ -602,6 +604,7 @@ export function IdentityFormDialog({
           slotProps={{
             htmlInput: {
               inputMode: 'email',
+              spellCheck: false,
               'aria-description': t('identities.form.addressesHelp'),
               'data-testid': 'identity-bcc-input'
             }

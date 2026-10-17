@@ -701,3 +701,71 @@ describe('RichTextEditor', () => {
     expect(screen.queryByRole('toolbar')).toBe(null)
   })
 })
+
+/** Enter as the browser gives it, through the key bindings of the editor */
+function pressEnter(editor: Editor): void {
+  const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+  editor.view.someProp('handleKeyDown', handle => handle(editor.view, event))
+}
+
+describe('Enter', () => {
+  it('replaces the selected text with a line break (tf#4596)', async () => {
+    const editor = await renderEditor('<p>Hello world</p>')
+    // "llo "
+    editor.commands.setTextSelection({ from: 3, to: 7 })
+
+    pressEnter(editor)
+
+    expect(editor.getHTML()).toBe('<p>He</p><p>world</p>')
+  })
+
+  it('turns the address just typed into a link (tf#3597)', async () => {
+    const editor = await renderEditor('<p></p>')
+    editor.commands.insertContent('See https://example.com')
+
+    pressEnter(editor)
+
+    expect(editor.getHTML()).toContain(
+      'See <a target="_blank" rel="noopener noreferrer nofollow" href="https://example.com">https://example.com</a></p><p></p>'
+    )
+  })
+
+  it('leaves a quote twice on an empty line (tf#3501)', async () => {
+    const editor = await renderEditor(
+      '<blockquote><p>A saying</p></blockquote>'
+    )
+    editor.commands.setTextSelection(10)
+
+    pressEnter(editor)
+    pressEnter(editor)
+    editor.commands.insertContent('Mine')
+
+    expect(editor.getHTML()).toBe(
+      '<blockquote><p>A saying</p></blockquote><p>Mine</p>'
+    )
+  })
+})
+
+describe('Underline and text colour', () => {
+  // The colour wraps the underline, which takes the colour of its text
+  const COLOURED_UNDERLINE =
+    '<p><span style="color: rgb(255, 0, 0);"><u>Hello</u></span></p>'
+
+  it('colours the underline when the text is underlined then coloured (tf#1867)', async () => {
+    const editor = await renderEditor('<p>Hello</p>')
+    editor.commands.setTextSelection({ from: 1, to: 6 })
+
+    editor.chain().toggleUnderline().setColor('#ff0000').run()
+
+    expect(editor.getHTML()).toBe(COLOURED_UNDERLINE)
+  })
+
+  it('colours the underline when the text is coloured then underlined (tf#3119)', async () => {
+    const editor = await renderEditor('<p>Hello</p>')
+    editor.commands.setTextSelection({ from: 1, to: 6 })
+
+    editor.chain().setColor('#ff0000').toggleUnderline().run()
+
+    expect(editor.getHTML()).toBe(COLOURED_UNDERLINE)
+  })
+})

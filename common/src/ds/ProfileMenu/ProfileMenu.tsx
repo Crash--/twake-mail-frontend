@@ -1,8 +1,9 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's account menu without
 // the platform (`ProfileSettingIcon`, `ProfileSettingMenuOverlay`): a 48 px
-// white disc holding the first letter of the address, opening a 260 px card
-// rounded by 14 px: the address with a copy button, a close cross, then its
-// entries (manage account, sign out).
+// white disc holding the first letter of the name or address, opening a 260 px card
+// rounded by 14 px: the display name when known (tmail-flutter#2756), the
+// address with a copy button, a close cross, then its entries (manage
+// account, sign out).
 import { Icon } from '@linagora/twake-icons'
 import {
   Box,
@@ -47,6 +48,16 @@ const PAPER_SX = {
   boxShadow: '0 0 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15)'
 } as const
 
+const NAME_SX = {
+  px: '16px',
+  pt: '32px',
+  fontSize: 16,
+  fontWeight: 500,
+  color: TMAIL.textBlack,
+  textAlign: 'center',
+  overflowWrap: 'anywhere'
+} as const
+
 const ADDRESS_SX = {
   display: 'flex',
   alignItems: 'center',
@@ -60,6 +71,9 @@ const ADDRESS_SX = {
   color: TMAIL.grey,
   wordBreak: 'break-all'
 } as const
+
+/** Under the name, the address comes closer to it */
+const ADDRESS_UNDER_NAME_SX = { ...ADDRESS_SX, pt: '4px' } as const
 
 const CLOSE_SX = { position: 'absolute', top: 6, right: 6 } as const
 
@@ -82,6 +96,8 @@ export interface ProfileMenuLabels {
 export interface ProfileMenuProps {
   /** The letter shown in the button */
   initial: string
+  /** The display name of the user, above the address; null when unknown */
+  name?: string | null
   /** The address of the user, at the top of the card */
   address: string
   labels: ProfileMenuLabels
@@ -95,12 +111,13 @@ export interface ProfileMenuProps {
 
 /**
  * The account of the user at the end of the bar: a button with its
- * initial, opening a card with the address and the entries. The focus goes
- * to the first entry, Escape or the cross close it and give the focus back
- * to the button.
+ * initial, opening a card with the name, the address and the entries. The
+ * focus goes to the first entry, Escape or the cross close it and give the
+ * focus back to the button.
  */
 export function ProfileMenu({
   initial,
+  name = null,
   address,
   labels,
   onCopy,
@@ -140,7 +157,8 @@ export function ProfileMenu({
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{ paper: { sx: PAPER_SX } }}
       >
-        <Box sx={ADDRESS_SX}>
+        {name === null ? null : <Box sx={NAME_SX}>{name}</Box>}
+        <Box sx={name === null ? ADDRESS_SX : ADDRESS_UNDER_NAME_SX}>
           <span>{address}</span>
           <Tooltip title={labels.copy}>
             <IconButton size="small" aria-label={labels.copy} onClick={onCopy}>

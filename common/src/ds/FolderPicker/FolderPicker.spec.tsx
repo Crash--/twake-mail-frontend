@@ -116,6 +116,59 @@ describe('FolderPicker', () => {
     )
   })
 
+  it('reaches a disabled folder with subfolders to unfold it, without picking it', async () => {
+    const onSelect = jest.fn()
+    renderDs(
+      <FolderPicker
+        open
+        labels={LABELS}
+        sections={[
+          {
+            id: 'team',
+            label: 'Team-mailboxes',
+            options: [
+              {
+                id: 'team-root',
+                label: 'bob-guests',
+                level: 1,
+                parentId: null,
+                hasChildren: true,
+                disabled: true
+              },
+              {
+                id: 'team-inbox',
+                label: 'Inbox',
+                level: 2,
+                parentId: 'team-root',
+                hasChildren: false
+              }
+            ]
+          }
+        ]}
+        onSelect={onSelect}
+        onClose={jest.fn()}
+      />
+    )
+    const search = screen.getByRole('combobox', { name: 'Search folders' })
+    await waitFor(() => {
+      expect(search).toHaveFocus()
+    })
+
+    await userEvent.keyboard('{ArrowDown}')
+    const root = screen.getByRole('option', { name: 'bob-guests' })
+    expect(search).toHaveAttribute('aria-activedescendant', root.id)
+    expect(root).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.keyboard('{Enter}')
+    expect(onSelect).not.toHaveBeenCalled()
+
+    await userEvent.keyboard('{ArrowRight}')
+    expect(root).toHaveAccessibleDescription('subfolders shown')
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'team-inbox' })
+    )
+  })
+
   it('folds a block from its header, and searches every folder', async () => {
     renderPicker()
     const header = screen.getByRole('button', { name: 'Personal folders' })

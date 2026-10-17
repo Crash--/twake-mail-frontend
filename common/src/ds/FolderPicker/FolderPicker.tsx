@@ -8,8 +8,9 @@
 //
 // Accessibility: the search field is a combobox (ARIA 1.2) driving one
 // listbox per block; ArrowDown / ArrowUp move the active folder, ArrowRight
-// and ArrowLeft unfold and fold its subfolders, Enter picks it; the headers
-// of the blocks are buttons (`aria-expanded`).
+// and ArrowLeft unfold and fold its subfolders, Enter picks it; a disabled
+// folder with subfolders is reached too (`aria-disabled`, Enter ignored) to
+// unfold it; the headers of the blocks are buttons (`aria-expanded`).
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Box,
@@ -281,6 +282,17 @@ function isPickable(option: FolderPickerOption): boolean {
 }
 
 /**
+ * Reached by the arrows: the pickable folders, and the others holding
+ * subfolders (a team mailbox root), so ArrowRight can unfold them
+ */
+function isNavigable(
+  option: FolderPickerOption,
+  isSearching: boolean
+): boolean {
+  return isPickable(option) || (option.hasChildren && !isSearching)
+}
+
+/**
  * Asks for a folder, as tmail-flutter's destination picker. The focus goes
  * to the search field; Escape and the cross close it and give the focus
  * back to what opened it.
@@ -360,9 +372,12 @@ export function FolderPicker({
 
   const navigable = shownSections
     .flatMap(section => section.options)
-    .filter(isPickable)
+    .filter(option => isNavigable(option, isSearching))
   const active =
-    navigable.find(option => option.id === activeId) ?? navigable[0] ?? null
+    navigable.find(option => option.id === activeId) ??
+    navigable.find(isPickable) ??
+    navigable[0] ??
+    null
   const optionDomId = (option: FolderPickerOption): string =>
     `${id}-option-${option.id}`
   const listboxDomId = (sectionId: string): string => `${id}-list-${sectionId}`
@@ -403,7 +418,8 @@ export function FolderPicker({
       move(event.key === 'ArrowDown' ? 1 : -1)
     } else if (event.key === 'Enter' && active !== null && hasNavigated) {
       event.preventDefault()
-      onSelect(active)
+      // A folder only reached to unfold it is announced unavailable
+      if (isPickable(active)) onSelect(active)
     } else if (
       !isSearching &&
       hasNavigated &&

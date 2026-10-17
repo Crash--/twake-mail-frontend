@@ -160,6 +160,8 @@ export function SearchFiltersBar({
     pickFolderOrChoice({
       title: t('search.selectFolder'),
       currentLabel: t('search.scope.selected'),
+      // A team mailbox searched as a whole: all its folders but Trash
+      isTeamRootPickable: true,
       currentId:
         scope.kind === 'mailbox'
           ? scope.mailboxId

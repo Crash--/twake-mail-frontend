@@ -5,7 +5,8 @@ import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerPro
 import {
   makeDefaultMailboxes,
   makeFakeJmapServer,
-  makeMailbox
+  makeMailbox,
+  makeTeamMailboxes
 } from '@common/testing/fakeJmapServer'
 import {
   FAKE_LINAGORA_CAPABILITIES,
@@ -35,7 +36,8 @@ function renderBar(filter: SearchFilter = EMPTY_SEARCH_FILTER): jest.Mock {
     ],
     mailboxes: [
       ...makeDefaultMailboxes(),
-      makeMailbox({ id: 'work', name: 'Work' })
+      makeMailbox({ id: 'work', name: 'Work' }),
+      ...makeTeamMailboxes()
     ]
   })
   installFakeLabels(server, [
@@ -81,6 +83,23 @@ describe('SearchFiltersBar', () => {
     expect(onChange).toHaveBeenCalledWith({
       ...EMPTY_SEARCH_FILTER,
       scope: { kind: 'mailbox', mailboxId: 'work' }
+    })
+  })
+
+  it('searches a whole team mailbox from its root', async () => {
+    const onChange = renderBar()
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'All email' })
+    )
+    const picker = await screen.findByRole('dialog', { name: 'Select Folder' })
+    const root = within(picker).getByRole('option', { name: /^team/ })
+    expect(root).not.toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(root)
+
+    expect(onChange).toHaveBeenCalledWith({
+      ...EMPTY_SEARCH_FILTER,
+      scope: { kind: 'mailbox', mailboxId: 'team' }
     })
   })
 

@@ -580,7 +580,9 @@
     "sendingDialog": {
       "status": "Trạng thái",
       "progress": "Tiến trình",
-      "creating": "Tạo thư"
+      "creating": "Tạo thư",
+      "slow": "Máy chủ phản hồi lâu hơn bình thường. Bạn có thể đóng hộp thoại này: thư sẽ không được gửi lại, và bạn sẽ được thông báo khi việc gửi kết thúc.",
+      "stillSending": "Thư vẫn đang được gửi. Vui lòng chờ máy chủ phản hồi."
     },
     "images": {
       "inserting": "Đang chèn ảnh"

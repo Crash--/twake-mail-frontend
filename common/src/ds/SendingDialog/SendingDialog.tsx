@@ -3,7 +3,8 @@
 // radius, the title in Bold 17 black on a light grey (#F2F3F5) band, a
 // divider, then "Status: <step>..." and "Progress:" with a sliding bar,
 // light on the primary blue. It cannot be dismissed: it goes once the
-// message is sent or failed.
+// message is sent or failed, unless the server is slow to answer: then it
+// says so and offers to close it (`tf#2603`).
 import {
   Box,
   Dialog,
@@ -13,6 +14,7 @@ import {
 } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
+import { ConfirmDialogButton } from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const PAPER_SX = {
@@ -70,6 +72,15 @@ export interface SendingDialogProps {
   status: string
   /** "Progress" */
   progressLabel: string
+  /**
+   * Said once the server is slow to answer, e.g. "It is taking longer than
+   * usual…": the dialog then has a button that closes it. Null otherwise
+   */
+  slowMessage?: string | null
+  /** "Close", the button shown with `slowMessage` */
+  closeLabel?: string
+  /** The user closed the dialog (its button or Escape, once slow) */
+  onClose?: () => void
   'data-testid'?: string
 }
 
@@ -77,7 +88,8 @@ export interface SendingDialogProps {
  * A modal dialog saying that a message is being sent: its title, the step
  * under way and an indeterminate progress bar. It takes the focus (its
  * content is announced) and gives it back when it closes; neither Escape
- * nor a click outside closes it.
+ * nor a click outside closes it. Given a `slowMessage`, it says it and
+ * shows a button closing it, which Escape closes as well.
  */
 export function SendingDialog({
   open,
@@ -85,16 +97,26 @@ export function SendingDialog({
   statusLabel,
   status,
   progressLabel,
+  slowMessage = null,
+  closeLabel,
+  onClose,
   'data-testid': testId
 }: SendingDialogProps): ReactElement {
   const titleId = useId()
   const statusId = useId()
   const progressId = useId()
+  const slowId = useId()
+  const isClosable = slowMessage !== null && onClose !== undefined
   return (
     <Dialog
       open={open}
+      onClose={(_event, reason) => {
+        if (isClosable && reason === 'escapeKeyDown') onClose()
+      }}
       aria-labelledby={titleId}
-      aria-describedby={statusId}
+      aria-describedby={
+        slowMessage === null ? statusId : `${statusId} ${slowId}`
+      }
       aria-busy
       slotProps={{ paper: { sx: PAPER_SX } }}
       data-testid={testId}
@@ -130,6 +152,26 @@ export function SendingDialog({
           sx={BAR_SX}
         />
       </Box>
+      {slowMessage === null ? null : (
+        <Box sx={{ pb: 2, px: 2 }}>
+          <Typography id={slowId} role="alert" sx={VALUE_SX}>
+            {slowMessage}
+          </Typography>
+          {isClosable ? (
+            <Box sx={{ pt: 1.5 }} className="u-flex u-flex-justify-end">
+              <ConfirmDialogButton
+                autoFocus
+                onClick={onClose}
+                data-testid={
+                  testId === undefined ? undefined : `${testId}-close-button`
+                }
+              >
+                {closeLabel}
+              </ConfirmDialogButton>
+            </Box>
+          ) : null}
+        </Box>
+      )}
     </Dialog>
   )
 }

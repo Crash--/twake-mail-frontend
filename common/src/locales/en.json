@@ -580,7 +580,9 @@
     "sendingDialog": {
       "status": "Status",
       "progress": "Progress",
-      "creating": "Creating message"
+      "creating": "Creating message",
+      "slow": "The server is taking longer than usual to answer. You can close this dialog: the message is not sent again, and you will be told when the sending ends.",
+      "stillSending": "The message is still being sent. Wait for the server to answer."
     },
     "images": {
       "inserting": "Inserting the image"

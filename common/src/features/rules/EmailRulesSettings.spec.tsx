@@ -1,7 +1,8 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Rule } from 'jmap-client-ts/linagora'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
 import {
   SETTINGS_SECTIONS,
@@ -42,6 +43,31 @@ const NEWSLETTERS: Rule = {
   }
 }
 
+const LISTS: Rule = {
+  name: 'Lists',
+  conditionGroup: {
+    conditionCombiner: 'AND',
+    conditions: [
+      {
+        field: 'header:List-Id',
+        comparator: 'contains',
+        value: 'team.example.com'
+      }
+    ]
+  },
+  action: {
+    appendIn: { mailboxIds: [] },
+    markAsSeen: true,
+    markAsImportant: false,
+    reject: false,
+    withKeywords: []
+  }
+}
+
+function ruleNames(): string[] {
+  return screen.getAllByTestId('email-rule-name').map(name => name.textContent)
+}
+
 function setup(
   rules: Rule[] = [],
   state: unknown = null
@@ -59,6 +85,8 @@ function setup(
 }
 
 describe('EmailRulesSettings', () => {
+  afterEach(resetViewport)
+
   it('invites to create a first rule', async () => {
     setup()
 
@@ -402,5 +430,130 @@ describe('EmailRulesSettings', () => {
     )
     expect(filter.rules()).toEqual([])
     expect(await screen.findByTestId('email-rules-empty')).toBeVisible()
+  })
+
+  it('creates a rule on another header, named beside the field', async () => {
+    const { filter } = setup()
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Create My First Rule' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Create a New Rule' })
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Rule Name' }),
+      'Lists'
+    )
+    await userEvent.selectOptions(
+      within(dialog).getByRole('combobox', { name: 'Field' }),
+      'Header'
+    )
+    const headerName = within(dialog).getByRole('textbox', {
+      name: 'Header name'
+    })
+    await userEvent.type(headerName, 'List Id')
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Value' }),
+      'team.example.com'
+    )
+    await userEvent.selectOptions(
+      within(dialog).getByRole('combobox', { name: 'Action 1' }),
+      'Mark as seen'
+    )
+    await userEvent.click(within(dialog).getByTestId('create-rule-button'))
+
+    expect(
+      within(dialog).getByText('A header name has no space and no colon')
+    ).toBeVisible()
+    expect(filter.rules()).toEqual([])
+    await userEvent.clear(headerName)
+    await userEvent.type(headerName, 'List-Id')
+    await userEvent.click(within(dialog).getByTestId('create-rule-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'New filter was created'
+    )
+    expect(filter.rules()).toEqual([
+      {
+        ...LISTS,
+        action: {
+          appendIn: { mailboxIds: [] },
+          markAsSeen: true,
+          markAsImportant: false,
+          reject: false,
+          forwardTo: null
+        }
+      }
+    ])
+    expect(await screen.findByTestId('email-rule-item')).toHaveTextContent(
+      'Header List-Id, contains: team.example.com'
+    )
+  })
+
+  it('edits a header condition set by another client', async () => {
+    setup([LISTS])
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Edit Lists' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Edit Rule' })
+    expect(
+      within(dialog).getByRole('combobox', { name: 'Field' })
+    ).toHaveDisplayValue('Header')
+    expect(
+      within(dialog).getByRole('textbox', { name: 'Header name' })
+    ).toHaveValue('List-Id')
+    await userEvent.selectOptions(
+      within(dialog).getByRole('combobox', { name: 'Field' }),
+      'Subject'
+    )
+    expect(within(dialog).queryByRole('textbox', { name: 'Header name' })).toBe(
+      null
+    )
+  })
+
+  it('moves a rule up with the keyboard and tells its new place', async () => {
+    const { filter } = setup([NEWSLETTERS, LISTS])
+
+    const moveUp = await screen.findByRole('button', { name: 'Move Lists up' })
+    expect(
+      screen.getByRole('button', { name: 'Move Newsletters up' })
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: 'Move Lists down' })
+    ).toBeDisabled()
+    act(() => {
+      moveUp.focus()
+    })
+    await userEvent.keyboard('{Enter}')
+
+    expect(ruleNames()).toEqual(['Lists', 'Newsletters'])
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Rule "Lists" moved to position 1 of 2'
+    )
+    expect(filter.rules()).toEqual([LISTS, NEWSLETTERS])
+    // Now first, it can only go down: the focus follows it there
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Move Lists down' })
+      ).toHaveFocus()
+    })
+  })
+
+  it('moves a rule down from its sheet on a phone', async () => {
+    mockViewport({ width: 390, touch: true })
+    const { filter } = setup([NEWSLETTERS, LISTS])
+
+    const [first] = await screen.findAllByTestId('email-rule-item')
+    if (!first) throw new Error('No rule')
+    await userEvent.click(within(first).getByRole('button', { name: 'More' }))
+    const sheet = screen.getByTestId('email-rule-menu')
+    expect(within(sheet).queryByText('Move up')).toBe(null)
+    await userEvent.click(within(sheet).getByText('Move down'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Rule "Newsletters" moved to position 2 of 2'
+    )
+    expect(filter.rules()).toEqual([LISTS, NEWSLETTERS])
+    expect(ruleNames()).toEqual(['Lists', 'Newsletters'])
   })
 })

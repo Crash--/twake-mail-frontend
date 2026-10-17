@@ -26,7 +26,7 @@ import { ruleKeys, rulesQueryOptions, saveRules } from './queries'
 import { RuleFormDialog } from './RuleFormDialog'
 import { useAddRule } from './useAddRule'
 import { RuleListItem } from './RuleListItem'
-import { newRuleDraft, type RuleDraft } from './rules'
+import { moveRule, newRuleDraft, type RuleDraft } from './rules'
 
 /** Location state opening the creator on a rule for an address */
 export interface NewRuleLocationState {
@@ -37,6 +37,57 @@ function readNewRuleFrom(state: unknown): string | null {
   if (typeof state !== 'object' || state === null) return null
   const { newRuleFrom } = state as Partial<NewRuleLocationState>
   return typeof newRuleFrom === 'string' ? newRuleFrom : null
+}
+
+/** The move buttons of a rule card, the one a move came from first */
+const MOVE_BUTTONS = {
+  up: [
+    'email-rule-move-up-button',
+    'email-rule-move-down-button',
+    'email-rule-more-button'
+  ],
+  down: [
+    'email-rule-move-down-button',
+    'email-rule-move-up-button',
+    'email-rule-more-button'
+  ]
+} as const
+
+/** How long a moved rule keeps the focus from what its menu gives it back */
+const MOVE_FOCUS_MS = 500
+
+/**
+ * Gives the focus to the card of `list` at `to` once it is drawn: its move
+ * button the same way, else the other way (the moved rule is now first or
+ * last), else "More" (a phone). For a while, it takes it back when the
+ * focus falls on the body or in the card at `from` (the sheet of a phone
+ * gives it back to the "More" it was opened from).
+ */
+function focusMovedRule(
+  list: Element | null,
+  from: number,
+  to: number,
+  direction: keyof typeof MOVE_BUTTONS
+): void {
+  const deadline = performance.now() + MOVE_FOCUS_MS
+  const focus = (): void => {
+    const card = list?.children.item(to) ?? null
+    const button = MOVE_BUTTONS[direction]
+      .map(testId =>
+        card?.querySelector<HTMLButtonElement>(
+          `button[data-testid="${testId}"]:not(:disabled)`
+        )
+      )
+      .find(candidate => candidate !== null && candidate !== undefined)
+    const active = document.activeElement
+    const isElsewhere =
+      active === null ||
+      active === document.body ||
+      list?.children.item(from)?.contains(active) === true
+    if (isElsewhere) button?.focus()
+    if (performance.now() < deadline) requestAnimationFrame(focus)
+  }
+  requestAnimationFrame(focus)
 }
 
 /** The creator: closed, a new rule (with its draft) or the rule at `index` */
@@ -50,7 +101,7 @@ export interface EmailRulesSettingsProps {
 /**
  * Settings > Email rules: the filtering rules (`Filter/get`, `Filter/set`
  * of the whole list), created at the top, edited and deleted in place, as
- * tmail-flutter does. "Create a rule with this email" of an address opens
+ * tmail-flutter does, and moved up or down (the first matching rule wins). "Create a rule with this email" of an address opens
  * the creator here (`newRuleFrom` in the location state).
  */
 export function EmailRulesSettings({
@@ -134,6 +185,42 @@ export function EmailRulesSettings({
     })
   }
 
+  const handleMove = (
+    index: number,
+    direction: keyof typeof MOVE_BUTTONS,
+    opener: HTMLElement
+  ): void => {
+    const rule = rules[index]
+    if (!rule) return
+    const target = direction === 'up' ? index - 1 : index + 1
+    const next = moveRule(rules, index, target)
+    const list = opener.closest('ul')
+    // At once: the server takes the whole list again (`Filter/set`)
+    queryClient.setQueryData(ruleKeys.all(accountId), next)
+    focusMovedRule(list, index, target, direction)
+    save(next)
+      .then(isSaved => {
+        // A live region: the new place is announced
+        notify(
+          isSaved
+            ? {
+                message: t('rules.toasts.moved', {
+                  name: rule.name,
+                  position: target + 1,
+                  count: next.length
+                }),
+                severity: 'success'
+              }
+            : { message: t('rules.errors.move'), severity: 'error' }
+        )
+        if (!isSaved) focusMovedRule(list, target, index, direction)
+      })
+      .catch((error: unknown) => {
+        console.error('[rules] Cannot move the rule', error)
+        notify({ message: t('rules.errors.move'), severity: 'error' })
+      })
+  }
+
   const openCreator = (): void => {
     setForm({ index: null, draft: newRuleDraft() })
   }
@@ -203,6 +290,20 @@ export function EmailRulesSettings({
                 onDelete={opener => {
                   handleDelete(index, opener)
                 }}
+                onMoveUp={
+                  index === 0
+                    ? null
+                    : opener => {
+                        handleMove(index, 'up', opener)
+                      }
+                }
+                onMoveDown={
+                  index === rules.length - 1
+                    ? null
+                    : opener => {
+                        handleMove(index, 'down', opener)
+                      }
+                }
               />
             ))}
           </SettingsCardList>

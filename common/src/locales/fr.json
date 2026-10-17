@@ -1049,7 +1049,8 @@
     "toasts": {
       "created": "Un nouveau filtre a été créé",
       "updated": "Votre filtre a été créé",
-      "deleted": "La règle a été supprimée."
+      "deleted": "La règle a été supprimée.",
+      "moved": "Règle « %{name} » déplacée en position %{position} sur %{count}"
     },
     "errors": {
       "save": "Échec de la création de la règle de filtrage",
@@ -1060,7 +1061,10 @@
       "noForwardAddress": "Veuillez saisir au moins un destinataire",
       "invalidForwardAddress": "Format d'e-mail incorrect",
       "load": "Les règles n'ont pas pu être chargées",
-      "delete": "La règle n'a pas pu être supprimée"
+      "delete": "La règle n'a pas pu être supprimée",
+      "noHeaderName": "Veuillez saisir un nom d'en-tête",
+      "invalidHeaderName": "Un nom d'en-tête n'a ni espace ni deux-points",
+      "move": "La règle n'a pas pu être déplacée"
     },
     "form": {
       "createTitle": "Créer une nouvelle règle",
@@ -1092,7 +1096,9 @@
       "actionsPreview": "Actions : %{actions}",
       "forwardAddresses": "Destinataires",
       "forwardPlaceholder": "Entrez l'adresse e-mail",
-      "keepACopy": "Conserver une copie"
+      "keepACopy": "Conserver une copie",
+      "headerName": "Nom de l'en-tête",
+      "headerNamePlaceholder": "par ex. List-Id"
     },
     "combiners": {
       "AND": "Toutes",
@@ -1103,7 +1109,8 @@
       "to": "À",
       "cc": "Cc",
       "recipient": "Destinataire",
-      "subject": "Sujet"
+      "subject": "Sujet",
+      "header": "En-tête"
     },
     "comparators": {
       "contains": "Contient",
@@ -1127,7 +1134,11 @@
     "deleteOf": "Supprimer %{name}",
     "listLabel": "Règles",
     "count": "%{smart_count} règle |||| %{smart_count} règles",
-    "nameOfRules": "Nom des règles"
+    "nameOfRules": "Nom des règles",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "moveUpOf": "Monter %{name}",
+    "moveDownOf": "Descendre %{name}"
   },
   "forward": {
     "localCopy": "Conserver une copie dans la boîte de réception",

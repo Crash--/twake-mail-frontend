@@ -1049,7 +1049,8 @@
     "toasts": {
       "created": "New filter was created",
       "updated": "Your filter has been updated",
-      "deleted": "The rule has been removed."
+      "deleted": "The rule has been removed.",
+      "moved": "Rule \"%{name}\" moved to position %{position} of %{count}"
     },
     "errors": {
       "save": "Create filter rule failed",
@@ -1060,7 +1061,10 @@
       "noForwardAddress": "Please input at least one recipient",
       "invalidForwardAddress": "Incorrect email format",
       "load": "The rules could not be loaded",
-      "delete": "The rule could not be deleted"
+      "delete": "The rule could not be deleted",
+      "noHeaderName": "Please enter a header name",
+      "invalidHeaderName": "A header name has no space and no colon",
+      "move": "The rule could not be moved"
     },
     "form": {
       "createTitle": "Create a New Rule",
@@ -1092,7 +1096,9 @@
       "actionsPreview": "Actions: %{actions}",
       "forwardAddresses": "Recipients",
       "forwardPlaceholder": "Enter email address",
-      "keepACopy": "Keep a copy"
+      "keepACopy": "Keep a copy",
+      "headerName": "Header name",
+      "headerNamePlaceholder": "e.g. List-Id"
     },
     "combiners": {
       "AND": "All",
@@ -1103,7 +1109,8 @@
       "to": "To",
       "cc": "Cc",
       "recipient": "Recipient",
-      "subject": "Subject"
+      "subject": "Subject",
+      "header": "Header"
     },
     "comparators": {
       "contains": "Contains",
@@ -1127,7 +1134,11 @@
     "deleteOf": "Delete %{name}",
     "listLabel": "Rules",
     "count": "%{smart_count} rule |||| %{smart_count} rules",
-    "nameOfRules": "Name of Rules"
+    "nameOfRules": "Name of Rules",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "moveUpOf": "Move %{name} up",
+    "moveDownOf": "Move %{name} down"
   },
   "forward": {
     "localCopy": "Keep a copy in Inbox",

@@ -1,5 +1,5 @@
 import type { EmailAddress } from 'jmap-client-ts'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement, ReactNode, Ref } from 'react'
 
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { InlineTextButton } from '@/ds/InlineTextButton/InlineTextButton'
@@ -23,6 +23,8 @@ export interface SenderLineProps {
   onUnsubscribe?: (() => void) | null
   /** After the sender, on the same line: the date */
   children?: ReactNode
+  /** The button of the card of the sender, that its avatar opens too */
+  cardButtonRef?: Ref<HTMLButtonElement>
   'data-testid': string
 }
 
@@ -36,6 +38,7 @@ export function SenderLine({
   smimeStatus = 'not-signed',
   onUnsubscribe = null,
   children,
+  cardButtonRef,
   'data-testid': testId
 }: SenderLineProps): ReactElement {
   const { t } = useI18n()
@@ -44,7 +47,7 @@ export function SenderLine({
   return (
     <InlineGroup gap={1} data-testid={testId}>
       {sender ? (
-        <EmailAddressCard address={sender}>
+        <EmailAddressCard address={sender} buttonRef={cardButtonRef}>
           <MessageText variant={isPhone ? 'phoneName' : 'name'}>
             {formatAddressName(sender)}
           </MessageText>

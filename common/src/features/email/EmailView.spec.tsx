@@ -334,6 +334,54 @@ describe('EmailView', () => {
     expect(await screen.findByTestId('email-view-subject')).toHaveFocus()
   })
 
+  describe('avatar of the sender', () => {
+    const server = (): FakeJmapServer =>
+      makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'e1',
+              from: [{ name: 'Bob', email: 'bob@example.com' }]
+            },
+            { text: 'Hi' }
+          )
+        ]
+      })
+
+    it('opens the card of the sender, as its name', async () => {
+      const user = userEvent.setup()
+      renderView(server())
+
+      await user.click(await screen.findByTestId('email-view-sender-avatar'))
+
+      const card = await screen.findByRole('dialog', { name: 'Bob' })
+      expect(card).toBeVisible()
+      await user.keyboard('{Escape}')
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog', { name: 'Bob' })).toBe(null)
+      })
+      expect(
+        within(screen.getByTestId('email-view-from')).getByTestId(
+          'email-address'
+        )
+      ).toHaveFocus()
+    })
+
+    it('adds no tab stop: the keyboard goes from the subject to the name', async () => {
+      const user = userEvent.setup()
+      renderView(server())
+
+      expect(await screen.findByTestId('email-view-subject')).toHaveFocus()
+      await user.tab()
+
+      expect(
+        within(screen.getByTestId('email-view-from')).getByTestId(
+          'email-address'
+        )
+      ).toHaveFocus()
+    })
+  })
+
   describe('remote content', () => {
     // Outside the domain of the user (alice@example.com)
     const OUTSIDER = { name: 'News', email: 'news@newsletter.example.org' }

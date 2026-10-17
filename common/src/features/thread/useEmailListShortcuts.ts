@@ -38,6 +38,14 @@ export interface EmailListKeyboard {
   keepFocusAfterRow: (emailId: string, action: Promise<boolean>) => void
 }
 
+/** The actions keeping the row in the list */
+const STAYING_ACTIONS: readonly EmailActionName[] = [
+  'markAsRead',
+  'markAsUnread',
+  'star',
+  'unstar'
+]
+
 /** Frames the focus is still watched for once the action is done */
 const FOCUS_FRAMES = 60
 
@@ -49,7 +57,8 @@ function isFocusLost(): boolean {
 /**
  * The keyboard of the email list. Shortcuts act on the selection, or else
  * on the row holding the focus: `j` / `k` move to the next / previous row,
- * `e` archives, `#` deletes, `s` stars, `u` marks unread; they apply while
+ * `e` archives, `#` (Delete, Backspace) deletes, `s` stars, `q` marks read,
+ * `u` marks unread; they apply while
  * the focus is in the list, or when no email is open beside it. In the
  * list, Ctrl+A (Cmd+A) selects the loaded emails and Escape clears the
  * selection.
@@ -184,8 +193,7 @@ export function useEmailListShortcuts(
     const first = chosen[0]
     if (first === undefined) return
     const isSelection = selection.selected.length > 0
-    const leaves =
-      action !== 'markAsUnread' && action !== 'star' && action !== 'unstar'
+    const leaves = !STAYING_ACTIONS.includes(action)
     // The row goes away: the focus moves on to the next one first
     if (leaves && !isSelection) focusRow(nextRowId(first.id))
     void run({ action, emails: expandTargets(chosen), mailboxId }).then(
@@ -232,6 +240,9 @@ export function useEmailListShortcuts(
         const isStarred = (row: EmailListItemData): boolean =>
           expandTargets([row]).some(email => hasKeyword(email, FLAGGED))
         runOnTargets(chosen.every(isStarred) ? 'unstar' : 'star')
+      },
+      q: () => {
+        runOnTargets('markAsRead')
       },
       u: () => {
         runOnTargets('markAsUnread')

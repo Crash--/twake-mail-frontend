@@ -113,9 +113,10 @@ export interface EmailViewShortcutsOptions {
 }
 
 /**
- * The keyboard shortcuts of an open email (`j` / `k` open the next /
+ * The keyboard shortcuts of an open email (`j` / `k`, → / ←, open the next /
  * previous one of its folder, Escape goes back to the list, `e` archives,
- * `#` deletes, `s` stars, `u` marks unread and goes back to the list),
+ * `#` (Delete, Backspace) deletes, `s` stars, `q` marks read, `u` marks
+ * unread and goes back to the list),
  * unless the focus is in the list
  * beside it. Once the email leaves its folder (archived, deleted, moved
  * here or by another client), or is deleted, the view goes back to the
@@ -178,6 +179,13 @@ export function useEmailViewShortcuts({
     })
   }
 
+  const openNext = (): void => {
+    open(neighbors.nextId, 'forward')
+  }
+  const openPrevious = (): void => {
+    open(neighbors.previousId, 'backward')
+  }
+
   useShortcuts(
     {
       Escape: () => {
@@ -192,12 +200,10 @@ export function useEmailViewShortcuts({
       f: () => {
         replies.open('forward')
       },
-      j: () => {
-        open(neighbors.nextId, 'forward')
-      },
-      k: () => {
-        open(neighbors.previousId, 'backward')
-      },
+      j: openNext,
+      ArrowRight: openNext,
+      k: openPrevious,
+      ArrowLeft: openPrevious,
       e: () => {
         if (email) void run({ action: 'archive', emails: [email], mailboxId })
       },
@@ -212,6 +218,10 @@ export function useEmailViewShortcuts({
             mailboxId
           })
         }
+      },
+      q: () => {
+        if (email)
+          void run({ action: 'markAsRead', emails: [email], mailboxId })
       },
       u: () => {
         if (!email) return

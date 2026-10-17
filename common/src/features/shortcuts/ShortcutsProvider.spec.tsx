@@ -119,6 +119,51 @@ describe('ShortcutsProvider', () => {
     expect(reply).toHaveBeenCalledTimes(1)
   })
 
+  it("takes tmail-flutter's keys for the ones they stand for", () => {
+    const onCompose = jest.fn()
+    const onDelete = jest.fn()
+    function MailScreen(): ReactElement {
+      useShortcuts({ c: onCompose, '#': onDelete })
+      return <p>Inbox</p>
+    }
+    renderShortcuts(<MailScreen />)
+
+    fireEvent.keyDown(document.body, { key: 'n' })
+    fireEvent.keyDown(document.body, { key: 'Delete' })
+    fireEvent.keyDown(document.body, { key: 'Backspace' })
+
+    expect(onCompose).toHaveBeenCalledTimes(1)
+    expect(onDelete).toHaveBeenCalledTimes(2)
+  })
+
+  it('leaves the arrows to the controls moving with them', () => {
+    const onNext = jest.fn()
+    function ReaderScreen(): ReactElement {
+      useShortcuts({ ArrowRight: onNext })
+      return (
+        <>
+          <button type="button">Reply</button>
+          <div role="tablist" aria-label="Categories">
+            <button type="button" role="tab" aria-selected="true">
+              Reading
+            </button>
+          </div>
+        </>
+      )
+    }
+    renderShortcuts(<ReaderScreen />)
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Reading' }), {
+      key: 'ArrowRight'
+    })
+    expect(onNext).not.toHaveBeenCalled()
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Reply' }), {
+      key: 'ArrowRight'
+    })
+    expect(onNext).toHaveBeenCalledTimes(1)
+  })
+
   it('ignores the keys while a view opens, until it is released', () => {
     jest.useFakeTimers()
     const onArchive = jest.fn()
@@ -196,6 +241,7 @@ describe('ShortcutsProvider', () => {
       })
     )
     expect(dialog).toHaveTextContent('Archive message')
+    expect(dialog).toHaveTextContent('Delete message# or Delete or Backspace')
     expect(
       within(dialog).getByRole('table', { name: 'In a message being written' })
     ).toHaveTextContent('Send the messageCtrl + Enter')

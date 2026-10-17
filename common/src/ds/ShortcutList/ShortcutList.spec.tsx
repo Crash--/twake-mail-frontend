@@ -19,6 +19,7 @@ describe('ShortcutList', () => {
           labelledBy="title"
           actionHeader="Action"
           keyHeader="Key"
+          orLabel="or"
           rows={[{ keys: 'Ctrl+Enter', label: 'Send the message' }]}
         />
       </>
@@ -29,5 +30,32 @@ describe('ShortcutList', () => {
     expect(within(table).getAllByRole('row')[1]).toHaveTextContent(
       'Send the messageCtrl + Enter'
     )
+  })
+
+  it('lists the other keys of a shortcut after an "or"', () => {
+    renderDs(
+      <>
+        <h2 id="title">Messages</h2>
+        <ShortcutList
+          labelledBy="title"
+          actionHeader="Action"
+          keyHeader="Key"
+          orLabel="or"
+          rows={[
+            {
+              keys: '#',
+              alternatives: ['Delete', 'Backspace'],
+              label: 'Delete message'
+            }
+          ]}
+        />
+      </>
+    )
+
+    expect(
+      within(screen.getByRole('table', { name: 'Messages' })).getAllByRole(
+        'row'
+      )[1]
+    ).toHaveTextContent('Delete message# or Delete or Backspace')
   })
 })

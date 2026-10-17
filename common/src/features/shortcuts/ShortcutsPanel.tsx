@@ -84,10 +84,14 @@ export function ShortcutsPanel({
             labelledBy={labelledBy}
             actionHeader={t('shortcuts.action')}
             keyHeader={t('shortcuts.key')}
+            orLabel={t('shortcuts.or')}
             rows={SHORTCUTS.filter(
               shortcut => shortcut.category === category
             ).map(shortcut => ({
               keys: shortcut.keys ?? shortcut.key,
+              alternatives: (shortcut.alternatives ?? []).map(
+                alternative => alternative.keys
+              ),
               label: t(shortcut.label)
             }))}
           />
@@ -100,6 +104,7 @@ export function ShortcutsPanel({
         labelledBy={composerTitleId}
         actionHeader={t('shortcuts.action')}
         keyHeader={t('shortcuts.key')}
+        orLabel={t('shortcuts.or')}
         rows={COMPOSER_SHORTCUTS.map(shortcut => ({
           keys: shortcut.keys.replace('Mod', modifier),
           label: t(shortcut.label)

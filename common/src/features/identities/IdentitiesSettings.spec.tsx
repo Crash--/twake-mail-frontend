@@ -196,6 +196,24 @@ describe('IdentitiesSettings', () => {
     )
   })
 
+  it('does not spellcheck the addresses (tf#2699)', async () => {
+    const server = makeServer()
+    renderSettings(server)
+
+    await userEvent.click(
+      await screen.findByTestId('create-new-identity-button')
+    )
+
+    const dialog = screen.getByRole('dialog')
+    expect(
+      within(dialog).getByRole('textbox', { name: 'Reply to' })
+    ).toHaveAttribute('spellcheck', 'false')
+    expect(within(dialog).getByTestId('identity-bcc-input')).toHaveAttribute(
+      'spellcheck',
+      'false'
+    )
+  })
+
   it('edits an identity without changing its address', async () => {
     const server = makeServer()
     renderSettings(server)

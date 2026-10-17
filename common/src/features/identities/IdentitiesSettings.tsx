@@ -20,6 +20,11 @@ import {
 
 import { defaultIdentityId, publicAssetIdsIn } from './identityForm'
 import { IdentityFormDialog } from './IdentityFormDialog'
+import {
+  forgetIdentityForm,
+  readIdentityForm,
+  type IdentityFormDraft
+} from './identityFormStorage'
 import { IdentityListItem } from './IdentityListItem'
 import { deleteIdentity, setDefaultIdentity } from './identityMutations'
 import {
@@ -34,8 +39,14 @@ export interface IdentitiesSettingsProps {
   section: SettingsSection
 }
 
-/** The identity form, closed, or open on an identity (null: a new one) */
-type FormState = { identity: IdentitySummary | null } | null
+/**
+ * The identity form, closed, or open on an identity (null: a new one), with
+ * what the previous page of this tab kept of it
+ */
+type FormState = {
+  identity: IdentitySummary | null
+  draft: IdentityFormDraft | null
+} | null
 
 /**
  * Settings > Profiles: the identities the user sends from (`Identity/set`),
@@ -53,10 +64,23 @@ export function IdentitiesSettings({
   const confirm = useConfirm()
   const query = useIdentities()
   const [form, setForm] = useState<FormState>(null)
+  // The form a reload interrupted, reopened once the identities are there
+  const [kept, setKept] = useState(() => readIdentityForm(accountId))
   const [pendingDefaultId, setPendingDefaultId] = useState<string | null>(null)
   const hasSortOrder = IDENTITY_SORT_ORDER_CAPABILITY in session.capabilities
   const identities = query.data ?? []
   const defaultId = pendingDefaultId ?? defaultIdentityId(identities)
+
+  if (kept !== null && query.isSuccess) {
+    setKept(null)
+    const keptIdentity =
+      kept.identityId === null
+        ? null
+        : (identities.find(({ id }) => id === kept.identityId) ?? undefined)
+    // Deleted meanwhile: nothing to reopen
+    if (keptIdentity === undefined) forgetIdentityForm(accountId)
+    else setForm({ identity: keptIdentity, draft: kept })
+  }
 
   const refresh = (): Promise<void> =>
     queryClient.invalidateQueries({ queryKey: identityKeys.all(accountId) })
@@ -134,7 +158,7 @@ export function IdentitiesSettings({
           isDefault={hasSortOrder && identity.id === defaultId}
           withDefaultRadio={hasSortOrder}
           onEdit={edited => {
-            setForm({ identity: edited })
+            setForm({ identity: edited, draft: null })
           }}
           onDelete={handleDelete}
         />
@@ -150,7 +174,7 @@ export function IdentitiesSettings({
           label={t('identities.create')}
           icon={AddThin}
           onClick={() => {
-            setForm({ identity: null })
+            setForm({ identity: null, draft: null })
           }}
           data-testid="create-new-identity-button"
         />
@@ -190,6 +214,7 @@ export function IdentitiesSettings({
           identity={form.identity}
           identities={identities}
           hasSortOrder={hasSortOrder}
+          draft={form.draft}
           onClose={() => {
             setForm(null)
           }}

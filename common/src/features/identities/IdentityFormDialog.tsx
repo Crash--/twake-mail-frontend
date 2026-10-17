@@ -45,6 +45,11 @@ import {
   formatIdentityAddresses
 } from './identityForm'
 import {
+  forgetIdentityForm,
+  keepIdentityForm,
+  type IdentityFormDraft
+} from './identityFormStorage'
+import {
   createIdentity,
   updateIdentity,
   type IdentityMutationResult
@@ -65,6 +70,8 @@ export interface IdentityFormDialogProps {
   identities: readonly IdentitySummary[]
   /** The server sorts identities: a default one can be chosen */
   hasSortOrder: boolean
+  /** The form kept by the previous page of this tab, to reopen it as it was */
+  draft?: IdentityFormDraft | null
   onClose: () => void
 }
 
@@ -95,6 +102,7 @@ export function IdentityFormDialog({
   identity,
   identities,
   hasSortOrder,
+  draft = null,
   onClose
 }: IdentityFormDialogProps): ReactElement {
   const { t, lang } = useI18n()
@@ -112,24 +120,35 @@ export function IdentityFormDialog({
   const editorRef = useRef<Editor | null>(null)
   const editorActionsRef = useRef<RichTextEditorActions>(null)
   const [initialSignature] = useState(() =>
-    identity === null ? '' : signatureToEditorHtml(identity)
+    draft !== null
+      ? draft.signatureHtml
+      : identity === null
+        ? ''
+        : signatureToEditorHtml(identity)
   )
   const [assetsBefore] = useState(() =>
     identity === null ? [] : publicAssetIdsIn(identity.htmlSignature)
   )
-  const publishedRef = useRef<string[]>([])
+  const publishedRef = useRef<string[]>(draft?.published ?? [])
+  // Typed in since opened (or since the page that kept it)
+  const isSignatureChangedRef = useRef(draft !== null)
   // Saved or cancelled: the images published meanwhile are taken care of
   const isSettledRef = useRef(false)
   const [storingCount, setStoringCount] = useState(0)
   const wasDefault = identity !== null && identities[0]?.id === identity.id
   const emails = allowedIdentityEmails(identities, session.username)
-  const [name, setName] = useState(identity?.name ?? '')
-  const [email, setEmail] = useState(identity?.email ?? session.username)
-  const [replyTo, setReplyTo] = useState(
-    formatIdentityAddresses(identity?.replyTo)
-  )
-  const [bcc, setBcc] = useState(formatIdentityAddresses(identity?.bcc))
-  const [isDefault, setIsDefault] = useState(wasDefault)
+  const [initialValues] = useState(() => ({
+    name: draft?.name ?? identity?.name ?? '',
+    email: draft?.email ?? identity?.email ?? session.username,
+    replyTo: draft?.replyTo ?? formatIdentityAddresses(identity?.replyTo),
+    bcc: draft?.bcc ?? formatIdentityAddresses(identity?.bcc),
+    isDefault: draft?.isDefault ?? wasDefault
+  }))
+  const [name, setName] = useState(initialValues.name)
+  const [email, setEmail] = useState(initialValues.email)
+  const [replyTo, setReplyTo] = useState(initialValues.replyTo)
+  const [bcc, setBcc] = useState(initialValues.bcc)
+  const [isDefault, setIsDefault] = useState(initialValues.isDefault)
   const [isTouched, setIsTouched] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<TranslationKey | null>(null)
@@ -142,11 +161,64 @@ export function IdentityFormDialog({
       { maxSizeUpload?: number } | undefined
   )?.maxSizeUpload
 
+  /** What a reload keeps, null when nothing changed */
+  const readDraft = (): IdentityFormDraft | null => {
+    const isChanged =
+      draft !== null ||
+      isSignatureChangedRef.current ||
+      publishedRef.current.length > 0 ||
+      name !== initialValues.name ||
+      email !== initialValues.email ||
+      replyTo !== initialValues.replyTo ||
+      bcc !== initialValues.bcc ||
+      isDefault !== initialValues.isDefault
+    if (!isChanged) return null
+    const editor = editorRef.current
+    return {
+      identityId: identity?.id ?? null,
+      name,
+      email,
+      replyTo,
+      bcc,
+      isDefault,
+      signatureHtml: editor === null ? initialSignature : editor.getHTML(),
+      published: [...publishedRef.current]
+    }
+  }
+  const readDraftRef = useRef(readDraft)
+  useEffect(() => {
+    readDraftRef.current = readDraft
+  })
+
+  // The page goes (reload, expired session sent to the SSO): as
+  // tmail-flutter, the browser warns first, and the next page of this tab
+  // reopens the form as it was (tf#3082)
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
+      if (!isSettledRef.current && readDraftRef.current() !== null) {
+        event.preventDefault()
+      }
+    }
+    const handlePageHide = (): void => {
+      if (isSettledRef.current) return
+      const kept = readDraftRef.current()
+      if (kept === null) forgetIdentityForm(accountId)
+      else keepIdentityForm(accountId, kept)
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('pagehide', handlePageHide)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('pagehide', handlePageHide)
+    }
+  }, [accountId])
+
   // Left another way (the browser back, a link): as tmail-flutter, the
   // images published for nothing are destroyed
   useEffect(() => {
     const published = publishedRef.current
     return () => {
+      forgetIdentityForm(accountId)
       if (isSettledRef.current) return
       discardSignatureImages(client, accountId, published).catch(
         (error: unknown) => {
@@ -256,6 +328,7 @@ export function IdentityFormDialog({
   const handleCancel = (): void => {
     if (isSaving) return
     isSettledRef.current = true
+    forgetIdentityForm(accountId)
     discardSignatureImages(client, accountId, publishedRef.current).catch(
       (error: unknown) => {
         console.warn('[identities] Images left unused on the server', error)
@@ -345,6 +418,7 @@ export function IdentityFormDialog({
           return
         }
         isSettledRef.current = true
+        forgetIdentityForm(accountId)
         await queryClient.invalidateQueries({
           queryKey: identityKeys.all(accountId)
         })
@@ -557,6 +631,9 @@ export function IdentityFormDialog({
             actions={editorActionsRef}
             onReady={editor => {
               editorRef.current = editor
+            }}
+            onUpdate={() => {
+              isSignatureChangedRef.current = true
             }}
             testIds={EDITOR_TEST_IDS}
             look="boxed"

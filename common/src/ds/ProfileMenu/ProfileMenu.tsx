@@ -160,7 +160,7 @@ export function ProfileMenu({
         {name === null ? null : <Box sx={NAME_SX}>{name}</Box>}
         <Box sx={name === null ? ADDRESS_SX : ADDRESS_UNDER_NAME_SX}>
           <span>{address}</span>
-          <Tooltip title={labels.copy}>
+          <Tooltip title={labels.copy} placement="top" disableInteractive>
             <IconButton size="small" aria-label={labels.copy} onClick={onCopy}>
               <Icon icon={Copy} size={16} />
             </IconButton>

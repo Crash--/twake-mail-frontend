@@ -62,6 +62,20 @@ describe('focusIndicatorThemeOptions', () => {
     )
   })
 
+  it('removes the outline of the browser from the text fields when discreet only', () => {
+    const textFieldRule = (styles: Record<string, unknown>): unknown =>
+      Object.entries(styles).find(
+        ([key]) =>
+          key.startsWith(':where(') &&
+          key.includes('[contenteditable="true"]') &&
+          key.endsWith(':focus-visible')
+      )?.[1]
+    expect(textFieldRule(globalStyles('discreet'))).toEqual({
+      outline: 'none'
+    })
+    expect(textFieldRule(globalStyles('enhanced'))).toBe(undefined)
+  })
+
   it('leaves alone the headings and regions a script focuses', () => {
     const scriptFocused =
       ':is(h1, h2, h3, h4, h5, h6, [data-focus-target])[tabindex="-1"]'

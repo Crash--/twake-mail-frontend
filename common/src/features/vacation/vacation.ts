@@ -123,6 +123,27 @@ export function vacationState(
   return 'active'
 }
 
+/**
+ * When the state of a vacation response changes next after `now` (its start
+ * or its end to come), null when it does not change by itself any more
+ */
+export function nextVacationChange(
+  vacation: Pick<VacationResponse, 'isEnabled' | 'fromDate' | 'toDate'>,
+  now: Date
+): Date | null {
+  if (!vacation.isEnabled) return null
+  const time = now.getTime()
+  // Active from its start on, ended only once past its end
+  const changes = [
+    vacation.fromDate === null ? Number.NaN : Date.parse(vacation.fromDate),
+    vacation.toDate === null ? Number.NaN : Date.parse(vacation.toDate) + 1
+  ]
+  const next = changes
+    .filter(change => change > time)
+    .reduce((earliest, change) => Math.min(earliest, change), Infinity)
+  return Number.isFinite(next) ? new Date(next) : null
+}
+
 function pad(value: number): string {
   return String(value).padStart(2, '0')
 }

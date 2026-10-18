@@ -435,19 +435,27 @@ test.describe('CMP: the quote', () => {
     ).toHaveLength(2)
   })
 
-  test('CMP-38 the remote content of the quote is blocked, without referrer, but sent', async ({
+  test('CMP-38 the remote content of the quote is blocked when the reader asks, without referrer, but sent', async ({
     page,
     user,
-    users,
-    jmapFor,
     jmap
   }) => {
-    const bob = await users.create({ prefix: 'bob' })
-    await jmapFor(bob).sendEmail({
-      to: user.email,
-      subject: 'Tracked newsletter',
-      html: '<p>Hello</p><img src="https://remote.example/pixel.png" alt="pixel"><div style="background:url(https://remote.example/bg.png)">Background</div>'
-    })
+    // From outside the domain of the user: the reader asks before showing it
+    await jmap.importEmlContent(
+      Buffer.from(
+        [
+          'From: News <news@newsletter.example.org>',
+          `To: ${user.email}`,
+          'Subject: Tracked newsletter',
+          `Message-ID: <tracked-${Date.now()}@newsletter.example.org>`,
+          'MIME-Version: 1.0',
+          'Content-Type: text/html; charset=utf-8',
+          '',
+          '<p>Hello</p><img src="https://remote.example/pixel.png" alt="pixel"><div style="background:url(https://remote.example/bg.png)">Background</div>'
+        ].join('\r\n'),
+        'utf8'
+      )
+    )
     const remote: string[] = []
     await page.route('https://remote.example/**', async route => {
       remote.push(route.request().url())
@@ -455,16 +463,15 @@ test.describe('CMP: the quote', () => {
     })
     const mailbox = await new LoginPage(page).loginAs(user)
     const received = await openReceived(mailbox, 'Tracked newsletter')
-    // Bob is of the domain of the user: the reading view shows his remote
-    // images. The composer must load none
-    await page.waitForTimeout(500)
-    remote.length = 0
     const composer = await received.forward()
     await expect(composer.quote.locator('blockquote')).toContainText(
       'Background'
     )
     // The quote is text to edit: its remote image is kept without loading it
     await expect(composer.quote.locator('img[data-blocked-src]')).toHaveCount(1)
+    await expect(
+      composer.root.getByTestId('remote-content-banner')
+    ).toBeVisible()
     await page.waitForTimeout(500)
     expect(remote).toEqual([])
 
@@ -473,6 +480,41 @@ test.describe('CMP: the quote', () => {
     const sent = await waitForReceived(jmap, 'Fwd: Tracked newsletter')
     expect(sent.html).toContain('src="https://remote.example/pixel.png"')
     expect(remote).toEqual([])
+  })
+
+  test('CMP-38b the quote shows the remote images the reader shows', async ({
+    page,
+    user,
+    users,
+    jmapFor
+  }) => {
+    const bob = await users.create({ prefix: 'bob' })
+    await jmapFor(bob).sendEmail({
+      to: user.email,
+      subject: 'Colleague newsletter',
+      html: '<p>Hello</p><img src="https://remote.example/colleague.png" alt="pixel">'
+    })
+    const remote: string[] = []
+    await page.route('https://remote.example/**', async route => {
+      remote.push(new URL(route.request().url()).pathname)
+      await route.fulfill({ status: 204 })
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    // Bob is of the domain of the user: the reading view shows his images
+    const received = await openReceived(mailbox, 'Colleague newsletter')
+    await expect.poll(() => remote).toContain('/colleague.png')
+    remote.length = 0
+
+    const composer = await received.forward()
+    await expect(composer.quote.locator('img[alt="pixel"]')).toHaveAttribute(
+      'src',
+      'https://remote.example/colleague.png'
+    )
+    await expect(composer.quote.locator('img[data-blocked-src]')).toHaveCount(0)
+    await expect(composer.root.getByTestId('remote-content-banner')).toHaveCount(
+      0
+    )
+    await expectNoA11yViolations(page)
   })
 
   test('CMP-39 the quote is text of the message: the arrows reach it from the text, and it is edited in place', async ({

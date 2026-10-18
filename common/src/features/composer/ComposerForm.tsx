@@ -80,6 +80,7 @@ import { scribeEndpoint } from '@common/features/scribe/scribe'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
+import { useRemoteContentPolicy } from '@common/features/email/remoteContentPolicy'
 import {
   identityDisplayName,
   identitySender
@@ -2053,6 +2054,7 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
   const { lang } = useI18n()
   const { quote } = useEditorLabels()
   const serverSettings = useServerSettings()
+  const allowsRemoteContent = useRemoteContentPolicy()
   const { composerId, init } = props
   // The facade of a team mailbox writes from its address
   const teamRoot = useTeamMailboxRoot()
@@ -2116,6 +2118,7 @@ export function ComposerForm(props: ComposerFormProps): ReactElement {
             session.username,
             ...list.map(identity => identity.email)
           ]),
+          allowsRemoteContent,
           options
         )
       }

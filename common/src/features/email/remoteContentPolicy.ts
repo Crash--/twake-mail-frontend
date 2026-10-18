@@ -39,14 +39,17 @@ export function allowsRemoteContent({
   )
 }
 
+/** Whether the remote content of an email shows, as the reader decides */
+export type RemoteContentPolicy = (email: {
+  id: string
+  senderEmail: string | null
+}) => boolean
+
 /**
  * The same rule outside the reading view (printing, quoting in a reply),
  * as the user last chose it
  */
-export function useRemoteContentPolicy(): (email: {
-  id: string
-  senderEmail: string | null
-}) => boolean {
+export function useRemoteContentPolicy(): RemoteContentPolicy {
   const queryClient = useQueryClient()
   const { accountId, session } = useJmapSession()
   const isAlwaysShown = useShowsRemoteImages()

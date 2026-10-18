@@ -14,6 +14,12 @@ import {
 } from '@common/testing/fakeJmapServer'
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { printHtmlDocument } from '@common/features/email/printDocument'
+import { TRUSTED_SENDERS_STORAGE_KEY } from '@common/features/email/trustedSenders'
+import { REMOTE_IMAGES_SETTING_KEY } from '@common/features/settings/serverSettings'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeSettings
+} from '@common/testing/fakeLinagora'
 import {
   draftsOf,
   fill,
@@ -2170,6 +2176,99 @@ describe('ComposerForm', () => {
           jmapServer.emails.find(email => email.id === 'source-1')?.keywords
         ).toEqual({ $forwarded: true })
       })
+    })
+  })
+
+  describe('the remote images of the quote', () => {
+    const TRACKED =
+      '<p>News <img src="https://tracker.example/p.png" alt="pixel"></p>'
+
+    function serverWithSource(email: string): FakeJmapServer {
+      return makeFakeJmapServer({
+        capabilities: FAKE_LINAGORA_CAPABILITIES,
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'source-1',
+              subject: 'News',
+              from: [{ name: 'Sender', email }]
+            },
+            { html: TRACKED }
+          )
+        ]
+      })
+    }
+
+    const quotedImage = (composer: HTMLElement): Element | null =>
+      composer.querySelector('img[alt="pixel"]')
+
+    afterEach(() => {
+      window.localStorage.clear()
+    })
+
+    it('waits for the user for an outside sender, as the reader', async () => {
+      renderComposer(serverWithSource('news@newsletter.example.org'))
+      const composer = await openComposer('Answer forward')
+
+      expect(quotedImage(composer)?.getAttribute('src') ?? '').toBe('')
+      expect(
+        within(composer).getByTestId('remote-content-banner')
+      ).toHaveTextContent('hidden')
+    })
+
+    it('shows them for a sender of the domain of the user, as the reader', async () => {
+      renderComposer(serverWithSource('bob@example.com'))
+      const composer = await openComposer('Answer forward')
+
+      expect(quotedImage(composer)).toHaveAttribute(
+        'src',
+        'https://tracker.example/p.png'
+      )
+      expect(within(composer).queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('shows them for a trusted sender', async () => {
+      window.localStorage.setItem(
+        TRUSTED_SENDERS_STORAGE_KEY,
+        JSON.stringify(['news@newsletter.example.org'])
+      )
+      renderComposer(serverWithSource('news@newsletter.example.org'))
+      const composer = await openComposer('Answer reply')
+
+      expect(quotedImage(composer)).toHaveAttribute(
+        'src',
+        'https://tracker.example/p.png'
+      )
+      expect(within(composer).queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('shows them once the user showed them in the reader', async () => {
+      const { queryClient } = renderComposer(
+        serverWithSource('news@newsletter.example.org')
+      )
+      queryClient.setQueryData(
+        ['remoteContentConsent', FAKE_ACCOUNT_ID, 'source-1'],
+        true
+      )
+      const composer = await openComposer('Answer replyAll')
+
+      expect(quotedImage(composer)).toHaveAttribute(
+        'src',
+        'https://tracker.example/p.png'
+      )
+    })
+
+    it('shows them when the user wants remote images always', async () => {
+      const jmapServer = serverWithSource('news@newsletter.example.org')
+      installFakeSettings(jmapServer, { [REMOTE_IMAGES_SETTING_KEY]: 'true' })
+      renderComposer(jmapServer)
+      const composer = await openComposer('Answer forward')
+
+      expect(quotedImage(composer)).toHaveAttribute(
+        'src',
+        'https://tracker.example/p.png'
+      )
+      expect(within(composer).queryByTestId('remote-content-banner')).toBe(null)
     })
   })
 

@@ -5,6 +5,7 @@ import {
   joinHtmlValues,
   plainTextToHtml
 } from '@common/features/email/emailBody'
+import type { RemoteContentPolicy } from '@common/features/email/remoteContentPolicy'
 import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 import { LIST_POST_HEADER } from '@common/features/email/queries'
 import { identityForEmail } from '@common/features/identities/identityForEmail'
@@ -143,6 +144,7 @@ export async function loadReplyContent(
   labels: ReplyLabels,
   locale: string,
   isSelf: IsSelf,
+  allowsRemoteContent: RemoteContentPolicy,
   options: SendOptions = NO_SEND_OPTIONS
 ): Promise<ComposerContent> {
   const response = await client.call('Email/get', {
@@ -216,18 +218,23 @@ export async function loadReplyContent(
   )
   const { identity } = identityForEmail(source, { identities, mailboxes })
   const signature = identity ? signatureHtml(identity) : null
-  // The quote is text to edit: its cid images shown, its remote ones waiting
-  // for the user, as in the reader (the signature block keeps its own)
-  const editorHtml = blockRemoteImages(
-    fromEmailHtml(
-      [
-        '<p></p><p></p>',
-        signature === null ? '' : signatureBlock(signature),
-        `<div data-html-block="quote">${quote}</div>`
-      ].join(''),
-      cid => images.urlFor(cid)
-    )
+  // The quote is text to edit: its cid images shown, its remote ones as in
+  // the reader, shown or waiting for the user (the signature block keeps
+  // its own)
+  const composed = fromEmailHtml(
+    [
+      '<p></p><p></p>',
+      signature === null ? '' : signatureBlock(signature),
+      `<div data-html-block="quote">${quote}</div>`
+    ].join(''),
+    cid => images.urlFor(cid)
   )
+  const editorHtml = allowsRemoteContent({
+    id: source.id,
+    senderEmail: source.from?.[0]?.email ?? null
+  })
+    ? composed
+    : blockRemoteImages(composed)
   const bcc = mergeRecipients(recipients.bcc, identityBcc(identity))
   return {
     identityId: identity?.id ?? null,

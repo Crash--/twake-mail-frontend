@@ -1001,7 +1001,6 @@
       "save": "Save",
       "email": "Email address",
       "addressesHelp": "Separate several addresses with commas",
-      "nameRequired": "Name (required)",
       "emailLabel": "Email"
     },
     "errors": {

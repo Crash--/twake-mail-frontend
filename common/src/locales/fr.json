@@ -1001,7 +1001,6 @@
       "save": "Sauvegarder",
       "email": "Adresse e-mail",
       "addressesHelp": "Séparez plusieurs adresses par des virgules",
-      "nameRequired": "Nom (requis)",
       "emailLabel": "E-mail"
     },
     "errors": {

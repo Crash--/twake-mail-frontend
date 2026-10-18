@@ -68,6 +68,7 @@ import {
   signatureImageMaxWidth,
   SVG_TYPE
 } from './signatureImage'
+import { identityDisplayName } from './identityName'
 
 export interface IdentityFormDialogProps {
   /** The identity to edit, null to create one */
@@ -144,7 +145,10 @@ export function IdentityFormDialog({
   const wasDefault = identity !== null && identities[0]?.id === identity.id
   const emails = allowedIdentityEmails(identities, session.username)
   const [initialValues] = useState(() => ({
-    name: draft?.name ?? identity?.name ?? '',
+    // No display name (James names its identities after their address):
+    // left blank, never filled with the address
+    name:
+      draft?.name ?? (identity ? (identityDisplayName(identity) ?? '') : ''),
     email: draft?.email ?? identity?.email ?? session.username,
     replyTo: draft?.replyTo ?? formatIdentityAddresses(identity?.replyTo),
     bcc: draft?.bcc ?? formatIdentityAddresses(identity?.bcc),
@@ -234,7 +238,10 @@ export function IdentityFormDialog({
     }
   }, [client, accountId])
 
-  const nameProblem: FieldProblem = validateIdentityName(name)
+  // Blank: no display name, the address stands in for it. Spaces only are
+  // still refused
+  const nameProblem: FieldProblem =
+    name === '' ? null : validateIdentityName(name)
   const replyToResult = parseIdentityAddresses(replyTo)
   const bccResult = parseIdentityAddresses(bcc)
   const replyToProblem: FieldProblem = replyToResult.ok
@@ -525,7 +532,7 @@ export function IdentityFormDialog({
       data-testid="identity-form-dialog"
     >
       <FormFieldRow
-        label={t('identities.form.nameRequired')}
+        label={t('identities.form.name')}
         htmlFor={fieldIds.name}
         isStacked={isMobile}
       >
@@ -533,7 +540,6 @@ export function IdentityFormDialog({
           id={fieldIds.name}
           inputRef={nameRef}
           autoFocus
-          required
           fullWidth
           placeholder={t('identities.form.namePlaceholder')}
           value={name}

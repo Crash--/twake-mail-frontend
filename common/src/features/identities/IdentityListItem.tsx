@@ -17,6 +17,7 @@ import {
 import { useI18n } from '@common/i18n/useI18n'
 
 import { formatIdentityAddresses, signatureHtml } from './identityForm'
+import { identityDisplayName } from './identityName'
 import type { IdentitySummary } from './queries'
 
 export interface IdentityListItemProps {
@@ -43,8 +44,10 @@ export function IdentityListItem({
   onDelete
 }: IdentityListItemProps): ReactElement {
   const { t } = useI18n()
-  const editLabel = t('identities.editOf', { name: identity.name })
-  const deleteLabel = t('identities.deleteOf', { name: identity.name })
+  const displayName = identityDisplayName(identity)
+  const label = displayName ?? identity.email
+  const editLabel = t('identities.editOf', { name: label })
+  const deleteLabel = t('identities.deleteOf', { name: label })
   const replyTo = formatIdentityAddresses(identity.replyTo)
   const bcc = formatIdentityAddresses(identity.bcc)
   const signature = signatureHtml(identity)
@@ -65,9 +68,7 @@ export function IdentityListItem({
             checkedIcon={<Icon icon={RadioOn} size={18} />}
             slotProps={{
               input: {
-                'aria-label': t('identities.setDefaultOf', {
-                  name: identity.name
-                })
+                'aria-label': t('identities.setDefaultOf', { name: label })
               }
             }}
             data-testid="identity-default-radio"
@@ -100,9 +101,12 @@ export function IdentityListItem({
       }
     >
       <SettingsListText variant="name" data-testid="identity-item-name">
-        {identity.name}
+        {label}
       </SettingsListText>
-      <SettingsListText variant="detail">{identity.email}</SettingsListText>
+      {/* Without a name, the address is already the title */}
+      {displayName === null ? null : (
+        <SettingsListText variant="detail">{identity.email}</SettingsListText>
+      )}
       {replyTo === '' ? null : (
         <SettingsListText variant="detail">
           <span className="u-uppercase">{t('identities.form.replyTo')}</span>

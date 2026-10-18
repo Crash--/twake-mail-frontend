@@ -1001,7 +1001,6 @@
       "save": "Сохранить",
       "email": "Адрес электронной почты",
       "addressesHelp": "Разделяйте адреса запятыми",
-      "nameRequired": "Название (требуется)",
       "emailLabel": "Email"
     },
     "errors": {

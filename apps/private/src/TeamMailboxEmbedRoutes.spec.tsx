@@ -87,10 +87,11 @@ describe('teamMailboxEmbedRouteElements', () => {
   it('opens the Inbox of the team mailbox, without the frame of the webmail', async () => {
     renderRoutes(`${BASE}/`)
 
-    expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
-      'data-mailbox-id',
-      'team-inbox'
-    )
+    // The first render of the facade in this file is cold (styles, routes,
+    // session, folders and list): over the default 1 s on a busy CI runner
+    expect(
+      await screen.findByTestId('mailbox-page', {}, { timeout: 3000 })
+    ).toHaveAttribute('data-mailbox-id', 'team-inbox')
     expect(
       await within(screen.getByTestId('list-toolbar')).findByRole('button', {
         name: 'Compose'

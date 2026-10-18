@@ -980,3 +980,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/settings.spec.ts`.
 - [x] `MBX-59` On a personal folder ("Projects" > "Mongolia"), the folder menu offers "Allow subaddressing" (not "Copy subaddress"); its dialog shows `user+Projects.Mongolia@domain` with a copy button that copies it (axe); once allowed, mail sent to that address lands in Mongolia, the menu offers "Copy subaddress" and "Disallow subaddressing"; once disallowed, mail to it lands in the Inbox. — tmail-flutter `TF-3189` (the e2e James runs `TMailSubAdressing`)
   - Spec: `tests/folder-menu.spec.ts`.
+- [x] `MBX-60` A personal folder's menu opened by a right click (button pressed, then released apart) keeps the focus on its first item once the button is released; ArrowDown moves to the next item (axe); Escape closes it and gives the focus back to the folder row; "Allow subaddressing" chosen from a right-click menu opens its dialog, and Escape there gives the focus back to the folder row as well. — web app (issue #650)
+  - Spec: `tests/folder-menu.spec.ts`.

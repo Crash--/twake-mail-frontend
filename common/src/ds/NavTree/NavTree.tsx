@@ -7,6 +7,7 @@ import {
   useRef,
   type FocusEvent,
   type KeyboardEvent,
+  type PointerEvent,
   type ReactElement,
   type ReactNode
 } from 'react'
@@ -109,8 +110,12 @@ export function NavTree({
   const typedRef = useRef('')
   const typedTimerRef = useRef<number | null>(null)
   const isPressedRef = useRef(false)
-  // Ends the wait for the press to end before the row takes the focus
-  const stopDeferredFocusRef = useRef<(() => void) | null>(null)
+  // The row waiting for the press to end to take the focus: `finish` gives
+  // it the focus now, `stop` gives up
+  const deferredFocusRef = useRef<{
+    finish: () => void
+    stop: () => void
+  } | null>(null)
   const isTree = role === 'tree'
 
   useEffect(() => {
@@ -160,12 +165,15 @@ export function NavTree({
       if (typedTimerRef.current !== null) {
         window.clearTimeout(typedTimerRef.current)
       }
-      stopDeferredFocusRef.current?.()
+      deferredFocusRef.current?.stop()
     },
     []
   )
 
-  const handlePointerDown = (): void => {
+  const handlePointerDown = (event: PointerEvent<HTMLUListElement>): void => {
+    // Only the main button drags: a right click opens a menu, which takes
+    // the focus, so the row must have it at once, before the menu opens
+    if (event.button !== 0) return
     isPressedRef.current = true
     const release = (): void => {
       isPressedRef.current = false
@@ -177,22 +185,31 @@ export function NavTree({
   /**
    * Moving the focus while the button is pressed cancels the drag the
    * press may start (a row dragged onto another): the row takes it once
-   * the press, or the drag, ends
+   * the press, or the drag, ends, unless it went elsewhere meanwhile
    */
   const focusAfterPress = (item: HTMLElement): void => {
-    stopDeferredFocusRef.current?.()
-    const handleEnd = (): void => {
+    deferredFocusRef.current?.stop()
+    const finish = (): void => {
       stop()
-      if (item.isConnected) item.focus({ preventScroll: true })
+      const active = document.activeElement
+      const isStillHere =
+        active === null || active === document.body || item.contains(active)
+      if (item.isConnected && isStillHere) item.focus({ preventScroll: true })
     }
     const stop = (): void => {
-      window.removeEventListener('pointerup', handleEnd)
-      window.removeEventListener('dragend', handleEnd)
-      stopDeferredFocusRef.current = null
+      window.removeEventListener('pointerup', finish)
+      window.removeEventListener('dragend', finish)
+      deferredFocusRef.current = null
     }
-    window.addEventListener('pointerup', handleEnd)
-    window.addEventListener('dragend', handleEnd)
-    stopDeferredFocusRef.current = stop
+    window.addEventListener('pointerup', finish)
+    window.addEventListener('dragend', finish)
+    deferredFocusRef.current = { finish, stop }
+  }
+
+  // A press that opens a menu (Ctrl+click on macOS) does not drag: the row
+  // takes the focus before the menu does, which gives it back to the row
+  const handleContextMenu = (): void => {
+    deferredFocusRef.current?.finish()
   }
 
   const handleFocus = (event: FocusEvent<HTMLElement>): void => {
@@ -294,6 +311,7 @@ export function NavTree({
       sx={{ my: 0 }}
       role={role}
       onPointerDown={handlePointerDown}
+      onContextMenu={handleContextMenu}
       onFocus={handleFocus}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}

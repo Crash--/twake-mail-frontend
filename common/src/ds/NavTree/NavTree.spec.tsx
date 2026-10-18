@@ -1,5 +1,5 @@
 import { Icon } from '@linagora/twake-icons'
-import { act, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
@@ -244,6 +244,89 @@ describe('NavTree', () => {
     act(() => {
       link.dispatchEvent(new Event('dragend', { bubbles: true }))
     })
+    expect(item('Drafts')).toHaveFocus()
+  })
+
+  it('leaves the focus on the pressed link until the press ends', async () => {
+    const user = userEvent.setup()
+    renderDs(<Tree folders={FOLDERS} />)
+    const link = screen.getByRole('link', { name: 'Drafts' })
+
+    await user.pointer({ keys: '[MouseLeft>]', target: link })
+    expect(link).toHaveFocus()
+    await user.pointer({ keys: '[/MouseLeft]', target: link })
+    expect(item('Drafts')).toHaveFocus()
+  })
+
+  it('gives the focus to the row at once on a right click, and leaves it to the menu it opens', async () => {
+    const user = userEvent.setup()
+    renderDs(<Tree folders={FOLDERS} />)
+    const link = screen.getByRole('link', { name: 'Drafts' })
+    const menu = screen.getByRole('button', { name: 'After' })
+    let focusedOnOpen: Element | null = null
+    // The menu a right click opens takes the focus, as the folder menu does
+    const openMenu = (): void => {
+      focusedOnOpen = document.activeElement
+      menu.focus()
+    }
+    document.addEventListener('contextmenu', openMenu)
+
+    await user.pointer({ keys: '[MouseRight>]', target: link })
+    expect(focusedOnOpen).toBe(item('Drafts'))
+    expect(menu).toHaveFocus()
+    await user.pointer({ keys: '[/MouseRight]', target: link })
+    document.removeEventListener('contextmenu', openMenu)
+
+    expect(menu).toHaveFocus()
+  })
+
+  it('gives the focus to the row before a menu opened by the main button takes it', async () => {
+    const user = userEvent.setup()
+    renderDs(<Tree folders={FOLDERS} />)
+    const link = screen.getByRole('link', { name: 'Drafts' })
+    const menu = screen.getByRole('button', { name: 'After' })
+
+    // Ctrl+click on macOS: the main button opens the menu
+    await user.pointer({ keys: '[MouseLeft>]', target: link })
+    expect(link).toHaveFocus()
+    fireEvent.contextMenu(link)
+    expect(item('Drafts')).toHaveFocus()
+    act(() => {
+      menu.focus()
+    })
+    await user.pointer({ keys: '[/MouseLeft]', target: link })
+
+    expect(menu).toHaveFocus()
+  })
+
+  it('does not take back the focus moved elsewhere during the press', async () => {
+    renderDs(<Tree folders={FOLDERS} />)
+    const link = screen.getByRole('link', { name: 'Drafts' })
+    const elsewhere = screen.getByRole('button', { name: 'After' })
+
+    await userEvent.pointer({ keys: '[MouseLeft>]', target: link })
+    act(() => {
+      elsewhere.focus()
+    })
+    act(() => {
+      link.dispatchEvent(new Event('dragend', { bubbles: true }))
+    })
+
+    expect(elsewhere).toHaveFocus()
+  })
+
+  it('gives the focus to the row when the press ends with the focus lost', async () => {
+    renderDs(<Tree folders={FOLDERS} />)
+    const link = screen.getByRole('link', { name: 'Drafts' })
+
+    await userEvent.pointer({ keys: '[MouseLeft>]', target: link })
+    act(() => {
+      link.blur()
+    })
+    act(() => {
+      window.dispatchEvent(new Event('pointerup'))
+    })
+
     expect(item('Drafts')).toHaveFocus()
   })
 

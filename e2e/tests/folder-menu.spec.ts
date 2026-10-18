@@ -380,3 +380,39 @@ test.describe('MBX sub-addressing of a folder', () => {
     await jmap.waitForEmail({ subject: 'Back to Inbox' })
   })
 })
+
+test.describe('MBX folder menu opened by a right click', () => {
+  test('MBX-60 the menu of a right click keeps the focus once the button is released, Escape gives it back to the folder row, and so does a dialog opened from it', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const folder = await jmap.createMailbox({ name: 'Right clicked' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.folder({ id: folder.id })
+    const menu = page.getByTestId('mailbox-context-menu').getByRole('menu')
+    const link = row.getByRole('link')
+
+    // Pressed and released apart: the release must not take the focus back
+    await link.hover()
+    await page.mouse.down({ button: 'right' })
+    await expect(menu).toBeVisible()
+    await page.mouse.up({ button: 'right' })
+    await expect(menu.getByRole('menuitem').first()).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(menu.getByRole('menuitem').nth(1)).toBeFocused()
+    await expectNoA11yViolations(page)
+    await page.keyboard.press('Escape')
+    await expect(menu).toBeHidden()
+    await mailbox.expectFolderFocused({ id: folder.id })
+
+    // A dialog opened from that menu gives the focus back to the row too
+    await link.click({ button: 'right' })
+    await menu.getByTestId('mailbox-action-allow-subaddressing').click()
+    const dialog = page.getByTestId('subaddressing-dialog')
+    await expect(dialog).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await mailbox.expectFolderFocused({ id: folder.id })
+  })
+})

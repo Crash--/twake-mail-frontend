@@ -1070,6 +1070,69 @@ describe('ConversationView, an expanded message', () => {
       ).toHaveTextContent('Not sent yet')
     })
 
+    it.each([
+      ['from a folder', 'mailbox-inbox'],
+      ['from a search', undefined]
+    ])(
+      'stays in Drafts, as the reply sent stays in Sent, when the conversation is archived %s',
+      async (_from, mailboxId) => {
+        const server = makeServerWithDraft()
+        server.mailboxes.push(
+          makeMailbox({
+            id: 'mailbox-archive',
+            name: 'Archive',
+            role: 'archive'
+          })
+        )
+        server.addEmail(
+          makeEmailWithBody(
+            {
+              id: 'reply',
+              threadId: THREAD,
+              subject: 'Re: Project kick-off',
+              receivedAt: '2026-10-04T09:00:00Z',
+              mailboxIds: { 'mailbox-sent': true },
+              keywords: { $seen: true },
+              from: [{ name: null, email: FAKE_USERNAME }],
+              to: [{ name: 'Bob Dupont', email: 'bob@example.com' }]
+            },
+            { text: 'My reply' }
+          )
+        )
+        renderWithProviders(
+          <ComposerProvider>
+            <ConversationView
+              threadId={THREAD}
+              emailId="c"
+              mailboxId={mailboxId}
+              onBack={jest.fn()}
+            />
+          </ComposerProvider>,
+          { withJmapSession: true, jmapServer: server }
+        )
+        await screen.findByRole('list', {
+          name: 'Messages of the conversation'
+        })
+
+        await userEvent.click(
+          within(await openConversationMenu()).getByRole('menuitem', {
+            name: 'Archive the conversation'
+          })
+        )
+
+        await waitFor(() => {
+          expect(
+            server.emails.find(email => email.id === 'c')?.mailboxIds
+          ).toEqual({ 'mailbox-archive': true })
+        })
+        const mailboxesOf = (id: string): Record<string, true> | undefined =>
+          server.emails.find(email => email.id === id)?.mailboxIds
+        expect(mailboxesOf('b')).toEqual({ 'mailbox-archive': true })
+        expect(mailboxesOf('reply')).toEqual({ 'mailbox-sent': true })
+        expect(mailboxesOf('draft')).toEqual({ 'mailbox-drafts': true })
+      }
+    )
+
     it('is deleted forever once confirmed', async () => {
       const server = makeServerWithDraft()
       await renderWithComposer(server)

@@ -161,6 +161,31 @@ function groupByHome(
   }))
 }
 
+/** The actions that take emails out of the folder they are in */
+const MOVE_ACTIONS: readonly EmailActionName[] = [
+  'archive',
+  'moveToTrash',
+  'moveTo',
+  'markAsSpam',
+  'markAsNotSpam'
+]
+
+/**
+ * The emails a move takes out of the folder it starts from. A conversation
+ * acted on from a folder moves its emails of that folder only: those the
+ * user sent stay in Sent, the drafts in Drafts, as in a mailbox sorted by
+ * folders. When none is in it (an email opened from another folder), all
+ * of them move.
+ */
+export function inStartFolder(
+  emails: readonly TargetEmail[],
+  mailboxId: string | null
+): readonly TargetEmail[] {
+  if (mailboxId === null) return emails
+  const inFolder = emails.filter(email => mailboxId in email.mailboxIds)
+  return inFolder.length === 0 ? emails : inFolder
+}
+
 function toOperation(
   { action, mailboxId, destinationId, label, keyword }: EmailActionRequest,
   mailboxes: readonly MailboxSummary[]
@@ -404,7 +429,12 @@ export function useEmailActions(): EmailActions {
     }
 
     async function run(initial: EmailActionRequest): Promise<boolean> {
-      let request = initial
+      let request = MOVE_ACTIONS.includes(initial.action)
+        ? {
+            ...initial,
+            emails: inStartFolder(initial.emails, initial.mailboxId)
+          }
+        : initial
       // The folders are loaded with the tree; fetched here if not yet
       const list =
         (

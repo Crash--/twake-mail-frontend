@@ -523,7 +523,8 @@ describe('Acting on emails of the list', () => {
         await screen.findByRole('menuitem', { name: 'Archive message' })
       )
 
-      // tmail-flutter ADR 0068: a thread action reaches all its emails
+      // tmail-flutter ADR 0068: a thread action reaches all its emails of
+      // the folder; the one the user sent stays in Sent
       await waitFor(() => {
         expect(
           server.emails
@@ -531,7 +532,7 @@ describe('Acting on emails of the list', () => {
             .map(email => email.mailboxIds)
         ).toEqual([
           { 'mailbox-archive': true },
-          { 'mailbox-archive': true },
+          { 'mailbox-sent': true },
           { 'mailbox-archive': true }
         ])
       })

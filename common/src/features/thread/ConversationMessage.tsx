@@ -27,6 +27,7 @@ import {
   addressDisplayName,
   formatAddressName
 } from '@common/features/email/addresses'
+import { BodyLoadErrorBanner } from '@common/features/email/BodyLoadErrorBanner'
 import { EmailMessageBody } from '@common/features/email/EmailMessageBody'
 import { EmailViewActions } from '@common/features/email/EmailViewActions'
 import { isMarkedImportant } from '@common/features/email/importance'
@@ -299,7 +300,17 @@ function MessageContent({
   if (query.isPending) {
     return <Skeleton variant="rounded" height={isPhone ? 108 : 70} />
   }
-  if (query.data === null || query.data === undefined) return null
+  // Never an empty message that would pass for the real one (tf#3487)
+  if (query.isError) {
+    return (
+      <BodyLoadErrorBanner
+        onRetry={() => {
+          void query.refetch()
+        }}
+      />
+    )
+  }
+  if (query.data === null) return null
   return (
     <ExpandedBody
       key={query.data.id}

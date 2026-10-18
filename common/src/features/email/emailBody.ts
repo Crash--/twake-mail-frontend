@@ -160,6 +160,37 @@ export function renderBodyParts(
   return { html, blockedRemoteContent }
 }
 
+/** What the server could not give of the body parts of an email */
+export interface BodyValueIssues {
+  /**
+   * A text part came without its value (`fetchHTMLBodyValues` asked for
+   * it): the server could not read it, shown empty it would lie
+   */
+  hasMissingValues: boolean
+  /** At least one text part has its value: there is something to show */
+  hasValues: boolean
+  /** A value was cut by the server (`isTruncated`) */
+  isTruncated: boolean
+}
+
+/**
+ * The issues of the values of the body parts JMAP selected (`htmlBody`).
+ * Only the text parts have a value: an image of the body has none
+ */
+export function inspectBodyValues(
+  parts: readonly EmailBodyPart[],
+  bodyValues: Readonly<Record<string, EmailBodyValue>>
+): BodyValueIssues {
+  const values = parts
+    .filter(part => part.type.startsWith('text/'))
+    .map(part => (part.partId === null ? undefined : bodyValues[part.partId]))
+  return {
+    hasMissingValues: values.some(value => value === undefined),
+    hasValues: values.some(value => value !== undefined),
+    isTruncated: values.some(value => value?.isTruncated === true)
+  }
+}
+
 /** The raw HTML of the body, to find the inline images it references */
 export function joinHtmlValues(
   parts: readonly EmailBodyPart[],

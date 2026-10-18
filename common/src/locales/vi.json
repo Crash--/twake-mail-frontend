@@ -85,6 +85,8 @@
     "content": "Nội dung thư",
     "showTrimmedContent": "Hiển thị nội dung bị ẩn",
     "notFound": "Thư này không còn tồn tại",
+    "bodyLoadFailed": "Không thể tải nội dung của thư này.",
+    "bodyTruncated": "Thư này quá dài để hiển thị đầy đủ.",
     "markAsRead": "Đánh dấu đã đọc",
     "markAsUnread": "Đánh dấu chưa đọc",
     "starred": "Quan trọng",

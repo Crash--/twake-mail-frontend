@@ -16,10 +16,12 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { AttachmentList } from './AttachmentList'
+import { BodyLoadErrorBanner } from './BodyLoadErrorBanner'
 import { EmailBodyFrame } from './EmailBodyFrame'
 import {
   buildEmailDocument,
   findReferencedCids,
+  inspectBodyValues,
   joinHtmlValues,
   renderBodyParts
 } from './emailBody'
@@ -31,6 +33,9 @@ import { useRemoteContentConsent } from './remoteContentConsent'
 import { allowsRemoteContent } from './remoteContentPolicy'
 import { normalizeCid } from './sanitizeEmailHtml'
 import { useTrustedSender } from './trustedSenders'
+import { TruncatedBodyBanner } from './TruncatedBodyBanner'
+import { useDownloadEml } from './useDownloadEml'
+import { useEmail } from './useEmail'
 import { useInlineImageUrls } from './useInlineImageUrls'
 
 export interface EmailMessageBodyProps {
@@ -50,7 +55,8 @@ export interface EmailMessageBodyProps {
  * them). Remote content (images, fonts,
  * backgrounds) tells the sender when and where the email is read: it waits
  * for the user, unless they want it for every email or the sender is
- * trusted (`allowsRemoteContent`).
+ * trusted (`allowsRemoteContent`). A body the server could not give says
+ * so, never shows as an empty message (tmail-flutter `tf#3487`).
  */
 export function EmailMessageBody({
   email,
@@ -64,6 +70,13 @@ export function EmailMessageBody({
     [email.htmlBody, email.bodyValues]
   )
   const referencedCids = useMemo(() => findReferencedCids(html), [html])
+  const issues = useMemo(
+    () => inspectBodyValues(email.htmlBody, email.bodyValues),
+    [email.htmlBody, email.bodyValues]
+  )
+  // The email in the cache, to ask for it again
+  const { refetch } = useEmail(email.id)
+  const downloadEml = useDownloadEml()
   const inlineImages = useInlineImageUrls(email.attachments, referencedCids)
   const trustedSender = useTrustedSender(sender?.email ?? null)
   const calendar = useCalendarInvitation(email.attachments)
@@ -123,10 +136,29 @@ export function EmailMessageBody({
     trustedSender.trust()
     handleShowRemoteContent()
   }
+  const handleRetry = (): void => {
+    void refetch()
+  }
+  const handleDownloadEml = (): void => {
+    void downloadEml(email)
+  }
   // The links of the email write a message with the app, not with the system
   const handleMailtoLink = (href: string): void => {
     const mailto = parseMailto(href)
     if (mailto !== null) openComposer({ mailto })
+  }
+
+  // What the server gave of a body it could not give whole, nothing when
+  // it gave nothing
+  let bodyView: ReactElement | null = null
+  if (body === null) bodyView = <LoadingListSkeleton count={3} />
+  else if (issues.hasValues || !issues.hasMissingValues) {
+    bodyView = (
+      <EmailBodyFrame
+        document={body.document}
+        onMailtoLink={handleMailtoLink}
+      />
+    )
   }
 
   return (
@@ -151,16 +183,17 @@ export function EmailMessageBody({
           onAlwaysShow={sender ? handleAlwaysShowRemoteContent : null}
         />
       ) : null}
+      {issues.isTruncated ? (
+        <TruncatedBodyBanner
+          onDownload={email.blobId ? handleDownloadEml : null}
+        />
+      ) : null}
       {/* tmail-flutter leaves room between the headers and the body */}
       <Box className="u-mt-1">
-        {body === null ? (
-          <LoadingListSkeleton count={3} />
-        ) : (
-          <EmailBodyFrame
-            document={body.document}
-            onMailtoLink={handleMailtoLink}
-          />
-        )}
+        {issues.hasMissingValues ? (
+          <BodyLoadErrorBanner onRetry={handleRetry} />
+        ) : null}
+        {bodyView}
       </Box>
       {isPhone ? (
         <>

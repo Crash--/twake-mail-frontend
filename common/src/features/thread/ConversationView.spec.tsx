@@ -107,6 +107,13 @@ function toggle(name: RegExp): HTMLElement {
   return first
 }
 
+/** A message of the conversation, named by its sender */
+function messageOf(name: RegExp): HTMLElement {
+  const message = toggle(name).closest('li')
+  if (message === null) throw new Error(`no message for ${name.source}`)
+  return message
+}
+
 /** The actions of the whole conversation, beside the back button */
 function conversationActions(): HTMLElement {
   return screen.getByRole('toolbar', { name: 'Conversation actions' })
@@ -1074,6 +1081,56 @@ describe('ConversationView, an expanded message', () => {
     expect(toggle(/Dan/)).toBeVisible()
     expect(screen.getAllByTestId('conversation-message-toggle')).toHaveLength(1)
     expect(screen.queryByTestId('email-not-found')).toBe(null)
+  })
+
+  describe('a message the server cannot give (tf#3487, #654)', () => {
+    it('says that its content could not be loaded, rather than an empty message, and loads it on Retry', async () => {
+      const server = makeServer()
+      let isFailing = true
+      // The email of the message, not the list of the conversation
+      server.handlers.set('Email/get', args =>
+        isFailing &&
+        args.fetchHTMLBodyValues === true &&
+        Array.isArray(args.ids) &&
+        args.ids.includes('c')
+          ? { error: 'serverFail' }
+          : undefined
+      )
+      await renderConversation(server, { emailId: 'c' })
+
+      const message = messageOf(/Dan/)
+      const alert = await within(message).findByTestId('email-body-error')
+      expect(alert).toHaveAttribute('role', 'alert')
+      expect(alert).toHaveTextContent(
+        'The content of this message could not be loaded.'
+      )
+      expect(within(message).queryByTestId('email-view-body')).toBe(null)
+      isFailing = false
+      await userEvent.click(
+        within(alert).getByRole('button', { name: 'Retry' })
+      )
+
+      expect(
+        await within(message).findByTestId('email-view-body')
+      ).toBeVisible()
+      expect(screen.queryByTestId('email-body-error')).toBe(null)
+    })
+
+    it('says so when its body comes without value', async () => {
+      const server = makeServer()
+      const email = server.emails.find(candidate => candidate.id === 'c')
+      if (email === undefined) throw new Error('no email c')
+      email.bodyValues = {}
+      await renderConversation(server, { emailId: 'c' })
+
+      const message = messageOf(/Dan/)
+      expect(
+        await within(message).findByTestId('email-body-error')
+      ).toHaveTextContent('The content of this message could not be loaded.')
+      expect(within(message).queryByTestId('email-view-body')).toBe(null)
+      // The other messages show their body
+      expect(screen.getAllByTestId('email-body-error')).toHaveLength(1)
+    })
   })
 
   it('keeps the way back when the conversation no longer exists', async () => {

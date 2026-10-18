@@ -159,8 +159,8 @@ export interface FakeJmapServer {
   loseNextResponse: (method: string) => void
   /**
    * Answers the methods the fake does not implement (Linagora extensions…),
-   * or replaces one it does: a handler returns the response arguments, or
-   * `{ error: type }`
+   * or replaces one it does: a handler returns the response arguments,
+   * `{ error: type }`, or `undefined` to let the fake answer that call
    */
   handlers: Map<string, (args: Record<string, unknown>) => unknown>
   /** Names of the methods called so far, request after request */
@@ -1340,8 +1340,8 @@ export function makeFakeJmapServer(
   }
 
   function answer(name: string, args: Record<string, unknown>): unknown {
-    const handler = server.handlers.get(name)
-    if (handler) return handler(args)
+    const handled = server.handlers.get(name)?.(args)
+    if (handled !== undefined) return handled
     switch (name) {
       case 'Mailbox/get':
         return getMailboxes(args)

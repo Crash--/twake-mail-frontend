@@ -85,6 +85,8 @@
     "content": "Message content",
     "showTrimmedContent": "Show trimmed content",
     "notFound": "This message no longer exists",
+    "bodyLoadFailed": "The content of this message could not be loaded.",
+    "bodyTruncated": "This message is too long to be shown in full.",
     "markAsRead": "Mark as read",
     "markAsUnread": "Mark as unread",
     "starred": "Starred",

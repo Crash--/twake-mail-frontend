@@ -692,6 +692,23 @@ describe('EmailView', () => {
     ).toEqual(['Reply', 'Forward'])
   })
 
+  it('says when the server failed to give the email (serverFail), and loads it on Retry (tf#3487)', async () => {
+    const server = makeFakeJmapServer({
+      emails: [makeEmailWithBody({ id: 'e1' }, { html: '<p>Hello</p>' })]
+    })
+    server.methodErrors.set('Email/get', 'serverFail')
+    renderView(server)
+
+    const error = await screen.findByTestId('email-view-error')
+    expect(error).toHaveAttribute('role', 'alert')
+    expect(screen.queryByTestId('email-view-body')).toBe(null)
+    server.methodErrors.delete('Email/get')
+    await userEvent.click(within(error).getByRole('button', { name: 'Retry' }))
+
+    expect(await findBodyDocument()).toContain('<p>Hello</p>')
+    expect(screen.queryByTestId('email-view-error')).toBe(null)
+  })
+
   it('says when the email does not exist', async () => {
     renderView(makeFakeJmapServer({ emails: [makeEmail({ id: 'other' })] }))
 

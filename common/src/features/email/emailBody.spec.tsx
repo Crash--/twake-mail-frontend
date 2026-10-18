@@ -1,3 +1,5 @@
+import type { EmailBodyValue } from 'jmap-client-ts'
+
 import { makeBodyPart } from '@common/testing/fakeJmapServer'
 
 import {
@@ -5,6 +7,7 @@ import {
   findReferencedCids,
   plainTextToHtml,
   plainTextToLinkedHtml,
+  inspectBodyValues,
   renderBodyParts
 } from './emailBody'
 
@@ -86,6 +89,52 @@ describe('renderBodyParts', () => {
       '<div class="tmail-plain-text">See <a href="https://example.com/a" target="_blank" rel="noopener noreferrer">https://example.com/a</a>.</div>' +
         '<p><a href="https://www.example.org/" target="_blank" rel="noopener noreferrer">www.example.org</a> or <a href="https://example.net" target="_blank" rel="noopener noreferrer">https://example.net</a></p>'
     )
+  })
+})
+
+describe('inspectBodyValues (tf#3487)', () => {
+  const html = makeBodyPart({ partId: '1', type: 'text/html' })
+  const text = makeBodyPart({ partId: '2', type: 'text/plain' })
+  const image = makeBodyPart({ partId: '3', type: 'image/png' })
+  const value = (isTruncated = false): EmailBodyValue => ({
+    value: 'Hi',
+    isEncodingProblem: false,
+    isTruncated
+  })
+
+  it('finds nothing wrong with a body the server gave whole', () => {
+    expect(inspectBodyValues([html, image], { '1': value() })).toEqual({
+      hasMissingValues: false,
+      hasValues: true,
+      isTruncated: false
+    })
+  })
+
+  it('tells a text part without value, an image having none', () => {
+    expect(inspectBodyValues([html, text, image], { '1': value() })).toEqual({
+      hasMissingValues: true,
+      hasValues: true,
+      isTruncated: false
+    })
+    expect(inspectBodyValues([html], {})).toEqual({
+      hasMissingValues: true,
+      hasValues: false,
+      isTruncated: false
+    })
+  })
+
+  it('tells a value the server cut', () => {
+    expect(
+      inspectBodyValues([html, text], { '1': value(), '2': value(true) })
+    ).toEqual({ hasMissingValues: false, hasValues: true, isTruncated: true })
+  })
+
+  it('finds nothing wrong with an email without body', () => {
+    expect(inspectBodyValues([], {})).toEqual({
+      hasMissingValues: false,
+      hasValues: false,
+      isTruncated: false
+    })
   })
 })
 

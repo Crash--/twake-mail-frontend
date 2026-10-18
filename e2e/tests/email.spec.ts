@@ -1,4 +1,4 @@
-import { LoginPage } from '../pages'
+import { EmailPage, LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
@@ -649,6 +649,101 @@ test.describe('EML reading an email', () => {
       await expectNoA11yViolations(page)
     }
   )
+
+  test('EML-42 a body the server cannot give is never shown as an empty message', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Fragile body',
+      html: '<p>The real content</p>'
+    })
+    await jmap.waitForEmail({ subject: 'Fragile body' })
+    type Invocation = [string, Record<string, unknown>, string]
+    /**
+     * Changes the answer to the `Email/get` of the reading view (the one
+     * asking for the body values) as tmail-backend sends it when it fails
+     */
+    const breakBody = async (
+      change: (invocation: Invocation) => Invocation
+    ): Promise<void> => {
+      await page.route('**/jmap', async route => {
+        if (!(route.request().postData() ?? '').includes('fetchHTMLBodyValues')) {
+          await route.continue()
+          return
+        }
+        const response = await route.fetch()
+        const json = (await response.json()) as {
+          methodResponses: Invocation[]
+        }
+        json.methodResponses = json.methodResponses.map(invocation =>
+          invocation[0] === 'Email/get' ? change(invocation) : invocation
+        )
+        await route.fulfill({ response, json })
+      })
+    }
+    const withBodyValues = (
+      [name, args, callId]: Invocation,
+      bodyValues: (values: Record<string, unknown>) => Record<string, unknown>
+    ): Invocation => {
+      const list = (args.list as Record<string, unknown>[]).map(email => ({
+        ...email,
+        bodyValues: bodyValues(email.bodyValues as Record<string, unknown>)
+      }))
+      return [name, { ...args, list }, callId]
+    }
+
+    // A `serverFail` on Email/get (tmail-flutter tf#3487: S3 broken)
+    await breakBody(([, , callId]) => ['error', { type: 'serverFail' }, callId])
+    const mailbox = await new LoginPage(page).loginAs(user)
+    // The error screen has no subject to wait for
+    await mailbox.emailRow('Fragile body').click()
+    const error = page.getByTestId('email-view-error')
+    await expect(error).toBeVisible()
+    await expect(page.getByTestId('email-view-body')).toHaveCount(0)
+    await expectNoA11yViolations(page)
+
+    // The body parts without their values: the headers stay, an alert says it
+    await page.unrouteAll({ behavior: 'wait' })
+    await breakBody(invocation => withBodyValues(invocation, () => ({})))
+    await error.getByRole('button', { name: 'Retry' }).click()
+    const alert = page.getByTestId('email-body-error')
+    await expect(alert).toHaveText(
+      /The content of this message could not be loaded\./
+    )
+    await expect(page.getByTestId('email-view-subject')).toHaveText(
+      'Fragile body'
+    )
+    await expect(page.getByTestId('email-view-body')).toHaveCount(0)
+    await expectNoA11yViolations(page)
+
+    // A cut body: what there is, a notice, the whole message in its EML
+    await page.unrouteAll({ behavior: 'wait' })
+    await breakBody(invocation =>
+      withBodyValues(invocation, values =>
+        Object.fromEntries(
+          Object.entries(values).map(([partId, value]) => [
+            partId,
+            { ...(value as object), isTruncated: true }
+          ])
+        )
+      )
+    )
+    await page.getByTestId('email-body-retry-button').click()
+    const email = new EmailPage(page)
+    await expect(email.body()).toContainText('The real content')
+    await expect(page.getByTestId('email-body-error')).toHaveCount(0)
+    const notice = page.getByTestId('email-body-truncated')
+    await expect(notice).toHaveText(
+      /This message is too long to be shown in full\./
+    )
+    const downloading = page.waitForEvent('download')
+    await page.getByTestId('email-body-download-eml-button').click()
+    expect((await downloading).suggestedFilename()).toBe('Fragile body.eml')
+    await expectNoA11yViolations(page)
+  })
 
   test(
     'EML-36 the quoted history of an answer is folded behind a button',

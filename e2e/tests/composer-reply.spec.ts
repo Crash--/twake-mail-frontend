@@ -527,18 +527,29 @@ test.describe('CMP: the quote', () => {
     await expect(composer.editor).toBeFocused()
     const quoteLine = (text: string) =>
       composer.quote.locator('p', { hasText: text })
+    // The keys go where the editor put the caret: wait for it to take the
+    // click before pressing them, or they land in the previous line
+    const putCaretAtEndOf = async (text: string): Promise<void> => {
+      await quoteLine(text).click()
+      await expect
+        .poll(() =>
+          quoteLine(text).evaluate(line =>
+            line.contains(document.getSelection()?.anchorNode ?? null)
+          )
+        )
+        .toBe(true)
+      await page.keyboard.press('End')
+    }
 
     // Edited where it is, as the rest of the text
-    await quoteLine('Second line').click()
-    await page.keyboard.press('End')
+    await putCaretAtEndOf('Second line')
     await page.keyboard.type(' EDITED')
     await expect(quoteLine('Second line')).toHaveText(
       'Second line of the original. EDITED'
     )
 
     // Enter cuts the quote: what follows is written out of it
-    await quoteLine('First line').click()
-    await page.keyboard.press('End')
+    await putCaretAtEndOf('First line')
     await page.keyboard.press('Enter')
     await page.keyboard.type('MY ANSWER')
     await expect(composer.quote).toHaveCount(2)
@@ -559,8 +570,7 @@ test.describe('CMP: the quote', () => {
     ])
 
     // At the end of the last quoted line, Enter writes after the quote
-    await quoteLine('Last line').click()
-    await page.keyboard.press('End')
+    await putCaretAtEndOf('Last line')
     await page.keyboard.press('Enter')
     await page.keyboard.type('AFTER THE QUOTE')
     const after = composer.editor.locator('p', { hasText: 'AFTER THE QUOTE' })

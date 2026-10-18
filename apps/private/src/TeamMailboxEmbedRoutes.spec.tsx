@@ -219,6 +219,11 @@ describe('teamMailboxEmbedRouteElements', () => {
       retryButton
     )
     expect(retryButton).toHaveFocus()
+    // The pane is the main landmark: the error has none of its own
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1 })
+    )
     await waitFor(() => {
       expect(document.title).toBe('Connection error - Twake Mail')
     })

@@ -4,13 +4,20 @@
 import { Box, Button, Empty } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
 import { Warning } from '@/ds/FlutterIcons/FlutterIcons'
+import {
+  MainLandmark,
+  useIsInMainLandmark
+} from '@/ds/MainLandmark/MainLandmark'
 
 export interface ErrorScreenProps {
   title: string
   description?: ReactNode
   actionLabel?: string
   onAction?: () => void
-  /** The level of the title: `h1` when the error is the whole view */
+  /**
+   * The level of the title: `h1` when the error is the whole view, which is
+   * then the `main` landmark of the page unless a layout already has one
+   */
   headingLevel?: 'h1' | 'h2' | 'h3'
   /**
    * Moves the focus to the action, or to the title without one, when the
@@ -36,6 +43,7 @@ export function ErrorScreen({
   const titleRef = useRef<HTMLElement>(null)
   const actionRef = useRef<HTMLButtonElement>(null)
   const hasAction = Boolean(actionLabel && onAction)
+  const isInMain = useIsInMainLandmark()
 
   useEffect(() => {
     if (!focusOnMount) return
@@ -43,7 +51,7 @@ export function ErrorScreen({
     target?.focus()
   }, [focusOnMount])
 
-  return (
+  const screen = (
     <Box className="u-flex u-h-100" role="alert" data-testid={testId}>
       <Empty
         icon={Warning}
@@ -51,6 +59,8 @@ export function ErrorScreen({
         title={title}
         text={description}
         componentsProps={{
+          // The title says it: the icon is decoration
+          icon: { 'aria-hidden': true },
           title: {
             ref: titleRef,
             component: headingLevel,
@@ -71,4 +81,9 @@ export function ErrorScreen({
       </Empty>
     </Box>
   )
+
+  if (headingLevel === 'h1' && !isInMain) {
+    return <MainLandmark className="u-h-100">{screen}</MainLandmark>
+  }
+  return screen
 }

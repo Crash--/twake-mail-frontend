@@ -17,6 +17,7 @@ export function ConfigErrorScreen({
   return (
     <ErrorScreen
       title={t('config.title')}
+      headingLevel="h1"
       data-testid="config-error"
       description={
         <>

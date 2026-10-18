@@ -285,6 +285,10 @@ describe('IntentPage', () => {
     expect(
       await screen.findByTestId('intent-error-unsupported')
     ).toHaveTextContent('Twake Mail cannot do this')
+    // The whole page: its main landmark, under a level-1 title
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1 })
+    )
     expect(fake.service.throw).toHaveBeenCalledTimes(1)
   })
 

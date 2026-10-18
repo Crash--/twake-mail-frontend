@@ -1,10 +1,9 @@
 import { createClient } from 'jmap-client-ts'
 import { lazy, Suspense, useState, type ReactElement } from 'react'
-import { ErrorBoundary, type FallbackProps } from 'react-error-boundary'
+import { ErrorBoundary } from 'react-error-boundary'
 import { createBrowserRouter, createRoutesFromElements } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 
-import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { reportRenderError } from '@common/app/sentry'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import type { AppConfig } from '@common/config/config'
@@ -12,11 +11,11 @@ import { AuthProvider } from '@common/features/auth/AuthProvider'
 import { createAuthService } from '@common/features/auth/createAuthService'
 import { intentsRedirectUri } from '@common/features/intents/intentPath'
 import { connectToSpace } from '@common/features/teamMailboxEmbed/spaceBridge'
-import { useI18n } from '@common/i18n/useI18n'
 import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
 import { FullPageLoader } from '@common/components/FullPageLoader'
 
 import { appRouteElements } from './AppRoutes'
+import { CrashScreen } from './CrashScreen'
 import type { IntentsPage } from './IntentsApp'
 import {
   TeamMailboxEmbedApp,
@@ -28,19 +27,6 @@ const IntentsApp = lazy(async () => {
   const module = await import('./IntentsApp')
   return { default: module.IntentsApp }
 })
-
-function CrashScreen({ resetErrorBoundary }: FallbackProps): ReactElement {
-  const { t } = useI18n()
-
-  return (
-    <ErrorScreen
-      title={t('common.errorOccurred')}
-      actionLabel={t('common.retry')}
-      onAction={resetErrorBoundary}
-      data-testid="crash-error"
-    />
-  )
-}
 
 function handleRenderError(
   error: unknown,

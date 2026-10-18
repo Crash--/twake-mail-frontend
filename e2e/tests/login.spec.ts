@@ -161,3 +161,40 @@ test.describe('LOGIN login', () => {
     }
   })
 })
+
+test.describe('LOGIN sign-in service unreachable', () => {
+  test('LOGIN-05 a sign-in service that cannot be reached shows a whole-page error: its h1 in the main landmark, Retry focused', async ({
+    page
+  }) => {
+    // No AUTH_MODE: the app discovers the SSO, which does not answer
+    await page.route('**/.env.js', async route => {
+      const response = await route.fetch()
+      const body = (await response.text()).replace(
+        /var AUTH_MODE = .*/,
+        "var WEB_OIDC_CLIENT_ID = 'e2e-client'"
+      )
+      await route.fulfill({ response, body })
+    })
+    await page.route('**/.well-known/webfinger*', route =>
+      route.fulfill({ status: 503, body: 'Unavailable' })
+    )
+
+    await page.goto('/')
+
+    const screen = page.getByTestId('sso-unreachable')
+    await expect(screen).toBeVisible()
+    const main = page.getByRole('main')
+    await expect(main).toHaveCount(1)
+    await expect(
+      main.getByRole('heading', {
+        level: 1,
+        name: 'Cannot reach the sign-in service'
+      })
+    ).toBeVisible()
+    await expect(main.getByRole('alert')).toBeVisible()
+    await expect(screen.getByRole('img')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Retry' })).toBeFocused()
+    await expect(page).toHaveTitle('Cannot reach the sign-in service - Twake Mail')
+    await expectNoA11yViolations(page)
+  })
+})

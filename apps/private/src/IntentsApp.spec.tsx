@@ -86,6 +86,10 @@ describe('IntentsApp', () => {
     expect(
       await screen.findByTestId('intent-error-session-expired')
     ).toHaveTextContent('Your session has expired')
+    // The whole page: its main landmark, under a level-1 title
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1 })
+    )
     expect(window.location.pathname + window.location.search).toBe(INTENT_PATH)
     expect(authService.startLogin).not.toHaveBeenCalled()
   })

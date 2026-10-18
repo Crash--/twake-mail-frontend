@@ -5,6 +5,8 @@
 import { Box, Content, Main } from '@linagora/twake-mui'
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
 
+import { InsideMainLandmark } from '@/ds/MainLandmark/MainLandmark'
+
 const MAIN_SX = { bgcolor: 'background.paper' } as const
 // The metrics of twake-mui's `Content` card, around the whole main pane: the
 // grey of the `Layout` shows between it and the top bar
@@ -59,14 +61,16 @@ export function FlatMain({
   if (inset && header !== null) {
     return (
       <Main sx={HEADED_MAIN_SX} {...props}>
-        <Box sx={HEADER_SX}>{header}</Box>
-        <Box sx={CARD_SX}>{children}</Box>
+        <InsideMainLandmark>
+          <Box sx={HEADER_SX}>{header}</Box>
+          <Box sx={CARD_SX}>{children}</Box>
+        </InsideMainLandmark>
       </Main>
     )
   }
   return (
     <Main sx={inset ? INSET_MAIN_SX : MAIN_SX} {...props}>
-      {children}
+      <InsideMainLandmark>{children}</InsideMainLandmark>
     </Main>
   )
 }

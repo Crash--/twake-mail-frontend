@@ -53,6 +53,10 @@ describe('JmapSessionProvider', () => {
     )
 
     const retryButton = await screen.findByTestId('session-error-action')
+    // The whole page: its main landmark, under a level-1 title
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1 })
+    )
     available = true
     await userEvent.click(retryButton)
 

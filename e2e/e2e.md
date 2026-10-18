@@ -982,3 +982,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/folder-menu.spec.ts`.
 - [x] `MBX-60` A personal folder's menu opened by a right click (button pressed, then released apart) keeps the focus on its first item once the button is released; ArrowDown moves to the next item (axe); Escape closes it and gives the focus back to the folder row; "Allow subaddressing" chosen from a right-click menu opens its dialog, and Escape there gives the focus back to the folder row as well. — web app (issue #650)
   - Spec: `tests/folder-menu.spec.ts`.
+- [x] `LOGIN-05` With no `AUTH_MODE` (the app discovers the SSO) and the WebFinger answering 503, `/` shows the `sso-unreachable` page: one `main` landmark holding the alert and its level-1 heading "Cannot reach the sign-in service", no unnamed image (the warning icon is hidden), Retry focused, the title "Cannot reach the sign-in service - Twake Mail"; axe. — web app (issue #652)
+  - Spec: `tests/login.spec.ts`.

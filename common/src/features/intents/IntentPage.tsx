@@ -75,6 +75,7 @@ export function IntentMessageScreen({
   return (
     <ErrorScreen
       title={t(title)}
+      headingLevel="h1"
       description={t(description)}
       data-testid={`intent-error-${kebabCase(message)}`}
     />

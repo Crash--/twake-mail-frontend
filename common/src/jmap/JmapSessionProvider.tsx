@@ -77,6 +77,7 @@ function SessionErrorScreen({
   return (
     <ErrorScreen
       title={t('common.errorOccurred')}
+      headingLevel="h1"
       actionLabel={t('common.retry')}
       onAction={onRetry}
       focusOnMount

@@ -61,6 +61,7 @@ function OidcCallback({ service }: { service: OidcAuthService }): ReactElement {
     return (
       <ErrorScreen
         title={t('common.errorOccurred')}
+        headingLevel="h1"
         actionLabel={t('common.reconnect')}
         onAction={handleReconnect}
         data-testid="callback-error"

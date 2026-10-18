@@ -42,5 +42,9 @@ describe('RouteErrorScreen', () => {
     expect(await screen.findByTestId('crash-error')).toBeVisible()
     expect(reportRenderError).toHaveBeenCalledWith(failure, '')
     expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible()
+    // The whole page: its main landmark, under a level-1 title
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1 })
+    )
   })
 })

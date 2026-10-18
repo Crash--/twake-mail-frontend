@@ -98,6 +98,7 @@ export function TeamMailboxEmbedApp({
       <TeamMailboxErrorPane>
         <ErrorScreen
           title={t('teamMailboxEmbed.sessionExpiredTitle')}
+          headingLevel="h1"
           description={t('teamMailboxEmbed.sessionExpiredDescription')}
           actionLabel={t('common.retry')}
           onAction={handleRetry}
@@ -112,6 +113,7 @@ export function TeamMailboxEmbedApp({
       <TeamMailboxErrorPane>
         <ErrorScreen
           title={t('common.errorOccurred')}
+          headingLevel="h1"
           actionLabel={t('common.reconnect')}
           onAction={handleRetry}
           data-testid="callback-error"

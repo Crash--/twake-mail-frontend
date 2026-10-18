@@ -29,6 +29,7 @@ export function SsoUnreachableScreen({
   return (
     <ErrorScreen
       title={title}
+      headingLevel="h1"
       {...(isUnreachable
         ? { description: t('login.ssoUnreachableDescription') }
         : {})}

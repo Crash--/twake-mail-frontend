@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { ErrorScreen } from './ErrorScreen'
@@ -64,5 +65,43 @@ describe('ErrorScreen', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Broken' })
     ).toHaveFocus()
+  })
+
+  it('is the main landmark of the page under a level-1 title', () => {
+    renderDs(<ErrorScreen title="Broken" headingLevel="h1" />)
+
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1, name: 'Broken' })
+    )
+    expect(screen.getByRole('main')).toContainElement(screen.getByRole('alert'))
+  })
+
+  it('stays in the main landmark of a layout, without one of its own', () => {
+    renderDs(
+      <FlatMain>
+        <ErrorScreen title="Broken" headingLevel="h1" />
+      </FlatMain>
+    )
+
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1, name: 'Broken' })
+    )
+  })
+
+  it('is no landmark when it is a part of the view', () => {
+    renderDs(<ErrorScreen title="Broken" headingLevel="h2" />)
+
+    expect(screen.queryByRole('main')).toBe(null)
+  })
+
+  it('hides its decorative icon from assistive technologies', () => {
+    renderDs(<ErrorScreen title="Broken" data-testid="broken" />)
+
+    expect(screen.queryByRole('img')).toBe(null)
+    expect(screen.getByTestId('broken').querySelector('svg')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    )
   })
 })

@@ -8,6 +8,7 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { InsideMainLandmark } from '@/ds/MainLandmark/MainLandmark'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
@@ -152,7 +153,9 @@ export function LoginLayout({
         </Box>
       </Box>
       <Box sx={CARD_COLUMN_SX}>
-        <Box sx={CARD_SX}>{children}</Box>
+        <Box sx={CARD_SX}>
+          <InsideMainLandmark>{children}</InsideMainLandmark>
+        </Box>
         <Box sx={FOOTER_SX}>
           <img src={footerImageSrc} alt={footerLabel} width={97} height={44} />
         </Box>

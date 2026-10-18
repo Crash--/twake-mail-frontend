@@ -252,6 +252,11 @@ describe('TeamMailboxEmbedApp', () => {
     const expired = await screen.findByTestId('team-mailbox-session-expired')
     // On the pane of the facade, not on the background of the page
     expect(expired.closest('.u-pt-1')).not.toBe(null)
+    // The pane is the main landmark: the error has none of its own
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1 })
+    )
     expect(spaceBridge.notifyLoginRequired).toHaveBeenCalledTimes(1)
     expect(window.location.pathname).toBe(`${BASE}/mailbox/team-sent`)
     // No silent login again until asked: it would fail the same way

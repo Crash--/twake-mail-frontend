@@ -67,6 +67,7 @@ export function RequireAuth({
     return (
       <ErrorScreen
         title={t('login.connectionError')}
+        headingLevel="h1"
         description={t('common.unknownError')}
         actionLabel={t('common.retry')}
         onAction={handleRetry}

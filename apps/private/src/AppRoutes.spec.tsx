@@ -105,7 +105,12 @@ describe('AppRoutes', () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined)
     renderWithProviders(<AppRoutes />, { authService })
 
-    await userEvent.click(await screen.findByTestId('sso-error-action'))
+    const retryButton = await screen.findByTestId('sso-error-action')
+    // The whole page: its main landmark, under a level-1 title
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1 })
+    )
+    await userEvent.click(retryButton)
 
     expect(authService.startLogin).toHaveBeenCalledTimes(2)
   })
@@ -169,6 +174,10 @@ describe('AppRoutes', () => {
     expect(
       await screen.findByTestId('callback-error-action')
     ).toHaveTextContent('Reconnect')
+    // The whole page: its main landmark, under a level-1 title
+    expect(screen.getByRole('main')).toContainElement(
+      screen.getByRole('heading', { level: 1 })
+    )
   })
 
   describe('on smaller screens', () => {

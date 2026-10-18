@@ -28,6 +28,7 @@ export function RouteErrorScreen(): ReactElement {
   return (
     <ErrorScreen
       title={t('common.errorOccurred')}
+      headingLevel="h1"
       actionLabel={t('common.retry')}
       onAction={handleRetry}
       data-testid="crash-error"

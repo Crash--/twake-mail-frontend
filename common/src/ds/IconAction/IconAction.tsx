@@ -96,9 +96,11 @@ export function IconAction({
       ...TONE_SX[tone]
     }
   } as const
-  // A disabled button takes no pointer event, so the tooltip needs a wrapper
+  // A disabled button takes no pointer event, so the tooltip needs a wrapper.
+  // Click-through: the tooltip only repeats the name, and an interactive one
+  // covered the action of the next row and swallowed its click
   return (
-    <Tooltip title={label}>
+    <Tooltip title={label} disableInteractive>
       {disabled ? (
         <span>
           <IconButton {...common}>{content}</IconButton>

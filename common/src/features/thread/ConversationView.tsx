@@ -63,6 +63,7 @@ import {
   isReceivedFromOthers,
   onSide,
   sideOfEmail,
+  withoutSentAndDrafts,
   withoutTeamCopies
 } from './threadSummary'
 
@@ -87,6 +88,12 @@ const NO_NAVIGATION: EmailViewNavigation = {
 
 interface ConversationContentProps {
   emails: EmailListItemData[]
+  /**
+   * The messages a move of the conversation takes: its messages of the
+   * folder (useEmailActions); out of a folder, all but those the user sent
+   * and the drafts, which stay in Sent and Drafts
+   */
+  movedEmails: EmailListItemData[]
   openedId: string
   /** The folder it is open from, null from search results */
   mailboxId: string | null
@@ -105,6 +112,7 @@ interface ConversationContentProps {
 
 function ConversationContent({
   emails,
+  movedEmails,
   openedId,
   mailboxId,
   mailbox,
@@ -242,7 +250,7 @@ function ConversationContent({
   const handleMove = (action: EmailActionName) => (): void => {
     // Leaves once, not again when the messages leave the folder
     wasInMailboxRef.current = false
-    runOnAll(action)
+    void run({ action, emails: movedEmails, mailboxId })
     onBack()
   }
 
@@ -557,6 +565,11 @@ export function ConversationView({
   return (
     <ConversationContent
       emails={emails}
+      movedEmails={
+        mailboxId === null
+          ? withoutSentAndDrafts(emails, emailId, mailboxList)
+          : emails
+      }
       openedId={emailId}
       mailboxId={mailboxId}
       mailbox={

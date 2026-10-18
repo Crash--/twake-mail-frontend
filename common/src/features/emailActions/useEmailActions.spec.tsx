@@ -21,7 +21,11 @@ import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { findCachedEmail } from './optimisticEmailChanges'
 import type { TargetEmail } from './planEmailChanges'
-import { useEmailActions, type EmailActionName } from './useEmailActions'
+import {
+  inStartFolder,
+  useEmailActions,
+  type EmailActionName
+} from './useEmailActions'
 
 interface ActionButtonProps {
   action: EmailActionName
@@ -507,5 +511,30 @@ describe('useEmailActions and the rights of the folder', () => {
       'You do not have the right to do this in this folder.'
     )
     expect(emailSets(server)).toEqual([])
+  })
+})
+
+describe('inStartFolder', () => {
+  const email = (id: string, mailboxId: string): TargetEmail => ({
+    id,
+    mailboxIds: { [mailboxId]: true },
+    keywords: {}
+  })
+
+  it('keeps the emails of a conversation in the folder the move starts from', () => {
+    const emails = [
+      email('received', 'mailbox-inbox'),
+      email('sent', 'mailbox-sent'),
+      email('draft', 'mailbox-drafts')
+    ]
+
+    expect(inStartFolder(emails, 'mailbox-inbox')).toEqual([emails[0]])
+  })
+
+  it('keeps them all out of a folder, or when none is in it', () => {
+    const emails = [email('sent', 'mailbox-sent')]
+
+    expect(inStartFolder(emails, null)).toEqual(emails)
+    expect(inStartFolder(emails, 'mailbox-inbox')).toEqual(emails)
   })
 })

@@ -8,6 +8,7 @@ import {
   isReceivedFromOthers,
   onSide,
   summarizeThread,
+  withoutSentAndDrafts,
   withoutTeamCopies,
   type FolderSides,
   type ThreadContext
@@ -278,5 +279,44 @@ describe('getFolderSides', () => {
       'team-trash': 'team-trash'
     })
     expect(sides.keptElsewhere).toEqual(new Set(['drafts']))
+  })
+})
+
+describe('withoutSentAndDrafts', () => {
+  const team = 'TeamMailbox[team@example.com]'
+  const mailboxes = [
+    makeMailbox({ id: 'inbox', name: 'INBOX', role: 'inbox' }),
+    makeMailbox({ id: 'sent', name: 'Sent', role: 'sent' }),
+    makeMailbox({ id: 'drafts', name: 'Drafts', role: 'drafts' }),
+    makeMailbox({ id: 'team', name: 'team', namespace: team }),
+    makeMailbox({
+      id: 'team-sent',
+      name: 'Sent',
+      namespace: team,
+      parentId: 'team'
+    })
+  ].map(normalizeMailbox)
+  const email = (id: string, mailboxId: string): ThreadMember =>
+    member(id, { email: ME }, { mailboxIds: { [mailboxId]: true } })
+
+  it('leaves out the emails in Sent and Drafts, of the user and of team mailboxes', () => {
+    const emails = [
+      email('received', 'inbox'),
+      email('sent', 'sent'),
+      email('draft', 'drafts'),
+      email('team-sent', 'team-sent')
+    ]
+
+    expect(
+      withoutSentAndDrafts(emails, 'received', mailboxes).map(({ id }) => id)
+    ).toEqual(['received'])
+  })
+
+  it('keeps the email opened, wherever it is', () => {
+    const emails = [email('received', 'inbox'), email('sent', 'sent')]
+
+    expect(
+      withoutSentAndDrafts(emails, 'sent', mailboxes).map(({ id }) => id)
+    ).toEqual(['received', 'sent'])
   })
 })

@@ -9,6 +9,7 @@ import {
 } from '@common/features/email/keywords'
 import { deletesForever } from '@common/features/emailActions/useRemoveEmails'
 import {
+  hasMailboxRole,
   isDraftsMailbox,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
@@ -184,6 +185,33 @@ export function onSide<T extends Pick<ThreadMember, 'mailboxIds'>>(
       (side === null && own !== null && sides.keptElsewhere.has(own))
     )
   })
+}
+
+/**
+ * Out of a folder (a search result, a link), the emails of a conversation a
+ * move takes: not the emails the user sent, in Sent, nor the drafts, which
+ * stay where users look for them. `keptEmailId` (the email opened) moves
+ * whatever it is.
+ */
+export function withoutSentAndDrafts<
+  T extends Pick<ThreadMember, 'id' | 'mailboxIds'>
+>(
+  emails: readonly T[],
+  keptEmailId: string,
+  mailboxes: readonly MailboxSummary[]
+): T[] {
+  const staying = new Set(
+    mailboxes
+      .filter(
+        mailbox => hasMailboxRole(mailbox, 'sent') || isDraftsMailbox(mailbox)
+      )
+      .map(({ id }) => id)
+  )
+  return emails.filter(
+    email =>
+      email.id === keptEmailId ||
+      !Object.keys(email.mailboxIds).some(id => staying.has(id))
+  )
 }
 
 /** Where the row of a conversation stands */

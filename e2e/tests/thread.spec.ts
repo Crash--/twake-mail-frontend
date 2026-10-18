@@ -386,19 +386,21 @@ test.describe('THR thread detail', () => {
       .toBe(true)
     await expect(mailbox.emailRow(subject)).not.toHaveAttribute('data-unread')
 
-    // The menu of the row archives them all (tmail-flutter ADR 0068)
+    // The menu of the row archives the messages of the Inbox (tmail-flutter
+    // ADR 0068); the copy in Sent stays there (#627)
     const menu = await mailbox.openEmailMenu(subject, { rightClick: true })
     await expectNoA11yViolations(page)
     await menu.getByTestId('email-action-archive').click()
     await expect(mailbox.emailRow(subject)).toBeHidden()
     const archive = await jmap.findMailboxByRole('archive')
+    const sent = await jmap.findMailboxByRole('sent')
     await expect
       .poll(async () =>
-        (await threadEmails()).every(
-          email => Object.keys(email.mailboxIds).join() === archive.id
-        )
+        (await threadEmails())
+          .map(email => Object.keys(email.mailboxIds).join())
+          .sort()
       )
-      .toBe(true)
+      .toEqual([archive.id, archive.id, sent.id].sort())
   })
 
   test('THR-06 an email sent to oneself counts once; the menu of a conversation answers its newest email', async ({

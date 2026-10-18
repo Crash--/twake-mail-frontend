@@ -545,7 +545,9 @@ describe('EmailRulesSettings', () => {
 
     const [first] = await screen.findAllByTestId('email-rule-item')
     if (!first) throw new Error('No rule')
-    await userEvent.click(within(first).getByRole('button', { name: 'More' }))
+    await userEvent.click(
+      within(first).getByRole('button', { name: 'Actions on Newsletters' })
+    )
     const sheet = screen.getByTestId('email-rule-menu')
     expect(within(sheet).queryByText('Move up')).toBe(null)
     await userEvent.click(within(sheet).getByText('Move down'))

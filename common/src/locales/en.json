@@ -1136,7 +1136,8 @@
     "moveUp": "Move up",
     "moveDown": "Move down",
     "moveUpOf": "Move %{name} up",
-    "moveDownOf": "Move %{name} down"
+    "moveDownOf": "Move %{name} down",
+    "moreOf": "Actions on %{name}"
   },
   "forward": {
     "localCopy": "Keep a copy in Inbox",

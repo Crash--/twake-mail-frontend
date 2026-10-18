@@ -1136,7 +1136,8 @@
     "moveUp": "Di chuyển lên",
     "moveDown": "Di chuyển xuống",
     "moveUpOf": "Di chuyển %{name} lên",
-    "moveDownOf": "Di chuyển %{name} xuống"
+    "moveDownOf": "Di chuyển %{name} xuống",
+    "moreOf": "Thao tác với %{name}"
   },
   "forward": {
     "localCopy": "Giữ bản sao trong thư mục Thư đến",

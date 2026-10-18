@@ -197,7 +197,7 @@ function Content({
         >
           {address}
         </Typography>
-        <Tooltip title={copyLabel}>
+        <Tooltip title={copyLabel} placement="top" disableInteractive>
           <IconButton
             aria-label={copyLabel}
             onClick={onCopy}

@@ -56,6 +56,22 @@ describe('ContactCard', () => {
     expect(onCopy).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps the tooltip of the copy button off the way of the actions', async () => {
+    const onWrite = jest.fn()
+    renderDs(
+      <Harness actions={[{ id: 'write', label: 'Write', onClick: onWrite }]} />
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Bob' }))
+    await userEvent.hover(
+      await screen.findByRole('button', { name: 'Copy the address' })
+    )
+    const tooltip = await screen.findByRole('tooltip')
+    expect(getComputedStyle(tooltip).pointerEvents).toBe('none')
+    await userEvent.click(screen.getByRole('button', { name: 'Write' }))
+    expect(onWrite).toHaveBeenCalledTimes(1)
+  })
+
   it('is named by the address when it has no name', async () => {
     renderDs(<Harness name="" />)
 

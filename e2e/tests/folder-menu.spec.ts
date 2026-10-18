@@ -241,7 +241,8 @@ test.describe('MBX folders dragged in the tree', () => {
     await expect.poll(() => parentOf(projects.id)).toBe(work.id)
     // Work has a subfolder now: it expands
     await expect(mailbox.folder({ id: work.id })).toHaveAttribute(
-      'aria-expanded'
+      'aria-expanded',
+      'true'
     )
 
     await mailbox.toastUndoButton.click()

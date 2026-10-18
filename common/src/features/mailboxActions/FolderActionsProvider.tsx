@@ -9,6 +9,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
   type ReactNode
@@ -77,7 +78,15 @@ export interface FolderActions {
    * a folder dropped onto another does
    */
   moveUnder: (mailbox: MailboxSummary, parentId: string | null) => void
+  /**
+   * Calls `listener` each time a folder moved under another, with the ids of
+   * the new parent and its ancestors: the tree expands them, so that the
+   * user sees where the folder went. Returns the unsubscription
+   */
+  onMovedUnder: (listener: MovedUnderListener) => () => void
 }
+
+export type MovedUnderListener = (parentIds: readonly string[]) => void
 
 const FolderActionsContext = createContext<FolderActions | null>(null)
 
@@ -119,6 +128,18 @@ export function FolderActionsProvider({
   const [ruleFolder, setRuleFolder] = useState<MailboxSummary | null>(null)
   const addRule = useAddRule()
   const createFolder = useCreateFolder()
+  const movedUnderListeners = useRef(new Set<MovedUnderListener>())
+
+  const onMovedUnder = useCallback(
+    (listener: MovedUnderListener): (() => void) => {
+      const listeners = movedUnderListeners.current
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+    []
+  )
 
   const loadMailboxes = useCallback(async (): Promise<MailboxSummary[]> => {
     const data = await queryClient.query({
@@ -206,6 +227,12 @@ export function FolderActionsProvider({
       const previousParentId = mailbox.parentId
       try {
         await sendMailboxSet({ update: { [mailbox.id]: { parentId } } })
+        if (parentId !== null) {
+          const parentIds = [parentId, ...findAncestorIds(list, parentId)]
+          movedUnderListeners.current.forEach(listener => {
+            listener(parentIds)
+          })
+        }
         notify({
           message: t('emailActions.toast.movedTo', {
             destinationMailboxPath:
@@ -583,9 +610,10 @@ export function FolderActionsProvider({
         moveUnder(mailbox, parentId).catch((error: unknown) => {
           fail('common.unknownError', error)
         })
-      }
+      },
+      onMovedUnder
     }),
-    [run, create, moveUnder, fail]
+    [run, create, moveUnder, fail, onMovedUnder]
   )
 
   const handleClose = (): void => {
@@ -677,7 +705,8 @@ export function FolderActionsProvider({
 const NO_FOLDER_ACTIONS: FolderActions = {
   run: () => undefined,
   create: () => undefined,
-  moveUnder: () => undefined
+  moveUnder: () => undefined,
+  onMovedUnder: () => () => undefined
 }
 
 /** The folder actions; without their provider (tests), none */

@@ -326,6 +326,69 @@ describe('Folder actions', () => {
     })
   })
 
+  it('expands the collapsed folder a folder is dropped onto, to show it', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'work', name: 'Work' }),
+        makeMailbox({ id: 'old', name: 'Old', parentId: 'work' }),
+        makeMailbox({ id: 'projects', name: 'Projects' })
+      ]
+    })
+    await renderTree(server)
+    expect(folder('Work')).toHaveAttribute('aria-expanded', 'false')
+    const dataTransfer = makeDataTransfer()
+
+    fireEvent.dragStart(folder('Projects'), { dataTransfer })
+    const target = within(folder('Work')).getByRole('link')
+    fireEvent.dragEnter(target, { dataTransfer })
+    fireEvent.dragOver(target, { dataTransfer })
+    fireEvent.drop(target, { dataTransfer })
+    fireEvent.dragEnd(folder('Projects'), { dataTransfer })
+
+    await waitFor(() => {
+      expect(mailbox(server, 'projects')?.parentId).toBe('work')
+    })
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Moved to Work'
+    )
+    expect(folder('Work')).toHaveAttribute('aria-expanded', 'true')
+    expect(folder('Projects')).toBeVisible()
+  })
+
+  it('expands the collapsed folder a folder moves under from its menu', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: [
+        ...makeDefaultMailboxes(),
+        makeMailbox({ id: 'work', name: 'Work' }),
+        makeMailbox({ id: 'old', name: 'Old', parentId: 'work' }),
+        makeMailbox({ id: 'projects', name: 'Projects' })
+      ]
+    })
+    await renderTree(server)
+
+    await userEvent.click(
+      within(await openMenu('Projects')).getByRole('menuitem', {
+        name: 'Move folder'
+      })
+    )
+    await userEvent.click(
+      within(screen.getByRole('dialog', { name: 'Move To' })).getByRole(
+        'option',
+        { name: 'Work' }
+      )
+    )
+
+    await waitFor(() => {
+      expect(mailbox(server, 'projects')?.parentId).toBe('work')
+    })
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Moved to Work'
+    )
+    expect(folder('Work')).toHaveAttribute('aria-expanded', 'true')
+    expect(folder('Old')).toBeVisible()
+  })
+
   it('refuses a folder dropped onto itself, a subfolder of its own, its parent or a folder with its name', async () => {
     const server = makeFakeJmapServer({
       mailboxes: [

@@ -218,6 +218,8 @@
     "archive": "Archiver la conversation",
     "moveToTrash": "Mettre la conversation à la corbeille",
     "markAsSpam": "Marquer la conversation comme indésirable",
+    "deletePermanently": "Supprimer définitivement la conversation",
+    "notSpam": "Retirer la conversation des indésirables",
     "selection": {
       "count": "%{count} sélectionnés",
       "selectAll": "Tout sélectionner",

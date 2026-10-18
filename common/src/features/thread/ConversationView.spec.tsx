@@ -530,6 +530,90 @@ describe('ConversationView', () => {
     })
   })
 
+  describe('shown from Trash or Spam', () => {
+    function renderFrom(
+      mailboxId: string,
+      onBack: () => void = jest.fn()
+    ): FakeJmapServer {
+      const server = makeServer()
+      for (const email of server.emails) {
+        if (email.id === 'a' || email.id === 'b') {
+          email.mailboxIds = { [mailboxId]: true }
+        }
+      }
+      renderWithProviders(
+        <ConversationView
+          threadId={THREAD}
+          emailId="b"
+          mailboxId={mailboxId}
+          onBack={onBack}
+        />,
+        { withJmapSession: true, jmapServer: server }
+      )
+      return server
+    }
+
+    it('deletes it permanently from Trash, once confirmed, and goes back', async () => {
+      const onBack = jest.fn()
+      const server = renderFrom('mailbox-trash', onBack)
+      await screen.findByRole('list', { name: 'Messages of the conversation' })
+
+      const menu = await openConversationMenu()
+      expect(
+        within(menu).queryByRole('menuitem', {
+          name: 'Move the conversation to trash'
+        })
+      ).toBe(null)
+      await userEvent.click(
+        within(menu).getByRole('menuitem', {
+          name: 'Delete the conversation permanently'
+        })
+      )
+      const dialog = await screen.findByRole('dialog')
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Delete' })
+      )
+
+      await waitFor(() => {
+        expect(server.emails.map(email => email.id).sort()).toEqual([
+          'c',
+          'own'
+        ])
+      })
+      await waitFor(() => {
+        expect(onBack).toHaveBeenCalled()
+      })
+    })
+
+    it('offers "Not spam" in Spam, not "Mark as spam"', async () => {
+      const server = renderFrom('mailbox-spam')
+      await screen.findByRole('list', { name: 'Messages of the conversation' })
+
+      const menu = await openConversationMenu()
+      expect(
+        within(menu).queryByRole('menuitem', {
+          name: 'Mark the conversation as spam'
+        })
+      ).toBe(null)
+      expect(
+        within(menu).getByRole('menuitem', {
+          name: 'Delete the conversation permanently'
+        })
+      ).toBeVisible()
+      await userEvent.click(
+        within(menu).getByRole('menuitem', {
+          name: 'Remove the conversation from spam'
+        })
+      )
+
+      await waitFor(() => {
+        expect(
+          server.emails.find(email => email.id === 'a')?.mailboxIds
+        ).toEqual({ 'mailbox-inbox': true })
+      })
+    })
+  })
+
   it('adds a reply arriving while it is open, collapsed, and announces it', async () => {
     const server = makeServer()
     const { queryClient } = await renderConversation(server)

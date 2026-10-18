@@ -13,6 +13,7 @@ import {
   Archive,
   Email as EmailIcon,
   EmailOpen,
+  NotSpam,
   Star,
   StarOutline,
   Trash,
@@ -34,12 +35,17 @@ import {
   findMailboxIdByRole,
   findTeamHomeId
 } from '@common/features/mailbox/mailboxTree'
+import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
 import {
   useEmailActions,
   type EmailActionName
 } from '@common/features/emailActions/useEmailActions'
+import {
+  deletesForever,
+  useRemoveEmails
+} from '@common/features/emailActions/useRemoveEmails'
 import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -84,6 +90,8 @@ interface ConversationContentProps {
   openedId: string
   /** The folder it is open from, null from search results */
   mailboxId: string | null
+  /** That folder, null from search results or before the folders load */
+  mailbox: MailboxSummary | null
   /** Opened from the row of a list, not from a result or a link */
   fromList: boolean
   /** The Sent mailbox and the address of the user: their own are not news */
@@ -99,6 +107,7 @@ function ConversationContent({
   emails,
   openedId,
   mailboxId,
+  mailbox,
   fromList,
   sentId,
   ownAddress,
@@ -122,6 +131,7 @@ function ConversationContent({
   const countId = `${headerId}-count`
   const subjectRef = useRef<HTMLHeadingElement>(null)
   const { run } = useEmailActions()
+  const removeEmails = useRemoveEmails()
   const subject = emails[emails.length - 1]?.subject ?? ''
   useDocumentTitle(subject)
   // Announced: the messages received since, not the replies the user sent
@@ -236,38 +246,67 @@ function ConversationContent({
     onBack()
   }
 
-  // Team mailboxes have neither Archive nor Spam, as in the menus of a
-  // message: a shared email does not go to the personal folders of a member.
-  // Their Trash is the one of their team mailbox (useEmailActions)
-  const teamExcluded: readonly EmailActionName[] = isTeam
-    ? ['archive', 'markAsSpam']
-    : []
-  const moves: {
-    action: EmailActionName
-    label: string
-    icon: typeof Archive
-    testId: string
-  }[] = [
-    {
-      action: 'archive',
-      label: t('thread.archive'),
-      icon: Archive,
-      testId: 'conversation-archive'
-    },
-    {
-      action: 'moveToTrash',
-      label: t('thread.moveToTrash'),
-      icon: Trash,
-      testId: 'conversation-move-to-trash'
-    },
-    {
-      action: 'markAsSpam',
-      label: t('thread.markAsSpam'),
-      icon: Warning,
-      testId: 'conversation-mark-as-spam'
-    }
+  // In the folder it is shown from, as the menus of a message: out of Spam
+  // there, deleted forever in Trash, Spam and Drafts (with a confirmation),
+  // to Spam from neither Spam nor Drafts. Team mailboxes have neither
+  // Archive nor Spam: a shared email does not go to the personal folders of
+  // a member. Their Trash is the one of their team mailbox (useEmailActions)
+  const role = mailbox?.role ?? null
+  const isSpam = role === 'junk'
+  const handleDeleteForever = (): void => {
+    // Once deleted, the conversation is gone: ConversationView goes back
+    void removeEmails(emails, mailboxId)
+  }
+  const moves: ConversationMenuItem[] = [
+    ...(isSpam
+      ? [
+          {
+            id: 'not-spam',
+            label: t('thread.notSpam'),
+            icon: NotSpam,
+            onSelect: handleMove('markAsNotSpam'),
+            'data-testid': 'conversation-not-spam'
+          }
+        ]
+      : []),
+    ...(isTeam
+      ? []
+      : [
+          {
+            id: 'archive',
+            label: t('thread.archive'),
+            icon: Archive,
+            onSelect: handleMove('archive'),
+            'data-testid': 'conversation-archive'
+          }
+        ]),
+    deletesForever(mailbox)
+      ? {
+          id: 'delete-permanently',
+          label: t('thread.deletePermanently'),
+          icon: Trash,
+          onSelect: handleDeleteForever,
+          'data-testid': 'conversation-delete-permanently'
+        }
+      : {
+          id: 'moveToTrash',
+          label: t('thread.moveToTrash'),
+          icon: Trash,
+          onSelect: handleMove('moveToTrash'),
+          'data-testid': 'conversation-move-to-trash'
+        },
+    ...(isTeam || isSpam || role === 'drafts'
+      ? []
+      : [
+          {
+            id: 'markAsSpam',
+            label: t('thread.markAsSpam'),
+            icon: Warning,
+            onSelect: handleMove('markAsSpam'),
+            'data-testid': 'conversation-mark-as-spam'
+          }
+        ])
   ]
-  const offeredMoves = moves.filter(move => !teamExcluded.includes(move.action))
 
   const readLabel = t(isRead ? 'email.markAsUnread' : 'email.markAsRead')
   const starLabel = t(isStarred ? 'email.unstar' : 'email.star')
@@ -286,13 +325,7 @@ function ConversationContent({
       onSelect: handleToggleStar,
       'data-testid': 'conversation-toggle-star'
     },
-    ...offeredMoves.map(move => ({
-      id: move.action,
-      label: move.label,
-      icon: move.icon,
-      onSelect: handleMove(move.action),
-      'data-testid': move.testId
-    }))
+    ...moves
   ]
   const lastSender = lastArrived?.from?.[0] ?? null
 
@@ -526,6 +559,9 @@ export function ConversationView({
       emails={emails}
       openedId={emailId}
       mailboxId={mailboxId}
+      mailbox={
+        mailboxList.find(candidate => candidate.id === mailboxId) ?? null
+      }
       fromList={fromList}
       sentId={sentId}
       ownAddress={session.username}

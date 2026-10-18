@@ -137,4 +137,12 @@ describe('buildEmailDocument', () => {
     expect(document).toContain('font-src data: https: http:')
     expect(document).toContain('<meta name="referrer" content="no-referrer">')
   })
+
+  it('applies the zoom that fits a wide element in the frame (#653)', () => {
+    const document = buildEmailDocument('<p>Hi</p>')
+
+    expect(document).toContain(
+      '.tmail-fit-scaled { zoom: var(--tmail-fit-zoom) !important; }'
+    )
+  })
 })

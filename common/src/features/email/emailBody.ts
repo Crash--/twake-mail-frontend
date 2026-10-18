@@ -6,6 +6,7 @@ import {
 } from '@/ds/FocusIndicator/focusIndicator'
 
 import { autolink } from './autolink'
+import { FIT_SCALED_CLASS, FIT_ZOOM_PROPERTY } from './fitEmailLayout'
 import {
   normalizeCid,
   readCid,
@@ -58,11 +59,15 @@ body {
   overflow-wrap: anywhere;
   overflow-y: hidden;
 }
-/* A wide table scrolls sideways. Never up and down: the frame takes the
-   height of the content, and \`overflow-x: auto\` alone would also make the
-   wrapper scroll vertically for the fraction of a pixel that its lines add up
-   to over its rounded height */
+/* A wide email is fitted in the width of the frame (\`fitEmailLayout\`):
+   sideways scrolling is only the way out of a layout it could not fit. Never
+   up and down: the frame takes the height of the content, and
+   \`overflow-x: auto\` alone would also make the wrapper scroll vertically for
+   the fraction of a pixel that its lines add up to over its rounded height */
 #${EMAIL_CONTENT_ID} { overflow-x: auto; overflow-y: hidden; }
+/* Unlike a transform, a zoom scales the layout box: the frame takes the
+   height of the scaled content, and links and selection keep working */
+.${FIT_SCALED_CLASS} { zoom: var(${FIT_ZOOM_PROPERTY}) !important; }
 img { max-width: 100%; height: auto; }
 p { margin: 0; }
 /* tmail-flutter writes 16 px on phones (the frame is as wide as the screen) */

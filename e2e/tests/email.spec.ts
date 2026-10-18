@@ -518,6 +518,139 @@ test.describe('EML reading an email', () => {
   })
 
   test(
+    'EML-41 a wide newsletter fits in the reading pane without sideways scrolling, at every width',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const cells = (count: number, width: number): string =>
+        Array.from(
+          { length: count },
+          (_, index) =>
+            `<td width="${String(width)}" style="padding: 8px">Column ${String(index + 1)} of the weekly digest, with a few words to wrap</td>`
+        ).join('')
+      await jmap.sendEmail({
+        to: user.email,
+        subject: 'Wide newsletter',
+        html: [
+          '<p>My answer above the digest</p>',
+          '<blockquote>',
+          '<div style="width: 1200px" id="wide-block">An image-less block of 1200 pixels that reflows to the width of the pane, its text keeping its size</div>',
+          `<table width="900" id="fixed-table"><tr>${cells(3, 300)}</tr><tr><td colspan="3"><img src="${PNG_DATA}" width="900" height="90" alt="Banner"></td></tr></table>`,
+          // Cells that cannot be narrower than 1400 pixels together: scaled down
+          // Padding over a fixed width; a table whose cells keep it wide
+          '<div id="padded-block" style="width: 1200px; background: #ffeedd; padding: 8px">A padded block of 1200 pixels</div>',
+          `<table id="min-width-table" style="min-width: 1400px"><tr>${Array.from({ length: 4 }, (_, index) => `<td style="min-width: 350px">Cell ${String(index + 1)}</td>`).join('')}</tr></table>`,
+          '<table id="unshrinkable"><tr><td style="min-width: 700px">Left column</td><td style="min-width: 700px"><a href="mailto:digest@example.com">Write to the digest</a></td></tr></table>',
+          `<p style="white-space: nowrap" id="nowrap">${'A line that its sender forbids to wrap, longer than the reading pane. '.repeat(4)}</p>`,
+          `<table width="1000" id="quoted-table"><tr>${cells(2, 500)}</tr></table>`,
+          '<p>Unsubscribe from the digest</p>',
+          '</blockquote>'
+        ].join('')
+      })
+      await jmap.waitForEmail({ subject: 'Wide newsletter' })
+      // No view transition over the body to click through
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await mailbox.openEmail('Wide newsletter')
+      const body = email.body()
+      const frame = email.root.getByTestId('email-view-body')
+      const content = body.locator('#tmail-content')
+      await expect(body.getByText('Unsubscribe from the digest')).toBeAttached()
+
+      /** No sideways scrolling, and a frame as high as its content */
+      const expectFitted = async (): Promise<void> => {
+        await expect
+          .poll(() =>
+            content.evaluate(element => element.scrollWidth - element.clientWidth)
+          )
+          .toBeLessThanOrEqual(0)
+        await expect
+          .poll(async () => {
+            const frameHeight = (await frame.boundingBox())?.height ?? 0
+            const contentHeight = await content.evaluate(
+              element => element.getBoundingClientRect().height
+            )
+            // The frame rounds up, and keeps its height for a pixel of change
+            return frameHeight >= contentHeight && frameHeight < contentHeight + 2
+          })
+          .toBe(true)
+        // Nothing cut at the bottom of the frame
+        const { scrollHeight, clientHeight } = await body.evaluate(element => ({
+          scrollHeight: element.ownerDocument.documentElement.scrollHeight,
+          clientHeight: element.ownerDocument.documentElement.clientHeight
+        }))
+        expect(scrollHeight).toBeLessThanOrEqual(clientHeight + 1)
+      }
+
+      // The wide parts are in the quoted history, folded: opening it fits them
+      const toggle = body.getByRole('group').locator('summary')
+      await toggle.click()
+      await expect(body.getByText('Unsubscribe from the digest')).toBeVisible()
+      await expectFitted()
+
+      const widths = await content.evaluate(element => {
+        const width = (selector: string): number =>
+          element.querySelector(selector)?.getBoundingClientRect().width ?? 0
+        return {
+          content: element.clientWidth,
+          block: width('#wide-block'),
+          table: width('#fixed-table'),
+          quoted: width('#quoted-table'),
+          padded: width('#padded-block'),
+          minWidth: width('#min-width-table'),
+          unshrinkable: width('#unshrinkable')
+        }
+      })
+      expect(widths.block).toBeLessThanOrEqual(widths.content)
+      expect(widths.table).toBeLessThanOrEqual(widths.content)
+      expect(widths.quoted).toBeLessThanOrEqual(widths.content)
+      expect(widths.padded).toBeLessThanOrEqual(widths.content)
+      expect(widths.minWidth).toBeLessThanOrEqual(widths.content)
+      expect(widths.unshrinkable).toBeLessThanOrEqual(widths.content)
+      // Reflowed, not scaled: the text keeps its size
+      for (const id of ['#wide-block', '#fixed-table']) {
+        await expect(body.locator(id)).not.toHaveClass(/tmail-fit-scaled/)
+      }
+      const fontSize = await body
+        .locator('#wide-block')
+        .evaluate(element => getComputedStyle(element).fontSize)
+      expect(fontSize).toBe(
+        await body.evaluate(element => getComputedStyle(element).fontSize)
+      )
+      await expect(body.locator('#nowrap')).toHaveCSS('white-space', 'normal')
+      await expect(body.locator('#unshrinkable')).toHaveClass(/tmail-fit-scaled/)
+      await expect(body.locator('#min-width-table')).toHaveClass(
+        /tmail-fit-scaled/
+      )
+      // The padding stays inside the width: reflowed, not scaled
+      await expect(body.locator('#padded-block')).not.toHaveClass(
+        /tmail-fit-scaled/
+      )
+
+      // A narrower window fits it again (within the same layout of the app,
+      // which would open the email anew)
+      const viewport = page.viewportSize() ?? { width: 1280, height: 720 }
+      await page.setViewportSize({
+        width: viewport.width - 40,
+        height: viewport.height
+      })
+      await expect
+        .poll(() => content.evaluate(element => element.clientWidth))
+        .toBeLessThan(widths.content)
+      await expectFitted()
+
+      // The links of a scaled part still answer the pointer
+      const composer = await email.openComposerFromBodyLink(
+        'Write to the digest'
+      )
+      await expect(
+        composer.recipients('to').filter({ hasText: 'digest@example.com' })
+      ).toBeVisible()
+      await expectNoA11yViolations(page)
+    }
+  )
+
+  test(
     'EML-36 the quoted history of an answer is folded behind a button',
     {
       tag: '@mobile'

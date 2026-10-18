@@ -108,6 +108,12 @@ export class EmailPage {
     return this.#composer()
   }
 
+  /** Follows a `mailto:` link of the body with the pointer: a new composer */
+  async openComposerFromBodyLink(name: string): Promise<ComposerPage> {
+    await this.bodyLink(name).click()
+    return this.#composer()
+  }
+
   async reply(): Promise<ComposerPage> {
     await this.replyButton.click()
     return this.#composer()

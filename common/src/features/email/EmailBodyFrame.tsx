@@ -5,6 +5,7 @@ import { LinkTooltip, type LinkRect } from '@/ds/LinkTooltip/LinkTooltip'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { EMAIL_CONTENT_ID } from './emailBody'
+import { fitEmailLayout, type UndoFit } from './fitEmailLayout'
 
 /**
  * No `allow-scripts`: nothing in the email can run, even if sanitization
@@ -219,11 +220,46 @@ export function EmailBodyFrame({
           : previous
       )
     }
-    measure()
     // The window the node is rendered in, maybe not this one (the overlay of
     // TwakeSpace): an observer only follows the documents of its own window
     const view = frameRef.current?.ownerDocument.defaultView ?? window
-    const observer = new view.ResizeObserver(measure)
+
+    // A wide email fits in the width of the frame, again when that width
+    // changes, an image loads or the quoted history opens: once per frame
+    let undoFit: UndoFit = () => undefined
+    let fittedWidth = -1
+    let fitPending = false
+    const fit = (): void => {
+      fitPending = false
+      undoFit()
+      undoFit = fitEmailLayout(content)
+      fittedWidth = content.clientWidth
+      measure()
+    }
+    const scheduleFit = (): void => {
+      if (fitPending) return
+      fitPending = true
+      view.requestAnimationFrame(fit)
+    }
+    // The elements of the frame are of its own window
+    const FrameImage = frameDocument.defaultView?.HTMLImageElement
+    frameDocument.addEventListener(
+      'load',
+      event => {
+        if (FrameImage !== undefined && event.target instanceof FrameImage) {
+          scheduleFit()
+        }
+      },
+      true
+    )
+    // `toggle` does not bubble: heard on its way down
+    frameDocument.addEventListener('toggle', scheduleFit, true)
+
+    fit()
+    const observer = new view.ResizeObserver(() => {
+      if (content.clientWidth !== fittedWidth) scheduleFit()
+      measure()
+    })
     observer.observe(content)
     observerRef.current = observer
   }

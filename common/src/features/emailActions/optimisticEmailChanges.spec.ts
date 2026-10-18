@@ -99,11 +99,12 @@ function counters(queryClient: QueryClient): Record<string, string> {
   )
 }
 
-function archive(queryClient: QueryClient, emailId: string): void {
+/** Whether the update showed all the change */
+function archive(queryClient: QueryClient, emailId: string): boolean {
   const rows = findListRows(queryClient, ACCOUNT, [emailId])
   const target = findCachedEmail(queryClient, ACCOUNT, emailId)
   if (target === null) throw new Error(`No ${emailId} in the cache`)
-  applyEmailChanges(
+  return applyEmailChanges(
     queryClient,
     ACCOUNT,
     planEmailChanges([target], { kind: 'move', from: INBOX, to: ARCHIVE }),
@@ -296,6 +297,82 @@ describe('applyEmailChanges', () => {
         .getQueryData<EmailListData>(key)
         ?.pages[0]?.emails.map(item => item.id)
     ).toEqual(['o1'])
+  })
+})
+
+describe('applyEmailChanges: complete or not', () => {
+  it('is complete when every list can place the change alone', () => {
+    const queryClient = setUp()
+
+    expect(archive(queryClient, 'a')).toBe(true)
+  })
+
+  it('is not complete for an email without its row', () => {
+    const queryClient = setUp()
+
+    expect(
+      applyEmailChanges(
+        queryClient,
+        ACCOUNT,
+        planEmailChanges([email('a', 20)], {
+          kind: 'move',
+          from: INBOX,
+          to: ARCHIVE
+        }),
+        new Map()
+      )
+    ).toBe(false)
+  })
+
+  it('is complete for a destroyed email, row or not', () => {
+    const queryClient = setUp()
+
+    expect(
+      applyEmailChanges(
+        queryClient,
+        ACCOUNT,
+        [{ before: email('a', 20), after: null }],
+        new Map()
+      )
+    ).toBe(true)
+  })
+
+  it('is not complete when search results may now hold the email', () => {
+    const queryClient = setUp()
+    queryClient.setQueryData(
+      threadKeys.search(ACCOUNT, {
+        filter: { hasKeyword: '$flagged' },
+        sort: [{ property: 'receivedAt', isAscending: false }]
+      }),
+      list([])
+    )
+    const rows = findListRows(queryClient, ACCOUNT, ['a'])
+
+    expect(
+      applyEmailChanges(
+        queryClient,
+        ACCOUNT,
+        planEmailChanges([email('a', 20)], {
+          kind: 'keyword',
+          keyword: '$flagged',
+          isSet: true
+        }),
+        rows
+      )
+    ).toBe(false)
+  })
+
+  it('is complete when the search results list the email', () => {
+    const queryClient = setUp()
+    queryClient.setQueryData(
+      threadKeys.search(ACCOUNT, {
+        filter: { text: 'news' },
+        sort: [{ property: 'receivedAt', isAscending: false }]
+      }),
+      list([email('a', 20)])
+    )
+
+    expect(archive(queryClient, 'a')).toBe(true)
   })
 })
 

@@ -21,6 +21,7 @@ import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import type { EmailListItemData } from '@common/features/thread/queries'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import { ownStatesOf } from '@common/features/push/ownStates'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -287,7 +288,15 @@ export function useEmailActions(): EmailActions {
         ...knownRows,
         ...findListRows(queryClient, accountId, ids)
       ])
-      applyEmailChanges(queryClient, accountId, changes, rows)
+      const isComplete = applyEmailChanges(
+        queryClient,
+        accountId,
+        changes,
+        rows
+      )
+      const ownStates = ownStatesOf(client, accountId)
+      // Its push may come before its answer: it waits for it
+      const settle = isComplete ? ownStates.track('Email') : null
       const { failedIds, error } = await sendEmailChanges(
         client,
         accountId,
@@ -295,9 +304,20 @@ export function useEmailActions(): EmailActions {
         {
           batchSize,
           extraCapabilities,
-          onProgress: onProgress && (sent => onProgress(sent, changes.length))
+          onProgress: onProgress && (sent => onProgress(sent, changes.length)),
+          // The lists already show these changes: their push needs no
+          // `Email/changes`
+          ...(isComplete
+            ? {
+                onStateChanged: (oldState: string, newState: string) => {
+                  ownStates.record('Email', oldState, newState)
+                }
+              }
+            : {})
         }
-      )
+      ).finally(() => {
+        settle?.()
+      })
       const failedSet = new Set(failedIds)
       const failed = changes.filter(change => failedSet.has(change.before.id))
       if (failed.length > 0) {

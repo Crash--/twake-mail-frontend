@@ -7,7 +7,10 @@ import {
   type MailboxListData
 } from '@common/features/mailbox/queries'
 import { patchEmailList } from '@common/features/thread/patchEmailList'
-import { patchQueryList } from '@common/features/thread/patchQueryList'
+import {
+  patchQueryList,
+  queryListScope
+} from '@common/features/thread/patchQueryList'
 import {
   patchThreadList,
   type ThreadEmailUpdate
@@ -43,14 +46,6 @@ function isSearchList(key: QueryKey, accountId: string): boolean {
 function searchListRequest(key: QueryKey): SearchRequest | null {
   const request: unknown = key[3]
   return isSearchRequest(request) ? request : null
-}
-
-/** The folder a search list is the filtered view of, if it is */
-function filteredListMailboxId(key: QueryKey): string | null {
-  const request: unknown = key[3]
-  return isSearchRequest(request) && request.mailboxId !== undefined
-    ? request.mailboxId
-    : null
 }
 
 /** The mailbox of a list of conversations (one row per thread) */
@@ -168,15 +163,18 @@ function countIn(
  *   counts of the server afterwards, which are absolute: nothing is
  *   counted twice.
  *
- * `rows` are the list rows of the emails, taken before any change.
+ * `rows` are the list rows of the emails, taken before any change. Returns
+ * whether the email lists and opened emails now show all that the push of
+ * the changes would bring (the mailbox counters aside): then that push
+ * needs no `Email/changes` (`ownStates`).
  */
 export function applyEmailChanges(
   queryClient: QueryClient,
   accountId: string,
   changes: readonly EmailChange[],
   rows: ReadonlyMap<string, EmailListItemData>
-): void {
-  if (changes.length === 0) return
+): boolean {
+  if (changes.length === 0) return true
   const destroyed = changes
     .filter(change => change.after === null)
     .map(change => change.before.id)
@@ -204,6 +202,10 @@ export function applyEmailChanges(
         ]
   )
 
+  // Whether the lists now show all a push of the changes would bring: not
+  // when an email without a row (an opened email) enters or moves, nor when
+  // a list needs the server to place a change
+  let isComplete = leaving.length === 0
   for (const [key, data] of queryClient.getQueriesData<EmailListData>({
     queryKey: threadKeys.all(accountId)
   })) {
@@ -214,36 +216,29 @@ export function applyEmailChanges(
       // place alone); search results keep their emails where they are, in
       // their new state
       const conversationsOf = conversationListMailboxId(key, accountId)
+      const request = searchListRequest(key)
       if (conversationsOf !== null) {
-        queryClient.setQueryData<EmailListData>(key, current =>
-          current
-            ? patchThreadList(current, conversationsOf, {
-                changed: updates,
-                destroyed,
-                newStates: new Map(),
-                rows
-              }).data
-            : current
-        )
+        const patch = patchThreadList(data, conversationsOf, {
+          changed: updates,
+          destroyed,
+          newStates: new Map(),
+          rows
+        })
+        if (
+          patch.unknownThreadIds.length > 0 ||
+          patch.missingRowIds.length > 0
+        ) {
+          isComplete = false
+        }
+        queryClient.setQueryData<EmailListData>(key, patch.data)
       } else if (isSearchList(key, accountId)) {
-        const request = searchListRequest(key)
-        const filteredMailboxId = filteredListMailboxId(key)
-        queryClient.setQueryData<EmailListData>(key, current =>
-          current
-            ? patchQueryList(
-                current,
-                { changed: updates, destroyed, newStates: new Map() },
-                {
-                  ...(filteredMailboxId === null
-                    ? {}
-                    : { mailboxId: filteredMailboxId }),
-                  ...(request?.isListFiltered === true
-                    ? { filter: request.filter, dropsNonMatching: true }
-                    : {})
-                }
-              ).data
-            : current
+        const patch = patchQueryList(
+          data,
+          { changed: updates, destroyed, newStates: new Map() },
+          request === null ? {} : queryListScope(request)
         )
+        if (patch.needsRefresh) isComplete = false
+        queryClient.setQueryData<EmailListData>(key, patch.data)
       }
       continue
     }
@@ -324,4 +319,5 @@ export function applyEmailChanges(
         })
       }
   )
+  return isComplete
 }

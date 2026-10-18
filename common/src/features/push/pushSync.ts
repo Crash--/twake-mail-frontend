@@ -18,6 +18,7 @@ import { fetchThreadUpdates } from '@common/features/thread/fetchThreadUpdates'
 import { patchConversation } from '@common/features/thread/patchConversation'
 import {
   patchQueryList,
+  queryListScope,
   type QueryListScope
 } from '@common/features/thread/patchQueryList'
 import {
@@ -36,6 +37,7 @@ import {
 import { refreshQueryList } from '@common/features/thread/refreshQueryList'
 
 import { fetchChanges, type TypeChanges } from './fetchChanges'
+import { ownStatesOf } from './ownStates'
 
 /** The JMAP data types the app follows over push */
 export type SyncedType = 'Email' | 'Mailbox'
@@ -52,6 +54,12 @@ const MAX_EMAIL_STATES = 4
 
 /** Synchronizations a list or the mailboxes can trigger between two pushes */
 const MAX_FOLLOW_UPS = 3
+
+/**
+ * How long a pushed `Email` state waits for our own `Email/set` on its way
+ * (its push comes before its response), before its changes are read
+ */
+export const OWN_SET_WAIT_MS = 3000
 
 export interface PushSync {
   /** The server pushed new states (`StateChange` of the account) */
@@ -98,16 +106,7 @@ function describeList(key: QueryKey, accountId: string): CachedList | null {
     return { kind: 'threads', mailboxId: value }
   }
   if (kind === 'search' && isSearchRequest(value)) {
-    return {
-      kind: 'query',
-      request: value,
-      scope: {
-        isCollapsed: value.collapseThreads === true,
-        filter: value.filter,
-        dropsNonMatching: value.isListFiltered === true,
-        ...(value.mailboxId === undefined ? {} : { mailboxId: value.mailboxId })
-      }
-    }
+    return { kind: 'query', request: value, scope: queryListScope(value) }
   }
   return null
 }
@@ -151,7 +150,10 @@ function mergeEmailChanges(
  *   change was pushed) start another one;
  * - when the changes cannot be computed, the email lists at the states that
  *   failed are cut to their first page and refetched, the mailboxes
- *   refetched.
+ *   refetched;
+ * - a pushed `Email` state the cached lists reach through our own changes
+ *   only (`ownStates`: optimistic updates the server confirmed) takes no
+ *   `Email/changes`: the lists already show them and only take the state.
  */
 export function createPushSync(
   queryClient: QueryClient,
@@ -159,6 +161,7 @@ export function createPushSync(
   accountId: string
 ): PushSync {
   const cache = queryClient.getQueryCache()
+  const ownStates = ownStatesOf(client, accountId)
   /** The newest states the server told about */
   const latest: Record<SyncedType, string | null> = {
     Email: null,
@@ -166,6 +169,10 @@ export function createPushSync(
   }
   const requested = new Set<SyncedType>()
   let running: Promise<void> | null = null
+  /** The `Email` changes are being read, or about to be */
+  let isSyncingEmail = false
+  /** A pushed `Email` state waiting for our own `Email/set` on its way */
+  let waitingOwnSet: Promise<void> | null = null
   let followUps = 0
   let isClosed = false
 
@@ -211,6 +218,67 @@ export function createPushSync(
     const states = emailListStates()
     if (states.size === 0) return !hasEmailDetails()
     return [...states].every(candidate => candidate === state)
+  }
+
+  /**
+   * Whether every cached email list reaches `state` through our own changes
+   * alone, while the email changes are not being read (their patch would
+   * come after)
+   */
+  function isOwnEmailState(state: string): boolean {
+    if (isSyncingEmail || requested.has('Email')) return false
+    const states = emailListStates()
+    return (
+      states.size > 0 &&
+      [...states].every(from => ownStates.leadsTo('Email', from, state))
+    )
+  }
+
+  /** The cached lists show `state` already: their pages take it */
+  function moveEmailListsTo(state: string): void {
+    for (const key of emailListKeys()) {
+      if (describeList(key, accountId)?.kind === 'conversation') {
+        queryClient.setQueryData<ConversationData>(key, data =>
+          data ? { ...data, state } : data
+        )
+      } else {
+        queryClient.setQueryData<EmailListData>(key, data =>
+          data
+            ? { ...data, pages: data.pages.map(page => ({ ...page, state })) }
+            : data
+        )
+      }
+    }
+  }
+
+  /**
+   * Brings the lists to the newest pushed `Email` state: our own changes
+   * alone take no request. While one of our `Email/set` is on its way, its
+   * push may have come first: its answer, which tells its states, is waited
+   * for (at most `OWN_SET_WAIT_MS`).
+   */
+  function settleEmail(): void {
+    const state = latest.Email
+    if (state === null || isUpToDate('Email', state)) return
+    if (ownStates.isPending('Email')) {
+      let timer: ReturnType<typeof setTimeout> | undefined
+      waitingOwnSet = Promise.race([
+        ownStates.whenSettled('Email'),
+        new Promise<void>(resolve => {
+          timer = setTimeout(resolve, OWN_SET_WAIT_MS)
+        })
+      ]).then(() => {
+        clearTimeout(timer)
+        waitingOwnSet = null
+        if (isClosed) return
+        // Still on its way: read the changes
+        if (ownStates.isPending('Email')) request(['Email'])
+        else settleEmail()
+      })
+      return
+    }
+    if (isOwnEmailState(state)) moveEmailListsTo(state)
+    else request(['Email'])
   }
 
   function refetchMailboxes(): void {
@@ -434,10 +502,13 @@ export function createPushSync(
     while (requested.size > 0 && !isClosed) {
       const types = new Set(requested)
       requested.clear()
+      isSyncingEmail = types.has('Email')
       try {
         await synchronize(types)
       } catch (error: unknown) {
         logError(error)
+      } finally {
+        isSyncingEmail = false
       }
     }
   }
@@ -485,7 +556,11 @@ export function createPushSync(
         const state = states[type]
         if (state === undefined) continue
         latest[type] = state
-        if (!isUpToDate(type, state)) stale.push(type)
+        if (type === 'Email') {
+          if (waitingOwnSet === null) settleEmail()
+        } else if (!isUpToDate(type, state)) {
+          stale.push(type)
+        }
       }
       request(stale)
     },
@@ -493,7 +568,9 @@ export function createPushSync(
       request(SYNCED_TYPES)
     },
     whenIdle: async () => {
-      while (running !== null) await running
+      while (running !== null || waitingOwnSet !== null) {
+        await (waitingOwnSet ?? running)
+      }
     },
     close: () => {
       isClosed = true

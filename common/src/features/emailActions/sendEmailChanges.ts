@@ -35,6 +35,11 @@ export interface SendOptions {
   extraCapabilities?: readonly string[]
   /** After each request: how many emails were sent so far */
   onProgress?: (sent: number) => void
+  /**
+   * After each request the server accepted whole: the `Email` state it
+   * moved from and to (`ownStates`)
+   */
+  onStateChanged?: (oldState: string, newState: string) => void
 }
 
 /**
@@ -47,7 +52,7 @@ export async function sendEmailChanges(
   client: JmapClient,
   accountId: string,
   changes: readonly EmailChange[],
-  { batchSize, extraCapabilities = [], onProgress }: SendOptions
+  { batchSize, extraCapabilities = [], onProgress, onStateChanged }: SendOptions
 ): Promise<SendResult> {
   const failedIds: string[] = []
   for (let start = 0; start < changes.length; start += batchSize) {
@@ -69,10 +74,14 @@ export async function sendEmailChanges(
         },
         { extraCapabilities }
       )
-      failedIds.push(
+      const refused = [
         ...Object.keys(response.notUpdated ?? {}),
         ...Object.keys(response.notDestroyed ?? {})
-      )
+      ]
+      failedIds.push(...refused)
+      if (refused.length === 0 && response.oldState !== null) {
+        onStateChanged?.(response.oldState, response.newState)
+      }
       onProgress?.(start + batch.length)
     } catch (error: unknown) {
       failedIds.push(...changes.slice(start).map(change => change.before.id))

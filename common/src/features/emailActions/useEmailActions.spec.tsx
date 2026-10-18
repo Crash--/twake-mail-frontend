@@ -2,10 +2,12 @@ import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
+import { ownStatesOf } from '@common/features/push/ownStates'
 import { EmailList } from '@common/features/thread/EmailList'
+import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { SHARES_CAPABILITY } from '@common/jmap/queries'
 import {
   FAKE_ACCOUNT_ID,
@@ -55,6 +57,26 @@ function ActionButton({
   )
 }
 
+/** Tells whether our own changes lead from `from` to `to` (`ownStates`) */
+function OwnStatesProbe({
+  from,
+  to
+}: {
+  from: string
+  to: () => string
+}): ReactElement {
+  const client = useJmapClient()
+  const [leads, setLeads] = useState<boolean | null>(null)
+  const handleClick = (): void => {
+    setLeads(ownStatesOf(client, FAKE_ACCOUNT_ID).leadsTo('Email', from, to()))
+  }
+  return (
+    <button type="button" onClick={handleClick}>
+      {`Own states lead: ${String(leads)}`}
+    </button>
+  )
+}
+
 function makeServer(
   options: Parameters<typeof makeFakeJmapServer>[0] = {}
 ): FakeJmapServer {
@@ -82,13 +104,15 @@ function makeServer(
 
 async function renderActions(
   server: FakeJmapServer,
-  buttons: ActionButtonProps[]
+  buttons: ActionButtonProps[],
+  probe: ReactElement | null = null
 ): Promise<void> {
   renderWithProviders(
     <>
       {buttons.map(button => (
         <ActionButton key={button.action} {...button} />
       ))}
+      {probe}
       <MailboxTree />
       <VirtuosoMockContext.Provider
         value={{ viewportHeight: 100_000, itemHeight: 56 }}
@@ -316,6 +340,54 @@ describe('useEmailActions', () => {
       methodCalls.some(([name]) => name === 'Email/set')
     )
     expect(request?.using).toContain(SHARES_CAPABILITY)
+  })
+
+  it('remembers its accepted Email/set, for its push to need no Email/changes', async () => {
+    const server = makeServer()
+    const from = server.states().Email
+    await renderActions(
+      server,
+      [{ action: 'markAsRead', emailIds: ['e1'] }],
+      <OwnStatesProbe from={from} to={() => server.states().Email} />
+    )
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Run markAsRead' })
+    )
+    await waitFor(() => {
+      expect(emailSets(server)).toHaveLength(1)
+    })
+    await userEvent.click(
+      screen.getByRole('button', { name: /Own states lead/ })
+    )
+
+    expect(
+      await screen.findByRole('button', { name: 'Own states lead: true' })
+    ).not.toBe(null)
+  })
+
+  it('does not remember an Email/set the server refused in part', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined)
+    const server = makeServer()
+    server.setErrors.set('e1', 'forbidden')
+    const from = server.states().Email
+    await renderActions(
+      server,
+      [{ action: 'markAsRead', emailIds: ['e1'] }],
+      <OwnStatesProbe from={from} to={() => server.states().Email} />
+    )
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Run markAsRead' })
+    )
+    await screen.findByTestId('toast')
+    await userEvent.click(
+      screen.getByRole('button', { name: /Own states lead/ })
+    )
+
+    expect(
+      await screen.findByRole('button', { name: 'Own states lead: false' })
+    ).not.toBe(null)
   })
 })
 

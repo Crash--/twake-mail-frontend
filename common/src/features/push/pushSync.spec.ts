@@ -3,6 +3,13 @@ import { createClient, type JmapClient } from 'jmap-client-ts'
 import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import {
+  applyEmailChanges,
+  findListRows
+} from '@common/features/emailActions/optimisticEmailChanges'
+import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
+import { sendEmailChanges } from '@common/features/emailActions/sendEmailChanges'
+import { emailQueryOptions } from '@common/features/email/queries'
+import {
   mailboxesQueryOptions,
   type MailboxListData
 } from '@common/features/mailbox/queries'
@@ -28,7 +35,8 @@ import {
 } from '@common/testing/fakeJmapServer'
 
 import { MAX_CHANGES_ROUNDS } from './fetchChanges'
-import { createPushSync, type PushSync } from './pushSync'
+import { MAX_OWN_STATES, ownStatesOf } from './ownStates'
+import { createPushSync, OWN_SET_WAIT_MS, type PushSync } from './pushSync'
 
 const INBOX = 'mailbox-inbox'
 const ARCHIVE = 'mailbox-archive'
@@ -45,6 +53,11 @@ function makeEmails(count: number): FakeEmail[] {
 
 interface Setup {
   server: FakeJmapServer
+  /**
+   * Holds the answers of the next `Email/set` once the server applied it,
+   * as James answers after its push; returns the call that lets them go
+   */
+  holdSetAnswers: () => () => void
   client: JmapClient
   queryClient: QueryClient
   sync: PushSync
@@ -54,10 +67,31 @@ async function makeSetup(
   init: Parameters<typeof makeFakeJmapServer>[0] = {}
 ): Promise<Setup> {
   const server = makeFakeJmapServer(init)
+  let answersHeld: Promise<void> | null = null
+  const holdSetAnswers = (): (() => void) => {
+    let release = (): void => undefined
+    answersHeld = new Promise<void>(resolve => {
+      release = resolve
+    })
+    return release
+  }
   const client = createClient({
     sessionUrl: FAKE_SESSION_URL,
     auth: { getAuthorizationHeader: () => Promise.resolve('Basic dGVzdA==') },
-    fetch: server.fetch,
+    fetch: async (input, init) => {
+      const response = await server.fetch(input, init)
+      const held = answersHeld
+      const body = init?.body
+      if (
+        held !== null &&
+        typeof body === 'string' &&
+        body.includes('"Email/set"')
+      ) {
+        answersHeld = null
+        await held
+      }
+      return response
+    },
     methodCapabilities: LINAGORA_METHOD_CAPABILITIES
   })
   await client.getSession()
@@ -65,7 +99,7 @@ async function makeSetup(
     defaultOptions: { queries: { retry: false, staleTime: Infinity } }
   })
   const sync = createPushSync(queryClient, client, FAKE_ACCOUNT_ID)
-  return { server, client, queryClient, sync }
+  return { server, holdSetAnswers, client, queryClient, sync }
 }
 
 async function loadInbox(
@@ -118,6 +152,67 @@ async function until(condition: () => boolean): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 5))
   }
   throw new Error('Condition not met')
+}
+
+/**
+ * Changes an email as the email actions do: optimistic update, then
+ * `Email/set`, its state change remembered when the update was complete
+ */
+async function changeOwnEmail(
+  { client, queryClient }: Setup,
+  before: TargetEmail,
+  after: TargetEmail
+): Promise<void> {
+  const rows = findListRows(queryClient, FAKE_ACCOUNT_ID, [before.id])
+  const isComplete = applyEmailChanges(
+    queryClient,
+    FAKE_ACCOUNT_ID,
+    [{ before, after }],
+    rows
+  )
+  const settle = isComplete
+    ? ownStatesOf(client, FAKE_ACCOUNT_ID).track('Email')
+    : null
+  await sendEmailChanges(client, FAKE_ACCOUNT_ID, [{ before, after }], {
+    batchSize: 50,
+    ...(isComplete
+      ? {
+          onStateChanged: (oldState: string, newState: string) => {
+            ownStatesOf(client, FAKE_ACCOUNT_ID).record(
+              'Email',
+              oldState,
+              newState
+            )
+          }
+        }
+      : {})
+  }).finally(() => {
+    settle?.()
+  })
+}
+
+/** Our own change sent, applied by the server, its answer held */
+async function sendOwnChangeHeld(
+  setup: Setup,
+  [before, after]: [TargetEmail, TargetEmail]
+): Promise<{ release: () => void; sent: Promise<void> }> {
+  const release = setup.holdSetAnswers()
+  const stateBefore = setup.server.states().Email
+  const sent = changeOwnEmail(setup, before, after)
+  await until(() => setup.server.states().Email !== stateBefore)
+  return { release, sent }
+}
+
+function readEmail(id: string): [TargetEmail, TargetEmail] {
+  return [
+    { id, mailboxIds: { [INBOX]: true }, keywords: {} },
+    { id, mailboxIds: { [INBOX]: true }, keywords: { $seen: true } }
+  ]
+}
+
+function unreadEmail(id: string): [TargetEmail, TargetEmail] {
+  const [unread, read] = readEmail(id)
+  return [read, unread]
 }
 
 function lastPage(setup: Setup): EmailListPage {
@@ -180,6 +275,297 @@ describe('createPushSync', () => {
     await pushNow(setup)
 
     expect(setup.server.requests.length).toBe(before)
+  })
+
+  describe('our own changes (tf#3394)', () => {
+    it('takes the pushed state of our own change without Email/changes', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      await changeOwnEmail(setup, ...readEmail('e1'))
+      const before = setup.server.requests.length
+
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before)).toEqual([])
+      expect(inboxData(setup).pages.map(page => page.state)).toEqual([
+        setup.server.states().Email
+      ])
+      expect(
+        inboxData(setup).pages[0]?.emails.find(email => email.id === 'e1')
+          ?.keywords
+      ).toEqual({ $seen: true })
+    })
+
+    it('still reads the changes of the mailboxes our change moved', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      await setup.queryClient.query(
+        mailboxesQueryOptions(setup.client, FAKE_ACCOUNT_ID)
+      )
+      await changeOwnEmail(setup, ...readEmail('e1'))
+      const before = setup.server.requests.length
+
+      await pushNow(setup)
+
+      const methods = methodsSince(setup, before).flat()
+      expect(methods).not.toContain('Email/changes')
+      expect(methods).toContain('Mailbox/changes')
+    })
+
+    it('takes a chain of our own changes pushed at once', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      await changeOwnEmail(setup, ...readEmail('e0'))
+      await changeOwnEmail(setup, ...readEmail('e1'))
+      await changeOwnEmail(setup, ...readEmail('e2'))
+      const before = setup.server.requests.length
+
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before)).toEqual([])
+      expect(lastPage(setup).state).toBe(setup.server.states().Email)
+    })
+
+    it('reads the changes made elsewhere', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      const before = setup.server.requests.length
+
+      setup.server.updateEmail('e1', { keywords: { $seen: true } })
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get']
+      ])
+    })
+
+    it('reads the changes when one made elsewhere comes between ours', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      await changeOwnEmail(setup, ...readEmail('e0'))
+      setup.server.updateEmail('e1', { keywords: { $flagged: true } })
+      await changeOwnEmail(setup, ...readEmail('e2'))
+      const before = setup.server.requests.length
+
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get']
+      ])
+      expect(
+        inboxData(setup).pages[0]?.emails.find(email => email.id === 'e1')
+          ?.keywords
+      ).toEqual({ $flagged: true })
+    })
+
+    it('reads only the change made elsewhere after ours', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      await changeOwnEmail(setup, ...readEmail('e0'))
+      await pushNow(setup)
+      const ownState = lastPage(setup).state
+      const before = setup.server.requests.length
+
+      setup.server.updateEmail('e1', { keywords: { $flagged: true } })
+      await pushNow(setup)
+
+      const changes = setup.server.requests
+        .slice(before)
+        .flatMap(request => request.methodCalls)
+        .find(([name]) => name === 'Email/changes')
+      expect(changes?.[1]).toMatchObject({ sinceState: ownState })
+    })
+
+    it('reads the changes once our oldest change is forgotten', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      for (let index = 0; index <= MAX_OWN_STATES; index++) {
+        await changeOwnEmail(
+          setup,
+          ...(index % 2 === 0 ? readEmail('e1') : unreadEmail('e1'))
+        )
+      }
+      const before = setup.server.requests.length
+
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before)[0]).toContain('Email/changes')
+    })
+
+    it('waits for the answer of our own change when its push comes first', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      const { release, sent } = await sendOwnChangeHeld(setup, readEmail('e1'))
+      const before = setup.server.requests.length
+
+      setup.sync.stateChanged(setup.server.states())
+      release()
+      await sent
+      await setup.sync.whenIdle()
+
+      expect(methodsSince(setup, before)).toEqual([])
+      expect(lastPage(setup).state).toBe(setup.server.states().Email)
+    })
+
+    it('opens an unread email from a list of conversations: its push needs no Email/changes', async () => {
+      // The path of the reading view: the conversations of the Inbox, the
+      // conversation and the email opened, marked read, its push first
+      const setup = await makeSetup({
+        emails: [
+          makeEmail({
+            id: 't1',
+            threadId: 'thread',
+            receivedAt: '2026-09-01T08:00:00Z',
+            keywords: { $seen: true }
+          }),
+          makeEmail({
+            id: 't2',
+            threadId: 'thread',
+            receivedAt: '2026-09-01T09:00:00Z',
+            keywords: {}
+          }),
+          makeEmail({ id: 'alone', receivedAt: '2026-09-01T07:00:00Z' })
+        ]
+      })
+      const observer = new InfiniteQueryObserver(
+        setup.queryClient,
+        emailListSourceQueryOptions(setup.client, FAKE_ACCOUNT_ID, {
+          kind: 'mailbox',
+          mailboxId: INBOX,
+          collapseThreads: true
+        })
+      )
+      const unsubscribe = observer.subscribe(() => undefined)
+      const key = threadKeys.threads(FAKE_ACCOUNT_ID, INBOX)
+      await until(
+        () =>
+          (setup.queryClient.getQueryData<EmailListData>(key)?.pages.length ??
+            0) > 0
+      )
+      await setup.queryClient.query(
+        conversationQueryOptions(setup.client, FAKE_ACCOUNT_ID, 'thread', 't2')
+      )
+      const opened = await setup.queryClient.query(
+        emailQueryOptions(setup.client, FAKE_ACCOUNT_ID, 't2')
+      )
+      if (opened === null) throw new Error('No email t2')
+      await setup.queryClient.query(
+        mailboxesQueryOptions(setup.client, FAKE_ACCOUNT_ID)
+      )
+      const { release, sent } = await sendOwnChangeHeld(setup, [
+        opened,
+        { ...opened, keywords: { $seen: true } }
+      ])
+      const before = setup.server.requests.length
+
+      setup.sync.stateChanged(setup.server.states())
+      release()
+      await sent
+      await setup.sync.whenIdle()
+
+      const methods = methodsSince(setup, before).flat()
+      expect(methods).not.toContain('Email/changes')
+      expect(methods).toContain('Mailbox/changes')
+      const page = setup.queryClient.getQueryData<EmailListData>(key)?.pages[0]
+      expect(page?.state).toBe(setup.server.states().Email)
+      expect(page?.threads?.thread?.map(member => member.keywords)).toEqual([
+        { $seen: true },
+        { $seen: true }
+      ])
+      expect(
+        setup.queryClient.getQueryData<ConversationData>(
+          conversationKeys.detail(FAKE_ACCOUNT_ID, 'thread')
+        )?.state
+      ).toBe(setup.server.states().Email)
+      unsubscribe()
+    })
+
+    it('reads the changes when one made elsewhere comes while it waits', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      const { release, sent } = await sendOwnChangeHeld(setup, readEmail('e1'))
+      setup.server.updateEmail('e2', { keywords: { $flagged: true } })
+      const before = setup.server.requests.length
+
+      setup.sync.stateChanged(setup.server.states())
+      release()
+      await sent
+      await setup.sync.whenIdle()
+
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get']
+      ])
+    })
+
+    it('reads the changes when our own change is refused while it waits', async () => {
+      const setup = await makeSetup({ emails: makeEmails(3) })
+      await loadInbox(setup, 1)
+      setup.server.setErrors.set('e1', 'forbidden')
+      const release = setup.holdSetAnswers()
+      const sent = changeOwnEmail(setup, ...readEmail('e1'))
+      await until(() => setup.server.callsOf('Email/set').length === 1)
+      // Something else changed meanwhile
+      setup.server.updateEmail('e2', { keywords: { $flagged: true } })
+      const before = setup.server.requests.length
+
+      setup.sync.stateChanged(setup.server.states())
+      release()
+      await sent
+      await setup.sync.whenIdle()
+
+      expect(methodsSince(setup, before)).toEqual([
+        ['Email/changes', 'Email/get', 'Email/get']
+      ])
+    })
+
+    it('reads the changes once the answer is too late', async () => {
+      jest.useFakeTimers({
+        doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask']
+      })
+      try {
+        const setup = await makeSetup({ emails: makeEmails(3) })
+        await loadInbox(setup, 1)
+        const own = ownStatesOf(setup.client, FAKE_ACCOUNT_ID)
+        // An answer that never comes
+        const settle = own.track('Email')
+        setup.server.updateEmail('e1', { keywords: { $seen: true } })
+        const before = setup.server.requests.length
+
+        setup.sync.stateChanged(setup.server.states())
+        expect(methodsSince(setup, before)).toEqual([])
+        await jest.advanceTimersByTimeAsync(OWN_SET_WAIT_MS)
+        await setup.sync.whenIdle()
+
+        expect(methodsSince(setup, before)).toEqual([
+          ['Email/changes', 'Email/get', 'Email/get']
+        ])
+        settle()
+      } finally {
+        jest.useRealTimers()
+      }
+    })
+
+    it('reads the changes when the update could not show all of ours', async () => {
+      const setup = await makeSetup({
+        emails: [
+          ...makeEmails(2),
+          makeEmail({ id: 'archived', mailboxIds: { [ARCHIVE]: true } })
+        ]
+      })
+      await loadInbox(setup, 1)
+      const before = setup.server.requests.length
+
+      // Not listed: the inbox cannot insert it alone
+      await changeOwnEmail(
+        setup,
+        { id: 'archived', mailboxIds: { [ARCHIVE]: true }, keywords: {} },
+        { id: 'archived', mailboxIds: { [INBOX]: true }, keywords: {} }
+      )
+      await pushNow(setup)
+
+      expect(methodsSince(setup, before).slice(1)[0]).toContain('Email/changes')
+      expect(listedIds(setup)).toContain('archived')
+    })
   })
 
   it('patches the mailboxes from their changes', async () => {

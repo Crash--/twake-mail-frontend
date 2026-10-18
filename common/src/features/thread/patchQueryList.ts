@@ -7,6 +7,7 @@ import {
   type EmailListData,
   type EmailListItemData,
   type EmailListPage,
+  type SearchRequest,
   type ThreadMember
 } from './queries'
 
@@ -43,6 +44,16 @@ export interface QueryListScope {
    * longer matches `filter` leaves it (search results keep it in place)
    */
   dropsNonMatching?: boolean
+}
+
+/** The scope of the search list of `request` */
+export function queryListScope(request: SearchRequest): QueryListScope {
+  return {
+    isCollapsed: request.collapseThreads === true,
+    filter: request.filter,
+    dropsNonMatching: request.isListFiltered === true,
+    ...(request.mailboxId === undefined ? {} : { mailboxId: request.mailboxId })
+  }
 }
 
 function patchMember(

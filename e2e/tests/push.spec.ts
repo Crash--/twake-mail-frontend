@@ -234,4 +234,42 @@ test.describe('PUSH real-time updates', () => {
     expect(after.height).toBeGreaterThanOrEqual(before.height)
     await expect(mailbox.emailRow('Topic in the Trash')).toHaveCount(0)
   })
+
+  test('PUSH-05 opening an unread email marks it read without reading back its own change', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    for (const subject of ['own change 1', 'own change 2']) {
+      await jmap.sendEmail({ to: user.email, subject, text: subject })
+      await jmap.waitForEmail({ subject })
+    }
+    const traffic = recordJmapTraffic(page)
+    const socket = page.waitForEvent('websocket')
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await socket
+    await expect(mailbox.emailRow('own change 2')).toHaveAttribute(
+      'data-unread',
+      'true'
+    )
+    // The channel opened: its first states are read
+    await expect.poll(() => traffic.methods()).toContain('Mailbox/get')
+    await page.waitForTimeout(500)
+    traffic.reset()
+
+    const answered = page.waitForResponse(
+      response =>
+        response.url().endsWith('/jmap') &&
+        (response.request().postData() ?? '').includes('"Email/set"')
+    )
+    await mailbox.emailRow('own change 2').click()
+    await answered
+
+    // The push of the change came: the folder counters are read again, the
+    // emails are not (tmail-flutter#3394, issue #648)
+    await expect.poll(() => traffic.methods()).toContain('Mailbox/changes')
+    await page.waitForTimeout(1000)
+    expect(traffic.methods()).toContain('Email/set')
+    expect(traffic.methods()).not.toContain('Email/changes')
+  })
 })

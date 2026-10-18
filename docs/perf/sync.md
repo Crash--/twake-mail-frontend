@@ -194,3 +194,30 @@ request, the current states read when the channel first opens. Measures 1 and
 labels and quota the app loads since, and the `Quota/get` a push of emails
 brings.
 
+
+## Our own changes (issue #648, tf#3394)
+
+An email action (read, star, move, delete…) updates the cache at once
+(`emailActions/optimisticEmailChanges.ts`), then sends `Email/set`. Its push
+used to cost one more `Email/changes` round, which brought back what the
+cache already showed. As tmail-flutter, the app now remembers the last 64
+`oldState → newState` of its own accepted `Email/set` calls, per sign-in and
+account (`push/ownStates.ts`). A pushed `Email` state that every cached list
+reaches through those changes alone is taken as is: the pages move to it,
+nothing is asked.
+
+- Only a change the optimistic update showed whole counts: every email has
+  its row, no list of conversations misses a thread, no search result may
+  gain an email it does not list. Otherwise the push reads the changes, as
+  before.
+- James sends the push of an `Email/set` before its answer (about 200 ms
+  before on the e2e stack): while one of our `Email/set` is on its way, the
+  pushed `Email` state waits for its answer, at most 3 s, before it is
+  judged. The mailbox changes do not wait.
+- A change made elsewhere between two of ours breaks the chain: the push
+  reads the changes since the cache state.
+- A request refused in part, or the composer's `Email/set` (drafts, sending,
+  templates), is not remembered.
+- `Mailbox/changes` still runs: our `Email/set` moved the counters, and only
+  the server counts them exactly. `Mailbox/set` (folder actions) refetches
+  the folders itself, after which its push finds them at the pushed state.

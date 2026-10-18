@@ -82,6 +82,10 @@ function makeEmails(count: number): ReturnType<typeof makeEmail>[] {
   )
 }
 
+// Its paging tests render two pages and more of rows (30 each) in jsdom: about
+// 3.5 s on an idle machine, past the default 5 s on a loaded one
+jest.setTimeout(15_000)
+
 describe('EmailList', () => {
   listEmailsOneByOne()
 

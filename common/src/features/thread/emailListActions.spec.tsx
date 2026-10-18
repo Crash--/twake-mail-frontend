@@ -116,6 +116,10 @@ function emailSets(server: FakeJmapServer): Record<string, unknown>[] {
   )
 }
 
+// Selecting a whole folder renders two pages and more of rows (30 each) in jsdom: about
+// 3.5 s on an idle machine, past the default 5 s on a loaded one
+jest.setTimeout(15_000)
+
 describe('Acting on emails of the list', () => {
   listEmailsOneByOne()
 

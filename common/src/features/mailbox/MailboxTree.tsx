@@ -1,6 +1,7 @@
 import { Box, ListItem, ListItemText } from '@linagora/twake-mui'
 import {
   Fragment,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -170,6 +171,20 @@ export function MailboxTree(): ReactElement {
   const systemRows = listVisibleMailboxes(personal.system, isExpanded)
   const folderRows = listVisibleMailboxes(personal.folders, isExpanded)
   const teamRows = listVisibleMailboxes(sections.team, isExpanded)
+
+  // A folder moved under a collapsed one would vanish from the tree: its
+  // new parent expands to show it
+  const { onMovedUnder } = folderActions
+  useEffect(
+    () =>
+      onMovedUnder(parentIds => {
+        setToggled(previous => ({
+          ...previous,
+          ...Object.fromEntries(parentIds.map(id => [id, true]))
+        }))
+      }),
+    [onMovedUnder]
+  )
 
   const handleToggle = (mailboxId: string, expanded: boolean): void => {
     setToggled(previous => ({ ...previous, [mailboxId]: !expanded }))

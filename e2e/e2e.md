@@ -984,3 +984,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/folder-menu.spec.ts`.
 - [x] `LOGIN-05` With no `AUTH_MODE` (the app discovers the SSO) and the WebFinger answering 503, `/` shows the `sso-unreachable` page: one `main` landmark holding the alert and its level-1 heading "Cannot reach the sign-in service", no unnamed image (the warning icon is hidden), Retry focused, the title "Cannot reach the sign-in service - Twake Mail"; axe. — web app (issue #652)
   - Spec: `tests/login.spec.ts`.
+
+- [x] `EML-29d` With "Show remote images" on in Settings → Preferences (off by default, kept in the account as `display.remote.images`), an email from outside the domain shows its remote images without the banner; turned off, the next one asks again and requests nothing. Axe on the preferences. — web app only (issue #342; tmail-flutter always loads remote images)

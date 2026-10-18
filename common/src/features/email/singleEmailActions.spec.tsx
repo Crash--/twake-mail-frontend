@@ -47,6 +47,9 @@ function ViewPage(): ReactElement {
   )
 }
 
+// Outside the domain of the user (alice@example.com)
+const OUTSIDER = { name: 'News', email: 'news@newsletter.example.org' }
+
 function makeServer(overrides: Partial<FakeEmail> = {}): FakeJmapServer {
   const server = makeFakeJmapServer({
     mailboxes: makeDefaultMailboxes(),
@@ -71,7 +74,9 @@ function makeServer(overrides: Partial<FakeEmail> = {}): FakeJmapServer {
           ],
           ...overrides
         },
-        { html: '<p>Hello <b>world</b></p><blockquote>quoted</blockquote>' }
+        {
+          html: '<p>Hello <b>world</b></p><blockquote>quoted</blockquote><img src="https://tracker.example.com/open.gif">'
+        }
       )
     ]
   })
@@ -137,8 +142,8 @@ describe('actions of an open email', () => {
       expect(document).toContain('alice@example.com')
     })
 
-    it('keeps remote images out of the printed document', async () => {
-      await openEmail(makeServer())
+    it('keeps the remote images the reader hides out of the printed document', async () => {
+      await openEmail(makeServer({ from: [OUTSIDER] }))
       const menu = await openMoreMenu()
       await userEvent.click(
         within(menu).getByRole('menuitem', { name: 'Print' })
@@ -148,6 +153,36 @@ describe('actions of an open email', () => {
       })
       expect(jest.mocked(printHtmlDocument).mock.calls[0]?.[0]).toContain(
         'img-src data: blob:;'
+      )
+    })
+
+    it('prints the remote images the reader shows', async () => {
+      // A sender of the domain of the user (alice@example.com)
+      await openEmail(makeServer())
+      const menu = await openMoreMenu()
+      await userEvent.click(
+        within(menu).getByRole('menuitem', { name: 'Print' })
+      )
+      await waitFor(() => {
+        expect(printHtmlDocument).toHaveBeenCalled()
+      })
+      expect(jest.mocked(printHtmlDocument).mock.calls[0]?.[0]).toContain(
+        'img-src data: blob: https: http:;'
+      )
+    })
+
+    it('prints the remote images of an outside sender once shown', async () => {
+      await openEmail(makeServer({ from: [OUTSIDER] }))
+      await userEvent.click(await screen.findByRole('button', { name: 'Show' }))
+      const menu = await openMoreMenu()
+      await userEvent.click(
+        within(menu).getByRole('menuitem', { name: 'Print' })
+      )
+      await waitFor(() => {
+        expect(printHtmlDocument).toHaveBeenCalled()
+      })
+      expect(jest.mocked(printHtmlDocument).mock.calls[0]?.[0]).toContain(
+        'img-src data: blob: https: http:;'
       )
     })
   })

@@ -155,6 +155,38 @@ describe('PreferencesSettings', () => {
     })
   })
 
+  it('shows remote images without asking once the user turns it on', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    const settings = installFakeSettings(server)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { jmapServer: server, withJmapSession: true }
+    )
+
+    const remoteImages = await screen.findByRole('switch', {
+      name: 'Show remote images'
+    })
+    expect(remoteImages).toHaveAccessibleDescription(
+      expect.stringContaining('when and where you read the email')
+    )
+    // Off by default: the reader asks for each email
+    expect(remoteImages).not.toBeChecked()
+
+    await userEvent.click(remoteImages)
+    await waitFor(() => {
+      expect(remoteImages).toBeChecked()
+    })
+    expect(settings.settings()).toEqual({ 'display.remote.images': 'true' })
+
+    await userEvent.click(remoteImages)
+    await waitFor(() => {
+      expect(remoteImages).not.toBeChecked()
+    })
+    expect(settings.settings()).toEqual({ 'display.remote.images': 'false' })
+  })
+
   it('only has the conversations without server settings', async () => {
     renderWithProviders(
       <PreferencesSettings section={preferencesSection()} />,

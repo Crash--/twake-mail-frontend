@@ -1,4 +1,8 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useQuery,
+  useQueryClient,
+  type QueryClient
+} from '@tanstack/react-query'
 import { useCallback } from 'react'
 
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -9,6 +13,19 @@ const remoteContentConsentKey = (
   accountId: string,
   emailId: string
 ): RemoteContentConsentKey => ['remoteContentConsent', accountId, emailId]
+
+/** Whether the user chose to show the remote content of an email, outside React */
+export function readRemoteContentConsent(
+  queryClient: QueryClient,
+  accountId: string,
+  emailId: string
+): boolean {
+  return (
+    queryClient.getQueryData<boolean>(
+      remoteContentConsentKey(accountId, emailId)
+    ) ?? false
+  )
+}
 
 /**
  * Whether the user chose to show the remote content of an email, and the

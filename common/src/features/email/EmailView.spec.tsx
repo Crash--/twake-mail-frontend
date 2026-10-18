@@ -14,13 +14,17 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { AIBOT_CAPABILITY } from '@common/features/scribe/scribe'
-import { AI_LABEL_CATEGORIZATION_KEY } from '@common/features/settings/serverSettings'
+import {
+  AI_LABEL_CATEGORIZATION_KEY,
+  REMOTE_IMAGES_SETTING_KEY
+} from '@common/features/settings/serverSettings'
 import { TeamMailboxPane } from '@common/layout/TeamMailboxPane'
 import { readObjectUrl } from '@common/testing/objectUrls'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import {
   FAKE_LINAGORA_CAPABILITIES,
-  installFakeLabels
+  installFakeLabels,
+  installFakeSettings
 } from '@common/testing/fakeLinagora'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
@@ -502,6 +506,46 @@ describe('EmailView', () => {
 
       expect(await findBodyDocument()).toContain('tracker.example.com')
       expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('shows the remote images of every sender when the user wants them always', async () => {
+      const server = makeFakeJmapServer({
+        capabilities: FAKE_LINAGORA_CAPABILITIES,
+        emails: [
+          makeEmailWithBody(
+            { id: 'e1', from: [OUTSIDER] },
+            { html: TRACKED_HTML }
+          )
+        ]
+      })
+      installFakeSettings(server, { [REMOTE_IMAGES_SETTING_KEY]: 'true' })
+      renderView(server)
+
+      await waitFor(async () => {
+        expect(await findBodyDocument()).toContain(
+          'src="https://tracker.example.com/open.gif"'
+        )
+      })
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('still asks when the preference is off', async () => {
+      const server = makeFakeJmapServer({
+        capabilities: FAKE_LINAGORA_CAPABILITIES,
+        emails: [
+          makeEmailWithBody(
+            { id: 'e1', from: [OUTSIDER] },
+            { html: TRACKED_HTML }
+          )
+        ]
+      })
+      installFakeSettings(server, { [REMOTE_IMAGES_SETTING_KEY]: 'false' })
+      renderView(server)
+
+      expect(
+        await screen.findByTestId('remote-content-banner')
+      ).toHaveTextContent('Remote images hidden')
+      expect(await findBodyDocument()).not.toContain('tracker.example.com')
     })
 
     it('shows no banner for an email without remote content', async () => {

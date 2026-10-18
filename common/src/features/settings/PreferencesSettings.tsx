@@ -24,7 +24,9 @@ import {
   AI_LABEL_CATEGORIZATION_KEY,
   isAlwaysRequestingReadReceipts,
   isLabelCategorizationOn,
+  isShowingRemoteImages,
   isShowingSenderPriority,
+  REMOTE_IMAGES_SETTING_KEY,
   serverSettingsKeys,
   type ServerSettingKey,
   updateServerSetting,
@@ -52,7 +54,8 @@ export interface PreferencesSettingsProps {
 
 /**
  * Settings > Preferences, as tmail-flutter: the read receipts asked for
- * every message, the important flag set by senders and the error reports
+ * every message, the important flag set by senders, the remote images
+ * shown without asking (not in tmail-flutter) and the error reports
  * (settings of the account on the server, when it keeps them; the reports
  * only when error reporting is configured), the conversation view, the
  * spam report, the AI assistant, the labels and the Drive button of the
@@ -161,6 +164,19 @@ export function PreferencesSettings({
             changeServerSetting('display.sender.priority', String(isOn))
           }}
           data-testid="sender-priority-setting-toggle"
+        />
+      ) : null}
+      {serverOption(REMOTE_IMAGES_SETTING_KEY) && settings !== null ? (
+        <PreferenceOption
+          title={t('settings.preferences.remoteImages')}
+          description={t('settings.preferences.remoteImagesDescription')}
+          toggleLabel={t('settings.preferences.remoteImagesToggle')}
+          isChecked={isShowingRemoteImages(settings)}
+          isDisabled={saving === REMOTE_IMAGES_SETTING_KEY}
+          onChange={isOn => {
+            changeServerSetting(REMOTE_IMAGES_SETTING_KEY, String(isOn))
+          }}
+          data-testid="remote-images-setting-toggle"
         />
       ) : null}
       <PreferenceOption

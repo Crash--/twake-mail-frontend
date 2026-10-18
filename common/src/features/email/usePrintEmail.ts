@@ -21,7 +21,7 @@ import {
   printHtmlDocument
 } from './printDocument'
 import type { EmailDetail } from './queries'
-import { isTrustedSender } from './trustedSenders'
+import { useRemoteContentPolicy } from './remoteContentPolicy'
 import {
   downloadInlineImages,
   findInlineImageParts
@@ -30,14 +30,16 @@ import {
 /**
  * "Print all" of an open email (tmail-flutter `printAll`): says printing
  * started, then prints the email with its headers, body and list of
- * attachments. Remote content is printed for trusted senders only; the
- * quoted history is printed unfolded. Says so when printing failed.
+ * attachments. Remote content is printed when the reader shows it
+ * (`useRemoteContentPolicy`); the quoted history is printed unfolded. Says
+ * so when printing failed.
  */
 export function usePrintEmail(): (email: EmailDetail) => Promise<void> {
   const { t, lang } = useI18n()
   const { notify } = useNotify()
   const client = useJmapClient()
   const { accountId, session } = useJmapSession()
+  const allowsRemoteContent = useRemoteContentPolicy()
 
   return useCallback(
     async (email: EmailDetail): Promise<void> => {
@@ -56,8 +58,10 @@ export function usePrintEmail(): (email: EmailDetail) => Promise<void> {
             created.push(url)
           }
         )
-        const allowRemoteContent =
-          sender !== null && isTrustedSender(sender.email)
+        const allowRemoteContent = allowsRemoteContent({
+          id: email.id,
+          senderEmail: sender?.email ?? null
+        })
         const body = renderBodyParts(email.htmlBody, email.bodyValues, {
           inlineImageUrls: urls,
           allowRemoteContent,
@@ -107,6 +111,6 @@ export function usePrintEmail(): (email: EmailDetail) => Promise<void> {
         }, 120_000)
       }
     },
-    [t, lang, notify, client, accountId, session.username]
+    [t, lang, notify, client, accountId, session.username, allowsRemoteContent]
   )
 }

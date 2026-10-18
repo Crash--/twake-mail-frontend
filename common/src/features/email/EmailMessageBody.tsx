@@ -11,6 +11,7 @@ import { useComposer } from '@common/features/composer/ComposerProvider'
 import { parseMailto } from '@common/features/composer/mailto'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useFocusIndicator } from '@common/features/settings/accessibilityPreference'
+import { useShowsRemoteImages } from '@common/features/settings/serverSettings'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -27,8 +28,9 @@ import { RemoteContentBanner } from './RemoteContentBanner'
 import { UnsubscribedBanner } from './UnsubscribedBanner'
 import { foldQuotedHistory } from './quoteToggle'
 import { useRemoteContentConsent } from './remoteContentConsent'
+import { allowsRemoteContent } from './remoteContentPolicy'
 import { normalizeCid } from './sanitizeEmailHtml'
-import { isSameDomain, useTrustedSender } from './trustedSenders'
+import { useTrustedSender } from './trustedSenders'
 import { useInlineImageUrls } from './useInlineImageUrls'
 
 export interface EmailMessageBodyProps {
@@ -47,7 +49,8 @@ export interface EmailMessageBodyProps {
  * as tmail-flutter does (issue #315: above it, a long email no longer hides
  * them). Remote content (images, fonts,
  * backgrounds) tells the sender when and where the email is read: it waits
- * for the user, unless the sender is trusted.
+ * for the user, unless they want it for every email or the sender is
+ * trusted (`allowsRemoteContent`).
  */
 export function EmailMessageBody({
   email,
@@ -69,11 +72,14 @@ export function EmailMessageBody({
     email.id
   )
   const { session } = useJmapSession()
-  // The senders of the domain of the user are trusted, for now
-  const isColleague =
-    sender !== null && isSameDomain(sender.email, session.username)
-  const allowRemoteContent =
-    isRemoteContentShown || trustedSender.isTrusted || isColleague
+  const isAlwaysShown = useShowsRemoteImages()
+  const allowRemoteContent = allowsRemoteContent({
+    isAlwaysShown,
+    isConsented: isRemoteContentShown,
+    isTrustedSender: trustedSender.isTrusted,
+    senderEmail: sender?.email ?? null,
+    userEmail: session.username
+  })
   const focusIndicator = useFocusIndicator()
   const trimmedContentLabel = t('email.showTrimmedContent')
   const body = useMemo(() => {

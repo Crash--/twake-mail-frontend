@@ -266,6 +266,50 @@ test.describe('EML reading an email', () => {
     await expect(mailbox.emailRow('back newsletter')).toBeVisible()
   })
 
+  test('EML-29d with "Show remote images" on, every email shows them without asking, until turned off', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const requested: string[] = []
+    await page.route(`${REMOTE_HOST}/**`, async route => {
+      requested.push(new URL(route.request().url()).pathname)
+      await route.fulfill({ contentType: 'image/png', body: PNG })
+    })
+    await jmap.importEmlContent(newsletterEml('always', user.email))
+    await jmap.importEmlContent(newsletterEml('asked', user.email))
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    let settings = await mailbox.openSettings()
+    await settings.open('preferences')
+    const toggle = page.getByRole('switch', { name: 'Show remote images' })
+    // Off by default: the reader asks
+    await expect(toggle).not.toBeChecked()
+    await toggle.click()
+    await expect(toggle).toBeChecked()
+    await expectNoA11yViolations(page)
+    await settings.backToMail()
+
+    let email = await mailbox.openEmail('always newsletter')
+    await expect(email.body()).toContainText('always news')
+    await expect(email.remoteContentBanner).toBeHidden()
+    await expect
+      .poll(() => [...requested].sort())
+      .toEqual(['/always/background.png', '/always/pixel.png'])
+    await email.back()
+
+    settings = await mailbox.openSettings()
+    await settings.open('preferences')
+    await toggle.click()
+    await expect(toggle).not.toBeChecked()
+    await settings.backToMail()
+
+    email = await mailbox.openEmail('asked newsletter')
+    await expect(email.body()).toContainText('asked news')
+    await expect(email.remoteContentBanner).toBeVisible()
+    expect(requested.filter(path => path.startsWith('/asked/'))).toEqual([])
+  })
+
   test('EML-28 opening an unread email marks it read', async ({
     page,
     user,

@@ -15,7 +15,14 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
  * The settings of the account the client reads or writes: the ones the
  * library knows, and the ones of tmail-flutter it does not list yet
  */
-export type ServerSettingKey = KnownSettingKey | 'sentry.user-opt-in'
+export type ServerSettingKey =
+  KnownSettingKey | 'sentry.user-opt-in' | typeof REMOTE_IMAGES_SETTING_KEY
+
+/**
+ * "Show remote images" (not in tmail-flutter, which always shows them): the
+ * remote content of every email shows without asking
+ */
+export const REMOTE_IMAGES_SETTING_KEY = 'display.remote.images'
 
 /** The settings of the account kept by the server (Linagora `Settings`) */
 export type ServerSettings = Readonly<Record<string, string>>
@@ -124,6 +131,17 @@ export function isLabelCategorizationOn(settings: ServerSettings): boolean {
 export function useShowsSenderPriority(): boolean {
   const { settings } = useServerSettings()
   return isShowingSenderPriority(settings ?? {})
+}
+
+/** "Show remote images": off by default and when unreadable */
+export function isShowingRemoteImages(settings: ServerSettings): boolean {
+  return readBooleanSetting(settings, REMOTE_IMAGES_SETTING_KEY, false)
+}
+
+/** Whether to show the remote content of every email without asking */
+export function useShowsRemoteImages(): boolean {
+  const { settings } = useServerSettings()
+  return isShowingRemoteImages(settings ?? {})
 }
 
 /**

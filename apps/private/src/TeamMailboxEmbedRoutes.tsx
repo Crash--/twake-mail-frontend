@@ -5,6 +5,7 @@ import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
 import { DefaultMailboxRedirect } from '@common/features/mailbox/DefaultMailboxRedirect'
 import { PushProvider } from '@common/features/push/PushProvider'
+import { EmailSelectionMemoryProvider } from '@common/features/thread/EmailSelectionMemoryProvider'
 import { EmailLinkRedirect } from '@common/features/teamMailboxEmbed/EmailLinkRedirect'
 import type { SpaceBridge } from '@common/features/teamMailboxEmbed/spaceBridge'
 import { TeamMailboxBadges } from '@common/features/teamMailboxEmbed/TeamMailboxBadges'
@@ -48,7 +49,9 @@ export function teamMailboxEmbedRouteElements(
                 {spaceBridge === null ? null : (
                   <TeamMailboxBadges reportBadges={spaceBridge.reportBadges} />
                 )}
-                <TeamMailboxLayout />
+                <EmailSelectionMemoryProvider>
+                  <TeamMailboxLayout />
+                </EmailSelectionMemoryProvider>
               </PushProvider>
             </JmapSessionProvider>
           }

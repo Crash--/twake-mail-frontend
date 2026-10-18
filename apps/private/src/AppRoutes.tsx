@@ -23,6 +23,7 @@ import {
   SettingsSectionRoute
 } from '@common/features/settings/SettingsRoutes'
 import { ShortcutsSettings } from '@common/features/settings/ShortcutsSettings'
+import { EmailSelectionMemoryProvider } from '@common/features/thread/EmailSelectionMemoryProvider'
 import { VacationSettings } from '@common/features/vacation/VacationSettings'
 import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 import { AppLayout } from '@common/layout/AppLayout'
@@ -63,7 +64,9 @@ export function appRouteElements(): ReactElement {
           element={
             <JmapSessionProvider>
               <PushProvider>
-                <AppLayout />
+                <EmailSelectionMemoryProvider>
+                  <AppLayout />
+                </EmailSelectionMemoryProvider>
               </PushProvider>
             </JmapSessionProvider>
           }

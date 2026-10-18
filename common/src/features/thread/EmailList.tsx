@@ -220,10 +220,16 @@ export interface EmailListSearch {
 
 export type EmailListProps = { mailboxId: string } | { search: EmailListSearch }
 
-function useListQuery(
-  props: EmailListProps,
-  filter: ListFilter
-): UseInfiniteQueryResult<EmailListData> {
+interface ListQuery {
+  query: UseInfiniteQueryResult<EmailListData>
+  /**
+   * What the list shows (account, folder or search, filter, conversations):
+   * its query key, which tells the selection of one list from another's
+   */
+  listKey: string
+}
+
+function useListQuery(props: EmailListProps, filter: ListFilter): ListQuery {
   const client = useJmapClient()
   const { accountId } = useJmapSession()
   const { isEnabled: collapseThreads } = useThreadPreference()
@@ -234,9 +240,11 @@ function useListQuery(
           request: withListFilter(props.search.request, filter)
         }
       : mailboxListSource(props.mailboxId, filter, collapseThreads)
-  return useInfiniteQuery(
-    emailListSourceQueryOptions(client, accountId, source)
-  )
+  const options = emailListSourceQueryOptions(client, accountId, source)
+  return {
+    query: useInfiniteQuery(options),
+    listKey: JSON.stringify(options.queryKey)
+  }
 }
 
 /**
@@ -264,7 +272,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     (mailbox.role === 'trash' || mailbox.role === 'junk') &&
     mailbox.totalEmails <= 0
   const filter: ListFilter = isEmptyTrashOrSpam ? 'all' : listFilter.filter
-  const query = useListQuery(props, filter)
+  const { query, listKey } = useListQuery(props, filter)
   const role = mailbox?.role ?? null
   const getMailboxName = useMailboxName()
   useDocumentTitle(
@@ -377,7 +385,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     useMatch('/mailbox/:mailboxId/email/:emailId')?.params.emailId ?? null
   const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
-  const selection = useEmailSelection(emails)
+  const selection = useEmailSelection(emails, listKey)
   // As tmail-flutter: below the desktop size, a selected row keeps its
   // background (its avatar is ticked); only the open email is highlighted
   const isSelectionHighlighted = useScreenSize() === 'desktop'

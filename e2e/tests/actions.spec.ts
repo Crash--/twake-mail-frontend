@@ -1,3 +1,5 @@
+import type { Locator } from '@playwright/test'
+
 import { LoginPage, type MailboxPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test, type E2EUser } from '../support/fixtures'
@@ -514,4 +516,51 @@ test.describe('MBX emptying the Trash and Spam', () => {
       'All messages have been deleted forever'
     )
   })
+})
+
+test.describe('MBX selection and the reading view', () => {
+  // The reading view of a single email: the "Thread" setting off
+  test.use({ emailsOneByOne: true })
+
+  test(
+    'MBX-61 the selection is still there back from an email opened from the list, and goes with another folder',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      await seed(jmap, user, ['keep 1', 'keep 2', 'keep 3'])
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.selectEmail('keep 1')
+      await mailbox.selectEmail('keep 2')
+      await expect(mailbox.selectionToolbar).toContainText('2 selected')
+      const isChecked = (subject: string): Locator =>
+        mailbox.emailRow(subject).getByRole('checkbox')
+
+      // A click on the row, not its checkbox, opens the email: outside the
+      // side by side layout it replaces the list
+      const email = await mailbox.openEmail('keep 3')
+      await email.back()
+      await expect(mailbox.selectionToolbar).toContainText('2 selected')
+      await expect(isChecked('keep 1')).toBeChecked()
+      await expect(isChecked('keep 2')).toBeChecked()
+      await expect(isChecked('keep 3')).not.toBeChecked()
+
+      // The browser's back button too
+      await mailbox.openEmail('keep 3')
+      await page.goBack()
+      await expect(mailbox.emailRow('keep 3')).toBeVisible()
+      await expect(mailbox.selectionToolbar).toContainText('2 selected')
+      await expect(isChecked('keep 1')).toBeChecked()
+      await expect(isChecked('keep 2')).toBeChecked()
+
+      // Another folder, and back: nothing selected. Phones and tablets
+      // reach the folders from the bar the selection bar takes the place of
+      if (mailbox.hasFolderDrawer()) return
+      await mailbox.openFolder({ role: 'sent' })
+      await mailbox.openFolder({ role: 'inbox' })
+      await expect(mailbox.emailRow('keep 1')).toBeVisible()
+      await expect(mailbox.selectionToolbar).toBeHidden()
+      await expect(isChecked('keep 1')).not.toBeChecked()
+      await expect(isChecked('keep 2')).not.toBeChecked()
+    }
+  )
 })

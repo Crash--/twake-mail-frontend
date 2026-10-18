@@ -2,10 +2,15 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState
 } from 'react'
 
+import {
+  useEmailSelectionMemory,
+  type SelectionState
+} from './EmailSelectionMemoryProvider'
 import type { EmailListItemData } from './queries'
 
 export interface EmailSelection {
@@ -26,13 +31,6 @@ export interface EmailSelection {
   clear: () => void
 }
 
-interface SelectionState {
-  ids: ReadonlySet<string>
-  /** The last email toggled, where a range starts */
-  anchorId: string | null
-  isAllInFolder: boolean
-}
-
 const EMPTY: SelectionState = {
   ids: new Set(),
   anchorId: null,
@@ -40,14 +38,64 @@ const EMPTY: SelectionState = {
 }
 
 /**
+ * A selection kept for a list, back in it: without the emails that left
+ * it meanwhile (still unknown while the list loads). The whole folder
+ * stays selected if it was.
+ */
+function restore(
+  state: SelectionState,
+  emails: readonly EmailListItemData[]
+): SelectionState {
+  if (emails.length === 0) return state
+  const listed = new Set(emails.map(email => email.id))
+  return {
+    ids: new Set([...state.ids].filter(id => listed.has(id))),
+    anchorId:
+      state.anchorId !== null && listed.has(state.anchorId)
+        ? state.anchorId
+        : null,
+    isAllInFolder: state.isAllInFolder
+  }
+}
+
+/**
  * The emails selected in a list, as tmail-flutter's selection mode: rows
  * toggled one by one or by range, the loaded ones, or the whole folder.
- * Emails leaving the list leave the selection.
+ * Emails leaving the list leave the selection. `listKey` tells the list
+ * apart (account, folder or search, filter): another list starts with
+ * nothing selected; the same list shown again (back from an email opened
+ * from it) finds its selection (`EmailSelectionMemoryProvider`).
  */
 export function useEmailSelection(
-  emails: readonly EmailListItemData[]
+  emails: readonly EmailListItemData[],
+  listKey: string
 ): EmailSelection {
-  const [state, setState] = useState<SelectionState>(EMPTY)
+  const memory = useEmailSelectionMemory()
+  const [kept, setKept] = useState(() => ({
+    listKey,
+    state: restore(memory?.read(listKey) ?? EMPTY, emails)
+  }))
+  // Another list in the same component (a search typed, a filter): start
+  // over, as React resets a state during the render
+  if (kept.listKey !== listKey) setKept({ listKey, state: EMPTY })
+  const state = kept.listKey === listKey ? kept.state : EMPTY
+  const setState = useCallback(
+    (
+      update: SelectionState | ((previous: SelectionState) => SelectionState)
+    ): void => {
+      setKept(previous => {
+        const current = previous.listKey === listKey ? previous.state : EMPTY
+        return {
+          listKey,
+          state: typeof update === 'function' ? update(current) : update
+        }
+      })
+    },
+    [listKey]
+  )
+  useEffect(() => {
+    memory?.write(listKey, state)
+  }, [memory, listKey, state])
 
   const selected = useMemo(
     () =>
@@ -90,7 +138,7 @@ export function useEmailSelection(
         return { ids, anchorId: emailId, isAllInFolder: false }
       })
     },
-    [emails]
+    [emails, setState]
   )
 
   const selectLoaded = useCallback((): void => {
@@ -99,15 +147,15 @@ export function useEmailSelection(
       anchorId: null,
       isAllInFolder: false
     })
-  }, [emails])
+  }, [emails, setState])
 
   const selectAllInFolder = useCallback((): void => {
     setState({ ids: new Set(), anchorId: null, isAllInFolder: true })
-  }, [])
+  }, [setState])
 
   const clear = useCallback((): void => {
     setState(EMPTY)
-  }, [])
+  }, [setState])
 
   return useMemo(
     () => ({

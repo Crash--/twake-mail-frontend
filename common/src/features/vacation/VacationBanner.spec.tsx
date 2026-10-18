@@ -65,6 +65,28 @@ describe('VacationBanner', () => {
     )
   })
 
+  it('says vacation responses are sent once their start is reached', async () => {
+    setup(
+      {
+        isEnabled: true,
+        fromDate: new Date(Date.now() + 1000).toISOString()
+      },
+      '/settings/vacation'
+    )
+
+    expect(await screen.findByTestId('vacation-banner')).toHaveTextContent(
+      'Your vacation responder will be activated on'
+    )
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('vacation-banner')).toHaveTextContent(
+          'Your vacation responder is enabled.'
+        )
+      },
+      { timeout: 3000 }
+    )
+  })
+
   it('turns off a response whose end passed', async () => {
     const fake = setup({
       isEnabled: true,

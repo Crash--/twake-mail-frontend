@@ -1,5 +1,6 @@
 import {
   fromLocalInputs,
+  nextVacationChange,
   startInputs,
   toLocalInputs,
   vacationState
@@ -22,6 +23,40 @@ describe('vacation', () => {
     expect(vacationState({ ...on, toDate: '2026-10-04T00:00:00Z' }, NOW)).toBe(
       'ended'
     )
+  })
+
+  it('tells when a response starts or ends next', () => {
+    const on = { isEnabled: true, fromDate: null, toDate: null }
+    expect(nextVacationChange(on, NOW)).toBe(null)
+    expect(
+      nextVacationChange(
+        { ...on, isEnabled: false, fromDate: '2026-10-06T00:00:00Z' },
+        NOW
+      )
+    ).toBe(null)
+    expect(
+      nextVacationChange(
+        {
+          ...on,
+          fromDate: '2026-10-06T00:00:00Z',
+          toDate: '2026-10-07T00:00:00Z'
+        },
+        NOW
+      )
+    ).toEqual(new Date('2026-10-06T00:00:00Z'))
+    expect(
+      nextVacationChange(
+        {
+          ...on,
+          fromDate: '2026-10-01T00:00:00Z',
+          toDate: '2026-10-07T00:00:00Z'
+        },
+        NOW
+      )
+    ).toEqual(new Date('2026-10-07T00:00:00.001Z'))
+    expect(
+      nextVacationChange({ ...on, toDate: '2026-10-04T00:00:00Z' }, NOW)
+    ).toBe(null)
   })
 
   it('turns the date and time inputs into UTC and back', () => {

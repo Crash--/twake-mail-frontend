@@ -13,11 +13,15 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import {
   disabledVacation,
+  nextVacationChange,
   saveVacation,
   useVacation,
   vacationKeys,
   vacationState
 } from './vacation'
+
+/** The longest delay `setTimeout` keeps (about 24.8 days) */
+const MAX_TIMEOUT_MS = 2 ** 31 - 1
 
 /**
  * Says that vacation responses are being sent, above every screen, with
@@ -32,12 +36,30 @@ export function VacationBanner(): ReactElement | null {
   const { accountId } = useJmapSession()
   const { notify } = useNotify()
   const { data: vacation } = useVacation()
-  const [now] = useState(() => new Date())
+  const [now, setNow] = useState(() => new Date())
   const [isEnding, setIsEnding] = useState(false)
   const focusFallbackRef = useFocusFallback<HTMLDivElement>()
   const isOnVacationSettings =
     useMatch(`${settingsSectionPath('vacation')}/*`) !== null
   const state = vacation ? vacationState(vacation, now) : 'off'
+
+  // The state follows the clock: read again at the next start or end, at
+  // once when the response just read starts or ends between `now` and today
+  const nextChange = vacation ? nextVacationChange(vacation, now) : null
+  const nextChangeTime = nextChange?.getTime() ?? null
+  useEffect(() => {
+    if (nextChangeTime === null) return
+    const delay = Math.min(
+      Math.max(nextChangeTime - Date.now(), 0),
+      MAX_TIMEOUT_MS
+    )
+    const timer = setTimeout(() => {
+      setNow(new Date())
+    }, delay)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [nextChangeTime, now])
 
   const end = async (isAutomatic: boolean): Promise<void> => {
     if (!vacation) return

@@ -83,6 +83,34 @@ describe('IdentitiesSettings', () => {
     expect(within(server).queryByTestId('identity-delete-button')).toBe(null)
   })
 
+  it('titles an identity without a name with its address', async () => {
+    renderSettings(
+      makeFakeJmapServer({
+        capabilities: { [SORT_ORDER]: {} },
+        identities: [
+          makeIdentity({
+            id: 'server',
+            name: '',
+            email: 'alice@example.com',
+            mayDelete: true
+          })
+        ]
+      })
+    )
+
+    expect(
+      await screen.findByRole('radio', {
+        name: 'Use alice@example.com by default'
+      })
+    ).toBeChecked()
+    expect(screen.getByTestId('identity-item-name')).toHaveTextContent(
+      'alice@example.com'
+    )
+    expect(
+      screen.getByRole('button', { name: 'Delete alice@example.com' })
+    ).toBeVisible()
+  })
+
   it('makes another identity the default one', async () => {
     const server = makeServer()
     renderSettings(server)

@@ -43,8 +43,11 @@ export function IdentityListItem({
   onDelete
 }: IdentityListItemProps): ReactElement {
   const { t } = useI18n()
-  const editLabel = t('identities.editOf', { name: identity.name })
-  const deleteLabel = t('identities.deleteOf', { name: identity.name })
+  // The server may clear the name (after the default changes): the address
+  // keeps the row titled and its controls named
+  const title = identity.name.trim() === '' ? identity.email : identity.name
+  const editLabel = t('identities.editOf', { name: title })
+  const deleteLabel = t('identities.deleteOf', { name: title })
   const replyTo = formatIdentityAddresses(identity.replyTo)
   const bcc = formatIdentityAddresses(identity.bcc)
   const signature = signatureHtml(identity)
@@ -65,9 +68,7 @@ export function IdentityListItem({
             checkedIcon={<Icon icon={RadioOn} size={18} />}
             slotProps={{
               input: {
-                'aria-label': t('identities.setDefaultOf', {
-                  name: identity.name
-                })
+                'aria-label': t('identities.setDefaultOf', { name: title })
               }
             }}
             data-testid="identity-default-radio"
@@ -100,7 +101,7 @@ export function IdentityListItem({
       }
     >
       <SettingsListText variant="name" data-testid="identity-item-name">
-        {identity.name}
+        {title}
       </SettingsListText>
       <SettingsListText variant="detail">{identity.email}</SettingsListText>
       {replyTo === '' ? null : (

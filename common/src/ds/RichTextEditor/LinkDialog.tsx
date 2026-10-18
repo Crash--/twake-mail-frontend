@@ -188,6 +188,9 @@ export function LinkDialog({
 
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
+    // Portalled, but React bubbles along its tree: keep the submit away
+    // from a form around the editor (identity, vacation)
+    event.stopPropagation()
     if (url.trim() === '') return
     const linkUrl = toLinkUrl(url)
     if (linkUrl === null) {

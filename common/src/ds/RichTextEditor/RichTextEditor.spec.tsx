@@ -668,6 +668,52 @@ describe('RichTextEditor', () => {
     expect(editor.getHTML()).toContain('href="https://twake.app"')
   })
 
+  it('does not submit the form around the editor when a link is applied', async () => {
+    const onSubmit = jest.fn()
+    const created: { editor: Editor | null } = { editor: null }
+    renderDs(
+      <form
+        aria-label="Identity"
+        onSubmit={event => {
+          event.preventDefault()
+          onSubmit()
+        }}
+      >
+        <RichTextEditor
+          labels={LABELS}
+          content="<p>Our site and more</p>"
+          colors={[{ value: null, label: 'Default' }]}
+          fontSizes={[{ value: null, label: 'Normal' }]}
+          fontFamilies={FONTS}
+          testIds={TEST_IDS}
+          onReady={editor => {
+            created.editor = editor
+          }}
+        />
+      </form>
+    )
+    await screen.findByRole('textbox', { name: 'Message body' })
+    const editor = created.editor
+    if (editor === null) throw new Error('The editor was not created')
+    act(() => {
+      editor.commands.setTextSelection({ from: 1, to: 9 })
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Insert link' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Insert link' })
+
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'URL' }),
+      'https://example.org'
+    )
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Insert link' })).toBe(null)
+    })
+    expect(editor.getHTML()).toContain('href="https://example.org"')
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
   it('leaves the URL of the link dialog empty when the selection is plain text', async () => {
     const editor = await renderEditor('<p>Twake</p>')
     act(() => {

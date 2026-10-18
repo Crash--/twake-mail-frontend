@@ -92,6 +92,16 @@ export function focusIndicatorThemeOptions(
             FOCUS_RING,
           // Nor the outline of the browser
           [`${SCRIPT_FOCUSED}:focus`]: { outline: 'none' },
+          // Discreet, nor in a text field: the editor of the composer, a
+          // `contenteditable`, has it on a click (MUI fields remove theirs).
+          // It weighs no more than `:focus-visible`, so a component's own wins
+          ...(focusIndicator === 'discreet'
+            ? {
+                [`:where(${TEXT_FIELDS.discreet}):focus-visible`]: {
+                  outline: 'none'
+                }
+              }
+            : {}),
           // Enhanced, a MUI field is outlined around its box
           ...(focusIndicator === 'enhanced'
             ? {

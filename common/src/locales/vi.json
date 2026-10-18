@@ -218,6 +218,8 @@
     "archive": "Lưu trữ hội thoại",
     "moveToTrash": "Chuyển hội thoại vào Thùng rác",
     "markAsSpam": "Đánh dấu hội thoại là spam",
+    "deletePermanently": "Xoá vĩnh viễn hội thoại",
+    "notSpam": "Xoá hội thoại khỏi thư mục Spam",
     "selection": {
       "count": "Đã chọn %{count}",
       "selectAll": "Chọn tất cả",

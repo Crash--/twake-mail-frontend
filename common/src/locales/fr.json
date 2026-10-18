@@ -1137,7 +1137,8 @@
     "moveUp": "Monter",
     "moveDown": "Descendre",
     "moveUpOf": "Monter %{name}",
-    "moveDownOf": "Descendre %{name}"
+    "moveDownOf": "Descendre %{name}",
+    "moreOf": "Actions sur %{name}"
   },
   "forward": {
     "localCopy": "Conserver une copie dans la boîte de réception",

@@ -63,7 +63,7 @@ export function RuleListItem({
     <>
       <span ref={moreRef}>
         <IconAction
-          label={t('emailActions.menu.more')}
+          label={t('rules.moreOf', { name: rule.name })}
           icon={MoreVerticalIcon}
           tone="steel"
           size={36}

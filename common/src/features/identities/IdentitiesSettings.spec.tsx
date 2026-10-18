@@ -116,7 +116,7 @@ describe('IdentitiesSettings', () => {
     )
     const dialog = screen.getByRole('dialog', { name: 'Create new identity' })
     await userEvent.type(
-      within(dialog).getByRole('textbox', { name: 'Name (required)' }),
+      within(dialog).getByRole('textbox', { name: 'Name' }),
       'Support'
     )
     await userEvent.type(
@@ -162,17 +162,21 @@ describe('IdentitiesSettings', () => {
       await screen.findByTestId('create-new-identity-button')
     )
     const dialog = screen.getByRole('dialog')
+    const name = within(dialog).getByRole('textbox', {
+      name: 'Name'
+    })
+    // Blank is no name; spaces only are refused
+    await userEvent.type(name, '   ')
     await userEvent.type(
       within(dialog).getByRole('textbox', { name: 'Reply to' }),
       'not an address'
     )
     await userEvent.click(within(dialog).getByTestId('save-identity-button'))
 
-    const name = within(dialog).getByRole('textbox', {
-      name: 'Name (required)'
-    })
     expect(name).toHaveFocus()
-    expect(name).toHaveAccessibleDescription('This field cannot be blank')
+    expect(name).toHaveAccessibleDescription(
+      'This field cannot contain only spaces'
+    )
     expect(
       within(dialog).getByRole('textbox', { name: 'Reply to' })
     ).toHaveAccessibleDescription('This email address invalid')
@@ -189,7 +193,7 @@ describe('IdentitiesSettings', () => {
 
     expect(
       within(screen.getByRole('dialog')).getByRole('textbox', {
-        name: 'Name (required)'
+        name: 'Name'
       })
     ).toHaveAccessibleDescription(
       'Recipients see this name as the sender of your emails'
@@ -227,6 +231,43 @@ describe('IdentitiesSettings', () => {
         textSignature: 'Alice\nCEO'
       }
     })
+  })
+
+  it('shows an identity without a name by its address, and leaves its name blank to edit', async () => {
+    // As James creates them: named after their address
+    const server = makeFakeJmapServer({
+      identities: [
+        makeIdentity({
+          id: 'bare',
+          name: 'alice@example.com',
+          email: 'alice@example.com',
+          mayDelete: false
+        })
+      ]
+    })
+    renderSettings(server)
+
+    const bare = await waitFor(() => item('alice@example.com'))
+    expect(within(bare).getByTestId('identity-item-name')).toHaveTextContent(
+      'alice@example.com'
+    )
+    // The address once: it is already the title
+    expect(within(bare).getAllByText('alice@example.com')).toHaveLength(1)
+
+    await userEvent.click(
+      within(bare).getByRole('button', { name: 'Edit alice@example.com' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Edit identity' })
+    const name = within(dialog).getByRole('textbox', { name: 'Name' })
+    expect(name).toHaveValue('')
+    await userEvent.click(within(dialog).getByTestId('save-identity-button'))
+
+    // Saved without a name, not with the address as one
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You’ve changed your identity successfully'
+    )
+    const [args] = server.callsOf('Identity/set')
+    expect(args?.update).toMatchObject({ bare: { name: '' } })
   })
 
   it('deletes an identity once confirmed', async () => {
@@ -320,7 +361,7 @@ describe('IdentitiesSettings across a reload (tf#3082)', () => {
     renderSettings(makeServer())
     const dialog = await editWork()
     const name = within(dialog).getByRole('textbox', {
-      name: 'Name (required)'
+      name: 'Name'
     })
     await userEvent.clear(name)
     await userEvent.type(name, 'Alice on leave')
@@ -348,9 +389,9 @@ describe('IdentitiesSettings across a reload (tf#3082)', () => {
     renderSettings(server)
 
     const dialog = await screen.findByRole('dialog', { name: 'Edit identity' })
-    expect(
-      within(dialog).getByRole('textbox', { name: 'Name (required)' })
-    ).toHaveValue('Alice on leave')
+    expect(within(dialog).getByRole('textbox', { name: 'Name' })).toHaveValue(
+      'Alice on leave'
+    )
     expect(within(dialog).getByRole('textbox', { name: 'Bcc to' })).toHaveValue(
       'archive@example.com'
     )
@@ -380,9 +421,9 @@ describe('IdentitiesSettings across a reload (tf#3082)', () => {
     const dialog = await screen.findByRole('dialog', {
       name: 'Create new identity'
     })
-    expect(
-      within(dialog).getByRole('textbox', { name: 'Name (required)' })
-    ).toHaveValue('Support')
+    expect(within(dialog).getByRole('textbox', { name: 'Name' })).toHaveValue(
+      'Support'
+    )
     await userEvent.click(within(dialog).getByTestId('identity-cancel-button'))
 
     expect(screen.queryByRole('dialog')).toBe(null)

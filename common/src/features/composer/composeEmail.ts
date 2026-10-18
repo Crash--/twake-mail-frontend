@@ -16,6 +16,7 @@ import {
   TEMPLATES_NAME
 } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
+import { identityDisplayName } from '@common/features/identities/identityName'
 import { IMPORTANT_HEADER_VALUES } from '@common/features/email/importance'
 
 import { htmlToText, toEmailHtml } from './emailHtml'
@@ -151,7 +152,7 @@ export function identityReplyTo(
   identity: Pick<Identity, 'name' | 'email' | 'replyTo'> | undefined
 ): EmailAddress[] {
   if (!identity) return []
-  const name = identity.name === '' ? null : identity.name
+  const name = identityDisplayName(identity)
   const replyTo = identity.replyTo ?? []
   if (replyTo.length > 0) {
     return replyTo.map(address => ({

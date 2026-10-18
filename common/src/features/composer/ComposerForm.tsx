@@ -80,6 +80,10 @@ import { scribeEndpoint } from '@common/features/scribe/scribe'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
 import { editorText, suggestionHtml } from '@common/features/scribe/scribeText'
 import { RemoteContentBanner } from '@common/features/email/RemoteContentBanner'
+import {
+  identityDisplayName,
+  identitySender
+} from '@common/features/identities/identityName'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { useIdentities } from '@common/features/identities/useIdentities'
 import { useTeamMailboxRoot } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
@@ -491,7 +495,7 @@ function LoadedComposerForm({
     return {
       identityId,
       from: {
-        name: identity?.name === '' ? null : (identity?.name ?? null),
+        name: identity ? identityDisplayName(identity) : null,
         email: identity?.email ?? ''
       },
       to: toAddresses(lists.to),
@@ -1767,9 +1771,7 @@ function LoadedComposerForm({
                   >
                     {identities.map(identity => (
                       <MenuItem key={identity.id} value={identity.id}>
-                        {identity.name === ''
-                          ? identity.email
-                          : `${identity.name} <${identity.email}>`}
+                        {identitySender(identity)}
                       </MenuItem>
                     ))}
                   </Select>

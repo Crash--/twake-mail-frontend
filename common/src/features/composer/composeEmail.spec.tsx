@@ -473,6 +473,16 @@ describe('mailUserAgent', () => {
 })
 
 describe('identityReplyTo', () => {
+  it('answers to the bare address of an identity named after it', () => {
+    expect(
+      identityReplyTo({
+        name: 'alice@example.com',
+        email: 'alice@example.com',
+        replyTo: null
+      })
+    ).toEqual([{ name: null, email: 'alice@example.com' }])
+  })
+
   it('names the Reply-To of the identity after it, else answers to the identity', () => {
     const identity = {
       name: 'Support',

@@ -37,4 +37,13 @@ describe('ownName', () => {
     ).toBe(null)
     expect(ownName([], 'alice@example.com')).toBe(null)
   })
+
+  it('takes an identity named after its address for one without a name', () => {
+    expect(
+      ownName(
+        [{ name: 'Alice@example.com', email: 'alice@example.com' }],
+        'alice@example.com'
+      )
+    ).toBe(null)
+  })
 })

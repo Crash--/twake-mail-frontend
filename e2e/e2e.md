@@ -976,3 +976,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/recipient-dnd.spec.ts`.
 - [x] `CMP-108` In a reply, a line of the quote is edited where it is; Enter at the end of a quoted line cuts the quote and the text typed goes between its two halves, out of any quote, with no empty quoted line left; Enter at the end of the last quoted line writes after the quote. The message received has the same layout (the answer and the text after the quote out of any `<blockquote>`, in that order); axe. — tmail-flutter conformity (issue #471: Summernote cuts the quote the same way)
   - Spec: `tests/composer-reply.spec.ts`.
+- [x] `SET-17` An identity without a display name (as James creates it: named after its address) shows by its address, once, in Settings → Profiles; its form leaves the name blank and saving it stores no name (`name: ""`), never the address; in the composer, From shows the bare address and the message received has `From: <address>` with no name; axe on the form. — web app
+  - Spec: `tests/settings.spec.ts`.

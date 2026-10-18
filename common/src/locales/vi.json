@@ -999,7 +999,6 @@
       "save": "Lưu",
       "email": "Địa chỉ email",
       "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy",
-      "nameRequired": "Tên (yêu cầu)",
       "emailLabel": "Email"
     },
     "errors": {

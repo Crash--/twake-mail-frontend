@@ -134,6 +134,54 @@ test.describe('SET settings', () => {
       .not.toContain('Support desk')
   })
 
+  test('SET-17 an identity without a display name shows by its address, is edited with a blank name and sends a bare From', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    // As James creates the identity of an account: named after its address
+    const [own] = await jmap.getIdentities()
+    if (typeof own?.id !== 'string') throw new Error('No identity')
+    await jmap.call('Identity/set', {
+      update: { [own.id]: { name: user.email } }
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const settings = await mailbox.openSettings()
+    await settings.open('profiles')
+
+    // In the list: the address, once, as the title
+    const bare = settings.identity(user.email)
+    await expect(bare).toBeVisible()
+    await expect(bare.getByText(user.email, { exact: true })).toHaveCount(1)
+
+    // In the form: no name, and none saved in its place
+    await bare.getByTestId('identity-edit-button').click()
+    await expect(
+      settings.identityDialog.getByTestId('identity-name-input')
+    ).toHaveValue('')
+    await expectNoA11yViolations(page)
+    await settings.identityDialog.getByTestId('save-identity-button').click()
+    await expect(settings.identityDialog).toBeHidden()
+    await expect
+      .poll(async () => {
+        const identities = await jmap.getIdentities()
+        return identities.find(identity => identity.id === own.id)?.name
+      })
+      .toBe('')
+    await expect(settings.identity(user.email)).toBeVisible()
+
+    // In the composer: From shows and sends the bare address
+    await settings.createIdentity({ name: 'Support' })
+    await settings.backToMail()
+    const composer = await mailbox.compose()
+    await composer.fill({ to: [user.email], subject: 'Bare From' })
+    await composer.showIdentity()
+    await expect(composer.identitySelect).toHaveText(user.email)
+    await composer.send()
+    const received = await jmap.waitForEmail({ subject: 'Bare From' })
+    expect(received.from).toEqual([{ name: null, email: user.email }])
+  })
+
   test('SET-05 a signature image is published as a public asset', async ({
     page,
     user,

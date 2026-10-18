@@ -396,6 +396,52 @@ describe('ComposerForm', () => {
       ).toHaveAttribute('aria-checked', 'true')
     })
 
+    it('shows and sends an identity named after its address as its bare address', async () => {
+      // As James creates them: named after their address
+      const { jmapServer } = renderComposer(
+        makeFakeJmapServer({
+          identities: [
+            makeIdentity({
+              id: 'identity-alice',
+              name: 'alice@example.com',
+              mayDelete: false
+            }),
+            makeIdentity({
+              id: 'identity-support',
+              name: 'Support',
+              email: 'support@example.com'
+            })
+          ]
+        })
+      )
+      const composer = await openComposer()
+      await fill(composer, { to: 'bob@example.com', subject: 'Bare from' })
+      await showFrom(composer)
+
+      expect(
+        within(composer).getByTestId('composer-identity-select')
+      ).toHaveTextContent(/^alice@example\.com$/)
+      await userEvent.click(
+        within(composer).getByTestId('composer-identity-select')
+      )
+      expect(
+        screen.getAllByRole('option').map(option => option.textContent)
+      ).toEqual(['alice@example.com', 'Support <support@example.com>'])
+      await userEvent.keyboard('{Escape}')
+
+      await userEvent.click(
+        within(composer).getByRole('button', { name: 'Send' })
+      )
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Message has been sent successfully'
+      )
+      const sent = jmapServer.emails.find(
+        email => email.id === jmapServer.submitted[0]
+      )
+      // From: alice@example.com, not "alice@example.com" <alice@example.com>
+      expect(sent?.from).toEqual([{ name: null, email: 'alice@example.com' }])
+    })
+
     describe('as a team mailbox', () => {
       function makeTeamServer(): FakeJmapServer {
         return makeFakeJmapServer({

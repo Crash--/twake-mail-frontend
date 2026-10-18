@@ -838,6 +838,7 @@
       "remoteImages": "Remote images",
       "remoteImagesDescription": "Show the images and other content that emails load from the Internet without asking. They tell the sender when and where you read the email.",
       "remoteImagesToggle": "Show remote images",
+      "remoteImagesWarning": "Always showing remote images exposes you to activity tracking and thus could harm your privacy.",
       "threadToggle": "Enable thread",
       "spamReports": "Spam reports",
       "spamReportsDescription": "Reminds you that you need to moderate your spam emails recurringly",

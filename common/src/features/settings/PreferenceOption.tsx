@@ -10,6 +10,8 @@ export interface PreferenceOptionProps {
   isChecked: boolean
   isDisabled?: boolean
   onChange: (isChecked: boolean) => void
+  /** Under the switch, in orange: what the choice made costs */
+  warning?: string | null
   'data-testid': string
 }
 

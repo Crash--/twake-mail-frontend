@@ -171,20 +171,28 @@ describe('PreferencesSettings', () => {
     expect(remoteImages).toHaveAccessibleDescription(
       expect.stringContaining('when and where you read the email')
     )
+    const warning =
+      'Always showing remote images exposes you to activity tracking and thus could harm your privacy.'
     // Off by default: the reader asks for each email
     expect(remoteImages).not.toBeChecked()
+    expect(screen.queryByText(warning)).toBe(null)
 
     await userEvent.click(remoteImages)
     await waitFor(() => {
       expect(remoteImages).toBeChecked()
     })
     expect(settings.settings()).toEqual({ 'display.remote.images': 'true' })
+    expect(screen.getByText(warning)).toBeVisible()
+    expect(remoteImages).toHaveAccessibleDescription(
+      expect.stringContaining(warning)
+    )
 
     await userEvent.click(remoteImages)
     await waitFor(() => {
       expect(remoteImages).not.toBeChecked()
     })
     expect(settings.settings()).toEqual({ 'display.remote.images': 'false' })
+    expect(screen.queryByText(warning)).toBe(null)
   })
 
   it('only has the conversations without server settings', async () => {

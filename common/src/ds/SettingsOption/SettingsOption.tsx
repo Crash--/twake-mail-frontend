@@ -183,13 +183,18 @@ export interface SettingsOptionProps {
   isChecked: boolean
   isDisabled?: boolean
   onChange: (isChecked: boolean) => void
+  /**
+   * What the choice made costs, under the switch in orange, null for none;
+   * announced when it appears, and describing the switch
+   */
+  warning?: string | null
   /** On the switch */
   'data-testid'?: string
 }
 
 /**
  * An option of the settings: its title (an `h2`), what it does, and the
- * switch, named by its label and described by both
+ * switch, named by its label and described by both (and by its warning)
  */
 export function SettingsOption({
   title,
@@ -198,10 +203,12 @@ export function SettingsOption({
   isChecked,
   isDisabled = false,
   onChange,
+  warning = null,
   'data-testid': testId
 }: SettingsOptionProps): ReactElement {
   const titleId = useId()
   const descriptionId = useId()
+  const warningId = useId()
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
     onChange(event.target.checked)
@@ -223,15 +230,38 @@ export function SettingsOption({
           disableRipple
           sx={SWITCH_SX}
           slotProps={{
-            input: { 'aria-describedby': `${titleId} ${descriptionId}` }
+            input: {
+              'aria-describedby': [
+                titleId,
+                descriptionId,
+                ...(warning === null ? [] : [warningId])
+              ].join(' ')
+            }
           }}
           data-testid={testId}
         />
         {toggleLabel}
       </Box>
+      {/* Kept in the page, so that the warning is announced as it appears */}
+      <Box role="status">
+        {warning === null ? null : (
+          <Typography id={warningId} component="p" sx={WARNING_SX}>
+            {warning}
+          </Typography>
+        )}
+      </Box>
     </Box>
   )
 }
+
+// A one line warning under the switch, in the orange of the theme's warning
+const WARNING_SX = {
+  mt: '8px',
+  mb: 0,
+  fontSize: 14,
+  lineHeight: '20px',
+  color: 'warning.main'
+} as const
 
 const CHOICES_SX = { gap: '4px' } as const
 

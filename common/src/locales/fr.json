@@ -838,6 +838,7 @@
       "remoteImages": "Images distantes",
       "remoteImagesDescription": "Affiche sans demander les images et autres contenus que les e-mails chargent depuis Internet. Ils indiquent à l'expéditeur quand et où vous lisez l'e-mail.",
       "remoteImagesToggle": "Afficher les images distantes",
+      "remoteImagesWarning": "Toujours afficher les images distantes vous expose au suivi de votre activité et peut ainsi nuire à votre vie privée.",
       "threadToggle": "Activer les fils de discussion",
       "spamReports": "Signaler un spam",
       "spamReportsDescription": "Vous rappelle que vous devez modérer régulièrement vos courriers indésirables",

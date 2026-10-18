@@ -838,6 +838,7 @@
       "remoteImages": "Hình ảnh từ xa",
       "remoteImagesDescription": "Hiển thị mà không cần hỏi các hình ảnh và nội dung khác mà email tải từ Internet. Chúng cho người gửi biết bạn đọc email khi nào và ở đâu.",
       "remoteImagesToggle": "Hiển thị hình ảnh từ xa",
+      "remoteImagesWarning": "Luôn hiển thị hình ảnh từ xa khiến bạn có thể bị theo dõi hoạt động và do đó có thể ảnh hưởng đến quyền riêng tư của bạn.",
       "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại",
       "spamReports": "Báo cáo thư rác",
       "spamReportsDescription": "Nhắc định kỳ kiểm tra thư rác",

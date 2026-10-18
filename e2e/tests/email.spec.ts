@@ -287,6 +287,12 @@ test.describe('EML reading an email', () => {
     await expect(toggle).not.toBeChecked()
     await toggle.click()
     await expect(toggle).toBeChecked()
+    // Warned, in one line under the switch
+    await expect(
+      page.getByText(
+        'Always showing remote images exposes you to activity tracking and thus could harm your privacy.'
+      )
+    ).toBeVisible()
     await expectNoA11yViolations(page)
     await settings.backToMail()
 

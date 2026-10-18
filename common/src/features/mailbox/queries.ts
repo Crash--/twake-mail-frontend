@@ -62,6 +62,8 @@ export interface MailboxListData {
 
 export type MailboxListKey = readonly ['mailbox', string, 'list']
 
+export type MailboxRightsKey = readonly ['mailbox', string, 'rights', string]
+
 export const mailboxKeys = {
   all: (accountId: string): readonly ['mailbox', string] => [
     'mailbox',
@@ -70,6 +72,11 @@ export const mailboxKeys = {
   list: (accountId: string): MailboxListKey => [
     ...mailboxKeys.all(accountId),
     'list'
+  ],
+  rights: (accountId: string, mailboxId: string): MailboxRightsKey => [
+    ...mailboxKeys.all(accountId),
+    'rights',
+    mailboxId
   ]
 }
 
@@ -93,6 +100,29 @@ export function mailboxesQueryOptions(
         state: response.state,
         list: response.list.map(normalizeMailbox)
       }
+    }
+  })
+}
+
+/**
+ * Who may do what in one mailbox (`rights`, James shares extension), read
+ * when its menu opens: the folder list leaves it out, as servers without
+ * the extension refuse the property. `{}` when it has none.
+ */
+export function mailboxRightsQueryOptions(
+  client: JmapClient,
+  accountId: string,
+  mailboxId: string
+): QueryOptionsFor<Record<string, string[]>, MailboxRightsKey> {
+  return queryOptions({
+    queryKey: mailboxKeys.rights(accountId, mailboxId),
+    queryFn: async ({ signal }) => {
+      const response = await client.call(
+        'Mailbox/get',
+        { accountId, ids: [mailboxId], properties: ['id', 'rights'] },
+        { signal }
+      )
+      return response.list[0]?.rights ?? {}
     }
   })
 }

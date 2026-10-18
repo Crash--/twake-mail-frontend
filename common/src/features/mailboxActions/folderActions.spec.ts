@@ -97,6 +97,37 @@ describe('availableFolderActions', () => {
     expect(ids('team', { canFilter: true })).not.toContain('create-filter')
   })
 
+  it('offers sub-addressing on a personal folder after Rename, as tmail-flutter', () => {
+    expect(ids('work', { subaddressing: { isAllowed: false } })).toEqual([
+      'open-in-new-tab',
+      'new-subfolder',
+      'mark-as-read',
+      'move',
+      'move-content',
+      'rename',
+      'allow-subaddressing',
+      'hide',
+      'delete'
+    ])
+    expect(
+      ids('work', { subaddressing: { isAllowed: true } }).slice(5, 9)
+    ).toEqual(['rename', 'disallow-subaddressing', 'copy-subaddress', 'hide'])
+    // Its rights not read yet, or a server without it: none of them
+    for (const subaddressing of [{ isAllowed: null }, null]) {
+      expect(
+        ids('work', { subaddressing }).filter(id => id.includes('subaddress'))
+      ).toEqual([])
+    }
+    // Neither the system folders nor the team folders
+    for (const mailboxId of ['mailbox-inbox', 'team', 'team-trash']) {
+      expect(
+        ids(mailboxId, { subaddressing: { isAllowed: false } }).filter(id =>
+          id.includes('subaddress')
+        )
+      ).toEqual([])
+    }
+  })
+
   it('offers to move the content of a folder that holds emails, as tmail-flutter', () => {
     // A personal folder
     expect(ids('work')).toContain('move-content')

@@ -308,3 +308,75 @@ test.describe('MBX folders dragged in the tree', () => {
     expect(await parentOf(clients.id)).toBe(work.id)
   })
 })
+
+// Sub-addressing (TF-3189): user+Folder@domain lands in the folder when
+// anyone may post there; the e2e James runs the TMailSubAdressing mailet
+test.describe('MBX sub-addressing of a folder', () => {
+  test('MBX-59 sub-addressing is allowed from the folder menu, the subaddress copied, mail to it lands in the folder until disallowed', async ({
+    page,
+    user,
+    users,
+    jmap,
+    jmapFor
+  }) => {
+    const projects = await jmap.createMailbox({ name: 'Projects' })
+    const mongolia = await jmap.createMailbox({
+      name: 'Mongolia',
+      parentId: projects.id
+    })
+    const alice = await users.create({ prefix: 'alice' })
+    const at = user.email.indexOf('@')
+    const address = `${user.email.slice(0, at)}+Projects.Mongolia${user.email.slice(at)}`
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.toggleFolder({ id: projects.id })
+    let menu = await mailbox.openFolderMenu({ id: mongolia.id })
+    await expect(menu.getByTestId('mailbox-action-copy-subaddress')).toHaveCount(0)
+    await menu.getByTestId('mailbox-action-allow-subaddressing').click()
+
+    const dialog = page.getByTestId('subaddressing-dialog')
+    await expect(dialog).toContainText('"Mongolia"')
+    await expect(dialog.getByTestId('subaddressing-address')).toHaveText(address)
+    await expectNoA11yViolations(page)
+    await dialog.getByTestId('subaddressing-copy-button').click()
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      address
+    )
+    await dialog.getByTestId('subaddressing-allow-button').click()
+    await expect(mailbox.toast).toContainText(
+      'You have successfully allowed subaddressing for this folder'
+    )
+
+    // Mail to the subaddress lands in the folder
+    await jmapFor(alice).sendEmail({
+      to: address,
+      subject: 'To Mongolia',
+      text: 'Straight in'
+    })
+    await jmap.waitForEmail({ mailboxId: mongolia.id, subject: 'To Mongolia' })
+
+    menu = await mailbox.openFolderMenu({ id: mongolia.id })
+    await menu.getByTestId('mailbox-action-copy-subaddress').click()
+    await expect(mailbox.toast).toContainText(
+      'Email subaddress copied to clipboard'
+    )
+    await mailbox.runFolderAction({ id: mongolia.id }, 'disallow-subaddressing')
+    await expect(mailbox.toast).toContainText(
+      'You have successfully disallowed subaddressing for this folder'
+    )
+    menu = await mailbox.openFolderMenu({ id: mongolia.id })
+    await expect(
+      menu.getByTestId('mailbox-action-allow-subaddressing')
+    ).toBeVisible()
+    await page.keyboard.press('Escape')
+
+    // Disallowed: it lands in the Inbox again
+    await jmapFor(alice).sendEmail({
+      to: address,
+      subject: 'Back to Inbox',
+      text: 'Not in the folder'
+    })
+    await jmap.waitForEmail({ subject: 'Back to Inbox' })
+  })
+})

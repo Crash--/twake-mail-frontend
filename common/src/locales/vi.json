@@ -919,7 +919,10 @@
       "label": "Thao tác với thư mục",
       "openInNewTab": "Mở trong tab mới",
       "createFilter": "Tạo bộ lọc",
-      "moveContent": "Chuyển nội dung thư mục"
+      "moveContent": "Chuyển nội dung thư mục",
+      "allowSubaddressing": "Cho phép địa chỉ phụ",
+      "disallowSubaddressing": "Vô hiệu địa chỉ email phụ cho thư mục",
+      "copySubaddress": "Sao chép email phụ"
     },
     "newFolder": "Thư mục mới",
     "create": {
@@ -985,6 +988,15 @@
     "progress": {
       "markAsRead": "Đang đánh dấu tất cả thư trong \"%{folderName}\" là đã đọc",
       "empty": "Đang dọn sạch \"%{folderName}\""
+    },
+    "subaddressing": {
+      "confirm": "Cho phép thư được gửi trực tiếp đến thư mục \"%{nameMailbox}\" qua:",
+      "allow": "Cho phép",
+      "allowed": "Bạn đã kích hoạt thành công địa chỉ email phụ cho thư mục này",
+      "disallowed": "Bạn đã vô hiệu hoá địa chỉ email phụ cho thư mục này",
+      "failed": "Đã có lỗi",
+      "copied": "Địa chỉ email phụ đã được sao chép",
+      "addressFailed": "Lỗi truy xuất email phụ"
     }
   },
   "identities": {

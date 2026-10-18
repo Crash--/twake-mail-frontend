@@ -10,8 +10,10 @@ import type { ReactElement } from 'react'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useHref } from 'react-router'
 
+import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useMailboxRights } from '@common/features/mailbox/useMailboxRights'
 import { useRecovery } from '@common/features/recovery/RecoveryProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { useI18n } from '@common/i18n/useI18n'
@@ -22,6 +24,10 @@ import {
   type FolderActionId
 } from './folderActionItems'
 import { useFolderActions } from './FolderActionsProvider'
+import {
+  isSubaddressingAllowed,
+  isSubaddressingSupported
+} from './subaddressing'
 
 /** The actions that show their progress above the list */
 const LONG_ACTIONS: readonly FolderActionId[] = [
@@ -58,8 +64,17 @@ export function FolderActionsMenu({
   const { t } = useI18n()
   const recovery = useRecovery()
   const { data: mailboxes = [] } = useMailboxes()
-  const { session } = useJmapSession()
+  const { session, accountId } = useJmapSession()
   const { run } = useFolderActions()
+  // Sub-addressing, for a personal folder of a server that delivers it:
+  // whether it is on is read from the rights of the folder, at each opening
+  const hasSubaddressing =
+    mailbox !== null &&
+    anchor !== null &&
+    mailbox.role === null &&
+    isPersonalMailbox(mailbox) &&
+    isSubaddressingSupported(session, accountId)
+  const rights = useMailboxRights(hasSubaddressing ? mailbox.id : null)
   // One long folder action at a time, as tmail-flutter
   const isLongActionRunning = useFolderActionProgress().progress !== null
   // Opening a folder in a new tab is a link: the browser does it
@@ -71,7 +86,14 @@ export function FolderActionsMenu({
       ? []
       : availableFolderActions(mailbox, mailboxes, {
           canRecover: recovery.isAvailable,
-          canFilter: LINAGORA_CAPABILITIES.filter in session.capabilities
+          canFilter: LINAGORA_CAPABILITIES.filter in session.capabilities,
+          subaddressing: hasSubaddressing
+            ? {
+                isAllowed: rights.isSuccess
+                  ? isSubaddressingAllowed(rights.data)
+                  : null
+              }
+            : null
         })
 
   return (

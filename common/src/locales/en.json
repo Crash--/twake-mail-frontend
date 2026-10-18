@@ -919,7 +919,10 @@
       "label": "Folder actions",
       "openInNewTab": "Open in new tab",
       "createFilter": "Create filter",
-      "moveContent": "Move folder content"
+      "moveContent": "Move folder content",
+      "allowSubaddressing": "Allow subaddressing",
+      "disallowSubaddressing": "Disallow subaddressing",
+      "copySubaddress": "Copy subaddress"
     },
     "newFolder": "New folder",
     "create": {
@@ -985,6 +988,15 @@
     "progress": {
       "markAsRead": "Marking all messages in \"%{folderName}\" as read",
       "empty": "Emptying \"%{folderName}\""
+    },
+    "subaddressing": {
+      "confirm": "You are about to allow anyone to send emails directly to your folder \"%{nameMailbox}\" using:",
+      "allow": "Allow",
+      "allowed": "You have successfully allowed subaddressing for this folder",
+      "disallowed": "You have successfully disallowed subaddressing for this folder",
+      "failed": "There was an error dealing with the request",
+      "copied": "Email subaddress copied to clipboard",
+      "addressFailed": "Error while fetching the subaddress"
     }
   },
   "identities": {

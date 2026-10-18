@@ -978,3 +978,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-reply.spec.ts`.
 - [x] `SET-17` An identity without a display name (as James creates it: named after its address) shows by its address, once, in Settings → Profiles; its form leaves the name blank and saving it stores no name (`name: ""`), never the address; in the composer, From shows the bare address and the message received has `From: <address>` with no name; axe on the form. — web app
   - Spec: `tests/settings.spec.ts`.
+- [x] `MBX-59` On a personal folder ("Projects" > "Mongolia"), the folder menu offers "Allow subaddressing" (not "Copy subaddress"); its dialog shows `user+Projects.Mongolia@domain` with a copy button that copies it (axe); once allowed, mail sent to that address lands in Mongolia, the menu offers "Copy subaddress" and "Disallow subaddressing"; once disallowed, mail to it lands in the Inbox. — tmail-flutter `TF-3189` (the e2e James runs `TMailSubAdressing`)
+  - Spec: `tests/folder-menu.spec.ts`.

@@ -1260,6 +1260,20 @@ export function makeFakeJmapServer(
       if (typeof patch.isSubscribed === 'boolean') {
         mailbox.isSubscribed = patch.isSubscribed
       }
+      // James shares: `sharedWith/<user>` sets the rights of one user
+      for (const [path, value] of Object.entries(patch)) {
+        const user = path.startsWith('sharedWith/')
+          ? path.slice('sharedWith/'.length)
+          : null
+        if (user === null || !Array.isArray(value)) continue
+        const others = Object.entries(mailbox.rights ?? {}).filter(
+          ([other]) => other !== user
+        )
+        const granted = value.filter(right => typeof right === 'string')
+        mailbox.rights = Object.fromEntries(
+          granted.length === 0 ? others : [...others, [user, granted]]
+        )
+      }
       mailboxLog.record(id, 'updated')
       updated[id] = null
     }

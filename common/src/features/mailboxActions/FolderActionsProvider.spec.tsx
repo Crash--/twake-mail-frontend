@@ -712,4 +712,160 @@ describe('Folder actions', () => {
       })
     ).toBeNull()
   })
+
+  describe('sub-addressing', () => {
+    function makeSubaddressingServer(isSupported = true): FakeJmapServer {
+      return makeFakeJmapServer({
+        capabilities: {
+          'urn:apache:james:params:jmap:mail:shares': {
+            subaddressingSupported: isSupported
+          }
+        },
+        mailboxes: [
+          ...makeDefaultMailboxes(),
+          makeMailbox({ id: 'projects', name: 'Projects' }),
+          makeMailbox({
+            id: 'mongolia',
+            name: 'Mongolia',
+            parentId: 'projects',
+            rights: { anyone: ['l'] }
+          })
+        ]
+      })
+    }
+
+    function rightsOf(
+      server: FakeJmapServer,
+      id: string
+    ): Record<string, string[]> | undefined {
+      return mailbox(server, id)?.rights
+    }
+
+    // Two round trips and a dialog: past 5 s on a loaded machine
+    it('allows it after showing the subaddress, which can be copied', async () => {
+      const user = userEvent.setup()
+      const server = makeSubaddressingServer()
+      await renderTree(server)
+      if (!screen.queryAllByText('Mongolia').length) {
+        await user.click(
+          within(folder('Projects')).getByTestId('mailbox-expand-button')
+        )
+      }
+
+      const menu = await openMenu('Mongolia')
+      expect(
+        await within(menu).findByRole('menuitem', {
+          name: 'Allow subaddressing'
+        })
+      ).toBeVisible()
+      expect(
+        within(menu).queryByRole('menuitem', { name: 'Copy subaddress' })
+      ).toBe(null)
+      await user.click(
+        within(menu).getByRole('menuitem', { name: 'Allow subaddressing' })
+      )
+
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Allow subaddressing'
+      })
+      expect(dialog).toHaveTextContent(
+        'You are about to allow anyone to send emails directly to your folder "Mongolia" using:'
+      )
+      // The path from the top, with dots
+      expect(
+        within(dialog).getByTestId('subaddressing-address')
+      ).toHaveTextContent('alice+Projects.Mongolia@example.com')
+      await user.click(
+        within(dialog).getByRole('button', { name: 'Copy subaddress' })
+      )
+      expect(await navigator.clipboard.readText()).toBe(
+        'alice+Projects.Mongolia@example.com'
+      )
+      await user.click(within(dialog).getByRole('button', { name: 'Allow' }))
+
+      // The other rights of anyone stay
+      await waitFor(() => {
+        expect(rightsOf(server, 'mongolia')).toEqual({ anyone: ['l', 'p'] })
+      })
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'You have successfully allowed subaddressing for this folder'
+      )
+    }, 15_000)
+
+    it('disallows it, keeping the other rights of anyone', async () => {
+      const user = userEvent.setup()
+      const server = makeSubaddressingServer()
+      const projects = server.mailboxes.find(({ id }) => id === 'projects')
+      if (projects) projects.rights = { anyone: ['l', 'p'] }
+      await renderTree(server)
+
+      const menu = await openMenu('Projects')
+      await user.click(
+        await within(menu).findByRole('menuitem', {
+          name: 'Disallow subaddressing'
+        })
+      )
+
+      await waitFor(() => {
+        expect(rightsOf(server, 'projects')).toEqual({ anyone: ['l'] })
+      })
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'You have successfully disallowed subaddressing for this folder'
+      )
+    })
+
+    it('copies the subaddress of a folder that takes it, from its menu', async () => {
+      const user = userEvent.setup()
+      const server = makeSubaddressingServer()
+      const projects = server.mailboxes.find(({ id }) => id === 'projects')
+      if (projects) projects.rights = { anyone: ['p'] }
+      await renderTree(server)
+
+      const menu = await openMenu('Projects')
+      await user.click(
+        await within(menu).findByRole('menuitem', { name: 'Copy subaddress' })
+      )
+
+      expect(await navigator.clipboard.readText()).toBe(
+        'alice+Projects@example.com'
+      )
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Email subaddress copied to clipboard'
+      )
+    })
+
+    it('leaves the folder as it was when the allowing is cancelled', async () => {
+      const user = userEvent.setup()
+      const server = makeSubaddressingServer()
+      await renderTree(server)
+
+      const menu = await openMenu('Projects')
+      await user.click(
+        await within(menu).findByRole('menuitem', {
+          name: 'Allow subaddressing'
+        })
+      )
+      await user.click(
+        within(
+          await screen.findByRole('dialog', { name: 'Allow subaddressing' })
+        ).getByRole('button', { name: 'Cancel' })
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBe(null)
+      })
+      expect(server.callsOf('Mailbox/set')).toEqual([])
+    })
+
+    it('offers nothing of it on a server that does not deliver subaddresses', async () => {
+      await renderTree(makeSubaddressingServer(false))
+
+      const menu = await openMenu('Projects')
+
+      expect(
+        within(menu).getByRole('menuitem', { name: 'Rename folder' })
+      ).toBeVisible()
+      expect(within(menu).queryByText(/subaddress/i)).toBe(null)
+    })
+  })
 })

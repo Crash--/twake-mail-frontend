@@ -32,6 +32,7 @@ import {
 import {
   mailboxesQueryOptions,
   mailboxKeys,
+  mailboxRightsQueryOptions,
   type MailboxSummary
 } from '@common/features/mailbox/queries'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
@@ -57,6 +58,8 @@ import type { FolderActionId } from './folderActionItems'
 import { findClashingParentIds, validateFolderName } from './folderName'
 import { MailboxNameDialog } from './MailboxNameDialog'
 import { moveFolderContent, undoMoveFolderContent } from './moveFolderContent'
+import { SubaddressingDialog } from './SubaddressingDialog'
+import { anyoneRightsWith, subaddress, subaddressDetail } from './subaddressing'
 import { useCreateFolder } from './useCreateFolder'
 import { maxCallsInRequest, useEmptyFolder } from './useEmptyFolder'
 
@@ -126,6 +129,11 @@ export function FolderActionsProvider({
   const [dialog, setDialog] = useState<NameDialog | null>(null)
   const [mailboxes, setMailboxes] = useState<readonly MailboxSummary[]>([])
   const [ruleFolder, setRuleFolder] = useState<MailboxSummary | null>(null)
+  /** The folder whose sub-addressing is to be allowed, and its address */
+  const [subaddressing, setSubaddressing] = useState<{
+    mailbox: MailboxSummary
+    address: string
+  } | null>(null)
   const addRule = useAddRule()
   const createFolder = useCreateFolder()
   const movedUnderListeners = useRef(new Set<MovedUnderListener>())
@@ -540,6 +548,72 @@ export function FolderActionsProvider({
     [loadMailboxes, setSubscribed, notify, t, fail]
   )
 
+  /** The sub-address of a folder, null (said) when it cannot be written */
+  const subaddressOf = useCallback(
+    async (mailbox: MailboxSummary): Promise<string | null> => {
+      const detail = subaddressDetail(await loadMailboxes(), mailbox.id)
+      const address =
+        detail === null ? null : subaddress(session.username, detail)
+      if (address === null) {
+        notify({
+          message: t('folders.subaddressing.addressFailed'),
+          severity: 'error'
+        })
+      }
+      return address
+    },
+    [loadMailboxes, session.username, notify, t]
+  )
+
+  const copySubaddress = useCallback(
+    (address: string): void => {
+      navigator.clipboard
+        .writeText(address)
+        .then(() => {
+          notify({
+            message: t('folders.subaddressing.copied'),
+            severity: 'success'
+          })
+        })
+        .catch((error: unknown) => {
+          console.warn('[mailbox] Cannot copy the subaddress', error)
+        })
+    },
+    [notify, t]
+  )
+
+  /**
+   * Gives anyone the right to post in the folder, or takes it back: the
+   * other rights of `anyone`, read afresh, stay
+   */
+  const changeSubaddressing = useCallback(
+    async (mailbox: MailboxSummary, isAllowed: boolean): Promise<void> => {
+      const options = mailboxRightsQueryOptions(client, accountId, mailbox.id)
+      try {
+        const rights = await queryClient.query({ ...options, staleTime: 0 })
+        await sendMailboxSet({
+          update: {
+            [mailbox.id]: {
+              'sharedWith/anyone': anyoneRightsWith(rights, isAllowed)
+            }
+          }
+        })
+        await queryClient.invalidateQueries({ queryKey: options.queryKey })
+        notify({
+          message: t(
+            isAllowed
+              ? 'folders.subaddressing.allowed'
+              : 'folders.subaddressing.disallowed'
+          ),
+          severity: 'success'
+        })
+      } catch (error: unknown) {
+        fail('folders.subaddressing.failed', error)
+      }
+    },
+    [client, accountId, queryClient, sendMailboxSet, notify, t, fail]
+  )
+
   const run = useCallback(
     (
       id: FolderActionId,
@@ -586,6 +660,19 @@ export function FolderActionsProvider({
           return
         case 'recover-deleted-messages':
           recovery.open()
+          return
+        case 'allow-subaddressing':
+          void subaddressOf(mailbox).then(address => {
+            if (address !== null) setSubaddressing({ mailbox, address })
+          })
+          return
+        case 'disallow-subaddressing':
+          void changeSubaddressing(mailbox, false)
+          return
+        case 'copy-subaddress':
+          void subaddressOf(mailbox).then(address => {
+            if (address !== null) copySubaddress(address)
+          })
       }
     },
     [
@@ -598,7 +685,10 @@ export function FolderActionsProvider({
       hide,
       show,
       emptyFolder,
-      recovery
+      recovery,
+      subaddressOf,
+      changeSubaddressing,
+      copySubaddress
     ]
   )
 
@@ -684,6 +774,22 @@ export function FolderActionsProvider({
     <FolderActionsContext.Provider value={api}>
       {children}
       {dialogElement}
+      {subaddressing === null ? null : (
+        <SubaddressingDialog
+          folderName={getName(subaddressing.mailbox)}
+          address={subaddressing.address}
+          onCopy={() => {
+            copySubaddress(subaddressing.address)
+          }}
+          onAllow={() => {
+            setSubaddressing(null)
+            void changeSubaddressing(subaddressing.mailbox, true)
+          }}
+          onClose={() => {
+            setSubaddressing(null)
+          }}
+        />
+      )}
       {ruleFolder === null ? null : (
         <RuleFormDialog
           rule={null}

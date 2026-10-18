@@ -89,6 +89,10 @@
 
         <processor state="local-delivery" enableJmx="true">
             <mailet match="All" class="VacationMailet"/>
+            <!-- user+folder@domain lands in the folder when anyone may post
+                 there (the "p" right): sub-addressing, as tmail-flutter turns
+                 it on from the folder menu -->
+            <mailet match="All" class="com.linagora.tmail.mailet.TMailSubAdressing"/>
             <mailet match="All" class="Sieve"/>
             <mailet match="All" class="AddDeliveredToHeader"/>
             <mailet match="All" class="org.apache.james.jmap.mailet.filter.JMAPFiltering"/>

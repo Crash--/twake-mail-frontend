@@ -16,7 +16,10 @@ import {
   Moveto,
   Openwith,
   Rename,
+  Copy,
   Restore,
+  SubaddressingAllow,
+  SubaddressingDisallow,
   Trash
 } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
@@ -36,6 +39,9 @@ export type FolderActionId =
   | 'show'
   | 'delete'
   | 'recover-deleted-messages'
+  | 'allow-subaddressing'
+  | 'disallow-subaddressing'
+  | 'copy-subaddress'
 
 export interface FolderActionItem {
   id: FolderActionId
@@ -94,6 +100,21 @@ const ITEMS: Record<FolderActionId, Omit<FolderActionItem, 'id'>> = {
     label: 'recovery.title',
     icon: Restore,
     isDestructive: false
+  },
+  'allow-subaddressing': {
+    label: 'folders.menu.allowSubaddressing',
+    icon: SubaddressingAllow,
+    isDestructive: false
+  },
+  'disallow-subaddressing': {
+    label: 'folders.menu.disallowSubaddressing',
+    icon: SubaddressingDisallow,
+    isDestructive: false
+  },
+  'copy-subaddress': {
+    label: 'folders.menu.copySubaddress',
+    icon: Copy,
+    isDestructive: false
   }
 }
 
@@ -106,6 +127,11 @@ export interface FolderActionOptions {
   canRecover?: boolean
   /** The server has filtering rules: a folder starts one */
   canFilter?: boolean
+  /**
+   * The server delivers sub-addresses, and whether the folder takes them
+   * (null while its rights are read): only personal folders offer it
+   */
+  subaddressing?: { isAllowed: boolean | null } | null
 }
 
 /**
@@ -119,7 +145,9 @@ export interface FolderActionOptions {
  *   others, "Mark as read" and move their content (when they hold unread
  *   emails);
  * - a personal folder: new subfolder, create a filter, mark as read, move,
- *   move its content, rename, hide or show, delete;
+ *   move its content, rename, then, when the server delivers sub-addresses
+ *   (TF-3189), allow sub-addressing, or disallow it and copy the
+ *   sub-address; then hide or show, delete;
  * - a team mailbox folder, as its rights allow (`myRights`): new subfolder,
  *   mark as read, rename, hide or show (its root only), empty its Trash,
  *   delete. Team folders do not move, their content does not either, and
@@ -130,7 +158,11 @@ export interface FolderActionOptions {
 export function availableFolderActions(
   mailbox: MailboxSummary,
   mailboxes: readonly MailboxSummary[],
-  { canRecover = false, canFilter = false }: FolderActionOptions = {}
+  {
+    canRecover = false,
+    canFilter = false,
+    subaddressing = null
+  }: FolderActionOptions = {}
 ): FolderActionItem[] {
   const rights = mailbox.myRights
   // Marking a folder read sets `$seen` on its emails
@@ -180,7 +212,15 @@ export function availableFolderActions(
     if (hasUnread) ids.push('mark-as-read')
     ids.push('move')
     if (canMoveContent) ids.push('move-content')
-    ids.push('rename', visibility)
+    ids.push('rename')
+    if (subaddressing !== null && subaddressing.isAllowed !== null) {
+      ids.push(
+        ...(subaddressing.isAllowed
+          ? (['disallow-subaddressing', 'copy-subaddress'] as const)
+          : (['allow-subaddressing'] as const))
+      )
+    }
+    ids.push(visibility)
     if (rights.mayDelete) ids.push('delete')
   }
   return ids.map(item)

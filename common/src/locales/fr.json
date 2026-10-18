@@ -919,7 +919,10 @@
       "label": "Actions sur le dossier",
       "openInNewTab": "Ouvrir dans un nouvel onglet",
       "createFilter": "Créer un filtre",
-      "moveContent": "Déplacer le contenu du dossier"
+      "moveContent": "Déplacer le contenu du dossier",
+      "allowSubaddressing": "Permettre le sous-adressage",
+      "disallowSubaddressing": "Interdire le sous-adressage",
+      "copySubaddress": "Copier la sous-adresse"
     },
     "newFolder": "Nouveau dossier",
     "create": {
@@ -985,6 +988,15 @@
     "progress": {
       "markAsRead": "Marquage de tous les messages de « %{folderName} » comme lus",
       "empty": "Vidage de « %{folderName} »"
+    },
+    "subaddressing": {
+      "confirm": "Vous êtes sur le point de permettre à toute personne d'envoyer des e-mails directement dans votre dossier \"%{nameMailbox}\" en utilisant :",
+      "allow": "Permettre",
+      "allowed": "Vous avez bien activé le sous-adressage pour ce dossier",
+      "disallowed": "Vous avez bien désactivé le sous-adressage pour ce dossier",
+      "failed": "Erreur lors du traitement de la requête",
+      "copied": "Adresse de sous-adressage copiée dans le presse-papier",
+      "addressFailed": "Erreur lors de la récupération de la sous-adresse"
     }
   },
   "identities": {

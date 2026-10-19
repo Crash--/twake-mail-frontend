@@ -37,8 +37,8 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
   Rules: [`common/src/ds/README.md`](common/src/ds/README.md). Record the
   gap in `docs/twake-mui-gaps.md` (component, variant, intended usage, where
   it is implemented, the twake-ui change it calls for).
-- All user-facing strings are translated from the start, in the four locales
-  (en, fr, ru, vi). Reuse tmail-flutter translations when they exist: see
+- All user-facing strings are translated from the start, in the eight locales
+  (en, fr, ru, vi, it, de, mn, es). Reuse tmail-flutter translations when they exist: see
   `docs/i18n.md`.
 - Icon buttons have a tooltip (except obvious ones, like closing a dialog).
 - Interactive elements that end-to-end tests drive get a stable kebab-case

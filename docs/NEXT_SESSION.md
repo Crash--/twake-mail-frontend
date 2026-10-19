@@ -33,7 +33,7 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
   UI manquante → **`@/ds/`** (`common/src/ds/`), **sans logique métier**. Candidats à remonter dans twake-ui.
 - **Accessibilité RGAA 4.1 obligatoire** (jsx-a11y, axe dans chaque spec e2e, navigation clavier). **Responsive** (desktop, tablette, mobile).
 - Données : TanStack Query. Synchronisation incrémentale par `/changes` (pas de refetch global).
-- Langues : en, fr, ru, vi (import des ARB Flutter via `scripts/import-flutter-arb.mjs`) ; les 9 langues = issue #62.
+- Langues : en, fr, ru, vi, it, de, mn, es (import des ARB Flutter via `scripts/import-flutter-arb.mjs`, #662) ; l'arabe et la lecture de droite à gauche = issue #62.
 - React 19 (depuis #63) : `@linagora/twake-mui` 12 (depuis le mode sombre : 10 lisait encore `theme.palette.*`, figé en clair ; 12 ajoute les pairs `cozy-intent` et `@linagora/twake-css`, et importe `react-markdown`, remplacé par `common/src/testing/markdownMock.ts` dans Jest), `@linagora/twake-icons` 2.13 et `twake-i18n` 0.6 l'acceptent (twake-ui#130 et cozy-libs#3165 publiées). Pas d'`overrides`. Types dépréciés (`FormEvent`, `MutableRefObject`) remplacés par `SubmitEvent` et `RefObject`.
 - Workflow : **une branche + une PR par lot sur `Crash--/twake-mail-frontend`, merge en rebase quand la CI est verte**, puis redéploiement démo (`deploy.sh`). Conventional Commits, trailer `Co-Authored-By: Claude …`.
 - Issues : Quentin en crée souvent en cours de route → les créer sur **notre** dépôt (anglais, checklist, labels existants).

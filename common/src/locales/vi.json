@@ -869,7 +869,11 @@
         "en": "Tiếng Anh",
         "fr": "Tiếng Pháp",
         "ru": "Tiếng Nga",
-        "vi": "Tiếng Việt"
+        "vi": "Tiếng Việt",
+        "it": "Tiếng Ý",
+        "de": "Tiếng Đức",
+        "mn": "Tiếng Mông Cổ",
+        "es": "Tiếng Tây Ban Nha"
       },
       "label": "Ngôn ngữ"
     },

@@ -14,7 +14,12 @@ export const POLYGLOT_PLURAL_CATEGORIES = {
   en: ['one', 'other'],
   fr: ['one', 'other'],
   ru: ['one', 'few', 'many'],
-  vi: ['other']
+  vi: ['other'],
+  // Polyglot has no rule for Mongolian and uses the English one
+  mn: ['one', 'other'],
+  es: ['one', 'other'],
+  it: ['one', 'other'],
+  de: ['one', 'other']
 }
 
 class IcuSyntaxError extends Error {

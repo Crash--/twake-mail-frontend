@@ -52,6 +52,41 @@ describe('LanguageSettings', () => {
     })
   })
 
+  it('offers the languages of tmail-flutter but Arabic, and Spanish', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeSettings(server)
+    renderWithProviders(<LanguageSettings section={languageSection()} />, {
+      jmapServer: server,
+      withJmapSession: true
+    })
+
+    await userEvent.click(
+      await screen.findByRole('combobox', { name: /^Language/ })
+    )
+    expect(
+      screen.getAllByRole('option').map(option => option.textContent)
+    ).toEqual([
+      'English - English',
+      'French - Français',
+      'Russian - Русский',
+      'Vietnamese - Tiếng Việt',
+      'Italian - Italiano',
+      'German - Deutsch',
+      'Mongolian - Монгол',
+      'Spanish - Español'
+    ])
+
+    await userEvent.click(
+      screen.getByRole('option', { name: 'Mongolian - Монгол' })
+    )
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Хэл' })
+    ).toBeVisible()
+    expect(document.documentElement.lang).toBe('mn')
+  })
+
   it('follows the language of the account', async () => {
     const server = makeFakeJmapServer({
       capabilities: FAKE_LINAGORA_CAPABILITIES

@@ -1,20 +1,33 @@
-export type SupportedLanguage = 'en' | 'fr' | 'ru' | 'vi'
+export type SupportedLanguage =
+  'en' | 'fr' | 'ru' | 'vi' | 'it' | 'de' | 'mn' | 'es'
 
+/** In the order of the language picker */
 export const SUPPORTED_LANGUAGES: readonly SupportedLanguage[] = [
   'en',
   'fr',
   'ru',
-  'vi'
+  'vi',
+  'it',
+  'de',
+  'mn',
+  'es'
 ]
 
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'en'
 
-/** The name of each language in itself, as tmail-flutter lists them */
+/**
+ * The name of each language in itself, as tmail-flutter lists them
+ * (tmail-flutter has no Spanish in its picker)
+ */
 export const LANGUAGE_NATIVE_NAMES: Record<SupportedLanguage, string> = {
   en: 'English',
   fr: 'Français',
   ru: 'Русский',
-  vi: 'Tiếng Việt'
+  vi: 'Tiếng Việt',
+  it: 'Italiano',
+  de: 'Deutsch',
+  mn: 'Монгол',
+  es: 'Español'
 }
 
 /** Also read by the chunk-load fallback of public/index.html */

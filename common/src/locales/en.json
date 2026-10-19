@@ -869,7 +869,11 @@
         "en": "English",
         "fr": "French",
         "ru": "Russian",
-        "vi": "Vietnamese"
+        "vi": "Vietnamese",
+        "it": "Italian",
+        "de": "German",
+        "mn": "Mongolian",
+        "es": "Spanish"
       },
       "label": "Language"
     },

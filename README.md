@@ -124,7 +124,7 @@ common/src/
   features/email/    reading view, keywords (read, starred)
   features/push/     JMAP push over WebSocket
   features/<name>/   one folder per feature, with its queries.ts
-  i18n/ locales/     translations (en, fr, ru, vi)
+  i18n/ locales/     translations (en, fr, ru, vi, it, de, mn, es)
   jmap/              JMAP client and session providers
   layout/            top bar, sidebar, app layout
   testing/           test helpers (renderWithProviders, fake JMAP server)

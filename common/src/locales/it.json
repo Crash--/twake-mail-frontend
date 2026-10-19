@@ -1,0 +1,1503 @@
+{
+  "app": {
+    "name": "Twake Mail",
+    "skipToContent": "Vai al contenuto principale"
+  },
+  "common": {
+    "retry": "Riprova",
+    "loading": "Caricamento… Attendere prego!",
+    "errorOccurred": "Errore! Si è verificato un errore. Si prega di riprovare più tardi.",
+    "errorTitle": "Errore",
+    "unknownError": "Si è verificato un errore sconosciuto, riprova",
+    "reconnect": "Riconnetti",
+    "back": "Indietro",
+    "close": "Chiudi",
+    "undo": "Annullare",
+    "connectionError": "Errore di connessione",
+    "cancel": "Cancella",
+    "delete": "Elimina",
+    "deleteAll": "Elimina tutti",
+    "yes": "Sì",
+    "no": "No",
+    "confirm": "Conferma",
+    "remove": "Rimuovere",
+    "errorOccurredShort": "Errore! Si è verificato un errore. Si prega di riprovare più tardi.",
+    "save": "Salva",
+    "refresh": "Aggiorna",
+    "open": "Apri",
+    "offline": "Nessuna connessione internet",
+    "backOnline": "Di nuovo online",
+    "dismiss": "Cancellare",
+    "opensInNewTab": "si apre in una nuova scheda",
+    "edit": "Modifica"
+  },
+  "topbar": {
+    "logout": "Esci",
+    "search": "Ricerca",
+    "showFolders": "Mostra le cartelle",
+    "searchPlaceholder": "Cerca nella posta",
+    "help": "Ottieni aiuto o segnala un bug",
+    "account": "Account %{address}"
+  },
+  "sidebar": {
+    "mailboxes": "Caselle di posta",
+    "newMessage": "Componi",
+    "folders": "Cartelle",
+    "teamMailboxes": "Caselle di posta del team",
+    "version": "versione %{version}",
+    "personalFolders": "Cartelle personali"
+  },
+  "mailbox": {
+    "empty": "Non hai nessuna email\n in questa cartella.",
+    "emptyHint": "Inizia a scrivere email.",
+    "offline": "Nessuna connessione a Internet, riprova più tardi.",
+    "roles": {
+      "inbox": "Posta in arrivo",
+      "drafts": "Bozze",
+      "sent": "Inviati",
+      "trash": "Cestino",
+      "junk": "Spam",
+      "templates": "Modelli",
+      "archive": "Archivio",
+      "outbox": "Posta in uscita",
+      "restored": "Recuperati"
+    },
+    "expand": "Espandere",
+    "collapse": "Ridurre",
+    "emails": "Messaggi",
+    "starred": "Preferito",
+    "actionRequired": "Azione richiesta",
+    "emptyActionRequired": "Non hai nessuna email che richiede un'azione.",
+    "emptyStarred": "Non hai nessuna email preferita.",
+    "emptyStarredHint": "Inizia ad aggiungere email ai preferiti",
+    "emptyFilter": "Siamo spiacenti, non ci sono email che corrispondono al tuo filtro attuale."
+  },
+  "email": {
+    "star": "Contrassegna come preferito",
+    "unstar": "Rimuovi dal preferito",
+    "unread": "Non letto",
+    "attachment": "Allegato",
+    "from": "Da",
+    "to": "A",
+    "cc": "Cc",
+    "bcc": "Bcc",
+    "download": "Scarica",
+    "attachments": "Allegati",
+    "content": "Contenuto del messaggio",
+    "showTrimmedContent": "Mostra il contenuto nascosto",
+    "notFound": "Questo messaggio non esiste più",
+    "bodyLoadFailed": "Impossibile caricare il contenuto di questo messaggio.",
+    "bodyTruncated": "Questo messaggio è troppo lungo per essere mostrato per intero.",
+    "markAsRead": "Segna come letto",
+    "markAsUnread": "Segna come non letto",
+    "starred": "Preferito",
+    "noneSelected": "Nessuna e-mail selezionata",
+    "remoteContent": {
+      "hidden": "Immagini remote nascoste per proteggere la tua privacy",
+      "show": "Mostra",
+      "alwaysShow": "Mostra sempre per questo mittente"
+    },
+    "twpWarning": {
+      "levels": {
+        "info": "Informazione",
+        "warn": "Avviso",
+        "error": "Pericolo"
+      },
+      "titles": {
+        "info": "Informazioni su questo messaggio",
+        "warn": "Fai attenzione a questo messaggio",
+        "error": "Questo messaggio potrebbe essere pericoloso"
+      },
+      "codes": {
+        "suspiciousSender": "Questa email proviene da un mittente esterno che imita utenti noti: verifica attentamente l'indirizzo.",
+        "virus": "Questa email contiene un virus negli allegati!",
+        "virusRemoved": "Questa email conteneva un virus in un allegato, che abbiamo rimosso per la tua sicurezza."
+      },
+      "notSpam": "Non è spam",
+      "dangerousMessage": "Messaggio pericoloso"
+    },
+    "readReceipt": {
+      "title": "Richiesto di conferma di lettura",
+      "message": "Il mittente ha richiesto una conferma di lettura per questa email. Invia la conferma?",
+      "notSupported": "Il tuo account non supporta la funzionalità MDN",
+      "noIdentity": "Impossibile trovare l'identificativo fornito",
+      "subject": "Leggere: %{subject}",
+      "body": "Il messaggio è stato letto da %{receiver} il %{time} \n\nOggetto: %{subject} \n\nNota: questa notifica conferma solo che il messaggio è stato visualizzato sul computer del destinatario. Non vi è alcuna garanzia che il destinatario abbia letto o compreso il contenuto del messaggio.",
+      "sent": "È stata inviata una conferma di lettura."
+    },
+    "important": "Importante",
+    "address": {
+      "createRule": "Crea una regola con questa email",
+      "compose": "Componi un'e-mail",
+      "invite": "Invita a un evento",
+      "chat": "Chat",
+      "copy": "Copia l'indirizzo e-mail",
+      "copied": "Indirizzo email copiato",
+      "close": "Chiudi"
+    },
+    "actionRequired": "Azione richiesta",
+    "removeActionRequired": "Rimuovi l'etichetta Azione richiesta",
+    "downloadAll": "Scarica tutto",
+    "downloadFailed": "Download degli allegati non riuscito",
+    "preview": {
+      "loading": "Caricamento… Attendere prego!",
+      "cannotPreviewPdf": "Impossibile visualizzare l'anteprima del PDF",
+      "tooLarge": "Questo PDF supera %{size}: scaricalo per leggerlo.",
+      "cannotPreviewHtml": "Impossibile visualizzare l'anteprima di questo allegato HTML",
+      "noPreview": "Nessuna anteprima disponibile",
+      "open": "Anteprima",
+      "page": "Pagina %{page} di %{count}",
+      "truncated": "L'anteprima si interrompe qui: scarica il file per leggere il resto.",
+      "failed": "Il file non può essere aperto qui: scaricalo per leggerlo.",
+      "passwordProtected": "Questo PDF è protetto da password",
+      "password": "Password",
+      "wrongPassword": "Password errata, riprova.",
+      "openPdf": "Apri",
+      "print": "Stampa",
+      "printTooLong": "Questo PDF ha più di %{count} pagine: scaricalo per stamparlo."
+    },
+    "attachmentsMore": "Mostra altri %{count}",
+    "attachmentsHide": "Nascondi %{count}",
+    "attachmentsTitle": "%{smart_count} allegato (%{size}) |||| %{smart_count} allegati (%{size})",
+    "replyTo": "Rispondi a",
+    "backTo": "Torna a %{name}",
+    "previousEmail": "Email precedente",
+    "nextEmail": "Email successiva",
+    "showRecipients": "Mostra tutti i destinatari",
+    "hideRecipients": "Nascondi gli indirizzi",
+    "replied": "Messaggio con risposta",
+    "forwardedState": "Messaggio inoltrato",
+    "repliedAndForwarded": "Messaggio con risposta e inoltrato",
+    "smime": {
+      "good": "L'autenticità di questo messaggio è stata verificata con la firma S/MIME.",
+      "bad": "Questo messaggio non ha superato la verifica della firma S/MIME."
+    }
+  },
+  "login": {
+    "title": "Registrazione",
+    "subtitle": "Inserisci le tue credenziali per accedere",
+    "submit": "Registrazione",
+    "requiredEmail": "Email è richiesta",
+    "requiredPassword": "La password è richiesta",
+    "badCredentials": "Credenziali errate",
+    "connectionError": "Errore di connessione",
+    "startErrorTitle": "Errore",
+    "ssoUnreachableTitle": "Impossibile raggiungere il servizio di accesso",
+    "ssoUnreachableDescription": "Controlla la connessione, poi riprova.",
+    "email": "Email",
+    "password": "Password",
+    "pitch": {
+      "title": "Basato su JMAP\nsoluzione di posta collaborativa del team",
+      "jmap": "Standard JMAP",
+      "encrypted": "Casella di posta crittografata",
+      "team": "Gestisci l'email come una team",
+      "integrations": "Integrazioni multiple"
+    },
+    "poweredBy": "Realizzato da LINAGORA",
+    "showPassword": "Mostra la password",
+    "hidePassword": "Nascondi la password",
+    "privacyPolicy": "Politica sulla riservatezza"
+  },
+  "config": {
+    "title": "Twake Mail non è configurato",
+    "description": "La configurazione di runtime (.env.js) manca o non è valida. Contatta il tuo amministratore."
+  },
+  "thread": {
+    "columns": {
+      "status": "Stato",
+      "sender": "Mittente",
+      "subject": "Oggetto",
+      "date": "Data",
+      "actions": "Azioni",
+      "message": "Messaggio",
+      "select": "Selezione"
+    },
+    "messageCount": "%{smart_count} messaggio |||| %{smart_count} messaggi",
+    "messages": "Messaggi della conversazione",
+    "actions": "Azioni sulla conversazione",
+    "messageActions": "Azioni sul messaggio di %{name}, %{date}",
+    "newMessage": "Nuovo messaggio da %{name}",
+    "empty": "Questa conversazione non esiste più",
+    "archive": "Archivia la conversazione",
+    "moveToTrash": "Sposta la conversazione nel cestino",
+    "markAsSpam": "Segna la conversazione come spam",
+    "deletePermanently": "Elimina definitivamente la conversazione",
+    "notSpam": "Rimuovi la conversazione dallo spam",
+    "selection": {
+      "count": "%{count} selezionato",
+      "selectAll": "Seleziona tutti",
+      "selectPage": "Seleziona tutti i messaggi di questa pagina",
+      "select": "Seleziona %{subject}",
+      "selectAllInFolder": "Seleziona %{smart_count} messaggio in questa cartella |||| Seleziona tutti i %{smart_count} messaggi in questa cartella",
+      "allInFolderSelected": "%{smart_count} messaggio in questa cartella è selezionato |||| Tutti i %{smart_count} messaggi in questa cartella sono selezionati",
+      "clear": "Annulla la selezione",
+      "toolbar": "Azioni sulla selezione"
+    },
+    "toolbar": {
+      "label": "Azioni sull'elenco",
+      "filter": "Filtra i messaggi",
+      "clearFilter": "Rimuovi il filtro",
+      "selectPage": "Seleziona tutti i messaggi di questa pagina",
+      "filterOn": "Hai filtrato i messaggi per «%{name}»",
+      "filterOff": "Hai disabilitato i messaggi filtrati",
+      "filters": {
+        "attachments": "Con allegati",
+        "unread": "Non letto",
+        "starred": "Preferito"
+      }
+    },
+    "me": "Io",
+    "draft": {
+      "marker": "Bozza",
+      "actions": "Azioni sulla bozza",
+      "edit": "Modifica",
+      "editTo": "Modifica la bozza per %{recipients}",
+      "delete": "Elimina la bozza",
+      "deleteTo": "Elimina la bozza per %{recipients}"
+    },
+    "row": {
+      "openInNewTab": "Apri in una nuova scheda",
+      "noRecipient": "Nessun destinatario",
+      "noSender": "Nessun mittente"
+    }
+  },
+  "push": {
+    "newMessages": "Hai nuovi messaggi"
+  },
+  "composer": {
+    "editor": {
+      "bold": "Grassetto",
+      "italic": "Corsivo",
+      "underline": "Sottolineato",
+      "strike": "Barrato",
+      "textColor": "Colore del testo",
+      "fontSize": "Dimensione del testo",
+      "align": "Paragrafo",
+      "alignLeft": "Allineare a sinistra",
+      "alignCenter": "Allinea al centro",
+      "alignRight": "Allinea a destra",
+      "alignJustify": "Giustificare per intero",
+      "bulletList": "Elenco puntato",
+      "orderedList": "Elenco numerato",
+      "link": "Inserisci link",
+      "insertImage": "Inserisci immagine",
+      "undo": "Annullare",
+      "toolbar": "Opzioni di formattazione",
+      "defaultColor": "Riportare alle condizioni originali",
+      "redo": "Ripeti",
+      "blockquote": "Citazione",
+      "clearFormatting": "Cancella formattazione",
+      "name": "Corpo del messaggio",
+      "keyboardHelp": "Tab inserisce una tabulazione o aumenta il rientro di un elemento di elenco. Maiusc+Tab esce dall'editor. Ctrl+Maiusc+M fa sì che Tab sposti il focus, o torni a inserire una tabulazione. Alt+F10 porta alla barra di formattazione. Ctrl+K inserisce un link. Su un'immagine selezionata con le frecce, Invio mostra le opzioni di dimensione.",
+      "colors": {
+        "black": "Nero",
+        "darkGrey": "Grigio scuro",
+        "red": "Rosso",
+        "orange": "Arancione",
+        "yellow": "Giallo",
+        "green": "Verde",
+        "teal": "Verde acqua",
+        "blue": "Blu",
+        "purple": "Viola",
+        "pink": "Rosa",
+        "grey": "Grigio",
+        "lightGrey": "Grigio chiaro",
+        "lightRed": "Rosso chiaro",
+        "lightOrange": "Arancione chiaro",
+        "lightYellow": "Giallo chiaro",
+        "lightGreen": "Verde chiaro",
+        "lightTeal": "Verde acqua chiaro",
+        "lightBlue": "Blu chiaro",
+        "lightPurple": "Viola chiaro",
+        "lightPink": "Rosa chiaro"
+      },
+      "image": {
+        "toolbar": "Opzioni dell'immagine",
+        "small": "25%",
+        "medium": "50%",
+        "large": "75%",
+        "original": "Dimensione originale",
+        "smaller": "Più piccola",
+        "larger": "Più grande",
+        "remove": "Rimuovi l'immagine",
+        "sizeStatus": "Larghezza %{width} px, %{percent}% dell'originale",
+        "alt": "Testo alternativo",
+        "altHelp": "Lascia vuoto se l'immagine è solo decorativa. Invio applica, Esc annulla."
+      },
+      "textStyle": "Stile del testo",
+      "textStyles": {
+        "paragraph": "Normale",
+        "h1": "Intestazione 1",
+        "h2": "Intestazione 2",
+        "h3": "Intestazione 3",
+        "h4": "Intestazione 4",
+        "h5": "Intestazione 5",
+        "h6": "Intestazione 6",
+        "blockquote": "Citazione",
+        "code": "Codice"
+      },
+      "fontFamily": "Carattere",
+      "highlight": "Colore di evidenziazione",
+      "lists": "Elenchi e rientro",
+      "indent": "Aumenta rientro",
+      "outdent": "Riduci rientro",
+      "customColor": "Altro colore",
+      "noHighlight": "Nessuna evidenziazione"
+    },
+    "link": {
+      "text": "Testo",
+      "url": "Digita o incolla un link",
+      "apply": "Applica",
+      "cancel": "Cancella",
+      "remove": "Rimuovi link",
+      "title": "Inserisci link",
+      "invalidUrl": "Questo link non è supportato. Usa un indirizzo web (https://…), mailto: o tel:."
+    },
+    "quote": {
+      "replyHeader": "Il %{sentDate}, da %{emailAddress}",
+      "dateTime": "%{date} alle %{time}",
+      "forwarded": "Messaggio inoltrato",
+      "subject": "Oggetto",
+      "from": "Da",
+      "to": "A",
+      "cc": "Cc",
+      "bcc": "Bcc",
+      "replyTo": "Rispondi a",
+      "date": "Data"
+    },
+    "send": "Inviare",
+    "saveAsDraft": "Salva come bozza",
+    "print": "Stampa",
+    "signature": "Firma",
+    "fields": {
+      "to": "A",
+      "cc": "Cc",
+      "bcc": "Bcc",
+      "replyTo": "Rispondi a",
+      "from": "Da",
+      "subject": "Oggetto",
+      "hide": "Nascondi %{field}",
+      "more": "Altri campi destinatari"
+    },
+    "window": {
+      "minimize": "Minimizzare",
+      "fullscreen": "A schermo intero",
+      "exitFullscreen": "Esci da schermo intero",
+      "close": "Chiudi",
+      "show": "Mostra",
+      "overflow": "+%{smart_count} messaggio |||| +%{smart_count} messaggi"
+    },
+    "close": {
+      "title": "Salva il messaggio",
+      "message": "Salvare questo messaggio nella cartella Bozze e chiudere l'editor?",
+      "save": "Salva",
+      "discard": "Annulla le modifiche"
+    },
+    "draft": {
+      "saved": "Bozza salvata",
+      "saveFailed": "Salvataggio del messaggio nella cartella Bozze non riuscito.\nSi è verificato un errore durante il salvataggio dell'email.",
+      "tooLarge": "Impossibile salvare il messaggio come bozza perché è troppo grande.",
+      "overQuota": "Impossibile salvare il messaggio come bozza perché ha superato la quota.",
+      "discard": "Scartare",
+      "saving": "Salvataggio…",
+      "autosaved": "Bozza salvata",
+      "notSaved": "Bozza non salvata",
+      "delete": "Elimina la bozza",
+      "deleted": "Bozza eliminata",
+      "lockedElsewhere": "Questa bozza è già aperta in un'altra finestra"
+    },
+    "newMessage": "Nuovo messaggio",
+    "more": "Di più",
+    "recipients": {
+      "suggestions": "Suggerimenti di contatti",
+      "invalid": "indirizzo non valido",
+      "chipHelp": "Invio apre la scheda dell'indirizzo, F2 lo modifica, Canc lo rimuove.",
+      "removed": "%{address} rimosso",
+      "added": "%{address} aggiunto",
+      "addedMany": "%{smart_count} destinatario aggiunto |||| %{smart_count} destinatari aggiunti",
+      "suggestionCount": "%{smart_count} suggerimento |||| %{smart_count} suggerimenti",
+      "summary": "Mostra tutti i destinatari:",
+      "others": "+%{smart_count}",
+      "alreadyAdded": "già aggiunto",
+      "editEmail": "Modifica l'indirizzo",
+      "createRule": "Crea una regola",
+      "moveHelp": "Alt+Su o Alt+Giù lo sposta nel campo sopra o sotto.",
+      "moved": "%{address} spostato in %{field}",
+      "invalidLines": "%{file}: la riga %{lines} non è un indirizzo valido. |||| %{file}: le righe %{lines} non sono indirizzi validi.",
+      "notAddressFile": "%{file} non è un file di testo di indirizzi.",
+      "fileUnreadable": "Impossibile leggere il file trascinato."
+    },
+    "limit": "Puoi scrivere %{smart_count} messaggi alla volta. Chiudine uno per iniziarne un altro.",
+    "sent": "Il messaggio è stato inviato con successo",
+    "sending": "Invio del messaggio",
+    "sendChecks": {
+      "failedTitle": "Invio fallito",
+      "noRecipient": "La tua e-mail deve avere almeno uno destinatario",
+      "addRecipients": "Aggiungi destinatari",
+      "invalid": "Verifica la correttezza degli indirizzi e-mail e riprova",
+      "fixAddresses": "Correggi gli indirizzi e-mail",
+      "emptySubjectTitle": "Soggetto vuoto",
+      "emptySubject": "Sei sicuro di inviare messaggi senza oggetto?",
+      "sendAnyway": "Inviare lo stesso",
+      "uploading": "Impossibile inviare il messaggio perché è in corso il caricamento di un allegato",
+      "failedUploadsTitle": "Allegato non caricato |||| Allegati non caricati",
+      "failedUploads": "Impossibile allegare %{names}. Inviare il messaggio senza o caricarlo di nuovo? |||| Impossibile allegare %{names}. Inviare il messaggio senza o caricarli di nuovo?",
+      "sendWithout": "Invia senza",
+      "retryUploads": "Riprova",
+      "largeMessageTitle": "Messaggio di grandi dimensioni",
+      "largeMessage": "Il tuo messaggio supera la dimensione generalmente accettata dai sistemi di posta di terze parti. Se confermi l'invio, c'è il rischio che venga rifiutato dal sistema del destinatario."
+    },
+    "gotIt": "Capito",
+    "sendErrors": {
+      "tooLarge": "Impossibile inviare il messaggio perché è troppo grande.",
+      "overQuota": "Impossibile inviare il messaggio perché ha superato la quota.",
+      "invalidRecipients": "Invio del messaggio non riuscito, perché questi destinatari non sono validi: %{invalidRecipients}",
+      "generic": "Invio del messaggio non riuscito.\nSi è verificato un errore durante l'invio dell'email.",
+      "forbiddenFrom": "Invio del messaggio non riuscito, perché non puoi inviare da questo indirizzo.",
+      "forbiddenToSend": "Il tuo messaggio non può ancora essere inviato: il tuo dominio è ancora in fase di attivazione. L'invio sarà possibile una volta convalidata la configurazione DNS della posta. Il messaggio è conservato nelle Bozze.",
+      "offline": "Sei offline. Sembra che tu non sia connesso."
+    },
+    "attachments": {
+      "tooLargeTitle": "Dimensione massima dei file",
+      "tooLarge": "Hai raggiunto la dimensione massima del file. Carica file la cui dimensione totale è inferiore a %{maxSize}",
+      "attach": "Allega un file",
+      "dropHere": "Trascina qui i file per allegarli",
+      "list": "Allegati (%{smart_count})",
+      "remove": "Rimuovi %{name}",
+      "progress": "Caricamento di %{name}",
+      "failed": "Caricamento non riuscito",
+      "uploaded": "%{name} allegato",
+      "uploadFailed": "Impossibile allegare %{name}",
+      "removed": "%{name} rimosso",
+      "retry": "Riprova %{name}",
+      "done": "Caricato",
+      "showLess": "Mostra meno",
+      "showMore": "Mostra altro (+%{count})",
+      "uploadingTitle": "Caricamento di %{smart_count} file |||| Caricamento di %{smart_count} file",
+      "hideUploads": "Nascondi l'elenco dei caricamenti"
+    },
+    "prefix": {
+      "reply": "Re:",
+      "forward": "Fwd:"
+    },
+    "options": {
+      "markAsImportant": "Segna come importante",
+      "importantEnabled": "Segna come importante è attivato",
+      "importantDisabled": "Segna come importante è disattivato",
+      "readReceipt": "Richiedi conferma di lettura",
+      "readReceiptEnabled": "La richiesta di conferma di lettura è stata attivata",
+      "readReceiptDisabled": "La richiesta di conferma di lettura è stata disattivata"
+    },
+    "attachmentReminder": {
+      "title": "Hai dimenticato di allegare un file?",
+      "message": "Hai scritto %{keyword} nel messaggio ma non hai aggiunto allegati. Vuoi inviarlo comunque?",
+      "send": "Invia il messaggio"
+    },
+    "template": {
+      "save": "Salva come modello",
+      "saved": "Messaggio salvato correttamente nella cartella dei modelli",
+      "updated": "Messaggio aggiornato correttamente nella cartella dei modelli",
+      "failed": "Salvataggio del messaggio nella cartella dei modelli non riuscito",
+      "insert": "Inserisci modello",
+      "pickerTitle": "Inserisci un modello",
+      "filter": "Cerca modelli",
+      "list": "Modelli",
+      "empty": "Nessun modello corrisponde alla ricerca",
+      "none": "Non hai ancora nessun modello. Usa «Salva come modello» per crearne uno.",
+      "results": "%{smart_count} modello trovato |||| %{smart_count} modelli trovati",
+      "noSubject": "(Nessun oggetto)",
+      "inserted": "Modello inserito",
+      "insertFailed": "Impossibile inserire il modello",
+      "insertTitle": "Il messaggio non è vuoto",
+      "insertMessage": "Inserire il modello nella posizione del cursore o sostituire con esso l'intero messaggio?",
+      "insertHere": "Inserisci nella posizione del cursore",
+      "replace": "Sostituisci il messaggio",
+      "shared": {
+        "title": "Eliminare la bozza condivisa?",
+        "message": "Questa bozza è condivisa con una casella di posta del team. Salvarla come modello elimina la bozza anche per tutti coloro che possono vederla.",
+        "delete": "Salva ed elimina la bozza",
+        "keep": "Salva e mantieni la bozza"
+      },
+      "saving": "Salvataggio del modello"
+    },
+    "drive": {
+      "attach": "Allega da Drive",
+      "addAsLink": "Aggiungi come link",
+      "addAsAttachment": "Aggiungi come allegato",
+      "attachFailed": "Impossibile allegare i file da Drive",
+      "openInDrive": "Apri in Drive",
+      "attached": "File allegati da Drive.",
+      "title": "Twake Drive",
+      "frameTitle": "Selettore di file di Twake Drive",
+      "loading": "Apertura di Twake Drive…",
+      "error": "Impossibile aprire Twake Drive.",
+      "retry": "Riprova",
+      "tooLarge": "%{name} è troppo grande per essere allegato",
+      "linked": "Link a %{name} inserito |||| Link a %{smart_count} file inseriti"
+    },
+    "scribe": {
+      "assistant": "Assistente IA",
+      "correct": "Correggi",
+      "improve": "Migliora",
+      "tone": "Cambia tono",
+      "translate": "Traduci",
+      "correctGrammar": "Correggi",
+      "makeShorter": "Rendi più breve",
+      "expandContext": "Espandi il contesto",
+      "emojify": "Aggiungi emoji",
+      "transformToBullets": "Trasforma in elenco puntato",
+      "moreProfessional": "Più professionale",
+      "moreCasual": "Più informale",
+      "morePolite": "Più cortese",
+      "french": "Francese",
+      "english": "Inglese",
+      "russian": "Russo",
+      "vietnamese": "Vietnamita",
+      "helpMeWrite": "Aiutami a scrivere",
+      "failed": "Impossibile generare la risposta dell'IA",
+      "generating": "Generazione della risposta",
+      "insert": "Inserisci",
+      "replace": "Sostituisci",
+      "retry": "Riprova",
+      "copy": "Copia",
+      "copied": "Risultato copiato negli appunti",
+      "result": "Suggerimento"
+    },
+    "emoji": {
+      "open": "Inserisci emoji",
+      "title": "Emoji",
+      "search": "Cerca emoji",
+      "noResults": "Nessuna emoji trovata",
+      "loading": "Caricamento emoji",
+      "recent": "Recente",
+      "categories": "Categorie di emoji",
+      "groups": {
+        "people": "Faccine e persone",
+        "animals": "Animali e natura",
+        "food": "Cibo e bevande",
+        "activities": "Attività",
+        "travel": "Viaggi e luoghi",
+        "objects": "Oggetti",
+        "symbols": "Simboli",
+        "flags": "Bandiere"
+      }
+    },
+    "sendingDialog": {
+      "status": "Stato",
+      "progress": "Avanzamento",
+      "creating": "Creazione del messaggio",
+      "slow": "Il server impiega più del solito a rispondere. Puoi chiudere questa finestra: il messaggio non viene inviato di nuovo e sarai avvisato quando l'invio termina.",
+      "stillSending": "Il messaggio è ancora in fase di invio. Attendi la risposta del server."
+    },
+    "images": {
+      "inserting": "Inserimento dell'immagine"
+    }
+  },
+  "layout": {
+    "navigation": "Navigazione"
+  },
+  "search": {
+    "placeholder": "Cerca nelle e-mail",
+    "showingResultsFor": "Mostriamo i risultati per:",
+    "recent": "Recente",
+    "filters": {
+      "hasAttachment": "Con attaccamento",
+      "fromMe": "Da me",
+      "starred": "Preferito",
+      "unread": "Non letto",
+      "notIncludeEvents": "Non includere eventi"
+    },
+    "dates": {
+      "last7Days": "Ultimi 7 giorni",
+      "allTime": "Durante tutto il tempo",
+      "last30Days": "Ultimi 30 giorni",
+      "last6Months": "Ultimi 6 mesi",
+      "lastYear": "Ultimi 12 mesi",
+      "custom": "Gamma personalizzata",
+      "range": "Da %{startDate} a %{endDate}"
+    },
+    "fields": {
+      "from": "Da",
+      "to": "A",
+      "subject": "Oggetto",
+      "text": "Include le parole",
+      "notWords": "Non include",
+      "date": "Data",
+      "sort": "Ordina per",
+      "startDate": "Data di inizio",
+      "endDate": "Data di fine",
+      "folder": "Cartella"
+    },
+    "scope": {
+      "default": "Tutte le email",
+      "everywhere": "Tutte le email, cestino e spam",
+      "selected": "selezionato"
+    },
+    "submit": "Ricerca",
+    "hints": {
+      "address": "Nome o indirizzo e-mail",
+      "subject": "Inserisci un oggetto",
+      "words": "Inserisci alcune parole"
+    },
+    "clearFilter": "Pulire i filtri",
+    "advanced": "Ricerca avanzata",
+    "errors": {
+      "endBeforeStart": "La data di fine deve essere maggiore della data di inizio"
+    },
+    "sort": {
+      "mostRecent": "Più recenti",
+      "oldest": "Meno recenti",
+      "relevance": "Pertinenza",
+      "senderAscending": "Nome del mittente: A - Z",
+      "senderDescending": "Nome del mittente: Z - A",
+      "subjectAscending": "Oggetto: A - Z",
+      "subjectDescending": "Oggetto: Z - A",
+      "sizeAscending": "Dimensione crescente",
+      "sizeDescending": "Dimensione decrescente"
+    },
+    "empty": "Nessuna e-mail corrisponde alla tua ricerca",
+    "title": "Ricerca",
+    "results": "Risultati della ricerca",
+    "inMailbox": "In %{name}",
+    "quickFilters": "Filtri rapidi",
+    "filtersBar": "Filtri di ricerca",
+    "suggestions": "Suggerimenti di ricerca",
+    "contacts": "Contatti",
+    "emails": "Messaggi",
+    "clear": "Cancella la ricerca",
+    "backToMailbox": "Torna alla casella di posta",
+    "closeAdvanced": "Chiudi la ricerca avanzata",
+    "removeFilter": "Rimuovi il filtro %{name}",
+    "searchFor": "Cerca «%{text}»",
+    "wordsHint": "Separa le parole con virgole",
+    "loading": "Caricamento dei suggerimenti",
+    "suggestionCount": "%{smart_count} suggerimento |||| %{smart_count} suggerimenti",
+    "searchWithFilters": "Cerca con questi filtri",
+    "quickFiltersOnly": "Nessun suggerimento. I filtri rapidi seguono il campo di ricerca.",
+    "labels": {
+      "all": "Tutte le etichette",
+      "label": "Etichetta",
+      "unknown": "Etichetta sconosciuta"
+    },
+    "addresses": {
+      "chipHelp": "Invio o F2 lo modifica, Canc lo rimuove.",
+      "added": "%{address} aggiunto",
+      "addedMany": "%{smart_count} indirizzo aggiunto |||| %{smart_count} indirizzi aggiunti"
+    },
+    "selectFolder": "Seleziona cartella",
+    "contactPicker": {
+      "from": "Trova email da",
+      "to": "Trova email a",
+      "hint": "Inserisci il nome o l'e-mail",
+      "clearFilter": "Pulire i filtri",
+      "done": "Fatto"
+    }
+  },
+  "emailActions": {
+    "toast": {
+      "movedTo": "Spostato in %{destinationMailboxPath}",
+      "movedToTrash": "Spostato nel Cestino",
+      "markedAsSpam": "Contrassegnato come spam",
+      "markedAsNotSpam": "Contrassegnato come non spam",
+      "deletedForever": "Il messaggio è stato eliminato per sempre",
+      "deletedForeverCount": "%{smart_count} messaggio è stato eliminato definitivamente |||| %{smart_count} messaggi sono stati eliminati definitivamente",
+      "markedMessagesAs": "Hai contrassegnato i messaggi come \"%{action}\"",
+      "markedMessageAs": "Il messaggio è stato contrassegnato come %{action}",
+      "read": "Letto",
+      "unread": "Non letto",
+      "starred": "L'email è stata aggiunta ai preferiti",
+      "unstarred": "L'email è stata rimossa dai preferiti",
+      "starredCount": "%{smart_count} messaggio aggiunto ai preferiti |||| %{smart_count} messaggi aggiunti ai preferiti",
+      "unstarredCount": "%{smart_count} messaggio rimosso dai preferiti |||| %{smart_count} messaggi rimossi dai preferiti",
+      "downloadEmlFailed": "Download del messaggio come EML non riuscito"
+    },
+    "deleteForever": {
+      "title": "Elimina i messaggi per sempre",
+      "message": "Stai per eliminare definitivamente questo messaggio. Vuoi continuare?",
+      "titleMany": "Elimina i messaggi per sempre",
+      "messageMany": "Stai per eliminare definitivamente %{count} elementi nel %{mailboxName}. Vuoi continuare?"
+    },
+    "menu": {
+      "unspam": "Rimuovi dallo spam",
+      "removeFromSpam": "Rimuovi dallo spam",
+      "deletePermanently": "Elimina definitivamente",
+      "moveMessage": "Sposta il messaggio",
+      "move": "Muovi",
+      "more": "Di più",
+      "markAsSpam": "Segna come spam",
+      "moveToTrash": "Sposta nel cestino",
+      "archive": "Archivia il messaggio",
+      "star": "Preferito",
+      "unstar": "Rimuovi dal preferito",
+      "label": "Azioni sul messaggio",
+      "downloadAsEml": "Scarica il messaggio come EML",
+      "editAsNew": "Modifica come nuova email",
+      "print": "Stampa"
+    },
+    "drag": "Sposta %{smart_count} messaggio |||| Sposta %{smart_count} messaggi",
+    "reply": {
+      "reply": "Rispondi",
+      "replyAll": "Rispondi a tutti",
+      "replyToList": "Rispondi alla lista",
+      "forward": "Inoltrare",
+      "label": "Azioni di risposta"
+    },
+    "noRights": "Non hai il permesso di farlo in questa cartella.",
+    "notInTeamMailbox": "Questa azione non è disponibile in una casella di posta del team.",
+    "noRightsDestination": "Non puoi aggiungere messaggi a questa cartella."
+  },
+  "shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "actions": {
+      "compose": "Apri un nuovo messaggio",
+      "archive": "Archivia il messaggio",
+      "delete": "Elimina il messaggio",
+      "markAsRead": "Segna come letto",
+      "markAsUnread": "Segna come non letto",
+      "search": "Ricerca",
+      "next": "Messaggio successivo",
+      "previous": "Messaggio precedente",
+      "close": "Chiudi il messaggio e torna all'elenco",
+      "star": "Aggiungi o rimuovi dai preferiti",
+      "undo": "Annulla l'ultima azione",
+      "help": "Mostra le scorciatoie da tastiera"
+    },
+    "enable": "Attiva le scorciatoie da tastiera",
+    "description": "Le scorciatoie a tasto singolo funzionano fuori dai campi di testo. Disattivale se interferiscono con la tua tecnologia assistiva.",
+    "or": "o",
+    "key": "Tasto",
+    "action": "Azione",
+    "composerTitle": "In un messaggio in scrittura",
+    "composer": {
+      "send": "Invia il messaggio",
+      "link": "Inserisci un link",
+      "toolbar": "Vai alla barra di formattazione",
+      "plainPaste": "Incolla come testo semplice",
+      "bold": "Grassetto, corsivo, sottolineato",
+      "escape": "Riduci la finestra (chiudila a schermo intero)"
+    },
+    "categories": {
+      "navigation": "Navigazione e chiusura",
+      "reading": "Lettura e risposta",
+      "management": "Gestione e selezione dei messaggi",
+      "label": "Categorie di scorciatoie",
+      "navigationShort": "Navigazione",
+      "readingShort": "Lettura",
+      "managementShort": "Messaggio"
+    }
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "manageAccount": "Gestisci profilo",
+    "sections": {
+      "profiles": {
+        "title": "Profili",
+        "description": "Seleziona l'identità o l'indirizzo e-mail che desideri utilizzare per inviare e-mail"
+      },
+      "preferences": {
+        "title": "Preferenze",
+        "description": "Conversazioni e comportamento dell'app"
+      },
+      "keyboardShortcuts": {
+        "title": "Scorciatoie da tastiera",
+        "description": "Azioni sulla casella di posta e sulle email"
+      },
+      "emailRules": {
+        "title": "Regole e-mail",
+        "description": "Creazione di regole per gestire i messaggi in arrivo. Scegli sia la condizione che attiva una regola sia le azioni che la regola eseguirà."
+      },
+      "forwarding": {
+        "title": "Inoltro",
+        "description": "Gli indirizzi email elencati di seguito riceveranno le tue email."
+      },
+      "languageRegion": {
+        "title": "Lingua",
+        "description": "Imposta la lingua che usi in Twake Mail."
+      },
+      "vacation": {
+        "title": "Risposta automatica",
+        "description": "Invia una risposta automatica ai messaggi in arrivo."
+      },
+      "folderVisibility": {
+        "title": "Visibilità delle cartelle",
+        "description": "Mostra o nascondi le tue cartelle, comprese quelle personali e le caselle di posta del team."
+      },
+      "storage": {
+        "title": "Spazio",
+        "description": "Controlla lo spazio disponibile."
+      }
+    },
+    "preferences": {
+      "thread": "Conversazioni",
+      "threadDescription": "Visualizza più email correlate come una conversazione",
+      "readReceipts": "Conferme di lettura",
+      "readReceiptsDescription": "Le conferme di lettura sono notifiche che possono essere inviate da e verso i tuoi utenti per verificare che un'email sia stata letta.",
+      "readReceiptsToggle": "Richiedi sempre la conferma di lettura per i messaggi in uscita",
+      "senderPriority": "Contrassegno di importanza del mittente",
+      "senderPriorityDescription": "Mostra il contrassegno delle email importanti nella posta in arrivo. Questa funzione è controllata dal mittente e potrebbe quindi dare luogo ad abusi.",
+      "senderPriorityToggle": "Mostra il contrassegno di importanza del mittente",
+      "remoteImages": "Immagini remote",
+      "remoteImagesDescription": "Mostra senza chiedere le immagini e gli altri contenuti che le email caricano da Internet. Indicano al mittente quando e dove leggi l'email.",
+      "remoteImagesToggle": "Mostra le immagini remote",
+      "remoteImagesWarning": "Mostrare sempre le immagini remote ti espone al tracciamento della tua attività e può quindi nuocere alla tua privacy.",
+      "threadToggle": "Attiva le conversazioni",
+      "spamReports": "Rapporti spam",
+      "spamReportsDescription": "Ti ricorda di moderare regolarmente le email di spam",
+      "spamReportsToggle": "Attiva il rapporto spam",
+      "labels": "Visibilità delle etichette",
+      "labelsDescription": "Mostra le etichette assegnate alle email direttamente nell'elenco dei messaggi per una categorizzazione più semplice.",
+      "labelsToggle": "Mostra le etichette",
+      "driveAttachment": "Allegati da Drive",
+      "driveAttachmentDescription": "Mostra o nascondi il pulsante degli allegati di Twake Drive nell'editor",
+      "driveAttachmentToggle": "Attiva il pulsante degli allegati da Drive",
+      "accessibility": "Accessibilità",
+      "accessibilityDescription": "Mostra un contorno spesso intorno all'elemento che ha il focus della tastiera, ovunque nell'app",
+      "accessibilityToggle": "Evidenzia il focus della tastiera",
+      "theme": "Tema",
+      "themeDescription": "I colori dell'app. Automatico segue l'impostazione del tuo dispositivo.",
+      "themeLight": "Chiaro",
+      "themeDark": "Scuro",
+      "themeAuto": "Automatico",
+      "errorReporting": "Segnalazione errori",
+      "errorReportingDescription": "Invia rapporti su arresti anomali ed errori affinché il team di supporto possa diagnosticare i problemi che riscontri. Le tue email, il loro contenuto e i loro destinatari non sono mai inclusi.",
+      "errorReportingToggle": "Invia segnalazioni di errore",
+      "aiLabelCategorization": "Categorizzazione con etichette",
+      "aiLabelCategorizationDescription": "Applica le mie etichette alle email in arrivo in base alla loro descrizione",
+      "aiLabelCategorizationToggle": "Attiva la categorizzazione con etichette",
+      "aiScribe": "AI Scribe",
+      "aiScribeDescription": "Usa l'IA per aiutarti a scrivere e migliorare le tue email",
+      "aiScribeToggle": "Attiva AI Scribe"
+    },
+    "backToMail": "Torna alla posta",
+    "language": {
+      "names": {
+        "en": "Inglese",
+        "fr": "Francese",
+        "ru": "Russo",
+        "vi": "Vietnamita",
+        "it": "Italiano",
+        "de": "Tedesco",
+        "mn": "Mongolo",
+        "es": "Spagnolo"
+      },
+      "label": "Lingua"
+    },
+    "contactSupport": "Contatta l'assistenza"
+  },
+  "mailboxPicker": {
+    "title": "Sposta in",
+    "search": "Cerca cartelle",
+    "empty": "Nessuna cartella corrisponde alla ricerca",
+    "personalFolders": "Cartelle personali",
+    "allFolders": "Tutte le cartelle",
+    "selectParent": "Seleziona la cartella principale",
+    "collapsed": "sottocartelle nascoste",
+    "expanded": "sottocartelle visibili",
+    "current": "cartella corrente"
+  },
+  "spamReport": {
+    "banner": "%{smart_count} messaggio nello spam |||| %{smart_count} messaggi nello spam",
+    "view": "Visualizza",
+    "dismiss": "Cancellare"
+  },
+  "emptyFolder": {
+    "trashBanner": "Tutti i messaggi nel Cestino verranno eliminati se raggiungi il limite dello spazio.",
+    "emptyTrashNow": "Svuota il cestino ora",
+    "spamBanner": "Tutti i messaggi nello spam verranno eliminati se raggiungi il limite di spazio.",
+    "deleteAllSpamNow": "Elimina ora tutte le email di spam",
+    "emptyTrashTitle": "Svuota il cestino",
+    "emptyTrashMessage": "Stai per eliminare definitivamente tutti gli elementi nel Cestino. Vuoi continuare?",
+    "emptySpamTitle": "Svuota la cartella spam",
+    "emptySpamMessage": "Stai per eliminare definitivamente tutti gli elementi nello spam. Vuoi continuare?",
+    "success": "Tutti i messaggi sono stati eliminati per sempre",
+    "subfoldersSuccess": "Sottocartelle del cestino eliminate",
+    "subfoldersPartial": "Impossibile eliminare alcune sottocartelle del cestino",
+    "subfoldersFailed": "Eliminazione delle sottocartelle del cestino non riuscita",
+    "trashFailed": "Svuotamento del cestino non riuscito",
+    "spamFailed": "Svuotamento della cartella spam non riuscito"
+  },
+  "folders": {
+    "menu": {
+      "newSubfolder": "Nuova sottocartella",
+      "move": "Sposta la cartella",
+      "rename": "Rinomina la cartella",
+      "hide": "Nascondi la cartella",
+      "show": "Mostra la cartella",
+      "delete": "Elimina la cartella",
+      "emptySpam": "Elimina tutte le email di spam",
+      "emptyTrash": "Svuota il cestino",
+      "button": "Azioni su %{name}",
+      "label": "Azioni sulla cartella",
+      "openInNewTab": "Apri in una nuova scheda",
+      "createFilter": "Crea un filtro",
+      "moveContent": "Sposta il contenuto della cartella",
+      "allowSubaddressing": "Consenti i sottoindirizzi",
+      "disallowSubaddressing": "Non consentire i sottoindirizzi",
+      "copySubaddress": "Copia il sottoindirizzo"
+    },
+    "newFolder": "Nuova cartella",
+    "create": {
+      "title": "Crea una nuova cartella",
+      "name": "Nome della cartella",
+      "placeholder": "Inserisci il nome della cartella",
+      "location": "Seleziona la posizione della cartella",
+      "submit": "Crea la cartella",
+      "success": "Hai creato correttamente la cartella %{folderName}",
+      "failure": "Creazione della cartella non riuscita",
+      "subtitle": "La nuova cartella verrà creata all'interno di %{folderName}"
+    },
+    "rename": {
+      "submit": "Rinomina",
+      "failure": "Ridenominazione della cartella non riuscita"
+    },
+    "validation": {
+      "required": "Il nome della cartella è obbligatorio",
+      "spaces": "Questo campo non può contenere solo spazi",
+      "taken": "Questo nome di cartella è già usato",
+      "sameName": "Esiste già una cartella con lo stesso nome",
+      "characters": "Il nome della cartella non può contenere . % * o un a capo, né iniziare con #"
+    },
+    "delete": {
+      "title": "Elimina le cartelle",
+      "message": "La cartella «%{nameMailbox}» e tutte le sottocartelle e i messaggi che contiene verranno eliminati e non potranno essere recuperati. Vuoi continuare con l'eliminazione?",
+      "success": "Cartelle eliminate",
+      "failure": "Eliminazione delle cartelle non riuscita"
+    },
+    "markAsRead": {
+      "success": "Hai contrassegnato come letti tutti i messaggi in «%{mailboxName}»",
+      "partial": "Hai contrassegnato come letti %{count} messaggi in «%{mailboxName}»",
+      "failure": "Impossibile contrassegnare come letta la cartella «%{folderName}»"
+    },
+    "hide": {
+      "success": "Questa cartella è stata nascosta dalla tua cartella principale"
+    },
+    "hidden": {
+      "show": "Mostra le cartelle nascoste",
+      "label": "nascosta"
+    },
+    "show": {
+      "success": "Questa cartella è di nuovo visibile"
+    },
+    "visibility": {
+      "hide": "Nascondere",
+      "show": "Mostra",
+      "personal": "Cartelle personali",
+      "team": "Caselle di posta del team",
+      "hideOf": "Nascondi %{name}",
+      "showOf": "Mostra %{name}"
+    },
+    "search": {
+      "label": "Cerca cartelle",
+      "empty": "Nessuna cartella corrisponde alla ricerca",
+      "results": "%{smart_count} cartella trovata |||| %{smart_count} cartelle trovate"
+    },
+    "moveContent": {
+      "failure": "Impossibile spostare tutte le email da questa cartella a un'altra.",
+      "progress": "Spostamento delle email: %{moved} di %{total}"
+    },
+    "clean": "Pulisci",
+    "progress": {
+      "markAsRead": "Contrassegno come letti di tutti i messaggi in «%{folderName}»",
+      "empty": "Svuotamento di «%{folderName}»"
+    },
+    "subaddressing": {
+      "confirm": "Stai per consentire a chiunque di inviare email direttamente alla tua cartella «%{nameMailbox}» usando:",
+      "allow": "Consenti",
+      "allowed": "Hai consentito correttamente i sottoindirizzi per questa cartella",
+      "disallowed": "Hai disattivato correttamente i sottoindirizzi per questa cartella",
+      "failed": "Si è verificato un errore durante l'elaborazione della richiesta",
+      "copied": "Sottoindirizzo email copiato negli appunti",
+      "addressFailed": "Errore durante il recupero del sottoindirizzo"
+    }
+  },
+  "identities": {
+    "create": "Crea una nuova identità",
+    "edit": "Modifica identità",
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "Inserisci il nome",
+      "nameHelp": "I destinatari vedono questo nome come mittente delle tue email",
+      "replyTo": "Rispondi a",
+      "bcc": "Bcc a",
+      "addressPlaceholder": "Inserisci l'indirizzo email",
+      "signature": "Firma",
+      "setDefault": "Imposta come identità predefinita",
+      "create": "Crea",
+      "save": "Salva",
+      "email": "Indirizzo email",
+      "addressesHelp": "Separa più indirizzi con virgole",
+      "emailLabel": "Email"
+    },
+    "errors": {
+      "blank": "Questo campo non può essere vuoto",
+      "onlySpaces": "Questo campo non può contenere solo spazi",
+      "invalidAddress": "Questo indirizzo email non è valido",
+      "imageUpload": "Si è verificato un errore durante il caricamento dell'immagine. Riprova.",
+      "delete": "Eliminazione non riuscita",
+      "imageTooLarge": "Scegli un'immagine di dimensioni inferiori a %{maxSize}",
+      "save": "Impossibile salvare l'identità",
+      "forbiddenFrom": "Non puoi inviare da questo indirizzo",
+      "load": "Impossibile caricare le identità",
+      "imageCompress": "Impossibile comprimere l'immagine",
+      "notAnImage": "Impossibile caricare questo file nella firma"
+    },
+    "delete": {
+      "title": "Elimina identità",
+      "message": "Sei sicuro di voler eliminare questa identità?"
+    },
+    "toasts": {
+      "created": "Hai creato una nuova identità",
+      "createdDefault": "Hai creato una nuova identità predefinita",
+      "updated": "Hai cambiato la tua identità con successo",
+      "defaultSet": "Identità predefinita impostata correttamente",
+      "deleted": "L'identità è stata eliminata"
+    },
+    "editAction": "Modifica",
+    "defaultGroup": "Identità predefinita",
+    "setDefaultOf": "Usa %{name} come predefinita",
+    "editOf": "Modifica %{name}",
+    "deleteOf": "Elimina %{name}",
+    "listLabel": "Identità"
+  },
+  "rules": {
+    "add": "Aggiungi una regola",
+    "empty": {
+      "title": "Nessuna regola configurata",
+      "message": "Inizia creando la tua prima regola per automatizzare la gestione delle email.",
+      "action": "Crea la mia prima regola"
+    },
+    "delete": {
+      "title": "Elimina regola",
+      "message": "Vuoi eliminare la regola \"%{ruleName}\"?"
+    },
+    "toasts": {
+      "created": "È stato creato un nuovo filtro",
+      "updated": "Il tuo filtro è stato aggiornato",
+      "deleted": "La regola è stata rimossa.",
+      "moved": "Regola «%{name}» spostata in posizione %{position} di %{count}"
+    },
+    "errors": {
+      "save": "Creazione della regola di filtro non riuscita",
+      "noCondition": "Non hai aggiunto alcuna condizione alla regola.",
+      "noAction": "Non hai aggiunto alcuna azione alla regola.",
+      "noFolder": "Seleziona una casella di posta in cui spostare il messaggio",
+      "noSpam": "Cartella spam non trovata",
+      "noForwardAddress": "Inserisci almeno un destinatario",
+      "invalidForwardAddress": "Formato e-mail non valido",
+      "load": "Impossibile caricare le regole",
+      "delete": "Impossibile eliminare la regola",
+      "noHeaderName": "Inserisci un nome di intestazione",
+      "invalidHeaderName": "Un nome di intestazione non contiene spazi né due punti",
+      "move": "Impossibile spostare la regola"
+    },
+    "form": {
+      "createTitle": "Crea una nuova regola",
+      "editTitle": "Modifica la regola",
+      "create": "Crea la regola",
+      "name": "Nome della regola",
+      "namePlaceholder": "Inserisci il nome della regola",
+      "conditions": "Condizione",
+      "combinerBefore": "Se sono soddisfatte",
+      "combinerAfter": "delle seguenti condizioni:",
+      "value": "Valore",
+      "addCondition": "Aggiungi una condizione",
+      "actions": "Azioni da eseguire",
+      "selectAction": "Seleziona un'azione",
+      "toFolder": "Nella cartella:",
+      "addAction": "Aggiungi un'azione",
+      "save": "Salva",
+      "removeCondition": "Rimuovi la condizione %{position}",
+      "removeAction": "Rimuovi l'azione %{position}",
+      "field": "Campo",
+      "comparator": "Operatore",
+      "combiner": "Condizioni da soddisfare",
+      "action": "Azione %{position}",
+      "condition": "Condizione %{position}",
+      "chooseFolder": "Scegli una cartella",
+      "rejectAlone": "Le email rifiutate non ricevono altre azioni",
+      "preview": "Anteprima",
+      "conditionsPreview": "Condizioni (%{combiner}): %{conditions}",
+      "actionsPreview": "Azioni: %{actions}",
+      "forwardAddresses": "Destinatari",
+      "forwardPlaceholder": "Inserisci l'indirizzo email",
+      "keepACopy": "Conserva una copia",
+      "headerName": "Nome dell'intestazione",
+      "headerNamePlaceholder": "ad es. List-Id"
+    },
+    "combiners": {
+      "AND": "Tutte",
+      "OR": "Almeno una"
+    },
+    "fields": {
+      "from": "Da",
+      "to": "A",
+      "cc": "Cc",
+      "recipient": "Destinatario",
+      "subject": "Oggetto",
+      "header": "Intestazione"
+    },
+    "comparators": {
+      "contains": "Contiene",
+      "notContains": "Non contiene",
+      "exactlyEquals": "Esattamente uguale",
+      "notExactlyEquals": "Non esattamente uguale"
+    },
+    "actions": {
+      "move": "Sposta il messaggio",
+      "seen": "Segna come letto",
+      "star": "Aggiungilo ai preferiti",
+      "reject": "Rifiutalo",
+      "spam": "Segna come spam",
+      "forward": "Inoltra a"
+    },
+    "reject": {
+      "title": "Rifiutare tutte le email che soddisfano questa condizione?",
+      "message": "Questa azione è irreversibile. Vuoi davvero procedere?"
+    },
+    "editOf": "Modifica %{name}",
+    "deleteOf": "Elimina %{name}",
+    "listLabel": "Regole",
+    "count": "%{smart_count} regola |||| %{smart_count} regole",
+    "nameOfRules": "Nome delle regole",
+    "moveUp": "Sposta su",
+    "moveDown": "Sposta giù",
+    "moveUpOf": "Sposta su %{name}",
+    "moveDownOf": "Sposta giù %{name}",
+    "moreOf": "Azioni su %{name}"
+  },
+  "forward": {
+    "localCopy": "Conserva una copia nella posta in arrivo",
+    "localCopyDescription": "Conserva le email inoltrate nella posta in arrivo oltre a inviarle ai destinatari",
+    "recipients": "Inoltra a",
+    "inputPlaceholder": "Inserisci il nome o l'indirizzo email",
+    "add": "Aggiungi il destinatario",
+    "external": "Dominio esterno",
+    "delete": {
+      "title": "Eliminare destinatari",
+      "message": "Vuoi eliminare l'email %{emailAddress}?"
+    },
+    "errors": {
+      "invalid": "Formato e-mail non valido",
+      "empty": "Inserisci almeno un destinatario",
+      "add": "Aggiunta del destinatario non riuscita.",
+      "delete": "Rimozione del destinatario non riuscita.",
+      "localCopy": "Modifica della copia locale dell'inoltro non riuscita.",
+      "load": "Impossibile caricare l'inoltro",
+      "ownAddress": "Non puoi inoltrare le tue email al tuo stesso indirizzo"
+    },
+    "externalWarning": {
+      "title": "Stai reindirizzando le email a un altro dominio.",
+      "message": "Questo potrebbe rappresentare una minaccia per la sicurezza o essere considerato un'estrazione illegale di dati. Vuoi procedere?"
+    },
+    "toasts": {
+      "added": "Le email sono state aggiunte dall'elenco dei destinatari.",
+      "deleted": "L'e-mail è stata rimossa dall'elenco dei destinatari.",
+      "localCopyOn": "Mantieni abilitata la copia locale.",
+      "localCopyOff": "Mantieni la copia locale disabilitata."
+    },
+    "externalBanner": "Stai reindirizzando le email a un altro dominio. Questo potrebbe rappresentare una minaccia per la sicurezza o essere considerato un'estrazione illegale di dati.",
+    "listLabel": "Indirizzi di inoltro",
+    "removeOf": "Rimuovi %{email}",
+    "inputLabel": "Nuovo destinatario",
+    "recipientCount": "%{smart_count} destinatario |||| %{smart_count} destinatari",
+    "selectAll": "Seleziona tutti",
+    "selectedCount": "%{count} selezionato",
+    "deselectAll": "Deselezionare tutto (%{count})",
+    "remove": "Rimuovere",
+    "deleteAll": {
+      "title": "Eliminare destinatari",
+      "message": "Sei sicuro di voler rimuovere quei destinatari? In questo modo li rimuoverai dallo scambio di lettere."
+    },
+    "selectOf": "Seleziona %{email}"
+  },
+  "vacation": {
+    "enable": "Rispondi automaticamente ai messaggi quando vengono ricevuti.",
+    "startDate": "Data di inizio",
+    "startTime": "Tempo di inizio",
+    "stops": "La risposta automatica si ferma a",
+    "endDate": "Data di fine",
+    "endTime": "Tempo di fine",
+    "subject": "Oggetto",
+    "subjectPlaceholder": "Inserisci oggetto",
+    "message": "Messaggio",
+    "save": "Salvare le modifiche",
+    "errors": {
+      "noStart": "Inserisci una data di inizio valida",
+      "noEnd": "Inserisci una data di fine valida",
+      "endBeforeStart": "La data di fine deve essere maggiore della data di inizio",
+      "noMessage": "Il corpo del messaggio non può essere vuoto"
+    },
+    "toasts": {
+      "saved": "Impostazioni di risposta automatica salvate",
+      "ended": "Il tuo risponditore automatico è stato disabilitato correttamente"
+    },
+    "banner": {
+      "enabled": "Il tuo risponditore automatico è abilitato.",
+      "willStart": "Il tuo risponditore automatico verrà attivato il %{startDate}",
+      "stopped": "Il tuo risponditore automatico è stato interrotto il %{endDate}",
+      "endNow": "Finisci ora",
+      "settings": "Impostazione per la risposta automatica"
+    }
+  },
+  "labels": {
+    "title": "Etichette",
+    "new": "Nuova etichetta",
+    "emptyView": "Non hai nessuna email con questa etichetta.",
+    "form": {
+      "createTitle": "Crea una nuova etichetta",
+      "editTitle": "Modifica l'etichetta",
+      "createSubtitle": "Organizza la posta in arrivo con una categoria personalizzata",
+      "editSubtitle": "Aggiorna il nome dell'etichetta",
+      "name": "Nome dell'etichetta",
+      "namePlaceholder": "Inserisci il nome della nuova etichetta",
+      "description": "Descrizione (facoltativa)",
+      "descriptionPlaceholder": "Aggiungi una breve descrizione per spiegare a cosa serve questa etichetta",
+      "color": "Scegli un colore per l'etichetta",
+      "create": "Crea l'etichetta"
+    },
+    "errors": {
+      "duplicate": "Esiste già un'etichetta con questo nome. Scegli un nome diverso.",
+      "create": "Creazione dell'etichetta non riuscita",
+      "edit": "Modifica dell'etichetta non riuscita",
+      "delete": "Eliminazione dell'etichetta non riuscita",
+      "addToEmail": "Impossibile aggiungere l'etichetta «%{labelName}» all'email",
+      "removeFromEmail": "Impossibile rimuovere l'etichetta «%{labelName}» dall'email",
+      "addToEmails": "Aggiunta delle etichette a queste email non riuscita",
+      "load": "Impossibile caricare le etichette"
+    },
+    "toasts": {
+      "created": "Hai creato correttamente l'etichetta %{labelName}",
+      "edited": "Hai modificato correttamente l'etichetta %{labelName}",
+      "deleted": "Hai eliminato correttamente l'etichetta %{labelName}",
+      "addedToEmail": "Etichetta «%{labelName}» aggiunta all'email",
+      "removedFromEmail": "Etichetta «%{labelName}» rimossa dall'email",
+      "addedToEmails": "Le etichette sono state aggiunte correttamente a queste email.",
+      "updated": "Le etichette delle email sono state aggiornate"
+    },
+    "delete": {
+      "title": "Elimina l'etichetta",
+      "message": "Vuoi davvero eliminare l'etichetta «%{labelName}»?"
+    },
+    "labelAs": "Etichetta come",
+    "choose": {
+      "title": "Scegli un'etichetta",
+      "subtitle": "Seleziona un'etichetta",
+      "create": "Crea un'etichetta",
+      "apply": "Aggiungi l'etichetta",
+      "emptyTitle": "Nessuna etichetta per ora",
+      "emptyMessage": "Crea la tua prima etichetta per organizzare le email in modo più efficiente."
+    },
+    "more": "Di più",
+    "unnamed": "(Senza nome)",
+    "menuOf": "Azioni su %{name}",
+    "edit": "Modifica",
+    "colorNone": "Nessun colore",
+    "colors": {
+      "navyBlue": "Blu navy",
+      "purple": "Viola",
+      "lavender": "Lavanda",
+      "indigo": "Indaco",
+      "blue": "Blu",
+      "petrolBlue": "Blu petrolio",
+      "darkGreen": "Verde scuro",
+      "turquoise": "Turchese",
+      "green": "Verde",
+      "red": "Rosso",
+      "magenta": "Magenta",
+      "pink": "Rosa",
+      "brown": "Marrone",
+      "lightBrown": "Marrone chiaro",
+      "salmon": "Salmone",
+      "orange": "Arancione",
+      "yellow": "Giallo",
+      "black": "Nero",
+      "darkGrey": "Grigio scuro",
+      "grey": "Grigio"
+    },
+    "colorCustom": "Colore personalizzato",
+    "colorCustomNamed": "Colore personalizzato %{color}",
+    "colorHex": "Colore personalizzato (esadecimale)",
+    "colorHexHint": "Formato #RRGGBB, ad esempio #1A2B3C",
+    "colorHexInvalid": "Inserisci un colore nel formato #RRGGBB, ad esempio #1A2B3C",
+    "colorPicker": "Apri il selettore di colore",
+    "removeFromEmail": "Rimuovi l'etichetta %{name}",
+    "moreNames": "%{smart_count} altra etichetta: %{names} |||| %{smart_count} altre etichette: %{names}",
+    "listLabel": "Etichette dell'email"
+  },
+  "quota": {
+    "available": "%{count} disponibili",
+    "outOfStorage": "Spazio esaurito",
+    "state": "%{used} di %{limit} usati",
+    "refresh": "Aggiorna lo spazio di archiviazione",
+    "banner": {
+      "full": "Hai esaurito lo spazio di archiviazione",
+      "low": "Lo spazio di archiviazione sta per esaurirsi (90%)",
+      "advice": "Per continuare a inviare messaggi e usare tutte le funzioni di Twake Mail, valuta di fare pulizia.",
+      "adviceWithPremium": "Per continuare a inviare messaggi e usare tutte le funzioni di Twake Mail, valuta di fare pulizia o di aumentare lo spazio di archiviazione."
+    },
+    "usedOf": "di %{limit} usati",
+    "availableLong": "Disponibile: %{count}",
+    "almostFull": "Lo spazio di archiviazione è quasi pieno. Puoi liberare spazio eliminando i file non necessari o abbonarti per ottenere spazio aggiuntivo.",
+    "label": "Spazio di archiviazione usato",
+    "dismiss": "Chiudi",
+    "unlimited": "Nessun limite di spazio per questo account",
+    "manage": "Gestisci il mio spazio",
+    "upgrade": "Aumenta lo spazio",
+    "increase": "Aumenta il tuo spazio"
+  },
+  "recovery": {
+    "title": "Recupera i messaggi eliminati",
+    "horizon": "Puoi recuperare i messaggi eliminati negli ultimi %{period} giorni. Le email recuperate verranno ripristinate nella cartella dei recuperati.",
+    "deletionDate": "Data di eliminazione",
+    "receptionDate": "Data di ricezione",
+    "ranges": {
+      "last7Days": "Ultimi 7 giorni",
+      "last15Days": "Ultimi 15 giorni",
+      "last30Days": "Ultimi 30 giorni",
+      "last6Months": "Ultimi 6 mesi",
+      "last1Year": "Ultimo anno",
+      "allTime": "Durante tutto il tempo",
+      "customRange": "Gamma personalizzata"
+    },
+    "recipients": "Destinatari",
+    "sender": "Mittente",
+    "hasAttachment": "Con attaccamento",
+    "restore": "Ripristina",
+    "subjectPlaceholder": "Inserisci parole chiave dell'oggetto...",
+    "addressPlaceholder": "Aggiungi un indirizzo email",
+    "inProgress": "Il recupero è in corso. Puoi continuare a usare Twake Mail",
+    "toasts": {
+      "success": "Messaggi eliminati recuperati correttamente",
+      "canceled": "Ripristino dei messaggi eliminati annullato",
+      "failed": "Ripristino dei messaggi eliminati non riuscito",
+      "successCount": "%{smart_count} messaggio recuperato |||| %{smart_count} messaggi recuperati"
+    },
+    "subject": "Oggetto",
+    "addressesHelp": "Separa più indirizzi con virgole",
+    "errors": {
+      "invalidAddress": "Questo indirizzo email non è valido",
+      "start": "Impossibile avviare il recupero",
+      "startMissing": "La data di inizio non può essere nulla.",
+      "endMissing": "La data di fine non può essere nulla.",
+      "reversed": "Il tempo di fine non può essere inferiore al tempo di inizio.",
+      "beforeHorizon": "La data di inizio non può essere precedente al %{date}."
+    },
+    "rangeValue": "Da %{startDate} a %{endDate}",
+    "selectDate": "Seleziona la data",
+    "setDate": "Imposta la data",
+    "startDate": "Data di inizio",
+    "endDate": "Data di fine",
+    "dateHint": "gg/mm/aaaa",
+    "previousMonth": "Mese precedente",
+    "nextMonth": "Mese successivo"
+  },
+  "calendar": {
+    "banner": {
+      "invited": "ti ha invitato a una riunione",
+      "updated": "ha aggiornato una riunione",
+      "canceled": "ha annullato una riunione",
+      "accepted": "ha accettato questo invito",
+      "tentative": "ha risposto «Forse» a questo invito",
+      "declined": "ha rifiutato questo invito",
+      "counter": "ha proposto modifiche all'evento",
+      "counterDeclined": "La tua controproposta è stata rifiutata"
+    },
+    "anAttendee": "Un partecipante",
+    "when": "Quando",
+    "where": "Dove",
+    "who": "Chi",
+    "organizer": "Organizzatore",
+    "seeAllAttendees": "Vedi tutti i partecipanti",
+    "hideAttendees": "Nascondere",
+    "attending": "Parteciperai?",
+    "reply": {
+      "yes": "Sì",
+      "maybe": "Forse",
+      "no": "No"
+    },
+    "mailToAttendees": "Scrivi ai partecipanti",
+    "joinVideoConference": "Partecipa alla videoconferenza",
+    "copyLink": "Copia il link",
+    "seeInCalendar": "Vedi nel tuo calendario",
+    "busy": "Hai un altro evento alla stessa ora",
+    "notInvited": "Non sei invitato a questo evento. Contatta l'organizzatore.",
+    "replied": {
+      "yes": "Parteciperai a questa riunione",
+      "maybe": "Forse parteciperai a questa riunione",
+      "no": "Non parteciperai a questa riunione"
+    },
+    "replyFailed": "Invio della risposta all'evento non riuscito!",
+    "alreadyAnswered": "Hai già dato questa risposta all'invito",
+    "counterAccepted": "Hai accettato l'orario proposto per questa riunione",
+    "eventLabel": "Evento: %{title}",
+    "allDay": "Tutto il giorno",
+    "description": "Descrizione",
+    "videoConference": "Video",
+    "linkCopied": "Link copiato negli appunti",
+    "participation": {
+      "needsAction": "in attesa di risposta",
+      "accepted": "accettato",
+      "declined": "rifiutato",
+      "tentative": "forse",
+      "delegated": "delegato"
+    },
+    "recurrence": {
+      "daily": "Ogni giorno |||| Ogni %{smart_count} giorni",
+      "weekly": "Ogni settimana |||| Ogni %{smart_count} settimane",
+      "monthly": "Ogni mese |||| Ogni %{smart_count} mesi",
+      "yearly": "Ogni anno |||| Ogni %{smart_count} anni",
+      "onDays": "il %{days}",
+      "count": "%{smart_count} volta |||| %{smart_count} volte",
+      "until": "fino al %{date}"
+    },
+    "untitled": "(Senza titolo)",
+    "eventMark": "Invito a un evento"
+  },
+  "unsubscribe": {
+    "action": "Annulla iscrizione",
+    "title": "Annulla iscrizione",
+    "done": "Iscrizione a questa mailing list annullata",
+    "banner": "Hai annullato l'iscrizione a %{senderName}",
+    "message": "Vuoi davvero smettere di ricevere messaggi simili da %{senderName}?"
+  },
+  "print": {
+    "inProgress": "Stampa in corso",
+    "failed": "Stampa non riuscita"
+  },
+  "teamMailboxEmbed": {
+    "unavailableTitle": "Questa casella di posta del team non è disponibile",
+    "unavailableDescription": "Non sei membro di questa casella di posta del team, oppure non esiste.",
+    "sessionExpiredTitle": "La tua sessione è scaduta",
+    "sessionExpiredDescription": "Accedi di nuovo per vedere questa casella di posta del team."
+  },
+  "intents": {
+    "unavailable": {
+      "title": "Twake Mail non può aprirsi qui",
+      "description": "Apri Twake Mail per scrivere il tuo messaggio."
+    },
+    "forbidden": {
+      "title": "Twake Mail non è autorizzato a rispondere qui",
+      "description": "Il tuo amministratore deve consentire a Twake Mail di rispondere a questa app."
+    },
+    "failed": {
+      "title": "Impossibile caricare Twake Mail",
+      "description": "Chiudi questa finestra e riprova."
+    },
+    "sessionExpired": {
+      "title": "La tua sessione è scaduta",
+      "description": "Apri Twake Mail per accedere di nuovo, poi riprova."
+    },
+    "unsupported": {
+      "title": "Twake Mail non può farlo",
+      "description": "Questa app ha chiesto a Twake Mail qualcosa che non offre."
+    },
+    "invalidData": {
+      "title": "Questo messaggio non può essere scritto",
+      "description": "Questa app ha inviato un messaggio che Twake Mail non può leggere."
+    },
+    "untrustedFrame": {
+      "title": "Twake Mail non può aprirsi in questa pagina",
+      "description": "Un'altra pagina mostra questa app: apri direttamente Twake Mail per scrivere il tuo messaggio."
+    }
+  }
+}

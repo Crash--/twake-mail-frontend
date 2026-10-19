@@ -9,8 +9,12 @@ import {
 } from 'react'
 import { I18n } from 'twake-i18n'
 
+import de from '@common/locales/de.json'
 import en from '@common/locales/en.json'
+import es from '@common/locales/es.json'
 import fr from '@common/locales/fr.json'
+import it from '@common/locales/it.json'
+import mn from '@common/locales/mn.json'
 import ru from '@common/locales/ru.json'
 import vi from '@common/locales/vi.json'
 
@@ -22,7 +26,16 @@ import {
 
 type Dictionary = typeof en
 
-const DICTIONARIES: Record<SupportedLanguage, Dictionary> = { en, fr, ru, vi }
+const DICTIONARIES: Record<SupportedLanguage, Dictionary> = {
+  en,
+  fr,
+  ru,
+  vi,
+  it,
+  de,
+  mn,
+  es
+}
 
 function findDictionary(lang: SupportedLanguage): Dictionary {
   return DICTIONARIES[lang]

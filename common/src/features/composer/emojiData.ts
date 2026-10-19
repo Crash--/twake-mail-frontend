@@ -28,7 +28,11 @@ const LOADERS: Readonly<Record<string, () => Promise<CompactData[]>>> = {
   en: async () => (await import('emojibase-data/en/compact.json')).default,
   fr: async () => (await import('emojibase-data/fr/compact.json')).default,
   ru: async () => (await import('emojibase-data/ru/compact.json')).default,
-  vi: async () => (await import('emojibase-data/vi/compact.json')).default
+  vi: async () => (await import('emojibase-data/vi/compact.json')).default,
+  it: async () => (await import('emojibase-data/it/compact.json')).default,
+  de: async () => (await import('emojibase-data/de/compact.json')).default,
+  es: async () => (await import('emojibase-data/es/compact.json')).default
+  // No Mongolian in emojibase-data: English
 }
 
 /** The emojis in the language of the UI (English for a language without data) */

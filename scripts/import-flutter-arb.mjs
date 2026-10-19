@@ -3,7 +3,7 @@
 //
 // Usage:
 //   npm run import-flutter-arb -- --arb-dir <tmail-flutter>/lib/l10n \
-//     [--locales en,fr,ru,vi] [--dry-run] <arbKey>[=<target.path>] ...
+//     [--locales en,fr,ru,vi,mn,es,it,de] [--dry-run] <arbKey>[=<target.path>] ...
 //
 // Each ARB key is written at <target.path> (dot-separated, defaults to the
 // ARB key itself) in every locale. English comes from intl_messages.arb, the
@@ -16,7 +16,7 @@ import { parseArgs } from 'node:util'
 
 import { convertIcuMessage } from './lib/icuToPolyglot.mjs'
 
-const DEFAULT_LOCALES = ['en', 'fr', 'ru', 'vi']
+const DEFAULT_LOCALES = ['en', 'fr', 'ru', 'vi', 'mn', 'es', 'it', 'de']
 const LOCALES_DIR = path.resolve(import.meta.dirname, '../common/src/locales')
 
 function arbFileName(locale) {

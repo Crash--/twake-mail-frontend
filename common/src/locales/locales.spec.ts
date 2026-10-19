@@ -1,5 +1,9 @@
+import de from './de.json'
 import en from './en.json'
+import es from './es.json'
 import fr from './fr.json'
+import italian from './it.json'
+import mn from './mn.json'
 import ru from './ru.json'
 import vi from './vi.json'
 
@@ -21,7 +25,11 @@ describe('locales', () => {
   it.each([
     ['fr', fr],
     ['ru', ru],
-    ['vi', vi]
+    ['vi', vi],
+    ['it', italian],
+    ['de', de],
+    ['mn', mn],
+    ['es', es]
   ])('%s has exactly the English keys', (_lang, dictionary) => {
     expect(collectKeys(dictionary).sort()).toEqual(englishKeys)
   })

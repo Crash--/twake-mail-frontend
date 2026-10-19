@@ -55,6 +55,14 @@ describe('convertIcuMessage', () => {
     )
   })
 
+  it('uses the two English forms for Mongolian, Polyglot having no rule for it', () => {
+    assert.equal(
+      convertIcuMessage('{n, plural, one{# захидал} other{# захидал}}', 'mn')
+        .phrase,
+      '%{smart_count} захидал |||| %{smart_count} захидал'
+    )
+  })
+
   it('repeats the text around the plural block in each form', () => {
     assert.equal(
       convertIcuMessage(

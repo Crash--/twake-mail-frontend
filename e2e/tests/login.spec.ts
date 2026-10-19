@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { LoginPage, MailboxPage } from '../pages'
+import { LoginPage, MailboxPage, SearchPage } from '../pages'
 import { openAccountMenuIfAny } from '../support/accountMenu'
 import { expectNoA11yViolations } from '../support/a11y'
 import { type E2EUser, expect, test } from '../support/fixtures'
@@ -159,6 +159,29 @@ test.describe('LOGIN login', () => {
     } finally {
       await otherContext.close()
     }
+  })
+
+  test('LOGIN-06 signing out forgets the recent searches and keeps the sort order', async ({
+    page,
+    user
+  }) => {
+    await new LoginPage(page).loginAs(user)
+    await new SearchPage(page).search('SecretTerm-QA')
+    await expect
+      .poll(() => webStorage(page))
+      .toContain('SecretTerm-QA')
+    await page.evaluate(() =>
+      window.localStorage.setItem('twake-mail.search.sort-order', 'oldest')
+    )
+
+    await openAccountMenuIfAny(page)
+    await page.getByTestId('logout-button').click()
+    await expect(new LoginPage(page).usernameInput).toBeVisible()
+
+    const storage = await webStorage(page)
+    expect(storage).not.toContain('SecretTerm-QA')
+    expect(storage).not.toContain('twake-mail.search.recent.')
+    expect(storage).toContain('twake-mail.search.sort-order')
   })
 })
 

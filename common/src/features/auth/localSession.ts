@@ -1,5 +1,6 @@
 import { clearComposerStorage } from '@common/features/composer/composerStorage'
 import { clearIdentityFormStorage } from '@common/features/identities/identityFormStorage'
+import { clearRecentSearches } from '@common/features/search/searchStorage'
 
 import type { AuthServiceBase, AuthState } from './types'
 
@@ -19,12 +20,14 @@ type LocalSession = Pick<AuthServiceBase, 'clearLocalSession' | 'getState'>
 
 /**
  * The composers kept in the browser (`features/composer/composerStorage.ts`)
- * go when the session ends, as tmail-flutter does (ADR 0112), and so does
- * the identity form kept for a reload
+ * go when the session ends, as tmail-flutter does (ADR 0112), and so do
+ * the identity form kept for a reload and the recent searches. The
+ * preferences of the device (theme, focus indicator, sort order) stay.
  */
-function forgetComposers(): void {
+function forgetUserData(): void {
   void clearComposerStorage()
   clearIdentityFormStorage()
+  clearRecentSearches()
 }
 
 function openChannel(): BroadcastChannel | null {
@@ -81,7 +84,7 @@ export function endLocalSession(session: LocalSession): void {
     email: emailOf(session.getState())
   }
   session.clearLocalSession()
-  forgetComposers()
+  forgetUserData()
   const channel = openChannel()
   channel?.postMessage(message)
   channel?.close()
@@ -103,7 +106,7 @@ export function onSessionEndedElsewhere(session: LocalSession): () => void {
       isSessionEndedMessage(event.data) &&
       concernsThisTab(event.data, session.getState())
     ) {
-      forgetComposers()
+      forgetUserData()
       session.clearLocalSession()
     }
   }

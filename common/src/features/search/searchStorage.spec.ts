@@ -1,5 +1,6 @@
 import {
   addRecentSearch,
+  clearRecentSearches,
   MAX_RECENT_SEARCHES,
   readRecentSearchEntries,
   readRecentSearches,
@@ -67,5 +68,33 @@ describe('search storage', () => {
     const recent = readRecentSearches('a', storage)
     expect(recent).toHaveLength(MAX_RECENT_SEARCHES)
     expect(recent[0]).toBe('search 11')
+  })
+
+  it('forgets the recent searches of every account and keeps the sort order', () => {
+    const values = new Map<string, string>()
+    const storage = {
+      getItem: (key: string): string | null => values.get(key) ?? null,
+      setItem: (key: string, value: string): void => {
+        values.set(key, value)
+      },
+      removeItem: (key: string): void => {
+        values.delete(key)
+      },
+      key: (index: number): string | null => [...values.keys()][index] ?? null,
+      get length(): number {
+        return values.size
+      }
+    }
+    addRecentSearch('a', 'invoice', storage)
+    addRecentSearch('b', 'report', storage)
+    storeSortOrder('oldest', storage)
+    storage.setItem('twake-mail.theme', 'dark')
+
+    clearRecentSearches(storage)
+
+    expect(readRecentSearches('a', storage)).toEqual([])
+    expect(readRecentSearches('b', storage)).toEqual([])
+    expect(readSortOrder(storage)).toBe('oldest')
+    expect(storage.getItem('twake-mail.theme')).toBe('dark')
   })
 })

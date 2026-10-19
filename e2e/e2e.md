@@ -1000,3 +1000,4 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/email.spec.ts`.
 - [x] `CMP-109` In dark mode (the `appearance.theme` setting of the account), the contact suggestions of a recipient field stay dark and readable: the highlighted one and the hovered one darken the dark popup instead of showing a white one through their veil (axe). — web app only, no Patrol test (issue #659)
   - Spec: `tests/composer.spec.ts`.
+- [x] `LOGIN-06` Signing out after a search from the top bar leaves no `twake-mail.search.recent.*` key (nor the searched term) in web storage, while the sort order (`twake-mail.search.sort-order`) stays. — web app (issue #657)

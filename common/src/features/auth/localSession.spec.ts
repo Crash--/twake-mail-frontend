@@ -3,6 +3,12 @@ import {
   putComposer,
   resumeComposerStorage
 } from '@common/features/composer/composerStorage'
+import {
+  addRecentSearch,
+  readRecentSearches,
+  readSortOrder,
+  storeSortOrder
+} from '@common/features/search/searchStorage'
 
 import {
   endLocalSession,
@@ -24,6 +30,40 @@ function makeSession(state: AuthState): {
 } {
   return { getState: () => state, clearLocalSession: jest.fn() }
 }
+
+/**
+ * The browser storage of the page: Node has none, and the search storage
+ * reads `window.localStorage`
+ */
+function installLocalStorage(): void {
+  const values = new Map<string, string>()
+  const localStorage: Pick<
+    Storage,
+    'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'
+  > = {
+    getItem: key => values.get(key) ?? null,
+    setItem: (key, value) => {
+      values.set(key, value)
+    },
+    removeItem: key => {
+      values.delete(key)
+    },
+    key: index => [...values.keys()][index] ?? null,
+    get length(): number {
+      return values.size
+    }
+  }
+  Object.defineProperty(globalThis, 'window', {
+    value: { localStorage },
+    configurable: true
+  })
+}
+
+beforeEach(installLocalStorage)
+
+afterEach(() => {
+  Reflect.deleteProperty(globalThis, 'window')
+})
 
 /** Lets the other tab receive what was posted on the channel */
 function nextMessage(): Promise<void> {
@@ -52,6 +92,16 @@ describe('endLocalSession', () => {
     expect(session.clearLocalSession).toHaveBeenCalledTimes(1)
     expect(await listComposers('a')).toEqual([])
   })
+
+  it('forgets the recent searches and keeps the sort order', () => {
+    addRecentSearch('a', 'SecretTerm')
+    storeSortOrder('oldest')
+
+    endLocalSession(makeSession(ANONYMOUS))
+
+    expect(readRecentSearches('a')).toEqual([])
+    expect(readSortOrder()).toBe('oldest')
+  })
 })
 
 describe('onSessionEndedElsewhere', () => {
@@ -78,6 +128,20 @@ describe('onSessionEndedElsewhere', () => {
       stop()
     }
   )
+
+  it('forgets the recent searches written in this tab meanwhile', async () => {
+    const thisTab = makeSession(signedInAs('alice@example.com'))
+    const stop = onSessionEndedElsewhere(thisTab)
+    const received = nextMessage()
+
+    endLocalSession(makeSession(signedInAs('alice@example.com')))
+    // What this tab wrote after the other tab cleared the storage
+    addRecentSearch('a', 'SecretTerm')
+    await received
+
+    expect(readRecentSearches('a')).toEqual([])
+    stop()
+  })
 
   it('keeps this tab signed in when another account signs out', async () => {
     const bobTab = makeSession(signedInAs('bob@example.com'))

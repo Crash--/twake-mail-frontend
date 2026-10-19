@@ -121,3 +121,35 @@ export function addRecentSearch(
     JSON.stringify(recent)
   )
 }
+
+type ClearableStorage = Pick<Storage, 'key' | 'length' | 'removeItem'>
+
+function getClearableStorage(): ClearableStorage | null {
+  try {
+    return window.localStorage
+  } catch {
+    // Storage disabled by the browser settings
+    return null
+  }
+}
+
+/**
+ * Forgets the recent searches of every account, when the session ends: they
+ * are the user's own words. The sort order is a preference of the device and
+ * stays.
+ */
+export function clearRecentSearches(
+  storage: ClearableStorage | null = getClearableStorage()
+): void {
+  if (!storage) return
+  try {
+    const keys: string[] = []
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index)
+      if (key?.startsWith(RECENT_SEARCHES_STORAGE_PREFIX)) keys.push(key)
+    }
+    keys.forEach(key => storage.removeItem(key))
+  } catch (error: unknown) {
+    console.warn('[search] Cannot forget the recent searches', error)
+  }
+}

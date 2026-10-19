@@ -24,6 +24,8 @@ import {
   type ModalSelectHandle
 } from '@/ds/ModalDialog/ModalDialog'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { DayRangeDialog } from '@common/features/dateRange/DayRangeDialog'
+import type { DayRange } from '@common/features/dateRange/dayRange'
 import {
   isValidEmail,
   parseRecipients
@@ -36,12 +38,10 @@ import {
   firstDeletionDay,
   RANGE_LABELS,
   RECEPTION_RANGES,
-  type DayRange,
   type RecoveryForm,
   type RecoveryPeriod,
   type RecoveryRange
 } from './recovery'
-import { RecoveryRangeDialog } from './RecoveryRangeDialog'
 
 export interface RecoveryDialogProps {
   /** Days back the vault restores from */
@@ -169,7 +169,7 @@ export function RecoveryDialog({
         </div>
         <span className="u-ml-half u-flex">
           <ModalFieldIconButton
-            label={t('recovery.selectDate')}
+            label={t('dateRange.selectDate')}
             icon={Calendar}
             aria-haspopup="dialog"
             aria-describedby={labelId}
@@ -367,20 +367,21 @@ export function RecoveryDialog({
         )}
       </ModalDialog>
       {rangeField === null ? null : (
-        <RecoveryRangeDialog
+        <DayRangeDialog
           initial={currentRange(
             rangeField === 'deletion' ? deletion : reception
           )}
           firstDay={
             rangeField === 'deletion' ? firstDeletionDay(horizon, now) : null
           }
+          today={formatDay(now)}
           lastDay={formatDay(now)}
           onConfirm={confirmRange}
           onExited={() => {
             setRangeField(null)
             openerRef.current?.focus()
           }}
-          data-testid="recovery-range-dialog"
+          testIdPrefix="recovery-range"
         />
       )}
     </>

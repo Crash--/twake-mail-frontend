@@ -357,18 +357,14 @@ test.describe('SRCH search', () => {
     await new LoginPage(page).loginAs(user)
     const search = new SearchPage(page)
 
-    let dialog = await search.openAdvanced()
-    await dialog
-      .getByTestId('advanced-search-label-select')
-      .selectOption({ label: 'search-label' })
+    await search.openAdvanced()
+    await search.pickAdvancedOption('label', 'search-label')
     await search.advancedSubmitButton.click()
     await search.expectResults()
     await expect(search.resultRow('Labelled for search')).toBeVisible()
 
-    dialog = await search.openAdvanced()
-    await dialog
-      .getByTestId('advanced-search-label-select')
-      .selectOption({ label: 'search-empty-label' })
+    await search.openAdvanced()
+    await search.pickAdvancedOption('label', 'search-empty-label')
     await search.advancedSubmitButton.click()
     await expect(search.emptyView).toBeVisible()
   })
@@ -393,10 +389,8 @@ test.describe('SRCH search', () => {
     const search = new SearchPage(page)
 
     for (const tag of tags) {
-      const dialog = await search.openAdvanced()
-      await dialog
-        .getByTestId('advanced-search-label-select')
-        .selectOption({ label: tag.displayName })
+      await search.openAdvanced()
+      await search.pickAdvancedOption('label', tag.displayName)
       await search.advancedSubmitButton.click()
       await search.expectResults()
       await expect
@@ -824,10 +818,6 @@ test.describe('SRCH search', () => {
     const notWordsInput = dialog.getByTestId('advanced-search-not-words-input')
     const folderSelect = dialog.getByTestId('advanced-search-folder-select')
     const dateSelect = dialog.getByTestId('advanced-search-date-select')
-    const startDateInput = dialog.getByTestId(
-      'advanced-search-start-date-input'
-    )
-    const endDateInput = dialog.getByTestId('advanced-search-end-date-input')
 
     // Subject, words, excluded words and folder: the email with the
     // excluded word and the archived one are left out
@@ -835,7 +825,8 @@ test.describe('SRCH search', () => {
     await subjectInput.fill('Quarterly')
     await textInput.fill('budget')
     await notWordsInput.fill('confidential')
-    await folderSelect.selectOption({ label: 'Inbox' })
+    await search.pickAdvancedFolder('Inbox')
+    await expect(folderSelect).toHaveAccessibleName('Folder Inbox')
     await expectNoA11yViolations(page)
     await search.advancedSubmitButton.click()
     await search.expectResults()
@@ -853,10 +844,10 @@ test.describe('SRCH search', () => {
     await expect(textInput).toHaveValue('budget')
     await expect(notWordsInput).toHaveValue('confidential')
     await notWordsInput.fill('')
-    await folderSelect.selectOption({ label: 'All email' })
-    await dateSelect.selectOption({ label: 'Custom range' })
-    await startDateInput.fill('2025-01-01')
-    await endDateInput.fill('2025-01-31')
+    await search.pickAdvancedFolder('All email')
+    await search.pickAdvancedRange('01/01/2025', '31/01/2025')
+    await expect(dateSelect).toHaveText('From 2025-01-01 to 2025-01-31')
+    await expectNoA11yViolations(page)
     await search.advancedSubmitButton.click()
     await expect(page).toHaveURL(/date=custom/)
     await expect
@@ -868,14 +859,13 @@ test.describe('SRCH search', () => {
 
     // "Clear filter" empties the form, and the next search has no criteria
     await search.openAdvanced()
-    await expect(startDateInput).toHaveValue('2025-01-01')
+    await expect(dateSelect).toHaveText('From 2025-01-01 to 2025-01-31')
     await dialog.getByTestId('advanced-search-clear-button').click()
     await expect(subjectInput).toHaveValue('')
     await expect(textInput).toHaveValue('')
     await expect(notWordsInput).toHaveValue('')
-    await expect(folderSelect).toHaveValue('')
-    await expect(dateSelect).toHaveValue('allTime')
-    await expect(startDateInput).toHaveCount(0)
+    await expect(folderSelect).toHaveText('All email')
+    await expect(dateSelect).toHaveText('All time')
     await search.advancedSubmitButton.click()
     await expect(page).not.toHaveURL(/[?&](subject|q|not|in|date)=/)
   })

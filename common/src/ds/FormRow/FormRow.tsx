@@ -45,7 +45,10 @@ const LABEL_SX = { color: TMAIL.textBlack, fontSize: 14 } as const
 export interface FormRowProps {
   /** Name of the field, visible; `htmlFor` ties it to the control */
   label: string
-  htmlFor: string
+  /** The input it names; without one the label is a plain text */
+  htmlFor?: string
+  /** Of the label, for a control named by `aria-labelledby` (a listbox) */
+  id?: string
   children: ReactNode
 }
 
@@ -53,11 +56,17 @@ export interface FormRowProps {
 export function FormRow({
   label,
   htmlFor,
+  id,
   children
 }: FormRowProps): ReactElement {
   return (
     <Box sx={ROW_SX}>
-      <Typography component="label" htmlFor={htmlFor} sx={LABEL_SX}>
+      <Typography
+        component={htmlFor === undefined ? 'span' : 'label'}
+        htmlFor={htmlFor}
+        id={id}
+        sx={LABEL_SX}
+      >
         {label}
       </Typography>
       <Box>{children}</Box>

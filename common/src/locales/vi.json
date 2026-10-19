@@ -624,8 +624,6 @@
       "notWords": "Không chứa",
       "date": "Ngày",
       "sort": "Sắp xếp theo",
-      "startDate": "Bắt đầu",
-      "endDate": "Kết thúc",
       "folder": "Thư mục"
     },
     "scope": {
@@ -641,9 +639,6 @@
     },
     "clearFilter": "Xoá bộ lọc",
     "advanced": "Bộ lọc nâng cao",
-    "errors": {
-      "endBeforeStart": "Ngày kết thúc phải sau ngày bắt đầu"
-    },
     "sort": {
       "mostRecent": "Gần đây nhất",
       "oldest": "Cũ nhất",
@@ -1372,20 +1367,31 @@
     "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy",
     "errors": {
       "invalidAddress": "Địa chỉ email không hợp lệ",
-      "start": "Không thể bắt đầu khôi phục",
-      "startMissing": "Ngày bắt đầu rỗng.",
-      "endMissing": "Ngày kết thúc rỗng.",
-      "reversed": "Thời gian kết thúc trước thời gian bắt đầu.",
-      "beforeHorizon": "Ngày bắt đầu không thể trước %{date}."
+      "start": "Không thể bắt đầu khôi phục"
     },
-    "rangeValue": "Từ %{startDate} đến %{endDate}",
+    "rangeValue": "Từ %{startDate} đến %{endDate}"
+  },
+  "dateRange": {
+    "title": "Khoảng thời gian",
     "selectDate": "Ngày",
     "setDate": "Ngày",
     "startDate": "Bắt đầu",
     "endDate": "Kết thúc",
     "dateHint": "dd/mm/yyyy",
     "previousMonth": "Tháng trước",
-    "nextMonth": "Tháng sau"
+    "nextMonth": "Tháng sau",
+    "ranges": {
+      "last7Days": "7 ngày gần đây",
+      "last30Days": "30 ngày gần đây",
+      "last6Months": "6 tháng gần đây",
+      "last1Year": "1 năm qua"
+    },
+    "errors": {
+      "startMissing": "Ngày bắt đầu rỗng.",
+      "endMissing": "Ngày kết thúc rỗng.",
+      "reversed": "Thời gian kết thúc trước thời gian bắt đầu.",
+      "beforeHorizon": "Ngày bắt đầu không thể trước %{date}."
+    }
   },
   "calendar": {
     "banner": {

@@ -2,14 +2,12 @@ import { Button } from '@linagora/twake-mui'
 import { useState, type MouseEvent, type ReactElement } from 'react'
 
 import {
-  AllEmail,
   AttachmentSB,
   CalendarEvent,
   CalendarSB,
   EmailNotification,
   FolderOutlined,
   LabelOutlined,
-  MoveFolderContent,
   SelectedCheck,
   StarOutline,
   UserSB
@@ -19,7 +17,6 @@ import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { ScrollRow } from '@/ds/ScrollRow/ScrollRow'
 import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
-import { usePickFolderOrChoice } from '@common/features/mailbox/MailboxPickerProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -31,13 +28,10 @@ import {
 } from './searchFilter'
 import { SearchAddressDialog } from './SearchAddressDialog'
 import { DATE_LABELS } from './searchLabels'
-import { useMailboxOptions } from './useMailboxOptions'
+import { usePickSearchScope, useSearchScopeLabel } from './usePickSearchScope'
 
 type MenuName = 'labels' | 'date'
 
-/** The scopes listed before the folders; not mailbox ids: they hold a space */
-const DEFAULT_SCOPE_ID = 'all email'
-const EVERYWHERE_SCOPE_ID = 'all email trash spam'
 type AddressField = 'from' | 'to'
 
 interface MenuChoice {
@@ -73,12 +67,12 @@ export function SearchFiltersBar({
   trailing
 }: SearchFiltersBarProps): ReactElement {
   const { t } = useI18n()
-  const mailboxes = useMailboxOptions()
+  const scopeLabelOf = useSearchScopeLabel()
   const labelsAvailable = useLabelsAvailable()
   const labelList = useLabels().data?.list
   const labels = labelsAvailable ? (labelList ?? []) : []
   const [addressField, setAddressField] = useState<AddressField | null>(null)
-  const pickFolderOrChoice = usePickFolderOrChoice()
+  const pickSearchScope = usePickSearchScope()
   const [isPickingFolder, setIsPickingFolder] = useState(false)
   const [menu, setMenu] = useState<{
     name: MenuName
@@ -96,15 +90,7 @@ export function SearchFiltersBar({
   }
 
   const scope = filter.scope
-  const scopeLabel =
-    scope.kind === 'mailbox'
-      ? (mailboxes.find(mailbox => mailbox.id === scope.mailboxId)?.name ??
-        t('search.fields.folder'))
-      : t(
-          scope.kind === 'everywhere'
-            ? 'search.scope.everywhere'
-            : 'search.scope.default'
-        )
+  const scopeLabel = scopeLabelOf(scope)
   const dateLabel =
     filter.dateRange === 'custom' &&
     filter.startDate !== null &&
@@ -154,51 +140,13 @@ export function SearchFiltersBar({
     }
   }
 
-  // As tmail-flutter: the destination picker, "All email" and "All Email,
-  // trash & spam" before the folders, the current scope marked
+  // As tmail-flutter: the destination picker
   const pickScope = (): void => {
     setIsPickingFolder(true)
-    pickFolderOrChoice({
-      title: t('search.selectFolder'),
-      currentLabel: t('search.scope.selected'),
-      // A team mailbox searched as a whole: all its folders but Trash
-      isTeamRootPickable: true,
-      currentId:
-        scope.kind === 'mailbox'
-          ? scope.mailboxId
-          : scope.kind === 'everywhere'
-            ? EVERYWHERE_SCOPE_ID
-            : DEFAULT_SCOPE_ID,
-      choices: [
-        {
-          id: DEFAULT_SCOPE_ID,
-          label: t('search.scope.default'),
-          icon: AllEmail
-        },
-        {
-          id: EVERYWHERE_SCOPE_ID,
-          label: t('search.scope.everywhere'),
-          icon: MoveFolderContent,
-          placement: 'section'
-        }
-      ]
-    })
+    pickSearchScope(scope)
       .then(picked => {
         setIsPickingFolder(false)
-        if (picked === null) return
-        if ('icon' in picked) {
-          onChange({
-            ...filter,
-            scope: {
-              kind: picked.id === EVERYWHERE_SCOPE_ID ? 'everywhere' : 'default'
-            }
-          })
-          return
-        }
-        onChange({
-          ...filter,
-          scope: { kind: 'mailbox', mailboxId: picked.id }
-        })
+        if (picked !== null) onChange({ ...filter, scope: picked })
       })
       .catch((error: unknown) => {
         setIsPickingFolder(false)

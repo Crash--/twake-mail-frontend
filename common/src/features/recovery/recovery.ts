@@ -1,5 +1,6 @@
 import type { EmailRecoveryActionCreate } from 'jmap-client-ts/linagora'
 
+import type { DayRange } from '@common/features/dateRange/dayRange'
 import { formatDay } from '@common/features/search/searchFilter'
 import { fromLocalInputs } from '@common/features/vacation/vacation'
 import type { TranslationKey } from '@common/i18n/useI18n'
@@ -33,12 +34,6 @@ export type RecoveryPreset =
 
 /** A choice of the period menus: a fixed period or a custom range */
 export type RecoveryRange = RecoveryPreset | 'customRange'
-
-/** Days (`YYYY-MM-DD`, local) of a custom range, both included */
-export interface DayRange {
-  start: string
-  end: string
-}
 
 /** A period chosen in the form */
 export type RecoveryPeriod =
@@ -135,40 +130,6 @@ export const RECEPTION_RANGES: readonly RecoveryRange[] = [
   'last1Year',
   'customRange'
 ]
-
-/** Why a custom range is refused */
-export type DayRangeProblem =
-  'startMissing' | 'endMissing' | 'reversed' | 'beforeHorizon'
-
-/** A valid `YYYY-MM-DD` day */
-function isDay(day: string): boolean {
-  return (
-    /^\d{4}-\d{2}-\d{2}$/.test(day) && fromLocalInputs(day, '00:00') !== null
-  )
-}
-
-/**
- * What is wrong with a custom range, for its start and its end: a missing or
- * invalid day, a start before `firstDay` (the horizon of the vault, null for
- * none), an end before the start
- */
-export function dayRangeProblems(
-  range: DayRange,
-  firstDay: string | null
-): { start: DayRangeProblem | null; end: DayRangeProblem | null } {
-  const isStartValid = isDay(range.start)
-  const start: DayRangeProblem | null = !isStartValid
-    ? 'startMissing'
-    : firstDay !== null && range.start < firstDay
-      ? 'beforeHorizon'
-      : null
-  const end: DayRangeProblem | null = !isDay(range.end)
-    ? 'endMissing'
-    : isStartValid && range.end < range.start
-      ? 'reversed'
-      : null
-  return { start, end }
-}
 
 /** The day after `day` (`YYYY-MM-DD`) */
 function nextDay(day: string): string {

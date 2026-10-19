@@ -166,6 +166,57 @@ export class SearchPage {
     return this.advancedDialog
   }
 
+  /**
+   * Picks a value of a list of the advanced search (`label`, `date`, `sort`):
+   * its field opens a listbox, as tmail-flutter's drop down buttons
+   */
+  async pickAdvancedOption(
+    list: 'label' | 'date' | 'sort',
+    label: string
+  ): Promise<SearchPage> {
+    await this.advancedDialog
+      .getByTestId(`advanced-search-${list}-select`)
+      .click()
+    const listbox = this.page.getByRole('listbox')
+    await expect(listbox).toBeVisible()
+    await listbox.getByRole('option', { name: label, exact: true }).click()
+    await expect(listbox).toBeHidden()
+    return this
+  }
+
+  /**
+   * Picks the folder of the advanced search on the destination picker, as
+   * tmail-flutter: a folder by name, or "All email"
+   */
+  async pickAdvancedFolder(name: string): Promise<SearchPage> {
+    await this.advancedDialog
+      .getByTestId('advanced-search-folder-select')
+      .click()
+    const picker = this.page.getByTestId('mailbox-picker')
+    await expect(picker).toBeVisible()
+    await picker
+      .getByRole('option', { name: new RegExp(`^${name}`) })
+      .first()
+      .click()
+    await expect(picker).toBeHidden()
+    return this
+  }
+
+  /**
+   * Picks "Custom range" in the date of the advanced search and sets it on
+   * the date range picker (`dd/mm/yyyy`)
+   */
+  async pickAdvancedRange(start: string, end: string): Promise<SearchPage> {
+    await this.pickAdvancedOption('date', 'Custom range')
+    const range = this.page.getByTestId('advanced-search-range-dialog')
+    await expect(range).toBeVisible()
+    await range.getByTestId('advanced-search-range-start-input').fill(start)
+    await range.getByTestId('advanced-search-range-end-input').fill(end)
+    await range.getByTestId('advanced-search-range-confirm-button').click()
+    await expect(range).toBeHidden()
+    return this
+  }
+
   async openResult(subject: string): Promise<EmailPage> {
     await this.resultRow(subject).click()
     const email = new EmailPage(this.page)

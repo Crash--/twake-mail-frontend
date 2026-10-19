@@ -624,8 +624,6 @@
       "notWords": "Ne contient pas",
       "date": "Date",
       "sort": "Trier par",
-      "startDate": "Date de début",
-      "endDate": "Date de fin",
       "folder": "Dossier"
     },
     "scope": {
@@ -641,9 +639,6 @@
     },
     "clearFilter": "Effacer les filtres",
     "advanced": "Recherche avancée",
-    "errors": {
-      "endBeforeStart": "La date de fin doit être supérieure à la date de début"
-    },
     "sort": {
       "mostRecent": "Le plus récent",
       "oldest": "Le plus ancien",
@@ -1372,20 +1367,31 @@
     "addressesHelp": "Séparez plusieurs adresses par des virgules",
     "errors": {
       "invalidAddress": "Cette adresse e-mail n'est pas valide",
-      "start": "La récupération n'a pas pu démarrer",
-      "startMissing": "La date de début ne peut pas être nulle.",
-      "endMissing": "La date de fin ne peut pas être nulle.",
-      "reversed": "L'heure de fin ne peut pas être inférieure à l'heure de début.",
-      "beforeHorizon": "La date de début ne peut pas être antérieure au %{date}."
+      "start": "La récupération n'a pas pu démarrer"
     },
-    "rangeValue": "Du %{startDate} au %{endDate}",
+    "rangeValue": "Du %{startDate} au %{endDate}"
+  },
+  "dateRange": {
+    "title": "Plage temporelle personnalisée",
     "selectDate": "Sélectionner une date",
     "setDate": "Sélectionner une date",
     "startDate": "Date de début",
     "endDate": "Date de fin",
     "dateHint": "jj/mm/aaaa",
     "previousMonth": "Mois précédent",
-    "nextMonth": "Mois suivant"
+    "nextMonth": "Mois suivant",
+    "ranges": {
+      "last7Days": "Les 7 derniers jours",
+      "last30Days": "Les 30 derniers jours",
+      "last6Months": "Les 6 derniers mois",
+      "last1Year": "L'année dernière"
+    },
+    "errors": {
+      "startMissing": "La date de début ne peut pas être nulle.",
+      "endMissing": "La date de fin ne peut pas être nulle.",
+      "reversed": "L'heure de fin ne peut pas être inférieure à l'heure de début.",
+      "beforeHorizon": "La date de début ne peut pas être antérieure au %{date}."
+    }
   },
   "calendar": {
     "banner": {

@@ -5,6 +5,7 @@ import { useLocation } from 'react-router'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
+import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
 import {
   FAKE_USERNAME,
   makeEmail,
@@ -27,10 +28,10 @@ async function renderField(
 ): Promise<void> {
   // The field stays on screen wherever it navigates, as in the top bar
   renderWithProviders(
-    <>
+    <MailboxPickerProvider>
       <SearchField initialFilter={initialFilter} />
       <Location />
-    </>,
+    </MailboxPickerProvider>,
     {
       route: '/mailbox/mailbox-inbox',
       path: '*',
@@ -199,9 +200,14 @@ describe('SearchField', () => {
       within(dialog).getByLabelText('Doesn’t have'),
       'draft, old'
     )
-    await userEvent.selectOptions(
-      within(dialog).getByLabelText('Sort by'),
-      'Oldest'
+    await userEvent.click(
+      within(dialog).getByRole('combobox', { name: 'Sort by' })
+    )
+    await userEvent.click(
+      within(await screen.findByRole('listbox', { name: 'Sort by' })).getByRole(
+        'option',
+        { name: 'Oldest' }
+      )
     )
     await userEvent.click(
       within(dialog).getByRole('button', { name: 'Search' })
@@ -274,45 +280,108 @@ describe('SearchField', () => {
     expect(params.getAll('to')).toEqual(['carol'])
   })
 
-  it('refuses a custom range ending before it starts', async () => {
+  it('picks the folder on the destination picker, as tmail-flutter', async () => {
     await renderField(makeServer())
     await userEvent.click(combobox())
     await userEvent.click(
       screen.getByRole('button', { name: 'Advanced search' })
     )
     const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
-    await userEvent.selectOptions(
-      within(dialog).getByLabelText('Date'),
+    const folder = within(dialog).getByRole('button', {
+      name: 'Folder All email'
+    })
+    expect(folder).toHaveAttribute('aria-haspopup', 'dialog')
+
+    await userEvent.click(folder)
+    const picker = await screen.findByRole('dialog', { name: 'Select Folder' })
+    await userEvent.click(
+      within(picker).getByRole('option', { name: /^Inbox/ })
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Select Folder' })).toBe(null)
+    })
+    // A click in the picker is no click outside the advanced search
+    expect(await screen.findByRole('dialog', { name: 'Advanced search' })).toBe(
+      dialog
+    )
+    await waitFor(() => {
+      expect(folder).toHaveFocus()
+    })
+    expect(folder).toHaveAccessibleName('Folder Inbox')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Search' })
+    )
+    expect(screen.getByTestId('location')).toHaveTextContent('in=mailbox-inbox')
+  })
+
+  it('picks a custom range on the date range picker, and shows it in the date', async () => {
+    await renderField(makeServer())
+    await userEvent.click(combobox())
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Advanced search' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
+    const date = within(dialog).getByRole('combobox', { name: 'Date' })
+    expect(date).toHaveTextContent('All time')
+    await userEvent.click(date)
+    const options = within(
+      await screen.findByRole('listbox', { name: 'Date' })
+    ).getAllByRole('option')
+    expect(options.map(option => option.textContent)).toEqual([
+      'All time',
+      'Last 7 days',
+      'Last 30 days',
+      'Last 6 months',
+      'Last 12 months',
       'Custom range'
+    ])
+    await userEvent.click(screen.getByRole('option', { name: 'Custom range' }))
+
+    let range = await screen.findByRole('dialog', { name: 'Custom range' })
+    const start = within(range).getByLabelText('Start date')
+    const end = within(range).getByLabelText('End date')
+    await userEvent.type(start, '10102026')
+    await userEvent.type(end, '01102026')
+    await userEvent.click(
+      within(range).getByRole('button', { name: 'Set date' })
     )
-    fireEvent.change(within(dialog).getByLabelText('Start date'), {
-      target: { value: '2026-10-10' }
+    // Refused as tmail-flutter refuses it, the problem under the end
+    expect(end).toHaveAccessibleDescription(
+      'The end time cannot be less than the start time.'
+    )
+    expect(end).toHaveFocus()
+
+    await userEvent.clear(end)
+    await userEvent.type(end, '12102026')
+    await userEvent.click(
+      within(range).getByRole('button', { name: 'Set date' })
+    )
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Custom range' })).toBe(null)
     })
-    fireEvent.change(within(dialog).getByLabelText('End date'), {
-      target: { value: '2026-10-01' }
+    await waitFor(() => {
+      expect(date).toHaveFocus()
     })
+    expect(date).toHaveTextContent('From 2026-10-10 to 2026-10-12')
+
+    // The calendar beside the date opens the picker on that range
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Select date' })
+    )
+    range = await screen.findByRole('dialog', { name: 'Custom range' })
+    expect(within(range).getByLabelText('Start date')).toHaveValue('10/10/2026')
+    await userEvent.click(within(range).getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Custom range' })).toBe(null)
+    })
+    expect(screen.getByRole('dialog', { name: 'Advanced search' })).toBe(dialog)
 
     await userEvent.click(
       within(dialog).getByRole('button', { name: 'Search' })
     )
-
-    const endDate = within(dialog).getByLabelText('End date')
-    expect(endDate).toHaveAccessibleDescription(
-      'End date must be greater than start date'
-    )
-    expect(endDate).toHaveAttribute('aria-invalid', 'true')
-    expect(endDate).toHaveFocus()
     expect(screen.getByTestId('location')).toHaveTextContent(
-      '/mailbox/mailbox-inbox'
-    )
-
-    fireEvent.change(endDate, { target: { value: '2026-10-10' } })
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Search' })
-    )
-
-    expect(screen.getByTestId('location')).toHaveTextContent(
-      'date=custom&start=2026-10-10&end=2026-10-10'
+      'date=custom&start=2026-10-10&end=2026-10-12'
     )
   })
 
@@ -353,10 +422,9 @@ describe('SearchField', () => {
       screen.getByRole('button', { name: 'Advanced search' })
     )
     const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
-    // A native select always shows a value: its label stays above it
-    expect(within(dialog).getByLabelText('Folder')).toHaveDisplayValue(
-      'All email'
-    )
+    expect(
+      within(dialog).getByRole('button', { name: 'Folder All email' })
+    ).toBeVisible()
 
     await userEvent.keyboard('{Escape}')
 

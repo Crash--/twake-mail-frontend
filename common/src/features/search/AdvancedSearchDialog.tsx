@@ -17,10 +17,19 @@ import {
 } from 'react'
 
 import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
+import { Calendar } from '@/ds/FlutterIcons/FlutterIcons'
 import { FormRow } from '@/ds/FormRow/FormRow'
 import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
+import {
+  ModalFieldIconButton,
+  ModalSelect,
+  ModalSelectButton,
+  type ModalSelectHandle
+} from '@/ds/ModalDialog/ModalDialog'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { RecipientFieldDnd } from '@/ds/RecipientField/RecipientField'
+import { DayRangeDialog } from '@common/features/dateRange/DayRangeDialog'
+import type { DayRange } from '@common/features/dateRange/dayRange'
 import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { fetchEmailSenders } from '@common/features/thread/emailSenders'
@@ -37,29 +46,26 @@ import { AddressFilterField, mergeEntries } from './AddressFilterField'
 import {
   DATE_RANGES,
   EMPTY_SEARCH_FILTER,
-  isReversedDateRange,
+  formatDay,
   SORT_ORDERS,
   splitWords,
   type SearchFilter
 } from './searchFilter'
 import { DATE_LABELS, SORT_LABELS } from './searchLabels'
-import { useMailboxOptions } from './useMailboxOptions'
+import { usePickSearchScope, useSearchScopeLabel } from './usePickSearchScope'
 
 type AddressKind = 'from' | 'to'
 
-/** `<select>` values of the scope: default, everywhere, or a mailbox id */
-const SCOPE_DEFAULT = ''
-const SCOPE_EVERYWHERE = '*'
+/** The value of "All labels" in its list: a keyword holds no space */
+const ALL_LABELS = 'all labels'
 
-function scopeValue(filter: SearchFilter): string {
-  if (filter.scope.kind === 'mailbox') return filter.scope.mailboxId
-  return filter.scope.kind === 'everywhere' ? SCOPE_EVERYWHERE : SCOPE_DEFAULT
-}
-
-function toScope(value: string): SearchFilter['scope'] {
-  if (value === SCOPE_DEFAULT) return { kind: 'default' }
-  if (value === SCOPE_EVERYWHERE) return { kind: 'everywhere' }
-  return { kind: 'mailbox', mailboxId: value }
+/** The days of the custom range of a filter, null without both */
+function customRange(filter: SearchFilter): DayRange | null {
+  return filter.dateRange === 'custom' &&
+    filter.startDate !== null &&
+    filter.endDate !== null
+    ? { start: filter.startDate, end: filter.endDate }
+    : null
 }
 
 /** The text fields, as typed: lists are split when the form is submitted */
@@ -106,9 +112,14 @@ export interface AdvancedSearchDialogProps {
  * design opening over the search field, on a phone a full screen dialog. It
  * opens on the search being typed (the quick filters picked under the field
  * are checked here) and runs it on submit; "Clear filter" empties it, the
- * order excepted; Escape (and "Cancel" on a phone) leaves it unchanged. A
- * custom range ending before it starts is refused: the problem shows under
- * the end date, tied to it, and the focus goes there.
+ * order excepted; Escape (and "Cancel" on a phone) leaves it unchanged.
+ *
+ * As tmail-flutter's `AdvancedSearchInputForm`: the folder opens the
+ * destination picker, the label, the date and the order are lists dropping
+ * under their field (`DateDropDownButton`, `LabelDropDownButton`,
+ * `SortByDropDownButton`), and "Custom range", like the calendar button
+ * beside the date, opens the date range picker; the date then shows the
+ * range chosen.
  */
 export function AdvancedSearchDialog({
   filter,
@@ -120,14 +131,19 @@ export function AdvancedSearchDialog({
   const labelsAvailable = useLabelsAvailable()
   const labelList = useLabels().data?.list
   const labels = labelsAvailable ? (labelList ?? []) : []
-  const mailboxes = useMailboxOptions()
+  const scopeLabelOf = useSearchScopeLabel()
+  const pickSearchScope = usePickSearchScope()
   const [draft, setDraft] = useState(filter)
   const [fields, setFields] = useState(() => toTextFields(filter))
-  // The range problem shows once the user tried to search: typing a year
-  // goes through earlier ones, it must not flash meanwhile
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const endDateRef = useRef<HTMLInputElement>(null)
-  const isReversedRangeShown = isSubmitted && isReversedDateRange(draft)
+  const [isRangeOpen, setIsRangeOpen] = useState(false)
+  const dateRef = useRef<ModalSelectHandle>(null)
+  /** What gets the focus back once the range picker is gone */
+  const rangeOpenerRef = useRef<{ focus: () => void } | null>(null)
+  /**
+   * The folder picker is open: it is not inside the card, a click there
+   * must not close it as a click outside
+   */
+  const isPickingRef = useRef(false)
   const id = useId()
   const fieldId = (name: string): string => `${id}-${name}`
   const client = useJmapClient()
@@ -196,15 +212,65 @@ export function AdvancedSearchDialog({
 
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault()
-    setIsSubmitted(true)
-    if (isReversedDateRange(draft)) {
-      endDateRef.current?.focus()
-      return
-    }
     onSubmit(withTextFields(draft, fields))
   }
 
+  const handleClickOutside = (): void => {
+    if (!isPickingRef.current) onClose()
+  }
+
+  // As tmail-flutter (`selectedMailBox`): the destination picker
+  const pickFolder = (): void => {
+    isPickingRef.current = true
+    // The click picking a folder reaches the page after the picker resolved
+    const endPicking = (): void => {
+      window.setTimeout(() => {
+        isPickingRef.current = false
+      }, 0)
+    }
+    pickSearchScope(draft.scope)
+      .then(picked => {
+        endPicking()
+        if (picked !== null) {
+          setDraft(current => ({ ...current, scope: picked }))
+        }
+      })
+      .catch((error: unknown) => {
+        endPicking()
+        console.warn('[search] Cannot pick the folder', error)
+      })
+  }
+
+  const openRange = (opener: { focus: () => void } | null): void => {
+    rangeOpenerRef.current = opener
+    setIsRangeOpen(true)
+  }
+
+  const confirmRange = (range: DayRange): void => {
+    setDraft(current => ({
+      ...current,
+      dateRange: 'custom',
+      startDate: range.start,
+      endDate: range.end
+    }))
+  }
+
   const titleId = `${id}-title`
+  const range = customRange(draft)
+  // As tmail-flutter (`showMultipleViewDateRangePicker`): it opens on the
+  // range chosen, the quick ranges end today
+  const rangeDialog = isRangeOpen ? (
+    <DayRangeDialog
+      initial={range}
+      today={formatDay(new Date())}
+      onConfirm={confirmRange}
+      onExited={() => {
+        setIsRangeOpen(false)
+        rangeOpenerRef.current?.focus()
+      }}
+      testIdPrefix="advanced-search-range"
+    />
+  ) : null
   const isPhone = useScreenSize() === 'mobile'
   const clearButton = (
     <Button
@@ -288,156 +354,110 @@ export function AdvancedSearchDialog({
         t('search.wordsHint'),
         'advanced-search-not-words-input'
       )}
-      <FormRow label={t('search.fields.folder')} htmlFor={fieldId('folder')}>
-        <TextField
-          select
+      <FormRow label={t('search.fields.folder')} id={fieldId('folder-label')}>
+        <ModalSelectButton
           id={fieldId('folder')}
-          variant="standard"
-          fullWidth
-          value={scopeValue(draft)}
-          onChange={event => {
-            setDraft({ ...draft, scope: toScope(event.target.value) })
-          }}
-          slotProps={{
-            select: { native: true },
-            htmlInput: { 'data-testid': 'advanced-search-folder-select' }
-          }}
+          aria-labelledby={`${fieldId('folder-label')} ${fieldId('folder')}`}
+          aria-haspopup="dialog"
+          onClick={pickFolder}
+          data-testid="advanced-search-folder-select"
         >
-          <option value={SCOPE_DEFAULT}>{t('search.scope.default')}</option>
-          <option value={SCOPE_EVERYWHERE}>
-            {t('search.scope.everywhere')}
-          </option>
-          {mailboxes.map(mailbox => (
-            <option key={mailbox.id} value={mailbox.id}>
-              {mailbox.label}
-            </option>
-          ))}
-        </TextField>
+          {scopeLabelOf(draft.scope)}
+        </ModalSelectButton>
       </FormRow>
       {labels.length > 0 ? (
-        <FormRow label={t('search.labels.label')} htmlFor={fieldId('label')}>
-          <TextField
-            select
-            id={fieldId('label')}
-            variant="standard"
-            fullWidth
-            value={draft.label ?? ''}
-            onChange={event => {
-              setDraft({
-                ...draft,
-                label: event.target.value === '' ? null : event.target.value
-              })
+        <FormRow label={t('search.labels.label')} id={fieldId('label')}>
+          <ModalSelect
+            labelId={fieldId('label')}
+            value={draft.label ?? ALL_LABELS}
+            options={[
+              { value: ALL_LABELS, label: t('search.labels.all') },
+              // A keyword no label has (e.g. a deleted one) still filters
+              ...(draft.label !== null &&
+              !labels.some(label => label.keyword === draft.label)
+                ? [{ value: draft.label, label: t('search.labels.unknown') }]
+                : []),
+              ...labels.map(label => ({
+                value: label.keyword,
+                label: labelDisplayName(label, t)
+              }))
+            ]}
+            onChange={value => {
+              setDraft(current => ({
+                ...current,
+                label: value === ALL_LABELS ? null : value
+              }))
             }}
-            slotProps={{
-              select: { native: true },
-              htmlInput: { 'data-testid': 'advanced-search-label-select' }
-            }}
-          >
-            <option value="">{t('search.labels.all')}</option>
-            {/* A keyword no label has (e.g. a deleted one) still filters */}
-            {draft.label !== null &&
-            !labels.some(label => label.keyword === draft.label) ? (
-              <option value={draft.label}>{t('search.labels.unknown')}</option>
-            ) : null}
-            {labels.map(label => (
-              <option key={label.id} value={label.keyword}>
-                {labelDisplayName(label, t)}
-              </option>
-            ))}
-          </TextField>
+            data-testid="advanced-search-label-select"
+          />
         </FormRow>
       ) : null}
-      <FormRow label={t('search.fields.date')} htmlFor={fieldId('date')}>
-        <TextField
-          select
-          id={fieldId('date')}
-          variant="standard"
-          fullWidth
-          value={draft.dateRange}
-          onChange={event => {
-            const dateRange =
-              DATE_RANGES.find(range => range === event.target.value) ??
-              'allTime'
-            setDraft({ ...draft, dateRange })
-          }}
-          slotProps={{
-            select: { native: true },
-            htmlInput: { 'data-testid': 'advanced-search-date-select' }
-          }}
-        >
-          {DATE_RANGES.map(range => (
-            <option key={range} value={range}>
-              {t(DATE_LABELS[range])}
-            </option>
-          ))}
-        </TextField>
-      </FormRow>
-      {draft.dateRange === 'custom' ? (
-        <>
-          <FormRow
-            label={t('search.fields.startDate')}
-            htmlFor={fieldId('start')}
-          >
-            <TextField
-              id={fieldId('start')}
-              type="date"
-              variant="standard"
-              fullWidth
-              value={draft.startDate ?? ''}
-              onChange={event => {
-                setDraft({ ...draft, startDate: event.target.value || null })
-              }}
-              slotProps={{
-                htmlInput: { 'data-testid': 'advanced-search-start-date-input' }
-              }}
-            />
-          </FormRow>
-          <FormRow label={t('search.fields.endDate')} htmlFor={fieldId('end')}>
-            <TextField
-              id={fieldId('end')}
-              inputRef={endDateRef}
-              type="date"
-              variant="standard"
-              fullWidth
-              value={draft.endDate ?? ''}
-              onChange={event => {
-                setDraft({ ...draft, endDate: event.target.value || null })
-              }}
-              error={isReversedRangeShown}
-              helperText={
-                isReversedRangeShown ? t('search.errors.endBeforeStart') : null
+      <FormRow label={t('search.fields.date')} id={fieldId('date')}>
+        {/* As tmail-flutter's `DefaultDateDropDownFieldWidget`: the list,
+            and 8 px after it the calendar opening the range picker */}
+        <Box className="u-flex u-flex-items-center">
+          <Box className="u-flex-auto u-ov-hidden">
+            <ModalSelect
+              labelId={fieldId('date')}
+              value={draft.dateRange}
+              valueLabel={
+                range === null
+                  ? undefined
+                  : t('search.dates.range', {
+                      startDate: range.start,
+                      endDate: range.end
+                    })
               }
-              slotProps={{
-                htmlInput: { 'data-testid': 'advanced-search-end-date-input' }
+              options={DATE_RANGES.map(dateRange => ({
+                value: dateRange,
+                label: t(DATE_LABELS[dateRange])
+              }))}
+              onChange={value => {
+                const dateRange = DATE_RANGES.find(
+                  candidate => candidate === value
+                )
+                if (dateRange === undefined) return
+                if (dateRange === 'custom') {
+                  openRange(dateRef.current)
+                  return
+                }
+                setDraft(current => ({ ...current, dateRange }))
               }}
+              selectRef={dateRef}
+              data-testid="advanced-search-date-select"
             />
-          </FormRow>
-        </>
-      ) : null}
-      <FormRow label={t('search.fields.sort')} htmlFor={fieldId('sort')}>
-        <TextField
-          select
-          id={fieldId('sort')}
-          variant="standard"
-          fullWidth
+          </Box>
+          <Box className="u-ml-half u-flex">
+            <ModalFieldIconButton
+              label={t('dateRange.selectDate')}
+              icon={Calendar}
+              aria-haspopup="dialog"
+              aria-describedby={fieldId('date')}
+              onClick={() => {
+                // The dialog gives the focus back to the button by itself
+                openRange(null)
+              }}
+              data-testid="advanced-search-date-button"
+            />
+          </Box>
+        </Box>
+      </FormRow>
+      <FormRow label={t('search.fields.sort')} id={fieldId('sort')}>
+        <ModalSelect
+          labelId={fieldId('sort')}
           value={draft.sort}
-          onChange={event => {
-            const sort =
-              SORT_ORDERS.find(order => order === event.target.value) ??
-              draft.sort
-            setDraft({ ...draft, sort })
+          options={SORT_ORDERS.map(order => ({
+            value: order,
+            label: t(SORT_LABELS[order])
+          }))}
+          onChange={value => {
+            const sort = SORT_ORDERS.find(order => order === value)
+            if (sort !== undefined) {
+              setDraft(current => ({ ...current, sort }))
+            }
           }}
-          slotProps={{
-            select: { native: true },
-            htmlInput: { 'data-testid': 'advanced-search-sort-select' }
-          }}
-        >
-          {SORT_ORDERS.map(order => (
-            <option key={order} value={order}>
-              {t(SORT_LABELS[order])}
-            </option>
-          ))}
-        </TextField>
+          data-testid="advanced-search-sort-select"
+        />
       </FormRow>
       <Box className="u-flex u-flex-wrap u-mt-1">
         {(
@@ -466,7 +486,7 @@ export function AdvancedSearchDialog({
       <AnchoredDialog
         open
         anchorEl={anchorEl}
-        onClose={onClose}
+        onClose={handleClickOutside}
         title={t('search.advanced')}
         data-testid="advanced-search-dialog"
       >
@@ -478,6 +498,9 @@ export function AdvancedSearchDialog({
             <Box className="u-ml-half">{submitButton}</Box>
           </Box>
         </form>
+        {/* Out of the form (its own would submit this one), in the card
+            (a click in it is no click outside) */}
+        {rangeDialog}
       </AnchoredDialog>
     )
   }
@@ -520,6 +543,7 @@ export function AdvancedSearchDialog({
           {submitButton}
         </DialogActions>
       </form>
+      {rangeDialog}
     </Dialog>
   )
 }

@@ -14,47 +14,53 @@ import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import {
   dayRangeProblems,
-  RANGE_LABELS,
   type DayRange,
   type DayRangeProblem
-} from './recovery'
+} from './dayRange'
 
 const PROBLEM_LABELS: Record<DayRangeProblem, TranslationKey> = {
-  startMissing: 'recovery.errors.startMissing',
-  endMissing: 'recovery.errors.endMissing',
-  reversed: 'recovery.errors.reversed',
-  beforeHorizon: 'recovery.errors.beforeHorizon'
+  startMissing: 'dateRange.errors.startMissing',
+  endMissing: 'dateRange.errors.endMissing',
+  reversed: 'dateRange.errors.reversed',
+  beforeHorizon: 'dateRange.errors.beforeHorizon'
 }
 
-export interface RecoveryRangeDialogProps {
+export interface DayRangeDialogProps {
   /** The range chosen before, null for none */
   initial: DayRange | null
-  /** The first day it can start on (the horizon of the vault), or null */
-  firstDay: string | null
-  /** The last day it can end on, today */
-  lastDay: string
+  /** Today (`YYYY-MM-DD`): the quick ranges end on it */
+  today: string
+  /** The first day it can start on (e.g. the horizon of a vault), or null */
+  firstDay?: string | null
+  /** The last day it can end on, or null */
+  lastDay?: string | null
   onConfirm: (range: DayRange) => void
   /** Once it is gone: the focus goes back to what opened it */
   onExited: () => void
-  'data-testid'?: string
+  /**
+   * Of the test ids: `<prefix>-dialog`, `<prefix>-start-input`,
+   * `<prefix>-end-input`, `<prefix>-cancel-button`, `<prefix>-confirm-button`
+   */
+  testIdPrefix: string
 }
 
 /**
- * The custom range of a period of the recovery form: tmail-flutter's date
- * range picker (`DateRangePickerMixin`), its quick ranges, two months and
- * two `dd/mm/yyyy` fields. Refused when a day is missing or not a day, when
- * the end comes before the start or when the start is past the horizon of
- * the vault; each problem shows under the fields, tied to its own, and the
+ * A custom range of days, as tmail-flutter picks one
+ * (`DateRangePickerMixin.showMultipleViewDateRangePicker`): its quick ranges,
+ * two months and two `dd/mm/yyyy` fields. Refused when a day is missing or
+ * not a day, when the end comes before the start or when the start is before
+ * `firstDay`; each problem shows under the fields, tied to its own, and the
  * focus goes there
  */
-export function RecoveryRangeDialog({
+export function DayRangeDialog({
   initial,
-  firstDay,
-  lastDay,
+  today,
+  firstDay = null,
+  lastDay = null,
   onConfirm,
   onExited,
-  'data-testid': testId
-}: RecoveryRangeDialogProps): ReactElement {
+  testIdPrefix
+}: DayRangeDialogProps): ReactElement {
   const { t, lang } = useI18n()
   const startRef = useRef<HTMLInputElement>(null)
   const endRef = useRef<HTMLInputElement>(null)
@@ -76,11 +82,11 @@ export function RecoveryRangeDialog({
 
   // tmail-flutter's quick ranges (`DateRangeType`), up to today
   const presets: DateRangePreset[] = [
-    { label: t(RANGE_LABELS.last7Days), start: addDays(lastDay, -7) },
-    { label: t(RANGE_LABELS.last30Days), start: addDays(lastDay, -30) },
-    { label: t(RANGE_LABELS.last6Months), start: addMonths(lastDay, -6) },
-    { label: t(RANGE_LABELS.last1Year), start: addMonths(lastDay, -12) }
-  ].map(preset => ({ ...preset, end: lastDay }))
+    { label: t('dateRange.ranges.last7Days'), start: addDays(today, -7) },
+    { label: t('dateRange.ranges.last30Days'), start: addDays(today, -30) },
+    { label: t('dateRange.ranges.last6Months'), start: addMonths(today, -6) },
+    { label: t('dateRange.ranges.last1Year'), start: addMonths(today, -12) }
+  ].map(preset => ({ ...preset, end: today }))
 
   const close = (): void => {
     setOpen(false)
@@ -111,19 +117,19 @@ export function RecoveryRangeDialog({
     <DateRangePickerDialog
       open={open}
       labels={{
-        dialog: t('recovery.ranges.customRange'),
-        start: t('recovery.startDate'),
-        end: t('recovery.endDate'),
-        hint: t('recovery.dateHint'),
+        dialog: t('dateRange.title'),
+        start: t('dateRange.startDate'),
+        end: t('dateRange.endDate'),
+        hint: t('dateRange.dateHint'),
         cancel: t('common.cancel'),
-        confirm: t('recovery.setDate'),
-        previousMonth: t('recovery.previousMonth'),
-        nextMonth: t('recovery.nextMonth'),
-        pickDate: t('recovery.selectDate'),
+        confirm: t('dateRange.setDate'),
+        previousMonth: t('dateRange.previousMonth'),
+        nextMonth: t('dateRange.nextMonth'),
+        pickDate: t('dateRange.selectDate'),
         close: t('common.close')
       }}
       locale={lang}
-      today={lastDay}
+      today={today}
       min={firstDay}
       max={lastDay}
       presets={presets}
@@ -138,12 +144,12 @@ export function RecoveryRangeDialog({
       onSubmit={submit}
       onClose={close}
       onExited={onExited}
-      data-testid={testId}
+      data-testid={`${testIdPrefix}-dialog`}
       testIds={{
-        start: 'recovery-range-start-input',
-        end: 'recovery-range-end-input',
-        cancel: 'recovery-range-cancel-button',
-        confirm: 'recovery-range-confirm-button'
+        start: `${testIdPrefix}-start-input`,
+        end: `${testIdPrefix}-end-input`,
+        cancel: `${testIdPrefix}-cancel-button`,
+        confirm: `${testIdPrefix}-confirm-button`
       }}
     />
   )

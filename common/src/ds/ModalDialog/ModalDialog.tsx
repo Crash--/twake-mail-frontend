@@ -488,6 +488,9 @@ export interface ModalSelectButtonProps {
   icon?: ReactNode
   children: ReactNode
   onClick: () => void
+  id?: string
+  /** E.g. the label of its field and its own id: "Folder Inbox" */
+  'aria-labelledby'?: string
   'aria-describedby'?: string
   'aria-haspopup'?: 'dialog' | 'menu' | 'listbox'
   'data-testid'?: string
@@ -498,6 +501,8 @@ export function ModalSelectButton({
   icon,
   children,
   onClick,
+  id,
+  'aria-labelledby': labelledBy,
   'aria-describedby': describedBy,
   'aria-haspopup': hasPopup,
   'data-testid': testId
@@ -506,6 +511,8 @@ export function ModalSelectButton({
     <Button
       variant="text"
       onClick={onClick}
+      id={id}
+      aria-labelledby={labelledBy}
       aria-describedby={describedBy}
       aria-haspopup={hasPopup}
       sx={{

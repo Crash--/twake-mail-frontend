@@ -581,9 +581,16 @@ export function RichTextToolbar({
   )
 
   const renderComposerContent = (item: ToolbarItem): ReactElement => {
-    const arrow = item.menu ? (
-      <StyleArrowDown color={COMPOSER_ICON_COLOR} />
-    ) : null
+    // The colours are CSS variables (TMAIL), which an SVG `color` attribute
+    // does not read: a box without a box of its own tints the icon
+    const tinted = (color: string, icon: ReactElement): ReactElement => (
+      <Box component="span" sx={{ display: 'contents', color }}>
+        {icon}
+      </Box>
+    )
+    const arrow = item.menu
+      ? tinted(COMPOSER_ICON_COLOR, <StyleArrowDown />)
+      : null
     switch (item.display) {
       case 'size':
         return (
@@ -608,21 +615,23 @@ export function RichTextToolbar({
       case 'color':
         return (
           <>
-            <StyleColor
-              color={visibleColor(
+            {tinted(
+              visibleColor(
                 state.color || COMPOSER_DEFAULT_TEXT_COLOR,
                 COMPOSER_ICON_COLOR
-              )}
-            />
+              ),
+              <StyleColor />
+            )}
             {arrow}
           </>
         )
       case 'highlight':
         return (
           <>
-            <FormatColorFill
-              color={visibleColor(state.backgroundColor, COMPOSER_ICON_COLOR)}
-            />
+            {tinted(
+              visibleColor(state.backgroundColor, COMPOSER_ICON_COLOR),
+              <FormatColorFill />
+            )}
             {arrow}
           </>
         )

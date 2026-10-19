@@ -2,14 +2,19 @@
 // (`ToolbarRichTextWidget`, `ArrowDownIconBorderButtonWidget`,
 // `DropdownButtonFontSizeWidget`, `DropDownButtonWidget`,
 // `DropDownMenuHeaderStyleWidget`), measured on tmail-flutter's web app.
+// Its colours are the TMAIL tokens: exactly those in the light scheme,
+// twake-mui's of the same role in the dark one.
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-/** tmail-flutter's grey of the icons (`colorDefaultRichTextButton`) */
-export const COMPOSER_ICON_COLOR = '#99A2AD'
-/** The colour of the text when none is picked, as tmail-flutter shows it */
-export const COMPOSER_DEFAULT_TEXT_COLOR = '#222222'
-const OUTLINE = '#E6E1E5'
-/** The background of a box whose menu is open */
-const OPEN_BACKGROUND = '#F2F3F5'
+/** tmail-flutter's grey of the icons (`colorDefaultRichTextButton`, #99A2AD) */
+export const COMPOSER_ICON_COLOR = TMAIL.greyIcon
+/** The colour of the text when none is picked, as tmail-flutter shows it (#222222) */
+export const COMPOSER_DEFAULT_TEXT_COLOR = TMAIL.textInk
+/** #E6E1E5 */
+const OUTLINE = TMAIL.outline
+/** The background of a box whose menu is open (#F2F3F5) */
+const OPEN_BACKGROUND = TMAIL.fillF2
+const TEXT = TMAIL.textBlack
 
 /**
  * The bar: white, 24 px from the sides, 8 px above and below, the boxes 8 px
@@ -19,8 +24,9 @@ export const COMPOSER_TOOLBAR_SX = {
   px: '24px',
   py: '8px',
   gap: '8px',
-  bgcolor: '#FFFFFF',
-  boxShadow: '0 0 24px rgba(0, 0, 0, 0.08), 0 0 2px rgba(0, 0, 0, 0.08)'
+  bgcolor: TMAIL.surface,
+  // The 2 px one is the divider in the dark scheme, where no shadow shows
+  boxShadow: `0 0 24px rgba(0, 0, 0, 0.08), 0 0 2px ${TMAIL.divider08}`
 } as const
 
 /**
@@ -45,7 +51,7 @@ export const COMPOSER_SIZE_BUTTON_SX = {
   p: '4px',
   gap: '4px',
   // tmail-flutter's 0.5 px #CFD7E2, as a browser draws it on a 1x screen
-  border: '1px solid #E7EBF1'
+  border: `1px solid ${TMAIL.outlineSize}`
 } as const
 
 export const COMPOSER_SIZE_LABEL_SX = {
@@ -54,8 +60,8 @@ export const COMPOSER_SIZE_LABEL_SX = {
   alignSelf: 'stretch',
   px: '16px',
   borderRadius: '4px',
-  bgcolor: '#F4F4F4',
-  color: '#ADADC0',
+  bgcolor: TMAIL.fillF4,
+  color: TMAIL.greySizeLabel,
   fontSize: 16,
   fontWeight: 500,
   lineHeight: '20px'
@@ -68,8 +74,8 @@ export const COMPOSER_FONT_BUTTON_SX = {
   pl: '12px',
   pr: '10px',
   justifyContent: 'space-between',
-  border: '1px solid rgba(0, 0, 0, 0.12)',
-  color: '#000000',
+  border: `1px solid ${TMAIL.divider12}`,
+  color: TEXT,
   fontSize: 16,
   fontWeight: 400,
   lineHeight: '20px',
@@ -99,7 +105,7 @@ export const COMPOSER_GROUP_BUTTON_SX = {
   flexShrink: 0,
   borderRadius: '8px',
   color: COMPOSER_ICON_COLOR,
-  '&[aria-pressed="true"]': { color: '#000000' }
+  '&[aria-pressed="true"]': { color: TEXT }
 } as const
 
 /** The 24 px icons of the buttons tmail-flutter does not have (undo…) */
@@ -120,7 +126,7 @@ export const COMPOSER_MENU_ITEM_SX = {
     '& .MuiListItemText-primary': {
       fontSize: 16,
       lineHeight: '20px',
-      color: '#000000'
+      color: TEXT
     }
   }
 } as const
@@ -137,12 +143,12 @@ export const COMPOSER_SIZE_ITEM_SX = {
       fontSize: 16,
       lineHeight: '20px',
       fontWeight: 500,
-      color: '#000000'
+      color: TEXT
     },
     '& .RichTextToolbar-check': {
       position: 'absolute',
       insetInlineStart: 12,
-      color: '#007AFF'
+      color: TMAIL.primary
     }
   }
 } as const
@@ -156,7 +162,7 @@ export const COMPOSER_FONT_ITEM_SX = {
     '& .MuiListItemText-primary': {
       fontSize: 16,
       lineHeight: '20px',
-      color: '#000000'
+      color: TEXT
     }
   }
 } as const
@@ -201,7 +207,7 @@ export const COMPOSER_TEXT_STYLE_LOOK = {
     fontSize: 16,
     fontWeight: 400,
     px: '10px',
-    borderLeft: '5px solid #EEEEEE'
+    borderLeft: `5px solid ${TMAIL.outlineQuote}`
   },
   code: {
     fontSize: 13,
@@ -209,8 +215,8 @@ export const COMPOSER_TEXT_STYLE_LOOK = {
     px: '10px',
     py: '8px',
     flex: '1 1 auto',
-    border: '1px solid #CCCCCC',
+    border: `1px solid ${TMAIL.outlineKey}`,
     borderRadius: '4px',
-    bgcolor: '#F5F5F5'
+    bgcolor: TMAIL.fillF5
   }
 } as const

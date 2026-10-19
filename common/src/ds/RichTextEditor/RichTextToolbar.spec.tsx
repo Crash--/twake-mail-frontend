@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/core'
 import userEvent from '@testing-library/user-event'
 
 import { renderDs } from '@/ds/testing/renderDs'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { RichTextEditor, type RichTextEditorProps } from './RichTextEditor'
 import type { RichTextEditorLabels } from './types'
@@ -231,6 +232,35 @@ describe('RichTextToolbar controls', () => {
       expect(screen.queryByRole('menu')).toBe(null)
     })
     expect(button).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('draws the bar and its menus with the colours of the scheme, not light ones', async () => {
+    await renderEditor()
+
+    // White and black in the light scheme, the dark paper and light text in
+    // the dark one
+    const toolbar = screen.getByRole('toolbar', { name: 'Formatting options' })
+    expect(getComputedStyle(toolbar).backgroundColor).toBe(TMAIL.surface)
+    expect(
+      getComputedStyle(screen.getByRole('button', { name: /^Font/ })).color
+    ).toBe(TMAIL.textBlack)
+    expect(
+      getComputedStyle(screen.getByRole('button', { name: 'Bold' })).color
+    ).toBe(TMAIL.greyIcon)
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Text style Normal' })
+    )
+    const normal = within(await screen.findByRole('menu')).getByText('Normal')
+    expect(getComputedStyle(normal).color).toBe(TMAIL.textBlack)
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('menu')).toBe(null)
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: /^Text size/ }))
+    const size = within(await screen.findByRole('menu')).getByText('14')
+    expect(getComputedStyle(size).color).toBe(TMAIL.textBlack)
   })
 
   it('has the buttons of tmail-flutter in its boxed look, the image first', async () => {

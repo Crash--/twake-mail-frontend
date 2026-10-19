@@ -207,4 +207,104 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
       await expectNoA11yViolations(page)
     }
   )
+
+  test('CMP-110 in dark mode, the formatting toolbar and its menus are dark with readable text', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.call(
+      'Settings/set',
+      { update: { singleton: { 'settings/appearance.theme': 'dark' } } },
+      ['com:linagora:params:jmap:settings']
+    )
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.style.colorScheme))
+      .toBe('dark')
+    const composer = await mailbox.compose()
+    await composer.showFormattingToolbar()
+
+    /**
+     * The luminance (0 black, 1 white) of the background of an element, the
+     * first opaque one up its ancestors, and of the colour of its text
+     */
+    const lookOf = (
+      locator: typeof composer.toolbar
+    ): Promise<{ background: number; text: number }> =>
+      locator.evaluate(element => {
+        const parse = (color: string): number[] =>
+          (color.match(/[\d.]+/g) ?? []).map(Number)
+        const luminance = ([red = 0, green = 0, blue = 0]: number[]): number =>
+          (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255
+        let current: Element | null = element
+        let background = [255, 255, 255]
+        while (current !== null) {
+          const [red = 0, green = 0, blue = 0, alpha = 1] = parse(
+            getComputedStyle(current).backgroundColor
+          )
+          if (alpha > 0.9) {
+            background = [red, green, blue]
+            break
+          }
+          current = current.parentElement
+        }
+        return {
+          background: luminance(background),
+          text: luminance(parse(getComputedStyle(element).color))
+        }
+      })
+    const expectDarkAndReadable = async (
+      locator: typeof composer.toolbar
+    ): Promise<void> => {
+      const look = await lookOf(locator)
+      // twake-mui's dark paper is about 0.31, white 1
+      expect(look.background).toBeLessThan(0.45)
+      expect(look.text - look.background).toBeGreaterThan(0.35)
+    }
+
+    // The bar, the name of the font and a toggle that is on
+    await expectDarkAndReadable(composer.toolbar.getByRole('button').first())
+    await expectDarkAndReadable(composer.toolbarButton('Font Sans Serif'))
+    await composer.toolbarButton('Bold').click()
+    await expect(composer.toolbarButton('Bold')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    await expectDarkAndReadable(composer.toolbarButton('Bold'))
+    const bar = await lookOf(composer.toolbar)
+    expect(bar.background).toBeLessThan(0.45)
+
+    // Each menu: its paper dark, its entries light
+    for (const button of [
+      'Text style Normal',
+      'Text Size 14',
+      'Font Sans Serif',
+      'Paragraph',
+      'Lists and indentation'
+    ]) {
+      await page.mouse.move(0, 0)
+      await composer.toolbarButton(button).click()
+      const menu = page.getByRole('menu')
+      await expect(menu).toBeVisible()
+      const entries = menu.locator('.MuiListItemText-primary')
+      expect(await entries.count()).toBeGreaterThan(1)
+      for (const entry of await entries.all()) {
+        await expectDarkAndReadable(entry)
+      }
+      await expectNoA11yViolations(page)
+      await page.keyboard.press('Escape')
+      await expect(menu).toBeHidden()
+    }
+    for (const name of ['Text Color', 'Highlight color']) {
+      await page.mouse.move(0, 0)
+      await composer.toolbarButton(name).click()
+      const dialog = page.getByRole('dialog', { name })
+      await expect(dialog).toBeVisible()
+      await expectDarkAndReadable(dialog.locator('legend').first())
+      await expectNoA11yViolations(page)
+      await page.keyboard.press('Escape')
+      await expect(dialog).toBeHidden()
+    }
+  })
 })

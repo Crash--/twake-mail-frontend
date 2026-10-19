@@ -77,7 +77,7 @@ export const BOXED_TOOLBAR_SX = {
     height: 40,
     p: '5px',
     gap: 0,
-    border: '1px solid #E6E1E5',
+    border: `1px solid ${TMAIL.outline}`,
     borderRadius: '8px',
     color: GREY,
     bgcolor: 'transparent'
@@ -88,7 +88,7 @@ export const BOXED_TOOLBAR_SX = {
     boxSizing: 'border-box',
     gap: 0,
     p: 0,
-    border: '1px solid #E6E1E5',
+    border: `1px solid ${TMAIL.outline}`,
     borderRadius: '8px'
   },
   '& .RichTextToolbar-group .MuiIconButton-root': {
@@ -105,7 +105,7 @@ export const BOXED_TOOLBAR_SX = {
   // The size: a thin #CFD7E2 outline, the number in a grey label
   '& .RichTextToolbar-size': {
     p: '4px',
-    border: '0.5px solid #CFD7E2'
+    border: `0.5px solid ${TMAIL.outlineSizeThin}`
   },
   // The font: 122 px, its name in black, the arrow at the end
   '& .RichTextToolbar-font': {

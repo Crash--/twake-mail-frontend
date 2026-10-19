@@ -316,6 +316,41 @@ test.describe('EML reading an email', () => {
     expect(requested.filter(path => path.startsWith('/asked/'))).toEqual([])
   })
 
+  test('EML-29e an Outlook email declaring its fonts without a source shows no remote images banner', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const style = [
+      '@font-face {font-family:"Cambria Math"; panose-1:2 4 5 3 5 4 6 3 2 4;}',
+      '@font-face {font-family:Calibri; panose-1:2 15 5 2 2 2 4 3 2 4;}',
+      '@font-face {font-family:Aptos; src:local("Aptos");}',
+      'p.MsoNormal {margin:0cm; font-size:11.0pt; font-family:"Calibri",sans-serif;}',
+      'v\\:* {behavior:url(#default#VML);}'
+    ].join('\r\n')
+    await jmap.importEmlContent(
+      Buffer.from(
+        [
+          'From: Administrator <postmaster@outlook.example.org>',
+          `To: ${user.email}`,
+          'Subject: Outlook greeting card',
+          `Message-ID: <outlook-${Date.now()}@outlook.example.org>`,
+          'MIME-Version: 1.0',
+          'Content-Type: text/html; charset=utf-8',
+          '',
+          `<html><head><style>${style}</style></head><body><p class="MsoNormal">Season's greetings</p></body></html>`
+        ].join('\r\n'),
+        'utf8'
+      )
+    )
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const email = await mailbox.openEmail('Outlook greeting card')
+
+    await expect(email.body()).toContainText("Season's greetings")
+    await expect(email.remoteContentBanner).toBeHidden()
+  })
+
   test('EML-28 opening an unread email marks it read', async ({
     page,
     user,

@@ -328,13 +328,16 @@ function sanitizeRules(
     }
     if (/^@font-face\b/i.test(selector)) {
       if (options.scope !== undefined) continue
-      // Fonts are remote content
+      // A font loaded from `https` is remote content. A block without such a
+      // `src` (none, `local()`, `data:`: the Outlook boilerplate) loads
+      // nothing and is dropped either way, without being counted
+      const fontFace = sanitizeFontFace(body)
+      if (fontFace === '') continue
       if (!options.allowRemoteContent) {
         blockedRemoteContent += 1
         continue
       }
-      const fontFace = sanitizeFontFace(body)
-      if (fontFace !== '') rules.push(`@font-face { ${fontFace} }`)
+      rules.push(`@font-face { ${fontFace} }`)
       continue
     }
     // Every other at-rule (@keyframes, @supports, @page…)

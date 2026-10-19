@@ -341,6 +341,91 @@ test.describe('CMP composer', () => {
     }
   })
 
+  test('CMP-109 in dark mode, the contact suggestions stay dark and readable when hovered or highlighted', async ({
+    page,
+    user,
+    jmap,
+    webadmin
+  }) => {
+    const stamp = Date.now()
+    const contacts = [`yuna-${stamp}@example.com`, `yves-${stamp}@example.com`]
+    await webadmin.createDomainContact('example.com', {
+      emailAddress: contacts[0] ?? '',
+      firstname: 'Yuna',
+      surname: 'Darkmode'
+    })
+    await webadmin.createDomainContact('example.com', {
+      emailAddress: contacts[1] ?? '',
+      firstname: 'Yves',
+      surname: 'Darkmode'
+    })
+    await jmap.call(
+      'Settings/set',
+      { update: { singleton: { 'settings/appearance.theme': 'dark' } } },
+      ['com:linagora:params:jmap:settings']
+    )
+    try {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await expect
+        .poll(() =>
+          page.evaluate(() => document.documentElement.style.colorScheme)
+        )
+        .toBe('dark')
+      const composer = await mailbox.compose()
+      await composer.recipientInput('to').fill('Darkmode')
+      const listbox = page.getByTestId('composer-to-suggestions')
+      const options = listbox.getByRole('option')
+      await expect(options).toHaveCount(2)
+      // The first is highlighted, the second hovered
+      await expect(options.first()).toHaveAttribute('aria-selected', 'true')
+      await options.last().hover()
+
+      /**
+       * The luminance of the background of an option, its translucent veil
+       * over the popup, and of its text
+       */
+      const looks = await options.evaluateAll(elements =>
+        elements.map(element => {
+          const parse = (color: string): number[] =>
+            (color.match(/[\d.]+/g) ?? []).map(Number)
+          const luminance = ([red = 0, green = 0, blue = 0]: number[]): number =>
+            (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255
+          const popup = element.closest('[role="listbox"]')?.parentElement
+          const below = parse(
+            popup === null || popup === undefined
+              ? ''
+              : getComputedStyle(popup).backgroundColor
+          )
+          const [red = 0, green = 0, blue = 0, alpha = 1] = parse(
+            getComputedStyle(element).backgroundColor
+          )
+          const mix = (top: number, index: number): number =>
+            top * alpha + (below[index] ?? 0) * (1 - alpha)
+          return {
+            background: luminance([mix(red, 0), mix(green, 1), mix(blue, 2)]),
+            text: luminance(
+              parse(
+                getComputedStyle(
+                  element.querySelector('span:not([aria-hidden]) > span') ??
+                    element
+                ).color
+              )
+            )
+          }
+        })
+      )
+      for (const look of looks) {
+        expect(look.background).toBeLessThan(0.6)
+        expect(look.text - look.background).toBeGreaterThan(0.4)
+      }
+      await expectNoA11yViolations(page)
+    } finally {
+      for (const contact of contacts) {
+        await webadmin.deleteDomainContact('example.com', contact)
+      }
+    }
+  })
+
   test('CMP-29 the formatting toolbar is one tab stop and the editor no keyboard trap', async ({
     page,
     user

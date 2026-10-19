@@ -57,7 +57,7 @@ const PAPER_SX = {
   maxHeight: 300,
   overflowY: 'auto',
   borderRadius: '20px',
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   boxShadow:
     '0 10px 13px -6px rgba(0, 0, 0, 0.2), 0 20px 31px 3px rgba(0, 0, 0, 0.14), 0 8px 38px 7px rgba(0, 0, 0, 0.12)'
 } as const
@@ -191,9 +191,9 @@ const OUTLINED_SX = {
   boxSizing: 'border-box',
   px: '12px',
   py: '3px',
-  border: '1px solid #E6E1E5',
+  border: `1px solid ${TMAIL.outline}`,
   borderRadius: '10px',
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   '&:focus-within': { borderColor: TMAIL.primary },
   // The row of a form outlines its inputs: not the one inside the field
   '&& .MuiInputBase-root': {
@@ -211,7 +211,7 @@ const OUTLINED_CONTENT_SX = { ...CONTENT_SX, minHeight: 32 } as const
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
   borderColor: TMAIL.error,
-  bgcolor: '#FFFFFF',
+  bgcolor: TMAIL.surface,
   '&& .MuiChip-icon': { ml: 0, mr: 0, color: TMAIL.error }
 } as const
 

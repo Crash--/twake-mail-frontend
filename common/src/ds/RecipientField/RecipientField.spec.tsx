@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { useRef, useState, type KeyboardEvent, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
+import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import {
   RecipientField,
@@ -249,6 +250,19 @@ describe('RecipientField', () => {
     await userEvent.keyboard('{Enter}')
     expect(chipNames()).toEqual(['albert@example.com'])
     expect(screen.queryByRole('listbox')).toBe(null)
+  })
+
+  it('draws the suggestions on the surface of the scheme, which the hover veil darkens in dark mode (#659)', async () => {
+    renderDs(<Harness />)
+
+    await userEvent.type(screen.getByRole('combobox', { name: 'To' }), 'al')
+
+    // A white popup showed through the translucent hover of the dark scheme
+    const popup = screen.getByRole('listbox', {
+      name: 'Suggestions'
+    }).parentElement
+    if (popup === null) throw new Error('The listbox has no popup')
+    expect(getComputedStyle(popup).backgroundColor).toBe(TMAIL.surface)
   })
 
   it('lists a suggestion already entered with a tick, and does not add it twice', async () => {

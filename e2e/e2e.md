@@ -998,3 +998,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
 - [x] `PUSH-05` Opening an unread email from the Inbox marks it read (`Email/set`); the push of that change reads the folder counters again (`Mailbox/changes`) but sends no `Email/changes`: the app knows the state change is its own, even when the push comes before the answer of `Email/set`, as James sends it. — tmail-flutter `tf#3394` (issue #648)
 - [x] `EML-29e` An Outlook email whose `<style>` declares fonts without a remote source (`@font-face` with no `src`, as Outlook writes Cambria Math and Calibri, or `src: local(…)`) loads nothing from the Internet and shows no "Remote images hidden" banner. — web app only, no Patrol test (issue #658)
   - Spec: `tests/email.spec.ts`.
+- [x] `CMP-109` In dark mode (the `appearance.theme` setting of the account), the contact suggestions of a recipient field stay dark and readable: the highlighted one and the hovered one darken the dark popup instead of showing a white one through their veil (axe). — web app only, no Patrol test (issue #659)
+  - Spec: `tests/composer.spec.ts`.

@@ -1343,7 +1343,7 @@
   },
   "recovery": {
     "title": "Recover deleted messages",
-    "horizon": "You can recover messages deleted during the past %{period}",
+    "horizon": "You can recover messages deleted within the last %{period} days. Recovered emails will be restored to your recovered folder.",
     "deletionDate": "Deletion date",
     "receptionDate": "Reception date",
     "ranges": {
@@ -1352,7 +1352,8 @@
       "last30Days": "Last 30 days",
       "last6Months": "Last 6 months",
       "last1Year": "Last 1 year",
-      "allTime": "All time"
+      "allTime": "All time",
+      "customRange": "Custom range"
     },
     "recipients": "Recipients",
     "sender": "Sender",
@@ -1371,9 +1372,17 @@
     "addressesHelp": "Separate several addresses with commas",
     "errors": {
       "invalidAddress": "This email address invalid",
-      "start": "The recovery could not start"
+      "start": "The recovery could not start",
+      "startMissing": "The start date cannot be null.",
+      "endMissing": "The end date cannot be null.",
+      "reversed": "The end time cannot be less than the start time.",
+      "beforeHorizon": "The start date cannot be before %{date}."
     },
-    "days": "%{smart_count} day |||| %{smart_count} days"
+    "rangeValue": "From %{startDate} to %{endDate}",
+    "selectDate": "Select date",
+    "setDate": "Set date",
+    "startDate": "Start date",
+    "endDate": "End date"
   },
   "calendar": {
     "banner": {

@@ -126,6 +126,7 @@ const TOKENS = {
   divider08: ['rgba(0, 0, 0, 0.08)', DARK.divider],
   divider12: ['rgba(0, 0, 0, 0.12)', DARK.divider],
   dividerGrey12: ['rgba(66, 66, 68, 0.12)', DARK.divider],
+  outlineMenu: ['#D8E1EB', DARK.divider],
   outlineHover: ['#C6CBD1', DARK.border],
   outline24: ['rgba(0, 0, 0, 0.24)', DARK.border],
   scrollbarThumb: ['#C1C1C1', DARK.border],

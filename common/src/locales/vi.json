@@ -1343,7 +1343,7 @@
   },
   "recovery": {
     "title": "Khôi phục tin nhắn đã xóa",
-    "horizon": "Bạn có thể khôi phục các email đã xoá trong vòng %{period}",
+    "horizon": "Bạn có thể khôi phục các email đã được xoá trong vòng %{period} ngày. Tin nhắn sẽ được khôi phục vào thư mục Khôi Phục.",
     "deletionDate": "Ngày xóa",
     "receptionDate": "Ngày nhận",
     "ranges": {
@@ -1352,7 +1352,8 @@
       "last30Days": "30 ngày gần đây",
       "last6Months": "6 tháng gần đây",
       "last1Year": "1 năm qua",
-      "allTime": "Toàn bộ thời gian"
+      "allTime": "Toàn bộ thời gian",
+      "customRange": "Khoảng thời gian"
     },
     "recipients": "Người nhận",
     "sender": "Người gửi",
@@ -1371,9 +1372,17 @@
     "addressesHelp": "Phân tách nhiều địa chỉ bằng dấu phẩy",
     "errors": {
       "invalidAddress": "Địa chỉ email không hợp lệ",
-      "start": "Không thể bắt đầu khôi phục"
+      "start": "Không thể bắt đầu khôi phục",
+      "startMissing": "Ngày bắt đầu rỗng.",
+      "endMissing": "Ngày kết thúc rỗng.",
+      "reversed": "Thời gian kết thúc trước thời gian bắt đầu.",
+      "beforeHorizon": "Ngày bắt đầu không thể trước %{date}."
     },
-    "days": "%{smart_count} ngày"
+    "rangeValue": "Từ %{startDate} đến %{endDate}",
+    "selectDate": "Ngày",
+    "setDate": "Ngày",
+    "startDate": "Bắt đầu",
+    "endDate": "Kết thúc"
   },
   "calendar": {
     "banner": {

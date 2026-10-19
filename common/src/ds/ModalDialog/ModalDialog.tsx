@@ -14,19 +14,26 @@ import {
   Dialog,
   IconButton,
   InputBase,
-  NativeSelect,
+  MenuItem,
+  Select,
   Tooltip,
   Typography,
   type InputBaseProps
 } from '@mui/material'
 import {
   forwardRef,
+  type ComponentProps,
+  type Ref,
   type SubmitEventHandler,
   type ReactElement,
   type ReactNode
 } from 'react'
 
-import { CloseDialog, Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
+import {
+  CloseDialog,
+  Dropdown,
+  FilterSelected
+} from '@/ds/FlutterIcons/FlutterIcons'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** `AppColor.m3SurfaceBackground` */
@@ -548,42 +555,108 @@ export function ModalSelectButton({
   )
 }
 
-export interface ModalNativeSelectProps {
-  id?: string
+export interface ModalSelectOption {
   value: string
+  label: string
+}
+
+/** What `ModalSelect` lets its parent do: focus it again */
+export interface ModalSelectHandle {
+  focus: () => void
+}
+
+export interface ModalSelectProps {
+  /** Id of the label naming it */
+  labelId: string
+  value: string
+  options: readonly ModalSelectOption[]
+  /** Each pick, the option already chosen included */
   onChange: (value: string) => void
-  /** `option`s */
-  children: ReactNode
+  /** Shown in the field instead of the label of the option, e.g. dates */
+  valueLabel?: string
+  selectRef?: Ref<ModalSelectHandle>
+  /** On the field opening the list */
   'data-testid'?: string
 }
 
-/** A list of choices in a field of `ModalDialog`, with its chevron */
-export function ModalNativeSelect({
-  id,
+/** tmail-flutter's `DateDropDownButton` menu: a card rounded by 16 px */
+const SELECT_MENU_PAPER_SX = {
+  mt: '4px',
+  p: '12px',
+  maxHeight: 332,
+  boxSizing: 'border-box',
+  borderRadius: '16px',
+  border: `1px solid ${TMAIL.outlineMenu}`,
+  boxShadow: '0 0 24px rgba(0, 0, 0, 0.12)',
+  '& .MuiList-root': { p: 0 }
+} as const
+
+/** Its 44 px entries in Regular 15 black, a blue check after the one chosen */
+const SELECT_ITEM_SX = {
+  minHeight: 44,
+  px: '12px',
+  gap: '8px',
+  borderRadius: '8px',
+  fontSize: 15,
+  lineHeight: '20px',
+  letterSpacing: '-0.15px',
+  color: TMAIL.textBlack,
+  '&.Mui-selected': { bgcolor: 'transparent' },
+  '&:hover, &.Mui-selected:hover, &.Mui-focusVisible, &.Mui-selected.Mui-focusVisible':
+    { bgcolor: TMAIL.hoverOnSurface08 }
+} as const
+
+/**
+ * A list of choices in a field of `ModalDialog` (tmail-flutter's
+ * `DateDropDownButton`): the field shows the choice and a chevron, its
+ * menu drops under it with a check after the choice (a combobox and its
+ * listbox)
+ */
+export function ModalSelect({
+  labelId,
   value,
+  options,
   onChange,
-  children,
+  valueLabel,
+  selectRef,
   'data-testid': testId
-}: ModalNativeSelectProps): ReactElement {
+}: ModalSelectProps): ReactElement {
   return (
-    <NativeSelect
+    <Select
       value={value}
-      onChange={event => {
-        onChange(event.target.value)
-      }}
+      labelId={labelId}
+      inputRef={selectRef}
+      renderValue={selected =>
+        valueLabel ??
+        options.find(option => option.value === selected)?.label ??
+        ''
+      }
       IconComponent={SelectChevron}
-      input={<InputBase id={id} inputProps={{ 'data-testid': testId }} />}
+      input={<InputBase />}
+      SelectDisplayProps={
+        { 'data-testid': testId } as Record<string, string | undefined>
+      }
+      MenuProps={{
+        anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+        transformOrigin: { vertical: 'top', horizontal: 'left' },
+        slotProps: { paper: { sx: SELECT_MENU_PAPER_SX } }
+      }}
       // The select passes its own `sx` to the input it renders
       sx={{
         ...inputSx(false, false),
         pr: 0,
-        '& .MuiNativeSelect-select': {
+        '&.Mui-focused': { borderColor: PRIMARY },
+        '& .MuiSelect-select': {
           pr: '32px !important',
           py: 0,
           height: 38,
+          minHeight: 0,
           lineHeight: '38px',
           fontSize: 14,
-          color: TEXT_COLOR
+          color: TEXT_COLOR,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap'
         },
         '& .ModalSelect-chevron': {
           position: 'absolute',
@@ -594,8 +667,37 @@ export function ModalNativeSelect({
         }
       }}
     >
-      {children}
-    </NativeSelect>
+      {options.map(option => (
+        <MenuItem
+          key={option.value}
+          value={option.value}
+          // Called on each pick: the select calls `onChange` on a change only
+          onClick={() => {
+            onChange(option.value)
+          }}
+          sx={SELECT_ITEM_SX}
+        >
+          <Box
+            component="span"
+            sx={{
+              flex: '1 1 auto',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {option.label}
+          </Box>
+          {option.value === value ? (
+            <Box
+              component="span"
+              sx={{ display: 'flex', flexShrink: 0, color: PRIMARY }}
+            >
+              <Icon icon={FilterSelected} size={20} aria-hidden="true" />
+            </Box>
+          ) : null}
+        </MenuItem>
+      ))}
+    </Select>
   )
 }
 
@@ -604,5 +706,54 @@ function SelectChevron(): ReactElement {
     <span className="ModalSelect-chevron" aria-hidden="true">
       <Icon icon={Dropdown} size={20} />
     </span>
+  )
+}
+
+export interface ModalFieldIconButtonProps {
+  /** Its accessible name and its tooltip */
+  label: string
+  icon: ComponentProps<typeof Icon>['icon']
+  onClick: () => void
+  'aria-haspopup'?: 'dialog' | 'menu'
+  /** Id of what tells it from its twins, e.g. the label of its field */
+  'aria-describedby'?: string
+  'data-testid'?: string
+}
+
+/**
+ * A 40 px square button beside a field of `ModalDialog`, framed as the
+ * field (the calendar of tmail-flutter's `DefaultDateDropDownFieldWidget`)
+ */
+export function ModalFieldIconButton({
+  label,
+  icon,
+  onClick,
+  'aria-haspopup': hasPopup,
+  'aria-describedby': describedBy,
+  'data-testid': testId
+}: ModalFieldIconButtonProps): ReactElement {
+  return (
+    <Tooltip title={label}>
+      <IconButton
+        aria-label={label}
+        aria-haspopup={hasPopup}
+        aria-describedby={describedBy}
+        onClick={onClick}
+        sx={{
+          width: 40,
+          height: 40,
+          p: 0,
+          flexShrink: 0,
+          border: `1px solid ${FIELD_BORDER}`,
+          borderRadius: '10px',
+          color: HINT_COLOR,
+          bgcolor: TMAIL.surface,
+          '&:hover': { bgcolor: TMAIL.hoverOnSurface }
+        }}
+        data-testid={testId}
+      >
+        <Icon icon={icon} size={22} />
+      </IconButton>
+    </Tooltip>
   )
 }

@@ -1343,7 +1343,7 @@
   },
   "recovery": {
     "title": "Récupérer les messages supprimés",
-    "horizon": "Vous pouvez récupérer les messages supprimés depuis %{period}",
+    "horizon": "Vous pouvez récupérer les messages supprimés pendant %{period} jours. Les e-mails récupérés seront restaurés dans votre dossier de récupération.",
     "deletionDate": "Date de suppression",
     "receptionDate": "Date de réception",
     "ranges": {
@@ -1352,7 +1352,8 @@
       "last30Days": "Les 30 derniers jours",
       "last6Months": "Les 6 derniers mois",
       "last1Year": "L'année dernière",
-      "allTime": "Tout le temps"
+      "allTime": "Tout le temps",
+      "customRange": "Plage temporelle personnalisée"
     },
     "recipients": "Destinataires",
     "sender": "Expéditeur",
@@ -1371,9 +1372,17 @@
     "addressesHelp": "Séparez plusieurs adresses par des virgules",
     "errors": {
       "invalidAddress": "Cette adresse e-mail n'est pas valide",
-      "start": "La récupération n'a pas pu démarrer"
+      "start": "La récupération n'a pas pu démarrer",
+      "startMissing": "La date de début ne peut pas être nulle.",
+      "endMissing": "La date de fin ne peut pas être nulle.",
+      "reversed": "L'heure de fin ne peut pas être inférieure à l'heure de début.",
+      "beforeHorizon": "La date de début ne peut pas être antérieure au %{date}."
     },
-    "days": "%{smart_count} jour |||| %{smart_count} jours"
+    "rangeValue": "Du %{startDate} au %{endDate}",
+    "selectDate": "Sélectionner une date",
+    "setDate": "Sélectionner une date",
+    "startDate": "Date de début",
+    "endDate": "Date de fin"
   },
   "calendar": {
     "banner": {

@@ -74,14 +74,20 @@ export function RecoveryProvider({
     async (form: RecoveryForm): Promise<boolean> => {
       const response = await client.call('EmailRecoveryAction/set', {
         accountId,
-        create: { recovery: recoveryCriteria(form, new Date()) }
+        create: {
+          recovery: recoveryCriteria(
+            form,
+            new Date(),
+            horizonDays(vault?.restorationHorizon)
+          )
+        }
       })
       const created = response.created?.recovery
       if (!created) return false
       setTaskId(created.id)
       return true
     },
-    [client, accountId]
+    [client, accountId, vault]
   )
 
   const finish = useCallback(

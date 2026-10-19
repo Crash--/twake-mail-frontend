@@ -28,7 +28,7 @@ test.describe('MBX recovery and quota', () => {
     await mailbox.runFolderAction({ role: 'trash' }, 'recover-deleted-messages')
     const dialog = page.getByTestId('recovery-dialog')
     await expect(dialog).toContainText(
-      'You can recover messages deleted during the past 15 days'
+      'You can recover messages deleted within the last 15 days.'
     )
     await expectNoA11yViolations(page)
     await dialog.getByTestId('recovery-restore-button').click()
@@ -37,6 +37,128 @@ test.describe('MBX recovery and quota', () => {
     await page.getByTestId('recovery-open-button').click()
     await expect(mailbox.emailRow('Recover me')).toBeVisible()
     await mailbox.expectFolderSelected({ name: 'Recovered' })
+  })
+
+  test('MBX-62 a custom range of deletion dates, refused out of the horizon, recovers the emails deleted in it', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Recover my range',
+      text: 'x',
+      saveTo: 'trash'
+    })
+    await jmap.waitForEmail({
+      subject: 'Recover my range',
+      mailboxRole: 'trash'
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.openFolder({ role: 'trash' })
+    await mailbox.emptyTrashBanner
+      .getByRole('button', { name: 'Empty Trash now' })
+      .click()
+    await mailbox.confirmDialog
+      .getByTestId('confirm-dialog-confirm-button')
+      .click()
+    await expect(mailbox.emptyTrashBanner).toBeHidden()
+
+    await mailbox.runFolderAction({ role: 'trash' }, 'recover-deleted-messages')
+    const dialog = page.getByTestId('recovery-dialog')
+    const deletion = dialog.getByTestId('recovery-deletion-select')
+    await expect(deletion).toHaveAccessibleName('Deletion date')
+    await expect(deletion).toHaveText('Last 7 days')
+
+    // The reception periods, with the keyboard: a listbox, Escape closes it
+    const reception = dialog.getByTestId('recovery-reception-select')
+    await reception.focus()
+    await page.keyboard.press('Enter')
+    const listbox = page.getByRole('listbox', { name: 'Reception date' })
+    await expect(listbox.getByRole('option')).toHaveText([
+      'All time',
+      'Last 7 days',
+      'Last 30 days',
+      'Last 6 months',
+      'Last 1 year',
+      'Custom range'
+    ])
+    await expectNoA11yViolations(page)
+    await page.keyboard.press('Escape')
+    await expect(listbox).toBeHidden()
+    await expect(reception).toBeFocused()
+
+    // The deletion periods within the 15 days of the vault
+    await deletion.click()
+    await expect(
+      page.getByRole('listbox', { name: 'Deletion date' }).getByRole('option')
+    ).toHaveText(['Last 7 days', 'Last 15 days', 'Custom range'])
+    await page.getByRole('option', { name: 'Custom range' }).click()
+    const range = page.getByTestId('recovery-range-dialog')
+    await expect(range).toBeVisible()
+    const start = range.getByTestId('recovery-range-start-input')
+    const end = range.getByTestId('recovery-range-end-input')
+    const setDate = range.getByTestId('recovery-range-confirm-button')
+
+    await setDate.click()
+    await expect(start).toHaveAccessibleDescription(
+      'The start date cannot be null.'
+    )
+    await expect(start).toBeFocused()
+    await expectNoA11yViolations(page)
+
+    const day = async (daysAgo: number): Promise<string> =>
+      page.evaluate(back => {
+        const now = new Date()
+        const date = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() - back
+        )
+        const pad = (value: number): string => String(value).padStart(2, '0')
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+      }, daysAgo)
+    const today = await day(0)
+    await start.fill(await day(30))
+    await end.fill(today)
+    await setDate.click()
+    await expect(start).toHaveAccessibleDescription(
+      `The start date cannot be before ${await day(15)}.`
+    )
+    await start.fill(today)
+    await end.fill(await day(1))
+    await setDate.click()
+    await expect(end).toHaveAccessibleDescription(
+      'The end time cannot be less than the start time.'
+    )
+    await end.fill(today)
+    await setDate.click()
+    await expect(range).toBeHidden()
+    await expect(deletion).toHaveText(`From ${today} to ${today}`)
+    await expect(deletion).toBeFocused()
+
+    const sent = page.waitForRequest(
+      request =>
+        request.method() === 'POST' &&
+        (request.postData() ?? '').includes('"EmailRecoveryAction/set"')
+    )
+    await dialog.getByTestId('recovery-restore-button').click()
+    const body = (await sent).postDataJSON() as {
+      methodCalls: [
+        string,
+        { create?: Record<string, Record<string, unknown>> }
+      ][]
+    }
+    const criteria = body.methodCalls.find(
+      ([name]) => name === 'EmailRecoveryAction/set'
+    )?.[1].create?.recovery
+    expect(Object.keys(criteria ?? {}).sort()).toEqual([
+      'deletedAfter',
+      'deletedBefore'
+    ])
+    await expect(mailbox.toast).toContainText(/messages? recovered/)
+    await page.getByTestId('recovery-open-button').click()
+    await expect(mailbox.emailRow('Recover my range')).toBeVisible()
   })
 
   test('MBX-13 emails emptied from Spam are recovered from the Trash', async ({

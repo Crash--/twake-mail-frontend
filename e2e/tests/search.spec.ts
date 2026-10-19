@@ -639,8 +639,10 @@ test.describe('SRCH search', () => {
       await expect(
         dialog.getByRole('checkbox', { name: 'Starred' })
       ).toBeChecked()
-      await expect(dialog.getByLabel('Folder')).toHaveValue('')
-      await expect(dialog.getByLabel('Folder')).toBeInViewport()
+      // The folder field opens the folder picker: it shows "All email"
+      const folder = dialog.getByTestId('advanced-search-folder-select')
+      await expect(folder).toHaveText('All email')
+      await expect(folder).toBeInViewport()
       await expect(search.advancedSubmitButton).toBeInViewport()
       if (search.isPhone()) {
         // A full screen dialog: its title and Cancel stay in view

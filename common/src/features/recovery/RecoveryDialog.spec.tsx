@@ -75,8 +75,20 @@ describe('RecoveryDialog', () => {
     const range = await screen.findByRole('dialog', { name: 'Custom range' })
     const start = within(range).getByLabelText('Start date')
     const end = within(range).getByLabelText('End date')
-    expect(start).toHaveAttribute('min', '2026-09-23')
-    expect(start).toHaveAttribute('max', '2026-10-08')
+    // The calendar keeps to the horizon of the vault and to today
+    expect(
+      within(range).getByRole('gridcell', {
+        name: 'Tuesday, September 22, 2026'
+      })
+    ).toHaveAttribute('aria-disabled', 'true')
+    expect(
+      within(range).getByRole('gridcell', {
+        name: 'Wednesday, September 23, 2026'
+      })
+    ).not.toHaveAttribute('aria-disabled')
+    expect(
+      within(range).getByRole('gridcell', { name: 'Friday, October 9, 2026' })
+    ).toHaveAttribute('aria-disabled', 'true')
     const setDate = within(range).getByRole('button', { name: 'Set date' })
 
     await userEvent.click(setDate)
@@ -85,14 +97,14 @@ describe('RecoveryDialog', () => {
     expect(end).toHaveAccessibleDescription('The end date cannot be null.')
     expect(start).toHaveFocus()
 
-    fireEvent.change(start, { target: { value: '2026-09-20' } })
-    fireEvent.change(end, { target: { value: '2026-09-30' } })
+    fireEvent.change(start, { target: { value: '20/09/2026' } })
+    fireEvent.change(end, { target: { value: '30/09/2026' } })
     await userEvent.click(setDate)
     expect(start).toHaveAccessibleDescription(
-      'The start date cannot be before 2026-09-23.'
+      'The start date cannot be before 23/09/2026.'
     )
 
-    fireEvent.change(start, { target: { value: '2026-10-02' } })
+    fireEvent.change(start, { target: { value: '02/10/2026' } })
     await userEvent.click(setDate)
     expect(start).toHaveAttribute('aria-invalid', 'false')
     expect(end).toHaveAccessibleDescription(
@@ -100,14 +112,14 @@ describe('RecoveryDialog', () => {
     )
     expect(end).toHaveFocus()
 
-    fireEvent.change(end, { target: { value: '2026-10-05' } })
+    fireEvent.change(end, { target: { value: '05/10/2026' } })
     await userEvent.click(setDate)
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Custom range' })).toBe(null)
     })
     expect(
       screen.getByRole('combobox', { name: 'Deletion date' })
-    ).toHaveTextContent('From 2026-10-02 to 2026-10-05')
+    ).toHaveTextContent('From 02/10/2026 to 05/10/2026')
     expect(opener).toHaveFocus()
 
     await userEvent.click(screen.getByRole('button', { name: 'Restore' }))
@@ -132,9 +144,11 @@ describe('RecoveryDialog', () => {
     )
     const range = await screen.findByRole('dialog', { name: 'Custom range' })
     // No horizon for the reception
-    expect(within(range).getByLabelText('Start date')).not.toHaveAttribute(
-      'min'
-    )
+    expect(
+      within(range).getByRole('gridcell', {
+        name: 'Tuesday, September 1, 2026'
+      })
+    ).not.toHaveAttribute('aria-disabled')
     await userEvent.click(within(range).getByRole('button', { name: 'Cancel' }))
     await waitFor(() => {
       expect(reception).toHaveFocus()
@@ -142,6 +156,76 @@ describe('RecoveryDialog', () => {
     expect(reception).toHaveTextContent('All time')
     expect(
       await screen.findByRole('dialog', { name: 'Recover deleted messages' })
+    ).toBeVisible()
+  })
+
+  it('picks a custom range on the calendar, from a quick range or with the keyboard, as tmail-flutter', async () => {
+    renderDialog()
+    const reception = screen.getByRole('combobox', { name: 'Reception date' })
+    await userEvent.click(reception)
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Custom range' })
+    )
+    const range = await screen.findByRole('dialog', { name: 'Custom range' })
+    const start = within(range).getByLabelText('Start date')
+    const end = within(range).getByLabelText('End date')
+    expect(start).toHaveFocus()
+    expect(start).toHaveAttribute('placeholder', 'dd/mm/yyyy')
+
+    // Two days: the first starts the range, the second (before it) swaps
+    await userEvent.click(
+      within(range).getByRole('gridcell', { name: 'Monday, October 5, 2026' })
+    )
+    expect(start).toHaveValue('05/10/2026')
+    expect(end).toHaveValue('')
+    await userEvent.click(
+      within(range).getByRole('gridcell', {
+        name: 'Monday, September 28, 2026'
+      })
+    )
+    expect(start).toHaveValue('28/09/2026')
+    expect(end).toHaveValue('05/10/2026')
+    expect(
+      within(range).getByRole('gridcell', { name: 'Thursday, October 1, 2026' })
+    ).toHaveAttribute('aria-selected', 'true')
+
+    const lastWeek = within(range).getByRole('button', { name: 'Last 7 days' })
+    await userEvent.click(lastWeek)
+    expect(lastWeek).toHaveAttribute('aria-pressed', 'true')
+    expect(start).toHaveValue('01/10/2026')
+    expect(end).toHaveValue('08/10/2026')
+
+    // Typed: the slashes come by themselves
+    await userEvent.clear(start)
+    await userEvent.type(start, '03102026')
+    expect(start).toHaveValue('03/10/2026')
+    expect(lastWeek).toHaveAttribute('aria-pressed', 'false')
+
+    // The grid: the arrows move the day, Page Up a month, Enter picks
+    const day = within(range).getByRole('gridcell', {
+      name: 'Saturday, October 3, 2026'
+    })
+    expect(day).toHaveAttribute('tabindex', '0')
+    day.focus()
+    await userEvent.keyboard('{ArrowRight}{ArrowDown}')
+    expect(
+      within(range).getByRole('gridcell', { name: 'Sunday, October 11, 2026' })
+    ).toHaveFocus()
+    await userEvent.keyboard('{PageUp}')
+    expect(
+      within(range).getByRole('gridcell', {
+        name: 'Friday, September 11, 2026'
+      })
+    ).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    expect(start).toHaveValue('11/09/2026')
+    expect(end).toHaveValue('')
+
+    await userEvent.click(
+      within(range).getByRole('button', { name: 'Previous month' })
+    )
+    expect(
+      within(range).getByRole('grid', { name: 'August 2026' })
     ).toBeVisible()
   })
 })

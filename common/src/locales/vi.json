@@ -1382,7 +1382,10 @@
     "selectDate": "Ngày",
     "setDate": "Ngày",
     "startDate": "Bắt đầu",
-    "endDate": "Kết thúc"
+    "endDate": "Kết thúc",
+    "dateHint": "dd/mm/yyyy",
+    "previousMonth": "Tháng trước",
+    "nextMonth": "Tháng sau"
   },
   "calendar": {
     "banner": {

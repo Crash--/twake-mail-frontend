@@ -1382,7 +1382,10 @@
     "selectDate": "Select date",
     "setDate": "Set date",
     "startDate": "Start date",
-    "endDate": "End date"
+    "endDate": "End date",
+    "dateHint": "dd/mm/yyyy",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "calendar": {
     "banner": {

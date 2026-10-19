@@ -100,6 +100,8 @@ describe('RecoveryProvider', () => {
   })
 
   it('sends the custom ranges chosen, in UTC', async () => {
+    // The fields take the days as tmail-flutter writes them, dd/mm/yyyy
+    const asText = (day: string): string => day.split('-').reverse().join('/')
     const server = makeFakeJmapServer({
       capabilities: {
         'com:linagora:params:jmap:messages:vault': {
@@ -143,17 +145,17 @@ describe('RecoveryProvider', () => {
       )
       const range = await screen.findByRole('dialog', { name: 'Custom range' })
       fireEvent.change(within(range).getByLabelText('Start date'), {
-        target: { value: start }
+        target: { value: asText(start) }
       })
       fireEvent.change(within(range).getByLabelText('End date'), {
-        target: { value: end }
+        target: { value: asText(end) }
       })
       await userEvent.click(
         within(range).getByRole('button', { name: 'Set date' })
       )
       expect(
         await within(dialog).findByRole('combobox', { name })
-      ).toHaveTextContent(`From ${start} to ${end}`)
+      ).toHaveTextContent(`From ${asText(start)} to ${asText(end)}`)
     }
     await userEvent.click(within(dialog).getByTestId('recovery-restore-button'))
 

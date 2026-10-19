@@ -1,21 +1,20 @@
-import {
-  useId,
-  useRef,
-  useState,
-  type ReactElement,
-  type SubmitEvent
-} from 'react'
+import { useRef, useState, type ReactElement } from 'react'
 
 import {
-  ModalDialog,
-  ModalDialogButton,
-  ModalField,
-  ModalTextInput
-} from '@/ds/ModalDialog/ModalDialog'
+  addDays,
+  addMonths,
+  formatDayText,
+  parseDayText
+} from '@/ds/DateRangePicker/calendarDays'
+import {
+  DateRangePickerDialog,
+  type DateRangePreset
+} from '@/ds/DateRangePicker/DateRangePickerDialog'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import {
   dayRangeProblems,
+  RANGE_LABELS,
   type DayRange,
   type DayRangeProblem
 } from './recovery'
@@ -41,11 +40,12 @@ export interface RecoveryRangeDialogProps {
 }
 
 /**
- * The custom range of a period of the recovery form (tmail-flutter's date
- * range picker, `DateRangePickerMixin`): a start and an end date, refused
- * when one is missing, when the end comes before the start or when the
- * start is past the horizon of the vault; each problem shows under its
- * date, tied to it, and the focus goes there
+ * The custom range of a period of the recovery form: tmail-flutter's date
+ * range picker (`DateRangePickerMixin`), its quick ranges, two months and
+ * two `dd/mm/yyyy` fields. Refused when a day is missing or not a day, when
+ * the end comes before the start or when the start is past the horizon of
+ * the vault; each problem shows under the fields, tied to its own, and the
+ * focus goes there
  */
 export function RecoveryRangeDialog({
   initial,
@@ -55,30 +55,38 @@ export function RecoveryRangeDialog({
   onExited,
   'data-testid': testId
 }: RecoveryRangeDialogProps): ReactElement {
-  const { t } = useI18n()
-  const titleId = useId()
-  const startId = useId()
-  const startErrorId = useId()
-  const endId = useId()
-  const endErrorId = useId()
+  const { t, lang } = useI18n()
   const startRef = useRef<HTMLInputElement>(null)
   const endRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(true)
-  const [start, setStart] = useState(initial?.start ?? '')
-  const [end, setEnd] = useState(initial?.end ?? '')
+  const [startText, setStartText] = useState(
+    initial === null ? '' : formatDayText(initial.start)
+  )
+  const [endText, setEndText] = useState(
+    initial === null ? '' : formatDayText(initial.end)
+  )
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const problems = dayRangeProblems({ start, end }, firstDay)
+  const range = {
+    start: parseDayText(startText) ?? '',
+    end: parseDayText(endText) ?? ''
+  }
+  const problems = dayRangeProblems(range, firstDay)
   const startProblem = isSubmitted ? problems.start : null
   const endProblem = isSubmitted ? problems.end : null
+
+  // tmail-flutter's quick ranges (`DateRangeType`), up to today
+  const presets: DateRangePreset[] = [
+    { label: t(RANGE_LABELS.last7Days), start: addDays(lastDay, -7) },
+    { label: t(RANGE_LABELS.last30Days), start: addDays(lastDay, -30) },
+    { label: t(RANGE_LABELS.last6Months), start: addMonths(lastDay, -6) },
+    { label: t(RANGE_LABELS.last1Year), start: addMonths(lastDay, -12) }
+  ].map(preset => ({ ...preset, end: lastDay }))
 
   const close = (): void => {
     setOpen(false)
   }
 
-  const handleSubmit = (event: SubmitEvent): void => {
-    event.preventDefault()
-    // Its form is in a portal: the recovery form must not see this submit
-    event.stopPropagation()
+  const submit = (): void => {
     setIsSubmitted(true)
     if (problems.start !== null) {
       startRef.current?.focus()
@@ -89,88 +97,54 @@ export function RecoveryRangeDialog({
       return
     }
     setOpen(false)
-    onConfirm({ start, end })
+    onConfirm(range)
   }
 
   const problemText = (problem: DayRangeProblem | null): string | null =>
     problem === null
       ? null
-      : t(PROBLEM_LABELS[problem], { date: firstDay ?? '' })
+      : t(PROBLEM_LABELS[problem], {
+          date: firstDay === null ? '' : formatDayText(firstDay)
+        })
 
   return (
-    <ModalDialog
+    <DateRangePickerDialog
       open={open}
-      title={t('recovery.ranges.customRange')}
-      titleId={titleId}
-      size="small"
-      closeLabel={t('common.close')}
+      labels={{
+        dialog: t('recovery.ranges.customRange'),
+        start: t('recovery.startDate'),
+        end: t('recovery.endDate'),
+        hint: t('recovery.dateHint'),
+        cancel: t('common.cancel'),
+        confirm: t('recovery.setDate'),
+        previousMonth: t('recovery.previousMonth'),
+        nextMonth: t('recovery.nextMonth'),
+        pickDate: t('recovery.selectDate'),
+        close: t('common.close')
+      }}
+      locale={lang}
+      today={lastDay}
+      min={firstDay}
+      max={lastDay}
+      presets={presets}
+      startText={startText}
+      endText={endText}
+      onStartTextChange={setStartText}
+      onEndTextChange={setEndText}
+      startError={problemText(startProblem)}
+      endError={problemText(endProblem)}
+      startInputRef={startRef}
+      endInputRef={endRef}
+      onSubmit={submit}
       onClose={close}
       onExited={onExited}
-      onSubmit={handleSubmit}
-      actions={
-        <>
-          <ModalDialogButton
-            onClick={close}
-            data-testid="recovery-range-cancel-button"
-          >
-            {t('common.cancel')}
-          </ModalDialogButton>
-          <ModalDialogButton
-            type="submit"
-            isMain
-            data-testid="recovery-range-confirm-button"
-          >
-            {t('recovery.setDate')}
-          </ModalDialogButton>
-        </>
-      }
       data-testid={testId}
-    >
-      <ModalField
-        label={t('recovery.startDate')}
-        htmlFor={startId}
-        spaceAbove={0}
-      >
-        <ModalTextInput
-          id={startId}
-          type="date"
-          value={start}
-          onChange={event => {
-            setStart(event.target.value)
-          }}
-          error={problemText(startProblem)}
-          errorId={startErrorId}
-          inputRef={startRef}
-          inputProps={{
-            min: firstDay ?? undefined,
-            max: lastDay,
-            'aria-invalid': startProblem !== null,
-            'aria-describedby':
-              startProblem === null ? undefined : startErrorId,
-            'data-testid': 'recovery-range-start-input'
-          }}
-        />
-      </ModalField>
-      <ModalField label={t('recovery.endDate')} htmlFor={endId}>
-        <ModalTextInput
-          id={endId}
-          type="date"
-          value={end}
-          onChange={event => {
-            setEnd(event.target.value)
-          }}
-          error={problemText(endProblem)}
-          errorId={endErrorId}
-          inputRef={endRef}
-          inputProps={{
-            min: firstDay ?? undefined,
-            max: lastDay,
-            'aria-invalid': endProblem !== null,
-            'aria-describedby': endProblem === null ? undefined : endErrorId,
-            'data-testid': 'recovery-range-end-input'
-          }}
-        />
-      </ModalField>
-    </ModalDialog>
+      testIds={{
+        start: 'recovery-range-start-input',
+        end: 'recovery-range-end-input',
+        cancel: 'recovery-range-cancel-button',
+        confirm: 'recovery-range-confirm-button'
+      }}
+    />
   )
 }

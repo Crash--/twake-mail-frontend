@@ -1382,7 +1382,10 @@
     "selectDate": "Выбрать дату",
     "setDate": "Установить дату",
     "startDate": "Дата начала",
-    "endDate": "Дата окончания"
+    "endDate": "Дата окончания",
+    "dateHint": "дд/мм/гггг",
+    "previousMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц"
   },
   "calendar": {
     "banner": {

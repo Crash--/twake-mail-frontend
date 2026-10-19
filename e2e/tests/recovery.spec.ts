@@ -116,7 +116,7 @@ test.describe('MBX recovery and quota', () => {
           now.getDate() - back
         )
         const pad = (value: number): string => String(value).padStart(2, '0')
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+        return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`
       }, daysAgo)
     const today = await day(0)
     await start.fill(await day(30))
@@ -131,7 +131,18 @@ test.describe('MBX recovery and quota', () => {
     await expect(end).toHaveAccessibleDescription(
       'The end time cannot be less than the start time.'
     )
-    await end.fill(today)
+    // As tmail-flutter: the quick ranges and two months to pick from
+    await range.getByRole('button', { name: 'Last 7 days' }).click()
+    await expect(start).toHaveValue(await day(7))
+    await expect(end).toHaveValue(today)
+    await expect(range.getByRole('grid')).toHaveCount(2)
+    await expectNoA11yViolations(page)
+    const todayCell = range.locator('[role="gridcell"][aria-current="date"]')
+    await todayCell.click()
+    await expect(start).toHaveValue(today)
+    await expect(end).toHaveValue('')
+    await todayCell.click()
+    await expect(end).toHaveValue(today)
     await setDate.click()
     await expect(range).toBeHidden()
     await expect(deletion).toHaveText(`From ${today} to ${today}`)

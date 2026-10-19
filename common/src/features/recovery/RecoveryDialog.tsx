@@ -12,6 +12,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
 import { Calendar } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   ModalDialog,
@@ -122,8 +123,8 @@ export function RecoveryDialog({
   const periodLabel = (period: RecoveryPeriod): string =>
     period.range === 'customRange'
       ? t('recovery.rangeValue', {
-          startDate: period.start,
-          endDate: period.end
+          startDate: formatDayText(period.start),
+          endDate: formatDayText(period.end)
         })
       : t(RANGE_LABELS[period.range])
 

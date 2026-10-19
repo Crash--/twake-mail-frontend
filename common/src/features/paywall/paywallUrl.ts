@@ -132,7 +132,8 @@ export function buildPaywallUrlFromTemplate({
 /** What may be written into a URL: no `/ ? # @ : %`, no space */
 const SAFE_LOCAL_PART = /^[A-Za-z0-9_+-]+$/
 const SAFE_DOMAIN = /^[A-Za-z0-9.-]+$/
-const ADDRESS_PATTERN = /^([^\s@]+)@([^\s@]+\.[^\s@]+)$/
+// The lookahead, implied by the rest, keeps it linear (ReDoS)
+const ADDRESS_PATTERN = /^([^\s@]+)@(?=[^\s@]+$)([^\s@]+\.[^\s@]+)$/
 
 /**
  * The template filled for the owner of the mailbox

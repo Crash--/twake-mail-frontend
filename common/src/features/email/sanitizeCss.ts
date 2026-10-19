@@ -5,6 +5,8 @@
  * unless the user allowed the remote content of the email.
  */
 
+import { endOfRun } from '@common/utils/linearMatch'
+
 /** tmail-flutter `allowedCssProperties` (html_sanitize_config.dart) */
 const ALLOWED_PROPERTIES: ReadonlySet<string> = new Set([
   'color',
@@ -116,9 +118,87 @@ const FORBIDDEN_VALUE =
 const DATA_IMAGE =
   /^data:image\/(png|jpeg|jpg|gif|bmp);base64,[A-Za-z0-9+/]+={0,2}$/
 
-/** Bounded, after ADR 0069 (ReDoS) */
-const COMMENT = /\/\*[\s\S]{0,20000}?\*\//g
-const URL_FUNCTION = /url\(\s*(['"]?)([^'")]*)\1\s*\)/gi
+/** The longest comment removed, after ADR 0069 (ReDoS) */
+const MAX_COMMENT_LENGTH = 20000
+
+/**
+ * The CSS without its comments of at most `MAX_COMMENT_LENGTH` characters,
+ * as `/\/\*[\s\S]{0,20000}?\*\//g` removes them, in a linear time: the
+ * pattern read up to 20 000 characters from each `/*` of a text without
+ * `*\/` (ReDoS)
+ */
+export function removeComments(css: string): string {
+  let result = ''
+  let copied = 0
+  let start = css.indexOf('/*')
+  // The first `*/` after the current `/*`, reused while it stays after it
+  let end = -1
+  while (start !== -1) {
+    if (end < start + 2) end = css.indexOf('*/', start + 2)
+    if (end === -1) break
+    if (end - start - 2 <= MAX_COMMENT_LENGTH) {
+      result += css.slice(copied, start)
+      copied = end + 2
+      start = css.indexOf('/*', copied)
+    } else {
+      start = css.indexOf('/*', start + 1)
+    }
+  }
+  return result + css.slice(copied)
+}
+
+const URL_OPENING = /url\(/gi
+const SPACES = /\s*/y
+
+/**
+ * The arguments of the `url()` of a value, as the matches of
+ * `/url\(\s*(['"]?)([^'")]*)\1\s*\)/gi` give them (its second group), in a
+ * linear time: from each `url(` that pattern read the value up to its next
+ * quote or parenthesis, and backtracked over the spaces (ReDoS). A quote
+ * opens a quoted argument that only the same quote may close, followed by
+ * `)`; an unquoted argument ends at the first quote or parenthesis, which
+ * must be `)`.
+ */
+export function urlArguments(value: string): string[] {
+  const urls: string[] = []
+  // The first quote or parenthesis at or after `stopFrom`, kept while the
+  // searches move forward
+  let stopFrom = 0
+  let stop = -1
+  const nextStop = (from: number): number => {
+    if (stop === -1 || from < stopFrom || stop < from) {
+      stopFrom = from
+      stop = from
+      while (stop < value.length && !`'")`.includes(value.charAt(stop))) {
+        stop += 1
+      }
+    }
+    return stop
+  }
+  URL_OPENING.lastIndex = 0
+  for (
+    let opening = URL_OPENING.exec(value);
+    opening !== null;
+    opening = URL_OPENING.exec(value)
+  ) {
+    const argumentStart = endOfRun(value, SPACES, URL_OPENING.lastIndex)
+    const quote = value.charAt(argumentStart)
+    if (quote === "'" || quote === '"') {
+      const end = nextStop(argumentStart + 1)
+      if (value.charAt(end) !== quote) continue
+      const close = endOfRun(value, SPACES, end + 1)
+      if (value.charAt(close) !== ')') continue
+      urls.push(value.slice(argumentStart + 1, end))
+      URL_OPENING.lastIndex = close + 1
+    } else {
+      const end = nextStop(argumentStart)
+      if (value.charAt(end) !== ')') continue
+      urls.push(value.slice(argumentStart, end))
+      URL_OPENING.lastIndex = end + 1
+    }
+  }
+  return urls
+}
 
 export interface CssOptions {
   /** Keeps `http(s)` URLs (images, fonts) */
@@ -150,15 +230,15 @@ function judgeUrl(url: string): UrlVerdict {
 /** The verdict of the worst `url()` of a value */
 function judgeUrls(value: string): UrlVerdict {
   let verdict: UrlVerdict = 'safe'
-  for (const match of value.matchAll(URL_FUNCTION)) {
-    const urlVerdict = judgeUrl(match[2] ?? '')
+  const urls = urlArguments(value)
+  for (const url of urls) {
+    const urlVerdict = judgeUrl(url)
     if (urlVerdict === 'unsafe') return 'unsafe'
     if (urlVerdict === 'remote') verdict = 'remote'
   }
   // A url( the pattern could not read, e.g. unbalanced quotes
   const urlCount = (value.match(/url\(/gi) ?? []).length
-  const readCount = Array.from(value.matchAll(URL_FUNCTION)).length
-  return urlCount === readCount ? verdict : 'unsafe'
+  return urlCount === urls.length ? verdict : 'unsafe'
 }
 
 /** Bounded and anchored, after ADR 0069 (ReDoS) */
@@ -172,7 +252,10 @@ const LINE_HEIGHT_NUMBER =
  * `0` is the spacer trick around images, `rem` cannot be judged: both stay
  */
 function isDegenerateLineHeight(value: string): boolean {
-  const match = LINE_HEIGHT_NUMBER.exec(value.replace(/\s*!\s*important$/i, ''))
+  const match = LINE_HEIGHT_NUMBER.exec(
+    // (?<!…): a run is tried from its first character only (ReDoS)
+    value.replace(/(?<!\s)\s*!\s*important$/i, '')
+  )
   const number = Number(match?.[1])
   if (!match || !(number > 0)) return false
   switch (match[2]?.toLowerCase()) {
@@ -225,10 +308,7 @@ export function sanitizeDeclarations(
 ): SanitizedCss {
   const kept: string[] = []
   let blockedRemoteContent = 0
-  for (const declaration of splitTopLevel(
-    declarations.replace(COMMENT, ''),
-    ';'
-  )) {
+  for (const declaration of splitTopLevel(removeComments(declarations), ';')) {
     const colon = declaration.indexOf(':')
     if (colon === -1) continue
     const property = declaration.slice(0, colon).trim().toLowerCase()
@@ -236,11 +316,14 @@ export function sanitizeDeclarations(
     if (!ALLOWED_PROPERTIES.has(property) || value === '') continue
     if (property === 'line-height' && isDegenerateLineHeight(value)) continue
     if (FORBIDDEN_VALUE.test(value) || value.startsWith('//')) continue
-    // A comment left open past the bounded COMMENT pattern
+    // A comment left open, or longer than MAX_COMMENT_LENGTH
     if (/[<>{}]|\/\*|\*\//.test(value)) continue
     if (
       OVERFLOW_PROPERTIES.has(property) &&
-      !OVERFLOW_VALUES.has(value.replace(/\s*!important$/i, '').toLowerCase())
+      !OVERFLOW_VALUES.has(
+        // (?<!…): a run is tried from its first character only (ReDoS)
+        value.replace(/(?<!\s)\s*!important$/i, '').toLowerCase()
+      )
     ) {
       continue
     }
@@ -372,7 +455,7 @@ function startAtScopeRoot(selector: string): string {
 /** A font loaded from `https`, once the user allowed remote content */
 function sanitizeFontFace(body: string): string {
   const kept: string[] = []
-  for (const declaration of splitTopLevel(body.replace(COMMENT, ''), ';')) {
+  for (const declaration of splitTopLevel(removeComments(body), ';')) {
     const colon = declaration.indexOf(':')
     if (colon === -1) continue
     const property = declaration.slice(0, colon).trim().toLowerCase()
@@ -384,9 +467,7 @@ function sanitizeFontFace(body: string): string {
     }
     if (FORBIDDEN_VALUE.test(value) || /[<>{}]/.test(value)) continue
     if (property === 'src') {
-      const urls = Array.from(value.matchAll(URL_FUNCTION), match =>
-        (match[2] ?? '').trim()
-      )
+      const urls = urlArguments(value).map(url => url.trim())
       if (urls.length === 0 || !urls.every(url => /^https:\/\//i.test(url))) {
         continue
       }
@@ -411,7 +492,7 @@ export function sanitizeStyleSheet(
   css: string,
   options: CssOptions
 ): SanitizedCss {
-  const result = sanitizeRules(css.replace(COMMENT, ''), options, 0)
+  const result = sanitizeRules(removeComments(css), options, 0)
   // @import is never followed, but it is a remote stylesheet
   const blockedImports = options.allowRemoteContent
     ? 0

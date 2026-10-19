@@ -144,7 +144,8 @@ export function splitWords(value: string): string[] {
     .filter(word => word !== '')
 }
 
-const EMAIL_ADDRESS = /^[^\s@,<>]+@[^\s@,<>]+\.[^\s@,<>]+$/
+// The lookahead, implied by the rest, keeps it linear (ReDoS)
+const EMAIL_ADDRESS = /^[^\s@,<>]+@(?=[^\s@,<>]+$)[^\s@,<>]+\.[^\s@,<>]+$/
 
 /**
  * The filter for a text typed in the search bar: an email address searches

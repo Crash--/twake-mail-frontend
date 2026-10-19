@@ -12,7 +12,8 @@ export function emlFileName(
   const name = (subject ?? '')
     // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f/\\:*?"<>|]+/g, '_')
-    .replace(/^[\s.]+|[\s.]+$/g, '')
+    // (?<!…): a run is tried from its first character only (ReDoS)
+    .replace(/^[\s.]+|(?<![\s.])[\s.]+$/g, '')
     .slice(0, MAX_NAME_LENGTH)
     .trim()
   return `${name === '' ? blobId : name}.eml`

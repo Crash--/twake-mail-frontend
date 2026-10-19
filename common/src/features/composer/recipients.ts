@@ -10,13 +10,112 @@ export interface Recipient {
   email: string
 }
 
+/** A character of an unquoted name: no separator, quote, bracket nor `@` */
+const NAME_CHAR = /[^,;<>"'@\n\r\t]/
+const SPACE = /\s/
+const BARE_CHAR = /[^\s,;<>]/
+
+type Token =
+  | { name: string; email: string; bare: false }
+  | { name: null; email: string; bare: true }
+
 /**
- * A named address (`"Name" <address>`, `'Name' <address>`, `Name
- * <address>`: an unquoted name has no `@`, so that `a@b.c Name <d@e.f>`
- * reads as two recipients), or a bare token.
+ * Where the run of `char` starting at a position ends, remembered: a
+ * position inside the last run read is answered without reading it again
  */
-const TOKEN =
-  /(?:"([^"]*)"\s*|'([^']*)'\s*|([^,;<>"'@\n\r\t]*?)\s*)<([^<>]*)>|([^\s,;<>]+)/g
+function runEnds(text: string, char: RegExp): (from: number) => number {
+  let runStart = 0
+  let runEnd = -1
+  return from => {
+    if (from < runStart || from > runEnd) {
+      runStart = from
+      runEnd = from
+      while (runEnd < text.length && char.test(text.charAt(runEnd))) {
+        runEnd += 1
+      }
+    }
+    return runEnd
+  }
+}
+
+/**
+ * The tokens of a text, as the matches of
+ * `/(?:"([^"]*)"\s*|'([^']*)'\s*|([^,;<>"'@\n\r\t]*?)\s*)<([^<>]*)>|([^\s,;<>]+)/g`:
+ * a named address (`"Name" <address>`, `'Name' <address>`, `Name
+ * <address>`: an unquoted name has no `@`, so that `a@b.c Name <d@e.f>`
+ * reads as two recipients), or a bare token. That pattern read the run of
+ * name characters and the spaces after it again from each position, a time
+ * cubic in the length of a failing text (ReDoS): here each run is read once.
+ */
+function tokens(text: string): Token[] {
+  const found: Token[] = []
+  const nameEnd = runEnds(text, NAME_CHAR)
+  const spacesAfterName = runEnds(text, SPACE)
+  const spacesAfterQuote = runEnds(text, SPACE)
+  // The last non-space of the name run last read, before its start if none
+  let nameRun = { end: -1, lastNonSpace: -1 }
+  // The first `<` or `>` after the last `<` read
+  let bracket = { start: -1, end: -1 }
+
+  /** The address in `<…>` at `start`, and its end, or null */
+  const bracketedAt = (
+    start: number
+  ): { email: string; end: number } | null => {
+    if (text.charAt(start) !== '<') return null
+    if (bracket.start !== start) {
+      let end = start + 1
+      while (end < text.length && !'<>'.includes(text.charAt(end))) end += 1
+      bracket = { start, end }
+    }
+    return text.charAt(bracket.end) === '>'
+      ? { email: text.slice(start + 1, bracket.end), end: bracket.end + 1 }
+      : null
+  }
+
+  let position = 0
+  while (position < text.length) {
+    const char = text.charAt(position)
+    let named: { name: string; email: string; end: number } | null = null
+    if (char === '"' || char === "'") {
+      const close = text.indexOf(char, position + 1)
+      const address =
+        close === -1 ? null : bracketedAt(spacesAfterQuote(close + 1))
+      if (close !== -1 && address !== null) {
+        named = { name: text.slice(position + 1, close), ...address }
+      }
+    } else {
+      const end = nameEnd(position)
+      if (end !== nameRun.end) {
+        let lastNonSpace = end - 1
+        while (
+          lastNonSpace >= position &&
+          SPACE.test(text.charAt(lastNonSpace))
+        ) {
+          lastNonSpace -= 1
+        }
+        nameRun = { end, lastNonSpace }
+      }
+      // Without the spaces before `<`, which the lazy name left to `\s*`
+      const nameStop = Math.max(position, nameRun.lastNonSpace + 1)
+      const address = bracketedAt(spacesAfterName(end))
+      if (address !== null) {
+        named = { name: text.slice(position, nameStop), ...address }
+      }
+    }
+    if (named !== null) {
+      found.push({ name: named.name, email: named.email, bare: false })
+      position = named.end
+    } else if (BARE_CHAR.test(char)) {
+      let end = position + 1
+      while (end < text.length && BARE_CHAR.test(text.charAt(end))) end += 1
+      found.push({ name: null, email: text.slice(position, end), bare: true })
+      position = end
+    } else {
+      position += 1
+    }
+  }
+  return found
+}
 
 /** Characters an atom of the local part or a domain label may not hold */
 const FORBIDDEN = '\\s@<>()[\\]\\\\,;:".'
@@ -51,19 +150,10 @@ function cleanEmail(email: string): string {
 /** The recipients of a typed or pasted text, in order, invalid ones included */
 export function parseRecipients(text: string): Recipient[] {
   const recipients: Recipient[] = []
-  for (const match of text.matchAll(TOKEN)) {
-    const [, doubleQuoted, singleQuoted, unquoted, bracketed, bare] = match
-    if (bracketed !== undefined) {
-      const email = cleanEmail(bracketed)
-      if (email === '') continue
-      recipients.push({
-        name: cleanName(doubleQuoted ?? singleQuoted ?? unquoted),
-        email
-      })
-    } else if (bare !== undefined) {
-      const email = cleanEmail(bare)
-      if (email !== '') recipients.push({ name: null, email })
-    }
+  for (const token of tokens(text)) {
+    const email = cleanEmail(token.email)
+    if (email === '') continue
+    recipients.push({ name: token.bare ? null : cleanName(token.name), email })
   }
   return recipients
 }

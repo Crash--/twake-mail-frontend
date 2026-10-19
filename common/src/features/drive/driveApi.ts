@@ -31,7 +31,8 @@ export function resolveDriveUrl(
     ...(workplaceFqdnFallback ? { workplaceFqdnFallback } : {})
   })
   if (/[{}]/.test(resolved)) return null
-  return safeUrl(resolved)?.replace(/\/+$/, '') ?? null
+  // (?<!…): a run is tried from its first character only (ReDoS)
+  return safeUrl(resolved)?.replace(/(?<!\/)\/+$/, '') ?? null
 }
 
 export type DriveError = 'token' | 'intent' | 'network'

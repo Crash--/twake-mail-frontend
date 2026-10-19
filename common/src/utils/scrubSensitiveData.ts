@@ -6,6 +6,13 @@
  * attachment names, search queries).
  */
 
+import {
+  endOfRun,
+  indexOfPattern,
+  type MatchStarts,
+  replaceAllFrom
+} from '@common/utils/linearMatch'
+
 const FILTERED = '[Filtered]'
 const EMAIL_MASK = '[email]'
 const ID_MASK = ':id'
@@ -30,11 +37,40 @@ const SENSITIVE_PARAM_REGEX = new RegExp(
   'gi'
 )
 const AUTHORIZATION_VALUE_REGEX = /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/g
-const EMAIL_REGEX = /[A-Z0-9._%+-]+(?:@|%40)[A-Z0-9.-]+\.[A-Z]{2,}/gi
+
+/*
+ * The three patterns below are tried only where a match can start, and
+ * after a failure the search skips the run of characters their first
+ * quantifier read: a match starting later in that run would make one start
+ * at the failed position. This keeps them linear (ReDoS,
+ * docs/security/redos-audit.md); the matches are the ones of the patterns
+ * made global.
+ */
+const EMAIL_REGEX = /[A-Z0-9._%+-]+(?:@|%40)[A-Z0-9.-]+\.[A-Z]{2,}/iy
+const EMAIL_STARTS = {
+  char: /[A-Z0-9._%+-]/gi,
+  run: /[A-Z0-9._%+-]*/iy
+}
 // An absolute URL in a text, followed by its query string or fragment
-const URL_WITH_QUERY_REGEX = /(\bhttps?:\/\/[^\s?#"'<>]+)[?#][^\s"'<>]*/gi
+const URL_WITH_QUERY_REGEX = /(\bhttps?:\/\/[^\s?#"'<>]+)[?#][^\s"'<>]*/iy
+const URL_WITH_QUERY_STARTS = {
+  char: /\bhttps?:\/\//gi,
+  run: /[^\s?#"'<>]*/y
+}
 // A JWT: three base64url parts, the first starting like a JSON object
-const JWT_REGEX = /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]*/g
+const JWT_REGEX = /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]*/y
+const JWT_STARTS = { char: /\beyJ/g, run: /[A-Za-z0-9_-]*/y }
+
+/** Where `pattern` may start in `text`, past the runs it failed on */
+function startsIn(
+  text: string,
+  { char, run }: { char: RegExp; run: RegExp }
+): MatchStarts {
+  return {
+    next: from => indexOfPattern(text, char, from),
+    afterFailure: start => endOfRun(text, run, start)
+  }
+}
 
 /**
  * The keys that hold what the mails are made of, a credential or a JMAP
@@ -97,12 +133,27 @@ const MAX_DEPTH = 10
  * the query string of the URLs it holds.
  */
 export function scrubText(text: string): string {
-  return text
-    .replace(URL_WITH_QUERY_REGEX, '$1')
+  const withoutQueries = replaceAllFrom(
+    text,
+    URL_WITH_QUERY_REGEX,
+    startsIn(text, URL_WITH_QUERY_STARTS),
+    ([, url = '']) => url
+  )
+  const withoutCredentials = withoutQueries
     .replace(SENSITIVE_PARAM_REGEX, `$1$2=${FILTERED}`)
     .replace(AUTHORIZATION_VALUE_REGEX, `$1 ${FILTERED}`)
-    .replace(JWT_REGEX, FILTERED)
-    .replace(EMAIL_REGEX, EMAIL_MASK)
+  const withoutTokens = replaceAllFrom(
+    withoutCredentials,
+    JWT_REGEX,
+    startsIn(withoutCredentials, JWT_STARTS),
+    () => FILTERED
+  )
+  return replaceAllFrom(
+    withoutTokens,
+    EMAIL_REGEX,
+    startsIn(withoutTokens, EMAIL_STARTS),
+    () => EMAIL_MASK
+  )
 }
 
 /**
@@ -112,9 +163,17 @@ export function scrubText(text: string): string {
  * blob and file name).
  */
 function scrubPath(path: string): string {
-  return path
-    .replace(/\/(download|upload)\/.*$/i, `/$1/${FILTERED}`)
-    .replace(/\/(mailbox|label|email)\/[^/]+/gi, `/$1/${ID_MASK}`)
+  // `.*$` matches only on the last line: searching it there alone keeps it
+  // linear (a failure at each `/download/` of the previous lines read them
+  // to their line break, ReDoS)
+  const lastLine =
+    Math.max(
+      ...['\n', '\r', '\u2028', '\u2029'].map(end => path.lastIndexOf(end))
+    ) + 1
+  return (
+    path.slice(0, lastLine) +
+    path.slice(lastLine).replace(/\/(download|upload)\/.*$/i, `/$1/${FILTERED}`)
+  ).replace(/\/(mailbox|label|email)\/[^/]+/gi, `/$1/${ID_MASK}`)
 }
 
 /**

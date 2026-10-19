@@ -11,8 +11,9 @@ const DEFAULT_HORIZON_DAYS = 15
  */
 export function horizonDays(horizon: string | null | undefined): number {
   if (!horizon) return DEFAULT_HORIZON_DAYS
-  const days = Number(/(\d+)\s*day/i.exec(horizon)?.[1] ?? 0)
-  const hours = Number(/(\d+)\s*hour/i.exec(horizon)?.[1] ?? 0)
+  // (?<!…): a run is tried from its first character only (ReDoS)
+  const days = Number(/(?<!\d)(\d+)\s*day/i.exec(horizon)?.[1] ?? 0)
+  const hours = Number(/(?<!\d)(\d+)\s*hour/i.exec(horizon)?.[1] ?? 0)
   const total = days + (hours > 0 ? 1 : 0)
   return total > 0 ? total : DEFAULT_HORIZON_DAYS
 }

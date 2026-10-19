@@ -67,13 +67,14 @@ function round(pixels: number): number {
 }
 
 function withoutImportant(value: string): string {
-  return value.replace(/\s*!important$/i, '').trim()
+  // (?<!…): a run is tried from its first character only (ReDoS)
+  return value.replace(/(?<!\s)\s*!important$/i, '').trim()
 }
 
 /** A length in CSS pixels, null for a relative or unknown one */
 function toPixels(value: string | undefined): number | null {
   if (value === undefined) return null
-  const match = /^(\d*\.?\d+)([a-z]*)$/i.exec(withoutImportant(value))
+  const match = /^(\d+(?:\.\d+)?|\.\d+)([a-z]*)$/i.exec(withoutImportant(value))
   if (!match) return null
   const [, amount = '', unit = ''] = match
   const perUnit = PIXELS_PER_UNIT[unit.toLowerCase() || 'px']

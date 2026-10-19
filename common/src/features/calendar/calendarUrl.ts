@@ -25,7 +25,8 @@ export function calendarEventUrl(
   if (base === null) return null
   try {
     const url = new URL(
-      `${base.replace(/\/+$/, '')}/events/${encodeURIComponent(uid.trim())}`
+      // (?<!…): a run is tried from its first character only (ReDoS)
+      `${base.replace(/(?<!\/)\/+$/, '')}/events/${encodeURIComponent(uid.trim())}`
     )
     return url.protocol === 'https:' || url.protocol === 'http:'
       ? url.href

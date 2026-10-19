@@ -144,12 +144,86 @@ export function fromEmailHtml(
   return root.innerHTML
 }
 
-/** Editor HTML with its image URLs swapped for their Content-IDs */
+const IMAGE_OPENING = '<img'
+const BLOB_SOURCE = 'src="blob:'
+const REFERENCE = 'data-reference="'
+
+/** `html.indexOf(search, from)`, the length of `html` when absent */
+function indexOrEnd(html: string, search: string, from: number): number {
+  const index = html.indexOf(search, from)
+  return index === -1 ? html.length : index
+}
+
+/**
+ * The replacement of the match, at `start`, of
+ * `/<img([^>]*?)src="blob:[^"]*"([^>]*?)data-reference="([^"]+)"/`, and its
+ * end, or null. Each `src="blob:` before the end of the tag is tried in
+ * order, then each `data-reference="` before the next `>`: once those of a
+ * stretch failed, a later source ending in the same stretch is not tried
+ * again (the pattern did, which made it quadratic, ReDoS).
+ */
+function blobImageAt(
+  html: string,
+  start: number
+): { replacement: string; end: number } | null {
+  const tagEnd = indexOrEnd(html, '>', start + IMAGE_OPENING.length)
+  let failedUntil = -1
+  for (
+    let source = html.indexOf(BLOB_SOURCE, start + IMAGE_OPENING.length);
+    source !== -1 && source < tagEnd;
+    source = html.indexOf(BLOB_SOURCE, source + 1)
+  ) {
+    const urlEnd = html.indexOf('"', source + BLOB_SOURCE.length)
+    // No later source has a closing quote either
+    if (urlEnd === -1) return null
+    if (urlEnd < failedUntil) continue
+    const stretchEnd = indexOrEnd(html, '>', urlEnd + 1)
+    for (
+      let reference = html.indexOf(REFERENCE, urlEnd + 1);
+      reference !== -1 && reference < stretchEnd;
+      reference = html.indexOf(REFERENCE, reference + 1)
+    ) {
+      const valueStart = reference + REFERENCE.length
+      const valueEnd = html.indexOf('"', valueStart)
+      if (valueEnd === -1) return null
+      if (valueEnd > valueStart) {
+        const id = html.slice(valueStart, valueEnd)
+        const before = html.slice(start + IMAGE_OPENING.length, source)
+        const between = html.slice(urlEnd + 1, reference)
+        return {
+          replacement: `<img${before}src="cid:${id}"${between}data-reference="${id}"`,
+          end: valueEnd + 1
+        }
+      }
+    }
+    failedUntil = stretchEnd
+  }
+  return null
+}
+
+/**
+ * Editor HTML with its image URLs swapped for their Content-IDs: what
+ * `html.replace(/<img([^>]*?)src="blob:[^"]*"([^>]*?)data-reference="([^"]+)"/g,
+ * '<img$1src="cid:$3"$2data-reference="$3"')` gives, in a linear time. When
+ * no match starts at an `<img`, none starts at the next ones before its `>`.
+ */
 export function toStorageHtml(editorHtml: string): string {
-  return editorHtml.replace(
-    /<img([^>]*?)src="blob:[^"]*"([^>]*?)data-reference="([^"]+)"/g,
-    '<img$1src="cid:$3"$2data-reference="$3"'
-  )
+  let result = ''
+  let copied = 0
+  let start = editorHtml.indexOf(IMAGE_OPENING)
+  while (start !== -1) {
+    const image = blobImageAt(editorHtml, start)
+    if (image === null) {
+      const tagEnd = editorHtml.indexOf('>', start + IMAGE_OPENING.length)
+      if (tagEnd === -1) break
+      start = editorHtml.indexOf(IMAGE_OPENING, tagEnd)
+    } else {
+      result += editorHtml.slice(copied, start) + image.replacement
+      copied = image.end
+      start = editorHtml.indexOf(IMAGE_OPENING, image.end)
+    }
+  }
+  return result + editorHtml.slice(copied)
 }
 
 /** Keeps the remote sources of images without loading them; how many */
@@ -306,7 +380,8 @@ const SIGNATURE_DELIMITER = /^((?:> ?)*--)[ \t]+$/
 function trimTrailingSpaces(line: string): string {
   return SIGNATURE_DELIMITER.test(line)
     ? line.replace(SIGNATURE_DELIMITER, '$1 ')
-    : line.replace(/[ \t]+$/g, '')
+    : // (?<!…): a run is tried from its first character only (ReDoS)
+      line.replace(/(?<![ \t])[ \t]+$/g, '')
 }
 
 function trimEmptyLines(lines: string[]): string[] {

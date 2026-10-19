@@ -330,6 +330,15 @@ const VIDEO_CONFERENCE_SECTION =
 const BRACKETED_URL = /<((?:https?|mailto):[^\s<>]*)>/gi
 
 /**
+ * Whether a text holds a tag, as `/<[a-z][^>]*>/i` tells, in a linear time
+ * (ReDoS): the first `<letter` is followed by a `>` when any is
+ */
+function hasMarkup(text: string): boolean {
+  const start = text.search(/<[a-z]/i)
+  return start !== -1 && text.includes('>', start + 2)
+}
+
+/**
  * The description as text: without the video conference section Twake
  * Calendar and Google add between `-_-_-_-…` markers, or the `-::~:~…::-`
  * ones of Google and older Twake Calendar versions, nor any HTML markup
@@ -342,7 +351,7 @@ export function descriptionText(
     VIDEO_CONFERENCE_SECTION,
     ''
   )
-  const text = /<[a-z][^>]*>/i.test(withoutSection.replace(BRACKETED_URL, ''))
+  const text = hasMarkup(withoutSection.replace(BRACKETED_URL, ''))
     ? new DOMParser().parseFromString(
         withoutSection
           .replace(BRACKETED_URL, '&lt;$1&gt;')
@@ -351,11 +360,14 @@ export function descriptionText(
         'text/html'
       ).body.textContent
     : withoutSection
-  return text
-    .replace(/\r\n?/g, '\n')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
+  return (
+    text
+      .replace(/\r\n?/g, '\n')
+      // (?<!…): a run is tried from its first character only (ReDoS)
+      .replace(/(?<![ \t])[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  )
 }
 
 /**

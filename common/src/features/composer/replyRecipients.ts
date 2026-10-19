@@ -93,7 +93,9 @@ export function listPostRecipients(
 ): ReplyRecipients {
   const result: ReplyRecipients = { to: [], cc: [], bcc: [] }
   for (const url of listPost ?? []) {
-    const match = /^\s*<?mailto:([^?>]*)(?:\?([^>]*))?>?\s*$/i.exec(url)
+    // Trimmed first rather than `\s*$` after `[^>]*`, which made a failing
+    // header quadratic (ReDoS); the addresses are trimmed anyway
+    const match = /^<?mailto:([^?>]*)(?:\?([^>]*))?>?$/i.exec(url.trim())
     if (!match) continue
     result.to.push(...addressesOf(match[1] ?? ''))
     const query = new URLSearchParams(match[2] ?? '')

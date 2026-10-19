@@ -29,7 +29,8 @@ const ALLOWED_PROTOCOLS: ReadonlySet<string> = new Set([
 ])
 
 /** Closing quotes linkifyjs keeps at the end of a URL (`« https://… »`) */
-const TRAILING_QUOTES = /[»”’›]+$/u
+// (?<!…): a run is tried from its first character only (ReDoS)
+const TRAILING_QUOTES = /(?<![»”’›])[»”’›]+$/u
 
 export interface AutolinkMatch {
   /** What the link shows, as written in the text */
@@ -37,6 +38,20 @@ export interface AutolinkMatch {
   href: string
   start: number
   end: number
+}
+
+/**
+ * The longest run of non-space characters read for links (old browsers
+ * capped URLs at 2 083 characters). linkifyjs takes a time quadratic in the
+ * length of a run it finds no link in (`a-a-a-…`: about 10 s for 50 000
+ * characters, docs/security/redos-audit.md): a longer run stays text.
+ */
+const MAX_LINK_RUN = 2048
+const LONG_RUN = new RegExp(`(?<!\\S)\\S{${MAX_LINK_RUN + 1},}`, 'g')
+
+/** The text with its too long runs blanked, at the same positions */
+function linkCandidates(text: string): string {
+  return text.replace(LONG_RUN, run => ' '.repeat(run.length))
 }
 
 /** The URL of a candidate, null when it must stay text */
@@ -62,7 +77,7 @@ function hrefOf(type: string, value: string): string | null {
 /** The links of a text: http(s) URLs, `www.` hosts and email addresses */
 export function findLinks(text: string): AutolinkMatch[] {
   const matches: AutolinkMatch[] = []
-  for (const found of find(text)) {
+  for (const found of find(linkCandidates(text))) {
     // HTML written in a text part (Jenkins): `https://…/566/">james/…`
     const [beforeMarkup = ''] = found.value.split(/["<>]/)
     const value = beforeMarkup.replace(TRAILING_QUOTES, '')

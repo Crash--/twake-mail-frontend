@@ -180,7 +180,8 @@ function toBoolean(value: unknown): boolean {
 }
 
 function removeTrailingSlashes(value: string): string {
-  return value.replace(/\/+$/, '')
+  // (?<!…): a run is tried from its first character only (ReDoS)
+  return value.replace(/(?<!\/)\/+$/, '')
 }
 
 /**

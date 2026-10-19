@@ -600,10 +600,10 @@ const SELECT_MENU_PAPER_SX = {
 
 /** Its 44 px entries in Regular 15 black, a blue check after the one chosen */
 const SELECT_ITEM_SX = {
-  // The theme gives a menu item 48 px at least, whatever its padding
+  // The menu look of the theme gives a menu item 48 px at least, again
+  // from 600 px up
   minHeight: 44,
-  height: 44,
-  py: 0,
+  '@media (min-width: 600px)': { minHeight: 44 },
   px: '12px',
   gap: '8px',
   borderRadius: '8px',

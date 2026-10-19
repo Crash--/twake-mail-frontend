@@ -624,8 +624,6 @@
       "notWords": "Hat nicht",
       "date": "Datum",
       "sort": "Sortieren nach",
-      "startDate": "Anfangsdatum",
-      "endDate": "Enddatum",
       "folder": "Ordner"
     },
     "scope": {
@@ -641,9 +639,6 @@
     },
     "clearFilter": "Filter löschen",
     "advanced": "Erweiterte Suche",
-    "errors": {
-      "endBeforeStart": "Enddatum muss größer sein als das Anfangsdatum"
-    },
     "sort": {
       "mostRecent": "Neueste",
       "oldest": "Älteste",
@@ -1376,20 +1371,31 @@
     "addressesHelp": "Mehrere Adressen durch Kommas trennen",
     "errors": {
       "invalidAddress": "Diese E-Mail Adresse ist ungültig",
-      "start": "Die Wiederherstellung konnte nicht gestartet werden",
-      "startMissing": "Das Anfangsdatum darf nicht Null sein.",
-      "endMissing": "Das Enddatum darf nicht Null sein.",
-      "reversed": "Die Endzeit darf nicht kleiner als die Anfangszeit sein.",
-      "beforeHorizon": "Das Startdatum darf nicht vor dem %{date} liegen."
+      "start": "Die Wiederherstellung konnte nicht gestartet werden"
     },
-    "rangeValue": "Von %{startDate} bis %{endDate}",
+    "rangeValue": "Von %{startDate} bis %{endDate}"
+  },
+  "dateRange": {
+    "title": "Benutzerdefinierter Bereich",
     "selectDate": "Datum auswählen",
     "setDate": "Datum festlegen",
     "startDate": "Anfangsdatum",
     "endDate": "Enddatum",
     "dateHint": "TT/MM/JJJJ",
     "previousMonth": "Vorheriger Monat",
-    "nextMonth": "Nächster Monat"
+    "nextMonth": "Nächster Monat",
+    "ranges": {
+      "last7Days": "Letzte 7 Tage",
+      "last30Days": "Letzte 30 Tage",
+      "last6Months": "Letzte 6 Monate",
+      "last1Year": "Letztes 1 Jahr"
+    },
+    "errors": {
+      "startMissing": "Das Anfangsdatum darf nicht Null sein.",
+      "endMissing": "Das Enddatum darf nicht Null sein.",
+      "reversed": "Die Endzeit darf nicht kleiner als die Anfangszeit sein.",
+      "beforeHorizon": "Das Startdatum darf nicht vor dem %{date} liegen."
+    }
   },
   "calendar": {
     "banner": {

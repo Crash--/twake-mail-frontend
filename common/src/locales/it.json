@@ -624,8 +624,6 @@
       "notWords": "Non include",
       "date": "Data",
       "sort": "Ordina per",
-      "startDate": "Data di inizio",
-      "endDate": "Data di fine",
       "folder": "Cartella"
     },
     "scope": {
@@ -641,9 +639,6 @@
     },
     "clearFilter": "Pulire i filtri",
     "advanced": "Ricerca avanzata",
-    "errors": {
-      "endBeforeStart": "La data di fine deve essere maggiore della data di inizio"
-    },
     "sort": {
       "mostRecent": "Più recenti",
       "oldest": "Meno recenti",
@@ -1376,20 +1371,31 @@
     "addressesHelp": "Separa più indirizzi con virgole",
     "errors": {
       "invalidAddress": "Questo indirizzo email non è valido",
-      "start": "Impossibile avviare il recupero",
-      "startMissing": "La data di inizio non può essere nulla.",
-      "endMissing": "La data di fine non può essere nulla.",
-      "reversed": "Il tempo di fine non può essere inferiore al tempo di inizio.",
-      "beforeHorizon": "La data di inizio non può essere precedente al %{date}."
+      "start": "Impossibile avviare il recupero"
     },
-    "rangeValue": "Da %{startDate} a %{endDate}",
+    "rangeValue": "Da %{startDate} a %{endDate}"
+  },
+  "dateRange": {
+    "title": "Gamma personalizzata",
     "selectDate": "Seleziona la data",
     "setDate": "Imposta la data",
     "startDate": "Data di inizio",
     "endDate": "Data di fine",
     "dateHint": "gg/mm/aaaa",
     "previousMonth": "Mese precedente",
-    "nextMonth": "Mese successivo"
+    "nextMonth": "Mese successivo",
+    "ranges": {
+      "last7Days": "Ultimi 7 giorni",
+      "last30Days": "Ultimi 30 giorni",
+      "last6Months": "Ultimi 6 mesi",
+      "last1Year": "Ultimo anno"
+    },
+    "errors": {
+      "startMissing": "La data di inizio non può essere nulla.",
+      "endMissing": "La data di fine non può essere nulla.",
+      "reversed": "Il tempo di fine non può essere inferiore al tempo di inizio.",
+      "beforeHorizon": "La data di inizio non può essere precedente al %{date}."
+    }
   },
   "calendar": {
     "banner": {

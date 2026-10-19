@@ -624,8 +624,6 @@
       "notWords": "No contiene",
       "date": "Fecha",
       "sort": "Ordenar por",
-      "startDate": "Fecha de inicio",
-      "endDate": "Fecha de fin",
       "folder": "Carpeta"
     },
     "scope": {
@@ -641,9 +639,6 @@
     },
     "clearFilter": "Quitar el filtro",
     "advanced": "Búsqueda avanzada",
-    "errors": {
-      "endBeforeStart": "La fecha de fin debe ser posterior a la fecha de inicio"
-    },
     "sort": {
       "mostRecent": "Más recientes",
       "oldest": "Más antiguos",
@@ -1376,20 +1371,31 @@
     "addressesHelp": "Separe varias direcciones con comas",
     "errors": {
       "invalidAddress": "Esta dirección de correo no es válida",
-      "start": "No se pudo iniciar la recuperación",
-      "startMissing": "La fecha de inicio no puede estar vacía.",
-      "endMissing": "La fecha de fin no puede estar vacía.",
-      "reversed": "La hora de fin no puede ser anterior a la hora de inicio.",
-      "beforeHorizon": "La fecha de inicio no puede ser anterior al %{date}."
+      "start": "No se pudo iniciar la recuperación"
     },
-    "rangeValue": "Del %{startDate} al %{endDate}",
+    "rangeValue": "Del %{startDate} al %{endDate}"
+  },
+  "dateRange": {
+    "title": "Intervalo personalizado",
     "selectDate": "Seleccionar una fecha",
     "setDate": "Establecer la fecha",
     "startDate": "Fecha de inicio",
     "endDate": "Fecha de fin",
     "dateHint": "dd/mm/aaaa",
     "previousMonth": "Mes anterior",
-    "nextMonth": "Mes siguiente"
+    "nextMonth": "Mes siguiente",
+    "ranges": {
+      "last7Days": "Últimos 7 días",
+      "last30Days": "Últimos 30 días",
+      "last6Months": "Últimos 6 meses",
+      "last1Year": "Último año"
+    },
+    "errors": {
+      "startMissing": "La fecha de inicio no puede estar vacía.",
+      "endMissing": "La fecha de fin no puede estar vacía.",
+      "reversed": "La hora de fin no puede ser anterior a la hora de inicio.",
+      "beforeHorizon": "La fecha de inicio no puede ser anterior al %{date}."
+    }
   },
   "calendar": {
     "banner": {

@@ -155,14 +155,19 @@ def main():
     parser.add_argument("uids", nargs="+")
     args = parser.parse_args()
 
-    if http("GET", f"{args.webadmin}/users/bob@{DOMAIN}")[0] == 200:
+    # WebAdmin answers HEAD, not GET, on a user
+    if http("HEAD", f"{args.webadmin}/users/bob@{DOMAIN}")[0] == 200:
         print("    already provisioned")
         fresh = []
     else:
         fresh = args.uids
     for uid in args.uids:
-        if http("GET", f"{args.webadmin}/users/{uid}@{DOMAIN}")[0] != 200:
+        if http("HEAD", f"{args.webadmin}/users/{uid}@{DOMAIN}")[0] != 200:
             webadmin(args.webadmin, "PUT", f"/users/{uid}@{DOMAIN}", {"password": uid})
+        # A contact of the domain, which TMailContact/autocomplete suggests (an existing one answers 409)
+        contact = {"emailAddress": f"{uid}@{DOMAIN}", "firstname": uid.capitalize(), "surname": "QA"}
+        http("POST", f"{args.webadmin}/domains/{DOMAIN}/contacts", json.dumps(contact).encode(),
+             {"Content-Type": "application/json"})
         print(f"    {uid}@{DOMAIN} / {uid}")
     if "bob" not in fresh:
         return

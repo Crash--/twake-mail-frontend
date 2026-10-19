@@ -702,6 +702,19 @@ describe('EmailView', () => {
     const error = await screen.findByTestId('email-view-error')
     expect(error).toHaveAttribute('role', 'alert')
     expect(screen.queryByTestId('email-view-body')).toBe(null)
+    // Like any view: the page is named, the error is the h1, Retry has the
+    // focus, and the way back to the list stays
+    expect(
+      within(error).getByRole('heading', {
+        level: 1,
+        name: 'Error! An error occurred. Please try again later.'
+      })
+    ).toBeInTheDocument()
+    expect(document.title).toBe(
+      'Error! An error occurred. Please try again later. - Twake Mail'
+    )
+    expect(within(error).getByRole('button', { name: 'Retry' })).toHaveFocus()
+    expect(screen.getByTestId('email-view-back-button')).toBeVisible()
     server.methodErrors.delete('Email/get')
     await userEvent.click(within(error).getByRole('button', { name: 'Retry' }))
 
@@ -715,6 +728,35 @@ describe('EmailView', () => {
     expect(await screen.findByTestId('email-not-found')).toHaveTextContent(
       'This message no longer exists'
     )
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'This message no longer exists'
+      })
+    ).toBeInTheDocument()
+    expect(document.title).toBe('This message no longer exists - Twake Mail')
+  })
+
+  it('goes back to the list from an email that failed to load', async () => {
+    const server = makeFakeJmapServer({
+      emails: [makeEmailWithBody({ id: 'e1' }, { html: '<p>Hello</p>' })]
+    })
+    server.methodErrors.set('Email/get', 'serverFail')
+    renderView(server)
+
+    await screen.findByTestId('email-view-error')
+    await userEvent.click(screen.getByTestId('email-view-back-button'))
+
+    expect(await screen.findByText('The list')).toBeInTheDocument()
+  })
+
+  it('goes back to the list from an email that does not exist', async () => {
+    renderView(makeFakeJmapServer({ emails: [makeEmail({ id: 'other' })] }))
+
+    await screen.findByTestId('email-not-found')
+    await userEvent.click(screen.getByTestId('email-view-back-button'))
+
+    expect(await screen.findByText('The list')).toBeInTheDocument()
   })
 
   describe('read receipts', () => {

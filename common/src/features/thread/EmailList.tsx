@@ -34,6 +34,7 @@ import {
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
+import { ViewErrorScreen } from '@common/components/ViewErrorScreen'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { listTemplatesMailboxIds } from '@common/features/composer/templatesFolder'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
@@ -676,14 +677,21 @@ export function EmailList(props: EmailListProps): ReactElement {
     const handleRetry = (): void => {
       void query.refetch()
     }
-    content = (
-      <ErrorScreen
-        title={t('common.errorOccurred')}
-        actionLabel={t('common.retry')}
-        onAction={handleRetry}
-        data-testid="email-list-error"
-      />
-    )
+    const errorProps = {
+      title: t('common.errorOccurred'),
+      actionLabel: t('common.retry'),
+      onAction: handleRetry,
+      'data-testid': 'email-list-error'
+    }
+    // The view keeps its name and its h1 (the folder, the search results):
+    // the error is a section of it. A view without a heading gets the error
+    // as its whole content.
+    content =
+      heading === null && search === null ? (
+        <ViewErrorScreen {...errorProps} />
+      ) : (
+        <ErrorScreen {...errorProps} headingLevel="h2" />
+      )
   } else if (emails.length === 0 && filter !== 'all') {
     // tmail-flutter: a filter that leaves nothing says so, without a hint
     content = (

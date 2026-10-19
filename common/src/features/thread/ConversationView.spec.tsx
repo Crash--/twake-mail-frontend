@@ -1133,6 +1133,31 @@ describe('ConversationView, an expanded message', () => {
     })
   })
 
+  it('names the page and keeps the way back when the conversation fails to load', async () => {
+    const server = makeServer()
+    server.methodErrors.set('Email/get', 'serverFail')
+    const onBack = jest.fn()
+    renderWithProviders(
+      <ConversationView threadId={THREAD} emailId="c" onBack={onBack} />,
+      { withJmapSession: true, jmapServer: server }
+    )
+
+    const error = await screen.findByTestId('email-view-error')
+    expect(
+      within(error).getByRole('heading', {
+        level: 1,
+        name: 'Error! An error occurred. Please try again later.'
+      })
+    ).toBeInTheDocument()
+    expect(document.title).toBe(
+      'Error! An error occurred. Please try again later. - Twake Mail'
+    )
+    expect(within(error).getByRole('button', { name: 'Retry' })).toHaveFocus()
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(onBack).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the way back when the conversation no longer exists', async () => {
     const server = makeServer()
     const onBack = jest.fn()
@@ -1146,6 +1171,15 @@ describe('ConversationView, an expanded message', () => {
     )
 
     await screen.findByTestId('email-not-found')
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'This conversation no longer exists'
+      })
+    ).toBeInTheDocument()
+    expect(document.title).toBe(
+      'This conversation no longer exists - Twake Mail'
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
 
     expect(onBack).toHaveBeenCalledTimes(1)

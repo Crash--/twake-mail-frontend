@@ -1,16 +1,14 @@
-import { Box, Empty } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-import { EmailOpen } from '@/ds/FlutterIcons/FlutterIcons'
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
 import { EmailSubjectBar } from '@/ds/EmailSubject/EmailSubjectBar'
 import {
   firstLetterOf,
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
-import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
@@ -38,7 +36,9 @@ import { isMarkedImportant } from './importance'
 import { ImportantMark } from './ImportantMark'
 import { EmailMessageBody } from './EmailMessageBody'
 import { EmailViewActions } from './EmailViewActions'
+import { ReadingErrorView } from './ReadingErrorView'
 import { ReadingLoadingView } from './ReadingLoadingView'
+import { ReadingNotFoundView } from './ReadingNotFoundView'
 import { ReadingToolbar } from './ReadingToolbar'
 import { ReplyActions } from './ReplyActions'
 import { SenderLine } from './SenderLine'
@@ -314,11 +314,10 @@ export function EmailView({
       void query.refetch()
     }
     return (
-      <ErrorScreen
-        title={t('common.errorOccurred')}
-        actionLabel={t('common.retry')}
-        onAction={handleRetry}
-        data-testid="email-view-error"
+      <ReadingErrorView
+        onBack={handleBack}
+        onRetry={handleRetry}
+        navigation={navigation}
       />
     )
   }
@@ -340,11 +339,7 @@ export function EmailView({
 
   if (query.data === null) {
     return (
-      <Empty
-        icon={EmailOpen}
-        title={t('email.notFound')}
-        data-testid="email-not-found"
-      />
+      <ReadingNotFoundView title={t('email.notFound')} onBack={handleBack} />
     )
   }
 

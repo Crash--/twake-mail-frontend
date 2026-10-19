@@ -744,6 +744,15 @@ test.describe('EML reading an email', () => {
     const error = page.getByTestId('email-view-error')
     await expect(error).toBeVisible()
     await expect(page.getByTestId('email-view-body')).toHaveCount(0)
+    // Like any view (#656): the page is named, the error is the h1 of the
+    // main landmark, Retry has the focus, the way back to the list stays
+    const errorTitle = 'Error! An error occurred. Please try again later.'
+    await expect(
+      page.getByRole('main').getByRole('heading', { level: 1, name: errorTitle })
+    ).toBeVisible()
+    await expect(page).toHaveTitle(new RegExp(`${errorTitle} - Twake Mail$`))
+    await expect(error.getByRole('button', { name: 'Retry' })).toBeFocused()
+    await expect(page.getByTestId('email-view-back-button')).toBeVisible()
     await expectNoA11yViolations(page)
 
     // The body parts without their values: the headers stay, an alert says it

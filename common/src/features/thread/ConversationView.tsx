@@ -1,4 +1,4 @@
-import { Box, Empty } from '@linagora/twake-mui'
+import { Box } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import {
   useEffect,
@@ -21,13 +21,14 @@ import {
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
 import { EmailSubjectBar } from '@/ds/EmailSubject/EmailSubjectBar'
-import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { MessageThread } from '@/ds/MessageThread/MessageThread'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { formatAddressName } from '@common/features/email/addresses'
+import { ReadingErrorView } from '@common/features/email/ReadingErrorView'
 import { ReadingLoadingView } from '@common/features/email/ReadingLoadingView'
+import { ReadingNotFoundView } from '@common/features/email/ReadingNotFoundView'
 import { ReadingToolbar } from '@common/features/email/ReadingToolbar'
 import type { EmailViewNavigation } from '@common/features/email/useEmailViewShortcuts'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
@@ -534,33 +535,16 @@ export function ConversationView({
       void query.refetch()
     }
     return (
-      <ErrorScreen
-        title={t('common.errorOccurred')}
-        actionLabel={t('common.retry')}
-        onAction={handleRetry}
-        data-testid="email-view-error"
+      <ReadingErrorView
+        onBack={onBack}
+        onRetry={handleRetry}
+        navigation={navigation}
       />
     )
   }
   // The way back to the list stays, as while it loads
   if (emails.length === 0) {
-    return (
-      <ReadingPane
-        toolbar={
-          <ReadingToolbar
-            onBack={onBack}
-            navigation={NO_NAVIGATION}
-            label={t('thread.actions')}
-          />
-        }
-      >
-        <Empty
-          icon={EmailOpen}
-          title={t('thread.empty')}
-          data-testid="email-not-found"
-        />
-      </ReadingPane>
-    )
+    return <ReadingNotFoundView title={t('thread.empty')} onBack={onBack} />
   }
   return (
     <ConversationContent

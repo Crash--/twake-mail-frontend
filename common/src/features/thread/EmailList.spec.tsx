@@ -391,6 +391,32 @@ describe('EmailList', () => {
     expect(heading).toHaveClass('u-visuallyhidden')
   })
 
+  it('shows a list that failed to load as a section of the folder view, under its h1', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(2) })
+    server.methodErrors.set('Email/query', 'serverFail')
+    renderList(server)
+
+    const error = await screen.findByTestId('email-list-error')
+    expect(error).toHaveAttribute('role', 'alert')
+    expect(
+      within(error).getByRole('heading', {
+        level: 2,
+        name: 'Error! An error occurred. Please try again later.'
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Inbox' })).toBe(
+      screen.getByTestId('email-list-title')
+    )
+    await waitFor(() => {
+      expect(document.title).toBe('Inbox - Twake Mail')
+    })
+    server.methodErrors.delete('Email/query')
+    await userEvent.click(within(error).getByRole('button', { name: 'Retry' }))
+
+    expect(await screen.findByText('Email 0')).toBeInTheDocument()
+    expect(screen.queryByTestId('email-list-error')).toBe(null)
+  })
+
   it('shows the empty view for a mailbox without emails', async () => {
     renderList(makeFakeJmapServer({ emails: [] }))
 

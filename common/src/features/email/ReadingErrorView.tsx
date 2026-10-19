@@ -42,6 +42,7 @@ export function ReadingErrorView({
     >
       <ViewErrorScreen
         title={t('common.errorOccurred')}
+        documentTitle={t('common.errorTitle')}
         actionLabel={t('common.retry')}
         onAction={onRetry}
         data-testid="email-view-error"

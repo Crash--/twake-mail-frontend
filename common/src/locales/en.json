@@ -7,6 +7,7 @@
     "retry": "Retry",
     "loading": "Loading... Please wait!",
     "errorOccurred": "Error! An error occurred. Please try again later.",
+    "errorTitle": "Error",
     "unknownError": "Unknown error occurred, please try again",
     "reconnect": "Reconnect",
     "back": "Back",

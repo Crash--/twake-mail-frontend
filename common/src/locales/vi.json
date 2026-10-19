@@ -7,6 +7,7 @@
     "retry": "Thử lại",
     "loading": "Đang tiến hành ...",
     "errorOccurred": "Lỗi! Đã xảy ra lỗi. Vui lòng thử lại sau.",
+    "errorTitle": "Lỗi",
     "unknownError": "Lỗi không xác định, xin hãy thử lại",
     "reconnect": "Đăng nhập lại",
     "back": "Quay lại",

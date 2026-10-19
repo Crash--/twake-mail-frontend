@@ -7,6 +7,7 @@
     "retry": "Réessayer",
     "loading": "Chargement... Veuillez patienter !",
     "errorOccurred": "Erreur ! Une erreur s'est produite. Veuillez réessayer plus tard.",
+    "errorTitle": "Erreur",
     "unknownError": "Une erreur s'est produite, veuillez réessayer",
     "reconnect": "Se reconnecter",
     "back": "Retour",

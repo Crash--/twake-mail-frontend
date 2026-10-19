@@ -688,7 +688,10 @@ export function EmailList(props: EmailListProps): ReactElement {
     // as its whole content.
     content =
       heading === null && search === null ? (
-        <ViewErrorScreen {...errorProps} />
+        <ViewErrorScreen
+          {...errorProps}
+          documentTitle={t('common.errorTitle')}
+        />
       ) : (
         <ErrorScreen {...errorProps} headingLevel="h2" />
       )

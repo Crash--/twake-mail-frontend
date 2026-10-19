@@ -30,6 +30,7 @@ export function DefaultMailboxRedirect(): ReactElement {
     return (
       <ViewErrorScreen
         title={t('common.errorOccurred')}
+        documentTitle={t('common.errorTitle')}
         actionLabel={t('common.retry')}
         onAction={handleRetry}
         data-testid="mailboxes-error"

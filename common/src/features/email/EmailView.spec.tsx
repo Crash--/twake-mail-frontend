@@ -710,9 +710,7 @@ describe('EmailView', () => {
         name: 'Error! An error occurred. Please try again later.'
       })
     ).toBeInTheDocument()
-    expect(document.title).toBe(
-      'Error! An error occurred. Please try again later. - Twake Mail'
-    )
+    expect(document.title).toBe('Error - Twake Mail')
     expect(within(error).getByRole('button', { name: 'Retry' })).toHaveFocus()
     expect(screen.getByTestId('email-view-back-button')).toBeVisible()
     server.methodErrors.delete('Email/get')

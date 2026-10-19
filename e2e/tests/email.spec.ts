@@ -750,7 +750,7 @@ test.describe('EML reading an email', () => {
     await expect(
       page.getByRole('main').getByRole('heading', { level: 1, name: errorTitle })
     ).toBeVisible()
-    await expect(page).toHaveTitle(new RegExp(`${errorTitle} - Twake Mail$`))
+    await expect(page).toHaveTitle(/Error - Twake Mail$/)
     await expect(error.getByRole('button', { name: 'Retry' })).toBeFocused()
     await expect(page.getByTestId('email-view-back-button')).toBeVisible()
     await expectNoA11yViolations(page)

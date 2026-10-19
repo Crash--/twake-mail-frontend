@@ -1,4 +1,10 @@
 import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
+
+import {
   formatRecipient,
   hasRecipient,
   isValidEmail,
@@ -185,5 +191,79 @@ describe('hasRecipient', () => {
         'Alice@Example.com'
       )
     ).toBe(true)
+  })
+})
+
+describe('parseRecipients against ReDoS', () => {
+  // The pattern parseRecipients used to run, cubic on a failing text
+  const ORIGINAL_TOKEN =
+    /(?:"([^"]*)"\s*|'([^']*)'\s*|([^,;<>"'@\n\r\t]*?)\s*)<([^<>]*)>|([^\s,;<>]+)/g
+
+  function originalParseRecipients(
+    text: string
+  ): { name: string | null; email: string }[] {
+    const clean = (email: string): string =>
+      email.trim().replace(/^mailto:/i, '')
+    const recipients: { name: string | null; email: string }[] = []
+    for (const match of text.matchAll(ORIGINAL_TOKEN)) {
+      const [, doubleQuoted, singleQuoted, unquoted, bracketed, bare] = match
+      if (bracketed !== undefined) {
+        const email = clean(bracketed)
+        const name = (doubleQuoted ?? singleQuoted ?? unquoted ?? '').trim()
+        if (email !== '') recipients.push({ name: name || null, email })
+      } else if (bare !== undefined) {
+        const email = clean(bare)
+        if (email !== '') recipients.push({ name: null, email })
+      }
+    }
+    return recipients
+  }
+
+  it('reads every text as the original pattern did', () => {
+    const texts = randomTexts(
+      [
+        '"',
+        "'",
+        '<',
+        '>',
+        ',',
+        ';',
+        '@',
+        ' ',
+        '\t',
+        '\n',
+        '\r',
+        '\v',
+        ' ',
+        'a',
+        'b.c',
+        'x@y.z',
+        'mailto:'
+      ],
+      { count: 5000 }
+    )
+    for (const text of texts) {
+      expect([text, parseRecipients(text)]).toEqual([
+        text,
+        originalParseRecipients(text)
+      ])
+    }
+  })
+
+  it.each([
+    ['spaces', ' '.repeat(50_000) + 'x'],
+    ['vertical tabs before a quote', '\v'.repeat(50_000) + '\'<>"<>'],
+    ['tabs', '\t'.repeat(50_000) + 'x'],
+    ['spaces and tabs', ' \t'.repeat(25_000) + 'x'],
+    ['words', 'a '.repeat(25_000) + '\n'],
+    ['words before an unclosed bracket', 'a '.repeat(25_000) + '<x'],
+    ['quotes', '"'.repeat(50_000)],
+    ['brackets', '<'.repeat(50_000)],
+    ['an unclosed bracket', '<' + 'a'.repeat(50_000)],
+    ['named addresses', 'Name <a@b.c>, '.repeat(5000)]
+  ])('reads %s in a linear time', (_, text) => {
+    expect(elapsedMs(() => parseRecipients(text))).toBeLessThan(
+      STRESS_TIME_LIMIT_MS
+    )
   })
 })

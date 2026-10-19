@@ -1,3 +1,5 @@
+import { elapsedMs, STRESS_TIME_LIMIT_MS } from '@common/testing/redos'
+
 import {
   canReplyAll,
   hasListPost,
@@ -191,5 +193,33 @@ describe('canReplyAll', () => {
         isSelf
       )
     ).toBe(false)
+  })
+})
+
+describe('listPostRecipients against ReDoS', () => {
+  it('reads a header with spaces around it as before', () => {
+    expect(
+      listPostRecipients([' \t<mailto:list@example.com?cc=a@b.c  >  '])
+    ).toEqual({
+      to: [{ name: null, email: 'list@example.com' }],
+      cc: [{ name: null, email: 'a@b.c' }],
+      bcc: []
+    })
+    expect(listPostRecipients(['mailto:list@example.com?cc  '])).toEqual({
+      to: [{ name: null, email: 'list@example.com' }],
+      cc: [],
+      bcc: []
+    })
+  })
+
+  it('rejects a long header in a linear time', () => {
+    const header = 'mailto:?' + '\t'.repeat(50_000) + '>>'
+    let recipients = null
+    expect(
+      elapsedMs(() => {
+        recipients = listPostRecipients([header])
+      })
+    ).toBeLessThan(STRESS_TIME_LIMIT_MS)
+    expect(recipients).toEqual({ to: [], cc: [], bcc: [] })
   })
 })

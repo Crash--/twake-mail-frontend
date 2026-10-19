@@ -1,4 +1,19 @@
-import { sanitizeStyleSheet } from './sanitizeCss'
+import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
+
+import {
+  removeComments,
+  sanitizeDeclarations,
+  sanitizeStyleSheet,
+  urlArguments
+} from './sanitizeCss'
+
+// The patterns sanitizeCss used to run, quadratic on a failing text
+const ORIGINAL_COMMENT = /\/\*[\s\S]{0,20000}?\*\//g
+const ORIGINAL_URL_FUNCTION = /url\(\s*(['"]?)([^'")]*)\1\s*\)/gi
 
 const BLOCKED = { allowRemoteContent: false }
 const ALLOWED = { allowRemoteContent: true }
@@ -82,5 +97,66 @@ describe('sanitizeStyleSheet', () => {
 
       expect(sanitizeStyleSheet(css, BLOCKED).blockedRemoteContent).toBe(1)
     })
+  })
+})
+
+describe('removeComments', () => {
+  it('removes the comments the original pattern removed', () => {
+    for (const css of randomTexts(['/', '*', '/*', '*/', 'a', ' '])) {
+      expect([css, removeComments(css)]).toEqual([
+        css,
+        css.replace(ORIGINAL_COMMENT, '')
+      ])
+    }
+  })
+
+  it('keeps a comment longer than 20 000 characters, as before', () => {
+    const long = `a/*${'x'.repeat(20_001)}*/b`
+    const limit = `a/*${'x'.repeat(20_000)}*/b`
+    expect(removeComments(long)).toBe(long.replace(ORIGINAL_COMMENT, ''))
+    expect(removeComments(long)).toBe(long)
+    expect(removeComments(limit)).toBe('ab')
+    const inner = `/*${'x'.repeat(20_001)}/* y */z`
+    expect(removeComments(inner)).toBe(inner.replace(ORIGINAL_COMMENT, ''))
+  })
+})
+
+describe('urlArguments', () => {
+  it('reads the arguments the original pattern read', () => {
+    const values = randomTexts(
+      ['url(', 'URL(', '(', ')', '"', "'", ' ', '\t', 'a', 'https://x'],
+      { count: 5000 }
+    )
+    for (const value of values) {
+      expect([value, urlArguments(value)]).toEqual([
+        value,
+        Array.from(value.matchAll(ORIGINAL_URL_FUNCTION), match => match[2])
+      ])
+    }
+  })
+})
+
+describe('sanitizeCss against ReDoS', () => {
+  const options = { allowRemoteContent: false }
+
+  it.each([
+    ['unclosed comments', 'color: red; /*x'.repeat(5000)],
+    ['comments longer than the limit', '/*x'.repeat(20_000) + '*/'],
+    ['url( without closing', 'background: ' + 'url('.repeat(20_000)],
+    ['url( followed by spaces', 'background: url(' + ' '.repeat(50_000)],
+    ['quoted url( never closed', "background: url('" + 'a'.repeat(50_000)],
+    [
+      'an important without value',
+      'width:' + '\t'.repeat(50_000) + 'x!important'
+    ],
+    ['a line height', 'line-height:' + '\t'.repeat(50_000) + 'o!important'],
+    ['an overflow', 'overflow:' + '\t'.repeat(50_000) + 'x!important']
+  ])('filters %s in a linear time', (_, declarations) => {
+    expect(
+      elapsedMs(() => {
+        sanitizeDeclarations(declarations, options)
+        sanitizeStyleSheet(`p { ${declarations} }`, options)
+      })
+    ).toBeLessThan(STRESS_TIME_LIMIT_MS)
   })
 })

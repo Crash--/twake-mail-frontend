@@ -1,4 +1,10 @@
 import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
+
+import {
   EMPTY_SEARCH_FILTER,
   isEmptySearch,
   usesAdvancedFields,
@@ -288,5 +294,26 @@ describe('toSearchRequest', () => {
         })
       )
     ).toBe(true)
+  })
+})
+
+describe('withTypedText against ReDoS', () => {
+  it('reads an address as the original pattern did', () => {
+    const original = /^[^\s@,<>]+@[^\s@,<>]+\.[^\s@,<>]+$/
+    for (const typed of randomTexts(['a', '.', '@', ' ', ','], {
+      count: 5000
+    })) {
+      expect([typed, withTypedText(EMPTY_SEARCH_FILTER, typed).from]).toEqual([
+        typed,
+        original.test(typed.trim()) ? [typed.trim()] : []
+      ])
+    }
+  })
+
+  it('reads a long text in a linear time', () => {
+    const typed = 'a@a' + '.a'.repeat(25_000) + '.@..'
+    expect(
+      elapsedMs(() => withTypedText(EMPTY_SEARCH_FILTER, typed))
+    ).toBeLessThan(STRESS_TIME_LIMIT_MS)
   })
 })

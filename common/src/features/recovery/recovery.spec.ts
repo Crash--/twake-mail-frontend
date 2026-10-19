@@ -1,3 +1,5 @@
+import { elapsedMs, STRESS_TIME_LIMIT_MS } from '@common/testing/redos'
+
 import { deletionRanges, horizonDays, recoveryCriteria } from './recovery'
 
 describe('recovery', () => {
@@ -36,5 +38,19 @@ describe('recovery', () => {
       subject: 'Invoice',
       recipients: ['bob@example.com']
     })
+  })
+})
+
+describe('horizonDays against ReDoS', () => {
+  it('reads a horizon as before', () => {
+    expect(horizonDays('12 days 3 hours')).toBe(13)
+    expect(horizonDays('x15day')).toBe(15)
+    expect(horizonDays('1 2day')).toBe(2)
+  })
+
+  it('reads a horizon of digits in a linear time', () => {
+    expect(elapsedMs(() => horizonDays('0'.repeat(50_000)))).toBeLessThan(
+      STRESS_TIME_LIMIT_MS
+    )
   })
 })

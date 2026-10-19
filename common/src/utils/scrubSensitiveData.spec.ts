@@ -1,3 +1,9 @@
+import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
+
 import { scrubDeep, scrubText, scrubUrl } from './scrubSensitiveData'
 
 describe('scrubText', () => {
@@ -158,5 +164,88 @@ describe('scrubDeep, the content of the mails', () => {
       from: '/mailbox/:id',
       to: '/search'
     })
+  })
+})
+
+describe('scrubSensitiveData against ReDoS', () => {
+  // The patterns scrubText and scrubUrl used to run, quadratic on a failing
+  // text (the two others did not change)
+  const ORIGINAL_EMAIL = /[A-Z0-9._%+-]+(?:@|%40)[A-Z0-9.-]+\.[A-Z]{2,}/gi
+  const ORIGINAL_URL_WITH_QUERY = /(\bhttps?:\/\/[^\s?#"'<>]+)[?#][^\s"'<>]*/gi
+  const ORIGINAL_JWT =
+    /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]*/g
+  const UNCHANGED = scrubText('code=a ticket=b Bearer c')
+
+  function originalScrub(text: string): string {
+    return text
+      .replace(ORIGINAL_URL_WITH_QUERY, '$1')
+      .replace(ORIGINAL_JWT, '[Filtered]')
+      .replace(ORIGINAL_EMAIL, '[email]')
+  }
+
+  it('masks what the original patterns masked', () => {
+    // Without the parameters and credentials the patterns that did not
+    // change mask, so that the order of the replacements does not matter
+    expect(UNCHANGED).toBe(
+      'code=[Filtered] ticket=[Filtered] Bearer [Filtered]'
+    )
+    const texts = randomTexts(
+      [
+        'a',
+        'B',
+        '1',
+        '.',
+        '-',
+        '_',
+        '%',
+        '%40',
+        '@',
+        '+',
+        ' ',
+        '?',
+        '#',
+        '"',
+        '/',
+        'http://',
+        'HTTPS://',
+        'eyJ',
+        'abcde',
+        'x.io'
+      ],
+      { count: 5000, maxLength: 16 }
+    )
+    for (const text of texts) {
+      expect([text, scrubText(text)]).toEqual([text, originalScrub(text)])
+    }
+  })
+
+  it('masks what follows /download/ on the last line only, as before', () => {
+    const original = (path: string): string =>
+      path.replace(/\/(download|upload)\/.*$/i, '/$1/[Filtered]')
+    for (const path of randomTexts([
+      '/download/',
+      '/UPLOAD/',
+      'a',
+      '/',
+      '\n',
+      '\r',
+      ' '
+    ])) {
+      expect([path, scrubUrl(path)]).toEqual([path, scrubText(original(path))])
+    }
+  })
+
+  it.each([
+    ['an address without domain', 'A'.repeat(50_000) + 'AA.AA\x00.@-.AA'],
+    ['addresses without top-level domain', 'a@' + 'a.'.repeat(25_000)],
+    ['URLs without query', 'http://\x00'.repeat(7000)],
+    ['tokens without parts', 'eyJyyyy-'.repeat(7000)]
+  ])('scrubs %s in a linear time', (_, text) => {
+    expect(elapsedMs(() => scrubText(text))).toBeLessThan(STRESS_TIME_LIMIT_MS)
+  })
+
+  it('scrubs a path with many lines in a linear time', () => {
+    const path = '/upload/'.repeat(7000) + '\n/upload/'
+    expect(elapsedMs(() => scrubUrl(path))).toBeLessThan(STRESS_TIME_LIMIT_MS)
   })
 })

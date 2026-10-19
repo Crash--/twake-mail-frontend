@@ -1,4 +1,10 @@
 import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
+
+import {
   addressDisplayName,
   formatAddress,
   formatAddressName,
@@ -69,5 +75,45 @@ describe('formatAddressNames', () => {
     expect(
       formatAddressNames([{ name: 'Bob', email: 'bob@example.com' }, SPOOFED])
     ).toBe('Bob, x@evil.com')
+  })
+})
+
+describe('addressDisplayName against ReDoS', () => {
+  // The pattern the spoofing check used to run, quadratic on a failing name
+  const ORIGINAL_ADDRESS_IN_NAME =
+    /[^\s<>()[\]"',;:@]+@[^\s<>()[\]"',;:@]+\.[^\s<>()[\]"',;:@]+/g
+
+  function originalDisplayName(name: string, email: string): string {
+    const trimmed = name.trim()
+    return Array.from(trimmed.matchAll(ORIGINAL_ADDRESS_IN_NAME)).some(
+      ([found]) => found.toLowerCase() !== email.toLowerCase()
+    )
+      ? ''
+      : trimmed
+  }
+
+  it('hides the names the original pattern hid', () => {
+    const names = randomTexts(
+      ['a', 'B', '.', '@', ' ', '<', '"', ',', 'x@y.z'],
+      {
+        count: 5000
+      }
+    )
+    for (const name of names) {
+      expect([name, addressDisplayName({ name, email: 'x@y.z' })]).toEqual([
+        name,
+        originalDisplayName(name, 'x@y.z')
+      ])
+    }
+  })
+
+  it.each([
+    ['a name without domain', 'a'.repeat(50_000) + '.@.@...'],
+    ['a name of at signs', 'a@'.repeat(25_000)],
+    ['a name of dots', 'a.'.repeat(25_000) + '@b']
+  ])('reads %s in a linear time', (_, name) => {
+    expect(
+      elapsedMs(() => addressDisplayName({ name, email: 'x@y.z' }))
+    ).toBeLessThan(STRESS_TIME_LIMIT_MS)
   })
 })

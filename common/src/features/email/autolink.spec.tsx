@@ -1,3 +1,5 @@
+import { elapsedMs, STRESS_TIME_LIMIT_MS } from '@common/testing/redos'
+
 import { autolink, findLinks } from './autolink'
 
 function linkify(html: string): HTMLElement {
@@ -166,5 +168,37 @@ describe('autolink', () => {
       'https://x.example.com/',
       'mailto:b@example.com'
     ])
+  })
+})
+
+describe('findLinks against ReDoS', () => {
+  it.each([
+    ['closing quotes', 'https://example.com/' + '»'.repeat(50_000) + 'x»'],
+    ['dots', 'www.' + 'a.'.repeat(25_000)],
+    ['hyphens', 'a-'.repeat(25_000)],
+    ['runs of the longest length read', ('a-'.repeat(1024) + ' ').repeat(10)],
+    ['at signs', 'a@'.repeat(25_000)],
+    ['parentheses', 'https://example.com/' + '('.repeat(50_000)]
+  ])('reads %s in a linear time', (_, text) => {
+    expect(elapsedMs(() => findLinks(text))).toBeLessThan(STRESS_TIME_LIMIT_MS)
+  })
+
+  it('links a URL of 2 048 characters, not a longer run', () => {
+    const url = 'https://example.com/' + 'a'.repeat(2028)
+    expect(findLinks(`see ${url} now`).map(link => link.text)).toEqual([url])
+    expect(findLinks(`see ${url}a https://example.com now`)).toEqual([
+      {
+        text: 'https://example.com',
+        href: 'https://example.com/',
+        start: 2054,
+        end: 2073
+      }
+    ])
+  })
+
+  it('drops the closing quotes after a URL as before', () => {
+    expect(findLinks('« https://example.com/a»» »')[0]?.text).toBe(
+      'https://example.com/a'
+    )
   })
 })

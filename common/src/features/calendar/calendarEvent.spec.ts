@@ -1,12 +1,18 @@
 import type { CalendarEvent } from 'jmap-client-ts/linagora'
 
 import { makeIsSelf } from '@common/features/composer/replyRecipients'
+import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
 
 import { findCalendarBlobIds, isUnnamedCalendarPart } from './calendarBlobs'
 import {
   actionsOf,
   attendeeAddresses,
   bannerOf,
+  descriptionText,
   peopleOf,
   replyLanguage,
   replyOfAttendance,
@@ -224,5 +230,48 @@ describe('calendar event', () => {
         username: 'bob@example.com'
       })
     ).toBe(null)
+  })
+})
+
+describe('descriptionText against ReDoS', () => {
+  // The DOM is not there in Node: a stand-in tells which texts were parsed
+  class FakeDomParser {
+    parseFromString(): { body: { textContent: string } } {
+      return { body: { textContent: 'parsed as HTML' } }
+    }
+  }
+
+  beforeEach(() => {
+    Object.assign(globalThis, { DOMParser: FakeDomParser })
+  })
+
+  afterEach(() => {
+    Reflect.deleteProperty(globalThis, 'DOMParser')
+  })
+
+  it('reads as HTML the texts the original pattern found a tag in', () => {
+    const original = /<[a-z][^>]*>/i
+    for (const text of randomTexts(['<', '>', 'a', 'B', '1', ' ', '/'], {
+      count: 5000
+    })) {
+      expect([text, descriptionText(text) === 'parsed as HTML']).toEqual([
+        text,
+        original.test(text)
+      ])
+    }
+  })
+
+  it.each([
+    ['unclosed tags', '<a'.repeat(25_000)],
+    ['spaces before line breaks', '\t'.repeat(50_000) + 'x\n'],
+    ['unclosed video conference sections', '-_-_-_-_-_-_-_-x'.repeat(5000)],
+    [
+      'unclosed Google sections',
+      '-::~:~::~' + ':~'.repeat(200) + '::~:~::-' + 'x'.repeat(50_000)
+    ]
+  ])('reads %s in a linear time', (_, text) => {
+    expect(elapsedMs(() => descriptionText(text))).toBeLessThan(
+      STRESS_TIME_LIMIT_MS
+    )
   })
 })

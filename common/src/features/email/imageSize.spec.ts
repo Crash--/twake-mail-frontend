@@ -1,3 +1,9 @@
+import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
+
 import { normalizeImageStyle } from './imageSize'
 
 describe('normalizeImageStyle', () => {
@@ -68,5 +74,28 @@ describe('normalizeImageStyle', () => {
       'border: 1px solid red; width: 20px; float: left; height: auto; aspect-ratio: 20 / 10'
     )
     expect(normalizeImageStyle(null)).toBe(null)
+  })
+})
+
+describe('normalizeImageStyle against ReDoS', () => {
+  it.each([
+    ['digits', '0'.repeat(50_000) + '\x00'],
+    ['digits and a dot', '0'.repeat(50_000) + '.\x00'],
+    ['spaces before !important', '\t'.repeat(50_000) + '\x00!important']
+  ])('reads a width of %s in a linear time', (_, width) => {
+    expect(
+      elapsedMs(() => normalizeImageStyle(`width: ${width}`))
+    ).toBeLessThan(STRESS_TIME_LIMIT_MS)
+  })
+
+  it('reads the lengths the original pattern read', () => {
+    const original = /^(\d*\.?\d+)([a-z]*)$/i
+    const current = /^(\d+(?:\.\d+)?|\.\d+)([a-z]*)$/i
+    for (const value of randomTexts(['1', '0', '.', 'p', 'x', '%', ' '])) {
+      expect([value, current.exec(value)?.slice(1)]).toEqual([
+        value,
+        original.exec(value)?.slice(1)
+      ])
+    }
   })
 })

@@ -1,3 +1,5 @@
+import { elapsedMs, STRESS_TIME_LIMIT_MS } from '@common/testing/redos'
+
 import {
   buildPaywallUrlFromTemplate,
   buildWorkplacePaywallUrl,
@@ -383,5 +385,18 @@ describe('getRootDomain', () => {
     ['', null]
   ])('the root domain of %j is %j', (hostname, expected) => {
     expect(getRootDomain(hostname)).toBe(expected)
+  })
+})
+
+describe('resolveQualifiedUrl against ReDoS', () => {
+  it('rejects a long owner address in a linear time', () => {
+    const ownerEmail = 'a@a' + '.a'.repeat(25_000) + '.@..'
+    let url: string | null = ''
+    expect(
+      elapsedMs(() => {
+        url = resolveQualifiedUrl('{localPart}.example.com', { ownerEmail })
+      })
+    ).toBeLessThan(STRESS_TIME_LIMIT_MS)
+    expect(url).toBeNull()
   })
 })

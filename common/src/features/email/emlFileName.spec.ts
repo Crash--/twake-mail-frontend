@@ -1,3 +1,9 @@
+import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
+
 import { emlFileName } from './emlFileName'
 
 describe('emlFileName', () => {
@@ -18,5 +24,25 @@ describe('emlFileName', () => {
 
   it('keeps the name short', () => {
     expect(emlFileName('a'.repeat(500), 'b').length).toBe(150 + '.eml'.length)
+  })
+})
+
+describe('emlFileName against ReDoS', () => {
+  it('trims the subject as before', () => {
+    const original = (subject: string): string =>
+      subject.replace(/^[\s.]+|[\s.]+$/g, '')
+    for (const subject of randomTexts(['.', ' ', '\u00a0', 'a', 'b'])) {
+      expect([subject, emlFileName(subject, 'blob')]).toEqual([
+        subject,
+        `${original(subject).slice(0, 150).trim() || 'blob'}.eml`
+      ])
+    }
+  })
+
+  it('names a subject of spaces in a linear time', () => {
+    const subject = 'x' + ' '.repeat(50_000) + 'x'
+    expect(elapsedMs(() => emlFileName(subject, 'blob'))).toBeLessThan(
+      STRESS_TIME_LIMIT_MS
+    )
   })
 })

@@ -1,9 +1,16 @@
 import {
+  elapsedMs,
+  randomTexts,
+  STRESS_TIME_LIMIT_MS
+} from '@common/testing/redos'
+
+import {
   BLOCKQUOTE_STYLE,
   blockRemoteImages,
   fromEmailHtml,
   htmlToText,
-  toEmailHtml
+  toEmailHtml,
+  toStorageHtml
 } from './emailHtml'
 
 // Cases in the spirit of the email exporter tests of Messages (La Suite
@@ -131,5 +138,68 @@ describe('the quote, edited as the rest of the text', () => {
       'src="https://tracker.example/p.png"'
     )
     expect(toEmailHtml(editable)).toContain('src="cid:logo"')
+  })
+})
+
+describe('emailHtml against ReDoS', () => {
+  // The pattern toStorageHtml used to run, quadratic on a failing text
+  const ORIGINAL_BLOB_IMAGE =
+    /<img([^>]*?)src="blob:[^"]*"([^>]*?)data-reference="([^"]+)"/g
+
+  it('swaps the image URLs as the original pattern did', () => {
+    const texts = randomTexts(
+      [
+        '<img',
+        ' ',
+        'src="blob:',
+        'src="',
+        'x',
+        '"',
+        '>',
+        '<',
+        'data-reference="',
+        'r'
+      ],
+      { count: 5000, maxLength: 16 }
+    )
+    for (const html of texts) {
+      expect([html, toStorageHtml(html)]).toEqual([
+        html,
+        html.replace(
+          ORIGINAL_BLOB_IMAGE,
+          '<img$1src="cid:$3"$2data-reference="$3"'
+        )
+      ])
+    }
+  })
+
+  it.each([
+    ['image tags never closed', '<imgn'.repeat(20_000) + '>'],
+    ['image tags without source', '<img'.repeat(20_000)],
+    ['sources without reference', '<img ' + 'src="blob:x" '.repeat(5000) + '>'],
+    [
+      'sources with empty references',
+      '<img ' + 'src="blob:x" data-reference="" '.repeat(2000) + '>'
+    ],
+    [
+      'references never closed',
+      '<img src="blob:x" ' + 'data-reference="'.repeat(5000)
+    ],
+    ['images', '<img src="blob:x" data-reference="r">'.repeat(2000)]
+  ])('swaps the image URLs of %s in a linear time', (_, html) => {
+    expect(elapsedMs(() => toStorageHtml(html))).toBeLessThan(
+      STRESS_TIME_LIMIT_MS
+    )
+  })
+
+  it('trims the trailing spaces of a long line in a linear time', () => {
+    const alt = ' \t'.repeat(25_000) + 'x'
+    let text = ''
+    expect(
+      elapsedMs(() => {
+        text = htmlToText(`<p><img alt="${alt}"> \t </p>`)
+      })
+    ).toBeLessThan(STRESS_TIME_LIMIT_MS)
+    expect(text).toBe(`[${alt}]`)
   })
 })

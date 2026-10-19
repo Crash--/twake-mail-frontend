@@ -50,6 +50,7 @@ import {
   emptyCondition,
   headerField,
   headerNameProblem,
+  isMoveWithoutFolder,
   RULE_ACTION_KINDS,
   RULE_ACTION_LABELS,
   RULE_COMPARATORS,
@@ -132,14 +133,23 @@ export function RuleFormDialog({
   const confirm = useConfirm()
   const pickMailbox = usePickMailbox()
   const getMailboxName = useMailboxName()
-  const { data: mailboxes = [] } = useMailboxes()
+  const { data: loadedMailboxes } = useMailboxes()
+  const mailboxes = loadedMailboxes ?? []
   const isPhone = useScreenSize() === 'mobile'
   const titleId = useId()
   const nameId = useId()
   const conditionsId = useId()
+  const folderErrorId = useId()
+  const folderRef = useRef<HTMLButtonElement>(null)
   const [isPreviewShown, setIsPreviewShown] = useState(false)
   const nameRef = useRef<HTMLInputElement>(null)
   const spamId = mailboxes.find(mailbox => mailbox.role === 'junk')?.id ?? null
+  // The folders a rule can move to, null until they are loaded: a rule
+  // moving to a folder deleted since cannot be saved as is (tmail-flutter)
+  const folderIds =
+    loadedMailboxes === undefined
+      ? null
+      : new Set(loadedMailboxes.map(mailbox => mailbox.id))
   const [draft, setDraft] = useState<RuleDraft>(() =>
     rule === null ? initialDraft : draftFromRule(rule, spamId)
   )
@@ -213,9 +223,11 @@ export function RuleFormDialog({
     ) {
       return
     }
-    const draftProblem = ruleDraftProblem(draft, spamId)
+    const draftProblem = ruleDraftProblem(draft, spamId, folderIds)
     if (draftProblem !== null) {
       setProblem(draftProblem)
+      // The error is under the folder field: the focus goes to it
+      if (draftProblem === 'rules.errors.noFolder') folderRef.current?.focus()
       return
     }
     const run = async (): Promise<void> => {
@@ -266,11 +278,15 @@ export function RuleFormDialog({
         if (action.kind === 'forward') {
           return [`${label} "${action.forwardAddresses.trim()}"`]
         }
-        return action.kind === 'move'
-          ? [
-              `${label} ${t('rules.form.toFolder').toLowerCase()} "${folderName(action.mailboxId) ?? ''}"`
-            ]
-          : [label]
+        if (action.kind !== 'move') return [label]
+        // No folder (none picked, or deleted since): the action alone,
+        // rather than tmail-flutter's empty quotes
+        const folder = folderName(action.mailboxId)
+        return [
+          folder === null
+            ? label
+            : `${label} ${t('rules.form.toFolder').toLowerCase()} "${folder}"`
+        ]
       })
       .join(', ')
   })
@@ -557,6 +573,14 @@ export function RuleFormDialog({
                     onClick={() => {
                       handleChooseFolder(index)
                     }}
+                    buttonRef={folderRef}
+                    error={
+                      problem === 'rules.errors.noFolder' &&
+                      isMoveWithoutFolder(action, folderIds)
+                        ? t(problem)
+                        : null
+                    }
+                    errorId={folderErrorId}
                     data-testid="rule-action-folder-button"
                   />
                 </>
@@ -633,7 +657,7 @@ export function RuleFormDialog({
           />
         ) : null}
       </Box>
-      {problem === null ? null : (
+      {problem === null || problem === 'rules.errors.noFolder' ? null : (
         <Alert
           severity="error"
           className="u-mt-1"

@@ -148,4 +148,98 @@ test.describe('RULE email rules', () => {
     await expect(settings.toast).toContainText('The rule has been removed.')
     await expect(page.getByTestId('email-rules-empty')).toBeVisible()
   })
+
+  test('RULE-03 a rule moving to a folder deleted since cannot be saved until another folder is chosen', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    // tmail-backend drops the folder from the rules when it is deleted
+    // (tmail-backend#2307): the rule is saved after, as a client that did
+    // not know yet would
+    const gone = await jmap.createMailbox({ name: 'Gone' })
+    await jmap.destroyMailbox(gone.id)
+    const kept = await jmap.createMailbox({ name: 'Kept' })
+    await jmap.call(
+      'Filter/set',
+      {
+        update: {
+          singleton: [
+            {
+              id: '0',
+              name: 'Dangling',
+              conditionGroup: {
+                conditionCombiner: 'AND',
+                conditions: [
+                  { field: 'subject', comparator: 'contains', value: '[gone]' }
+                ]
+              },
+              action: {
+                appendIn: { mailboxIds: [gone.id] },
+                markAsSeen: true,
+                markAsImportant: false,
+                reject: false,
+                withKeywords: []
+              }
+            }
+          ]
+        }
+      },
+      [FILTER]
+    )
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const settings = await mailbox.openSettings()
+    await settings.open('email-rules')
+    await expect(settings.rule('Dangling')).toContainText(
+      'Subject, contains: [gone]'
+    )
+    await expect(settings.rule('Dangling')).not.toContainText('""')
+
+    await settings
+      .rule('Dangling')
+      .getByTestId('email-rule-edit-button')
+      .click()
+    const dialog = settings.ruleDialog
+    const folder = dialog.getByTestId('rule-action-folder-button')
+    await expect(folder).toHaveAccessibleName('Choose a folder')
+    await dialog.getByTestId('rule-preview-toggle').click()
+    await expect(dialog.getByTestId('rule-actions-preview')).toContainText(
+      'Actions: Move message, Mark as seen'
+    )
+
+    await dialog.getByTestId('create-rule-button').click()
+    await expect(folder).toBeFocused()
+    await expect(folder).toHaveAttribute('aria-invalid', 'true')
+    await expect(folder).toHaveAccessibleDescription(
+      'Please select a mailbox to move the message'
+    )
+    await expect(dialog).toBeVisible()
+    await expectNoA11yViolations(page)
+
+    await folder.click()
+    const picker = page.getByRole('dialog', { name: 'Choose a folder' })
+    await picker.getByRole('option', { name: /Kept/ }).click()
+    await expect(folder).toContainText('Kept')
+    await expect(folder).not.toHaveAttribute('aria-invalid', 'true')
+    await dialog.getByTestId('create-rule-button').click()
+    await expect(dialog).toBeHidden()
+
+    await expect
+      .poll(async () => {
+        const result = await jmap.call('Filter/get', { ids: ['singleton'] }, [
+          FILTER
+        ])
+        return (result.list as { rules: unknown[] }[])[0]?.rules
+      })
+      .toEqual([
+        expect.objectContaining({
+          name: 'Dangling',
+          action: expect.objectContaining({
+            appendIn: { mailboxIds: [kept.id] },
+            markAsSeen: true
+          })
+        })
+      ])
+  })
 })

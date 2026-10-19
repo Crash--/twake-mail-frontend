@@ -52,14 +52,14 @@ the React app. One line per Patrol test, 116 lines.
 | `SRCH` | Search | 14 | 10 | 0 |
 | `LBL` | Labels | 12 | 0 | 0 |
 | `SET` | Settings | 9 | 1 | 0 |
-| `RULE` | Email rules | 2 | 1 | 0 |
+| `RULE` | Email rules | 3 | 1 | 0 |
 | `CAL` | Calendar events | 7 | 0 | 0 |
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
 | `APPGRID` | App grid and platform bar | 3 | 0 | 1 |
 | `DRIVE` | Twake Drive picker | 4 | 0 | 0 |
 | `AI` | AI assistant of the composer | 2 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **167** | **24** | **7** |
+| | **Total** | **168** | **24** | **7** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -434,12 +434,14 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `SET-08` In Settings → Vacation, turning the response on with a past start date first refuses an empty message, then saves it (subject and rich message stored); the banner "Your vacation responder is enabled." shows in the settings and over the mail, and its "End now" turns the response off and hides it. While the response is off, the message editor is disabled like the other fields (`aria-disabled`, not editable, issue #61). — web app only, no Patrol test (tmail-flutter's `VacationNotificationMessageWidget`)
 - [x] `SET-09` In Settings → Folder visibility, system folders have no button; "Hide" on a personal folder takes it out of the folder tree, "Show" brings it back. — web app only, no Patrol test
 
-## RULE — Email rules (2)
+## RULE — Email rules (3)
 
 - [x] `RULE-01` From an opened email, clicking the sender address → "Create a rule with this email address" opens the rule creator; saving rule "Reject rule" with action "Reject it" shows the reject-confirmation warning; after confirming, the rule is listed in Settings → Email rules; editing it to add "Mark as seen" and "Star it" and saving shows the warning again, and after confirming the creator closes with the rule still listed. — `email_rules/create_edit_rule_with_reject_test.dart` · tags: `web` `android` `ios`
   - Data: one email sent to self via JMAP (so the sender is the user's own address).
   - Web port: the sender of the email opened alone (`emailsOneByOne`) is a button whose menu has "Create a rule with this email"; the creator opens in Settings → Email rules. Adding actions next to "Reject it" is not offered (a rejected email gets no other action, which tmail-flutter enforces on save anyway): the edit adds a condition (Subject contains "reject") instead, and the warning shows again.
 - [x] `RULE-02` In Settings → Email rules (empty state "No Rules Configured"), a rule on Subject moving to a folder picked in the folder picker and marking as seen files the next matching email there, read; deleting it after confirmation brings the empty state back. — web app only, no Patrol test
+- [x] `RULE-03` A rule moving to a folder deleted since (tmail-flutter#2668) is listed with its first condition only; its editor shows the folder field empty ("Choose a folder") and the preview "Move message" without empty quotes; saving is refused, the focus on the folder field with "Please select a mailbox to move the message" under it; once another folder is picked, it saves with it. — web app only, no Patrol test
+  - Data: a folder created then deleted via JMAP, the rule then saved with `Filter/set` (tmail-backend drops a deleted folder from the rules, tmail-backend#2307: the rule is saved after, as a client that did not know yet would).
 
 ## CAL — Calendar events (7)
 

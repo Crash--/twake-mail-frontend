@@ -73,7 +73,11 @@ function setup(
   state: unknown = null
 ): { server: FakeJmapServer; filter: ReturnType<typeof installFakeFilter> } {
   const server = makeFakeJmapServer({
-    capabilities: FAKE_LINAGORA_CAPABILITIES
+    capabilities: FAKE_LINAGORA_CAPABILITIES,
+    mailboxes: [
+      ...makeDefaultMailboxes(),
+      makeMailbox({ id: 'mailbox-archive', name: 'Archive', role: 'archive' })
+    ]
   })
   const filter = installFakeFilter(server, rules)
   renderWithProviders(<EmailRulesSettings section={rulesSection()} />, {
@@ -352,6 +356,113 @@ describe('EmailRulesSettings', () => {
     expect(
       await screen.findByRole('button', { name: /Receipts/ })
     ).toHaveAttribute('data-testid', 'rule-action-folder-button')
+  })
+
+  describe('a rule moving to a folder deleted since (tmail-flutter#2668)', () => {
+    const GONE: Rule = {
+      ...NEWSLETTERS,
+      name: 'Gone',
+      action: {
+        ...NEWSLETTERS.action,
+        appendIn: { mailboxIds: ['mailbox-gone'] }
+      }
+    }
+
+    function setupGone(): {
+      server: FakeJmapServer
+      filter: ReturnType<typeof installFakeFilter>
+    } {
+      const server = makeFakeJmapServer({
+        capabilities: FAKE_LINAGORA_CAPABILITIES,
+        mailboxes: [
+          ...makeDefaultMailboxes(),
+          makeMailbox({ id: 'mailbox-work', name: 'Work' })
+        ]
+      })
+      const filter = installFakeFilter(server, [GONE])
+      renderWithProviders(
+        <MailboxPickerProvider>
+          <EmailRulesSettings section={rulesSection()} />
+        </MailboxPickerProvider>,
+        {
+          jmapServer: server,
+          withJmapSession: true,
+          route: { pathname: '/settings/email-rules' }
+        }
+      )
+      return { server, filter }
+    }
+
+    it('lists it with its first condition only, no empty folder name', async () => {
+      setupGone()
+
+      const item = await screen.findByTestId('email-rule-item')
+      expect(item).toHaveTextContent('From, contains: news@')
+      expect(item).not.toHaveTextContent('""')
+    })
+
+    it('shows no folder and no empty quotes in the preview', async () => {
+      setupGone()
+
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Edit Gone' })
+      )
+      const dialog = screen.getByRole('dialog', { name: 'Edit Rule' })
+      expect(
+        within(dialog).getByTestId('rule-action-folder-button')
+      ).toHaveAccessibleName('Choose a folder')
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Preview' })
+      )
+      expect(
+        within(dialog).getByTestId('rule-actions-preview')
+      ).toHaveTextContent(/^Preview: Actions: Move message, Mark as seen$/)
+    })
+
+    it('refuses to save it until a folder is chosen, the error under the field', async () => {
+      const { server, filter } = setupGone()
+
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Edit Gone' })
+      )
+      const dialog = screen.getByRole('dialog', { name: 'Edit Rule' })
+      await userEvent.click(within(dialog).getByTestId('create-rule-button'))
+
+      const folder = within(dialog).getByTestId('rule-action-folder-button')
+      expect(folder).toHaveFocus()
+      expect(folder).toHaveAttribute('aria-invalid', 'true')
+      expect(folder).toHaveAccessibleDescription(
+        'Please select a mailbox to move the message'
+      )
+      expect(within(dialog).queryByTestId('rule-form-error')).toBe(null)
+      expect(server.callsOf('Filter/set')).toEqual([])
+
+      await userEvent.click(folder)
+      const picker = await screen.findByRole('dialog', {
+        name: 'Choose a folder'
+      })
+      await userEvent.click(
+        within(picker).getByRole('option', { name: /Work/ })
+      )
+      const chosen = await within(dialog).findByRole('button', {
+        name: 'Choose a folder: Work'
+      })
+      expect(chosen).not.toHaveAttribute('aria-invalid')
+      await userEvent.click(within(dialog).getByTestId('create-rule-button'))
+
+      expect(await screen.findByTestId('toast')).toHaveTextContent(
+        'Your filter has been updated'
+      )
+      expect(filter.rules()).toEqual([
+        expect.objectContaining({
+          name: 'Gone',
+          action: expect.objectContaining({
+            appendIn: { mailboxIds: ['mailbox-work'] },
+            markAsSeen: true
+          })
+        })
+      ])
+    })
   })
 
   it('creates a rule forwarding to valid addresses', async () => {

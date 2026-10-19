@@ -354,10 +354,28 @@ function forwardProblem(action: RuleActionDraft): RuleProblem | null {
     : 'rules.errors.invalidForwardAddress'
 }
 
-/** What stops a draft from being saved, beyond its fields (tmail-flutter) */
+/**
+ * Whether a `move` action has no folder to move to: none picked, or one
+ * that is not among `folderIds` (deleted since the rule was saved,
+ * tmail-flutter#2668); `folderIds` null when the folders are not known yet
+ */
+export function isMoveWithoutFolder(
+  action: RuleActionDraft,
+  folderIds: ReadonlySet<string> | null = null
+): boolean {
+  if (action.kind !== 'move') return false
+  if (!action.mailboxId) return true
+  return folderIds !== null && !folderIds.has(action.mailboxId)
+}
+
+/**
+ * What stops a draft from being saved, beyond its fields (tmail-flutter);
+ * `folderIds`: the folders of the account, to refuse a move to a deleted one
+ */
 export function ruleDraftProblem(
   draft: RuleDraft,
-  spamId: string | null
+  spamId: string | null,
+  folderIds: ReadonlySet<string> | null = null
 ): RuleProblem | null {
   if (draft.conditions.length === 0) return 'rules.errors.noCondition'
   const headerProblem =
@@ -366,7 +384,7 @@ export function ruleDraftProblem(
   if (headerProblem !== null) return headerProblem
   const actions = draft.actions.filter(action => action.kind !== null)
   if (actions.length === 0) return 'rules.errors.noAction'
-  if (actions.some(action => action.kind === 'move' && !action.mailboxId)) {
+  if (actions.some(action => isMoveWithoutFolder(action, folderIds))) {
     return 'rules.errors.noFolder'
   }
   if (actions.some(action => action.kind === 'spam') && spamId === null) {

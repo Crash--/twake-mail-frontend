@@ -4,6 +4,7 @@ import {
   actionDraft,
   draftFromRule,
   headerField,
+  isMoveWithoutFolder,
   isValidHeaderName,
   moveRule,
   newRuleDraft,
@@ -180,6 +181,25 @@ describe('rules', () => {
         action: ARCHIVE_RULE.action
       }
     ])
+  })
+
+  it('refuses a move to a folder deleted since (tmail-flutter#2668)', () => {
+    const gone = actionDraft('move', { mailboxId: 'mailbox-gone' })
+    const kept = actionDraft('move', { mailboxId: 'mailbox-archive' })
+    const folders = new Set(['mailbox-archive'])
+    expect(isMoveWithoutFolder(gone, folders)).toBe(true)
+    expect(isMoveWithoutFolder(kept, folders)).toBe(false)
+    expect(isMoveWithoutFolder(actionDraft('move'), null)).toBe(true)
+    // The folders not loaded yet: the folder is taken as it is
+    expect(isMoveWithoutFolder(gone, null)).toBe(false)
+    expect(isMoveWithoutFolder(actionDraft('seen'), folders)).toBe(false)
+    const draft = newRuleDraft('x@example.com')
+    expect(ruleDraftProblem({ ...draft, actions: [gone] }, SPAM, folders)).toBe(
+      'rules.errors.noFolder'
+    )
+    expect(ruleDraftProblem({ ...draft, actions: [kept] }, SPAM, folders)).toBe(
+      null
+    )
   })
 
   it('names what keeps a draft from being saved', () => {

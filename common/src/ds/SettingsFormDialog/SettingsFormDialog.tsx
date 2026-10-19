@@ -681,7 +681,14 @@ export interface SettingsFormFieldButtonProps {
   /** Its accessible name */
   label: string
   onClick: () => void
-  hasError?: boolean
+  /**
+   * What is wrong with it, written in red under it and tied to it
+   * (`aria-describedby`, `aria-invalid`); null for nothing
+   */
+  error?: string | null
+  /** The id of the error text, when there is one */
+  errorId?: string
+  buttonRef?: Ref<HTMLButtonElement>
   'data-testid'?: string
 }
 
@@ -691,33 +698,61 @@ export function SettingsFormFieldButton({
   hint,
   label,
   onClick,
-  hasError = false,
+  error = null,
+  errorId,
+  buttonRef,
   'data-testid': testId
 }: SettingsFormFieldButtonProps): ReactElement {
+  const hasError = error !== null
+  // Always in the same box, the error under the field, so that the button
+  // keeps the focus when the error shows
   return (
-    <ButtonBase
-      onClick={onClick}
-      aria-label={value === null ? label : `${label}: ${value}`}
+    <Box
       sx={{
-        ...FIELD_BUTTON_SX,
-        color: value === null ? TMAIL.grey757 : TMAIL.textBlack,
-        ...(hasError ? { borderColor: TMAIL.error } : {})
+        flex: '1 1 0',
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column'
       }}
-      data-testid={testId}
     >
-      <Box
-        component="span"
+      <ButtonBase
+        ref={buttonRef}
+        onClick={onClick}
+        aria-label={value === null ? label : `${label}: ${value}`}
+        aria-invalid={hasError ? true : undefined}
+        aria-describedby={hasError ? errorId : undefined}
         sx={{
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap'
+          ...FIELD_BUTTON_SX,
+          flex: 'none',
+          width: '100%',
+          color: value === null ? TMAIL.grey757 : TMAIL.textBlack,
+          ...(hasError ? { borderColor: TMAIL.error } : {})
         }}
+        data-testid={testId}
       >
-        {value ?? hint}
-      </Box>
-      <Box component="span" sx={{ display: 'flex', color: TMAIL.grey }}>
-        <Icon icon={Dropdown} size={16} aria-hidden="true" />
-      </Box>
-    </ButtonBase>
+        <Box
+          component="span"
+          sx={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {value ?? hint}
+        </Box>
+        <Box component="span" sx={{ display: 'flex', color: TMAIL.grey }}>
+          <Icon icon={Dropdown} size={16} aria-hidden="true" />
+        </Box>
+      </ButtonBase>
+      {hasError ? (
+        <Typography
+          id={errorId}
+          variant="caption"
+          sx={{ color: TMAIL.error, mt: '3px', mx: '14px' }}
+        >
+          {error}
+        </Typography>
+      ) : null}
+    </Box>
   )
 }

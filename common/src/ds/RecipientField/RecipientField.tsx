@@ -206,6 +206,11 @@ const OUTLINED_SX = {
 } as const
 const OUTLINED_OVER_SX = { ...OUTLINED_SX, borderColor: TMAIL.primary } as const
 const OUTLINED_CONTENT_SX = { ...CONTENT_SX, minHeight: 32 } as const
+/** An outlined field refused by its form: the border says it in red */
+const OUTLINED_ERROR_SX = {
+  borderColor: TMAIL.error,
+  '&:focus-within': { borderColor: TMAIL.error }
+} as const
 
 /** An invalid tag, as tmail-flutter's: white, with a red border */
 export const INVALID_CHIP_SX = {
@@ -353,6 +358,12 @@ export interface RecipientFieldProps {
   inputId?: string
   /** Shown in the empty input while there are no chips */
   placeholder?: string
+  /**
+   * Refused by its form (`aria-invalid`, a red border in the outlined
+   * look), `describedBy` naming the element saying why
+   */
+  hasError?: boolean
+  describedBy?: string
   testIds?: {
     field?: string
     input?: string
@@ -404,6 +415,8 @@ export function RecipientField({
   look = 'line',
   inputId: givenInputId,
   placeholder,
+  hasError = false,
+  describedBy,
   testIds = {}
 }: RecipientFieldProps): ReactElement {
   const id = useId()
@@ -818,9 +831,10 @@ export function RecipientField({
         aria-labelledby={labelId}
         sx={
           look === 'outlined'
-            ? isDropOver
-              ? OUTLINED_OVER_SX
-              : OUTLINED_SX
+            ? [
+                isDropOver ? OUTLINED_OVER_SX : OUTLINED_SX,
+                hasError ? OUTLINED_ERROR_SX : false
+              ]
             : isDropOver
               ? { ...LINE_SX, ...DROP_OVER_SX }
               : LINE_SX
@@ -963,6 +977,8 @@ export function RecipientField({
               'aria-expanded': isShown,
               'aria-controls': isShown ? listboxId : undefined,
               'aria-autocomplete': 'list',
+              'aria-invalid': hasError || undefined,
+              'aria-describedby': describedBy,
               'aria-activedescendant':
                 active === null ? undefined : optionId(active.id),
               autoComplete: 'off',

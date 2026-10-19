@@ -1,5 +1,11 @@
 import { Icon } from '@linagora/twake-icons'
-import { Alert, Box, Button, Tooltip } from '@linagora/twake-mui'
+import {
+  Alert,
+  Box,
+  Button,
+  FormHelperText,
+  Tooltip
+} from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   useId,
@@ -18,6 +24,8 @@ import {
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
+import type { RecipientFieldActions } from '@/ds/RecipientField/RecipientField'
 import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
 import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {
@@ -26,17 +34,14 @@ import {
   SettingsRecipientCard
 } from '@/ds/SettingsCards/SettingsCards'
 import {
-  SettingsLabelPill,
-  SettingsTextField
+  SettingsFieldSlot,
+  SettingsLabelPill
 } from '@/ds/SettingsFields/SettingsFields'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useAppConfig } from '@common/config/AppConfigProvider'
-import {
-  isValidEmail,
-  parseRecipients
-} from '@common/features/composer/recipients'
+import { isValidEmail } from '@common/features/composer/recipients'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -46,6 +51,11 @@ import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import {
+  emailsOf,
+  ForwardRecipientField,
+  mergeEmails
+} from './ForwardRecipientField'
 import {
   domainOf,
   forwardKeys,
@@ -59,7 +69,8 @@ export interface ForwardSettingsProps {
 
 /**
  * Settings > Forwarding (`Forward/get`, `Forward/set`), as tmail-flutter:
- * the addresses every email goes to, added after a warning when they are
+ * the addresses every email goes to, picked among the contacts suggested
+ * (one or several at once, a single `Forward/set`), added after a warning when they are
  * outside the domain of the account (never the account's own address),
  * removed after a confirmation, and "Keep a copy in Inbox" once there is
  * one. The warning of the deployment (`FORWARD_WARNING_MESSAGE`) replaces
@@ -76,13 +87,17 @@ export function ForwardSettings({
   const confirm = useConfirm()
   const configuredWarning = useAppConfig()?.forwardWarningMessage ?? null
   const query = useQuery(forwardQueryOptions(client, accountId))
-  const inputRef = useRef<HTMLInputElement>(null)
+  const fieldRef = useRef<RecipientFieldActions>(null)
+  const inputId = useId()
+  const problemId = useId()
   const formRef = useRef<HTMLFormElement>(null)
   const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
   const [selected, setSelected] = useState<readonly string[]>([])
   const recipientsTitleId = useId()
   const isPhone = useScreenSize() === 'mobile'
   const [typed, setTyped] = useState('')
+  /** The addresses entered, as tags, not added yet */
+  const [pending, setPending] = useState<readonly string[]>([])
   const [problem, setProblem] = useState<TranslationKey | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const ownDomain = domainOf(session.username)
@@ -133,26 +148,30 @@ export function ForwardSettings({
     const active = document.activeElement
     const isLost = active === null || active === document.body
     if (isLost || formRef.current?.contains(active) === true) {
-      inputRef.current?.focus()
+      fieldRef.current?.focus()
     }
   }
 
   const handleAdd = (event: SubmitEvent): void => {
     event.preventDefault()
-    const emails = parseRecipients(typed).map(recipient => recipient.email)
+    // The tags, and what is still typed (Enter on an address not yet a tag)
+    const emails = mergeEmails(pending, emailsOf(typed))
+    const refuse = (reason: TranslationKey): void => {
+      setPending(emails)
+      setTyped('')
+      setProblem(reason)
+      fieldRef.current?.focus()
+    }
     if (emails.length === 0) {
-      setProblem('forward.errors.empty')
-      inputRef.current?.focus()
+      refuse('forward.errors.empty')
       return
     }
     if (emails.some(email => !isValidEmail(email))) {
-      setProblem('forward.errors.invalid')
-      inputRef.current?.focus()
+      refuse('forward.errors.invalid')
       return
     }
     if (emails.some(isOwnAddress)) {
-      setProblem('forward.errors.ownAddress')
-      inputRef.current?.focus()
+      refuse('forward.errors.ownAddress')
       return
     }
     const added = emails.filter(
@@ -173,7 +192,10 @@ export function ForwardSettings({
         'forward.toasts.added',
         'forward.errors.add'
       )
-      if (isSaved) setTyped('')
+      if (isSaved) {
+        setPending([])
+        setTyped('')
+      }
     }
     run()
       .catch((error: unknown) => {
@@ -301,22 +323,41 @@ export function ForwardSettings({
             : 'u-flex u-flex-items-start u-flex-wrap'
         }
       >
-        <SettingsTextField
+        <SettingsFieldSlot
+          isFullWidth={isPhone}
           className={isPhone ? 'u-mb-1' : 'u-mr-1 u-mb-half'}
-          width={isPhone ? '100%' : undefined}
-          inputRef={inputRef}
-          label={t('forward.inputLabel')}
-          placeholder={t('forward.inputPlaceholder')}
-          value={typed}
-          onChange={event => {
-            setTyped(event.target.value)
-            setProblem(null)
-          }}
-          error={problem !== null}
-          helperText={problem === null ? undefined : t(problem)}
-          inputMode="email"
-          inputTestId="forward-input"
-        />
+        >
+          {/* The placeholder shows, the name of the field is said */}
+          <label htmlFor={inputId} className="u-visuallyhidden">
+            {t('forward.inputLabel')}
+          </label>
+          <ForwardRecipientField
+            inputId={inputId}
+            values={pending}
+            onChange={values => {
+              setPending(values)
+              setProblem(null)
+            }}
+            inputValue={typed}
+            onInputChange={value => {
+              setTyped(value)
+              setProblem(null)
+            }}
+            forwards={forwards}
+            hasError={problem !== null}
+            describedBy={problem === null ? undefined : problemId}
+            actions={fieldRef}
+          />
+          {problem === null ? null : (
+            <FormHelperText
+              error
+              id={problemId}
+              data-testid="forward-input-error"
+            >
+              {t(problem)}
+            </FormHelperText>
+          )}
+        </SettingsFieldSlot>
         <SettingsPrimaryButton
           type="submit"
           label={t('forward.add')}
@@ -330,6 +371,12 @@ export function ForwardSettings({
         <>
           {/* As tmail-flutter: "Select all", or once some are selected the
               cross leaving the selection with how many, and "Remove" */}
+          {/* The number selected, said as it changes (RGAA 7.5) */}
+          <LiveRegion data-testid="forward-selection-status">
+            {selection.length > 0
+              ? t('forward.selectedCount', { count: selection.length })
+              : null}
+          </LiveRegion>
           <SettingsListHeader>
             {selection.length > 0 ? (
               <SettingsHeaderButton

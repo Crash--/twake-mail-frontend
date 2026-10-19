@@ -90,4 +90,89 @@ test.describe('SET forwarding', () => {
       })
       .toMatchObject({ forwards: [] })
   })
+
+  test(
+    'SET-18 forwarding to a suggested contact and a pasted list at once, then removing a selection',
+    { tag: '@mobile' },
+    async ({ page, user, jmap, webadmin }) => {
+      const stamp = Date.now()
+      const zelda = `zelda-${stamp}@example.com`
+      const bob = `bob-${stamp}@example.com`
+      const carol = `carol-${stamp}@example.com`
+      await webadmin.createDomainContact('example.com', {
+        emailAddress: zelda,
+        firstname: 'Zelda',
+        surname: `Forward${stamp}`
+      })
+      try {
+        const mailbox = await new LoginPage(page).loginAs(user)
+        const settings = await mailbox.openSettings()
+        await settings.open('forwarding')
+
+        // Contacts of the domain are suggested as the user types
+        await settings.forwardInput.click()
+        await page.keyboard.type(`Forward${stamp}`)
+        const suggestions = page.getByTestId('forward-suggestions')
+        await expect(
+          suggestions.getByRole('option', { name: /Zelda/ })
+        ).toBeVisible()
+        await expectNoA11yViolations(page)
+        await page.keyboard.press('Enter')
+        // A list typed (or pasted) becomes tags, an invalid one named so
+        await page.keyboard.type(`${bob}, ${carol}; wrong,`)
+        const chips = page.getByTestId('forward-recipient-chip')
+        await expect(chips).toHaveText([zelda, bob, carol, 'wrong'])
+        await expect(chips.last()).toHaveAccessibleName(
+          'wrong, invalid address'
+        )
+        await page.getByTestId('forward-add-button').click()
+        await expect(page.getByTestId('forward-input-error')).toHaveText(
+          'Incorrect email format'
+        )
+        await expect(settings.forwardInput).toHaveAccessibleDescription(
+          'Incorrect email format'
+        )
+        await expect(settings.forwardItems).toHaveCount(0)
+
+        // Without the invalid one, one "Add recipient" adds all three
+        await chips.last().click()
+        await page.keyboard.press('Delete')
+        await expect(chips).toHaveCount(3)
+        await page.getByTestId('forward-add-button').click()
+        await expect(settings.toast).toContainText('added to the recipient list')
+        await expect(settings.forwardItems).toHaveCount(3)
+        await expect(chips).toHaveCount(0)
+
+        // Two selected, the count said, removed with one confirmation
+        const checkbox = (email: string) =>
+          page.getByRole('checkbox', { name: `Select ${email}` })
+        await checkbox(zelda).click()
+        await checkbox(bob).focus()
+        await page.keyboard.press('Space')
+        await expect(checkbox(bob)).toBeChecked()
+        await expect(page.getByTestId('forward-selection-status')).toHaveText(
+          '2 selected'
+        )
+        await expectNoA11yViolations(page)
+        await page.getByTestId('forward-remove-selected-button').click()
+        await settings.confirmDialog
+          .getByTestId('confirm-dialog-confirm-button')
+          .click()
+        await expect(settings.forwardItems).toHaveCount(1)
+        await expect(settings.forwardItems).toContainText([carol])
+        await expect
+          .poll(async () => {
+            const result = await jmap.call(
+              'Forward/get',
+              { ids: ['singleton'] },
+              [FORWARD]
+            )
+            return (result.list as unknown[])[0]
+          })
+          .toMatchObject({ forwards: [carol], localCopy: true })
+      } finally {
+        await webadmin.deleteDomainContact('example.com', zelda)
+      }
+    }
+  )
 })

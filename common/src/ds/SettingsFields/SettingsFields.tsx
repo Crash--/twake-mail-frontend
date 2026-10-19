@@ -546,3 +546,30 @@ export function SettingsFormRow({
     </Box>
   )
 }
+
+export interface SettingsFieldSlotProps {
+  /** As wide as a large `SettingsTextField` (404 px), or the whole row */
+  isFullWidth?: boolean
+  className?: string
+  children: ReactNode
+}
+
+/**
+ * Room for a field of another kind (e.g. a `RecipientField`) on a row of
+ * the settings, as wide as their text fields; it grows with what it holds,
+ * never wider than the row
+ */
+export function SettingsFieldSlot({
+  isFullWidth = false,
+  className,
+  children
+}: SettingsFieldSlotProps): ReactElement {
+  return (
+    <Box
+      className={className}
+      sx={{ width: isFullWidth ? '100%' : 404, maxWidth: '100%', minWidth: 0 }}
+    >
+      {children}
+    </Box>
+  )
+}

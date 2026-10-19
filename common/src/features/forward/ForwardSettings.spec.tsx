@@ -10,7 +10,8 @@ import {
 } from '@common/features/settings/sections'
 import {
   FAKE_USERNAME,
-  makeFakeJmapServer
+  makeFakeJmapServer,
+  type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import {
   FAKE_LINAGORA_CAPABILITIES,
@@ -42,9 +43,26 @@ function withWarning(ui: ReactElement, message: string): ReactElement {
 function setup(
   forwards: string[] = [],
   warning: string | null = null
-): ReturnType<typeof installFakeForward> {
+): ReturnType<typeof installFakeForward> & { server: FakeJmapServer } {
   const server = makeFakeJmapServer({
-    capabilities: FAKE_LINAGORA_CAPABILITIES
+    capabilities: {
+      ...FAKE_LINAGORA_CAPABILITIES,
+      'com:linagora:params:jmap:contact:autocomplete': { minInputLength: 1 }
+    },
+    contacts: [
+      {
+        id: 'c1',
+        firstname: 'Zelda',
+        surname: 'Contact',
+        emailAddress: 'zelda@example.com'
+      },
+      {
+        id: 'c2',
+        firstname: 'Zack',
+        surname: 'Forwarded',
+        emailAddress: 'zack@example.com'
+      }
+    ]
   })
   const fake = installFakeForward(server, { forwards })
   const ui = <ForwardSettings section={forwardingSection()} />
@@ -52,14 +70,14 @@ function setup(
     jmapServer: server,
     withJmapSession: true
   })
-  return fake
+  return { ...fake, server }
 }
 
 describe('ForwardSettings', () => {
   it('adds an address of the domain, then offers to keep a copy', async () => {
     const fake = setup()
 
-    const input = await screen.findByRole('textbox', { name: 'New recipient' })
+    const input = await screen.findByRole('combobox', { name: 'New recipient' })
     expect(screen.queryByRole('switch')).toBe(null)
     await userEvent.type(input, 'bob@example.com')
     await userEvent.click(screen.getByTestId('forward-add-button'))
@@ -88,13 +106,13 @@ describe('ForwardSettings', () => {
     const fake = setup()
 
     await userEvent.type(
-      await screen.findByRole('textbox', { name: 'New recipient' }),
+      await screen.findByRole('combobox', { name: 'New recipient' }),
       'not-an-address'
     )
     await userEvent.click(screen.getByTestId('forward-add-button'))
 
     expect(
-      screen.getByRole('textbox', { name: 'New recipient' })
+      screen.getByRole('combobox', { name: 'New recipient' })
     ).toHaveAccessibleDescription('Incorrect email format')
     expect(fake.forward()).toMatchObject({ forwards: [] })
   })
@@ -103,13 +121,13 @@ describe('ForwardSettings', () => {
     const fake = setup()
 
     await userEvent.type(
-      await screen.findByRole('textbox', { name: 'New recipient' }),
+      await screen.findByRole('combobox', { name: 'New recipient' }),
       FAKE_USERNAME.toUpperCase()
     )
     await userEvent.click(screen.getByTestId('forward-add-button'))
 
     expect(
-      screen.getByRole('textbox', { name: 'New recipient' })
+      screen.getByRole('combobox', { name: 'New recipient' })
     ).toHaveAccessibleDescription(
       'You cannot forward your emails to your own address'
     )
@@ -120,7 +138,7 @@ describe('ForwardSettings', () => {
     const fake = setup([], 'Forwarding outside is forbidden by the charter.')
 
     await userEvent.type(
-      await screen.findByRole('textbox', { name: 'New recipient' }),
+      await screen.findByRole('combobox', { name: 'New recipient' }),
       'me@gmail.com'
     )
     await userEvent.click(screen.getByTestId('forward-add-button'))
@@ -203,5 +221,85 @@ describe('ForwardSettings', () => {
     expect(
       await screen.findByRole('button', { name: 'Select all' })
     ).toBeVisible()
+  })
+
+  it('suggests contacts, adds several addresses at once with one Forward/set', async () => {
+    const fake = setup(['zack@example.com'])
+    const calls = (): number =>
+      fake.server.calledMethods().filter(name => name === 'Forward/set').length
+
+    const input = await screen.findByRole('combobox', {
+      name: 'New recipient'
+    })
+    await userEvent.type(input, 'z')
+    const listbox = await screen.findByRole('listbox', {
+      name: 'Contact suggestions'
+    })
+    // Already forwarded to: ticked, as tmail-flutter
+    expect(
+      within(listbox).getByRole('option', { name: /Zack Forwarded/ })
+    ).toHaveAccessibleName(/already added/)
+    await userEvent.click(
+      within(listbox).getByRole('option', { name: /Zelda Contact/ })
+    )
+    expect(
+      screen.getByRole('button', { name: 'zelda@example.com' })
+    ).toBeVisible()
+
+    await userEvent.type(input, 'bob@example.com, carol@example.com,')
+    await userEvent.click(screen.getByTestId('forward-add-button'))
+
+    await waitFor(() => {
+      expect(fake.forward()).toMatchObject({
+        forwards: [
+          'zack@example.com',
+          'zelda@example.com',
+          'bob@example.com',
+          'carol@example.com'
+        ],
+        localCopy: true
+      })
+    })
+    expect(calls()).toBe(1)
+    await waitFor(() => {
+      expect(screen.queryAllByTestId('forward-recipient-chip')).toHaveLength(0)
+    })
+  })
+
+  it('names the invalid addresses of a pasted list and adds none', async () => {
+    const fake = setup()
+
+    const input = await screen.findByRole('combobox', {
+      name: 'New recipient'
+    })
+    await userEvent.click(input)
+    await userEvent.paste('bob@example.com; not-an-address')
+    expect(
+      screen.getByRole('button', { name: 'not-an-address, invalid address' })
+    ).toBeVisible()
+    await userEvent.click(screen.getByTestId('forward-add-button'))
+
+    expect(input).toHaveAccessibleDescription('Incorrect email format')
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(fake.forward()).toMatchObject({ forwards: [] })
+  })
+
+  it('announces how many recipients are selected', async () => {
+    setup(['bob@example.com', 'carol@example.com'])
+
+    await userEvent.click(
+      await screen.findByRole('checkbox', { name: 'Select bob@example.com' })
+    )
+    expect(screen.getByTestId('forward-selection-status')).toHaveTextContent(
+      '1 selected'
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Select all' }))
+    expect(screen.getByTestId('forward-selection-status')).toHaveTextContent(
+      '2 selected'
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Deselect all (2)' })
+    )
+    expect(screen.getByTestId('forward-selection-status')).toHaveTextContent('')
   })
 })

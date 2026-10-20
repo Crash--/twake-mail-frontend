@@ -39,6 +39,13 @@
     "help": "Ottieni aiuto o segnala un bug",
     "account": "Account %{address}"
   },
+  "assistant": {
+    "open": "Assistente IA",
+    "panel": "Assistente",
+    "frameTitle": "Twake Assistant",
+    "loading": "Apertura dell’assistente…",
+    "error": "Impossibile aprire l’assistente."
+  },
   "sidebar": {
     "mailboxes": "Caselle di posta",
     "newMessage": "Componi",

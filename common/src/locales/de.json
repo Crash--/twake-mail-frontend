@@ -39,6 +39,13 @@
     "help": "Hilfe erhalten oder Fehler melden",
     "account": "Konto %{address}"
   },
+  "assistant": {
+    "open": "KI-Assistent",
+    "panel": "Assistent",
+    "frameTitle": "Twake Assistant",
+    "loading": "Assistent wird geöffnet…",
+    "error": "Der Assistent konnte nicht geöffnet werden."
+  },
   "sidebar": {
     "mailboxes": "Postfächer",
     "newMessage": "Verfassen",

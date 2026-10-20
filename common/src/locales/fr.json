@@ -39,6 +39,13 @@
     "help": "Obtenez de l'aide ou signalez un bogue",
     "account": "Compte %{address}"
   },
+  "assistant": {
+    "open": "Assistant IA",
+    "panel": "Assistant",
+    "frameTitle": "Twake Assistant",
+    "loading": "Ouverture de l’assistant…",
+    "error": "L’assistant n’a pas pu être ouvert."
+  },
   "sidebar": {
     "mailboxes": "Boîtes aux lettres",
     "newMessage": "Rédiger",

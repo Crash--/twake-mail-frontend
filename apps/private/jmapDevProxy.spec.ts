@@ -68,7 +68,8 @@ describe('makeJmapDevProxy', () => {
           '/upload',
           '/download',
           '/eventSource',
-          '/.well-known/jmap'
+          '/.well-known/jmap',
+          '/ai'
         ],
         target: 'http://127.0.0.1:18300',
         ws: true

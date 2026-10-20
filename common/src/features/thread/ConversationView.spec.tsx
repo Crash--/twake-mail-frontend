@@ -951,7 +951,54 @@ describe('ConversationView, an expanded message', () => {
     ).toBeVisible()
   })
 
-  it('shows its own labels, the × taking one off that message only', async () => {
+  it('shows the labels of a one-message conversation once, with one ×, on the line of its subject (#668)', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES,
+      emails: [
+        makeEmailWithBody(
+          {
+            id: 'solo',
+            threadId: THREAD,
+            subject: 'Quarterly report draft',
+            from: [{ name: 'Dan', email: 'dan@example.com' }],
+            keywords: { $seen: true, work: true, home: true }
+          },
+          { text: 'Body of solo' }
+        )
+      ]
+    })
+    installFakeLabels(server, [
+      { id: 'l1', displayName: 'Work', keyword: 'work', color: null },
+      { id: 'l2', displayName: 'Home', keyword: 'home', color: null }
+    ])
+    renderWithProviders(
+      <LabelActionsProvider>
+        <ConversationView threadId={THREAD} emailId="solo" onBack={jest.fn()} />
+      </LabelActionsProvider>,
+      { withJmapSession: true, jmapServer: server }
+    )
+    const header = await screen.findByTestId('conversation-header')
+    await within(header).findByRole('button', {
+      name: 'Remove the label Work'
+    })
+    await screen.findByRole('region', { name: /Dan/ })
+
+    for (const name of ['Work', 'Home']) {
+      expect(
+        screen.getAllByRole('button', { name: `Remove the label ${name}` })
+      ).toHaveLength(1)
+    }
+    expect(screen.getAllByTestId('label-chip')).toHaveLength(2)
+
+    await userEvent.click(
+      within(header).getByRole('button', { name: 'Remove the label Work' })
+    )
+    await waitFor(() => {
+      expect(server.emails[0]?.keywords).toEqual({ $seen: true, home: true })
+    })
+  })
+
+  it('shows the labels of its messages on the line of the subject only, not in an expanded message, as tmail-flutter', async () => {
     const server = makeServer(FAKE_LINAGORA_CAPABILITIES)
     installFakeLabels(server, [
       { id: 'l1', displayName: 'Work', keyword: 'work', color: null }
@@ -967,23 +1014,16 @@ describe('ConversationView, an expanded message', () => {
       </LabelActionsProvider>,
       { withJmapSession: true, jmapServer: server }
     )
+    const header = await screen.findByTestId('conversation-header')
+    await within(header).findByRole('button', {
+      name: 'Remove the label Work'
+    })
     const dan = await screen.findByRole('region', { name: /Dan/ })
 
-    await userEvent.click(
-      await within(dan).findByRole('button', {
-        name: 'Remove the label Work'
-      })
-    )
-
-    await waitFor(() => {
-      expect(server.emails.find(email => email.id === 'c')?.keywords).toEqual({
-        $seen: true
-      })
-    })
-    expect(server.emails.find(email => email.id === 'b')?.keywords).toEqual({
-      $seen: true,
-      work: true
-    })
+    expect(within(dan).queryByTestId('label-chip')).toBe(null)
+    expect(
+      screen.getAllByRole('button', { name: 'Remove the label Work' })
+    ).toHaveLength(1)
   })
 
   it('keeps the "Action required" tag on its message, not on the line of the subject', async () => {

@@ -174,14 +174,14 @@ Conventions:
 | `folder-visibility-personal` / `folder-visibility-team` / `folder-visibility-item` (`data-mailbox-name`, `data-hidden`) + `folder-visibility-toggle` | Settings > Folder visibility | `MailboxVisibilityView` |
 | `email-list-item-thread-count` | number of messages of a conversation row, "(3)" (absent for one email) | — |
 | `conversation-view` | an email shown with its conversation | `ThreadDetailView` |
-| `conversation-header` | its subject, labels (`label-chip`, × takes one off every email of the conversation) and count | — |
+| `conversation-header` | its subject, labels (`label-chip`, the labels of all its emails, shown only here, once, as tmail-flutter (issue #668); × takes one off every email of the conversation) and count | `EmailSubjectWidget` of the first email |
 | `conversation-subject` / `conversation-count` | its subject (`h1`) and "N messages" | — |
 | `conversation-toolbar` | the actions of the conversation (back, read, star, archive…), sticky at the top of the scrolling area | — |
 | `conversation` | the messages (`ol` named "Messages of the conversation") | — |
 | `conversation-message` | a message (`data-expanded`) | `ThreadDetailCollapsedEmail`, `EmailView` |
 | `conversation-message-toggle` | its header, a button (`aria-expanded`); ArrowUp / ArrowDown / Home / End move between them | — |
 | `conversation-message-from` / `conversation-message-preview` / `conversation-message-unread` | in the header: sender name, preview (collapsed), unread marker | — |
-| `conversation-message-sender` / `conversation-message-to` / `conversation-message-cc` / `conversation-message-bcc` | in an expanded message: "From:" with the address menu (`email-address`), recipients; then its actions (`email-view-actions`), its labels (`label-chip`, × takes one off this message) | `EmailView` of the thread detail |
+| `conversation-message-sender` / `conversation-message-to` / `conversation-message-cc` / `conversation-message-bcc` | in an expanded message: "From:" with the address menu (`email-address`), recipients; then its actions (`email-view-actions`); no label chips (they are in `conversation-header`, issue #668) | `EmailView` of the thread detail |
 | `conversation-toggle-seen` / `conversation-toggle-star` | mark the conversation read or unread, star or unstar it (`aria-pressed`) | `thread_detail_app_bar` buttons |
 | `email-view-back-button` / `email-view-body` | back to the list, the body of an expanded message | same ids as the reading view |
 | `conversation-message-draft` | the "Draft" marker of a draft of the conversation | — |

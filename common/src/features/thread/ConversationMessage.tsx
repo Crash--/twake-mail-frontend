@@ -50,7 +50,6 @@ import { useReadReceiptRequest } from '@common/features/email/useReadReceiptRequ
 import { useUnsubscribe } from '@common/features/email/useUnsubscribe'
 import type { EmailActionId } from '@common/features/emailActions/emailActionItems'
 import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredTag'
-import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
@@ -205,9 +204,11 @@ function ExpandedSender({
 
 /**
  * The content of an expanded message: its sender (with the address menu),
- * recipients, labels and body, as the single email view has them; the
- * answers are in the bar at the bottom of the conversation, and its actions
- * beside its header
+ * recipients and body, as the single email view has them; the answers are
+ * in the bar at the bottom of the conversation, and its actions beside its
+ * header. Its labels are not repeated here: as tmail-flutter (only the
+ * `EmailSubjectWidget` of the first email of the thread detail shows them),
+ * they are on the line of the subject of the conversation, once (issue #668)
  */
 function ExpandedBody({
   detail,
@@ -261,7 +262,6 @@ function ExpandedBody({
         mailboxId={mailboxId}
         className="u-mt-half"
       />
-      <EmailLabels emails={[detail]} mailboxId={mailboxId} />
       <TwpWarningBanners email={detail} mailboxId={mailboxId} />
       <EmailMessageBody
         email={detail}

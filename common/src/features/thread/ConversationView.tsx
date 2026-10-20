@@ -355,6 +355,8 @@ function ConversationContent({
       data-testid="conversation-view"
     >
       <EmailSubjectBar
+        // The labels of the conversation, shown once: not again in its
+        // expanded messages, as tmail-flutter (issue #668)
         end={
           <EmailLabels
             emails={emails}

@@ -415,7 +415,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `LBL-10` With one existing label ("Existing Label 1", applied to an email), selecting that email and opening "Label as" shows the label list (no empty state) plus a "Create a label" button; creating a new label from it shows the success toast and the new label in the list. — `labels/create_label_from_choose_label_modal_with_existing_labels_test.dart` · tags: `ios (default)`
 - [x] `LBL-11` With "Remove Tag 1" applied to one email, opening that label from the sidebar and then the email shows the label chip next to the subject; clicking the chip's remove (×) button shows the toast `Label "Remove Tag 1" removed from email`. — `labels/remove_a_label_from_email_test.dart` · tags: `ios (default)`
 - [x] `LBL-12` In the conversation view (on by default), the conversation shows the label of one of its emails under its subject; its × takes the label off that email. — web app only, no Patrol test
-- [x] `LBL-13` An expanded message of a conversation shows its own labels; the × of one takes it off that message alone (axe). — web app; tmail-flutter `remove_label_from_email_extension.dart` in the thread detail (issue #46)
+- [x] `LBL-13` A one-message conversation shows each of its labels once, on the line of its subject, with one × (none in the expanded message); the × takes it off the email (axe). — web app; tmail-flutter shows the labels only in the `EmailSubjectWidget` of the first email of the thread detail (issues #46, #668)
   - Spec: `tests/labels.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 
 ## SET — Settings (6)

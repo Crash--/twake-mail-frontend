@@ -349,7 +349,7 @@ test.describe('LBL labels of a conversation', () => {
   })
 
   test(
-    'LBL-13 an expanded message of a conversation shows its own labels, taken off it alone',
+    'LBL-13 a one-message conversation shows each of its labels once, on the line of its subject, not in the message',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       const tag = await jmap.createLabel('Message tag')
@@ -371,15 +371,17 @@ test.describe('LBL labels of a conversation', () => {
       const conversation = new ConversationPage(page)
       await conversation.expectLoaded('Labelled message')
       const message = conversation.messages.first()
-      const chip = conversation.messageLabelChips(message)
-      await expect(chip).toContainText('Message tag')
+      await expect(conversation.labelChips).toContainText('Message tag')
+      // Issue #668: not a second time in the expanded message
+      await expect(conversation.messageLabelChips(message)).toHaveCount(0)
+      const remove = conversation.root.getByRole('button', {
+        name: 'Remove the label Message tag'
+      })
+      await expect(remove).toHaveCount(1)
       await expectNoA11yViolations(page)
 
-      await chip
-        .getByRole('button', { name: 'Remove the label Message tag' })
-        .click()
+      await remove.click()
 
-      await expect(chip).toHaveCount(0)
       await expect(conversation.labelChips).toHaveCount(0)
       await expect
         .poll(async () => (await jmap.getEmail(first.id)).keywords)

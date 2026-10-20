@@ -885,5 +885,11 @@ describe('EmailView', () => {
       await screen.findByTestId('email-view-subject')
       expect(screen.queryByRole('dialog')).toBe(null)
     })
+
+    it('does not ask once an IMAP client sent it ($MDNSent)', async () => {
+      renderView(serverAsking({ $MDNSent: true }))
+      await screen.findByTestId('email-view-subject')
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
   })
 })

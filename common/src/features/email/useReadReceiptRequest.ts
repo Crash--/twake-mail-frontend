@@ -23,9 +23,20 @@ export const MDN_CAPABILITY = 'urn:ietf:params:jmap:mdn'
 export const MDN_SENT = '$mdnsent'
 
 /**
+ * Whether the read receipt of the email was sent, by this app or another
+ * client: keywords are case-insensitive (RFC 8621 §4.1.1), and an IMAP
+ * client sets `$MDNSent` (RFC 3503), which a server may give back as is
+ */
+export function hasMdnSent(email: Pick<EmailDetail, 'keywords'>): boolean {
+  return Object.keys(email.keywords).some(
+    keyword => keyword.toLowerCase() === MDN_SENT
+  )
+}
+
+/**
  * Whether an opened email asks for a read receipt still to send, as
  * tmail-flutter decides (`hasReadReceipt`): it has a
- * `Disposition-Notification-To`, no `$mdnsent`, and is not in Sent nor a
+ * `Disposition-Notification-To`, no `$mdnsent` (whatever its case), and is not in Sent nor a
  * draft (the user asked for a receipt on a message not sent yet).
  */
 export function asksReadReceipt(
@@ -35,7 +46,7 @@ export function asksReadReceipt(
 ): boolean {
   return (
     (email[READ_RECEIPT_HEADER] ?? '').trim() !== '' &&
-    !(MDN_SENT in email.keywords) &&
+    !hasMdnSent(email) &&
     !(DRAFT in email.keywords) &&
     !(sentId !== null && sentId in email.mailboxIds)
   )

@@ -15,6 +15,7 @@ describe('asksReadReceipt', () => {
 
   it.each([
     ['sent already', email({ [MDN_SENT]: true })],
+    ['sent already by an IMAP client', email({ $MDNSent: true })],
     ['in Sent', email({}, { sent: true })],
     ['a draft of the user', email({ $draft: true }, { drafts: true })]
   ])('does not ask for an email %s', (_, candidate) => {

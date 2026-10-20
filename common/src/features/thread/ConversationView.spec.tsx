@@ -1154,6 +1154,65 @@ describe('ConversationView, an expanded message', () => {
         await within(message).findByTestId('email-view-body')
       ).toBeVisible()
       expect(screen.queryByTestId('email-body-error')).toBe(null)
+      // The banner holding the focus went: the header of the message takes
+      // it, never the page body (#666)
+      await waitFor(() => {
+        expect(toggle(/Dan/)).toHaveFocus()
+      })
+    })
+
+    it('keeps the banner and the focus on Retry while the message still cannot be given (#666)', async () => {
+      const server = makeServer()
+      server.handlers.set('Email/get', args =>
+        args.fetchHTMLBodyValues === true &&
+        Array.isArray(args.ids) &&
+        args.ids.includes('c')
+          ? { error: 'serverFail' }
+          : undefined
+      )
+      await renderConversation(server, { emailId: 'c' })
+      const message = messageOf(/Dan/)
+      const alert = await within(message).findByTestId('email-body-error')
+      const calls = server.callsOf('Email/get').length
+      const release = server.holdRequests('Email/get')
+
+      await userEvent.click(
+        within(alert).getByRole('button', { name: 'Retry' })
+      )
+
+      // While the server answers: the banner stays, not a placeholder
+      await waitFor(() => {
+        expect(server.callsOf('Email/get').length).toBeGreaterThan(calls)
+      })
+      expect(within(message).getByTestId('email-body-error')).toBe(alert)
+      expect(within(alert).getByRole('button', { name: 'Retry' })).toHaveFocus()
+      release()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      // It failed again: still the same banner, the focus still on Retry
+      expect(within(message).getByTestId('email-body-error')).toBe(alert)
+      expect(within(alert).getByRole('button', { name: 'Retry' })).toHaveFocus()
+    })
+
+    it('gives the focus to the header of the message once its retried body shows (#666)', async () => {
+      const server = makeServer()
+      const email = server.emails.find(candidate => candidate.id === 'c')
+      if (email === undefined) throw new Error('no email c')
+      const { bodyValues } = email
+      email.bodyValues = {}
+      await renderConversation(server, { emailId: 'c' })
+      const message = messageOf(/Dan/)
+      const alert = await within(message).findByTestId('email-body-error')
+      email.bodyValues = bodyValues
+
+      within(alert).getByRole('button', { name: 'Retry' }).focus()
+      await userEvent.keyboard('{Enter}')
+
+      expect(
+        await within(message).findByTestId('email-view-body')
+      ).toBeVisible()
+      await waitFor(() => {
+        expect(toggle(/Dan/)).toHaveFocus()
+      })
     })
 
     it('says so when its body comes without value', async () => {

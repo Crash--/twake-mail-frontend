@@ -115,6 +115,44 @@ describe('EmailMessageBody, when the server cannot give the body (tf#3487, #654)
     expect(server.callsOf('Email/get').length).toBeGreaterThan(calls)
   })
 
+  it('gives the focus to the subject once the body replaces the alert, never to the page body (#666)', async () => {
+    const server = makeFakeJmapServer({
+      emails: [emailWith([HTML_PART], {})]
+    })
+    renderView(server)
+    const retry = await screen.findByRole('button', { name: 'Retry' })
+    const [email] = server.emails
+    if (email === undefined) throw new Error('no email')
+    email.bodyValues = { '1': value('<p>The figures of the quarter</p>') }
+
+    retry.focus()
+    await userEvent.keyboard('{Enter}')
+
+    expect(await screen.findByTestId('email-view-body')).toBeVisible()
+    await waitFor(() => {
+      expect(screen.getByTestId('email-view-subject')).toHaveFocus()
+    })
+    expect(document.activeElement).not.toBe(document.body)
+  })
+
+  it('keeps the alert and the focus on Retry when the body still cannot be given (#666)', async () => {
+    const server = makeFakeJmapServer({
+      emails: [emailWith([HTML_PART], {})]
+    })
+    renderView(server)
+    const retry = await screen.findByRole('button', { name: 'Retry' })
+    const calls = server.callsOf('Email/get').length
+
+    await userEvent.click(retry)
+
+    await waitFor(() => {
+      expect(server.callsOf('Email/get').length).toBeGreaterThan(calls)
+    })
+    await new Promise(resolve => setTimeout(resolve, 10))
+    expect(screen.getByTestId('email-body-error')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Retry' })).toHaveFocus()
+  })
+
   it('shows the parts it has under the alert when only some came without value', async () => {
     renderView(
       makeFakeJmapServer({

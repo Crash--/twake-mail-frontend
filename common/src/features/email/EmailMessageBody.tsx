@@ -1,5 +1,5 @@
 import { Box, Divider } from '@linagora/twake-mui'
-import { useMemo, type ReactElement } from 'react'
+import { useMemo, type ReactElement, type RefObject } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { isUnnamedCalendarPart } from '@common/features/calendar/calendarBlobs'
@@ -45,6 +45,11 @@ export interface EmailMessageBodyProps {
    * goes next
    */
   onRemoteContentShown: () => void
+  /**
+   * Where the focus goes when the body a retry brought replaces the error
+   * banner holding it: the subject, or the header of the message
+   */
+  retryFocusTarget: RefObject<HTMLElement | null>
 }
 
 /**
@@ -60,7 +65,8 @@ export interface EmailMessageBodyProps {
  */
 export function EmailMessageBody({
   email,
-  onRemoteContentShown
+  onRemoteContentShown,
+  retryFocusTarget
 }: EmailMessageBodyProps): ReactElement {
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
@@ -191,7 +197,10 @@ export function EmailMessageBody({
       {/* tmail-flutter leaves room between the headers and the body */}
       <Box className="u-mt-1">
         {issues.hasMissingValues ? (
-          <BodyLoadErrorBanner onRetry={handleRetry} />
+          <BodyLoadErrorBanner
+            onRetry={handleRetry}
+            focusTarget={retryFocusTarget}
+          />
         ) : null}
         {bodyView}
       </Box>

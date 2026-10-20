@@ -1,4 +1,4 @@
-import { useCallback, type RefCallback } from 'react'
+import { useCallback, type RefCallback, type RefObject } from 'react'
 
 const FOCUSABLE = [
   'a[href]',
@@ -60,10 +60,27 @@ function isReachable(candidate: HTMLElement): boolean {
 }
 
 /**
- * Focuses the first candidate still in the page, in the tab order and not
- * hidden, that takes the focus; false when none does
+ * Focuses the target when it is in the page and not hidden, out of the
+ * tab order too (a heading with `tabIndex={-1}`); false when it does not
+ * take the focus
  */
-function focusFirst(candidates: HTMLElement[]): boolean {
+function focusTarget(target: HTMLElement | null): boolean {
+  if (target?.isConnected !== true || target.closest(HIDDEN) !== null) {
+    return false
+  }
+  target.focus()
+  return target.ownerDocument.activeElement === target
+}
+
+/**
+ * Focuses the target, else the first candidate still in the page, in the
+ * tab order and not hidden, that takes the focus; false when none does
+ */
+function focusFirst(
+  target: RefObject<HTMLElement | null> | null,
+  candidates: HTMLElement[]
+): boolean {
+  if (focusTarget(target?.current ?? null)) return true
   return candidates.some(candidate => {
     if (!isReachable(candidate)) return false
     candidate.focus()
@@ -79,6 +96,7 @@ function focusFirst(candidates: HTMLElement[]): boolean {
  */
 function restoreFocus(
   ownerDocument: Document,
+  target: RefObject<HTMLElement | null> | null,
   candidates: HTMLElement[],
   dialog: Element | null
 ): void {
@@ -92,7 +110,9 @@ function restoreFocus(
   }
   const tryFocus = (): boolean => {
     if (dialog?.contains(ownerDocument.activeElement) === true) return false
-    if (!isFocusLost(ownerDocument) || focusFirst(candidates)) return true
+    if (!isFocusLost(ownerDocument) || focusFirst(target, candidates)) {
+      return true
+    }
     timeout ??= setTimeout(stop, HIDDEN_PAGE_TIMEOUT_MS)
     return false
   }
@@ -112,42 +132,50 @@ function restoreFocus(
  * drops the focus before the element goes, counts as holding it, as does
  * a dialog it opened (a confirmation) while open, the focus then moving
  * once the dialog has gone. Nothing moves when the focus went elsewhere
- * meanwhile.
+ * meanwhile. With a `target`, the focus goes to it first (read once the
+ * element is gone: what replaced the element may have rendered it), such
+ * as the heading of the content that replaced an error banner.
  */
-export function useFocusFallback<T extends HTMLElement>(): RefCallback<T> {
-  return useCallback((node: T | null): (() => void) | undefined => {
-    if (node === null) return undefined
-    const { ownerDocument } = node
-    let hadFocus = node.contains(ownerDocument.activeElement)
-    /** The dialog the focus left for */
-    let dialog: Element | null = null
-    const handleFocusIn = (): void => {
-      hadFocus = true
-      dialog = null
-    }
-    const handleFocusOut = (event: FocusEvent): void => {
-      const next = event.relatedTarget
-      if (!(next instanceof Element) || node.contains(next)) return
-      hadFocus = false
-      dialog = next.closest(DIALOG)
-    }
-    node.addEventListener('focusin', handleFocusIn)
-    node.addEventListener('focusout', handleFocusOut)
-    return () => {
-      node.removeEventListener('focusin', handleFocusIn)
-      node.removeEventListener('focusout', handleFocusOut)
-      const isInDialog = dialog?.contains(ownerDocument.activeElement) === true
-      const isHolding =
-        node.contains(ownerDocument.activeElement) ||
-        (hadFocus && isFocusLost(ownerDocument)) ||
-        isInDialog
-      if (!isHolding) return
-      const candidates = focusCandidates(node)
-      const openedDialog = isInDialog ? dialog : null
-      // Once the element is gone and the rest of the update rendered
-      setTimeout(() => {
-        restoreFocus(ownerDocument, candidates, openedDialog)
-      }, 0)
-    }
-  }, [])
+export function useFocusFallback<T extends HTMLElement>(
+  target: RefObject<HTMLElement | null> | null = null
+): RefCallback<T> {
+  return useCallback(
+    (node: T | null): (() => void) | undefined => {
+      if (node === null) return undefined
+      const { ownerDocument } = node
+      let hadFocus = node.contains(ownerDocument.activeElement)
+      /** The dialog the focus left for */
+      let dialog: Element | null = null
+      const handleFocusIn = (): void => {
+        hadFocus = true
+        dialog = null
+      }
+      const handleFocusOut = (event: FocusEvent): void => {
+        const next = event.relatedTarget
+        if (!(next instanceof Element) || node.contains(next)) return
+        hadFocus = false
+        dialog = next.closest(DIALOG)
+      }
+      node.addEventListener('focusin', handleFocusIn)
+      node.addEventListener('focusout', handleFocusOut)
+      return () => {
+        node.removeEventListener('focusin', handleFocusIn)
+        node.removeEventListener('focusout', handleFocusOut)
+        const isInDialog =
+          dialog?.contains(ownerDocument.activeElement) === true
+        const isHolding =
+          node.contains(ownerDocument.activeElement) ||
+          (hadFocus && isFocusLost(ownerDocument)) ||
+          isInDialog
+        if (!isHolding) return
+        const candidates = focusCandidates(node)
+        const openedDialog = isInDialog ? dialog : null
+        // Once the element is gone and the rest of the update rendered
+        setTimeout(() => {
+          restoreFocus(ownerDocument, target, candidates, openedDialog)
+        }, 0)
+      }
+    },
+    [target]
+  )
 }

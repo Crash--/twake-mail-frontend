@@ -120,6 +120,8 @@ interface ExpandedBodyProps {
   openedMailboxId: string | null
   onAction: (id: EmailActionId) => void
   onRemoteContentShown: () => void
+  /** The header of the message: takes the focus after a retried body */
+  headerRef: RefObject<HTMLElement | null>
 }
 
 const RECIPIENT_LINES: readonly {
@@ -214,7 +216,8 @@ function ExpandedBody({
   detail,
   openedMailboxId,
   onAction,
-  onRemoteContentShown
+  onRemoteContentShown,
+  headerRef
 }: ExpandedBodyProps): ReactElement {
   useReadReceiptRequest(detail)
   const { data: mailboxes = [] } = useMailboxes()
@@ -266,6 +269,7 @@ function ExpandedBody({
       <EmailMessageBody
         email={detail}
         onRemoteContentShown={onRemoteContentShown}
+        retryFocusTarget={headerRef}
       />
       {isDraft ? (
         <ConversationDraftActions
@@ -283,33 +287,39 @@ interface MessageContentProps {
   openedMailboxId: string | null
   onAction: (id: EmailActionId) => void
   onRemoteContentShown: () => void
+  /** The header of the message: takes the focus after a retried message */
+  headerRef: RefObject<HTMLElement | null>
 }
 
 function MessageContent({
   emailId,
   openedMailboxId,
   onAction,
-  onRemoteContentShown
+  onRemoteContentShown,
+  headerRef
 }: MessageContentProps): ReactElement | null {
   const query = useEmail(emailId)
   const isPhone = useScreenSize() === 'mobile'
-  // About the height of a short message (the line of its recipients, under
-  // the name, and a short text), so that the ones below the one the
-  // conversation opened on do not move when it loads; on a phone the
-  // recipients are under the date rather than pulled up beside the avatar
+  // Never an empty message that would pass for the real one (tf#3487)
+  const errorBanner = (
+    <BodyLoadErrorBanner
+      onRetry={() => {
+        void query.refetch()
+      }}
+      focusTarget={headerRef}
+    />
+  )
   if (query.isPending) {
+    // A retry starts over without data: the banner stays meanwhile, and
+    // the focus on its Retry button when it fails again
+    if (query.errorUpdateCount > 0) return errorBanner
+    // About the height of a short message (the line of its recipients,
+    // under the name, and a short text), so that the ones below the one
+    // the conversation opened on do not move when it loads; on a phone the
+    // recipients are under the date rather than pulled up beside the avatar
     return <Skeleton variant="rounded" height={isPhone ? 108 : 70} />
   }
-  // Never an empty message that would pass for the real one (tf#3487)
-  if (query.isError) {
-    return (
-      <BodyLoadErrorBanner
-        onRetry={() => {
-          void query.refetch()
-        }}
-      />
-    )
-  }
+  if (query.isError) return errorBanner
   if (query.data === null) return null
   return (
     <ExpandedBody
@@ -318,6 +328,7 @@ function MessageContent({
       openedMailboxId={openedMailboxId}
       onAction={onAction}
       onRemoteContentShown={onRemoteContentShown}
+      headerRef={headerRef}
     />
   )
 }
@@ -556,6 +567,7 @@ export function ConversationMessage({
         openedMailboxId={openedMailboxId}
         onAction={handleAction}
         onRemoteContentShown={onRemoteContentShown}
+        headerRef={toggleRef}
       />
     </MessageThreadItem>
   )

@@ -255,6 +255,7 @@ function EmailContent({
         <EmailMessageBody
           email={email}
           onRemoteContentShown={handleRemoteContentShown}
+          retryFocusTarget={subjectRef}
         />
       </Box>
     </ReadingPane>

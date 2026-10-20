@@ -785,6 +785,9 @@ test.describe('EML reading an email', () => {
     const email = new EmailPage(page)
     await expect(email.body()).toContainText('The real content')
     await expect(page.getByTestId('email-body-error')).toHaveCount(0)
+    // The alert went with the focused Retry: the subject takes the focus,
+    // never the page body (#666)
+    await expect(page.getByTestId('email-view-subject')).toBeFocused()
     const notice = page.getByTestId('email-body-truncated')
     await expect(notice).toHaveText(
       /This message is too long to be shown in full\./

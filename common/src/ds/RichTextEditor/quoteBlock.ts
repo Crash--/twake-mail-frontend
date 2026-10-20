@@ -2,7 +2,7 @@
 // edits like the rest of the text, as in tmail-flutter (Summernote), kept
 // apart by its wrapper.
 import { Extension, Node } from '@tiptap/core'
-import type { ResolvedPos } from '@tiptap/pm/model'
+import { Fragment, type ResolvedPos } from '@tiptap/pm/model'
 import { TextSelection, type Transaction } from '@tiptap/pm/state'
 
 import { HTML_BLOCK_ATTRIBUTE } from './htmlBlock'
@@ -32,7 +32,8 @@ function isInBlockquote($position: ResolvedPos, quoteDepth: number): boolean {
  * Enter in the quoted text writes at the level of the message, not in the
  * quote: the quote is cut at the caret, and a paragraph goes between its two
  * halves, as tmail-flutter does. At an end of the quote, the paragraph goes
- * after (or before) it, without an empty half.
+ * after (or before) it, without an empty half. An empty line keeps the
+ * answer apart from each half of the quote it touches (#672).
  */
 export function exitQuote(
   tr: Transaction,
@@ -63,8 +64,17 @@ export function exitQuote(
   const splitDepth = depth - quoteDepth + 1
   if (splitDepth > 0) tr.split(position, splitDepth)
   const boundary = position + Math.max(splitDepth, 0)
-  tr.insert(boundary, paragraph.create())
-  tr.setSelection(TextSelection.create(tr.doc, boundary + 1))
+  const hasQuoteBefore = splitDepth > 0 || isAtEnd
+  const hasQuoteAfter = splitDepth > 0 || !isAtEnd
+  const lines = [
+    ...(hasQuoteBefore ? [paragraph.create()] : []),
+    paragraph.create(),
+    ...(hasQuoteAfter ? [paragraph.create()] : [])
+  ]
+  tr.insert(boundary, Fragment.from(lines))
+  // In the paragraph after the empty line above, when there is one
+  const answer = boundary + (hasQuoteBefore ? 2 : 0) + 1
+  tr.setSelection(TextSelection.create(tr.doc, answer))
   tr.scrollIntoView()
   return true
 }

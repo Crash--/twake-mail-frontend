@@ -117,7 +117,9 @@ describe('Enter in a quote', () => {
     expect(outline(editor)).toEqual([
       'paragraph: Hi',
       'quoteBlock: On Monday, Bob wrote:First',
+      'paragraph: ',
       'paragraph: My answer',
+      'paragraph: ',
       'quoteBlock:  lineSecond line'
     ])
     editor.destroy()
@@ -131,7 +133,7 @@ describe('Enter in a quote', () => {
 
     expect(editor.getHTML()).toBe(
       `<div data-html-block="quote">${CITE}<blockquote><p>One</p><p>Two</p></blockquote></div>` +
-        '<p></p>' +
+        '<p></p><p></p><p></p>' +
         '<div data-html-block="quote"><blockquote><p>Three</p></blockquote></div>'
     )
     expect(editor.state.selection.$from.parent.type.name).toBe('paragraph')
@@ -149,6 +151,7 @@ describe('Enter in a quote', () => {
     expect(outline(editor)).toEqual([
       'paragraph: Hi',
       'quoteBlock: On Monday, Bob wrote:OneTwo',
+      'paragraph: ',
       'paragraph: After'
     ])
     editor.destroy()
@@ -163,7 +166,9 @@ describe('Enter in a quote', () => {
 
     expect(outline(editor)).toEqual([
       'quoteBlock: On Monday, Bob wrote:',
+      'paragraph: ',
       'paragraph: Before',
+      'paragraph: ',
       'quoteBlock: OneTwo'
     ])
     editor.destroy()
@@ -180,7 +185,9 @@ describe('Enter in a quote', () => {
 
     expect(outline(editor)).toEqual([
       'quoteBlock: On Monday, Bob wrote:AnswerOlder',
+      'paragraph: ',
       'paragraph: Mine',
+      'paragraph: ',
       'quoteBlock:  text'
     ])
     // Both halves keep their two levels of quote
@@ -201,6 +208,8 @@ describe('Enter in a quote', () => {
 
     expect(outline(editor)).toEqual([
       'quoteBlock: Item one',
+      'paragraph: ',
+      'paragraph: ',
       'paragraph: ',
       'quoteBlock: Item two'
     ])

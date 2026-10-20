@@ -643,7 +643,8 @@ export function RichTextEditor({
             containIntrinsicSize: 'auto 300px'
           },
           // Except where the caret is: Chrome lays a new block out a frame late, and the
-          // keys typed meanwhile in it (right after Enter) land before the caret (#429)
+          // keys typed meanwhile in it (right after Enter) land before the caret (#429);
+          // and around it, where Enter in a quote leaves its first half (#672)
           [`& .ProseMirror > [${CARET_BLOCK_ATTRIBUTE}]`]: {
             contentVisibility: 'visible'
           },

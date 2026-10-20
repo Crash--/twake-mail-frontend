@@ -137,8 +137,9 @@ export function isShortcutKey(key: string): key is ShortcutKey {
  * Where a key press is not a shortcut: typing in a field, a key with Ctrl,
  * Alt or Meta (browser and screen reader commands; AltGr types a character), a composition (IME), a
  * key some control already handled, or one pressed in a dialog, a menu or a
- * list box, whose keys belong to them. A checkbox, a radio button or an
- * input button takes no letter: it is no text field.
+ * list box, whose keys belong to them (or on nothing while a modal dialog
+ * is open). A checkbox, a radio button or an input button takes no letter:
+ * it is no text field.
  */
 const NOT_TYPED_IN = ['checkbox', 'radio', 'button', 'submit', 'reset']
   .map(type => `:not([type="${type}"])`)
@@ -155,6 +156,18 @@ const OWNED_BY_CONTROL = [
   '[role="menu"]',
   '[role="listbox"]'
 ].join(',')
+
+/**
+ * A modal dialog shown: the page behind it takes no key, even when the
+ * focus fell to the body (its element removed from the dialog)
+ */
+const OPEN_MODAL = '[role="dialog"][aria-modal="true"]'
+
+function isFocusLostUnderModal(target: Element): boolean {
+  const page = target.ownerDocument
+  const isOnNothing = target === page.body || target === page.documentElement
+  return isOnNothing && page.querySelector(OPEN_MODAL) !== null
+}
 
 /**
  * Where the arrows move within a control (a slider, tabs, a tree, a
@@ -208,7 +221,10 @@ export function isShortcutEvent(event: KeyboardEvent): boolean {
     return false
   }
   const target = event.target
-  if (target instanceof Element && target.closest(OWNED_BY_CONTROL) !== null) {
+  if (
+    target instanceof Element &&
+    (target.closest(OWNED_BY_CONTROL) !== null || isFocusLostUnderModal(target))
+  ) {
     return false
   }
   if (

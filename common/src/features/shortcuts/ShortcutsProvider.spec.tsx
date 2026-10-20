@@ -209,6 +209,46 @@ describe('ShortcutsProvider', () => {
     jest.useRealTimers()
   })
 
+  it('ignores the keys on the body while a modal dialog is open', () => {
+    const onArchive = jest.fn()
+    function Viewer({ isOpen }: { isOpen: boolean }): ReactElement {
+      return isOpen ? (
+        <div role="dialog" aria-modal="true" aria-label="Viewer" />
+      ) : (
+        <></>
+      )
+    }
+    function ModalScreen({ isOpen }: { isOpen: boolean }): ReactElement {
+      return (
+        <>
+          <Screen onArchive={onArchive} />
+          <Viewer isOpen={isOpen} />
+        </>
+      )
+    }
+    const view = render(
+      <AppProviders lang="en" queryClient={makeQueryClient()}>
+        <ShortcutsProvider>
+          <ModalScreen isOpen />
+        </ShortcutsProvider>
+      </AppProviders>
+    )
+
+    // The focused element of the dialog removed: the key is on the body
+    fireEvent.keyDown(document.body, { key: 'e' })
+    expect(onArchive).not.toHaveBeenCalled()
+
+    view.rerender(
+      <AppProviders lang="en" queryClient={makeQueryClient()}>
+        <ShortcutsProvider>
+          <ModalScreen isOpen={false} />
+        </ShortcutsProvider>
+      </AppProviders>
+    )
+    fireEvent.keyDown(document.body, { key: 'e' })
+    expect(onArchive).toHaveBeenCalledTimes(1)
+  })
+
   it('gives a key to the last screen that handles it now', () => {
     const first = jest.fn()
     const second = jest.fn()

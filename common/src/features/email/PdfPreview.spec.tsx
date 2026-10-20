@@ -208,11 +208,13 @@ describe('PdfPreview', () => {
       destroy: jest.fn().mockResolvedValue(undefined)
     }))
     const user = userEvent.setup()
+    const onPasswordSubmitted = jest.fn()
     renderWithProviders(
       <PdfPreview
         bytes={new Uint8Array([1])}
         onError={jest.fn()}
         onMailtoLink={jest.fn()}
+        onPasswordSubmitted={onPasswordSubmitted}
       />
     )
 
@@ -229,6 +231,8 @@ describe('PdfPreview', () => {
     expect(
       await screen.findByText('Incorrect password, try again.')
     ).toBeVisible()
+    // Each answer, right or wrong: the form is gone, the focus to move
+    expect(onPasswordSubmitted).toHaveBeenCalledTimes(1)
     const retryField = screen.getByLabelText('Password')
     expect(retryField).toHaveAttribute('aria-invalid', 'true')
     await user.type(retryField, 'secret')
@@ -238,6 +242,7 @@ describe('PdfPreview', () => {
       await screen.findByRole('img', { name: 'Page 1 of 1' })
     ).toBeVisible()
     expect(answers).toEqual(['wrong', 'secret'])
+    expect(onPasswordSubmitted).toHaveBeenCalledTimes(2)
     expect(screen.queryByTestId('pdf-password-form')).toBe(null)
   })
 

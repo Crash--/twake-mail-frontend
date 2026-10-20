@@ -16,6 +16,12 @@ export interface PdfPreviewProps {
   onMailtoLink: (href: string) => void
   /** The document once open (it can be printed), null again when closed */
   onOpened?: (pdf: PDFDocumentProxy | null) => void
+  /**
+   * A password was given while the focus was in its form, which goes away:
+   * the focus is to be moved (into the viewer). A wrong one brings a new
+   * form back, which takes the focus again.
+   */
+  onPasswordSubmitted?: () => void
 }
 
 const MAX_PAGE_WIDTH = 900
@@ -49,11 +55,13 @@ export function PdfPreview({
   bytes,
   onError,
   onMailtoLink,
-  onOpened
+  onOpened,
+  onPasswordSubmitted
 }: PdfPreviewProps): ReactElement {
   const { t } = useI18n()
   const onErrorRef = useRef(onError)
   const onOpenedRef = useRef(onOpened)
+  const onPasswordSubmittedRef = useRef(onPasswordSubmitted)
   const rootRef = useRef<HTMLDivElement>(null)
   const [opened, setOpened] = useState<Opened | null>(null)
   const [passwordPrompt, setPasswordPrompt] = useState<PasswordPrompt | null>(
@@ -63,7 +71,8 @@ export function PdfPreview({
   useEffect(() => {
     onErrorRef.current = onError
     onOpenedRef.current = onOpened
-  }, [onError, onOpened])
+    onPasswordSubmittedRef.current = onPasswordSubmitted
+  }, [onError, onOpened, onPasswordSubmitted])
 
   useEffect(() => {
     let isCancelled = false
@@ -84,6 +93,13 @@ export function PdfPreview({
           isRetry,
           answer: password => {
             giveUpPassword = null
+            // The focused form is removed: the focus would fall to the
+            // body, out of the dialog, where Escape reaches the shortcuts
+            // of the page behind it
+            const root = rootRef.current
+            if (root?.contains(root.ownerDocument.activeElement)) {
+              onPasswordSubmittedRef.current?.()
+            }
             setPasswordPrompt(null)
             resolve(password)
           }

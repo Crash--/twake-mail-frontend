@@ -1009,3 +1009,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/recovery.spec.ts`.
 - [x] `CMP-110` In dark mode (the `appearance.theme` setting of the account), the formatting toolbar of the composer is drawn on the dark paper, its font name and pressed toggles light, and each of its menus (text styles, sizes, fonts, alignments, lists) and colour popovers shows light entries on a dark paper (axe on each). — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.
+- [x] `ATT-12` A password-protected PDF (RC4 128 bits, built by the spec) asks its password in the viewer, the field focused; a wrong one keeps the form ("Incorrect password", `aria-invalid`, focused again); the right one draws the page and leaves the focus on the Close button of the viewer, not the body (axe); one Escape closes the viewer only, gives the focus back to the card and keeps the email open (issue #667). — tmail-flutter `PDFViewer` (no Patrol test)
+  - Spec: `tests/attachments.spec.ts`.

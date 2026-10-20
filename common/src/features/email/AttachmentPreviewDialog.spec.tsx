@@ -64,6 +64,55 @@ function renderPdf(numPages: number): jest.Mock {
 }
 
 describe('AttachmentPreviewDialog', () => {
+  it('keeps the focus in the viewer once the password of a PDF is accepted', async () => {
+    const getPage = jest.fn().mockResolvedValue({
+      getViewport: ({ scale }: { scale: number }) => ({
+        width: 100 * scale,
+        height: 100 * scale
+      }),
+      render: () => ({ promise: Promise.resolve() })
+    })
+    mockedLoadPdf.mockImplementation((_data, requestPassword) => ({
+      promise: (async () => {
+        await requestPassword(false)
+        await requestPassword(true)
+        return { pdf: { numPages: 1, getPage } as never }
+      })(),
+      destroy: jest.fn().mockResolvedValue(undefined)
+    }))
+    const server = makeFakeJmapServer()
+    server.blobs.set('b1', '%PDF-1.4')
+    const user = userEvent.setup()
+    renderWithProviders(
+      <AttachmentPreviewDialog
+        part={makeBodyPart({
+          blobId: 'b1',
+          name: 'locked.pdf',
+          type: 'application/pdf',
+          size: 8
+        })}
+        kind="pdf"
+        onClose={jest.fn()}
+      />,
+      { withJmapSession: true, jmapServer: server }
+    )
+
+    const field = await screen.findByLabelText('Password')
+    expect(field).toHaveFocus()
+    await user.type(field, 'wrong{Enter}')
+    // A wrong password: the new form takes the focus back
+    await screen.findByText('Incorrect password, try again.')
+    const retryField = screen.getByLabelText('Password')
+    expect(retryField).toHaveFocus()
+    await user.type(retryField, 'secret{Enter}')
+
+    expect(
+      await screen.findByRole('img', { name: 'Page 1 of 1' })
+    ).toBeInTheDocument()
+    // Not the body, where Escape would close the email behind the viewer
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+  })
+
   it('prints a PDF once it is open, from the bar', async () => {
     const getPage = renderPdf(2)
     const print = await screen.findByRole('button', { name: 'Print' })

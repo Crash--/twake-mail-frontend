@@ -103,6 +103,7 @@ export function AttachmentPreviewDialog({
   const [openedPdf, setOpenedPdf] = useState<PDFDocumentProxy | null>(null)
   // The printing in progress, stopped when the preview closes
   const printingRef = useRef<AbortController | null>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(
     () => () => {
@@ -298,6 +299,9 @@ export function AttachmentPreviewDialog({
               onError={handleFailed}
               onMailtoLink={handleMailtoLink}
               onOpened={setOpenedPdf}
+              onPasswordSubmitted={() => {
+                closeButtonRef.current?.focus()
+              }}
             />
           </Suspense>
         )
@@ -333,6 +337,7 @@ export function AttachmentPreviewDialog({
       open
       title={name}
       closeLabel={t('common.close')}
+      closeButtonRef={closeButtonRef}
       downloadLabel={
         loaded.status === 'ready' ||
         loaded.status === 'tooLarge' ||

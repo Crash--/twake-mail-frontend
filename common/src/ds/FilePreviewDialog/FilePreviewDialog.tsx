@@ -14,7 +14,8 @@ import {
   useRef,
   type ReactElement,
   type ReactNode,
-  type MouseEvent
+  type MouseEvent,
+  type Ref
 } from 'react'
 import { ArrowBack, Download, Printer } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -24,6 +25,11 @@ export interface FilePreviewDialogProps {
   /** The file name, truncated in the bar (the whole name is its tooltip) */
   title: string
   closeLabel: string
+  /**
+   * The close button, focused when the dialog opens: for the content to
+   * give it the focus back when it removes the focused element
+   */
+  closeButtonRef?: Ref<HTMLButtonElement>
   /** Absent: no download button (the file is not loaded yet) */
   downloadLabel?: string
   onClose: () => void
@@ -75,6 +81,7 @@ export function FilePreviewDialog({
   open,
   title,
   closeLabel,
+  closeButtonRef,
   downloadLabel,
   onClose,
   onDownload,
@@ -107,6 +114,7 @@ export function FilePreviewDialog({
       <Box sx={BAR_SX}>
         <Tooltip title={closeLabel}>
           <IconButton
+            ref={closeButtonRef}
             color="inherit"
             aria-label={closeLabel}
             onClick={onClose}

@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { type Browser, type Page } from '@playwright/test'
 
 import { LoginPage } from '../pages'
@@ -100,6 +102,103 @@ function manyPagesPdf(count: number): string {
     `trailer << /Root 1 0 R /Size ${4 + count * 2} >>`,
     '%%EOF'
   ].join('\n')
+}
+
+/** The padding of the PDF standard security handler */
+const PDF_PADDING = Buffer.from(
+  '28BF4E5E4E758A4164004E56FFFA01082E2E00B6D0683E802F0CA9FE6453697A',
+  'hex'
+)
+
+function rc4(key: Buffer, data: Buffer): Buffer {
+  const state = Array.from({ length: 256 }, (_unused, index) => index)
+  const swap = (a: number, b: number): void => {
+    const kept = state[a] ?? 0
+    state[a] = state[b] ?? 0
+    state[b] = kept
+  }
+  let j = 0
+  for (let i = 0; i < 256; i += 1) {
+    j = (j + (state[i] ?? 0) + (key[i % key.length] ?? 0)) & 255
+    swap(i, j)
+  }
+  const out = Buffer.alloc(data.length)
+  let i = 0
+  j = 0
+  for (let index = 0; index < data.length; index += 1) {
+    i = (i + 1) & 255
+    j = (j + (state[i] ?? 0)) & 255
+    swap(i, j)
+    const stream = state[((state[i] ?? 0) + (state[j] ?? 0)) & 255] ?? 0
+    out[index] = (data[index] ?? 0) ^ stream
+  }
+  return out
+}
+
+function md5(...parts: Buffer[]): Buffer {
+  const hash = createHash('md5')
+  for (const part of parts) hash.update(part)
+  return hash.digest()
+}
+
+/** RC4 with the key, then 19 times with the key xored with 1 to 19 */
+function rc4Rounds(key: Buffer, data: Buffer): Buffer {
+  let out = rc4(key, data)
+  for (let round = 1; round <= 19; round += 1) {
+    out = rc4(Buffer.from(key.map(byte => byte ^ round)), out)
+  }
+  return out
+}
+
+/**
+ * A one-page PDF encrypted with the user password `password` (standard
+ * security handler, revision 3, RC4 128 bits), a blue square on its page
+ */
+function encryptedPdf(password: string): Buffer {
+  const padded = Buffer.concat([
+    Buffer.from(password, 'latin1'),
+    PDF_PADDING
+  ]).subarray(0, 32)
+  const id = md5(Buffer.from('twake-mail-e2e'))
+  const permissions = -4
+  let ownerKey = md5(padded)
+  for (let round = 0; round < 50; round += 1) ownerKey = md5(ownerKey)
+  const owner = rc4Rounds(ownerKey, padded)
+  const flags = Buffer.alloc(4)
+  flags.writeInt32LE(permissions)
+  let key = md5(padded, owner, flags, id)
+  for (let round = 0; round < 50; round += 1) key = md5(key)
+  const user = Buffer.concat([
+    rc4Rounds(key, md5(PDF_PADDING, id)),
+    Buffer.alloc(16)
+  ])
+  // The content stream is object 4, generation 0
+  const objectKey = md5(key, Buffer.from([4, 0, 0, 0, 0]))
+  const content = rc4(objectKey, Buffer.from('0 0 1 rg 20 20 160 160 re f'))
+  return Buffer.concat([
+    Buffer.from(
+      [
+        '%PDF-1.4',
+        '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+        '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+        '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R >> endobj',
+        `4 0 obj << /Length ${content.length} >> stream`,
+        ''
+      ].join('\n'),
+      'latin1'
+    ),
+    content,
+    Buffer.from(
+      [
+        '',
+        'endstream endobj',
+        `5 0 obj << /Filter /Standard /V 2 /R 3 /Length 128 /P ${permissions} /O <${owner.toString('hex')}> /U <${user.toString('hex')}> >> endobj`,
+        `trailer << /Root 1 0 R /Size 6 /Encrypt 5 0 R /ID [<${id.toString('hex')}> <${id.toString('hex')}>] >>`,
+        '%%EOF'
+      ].join('\n'),
+      'latin1'
+    )
+  ])
 }
 
 /**
@@ -559,6 +658,53 @@ test.describe('ATT attachments', () => {
       )
     }
   )
+
+  test('ATT-12 a password-protected PDF is opened, the focus kept in the viewer', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await send(jmap, {
+      to: user.email,
+      subject: 'locked pdf',
+      text: 'See attached',
+      attachments: [
+        {
+          name: 'locked.pdf',
+          type: 'application/pdf',
+          content: encryptedPdf('secret')
+        }
+      ]
+    })
+    await jmap.waitForEmail({ subject: 'locked pdf' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.openEmail('locked pdf')
+    const emailUrl = page.url()
+
+    const card = page.getByRole('button', { name: /^Preview locked\.pdf/ })
+    await card.click()
+    const dialog = page.getByRole('dialog', { name: 'locked.pdf' })
+    const field = page.getByTestId('pdf-password-input')
+    await expect(field).toBeFocused({ timeout: 15_000 })
+    await field.fill('wrong')
+    await page.keyboard.press('Enter')
+    await expect(field).toHaveAttribute('aria-invalid', 'true')
+    await expect(field).toBeFocused()
+    await field.fill('secret')
+    await page.keyboard.press('Enter')
+    await expect(page.getByRole('img', { name: 'Page 1 of 1' })).toBeVisible({
+      timeout: 15_000
+    })
+    // #667: the form removed, the focus stays in the viewer, not on the body
+    await expect(page.getByTestId('attachment-preview-close')).toBeFocused()
+    await expectNoA11yViolations(page)
+
+    // One Escape closes the viewer only: the email stays open
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await expect(card).toBeFocused()
+    expect(page.url()).toBe(emailUrl)
+  })
 
   test('ATT-11 a file without an extension is saved under its own name', async ({
     page,

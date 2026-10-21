@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ReactElement } from 'react'
+import { useEffect, type ReactElement } from 'react'
 import { Link, Route, Routes } from 'react-router'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
@@ -127,6 +127,43 @@ describe('ComposerProvider', () => {
         { jmapServer: makeFakeJmapServer(), withJmapSession: true }
       )
       const composer = await screen.findByRole('dialog', { name: 'Restored' })
+
+      await userEvent.click(
+        await within(composer).findByRole('button', { name: 'Close' })
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBe(null)
+      })
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: 'New message' })
+        ).toHaveFocus()
+      })
+    })
+
+    it('gives the focus to "New message" when closing a composer opened with nothing focused (issue #686)', async () => {
+      // A /mailto link, or the "c" shortcut pressed on the page body
+      function OpenAtOnce(): ReactElement {
+        const { openComposer } = useComposer()
+        useEffect(() => {
+          openComposer()
+        }, [openComposer])
+        return (
+          <button type="button" data-testid="compose-email-button">
+            New message
+          </button>
+        )
+      }
+      renderWithProviders(
+        <ComposerProvider>
+          <OpenAtOnce />
+        </ComposerProvider>,
+        { jmapServer: makeFakeJmapServer(), withJmapSession: true }
+      )
+      const composer = await screen.findByRole('dialog', {
+        name: 'New message'
+      })
 
       await userEvent.click(
         await within(composer).findByRole('button', { name: 'Close' })

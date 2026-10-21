@@ -81,11 +81,17 @@ const COMPOSE_BUTTON_SELECTOR = '[data-testid="compose-email-button"]'
 
 /**
  * Gives the focus back once a composer is closed: to what opened it, or,
- * when nothing did (a composer restored after a reload) or it is gone, to
- * the "New message" button if the focus was left on the page body.
+ * when nothing did (a composer restored after a reload, a /mailto link, a
+ * shortcut pressed with nothing focused) or it is gone, to the "New
+ * message" button if the focus was left on the page body.
  */
 const focusAfterClose = (opener: Element | null | undefined): void => {
-  if (opener instanceof HTMLElement && opener.isConnected) {
+  if (
+    opener instanceof HTMLElement &&
+    opener !== document.body &&
+    opener !== document.documentElement &&
+    opener.isConnected
+  ) {
     opener.focus()
     return
   }

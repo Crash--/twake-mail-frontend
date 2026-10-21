@@ -26,6 +26,8 @@ export interface AddDelegatesDialogProps {
   ownAddress: string
   /** The addresses that already have access */
   delegates: readonly string[]
+  /** The team mailboxes of the user: not people, never given access */
+  teamMailboxes: readonly string[]
   /**
    * Gives them access, given their names as the contacts know them;
    * resolves once done (the dialog then closes)
@@ -45,6 +47,7 @@ export interface AddDelegatesDialogProps {
 export function AddDelegatesDialog({
   ownAddress,
   delegates,
+  teamMailboxes,
   onAdd,
   onClose
 }: AddDelegatesDialogProps): ReactElement {
@@ -69,6 +72,11 @@ export function AddDelegatesDialog({
       return 'delegation.errors.ownAddress'
     }
     if (domainOf(email) !== domain) return 'delegation.errors.otherDomain'
+    if (
+      teamMailboxes.some(team => team.toLowerCase() === email.toLowerCase())
+    ) {
+      return 'delegation.errors.teamMailbox'
+    }
     if (delegates.some(other => other.toLowerCase() === email.toLowerCase())) {
       return 'delegation.errors.alreadyDelegate'
     }
@@ -132,7 +140,7 @@ export function AddDelegatesDialog({
             setProblem(null)
           }}
           domain={domain}
-          excluded={[ownAddress, ...delegates]}
+          excluded={[ownAddress, ...delegates, ...teamMailboxes]}
           isRefused={email => refusal(email) !== null}
           hasError={shownProblem !== null}
           describedBy={shownProblem === null ? undefined : problemId}

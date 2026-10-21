@@ -473,6 +473,7 @@ export function DelegationSettings({
         <AddDelegatesDialog
           ownAddress={session.username}
           delegates={(delegates.data ?? []).map(one => one.username)}
+          teamMailboxes={teams.map(team => team.address)}
           onAdd={handleAdd}
           onClose={() => {
             setIsAdding(false)

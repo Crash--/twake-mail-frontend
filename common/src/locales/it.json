@@ -1565,6 +1565,7 @@
       "ownAddress": "Hai già accesso alla tua casella.",
       "otherDomain": "Solo le persone di %{domain} possono ricevere l'accesso.",
       "alreadyDelegate": "Questa persona ha già accesso.",
+      "teamMailbox": "Non si può dare accesso a una casella di team.",
       "empty": "Inserisci l'indirizzo della persona a cui dare accesso."
     },
     "switcher": {

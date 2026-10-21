@@ -1565,6 +1565,7 @@
       "ownAddress": "Sie haben bereits Zugriff auf Ihr eigenes Postfach.",
       "otherDomain": "Nur Personen aus %{domain} können Zugriff erhalten.",
       "alreadyDelegate": "Diese Person hat bereits Zugriff.",
+      "teamMailbox": "Einem Team-Postfach kann kein Zugriff gegeben werden.",
       "empty": "Geben Sie die Adresse der Person ein, die Zugriff erhalten soll."
     },
     "switcher": {

@@ -1565,6 +1565,7 @@
       "ownAddress": "Ya tienes acceso a tu propio buzón.",
       "otherDomain": "Solo las personas de %{domain} pueden recibir acceso.",
       "alreadyDelegate": "Esta persona ya tiene acceso.",
+      "teamMailbox": "No se puede dar acceso a un buzón de equipo.",
       "empty": "Escribe la dirección de la persona a la que dar acceso."
     },
     "switcher": {

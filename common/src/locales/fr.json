@@ -1565,6 +1565,7 @@
       "ownAddress": "Vous avez déjà accès à votre propre boîte mail.",
       "otherDomain": "Seules les personnes de %{domain} peuvent recevoir un accès.",
       "alreadyDelegate": "Cette personne a déjà accès.",
+      "teamMailbox": "Une boîte d'équipe ne peut pas recevoir d'accès.",
       "empty": "Saisissez l'adresse de la personne à qui donner l'accès."
     },
     "switcher": {

@@ -1565,6 +1565,7 @@
       "ownAddress": "Bạn đã có quyền truy cập hộp thư của chính mình.",
       "otherDomain": "Chỉ người thuộc %{domain} mới có thể được cấp quyền.",
       "alreadyDelegate": "Người này đã có quyền truy cập.",
+      "teamMailbox": "Không thể cấp quyền truy cập cho hộp thư nhóm.",
       "empty": "Nhập địa chỉ của người cần cấp quyền."
     },
     "switcher": {

@@ -66,6 +66,13 @@ function setup({
         emailAddress: 'bob@example.com'
       },
       {
+        // As tmail-backend lists a team mailbox among the domain contacts
+        id: 'c3',
+        firstname: 'bob-guests',
+        surname: '',
+        emailAddress: 'bob-guests@example.com'
+      },
+      {
         id: 'c2',
         firstname: 'Brenda',
         surname: 'Outside',
@@ -237,6 +244,31 @@ describe('DelegationSettings', () => {
         })
       ).toHaveFocus()
     })
+  })
+
+  it('neither suggests nor accepts a team mailbox of the user', async () => {
+    setup({ teams: ['bob-guests@example.com'] })
+
+    await userEvent.click(await screen.findByTestId('delegation-add-button'))
+    const dialog = screen.getByRole('dialog', { name: 'Delegate access' })
+    const input = within(dialog).getByRole('combobox', {
+      name: 'Email address'
+    })
+    await userEvent.type(input, 'bob')
+    const listbox = await screen.findByRole('listbox')
+    expect(
+      await within(listbox).findByRole('option', { name: /Bob Assistant/ })
+    ).toBeVisible()
+    expect(within(listbox).queryByRole('option', { name: /bob-guests/ })).toBe(
+      null
+    )
+
+    await userEvent.clear(input)
+    await userEvent.type(input, 'bob-guests@example.com')
+    expect(
+      within(dialog).getByTestId('delegation-input-error')
+    ).toHaveTextContent('A team mailbox cannot be given access.')
+    expect(within(dialog).getByRole('button', { name: 'Add' })).toBeDisabled()
   })
 
   it('takes their access back from a delegate after a confirmation', async () => {

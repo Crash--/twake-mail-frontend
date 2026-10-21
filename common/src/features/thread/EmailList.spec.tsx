@@ -2,7 +2,7 @@ import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { onlineManager } from '@tanstack/react-query'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Route, useParams } from 'react-router'
+import { Link, Route, useParams } from 'react-router'
 import { useState, type ReactElement } from 'react'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
@@ -196,6 +196,51 @@ describe('EmailList', () => {
     })
     fireEvent.scroll(scroller, { target: { scrollTop: 56 * total } })
     expect(await screen.findByText(`Email ${total - 1}`)).toBeVisible()
+  })
+
+  it('shows the most recent emails again on Refresh, as tmail-flutter', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(40) })
+    renderList(server, 'mailbox-inbox', null, 56 * 10)
+    await screen.findAllByTestId('email-list-item')
+    const scroller = document.querySelector('[data-virtuoso-scroller]')
+    if (!scroller) throw new Error('No scroller')
+    fireEvent.scroll(scroller, { target: { scrollTop: 56 * 25 } })
+    expect(scroller.scrollTop).toBe(56 * 25)
+
+    await userEvent.click(screen.getByTestId('list-refresh-button'))
+
+    expect(scroller.scrollTop).toBe(0)
+  })
+
+  it('shows the most recent emails again when the open folder is opened again, not back from an email', async () => {
+    const server = makeFakeJmapServer({ emails: makeEmails(40) })
+    renderWithProviders(
+      <VirtuosoMockContext.Provider
+        value={{ viewportHeight: 56 * 10, itemHeight: 56 }}
+      >
+        <Link to="/mailbox/mailbox-inbox">Inbox</Link>
+        <Link to="/mailbox/mailbox-inbox" state={{ focusEmailId: 'e25' }}>
+          Back
+        </Link>
+        <EmailList mailboxId="mailbox-inbox" />
+      </VirtuosoMockContext.Provider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    await screen.findAllByTestId('email-list-item')
+    const scroller = document.querySelector('[data-virtuoso-scroller]')
+    if (!scroller) throw new Error('No scroller')
+
+    fireEvent.scroll(scroller, { target: { scrollTop: 56 * 25 } })
+    await userEvent.click(screen.getByRole('link', { name: 'Back' }))
+    expect(scroller.scrollTop).toBe(56 * 25)
+
+    await userEvent.click(screen.getByRole('link', { name: 'Inbox' }))
+    expect(scroller.scrollTop).toBe(0)
   })
 
   it('fills the viewport again after a refetch cut the list to its first page', async () => {

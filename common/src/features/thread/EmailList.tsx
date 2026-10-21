@@ -392,13 +392,30 @@ export function EmailList(props: EmailListProps): ReactElement {
       (isSelectionHighlighted && selection.isSelected(String(row.id))),
     [openEmailId, selection, isSelectionHighlighted]
   )
-  const { scrollerRef, focusList, keepFocusAfterRow } = useEmailListShortcuts(
-    emails,
-    mailboxId,
-    openEmailId,
-    selection,
-    expandTargets
-  )
+  const { scrollerRef, focusList, scrollToTop, keepFocusAfterRow } =
+    useEmailListShortcuts(
+      emails,
+      mailboxId,
+      openEmailId,
+      selection,
+      expandTargets
+    )
+  // The open folder asked for again (its link in the sidebar): its most
+  // recent emails, as when it opens. Back from an email (`focusEmailId`)
+  // keeps the place
+  const previousLocation = useRef(location)
+  useEffect(() => {
+    const previous = previousLocation.current
+    previousLocation.current = location
+    if (
+      previous.key !== location.key &&
+      previous.pathname === location.pathname &&
+      previous.search === location.search &&
+      focusEmailId === null
+    ) {
+      scrollToTop()
+    }
+  }, [location, focusEmailId, scrollToTop])
   const listActions = useEmailListActions({
     emails,
     selection,
@@ -556,9 +573,11 @@ export function EmailList(props: EmailListProps): ReactElement {
   const { refetch } = query
   const queryClient = useQueryClient()
   const [isRefreshing, setIsRefreshing] = useState(false)
-  // As tmail-flutter: the folders (their counts) and the emails
+  // As tmail-flutter: the folders (their counts) and the emails, from the
+  // most recent
   const handleRefresh = useCallback((): void => {
     setIsRefreshing(true)
+    scrollToTop()
     Promise.all([
       refetch(),
       queryClient.invalidateQueries({ queryKey: mailboxKeys.list(accountId) })
@@ -567,7 +586,7 @@ export function EmailList(props: EmailListProps): ReactElement {
       .finally(() => {
         setIsRefreshing(false)
       })
-  }, [refetch, queryClient, accountId])
+  }, [refetch, queryClient, accountId, scrollToTop])
   // Narrow from the first render below the desktop size, as tmail-flutter (its
   // wide tile is for `isWebDesktop` only); the table also measures itself for
   // the other cases (zoom, an email open beside the list)

@@ -30,6 +30,8 @@ export interface EmailListKeyboard {
   scrollerRef: RefCallback<HTMLElement | Window | null>
   /** Focuses the first row, e.g. once the selection toolbar went */
   focusList: () => void
+  /** Shows the first rows: the most recent emails */
+  scrollToTop: () => void
   /**
    * While `action` runs on the row of `emailId` and a few frames after,
    * a focus lost (on the page body) once the row left goes to the row that
@@ -113,6 +115,10 @@ export function useEmailListShortcuts(
 
   const focusList = useCallback((): void => {
     if (scroller.current !== null) moveRowFocus(scroller.current, null, 1)
+  }, [])
+
+  const scrollToTop = useCallback((): void => {
+    if (scroller.current !== null) scroller.current.scrollTop = 0
   }, [])
 
   // The row goes away under the focus as soon as the cache drops it, long
@@ -254,5 +260,5 @@ export function useEmailListShortcuts(
       selection.selected.length > 0
   )
 
-  return { scrollerRef, focusList, keepFocusAfterRow }
+  return { scrollerRef, focusList, scrollToTop, keepFocusAfterRow }
 }

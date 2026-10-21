@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
   type ReactNode
@@ -52,6 +53,13 @@ interface MailboxViewApi {
    * screens below are mounted again, on the new account
    */
   switchView: (view: MailboxView) => void
+  /**
+   * The delegated mailbox shown was taken back from the user (no longer in
+   * the session): their own one is shown instead, until this is dismissed
+   * (once told). `name`: its owner's address, when known.
+   */
+  lostAccess: { name: string | null } | null
+  dismissLostAccess: () => void
 }
 
 const JmapSessionContext = createContext<MailSessionInfo | null>(null)
@@ -96,10 +104,42 @@ export function JmapSessionProvider({
     [username]
   )
   const session = query.data?.session ?? null
+  const requestedView = chosenView ?? storedView
   const view =
-    session === null
-      ? OWN_VIEW
-      : validMailboxView(chosenView ?? storedView, session)
+    session === null ? OWN_VIEW : validMailboxView(requestedView, session)
+  /** Asked for a delegated mailbox the session no longer lists */
+  const isRevoked =
+    session !== null &&
+    pendingView === null &&
+    requestedView.kind === 'delegated' &&
+    view.kind === 'own'
+  const [lostAccess, setLostAccess] = useState<{
+    name: string | null
+  } | null>(null)
+  /** The owners of the delegated accounts, kept once they leave the session */
+  const ownerNames = useRef(new Map<string, string>())
+
+  useEffect(() => {
+    if (session === null) return
+    for (const [id, account] of Object.entries(session.accounts)) {
+      if (!account.isPersonal) ownerNames.current.set(id, account.name)
+    }
+  }, [session])
+
+  // A delegation taken back: the user's own mailbox, as when they pick it
+  // (its cache is reset), and they are told why
+  useEffect(() => {
+    // `isRevoked` narrows `requestedView` to a delegated one
+    if (!isRevoked) return undefined
+    const name = ownerNames.current.get(requestedView.accountId) ?? null
+    const timer = setTimeout(() => {
+      setLostAccess({ name })
+      setPendingView(OWN_VIEW)
+    }, 0)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [isRevoked, requestedView])
 
   // Changing mailbox resets the local cache: nothing of the previous one
   // shows, nor stays in memory. The screens of the previous mailbox are
@@ -123,7 +163,13 @@ export function JmapSessionProvider({
   const switchView = useCallback((next: MailboxView): void => {
     setPendingView(next)
   }, [])
-  const viewApi = useMemo(() => ({ view, switchView }), [view, switchView])
+  const dismissLostAccess = useCallback((): void => {
+    setLostAccess(null)
+  }, [])
+  const viewApi = useMemo(
+    () => ({ view, switchView, lostAccess, dismissLostAccess }),
+    [view, switchView, lostAccess, dismissLostAccess]
+  )
   const info = useMemo((): MailSessionInfo | null => {
     if (query.data === undefined) return null
     const own = query.data
@@ -138,7 +184,10 @@ export function JmapSessionProvider({
     }
   }, [query.data, view])
 
-  if (query.isPending || pendingView !== null) return <>{loading}</>
+  // Nothing of the other mailbox is shown while it goes
+  if (query.isPending || pendingView !== null || isRevoked) {
+    return <>{loading}</>
+  }
 
   if (query.isError) {
     const handleRetry = (): void => {

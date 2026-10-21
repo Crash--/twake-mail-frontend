@@ -17,8 +17,8 @@ import {
   useJmapSession,
   useMailboxView
 } from './JmapSessionProvider'
-import { OWN_VIEW, writeMailboxView } from './mailboxView'
-import { SHARES_CAPABILITY } from './queries'
+import { OWN_VIEW, readMailboxView, writeMailboxView } from './mailboxView'
+import { reloadSession, SHARES_CAPABILITY } from './queries'
 
 function SessionSummary(): ReactElement {
   const { session, accountId } = useJmapSession()
@@ -105,8 +105,9 @@ describe('JmapSessionProvider mailbox view', () => {
 
   function ViewSummary(): ReactElement {
     const { accountId, ownAccountId, mailAddress } = useJmapSession()
-    const { switchView } = useMailboxView()
+    const { switchView, lostAccess } = useMailboxView()
     const queryClient = useQueryClient()
+    const client = useJmapClient()
     // A query of the screens, cached under its account
     useEffect(() => {
       queryClient.setQueryData(['mailbox', accountId, 'list'], { list: [] })
@@ -116,6 +117,15 @@ describe('JmapSessionProvider mailbox view', () => {
         <p>
           {accountId} / {ownAccountId} / {mailAddress}
         </p>
+        {lostAccess === null ? null : <p>Lost {lostAccess.name}</p>}
+        <button
+          type="button"
+          onClick={() => {
+            void reloadSession(client, queryClient)
+          }}
+        >
+          Reload session
+        </button>
         <button
           type="button"
           onClick={() => {
@@ -218,5 +228,42 @@ describe('JmapSessionProvider mailbox view', () => {
         `${FAKE_ACCOUNT_ID} / ${FAKE_ACCOUNT_ID} / ${FAKE_USERNAME}`
       )
     ).toBeVisible()
+  })
+
+  it('gives the user their own mailbox back, told why, when the delegation is taken back while shown', async () => {
+    writeMailboxView(FAKE_USERNAME, {
+      kind: 'delegated',
+      accountId: DELEGATED_ID
+    })
+    const server = makeFakeJmapServer({
+      delegatedAccounts: [{ accountId: DELEGATED_ID, name: 'boss@example.com' }]
+    })
+    const { queryClient } = renderWithProviders(
+      <JmapSessionProvider>
+        <ViewSummary />
+      </JmapSessionProvider>,
+      { jmapServer: server }
+    )
+    expect(
+      await screen.findByText(
+        `${DELEGATED_ID} / ${FAKE_ACCOUNT_ID} / boss@example.com`
+      )
+    ).toBeVisible()
+
+    server.delegatedAccounts = []
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Reload session' })
+    )
+
+    expect(
+      await screen.findByText(
+        `${FAKE_ACCOUNT_ID} / ${FAKE_ACCOUNT_ID} / ${FAKE_USERNAME}`
+      )
+    ).toBeVisible()
+    expect(screen.getByText('Lost boss@example.com')).toBeVisible()
+    expect(queryClient.getQueryData(['mailbox', DELEGATED_ID, 'list'])).toBe(
+      undefined
+    )
+    expect(readMailboxView(FAKE_USERNAME)).toEqual(OWN_VIEW)
   })
 })

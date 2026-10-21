@@ -1555,7 +1555,8 @@
       "addedMany": "%{smart_count} Delegierter wurde hinzugefügt |||| %{smart_count} Delegierte wurden hinzugefügt",
       "removed": "%{name} wurde entfernt",
       "left": "Sie haben keinen Zugriff mehr auf das Postfach von %{name}",
-      "leftTeam": "Sie haben das Team-Postfach %{name} verlassen"
+      "leftTeam": "Sie haben das Team-Postfach %{name} verlassen",
+      "lostAccess": "Sie haben keinen Zugriff mehr auf dieses Postfach"
     },
     "errors": {
       "load": "Die Delegierungen konnten nicht geladen werden.",

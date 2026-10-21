@@ -1555,7 +1555,8 @@
       "addedMany": "%{smart_count} delegato è stato aggiunto |||| %{smart_count} delegati sono stati aggiunti",
       "removed": "%{name} è stato rimosso",
       "left": "Non hai più accesso alla casella di %{name}",
-      "leftTeam": "Hai lasciato la casella di team %{name}"
+      "leftTeam": "Hai lasciato la casella di team %{name}",
+      "lostAccess": "Non hai più accesso a questa casella"
     },
     "errors": {
       "load": "Impossibile caricare le deleghe.",

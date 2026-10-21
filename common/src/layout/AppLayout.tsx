@@ -15,6 +15,7 @@ import {
   useComposer
 } from '@common/features/composer/ComposerProvider'
 import { MailboxSwitcherButton } from '@common/features/delegation/MailboxSwitcherButton'
+import { DelegatedAccessGuard } from '@common/features/delegation/DelegatedAccessGuard'
 import { TeamViewGuard } from '@common/features/delegation/TeamViewGuard'
 import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
@@ -186,6 +187,7 @@ function AppFrame(): ReactElement {
       <ServerThemeSync />
       <InboxUnreadTitle />
       <TeamViewGuard />
+      <DelegatedAccessGuard />
       <OfflineNotice />
       <SentryReportingSync />
       {/* The reply bar of an open email is at the bottom of the screen too */}

@@ -1555,7 +1555,8 @@
       "addedMany": "%{smart_count} delegado ha sido añadido |||| %{smart_count} delegados han sido añadidos",
       "removed": "%{name} ha sido quitado",
       "left": "Ya no tienes acceso al buzón de %{name}",
-      "leftTeam": "Has salido del buzón de equipo %{name}"
+      "leftTeam": "Has salido del buzón de equipo %{name}",
+      "lostAccess": "Ya no tienes acceso a este buzón"
     },
     "errors": {
       "load": "No se pudieron cargar las delegaciones.",

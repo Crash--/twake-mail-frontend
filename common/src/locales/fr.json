@@ -1555,7 +1555,8 @@
       "addedMany": "%{smart_count} délégué a été ajouté |||| %{smart_count} délégués ont été ajoutés",
       "removed": "%{name} a été retiré(e)",
       "left": "Vous n'avez plus accès à la boîte mail de %{name}",
-      "leftTeam": "Vous avez quitté la boîte d'équipe %{name}"
+      "leftTeam": "Vous avez quitté la boîte d'équipe %{name}",
+      "lostAccess": "Vous n'avez plus accès à cette boîte"
     },
     "errors": {
       "load": "Les délégations n'ont pas pu être chargées.",

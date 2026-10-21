@@ -14,6 +14,7 @@ import { mailboxKeys } from '@common/features/mailbox/queries'
 import { threadKeys } from '@common/features/thread/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { reloadSession } from '@common/jmap/queries'
 
 import { fetchCurrentStates } from './fetchChanges'
 import { createPushSync, SYNCED_TYPES } from './pushSync'
@@ -60,6 +61,10 @@ export function PushProvider({
     const sync = createPushSync(queryClient, client, accountId)
     const catchUp = (): void => {
       sync.catchUp()
+      // The delegation may have been taken back meanwhile
+      reloadSession(client, queryClient).catch((error: unknown) => {
+        console.error('[push] Cannot read the session again', error)
+      })
     }
     const handleVisibility = (): void => {
       if (document.visibilityState === 'visible') catchUp()

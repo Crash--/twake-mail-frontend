@@ -127,6 +127,14 @@ export class WebAdminClient {
     )
   }
 
+  /** Takes back the access of `delegate` to the account of `owner` */
+  async removeDelegate(owner: string, delegate: string): Promise<Response> {
+    return this.#call(
+      'DELETE',
+      `/users/${encodeURIComponent(owner)}/authorizedUsers/${encodeURIComponent(delegate)}`
+    )
+  }
+
   async deleteTeamMailbox(domain: string, name: string): Promise<Response> {
     return this.#call(
       'DELETE',

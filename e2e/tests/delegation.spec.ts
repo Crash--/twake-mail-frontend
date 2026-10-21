@@ -380,5 +380,38 @@ test.describe('DLG delegation', () => {
     // Neither delegated nor team mailbox left: no switcher
     await expect(switcher(page)).toHaveCount(0)
   })
+
+  test('DLG-10 a delegate whose access is taken back lands on their own mailbox, told why', async ({
+    page,
+    user,
+    users,
+    webadmin,
+    jmapFor
+  }) => {
+    const boss = await users.create({ prefix: 'boss' })
+    await webadmin.addDelegate(boss.email, user.email)
+    const bossInbox = await jmapFor(boss).findMailboxByRole('inbox')
+    await jmapFor(boss).createEmailIn(bossInbox.id, { subject: 'Boss matter' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await switchTo(page, boss.email)
+    await expect(mailbox.emailList).toContainText('Boss matter')
+
+    await webadmin.removeDelegate(boss.email, user.email)
+    // The next request on the account tells the access is gone
+    await mailbox.folderTree
+      .getByTestId('mailbox-item-name')
+      .filter({ hasText: 'Sent' })
+      .click()
+
+    await expect(mailbox.toast).toContainText(
+      `You no longer have access to the mailbox of ${boss.email}`
+    )
+    await expect(mailbox.emailList.or(mailbox.emptyListView)).toBeVisible()
+    await expect(page.getByText('Boss matter')).toHaveCount(0)
+    await expect(page.getByText('An error occurred')).toHaveCount(0)
+    // Neither delegated nor team mailbox left: no switcher
+    await expect(switcher(page)).toHaveCount(0)
+    await expectNoA11yViolations(page)
+  })
 })
 

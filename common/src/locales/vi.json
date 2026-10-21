@@ -1555,7 +1555,8 @@
       "addedMany": "Đã thêm %{smart_count} người được ủy quyền",
       "removed": "Đã gỡ %{name}",
       "left": "Bạn không còn quyền truy cập hộp thư của %{name}",
-      "leftTeam": "Bạn đã rời hộp thư nhóm %{name}"
+      "leftTeam": "Bạn đã rời hộp thư nhóm %{name}",
+      "lostAccess": "Bạn không còn quyền truy cập hộp thư này"
     },
     "errors": {
       "load": "Không thể tải các ủy quyền.",

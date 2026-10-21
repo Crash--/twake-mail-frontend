@@ -1555,7 +1555,8 @@
       "addedMany": "%{smart_count} delegate has been added |||| %{smart_count} delegates have been added",
       "removed": "%{name} has been removed",
       "left": "You no longer have access to the mailbox of %{name}",
-      "leftTeam": "You left the team mailbox %{name}"
+      "leftTeam": "You left the team mailbox %{name}",
+      "lostAccess": "You no longer have access to this mailbox"
     },
     "errors": {
       "load": "The delegations could not be loaded.",

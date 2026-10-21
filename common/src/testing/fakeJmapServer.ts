@@ -176,6 +176,17 @@ export interface FakeJmapServer {
   destroyEmail: (id: string) => void
   /** Changes a mailbox (updated), e.g. its counters */
   updateMailbox: (id: string, patch: Partial<FakeMailbox>) => void
+  /**
+   * The accounts delegated to the user (James delegation extension), in
+   * the session as accounts not personal
+   */
+  delegatedAccounts: FakeDelegatedAccount[]
+}
+
+/** An account delegated to the user: its id, and its owner's address */
+export interface FakeDelegatedAccount {
+  accountId: string
+  name: string
 }
 
 type ChangeKind = 'created' | 'updated' | 'destroyed'
@@ -465,7 +476,8 @@ interface FakeLimits {
 function makeSession(
   webSocket: boolean,
   extraCapabilities: Readonly<Record<string, unknown>>,
-  { maxCallsInRequest, maxObjectsInGet, maxObjectsInSet }: FakeLimits
+  { maxCallsInRequest, maxObjectsInGet, maxObjectsInSet }: FakeLimits,
+  delegatedAccounts: readonly FakeDelegatedAccount[] = []
 ): Record<string, unknown> {
   return {
     capabilities: {
@@ -495,7 +507,21 @@ function makeSession(
           ...extraCapabilities,
           'urn:ietf:params:jmap:mail': {}
         }
-      }
+      },
+      ...Object.fromEntries(
+        delegatedAccounts.map(account => [
+          account.accountId,
+          {
+            name: account.name,
+            isPersonal: false,
+            isReadOnly: false,
+            accountCapabilities: {
+              ...extraCapabilities,
+              'urn:ietf:params:jmap:mail': {}
+            }
+          }
+        ])
+      )
     },
     primaryAccounts: { 'urn:ietf:params:jmap:mail': FAKE_ACCOUNT_ID },
     username: FAKE_USERNAME,
@@ -628,6 +654,7 @@ export function makeFakeJmapServer(
     /** `maxObjectsInSet` of the session, 500 by default */
     maxObjectsInSet?: number
     settings?: Record<string, string>
+    delegatedAccounts?: FakeDelegatedAccount[]
   } = {}
 ): FakeJmapServer {
   const server: FakeJmapServer = {
@@ -650,6 +677,7 @@ export function makeFakeJmapServer(
       losing = method
     },
     handlers: new Map(),
+    delegatedAccounts: init.delegatedAccounts ?? [],
     callsOf: method =>
       server.requests.flatMap(request =>
         request.methodCalls
@@ -1484,11 +1512,16 @@ export function makeFakeJmapServer(
   ): Promise<Response> {
     if (input === FAKE_SESSION_URL) {
       return jsonResponse(
-        makeSession(advertisesWebSocket, extraCapabilities, {
-          maxCallsInRequest,
-          maxObjectsInGet: toldMaxObjectsInGet,
-          maxObjectsInSet
-        })
+        makeSession(
+          advertisesWebSocket,
+          extraCapabilities,
+          {
+            maxCallsInRequest,
+            maxObjectsInGet: toldMaxObjectsInGet,
+            maxObjectsInSet
+          },
+          server.delegatedAccounts
+        )
       )
     }
     if (input.startsWith(DOWNLOAD_PREFIX)) return handleDownload(input)

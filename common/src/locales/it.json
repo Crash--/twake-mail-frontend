@@ -820,6 +820,10 @@
       "storage": {
         "title": "Spazio",
         "description": "Controlla lo spazio disponibile."
+      },
+      "delegation": {
+        "title": "Delega",
+        "description": "Consenti ad altri di accedere alla tua casella e apri quelle condivise con te."
       }
     },
     "preferences": {
@@ -1504,6 +1508,70 @@
     "untrustedFrame": {
       "title": "Twake Mail non può aprirsi in questa pagina",
       "description": "Un'altra pagina mostra questa app: apri direttamente Twake Mail per scrivere il tuo messaggio."
+    }
+  },
+  "delegation": {
+    "tabs": {
+      "delegates": "I miei delegati",
+      "delegated": "Delegate a me"
+    },
+    "delegates": {
+      "intro": "Consenti ad altri di accedere alla tua casella. Riceveranno un'email quando li aggiungi.",
+      "emptyTitle": "Nessuno ha ancora accesso",
+      "emptyText": "Aggiungi qualcuno qui sotto per condividere l'accesso alla tua posta in arrivo.",
+      "listTitle": "Chi ha accesso alla mia casella"
+    },
+    "delegated": {
+      "intro": "Account a cui altre persone ti hanno dato accesso. Puoi passarvi dal selettore di casella e rimuovere il tuo accesso in qualsiasi momento.",
+      "emptyTitle": "Nessuna casella condivisa con te",
+      "emptyText": "Quando qualcuno ti darà accesso alla sua posta in arrivo, comparirà qui.",
+      "listTitle": "Casella delegata a me (%{smart_count}) |||| Caselle delegate a me (%{smart_count})"
+    },
+    "add": {
+      "open": "Aggiungi",
+      "title": "Delega l'accesso",
+      "text": "Dai a questa persona accesso completo alla tua casella. Riceverà una notifica via email.",
+      "field": "Indirizzo email",
+      "placeholder": "nome@azienda.com",
+      "next": "Avanti",
+      "back": "Indietro",
+      "submit": "Aggiungi",
+      "confirm": "Dare accesso completo alla tua casella a questa persona? |||| Dare accesso completo alla tua casella a queste %{smart_count} persone?",
+      "confirmList": "Persone a cui dare accesso"
+    },
+    "remove": {
+      "submit": "Rimuovi accesso",
+      "delegateTitle": "Rimuovere l'accesso del delegato?",
+      "delegateText": "%{email} non potrà più vedere né gestire la tua posta in arrivo. Potrai aggiungerlo di nuovo in qualsiasi momento.",
+      "ownTitle": "Rimuovere il tuo accesso?",
+      "ownText": "Non potrai più vedere né gestire %{email}. Dovranno condividere di nuovo l'accesso con te se ti servirà.",
+      "delegateOf": "Rimuovi l'accesso di %{name}",
+      "ownOf": "Rimuovi il tuo accesso alla casella di %{name}"
+    },
+    "toasts": {
+      "added": "%{name} è stato aggiunto",
+      "addedMany": "%{smart_count} delegato è stato aggiunto |||| %{smart_count} delegati sono stati aggiunti",
+      "removed": "%{name} è stato rimosso",
+      "left": "Non hai più accesso alla casella di %{name}"
+    },
+    "errors": {
+      "load": "Impossibile caricare le deleghe.",
+      "add": "Impossibile dare accesso a %{addresses}.",
+      "remove": "Impossibile rimuovere l'accesso.",
+      "invalid": "Questo indirizzo email non è valido.",
+      "ownAddress": "Hai già accesso alla tua casella.",
+      "otherDomain": "Solo le persone di %{domain} possono ricevere l'accesso.",
+      "alreadyDelegate": "Questa persona ha già accesso.",
+      "empty": "Inserisci l'indirizzo della persona a cui dare accesso."
+    },
+    "switcher": {
+      "own": "La tua casella",
+      "delegated": "Delegate a te",
+      "team": "Caselle di team",
+      "me": "La mia posta",
+      "viewing": "Visualizzi %{name}",
+      "open": "Cambia casella, visualizzi %{name}",
+      "back": "Torna alla tua casella"
     }
   }
 }

@@ -820,6 +820,10 @@
       "storage": {
         "title": "Speicherung",
         "description": "Behalten Sie Ihren verfügbaren Speicherplatz im Blick."
+      },
+      "delegation": {
+        "title": "Delegierung",
+        "description": "Geben Sie anderen Zugriff auf Ihr Postfach und öffnen Sie die mit Ihnen geteilten."
       }
     },
     "preferences": {
@@ -1504,6 +1508,70 @@
     "untrustedFrame": {
       "title": "Twake Mail kann auf dieser Seite nicht geöffnet werden",
       "description": "Eine andere Seite zeigt diese App an: Öffnen Sie Twake Mail direkt, um Ihre Nachricht zu schreiben."
+    }
+  },
+  "delegation": {
+    "tabs": {
+      "delegates": "Meine Delegierten",
+      "delegated": "An mich delegiert"
+    },
+    "delegates": {
+      "intro": "Geben Sie anderen Zugriff auf Ihr Postfach. Sie erhalten eine E-Mail, wenn Sie sie hinzufügen.",
+      "emptyTitle": "Noch hat niemand Zugriff",
+      "emptyText": "Fügen Sie unten jemanden hinzu, um den Zugriff auf Ihren Posteingang zu teilen.",
+      "listTitle": "Wer hat Zugriff auf mein Postfach"
+    },
+    "delegated": {
+      "intro": "Konten, auf die andere Ihnen Zugriff gegeben haben. Sie können über die Postfachauswahl zu ihnen wechseln und Ihren Zugriff jederzeit entfernen.",
+      "emptyTitle": "Keine mit Ihnen geteilten Postfächer",
+      "emptyText": "Wenn Ihnen jemand Zugriff auf seinen Posteingang gibt, erscheint er hier.",
+      "listTitle": "An mich delegiertes Postfach (%{smart_count}) |||| An mich delegierte Postfächer (%{smart_count})"
+    },
+    "add": {
+      "open": "Hinzufügen",
+      "title": "Zugriff delegieren",
+      "text": "Geben Sie dieser Person vollen Zugriff auf Ihr Postfach. Sie erhält eine Benachrichtigung per E-Mail.",
+      "field": "E-Mail-Adresse",
+      "placeholder": "name@firma.de",
+      "next": "Weiter",
+      "back": "Zurück",
+      "submit": "Hinzufügen",
+      "confirm": "Dieser Person vollen Zugriff auf Ihr Postfach geben? |||| Diesen %{smart_count} Personen vollen Zugriff auf Ihr Postfach geben?",
+      "confirmList": "Personen, die Zugriff erhalten"
+    },
+    "remove": {
+      "submit": "Zugriff entfernen",
+      "delegateTitle": "Zugriff des Delegierten entfernen?",
+      "delegateText": "%{email} kann Ihren Posteingang nicht mehr ansehen oder verwalten. Sie können die Person jederzeit wieder hinzufügen.",
+      "ownTitle": "Ihren Zugriff entfernen?",
+      "ownText": "Sie können %{email} nicht mehr ansehen oder verwalten. Der Zugriff muss erneut mit Ihnen geteilt werden, wenn Sie ihn wieder brauchen.",
+      "delegateOf": "Zugriff von %{name} entfernen",
+      "ownOf": "Ihren Zugriff auf das Postfach von %{name} entfernen"
+    },
+    "toasts": {
+      "added": "%{name} wurde hinzugefügt",
+      "addedMany": "%{smart_count} Delegierter wurde hinzugefügt |||| %{smart_count} Delegierte wurden hinzugefügt",
+      "removed": "%{name} wurde entfernt",
+      "left": "Sie haben keinen Zugriff mehr auf das Postfach von %{name}"
+    },
+    "errors": {
+      "load": "Die Delegierungen konnten nicht geladen werden.",
+      "add": "%{addresses} konnte kein Zugriff gegeben werden.",
+      "remove": "Der Zugriff konnte nicht entfernt werden.",
+      "invalid": "Diese E-Mail-Adresse ist ungültig.",
+      "ownAddress": "Sie haben bereits Zugriff auf Ihr eigenes Postfach.",
+      "otherDomain": "Nur Personen aus %{domain} können Zugriff erhalten.",
+      "alreadyDelegate": "Diese Person hat bereits Zugriff.",
+      "empty": "Geben Sie die Adresse der Person ein, die Zugriff erhalten soll."
+    },
+    "switcher": {
+      "own": "Ihr Postfach",
+      "delegated": "An Sie delegiert",
+      "team": "Team-Postfächer",
+      "me": "Meine E-Mails",
+      "viewing": "Ansicht: %{name}",
+      "open": "Postfach wechseln, Ansicht: %{name}",
+      "back": "Zurück zu Ihrem Postfach"
     }
   }
 }

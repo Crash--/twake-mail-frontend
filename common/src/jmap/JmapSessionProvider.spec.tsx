@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect, useState, type ReactElement } from 'react'
@@ -11,7 +12,12 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { useJmapClient } from './JmapClientProvider'
-import { JmapSessionProvider, useJmapSession } from './JmapSessionProvider'
+import {
+  JmapSessionProvider,
+  useJmapSession,
+  useMailboxView
+} from './JmapSessionProvider'
+import { OWN_VIEW, writeMailboxView } from './mailboxView'
 import { SHARES_CAPABILITY } from './queries'
 
 function SessionSummary(): ReactElement {
@@ -91,5 +97,126 @@ describe('JmapSessionProvider', () => {
 
     expect(await screen.findByText(/mailboxes$/)).toBeVisible()
     expect(server.requests[0]?.using).toContain(SHARES_CAPABILITY)
+  })
+})
+
+describe('JmapSessionProvider mailbox view', () => {
+  const DELEGATED_ID = 'account-delegated'
+
+  function ViewSummary(): ReactElement {
+    const { accountId, ownAccountId, mailAddress } = useJmapSession()
+    const { switchView } = useMailboxView()
+    const queryClient = useQueryClient()
+    // A query of the screens, cached under its account
+    useEffect(() => {
+      queryClient.setQueryData(['mailbox', accountId, 'list'], { list: [] })
+    }, [queryClient, accountId])
+    return (
+      <>
+        <p>
+          {accountId} / {ownAccountId} / {mailAddress}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            switchView({ kind: 'delegated', accountId: DELEGATED_ID })
+          }}
+        >
+          Delegated
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            switchView(OWN_VIEW)
+          }}
+        >
+          Own
+        </button>
+      </>
+    )
+  }
+
+  afterEach(() => {
+    window.sessionStorage.clear()
+  })
+
+  it('shows a mailbox delegated to the user, then theirs, with a cache emptied each time', async () => {
+    const server = makeFakeJmapServer({
+      delegatedAccounts: [{ accountId: DELEGATED_ID, name: 'boss@example.com' }]
+    })
+    const { queryClient } = renderWithProviders(
+      <JmapSessionProvider>
+        <ViewSummary />
+      </JmapSessionProvider>,
+      { jmapServer: server }
+    )
+
+    expect(
+      await screen.findByText(
+        `${FAKE_ACCOUNT_ID} / ${FAKE_ACCOUNT_ID} / ${FAKE_USERNAME}`
+      )
+    ).toBeVisible()
+    await userEvent.click(screen.getByRole('button', { name: 'Delegated' }))
+
+    expect(
+      await screen.findByText(
+        `${DELEGATED_ID} / ${FAKE_ACCOUNT_ID} / boss@example.com`
+      )
+    ).toBeVisible()
+    // The data of the previous mailbox is gone, the session is kept
+    expect(queryClient.getQueryData(['mailbox', FAKE_ACCOUNT_ID, 'list'])).toBe(
+      undefined
+    )
+    expect(queryClient.getQueryData(['jmap', 'session'])).not.toBe(undefined)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Own' }))
+    expect(
+      await screen.findByText(
+        `${FAKE_ACCOUNT_ID} / ${FAKE_ACCOUNT_ID} / ${FAKE_USERNAME}`
+      )
+    ).toBeVisible()
+    expect(queryClient.getQueryData(['mailbox', DELEGATED_ID, 'list'])).toBe(
+      undefined
+    )
+  })
+
+  it('keeps the view of the tab through a reload, while the delegation lasts', async () => {
+    writeMailboxView(FAKE_USERNAME, {
+      kind: 'delegated',
+      accountId: DELEGATED_ID
+    })
+    const server = makeFakeJmapServer({
+      delegatedAccounts: [{ accountId: DELEGATED_ID, name: 'boss@example.com' }]
+    })
+    renderWithProviders(
+      <JmapSessionProvider>
+        <ViewSummary />
+      </JmapSessionProvider>,
+      { jmapServer: server }
+    )
+
+    expect(
+      await screen.findByText(
+        `${DELEGATED_ID} / ${FAKE_ACCOUNT_ID} / boss@example.com`
+      )
+    ).toBeVisible()
+  })
+
+  it('gives the user their own mailbox back once the delegation is gone', async () => {
+    writeMailboxView(FAKE_USERNAME, {
+      kind: 'delegated',
+      accountId: DELEGATED_ID
+    })
+    renderWithProviders(
+      <JmapSessionProvider>
+        <ViewSummary />
+      </JmapSessionProvider>
+    )
+
+    expect(
+      await screen.findByText(
+        `${FAKE_ACCOUNT_ID} / ${FAKE_ACCOUNT_ID} / ${FAKE_USERNAME}`
+      )
+    ).toBeVisible()
   })
 })

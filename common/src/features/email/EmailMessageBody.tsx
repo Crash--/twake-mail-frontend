@@ -90,14 +90,14 @@ export function EmailMessageBody({
   const [isRemoteContentShown, showRemoteContent] = useRemoteContentConsent(
     email.id
   )
-  const { session } = useJmapSession()
+  const { mailAddress } = useJmapSession()
   const isAlwaysShown = useShowsRemoteImages()
   const allowRemoteContent = allowsRemoteContent({
     isAlwaysShown,
     isConsented: isRemoteContentShown,
     isTrustedSender: trustedSender.isTrusted,
     senderEmail: sender?.email ?? null,
-    userEmail: session.username
+    userEmail: mailAddress
   })
   const focusIndicator = useFocusIndicator()
   const trimmedContentLabel = t('email.showTrimmedContent')

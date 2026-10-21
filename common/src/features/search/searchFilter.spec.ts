@@ -295,3 +295,50 @@ describe('withTypedText against ReDoS', () => {
     ).toBeLessThan(STRESS_TIME_LIMIT_MS)
   })
 })
+
+describe('toJmapFilter bound to a team mailbox', () => {
+  const BOUND = { ...CONTEXT, boundTeamRootId: 'team' }
+
+  it('looks in the folders of the team mailbox by default and everywhere', () => {
+    const inTeam = {
+      operator: 'AND',
+      conditions: [
+        { text: 'report' },
+        {
+          operator: 'OR',
+          conditions: [{ inMailbox: 'team-inbox' }, { inMailbox: 'team-sent' }]
+        }
+      ]
+    }
+
+    expect(toJmapFilter(filter({ text: 'report' }), BOUND)).toEqual(inTeam)
+    expect(
+      toJmapFilter(
+        filter({ text: 'report', scope: { kind: 'everywhere' } }),
+        BOUND
+      )
+    ).toEqual(inTeam)
+    // A folder of the user: still the team mailbox
+    expect(
+      toJmapFilter(
+        filter({
+          text: 'report',
+          scope: { kind: 'mailbox', mailboxId: 'personal-inbox' }
+        }),
+        BOUND
+      )
+    ).toEqual(inTeam)
+  })
+
+  it('keeps a folder of the team mailbox', () => {
+    expect(
+      toJmapFilter(
+        filter({
+          text: 'report',
+          scope: { kind: 'mailbox', mailboxId: 'team-sent' }
+        }),
+        BOUND
+      )
+    ).toEqual({ text: 'report', inMailbox: 'team-sent' })
+  })
+})

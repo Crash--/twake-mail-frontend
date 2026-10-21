@@ -44,15 +44,12 @@ export function useReplyOptions(
   email: EmailDetail | null | undefined
 ): ReplyOptions {
   const { openComposer } = useComposer()
-  const { session } = useJmapSession()
+  const { mailAddress } = useJmapSession()
   const { data: identities = [] } = useIdentities()
   const isSelf = useMemo(
     () =>
-      makeIsSelf([
-        session.username,
-        ...identities.map(identity => identity.email)
-      ]),
-    [session.username, identities]
+      makeIsSelf([mailAddress, ...identities.map(identity => identity.email)]),
+    [mailAddress, identities]
   )
   const emailId = email?.id ?? null
 

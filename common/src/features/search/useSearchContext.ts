@@ -5,6 +5,7 @@ import {
   findTrashAndSpamIds
 } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useTeamMailboxScope } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 
 import { formatDay, type SearchContext } from './searchFilter'
 
@@ -13,7 +14,7 @@ import { formatDay, type SearchContext } from './searchFilter'
  * mailbox's too) and spam mailboxes, left out by default, the folders of
  * each team mailbox, searched when its root is picked, and today (relative
  * date ranges count from the day the screen opened, which keeps the query
- * stable). Null until the mailboxes are known, so that the first query is
+ * stable), and the team mailbox the screens are bound to. Null until the mailboxes are known, so that the first query is
  * the right one.
  */
 export function useSearchContext(): SearchContext | null {
@@ -28,15 +29,17 @@ export function useSearchContext(): SearchContext | null {
     [mailboxes.data]
   )
   const isLoaded = mailboxes.isSuccess
+  const boundTeamRootId = useTeamMailboxScope()
   return useMemo(
     () =>
       isLoaded
         ? {
             trashAndSpamIds: key === '' ? [] : key.split('\n'),
             teamFolderIds,
-            today
+            today,
+            boundTeamRootId
           }
         : null,
-    [isLoaded, key, teamFolderIds, today]
+    [isLoaded, key, teamFolderIds, today, boundTeamRootId]
   )
 }

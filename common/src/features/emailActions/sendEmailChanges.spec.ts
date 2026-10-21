@@ -1,5 +1,5 @@
 import { createClient, type JmapClient } from 'jmap-client-ts'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {
   FAKE_ACCOUNT_ID,
@@ -22,7 +22,7 @@ function makeSetup(): { server: FakeJmapServer; client: JmapClient } {
     sessionUrl: FAKE_SESSION_URL,
     auth: { getAuthorizationHeader: () => Promise.resolve('Basic dGVzdA==') },
     fetch: server.fetch,
-    methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+    methodCapabilities: METHOD_CAPABILITIES
   })
   return { server, client }
 }

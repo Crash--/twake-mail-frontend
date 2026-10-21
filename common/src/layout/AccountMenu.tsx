@@ -23,7 +23,9 @@ import { useLogout } from './useLogout'
  */
 export function AccountMenu(): ReactElement {
   const { t } = useI18n()
-  const { session } = useJmapSession()
+  const { session, view } = useJmapSession()
+  // The settings of a mailbox delegated to the user are the owner's
+  const hasSettings = view.kind !== 'delegated'
   const { notify } = useNotify()
   const navigate = useNavigate()
   const handleLogout = useLogout()
@@ -65,19 +67,21 @@ export function AccountMenu(): ReactElement {
       data-testid="account-menu-button"
     >
       {close => [
-        <MenuItem
-          key="settings"
-          onClick={() => {
-            close()
-            void navigate(SETTINGS_PATH)
-          }}
-          data-testid="settings-button"
-        >
-          <ListItemIcon>
-            <Icon icon={Setting} />
-          </ListItemIcon>
-          <ListItemText primary={t('settings.manageAccount')} />
-        </MenuItem>,
+        hasSettings ? (
+          <MenuItem
+            key="settings"
+            onClick={() => {
+              close()
+              void navigate(SETTINGS_PATH)
+            }}
+            data-testid="settings-button"
+          >
+            <ListItemIcon>
+              <Icon icon={Setting} />
+            </ListItemIcon>
+            <ListItemText primary={t('settings.manageAccount')} />
+          </MenuItem>
+        ) : null,
         <MenuItem
           key="logout"
           onClick={() => {

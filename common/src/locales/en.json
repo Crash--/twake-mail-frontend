@@ -820,6 +820,10 @@
       "storage": {
         "title": "Storage",
         "description": "Monitor your available space."
+      },
+      "delegation": {
+        "title": "Delegation",
+        "description": "Let others access your mailbox, and open the ones shared with you."
       }
     },
     "preferences": {
@@ -1504,6 +1508,70 @@
     "untrustedFrame": {
       "title": "Twake Mail cannot open in this page",
       "description": "Another page shows this app: open Twake Mail directly to write your message."
+    }
+  },
+  "delegation": {
+    "tabs": {
+      "delegates": "My delegates",
+      "delegated": "Delegated to me"
+    },
+    "delegates": {
+      "intro": "Let others access your mailbox. They'll get an email when you add them.",
+      "emptyTitle": "No one has access yet",
+      "emptyText": "Add someone below to share access to your inbox.",
+      "listTitle": "Who has access to me"
+    },
+    "delegated": {
+      "intro": "Accounts other people have given you access to. You can switch into them from the mailbox switcher, and remove your own access at any time.",
+      "emptyTitle": "No mailboxes shared with you",
+      "emptyText": "When someone gives you access to their inbox, it will show up here.",
+      "listTitle": "Mailboxes delegated to me (%{smart_count}) |||| Mailboxes delegated to me (%{smart_count})"
+    },
+    "add": {
+      "open": "Add",
+      "title": "Delegate access",
+      "text": "Give this person full access to your mailbox. They'll get an email notification.",
+      "field": "Email address",
+      "placeholder": "name@company.com",
+      "next": "Next",
+      "back": "Back",
+      "submit": "Add",
+      "confirm": "Give full access to your mailbox to this person? |||| Give full access to your mailbox to these %{smart_count} people?",
+      "confirmList": "People to give access to"
+    },
+    "remove": {
+      "submit": "Remove access",
+      "delegateTitle": "Remove delegate access?",
+      "delegateText": "%{email} will no longer be able to view or manage your inbox. You can add them again at any time.",
+      "ownTitle": "Remove your access?",
+      "ownText": "You'll no longer be able to view or manage %{email}. They'll need to share access with you again if you need it back.",
+      "delegateOf": "Remove the access of %{name}",
+      "ownOf": "Remove your access to the mailbox of %{name}"
+    },
+    "toasts": {
+      "added": "%{name} has been added",
+      "addedMany": "%{smart_count} delegate has been added |||| %{smart_count} delegates have been added",
+      "removed": "%{name} has been removed",
+      "left": "You no longer have access to the mailbox of %{name}"
+    },
+    "errors": {
+      "load": "The delegations could not be loaded.",
+      "add": "Access could not be given to %{addresses}.",
+      "remove": "The access could not be removed.",
+      "invalid": "This email address is invalid.",
+      "ownAddress": "You already have access to your own mailbox.",
+      "otherDomain": "Only people of %{domain} can be given access.",
+      "alreadyDelegate": "This person already has access.",
+      "empty": "Enter the address of the person to give access to."
+    },
+    "switcher": {
+      "own": "Your mailbox",
+      "delegated": "Delegated to you",
+      "team": "Team mailboxes",
+      "me": "My email",
+      "viewing": "Viewing %{name}",
+      "open": "Switch mailbox, viewing %{name}",
+      "back": "Back to your mailbox"
     }
   }
 }

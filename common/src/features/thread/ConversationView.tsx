@@ -453,7 +453,7 @@ export function ConversationView({
 }: ConversationViewProps): ReactElement {
   const { t } = useI18n()
   const client = useJmapClient()
-  const { accountId, session } = useJmapSession()
+  const { accountId, mailAddress } = useJmapSession()
   const query = useQuery(
     conversationQueryOptions(client, accountId, threadId, emailId)
   )
@@ -502,7 +502,7 @@ export function ConversationView({
       sides
     ).filter(
       email =>
-        email.id === emailId || !isOwnSentCopy(email, sentId, session.username)
+        email.id === emailId || !isOwnSentCopy(email, sentId, mailAddress)
     )
   }, [
     query.data,
@@ -512,7 +512,7 @@ export function ConversationView({
     side,
     sides,
     sentId,
-    session.username
+    mailAddress
   ])
 
   // Its last message deleted, the conversation is gone: back to the list
@@ -563,7 +563,7 @@ export function ConversationView({
       }
       fromList={fromList}
       sentId={sentId}
-      ownAddress={session.username}
+      ownAddress={mailAddress}
       isTeam={emails.some(email => findTeamHomeId(mailboxList, email) !== null)}
       onBack={onBack}
       navigation={navigation}

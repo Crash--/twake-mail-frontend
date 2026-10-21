@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions, type QueryClient } from '@tanstack/react-query'
 import { CAPABILITIES, type JmapClient, type Session } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
@@ -57,4 +57,16 @@ export function sessionQueryOptions(
     queryFn: () => fetchSessionInfo(client),
     staleTime: Infinity
   })
+}
+
+/**
+ * Fetches the session again (its accounts changed: a delegation was added
+ * or removed) and gives it to the screens
+ */
+export async function reloadSession(
+  client: JmapClient,
+  queryClient: QueryClient
+): Promise<void> {
+  await client.refreshSession()
+  await queryClient.invalidateQueries({ queryKey: jmapKeys.session() })
 }

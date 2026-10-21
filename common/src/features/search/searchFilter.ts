@@ -281,6 +281,11 @@ export interface SearchContext {
   teamFolderIds: Readonly<Record<string, readonly string[]>>
   /** The day the relative date ranges count from, `YYYY-MM-DD` */
   today: string
+  /**
+   * The root of the team mailbox the screens are bound to (the mailbox
+   * switcher): every search looks in its folders only
+   */
+  boundTeamRootId?: string | null
 }
 
 /** `YYYY-MM-DD` of a local date */
@@ -348,8 +353,22 @@ function anyOf(
  */
 export function toJmapFilter(
   filter: SearchFilter,
-  { trashAndSpamIds, teamFolderIds, today }: SearchContext
+  context: SearchContext
 ): Filter<EmailFilterCondition> {
+  const { trashAndSpamIds, teamFolderIds, today } = context
+  const boundRootId = context.boundTeamRootId ?? null
+  if (boundRootId !== null) {
+    const isInTeam =
+      filter.scope.kind === 'mailbox' &&
+      (filter.scope.mailboxId === boundRootId ||
+        (teamFolderIds[boundRootId] ?? []).includes(filter.scope.mailboxId))
+    if (!isInTeam) {
+      return toJmapFilter(
+        { ...filter, scope: { kind: 'mailbox', mailboxId: boundRootId } },
+        { ...context, boundTeamRootId: null }
+      )
+    }
+  }
   const condition: EmailFilterCondition = { ...dateBounds(filter, today) }
   const text = filter.text.trim()
   const subject = filter.subject.trim()

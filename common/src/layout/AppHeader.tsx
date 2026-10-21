@@ -12,6 +12,7 @@ import {
   usePlatformSdk,
   usePlatformStatus
 } from '@common/features/platform/PlatformProvider'
+import { MailboxSwitcherButton } from '@common/features/delegation/MailboxSwitcherButton'
 import { isSettingsPath } from '@common/features/settings/SettingsExitProvider'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -97,6 +98,7 @@ export function AppHeader({
         }
         actions={
           <>
+            {isFlutterBar && !isSettings ? <MailboxSwitcherButton /> : null}
             <HelpButton isFlutterLook={isFlutterBar} />
             {/* As tmail-flutter: the settings and the sign out are behind
                 the initial of the user */}

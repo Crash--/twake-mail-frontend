@@ -1,5 +1,5 @@
 import { createClient } from 'jmap-client-ts'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import { createOwnStates, MAX_OWN_STATES, ownStatesOf } from './ownStates'
 
@@ -8,7 +8,7 @@ function makeClient(): ReturnType<typeof createClient> {
     sessionUrl: 'https://jmap.example.com/session',
     auth: { getAuthorizationHeader: () => Promise.resolve('Basic dGVzdA==') },
     fetch: () => Promise.reject(new Error('No request expected')),
-    methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+    methodCapabilities: METHOD_CAPABILITIES
   })
 }
 

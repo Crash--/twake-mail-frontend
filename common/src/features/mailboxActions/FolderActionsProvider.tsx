@@ -115,7 +115,8 @@ export function FolderActionsProvider({
   const { t } = useI18n()
   const recovery = useRecovery()
   const client = useJmapClient()
-  const { accountId, session, extraCapabilities } = useJmapSession()
+  const { accountId, session, extraCapabilities, mailAddress } =
+    useJmapSession()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const openMailboxId = useMatch('/mailbox/:mailboxId/*')?.params.mailboxId
@@ -552,8 +553,7 @@ export function FolderActionsProvider({
   const subaddressOf = useCallback(
     async (mailbox: MailboxSummary): Promise<string | null> => {
       const detail = subaddressDetail(await loadMailboxes(), mailbox.id)
-      const address =
-        detail === null ? null : subaddress(session.username, detail)
+      const address = detail === null ? null : subaddress(mailAddress, detail)
       if (address === null) {
         notify({
           message: t('folders.subaddressing.addressFailed'),
@@ -562,7 +562,7 @@ export function FolderActionsProvider({
       }
       return address
     },
-    [loadMailboxes, session.username, notify, t]
+    [loadMailboxes, mailAddress, notify, t]
   )
 
   const copySubaddress = useCallback(

@@ -25,6 +25,7 @@ import {
 } from '@common/features/mailboxActions/FolderActionsMenu'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
+import { useTeamMailboxScope } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -171,6 +172,17 @@ export function MailboxTree(): ReactElement {
   const systemRows = listVisibleMailboxes(personal.system, isExpanded)
   const folderRows = listVisibleMailboxes(personal.folders, isExpanded)
   const teamRows = listVisibleMailboxes(sections.team, isExpanded)
+  // Bound to a team mailbox by the mailbox switcher: its folders only, at
+  // the top level, without the virtual folders nor the other sections
+  const boundRootId = useTeamMailboxScope()
+  const boundRows =
+    boundRootId === null
+      ? null
+      : listVisibleMailboxes(
+          sections.team.find(node => node.mailbox.id === boundRootId)
+            ?.children ?? [],
+          isExpanded
+        )
 
   // A folder moved under a collapsed one would vanish from the tree: its
   // new parent expands to show it
@@ -219,6 +231,15 @@ export function MailboxTree(): ReactElement {
         <ListItemText secondary={t('common.errorOccurred')} />
       </ListItem>
     )
+  } else if (boundRows !== null) {
+    systemContent = (
+      <TreeRows
+        rows={boundRows}
+        selectedId={selectedId}
+        onToggle={handleToggle}
+        onOpenMenu={handleOpenMenu}
+      />
+    )
   } else {
     systemContent = (
       <TreeRows
@@ -258,112 +279,116 @@ export function MailboxTree(): ReactElement {
             {systemContent}
           </NavTree>
         )}
-        <NavSectionHeader
-          title={t('sidebar.folders')}
-          titleId={titleId}
-          toggle={{
-            isExpanded: collapsible.isExpanded('folders'),
-            onToggle: () => {
-              collapsible.toggle('folders')
-            },
-            controlsId: isSearching ? searchId : foldersContentId,
-            'data-testid': 'folders-section-toggle'
-          }}
-          data-testid="mailbox-tree-title"
-          actions={
-            <>
-              {sections.hiddenCount > 0 ? (
-                <NavSectionAction
-                  label={hiddenLabel}
-                  icon={showHidden ? Eye : EyeClosed}
-                  aria-pressed={showHidden}
-                  onClick={handleToggleHidden}
-                  data-testid="show-hidden-folders-button"
-                />
-              ) : null}
-              <NavSectionAction
-                buttonRef={searchButtonRef}
-                label={searchLabel}
-                icon={Magnifier}
-                aria-expanded={isSearching}
-                aria-controls={isSearching ? searchId : undefined}
-                onClick={handleToggleSearch}
-                data-testid="mailbox-search-button"
+        {boundRows !== null ? null : (
+          <>
+            <NavSectionHeader
+              title={t('sidebar.folders')}
+              titleId={titleId}
+              toggle={{
+                isExpanded: collapsible.isExpanded('folders'),
+                onToggle: () => {
+                  collapsible.toggle('folders')
+                },
+                controlsId: isSearching ? searchId : foldersContentId,
+                'data-testid': 'folders-section-toggle'
+              }}
+              data-testid="mailbox-tree-title"
+              actions={
+                <>
+                  {sections.hiddenCount > 0 ? (
+                    <NavSectionAction
+                      label={hiddenLabel}
+                      icon={showHidden ? Eye : EyeClosed}
+                      aria-pressed={showHidden}
+                      onClick={handleToggleHidden}
+                      data-testid="show-hidden-folders-button"
+                    />
+                  ) : null}
+                  <NavSectionAction
+                    buttonRef={searchButtonRef}
+                    label={searchLabel}
+                    icon={Magnifier}
+                    aria-expanded={isSearching}
+                    aria-controls={isSearching ? searchId : undefined}
+                    onClick={handleToggleSearch}
+                    data-testid="mailbox-search-button"
+                  />
+                  <NavSectionAction
+                    label={newFolderLabel}
+                    icon={AddNewFolder}
+                    onClick={handleCreate}
+                    data-testid="add-new-folder-button"
+                  />
+                </>
+              }
+            />
+            {isSearching ? (
+              <MailboxSearch
+                id={searchId}
+                selectedId={selectedId}
+                onClose={handleCloseSearch}
+                onOpenMenu={handleOpenMenu}
               />
-              <NavSectionAction
-                label={newFolderLabel}
-                icon={AddNewFolder}
-                onClick={handleCreate}
-                data-testid="add-new-folder-button"
-              />
-            </>
-          }
-        />
-        {isSearching ? (
-          <MailboxSearch
-            id={searchId}
-            selectedId={selectedId}
-            onClose={handleCloseSearch}
-            onOpenMenu={handleOpenMenu}
-          />
-        ) : (
-          <div
-            id={foldersContentId}
-            hidden={!collapsible.isExpanded('folders')}
-            className="u-pt-1"
-          >
-            {/* As tmail-flutter: the folders of the user and the team
+            ) : (
+              <div
+                id={foldersContentId}
+                hidden={!collapsible.isExpanded('folders')}
+                className="u-pt-1"
+              >
+                {/* As tmail-flutter: the folders of the user and the team
                 mailboxes are two categories of the "Folders" section */}
-            {folderRows.length > 0 ? (
-              <NavCategory
-                title={t('sidebar.personalFolders')}
-                titleId={personalTitleId}
-                icon={DefaultFolderIcon}
-                isExpanded={collapsible.isExpanded('personalFolders')}
-                onToggle={() => {
-                  collapsible.toggle('personalFolders')
-                }}
-                controlsId={personalContentId}
-                toggleTestId="personal-folders-section-toggle"
-              >
-                <NavTree
-                  role="tree"
-                  aria-labelledby={personalTitleId}
-                  data-testid="mailbox-folders-tree"
-                >
-                  <TreeRows
-                    rows={folderRows}
-                    selectedId={selectedId}
-                    onToggle={handleToggle}
-                    onOpenMenu={handleOpenMenu}
-                  />
-                </NavTree>
-              </NavCategory>
-            ) : null}
-            {teamRows.length > 0 ? (
-              <NavCategory
-                title={t('sidebar.teamMailboxes')}
-                titleId={teamTitleId}
-                icon={DefaultFolderIcon}
-                isExpanded={collapsible.isExpanded('teamMailboxes')}
-                onToggle={() => {
-                  collapsible.toggle('teamMailboxes')
-                }}
-                controlsId={teamContentId}
-                toggleTestId="team-mailboxes-section-toggle"
-                data-testid="team-mailboxes-section"
-              >
-                <NavTree role="tree" aria-labelledby={teamTitleId}>
-                  <TreeRows
-                    rows={teamRows}
-                    selectedId={selectedId}
-                    onToggle={handleToggle}
-                    onOpenMenu={handleOpenMenu}
-                  />
-                </NavTree>
-              </NavCategory>
-            ) : null}
-          </div>
+                {folderRows.length > 0 ? (
+                  <NavCategory
+                    title={t('sidebar.personalFolders')}
+                    titleId={personalTitleId}
+                    icon={DefaultFolderIcon}
+                    isExpanded={collapsible.isExpanded('personalFolders')}
+                    onToggle={() => {
+                      collapsible.toggle('personalFolders')
+                    }}
+                    controlsId={personalContentId}
+                    toggleTestId="personal-folders-section-toggle"
+                  >
+                    <NavTree
+                      role="tree"
+                      aria-labelledby={personalTitleId}
+                      data-testid="mailbox-folders-tree"
+                    >
+                      <TreeRows
+                        rows={folderRows}
+                        selectedId={selectedId}
+                        onToggle={handleToggle}
+                        onOpenMenu={handleOpenMenu}
+                      />
+                    </NavTree>
+                  </NavCategory>
+                ) : null}
+                {teamRows.length > 0 ? (
+                  <NavCategory
+                    title={t('sidebar.teamMailboxes')}
+                    titleId={teamTitleId}
+                    icon={DefaultFolderIcon}
+                    isExpanded={collapsible.isExpanded('teamMailboxes')}
+                    onToggle={() => {
+                      collapsible.toggle('teamMailboxes')
+                    }}
+                    controlsId={teamContentId}
+                    toggleTestId="team-mailboxes-section-toggle"
+                    data-testid="team-mailboxes-section"
+                  >
+                    <NavTree role="tree" aria-labelledby={teamTitleId}>
+                      <TreeRows
+                        rows={teamRows}
+                        selectedId={selectedId}
+                        onToggle={handleToggle}
+                        onOpenMenu={handleOpenMenu}
+                      />
+                    </NavTree>
+                  </NavCategory>
+                ) : null}
+              </div>
+            )}
+          </>
         )}
       </Box>
       <FolderActionsMenu

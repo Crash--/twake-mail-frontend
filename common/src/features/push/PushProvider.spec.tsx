@@ -8,12 +8,14 @@ import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { EmailList } from '@common/features/thread/EmailList'
 import {
   FAKE_ACCOUNT_ID,
+  FAKE_USERNAME,
   FAKE_WEBSOCKET_URL,
   makeEmail,
   makeFakeJmapServer,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
+import { writeMailboxView } from '@common/jmap/mailboxView'
 
 import { PushProvider } from './PushProvider'
 
@@ -410,5 +412,54 @@ describe('PushProvider', () => {
     result.unmount()
 
     expect(socket.isClosed).toBe(true)
+  })
+
+  describe('in a mailbox delegated to the user', () => {
+    afterEach(() => {
+      window.sessionStorage.clear()
+    })
+
+    it('opens no channel, and catches up when the page comes back', async () => {
+      writeMailboxView(FAKE_USERNAME, {
+        kind: 'delegated',
+        accountId: 'account-boss'
+      })
+      const server = makeFakeJmapServer({
+        webSocket: true,
+        delegatedAccounts: [
+          { accountId: 'account-boss', name: 'boss@example.com' }
+        ],
+        emails: [makeEmail({ id: 'e1', subject: 'Already there' })]
+      })
+      renderWithProviders(
+        <PushProvider WebSocket={FakeWebSocket}>
+          <VirtuosoMockContext.Provider
+            value={{ viewportHeight: 100_000, itemHeight: 56 }}
+          >
+            <EmailList mailboxId="mailbox-inbox" />
+          </VirtuosoMockContext.Provider>
+        </PushProvider>,
+        {
+          route: '/mailbox/mailbox-inbox',
+          path: '/mailbox/:mailboxId',
+          withJmapSession: true,
+          jmapServer: server
+        }
+      )
+      await screen.findByTestId('email-list-item')
+      expect(FakeWebSocket.instances).toHaveLength(0)
+      // The delegated account is the one read
+      expect(server.callsOf('Email/query')[0]).toMatchObject({
+        accountId: 'account-boss'
+      })
+
+      server.addEmail(makeEmail({ id: 'e2', subject: 'Just arrived' }))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      expect(await screen.findByText('Just arrived')).toBeVisible()
+      expect(FakeWebSocket.instances).toHaveLength(0)
+    })
   })
 })

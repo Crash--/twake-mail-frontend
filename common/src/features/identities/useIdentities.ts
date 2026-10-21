@@ -12,13 +12,13 @@ import {
 /** The identities the user sends from, the default one first */
 export function useIdentities(): UseQueryResult<IdentitySummary[]> {
   const client = useJmapClient()
-  const { accountId, session } = useJmapSession()
+  const { accountId, session, mailAddress } = useJmapSession()
   return useQuery(
     identitiesQueryOptions(
       client,
       accountId,
       IDENTITY_SORT_ORDER_CAPABILITY in session.capabilities,
-      session.username
+      mailAddress
     )
   )
 }

@@ -7,6 +7,7 @@ import {
 
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
+import { useBoundTeamRootId } from '@common/jmap/JmapSessionProvider'
 
 import { findTeamMailboxRoot } from './teamMailbox'
 
@@ -44,11 +45,23 @@ export function useTeamMailboxEmbed(): string | null {
 }
 
 /**
- * The root of the team mailbox of the facade, null in the webmail, while
- * the folders load, and when the user has no access to it
+ * The id of the root of the team mailbox the screens are bound to: the one
+ * of the facade, or the one picked in the mailbox switcher of the webmail;
+ * null otherwise. Its folders only are shown, searched and written from.
+ */
+export function useTeamMailboxScope(): string | null {
+  const embedded = useTeamMailboxEmbed()
+  const picked = useBoundTeamRootId()
+  return embedded ?? picked
+}
+
+/**
+ * The root of the team mailbox the screens are bound to (the facade, or
+ * the mailbox switcher); null otherwise, while the folders load, and when
+ * the user has no access to it
  */
 export function useTeamMailboxRoot(): MailboxSummary | null {
-  const rootId = useTeamMailboxEmbed()
+  const rootId = useTeamMailboxScope()
   const query = useMailboxes()
   if (rootId === null || query.data === undefined) return null
   return findTeamMailboxRoot(query.data, rootId)

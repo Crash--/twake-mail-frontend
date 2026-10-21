@@ -38,7 +38,7 @@ export function usePrintEmail(): (email: EmailDetail) => Promise<void> {
   const { t, lang } = useI18n()
   const { notify } = useNotify()
   const client = useJmapClient()
-  const { accountId, session } = useJmapSession()
+  const { accountId, mailAddress } = useJmapSession()
   const allowsRemoteContent = useRemoteContentPolicy()
 
   return useCallback(
@@ -78,7 +78,7 @@ export function usePrintEmail(): (email: EmailDetail) => Promise<void> {
           buildPrintDocument({
             lang,
             title: `${t('app.name')} - ${subject}`,
-            userName: session.username,
+            userName: mailAddress,
             subject,
             fromLabel: t('email.from'),
             senderName: sender?.name ?? '',
@@ -111,6 +111,6 @@ export function usePrintEmail(): (email: EmailDetail) => Promise<void> {
         }, 120_000)
       }
     },
-    [t, lang, notify, client, accountId, session.username, allowsRemoteContent]
+    [t, lang, notify, client, accountId, mailAddress, allowsRemoteContent]
   )
 }

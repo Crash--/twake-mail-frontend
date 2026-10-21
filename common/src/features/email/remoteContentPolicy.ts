@@ -51,7 +51,7 @@ export type RemoteContentPolicy = (email: {
  */
 export function useRemoteContentPolicy(): RemoteContentPolicy {
   const queryClient = useQueryClient()
-  const { accountId, session } = useJmapSession()
+  const { accountId, mailAddress } = useJmapSession()
   const isAlwaysShown = useShowsRemoteImages()
 
   return useCallback(
@@ -61,8 +61,8 @@ export function useRemoteContentPolicy(): RemoteContentPolicy {
         isConsented: readRemoteContentConsent(queryClient, accountId, id),
         isTrustedSender: senderEmail !== null && isTrustedSender(senderEmail),
         senderEmail,
-        userEmail: session.username
+        userEmail: mailAddress
       }),
-    [queryClient, accountId, session.username, isAlwaysShown]
+    [queryClient, accountId, mailAddress, isAlwaysShown]
   )
 }

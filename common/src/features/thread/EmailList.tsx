@@ -318,7 +318,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     },
     [search, mailboxes.data, getMailboxName]
   )
-  const { session, accountId } = useJmapSession()
+  const { mailAddress, accountId } = useJmapSession()
   const meLabel = t('thread.me')
   const sentId = findMailboxIdByRole(mailboxes.data ?? [], 'sent')
   const teamMailboxIds = useMemo(
@@ -340,7 +340,7 @@ export function EmailList(props: EmailListProps): ReactElement {
             ? members
             : members.filter(member => member.id === rowEmailId),
           {
-            ownAddress: session.username,
+            ownAddress: mailAddress,
             meLabel,
             sentId,
             teamMailboxIds,
@@ -349,15 +349,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           }
         )
       ),
-    [
-      query.data,
-      hasSides,
-      session.username,
-      meLabel,
-      sentId,
-      teamMailboxIds,
-      sides
-    ]
+    [query.data, hasSides, mailAddress, meLabel, sentId, teamMailboxIds, sides]
   )
   const isOnline = useOnlineStatus()
   // The actions on a conversation act on all its emails of its side

@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createClient } from 'jmap-client-ts'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {
   FAKE_ACCOUNT_ID,
@@ -25,7 +25,7 @@ describe('templatesQueryOptions', () => {
     const client = createClient({
       sessionUrl: FAKE_SESSION_URL,
       fetch: server.fetch,
-      methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+      methodCapabilities: METHOD_CAPABILITIES
     })
 
     const templates = await new QueryClient().query(

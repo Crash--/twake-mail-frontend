@@ -820,6 +820,10 @@
       "storage": {
         "title": "Stockage",
         "description": "Gérer votre espace disponible."
+      },
+      "delegation": {
+        "title": "Délégation",
+        "description": "Donnez accès à votre boîte mail, et ouvrez celles partagées avec vous."
       }
     },
     "preferences": {
@@ -1504,6 +1508,70 @@
     "untrustedFrame": {
       "title": "Twake Mail ne peut pas s'ouvrir dans cette page",
       "description": "Une autre page affiche cette application : ouvrez Twake Mail directement pour écrire votre message."
+    }
+  },
+  "delegation": {
+    "tabs": {
+      "delegates": "Mes délégués",
+      "delegated": "Délégués à moi"
+    },
+    "delegates": {
+      "intro": "Donnez accès à votre boîte mail. Les personnes ajoutées reçoivent un e-mail.",
+      "emptyTitle": "Personne n'a encore accès",
+      "emptyText": "Ajoutez quelqu'un ci-dessous pour partager l'accès à votre boîte de réception.",
+      "listTitle": "Qui a accès à ma boîte"
+    },
+    "delegated": {
+      "intro": "Les comptes auxquels d'autres personnes vous ont donné accès. Vous pouvez y basculer depuis le sélecteur de boîte mail, et retirer votre accès à tout moment.",
+      "emptyTitle": "Aucune boîte mail partagée avec vous",
+      "emptyText": "Quand quelqu'un vous donnera accès à sa boîte de réception, elle apparaîtra ici.",
+      "listTitle": "Boîte mail déléguée à moi (%{smart_count}) |||| Boîtes mail déléguées à moi (%{smart_count})"
+    },
+    "add": {
+      "open": "Ajouter",
+      "title": "Déléguer l'accès",
+      "text": "Donnez à cette personne un accès complet à votre boîte mail. Elle recevra un e-mail de notification.",
+      "field": "Adresse e-mail",
+      "placeholder": "nom@entreprise.com",
+      "next": "Suivant",
+      "back": "Retour",
+      "submit": "Ajouter",
+      "confirm": "Donner un accès complet à votre boîte mail à cette personne ? |||| Donner un accès complet à votre boîte mail à ces %{smart_count} personnes ?",
+      "confirmList": "Personnes à qui donner l'accès"
+    },
+    "remove": {
+      "submit": "Retirer l'accès",
+      "delegateTitle": "Retirer l'accès du délégué ?",
+      "delegateText": "%{email} ne pourra plus consulter ni gérer votre boîte de réception. Vous pourrez l'ajouter de nouveau à tout moment.",
+      "ownTitle": "Retirer votre accès ?",
+      "ownText": "Vous ne pourrez plus consulter ni gérer %{email}. Il faudra qu'on vous partage de nouveau l'accès si vous en avez besoin.",
+      "delegateOf": "Retirer l'accès de %{name}",
+      "ownOf": "Retirer votre accès à la boîte mail de %{name}"
+    },
+    "toasts": {
+      "added": "%{name} a été ajouté(e)",
+      "addedMany": "%{smart_count} délégué a été ajouté |||| %{smart_count} délégués ont été ajoutés",
+      "removed": "%{name} a été retiré(e)",
+      "left": "Vous n'avez plus accès à la boîte mail de %{name}"
+    },
+    "errors": {
+      "load": "Les délégations n'ont pas pu être chargées.",
+      "add": "L'accès n'a pas pu être donné à %{addresses}.",
+      "remove": "L'accès n'a pas pu être retiré.",
+      "invalid": "Cette adresse e-mail n'est pas valide.",
+      "ownAddress": "Vous avez déjà accès à votre propre boîte mail.",
+      "otherDomain": "Seules les personnes de %{domain} peuvent recevoir un accès.",
+      "alreadyDelegate": "Cette personne a déjà accès.",
+      "empty": "Saisissez l'adresse de la personne à qui donner l'accès."
+    },
+    "switcher": {
+      "own": "Votre boîte mail",
+      "delegated": "Déléguées à vous",
+      "team": "Boîtes d'équipe",
+      "me": "Mes e-mails",
+      "viewing": "Vue : %{name}",
+      "open": "Changer de boîte mail, vue : %{name}",
+      "back": "Revenir à votre boîte mail"
     }
   }
 }

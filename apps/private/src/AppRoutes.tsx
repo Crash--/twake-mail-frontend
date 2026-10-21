@@ -9,6 +9,7 @@ import { BasicLoginPage } from '@common/features/auth/BasicLoginPage'
 import { LoginCallbackPage } from '@common/features/auth/LoginCallbackPage'
 import { RequireAuth } from '@common/features/auth/RequireAuth'
 import { MailtoRoute } from '@common/features/composer/MailtoRoute'
+import { DelegationSettings } from '@common/features/delegation/DelegationSettings'
 import { ForwardSettings } from '@common/features/forward/ForwardSettings'
 import { IdentitiesSettings } from '@common/features/identities/IdentitiesSettings'
 import { FolderVisibilitySettings } from '@common/features/mailbox/FolderVisibilitySettings'
@@ -162,6 +163,14 @@ export function appRouteElements(): ReactElement {
               element={
                 <SettingsSectionRoute id="storage">
                   {section => <StorageSettings section={section} />}
+                </SettingsSectionRoute>
+              }
+            />
+            <Route
+              path="delegation"
+              element={
+                <SettingsSectionRoute id="delegation">
+                  {section => <DelegationSettings section={section} />}
                 </SettingsSectionRoute>
               }
             />

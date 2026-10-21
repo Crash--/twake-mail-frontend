@@ -66,7 +66,7 @@ export function useReadReceiptRequest(email: EmailDetail): void {
   const { notify } = useNotify()
   const client = useJmapClient()
   const queryClient = useQueryClient()
-  const { accountId, session } = useJmapSession()
+  const { accountId, session, mailAddress } = useJmapSession()
   const identities = useIdentities()
   const mailboxes = useMailboxes()
   const askedRef = useRef(false)
@@ -109,7 +109,7 @@ export function useReadReceiptRequest(email: EmailDetail): void {
             forEmailId: email.id,
             subject: t('email.readReceipt.subject', { subject }),
             textBody: t('email.readReceipt.body', {
-              receiver: receivedAt ?? session.username,
+              receiver: receivedAt ?? mailAddress,
               time: formatFullDate(new Date().toISOString(), lang),
               subject
             }),
@@ -159,6 +159,7 @@ export function useReadReceiptRequest(email: EmailDetail): void {
     identity,
     receivedAt,
     session,
+    mailAddress,
     accountId,
     client,
     confirm,

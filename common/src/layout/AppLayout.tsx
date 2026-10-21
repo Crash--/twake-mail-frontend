@@ -14,6 +14,8 @@ import {
   ComposerProvider,
   useComposer
 } from '@common/features/composer/ComposerProvider'
+import { MailboxSwitcherButton } from '@common/features/delegation/MailboxSwitcherButton'
+import { TeamViewGuard } from '@common/features/delegation/TeamViewGuard'
 import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
@@ -183,6 +185,7 @@ function AppFrame(): ReactElement {
       <ServerLanguageSync />
       <ServerThemeSync />
       <InboxUnreadTitle />
+      <TeamViewGuard />
       <OfflineNotice />
       <SentryReportingSync />
       {/* The reply bar of an open email is at the bottom of the screen too */}
@@ -214,7 +217,12 @@ function AppFrame(): ReactElement {
           {isDesktop && !isSettings && !hasFlutterBar ? (
             <SearchRow
               search={<MailSearchRow />}
-              actions={<SettingsButton />}
+              actions={
+                <>
+                  <MailboxSwitcherButton />
+                  <SettingsButton />
+                </>
+              }
               data-testid="search-row"
             />
           ) : null}

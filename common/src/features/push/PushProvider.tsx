@@ -21,6 +21,12 @@ import { createPushSync, SYNCED_TYPES } from './pushSync'
 /** Keeps idle connections open through proxies that close silent sockets */
 const PING_INTERVAL_MS = 30_000
 
+/**
+ * How often a mailbox delegated to the user catches up with its changes:
+ * the push channel only tells about the user's own account
+ */
+export const DELEGATED_POLL_INTERVAL_MS = 30_000
+
 export interface PushProviderProps {
   children: ReactNode
   /** WebSocket implementation, the browser's by default (tests) */
@@ -42,10 +48,35 @@ export function PushProvider({
   WebSocket
 }: PushProviderProps): ReactElement {
   const client = useJmapClient()
-  const { accountId } = useJmapSession()
+  const { accountId, ownAccountId } = useJmapSession()
   const queryClient = useQueryClient()
+  const isDelegated = accountId !== ownAccountId
+
+  // A delegated mailbox: no push (the channel is scoped to the user's own
+  // account), its changes are caught up regularly, back online, and when
+  // the page comes back to the front
+  useEffect(() => {
+    if (!isDelegated) return
+    const sync = createPushSync(queryClient, client, accountId)
+    const catchUp = (): void => {
+      sync.catchUp()
+    }
+    const handleVisibility = (): void => {
+      if (document.visibilityState === 'visible') catchUp()
+    }
+    const timer = window.setInterval(catchUp, DELEGATED_POLL_INTERVAL_MS)
+    window.addEventListener('online', catchUp)
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('online', catchUp)
+      document.removeEventListener('visibilitychange', handleVisibility)
+      sync.close()
+    }
+  }, [isDelegated, client, accountId, queryClient])
 
   useEffect(() => {
+    if (isDelegated) return
     const sync = createPushSync(queryClient, client, accountId)
     const hasLabels = client.hasCapability(LINAGORA_CAPABILITIES.labels)
     const push = client.connectWebSocket({
@@ -137,7 +168,7 @@ export function PushProvider({
         })
       }
     }
-  }, [client, accountId, queryClient, WebSocket])
+  }, [isDelegated, client, accountId, queryClient, WebSocket])
 
   return <>{children}</>
 }

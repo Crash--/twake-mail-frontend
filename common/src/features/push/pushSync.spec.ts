@@ -1,6 +1,6 @@
 import { InfiniteQueryObserver, QueryClient } from '@tanstack/react-query'
 import { createClient, type JmapClient } from 'jmap-client-ts'
-import { LINAGORA_METHOD_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {
   applyEmailChanges,
@@ -92,7 +92,7 @@ async function makeSetup(
       }
       return response
     },
-    methodCapabilities: LINAGORA_METHOD_CAPABILITIES
+    methodCapabilities: METHOD_CAPABILITIES
   })
   await client.getSession()
   const queryClient = new QueryClient({

@@ -37,7 +37,7 @@ export function usePrintDraft(
   const { t, lang } = useI18n()
   const { notify } = useNotify()
   const client = useJmapClient()
-  const { accountId, session } = useJmapSession()
+  const { accountId, mailAddress } = useJmapSession()
 
   return useCallback(
     async (
@@ -81,7 +81,7 @@ export function usePrintDraft(
           buildPrintDocument({
             lang,
             title: `${t('app.name')} - ${message.subject}`,
-            userName: session.username,
+            userName: mailAddress,
             subject: message.subject,
             fromLabel: t('email.from'),
             senderName: message.from.name ?? '',
@@ -114,6 +114,6 @@ export function usePrintDraft(
         }, PRINT_URLS_LIFETIME_MS)
       }
     },
-    [t, lang, notify, client, accountId, session.username, images]
+    [t, lang, notify, client, accountId, mailAddress, images]
   )
 }

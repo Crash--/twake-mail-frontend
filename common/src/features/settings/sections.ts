@@ -1,4 +1,4 @@
-import type { IconProps } from '@linagora/twake-icons'
+import { Peoples, type IconProps } from '@linagora/twake-icons'
 import { CAPABILITIES, type Session } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
@@ -14,6 +14,7 @@ import {
   VacationSettingsIcon
 } from '@/ds/SettingsIcons/SettingsIcons'
 import type { TranslationKey } from '@common/i18n/useI18n'
+import { DELEGATION_CAPABILITY } from '@common/jmap/methodCapabilities'
 
 import { canChangeServerSetting } from './serverSettings'
 
@@ -34,6 +35,7 @@ export type SettingsSectionId =
   | 'language-region'
   | 'keyboard-shortcuts'
   | 'storage'
+  | 'delegation'
 
 export interface SettingsSection {
   id: SettingsSectionId
@@ -110,6 +112,14 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     title: 'settings.sections.storage.title',
     description: 'settings.sections.storage.description',
     isAvailable: offers(CAPABILITIES.quota)
+  },
+  {
+    // tmail-flutter#4977: below Storage
+    id: 'delegation',
+    icon: Peoples,
+    title: 'settings.sections.delegation.title',
+    description: 'settings.sections.delegation.description',
+    isAvailable: offers(DELEGATION_CAPABILITY)
   }
 ]
 

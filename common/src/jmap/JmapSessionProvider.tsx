@@ -1,8 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createContext,
+  Fragment,
+  useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useState,
   type ReactElement,
   type ReactNode
 } from 'react'
@@ -13,10 +17,45 @@ import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { ScopedJmapClient, useJmapClient } from './JmapClientProvider'
-import { sessionQueryOptions, type JmapSessionInfo } from './queries'
+import {
+  mailboxViewKey,
+  OWN_VIEW,
+  readMailboxView,
+  validMailboxView,
+  writeMailboxView,
+  type MailboxView
+} from './mailboxView'
+import { jmapKeys, sessionQueryOptions, type JmapSessionInfo } from './queries'
 import { withExtraCapabilities } from './withExtraCapabilities'
 
-const JmapSessionContext = createContext<JmapSessionInfo | null>(null)
+/** What the mail screens read of the session and of the mailbox they show */
+export interface MailSessionInfo extends JmapSessionInfo {
+  /**
+   * The account of the mailbox shown: the user's own (the primary mail
+   * account), or the one of a mailbox delegated to them
+   */
+  accountId: string
+  /** The primary mail account of the user, whatever the mailbox shown */
+  ownAccountId: string
+  /**
+   * The address of the owner of the mailbox shown: the user's, or the
+   * one of the person who delegated it
+   */
+  mailAddress: string
+  view: MailboxView
+}
+
+interface MailboxViewApi {
+  view: MailboxView
+  /**
+   * Shows another mailbox: the cache of the queries is cleared and the
+   * screens below are mounted again, on the new account
+   */
+  switchView: (view: MailboxView) => void
+}
+
+const JmapSessionContext = createContext<MailSessionInfo | null>(null)
+const MailboxViewContext = createContext<MailboxViewApi | null>(null)
 
 export interface JmapSessionProviderProps {
   children: ReactNode
@@ -41,14 +80,65 @@ export function JmapSessionProvider({
   renderError = showBare
 }: JmapSessionProviderProps): ReactElement {
   const client = useJmapClient()
+  const queryClient = useQueryClient()
   const query = useQuery(sessionQueryOptions(client))
   const extraCapabilities = query.data?.extraCapabilities
   const scopedClient = useMemo(
     () => withExtraCapabilities(client, extraCapabilities ?? []),
     [client, extraCapabilities]
   )
+  const username = query.data?.session.username ?? null
+  const [chosenView, setChosenView] = useState<MailboxView | null>(null)
+  /** Asked for: shown once the cache of the previous one is gone */
+  const [pendingView, setPendingView] = useState<MailboxView | null>(null)
+  const storedView = useMemo(
+    () => (username === null ? OWN_VIEW : readMailboxView(username)),
+    [username]
+  )
+  const session = query.data?.session ?? null
+  const view =
+    session === null
+      ? OWN_VIEW
+      : validMailboxView(chosenView ?? storedView, session)
 
-  if (query.isPending) return <>{loading}</>
+  // Changing mailbox resets the local cache: nothing of the previous one
+  // shows, nor stays in memory. The screens of the previous mailbox are
+  // unmounted first (the loader shows), so that none refetches its queries.
+  useEffect(() => {
+    if (pendingView === null || username === null) return
+    // Once the screens of the previous mailbox are gone
+    const timer = setTimeout(() => {
+      queryClient.removeQueries({
+        predicate: cached => cached.queryKey[0] !== jmapKeys.session()[0]
+      })
+      writeMailboxView(username, pendingView)
+      setChosenView(pendingView)
+      setPendingView(null)
+    }, 0)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [pendingView, queryClient, username])
+
+  const switchView = useCallback((next: MailboxView): void => {
+    setPendingView(next)
+  }, [])
+  const viewApi = useMemo(() => ({ view, switchView }), [view, switchView])
+  const info = useMemo((): MailSessionInfo | null => {
+    if (query.data === undefined) return null
+    const own = query.data
+    const delegated =
+      view.kind === 'delegated' ? own.session.accounts[view.accountId] : null
+    return {
+      ...own,
+      ownAccountId: own.accountId,
+      accountId: view.kind === 'delegated' ? view.accountId : own.accountId,
+      mailAddress: delegated?.name ?? own.session.username,
+      view
+    }
+  }, [query.data, view])
+
+  if (query.isPending || pendingView !== null) return <>{loading}</>
 
   if (query.isError) {
     const handleRetry = (): void => {
@@ -58,8 +148,12 @@ export function JmapSessionProvider({
   }
 
   return (
-    <JmapSessionContext.Provider value={query.data}>
-      <ScopedJmapClient client={scopedClient}>{children}</ScopedJmapClient>
+    <JmapSessionContext.Provider value={info}>
+      <MailboxViewContext.Provider value={viewApi}>
+        <ScopedJmapClient client={scopedClient}>
+          <Fragment key={mailboxViewKey(view)}>{children}</Fragment>
+        </ScopedJmapClient>
+      </MailboxViewContext.Provider>
     </JmapSessionContext.Provider>
   )
 }
@@ -87,12 +181,31 @@ function SessionErrorScreen({
 }
 
 /**
- * The JMAP session and the mail account of the signed-in user.
+ * The JMAP session of the signed-in user, and the mail account of the
+ * mailbox shown (`accountId`).
  */
-export function useJmapSession(): JmapSessionInfo {
+export function useJmapSession(): MailSessionInfo {
   const session = useContext(JmapSessionContext)
   if (!session) {
     throw new Error('useJmapSession must be used within a JmapSessionProvider')
   }
   return session
+}
+
+/** The mailbox shown, and how to show another one */
+export function useMailboxView(): MailboxViewApi {
+  const api = useContext(MailboxViewContext)
+  if (!api) {
+    throw new Error('useMailboxView must be used within a JmapSessionProvider')
+  }
+  return api
+}
+
+/**
+ * The root of the team mailbox picked in the mailbox switcher, null when
+ * none is (and outside a `JmapSessionProvider`)
+ */
+export function useBoundTeamRootId(): string | null {
+  const api = useContext(MailboxViewContext)
+  return api?.view.kind === 'team' ? api.view.rootId : null
 }

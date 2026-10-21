@@ -78,13 +78,16 @@ export interface ServerSettingsState {
   isRead: boolean
 }
 
-/** The server settings of the account, when the server offers them */
+/**
+ * The server settings of the user's own account, when the server offers
+ * them: the ones of the user, even in a mailbox delegated to them
+ */
 export function useServerSettings(): ServerSettingsState {
   const client = useJmapClient()
-  const { accountId, session } = useJmapSession()
+  const { ownAccountId, session } = useJmapSession()
   const isOffered = LINAGORA_CAPABILITIES.settings in session.capabilities
   const query = useQuery({
-    ...serverSettingsQueryOptions(client, accountId),
+    ...serverSettingsQueryOptions(client, ownAccountId),
     enabled: isOffered
   })
   if (!isOffered || query.isError) {

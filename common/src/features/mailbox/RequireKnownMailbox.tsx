@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react'
 
-import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
+import { useTeamMailboxScope } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import {
   findTeamMailboxRoot,
   isInTeamMailbox
@@ -27,7 +27,7 @@ export function RequireKnownMailbox({
   children
 }: RequireKnownMailboxProps): ReactElement {
   const query = useMailboxes()
-  const teamRootId = useTeamMailboxEmbed()
+  const teamRootId = useTeamMailboxScope()
 
   if (query.isSuccess) {
     const teamRoot =

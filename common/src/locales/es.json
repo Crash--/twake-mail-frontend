@@ -820,6 +820,10 @@
       "storage": {
         "title": "Almacenamiento",
         "description": "Controle su espacio disponible."
+      },
+      "delegation": {
+        "title": "Delegación",
+        "description": "Permite que otros accedan a tu buzón y abre los que se comparten contigo."
       }
     },
     "preferences": {
@@ -1504,6 +1508,70 @@
     "untrustedFrame": {
       "title": "Twake Mail no se puede abrir en esta página",
       "description": "Otra página muestra esta aplicación: abra Twake Mail directamente para escribir su mensaje."
+    }
+  },
+  "delegation": {
+    "tabs": {
+      "delegates": "Mis delegados",
+      "delegated": "Delegados a mí"
+    },
+    "delegates": {
+      "intro": "Permite que otros accedan a tu buzón. Recibirán un correo cuando los añadas.",
+      "emptyTitle": "Nadie tiene acceso todavía",
+      "emptyText": "Añade a alguien abajo para compartir el acceso a tu bandeja de entrada.",
+      "listTitle": "Quién tiene acceso a mi buzón"
+    },
+    "delegated": {
+      "intro": "Cuentas a las que otras personas te han dado acceso. Puedes cambiar a ellas desde el selector de buzón y quitar tu acceso en cualquier momento.",
+      "emptyTitle": "No hay buzones compartidos contigo",
+      "emptyText": "Cuando alguien te dé acceso a su bandeja de entrada, aparecerá aquí.",
+      "listTitle": "Buzón delegado a mí (%{smart_count}) |||| Buzones delegados a mí (%{smart_count})"
+    },
+    "add": {
+      "open": "Añadir",
+      "title": "Delegar acceso",
+      "text": "Da a esta persona acceso completo a tu buzón. Recibirá una notificación por correo.",
+      "field": "Dirección de correo",
+      "placeholder": "nombre@empresa.com",
+      "next": "Siguiente",
+      "back": "Atrás",
+      "submit": "Añadir",
+      "confirm": "¿Dar acceso completo a tu buzón a esta persona? |||| ¿Dar acceso completo a tu buzón a estas %{smart_count} personas?",
+      "confirmList": "Personas a las que dar acceso"
+    },
+    "remove": {
+      "submit": "Quitar acceso",
+      "delegateTitle": "¿Quitar el acceso del delegado?",
+      "delegateText": "%{email} ya no podrá ver ni gestionar tu bandeja de entrada. Puedes volver a añadirlo en cualquier momento.",
+      "ownTitle": "¿Quitar tu acceso?",
+      "ownText": "Ya no podrás ver ni gestionar %{email}. Tendrán que volver a compartir el acceso contigo si lo necesitas.",
+      "delegateOf": "Quitar el acceso de %{name}",
+      "ownOf": "Quitar tu acceso al buzón de %{name}"
+    },
+    "toasts": {
+      "added": "%{name} ha sido añadido",
+      "addedMany": "%{smart_count} delegado ha sido añadido |||| %{smart_count} delegados han sido añadidos",
+      "removed": "%{name} ha sido quitado",
+      "left": "Ya no tienes acceso al buzón de %{name}"
+    },
+    "errors": {
+      "load": "No se pudieron cargar las delegaciones.",
+      "add": "No se pudo dar acceso a %{addresses}.",
+      "remove": "No se pudo quitar el acceso.",
+      "invalid": "Esta dirección de correo no es válida.",
+      "ownAddress": "Ya tienes acceso a tu propio buzón.",
+      "otherDomain": "Solo las personas de %{domain} pueden recibir acceso.",
+      "alreadyDelegate": "Esta persona ya tiene acceso.",
+      "empty": "Escribe la dirección de la persona a la que dar acceso."
+    },
+    "switcher": {
+      "own": "Tu buzón",
+      "delegated": "Delegados a ti",
+      "team": "Buzones de equipo",
+      "me": "Mi correo",
+      "viewing": "Viendo %{name}",
+      "open": "Cambiar de buzón, viendo %{name}",
+      "back": "Volver a tu buzón"
     }
   }
 }

@@ -5,9 +5,11 @@ import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
 import { ComposeButton } from '@/ds/ComposeButton/ComposeButton'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { MailboxSwitcherButton } from '@common/features/delegation/MailboxSwitcherButton'
 import { LabelsSection } from '@common/features/labels/LabelsSection'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { SidebarSectionsProvider } from '@common/features/mailbox/SidebarSectionsProvider'
+import { useTeamMailboxScope } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { DrawerHeader } from './DrawerHeader'
@@ -32,6 +34,8 @@ export function MailSidebar({
 }: MailSidebarProps): ReactElement {
   const { t } = useI18n()
   const screenSize = useScreenSize()
+  // Bound to a team mailbox: the labels gather emails of the whole account
+  const isBoundToTeam = useTeamMailboxScope() !== null
 
   return (
     <SidebarSectionsProvider>
@@ -54,7 +58,12 @@ export function MailSidebar({
               data-testid="compose-email-button"
             />
           </Box>
-        ) : null}
+        ) : (
+          // Below the desktop size, at the top of the drawer
+          <Box className="u-mh-1 u-mt-1">
+            <MailboxSwitcherButton />
+          </Box>
+        )}
         {/* As tmail-flutter: 24 px under the compose button (8 + 16), 16
             under the top of the drawer */}
         <Box
@@ -62,7 +71,7 @@ export function MailSidebar({
           data-testid="sidebar-scroll"
         >
           <MailboxTree />
-          <LabelsSection />
+          {isBoundToTeam ? null : <LabelsSection />}
         </Box>
         <MailSidebarFooter />
       </ResponsiveSidebar>

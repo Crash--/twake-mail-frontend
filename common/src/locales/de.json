@@ -1189,8 +1189,10 @@
       "message": "Dies könnte ein Sicherheitsrisiko darstellen oder als illegale Datenextraktion gelten. Möchten Sie fortfahren?"
     },
     "toasts": {
-      "added": "Die E-Mails wurden der Empfängerliste hinzugefügt.",
+      "added": "Die E-Mail-Adresse wurde der Empfängerliste hinzugefügt.",
+      "addedMany": "%{smart_count} E-Mail-Adresse wurde der Empfängerliste hinzugefügt. |||| %{smart_count} E-Mail-Adressen wurden der Empfängerliste hinzugefügt.",
       "deleted": "Die E-Mail-Adresse wurde aus der Empfängerliste entfernt.",
+      "deletedMany": "%{smart_count} E-Mail-Adresse wurde aus der Empfängerliste entfernt. |||| %{smart_count} E-Mail-Adressen wurden aus der Empfängerliste entfernt.",
       "localCopyOn": "Lokale Kopie beibehalten aktivieren.",
       "localCopyOff": "Lokale Kopie beibehalten deaktivieren."
     },

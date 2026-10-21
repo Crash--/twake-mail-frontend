@@ -115,7 +115,8 @@ export function ForwardSettings({
 
   const change = async (
     next: Partial<Parameters<typeof updateForward>[2]>,
-    success: TranslationKey,
+    /** The toast once it is saved, already translated */
+    success: string,
     failure: TranslationKey
   ): Promise<boolean> => {
     setIsSaving(true)
@@ -130,7 +131,7 @@ export function ForwardSettings({
       })
       notify(
         isSaved
-          ? { message: t(success), severity: 'success' }
+          ? { message: success, severity: 'success' }
           : { message: t(failure), severity: 'error' }
       )
       return isSaved
@@ -191,7 +192,9 @@ export function ForwardSettings({
       }
       const isSaved = await change(
         { forwards: [...forwards, ...added] },
-        'forward.toasts.added',
+        added.length === 1
+          ? t('forward.toasts.added')
+          : t('forward.toasts.addedMany', { smart_count: added.length }),
         'forward.errors.add'
       )
       if (isSaved) {
@@ -217,7 +220,7 @@ export function ForwardSettings({
       if (!isConfirmed) return
       await change(
         { forwards: forwards.filter(other => other !== email) },
-        'forward.toasts.deleted',
+        t('forward.toasts.deleted'),
         'forward.errors.delete'
       )
     }
@@ -237,7 +240,9 @@ export function ForwardSettings({
       if (!isConfirmed) return
       const isSaved = await change(
         { forwards: forwards.filter(email => !selection.includes(email)) },
-        'forward.toasts.deleted',
+        selection.length === 1
+          ? t('forward.toasts.deleted')
+          : t('forward.toasts.deletedMany', { smart_count: selection.length }),
         'forward.errors.delete'
       )
       if (isSaved) setSelected([])
@@ -250,7 +255,9 @@ export function ForwardSettings({
   const handleLocalCopy = (localCopy: boolean): void => {
     void change(
       { localCopy },
-      localCopy ? 'forward.toasts.localCopyOn' : 'forward.toasts.localCopyOff',
+      t(
+        localCopy ? 'forward.toasts.localCopyOn' : 'forward.toasts.localCopyOff'
+      ),
       'forward.errors.localCopy'
     )
   }

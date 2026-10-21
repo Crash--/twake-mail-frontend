@@ -1189,8 +1189,10 @@
       "message": "Questo potrebbe rappresentare una minaccia per la sicurezza o essere considerato un'estrazione illegale di dati. Vuoi procedere?"
     },
     "toasts": {
-      "added": "Le email sono state aggiunte dall'elenco dei destinatari.",
+      "added": "L'indirizzo è stato aggiunto all'elenco dei destinatari.",
+      "addedMany": "%{smart_count} indirizzo è stato aggiunto all'elenco dei destinatari. |||| %{smart_count} indirizzi sono stati aggiunti all'elenco dei destinatari.",
       "deleted": "L'e-mail è stata rimossa dall'elenco dei destinatari.",
+      "deletedMany": "%{smart_count} indirizzo è stato rimosso dall'elenco dei destinatari. |||| %{smart_count} indirizzi sono stati rimossi dall'elenco dei destinatari.",
       "localCopyOn": "Mantieni abilitata la copia locale.",
       "localCopyOff": "Mantieni la copia locale disabilitata."
     },

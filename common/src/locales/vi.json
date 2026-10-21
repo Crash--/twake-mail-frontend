@@ -1190,7 +1190,9 @@
     },
     "toasts": {
       "added": "Email đã được thêm vào danh sách nhận.",
+      "addedMany": "Đã thêm %{smart_count} địa chỉ email vào danh sách nhận.",
       "deleted": "Địa chỉ email đã được xoá khỏi danh sách nhận.",
+      "deletedMany": "Đã xoá %{smart_count} địa chỉ email khỏi danh sách nhận.",
       "localCopyOn": "Giữ bản sao.",
       "localCopyOff": "Vô hiệu bản sao."
     },

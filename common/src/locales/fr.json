@@ -1190,7 +1190,9 @@
     },
     "toasts": {
       "added": "L'adresse e-mail a été ajoutée à la liste des destinataires.",
+      "addedMany": "%{smart_count} adresse a été ajoutée à la liste des destinataires. |||| %{smart_count} adresses ont été ajoutées à la liste des destinataires.",
       "deleted": "L'adresse e-mail a été supprimée de la liste des destinataires.",
+      "deletedMany": "%{smart_count} adresse a été supprimée de la liste des destinataires. |||| %{smart_count} adresses ont été supprimées de la liste des destinataires.",
       "localCopyOn": "Copie locale activée.",
       "localCopyOff": "Copie locale désactivée."
     },

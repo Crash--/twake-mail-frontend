@@ -218,6 +218,9 @@ describe('ForwardSettings', () => {
     await waitFor(() => {
       expect(fake.forward()).toMatchObject({ forwards: ['dave@example.com'] })
     })
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      '2 addresses have been removed from the recipient list.'
+    )
     expect(
       await screen.findByRole('button', { name: 'Select all' })
     ).toBeVisible()
@@ -280,6 +283,9 @@ describe('ForwardSettings', () => {
       })
     })
     expect(calls()).toBe(1)
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      '3 addresses have been added to the recipient list.'
+    )
     await waitFor(() => {
       expect(screen.queryAllByTestId('forward-recipient-chip')).toHaveLength(0)
     })

@@ -1190,7 +1190,9 @@
     },
     "toasts": {
       "added": "The address has been added to the recipient list.",
+      "addedMany": "%{smart_count} address has been added to the recipient list. |||| %{smart_count} addresses have been added to the recipient list.",
       "deleted": "The address has been removed from the recipient list.",
+      "deletedMany": "%{smart_count} address has been removed from the recipient list. |||| %{smart_count} addresses have been removed from the recipient list.",
       "localCopyOn": "Local copy enabled.",
       "localCopyOff": "Local copy disabled."
     },

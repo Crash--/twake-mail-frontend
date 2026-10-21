@@ -92,6 +92,8 @@ export function ForwardSettings({
   const problemId = useId()
   const formRef = useRef<HTMLFormElement>(null)
   const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
+  // The buttons of the selection go with it: the focus moves to the list
+  const selectionFocusFallbackRef = useFocusFallback<HTMLSpanElement>()
   const [selected, setSelected] = useState<readonly string[]>([])
   const recipientsTitleId = useId()
   const isPhone = useScreenSize() === 'mobile'
@@ -379,18 +381,20 @@ export function ForwardSettings({
           </LiveRegion>
           <SettingsListHeader>
             {selection.length > 0 ? (
-              <SettingsHeaderButton
-                label={
-                  isAllSelected
-                    ? t('forward.deselectAll', { count: selection.length })
-                    : t('forward.selectedCount', { count: selection.length })
-                }
-                icon={<Icon icon={Cross} size={20} aria-hidden="true" />}
-                onClick={() => {
-                  setSelected([])
-                }}
-                data-testid="forward-cancel-selection-button"
-              />
+              <span ref={selectionFocusFallbackRef}>
+                <SettingsHeaderButton
+                  label={
+                    isAllSelected
+                      ? t('forward.deselectAll', { count: selection.length })
+                      : t('forward.selectedCount', { count: selection.length })
+                  }
+                  icon={<Icon icon={Cross} size={20} aria-hidden="true" />}
+                  onClick={() => {
+                    setSelected([])
+                  }}
+                  data-testid="forward-cancel-selection-button"
+                />
+              </span>
             ) : null}
             {isAllSelected ? null : (
               <SettingsHeaderButton
@@ -402,12 +406,14 @@ export function ForwardSettings({
               />
             )}
             {selection.length > 0 ? (
-              <SettingsHeaderButton
-                label={t('forward.remove')}
-                tone="danger"
-                onClick={handleRemoveSelected}
-                data-testid="forward-remove-selected-button"
-              />
+              <span ref={selectionFocusFallbackRef}>
+                <SettingsHeaderButton
+                  label={t('forward.remove')}
+                  tone="danger"
+                  onClick={handleRemoveSelected}
+                  data-testid="forward-remove-selected-button"
+                />
+              </span>
             ) : null}
           </SettingsListHeader>
           <Box

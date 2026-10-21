@@ -221,6 +221,25 @@ describe('ForwardSettings', () => {
     expect(
       await screen.findByRole('button', { name: 'Select all' })
     ).toBeVisible()
+    // The Remove button went with the selection: the focus moves to the list
+    await waitFor(() => {
+      expect(
+        screen.getByRole('checkbox', { name: 'Select dave@example.com' })
+      ).toHaveFocus()
+    })
+  })
+
+  it('moves the focus to the next button when the selection is cancelled', async () => {
+    setup(['bob@example.com', 'carol@example.com'])
+
+    await userEvent.click(
+      await screen.findByRole('checkbox', { name: 'Select bob@example.com' })
+    )
+    await userEvent.click(screen.getByRole('button', { name: '1 selected' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Select all' })).toHaveFocus()
+    })
   })
 
   it('suggests contacts, adds several addresses at once with one Forward/set', async () => {

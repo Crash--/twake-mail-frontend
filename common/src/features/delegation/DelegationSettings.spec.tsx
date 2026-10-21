@@ -332,6 +332,10 @@ describe('DelegationSettings', () => {
     expect(
       await screen.findByText('No mailboxes shared with you')
     ).toBeVisible()
+    // Nothing left to remove, no "+ Add" on this tab: on the tab
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'Delegated to me' })).toHaveFocus()
+    })
   })
 
   it('lists the team mailboxes of the user under the delegated ones, and leaves one', async () => {

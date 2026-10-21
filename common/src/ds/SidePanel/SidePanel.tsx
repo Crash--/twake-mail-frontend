@@ -8,7 +8,6 @@ import {
 } from '@linagora/twake-mui'
 import {
   useEffect,
-  useRef,
   type ReactElement,
   type ReactNode,
   type RefObject
@@ -72,7 +71,7 @@ export interface SidePanelProps {
   onClose: () => void
   closeLabel: string
   message?: ReactNode
-  frameRef?: RefObject<HTMLIFrameElement | null>
+  frameRef: RefObject<HTMLIFrameElement | null>
   allow?: string
   'data-testid'?: string
   frameTestId?: string
@@ -93,14 +92,12 @@ export function SidePanel({
   frameTestId
 }: SidePanelProps): ReactElement {
   const isDesktop = useScreenSize() === 'desktop'
-  const localRef = useRef<HTMLIFrameElement | null>(null)
-  const ref = frameRef ?? localRef
   const hasMessage = message !== undefined
   const isLoading = !isReady && !hasMessage
 
   useEffect(() => {
-    if (isReady) ref.current?.focus()
-  }, [isReady, ref])
+    if (isReady) frameRef.current?.focus()
+  }, [isReady, frameRef])
 
   return (
     <Box
@@ -112,7 +109,7 @@ export function SidePanel({
       <Box sx={FRAME_SX} aria-busy={isLoading}>
         {src !== null && !hasMessage ? (
           <iframe
-            ref={ref}
+            ref={frameRef}
             src={src}
             title={frameTitle}
             allow={allow}

@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ReactElement } from 'react'
+import { createRef, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
@@ -16,6 +16,7 @@ function Panel(props: Partial<SidePanelProps>): ReactElement {
       loadingLabel="Opening…"
       onClose={jest.fn()}
       closeLabel="Close"
+      frameRef={createRef()}
       {...props}
     />
   )

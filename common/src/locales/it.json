@@ -1522,10 +1522,13 @@
       "listTitle": "Chi ha accesso alla mia casella"
     },
     "delegated": {
-      "intro": "Account a cui altre persone ti hanno dato accesso. Puoi passarvi dal selettore di casella e rimuovere il tuo accesso in qualsiasi momento.",
+      "intro": "Le caselle a cui altre persone ti hanno dato accesso e le tue caselle di team. Puoi passarci dal selettore di casella e rimuovere il tuo accesso in qualsiasi momento.",
       "emptyTitle": "Nessuna casella condivisa con te",
       "emptyText": "Quando qualcuno ti darà accesso alla sua posta in arrivo, comparirà qui.",
       "listTitle": "Casella delegata a me (%{smart_count}) |||| Caselle delegate a me (%{smart_count})"
+    },
+    "teams": {
+      "listTitle": "Caselle di team (%{smart_count}) |||| Caselle di team (%{smart_count})"
     },
     "add": {
       "open": "Aggiungi",
@@ -1542,13 +1545,17 @@
       "ownTitle": "Rimuovere il tuo accesso?",
       "ownText": "Non potrai più vedere né gestire %{email}. Dovranno condividere di nuovo l'accesso con te se ti servirà.",
       "delegateOf": "Rimuovi l'accesso di %{name}",
-      "ownOf": "Rimuovi il tuo accesso alla casella di %{name}"
+      "ownOf": "Rimuovi il tuo accesso alla casella di %{name}",
+      "teamTitle": "Lasciare questa casella di team?",
+      "teamText": "Non potrai più visualizzare né gestire %{email}. Un amministratore dovrà aggiungerti di nuovo se ne avrai bisogno.",
+      "teamOf": "Lascia la casella di team %{name}"
     },
     "toasts": {
       "added": "%{name} è stato aggiunto",
       "addedMany": "%{smart_count} delegato è stato aggiunto |||| %{smart_count} delegati sono stati aggiunti",
       "removed": "%{name} è stato rimosso",
-      "left": "Non hai più accesso alla casella di %{name}"
+      "left": "Non hai più accesso alla casella di %{name}",
+      "leftTeam": "Hai lasciato la casella di team %{name}"
     },
     "errors": {
       "load": "Impossibile caricare le deleghe.",

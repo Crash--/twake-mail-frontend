@@ -13,12 +13,21 @@ import {
 import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
+import {
+  isTeamRoot,
+  teamMailboxAddress
+} from '@common/features/mailbox/mailboxTree'
+import {
+  mailboxesQueryOptions,
+  mailboxKeys
+} from '@common/features/mailbox/queries'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { TEAM_MAILBOXES_CAPABILITY } from '@common/jmap/methodCapabilities'
 import { reloadSession } from '@common/jmap/queries'
 
 import { AddDelegatesDialog } from './AddDelegatesDialog'
@@ -27,6 +36,7 @@ import {
   delegatedAccountsQueryOptions,
   delegatesQueryOptions,
   delegationKeys,
+  leaveTeamMailbox,
   removeDelegate,
   removeDelegatedAccount,
   type Delegation
@@ -36,6 +46,14 @@ import { useContactNames } from './useContactNames'
 
 type DelegationTab = 'delegates' | 'delegated'
 
+/** An access the user takes back, or gives up */
+interface Removal {
+  of: DelegationTab | 'team'
+  /** The id of the delegation, or of the root of the team mailbox */
+  id: string
+  address: string
+}
+
 export interface DelegationSettingsProps {
   section: SettingsSection
 }
@@ -44,7 +62,8 @@ export interface DelegationSettingsProps {
  * Settings > Delegation (tmail-flutter#4977, James delegation extension):
  * "My delegates", the people of the domain the user gave full access to
  * their mailbox (added, removed), and "Delegated to me", the mailboxes the
- * user may open from the mailbox switcher (their own access removable).
+ * user may open from the mailbox switcher, delegated ones then their team
+ * mailboxes, each of which they may leave (`TeamMailbox/revokeAccess`).
  */
 export function DelegationSettings({
   section
@@ -60,6 +79,18 @@ export function DelegationSettings({
   const delegated = useQuery(
     delegatedAccountsQueryOptions(client, ownAccountId)
   )
+  const isTeamOffered = TEAM_MAILBOXES_CAPABILITY in session.capabilities
+  const ownMailboxes = useQuery({
+    ...mailboxesQueryOptions(client, ownAccountId),
+    enabled: isTeamOffered
+  })
+  const teams = (ownMailboxes.data?.list ?? [])
+    .filter(isTeamRoot)
+    .map(root => ({
+      id: root.id,
+      name: root.name,
+      address: teamMailboxAddress(root) ?? root.name
+    }))
   const names = useContactNames([
     ...(delegates.data ?? []).map(delegation => delegation.username),
     ...(delegated.data ?? []).map(delegation => delegation.username)
@@ -75,10 +106,7 @@ export function DelegationSettings({
     }
   }
   const [isAdding, setIsAdding] = useState(false)
-  const [removing, setRemoving] = useState<{
-    tab: DelegationTab
-    delegation: Delegation
-  } | null>(null)
+  const [removing, setRemoving] = useState<Removal | null>(null)
   const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
 
   const refresh = async (): Promise<void> => {
@@ -129,24 +157,43 @@ export function DelegationSettings({
     }
   }
 
+  const teamNameOf = (id: string): string =>
+    teams.find(team => team.id === id)?.name ?? id
+  const removalName = (removal: Removal): string =>
+    removal.of === 'team' ? teamNameOf(removal.id) : nameOf(removal.address)
+
+  const remove = async (removal: Removal): Promise<boolean> => {
+    switch (removal.of) {
+      case 'delegates':
+        return removeDelegate(client, ownAccountId, removal.id)
+      case 'delegated':
+        return removeDelegatedAccount(client, ownAccountId, removal.id)
+      case 'team':
+        return leaveTeamMailbox(client, ownAccountId, removal.address)
+    }
+  }
+
   const handleRemove = async (): Promise<void> => {
     if (removing === null) return
-    const { delegation } = removing
-    const name = nameOf(delegation.username)
+    const name = removalName(removing)
     try {
-      const isRemoved =
-        removing.tab === 'delegates'
-          ? await removeDelegate(client, ownAccountId, delegation.id)
-          : await removeDelegatedAccount(client, ownAccountId, delegation.id)
-      await refresh()
-      if (!isRemoved) throw new Error('Delegation not destroyed')
+      const isRemoved = await remove(removing)
+      await (removing.of === 'team'
+        ? // Its folders leave the tree, the switcher, and its view if shown
+          queryClient.invalidateQueries({
+            queryKey: mailboxKeys.all(ownAccountId)
+          })
+        : refresh())
+      if (!isRemoved) throw new Error('Access not removed')
       // A mailbox delegated to the user leaves the session, and the switcher
-      if (removing.tab === 'delegated') await reloadSession(client, queryClient)
+      if (removing.of === 'delegated') await reloadSession(client, queryClient)
       notify({
         message:
-          removing.tab === 'delegates'
+          removing.of === 'delegates'
             ? t('delegation.toasts.removed', { name })
-            : t('delegation.toasts.left', { name }),
+            : removing.of === 'delegated'
+              ? t('delegation.toasts.left', { name })
+              : t('delegation.toasts.leftTeam', { name }),
         severity: 'success'
       })
       setRemoving(null)
@@ -156,31 +203,40 @@ export function DelegationSettings({
     }
   }
 
-  const removeButton = (
-    delegation: Delegation,
-    of: DelegationTab
-  ): ReactElement => (
+  const removeLabel = (removal: Removal): string => {
+    const name = removalName(removal)
+    switch (removal.of) {
+      case 'delegates':
+        return t('delegation.remove.delegateOf', { name })
+      case 'delegated':
+        return t('delegation.remove.ownOf', { name })
+      case 'team':
+        return t('delegation.remove.teamOf', { name })
+    }
+  }
+
+  const removeButton = (removal: Removal): ReactElement => (
     <span ref={focusFallbackRef}>
       <IconAction
-        label={
-          of === 'delegates'
-            ? t('delegation.remove.delegateOf', {
-                name: nameOf(delegation.username)
-              })
-            : t('delegation.remove.ownOf', {
-                name: nameOf(delegation.username)
-              })
-        }
+        label={removeLabel(removal)}
         icon={Trash}
         tone="steel"
         size={36}
         onClick={() => {
-          setRemoving({ tab: of, delegation })
+          setRemoving(removal)
         }}
-        data-testid="delegation-remove-button"
+        data-testid={
+          removal.of === 'team'
+            ? 'delegation-leave-team-button'
+            : 'delegation-remove-button'
+        }
       />
     </span>
   )
+  const delegationRemoval = (
+    delegation: Delegation,
+    of: DelegationTab
+  ): Removal => ({ of, id: delegation.id, address: delegation.username })
 
   const addButton = (
     <SettingsPrimaryButton
@@ -231,7 +287,7 @@ export function DelegationSettings({
           const delegation = delegates.data.find(one => one.id === person.id)
           return delegation === undefined
             ? null
-            : removeButton(delegation, 'delegates')
+            : removeButton(delegationRemoval(delegation, 'delegates'))
         }}
         data-testid="delegation-delegates-list"
         itemTestId="delegation-delegate-item"
@@ -240,44 +296,78 @@ export function DelegationSettings({
     </>
   )
 
-  const delegatedPanel = delegated.isPending ? (
-    <LoadingListSkeleton count={2} />
-  ) : delegated.isError ? (
-    renderError(() => {
-      void delegated.refetch()
-    })
-  ) : delegated.data.length === 0 ? (
-    <PeopleEmptyCard
-      title={t('delegation.delegated.emptyTitle')}
-      text={t('delegation.delegated.emptyText')}
-      data-testid="delegation-delegated-empty"
-    />
-  ) : (
-    <>
-      <Typography component="h2" variant="subtitle1" className="u-mb-half">
-        {t('delegation.delegated.listTitle', {
-          smart_count: delegated.data.length
-        })}
-      </Typography>
-      <PeopleList
-        label={t('delegation.delegated.listTitle', {
-          smart_count: delegated.data.length
-        })}
-        people={delegated.data.map(personOf)}
-        renderAction={person => {
-          const delegation = delegated.data.find(one => one.id === person.id)
-          return delegation === undefined
-            ? null
-            : removeButton(delegation, 'delegated')
-        }}
-        data-testid="delegation-delegated-list"
-        itemTestId="delegation-delegated-item"
-      />
-    </>
-  )
+  const delegatedList =
+    delegated.data === undefined || delegated.data.length === 0 ? null : (
+      <>
+        <Typography component="h2" variant="subtitle1" className="u-mb-half">
+          {t('delegation.delegated.listTitle', {
+            smart_count: delegated.data.length
+          })}
+        </Typography>
+        <PeopleList
+          label={t('delegation.delegated.listTitle', {
+            smart_count: delegated.data.length
+          })}
+          people={delegated.data.map(personOf)}
+          renderAction={person => {
+            const delegation = delegated.data.find(one => one.id === person.id)
+            return delegation === undefined
+              ? null
+              : removeButton(delegationRemoval(delegation, 'delegated'))
+          }}
+          data-testid="delegation-delegated-list"
+          itemTestId="delegation-delegated-item"
+        />
+      </>
+    )
 
-  const removingName =
-    removing === null ? '' : nameOf(removing.delegation.username)
+  const teamList =
+    teams.length === 0 ? null : (
+      <Box className={delegatedList === null ? undefined : 'u-mt-1-half'}>
+        <Typography component="h2" variant="subtitle1" className="u-mb-half">
+          {t('delegation.teams.listTitle', { smart_count: teams.length })}
+        </Typography>
+        <PeopleList
+          label={t('delegation.teams.listTitle', {
+            smart_count: teams.length
+          })}
+          people={teams.map(team => ({
+            id: team.id,
+            name: team.name,
+            address: team.address,
+            avatarKey: team.address
+          }))}
+          renderAction={person => {
+            const team = teams.find(one => one.id === person.id)
+            return team === undefined
+              ? null
+              : removeButton({ of: 'team', id: team.id, address: team.address })
+          }}
+          data-testid="delegation-team-list"
+          itemTestId="delegation-team-item"
+        />
+      </Box>
+    )
+
+  const delegatedPanel =
+    delegated.isPending || (isTeamOffered && ownMailboxes.isPending) ? (
+      <LoadingListSkeleton count={2} />
+    ) : delegated.isError ? (
+      renderError(() => {
+        void delegated.refetch()
+      })
+    ) : delegatedList === null && teamList === null ? (
+      <PeopleEmptyCard
+        title={t('delegation.delegated.emptyTitle')}
+        text={t('delegation.delegated.emptyText')}
+        data-testid="delegation-delegated-empty"
+      />
+    ) : (
+      <>
+        {delegatedList}
+        {teamList}
+      </>
+    )
 
   return (
     <SettingsSectionLayout section={section}>
@@ -335,24 +425,26 @@ export function DelegationSettings({
       {removing === null ? null : (
         <RemoveAccessDialog
           title={
-            removing.tab === 'delegates'
+            removing.of === 'delegates'
               ? t('delegation.remove.delegateTitle')
-              : t('delegation.remove.ownTitle')
+              : removing.of === 'delegated'
+                ? t('delegation.remove.ownTitle')
+                : t('delegation.remove.teamTitle')
           }
           text={
-            removing.tab === 'delegates'
+            removing.of === 'delegates'
               ? t('delegation.remove.delegateText', {
-                  email: removing.delegation.username
+                  email: removing.address
                 })
-              : t('delegation.remove.ownText', {
-                  email: removing.delegation.username
-                })
+              : removing.of === 'delegated'
+                ? t('delegation.remove.ownText', { email: removing.address })
+                : t('delegation.remove.teamText', { email: removing.address })
           }
           person={{
-            id: removing.delegation.id,
-            name: removingName,
-            address: removing.delegation.username,
-            avatarKey: removing.delegation.username
+            id: removing.id,
+            name: removalName(removing),
+            address: removing.address,
+            avatarKey: removing.address
           }}
           onRemove={handleRemove}
           onClose={() => {

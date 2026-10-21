@@ -347,4 +347,38 @@ test.describe('DLG delegation', () => {
     await page.keyboard.press('Enter')
     await expect(switcher(page)).toContainText(`Viewing ${boss.email}`)
   })
+
+  test('DLG-09 a member leaves a team mailbox from Delegated to me', async ({
+    page,
+    user,
+    users
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await expect(switcher(page)).toBeVisible()
+    const settings = await openDelegation(mailbox)
+
+    await page.getByTestId('delegation-delegated-tab').click()
+    await expect(page.getByTestId('delegation-delegated-empty')).toHaveCount(0)
+    const items = page.getByTestId('delegation-team-item')
+    await expect(items).toHaveCount(1)
+    await expect(items).toContainText(team.email)
+    await expectNoA11yViolations(page)
+    await items.getByTestId('delegation-leave-team-button').click()
+    const dialog = page.getByTestId('delegation-remove-dialog')
+    await expect(dialog).toContainText('Leave this team mailbox?')
+    await expect(dialog).toContainText(team.email)
+    await expectNoA11yViolations(page)
+    await dialog.getByTestId('delegation-remove-confirm-button').click()
+
+    await expect(settings.toast).toContainText(
+      `You left the team mailbox ${team.name}`
+    )
+    await expect(page.getByTestId('delegation-delegated-empty')).toBeVisible()
+    await settings.backToMail()
+    await expect(mailbox.emailList.or(mailbox.emptyListView)).toBeVisible()
+    // Neither delegated nor team mailbox left: no switcher
+    await expect(switcher(page)).toHaveCount(0)
+  })
 })
+

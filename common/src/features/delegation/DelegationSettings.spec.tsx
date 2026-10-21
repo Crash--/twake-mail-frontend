@@ -7,10 +7,14 @@ import {
 } from '@common/features/settings/sections'
 import {
   FAKE_DELEGATION_CAPABILITIES,
-  installFakeDelegation
+  FAKE_TEAM_MAILBOXES_CAPABILITIES,
+  installFakeDelegation,
+  installFakeTeamMailboxRevoke
 } from '@common/testing/fakeDelegation'
 import {
+  makeDefaultMailboxes,
   makeFakeJmapServer,
+  makeTeamMailboxes,
   type FakeDelegatedAccount,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
@@ -27,19 +31,32 @@ function delegationSection(): SettingsSection {
 function setup({
   delegates = [],
   delegatedAccounts = [],
-  refused = []
+  refused = [],
+  teams = [],
+  refusedTeams = []
 }: {
   delegates?: string[]
   delegatedAccounts?: FakeDelegatedAccount[]
   refused?: string[]
+  /** The addresses of the team mailboxes of the user */
+  teams?: string[]
+  /** The team mailboxes the server does not let them leave */
+  refusedTeams?: string[]
 } = {}): ReturnType<typeof installFakeDelegation> & {
   server: FakeJmapServer
 } {
   const server = makeFakeJmapServer({
     capabilities: {
       ...FAKE_DELEGATION_CAPABILITIES,
+      ...FAKE_TEAM_MAILBOXES_CAPABILITIES,
       'com:linagora:params:jmap:contact:autocomplete': { minInputLength: 1 }
     },
+    mailboxes: [
+      ...makeDefaultMailboxes(),
+      ...teams.flatMap((address, index) =>
+        makeTeamMailboxes({ id: `team-${index}`, address })
+      )
+    ],
     delegatedAccounts,
     contacts: [
       {
@@ -57,6 +74,7 @@ function setup({
     ]
   })
   const fake = installFakeDelegation(server, { delegates, refused })
+  installFakeTeamMailboxRevoke(server, { refused: refusedTeams })
   renderWithProviders(<DelegationSettings section={delegationSection()} />, {
     jmapServer: server,
     withJmapSession: true
@@ -248,5 +266,100 @@ describe('DelegationSettings', () => {
     expect(
       await screen.findByText('No mailboxes shared with you')
     ).toBeVisible()
+  })
+
+  it('lists the team mailboxes of the user under the delegated ones, and leaves one', async () => {
+    const { server } = setup({
+      delegatedAccounts: [
+        { accountId: 'account-boss', name: 'boss@example.com' }
+      ],
+      teams: ['sales@example.com']
+    })
+
+    await userEvent.click(
+      await screen.findByRole('tab', { name: 'Delegated to me' })
+    )
+    expect(
+      await screen.findByRole('list', { name: 'Mailboxes delegated to me (1)' })
+    ).toBeVisible()
+    const list = await screen.findByRole('list', {
+      name: 'Team mailboxes (1)'
+    })
+    expect(within(list).getByText('sales')).toBeVisible()
+    expect(within(list).getByText('sales@example.com')).toBeVisible()
+
+    await userEvent.click(
+      within(list).getByRole('button', {
+        name: 'Leave the team mailbox sales'
+      })
+    )
+    const dialog = screen.getByRole('dialog', {
+      name: 'Leave this team mailbox?'
+    })
+    expect(
+      within(dialog).getByText(
+        "You'll no longer be able to view or manage sales@example.com. An administrator will need to add you again if you need it back."
+      )
+    ).toBeVisible()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Remove access' })
+    )
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You left the team mailbox sales'
+    )
+    await waitFor(() => {
+      expect(screen.queryByRole('list', { name: /^Team mailboxes/ })).toBe(null)
+    })
+    expect(
+      server.mailboxes.some(mailbox => mailbox.namespace !== 'Personal')
+    ).toBe(false)
+    expect(
+      screen.getByRole('list', { name: 'Mailboxes delegated to me (1)' })
+    ).toBeVisible()
+  })
+
+  it('lists the team mailboxes alone, without delegated mailboxes', async () => {
+    setup({ teams: ['sales@example.com'] })
+
+    await userEvent.click(
+      await screen.findByRole('tab', { name: 'Delegated to me' })
+    )
+    expect(
+      await screen.findByRole('list', { name: 'Team mailboxes (1)' })
+    ).toBeVisible()
+    expect(screen.queryByText('No mailboxes shared with you')).toBe(null)
+  })
+
+  it('keeps the team mailbox when the server refuses to let the user leave it', async () => {
+    setup({
+      teams: ['sales@example.com'],
+      refusedTeams: ['sales@example.com']
+    })
+
+    await userEvent.click(
+      await screen.findByRole('tab', { name: 'Delegated to me' })
+    )
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: 'Leave the team mailbox sales'
+      })
+    )
+    await userEvent.click(
+      within(
+        screen.getByRole('dialog', { name: 'Leave this team mailbox?' })
+      ).getByRole('button', { name: 'Remove access' })
+    )
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'The access could not be removed.'
+    )
+    // Still there, under the dialog kept open to try again
+    expect(
+      screen.getByRole('dialog', { name: 'Leave this team mailbox?' })
+    ).toBeVisible()
+    expect(
+      screen.getByRole('list', { name: 'Team mailboxes (1)', hidden: true })
+    ).toBeInTheDocument()
   })
 })

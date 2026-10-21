@@ -1522,10 +1522,13 @@
       "listTitle": "Quién tiene acceso a mi buzón"
     },
     "delegated": {
-      "intro": "Cuentas a las que otras personas te han dado acceso. Puedes cambiar a ellas desde el selector de buzón y quitar tu acceso en cualquier momento.",
+      "intro": "Los buzones a los que otras personas te han dado acceso, y tus buzones de equipo. Puedes cambiar a ellos desde el selector de buzón y quitar tu acceso en cualquier momento.",
       "emptyTitle": "No hay buzones compartidos contigo",
       "emptyText": "Cuando alguien te dé acceso a su bandeja de entrada, aparecerá aquí.",
       "listTitle": "Buzón delegado a mí (%{smart_count}) |||| Buzones delegados a mí (%{smart_count})"
+    },
+    "teams": {
+      "listTitle": "Buzones de equipo (%{smart_count}) |||| Buzones de equipo (%{smart_count})"
     },
     "add": {
       "open": "Añadir",
@@ -1542,13 +1545,17 @@
       "ownTitle": "¿Quitar tu acceso?",
       "ownText": "Ya no podrás ver ni gestionar %{email}. Tendrán que volver a compartir el acceso contigo si lo necesitas.",
       "delegateOf": "Quitar el acceso de %{name}",
-      "ownOf": "Quitar tu acceso al buzón de %{name}"
+      "ownOf": "Quitar tu acceso al buzón de %{name}",
+      "teamTitle": "¿Salir de este buzón de equipo?",
+      "teamText": "Ya no podrás ver ni gestionar %{email}. Un administrador tendrá que volver a añadirte si lo necesitas.",
+      "teamOf": "Salir del buzón de equipo %{name}"
     },
     "toasts": {
       "added": "%{name} ha sido añadido",
       "addedMany": "%{smart_count} delegado ha sido añadido |||| %{smart_count} delegados han sido añadidos",
       "removed": "%{name} ha sido quitado",
-      "left": "Ya no tienes acceso al buzón de %{name}"
+      "left": "Ya no tienes acceso al buzón de %{name}",
+      "leftTeam": "Has salido del buzón de equipo %{name}"
     },
     "errors": {
       "load": "No se pudieron cargar las delegaciones.",

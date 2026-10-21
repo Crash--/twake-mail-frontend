@@ -1522,10 +1522,13 @@
       "listTitle": "Qui a accès à ma boîte"
     },
     "delegated": {
-      "intro": "Les comptes auxquels d'autres personnes vous ont donné accès. Vous pouvez y basculer depuis le sélecteur de boîte mail, et retirer votre accès à tout moment.",
+      "intro": "Les boîtes auxquelles d'autres personnes vous ont donné accès, et vos boîtes d'équipe. Vous pouvez y basculer depuis le sélecteur de boîte, et retirer votre accès à tout moment.",
       "emptyTitle": "Aucune boîte mail partagée avec vous",
       "emptyText": "Quand quelqu'un vous donnera accès à sa boîte de réception, elle apparaîtra ici.",
       "listTitle": "Boîte mail déléguée à moi (%{smart_count}) |||| Boîtes mail déléguées à moi (%{smart_count})"
+    },
+    "teams": {
+      "listTitle": "Boîtes d'équipe (%{smart_count}) |||| Boîtes d'équipe (%{smart_count})"
     },
     "add": {
       "open": "Ajouter",
@@ -1542,13 +1545,17 @@
       "ownTitle": "Retirer votre accès ?",
       "ownText": "Vous ne pourrez plus consulter ni gérer %{email}. Il faudra qu'on vous partage de nouveau l'accès si vous en avez besoin.",
       "delegateOf": "Retirer l'accès de %{name}",
-      "ownOf": "Retirer votre accès à la boîte mail de %{name}"
+      "ownOf": "Retirer votre accès à la boîte mail de %{name}",
+      "teamTitle": "Quitter cette boîte d'équipe ?",
+      "teamText": "Vous ne pourrez plus consulter ni gérer %{email}. Un administrateur devra vous ajouter à nouveau si vous en avez besoin.",
+      "teamOf": "Quitter la boîte d'équipe %{name}"
     },
     "toasts": {
       "added": "%{name} a été ajouté(e)",
       "addedMany": "%{smart_count} délégué a été ajouté |||| %{smart_count} délégués ont été ajoutés",
       "removed": "%{name} a été retiré(e)",
-      "left": "Vous n'avez plus accès à la boîte mail de %{name}"
+      "left": "Vous n'avez plus accès à la boîte mail de %{name}",
+      "leftTeam": "Vous avez quitté la boîte d'équipe %{name}"
     },
     "errors": {
       "load": "Les délégations n'ont pas pu être chargées.",

@@ -1,8 +1,17 @@
-import { FAKE_ACCOUNT_ID, type FakeJmapServer } from './fakeJmapServer'
+import {
+  FAKE_ACCOUNT_ID,
+  teamNamespace,
+  type FakeJmapServer
+} from './fakeJmapServer'
 
 /** Capability of the James delegation extension */
 export const FAKE_DELEGATION_CAPABILITIES = {
   'urn:apache:james:params:jmap:delegation': {}
+}
+
+/** Capability of the team mailboxes of tmail-backend */
+export const FAKE_TEAM_MAILBOXES_CAPABILITIES = {
+  'com:linagora:params:jmap:team:mailboxes': {}
 }
 
 interface FakeDelegation {
@@ -91,4 +100,30 @@ export function installFakeDelegation(
     }
   })
   return { delegates: () => current.map(delegation => delegation.username) }
+}
+
+/**
+ * `TeamMailbox/revokeAccess` of tmail-backend: the user leaves the team
+ * mailboxes of these addresses, whose folders leave `server.mailboxes`; an
+ * address in `refused` is not revoked
+ */
+export function installFakeTeamMailboxRevoke(
+  server: FakeJmapServer,
+  { refused = [] }: { refused?: string[] } = {}
+): void {
+  server.handlers.set('TeamMailbox/revokeAccess', args => {
+    const revoked = idsOf(args.ids).filter(
+      address => !refused.includes(address)
+    )
+    server.mailboxes = server.mailboxes.filter(
+      mailbox =>
+        !revoked.some(address => mailbox.namespace === teamNamespace(address))
+    )
+    const notRevoked = Object.fromEntries(
+      idsOf(args.ids)
+        .filter(address => refused.includes(address))
+        .map(address => [address, { type: 'serverFail' }])
+    )
+    return { accountId: FAKE_ACCOUNT_ID, revoked, notRevoked }
+  })
 }

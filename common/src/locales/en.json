@@ -1522,10 +1522,13 @@
       "listTitle": "Who has access to me"
     },
     "delegated": {
-      "intro": "Accounts other people have given you access to. You can switch into them from the mailbox switcher, and remove your own access at any time.",
+      "intro": "Mailboxes other people have given you access to, and your team mailboxes. You can switch into them from the mailbox switcher, and remove your own access at any time.",
       "emptyTitle": "No mailboxes shared with you",
       "emptyText": "When someone gives you access to their inbox, it will show up here.",
       "listTitle": "Mailboxes delegated to me (%{smart_count}) |||| Mailboxes delegated to me (%{smart_count})"
+    },
+    "teams": {
+      "listTitle": "Team mailboxes (%{smart_count}) |||| Team mailboxes (%{smart_count})"
     },
     "add": {
       "open": "Add",
@@ -1542,13 +1545,17 @@
       "ownTitle": "Remove your access?",
       "ownText": "You'll no longer be able to view or manage %{email}. They'll need to share access with you again if you need it back.",
       "delegateOf": "Remove the access of %{name}",
-      "ownOf": "Remove your access to the mailbox of %{name}"
+      "ownOf": "Remove your access to the mailbox of %{name}",
+      "teamTitle": "Leave this team mailbox?",
+      "teamText": "You'll no longer be able to view or manage %{email}. An administrator will need to add you again if you need it back.",
+      "teamOf": "Leave the team mailbox %{name}"
     },
     "toasts": {
       "added": "%{name} has been added",
       "addedMany": "%{smart_count} delegate has been added |||| %{smart_count} delegates have been added",
       "removed": "%{name} has been removed",
-      "left": "You no longer have access to the mailbox of %{name}"
+      "left": "You no longer have access to the mailbox of %{name}",
+      "leftTeam": "You left the team mailbox %{name}"
     },
     "errors": {
       "load": "The delegations could not be loaded.",

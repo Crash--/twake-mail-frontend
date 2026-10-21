@@ -122,3 +122,19 @@ export async function removeDelegatedAccount(
   })
   return response.destroyed?.includes(id) ?? false
 }
+
+/**
+ * The user leaves the team mailbox of this address
+ * (`TeamMailbox/revokeAccess`): whether they did
+ */
+export async function leaveTeamMailbox(
+  client: JmapClient,
+  ownAccountId: string,
+  address: string
+): Promise<boolean> {
+  const response = await client.call('TeamMailbox/revokeAccess', {
+    accountId: ownAccountId,
+    ids: [address]
+  })
+  return response.revoked?.includes(address) ?? false
+}

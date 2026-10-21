@@ -1522,10 +1522,13 @@
       "listTitle": "Ai có quyền truy cập hộp thư của tôi"
     },
     "delegated": {
-      "intro": "Các tài khoản mà người khác đã cho bạn truy cập. Bạn có thể chuyển sang chúng từ bộ chọn hộp thư và gỡ quyền truy cập của mình bất cứ lúc nào.",
+      "intro": "Các hộp thư mà người khác đã cấp quyền cho bạn, và các hộp thư nhóm của bạn. Bạn có thể chuyển sang chúng từ bộ chọn hộp thư và gỡ quyền truy cập của mình bất cứ lúc nào.",
       "emptyTitle": "Không có hộp thư nào được chia sẻ với bạn",
       "emptyText": "Khi ai đó cho bạn truy cập hộp thư đến của họ, nó sẽ xuất hiện ở đây.",
       "listTitle": "Hộp thư được ủy quyền cho tôi (%{smart_count})"
+    },
+    "teams": {
+      "listTitle": "Hộp thư nhóm (%{smart_count})"
     },
     "add": {
       "open": "Thêm",
@@ -1542,13 +1545,17 @@
       "ownTitle": "Gỡ quyền truy cập của bạn?",
       "ownText": "Bạn sẽ không thể xem hoặc quản lý %{email} nữa. Họ sẽ cần chia sẻ lại quyền truy cập nếu bạn cần.",
       "delegateOf": "Gỡ quyền truy cập của %{name}",
-      "ownOf": "Gỡ quyền truy cập của bạn vào hộp thư của %{name}"
+      "ownOf": "Gỡ quyền truy cập của bạn vào hộp thư của %{name}",
+      "teamTitle": "Rời hộp thư nhóm này?",
+      "teamText": "Bạn sẽ không thể xem hay quản lý %{email} nữa. Quản trị viên sẽ phải thêm lại bạn nếu bạn cần.",
+      "teamOf": "Rời hộp thư nhóm %{name}"
     },
     "toasts": {
       "added": "Đã thêm %{name}",
       "addedMany": "Đã thêm %{smart_count} người được ủy quyền",
       "removed": "Đã gỡ %{name}",
-      "left": "Bạn không còn quyền truy cập hộp thư của %{name}"
+      "left": "Bạn không còn quyền truy cập hộp thư của %{name}",
+      "leftTeam": "Bạn đã rời hộp thư nhóm %{name}"
     },
     "errors": {
       "load": "Không thể tải các ủy quyền.",

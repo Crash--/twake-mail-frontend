@@ -1522,10 +1522,13 @@
       "listTitle": "Wer hat Zugriff auf mein Postfach"
     },
     "delegated": {
-      "intro": "Konten, auf die andere Ihnen Zugriff gegeben haben. Sie können über die Postfachauswahl zu ihnen wechseln und Ihren Zugriff jederzeit entfernen.",
+      "intro": "Postfächer, auf die andere Ihnen Zugriff gegeben haben, und Ihre Team-Postfächer. Sie können über die Postfachauswahl zu ihnen wechseln und Ihren Zugriff jederzeit entfernen.",
       "emptyTitle": "Keine mit Ihnen geteilten Postfächer",
       "emptyText": "Wenn Ihnen jemand Zugriff auf seinen Posteingang gibt, erscheint er hier.",
       "listTitle": "An mich delegiertes Postfach (%{smart_count}) |||| An mich delegierte Postfächer (%{smart_count})"
+    },
+    "teams": {
+      "listTitle": "Team-Postfächer (%{smart_count}) |||| Team-Postfächer (%{smart_count})"
     },
     "add": {
       "open": "Hinzufügen",
@@ -1542,13 +1545,17 @@
       "ownTitle": "Ihren Zugriff entfernen?",
       "ownText": "Sie können %{email} nicht mehr ansehen oder verwalten. Der Zugriff muss erneut mit Ihnen geteilt werden, wenn Sie ihn wieder brauchen.",
       "delegateOf": "Zugriff von %{name} entfernen",
-      "ownOf": "Ihren Zugriff auf das Postfach von %{name} entfernen"
+      "ownOf": "Ihren Zugriff auf das Postfach von %{name} entfernen",
+      "teamTitle": "Dieses Team-Postfach verlassen?",
+      "teamText": "Sie können %{email} nicht mehr ansehen oder verwalten. Ein Administrator muss Sie erneut hinzufügen, wenn Sie es wieder benötigen.",
+      "teamOf": "Team-Postfach %{name} verlassen"
     },
     "toasts": {
       "added": "%{name} wurde hinzugefügt",
       "addedMany": "%{smart_count} Delegierter wurde hinzugefügt |||| %{smart_count} Delegierte wurden hinzugefügt",
       "removed": "%{name} wurde entfernt",
-      "left": "Sie haben keinen Zugriff mehr auf das Postfach von %{name}"
+      "left": "Sie haben keinen Zugriff mehr auf das Postfach von %{name}",
+      "leftTeam": "Sie haben das Team-Postfach %{name} verlassen"
     },
     "errors": {
       "load": "Die Delegierungen konnten nicht geladen werden.",

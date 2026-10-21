@@ -11,7 +11,8 @@
 #   QA_USERS="frank grace" scripts/qa-environment/start.sh   # extra accounts
 #
 # Accounts are <uid>@example.com, the password is the uid: alice, bob (with mail, a quota and
-# the bob-guests team mailbox shared with alice), brian, charlotte, david, emma, plus QA_USERS.
+# the bob-guests team mailbox shared with alice, and the mailbox of alice delegated to him), brian,
+# charlotte, david, emma, plus QA_USERS.
 #
 set -euo pipefail
 

@@ -3,8 +3,9 @@
 Run by start.sh. Idempotent: an account that already exists is left as it is.
 
 Every account is <uid>@example.com with the uid as password. bob also gets a quota, the
-bob-guests team mailbox (shared with alice), the emails of e2e/fixtures/eml in his Inbox, and a
-conversation with alice.
+bob-guests team mailbox (shared with alice), the mailbox of alice delegated to him (James delegation:
+one delegated mailbox and one team mailbox in his mailbox switcher), the emails of e2e/fixtures/eml
+in his Inbox, and a conversation with alice.
 """
 
 import argparse
@@ -176,6 +177,7 @@ def main():
     webadmin(args.webadmin, "PUT", f"/domains/{DOMAIN}/team-mailboxes/bob-guests")
     for member in ("bob", "alice"):
         webadmin(args.webadmin, "PUT", f"/domains/{DOMAIN}/team-mailboxes/bob-guests/members/{member}@{DOMAIN}?role=member")
+    webadmin(args.webadmin, "PUT", f"/users/alice@{DOMAIN}/authorizedUsers/bob@{DOMAIN}")
 
     bob = Jmap(args.jmap, "bob")
     inbox = bob.mailboxes()["inbox"]

@@ -1533,11 +1533,7 @@
       "text": "Dai a questa persona accesso completo alla tua casella. Riceverà una notifica via email.",
       "field": "Indirizzo email",
       "placeholder": "nome@azienda.com",
-      "next": "Avanti",
-      "back": "Indietro",
-      "submit": "Aggiungi",
-      "confirm": "Dare accesso completo alla tua casella a questa persona? |||| Dare accesso completo alla tua casella a queste %{smart_count} persone?",
-      "confirmList": "Persone a cui dare accesso"
+      "submit": "Aggiungi"
     },
     "remove": {
       "submit": "Rimuovi accesso",
@@ -1568,7 +1564,7 @@
       "own": "La tua casella",
       "delegated": "Delegate a te",
       "team": "Caselle di team",
-      "me": "La mia posta",
+      "me": "la mia posta",
       "viewing": "Visualizzi %{name}",
       "open": "Cambia casella, visualizzi %{name}",
       "back": "Torna alla tua casella"

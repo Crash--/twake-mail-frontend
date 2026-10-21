@@ -40,7 +40,7 @@ describe('MailboxSwitcherButton', () => {
     })
 
     const pill = await screen.findByRole('button', {
-      name: 'Switch mailbox, viewing My email'
+      name: 'Switch mailbox, viewing my email'
     })
     await userEvent.click(pill)
     const menu = screen.getByRole('menu')
@@ -81,7 +81,7 @@ describe('MailboxSwitcherButton', () => {
     )
     expect(
       await screen.findByRole('button', {
-        name: 'Switch mailbox, viewing My email'
+        name: 'Switch mailbox, viewing my email'
       })
     ).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Back to your mailbox' })).toBe(

@@ -1533,11 +1533,7 @@
       "text": "Geben Sie dieser Person vollen Zugriff auf Ihr Postfach. Sie erhält eine Benachrichtigung per E-Mail.",
       "field": "E-Mail-Adresse",
       "placeholder": "name@firma.de",
-      "next": "Weiter",
-      "back": "Zurück",
-      "submit": "Hinzufügen",
-      "confirm": "Dieser Person vollen Zugriff auf Ihr Postfach geben? |||| Diesen %{smart_count} Personen vollen Zugriff auf Ihr Postfach geben?",
-      "confirmList": "Personen, die Zugriff erhalten"
+      "submit": "Hinzufügen"
     },
     "remove": {
       "submit": "Zugriff entfernen",
@@ -1568,7 +1564,7 @@
       "own": "Ihr Postfach",
       "delegated": "An Sie delegiert",
       "team": "Team-Postfächer",
-      "me": "Meine E-Mails",
+      "me": "meine E-Mails",
       "viewing": "Ansicht: %{name}",
       "open": "Postfach wechseln, Ansicht: %{name}",
       "back": "Zurück zu Ihrem Postfach"

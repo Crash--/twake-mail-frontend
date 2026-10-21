@@ -1533,11 +1533,7 @@
       "text": "Give this person full access to your mailbox. They'll get an email notification.",
       "field": "Email address",
       "placeholder": "name@company.com",
-      "next": "Next",
-      "back": "Back",
-      "submit": "Add",
-      "confirm": "Give full access to your mailbox to this person? |||| Give full access to your mailbox to these %{smart_count} people?",
-      "confirmList": "People to give access to"
+      "submit": "Add"
     },
     "remove": {
       "submit": "Remove access",
@@ -1568,7 +1564,7 @@
       "own": "Your mailbox",
       "delegated": "Delegated to you",
       "team": "Team mailboxes",
-      "me": "My email",
+      "me": "my email",
       "viewing": "Viewing %{name}",
       "open": "Switch mailbox, viewing %{name}",
       "back": "Back to your mailbox"

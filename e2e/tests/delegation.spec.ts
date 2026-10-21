@@ -56,21 +56,20 @@ test.describe('DLG delegation', () => {
     await page.getByTestId('delegation-add-button').click()
     const dialog = page.getByTestId('delegation-add-dialog')
     await expect(dialog).toBeVisible()
-    const next = dialog.getByTestId('delegation-add-next-button')
-    await expect(next).toBeDisabled()
+    const add = dialog.getByTestId('delegation-add-confirm-button')
+    await expect(add).toBeDisabled()
 
     await dialog.getByTestId('delegation-input').fill('Ada')
-    await page
+    const ada = page
       .getByTestId('delegation-suggestions')
       .getByRole('option', { name: /Ada Assistant/ })
-      .click()
+    // Whole: not cut by the content of the dialog
+    await expect(ada).toBeInViewport({ ratio: 1 })
+    await ada.click()
     await expect(dialog.getByTestId('delegation-recipient-chip')).toHaveCount(1)
     await expectNoA11yViolations(page)
-    await next.click()
-    await expect(
-      dialog.getByTestId('delegation-add-confirm-list')
-    ).toContainText('Ada Assistant')
-    await dialog.getByTestId('delegation-add-confirm-button').click()
+    // One step: Add gives the access, no confirmation
+    await add.click()
 
     await expect(settings.toast).toContainText('Ada Assistant has been added')
     await expect(dialog).toBeHidden()
@@ -95,7 +94,9 @@ test.describe('DLG delegation', () => {
     await expect(dialog.getByTestId('delegation-input-error')).toHaveText(
       `Only people of ${env.domain} can be given access.`
     )
-    await expect(dialog.getByTestId('delegation-add-next-button')).toBeDisabled()
+    await expect(
+      dialog.getByTestId('delegation-add-confirm-button')
+    ).toBeDisabled()
 
     await dialog.getByTestId('delegation-input').fill(user.email)
     await expect(dialog.getByTestId('delegation-input-error')).toHaveText(
@@ -155,7 +156,7 @@ test.describe('DLG delegation', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
     await expect(mailbox.emailList).toContainText('Mine')
 
-    await expect(switcher(page)).toHaveText(/Viewing My email/)
+    await expect(switcher(page)).toHaveText(/Viewing my email/)
     await switchTo(page, boss.email)
 
     await expect(switcher(page)).toContainText(`Viewing ${boss.email}`)
@@ -180,7 +181,7 @@ test.describe('DLG delegation', () => {
     await expect(mailbox.emailList).toContainText('For the boss only')
 
     await page.getByTestId('mailbox-switcher-back-button').click()
-    await expect(switcher(page)).toHaveText(/Viewing My email/)
+    await expect(switcher(page)).toHaveText(/Viewing my email/)
     await expect(mailbox.emailList).toContainText('Mine')
     await expect(mailbox.emailList).not.toContainText('For the boss only')
     await openAccountMenuIfAny(page)

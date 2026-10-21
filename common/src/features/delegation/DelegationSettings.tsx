@@ -115,9 +115,9 @@ export function DelegationSettings({
           }),
           severity: 'error'
         })
-        return
       }
-      setIsAdding(false)
+      // Kept open only when no one was added, to correct the addresses
+      if (added.length > 0) setIsAdding(false)
     } catch (error: unknown) {
       console.error('[delegation] Cannot add the delegates', error)
       notify({

@@ -1533,11 +1533,7 @@
       "text": "Cấp cho người này toàn quyền truy cập hộp thư của bạn. Họ sẽ nhận được thông báo qua email.",
       "field": "Địa chỉ email",
       "placeholder": "ten@congty.com",
-      "next": "Tiếp",
-      "back": "Quay lại",
-      "submit": "Thêm",
-      "confirm": "Cấp toàn quyền truy cập hộp thư của bạn cho %{smart_count} người này?",
-      "confirmList": "Những người được cấp quyền"
+      "submit": "Thêm"
     },
     "remove": {
       "submit": "Gỡ quyền truy cập",
@@ -1568,7 +1564,7 @@
       "own": "Hộp thư của bạn",
       "delegated": "Được ủy quyền cho bạn",
       "team": "Hộp thư nhóm",
-      "me": "Email của tôi",
+      "me": "email của tôi",
       "viewing": "Đang xem %{name}",
       "open": "Đổi hộp thư, đang xem %{name}",
       "back": "Quay lại hộp thư của bạn"

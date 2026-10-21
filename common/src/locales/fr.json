@@ -1533,11 +1533,7 @@
       "text": "Donnez à cette personne un accès complet à votre boîte mail. Elle recevra un e-mail de notification.",
       "field": "Adresse e-mail",
       "placeholder": "nom@entreprise.com",
-      "next": "Suivant",
-      "back": "Retour",
-      "submit": "Ajouter",
-      "confirm": "Donner un accès complet à votre boîte mail à cette personne ? |||| Donner un accès complet à votre boîte mail à ces %{smart_count} personnes ?",
-      "confirmList": "Personnes à qui donner l'accès"
+      "submit": "Ajouter"
     },
     "remove": {
       "submit": "Retirer l'accès",
@@ -1568,7 +1564,7 @@
       "own": "Votre boîte mail",
       "delegated": "Déléguées à vous",
       "team": "Boîtes d'équipe",
-      "me": "Mes e-mails",
+      "me": "mes e-mails",
       "viewing": "Vue : %{name}",
       "open": "Changer de boîte mail, vue : %{name}",
       "back": "Revenir à votre boîte mail"

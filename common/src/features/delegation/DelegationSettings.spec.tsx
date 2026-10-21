@@ -94,13 +94,13 @@ describe('DelegationSettings', () => {
     ).toHaveLength(2)
   })
 
-  it('suggests the people of the domain only, then adds them after a confirmation', async () => {
+  it('suggests the people of the domain only, and adds them in one step', async () => {
     const fake = setup()
 
     await userEvent.click(await screen.findByTestId('delegation-add-button'))
     const dialog = screen.getByRole('dialog', { name: 'Delegate access' })
-    const next = within(dialog).getByRole('button', { name: 'Next' })
-    expect(next).toBeDisabled()
+    const add = within(dialog).getByRole('button', { name: 'Add' })
+    expect(add).toBeDisabled()
 
     await userEvent.type(
       within(dialog).getByRole('combobox', { name: 'Email address' }),
@@ -114,14 +114,7 @@ describe('DelegationSettings', () => {
       within(listbox).queryByRole('option', { name: /Brenda Outside/ })
     ).toBe(null)
     await userEvent.click(bob)
-    await userEvent.click(next)
-
-    expect(
-      within(dialog).getByText(
-        'Give full access to your mailbox to this person?'
-      )
-    ).toBeVisible()
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
+    await userEvent.click(add)
 
     expect(await screen.findByTestId('toast')).toHaveTextContent(
       'Bob Assistant has been added'
@@ -148,13 +141,54 @@ describe('DelegationSettings', () => {
     expect(
       within(dialog).getByTestId('delegation-input-error')
     ).toHaveTextContent('Only people of example.com can be given access.')
-    expect(within(dialog).getByRole('button', { name: 'Next' })).toBeDisabled()
+    expect(within(dialog).getByRole('button', { name: 'Add' })).toBeDisabled()
 
     await userEvent.clear(input)
     await userEvent.type(input, 'alice@example.com')
     expect(
       within(dialog).getByTestId('delegation-input-error')
     ).toHaveTextContent('You already have access to your own mailbox.')
+  })
+
+  it('closes once some of the people are added, and says who could not be', async () => {
+    const fake = setup({ refused: ['ghost@example.com'] })
+
+    await userEvent.click(await screen.findByTestId('delegation-add-button'))
+    const dialog = screen.getByRole('dialog', { name: 'Delegate access' })
+    await userEvent.type(
+      within(dialog).getByRole('combobox', { name: 'Email address' }),
+      'carol@example.com, ghost@example.com,'
+    )
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    expect(fake.delegates()).toEqual(['carol@example.com'])
+    expect(
+      screen
+        .getAllByTestId('toast')
+        .some(toast => toast.textContent.includes('ghost@example.com'))
+    ).toBe(true)
+  })
+
+  it('stays open when no one could be added', async () => {
+    setup({ refused: ['ghost@example.com'] })
+
+    await userEvent.click(await screen.findByTestId('delegation-add-button'))
+    const dialog = screen.getByRole('dialog', { name: 'Delegate access' })
+    await userEvent.type(
+      within(dialog).getByRole('combobox', { name: 'Email address' }),
+      'ghost@example.com,'
+    )
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'ghost@example.com'
+    )
+    expect(
+      screen.getByRole('dialog', { name: 'Delegate access' })
+    ).toBeVisible()
   })
 
   it('takes their access back from a delegate after a confirmation', async () => {

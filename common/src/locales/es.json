@@ -1533,11 +1533,7 @@
       "text": "Da a esta persona acceso completo a tu buzón. Recibirá una notificación por correo.",
       "field": "Dirección de correo",
       "placeholder": "nombre@empresa.com",
-      "next": "Siguiente",
-      "back": "Atrás",
-      "submit": "Añadir",
-      "confirm": "¿Dar acceso completo a tu buzón a esta persona? |||| ¿Dar acceso completo a tu buzón a estas %{smart_count} personas?",
-      "confirmList": "Personas a las que dar acceso"
+      "submit": "Añadir"
     },
     "remove": {
       "submit": "Quitar acceso",
@@ -1568,7 +1564,7 @@
       "own": "Tu buzón",
       "delegated": "Delegados a ti",
       "team": "Buzones de equipo",
-      "me": "Mi correo",
+      "me": "mi correo",
       "viewing": "Viendo %{name}",
       "open": "Cambiar de buzón, viendo %{name}",
       "back": "Volver a tu buzón"

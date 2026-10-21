@@ -1,6 +1,10 @@
+/**
+ * @jest-environment jsdom
+ */
 import {
   buildPrintDocument,
   PRINT_BODY_SELECTOR,
+  printHtmlDocument,
   type PrintDocumentContent
 } from './printDocument'
 
@@ -69,5 +73,71 @@ describe('buildPrintDocument', () => {
     expect(
       buildPrintDocument({ ...CONTENT, allowRemoteContent: true })
     ).toContain('img-src data: blob: https: http:;')
+  })
+})
+
+describe('printHtmlDocument', () => {
+  let printed: (Element | null)[] = []
+
+  afterEach(() => {
+    document.body.replaceChildren()
+    printed = []
+  })
+
+  const printFrom = async (opener: HTMLElement): Promise<HTMLIFrameElement> => {
+    opener.focus()
+    const printing = printHtmlDocument('<p>Body</p>')
+    const frame = document.querySelector<HTMLIFrameElement>(
+      '[data-testid="print-frame"]'
+    )
+    if (frame?.contentWindow === null || frame === null) {
+      throw new Error('No print frame')
+    }
+    // As a browser does: printing focuses the frame
+    jest.spyOn(frame.contentWindow, 'focus').mockImplementation(() => {
+      frame.focus()
+    })
+    jest.spyOn(frame.contentWindow, 'print').mockImplementation(() => {
+      printed.push(document.activeElement)
+    })
+    frame.dispatchEvent(new Event('load'))
+    await printing
+    return frame
+  }
+
+  it('gives the focus back to what started the print (#687)', async () => {
+    const button = document.createElement('button')
+    document.body.append(button)
+
+    const frame = await printFrom(button)
+
+    // The frame had the focus while the dialog was open
+    expect(printed).toEqual([frame])
+    expect(document.activeElement).toBe(button)
+  })
+
+  it('gives the focus back once the frame is gone, after the print dialog', async () => {
+    const button = document.createElement('button')
+    document.body.append(button)
+
+    const frame = await printFrom(button)
+    // The browser leaves the focus in the frame until the dialog closes
+    frame.focus()
+    frame.contentWindow?.dispatchEvent(new Event('afterprint'))
+
+    expect(document.querySelector('[data-testid="print-frame"]')).toBe(null)
+    expect(document.activeElement).toBe(button)
+  })
+
+  it('leaves the focus alone when the user moved it meanwhile', async () => {
+    const button = document.createElement('button')
+    const other = document.createElement('button')
+    document.body.append(button, other)
+
+    const frame = await printFrom(button)
+    other.focus()
+    frame.contentWindow?.dispatchEvent(new Event('afterprint'))
+
+    expect(document.activeElement).toBe(other)
   })
 })

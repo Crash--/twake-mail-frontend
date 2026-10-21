@@ -124,7 +124,8 @@ const PRINT_FRAME_TIMEOUT_MS = 120_000
  * in the document runs; the app calls `print()` itself. Resolves once the
  * print dialog was shown (and closed, where the browser tells), rejects
  * when the document cannot be loaded. `onRemoved` is called once the frame
- * is gone: the object URLs of the document can then be revoked.
+ * is gone: the object URLs of the document can then be revoked. The focus,
+ * which printing moves into the frame, goes back to where it was.
  */
 export function printHtmlDocument(
   html: string,
@@ -140,9 +141,25 @@ export function printHtmlDocument(
     frame.style.cssText =
       'position:fixed;inset-inline-end:0;bottom:0;width:0;height:0;border:0;'
     let timer: ReturnType<typeof setTimeout> | undefined
+    let opener: Element | null = null
+    // Out of a modal dialog, the frame lets Escape and Tab out of it
+    const giveFocusBack = (): void => {
+      const focused = document.activeElement
+      if (focused !== null && focused !== frame && focused !== document.body) {
+        return
+      }
+      if (
+        opener instanceof HTMLElement &&
+        opener !== document.body &&
+        opener.isConnected
+      ) {
+        opener.focus()
+      }
+    }
     const cleanup = (): void => {
       clearTimeout(timer)
       frame.remove()
+      giveFocusBack()
       onRemoved?.()
     }
     frame.addEventListener('load', () => {
@@ -155,8 +172,10 @@ export function printHtmlDocument(
       printWindow.addEventListener('afterprint', cleanup, { once: true })
       timer = setTimeout(cleanup, PRINT_FRAME_TIMEOUT_MS)
       try {
+        opener = document.activeElement
         printWindow.focus()
         printWindow.print()
+        giveFocusBack()
         resolve()
       } catch (error: unknown) {
         cleanup()

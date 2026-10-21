@@ -103,6 +103,17 @@ describe('SearchFiltersBar', () => {
     })
   })
 
+  it('names a folder of a team mailbox with its team mailbox', async () => {
+    renderBar({
+      ...EMPTY_SEARCH_FILTER,
+      scope: { kind: 'mailbox', mailboxId: 'team-inbox' }
+    })
+
+    expect(
+      await screen.findByRole('button', { name: 'team/Inbox' })
+    ).toBeInTheDocument()
+  })
+
   it('searches everywhere from the choice before the folders', async () => {
     const onChange = renderBar({
       ...EMPTY_SEARCH_FILTER,

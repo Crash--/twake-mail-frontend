@@ -2,10 +2,12 @@ import { useCallback } from 'react'
 
 import { AllEmail, MoveFolderContent } from '@/ds/FlutterIcons/FlutterIcons'
 import { usePickFolderOrChoice } from '@common/features/mailbox/MailboxPickerProvider'
+import { isTeamFolder, mailboxPath } from '@common/features/mailbox/mailboxTree'
+import { useMailboxName } from '@common/features/mailbox/useMailboxName'
+import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
 
 import type { SearchFilter } from './searchFilter'
-import { useMailboxOptions } from './useMailboxOptions'
 
 type Scope = SearchFilter['scope']
 
@@ -62,20 +64,30 @@ export function usePickSearchScope(): (
   )
 }
 
-/** The name of a search scope: its folder, "All email"… */
+/**
+ * The name of a search scope: its folder, "All email"… A folder of a team
+ * mailbox goes with the team mailbox ("bob-guests/Inbox"), to tell it from
+ * the personal one
+ */
 export function useSearchScopeLabel(): (scope: Scope) => string {
   const { t } = useI18n()
-  const mailboxes = useMailboxOptions()
+  const mailboxes = useMailboxes().data
+  const getName = useMailboxName()
   return useCallback(
-    (scope: Scope): string =>
-      scope.kind === 'mailbox'
-        ? (mailboxes.find(mailbox => mailbox.id === scope.mailboxId)?.name ??
-          t('search.fields.folder'))
-        : t(
-            scope.kind === 'everywhere'
-              ? 'search.scope.everywhere'
-              : 'search.scope.default'
-          ),
-    [mailboxes, t]
+    (scope: Scope): string => {
+      if (scope.kind !== 'mailbox') {
+        return t(
+          scope.kind === 'everywhere'
+            ? 'search.scope.everywhere'
+            : 'search.scope.default'
+        )
+      }
+      const mailbox = mailboxes?.find(({ id }) => id === scope.mailboxId)
+      if (mailbox === undefined) return t('search.fields.folder')
+      return isTeamFolder(mailbox)
+        ? mailboxPath(mailboxes ?? [], mailbox.id, getName)
+        : getName(mailbox)
+    },
+    [mailboxes, getName, t]
   )
 }

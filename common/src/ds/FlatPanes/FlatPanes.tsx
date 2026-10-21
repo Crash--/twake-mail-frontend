@@ -2,10 +2,16 @@
 // white card (margin 16 px, radius 16 px). The design has the body plain
 // white and flush against the sidebar; this needs a variant of `Layout`
 // (e.g. `Layout variant="flat"`) rather than an override.
-import { Box, Content, Main } from '@linagora/twake-mui'
+import { Box, Content, Main, styled } from '@linagora/twake-mui'
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
 
 import { InsideMainLandmark } from '@/ds/MainLandmark/MainLandmark'
+
+// twake-mui's `Main` and `Content` hand every prop to the DOM, `sx` included
+// (it showed as `sx="[object Object]"`): wrapped, the `sx` is applied here and
+// stops before them
+const SxMain = styled(Main)({})
+const SxContent = styled(Content)({})
 
 const MAIN_SX = { bgcolor: 'background.paper' } as const
 // The metrics of twake-mui's `Content` card, around the whole main pane: the
@@ -60,18 +66,18 @@ export function FlatMain({
 }: FlatMainProps): ReactElement {
   if (inset && header !== null) {
     return (
-      <Main sx={HEADED_MAIN_SX} {...props}>
+      <SxMain sx={HEADED_MAIN_SX} {...props}>
         <InsideMainLandmark>
           <Box sx={HEADER_SX}>{header}</Box>
           <Box sx={CARD_SX}>{children}</Box>
         </InsideMainLandmark>
-      </Main>
+      </SxMain>
     )
   }
   return (
-    <Main sx={inset ? INSET_MAIN_SX : MAIN_SX} {...props}>
+    <SxMain sx={inset ? INSET_MAIN_SX : MAIN_SX} {...props}>
       <InsideMainLandmark>{children}</InsideMainLandmark>
-    </Main>
+    </SxMain>
   )
 }
 
@@ -83,5 +89,5 @@ export function FlatMain({
 export function FlatContent(
   props: ComponentProps<typeof Content>
 ): ReactElement {
-  return <Content sx={CONTENT_SX} role={undefined} {...props} />
+  return <SxContent sx={CONTENT_SX} role={undefined} {...props} />
 }

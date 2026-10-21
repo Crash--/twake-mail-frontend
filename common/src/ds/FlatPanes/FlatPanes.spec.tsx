@@ -61,4 +61,17 @@ describe('FlatPanes', () => {
     expect(main).toHaveTextContent('FiltersBody')
     expect(main).toHaveStyle({ margin: '0 16px 16px 0' })
   })
+
+  it('keeps the sx of the panes out of the DOM', () => {
+    renderDs(
+      <Layout withTopBar={false}>
+        <FlatMain data-testid="main">
+          <FlatContent data-testid="content">Body</FlatContent>
+        </FlatMain>
+      </Layout>
+    )
+
+    expect(screen.getByTestId('main').getAttribute('sx')).toBe(null)
+    expect(screen.getByTestId('content').getAttribute('sx')).toBe(null)
+  })
 })

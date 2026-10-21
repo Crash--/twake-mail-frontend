@@ -4,13 +4,13 @@ import type { ReactElement } from 'react'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import type { CapabilityCall } from './assistant'
-import type { AssistantCapability } from './assistantTools'
+import type { AssistantTool } from './assistantTools'
 import { useAssistantIntent } from './useAssistantIntent'
 
 const ASSISTANT_ORIGIN = 'https://alice-assistant.example.com'
 const INTENT_ID = 'intent-1'
 
-const CAPABILITIES: AssistantCapability[] = [
+const CAPABILITIES: AssistantTool[] = [
   {
     name: 'create_draft',
     description: 'Create a draft',
@@ -22,7 +22,6 @@ const CAPABILITIES: AssistantCapability[] = [
   }
 ]
 
-/** The platform: creates the intent of the assistant */
 function makeSdk(): { createIntent: jest.Mock } {
   return {
     createIntent: jest.fn(() =>
@@ -36,21 +35,18 @@ function makeSdk(): { createIntent: jest.Mock } {
 
 interface ProbeProps {
   sdk: { createIntent: jest.Mock } | null
-  isOpen?: boolean
-  capabilities?: AssistantCapability[] | null
+  capabilities?: AssistantTool[] | null
   onCall?: (call: CapabilityCall) => void
   onCancel?: () => void
 }
 
-/** The state of the intent, and its frame (never loaded in jsdom) */
 function Probe({
   sdk,
-  isOpen = true,
   capabilities = CAPABILITIES,
   onCall = jest.fn(),
   onCancel = jest.fn()
 }: ProbeProps): ReactElement {
-  const { state, frameRef } = useAssistantIntent(sdk, isOpen, capabilities, {
+  const { state, frameRef } = useAssistantIntent(sdk, capabilities, {
     onCall,
     onCancel
   })
@@ -73,7 +69,6 @@ function frameWindow(): Window {
   return frame.contentWindow
 }
 
-/** A message of the frame of the assistant, by default */
 function post(
   kind: string,
   extra: Record<string, unknown> = {},
@@ -116,18 +111,10 @@ describe('useAssistantIntent', () => {
     expect(sdk.createIntent).not.toHaveBeenCalled()
   })
 
-  it('stays closed without the platform, or while closed', () => {
-    const sdk = makeSdk()
+  it('stays closed without the platform', () => {
+    renderWithProviders(<Probe sdk={null} />)
 
-    renderWithProviders(
-      <>
-        <Probe sdk={null} />
-        <Probe sdk={sdk} isOpen={false} />
-      </>
-    )
-
-    expect(screen.getAllByText('closed')).toHaveLength(2)
-    expect(sdk.createIntent).not.toHaveBeenCalled()
+    expect(screen.getByText('closed')).toBeInTheDocument()
   })
 
   it('fails when the platform refuses the intent', async () => {

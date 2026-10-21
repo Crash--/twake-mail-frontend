@@ -76,45 +76,21 @@ describe('parseAssistantMessage', () => {
     })
   })
 
-  it('reads the answer of an action button', () => {
+  it('ignores the answer of an action button, since none is sent', () => {
     const data = message('result', {
       result: { answerAction: 'insert', text: 'Hello', format: 'markdown' }
     })
 
-    expect(parseAssistantMessage(data, INTENT_ID)).toEqual({
-      kind: 'result',
-      result: { answerAction: 'insert', text: 'Hello' }
-    })
+    expect(parseAssistantMessage(data, INTENT_ID)).toBe(null)
   })
 
-  it('turns the numbers and booleans of a call into strings', () => {
-    const data = message('result', {
-      result: {
-        capability: 'list_emails',
-        params: { limit: 10, unread: true, ids: [1, 'b'] }
-      }
-    })
+  it('ignores a call with parameters that are not strings', () => {
+    const call = (params: unknown): unknown =>
+      message('result', { result: { capability: 'list_emails', params } })
 
-    expect(parseAssistantMessage(data, INTENT_ID)).toEqual({
-      kind: 'capabilityCall',
-      call: {
-        capability: 'list_emails',
-        params: { limit: '10', unread: 'true', ids: ['1', 'b'] },
-        text: null
-      }
-    })
-  })
-
-  it('ignores a call with an object or null parameter', () => {
-    const withObject = message('result', {
-      result: { capability: 'list_emails', params: { filter: { a: 1 } } }
-    })
-    const withNull = message('result', {
-      result: { capability: 'list_emails', params: { limit: null } }
-    })
-
-    expect(parseAssistantMessage(withObject, INTENT_ID)).toBe(null)
-    expect(parseAssistantMessage(withNull, INTENT_ID)).toBe(null)
+    expect(parseAssistantMessage(call({ limit: 10 }), INTENT_ID)).toBe(null)
+    expect(parseAssistantMessage(call({ ids: [1, 'b'] }), INTENT_ID)).toBe(null)
+    expect(parseAssistantMessage(call({ limit: null }), INTENT_ID)).toBe(null)
   })
 
   it('ignores the messages of another intent, and anything else', () => {

@@ -6,7 +6,6 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { assistantToolsUrl, type AssistantTool } from './assistantTools'
 import { assistantToolsQueryOptions } from './queries'
 
-/** The tools of tmail-backend for the assistant, failing when it offers none */
 export function useAssistantTools(): UseQueryResult<AssistantTool[]> {
   const service = useAuthService()
   const { session, accountId } = useJmapSession()

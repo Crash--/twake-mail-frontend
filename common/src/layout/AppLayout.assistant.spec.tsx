@@ -42,7 +42,6 @@ function jsonResponse(body: unknown, status = 200): Response {
   })
 }
 
-/** The cozy-stack of Alice, and the AI tools of tmail-backend */
 function respond(
   url: URL,
   init: RequestInit | undefined,

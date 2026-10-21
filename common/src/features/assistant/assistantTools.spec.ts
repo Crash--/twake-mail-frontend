@@ -1,9 +1,7 @@
 import {
   AssistantToolsError,
   assistantToolsUrl,
-  fetchAssistantTools,
-  toCapabilities,
-  type AssistantTool
+  fetchAssistantTools
 } from './assistantTools'
 
 const CREATE_DRAFT = {
@@ -104,33 +102,5 @@ describe('fetchAssistantTools', () => {
     await expect(
       fetchAssistantTools(url, null, { fetchFunction })
     ).rejects.toThrow('Failed to fetch')
-  })
-})
-
-describe('toCapabilities', () => {
-  it('gives each tool as a capability', () => {
-    const tools: AssistantTool[] = [
-      {
-        name: 'create_draft',
-        description: 'Create a draft',
-        parameters: {
-          type: 'object',
-          properties: { body: { type: 'string' } },
-          required: ['body']
-        }
-      }
-    ]
-
-    expect(toCapabilities(tools)).toEqual([
-      {
-        name: 'create_draft',
-        description: 'Create a draft',
-        parameters: {
-          type: 'object',
-          properties: { body: { type: 'string' } },
-          required: ['body']
-        }
-      }
-    ])
   })
 })

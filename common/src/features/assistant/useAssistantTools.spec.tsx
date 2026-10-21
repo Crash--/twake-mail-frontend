@@ -18,7 +18,6 @@ const CREATE_DRAFT = {
   }
 }
 
-// tmail-backend, behind the global `fetch` the route is called with
 const fetchMock = jest.fn<Promise<Response>, Parameters<typeof fetch>>()
 const originalFetch = global.fetch
 

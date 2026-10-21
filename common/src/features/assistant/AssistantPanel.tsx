@@ -1,5 +1,5 @@
 import { Typography } from '@linagora/twake-mui'
-import { useMemo, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 
 import { SidePanel } from '@/ds/SidePanel/SidePanel'
 import {
@@ -10,7 +10,6 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import type { CapabilityCall } from './assistant'
 import { useAssistantPanel } from './AssistantProvider'
-import { toCapabilities } from './assistantTools'
 import { useAssistantIntent } from './useAssistantIntent'
 import { useAssistantTools } from './useAssistantTools'
 
@@ -18,23 +17,15 @@ function logCall(call: CapabilityCall): void {
   console.info('[assistant] capability call', call)
 }
 
-/**
- * The Twake Assistant beside the mail, through the Assistant intent of the
- * platform
- */
 export function AssistantPanel(): ReactElement {
   const { t } = useI18n()
   const { close } = useAssistantPanel()
   const sdk = usePlatformSdk()
   const isPlatformReady = usePlatformStatus() === 'ready'
   const tools = useAssistantTools()
-  const capabilities = useMemo(
-    () => (tools.isPending ? null : toCapabilities(tools.data ?? [])),
-    [tools.isPending, tools.data]
-  )
+  const capabilities = tools.isPending ? null : (tools.data ?? [])
   const { state, frameRef } = useAssistantIntent(
     isPlatformReady ? sdk : null,
-    true,
     capabilities,
     { onCall: logCall, onCancel: close }
   )

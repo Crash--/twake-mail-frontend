@@ -1,34 +1,21 @@
+// The tools of the AI assistant that tmail-backend offers (`GET /ai/v1/tools`,
+// in the OpenAI function calling format), sent as the capabilities of the
+// Assistant intent (twake-assistant/docs/assistant-intent.md, "Capability").
+
 import type { Session } from 'jmap-client-ts'
 
-/**
- * The tools of the AI assistant that tmail-backend offers
- * (`GET /ai/v1/tools`, in the OpenAI function calling format), turned into
- * the capabilities of the Assistant intent
- * (twake-assistant/docs/assistant-intent.md, "Capability").
- */
-
-/** The parameters of a tool: a JSON schema of an object */
 export interface ToolParameters {
   type: 'object'
   properties: Record<string, unknown>
   required?: string[]
 }
 
-/** A tool of tmail-backend, as the LLM sees it */
 export interface AssistantTool {
   name: string
   description: string
   parameters: ToolParameters
 }
 
-/** What the Assistant intent calls a capability */
-export interface AssistantCapability {
-  name: string
-  description: string
-  parameters: ToolParameters
-}
-
-/** A failed request for the tools: its HTTP status, null for a bad answer */
 export class AssistantToolsError extends Error {
   readonly status: number | null
 
@@ -43,7 +30,6 @@ export class AssistantToolsError extends Error {
   }
 }
 
-/** The route of the tools, on the server of the JMAP API */
 export function assistantToolsUrl(session: Pick<Session, 'apiUrl'>): string {
   return new URL('/ai/v1/tools', session.apiUrl).href
 }
@@ -67,7 +53,6 @@ function readParameters(value: unknown): ToolParameters | null {
     : { type: 'object', properties: value.properties }
 }
 
-/** A tool of the list, `{ type: 'function', function }`; null for anything else */
 function readTool(entry: unknown): AssistantTool | null {
   if (!isRecord(entry) || entry.type !== 'function') return null
   const tool = entry.function
@@ -84,11 +69,6 @@ function readTool(entry: unknown): AssistantTool | null {
     : { name: tool.name, description: tool.description, parameters }
 }
 
-/**
- * Asks tmail-backend for the tools (`{ tools: [] }`), with the
- * credentials of the JMAP session. A tool it cannot read is left out; a
- * refusal rejects with an `AssistantToolsError`, so that it is not cached.
- */
 export async function fetchAssistantTools(
   url: string,
   authorization: string | null,
@@ -112,14 +92,4 @@ export async function fetchAssistantTools(
   return json.tools
     .map(readTool)
     .filter((tool): tool is AssistantTool => tool !== null)
-}
-
-export function toCapabilities(
-  tools: readonly AssistantTool[]
-): AssistantCapability[] {
-  return tools.map(({ name, description, parameters }) => ({
-    name,
-    description,
-    parameters
-  }))
 }

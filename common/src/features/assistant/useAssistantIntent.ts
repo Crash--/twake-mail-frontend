@@ -9,7 +9,7 @@ import {
   type AssistantService,
   type CapabilityCall
 } from './assistant'
-import type { AssistantCapability } from './assistantTools'
+import type { AssistantTool } from './assistantTools'
 
 export type AssistantIntentState =
   | { status: 'closed' }
@@ -27,27 +27,16 @@ export interface AssistantIntent {
   frameRef: RefObject<HTMLIFrameElement | null>
 }
 
-/**Platform answer for the intent */
 type Created = { ok: true; service: AssistantService } | { ok: false }
 
-/**
- * The Assistant intent of the platform (`sdk.createIntent`), while
- * `isOpen` and once the capabilities are known (null while they load): its
- * frame says `ready`, gets the capabilities, then hands back the calls the
- * LLM picks. Only the messages of its frame are read: from the origin of
- * the intent, from its window, with its id. Closing drops the intent; a
- * late answer of the platform is ignored.
- */
 export function useAssistantIntent(
   sdk: Pick<Sdk, 'createIntent'> | null,
-  isOpen: boolean,
-  capabilities: AssistantCapability[] | null,
+  capabilities: AssistantTool[] | null,
   handlers: AssistantIntentHandlers
 ): AssistantIntent {
   const frameRef = useRef<HTMLIFrameElement | null>(null)
   const [created, setCreated] = useState<Created | null>(null)
   const [isReady, setIsReady] = useState(false)
-  // The latest capabilities and handlers, read by the message handler
   const capabilitiesRef = useRef(capabilities)
   const handlersRef = useRef(handlers)
   useEffect(() => {
@@ -55,7 +44,7 @@ export function useAssistantIntent(
     handlersRef.current = handlers
   })
 
-  const canStart = isOpen && sdk !== null && capabilities !== null
+  const canStart = sdk !== null && capabilities !== null
 
   useEffect(() => {
     if (!canStart) return undefined
@@ -110,8 +99,6 @@ export function useAssistantIntent(
         case 'cancel':
           handlersRef.current.onCancel()
           return
-        case 'result':
-          return
       }
     }
     window.addEventListener('message', handleMessage)
@@ -121,7 +108,7 @@ export function useAssistantIntent(
   }, [service])
 
   const state: AssistantIntentState =
-    !isOpen || sdk === null
+    sdk === null
       ? { status: 'closed' }
       : !canStart || created === null
         ? { status: 'opening' }

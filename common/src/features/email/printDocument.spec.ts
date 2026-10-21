@@ -53,6 +53,15 @@ describe('buildPrintDocument', () => {
     expect(html).not.toContain('2 attachments')
   })
 
+  it('writes the sender as the To and Cc lines: the address alone without a name', () => {
+    expect(buildPrintDocument(CONTENT)).toContain(
+      'From: <b>Bob &quot;B&quot;</b> &lt;bob@example.com&gt;</span>'
+    )
+    const html = buildPrintDocument({ ...CONTENT, senderName: ' ' })
+    expect(html).toContain('<span>From: bob@example.com</span>')
+    expect(html).not.toContain('<b></b>')
+  })
+
   it('forbids scripts and remote content by CSP unless allowed', () => {
     expect(buildPrintDocument(CONTENT)).toContain(
       "default-src 'none'; img-src data: blob:;"

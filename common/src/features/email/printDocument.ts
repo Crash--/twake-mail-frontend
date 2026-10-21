@@ -66,6 +66,14 @@ ${PRINT_BODY_SELECTOR} { padding: 12px 0; }
 .attachments li { padding: 4px 0; }
 `
 
+/** "<b>Name</b> <address>", or the address alone when there is no name */
+function formatSender(name: string, address: string): string {
+  const trimmed = name.trim()
+  if (trimmed === '') return escapeHtml(address)
+  if (address === '') return `<b>${escapeHtml(trimmed)}</b>`
+  return `<b>${escapeHtml(trimmed)}</b> &lt;${escapeHtml(address)}&gt;`
+}
+
 /** The whole HTML document to print; every text is escaped */
 export function buildPrintDocument(content: PrintDocumentContent): string {
   const recipients = content.recipients
@@ -99,7 +107,7 @@ export function buildPrintDocument(content: PrintDocumentContent): string {
     `<style>${PRINT_CSS}</style></head><body>`,
     `<div class="user">${escapeHtml(content.userName)}</div><hr>`,
     `<div class="subject">${escapeHtml(content.subject)}</div><hr>`,
-    `<div class="sender"><span>${escapeHtml(content.fromLabel)}: <b>${escapeHtml(content.senderName)}</b> &lt;${escapeHtml(content.senderAddress)}&gt;</span><span>${escapeHtml(content.date)}</span></div>`,
+    `<div class="sender"><span>${escapeHtml(content.fromLabel)}: ${formatSender(content.senderName, content.senderAddress)}</span><span>${escapeHtml(content.date)}</span></div>`,
     recipients,
     `<div class="frame"><div class="content">${content.bodyHtml}</div></div>`,
     attachments,

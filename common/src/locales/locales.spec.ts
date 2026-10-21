@@ -33,4 +33,12 @@ describe('locales', () => {
   ])('%s has exactly the English keys', (_lang, dictionary) => {
     expect(collectKeys(dictionary).sort()).toEqual(englishKeys)
   })
+
+  // The product name, in the titles and the name of the logo that shows it
+  it.each([fr, ru, vi, italian, de, mn, es])(
+    'keeps the product name untranslated',
+    dictionary => {
+      expect(dictionary.app.name).toBe('Twake Mail')
+    }
+  )
 })

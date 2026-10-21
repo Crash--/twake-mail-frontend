@@ -11,6 +11,7 @@ export type SettingsSectionId =
   | 'language-region'
   | 'keyboard-shortcuts'
   | 'storage'
+  | 'delegation'
 
 /** Below this width the sections are listed in the page (app `SCREEN_BREAKPOINTS.desktop`) */
 const DESKTOP_MIN_WIDTH = 1200

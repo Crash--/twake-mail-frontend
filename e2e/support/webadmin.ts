@@ -116,6 +116,17 @@ export class WebAdminClient {
     }[]
   }
 
+  /**
+   * Gives `delegate` access to the account of `owner` (James delegation):
+   * the account then shows in the JMAP session of the delegate
+   */
+  async addDelegate(owner: string, delegate: string): Promise<Response> {
+    return this.#call(
+      'PUT',
+      `/users/${encodeURIComponent(owner)}/authorizedUsers/${encodeURIComponent(delegate)}`
+    )
+  }
+
   async deleteTeamMailbox(domain: string, name: string): Promise<Response> {
     return this.#call(
       'DELETE',

@@ -356,6 +356,41 @@ export class JmapClient {
     return session
   }
 
+  /**
+   * The addresses of the accounts delegated to this user (James delegation),
+   * read from a session fetched afresh
+   */
+  async delegatedAccounts(): Promise<string[]> {
+    const response = await fetch(`${this.#baseUrl}/jmap/session`, {
+      headers: {
+        Authorization: this.#authorization,
+        Accept: 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new JmapError(
+        `GET /jmap/session failed: ${response.status}`,
+        'session'
+      )
+    }
+    const body: unknown = await response.json()
+    const accounts =
+      typeof body === 'object' && body !== null && 'accounts' in body
+        ? body.accounts
+        : null
+    if (typeof accounts !== 'object' || accounts === null) return []
+    return Object.values(accounts).flatMap(account =>
+      typeof account === 'object' &&
+      account !== null &&
+      'isPersonal' in account &&
+      account.isPersonal === false &&
+      'name' in account &&
+      typeof account.name === 'string'
+        ? [account.name]
+        : []
+    )
+  }
+
   async accountId(): Promise<string> {
     const session = await this.getSession()
     const accountId = session.primaryAccounts[MAIL]

@@ -37,6 +37,7 @@ import { LinkDialog, type LinkDialogValue } from './LinkDialog'
 import { toLinkUrl } from './linkUrl'
 import { createPastedDataImages } from './pastedDataImages'
 import { QuoteBlock, QuoteCite, QuoteKeys } from './quoteBlock'
+import { SafeLink } from './safeLink'
 import { RichTextToolbar } from './RichTextToolbar'
 import { SelectionAction } from './SelectionAction'
 import { SmartTrailingBlock } from './smartTrailingBlock'
@@ -370,11 +371,12 @@ export function RichTextEditor({
         // gives one above them on demand, and the gap cursor still lets the
         // user type between them on purpose
         trailingNode: false,
-        link: {
-          openOnClick: false,
-          autolink: true,
-          defaultProtocol: 'https'
-        }
+        link: false
+      }),
+      SafeLink.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: 'https'
       }),
       TextStyleKit.configure({ lineHeight: false }),
       TextAlign.configure({ types: ['paragraph', 'heading'] }),

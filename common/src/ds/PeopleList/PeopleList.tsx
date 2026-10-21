@@ -141,6 +141,18 @@ export function PeopleList({
   )
 }
 
+/**
+ * The column of a page about people, as wide as their card (489 px), the
+ * whole width on a phone: its texts wrap as the maquette's
+ */
+export function PeopleColumn({
+  children
+}: {
+  children: ReactNode
+}): ReactElement {
+  return <Box sx={{ maxWidth: 489 }}>{children}</Box>
+}
+
 /** One person in a bordered card, e.g. the one a dialog is about */
 export function PersonCard({
   person,

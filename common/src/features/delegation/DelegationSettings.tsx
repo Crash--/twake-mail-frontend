@@ -5,6 +5,7 @@ import { useId, useState, type ReactElement } from 'react'
 import { Plus, Trash } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import {
+  PeopleColumn,
   PeopleEmptyCard,
   PeopleList,
   type Person
@@ -280,43 +281,47 @@ export function DelegationSettings({
 
   return (
     <SettingsSectionLayout section={section}>
-      <Tabs
-        segmented
-        value={tab}
-        onChange={(_, value: DelegationTab) => {
-          setTab(value)
-        }}
-        aria-label={t('settings.sections.delegation.title')}
-        className="u-mb-1"
-      >
-        <Tab
-          value="delegates"
-          label={t('delegation.tabs.delegates')}
-          id={`${tabsId}-delegates-tab`}
-          aria-controls={`${tabsId}-delegates-panel`}
-          data-testid="delegation-delegates-tab"
-        />
-        <Tab
-          value="delegated"
-          label={t('delegation.tabs.delegated')}
-          id={`${tabsId}-delegated-tab`}
-          aria-controls={`${tabsId}-delegated-panel`}
-          data-testid="delegation-delegated-tab"
-        />
-      </Tabs>
-      <Box
-        role="tabpanel"
-        id={`${tabsId}-${tab}-panel`}
-        aria-labelledby={`${tabsId}-${tab}-tab`}
-        data-testid={`delegation-${tab}-panel`}
-      >
-        <Typography component="p" className="u-mb-1-half">
-          {tab === 'delegates'
-            ? t('delegation.delegates.intro')
-            : t('delegation.delegated.intro')}
-        </Typography>
-        {tab === 'delegates' ? delegatesPanel : delegatedPanel}
-      </Box>
+      <PeopleColumn>
+        {/* Its tabs as wide as their labels, as the maquette */}
+        <Box className="u-flex u-mb-1">
+          <Tabs
+            segmented
+            value={tab}
+            onChange={(_, value: DelegationTab) => {
+              setTab(value)
+            }}
+            aria-label={t('settings.sections.delegation.title')}
+          >
+            <Tab
+              value="delegates"
+              label={t('delegation.tabs.delegates')}
+              id={`${tabsId}-delegates-tab`}
+              aria-controls={`${tabsId}-delegates-panel`}
+              data-testid="delegation-delegates-tab"
+            />
+            <Tab
+              value="delegated"
+              label={t('delegation.tabs.delegated')}
+              id={`${tabsId}-delegated-tab`}
+              aria-controls={`${tabsId}-delegated-panel`}
+              data-testid="delegation-delegated-tab"
+            />
+          </Tabs>
+        </Box>
+        <Box
+          role="tabpanel"
+          id={`${tabsId}-${tab}-panel`}
+          aria-labelledby={`${tabsId}-${tab}-tab`}
+          data-testid={`delegation-${tab}-panel`}
+        >
+          <Typography component="p" className="u-mb-1-half">
+            {tab === 'delegates'
+              ? t('delegation.delegates.intro')
+              : t('delegation.delegated.intro')}
+          </Typography>
+          {tab === 'delegates' ? delegatesPanel : delegatedPanel}
+        </Box>
+      </PeopleColumn>
       {isAdding ? (
         <AddDelegatesDialog
           ownAddress={session.username}

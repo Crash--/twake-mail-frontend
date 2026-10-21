@@ -2,10 +2,12 @@ import { waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
+import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import {
   makeDefaultMailboxes,
   makeFakeJmapServer,
   makeMailbox,
+  makeTeamMailboxes,
   type FakeMailbox
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -71,5 +73,26 @@ describe('InboxUnreadTitle', () => {
     })
     await new Promise(resolve => setTimeout(resolve, 50))
     expect(document.title).toBe('Inbox - Twake Mail')
+  })
+
+  it('puts the unread count of the Inbox of the team mailbox the screens are bound to', async () => {
+    const team = makeTeamMailboxes({ id: 'team' }).map(mailbox =>
+      mailbox.id === 'team-inbox' ? { ...mailbox, unreadEmails: 5 } : mailbox
+    )
+    renderWithProviders(
+      <TeamMailboxEmbedProvider rootId="team">
+        <Inbox />
+      </TeamMailboxEmbedProvider>,
+      {
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer({
+          mailboxes: [...makeDefaultMailboxes(), ...team]
+        })
+      }
+    )
+
+    await waitFor(() => {
+      expect(document.title).toBe('(5) Inbox - Twake Mail')
+    })
   })
 })

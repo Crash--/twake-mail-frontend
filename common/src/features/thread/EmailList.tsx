@@ -41,6 +41,7 @@ import type { TargetEmail } from '@common/features/emailActions/planEmailChanges
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import {
   findMailboxIdByRole,
+  hasMailboxRole,
   isTeamDrafts,
   isTeamTemplates,
   isTemplatesMailbox
@@ -292,10 +293,13 @@ export function EmailList(props: EmailListProps): ReactElement {
         : getMailboxName(mailbox)
       : (search.title ?? null)
   const isTemplates = mailbox !== null && isTemplatesMailbox(mailbox)
-  // The Drafts and Templates of a team mailbox are known by their name
+  // The folders of a team mailbox (Sent, Drafts…) are known by their name
   const showRecipients =
     isTemplates ||
-    (mailbox !== null && (isTeamDrafts(mailbox) || isTeamTemplates(mailbox))) ||
+    (mailbox !== null &&
+      (isTeamDrafts(mailbox) ||
+        isTeamTemplates(mailbox) ||
+        RECIPIENT_ROLES.some(name => hasMailboxRole(mailbox, name)))) ||
     (role !== null && RECIPIENT_ROLES.includes(role))
   // A result of a search opens on the message that matched; the rows of a
   // folder, a label or Starred on the first unread one

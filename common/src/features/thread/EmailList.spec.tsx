@@ -554,6 +554,27 @@ describe('EmailList', () => {
     ).toHaveTextContent('Bob Dupont')
   })
 
+  it('shows the recipients in the Sent folder of a team mailbox, known by its name', async () => {
+    renderList(
+      makeFakeJmapServer({
+        mailboxes: [...makeDefaultMailboxes(), ...makeTeamMailboxes()],
+        emails: [
+          makeEmail({
+            id: 'team-sent',
+            mailboxIds: { 'team-sent': true },
+            from: [{ name: null, email: 'team@example.com' }],
+            to: [{ name: null, email: 'alice@example.com' }]
+          })
+        ]
+      }),
+      'team-sent'
+    )
+
+    expect(
+      await screen.findByTestId('email-list-item-sender')
+    ).toHaveTextContent('alice@example.com')
+  })
+
   it('says that a draft has no recipient yet', async () => {
     renderList(
       makeFakeJmapServer({

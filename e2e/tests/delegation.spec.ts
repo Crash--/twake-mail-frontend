@@ -413,5 +413,30 @@ test.describe('DLG delegation', () => {
     await expect(switcher(page)).toHaveCount(0)
     await expectNoA11yViolations(page)
   })
+
+  test('DLG-11 signing out and in again opens the own mailbox, not the delegated one last shown', async ({
+    page,
+    user,
+    users,
+    webadmin,
+    jmapFor
+  }) => {
+    const boss = await users.create({ prefix: 'boss' })
+    await webadmin.addDelegate(boss.email, user.email)
+    const bossInbox = await jmapFor(boss).findMailboxByRole('inbox')
+    await jmapFor(boss).createEmailIn(bossInbox.id, { subject: 'Boss matter' })
+    let mailbox = await new LoginPage(page).loginAs(user)
+    await switchTo(page, boss.email)
+    await expect(mailbox.emailList).toContainText('Boss matter')
+
+    await openAccountMenuIfAny(page)
+    await page.getByTestId('logout-button').click()
+    await expect(page.getByTestId('login-username-input')).toBeVisible()
+    mailbox = await new LoginPage(page).loginAfterReload(user)
+
+    await expect(switcher(page)).toHaveText(/Viewing my email/)
+    await expect(mailbox.emailList.or(mailbox.emptyListView)).toBeVisible()
+    await expect(page.getByText('Boss matter')).toHaveCount(0)
+  })
 })
 

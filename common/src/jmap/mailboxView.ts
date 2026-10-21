@@ -95,6 +95,25 @@ export function writeMailboxView(username: string, view: MailboxView): void {
 }
 
 /**
+ * Forgets the view of every user of this tab: the next sign-in opens on
+ * the user's own mailbox, whatever they showed before signing out
+ */
+export function clearMailboxViews(): void {
+  try {
+    const storage = storageOf()
+    if (storage === null) return
+    const keys = Array.from({ length: storage.length }, (_, index) =>
+      storage.key(index)
+    ).filter(key => key?.startsWith(STORAGE_PREFIX) === true)
+    for (const key of keys) {
+      if (key !== null) storage.removeItem(key)
+    }
+  } catch {
+    // Nothing kept to forget
+  }
+}
+
+/**
  * The view, if the session still allows it: a delegation removed meanwhile
  * gives the user's own mailbox back. A team mailbox is checked against the
  * folders, once they are loaded (`useMailboxView`).

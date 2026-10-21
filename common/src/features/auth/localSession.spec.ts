@@ -9,6 +9,7 @@ import {
   readSortOrder,
   storeSortOrder
 } from '@common/features/search/searchStorage'
+import { clearMailboxViews } from '@common/jmap/mailboxView'
 
 import {
   endLocalSession,
@@ -16,6 +17,11 @@ import {
   SESSION_CHANNEL_NAME
 } from './localSession'
 import { ANONYMOUS, type AuthState } from './types'
+
+// Kept in the session storage of the tab, which this environment lacks
+jest.mock('@common/jmap/mailboxView', () => ({
+  clearMailboxViews: jest.fn()
+}))
 
 function signedInAs(email: string | null): AuthState {
   return {
@@ -101,6 +107,12 @@ describe('endLocalSession', () => {
 
     expect(readRecentSearches('a')).toEqual([])
     expect(readSortOrder()).toBe('oldest')
+  })
+
+  it('forgets the mailbox shown: the next sign-in opens on the own one', () => {
+    endLocalSession(makeSession(signedInAs('bob@example.com')))
+
+    expect(clearMailboxViews).toHaveBeenCalledTimes(1)
   })
 })
 

@@ -1,6 +1,7 @@
 import { clearComposerStorage } from '@common/features/composer/composerStorage'
 import { clearIdentityFormStorage } from '@common/features/identities/identityFormStorage'
 import { clearRecentSearches } from '@common/features/search/searchStorage'
+import { clearMailboxViews } from '@common/jmap/mailboxView'
 
 import type { AuthServiceBase, AuthState } from './types'
 
@@ -21,13 +22,16 @@ type LocalSession = Pick<AuthServiceBase, 'clearLocalSession' | 'getState'>
 /**
  * The composers kept in the browser (`features/composer/composerStorage.ts`)
  * go when the session ends, as tmail-flutter does (ADR 0112), and so do
- * the identity form kept for a reload and the recent searches. The
- * preferences of the device (theme, focus indicator, sort order) stay.
+ * the identity form kept for a reload, the recent searches and the
+ * mailbox shown (a delegated one: the next sign-in opens on the user's
+ * own). The preferences of the device (theme, focus indicator, sort
+ * order) stay.
  */
 function forgetUserData(): void {
   void clearComposerStorage()
   clearIdentityFormStorage()
   clearRecentSearches()
+  clearMailboxViews()
 }
 
 function openChannel(): BroadcastChannel | null {

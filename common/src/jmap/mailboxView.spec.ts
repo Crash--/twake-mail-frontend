@@ -4,6 +4,7 @@
 import type { Session } from 'jmap-client-ts'
 
 import {
+  clearMailboxViews,
   delegatedMailboxes,
   OWN_VIEW,
   readMailboxView,
@@ -92,5 +93,22 @@ describe('mailboxView', () => {
     expect(
       validMailboxView({ kind: 'delegated', accountId: 'mine' }, session)
     ).toEqual(OWN_VIEW)
+  })
+})
+
+describe('clearMailboxViews', () => {
+  it('forgets the view of every user of the tab, and nothing else', () => {
+    writeMailboxView('bob@example.com', {
+      kind: 'delegated',
+      accountId: 'account-alice'
+    })
+    writeMailboxView('david@example.com', { kind: 'team', rootId: 'root' })
+    window.sessionStorage.setItem('other', 'kept')
+
+    clearMailboxViews()
+
+    expect(readMailboxView('bob@example.com')).toEqual(OWN_VIEW)
+    expect(readMailboxView('david@example.com')).toEqual(OWN_VIEW)
+    expect(window.sessionStorage.getItem('other')).toBe('kept')
   })
 })

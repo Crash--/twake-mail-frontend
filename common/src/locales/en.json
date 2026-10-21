@@ -39,6 +39,13 @@
     "help": "Get help or report a bug",
     "account": "Account %{address}"
   },
+  "assistant": {
+    "open": "AI assistant",
+    "panel": "Assistant",
+    "frameTitle": "Twake Assistant",
+    "loading": "Opening the assistant…",
+    "error": "The assistant could not be opened."
+  },
   "sidebar": {
     "mailboxes": "Mailboxes",
     "newMessage": "Compose",

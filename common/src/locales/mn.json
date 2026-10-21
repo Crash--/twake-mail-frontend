@@ -39,6 +39,13 @@
     "help": "Тусламж авах эсвэл алдаа мэдэгдэх",
     "account": "Бүртгэл %{address}"
   },
+  "assistant": {
+    "open": "AI туслах",
+    "panel": "Туслах",
+    "frameTitle": "Twake Assistant",
+    "loading": "Туслахыг нээж байна…",
+    "error": "Туслахыг нээж чадсангүй."
+  },
   "sidebar": {
     "mailboxes": "Шуудангийн хайрцгууд",
     "newMessage": "Бичих",

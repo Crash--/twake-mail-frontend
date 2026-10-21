@@ -39,6 +39,13 @@
     "help": "Obtener ayuda o informar de un error",
     "account": "Cuenta %{address}"
   },
+  "assistant": {
+    "open": "Asistente de IA",
+    "panel": "Asistente",
+    "frameTitle": "Twake Assistant",
+    "loading": "Abriendo el asistente…",
+    "error": "No se pudo abrir el asistente."
+  },
   "sidebar": {
     "mailboxes": "Buzones",
     "newMessage": "Redactar",

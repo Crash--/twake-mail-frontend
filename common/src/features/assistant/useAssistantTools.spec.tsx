@@ -36,11 +36,10 @@ function answerTools(status: number, body: unknown): void {
 }
 
 function ToolNames(): ReactElement {
-  const { data, isPending } = useAssistantTools()
-  const tools = data ?? null
+  const { data, isPending, isError } = useAssistantTools()
   if (isPending) return <p>loading</p>
-  if (tools === null) return <p>no tools</p>
-  return <p>{tools.map(tool => tool.name).join(', ')}</p>
+  if (isError) return <p>no tools</p>
+  return <p>{data.map(tool => tool.name).join(', ')}</p>
 }
 
 describe('useAssistantTools', () => {
@@ -60,11 +59,12 @@ describe('useAssistantTools', () => {
     )
   })
 
-  it('gives null when tmail-backend offers no tools', async () => {
+  it('fails at once when tmail-backend refuses, without a retry', async () => {
     answerTools(401, { detail: 'User is not eligible for AI tools' })
 
     renderWithProviders(<ToolNames />, { withJmapSession: true })
 
     expect(await screen.findByText('no tools')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })

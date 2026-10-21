@@ -1,4 +1,5 @@
 import {
+  AssistantToolsError,
   assistantToolsUrl,
   fetchAssistantTools,
   toCapabilities,
@@ -55,10 +56,7 @@ describe('fetchAssistantTools', () => {
       fetchFunction
     })
 
-    expect(result).toEqual({
-      ok: true,
-      value: [CREATE_DRAFT.function, LIST_EMAILS.function]
-    })
+    expect(result).toEqual([CREATE_DRAFT.function, LIST_EMAILS.function])
     expect(fetchFunction).toHaveBeenCalledWith(url, {
       headers: { Accept: 'application/json', Authorization: 'Bearer token' }
     })
@@ -79,23 +77,23 @@ describe('fetchAssistantTools', () => {
 
     const result = await fetchAssistantTools(url, null, { fetchFunction })
 
-    expect(result).toEqual({ ok: true, value: [CREATE_DRAFT.function] })
+    expect(result).toEqual([CREATE_DRAFT.function])
   })
 
-  it('fails when the server refuses', async () => {
+  it('fails with the status when the server refuses', async () => {
     const fetchFunction = answering(401, { detail: 'not eligible' })
 
-    expect(await fetchAssistantTools(url, null, { fetchFunction })).toEqual({
-      ok: false
-    })
+    await expect(
+      fetchAssistantTools(url, null, { fetchFunction })
+    ).rejects.toEqual(new AssistantToolsError(401))
   })
 
   it('fails on an answer without tools', async () => {
     const fetchFunction = answering(200, { other: [] })
 
-    expect(await fetchAssistantTools(url, null, { fetchFunction })).toEqual({
-      ok: false
-    })
+    await expect(
+      fetchAssistantTools(url, null, { fetchFunction })
+    ).rejects.toEqual(new AssistantToolsError(null))
   })
 
   it('fails when the server is out of reach', async () => {
@@ -103,9 +101,9 @@ describe('fetchAssistantTools', () => {
       Promise.reject(new TypeError('Failed to fetch'))
     )
 
-    expect(await fetchAssistantTools(url, null, { fetchFunction })).toEqual({
-      ok: false
-    })
+    await expect(
+      fetchAssistantTools(url, null, { fetchFunction })
+    ).rejects.toThrow('Failed to fetch')
   })
 })
 

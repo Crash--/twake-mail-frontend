@@ -28,8 +28,20 @@ export interface AssistantCapability {
   parameters: ToolParameters
 }
 
-export type AssistantToolsResult =
-  { ok: true; value: AssistantTool[] } | { ok: false }
+/** A failed request for the tools: its HTTP status, null for a bad answer */
+export class AssistantToolsError extends Error {
+  readonly status: number | null
+
+  constructor(status: number | null) {
+    super(
+      status === null
+        ? 'tmail-backend answered no tools'
+        : `tmail-backend answered ${status} for the tools`
+    )
+    this.name = 'AssistantToolsError'
+    this.status = status
+  }
+}
 
 /** The route of the tools, on the server of the JMAP API */
 export function assistantToolsUrl(session: Pick<Session, 'apiUrl'>): string {
@@ -74,7 +86,8 @@ function readTool(entry: unknown): AssistantTool | null {
 
 /**
  * Asks tmail-backend for the tools (`{ tools: [] }`), with the
- * credentials of the JMAP session. A tool it cannot read is left out.
+ * credentials of the JMAP session. A tool it cannot read is left out; a
+ * refusal rejects with an `AssistantToolsError`, so that it is not cached.
  */
 export async function fetchAssistantTools(
   url: string,
@@ -83,25 +96,22 @@ export async function fetchAssistantTools(
     signal,
     fetchFunction = fetch
   }: { signal?: AbortSignal; fetchFunction?: typeof fetch } = {}
-): Promise<AssistantToolsResult> {
-  try {
-    const response = await fetchFunction(url, {
-      headers: {
-        Accept: 'application/json',
-        ...(authorization === null ? {} : { Authorization: authorization })
-      },
-      ...(signal ? { signal } : {})
-    })
-    if (!response.ok) return { ok: false }
-    const json: unknown = await response.json()
-    if (!isRecord(json) || !Array.isArray(json.tools)) return { ok: false }
-    const tools = json.tools
-      .map(readTool)
-      .filter((tool): tool is AssistantTool => tool !== null)
-    return { ok: true, value: tools }
-  } catch {
-    return { ok: false }
+): Promise<AssistantTool[]> {
+  const response = await fetchFunction(url, {
+    headers: {
+      Accept: 'application/json',
+      ...(authorization === null ? {} : { Authorization: authorization })
+    },
+    ...(signal ? { signal } : {})
+  })
+  if (!response.ok) throw new AssistantToolsError(response.status)
+  const json: unknown = await response.json()
+  if (!isRecord(json) || !Array.isArray(json.tools)) {
+    throw new AssistantToolsError(null)
   }
+  return json.tools
+    .map(readTool)
+    .filter((tool): tool is AssistantTool => tool !== null)
 }
 
 export function toCapabilities(

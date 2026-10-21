@@ -43,9 +43,13 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 /** The cozy-stack of Alice, and the AI tools of tmail-backend */
-function respond(url: URL, init: RequestInit | undefined): Response {
+function respond(
+  url: URL,
+  init: RequestInit | undefined,
+  toolsStatus: number
+): Response {
   if (url.href === `${FAKE_JMAP_ORIGIN}/ai/v1/tools`) {
-    return jsonResponse({ tools: [CREATE_DRAFT] })
+    return jsonResponse({ tools: [CREATE_DRAFT] }, toolsStatus)
   }
   if (url.origin !== PLATFORM) return jsonResponse({}, 404)
   const attributes = (value: unknown): Response =>
@@ -92,10 +96,10 @@ function requestUrl(input: RequestInfo | URL): string {
   return input instanceof URL ? input.href : input
 }
 
-function mockServers(): FetchMock {
+function mockServers(toolsStatus = 200): FetchMock {
   const fetchMock: FetchMock = jest.fn(
     (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
-      Promise.resolve(respond(new URL(requestUrl(input)), init))
+      Promise.resolve(respond(new URL(requestUrl(input)), init, toolsStatus))
   )
   globalThis.fetch = fetchMock
   return fetchMock
@@ -165,6 +169,21 @@ describe('AppLayout with the assistant', () => {
       ])
     )
     expect(screen.getByText('Routed content')).toBeVisible()
+  })
+
+  it('opens the assistant without tools when tmail-backend refuses them', async () => {
+    mockServers(401)
+    renderLayout()
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'AI assistant' })
+    )
+
+    expect(
+      await within(
+        screen.getByRole('complementary', { name: 'Assistant' })
+      ).findByTitle('Twake Assistant')
+    ).toHaveAttribute('src', ASSISTANT_HREF)
   })
 
   it('closes from its button, which gets the focus back', async () => {

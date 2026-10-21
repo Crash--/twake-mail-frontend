@@ -20,13 +20,12 @@ export function assistantToolsQueryOptions(
   auth: Pick<AuthServiceBase, 'getAuthorizationHeader'>,
   accountId: string,
   url: string
-): QueryOptionsFor<AssistantTool[] | null, AssistantToolsKey> {
+): QueryOptionsFor<AssistantTool[], AssistantToolsKey> {
   return queryOptions({
     queryKey: assistantKeys.tools(accountId, url),
     queryFn: async ({ signal }) => {
       const authorization = await auth.getAuthorizationHeader()
-      const result = await fetchAssistantTools(url, authorization, { signal })
-      return result.ok ? result.value : null
+      return fetchAssistantTools(url, authorization, { signal })
     },
     staleTime: Infinity
   })

@@ -200,6 +200,21 @@ describe('SearchFiltersBar', () => {
     ).toHaveAttribute('data-selected', 'true')
   })
 
+  it('writes a custom date range as the date fields, dd/mm/yyyy', async () => {
+    renderBar({
+      ...EMPTY_SEARCH_FILTER,
+      dateRange: 'custom',
+      startDate: '2026-10-14',
+      endDate: '2026-10-21'
+    })
+
+    expect(
+      await screen.findByRole('button', {
+        name: 'From 14/10/2026 to 21/10/2026'
+      })
+    ).toHaveAttribute('data-selected', 'true')
+  })
+
   it('says so when the label of the filter no longer exists', async () => {
     renderBar({ ...EMPTY_SEARCH_FILTER, label: 'deleted-label' })
 

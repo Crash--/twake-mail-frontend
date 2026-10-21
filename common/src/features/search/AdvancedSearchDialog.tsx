@@ -17,6 +17,7 @@ import {
 } from 'react'
 
 import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
+import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
 import { Calendar } from '@/ds/FlutterIcons/FlutterIcons'
 import { FormRow } from '@/ds/FormRow/FormRow'
 import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
@@ -404,8 +405,8 @@ export function AdvancedSearchDialog({
                 range === null
                   ? undefined
                   : t('search.dates.range', {
-                      startDate: range.start,
-                      endDate: range.end
+                      startDate: formatDayText(range.start),
+                      endDate: formatDayText(range.end)
                     })
               }
               options={DATE_RANGES.map(dateRange => ({

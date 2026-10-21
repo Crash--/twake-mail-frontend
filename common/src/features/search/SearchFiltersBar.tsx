@@ -13,6 +13,7 @@ import {
   UserSB
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
+import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { ScrollRow } from '@/ds/ScrollRow/ScrollRow'
 import { labelDisplayName } from '@common/features/labels/labelDisplayName'
@@ -96,8 +97,8 @@ export function SearchFiltersBar({
     filter.startDate !== null &&
     filter.endDate !== null
       ? t('search.dates.range', {
-          startDate: filter.startDate,
-          endDate: filter.endDate
+          startDate: formatDayText(filter.startDate),
+          endDate: formatDayText(filter.endDate)
         })
       : t(DATE_LABELS[filter.dateRange])
 

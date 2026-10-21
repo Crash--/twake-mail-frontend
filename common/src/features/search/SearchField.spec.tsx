@@ -363,7 +363,7 @@ describe('SearchField', () => {
     await waitFor(() => {
       expect(date).toHaveFocus()
     })
-    expect(date).toHaveTextContent('From 2026-10-10 to 2026-10-12')
+    expect(date).toHaveTextContent('From 10/10/2026 to 12/10/2026')
 
     // The calendar beside the date opens the picker on that range
     await userEvent.click(

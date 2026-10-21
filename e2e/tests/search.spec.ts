@@ -848,7 +848,7 @@ test.describe('SRCH search', () => {
     await notWordsInput.fill('')
     await search.pickAdvancedFolder('All email')
     await search.pickAdvancedRange('01/01/2025', '31/01/2025')
-    await expect(dateSelect).toHaveText('From 2025-01-01 to 2025-01-31')
+    await expect(dateSelect).toHaveText('From 01/01/2025 to 31/01/2025')
     await expectNoA11yViolations(page)
     await search.advancedSubmitButton.click()
     await expect(page).toHaveURL(/date=custom/)
@@ -856,12 +856,12 @@ test.describe('SRCH search', () => {
       .poll(() => search.resultSubjects())
       .toEqual(['Quarterly archived'])
     await expect(search.filterChip('date-time')).toHaveText(
-      'From 2025-01-01 to 2025-01-31'
+      'From 01/01/2025 to 31/01/2025'
     )
 
     // "Clear filter" empties the form, and the next search has no criteria
     await search.openAdvanced()
-    await expect(dateSelect).toHaveText('From 2025-01-01 to 2025-01-31')
+    await expect(dateSelect).toHaveText('From 01/01/2025 to 31/01/2025')
     await dialog.getByTestId('advanced-search-clear-button').click()
     await expect(subjectInput).toHaveValue('')
     await expect(textInput).toHaveValue('')

@@ -87,7 +87,7 @@ export function endLocalSession(session: LocalSession): void {
     type: SESSION_ENDED,
     email: emailOf(session.getState())
   }
-  session.clearLocalSession()
+  session.clearLocalSession('signed-out')
   forgetUserData()
   const channel = openChannel()
   channel?.postMessage(message)
@@ -111,7 +111,7 @@ export function onSessionEndedElsewhere(session: LocalSession): () => void {
       concernsThisTab(event.data, session.getState())
     ) {
       forgetUserData()
-      session.clearLocalSession()
+      session.clearLocalSession('signed-out')
     }
   }
   return () => channel.close()

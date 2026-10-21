@@ -12,14 +12,21 @@ export interface AuthUser {
 
 /**
  * `restoring`: a new tab of the basic mode asks the other tabs for their
- * session before showing the login form (`basicSessionSharing.ts`)
+ * session before showing the login form (`basicSessionSharing.ts`).
+ * `signedOut`: the user signed out, in this tab or another one, rather than
+ * the session being lost: the next sign-in, maybe someone else's, starts
+ * afresh.
  */
 export type AuthState =
-  | { status: 'anonymous' }
+  | { status: 'anonymous'; signedOut?: boolean }
   | { status: 'restoring' }
   | { status: 'authenticated'; user: AuthUser }
 
 export const ANONYMOUS: AuthState = { status: 'anonymous' }
+export const SIGNED_OUT: AuthState = { status: 'anonymous', signedOut: true }
+
+/** Why a tab drops its session: `signed-out` when the user signed out */
+export type SessionEndReason = 'signed-out' | 'lost'
 
 /**
  * What every authentication mode offers. The JMAP client consumes
@@ -37,8 +44,11 @@ export interface AuthServiceBase {
    * credentials were renewed and the request can be retried once.
    */
   onUnauthorized: () => Promise<boolean>
-  /** Drops the credentials held by this tab, without telling the other tabs */
-  clearLocalSession: () => void
+  /**
+   * Drops the credentials held by this tab, without telling the other tabs
+   * (`lost` by default)
+   */
+  clearLocalSession: (reason?: SessionEndReason) => void
   /**
    * Ends the session in every tab of the application, then leaves for the
    * SSO logout endpoint in OIDC mode. Resolves once that navigation is

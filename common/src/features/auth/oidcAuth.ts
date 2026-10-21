@@ -20,9 +20,11 @@ import { endLocalSession } from './localSession'
 import { sanitizeReturnTo } from './returnTo'
 import {
   ANONYMOUS,
+  SIGNED_OUT,
   type AuthUser,
   type LoginCallbackResult,
   type OidcAuthService,
+  type SessionEndReason,
   type StartLoginResult
 } from './types'
 
@@ -316,14 +318,14 @@ export function createOidcAuthService(
   }
 
   /** Signs this tab out, the tokens of `@linagora/twake-oidc` aside */
-  function endSession(): void {
+  function endSession(reason: SessionEndReason = 'lost'): void {
     cancelScheduledRefresh()
     tokens = null
-    store.setState(ANONYMOUS)
+    store.setState(reason === 'signed-out' ? SIGNED_OUT : ANONYMOUS)
   }
 
-  function clearLocalSession(): void {
-    endSession()
+  function clearLocalSession(reason: SessionEndReason = 'lost'): void {
+    endSession(reason)
     clearTokenSet()
   }
 

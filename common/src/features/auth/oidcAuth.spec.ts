@@ -491,7 +491,10 @@ describe('createOidcAuthService', () => {
 
       await service.logout()
 
-      expect(service.getState()).toEqual({ status: 'anonymous' })
+      expect(service.getState()).toEqual({
+        status: 'anonymous',
+        signedOut: true
+      })
       expect(postMessage).toHaveBeenCalledWith({
         type: 'session-ended',
         email: 'alice@example.com'

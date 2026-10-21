@@ -95,7 +95,7 @@ describe('endLocalSession', () => {
 
     endLocalSession(session)
 
-    expect(session.clearLocalSession).toHaveBeenCalledTimes(1)
+    expect(session.clearLocalSession).toHaveBeenCalledWith('signed-out')
     expect(await listComposers('a')).toEqual([])
   })
 
@@ -136,7 +136,7 @@ describe('onSessionEndedElsewhere', () => {
       endLocalSession(makeSession(signedInAs(endingEmail)))
       await received
 
-      expect(thisTab.clearLocalSession).toHaveBeenCalledTimes(1)
+      expect(thisTab.clearLocalSession).toHaveBeenCalledWith('signed-out')
       stop()
     }
   )

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
@@ -84,6 +84,59 @@ describe('AppRoutes', () => {
 
     expect(screen.queryByTestId('login-form')).toBeInTheDocument()
     expect(screen.queryByTestId('mailbox-page')).toBe(null)
+  })
+
+  it('opens the inbox of whoever signs in after a sign-out, not the last address', async () => {
+    const authService = makeFakeBasicAuthService()
+    renderWithProviders(<AppRoutes />, {
+      route: '/search?q=secret-term',
+      authService
+    })
+    expect(
+      await screen.findByRole('combobox', { name: 'Search emails' })
+    ).toHaveValue('secret-term')
+
+    act(() => authService.clearLocalSession('signed-out'))
+    expect(await screen.findByTestId('login-form')).toBeInTheDocument()
+    act(() =>
+      authService.store.setState({
+        status: 'authenticated',
+        user: { email: 'bob@example.com', name: 'Bob', workplaceFqdn: null }
+      })
+    )
+
+    expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
+      'data-mailbox-id',
+      'mailbox-inbox'
+    )
+    expect(screen.getByRole('combobox', { name: 'Search emails' })).toHaveValue(
+      ''
+    )
+  })
+
+  it('comes back to the same address after a lost session', async () => {
+    const authService = makeFakeBasicAuthService()
+    renderWithProviders(<AppRoutes />, {
+      route: '/mailbox/mailbox-sent',
+      authService
+    })
+    await screen.findByTestId('mailbox-page')
+
+    act(() => authService.clearLocalSession())
+    expect(await screen.findByTestId('login-form')).toBeInTheDocument()
+    act(() =>
+      authService.store.setState({
+        status: 'authenticated',
+        user: { email: 'alice@example.com', name: 'Alice', workplaceFqdn: null }
+      })
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mailbox-page')).toHaveAttribute(
+        'data-mailbox-id',
+        'mailbox-sent'
+      )
+    })
   })
 
   it('sends a signed-out user to the SSO in OIDC mode', () => {

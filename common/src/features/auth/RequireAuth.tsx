@@ -19,7 +19,9 @@ export interface RequireAuthProps {
 /**
  * Renders the nested routes for a signed-in user. Otherwise sends the user
  * to the SSO (OIDC mode) or to the login form (basic mode), remembering
- * where to come back.
+ * where to come back, unless the user signed out: the next session, maybe
+ * someone else's, opens on the Inbox, without the address of the previous
+ * one (a search, an email).
  */
 export function RequireAuth({
   loading = <FullPageLoader />
@@ -31,8 +33,10 @@ export function RequireAuth({
   const [loginError, setLoginError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
   const returnTo = `${location.pathname}${location.search}${location.hash}`
+  const mustLeaveAddress =
+    state.status === 'anonymous' && state.signedOut === true && returnTo !== '/'
   const mustStartSsoLogin =
-    state.status === 'anonymous' && service.mode === 'oidc'
+    state.status === 'anonymous' && service.mode === 'oidc' && !mustLeaveAddress
 
   useEffect(() => {
     if (!mustStartSsoLogin) return
@@ -57,6 +61,8 @@ export function RequireAuth({
 
   // Another tab may hand its session over
   if (state.status === 'restoring') return <>{loading}</>
+
+  if (mustLeaveAddress) return <Navigate to="/" replace />
 
   if (service.mode === 'basic') {
     const loginState: LoginRouteState = { returnTo }

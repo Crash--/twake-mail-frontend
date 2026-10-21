@@ -7,8 +7,10 @@ import {
 import { endLocalSession } from './localSession'
 import {
   ANONYMOUS,
+  SIGNED_OUT,
   type BasicAuthService,
-  type BasicLoginResult
+  type BasicLoginResult,
+  type SessionEndReason
 } from './types'
 
 type FetchFunction = (
@@ -141,9 +143,9 @@ export function createBasicAuthService(
     return result
   }
 
-  function clearLocalSession(): void {
+  function clearLocalSession(reason: SessionEndReason = 'lost'): void {
     authorizationHeader = null
-    store.setState(ANONYMOUS)
+    store.setState(reason === 'signed-out' ? SIGNED_OUT : ANONYMOUS)
   }
 
   const service: BasicAuthService = {

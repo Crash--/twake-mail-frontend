@@ -1,8 +1,11 @@
 import { makeAuthStore } from '@common/features/auth/authStore'
-import type {
-  AuthState,
-  BasicAuthService,
-  OidcAuthService
+import {
+  ANONYMOUS,
+  SIGNED_OUT,
+  type AuthState,
+  type BasicAuthService,
+  type OidcAuthService,
+  type SessionEndReason
 } from '@common/features/auth/types'
 
 const SIGNED_IN: AuthState = {
@@ -30,7 +33,9 @@ export function makeFakeBasicAuthService(
     subscribe: store.subscribe,
     getAuthorizationHeader: jest.fn(() => Promise.resolve('Basic dGVzdA==')),
     onUnauthorized: jest.fn(() => Promise.resolve(false)),
-    clearLocalSession: jest.fn(() => store.setState({ status: 'anonymous' })),
+    clearLocalSession: jest.fn((reason?: SessionEndReason) =>
+      store.setState(reason === 'signed-out' ? SIGNED_OUT : ANONYMOUS)
+    ),
     logout: jest.fn(() => Promise.resolve()),
     login: jest.fn(() => Promise.resolve({ ok: true as const }))
   }
@@ -51,7 +56,9 @@ export function makeFakeOidcAuthService(
     subscribe: store.subscribe,
     getAuthorizationHeader: jest.fn(() => Promise.resolve('Bearer token')),
     onUnauthorized: jest.fn(() => Promise.resolve(false)),
-    clearLocalSession: jest.fn(() => store.setState({ status: 'anonymous' })),
+    clearLocalSession: jest.fn((reason?: SessionEndReason) =>
+      store.setState(reason === 'signed-out' ? SIGNED_OUT : ANONYMOUS)
+    ),
     logout: jest.fn(() => Promise.resolve()),
     startLogin: jest.fn(() => Promise.resolve({ ok: true as const })),
     handleCallback: jest.fn(() =>

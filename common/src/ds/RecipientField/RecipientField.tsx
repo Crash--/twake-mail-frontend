@@ -3,7 +3,14 @@
 // all need one. The ARIA 1.2 combobox of `SearchCombobox`, with the chips
 // of what was already entered before the input.
 import { Icon } from '@linagora/twake-icons'
-import { Box, InputBase, Paper, Popper, Typography } from '@linagora/twake-mui'
+import {
+  Box,
+  InputBase,
+  Paper,
+  Popper,
+  Typography,
+  type PopperProps
+} from '@linagora/twake-mui'
 // Not twake-mui's Chip: it drops its ref, which the keyboard needs to move
 // the focus between chips (docs/twake-mui-gaps.md)
 import Chip from '@mui/material/Chip'
@@ -11,6 +18,7 @@ import {
   useEffect,
   useId,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
   type ClipboardEvent,
@@ -48,6 +56,21 @@ import {
 import { SuggestionOption } from './SuggestionOption'
 
 const POPUP_SX = { zIndex: 'modal' } as const
+/**
+ * Fixed, and turned above the field by the room the window leaves, not the
+ * room left by what scrolls around the field (a dialog's content): the
+ * suggestions show whole
+ */
+function popperOptionsIn(window: HTMLElement): PopperProps['popperOptions'] {
+  const options = { boundary: window }
+  return {
+    strategy: 'fixed',
+    modifiers: [
+      { name: 'flip', options },
+      { name: 'preventOverflow', options }
+    ]
+  }
+}
 /**
  * tmail-flutter's suggestions: as wide as the chips and the input, white,
  * rounded by 20 px, elevation 20, at most 300 px high
@@ -428,6 +451,10 @@ export function RecipientField({
   const [field, setField] = useState<HTMLDivElement | null>(null)
   const [content, setContent] = useState<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const popperOptions = useMemo(
+    () => popperOptionsIn(document.documentElement),
+    []
+  )
   const chipRefs = useRef<(HTMLDivElement | null)[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -1000,6 +1027,7 @@ export function RecipientField({
         placement="bottom-start"
         // Next to the field: inside the focus trap of a dialog holding it
         disablePortal
+        popperOptions={popperOptions}
         sx={{ ...POPUP_SX, width: content?.offsetWidth }}
       >
         <Paper

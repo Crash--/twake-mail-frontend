@@ -18,6 +18,7 @@ import mn from '@common/locales/mn.json'
 import ru from '@common/locales/ru.json'
 import vi from '@common/locales/vi.json'
 
+import { hasDateFormats, loadDateFormats } from './dateFormats'
 import {
   DEFAULT_LANGUAGE,
   storeLanguage,
@@ -58,38 +59,63 @@ const LanguageContext = createContext<LanguageApi | null>(null)
 /**
  * Provides the translations of the language of the app (`lang` at first,
  * then the one the user picks, see `useLanguage`), falling back to English
- * for the keys a dictionary lacks, and keeps `<html lang>` in sync.
+ * for the keys a dictionary lacks, and keeps `<html lang>` in sync. A
+ * language whose dates the browser cannot write is shown once their data is
+ * loaded (nothing at first, the previous language on a change).
  */
 export function I18nProvider({
   lang: initialLang,
   children
-}: I18nProviderProps): ReactElement {
+}: I18nProviderProps): ReactElement | null {
   const [lang, setLang] = useState(initialLang)
   const [givenLang, setGivenLang] = useState(initialLang)
   if (givenLang !== initialLang) {
     setGivenLang(initialLang)
     setLang(initialLang)
   }
+  const [shownLang, setShownLang] = useState<SupportedLanguage | null>(() =>
+    hasDateFormats(initialLang) ? initialLang : null
+  )
+  if (shownLang !== lang && hasDateFormats(lang)) setShownLang(lang)
 
   useEffect(() => {
-    document.documentElement.lang = lang
+    if (hasDateFormats(lang)) return
+    let current = true
+    loadDateFormats(lang).then(
+      () => {
+        if (current) setShownLang(lang)
+      },
+      (error: unknown) => {
+        console.warn('[i18n] Cannot load the date formats', error)
+        // The dates in English rather than the whole app
+        if (current) setShownLang(lang)
+      }
+    )
+    return () => {
+      current = false
+    }
   }, [lang])
+
+  useEffect(() => {
+    if (shownLang !== null) document.documentElement.lang = shownLang
+  }, [shownLang])
 
   const api = useMemo(
     (): LanguageApi => ({
-      lang,
+      lang: shownLang ?? lang,
       setLanguage: next => {
         storeLanguage(next)
         setLang(next)
       }
     }),
-    [lang]
+    [lang, shownLang]
   )
 
+  if (shownLang === null) return null
   return (
     <LanguageContext.Provider value={api}>
       <I18n
-        lang={lang}
+        lang={shownLang}
         defaultLang={DEFAULT_LANGUAGE}
         dictRequire={findDictionary}
         polyglot={null}

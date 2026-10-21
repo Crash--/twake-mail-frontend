@@ -17,7 +17,8 @@ const ESM_PACKAGES = [
   'openid-client',
   'oauth4webapi',
   'jose',
-  'jmap-client-ts'
+  'jmap-client-ts',
+  '@formatjs'
 ]
 
 const transform: Config['transform'] = {

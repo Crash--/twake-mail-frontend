@@ -137,6 +137,7 @@ export function AddDelegatesDialog({
           hasError={shownProblem !== null}
           describedBy={shownProblem === null ? undefined : problemId}
           actions={fieldRef}
+          autoFocus
         />
         {shownProblem === null ? null : (
           <FormHelperText

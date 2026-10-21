@@ -42,6 +42,7 @@ export interface DelegateRecipientFieldProps {
   hasError: boolean
   describedBy?: string
   actions?: Ref<RecipientFieldActions>
+  autoFocus?: boolean
 }
 
 /**
@@ -61,7 +62,8 @@ export function DelegateRecipientField({
   isRefused,
   hasError,
   describedBy,
-  actions
+  actions,
+  autoFocus = false
 }: DelegateRecipientFieldProps): ReactElement {
   const { t } = useI18n()
   const { contacts, loadMore } = useContactSuggestions(inputValue)
@@ -164,6 +166,7 @@ export function DelegateRecipientField({
       hasError={hasError}
       describedBy={describedBy}
       actions={actions}
+      autoFocus={autoFocus}
       testIds={{
         field: 'delegation-recipient-field',
         input: 'delegation-input',

@@ -117,6 +117,9 @@ describe('DelegationSettings', () => {
 
     await userEvent.click(await screen.findByTestId('delegation-add-button'))
     const dialog = screen.getByRole('dialog', { name: 'Delegate access' })
+    expect(
+      within(dialog).getByRole('combobox', { name: 'Email address' })
+    ).toHaveFocus()
     const add = within(dialog).getByRole('button', { name: 'Add' })
     expect(add).toBeDisabled()
 
@@ -140,6 +143,10 @@ describe('DelegationSettings', () => {
     expect(fake.delegates()).toEqual(['bob@example.com'])
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    // Back on "+ Add", now under the list, not on the page
+    await waitFor(() => {
+      expect(screen.getByTestId('delegation-add-button')).toHaveFocus()
     })
     expect(
       await screen.findByRole('list', { name: 'Who has access to me' })
@@ -209,6 +216,29 @@ describe('DelegationSettings', () => {
     ).toBeVisible()
   })
 
+  it('gives the focus to the next delegate once one is removed', async () => {
+    setup({ delegates: ['bob@example.com', 'carol@example.com'] })
+
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: 'Remove the access of Bob Assistant'
+      })
+    )
+    await userEvent.click(
+      within(
+        screen.getByRole('dialog', { name: 'Remove delegate access?' })
+      ).getByRole('button', { name: 'Remove access' })
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', {
+          name: 'Remove the access of carol@example.com'
+        })
+      ).toHaveFocus()
+    })
+  })
+
   it('takes their access back from a delegate after a confirmation', async () => {
     const fake = setup({ delegates: ['bob@example.com'] })
 
@@ -232,6 +262,10 @@ describe('DelegationSettings', () => {
     )
     expect(fake.delegates()).toEqual([])
     expect(await screen.findByText('No one has access yet')).toBeVisible()
+    // The last one gone: on "+ Add" of the empty card
+    await waitFor(() => {
+      expect(screen.getByTestId('delegation-add-button')).toHaveFocus()
+    })
   })
 
   it('lists the mailboxes delegated to the user, and gives one up', async () => {

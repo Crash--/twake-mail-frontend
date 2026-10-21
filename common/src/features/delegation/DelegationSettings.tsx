@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Tab, Tabs, Typography } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useId, useState, type ReactElement } from 'react'
+import { useEffect, useId, useRef, useState, type ReactElement } from 'react'
 
 import { Plus, Trash } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
@@ -11,7 +11,6 @@ import {
   type Person
 } from '@/ds/PeopleList/PeopleList'
 import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
-import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import {
   isTeamRoot,
@@ -45,6 +44,18 @@ import { RemoveAccessDialog } from './RemoveAccessDialog'
 import { useContactNames } from './useContactNames'
 
 type DelegationTab = 'delegates' | 'delegated'
+
+/** The buttons of the panel taking an access back, in their order */
+const REMOVE_BUTTONS =
+  '[data-testid="delegation-remove-button"], [data-testid="delegation-leave-team-button"]'
+
+/**
+ * Where the focus goes once a dialog has closed on a change: "+ Add"
+ * after an addition; after a removal, the button that took the place of
+ * the one which opened the dialog, else the one before, else "+ Add" or
+ * the tab
+ */
+type FocusRequest = { kind: 'add' } | { kind: 'remove'; index: number }
 
 /** An access the user takes back, or gives up */
 interface Removal {
@@ -107,7 +118,40 @@ export function DelegationSettings({
   }
   const [isAdding, setIsAdding] = useState(false)
   const [removing, setRemoving] = useState<Removal | null>(null)
-  const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
+  const panelRef = useRef<HTMLDivElement>(null)
+  /**
+   * The dialogs leave the page on closing: the focus they give back would
+   * go to the element that opened them, gone with the change
+   */
+  const focusRequest = useRef<FocusRequest | null>(null)
+
+  useEffect(() => {
+    const request = focusRequest.current
+    const panel = panelRef.current
+    if (request === null || panel === null || isAdding || removing !== null) {
+      return undefined
+    }
+    focusRequest.current = null
+    // After the focus trap of the dialog gave the focus back; not undone
+    // by the renders that follow (the toast)
+    setTimeout(() => {
+      if (!panel.isConnected) return
+      const removeButtons = Array.from(
+        panel.querySelectorAll<HTMLElement>(REMOVE_BUTTONS)
+      )
+      const addButton = panel.querySelector<HTMLElement>(
+        '[data-testid="delegation-add-button"]'
+      )
+      const target =
+        request.kind === 'add'
+          ? addButton
+          : (removeButtons[Math.min(request.index, removeButtons.length - 1)] ??
+            addButton ??
+            panel.ownerDocument.getElementById(`${tabsId}-${tab}-tab`))
+      target?.focus()
+    }, 0)
+    return undefined
+  })
 
   const refresh = async (): Promise<void> => {
     await queryClient.invalidateQueries({
@@ -145,7 +189,10 @@ export function DelegationSettings({
         })
       }
       // Kept open only when no one was added, to correct the addresses
-      if (added.length > 0) setIsAdding(false)
+      if (added.length > 0) {
+        focusRequest.current = { kind: 'add' }
+        setIsAdding(false)
+      }
     } catch (error: unknown) {
       console.error('[delegation] Cannot add the delegates', error)
       notify({
@@ -173,6 +220,9 @@ export function DelegationSettings({
     }
   }
 
+  /** The place of the button that opened the removal, among them */
+  const removingIndex = useRef(0)
+
   const handleRemove = async (): Promise<void> => {
     if (removing === null) return
     const name = removalName(removing)
@@ -196,6 +246,7 @@ export function DelegationSettings({
               : t('delegation.toasts.leftTeam', { name }),
         severity: 'success'
       })
+      focusRequest.current = { kind: 'remove', index: removingIndex.current }
       setRemoving(null)
     } catch (error: unknown) {
       console.error('[delegation] Cannot remove the delegation', error)
@@ -216,22 +267,27 @@ export function DelegationSettings({
   }
 
   const removeButton = (removal: Removal): ReactElement => (
-    <span ref={focusFallbackRef}>
-      <IconAction
-        label={removeLabel(removal)}
-        icon={Trash}
-        tone="steel"
-        size={36}
-        onClick={() => {
-          setRemoving(removal)
-        }}
-        data-testid={
-          removal.of === 'team'
-            ? 'delegation-leave-team-button'
-            : 'delegation-remove-button'
-        }
-      />
-    </span>
+    <IconAction
+      label={removeLabel(removal)}
+      icon={Trash}
+      tone="steel"
+      size={36}
+      onClick={event => {
+        const buttons = Array.from(
+          panelRef.current?.querySelectorAll(REMOVE_BUTTONS) ?? []
+        )
+        removingIndex.current = Math.max(
+          0,
+          buttons.indexOf(event.currentTarget)
+        )
+        setRemoving(removal)
+      }}
+      data-testid={
+        removal.of === 'team'
+          ? 'delegation-leave-team-button'
+          : 'delegation-remove-button'
+      }
+    />
   )
   const delegationRemoval = (
     delegation: Delegation,
@@ -399,6 +455,7 @@ export function DelegationSettings({
           </Tabs>
         </Box>
         <Box
+          ref={panelRef}
           role="tabpanel"
           id={`${tabsId}-${tab}-panel`}
           aria-labelledby={`${tabsId}-${tab}-tab`}

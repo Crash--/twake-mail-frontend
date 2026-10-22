@@ -1,7 +1,6 @@
-import { Reply, Star, StarOutline, Trash } from '@linagora/twake-icons'
+import { Reply, Star, StarOutline, Trash, Moveto } from '@linagora/twake-icons'
 import { useState, type ReactElement } from 'react'
 
-import { MoveEmail } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -106,7 +105,7 @@ export function CollapsedMessageActions({
           size={36}
           tone="steel"
           label={t(move.label)}
-          icon={MoveEmail}
+          icon={Moveto}
           onClick={() => {
             handleRun(move.id)
           }}

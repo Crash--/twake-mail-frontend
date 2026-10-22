@@ -1,4 +1,9 @@
-import { Eye, EyeClosed, Magnifier } from '@linagora/twake-icons'
+import {
+  Eye,
+  EyeClosed,
+  Magnifier,
+  FolderOutlined
+} from '@linagora/twake-icons'
 import { Box, ListItem, ListItemText } from '@linagora/twake-mui'
 import {
   Fragment,
@@ -13,7 +18,6 @@ import {
 import { useMatch } from 'react-router'
 
 import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
-import { DefaultFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import { NavCategory } from '@/ds/NavCategory/NavCategory'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
@@ -341,7 +345,7 @@ export function MailboxTree(): ReactElement {
                   <NavCategory
                     title={t('sidebar.personalFolders')}
                     titleId={personalTitleId}
-                    icon={DefaultFolderIcon}
+                    icon={FolderOutlined}
                     isExpanded={collapsible.isExpanded('personalFolders')}
                     onToggle={() => {
                       collapsible.toggle('personalFolders')
@@ -367,7 +371,7 @@ export function MailboxTree(): ReactElement {
                   <NavCategory
                     title={t('sidebar.teamMailboxes')}
                     titleId={teamTitleId}
-                    icon={DefaultFolderIcon}
+                    icon={FolderOutlined}
                     isExpanded={collapsible.isExpanded('teamMailboxes')}
                     onToggle={() => {
                       collapsible.toggle('teamMailboxes')

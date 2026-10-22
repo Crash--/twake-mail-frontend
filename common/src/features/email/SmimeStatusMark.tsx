@@ -1,8 +1,7 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, WarningCircle, CheckCircle } from '@linagora/twake-icons'
 import { Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { BadSignature, GoodSignature } from '@/ds/FlutterIcons/FlutterIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
 import type { SmimeStatus } from './smimeStatus'
@@ -13,12 +12,14 @@ export interface SmimeStatusMarkProps {
 
 const MARKS = {
   good: {
-    icon: GoodSignature,
+    icon: CheckCircle,
+    color: 'var(--twake-palette-success-main)',
     label: 'email.smime.good',
     testId: 'email-smime-good-signature'
   },
   bad: {
-    icon: BadSignature,
+    icon: WarningCircle,
+    color: 'var(--twake-palette-error-main)',
     label: 'email.smime.bad',
     testId: 'email-smime-bad-signature'
   }
@@ -34,7 +35,7 @@ export function SmimeStatusMark({
 }: SmimeStatusMarkProps): ReactElement | null {
   const { t } = useI18n()
   if (status === 'not-signed') return null
-  const { icon, label, testId } = MARKS[status]
+  const { icon, color, label, testId } = MARKS[status]
   const text = t(label)
   return (
     <Tooltip title={text}>
@@ -44,7 +45,7 @@ export function SmimeStatusMark({
         className="u-flex u-flex-items-center u-flex-shrink-0"
         data-testid={testId}
       >
-        <Icon icon={icon} size={16} aria-hidden="true" />
+        <Icon icon={icon} size={16} color={color} aria-hidden="true" />
       </span>
     </Tooltip>
   )

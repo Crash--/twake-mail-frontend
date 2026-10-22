@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { deflateSync } from 'node:zlib'
 
-import { type Browser, type Page } from '@playwright/test'
+import { type Browser, type Locator, type Page } from '@playwright/test'
 
 import { LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
@@ -215,6 +218,100 @@ async function embeddedFontPdf(browser: Browser): Promise<Buffer> {
   } finally {
     await page.close()
   }
+}
+
+/**
+ * A page laid out like a scan recompressed in layers: a pale JPEG
+ * background (`[/FlateDecode /DCTDecode]`, encoded by the browser), and the
+ * ink as a 1-bit `/ImageMask` in CCITT G4 (`/K -1`) painted dark over 32 %
+ * of the page. The mask is 4 x 4 black pixels: a first row in horizontal
+ * mode (white run 0, black run 4), then two V0 codes per row, then EOFB.
+ */
+async function ccittScanPdf(browser: Browser): Promise<Buffer> {
+  const page = await browser.newPage()
+  let jpeg: Buffer
+  try {
+    const dataUrl = await page.evaluate(() => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 60
+      canvas.height = 80
+      const context = canvas.getContext('2d')
+      if (context === null) throw new Error('No 2D canvas context')
+      context.fillStyle = '#f4f1ea'
+      context.fillRect(0, 0, 60, 80)
+      return canvas.toDataURL('image/jpeg')
+    })
+    jpeg = Buffer.from(dataUrl.split(',')[1] ?? '', 'base64')
+  } finally {
+    await page.close()
+  }
+  const bits = `001${'00110101'}011${'11'.repeat(3)}${'000000000001'.repeat(2)}`
+  const mask = Buffer.from(
+    (bits.padEnd(Math.ceil(bits.length / 8) * 8, '0').match(/.{8}/g) ?? []).map(
+      byte => parseInt(byte, 2)
+    )
+  )
+  return imagesPdf(
+    [
+      {
+        dict: '/Width 60 /Height 80 /BitsPerComponent 8 /ColorSpace /DeviceRGB /Filter [/FlateDecode /DCTDecode]',
+        data: deflateSync(jpeg)
+      },
+      {
+        dict: '/Width 4 /Height 4 /BitsPerComponent 1 /ImageMask true /Filter /CCITTFaxDecode /DecodeParms << /K -1 /Columns 4 >>',
+        data: mask
+      }
+    ],
+    'q 200 0 0 300 0 0 cm /Im0 Do Q q 0.15 0.2 0.35 rg 160 0 0 120 20 150 cm /Im1 Do Q'
+  )
+}
+
+/** A 200 x 300 page whose `content` draws `images` (`/Im0`, `/Im1`...) */
+function imagesPdf(
+  images: { dict: string; data: Buffer }[],
+  content: string
+): Buffer {
+  const text = (value: string): Buffer => Buffer.from(value, 'latin1')
+  const names = images.map((_image, index) => `/Im${index} ${4 + index} 0 R`)
+  const contents = 4 + images.length
+  return Buffer.concat([
+    text(
+      [
+        '%PDF-1.4',
+        '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+        '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+        `3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 300] /Resources << /XObject << ${names.join(' ')} >> >> /Contents ${contents} 0 R >> endobj\n`
+      ].join('\n')
+    ),
+    ...images.flatMap(({ dict, data }, index) => [
+      text(
+        `${4 + index} 0 obj << /Type /XObject /Subtype /Image ${dict} /Length ${data.length} >> stream\n`
+      ),
+      data,
+      text('\nendstream endobj\n')
+    ]),
+    text(
+      `${contents} 0 obj << /Length ${content.length} >> stream\n${content}\nendstream endobj\ntrailer << /Root 1 0 R /Size ${contents + 1} >>\n%%EOF`
+    )
+  ])
+}
+
+/** The share of the pixels of a drawn PDF page that are dark */
+async function darkShare(canvas: Locator): Promise<number> {
+  return canvas.evaluate(element => {
+    const { width, height } = element as HTMLCanvasElement
+    const context = (element as HTMLCanvasElement).getContext('2d')
+    const data = context?.getImageData(0, 0, width, height).data ?? []
+    let dark = 0
+    for (let index = 0; index < data.length; index += 4) {
+      const luminance =
+        0.299 * (data[index] ?? 255) +
+        0.587 * (data[index + 1] ?? 255) +
+        0.114 * (data[index + 2] ?? 255)
+      if (luminance < 128) dark += 1
+    }
+    return dark / (width * height)
+  })
 }
 
 /** Counts the calls of `eval` and of the `Function` constructor in the page */
@@ -724,5 +821,80 @@ test.describe('ATT attachments', () => {
     const download = page.waitForEvent('download')
     await page.getByRole('button', { name: 'Download Makefile' }).click()
     expect((await download).suggestedFilename()).toBe('Makefile')
+  })
+
+  test('ATT-13 a scanned PDF draws its CCITT ink over the background', async ({
+    page,
+    browser,
+    user,
+    jmap
+  }) => {
+    const seen = watch(page)
+    await send(jmap, {
+      to: user.email,
+      subject: 'scanned pdf',
+      text: 'See attached',
+      attachments: [
+        {
+          name: 'scan.pdf',
+          type: 'application/pdf',
+          content: await ccittScanPdf(browser)
+        }
+      ]
+    })
+    await jmap.waitForEmail({ subject: 'scanned pdf' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.openEmail('scanned pdf')
+
+    await page.getByRole('button', { name: /^Preview scan\.pdf/ }).click()
+    const canvas = page.getByRole('img', { name: 'Page 1 of 1' })
+    await expect(canvas).toHaveAttribute('data-rendered', 'true', {
+      timeout: 15_000
+    })
+    // The mask covers 32 % of the page; the background alone has no dark pixel
+    expect(await darkShare(canvas)).toBeGreaterThan(0.25)
+    expect(seen).toEqual({ dialogs: [], external: [] })
+  })
+
+  test('ATT-14 a PDF draws its JPEG 2000 image', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const seen = watch(page)
+    await send(jmap, {
+      to: user.email,
+      subject: 'jpx pdf',
+      text: 'See attached',
+      attachments: [
+        {
+          name: 'jpx.pdf',
+          type: 'application/pdf',
+          // An 8 x 8 dark JPEG 2000 over 32 % of the page
+          content: imagesPdf(
+            [
+              {
+                dict: '/Width 8 /Height 8 /Filter /JPXDecode',
+                data: readFileSync(
+                  path.join(__dirname, '..', 'fixtures', 'files', 'ink.jpx')
+                )
+              }
+            ],
+            'q 160 0 0 120 20 150 cm /Im0 Do Q'
+          )
+        }
+      ]
+    })
+    await jmap.waitForEmail({ subject: 'jpx pdf' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.openEmail('jpx pdf')
+
+    await page.getByRole('button', { name: /^Preview jpx\.pdf/ }).click()
+    const canvas = page.getByRole('img', { name: 'Page 1 of 1' })
+    await expect(canvas).toHaveAttribute('data-rendered', 'true', {
+      timeout: 15_000
+    })
+    expect(await darkShare(canvas)).toBeGreaterThan(0.25)
+    expect(seen).toEqual({ dialogs: [], external: [] })
   })
 })

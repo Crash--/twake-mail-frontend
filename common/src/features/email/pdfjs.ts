@@ -61,11 +61,19 @@ export function loadPdf(
   }
   const open = async (): Promise<LoadedPdf> => {
     const pdfjs = await import('pdfjs-dist')
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    const workerSrc = new URL(
       'pdfjs-dist/build/pdf.worker.min.mjs',
       import.meta.url
     ).toString()
-    const loadingTask = pdfjs.getDocument({ ...PDF_DOCUMENT_OPTIONS, data })
+    pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
+    // Copied next to the worker by the build (rsbuild.config.ts): without it,
+    // CCITT, JBIG2 and JPX images (the ink of most scans) are left out
+    const wasmUrl = new URL(`pdfjs/${pdfjs.version}/`, workerSrc).toString()
+    const loadingTask = pdfjs.getDocument({
+      ...PDF_DOCUMENT_OPTIONS,
+      wasmUrl,
+      data
+    })
     loadingTask.onPassword = (
       updatePassword: (password: string | Error) => void,
       reason: number

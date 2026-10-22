@@ -30,8 +30,8 @@ export const PDF_DOCUMENT_OPTIONS = {
   // the browser's font machinery (FontFace, @font-face)
   disableFontFace: true,
   useSystemFonts: false,
-  // No WebAssembly (the CSP has no 'wasm-unsafe-eval'); JBIG2 and JPX images
-  // are then not drawn
+  // No WebAssembly (the CSP has no 'wasm-unsafe-eval'): CCITT, JBIG2 and JPX
+  // images go through the JavaScript decoders of `wasmUrl` (pdfjs.ts)
   useWasm: false,
   enableXfa: false,
   // Nothing is fetched: the data is in memory, no range request nor stream

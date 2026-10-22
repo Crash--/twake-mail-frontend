@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'
 import path from 'node:path'
 
 import { defineConfig } from '@rsbuild/core'
@@ -12,6 +13,10 @@ import { injectedAliases } from './injectedAliases'
 import { makeJmapDevProxy } from './jmapDevProxy'
 
 const appDir = import.meta.dirname
+const require = createRequire(import.meta.url)
+const pdfjsVersion = (require('pdfjs-dist/package.json') as { version: string })
+  .version
+const assetsDir = 'static/assets'
 
 export default defineConfig({
   plugins: [pluginReact()],
@@ -34,11 +39,22 @@ export default defineConfig({
   },
   output: {
     distPath: {
-      root: 'dist'
+      root: 'dist',
+      assets: assetsDir
     },
     sourceMap: {
       js: isSentryConfigured() ? 'source-map' : false
-    }
+    },
+    // The JavaScript decoders of CCITT and JBIG2 (jbig2) and of JPX
+    // (openjpeg) images, which pdf.js loads by their fixed names from
+    // `wasmUrl`, next to the worker (see pdfjs.ts): the version in the path
+    // keeps a cached file from serving another pdf.js
+    copy: ['jbig2', 'openjpeg'].map(decoder => ({
+      from: require.resolve(`pdfjs-dist/wasm/${decoder}_nowasm_fallback.js`),
+      to: `${assetsDir}/pdfjs/${pdfjsVersion}/[name][ext]`,
+      // Already minified by pdf.js
+      info: { minimized: true }
+    }))
   },
   splitChunks: {
     preset: 'default',

@@ -58,6 +58,7 @@ Options of `getDocument` (`PDF_DOCUMENT_OPTIONS`, checked by a unit test):
 | `disableFontFace` | `true` | glyphs are drawn as paths: no font program of the document goes to FontFace / `@font-face` |
 | `useSystemFonts` | `false` | no dependency on, nor fingerprint of, the local fonts |
 | `useWasm` | `false` | the CSP has no `'wasm-unsafe-eval'` |
+| `wasmUrl` | the app's copy of pdf.js's JavaScript image decoders (set in `pdfjs.ts`, checked end to end by ATT-13 and ATT-14) | JPX images (since pdf.js 5.0), CCITT and JBIG2 images (since 5.7) are decoded by these modules only: without them the ink of scanned pages is left out |
 | `enableXfa` | `false` | no XFA forms |
 | `disableRange`, `disableStream`, `disableAutoFetch` | `true` | the data is in memory: nothing is fetched |
 | `maxImageSize` | 36 000 000 px | an image above (a 600 dpi A4 scan has 35 M) is not drawn |
@@ -65,11 +66,14 @@ Options of `getDocument` (`PDF_DOCUMENT_OPTIONS`, checked by a unit test):
 | `enableHWA` | `false` | explicit |
 | `verbosity` | `0` (errors) | a hostile file cannot flood the console |
 
-No `cMapUrl`, `standardFontDataUrl`, `iccUrl` nor `wasmUrl`: nothing is
-loaded from anywhere. `stopAtErrors` stays off: pdf.js recovers what it can
-of damaged files, and a hard failure already ends in "Cannot preview" with
-the download. Annotations are not drawn (`AnnotationMode.DISABLE`): no
-form nor script. The app draws the links itself (`pdfLinks.ts`): only the
+No `cMapUrl`, `standardFontDataUrl` nor `iccUrl`. The only files pdf.js
+loads are `jbig2_nowasm_fallback.js` (CCITT, JBIG2) and
+`openjpeg_nowasm_fallback.js` (JPX) of pdfjs-dist, copied by the build under
+`static/assets/pdfjs/<version>/` (same origin, `script-src 'self'`, no
+`.wasm`), each only when a page has such an image. `stopAtErrors` stays
+off: pdf.js recovers what it can of damaged files, and a hard failure
+already ends in "Cannot preview" with the download. Annotations are not
+drawn (`AnnotationMode.DISABLE`): no form nor script. The app draws the links itself (`pdfLinks.ts`): only the
 URL of a `Link` annotation is read, kept when it parses as `http:`,
 `https:` or `mailto:` (`PDF_LINK_PROTOCOLS`), and becomes an `<a>` over its
 rectangle (bounded to the page) with `target="_blank"` and
@@ -110,10 +114,11 @@ ATT-08 checks it in the browser.
 Residual risks: the font renderer still parses the font programs of the
 document in the worker (a memory-safety bug there stays in the worker's
 JavaScript realm, with no DOM); fonts that are not embedded have no
-standard font data and are drawn poorly or not at all; JBIG2 and JPX
-images are not drawn without WebAssembly; the app CSP allows
+standard font data and are drawn poorly or not at all; the CCITT, JBIG2
+and JPX decoders (pdfium and OpenJPEG compiled to JavaScript) parse the
+image data in the worker; the app CSP allows
 `img-src https: http:` for the email remote-content opt-in, which a PDF
-cannot use (pdf.js loads nothing).
+cannot use (pdf.js loads nothing from the document).
 
 ## App CSP
 

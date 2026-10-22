@@ -1023,3 +1023,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
 - [x] `DLG-09` "Delegated to me" lists the team mailboxes of the user (name, address); "Leave the team mailbox" asks "Leave this team mailbox?" (axe), "Remove access" (`TeamMailbox/revokeAccess`) says "You left the team mailbox <name>", the tab is empty, and back in the mail the switcher is gone. — tmail-flutter#4977
 - [x] `DLG-10` A delegate on the owner's mailbox whose access is taken back (WebAdmin): the next request on the account reads the session again, the app lands on the delegate's own Inbox with "You no longer have access to the mailbox of <owner>", no error screen, no switcher left. — tmail-flutter#4977
 - [x] `DLG-11` A delegate on the owner's mailbox signs out and in again in the same tab: "Viewing my email", their own Inbox, nothing of the owner's. — tmail-flutter#4977
+- [x] `ATT-13` A PDF laid out like a scan (built by the spec: a pale JPEG background and the ink as a 1-bit CCITT G4 image mask) draws the ink: more than a quarter of the page is dark, with no dialog nor request out of the app.
+  - Spec: `tests/attachments.spec.ts`.
+- [x] `ATT-14` A PDF whose image is a JPEG 2000 (`/JPXDecode`, an 8 x 8 fixture) draws it, without WebAssembly: more than a quarter of the page is dark, with no dialog nor request out of the app.
+  - Spec: `tests/attachments.spec.ts`.

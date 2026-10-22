@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes, as a full-screen file viewer shell (top bar with
 // close, title and download over a dark backdrop, content slot), shared by
 // Mail, Drive and Chat. Meanwhile local, on twake-mui `Dialog`.
-import { Icon, Download, Printer } from '@linagora/twake-icons'
+import { Icon, Download, Printer, Previous } from '@linagora/twake-icons'
 import {
   alpha,
   Box,
@@ -18,7 +18,6 @@ import {
   type MouseEvent,
   type Ref
 } from 'react'
-import { ArrowBack } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FilePreviewDialogProps {
@@ -123,7 +122,7 @@ export function FilePreviewDialog({
             autoFocus
             data-testid={testId ? `${testId}-close` : undefined}
           >
-            <Icon icon={ArrowBack} size={24} aria-hidden="true" />
+            <Icon icon={Previous} size={24} aria-hidden="true" />
           </IconButton>
         </Tooltip>
         <Typography

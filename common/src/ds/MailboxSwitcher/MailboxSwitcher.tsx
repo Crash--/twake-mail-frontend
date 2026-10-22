@@ -5,7 +5,7 @@
 // a 56 px row (a 32 px avatar, the name, the address under it), the one
 // shown on the selected tint with a tick at its end. While another mailbox than
 // the user's is shown, a cross beside the pill goes back to theirs.
-import { Icon, Check, CrossSmall } from '@linagora/twake-icons'
+import { Icon, Check, CrossSmall, Dropdown } from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
@@ -19,7 +19,6 @@ import {
 } from '@linagora/twake-mui'
 import { Fragment, useId, useState, type ReactElement } from 'react'
 
-import { ChevronDownOutline } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   firstLetterOf,
   GradientAvatar
@@ -173,7 +172,7 @@ export function MailboxSwitcher({
           <Box component="span" sx={PILL_LABEL_SX}>
             {labels.pill}
           </Box>
-          <Icon icon={ChevronDownOutline} size={16} aria-hidden="true" />
+          <Icon icon={Dropdown} size={16} aria-hidden="true" />
         </ButtonBase>
       </Tooltip>
       {selectedId === ownId ? null : (

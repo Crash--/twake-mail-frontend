@@ -1,10 +1,7 @@
+import { Dropdown, Dropup } from '@linagora/twake-icons'
 import type { EmailAddress } from 'jmap-client-ts'
 import type { ReactElement } from 'react'
 
-import {
-  ChevronDownOutline,
-  ChevronUpOutline
-} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { MessageText } from '@/ds/MessageText/MessageText'
@@ -63,7 +60,7 @@ function CompactAddressLine({
         <IconAction
           label={toggleLabel}
           // tmail-flutter: a 20 px chevron, 2 px around, in steel grey
-          icon={isOpen ? ChevronUpOutline : ChevronDownOutline}
+          icon={isOpen ? Dropup : Dropdown}
           iconSize={20}
           size={24}
           tone="slate"

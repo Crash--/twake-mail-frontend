@@ -1,10 +1,9 @@
-import { HelpOutlined } from '@linagora/twake-icons'
+import { HelpOutlined, Logout } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useEffect, useId, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
-import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import {
   SettingsAccount,
   SettingsTile,
@@ -99,7 +98,7 @@ export function SettingsSectionList(): ReactElement {
           />
         )}
         <SettingsTile
-          icon={SignOutSettingsIcon}
+          icon={Logout}
           title={t('topbar.logout')}
           explanation={null}
           onClick={handleLogout}

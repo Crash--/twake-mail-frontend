@@ -52,7 +52,10 @@ export function SubaddressingDialog({
             >
               {address}
             </Typography>
-            <Tooltip title={t('folders.menu.copySubaddress')}>
+            <Tooltip
+              title={t('folders.menu.copySubaddress')}
+              disableInteractive
+            >
               <IconButton
                 aria-label={t('folders.menu.copySubaddress')}
                 onClick={onCopy}

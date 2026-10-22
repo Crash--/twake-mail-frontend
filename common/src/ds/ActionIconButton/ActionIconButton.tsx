@@ -1,7 +1,6 @@
-// Upstream to twake-ui: yes, as a `size="large"` of `IconButton` with a
-// `label`. The Twake Mail design draws the actions of the composer (title
-// bar and footer) as 40 px round icon buttons around a 24 px icon frame;
-// twake-mui sizes `IconButton` from its icon and padding (docs/twake-mui-gaps.md).
+// Upstream to twake-ui: yes, the pressed look as an `IconButton` style bound
+// to `aria-pressed`, and a `label` giving the tooltip and the accessible name
+// (docs/twake-mui-gaps.md).
 import { IconButton, Tooltip, type IconButtonProps } from '@linagora/twake-mui'
 import { forwardRef, type ReactElement } from 'react'
 
@@ -11,42 +10,25 @@ export interface ActionIconButtonProps extends Omit<
 > {
   /** Tooltip and accessible name */
   label: string
-  /**
-   * Width and height in px; 26 for the title bar of the composer
-   * (tmail-flutter: a 20 px icon and 3 px around)
-   */
-  size?: number
 }
 
-/** Width and height of the button, in px: a 24 px icon and 5 px around */
-export const ACTION_ICON_BUTTON_SIZE = 34
-
 /**
- * A 34 px icon button with its tooltip, as tmail-flutter's composer. The icon keeps the size it
- * asks for: 24 px for a Material glyph, 20 px for the `twake-icons` ones,
- * whose drawing fills more of their frame than the Material icons of the
- * design.
+ * A twake-mui small `IconButton` with its tooltip: 40 px around a 24 px
+ * icon. A toggle that is on (`aria-pressed`) is drawn light blue.
  */
 export const ActionIconButton = forwardRef<
   HTMLButtonElement,
   ActionIconButtonProps
->(function ActionIconButton(
-  { label, size = ACTION_ICON_BUTTON_SIZE, children, ...props },
-  ref
-): ReactElement {
+>(function ActionIconButton({ label, children, ...props }, ref): ReactElement {
   return (
     <Tooltip title={label}>
       <IconButton
         ref={ref}
+        size="small"
         aria-label={label}
         {...props}
         sx={{
-          width: size,
-          height: size,
-          p: 0,
           flexShrink: 0,
-          // A toggle that is on (Aa showing the formatting): the light blue
-          // of the design and tmail-flutter's selected icon button
           '&[aria-pressed="true"]': {
             bgcolor: 'primary.light',
             color: 'primary.dark'

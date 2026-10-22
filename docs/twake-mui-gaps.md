@@ -451,7 +451,7 @@ Differences kept from the design and from tmail-flutter:
 
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
-| `IconButton` | A 40 px round button around a 24 px icon frame whatever the icon (twake-mui sizes it from the icon and its 12 px padding: 40, 44 or 48 px); `twake-icons` glyphs are drawn at 20 px to match the weight of the Material icons of the design | Title bar (minimize, expand, close) and footer (formatting, attach, image, link, emoji, Drive, assistant, delete, More) of the composer | `ds/ActionIconButton` (the 40 px counterpart of `IconAction`, which keeps its closed 32 px API; the tooltip and accessible name come from `label`) | `IconButton size="large"` with a `label`, and `twake-icons` glyphs drawn on the Material grid |
+| `IconButton` | A `label` giving the tooltip and the accessible name, and a pressed look (light blue, dark blue icon) bound to `aria-pressed`; the size is twake-mui's `size="small"` (40 px around a 24 px icon) | Title bar (minimize, expand, close) and footer (formatting, attach, image, link, emoji, Drive, assistant, delete, More) of the composer | `ds/ActionIconButton` | `IconButton` with a `label`, and a `selected` style bound to `aria-pressed` |
 
 ## Composer on phones and tablets (batch E5)
 

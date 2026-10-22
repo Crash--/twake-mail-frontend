@@ -1,6 +1,6 @@
 // Upstream to twake-ui: yes. Picking a colour among swatches (labels,
 // calendars, tags) is common to Twake apps; twake-mui has no colour input.
-import { Icon, Check, Palette } from '@linagora/twake-icons'
+import { Icon, Check, Palette, Cross } from '@linagora/twake-icons'
 import { Box, TextField, Typography } from '@linagora/twake-mui'
 import {
   useId,
@@ -10,7 +10,6 @@ import {
   type Ref
 } from 'react'
 
-import { CloseDialog } from '@/ds/FlutterIcons/FlutterIcons'
 import { FOCUS_RING } from '@/ds/FocusIndicator/focusIndicator'
 import { VISUALLY_HIDDEN } from '@/ds/MessageAlert/visuallyHidden'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -128,9 +127,7 @@ function LargeSwatchMark({
       }}
     >
       <Icon
-        icon={
-          kind === 'checked' ? Check : kind === 'none' ? CloseDialog : Palette
-        }
+        icon={kind === 'checked' ? Check : kind === 'none' ? Cross : Palette}
         size={kind === 'checked' ? 20 : 18}
       />
     </Box>

@@ -8,7 +8,7 @@ import {
 import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
-import { Cancel, CheckboxOn, MoveMailbox } from '@/ds/FlutterIcons/FlutterIcons'
+import { CheckboxOn, MoveMailbox } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
@@ -164,7 +164,7 @@ export function EmailListToolbar({
   const clearButton = !isDesktop ? (
     <IconAction
       label={clearLabel}
-      icon={Cancel}
+      icon={Cross}
       tone="steel"
       size={36}
       onClick={onDone}

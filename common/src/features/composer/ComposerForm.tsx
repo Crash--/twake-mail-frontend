@@ -37,7 +37,7 @@ import {
   type ReactNode
 } from 'react'
 
-import { Cancel, Sparkle } from '@/ds/FlutterIcons/FlutterIcons'
+import { Sparkle } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import {
@@ -1786,7 +1786,7 @@ function LoadedComposerForm({
                 onClick={onRequestClose}
                 data-testid="composer-close-button"
               >
-                <Icon icon={Cancel} size={24} aria-hidden="true" />
+                <Icon icon={Cross} size={24} aria-hidden="true" />
               </ActionIconButton>
             }
           >

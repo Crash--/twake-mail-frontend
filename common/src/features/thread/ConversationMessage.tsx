@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Attachment } from '@linagora/twake-icons'
 import { Skeleton, Typography } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
 import {
@@ -13,7 +13,6 @@ import {
   firstLetterOf,
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
-import { Attachment } from '@/ds/FlutterIcons/FlutterIcons'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { MessageThreadItem } from '@/ds/MessageThread/MessageThreadItem'

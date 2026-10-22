@@ -2,7 +2,7 @@
 // with the first letter of the name or address, opening a 260 px card: the
 // display name when known, the address with a copy button, a close cross,
 // then its entries (manage account, sign out).
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Copy, CrossSmall } from '@linagora/twake-icons'
 import {
   Avatar,
   Box,
@@ -20,8 +20,6 @@ import {
   type ReactNode,
   type Ref
 } from 'react'
-
-import { Copy, CrossSmall } from '@/ds/FlutterIcons/FlutterIcons'
 
 const BUTTON_SX = { ml: '16px', borderRadius: '50%' } as const
 

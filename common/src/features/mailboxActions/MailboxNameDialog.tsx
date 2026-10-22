@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, FolderOutlined } from '@linagora/twake-icons'
 import {
   useEffect,
   useId,
@@ -8,7 +8,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { FolderOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   ModalDialog,
   ModalDialogButton,

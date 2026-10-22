@@ -1,15 +1,14 @@
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Cross,
+  EmailNotification,
+  Star
+} from '@linagora/twake-icons'
 import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
-import {
-  Cancel,
-  CheckboxOn,
-  Cross,
-  EmailNotification,
-  MoveMailbox,
-  Star
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { Cancel, CheckboxOn, MoveMailbox } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'

@@ -1,10 +1,9 @@
 // Upstream to twake-ui: no, twake-mui's text Button with a menu chevron and a
 // width cap; a `DropdownButton` would bring its own text layout and aria
 // (docs/twake-mui-gaps.md).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Dropdown } from '@linagora/twake-icons'
 import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
-import { Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
 
 export interface ToolbarButtonProps {
   label: string

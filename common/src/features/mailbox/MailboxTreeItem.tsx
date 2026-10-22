@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, EyeClosed } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useRef,
@@ -9,7 +9,6 @@ import {
 } from 'react'
 import { Link } from 'react-router'
 
-import { EyeClosed } from '@/ds/FlutterIcons/FlutterIcons'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { CountBadge } from '@/ds/CountBadge/CountBadge'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'

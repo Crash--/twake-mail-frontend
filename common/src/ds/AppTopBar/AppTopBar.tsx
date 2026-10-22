@@ -3,7 +3,7 @@
 // tablet and a mobile `Menubar`). This one is the app bar of phones and
 // tablets: a menu button, the title, the actions at the end, and the search
 // under the bar, as wide as the screen.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Burger, Left } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useImperativeHandle,
@@ -13,7 +13,6 @@ import {
   type Ref
 } from 'react'
 
-import { Burger, Left } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /** The bar: 52 px, 16 px in on a phone, 32 px on a tablet */

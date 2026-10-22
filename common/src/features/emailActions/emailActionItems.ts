@@ -1,4 +1,17 @@
-import { type IconProps } from '@linagora/twake-icons'
+import {
+  type IconProps,
+  Archive,
+  Download,
+  Email,
+  EmailNotification,
+  EmailOpen,
+  Pen,
+  Printer,
+  Star,
+  StarOutline,
+  Tag,
+  Trash
+} from '@linagora/twake-icons'
 
 import {
   DRAFT,
@@ -13,21 +26,10 @@ import {
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
 import {
-  Archive,
-  Download,
-  Email,
-  EmailNotification,
   FilterEmail,
-  EmailOpen,
   MoveEmail,
   NotSpam,
-  Pen,
-  Printer,
-  Spam,
-  Star,
-  StarOutline,
-  Tag,
-  Trash
+  Spam
 } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'

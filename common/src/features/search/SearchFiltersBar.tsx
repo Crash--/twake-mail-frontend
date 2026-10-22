@@ -1,3 +1,9 @@
+import {
+  EmailNotification,
+  FolderOutlined,
+  LabelOutlined,
+  StarOutline
+} from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import { useState, type MouseEvent, type ReactElement } from 'react'
 
@@ -5,11 +11,7 @@ import {
   AttachmentSB,
   CalendarEvent,
   CalendarSB,
-  EmailNotification,
-  FolderOutlined,
-  LabelOutlined,
   SelectedCheck,
-  StarOutline,
   UserSB
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'

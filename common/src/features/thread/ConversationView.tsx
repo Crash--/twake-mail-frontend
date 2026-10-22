@@ -1,3 +1,12 @@
+import {
+  Archive,
+  Email,
+  EmailOpen,
+  Star,
+  StarOutline,
+  Trash,
+  Warning
+} from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -9,16 +18,7 @@ import {
   type ReactElement
 } from 'react'
 
-import {
-  Archive,
-  Email as EmailIcon,
-  EmailOpen,
-  NotSpam,
-  Star,
-  StarOutline,
-  Trash,
-  Warning
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { NotSpam } from '@/ds/FlutterIcons/FlutterIcons'
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
 import { EmailSubjectBar } from '@/ds/EmailSubject/EmailSubjectBar'
 import { MessageThread } from '@/ds/MessageThread/MessageThread'
@@ -323,7 +323,7 @@ function ConversationContent({
     {
       id: 'toggle-seen',
       label: readLabel,
-      icon: isRead ? EmailIcon : EmailOpen,
+      icon: isRead ? Email : EmailOpen,
       onSelect: handleToggleRead,
       'data-testid': 'conversation-toggle-seen'
     },

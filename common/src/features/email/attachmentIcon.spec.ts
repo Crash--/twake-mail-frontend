@@ -1,10 +1,10 @@
 import {
   FileTypeCode,
   FileTypeImage,
-  FileTypeText
+  FileTypeText,
+  File
 } from '@linagora/twake-icons'
 
-import { File } from '@/ds/FlutterIcons/FlutterIcons'
 import { attachmentIcon } from './attachmentIcon'
 
 describe('attachmentIcon', () => {

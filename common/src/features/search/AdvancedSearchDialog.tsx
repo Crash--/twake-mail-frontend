@@ -1,3 +1,4 @@
+import { Calendar } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -18,7 +19,6 @@ import {
 
 import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
 import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
-import { Calendar } from '@/ds/FlutterIcons/FlutterIcons'
 import { FormRow } from '@/ds/FormRow/FormRow'
 import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
 import {

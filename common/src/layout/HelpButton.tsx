@@ -1,9 +1,8 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, HelpOutlined } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { useMatch } from 'react-router'
 
-import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useContactSupport } from '@common/features/support/useContactSupport'

@@ -1,3 +1,4 @@
+import { HelpOutlined } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
@@ -8,7 +9,6 @@ import {
   SettingsMenuList,
   SettingsMenuTitle
 } from '@/ds/SettingsMenu/SettingsMenu'
-import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useI18n } from '@common/i18n/useI18n'

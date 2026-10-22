@@ -1,13 +1,11 @@
+import { Bottom, Copy, Warning } from '@linagora/twake-icons'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import {
-  Bottom,
   CloseDialog,
-  Copy,
   RetryArrows,
-  Sparkle,
-  Warning
+  Sparkle
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 

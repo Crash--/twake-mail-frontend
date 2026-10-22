@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Bottom, Cross } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useEffect,
@@ -10,7 +10,6 @@ import {
   type ReactNode
 } from 'react'
 
-import { Bottom, Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { FieldTextButton } from '@/ds/FieldTextButton/FieldTextButton'
 import type {

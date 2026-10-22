@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Check, Cross, Plus, Trash } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -15,13 +15,7 @@ import {
   type ReactElement
 } from 'react'
 
-import {
-  Check,
-  Cross,
-  InfoCircle,
-  Plus,
-  Trash
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { InfoCircle } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'

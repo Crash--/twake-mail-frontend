@@ -1,4 +1,10 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  Attachment,
+  ClockOutline,
+  Star,
+  StarOutline
+} from '@linagora/twake-icons'
 import { getInitials } from '@linagora/twake-mui'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
@@ -9,13 +15,7 @@ import {
   type SearchComboboxGroup,
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
-import {
-  Attachment,
-  ClockOutline,
-  FilterAdvanced,
-  Star,
-  StarOutline
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { FilterAdvanced } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { SearchBarAction } from '@/ds/SearchBarAction/SearchBarAction'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'

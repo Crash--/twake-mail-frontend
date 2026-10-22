@@ -1,3 +1,4 @@
+import { StarOutline } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
@@ -5,7 +6,6 @@ import {
   AttachmentSB,
   CalendarSB,
   SelectedCheck,
-  StarOutline,
   UserSB
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'

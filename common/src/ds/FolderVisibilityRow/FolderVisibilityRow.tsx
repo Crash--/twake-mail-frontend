@@ -3,10 +3,9 @@
 // name, an expand button right after the name, the action at the end, and
 // the subfolders 10 px further in. twake-mui's `ListItem` has neither the
 // metrics nor the nested expand button.
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Bottom, Right } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
 
 const ICON_COLOR = 'text.icon'
 const ICON_MUTED_COLOR = 'text.disabled'

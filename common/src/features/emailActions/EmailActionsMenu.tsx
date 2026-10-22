@@ -1,4 +1,4 @@
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Reply } from '@linagora/twake-icons'
 import {
   Divider,
   ListItemIcon,
@@ -14,7 +14,6 @@ import {
   CheckboxOff,
   CheckboxOn,
   Forward,
-  Reply,
   ReplyAll
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'

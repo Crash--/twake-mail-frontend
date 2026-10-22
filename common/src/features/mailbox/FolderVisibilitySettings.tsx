@@ -1,6 +1,6 @@
+import { FolderOutlined } from '@linagora/twake-icons'
 import { useId, useState, type ReactElement } from 'react'
 
-import { FolderOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   HideMailbox,
   ShowMailbox

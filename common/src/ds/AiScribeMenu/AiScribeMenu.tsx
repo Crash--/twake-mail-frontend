@@ -4,7 +4,7 @@
 // in Regular 14 grey, a chevron for a category holding several actions),
 // whose actions open in a second card 6 px to the right while the category
 // is hovered or opened from the keyboard.
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import {
   useRef,
@@ -14,7 +14,6 @@ import {
   type RefObject
 } from 'react'
 
-import { Right } from '@/ds/FlutterIcons/FlutterIcons'
 const MENU_WIDTH = 191
 const MENU_MAX_HEIGHT = 352
 const ROW_HEIGHT = 40

@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Copy } from '@linagora/twake-icons'
 import { IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
@@ -6,7 +6,6 @@ import {
   ConfirmDialogButton,
   ConfirmDialogFrame
 } from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
-import { Copy } from '@/ds/FlutterIcons/FlutterIcons'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface SubaddressingDialogProps {

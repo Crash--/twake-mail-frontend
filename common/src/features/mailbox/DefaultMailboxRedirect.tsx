@@ -1,8 +1,8 @@
+import { Folder } from '@linagora/twake-icons'
 import { Empty } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Navigate } from 'react-router'
 
-import { Folder } from '@/ds/FlutterIcons/FlutterIcons'
 import { ViewErrorScreen } from '@common/components/ViewErrorScreen'
 import {
   useTeamMailboxEmbed,

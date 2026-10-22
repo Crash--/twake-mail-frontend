@@ -3,10 +3,10 @@
 // label, and the pale primary colour with a small cross once applied.
 // twake-mui's `Chip` has no applied state short of a solid primary colour,
 // and needs `sx` for that tint (docs/twake-mui-gaps.md).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Dropdown } from '@linagora/twake-icons'
 import { Box, Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
-import { DeleteSelection, Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
+import { DeleteSelection } from '@/ds/FlutterIcons/FlutterIcons'
 
 const END_SX = { display: 'flex', color: 'text.secondary' } as const
 

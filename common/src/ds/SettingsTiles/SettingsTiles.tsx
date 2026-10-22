@@ -2,11 +2,10 @@
 // tablets: a 24 px icon, the name, its explanation in `text.secondary` under
 // it, a chevron at the end, a divider between the entries within the side
 // margins (16 px on a phone, 32 px on a tablet).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
 
-import { Right } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 function sides(isPhone: boolean): string {

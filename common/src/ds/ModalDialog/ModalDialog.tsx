@@ -4,7 +4,7 @@
 // label above (or at their start), and at the end a text button and the
 // confirming one. Its fields are the 40 px outlined fields below, twake-mui
 // has no compact field.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Dropdown } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -29,11 +29,7 @@ import {
   type ReactNode
 } from 'react'
 
-import {
-  CloseDialog,
-  Dropdown,
-  FilterSelected
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { CloseDialog, FilterSelected } from '@/ds/FlutterIcons/FlutterIcons'
 
 const SUBTITLE_SX = { m: 0, px: '2rem', pt: 1 } as const
 

@@ -5,8 +5,6 @@ import { IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEditorState, type Editor } from '@tiptap/react'
 import { useLayoutEffect, useState, type ReactElement } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 import type { RichTextSelectionAction } from './types'
 
 interface Position {
@@ -98,14 +96,12 @@ export function SelectionAction({
           top: position.top,
           left: position.left,
           zIndex: 2,
-          // tmail-flutter's `InlineAiAssistButton`: a white disc, 6 px
-          // around a 12 px blue icon, a soft shadow
+          // A paper disc, 6 px around a 12 px primary icon, a soft shadow
           p: '6px',
-          color: TMAIL.primary0A,
-          bgcolor: TMAIL.surface,
-          boxShadow:
-            '0 1.5px 3px rgba(66, 66, 68, 0.08), 0 3px 12px rgba(0, 0, 0, 0.06)',
-          '&:hover': { bgcolor: TMAIL.surface }
+          color: 'primary.main',
+          bgcolor: 'background.paper',
+          boxShadow: 2,
+          '&:hover': { bgcolor: 'background.paper' }
         }}
       >
         {action.icon}

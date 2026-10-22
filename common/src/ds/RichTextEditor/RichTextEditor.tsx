@@ -25,7 +25,6 @@ import {
 } from 'react'
 
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { CARET_BLOCK_ATTRIBUTE, CaretBlock } from './caretBlock'
 import { cleanPastedHtml } from './cleanPastedHtml'
@@ -151,10 +150,11 @@ const SETTINGS_TOOLBAR_ITEMS: readonly RichTextToolbarItemId[] = [
 ]
 
 const SETTINGS_FRAME_SX = {
-  border: `1px solid ${TMAIL.outlineField}`,
+  border: 1,
+  borderColor: 'border.main',
   borderRadius: '10px',
   overflow: 'hidden',
-  bgcolor: TMAIL.surface,
+  bgcolor: 'background.paper',
   '&[aria-disabled="true"]': { opacity: 0.5 },
   '& [role="toolbar"]': { borderTop: 'none', px: 1, pb: 1 }
 } as const
@@ -297,7 +297,8 @@ function createImageFileHandler(
  * the toolbar and a 189 px text without border of its own
  */
 const BOXED_FRAME_SX = {
-  border: `1px solid ${TMAIL.outline}`,
+  border: 1,
+  borderColor: 'border.main',
   borderRadius: '10px',
   pt: '4px',
   px: 1,
@@ -311,7 +312,7 @@ const BOXED_FRAME_SX = {
     px: '10px',
     py: 1,
     fontSize: 16,
-    color: TMAIL.textBlack
+    color: 'text.primary'
   }
 } as const
 
@@ -601,20 +602,14 @@ export function RichTextEditor({
             // Filling a window, the outline of the focus is drawn inside
             ...(fill ? FOCUS_RING_INSET : { '--focus-ring-offset': '1px' }),
             minHeight: fill ? undefined : 240,
-            // The body of a window, as tmail-flutter's editor: 16 px above,
-            // 25 px at the sides, Inter Regular in dark grey (#222222)
-            padding: fill ? '16px 25px' : 1.5,
+            // The body of a window (Figma): 24 px above, 16 px at the sides, body2
+            padding: fill ? '24px 16px' : 1.5,
             border: fill ? 'none' : '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
             fontSize: DEFAULT_FONT_SIZE,
             ...(fill
-              ? {
-                  fontWeight: 400,
-                  lineHeight: '18.4px',
-                  letterSpacing: 0,
-                  color: TMAIL.textInk
-                }
+              ? { typography: 'body2', color: 'text.primary' }
               : { lineHeight: 1.5 }),
             overflowWrap: 'anywhere'
           },

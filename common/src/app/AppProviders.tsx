@@ -17,7 +17,6 @@ import { I18nProvider } from '@common/i18n/I18nProvider'
 import { overlayThemeOptions, SpaceOverlayProvider } from '@linagora/twake-mui'
 import type { SpaceOverlay } from '@linagora/twake-mui'
 import { focusIndicatorThemeOptions } from '@/ds/FocusIndicator/focusIndicator'
-import { tmailColorsThemeOptions } from '@/ds/TmailColors/tmailColors'
 import { SCROLLBAR_CSS } from '@/ds/ScrollbarLook/scrollbarLook'
 import type { SupportedLanguage } from '@common/i18n/languages'
 
@@ -55,14 +54,8 @@ export function AppProviders({
 }: AppProvidersProps): ReactElement {
   const focusIndicator = useFocusIndicator()
   const themeOptions = useMemo(() => {
-    // With tmail-flutter's scroll bars, global CSS as the focus ring
-    const focusOptions = focusIndicatorThemeOptions(
-      focusIndicator,
-      SCROLLBAR_CSS
-    )
-    // tmail-flutter's colours, and their counterparts in the dark scheme
-    const colorOptions = tmailColorsThemeOptions()
-    const ownOptions = { ...focusOptions, ...colorOptions }
+    // With the scroll bars, global CSS as the focus ring
+    const ownOptions = focusIndicatorThemeOptions(focusIndicator, SCROLLBAR_CSS)
     if (overlay === null) return ownOptions
     const overlayOptions = overlayThemeOptions(overlay)
     // Neither styles the same components

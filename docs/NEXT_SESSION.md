@@ -90,9 +90,8 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
 - **Mode sombre** (fait le 2026-10-08/09) : le schéma est le réglage `appearance.theme` du compte (tmail-backend,
   `light`/`dark`/`auto`), clair quand il est absent ; choix Clair / Sombre / Automatique dans Réglages > Préférences,
   seulement quand le serveur le laisse modifier (absent de `readOnlyProperties`) ; copie dans le navigateur pour le
-  premier rendu (script de `index.html`) ; schéma sombre de twake-mui. Les couleurs de tmail-flutter de `@/ds/` sont
-  des jetons `TMAIL` (`ds/TmailColors`) : valeur exacte en clair, couleur de twake-mui de même rôle en sombre ;
-  `theme.vars.palette.*` dans les fonctions de style. Le corps des mails reste sur fond blanc (voir `emailBody.ts`).
+  premier rendu (script de `index.html`) ; schéma sombre de twake-mui. Les couleurs de `@/ds/` sont les rôles de la
+  palette de twake-mui (`theme.vars.palette.*` dans les fonctions de style, variable CSS `--twake-palette-*` ailleurs). Le corps des mails reste sur fond blanc (voir `emailBody.ts`).
   Pas de maquette Figma sombre : à faire valider par Quentin.
 - **Reste à faire** : réglages, mobile
   hors composer (`n29045`, menus `n29085…`), pages Figma sans équivalent Flutter (multi-comptes, délégation, migration,

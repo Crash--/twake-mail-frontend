@@ -9,6 +9,7 @@ import {
   ButtonBase,
   GlobalStyles,
   Paper,
+  radius,
   Typography
 } from '@linagora/twake-mui'
 import FocusTrap from '@mui/material/Unstable_TrapFocus'
@@ -31,20 +32,16 @@ import {
   Top
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 
 /** Where the window is: in the dock, its title bar only, or over the page */
 export type DockedWindowMode = 'normal' | 'minimized' | 'fullscreen'
 
-/**
- * A window alone in the dock is 55 % of the screen wide and 85 % high, as
- * tmail-flutter's (`DesktopResponsiveContainerView`); several are 600 × 525
- * px each
- */
+/** Size of a window in the dock, in px (Figma: 790 x 634) */
 export const DOCKED_WINDOW_WIDTH = 790
-export const SHARED_WINDOW_WIDTH = 600
-const SHARED_WINDOW_HEIGHT = 525
+const DOCKED_WINDOW_HEIGHT = 634
+/** The window stays under the search of the top bar, as before: the screen less this */
+const DOCKED_WINDOW_TOP_ROOM = 138
 /** Width of a minimized window (its title bar), in px */
 export const MINIMIZED_WINDOW_WIDTH = 400
 
@@ -52,34 +49,14 @@ export const MINIMIZED_WINDOW_WIDTH = 400
 const TABLET_WINDOW_HEIGHT = 710
 /** From the edges of the screen, the composer card of tablets, in px */
 const CARD_INSET = 24
-const TITLE_BAR_HEIGHT = 52
-/**
- * tmail-flutter's `AppBarComposerWidgetStyle`: 24 px from the edges, 20 px
- * black icons in 26 px buttons, 8 px apart
- */
-const TITLE_BAR_PADDING = '24px'
-const TITLE_BAR_ICON_SIZE = 20
-const TITLE_BAR_GAP = '8px'
-const TITLE_BAR_ICON_COLOR = TMAIL.textBlack
-/** The title of tmail-flutter's composer: Medium 17 / 22, black, no tracking */
-const TITLE_SX = {
-  fontSize: 17,
-  fontWeight: 500,
-  lineHeight: '22px',
-  letterSpacing: 0,
-  color: TMAIL.textBlack
-} as const
+const TITLE_BAR_HEIGHT = 44
 /** Gap between the expanded window and the edges of the screen */
-// tmail-flutter's full screen composer: 85 % × 90 % of the screen, centred
 const FULLSCREEN_INSET = {
-  top: '5vh',
-  right: '7.5vw',
-  bottom: '5vh',
-  left: '7.5vw'
+  top: 64,
+  right: 'min(80px, 5vw)',
+  bottom: 72,
+  left: 'min(136px, 8vw)'
 } as const
-/** Material elevation 16, the shadow of tmail-flutter's composer */
-const WINDOW_SHADOW =
-  '0 8px 10px -5px rgba(0, 0, 0, 0.2), 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12)'
 
 /** `view-transition-class` of the windows (and the backdrop) that opt in */
 const VIEW_TRANSITION_CLASS = 'docked-window'
@@ -135,8 +112,6 @@ export interface DockedWindowProps {
    * middle (`centered`, large tablets); only the close button
    */
   card?: 'full' | 'centered'
-  /** Other windows share the dock: 525 px high rather than 85 % */
-  isShared?: boolean
   /** Width in the dock, in px (the dock shrinks windows to fit) */
   width?: number
   labels: DockedWindowLabels
@@ -171,7 +146,7 @@ interface TitleBarButtonProps {
   'data-testid'?: string
 }
 
-/** A button of the title bar: a 20 px black icon in 26 px */
+/** A button of the title bar: a 24 px icon in 40 px */
 function TitleBarButton({
   label,
   icon,
@@ -180,12 +155,7 @@ function TitleBarButton({
 }: TitleBarButtonProps): ReactElement {
   return (
     <ActionIconButton label={label} onClick={onClick} data-testid={testId}>
-      <Icon
-        icon={icon}
-        size={TITLE_BAR_ICON_SIZE}
-        color={TITLE_BAR_ICON_COLOR}
-        aria-hidden="true"
-      />
+      <Icon icon={icon} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
 }
@@ -222,7 +192,6 @@ export function DockedWindow({
   isTitleCentered = false,
   isTall = false,
   card,
-  isShared = false,
   width = DOCKED_WINDOW_WIDTH,
   labels,
   onModeChange,
@@ -374,10 +343,8 @@ export function DockedWindow({
           sx={[
             {
               pointerEvents: 'auto',
-              // tmail-flutter's composer: a 28 px radius, elevation 16
-              // Minimized: tmail-flutter's white bar rounded by 24
-              borderRadius: isMinimized ? '24px' : '28px',
-              boxShadow: WINDOW_SHADOW,
+              borderRadius: radius.md,
+              boxShadow: theme => theme.shadows[4],
               ...(viewTransitionName === undefined
                 ? {}
                 : {
@@ -426,9 +393,7 @@ export function DockedWindow({
                         ? TITLE_BAR_HEIGHT
                         : isTall
                           ? `min(${TABLET_WINDOW_HEIGHT}px, calc(100dvh - 96px))`
-                          : isShared
-                            ? `min(${SHARED_WINDOW_HEIGHT}px, calc(100dvh - 40px))`
-                            : '85dvh'
+                          : `min(${DOCKED_WINDOW_HEIGHT}px, calc(100dvh - ${DOCKED_WINDOW_TOP_ROOM}px))`
                     }
           ]}
           data-testid={testIds.window}
@@ -443,10 +408,11 @@ export function DockedWindow({
               className="u-flex u-flex-items-center u-flex-shrink-0"
               sx={{
                 height: TITLE_BAR_HEIGHT,
-                px: TITLE_BAR_PADDING,
-                // No rule under it: the grey bar meets the white fields
-                bgcolor: isMinimized ? TMAIL.surface : TMAIL.background,
-                gap: TITLE_BAR_GAP,
+                px: 2,
+                bgcolor: 'background.default',
+                borderBottom: isMinimized ? 0 : 1,
+                borderColor: 'divider',
+                gap: 0.5,
                 ...(isCentered
                   ? { display: 'grid', gridTemplateColumns: '1fr auto 1fr' }
                   : {})
@@ -465,13 +431,7 @@ export function DockedWindow({
                   aria-label={`${labels.restore}: ${title}`}
                 >
                   {/* Not a heading: it would sit inside the button, where it is lost */}
-                  <Typography
-                    id={titleId}
-                    component="span"
-                    variant="h5"
-                    noWrap
-                    sx={TITLE_SX}
-                  >
+                  <Typography id={titleId} component="span" variant="h5" noWrap>
                     {title}
                   </Typography>
                 </ButtonBase>
@@ -482,7 +442,6 @@ export function DockedWindow({
                   variant="h5"
                   noWrap
                   className={isCentered ? undefined : 'u-flex-auto'}
-                  sx={TITLE_SX}
                 >
                   {title}
                 </Typography>
@@ -490,7 +449,7 @@ export function DockedWindow({
               {isCentered ? (
                 <Box
                   className="u-flex u-flex-items-center"
-                  sx={{ gap: TITLE_BAR_GAP, justifyContent: 'flex-end' }}
+                  sx={{ gap: 0.5, justifyContent: 'flex-end' }}
                 >
                   {controls}
                 </Box>
@@ -515,8 +474,6 @@ export function DockedWindow({
           open
           // The dock lets clicks through: not the backdrop
           sx={{
-            // tmail-flutter dims the page behind (black at 38 %)
-            ...(isCompact ? {} : { backgroundColor: 'rgba(0, 0, 0, 0.38)' }),
             zIndex: theme => theme.zIndex.modal - 1,
             pointerEvents: 'auto',
             ...(viewTransitionName === undefined

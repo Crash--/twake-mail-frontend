@@ -1,13 +1,13 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  Trash,
+  Pen,
+  RadioUnchecked,
+  RadioChecked
+} from '@linagora/twake-icons'
 import { Radio } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import {
-  DeleteFilled,
-  EditPen,
-  RadioOff,
-  RadioOn
-} from '@/ds/FlutterIcons/FlutterIcons'
 import { SettingsRowButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {
   SettingsListHtml,
@@ -64,8 +64,8 @@ export function IdentityListItem({
           <Radio
             value={identity.id}
             // tmail-flutter's ring, filled once it is the default one
-            icon={<Icon icon={RadioOff} size={18} />}
-            checkedIcon={<Icon icon={RadioOn} size={18} />}
+            icon={<Icon icon={RadioUnchecked} size={18} />}
+            checkedIcon={<Icon icon={RadioChecked} size={18} />}
             slotProps={{
               input: {
                 'aria-label': t('identities.setDefaultOf', { name: label })
@@ -80,7 +80,7 @@ export function IdentityListItem({
           <SettingsRowButton
             label={t('common.edit')}
             name={editLabel}
-            icon={EditPen}
+            icon={Pen}
             onClick={() => {
               onEdit(identity)
             }}
@@ -90,7 +90,7 @@ export function IdentityListItem({
             <SettingsRowButton
               label={t('common.delete')}
               name={deleteLabel}
-              icon={DeleteFilled}
+              icon={Trash}
               onClick={event => {
                 onDelete(identity, event.currentTarget)
               }}

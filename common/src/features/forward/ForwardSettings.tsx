@@ -1,4 +1,11 @@
-import { Icon, Check, Cross, Plus, Trash } from '@linagora/twake-icons'
+import {
+  Icon,
+  Check,
+  Cross,
+  Plus,
+  Trash,
+  InfoOutlined
+} from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -15,7 +22,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { InfoCircle } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
@@ -484,7 +490,7 @@ export function ForwardSettings({
                       <Tooltip title={t('forward.external')}>
                         <span className="u-flex">
                           <Icon
-                            icon={InfoCircle}
+                            icon={InfoOutlined}
                             size={20}
                             role="img"
                             aria-label={t('forward.external')}

@@ -1,10 +1,9 @@
-import { Icon, Bottom, Top, Trash } from '@linagora/twake-icons'
+import { Icon, Bottom, Top, Trash, Pen } from '@linagora/twake-icons'
 import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useRef, useState, type ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
-import { Edit } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SettingsCard } from '@/ds/SettingsCards/SettingsCards'
@@ -125,7 +124,7 @@ export function RuleListItem({
             data-testid="email-rule-edit-button"
           >
             <ListItemIcon>
-              <Icon icon={Edit} />
+              <Icon icon={Pen} />
             </ListItemIcon>
             <ListItemText primary={t('common.edit')} />
           </MenuItem>,
@@ -172,7 +171,7 @@ export function RuleListItem({
       />
       <IconAction
         label={editLabel}
-        icon={Edit}
+        icon={Pen}
         tone="steel"
         size={36}
         onClick={onEdit}

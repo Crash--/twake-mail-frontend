@@ -15,23 +15,19 @@ import {
 } from 'react'
 
 import { Right } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 const MENU_WIDTH = 191
 const MENU_MAX_HEIGHT = 352
 const ROW_HEIGHT = 40
 const SUBMENU_GAP = 6
-const SHADOW =
-  '0 0 0 0.5px rgba(66, 66, 68, 0.12), 0 6px 26px 2px rgba(66, 66, 68, 0.11)'
 
 const CARD_SX = {
   width: MENU_WIDTH,
   maxHeight: MENU_MAX_HEIGHT,
   py: 1,
   boxSizing: 'border-box',
-  bgcolor: TMAIL.surface,
-  borderRadius: '6px',
-  boxShadow: SHADOW
+  bgcolor: 'background.paper',
+  borderRadius: 1,
+  boxShadow: 4
 } as const
 
 function rowSx(inset: number): Record<string, unknown> {
@@ -49,16 +45,16 @@ function rowSx(inset: number): Record<string, unknown> {
     lineHeight: '21px',
     letterSpacing: '-0.15px',
     fontWeight: 400,
-    color: TMAIL.textGrey90,
-    '&:hover, &[aria-expanded="true"]': { bgcolor: TMAIL.hoverBackground },
+    color: 'text.primary',
+    '&:hover, &[aria-expanded="true"]': { bgcolor: 'action.hover' },
     '& .AiScribeMenu-icon': {
       display: 'flex',
-      color: TMAIL.textGrey72
+      color: 'text.icon'
     },
     '& .AiScribeMenu-chevron': {
       display: 'flex',
       ml: 'auto',
-      color: TMAIL.grey777
+      color: 'text.icon'
     }
   }
 }

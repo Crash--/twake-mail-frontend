@@ -1,8 +1,14 @@
-import { Archive, Reply, Star, StarOutline, Trash } from '@linagora/twake-icons'
+import {
+  Archive,
+  Reply,
+  Star,
+  StarOutline,
+  Trash,
+  Moveto
+} from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
-import { MoveEmail } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -130,7 +136,7 @@ export function EmailViewActions({
           size={36}
           tone="steel"
           label={t(move.label)}
-          icon={move.id === 'move' ? MoveEmail : Archive}
+          icon={move.id === 'move' ? Moveto : Archive}
           onClick={() => {
             handleRun(move.id)
           }}

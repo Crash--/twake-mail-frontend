@@ -10,7 +10,8 @@ import {
   Copy,
   Restore,
   Trash,
-  type IconProps
+  type IconProps,
+  FolderMoveto
 } from '@linagora/twake-icons'
 
 import {
@@ -20,7 +21,6 @@ import {
   isTeamTrash
 } from '@common/features/mailbox/mailboxTree'
 import {
-  MoveMailbox,
   SubaddressingAllow,
   SubaddressingDisallow
 } from '@/ds/FlutterIcons/FlutterIcons'
@@ -91,7 +91,7 @@ const ITEMS: Record<FolderActionId, Omit<FolderActionItem, 'id'>> = {
   },
   move: {
     label: 'folders.menu.move',
-    icon: MoveMailbox,
+    icon: FolderMoveto,
     isDestructive: false
   },
   rename: { label: 'folders.menu.rename', icon: Rename, isDestructive: false },

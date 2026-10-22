@@ -3,12 +3,13 @@ import {
   type IconProps,
   Cross,
   EmailNotification,
-  Star
+  Star,
+  FolderMoveto
 } from '@linagora/twake-icons'
 import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
-import { CheckboxOn, MoveMailbox } from '@/ds/FlutterIcons/FlutterIcons'
+import { CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
@@ -58,7 +59,7 @@ const COMPACT_ACTIONS: readonly (readonly EmailActionId[])[] = [
  */
 const SELECTION_ICONS: Partial<Record<EmailActionId, IconProps['icon']>> = {
   star: Star,
-  move: MoveMailbox,
+  move: FolderMoveto,
   'mark-as-unread': EmailNotification
 }
 

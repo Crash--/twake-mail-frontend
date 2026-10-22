@@ -11,7 +11,8 @@ import {
   StarOutline,
   Tag,
   Trash,
-  Filter
+  Filter,
+  Moveto
 } from '@linagora/twake-icons'
 
 import {
@@ -26,7 +27,7 @@ import {
   findTemplatesMailboxId,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
-import { MoveEmail, NotSpam, Spam } from '@/ds/FlutterIcons/FlutterIcons'
+import { NotSpam, Spam } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -114,7 +115,7 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   },
   move: {
     label: 'emailActions.menu.moveMessage',
-    icon: MoveEmail,
+    icon: Moveto,
     isDestructive: false,
     group: 2
   },

@@ -2,7 +2,7 @@
 // suggestions; Mail (recipients), Calendar (attendees) and Drive (sharing)
 // all need one. The ARIA 1.2 combobox of `SearchCombobox`, with the chips
 // of what was already entered before the input.
-import { Icon, Warning } from '@linagora/twake-icons'
+import { Icon, Warning, Cross } from '@linagora/twake-icons'
 import {
   Box,
   InputBase,
@@ -38,7 +38,6 @@ import {
   type RecipientCardLabels,
   type RecipientCardProps
 } from '@/ds/RecipientCard/RecipientCard'
-import { RemoveRecipientIcon } from '@/ds/RecipientIcons/RecipientIcons'
 
 import { initialsOf } from './initials'
 import { RecipientAvatar } from './RecipientAvatar'
@@ -909,9 +908,7 @@ export function RecipientField({
                   />
                 ) : undefined
               }
-              deleteIcon={
-                <Icon icon={RemoveRecipientIcon} size={20} aria-hidden="true" />
-              }
+              deleteIcon={<Icon icon={Cross} size={20} aria-hidden="true" />}
               label={chip.label}
               title={chip.title ?? chip.label}
               aria-label={

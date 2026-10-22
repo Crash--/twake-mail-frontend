@@ -4,7 +4,7 @@
 // "Edit email" (filled) and "Create a rule" (outlined) buttons, and a close
 // button in its corner. twake-mui's `ContactPopover` has other contents and
 // actions.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Cross, Copy } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -17,7 +17,6 @@ import {
 import { useId, useState, type ReactElement } from 'react'
 
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
-import { CloseCardIcon, CopyIcon } from '@/ds/RecipientIcons/RecipientIcons'
 
 const CARD_WIDTH = 361
 
@@ -160,7 +159,7 @@ export function RecipientCard({
                   sx={{ ml: '7px', p: '4px', color: 'text.secondary' }}
                   data-testid={testIds.copy}
                 >
-                  <Icon icon={CopyIcon} size={20} aria-hidden="true" />
+                  <Icon icon={Copy} size={20} aria-hidden="true" />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -194,7 +193,7 @@ export function RecipientCard({
             }}
             data-testid={testIds.close}
           >
-            <Icon icon={CloseCardIcon} size={24} aria-hidden="true" />
+            <Icon icon={Cross} size={24} aria-hidden="true" />
           </IconButton>
         </Tooltip>
       </Box>

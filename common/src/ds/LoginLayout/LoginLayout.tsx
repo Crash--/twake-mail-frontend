@@ -1,15 +1,12 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's web sign-in page
-// (`login_view_web.dart`). On a desktop: the pitch of the product on the
-// left (a 36 px Black title, its points in 24 px with their 48 px icons, a
-// drawing), a 458 x 684 white card on the right (20 px radius, a light
-// shadow) and the "powered by" mark under it. Below the desktop size, as
-// tmail-flutter's mobile form: the content of the card alone, on white,
-// the mark at the bottom.
+// Upstream to twake-ui: no. The web sign-in page. On a desktop: the pitch of
+// the product on the left (a title, its points with their 48 px icons, a
+// drawing), a 458 x 684 card on the right (the shadow of the theme) and the
+// "powered by" mark under it. Below the desktop size: the content of the
+// card alone, on `background.paper`, the mark at the bottom.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { InsideMainLandmark } from '@/ds/MainLandmark/MainLandmark'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 export interface LoginPitchPoint {
@@ -34,7 +31,7 @@ export interface LoginLayoutProps {
 const PAGE_SX = {
   minHeight: '100%',
   boxSizing: 'border-box',
-  bgcolor: TMAIL.surface,
+  bgcolor: 'background.paper',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'flex-start',
@@ -54,12 +51,9 @@ const PITCH_SX = {
   [`@media ${SCREEN_QUERIES.belowDesktop}`]: { display: 'none' }
 } as const
 
-// Black (900) in tmail-flutter, which draws Inter Bold at most
 const PITCH_TITLE_SX = {
-  fontSize: 36,
-  fontWeight: 700,
-  lineHeight: '52px',
-  color: TMAIL.textBlack,
+  typography: 'h1',
+  color: 'text.primary',
   whiteSpace: 'pre-line'
 } as const
 
@@ -70,11 +64,9 @@ const POINT_SX = {
   alignItems: 'center',
   gap: '12px',
   mt: 2,
-  fontSize: 24,
+  typography: 'h3',
   fontWeight: 400,
-  lineHeight: 'normal',
-  letterSpacing: '0.5px',
-  color: TMAIL.textBlack
+  color: 'text.primary'
 } as const
 
 const CARD_COLUMN_SX = {
@@ -94,9 +86,9 @@ const CARD_SX = {
   height: 684,
   boxSizing: 'border-box',
   px: '31px',
-  borderRadius: '20px',
-  bgcolor: TMAIL.surface,
-  boxShadow: '0 2px 40px 2px rgba(188, 188, 188, 0.24)',
+  borderRadius: 2,
+  bgcolor: 'background.paper',
+  boxShadow: 3,
   overflow: 'hidden',
   display: 'flex',
   flexDirection: 'column',

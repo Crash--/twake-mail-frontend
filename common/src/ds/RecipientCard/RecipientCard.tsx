@@ -1,28 +1,25 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's card of a recipient
-// of its composer (`DesktopEditRecipientsView`), which opens under the
-// recipient tag tapped: 361 px wide (less on a narrow screen), rounded by
-// 16 px, a 42 px gradient avatar, the name in Medium 16 and the address in
-// grey 15 with a copy button, then "Edit email" (filled) and "Create a rule"
-// (outlined) pills, and a close button in its corner. twake-mui's
-// `ContactPopover` has other contents and actions.
+// Upstream to twake-ui: no, the card of a recipient of the composer, which
+// opens under the recipient tag tapped: 361 px wide (less on a narrow
+// screen), an avatar, the name and the address with a copy button, then
+// "Edit email" (filled) and "Create a rule" (outlined) buttons, and a close
+// button in its corner. twake-mui's `ContactPopover` has other contents and
+// actions.
 import { Icon } from '@linagora/twake-icons'
 import {
   Box,
-  ButtonBase,
+  Button,
   IconButton,
   Popover,
-  Tooltip
+  radius,
+  Tooltip,
+  Typography
 } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { CloseCardIcon, CopyIcon } from '@/ds/RecipientIcons/RecipientIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const CARD_WIDTH = 361
-const PRIMARY = TMAIL.primary0A
-/** The filled pill keeps that blue, its label white, in both schemes */
-const PRIMARY_FILL = '#0A84FF'
 
 const PAPER_SX = {
   position: 'relative',
@@ -33,19 +30,12 @@ const PAPER_SX = {
   pt: '36px',
   px: 2,
   pb: '12px',
-  borderRadius: '16px',
-  bgcolor: TMAIL.surface,
-  boxShadow: '0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3)'
+  borderRadius: radius.lg,
+  bgcolor: 'background.paper'
 } as const
 
 const NAME_SX = {
-  m: 0,
   pr: 3,
-  fontSize: 16,
-  lineHeight: '24px',
-  fontWeight: 500,
-  letterSpacing: '0.15px',
-  color: TMAIL.textGrey,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -53,33 +43,10 @@ const NAME_SX = {
 
 const ADDRESS_SX = {
   minWidth: 0,
-  fontSize: 15,
-  lineHeight: '20px',
-  color: TMAIL.grey,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
 } as const
-
-function pillSx(isFilled: boolean): Record<string, unknown> {
-  return {
-    height: 36,
-    minWidth: isFilled ? 127 : 134,
-    flex: '0 1 auto',
-    boxSizing: 'border-box',
-    px: '10px',
-    borderRadius: '100px',
-    border: `1px solid ${isFilled ? PRIMARY_FILL : PRIMARY}`,
-    bgcolor: isFilled ? PRIMARY_FILL : TMAIL.surface,
-    color: isFilled ? '#FFFFFF' : PRIMARY,
-    fontSize: 14,
-    lineHeight: '20px',
-    fontWeight: 500,
-    letterSpacing: '0.1px',
-    whiteSpace: 'nowrap',
-    '&:hover': { bgcolor: isFilled ? '#0067D6' : TMAIL.blueHover06 }
-  }
-}
 
 export interface RecipientCardLabels {
   /** "Copy the email address": the name and tooltip of the copy button */
@@ -115,7 +82,7 @@ export interface RecipientCardProps {
 }
 
 /**
- * The card of a recipient of the composer, as tmail-flutter's: a dialog
+ * The card of a recipient of the composer: a dialog
  * named by the recipient, under its tag. Escape or a click outside closes
  * it and the focus goes back to the tag; "Edit email" closes it for the
  * input, which takes the focus.
@@ -170,25 +137,27 @@ export function RecipientCard({
           </Box>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             {name === null || name === '' ? null : (
-              <Box component="p" id={titleId} sx={NAME_SX}>
+              <Typography variant="h5" component="p" id={titleId} sx={NAME_SX}>
                 {name}
-              </Box>
+              </Typography>
             )}
             <Box className="u-flex u-flex-items-center">
-              <Box
+              <Typography
+                variant="body2"
                 component="span"
+                color="text.secondary"
                 id={name === null || name === '' ? titleId : undefined}
                 sx={ADDRESS_SX}
               >
                 {address}
-              </Box>
+              </Typography>
               {/* Above and click-through: below, it covered the pills and
                   swallowed their clicks */}
               <Tooltip title={labels.copy} placement="top" disableInteractive>
                 <IconButton
                   aria-label={labels.copy}
                   onClick={onCopy}
-                  sx={{ ml: '7px', p: '4px', color: TMAIL.grey }}
+                  sx={{ ml: '7px', p: '4px', color: 'text.secondary' }}
                   data-testid={testIds.copy}
                 >
                   <Icon icon={CopyIcon} size={20} aria-hidden="true" />
@@ -198,21 +167,18 @@ export function RecipientCard({
           </Box>
         </Box>
         <Box className="u-flex" sx={{ mt: '12px', gap: 1 }}>
-          <ButtonBase
-            onClick={handleEdit}
-            sx={pillSx(true)}
-            data-testid={testIds.edit}
-          >
+          <Button size="small" onClick={handleEdit} data-testid={testIds.edit}>
             {labels.edit}
-          </ButtonBase>
+          </Button>
           {onCreateRule === null ? null : (
-            <ButtonBase
+            <Button
+              size="small"
+              variant="outlined"
               onClick={onCreateRule}
-              sx={pillSx(false)}
               data-testid={testIds.createRule}
             >
               {labels.createRule}
-            </ButtonBase>
+            </Button>
           )}
         </Box>
         <Tooltip title={labels.close}>
@@ -224,7 +190,7 @@ export function RecipientCard({
               top: 0,
               right: 0,
               p: '10px',
-              color: TMAIL.steelLight
+              color: 'text.secondary'
             }}
             data-testid={testIds.close}
           >

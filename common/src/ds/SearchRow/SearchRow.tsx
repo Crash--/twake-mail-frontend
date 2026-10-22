@@ -7,7 +7,7 @@ import type { ReactElement, ReactNode, Ref } from 'react'
 
 /** The search is 700 px wide in the design, less when the room is short */
 const SEARCH_WIDTH = 700
-const ROW_SX = { px: 2, pt: 1.5, pb: 1 } as const
+const ROW_SX = { p: 2 } as const
 const SEARCH_SX = { flex: `0 1 ${SEARCH_WIDTH}px`, minWidth: 0 } as const
 
 export interface SearchRowProps {

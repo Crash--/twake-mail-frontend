@@ -1,11 +1,10 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's account menu without
-// the platform (`ProfileSettingIcon`, `ProfileSettingMenuOverlay`): a 48 px
-// white disc holding the first letter of the name or address, opening a 260 px card
-// rounded by 14 px: the display name when known (tmail-flutter#2756), the
-// address with a copy button, a close cross, then its entries (manage
-// account, sign out).
+// Upstream to twake-ui: no. The account menu without the platform: an avatar
+// with the first letter of the name or address, opening a 260 px card: the
+// display name when known, the address with a copy button, a close cross,
+// then its entries (manage account, sign out).
 import { Icon } from '@linagora/twake-icons'
 import {
+  Avatar,
   Box,
   ButtonBase,
   Divider,
@@ -23,37 +22,16 @@ import {
 } from 'react'
 
 import { Copy, CrossSmall } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-const BUTTON_SX = {
-  // tmail-flutter's `SizedBox(width: 16)` before the avatar
-  ml: '16px',
-  width: 48,
-  height: 48,
-  borderRadius: '50%',
-  bgcolor: TMAIL.surface,
-  color: TMAIL.textBlack,
-  // A button does not inherit the font of the page: Inter, as tmail-flutter
-  fontFamily: 'inherit',
-  fontSize: 20,
-  fontWeight: 500,
-  // tmail-flutter's `colorShadowBgContentEmail` (#14000000)
-  boxShadow: '0 0.5px 1px 1px rgba(0, 0, 0, 0.08)'
-} as const
+const BUTTON_SX = { ml: '16px', borderRadius: '50%' } as const
 
-const PAPER_SX = {
-  width: 260,
-  mt: '8px',
-  borderRadius: '14px',
-  boxShadow: '0 0 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15)'
-} as const
+const PAPER_SX = { width: 260, mt: '8px' } as const
 
 const NAME_SX = {
   px: '16px',
   pt: '32px',
-  fontSize: 16,
-  fontWeight: 500,
-  color: TMAIL.textBlack,
+  typography: 'subtitle1',
+  color: 'text.primary',
   textAlign: 'center',
   overflowWrap: 'anywhere'
 } as const
@@ -66,9 +44,8 @@ const ADDRESS_SX = {
   px: '16px',
   pt: '32px',
   pb: '4px',
-  fontSize: 14,
-  fontWeight: 400,
-  color: TMAIL.grey,
+  typography: 'body2',
+  color: 'text.secondary',
   wordBreak: 'break-all'
 } as const
 
@@ -77,12 +54,7 @@ const ADDRESS_UNDER_NAME_SX = { ...ADDRESS_SX, pt: '4px' } as const
 
 const CLOSE_SX = { position: 'absolute', top: 6, right: 6 } as const
 
-/** tmail-flutter's grey icons of the entries */
-const LIST_SX = {
-  pt: 0,
-  pb: '8px',
-  '&& .MuiListItemIcon-root': { color: TMAIL.greyDark }
-} as const
+const LIST_SX = { pt: 0, pb: '8px' } as const
 
 export interface ProfileMenuLabels {
   /** Name and tooltip of the button, e.g. "Account" */
@@ -146,7 +118,7 @@ export function ProfileMenu({
           sx={BUTTON_SX}
           data-testid={testId}
         >
-          {initial}
+          <Avatar size={32}>{initial}</Avatar>
         </ButtonBase>
       </Tooltip>
       <Popover

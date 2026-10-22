@@ -1,20 +1,7 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's sign-in button
-// (`buildLoginButton`): 48 px high, the width of the form, a 10 px radius,
-// blue (#007AFF), its label in 16 px white.
+// Upstream to twake-ui: no. The sign-in button: twake-mui's large `Button`,
+// the width of the form.
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
-
-const BUTTON_SX = {
-  height: 48,
-  borderRadius: '10px',
-  bgcolor: '#007AFF',
-  boxShadow: 'none',
-  color: '#FFFFFF',
-  fontSize: 16,
-  fontWeight: 500,
-  textTransform: 'none',
-  '&:hover': { bgcolor: '#0067D6', boxShadow: 'none' }
-} as const
 
 export interface LoginButtonProps {
   children: string
@@ -32,9 +19,9 @@ export function LoginButton({
     <Button
       type="submit"
       variant="contained"
+      size="large"
       fullWidth
       disabled={disabled}
-      sx={BUTTON_SX}
       data-testid={testId}
     >
       {children}

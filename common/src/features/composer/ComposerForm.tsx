@@ -9,7 +9,8 @@ import {
   Paperplane,
   Trash,
   Warning,
-  Assistant
+  Assistant,
+  FileOutline
 } from '@linagora/twake-icons'
 import {
   Box,
@@ -52,7 +53,6 @@ import { PillButton } from '@/ds/PillButton/PillButton'
 import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
 import {
   FormattingIcon,
-  SaveDraftIcon,
   SendDisabledIcon,
   SendMobileIcon
 } from '@/ds/ComposerIcons/ComposerIcons'
@@ -1611,7 +1611,7 @@ function LoadedComposerForm({
       className="u-ml-half"
       data-testid="composer-save-draft-button"
     >
-      <Icon icon={SaveDraftIcon} size={24} aria-hidden="true" />
+      <Icon icon={FileOutline} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   // As tmail-flutter on phones: the arrow up in a blue disc, grey while

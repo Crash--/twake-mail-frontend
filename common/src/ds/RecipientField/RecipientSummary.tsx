@@ -50,7 +50,13 @@ function SummaryChip({ chip }: { chip: RecipientFieldChip }): ReactElement {
         )
       }
       icon={
-        chip.isInvalid ? <Icon icon={Warning} aria-hidden="true" /> : undefined
+        chip.isInvalid ? (
+          <Icon
+            icon={Warning}
+            color="var(--twake-palette-error-main)"
+            aria-hidden="true"
+          />
+        ) : undefined
       }
       label={chip.label}
       sx={{

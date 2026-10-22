@@ -1970,7 +1970,12 @@ function LoadedComposerForm({
               className="u-ph-1 u-pv-half u-flex u-flex-items-center"
               data-testid="composer-send-error"
             >
-              <Icon icon={Warning} aria-hidden="true" className="u-mr-half" />
+              <Icon
+                icon={Warning}
+                color="var(--twake-palette-error-main)"
+                aria-hidden="true"
+                className="u-mr-half"
+              />
               {sendError}
               {isSendOverQuota ? (
                 <>

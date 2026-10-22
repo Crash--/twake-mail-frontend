@@ -517,7 +517,6 @@ export function IdentityFormDialog({
           <ConfirmDialogButton
             type="submit"
             isMain
-            minWidth={110}
             disabled={isSaving}
             data-testid="save-identity-button"
           >

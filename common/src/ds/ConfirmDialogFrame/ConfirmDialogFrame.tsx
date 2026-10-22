@@ -1,61 +1,20 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's confirmation
-// dialog (`ConfirmationDialogBuilder`): 421 px wide, a 16 px radius, a
-// close cross at the top end, the title centred in Semi Bold 24, the
-// message in Regular 16 / 24 (#424244), and at the end the actions: text
-// buttons and the confirming one, a 48 px blue (#0A84FF) pill.
+// Upstream to twake-ui: no. A confirmation dialog on twake-mui's small
+// `Dialog` (title, content, actions), with a close cross at the top end.
+// twake-mui's `ConfirmDialog` is not used: its close button is named and
+// tagged by twake-mui, not by the app.
 import { Icon } from '@linagora/twake-icons'
-import { Box, Button, Dialog, IconButton, Typography } from '@mui/material'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography
+} from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { CloseDialog } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-const TEXT_COLOR = TMAIL.textGrey
-const PRIMARY = TMAIL.primary0A
-/** The confirming pill keeps that blue, its label white, in both schemes */
-const PRIMARY_FILL = '#0A84FF'
-
-const PAPER_SX = {
-  width: 421,
-  maxWidth: 'calc(100% - 32px)',
-  m: 2,
-  borderRadius: '16px',
-  position: 'relative',
-  boxSizing: 'border-box',
-  pt: 3,
-  px: 4,
-  pb: 4
-} as const
-
-const TITLE_SX = {
-  m: 0,
-  textAlign: 'center',
-  fontSize: 24,
-  fontWeight: 600,
-  lineHeight: '32px',
-  color: TEXT_COLOR
-} as const
-
-const MESSAGE_SX = {
-  mt: 4,
-  fontSize: 16,
-  fontWeight: 400,
-  lineHeight: '24px',
-  letterSpacing: '-0.15px',
-  color: TEXT_COLOR
-} as const
-
-const LABEL_SX = {
-  height: 48,
-  borderRadius: '100px',
-  px: '10px',
-  fontSize: 14,
-  fontWeight: 500,
-  lineHeight: '20px',
-  letterSpacing: '0.1px',
-  textTransform: 'none',
-  boxShadow: 'none'
-} as const
 
 export interface ConfirmDialogFrameProps {
   open: boolean
@@ -75,7 +34,7 @@ export interface ConfirmDialogFrameProps {
   'data-testid'?: string
 }
 
-/** A dialog asking to confirm, as tmail-flutter's */
+/** A dialog asking to confirm */
 export function ConfirmDialogFrame({
   open,
   title,
@@ -91,52 +50,40 @@ export function ConfirmDialogFrame({
 }: ConfirmDialogFrameProps): ReactElement {
   return (
     <Dialog
+      size="small"
       open={open}
       onClose={onClose}
       aria-labelledby={titleId}
       aria-describedby={messageId}
-      slotProps={{
-        paper: { sx: PAPER_SX },
-        transition: { onExited }
-      }}
+      slotProps={{ transition: { onExited } }}
       data-testid={testId}
     >
       {hasCloseButton ? (
         <IconButton
           aria-label={closeLabel}
           onClick={onClose}
-          sx={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
-            color: TMAIL.steelLight
-          }}
+          className="dialogIconButton dialogCloseButton"
         >
-          <Icon icon={CloseDialog} size={24} />
+          <Icon icon={CloseDialog} size={24} aria-hidden="true" />
         </IconButton>
       ) : null}
-      <Typography id={titleId} component="h2" sx={TITLE_SX}>
+      <DialogTitle
+        id={titleId}
+        className={hasCloseButton ? 'dialogTitleWithClose' : undefined}
+      >
         {title}
-      </Typography>
-      {/* A paragraph for a text, a block for richer content */}
-      <Typography
-        id={messageId}
-        component={typeof message === 'string' ? 'p' : 'div'}
-        sx={MESSAGE_SX}
-      >
-        {message}
-      </Typography>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          gap: 1,
-          mt: '44px',
-          px: '12px'
-        }}
-      >
-        {children}
-      </Box>
+      </DialogTitle>
+      <DialogContent>
+        {/* A paragraph for a text, a block for richer content */}
+        <Typography
+          id={messageId}
+          component={typeof message === 'string' ? 'p' : 'div'}
+          sx={{ m: 0 }}
+        >
+          {message}
+        </Typography>
+      </DialogContent>
+      <DialogActions>{children}</DialogActions>
     </Dialog>
   )
 }
@@ -147,9 +94,7 @@ export interface ConfirmDialogButtonProps {
   onClick?: () => void
   type?: 'button' | 'submit'
   disabled?: boolean
-  /** Its least width, in px: 135 for the main one, 67 for the others */
-  minWidth?: number
-  /** The confirming action: a blue pill, else blue text */
+  /** The confirming action: a filled button, else text */
   isMain?: boolean
   /** As wide as the dialog: the one button of a message */
   isFullWidth?: boolean
@@ -163,7 +108,6 @@ export function ConfirmDialogButton({
   onClick,
   type = 'button',
   disabled = false,
-  minWidth,
   isMain = false,
   isFullWidth = false,
   autoFocus,
@@ -176,13 +120,7 @@ export function ConfirmDialogButton({
       disabled={disabled}
       onClick={onClick}
       autoFocus={autoFocus}
-      sx={{
-        ...LABEL_SX,
-        minWidth: minWidth ?? (isMain ? 135 : 67),
-        flex: isFullWidth ? '1 1 auto' : undefined,
-        color: isMain ? '#FFFFFF' : PRIMARY,
-        bgcolor: isMain ? PRIMARY_FILL : 'transparent'
-      }}
+      fullWidth={isFullWidth}
       data-testid={testId}
     >
       {children}

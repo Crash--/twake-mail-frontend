@@ -1,12 +1,9 @@
-// Upstream to twake-ui: yes. tmail-flutter opens its menus from the bottom
-// edge on phones and tablets (`openBottomSheetContextMenuAction`): a white
-// sheet with a drag handle, rounded by 16 px at the top, 48 px rows (a 20 px
-// icon 24 px in, a 16 px label) and dividers between the groups. twake-mui's
-// `Menu` is a popover and its `Drawer` holds no menu.
+// Upstream to twake-ui: yes. A menu rising from the bottom edge on phones
+// and tablets: a sheet with a drag handle, rounded at the top, the rows of a
+// `Menu` and dividers between the groups. twake-mui's `Menu` is a popover
+// and its `BottomSheet` holds no menu (no `role="menu"`, no arrow keys).
 import { Box, Drawer, MenuList } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const PAPER_SX = {
   borderTopLeftRadius: 16,
@@ -15,47 +12,21 @@ const PAPER_SX = {
   pb: 'calc(24px + env(safe-area-inset-bottom))'
 } as const
 
-/** Material's drag handle: 32 x 4, 22 px from the top */
+/** The handle of twake-mui's `BottomSheet`: 64 x 4 in a 48 px bar */
 const HANDLE_SX = {
   flexShrink: 0,
-  width: 32,
+  width: 64,
   height: 4,
   mx: 'auto',
   mt: '22px',
   mb: '22px',
-  borderRadius: 2,
-  bgcolor: TMAIL.greyHandle
+  borderRadius: '99px',
+  bgcolor: 'text.secondary'
 } as const
 
-/** Over the menu items of the theme: grey, 16 px, wider */
 const LIST_SX = {
   py: 0,
-  overflowY: 'auto',
-  '&& .MuiMenuItem-root': {
-    minHeight: 48,
-    px: '24px',
-    fontSize: 16,
-    lineHeight: '21px',
-    letterSpacing: '-0.15px',
-    color: TMAIL.textGrey90
-  },
-  '&& .MuiListItemText-primary': {
-    fontSize: 16,
-    lineHeight: '21px',
-    letterSpacing: '-0.15px',
-    color: TMAIL.textGrey90
-  },
-  '&& .MuiListItemIcon-root': {
-    width: 20,
-    minWidth: 20,
-    mr: '24px',
-    color: TMAIL.textGrey72
-  },
-  '&& .MuiListItemIcon-root svg': { width: 20, height: 20 },
-  '&& .MuiDivider-root': {
-    my: '8px',
-    borderColor: TMAIL.dividerGrey12
-  }
+  overflowY: 'auto'
 } as const
 
 export interface ActionSheetProps {
@@ -86,10 +57,7 @@ export function ActionSheet({
       anchor="bottom"
       open={open}
       onClose={onClose}
-      slotProps={{
-        paper: { sx: PAPER_SX },
-        backdrop: { sx: { bgcolor: 'rgba(0, 0, 0, 0.2)' } }
-      }}
+      slotProps={{ paper: { sx: PAPER_SX } }}
       data-testid={testId}
     >
       <Box sx={HANDLE_SX} aria-hidden="true" />

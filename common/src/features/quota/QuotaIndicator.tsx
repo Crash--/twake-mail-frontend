@@ -1,8 +1,7 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Refresh } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
-import { Refresh } from '@/ds/FlutterIcons/FlutterIcons'
 import { Quotas } from '@/ds/NavIcons/NavIcons'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { SidebarStorage } from '@/ds/SidebarStorage/SidebarStorage'

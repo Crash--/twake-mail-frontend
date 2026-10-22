@@ -2,7 +2,7 @@
 // suggestions; Mail (recipients), Calendar (attendees) and Drive (sharing)
 // all need one. The ARIA 1.2 combobox of `SearchCombobox`, with the chips
 // of what was already entered before the input.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Warning } from '@linagora/twake-icons'
 import {
   Box,
   InputBase,
@@ -32,7 +32,6 @@ import {
   type Ref
 } from 'react'
 
-import { Warning } from '@/ds/FlutterIcons/FlutterIcons'
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
 import {
   RecipientCard,

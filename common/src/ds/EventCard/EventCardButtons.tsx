@@ -1,10 +1,9 @@
 // Upstream to twake-ui: yes, with `EventCard`. The answer buttons and the
 // text actions of the Twake event card (linagora-design-flutter
 // `LinagoraEventCard`, `LinagoraEventAction`).
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Check } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
-import { Check } from '@/ds/FlutterIcons/FlutterIcons'
 
 type IconSource = ComponentProps<typeof Icon>['icon']
 

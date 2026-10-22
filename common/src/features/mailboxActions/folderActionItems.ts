@@ -1,4 +1,17 @@
-import type { IconProps } from '@linagora/twake-icons'
+import {
+  EmailOpen,
+  Eye,
+  EyeClosed,
+  Filter,
+  FolderAdd,
+  Moveto,
+  Openwith,
+  Rename,
+  Copy,
+  Restore,
+  Trash,
+  type IconProps
+} from '@linagora/twake-icons'
 
 import {
   isHiddenMailbox,
@@ -7,20 +20,9 @@ import {
   isTeamTrash
 } from '@common/features/mailbox/mailboxTree'
 import {
-  EmailOpen,
-  Eye,
-  EyeClosed,
-  Filter,
-  FolderAdd,
   MoveMailbox,
-  Moveto,
-  Openwith,
-  Rename,
-  Copy,
-  Restore,
   SubaddressingAllow,
-  SubaddressingDisallow,
-  Trash
+  SubaddressingDisallow
 } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'

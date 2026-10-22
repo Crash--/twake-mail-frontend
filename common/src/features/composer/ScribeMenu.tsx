@@ -1,4 +1,10 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  AssistantColor,
+  Bottom,
+  Copy,
+  Warning
+} from '@linagora/twake-icons'
 import {
   useEffect,
   useRef,
@@ -30,14 +36,10 @@ import {
   AiMoreProfessional,
   AiShorter,
   AiTranslate,
-  AssistantColor,
-  Bottom,
   CloseDialog,
-  Copy,
   RetryArrows,
   SendArrow,
-  Sparkle,
-  Warning
+  Sparkle
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useScribePreference } from '@common/features/scribe/scribePreference'

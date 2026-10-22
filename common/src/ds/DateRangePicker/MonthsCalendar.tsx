@@ -4,7 +4,7 @@
 // the start and the end of the range filled with the primary colour, today
 // on `action.selected`. A grid of days as the APG date picker dialog: arrows,
 // Home / End, Page Up / Page Down (a year with Shift), Enter or Space picks.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Left, Right } from '@linagora/twake-icons'
 import { Box, IconButton, radius, Tooltip } from '@linagora/twake-mui'
 import {
   useEffect,
@@ -14,8 +14,6 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
-
-import { Left, Right } from '@/ds/FlutterIcons/FlutterIcons'
 
 import {
   addDays,

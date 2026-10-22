@@ -2,7 +2,7 @@
 // the bottom of the screen that can be minimized or put full screen while
 // the page stays usable (Gmail's composer, chat windows): Mail needs them
 // for the composer, Chat could for conversations.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Dash, Top } from '@linagora/twake-icons'
 import {
   Backdrop,
   Box,
@@ -26,10 +26,8 @@ import {
 
 import {
   Cancel,
-  Dash,
   Fullscreen,
-  FullscreenExit,
-  Top
+  FullscreenExit
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'

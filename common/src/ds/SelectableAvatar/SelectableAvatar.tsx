@@ -4,11 +4,9 @@
 // the middle of the 48 px). tmail-flutter selects with a
 // long press, then a tap on the avatar; here the avatar is a checkbox of
 // its own, reached by keyboard and named by its label.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Check } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, ReactNode, Ref } from 'react'
-
-import { Check } from '@/ds/FlutterIcons/FlutterIcons'
 
 const BUTTON_SX = {
   width: 48,

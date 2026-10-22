@@ -1,4 +1,15 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  Attachment,
+  Check,
+  Cross,
+  Dots,
+  Image,
+  Link,
+  Paperplane,
+  Trash,
+  Warning
+} from '@linagora/twake-icons'
 import {
   Box,
   InputBase,
@@ -26,19 +37,7 @@ import {
   type ReactNode
 } from 'react'
 
-import {
-  Attachment,
-  Cancel,
-  Check,
-  Cross,
-  Dots,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Paperplane,
-  Sparkle,
-  Trash,
-  Warning
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { Cancel, Sparkle } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import {
@@ -1527,7 +1526,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
     >
-      <Icon icon={ImageIcon} size={24} aria-hidden="true" />
+      <Icon icon={Image} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   // On a phone the link is in the More menu, as the bar has no room for it
@@ -1538,7 +1537,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
     >
-      <Icon icon={LinkIcon} size={24} aria-hidden="true" />
+      <Icon icon={Link} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   const driveButton = (

@@ -5,7 +5,7 @@
 // a 56 px row (a 32 px avatar, the name, the address under it), the one
 // shown on the selected tint with a tick at its end. While another mailbox than
 // the user's is shown, a cross beside the pill goes back to theirs.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Check, CrossSmall } from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
@@ -19,11 +19,7 @@ import {
 } from '@linagora/twake-mui'
 import { Fragment, useId, useState, type ReactElement } from 'react'
 
-import {
-  Check,
-  ChevronDownOutline,
-  CrossSmall
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { ChevronDownOutline } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   firstLetterOf,
   GradientAvatar

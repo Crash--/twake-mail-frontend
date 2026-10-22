@@ -1,14 +1,8 @@
+import { Archive, Reply, Star, StarOutline, Trash } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
-import {
-  Archive,
-  MoveEmail,
-  Reply,
-  Star,
-  StarOutline,
-  Trash
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { MoveEmail } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'

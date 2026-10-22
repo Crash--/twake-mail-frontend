@@ -1,4 +1,12 @@
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Attachment,
+  Cross,
+  EmailNotification,
+  Filter,
+  StarOutline
+} from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -10,14 +18,7 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useRef, useState, type ReactElement } from 'react'
 
-import {
-  Attachment,
-  Cross,
-  EmailNotification,
-  Filter,
-  FilterSelected,
-  StarOutline
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { FilterSelected } from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'

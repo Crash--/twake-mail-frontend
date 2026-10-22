@@ -1,8 +1,8 @@
+import { HelpOutlined } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useEffect, useId, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
 
-import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { SignOutSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import {

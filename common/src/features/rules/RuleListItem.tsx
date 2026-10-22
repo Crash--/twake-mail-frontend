@@ -1,10 +1,10 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Bottom, Top, Trash } from '@linagora/twake-icons'
 import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useRef, useState, type ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
-import { Bottom, Edit, Top, Trash } from '@/ds/FlutterIcons/FlutterIcons'
+import { Edit } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SettingsCard } from '@/ds/SettingsCards/SettingsCards'

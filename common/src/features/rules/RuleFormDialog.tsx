@@ -1,3 +1,4 @@
+import { Check, Eye, EyeClosed, Plus, Trash } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -14,14 +15,7 @@ import {
   type ReactElement
 } from 'react'
 
-import {
-  Check,
-  Eye,
-  EyeClosed,
-  InfoCircle,
-  Plus,
-  Trash
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { InfoCircle } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import {
   SettingsFormBox,

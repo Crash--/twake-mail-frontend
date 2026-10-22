@@ -1,7 +1,7 @@
 // Upstream to twake-ui: no, the look of tmail-flutter. The `boxed` look of
 // RichTextToolbar: tmail-flutter's toolbar of the signature editor
 // (`ToolbarRichTextWidget` in the identity creator).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Link, List, Number } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
@@ -12,9 +12,6 @@ import {
   AlignLeft,
   AlignRight,
   FormatColorFill,
-  Link,
-  List,
-  Number as NumberIcon,
   StyleArrowDown,
   StyleBold,
   StyleColor,
@@ -240,7 +237,7 @@ export function BoxedContent({
     case 'lists':
       return (
         <>
-          <Icon icon={state.isOrderedList ? NumberIcon : List} size={28} />
+          <Icon icon={state.isOrderedList ? Number : List} size={28} />
           <Arrow />
         </>
       )

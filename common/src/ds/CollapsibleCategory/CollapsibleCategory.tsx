@@ -3,11 +3,10 @@
 // heading, an optional 20 px icon, the title, the chevron right after it,
 // and what it holds below, shown while expanded. `NavSectionHeader` is the
 // small grey title of the sidebar.
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Bottom, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
 import { NESTED_LIST_SX } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
 
 const HEADING_SX = {

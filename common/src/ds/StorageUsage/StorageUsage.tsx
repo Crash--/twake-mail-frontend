@@ -2,11 +2,10 @@
 // then in a 350 px column the space used (`h5`), "of … used" and
 // "Available: …" (`caption`), over a thin gauge; on a phone the cloud above
 // the line.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Cloud } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
-import { Cloud } from '@/ds/FlutterIcons/FlutterIcons'
 import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 

@@ -1,7 +1,8 @@
+import { Attachment } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { Attachment, SelectedCheck } from '@/ds/FlutterIcons/FlutterIcons'
+import { SelectedCheck } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { FilterChip } from './FilterChip'

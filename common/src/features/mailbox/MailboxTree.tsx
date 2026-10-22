@@ -1,3 +1,4 @@
+import { Eye, EyeClosed, Magnifier } from '@linagora/twake-icons'
 import { Box, ListItem, ListItemText } from '@linagora/twake-mui'
 import {
   Fragment,
@@ -11,7 +12,6 @@ import {
 } from 'react'
 import { useMatch } from 'react-router'
 
-import { Eye, EyeClosed, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
 import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { DefaultFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import { NavCategory } from '@/ds/NavCategory/NavCategory'

@@ -11,7 +11,14 @@
 // folder with subfolders is reached too (`aria-disabled`, Enter ignored) to
 // unfold it; the headers of the blocks are buttons (`aria-expanded`). An
 // optional "New folder" icon button, with its tooltip, ends the bar.
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Bottom,
+  Check,
+  Magnifier,
+  Right
+} from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
@@ -32,7 +39,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { Bottom, Check, Magnifier, Right } from '@/ds/FlutterIcons/FlutterIcons'
 import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 

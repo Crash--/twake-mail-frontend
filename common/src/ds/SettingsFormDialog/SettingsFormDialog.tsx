@@ -5,7 +5,7 @@
 // before the title. Its parts: the labels of the fields, the boxes holding a
 // condition or an action, the outlined buttons adding one ("Add a
 // condition"), the native selects and the field buttons (a folder).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Dropdown } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -27,11 +27,7 @@ import type {
   SubmitEvent
 } from 'react'
 
-import {
-  ArrowBack,
-  CloseDialog,
-  Dropdown
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { ArrowBack, CloseDialog } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const PAPER_SX = {

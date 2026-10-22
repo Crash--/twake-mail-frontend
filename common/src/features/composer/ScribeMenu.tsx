@@ -3,7 +3,8 @@ import {
   AssistantColor,
   Bottom,
   Copy,
-  Warning
+  Warning,
+  Cross
 } from '@linagora/twake-icons'
 import {
   useEffect,
@@ -36,7 +37,6 @@ import {
   AiMoreProfessional,
   AiShorter,
   AiTranslate,
-  CloseDialog,
   RetryArrows,
   SendArrow,
   Sparkle
@@ -377,7 +377,7 @@ export function ScribeMenu({
         icons={{
           sparkle: Sparkle,
           warning: Warning,
-          close: CloseDialog,
+          close: Cross,
           copy: Copy,
           retry: RetryArrows,
           chevron: Bottom

@@ -1,12 +1,8 @@
-import { Bottom, Copy, Warning } from '@linagora/twake-icons'
+import { Bottom, Copy, Warning, Cross } from '@linagora/twake-icons'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import {
-  CloseDialog,
-  RetryArrows,
-  Sparkle
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { RetryArrows, Sparkle } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import {
@@ -28,7 +24,7 @@ const LABELS = {
 const ICONS = {
   sparkle: Sparkle,
   warning: Warning,
-  close: CloseDialog,
+  close: Cross,
   copy: Copy,
   retry: RetryArrows,
   chevron: Bottom

@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Cross } from '@linagora/twake-icons'
 import { IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { Link, useLocation, useMatch, useNavigate } from 'react-router'
@@ -7,7 +7,7 @@ import {
   AppTopBar,
   type AppTopBarSearchActions
 } from '@/ds/AppTopBar/AppTopBar'
-import { ArrowBack, Cancel } from '@/ds/FlutterIcons/FlutterIcons'
+import { ArrowBack } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useCurrentMailboxName } from '@common/features/mailbox/useCurrentMailboxName'
 import { labelDisplayName } from '@common/features/labels/labelDisplayName'
@@ -149,7 +149,7 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
               aria-label={t('settings.backToMail')}
               data-testid="settings-back-button"
             >
-              <Icon icon={Cancel} size={24} />
+              <Icon icon={Cross} size={24} />
             </IconButton>
           </Tooltip>
         ) : section !== null && !isDesktop ? (

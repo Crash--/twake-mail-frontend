@@ -2,7 +2,7 @@
 // `Dialog` (title, content, actions), with a close cross at the top end.
 // twake-mui's `ConfirmDialog` is not used: its close button is named and
 // tagged by twake-mui, not by the app.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Cross } from '@linagora/twake-icons'
 import {
   Button,
   Dialog,
@@ -13,8 +13,6 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-
-import { CloseDialog } from '@/ds/FlutterIcons/FlutterIcons'
 
 export interface ConfirmDialogFrameProps {
   open: boolean
@@ -64,7 +62,7 @@ export function ConfirmDialogFrame({
           onClick={onClose}
           className="dialogIconButton dialogCloseButton"
         >
-          <Icon icon={CloseDialog} size={24} aria-hidden="true" />
+          <Icon icon={Cross} size={24} aria-hidden="true" />
         </IconButton>
       ) : null}
       <DialogTitle

@@ -2,7 +2,7 @@
 // the bottom of the screen that can be minimized or put full screen while
 // the page stays usable (Gmail's composer, chat windows): Mail needs them
 // for the composer, Chat could for conversations.
-import { Icon, Dash, Top } from '@linagora/twake-icons'
+import { Icon, Dash, Top, Cross } from '@linagora/twake-icons'
 import {
   Backdrop,
   Box,
@@ -24,11 +24,7 @@ import {
   type ReactNode
 } from 'react'
 
-import {
-  Cancel,
-  Fullscreen,
-  FullscreenExit
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { Fullscreen, FullscreenExit } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 
@@ -265,7 +261,7 @@ export function DockedWindow({
   const closeButton = (
     <TitleBarButton
       label={labels.close}
-      icon={Cancel}
+      icon={Cross}
       onClick={onClose}
       data-testid={testIds.close}
     />

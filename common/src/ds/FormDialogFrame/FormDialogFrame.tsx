@@ -3,7 +3,7 @@
 // column before them, and at the bottom an option at the start and the
 // buttons at the end; on a phone the whole screen, an arrow back before the
 // title, the labels over the fields.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Cross } from '@linagora/twake-icons'
 import {
   Box,
   Dialog,
@@ -15,7 +15,7 @@ import {
 } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, SubmitEvent } from 'react'
 
-import { ArrowBack, CloseDialog } from '@/ds/FlutterIcons/FlutterIcons'
+import { ArrowBack } from '@/ds/FlutterIcons/FlutterIcons'
 
 const ACTIONS_SX = {
   display: 'flex',
@@ -106,7 +106,7 @@ export function FormDialogFrame({
               onClick={onClose}
               className="dialogIconButton dialogCloseButton"
             >
-              <Icon icon={CloseDialog} size={24} />
+              <Icon icon={Cross} size={24} />
             </IconButton>
           </>
         )}

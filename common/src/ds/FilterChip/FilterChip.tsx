@@ -3,10 +3,9 @@
 // label, and the pale primary colour with a small cross once applied.
 // twake-mui's `Chip` has no applied state short of a solid primary colour,
 // and needs `sx` for that tint (docs/twake-mui-gaps.md).
-import { Icon, type IconProps, Dropdown } from '@linagora/twake-icons'
+import { Icon, type IconProps, Dropdown, Cross } from '@linagora/twake-icons'
 import { Box, Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
-import { DeleteSelection } from '@/ds/FlutterIcons/FlutterIcons'
 
 const END_SX = { display: 'flex', color: 'text.secondary' } as const
 
@@ -93,7 +92,7 @@ export function FilterChip({
           </Box>
         ) : isSelected ? (
           <Box component="span" sx={END_SX}>
-            <Icon icon={DeleteSelection} size={10} />
+            <Icon icon={Cross} size={10} />
           </Box>
         ) : undefined
       }

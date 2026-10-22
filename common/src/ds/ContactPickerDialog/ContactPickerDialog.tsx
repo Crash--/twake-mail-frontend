@@ -7,7 +7,7 @@
 // Accessibility: a dialog named by its title; the contacts are checkboxes
 // (`role="checkbox"`, `aria-checked`) in a list the search field controls;
 // the focus goes to the search field and back to what opened it.
-import { Icon, Cross, Magnifier } from '@linagora/twake-icons'
+import { Icon, Cross, Magnifier, CrossCircle } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -21,11 +21,7 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useRef, type ReactElement } from 'react'
 
-import {
-  CheckboxOff,
-  CheckboxOn,
-  ClearTextSearch
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   firstLetterOf,
   GradientAvatar
@@ -286,7 +282,7 @@ export function ContactPickerDialog({
               }}
               sx={CLEAR_SX}
             >
-              <Icon icon={ClearTextSearch} size={16} />
+              <Icon icon={CrossCircle} size={16} />
             </IconButton>
           </Tooltip>
         )}

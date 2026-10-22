@@ -14,7 +14,6 @@ import {
 } from '@linagora/twake-mui'
 import { useId, type ReactElement, type ReactNode } from 'react'
 
-import { CloseDialog } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface PickerSheetProps {
@@ -133,7 +132,7 @@ export function PickerSheet({
           data-testid={closeButtonTestId}
           className="dialogIconButton dialogCloseButton"
         >
-          <Icon icon={CloseDialog} size={24} aria-hidden="true" />
+          <Icon icon={Cross} size={24} aria-hidden="true" />
         </IconButton>
       </Tooltip>
       <DialogContent sx={{ pb: '32px' }}>{children}</DialogContent>

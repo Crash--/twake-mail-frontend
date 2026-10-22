@@ -56,7 +56,7 @@ export interface MessageAlertProps {
 
 /**
  * A banner about a message, in three levels (info blue, warn yellow, error
- * red) with an icon, a title, a description, an optional action pill and an
+ * red) with an icon, a title, a description, an optional ghost button and an
  * optional dismiss button. The content is part of the page, not an event:
  * it is a labelled `group`, not a live region. The level is in the text
  * (`levelLabel`, visually hidden), never only in the colour.
@@ -85,20 +85,11 @@ export function MessageAlert({
             {action ? (
               <Button
                 size="small"
+                variant="ghost"
+                color={SEVERITIES[level]}
                 disabled={action.disabled}
                 onClick={action.onClick}
                 data-testid={action['data-testid']}
-                sx={theme => ({
-                  borderRadius: '100px',
-                  color: `${SEVERITIES[level]}.main`,
-                  bgcolor: 'rgba(255, 255, 255, 0.6)',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  px: 2,
-                  ...theme.applyStyles('dark', {
-                    bgcolor: 'rgba(0, 0, 0, 0.3)'
-                  })
-                })}
               >
                 {action.label}
               </Button>

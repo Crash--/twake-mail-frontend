@@ -681,8 +681,7 @@ export function ComposerProvider({
               mode={shownMode(fittedModes[index])}
               isModal={!isDesktop}
               tabletCard={tabletCard}
-              isShared={entries.length > 1}
-              width={dockedWindowWidth(screenWidth, entries.length)}
+              width={dockedWindowWidth(screenWidth)}
               // Over the page: the menu goes in the window shown
               titleBarActions={!isDesktop && index === 0 ? overflowMenu : null}
               setMode={setMode}
@@ -716,8 +715,6 @@ interface ComposerSlotProps {
   isModal: boolean
   /** Tablets: the card of tmail-flutter rather than the whole screen */
   tabletCard: 'full' | 'centered' | undefined
-  /** Other windows share the dock */
-  isShared: boolean
   /** Width of a window in the dock, in px */
   width: number
   titleBarActions: ReactNode
@@ -741,7 +738,6 @@ function ComposerSlot({
   mode,
   isModal,
   tabletCard,
-  isShared,
   width,
   titleBarActions,
   setMode,
@@ -811,7 +807,6 @@ function ComposerSlot({
         // title bar of the window
         isTitleBarHidden={tabletCard === undefined}
         card={isModal ? tabletCard : undefined}
-        isShared={isShared}
         width={width}
         titleBarActions={titleBarActions}
         // Its own layer in the view transitions of the navigations: not

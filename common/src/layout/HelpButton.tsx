@@ -4,14 +4,10 @@ import type { ReactElement } from 'react'
 import { useMatch } from 'react-router'
 
 import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useI18n } from '@common/i18n/useI18n'
-
-/** tmail-flutter's `AppColor.messageDialogColor` (#8C9CAF) */
-const FLUTTER_HELP_COLOR = TMAIL.steelLight
 
 /**
  * "Get help or report a bug" of the top bar, as tmail-flutter: only when the
@@ -21,8 +17,8 @@ const FLUTTER_HELP_COLOR = TMAIL.steelLight
  */
 export interface HelpButtonProps {
   /**
-   * tmail-flutter's bar (without the platform): its 24 px icon in
-   * `messageDialogColor`, 8 px before the next action
+   * The bar without the platform: a 24 px icon, 8 px before the next
+   * action
    */
   isFlutterLook?: boolean
 }
@@ -45,7 +41,7 @@ export function HelpButton({
     'data-testid': 'help-button'
   } as const
   const icon = isFlutterLook ? (
-    <Icon icon={HelpOutlined} size={24} color={FLUTTER_HELP_COLOR} />
+    <Icon icon={HelpOutlined} size={24} />
   ) : (
     <Icon icon={HelpOutlined} />
   )

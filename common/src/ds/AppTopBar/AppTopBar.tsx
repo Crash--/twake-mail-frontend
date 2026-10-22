@@ -1,9 +1,8 @@
 // Upstream to twake-ui: yes. twake-mui has no top bar: its `Layout` story
 // fakes one, and each Twake app builds its own (Calendar has a desktop, a
-// tablet and a mobile `Menubar`). This one is tmail-flutter's app bar of
-// phones and tablets (`MobileAppBarThreadWidget`, `SearchBarView`): a menu
-// button, the title in Bold 21, the actions at the end, and the search under
-// the bar, as wide as the screen.
+// tablet and a mobile `Menubar`). This one is the app bar of phones and
+// tablets: a menu button, the title, the actions at the end, and the search
+// under the bar, as wide as the screen.
 import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import {
@@ -15,10 +14,9 @@ import {
 } from 'react'
 
 import { Burger, Left } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
-/** The bar of tmail-flutter: 52 px, 16 px in on a phone, 32 px on a tablet */
+/** The bar: 52 px, 16 px in on a phone, 32 px on a tablet */
 const BAR_HEIGHT = 52
 
 function barSx(isPhone: boolean): Record<string, unknown> {
@@ -35,7 +33,7 @@ function barSx(isPhone: boolean): Record<string, unknown> {
 
 /**
  * Over the bar, as tall and white, hidden while empty: 16 px in on a phone,
- * 32 px on a tablet, as tmail-flutter's selection bar
+ * 32 px on a tablet
  */
 function overlaySx(isPhone: boolean): Record<string, unknown> {
   return {
@@ -49,58 +47,42 @@ function overlaySx(isPhone: boolean): Record<string, unknown> {
   }
 }
 
-/** Its menu button: tmail-flutter's light grey 28 px icon, 5 px around */
-const MENU_SX = { p: '5px', color: TMAIL.greyIcon } as const
+/** Its menu button: a 28 px icon, 5 px around */
+const MENU_SX = { p: '5px' } as const
 
-/** Its title: Bold 21, black, 16 px after the menu button */
+/** Its title: heading 4, 16 px after the menu button */
 const TITLE_SX = {
   flex: '1 1 auto',
   minWidth: 0,
   overflow: 'hidden',
   mx: '16px',
-  '& .MuiTypography-root': {
-    fontSize: 21,
-    fontWeight: 700,
-    lineHeight: '28px',
-    color: TMAIL.textBlack
-  }
+  '& .MuiTypography-root': { typography: 'h4' }
 } as const
 
-/** Before and after a centred title: as wide, grey (tmail-flutter's ✕) */
+/** Before and after a centred title: as wide */
 function startSx(isPlain: boolean): Record<string, unknown> {
   return {
     display: 'flex',
     alignItems: 'center',
     width: 48,
     flexShrink: 0,
-    // tmail-flutter's grey cross, its dark arrow back
-    color: isPlain ? TMAIL.textOnSurface : TMAIL.greyIcon,
+    ...(isPlain && { color: 'text.primary' }),
     '& .MuiIconButton-root': { color: 'inherit' }
   }
 }
 
-/** The title of tmail-flutter's settings: Bold 20, in the middle */
+/** The title of the settings: heading 4, in the middle */
 const CENTERED_TITLE_SX = {
   ...TITLE_SX,
   mx: 0,
   textAlign: 'center',
-  '& .MuiTypography-root': {
-    fontSize: 20,
-    fontWeight: 700,
-    lineHeight: '28px',
-    color: TMAIL.textBlack
-  }
+  '& .MuiTypography-root': { typography: 'h4' }
 } as const
 
-/** The title of a section of tmail-flutter's settings: Regular 16 */
+/** The title of a section of the settings: body 1 */
 const PLAIN_TITLE_SX = {
   ...CENTERED_TITLE_SX,
-  '& .MuiTypography-root': {
-    fontSize: 16,
-    fontWeight: 400,
-    lineHeight: '24px',
-    color: TMAIL.textOnSurface
-  }
+  '& .MuiTypography-root': { typography: 'body1', color: 'text.primary' }
 } as const
 
 /** The search under it: 12 px in on a phone, 24 px on a tablet, 8 px below */
@@ -113,16 +95,11 @@ function searchSx(isPhone: boolean): Record<string, unknown> {
   }
 }
 
-/**
- * The actions, as tmail-flutter's filter: a light grey 24 px icon, 8 px
- * around, blue when on
- */
+/** The actions: 24 px icons, 8 px around, blue when on */
 const ACTIONS_SX = {
   display: 'flex',
   alignItems: 'center',
-  color: TMAIL.greyIcon,
-  '& .MuiIconButton-root': { color: 'inherit', p: '8px' },
-  '& .MuiIconButton-root.MuiIconButton-colorPrimary': { color: TMAIL.primary }
+  '& .MuiIconButton-root': { p: '8px' }
 } as const
 
 export interface AppTopBarMenu {
@@ -140,13 +117,14 @@ export interface AppTopBarBack {
   'data-testid'?: string
 }
 
-/** tmail-flutter's blue back arrow, 8 px in on a phone, 24 px on a tablet */
+/** The blue back arrow, 8 px in on a phone, 24 px on a tablet */
 function searchBarSx(isPhone: boolean): Record<string, unknown> {
   return {
     ...barSx(isPhone),
     px: isPhone ? '8px' : '24px',
-    borderBottom: `1px solid ${TMAIL.divider}`,
-    '& > .MuiIconButton-root': { color: TMAIL.primary }
+    borderBottom: 1,
+    borderColor: 'divider',
+    '& > .MuiIconButton-root': { color: 'primary.main' }
   }
 }
 
@@ -256,7 +234,8 @@ export function AppTopBar({
             : startTitle === 'strong'
               ? {
                   ...barSx(isPhone),
-                  borderBottom: `1px solid ${TMAIL.divider}`
+                  borderBottom: 1,
+                  borderColor: 'divider'
                 }
               : { ...barSx(isPhone), height: 64 }
         }

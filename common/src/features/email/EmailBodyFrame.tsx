@@ -254,6 +254,10 @@ export function EmailBodyFrame({
     )
     // `toggle` does not bubble: heard on its way down
     frameDocument.addEventListener('toggle', scheduleFit, true)
+    // Inter may load after the first fit and change the widths. No `fonts` in jsdom
+    if ('fonts' in frameDocument) {
+      frameDocument.fonts.addEventListener('loadingdone', scheduleFit)
+    }
 
     fit()
     const observer = new view.ResizeObserver(() => {

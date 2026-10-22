@@ -30,12 +30,12 @@ export function CompactLinesSkeleton({
   isTagged?: boolean
 }): ReactElement {
   return (
-    <Box sx={{ ...LINES_SX, height: isTagged ? 68.2 : 59.2 }}>
+    <Box sx={{ ...LINES_SX, height: isTagged ? 64.8 : 59.2 }}>
       <Box sx={lineSx(18.4)}>
         <Skeleton width="40%" height={14} className="u-flex-auto" />
         <Skeleton width={48} height={12} className="u-ml-1" />
       </Box>
-      <Box sx={lineSx(isTagged ? 27.4 : 18.4)}>
+      <Box sx={lineSx(isTagged ? 24 : 18.4)}>
         <Skeleton width="60%" height={12} />
       </Box>
       <Box sx={lineSx(18.4)}>

@@ -356,7 +356,6 @@ export function ContactPickerDialog({
                   text={firstLetterOf(label)}
                   colorKey={item.address}
                   size={40}
-                  fontSize={24}
                 />
                 <Box component="span" sx={TEXT_SX}>
                   <Box component="span" sx={NAME_SX}>

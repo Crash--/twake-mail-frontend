@@ -164,8 +164,6 @@ export function SearchField({
                 text={getInitials(name, contact.emailAddress)}
                 colorKey={contact.emailAddress}
                 size={40}
-                fontSize={16}
-                look="plain"
               />
             ),
             'data-testid': 'search-suggestion-contact'

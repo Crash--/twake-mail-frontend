@@ -166,12 +166,7 @@ export function RecipientCard({
       <Box data-testid={testIds.card}>
         <Box className="u-flex u-flex-items-center">
           <Box component="span" className="u-flex-shrink-0" sx={{ mr: 2 }}>
-            <GradientAvatar
-              text={initials}
-              colorKey={initials}
-              size={42}
-              fontSize={16}
-            />
+            <GradientAvatar text={initials} colorKey={initials} size={42} />
           </Box>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             {name === null || name === '' ? null : (

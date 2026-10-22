@@ -4,7 +4,7 @@
 // label above (or at their start), and at the end a text button and the
 // confirming one. Its fields are the 40 px outlined fields below, twake-mui
 // has no compact field.
-import { Icon, Dropdown, Cross } from '@linagora/twake-icons'
+import { Icon, Dropdown, Cross, CheckCircle } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -28,8 +28,6 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
-
-import { FilterSelected } from '@/ds/FlutterIcons/FlutterIcons'
 
 const SUBTITLE_SX = { m: 0, px: '2rem', pt: 1 } as const
 
@@ -518,7 +516,7 @@ export function ModalSelect({
               component="span"
               sx={{ display: 'flex', flexShrink: 0, color: 'primary.main' }}
             >
-              <Icon icon={FilterSelected} size={20} aria-hidden="true" />
+              <Icon icon={CheckCircle} size={20} aria-hidden="true" />
             </Box>
           ) : null}
         </MenuItem>

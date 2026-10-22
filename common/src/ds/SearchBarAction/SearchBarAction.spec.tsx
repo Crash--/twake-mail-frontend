@@ -1,7 +1,7 @@
+import { Filter } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { FilterAdvanced } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { SearchBarAction } from './SearchBarAction'
@@ -12,7 +12,7 @@ describe('SearchBarAction', () => {
     renderDs(
       <SearchBarAction
         label="Advanced search"
-        icon={FilterAdvanced}
+        icon={Filter}
         isActive
         onClick={onClick}
         aria-haspopup="dialog"

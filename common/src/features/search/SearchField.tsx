@@ -3,7 +3,8 @@ import {
   Attachment,
   ClockOutline,
   Star,
-  StarOutline
+  StarOutline,
+  Filter
 } from '@linagora/twake-icons'
 import { getInitials } from '@linagora/twake-mui'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
@@ -15,7 +16,6 @@ import {
   type SearchComboboxGroup,
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
-import { FilterAdvanced } from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { SearchBarAction } from '@/ds/SearchBarAction/SearchBarAction'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
@@ -275,7 +275,7 @@ export function SearchField({
           // As tmail-flutter: hidden while the advanced search is open
           <SearchBarAction
             label={t('search.advanced')}
-            icon={FilterAdvanced}
+            icon={Filter}
             isActive={usesAdvancedFields(initialFilter)}
             isHidden={advanced !== null}
             aria-haspopup="dialog"

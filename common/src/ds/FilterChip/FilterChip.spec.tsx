@@ -1,8 +1,7 @@
-import { Attachment } from '@linagora/twake-icons'
+import { Attachment, Check } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { SelectedCheck } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { FilterChip } from './FilterChip'
@@ -26,13 +25,13 @@ describe('FilterChip', () => {
     expect(onClick).toHaveBeenCalledTimes(1)
   })
 
-  it('draws its applied icon once applied, as tmail-flutter its check', () => {
+  it('draws its applied icon once applied', () => {
     const iconPath = (isSelected: boolean): string | null => {
       const { container, unmount } = renderDs(
         <FilterChip
           label="Has attachment"
           icon={Attachment}
-          selectedIcon={SelectedCheck}
+          selectedIcon={Check}
           isSelected={isSelected}
           onClick={jest.fn()}
         />
@@ -43,7 +42,7 @@ describe('FilterChip', () => {
     }
 
     expect(iconPath(true)).not.toBe(iconPath(false))
-    expect(iconPath(true)).toMatch(/^M6.00001 10.1997/)
+    expect(iconPath(true)).toMatch(/^M5.88 10.23/)
   })
 
   it('opens a menu rather than toggling when it has one', () => {

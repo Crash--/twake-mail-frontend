@@ -13,8 +13,8 @@ import {
   type PopperProps,
   type Theme
 } from '@linagora/twake-mui'
-// Not twake-mui's Chip: it drops its ref, which the keyboard needs to move
-// the focus between chips (docs/twake-mui-gaps.md)
+// MUI's Chip: twake-mui's forwards the ref the keyboard needs since React 19
+// too, the switch is still to do (docs/twake-mui-gaps.md)
 import Chip from '@mui/material/Chip'
 import {
   useEffect,

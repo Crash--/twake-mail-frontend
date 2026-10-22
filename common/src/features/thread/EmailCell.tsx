@@ -424,7 +424,6 @@ export function EmailCell({
       text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
       colorKey={avatarEmail}
       size={48}
-      fontSize={17}
       data-testid="email-list-item-avatar"
     />
   )

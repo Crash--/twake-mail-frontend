@@ -182,7 +182,6 @@ export function MailboxSwitcher({
               text={firstLetterOf(selected.name)}
               colorKey={selected.avatarKey}
               size={24}
-              fontSize={11}
             />
           )}
           <Box component="span" sx={PILL_LABEL_SX}>
@@ -245,7 +244,6 @@ export function MailboxSwitcher({
                       text={firstLetterOf(item.name)}
                       colorKey={item.avatarKey}
                       size={32}
-                      fontSize={14}
                     />
                     <Box
                       className="u-flex u-flex-column"

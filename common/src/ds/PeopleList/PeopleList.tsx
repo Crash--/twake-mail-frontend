@@ -99,7 +99,6 @@ export function PersonSummary({ person }: { person: Person }): ReactElement {
         text={firstLetterOf(person.name)}
         colorKey={person.avatarKey}
         size={32}
-        fontSize={14}
       />
       <Box className="u-flex u-flex-column" sx={{ minWidth: 0, flex: 1 }}>
         <Typography component="span" sx={NAME_SX}>

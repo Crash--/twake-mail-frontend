@@ -94,7 +94,6 @@ function SenderAvatar({
       text={firstLetterOf(name === '' ? address : name)}
       colorKey={address}
       size={isPhone ? 44 : 32}
-      fontSize={isPhone ? 20 : 18}
     />
   )
 }

@@ -60,12 +60,7 @@ export function SettingsSectionList(): ReactElement {
       </Typography>
       <SettingsAccount
         avatar={
-          <GradientAvatar
-            text={initials}
-            colorKey={initials}
-            size={51}
-            fontSize={25}
-          />
+          <GradientAvatar text={initials} colorKey={initials} size={51} />
         }
       >
         {session.username}

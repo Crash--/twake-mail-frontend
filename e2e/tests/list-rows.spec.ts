@@ -172,7 +172,7 @@ test.describe('LST email list rows', () => {
     expect([checkbox.width, checkbox.height]).toEqual([32, 32])
     const star = await box(row.getByTestId('email-list-item-star'))
     expect([star.width, star.height]).toEqual([20, 20])
-    // The 32 px gradient avatar of the sender
+    // The 32 px avatar of the sender
     const avatar = await box(row.getByTestId('email-list-item-avatar'))
     expect([avatar.width, avatar.height]).toEqual([32, 32])
   })

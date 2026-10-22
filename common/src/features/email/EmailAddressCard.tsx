@@ -147,12 +147,7 @@ function AddressCardDialog({
         open={isOpen}
         onClose={onClose}
         avatar={
-          <GradientAvatar
-            text={initials}
-            colorKey={initials}
-            size={67}
-            fontSize={33}
-          />
+          <GradientAvatar text={initials} colorKey={initials} size={67} />
         }
         name={name}
         address={address.email}

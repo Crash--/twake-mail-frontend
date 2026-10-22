@@ -479,7 +479,6 @@ export function ForwardSettings({
                           text={email.slice(0, 2).toUpperCase()}
                           colorKey={email}
                           size={32}
-                          fontSize={14}
                         />
                       }
                       data-testid="forward-select-checkbox"

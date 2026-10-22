@@ -1,18 +1,10 @@
-// Upstream to twake-ui: no, the look of tmail-flutter. The buttons above its
-// list ("Select all messages of this page", "Filter messages") are light
-// grey (#EBEDF0 at 60 %) rounded rectangles, 34 px high with a 10 px radius,
-// a 16 px icon and Inter Regular 13 in dark grey; twake-mui has no such
-// button (docs/twake-mui-gaps.md).
+// Upstream to twake-ui: no, twake-mui's text Button with a menu chevron and a
+// width cap; a `DropdownButton` would bring its own text layout and aria
+// (docs/twake-mui-gaps.md).
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
 import { Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-/** `colorFilterMessageButton` at 60 % on white, its text and icon colour */
-export const TOOLBAR_BUTTON_BACKGROUND = TMAIL.fillToolbar
-const TOOLBAR_BUTTON_HOVER = TMAIL.fillToolbarHover
-const TOOLBAR_BUTTON_COLOR = TMAIL.greyDark
 
 export interface ToolbarButtonProps {
   label: string
@@ -39,7 +31,7 @@ export interface ToolbarButtonProps {
   ref?: Ref<HTMLButtonElement>
 }
 
-/** A button of a list toolbar: 16 px icon, 13 px label on light grey. */
+/** A text button of a list toolbar: 16 px icon, label, optional chevron. */
 export function ToolbarButton({
   label,
   tooltip,
@@ -63,37 +55,27 @@ export function ToolbarButton({
       onClick={onClick}
       disabled={disabled}
       startIcon={<Icon icon={icon} size={16} />}
-      // tmail-flutter's 18 px arrow, 8 px after the label
       endIcon={hasMenu ? <Icon icon={Dropdown} size={18} /> : undefined}
       aria-haspopup={hasPopup}
       aria-controls={controls}
       aria-expanded={expanded}
       data-testid={testId}
       sx={{
-        height: 34,
-        minHeight: 34,
+        minHeight: 32,
         minWidth: 0,
         maxWidth: 250,
         py: 0,
-        px: '12px',
+        px: '6px',
         gap: 1,
-        borderRadius: '10px',
-        bgcolor: TOOLBAR_BUTTON_BACKGROUND,
-        fontSize: 13,
-        fontWeight: 400,
-        lineHeight: '16px',
-        letterSpacing: 0,
-        textTransform: 'none',
         whiteSpace: 'nowrap',
-        // A label longer than 250 px (French) is cut with an ellipsis, as
-        // tmail-flutter's, rather than spilling over the buttons around
+        // A label longer than 250 px (French) is cut with an ellipsis rather
+        // than spilling over the buttons around
         justifyContent: 'flex-start',
         ...(isAtMaxWidth ? { width: 250, justifyContent: 'center' } : {}),
         overflow: 'hidden',
         flexShrink: 0,
-        '&:hover': { bgcolor: TOOLBAR_BUTTON_HOVER },
         '& .MuiButton-startIcon, & .MuiButton-endIcon': { m: 0 },
-        ...(isActive ? {} : { color: TOOLBAR_BUTTON_COLOR })
+        ...(isActive ? {} : { color: 'text.primary' })
       }}
     >
       <Box

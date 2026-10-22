@@ -19,7 +19,6 @@ import type { SpaceOverlay } from '@linagora/twake-mui'
 import { focusIndicatorThemeOptions } from '@/ds/FocusIndicator/focusIndicator'
 import { tmailColorsThemeOptions } from '@/ds/TmailColors/tmailColors'
 import { SCROLLBAR_CSS } from '@/ds/ScrollbarLook/scrollbarLook'
-import { TEXT_LOOK_CSS } from '@/ds/TextLook/textLook'
 import type { SupportedLanguage } from '@common/i18n/languages'
 
 // The production entry point keeps the devtools out of the main bundle:
@@ -56,11 +55,11 @@ export function AppProviders({
 }: AppProvidersProps): ReactElement {
   const focusIndicator = useFocusIndicator()
   const themeOptions = useMemo(() => {
-    // With tmail-flutter's scroll bars and text, global CSS as the focus ring
-    const focusOptions = focusIndicatorThemeOptions(focusIndicator, {
-      ...SCROLLBAR_CSS,
-      ...TEXT_LOOK_CSS
-    })
+    // With tmail-flutter's scroll bars, global CSS as the focus ring
+    const focusOptions = focusIndicatorThemeOptions(
+      focusIndicator,
+      SCROLLBAR_CSS
+    )
     // tmail-flutter's colours, and their counterparts in the dark scheme
     const colorOptions = tmailColorsThemeOptions()
     const ownOptions = { ...focusOptions, ...colorOptions }

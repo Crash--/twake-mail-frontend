@@ -1,66 +1,16 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's dialog while a
-// message is sent (`SendingMessageDialogView`): 400 px wide, a 12 px
-// radius, the title in Bold 17 black on a light grey (#F2F3F5) band, a
-// divider, then "Status: <step>..." and "Progress:" with a sliding bar,
-// light on the primary blue. It cannot be dismissed: it goes once the
-// message is sent or failed, unless the server is slow to answer: then it
-// says so and offers to close it (`tf#2603`).
+// Upstream to twake-ui: no, a plain `Dialog` that cannot be dismissed: it
+// goes once the message is sent or failed, unless the server is slow to
+// answer: then it says so and offers to close it (`tf#2603`).
 import {
-  Box,
+  Button,
   Dialog,
-  Divider,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   LinearProgress,
   Typography
 } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
-
-import { ConfirmDialogButton } from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-const PAPER_SX = {
-  width: 'min(400px, calc(100% - 48px))',
-  m: '16px 24px',
-  borderRadius: '12px',
-  backgroundColor: TMAIL.surface
-} as const
-
-const TITLE_SX = {
-  py: 1,
-  px: 1.5,
-  borderRadius: '12px',
-  backgroundColor: TMAIL.fillF2,
-  textAlign: 'center',
-  fontSize: 17,
-  fontWeight: 700,
-  lineHeight: '22px',
-  color: TMAIL.textBlack
-} as const
-
-const LABEL_SX = {
-  flexShrink: 0,
-  fontSize: 14,
-  fontWeight: 500,
-  lineHeight: '20px',
-  color: TMAIL.textBlack
-} as const
-
-const VALUE_SX = {
-  fontSize: 14,
-  lineHeight: '20px',
-  color: TMAIL.greyMid
-} as const
-
-const BAR_SX = {
-  flex: 1,
-  height: 4,
-  borderRadius: '12px',
-  // As tmail-flutter: a light bar sliding on the primary blue
-  '&&': { backgroundColor: '#007AFF' },
-  '&& .MuiLinearProgress-bar': {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    borderRadius: '12px'
-  }
-} as const
 
 export interface SendingDialogProps {
   open: boolean
@@ -118,60 +68,58 @@ export function SendingDialog({
         slowMessage === null ? statusId : `${statusId} ${slowId}`
       }
       aria-busy
-      slotProps={{ paper: { sx: PAPER_SX } }}
+      size="small"
       data-testid={testId}
     >
-      <Typography id={titleId} component="h2" sx={TITLE_SX}>
-        {title}
-      </Typography>
-      <Divider />
-      <Box sx={{ pt: 1.5, pb: 0.5, px: 2 }} className="u-flex">
-        <Typography component="span" sx={LABEL_SX}>
-          {`${statusLabel}:`}
+      <DialogTitle id={titleId}>{title}</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" component="p">
+          {`${statusLabel}: `}
+          <Typography
+            id={statusId}
+            component="span"
+            variant="body2"
+            role="status"
+            color="text.secondary"
+          >
+            {`${status}...`}
+          </Typography>
         </Typography>
         <Typography
-          id={statusId}
-          component="span"
-          role="status"
-          className="u-ml-half"
-          sx={VALUE_SX}
+          id={progressId}
+          variant="body2"
+          component="p"
+          sx={{ mt: 2, mb: 1 }}
         >
-          {`${status}...`}
-        </Typography>
-      </Box>
-      <Box
-        sx={{ pt: 0.5, pb: 2, px: 2 }}
-        className="u-flex u-flex-items-center"
-      >
-        <Typography id={progressId} component="span" sx={LABEL_SX}>
           {`${progressLabel}:`}
         </Typography>
-        <LinearProgress
-          aria-labelledby={progressId}
-          className="u-ml-half"
-          sx={BAR_SX}
-        />
-      </Box>
-      {slowMessage === null ? null : (
-        <Box sx={{ pb: 2, px: 2 }}>
-          <Typography id={slowId} role="alert" sx={VALUE_SX}>
+        <LinearProgress aria-labelledby={progressId} />
+        {slowMessage === null ? null : (
+          <Typography
+            id={slowId}
+            role="alert"
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 2 }}
+          >
             {slowMessage}
           </Typography>
-          {isClosable ? (
-            <Box sx={{ pt: 1.5 }} className="u-flex u-flex-justify-end">
-              <ConfirmDialogButton
-                autoFocus
-                onClick={onClose}
-                data-testid={
-                  testId === undefined ? undefined : `${testId}-close-button`
-                }
-              >
-                {closeLabel}
-              </ConfirmDialogButton>
-            </Box>
-          ) : null}
-        </Box>
-      )}
+        )}
+      </DialogContent>
+      {isClosable ? (
+        <DialogActions>
+          <Button
+            variant="text"
+            autoFocus
+            onClick={onClose}
+            data-testid={
+              testId === undefined ? undefined : `${testId}-close-button`
+            }
+          >
+            {closeLabel}
+          </Button>
+        </DialogActions>
+      ) : null}
     </Dialog>
   )
 }

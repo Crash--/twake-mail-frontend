@@ -3,6 +3,7 @@
 // Mail, Drive and Chat. Meanwhile local, on twake-mui `Dialog`.
 import { Icon } from '@linagora/twake-icons'
 import {
+  alpha,
   Box,
   Dialog,
   IconButton,
@@ -42,27 +43,9 @@ export interface FilePreviewDialogProps {
   'data-testid'?: string
 }
 
-// tmail-flutter's viewer (`TopBarAttachmentViewer`, `HtmlAttachmentPreviewer`):
-// the page dimmed as behind its dialogs, a 52 px bar with the arrow back, the
-// name in 17 px and the actions, all white; the file on a white page 80 % of
-// the width (the whole width of a phone), 16 px under the bar
-const PAPER_SX = {
-  bgcolor: 'rgba(0, 0, 0, 0.54)',
-  color: 'common.white',
-  backgroundImage: 'none'
-} as const
-
-const BAR_SX = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 1,
-  px: 2,
-  color: '#FFFFFF',
-  height: 52,
-  flexShrink: 0,
-  bgcolor: 'rgba(0, 0, 0, 0.3)'
-} as const
-
+// The viewer dims the page behind a bar with the arrow back, the name and
+// the actions, all white; the file on a page 80 % of the width (the whole
+// width of a phone), 16 px under the bar
 const BODY_SX = {
   flex: 1,
   minHeight: 0,
@@ -108,10 +91,29 @@ export function FilePreviewDialog({
       onClose={onClose}
       fullScreen
       aria-labelledby={titleId}
-      slotProps={{ paper: { sx: PAPER_SX } }}
+      slotProps={{
+        paper: {
+          sx: theme => ({
+            bgcolor: alpha(theme.palette.common.black, 0.54),
+            color: 'common.white',
+            backgroundImage: 'none'
+          })
+        }
+      }}
       data-testid={testId}
     >
-      <Box sx={BAR_SX}>
+      <Box
+        sx={theme => ({
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          px: 2,
+          color: 'common.white',
+          height: 52,
+          flexShrink: 0,
+          bgcolor: alpha(theme.palette.common.black, 0.3)
+        })}
+      >
         <Tooltip title={closeLabel}>
           <IconButton
             ref={closeButtonRef}
@@ -130,7 +132,7 @@ export function FilePreviewDialog({
           variant="subtitle1"
           noWrap
           title={title}
-          sx={{ flex: 1, minWidth: 0, fontSize: 17, color: '#FFFFFF' }}
+          sx={{ flex: 1, minWidth: 0, color: 'common.white' }}
         >
           {title}
         </Typography>
@@ -199,26 +201,22 @@ export function FilePreviewSurface({
       sx={
         kind === 'document'
           ? {
-              bgcolor: '#fff',
-              color: '#1b1b1f',
+              bgcolor: 'common.white',
+              color: 'grey.900',
               width,
               boxSizing: 'border-box',
               minHeight: 'calc(100dvh - 84px)',
               p: 2
             }
           : {
-              // A white page in the font of the app, as tmail-flutter shows
-              // a text file (turned into HTML)
-              bgcolor: '#fff',
-              color: '#1C1B1F',
+              bgcolor: 'background.paper',
+              color: 'text.primary',
               width,
               boxSizing: 'border-box',
               minHeight: 'calc(100dvh - 84px)',
               m: 0,
               p: 1,
-              fontFamily: 'inherit',
-              fontSize: 14,
-              lineHeight: '20px',
+              typography: 'body2',
               whiteSpace: 'pre-wrap',
               overflowWrap: 'anywhere'
             }

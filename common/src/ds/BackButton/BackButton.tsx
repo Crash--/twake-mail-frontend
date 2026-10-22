@@ -1,7 +1,6 @@
+import { Left } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
-
-import { Back } from '@/ds/FlutterIcons/FlutterIcons'
 
 export interface BackButtonProps {
   /** What it shows, e.g. the folder it returns to */
@@ -22,7 +21,7 @@ export function BackButton({
   return (
     <Button
       variant="text"
-      startIcon={<Back width={9} height={16} aria-hidden="true" />}
+      startIcon={<Left width={9} height={16} aria-hidden="true" />}
       onClick={onClick}
       aria-label={label}
       color="inherit"

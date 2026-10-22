@@ -4,7 +4,7 @@
 // arrow, then "Cancel" and "Set date". On a phone it is a sheet at the
 // bottom with the quick ranges and the two fields only, each opening a one
 // month calendar sheet from its calendar icon.
-import { Icon, Calendar, Cross } from '@linagora/twake-icons'
+import { Icon, Calendar, Cross, Next } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -25,7 +25,6 @@ import {
   type SubmitEvent
 } from 'react'
 
-import { DateRange } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 import {
@@ -362,7 +361,7 @@ export function DateRangePickerDialog({
                       color: 'text.icon'
                     }}
                   >
-                    <Icon icon={DateRange} size={24} />
+                    <Icon icon={Next} size={24} />
                   </Box>
                   {endField}
                 </Box>

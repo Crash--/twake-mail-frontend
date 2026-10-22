@@ -5,7 +5,13 @@
 // before the title. Its parts: the labels of the fields, the boxes holding a
 // condition or an action, the outlined buttons adding one ("Add a
 // condition"), the native selects and the field buttons (a folder).
-import { Icon, type IconProps, Dropdown, Cross } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Dropdown,
+  Cross,
+  Previous
+} from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -27,7 +33,6 @@ import type {
   SubmitEvent
 } from 'react'
 
-import { ArrowBack } from '@/ds/FlutterIcons/FlutterIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const PAPER_SX = {
@@ -98,7 +103,7 @@ export function SettingsFormDialog({
                 onClick={handleClose}
                 className="dialogIconButton dialogBackButton"
               >
-                <Icon icon={ArrowBack} size={24} />
+                <Icon icon={Previous} size={24} />
               </IconButton>
             </Tooltip>
             <DialogTitle id={titleId} className="dialogTitleWithBack">

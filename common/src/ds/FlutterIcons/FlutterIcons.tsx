@@ -426,18 +426,6 @@ export function SendArrow(props: SvgProps): ReactElement {
   )
 }
 
-/** `ic_arrow_back`: back from a section of the settings */
-export function ArrowBack(props: SvgProps): ReactElement {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" {...iconProps(props)}>
-      <path
-        d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
 /** `ic_add_identity`: the thin plus of the main buttons of the settings */
 export function AddThin(props: SvgProps): ReactElement {
   return (
@@ -953,54 +941,6 @@ export function FullscreenExit(props: SvgProps): ReactElement {
   )
 }
 
-/** tmail-flutter's ic_back.svg: the chevron of the back button, 9 × 16 */
-export function Back(props: SvgProps): ReactElement {
-  return (
-    <svg viewBox="0 0 9 16" fill="none" {...iconProps(props)}>
-      <path
-        d="M7.22114 15.6933C7.41487 15.8918 7.66145 16 7.95205 16C8.53327 16 9 15.531 9 14.9357C9 14.6381 8.87671 14.3675 8.67417 14.1601L2.50978 7.99098L8.67417 1.83991C8.87671 1.63247 9 1.35287 9 1.06426C9 0.468997 8.53327 0 7.95205 0C7.66145 0 7.41487 0.10823 7.22114 0.306652L0.369863 7.16122C0.123288 7.39572 0.00880626 7.68433 0 8C0 8.31567 0.123288 8.58625 0.369863 8.82976L7.22114 15.6933Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-/** tmail-flutter's ic_newer.svg: the previous (newer) email */
-export function Newer(props: SvgProps): ReactElement {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" {...iconProps(props)}>
-      <path
-        d="M10.6409 12.0001L15.6062 7.03477C15.9409 6.70003 15.9409 6.15732 15.6062 5.82258C15.2715 5.48785 14.7287 5.48785 14.394 5.82258L8.82258 11.394C8.48785 11.7287 8.48785 12.2715 8.82258 12.6062L14.394 18.1776C14.7287 18.5124 15.2715 18.5124 15.6062 18.1776C15.9409 17.8429 15.9409 17.3002 15.6062 16.9654L10.6409 12.0001Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-/** tmail-flutter's ic_older.svg: the next (older) email */
-export function Older(props: SvgProps): ReactElement {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" {...iconProps(props)}>
-      <path
-        d="M13.7879 12.0001L8.82258 16.9654C8.48785 17.3002 8.48785 17.8429 8.82258 18.1776C9.15732 18.5124 9.70003 18.5124 10.0348 18.1776L15.6062 12.6062C15.9409 12.2715 15.9409 11.7287 15.6062 11.394L10.0348 5.82258C9.70003 5.48785 9.15732 5.48785 8.82258 5.82258C8.48785 6.15732 8.48785 6.70003 8.82258 7.03477L13.7879 12.0001Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-/** tmail-flutter's ic_chevron_down_outline.svg: shows every recipient */
-export function ChevronDownOutline(props: SvgProps): ReactElement {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" {...iconProps(props)}>
-      <path
-        d="M4.37301 6.42334C4.13339 6.21796 3.77265 6.24571 3.56727 6.48532C3.36188 6.72494 3.38963 7.08568 3.62925 7.29107L7.62925 10.7196C7.84324 10.9031 8.15901 10.9031 8.37301 10.7196L12.373 7.29107C12.6126 7.08568 12.6404 6.72494 12.435 6.48532C12.2296 6.24571 11.8689 6.21796 11.6292 6.42334L8.00113 9.53316L4.37301 6.42334Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
 /** tmail-flutter's ic_good_signature.svg: a valid S/MIME signature */
 export function GoodSignature(props: SvgProps): ReactElement {
   return (
@@ -1020,19 +960,6 @@ export function BadSignature(props: SvgProps): ReactElement {
       <path
         d="M7.99996 1.14285C11.7871 1.14285 14.8571 4.2129 14.8571 8C14.8571 11.7871 11.7871 14.8571 7.99996 14.8571C4.21287 14.8571 1.14282 11.7871 1.14282 8C1.14282 4.2129 4.21287 1.14285 7.99996 1.14285ZM7.99996 2.28571C4.84405 2.28571 2.28568 4.84408 2.28568 8C2.28568 11.1559 4.84405 13.7143 7.99996 13.7143C11.1559 13.7143 13.7143 11.1559 13.7143 8C13.7143 4.84408 11.1559 2.28571 7.99996 2.28571ZM7.99996 10.0571C8.44179 10.0571 8.79996 10.4153 8.79996 10.8571C8.79996 11.299 8.44179 11.6571 7.99996 11.6571C7.55814 11.6571 7.19997 11.299 7.19997 10.8571C7.19997 10.4153 7.55814 10.0571 7.99996 10.0571ZM8.04203 4.57142C8.1778 4.57142 8.26303 4.59264 8.33753 4.63248C8.41203 4.67232 8.47049 4.73079 8.51033 4.80529C8.55018 4.87979 8.57139 4.96501 8.57139 5.10078V8.61349C8.57139 8.74926 8.55018 8.83449 8.51033 8.90899C8.47049 8.98349 8.41203 9.04195 8.33753 9.08179C8.26303 9.12163 8.1778 9.14285 8.04203 9.14285H7.9579C7.82212 9.14285 7.7369 9.12163 7.6624 9.08179C7.5879 9.04195 7.52944 8.98349 7.4896 8.90899C7.44975 8.83449 7.42854 8.74926 7.42854 8.61349V5.10078C7.42854 4.96501 7.44975 4.87979 7.4896 4.80529C7.52944 4.73079 7.5879 4.67232 7.6624 4.63248C7.7369 4.59264 7.82212 4.57142 7.9579 4.57142H8.04203Z"
         fill="#FF3347"
-      />
-    </svg>
-  )
-}
-
-/** ic_chevron_down_outline.svg turned up: hides the recipients again */
-export function ChevronUpOutline(props: SvgProps): ReactElement {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" {...iconProps(props)}>
-      <path
-        transform="rotate(180 8 8)"
-        d="M4.37301 6.42334C4.13339 6.21796 3.77265 6.24571 3.56727 6.48532C3.36188 6.72494 3.38963 7.08568 3.62925 7.29107L7.62925 10.7196C7.84324 10.9031 8.15901 10.9031 8.37301 10.7196L12.373 7.29107C12.6126 7.08568 12.6404 6.72494 12.435 6.48532C12.2296 6.24571 11.8689 6.21796 11.6292 6.42334L8.00113 9.53316L4.37301 6.42334Z"
-        fill="currentColor"
       />
     </svg>
   )
@@ -1076,20 +1003,6 @@ export function SubaddressingDisallow(props: SvgProps): ReactElement {
       />
       <path
         d="M18.5075 7.39755C18.4875 7.09755 18.4975 6.79755 18.5475 6.50755C18.5975 6.20755 18.6775 5.91755 18.7775 5.64755H7.93755L9.71755 7.39755H18.5075Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-/** flutter_date_range_picker's ic_date_range.svg: the arrow between the two dates */
-export function DateRange(props: SvgProps): ReactElement {
-  return (
-    <svg viewBox="0 0 25 24" fill="none" {...iconProps(props)}>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M17.9571 11.2929C18.3476 11.6834 18.3476 12.3166 17.9571 12.7071L13.9571 16.7071C13.5666 17.0976 12.9334 17.0976 12.5429 16.7071C12.1524 16.3166 12.1524 15.6834 12.5429 15.2929L14.8358 13L7.25 13C6.69771 13 6.25 12.5523 6.25 12C6.25 11.4477 6.69771 11 7.25 11L14.8358 11L12.5429 8.70711C12.1524 8.31658 12.1524 7.68342 12.5429 7.29289C12.9334 6.90237 13.5666 6.90237 13.9571 7.29289L17.9571 11.2929Z"
         fill="currentColor"
       />
     </svg>

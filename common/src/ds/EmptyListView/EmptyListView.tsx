@@ -1,21 +1,13 @@
 // Upstream to twake-ui: maybe, as a variant of `Empty`. The empty email list
-// of tmail-flutter (`EmptyEmailsWidget`) has its own drawing, a narrower
-// column and its own type scale, none of which `Empty` takes (its icon is a
-// twake-icons glyph, its title an h3 of the theme). Kept local until the
-// Twake design system decides whether the other apps want it.
+// draws an illustration, a narrower column and a title that keeps the line
+// breaks of the translation; `Empty` takes a twake-icons glyph only. Kept
+// local until the Twake design system decides whether the other apps want it.
 import { styled } from '@mui/material/styles'
 import type { ReactElement } from 'react'
 
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 import { EmptyFolderIllustration } from './EmptyFolderIllustration'
-
-// tmail-flutter's AppColor.gray424244, at the opacities of the widget;
-// white at the same opacities in the dark scheme
-const TITLE_COLOR = 'rgba(66, 66, 68, 0.9)'
-const TEXT_COLOR = 'rgba(66, 66, 68, 0.64)'
-const DARK_TITLE_COLOR = 'rgba(255, 255, 255, 0.9)'
-const DARK_TEXT_COLOR = 'rgba(255, 255, 255, 0.64)'
 
 const Root = styled('div')({
   display: 'flex',
@@ -46,30 +38,20 @@ const Illustration = styled(EmptyFolderIllustration)({
   height: 160
 })
 
-// ThemeUtils.textStyleInter600()
+// twake-mui's `Empty` title and text: h3 in text.primary, body1 in
+// text.secondary
 const Title = styled('p')(({ theme }) => ({
+  ...theme.typography.h3,
   margin: '16px 0 8px',
-  fontFamily: theme.typography.fontFamily,
-  fontWeight: 600,
-  fontSize: 24,
-  lineHeight: 28.01 / 24,
-  letterSpacing: 0,
-  color: TITLE_COLOR,
+  color: theme.vars.palette.text.primary,
   // The translations break the line where tmail-flutter does
-  whiteSpace: 'pre-line',
-  ...theme.applyStyles('dark', { color: DARK_TITLE_COLOR })
+  whiteSpace: 'pre-line'
 }))
 
-// ThemeUtils.textStyleInter400, as the widget overrides it
 const Text = styled('p')(({ theme }) => ({
+  ...theme.typography.body1,
   margin: 0,
-  fontFamily: theme.typography.fontFamily,
-  fontWeight: 400,
-  fontSize: 16,
-  lineHeight: 21.01 / 16,
-  letterSpacing: -0.15,
-  color: TEXT_COLOR,
-  ...theme.applyStyles('dark', { color: DARK_TEXT_COLOR })
+  color: theme.vars.palette.text.secondary
 }))
 
 export interface EmptyListViewProps {
@@ -80,8 +62,8 @@ export interface EmptyListViewProps {
 }
 
 /**
- * An empty list of emails, as tmail-flutter draws it: the empty folder
- * drawing (decorative), the reason in bold and an optional hint below.
+ * An empty list of emails: the empty folder drawing (decorative), the reason
+ * as a title and an optional hint below.
  */
 export function EmptyListView({
   title,

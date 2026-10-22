@@ -24,8 +24,8 @@ const CHECKED_SX = {
   width: 24,
   height: 24,
   borderRadius: '50%',
-  bgcolor: '#007AFF',
-  color: '#FFFFFF'
+  bgcolor: 'primary.main',
+  color: 'primary.contrastText'
 } as const
 
 export interface SelectableAvatarProps {

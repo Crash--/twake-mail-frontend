@@ -837,6 +837,67 @@ test.describe('EML reading an email', () => {
       await expect(quote).toBeHidden()
     }
   )
+
+  test('EML-43 the body is drawn with the Inter of the app, not a font of the system', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'Inter body',
+      text: SENTENCE
+    })
+    await jmap.waitForEmail({ subject: 'Inter body' })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const email = await mailbox.openEmail('Inter body')
+    const body = email.body()
+    await expect(body).toContainText(SENTENCE)
+
+    // What Chromium drew the text with: a web font (`isCustomFont`), so the
+    // test holds on a machine that has Inter installed too
+    interface DomNode {
+      nodeId: number
+      attributes?: string[]
+      children?: DomNode[]
+      contentDocument?: DomNode
+    }
+    const findContent = (node: DomNode): DomNode | null => {
+      if (node.attributes?.includes('tmail-content')) return node
+      for (const child of [
+        ...(node.children ?? []),
+        ...(node.contentDocument ? [node.contentDocument] : [])
+      ]) {
+        const found = findContent(child)
+        if (found) return found
+      }
+      return null
+    }
+    const cdp = await page.context().newCDPSession(page)
+    await cdp.send('DOM.enable')
+    await cdp.send('CSS.enable')
+    // The font loads after the first paint (`font-display: swap`)
+    await expect
+      .poll(async () => {
+        const { root } = await cdp.send('DOM.getDocument', {
+          depth: -1,
+          pierce: true
+        })
+        const content = findContent(root)
+        if (!content) return null
+        const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', {
+          nodeId: content.nodeId
+        })
+        return fonts
+      })
+      .toEqual([
+        expect.objectContaining({
+          postScriptName: 'InterVariable',
+          isCustomFont: true
+        })
+      ])
+  })
 })
 
 test.describe('EML reading an email of a team mailbox', () => {

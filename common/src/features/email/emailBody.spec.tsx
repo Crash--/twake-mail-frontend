@@ -171,10 +171,18 @@ describe('buildEmailDocument', () => {
     const document = buildEmailDocument('<p>Hi</p>')
 
     expect(document).toContain(
-      "default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'; font-src data:"
+      "default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'; font-src data: http://localhost/fonts/InterVariable.ttf\""
     )
     expect(document).toContain('<meta name="referrer" content="no-referrer">')
     expect(document).toContain('<div id="tmail-content"><p>Hi</p></div>')
+  })
+
+  it('draws the body with the Inter of the app, by its absolute URL', () => {
+    const document = buildEmailDocument('<p>Hi</p>')
+
+    expect(document).toContain(
+      '@font-face { font-family: Inter; src: url("http://localhost/fonts/InterVariable.ttf")'
+    )
   })
 
   it('lets remote images and fonts load once allowed, without referrer', () => {
@@ -183,7 +191,9 @@ describe('buildEmailDocument', () => {
     })
 
     expect(document).toContain('img-src data: blob: https: http:')
-    expect(document).toContain('font-src data: https: http:')
+    expect(document).toContain(
+      'font-src data: http://localhost/fonts/InterVariable.ttf https: http:'
+    )
     expect(document).toContain('<meta name="referrer" content="no-referrer">')
   })
 

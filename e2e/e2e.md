@@ -1027,3 +1027,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/attachments.spec.ts`.
 - [x] `ATT-14` A PDF whose image is a JPEG 2000 (`/JPXDecode`, an 8 x 8 fixture) draws it, without WebAssembly: more than a quarter of the page is dark, with no dialog nor request out of the app.
   - Spec: `tests/attachments.spec.ts`.
+- [x] `EML-43` The body of an email is drawn with the Inter the app serves (`/fonts/InterVariable.ttf`), a web font and not a font of the system (`CSS.getPlatformFontsForNode`: `InterVariable`, `isCustomFont`), so it does not change on a machine without Inter. — web app only, no Patrol test
+  - Spec: `tests/email.spec.ts`.

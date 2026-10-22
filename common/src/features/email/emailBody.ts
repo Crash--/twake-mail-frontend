@@ -30,14 +30,27 @@ import {
 /** Id of the element wrapping the content, measured to size the iframe */
 export const EMAIL_CONTENT_ID = 'tmail-content'
 
-function contentSecurityPolicy(allowRemoteContent: boolean): string {
+// Absolute: the frame is a blob: document, where a relative URL resolves to
+// nothing. Same origin as the app (`allow-same-origin`): no CORS header needed
+function interFontUrl(): string {
+  return new URL('/fonts/InterVariable.ttf', window.location.origin).href
+}
+
+function contentSecurityPolicy(
+  allowRemoteContent: boolean,
+  fontUrl: string
+): string {
   const remote = allowRemoteContent ? ' https: http:' : ''
   return [
     "default-src 'none'",
     `img-src data: blob:${remote}`,
     "style-src 'unsafe-inline'",
-    `font-src data:${remote}`
+    `font-src data: ${fontUrl}${remote}`
   ].join('; ')
+}
+
+function interFontFace(fontUrl: string): string {
+  return `@font-face { font-family: Inter; src: url("${fontUrl}") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }`
 }
 
 // The stylesheet of the email document, not of the app: twake-mui does not
@@ -49,7 +62,13 @@ function contentSecurityPolicy(allowRemoteContent: boolean): string {
 // one.
 const EMAIL_DOCUMENT_CSS = `
 html, body { margin: 0; padding: 0; }
-html { background: #ffffff; color-scheme: light; }
+/* The variable Inter drawn as the app draws it (\`TEXT_LOOK_CSS\`) */
+html {
+  background: #ffffff;
+  color-scheme: light;
+  text-rendering: geometricPrecision;
+  font-optical-sizing: none;
+}
 body {
   font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
@@ -224,12 +243,13 @@ export function buildEmailDocument(
     focusIndicator = 'discreet'
   }: EmailDocumentOptions = {}
 ): string {
+  const fontUrl = interFontUrl()
   return [
     '<!doctype html><html><head><meta charset="utf-8">',
-    `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy(allowRemoteContent)}">`,
+    `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy(allowRemoteContent, fontUrl)}">`,
     '<meta name="referrer" content="no-referrer">',
     '<base target="_blank">',
-    `<style>${EMAIL_DOCUMENT_CSS}${focusCss(focusIndicator)}</style>`,
+    `<style>${interFontFace(fontUrl)}${EMAIL_DOCUMENT_CSS}${focusCss(focusIndicator)}</style>`,
     `</head><body><div id="${EMAIL_CONTENT_ID}">${sanitizedContent}</div></body></html>`
   ].join('')
 }

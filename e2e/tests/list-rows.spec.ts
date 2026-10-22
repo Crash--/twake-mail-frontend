@@ -164,11 +164,12 @@ test.describe('LST email list rows', () => {
     expect(selectAll.width).toBe(250)
     expect(selectAll.y - toolbarBox.y).toBe(12)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
-    // As tmail-flutter: 48 px rows, a 40 px checkbox, a bare 20 px star
-    expect(rowBox.height).toBeGreaterThanOrEqual(47.5)
-    expect(rowBox.height).toBeLessThanOrEqual(48.5)
+    // 39.5 px rows (the 32 px checkbox and the 3 px of padding around it, the
+    // 1 px divider), a bare 20 px star
+    expect(rowBox.height).toBeGreaterThanOrEqual(39)
+    expect(rowBox.height).toBeLessThanOrEqual(40)
     const checkbox = await box(row.getByTestId('email-list-item-checkbox'))
-    expect([checkbox.width, checkbox.height]).toEqual([40, 40])
+    expect([checkbox.width, checkbox.height]).toEqual([32, 32])
     const star = await box(row.getByTestId('email-list-item-star'))
     expect([star.width, star.height]).toEqual([20, 20])
     // The 32 px gradient avatar of the sender

@@ -1,12 +1,9 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's sign-in card
-// (`login_view_web.dart`, `LoginMessageWidget`): the logotype 66 px from
-// the top, "Sign In" 67 px under it in a 32 px Black, the message in 15 px
-// (red when it is an error), the fields 24 px apart and 40 px above the
-// button, then the version in 12 px steel grey.
+// Upstream to twake-ui: no. The sign-in card: the logotype, "Sign In" under
+// it (`h2`), the message (`error.main` when it is an error), the fields 24 px
+// apart and 40 px above the button, then the version in `caption`.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, SubmitEvent } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 const LOGO_SX = {
@@ -16,13 +13,10 @@ const LOGO_SX = {
   [`@media ${SCREEN_QUERIES.belowDesktop}`]: { pt: '67px' }
 } as const
 
-// Black (900) in tmail-flutter, which draws Inter Bold at most
 const TITLE_SX = {
   pt: '67px',
-  fontSize: 32,
-  fontWeight: 700,
-  lineHeight: '44px',
-  color: TMAIL.textBlack,
+  typography: 'h2',
+  color: 'text.primary',
   textAlign: 'center'
 } as const
 
@@ -30,9 +24,7 @@ const MESSAGE_SX = {
   pt: '11px',
   pb: '36px',
   px: '58px',
-  fontSize: 15,
-  lineHeight: '20px',
-  letterSpacing: '0.3px',
+  typography: 'body1',
   textAlign: 'center'
 } as const
 
@@ -53,11 +45,7 @@ const BUTTON_SX = {
   pb: '16px'
 } as const
 
-const FOOTER_SX = {
-  fontSize: 14,
-  lineHeight: '20px',
-  textAlign: 'center'
-} as const
+const FOOTER_SX = { typography: 'body2', textAlign: 'center' } as const
 
 // A build version can be one long word (a commit hash): it breaks anywhere
 // rather than scroll a narrow screen sideways
@@ -67,10 +55,8 @@ const VERSION_SX = {
   pt: '8px',
   px: '24px',
   overflowWrap: 'anywhere',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.4px',
-  color: TMAIL.grey,
+  typography: 'caption',
+  color: 'text.secondary',
   textAlign: 'center'
 } as const
 
@@ -128,7 +114,7 @@ export function LoginFormFrame({
         role={isError ? 'alert' : undefined}
         sx={{
           ...MESSAGE_SX,
-          color: isError ? TMAIL.errorLogin : TMAIL.textBlack
+          color: isError ? 'error.main' : 'text.primary'
         }}
         data-testid={isError ? errorTestId : undefined}
       >

@@ -1,13 +1,13 @@
-import type { IconProps } from '@linagora/twake-icons'
+import {
+  Email,
+  Paperplane,
+  FileOutline,
+  type IconProps
+} from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
 import { CategoryTabs } from '@/ds/CategoryTabs/CategoryTabs'
-import {
-  MessageCategory,
-  NavigationCategory,
-  ReadingCategory
-} from '@/ds/FlutterIcons/ShortcutCategoryIcons'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SettingsSubheading } from '@/ds/SettingsHeading/SettingsHeading'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
@@ -25,9 +25,9 @@ import { useShortcutsEnabled } from './shortcutsSetting'
 
 /** tmail-flutter's icons of the categories, on phones and tablets */
 const CATEGORY_ICONS: Record<ShortcutCategory, IconProps['icon']> = {
-  navigation: NavigationCategory,
-  reading: ReadingCategory,
-  management: MessageCategory
+  navigation: Paperplane,
+  reading: FileOutline,
+  management: Email
 }
 
 export interface ShortcutsPanelProps {

@@ -1,13 +1,11 @@
-// Upstream to twake-ui: no, tmail-flutter's tooltip of the links of an
-// email (`IframeTooltipOverlay`): the address of the link under it (above
-// it near the bottom of the screen), black, a 6 px radius, white 13 px text
-// on one line, at most 400 px wide, faded in over 130 ms. MUI's `Tooltip`
-// cannot anchor to an element of another document (the iframe of the body).
-import { Box } from '@linagora/twake-mui'
+// Upstream to twake-ui: no, MUI's `Tooltip` cannot anchor to an element of
+// another document (the iframe of the body): this one is placed by hand
+// with the look of the theme's tooltip.
+import { alpha, Box, radius } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 const WIDTH = 400
-const HEIGHT = 28
+const HEIGHT = 37
 const MARGIN = 12
 const GAP = 4
 
@@ -44,7 +42,7 @@ export function LinkTooltip({
     <Box
       aria-hidden="true"
       data-testid={testId}
-      sx={{
+      sx={theme => ({
         position: 'fixed',
         top,
         left,
@@ -52,18 +50,17 @@ export function LinkTooltip({
         maxWidth: width,
         minHeight: HEIGHT,
         boxSizing: 'border-box',
-        px: 1,
-        py: '5px',
-        borderRadius: '6px',
-        bgcolor: '#000000',
-        color: '#FFFFFF',
-        fontSize: 13,
-        lineHeight: '18px',
+        px: '12px',
+        py: '8px',
+        borderRadius: radius.sm,
+        bgcolor: alpha(theme.palette.grey[800], 0.9),
+        color: theme.palette.common.white,
+        fontSize: 16,
+        lineHeight: 1.3,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         pointerEvents: 'none',
-        boxShadow: '0 0 20px rgba(0, 0, 0, 0.15)',
         '@keyframes linkTooltipIn': {
           from: {
             opacity: 0,
@@ -73,7 +70,7 @@ export function LinkTooltip({
         },
         animation: 'linkTooltipIn 130ms ease-out',
         '@media (prefers-reduced-motion: reduce)': { animation: 'none' }
-      }}
+      })}
     >
       {href}
     </Box>

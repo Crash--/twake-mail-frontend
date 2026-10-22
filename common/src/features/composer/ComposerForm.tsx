@@ -8,7 +8,8 @@ import {
   Link,
   Paperplane,
   Trash,
-  Warning
+  Warning,
+  Assistant
 } from '@linagora/twake-icons'
 import {
   Box,
@@ -37,7 +38,6 @@ import {
   type ReactNode
 } from 'react'
 
-import { Sparkle } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import {
@@ -1939,7 +1939,7 @@ function LoadedComposerForm({
                   ? {
                       label: t('composer.scribe.assistant'),
                       icon: (
-                        <Icon icon={Sparkle} size={12} aria-hidden="true" />
+                        <Icon icon={Assistant} size={12} aria-hidden="true" />
                       ),
                       onSelect: setScribeAnchor,
                       testId: 'composer-scribe-selection-button'

@@ -1,8 +1,14 @@
-import { Bottom, Copy, Warning, Cross } from '@linagora/twake-icons'
+import {
+  Bottom,
+  Copy,
+  Warning,
+  Cross,
+  Refresh,
+  Assistant
+} from '@linagora/twake-icons'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { RetryArrows, Sparkle } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import {
@@ -22,11 +28,11 @@ const LABELS = {
   insert: 'Insert'
 }
 const ICONS = {
-  sparkle: Sparkle,
+  sparkle: Assistant,
   warning: Warning,
   close: Cross,
   copy: Copy,
-  retry: RetryArrows,
+  retry: Refresh,
   chevron: Bottom
 }
 

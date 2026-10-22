@@ -5,7 +5,6 @@ import { Box, Button, Divider } from '@linagora/twake-mui'
 import type { MouseEventHandler, ReactElement, ReactNode } from 'react'
 
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BAR_SX = {
   position: 'sticky',
@@ -28,26 +27,13 @@ const BUTTON_SX = {
   minHeight: 48,
   borderRadius: '100px',
   color: 'text.primary',
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 500,
-  letterSpacing: '0.1px',
+  typography: 'subtitle1',
   gap: 1,
   '& .MuiButton-startIcon': { m: 0, '& > *:first-of-type': { fontSize: 20 } },
-  // tmail-flutter's bottom bar of tablets: steel grey, Regular 16
-  [`@media ${SCREEN_QUERIES.belowDesktop}`]: {
-    borderRadius: 0,
-    color: TMAIL.steel,
-    fontSize: 16,
-    fontWeight: 400,
-    letterSpacing: 0
-  },
-  // and of phones: the icon over a Regular 12 label
+  // On phones: the icon over the label
   [`@media ${SCREEN_QUERIES.mobile}`]: {
     flexDirection: 'column',
-    gap: '4px',
-    fontSize: 12,
-    lineHeight: '16px'
+    gap: '4px'
   }
 } as const
 
@@ -80,7 +66,7 @@ export interface ActionBarButtonProps {
   'data-testid'?: string
 }
 
-/** A button of the `ActionBar`: a 20 px icon and a Medium 14/20 label */
+/** A button of the `ActionBar`: a 20 px icon and a `subtitle1` label */
 export function ActionBarButton({
   icon,
   children,

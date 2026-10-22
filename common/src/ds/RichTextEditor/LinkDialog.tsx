@@ -16,8 +16,6 @@ import {
   type SVGAttributes
 } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 import { toLinkUrl } from './linkUrl'
 import type { RichTextLinkDialogLabels } from './types'
 
@@ -76,13 +74,9 @@ function LinkIcon(props: SVGAttributes<SVGSVGElement>): ReactElement {
   )
 }
 
-/** `AppColor.m3Neutral90` */
-const BORDER = TMAIL.outline
-const PRIMARY = TMAIL.primary0A
-
 const PAPER_SX = {
   borderRadius: '10px',
-  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.12), 0 0 2px rgba(0, 0, 0, 0.12)',
+  boxShadow: 4,
   pl: '16px',
   pr: '12px',
   py: '16px'
@@ -92,7 +86,7 @@ const ROW_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
-  color: TMAIL.steel
+  color: 'text.secondary'
 } as const
 
 const INPUT_SX = {
@@ -101,15 +95,16 @@ const INPUT_SX = {
   height: 40,
   px: '12px',
   boxSizing: 'border-box',
-  border: `1px solid ${BORDER}`,
+  border: 1,
+  borderColor: 'border.main',
   borderRadius: '10px',
   fontSize: 14,
   lineHeight: '18px',
-  color: TMAIL.textInk,
-  '&.Mui-focused': { borderColor: PRIMARY },
+  color: 'text.primary',
+  '&.Mui-focused': { borderColor: 'primary.main' },
   '& .MuiInputBase-input': { p: 0 },
-  '& .MuiInputBase-input::placeholder': { color: TMAIL.grey, opacity: 1 },
-  '&.Mui-error': { borderColor: TMAIL.error }
+  '& .MuiInputBase-input::placeholder': { color: 'text.secondary', opacity: 1 },
+  '&.Mui-error': { borderColor: 'error.main' }
 } as const
 
 /** Under the URL, aligned with the fields (icon 24 px + gap 10 px) */
@@ -118,7 +113,7 @@ const ERROR_SX = {
   pl: '34px',
   fontSize: 12,
   lineHeight: '16px',
-  color: TMAIL.error,
+  color: 'error.main',
   '&:not(:empty)': { mt: '6px' }
 } as const
 
@@ -130,10 +125,10 @@ const TEXT_BUTTON_SX = {
   fontWeight: 500,
   lineHeight: '20px',
   letterSpacing: '0.1px',
-  color: PRIMARY,
+  color: 'primary.main',
   bgcolor: 'transparent',
   boxShadow: 'none',
-  '&.Mui-disabled': { color: TMAIL.grey939 }
+  '&.Mui-disabled': { color: 'text.disabled' }
 } as const
 
 /** Where the caret is: the card opens under it, as tmail-flutter's */
@@ -283,7 +278,7 @@ export function LinkDialog({
             <Button
               variant="text"
               onClick={onRemove}
-              sx={{ ...TEXT_BUTTON_SX, color: TMAIL.error }}
+              sx={{ ...TEXT_BUTTON_SX, color: 'error.main' }}
             >
               {labels.remove}
             </Button>

@@ -62,9 +62,9 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
       const more = actions[4] as Box
       expect(bar.x + bar.width - (more.x + more.width)).toBeLessThanOrEqual(8)
 
-      // Send: a round disc in a 44 px target, filled, with no label
+      // Send: a round disc around a 30 px icon in the small IconButton padding, with no label
       const send = actions[3] as Box
-      expect([send.width, send.height]).toEqual([44, 44])
+      expect([send.width, send.height]).toEqual([46, 46])
       expect(await composer.sendButton.innerText()).toBe('')
       expect(
         await composer.sendButton.evaluate(

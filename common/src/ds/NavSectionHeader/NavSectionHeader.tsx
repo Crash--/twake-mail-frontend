@@ -3,10 +3,9 @@
 // `role="tree"` it is put in) and `NavDesktopDropdown`, whose chevron is
 // pushed to the far end, shown only past `limit` children, with no room for
 // actions, and which renders nothing below `lg`.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-import { DisclosureDown, DisclosureRight } from '@/ds/NavIcons/NavIcons'
 
 export interface NavSectionToggle {
   isExpanded: boolean
@@ -83,7 +82,7 @@ export function NavSectionHeader({
           >
             {title}
             <Icon
-              icon={toggle.isExpanded ? DisclosureDown : DisclosureRight}
+              icon={toggle.isExpanded ? Dropdown : Right}
               size={16}
               aria-hidden
             />

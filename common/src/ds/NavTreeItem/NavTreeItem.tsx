@@ -4,10 +4,9 @@
 // puts the background on the row, indents by level without a cap, puts the
 // expand arrow after the label as a control of its own, and overlays the
 // actions on hover instead of reserving room for them.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { ListItem } from '@mui/material'
-import { DisclosureDown, DisclosureRight } from '@/ds/NavIcons/NavIcons'
 import { NavLink } from '@/ds/NavLink/NavLink'
 import {
   useId,
@@ -311,10 +310,7 @@ export function NavTreeItem({
               }
             }}
           >
-            <Icon
-              icon={toggle.isExpanded ? DisclosureDown : DisclosureRight}
-              size={16}
-            />
+            <Icon icon={toggle.isExpanded ? Dropdown : Right} size={16} />
           </IconButton>
         </Tooltip>
       ) : null}

@@ -1,5 +1,4 @@
 import type { DragEvent } from 'react'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** Type of a chip dragged out of a `RecipientField` */
 export const RECIPIENT_DRAG_TYPE = 'application/x-twake-recipient'
@@ -42,9 +41,9 @@ export function startRecipientDrag(
     position: 'fixed',
     top: '-1000px',
     left: '0',
-    background: TMAIL.primary,
-    borderColor: TMAIL.primary,
-    color: '#FFFFFF'
+    background: 'var(--twake-palette-primary-main)',
+    borderColor: 'var(--twake-palette-primary-main)',
+    color: 'var(--twake-palette-primary-contrastText)'
   })
   chip.ownerDocument.body.appendChild(ghost)
   event.dataTransfer.setDragImage(ghost, 16, 16)

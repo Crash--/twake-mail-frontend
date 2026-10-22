@@ -1,19 +1,16 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's folder tile in
-// Settings > Folder visibility: a 40 px row (52 px with a second line), no
-// divider, a 20 px folder icon, the name in Inter 14 / 18, an expand button
-// right after the name, the action at the end, and the subfolders 10 px
-// further in. twake-mui's `ListItem` has neither the metrics nor the nested
-// expand button.
+// Upstream to twake-ui: no. A folder tile in Settings > Folder visibility: a
+// 40 px row (52 px with a second line), no divider, a 20 px folder icon, the
+// name, an expand button right after the name, the action at the end, and
+// the subfolders 10 px further in. twake-mui's `ListItem` has neither the
+// metrics nor the nested expand button.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-/** tmail-flutter's `steelGrayA540`, `steelGray200` and `steelGray400` */
-const ICON_COLOR = TMAIL.steel
-const ICON_MUTED_COLOR = TMAIL.greyFaint
-const TEXT_MUTED_COLOR = TMAIL.grey
+const ICON_COLOR = 'text.icon'
+const ICON_MUTED_COLOR = 'text.disabled'
+const TEXT_MUTED_COLOR = 'text.secondary'
 
 /** The nested list of a row, or of a category: no bullet, 10 px further in */
 export const NESTED_LIST_SX = {
@@ -33,9 +30,7 @@ const ROW_SX = {
 } as const
 
 const NAME_SX = {
-  fontSize: 14,
-  lineHeight: '18px',
-  letterSpacing: 0,
+  typography: 'body1',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -88,7 +83,7 @@ export function FolderVisibilityRow({
   'data-testid': testId,
   dataAttributes
 }: FolderVisibilityRowProps): ReactElement {
-  const nameColor = isMuted ? TEXT_MUTED_COLOR : TMAIL.textBlack
+  const nameColor = isMuted ? TEXT_MUTED_COLOR : 'text.primary'
   const expandButton =
     expand === null ? null : (
       <Tooltip title={expand.label}>

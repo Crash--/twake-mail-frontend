@@ -1,9 +1,7 @@
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 import { SCROLLBAR_CSS } from './scrollbarLook'
 
 describe('SCROLLBAR_CSS', () => {
-  it('draws a 6 px grey rounded thumb without track, while the pointer is over the area, as tmail-flutter', () => {
+  it('draws a 6 px rounded thumb in border.main without track, while the pointer is over the area', () => {
     expect(SCROLLBAR_CSS['*::-webkit-scrollbar']).toEqual({
       width: 6,
       height: 6
@@ -13,7 +11,7 @@ describe('SCROLLBAR_CSS', () => {
       borderRadius: 10
     })
     expect(SCROLLBAR_CSS['*:hover::-webkit-scrollbar-thumb']).toEqual({
-      backgroundColor: TMAIL.scrollbarThumb
+      backgroundColor: 'var(--twake-palette-border-main)'
     })
     // No arrows, and Chromium is not given the standard properties, which
     // would replace this look by its own bar

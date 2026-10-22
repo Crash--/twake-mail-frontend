@@ -1,13 +1,12 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's scroll bars
-// (`ScrollbarThemeData`, `ScrollbarListView`): a 6 px grey (#C1C1C1) thumb
-// rounded by 10 px, no track, shown only while the pointer is over the area
-// that scrolls (the thumb of tmail-flutter's desktop shows with the pointer). Every scrolling area of the app takes it, as
-// global CSS of the theme (`MuiCssBaseline`), merged in `AppProviders`.
+// Upstream to twake-ui: no, the shape of tmail-flutter's scroll bars
+// (`ScrollbarThemeData`, `ScrollbarListView`): a 6 px thumb rounded by
+// 10 px, no track, shown only while the pointer is over the area that
+// scrolls; its grey is the theme's `border.main`. Every scrolling area of the
+// app takes it, as global CSS of the theme (`MuiCssBaseline`), merged in
+// `AppProviders`.
 import type { CSSObject } from '@mui/material/styles'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-const THUMB_COLOR = TMAIL.scrollbarThumb
+const THUMB_COLOR = 'var(--twake-palette-border-main)'
 
 /** The global CSS drawing the scroll bars of tmail-flutter */
 export const SCROLLBAR_CSS: CSSObject = {

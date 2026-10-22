@@ -13,8 +13,8 @@ signature and tells the result in a header:
   ignored; "Not signed", any other value or no header shows nothing.
 - Display: `features/email/SmimeStatusMark.tsx`, right after the sender
   address (`SenderLine`), in the single email view and in each expanded
-  message of a conversation. The icons of tmail-flutter (`GoodSignature`,
-  `BadSignature` in `ds/FlutterIcons`), with the texts of tmail-flutter in a
+  message of a conversation. The icons of twake-icons (`CheckCircle` in
+  `success.main`, `WarningCircle` in `error.main`), with the texts of tmail-flutter in a
   tooltip and as the name of the image, so that the state is not carried by
   its colour (`data-testid`: `email-smime-good-signature`,
   `email-smime-bad-signature`).

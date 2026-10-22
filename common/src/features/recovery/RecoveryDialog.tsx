@@ -226,7 +226,6 @@ export function RecoveryDialog({
       <ModalDialog
         title={t('recovery.title')}
         titleId={titleId}
-        isTitleStrong
         subtitle={t('recovery.horizon', { period: horizon })}
         subtitleLook="body"
         describedBy={descriptionId}

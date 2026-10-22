@@ -1,24 +1,18 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's menus of one choice
-// (`PopupMenuItemActionRequiredSelectedIcon`: the date, the order and the
-// label of a search): the names in black, the one chosen followed by
-// icFilterSelected, a 16 px blue disc holding a white tick, 16 px after
-// it; 400 px high at most for the labels. twake-mui's `MenuItem` marks the
-// chosen one with a background.
+// Upstream to twake-ui: no, a menu of one choice (the date, the order and
+// the label of a search): the one chosen is followed by a blue tick, and the
+// menu may be capped in height for the labels. twake-mui's `MenuItem` has no
+// checked mark.
 import { Icon } from '@linagora/twake-icons'
-import { Box, ListItemText, Menu, MenuItem } from '@mui/material'
+import { Box, ListItemText, Menu, MenuItem } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { FilterSelected } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-/** `AppColor.primaryMain` */
-const MARK_COLOR = TMAIL.primary0A
 
 const MARK_SX = {
   display: 'flex',
   flexShrink: 0,
   ml: '16px',
-  color: MARK_COLOR
+  color: 'primary.main'
 } as const
 
 export interface ChoiceMenuItem {

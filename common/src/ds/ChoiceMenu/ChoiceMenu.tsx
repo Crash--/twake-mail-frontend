@@ -2,11 +2,9 @@
 // the label of a search): the one chosen is followed by a blue tick, and the
 // menu may be capped in height for the labels. twake-mui's `MenuItem` has no
 // checked mark.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, CheckCircle } from '@linagora/twake-icons'
 import { Box, ListItemText, Menu, MenuItem } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
-
-import { FilterSelected } from '@/ds/FlutterIcons/FlutterIcons'
 
 const MARK_SX = {
   display: 'flex',
@@ -67,7 +65,7 @@ export function ChoiceMenu({
           <ListItemText primary={item.label} />
           {item.isSelected ? (
             <Box component="span" sx={MARK_SX}>
-              <Icon icon={FilterSelected} size={16} aria-hidden="true" />
+              <Icon icon={CheckCircle} size={16} aria-hidden="true" />
             </Box>
           ) : null}
         </MenuItem>

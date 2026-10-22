@@ -5,7 +5,8 @@ import {
   Cross,
   EmailNotification,
   Filter,
-  StarOutline
+  StarOutline,
+  CheckCircle
 } from '@linagora/twake-icons'
 import {
   Box,
@@ -18,7 +19,6 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useRef, useState, type ReactElement } from 'react'
 
-import { FilterSelected } from '@/ds/FlutterIcons/FlutterIcons'
 import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
@@ -151,7 +151,7 @@ export function EmailListFilterMenu({
             <ListItemText primary={t(listFilterLabelKey(option))} />
             {current === option ? (
               <Icon
-                icon={FilterSelected}
+                icon={CheckCircle}
                 size={16}
                 color={SELECTED_COLOR}
                 className="u-ml-1 u-flex-shrink-0"

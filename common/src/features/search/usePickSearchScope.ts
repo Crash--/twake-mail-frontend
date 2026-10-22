@@ -1,6 +1,6 @@
+import { Email, FolderMoveto } from '@linagora/twake-icons'
 import { useCallback } from 'react'
 
-import { AllEmail, MoveFolderContent } from '@/ds/FlutterIcons/FlutterIcons'
 import { usePickFolderOrChoice } from '@common/features/mailbox/MailboxPickerProvider'
 import { isTeamFolder, mailboxPath } from '@common/features/mailbox/mailboxTree'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
@@ -42,12 +42,12 @@ export function usePickSearchScope(): (
           {
             id: DEFAULT_SCOPE_ID,
             label: t('search.scope.default'),
-            icon: AllEmail
+            icon: Email
           },
           {
             id: EVERYWHERE_SCOPE_ID,
             label: t('search.scope.everywhere'),
-            icon: MoveFolderContent,
+            icon: FolderMoveto,
             placement: 'section'
           }
         ]

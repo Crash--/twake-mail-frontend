@@ -10,7 +10,8 @@ import {
   Star,
   StarOutline,
   Tag,
-  Trash
+  Trash,
+  Filter
 } from '@linagora/twake-icons'
 
 import {
@@ -25,12 +26,7 @@ import {
   findTemplatesMailboxId,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
-import {
-  FilterEmail,
-  MoveEmail,
-  NotSpam,
-  Spam
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { MoveEmail, NotSpam, Spam } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -136,7 +132,7 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   },
   'create-rule': {
     label: 'email.address.createRule',
-    icon: FilterEmail,
+    icon: Filter,
     isDestructive: false,
     group: 3
   },

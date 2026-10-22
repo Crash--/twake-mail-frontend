@@ -4,14 +4,13 @@
 // its address under it in Regular 12, an action at the end), divided by
 // 1 px lines; and the card of a list still empty: its title, a text and
 // an action, centred.
-import { Box, Typography } from '@mui/material'
+import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import {
   GradientAvatar,
   firstLetterOf
 } from '@/ds/GradientAvatar/GradientAvatar'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const CARD_SX = {
   m: 0,
@@ -37,18 +36,16 @@ const ROW_SX = {
 } as const
 
 const NAME_SX = {
-  fontSize: 16,
-  lineHeight: '24px',
-  color: TMAIL.textGrey,
+  typography: 'body1',
+  color: 'text.primary',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
 } as const
 
 const ADDRESS_SX = {
-  fontSize: 12,
-  lineHeight: '16px',
-  color: TMAIL.textGrey64,
+  typography: 'caption',
+  color: 'text.secondary',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -186,19 +183,13 @@ export function PeopleEmptyCard({
     <Box sx={EMPTY_SX} data-testid={testId}>
       <Typography
         component="p"
-        sx={{
-          m: 0,
-          fontSize: 16,
-          lineHeight: '24px',
-          fontWeight: 500,
-          color: TMAIL.textGrey
-        }}
+        sx={{ m: 0, typography: 'subtitle1', color: 'text.primary' }}
       >
         {title}
       </Typography>
       <Typography
         component="p"
-        sx={{ m: 0, fontSize: 14, lineHeight: '20px', color: TMAIL.textGrey64 }}
+        sx={{ m: 0, typography: 'body1', color: 'text.secondary' }}
       >
         {text}
       </Typography>

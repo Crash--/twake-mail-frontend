@@ -1,15 +1,7 @@
-// Upstream to twake-ui: yes. twake-mui does not export MUI's
-// `LinearProgress`; tmail-flutter shows the progress of a long folder action
-// (mark as read, empty) as a 3 px bar, primary on a light grey track with
-// rounded ends (`horizontalPercentLoadingWidget`), sliding while the total
-// is unknown (`horizontalLoadingWidget`).
-import { Box } from '@linagora/twake-mui'
+// Upstream to twake-ui: no, `LinearProgress` with a reduced-motion guard.
+import { LinearProgress } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-/** `AppColor.colorBgMailboxSelected` of tmail-flutter */
-const TRACK_COLOR = TMAIL.fillTrack
 const HEIGHT = 3
 
 export interface ThinProgressBarProps {
@@ -17,7 +9,7 @@ export interface ThinProgressBarProps {
   value: number | null
   /** Accessible name of the progress bar */
   label: string
-  /** In px, 3 by default (2 for an image being inserted, as tmail-flutter) */
+  /** In px, 3 by default (2 for an image being inserted) */
   height?: number
   'data-testid'?: string
 }
@@ -32,53 +24,30 @@ export function ThinProgressBar({
   const percent =
     value === null ? null : Math.round(Math.min(1, Math.max(0, value)) * 100)
   return (
-    <Box
-      role="progressbar"
+    <LinearProgress
+      variant={percent === null ? 'indeterminate' : 'determinate'}
+      value={percent ?? undefined}
       aria-label={label}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={percent ?? undefined}
       sx={{
-        position: 'relative',
-        overflow: 'hidden',
         height,
         borderRadius: '4px',
-        bgcolor: TRACK_COLOR
-      }}
-      data-testid={testId}
-    >
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          borderRadius: '4px',
-          bgcolor: 'primary.main',
+        '@media (prefers-reduced-motion: reduce)': {
+          '& .MuiLinearProgress-bar': { transition: 'none' },
+          // Nothing slides: a static bar says that the total is unknown
           ...(percent === null
             ? {
-                width: '30%',
-                '@keyframes thin-progress-slide': {
-                  from: { left: '-30%' },
-                  to: { left: '100%' }
-                },
-                animation: 'thin-progress-slide 1.5s linear infinite',
-                '@media (prefers-reduced-motion: reduce)': {
+                '& .MuiLinearProgress-bar1': {
                   animation: 'none',
                   left: 0,
-                  width: '100%',
+                  right: 0,
                   opacity: 0.5
-                }
+                },
+                '& .MuiLinearProgress-bar2': { display: 'none' }
               }
-            : {
-                left: 0,
-                width: `${percent}%`,
-                transition: 'width 0.2s linear',
-                '@media (prefers-reduced-motion: reduce)': {
-                  transition: 'none'
-                }
-              })
-        }}
-      />
-    </Box>
+            : {})
+        }
+      }}
+      data-testid={testId}
+    />
   )
 }

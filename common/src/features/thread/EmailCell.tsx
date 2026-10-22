@@ -79,8 +79,8 @@ import { useEmailSelectionContext } from './useEmailSelection'
 
 /** The attachment icon of a wide row */
 const ATTACHMENT_ICON_COLOR = 'var(--twake-palette-text-icon)'
-/** The yellow star of tmail-flutter, after the subject of a compact row */
-const STAR_COLOR = '#FFCC00'
+/** The star after the subject of a compact row (no yellow role: `warning`) */
+const STAR_COLOR = 'var(--twake-palette-warning-main)'
 
 /**
  * The columns of the email list, in their order, as tmail-flutter: `lead`

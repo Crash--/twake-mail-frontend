@@ -42,8 +42,8 @@ import { addRecentSearch, storeSortOrder } from './searchStorage'
 import { useSearchContext } from './useSearchContext'
 import { useSearchSuggestions } from './useSearchSuggestions'
 
-/** The stars of tmail-flutter (`ic_star.svg`, `ic_unstar.svg`) */
-const STARRED_COLOR = '#FFCC00'
+/** A filled star in the yellow of the theme (no yellow role: `warning`) */
+const STARRED_COLOR = 'var(--twake-palette-warning-main)'
 const UNSTARRED_COLOR = 'var(--twake-palette-text-icon)'
 
 /** Recent searches suggested under a non-empty field */

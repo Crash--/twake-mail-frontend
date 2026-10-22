@@ -1,14 +1,13 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's Settings > Storage
-// (`StorageView`): a cloud in a 64 px light circle, then in a 350 px column
-// the space used in Semi Bold 18 black, "of … used" and "Available: …" in
-// 9 px grey, over a thin gauge; on a phone the cloud above the line.
+// Upstream to twake-ui: no. Settings > Storage: a cloud in a 64 px circle,
+// then in a 350 px column the space used (`h5`), "of … used" and
+// "Available: …" (`caption`), over a thin gauge; on a phone the cloud above
+// the line.
 import { Icon } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
 import { Cloud } from '@/ds/FlutterIcons/FlutterIcons'
 import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const ROOT_SX = {
@@ -35,7 +34,7 @@ const CIRCLE_SX = {
   width: 64,
   height: 64,
   borderRadius: '50%',
-  bgcolor: TMAIL.blueWash,
+  bgcolor: 'primary.light',
   color: 'primary.main'
 } as const
 
@@ -44,17 +43,11 @@ const COLUMN_SX = { width: 351, maxWidth: '100%', minWidth: 0 } as const
 const PHONE_COLUMN_SX = { width: '100%', minWidth: 0 } as const
 
 const USED_SX = {
-  fontSize: 18,
-  lineHeight: '23px',
-  fontWeight: 600,
-  color: TMAIL.textBlack
+  typography: 'h5',
+  color: 'text.primary'
 } as const
 
-const SMALL_SX = {
-  fontSize: 9,
-  lineHeight: '14px',
-  color: TMAIL.textGrey90
-} as const
+const SMALL_SX = { typography: 'caption', color: 'text.primary' } as const
 
 export interface StorageUsageProps {
   /** The space used, e.g. "1.2 MB" */

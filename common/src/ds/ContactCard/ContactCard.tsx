@@ -3,7 +3,7 @@
 // wide screen and a bottom sheet on a phone. twake-mui's `ContactPopover`
 // opens on hover, has fixed actions and no bottom sheet (see
 // docs/twake-mui-gaps.md).
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Cross, Copy } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -21,7 +21,6 @@ import {
   type MouseEvent
 } from 'react'
 
-import { CloseCardIcon, CopyIcon } from '@/ds/RecipientIcons/RecipientIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const CARD_WIDTH = 383
@@ -115,7 +114,7 @@ function Content({
           sx={CLOSE_SX}
           data-testid="contact-card-close"
         >
-          <Icon icon={CloseCardIcon} size={24} aria-hidden="true" />
+          <Icon icon={Cross} size={24} aria-hidden="true" />
         </IconButton>
       </Tooltip>
       {avatar}
@@ -152,7 +151,7 @@ function Content({
             sx={{ p: '5px', color: 'text.secondary' }}
             data-testid="contact-card-copy"
           >
-            <Icon icon={CopyIcon} size={20} aria-hidden="true" />
+            <Icon icon={Copy} size={20} aria-hidden="true" />
           </IconButton>
         </Tooltip>
       </Box>

@@ -3,11 +3,9 @@
 // initials, the name in 16 px black and the address in 13 px grey, what is
 // typed in bold; one already among the recipients sits in a grey rounded
 // box with a blue tick.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, CheckCircle } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
-
-import { SelectedIcon } from '@/ds/RecipientIcons/RecipientIcons'
 
 import { initialsOf, splitMatches } from './initials'
 
@@ -152,7 +150,7 @@ export function SuggestionOption({
       </Box>
       {isAdded ? (
         <Box component="span" className="u-flex" sx={{ color: 'primary.main' }}>
-          <Icon icon={SelectedIcon} size={24} aria-hidden="true" />
+          <Icon icon={CheckCircle} size={24} aria-hidden="true" />
         </Box>
       ) : null}
     </Box>

@@ -5,7 +5,7 @@
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { rowSenderSx } from '@/ds/RowLine/rowText'
+import { rowTextSx } from '@/ds/RowLine/rowText'
 
 /** Width of the avatar, in px */
 const AVATAR_WIDTH = 32
@@ -56,7 +56,7 @@ export function RowSender({
         <Box
           component="span"
           className="u-ellipsis"
-          sx={{ ...rowSenderSx(isStrong), flex: '0 1 auto', minWidth: 0 }}
+          sx={{ ...rowTextSx(isStrong), flex: '0 1 auto', minWidth: 0 }}
           data-testid={testId}
         >
           {children}

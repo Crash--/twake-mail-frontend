@@ -84,7 +84,7 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
 
 /**
  * tmail-flutter's compact row: the 48 px avatar, then the sender and the
- * date, the subject and the preview, on the 72 px of the real rows
+ * date, the subject and the preview, on the 75 px of the real rows
  */
 function compactColumns(
   sides: number,

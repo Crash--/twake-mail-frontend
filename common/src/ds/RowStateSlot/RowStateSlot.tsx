@@ -1,10 +1,8 @@
-// Upstream to twake-ui: no, the layout of tmail-flutter. Its rows keep a
+// Upstream to twake-ui: no, a layout detail of the list. Its rows keep a
 // 28 px slot for each state icon (answered or forwarded, unread), empty when
 // the state is off, so that the avatars of the rows line up.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const SLOT_SX = {
   display: 'inline-flex',
@@ -13,7 +11,7 @@ const SLOT_SX = {
   flexShrink: 0,
   width: 28,
   height: 28,
-  color: TMAIL.greyFaint
+  color: 'text.icon'
 } as const
 
 export interface RowStateSlotProps {

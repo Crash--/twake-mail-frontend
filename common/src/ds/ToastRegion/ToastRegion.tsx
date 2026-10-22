@@ -6,6 +6,7 @@
 // and an action button would serve every Twake app.
 import { Icon } from '@linagora/twake-icons'
 import {
+  Alert,
   Box,
   Button,
   Fade,
@@ -135,51 +136,23 @@ function regionStyle(
   }
 }
 
-const SEVERITY_STYLES: Record<
-  ToastSeverity,
-  (theme: Theme) => SystemStyleObject<Theme>
-> = {
-  // The dark surface of a snackbar: white on Grey 900, 15:1; the other way
-  // round in the dark scheme, where a dark toast would melt into the page
-  info: theme => ({
-    backgroundColor: theme.palette.grey[900],
-    color: theme.palette.common.white,
-    ...theme.applyStyles('dark', {
-      backgroundColor: theme.palette.grey[100],
-      color: theme.palette.grey[900]
-    })
-  }),
-  success: theme => ({
-    backgroundColor: theme.palette.grey[900],
-    color: theme.palette.common.white,
-    ...theme.applyStyles('dark', {
-      backgroundColor: theme.palette.grey[100],
-      color: theme.palette.grey[900]
-    })
-  }),
-  // White on error.dark (#c62828 in MUI), 5.6:1; in the dark scheme Grey
-  // 900 on the light error of the palette (#ff939d), 5.2:1
-  error: theme => ({
-    backgroundColor: theme.vars.palette.error.dark,
-    color: theme.palette.common.white,
-    ...theme.applyStyles('dark', {
-      backgroundColor: '#ff939d',
-      color: theme.palette.grey[900]
-    })
-  })
-}
+/**
+ * The standard `Alert` of the theme (text.primary on a tint), on an opaque
+ * `Paper` since that tint lets the page through: the toast takes its look,
+ * not its role
+ */
+const ALERT_SEVERITY = {
+  info: 'primary',
+  success: 'success',
+  error: 'error'
+} as const
 
-/** Light controls on the dark surface, with a visible focus */
-function controlStyle(theme: Theme): SystemStyleObject<Theme> {
-  return {
-    color: 'inherit',
-    flexShrink: 0,
-    '--focus-ring-color': theme.palette.common.white,
-    ...theme.applyStyles('dark', {
-      '--focus-ring-color': theme.palette.grey[900]
-    })
-  }
-}
+/** Controls in the colour of the alert, with a visible focus */
+const CONTROL_SX = {
+  color: 'inherit',
+  flexShrink: 0,
+  '--focus-ring-color': 'currentColor'
+} as const
 
 /**
  * Where the app tells about what just happened (a message moved, an error),
@@ -241,54 +214,58 @@ const ToastCard = forwardRef<HTMLDivElement, ToastCardProps>(function ToastCard(
   }
 
   return (
-    <Paper
-      {...transitionProps}
-      ref={ref}
-      elevation={6}
-      className="u-flex u-flex-items-center u-pl-1 u-pr-half u-pv-half"
-      sx={theme => ({ ...SEVERITY_STYLES[toast.severity](theme), gap: 1 })}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      data-testid={testId}
-      data-severity={toast.severity}
-    >
-      {/* Read by the live regions of the region, not twice */}
-      <Typography
-        id={messageId}
-        variant="body2"
-        aria-hidden="true"
-        className="u-flex-auto u-pv-half"
-        sx={{ color: 'inherit' }}
+    <Paper {...transitionProps} ref={ref} elevation={6}>
+      <Alert
+        variant="standard"
+        severity={ALERT_SEVERITY[toast.severity]}
+        // Not a live region of its own: the regions of `ToastRegion` announce it
+        role="presentation"
+        action={
+          <>
+            {toast.action ? (
+              <Button
+                size="small"
+                variant="text"
+                onClick={handleAction}
+                aria-describedby={messageId}
+                data-testid={toast.action['data-testid']}
+                sx={{ ...CONTROL_SX, fontWeight: 'bold' }}
+              >
+                {toast.action.label}
+              </Button>
+            ) : null}
+            <Tooltip title={closeLabel}>
+              <IconButton
+                size="small"
+                aria-label={closeLabel}
+                aria-describedby={messageId}
+                onClick={handleClose}
+                data-testid={testId ? `${testId}-close-button` : undefined}
+                sx={CONTROL_SX}
+              >
+                <Icon icon={Cross} size={12} />
+              </IconButton>
+            </Tooltip>
+          </>
+        }
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        data-testid={testId}
+        data-severity={toast.severity}
       >
-        {toast.message}
-      </Typography>
-      {toast.action ? (
-        <Button
-          size="small"
-          variant="text"
-          onClick={handleAction}
-          aria-describedby={messageId}
-          data-testid={toast.action['data-testid']}
-          sx={theme => ({ ...controlStyle(theme), fontWeight: 'bold' })}
+        {/* Read by the live regions of the region, not twice */}
+        <Typography
+          id={messageId}
+          variant="body2"
+          aria-hidden="true"
+          sx={{ color: 'inherit' }}
         >
-          {toast.action.label}
-        </Button>
-      ) : null}
-      <Tooltip title={closeLabel}>
-        <IconButton
-          size="small"
-          aria-label={closeLabel}
-          aria-describedby={messageId}
-          onClick={handleClose}
-          data-testid={testId ? `${testId}-close-button` : undefined}
-          sx={controlStyle}
-        >
-          <Icon icon={Cross} size={12} />
-        </IconButton>
-      </Tooltip>
+          {toast.message}
+        </Typography>
+      </Alert>
     </Paper>
   )
 })

@@ -1,15 +1,16 @@
 // Upstream to twake-ui: yes. The card of a person or an address (avatar,
 // name, address with a copy button, a few actions): a centred dialog on a
-// wide screen and a bottom sheet on a phone, as the address dialog of
-// tmail-flutter. twake-mui has neither a contact card nor a bottom sheet
-// (see docs/twake-mui-gaps.md).
+// wide screen and a bottom sheet on a phone. twake-mui's `ContactPopover`
+// opens on hover, has fixed actions and no bottom sheet (see
+// docs/twake-mui-gaps.md).
 import { Icon } from '@linagora/twake-icons'
 import {
   Box,
-  ButtonBase,
+  Button,
   Dialog,
   Drawer,
   IconButton,
+  radius,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
@@ -21,18 +22,9 @@ import {
 } from 'react'
 
 import { CloseCardIcon, CopyIcon } from '@/ds/RecipientIcons/RecipientIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
-/** tmail-flutter `EmailAddressDialogBuilder` */
 const CARD_WIDTH = 383
-const CARD_RADIUS = 16
-
-const PRIMARY = TMAIL.primary0A
-/** The primary action keeps that blue, its label white, in both schemes */
-const PRIMARY_FILL = '#0A84FF'
-/** `textSecondary` at 48 %, the address and its copy button */
-const MUTED = TMAIL.textOnSurface48
 
 const CONTENT_SX = {
   position: 'relative',
@@ -48,52 +40,14 @@ const CLOSE_SX = {
   top: 0,
   right: 0,
   p: '10px',
-  color: TMAIL.steelLight
+  color: 'text.secondary'
 } as const
 
-/** tmail-flutter's `textStyleM3HeadlineSmall` in `textPrimary` */
-const NAME_SX = {
-  mt: 3,
-  mb: 1,
-  fontSize: 24,
-  lineHeight: '32px',
-  fontWeight: 600,
-  letterSpacing: 0,
-  color: TMAIL.textGrey
-} as const
-
-/** tmail-flutter's `textStyleM3BodyMedium` */
-const ADDRESS_SX = {
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 500,
-  letterSpacing: '0.25px',
-  color: MUTED
-} as const
-
-function actionSx(isPrimary: boolean): Record<string, unknown> {
-  return {
-    width: '100%',
-    height: 48,
-    boxSizing: 'border-box',
-    px: '10px',
-    borderRadius: '100px',
-    border: `1px solid ${isPrimary ? PRIMARY_FILL : PRIMARY}`,
-    bgcolor: isPrimary ? PRIMARY_FILL : TMAIL.surface,
-    color: isPrimary ? '#FFFFFF' : PRIMARY,
-    fontSize: 14,
-    lineHeight: '20px',
-    fontWeight: 500,
-    letterSpacing: '0.1px',
-    textAlign: 'center',
-    textDecoration: 'none',
-    '&:hover': { bgcolor: isPrimary ? '#0067D6' : TMAIL.blueHover06 }
-  }
-}
+const NAME_SX = { mt: 3, mb: 1 } as const
 
 export interface ContactCardAction {
   id: string
-  /** On one line, without an icon, as tmail-flutter */
+  /** On one line, without an icon */
   label: string
   /** Runs when the button is pressed; the card does not close by itself */
   onClick?: () => void
@@ -122,27 +76,19 @@ export interface ContactCardProps {
 
 /** A 48 px pill as wide as the card: filled for the main action */
 function ActionButton({ action }: { action: ContactCardAction }): ReactElement {
-  const sx = actionSx(action.isPrimary === true)
-  return action.href === undefined ? (
-    <ButtonBase
+  return (
+    <Button
+      size="large"
+      fullWidth
+      variant={action.isPrimary === true ? 'contained' : 'outlined'}
+      {...(action.href === undefined
+        ? {}
+        : { href: action.href, target: '_blank', rel: 'noopener noreferrer' })}
       onClick={action.onClick}
-      sx={sx}
       data-testid={action['data-testid']}
     >
       {action.label}
-    </ButtonBase>
-  ) : (
-    <ButtonBase
-      component="a"
-      href={action.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={action.onClick}
-      sx={sx}
-      data-testid={action['data-testid']}
-    >
-      {action.label}
-    </ButtonBase>
+    </Button>
   )
 }
 
@@ -175,6 +121,7 @@ function Content({
       {avatar}
       {hasName ? (
         <Typography
+          variant="h3"
           component="h2"
           id={titleId}
           className="u-breakword u-ta-center"
@@ -189,10 +136,11 @@ function Content({
         sx={{ maxWidth: '100%', ...(hasName ? {} : { mt: 3 }) }}
       >
         <Typography
+          variant="body2"
           component={hasName ? 'p' : 'h2'}
           id={hasName ? undefined : titleId}
           className="u-breakword"
-          sx={ADDRESS_SX}
+          color="text.secondary"
           data-testid="contact-card-address"
         >
           {address}
@@ -201,7 +149,7 @@ function Content({
           <IconButton
             aria-label={copyLabel}
             onClick={onCopy}
-            sx={{ p: '5px', color: MUTED }}
+            sx={{ p: '5px', color: 'text.secondary' }}
             data-testid="contact-card-copy"
           >
             <Icon icon={CopyIcon} size={20} aria-hidden="true" />
@@ -251,8 +199,8 @@ export function ContactCard({
             'aria-modal': true,
             'aria-labelledby': titleId,
             sx: {
-              borderTopLeftRadius: CARD_RADIUS,
-              borderTopRightRadius: CARD_RADIUS,
+              borderTopLeftRadius: radius.lg,
+              borderTopRightRadius: radius.lg,
               maxHeight: '90%',
               '@media (prefers-reduced-motion: reduce)': {
                 transition: 'none !important'
@@ -277,8 +225,7 @@ export function ContactCard({
           sx: {
             '&&': {
               width: CARD_WIDTH,
-              maxWidth: 'calc(100% - 32px)',
-              borderRadius: `${CARD_RADIUS}px`
+              maxWidth: 'calc(100% - 32px)'
             }
           }
         }

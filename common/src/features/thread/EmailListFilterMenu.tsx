@@ -19,7 +19,6 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useRef, useState, type ReactElement } from 'react'
 
-import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -99,7 +98,7 @@ export function EmailListFilterMenu({
         <ToolbarButton
           ref={filterButtonRef}
           label={label}
-          icon={FilterListIcon}
+          icon={Filter}
           hasMenu
           isActive={isActive}
           onClick={event => {

@@ -1,21 +1,21 @@
-// Upstream to twake-ui: yes, twake-mui has no date range picker. tmail-flutter's
-// (`flutter_date_range_picker`, `MultipleViewDateRangePicker`): a white card
-// rounded by 16 px, the quick ranges on grey 8 px chips at the top, two months
-// side by side, and at the bottom the start and end fields (`dd/mm/yyyy`, grey,
-// rounded by 12 px) joined by an arrow, then "Cancel" and "Set date" (44 px,
-// rounded by 12 px). On a phone it is a sheet at the bottom with the quick
-// ranges and the two fields only, each opening a one month calendar sheet
-// from its calendar icon (`SingleViewDatePicker`).
+// Upstream to twake-ui: yes, twake-mui has no date range picker. A dialog
+// with the quick ranges as square chips at the top, two months side by side,
+// and at the bottom the start and end fields (`dd/mm/yyyy`) joined by an
+// arrow, then "Cancel" and "Set date". On a phone it is a sheet at the
+// bottom with the quick ranges and the two fields only, each opening a one
+// month calendar sheet from its calendar icon.
 import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   IconButton,
-  InputBase,
+  radius,
+  TextField,
   Tooltip,
   Typography
-} from '@mui/material'
+} from '@linagora/twake-mui'
 import {
   useId,
   useState,
@@ -30,7 +30,6 @@ import {
   CloseDialog,
   DateRange
 } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 import {
@@ -109,7 +108,7 @@ const VISUALLY_HIDDEN = {
   whiteSpace: 'nowrap'
 } as const
 
-const SHADOW = '0 0 24px rgba(0, 0, 0, 0.16), 0 0 2px rgba(0, 0, 0, 0.08)'
+const SHEET_RADIUS = `${radius.lg} ${radius.lg} 0 0`
 
 /**
  * A range of days, picked on the calendar, typed in its two fields or taken
@@ -290,19 +289,13 @@ export function DateRangePickerDialog({
                 mt: 'auto',
                 width: '100%',
                 maxWidth: '100%',
-                borderRadius: '16px 16px 0 0',
-                boxShadow: SHADOW,
-                bgcolor: TMAIL.surface,
-                backgroundImage: 'none'
+                borderRadius: SHEET_RADIUS
               }
             : {
                 m: 2,
                 width: screen === 'desktop' ? 650 : 500,
                 maxWidth: 'calc(100% - 32px)',
-                borderRadius: '16px',
-                boxShadow: SHADOW,
-                bgcolor: TMAIL.surface,
-                backgroundImage: 'none'
+                maxHeight: 'calc(100% - 32px)'
               }
         },
         transition: { onExited }
@@ -315,7 +308,7 @@ export function DateRangePickerDialog({
         noValidate
         sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
       >
-        {/* tmail-flutter's picker shows no title: the dialog still has its name */}
+        {/* No visible title: the dialog still has its name */}
         <Typography id={titleId} component="h2" sx={VISUALLY_HIDDEN}>
           {labels.dialog}
         </Typography>
@@ -334,7 +327,7 @@ export function DateRangePickerDialog({
           </Box>
         ) : (
           <>
-            <Box sx={{ borderTop: '1px solid', borderColor: TMAIL.divider }} />
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />
             <Box sx={{ p: '16px', overflowY: 'auto' }}>
               <MonthsCalendar
                 months={2}
@@ -351,7 +344,7 @@ export function DateRangePickerDialog({
                 nextMonthLabel={labels.nextMonth}
               />
             </Box>
-            <Box sx={{ borderTop: '1px solid', borderColor: TMAIL.divider }} />
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />
             <Box sx={{ p: '16px' }}>
               <Box
                 sx={{
@@ -370,7 +363,7 @@ export function DateRangePickerDialog({
                       px: '12px',
                       display: 'flex',
                       alignItems: 'center',
-                      color: TMAIL.greyIcon
+                      color: 'text.icon'
                     }}
                   >
                     <Icon icon={DateRange} size={24} />
@@ -398,11 +391,8 @@ export function DateRangePickerDialog({
                 mt: 'auto',
                 width: '100%',
                 maxWidth: '100%',
-                borderRadius: '16px 16px 0 0',
-                boxShadow: SHADOW,
-                bgcolor: TMAIL.surface,
-                backgroundImage: 'none',
-                p: '8px'
+                borderRadius: SHEET_RADIUS,
+                p: 1
               }
             }
           }}
@@ -419,7 +409,8 @@ export function DateRangePickerDialog({
             <Typography
               id={sheetTitleId}
               component="h2"
-              sx={{ fontSize: 20, fontWeight: 700, color: TMAIL.textBlack }}
+              variant="h4"
+              color="text.primary"
             >
               {phonePicker === 'end' ? labels.end : labels.start}
             </Typography>
@@ -429,7 +420,7 @@ export function DateRangePickerDialog({
                 onClick={() => {
                   setPhonePicker(null)
                 }}
-                sx={{ position: 'absolute', right: 0, color: TMAIL.greyIcon }}
+                sx={{ position: 'absolute', right: 0 }}
               >
                 <Icon icon={CloseDialog} size={24} />
               </IconButton>
@@ -484,31 +475,18 @@ function PresetRow({
       }}
     >
       {presets.map((preset, index) => (
-        <Button
+        <Chip
           key={preset.label}
-          variant="text"
+          square
+          clickable
+          label={preset.label}
+          color={index === selected ? 'primary' : 'default'}
           aria-pressed={index === selected}
           onClick={() => {
             onPick(index)
           }}
-          sx={{
-            flexShrink: 0,
-            minWidth: 0,
-            height: 36,
-            p: '8px',
-            borderRadius: '8px',
-            textTransform: 'none',
-            fontSize: 13,
-            fontWeight: 400,
-            lineHeight: '20px',
-            whiteSpace: 'nowrap',
-            bgcolor: TMAIL.fillEB,
-            color: index === selected ? TMAIL.primary : TMAIL.textBlack,
-            '&:hover': { bgcolor: TMAIL.fillToolbarHover }
-          }}
-        >
-          {preset.label}
-        </Button>
+          sx={{ flexShrink: 0 }}
+        />
       ))}
     </Box>
   )
@@ -524,7 +502,7 @@ interface DateFieldProps {
   describedBy: string | undefined
   inputRef: Ref<HTMLInputElement> | undefined
   isAutoFocus: boolean
-  /** The whole width (a phone), else 130 px as tmail-flutter */
+  /** The whole width (a phone), else 130 px */
   isWide: boolean
   /** The calendar button inside the field, null for none */
   pickLabel: string | null
@@ -549,22 +527,20 @@ function DateField({
 }: DateFieldProps): ReactElement {
   return (
     <Box sx={{ width: isWide ? '100%' : 130, pt: isWide ? '8px' : 0 }}>
-      <Box
+      <Typography
         component="label"
         id={`${id}-label`}
         htmlFor={id}
-        sx={{
-          display: 'block',
-          mb: '8px',
-          fontSize: 14,
-          lineHeight: '18px',
-          color: TMAIL.greySlate
-        }}
+        variant="body2"
+        color="text.secondary"
+        sx={{ display: 'block', mb: 1 }}
       >
         {label}
-      </Box>
-      <InputBase
+      </Typography>
+      <TextField
         id={id}
+        fullWidth
+        error={hasError}
         value={value}
         onChange={event => {
           onChange(event.target.value)
@@ -572,47 +548,29 @@ function DateField({
         placeholder={hint}
         autoFocus={isAutoFocus}
         inputRef={inputRef}
-        endAdornment={
-          pickLabel === null ? undefined : (
-            <Tooltip title={pickLabel}>
-              <IconButton
-                aria-label={pickLabel}
-                aria-describedby={`${id}-label`}
-                onClick={onPick}
-                sx={{ p: '5px', mr: '-4px', color: TMAIL.greyFaint }}
-              >
-                <Icon icon={Calendar} size={24} />
-              </IconButton>
-            </Tooltip>
-          )
-        }
-        inputProps={{
-          inputMode: 'numeric',
-          autoComplete: 'off',
-          maxLength: 10,
-          'aria-invalid': hasError,
-          'aria-describedby': describedBy,
-          'data-testid': testId
-        }}
-        sx={{
-          width: '100%',
-          height: 48,
-          boxSizing: 'border-box',
-          px: '12px',
-          border: '1px solid',
-          borderColor: hasError ? TMAIL.errorLogin : TMAIL.divider12,
-          borderRadius: '12px',
-          bgcolor: TMAIL.fillF2,
-          fontSize: 16,
-          fontWeight: 500,
-          color: TMAIL.textBlack,
-          '&.Mui-focused': {
-            borderColor: hasError ? TMAIL.errorLogin : TMAIL.primary
+        slotProps={{
+          input: {
+            endAdornment:
+              pickLabel === null ? undefined : (
+                <Tooltip title={pickLabel}>
+                  <IconButton
+                    size="small"
+                    aria-label={pickLabel}
+                    aria-describedby={`${id}-label`}
+                    onClick={onPick}
+                  >
+                    <Icon icon={Calendar} size={24} />
+                  </IconButton>
+                </Tooltip>
+              )
           },
-          '& .MuiInputBase-input': { p: 0 },
-          '& .MuiInputBase-input::placeholder': {
-            color: TMAIL.grey,
-            opacity: 1
+          htmlInput: {
+            inputMode: 'numeric',
+            autoComplete: 'off',
+            maxLength: 10,
+            'aria-invalid': hasError,
+            'aria-describedby': describedBy,
+            'data-testid': testId
           }
         }}
       />
@@ -631,12 +589,9 @@ function FieldError({ id, text }: FieldErrorProps): ReactElement | null {
     <Typography
       id={id}
       component="p"
-      sx={{
-        mt: '8px',
-        fontSize: 14,
-        lineHeight: '18px',
-        color: TMAIL.errorLogin
-      }}
+      variant="body2"
+      color="error"
+      sx={{ mt: 1 }}
     >
       {text}
     </Typography>
@@ -663,22 +618,9 @@ function PickerButton({
   return (
     <Button
       type={type}
-      variant="text"
+      variant={isMain ? 'contained' : 'text'}
       onClick={onClick}
-      sx={{
-        flex: isWide ? '1 1 0' : '0 0 auto',
-        height: 44,
-        px: isMain ? '20px' : '25px',
-        borderRadius: '12px',
-        textTransform: 'none',
-        fontSize: 16,
-        fontWeight: 500,
-        whiteSpace: 'nowrap',
-        // The blue fill keeps its white label in both schemes
-        color: isMain ? '#FFFFFF' : TMAIL.primary,
-        bgcolor: isMain ? '#007AFF' : TMAIL.fillEB,
-        '&:hover': { bgcolor: isMain ? '#0062CC' : TMAIL.fillToolbarHover }
-      }}
+      sx={{ flex: isWide ? '1 1 0' : '0 0 auto', whiteSpace: 'nowrap' }}
       data-testid={testId}
     >
       {children}

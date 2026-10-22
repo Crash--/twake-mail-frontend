@@ -51,8 +51,10 @@ export const ACTION_GAP = 11
  */
 const DATE_BLOCK_WIDTH = 24 + 80 + 28
 
-/** The checkbox (40 px, 4 px from the edge) and the two 28 px state slots */
-const LEAD_FIXED_WIDTH = 44 + 2 * 28
+/** The checkbox (32 px) and the two 28 px state slots */
+const LEAD_FIXED_WIDTH = 32 + 2 * 28
+/** A touch target is 44 px, as the checkbox of a touch row used to be */
+const TOUCH_CHECKBOX_WIDTH = 44
 /** The star of tmail-flutter: a bare 20 px icon */
 const STAR_WIDTH = 20
 /**
@@ -92,7 +94,7 @@ function getButtonSize(isTouch: boolean): number {
 export function getLeadWidth(isTouch: boolean): number {
   return (
     ROW_LAYOUT.paddingX +
-    LEAD_FIXED_WIDTH +
+    (isTouch ? TOUCH_CHECKBOX_WIDTH + 2 * 28 : LEAD_FIXED_WIDTH) +
     (isTouch ? TOUCH_TARGET_SIZE : STAR_WIDTH)
   )
 }

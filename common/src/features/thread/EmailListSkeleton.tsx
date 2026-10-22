@@ -25,7 +25,7 @@ import {
 } from './emailListGeometry'
 
 /** The target of the checkbox of a row, its tallest control */
-const ROW_CHECKBOX_SIZE = 40
+const ROW_CHECKBOX_SIZE = 32
 
 /** More rows than the tallest screen holds: the container cuts the rest */
 const ROW_COUNT = 20
@@ -144,7 +144,7 @@ function EmailListRowsSkeleton({
       compact={isCompact}
       rowCount={ROW_COUNT}
       rowLayout={ROW_LAYOUT}
-      // The 40 px checkbox of the row sets its height (48 px with the padding)
+      // The 32 px checkbox of the row sets its height
       cellHeight={ROW_CHECKBOX_SIZE}
       className={className}
       data-testid="email-list-loading"

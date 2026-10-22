@@ -1,7 +1,5 @@
-// Upstream to twake-ui: yes, as a `size` of `Button`. twake-mui forces 16 px
-// text on every `Button`; the Twake Mail design has "button medium" at 14 / 20
-// with letter spacing 0.1, a fixed width and an 18 px icon
-// (docs/twake-mui-gaps.md).
+// Upstream to twake-ui: yes, as a round icon-only variant of `Button`, for
+// phones, where the footer has no room for the label (docs/twake-mui-gaps.md).
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
@@ -23,9 +21,8 @@ export interface PillButtonProps {
 }
 
 /**
- * The main action of a form (Send), as tmail-flutter's: filled blue
- * (#208BFF), pill radius, 46 px high, a 17 px medium label then a 24 px
- * icon.
+ * The main action of a form (Send): twake-mui's contained `Button` with an
+ * 18 px icon before the label.
  */
 export function PillButton({
   label,
@@ -44,32 +41,22 @@ export function PillButton({
       disabled={disabled}
       aria-describedby={describedBy}
       aria-label={isIconOnly ? label : undefined}
-      endIcon={isIconOnly ? undefined : <Icon icon={icon} size={24} />}
+      startIcon={isIconOnly ? undefined : <Icon icon={icon} size={18} />}
       data-testid={testId}
       sx={{
         width: isIconOnly ? 44 : width,
-        minWidth: isIconOnly ? 44 : undefined,
-        minHeight: isIconOnly ? 44 : 46,
-        height: isIconOnly ? 44 : undefined,
-        bgcolor: '#208BFF',
         // The disc is the padding box, the transparent border widens the target
         ...(isIconOnly
           ? {
+              minWidth: 44,
+              minHeight: 44,
+              height: 44,
               p: 0,
               border: '6px solid transparent',
               backgroundClip: 'padding-box',
               boxSizing: 'border-box'
             }
-          : { py: '11px', px: '11px' }),
-        gap: '10px',
-        borderRadius: '60px',
-        boxShadow: 'none',
-        fontSize: 17,
-        fontWeight: 500,
-        lineHeight: '22px',
-        letterSpacing: '-0.41px',
-        textTransform: 'none',
-        '& .MuiButton-endIcon': { m: 0 }
+          : {})
       }}
     >
       {isIconOnly ? <Icon icon={icon} size={18} aria-hidden="true" /> : label}

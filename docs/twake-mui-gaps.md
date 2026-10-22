@@ -427,7 +427,7 @@ Differences kept from the design and from tmail-flutter:
 
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
-| `Typography` | Sizes with no variant: Bold 17/24 (sender name), Medium 15/20 (sender in a conversation), Medium 14/18.4 (date, recipients), Regular 14/20 (time and preview of a compact message); the secondary ones in an AA grey | Header of an open email and rows of a conversation | `ds/MessageText` (composes `Typography`) | Typography variants (`subtitle`, `bodyCompact`…) or a `MessageHeader` set of them |
+| `Typography` | Bold 17/24 (sender name in the Figma) has no variant: `h5` (16/600) is used | Header of an open email and rows of a conversation | `ds/MessageText` (composes `Typography`) | A 17/700 variant, or accept `h5` |
 | `Button` | Text button underlined, Medium 14/18.4, `padding 4 8`, 100 px radius, secondary colour | "Unsubscribe" after the sender | `ds/InlineTextButton` (composes `ButtonBase`) | `Button variant="text" size="small"` with an `underline` option |
 | `Button` | "Mail action bar": a divider and buttons sharing the width (`flex 1`, min-height 48, 100 px radius, 20 px icon, Medium 14/20), kept at the bottom of the scrolling area | Reply all / Reply / Forward under an email or a conversation | `ds/ActionBar` (`ActionBar`, `ActionBarButton`) | An `ActionBar` component |
 | Icons | `@linagora/twake-icons` has `Reply` only: no "Reply all" nor "Forward" (the mock draws them) | Buttons of the action bar | `ds/ReplyIcons`: two `Reply` arrows overlapped, and one turned around (`scaleX(-1)`) | `ReplyAll` and `Forward` icons (and a chevron: `Dropdown` stands in for the mock's) |

@@ -17,7 +17,8 @@ import {
   Bottom,
   Check,
   Magnifier,
-  Right
+  Right,
+  Plus
 } from '@linagora/twake-icons'
 import {
   Box,
@@ -39,7 +40,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FolderPickerOption {
@@ -503,7 +503,7 @@ export function FolderPicker({
               sx={CREATE_SX}
               data-testid={testIds.create}
             >
-              <Icon icon={AddNewFolder} size={24} aria-hidden="true" />
+              <Icon icon={Plus} size={24} aria-hidden="true" />
             </IconButton>
           </Tooltip>
         )}

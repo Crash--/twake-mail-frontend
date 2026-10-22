@@ -2,7 +2,8 @@ import {
   Eye,
   EyeClosed,
   Magnifier,
-  FolderOutlined
+  FolderOutlined,
+  Plus
 } from '@linagora/twake-icons'
 import { Box, ListItem, ListItemText } from '@linagora/twake-mui'
 import {
@@ -17,7 +18,6 @@ import {
 } from 'react'
 import { useMatch } from 'react-router'
 
-import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { NavCategory } from '@/ds/NavCategory/NavCategory'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
@@ -319,7 +319,7 @@ export function MailboxTree(): ReactElement {
                   />
                   <NavSectionAction
                     label={newFolderLabel}
-                    icon={AddNewFolder}
+                    icon={Plus}
                     onClick={handleCreate}
                     data-testid="add-new-folder-button"
                   />

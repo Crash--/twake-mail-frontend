@@ -38,6 +38,7 @@ const ITEM_RIGHTS: Record<EmailActionId, EmailRight | null> = {
   'label-as': 'maySetKeywords',
   unsubscribe: 'maySetKeywords',
   // Reading an email is all they need
+  'create-rule': null,
   print: null,
   'download-eml': null,
   'edit-as-new': null

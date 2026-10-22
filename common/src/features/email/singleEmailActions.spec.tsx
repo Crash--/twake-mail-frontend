@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
-import { Outlet, Route, useParams } from 'react-router'
+import { Outlet, Route, useLocation, useParams } from 'react-router'
 
 import { ComposerProvider } from '@common/features/composer/ComposerProvider'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'
@@ -14,6 +14,7 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
+import { FAKE_LINAGORA_CAPABILITIES } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { saveBlob } from '@common/utils/saveBlob'
 
@@ -47,11 +48,20 @@ function ViewPage(): ReactElement {
   )
 }
 
+function RulesPage(): ReactElement {
+  const { state } = useLocation()
+  return <p>Rules for {JSON.stringify(state)}</p>
+}
+
 // Outside the domain of the user (alice@example.com)
 const OUTSIDER = { name: 'News', email: 'news@newsletter.example.org' }
 
-function makeServer(overrides: Partial<FakeEmail> = {}): FakeJmapServer {
+function makeServer(
+  overrides: Partial<FakeEmail> = {},
+  capabilities: Record<string, unknown> = {}
+): FakeJmapServer {
   const server = makeFakeJmapServer({
+    capabilities,
     mailboxes: makeDefaultMailboxes(),
     emails: [
       makeEmailWithBody(
@@ -91,7 +101,13 @@ async function openEmail(server: FakeJmapServer): Promise<void> {
     withJmapSession: true,
     jmapServer: server,
     childRoutes: (
-      <Route path="mailbox/:mailboxId/email/:emailId" element={<ViewPage />} />
+      <>
+        <Route
+          path="mailbox/:mailboxId/email/:emailId"
+          element={<ViewPage />}
+        />
+        <Route path="settings/email-rules" element={<RulesPage />} />
+      </>
     )
   })
   await screen.findByTestId('email-view-subject')
@@ -184,6 +200,50 @@ describe('actions of an open email', () => {
       expect(jest.mocked(printHtmlDocument).mock.calls[0]?.[0]).toContain(
         'img-src data: blob: https: http:;'
       )
+    })
+  })
+
+  describe('the More menu', () => {
+    it("answers in tmail-flutter's order, Reply all with its own icon", async () => {
+      await openEmail(makeServer())
+      const menu = await openMoreMenu()
+
+      const answers = within(menu).getAllByRole('menuitem').slice(0, 3)
+      expect(answers.map(item => item.textContent)).toEqual([
+        'Reply',
+        'Forward',
+        'Reply all'
+      ])
+      const [reply, , replyAll] = answers.map(
+        item => item.querySelector('svg')?.innerHTML
+      )
+      expect(replyAll).not.toBe(reply)
+    })
+
+    it('opens the rule creator filled with the sender', async () => {
+      await openEmail(makeServer({}, FAKE_LINAGORA_CAPABILITIES))
+      const menu = await openMoreMenu()
+
+      await userEvent.click(
+        within(menu).getByRole('menuitem', {
+          name: 'Create a rule with this email'
+        })
+      )
+
+      expect(
+        await screen.findByText('Rules for {"newRuleFrom":"news@example.com"}')
+      ).toBeVisible()
+    })
+
+    it('offers no rule without the filter extension', async () => {
+      await openEmail(makeServer())
+      const menu = await openMoreMenu()
+
+      expect(
+        within(menu).queryByRole('menuitem', {
+          name: 'Create a rule with this email'
+        })
+      ).toBe(null)
     })
   })
 

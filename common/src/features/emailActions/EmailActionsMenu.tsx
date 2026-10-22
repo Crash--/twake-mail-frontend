@@ -1,8 +1,7 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Divider,
   ListItemIcon,
-  ListItemText,
   Menu,
   MenuItem,
   useMediaQuery,
@@ -14,9 +13,11 @@ import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
 import {
   CheckboxOff,
   CheckboxOn,
+  Forward,
   Reply,
-  Share
+  ReplyAll
 } from '@/ds/FlutterIcons/FlutterIcons'
+import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'
 import { MenuSubmenuItem } from '@/ds/MenuSubmenu/MenuSubmenu'
 import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useComposer } from '@common/features/composer/ComposerProvider'
@@ -24,9 +25,8 @@ import type { ReplyAction } from '@common/features/composer/replyRecipients'
 import type { EmailDetail } from '@common/features/email/queries'
 import {
   useRunViewedEmailAction,
-  viewedEmailExtras
+  useViewedEmailExtras
 } from '@common/features/email/useRunViewedEmailAction'
-import { useUnsubscribe } from '@common/features/email/useUnsubscribe'
 import { REPLY_LABELS } from '@common/features/email/useReplyOptions'
 import { isDraftsMailbox } from '@common/features/mailbox/mailboxTree'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -54,6 +54,22 @@ const REPLY_MENU_IDS: Record<ReplyAction, string> = {
   forward: 'forward'
 }
 
+/** The icons of tmail-flutter's answers (`EmailActionType.getIcon`) */
+const REPLY_ICONS: Record<ReplyAction, IconProps['icon']> = {
+  reply: Reply,
+  replyAll: ReplyAll,
+  replyToList: Reply,
+  forward: Forward
+}
+
+/** tmail-flutter's order of the answers in a menu: Forward before Reply all */
+const REPLY_MENU_ORDER: readonly ReplyAction[] = [
+  'reply',
+  'forward',
+  'replyAll',
+  'replyToList'
+]
+
 /** Where the menu opens: under a button or row, or at the mouse pointer */
 export type EmailActionsMenuAnchor =
   { element: HTMLElement } | { position: PopoverPosition }
@@ -70,8 +86,8 @@ export interface EmailActionsMenuProps {
   /** After an action ran (e.g. to clear the selection) */
   onAction?: (id: EmailActionId) => void
   /**
-   * The answers offered first, for one email: by default reply, reply all
-   * and forward, none in Drafts
+   * The answers offered first, for one email: by default reply, forward
+   * and reply all, none in Drafts; shown in tmail-flutter's order
    */
   replies?: readonly ReplyAction[]
   /**
@@ -118,28 +134,27 @@ export function EmailActionsMenu({
   const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
   const runViewedAction = useRunViewedEmailAction()
-  const { canUnsubscribe } = useUnsubscribe()
+  const viewedEmailExtras = useViewedEmailExtras()
   const { openComposer } = useComposer()
   const mailbox =
     mailboxes.find(candidate => candidate.id === mailboxId) ?? null
   const single = emails.length === 1 ? emails[0] : undefined
   const answered = answerEmailId ?? single?.id ?? null
-  const answers: readonly ReplyAction[] =
+  const offered: readonly ReplyAction[] =
     anchor === null || answered === null
       ? []
       : (replies ??
         (mailbox !== null && isDraftsMailbox(mailbox)
           ? []
-          : ['reply', 'replyAll', 'forward']))
+          : ['reply', 'forward', 'replyAll']))
+  const answers = REPLY_MENU_ORDER.filter(action => offered.includes(action))
   const items =
     anchor === null
       ? []
       : availableEmailActions(emails, mailbox, mailboxes, {
           canLabel,
           extras:
-            detail !== undefined
-              ? viewedEmailExtras(detail, canUnsubscribe(detail))
-              : ['edit-as-new']
+            detail !== undefined ? viewedEmailExtras(detail) : ['edit-as-new']
         }).filter(item => !exclude.includes(item.id))
 
   const handleReply = (action: ReplyAction): void => {
@@ -157,9 +172,9 @@ export function EmailActionsMenu({
       data-testid={`email-action-${REPLY_MENU_IDS[action]}`}
     >
       <ListItemIcon>
-        <Icon icon={action === 'forward' ? Share : Reply} />
+        <Icon icon={REPLY_ICONS[action]} />
       </ListItemIcon>
-      <ListItemText primary={t(REPLY_LABELS[action])} />
+      <MenuItemLabel label={t(REPLY_LABELS[action])} />
     </MenuItem>
   ))
 
@@ -204,7 +219,7 @@ export function EmailActionsMenu({
                   color={isOn ? LABEL_ON_COLOR : LABEL_OFF_COLOR}
                 />
               </ListItemIcon>
-              <ListItemText primary={labelDisplayName(label, t)} />
+              <MenuItemLabel label={labelDisplayName(label, t)} />
             </MenuItem>
           )
         }),
@@ -218,7 +233,7 @@ export function EmailActionsMenu({
           }}
           data-testid="email-action-create-label"
         >
-          <ListItemText primary={t('labels.form.createTitle')} />
+          <MenuItemLabel label={t('labels.form.createTitle')} />
         </MenuItem>
       ]}
     </MenuSubmenuItem>
@@ -261,13 +276,9 @@ export function EmailActionsMenu({
             <ListItemIcon>
               <Icon icon={item.icon} />
             </ListItemIcon>
-            <ListItemText
-              primary={t(item.label)}
-              slotProps={{
-                primary: {
-                  color: item.isDestructive ? 'error.dark' : 'inherit'
-                }
-              }}
+            <MenuItemLabel
+              label={t(item.label)}
+              color={item.isDestructive ? 'error.dark' : 'inherit'}
             />
           </MenuItem>
         )

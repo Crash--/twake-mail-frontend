@@ -264,8 +264,8 @@ describe('Acting on emails of the list', () => {
         .map(item => item.textContent)
     ).toEqual([
       'Reply',
-      'Reply all',
       'Forward',
+      'Reply all',
       'Move to trash',
       'Archive message',
       'Mark as read',
@@ -522,7 +522,7 @@ describe('Acting on emails of the list', () => {
         (await screen.findAllByRole('menuitem'))
           .slice(0, 3)
           .map(item => item.textContent)
-      ).toEqual(['Reply', 'Reply all', 'Forward'])
+      ).toEqual(['Reply', 'Forward', 'Reply all'])
       await userEvent.click(
         await screen.findByRole('menuitem', { name: 'Archive message' })
       )

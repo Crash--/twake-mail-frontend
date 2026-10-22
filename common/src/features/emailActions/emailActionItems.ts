@@ -17,6 +17,7 @@ import {
   Download,
   Email,
   EmailNotification,
+  FilterEmail,
   EmailOpen,
   MoveEmail,
   NotSpam,
@@ -48,6 +49,7 @@ export type EmailActionId =
   | 'move'
   | 'mark-as-spam'
   | 'label-as'
+  | 'create-rule'
   | 'unsubscribe'
   | 'print'
   | 'download-eml'
@@ -130,6 +132,12 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
     isDestructive: false,
     group: 2
   },
+  'create-rule': {
+    label: 'email.address.createRule',
+    icon: FilterEmail,
+    isDestructive: false,
+    group: 3
+  },
   unsubscribe: {
     label: 'unsubscribe.action',
     icon: EmailNotification,
@@ -162,6 +170,7 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
  * Drafts and Templates nowhere)
  */
 export const SINGLE_EMAIL_ACTIONS: readonly EmailActionId[] = [
+  'create-rule',
   'unsubscribe',
   'print',
   'download-eml',

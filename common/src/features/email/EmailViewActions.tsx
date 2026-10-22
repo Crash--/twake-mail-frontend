@@ -26,9 +26,8 @@ import type { EmailDetail } from './queries'
 import { useReplyOptions } from './useReplyOptions'
 import {
   useRunViewedEmailAction,
-  viewedEmailExtras
+  useViewedEmailExtras
 } from './useRunViewedEmailAction'
-import { useUnsubscribe } from './useUnsubscribe'
 
 /**
  * The actions shown as buttons, from the tablet size, between "Reply" and
@@ -90,14 +89,14 @@ export function EmailViewActions({
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
   const runAction = useRunViewedEmailAction()
-  const { canUnsubscribe } = useUnsubscribe()
+  const viewedEmailExtras = useViewedEmailExtras()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   const replies = useReplyOptions(email)
   const mailbox =
     mailboxes.find(candidate => candidate.id === mailboxId) ?? null
   const items = availableEmailActions([email], mailbox, mailboxes, {
     canLabel,
-    extras: viewedEmailExtras(email, canUnsubscribe(email))
+    extras: viewedEmailExtras(email)
   })
   const move = items.find(item => item.id === MOVES[variant])
   const deletion = items.find(item => DELETIONS.includes(item.id))

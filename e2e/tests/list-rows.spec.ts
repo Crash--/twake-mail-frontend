@@ -129,7 +129,7 @@ test.describe('LST email list rows', () => {
     await expect(page.getByRole('dialog')).toBeVisible()
   })
 
-  test('LST-05 the toolbar and the rows have the measures of tmail-flutter', async ({
+  test('LST-05 the toolbar and the rows have the measures of twake-mui', async ({
     page,
     user,
     jmap
@@ -154,15 +154,15 @@ test.describe('LST email list rows', () => {
     const toolbarBox = await box(toolbar)
     const refresh = await box(page.getByTestId('list-refresh-button'))
     const selectAll = await box(page.getByTestId('list-select-all-button'))
-    // As tmail-flutter: the toolbar and the rows span the card, 12 px above
-    // the buttons (a 32 px high refresh around its 26 x 24 icon, 32 px text
-    // buttons, the select all one always 250 px wide), 16 px apart
+    // The toolbar and the rows span the card, 16 px above the buttons (a 32 px
+    // high refresh around its 26 x 24 icon, 32 px text buttons, the select all
+    // one always 250 px wide), 16 px apart
     expect(rowBox.x).toBe(toolbarBox.x)
     expect(refresh.width).toBeCloseTo(16 + (16 * 26) / 24, 1)
     expect(refresh.height).toBe(32)
     expect(selectAll.height).toBe(32)
     expect(selectAll.width).toBe(250)
-    expect(selectAll.y - toolbarBox.y).toBe(12)
+    expect(selectAll.y - toolbarBox.y).toBe(16)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
     // 39.5 px rows (the 32 px checkbox and the 3 px of padding around it, the
     // 1 px divider), a bare 20 px star

@@ -1,8 +1,8 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's sign-in fields
-// (`LoginInputDecorationBuilder`): filled light grey (#F2F3F5), a 10 px
-// radius, 16 px text 25 px in, the name inside the field until something is
-// typed, a 2 px blue border with the focus, a red one in error. The name
-// stays the label of the input for assistive technologies.
+// Upstream to twake-ui: no. The sign-in fields: the name inside the field
+// until something is typed, a primary border with the focus, an error one in
+// error. The name stays the label of the input for assistive technologies.
+// twake-mui's `PasswordField` is not used: it shows its own label and its
+// own visibility button, the form here names the input out of sight.
 import { Box, FormHelperText, InputBase } from '@linagora/twake-mui'
 import {
   useId,
@@ -12,23 +12,26 @@ import {
   type Ref
 } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 const FIELD_SX = {
   width: '100%',
   height: 48,
   boxSizing: 'border-box',
   px: '27px',
-  borderRadius: '10px',
-  border: `1px solid ${TMAIL.fillF2}`,
-  bgcolor: TMAIL.fillF2,
-  fontSize: 16,
-  color: TMAIL.textBlack,
-  '&.Mui-focused': { border: `2px solid ${TMAIL.primary}`, px: '26px' },
-  '& .MuiIconButton-root': { color: TMAIL.greyLavender },
-  '&.Mui-error': { borderColor: TMAIL.errorLogin },
+  borderRadius: 1,
+  border: '1px solid',
+  borderColor: 'border.main',
+  bgcolor: 'background.paper',
+  typography: 'body1',
+  color: 'text.primary',
+  '&.Mui-focused': {
+    border: '2px solid',
+    borderColor: 'primary.main',
+    px: '26px'
+  },
+  '& .MuiIconButton-root': { color: 'text.icon' },
+  '&.Mui-error': { borderColor: 'error.main' },
   '& .MuiInputBase-input::placeholder': {
-    color: TMAIL.greyLavender,
+    color: 'text.secondary',
     opacity: 1
   }
 } as const

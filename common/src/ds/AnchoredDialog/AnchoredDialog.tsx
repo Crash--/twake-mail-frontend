@@ -1,15 +1,12 @@
 // Upstream to twake-ui: yes. A dialog that opens under an element of the
-// page (tmail-flutter opens its advanced search as a white card 2 px under
-// the search field, a 16 px radius and a soft shadow) instead of in the
-// middle of the screen with a dimmed backdrop. twake-mui's `Dialog` is always centred; MUI's `Popover`
-// has the placement but is not a dialog (no name, no role).
-import { Fade, Popover } from '@linagora/twake-mui'
+// page (the advanced search opens as a card 2 px under the search field)
+// instead of in the middle of the screen with a dimmed backdrop. twake-mui's
+// `Dialog` and `StandardDialog` are always centred; MUI's `Popover` has the
+// placement but is not a dialog (no name, no role).
+import { Fade, Popover, radius } from '@linagora/twake-mui'
 import { ClickAwayListener } from '@mui/material'
 import { useId, useRef, type ReactElement, type ReactNode } from 'react'
 
-const PANEL_RADIUS = 16
-/** tmail-flutter's `colorShadowComposer` (32 px) and drop shadow (4 px) */
-const PANEL_SHADOW = '0 0 32px rgba(0, 0, 0, 0.12), 0 0 4px rgba(0, 0, 0, 0.08)'
 /** A form does not fit a narrower card, whatever the anchor is */
 const MIN_WIDTH = 560
 /** Room kept above and below the panel on a short screen */
@@ -29,7 +26,7 @@ export interface AnchoredDialogProps {
 
 /**
  * A modal dialog laid under `anchorEl`: as wide as it (560 px at least), from
- * its bottom left corner, a white card with a soft shadow, scrolling when the screen is too
+ * its bottom left corner, a card, scrolling when the screen is too
  * short. The focus moves into it, Tab cycles inside, Escape and a click
  * outside close it, and the focus goes back to what opened it. Named by
  * `title`.
@@ -88,8 +85,7 @@ export function AnchoredDialog({
             maxWidth: `calc(100% - ${2 * SCREEN_MARGIN}px)`,
             mt: '2px',
             pointerEvents: 'auto',
-            borderRadius: `${PANEL_RADIUS}px`,
-            boxShadow: PANEL_SHADOW,
+            borderRadius: radius.lg,
             '@media (prefers-reduced-motion: reduce)': {
               transition: 'none !important'
             }

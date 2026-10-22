@@ -1,6 +1,6 @@
 // Upstream to twake-ui: yes, a menu item label that never overflows the
-// menu: on one line, cut with an ellipsis when it is too long for the 300 px
-// of a menu (`ds/MenuLook`), its full text in a tooltip on hover then.
+// menu: on one line, cut with an ellipsis when it is too long for the width
+// of a menu, its full text in a tooltip on hover then.
 import { ListItemText, Tooltip } from '@linagora/twake-mui'
 import { useRef, useState, type ReactElement } from 'react'
 

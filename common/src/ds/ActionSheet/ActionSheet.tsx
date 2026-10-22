@@ -27,7 +27,7 @@ const HANDLE_SX = {
   bgcolor: TMAIL.greyHandle
 } as const
 
-/** Over the menu look of the theme (`ds/MenuLook`): grey, 16 px, wider */
+/** Over the menu items of the theme: grey, 16 px, wider */
 const LIST_SX = {
   py: 0,
   overflowY: 'auto',

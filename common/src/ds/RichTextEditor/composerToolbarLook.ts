@@ -118,7 +118,7 @@ export const COMPOSER_MENU_PAPER_SX = {
     '0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12)'
 } as const
 
-// `&&` wins over the menus of the theme (ds/MenuLook)
+// `&&` wins over the menu items of the theme
 export const COMPOSER_MENU_ITEM_SX = {
   '&&': {
     minHeight: 44,

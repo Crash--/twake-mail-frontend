@@ -1,12 +1,8 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's contact view
-// (`ContactView`, opened by the "From" and "To" filters of a search): a
-// white card 558 x 624 px at most, rounded by 16 px (the whole screen of a
-// phone, rounded at the top), a 56 px bar with the title centred in Bold 20
-// and the close cross at the end on a pale grey disc, a filled grey search
-// field rounded by 12 px, the contacts (40 px gradient avatar, the name in
-// Semi Bold 15, the address in grey 13 under it, a 20 px checkbox at the
-// end) divided by 1 px lines, and "Clear filter" and "Done", 44 px buttons
-// rounded by 10 px, at the end. twake-mui has no such picker.
+// Upstream to twake-ui: no, the contact view opened by the "From" and "To"
+// filters of a search: a dialog (the whole screen of a phone) with a title
+// bar and a close button, a filled search field, the contacts (avatar, name,
+// address, a checkbox at the end) divided by lines, and "Clear filter" and
+// "Done" at the end. twake-mui has no such picker.
 //
 // Accessibility: a dialog named by its title; the contacts are checkboxes
 // (`role="checkbox"`, `aria-checked`) in a list the search field controls;
@@ -19,9 +15,10 @@ import {
   Dialog,
   IconButton,
   InputBase,
+  radius,
   Tooltip,
   Typography
-} from '@mui/material'
+} from '@linagora/twake-mui'
 import { useId, useRef, type ReactElement } from 'react'
 
 import {
@@ -32,28 +29,20 @@ import {
   Magnifier
 } from '@/ds/FlutterIcons/FlutterIcons'
 import {
-  GradientAvatar,
-  firstLetterOf
+  firstLetterOf,
+  GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-const PRIMARY = TMAIL.primary
-/** `AppColor.colorHintSearchBar`, `colorCloseButton` */
-const HINT = TMAIL.grey
-/** `AppColor.colorDivider` */
-const DIVIDER = TMAIL.divider
 
 function paperSx(isPhone: boolean): Record<string, unknown> {
   return isPhone
-    ? { borderRadius: '16px 16px 0 0', m: 0 }
+    ? { borderRadius: `${radius.lg} ${radius.lg} 0 0`, m: 0 }
     : {
         width: 558,
         maxWidth: 'calc(100% - 32px)',
         height: 'min(624px, 100dvh)',
         maxHeight: '100dvh',
-        m: 0,
-        borderRadius: '16px'
+        m: 0
       }
 }
 
@@ -68,10 +57,6 @@ const BAR_SX = {
 } as const
 
 const TITLE_SX = {
-  fontSize: 20,
-  fontWeight: 700,
-  lineHeight: '28px',
-  color: TMAIL.textBlack,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis'
@@ -81,36 +66,27 @@ const CLOSE_SX = {
   position: 'absolute',
   right: 16,
   top: '50%',
-  transform: 'translateY(-50%)',
-  p: '3px',
-  color: HINT,
-  bgcolor: 'rgba(129, 140, 153, 0.12)',
-  '&:hover': { bgcolor: 'rgba(129, 140, 153, 0.2)' }
+  transform: 'translateY(-50%)'
 } as const
 
 const SEARCH_SX = {
   display: 'flex',
   alignItems: 'center',
   flexShrink: 0,
-  height: 48,
-  mx: '16px',
-  my: '10px',
-  borderRadius: '12px',
-  bgcolor: TMAIL.fillToolbar,
-  color: HINT,
-  '& .MuiInputBase-root': {
-    flex: '1 1 auto',
-    fontSize: 15,
-    color: TMAIL.textBlack
-  },
-  '& .MuiInputBase-input::placeholder': { color: HINT, opacity: 1 },
+  height: 40,
+  mx: 2,
+  my: 1,
+  borderRadius: radius.pill,
+  bgcolor: 'background.default',
+  color: 'text.secondary',
+  '& .MuiInputBase-root': { flex: '1 1 auto' },
   // Its own clear button only
   '& .MuiInputBase-input::-webkit-search-cancel-button': { display: 'none' }
 } as const
 
-const SEARCH_ICON_SX = { display: 'flex', mx: '16px' } as const
+const SEARCH_ICON_SX = { display: 'flex', mx: 2 } as const
 
-const CLEAR_SX = { mx: '8px', p: '8px', color: TMAIL.greyIcon } as const
+const CLEAR_SX = { mr: 1 } as const
 
 const LIST_SX = {
   flex: '1 1 auto',
@@ -123,29 +99,26 @@ const LIST_SX = {
     display: 'block',
     height: '1px',
     mx: '16px',
-    bgcolor: DIVIDER
+    bgcolor: 'divider'
   }
 } as const
 
 const ROW_SX = {
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
+  gap: 1.5,
   width: '100%',
-  px: '16px',
-  py: '11px',
+  px: 2,
+  py: 1,
   textAlign: 'start',
-  '&:hover': { bgcolor: TMAIL.hoverBlack }
+  '&:hover': { bgcolor: 'action.hover' }
 } as const
 
 const TEXT_SX = { flex: '1 1 auto', minWidth: 0 } as const
 
 const NAME_SX = {
   display: 'block',
-  fontSize: 15,
   fontWeight: 600,
-  lineHeight: '20px',
-  color: TMAIL.textBlack,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -153,10 +126,7 @@ const NAME_SX = {
 
 const ADDRESS_SX = {
   display: 'block',
-  mt: '2px',
-  fontSize: 13,
-  lineHeight: '18px',
-  color: TMAIL.greySlate,
+  color: 'text.secondary',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -166,8 +136,8 @@ function checkboxSx(isChecked: boolean): Record<string, unknown> {
   return {
     display: 'flex',
     flexShrink: 0,
-    mx: '12px',
-    color: isChecked ? PRIMARY : TMAIL.greyFaint
+    mx: 1.5,
+    color: isChecked ? 'primary.main' : 'text.secondary'
   }
 }
 
@@ -181,30 +151,10 @@ const FOOTER_SX = {
 
 const BUTTON_SX = {
   minWidth: 156,
-  height: 40,
   flex: '0 1 auto',
-  borderRadius: '10px',
-  fontSize: 17,
-  fontWeight: 500,
-  textTransform: 'none',
-  boxShadow: 'none',
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis'
-} as const
-
-const CLEAR_FILTER_SX = {
-  ...BUTTON_SX,
-  color: PRIMARY,
-  bgcolor: 'rgba(28, 61, 13, 0.05)',
-  '&:hover': { bgcolor: 'rgba(28, 61, 13, 0.1)' }
-} as const
-
-const DONE_SX = {
-  ...BUTTON_SX,
-  color: '#FFFFFF',
-  bgcolor: PRIMARY,
-  '&:hover': { bgcolor: '#0062CC', boxShadow: 'none' }
 } as const
 
 export interface ContactPickerItem {
@@ -248,7 +198,7 @@ export interface ContactPickerDialogProps {
   }
 }
 
-/** Asks for some contacts, as tmail-flutter's contact view */
+/** Asks for some contacts */
 export function ContactPickerDialog({
   open,
   labels,
@@ -287,7 +237,13 @@ export function ContactPickerDialog({
       data-testid={testIds.dialog}
     >
       <Box sx={BAR_SX}>
-        <Typography id={titleId} component="h2" sx={TITLE_SX}>
+        <Typography
+          id={titleId}
+          component="h2"
+          variant="h4"
+          color="text.primary"
+          sx={TITLE_SX}
+        >
           {labels.title}
         </Typography>
         <Tooltip title={labels.close}>
@@ -358,13 +314,17 @@ export function ContactPickerDialog({
                   size={40}
                 />
                 <Box component="span" sx={TEXT_SX}>
-                  <Box component="span" sx={NAME_SX}>
+                  <Typography component="span" variant="body1" sx={NAME_SX}>
                     {label}
-                  </Box>
+                  </Typography>
                   {item.name === null ? null : (
-                    <Box component="span" sx={ADDRESS_SX}>
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      sx={ADDRESS_SX}
+                    >
                       {item.address}
-                    </Box>
+                    </Typography>
                   )}
                 </Box>
                 <Box component="span" sx={checkboxSx(isChecked)}>
@@ -381,8 +341,9 @@ export function ContactPickerDialog({
       </Box>
       <Box sx={FOOTER_SX}>
         <Button
+          variant="text"
           onClick={onClearFilter}
-          sx={CLEAR_FILTER_SX}
+          sx={BUTTON_SX}
           data-testid={testIds.clearFilter}
         >
           {labels.clearFilter}
@@ -390,7 +351,7 @@ export function ContactPickerDialog({
         <Button
           variant="contained"
           onClick={onDone}
-          sx={DONE_SX}
+          sx={BUTTON_SX}
           data-testid={testIds.done}
         >
           {labels.done}

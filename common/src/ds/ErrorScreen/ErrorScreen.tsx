@@ -60,7 +60,10 @@ export function ErrorScreen({
         text={description}
         componentsProps={{
           // The title says it: the icon is decoration
-          icon: { 'aria-hidden': true },
+          icon: {
+            'aria-hidden': true,
+            color: 'var(--twake-palette-error-main)'
+          },
           title: {
             ref: titleRef,
             component: headingLevel,

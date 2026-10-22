@@ -901,7 +901,12 @@ export function RecipientField({
               icon={
                 // Not by its colour only: the icon says it too
                 chip.isInvalid ? (
-                  <Icon icon={Warning} size={20} aria-hidden="true" />
+                  <Icon
+                    icon={Warning}
+                    size={20}
+                    color="var(--twake-palette-error-main)"
+                    aria-hidden="true"
+                  />
                 ) : undefined
               }
               deleteIcon={

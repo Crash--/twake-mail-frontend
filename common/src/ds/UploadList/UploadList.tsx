@@ -196,7 +196,11 @@ export function UploadChip({
           aria-hidden="true"
         >
           {isFailed ? (
-            <Icon icon={Warning} size={20} color="currentColor" />
+            <Icon
+              icon={Warning}
+              size={20}
+              color="var(--twake-palette-error-main)"
+            />
           ) : (
             item.icon
           )}

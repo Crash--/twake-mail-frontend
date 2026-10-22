@@ -210,10 +210,10 @@ test.describe('RESP responsive layout', () => {
       if (!bar || !search || !toolbar || !account || !sidebar) {
         throw new Error('A part of the top of the page is not shown')
       }
-      // Full width above the sidebar and the body, 80 px high
+      // Full width above the sidebar and the body, 50 px high
       expect(bar.x).toBe(0)
       expect(bar.width).toBe(1440)
-      expect(Math.abs(bar.height - 80)).toBeLessThanOrEqual(1)
+      expect(Math.abs(bar.height - 50)).toBeLessThanOrEqual(1)
       expect(sidebar.y).toBeGreaterThanOrEqual(bar.y + bar.height)
       // The search is in the bar, the initial of the user at its far end
       expect(search.y).toBeGreaterThanOrEqual(bar.y)

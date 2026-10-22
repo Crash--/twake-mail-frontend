@@ -58,7 +58,6 @@ const TITLE_BAR_HEIGHT = 52
  * black icons in 26 px buttons, 8 px apart
  */
 const TITLE_BAR_PADDING = '24px'
-const TITLE_BAR_BUTTON_SIZE = 26
 const TITLE_BAR_ICON_SIZE = 20
 const TITLE_BAR_GAP = '8px'
 const TITLE_BAR_ICON_COLOR = TMAIL.textBlack
@@ -180,12 +179,7 @@ function TitleBarButton({
   'data-testid': testId
 }: TitleBarButtonProps): ReactElement {
   return (
-    <ActionIconButton
-      label={label}
-      size={TITLE_BAR_BUTTON_SIZE}
-      onClick={onClick}
-      data-testid={testId}
-    >
+    <ActionIconButton label={label} onClick={onClick} data-testid={testId}>
       <Icon
         icon={icon}
         size={TITLE_BAR_ICON_SIZE}

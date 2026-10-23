@@ -96,9 +96,6 @@ test.describe('CMP addresses of an open email dragged to the composer', () => {
     })
     await jmap.waitForEmail({ subject: 'Addresses to drag' })
 
-    // The square corners of the window no longer leave the address of Cc
-    // reachable on a narrow screen
-    await page.setViewportSize({ width: 1600, height: 900 })
     const mailbox = await new LoginPage(page).loginAs(user)
     const email = await mailbox.openEmail('Addresses to drag')
     const composer = await mailbox.compose()

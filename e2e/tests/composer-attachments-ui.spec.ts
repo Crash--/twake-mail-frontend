@@ -57,6 +57,10 @@ test.describe('CMP: attachments, signature and recipient chips of the composer',
 
     const toggle = composer.root.getByTestId('composer-attachments-toggle')
     await expect(toggle).toHaveText('Show less')
+    // The tooltip of the attach button, still under the mouse, covers the
+    // toggle above it
+    await page.mouse.move(0, 0)
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
     await toggle.click()
     await expect(composer.attachments).toHaveCount(2)
     await expect(toggle).toHaveText('Show more (+2)')

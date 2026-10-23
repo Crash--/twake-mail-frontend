@@ -30,8 +30,8 @@ describe('fitWindows', () => {
         1500
       )
     ).toEqual(['minimized', 'minimized', 'minimized', 'overflow', 'overflow'])
-    // 1200 - 40 = 1160 holds a window (790) but not a title bar more (408)
-    expect(fitWindows(['normal', 'normal', 'normal'], 1200)).toEqual([
+    // 1150 - 40 = 1110 holds a window (790) but not a title bar more (408)
+    expect(fitWindows(['normal', 'normal', 'normal'], 1150)).toEqual([
       'normal',
       'overflow',
       'overflow'
@@ -47,7 +47,7 @@ describe('fitWindows', () => {
   })
 
   it('minimizes a window too wide for the screen', () => {
-    expect(fitWindows(['fullscreen', 'minimized', 'normal'], 1200)).toEqual([
+    expect(fitWindows(['fullscreen', 'minimized', 'normal'], 1150)).toEqual([
       'fullscreen',
       'minimized',
       'minimized'
@@ -68,6 +68,16 @@ describe('dockedWindowWidth', () => {
     expect(dockedWindowWidth(1440)).toBe(790)
     expect(dockedWindowWidth(820)).toBe(780)
     expect(dockedWindowWidth(600)).toBe(560)
+  })
+
+  it('leaves the sidebar and the start of the open email in view on a desktop', () => {
+    expect(dockedWindowWidth(1920)).toBe(790)
+    expect(dockedWindowWidth(1280)).toBe(630)
+    expect(dockedWindowWidth(1200)).toBe(552)
+    expect(fitWindows(['normal', 'normal'], 1280)).toEqual([
+      'normal',
+      'minimized'
+    ])
   })
 
   it('keeps 790 px below the narrowest tablet, where the window is minimized', () => {

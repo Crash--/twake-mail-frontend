@@ -1,8 +1,7 @@
-// Upstream to twake-ui: yes, as a `size`/`shape` variant of `Button`.
-// twake-mui forces a pill radius (100 px) on every `Button`; the Twake Mail
-// design has a 12 px radius (docs/twake-mui-gaps.md).
+// Upstream to twake-ui: yes, its 34 px height in a toolbar, as a `size` of
+// `Button` (docs/twake-mui-gaps.md).
 import { Icon, type IconProps } from '@linagora/twake-icons'
-import { Button, radius } from '@linagora/twake-mui'
+import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
@@ -22,7 +21,7 @@ export interface ComposeButtonProps {
 /**
  * The main action of a sidebar or a toolbar: in a sidebar a full width
  * `Button` of the theme, in a toolbar as wide as its label and 34 px high;
- * 12 px radius and a 12 px icon.
+ * a 12 px icon.
  */
 export function ComposeButton({
   label,
@@ -43,7 +42,6 @@ export function ComposeButton({
         ...(isInToolbar
           ? { height: 34, minHeight: 34, py: 0, px: 2, whiteSpace: 'nowrap' }
           : {}),
-        borderRadius: radius.lg,
         '& .MuiButton-startIcon': { mr: '7px', ml: 0 },
         [TOUCH_MEDIA]: { minHeight: TOUCH_TARGET_SIZE }
       }}

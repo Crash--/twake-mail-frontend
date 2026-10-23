@@ -20,8 +20,8 @@ export const ROW_LAYOUT: RowLayout = {
 /**
  * The compact rows of tmail-flutter (phones and tablets): 72 px high, 12 px
  * at the sides on a phone, 24 px on a tablet, the three lines 12 px after the
- * 48 px avatar, a divider within the side margins, white while emails are
- * selected
+ * 48 px touch target of the avatar, a divider within the side margins, white
+ * while emails are selected
  */
 export function getCompactRowLayout(
   isPhone: boolean,

@@ -1,3 +1,5 @@
+import { SCREEN_BREAKPOINTS } from '@/ds/useScreenSize/useScreenSize'
+
 import { DOCK_GAP, DOCK_MARGIN, OVERFLOW_MENU_WIDTH } from './WindowDock'
 import {
   DOCKED_WINDOW_WIDTH,
@@ -12,14 +14,28 @@ export type FittedWindowMode = DockedWindowMode | 'overflow'
 const MIN_DOCKED_WINDOW_WIDTH = 552
 
 /**
+ * From the desktop size, what a window leaves in view at the start of the
+ * screen: the sidebar and the start of the header of the open email, whose
+ * addresses drag onto the fields of the window (790 px wide at 1440 px)
+ */
+const KEPT_IN_VIEW = 630
+
+/**
  * Width of a window in the dock on a screen `screenWidth` wide: 790 px,
- * less where the screen leaves no room for it, down to 552 px (a tablet)
+ * less where the screen leaves no room for it or, on a desktop, where it
+ * would cover the start of the open email, down to 552 px
  */
 export function dockedWindowWidth(screenWidth: number): number {
   const room = screenWidth - 2 * DOCK_MARGIN
-  return room >= MIN_DOCKED_WINDOW_WIDTH
-    ? Math.min(DOCKED_WINDOW_WIDTH, room)
-    : DOCKED_WINDOW_WIDTH
+  if (room < MIN_DOCKED_WINDOW_WIDTH) return DOCKED_WINDOW_WIDTH
+  const wanted =
+    screenWidth >= SCREEN_BREAKPOINTS.desktop
+      ? Math.max(
+          MIN_DOCKED_WINDOW_WIDTH,
+          screenWidth - DOCK_MARGIN - KEPT_IN_VIEW
+        )
+      : room
+  return Math.min(DOCKED_WINDOW_WIDTH, wanted)
 }
 
 function fitInRoom(

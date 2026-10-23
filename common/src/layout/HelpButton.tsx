@@ -15,15 +15,12 @@ import { useI18n } from '@common/i18n/useI18n'
  * which have no composer), a web address opens in a new tab.
  */
 export interface HelpButtonProps {
-  /**
-   * The bar without the platform: a 24 px icon, 8 px before the next
-   * action
-   */
-  isFlutterLook?: boolean
+  /** `small`: in twake-bar, as its buttons (an 18 px icon, 8 px around) */
+  size?: 'small' | 'large'
 }
 
 export function HelpButton({
-  isFlutterLook = false
+  size = 'large'
 }: HelpButtonProps): ReactElement | null {
   const { t } = useI18n()
   const { openComposer } = useComposer()
@@ -36,13 +33,11 @@ export function HelpButton({
 
   const common = {
     'aria-label': label,
-    className: isFlutterLook ? 'u-mr-half' : undefined,
+    size,
     'data-testid': 'help-button'
   } as const
-  const icon = isFlutterLook ? (
-    <Icon icon={HelpOutlined} size={24} />
-  ) : (
-    <Icon icon={HelpOutlined} />
+  const icon = (
+    <Icon icon={HelpOutlined} size={size === 'small' ? 18 : undefined} />
   )
   let button: ReactElement
   if (address === null) {

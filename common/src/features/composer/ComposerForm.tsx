@@ -53,7 +53,6 @@ import { PillButton } from '@/ds/PillButton/PillButton'
 import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
 import {
   FormattingIcon,
-  SendDisabledIcon,
   SendMobileIcon
 } from '@/ds/ComposerIcons/ComposerIcons'
 import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
@@ -1614,7 +1613,7 @@ function LoadedComposerForm({
       <Icon icon={FileOutline} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
-  // As tmail-flutter on phones: the arrow up in a blue disc, grey while
+  // As tmail-flutter on phones: the arrow up in a primary disc, grey while
   // there is no recipient (a click still says why it cannot go)
   const canSend =
     recipients.to.length + recipients.cc.length + recipients.bcc.length > 0
@@ -1628,8 +1627,13 @@ function LoadedComposerForm({
       data-testid="composer-send-button"
     >
       <Icon
-        icon={canSend ? SendMobileIcon : SendDisabledIcon}
+        icon={SendMobileIcon}
         size={30}
+        color={
+          canSend
+            ? 'var(--twake-palette-primary-main)'
+            : 'var(--twake-palette-text-disabled)'
+        }
         aria-hidden="true"
       />
     </ActionIconButton>

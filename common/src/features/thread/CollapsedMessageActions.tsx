@@ -91,7 +91,7 @@ export function CollapsedMessageActions({
       {
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={t('emailActions.reply.reply')}
           icon={Reply}
           onClick={() => {
@@ -103,7 +103,7 @@ export function CollapsedMessageActions({
       {!showsShortcuts || move === undefined ? null : (
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={t(move.label)}
           icon={Moveto}
           onClick={() => {
@@ -117,7 +117,7 @@ export function CollapsedMessageActions({
           size={36}
           label={starLabel}
           icon={isStarred ? Star : StarOutline}
-          tone={isStarred ? 'starred' : 'steel'}
+          tone={isStarred ? 'starred' : 'icon'}
           aria-pressed={isStarred}
           onClick={() => {
             handleRun(isStarred ? 'unstar' : 'star')
@@ -128,7 +128,7 @@ export function CollapsedMessageActions({
       {!showsShortcuts || deletion === undefined ? null : (
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={t(deletion.label)}
           icon={Trash}
           onClick={() => {
@@ -140,7 +140,7 @@ export function CollapsedMessageActions({
       {isExpanded ? (
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={moreLabel}
           icon={MoreVerticalIcon}
           aria-haspopup="menu"

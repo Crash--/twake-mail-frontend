@@ -270,7 +270,7 @@ export function DelegationSettings({
     <IconAction
       label={removeLabel(removal)}
       icon={Trash}
-      tone="steel"
+      tone="icon"
       size={36}
       onClick={event => {
         const buttons = Array.from(

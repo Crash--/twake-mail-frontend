@@ -57,7 +57,7 @@ export function ReadingToolbar({
       <Box className="u-flex u-flex-items-center u-flex-auto u-flex-justify-end">
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={previousLabel}
           icon={Left}
           disabled={navigation.openPrevious === null}
@@ -66,7 +66,7 @@ export function ReadingToolbar({
         />
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={nextLabel}
           icon={Right}
           disabled={navigation.openNext === null}

@@ -64,7 +64,7 @@ export function RuleListItem({
         <IconAction
           label={t('rules.moreOf', { name: rule.name })}
           icon={MoreVerticalIcon}
-          tone="steel"
+          tone="icon"
           size={36}
           aria-haspopup="menu"
           aria-expanded={isSheetOpen}
@@ -150,7 +150,7 @@ export function RuleListItem({
       <IconAction
         label={moveUpLabel}
         icon={Top}
-        tone="steel"
+        tone="icon"
         size={36}
         disabled={onMoveUp === null}
         onClick={event => {
@@ -161,7 +161,7 @@ export function RuleListItem({
       <IconAction
         label={moveDownLabel}
         icon={Bottom}
-        tone="steel"
+        tone="icon"
         size={36}
         disabled={onMoveDown === null}
         onClick={event => {
@@ -172,7 +172,7 @@ export function RuleListItem({
       <IconAction
         label={editLabel}
         icon={Pen}
-        tone="steel"
+        tone="icon"
         size={36}
         onClick={onEdit}
         data-testid="email-rule-edit-button"
@@ -180,7 +180,7 @@ export function RuleListItem({
       <IconAction
         label={deleteLabel}
         icon={Trash}
-        tone="steel"
+        tone="icon"
         size={36}
         onClick={event => {
           onDelete(event.currentTarget)

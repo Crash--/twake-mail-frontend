@@ -331,7 +331,7 @@ export function EmailCell({
       label={seenLabel}
       icon={isUnread ? EmailOpen : EmailNotification}
       onClick={handleToggleSeen}
-      tone="steel"
+      tone="icon"
       iconSize={16}
       size={ACTION_SIZE}
       data-testid="email-list-item-toggle-seen"
@@ -348,7 +348,7 @@ export function EmailCell({
         label={openLabel}
         icon={Openwith}
         onClick={handleOpenInNewTab}
-        tone="steel"
+        tone="icon"
         iconSize={16}
         size={ACTION_SIZE}
         data-testid="email-list-item-open-in-new-tab"
@@ -363,7 +363,7 @@ export function EmailCell({
       label={moveLabel}
       icon={FolderMoveto}
       onClick={handleMove}
-      tone="steel"
+      tone="icon"
       iconSize={16}
       size={ACTION_SIZE}
       data-testid="email-list-item-move"
@@ -382,7 +382,7 @@ export function EmailCell({
       label={removeLabel}
       icon={Trash}
       onClick={handleRemove}
-      tone="steel"
+      tone="icon"
       iconSize={16}
       size={ACTION_SIZE}
       data-testid="email-list-item-remove"
@@ -398,7 +398,7 @@ export function EmailCell({
       icon={MoreVerticalIcon}
       aria-haspopup="menu"
       onClick={handleOpenMenu}
-      tone="steel"
+      tone="icon"
       iconSize={16}
       size={ACTION_SIZE}
       data-testid="email-list-item-more"
@@ -513,7 +513,7 @@ export function EmailCell({
   // As tmail-flutter: 8 px after the folder, the date 8 px after it
   const wideAttachment = hasAttachment ? (
     <span className="u-flex u-flex-shrink-0 u-ml-half">
-      {/* As tmail-flutter: 16 px, light steel grey */}
+      {/* 16 px, in the icon colour */}
       <Icon
         icon={Attachment}
         size={16}

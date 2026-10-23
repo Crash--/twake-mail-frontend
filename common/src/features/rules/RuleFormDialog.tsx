@@ -491,7 +491,7 @@ export function RuleFormDialog({
               <IconAction
                 label={t('rules.form.removeCondition', { position })}
                 icon={Trash}
-                tone="steel"
+                tone="icon"
                 size={36}
                 onClick={() => {
                   update({
@@ -625,7 +625,7 @@ export function RuleFormDialog({
               <IconAction
                 label={t('rules.form.removeAction', { position })}
                 icon={Trash}
-                tone="steel"
+                tone="icon"
                 size={36}
                 onClick={() => {
                   update({

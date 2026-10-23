@@ -36,7 +36,7 @@ import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowHoverSpace } from '@/ds/RowHoverActions/RowHoverSpace'
 import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
-import { RowSender } from '@/ds/RowSender/RowSender'
+import { ROW_AVATAR_SIZE, RowSender } from '@/ds/RowSender/RowSender'
 import { RowStateSlot } from '@/ds/RowStateSlot/RowStateSlot'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
@@ -258,8 +258,8 @@ export function EmailCell({
       ? names
       : t(showRecipients ? 'thread.row.noRecipient' : 'thread.row.noSender')
 
-  // Decorative: the name of the sender is the text next to it. As
-  // tmail-flutter: the first letter of the name on the gradient of the address
+  // Decorative: the name of the sender is the text next to it. The first
+  // letter of the name, coloured from the address
   const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
   const avatarName =
     avatarAddress === null ? '' : addressDisplayName(avatarAddress)
@@ -268,6 +268,7 @@ export function EmailCell({
     <GradientAvatar
       text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
       colorKey={avatarEmail}
+      size={ROW_AVATAR_SIZE}
       data-testid="email-list-item-avatar"
     />
   )
@@ -419,14 +420,6 @@ export function EmailCell({
   const unreadDot = isUnread ? (
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
-  const compactAvatar = (
-    <GradientAvatar
-      text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
-      colorKey={avatarEmail}
-      size={48}
-      data-testid="email-list-item-avatar"
-    />
-  )
   // The frame stays when the email is read: the names line up
   const framedDot = (
     <StatusDot
@@ -533,12 +526,12 @@ export function EmailCell({
 
   switch (column.id as EmailColumnId) {
     case 'select':
-      // As tmail-flutter: the 48 px avatar, which selects the row
+      // The avatar, which selects the row
       return selection === null ? (
-        compactAvatar
+        avatar
       ) : (
         <SelectableAvatar
-          avatar={compactAvatar}
+          avatar={avatar}
           checked={isSelected}
           onClick={handleSelect}
           label={t('thread.selection.select', { subject: email.subject ?? '' })}

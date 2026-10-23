@@ -1,12 +1,10 @@
 // Upstream to twake-ui: yes, as options of the platform bar
-// (`@linagora/twake-bar`): its height is fixed to 48 px and its search slot
-// grows to the menus. The bar is 50 px high and its search starts above the
-// list, where the sidebar ends, and takes half the room left.
+// (`@linagora/twake-bar`): its search slot grows to the menus. Here the
+// search starts above the list, where the sidebar ends, and takes half the
+// room left.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-/** The height of the bar (Figma) */
-export const APP_BAR_HEIGHT = 50
 /** The search: half the room, at least this wide */
 const SEARCH_MIN_WIDTH = 576
 /** The 30 px margins of the bar and the sidebar under its start (236 px) */
@@ -15,7 +13,6 @@ const APP_BAR_ROOM = 30 + 236
 const FRAME_SX = {
   flexShrink: 0,
   '& > header': {
-    height: `${APP_BAR_HEIGHT}px`,
     pl: '30px',
     pr: '30px'
   }
@@ -46,7 +43,7 @@ export interface AppBarFrameProps {
   isPlain?: boolean
 }
 
-/** Around the platform bar: its height and margins */
+/** Around the platform bar: its margins */
 export function AppBarFrame({
   children,
   isPlain = false

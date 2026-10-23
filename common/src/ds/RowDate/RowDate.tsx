@@ -6,7 +6,7 @@ import { rowDateSx } from '@/ds/RowLine/rowText'
 
 export interface RowDateProps {
   children: ReactNode
-  /** The row stands out (unread): Semi Bold and black, else steel grey */
+  /** The row stands out (unread): Semi Bold rather than Regular */
   isStrong?: boolean
   'data-testid'?: string
 }

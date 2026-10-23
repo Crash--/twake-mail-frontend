@@ -12,8 +12,8 @@ const TONE_SX = {
   default: {},
   starred: { color: 'warning.main' },
   muted: { color: 'text.disabled', '&:hover': { color: 'text.icon' } },
-  steel: { color: 'text.icon' },
-  slate: { color: 'text.secondary' },
+  icon: { color: 'text.icon' },
+  secondary: { color: 'text.secondary' },
   // What cannot be undone
   danger: { color: 'error.main' },
   // A primary icon on a rounded square of `background.default`, 8 px around
@@ -41,12 +41,12 @@ export interface IconActionProps {
   iconWidth?: number
   /**
    * `starred`: the yellow of a filled star; `muted`: a faint row icon;
-   * `filled`: a primary icon on a light grey rounded square; `steel`: the
-   * icon colour of the theme; `slate`: the secondary text colour;
+   * `filled`: a primary icon on a light grey rounded square; `icon`: the
+   * icon colour of the theme; `secondary`: the secondary text colour;
    * `danger`: the red of what cannot be undone
    */
   tone?:
-    'default' | 'starred' | 'muted' | 'filled' | 'steel' | 'slate' | 'danger'
+    'default' | 'starred' | 'muted' | 'filled' | 'icon' | 'secondary' | 'danger'
   /** Width and height of the button in px, 32 by default */
   size?: number
   onClick?: (event: MouseEvent<HTMLElement>) => void

@@ -59,11 +59,11 @@ function CompactAddressLine({
       {onToggle !== null ? (
         <IconAction
           label={toggleLabel}
-          // tmail-flutter: a 20 px chevron, 2 px around, in steel grey
+          // A 20 px chevron, 2 px around, in the secondary text colour
           icon={isOpen ? Dropup : Dropdown}
           iconSize={20}
           size={24}
-          tone="slate"
+          tone="secondary"
           aria-expanded={isOpen}
           onClick={onToggle}
           data-testid="email-view-recipients-toggle"

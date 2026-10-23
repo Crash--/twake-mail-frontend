@@ -166,7 +166,7 @@ export function EmailListToolbar({
     <IconAction
       label={clearLabel}
       icon={Cross}
-      tone="steel"
+      tone="icon"
       size={36}
       onClick={onDone}
       data-testid="selection-toolbar-clear"
@@ -224,7 +224,7 @@ export function EmailListToolbar({
           <IconAction
             label={selectAllLabel}
             icon={CheckboxOn}
-            tone="steel"
+            tone="icon"
             size={36}
             aria-pressed={isAllLoaded || selection.isAllInFolder}
             onClick={handleToggleAll}
@@ -242,7 +242,7 @@ export function EmailListToolbar({
               ? 'starred'
               : item.id === 'delete-permanently' && !isDesktop
                 ? 'danger'
-                : 'steel'
+                : 'icon'
           }
           size={36}
           onClick={() => {
@@ -255,7 +255,7 @@ export function EmailListToolbar({
         <IconAction
           label={moreLabel}
           icon={MoreVerticalIcon}
-          tone="steel"
+          tone="icon"
           size={36}
           aria-haspopup="menu"
           aria-expanded={moreAnchor !== null}

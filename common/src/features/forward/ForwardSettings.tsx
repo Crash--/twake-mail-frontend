@@ -508,7 +508,7 @@ export function ForwardSettings({
                         <IconAction
                           label={removeLabel}
                           icon={Trash}
-                          tone="steel"
+                          tone="icon"
                           size={36}
                           disabled={isSaving}
                           onClick={() => {

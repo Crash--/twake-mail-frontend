@@ -36,7 +36,7 @@ export function ConversationMenu({
     <>
       <IconAction
         size={36}
-        tone="steel"
+        tone="icon"
         label={label}
         icon={MoreVerticalIcon}
         aria-haspopup="menu"

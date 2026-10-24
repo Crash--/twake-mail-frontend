@@ -49,16 +49,24 @@ function touchesOverlongRun(
  * The link of tiptap, without looking for links in the overlong runs of
  * text: the paste rule skips them and still links the rest of the text,
  * the automatic link and the link of a URL pasted over a selection are not
- * looked for in a paragraph that holds one.
+ * looked for in a paragraph that holds one. The text typed right after a
+ * pasted URL stays out of its link, as after a typed one (issue #706).
  */
 export const SafeLink = Link.extend({
   addPasteRules() {
+    const { type } = this
     return (this.parent?.() ?? []).map(rule => {
       const find = rule.find
       if (typeof find !== 'function') return rule
       return new PasteRule({
         find: (text, event) => find(blankOverlongRuns(text), event),
-        handler: rule.handler
+        handler: props => {
+          const result = rule.handler(props)
+          // The link is inclusive (autolink): without this, the caret at
+          // its end goes on typing into it, its href unchanged
+          props.state.tr.removeStoredMark(type)
+          return result
+        }
       })
     })
   },

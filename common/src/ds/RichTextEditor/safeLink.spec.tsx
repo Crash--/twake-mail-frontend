@@ -71,6 +71,19 @@ describe('SafeLink', () => {
     expect(linkHrefs(editor)).toEqual([])
   })
 
+  it('leaves the text typed right after a pasted URL out of its link', () => {
+    const editor = makeEditor()
+    paste(editor, 'see https://example.org/x')
+
+    // Typed at the caret, as a keystroke inserts it
+    editor.view.dispatch(editor.state.tr.insertText('xyz'))
+    editor.view.dispatch(editor.state.tr.insertText(' more'))
+
+    expect(editor.getHTML()).toBe(
+      '<p>see <a target="_blank" rel="noopener noreferrer nofollow" href="https://example.org/x">https://example.org/x</a>xyz more</p>'
+    )
+  })
+
   it('still links a URL as it is typed', () => {
     const editor = makeEditor()
 

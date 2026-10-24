@@ -62,13 +62,7 @@ function interFontFace(fontUrl: string): string {
 // one.
 const EMAIL_DOCUMENT_CSS = `
 html, body { margin: 0; padding: 0; }
-/* The variable Inter drawn as the app draws it (\`TEXT_LOOK_CSS\`) */
-html {
-  background: #ffffff;
-  color-scheme: light;
-  text-rendering: geometricPrecision;
-  font-optical-sizing: none;
-}
+html { background: #ffffff; color-scheme: light; }
 body {
   font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;

@@ -2,18 +2,19 @@
 // formatting icon (docs/twake-mui-gaps.md). The icons twake-icons has come
 // from it; the others are paths from Material Icons (@mui/icons-material,
 // MIT; Google Material Icons, Apache-2.0), drawn with the MUI SvgIcon.
-import { Icon, type IconProps } from '@linagora/twake-icons'
-import { SvgIcon, type SvgIconProps } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
 import {
+  Icon,
+  type IconProps,
   Dash,
   Image,
   Link,
   List,
-  Number as NumberIcon,
+  Number,
   Plus,
   Trash
-} from '@/ds/FlutterIcons/FlutterIcons'
+} from '@linagora/twake-icons'
+import { SvgIcon, type SvgIconProps } from '@linagora/twake-mui'
+import type { ReactElement } from 'react'
 
 export type EditorIconName =
   | 'bold'
@@ -45,7 +46,7 @@ export type EditorIconName =
 /** The icons twake-icons has */
 const TWAKE_ICONS: Partial<Record<EditorIconName, IconProps['icon']>> = {
   bulletList: List,
-  orderedList: NumberIcon,
+  orderedList: Number,
   link: Link,
   image: Image,
   zoomIn: Plus,

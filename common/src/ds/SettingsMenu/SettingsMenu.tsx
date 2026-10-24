@@ -1,12 +1,10 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's settings menu
-// (`AccountMenuItemTileBuilder`): 36 px rows 4 px apart, a radius of 8, a
-// 20 px icon in the primary blue, 8 px, the name in Regular 15 black, Semi
-// Bold on a light grey (#EAEDF2) background once selected.
+// Upstream to twake-ui: no. The settings menu: rows 4 px apart, an icon in
+// `primary.main`, the name in `body1`, semi bold on a selected background
+// once selected. twake-mui's `NavigationList` is not used: its rows are not
+// links with `aria-current`.
 import { type IconProps, Icon } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
-
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const LIST_SX = { listStyle: 'none', m: 0, px: 1, py: 0 } as const
 
@@ -22,17 +20,13 @@ function itemSx(isSelected: boolean): Record<string, unknown> {
     p: 1,
     mt: '4px',
     borderRadius: '8px',
-    bgcolor: isSelected ? TMAIL.fillSelected : 'transparent',
-    // tmail-flutter's black, drawn thinner by its canvas: the near black of
-    // its title keeps the same weight to the eye
-    color: TMAIL.textOnSurface,
-    fontSize: 15,
-    lineHeight: '20px',
+    bgcolor: isSelected ? 'action.selected' : 'transparent',
+    color: 'text.primary',
+    typography: 'body1',
     fontWeight: isSelected ? 600 : 400,
-    letterSpacing: 0,
     textAlign: 'start',
-    '& .SettingsMenu-icon': { color: TMAIL.primary, display: 'flex' },
-    '&:hover': { bgcolor: isSelected ? TMAIL.fillSelected : TMAIL.hoverBlack }
+    '& .SettingsMenu-icon': { color: 'primary.main', display: 'flex' },
+    '&:hover': { bgcolor: isSelected ? 'action.selected' : 'action.hover' }
   }
 }
 
@@ -47,18 +41,16 @@ const NAME_SX = {
 const TITLE_SX = {
   m: 0,
   p: 1,
-  fontSize: 17,
-  lineHeight: '22px',
-  fontWeight: 700,
-  // tmail-flutter's default text colour (`m3SurfaceBackground`)
-  color: TMAIL.textOnSurface
+  typography: 'h5',
+  color: 'text.primary'
 } as const
 
 const DIVIDER_SX = {
   mt: '20px',
   mb: '12px',
   border: 0,
-  borderTop: `1px solid ${TMAIL.divider12}`
+  borderTop: '1px solid',
+  borderColor: 'divider'
 } as const
 
 export interface SettingsMenuTitleProps {

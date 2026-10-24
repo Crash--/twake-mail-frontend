@@ -1,61 +1,33 @@
-// Upstream to twake-ui: yes. The search filters of tmail-flutter
-// (`SearchFilterButton`) are flat chips (#ECEEF1, no border, a 10 px radius,
-// 12 px on the sides) with a 16 px icon 4 px before Inter Regular 13 in dark
-// grey (#686E76), an optional grey chevron 8 px after it, and the primary
-// colour at 6 % (on the background and the icon only) with a 10 px grey
-// cross once applied. twake-mui's `Chip` is outlined or filled with a solid primary
-// colour, and needs `sx` for that background (docs/twake-mui-gaps.md).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+// Upstream to twake-ui: yes. The search filters are twake-mui's filled
+// `Chip` (32 px pill, `action.selected`), with an optional chevron after the
+// label, and the pale primary colour with a small cross once applied.
+// twake-mui's `Chip` has no applied state short of a solid primary colour,
+// and needs `sx` for that tint (docs/twake-mui-gaps.md).
+import { Icon, type IconProps, Dropdown, Cross } from '@linagora/twake-icons'
 import { Box, Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
-import { DeleteSelection, Dropdown } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
-const CHIP_BACKGROUND = TMAIL.fillChip
-const CHIP_COLOR = TMAIL.greyDark
+const END_SX = { display: 'flex', color: 'text.secondary' } as const
 
-/** `AppColor.colorTextBody`: the chevron and the cross */
-const END_COLOR = TMAIL.grey
-
-/** icDeleteSelection: 10 px, its 8 px padding taken by the label gap */
-const CROSS_SX = { display: 'flex', px: '3px', color: END_COLOR } as const
-
-const CHEVRON_SX = { display: 'flex', color: END_COLOR } as const
-
-const CHIP_SX = (isSelected: boolean): SxProps<Theme> => ({
-  height: 34,
-  borderRadius: '10px',
-  border: 0,
-  px: '4px',
-  fontSize: 13,
-  fontWeight: 400,
-  letterSpacing: 0,
-  color: CHIP_COLOR,
-  bgcolor: theme =>
-    isSelected
-      ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 6%, transparent)`
-      : CHIP_BACKGROUND,
-  '&:hover, &.Mui-focusVisible': {
-    bgcolor: theme =>
-      isSelected
-        ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 12%, transparent)`
-        : `color-mix(in srgb, ${CHIP_COLOR} 16%, ${CHIP_BACKGROUND})`
-  },
-  '& .MuiChip-icon': {
-    ml: '8px',
-    mr: 0,
-    fontSize: 16,
-    color: isSelected ? 'primary.main' : CHIP_COLOR
-  },
-  '& .MuiChip-label': { pl: '8px', pr: '8px' },
-  '& .MuiChip-icon + .MuiChip-label': { pl: '4px' }
-})
+const CHIP_SX = (isSelected: boolean): SxProps<Theme> =>
+  isSelected
+    ? {
+        color: 'primary.main',
+        bgcolor: theme =>
+          `color-mix(in srgb, ${theme.vars.palette.primary.main} 8%, transparent)`,
+        '&:hover, &.Mui-focusVisible': {
+          bgcolor: theme =>
+            `color-mix(in srgb, ${theme.vars.palette.primary.main} 16%, transparent)`
+        },
+        '& .MuiChip-icon': { color: 'primary.main' }
+      }
+    : { '& .MuiChip-icon': { color: 'text.secondary' } }
 
 export interface FilterChipProps {
   label: string
   /** The icon before the label */
   icon?: IconProps['icon']
-  /** Replaces `icon` once applied, e.g. tmail-flutter's blue check */
+  /** Replaces `icon` once applied, e.g. a check */
   selectedIcon?: IconProps['icon']
   /** Applied: the pale primary look, a cross, and `aria-pressed` */
   isSelected: boolean
@@ -108,15 +80,19 @@ export function FilterChip({
       label={label}
       clickable
       variant="filled"
-      icon={leadingIcon === undefined ? undefined : <Icon icon={leadingIcon} />}
+      icon={
+        leadingIcon === undefined ? undefined : (
+          <Icon icon={leadingIcon} size={16} />
+        )
+      }
       endIcon={
         popup !== undefined ? (
-          <Box component="span" sx={CHEVRON_SX}>
+          <Box component="span" sx={END_SX}>
             <Icon icon={Dropdown} size={16} />
           </Box>
         ) : isSelected ? (
-          <Box component="span" sx={CROSS_SX}>
-            <Icon icon={DeleteSelection} size={10} />
+          <Box component="span" sx={END_SX}>
+            <Icon icon={Cross} size={10} />
           </Box>
         ) : undefined
       }

@@ -10,7 +10,7 @@ import {
   type ListTableSkeletonColumn
 } from '@/ds/ListTableSkeleton/ListTableSkeleton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
+import { ROW_AVATAR_SIZE, SENDER_WIDTH } from '@/ds/RowSender/RowSender'
 import { AfterDelay } from '@common/features/loading/AfterDelay'
 import { useLoadingAnnouncement } from '@common/features/loading/LoadingAnnouncer'
 import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
@@ -25,7 +25,7 @@ import {
 } from './emailListGeometry'
 
 /** The target of the checkbox of a row, its tallest control */
-const ROW_CHECKBOX_SIZE = 40
+const ROW_CHECKBOX_SIZE = 32
 
 /** More rows than the tallest screen holds: the container cuts the rest */
 const ROW_COUNT = 20
@@ -51,8 +51,8 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
         <>
           <Skeleton
             variant="circular"
-            width={32}
-            height={32}
+            width={ROW_AVATAR_SIZE}
+            height={ROW_AVATAR_SIZE}
             className="u-flex-shrink-0 u-mr-1"
           />
           <Skeleton width="55%" height={14} />
@@ -83,8 +83,8 @@ function wideColumns(pointer: RowPointer): ListTableSkeletonColumn[] {
 }
 
 /**
- * tmail-flutter's compact row: the 48 px avatar, then the sender and the
- * date, the subject and the preview, on the 72 px of the real rows
+ * The compact row: the avatar in its 48 px touch target, then the sender
+ * and the date, the subject and the preview, on the 75 px of the real rows
  */
 function compactColumns(
   sides: number,
@@ -144,7 +144,7 @@ function EmailListRowsSkeleton({
       compact={isCompact}
       rowCount={ROW_COUNT}
       rowLayout={ROW_LAYOUT}
-      // The 40 px checkbox of the row sets its height (48 px with the padding)
+      // The 32 px checkbox of the row sets its height
       cellHeight={ROW_CHECKBOX_SIZE}
       className={className}
       data-testid="email-list-loading"

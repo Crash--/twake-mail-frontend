@@ -3,12 +3,9 @@
 // initials, the name in 16 px black and the address in 13 px grey, what is
 // typed in bold; one already among the recipients sits in a grey rounded
 // box with a blue tick.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, CheckCircle } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
-
-import { SelectedIcon } from '@/ds/RecipientIcons/RecipientIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { initialsOf, splitMatches } from './initials'
 
@@ -20,9 +17,9 @@ const OPTION_SX = {
   boxSizing: 'border-box',
   px: 2,
   cursor: 'pointer',
-  bgcolor: TMAIL.surface,
-  '&[aria-selected="true"]': { bgcolor: TMAIL.fillF2 },
-  '&:hover': { bgcolor: TMAIL.fillF2 }
+  bgcolor: 'background.paper',
+  '&[aria-selected="true"]': { bgcolor: 'action.selected' },
+  '&:hover': { bgcolor: 'action.hover' }
 } as const
 
 const ADDED_OPTION_SX = {
@@ -30,8 +27,8 @@ const ADDED_OPTION_SX = {
   m: 1,
   borderRadius: '20px',
   cursor: 'default',
-  bgcolor: TMAIL.fillSuggestion,
-  '&[aria-selected="true"], &:hover': { bgcolor: TMAIL.fillSuggestion }
+  bgcolor: 'action.hover',
+  '&[aria-selected="true"], &:hover': { bgcolor: 'action.hover' }
 } as const
 
 const AVATAR_SX = {
@@ -43,9 +40,10 @@ const AVATAR_SX = {
   height: 40,
   boxSizing: 'border-box',
   borderRadius: '50%',
-  bgcolor: TMAIL.fillF8,
-  border: `1px solid ${TMAIL.divider08}`,
-  color: TMAIL.textBlack,
+  bgcolor: 'action.hover',
+  border: 1,
+  borderColor: 'divider',
+  color: 'text.primary',
   fontSize: 16,
   fontWeight: 600,
   lineHeight: 1,
@@ -64,7 +62,7 @@ const LINES_SX = {
 const PRIMARY_SX = {
   fontSize: 16,
   lineHeight: '20px',
-  color: TMAIL.textBlack,
+  color: 'text.primary',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -75,8 +73,8 @@ const SECONDARY_SX = {
   ...PRIMARY_SX,
   fontSize: 13,
   lineHeight: '16px',
-  color: TMAIL.grey,
-  '& b': { fontWeight: 700, color: TMAIL.textBlack }
+  color: 'text.secondary',
+  '& b': { fontWeight: 700, color: 'text.primary' }
 } as const
 
 function Highlighted({
@@ -151,8 +149,8 @@ export function SuggestionOption({
         )}
       </Box>
       {isAdded ? (
-        <Box component="span" className="u-flex" sx={{ color: TMAIL.primary }}>
-          <Icon icon={SelectedIcon} size={24} aria-hidden="true" />
+        <Box component="span" className="u-flex" sx={{ color: 'primary.main' }}>
+          <Icon icon={CheckCircle} size={24} aria-hidden="true" />
         </Box>
       ) : null}
     </Box>

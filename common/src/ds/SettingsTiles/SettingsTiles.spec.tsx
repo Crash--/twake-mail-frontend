@@ -1,7 +1,7 @@
+import { Check } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 
-import { Check } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import {

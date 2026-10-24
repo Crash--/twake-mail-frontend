@@ -99,7 +99,7 @@ export function AppHeader({
         actions={
           <>
             {isFlutterBar && !isSettings ? <MailboxSwitcherButton /> : null}
-            <HelpButton isFlutterLook={isFlutterBar} />
+            <HelpButton size="small" />
             {/* As tmail-flutter: the settings and the sign out are behind
                 the initial of the user */}
             {isFlutterBar ? <AccountMenu /> : null}

@@ -1,28 +1,16 @@
-// Upstream to twake-ui: no, the look of the button at the end of
-// tmail-flutter's search bar (`IconOpenAdvancedSearchWidget`): a 22 px
-// icon in steel grey (#818C99), primary blue (#0A84FF) while it applies, 4
-// px around it, 12 px on its sides, no background. twake-mui's
-// `IconButton` sizes and colours it from the theme.
+// Upstream to twake-ui: no, an icon button at the end of the search bar:
+// twake-mui's small `IconButton`, in primary while what it opens applies.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@mui/material'
 import type { MouseEvent, ReactElement } from 'react'
-
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 function buttonSx(
   isActive: boolean,
   isHidden: boolean
 ): Record<string, unknown> {
-  // Over what the search bar gives its icon buttons
   return {
-    '&&&': {
-      visibility: isHidden ? 'hidden' : undefined,
-      p: '4px',
-      mx: '12px',
-      borderRadius: '50%',
-      color: isActive ? TMAIL.primary0A : TMAIL.grey
-    },
-    '&&&:hover': { bgcolor: 'rgba(129, 140, 153, 0.12)' }
+    visibility: isHidden ? 'hidden' : undefined,
+    color: isActive ? 'primary.main' : undefined
   }
 }
 
@@ -55,6 +43,7 @@ export function SearchBarAction({
   return (
     <Tooltip title={label}>
       <IconButton
+        size="small"
         aria-label={label}
         aria-haspopup={hasPopup}
         onClick={onClick}
@@ -62,7 +51,7 @@ export function SearchBarAction({
         data-active={isActive ? 'true' : undefined}
         data-testid={testId}
       >
-        <Icon icon={icon} size={22} />
+        <Icon icon={icon} />
       </IconButton>
     </Tooltip>
   )

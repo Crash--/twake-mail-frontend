@@ -1,12 +1,10 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's sidebar categories
+// Upstream to twake-ui: no, the sidebar categories
 // ("Personal folders", "Team-mailboxes" under "Folders"): a 36 px row like a
 // folder (a 16 px icon, the name, the chevron right after it) that expands
 // and collapses the tree under it, indented by 8 px.
-import { Icon, type IconProps } from '@linagora/twake-icons'
-import { Box, ButtonBase } from '@linagora/twake-mui'
+import { Icon, type IconProps, Dropdown, Right } from '@linagora/twake-icons'
+import { Box, ButtonBase, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-import { DisclosureDown, DisclosureRight } from '@/ds/NavIcons/NavIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BUTTON_SX = {
   display: 'flex',
@@ -18,20 +16,17 @@ const BUTTON_SX = {
   minHeight: 36,
   pl: '8px',
   pr: '8px',
-  borderRadius: '8px',
-  color: TMAIL.textGrey90,
-  fontSize: 14,
-  fontWeight: 500,
-  lineHeight: '18.4px',
-  letterSpacing: 0.25,
+  borderRadius: radius.md,
+  color: 'text.primary',
+  typography: 'body2',
   textAlign: 'start',
-  '&:hover': { bgcolor: TMAIL.hoverInk }
+  '&:hover': { bgcolor: 'action.hover' }
 } as const
 
 /** The arrow, in the 24 px box tmail-flutter puts 4 px after the name */
 const CHEVRON_SX = {
   display: 'flex',
-  color: TMAIL.textGrey66At64
+  color: 'text.secondary'
 } as const
 
 export interface NavCategoryProps {
@@ -79,7 +74,7 @@ export function NavCategory({
           <span id={titleId}>{title}</span>
           <Box component="span" sx={CHEVRON_SX}>
             <Icon
-              icon={isExpanded ? DisclosureDown : DisclosureRight}
+              icon={isExpanded ? Dropdown : Right}
               size={16}
               aria-hidden="true"
             />

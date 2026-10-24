@@ -9,9 +9,8 @@ import {
   type ReactNode
 } from 'react'
 
-import type { IconProps } from '@linagora/twake-icons'
+import { FolderOutlined, type IconProps } from '@linagora/twake-icons'
 
-import { DefaultFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import {
   FolderPicker,
   type FolderPickerOption,
@@ -264,7 +263,7 @@ export function MailboxPickerProvider({
               level: 1,
               parentId: null,
               hasChildren: false,
-              icon: DefaultFolderIcon,
+              icon: FolderOutlined,
               isCurrent: view.currentId === PICKED_ROOT,
               disabled: view.isRootDisabled === true
             }

@@ -1,7 +1,7 @@
+import { Star } from '@linagora/twake-icons'
 import { fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { Star } from '@/ds/FlutterIcons/FlutterIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { IconAction } from './IconAction'

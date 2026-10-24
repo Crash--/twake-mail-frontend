@@ -4,13 +4,14 @@
 // Contacts) needs suggestions under its field; this is the ARIA 1.2
 // combobox pattern around `SearchBar`, with a free header (filters) above
 // the list.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Magnifier, CrossCircle } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
   Paper,
   Popper,
   type PopperProps,
+  radius,
   SearchBar,
   type SxProps,
   type Theme,
@@ -31,29 +32,12 @@ import {
   type ReactNode,
   type Ref
 } from 'react'
-import { ClearTextSearch, Magnifier } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const POPUP_SX = { zIndex: 'modal' } as const
 /** The field stays above the popup that starts behind it */
 const FIELD_OPEN_Z_INDEX = 1301
-/** The field of tmail-flutter: 52 px high, rounded by 12 px, blue grey */
-const FIELD_HEIGHT = 52
-const FIELD_RADIUS = 12
-const FIELD_BACKGROUND = TMAIL.fillSearch
-/**
- * The search of tmail-flutter's phones and tablets (`SearchBarView`): 44 px
- * high, a 10 px radius, light grey (#EBEDF0 at 60 %), a 17 px text
- */
-const COMPACT_FIELD = {
-  height: 44,
-  radius: 10,
-  background: TMAIL.fillF3,
-  fontSize: 17
-} as const
-const FIELD_ICON_COLOR = TMAIL.grey
-/** Radius of the open panel, as tmail-flutter's suggestions */
-const PANEL_RADIUS = 16
+/** The open panel rounds like twake-mui's large controls */
+const PANEL_RADIUS = radius.lg
 type PopperModifier = NonNullable<PopperProps['modifiers']>[number]
 
 /** The popup is as wide as the field, whatever the layout does after the focus */
@@ -69,57 +53,40 @@ const SAME_WIDTH: PopperModifier = {
 }
 const SCROLL_SX = { maxHeight: '60vh', overflowY: 'auto' } as const
 const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
-// The suggestions of tmail-flutter: 12 px around, the icon 8 px before the
-// text, the name in Inter 15 black, the details and the second line in 13
 const OPTION_SX = {
   display: 'flex',
   // The icon on the first line, as the star of an email
   alignItems: 'flex-start',
   '& > svg, & > .MuiAvatar-root': { mt: '1px' },
   gap: 1,
-  p: '12px',
+  px: 2,
+  py: 1,
   cursor: 'pointer',
   '&[aria-selected="true"]': { bgcolor: 'action.selected' },
   '&:hover': { bgcolor: 'action.hover' }
 } as const
 const HEADING_SX = {
-  px: '12px',
+  px: 2,
   pt: 1,
   pb: 0.5,
   color: 'text.primary'
 } as const
 const LINE_SX = { display: 'flex', alignItems: 'center', minWidth: 0 } as const
-const LABEL_SX = (isStrong: boolean, isHint: boolean): SxProps<Theme> => ({
+const LABEL_SX = (isStrong: boolean): SxProps<Theme> => ({
   flex: '0 1 auto',
   minWidth: 0,
-  color: TMAIL.textBlack,
-  fontSize: isHint ? 13 : 15,
-  fontWeight: isStrong ? 600 : isHint ? 500 : 400,
-  lineHeight: '20px'
+  color: 'text.primary',
+  fontWeight: isStrong ? 600 : undefined
 })
-const HINT_SX = {
-  flexShrink: 0,
-  mr: '4px',
-  color: TMAIL.greyDark,
-  fontSize: 13,
-  fontWeight: 500,
-  lineHeight: '20px'
-} as const
+const HINT_SX = { flexShrink: 0, mr: 0.5, color: 'text.secondary' } as const
 const DETAIL_SX = {
   flex: '1 1 0',
   minWidth: 0,
   ml: 2,
-  color: TMAIL.textBlack,
-  fontSize: 13,
-  lineHeight: '20px'
+  color: 'text.primary'
 } as const
-const SECONDARY_SX = {
-  mt: '3px',
-  color: TMAIL.greySlate,
-  fontSize: 13,
-  lineHeight: '18px'
-} as const
-const CLEAR_SX = { p: '10px', color: TMAIL.grey } as const
+const SECONDARY_SX = { color: 'text.secondary' } as const
+const CLEAR_SX = { color: 'text.secondary' } as const
 
 const END_SX = {
   display: 'flex',
@@ -129,9 +96,8 @@ const END_SX = {
   // At the end of the line, whatever comes before
   ml: 'auto',
   pl: 1,
-  color: TMAIL.textBlack,
-  fontSize: 13,
-  lineHeight: '20px'
+  typography: 'caption',
+  color: 'text.secondary'
 } as const
 
 export interface SearchComboboxOption {
@@ -198,10 +164,7 @@ export interface SearchComboboxProps {
   /** Called when the popup opens or closes */
   onOpenChange?: (isOpen: boolean) => void
   className?: string
-  /**
-   * `compact`: the field of tmail-flutter's phones and tablets; `bare`: the
-   * white field of the bar of its search view
-   */
+  /** `bare`: the field of the bar of the search view, without background */
   size?: 'large' | 'compact' | 'bare'
   /** Receives `SearchComboboxActions`, as MUI's `action` props */
   actions?: Ref<SearchComboboxActions>
@@ -214,69 +177,24 @@ export interface SearchComboboxProps {
 }
 
 /**
- * The field is flat and grey at rest; open, it is the head of the white
- * panel (which starts behind it) and leaves its background to the panel. The
- * focus ring only shows when the panel does not: the panel is the focus
- * indication then.
+ * The field is twake-mui's small `SearchBar`; open, it is the head of the
+ * white panel (which starts behind it) and leaves its background to the
+ * panel. The focus ring only shows when the panel does not: the panel is the
+ * focus indication then.
  */
 function fieldSx(
   isOpen: boolean,
   size: 'large' | 'compact' | 'bare'
 ): SxProps<Theme> {
-  const isCompact = size !== 'large'
   return {
     position: 'relative',
-    height: `${isCompact ? COMPACT_FIELD.height : FIELD_HEIGHT}px`,
-    borderRadius: `${isCompact ? COMPACT_FIELD.radius : FIELD_RADIUS}px`,
-    bgcolor: isCompact ? COMPACT_FIELD.background : FIELD_BACKGROUND,
-    // tmail-flutter's end button keeps its own 12 px from the end
-    ...(size === 'large' ? { pr: 0 } : {}),
-    '& .MuiInputBase-root': {
-      fontSize: `${isCompact ? COMPACT_FIELD.fontSize : 16}px`
-    },
-    '& .SearchBar-icon, & .MuiIconButton-root': { color: FIELD_ICON_COLOR },
-    // tmail-flutter's desktop field: its 22 px magnifier, 16 px around
-    // (12 + 4 of its button), and its grey hint in 15 px
-    ...(size === 'large'
-      ? {
-          '& .SearchBar-icon': {
-            width: 54,
-            px: '16px',
-            boxSizing: 'border-box'
-          },
-          '& .SearchBar-icon svg': { width: 22, height: 22 },
-          '& .MuiInputBase-input::placeholder': {
-            color: FIELD_ICON_COLOR,
-            opacity: 1,
-            fontSize: '15px'
-          }
-        }
-      : {}),
-    // tmail-flutter's 24 px magnifier, 8 px around, and its grey hint
-    ...(isCompact
-      ? {
-          '& .SearchBar-icon': {
-            width: 40,
-            px: '8px',
-            boxSizing: 'border-box'
-          },
-          '& .SearchBar-icon svg': { width: 24, height: 24 },
-          '& .MuiInputBase-input::placeholder': {
-            color: FIELD_ICON_COLOR,
-            opacity: 1
-          }
-        }
-      : {}),
-    // tmail-flutter's search view: the field of the bar, white, without
-    // magnifier, in 16 px
+    // The field of the bar of the search view: no background, no magnifier
     ...(size === 'bare'
       ? {
           bgcolor: 'transparent',
           borderRadius: 0,
-          '& .MuiInputBase-root': { fontSize: '16px', color: TMAIL.textBlack },
           '& .SearchBar-icon': { display: 'none' },
-          '& .MuiIconButton-root svg': { width: 18, height: 18 },
-          '& .MuiInputBase-input': { pl: '12px' }
+          '& .MuiInputBase-input': { pl: 1.5 }
         }
       : {}),
     ...(isOpen
@@ -475,7 +393,6 @@ export function SearchCombobox({
         elevation={0}
         disabledFocus
         sx={fieldSx(isShown, size)}
-        // tmail-flutter's thinner magnifier (`ic_search_bar`)
         icon={size === 'bare' ? undefined : Magnifier}
         className="u-w-100"
         placeholder={label}
@@ -496,11 +413,10 @@ export function SearchCombobox({
                       size="small"
                       aria-label={clearLabel}
                       onClick={handleClear}
-                      // Where tmail-flutter draws its clear button, steel grey
                       sx={CLEAR_SX}
                       data-testid={testIds.clear}
                     >
-                      <Icon icon={ClearTextSearch} size={16} />
+                      <Icon icon={CrossCircle} size={16} />
                     </IconButton>
                   </Tooltip>
                 )}
@@ -536,7 +452,7 @@ export function SearchCombobox({
       >
         <Paper
           elevation={8}
-          sx={{ borderRadius: `${PANEL_RADIUS}px`, pt: `${fieldHeight}px` }}
+          sx={{ borderRadius: PANEL_RADIUS, pt: `${fieldHeight}px` }}
           onMouseDown={keepFocus}
         >
           <Box sx={SCROLL_SX}>
@@ -602,17 +518,23 @@ export function SearchCombobox({
                             <Box className="u-flex-auto u-ov-hidden">
                               <Box sx={LINE_SX}>
                                 {option.hint === undefined ? null : (
-                                  <Typography component="span" sx={HINT_SX}>
+                                  <Typography
+                                    component="span"
+                                    variant="caption"
+                                    sx={HINT_SX}
+                                  >
                                     {option.hint}
                                   </Typography>
                                 )}
                                 <Typography
                                   component="span"
                                   noWrap
-                                  sx={LABEL_SX(
-                                    option.isStrong === true,
-                                    option.hint !== undefined
-                                  )}
+                                  variant={
+                                    option.hint === undefined
+                                      ? 'body1'
+                                      : 'caption'
+                                  }
+                                  sx={LABEL_SX(option.isStrong === true)}
                                 >
                                   {option.label}
                                 </Typography>
@@ -620,6 +542,7 @@ export function SearchCombobox({
                                   <Typography
                                     component="span"
                                     noWrap
+                                    variant="body2"
                                     sx={DETAIL_SX}
                                   >
                                     {option.detail}
@@ -636,7 +559,11 @@ export function SearchCombobox({
                                 )}
                               </Box>
                               {option.secondary === undefined ? null : (
-                                <Typography noWrap sx={SECONDARY_SX}>
+                                <Typography
+                                  noWrap
+                                  variant="caption"
+                                  sx={SECONDARY_SX}
+                                >
                                   {option.secondary}
                                 </Typography>
                               )}

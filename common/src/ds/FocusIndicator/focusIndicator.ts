@@ -80,11 +80,13 @@ export function focusIndicatorThemeOptions(
   return {
     components: {
       MuiCssBaseline: {
-        styleOverrides: theme => ({
+        // An object, not a function: twake-mui merges it with its own global
+        // CSS, which a function would replace
+        styleOverrides: {
           ':root': {
             '--focus-ring-width': `${String(FOCUS_RING_WIDTH[focusIndicator])}px`,
             // The CSS variable of the theme follows its colour scheme
-            '--focus-ring-color': theme.vars.palette.primary.main,
+            '--focus-ring-color': 'var(--twake-palette-primary-main)',
             '--focus-ring-offset': '2px'
           },
           [INSET_ROWS]: FOCUS_RING_INSET,
@@ -110,7 +112,7 @@ export function focusIndicatorThemeOptions(
               }
             : {}),
           ...globalCss
-        })
+        }
       },
       // ButtonBase removes the outline with a class: the rule goes there
       MuiButtonBase: {

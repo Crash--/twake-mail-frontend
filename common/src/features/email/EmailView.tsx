@@ -90,7 +90,6 @@ function SenderAvatar({
     <GradientAvatar
       text={firstLetterOf(name === '' ? address : name)}
       colorKey={address}
-      fontSize={18}
     />
   )
   return sender === null ? (

@@ -1,52 +1,29 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's category tabs
-// (`KeyboardShortcutsTabView`): a 52 px bar, each tab
-// as wide as its label, in grey Regular 14 on one line (16 px in), a 1 px
-// blue line under the
-// selected one, a light divider under the bar. Below the desktop size, as
-// wide as the screen, each tab its share, 82 px high: a 20 px grey icon over
-// a shorter label. twake-mui does not export `Tab`.
+// Upstream to twake-ui: no. Category tabs: twake-mui's `Tabs` and `Tab`, each
+// tab as wide as its label on one line, a divider under the bar. Below the
+// desktop size, as wide as the screen, each tab its share: an icon over a
+// shorter label.
 import { Icon, type IconProps } from '@linagora/twake-icons'
-import { Box, Tab, Tabs } from '@mui/material'
+import { Box, Tab, Tabs } from '@linagora/twake-mui'
 import { useId, type ReactElement, type ReactNode } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 const TABS_SX = {
-  minHeight: 52,
-  borderBottom: `1px solid ${TMAIL.divider12}`,
-  '& .MuiTabs-indicator': { height: '1px', backgroundColor: TMAIL.primary }
+  borderBottom: '1px solid',
+  borderColor: 'divider'
 } as const
 
-const TAB_SX = {
-  minHeight: 52,
-  minWidth: 0,
-  px: '16px',
-  // Each label on one line (tmail-flutter's fixed widths wrap two of them)
-  whiteSpace: 'nowrap',
-  fontSize: 14,
-  fontWeight: 400,
-  lineHeight: '20px',
-  letterSpacing: '0.25px',
-  textTransform: 'none',
-  // tmail-flutter's labels keep their grey once selected: the blue line
-  // under the tab says which one is
-  color: TMAIL.textGrey,
-  '&.Mui-selected': { color: TMAIL.textGrey }
-} as const
+// Each label on one line, the width of the label
+const TAB_SX = { minWidth: 0, whiteSpace: 'nowrap' } as const
 
-const COMPACT_TABS_SX = {
-  ...TABS_SX,
-  minHeight: 82,
-  maxWidth: 'none'
-} as const
+const COMPACT_TABS_SX = { ...TABS_SX, maxWidth: 'none' } as const
 
 const COMPACT_TAB_SX = {
   ...TAB_SX,
   flex: '1 1 0',
   minHeight: 82,
   gap: '10px',
-  '& .MuiTab-iconWrapper': { m: 0, color: TMAIL.greyDark }
+  '& .MuiTab-iconWrapper': { m: 0 }
 } as const
 
 /** The list of the tab, 40 px under the bar */

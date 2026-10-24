@@ -1,19 +1,18 @@
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Cross,
+  EmailNotification,
+  Star,
+  FolderMoveto
+} from '@linagora/twake-icons'
 import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
-import {
-  Cancel,
-  CheckboxOn,
-  Cross,
-  EmailNotification,
-  MoveMailbox,
-  Star
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,
@@ -60,7 +59,7 @@ const COMPACT_ACTIONS: readonly (readonly EmailActionId[])[] = [
  */
 const SELECTION_ICONS: Partial<Record<EmailActionId, IconProps['icon']>> = {
   star: Star,
-  move: MoveMailbox,
+  move: FolderMoveto,
   'mark-as-unread': EmailNotification
 }
 
@@ -166,8 +165,8 @@ export function EmailListToolbar({
   const clearButton = !isDesktop ? (
     <IconAction
       label={clearLabel}
-      icon={Cancel}
-      tone="steel"
+      icon={Cross}
+      tone="icon"
       size={36}
       onClick={onDone}
       data-testid="selection-toolbar-clear"
@@ -179,7 +178,7 @@ export function EmailListToolbar({
         onClick={onDone}
         data-testid="selection-toolbar-clear"
       >
-        <Icon icon={Cross} size={20} color={TMAIL.steel} />
+        <Icon icon={Cross} size={20} color="var(--twake-palette-text-icon)" />
       </IconButton>
     </Tooltip>
   )
@@ -225,7 +224,7 @@ export function EmailListToolbar({
           <IconAction
             label={selectAllLabel}
             icon={CheckboxOn}
-            tone="steel"
+            tone="icon"
             size={36}
             aria-pressed={isAllLoaded || selection.isAllInFolder}
             onClick={handleToggleAll}
@@ -243,7 +242,7 @@ export function EmailListToolbar({
               ? 'starred'
               : item.id === 'delete-permanently' && !isDesktop
                 ? 'danger'
-                : 'steel'
+                : 'icon'
           }
           size={36}
           onClick={() => {
@@ -256,7 +255,7 @@ export function EmailListToolbar({
         <IconAction
           label={moreLabel}
           icon={MoreVerticalIcon}
-          tone="steel"
+          tone="icon"
           size={36}
           aria-haspopup="menu"
           aria-expanded={moreAnchor !== null}

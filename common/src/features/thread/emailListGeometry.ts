@@ -20,8 +20,8 @@ export const ROW_LAYOUT: RowLayout = {
 /**
  * The compact rows of tmail-flutter (phones and tablets): 72 px high, 12 px
  * at the sides on a phone, 24 px on a tablet, the three lines 12 px after the
- * 48 px avatar, a divider within the side margins, white while emails are
- * selected
+ * 48 px touch target of the avatar, a divider within the side margins, white
+ * while emails are selected
  */
 export function getCompactRowLayout(
   isPhone: boolean,
@@ -51,8 +51,10 @@ export const ACTION_GAP = 11
  */
 const DATE_BLOCK_WIDTH = 24 + 80 + 28
 
-/** The checkbox (40 px, 4 px from the edge) and the two 28 px state slots */
-const LEAD_FIXED_WIDTH = 44 + 2 * 28
+/** The checkbox (32 px) and the two 28 px state slots */
+const LEAD_FIXED_WIDTH = 32 + 2 * 28
+/** A touch target is 44 px, as the checkbox of a touch row used to be */
+const TOUCH_CHECKBOX_WIDTH = 44
 /** The star of tmail-flutter: a bare 20 px icon */
 const STAR_WIDTH = 20
 /**
@@ -71,11 +73,10 @@ const TRAILING_GAP = 16
 const HOVER_ACTIONS_END = 16
 
 /**
- * With hover, the cell of the date keeps the 14 px rounded end of a hovered
- * or selected row (`VirtualizedListTable`); the room kept in the subject is
- * as much narrower
+ * With hover, what the cell of the date keeps after the padding of the row;
+ * the room kept in the subject is as much narrower
  */
-const HOVER_CORNER = 14
+const DATE_CELL_END = 14
 
 export interface RowPointer {
   /** The screen can hover: the actions replace the date */
@@ -92,7 +93,7 @@ function getButtonSize(isTouch: boolean): number {
 export function getLeadWidth(isTouch: boolean): number {
   return (
     ROW_LAYOUT.paddingX +
-    LEAD_FIXED_WIDTH +
+    (isTouch ? TOUCH_CHECKBOX_WIDTH + 2 * 28 : LEAD_FIXED_WIDTH) +
     (isTouch ? TOUCH_TARGET_SIZE : STAR_WIDTH)
   )
 }
@@ -105,7 +106,7 @@ export function getLeadWidth(isTouch: boolean): number {
  * over the room `RowHoverSpace` keeps in the cell of the subject.
  */
 export function getTrailingWidth({ canHover, isTouch }: RowPointer): number {
-  if (canHover) return ROW_LAYOUT.paddingX + HOVER_CORNER
+  if (canHover) return ROW_LAYOUT.paddingX + DATE_CELL_END
   return (
     TRAILING_GAP +
     5 * getButtonSize(isTouch) +
@@ -128,7 +129,7 @@ export function getHoverActionsRoom(isTouch: boolean): number {
     5 * getButtonSize(isTouch) +
     4 * ACTION_GAP +
     HOVER_ACTIONS_END -
-    HOVER_CORNER
+    DATE_CELL_END
   )
 }
 
@@ -136,7 +137,7 @@ export function getHoverActionsRoom(isTouch: boolean): number {
  * Before the room of the date at the end of the subject: tmail-flutter's 16
  * px between the preview and the date, less what the cell of the date holds
  */
-export const HOVER_DATE_GAP = TRAILING_GAP - HOVER_CORNER
+export const HOVER_DATE_GAP = TRAILING_GAP - DATE_CELL_END
 
 /**
  * The cell of the date of a loading row: with hover, the room of a date

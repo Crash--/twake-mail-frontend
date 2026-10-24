@@ -1,14 +1,11 @@
-// Upstream to twake-ui: no, the first level of tmail-flutter's settings on
-// phones and tablets (`SettingFirstLevelTileBuilder`): a 24 px icon, the
-// name in 16 px, its explanation in grey 13 px under it, a chevron at the
-// end, 24 px above and below, a divider between the entries within the
-// side margins (16 px on a phone, 32 px on a tablet).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+// Upstream to twake-ui: no. The first level of the settings on phones and
+// tablets: a 24 px icon, the name, its explanation in `text.secondary` under
+// it, a chevron at the end, a divider between the entries within the side
+// margins (16 px on a phone, 32 px on a tablet).
+import { Icon, type IconProps, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
 
-import { Right } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 function sides(isPhone: boolean): string {
@@ -26,7 +23,7 @@ function listSx(isPhone: boolean): Record<string, unknown> {
       display: 'block',
       height: '1px',
       mx: sides(isPhone),
-      bgcolor: TMAIL.divider12
+      bgcolor: 'divider'
     }
   }
 }
@@ -40,7 +37,7 @@ function tileSx(isPhone: boolean): Record<string, unknown> {
     px: sides(isPhone),
     gap: '12px',
     textAlign: 'start',
-    color: TMAIL.textBlack,
+    color: 'text.primary',
     textDecoration: 'none'
   }
 }
@@ -49,33 +46,29 @@ const NAME_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  fontSize: 16,
-  fontWeight: 400,
-  lineHeight: '24px',
-  color: TMAIL.textBlack,
-  // The blue icons of tmail-flutter's settings
-  '& svg': { color: TMAIL.primary, flexShrink: 0 }
+  typography: 'body1',
+  color: 'text.primary',
+  '& svg': { color: 'primary.main', flexShrink: 0 }
 } as const
 
 const EXPLANATION_SX = {
   display: 'block',
   mt: '12px',
   ml: '36px',
-  fontSize: 13,
-  lineHeight: '18px',
-  color: TMAIL.greySlate
+  typography: 'body2',
+  fontWeight: 400,
+  color: 'text.secondary'
 } as const
 
-const CHEVRON_SX = { display: 'flex', color: TMAIL.greyChevron } as const
+const CHEVRON_SX = { display: 'flex', color: 'text.icon' } as const
 
 const ACCOUNT_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: '16px',
   py: '12px',
-  fontSize: 17,
-  fontWeight: 500,
-  color: TMAIL.textBlack,
+  typography: 'h5',
+  color: 'text.primary',
   wordBreak: 'break-all'
 } as const
 

@@ -1,18 +1,19 @@
-import { Peoples, type IconProps } from '@linagora/twake-icons'
+import {
+  Peoples,
+  type IconProps,
+  Filter,
+  Eye,
+  Send,
+  Globe,
+  Setting,
+  Identities,
+  Cloud,
+  Plane
+} from '@linagora/twake-icons'
 import { CAPABILITIES, type Session } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 
-import {
-  EmailRulesSettingsIcon,
-  FolderVisibilitySettingsIcon,
-  ForwardingSettingsIcon,
-  KeyboardSettingsIcon,
-  LanguageSettingsIcon,
-  PreferencesSettingsIcon,
-  ProfilesSettingsIcon,
-  StorageSettingsIcon,
-  VacationSettingsIcon
-} from '@/ds/SettingsIcons/SettingsIcons'
+import { KeyboardSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import type { TranslationKey } from '@common/i18n/useI18n'
 import { DELEGATION_CAPABILITY } from '@common/jmap/methodCapabilities'
 
@@ -53,46 +54,46 @@ function offers(capability: string): (session: Session) => boolean {
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   {
     id: 'profiles',
-    icon: ProfilesSettingsIcon,
+    icon: Identities,
     title: 'settings.sections.profiles.title',
     description: 'settings.sections.profiles.description'
   },
   {
     id: 'email-rules',
-    icon: EmailRulesSettingsIcon,
+    icon: Filter,
     title: 'settings.sections.emailRules.title',
     description: 'settings.sections.emailRules.description',
     isAvailable: offers(LINAGORA_CAPABILITIES.filter)
   },
   {
     id: 'preferences',
-    icon: PreferencesSettingsIcon,
+    icon: Setting,
     title: 'settings.sections.preferences.title',
     description: 'settings.sections.preferences.description'
   },
   {
     id: 'forwarding',
-    icon: ForwardingSettingsIcon,
+    icon: Send,
     title: 'settings.sections.forwarding.title',
     description: 'settings.sections.forwarding.description',
     isAvailable: offers(LINAGORA_CAPABILITIES.forward)
   },
   {
     id: 'vacation',
-    icon: VacationSettingsIcon,
+    icon: Plane,
     title: 'settings.sections.vacation.title',
     description: 'settings.sections.vacation.description',
     isAvailable: offers(CAPABILITIES.vacationResponse)
   },
   {
     id: 'folder-visibility',
-    icon: FolderVisibilitySettingsIcon,
+    icon: Eye,
     title: 'settings.sections.folderVisibility.title',
     description: 'settings.sections.folderVisibility.description'
   },
   {
     id: 'language-region',
-    icon: LanguageSettingsIcon,
+    icon: Globe,
     title: 'settings.sections.languageRegion.title',
     description: 'settings.sections.languageRegion.description',
     // Unless the server keeps the language and does not let it change
@@ -108,7 +109,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   },
   {
     id: 'storage',
-    icon: StorageSettingsIcon,
+    icon: Cloud,
     title: 'settings.sections.storage.title',
     description: 'settings.sections.storage.description',
     isAvailable: offers(CAPABILITIES.quota)

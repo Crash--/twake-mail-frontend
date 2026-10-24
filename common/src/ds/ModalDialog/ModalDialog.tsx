@@ -1,17 +1,17 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's modals (folder
-// creation `MailboxCreatorView`, label creation `CreateNewLabelModal`…): a
-// white card 554 px wide at most, rounded by 16 px, the close cross at the
-// top end, the title centred (24 / 32), a grey line under it, the fields 32
-// px in with their Semi Bold 14 labels above, and at the end a text button
-// and the confirming 48 px blue pill. The small one (`EditTextDialogBuilder`,
-// renaming a folder) is 383 px wide, its title Semi Bold. twake-mui's
-// `Dialog` has its title at the start and its actions as outlined and
-// contained buttons.
-import { Icon } from '@linagora/twake-icons'
+// Upstream to twake-ui: no. A modal for a short task (folder creation, label
+// creation, renaming a folder, the recovery form): twake-mui's `Dialog`, the
+// close cross at the top end, a subtitle under the title, fields with their
+// label above (or at their start), and at the end a text button and the
+// confirming one. Its fields are the 40 px outlined fields below, twake-mui
+// has no compact field.
+import { Icon, Dropdown, Cross, CheckCircle } from '@linagora/twake-icons'
 import {
   Box,
   Button,
   Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   InputBase,
   MenuItem,
@@ -19,7 +19,7 @@ import {
   Tooltip,
   Typography,
   type InputBaseProps
-} from '@mui/material'
+} from '@linagora/twake-mui'
 import {
   forwardRef,
   type ComponentProps,
@@ -29,107 +29,13 @@ import {
   type ReactNode
 } from 'react'
 
-import {
-  CloseDialog,
-  Dropdown,
-  FilterSelected
-} from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-/** `AppColor.m3SurfaceBackground` */
-const TEXT_COLOR = TMAIL.textOnSurface
-/** `AppColor.primaryMain` */
-const PRIMARY = TMAIL.primary0A
-/** The confirming pill keeps that blue, its label white, in both schemes */
-const PRIMARY_FILL = '#0A84FF'
-/** `AppColor.m3Neutral90`: the border of the fields */
-const FIELD_BORDER = TMAIL.outline
-/** `AppColor.m3Tertiary`: hints and the close cross */
-const HINT_COLOR = TMAIL.steelLight
-const ERROR_COLOR = TMAIL.error
-
-const PAPER_SX = {
-  width: 554,
-  maxWidth: 'calc(100% - 32px)',
-  maxHeight: 'min(671px, calc(100% - 100px))',
-  m: 2,
-  borderRadius: '16px',
-  position: 'relative',
-  boxSizing: 'border-box',
-  boxShadow: '0 2px 24px rgba(0, 0, 0, 0.08), 0 0 2px rgba(0, 0, 0, 0.08)',
-  display: 'flex',
-  flexDirection: 'column'
-} as const
-
-const TITLE_SX = {
-  m: 0,
-  px: '56px',
-  pt: '16px',
-  pb: '16px',
-  minHeight: 64,
-  boxSizing: 'border-box',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textAlign: 'center',
-  fontSize: 24,
-  fontWeight: 400,
-  lineHeight: '32px',
-  color: TEXT_COLOR
-} as const
-
-/** The small modal: `EditTextDialogBuilder` */
-const SMALL_TITLE_SX = {
-  ...TITLE_SX,
-  mt: '12px',
-  minHeight: 48,
-  py: 0,
-  pl: '24px',
-  pr: '28px',
-  fontWeight: 600
-} as const
-
-const SMALL_BODY_SX = {
-  pl: '24px',
-  pr: '28px',
-  pt: '28px',
-  overflowY: 'auto',
-  flex: '1 1 auto'
-} as const
-
-const SUBTITLE_SX = {
-  m: 0,
-  px: '32px',
-  pb: '16px',
-  textAlign: 'center',
-  fontSize: 13,
-  lineHeight: '20px',
-  color: TMAIL.steel
-} as const
-
-const BODY_SX = {
-  px: '32px',
-  pt: '16px',
-  overflowY: 'auto',
-  flex: '1 1 auto'
-} as const
-
-const ACTIONS_SX = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  gap: '8px',
-  px: '32px',
-  py: '25px',
-  flexShrink: 0
-} as const
+const SUBTITLE_SX = { m: 0, px: '2rem', pt: 1 } as const
 
 export interface ModalDialogProps {
   open?: boolean
-  /** Shown centred at the top, and the name of the dialog */
+  /** Shown at the top, and the name of the dialog */
   title: ReactNode
-  /** The grey line under the title, e.g. where a new folder goes */
+  /** The line under the title, e.g. where a new folder goes */
   subtitle?: ReactNode
   titleId: string
   /** Id of what describes the dialog, for `aria-describedby` */
@@ -145,20 +51,19 @@ export interface ModalDialogProps {
   children: ReactNode
   /** The buttons at the end, `ModalDialogButton`s, the confirming one last */
   actions?: ReactNode
-  /** `small`: 383 px, as the dialog renaming a folder */
+  /** `small`: the narrow dialog, as the one renaming a folder */
   size?: 'large' | 'small'
-  /** The title in Semi Bold (`textStyleM3HeadlineSmall`), as the recovery form */
-  isTitleStrong?: boolean
-  /** `body`: the subtitle in Regular 16 / 24, dark (`LimitsBanner`) */
+  /** `body`: the subtitle as a paragraph of text, not a caption */
   subtitleLook?: 'caption' | 'body'
-  /** Wider or narrower than 554 px */
+  /** Wider or narrower than the size of the dialog, in px */
   width?: number
   'data-testid'?: string
 }
 
 /**
- * A modal of tmail-flutter: named by its title, the focus kept inside,
- * Escape and the cross close it and give the focus back to what opened it.
+ * A modal named by its title; Escape and the cross close it and give the
+ * focus back to what opened it. The focus is not kept inside: twake-mui's
+ * theme sets `disableEnforceFocus` on every `Dialog` and this one keeps it.
  */
 export function ModalDialog({
   open = true,
@@ -173,70 +78,47 @@ export function ModalDialog({
   children,
   actions,
   size = 'large',
-  isTitleStrong = false,
   subtitleLook = 'caption',
   width,
   'data-testid': testId
 }: ModalDialogProps): ReactElement {
-  const isSmall = size === 'small'
-  const paperWidth = width ?? (isSmall ? 383 : 554)
   const content = (
     <>
-      <Typography
-        id={titleId}
-        component="h2"
-        sx={
-          isSmall
-            ? SMALL_TITLE_SX
-            : isTitleStrong
-              ? { ...TITLE_SX, fontWeight: 600 }
-              : TITLE_SX
-        }
-      >
+      <DialogTitle id={titleId} className="dialogTitleWithClose">
         {title}
-      </Typography>
+      </DialogTitle>
       {subtitle === undefined ? null : (
         <Typography
           id={describedBy}
           component="p"
-          sx={
-            subtitleLook === 'body'
-              ? {
-                  ...SUBTITLE_SX,
-                  fontSize: 16,
-                  lineHeight: '24px',
-                  letterSpacing: '-0.15px',
-                  color: TEXT_COLOR
-                }
-              : SUBTITLE_SX
-          }
+          variant={subtitleLook === 'body' ? 'body1' : 'body2'}
+          color={subtitleLook === 'body' ? 'text.primary' : 'text.secondary'}
+          sx={SUBTITLE_SX}
         >
           {subtitle}
         </Typography>
       )}
-      <Box sx={isSmall ? SMALL_BODY_SX : BODY_SX}>{children}</Box>
+      <DialogContent>{children}</DialogContent>
       {actions === undefined ? (
         <Box sx={{ height: 32, flexShrink: 0 }} />
       ) : (
-        <Box
-          sx={isSmall ? { ...ACTIONS_SX, pl: '24px', pr: '28px' } : ACTIONS_SX}
-          className={isSmall ? 'ModalDialog-small' : undefined}
-        >
-          {actions}
-        </Box>
+        <DialogActions>{actions}</DialogActions>
       )}
     </>
   )
   return (
     <Dialog
+      size={size === 'small' ? 'small' : 'medium'}
+      fullScreen={false}
       open={open}
       onClose={onClose}
       aria-labelledby={titleId}
       aria-describedby={describedBy}
       slotProps={{
-        paper: {
-          sx: { ...PAPER_SX, width: paperWidth }
-        },
+        paper:
+          width === undefined
+            ? undefined
+            : { sx: { '&&': { maxWidth: width } } },
         transition: { onExited }
       }}
       data-testid={testId}
@@ -257,41 +139,22 @@ export function ModalDialog({
         <IconButton
           aria-label={closeLabel}
           onClick={onClose}
-          sx={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
-            p: '10px',
-            color: HINT_COLOR
-          }}
+          className="dialogIconButton dialogCloseButton"
           data-testid={
             testId === undefined ? undefined : `${testId}-close-button`
           }
         >
-          <Icon icon={CloseDialog} size={24} />
+          <Icon icon={Cross} size={24} />
         </IconButton>
       </Tooltip>
     </Dialog>
   )
 }
 
-const BUTTON_SX = {
-  height: 48,
-  borderRadius: '100px',
-  px: '16px',
-  fontSize: 14,
-  fontWeight: 500,
-  lineHeight: '20px',
-  letterSpacing: '0.1px',
-  textTransform: 'none',
-  boxShadow: 'none',
-  '&:hover': { boxShadow: 'none' }
-} as const
-
 export interface ModalDialogButtonProps {
   children: ReactNode
   onClick?: () => void
-  /** The confirming action: a 153 px blue pill, else blue text */
+  /** The confirming action: a filled button, else text */
   isMain?: boolean
   /** Submits the form of the dialog */
   type?: 'button' | 'submit'
@@ -299,7 +162,7 @@ export interface ModalDialogButtonProps {
   'data-testid'?: string
 }
 
-/** A button of `ModalDialog`, as `ModalListActionButtonWidget` */
+/** A button of `ModalDialog` */
 export function ModalDialogButton({
   children,
   onClick,
@@ -314,19 +177,6 @@ export function ModalDialogButton({
       variant={isMain ? 'contained' : 'text'}
       onClick={onClick}
       disabled={disabled}
-      sx={{
-        ...BUTTON_SX,
-        minWidth: isMain ? 153 : 67,
-        // The small modal's pill is narrower
-        '.ModalDialog-small &': { minWidth: isMain ? 119 : 67 },
-        color: isMain ? '#FFFFFF' : PRIMARY,
-        bgcolor: isMain ? PRIMARY_FILL : 'transparent',
-        '&.Mui-disabled': {
-          // `profileMenuDivider` at 12 %, its label at 38 %
-          bgcolor: isMain ? TMAIL.disabledFill : 'transparent',
-          color: TMAIL.textOnSurface38
-        }
-      }}
       data-testid={testId}
     >
       {children}
@@ -337,10 +187,8 @@ export function ModalDialogButton({
 const LABEL_SX = {
   display: 'block',
   mb: '16px',
-  fontSize: 14,
-  fontWeight: 600,
-  lineHeight: '18px',
-  color: TMAIL.textBlack
+  typography: 'subtitle2',
+  color: 'text.primary'
 } as const
 
 const INLINE_LABEL_SX = {
@@ -349,10 +197,8 @@ const INLINE_LABEL_SX = {
   minHeight: 40,
   display: 'flex',
   alignItems: 'center',
-  fontSize: 14,
-  fontWeight: 400,
-  lineHeight: '18px',
-  color: TMAIL.textBlack
+  typography: 'body1',
+  color: 'text.primary'
 } as const
 
 export interface ModalFieldProps {
@@ -363,14 +209,11 @@ export interface ModalFieldProps {
   children: ReactNode
   /** Space above, in px: 0 for the first field */
   spaceAbove?: number
-  /**
-   * The label at the start of the row, 112 px wide, in Regular 14
-   * (`DefaultLabelFieldWidget`, the recovery form)
-   */
+  /** The label at the start of the row, 112 px wide (the recovery form) */
   isInline?: boolean
 }
 
-/** A field of `ModalDialog`: its Semi Bold label above the control */
+/** A field of `ModalDialog`: its label above the control */
 export function ModalField({
   label,
   htmlFor,
@@ -428,15 +271,19 @@ function inputSx(
     py: isMultiline ? '12px' : 0,
     alignItems: isMultiline ? 'flex-start' : 'center',
     border: '1px solid',
-    borderColor: hasError ? ERROR_COLOR : FIELD_BORDER,
-    borderRadius: '10px',
-    bgcolor: hasError ? TMAIL.redWash : TMAIL.surface,
-    fontSize: 14,
-    lineHeight: '18px',
-    color: TEXT_COLOR,
-    '&.Mui-focused': { borderColor: hasError ? ERROR_COLOR : PRIMARY },
+    borderColor: hasError ? 'error.main' : 'border.main',
+    borderRadius: 1,
+    bgcolor: 'background.paper',
+    typography: 'body1',
+    color: 'text.primary',
+    '&.Mui-focused': {
+      borderColor: hasError ? 'error.main' : 'primary.main'
+    },
     '& .MuiInputBase-input': { p: 0, height: 'auto', lineHeight: '18px' },
-    '& .MuiInputBase-input::placeholder': { color: HINT_COLOR, opacity: 1 }
+    '& .MuiInputBase-input::placeholder': {
+      color: 'text.secondary',
+      opacity: 1
+    }
   }
 }
 
@@ -450,7 +297,7 @@ export interface ModalTextInputProps extends Omit<
   errorId?: string
 }
 
-/** A text field of `ModalDialog`: 40 px, rounded by 10 px, blue when focused */
+/** A text field of `ModalDialog`: 40 px, outlined, primary when focused */
 export const ModalTextInput = forwardRef<HTMLDivElement, ModalTextInputProps>(
   function ModalTextInput(
     { error = null, errorId, multiline, ...props },
@@ -468,12 +315,9 @@ export const ModalTextInput = forwardRef<HTMLDivElement, ModalTextInputProps>(
           <Typography
             id={errorId}
             component="p"
-            sx={{
-              mt: '8px',
-              fontSize: 14,
-              lineHeight: '18px',
-              color: ERROR_COLOR
-            }}
+            variant="body2"
+            color="error"
+            sx={{ mt: '8px' }}
           >
             {error}
           </Typography>
@@ -496,7 +340,7 @@ export interface ModalSelectButtonProps {
   'data-testid'?: string
 }
 
-/** A field opening a choice: its value, a chevron (`DefaultButtonArrowDownFieldWidget`) */
+/** A field opening a choice: its value, a chevron */
 export function ModalSelectButton({
   icon,
   children,
@@ -522,19 +366,17 @@ export function ModalSelectButton({
         gap: '12px',
         pl: '12px',
         pr: '8px',
-        border: `1px solid ${FIELD_BORDER}`,
-        borderRadius: '10px',
-        textTransform: 'none',
-        fontSize: 14,
-        fontWeight: 400,
-        lineHeight: '18px',
-        color: TEXT_COLOR,
-        bgcolor: TMAIL.surface,
-        '&:hover': { bgcolor: TMAIL.hoverOnSurface },
-        '& .ModalSelectButton-icon': { display: 'flex', color: PRIMARY },
+        border: '1px solid',
+        borderColor: 'border.main',
+        borderRadius: 1,
+        typography: 'body1',
+        color: 'text.primary',
+        bgcolor: 'background.paper',
+        '&:hover': { bgcolor: 'action.hover' },
+        '& .ModalSelectButton-icon': { display: 'flex', color: 'primary.main' },
         '& .ModalSelectButton-arrow': {
           display: 'flex',
-          color: HINT_COLOR,
+          color: 'text.icon',
           ml: 'auto'
         }
       }}
@@ -586,41 +428,16 @@ export interface ModalSelectProps {
   'data-testid'?: string
 }
 
-/** tmail-flutter's `DateDropDownButton` menu: a card rounded by 16 px */
 const SELECT_MENU_PAPER_SX = {
   mt: '4px',
-  p: '12px',
   maxHeight: 332,
-  boxSizing: 'border-box',
-  borderRadius: '16px',
-  border: `1px solid ${TMAIL.outlineMenu}`,
-  boxShadow: '0 0 24px rgba(0, 0, 0, 0.12)',
-  '& .MuiList-root': { p: 0 }
-} as const
-
-/** Its 44 px entries in Regular 15 black, a blue check after the one chosen */
-const SELECT_ITEM_SX = {
-  // The menu look of the theme gives a menu item 48 px at least, again
-  // from 600 px up
-  minHeight: 44,
-  '@media (min-width: 600px)': { minHeight: 44 },
-  px: '12px',
-  gap: '8px',
-  borderRadius: '8px',
-  fontSize: 15,
-  lineHeight: '20px',
-  letterSpacing: '-0.15px',
-  color: TMAIL.textBlack,
-  '&.Mui-selected': { bgcolor: 'transparent' },
-  '&:hover, &.Mui-selected:hover, &.Mui-focusVisible, &.Mui-selected.Mui-focusVisible':
-    { bgcolor: TMAIL.hoverOnSurface08 }
+  boxSizing: 'border-box'
 } as const
 
 /**
- * A list of choices in a field of `ModalDialog` (tmail-flutter's
- * `DateDropDownButton`): the field shows the choice and a chevron, its
- * menu drops under it with a check after the choice (a combobox and its
- * listbox)
+ * A list of choices in a field of `ModalDialog`: the field shows the choice
+ * and a chevron, its menu drops under it with a check after the choice (a
+ * combobox and its listbox)
  */
 export function ModalSelect({
   labelId,
@@ -655,15 +472,13 @@ export function ModalSelect({
       sx={{
         ...inputSx(false, false),
         pr: 0,
-        '&.Mui-focused': { borderColor: PRIMARY },
         '& .MuiSelect-select': {
           pr: '32px !important',
           py: 0,
           height: 38,
           minHeight: 0,
           lineHeight: '38px',
-          fontSize: 14,
-          color: TEXT_COLOR,
+          color: 'text.primary',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap'
@@ -672,7 +487,7 @@ export function ModalSelect({
           position: 'absolute',
           right: 8,
           pointerEvents: 'none',
-          color: HINT_COLOR,
+          color: 'text.icon',
           display: 'flex'
         }
       }}
@@ -685,7 +500,6 @@ export function ModalSelect({
           onClick={() => {
             onChange(option.value)
           }}
-          sx={SELECT_ITEM_SX}
         >
           <Box
             component="span"
@@ -700,9 +514,9 @@ export function ModalSelect({
           {option.value === value ? (
             <Box
               component="span"
-              sx={{ display: 'flex', flexShrink: 0, color: PRIMARY }}
+              sx={{ display: 'flex', flexShrink: 0, color: 'primary.main' }}
             >
-              <Icon icon={FilterSelected} size={20} aria-hidden="true" />
+              <Icon icon={CheckCircle} size={20} aria-hidden="true" />
             </Box>
           ) : null}
         </MenuItem>
@@ -732,7 +546,7 @@ export interface ModalFieldIconButtonProps {
 
 /**
  * A 40 px square button beside a field of `ModalDialog`, framed as the
- * field (the calendar of tmail-flutter's `DefaultDateDropDownFieldWidget`)
+ * field (a calendar opening a date)
  */
 export function ModalFieldIconButton({
   label,
@@ -754,11 +568,12 @@ export function ModalFieldIconButton({
           height: 40,
           p: 0,
           flexShrink: 0,
-          border: `1px solid ${FIELD_BORDER}`,
-          borderRadius: '10px',
-          color: HINT_COLOR,
-          bgcolor: TMAIL.surface,
-          '&:hover': { bgcolor: TMAIL.hoverOnSurface }
+          border: '1px solid',
+          borderColor: 'border.main',
+          borderRadius: 1,
+          color: 'text.icon',
+          bgcolor: 'background.paper',
+          '&:hover': { bgcolor: 'action.hover' }
         }}
         data-testid={testId}
       >

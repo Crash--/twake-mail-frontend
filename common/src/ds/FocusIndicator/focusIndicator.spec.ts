@@ -1,4 +1,6 @@
+import { theme as twakeTheme } from '@linagora/twake-mui'
 import { createTheme, type Theme } from '@mui/material/styles'
+import { deepmerge } from '@mui/utils'
 
 import {
   FOCUS_RING,
@@ -16,10 +18,8 @@ function makeTheme(focusIndicator: FocusIndicator): Theme {
 }
 
 function globalStyles(focusIndicator: FocusIndicator): Record<string, unknown> {
-  const theme = makeTheme(focusIndicator)
-  const overrides = theme.components?.MuiCssBaseline?.styleOverrides
-  if (typeof overrides !== 'function') throw new Error('No global styles')
-  const styles: unknown = overrides(theme)
+  const styles: unknown =
+    makeTheme(focusIndicator).components?.MuiCssBaseline?.styleOverrides
   if (typeof styles !== 'object' || styles === null) {
     throw new Error('No global styles')
   }
@@ -42,6 +42,18 @@ describe('focusIndicatorThemeOptions', () => {
     })
     expect(globalStyles('enhanced')[':root']).toMatchObject({
       '--focus-ring-width': '3px'
+    })
+  })
+
+  it("keeps twake-mui's global CSS once merged into its theme", () => {
+    // As TwakeMuiThemeProvider merges the options of the app into its own
+    const merged: unknown = deepmerge(
+      { components: twakeTheme.components },
+      focusIndicatorThemeOptions('discreet')
+    ).components?.MuiCssBaseline?.styleOverrides
+    expect(merged).toMatchObject({
+      'button, input, optgroup, select, textarea': { font: 'inherit' },
+      ':root': { '--focus-ring-width': '1px' }
     })
   })
 

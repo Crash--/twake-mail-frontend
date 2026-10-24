@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { useRef, useState, type KeyboardEvent, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import {
   RecipientField,
@@ -262,7 +261,9 @@ describe('RecipientField', () => {
       name: 'Suggestions'
     }).parentElement
     if (popup === null) throw new Error('The listbox has no popup')
-    expect(getComputedStyle(popup).backgroundColor).toBe(TMAIL.surface)
+    expect(getComputedStyle(popup).backgroundColor).toBe(
+      'var(--twake-palette-background-paper)'
+    )
   })
 
   it('lists a suggestion already entered with a tick, and does not add it twice', async () => {

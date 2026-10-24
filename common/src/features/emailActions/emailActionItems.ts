@@ -1,4 +1,19 @@
-import { type IconProps } from '@linagora/twake-icons'
+import {
+  type IconProps,
+  Archive,
+  Download,
+  Email,
+  EmailNotification,
+  EmailOpen,
+  Pen,
+  Printer,
+  Star,
+  StarOutline,
+  Tag,
+  Trash,
+  Filter,
+  Moveto
+} from '@linagora/twake-icons'
 
 import {
   DRAFT,
@@ -12,23 +27,7 @@ import {
   findTemplatesMailboxId,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
-import {
-  Archive,
-  Download,
-  Email,
-  EmailNotification,
-  FilterEmail,
-  EmailOpen,
-  MoveEmail,
-  NotSpam,
-  Pen,
-  Printer,
-  Spam,
-  Star,
-  StarOutline,
-  Tag,
-  Trash
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { NotSpam, Spam } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -116,7 +115,7 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   },
   move: {
     label: 'emailActions.menu.moveMessage',
-    icon: MoveEmail,
+    icon: Moveto,
     isDestructive: false,
     group: 2
   },
@@ -134,7 +133,7 @@ const ITEMS: Record<EmailActionId, Omit<EmailActionItem, 'id'>> = {
   },
   'create-rule': {
     label: 'email.address.createRule',
-    icon: FilterEmail,
+    icon: Filter,
     isDestructive: false,
     group: 3
   },

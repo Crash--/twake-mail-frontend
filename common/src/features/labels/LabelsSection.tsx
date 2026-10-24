@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Plus } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -12,7 +12,6 @@ import { useId, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
-import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
@@ -149,7 +148,7 @@ export function LabelsSection(): ReactElement | null {
         actions={
           <NavSectionAction
             label={newLabel}
-            icon={AddNewFolder}
+            icon={Plus}
             onClick={() => {
               create()
             }}

@@ -1,16 +1,13 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's mailbox categories
-// in Settings > Folder visibility ("Folders", "Personal folders",
-// "Team-mailboxes"): a 40 px heading, an optional 20 px icon, the title in
-// Inter 14 / 18 black, the chevron right after it, and what it holds below,
-// shown while expanded. `NavSectionHeader` is the 12 px grey title of the
-// sidebar.
-import { Icon, type IconProps } from '@linagora/twake-icons'
+// Upstream to twake-ui: no. The mailbox categories in Settings > Folder
+// visibility ("Folders", "Personal folders", "Team-mailboxes"): a 40 px
+// heading, an optional 20 px icon, the title, the chevron right after it,
+// and what it holds below, shown while expanded. `NavSectionHeader` is the
+// small grey title of the sidebar.
+import { Icon, type IconProps, Bottom, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { Bottom, Right } from '@/ds/FlutterIcons/FlutterIcons'
 import { NESTED_LIST_SX } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const HEADING_SX = {
   display: 'flex',
@@ -24,17 +21,14 @@ const BUTTON_SX = {
   minHeight: 32,
   px: '2px',
   borderRadius: '8px',
-  color: TMAIL.textBlack,
-  fontSize: 14,
-  fontWeight: 400,
-  lineHeight: '18px',
-  letterSpacing: 0,
+  color: 'text.primary',
+  typography: 'body1',
   '& .CollapsibleCategory-chevron': { p: '3px', display: 'flex' }
 } as const
 
 export interface CollapsibleCategoryProps {
   title: string
-  /** Before the title, in tmail-flutter's steel grey */
+  /** Before the title, in `text.icon` */
   icon?: IconProps['icon'] | null
   isExpanded: boolean
   onToggle: () => void
@@ -76,7 +70,7 @@ export function CollapsibleCategory({
             <Box
               component="span"
               className="u-flex"
-              sx={{ color: TMAIL.steel }}
+              sx={{ color: 'text.icon' }}
             >
               <Icon icon={icon} size={20} aria-hidden="true" />
             </Box>

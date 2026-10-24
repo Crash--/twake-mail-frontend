@@ -8,7 +8,7 @@ import {
 
 describe('getLeadWidth', () => {
   it('holds the checkbox, the 20 px star and the two 28 px state slots of tmail-flutter with a mouse', () => {
-    expect(getLeadWidth(false)).toBe(3 + 44 + 20 + 2 * 28)
+    expect(getLeadWidth(false)).toBe(3 + 32 + 20 + 2 * 28)
   })
 
   it('holds a 44 px touch target for the star on a touch screen', () => {

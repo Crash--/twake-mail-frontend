@@ -1,13 +1,10 @@
-// Upstream to twake-ui: no, the rows of tmail-flutter's lists of the
-// settings: the rules (`EmailRulesItemWidget`), light grey cards 72 px
-// high, rounded by 10 px, 8 px apart, 32 px in, the name in Regular 14
-// black, then in a grey pill what the row does, and the actions at the
-// end; the recipients of the forwarding, narrower cards with an avatar,
-// under a header selecting them.
+// Upstream to twake-ui: no. The rows of the lists of the settings: the
+// rules, cards on `background.default` 72 px high, 8 px apart, the name,
+// then in a pill what the row does, and the actions at the end; the
+// recipients of the forwarding, narrower cards with an avatar, under a
+// header selecting them.
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const LIST_SX = { listStyle: 'none', m: 0, p: 0, pt: '12px', pb: 2 } as const
 
@@ -18,7 +15,7 @@ const CARD_SX = {
   mt: 1,
   px: 4,
   borderRadius: '10px',
-  bgcolor: TMAIL.fillF9
+  bgcolor: 'background.default'
 } as const
 
 const TITLE_SX = {
@@ -27,9 +24,8 @@ const TITLE_SX = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  fontSize: 14,
-  lineHeight: '20px',
-  color: TMAIL.textBlack
+  typography: 'body1',
+  color: 'text.primary'
 } as const
 
 const PILL_ROW_SX = {
@@ -44,13 +40,12 @@ const PILL_SX = {
   px: '12px',
   py: '4px',
   borderRadius: '16px',
-  bgcolor: TMAIL.fillTonal,
+  bgcolor: 'action.hover',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  fontSize: 14,
-  lineHeight: '20px',
-  color: TMAIL.textBlack
+  typography: 'body1',
+  color: 'text.primary'
 } as const
 
 const ACTIONS_SX = {
@@ -70,8 +65,8 @@ const RECIPIENT_SX = {
   mt: '4px',
   px: 2,
   borderRadius: '10px',
-  bgcolor: TMAIL.fillF9,
-  '&[data-selected="true"]': { bgcolor: TMAIL.blueSelected }
+  bgcolor: 'background.default',
+  '&[data-selected="true"]': { bgcolor: 'action.selected' }
 } as const
 
 const RECIPIENT_NAME_SX = {
@@ -80,9 +75,8 @@ const RECIPIENT_NAME_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: '4px',
-  fontSize: 14,
-  lineHeight: '20px',
-  color: TMAIL.textBlack,
+  typography: 'body1',
+  color: 'text.primary',
   '& > span:first-of-type': {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -93,7 +87,7 @@ const RECIPIENT_NAME_SX = {
 const RECIPIENT_STATUS_SX = {
   display: 'flex',
   flexShrink: 0,
-  color: TMAIL.primary
+  color: 'primary.main'
 } as const
 
 export interface SettingsRecipientCardProps {
@@ -111,9 +105,9 @@ export interface SettingsRecipientCardProps {
 }
 
 /**
- * A recipient of tmail-flutter's forwarding (`EmailForwardItemWidget`): a
- * light grey card at most 597 px wide, its avatar, the address and a blue
- * status icon, the delete button at the end; light blue once selected
+ * A recipient of the forwarding: a card at most 597 px wide, its avatar, the
+ * address and a primary status icon, the delete button at the end; on
+ * `action.selected` once selected
  */
 export function SettingsRecipientCard({
   avatar,
@@ -158,13 +152,10 @@ const HEADER_BUTTON_SX = {
   px: 1,
   py: '4px',
   borderRadius: '8px',
-  fontSize: 14,
-  fontWeight: 600,
-  lineHeight: '20px',
-  letterSpacing: '0.25px',
-  color: TMAIL.textGrey,
-  '&[data-tone="danger"]': { color: TMAIL.error, ml: 'auto' },
-  '&:hover': { bgcolor: TMAIL.hoverBlack }
+  typography: 'subtitle2',
+  color: 'text.primary',
+  '&[data-tone="danger"]': { color: 'error.main', ml: 'auto' },
+  '&:hover': { bgcolor: 'action.hover' }
 } as const
 
 export interface SettingsListHeaderProps {
@@ -188,7 +179,7 @@ export interface SettingsHeaderButtonProps {
   'data-testid'?: string
 }
 
-/** A text button of `SettingsListHeader`, Semi Bold 14 */
+/** A text button of `SettingsListHeader` */
 export function SettingsHeaderButton({
   label,
   icon,

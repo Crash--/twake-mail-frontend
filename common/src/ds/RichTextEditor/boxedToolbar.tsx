@@ -1,21 +1,24 @@
 // Upstream to twake-ui: no, the look of tmail-flutter. The `boxed` look of
 // RichTextToolbar: tmail-flutter's toolbar of the signature editor
 // (`ToolbarRichTextWidget` in the identity creator).
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Link,
+  List,
+  Number,
+  Image,
+  Dropdown
+} from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import {
-  AddPicture,
   AlignCenter,
   AlignJustify,
   AlignLeft,
   AlignRight,
   FormatColorFill,
-  Link,
-  List,
-  Number as NumberIcon,
-  StyleArrowDown,
   StyleBold,
   StyleColor,
   StyleHeader,
@@ -25,7 +28,6 @@ import {
 } from '@/ds/FlutterIcons/FlutterIcons'
 
 import type { RichTextToolbarItemId } from './types'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** tmail-flutter's text of the signature, 16 px */
 export const BOXED_FONT_SIZE = 16
@@ -52,8 +54,6 @@ export const BOXED_ITEMS: readonly RichTextToolbarItemId[] = [
   'lists'
 ]
 
-const GREY = TMAIL.greyIcon
-
 /**
  * The toolbar: wrapped, 8 px between the boxes and the lines, 12 px above
  * the text. Every box is 40 px high, outlined in #E6E1E5 and rounded by
@@ -77,18 +77,20 @@ export const BOXED_TOOLBAR_SX = {
     height: 40,
     p: '5px',
     gap: 0,
-    border: `1px solid ${TMAIL.outline}`,
+    border: 1,
+    borderColor: 'border.main',
     borderRadius: '8px',
-    color: GREY,
+    color: 'text.icon',
     bgcolor: 'transparent'
   },
-  '& .MuiIconButton-root:hover': { bgcolor: TMAIL.hoverBlack },
+  '& .MuiIconButton-root:hover': { bgcolor: 'action.hover' },
   '& .RichTextToolbar-group': {
     height: 40,
     boxSizing: 'border-box',
     gap: 0,
     p: 0,
-    border: `1px solid ${TMAIL.outline}`,
+    border: 1,
+    borderColor: 'border.main',
     borderRadius: '8px'
   },
   '& .RichTextToolbar-group .MuiIconButton-root': {
@@ -99,13 +101,14 @@ export const BOXED_TOOLBAR_SX = {
   },
   // tmail-flutter: black when on, grey otherwise, nothing behind
   '&& .MuiIconButton-root[aria-pressed="true"]': {
-    color: TMAIL.textBlack,
+    color: 'text.primary',
     bgcolor: 'transparent'
   },
   // The size: a thin #CFD7E2 outline, the number in a grey label
   '& .RichTextToolbar-size': {
     p: '4px',
-    border: `0.5px solid ${TMAIL.outlineSizeThin}`
+    border: '0.5px solid',
+    borderColor: 'border.main'
   },
   // The font: 122 px, its name in black, the arrow at the end
   '& .RichTextToolbar-font': {
@@ -113,8 +116,8 @@ export const BOXED_TOOLBAR_SX = {
     justifyContent: 'space-between',
     pl: '12px',
     pr: '10px',
-    borderColor: TMAIL.divider12,
-    bgcolor: TMAIL.surface
+    borderColor: 'divider',
+    bgcolor: 'background.paper'
   }
 } as const
 
@@ -125,10 +128,10 @@ const SIZE_LABEL_SX = {
   px: 2,
   mr: '4px',
   borderRadius: '4px',
-  bgcolor: TMAIL.fillF4,
+  bgcolor: 'action.hover',
   fontSize: 16,
   fontWeight: 500,
-  color: TMAIL.greySizeLabel
+  color: 'text.secondary'
 } as const
 
 const FONT_LABEL_SX = {
@@ -137,11 +140,11 @@ const FONT_LABEL_SX = {
   whiteSpace: 'nowrap',
   fontSize: 16,
   fontWeight: 400,
-  color: TMAIL.textBlack
+  color: 'text.primary'
 } as const
 
 const STYLE_ICONS: Partial<Record<RichTextToolbarItemId, IconProps['icon']>> = {
-  image: AddPicture,
+  image: Image,
   link: Link,
   'text-style': StyleHeader,
   bold: StyleBold,
@@ -165,7 +168,7 @@ export function boxedClassName(id: RichTextToolbarItemId): string | undefined {
 }
 
 function Arrow(): ReactElement {
-  return <Icon icon={StyleArrowDown} size={12} color={GREY} />
+  return <Icon icon={Dropdown} size={12} color={'currentColor'} />
 }
 
 export interface BoxedContentState {
@@ -214,7 +217,7 @@ export function BoxedContent({
           <Icon
             icon={StyleColor}
             size={28}
-            color={state.color || TMAIL.textBlack}
+            color={state.color || 'currentColor'}
           />
           <Arrow />
         </>
@@ -225,7 +228,7 @@ export function BoxedContent({
           <Icon
             icon={FormatColorFill}
             size={24}
-            color={state.highlight || GREY}
+            color={state.highlight || 'currentColor'}
           />
           <Arrow />
         </>
@@ -240,7 +243,7 @@ export function BoxedContent({
     case 'lists':
       return (
         <>
-          <Icon icon={state.isOrderedList ? NumberIcon : List} size={28} />
+          <Icon icon={state.isOrderedList ? Number : List} size={28} />
           <Arrow />
         </>
       )

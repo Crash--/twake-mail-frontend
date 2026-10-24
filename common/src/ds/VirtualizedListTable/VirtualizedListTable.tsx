@@ -36,8 +36,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 /** `data-*` and `aria-*` attributes put on a row */
 export type RowAttributes = Partial<
   Record<`data-${string}` | `aria-${string}`, string | number | boolean>
@@ -82,12 +80,11 @@ export interface RowLayout {
   hideDivider?: boolean
 }
 
-/** The divider between the rows, as tmail-flutter's */
-const ROW_DIVIDER_COLOR = TMAIL.divider
-/** The background of a hovered row, as tmail-flutter's */
-const ROW_HOVER_COLOR = TMAIL.fillF4F5
-/** The background of a selected row, as tmail-flutter's (`blue100`) */
-const ROW_SELECTED_COLOR = TMAIL.blueSelected
+/** The divider between the rows: the `divider` role, for gradients and borders */
+const ROW_DIVIDER_COLOR = 'var(--twake-palette-divider)'
+/** A selected row: the primary colour at 8 % (the theme's 18 % is heavier) */
+const ROW_SELECTED_COLOR =
+  'color-mix(in srgb, var(--twake-palette-primary-main) 8%, transparent)'
 
 interface ListTableSettings {
   label: string
@@ -129,8 +126,7 @@ const ROW_SX = {
   // The mock selects a row with the primary colour at 8 %; the theme's
   // `selectedOpacity` (18 %) is heavier (docs/twake-mui-gaps.md)
   '&.Mui-selected, &.Mui-selected:hover': {
-    backgroundColor:
-      'color-mix(in srgb, var(--mui-palette-primary-main) 8%, transparent)'
+    backgroundColor: ROW_SELECTED_COLOR
   }
 } as const
 
@@ -168,26 +164,14 @@ export function makeRowLayoutSx({
       paddingLeft: `${paddingX}px`,
       ...(insetDivider ? { borderBottomColor: 'transparent' } : {})
     },
-    // tmail-flutter's selected row: light blue, rounded by 8 px
     '&.Mui-selected, &.Mui-selected:hover': { backgroundColor: 'transparent' },
     '&.Mui-selected .MuiTableCell-root, &.Mui-selected:hover .MuiTableCell-root':
       { backgroundColor: ROW_SELECTED_COLOR },
-    '&.Mui-selected .MuiTableCell-root:first-of-type': {
-      borderRadius: '8px 0 0 8px'
-    },
-    '&.Mui-selected .MuiTableCell-root:last-of-type': {
-      borderRadius: '0 8px 8px 0'
-    },
-    // tmail-flutter's hovered row: light grey, rounded by 14 px; a selected
-    // one stays light blue under the pointer
+    // A selected row stays primary under the pointer
     '&.MuiTableRow-hover:hover': { backgroundColor: 'transparent' },
     '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root': {
-      backgroundColor: ROW_HOVER_COLOR
+      backgroundColor: 'action.hover'
     },
-    '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root:first-of-type':
-      { borderRadius: '14px 0 0 14px' },
-    '&.MuiTableRow-hover:not(.Mui-selected):hover .MuiTableCell-root:last-of-type':
-      { borderRadius: '0 14px 14px 0' },
     '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
   }
 }

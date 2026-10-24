@@ -1,27 +1,27 @@
 // Upstream to twake-ui: yes, with `VirtualizedTable` row layouts. The sender
-// cell of the mail list, as tmail-flutter: a 32 px avatar, 10 px, then the
-// name in a block of fixed width (160 px), so that the subjects line up
-// whatever the names, 24 px after it.
+// cell of the mail list: an avatar, 8 px, then the name in a block of fixed
+// width (170 px), so that the subjects line up whatever the names, 8 px
+// after it.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { rowSenderSx } from '@/ds/RowLine/rowText'
+import { rowTextSx } from '@/ds/RowLine/rowText'
 
 /** Width of the avatar, in px */
-const AVATAR_WIDTH = 32
+export const ROW_AVATAR_SIZE = 20
 /** Between the avatar and the name, in px */
-const AVATAR_GAP = 10
+const AVATAR_GAP = 8
 /** Width of the name block, in px */
-export const SENDER_BLOCK_WIDTH = 160
+export const SENDER_BLOCK_WIDTH = 170
 /** Between the name block and the subject, in px */
-const SENDER_GAP = 24
+const SENDER_GAP = 8
 
 /** Width of the avatar, the name block and the gap after it, in px */
 export const SENDER_WIDTH =
-  AVATAR_WIDTH + AVATAR_GAP + SENDER_BLOCK_WIDTH + SENDER_GAP
+  ROW_AVATAR_SIZE + AVATAR_GAP + SENDER_BLOCK_WIDTH + SENDER_GAP
 
 export interface RowSenderProps {
-  /** A 32 px avatar */
+  /** A `ROW_AVATAR_SIZE` avatar */
   avatar: ReactNode
   /** The name(s) of the sender, cut with an ellipsis */
   children: ReactNode
@@ -56,7 +56,7 @@ export function RowSender({
         <Box
           component="span"
           className="u-ellipsis"
-          sx={{ ...rowSenderSx(isStrong), flex: '0 1 auto', minWidth: 0 }}
+          sx={{ ...rowTextSx(isStrong), flex: '0 1 auto', minWidth: 0 }}
           data-testid={testId}
         >
           {children}

@@ -2,12 +2,7 @@
 // (`position="fixed"` at the bottom end, above the safe area). twake-mui
 // leaves the position to each app, which then needs `sx`.
 import type { IconProps } from '@linagora/twake-icons'
-import {
-  darken,
-  ExtendableFab,
-  type SxProps,
-  type Theme
-} from '@linagora/twake-mui'
+import { ExtendableFab, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -26,28 +21,11 @@ export function useFloatingActionInset(): number {
   return useScreenSize() === 'desktop' ? 0 : FLOATING_ACTION_INSET
 }
 
-// tmail-flutter's "Compose" button (`ComposeFloatingButton`): a 60 px blue
-// (#208BFF) pill, a 28 px white icon and a white Medium 16 label
 const FAB_SX: SxProps<Theme> = theme => ({
   position: 'fixed',
   right: `calc(${theme.spacing(OFFSET)} + env(safe-area-inset-right))`,
   bottom: `calc(${theme.spacing(OFFSET)} + env(safe-area-inset-bottom))`,
-  zIndex: theme.zIndex.speedDial,
-  height: 60,
-  minWidth: 154,
-  pl: '20px',
-  pr: '24px',
-  gap: '12px',
-  borderRadius: '30px',
-  bgcolor: '#208BFF',
-  color: '#FFFFFF',
-  fontSize: 16,
-  fontWeight: 500,
-  textTransform: 'none',
-  boxShadow: 'none',
-  '&:hover': { bgcolor: darken('#208BFF', 0.1), boxShadow: 'none' },
-  '& svg': { width: 28, height: 28 },
-  '& .MuiFab-label, & > span': { gap: '12px' }
+  zIndex: theme.zIndex.speedDial
 })
 
 export interface FloatingActionButtonProps {

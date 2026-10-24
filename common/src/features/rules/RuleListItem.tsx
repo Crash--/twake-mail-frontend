@@ -1,10 +1,9 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Bottom, Top, Trash, Pen } from '@linagora/twake-icons'
 import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useRef, useState, type ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
-import { Bottom, Edit, Top, Trash } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SettingsCard } from '@/ds/SettingsCards/SettingsCards'
@@ -65,7 +64,7 @@ export function RuleListItem({
         <IconAction
           label={t('rules.moreOf', { name: rule.name })}
           icon={MoreVerticalIcon}
-          tone="steel"
+          tone="icon"
           size={36}
           aria-haspopup="menu"
           aria-expanded={isSheetOpen}
@@ -125,7 +124,7 @@ export function RuleListItem({
             data-testid="email-rule-edit-button"
           >
             <ListItemIcon>
-              <Icon icon={Edit} />
+              <Icon icon={Pen} />
             </ListItemIcon>
             <ListItemText primary={t('common.edit')} />
           </MenuItem>,
@@ -151,7 +150,7 @@ export function RuleListItem({
       <IconAction
         label={moveUpLabel}
         icon={Top}
-        tone="steel"
+        tone="icon"
         size={36}
         disabled={onMoveUp === null}
         onClick={event => {
@@ -162,7 +161,7 @@ export function RuleListItem({
       <IconAction
         label={moveDownLabel}
         icon={Bottom}
-        tone="steel"
+        tone="icon"
         size={36}
         disabled={onMoveDown === null}
         onClick={event => {
@@ -172,8 +171,8 @@ export function RuleListItem({
       />
       <IconAction
         label={editLabel}
-        icon={Edit}
-        tone="steel"
+        icon={Pen}
+        tone="icon"
         size={36}
         onClick={onEdit}
         data-testid="email-rule-edit-button"
@@ -181,7 +180,7 @@ export function RuleListItem({
       <IconAction
         label={deleteLabel}
         icon={Trash}
-        tone="steel"
+        tone="icon"
         size={36}
         onClick={event => {
           onDelete(event.currentTarget)

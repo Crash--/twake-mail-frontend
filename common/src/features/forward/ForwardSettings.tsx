@@ -1,4 +1,11 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  Check,
+  Cross,
+  Plus,
+  Trash,
+  InfoOutlined
+} from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -15,13 +22,6 @@ import {
   type ReactElement
 } from 'react'
 
-import {
-  Check,
-  Cross,
-  InfoCircle,
-  Plus,
-  Trash
-} from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
@@ -479,7 +479,6 @@ export function ForwardSettings({
                           text={email.slice(0, 2).toUpperCase()}
                           colorKey={email}
                           size={32}
-                          fontSize={14}
                         />
                       }
                       data-testid="forward-select-checkbox"
@@ -491,7 +490,7 @@ export function ForwardSettings({
                       <Tooltip title={t('forward.external')}>
                         <span className="u-flex">
                           <Icon
-                            icon={InfoCircle}
+                            icon={InfoOutlined}
                             size={20}
                             role="img"
                             aria-label={t('forward.external')}
@@ -509,7 +508,7 @@ export function ForwardSettings({
                         <IconAction
                           label={removeLabel}
                           icon={Trash}
-                          tone="steel"
+                          tone="icon"
                           size={36}
                           disabled={isSaving}
                           onClick={() => {

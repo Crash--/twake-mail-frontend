@@ -1,4 +1,17 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  Attachment,
+  EmailNotification,
+  EmailOpen,
+  FolderMoveto,
+  Openwith,
+  Reply,
+  Right,
+  Star,
+  StarOutline,
+  Trash,
+  WarningCircle
+} from '@linagora/twake-icons'
 import {
   Tooltip,
   type VirtualizedTableColumn,
@@ -11,24 +24,10 @@ import {
   firstLetterOf,
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
-import {
-  Attachment,
-  EmailNotification,
-  EmailOpen,
-  FolderMoveto,
-  Openwith,
-  Reply,
-  Right,
-  Star,
-  StarOutline,
-  Trash,
-  WarningCircle
-} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
 import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
@@ -37,7 +36,7 @@ import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowHoverSpace } from '@/ds/RowHoverActions/RowHoverSpace'
 import { RowLine } from '@/ds/RowLine/RowLine'
 import { RowLink } from '@/ds/RowLink/RowLink'
-import { RowSender } from '@/ds/RowSender/RowSender'
+import { ROW_AVATAR_SIZE, RowSender } from '@/ds/RowSender/RowSender'
 import { RowStateSlot } from '@/ds/RowStateSlot/RowStateSlot'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
@@ -78,10 +77,10 @@ import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
 
-/** The attachment icon of a wide row (`steelGray200`) */
-const ATTACHMENT_ICON_COLOR = TMAIL.greyFaint
-/** The yellow star of tmail-flutter, after the subject of a compact row */
-const STAR_COLOR = '#FFCC00'
+/** The attachment icon of a wide row */
+const ATTACHMENT_ICON_COLOR = 'var(--twake-palette-text-icon)'
+/** The star after the subject of a compact row (no yellow role: `warning`) */
+const STAR_COLOR = 'var(--twake-palette-warning-main)'
 
 /**
  * The columns of the email list, in their order, as tmail-flutter: `lead`
@@ -259,8 +258,8 @@ export function EmailCell({
       ? names
       : t(showRecipients ? 'thread.row.noRecipient' : 'thread.row.noSender')
 
-  // Decorative: the name of the sender is the text next to it. As
-  // tmail-flutter: the first letter of the name on the gradient of the address
+  // Decorative: the name of the sender is the text next to it. The first
+  // letter of the name, coloured from the address
   const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
   const avatarName =
     avatarAddress === null ? '' : addressDisplayName(avatarAddress)
@@ -269,6 +268,7 @@ export function EmailCell({
     <GradientAvatar
       text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
       colorKey={avatarEmail}
+      size={ROW_AVATAR_SIZE}
       data-testid="email-list-item-avatar"
     />
   )
@@ -331,7 +331,7 @@ export function EmailCell({
       label={seenLabel}
       icon={isUnread ? EmailOpen : EmailNotification}
       onClick={handleToggleSeen}
-      tone="steel"
+      tone="icon"
       iconSize={16}
       size={ACTION_SIZE}
       data-testid="email-list-item-toggle-seen"
@@ -348,7 +348,7 @@ export function EmailCell({
         label={openLabel}
         icon={Openwith}
         onClick={handleOpenInNewTab}
-        tone="steel"
+        tone="icon"
         iconSize={16}
         size={ACTION_SIZE}
         data-testid="email-list-item-open-in-new-tab"
@@ -363,7 +363,7 @@ export function EmailCell({
       label={moveLabel}
       icon={FolderMoveto}
       onClick={handleMove}
-      tone="steel"
+      tone="icon"
       iconSize={16}
       size={ACTION_SIZE}
       data-testid="email-list-item-move"
@@ -382,7 +382,7 @@ export function EmailCell({
       label={removeLabel}
       icon={Trash}
       onClick={handleRemove}
-      tone="steel"
+      tone="icon"
       iconSize={16}
       size={ACTION_SIZE}
       data-testid="email-list-item-remove"
@@ -398,7 +398,7 @@ export function EmailCell({
       icon={MoreVerticalIcon}
       aria-haspopup="menu"
       onClick={handleOpenMenu}
-      tone="steel"
+      tone="icon"
       iconSize={16}
       size={ACTION_SIZE}
       data-testid="email-list-item-more"
@@ -420,15 +420,6 @@ export function EmailCell({
   const unreadDot = isUnread ? (
     <StatusDot label={t('email.unread')} data-testid="unread-status-icon" />
   ) : null
-  const compactAvatar = (
-    <GradientAvatar
-      text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
-      colorKey={avatarEmail}
-      size={48}
-      fontSize={17}
-      data-testid="email-list-item-avatar"
-    />
-  )
   // The frame stays when the email is read: the names line up
   const framedDot = (
     <StatusDot
@@ -522,7 +513,7 @@ export function EmailCell({
   // As tmail-flutter: 8 px after the folder, the date 8 px after it
   const wideAttachment = hasAttachment ? (
     <span className="u-flex u-flex-shrink-0 u-ml-half">
-      {/* As tmail-flutter: 16 px, light steel grey */}
+      {/* 16 px, in the icon colour */}
       <Icon
         icon={Attachment}
         size={16}
@@ -535,12 +526,12 @@ export function EmailCell({
 
   switch (column.id as EmailColumnId) {
     case 'select':
-      // As tmail-flutter: the 48 px avatar, which selects the row
+      // The avatar, which selects the row
       return selection === null ? (
-        compactAvatar
+        avatar
       ) : (
         <SelectableAvatar
-          avatar={compactAvatar}
+          avatar={avatar}
           checked={isSelected}
           onClick={handleSelect}
           label={t('thread.selection.select', { subject: email.subject ?? '' })}

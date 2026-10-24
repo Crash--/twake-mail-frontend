@@ -1,10 +1,10 @@
+import { Pen } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Outlet, useMatch } from 'react-router'
 
 import { ComposeButton } from '@/ds/ComposeButton/ComposeButton'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
-import { Pen } from '@/ds/FlutterIcons/FlutterIcons'
 import { TouchTargets } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useComposer } from '@common/features/composer/ComposerProvider'

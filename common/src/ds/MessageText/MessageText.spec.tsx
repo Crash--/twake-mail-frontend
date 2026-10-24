@@ -1,12 +1,11 @@
 import { screen } from '@testing-library/react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { MessageText } from './MessageText'
 
 describe('MessageText', () => {
-  it('draws the sender in Medium 15/20 black and the date in Regular 14 grey, as tmail-flutter', () => {
+  it('draws the sender as the theme h5 and the date as its body2', () => {
     renderDs(
       <>
         <MessageText variant="name">Bob</MessageText>
@@ -15,19 +14,16 @@ describe('MessageText', () => {
     )
 
     expect(screen.getByText('Bob')).toHaveStyle({
-      fontSize: '15px',
-      lineHeight: '20px',
-      fontWeight: 500,
-      color: TMAIL.textBlack
+      fontSize: '16px',
+      fontWeight: 600
     })
     expect(screen.getByText('28 Jul')).toHaveStyle({
       fontSize: '14px',
-      fontWeight: 400,
-      color: TMAIL.greySlate
+      fontWeight: 500
     })
   })
 
-  it('draws "To:" in light grey and the recipients in black', () => {
+  it('draws "To:" and the recipients as body2', () => {
     renderDs(
       <>
         <MessageText variant="label">To:</MessageText>
@@ -35,7 +31,7 @@ describe('MessageText', () => {
       </>
     )
 
-    expect(screen.getByText('To:')).toHaveStyle({ color: TMAIL.steelPale })
-    expect(screen.getByText('Gustav')).toHaveStyle({ color: TMAIL.textBlack })
+    expect(screen.getByText('To:')).toHaveStyle({ fontSize: '14px' })
+    expect(screen.getByText('Gustav')).toHaveStyle({ fontSize: '14px' })
   })
 })

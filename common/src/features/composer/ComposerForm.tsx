@@ -1,4 +1,17 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  Attachment,
+  Check,
+  Cross,
+  Dots,
+  Image,
+  Link,
+  Paperplane,
+  Trash,
+  Warning,
+  Assistant,
+  FileOutline
+} from '@linagora/twake-icons'
 import {
   Box,
   InputBase,
@@ -26,19 +39,6 @@ import {
   type ReactNode
 } from 'react'
 
-import {
-  Attachment,
-  Cancel,
-  Check,
-  Cross,
-  Dots,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Paperplane,
-  Sparkle,
-  Trash,
-  Warning
-} from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import {
@@ -53,8 +53,6 @@ import { PillButton } from '@/ds/PillButton/PillButton'
 import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
 import {
   FormattingIcon,
-  SaveDraftIcon,
-  SendDisabledIcon,
   SendMobileIcon
 } from '@/ds/ComposerIcons/ComposerIcons'
 import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
@@ -1527,7 +1525,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
     >
-      <Icon icon={ImageIcon} size={24} aria-hidden="true" />
+      <Icon icon={Image} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   // On a phone the link is in the More menu, as the bar has no room for it
@@ -1538,7 +1536,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
     >
-      <Icon icon={LinkIcon} size={24} aria-hidden="true" />
+      <Icon icon={Link} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
   const driveButton = (
@@ -1612,10 +1610,10 @@ function LoadedComposerForm({
       className="u-ml-half"
       data-testid="composer-save-draft-button"
     >
-      <Icon icon={SaveDraftIcon} size={24} aria-hidden="true" />
+      <Icon icon={FileOutline} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
-  // As tmail-flutter on phones: the arrow up in a blue disc, grey while
+  // As tmail-flutter on phones: the arrow up in a primary disc, grey while
   // there is no recipient (a click still says why it cannot go)
   const canSend =
     recipients.to.length + recipients.cc.length + recipients.bcc.length > 0
@@ -1629,8 +1627,13 @@ function LoadedComposerForm({
       data-testid="composer-send-button"
     >
       <Icon
-        icon={canSend ? SendMobileIcon : SendDisabledIcon}
+        icon={SendMobileIcon}
         size={30}
+        color={
+          canSend
+            ? 'var(--twake-palette-primary-main)'
+            : 'var(--twake-palette-text-disabled)'
+        }
         aria-hidden="true"
       />
     </ActionIconButton>
@@ -1787,7 +1790,7 @@ function LoadedComposerForm({
                 onClick={onRequestClose}
                 data-testid="composer-close-button"
               >
-                <Icon icon={Cancel} size={24} aria-hidden="true" />
+                <Icon icon={Cross} size={24} aria-hidden="true" />
               </ActionIconButton>
             }
           >
@@ -1940,7 +1943,7 @@ function LoadedComposerForm({
                   ? {
                       label: t('composer.scribe.assistant'),
                       icon: (
-                        <Icon icon={Sparkle} size={12} aria-hidden="true" />
+                        <Icon icon={Assistant} size={12} aria-hidden="true" />
                       ),
                       onSelect: setScribeAnchor,
                       testId: 'composer-scribe-selection-button'
@@ -1971,7 +1974,12 @@ function LoadedComposerForm({
               className="u-ph-1 u-pv-half u-flex u-flex-items-center"
               data-testid="composer-send-error"
             >
-              <Icon icon={Warning} aria-hidden="true" className="u-mr-half" />
+              <Icon
+                icon={Warning}
+                color="var(--twake-palette-error-main)"
+                aria-hidden="true"
+                className="u-mr-half"
+              />
               {sendError}
               {isSendOverQuota ? (
                 <>

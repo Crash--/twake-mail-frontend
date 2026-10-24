@@ -1,12 +1,11 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's compact mail rows
-// (`EmailTileBuilder`, phones and tablets): the sender in 15 px with its
-// marks and the date at the end of the first line, then a chevron; the
-// subject on the second line, the preview on the third, each cut with an
-// ellipsis.
+// Upstream to twake-ui: no, the layout of tmail-flutter's compact mail rows
+// (`EmailTileBuilder`, phones and tablets): the sender with its marks and
+// the date at the end of the first line, then a chevron; the subject on the
+// second line, the preview on the third, each cut with an ellipsis.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { ROW_MUTED_COLOR, rowSenderSx, rowTextSx } from '@/ds/RowLine/rowText'
+import { ROW_MUTED_COLOR, rowTextSx } from '@/ds/RowLine/rowText'
 
 const LINE_SX = {
   display: 'flex',
@@ -73,7 +72,7 @@ export function CompactRowLines({
         {marker}
         <Box
           component="span"
-          sx={{ ...rowSenderSx(isStrong), ...CUT_SX }}
+          sx={{ ...rowTextSx(isStrong), ...CUT_SX }}
           data-testid={testIds.sender}
         >
           {sender}

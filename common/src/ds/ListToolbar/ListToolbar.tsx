@@ -1,10 +1,8 @@
-// Upstream to twake-ui: no, a layout detail of tmail-flutter: the toolbar
-// above the list has 12 px of padding above and below, 16 px on the sides
-// and between its controls, and a divider below.
+// Upstream to twake-ui: no, a layout detail of the Twake Mail list: the
+// toolbar above the list has 16 px of padding and between its controls, and
+// a divider below.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 export interface ListToolbarProps {
   /** Accessible name of the toolbar region */
@@ -26,9 +24,9 @@ export function ListToolbar({
       className="u-flex u-flex-items-center u-flex-wrap"
       sx={{
         gap: 2,
-        py: '12px',
-        px: 2,
-        borderBottom: `1px solid ${TMAIL.divider}`
+        p: 2,
+        borderBottom: 1,
+        borderColor: 'divider'
       }}
       data-testid={testId}
     >

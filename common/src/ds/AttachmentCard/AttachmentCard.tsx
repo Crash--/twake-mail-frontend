@@ -1,12 +1,18 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's attachments
+// Upstream to twake-ui: no, tmail-flutter's attachment chips
 // (`AttachmentItemWidget`, `EmailAttachmentsWidget`): 260 x 36 px chips with a
 // light border, the file icon, the name cut in the middle (its extension
 // stays), the size and a blue download button; on a desktop the chips that
 // fit on one row, then "Show +N more"; on a phone three of them, one under
 // the other. Meanwhile local, on twake-mui `ButtonBase`, `IconButton` and
 // `Tooltip`.
-import { Icon } from '@linagora/twake-icons'
-import { Box, ButtonBase, IconButton, Tooltip } from '@linagora/twake-mui'
+import { Icon, Attachment, Download } from '@linagora/twake-icons'
+import {
+  Box,
+  ButtonBase,
+  IconButton,
+  radius,
+  Tooltip
+} from '@linagora/twake-mui'
 import {
   useEffect,
   useState,
@@ -14,8 +20,6 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
-import { Attachment, Download } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** `EmailUtils.desktopItemMaxWidth`, `attachmentItemHeight`, `…Spacing` */
 export const ATTACHMENT_CARD_WIDTH = 260
@@ -27,8 +31,6 @@ const ICON_SIZE = 20
 /** Shown before "+N more" on a phone, or before the row is measured */
 export const COLLAPSED_ATTACHMENT_COUNT = 3
 
-const HOVER = TMAIL.hoverOnSurface08
-
 const CHIP_SX = {
   display: 'flex',
   alignItems: 'center',
@@ -38,9 +40,10 @@ const CHIP_SX = {
   height: CHIP_HEIGHT,
   pl: 1,
   pr: 1,
-  border: `1px solid ${TMAIL.outlineCard}`,
-  borderRadius: '8px',
-  '&:hover': { bgcolor: HOVER }
+  border: 1,
+  borderColor: 'divider',
+  borderRadius: radius.md,
+  '&:hover': { bgcolor: 'action.hover' }
 } as const
 
 const MAIN_SX = {
@@ -52,7 +55,7 @@ const MAIN_SX = {
   gap: 1,
   justifyContent: 'flex-start',
   textAlign: 'start',
-  borderRadius: '6px',
+  borderRadius: radius.sm,
   '& .AttachmentCard-icon svg': { width: ICON_SIZE, height: ICON_SIZE }
 } as const
 
@@ -60,11 +63,8 @@ const NAME_SX = {
   display: 'flex',
   flex: '1 1 auto',
   minWidth: 0,
-  color: TMAIL.textOnSurface,
-  fontSize: 14,
-  fontWeight: 500,
-  lineHeight: '20px',
-  letterSpacing: '0.1px',
+  typography: 'subtitle1',
+  color: 'text.primary',
   whiteSpace: 'nowrap'
 } as const
 
@@ -72,18 +72,15 @@ const SIZE_SX = {
   flexShrink: 0,
   ml: 1,
   mr: '3px',
-  color: TMAIL.steelLight,
-  fontSize: 11,
-  fontWeight: 500,
-  lineHeight: '16px',
-  letterSpacing: '0.5px',
+  typography: 'overline',
+  color: 'text.secondary',
   whiteSpace: 'nowrap'
 } as const
 
 const DOWNLOAD_SX = {
   flexShrink: 0,
   p: '7px',
-  color: TMAIL.primary,
+  color: 'primary.main',
   '& svg': { width: 16, height: 16 }
 } as const
 
@@ -91,14 +88,12 @@ const TEXT_BUTTON_SX = {
   height: CHIP_HEIGHT,
   px: '10px',
   gap: 1,
-  borderRadius: '5px',
-  color: TMAIL.grey,
-  fontSize: 16,
-  fontWeight: 500,
-  lineHeight: '20px',
+  borderRadius: radius.sm,
+  typography: 'button',
+  color: 'text.secondary',
   whiteSpace: 'nowrap',
-  '&:hover': { bgcolor: HOVER },
-  '& .AttachmentCard-icon': { color: TMAIL.steel, display: 'flex' }
+  '&:hover': { bgcolor: 'action.hover' },
+  '& .AttachmentCard-icon': { color: 'text.icon', display: 'flex' }
 } as const
 
 /** "report.final.pdf" → ["report.final", ".pdf"]: the extension stays */
@@ -326,7 +321,7 @@ export function AttachmentHeader({
       <Box
         component="span"
         className="u-flex u-flex-shrink-0"
-        sx={{ color: TMAIL.greyStar }}
+        sx={{ color: 'text.icon' }}
         aria-hidden="true"
       >
         <Icon icon={Attachment} size={14} />
@@ -340,11 +335,8 @@ export function AttachmentHeader({
           m: 0,
           ml: 1,
           mr: '3px',
-          color: TMAIL.greyIcon,
-          fontSize: 15,
-          fontWeight: 400,
-          lineHeight: '20px',
-          letterSpacing: '-0.24px'
+          typography: 'body1',
+          color: 'text.secondary'
         }}
       >
         {title}

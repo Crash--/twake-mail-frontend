@@ -1,51 +1,15 @@
-// Upstream to twake-ui: no, the buttons of tmail-flutter's settings. The
-// main action of a section ("Create new identity", "Add rule"): a 48 px blue
-// pill, a 16 px icon 8 px before the label in Medium 14 white, 32 px on the
-// sides; a secondary one, its label in blue only. The action of a row ("Edit", "Delete"): a 20 px blue icon and the
-// label in Medium 13 blue, no background, at least 100 px wide.
+// Upstream to twake-ui: no. The buttons of the settings: the main action of
+// a section ("Create new identity", "Add rule"), a secondary one ("Cancel"),
+// and the action of a row ("Edit", "Delete"), twake-mui's `Button` with an
+// icon before the label.
 import { Icon, type IconProps } from '@linagora/twake-icons'
-import { ButtonBase, Tooltip } from '@linagora/twake-mui'
+import { Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 const PRIMARY_SX = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 1,
   flexShrink: 0,
-  height: 48,
   maxWidth: 300,
-  px: 4,
-  borderRadius: '100px',
-  // tmail-flutter's `primaryMain`
-  bgcolor: '#0A84FF',
-  color: '#FFFFFF',
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 500,
-  letterSpacing: '0.1px',
-  whiteSpace: 'nowrap',
-  '&:hover': { bgcolor: 'primary.dark' },
-  '&.Mui-disabled': { opacity: 0.38 }
-} as const
-
-const ROW_SX = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '4px',
-  minWidth: 100,
-  px: 1,
-  py: '5px',
-  borderRadius: '8px',
-  color: 'primary.main',
-  fontSize: 13,
-  lineHeight: '20px',
-  fontWeight: 500,
-  letterSpacing: '0.39px',
-  whiteSpace: 'nowrap',
-  '&:hover': { bgcolor: TMAIL.blueHover }
+  whiteSpace: 'nowrap'
 } as const
 
 export interface SettingsPrimaryButtonProps {
@@ -72,37 +36,23 @@ export function SettingsPrimaryButton({
   'data-testid': testId
 }: SettingsPrimaryButtonProps): ReactElement {
   return (
-    <ButtonBase
+    <Button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      sx={
-        isFullWidth
-          ? { ...PRIMARY_SX, width: '100%', maxWidth: 'none' }
-          : PRIMARY_SX
+      fullWidth={isFullWidth}
+      startIcon={
+        icon === undefined ? undefined : (
+          <Icon icon={icon} size={16} aria-hidden="true" />
+        )
       }
+      sx={isFullWidth ? undefined : PRIMARY_SX}
       data-testid={testId}
     >
-      {icon === undefined ? null : (
-        <Icon icon={icon} size={16} aria-hidden="true" />
-      )}
       {label}
-    </ButtonBase>
+    </Button>
   )
 }
-
-const TEXT_SX = {
-  height: 48,
-  px: 2,
-  borderRadius: '100px',
-  color: 'primary.main',
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 500,
-  letterSpacing: '0.1px',
-  '&:hover': { bgcolor: TMAIL.blueHover },
-  '&.Mui-disabled': { opacity: 0.38 }
-} as const
 
 export interface SettingsTextButtonProps {
   label: string
@@ -111,7 +61,7 @@ export interface SettingsTextButtonProps {
   'data-testid'?: string
 }
 
-/** A secondary action of a settings form, e.g. "Cancel": blue text only */
+/** A secondary action of a settings form, e.g. "Cancel": text only */
 export function SettingsTextButton({
   label,
   onClick,
@@ -119,14 +69,14 @@ export function SettingsTextButton({
   'data-testid': testId
 }: SettingsTextButtonProps): ReactElement {
   return (
-    <ButtonBase
+    <Button
+      variant="text"
       onClick={onClick}
       disabled={disabled}
-      sx={TEXT_SX}
       data-testid={testId}
     >
       {label}
-    </ButtonBase>
+    </Button>
   )
 }
 
@@ -149,15 +99,16 @@ export function SettingsRowButton({
   'data-testid': testId
 }: SettingsRowButtonProps): ReactElement {
   const button = (
-    <ButtonBase
+    <Button
+      variant="text"
       onClick={onClick}
       aria-label={name}
-      sx={ROW_SX}
+      startIcon={<Icon icon={icon} size={20} aria-hidden="true" />}
+      sx={{ whiteSpace: 'nowrap' }}
       data-testid={testId}
     >
-      <Icon icon={icon} size={20} aria-hidden="true" />
       {label}
-    </ButtonBase>
+    </Button>
   )
   return name === undefined ? button : <Tooltip title={name}>{button}</Tooltip>
 }

@@ -1,17 +1,12 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, HelpOutlined } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { useMatch } from 'react-router'
 
-import { HelpOutlined } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useI18n } from '@common/i18n/useI18n'
-
-/** tmail-flutter's `AppColor.messageDialogColor` (#8C9CAF) */
-const FLUTTER_HELP_COLOR = TMAIL.steelLight
 
 /**
  * "Get help or report a bug" of the top bar, as tmail-flutter: only when the
@@ -20,15 +15,12 @@ const FLUTTER_HELP_COLOR = TMAIL.steelLight
  * which have no composer), a web address opens in a new tab.
  */
 export interface HelpButtonProps {
-  /**
-   * tmail-flutter's bar (without the platform): its 24 px icon in
-   * `messageDialogColor`, 8 px before the next action
-   */
-  isFlutterLook?: boolean
+  /** `small`: in twake-bar, as its buttons (an 18 px icon, 8 px around) */
+  size?: 'small' | 'large'
 }
 
 export function HelpButton({
-  isFlutterLook = false
+  size = 'large'
 }: HelpButtonProps): ReactElement | null {
   const { t } = useI18n()
   const { openComposer } = useComposer()
@@ -41,13 +33,11 @@ export function HelpButton({
 
   const common = {
     'aria-label': label,
-    className: isFlutterLook ? 'u-mr-half' : undefined,
+    size,
     'data-testid': 'help-button'
   } as const
-  const icon = isFlutterLook ? (
-    <Icon icon={HelpOutlined} size={24} color={FLUTTER_HELP_COLOR} />
-  ) : (
-    <Icon icon={HelpOutlined} />
+  const icon = (
+    <Icon icon={HelpOutlined} size={size === 'small' ? 18 : undefined} />
   )
   let button: ReactElement
   if (address === null) {

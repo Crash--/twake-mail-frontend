@@ -770,8 +770,8 @@ test.describe('CMP composer', () => {
       .getByTestId('composer-bcc-field')
       .boundingBox()
     expect(bcc?.width).toBe(to?.width)
-    // The 48 px lines of tmail-flutter's composer
-    expect(bcc?.height).toBe(48)
+    // The 37 px lines of the Figma
+    expect(bcc?.height).toBe(37)
     await expectNoA11yViolations(page)
 
     await composer.root.getByTestId('composer-hide-cc-button').click()
@@ -815,7 +815,7 @@ test.describe('CMP composer', () => {
     await expectNoA11yViolations(page)
   })
 
-  test('CMP-64 the expanded composer is centred over the dimmed page, as tmail-flutter', async ({
+  test('CMP-64 the expanded composer fills the page but for the margins of the design', async ({
     page,
     user
   }, testInfo) => {
@@ -830,15 +830,14 @@ test.describe('CMP composer', () => {
     expect(viewport).not.toBeNull()
     const width = viewport?.width ?? 0
     const height = viewport?.height ?? 0
-    // 85 % of the width, 90 % of the height, in the middle
-    expect(Math.abs((box?.width ?? 0) - width * 0.85)).toBeLessThan(2)
-    expect(Math.abs((box?.height ?? 0) - height * 0.9)).toBeLessThan(2)
-    expect(
-      Math.abs((box?.x ?? 0) + (box?.width ?? 0) / 2 - width / 2)
-    ).toBeLessThan(2)
-    expect(
-      Math.abs((box?.y ?? 0) + (box?.height ?? 0) / 2 - height / 2)
-    ).toBeLessThan(2)
+    // 64 px from the top, 72 px from the bottom, 8 % (136 px at most) from the
+    // start and 5 % (80 px at most) from the end
+    const left = Math.min(136, width * 0.08)
+    const right = Math.min(80, width * 0.05)
+    expect(Math.abs((box?.x ?? 0) - left)).toBeLessThan(2)
+    expect(Math.abs((box?.width ?? 0) - (width - left - right))).toBeLessThan(2)
+    expect(Math.abs((box?.y ?? 0) - 64)).toBeLessThan(2)
+    expect(Math.abs((box?.height ?? 0) - (height - 64 - 72))).toBeLessThan(2)
     await composer.fullscreenButton.click()
     await composer.expectMode('normal')
   })

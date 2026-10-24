@@ -34,9 +34,7 @@ export function RowTextAction({
           minWidth: 0,
           px: 1,
           py: 0,
-          fontSize: 11,
-          lineHeight: '16px',
-          letterSpacing: 0.5,
+          typography: 'overline',
           color: 'text.secondary',
           [TOUCH_MEDIA]: { minHeight: TOUCH_TARGET_SIZE }
         }}

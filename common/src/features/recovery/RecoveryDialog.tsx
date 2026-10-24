@@ -1,3 +1,4 @@
+import { Calendar } from '@linagora/twake-icons'
 import {
   Alert,
   Checkbox,
@@ -13,7 +14,6 @@ import {
 } from 'react'
 
 import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
-import { Calendar } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   ModalDialog,
   ModalDialogButton,
@@ -226,7 +226,6 @@ export function RecoveryDialog({
       <ModalDialog
         title={t('recovery.title')}
         titleId={titleId}
-        isTitleStrong
         subtitle={t('recovery.horizon', { period: horizon })}
         subtitleLook="body"
         describedBy={descriptionId}

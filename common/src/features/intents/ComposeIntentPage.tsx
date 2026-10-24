@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Cross } from '@linagora/twake-icons'
 import { Typography } from '@linagora/twake-mui'
 import type { IntentService } from 'cozy-interapp'
 import {
@@ -9,7 +9,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { Cross } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'

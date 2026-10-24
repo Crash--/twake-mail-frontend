@@ -1,10 +1,8 @@
 // Upstream to twake-ui: yes, as the `footer` of `Nav`. The foot of the
-// sidebar, as tmail-flutter's `LinagoraSidebarFooter`: 24 px of padding
-// sides and bottom, the storage and its actions, then, 12 px under them, the
-// version centred in 11/14 regular text, Steel gray 400.
+// sidebar: 24 px of padding sides and bottom, the storage and its actions,
+// then, 12 px under them, the version centred in secondary overline text.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 export interface SidebarFooterProps {
   children?: ReactNode
@@ -30,18 +28,11 @@ export function SidebarFooter({
           component="p"
           align="center"
           data-testid={versionTestId}
-          sx={theme => ({
+          sx={{
             m: 0,
-            // 12 px under what comes before, as tmail-flutter's footer
             '* + &': { mt: '12px' },
-            color: TMAIL.grey,
-            fontSize: 11,
-            fontWeight: 400,
-            lineHeight: '14px',
-            letterSpacing: 0,
-            textTransform: 'none',
-            ...theme.applyStyles('dark', { color: 'rgba(255, 255, 255, 0.64)' })
-          })}
+            color: 'text.secondary'
+          }}
         >
           {version}
         </Typography>

@@ -8,22 +8,18 @@
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Box,
+  Button,
   ButtonBase,
   IconButton,
   Popover,
+  radius,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
 import { useId, type MouseEvent, type ReactElement } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 const SCREEN_MARGIN = 16
 const ANCHOR_GAP = 8
-const SHADOW =
-  '0 0 0 0.5px rgba(66, 66, 68, 0.12), 0 6px 26px 2px rgba(66, 66, 68, 0.11)'
-const SECONDARY_ICON = TMAIL.textGrey72
-const PRIMARY = '#0A84FF'
 
 const TITLE_SX = {
   flex: 1,
@@ -33,7 +29,7 @@ const TITLE_SX = {
   lineHeight: '22px',
   letterSpacing: '0.4px',
   fontWeight: 700,
-  color: TMAIL.textInk85,
+  color: 'text.primary',
   overflow: 'hidden',
   display: '-webkit-box',
   WebkitLineClamp: 2,
@@ -45,12 +41,12 @@ const TEXT_SX = {
   lineHeight: '22px',
   letterSpacing: '0.4px',
   fontWeight: 400,
-  color: TMAIL.textInk85
+  color: 'text.primary'
 } as const
 
 const PULSE_SX = {
   display: 'flex',
-  color: '#00B7FF',
+  color: 'primary.main',
   animation: 'aiScribePulse 1.2s ease-in-out infinite alternate',
   '@keyframes aiScribePulse': {
     from: { transform: 'scale(0.95)', opacity: 0.7 },
@@ -75,38 +71,20 @@ const DOTS_SX = {
   }
 } as const
 
-const ICON_BUTTON_SX = { p: '7px', color: SECONDARY_ICON } as const
+const ICON_BUTTON_SX = { p: '7px', color: 'text.icon' } as const
 
 const IMPROVE_SX = {
   gap: '4px',
   py: '6px',
   pl: '14px',
   pr: '10px',
-  borderRadius: '4px',
-  bgcolor: TMAIL.fillSlate,
-  color: TMAIL.greyDark,
+  borderRadius: radius.sm,
+  bgcolor: 'action.selected',
+  color: 'text.primary',
   fontSize: 14,
   lineHeight: '18px',
   fontWeight: 500
 } as const
-
-function pillSx(isFilled: boolean): Record<string, unknown> {
-  return {
-    minWidth: 72,
-    height: 36,
-    px: '10px',
-    borderRadius: '100px',
-    fontSize: 14,
-    lineHeight: '20px',
-    letterSpacing: '0.1px',
-    fontWeight: 500,
-    color: isFilled ? '#FFFFFF' : TMAIL.primary0A,
-    bgcolor: isFilled ? PRIMARY : 'transparent',
-    '&:hover': {
-      bgcolor: isFilled ? '#0067D6' : TMAIL.fillNeutral
-    }
-  }
-}
 
 export type AiScribeSuggestionState =
   | { status: 'loading' }
@@ -213,8 +191,8 @@ export function AiScribeSuggestion({
             display: 'flex',
             flexDirection: 'column',
             gap: 1,
-            borderRadius: '6px',
-            boxShadow: SHADOW
+            borderRadius: 1,
+            boxShadow: 4
           }
         }
       }}
@@ -227,7 +205,7 @@ export function AiScribeSuggestion({
           <IconButton
             aria-label={labels.close}
             onClick={onClose}
-            sx={{ p: '3px', color: SECONDARY_ICON }}
+            sx={{ p: '3px', color: 'text.icon' }}
             data-testid="ai-scribe-suggestion-close"
           >
             <Icon icon={icons.close} size={20} aria-hidden="true" />
@@ -257,7 +235,7 @@ export function AiScribeSuggestion({
           sx={{ gap: 1, pl: 1, pb: 1 }}
           data-testid="ai-scribe-suggestion-error"
         >
-          <Box component="span" sx={{ display: 'flex', color: TMAIL.error }}>
+          <Box component="span" sx={{ display: 'flex', color: 'error.main' }}>
             <Icon icon={icons.warning} size={22} aria-hidden="true" />
           </Box>
           <Box component="span" sx={TEXT_SX}>
@@ -276,7 +254,7 @@ export function AiScribeSuggestion({
             tabIndex={0}
             sx={{
               ...TEXT_SX,
-              color: TMAIL.textBlack85,
+              color: 'text.primary',
               whiteSpace: 'pre-wrap',
               overflowWrap: 'anywhere',
               overflowY: 'auto',
@@ -326,36 +304,39 @@ export function AiScribeSuggestion({
             </ButtonBase>
             <Box className="u-flex u-flex-items-center" sx={{ gap: 1 }}>
               {onReplace === null ? null : (
-                <ButtonBase
+                <Button
+                  size="small"
+                  variant="text"
                   onClick={onReplace}
-                  sx={pillSx(false)}
                   data-testid="ai-scribe-suggestion-replace"
                 >
                   {labels.replace}
-                </ButtonBase>
+                </Button>
               )}
-              <ButtonBase
+              <Button
+                size="small"
+                variant="contained"
                 onClick={onInsert}
                 // The next step once the answer is there
                 autoFocus
-                sx={pillSx(true)}
                 data-testid="ai-scribe-suggestion-insert"
               >
                 {labels.insert}
-              </ButtonBase>
+              </Button>
             </Box>
           </Box>
         </Box>
       ) : null}
       {state.status === 'failed' ? (
         <Box className="u-flex" sx={{ justifyContent: 'flex-end' }}>
-          <ButtonBase
+          <Button
+            size="small"
+            variant="text"
             onClick={onRetry}
-            sx={pillSx(false)}
             data-testid="ai-scribe-suggestion-retry"
           >
             {labels.retry}
-          </ButtonBase>
+          </Button>
         </Box>
       ) : null}
     </Popover>

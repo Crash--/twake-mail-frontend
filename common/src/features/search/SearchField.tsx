@@ -1,4 +1,11 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  Attachment,
+  ClockOutline,
+  Star,
+  StarOutline,
+  Filter
+} from '@linagora/twake-icons'
 import { getInitials } from '@linagora/twake-mui'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
@@ -9,16 +16,8 @@ import {
   type SearchComboboxGroup,
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
-import {
-  Attachment,
-  ClockOutline,
-  FilterAdvanced,
-  Star,
-  StarOutline
-} from '@/ds/FlutterIcons/FlutterIcons'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { SearchBarAction } from '@/ds/SearchBarAction/SearchBarAction'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { uniqueByAddress } from '@common/features/composer/recipients'
 import { formatAddressNames } from '@common/features/email/addresses'
@@ -43,9 +42,9 @@ import { addRecentSearch, storeSortOrder } from './searchStorage'
 import { useSearchContext } from './useSearchContext'
 import { useSearchSuggestions } from './useSearchSuggestions'
 
-/** The stars of tmail-flutter (`ic_star.svg`, `ic_unstar.svg`) */
-const STARRED_COLOR = '#FFCC00'
-const UNSTARRED_COLOR = TMAIL.greyStar
+/** A filled star in the yellow of the theme (no yellow role: `warning`) */
+const STARRED_COLOR = 'var(--twake-palette-warning-main)'
+const UNSTARRED_COLOR = 'var(--twake-palette-text-icon)'
 
 /** Recent searches suggested under a non-empty field */
 const RECENT_WITH_TEXT = 3
@@ -164,8 +163,6 @@ export function SearchField({
                 text={getInitials(name, contact.emailAddress)}
                 colorKey={contact.emailAddress}
                 size={40}
-                fontSize={16}
-                look="plain"
               />
             ),
             'data-testid': 'search-suggestion-contact'
@@ -278,7 +275,7 @@ export function SearchField({
           // As tmail-flutter: hidden while the advanced search is open
           <SearchBarAction
             label={t('search.advanced')}
-            icon={FilterAdvanced}
+            icon={Filter}
             isActive={usesAdvancedFields(initialFilter)}
             isHidden={advanced !== null}
             aria-haspopup="dialog"

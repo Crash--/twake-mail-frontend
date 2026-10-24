@@ -1,11 +1,11 @@
 // Upstream to twake-ui: yes, the switcher of the mailbox shown (Figma
-// "Teammail 1.1", Delegation): a 32 px grey pill holding the avatar of the
-// mailbox shown, "Viewing <name>" in Medium 13 and a chevron, opening a card
+// "Teammail 1.1", Delegation): a 32 px pill holding the avatar of the
+// mailbox shown, "Viewing <name>" in caption text and a chevron, opening a card
 // of the mailboxes by group ("Your mailbox", "Delegated to you"…), each one
 // a 56 px row (a 32 px avatar, the name, the address under it), the one
-// shown on a blue tint with a tick at its end. While another mailbox than
+// shown on the selected tint with a tick at its end. While another mailbox than
 // the user's is shown, a cross beside the pill goes back to theirs.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Check, CrossSmall, Dropdown } from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
@@ -14,20 +14,15 @@ import {
   Menu,
   MenuItem,
   Tooltip,
-  Typography
-} from '@mui/material'
+  Typography,
+  radius
+} from '@linagora/twake-mui'
 import { Fragment, useId, useState, type ReactElement } from 'react'
 
 import {
-  Check,
-  ChevronDownOutline,
-  CrossSmall
-} from '@/ds/FlutterIcons/FlutterIcons'
-import {
-  GradientAvatar,
-  firstLetterOf
+  firstLetterOf,
+  GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const PILL_SX = {
   display: 'inline-flex',
@@ -37,14 +32,12 @@ const PILL_SX = {
   maxWidth: 260,
   pl: '4px',
   pr: 1,
-  borderRadius: '100px',
-  bgcolor: TMAIL.fillChip,
-  color: TMAIL.textGrey,
-  fontSize: 13,
-  lineHeight: '20px',
-  fontWeight: 500,
+  borderRadius: radius.pill,
+  bgcolor: 'action.hover',
+  color: 'text.primary',
+  typography: 'caption',
   whiteSpace: 'nowrap',
-  '&:hover': { bgcolor: TMAIL.fillSelected }
+  '&:hover': { bgcolor: 'action.selected' }
 } as const
 
 const PILL_LABEL_SX = {
@@ -52,21 +45,15 @@ const PILL_LABEL_SX = {
   textOverflow: 'ellipsis'
 } as const
 
-const PAPER_SX = {
-  width: 260,
-  borderRadius: '12px',
-  py: 1
-} as const
+const PAPER_SX = { width: 260, py: 1 } as const
 
 const GROUP_SX = {
   position: 'static',
   px: 2,
   pt: 1,
   pb: '4px',
-  fontSize: 13,
-  lineHeight: '20px',
-  fontWeight: 500,
-  color: TMAIL.textGrey64,
+  typography: 'caption',
+  color: 'text.secondary',
   bgcolor: 'transparent'
 } as const
 
@@ -75,22 +62,20 @@ const ITEM_SX = {
   minHeight: 56,
   mx: 1,
   px: 1,
-  borderRadius: '10px',
-  '&.Mui-selected, &.Mui-selected:hover': { bgcolor: TMAIL.blueSelected }
+  borderRadius: radius.md,
+  '&.Mui-selected, &.Mui-selected:hover': { bgcolor: 'action.selected' }
 } as const
 
 const NAME_SX = {
-  fontSize: 15,
-  lineHeight: '20px',
-  color: TMAIL.textGrey,
+  typography: 'body2',
+  color: 'text.primary',
   overflow: 'hidden',
   textOverflow: 'ellipsis'
 } as const
 
 const ADDRESS_SX = {
-  fontSize: 12,
-  lineHeight: '16px',
-  color: TMAIL.textGrey64,
+  typography: 'caption',
+  color: 'text.secondary',
   overflow: 'hidden',
   textOverflow: 'ellipsis'
 } as const
@@ -182,13 +167,12 @@ export function MailboxSwitcher({
               text={firstLetterOf(selected.name)}
               colorKey={selected.avatarKey}
               size={24}
-              fontSize={11}
             />
           )}
           <Box component="span" sx={PILL_LABEL_SX}>
             {labels.pill}
           </Box>
-          <Icon icon={ChevronDownOutline} size={16} aria-hidden="true" />
+          <Icon icon={Dropdown} size={16} aria-hidden="true" />
         </ButtonBase>
       </Tooltip>
       {selectedId === ownId ? null : (
@@ -245,7 +229,6 @@ export function MailboxSwitcher({
                       text={firstLetterOf(item.name)}
                       colorKey={item.avatarKey}
                       size={32}
-                      fontSize={14}
                     />
                     <Box
                       className="u-flex u-flex-column"

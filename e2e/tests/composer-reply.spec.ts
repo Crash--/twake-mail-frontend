@@ -316,6 +316,8 @@ test.describe('CMP and EML: replying and forwarding', () => {
 
     composer = await email.forward()
     await composer.subjectInput.fill('Fwd: Only file1')
+    // The pointer stays where the forward button was: not over a tooltip
+    await page.mouse.move(0, 0)
     await composer.root
       .getByRole('button', { name: 'Remove file2.txt' })
       .click()

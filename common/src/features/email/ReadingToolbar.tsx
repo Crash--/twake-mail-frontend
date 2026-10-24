@@ -1,7 +1,7 @@
+import { Left, Right } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { Newer, Older } from '@/ds/FlutterIcons/FlutterIcons'
 import { BackButton } from '@/ds/BackButton/BackButton'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { StickyBar } from '@/ds/StickyBar/StickyBar'
@@ -57,18 +57,18 @@ export function ReadingToolbar({
       <Box className="u-flex u-flex-items-center u-flex-auto u-flex-justify-end">
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={previousLabel}
-          icon={Newer}
+          icon={Left}
           disabled={navigation.openPrevious === null}
           onClick={navigation.openPrevious ?? undefined}
           data-testid="email-view-previous-button"
         />
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={nextLabel}
-          icon={Older}
+          icon={Right}
           disabled={navigation.openNext === null}
           onClick={navigation.openNext ?? undefined}
           data-testid="email-view-next-button"

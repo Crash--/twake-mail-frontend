@@ -1,9 +1,7 @@
-// Upstream to twake-ui: no, the fields of tmail-flutter's settings: an
-// outlined field 48 px high (40 in a form row) with a radius of 10, a light
-// grey border, the text in Regular 14 black and the hint in steel grey; a
-// label in Semi Bold 14 dark grey with a grey pill after it ("Forward to
-// [2 recipients]"); a form row with its label on the left in Regular 14
-// grey, in a column of fixed width.
+// Upstream to twake-ui: no. The fields of the settings: twake-mui's outlined
+// `TextField`, 48 px high (40 in a form row); a label with a pill after it
+// ("Forward to [2 recipients]"); a form row with its label on the left, in a
+// column of fixed width.
 import { Box, MenuItem, TextField, Typography } from '@linagora/twake-mui'
 import {
   useId,
@@ -13,7 +11,6 @@ import {
   type Ref
 } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 function fieldSx(
@@ -23,23 +20,8 @@ function fieldSx(
   return {
     width,
     maxWidth: '100%',
-    '& .MuiOutlinedInput-root': {
-      height,
-      borderRadius: '10px',
-      bgcolor: TMAIL.surface,
-      fontSize: 14,
-      lineHeight: '20px',
-      color: TMAIL.textBlack,
-      '& fieldset': { borderColor: TMAIL.outlineField },
-      '&:hover fieldset': { borderColor: TMAIL.outlineHover },
-      '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 1 },
-      '&.Mui-error fieldset': { borderColor: 'error.main' },
-      '&.Mui-disabled': { bgcolor: TMAIL.surface, opacity: 0.6 }
-    },
-    '& .MuiOutlinedInput-input': {
-      px: '12px',
-      '&::placeholder': { color: TMAIL.grey, opacity: 1 }
-    },
+    '& .MuiOutlinedInput-root': { height },
+    '& .MuiOutlinedInput-input': { px: '12px' },
     '& .MuiFormHelperText-root': { mx: 0 }
   }
 }
@@ -124,9 +106,8 @@ export function SettingsTextField({
 const SELECT_LABEL_SX = {
   display: 'block',
   mb: '12px',
-  fontSize: 14,
-  lineHeight: '20px',
-  color: TMAIL.textGrey64
+  typography: 'body1',
+  color: 'text.secondary'
 } as const
 
 export interface SettingsSelectProps {
@@ -172,31 +153,16 @@ export function SettingsSelect({
   )
 }
 
-/** The menu of tmail-flutter's language picker: a card rounded by 16 px */
-const MENU_PAPER_SX = {
-  mt: '4px',
-  p: '15px',
-  borderRadius: '16px',
-  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15)',
-  '& .MuiList-root': { p: 0 }
-} as const
+/** The menu of the language picker, under its field */
+const MENU_PAPER_SX = { mt: '4px' } as const
 
-/** Its 51 px entries: Regular 16 grey, a blue check after the one picked */
-const MENU_ITEM_SX = {
-  minHeight: 51,
-  px: '17px',
-  borderRadius: '8px',
-  gap: '8px',
-  fontSize: 16,
-  lineHeight: '21px',
-  letterSpacing: '-0.15px',
-  color: TMAIL.textGrey90,
-  '&:hover, &.Mui-selected, &.Mui-selected:hover, &.Mui-focusVisible': {
-    bgcolor: TMAIL.fillToolbar
-  }
+/** A primary check after the one picked */
+const CHECK_SX = {
+  ml: 'auto',
+  flexShrink: 0,
+  display: 'flex',
+  color: 'primary.main'
 } as const
-
-const CHECK_SX = { ml: 'auto', flexShrink: 0, display: 'flex' } as const
 
 function CheckedIcon(): ReactElement {
   return (
@@ -207,10 +173,10 @@ function CheckedIcon(): ReactElement {
       fill="none"
       aria-hidden="true"
     >
-      <circle cx="12" cy="12" r="12" fill="#007AFF" />
+      <circle cx="12" cy="12" r="12" fill="currentColor" />
       <path
         d="M6.5 12.5L10 16L17.5 8.5"
-        stroke="#FFFFFF"
+        stroke="white"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -283,12 +249,7 @@ export function SettingsMenuSelect({
         }}
       >
         {options.map(option => (
-          <MenuItem
-            key={option.value}
-            value={option.value}
-            lang={option.lang}
-            sx={MENU_ITEM_SX}
-          >
+          <MenuItem key={option.value} value={option.value} lang={option.lang}>
             {option.label}
             {option.value === value ? (
               <Box component="span" sx={CHECK_SX}>
@@ -302,23 +263,16 @@ export function SettingsMenuSelect({
   )
 }
 
-const LABEL_SX = {
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 600,
-  letterSpacing: '0.25px',
-  color: TMAIL.textGrey
-} as const
+const LABEL_SX = { typography: 'subtitle2', color: 'text.primary' } as const
 
 const PILL_SX = {
   ml: 2,
   px: '12px',
   py: '4px',
   borderRadius: '16px',
-  bgcolor: TMAIL.fillTonal,
-  fontSize: 14,
-  lineHeight: '18px',
-  color: TMAIL.textBlack
+  bgcolor: 'action.hover',
+  typography: 'body1',
+  color: 'text.primary'
 } as const
 
 export interface SettingsLabelPillProps {
@@ -389,10 +343,8 @@ const ROW_SX = {
 const ROW_LABEL_SX = {
   flex: '0 0 auto',
   minWidth: 79,
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 400,
-  color: TMAIL.textGrey64
+  typography: 'body1',
+  color: 'text.secondary'
 } as const
 
 const FIELD_SX = {
@@ -420,7 +372,7 @@ export function SettingsFormColumn({
 export interface SettingsFormRowLabelProps {
   /** Id of the field it labels */
   htmlFor?: string
-  /** Faded with its field, as tmail-flutter */
+  /** Faded with its field */
   isDisabled?: boolean
   children: ReactNode
 }
@@ -436,7 +388,7 @@ export function SettingsFormRowLabel({
       component="label"
       htmlFor={htmlFor}
       sx={
-        isDisabled ? { ...ROW_LABEL_SX, color: TMAIL.textGrey32 } : ROW_LABEL_SX
+        isDisabled ? { ...ROW_LABEL_SX, color: 'text.disabled' } : ROW_LABEL_SX
       }
     >
       {children}

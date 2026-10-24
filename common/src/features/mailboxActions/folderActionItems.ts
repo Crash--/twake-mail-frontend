@@ -1,4 +1,18 @@
-import type { IconProps } from '@linagora/twake-icons'
+import {
+  EmailOpen,
+  Eye,
+  EyeClosed,
+  Filter,
+  FolderAdd,
+  Moveto,
+  Openwith,
+  Rename,
+  Copy,
+  Restore,
+  Trash,
+  type IconProps,
+  FolderMoveto
+} from '@linagora/twake-icons'
 
 import {
   isHiddenMailbox,
@@ -7,20 +21,8 @@ import {
   isTeamTrash
 } from '@common/features/mailbox/mailboxTree'
 import {
-  EmailOpen,
-  Eye,
-  EyeClosed,
-  Filter,
-  FolderAdd,
-  MoveMailbox,
-  Moveto,
-  Openwith,
-  Rename,
-  Copy,
-  Restore,
   SubaddressingAllow,
-  SubaddressingDisallow,
-  Trash
+  SubaddressingDisallow
 } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
@@ -89,7 +91,7 @@ const ITEMS: Record<FolderActionId, Omit<FolderActionItem, 'id'>> = {
   },
   move: {
     label: 'folders.menu.move',
-    icon: MoveMailbox,
+    icon: FolderMoveto,
     isDestructive: false
   },
   rename: { label: 'folders.menu.rename', icon: Rename, isDestructive: false },

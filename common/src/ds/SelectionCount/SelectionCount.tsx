@@ -1,15 +1,11 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's selection bar
-// (`TopBarThreadSelection`): "N selected" in Regular 15, steel grey.
+// Upstream to twake-ui: no, the "N selected" of the selection bar, in
+// twake-mui's `subtitle1` and `text.primary`.
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 const COUNT_SX = {
-  fontSize: 15,
-  fontWeight: 400,
-  lineHeight: '20px',
-  color: TMAIL.steel,
+  typography: 'subtitle1',
+  color: 'text.primary',
   mr: 1
 } as const
 

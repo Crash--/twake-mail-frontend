@@ -2,7 +2,7 @@
 // `underline` option. The "Unsubscribe" of the reading mock is a Medium
 // 14/18.4 text button, underlined, 4 / 8 px of padding and a 100 px radius,
 // in the secondary text colour.
-import { alpha, ButtonBase } from '@linagora/twake-mui'
+import { ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
@@ -27,7 +27,7 @@ export function InlineTextButton({
       type="button"
       onClick={onClick}
       data-testid={testId}
-      sx={theme => ({
+      sx={{
         px: 1,
         py: 0.5,
         borderRadius: '100px',
@@ -36,13 +36,10 @@ export function InlineTextButton({
         fontWeight: 500,
         letterSpacing: '0.1px',
         textDecoration: isUnderlined ? 'underline' : 'none',
-        color: alpha(theme.palette.grey[900], 0.8),
+        color: 'text.secondary',
         '&:hover': { bgcolor: 'action.hover' },
-        ...FOCUS_RING_INSET,
-        ...theme.applyStyles('dark', {
-          color: alpha(theme.palette.common.white, 0.8)
-        })
-      })}
+        ...FOCUS_RING_INSET
+      }}
     >
       {children}
     </ButtonBase>

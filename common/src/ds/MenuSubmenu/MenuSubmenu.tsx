@@ -1,8 +1,7 @@
-// Upstream to twake-ui: yes. tmail-flutter opens some entries of its menus
-// as a submenu on hover (`PopupSubmenuController`: "Label as"): a 249 px
-// white panel, elevation 8, rounded by 6 px, at most 400 px high, beside the
-// entry, which shows a small triangle while it is open. twake-mui's `Menu`
-// has no submenu.
+// Upstream to twake-ui: yes. Some entries of a menu open as a submenu on
+// hover ("Label as"): a panel of the paper and shadow of a `Menu`, 249 px
+// wide, at most 400 px high, beside the entry, which shows a small triangle
+// while it is open. twake-mui's `Menu` has no submenu.
 //
 // Accessibility: the entry is a `menuitem` with `aria-haspopup="menu"` and
 // `aria-expanded`; ArrowRight, Enter or Space open the submenu on its first
@@ -28,21 +27,18 @@ import {
   type ReactNode
 } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
 /** Leaving the entry for the panel crosses a gap: closing waits a little */
 const CLOSE_DELAY_MS = 150
 
 const PAPER_SX = {
   width: 249,
   maxHeight: 400,
-  overflowY: 'auto',
-  borderRadius: '6px'
+  overflowY: 'auto'
 } as const
 
 const LIST_SX = { py: 0 } as const
 
-const CARET_SX = { display: 'flex', color: TMAIL.steel, ml: '16px' } as const
+const CARET_SX = { display: 'flex', color: 'text.icon', ml: '16px' } as const
 
 /** `ic_thumbs_up` of tmail-flutter: a small triangle pointing to the panel */
 function Caret(): ReactElement {

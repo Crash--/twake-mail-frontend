@@ -12,6 +12,8 @@ import {
 } from '@common/jmap/JmapSessionProvider'
 import { reloadSession } from '@common/jmap/queries'
 
+import { useContactName } from './useContactNames'
+
 /** What James answers on an account the user may no longer reach */
 const NO_ACCESS_ERRORS = ['accountNotFound', 'forbidden']
 
@@ -30,6 +32,8 @@ export function DelegatedAccessGuard(): null {
   const { accountId, ownAccountId } = useJmapSession()
   const { lostAccess, dismissLostAccess } = useMailboxView()
   const isDelegated = accountId !== ownAccountId
+  // The owner as the mailbox switcher named them, not by their address
+  const ownerName = useContactName(lostAccess?.name ?? null)
 
   useEffect(() => {
     if (!isDelegated) return undefined
@@ -50,16 +54,18 @@ export function DelegatedAccessGuard(): null {
 
   useEffect(() => {
     if (lostAccess === null) return
+    // Once their name is known (the contacts went with the delegated cache)
+    if (lostAccess.name !== null && ownerName === null) return
     dismissLostAccess()
     void navigate('/', { replace: true })
     notify({
       message:
-        lostAccess.name === null
+        ownerName === null
           ? t('delegation.toasts.lostAccess')
-          : t('delegation.toasts.left', { name: lostAccess.name }),
+          : t('delegation.toasts.left', { name: ownerName }),
       severity: 'info'
     })
-  }, [lostAccess, dismissLostAccess, navigate, notify, t])
+  }, [lostAccess, ownerName, dismissLostAccess, navigate, notify, t])
 
   return null
 }

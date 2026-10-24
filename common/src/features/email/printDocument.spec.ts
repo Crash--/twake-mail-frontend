@@ -116,6 +116,18 @@ describe('printHtmlDocument', () => {
     expect(document.activeElement).toBe(button)
   })
 
+  it('stays hidden when a closing modal dialog unhides it (#708)', async () => {
+    const button = document.createElement('button')
+    document.body.append(button)
+
+    const frame = await printFrom(button)
+    // As MUI does to the siblings of a modal it did not find hidden
+    frame.removeAttribute('aria-hidden')
+    await Promise.resolve()
+
+    expect(frame.getAttribute('aria-hidden')).toBe('true')
+  })
+
   it('gives the focus back once the frame is gone, after the print dialog', async () => {
     const button = document.createElement('button')
     document.body.append(button)

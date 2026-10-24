@@ -142,6 +142,15 @@ export function printHtmlDocument(
       'position:fixed;inset-inline-end:0;bottom:0;width:0;height:0;border:0;'
     let timer: ReturnType<typeof setTimeout> | undefined
     let opener: Element | null = null
+    // A modal dialog open when printing starts (the PDF viewer) takes
+    // `aria-hidden` off the frame as it closes, as off every sibling of its
+    // own it did not find hidden (issue #708): the frame hides itself again
+    const keepHidden = new MutationObserver(() => {
+      if (frame.getAttribute('aria-hidden') !== 'true') {
+        frame.setAttribute('aria-hidden', 'true')
+      }
+    })
+    keepHidden.observe(frame, { attributeFilter: ['aria-hidden'] })
     // Out of a modal dialog, the frame lets Escape and Tab out of it
     const giveFocusBack = (): void => {
       const focused = document.activeElement
@@ -158,6 +167,7 @@ export function printHtmlDocument(
     }
     const cleanup = (): void => {
       clearTimeout(timer)
+      keepHidden.disconnect()
       frame.remove()
       giveFocusBack()
       onRemoved?.()

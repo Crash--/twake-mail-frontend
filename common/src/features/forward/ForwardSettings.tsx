@@ -68,6 +68,24 @@ export interface ForwardSettingsProps {
 }
 
 /**
+ * The recipient left at the place of the first removed one: the next one
+ * still in the list, else the last one before it; null when none is left
+ */
+function recipientAfterRemoval(
+  forwards: readonly string[],
+  removed: readonly string[]
+): string | null {
+  const first = forwards.findIndex(email => removed.includes(email))
+  if (first === -1) return null
+  const isKept = (email: string): boolean => !removed.includes(email)
+  return (
+    forwards.slice(first).find(isKept) ??
+    forwards.slice(0, first).findLast(isKept) ??
+    null
+  )
+}
+
+/**
  * Settings > Forwarding (`Forward/get`, `Forward/set`), as tmail-flutter:
  * the addresses every email goes to, picked among the contacts suggested
  * (one or several at once, a single `Forward/set`), added after a warning when they are
@@ -94,6 +112,11 @@ export function ForwardSettings({
   const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
   // The buttons of the selection go with it: the focus moves to the list
   const selectionFocusFallbackRef = useFocusFallback<HTMLSpanElement>()
+  /** The recipient that takes the place of the selection once removed */
+  const [nextRecipient, setNextRecipient] = useState<string | null>(null)
+  const nextRecipientRef = useRef<HTMLButtonElement>(null)
+  const removeSelectedFocusFallbackRef =
+    useFocusFallback<HTMLSpanElement>(nextRecipientRef)
   const [selected, setSelected] = useState<readonly string[]>([])
   const recipientsTitleId = useId()
   const isPhone = useScreenSize() === 'mobile'
@@ -238,6 +261,7 @@ export function ForwardSettings({
         isDestructive: true
       })
       if (!isConfirmed) return
+      setNextRecipient(recipientAfterRemoval(forwards, selection))
       const isSaved = await change(
         { forwards: forwards.filter(email => !selection.includes(email)) },
         selection.length === 1
@@ -413,7 +437,7 @@ export function ForwardSettings({
               />
             )}
             {selection.length > 0 ? (
-              <span ref={selectionFocusFallbackRef}>
+              <span ref={removeSelectedFocusFallbackRef}>
                 <SettingsHeaderButton
                   label={t('forward.remove')}
                   tone="danger"
@@ -440,6 +464,9 @@ export function ForwardSettings({
                       size="small"
                       checked={isSelected}
                       label={t('forward.selectOf', { email })}
+                      ref={
+                        email === nextRecipient ? nextRecipientRef : undefined
+                      }
                       onClick={() => {
                         setSelected(current =>
                           current.includes(email)

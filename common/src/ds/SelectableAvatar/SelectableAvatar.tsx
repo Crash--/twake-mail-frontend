@@ -6,7 +6,7 @@
 // its own, reached by keyboard and named by its label.
 import { Icon } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
-import type { MouseEvent, ReactElement, ReactNode } from 'react'
+import type { MouseEvent, ReactElement, ReactNode, Ref } from 'react'
 
 import { Check } from '@/ds/FlutterIcons/FlutterIcons'
 
@@ -40,6 +40,7 @@ export interface SelectableAvatarProps {
    * tmail-flutter's forwarding (`ic_selected_recipient`)
    */
   size?: 'medium' | 'small'
+  ref?: Ref<HTMLButtonElement>
   'data-testid'?: string
 }
 
@@ -54,11 +55,13 @@ export function SelectableAvatar({
   onClick,
   label,
   size = 'medium',
+  ref,
   'data-testid': testId
 }: SelectableAvatarProps): ReactElement {
   const isSmall = size === 'small'
   return (
     <ButtonBase
+      ref={ref}
       role="checkbox"
       aria-checked={checked}
       aria-label={label}

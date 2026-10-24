@@ -232,6 +232,34 @@ describe('ForwardSettings', () => {
     })
   })
 
+  it('moves the focus to the recipient after the removed ones', async () => {
+    const fake = setup([
+      'charlotte@example.com',
+      'david@example.com',
+      'emma@example.com'
+    ])
+
+    await userEvent.click(
+      await screen.findByRole('checkbox', { name: 'Select david@example.com' })
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Remove' }))
+    const confirm = screen.getByRole('dialog', { name: 'Remove recipients' })
+    await userEvent.click(
+      within(confirm).getByTestId('confirm-dialog-confirm-button')
+    )
+
+    await waitFor(() => {
+      expect(fake.forward()).toMatchObject({
+        forwards: ['charlotte@example.com', 'emma@example.com']
+      })
+    })
+    await waitFor(() => {
+      expect(
+        screen.getByRole('checkbox', { name: 'Select emma@example.com' })
+      ).toHaveFocus()
+    })
+  })
+
   it('moves the focus to the next button when the selection is cancelled', async () => {
     setup(['bob@example.com', 'carol@example.com'])
 

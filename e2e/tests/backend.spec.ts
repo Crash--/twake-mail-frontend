@@ -235,7 +235,7 @@ test.describe('INFRA tmail-backend and the composer', () => {
     expect(good?.[0]).toBe('Email/get')
   })
 
-  test('INFRA-17 destroying two emails in one Email/set drops the other emails of their mailbox from Email/query (memory image)', async ({
+  test('INFRA-17 destroying two emails in one Email/set keeps the other emails of their mailbox in Email/query', async ({
     jmap,
     user
   }) => {
@@ -275,9 +275,8 @@ test.describe('INFRA tmail-backend and the composer', () => {
     expect((got?.[1].list as { id: string }[]).map(email => email.id)).toEqual([
       keptId
     ])
-    // When this fails, the index of the memory image is fixed: CMP-37 can
-    // read the drafts with Email/query again
-    expect(query?.[1].ids).toEqual([])
+    // The memory image dropped them from Email/query until 1.0.22.2
+    expect(query?.[1].ids).toEqual([keptId])
   })
 
   test.describe('over quota', () => {

@@ -696,9 +696,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
       await page.unroute('**/jmap')
       const left = (await readMailbox(jmap, 'drafts')).map(draft => draft.id)
 
-      // The next save destroys it with the version it replaces. Read
-      // through Email/changes: once two emails are destroyed in one call,
-      // the memory image drops the rest of the mailbox from Email/query
+      // The next save destroys it with the version it replaces
       const since = await emailState(jmap)
       await composer.subjectInput.fill('Fourth version')
       await composer.idle()

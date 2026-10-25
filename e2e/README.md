@@ -473,9 +473,9 @@ backend logs (on failure), and a JUnit summary, all named after the suite.
   creates before it destroys and `Email/get` reads `#creationId`; `Email/get` answers whatever
   the order of `attachments` and the body properties (#2686, fixed in 1.0.22); a refused creation does not stop the destroy of the same
   `Email/set` (`INFRA-16`), so a draft is saved in two requests, the previous version destroyed
-  only once the new one exists (`CMP-37`); destroying two emails in one `Email/set` drops the
-  other emails of their mailbox from `Email/query` (`INFRA-17`, memory image: they are still
-  there for `Email/get` and `Email/changes`).
+  only once the new one exists (`CMP-37`); destroying two emails in one `Email/set` keeps the
+  other emails of their mailbox in `Email/query` (`INFRA-17`; the memory image dropped them
+  until 1.0.22.2).
 - **Properties left out**: `Email/get` leaves out the properties it has no value for (`from` and
   `to` of a template or a draft without recipients, the `name` of an address) instead of
   returning `null`; the app reads them as `null`. A folder created with the name "Templates"

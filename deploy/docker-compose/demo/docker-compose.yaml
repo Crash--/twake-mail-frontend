@@ -44,7 +44,7 @@ services:
 
   # JWT keys of tmail-backend, generated once into a volume
   jwt-keys:
-    image: &tmail-backend linagora/tmail-backend:memory-1.0.22
+    image: &tmail-backend linagora/tmail-backend:memory-1.0.22.2
     entrypoint: ['/bin/sh', '-c']
     command:
       - |

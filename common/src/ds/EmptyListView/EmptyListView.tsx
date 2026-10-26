@@ -2,8 +2,9 @@
 // draws an illustration, a narrower column and a title that keeps the line
 // breaks of the translation; `Empty` takes a twake-icons glyph only. Kept
 // local until the Twake design system decides whether the other apps want it.
+import { Button } from '@linagora/twake-mui'
 import { styled } from '@mui/material/styles'
-import type { ReactElement } from 'react'
+import type { ReactElement, Ref } from 'react'
 
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
@@ -54,28 +55,63 @@ const Text = styled('p')(({ theme }) => ({
   color: theme.vars.palette.text.secondary
 }))
 
+// Room between the hint and the action
+const Action = styled('div')({
+  marginTop: 16
+})
+
+/** A next step out of the empty list, as a button below the hint */
+export interface EmptyListAction {
+  label: string
+  onClick: () => void
+  'data-testid'?: string
+}
+
 export interface EmptyListViewProps {
   title: string
   /** Below the title, in grey; none when null */
   text?: string | null
+  /** Below the hint; none when null */
+  action?: EmptyListAction | null
+  /** The title, which can take the focus (not with Tab) */
+  titleRef?: Ref<HTMLParagraphElement>
   'data-testid'?: string
 }
 
 /**
  * An empty list of emails: the empty folder drawing (decorative), the reason
- * as a title and an optional hint below.
+ * as a title, an optional hint below and an optional action, an outlined
+ * button.
  */
 export function EmptyListView({
   title,
   text = null,
+  action = null,
+  titleRef,
   'data-testid': testId
 }: EmptyListViewProps): ReactElement {
   return (
     <Root data-testid={testId}>
       <Column>
         <Illustration />
-        <Title>{title}</Title>
+        <Title
+          ref={titleRef}
+          tabIndex={titleRef === undefined ? undefined : -1}
+        >
+          {title}
+        </Title>
         {text === null ? null : <Text>{text}</Text>}
+        {action === null ? null : (
+          <Action>
+            <Button
+              variant="outlined"
+              onClick={action.onClick}
+              data-testid={action['data-testid']}
+            >
+              {action.label}
+            </Button>
+          </Action>
+        )}
       </Column>
     </Root>
   )

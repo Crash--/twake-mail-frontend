@@ -68,7 +68,7 @@ describe('StarredList', () => {
     const empty = await screen.findByTestId('empty-thread-view')
     expect(empty).toBeVisible()
     expect(empty).toHaveTextContent('You don’t have any starred emails.')
-    expect(empty).toHaveTextContent('Start to add starred emails')
+    expect(empty).toHaveTextContent('Star an email to find it here.')
   })
 
   it('links each row to the email, under /starred', async () => {

@@ -41,7 +41,7 @@ export function StarredList(): ReactElement {
       empty: (
         <EmptyListView
           title={t('mailbox.emptyStarred')}
-          text={t('mailbox.emptyStarredHint')}
+          text={t('mailbox.emptyHints.starred')}
           data-testid="empty-thread-view"
         />
       )

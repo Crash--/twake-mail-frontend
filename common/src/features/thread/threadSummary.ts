@@ -25,7 +25,10 @@ export interface ThreadSummary {
    */
   members: readonly ThreadMember[]
   count: number
-  /** The senders, each once, in the order they wrote; "me" for the user */
+  /**
+   * The senders, each once, in the order they wrote; "me" for the user (the
+   * owner's name in a mailbox delegated to them)
+   */
   participants: readonly string[]
   /** One of its emails is unread, starred, has an attachment */
   isUnread: boolean
@@ -216,9 +219,13 @@ export function withoutSentAndDrafts<
 
 /** Where the row of a conversation stands */
 export interface ThreadContext {
-  /** The address of the user, said "me" */
+  /** The address of the owner of the mailbox shown, said `meLabel` */
   ownAddress: string
-  meLabel: string
+  /**
+   * "Me" in the user's own mailbox; the name of the owner in a mailbox
+   * delegated to them, null for the name the email gives the address
+   */
+  meLabel: string | null
   /** The Sent mailbox, whose copies of emails sent to oneself are not counted */
   sentId: string | null
   /** The folders of the team mailboxes, whose copies of a mail are hidden */
@@ -264,9 +271,10 @@ export function summarizeThread(
   const participants: string[] = []
   for (const member of members) {
     for (const address of member.from ?? []) {
-      const name = isOwnAddress(address, ownAddress)
-        ? meLabel
-        : formatAddressName(address)
+      const name =
+        meLabel !== null && isOwnAddress(address, ownAddress)
+          ? meLabel
+          : formatAddressName(address)
       if (!participants.includes(name)) participants.push(name)
     }
   }

@@ -6,6 +6,7 @@ import { Link, Route, useParams } from 'react-router'
 import { useState, type ReactElement } from 'react'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
+import { writeMailboxView } from '@common/jmap/mailboxView'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_USERNAME,
@@ -1019,6 +1020,45 @@ describe('EmailList', () => {
       within(row).getByRole('button', { name: 'Starred' })
     ).toHaveAttribute('aria-pressed', 'true')
     window.localStorage.clear()
+  })
+
+  it('names the owner of a mailbox delegated to the user instead of "Me" (#698)', async () => {
+    window.localStorage.setItem('twake-mail.preferences.thread', 'true')
+    writeMailboxView(FAKE_USERNAME, {
+      kind: 'delegated',
+      accountId: 'account-boss'
+    })
+    const server = makeFakeJmapServer({
+      delegatedAccounts: [
+        { accountId: 'account-boss', name: 'boss@example.com' }
+      ],
+      emails: [
+        makeEmail({
+          id: 'first',
+          threadId: 'lunch',
+          subject: 'Team lunch',
+          mailboxIds: { 'mailbox-sent': true },
+          from: [{ name: 'Boss QA', email: 'boss@example.com' }],
+          keywords: { $seen: true },
+          receivedAt: '2026-10-01T08:00:00Z'
+        }),
+        makeEmail({
+          id: 'last',
+          threadId: 'lunch',
+          subject: 'Re: Team lunch',
+          from: [{ name: null, email: FAKE_USERNAME }],
+          receivedAt: '2026-10-02T08:00:00Z'
+        })
+      ]
+    })
+    renderList(server)
+
+    const row = await screen.findByTestId('email-list-item')
+    expect(within(row).getByTestId('email-list-item-sender')).toHaveTextContent(
+      /^Boss QA, alice@example\.com$/
+    )
+    window.localStorage.clear()
+    window.sessionStorage.clear()
   })
 
   it('shows the email of a conversation whose thread the server lost', async () => {

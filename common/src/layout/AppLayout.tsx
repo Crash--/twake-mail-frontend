@@ -14,6 +14,7 @@ import {
   ComposerProvider,
   useComposer
 } from '@common/features/composer/ComposerProvider'
+import { MailboxContextBanner } from '@common/features/delegation/MailboxContextBanner'
 import { MailboxSwitcherButton } from '@common/features/delegation/MailboxSwitcherButton'
 import { DelegatedAccessGuard } from '@common/features/delegation/DelegatedAccessGuard'
 import { TeamViewGuard } from '@common/features/delegation/TeamViewGuard'
@@ -228,6 +229,7 @@ function AppFrame(): ReactElement {
               data-testid="search-row"
             />
           ) : null}
+          <MailboxContextBanner />
           <VacationBanner />
           <RecoveryBanner />
           <FolderActionProgressBanner />

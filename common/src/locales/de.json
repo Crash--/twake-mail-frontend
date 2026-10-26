@@ -1579,6 +1579,10 @@
       "viewing": "Ansicht: %{name}",
       "open": "Postfach wechseln, Ansicht: %{name}",
       "back": "Zurück zu Ihrem Postfach"
+    },
+    "banner": {
+      "delegated": "Sie befinden sich im Postfach von %{name} (%{email}). E-Mails, die Sie von hier senden, werden im Namen von %{name} verschickt.",
+      "team": "Sie befinden sich im Team-Postfach %{name} (%{email}). E-Mails, die Sie von hier senden, werden von dieser Adresse verschickt."
     }
   }
 }

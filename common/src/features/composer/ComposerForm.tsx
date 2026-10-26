@@ -363,7 +363,7 @@ function LoadedComposerForm({
   const { t, lang } = useI18n()
   const appConfig = useAppConfig()
   const client = useJmapClient()
-  const { accountId, session } = useJmapSession()
+  const { accountId, session, view } = useJmapSession()
   const { notify } = useNotify()
   const markUnsubscribed = useMarkUnsubscribed()
   const choose = useChoose()
@@ -380,13 +380,15 @@ function LoadedComposerForm({
   const [identityId, setIdentityId] = useState(content.identityId)
   // The identity selector opens on request (the "From" button), unless the
   // message already has its own identity (a draft, an answer, a template,
-  // another than the default): the sender must be seen
+  // another than the default): the sender must be seen. In a mailbox other
+  // than the user's own, it goes out in someone else's name: always seen.
   const [isFromShown, setIsFromShown] = useState(
-    identities.length > 1 &&
-      (init.reply !== undefined ||
-        init.draftId !== undefined ||
-        init.templateId !== undefined ||
-        content.identityId !== identities[0]?.id)
+    (view.kind !== 'own' && identities.length > 0) ||
+      (identities.length > 1 &&
+        (init.reply !== undefined ||
+          init.draftId !== undefined ||
+          init.templateId !== undefined ||
+          content.identityId !== identities[0]?.id))
   )
   const fromId = useId()
   // Sent as a team mailbox, the message goes through its Drafts and Sent

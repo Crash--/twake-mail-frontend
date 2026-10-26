@@ -1579,6 +1579,10 @@
       "viewing": "Visualizzi %{name}",
       "open": "Cambia casella, visualizzi %{name}",
       "back": "Torna alla tua casella"
+    },
+    "banner": {
+      "delegated": "Sei nella casella di posta di %{name} (%{email}). Le email inviate da qui partono a nome di %{name}.",
+      "team": "Sei nella casella del team %{name} (%{email}). Le email inviate da qui partono da questo indirizzo."
     }
   }
 }

@@ -1,8 +1,10 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { writeMailboxView } from '@common/jmap/mailboxView'
 import {
   FAKE_ACCOUNT_ID,
+  FAKE_USERNAME,
   makeBodyPart,
   makeEmailWithBody,
   makeFakeJmapServer,
@@ -75,6 +77,7 @@ jest.setTimeout(15_000)
 describe('ComposerForm', () => {
   afterEach(() => {
     void clearComposerStorage()
+    window.sessionStorage.clear()
   })
 
   /** A composer the browser kept, as a reload leaves it */
@@ -558,6 +561,33 @@ describe('ComposerForm', () => {
       expect(within(composer).queryByTestId('composer-show-from-button')).toBe(
         null
       )
+    })
+
+    it('shows the From line at once in a mailbox delegated to the user (#698)', async () => {
+      writeMailboxView(FAKE_USERNAME, {
+        kind: 'delegated',
+        accountId: 'account-boss'
+      })
+      renderComposer(
+        makeFakeJmapServer({
+          delegatedAccounts: [
+            { accountId: 'account-boss', name: 'boss@example.com' }
+          ],
+          identities: [
+            makeIdentity({
+              id: 'identity-boss',
+              name: 'Boss',
+              email: 'boss@example.com',
+              mayDelete: false
+            })
+          ]
+        })
+      )
+      const composer = await openComposer()
+
+      expect(
+        within(composer).getByTestId('composer-identity-select')
+      ).toHaveTextContent('Boss <boss@example.com>')
     })
 
     it('swaps the Bcc of the identity when another one is chosen', async () => {

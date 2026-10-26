@@ -44,6 +44,7 @@
     "newMessage": "Compose",
     "folders": "Folders",
     "teamMailboxes": "Team-mailboxes",
+    "otherUsers": "Other users",
     "version": "version %{version}",
     "personalFolders": "Personal folders"
   },

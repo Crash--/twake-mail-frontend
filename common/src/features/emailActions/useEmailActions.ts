@@ -9,6 +9,7 @@ import {
   findTeamFolderId,
   findTeamHomeId,
   isPersonalMailbox,
+  isTeamMailbox,
   mailboxPath
 } from '@common/features/mailbox/mailboxTree'
 import {
@@ -102,21 +103,25 @@ const DESTINATION_ROLES: Partial<Record<EmailActionName, string>> = {
 export function findActionDestination(
   mailboxes: readonly MailboxSummary[],
   action: EmailActionName,
-  /** The folder the emails are in: a team mailbox has its own Trash */
+  /**
+   * The folder the emails are in: a team mailbox has its own Trash, a
+   * folder shared by another user goes to the user's Trash
+   */
   fromMailboxId: string | null = null
 ): string | null {
   const role = DESTINATION_ROLES[action]
   if (role === undefined) return null
   const from = mailboxes.find(mailbox => mailbox.id === fromMailboxId)
-  if (role === 'trash' && from !== undefined && !isPersonalMailbox(from)) {
+  if (role === 'trash' && from !== undefined && isTeamMailbox(from)) {
     return findTeamFolderId(mailboxes, from.id, 'trash')
   }
   return findMailboxIdByRole(mailboxes, role)
 }
 
 /**
- * The actions team mailboxes do not have, as their menus (they have neither
- * Archive nor Spam): refused here too, for the shortcuts that run them
+ * The actions team mailboxes and the folders other users share do not
+ * have, as their menus (they have neither Archive nor Spam): refused here
+ * too, for the shortcuts that run them
  */
 const PERSONAL_ONLY_ACTIONS: readonly EmailActionName[] = [
   'archive',

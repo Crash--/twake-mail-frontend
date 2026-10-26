@@ -189,6 +189,56 @@ describe('availableFolderActions', () => {
     expect(ids('team')).toEqual(['hide'])
     expect(ids('team-trash')).toEqual(['open-in-new-tab', 'empty-trash'])
   })
+
+  it('leaves out what a folder shared by another user does not support', () => {
+    const SHARED = 'Delegated[bob@example.com]'
+    const rights = {
+      ...TEAM_RIGHTS,
+      mayCreateChild: true,
+      mayRename: true,
+      mayDelete: true
+    }
+    // The user is not subscribed to it: shown all the same
+    const shared = makeMailbox({
+      id: 'abc',
+      name: 'abc',
+      namespace: SHARED,
+      isSubscribed: false,
+      unreadEmails: 1,
+      totalEmails: 2,
+      myRights: rights
+    })
+    const child = makeMailbox({
+      id: 'abc-trash',
+      name: 'Trash',
+      parentId: 'abc',
+      namespace: SHARED,
+      totalEmails: 1,
+      myRights: rights
+    })
+    const mailboxes = [...MAILBOXES, shared, child]
+    const actionsOf = (mailbox: typeof shared): string[] =>
+      availableFolderActions(mailbox, mailboxes, {
+        canFilter: true,
+        canRecover: true,
+        subaddressing: { isAllowed: false }
+      }).map(item => item.id)
+
+    // A folder of its own, no container: neither moved, filtered, hidden,
+    // renamed nor deleted
+    expect(actionsOf(shared)).toEqual([
+      'open-in-new-tab',
+      'new-subfolder',
+      'mark-as-read'
+    ])
+    // Its "Trash" is a plain folder, not a Trash to empty
+    expect(actionsOf(child)).toEqual([
+      'open-in-new-tab',
+      'new-subfolder',
+      'rename',
+      'delete'
+    ])
+  })
 })
 
 describe('validateFolderName', () => {

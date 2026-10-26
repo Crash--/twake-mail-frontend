@@ -151,7 +151,10 @@ export interface FolderActionOptions {
  * - a team mailbox folder, as its rights allow (`myRights`): new subfolder,
  *   mark as read, rename, hide or show (its root only), empty its Trash,
  *   delete. Team folders do not move, their content does not either, and
- *   they start no filter.
+ *   they start no filter;
+ * - a folder another user shares, as its rights allow: new subfolder, mark
+ *   as read, rename and delete (not the shared folder itself, only what it
+ *   holds). It is never hidden, and has no Trash to empty.
  *
  * Moving the content needs `mayRemoveItems` and something to move.
  */
@@ -182,7 +185,7 @@ export function availableFolderActions(
     if (rights.mayCreateChild) ids.push('new-subfolder')
     if (hasUnread) ids.push('mark-as-read')
     if (rights.mayRename && mailbox.parentId !== null) ids.push('rename')
-    if (mailbox.parentId === null) ids.push(visibility)
+    if (isTeamRoot(mailbox)) ids.push(visibility)
     if (
       isTeamTrash(mailbox) &&
       rights.mayRemoveItems &&

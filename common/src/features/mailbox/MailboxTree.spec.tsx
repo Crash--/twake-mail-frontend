@@ -482,6 +482,55 @@ describe('MailboxTree', () => {
     ).toHaveTextContent('team@example.com')
   })
 
+  it('lists the folders other users share under "Other users", below the team mailboxes', async () => {
+    const shared = 'Delegated[bob@example.com]'
+    renderWithProviders(<MailboxTree />, {
+      route: '/mailbox/mailbox-inbox',
+      path: '/mailbox/:mailboxId',
+      withJmapSession: true,
+      jmapServer: makeFakeJmapServer({
+        mailboxes: [
+          ...makeDefaultMailboxes(),
+          ...makeTeamMailboxes(),
+          // The user is not subscribed to a folder shared with them
+          makeMailbox({
+            id: 'abc',
+            name: 'abc',
+            namespace: shared,
+            isSubscribed: false
+          })
+        ]
+      })
+    })
+
+    const section = await screen.findByTestId('other-users-section')
+    expect(
+      within(section).getByRole('button', { name: 'Other users' })
+    ).toBeVisible()
+    const item = within(section).getByRole('treeitem')
+    expect(within(item).getByTestId('mailbox-item-name')).toHaveTextContent(
+      'abc'
+    )
+    expect(within(item).getByTestId('mailbox-item-address')).toHaveTextContent(
+      'bob@example.com'
+    )
+    // A folder holding emails, not a container
+    expect(within(item).getByRole('link')).toHaveAttribute(
+      'href',
+      '/mailbox/abc'
+    )
+    expect(within(item).queryByTestId('mailbox-item-hidden')).toBe(null)
+    // Neither among the team mailboxes
+    expect(
+      within(screen.getByTestId('team-mailboxes-section')).queryByText('abc')
+    ).toBe(null)
+    expect(
+      screen
+        .getByTestId('team-mailboxes-section')
+        .compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
   describe('the root of a team mailbox, a container', () => {
     function renderTeamTree(): void {
       renderWithProviders(<MailboxTree />, {

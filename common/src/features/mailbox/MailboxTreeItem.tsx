@@ -33,7 +33,9 @@ import {
 } from './mailboxDisplay'
 import {
   isHiddenMailbox,
+  isSharedRoot,
   isTeamRoot,
+  sharedMailboxOwner,
   teamMailboxAddress,
   type VisibleMailbox
 } from './mailboxTree'
@@ -85,8 +87,13 @@ export function MailboxTreeItem({
   const name = getName(mailbox)
   const isHidden = isHiddenMailbox(mailbox)
   const isContainer = isTeamRoot(mailbox)
-  // The root of a team mailbox says its address
-  const address = isContainer ? teamMailboxAddress(mailbox) : null
+  // The root of a team mailbox says its address, a folder another user
+  // shares the address of its owner
+  const address = isContainer
+    ? teamMailboxAddress(mailbox)
+    : isSharedRoot(mailbox)
+      ? sharedMailboxOwner(mailbox)
+      : null
   const shownCount = showsUnreadCount(mailbox)
     ? { count: mailbox.unreadEmails, testId: 'mailbox-unread-count' }
     : showsTotalCount(mailbox)
@@ -145,7 +152,7 @@ export function MailboxTreeItem({
       icon={
         // As tmail-flutter, the root of a team mailbox has no icon, its
         // address under its name
-        address !== null ? null : isHidden ? (
+        isContainer && address !== null ? null : isHidden ? (
           // As tmail-flutter, a hidden folder takes the icon of the hidden
           // folders, with the word for who does not see it
           <Tooltip title={t('folders.hidden.label')}>

@@ -12,6 +12,7 @@ import type { VirtualizedListTableProps } from './VirtualizedListTable'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import {
+  moveRowFocus,
   ROW_FOCUS_ATTRIBUTE,
   VirtualizedListTable
 } from './VirtualizedListTable'
@@ -140,6 +141,35 @@ describe('VirtualizedListTable', () => {
 
     await userEvent.keyboard('{ArrowDown}{ArrowDown}')
     expect(screen.getByRole('button', { name: 'Gamma' })).toHaveFocus()
+  })
+
+  it('focuses the first row in view, not one rendered above it', () => {
+    renderTable()
+    const table = screen.getByRole('table')
+    const tops: Record<string, number> = { a: -80, b: -40, c: 0 }
+    jest
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement): DOMRect {
+        const id = this.getAttribute('data-file-id')
+        return new DOMRect(0, id === null ? 0 : (tops[id] ?? 0), 100, 40)
+      })
+
+    expect(moveRowFocus(table, null, 1)).toBe(true)
+    expect(screen.getByRole('button', { name: 'Gamma' })).toHaveFocus()
+  })
+
+  it('focuses the first row rendered when none is in view', () => {
+    renderTable()
+    const table = screen.getByRole('table')
+    jest
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement): DOMRect {
+        const isRow = this.hasAttribute('data-file-id')
+        return new DOMRect(0, isRow ? -40 : 0, 100, 40)
+      })
+
+    expect(moveRowFocus(table, null, 1)).toBe(true)
+    expect(screen.getByRole('button', { name: 'Alpha' })).toHaveFocus()
   })
 
   it('reports the end of the list', async () => {

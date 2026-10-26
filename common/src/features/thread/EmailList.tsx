@@ -44,7 +44,8 @@ import {
   hasMailboxRole,
   isTeamDrafts,
   isTeamTemplates,
-  isTemplatesMailbox
+  isTemplatesMailbox,
+  mailboxDisplayName
 } from '@common/features/mailbox/mailboxTree'
 import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
@@ -311,13 +312,15 @@ export function EmailList(props: EmailListProps): ReactElement {
         : search.emailPath(emailId),
     [search, mailboxId]
   )
-  // Search results come from any mailbox: each row says which
+  // Search results come from any mailbox: each row says which, a team
+  // mailbox folder with its team mailbox
   const getMailboxNames = useCallback(
     (email: EmailListItemData): string | null => {
       if (search === null) return null
-      const names = (mailboxes.data ?? [])
+      const all = mailboxes.data ?? []
+      const names = all
         .filter(candidate => candidate.id in email.mailboxIds)
-        .map(getMailboxName)
+        .map(mailbox => mailboxDisplayName(all, mailbox, getMailboxName))
       return names.length === 0 ? null : names.join(', ')
     },
     [search, mailboxes.data, getMailboxName]

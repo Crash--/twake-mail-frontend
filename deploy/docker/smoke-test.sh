@@ -99,6 +99,13 @@ expect 'the PDF worker carries nosniff' "$(header "/$worker" X-Content-Type-Opti
 expect 'the PDF worker carries the Referrer-Policy' "$(header "/$worker" Referrer-Policy)" 'same-origin'
 expect 'assets are served pre-compressed' \
   "$(header "$script" Content-Encoding -H 'Accept-Encoding: gzip')" 'gzip'
+logo=/assets/assets/images/ic_logo_with_text.svg
+dark_logo=/assets/assets/images/ic_logo_with_text_dark.svg
+expect 'the logotype is served at the path of tmail-flutter' "$(body "$BASE$logo")" '<svg *'
+expect 'the logotype is revalidated' "$(header "$logo" Cache-Control)" 'no-cache'
+expect 'the dark logotype is served' "$(body "$BASE$dark_logo")" '<svg *'
+expect 'the dark logotype is revalidated' "$(header "$dark_logo" Cache-Control)" 'no-cache'
+expect 'the logotype carries nosniff' "$(header "$logo" X-Content-Type-Options)" 'nosniff'
 csp="$(header / Content-Security-Policy)"
 expect 'Content-Security-Policy sent' "$csp" "default-src 'self';*"
 expect 'CSP: inline script allowed by its hash' "$csp" "*script-src 'self' 'sha256-*"
@@ -139,11 +146,16 @@ SENTRY_ENABLED=false
 SENTRY_DSN=https://publickey@ingest-off.example.com/1
 ENVFILE
 chmod 644 "$CONFIG_DIR/env.file"
+# A logotype of the deployment, mounted as over tmail-flutter's image
+echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 2"><title>custom-logo</title></svg>' \
+  >"$CONFIG_DIR/logo.svg"
+chmod 644 "$CONFIG_DIR/logo.svg"
 docker run -d --name "$ENV_FILE_NAME" \
   --read-only --tmpfs /tmp --user 101 --cap-drop ALL --security-opt no-new-privileges \
   -p 127.0.0.1::80 -e CSP_WEBFINGER_DISCOVERY=false -e SENTRY_FEEDBACK_ENABLED=true \
   -e "TWAKE_SPACE_URL=https://space.example.com/it's" -e TDRIVE_ENABLED=true \
   -v "$CONFIG_DIR/env.file:/usr/share/nginx/html/assets/env.file:ro" \
+  -v "$CONFIG_DIR/logo.svg:/usr/share/nginx/html/assets/assets/images/ic_logo_with_text.svg:ro" \
   "$IMAGE" >/dev/null
 ENV_FILE_BASE="http://$(docker port "$ENV_FILE_NAME" 80/tcp | head -1)"
 for _ in $(seq 1 30); do
@@ -177,6 +189,9 @@ fi
 env_js_headers="$(curl -fsS -o /dev/null -D - "$ENV_FILE_BASE/.env.js" | tr -d '\r')"
 expect 'env.file: /.env.js is never cached' "$env_js_headers" '*no-store*'
 expect 'env.file: /.env.js is JavaScript' "$env_js_headers" '*application/javascript*'
+expect 'a mounted logotype replaces the default one' \
+  "$(body -H 'Accept-Encoding: gzip' "$ENV_FILE_BASE/assets/assets/images/ic_logo_with_text.svg")" \
+  '*custom-logo*'
 
 # --- As the linagora/tmail-frontend Helm chart (1.0.12) runs it ----------------
 # Port 80, probes on /, env.file and app_dashboard.json mounted at the paths of the

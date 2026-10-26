@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The logotype is a file the image serves at the path of tmail-flutter's
+  (`/usr/share/nginx/html/assets/assets/images/ic_logo_with_text.svg`, plus
+  `ic_logo_with_text_dark.svg` for the dark scheme): mounting another SVG
+  over it changes the logo without a rebuild. Helm chart:
+  `logotype.configMap`. See `docs/deployment.md`.
+
 ### Changed
 
 - Today's emails in the list show their time on the clock of the language

@@ -91,6 +91,24 @@ in its JMAP session (`url.prefix=https://mail.example.com` and
 ingress controller must pass WebSocket upgrades through (Traefik and
 ingress-nginx do).
 
+## Logotype
+
+The image serves the logotype of the top bar and the login page as files,
+at the paths of tmail-flutter's image. To show another one, put both SVGs in
+a ConfigMap and name it in `logotype.configMap`:
+
+```bash
+kubectl --namespace twake-mail create configmap twake-mail-logotype \
+  --from-file=ic_logo_with_text.svg=my-logo.svg \
+  --from-file=ic_logo_with_text_dark.svg=my-logo-dark.svg
+```
+
+Both keys are required: `ic_logo_with_text_dark.svg` is shown in the dark
+scheme (give the same file twice to keep one logotype). They are mounted with
+`subPath`, so a change of the ConfigMap shows after a restart of the pods
+(`kubectl rollout restart`). See the deployment guide of the repository
+(`docs/deployment.md`) for the size and the cache.
+
 ## Values
 
 | Key | Default | Description |
@@ -130,6 +148,7 @@ ingress-nginx do).
 | `config.forwardWarningMessage` | `""` | |
 | `config.tdrive.enabled` | `false` | Twake Drive picker of the composer, on the Workplace of the user when Drive is installed there |
 | `config.extraEnvJs` | `""` | JavaScript appended to `.env.js` as is |
+| `logotype.configMap` | `""` | See [Logotype](#logotype) |
 | `csp.autoConnectSrc` | `true` | See above |
 | `csp.connectSrc`, `csp.frameSrc` | `[]` | Extra sources |
 | `csp.frameAncestors` | `["'self'"]` | Who may frame the app |

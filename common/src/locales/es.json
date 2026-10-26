@@ -44,7 +44,8 @@
     "panel": "Asistente",
     "frameTitle": "Twake Assistant",
     "loading": "Abriendo el asistente…",
-    "error": "No se pudo abrir el asistente."
+    "error": "No se pudo abrir el asistente.",
+    "toolFailed": "El asistente no pudo realizar esta acción."
   },
   "sidebar": {
     "mailboxes": "Buzones",

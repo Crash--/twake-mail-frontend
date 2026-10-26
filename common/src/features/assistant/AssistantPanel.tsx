@@ -2,6 +2,8 @@ import { Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { SidePanel } from '@/ds/SidePanel/SidePanel'
+import { useComposer } from '@common/features/composer/ComposerProvider'
+import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
   usePlatformSdk,
   usePlatformStatus
@@ -9,13 +11,11 @@ import {
 import { useI18n } from '@common/i18n/useI18n'
 
 import type { CapabilityCall } from './assistant'
+import { createdDraftId } from './assistantTools'
 import { useAssistantPanel } from './AssistantProvider'
 import { useAssistantIntent } from './useAssistantIntent'
 import { useAssistantTools } from './useAssistantTools'
-
-function logCall(call: CapabilityCall): void {
-  console.info('[assistant] capability call', call)
-}
+import { useRunAssistantTool } from './useRunAssistantTool'
 
 export function AssistantPanel(): ReactElement {
   const { t } = useI18n()
@@ -24,10 +24,37 @@ export function AssistantPanel(): ReactElement {
   const isPlatformReady = usePlatformStatus() === 'ready'
   const tools = useAssistantTools()
   const capabilities = tools.isPending ? null : (tools.data ?? [])
+  const runTool = useRunAssistantTool()
+  const { openComposer } = useComposer()
+  const { notify } = useNotify()
+
+  const handleCall = (call: CapabilityCall): void => {
+    const notifyFailure = (): void => {
+      notify({ message: t('assistant.toolFailed'), severity: 'error' })
+    }
+    runTool(call)
+      .then(outcome => {
+        if (!outcome.ok) {
+          notifyFailure()
+          return
+        }
+        console.info(
+          '[assistant] tool result',
+          call.capability,
+          outcome.content
+        )
+        const draftId =
+          call.capability === 'create_draft'
+            ? createdDraftId(outcome.content)
+            : null
+        if (draftId !== null) openComposer({ draftId })
+      })
+      .catch(notifyFailure)
+  }
   const { state, frameRef } = useAssistantIntent(
     isPlatformReady ? sdk : null,
     capabilities,
-    { onCall: logCall, onCancel: close }
+    { onCall: handleCall, onCancel: close }
   )
 
   const hasFailed = state.status === 'failed' || state.status === 'closed'

@@ -93,3 +93,48 @@ export async function fetchAssistantTools(
     .map(readTool)
     .filter((tool): tool is AssistantTool => tool !== null)
 }
+
+export interface ToolCall {
+  id: string
+  name: string
+  arguments: Record<string, string | string[]>
+}
+
+export type ToolCallOutcome =
+  { ok: true; content: unknown } | { ok: false; status: number | null }
+
+export async function executeAssistantTool(
+  url: string,
+  authorization: string | null,
+  call: ToolCall,
+  { fetchFunction = fetch }: { fetchFunction?: typeof fetch } = {}
+): Promise<ToolCallOutcome> {
+  const response = await fetchFunction(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(authorization === null ? {} : { Authorization: authorization })
+    },
+    body: JSON.stringify({
+      id: call.id,
+      type: 'function',
+      function: { name: call.name, arguments: call.arguments }
+    })
+  })
+  if (!response.ok) return { ok: false, status: response.status }
+  const json: unknown = await response.json()
+  if (!isRecord(json) || typeof json.content !== 'string') {
+    return { ok: false, status: null }
+  }
+  try {
+    const content: unknown = JSON.parse(json.content)
+    return { ok: true, content }
+  } catch {
+    return { ok: false, status: null }
+  }
+}
+
+export function createdDraftId(content: unknown): string | null {
+  return isRecord(content) && typeof content.id === 'string' ? content.id : null
+}

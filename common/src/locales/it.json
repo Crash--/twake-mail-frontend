@@ -44,7 +44,8 @@
     "panel": "Assistente",
     "frameTitle": "Twake Assistant",
     "loading": "Apertura dell’assistente…",
-    "error": "Impossibile aprire l’assistente."
+    "error": "Impossibile aprire l’assistente.",
+    "toolFailed": "L’assistente non è riuscito a eseguire questa azione."
   },
   "sidebar": {
     "mailboxes": "Caselle di posta",

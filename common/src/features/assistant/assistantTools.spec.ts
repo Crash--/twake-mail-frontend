@@ -1,6 +1,8 @@
 import {
   AssistantToolsError,
   assistantToolsUrl,
+  createdDraftId,
+  executeAssistantTool,
   fetchAssistantTools
 } from './assistantTools'
 
@@ -102,5 +104,80 @@ describe('fetchAssistantTools', () => {
     await expect(
       fetchAssistantTools(url, null, { fetchFunction })
     ).rejects.toThrow('Failed to fetch')
+  })
+})
+
+describe('executeAssistantTool', () => {
+  const URL = 'https://jmap.example.com/ai/v1/tools'
+  const CALL = {
+    id: 'call-1',
+    name: 'create_draft',
+    arguments: { to: ['alae@example.com'], body: 'Bonjour' }
+  }
+
+  it('posts the call as an OpenAI tool call, with the authorization', async () => {
+    const fetchFunction = answering(200, {
+      role: 'tool',
+      tool_call_id: 'call-1',
+      content: '{"id":"draft-1"}'
+    })
+
+    await executeAssistantTool(URL, 'Bearer token', CALL, { fetchFunction })
+
+    expect(fetchFunction).toHaveBeenCalledWith(URL, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer token'
+      },
+      body: JSON.stringify({
+        id: 'call-1',
+        type: 'function',
+        function: {
+          name: 'create_draft',
+          arguments: { to: ['alae@example.com'], body: 'Bonjour' }
+        }
+      })
+    })
+  })
+
+  it('gives the result of the tool, parsed', async () => {
+    const fetchFunction = answering(200, {
+      role: 'tool',
+      tool_call_id: 'call-1',
+      content: '{"id":"draft-1","subject":"Réunion"}'
+    })
+
+    expect(
+      await executeAssistantTool(URL, null, CALL, { fetchFunction })
+    ).toEqual({ ok: true, content: { id: 'draft-1', subject: 'Réunion' } })
+  })
+
+  it('fails with the status tmail-backend answers', async () => {
+    const fetchFunction = answering(400, { detail: "Missing 'body'" })
+
+    expect(
+      await executeAssistantTool(URL, null, CALL, { fetchFunction })
+    ).toEqual({ ok: false, status: 400 })
+  })
+
+  it('fails without status for an answer that is not a tool message', async () => {
+    const fetchFunction = answering(200, { content: 'not json' })
+
+    expect(
+      await executeAssistantTool(URL, null, CALL, { fetchFunction })
+    ).toEqual({ ok: false, status: null })
+  })
+})
+
+describe('createdDraftId', () => {
+  it('is the id of the saved draft', () => {
+    expect(createdDraftId({ id: 'draft-1', subject: '' })).toBe('draft-1')
+  })
+
+  it('is null for another result', () => {
+    expect(createdDraftId({ emails: [] })).toBe(null)
+    expect(createdDraftId(null)).toBe(null)
   })
 })

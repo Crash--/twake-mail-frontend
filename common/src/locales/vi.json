@@ -44,7 +44,8 @@
     "panel": "Trợ lý",
     "frameTitle": "Twake Assistant",
     "loading": "Đang mở trợ lý…",
-    "error": "Không thể mở trợ lý."
+    "error": "Không thể mở trợ lý.",
+    "toolFailed": "Trợ lý không thể thực hiện thao tác này."
   },
   "sidebar": {
     "mailboxes": "Hộp thư",

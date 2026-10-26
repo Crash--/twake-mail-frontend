@@ -35,6 +35,11 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { PreferenceOption } from './PreferenceOption'
 import type { SettingsSection } from './sections'
 import { useAccessibilityPreference } from './accessibilityPreference'
+import {
+  AFTER_MOVE_PREFERENCES,
+  type AfterMovePreference,
+  useAfterMovePreference
+} from './afterMovePreference'
 import { SettingsSectionLayout } from './SettingsSectionLayout'
 import {
   canChangeServerSetting,
@@ -66,6 +71,12 @@ const THEME_LABELS: Record<ThemePreference, TranslationKey> = {
   auto: 'settings.preferences.themeAuto'
 }
 
+const AFTER_MOVE_LABELS: Record<AfterMovePreference, TranslationKey> = {
+  list: 'settings.preferences.afterMoveList',
+  next: 'settings.preferences.afterMoveNext',
+  previous: 'settings.preferences.afterMovePrevious'
+}
+
 export interface PreferencesSettingsProps {
   section: SettingsSection
 }
@@ -76,7 +87,8 @@ export interface PreferencesSettingsProps {
  * shown without asking (not in tmail-flutter) and the error reports
  * (settings of the account on the server, when it keeps them; the reports
  * only when error reporting is configured), the conversation view, the
- * list beside the open email on desktops (not in tmail-flutter), the
+ * list beside the open email on desktops (not in tmail-flutter), what
+ * follows an email moved out of its folder (not in tmail-flutter), the
  * spam report, the AI assistant, the labels and the Drive button of the
  * composer (kept in this browser), and, with the AI capability, the label
  * categorisation (setting of the account). Then the accessibility mode
@@ -95,6 +107,7 @@ export function PreferencesSettings({
   const { notify } = useNotify()
   const threadPreference = useThreadPreference()
   const splitView = useSplitViewPreference()
+  const afterMove = useAfterMovePreference()
   const spamReport = useSpamReportPreference()
   const driveAttachment = useDriveAttachmentPreference()
   const accessibility = useAccessibilityPreference()
@@ -266,6 +279,17 @@ export function PreferencesSettings({
           data-testid="spam-report-setting-toggle"
         />
       </SettingsOptionGroup>
+      <SettingsChoiceOption
+        title={t('settings.preferences.afterMove')}
+        description={t('settings.preferences.afterMoveDescription')}
+        value={afterMove.preference}
+        choices={AFTER_MOVE_PREFERENCES.map(value => ({
+          value,
+          label: t(AFTER_MOVE_LABELS[value])
+        }))}
+        onChange={afterMove.setPreference}
+        data-testid="after-move-setting"
+      />
       {hasScribe || hasLabelCategorization ? (
         <SettingsOptionGroup
           title={t('settings.preferences.groups.smartFeatures')}

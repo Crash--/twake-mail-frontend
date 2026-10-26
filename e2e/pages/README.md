@@ -358,3 +358,4 @@ Conventions:
 | `delegation-team-list` / `delegation-team-item` / `delegation-leave-team-button` | Settings > Delegation > "Delegated to me": the team mailboxes of the user, under the delegated mailboxes, each with "Leave the team mailbox <name>" (the `delegation-remove-dialog` then, `TeamMailbox/revokeAccess`) | — (tmail-flutter#4977) |
 | `forward-empty` | Settings > Forwarding, "Forwarding is off" in place of the list while no address is forwarded to | — |
 | `mailbox-search-back-button` | the back arrow before the field of the folder search: closes it, back to the folders, the focus on the magnifier | — (Teammail 13446:27267) |
+| `other-users-section` / `other-users-section-toggle` | "Other users" category of the Folders section and its tree, after the team mailboxes: the folders other users share (namespace `Delegated[<owner>]`), their top folder with the address of its owner on a second line; its title collapses it | — (issue #714) |

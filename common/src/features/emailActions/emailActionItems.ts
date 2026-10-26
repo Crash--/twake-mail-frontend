@@ -212,8 +212,9 @@ export function availableEmailActions(
   if (emails.length === 0) return []
   const role = mailbox?.role ?? null
   const isSpam = role === 'junk'
-  // Team mailboxes have neither Archive nor Spam (tmail-flutter)
-  // (out of a folder, in a search, the emails say where they are)
+  // Team mailboxes have neither Archive nor Spam (tmail-flutter), nor the
+  // folders other users share (out of a folder, in a search, the emails say
+  // where they are)
   const isTeam =
     mailbox === null
       ? emails.some(email => findTeamHomeId(mailboxes, email) !== null)

@@ -24,11 +24,13 @@ import { useI18n } from '@common/i18n/useI18n'
 import { getMailboxIcon } from './mailboxDisplay'
 import {
   buildMailboxSections,
+  isSharedRoot,
   isTeamRoot,
   listVisibleMailboxes,
   mailboxPath,
   pruneMailboxRoles,
   splitPersonalTree,
+  sharedMailboxOwner,
   teamMailboxAddress,
   type MailboxNode
 } from './mailboxTree'
@@ -222,7 +224,7 @@ export function MailboxPickerProvider({
   const sections = useMemo((): FolderPickerSection[] => {
     if (view === null) return []
     const disabled = new Set(view.disabledIds ?? [])
-    const { personal, team } = buildMailboxSections(mailboxes, false)
+    const { personal, team, shared } = buildMailboxSections(mailboxes, false)
     const { system, folders } = splitPersonalTree(personal)
     const excludedRoles = view.excludedRoles ?? []
     const toOptions = (trees: readonly MailboxNode[]): FolderPickerOption[] =>
@@ -237,9 +239,12 @@ export function MailboxPickerProvider({
           // Searched by its path; a team mailbox by its address too
           secondary: mailboxPath(mailboxes, mailbox.id, getName),
           // As tmail-flutter: a team mailbox shows its address, no icon
+          // and a folder another user shares, the address of its owner
           subtitle: isRoot
             ? (teamMailboxAddress(mailbox) ?? mailbox.name)
-            : null,
+            : isSharedRoot(mailbox)
+              ? sharedMailboxOwner(mailbox)
+              : null,
           level,
           parentId: mailbox.parentId,
           hasChildren,
@@ -304,6 +309,11 @@ export function MailboxPickerProvider({
               id: 'team',
               label: t('sidebar.teamMailboxes'),
               options: toOptions(team)
+            },
+            {
+              id: 'shared',
+              label: t('sidebar.otherUsers'),
+              options: toOptions(shared)
             }
           ])
     ]

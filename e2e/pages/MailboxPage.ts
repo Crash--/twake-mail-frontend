@@ -66,6 +66,8 @@ export class MailboxPage {
   /** The dialog naming a folder, to create or rename it */
   readonly mailboxNameDialog: Locator
   readonly teamMailboxesSection: Locator
+  /** The folders other users share with the user, below the team mailboxes */
+  readonly otherUsersSection: Locator
   /** The titles of the sidebar sections, buttons that collapse them */
   readonly foldersSectionToggle: Locator
   readonly teamMailboxesSectionToggle: Locator
@@ -101,6 +103,7 @@ export class MailboxPage {
     this.mailboxPicker = page.getByTestId('mailbox-picker')
     this.mailboxNameDialog = page.getByTestId('mailbox-name-dialog')
     this.teamMailboxesSection = page.getByTestId('team-mailboxes-section')
+    this.otherUsersSection = page.getByTestId('other-users-section')
     this.foldersSectionToggle = page.getByTestId('folders-section-toggle')
     this.teamMailboxesSectionToggle = page.getByTestId(
       'team-mailboxes-section-toggle'

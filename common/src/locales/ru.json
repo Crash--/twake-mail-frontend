@@ -44,6 +44,7 @@
     "newMessage": "Создать",
     "folders": "Папки",
     "teamMailboxes": "Общие почтовые ящики",
+    "otherUsers": "Другие пользователи",
     "version": "версия %{version}",
     "personalFolders": "Личные папки"
   },

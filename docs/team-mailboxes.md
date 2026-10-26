@@ -15,8 +15,16 @@ tmail-flutter adds it, as `CapabilityIdentifier.jmapTeamMailboxes`, to every
 mail request when the session has it):
 
 - `Personal` or no namespace: a folder of the user;
-- anything else (`TeamMailbox[team@example.com]`, `Delegated[alice@example.com]`
-  for a folder shared by another user): not personal. A folder without a
+- `Delegated[alice@example.com]`: a folder another user shares with the user
+  (`isSharedMailbox`), a folder of its own holding emails, not part of a team
+  mailbox. The sidebar, the picker and the folder search list these in an
+  "Other users" category after the team mailboxes, the top one with the
+  address of its owner. The user is not subscribed to them: they are never
+  hidden, and their menu offers no hide / show, no move, no filter, no
+  rename nor delete of the shared folder itself; their emails have neither
+  Archive nor Spam, and their Trash is the user's (issue #714);
+- anything else (`TeamMailbox[team@example.com]`): a team mailbox
+  (`isTeamMailbox`). A folder without a
   parent is the **root** of a team mailbox (`isTeamMailboxes`), the others are
   its folders (`isChildOfTeamMailboxes`). The system folders of a team mailbox
   (INBOX, Drafts, Sent, Outbox, Trash, Templates) have **no role**: the clients

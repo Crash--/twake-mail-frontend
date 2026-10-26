@@ -114,6 +114,16 @@ export function isEmptySearch(filter: SearchFilter): boolean {
   )
 }
 
+/** True when the filter asks for more than the words of the search bar */
+export function hasFiltersBeyondText(filter: SearchFilter): boolean {
+  return !isEmptySearch({ ...filter, text: '' })
+}
+
+/** The same search without its filters: the words and the order stay */
+export function withoutFilters(filter: SearchFilter): SearchFilter {
+  return { ...EMPTY_SEARCH_FILTER, text: filter.text, sort: filter.sort }
+}
+
 /**
  * True when the filter asks for what only the advanced search sets (a
  * subject, words to leave out, a custom range): its button then shows it

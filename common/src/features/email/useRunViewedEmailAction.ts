@@ -13,12 +13,14 @@ import type { EmailDetail } from './queries'
 import { useDownloadEml } from './useDownloadEml'
 import { usePrintEmail } from './usePrintEmail'
 import { useUnsubscribe } from './useUnsubscribe'
+import { runFromView } from './viewMoves'
 
 /**
  * The actions that need the whole email, which an open email has (Print,
  * Download as EML, Unsubscribe), the ones that open it in a composer
  * (Edit as new) or the rules (Create a rule), then the common ones. Resolves to whether the email
- * changed.
+ * changed. A move out of the folder is noted as made by the view
+ * (`viewMoves`).
  */
 export function useRunViewedEmailAction(): (
   id: EmailActionId,
@@ -58,7 +60,9 @@ export function useRunViewedEmailAction(): (
           openComposer({ editAsNewEmailId: email.id })
           return false
         default:
-          return runAction(id, [email], mailboxId)
+          return runFromView(id, [email.id], () =>
+            runAction(id, [email], mailboxId)
+          )
       }
     },
     [runAction, openComposer, printEmail, downloadEml, unsubscribe, navigate]

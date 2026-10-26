@@ -44,6 +44,7 @@
     "newMessage": "Soạn thư",
     "folders": "Thư mục",
     "teamMailboxes": "Hộp thư nhóm",
+    "otherUsers": "Người dùng khác",
     "version": "phiên bản %{version}",
     "personalFolders": "Thư mục cá nhân"
   },

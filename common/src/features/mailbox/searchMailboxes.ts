@@ -27,8 +27,8 @@ function normalize(text: string): string {
 /**
  * The folders whose displayed name holds every word of `query`, ignoring case
  * and accents: all of them, hidden ones included (they are the way back to
- * a hidden folder), the user's folders first and the team mailboxes after,
- * each in the order of the tree. An empty query finds nothing, as
+ * a hidden folder), the user's folders first, the team mailboxes, then the
+ * folders other users share, each in the order of the tree. An empty query finds nothing, as
  * tmail-flutter.
  */
 export function searchMailboxes(
@@ -39,10 +39,11 @@ export function searchMailboxes(
   const words = normalize(query).split(/\s+/).filter(Boolean)
   if (words.length === 0) return []
 
-  const { personal, team } = buildMailboxSections(mailboxes, true)
+  const { personal, team, shared } = buildMailboxSections(mailboxes, true)
   const rows = [
     ...listVisibleMailboxes(personal, () => true),
-    ...listVisibleMailboxes(team, () => true)
+    ...listVisibleMailboxes(team, () => true),
+    ...listVisibleMailboxes(shared, () => true)
   ].filter(({ mailbox }) => {
     const name = normalize(getName(mailbox))
     return words.every(word => name.includes(word))

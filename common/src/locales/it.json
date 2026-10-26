@@ -44,6 +44,7 @@
     "newMessage": "Componi",
     "folders": "Cartelle",
     "teamMailboxes": "Caselle di posta del team",
+    "otherUsers": "Altri utenti",
     "version": "versione %{version}",
     "personalFolders": "Cartelle personali"
   },

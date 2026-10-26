@@ -103,6 +103,43 @@ export function matchesFilter(email: FakeEmail, filter: unknown): boolean {
   return matchesCondition(email, filter)
 }
 
+function countMailboxConditions(condition: unknown): number {
+  if (!isRecord(condition)) return 0
+  return ['inMailbox', 'inMailboxOtherThan'].filter(
+    property => condition[property] !== undefined
+  ).length
+}
+
+function nestedMailboxConditions(filter: unknown): number {
+  if (!isRecord(filter)) return 0
+  return Array.isArray(filter.conditions)
+    ? filter.conditions.reduce<number>(
+        (count, condition) => count + nestedMailboxConditions(condition),
+        0
+      )
+    : countMailboxConditions(filter)
+}
+
+/**
+ * Whether James accepts the mailbox conditions of a filter
+ * (`FilterQuery.validateFilter`): anywhere in a lone condition or an `AND`
+ * of conditions, but never under an `OR` or a `NOT`, and at most one in
+ * an `AND` of nested operators
+ */
+export function hasSupportedMailboxNesting(filter: unknown): boolean {
+  if (!isRecord(filter) || !Array.isArray(filter.conditions)) return true
+  const nested = nestedMailboxConditions(filter)
+  if (nested === 0) return true
+  const topLevel = filter.conditions.reduce<number>(
+    (count, condition) =>
+      isRecord(condition) && Array.isArray(condition.conditions)
+        ? count
+        : count + countMailboxConditions(condition),
+    0
+  )
+  return filter.operator === 'AND' && nested === 1 && topLevel === 1
+}
+
 /** The words a filter searches for, to mark them in the snippets */
 export function filterWords(filter: unknown): string[] {
   if (!isRecord(filter)) return []

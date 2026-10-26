@@ -3,6 +3,7 @@ import {
   randomTexts,
   STRESS_TIME_LIMIT_MS
 } from '@common/testing/redos'
+import { hasSupportedMailboxNesting } from '@common/testing/fakeEmailQuery'
 
 import {
   EMPTY_SEARCH_FILTER,
@@ -20,7 +21,23 @@ import {
 
 const CONTEXT = {
   trashAndSpamIds: ['trash', 'spam'],
-  teamFolderIds: { team: ['team-inbox', 'team-sent'], empty: [] },
+  mailboxIds: [
+    'inbox',
+    'trash',
+    'spam',
+    'team',
+    'team-inbox',
+    'team-sent',
+    'team-trash',
+    'solo',
+    'solo-inbox',
+    'empty'
+  ],
+  teamFolderIds: {
+    team: ['team-inbox', 'team-sent'],
+    solo: ['solo-inbox'],
+    empty: []
+  },
   today: '2026-10-04'
 }
 
@@ -131,15 +148,24 @@ describe('toJmapFilter', () => {
         CONTEXT
       )
     ).toEqual({
-      operator: 'AND',
-      conditions: [
-        { text: 'TEAM' },
-        {
-          operator: 'OR',
-          conditions: [{ inMailbox: 'team-inbox' }, { inMailbox: 'team-sent' }]
-        }
+      text: 'TEAM',
+      inMailboxOtherThan: [
+        'inbox',
+        'trash',
+        'spam',
+        'team',
+        'team-trash',
+        'solo',
+        'solo-inbox',
+        'empty'
       ]
     })
+    expect(
+      toJmapFilter(
+        filter({ scope: { kind: 'mailbox', mailboxId: 'solo' } }),
+        CONTEXT
+      )
+    ).toEqual({ inMailbox: 'solo-inbox' })
     expect(
       toJmapFilter(
         filter({ scope: { kind: 'mailbox', mailboxId: 'empty' } }),
@@ -249,6 +275,28 @@ describe('toJmapFilter', () => {
       )
     ).toEqual({ from: 'alice' })
   })
+
+  it('sends the scope of a team mailbox in a filter James accepts', () => {
+    const teamSearch = filter({
+      text: 'TEAM',
+      starred: true,
+      label: 'work',
+      from: ['a@example.com', 'b@example.com'],
+      to: ['c@example.com'],
+      notWords: ['spam'],
+      scope: { kind: 'mailbox', mailboxId: 'team' }
+    })
+    const boundSearch = filter({ text: 'TEAM' })
+
+    expect(hasSupportedMailboxNesting(toJmapFilter(teamSearch, CONTEXT))).toBe(
+      true
+    )
+    expect(
+      hasSupportedMailboxNesting(
+        toJmapFilter(boundSearch, { ...CONTEXT, boundTeamRootId: 'team' })
+      )
+    ).toBe(true)
+  })
 })
 
 describe('toSearchRequest', () => {
@@ -301,13 +349,16 @@ describe('toJmapFilter bound to a team mailbox', () => {
 
   it('looks in the folders of the team mailbox by default and everywhere', () => {
     const inTeam = {
-      operator: 'AND',
-      conditions: [
-        { text: 'report' },
-        {
-          operator: 'OR',
-          conditions: [{ inMailbox: 'team-inbox' }, { inMailbox: 'team-sent' }]
-        }
+      text: 'report',
+      inMailboxOtherThan: [
+        'inbox',
+        'trash',
+        'spam',
+        'team',
+        'team-trash',
+        'solo',
+        'solo-inbox',
+        'empty'
       ]
     }
 

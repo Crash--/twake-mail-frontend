@@ -275,6 +275,11 @@ export interface SearchContext {
   /** Ids of the trash and spam mailboxes, left out by default */
   trashAndSpamIds: readonly string[]
   /**
+   * Ids of every mailbox of the account: a search in a team mailbox leaves
+   * out all but its folders
+   */
+  mailboxIds: readonly string[]
+  /**
    * The folders of each team mailbox, by the id of its root: the root holds
    * no email, a search in it looks in its folders
    */
@@ -355,7 +360,7 @@ export function toJmapFilter(
   filter: SearchFilter,
   context: SearchContext
 ): Filter<EmailFilterCondition> {
-  const { trashAndSpamIds, teamFolderIds, today } = context
+  const { trashAndSpamIds, mailboxIds, teamFolderIds, today } = context
   const boundRootId = context.boundTeamRootId ?? null
   if (boundRootId !== null) {
     const isInTeam =
@@ -387,8 +392,13 @@ export function toJmapFilter(
     filter.scope.kind === 'mailbox'
       ? (teamFolderIds[filter.scope.mailboxId] ?? [])
       : []
-  if (filter.scope.kind === 'mailbox' && teamFolders.length === 0) {
-    condition.inMailbox = filter.scope.mailboxId
+  if (filter.scope.kind === 'mailbox' && teamFolders.length <= 1) {
+    condition.inMailbox = teamFolders[0] ?? filter.scope.mailboxId
+  } else if (teamFolders.length > 1) {
+    // James refuses `inMailbox` under an `OR`: all mailboxes but the team's
+    // folders, left out at the top level
+    const searched = new Set(teamFolders)
+    condition.inMailboxOtherThan = mailboxIds.filter(id => !searched.has(id))
   } else if (filter.scope.kind === 'default' && trashAndSpamIds.length > 0) {
     condition.inMailboxOtherThan = [...trashAndSpamIds]
   }
@@ -396,10 +406,6 @@ export function toJmapFilter(
 
   // `unread` already holds `notKeyword`: the events go in a condition of their own
   const extra: Filter<EmailFilterCondition>[] = [...labelCondition]
-  // A team mailbox: any of its folders (one `inMailbox` per condition)
-  if (teamFolders.length > 0) {
-    extra.push(anyOf(teamFolders.map(inMailbox => ({ inMailbox }))))
-  }
   if (filter.notIncludeEvents) extra.push({ notKeyword: EVENT })
   if (filter.from.length > 1) {
     extra.push(anyOf(filter.from.map(from => ({ from }))))

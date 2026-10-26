@@ -9,6 +9,7 @@ import type {
 import {
   collapseThreads,
   filterWords,
+  hasSupportedMailboxNesting,
   markWords,
   matchesFilter,
   sortEmails
@@ -762,6 +763,10 @@ export function makeFakeJmapServer(
   }
 
   function queryEmails(args: Record<string, unknown>): unknown {
+    // James refuses a mailbox condition nested in an `OR` or a `NOT`
+    if (!hasSupportedMailboxNesting(args.filter)) {
+      return { error: 'unsupportedFilter' }
+    }
     const found = sortEmails(
       server.emails.filter(email => matchesFilter(email, args.filter)),
       args.sort

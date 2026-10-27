@@ -20,13 +20,12 @@ services:
       # The Workplace container of APPGRID-02 (/e2e/workplace.html) frames the app from
       # http://localhost:<port>, another origin
       CSP_FRAME_ANCESTORS: "'self' http://localhost:*"
-      # The fake Twake Drive of DRIVE-* (/e2e/drive/), on http://localhost:<port> too: its
-      # API (token exchange, intents, downloads) and its picker in a frame
-      # and the scribe endpoint of the AI specs (AI-*), answered by the spec itself, and the
+      # The fake Twake Workplace of DRIVE-* (nginx/sso.conf, with Dex): its API (token
+      # exchange, apps, intents, downloads) and its picker in a frame, and the scribe endpoint of the AI specs (AI-*), answered by the spec itself, and the
       # Sentry ingest of SENTRY_DSN in app-env.js (SET-10 to SET-13), likewise, and Dex over
       # HTTPS (nginx/sso.conf), which the image cannot read from the /.env.js of the proxy
       CSP_CONNECT_SRC: 'http://localhost:* https://scribe.example.test https://sentry-stub.example.test https://127.0.0.1:${E2E_SSO_PORT:-18303}'
-      CSP_FRAME_SRC: 'http://localhost:*'
+      CSP_FRAME_SRC: 'https://127.0.0.1:${E2E_SSO_PORT:-18303}'
 
   proxy:
     volumes:

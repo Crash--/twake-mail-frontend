@@ -6,11 +6,12 @@ import { env } from '../support/env'
 import { expect, test } from '../support/fixtures'
 
 /**
- * The Twake Drive picker of the composer (`TDRIVE_ENABLED`), against the fake
- * Drive of the stack (docker/drive-picker.html and docker/nginx/default.conf:
- * token exchange, intent, a picker speaking the cozy-interapp protocol, a
- * file to download). The picker trades the ID token of the session: the app
- * must run in OIDC mode (Dex), with docker/app-env-oidc.js.
+ * The Twake Drive picker of the composer, against the fake Twake Workplace of
+ * the stack (docker/drive-picker.html and docker/nginx/sso.conf: token
+ * exchange, apps with Drive, intent, a picker speaking the cozy-interapp
+ * protocol, a file to download). The app signs in to the Workplace with the ID
+ * token of the session: it must run in OIDC mode (Dex), with
+ * docker/app-env-oidc.js and its WORKPLACE_FQDN_FALLBACK.
  *
  *   E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh
  *   E2E_SUITE=oidc npx playwright test tests/drive.spec.ts
@@ -23,7 +24,7 @@ async function appRunsInOidcMode(): Promise<boolean> {
     const config = await (await fetch(`${env.baseUrl}/.env.js`)).text()
     return (
       /AUTH_MODE\s*=\s*'oidc'/.test(config) &&
-      /TDRIVE_ENABLED\s*=\s*true/.test(config)
+      /WORKPLACE_FQDN_FALLBACK\s*=\s*'https:/.test(config)
     )
   } catch {
     return false
@@ -92,7 +93,7 @@ test.describe('DRIVE Twake Drive picker', () => {
   test.beforeAll(async () => {
     expect(
       await appRunsInOidcMode(),
-      'needs the app in OIDC mode with the fake Drive: E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh'
+      'needs the app in OIDC mode with the fake Workplace: E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh'
     ).toBe(true)
   })
 
@@ -120,7 +121,7 @@ test.describe('DRIVE Twake Drive picker', () => {
       const card = composer.editor.locator('a.tmail-file-link-card')
       await expect(card).toHaveAttribute(
         'href',
-        `http://localhost:${new URL(env.baseUrl).port}/e2e/drive/share/report`
+        `${new URL(env.oidcIssuer).origin}/e2e/drive/share/report`
       )
       await expect(card).toContainText('report.txt')
       // Back in the message, after the card

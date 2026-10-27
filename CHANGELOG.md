@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Today's emails in the list show their time on the clock of the language
   (9:33 PM in English, 21:33 in French), as the reading view and the event
   card do.
+- "Attach from Drive" is offered once the app is signed in to the Twake
+  Workplace of the user, as the platform top bar, with Twake Drive installed
+  there, framed by the Workplace too. The picker creates its intent with the
+  token of the Workplace, without `force_session_id`: its frame relies on the
+  session of the user on the Workplace.
+
+### Removed
+
+- `TDRIVE_ENABLED` and `TDRIVE_INTENT_URL` are no longer read, nor
+  `config.tdrive` of the Helm chart: remove them (leaving them does no harm).
+  The Drive picker and the `/intents` page use the Workplace of the user (the
+  `workplaceFqdn` claim, else `WORKPLACE_FQDN_FALLBACK`). Keep the Drive hosts
+  in `CSP_FRAME_SRC` (`csp.frameSrc`) and the Workplace hosts in
+  `CSP_CONNECT_SRC` (`csp.connectSrc`).
 
 ## [0.6.0] - 2026-10-11
 

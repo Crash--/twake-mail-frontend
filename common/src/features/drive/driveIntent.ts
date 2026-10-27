@@ -88,22 +88,6 @@ export function pickerData(
 }
 
 /** The body of `POST /intents` */
-export function intentRequest(
-  data: Record<string, unknown>
-): Record<string, unknown> {
-  return {
-    data: {
-      type: 'io.cozy.intents',
-      attributes: {
-        action: 'PICK',
-        type: 'io.cozy.files',
-        data,
-        permissions: ['GET']
-      }
-    }
-  }
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -125,20 +109,17 @@ export function safeUrl(value: unknown): string | null {
 }
 
 /**
- * The intent of the `POST /intents` response: its id and the page of the
- * picker (an https URL; http only on a local machine), or null.
+ * The intent the stack created (`createIntent` of the platform client): its
+ * id and the page of the picker (an https URL; http only on a local
+ * machine), or null.
  */
-export function readIntent(response: unknown): DriveIntent | null {
-  const data = isRecord(response) ? response.data : null
-  if (!isRecord(data) || typeof data.id !== 'string') return null
-  const attributes = isRecord(data.attributes) ? data.attributes : null
-  const services = Array.isArray(attributes?.services)
-    ? attributes.services
-    : []
+export function readIntent(intent: unknown): DriveIntent | null {
+  if (!isRecord(intent) || typeof intent.id !== 'string') return null
+  const services = Array.isArray(intent.services) ? intent.services : []
   const first: unknown = services[0]
   const href = isRecord(first) ? safeUrl(first.href) : null
   if (href === null) return null
-  return { id: data.id, href, origin: new URL(href).origin }
+  return { id: intent.id, href, origin: new URL(href).origin }
 }
 
 function readFile(value: unknown): DriveFile | null {

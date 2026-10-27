@@ -47,9 +47,9 @@ const result = await intents
    expired. Every path under `/intents` shows the intents page or an error,
    never the webmail.
 2. Trades the ID token for a token of the cozy-stack of the user
-   (`POST /auth/token_exchange`, `exchange_type: app`), at
-   `TDRIVE_INTENT_URL` (read even when `TDRIVE_ENABLED` is off, default
-   `https://{workplaceFqdn}`).
+   (`POST /auth/token_exchange`, `exchange_type: app`), on the Workplace of
+   the user (the `workplaceFqdn` claim, else `WORKPLACE_FQDN_FALLBACK`), as
+   the platform top bar.
 3. Reads the intent (`GET /intents/:id`) and waits for the data of the
    client (`cozy-interapp` `createService`), then shows the composer alone,
    filling the frame, with its own close button (it saves the draft): it asks

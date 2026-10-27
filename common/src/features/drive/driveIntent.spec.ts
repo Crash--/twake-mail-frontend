@@ -19,16 +19,13 @@ describe('Drive intent', () => {
   it('reads the intent the stack created, its page in https', () => {
     expect(
       readIntent({
-        data: {
-          id: 'intent-1',
-          attributes: {
-            services: [
-              {
-                href: 'https://user1-drive.twake.example.com/#/intents?intent=intent-1'
-              }
-            ]
+        id: 'intent-1',
+        services: [
+          {
+            slug: 'drive',
+            href: 'https://user1-drive.twake.example.com/#/intents?intent=intent-1'
           }
-        }
+        ]
       })
     ).toEqual({
       id: 'intent-1',
@@ -37,13 +34,11 @@ describe('Drive intent', () => {
     })
     expect(
       readIntent({
-        data: {
-          id: 'i',
-          attributes: { services: [{ href: 'http://drive.example.com/' }] }
-        }
+        id: 'i',
+        services: [{ slug: 'drive', href: 'http://drive.example.com/' }]
       })
     ).toBe(null)
-    expect(readIntent({ errors: [] })).toBe(null)
+    expect(readIntent({ id: 'i', services: [] })).toBe(null)
   })
 
   it('asks for several files, a link or an attachment', () => {

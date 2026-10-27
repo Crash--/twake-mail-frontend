@@ -9,9 +9,9 @@ import {
 import type { OidcAuthService } from '@common/features/auth/types'
 import {
   exchangeDriveToken,
-  resolveDriveUrl,
   type DriveResult
 } from '@common/features/drive/driveApi'
+import { resolvePlatformUrl } from '@common/features/platform/platformUrl'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { CozyStackError, makeIntentsFetch } from './intentsFetch'
@@ -90,19 +90,15 @@ export function useIntentService(intentId: string): IntentServiceState {
   const startedRef = useRef(false)
   const workplaceFqdn =
     authState.status === 'authenticated' ? authState.user.workplaceFqdn : null
+  // The Twake Workplace of the user, as the platform bar
   const cozyStackUrl = useMemo(
     () =>
-      resolveDriveUrl(config?.cozyStackUrl ?? null, {
+      resolvePlatformUrl({
         username: session.username,
         workplaceFqdn,
         workplaceFqdnFallback: config?.workplaceFqdnFallback ?? null
       }),
-    [
-      config?.cozyStackUrl,
-      config?.workplaceFqdnFallback,
-      session.username,
-      workplaceFqdn
-    ]
+    [config?.workplaceFqdnFallback, session.username, workplaceFqdn]
   )
   // Out of a frame there is no client to answer
   const isAvailable =

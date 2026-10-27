@@ -139,8 +139,8 @@ Keys that only this app has: `AUTH_MODE` (`oidc` or `basic`; unset, the SSO is
 looked for and the credentials form shows when there is none, as in
 tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SSO_REDIRECT_URI`,
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
-`CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
-`TDRIVE_ENABLED`, `TDRIVE_INTENT_URL`. tmail-flutter takes the calendar and
+`CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`.
+tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
 upgrade (below), not for the calendar nor the Workplace of the user.
@@ -574,19 +574,22 @@ it; make sure the reverse proxy does not add one either.
 
 ## Twake Drive picker
 
-With `TDRIVE_ENABLED = true` (OIDC only), the composer trades the ID token
-for a Drive token and opens the Drive picker in a frame. The browser then
-talks to the Drive (cozy-stack) of the user, `TDRIVE_INTENT_URL`, and frames
-the Drive application, usually on another host (`<user>-drive.<domain>`).
-Allow both, with wildcards when every user has their own host:
+The composer offers "Attach from Drive" once the app is signed in to the
+Twake Workplace of the user, as the [platform top bar](#platform-top-bar)
+(OIDC, the `workplaceFqdn` claim or `WORKPLACE_FQDN_FALLBACK`, the token
+exchange), and Twake Drive is installed there; framed by the Workplace too.
+Nothing to set: the picker creates its intent (`PICK io.cozy.files`) with
+the token of the Workplace and frames the Drive application, usually on
+another host (`<user>-drive.<domain>`). Allow both, with wildcards when every
+user has their own host:
 
 ```bash
 -e CSP_CONNECT_SRC="https://sso.example.com https://*.workplace.example.com" \
 -e CSP_FRAME_SRC="https://*.workplace.example.com"
 ```
 
-The cozy-stack must also accept the token exchange for this OIDC client and
-this origin.
+The Drive frame relies on the session of the user on the Workplace (its
+cookie): without one, the picker does not get ready and says so.
 
 
 Register a public client (no secret) using Authorization Code with PKCE
@@ -617,7 +620,8 @@ reach the cozy-stack of the users (OIDC only):
 -e CSP_CONNECT_SRC="https://sso.example.com https://*.workplace.example.com"
 ```
 
-The cozy-stack is `TDRIVE_INTENT_URL`, also when `TDRIVE_ENABLED` is off.
+The cozy-stack is the Workplace of the user, as for the
+[platform top bar](#platform-top-bar).
 The `mailng` manifest of this repository (`manifest/manifest.webapp`), the
 `mailng.embedded-app-url` flag and the token exchange to `registry://mailng`
 are described in [`cozy-intents.md`](cozy-intents.md).

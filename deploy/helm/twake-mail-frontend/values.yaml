@@ -145,13 +145,6 @@ config:
   # (/embed/team-mailboxes/<id>); allow it in csp.frameAncestors
   twakeSpaceUrl: ""
   forwardWarningMessage: ""
-  # -- Twake Drive picker of the composer (OIDC only). intentUrl is the Drive
-  # (cozy-stack) of the user, a URI template ({workplaceFqdn}...). Allow the
-  # Drive hosts in csp.connectSrc and csp.frameSrc (wildcards for per-user
-  # hosts); a fixed intentUrl is added to connect-src by csp.autoConnectSrc
-  tdrive:
-    enabled: false
-    intentUrl: ""
   # -- JavaScript appended to .env.js as is, for a variable this chart does not
   # know yet
   extraEnvJs: ""
@@ -159,12 +152,13 @@ config:
 # Security headers of the image (docs/deployment.md of the repository)
 csp:
   # -- Add the origins of config.serverUrl (and its WebSocket),
-  # config.sso.baseUrl (with authMode oidc), config.sentry.dsn and a fixed
-  # config.tdrive.intentUrl to connect-src
+  # config.sso.baseUrl (with authMode oidc) and config.sentry.dsn to
+  # connect-src
   autoConnectSrc: true
   # -- Extra connect-src sources
   connectSrc: []
-  # -- Extra frame-src sources (e.g. the Twake Drive origin for its intents)
+  # -- Extra frame-src sources (e.g. the Drive hosts of the Workplace, for its
+  # picker)
   frameSrc: []
   # -- Origins allowed to embed the app in a frame (Twake Workplace)
   frameAncestors:

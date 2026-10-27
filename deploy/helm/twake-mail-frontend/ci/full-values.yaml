@@ -33,9 +33,6 @@ config:
   workplaceEmbedding: true
   twakeSpaceUrl: https://space.example.com
   forwardWarningMessage: Do not forward "outside" <example.com>
-  tdrive:
-    enabled: true
-    intentUrl: https://{workplaceFqdn}
   extraEnvJs: |
     var SOME_FUTURE_SETTING = 'value'
 csp:

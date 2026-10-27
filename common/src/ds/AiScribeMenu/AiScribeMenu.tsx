@@ -40,10 +40,7 @@ function rowSx(inset: number): Record<string, unknown> {
     pr: '10px',
     gap: '12px',
     textAlign: 'start',
-    fontSize: 14,
-    lineHeight: '21px',
-    letterSpacing: '-0.15px',
-    fontWeight: 400,
+    typography: 'body3',
     color: 'text.primary',
     '&:hover, &[aria-expanded="true"]': { bgcolor: 'action.hover' },
     '& .AiScribeMenu-icon': {

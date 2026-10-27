@@ -55,8 +55,7 @@ const EXPLANATION_SX = {
   display: 'block',
   mt: '12px',
   ml: '36px',
-  typography: 'body2',
-  fontWeight: 400,
+  typography: 'body3',
   color: 'text.secondary'
 } as const
 

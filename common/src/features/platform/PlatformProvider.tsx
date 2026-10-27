@@ -20,16 +20,23 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { resolvePlatformUrl } from './platformUrl'
 
-const PlatformContext = createContext<Sdk | null>(null)
+interface PlatformValue {
+  sdk: Sdk
+  /** Inside an iframe of Twake Workplace, whose bar is the one of the container */
+  isEmbedded: boolean
+}
+
+const PlatformContext = createContext<PlatformValue | null>(null)
 
 /**
  * Creates the client of the Twake Workplace of the user (`@linagora/twake-sdk`)
- * for the platform top bar, except inside an iframe of the Workplace, which
- * shows the bar itself. In OIDC mode, with a workplace known from the SSO or
- * `WORKPLACE_FQDN_FALLBACK`, the ID token of the session is exchanged for a
- * token of the platform, kept in memory by the client and forgotten when the
- * session ends. Otherwise (basic mode, no workplace) the client stays
- * `public`: the bar shows without the menus of the platform.
+ * for the platform top bar and the Twake Drive picker. In OIDC mode, with a
+ * workplace known from the SSO or `WORKPLACE_FQDN_FALLBACK`, the ID token of
+ * the session is exchanged for a token of the platform, kept in memory by the
+ * client and forgotten when the session ends. Otherwise (basic mode, no
+ * workplace) the client stays `public`: the bar shows without the menus of
+ * the platform, and Drive is not offered. Inside an iframe of the Workplace
+ * the client still signs in, for Drive, but the bar is the container's.
  */
 export function PlatformProvider({
   children
@@ -56,7 +63,6 @@ export function PlatformProvider({
     [service.mode, session.username, claim, fallback]
   )
   const sdk = useMemo(() => {
-    if (isEmbedded) return null
     if (platformUrl !== null) {
       // `waiting` until the effect below exchanges the ID token
       return createSdk({ platformURL: platformUrl })
@@ -65,10 +71,10 @@ export function PlatformProvider({
     const offline = createSdk({ platformURL: window.location.origin })
     offline.logout()
     return offline
-  }, [isEmbedded, platformUrl])
+  }, [platformUrl])
 
   useEffect(() => {
-    if (sdk === null || platformUrl === null) return
+    if (platformUrl === null) return
     const idToken = service.mode === 'oidc' ? service.getIdToken() : null
     if (idToken === null) {
       sdk.logout()
@@ -83,20 +89,11 @@ export function PlatformProvider({
     }
   }, [sdk, platformUrl, service])
 
-  return <PlatformContext value={sdk}>{children}</PlatformContext>
+  const value = useMemo(() => ({ sdk, isEmbedded }), [sdk, isEmbedded])
+  return <PlatformContext value={value}>{children}</PlatformContext>
 }
 
-/**
- * The client of the platform bar: null inside an iframe of Twake Workplace,
- * whose bar is the one of the container
- */
-export function usePlatformSdk(): Sdk | null {
-  return useContext(PlatformContext)
-}
-
-/** Where the platform bar is: `public` when the platform is out of reach */
-export function usePlatformStatus(): SdkStatus {
-  const sdk = useContext(PlatformContext)
+function useSdkStatus(sdk: Sdk | null): SdkStatus {
   const subscribe = useCallback(
     (listener: () => void) =>
       sdk === null ? () => undefined : sdk.onStatusChange(listener),
@@ -106,4 +103,27 @@ export function usePlatformStatus(): SdkStatus {
     subscribe,
     () => sdk?.status ?? 'public'
   )
+}
+
+/**
+ * The client of the platform bar: null inside an iframe of Twake Workplace,
+ * whose bar is the one of the container
+ */
+export function usePlatformSdk(): Sdk | null {
+  const value = useContext(PlatformContext)
+  return value === null || value.isEmbedded ? null : value.sdk
+}
+
+/** Where the platform bar is: `public` when the platform is out of reach */
+export function usePlatformStatus(): SdkStatus {
+  return useSdkStatus(usePlatformSdk())
+}
+
+/**
+ * The client of the Twake Workplace of the user once signed in (`ready`),
+ * framed by the Workplace or not; null otherwise
+ */
+export function useWorkplaceSdk(): Sdk | null {
+  const sdk = useContext(PlatformContext)?.sdk ?? null
+  return useSdkStatus(sdk) === 'ready' ? sdk : null
 }

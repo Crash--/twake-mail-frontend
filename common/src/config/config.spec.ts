@@ -62,8 +62,6 @@ describe('resolveConfig', () => {
         sentryFeedbackEnabled: false,
         forwardWarningMessage: null,
         workplaceEmbedding: false,
-        tdriveIntentUrl: null,
-        cozyStackUrl: 'https://{workplaceFqdn}',
         appVersion: 'dev'
       })
     })
@@ -78,33 +76,6 @@ describe('resolveConfig', () => {
     expect(result.ok && result.value.forwardWarningMessage).toBe(
       'No external forward.'
     )
-  })
-
-  it('reads the Drive picker only when TDRIVE_ENABLED is on', () => {
-    const drive = { TDRIVE_INTENT_URL: 'https://{localpart}.twake.example.com' }
-
-    expect(resolveConfig({ ...OIDC_SOURCE, ...drive }, ORIGIN)).toMatchObject({
-      value: { tdriveIntentUrl: null }
-    })
-    expect(
-      resolveConfig({ ...OIDC_SOURCE, ...drive, TDRIVE_ENABLED: true }, ORIGIN)
-    ).toMatchObject({
-      value: { tdriveIntentUrl: 'https://{localpart}.twake.example.com' }
-    })
-  })
-
-  it('reads the cozy-stack of the intents even when TDRIVE_ENABLED is off', () => {
-    expect(
-      resolveConfig(
-        {
-          ...OIDC_SOURCE,
-          TDRIVE_INTENT_URL: 'https://{localpart}.example.com'
-        },
-        ORIGIN
-      )
-    ).toMatchObject({
-      value: { cozyStackUrl: 'https://{localpart}.example.com' }
-    })
   })
 
   it('accepts the basic mode without any SSO setting', () => {

@@ -69,11 +69,12 @@ the configuration points to:
 - `config.serverUrl` and its WebSocket origin (`wss://` for `https://`),
   unless it is a path (JMAP on the origin of the app);
 - `config.sso.baseUrl` with `authMode: oidc`;
-- `config.sentry.dsn`;
-- `config.tdrive.intentUrl` when it is a fixed URL. The Drive of each user
-  usually has its own host (a URI template): list the Drive hosts in
-  `csp.connectSrc` (its API) and `csp.frameSrc` (the picker), with a wildcard
-  such as `https://*.workplace.example.com`.
+- `config.sentry.dsn`.
+
+The Workplace of each user usually has its own host: list the Workplace
+hosts in `csp.connectSrc` (the platform top bar and the Drive picker talk to
+its cozy-stack) and the Drive hosts in `csp.frameSrc` (the picker), with a
+wildcard such as `https://*.workplace.example.com`.
 
 Add other origins with `csp.connectSrc`, and the origins allowed to frame the
 app (Twake Workplace, with `config.workplaceEmbedding: true`) with
@@ -127,7 +128,6 @@ ingress-nginx do).
 | `config.workplaceEmbedding` | `false` | Inside an iframe of Twake Workplace, leave the platform top bar to the container |
 | `config.twakeSpaceUrl` | `""` | `TWAKE_SPACE_URL`: no longer read by the app, which learns where TwakeSpace is from its greeting; only serves `frame-ancestors`: allow TwakeSpace in `csp.frameAncestors` |
 | `config.forwardWarningMessage` | `""` | |
-| `config.tdrive.enabled`, `config.tdrive.intentUrl` | `false`, `""` | Twake Drive picker of the composer (OIDC only); `intentUrl` is the Drive (cozy-stack) of the user, a URI template |
 | `config.extraEnvJs` | `""` | JavaScript appended to `.env.js` as is |
 | `csp.autoConnectSrc` | `true` | See above |
 | `csp.connectSrc`, `csp.frameSrc` | `[]` | Extra sources |

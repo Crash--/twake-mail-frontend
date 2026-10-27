@@ -72,17 +72,6 @@ export interface AppConfig {
    * cozy-external-bridge when it is `true`: this app bundles it)
    */
   workplaceEmbedding: boolean
-  /**
-   * The Twake Drive picker of the composer: the URI template of the Drive
-   * (cozy-stack) of the user, null when `TDRIVE_ENABLED` is off
-   */
-  tdriveIntentUrl: string | null
-  /**
-   * The URI template of the cozy-stack of the user, for the intent services
-   * of the `/intents` page: `TDRIVE_INTENT_URL`, read even when
-   * `TDRIVE_ENABLED` is off, `https://{workplaceFqdn}` by default
-   */
-  cozyStackUrl: string
   appVersion: string
 }
 
@@ -119,8 +108,6 @@ export type RuntimeConfigKey =
   | 'WORKPLACE_FQDN_FALLBACK'
   | 'WORKPLACE_EMBEDDING'
   | 'SENTRY_FEEDBACK_ENABLED'
-  | 'TDRIVE_ENABLED'
-  | 'TDRIVE_INTENT_URL'
   | 'APP_VERSION'
 
 /**
@@ -149,9 +136,6 @@ const JMAP_SESSION_WELL_KNOWN_PATH = '/.well-known/jmap'
 
 /** The Linagora ecosystem document of a server, next to its JMAP session */
 const ECOSYSTEM_WELL_KNOWN_PATH = '/.well-known/linagora-ecosystem'
-
-/** The instance of the user is its Workplace host */
-const DEFAULT_COZY_STACK_URL = 'https://{workplaceFqdn}'
 
 function normalizeString(value: unknown): string | null {
   if (typeof value !== 'string') return null
@@ -410,11 +394,6 @@ export function resolveConfig(
       workplaceEmbedding:
         toBoolean(source.WORKPLACE_EMBEDDING) ||
         toBoolean(source.COZY_INTEGRATION),
-      tdriveIntentUrl: toBoolean(source.TDRIVE_ENABLED)
-        ? normalizeString(source.TDRIVE_INTENT_URL)
-        : null,
-      cozyStackUrl:
-        normalizeString(source.TDRIVE_INTENT_URL) ?? DEFAULT_COZY_STACK_URL,
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }

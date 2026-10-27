@@ -6,26 +6,41 @@ import type { SpaceOverlay } from '@linagora/twake-mui'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import { resolveConfig } from '@common/config/config'
 import { DRIVE_ATTACHMENT_PREFERENCE_STORAGE_KEY } from '@common/features/settings/driveAttachmentPreference'
-import { makeFakeOidcAuthService } from '@common/testing/makeFakeAuthService'
+import type { AuthService } from '@common/features/auth/types'
+import { PlatformProvider } from '@common/features/platform/PlatformProvider'
+import {
+  makeFakeBasicAuthService,
+  makeFakeOidcAuthService
+} from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { DriveAttachButton } from './DriveAttachButton'
 
+const mockIsInIframe = jest.fn<boolean, []>(() => false)
+
+jest.mock('cozy-external-bridge', () => ({
+  CozyBridge: jest.fn(() => ({ isInIframe: mockIsInIframe }))
+}))
+
 const DRIVE = 'https://alice.twake.example.com'
 const PICKER = 'https://alice-drive.twake.example.com'
 
-function withConfig(ui: ReactElement, enabled = true): ReactElement {
+function withConfig(ui: ReactElement): ReactElement {
   const result = resolveConfig(
     {
       SERVER_URL: 'https://jmap.example.com',
       AUTH_MODE: 'basic',
-      TDRIVE_ENABLED: enabled,
-      TDRIVE_INTENT_URL: 'https://{localpart}.twake.example.com'
+      WORKPLACE_FQDN_FALLBACK: '{localpart}.twake.example.com',
+      WORKPLACE_EMBEDDING: true
     },
     'https://mail.example.com'
   )
   if (!result.ok) throw new Error('Invalid configuration')
-  return <AppConfigProvider config={result.value}>{ui}</AppConfigProvider>
+  return (
+    <AppConfigProvider config={result.value}>
+      <PlatformProvider>{ui}</PlatformProvider>
+    </AppConfigProvider>
+  )
 }
 
 function urlOf(input: Parameters<typeof fetch>[0]): string {
@@ -40,13 +55,28 @@ function json(body: unknown, status = 200): Response {
   })
 }
 
+function app(slug: string): Record<string, unknown> {
+  return {
+    id: `io.cozy.apps/${slug}`,
+    type: 'io.cozy.apps',
+    attributes: { slug, name: slug, state: 'ready' },
+    links: { related: `https://alice-${slug}.twake.example.com/` }
+  }
+}
+
 const fetchMock = jest.fn<Promise<Response>, Parameters<typeof fetch>>()
 let refusesExchange = false
+let refusesIntent = false
+let hasDrive = true
 const originalFetch = global.fetch
 
+/** The Workplace of Alice, as the platform client asks it */
 beforeEach(() => {
   fetchMock.mockReset()
   refusesExchange = false
+  refusesIntent = false
+  hasDrive = true
+  mockIsInIframe.mockReturnValue(false)
   fetchMock.mockImplementation(input => {
     const url = urlOf(input)
     if (url === `${DRIVE}/auth/token_exchange`) {
@@ -56,19 +86,36 @@ beforeEach(() => {
               { error: 'the origin of this application is not allowed' },
               403
             )
-          : json({ access_token: 'drive-token' })
+          : json({
+              access_token: 'drive-token',
+              refresh_token: 'drive-refresh',
+              client_id: 'client',
+              client_secret: 'secret'
+            })
       )
     }
-    if (url.startsWith(`${DRIVE}/intents`)) {
+    if (url === `${DRIVE}/apps/`) {
       return Promise.resolve(
-        json({
-          data: {
-            id: 'i1',
-            attributes: {
-              services: [{ href: `${PICKER}/#/intents?intent=i1` }]
-            }
-          }
-        })
+        json({ data: hasDrive ? [app('home'), app('drive')] : [app('home')] })
+      )
+    }
+    if (url === `${DRIVE}/intents`) {
+      return Promise.resolve(
+        refusesIntent
+          ? json({ errors: [{ status: '403' }] }, 403)
+          : json({
+              data: {
+                id: 'i1',
+                type: 'io.cozy.intents',
+                attributes: {
+                  action: 'PICK',
+                  type: 'io.cozy.files',
+                  services: [
+                    { slug: 'drive', href: `${PICKER}/#/intents?intent=i1` }
+                  ]
+                }
+              }
+            })
       )
     }
     if (url === `${DRIVE}/files/downloads/s3cr3t/notes.txt`) {
@@ -79,13 +126,22 @@ beforeEach(() => {
   global.fetch = fetchMock
 })
 
+function callsTo(path: string): Parameters<typeof fetch>[] {
+  return fetchMock.mock.calls.filter(
+    ([url]) => urlOf(url) === `${DRIVE}${path}`
+  )
+}
+
 afterAll(() => {
   global.fetch = originalFetch
 })
 
 function renderButton(
-  enabled = true,
-  overlay?: SpaceOverlay
+  overlay?: SpaceOverlay,
+  authService: AuthService = makeFakeOidcAuthService({
+    status: 'authenticated',
+    user: { email: 'alice@example.com', name: 'Alice', workplaceFqdn: null }
+  })
 ): {
   onLinks: jest.Mock
   onAttach: jest.Mock
@@ -99,14 +155,10 @@ function renderButton(
         maxFileSize={1000}
         onLinks={onLinks}
         onAttach={onAttach}
-      />,
-      enabled
+      />
     ),
     {
-      authService: makeFakeOidcAuthService({
-        status: 'authenticated',
-        user: { email: 'alice@example.com', name: 'Alice', workplaceFqdn: null }
-      }),
+      authService,
       withJmapSession: true,
       overlay
     }
@@ -149,15 +201,28 @@ describe('DriveAttachButton', () => {
     }
   })
 
-  it('opens the picker with a Drive token, answers it at its origin only', async () => {
+  it('opens the picker with the token of the Workplace, answers it at its origin only', async () => {
     renderButton()
     const frame = await openPicker()
 
     expect(frame).toHaveAttribute('src', `${PICKER}/#/intents?intent=i1`)
     expect(screen.getByRole('status')).toHaveTextContent('Opening Twake Drive…')
-    const [, init] = fetchMock.mock.calls[1] ?? []
+    const [[, init] = []] = callsTo('/intents')
     expect(new Headers(init?.headers).get('Authorization')).toBe(
       'Bearer drive-token'
+    )
+    expect(JSON.parse(typeof init?.body === 'string' ? init.body : '')).toEqual(
+      {
+        data: {
+          type: 'io.cozy.intents',
+          attributes: {
+            action: 'PICK',
+            type: 'io.cozy.files',
+            data: expect.objectContaining({ multiple: true }),
+            permissions: ['GET']
+          }
+        }
+      }
     )
     const picker = frame.contentWindow
     if (picker === null) throw new Error('No window in the frame')
@@ -300,7 +365,7 @@ describe('DriveAttachButton', () => {
   })
 
   it('says when Drive cannot be opened, and tries again', async () => {
-    refusesExchange = true
+    refusesIntent = true
     renderButton()
     await userEvent.click(
       await screen.findByRole('button', { name: 'Attach from Drive' })
@@ -309,19 +374,49 @@ describe('DriveAttachButton', () => {
     expect(
       await screen.findByText('Twake Drive could not be opened.')
     ).toBeVisible()
-    // Refused again after renewing the session: the exchange was tried twice
-    expect(
-      fetchMock.mock.calls.filter(([url]) =>
-        urlOf(url).endsWith('/auth/token_exchange')
-      )
-    ).toHaveLength(2)
-    refusesExchange = false
+    refusesIntent = false
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
     expect(await screen.findByTitle('Twake Drive file picker')).toBeVisible()
+    expect(callsTo('/intents')).toHaveLength(2)
   })
 
-  it('is not offered without TDRIVE_ENABLED, and calls no Drive', async () => {
-    renderButton(false)
+  it('is offered inside an iframe of the Workplace too', async () => {
+    mockIsInIframe.mockReturnValue(true)
+    renderButton()
+
+    expect(await openPicker()).toHaveAttribute(
+      'src',
+      `${PICKER}/#/intents?intent=i1`
+    )
+  })
+
+  it('is not offered when the Workplace refuses the token exchange', async () => {
+    refusesExchange = true
+    renderButton()
+
+    await waitFor(() => {
+      expect(callsTo('/auth/token_exchange')).toHaveLength(1)
+    })
+    expect(screen.queryByRole('button', { name: 'Attach from Drive' })).toBe(
+      null
+    )
+    expect(callsTo('/apps/')).toHaveLength(0)
+  })
+
+  it('is not offered without Drive on the Workplace', async () => {
+    hasDrive = false
+    renderButton()
+
+    await waitFor(() => {
+      expect(callsTo('/apps/')).toHaveLength(1)
+    })
+    expect(screen.queryByRole('button', { name: 'Attach from Drive' })).toBe(
+      null
+    )
+  })
+
+  it('is not offered in basic mode, and calls no Workplace', async () => {
+    renderButton(undefined, makeFakeBasicAuthService())
 
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: 'Attach from Drive' })).toBe(
@@ -338,7 +433,7 @@ describe('DriveAttachButton', () => {
     const overlayWindow = host.contentWindow
     const overlayBody = host.contentDocument?.body
     if (!overlayWindow || !overlayBody) throw new Error('No overlay document')
-    const { unmount } = renderButton(true, {
+    const { unmount } = renderButton({
       getStatus: () => 'connected',
       getBody: () => overlayBody,
       subscribe: () => () => undefined

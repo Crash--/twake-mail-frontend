@@ -290,7 +290,7 @@ describe('AppLayout with the platform bar', () => {
     expect(platformRequests(fetchMock)).toEqual([])
   })
 
-  it('leaves the bar to Twake Workplace when it frames the app', async () => {
+  it('leaves the bar to Twake Workplace when it frames the app, still signed in to it', async () => {
     mockIsInIframe.mockReturnValue(true)
     const fetchMock = mockPlatform()
     renderLayout()
@@ -303,6 +303,11 @@ describe('AppLayout with the platform bar', () => {
         name: 'Settings'
       })
     ).toBeVisible()
-    expect(platformRequests(fetchMock)).toEqual([])
+    // For the Drive picker of the composer: no menu of the platform to read
+    await waitFor(() => {
+      expect(platformRequests(fetchMock)).toEqual([
+        `${PLATFORM}/auth/token_exchange`
+      ])
+    })
   })
 })

@@ -7,7 +7,7 @@ import { FramedDialog } from '@/ds/FramedDialog/FramedDialog'
 import type { DriveFile } from '@common/features/drive/driveIntent'
 import {
   useDrivePicker,
-  useDriveUrl
+  useDriveSdk
 } from '@common/features/drive/useDrivePicker'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useDriveAttachmentPreference } from '@common/features/settings/driveAttachmentPreference'
@@ -23,11 +23,11 @@ export interface DriveAttachButtonProps {
 }
 
 /**
- * "Attach from Drive" (`TDRIVE_ENABLED`): the Twake Drive picker in a
- * dialog, where the user picks files and adds them as a link (a card in
- * the message) or as attachments (downloaded, then uploaded as any file,
- * with its progress). Nothing without a Drive for the user, or when turned
- * off in Settings > Preferences.
+ * "Attach from Drive": the Twake Drive picker in a dialog, where the user
+ * picks files and adds them as a link (a card in the message) or as
+ * attachments (downloaded, then uploaded as any file, with its progress).
+ * Offered once signed in to the Twake Workplace of the user, with Drive
+ * installed there, unless turned off in Settings > Preferences.
  */
 export function DriveAttachButton({
   maxFileSize,
@@ -36,7 +36,7 @@ export function DriveAttachButton({
 }: DriveAttachButtonProps): ReactElement | null {
   const { t } = useI18n()
   const { notify } = useNotify()
-  const driveUrl = useDriveUrl()
+  const driveSdk = useDriveSdk()
   // The picker of Drive is coloured as the app
   const { colorScheme = 'light' } = useColorScheme()
   const { isEnabled: isButtonShown } = useDriveAttachmentPreference()
@@ -103,7 +103,7 @@ export function DriveAttachButton({
   }
 
   const picker = useDrivePicker(
-    driveUrl,
+    driveSdk,
     {
       linkLabel: t('composer.drive.addAsLink'),
       attachLabel: t('composer.drive.addAsAttachment'),
@@ -124,7 +124,7 @@ export function DriveAttachButton({
     wasOpenRef.current = isOpen
   }, [isOpen])
 
-  if (driveUrl === null || !isButtonShown) return null
+  if (driveSdk === null || !isButtonShown) return null
   const { state } = picker
 
   return (

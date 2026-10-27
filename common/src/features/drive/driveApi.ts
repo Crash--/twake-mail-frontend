@@ -1,41 +1,6 @@
-import { resolveUriTemplate } from '@linagora/twake-utils'
-
-import {
-  intentRequest,
-  readIntent,
-  safeUrl,
-  type DriveIntent
-} from './driveIntent'
-
 type FetchFunction = typeof fetch
 
-export interface DriveUrlContext {
-  username: string
-  workplaceFqdn: string | null
-  workplaceFqdnFallback: string | null
-}
-
-/**
- * The address of the Drive (cozy-stack) of the user from `TDRIVE_INTENT_URL`
- * (`{localpart}`, `{workplaceFqdn}`…), without its trailing slash; null when
- * it does not resolve to an https URL (http on a local machine).
- */
-export function resolveDriveUrl(
-  template: string | null,
-  { username, workplaceFqdn, workplaceFqdnFallback }: DriveUrlContext
-): string | null {
-  if (template === null) return null
-  const resolved = resolveUriTemplate(template, {
-    localpart: username.split('@')[0] ?? '',
-    ...(workplaceFqdn ? { workplaceFqdn } : {}),
-    ...(workplaceFqdnFallback ? { workplaceFqdnFallback } : {})
-  })
-  if (/[{}]/.test(resolved)) return null
-  // (?<!…): a run is tried from its first character only (ReDoS)
-  return safeUrl(resolved)?.replace(/(?<!\/)\/+$/, '') ?? null
-}
-
-export type DriveError = 'token' | 'intent' | 'network'
+export type DriveError = 'token' | 'network'
 
 export type DriveResult<T> =
   { ok: true; value: T } | { ok: false; error: DriveError }
@@ -88,24 +53,4 @@ export async function exchangeDriveToken(
   return response.status < 300 && typeof token === 'string' && token !== ''
     ? { ok: true, value: token }
     : { ok: false, error: 'token' }
-}
-
-/** Creates the intent of the picker (`POST /intents`) */
-export async function createDriveIntent(
-  driveUrl: string,
-  accessToken: string,
-  data: Record<string, unknown>,
-  fetchFunction: FetchFunction = fetch
-): Promise<DriveResult<DriveIntent>> {
-  const response = await postJson(
-    fetchFunction,
-    `${driveUrl}/intents?force_session_id=true`,
-    intentRequest(data),
-    { Authorization: `Bearer ${accessToken}` }
-  )
-  if (response === null) return { ok: false, error: 'network' }
-  const intent = response.status < 300 ? readIntent(response.json) : null
-  return intent === null
-    ? { ok: false, error: 'intent' }
-    : { ok: true, value: intent }
 }

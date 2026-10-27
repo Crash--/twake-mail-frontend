@@ -79,7 +79,7 @@ function makeConfig(): AppConfig {
       SERVER_URL: 'https://jmap.example.com',
       SSO_BASE_URL: 'https://sso.example.com',
       WEB_OIDC_CLIENT_ID: 'twake-mail',
-      TDRIVE_INTENT_URL: 'https://{localpart}.twake.example.com'
+      WORKPLACE_FQDN_FALLBACK: '{localpart}.twake.example.com'
     },
     'https://mail.example.com'
   )

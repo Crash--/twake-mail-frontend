@@ -106,12 +106,6 @@ points to: JMAP and its WebSocket, the SSO, Sentry, a fixed Twake Drive
 {{- $sources = append $sources . -}}
 {{- end -}}
 {{- end -}}
-{{- $tdrive := $config.tdrive | default dict -}}
-{{- if and $tdrive.enabled (not (contains "{" ($tdrive.intentUrl | default ""))) -}}
-{{- with include "twake-mail-frontend.origin" ($tdrive.intentUrl | default "") -}}
-{{- $sources = append $sources . -}}
-{{- end -}}
-{{- end -}}
 {{- end -}}
 {{- $sources = concat $sources (.Values.csp.connectSrc | default list) -}}
 {{- $sources | uniq | join " " -}}
@@ -199,11 +193,6 @@ var TWAKE_SPACE_URL = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
 {{- with $config.forwardWarningMessage }}
 var FORWARD_WARNING_MESSAGE = {{ include "twake-mail-frontend.jsString" . }}
-{{- end }}
-{{- $tdrive := $config.tdrive | default dict }}
-var TDRIVE_ENABLED = {{ ternary "true" "false" (eq (toString $tdrive.enabled) "true") }}
-{{- with $tdrive.intentUrl }}
-var TDRIVE_INTENT_URL = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
 {{- with $config.extraEnvJs }}
 {{ . | trim }}

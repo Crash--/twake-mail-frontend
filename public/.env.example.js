@@ -98,16 +98,6 @@ var FORWARD_WARNING_MESSAGE = ''
 // its origin.
 var WORKPLACE_EMBEDDING = false
 
-// Twake Drive picker of the composer ("Attach from Drive"), as Twake Calendar:
-// add files as a link (a card in the message) or as attachments. Needs the
-// OIDC mode: the ID token of the user is traded for a Drive token
-// (`POST <Drive>/auth/token_exchange`), which the cozy-stack of the Drive must
-// allow for this OIDC client and this origin. TDRIVE_INTENT_URL is the address
-// of the Drive (cozy-stack) of the user, a URI template: {localpart},
-// {workplaceFqdn}, {workplaceFqdn.localpart}, {workplaceFqdn.domain}.
-var TDRIVE_ENABLED = false
-var TDRIVE_INTENT_URL = 'https://{workplaceFqdn}'
-
 // Keys of tmail-flutter that this app ignores: APP_GRID_AVAILABLE (the apps
 // are those of the platform top bar), FCM_AVAILABLE, IOS_FCM,
 // FIREBASE_* (push notifications of the mobile apps), PLATFORM, WS_ECHO_PING,

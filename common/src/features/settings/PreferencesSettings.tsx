@@ -5,7 +5,7 @@ import { useState, type ReactElement } from 'react'
 import { SettingsChoiceOption } from '@/ds/SettingsOption/SettingsOption'
 
 import { hasAiCapability } from '@common/features/ai/aiNeedsAction'
-import { useDriveUrl } from '@common/features/drive/useDrivePicker'
+import { useDriveSdk } from '@common/features/drive/useDrivePicker'
 import { useLabelVisibility } from '@common/features/labels/labelVisibility'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { scribeEndpoint } from '@common/features/scribe/scribe'
@@ -78,7 +78,7 @@ export function PreferencesSettings({
   const driveAttachment = useDriveAttachmentPreference()
   const accessibility = useAccessibilityPreference()
   // Without a Drive for the user there is no button to show or hide
-  const hasDrive = useDriveUrl() !== null
+  const hasDrive = useDriveSdk() !== null
   const [isLabelVisible, setLabelVisible] = useLabelVisibility()
   const hasLabels = LINAGORA_CAPABILITIES.labels in session.capabilities
   const [isScribeOn, setScribeOn] = useScribePreference()

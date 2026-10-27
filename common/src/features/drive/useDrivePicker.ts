@@ -1,26 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { Sdk } from '@linagora/twake-sdk'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useAppConfig } from '@common/config/AppConfigProvider'
-import {
-  useAuthService,
-  useAuthState
-} from '@common/features/auth/AuthProvider'
-import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { useWorkplaceSdk } from '@common/features/platform/PlatformProvider'
 
-import {
-  createDriveIntent,
-  exchangeDriveToken,
-  resolveDriveUrl,
-  type DriveResult
-} from './driveApi'
 import {
   pickerData,
+  readIntent,
   readIntentMessage,
   type DriveFile,
   type DriveFrameSize,
   type DriveIntent,
   type DrivePickerOptions
 } from './driveIntent'
+
+/** Slug of Twake Drive on the Workplace, the service of `PICK io.cozy.files` */
+const DRIVE_SLUG = 'drive'
 
 /** Time the picker has to say it is ready (a cross-origin frame tells no load error) */
 export const DRIVE_READY_TIMEOUT_MS = 20_000
@@ -45,34 +39,33 @@ export type DrivePickerState =
   | { status: 'failed' }
 
 /**
- * The address of the Drive of the user when the picker is offered:
- * `TDRIVE_ENABLED` with a `TDRIVE_INTENT_URL` that resolves, and an OIDC
- * session (its ID token is traded for a Drive token). Null otherwise.
+ * The client of the Twake Workplace of the user when the picker is offered:
+ * signed in (OIDC, the Workplace known from the SSO or
+ * `WORKPLACE_FQDN_FALLBACK`), with Twake Drive installed. Null otherwise.
  */
-export function useDriveUrl(): string | null {
-  const config = useAppConfig()
-  const service = useAuthService()
-  const state = useAuthState()
-  const { session } = useJmapSession()
-  const workplaceFqdn =
-    state.status === 'authenticated' ? state.user.workplaceFqdn : null
-  return useMemo(
-    () =>
-      service.mode === 'oidc'
-        ? resolveDriveUrl(config?.tdriveIntentUrl ?? null, {
-            username: session.username,
-            workplaceFqdn,
-            workplaceFqdnFallback: config?.workplaceFqdnFallback ?? null
-          })
-        : null,
-    [
-      service.mode,
-      config?.tdriveIntentUrl,
-      config?.workplaceFqdnFallback,
-      session.username,
-      workplaceFqdn
-    ]
-  )
+export function useDriveSdk(): Sdk | null {
+  const sdk = useWorkplaceSdk()
+  // The client the apps were read from, when Drive is one of them
+  const [driveSdk, setDriveSdk] = useState<Sdk | null>(null)
+  useEffect(() => {
+    if (sdk === null) return
+    let isCurrent = true
+    // The client keeps the apps for the page, the platform bar asks for them too
+    sdk
+      .getAllApps()
+      .then(apps => {
+        if (isCurrent) {
+          setDriveSdk(apps.some(app => app.slug === DRIVE_SLUG) ? sdk : null)
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn('[drive] Cannot read the apps of the Workplace', error)
+      })
+    return () => {
+      isCurrent = false
+    }
+  }, [sdk])
+  return driveSdk !== null && driveSdk === sdk ? sdk : null
 }
 
 export interface DrivePicker {
@@ -84,9 +77,8 @@ export interface DrivePicker {
 }
 
 /**
- * The Twake Drive picker: trades the ID token for a Drive token (one more
- * try after renewing the session, as tmail-flutter), creates the intent,
- * then listens to the messages of its frame only: from the origin of the
+ * The Twake Drive picker: creates the intent with the client of the
+ * Workplace (its token, renewed by the client), then listens to the messages of its frame only: from the origin of the
  * intent, from its window, with its id, while it is open. The picked files
  * go to `onFiles`; Cancel closes it. The picker may ask for a size
  * (`resize`) and for the close button of the dialog (`showCross`,
@@ -98,11 +90,10 @@ export interface DrivePicker {
  * linagora/twake-calendar-frontend#1498).
  */
 export function useDrivePicker(
-  driveUrl: string | null,
+  sdk: Sdk | null,
   options: DrivePickerOptions,
   onFiles: (files: DriveFile[]) => void
 ): DrivePicker {
-  const service = useAuthService()
   const [state, setState] = useState<DrivePickerState>({ status: 'closed' })
   const frameRef = useRef<HTMLIFrameElement | null>(null)
   const runRef = useRef(0)
@@ -120,49 +111,37 @@ export function useDrivePicker(
   }, [])
 
   const open = useCallback((): void => {
-    if (driveUrl === null || service.mode !== 'oidc') return
+    if (sdk === null) return
     const run = runRef.current + 1
     runRef.current = run
     setState({ status: 'opening' })
-    const exchange = async (): Promise<DriveResult<string>> => {
-      const idToken = service.getIdToken()
-      const first =
-        idToken === null
-          ? ({ ok: false, error: 'token' } as const)
-          : await exchangeDriveToken(driveUrl, idToken)
-      if (first.ok || first.error !== 'token') return first
-      // An ID token past its lifetime: renewed once
-      if (!(await service.refresh())) return first
-      const renewed = service.getIdToken()
-      return renewed === null ? first : exchangeDriveToken(driveUrl, renewed)
-    }
     const start = async (): Promise<void> => {
-      const token = await exchange()
-      const intent = token.ok
-        ? await createDriveIntent(
-            driveUrl,
-            token.value,
-            pickerData(optionsRef.current)
-          )
-        : token
+      const intent = readIntent(
+        await sdk.createIntent({
+          action: 'PICK',
+          type: 'io.cozy.files',
+          data: pickerData(optionsRef.current),
+          permissions: ['GET']
+        })
+      )
       if (runRef.current !== run) return
       setState(
-        intent.ok
-          ? {
+        intent === null
+          ? { status: 'failed' }
+          : {
               status: 'open',
-              intent: intent.value,
+              intent,
               isReady: false,
               size: null,
               showCloseButton: false
             }
-          : { status: 'failed' }
       )
     }
     start().catch((error: unknown) => {
       console.warn('[drive] The picker could not open', error)
       if (runRef.current === run) setState({ status: 'failed' })
     })
-  }, [driveUrl, service])
+  }, [sdk])
 
   const intent = state.status === 'open' ? state.intent : null
   const isReady = state.status === 'open' && state.isReady

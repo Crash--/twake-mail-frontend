@@ -80,15 +80,14 @@ export const MAIN_CONTENT_ID = 'main-content'
 export function AppLayout(): ReactElement {
   return (
     <MailProviders>
-      <PlatformProvider>
-        <AppFrame />
-      </PlatformProvider>
+      <AppFrame />
     </MailProviders>
   )
 }
 
 /**
- * What the mail screens need around them: shortcuts, folder picker,
+ * What the mail screens need around them: the Twake Workplace of the user
+ * (its bar, the Drive picker of the composers), shortcuts, folder picker,
  * recovery, folder and label actions, composers, list filter
  */
 export function MailProviders({
@@ -97,25 +96,27 @@ export function MailProviders({
   children: ReactNode
 }): ReactElement {
   return (
-    <ShortcutsProvider>
-      <MailboxPickerProvider>
-        <RecoveryProvider>
-          <FolderActionProgressProvider>
-            <FolderActionsProvider>
-              <LabelActionsProvider>
-                <ComposerProvider>
-                  <SettingsExitProvider>
-                    <ListFilterProvider>
-                      <LoadingAnnouncer>{children}</LoadingAnnouncer>
-                    </ListFilterProvider>
-                  </SettingsExitProvider>
-                </ComposerProvider>
-              </LabelActionsProvider>
-            </FolderActionsProvider>
-          </FolderActionProgressProvider>
-        </RecoveryProvider>
-      </MailboxPickerProvider>
-    </ShortcutsProvider>
+    <PlatformProvider>
+      <ShortcutsProvider>
+        <MailboxPickerProvider>
+          <RecoveryProvider>
+            <FolderActionProgressProvider>
+              <FolderActionsProvider>
+                <LabelActionsProvider>
+                  <ComposerProvider>
+                    <SettingsExitProvider>
+                      <ListFilterProvider>
+                        <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                      </ListFilterProvider>
+                    </SettingsExitProvider>
+                  </ComposerProvider>
+                </LabelActionsProvider>
+              </FolderActionsProvider>
+            </FolderActionProgressProvider>
+          </RecoveryProvider>
+        </MailboxPickerProvider>
+      </ShortcutsProvider>
+    </PlatformProvider>
   )
 }
 

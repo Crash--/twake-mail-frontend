@@ -198,6 +198,18 @@ describe('AppLayout with the platform bar', () => {
     )
   })
 
+  it('offers Drive in a composer opened from the layout', async () => {
+    mockPlatform()
+    renderLayout()
+
+    await screen.findByRole('button', { name: 'Applications' })
+    await userEvent.click(screen.getByRole('button', { name: 'Compose' }))
+
+    expect(
+      await screen.findByRole('button', { name: 'Attach from Drive' })
+    ).toBeVisible()
+  })
+
   it('lists the apps of the platform', async () => {
     mockPlatform()
     renderLayout()

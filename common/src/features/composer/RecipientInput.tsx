@@ -14,6 +14,7 @@ import {
   type RecipientFieldCard,
   type RecipientFieldDnd
 } from '@/ds/RecipientField/RecipientField'
+import { contactName } from '@common/features/contacts/contactNames'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { NewRuleLocationState } from '@common/features/rules/EmailRulesSettings'
 import { settingsSectionPath } from '@common/features/settings/sections'
@@ -34,14 +35,6 @@ import { useContactSuggestions } from './useContactSuggestions'
 /** A list of addresses: separators, or several `@` */
 function isList(text: string): boolean {
   return /[,;\n\r\t]/.test(text) || (text.match(/@/g) ?? []).length > 1
-}
-
-function contactName(contact: {
-  firstname: string
-  surname: string
-}): string | null {
-  const name = `${contact.firstname} ${contact.surname}`.trim()
-  return name === '' ? null : name
 }
 
 export interface RecipientInputProps {

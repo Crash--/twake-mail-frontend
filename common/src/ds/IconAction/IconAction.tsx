@@ -2,15 +2,20 @@
 // tooltip and the accessible name at once) and a 20 px icon. The Twake Mail
 // design has 32 px round icon buttons holding a 20 px icon in rows and
 // toolbars; twake-mui draws 16 px icons in them. The starred tone is the
-// yellow of a star (`warning.main`, no yellow role), the muted one a faint
-// row icon, darker on hover.
+// yellow of a filled star, the muted one a faint row icon, darker on hover.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
+/**
+ * The yellow of a filled (favorite) star, in every scheme: twake-mui has no
+ * role for it, and `warning` stays for warnings
+ */
+export const FAVORITE_COLOR = '#FFE082'
+
 const TONE_SX = {
   default: {},
-  starred: { color: 'warning.main' },
+  starred: { color: FAVORITE_COLOR },
   muted: { color: 'text.disabled', '&:hover': { color: 'text.icon' } },
   icon: { color: 'text.icon' },
   secondary: { color: 'text.secondary' },

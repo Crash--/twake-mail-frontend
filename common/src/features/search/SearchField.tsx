@@ -17,6 +17,7 @@ import {
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { FAVORITE_COLOR } from '@/ds/IconAction/IconAction'
 import { SearchBarAction } from '@/ds/SearchBarAction/SearchBarAction'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import { uniqueByAddress } from '@common/features/composer/recipients'
@@ -42,8 +43,6 @@ import { addRecentSearch, storeSortOrder } from './searchStorage'
 import { useSearchContext } from './useSearchContext'
 import { useSearchSuggestions } from './useSearchSuggestions'
 
-/** A filled star in the yellow of the theme (no yellow role: `warning`) */
-const STARRED_COLOR = 'var(--twake-palette-warning-main)'
 const UNSTARRED_COLOR = 'var(--twake-palette-text-icon)'
 
 /** Recent searches suggested under a non-empty field */
@@ -183,7 +182,7 @@ export function SearchField({
               size={18}
               color={
                 email.keywords[FLAGGED] === true
-                  ? STARRED_COLOR
+                  ? FAVORITE_COLOR
                   : UNSTARRED_COLOR
               }
               className="u-flex-shrink-0"

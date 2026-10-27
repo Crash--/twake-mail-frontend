@@ -238,11 +238,7 @@ export function EmailListToolbar({
           label={t(item.label)}
           icon={SELECTION_ICONS[item.id] ?? item.icon}
           tone={
-            item.id === 'star'
-              ? 'starred'
-              : item.id === 'delete-permanently' && !isDesktop
-                ? 'danger'
-                : 'icon'
+            item.id === 'delete-permanently' && !isDesktop ? 'danger' : 'icon'
           }
           size={36}
           onClick={() => {

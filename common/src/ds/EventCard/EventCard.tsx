@@ -52,6 +52,8 @@ const DATE_MONTH_SX = {
   color: 'warning.contrastText',
   height: '31.37%',
   typography: 'overline',
+  // The line height overline had before twake-mui 18.5, the Figma gives none
+  lineHeight: '16px',
   textTransform: 'uppercase'
 } as const
 

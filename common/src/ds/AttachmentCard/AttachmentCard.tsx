@@ -73,6 +73,8 @@ const SIZE_SX = {
   ml: 1,
   mr: '3px',
   typography: 'overline',
+  // The line height overline had before twake-mui 18.5, the Figma gives none
+  lineHeight: '16px',
   color: 'text.secondary',
   whiteSpace: 'nowrap'
 } as const

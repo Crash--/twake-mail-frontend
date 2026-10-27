@@ -39,6 +39,8 @@ export function CountBadge({
         backgroundColor: 'action.selected',
         color: 'text.primary',
         typography: 'overline',
+        // 16 px high, a disc for one digit (Figma 11/16; overline is 11/13)
+        lineHeight: '16px',
         whiteSpace: 'nowrap'
       }}
     >

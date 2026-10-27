@@ -19,6 +19,7 @@ import {
   type ComposerOutcome
 } from '@common/features/composer/ComposerForm'
 import type { MailtoFields } from '@common/features/composer/mailto'
+import { PlatformProvider } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import type { ComposeIntentResult } from './composeIntent'
@@ -119,20 +120,23 @@ export function ComposeIntentPage({
           </ActionIconButton>
         </div>
       )}
-      <Suspense fallback={null}>
-        <ComposerForm
-          composerId={composerId}
-          init={init}
-          autoFocus
-          onTitleChange={setTitle}
-          onReady={handleReady}
-          onDraftChange={handleDraftChange}
-          onDone={handleDone}
-          onRequestClose={handleClose}
-          // The draft goes to the client: deleting it here would lie
-          isDiscardOfferedOnClose={false}
-        />
-      </Suspense>
+      {/* The Drive picker of the composer, on the Workplace of the user */}
+      <PlatformProvider>
+        <Suspense fallback={null}>
+          <ComposerForm
+            composerId={composerId}
+            init={init}
+            autoFocus
+            onTitleChange={setTitle}
+            onReady={handleReady}
+            onDraftChange={handleDraftChange}
+            onDone={handleDone}
+            onRequestClose={handleClose}
+            // The draft goes to the client: deleting it here would lie
+            isDiscardOfferedOnClose={false}
+          />
+        </Suspense>
+      </PlatformProvider>
     </div>
   )
 }

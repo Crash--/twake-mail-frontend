@@ -208,10 +208,13 @@ describe('ComposerForm', () => {
         name: 'Sending message'
       })
       expect(within(dialog).getByRole('progressbar')).toBeVisible()
+      // Beside the region of the toasts, drawn in the dialog while it is open
       await waitFor(() => {
-        expect(within(dialog).getByRole('status')).toHaveTextContent(
-          'Sending message...'
-        )
+        expect(
+          within(dialog)
+            .getAllByRole('status')
+            .map(region => region.textContent)
+        ).toContain('Sending message...')
       })
       // Behind the modal dialog: hidden from the accessibility tree
       const send = within(composer).getByTestId('composer-send-button')
@@ -242,9 +245,11 @@ describe('ComposerForm', () => {
         const dialog = await screen.findByRole('dialog', {
           name: 'Sending message'
         })
-        expect(await within(dialog).findByRole('alert')).toHaveTextContent(
-          'The server is taking longer than usual to answer.'
-        )
+        expect(
+          await within(dialog).findByText(
+            /The server is taking longer than usual to answer\./
+          )
+        ).toHaveAttribute('role', 'alert')
         await userEvent.click(
           within(dialog).getByRole('button', { name: 'Close' })
         )
@@ -1600,9 +1605,11 @@ describe('ComposerForm', () => {
         await userEvent.type(field, 'welc')
 
         expect(within(picker).getAllByRole('option')).toHaveLength(1)
-        expect(within(picker).getByRole('status')).toHaveTextContent(
-          '1 template found'
-        )
+        expect(
+          within(picker)
+            .getAllByRole('status')
+            .map(region => region.textContent)
+        ).toContain('1 template found')
       })
 
       it('inserts the subject and the body of the template, with the keyboard, into an empty message', async () => {

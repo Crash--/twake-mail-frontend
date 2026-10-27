@@ -213,7 +213,9 @@ describe('DriveAttachButton', () => {
     const frame = await openPicker()
 
     expect(frame).toHaveAttribute('src', `${PICKER}/#/intents?intent=i1`)
-    expect(screen.getByRole('status')).toHaveTextContent('Opening Twake Drive…')
+    expect(
+      screen.getAllByRole('status').map(region => region.textContent)
+    ).toContain('Opening Twake Drive…')
     const [[, init] = []] = callsTo('/intents')
     expect(new Headers(init?.headers).get('Authorization')).toBe(
       'Bearer drive-token'
@@ -246,7 +248,9 @@ describe('DriveAttachButton', () => {
       'displayCloseButton'
     )
     send(frame, { type: 'intent-i1:readyToUse' })
-    expect(screen.queryByRole('status')).toBe(null)
+    expect(
+      screen.getAllByRole('status').map(region => region.textContent)
+    ).not.toContain('Opening Twake Drive…')
     await waitFor(() => {
       expect(frame).toHaveFocus()
     })

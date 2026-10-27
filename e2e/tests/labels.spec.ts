@@ -415,9 +415,12 @@ test.describe('LBL label colours', () => {
         'true'
       )
       await expect(labels.customColorHexInput).toBeFocused()
-      await expect(labels.labelModal.getByRole('alert')).toContainText(
-        'Enter a color as #RRGGBB'
-      )
+      // Beside the (empty) alert region of the toasts, drawn in the dialog
+      await expect(
+        labels.labelModal
+          .getByRole('alert')
+          .filter({ hasText: 'Enter a color as #RRGGBB' })
+      ).toBeVisible()
 
       // The native picker updates the field, the swatch says the value
       await labels.customColorNativeInput.fill('#1a2b3c')

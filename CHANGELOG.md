@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- With an `env.file` (the `linagora/tmail-frontend` chart), the image reads
+  `TDRIVE_ENABLED` and `TDRIVE_INTENT_URL` from the environment of the
+  container (`extraEnv`), so the Twake Drive picker can be turned on.
+
 ### Changed
 
 - Today's emails in the list show their time on the clock of the language

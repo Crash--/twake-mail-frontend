@@ -216,7 +216,9 @@ as in tmail-flutter (`SSO_BASE_URL` and `AUTH_MODE` override that).
 The env.file of the `linagora/tmail-frontend` chart has no key for the
 feedback button: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
 environment of the container (`extraEnv` of the chart). It is added to the
-generated `/.env.js` when the `env.file` has no such key.
+generated `/.env.js` when the `env.file` has no such key. The same goes for
+`TWAKE_SPACE_URL` and for the [Twake Drive picker](#twake-drive-picker),
+`TDRIVE_ENABLED` and `TDRIVE_INTENT_URL`.
 
 ## Docker Compose
 

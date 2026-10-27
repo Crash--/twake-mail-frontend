@@ -20,6 +20,7 @@ import {
 import type { SystemStyleObject } from '@mui/system'
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useId,
   useRef,
@@ -28,6 +29,8 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
+import { createPortal } from 'react-dom'
+import { useTopModalHost } from '@/ds/useTopModalHost/useTopModalHost'
 
 /** `error` is announced at once (`role="alert"`), the others politely */
 export type ToastSeverity = 'info' | 'success' | 'error'
@@ -166,6 +169,9 @@ const CONTROL_SX = {
  *   hidden: anyone has the time to reach its action (WCAG 2.2.1).
  * - Escape closes it while it has the focus. No animation when the user
  *   asks for reduced motion.
+ * - While a dialog or a modal drawer is open (MUI hides the rest of the
+ *   page from assistive technologies and keeps the focus inside), it is
+ *   drawn inside it: still announced, its action reached with Tab.
  */
 interface ToastCardProps {
   toast: ToastItem
@@ -269,6 +275,68 @@ const ToastCard = forwardRef<HTMLDivElement, ToastCardProps>(function ToastCard(
   )
 })
 
+/**
+ * Time live regions just added to the page are left empty, for assistive
+ * technologies to know them before a message goes in
+ */
+export const LIVE_REGIONS_SETTLE_DURATION = 250
+/**
+ * A toast younger than this when its live regions move (a modal opened or
+ * closed) or show again (the modal over theirs closed) is announced again:
+ * it may have been hidden, or removed, before it was read
+ */
+const FRESH_TOAST_DURATION = 1_000
+
+interface LiveRegionsProps {
+  toast: ToastItem | null
+  /** Whether the toast was shown recently enough to be announced again */
+  isFresh: (id: string) => boolean
+}
+
+/**
+ * The polite and the assertive live regions. Mounted again when they move:
+ * the toast they find is announced, after `LIVE_REGIONS_SETTLE_DURATION`,
+ * only when it is fresh; the next ones are, at once.
+ */
+function LiveRegions({ toast, isFresh }: LiveRegionsProps): ReactElement {
+  const [toastAtMount] = useState(toast)
+  const [isSettled, setIsSettled] = useState(toastAtMount === null)
+
+  useEffect(() => {
+    if (toastAtMount === null || !isFresh(toastAtMount.id)) return
+    const timer = setTimeout(() => {
+      setIsSettled(true)
+    }, LIVE_REGIONS_SETTLE_DURATION)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [toastAtMount, isFresh])
+
+  const announced =
+    toast === null || (toast.id === toastAtMount?.id && !isSettled)
+      ? null
+      : toast
+  const isAlert = announced?.severity === 'error'
+
+  return (
+    // Fixed, so the visually hidden regions (absolute, without offset) do
+    // not sit at the end of the page, a pixel under the viewport, and make
+    // the document scroll
+    <Box sx={LIVE_REGIONS_STYLE}>
+      <Box role="status" className="u-visuallyhidden">
+        {announced === null || isAlert ? null : (
+          <span key={announced.id}>{announced.message}</span>
+        )}
+      </Box>
+      <Box role="alert" className="u-visuallyhidden">
+        {announced !== null && isAlert ? (
+          <span key={announced.id}>{announced.message}</span>
+        ) : null}
+      </Box>
+    </Box>
+  )
+}
+
 export function ToastRegion({
   toast,
   onClose,
@@ -277,28 +345,31 @@ export function ToastRegion({
   'data-testid': testId
 }: ToastRegionProps): ReactElement {
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
-  const isAlert = toast?.severity === 'error'
-  const politeMessage = toast !== null && !isAlert ? toast.message : null
-  const alertMessage = toast !== null && isAlert ? toast.message : null
+  const modalHost = useTopModalHost()
+  const shownAt = useRef<{ id: string; at: number } | null>(null)
+  const toastId = toast?.id ?? null
 
-  return (
+  useEffect(() => {
+    if (toastId !== null) shownAt.current = { id: toastId, at: Date.now() }
+  }, [toastId])
+
+  // A toast not recorded yet was shown in this very render
+  const isFresh = useCallback(
+    (id: string): boolean =>
+      shownAt.current?.id !== id ||
+      Date.now() - shownAt.current.at < FRESH_TOAST_DURATION,
+    []
+  )
+
+  const region = (
     <>
       {/* Always mounted: a live region only announces what changes in it.
-          Fixed, so the visually hidden regions (absolute, without offset)
-          do not sit at the end of the page, a pixel under the viewport, and
-          make the document scroll */}
-      <Box sx={LIVE_REGIONS_STYLE}>
-        <Box role="status" className="u-visuallyhidden">
-          {politeMessage === null ? null : (
-            <span key={toast?.id}>{politeMessage}</span>
-          )}
-        </Box>
-        <Box role="alert" className="u-visuallyhidden">
-          {alertMessage === null ? null : (
-            <span key={toast?.id}>{alertMessage}</span>
-          )}
-        </Box>
-      </Box>
+          Mounted again once the modal they are in is no longer hidden */}
+      <LiveRegions
+        key={modalHost?.isHidden === true ? 'hidden' : 'shown'}
+        toast={toast}
+        isFresh={isFresh}
+      />
       {toast === null ? null : (
         <Box sx={theme => regionStyle(theme, bottomOffset)}>
           <Fade key={toast.id} in appear timeout={reducedMotion ? 0 : 200}>
@@ -313,4 +384,6 @@ export function ToastRegion({
       )}
     </>
   )
+
+  return modalHost === null ? region : createPortal(region, modalHost.element)
 }

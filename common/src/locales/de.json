@@ -1462,6 +1462,10 @@
       "count": "%{smart_count}-mal |||| %{smart_count}-mal",
       "until": "bis %{date}"
     },
+    "occurrence": {
+      "only": "Nur dieser Termin der Serie",
+      "originally": "Nur dieser Termin der Serie (ursprünglich %{date})"
+    },
     "untitled": "(Kein Titel)",
     "eventMark": "Termineinladung"
   },

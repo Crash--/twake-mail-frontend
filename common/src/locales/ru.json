@@ -1462,6 +1462,10 @@
       "count": "%{smart_count} раз |||| %{smart_count} раза |||| %{smart_count} раз",
       "until": "до %{date}"
     },
+    "occurrence": {
+      "only": "Только это повторение",
+      "originally": "Только это повторение (изначально %{date})"
+    },
     "untitled": "(Без названия)",
     "eventMark": "Приглашение на событие"
   },

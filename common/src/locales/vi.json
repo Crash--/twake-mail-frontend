@@ -1462,6 +1462,10 @@
       "count": "%{smart_count} lần",
       "until": "đến %{date}"
     },
+    "occurrence": {
+      "only": "Chỉ lần lặp này",
+      "originally": "Chỉ lần lặp này (ban đầu %{date})"
+    },
     "untitled": "(Không có tiêu đề)",
     "eventMark": "Lời mời sự kiện"
   },

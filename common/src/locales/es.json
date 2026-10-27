@@ -1462,6 +1462,10 @@
       "count": "%{smart_count} vez |||| %{smart_count} veces",
       "until": "hasta el %{date}"
     },
+    "occurrence": {
+      "only": "Solo esta repetición",
+      "originally": "Solo esta repetición (originalmente %{date})"
+    },
     "untitled": "(Sin título)",
     "eventMark": "Invitación a un evento"
   },

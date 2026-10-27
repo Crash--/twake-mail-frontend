@@ -1462,6 +1462,10 @@
       "count": "%{smart_count} удаа |||| %{smart_count} удаа",
       "until": "%{date} хүртэл"
     },
+    "occurrence": {
+      "only": "Зөвхөн энэ давталт",
+      "originally": "Зөвхөн энэ давталт (анх %{date})"
+    },
     "untitled": "(Гарчиггүй)",
     "eventMark": "Арга хэмжээний урилга"
   },

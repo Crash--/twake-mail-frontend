@@ -1440,6 +1440,7 @@
     },
     "replyFailed": "Ereignisantwort wurde erfolglos gesendet!",
     "alreadyAnswered": "Sie haben diese Antwort auf die Einladung bereits gegeben",
+    "eventCanceled": "Dieses Ereignis wurde abgesagt",
     "counterAccepted": "Sie haben die vorgeschlagene Zeit für diese Besprechung angenommen",
     "eventLabel": "Termin: %{title}",
     "allDay": "Ganztägig",

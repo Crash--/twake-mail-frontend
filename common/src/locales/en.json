@@ -1440,6 +1440,7 @@
     },
     "replyFailed": "Event reply was sent unsuccessfully!",
     "alreadyAnswered": "You have already given this answer to the invitation",
+    "eventCanceled": "This event was canceled",
     "counterAccepted": "You accepted the proposed time for this meeting",
     "eventLabel": "Event: %{title}",
     "allDay": "All day",

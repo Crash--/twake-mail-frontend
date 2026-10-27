@@ -112,7 +112,8 @@ export interface CalendarEventCardProps {
  * where, the meeting link (shown and copied, not joined: tmail-flutter
  * #4622), the organizer and the attendees; Yes / Maybe / No for an
  * invitation (Yes only for a counter proposal), "Mail to attendees" and the
- * event in Twake Calendar. The description follows the card, as text.
+ * event in Twake Calendar. The description follows the card, as text. An
+ * event the server found canceled when answering offers no answer.
  */
 export function CalendarEventCard({
   invitation,
@@ -252,9 +253,20 @@ export function CalendarEventCard({
     })
   }
 
-  const answers: CalendarAnswer[] = actions.acceptsCounter
-    ? ['acceptCounter']
-    : [...actions.replies]
+  const answers: CalendarAnswer[] = invitation.isCanceled
+    ? []
+    : actions.acceptsCounter
+      ? ['acceptCounter']
+      : [...actions.replies]
+  const status = invitation.isCanceled ? (
+    <Alert severity="warning" data-testid="calendar-event-canceled">
+      {t('calendar.eventCanceled')}
+    </Alert>
+  ) : !isInvited && method !== 'CANCEL' ? (
+    <Alert severity="error" data-testid="calendar-event-not-invited">
+      {t('calendar.notInvited')}
+    </Alert>
+  ) : null
 
   return (
     <>
@@ -279,13 +291,7 @@ export function CalendarEventCard({
         }
         badgeTestId="calendar-event-banner"
         details={details}
-        status={
-          !isInvited && method !== 'CANCEL' ? (
-            <Alert severity="error" data-testid="calendar-event-not-invited">
-              {t('calendar.notInvited')}
-            </Alert>
-          ) : null
-        }
+        status={status}
         actions={
           answers.length > 0 || actions.mailToAttendees ? (
             <>

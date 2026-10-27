@@ -1440,6 +1440,7 @@
     },
     "replyFailed": "Hồi đáp sự kiện không thành công!",
     "alreadyAnswered": "Bạn đã gửi câu trả lời này cho lời mời",
+    "eventCanceled": "Sự kiện này đã bị hủy",
     "counterAccepted": "Bạn đã chấp nhận một đề xuất thời gian mới cho cuộc họp này",
     "eventLabel": "Sự kiện: %{title}",
     "allDay": "Cả ngày",

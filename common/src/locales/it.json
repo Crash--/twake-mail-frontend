@@ -1440,6 +1440,7 @@
     },
     "replyFailed": "Invio della risposta all'evento non riuscito!",
     "alreadyAnswered": "Hai già dato questa risposta all'invito",
+    "eventCanceled": "Questo evento è stato annullato",
     "counterAccepted": "Hai accettato l'orario proposto per questa riunione",
     "eventLabel": "Evento: %{title}",
     "allDay": "Tutto il giorno",

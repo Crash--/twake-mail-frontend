@@ -7,8 +7,11 @@
 import { Icon } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import {
+  useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
+  useState,
   type ReactElement,
   type ReactNode,
   type Ref
@@ -125,6 +128,38 @@ const ACTIONS_SX = {
   '& .MuiIconButton-root.MuiIconButton-colorPrimary': { color: TMAIL.primary }
 } as const
 
+/** Gives `element` to a ref of either kind */
+function assignRef<T>(ref: Ref<T> | undefined, element: T | null): void {
+  if (typeof ref === 'function') {
+    ref(element)
+  } else if (ref !== null && ref !== undefined) {
+    ref.current = element
+  }
+}
+
+/**
+ * Whether something is rendered in `element` (a portal), kept up to date:
+ * what it covers then leaves the focus order and the accessibility tree
+ */
+function useHasContent(element: HTMLElement | null): boolean {
+  const [hasContent, setHasContent] = useState(false)
+
+  useEffect(() => {
+    if (element === null) return undefined
+    const update = (): void => {
+      setHasContent(element.firstChild !== null)
+    }
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(element, { childList: true })
+    return () => {
+      observer.disconnect()
+    }
+  }, [element])
+
+  return element !== null && hasContent
+}
+
 export interface AppTopBarMenu {
   /** Name and tooltip of the button, e.g. "Show folders" */
   label: string
@@ -210,6 +245,17 @@ export function AppTopBar({
 }: AppTopBarProps): ReactElement {
   const isPhone = useScreenSize() === 'mobile'
   const searchRef = useRef<HTMLDivElement>(null)
+  const [overlay, setOverlay] = useState<HTMLDivElement | null>(null)
+  // What the overlay draws over stays out of reach of the keyboard and of
+  // the screen readers, as of the pointer
+  const isCovered = useHasContent(overlay)
+  const overlayRefs = useCallback(
+    (element: HTMLDivElement | null): void => {
+      setOverlay(element)
+      assignRef(overlayRef, element)
+    },
+    [overlayRef]
+  )
 
   useImperativeHandle(
     searchActions,
@@ -229,15 +275,20 @@ export function AppTopBar({
             <IconButton
               aria-label={back.label}
               onClick={back.onBack}
+              inert={isCovered}
               data-testid={back['data-testid']}
             >
               <Icon icon={Left} size={24} />
             </IconButton>
           </Tooltip>
-          <Box ref={searchRef} className="u-flex-auto u-ov-hidden">
+          <Box
+            ref={searchRef}
+            className="u-flex-auto u-ov-hidden"
+            inert={isCovered}
+          >
             {search}
           </Box>
-          <Box ref={overlayRef} sx={overlaySx(isPhone)} />
+          <Box ref={overlayRefs} sx={overlaySx(isPhone)} />
         </Box>
       </Box>
     )
@@ -263,9 +314,12 @@ export function AppTopBar({
       >
         {start !== undefined ? (
           <>
-            <Box sx={startSx(startTitle === 'plain')}>{start}</Box>
+            <Box sx={startSx(startTitle === 'plain')} inert={isCovered}>
+              {start}
+            </Box>
             <Box
               sx={startTitle === 'strong' ? CENTERED_TITLE_SX : PLAIN_TITLE_SX}
+              inert={isCovered}
             >
               {title}
             </Box>
@@ -279,17 +333,22 @@ export function AppTopBar({
                 aria-label={menu.label}
                 aria-haspopup="dialog"
                 onClick={menu.onOpen}
+                inert={isCovered}
                 sx={MENU_SX}
                 data-testid={menu['data-testid']}
               >
                 <Icon icon={Burger} size={28} />
               </IconButton>
             </Tooltip>
-            <Box sx={TITLE_SX}>{title}</Box>
-            <Box sx={ACTIONS_SX}>{actions}</Box>
+            <Box sx={TITLE_SX} inert={isCovered}>
+              {title}
+            </Box>
+            <Box sx={ACTIONS_SX} inert={isCovered}>
+              {actions}
+            </Box>
           </>
         )}
-        <Box ref={overlayRef} sx={overlaySx(isPhone)} />
+        <Box ref={overlayRefs} sx={overlaySx(isPhone)} />
       </Box>
       {search === null ? null : (
         <Box ref={searchRef} sx={searchSx(isPhone)}>

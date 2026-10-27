@@ -26,26 +26,37 @@ export function useFloatingActionInset(): number {
   return useScreenSize() === 'desktop' ? 0 : FLOATING_ACTION_INSET
 }
 
+const FAB_BLUE = '#208BFF'
+
 // tmail-flutter's "Compose" button (`ComposeFloatingButton`): a 60 px blue
-// (#208BFF) pill, a 28 px white icon and a white Medium 16 label
+// (#208BFF) pill, a 28 px white icon and a white Medium 16 label.
+// twake-mui's Fab rules beat a root `sx`: the `.MuiFab-sizeMedium` size of
+// the extended Fab (two classes) and, on touch screens, the pale
+// `primary.light` background of `@media (hover: none)`. Three classes win.
 const FAB_SX: SxProps<Theme> = theme => ({
   position: 'fixed',
   right: `calc(${theme.spacing(OFFSET)} + env(safe-area-inset-right))`,
   bottom: `calc(${theme.spacing(OFFSET)} + env(safe-area-inset-bottom))`,
   zIndex: theme.zIndex.speedDial,
-  height: 60,
-  minWidth: 154,
-  pl: '20px',
-  pr: '24px',
   gap: '12px',
-  borderRadius: '30px',
-  bgcolor: '#208BFF',
   color: '#FFFFFF',
   fontSize: 16,
   fontWeight: 500,
   textTransform: 'none',
   boxShadow: 'none',
-  '&:hover': { bgcolor: darken('#208BFF', 0.1), boxShadow: 'none' },
+  '&&&': {
+    height: 60,
+    minWidth: 154,
+    pl: '20px',
+    pr: '24px',
+    borderRadius: '30px',
+    bgcolor: FAB_BLUE,
+    '&:hover': { bgcolor: darken(FAB_BLUE, 0.1), boxShadow: 'none' },
+    '@media (hover: none)': {
+      bgcolor: FAB_BLUE,
+      '&:hover': { bgcolor: FAB_BLUE }
+    }
+  },
   '& svg': { width: 28, height: 28 },
   '& .MuiFab-label, & > span': { gap: '12px' }
 })

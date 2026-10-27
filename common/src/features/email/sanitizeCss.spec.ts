@@ -100,6 +100,21 @@ describe('sanitizeStyleSheet', () => {
   })
 })
 
+describe('sanitizeDeclarations', () => {
+  it('keeps the border of each side, which a newsletter button sets to 0 under a border-style', () => {
+    // Without them, the 3 px default border widens the button out of its
+    // cell, and fitting it into the cell pushes its text out of its height
+    const css =
+      'border-style:solid;border-top-width:0px;border-right-width:0px;border-bottom-width:0px;border-left-width:0px;' +
+      'border-top-style:none;border-left-color:#e4e2dd;height:69px'
+
+    expect(sanitizeDeclarations(css, BLOCKED).css).toBe(
+      'border-style: solid; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; ' +
+        'border-top-style: none; border-left-color: #e4e2dd; height: 69px'
+    )
+  })
+})
+
 describe('removeComments', () => {
   it('removes the comments the original pattern removed', () => {
     for (const css of randomTexts(['/', '*', '/*', '*/', 'a', ' '])) {

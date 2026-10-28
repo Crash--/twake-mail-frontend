@@ -154,6 +154,15 @@ config:
   # know yet
   extraEnvJs: ""
 
+# Logotype of the top bar and the login page (docs/deployment.md of the
+# repository)
+logotype:
+  # -- Name of an existing ConfigMap holding ic_logo_with_text.svg (light
+  # scheme) and ic_logo_with_text_dark.svg (dark scheme), both required
+  # (possibly the same SVG), mounted over the default logotypes of the image.
+  # Empty keeps the Twake Mail logotype
+  configMap: ""
+
 # Security headers of the image (docs/deployment.md of the repository)
 csp:
   # -- Add the origins of config.serverUrl (and its WebSocket),

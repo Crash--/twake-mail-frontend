@@ -2,24 +2,25 @@
 // message, files of a chat or a Drive upload): type icon or thumbnail, name,
 // size, progress, retry, remove, and a "show more / less" fold. twake-mui
 // has neither the list nor the item.
-import { Icon } from '@linagora/twake-icons'
 import {
-  Box,
-  Button,
-  ButtonBase,
-  IconButton,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
-import { useState, type ReactElement, type ReactNode } from 'react'
-import {
+  Icon,
   Bottom,
   CheckCircle,
   Cross,
   Refresh,
   Top,
   Warning
-} from '@/ds/FlutterIcons/FlutterIcons'
+} from '@linagora/twake-icons'
+import {
+  Box,
+  Button,
+  ButtonBase,
+  IconButton,
+  LinearProgress,
+  Tooltip,
+  Typography
+} from '@linagora/twake-mui'
+import { useState, type ReactElement, type ReactNode } from 'react'
 
 export type UploadStatus = 'uploading' | 'done' | 'failed'
 
@@ -86,28 +87,6 @@ export interface UploadListProps {
   testIds?: UploadTestIds
 }
 
-// Figma "Teammail 1.1" attachment chip: tokens the theme does not carry yet,
-// as custom properties of the chip, with their values in the dark scheme
-const CHIP_TOKENS = {
-  '--upload-chip-border': '#e5ecf3',
-  '--upload-chip-size': '#8c9caf',
-  '--upload-chip-track': '#e3f1ff',
-  '--upload-chip-fill': '#007aff',
-  '--upload-chip-close': '#e9eef3'
-} as const
-const CHIP_DARK_TOKENS = {
-  '--upload-chip-border': 'rgba(255, 255, 255, 0.24)',
-  '--upload-chip-size': 'rgba(255, 255, 255, 0.7)',
-  '--upload-chip-track': 'rgba(255, 255, 255, 0.16)',
-  '--upload-chip-fill': '#7bbdff',
-  '--upload-chip-close': 'rgba(255, 255, 255, 0.16)'
-} as const
-const CHIP_BORDER = 'var(--upload-chip-border)'
-const SIZE_COLOR = 'var(--upload-chip-size)'
-const TRACK_COLOR = 'var(--upload-chip-track)'
-const FILL_COLOR = 'var(--upload-chip-fill)'
-const LINK_COLOR = '#1990ff'
-const CLOSE_BACKGROUND = 'var(--upload-chip-close)'
 export const UPLOAD_CHIP_WIDTH = 280
 const TAIL_LENGTH = 6
 
@@ -149,14 +128,7 @@ const OPEN_SX = {
   borderRadius: '4px'
 } as const
 
-const SIZE_SX = {
-  flexShrink: 0,
-  fontSize: 11,
-  fontWeight: 500,
-  lineHeight: '16px',
-  letterSpacing: '0.5px',
-  color: SIZE_COLOR
-} as const
+const SIZE_SX = { flexShrink: 0, color: 'text.secondary' } as const
 
 /** The name cut in the middle ("Super Thur…pptx"): its end is kept */
 function MiddleEllipsis({ name }: { name: string }): ReactElement {
@@ -224,7 +196,11 @@ export function UploadChip({
           aria-hidden="true"
         >
           {isFailed ? (
-            <Icon icon={Warning} size={20} color="currentColor" />
+            <Icon
+              icon={Warning}
+              size={20}
+              color="var(--twake-palette-error-main)"
+            />
           ) : (
             item.icon
           )}
@@ -246,7 +222,8 @@ export function UploadChip({
       <MiddleEllipsis name={item.name} />
       <Typography
         component="span"
-        sx={{ ...SIZE_SX, color: isFailed ? 'error.main' : SIZE_COLOR }}
+        variant="overline"
+        sx={{ ...SIZE_SX, color: isFailed ? 'error.main' : 'text.secondary' }}
       >
         {isFailed ? labels.failed : item.size}
       </Typography>
@@ -256,9 +233,7 @@ export function UploadChip({
     <Box
       component="li"
       className="u-flex u-flex-items-center"
-      sx={theme => ({
-        ...CHIP_TOKENS,
-        ...theme.applyStyles('dark', CHIP_DARK_TOKENS),
+      sx={{
         gap: '12px',
         p: '8px',
         boxSizing: 'border-box',
@@ -267,9 +242,9 @@ export function UploadChip({
         flexShrink: 0,
         bgcolor: 'background.paper',
         border: '1px solid',
-        borderColor: isFailed ? 'error.main' : CHIP_BORDER,
+        borderColor: isFailed ? 'error.main' : 'divider',
         borderRadius: '8px'
-      })}
+      }}
       data-testid={testIds.item}
       data-status={item.status}
     >
@@ -311,32 +286,21 @@ export function UploadChip({
         {/* As tmail-flutter: a bar while the file uploads, none once it
             is uploaded or failed */}
         {isUploading ? (
-          <Box
-            role="progressbar"
+          <LinearProgress
+            variant="determinate"
+            value={item.progress}
             aria-label={labels.progress(item.name)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={item.progress}
             sx={{
               height: 2,
               borderRadius: '1px',
-              bgcolor: TRACK_COLOR,
-              overflow: 'hidden'
-            }}
-          >
-            <Box
-              sx={{
-                height: '100%',
-                width: `${String(item.progress)}%`,
-                borderRadius: '6px',
-                bgcolor: FILL_COLOR,
-                transition: 'width 200ms',
+              '& .MuiLinearProgress-bar': {
+                transition: 'transform 200ms linear',
                 '@media (prefers-reduced-motion: reduce)': {
                   transition: 'none'
                 }
-              }}
-            />
-          </Box>
+              }
+            }}
+          />
         ) : null}
       </Box>
       {isFailed ? (
@@ -369,7 +333,7 @@ export function UploadChip({
               width: 20,
               height: 20,
               borderRadius: '50%',
-              bgcolor: CLOSE_BACKGROUND
+              bgcolor: 'action.selected'
             }}
           >
             <Icon icon={Cross} size={12} aria-hidden="true" />
@@ -447,13 +411,6 @@ export function UploadList({
                   setIsFolded(folded => !folded)
                 }}
                 endIcon={<Icon icon={isFolded ? Bottom : Top} size={16} />}
-                sx={{
-                  color: LINK_COLOR,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  lineHeight: '16px',
-                  textTransform: 'none'
-                }}
                 data-testid={testIds.toggle}
               >
                 {toggleLabel}

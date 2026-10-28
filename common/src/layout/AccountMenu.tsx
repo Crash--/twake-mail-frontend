@@ -1,9 +1,8 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Logout, Setting } from '@linagora/twake-icons'
 import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-import { Logout, Setting } from '@/ds/FlutterIcons/FlutterIcons'
 import { ProfileMenu } from '@/ds/ProfileMenu/ProfileMenu'
 import { ownName } from '@common/features/identities/ownName'
 import { useIdentities } from '@common/features/identities/useIdentities'

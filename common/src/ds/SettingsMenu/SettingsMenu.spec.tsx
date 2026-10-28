@@ -1,7 +1,7 @@
+import { Identities } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { ProfilesSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import {
@@ -18,13 +18,9 @@ describe('SettingsMenu', () => {
       <nav aria-labelledby="title">
         <SettingsMenuTitle id="title">Manage account</SettingsMenuTitle>
         <SettingsMenuList>
+          <SettingsMenuItem icon={Identities} label="Profiles" isSelected />
           <SettingsMenuItem
-            icon={ProfilesSettingsIcon}
-            label="Profiles"
-            isSelected
-          />
-          <SettingsMenuItem
-            icon={ProfilesSettingsIcon}
+            icon={Identities}
             label="Sign out"
             onClick={onClick}
           />

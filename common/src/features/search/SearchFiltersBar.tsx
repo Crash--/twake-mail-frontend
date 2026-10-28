@@ -1,17 +1,16 @@
-import { Button } from '@linagora/twake-mui'
-import { useState, type MouseEvent, type ReactElement } from 'react'
-
 import {
-  AttachmentSB,
-  CalendarEvent,
-  CalendarSB,
   EmailNotification,
   FolderOutlined,
   LabelOutlined,
-  SelectedCheck,
   StarOutline,
-  UserSB
-} from '@/ds/FlutterIcons/FlutterIcons'
+  Attachment,
+  CalendarToday,
+  Check,
+  Account
+} from '@linagora/twake-icons'
+import { Button } from '@linagora/twake-mui'
+import { useState, type MouseEvent, type ReactElement } from 'react'
+
 import { ChoiceMenu } from '@/ds/ChoiceMenu/ChoiceMenu'
 import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
@@ -234,7 +233,7 @@ export function SearchFiltersBar({
         <Slot key={field}>
           <FilterChip
             label={addressLabel(field)}
-            icon={UserSB}
+            icon={Account}
             isSelected={filter[field].length > 0}
             popup="dialog"
             isExpanded={addressField === field}
@@ -260,7 +259,7 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={dateLabel}
-          icon={CalendarSB}
+          icon={CalendarToday}
           isSelected={filter.dateRange !== 'allTime'}
           popup="menu"
           isExpanded={menu?.name === 'date'}
@@ -271,8 +270,8 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={t('search.filters.hasAttachment')}
-          icon={AttachmentSB}
-          selectedIcon={SelectedCheck}
+          icon={Attachment}
+          selectedIcon={Check}
           isSelected={filter.hasAttachment}
           onClick={() => {
             onChange({ ...filter, hasAttachment: !filter.hasAttachment })
@@ -284,7 +283,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.starred')}
           icon={StarOutline}
-          selectedIcon={SelectedCheck}
+          selectedIcon={Check}
           isSelected={filter.starred}
           onClick={() => {
             onChange({ ...filter, starred: !filter.starred })
@@ -296,7 +295,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.unread')}
           icon={EmailNotification}
-          selectedIcon={SelectedCheck}
+          selectedIcon={Check}
           isSelected={filter.unread}
           onClick={() => {
             onChange({ ...filter, unread: !filter.unread })
@@ -307,7 +306,7 @@ export function SearchFiltersBar({
       <Slot>
         <FilterChip
           label={t('search.filters.notIncludeEvents')}
-          icon={CalendarEvent}
+          icon={CalendarToday}
           isSelected={filter.notIncludeEvents}
           onClick={() => {
             onChange({ ...filter, notIncludeEvents: !filter.notIncludeEvents })

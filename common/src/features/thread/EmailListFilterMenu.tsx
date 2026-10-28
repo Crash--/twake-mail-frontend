@@ -1,4 +1,13 @@
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Attachment,
+  Cross,
+  EmailNotification,
+  Filter,
+  StarOutline,
+  CheckCircle
+} from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -10,15 +19,6 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useRef, useState, type ReactElement } from 'react'
 
-import {
-  Attachment,
-  Cross,
-  EmailNotification,
-  Filter,
-  FilterSelected,
-  StarOutline
-} from '@/ds/FlutterIcons/FlutterIcons'
-import { FilterListIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -26,7 +26,6 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import type { ListFilter, ListFilterOption } from './listFilter'
 import { listFilterLabelKey } from './ListFilterProvider'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** tmail-flutter's icons of the filters in its menu */
 const OPTION_ICONS: Readonly<Record<ListFilterOption, IconProps['icon']>> = {
@@ -35,8 +34,7 @@ const OPTION_ICONS: Readonly<Record<ListFilterOption, IconProps['icon']>> = {
   starred: StarOutline
 }
 
-/** tmail-flutter's `AppColor.primaryMain` */
-const SELECTED_COLOR = TMAIL.primary0A
+const SELECTED_COLOR = 'var(--twake-palette-primary-main)'
 
 export interface EmailListFilterMenuProps {
   current: ListFilter
@@ -100,7 +98,7 @@ export function EmailListFilterMenu({
         <ToolbarButton
           ref={filterButtonRef}
           label={label}
-          icon={FilterListIcon}
+          icon={Filter}
           hasMenu
           isActive={isActive}
           onClick={event => {
@@ -152,7 +150,7 @@ export function EmailListFilterMenu({
             <ListItemText primary={t(listFilterLabelKey(option))} />
             {current === option ? (
               <Icon
-                icon={FilterSelected}
+                icon={CheckCircle}
                 size={16}
                 color={SELECTED_COLOR}
                 className="u-ml-1 u-flex-shrink-0"

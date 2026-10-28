@@ -1,14 +1,11 @@
-// Upstream to twake-ui: no, the lists of tmail-flutter's settings
-// (`IdentitiesView`, `IdentityListTileBuilder`): 12 px in at the start, 24 px
-// at the end, rows split by a light divider (black at 8 %) 32 px under a row
-// and 20 px above the next one, the 18 px radio of the default one in a
-// 42 px target, the content in a 280 px column on a desktop with the actions
-// right after it (under it below the desktop size), the name in Medium 16 black, the
-// details in 12 px steel grey, the signature as it is written.
+// Upstream to twake-ui: no. The lists of the settings: rows split by a
+// divider, the radio of the default one before the content, the content in a
+// 280 px column on a desktop with the actions right after it (under it below
+// the desktop size), the name in `body1`, the details in `caption`, the
+// signature as it is written.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 const LIST_SX = {
@@ -31,10 +28,8 @@ const ITEM_SX = {
   pt: '20px',
   pb: '32px',
   '&:first-of-type': { pt: 0 },
-  borderBottom: `1px solid ${TMAIL.divider08}`,
-  // tmail-flutter's radio: its 18 px ring, 12 px around
-  '& .MuiRadio-root': { p: '12px' },
-  '& .MuiRadio-root svg': { width: 18, height: 18 },
+  borderBottom: '1px solid',
+  borderColor: 'divider',
   [`@media ${SCREEN_QUERIES.belowDesktop}`]: { rowGap: '24px' }
 } as const
 
@@ -56,38 +51,23 @@ const ACTIONS_SX = {
   [`@media ${SCREEN_QUERIES.belowDesktop}`]: { flexBasis: '100%', pt: 0 }
 } as const
 
-// tmail-flutter's Medium, drawn thinner by its canvas: Regular to the eye
-const NAME_SX = {
-  fontSize: 16,
-  lineHeight: '20px',
-  fontWeight: 400,
-  color: TMAIL.textBlack,
-  mb: 1
-} as const
+const NAME_SX = { typography: 'body1', color: 'text.primary', mb: 1 } as const
 
 const DETAIL_SX = {
-  fontSize: 12,
-  lineHeight: '16px',
-  fontWeight: 500,
-  letterSpacing: '0.4px',
-  color: TMAIL.grey,
+  typography: 'caption',
+  color: 'text.secondary',
   mb: 1
 } as const
 
-/** The "--" before a signature: Regular 15 black */
-const MARK_SX = {
-  fontSize: 15,
-  lineHeight: '20px',
-  fontWeight: 400,
-  color: TMAIL.textBlack
-} as const
+/** The "--" before a signature */
+const MARK_SX = { typography: 'body1', color: 'text.primary' } as const
 
 /** A signature as the mail shows it, 150 px high at most */
 const HTML_SX = {
   maxHeight: 150,
   overflow: 'hidden',
-  fontSize: 16,
-  color: TMAIL.textBlack,
+  typography: 'body1',
+  color: 'text.primary',
   '& img': { maxWidth: '100%', height: 'auto' }
 } as const
 
@@ -142,8 +122,8 @@ export function SettingsListItem({
 export interface SettingsListTextProps {
   children: ReactNode
   /**
-   * `name`: Medium 16 black; `detail`: 12 px steel grey; `mark`: the "--"
-   * before a signature, Regular 15 black
+   * `name`: `body1`; `detail`: `caption` in `text.secondary`; `mark`: the
+   * "--" before a signature
    */
   variant: 'name' | 'detail' | 'mark'
   className?: string

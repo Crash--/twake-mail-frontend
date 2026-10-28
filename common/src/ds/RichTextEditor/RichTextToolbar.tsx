@@ -31,45 +31,7 @@ import {
   boxedClassName
 } from './boxedToolbar'
 import { ColorMenu } from './ColorMenu'
-import {
-  COMPOSER_BUTTON_SX,
-  COMPOSER_DEFAULT_TEXT_COLOR,
-  COMPOSER_EXTRA_ICON_SX,
-  COMPOSER_FONT_BUTTON_SX,
-  COMPOSER_FONT_ITEM_SX,
-  COMPOSER_FONT_MENU_PAPER_SX,
-  COMPOSER_GROUP_BUTTON_SX,
-  COMPOSER_GROUP_SX,
-  COMPOSER_ICON_COLOR,
-  COMPOSER_MENU_ITEM_SX,
-  COMPOSER_MENU_PAPER_SX,
-  COMPOSER_SIZE_BUTTON_SX,
-  COMPOSER_SIZE_ITEM_SX,
-  COMPOSER_SIZE_LABEL_SX,
-  COMPOSER_SIZE_MENU_PAPER_SX,
-  COMPOSER_TEXT_STYLE_LOOK,
-  COMPOSER_TEXT_STYLES,
-  COMPOSER_TOOLBAR_SX
-} from './composerToolbarLook'
 import { EditorIcon, type EditorIconName } from './editorIcons'
-import {
-  AlignCenter,
-  AlignJustify,
-  AlignLeft,
-  AlignRight,
-  Checked,
-  FormatColorFill,
-  OrderBullet,
-  OrderNumber,
-  SelectedCheck,
-  StyleArrowDown,
-  StyleBold,
-  StyleColor,
-  StyleHeader,
-  StyleItalic,
-  StyleStrike,
-  StyleUnderline
-} from './toolbarIcons'
 import {
   DEFAULT_FONT_SIZE,
   TEXT_STYLES,
@@ -178,37 +140,21 @@ const GROUP_SX = {
 } as const
 const ICON_SX = { fontSize: ICON_SIZE } as const
 
+/** tmail-flutter's order of the text styles, kept for the composer */
+const COMPOSER_TEXT_STYLES = [
+  'paragraph',
+  'blockquote',
+  'code',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6'
+] as const
+
 const ALIGNMENTS = ['left', 'center', 'right', 'justify'] as const
 type Alignment = (typeof ALIGNMENTS)[number]
-
-/** tmail-flutter's icons of the alignments */
-const FLUTTER_ALIGN_ICONS = {
-  left: AlignLeft,
-  center: AlignCenter,
-  right: AlignRight,
-  justify: AlignJustify
-} as const
-
-/** tmail-flutter's 28 px icons of the buttons it has */
-const FLUTTER_ICONS: Partial<Record<RichTextToolbarItemId, typeof StyleBold>> =
-  {
-    'text-style': StyleHeader,
-    bold: StyleBold,
-    italic: StyleItalic,
-    underline: StyleUnderline,
-    strike: StyleStrike
-  }
-
-/** White, or no colour: tmail-flutter draws the grey of its icons instead */
-function visibleColor(color: string, fallback: string): string {
-  const value = color.trim().toLowerCase()
-  return value === '' ||
-    value === '#ffffff' ||
-    value === '#fff' ||
-    value === 'rgb(255, 255, 255)'
-    ? fallback
-    : color
-}
 
 const ALIGN_ICONS: Record<Alignment, EditorIconName> = {
   left: 'alignLeft',
@@ -580,95 +526,7 @@ export function RichTextToolbar({
     />
   )
 
-  const renderComposerContent = (item: ToolbarItem): ReactElement => {
-    // The colours are CSS variables (TMAIL), which an SVG `color` attribute
-    // does not read: a box without a box of its own tints the icon
-    const tinted = (color: string, icon: ReactElement): ReactElement => (
-      <Box component="span" sx={{ display: 'contents', color }}>
-        {icon}
-      </Box>
-    )
-    const arrow = item.menu
-      ? tinted(COMPOSER_ICON_COLOR, <StyleArrowDown />)
-      : null
-    switch (item.display) {
-      case 'size':
-        return (
-          <>
-            <Box
-              component="span"
-              aria-hidden="true"
-              sx={COMPOSER_SIZE_LABEL_SX}
-            >
-              {sizeLabel}
-            </Box>
-            {arrow}
-          </>
-        )
-      case 'font':
-        return (
-          <>
-            <span aria-hidden="true">{currentFont?.label}</span>
-            {arrow}
-          </>
-        )
-      case 'color':
-        return (
-          <>
-            {tinted(
-              visibleColor(
-                state.color || COMPOSER_DEFAULT_TEXT_COLOR,
-                COMPOSER_ICON_COLOR
-              ),
-              <StyleColor />
-            )}
-            {arrow}
-          </>
-        )
-      case 'highlight':
-        return (
-          <>
-            {tinted(
-              visibleColor(state.backgroundColor, COMPOSER_ICON_COLOR),
-              <FormatColorFill />
-            )}
-            {arrow}
-          </>
-        )
-      default: {
-        const FlutterIcon =
-          item.id === 'align'
-            ? FLUTTER_ALIGN_ICONS[state.align]
-            : item.id === 'lists'
-              ? state.orderedList
-                ? OrderNumber
-                : OrderBullet
-              : FLUTTER_ICONS[item.id]
-        return (
-          <>
-            {FlutterIcon ? (
-              <FlutterIcon />
-            ) : (
-              <EditorIcon name={item.icon} sx={COMPOSER_EXTRA_ICON_SX} />
-            )}
-            {arrow}
-          </>
-        )
-      }
-    }
-  }
-
-  const composerButtonSx = (item: ToolbarItem): Record<string, unknown> =>
-    item.group !== undefined
-      ? COMPOSER_GROUP_BUTTON_SX
-      : item.display === 'size'
-        ? COMPOSER_SIZE_BUTTON_SX
-        : item.display === 'font'
-          ? COMPOSER_FONT_BUTTON_SX
-          : COMPOSER_BUTTON_SX
-
   const renderContent = (item: ToolbarItem): ReactElement => {
-    if (isComposer) return renderComposerContent(item)
     switch (item.display) {
       case 'size':
         return <span aria-hidden="true">{sizeLabel}</span>
@@ -725,17 +583,13 @@ export function RichTextToolbar({
           onMouseDown={event => event.preventDefault()}
           data-testid={buttonTestId?.(item.id)}
           className={isBoxed ? boxedClassName(item.id) : undefined}
-          sx={
-            isComposer
-              ? { ...composerButtonSx(item), opacity: item.disabled ? 0.4 : 1 }
-              : {
-                  ...(isGrouped ? GROUP_BUTTON_SX : BUTTON_SX),
-                  opacity: item.disabled ? 0.4 : 1,
-                  ...(item.pressed
-                    ? { color: 'primary.main', bgcolor: 'action.selected' }
-                    : {})
-                }
-          }
+          sx={{
+            ...(isGrouped ? GROUP_BUTTON_SX : BUTTON_SX),
+            opacity: item.disabled ? 0.4 : 1,
+            ...(item.pressed
+              ? { color: 'primary.main', bgcolor: 'action.selected' }
+              : {})
+          }}
         >
           {isBoxed ? (
             <BoxedContent
@@ -779,12 +633,6 @@ export function RichTextToolbar({
   const testIdOf = (id: RichTextToolbarItemId): string | undefined =>
     buttonTestId?.(id)
 
-  /** The paper of a menu: tmail-flutter's in the composer look */
-  const menuSlotProps = (
-    paper: Record<string, unknown>
-  ): { paper: { sx: Record<string, unknown> } } | undefined =>
-    isComposer ? { paper: { sx: paper } } : undefined
-
   return (
     <Box
       role="toolbar"
@@ -797,17 +645,15 @@ export function RichTextToolbar({
       sx={{
         flexShrink: 0,
         gap: 1,
-        ...(isComposer
-          ? COMPOSER_TOOLBAR_SX
-          : placement === 'bottom'
-            ? {
-                px: 2,
-                // 40 px high under a 1 px rule, as in the design
-                py: 0.5,
-                borderTop: '1px solid',
-                borderColor: 'divider'
-              }
-            : { py: 0.5 }),
+        ...(placement === 'bottom'
+          ? {
+              px: 2,
+              // 40 px high under a 1 px rule, as in the design
+              py: 0.5,
+              borderTop: '1px solid',
+              borderColor: 'divider'
+            }
+          : { py: 0.5 }),
         ...(isMobile
           ? {
               // One line that scrolls sideways, edges faded, no scrollbar
@@ -831,7 +677,7 @@ export function RichTextToolbar({
           <Box
             key={segment.key}
             className="RichTextToolbar-group"
-            sx={isComposer ? COMPOSER_GROUP_SX : GROUP_SX}
+            sx={GROUP_SX}
           >
             {segment.entries.map(([item, index]) => renderButton(item, index))}
           </Box>
@@ -844,7 +690,6 @@ export function RichTextToolbar({
         anchorEl={openMenu?.anchor}
         open={openMenu?.name === 'text-style'}
         onClose={closeMenu}
-        slotProps={menuSlotProps(COMPOSER_MENU_PAPER_SX)}
       >
         {(isComposer ? COMPOSER_TEXT_STYLES : TEXT_STYLES).map(style => (
           <MenuItem
@@ -855,33 +700,15 @@ export function RichTextToolbar({
             data-testid={
               style === 'blockquote' ? testIdOf('blockquote') : undefined
             }
-            sx={
-              isComposer
-                ? {
-                    '&&': {
-                      ...COMPOSER_MENU_ITEM_SX['&&'],
-                      '& .MuiListItemText-primary': {
-                        ...COMPOSER_MENU_ITEM_SX['&&'][
-                          '& .MuiListItemText-primary'
-                        ],
-                        ...COMPOSER_TEXT_STYLE_LOOK[style],
-                        lineHeight: 1.25
-                      }
-                    }
-                  }
-                : undefined
-            }
           >
             <ListItemText
               slotProps={{
                 primary: {
-                  sx: isComposer
-                    ? undefined
-                    : {
-                        fontWeight: style.startsWith('h') ? 700 : undefined,
-                        fontFamily: style === 'code' ? 'monospace' : undefined,
-                        fontStyle: style === 'blockquote' ? 'italic' : undefined
-                      }
+                  sx: {
+                    fontWeight: style.startsWith('h') ? 700 : undefined,
+                    fontFamily: style === 'code' ? 'monospace' : undefined,
+                    fontStyle: style === 'blockquote' ? 'italic' : undefined
+                  }
                 }
               }}
             >
@@ -931,7 +758,6 @@ export function RichTextToolbar({
         anchorEl={openMenu?.anchor}
         open={openMenu?.name === 'size'}
         onClose={closeMenu}
-        slotProps={menuSlotProps(COMPOSER_SIZE_MENU_PAPER_SX)}
       >
         {fontSizes.map(size => {
           const isCurrent =
@@ -947,11 +773,7 @@ export function RichTextToolbar({
                   ? chain().unsetFontSize().run()
                   : chain().setFontSize(size.value).run()
               )}
-              sx={isComposer ? COMPOSER_SIZE_ITEM_SX : undefined}
             >
-              {isComposer && isCurrent ? (
-                <SelectedCheck className="RichTextToolbar-check" />
-              ) : null}
               <ListItemText>{size.label}</ListItemText>
             </MenuItem>
           )
@@ -962,7 +784,6 @@ export function RichTextToolbar({
         anchorEl={openMenu?.anchor}
         open={openMenu?.name === 'font'}
         onClose={closeMenu}
-        slotProps={menuSlotProps(COMPOSER_FONT_MENU_PAPER_SX)}
       >
         {fontFamilies.map(family => (
           <MenuItem
@@ -972,22 +793,16 @@ export function RichTextToolbar({
             onClick={applyAndClose(() =>
               chain().setFontFamily(family.value).run()
             )}
-            sx={isComposer ? COMPOSER_FONT_ITEM_SX : undefined}
           >
             <ListItemText
               slotProps={{
                 primary: {
-                  sx: isComposer
-                    ? { fontSize: 16 }
-                    : { fontFamily: family.value }
+                  sx: { fontFamily: family.value }
                 }
               }}
             >
               {family.label}
             </ListItemText>
-            {isComposer && currentFont?.value === family.value ? (
-              <Checked width={16} height={16} />
-            ) : null}
           </MenuItem>
         ))}
       </Menu>
@@ -996,7 +811,6 @@ export function RichTextToolbar({
         anchorEl={openMenu?.anchor}
         open={openMenu?.name === 'align'}
         onClose={closeMenu}
-        slotProps={menuSlotProps(COMPOSER_MENU_PAPER_SX)}
       >
         {ALIGNMENTS.map(alignment => (
           <MenuItem
@@ -1017,7 +831,6 @@ export function RichTextToolbar({
         anchorEl={openMenu?.anchor}
         open={openMenu?.name === 'lists'}
         onClose={closeMenu}
-        slotProps={menuSlotProps(COMPOSER_MENU_PAPER_SX)}
       >
         <MenuItem
           role="menuitemcheckbox"

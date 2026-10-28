@@ -1,8 +1,8 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's "Help me write" bar
 // (`AIScribeBar`): a 405 px white field in a 2 px gradient frame (blue,
 // pink, orange), a 10 px radius, 48 to 100 px high, the prompt in Regular 14,
-// and a round send button, light blue until something is written, then blue
-// (#208BFF) with a white arrow.
+// and a round send button, light blue until something is written, then
+// primary with a white arrow.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, IconButton, InputBase, Tooltip } from '@linagora/twake-mui'
 import {
@@ -11,8 +11,6 @@ import {
   type ReactElement,
   type SubmitEvent
 } from 'react'
-
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const BAR_WIDTH = 405
 const GRADIENT =
@@ -33,7 +31,7 @@ const FIELD_SX = {
   minHeight: 44,
   px: 2,
   borderRadius: '8px',
-  bgcolor: TMAIL.surface
+  bgcolor: 'background.paper'
 } as const
 
 const INPUT_SX = {
@@ -42,11 +40,11 @@ const INPUT_SX = {
   fontSize: 14,
   lineHeight: '24px',
   letterSpacing: '0.4px',
-  color: TMAIL.textBlack85,
+  color: 'text.primary',
   '& textarea': { maxHeight: 76, overflowY: 'auto' },
   '& textarea::placeholder': {
     fontWeight: 500,
-    color: TMAIL.textPlaceholderAi,
+    color: 'text.secondary',
     opacity: 1
   }
 } as const
@@ -57,10 +55,13 @@ function sendSx(isEnabled: boolean): Record<string, unknown> {
     width: 32,
     height: 32,
     p: 1,
-    color: '#FFFFFF',
-    bgcolor: isEnabled ? '#208BFF' : TMAIL.blueDisabled,
-    '&:hover': { bgcolor: isEnabled ? '#0A84FF' : TMAIL.blueDisabled },
-    '&.Mui-disabled': { color: '#FFFFFF', bgcolor: TMAIL.blueDisabled }
+    color: 'primary.contrastText',
+    bgcolor: isEnabled ? 'primary.main' : 'primary.light',
+    '&:hover': { bgcolor: isEnabled ? 'primary.dark' : 'primary.light' },
+    '&.Mui-disabled': {
+      color: 'primary.contrastText',
+      bgcolor: 'primary.light'
+    }
   }
 }
 

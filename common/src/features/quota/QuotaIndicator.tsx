@@ -1,9 +1,7 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Refresh, Cloud } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
-import { Refresh } from '@/ds/FlutterIcons/FlutterIcons'
-import { Quotas } from '@/ds/NavIcons/NavIcons'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { SidebarStorage } from '@/ds/SidebarStorage/SidebarStorage'
 import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'
@@ -44,7 +42,7 @@ export function QuotaIndicator(): ReactElement | null {
   return (
     <Box data-testid="quota-indicator" data-used={quota.used}>
       <SidebarStorage
-        icon={<Icon icon={Quotas} size={24} />}
+        icon={<Icon icon={Cloud} size={24} />}
         labelId={labelId}
         label={t('settings.sections.storage.title')}
         action={

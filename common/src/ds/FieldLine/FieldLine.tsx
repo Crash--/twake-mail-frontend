@@ -4,18 +4,14 @@
 import { Box, Typography, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
-
-/** Height of a line, divider included, in px (tmail-flutter's 48) */
-export const FIELD_LINE_HEIGHT = 48
+/** Height of a line, divider included, in px */
+export const FIELD_LINE_HEIGHT = 37
 
 /**
  * The look of a line, shared with the fields that build their own markup
- * (`RecipientField`), as tmail-flutter's composer: 48 px, 24 px from the
- * start of the window (the light divider below too) and 24 px from its end,
- * the text of the inputs in Inter Regular 15 / 24 black, the placeholders
- * in steel grey (#8C9CAF).
+ * (`RecipientField`): 37 px, 16 px from the sides, a divider below, the
+ * text of the inputs in `body2` and the placeholders in the secondary
+ * colour.
  */
 export const FIELD_LINE_SX = {
   display: 'flex',
@@ -25,32 +21,24 @@ export const FIELD_LINE_SX = {
   rowGap: 0.5,
   minHeight: FIELD_LINE_HEIGHT,
   boxSizing: 'border-box',
-  ml: '24px',
-  pr: '24px',
-  // 16 px on phones, as tmail-flutter
-  [`@media ${SCREEN_QUERIES.mobile}`]: { ml: '16px', pr: '16px' },
+  px: 2,
   py: 0.5,
-  borderBottom: `1px solid ${TMAIL.outlineF4}`,
-  '& .MuiInputBase-input': { p: 0, height: '24px' },
+  borderBottom: 1,
+  borderColor: 'divider',
+  '& .MuiInputBase-input': { p: 0 },
   '& .MuiInputBase-input, & .MuiSelect-select': {
-    fontSize: 15,
-    fontWeight: 400,
-    lineHeight: '24px',
-    letterSpacing: 0,
-    color: TMAIL.textBlack
+    typography: 'body2',
+    color: 'text.primary'
   },
   '& .MuiInputBase-input::placeholder': {
-    color: TMAIL.steelLight,
+    color: 'text.secondary',
     opacity: 1
   }
 } as const satisfies SxProps<Theme>
 
-/** The label of a line, as tmail-flutter's "To:": Regular 15 / 24, steel grey */
+/** The label of a line: `body2` in the secondary colour */
 export const FIELD_LABEL_SX = {
-  color: TMAIL.steelLight,
-  fontSize: 15,
-  fontWeight: 400,
-  lineHeight: '24px',
+  color: 'text.secondary',
   pr: 1
 } as const satisfies SxProps<Theme>
 

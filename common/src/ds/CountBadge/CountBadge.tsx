@@ -1,11 +1,10 @@
-// Upstream to twake-ui: yes, as a navigation counter next to `NavText`.
+// Upstream to twake-ui: yes, as a navigation counter.
 // twake-mui has no such badge: `Badge` is a dot over an avatar or an icon,
 // and a small `Chip` is 24 px high.
-import { Box } from '@linagora/twake-mui'
+import { Box, radius } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { formatCount } from './formatCount'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 export interface CountBadgeProps {
   count: number
@@ -14,8 +13,8 @@ export interface CountBadgeProps {
 }
 
 /**
- * A pill with a number (unread emails of a folder), as tmail-flutter's
- * `LinagoraSidebarBadge`: the selected background of the sidebar, 11/16 medium text, at least 16 px wide, "999+" past 999.
+ * A pill with a number (unread emails of a folder), the selected
+ * background of the theme, overline text, at least 16 px wide, "999+" past 999.
  * Pass `aria-hidden` when the count is already part of the name of the
  * control it sits next to.
  */
@@ -30,22 +29,20 @@ export function CountBadge({
       aria-hidden={ariaHidden}
       data-testid={testId}
       className="u-flex-shrink-0"
-      sx={theme => ({
+      sx={{
         display: 'inline-block',
         boxSizing: 'border-box',
         minWidth: 16,
         px: '4.5px',
-        borderRadius: '100px',
+        borderRadius: radius.pill,
         textAlign: 'center',
-        // tmail-flutter's `LinagoraSidebarStyle.badgeBackground`
-        backgroundColor: TMAIL.selectedInk,
-        color: theme.vars.palette.text.primary,
-        fontSize: 11,
-        fontWeight: 500,
+        backgroundColor: 'action.selected',
+        color: 'text.primary',
+        typography: 'overline',
+        // 16 px high, a disc for one digit (Figma 11/16; overline is 11/13)
         lineHeight: '16px',
-        letterSpacing: 0.5,
         whiteSpace: 'nowrap'
-      })}
+      }}
     >
       {formatCount(count)}
     </Box>

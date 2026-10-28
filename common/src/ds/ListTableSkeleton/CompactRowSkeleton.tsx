@@ -1,14 +1,18 @@
-// Upstream to twake-ui: no, the shapes of tmail-flutter's compact email row
-// while the list loads: the three lines (sender and date, subject,
-// preview) on the 56 px beside the 48 px avatar.
+// Upstream to twake-ui: no, the shapes of the compact email row while the list
+// loads: the three lines (sender and date, subject, preview) of the text of
+// the real row, 18.4 px each and 2 px apart, beside the 20 px avatar in the
+// middle of its 48 px touch target.
 import { Box, Skeleton } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 const LINES_SX = {
   display: 'flex',
   flexDirection: 'column',
-  height: 56
+  gap: '2px',
+  height: 59.2
 } as const
+
+const TARGET_SX = { width: 48, height: 48, flexShrink: 0 } as const
 
 function lineSx(height: number): Record<string, unknown> {
   return { display: 'flex', alignItems: 'center', height }
@@ -16,7 +20,14 @@ function lineSx(height: number): Record<string, unknown> {
 
 /** The avatar of a compact row */
 export function CompactAvatarSkeleton(): ReactElement {
-  return <Skeleton variant="circular" width={48} height={48} />
+  return (
+    <Box
+      className="u-flex u-flex-items-center u-flex-justify-center"
+      sx={TARGET_SX}
+    >
+      <Skeleton variant="circular" width={20} height={20} />
+    </Box>
+  )
 }
 
 /**
@@ -29,15 +40,15 @@ export function CompactLinesSkeleton({
   isTagged?: boolean
 }): ReactElement {
   return (
-    <Box sx={{ ...LINES_SX, height: isTagged ? 65 : 56 }}>
-      <Box sx={lineSx(20)}>
+    <Box sx={{ ...LINES_SX, height: isTagged ? 64.8 : 59.2 }}>
+      <Box sx={lineSx(18.4)}>
         <Skeleton width="40%" height={14} className="u-flex-auto" />
         <Skeleton width={48} height={12} className="u-ml-1" />
       </Box>
-      <Box sx={lineSx(isTagged ? 27 : 18)}>
+      <Box sx={lineSx(isTagged ? 24 : 18.4)}>
         <Skeleton width="60%" height={12} />
       </Box>
-      <Box sx={lineSx(18)}>
+      <Box sx={lineSx(18.4)}>
         <Skeleton width="90%" height={12} />
       </Box>
     </Box>

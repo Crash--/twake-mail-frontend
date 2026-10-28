@@ -2,17 +2,19 @@
 // suggestions; Mail (recipients), Calendar (attendees) and Drive (sharing)
 // all need one. The ARIA 1.2 combobox of `SearchCombobox`, with the chips
 // of what was already entered before the input.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Warning, Cross } from '@linagora/twake-icons'
 import {
   Box,
   InputBase,
   Paper,
   Popper,
+  radius,
   Typography,
-  type PopperProps
+  type PopperProps,
+  type Theme
 } from '@linagora/twake-mui'
-// Not twake-mui's Chip: it drops its ref, which the keyboard needs to move
-// the focus between chips (docs/twake-mui-gaps.md)
+// MUI's Chip: twake-mui's forwards the ref the keyboard needs since React 19
+// too, the switch is still to do (docs/twake-mui-gaps.md)
 import Chip from '@mui/material/Chip'
 import {
   useEffect,
@@ -30,15 +32,12 @@ import {
   type Ref
 } from 'react'
 
-import { Warning } from '@/ds/FlutterIcons/FlutterIcons'
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
 import {
   RecipientCard,
   type RecipientCardLabels,
   type RecipientCardProps
 } from '@/ds/RecipientCard/RecipientCard'
-import { RemoveRecipientIcon } from '@/ds/RecipientIcons/RecipientIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import { initialsOf } from './initials'
 import { RecipientAvatar } from './RecipientAvatar'
@@ -71,18 +70,14 @@ function popperOptionsIn(window: HTMLElement): PopperProps['popperOptions'] {
     ]
   }
 }
-/**
- * tmail-flutter's suggestions: as wide as the chips and the input, white,
- * rounded by 20 px, elevation 20, at most 300 px high
- */
+/** The suggestions: as wide as the chips and the input, at most 300 px high */
 const PAPER_SX = {
   mt: 0.5,
   maxHeight: 300,
   overflowY: 'auto',
-  borderRadius: '20px',
-  bgcolor: TMAIL.surface,
-  boxShadow:
-    '0 10px 13px -6px rgba(0, 0, 0, 0.2), 0 20px 31px 3px rgba(0, 0, 0, 0.14), 0 8px 38px 7px rgba(0, 0, 0, 0.12)'
+  borderRadius: radius.lg,
+  bgcolor: 'background.paper',
+  boxShadow: 8
 } as const
 const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 /** How close to the end of the suggestions scrolling asks for more, in px */
@@ -138,33 +133,26 @@ const CONTENT_SX = {
 } as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
 /**
- * tmail-flutter's recipient tag: 32 px high, rounded by 10 px, light grey
- * (#F3F6F9), a 20 px gradient avatar, the name in Regular 17 black, a grey
- * cross; light blue with a blue border while it has the focus
+ * A recipient tag: a twake-mui square chip 32 px high, a 20 px gradient
+ * avatar, a cross; selected with a primary border while it has the focus
  */
 export const RECIPIENT_CHIP_SX = {
   height: 32,
   maxWidth: 267,
   boxSizing: 'border-box',
-  borderRadius: '10px',
-  border: `1px solid ${TMAIL.outlineChip}`,
-  bgcolor: TMAIL.background,
-  color: TMAIL.textBlack,
-  fontSize: 17,
-  fontWeight: 400,
-  letterSpacing: '-0.17px',
+  borderRadius: radius.md,
+  border: 1,
+  borderColor: 'divider',
   pl: 1,
   pr: 0.5,
   '&& .MuiChip-avatar, && .MuiChip-icon': { ml: 0, mr: 0 },
   '&& .MuiChip-label': {
     pl: '4px',
     pr: '4px',
-    fontSize: 17,
-    fontWeight: 400,
-    letterSpacing: '-0.17px'
+    typography: 'body2'
   },
   '& .MuiChip-deleteIcon': {
-    color: TMAIL.greyBlueFaint,
+    color: 'text.icon',
     flexShrink: 0,
     m: 0,
     p: '4px',
@@ -174,38 +162,33 @@ export const RECIPIENT_CHIP_SX = {
     borderRadius: '50%'
   },
   '&:focus, &.Mui-focusVisible': {
-    bgcolor: TMAIL.blueSelected,
-    borderColor: TMAIL.primary
+    bgcolor: 'action.selected',
+    borderColor: 'primary.main'
   }
 } as const
-/**
- * A tag being dragged, and the copy under the pointer: tmail-flutter's
- * `DraggableRecipientTagWidget`, blue with a white name
- */
+/** A tag being dragged, and the copy under the pointer: primary, with a contrast name */
 const DRAGGED_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
-  borderColor: TMAIL.primary,
-  bgcolor: TMAIL.primary,
-  color: '#FFFFFF',
+  borderColor: 'primary.main',
+  bgcolor: 'primary.main',
+  color: 'primary.contrastText',
   '&:focus, &.Mui-focusVisible': {
-    bgcolor: TMAIL.primary,
-    borderColor: TMAIL.primary
+    bgcolor: 'primary.main',
+    borderColor: 'primary.main'
   }
 } as const
 /** Tags that can be dragged show it (tmail-flutter's `grab` cursor) */
 const GRAB_SX = { cursor: 'grab' } as const
-/**
- * A field a dragged tag (or email) may land in: tmail-flutter's 1 px blue
- * border, rounded by 10 px, drawn inside so nothing moves
- */
+/** A field a dragged tag (or email) may land in: a 1 px primary border, drawn inside so nothing moves */
 const DROP_OVER_SX = {
-  borderRadius: '10px',
-  boxShadow: 'inset 0 0 0 1px #007AFF'
+  borderRadius: radius.md,
+  boxShadow: (theme: Theme) =>
+    `inset 0 0 0 1px ${theme.vars.palette.primary.main}`
 } as const
 /**
- * tmail-flutter's advanced search field of addresses: 40 px high at
- * least, a 1 px #E6E1E5 border rounded by 10 px (blue while it has the
- * focus or a tag is dragged over it), white, the chips 4 px apart
+ * The outlined field of addresses (advanced search): 40 px high at least,
+ * a 1 px border (primary while it has the focus or a tag is dragged over
+ * it), the chips 4 px apart
  */
 const OUTLINED_SX = {
   display: 'flex',
@@ -214,10 +197,11 @@ const OUTLINED_SX = {
   boxSizing: 'border-box',
   px: '12px',
   py: '3px',
-  border: `1px solid ${TMAIL.outline}`,
-  borderRadius: '10px',
-  bgcolor: TMAIL.surface,
-  '&:focus-within': { borderColor: TMAIL.primary },
+  border: 1,
+  borderColor: 'border.main',
+  borderRadius: radius.md,
+  bgcolor: 'background.paper',
+  '&:focus-within': { borderColor: 'primary.main' },
   // The row of a form outlines its inputs: not the one inside the field
   '&& .MuiInputBase-root': {
     border: 'none',
@@ -227,20 +211,23 @@ const OUTLINED_SX = {
   },
   '&& .MuiInputBase-input': { p: 0, height: '24px', fontSize: 14 }
 } as const
-const OUTLINED_OVER_SX = { ...OUTLINED_SX, borderColor: TMAIL.primary } as const
+const OUTLINED_OVER_SX = {
+  ...OUTLINED_SX,
+  borderColor: 'primary.main'
+} as const
 const OUTLINED_CONTENT_SX = { ...CONTENT_SX, minHeight: 32 } as const
 /** An outlined field refused by its form: the border says it in red */
 const OUTLINED_ERROR_SX = {
-  borderColor: TMAIL.error,
-  '&:focus-within': { borderColor: TMAIL.error }
+  borderColor: 'error.main',
+  '&:focus-within': { borderColor: 'error.main' }
 } as const
 
-/** An invalid tag, as tmail-flutter's: white, with a red border */
+/** An invalid tag: the paper colour, with an error border */
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
-  borderColor: TMAIL.error,
-  bgcolor: TMAIL.surface,
-  '&& .MuiChip-icon': { ml: 0, mr: 0, color: TMAIL.error }
+  borderColor: 'error.main',
+  bgcolor: 'background.paper',
+  '&& .MuiChip-icon': { ml: 0, mr: 0, color: 'error.main' }
 } as const
 
 /** Something already entered in the field */
@@ -913,12 +900,15 @@ export function RecipientField({
               icon={
                 // Not by its colour only: the icon says it too
                 chip.isInvalid ? (
-                  <Icon icon={Warning} size={20} aria-hidden="true" />
+                  <Icon
+                    icon={Warning}
+                    size={20}
+                    color="var(--twake-palette-error-main)"
+                    aria-hidden="true"
+                  />
                 ) : undefined
               }
-              deleteIcon={
-                <Icon icon={RemoveRecipientIcon} size={20} aria-hidden="true" />
-              }
+              deleteIcon={<Icon icon={Cross} size={20} aria-hidden="true" />}
               label={chip.label}
               title={chip.title ?? chip.label}
               aria-label={

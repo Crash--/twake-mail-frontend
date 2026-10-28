@@ -1,8 +1,8 @@
+import { FolderOutlined } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
-import { DefaultFolderIcon } from '@/ds/FolderIcons/FolderIcons'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { NavCategory } from './NavCategory'
@@ -13,7 +13,7 @@ function Harness(): ReactElement {
     <NavCategory
       title="Personal folders"
       titleId="title"
-      icon={DefaultFolderIcon}
+      icon={FolderOutlined}
       isExpanded={isExpanded}
       onToggle={() => {
         setIsExpanded(expanded => !expanded)

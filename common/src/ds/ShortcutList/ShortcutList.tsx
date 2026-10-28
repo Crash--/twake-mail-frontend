@@ -1,12 +1,9 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's keyboard shortcuts
-// (`ShortcutRow`, `ShortcutKeyWidget`): what the shortcut does in Regular 14
-// black, its keys at the end of a row 440 px wide at most, each a light
-// blue key cap (#DFEEFF, a #CCCCCC border, a radius of 2) in 12 px. A table
-// for assistive technologies, its header read but not shown.
+// Upstream to twake-ui: no. The keyboard shortcuts: what the shortcut does,
+// its keys at the end of a row 440 px wide at most, each a key cap on
+// `action.selected` with a `border.main` outline. A table for assistive
+// technologies, its header read but not shown.
 import { Box } from '@linagora/twake-mui'
 import { Fragment, type ReactElement } from 'react'
-
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 const TABLE_SX = {
   width: '100%',
@@ -16,10 +13,8 @@ const TABLE_SX = {
 } as const
 
 const LABEL_SX = {
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 400,
-  color: TMAIL.textBlack,
+  typography: 'body1',
+  color: 'text.primary',
   textAlign: 'start'
 } as const
 
@@ -35,22 +30,19 @@ const CAP_SX = {
   ml: '4px',
   p: '6px',
   borderRadius: '2px',
-  border: `1px solid ${TMAIL.outlineKey}`,
-  bgcolor: TMAIL.blueSelected,
+  border: '1px solid',
+  borderColor: 'border.main',
+  bgcolor: 'action.selected',
   fontFamily: 'inherit',
-  fontSize: 12,
-  lineHeight: '16px',
-  fontWeight: 500,
-  letterSpacing: '0.4px',
-  color: TMAIL.textBlack88,
+  typography: 'caption',
+  color: 'text.primary',
   textTransform: 'uppercase'
 } as const
 
 const OR_SX = {
   ml: '4px',
-  fontSize: 12,
-  lineHeight: '16px',
-  color: TMAIL.textBlack88
+  typography: 'caption',
+  color: 'text.primary'
 } as const
 
 /** "Ctrl+Enter" → ["Ctrl", "Enter"]; "+" and "Ctrl++" keep their plus */

@@ -1,6 +1,6 @@
-// Upstream to twake-ui: yes, as a `Button` size for a row (`size="small"` is
-// 13 px). The text button of a sidebar row in the design ("Clean" on Spam)
-// is 11/16 in the secondary text colour, without padding to speak of.
+// Upstream to twake-ui: no, twake-mui's `xsmall` Button (11 px) in the
+// secondary text colour, the text button of a sidebar row in the design
+// ("Clean" on Spam), with a 44 px touch target.
 import { Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
@@ -27,16 +27,10 @@ export function RowTextAction({
       <Button
         variant="text"
         color="inherit"
-        size="small"
+        size="xsmall"
         onClick={onClick}
         data-testid={testId}
         sx={{
-          minWidth: 0,
-          px: 1,
-          py: 0,
-          fontSize: 11,
-          lineHeight: '16px',
-          letterSpacing: 0.5,
           color: 'text.secondary',
           [TOUCH_MEDIA]: { minHeight: TOUCH_TARGET_SIZE }
         }}

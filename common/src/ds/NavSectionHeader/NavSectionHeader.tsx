@@ -3,10 +3,9 @@
 // `role="tree"` it is put in) and `NavDesktopDropdown`, whose chevron is
 // pushed to the far end, shown only past `limit` children, with no room for
 // actions, and which renders nothing below `lg`.
-import { Icon } from '@linagora/twake-icons'
-import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
+import { Icon, Dropdown, Right } from '@linagora/twake-icons'
+import { Box, ButtonBase, Typography, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-import { DisclosureDown, DisclosureRight } from '@/ds/NavIcons/NavIcons'
 
 export interface NavSectionToggle {
   isExpanded: boolean
@@ -29,10 +28,6 @@ export interface NavSectionHeaderProps {
 
 const TITLE_SX = {
   color: 'text.secondary',
-  fontSize: 12,
-  fontWeight: 500,
-  lineHeight: '16px',
-  letterSpacing: 0.5,
   py: 0,
   // The toggle is a flex item, not an inline box sitting on the baseline
   display: 'flex',
@@ -40,9 +35,8 @@ const TITLE_SX = {
 } as const
 
 /**
- * The title of a section of a sidebar ("Folders", "Labels"), as
- * tmail-flutter's `LinagoraSidebarSectionHeader`: a heading in 12/500
- * secondary text, outside the list it titles, and its actions, 24 px high
+ * The title of a section of a sidebar ("Folders", "Labels"), a heading in the
+ * caption variant, in secondary text, outside the list it titles, and its actions, 24 px high
  * with 24 px above (what comes under it sets its own gap). With `toggle`,
  * the title is a button holding the arrow of the section, in a 24 px box
  * right after the text, that expands and collapses it.
@@ -83,12 +77,12 @@ export function NavSectionHeader({
               color: 'inherit',
               gap: '4px',
               minHeight: 24,
-              borderRadius: 1
+              borderRadius: radius.sm
             }}
           >
             {title}
             <Icon
-              icon={toggle.isExpanded ? DisclosureDown : DisclosureRight}
+              icon={toggle.isExpanded ? Dropdown : Right}
               size={16}
               aria-hidden
             />

@@ -1,17 +1,16 @@
-import type { IconProps } from '@linagora/twake-icons'
-
 import {
-  ArchiveFolderIcon,
-  DefaultFolderIcon,
-  DraftsFolderIcon,
-  InboxFolderIcon,
-  OutboxFolderIcon,
-  RecoveredFolderIcon,
-  SentFolderIcon,
-  SpamFolderIcon,
-  TemplatesFolderIcon,
-  TrashFolderIcon
-} from '@/ds/FolderIcons/FolderIcons'
+  Archive,
+  FolderOutlined,
+  FileOutline,
+  Email,
+  Send,
+  Restore,
+  Paperplane,
+  Warning,
+  Note,
+  Trash,
+  type IconProps
+} from '@linagora/twake-icons'
 
 import type { TranslationKey } from '@common/i18n/useI18n'
 
@@ -39,17 +38,16 @@ const ROLE_NAMES: Partial<Record<string, TranslationKey>> = {
   'restored messages': 'mailbox.roles.restored'
 }
 
-/** The icons of tmail-flutter (`_systemFolderIconMap`) */
 const ROLE_ICONS: Partial<Record<string, MailboxIcon>> = {
-  inbox: InboxFolderIcon,
-  drafts: DraftsFolderIcon,
-  outbox: OutboxFolderIcon,
-  sent: SentFolderIcon,
-  trash: TrashFolderIcon,
-  junk: SpamFolderIcon,
-  templates: TemplatesFolderIcon,
-  archive: ArchiveFolderIcon,
-  'restored messages': RecoveredFolderIcon
+  inbox: Email,
+  drafts: FileOutline,
+  outbox: Send,
+  sent: Paperplane,
+  trash: Trash,
+  junk: Warning,
+  templates: Note,
+  archive: Archive,
+  'restored messages': Restore
 }
 
 /** The role whose name and icon a system folder of a team mailbox takes */
@@ -97,7 +95,7 @@ export function getRoleNameKey(
 
 export function getMailboxIcon(mailbox: DisplayedMailbox): MailboxIcon {
   const role = getDisplayedRole(mailbox)
-  return (role === null ? null : ROLE_ICONS[role]) ?? DefaultFolderIcon
+  return (role === null ? null : ROLE_ICONS[role]) ?? FolderOutlined
 }
 
 /**

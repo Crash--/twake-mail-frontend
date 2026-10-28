@@ -100,8 +100,8 @@ export function setDragLabel(
     left: '0',
     padding: '6px 12px',
     borderRadius: '8px',
-    background: '#1b1b1d',
-    color: '#ffffff',
+    background: 'var(--twake-palette-text-primary)',
+    color: 'var(--twake-palette-background-paper)',
     font: '14px sans-serif'
   })
   document.body.appendChild(ghost)

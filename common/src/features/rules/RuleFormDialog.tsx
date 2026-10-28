@@ -1,4 +1,12 @@
 import {
+  Check,
+  Eye,
+  EyeClosed,
+  Plus,
+  Trash,
+  InfoOutlined
+} from '@linagora/twake-icons'
+import {
   Alert,
   Box,
   Checkbox,
@@ -14,14 +22,6 @@ import {
   type ReactElement
 } from 'react'
 
-import {
-  Check,
-  Eye,
-  EyeClosed,
-  InfoCircle,
-  Plus,
-  Trash
-} from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import {
   SettingsFormBox,
@@ -354,7 +354,7 @@ export function RuleFormDialog({
         {isPreviewShown && !isPhone ? (
           <SettingsPreviewBanner
             kind="condition"
-            icon={InfoCircle}
+            icon={InfoOutlined}
             title={`${t('rules.form.preview')}:`}
             message={conditionsPreview}
             className="u-mb-1"
@@ -491,7 +491,7 @@ export function RuleFormDialog({
               <IconAction
                 label={t('rules.form.removeCondition', { position })}
                 icon={Trash}
-                tone="steel"
+                tone="icon"
                 size={36}
                 onClick={() => {
                   update({
@@ -625,7 +625,7 @@ export function RuleFormDialog({
               <IconAction
                 label={t('rules.form.removeAction', { position })}
                 icon={Trash}
-                tone="steel"
+                tone="icon"
                 size={36}
                 onClick={() => {
                   update({

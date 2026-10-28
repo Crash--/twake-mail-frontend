@@ -1,8 +1,8 @@
+import { Plus, Trash } from '@linagora/twake-icons'
 import { Alert, Box, Button, Tab, Tabs, Typography } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId, useRef, useState, type ReactElement } from 'react'
 
-import { Plus, Trash } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import {
   PeopleColumn,
@@ -270,7 +270,7 @@ export function DelegationSettings({
     <IconAction
       label={removeLabel(removal)}
       icon={Trash}
-      tone="steel"
+      tone="icon"
       size={36}
       onClick={event => {
         const buttons = Array.from(

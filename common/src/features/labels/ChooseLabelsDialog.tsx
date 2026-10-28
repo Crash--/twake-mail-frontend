@@ -1,4 +1,4 @@
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Label as LabelGlyph, Plus } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -16,7 +16,6 @@ import {
 import type { Label } from 'jmap-client-ts/linagora'
 import { useId, useState, type ReactElement } from 'react'
 
-import { Label as LabelGlyph, Plus } from '@/ds/FlutterIcons/FlutterIcons'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'

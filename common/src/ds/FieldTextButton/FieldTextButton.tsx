@@ -12,8 +12,8 @@ export interface FieldTextButtonProps {
 }
 
 /**
- * An underlined text button at the end of a field line: Inter Medium 14 /
- * 18.4, secondary text colour, 2 px by 4 px of padding, pill radius.
+ * An underlined text button at the end of a field line: `body2`, secondary
+ * text colour, 2 px by 4 px of padding, pill radius.
  */
 export function FieldTextButton({
   children,
@@ -33,10 +33,7 @@ export function FieldTextButton({
         px: '4px',
         borderRadius: '100px',
         color: 'text.secondary',
-        fontSize: 14,
-        fontWeight: 500,
-        lineHeight: '18.4px',
-        letterSpacing: '0.25px',
+        typography: 'body2',
         textTransform: 'none',
         textDecoration: 'underline',
         '&:hover': { textDecoration: 'underline' }

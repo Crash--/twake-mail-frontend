@@ -1,6 +1,6 @@
 // Upstream to twake-ui: yes. Picking a colour among swatches (labels,
 // calendars, tags) is common to Twake apps; twake-mui has no colour input.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Check, Palette, Cross } from '@linagora/twake-icons'
 import { Box, TextField, Typography } from '@linagora/twake-mui'
 import {
   useId,
@@ -10,10 +10,8 @@ import {
   type Ref
 } from 'react'
 
-import { Check, CloseDialog, Palette } from '@/ds/FlutterIcons/FlutterIcons'
 import { FOCUS_RING } from '@/ds/FocusIndicator/focusIndicator'
 import { VISUALLY_HIDDEN } from '@/ds/MessageAlert/visuallyHidden'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 import { normalizeHexColor } from './hexColor'
@@ -78,14 +76,13 @@ const LARGE_SIZE = 40
 const LARGE_LEGEND_SX = {
   mb: '16px',
   p: 0,
-  fontSize: 14,
-  fontWeight: 600,
-  lineHeight: '18px',
-  color: TMAIL.textBlack
+  typography: 'subtitle2',
+  color: 'text.primary'
 } as const
 
-/** The custom swatch of tmail-flutter: a white disc in a gradient ring */
-const GRADIENT_RING = `linear-gradient(${TMAIL.surface}, ${TMAIL.surface}) padding-box, linear-gradient(135deg, #FB2C36, #AD46FF, #2B7FFF) border-box`
+/** The custom swatch: a paper disc in a gradient ring */
+const PAPER = 'var(--twake-palette-background-paper)'
+const GRADIENT_RING = `linear-gradient(${PAPER}, ${PAPER}) padding-box, linear-gradient(135deg, #FB2C36, #AD46FF, #2B7FFF) border-box`
 
 function largeSwatchSx(
   value: string,
@@ -125,14 +122,12 @@ function LargeSwatchMark({
           kind === 'checked'
             ? '#FFFFFF'
             : kind === 'none'
-              ? TMAIL.textOnSurface48
-              : TMAIL.textOnSurface
+              ? 'text.disabled'
+              : 'text.primary'
       }}
     >
       <Icon
-        icon={
-          kind === 'checked' ? Check : kind === 'none' ? CloseDialog : Palette
-        }
+        icon={kind === 'checked' ? Check : kind === 'none' ? Cross : Palette}
         size={kind === 'checked' ? 20 : 18}
       />
     </Box>
@@ -265,7 +260,7 @@ export function ColorSwatchPicker({
                 ...(isLarge ? largeSwatchSx(option.value, background) : {}),
                 border: isLarge
                   ? option.value === ''
-                    ? `2px solid ${TMAIL.outlineSwatch}`
+                    ? `2px solid ${theme.vars.palette.border.main}`
                     : option.value === CUSTOM && background === null
                       ? '2px solid transparent'
                       : 'none'

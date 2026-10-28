@@ -4,10 +4,9 @@
 // puts the background on the row, indents by level without a cap, puts the
 // expand arrow after the label as a control of its own, and overlays the
 // actions on hover instead of reserving room for them.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
-import { DisclosureDown, DisclosureRight } from '@/ds/NavIcons/NavIcons'
-import { NavItem } from '@/ds/NavItem/NavItem'
+import { ListItem } from '@mui/material'
 import { NavLink } from '@/ds/NavLink/NavLink'
 import {
   useId,
@@ -25,7 +24,6 @@ import {
   FOCUS_RING_INSET
 } from '@/ds/FocusIndicator/focusIndicator'
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 /** What each level below the first moves the whole row (tmail-flutter) */
 const LEVEL_STEP = 8
@@ -48,11 +46,6 @@ const TOGGLE_SIZE = 24
 export function levelIndent(level: number): number {
   return Math.max(0, level - 1) * LEVEL_STEP
 }
-
-/** tmail-flutter's sidebar colours (`LinagoraSidebarStyle.light`) */
-const SELECTED_BACKGROUND = TMAIL.selectedInk
-const HOVER_BACKGROUND = TMAIL.hoverInk
-const ARROW_COLOR = TMAIL.textGrey66At64
 
 type DataAttributes = Record<`data-${string}`, string | boolean | undefined>
 
@@ -239,10 +232,8 @@ export function NavTreeItem({
               data-testid={nameTestId}
               sx={{
                 minWidth: 0,
-                fontSize: 14,
-                fontWeight: 500,
-                lineHeight: `${NAME_LINE}px`,
-                letterSpacing: 0.25
+                typography: 'body2',
+                lineHeight: `${NAME_LINE}px`
               }}
             >
               {label}
@@ -259,10 +250,8 @@ export function NavTreeItem({
                   insetInlineEnd: '8px',
                   top: `${firstLine + SECONDARY_GAP}px`,
                   color: 'inherit',
-                  fontSize: 12,
-                  fontWeight: 500,
-                  lineHeight: `${SECONDARY_LINE}px`,
-                  letterSpacing: 0.4
+                  typography: 'caption',
+                  lineHeight: `${SECONDARY_LINE}px`
                 }}
               >
                 {secondary}
@@ -308,7 +297,7 @@ export function NavTreeItem({
               minHeight: 0,
               p: '4px',
               ml: '4px',
-              color: ARROW_COLOR,
+              color: 'text.secondary',
               // On the name line, when a second line hangs under it
               alignSelf: hasSecondary ? 'flex-start' : undefined,
               // A 44 px target on touch screens, without moving the arrow nor
@@ -321,10 +310,7 @@ export function NavTreeItem({
               }
             }}
           >
-            <Icon
-              icon={toggle.isExpanded ? DisclosureDown : DisclosureRight}
-              size={16}
-            />
+            <Icon icon={toggle.isExpanded ? Dropdown : Right} size={16} />
           </IconButton>
         </Tooltip>
       ) : null}
@@ -339,7 +325,7 @@ export function NavTreeItem({
         </Box>
       )}
       {hasActions ? (
-        // Positioned and styled by the row (see `sx` of the `NavItem`)
+        // Positioned and styled by the row (see `sx` of the row)
         <Box
           component="span"
           data-nav-actions=""
@@ -352,7 +338,8 @@ export function NavTreeItem({
   )
 
   return (
-    <NavItem
+    <ListItem
+      disablePadding
       // A row of a tree holds the focus: the buttons inside must not name it
       aria-labelledby={itemProps?.role === 'treeitem' ? linkId : undefined}
       {...itemProps}
@@ -385,9 +372,9 @@ export function NavTreeItem({
         width: 'auto',
         pr: '8px',
         borderRadius: '8px',
-        backgroundColor: isSelected ? SELECTED_BACKGROUND : undefined,
+        backgroundColor: isSelected ? 'action.selected' : undefined,
         '&:hover': {
-          backgroundColor: isSelected ? SELECTED_BACKGROUND : HOVER_BACKGROUND
+          backgroundColor: isSelected ? 'action.selected' : 'action.hover'
         },
         ...(hasActions
           ? {
@@ -432,6 +419,6 @@ export function NavTreeItem({
           {content}
         </div>
       )}
-    </NavItem>
+    </ListItem>
   )
 }

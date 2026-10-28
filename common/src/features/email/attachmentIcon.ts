@@ -1,6 +1,5 @@
-import { getFileTypeIcon } from '@linagora/twake-icons'
+import { getFileTypeIcon, File } from '@linagora/twake-icons'
 
-import { File } from '@/ds/FlutterIcons/FlutterIcons'
 import { extensionOf } from './attachmentPreview'
 
 export type AttachmentIcon = ReturnType<typeof getFileTypeIcon>

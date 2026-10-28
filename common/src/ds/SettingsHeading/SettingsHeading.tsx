@@ -1,28 +1,17 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's settings header
-// (`SettingHeaderWidget`): the title in Semi Bold 24 black at 90 %, what the
-// section is for in Regular 16/21 grey (#424244 at 64 %), 13 px under it.
+// Upstream to twake-ui: no. The header of a settings section: its title
+// (`h3`), and what the section is for in `body1` `text.secondary` under it.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, Ref } from 'react'
 
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
-const TITLE_SX = {
-  fontSize: 24,
-  lineHeight: '28px',
-  fontWeight: 600,
-  letterSpacing: 0,
-  color: TMAIL.textBlack90
-} as const
+const TITLE_SX = { typography: 'h3', color: 'text.primary' } as const
 
 const DESCRIPTION_SX = {
   mt: '13px',
   mb: 0,
-  fontSize: 16,
-  lineHeight: '21px',
-  fontWeight: 400,
-  letterSpacing: '-0.15px',
-  color: TMAIL.textGrey64
+  typography: 'body1',
+  color: 'text.secondary'
 } as const
 
 /**
@@ -97,11 +86,8 @@ export function SettingsTitle({
 const SUBHEADING_SX = {
   mt: 3,
   mb: 2,
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 600,
-  letterSpacing: '0.25px',
-  color: TMAIL.textGrey
+  typography: 'subtitle2',
+  color: 'text.primary'
 } as const
 
 export interface SettingsSubheadingProps {

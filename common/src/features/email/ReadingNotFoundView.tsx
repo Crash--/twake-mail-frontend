@@ -1,7 +1,7 @@
+import { EmailOpen } from '@linagora/twake-icons'
 import { Empty } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { EmailOpen } from '@/ds/FlutterIcons/FlutterIcons'
 import { ReadingPane } from '@/ds/ReadingPane/ReadingPane'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { useI18n } from '@common/i18n/useI18n'

@@ -77,9 +77,6 @@ export function LabelChips({
           <ColorTag
             label={labelDisplayName(label, t)}
             color={label.color ?? DEFAULT_LABEL_COLOR}
-            // As tmail-flutter (`LabelExtension.textColor`): white, whatever
-            // the colour (its contrast waits for the dedicated theme)
-            textColor="#FFFFFF"
             size={size}
             maxLength={max === undefined ? undefined : 16}
             hasTooltip
@@ -103,7 +100,8 @@ export function LabelChips({
             <span aria-hidden className="u-flex">
               <ColorTag
                 label={`+${hidden}`}
-                color="#F3F6F9"
+                color="var(--twake-palette-background-default)"
+                textColor="var(--twake-palette-text-primary)"
                 size={size}
                 data-testid="label-chip-more"
               />

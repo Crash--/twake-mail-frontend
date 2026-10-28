@@ -1,4 +1,4 @@
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import { Icon, type IconProps, Reply } from '@linagora/twake-icons'
 import {
   Divider,
   ListItemIcon,
@@ -14,12 +14,10 @@ import {
   CheckboxOff,
   CheckboxOn,
   Forward,
-  Reply,
   ReplyAll
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'
 import { MenuSubmenuItem } from '@/ds/MenuSubmenu/MenuSubmenu'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
 import type { EmailDetail } from '@common/features/email/queries'
@@ -43,9 +41,8 @@ import {
 import type { TargetEmail } from './planEmailChanges'
 import { useRunEmailAction } from './useRunEmailAction'
 
-/** tmail-flutter's ticked box (`primaryMain`) and empty box (`steelGrayA540`) */
-const LABEL_ON_COLOR = TMAIL.primary0A
-const LABEL_OFF_COLOR = TMAIL.steel
+/** The ticked box is primary, the empty one keeps the colour of a menu icon */
+const LABEL_ON_COLOR = 'var(--twake-palette-primary-main)'
 
 const REPLY_MENU_IDS: Record<ReplyAction, string> = {
   reply: 'reply',
@@ -216,7 +213,7 @@ export function EmailActionsMenu({
               <ListItemIcon>
                 <Icon
                   icon={isOn ? CheckboxOn : CheckboxOff}
-                  color={isOn ? LABEL_ON_COLOR : LABEL_OFF_COLOR}
+                  color={isOn ? LABEL_ON_COLOR : undefined}
                 />
               </ListItemIcon>
               <MenuItemLabel label={labelDisplayName(label, t)} />

@@ -1,10 +1,9 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's destination picker
-// (`DestinationPickerView`): a 556 px dialog rounded by 16 px (the whole
+// Upstream to twake-ui: yes. A destination picker: a 556 px dialog (the whole
 // screen of a phone), the close cross at the start of a 52 px bar and the
-// title in its middle in Bold 20, a filled grey search field, then the
-// folders by blocks (the system ones, "Personal folders", "Team-mailboxes",
-// the last two folding), 36 px rows with a 20 px blue icon and the subfolders
-// folded behind a chevron after the name. twake-mui has no such picker.
+// title in its middle, a filled search field, then the folders by blocks
+// (the system ones, "Personal folders", "Team-mailboxes", the last two
+// folding), 36 px rows with a 20 px blue icon and the subfolders folded
+// behind a chevron after the name. twake-mui has no such picker.
 //
 // Accessibility: the search field is a combobox (ARIA 1.2) driving one
 // listbox per block; ArrowDown / ArrowUp move the active folder, ArrowRight
@@ -12,7 +11,15 @@
 // folder with subfolders is reached too (`aria-disabled`, Enter ignored) to
 // unfold it; the headers of the blocks are buttons (`aria-expanded`). An
 // optional "New folder" icon button, with its tooltip, ends the bar.
-import { Icon, type IconProps } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Bottom,
+  Check,
+  Magnifier,
+  Right,
+  Plus
+} from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
@@ -33,9 +40,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { Bottom, Check, Magnifier, Right } from '@/ds/FlutterIcons/FlutterIcons'
-import { AddNewFolder } from '@/ds/NavIcons/NavIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FolderPickerOption {
@@ -99,19 +103,15 @@ export interface FolderPickerProps {
   }
 }
 
-const PRIMARY = TMAIL.primary
-const DIVIDER = TMAIL.divider12
-
 function paperSx(isPhone: boolean): Record<string, unknown> {
   return isPhone
-    ? { borderRadius: '16px 16px 0 0', m: 0, mt: '12px' }
+    ? { m: 0, mt: '12px' }
     : {
         width: 556,
         maxWidth: 'calc(100% - 32px)',
         height: 'min(656px, calc(100dvh - 24px))',
         maxHeight: 'calc(100dvh - 24px)',
-        m: 0,
-        borderRadius: '16px'
+        m: 0
       }
 }
 
@@ -123,7 +123,8 @@ const BAR_SX = {
   flexShrink: 0,
   height: 52,
   px: '56px',
-  borderBottom: `1px solid ${DIVIDER}`
+  borderBottom: '1px solid',
+  borderColor: 'divider'
 } as const
 
 const CLOSE_SX = {
@@ -131,21 +132,19 @@ const CLOSE_SX = {
   left: 8,
   top: '50%',
   transform: 'translateY(-50%)',
-  color: TMAIL.greyLavender
+  color: 'text.icon'
 } as const
 
 const CREATE_SX = {
   ...CLOSE_SX,
   left: 'auto',
   right: 8,
-  color: PRIMARY
+  color: 'primary.main'
 } as const
 
 const TITLE_SX = {
-  fontSize: 20,
-  fontWeight: 700,
-  lineHeight: '28px',
-  color: TMAIL.textBlack,
+  typography: 'h4',
+  color: 'text.primary',
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis'
@@ -159,14 +158,17 @@ const SEARCH_SX = {
   height: 44,
   m: '16px',
   borderRadius: '10px',
-  bgcolor: TMAIL.fillToolbar,
-  color: TMAIL.grey,
+  bgcolor: 'background.default',
+  color: 'text.secondary',
   '& .MuiInputBase-root': {
     flex: '1 1 auto',
-    fontSize: 17,
-    color: TMAIL.textBlack
+    typography: 'body1',
+    color: 'text.primary'
   },
-  '& .MuiInputBase-input::placeholder': { color: TMAIL.grey, opacity: 1 }
+  '& .MuiInputBase-input::placeholder': {
+    color: 'text.secondary',
+    opacity: 1
+  }
 } as const
 
 const MAGNIFIER_SX = { display: 'flex', px: '8px' } as const
@@ -177,15 +179,14 @@ const HEADER_SX = {
   gap: '6px',
   px: '16px',
   py: '8px',
-  fontSize: 14,
-  lineHeight: '18px',
-  color: TMAIL.textBlack,
+  typography: 'body1',
+  color: 'text.primary',
   borderRadius: '8px'
 } as const
 
 const SECTION_DIVIDER_SX = {
   height: '1px',
-  bgcolor: DIVIDER,
+  bgcolor: 'divider',
   mx: '6px',
   my: '8px'
 } as const
@@ -209,14 +210,18 @@ function rowSx(
     borderRadius: isPhone ? '10px' : '8px',
     cursor: option.disabled === true ? 'default' : 'pointer',
     opacity: option.disabled === true ? 0.3 : 1,
-    bgcolor: isActive ? TMAIL.fillF2 : 'transparent',
+    bgcolor: isActive ? 'action.selected' : 'transparent',
     '&:hover': {
-      bgcolor: option.disabled === true ? undefined : TMAIL.fillEB
+      bgcolor: option.disabled === true ? undefined : 'action.hover'
     }
   }
 }
 
-const ICON_SX = { display: 'flex', color: PRIMARY, flexShrink: 0 } as const
+const ICON_SX = {
+  display: 'flex',
+  color: 'primary.main',
+  flexShrink: 0
+} as const
 
 const TEXT_SX = { flex: '1 1 auto', minWidth: 0 } as const
 
@@ -225,18 +230,16 @@ function nameSx(isCurrent: boolean): Record<string, unknown> {
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
-    fontSize: 14,
-    lineHeight: '18px',
-    fontWeight: isCurrent ? 700 : 400,
-    color: TMAIL.textBlack
+    typography: 'body1',
+    fontWeight: isCurrent ? 600 : 400,
+    color: 'text.primary'
   }
 }
 
 const SECONDARY_SX = {
   display: 'block',
-  fontSize: 14,
-  lineHeight: '18px',
-  color: TMAIL.grey,
+  typography: 'body1',
+  color: 'text.secondary',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
@@ -244,7 +247,7 @@ const SECONDARY_SX = {
 
 const CHEVRON_SX = {
   display: 'flex',
-  color: TMAIL.textBlack,
+  color: 'text.primary',
   p: '3px'
 } as const
 
@@ -500,7 +503,7 @@ export function FolderPicker({
               sx={CREATE_SX}
               data-testid={testIds.create}
             >
-              <Icon icon={AddNewFolder} size={24} aria-hidden="true" />
+              <Icon icon={Plus} size={24} aria-hidden="true" />
             </IconButton>
           </Tooltip>
         )}

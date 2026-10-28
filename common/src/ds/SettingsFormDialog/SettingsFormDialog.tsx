@@ -1,18 +1,25 @@
-// Upstream to twake-ui: no, the look of tmail-flutter's form dialogs of the
-// settings (`RuleFilterCreatorView`): 612 px wide and at most 674 px high,
-// rounded by 16 px, the title centred in Semi Bold 24 with a close cross at
-// the top end, the fields 32 px in, and at the end "Cancel" in blue text
-// and the confirming 48 px blue pill. A phone gets the whole screen: an
-// arrow back and the title in the middle of a 64 px bar. Its parts: the
-// labels of the fields (Semi Bold 14 black), the light grey boxes holding
-// a condition or an action, the outlined blue pills adding one ("Add a
-// condition"), the native selects and the field buttons (a folder) drawn
-// as tmail-flutter's 40 px dropdowns.
-import { Icon, type IconProps } from '@linagora/twake-icons'
+// Upstream to twake-ui: no. The form dialogs of the settings (the rule
+// creator): twake-mui's `Dialog` at most 674 px high, the title with a close
+// cross at the top end, the fields scrolling inside, and at the end "Cancel"
+// and the confirming button. A phone gets the whole screen, an arrow back
+// before the title. Its parts: the labels of the fields, the boxes holding a
+// condition or an action, the outlined buttons adding one ("Add a
+// condition"), the native selects and the field buttons (a folder).
+import {
+  Icon,
+  type IconProps,
+  Dropdown,
+  Cross,
+  Previous
+} from '@linagora/twake-icons'
 import {
   Box,
+  Button,
   ButtonBase,
   Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   TextField,
   Tooltip,
@@ -26,118 +33,13 @@ import type {
   SubmitEvent
 } from 'react'
 
-import {
-  ArrowBack,
-  CloseDialog,
-  Dropdown
-} from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
-const PRIMARY = TMAIL.primary
-// The confirming pill keeps its blue, under its white label
-const PRIMARY_FILL = '#007AFF'
-
 const PAPER_SX = {
-  width: 612,
-  // Over the 544 px of twake-mui's `medium` dialog
-  '&&': { maxWidth: 'calc(100% - 32px)' },
-  // As tmail-flutter: as tall as it may be, the fields scrolling inside
+  // As tall as it may be, the fields scrolling inside
   height: 'min(calc(100dvh - 100px), 674px)',
   maxHeight: 'none',
-  m: 2,
-  borderRadius: '16px',
-  boxShadow: '0 2px 24px rgba(0, 0, 0, 0.08), 0 0 2px rgba(0, 0, 0, 0.08)',
-  position: 'relative',
-  display: 'flex',
-  flexDirection: 'column',
   overflow: 'hidden'
-} as const
-
-const TITLE_SX = {
-  flexShrink: 0,
-  m: 0,
-  pt: 3,
-  pb: 2,
-  px: 7,
-  textAlign: 'center',
-  fontSize: 24,
-  fontWeight: 600,
-  lineHeight: '32px',
-  color: TMAIL.textOnSurface
-} as const
-
-const PHONE_BAR_SX = {
-  flexShrink: 0,
-  display: 'flex',
-  alignItems: 'center',
-  height: 64,
-  pl: 1,
-  pr: 2
-} as const
-
-const PHONE_TITLE_SX = {
-  flex: '1 1 auto',
-  minWidth: 0,
-  m: 0,
-  mr: 5,
-  textAlign: 'center',
-  fontSize: 16,
-  fontWeight: 400,
-  lineHeight: '24px',
-  color: TMAIL.textOnSurface
-} as const
-
-const CLOSE_SX = {
-  position: 'absolute',
-  top: 4,
-  right: 4,
-  p: '10px',
-  color: TMAIL.steelLight
-} as const
-
-function bodySx(isPhone: boolean): Record<string, unknown> {
-  return {
-    flex: '1 1 auto',
-    minHeight: 0,
-    overflowY: 'auto',
-    px: isPhone ? 2 : 4
-  }
-}
-
-function footerSx(isPhone: boolean): Record<string, unknown> {
-  return {
-    flexShrink: 0,
-    display: 'flex',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: 1,
-    py: '25px',
-    px: isPhone ? 2 : 4
-  }
-}
-
-const TEXT_BUTTON_SX = {
-  minWidth: 67,
-  height: 48,
-  px: '10px',
-  borderRadius: '100px',
-  color: PRIMARY,
-  fontSize: 14,
-  fontWeight: 500,
-  lineHeight: '20px',
-  letterSpacing: '0.1px',
-  '&:hover': { bgcolor: TMAIL.blueHover },
-  '&.Mui-disabled': { opacity: 0.38 }
-} as const
-
-const MAIN_BUTTON_SX = {
-  ...TEXT_BUTTON_SX,
-  minWidth: 143,
-  px: 3,
-  color: '#FFFFFF',
-  bgcolor: PRIMARY_FILL,
-  '&:hover': { bgcolor: '#0062CC' }
 } as const
 
 export interface SettingsFormDialogProps {
@@ -160,7 +62,7 @@ export interface SettingsFormDialogProps {
   cancelTestId?: string
 }
 
-/** A form of the settings in a dialog, as tmail-flutter's rule creator */
+/** A form of the settings in a dialog */
 export function SettingsFormDialog({
   title,
   titleId,
@@ -180,11 +82,10 @@ export function SettingsFormDialog({
     <Dialog
       open
       onClose={handleClose}
+      size="medium"
       fullScreen={isPhone}
-      // Its own width: not the 600 px of MUI's `sm`
-      maxWidth={false}
       aria-labelledby={titleId}
-      slotProps={{ paper: { sx: isPhone ? { display: 'flex' } : PAPER_SX } }}
+      slotProps={{ paper: { sx: isPhone ? undefined : PAPER_SX } }}
       data-testid={testId}
     >
       <Box
@@ -195,53 +96,50 @@ export function SettingsFormDialog({
         sx={{ minHeight: 0 }}
       >
         {isPhone ? (
-          <Box sx={PHONE_BAR_SX}>
+          <>
             <Tooltip title={labels.back}>
               <IconButton
                 aria-label={labels.back}
                 onClick={handleClose}
-                sx={{ color: TMAIL.textOnSurface }}
+                className="dialogIconButton dialogBackButton"
               >
-                <Icon icon={ArrowBack} size={24} />
+                <Icon icon={Previous} size={24} />
               </IconButton>
             </Tooltip>
-            <Typography id={titleId} component="h2" sx={PHONE_TITLE_SX}>
+            <DialogTitle id={titleId} className="dialogTitleWithBack">
               {title}
-            </Typography>
-          </Box>
+            </DialogTitle>
+          </>
         ) : (
-          <Typography id={titleId} component="h2" sx={TITLE_SX}>
-            {title}
-          </Typography>
+          <>
+            <DialogTitle id={titleId} className="dialogTitleWithClose">
+              {title}
+            </DialogTitle>
+            <IconButton
+              aria-label={labels.close}
+              onClick={handleClose}
+              className="dialogIconButton dialogCloseButton"
+            >
+              <Icon icon={Cross} size={24} />
+            </IconButton>
+          </>
         )}
-        <Box sx={bodySx(isPhone)}>{children}</Box>
-        <Box sx={footerSx(isPhone)}>
-          <ButtonBase
+        <DialogContent sx={{ flex: '1 1 auto', minHeight: 0 }}>
+          {children}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="text"
             onClick={onClose}
             disabled={isBusy}
-            sx={TEXT_BUTTON_SX}
             data-testid={cancelTestId}
           >
             {labels.cancel}
-          </ButtonBase>
-          <ButtonBase
-            type="submit"
-            disabled={isBusy}
-            sx={MAIN_BUTTON_SX}
-            data-testid={submitTestId}
-          >
+          </Button>
+          <Button type="submit" disabled={isBusy} data-testid={submitTestId}>
             {labels.submit}
-          </ButtonBase>
-        </Box>
-        {isPhone ? null : (
-          <IconButton
-            aria-label={labels.close}
-            onClick={handleClose}
-            sx={CLOSE_SX}
-          >
-            <Icon icon={CloseDialog} size={24} />
-          </IconButton>
-        )}
+          </Button>
+        </DialogActions>
       </Box>
     </Dialog>
   )
@@ -250,10 +148,8 @@ export function SettingsFormDialog({
 const LABEL_SX = {
   display: 'block',
   m: 0,
-  fontSize: 14,
-  fontWeight: 600,
-  lineHeight: '18px',
-  color: TMAIL.textBlack
+  typography: 'subtitle2',
+  color: 'text.primary'
 } as const
 
 export interface SettingsFormLabelProps {
@@ -296,7 +192,7 @@ const BOX_SX = {
   py: '12px',
   pl: '12px',
   borderRadius: '10px',
-  bgcolor: TMAIL.fillF9
+  bgcolor: 'background.default'
 } as const
 
 export interface SettingsFormBoxProps {
@@ -308,7 +204,7 @@ export interface SettingsFormBoxProps {
   'data-testid'?: string
 }
 
-/** A light grey box holding a condition or an action, in a row */
+/** A box holding a condition or an action, in a row */
 export function SettingsFormBox({
   label,
   kind = 'condition',
@@ -341,7 +237,7 @@ export interface SettingsFormStackProps {
   children: ReactNode
 }
 
-/** The fields of a box one under the other, as tmail-flutter on a phone */
+/** The fields of a box one under the other, on a phone */
 export function SettingsFormStack({
   isStacked,
   children
@@ -351,19 +247,14 @@ export function SettingsFormStack({
   )
 }
 
-const TEXT_SX = {
-  fontSize: 14,
-  fontWeight: 400,
-  lineHeight: '18px',
-  color: TMAIL.textBlack
-} as const
+const TEXT_SX = { typography: 'body1', color: 'text.primary' } as const
 
 export interface SettingsFormTextProps {
   children: ReactNode
   className?: string
 }
 
-/** A text between the fields ("If", "of the following…"): Regular 14 */
+/** A text between the fields ("If", "of the following…") */
 export function SettingsFormText({
   children,
   className
@@ -375,25 +266,6 @@ export function SettingsFormText({
   )
 }
 
-const OUTLINED_SX = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 1,
-  minWidth: 161,
-  height: 36,
-  px: 2,
-  borderRadius: '100px',
-  border: `1px solid ${PRIMARY}`,
-  bgcolor: TMAIL.surface,
-  color: PRIMARY,
-  fontSize: 14,
-  fontWeight: 500,
-  lineHeight: '20px',
-  letterSpacing: '0.1px',
-  '&:hover': { bgcolor: TMAIL.blueHover }
-} as const
-
 export interface SettingsOutlinedButtonProps {
   label: string
   icon: IconProps['icon']
@@ -402,7 +274,7 @@ export interface SettingsOutlinedButtonProps {
   'data-testid'?: string
 }
 
-/** An outlined blue pill adding a row, e.g. "Add a condition" */
+/** An outlined button adding a row, e.g. "Add a condition" */
 export function SettingsOutlinedButton({
   label,
   icon,
@@ -411,36 +283,23 @@ export function SettingsOutlinedButton({
   'data-testid': testId
 }: SettingsOutlinedButtonProps): ReactElement {
   return (
-    <ButtonBase
+    <Button
+      variant="outlined"
+      size="small"
       onClick={onClick}
       className={className}
-      sx={OUTLINED_SX}
+      startIcon={<Icon icon={icon} size={14} aria-hidden="true" />}
       data-testid={testId}
     >
-      <Icon icon={icon} size={14} aria-hidden="true" />
       {label}
-    </ButtonBase>
+    </Button>
   )
 }
 
 const FIELD_SX = {
-  '& .MuiOutlinedInput-root': {
-    height: 40,
-    borderRadius: '10px',
-    bgcolor: TMAIL.surface,
-    fontSize: 14,
-    lineHeight: '20px',
-    color: TMAIL.textBlack,
-    '& fieldset': { borderColor: TMAIL.outline },
-    '&:hover fieldset': { borderColor: TMAIL.outlineHover },
-    '&.Mui-focused fieldset': { borderColor: PRIMARY, borderWidth: 1 },
-    '&.Mui-error fieldset': { borderColor: TMAIL.error }
-  },
-  '& .MuiOutlinedInput-input': {
-    pl: '12px',
-    '&::placeholder': { color: TMAIL.grey, opacity: 1 }
-  },
-  '& .MuiNativeSelect-icon, & .MuiSelect-icon': { color: TMAIL.grey },
+  '& .MuiOutlinedInput-root': { height: 40 },
+  '& .MuiOutlinedInput-input': { pl: '12px' },
+  '& .MuiNativeSelect-icon, & .MuiSelect-icon': { color: 'text.icon' },
   '& .MuiFormHelperText-root': { mx: 0 }
 } as const
 
@@ -456,7 +315,7 @@ export interface SettingsFormSelectProps {
   inputTestId?: string
 }
 
-/** A native select of the dialog, as tmail-flutter's 40 px dropdowns */
+/** A native select of the dialog, a 40 px dropdown */
 export function SettingsFormSelect({
   label,
   value,
@@ -485,7 +344,7 @@ export function SettingsFormSelect({
   )
 }
 
-/** tmail-flutter's thin chevron of its dropdowns, where MUI draws its own */
+/** A thin chevron, where MUI draws its own */
 function SelectChevron({ className }: { className?: string }): ReactElement {
   return (
     <Box
@@ -502,18 +361,6 @@ function SelectChevron({ className }: { className?: string }): ReactElement {
   )
 }
 
-const PREVIEW_TOGGLE_SX = {
-  gap: '4px',
-  py: '5px',
-  px: 1,
-  borderRadius: '100px',
-  color: PRIMARY,
-  fontSize: 11,
-  fontWeight: 500,
-  lineHeight: '16px',
-  '&:hover': { bgcolor: TMAIL.blueHover }
-} as const
-
 export interface SettingsPreviewToggleProps {
   label: string
   isOn: boolean
@@ -523,7 +370,7 @@ export interface SettingsPreviewToggleProps {
   'data-testid'?: string
 }
 
-/** The small blue "Preview" toggle at the end of a label */
+/** The small "Preview" toggle at the end of a label */
 export function SettingsPreviewToggle({
   label,
   isOn,
@@ -532,33 +379,35 @@ export function SettingsPreviewToggle({
   'data-testid': testId
 }: SettingsPreviewToggleProps): ReactElement {
   return (
-    <ButtonBase
+    <Button
+      variant="text"
+      size="small"
       aria-pressed={isOn}
       onClick={onToggle}
-      sx={PREVIEW_TOGGLE_SX}
+      startIcon={
+        <Icon icon={isOn ? icons.on : icons.off} size={12} aria-hidden="true" />
+      }
       data-testid={testId}
     >
-      <Icon icon={isOn ? icons.on : icons.off} size={12} aria-hidden="true" />
       {label}
-    </ButtonBase>
+    </Button>
   )
 }
 
 function bannerSx(isAction: boolean): Record<string, unknown> {
-  const color = isAction ? '#166534' : '#0157AD'
+  const tone = isAction ? 'success' : 'info'
   return {
     display: 'flex',
     alignItems: 'flex-start',
     gap: 1,
     p: '4px',
     borderRadius: '8px',
-    border: `1px solid ${isAction ? '#BBF7D0' : '#BFDBFE'}`,
-    bgcolor: isAction ? '#F0FDF4' : '#EFF6FF',
-    color,
-    fontSize: 14,
-    lineHeight: '20px',
-    letterSpacing: '0.1px',
-    '& strong': { fontWeight: 700 }
+    border: '1px solid',
+    borderColor: `${tone}.main`,
+    bgcolor: `${tone}.light`,
+    color: `${tone}.dark`,
+    typography: 'body1',
+    '& strong': { fontWeight: 600 }
   }
 }
 
@@ -573,7 +422,7 @@ export interface SettingsPreviewBannerProps {
   'data-testid'?: string
 }
 
-/** What a rule will do, in words, as tmail-flutter's `RulePreviewBanner` */
+/** What a rule will do, in words */
 export function SettingsPreviewBanner({
   kind,
   icon,
@@ -615,7 +464,7 @@ export interface SettingsFormTextFieldProps {
   inputTestId?: string
 }
 
-/** A text field of the dialog: 40 px high, rounded by 10 px */
+/** A text field of the dialog: 40 px high */
 export function SettingsFormTextField({
   value,
   onChange,
@@ -665,13 +514,13 @@ const FIELD_BUTTON_SX = {
   height: 40,
   pl: '12px',
   pr: '10px',
-  borderRadius: '10px',
-  border: `1px solid ${TMAIL.outline}`,
-  bgcolor: TMAIL.surface,
-  fontSize: 14,
-  lineHeight: '20px',
+  borderRadius: 1,
+  border: '1px solid',
+  borderColor: 'border.main',
+  bgcolor: 'background.paper',
+  typography: 'body1',
   textAlign: 'start',
-  '&:hover': { borderColor: TMAIL.outlineHover }
+  '&:hover': { borderColor: 'text.primary' }
 } as const
 
 export interface SettingsFormFieldButtonProps {
@@ -725,8 +574,8 @@ export function SettingsFormFieldButton({
           ...FIELD_BUTTON_SX,
           flex: 'none',
           width: '100%',
-          color: value === null ? TMAIL.grey757 : TMAIL.textBlack,
-          ...(hasError ? { borderColor: TMAIL.error } : {})
+          color: value === null ? 'text.secondary' : 'text.primary',
+          ...(hasError ? { borderColor: 'error.main' } : {})
         }}
         data-testid={testId}
       >
@@ -740,7 +589,7 @@ export function SettingsFormFieldButton({
         >
           {value ?? hint}
         </Box>
-        <Box component="span" sx={{ display: 'flex', color: TMAIL.grey }}>
+        <Box component="span" sx={{ display: 'flex', color: 'text.icon' }}>
           <Icon icon={Dropdown} size={16} aria-hidden="true" />
         </Box>
       </ButtonBase>
@@ -748,7 +597,7 @@ export function SettingsFormFieldButton({
         <Typography
           id={errorId}
           variant="caption"
-          sx={{ color: TMAIL.error, mt: '3px', mx: '14px' }}
+          sx={{ color: 'error.main', mt: '3px', mx: '14px' }}
         >
           {error}
         </Typography>

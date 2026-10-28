@@ -1,8 +1,8 @@
+import { RestoreStraight, SelectAll, Refresh } from '@linagora/twake-icons'
 import { Box, CircularProgress } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { RestoreStraight, SelectAll } from '@/ds/FlutterIcons/FlutterIcons'
-import { CheckboxBlankIcon, RefreshIcon } from '@/ds/ListIcons/ListIcons'
+import { CheckboxBlankIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
@@ -91,7 +91,7 @@ export function EmailListDefaultToolbar({
       ) : (
         <IconAction
           label={refreshLabel}
-          icon={RefreshIcon}
+          icon={Refresh}
           iconSize={16}
           // As tmail-flutter: its 26 x 24 drawing, 16 px high
           iconWidth={(16 * 26) / 24}

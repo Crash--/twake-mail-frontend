@@ -2,19 +2,18 @@
 // its list): a centred dialog on desktop and tablets, a sheet rising from the
 // bottom edge on phones, with a title and a close button in both. twake-mui's
 // `Dialog` is always centred and its `Drawer` has no title.
-import { Icon } from '@linagora/twake-icons'
+import { Icon, Cross } from '@linagora/twake-icons'
 import {
   Box,
   Dialog,
   DialogContent,
+  DialogTitle,
   Drawer,
   IconButton,
   Tooltip
 } from '@linagora/twake-mui'
 import { useId, type ReactElement, type ReactNode } from 'react'
 
-import { CloseDialog, Cross } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface PickerSheetProps {
@@ -33,33 +32,6 @@ export interface PickerSheetProps {
   'data-testid'?: string
   closeButtonTestId?: string
 }
-
-/** tmail-flutter's modal (`ds/ModalDialog`): 554 px, rounded by 16 px */
-const MODAL_PAPER_SX = {
-  width: 554,
-  maxWidth: 'calc(100% - 32px)',
-  borderRadius: '16px',
-  position: 'relative'
-} as const
-
-const MODAL_HEADER_SX = { minHeight: 64, pt: '16px', px: '56px' } as const
-
-const MODAL_TITLE_SX = {
-  m: 0,
-  textAlign: 'center',
-  fontSize: 24,
-  fontWeight: 400,
-  lineHeight: '32px',
-  color: TMAIL.textOnSurface
-} as const
-
-const MODAL_CLOSE_SX = {
-  position: 'absolute',
-  top: 4,
-  right: 4,
-  p: '10px',
-  color: TMAIL.steelLight
-} as const
 
 const SHEET_SX = {
   borderTopLeftRadius: 16,
@@ -86,43 +58,29 @@ export function PickerSheet({
 }: PickerSheetProps): ReactElement {
   const titleId = useId()
   const isPhone = useScreenSize() === 'mobile'
-  // A dialog takes the frame of tmail-flutter's modals: the title in the
-  // middle, the close cross at the top end
-  const header = (
-    <Box
-      className={
-        isPhone
-          ? 'u-flex u-flex-items-center u-ph-1 u-pt-half'
-          : 'u-flex u-flex-items-center'
-      }
-      sx={isPhone ? undefined : MODAL_HEADER_SX}
-    >
-      <Box
-        component="h2"
-        id={titleId}
-        className="u-flex-auto"
-        sx={isPhone ? { typography: 'h6', m: 0, px: 1 } : MODAL_TITLE_SX}
-      >
-        {title}
-      </Box>
-      <Tooltip title={closeLabel}>
-        <IconButton
-          aria-label={closeLabel}
-          onClick={onClose}
-          data-testid={closeButtonTestId}
-          sx={isPhone ? undefined : MODAL_CLOSE_SX}
-        >
-          <Icon
-            icon={isPhone ? Cross : CloseDialog}
-            size={isPhone ? undefined : 24}
-            aria-hidden="true"
-          />
-        </IconButton>
-      </Tooltip>
-    </Box>
-  )
 
   if (isPhone) {
+    const header = (
+      <Box className="u-flex u-flex-items-center u-ph-1 u-pt-half">
+        <Box
+          component="h2"
+          id={titleId}
+          className="u-flex-auto"
+          sx={{ typography: 'h6', m: 0, px: 1 }}
+        >
+          {title}
+        </Box>
+        <Tooltip title={closeLabel}>
+          <IconButton
+            aria-label={closeLabel}
+            onClick={onClose}
+            data-testid={closeButtonTestId}
+          >
+            <Icon icon={Cross} aria-hidden="true" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    )
     return (
       <Drawer
         variant="temporary"
@@ -161,11 +119,23 @@ export function PickerSheet({
       disableRestoreFocus={disableRestoreFocus}
       slotProps={{
         // @ts-expect-error data attributes are valid on the paper
-        paper: { 'data-testid': testId, sx: MODAL_PAPER_SX }
+        paper: { 'data-testid': testId }
       }}
     >
-      {header}
-      <DialogContent sx={{ px: '32px', pb: '32px' }}>{children}</DialogContent>
+      <DialogTitle id={titleId} className="dialogTitleWithClose">
+        {title}
+      </DialogTitle>
+      <Tooltip title={closeLabel}>
+        <IconButton
+          aria-label={closeLabel}
+          onClick={onClose}
+          data-testid={closeButtonTestId}
+          className="dialogIconButton dialogCloseButton"
+        >
+          <Icon icon={Cross} size={24} aria-hidden="true" />
+        </IconButton>
+      </Tooltip>
+      <DialogContent sx={{ pb: '32px' }}>{children}</DialogContent>
     </Dialog>
   )
 }

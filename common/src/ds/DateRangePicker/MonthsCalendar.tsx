@@ -1,12 +1,11 @@
 // Upstream to twake-ui: yes, twake-mui has no calendar (MUI X's date pickers
-// are not part of it). The month view of tmail-flutter's date range picker
-// (Syncfusion's `SfDateRangePicker`, `flutter_date_range_picker`): one month or
-// two side by side, a bold centred month name between the arrows, the week
-// from Monday, the start and the end of the range filled blue and rounded by
-// 6 px, today on grey. A grid of days as the APG date picker dialog: arrows,
+// are not part of it). The month view of the date range picker: one month or
+// two side by side, the month name between the arrows, the week from Monday,
+// the start and the end of the range filled with the primary colour, today
+// on `action.selected`. A grid of days as the APG date picker dialog: arrows,
 // Home / End, Page Up / Page Down (a year with Shift), Enter or Space picks.
-import { Icon } from '@linagora/twake-icons'
-import { Box, IconButton, Tooltip } from '@mui/material'
+import { Icon, Left, Right } from '@linagora/twake-icons'
+import { Box, IconButton, radius, Tooltip } from '@linagora/twake-mui'
 import {
   useEffect,
   useId,
@@ -15,9 +14,6 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
-
-import { Left, Right } from '@/ds/FlutterIcons/FlutterIcons'
-import { TMAIL } from '@/ds/TmailColors/tmailColors'
 
 import {
   addDays,
@@ -177,7 +173,7 @@ export function MonthsCalendar({
                 bottom: 0,
                 left: '-16px',
                 borderLeft: '1px solid',
-                borderColor: TMAIL.divider
+                borderColor: 'divider'
               }
             }}
           >
@@ -204,10 +200,8 @@ export function MonthsCalendar({
                 id={titleId}
                 aria-live="polite"
                 sx={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  lineHeight: '24px',
-                  color: TMAIL.textBlack,
+                  typography: 'subtitle1',
+                  color: 'text.primary',
                   textAlign: 'center',
                   '&::first-letter': { textTransform: 'uppercase' }
                 }}
@@ -248,9 +242,8 @@ export function MonthsCalendar({
                       sx={{
                         height: 32,
                         p: 0,
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: TMAIL.textBlack,
+                        typography: 'subtitle2',
+                        color: 'text.primary',
                         textAlign: 'center',
                         overflow: 'hidden',
                         textOverflow: 'clip',
@@ -311,11 +304,7 @@ interface NavArrowProps {
 function NavArrow({ label, isNext, onClick }: NavArrowProps): ReactElement {
   return (
     <Tooltip title={label}>
-      <IconButton
-        aria-label={label}
-        onClick={onClick}
-        sx={{ width: 36, height: 36, p: 0, color: TMAIL.greySlate }}
-      >
+      <IconButton aria-label={label} onClick={onClick} size="small">
         <Icon icon={isNext ? Right : Left} size={24} />
       </IconButton>
     </Tooltip>
@@ -365,25 +354,26 @@ function DayCell({
         height: CELL_HEIGHT,
         p: 0,
         textAlign: 'center',
-        fontSize: 13,
+        typography: 'body2',
         lineHeight: `${String(CELL_HEIGHT)}px`,
         // A day inside the range joins its neighbours in one band
-        borderRadius: isInRange && !isEdge ? 0 : '6px',
+        borderRadius: isInRange && !isEdge ? 0 : radius.sm,
         cursor: isDisabled ? 'default' : 'pointer',
         userSelect: 'none',
         color: isEdge
-          ? '#FFFFFF'
+          ? 'primary.contrastText'
           : isDisabled
-            ? TMAIL.greyFaint
-            : TMAIL.textBlack,
-        bgcolor: isEdge
-          ? TMAIL.primary
-          : isInRange
-            ? TMAIL.blueSelected
-            : isToday
-              ? TMAIL.fillEB
-              : 'transparent',
-        '&:hover': isEdge || isDisabled ? {} : { bgcolor: TMAIL.fillSelected }
+            ? 'text.disabled'
+            : 'text.primary',
+        bgcolor: theme =>
+          isEdge
+            ? theme.vars.palette.primary.main
+            : isInRange
+              ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 16%, transparent)`
+              : isToday
+                ? theme.vars.palette.action.selected
+                : 'transparent',
+        '&:hover': isEdge || isDisabled ? {} : { bgcolor: 'action.hover' }
       }}
     >
       {Number(day.slice(8))}

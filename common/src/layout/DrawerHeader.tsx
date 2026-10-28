@@ -29,7 +29,7 @@ export function DrawerHeader(): ReactElement {
     >
       <Box className="u-flex-auto u-ov-hidden">
         {/* As tmail-flutter's drawer: a smaller logotype */}
-        {sdk === null ? null : <AppTitle height={22} />}
+        {sdk === null ? null : <AppTitle />}
       </Box>
       {isPlatformActive ? null : (
         <>

@@ -1,4 +1,14 @@
-import { Icon } from '@linagora/twake-icons'
+import {
+  Icon,
+  AssistantColor,
+  Bottom,
+  Copy,
+  Warning,
+  Cross,
+  Refresh,
+  Send,
+  Assistant
+} from '@linagora/twake-icons'
 import {
   useEffect,
   useRef,
@@ -29,15 +39,7 @@ import {
   AiMorePolite,
   AiMoreProfessional,
   AiShorter,
-  AiTranslate,
-  AssistantColor,
-  Bottom,
-  CloseDialog,
-  Copy,
-  RetryArrows,
-  SendArrow,
-  Sparkle,
-  Warning
+  AiTranslate
 } from '@/ds/FlutterIcons/FlutterIcons'
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useScribePreference } from '@common/features/scribe/scribePreference'
@@ -350,7 +352,7 @@ export function ScribeMenu({
         <AiScribeBar
           label={t('composer.scribe.helpMeWrite')}
           sendLabel={t('composer.send')}
-          sendIcon={SendArrow}
+          sendIcon={Send}
           onSubmit={handleWrite}
           autoFocus
           data-testid="composer-scribe-task"
@@ -373,11 +375,11 @@ export function ScribeMenu({
           insert: t('composer.scribe.insert')
         }}
         icons={{
-          sparkle: Sparkle,
+          sparkle: Assistant,
           warning: Warning,
-          close: CloseDialog,
+          close: Cross,
           copy: Copy,
-          retry: RetryArrows,
+          retry: Refresh,
           chevron: Bottom
         }}
         onClose={handleClose}

@@ -1,14 +1,14 @@
-import { Box } from '@linagora/twake-mui'
-import { useState, type ReactElement } from 'react'
-
 import {
   Archive,
-  MoveEmail,
   Reply,
   Star,
   StarOutline,
-  Trash
-} from '@/ds/FlutterIcons/FlutterIcons'
+  Trash,
+  Moveto
+} from '@linagora/twake-icons'
+import { Box } from '@linagora/twake-mui'
+import { useState, type ReactElement } from 'react'
+
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -122,7 +122,7 @@ export function EmailViewActions({
       {!showsReply || replies.actions.length === 0 ? null : (
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={replyLabel}
           icon={Reply}
           onClick={() => {
@@ -134,9 +134,9 @@ export function EmailViewActions({
       {!showsShortcuts || move === undefined ? null : (
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={t(move.label)}
-          icon={move.id === 'move' ? MoveEmail : Archive}
+          icon={move.id === 'move' ? Moveto : Archive}
           onClick={() => {
             handleRun(move.id)
           }}
@@ -148,7 +148,7 @@ export function EmailViewActions({
           size={36}
           label={starLabel}
           icon={isStarred ? Star : StarOutline}
-          tone={isStarred ? 'starred' : 'steel'}
+          tone={isStarred ? 'starred' : 'icon'}
           aria-pressed={isStarred}
           onClick={() => {
             handleRun(isStarred ? 'unstar' : 'star')
@@ -159,7 +159,7 @@ export function EmailViewActions({
       {!showsShortcuts || deletion === undefined ? null : (
         <IconAction
           size={36}
-          tone="steel"
+          tone="icon"
           label={t(deletion.label)}
           icon={Trash}
           onClick={() => {
@@ -170,7 +170,7 @@ export function EmailViewActions({
       )}
       <IconAction
         size={36}
-        tone="steel"
+        tone="icon"
         label={moreLabel}
         icon={MoreVerticalIcon}
         aria-haspopup="menu"

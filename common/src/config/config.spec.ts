@@ -62,6 +62,7 @@ describe('resolveConfig', () => {
         sentryFeedbackEnabled: false,
         forwardWarningMessage: null,
         workplaceEmbedding: false,
+        tdriveEnabled: false,
         appVersion: 'dev'
       })
     })
@@ -76,6 +77,12 @@ describe('resolveConfig', () => {
     expect(result.ok && result.value.forwardWarningMessage).toBe(
       'No external forward.'
     )
+  })
+
+  it('turns the Drive picker on with TDRIVE_ENABLED', () => {
+    expect(
+      resolveConfig({ ...OIDC_SOURCE, TDRIVE_ENABLED: 'true' }, ORIGIN)
+    ).toMatchObject({ value: { tdriveEnabled: true } })
   })
 
   it('accepts the basic mode without any SSO setting', () => {

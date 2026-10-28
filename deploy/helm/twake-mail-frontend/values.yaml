@@ -145,6 +145,11 @@ config:
   # (/embed/team-mailboxes/<id>); allow it in csp.frameAncestors
   twakeSpaceUrl: ""
   forwardWarningMessage: ""
+  # -- Twake Drive picker of the composer, offered on the Workplace of the
+  # user (OIDC, workplaceFqdn claim or workplaceFqdnFallback) when Drive is
+  # installed there. Allow the Drive hosts in csp.frameSrc
+  tdrive:
+    enabled: false
   # -- JavaScript appended to .env.js as is, for a variable this chart does not
   # know yet
   extraEnvJs: ""

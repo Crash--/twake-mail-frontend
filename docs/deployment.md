@@ -139,8 +139,8 @@ Keys that only this app has: `AUTH_MODE` (`oidc` or `basic`; unset, the SSO is
 looked for and the credentials form shows when there is none, as in
 tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SSO_REDIRECT_URI`,
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
-`CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`.
-tmail-flutter takes the calendar and
+`CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
+`TDRIVE_ENABLED`. tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
 upgrade (below), not for the calendar nor the Workplace of the user.
@@ -216,7 +216,9 @@ as in tmail-flutter (`SSO_BASE_URL` and `AUTH_MODE` override that).
 The env.file of the `linagora/tmail-frontend` chart has no key for the
 feedback button: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
 environment of the container (`extraEnv` of the chart). It is added to the
-generated `/.env.js` when the `env.file` has no such key.
+generated `/.env.js` when the `env.file` has no such key, as are
+`TWAKE_SPACE_URL` and `TDRIVE_ENABLED` (the
+[Twake Drive picker](#twake-drive-picker)).
 
 ## Docker Compose
 
@@ -574,11 +576,11 @@ it; make sure the reverse proxy does not add one either.
 
 ## Twake Drive picker
 
-The composer offers "Attach from Drive" once the app is signed in to the
-Twake Workplace of the user, as the [platform top bar](#platform-top-bar)
-(OIDC, the `workplaceFqdn` claim or `WORKPLACE_FQDN_FALLBACK`, the token
-exchange), and Twake Drive is installed there; framed by the Workplace too.
-Nothing to set: the picker creates its intent (`PICK io.cozy.files`) with
+With `TDRIVE_ENABLED = true`, the composer offers "Attach from Drive" once
+the app is signed in to the Twake Workplace of the user, as the
+[platform top bar](#platform-top-bar) (OIDC, the `workplaceFqdn` claim or
+`WORKPLACE_FQDN_FALLBACK`, the token exchange), and Twake Drive is installed
+there; framed by the Workplace too. The picker creates its intent (`PICK io.cozy.files`) with
 the token of the Workplace and frames the Drive application, usually on
 another host (`<user>-drive.<domain>`). Allow both, with wildcards when every
 user has their own host:

@@ -58,6 +58,8 @@ declare global {
     WORKPLACE_EMBEDDING?: boolean | string
     /** Same as WORKPLACE_EMBEDDING, as named by tmail-flutter */
     COZY_INTEGRATION?: boolean | string
+    /** The Twake Drive picker of the composer (as Twake Calendar) */
+    TDRIVE_ENABLED?: boolean | string
 
     APP_VERSION?: string
   }

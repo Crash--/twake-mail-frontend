@@ -98,6 +98,12 @@ var FORWARD_WARNING_MESSAGE = ''
 // its origin.
 var WORKPLACE_EMBEDDING = false
 
+// Twake Drive picker of the composer ("Attach from Drive"), as Twake Calendar:
+// add files as a link (a card in the message) or as attachments. Offered on
+// the Workplace of the user, as the platform top bar (OIDC, the workplaceFqdn
+// claim or WORKPLACE_FQDN_FALLBACK), when Twake Drive is installed there.
+var TDRIVE_ENABLED = false
+
 // Keys of tmail-flutter that this app ignores: APP_GRID_AVAILABLE (the apps
 // are those of the platform top bar), FCM_AVAILABLE, IOS_FCM,
 // FIREBASE_* (push notifications of the mobile apps), PLATFORM, WS_ECHO_PING,

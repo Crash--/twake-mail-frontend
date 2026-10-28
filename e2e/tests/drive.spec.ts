@@ -6,7 +6,7 @@ import { env } from '../support/env'
 import { expect, test } from '../support/fixtures'
 
 /**
- * The Twake Drive picker of the composer, against the fake Twake Workplace of
+ * The Twake Drive picker of the composer (`TDRIVE_ENABLED`), against the fake Twake Workplace of
  * the stack (docker/drive-picker.html and docker/nginx/sso.conf: token
  * exchange, apps with Drive, intent, a picker speaking the cozy-interapp
  * protocol, a file to download). The app signs in to the Workplace with the ID
@@ -24,7 +24,8 @@ async function appRunsInOidcMode(): Promise<boolean> {
     const config = await (await fetch(`${env.baseUrl}/.env.js`)).text()
     return (
       /AUTH_MODE\s*=\s*'oidc'/.test(config) &&
-      /WORKPLACE_FQDN_FALLBACK\s*=\s*'https:/.test(config)
+      /WORKPLACE_FQDN_FALLBACK\s*=\s*'https:/.test(config) &&
+      /TDRIVE_ENABLED\s*=\s*true/.test(config)
     )
   } catch {
     return false

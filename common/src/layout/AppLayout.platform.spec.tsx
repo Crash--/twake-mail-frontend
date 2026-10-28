@@ -115,6 +115,7 @@ function withConfig(ui: ReactElement): ReactElement {
       AUTH_MODE: 'oidc',
       SSO_BASE_URL: 'https://sso.example.com',
       WEB_OIDC_CLIENT_ID: 'twake-mail',
+      TDRIVE_ENABLED: true,
       WORKPLACE_EMBEDDING: true
     },
     'https://mail.example.com'

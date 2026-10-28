@@ -1,6 +1,7 @@
 import type { Sdk } from '@linagora/twake-sdk'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useAppConfig } from '@common/config/AppConfigProvider'
 import { useWorkplaceSdk } from '@common/features/platform/PlatformProvider'
 
 import {
@@ -40,11 +41,13 @@ export type DrivePickerState =
 
 /**
  * The client of the Twake Workplace of the user when the picker is offered:
- * signed in (OIDC, the Workplace known from the SSO or
+ * `TDRIVE_ENABLED`, signed in (OIDC, the Workplace known from the SSO or
  * `WORKPLACE_FQDN_FALLBACK`), with Twake Drive installed. Null otherwise.
  */
 export function useDriveSdk(): Sdk | null {
-  const sdk = useWorkplaceSdk()
+  const isEnabled = useAppConfig()?.tdriveEnabled === true
+  const workplaceSdk = useWorkplaceSdk()
+  const sdk = isEnabled ? workplaceSdk : null
   // The client the apps were read from, when Drive is one of them
   const [driveSdk, setDriveSdk] = useState<Sdk | null>(null)
   useEffect(() => {

@@ -194,6 +194,9 @@ var TWAKE_SPACE_URL = {{ include "twake-mail-frontend.jsString" . }}
 {{- with $config.forwardWarningMessage }}
 var FORWARD_WARNING_MESSAGE = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
+{{- with $config.allowedLanguages }}
+var ALLOWED_LANGUAGES = {{ include "twake-mail-frontend.jsString" . }}
+{{- end }}
 var TDRIVE_ENABLED = {{ ternary "true" "false" (eq (toString ($config.tdrive | default dict).enabled) "true") }}
 {{- with $config.extraEnvJs }}
 {{ . | trim }}

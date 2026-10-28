@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ALLOWED_LANGUAGES` (tmail-flutter's key, e.g. `mn,en`) limits the
+  languages of Settings > Language and region, in its order; the language of
+  the account, of the browser or the one chosen earlier is skipped when it is
+  not listed (English if listed, else the first one). Unset, every language
+  is offered.
+
 ### Changed
 
 - Today's emails in the list show their time on the clock of the language

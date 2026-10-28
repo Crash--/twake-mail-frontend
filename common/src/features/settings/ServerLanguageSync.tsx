@@ -1,7 +1,7 @@
 import { useEffect, type ReactElement } from 'react'
 
 import { useLanguage } from '@common/i18n/I18nProvider'
-import { toSupportedLanguage } from '@common/i18n/languages'
+import { toAllowedLanguage } from '@common/i18n/languages'
 
 import { useServerSettings } from './serverSettings'
 
@@ -12,8 +12,9 @@ import { useServerSettings } from './serverSettings'
  */
 export function ServerLanguageSync(): ReactElement | null {
   const { settings } = useServerSettings()
-  const { lang, setLanguage } = useLanguage()
-  const serverLanguage = toSupportedLanguage(settings?.language)
+  const { lang, setLanguage, allowedLanguages } = useLanguage()
+  // A language the deployment does not offer is skipped, never overwritten
+  const serverLanguage = toAllowedLanguage(settings?.language, allowedLanguages)
 
   useEffect(() => {
     if (serverLanguage !== null && serverLanguage !== lang) {

@@ -6,8 +6,7 @@ import { SettingsMenuSelect } from '@/ds/SettingsFields/SettingsFields'
 import { useLanguage } from '@common/i18n/I18nProvider'
 import {
   LANGUAGE_NATIVE_NAMES,
-  SUPPORTED_LANGUAGES,
-  toSupportedLanguage
+  toAllowedLanguage
 } from '@common/i18n/languages'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
@@ -34,13 +33,13 @@ export function LanguageSettings({
   section
 }: LanguageSettingsProps): ReactElement {
   const { t } = useI18n()
-  const { lang, setLanguage } = useLanguage()
+  const { lang, setLanguage, allowedLanguages } = useLanguage()
   const client = useJmapClient()
   const queryClient = useQueryClient()
   const { accountId, session } = useJmapSession()
 
   const handleChange = (value: string): void => {
-    const next = toSupportedLanguage(value)
+    const next = toAllowedLanguage(value, allowedLanguages)
     if (next === null || next === lang) return
     setLanguage(next)
     if (!canChangeServerSetting(session, 'language')) return
@@ -65,7 +64,7 @@ export function LanguageSettings({
         <SettingsMenuSelect
           label={t('settings.language.label')}
           value={lang}
-          options={SUPPORTED_LANGUAGES.map(language => ({
+          options={allowedLanguages.map(language => ({
             value: language,
             label: `${t(`settings.language.names.${language}`)} - ${LANGUAGE_NATIVE_NAMES[language]}`,
             shortLabel: t(`settings.language.names.${language}`),

@@ -7,6 +7,7 @@ import {
   EmailOpen,
   Pen,
   Printer,
+  Spam,
   Star,
   StarOutline,
   Tag,
@@ -27,7 +28,7 @@ import {
   findTemplatesMailboxId,
   isPersonalMailbox
 } from '@common/features/mailbox/mailboxTree'
-import { NotSpam, Spam } from '@/ds/FlutterIcons/FlutterIcons'
+import { NotSpam } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
 

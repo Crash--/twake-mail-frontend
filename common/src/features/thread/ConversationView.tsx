@@ -2,10 +2,10 @@ import {
   Archive,
   Email,
   EmailOpen,
+  Spam,
   Star,
   StarOutline,
-  Trash,
-  Warning
+  Trash
 } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
@@ -310,7 +310,7 @@ function ConversationContent({
           {
             id: 'markAsSpam',
             label: t('thread.markAsSpam'),
-            icon: Warning,
+            icon: Spam,
             onSelect: handleMove('markAsSpam'),
             'data-testid': 'conversation-mark-as-spam'
           }

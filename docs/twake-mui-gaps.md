@@ -191,14 +191,15 @@ theme: the colours that had been darkened by hand (`ds/EventCard`,
 
 ## Icons and twake-css
 
-`@linagora/twake-icons` has no text formatting icon: bold, italic,
-underline, strike, quote, text colour, alignment (left, centre, right,
-justify), text size, clear formatting, undo and redo. The editor draws them
-from Material Icons paths (Apache-2.0, via `@mui/icons-material` MIT) with
-`SvgIcon` in `common/src/ds/RichTextEditor/editorIcons.tsx`, and takes from
-twake-icons the ones it has: `List` (bulleted list), `Number` (numbered
-list), `Link`, `Image`, `Plus` and `Dash` (larger, smaller image), `Trash`
-(remove image). twake-icons should get the missing ones. The buttons of the
+`@linagora/twake-icons` has few text formatting icons. It lacks bold,
+italic, underline, strike, quote, text colour, alignment (centre, right,
+justify), indent, emoji, clear formatting, undo and redo: the editor draws
+them from Material Icons paths (Apache-2.0, via `@mui/icons-material` MIT)
+with `SvgIcon` in `common/src/ds/RichTextEditor/editorIcons.tsx`, and takes
+from twake-icons the ones it has: `AlignLeft`, `FormatSize` (text size),
+`Highlighter`, `List` (bulleted list), `Number` (numbered list), `Link`,
+`Image`, `Plus` and `Dash` (larger, smaller image), `Trash` (remove image).
+twake-icons should get the missing ones. The buttons of the
 docked window take `Dash`, `Top`, `OpenInFull` and `Narrow`.
 
 The other glyphs twake-icons lacks are drawn locally (`ds/FlutterIcons`,
@@ -313,7 +314,6 @@ twake-mui lacks lives in `@/ds/`.
 | `Button` | Underlined text button: `body2`, secondary colour, padding 2 4, pill radius (twake-mui text buttons are 16 px, primary, not underlined) | "From", "Cc", "Bcc", "Reply to" at the end of the To line | `ds/FieldTextButton` | `Button variant="link"` |
 | Toolbar | Bordered boxes (1 px divider, radius 4, 32 px high) for the controls, one box for a group (bold, italic, underline, strikethrough: 24 px buttons, 114 px wide), a value shown in the box (size), a 10 x 2 colour bar under the "A" | Formatting toolbar | `ds/RichTextEditor/RichTextToolbar` (APG toolbar kept: roving tabindex, `aria-pressed`, Alt+F10) | A `Toolbar` with `ToolbarGroup` and `ToolbarSelect` in twake-ui |
 | Window | 790 x 634, radius 8 all around (`radius.md`), Material 3 elevation 3 in the Figma (`0 1px 3px rgba(0,0,0,.3), 0 4px 8px 3px rgba(0,0,0,.15)`; drawn with `theme.shadows[4]`), title bar 44 px on `background.default`, title `h5`, minimized bar 400 px, 24 px from the edges | Composer | `ds/DockedWindow`, `ds/DockedWindow/WindowDock` | `Paper elevation` M3 levels (twake-mui has MUI shadows only) |
-| `@linagora/twake-icons` | The toolbar draws "format size" (Material path `fontSize` of `editorIcons`) and has no highlighter; the footer toggle takes `FormatSize` | Toolbar | `ds/RichTextEditor/editorIcons` | Add `Highlighter` |
 | `LinearProgress` | The sidebar storage gauge: 3 px high, square ends, track on `action.selected`, bar in the primary (warning, error) colour; twake-mui's bar is thicker and rounded | Sidebar footer | `ds/StorageGauge` | `LinearProgress size="thin"` (square) |
 | Nav footer | The foot of the sidebar: 24 px padding sides and bottom, the storage block, the version centred in an `overline` in `text.secondary` (the Figma colour is Steel gray 400 #818C99) | Sidebar footer | `ds/SidebarFooter` | `Nav` `footer` slot, with a `version` line |
 

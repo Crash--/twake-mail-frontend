@@ -1,6 +1,6 @@
 # twake-mui gaps
 
-Components, variants and fixes that `@linagora/twake-mui` (18.5) does not
+Components, variants and fixes that `@linagora/twake-mui` (19.0) does not
 provide yet, what Twake Mail uses instead, where, and what twake-ui would
 need. Outside the local design system, raw MUI is never used: the UI twake-mui
 lacks is built in `common/src/ds/` (imported as `@/ds/...`, rules in its
@@ -61,7 +61,7 @@ The email list uses `VirtualizedTable` like Twake Contacts (`ContactsTable.tsx`,
 `column.id`, rows given as data objects with a stable `computeItemKey`,
 `endReached` loading the next page, no column sort (the server sorts), hover
 actions revealed by a `.MuiTableRow-root:hover` rule. Twake Mail needs more
-than 18.5 offers; `ds/VirtualizedListTable` composes `VirtualizedTable`
+than 19.0 offers; `ds/VirtualizedListTable` composes `VirtualizedTable`
 (nothing re-implemented: virtualization, cells, memoized rows and selection
 stay twake-mui's) and passes its own `components`, the only extension point.
 What it adds, each a candidate for the PR below:

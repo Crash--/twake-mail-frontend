@@ -39,6 +39,21 @@
     "help": "Nhận trợ giúp hoặc báo cáo",
     "account": "Tài khoản %{address}"
   },
+  "assistant": {
+    "open": "Trợ lý AI",
+    "panel": "Trợ lý",
+    "frameTitle": "Twake Assistant",
+    "loading": "Đang mở trợ lý…",
+    "error": "Không thể mở trợ lý.",
+    "toolFailed": "Trợ lý không thể thực hiện thao tác này.",
+    "params": {
+      "body": "Nội dung",
+      "inReplyTo": "Trả lời cho",
+      "email": "Email",
+      "after": "Sau ngày",
+      "before": "Trước ngày"
+    }
+  },
   "sidebar": {
     "mailboxes": "Hộp thư",
     "newMessage": "Soạn thư",

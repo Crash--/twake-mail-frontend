@@ -39,6 +39,21 @@
     "help": "Тусламж авах эсвэл алдаа мэдэгдэх",
     "account": "Бүртгэл %{address}"
   },
+  "assistant": {
+    "open": "AI туслах",
+    "panel": "Туслах",
+    "frameTitle": "Twake Assistant",
+    "loading": "Туслахыг нээж байна…",
+    "error": "Туслахыг нээж чадсангүй.",
+    "toolFailed": "Туслах энэ үйлдлийг гүйцэтгэж чадсангүй.",
+    "params": {
+      "body": "Зурвас",
+      "inReplyTo": "Хариу",
+      "email": "Имэйл",
+      "after": "Энэ өдрөөс хойш",
+      "before": "Энэ өдрөөс өмнө"
+    }
+  },
   "sidebar": {
     "mailboxes": "Шуудангийн хайрцгууд",
     "newMessage": "Бичих",

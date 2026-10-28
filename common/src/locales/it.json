@@ -39,6 +39,21 @@
     "help": "Ottieni aiuto o segnala un bug",
     "account": "Account %{address}"
   },
+  "assistant": {
+    "open": "Assistente IA",
+    "panel": "Assistente",
+    "frameTitle": "Twake Assistant",
+    "loading": "Apertura dell’assistente…",
+    "error": "Impossibile aprire l’assistente.",
+    "toolFailed": "L’assistente non è riuscito a eseguire questa azione.",
+    "params": {
+      "body": "Messaggio",
+      "inReplyTo": "In risposta a",
+      "email": "Email",
+      "after": "Dopo il",
+      "before": "Prima del"
+    }
+  },
   "sidebar": {
     "mailboxes": "Caselle di posta",
     "newMessage": "Componi",

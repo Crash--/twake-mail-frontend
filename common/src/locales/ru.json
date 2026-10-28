@@ -39,6 +39,21 @@
     "help": "Задать вопрос или сообщить об ошибке",
     "account": "Аккаунт %{address}"
   },
+  "assistant": {
+    "open": "Помощник ИИ",
+    "panel": "Помощник",
+    "frameTitle": "Twake Assistant",
+    "loading": "Открываем помощника…",
+    "error": "Не удалось открыть помощника.",
+    "toolFailed": "Ассистенту не удалось выполнить это действие.",
+    "params": {
+      "body": "Сообщение",
+      "inReplyTo": "В ответ на",
+      "email": "Письмо",
+      "after": "После",
+      "before": "До"
+    }
+  },
   "sidebar": {
     "mailboxes": "Почтовые ящики",
     "newMessage": "Создать",

@@ -4,6 +4,8 @@
 import {
   Icon,
   type IconProps,
+  AlignLeft,
+  Highlighter,
   Link,
   List,
   Number,
@@ -16,9 +18,7 @@ import type { ReactElement } from 'react'
 import {
   AlignCenter,
   AlignJustify,
-  AlignLeft,
   AlignRight,
-  FormatColorFill,
   StyleBold,
   StyleColor,
   StyleHeader,
@@ -160,6 +160,20 @@ const ALIGN_ICONS: Record<string, IconProps['icon']> = {
   justify: AlignJustify
 }
 
+/**
+ * twake-icons' AlignLeft fills its box, the other alignments draw in the
+ * middle of theirs: 18 px for it gives the 16 px wide glyph of the others
+ * at 28, in the same 28 px box so that the button keeps its width
+ */
+const ALIGN_LEFT_SIZE = 18
+const ALIGN_BOX_SX = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 28,
+  height: 28
+} as const
+
 /** The class of the buttons drawn otherwise than a 40 px icon box */
 export function boxedClassName(id: RichTextToolbarItemId): string | undefined {
   if (id === 'size') return 'RichTextToolbar-size'
@@ -226,20 +240,27 @@ export function BoxedContent({
       return (
         <>
           <Icon
-            icon={FormatColorFill}
+            icon={Highlighter}
             size={24}
             color={state.highlight || 'currentColor'}
           />
           <Arrow />
         </>
       )
-    case 'align':
+    case 'align': {
+      const icon = ALIGN_ICONS[state.align] ?? AlignLeft
       return (
         <>
-          <Icon icon={ALIGN_ICONS[state.align] ?? AlignLeft} size={28} />
+          <Box component="span" sx={ALIGN_BOX_SX}>
+            <Icon
+              icon={icon}
+              size={icon === AlignLeft ? ALIGN_LEFT_SIZE : 28}
+            />
+          </Box>
           <Arrow />
         </>
       )
+    }
     case 'lists':
       return (
         <>

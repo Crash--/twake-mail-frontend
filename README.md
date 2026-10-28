@@ -140,7 +140,7 @@ e2e/                 end-to-end tests, separate npm package (not a workspace)
 ## Docker
 
 ```bash
-docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=0.6.0 -t twake-mail-frontend .
+docker build -f apps/private/Dockerfile --build-arg BUILD_VERSION=0.7.0 -t twake-mail-frontend .
 docker run -p 127.0.0.1:8080:80 --read-only --tmpfs /tmp \
   -v $PWD/my.env.js:/usr/share/nginx/html/.env.js:ro \
   twake-mail-frontend

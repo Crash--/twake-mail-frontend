@@ -10,7 +10,8 @@ import {
   Trash,
   Warning,
   Assistant,
-  FileOutline
+  FileOutline,
+  FormatSize
 } from '@linagora/twake-icons'
 import {
   Box,
@@ -51,10 +52,7 @@ import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { PillButton } from '@/ds/PillButton/PillButton'
 import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
-import {
-  FormattingIcon,
-  SendMobileIcon
-} from '@/ds/ComposerIcons/ComposerIcons'
+import { SendMobileIcon } from '@/ds/ComposerIcons/ComposerIcons'
 import { TopActionBar } from '@/ds/TopActionBar/TopActionBar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useAppConfig } from '@common/config/AppConfigProvider'
@@ -1490,7 +1488,7 @@ function LoadedComposerForm({
       }}
       data-testid="composer-formatting-button"
     >
-      <Icon icon={FormattingIcon} size={isPhone ? 28 : 24} aria-hidden="true" />
+      <Icon icon={FormatSize} size={isPhone ? 28 : 24} aria-hidden="true" />
     </ActionIconButton>
   )
 

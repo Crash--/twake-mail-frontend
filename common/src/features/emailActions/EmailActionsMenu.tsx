@@ -1,4 +1,10 @@
-import { Icon, type IconProps, Reply } from '@linagora/twake-icons'
+import {
+  Icon,
+  type IconProps,
+  Forward,
+  Reply,
+  ReplyAll
+} from '@linagora/twake-icons'
 import {
   Divider,
   ListItemIcon,
@@ -10,12 +16,7 @@ import {
 import type { ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
-import {
-  CheckboxOff,
-  CheckboxOn,
-  Forward,
-  ReplyAll
-} from '@/ds/FlutterIcons/FlutterIcons'
+import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'
 import { MenuSubmenuItem } from '@/ds/MenuSubmenu/MenuSubmenu'
 import { useComposer } from '@common/features/composer/ComposerProvider'
@@ -51,7 +52,7 @@ const REPLY_MENU_IDS: Record<ReplyAction, string> = {
   forward: 'forward'
 }
 
-/** The icons of tmail-flutter's answers (`EmailActionType.getIcon`) */
+/** The icons of the answers */
 const REPLY_ICONS: Record<ReplyAction, IconProps['icon']> = {
   reply: Reply,
   replyAll: ReplyAll,

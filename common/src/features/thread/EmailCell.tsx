@@ -4,6 +4,7 @@ import {
   EmailNotification,
   EmailOpen,
   FolderMoveto,
+  Forward,
   Openwith,
   Reply,
   Right,
@@ -27,7 +28,6 @@ import {
 import { FAVORITE_COLOR, IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
-import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
 import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
@@ -315,7 +315,7 @@ export function EmailCell({
           {isAnswered ? (
             <Icon icon={Reply} size={16} aria-hidden="true" />
           ) : (
-            <ForwardIcon size={16} />
+            <Icon icon={Forward} size={16} aria-hidden="true" />
           )}
         </span>
       </Tooltip>

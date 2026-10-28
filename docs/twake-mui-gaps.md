@@ -28,7 +28,7 @@ Each `ds/` component says in its header whether it should go upstream.
 | Compose button | The main action of the sidebar | `Button variant="contained"` of the theme (primary colour, 14 px label, 40 px high, pill) with a 12 px icon; 34 px high in a toolbar | `ds/ComposeButton`, used by `layout/MailSidebar.tsx` | A 34 px `Button` size |
 | Navigation counter | Unread count of a folder | A pill (`span`) on `action.selected`, `overline` text, min-width 16, padding-x 4.5, "999+" past 999; `Badge` is a dot over an avatar and a small `Chip` is 24 px high | `ds/CountBadge` | A navigation badge in `NavItem` |
 | Navigation section header | "Folders", "Labels" and their action buttons | A level 2 `Typography caption` (12/500) in `text.secondary`, above the list it titles (the collapsible title is "Collapsible sidebar section header" below) | `ds/NavSectionHeader` | A `Nav` `subheader` that keeps the tree role, with an actions slot |
-| Icons of the system folders | Inbox, Outbox, Spam, Templates, Archives, Action required and a vertical "more" (⋮) | The closest existing icons: `Email`, `Send`, `Warning`, `Note`, `Archive`, horizontal `Dots`; the folders use `FolderOutlined`, drafts `FileOutline`, starred `StarOutline` | `features/mailbox/mailboxDisplay.ts`, `MailboxTreeItem.tsx` | `Inbox`, `Outbox`, `Spam`, `Template`, a clock for Action required and `DotsVertical` in twake-icons (the Figma file has them) |
+| Icons of the system folders | A vertical "more" (⋮); Inbox, Outbox, Spam and Templates take twake-icons' `Inbox`, `Outbox`, `Spam` and `Template`, Action required its `ClockOutline` | `MoreVerticalIcon` of `ds/ListIcons` draws it; the folders use `FolderOutlined`, drafts `FileOutline`, starred `StarOutline` | `features/mailbox/mailboxDisplay.ts`, `MailboxTreeItem.tsx` | `DotsVertical` in twake-icons (the Figma file has it) |
 | Sidebar width | The folder column | `SIDEBAR_WIDTH` (236, twake-mui's own) in `ds/ResponsiveSidebar`, passed as `sx` | `ds/ResponsiveSidebar` | A `width` prop on `Sidebar`. At 236 px "Boîte de réception" is cut by 2, 8, 15 and 28 px with 1, 2, 3 digits and "999+" (name and tooltip stay complete) |
 | Email header | Subject, sender with avatar, To/Cc/Bcc lines, date of the reading view | `Typography`, `Avatar` in a CSS grid whose date goes under the recipients on phones, long addresses wrapping | `ds/MessageHeader`, filled by `features/email/EmailView.tsx` | A message header component (identity, recipients, date, actions) that reflows on narrow screens |
 | Attachment chip | Attachments of an email: 260 x 36 px chips (file icon, name keeping its extension, size, download button), the ones fitting on one row then "Show +N more" (three in a column on a phone), a header with "Download all" | `ButtonBase`, `IconButton`, `Tooltip`, a `ResizeObserver` measuring the row | `ds/AttachmentCard` (`AttachmentCard`, `AttachmentCardRow`, `AttachmentHeader`, `AttachmentDownloadAll`, `AttachmentTextButton`, `AttachmentListFrame`, `visibleAttachmentCount`) | An attachment chip (file type icon, name, size, download and preview actions) |
@@ -205,8 +205,7 @@ exit full screen buttons use `Dash`, `Top` and `Narrow`).
 The other glyphs twake-icons lacks are drawn locally (`ds/FlutterIcons`,
 `ds/ListIcons`, `ds/SettingsIcons`, `ds/ComposerIcons`): the last row of
 "Other components" lists them. Everything else, the system folders included,
-is a twake-icons glyph, with no dedicated inbox, spam nor template icon
-(`Email`, `Warning` and `Note` stand in).
+is a twake-icons glyph.
 
 The answers of an email take twake-icons' `Reply`, `ReplyAll` and `Forward`.
 

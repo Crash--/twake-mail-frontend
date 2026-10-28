@@ -15,3 +15,4 @@ var LANG = 'en'
 // The fake Twake Workplace of the stack (docker/nginx/sso.conf), next to Dex: Dex
 // sends no workplaceFqdn claim
 var WORKPLACE_FQDN_FALLBACK = '@SSO_URL@'
+var TDRIVE_ENABLED = true

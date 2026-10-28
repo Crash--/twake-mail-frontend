@@ -72,6 +72,11 @@ export interface AppConfig {
    * cozy-external-bridge when it is `true`: this app bundles it)
    */
   workplaceEmbedding: boolean
+  /**
+   * The Twake Drive picker of the composer (`TDRIVE_ENABLED`), offered on
+   * the Workplace of the user when Drive is installed there
+   */
+  tdriveEnabled: boolean
   appVersion: string
 }
 
@@ -108,6 +113,7 @@ export type RuntimeConfigKey =
   | 'WORKPLACE_FQDN_FALLBACK'
   | 'WORKPLACE_EMBEDDING'
   | 'SENTRY_FEEDBACK_ENABLED'
+  | 'TDRIVE_ENABLED'
   | 'APP_VERSION'
 
 /**
@@ -394,6 +400,7 @@ export function resolveConfig(
       workplaceEmbedding:
         toBoolean(source.WORKPLACE_EMBEDDING) ||
         toBoolean(source.COZY_INTEGRATION),
+      tdriveEnabled: toBoolean(source.TDRIVE_ENABLED),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }

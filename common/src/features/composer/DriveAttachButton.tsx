@@ -23,11 +23,11 @@ export interface DriveAttachButtonProps {
 }
 
 /**
- * "Attach from Drive": the Twake Drive picker in a dialog, where the user
- * picks files and adds them as a link (a card in the message) or as
- * attachments (downloaded, then uploaded as any file, with its progress).
- * Offered once signed in to the Twake Workplace of the user, with Drive
- * installed there, unless turned off in Settings > Preferences.
+ * "Attach from Drive" (`TDRIVE_ENABLED`): the Twake Drive picker in a
+ * dialog, where the user picks files and adds them as a link (a card in the
+ * message) or as attachments (downloaded, then uploaded as any file, with
+ * its progress). Offered once signed in to the Twake Workplace of the user,
+ * with Drive installed there, unless turned off in Settings > Preferences.
  */
 export function DriveAttachButton({
   maxFileSize,

@@ -25,13 +25,14 @@ jest.mock('cozy-external-bridge', () => ({
 const DRIVE = 'https://alice.twake.example.com'
 const PICKER = 'https://alice-drive.twake.example.com'
 
-function withConfig(ui: ReactElement): ReactElement {
+function withConfig(ui: ReactElement, isEnabled: boolean): ReactElement {
   const result = resolveConfig(
     {
       SERVER_URL: 'https://jmap.example.com',
       AUTH_MODE: 'basic',
       WORKPLACE_FQDN_FALLBACK: '{localpart}.twake.example.com',
-      WORKPLACE_EMBEDDING: true
+      WORKPLACE_EMBEDDING: true,
+      TDRIVE_ENABLED: isEnabled
     },
     'https://mail.example.com'
   )
@@ -136,13 +137,18 @@ afterAll(() => {
   global.fetch = originalFetch
 })
 
-function renderButton(
-  overlay?: SpaceOverlay,
-  authService: AuthService = makeFakeOidcAuthService({
+function renderButton({
+  overlay,
+  authService = makeFakeOidcAuthService({
     status: 'authenticated',
     user: { email: 'alice@example.com', name: 'Alice', workplaceFqdn: null }
-  })
-): {
+  }),
+  isEnabled = true
+}: {
+  overlay?: SpaceOverlay
+  authService?: AuthService
+  isEnabled?: boolean
+} = {}): {
   onLinks: jest.Mock
   onAttach: jest.Mock
   unmount: () => void
@@ -155,7 +161,8 @@ function renderButton(
         maxFileSize={1000}
         onLinks={onLinks}
         onAttach={onAttach}
-      />
+      />,
+      isEnabled
     ),
     {
       authService,
@@ -415,8 +422,20 @@ describe('DriveAttachButton', () => {
     )
   })
 
+  it('is not offered without TDRIVE_ENABLED, and asks no apps', async () => {
+    renderButton({ isEnabled: false })
+
+    await waitFor(() => {
+      expect(callsTo('/auth/token_exchange')).toHaveLength(1)
+    })
+    expect(screen.queryByRole('button', { name: 'Attach from Drive' })).toBe(
+      null
+    )
+    expect(callsTo('/apps/')).toHaveLength(0)
+  })
+
   it('is not offered in basic mode, and calls no Workplace', async () => {
-    renderButton(undefined, makeFakeBasicAuthService())
+    renderButton({ authService: makeFakeBasicAuthService() })
 
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: 'Attach from Drive' })).toBe(
@@ -434,9 +453,11 @@ describe('DriveAttachButton', () => {
     const overlayBody = host.contentDocument?.body
     if (!overlayWindow || !overlayBody) throw new Error('No overlay document')
     const { unmount } = renderButton({
-      getStatus: () => 'connected',
-      getBody: () => overlayBody,
-      subscribe: () => () => undefined
+      overlay: {
+        getStatus: () => 'connected',
+        getBody: () => overlayBody,
+        subscribe: () => () => undefined
+      }
     })
 
     await userEvent.click(

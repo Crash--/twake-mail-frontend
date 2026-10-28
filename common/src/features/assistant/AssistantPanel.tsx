@@ -12,6 +12,7 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import type { CapabilityCall } from './assistant'
 import { createdDraftId } from './assistantTools'
+import { toCapability } from './capabilities'
 import { useAssistantPanel } from './AssistantProvider'
 import { useAssistantIntent } from './useAssistantIntent'
 import { useAssistantTools } from './useAssistantTools'
@@ -23,7 +24,9 @@ export function AssistantPanel(): ReactElement {
   const sdk = usePlatformSdk()
   const isPlatformReady = usePlatformStatus() === 'ready'
   const tools = useAssistantTools()
-  const capabilities = tools.isPending ? null : (tools.data ?? [])
+  const capabilities = tools.isPending
+    ? null
+    : (tools.data ?? []).map(tool => toCapability(tool, t))
   const runTool = useRunAssistantTool()
   const { openComposer } = useComposer()
   const { notify } = useNotify()

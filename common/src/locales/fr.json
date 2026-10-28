@@ -45,7 +45,14 @@
     "frameTitle": "Twake Assistant",
     "loading": "Ouverture de l’assistant…",
     "error": "L’assistant n’a pas pu être ouvert.",
-    "toolFailed": "L’assistant n’a pas pu effectuer cette action."
+    "toolFailed": "L’assistant n’a pas pu effectuer cette action.",
+    "params": {
+      "body": "Message",
+      "inReplyTo": "En réponse à",
+      "email": "Mail",
+      "after": "Après le",
+      "before": "Avant le"
+    }
   },
   "sidebar": {
     "mailboxes": "Boîtes aux lettres",

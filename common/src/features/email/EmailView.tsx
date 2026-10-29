@@ -332,6 +332,7 @@ export function EmailView({
         mailboxId={mailboxId ?? null}
         fromList={isOpenedFromList(location.state)}
         onBack={handleBack}
+        onLeave={navigation.leaveFolder}
         navigation={navigation}
       />
     )

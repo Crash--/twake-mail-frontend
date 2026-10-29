@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import {
@@ -9,8 +9,13 @@ import {
 import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import { useRemoveEmails } from '@common/features/emailActions/useRemoveEmails'
+import {
+  afterMoveTarget,
+  useAfterMovePreference
+} from '@common/features/settings/afterMovePreference'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
+import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { OPENED_FROM_LIST } from '@common/features/thread/conversationTarget'
 import { emailPath } from '@common/features/thread/EmailCell'
 import type { EmailListLocationState } from '@common/features/thread/EmailList'
@@ -26,6 +31,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import type { EmailDetail } from './queries'
 import { useReplyOptions } from './useReplyOptions'
+import { runFromView, takeMoveFromView } from './viewMoves'
 
 interface Neighbors {
   /** The email above in the list (more recent) */
@@ -101,6 +107,15 @@ export interface EmailViewNavigation {
   openNext: (() => void) | null
 }
 
+export interface EmailViewShortcuts extends EmailViewNavigation {
+  /**
+   * Leaves the email gone from its folder: after a move of this view
+   * (`isOwnMove`), as the "After deleting or moving an email" preference
+   * says, otherwise back to the list
+   */
+  leaveFolder: (isOwnMove: boolean) => void
+}
+
 export interface EmailViewShortcutsOptions {
   emailId: string
   email: EmailDetail | null | undefined
@@ -119,9 +134,13 @@ export interface EmailViewShortcutsOptions {
  * unread and goes back to the list),
  * unless the focus is in the list
  * beside it. Once the email leaves its folder (archived, deleted, moved
- * here or by another client), or is deleted, the view goes back to the
- * list, on the row that took its place. Returns what the "previous" and
- * "next" buttons of the toolbar do (the same moves as `k` and `j`).
+ * by another client), or is deleted, the view goes back to the
+ * list, on the row that took its place; moved by this view, it opens the
+ * next or previous email instead when the "After deleting or moving an
+ * email" preference says so (from a folder, outside the facade of a team
+ * mailbox). Returns what the "previous" and
+ * "next" buttons of the toolbar do (the same moves as `k` and `j`), and
+ * how to leave the folder.
  */
 export function useEmailViewShortcuts({
   emailId,
@@ -129,13 +148,40 @@ export function useEmailViewShortcuts({
   mailboxId,
   backPath,
   leavesWhenMoved = true
-}: EmailViewShortcutsOptions): EmailViewNavigation {
+}: EmailViewShortcutsOptions): EmailViewShortcuts {
   const navigate = useNavigate()
   const { run } = useEmailActions()
   const removeEmails = useRemoveEmails()
   const neighbors = useNeighbors(mailboxId, emailId)
   const replies = useReplyOptions(email)
   const wasInMailbox = useRef(false)
+  const afterMove = useAfterMovePreference().preference
+  const isTeamFacade = useTeamMailboxEmbed() !== null
+
+  const leaveFolder = useCallback(
+    (isOwnMove: boolean): void => {
+      const target =
+        isOwnMove && mailboxId !== null && !isTeamFacade
+          ? afterMoveTarget(afterMove, neighbors)
+          : null
+      if (target !== null && mailboxId !== null) {
+        // As the "Next email" button: the subject of the email takes the focus
+        void navigate(emailPath(mailboxId, target.emailId), {
+          state: OPENED_FROM_LIST,
+          viewTransition: prepareViewTransition(target.direction)
+        })
+        return
+      }
+      // Without a neighbor known, the list focuses its first row
+      const { nextId, previousId } = neighbors
+      const focusEmailId = nextId ?? previousId ?? emailId
+      void navigate(backPath, {
+        state: { focusEmailId } satisfies EmailListLocationState,
+        viewTransition: prepareViewTransition('backward')
+      })
+    },
+    [afterMove, isTeamFacade, mailboxId, neighbors, emailId, backPath, navigate]
+  )
 
   const isInMailbox =
     !leavesWhenMoved ||
@@ -149,14 +195,8 @@ export function useEmailViewShortcuts({
     }
     if (!wasInMailbox.current || email === undefined) return
     wasInMailbox.current = false
-    // Without a neighbor known, the list focuses its first row
-    const { nextId, previousId } = neighbors
-    const focusEmailId = nextId ?? previousId ?? emailId
-    void navigate(backPath, {
-      state: { focusEmailId } satisfies EmailListLocationState,
-      viewTransition: prepareViewTransition('backward')
-    })
-  }, [isInMailbox, email, emailId, neighbors, backPath, navigate])
+    leaveFolder(takeMoveFromView([emailId]))
+  }, [isInMailbox, email, emailId, leaveFolder])
 
   // The next email comes in like an opened one, the previous one the other way
   const open = (
@@ -205,10 +245,16 @@ export function useEmailViewShortcuts({
       k: openPrevious,
       ArrowLeft: openPrevious,
       e: () => {
-        if (email) void run({ action: 'archive', emails: [email], mailboxId })
+        if (!email) return
+        void runFromView('archive', [email.id], () =>
+          run({ action: 'archive', emails: [email], mailboxId })
+        )
       },
       '#': () => {
-        if (email) void removeEmails([email], mailboxId)
+        if (!email) return
+        void runFromView('delete-permanently', [email.id], () =>
+          removeEmails([email], mailboxId)
+        )
       },
       s: () => {
         if (email) {
@@ -235,6 +281,7 @@ export function useEmailViewShortcuts({
 
   const { previousId, nextId } = neighbors
   return {
+    leaveFolder,
     openPrevious:
       previousId === null || mailboxId === null
         ? null

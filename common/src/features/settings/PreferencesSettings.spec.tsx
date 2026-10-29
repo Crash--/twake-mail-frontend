@@ -12,6 +12,7 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { ACCESSIBILITY_PREFERENCE_STORAGE_KEY } from './accessibilityPreference'
+import { AFTER_MOVE_PREFERENCE_STORAGE_KEY } from './afterMovePreference'
 import { SPAM_REPORT_PREFERENCE_STORAGE_KEY } from './spamReportPreference'
 import { PreferencesSettings } from './PreferencesSettings'
 import { SETTINGS_SECTIONS, type SettingsSection } from './sections'
@@ -250,6 +251,35 @@ describe('PreferencesSettings', () => {
       window.localStorage.getItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
     ).toBe('true')
     window.localStorage.removeItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
+  })
+
+  it('chooses what follows an email moved, kept in this browser', async () => {
+    window.localStorage.removeItem(AFTER_MOVE_PREFERENCE_STORAGE_KEY)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { withJmapSession: true }
+    )
+
+    const choices = await screen.findByRole('radiogroup', {
+      name: 'After deleting or moving an email'
+    })
+    expect(choices).toHaveAccessibleDescription(
+      'What to show once the open email leaves its folder'
+    )
+    expect(
+      screen.getByRole('radio', { name: 'Go back to the list' })
+    ).toBeChecked()
+
+    await userEvent.click(
+      screen.getByRole('radio', { name: 'Open the next email' })
+    )
+    expect(
+      screen.getByRole('radio', { name: 'Open the next email' })
+    ).toBeChecked()
+    expect(window.localStorage.getItem(AFTER_MOVE_PREFERENCE_STORAGE_KEY)).toBe(
+      'next'
+    )
+    window.localStorage.removeItem(AFTER_MOVE_PREFERENCE_STORAGE_KEY)
   })
 
   it('offers the label categorisation with the AI capability only', async () => {

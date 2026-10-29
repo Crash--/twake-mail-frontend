@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   LINAGORA_CAPABILITIES,
   type TMailContact
@@ -9,6 +9,7 @@ import {
   CONTACT_SUGGESTION_LIMIT,
   contactAutocompleteQueryOptions
 } from '@common/features/contacts/queries'
+import { uniqueContacts } from '@common/features/contacts/contactNames'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -39,7 +40,8 @@ export interface ContactSuggestions {
  * The contacts matching what is typed in a recipient field, when the
  * server autocompletes them (`TMailContact/autocomplete`): none without
  * the capability, nor below its shortest text. The first ones only, until
- * `loadMore` asks for all of them, for this text.
+ * `loadMore` asks for all of them, for this text. Each address once, by
+ * the name the user gave it when there is one.
  */
 export function useContactSuggestions(typed: string): ContactSuggestions {
   const client = useJmapClient()
@@ -69,7 +71,9 @@ export function useContactSuggestions(typed: string): ContactSuggestions {
     enabled: isEnabled && isAllAsked
   })
   // The first ones stay while the others load
-  const contacts = (isAllAsked ? all.data : undefined) ?? first.data ?? []
+  const found = (isAllAsked ? all.data : undefined) ?? first.data
+  // The same address may come twice: named, and collected from a sent email
+  const contacts = useMemo(() => uniqueContacts(found ?? []), [found])
   const hasMore =
     !isAllAsked && (first.data?.length ?? 0) >= CONTACT_SUGGESTION_LIMIT
   return typed.trim() === ''

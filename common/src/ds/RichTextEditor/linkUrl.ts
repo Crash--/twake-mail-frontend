@@ -32,7 +32,11 @@ function isSupportedAbsoluteUrl(url: string): boolean {
  */
 export function toLinkUrl(raw: string): string | null {
   const url = raw.trim()
-  if (BARE_HOST.test(url)) return `https://${url}`
+  if (BARE_HOST.test(url)) {
+    // A host whose last label is a number parses as IPv4 (`e.0` does not)
+    const completed = `https://${url}`
+    return isSupportedAbsoluteUrl(completed) ? completed : null
+  }
   if (!SCHEME.test(url)) return null
   return isSupportedAbsoluteUrl(url) ? url : null
 }

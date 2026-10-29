@@ -128,7 +128,8 @@ function TreeRows({
 /**
  * The folder trees of the sidebar: the folders of the user (with the
  * Starred virtual folder after the Inbox), then, when the user belongs to
- * team mailboxes, a "Team-mailboxes" section. Folders are collapsed, except
+ * team mailboxes, a "Team-mailboxes" section, and, when other users share
+ * folders with the user, an "Other users" section. Folders are collapsed, except
  * the ones leading to the selected folder, until the user toggles them.
  * Hidden folders show on demand; "+" creates a folder.
  */
@@ -136,10 +137,12 @@ export function MailboxTree(): ReactElement {
   const { t } = useI18n()
   const titleId = useId()
   const teamTitleId = useId()
+  const sharedTitleId = useId()
   const personalTitleId = useId()
   const personalContentId = useId()
   const foldersContentId = useId()
   const teamContentId = useId()
+  const sharedContentId = useId()
   const collapsible = useSidebarSections()
   const query = useMailboxes()
   const folderActions = useFolderActions()
@@ -176,6 +179,7 @@ export function MailboxTree(): ReactElement {
   const systemRows = listVisibleMailboxes(personal.system, isExpanded)
   const folderRows = listVisibleMailboxes(personal.folders, isExpanded)
   const teamRows = listVisibleMailboxes(sections.team, isExpanded)
+  const sharedRows = listVisibleMailboxes(sections.shared, isExpanded)
   // Bound to a team mailbox by the mailbox switcher: its folders only, at
   // the top level, without the virtual folders nor the other sections
   const boundRootId = useTeamMailboxScope()
@@ -340,7 +344,8 @@ export function MailboxTree(): ReactElement {
                 className="u-pt-1"
               >
                 {/* As tmail-flutter: the folders of the user and the team
-                mailboxes are two categories of the "Folders" section */}
+                mailboxes are two categories of the "Folders" section; the
+                folders other users share come last */}
                 {folderRows.length > 0 ? (
                   <NavCategory
                     title={t('sidebar.personalFolders')}
@@ -383,6 +388,29 @@ export function MailboxTree(): ReactElement {
                     <NavTree role="tree" aria-labelledby={teamTitleId}>
                       <TreeRows
                         rows={teamRows}
+                        selectedId={selectedId}
+                        onToggle={handleToggle}
+                        onOpenMenu={handleOpenMenu}
+                      />
+                    </NavTree>
+                  </NavCategory>
+                ) : null}
+                {sharedRows.length > 0 ? (
+                  <NavCategory
+                    title={t('sidebar.otherUsers')}
+                    titleId={sharedTitleId}
+                    icon={DefaultFolderIcon}
+                    isExpanded={collapsible.isExpanded('otherUsers')}
+                    onToggle={() => {
+                      collapsible.toggle('otherUsers')
+                    }}
+                    controlsId={sharedContentId}
+                    toggleTestId="other-users-section-toggle"
+                    data-testid="other-users-section"
+                  >
+                    <NavTree role="tree" aria-labelledby={sharedTitleId}>
+                      <TreeRows
+                        rows={sharedRows}
                         selectedId={selectedId}
                         onToggle={handleToggle}
                         onOpenMenu={handleOpenMenu}

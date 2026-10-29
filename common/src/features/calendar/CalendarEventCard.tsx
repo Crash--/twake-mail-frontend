@@ -47,6 +47,7 @@ import {
 import { formatRecurrence } from './formatRecurrence'
 import { LinkifiedText } from './LinkifiedText'
 import type { CalendarInvitation } from './queries'
+import { formatOccurrenceStart, occurrenceStart } from './recurrenceId'
 import type { CalendarAnswer } from './useCalendarReply'
 
 const BANNER_KEYS: Record<CalendarBannerKind, TranslationKey> = {
@@ -137,6 +138,13 @@ export function CalendarEventCard({
   const recurrence = (event.recurrenceRules ?? [])
     .map(rule => formatRecurrence(rule, lang, t))
     .filter((text): text is string => text !== null)
+  const occurrence = useMemo(
+    () =>
+      invitation.recurrenceId === null
+        ? null
+        : occurrenceStart(invitation.recurrenceId, event.timeZone ?? null),
+    [invitation.recurrenceId, event.timeZone]
+  )
   const showsBusy =
     !invitation.isFree && method !== 'REPLY' && method !== 'CANCEL'
 
@@ -170,6 +178,19 @@ export function CalendarEventCard({
               data-testid="calendar-event-recurrence"
             >
               {recurrence.join(' ; ')}
+            </SecondaryText>
+          ) : null}
+          {invitation.recurrenceId !== null ? (
+            <SecondaryText
+              component="span"
+              className="u-db"
+              data-testid="calendar-event-occurrence"
+            >
+              {occurrence === null
+                ? t('calendar.occurrence.only')
+                : t('calendar.occurrence.originally', {
+                    date: formatOccurrenceStart(occurrence, lang, timeZone)
+                  })}
             </SecondaryText>
           ) : null}
           {showsBusy ? (

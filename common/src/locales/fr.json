@@ -1462,6 +1462,10 @@
       "count": "%{smart_count} fois |||| %{smart_count} fois",
       "until": "jusqu'au %{date}"
     },
+    "occurrence": {
+      "only": "Cette occurrence uniquement",
+      "originally": "Cette occurrence uniquement (initialement %{date})"
+    },
     "untitled": "(Sans titre)",
     "eventMark": "Invitation à un événement"
   },

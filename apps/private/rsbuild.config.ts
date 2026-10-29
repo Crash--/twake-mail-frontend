@@ -49,12 +49,19 @@ export default defineConfig({
     // (openjpeg) images, which pdf.js loads by their fixed names from
     // `wasmUrl`, next to the worker (see pdfjs.ts): the version in the path
     // keeps a cached file from serving another pdf.js
-    copy: ['jbig2', 'openjpeg'].map(decoder => ({
-      from: require.resolve(`pdfjs-dist/wasm/${decoder}_nowasm_fallback.js`),
-      to: `${assetsDir}/pdfjs/${pdfjsVersion}/[name][ext]`,
-      // Already minified by pdf.js
-      info: { minimized: true }
-    }))
+    copy: [
+      ...['jbig2', 'openjpeg'].map(decoder => ({
+        from: require.resolve(`pdfjs-dist/wasm/${decoder}_nowasm_fallback.js`),
+        to: `${assetsDir}/pdfjs/${pdfjsVersion}/[name][ext]`,
+        // Already minified by pdf.js
+        info: { minimized: true }
+      })),
+      // The manifest of the container app, served at /manifest.webapp
+      {
+        from: path.resolve(appDir, '../../manifest/manifest.webapp'),
+        to: 'manifest.webapp'
+      }
+    ]
   },
   splitChunks: {
     preset: 'default',

@@ -289,9 +289,38 @@ describe('the folders of a team mailbox', () => {
     // The root of a team mailbox named like a system folder is not one
     expect(
       isTeamTrash(
-        makeMailbox({ id: 'r', name: 'trash', namespace: teamNamespace('t@x') })
+        makeMailbox({
+          id: 'r',
+          name: 'trash',
+          namespace: teamNamespace('trash@x')
+        })
       )
     ).toBe(false)
+  })
+
+  it('takes the folders whose root is not shown for folders, not roots', () => {
+    // James leaves `parentId` null when the user cannot see the parent: the
+    // root alone is named after the address of the namespace
+    const orphans = folders
+      .filter(folder => folder.id !== 'team')
+      .map(folder => ({ ...folder, parentId: null }))
+    expect(orphans.filter(isTeamRoot)).toEqual([])
+    expect(orphans.every(isTeamFolder)).toBe(true)
+    expect(isTeamTrash(byName('Trash'))).toBe(true)
+    expect(
+      isTeamTrash(
+        makeMailbox({ id: 'r', name: 'Trash', namespace: teamNamespace('t@x') })
+      )
+    ).toBe(true)
+    expect(
+      isTeamRoot(
+        makeMailbox({
+          id: 'T',
+          name: 'Team',
+          namespace: teamNamespace('team@x')
+        })
+      )
+    ).toBe(true)
   })
 
   it('knows the Trash and Drafts of the user or of a team mailbox', () => {

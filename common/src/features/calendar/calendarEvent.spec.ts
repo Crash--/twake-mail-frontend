@@ -120,6 +120,10 @@ describe('calendar event', () => {
       actor: 'Olivia'
     })
     expect(bannerOf(makeEvent({ sequence: 2 }), [], 'An attendee')).toEqual({
+      kind: 'invited',
+      actor: 'Olivia'
+    })
+    expect(bannerOf(makeEvent({ method: 'REFRESH' }), [], 'x')).toEqual({
       kind: 'updated',
       actor: 'Olivia'
     })

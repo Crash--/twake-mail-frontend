@@ -1579,6 +1579,10 @@
       "viewing": "Viewing %{name}",
       "open": "Switch mailbox, viewing %{name}",
       "back": "Back to your mailbox"
+    },
+    "banner": {
+      "delegated": "You are in the mailbox of %{name} (%{email}). Emails you send from here go out as %{name}.",
+      "team": "You are in the team mailbox %{name} (%{email}). Emails you send from here go out from this address."
     }
   }
 }

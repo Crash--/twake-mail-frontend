@@ -87,6 +87,7 @@ import {
 } from './threadSummary'
 import { useEmailListActions } from './useEmailListActions'
 import { useEmailListShortcuts } from './useEmailListShortcuts'
+import { useMeLabel } from './useMeLabel'
 import {
   EmailListDefaultToolbar,
   type ListToolbarFilter
@@ -323,7 +324,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     [search, mailboxes.data, getMailboxName]
   )
   const { mailAddress, accountId } = useJmapSession()
-  const meLabel = t('thread.me')
+  const meLabel = useMeLabel()
   const sentId = findMailboxIdByRole(mailboxes.data ?? [], 'sent')
   const teamMailboxIds = useMemo(
     () => getTeamMailboxIds(mailboxes.data ?? []),

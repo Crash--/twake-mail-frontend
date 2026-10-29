@@ -1579,6 +1579,10 @@
       "viewing": "Viendo %{name}",
       "open": "Cambiar de buzón, viendo %{name}",
       "back": "Volver a tu buzón"
+    },
+    "banner": {
+      "delegated": "Está en el buzón de %{name} (%{email}). Los correos que envíe desde aquí salen en nombre de %{name}.",
+      "team": "Está en el buzón de equipo %{name} (%{email}). Los correos que envíe desde aquí salen desde esta dirección."
     }
   }
 }

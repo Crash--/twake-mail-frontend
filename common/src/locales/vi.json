@@ -1579,6 +1579,10 @@
       "viewing": "Đang xem %{name}",
       "open": "Đổi hộp thư, đang xem %{name}",
       "back": "Quay lại hộp thư của bạn"
+    },
+    "banner": {
+      "delegated": "Bạn đang ở hộp thư của %{name} (%{email}). Email bạn gửi từ đây sẽ được gửi dưới tên %{name}.",
+      "team": "Bạn đang ở hộp thư nhóm %{name} (%{email}). Email bạn gửi từ đây sẽ được gửi từ địa chỉ này."
     }
   }
 }

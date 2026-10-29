@@ -7,15 +7,14 @@ import { IconAction } from '@/ds/IconAction/IconAction'
 import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
-import { useRecovery } from '@common/features/recovery/RecoveryProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { EmailListFilterMenu } from './EmailListFilterMenu'
 import type { ListFilter, ListFilterOption } from './listFilter'
 import { useListToolbarAction } from './ListToolbarAction'
 import type { EmailSelection } from './useEmailSelection'
+import { useTrashRecovery } from './useTrashRecovery'
 
 export interface ListToolbarFilter {
   current: ListFilter
@@ -61,16 +60,12 @@ export function EmailListDefaultToolbar({
   const { t } = useI18n()
   const screenSize = useScreenSize()
   const isPhone = screenSize === 'mobile'
-  const recovery = useRecovery()
+  const recover = useTrashRecovery(mailbox)
   const action = useListToolbarAction()
   const refreshLabel = t('common.refresh')
   const selectAllLabel = t('thread.toolbar.selectPage')
   const recoverLabel = t('recovery.title')
-  const canRecover =
-    mailbox !== null &&
-    mailbox.role === 'trash' &&
-    isPersonalMailbox(mailbox) &&
-    recovery.isAvailable
+  const canRecover = recover !== null
 
   // As tmail-flutter below the desktop size: no toolbar above the list (the
   // filter is in the bar, the avatars select), unless the Trash recovers
@@ -127,14 +122,14 @@ export function EmailListDefaultToolbar({
           onClear={filter.onClear}
         />
       )}
-      {canRecover ? (
+      {recover === null ? null : (
         <IconAction
           label={recoverLabel}
           icon={RestoreStraight}
-          onClick={recovery.open}
+          onClick={recover}
           data-testid="recover-deleted-messages-button"
         />
-      ) : null}
+      )}
       {/* As tmail-flutter: right after the other buttons (the sort order) */}
       {end === undefined ? null : end}
       {action === null ? null : <Box className="u-ml-auto">{action}</Box>}

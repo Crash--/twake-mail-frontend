@@ -50,6 +50,13 @@
   "mailbox": {
     "empty": "You don’t have any emails\n in this folder.",
     "emptyHint": "Start to compose emails.",
+    "emptyHints": {
+      "trash": "Deleted something by mistake? You can recover recently deleted messages.",
+      "spam": "Emails detected as spam will appear here.",
+      "drafts": "Messages you start writing without sending are saved here.",
+      "sent": "Emails you send will appear here.",
+      "starred": "Star an email to find it here."
+    },
     "offline": "No internet connection, try again later.",
     "roles": {
       "inbox": "Inbox",
@@ -69,7 +76,6 @@
     "actionRequired": "Action required",
     "emptyActionRequired": "You don’t have any action required emails.",
     "emptyStarred": "You don’t have any starred emails.",
-    "emptyStarredHint": "Start to add starred emails",
     "emptyFilter": "There are no emails that match your current filter."
   },
   "email": {
@@ -650,7 +656,8 @@
       "sizeAscending": "Size ascending",
       "sizeDescending": "Size descending"
     },
-    "empty": "No emails are matching your search",
+    "empty": "No emails match your search",
+    "emptyHint": "Check the spelling, or remove some filters.",
     "title": "Search",
     "results": "Search results",
     "inMailbox": "In %{name}",

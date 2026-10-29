@@ -55,6 +55,7 @@ export type EmailActionName =
   | 'deletePermanently'
   | 'addLabel'
   | 'removeLabel'
+  | 'setLabels'
   | 'setKeyword'
 
 export interface EmailActionRequest {
@@ -66,6 +67,14 @@ export interface EmailActionRequest {
   destinationId?: string
   /** The label `addLabel` and `removeLabel` set or take off */
   label?: { keyword: string; displayName: string }
+  /**
+   * The labels `setLabels` puts on and takes off, in one `Email/set`:
+   * concurrent ones on the same email would overwrite each other
+   */
+  labels?: {
+    added: readonly { keyword: string }[]
+    removed: readonly { keyword: string }[]
+  }
   /** The keyword `setKeyword` sets (no label, no toast of its own) */
   keyword?: string
   /**
@@ -188,7 +197,14 @@ export function inStartFolder(
 }
 
 function toOperation(
-  { action, mailboxId, destinationId, label, keyword }: EmailActionRequest,
+  {
+    action,
+    mailboxId,
+    destinationId,
+    label,
+    labels,
+    keyword
+  }: EmailActionRequest,
   mailboxes: readonly MailboxSummary[]
 ): EmailOperation | null {
   switch (action) {
@@ -210,6 +226,16 @@ function toOperation(
             kind: 'keyword',
             keyword: label.keyword,
             isSet: action === 'addLabel'
+          }
+    case 'setLabels':
+      return labels === undefined
+        ? null
+        : {
+            kind: 'keywords',
+            keywords: Object.fromEntries([
+              ...labels.added.map(({ keyword }) => [keyword, true] as const),
+              ...labels.removed.map(({ keyword }) => [keyword, false] as const)
+            ])
           }
     case 'setKeyword':
       return keyword === undefined
@@ -435,6 +461,8 @@ export function useEmailActions(): EmailActions {
           return t('labels.toasts.removedFromEmail', {
             labelName: request.label ? labelDisplayName(request.label, t) : ''
           })
+        case 'setLabels':
+          return t('labels.toasts.updated')
         case 'markUnsubscribed':
           return t('unsubscribe.done')
         case 'setKeyword':

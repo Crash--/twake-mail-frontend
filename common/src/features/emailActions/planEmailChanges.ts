@@ -20,6 +20,8 @@ export type EmailOperation =
     }
   /** A system keyword, or the keyword of a label */
   | { kind: 'keyword'; keyword: EmailKeyword | (string & {}); isSet: boolean }
+  /** Several keywords at once, set (true) or taken off (false) */
+  | { kind: 'keywords'; keywords: Readonly<Record<string, boolean>> }
   | { kind: 'destroy' }
 
 /** The change of one email: its state before and after, null once destroyed */
@@ -52,6 +54,14 @@ function applyOperation(
       return {
         ...email,
         keywords: withFlag(email.keywords, operation.keyword, operation.isSet)
+      }
+    case 'keywords':
+      return {
+        ...email,
+        keywords: Object.entries(operation.keywords).reduce(
+          (keywords, [keyword, isSet]) => withFlag(keywords, keyword, isSet),
+          email.keywords
+        )
       }
     case 'move': {
       const { from, to, markSeen = false } = operation

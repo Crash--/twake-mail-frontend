@@ -85,6 +85,19 @@ describe('planEmailChanges', () => {
     })
   })
 
+  it('sets and takes off several keywords in one patch', () => {
+    const [change] = planEmailChanges([readInInbox], {
+      kind: 'keywords',
+      keywords: { first: true, second: true, $seen: false }
+    })
+
+    expect(change && toEmailPatch(change)).toEqual({
+      'keywords/$seen': null,
+      'keywords/first': true,
+      'keywords/second': true
+    })
+  })
+
   it('destroys emails with no patch', () => {
     const [change] = planEmailChanges([inInbox], { kind: 'destroy' })
 

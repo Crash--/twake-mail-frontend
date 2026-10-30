@@ -1,188 +1,19 @@
-// Upstream to twake-ui: no. A modal for a short task (folder creation, label
-// creation, renaming a folder, the recovery form): twake-mui's `Dialog`, the
-// close cross at the top end, a subtitle under the title, fields with their
-// label above (or at their start), and at the end a text button and the
-// confirming one. Its fields are the 40 px outlined fields below, twake-mui
-// has no compact field.
-import { Icon, Dropdown, Cross, CheckCircle } from '@linagora/twake-icons'
+// Upstream to twake-ui: yes, as field looks. What the dialogs on twake-mui's
+// `FixedDialog` still lack: a label above a field or at its start, a field
+// opening a choice, and the compact select and calendar button of the advanced
+// search.
+import { Icon, Dropdown, CheckCircle } from '@linagora/twake-icons'
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   IconButton,
   InputBase,
   MenuItem,
   Select,
   Tooltip,
-  Typography,
-  type InputBaseProps
+  Typography
 } from '@linagora/twake-mui'
-import {
-  forwardRef,
-  type ComponentProps,
-  type Ref,
-  type SubmitEventHandler,
-  type ReactElement,
-  type ReactNode
-} from 'react'
-
-const SUBTITLE_SX = { m: 0, px: '2rem', pt: 1 } as const
-
-export interface ModalDialogProps {
-  open?: boolean
-  /** Shown at the top, and the name of the dialog */
-  title: ReactNode
-  /** The line under the title, e.g. where a new folder goes */
-  subtitle?: ReactNode
-  titleId: string
-  /** Id of what describes the dialog, for `aria-describedby` */
-  describedBy?: string
-  /** Names the close cross */
-  closeLabel: string
-  onClose: () => void
-  /** Called once the dialog is gone (its transition ended) */
-  onExited?: () => void
-  /** Given, the content is a form submitted by the confirming button */
-  onSubmit?: SubmitEventHandler<HTMLFormElement>
-  /** The fields */
-  children: ReactNode
-  /** The buttons at the end, `ModalDialogButton`s, the confirming one last */
-  actions?: ReactNode
-  /** `small`: the narrow dialog, as the one renaming a folder */
-  size?: 'large' | 'small'
-  /** `body`: the subtitle as a paragraph of text, not a caption */
-  subtitleLook?: 'caption' | 'body'
-  /** Wider or narrower than the size of the dialog, in px */
-  width?: number
-  'data-testid'?: string
-}
-
-/**
- * A modal named by its title; Escape and the cross close it and give the
- * focus back to what opened it. The focus is not kept inside: twake-mui's
- * theme sets `disableEnforceFocus` on every `Dialog` and this one keeps it.
- */
-export function ModalDialog({
-  open = true,
-  title,
-  subtitle,
-  titleId,
-  describedBy,
-  closeLabel,
-  onClose,
-  onExited,
-  onSubmit,
-  children,
-  actions,
-  size = 'large',
-  subtitleLook = 'caption',
-  width,
-  'data-testid': testId
-}: ModalDialogProps): ReactElement {
-  const content = (
-    <>
-      <DialogTitle id={titleId} className="dialogTitleWithClose">
-        {title}
-      </DialogTitle>
-      {subtitle === undefined ? null : (
-        <Typography
-          id={describedBy}
-          component="p"
-          variant={subtitleLook === 'body' ? 'body1' : 'body2'}
-          color={subtitleLook === 'body' ? 'text.primary' : 'text.secondary'}
-          sx={SUBTITLE_SX}
-        >
-          {subtitle}
-        </Typography>
-      )}
-      <DialogContent>{children}</DialogContent>
-      {actions === undefined ? (
-        <Box sx={{ height: 32, flexShrink: 0 }} />
-      ) : (
-        <DialogActions>{actions}</DialogActions>
-      )}
-    </>
-  )
-  return (
-    <Dialog
-      size={size === 'small' ? 'small' : 'medium'}
-      fullScreen={false}
-      open={open}
-      onClose={onClose}
-      aria-labelledby={titleId}
-      aria-describedby={describedBy}
-      slotProps={{
-        paper:
-          width === undefined
-            ? undefined
-            : { sx: { '&&': { maxWidth: width } } },
-        transition: { onExited }
-      }}
-      data-testid={testId}
-    >
-      {onSubmit === undefined ? (
-        content
-      ) : (
-        <Box
-          component="form"
-          onSubmit={onSubmit}
-          noValidate
-          sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
-        >
-          {content}
-        </Box>
-      )}
-      <Tooltip title={closeLabel}>
-        <IconButton
-          aria-label={closeLabel}
-          onClick={onClose}
-          className="dialogIconButton dialogCloseButton"
-          data-testid={
-            testId === undefined ? undefined : `${testId}-close-button`
-          }
-        >
-          <Icon icon={Cross} size={24} />
-        </IconButton>
-      </Tooltip>
-    </Dialog>
-  )
-}
-
-export interface ModalDialogButtonProps {
-  children: ReactNode
-  onClick?: () => void
-  /** The confirming action: a filled button, else text */
-  isMain?: boolean
-  /** Submits the form of the dialog */
-  type?: 'button' | 'submit'
-  disabled?: boolean
-  'data-testid'?: string
-}
-
-/** A button of `ModalDialog` */
-export function ModalDialogButton({
-  children,
-  onClick,
-  isMain = false,
-  type = 'button',
-  disabled = false,
-  'data-testid': testId
-}: ModalDialogButtonProps): ReactElement {
-  return (
-    <Button
-      type={type}
-      variant={isMain ? 'contained' : 'text'}
-      onClick={onClick}
-      disabled={disabled}
-      data-testid={testId}
-    >
-      {children}
-    </Button>
-  )
-}
+import type { ComponentProps, Ref, ReactElement, ReactNode } from 'react'
 
 const LABEL_SX = {
   display: 'block',
@@ -256,73 +87,22 @@ export function ModalField({
   )
 }
 
-function inputSx(
-  hasError: boolean,
-  isMultiline: boolean
-): Record<string, unknown> {
-  return {
-    width: '100%',
-    minHeight: 40,
-    boxSizing: 'border-box',
-    px: '12px',
-    py: isMultiline ? '12px' : 0,
-    alignItems: isMultiline ? 'flex-start' : 'center',
-    border: '1px solid',
-    borderColor: hasError ? 'error.main' : 'border.main',
-    borderRadius: 1,
-    bgcolor: 'background.paper',
-    typography: 'body1',
-    color: 'text.primary',
-    '&.Mui-focused': {
-      borderColor: hasError ? 'error.main' : 'primary.main'
-    },
-    '& .MuiInputBase-input': { p: 0, height: 'auto', lineHeight: '18px' },
-    '& .MuiInputBase-input::placeholder': {
-      color: 'text.secondary',
-      opacity: 1
-    }
-  }
-}
-
-export interface ModalTextInputProps extends Omit<
-  InputBaseProps,
-  'sx' | 'error'
-> {
-  /** Shown red under the field, null for none */
-  error?: string | null
-  /** Id of the error line, for `aria-describedby` */
-  errorId?: string
-}
-
-/** A text field of `ModalDialog`: 40 px, outlined, primary when focused */
-export const ModalTextInput = forwardRef<HTMLDivElement, ModalTextInputProps>(
-  function ModalTextInput(
-    { error = null, errorId, multiline, ...props },
-    ref
-  ): ReactElement {
-    return (
-      <>
-        <InputBase
-          ref={ref}
-          multiline={multiline}
-          {...props}
-          sx={inputSx(error !== null, multiline === true)}
-        />
-        {error === null ? null : (
-          <Typography
-            id={errorId}
-            component="p"
-            variant="body2"
-            color="error"
-            sx={{ mt: '8px' }}
-          >
-            {error}
-          </Typography>
-        )}
-      </>
-    )
-  }
-)
+const INPUT_SX = {
+  width: '100%',
+  minHeight: 40,
+  boxSizing: 'border-box',
+  px: '12px',
+  py: 0,
+  alignItems: 'center',
+  border: '1px solid',
+  borderColor: 'border.main',
+  borderRadius: 1,
+  bgcolor: 'background.paper',
+  typography: 'body1',
+  color: 'text.primary',
+  '&.Mui-focused': { borderColor: 'primary.main' },
+  '& .MuiInputBase-input': { p: 0, height: 'auto', lineHeight: '18px' }
+} as const
 
 export interface ModalSelectButtonProps {
   /** Before the value, e.g. a folder icon */
@@ -467,7 +247,7 @@ export function ModalSelect({
       }}
       // The select passes its own `sx` to the input it renders
       sx={{
-        ...inputSx(false, false),
+        ...INPUT_SX,
         pr: 0,
         '& .MuiSelect-select': {
           pr: '32px !important',

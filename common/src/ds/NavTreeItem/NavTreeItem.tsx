@@ -310,7 +310,7 @@ export function NavTreeItem({
               }
             }}
           >
-            <Icon icon={toggle.isExpanded ? Dropdown : Right} size={16} />
+            <Icon icon={toggle.isExpanded ? Dropdown : Right} size={12} />
           </IconButton>
         </Tooltip>
       ) : null}

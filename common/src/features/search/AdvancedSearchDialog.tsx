@@ -2,10 +2,12 @@ import { Calendar } from '@linagora/twake-icons'
 import {
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   TextField
 } from '@linagora/twake-mui'
 import {
@@ -20,7 +22,6 @@ import {
 import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
 import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
 import { FormRow } from '@/ds/FormRow/FormRow'
-import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
 import {
   ModalFieldIconButton,
   ModalSelect,
@@ -469,13 +470,17 @@ export function AdvancedSearchDialog({
             ['notIncludeEvents', 'search.filters.notIncludeEvents']
           ] as const
         ).map(([name, label]) => (
-          <LabeledCheckbox
+          <FormControlLabel
             key={name}
             label={t(label)}
-            checked={draft[name]}
-            onChange={checked => {
-              setDraft({ ...draft, [name]: checked })
-            }}
+            control={
+              <Checkbox
+                checked={draft[name]}
+                onChange={event => {
+                  setDraft({ ...draft, [name]: event.target.checked })
+                }}
+              />
+            }
           />
         ))}
       </Box>

@@ -1315,12 +1315,9 @@
       "darkGrey": "Тёмно-серый",
       "grey": "Серый"
     },
-    "colorCustom": "Свой цвет",
-    "colorCustomNamed": "Свой цвет %{color}",
     "colorHex": "Свой цвет (шестнадцатеричный код)",
     "colorHexHint": "Формат #RRGGBB, например #1A2B3C",
     "colorHexInvalid": "Введите цвет в формате #RRGGBB, например #1A2B3C",
-    "colorPicker": "Открыть выбор цвета",
     "removeFromEmail": "Удалить метку %{name}",
     "moreNames": "Ещё %{smart_count} метка: %{names} |||| Ещё %{smart_count} метки: %{names} |||| Ещё %{smart_count} меток: %{names}",
     "listLabel": "Метки письма"

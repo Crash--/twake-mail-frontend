@@ -1315,12 +1315,9 @@
       "darkGrey": "Dunkelgrau",
       "grey": "Grau"
     },
-    "colorCustom": "Benutzerdefinierte Farbe",
-    "colorCustomNamed": "Benutzerdefinierte Farbe %{color}",
     "colorHex": "Benutzerdefinierte Farbe (hexadezimal)",
     "colorHexHint": "Format #RRGGBB, zum Beispiel #1A2B3C",
     "colorHexInvalid": "Geben Sie eine Farbe als #RRGGBB ein, zum Beispiel #1A2B3C",
-    "colorPicker": "Farbauswahl öffnen",
     "removeFromEmail": "Label %{name} entfernen",
     "moreNames": "%{smart_count} weiteres Label: %{names} |||| %{smart_count} weitere Labels: %{names}",
     "listLabel": "Labels der E-Mail"

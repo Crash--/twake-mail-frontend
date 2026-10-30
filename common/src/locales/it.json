@@ -1315,12 +1315,9 @@
       "darkGrey": "Grigio scuro",
       "grey": "Grigio"
     },
-    "colorCustom": "Colore personalizzato",
-    "colorCustomNamed": "Colore personalizzato %{color}",
     "colorHex": "Colore personalizzato (esadecimale)",
     "colorHexHint": "Formato #RRGGBB, ad esempio #1A2B3C",
     "colorHexInvalid": "Inserisci un colore nel formato #RRGGBB, ad esempio #1A2B3C",
-    "colorPicker": "Apri il selettore di colore",
     "removeFromEmail": "Rimuovi l'etichetta %{name}",
     "moreNames": "%{smart_count} altra etichetta: %{names} |||| %{smart_count} altre etichette: %{names}",
     "listLabel": "Etichette dell'email"

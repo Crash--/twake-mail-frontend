@@ -1,6 +1,8 @@
 import {
   Box,
   Button,
+  ColorList,
+  COLORS,
   FixedDialog,
   TextField,
   Typography
@@ -16,14 +18,13 @@ import {
   type ReactElement
 } from 'react'
 
-import { ColorSwatchPicker } from '@/ds/ColorSwatchPicker/ColorSwatchPicker'
+import { normalizeHexColor } from '@/ds/ColorSwatchPicker/hexColor'
 import { validateIdentityName } from '@common/features/identities/identityForm'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-import { LABEL_COLORS } from './labelColors'
 import { labelKeys, useLabels } from './queries'
 
 export interface LabelDialogProps {
@@ -74,7 +75,13 @@ export function LabelDialog({
   const [name, setName] = useState(label?.displayName ?? '')
   const [description, setDescription] = useState(label?.description ?? '')
   const [color, setColor] = useState<string | null>(label?.color ?? null)
-  const [isColorValid, setIsColorValid] = useState(true)
+  // A colour out of the list stays as it is, in the custom field
+  const [isCustom, setIsCustom] = useState(
+    color !== null && !COLORS.includes(color.toUpperCase())
+  )
+  const [hex, setHex] = useState(color ?? '')
+  const isColorValid = !isCustom || normalizeHexColor(hex) !== null
+  const colorLegendId = useId()
   const [isTouched, setIsTouched] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const hexRef = useRef<HTMLInputElement>(null)
@@ -217,41 +224,71 @@ export function LabelDialog({
             }}
           />
           <Box className="u-mt-1-half">
-            <ColorSwatchPicker
-              isLarge
-              legend={t('labels.form.color')}
-              swatches={LABEL_COLORS.map(({ name, value }) => ({
-                value,
-                label: t(`labels.colors.${name}`)
-              }))}
-              value={color}
-              onChange={setColor}
-              // tmail-backend refuses a null colour: a colour cannot be taken
-              // off, so "No color" is only offered to a label without one
-              noneLabel={
-                (label?.color ?? null) === null
-                  ? t('labels.colorNone')
-                  : undefined
-              }
-              custom={{
-                label: t('labels.colorCustom'),
-                valueLabel: value =>
-                  t('labels.colorCustomNamed', { color: value }),
-                hexLabel: t('labels.colorHex'),
-                hint: t('labels.colorHexHint'),
-                invalidMessage: t('labels.colorHexInvalid'),
-                pickerLabel: t('labels.colorPicker'),
-                showError: isSubmitted,
-                onValidityChange: setIsColorValid,
-                hexInputRef: hexRef,
-                testIds: {
-                  swatch: 'label-color-custom',
-                  hexInput: 'label-color-hex-input',
-                  nativeInput: 'label-color-native-input'
+            <Typography
+              id={colorLegendId}
+              component="p"
+              variant="subtitle2"
+              className="u-mb-half"
+            >
+              {t('labels.form.color')}
+            </Typography>
+            <ColorList
+              aria-labelledby={colorLegendId}
+              selectedColor={isCustom ? undefined : (color ?? undefined)}
+              onClick={picked => {
+                setIsCustom(false)
+                setColor(picked)
+              }}
+              customColorProps={{
+                enabled: true,
+                onClick: () => {
+                  setIsCustom(true)
+                  setHex(color ?? '')
                 }
               }}
               data-testid="label-color-picker"
             />
+            {/* tmail-backend refuses a null colour: a colour cannot be taken
+                off, so "No color" is only offered to a label without one */}
+            {(label?.color ?? null) === null ? (
+              <Button
+                variant="text"
+                className="u-mt-half"
+                aria-pressed={!isCustom && color === null}
+                onClick={() => {
+                  setIsCustom(false)
+                  setColor(null)
+                }}
+                data-testid="label-color-none"
+              >
+                {t('labels.colorNone')}
+              </Button>
+            ) : null}
+            {isCustom ? (
+              <TextField
+                fullWidth
+                className="u-mt-1"
+                label={t('labels.colorHex')}
+                value={hex}
+                inputRef={hexRef}
+                onChange={event => {
+                  setHex(event.target.value)
+                  const typed = normalizeHexColor(event.target.value)
+                  if (typed !== null) setColor(typed)
+                }}
+                error={isSubmitted && !isColorValid}
+                helperText={t(
+                  isSubmitted && !isColorValid
+                    ? 'labels.colorHexInvalid'
+                    : 'labels.colorHexHint'
+                )}
+                slotProps={{
+                  htmlInput: { 'data-testid': 'label-color-hex-input' },
+                  formHelperText:
+                    isSubmitted && !isColorValid ? { role: 'alert' } : undefined
+                }}
+              />
+            ) : null}
           </Box>
         </form>
       }

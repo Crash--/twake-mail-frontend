@@ -53,6 +53,18 @@ export const TWAKE_MUI_KNOWN_VIOLATIONS: readonly KnownViolation[] = [
       '.MuiListItemButton-root.Mui-selected, .MuiListItemButton-root.Mui-selected *',
     reason:
       'twake-mui selected NavLink: #0a84ff on #e5e8eb, 3.0:1 (docs/twake-mui-gaps.md)'
+  },
+  {
+    rule: 'aria-command-name',
+    selector: '[data-testid="label-color-picker"] [role="button"]',
+    reason:
+      'twake-mui ColorList: swatches without a name, until twake-ui#223 is published (docs/twake-mui-gaps.md)'
+  },
+  {
+    rule: 'button-name',
+    selector: '[data-testid="label-color-picker"] button',
+    reason:
+      'twake-mui ColorList: custom button without a name, until twake-ui#223 is published (docs/twake-mui-gaps.md)'
   }
 ]
 

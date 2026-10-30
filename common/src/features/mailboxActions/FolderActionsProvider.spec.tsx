@@ -159,7 +159,10 @@ describe('Folder actions', () => {
       'This folder name is already taken'
     )
     await userEvent.clear(field)
-    await userEvent.type(field, 'Projects{Enter}')
+    await userEvent.type(field, 'Projects')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Create folder' })
+    )
 
     expect(
       await screen.findByText(/^Open folder mailbox-created-/)
@@ -185,8 +188,10 @@ describe('Folder actions', () => {
       })
     )
     const dialog = screen.getByRole('dialog', { name: 'Create a New Folder' })
-    const location = within(dialog).getByRole('button', { name: 'Work' })
-    expect(location).toHaveAccessibleDescription('Select the folder location')
+    const location = within(dialog).getByRole('combobox', {
+      name: 'Select the folder location'
+    })
+    expect(location).toHaveTextContent('Work')
     await userEvent.click(location)
     await userEvent.click(
       within(
@@ -194,12 +199,15 @@ describe('Folder actions', () => {
       ).getByRole('option', { name: 'All folders' })
     )
     // Once the picker went
-    expect(
-      await within(dialog).findByRole('button', { name: 'All folders' })
-    ).toBeVisible()
+    await waitFor(() => {
+      expect(location).toHaveTextContent('All folders')
+    })
     await userEvent.type(
-      within(dialog).getByRole('textbox', { name: 'Folder Name' }),
-      'Top{Enter}'
+      await within(dialog).findByRole('textbox', { name: 'Folder Name' }),
+      'Top'
+    )
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Create folder' })
     )
 
     await waitFor(() => {

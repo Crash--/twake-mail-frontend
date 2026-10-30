@@ -1,4 +1,4 @@
-import { Calendar } from '@linagora/twake-icons'
+import { Calendar, Icon } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -6,7 +6,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField
+  IconButton,
+  MenuItem,
+  TextField,
+  Tooltip
 } from '@linagora/twake-mui'
 import {
   useEffect,
@@ -21,12 +24,6 @@ import { AnchoredDialog } from '@/ds/AnchoredDialog/AnchoredDialog'
 import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
 import { FormRow } from '@/ds/FormRow/FormRow'
 import { LabeledCheckbox } from '@/ds/LabeledCheckbox/LabeledCheckbox'
-import {
-  ModalFieldIconButton,
-  ModalSelect,
-  ModalSelectButton,
-  type ModalSelectHandle
-} from '@/ds/ModalDialog/ModalDialog'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import type { RecipientFieldDnd } from '@/ds/RecipientField/RecipientField'
 import { DayRangeDialog } from '@common/features/dateRange/DayRangeDialog'
@@ -137,7 +134,7 @@ export function AdvancedSearchDialog({
   const [draft, setDraft] = useState(filter)
   const [fields, setFields] = useState(() => toTextFields(filter))
   const [isRangeOpen, setIsRangeOpen] = useState(false)
-  const dateRef = useRef<ModalSelectHandle>(null)
+  const dateRef = useRef<{ focus: () => void }>(null)
   /** What gets the focus back once the range picker is gone */
   const rangeOpenerRef = useRef<{ focus: () => void } | null>(null)
   /**
@@ -356,109 +353,161 @@ export function AdvancedSearchDialog({
         'advanced-search-not-words-input'
       )}
       <FormRow label={t('search.fields.folder')} id={fieldId('folder-label')}>
-        <ModalSelectButton
-          id={fieldId('folder')}
-          aria-labelledby={`${fieldId('folder-label')} ${fieldId('folder')}`}
-          aria-haspopup="dialog"
-          onClick={pickFolder}
-          data-testid="advanced-search-folder-select"
+        {/* Never opens its own menu: opening it asks for the picker */}
+        <TextField
+          select
+          fullWidth
+          size="small"
+          value={scopeLabelOf(draft.scope)}
+          slotProps={{
+            select: {
+              open: false,
+              onOpen: pickFolder,
+              labelId: fieldId('folder-label'),
+              displayEmpty: true,
+              renderValue: () => scopeLabelOf(draft.scope),
+              SelectDisplayProps: {
+                id: fieldId('folder'),
+                // Named "Folder" then the folder chosen
+                'aria-labelledby': `${fieldId('folder-label')} ${fieldId('folder')}`,
+                'aria-haspopup': 'dialog',
+                'data-testid': 'advanced-search-folder-select'
+              } as Record<string, string>
+            }
+          }}
         >
-          {scopeLabelOf(draft.scope)}
-        </ModalSelectButton>
+          <MenuItem value={scopeLabelOf(draft.scope)}>
+            {scopeLabelOf(draft.scope)}
+          </MenuItem>
+        </TextField>
       </FormRow>
       {labels.length > 0 ? (
         <FormRow label={t('search.labels.label')} id={fieldId('label')}>
-          <ModalSelect
-            labelId={fieldId('label')}
+          <TextField
+            select
+            fullWidth
+            size="small"
             value={draft.label ?? ALL_LABELS}
-            options={[
-              { value: ALL_LABELS, label: t('search.labels.all') },
-              // A keyword no label has (e.g. a deleted one) still filters
-              ...(draft.label !== null &&
-              !labels.some(label => label.keyword === draft.label)
-                ? [{ value: draft.label, label: t('search.labels.unknown') }]
-                : []),
-              ...labels.map(label => ({
-                value: label.keyword,
-                label: labelDisplayName(label, t)
-              }))
-            ]}
-            onChange={value => {
+            onChange={event => {
+              const value = event.target.value
               setDraft(current => ({
                 ...current,
                 label: value === ALL_LABELS ? null : value
               }))
             }}
-            data-testid="advanced-search-label-select"
-          />
+            slotProps={{
+              select: {
+                labelId: fieldId('label'),
+                SelectDisplayProps: {
+                  'data-testid': 'advanced-search-label-select'
+                } as Record<string, string>
+              }
+            }}
+          >
+            <MenuItem value={ALL_LABELS}>{t('search.labels.all')}</MenuItem>
+            {/* A keyword no label has (e.g. a deleted one) still filters */}
+            {draft.label !== null &&
+            !labels.some(label => label.keyword === draft.label) ? (
+              <MenuItem value={draft.label}>
+                {t('search.labels.unknown')}
+              </MenuItem>
+            ) : null}
+            {labels.map(label => (
+              <MenuItem key={label.keyword} value={label.keyword}>
+                {labelDisplayName(label, t)}
+              </MenuItem>
+            ))}
+          </TextField>
         </FormRow>
       ) : null}
       <FormRow label={t('search.fields.date')} id={fieldId('date')}>
         {/* As tmail-flutter's `DefaultDateDropDownFieldWidget`: the list,
             and 8 px after it the calendar opening the range picker */}
         <Box className="u-flex u-flex-items-center">
-          <Box className="u-flex-auto u-ov-hidden">
-            <ModalSelect
-              labelId={fieldId('date')}
-              value={draft.dateRange}
-              valueLabel={
-                range === null
-                  ? undefined
-                  : t('search.dates.range', {
-                      startDate: formatDayText(range.start),
-                      endDate: formatDayText(range.end)
-                    })
+          <TextField
+            select
+            fullWidth
+            size="small"
+            value={draft.dateRange}
+            inputRef={dateRef}
+            slotProps={{
+              select: {
+                labelId: fieldId('date'),
+                renderValue: () =>
+                  range === null
+                    ? t(DATE_LABELS[draft.dateRange])
+                    : t('search.dates.range', {
+                        startDate: formatDayText(range.start),
+                        endDate: formatDayText(range.end)
+                      }),
+                SelectDisplayProps: {
+                  'data-testid': 'advanced-search-date-select'
+                } as Record<string, string>
               }
-              options={DATE_RANGES.map(dateRange => ({
-                value: dateRange,
-                label: t(DATE_LABELS[dateRange])
-              }))}
-              onChange={value => {
-                const dateRange = DATE_RANGES.find(
-                  candidate => candidate === value
-                )
-                if (dateRange === undefined) return
-                if (dateRange === 'custom') {
-                  openRange(dateRef.current)
-                  return
-                }
-                setDraft(current => ({ ...current, dateRange }))
-              }}
-              selectRef={dateRef}
-              data-testid="advanced-search-date-select"
-            />
-          </Box>
+            }}
+          >
+            {DATE_RANGES.map(dateRange => (
+              <MenuItem
+                key={dateRange}
+                value={dateRange}
+                // On each pick: a custom range reopens when picked again
+                onClick={() => {
+                  if (dateRange === 'custom') {
+                    openRange(dateRef.current)
+                    return
+                  }
+                  setDraft(current => ({ ...current, dateRange }))
+                }}
+              >
+                {t(DATE_LABELS[dateRange])}
+              </MenuItem>
+            ))}
+          </TextField>
           <Box className="u-ml-half u-flex">
-            <ModalFieldIconButton
-              label={t('dateRange.selectDate')}
-              icon={Calendar}
-              aria-haspopup="dialog"
-              aria-describedby={fieldId('date')}
-              onClick={() => {
-                // The dialog gives the focus back to the button by itself
-                openRange(null)
-              }}
-              data-testid="advanced-search-date-button"
-            />
+            <Tooltip title={t('dateRange.selectDate')}>
+              <IconButton
+                aria-label={t('dateRange.selectDate')}
+                aria-haspopup="dialog"
+                aria-describedby={fieldId('date')}
+                onClick={() => {
+                  // The dialog gives the focus back to the button by itself
+                  openRange(null)
+                }}
+                data-testid="advanced-search-date-button"
+              >
+                <Icon icon={Calendar} />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
       </FormRow>
       <FormRow label={t('search.fields.sort')} id={fieldId('sort')}>
-        <ModalSelect
-          labelId={fieldId('sort')}
+        <TextField
+          select
+          fullWidth
+          size="small"
           value={draft.sort}
-          options={SORT_ORDERS.map(order => ({
-            value: order,
-            label: t(SORT_LABELS[order])
-          }))}
-          onChange={value => {
-            const sort = SORT_ORDERS.find(order => order === value)
+          onChange={event => {
+            const sort = SORT_ORDERS.find(order => order === event.target.value)
             if (sort !== undefined) {
               setDraft(current => ({ ...current, sort }))
             }
           }}
-          data-testid="advanced-search-sort-select"
-        />
+          slotProps={{
+            select: {
+              labelId: fieldId('sort'),
+              SelectDisplayProps: {
+                'data-testid': 'advanced-search-sort-select'
+              } as Record<string, string>
+            }
+          }}
+        >
+          {SORT_ORDERS.map(order => (
+            <MenuItem key={order} value={order}>
+              {t(SORT_LABELS[order])}
+            </MenuItem>
+          ))}
+        </TextField>
       </FormRow>
       <Box className="u-flex u-flex-wrap u-mt-1">
         {(

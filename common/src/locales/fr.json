@@ -1092,7 +1092,7 @@
     "form": {
       "createTitle": "Créer une nouvelle règle",
       "editTitle": "Modifier la règle",
-      "create": "Créer une règle",
+      "create": "Créer",
       "name": "Nom de la règle",
       "namePlaceholder": "Entrez le nom de la règle",
       "conditions": "Conditions",
@@ -1315,12 +1315,9 @@
       "darkGrey": "Gris foncé",
       "grey": "Gris"
     },
-    "colorCustom": "Couleur personnalisée",
-    "colorCustomNamed": "Couleur personnalisée %{color}",
     "colorHex": "Couleur personnalisée (hexadécimal)",
     "colorHexHint": "Format #RRGGBB, par exemple #1A2B3C",
     "colorHexInvalid": "Saisissez une couleur au format #RRGGBB, par exemple #1A2B3C",
-    "colorPicker": "Ouvrir le sélecteur de couleur",
     "removeFromEmail": "Retirer le libellé %{name}",
     "moreNames": "%{smart_count} autre libellé : %{names} |||| %{smart_count} autres libellés : %{names}",
     "listLabel": "Libellés de l'e-mail"

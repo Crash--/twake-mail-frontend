@@ -5,6 +5,38 @@ import { expect, test } from '../support/fixtures'
 const FILTER = 'com:linagora:params:jmap:filter'
 
 test.describe('RULE email rules', () => {
+  test('RULE-20 the fields of a condition share a row, Enter saves the rule', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const settings = await mailbox.openSettings()
+    await settings.open('email-rules')
+    await settings.addRuleButton.click()
+    const dialog = settings.ruleDialog
+    const condition = dialog.getByTestId('rule-condition')
+    const field = await condition
+      .getByTestId('rule-condition-field-select')
+      .boundingBox()
+    const comparator = await condition
+      .getByTestId('rule-condition-comparator-select')
+      .boundingBox()
+    const value = await condition
+      .getByTestId('rule-condition-value-input')
+      .boundingBox()
+    expect(comparator?.x).toBeGreaterThan((field?.x ?? 0) + (field?.width ?? 0))
+    expect(value?.y).toBeGreaterThan(
+      (field?.y ?? 0) + (field?.height ?? 0)
+    )
+
+    await condition.getByTestId('rule-condition-value-input').fill('by enter')
+    await settings.selectRuleAction(1, 'Mark as seen')
+    await dialog.getByTestId('rule-name-input').fill('By enter')
+    await page.keyboard.press('Enter')
+    await expect(dialog).toBeHidden()
+    await expect(settings.rule('By enter')).toBeVisible()
+  })
+
   // The reading view of a single email: its sender is a button
   test.use({ emailsOneByOne: true })
 

@@ -1092,7 +1092,7 @@
     "form": {
       "createTitle": "Neue Regel erstellen",
       "editTitle": "Regel bearbeiten",
-      "create": "Regel erstellen",
+      "create": "Erstellen",
       "name": "Regelname",
       "namePlaceholder": "Geben Sie den Namen der Regel ein",
       "conditions": "Bedingung",
@@ -1315,12 +1315,9 @@
       "darkGrey": "Dunkelgrau",
       "grey": "Grau"
     },
-    "colorCustom": "Benutzerdefinierte Farbe",
-    "colorCustomNamed": "Benutzerdefinierte Farbe %{color}",
     "colorHex": "Benutzerdefinierte Farbe (hexadezimal)",
     "colorHexHint": "Format #RRGGBB, zum Beispiel #1A2B3C",
     "colorHexInvalid": "Geben Sie eine Farbe als #RRGGBB ein, zum Beispiel #1A2B3C",
-    "colorPicker": "Farbauswahl öffnen",
     "removeFromEmail": "Label %{name} entfernen",
     "moreNames": "%{smart_count} weiteres Label: %{names} |||| %{smart_count} weitere Labels: %{names}",
     "listLabel": "Labels der E-Mail"

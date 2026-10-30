@@ -15,8 +15,8 @@ export class LabelModals {
   readonly saveButton: Locator
   readonly colorPicker: Locator
   readonly customColorSwatch: Locator
+  readonly noColorButton: Locator
   readonly customColorHexInput: Locator
-  readonly customColorNativeInput: Locator
   readonly chooseModal: Locator
   readonly chooseEmpty: Locator
   readonly chooseCreateButton: Locator
@@ -31,12 +31,12 @@ export class LabelModals {
     this.descriptionInput = this.labelModal.getByTestId('label-description-input')
     this.saveButton = this.labelModal.getByTestId('label-save-button')
     this.colorPicker = this.labelModal.getByTestId('label-color-picker')
-    this.customColorSwatch = this.labelModal.getByTestId('label-color-custom')
+    // ColorList names neither its swatches (`div` buttons) nor its custom
+    // button, the only real `button`, until twake-ui#223 is published
+    this.customColorSwatch = this.colorPicker.locator('button')
+    this.noColorButton = this.labelModal.getByTestId('label-color-none')
     this.customColorHexInput = this.labelModal.getByTestId(
       'label-color-hex-input'
-    )
-    this.customColorNativeInput = this.labelModal.getByTestId(
-      'label-color-native-input'
     )
     this.chooseModal = page.getByTestId('choose-label-modal')
     this.chooseEmpty = this.chooseModal.getByTestId('choose-label-empty')
@@ -73,14 +73,14 @@ export class LabelModals {
     await expect(this.labelModal).toBeHidden()
   }
 
-  /** A swatch of the colour picker of the label modal, by its name */
-  colorSwatch(name: string): Locator {
-    return this.colorPicker.getByRole('radio', { name, exact: true })
+  /** A swatch of the colour picker of the label modal, by its position */
+  colorSwatch(position: number): Locator {
+    return this.colorPicker.locator('[role="button"]').nth(position)
   }
 
   /** Picks the custom colour by its hexadecimal field */
   async chooseCustomColor(hex: string): Promise<void> {
-    await this.customColorSwatch.check()
+    await this.customColorSwatch.click()
     await this.customColorHexInput.fill(hex)
   }
 

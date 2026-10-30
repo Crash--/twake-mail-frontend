@@ -1092,7 +1092,7 @@
     "form": {
       "createTitle": "Шинэ дүрэм үүсгэх",
       "editTitle": "Дүрэм засах",
-      "create": "Дүрэм үүсгэх",
+      "create": "Үүсгэх",
       "name": "Дүрмийн нэр",
       "namePlaceholder": "Дүрмийн нэрийг оруулна уу",
       "conditions": "Нөхцөл",
@@ -1315,12 +1315,9 @@
       "darkGrey": "Бараан саарал",
       "grey": "Саарал"
     },
-    "colorCustom": "Өөрийн өнгө",
-    "colorCustomNamed": "Өөрийн өнгө %{color}",
     "colorHex": "Өөрийн өнгө (арван зургаатын)",
     "colorHexHint": "#RRGGBB хэлбэр, жишээ нь #1A2B3C",
     "colorHexInvalid": "Өнгийг #RRGGBB хэлбэрээр оруулна уу, жишээ нь #1A2B3C",
-    "colorPicker": "Өнгө сонгогчийг нээх",
     "removeFromEmail": "%{name} шошгыг хасах",
     "moreNames": "Бусад %{smart_count} шошго: %{names} |||| Бусад %{smart_count} шошго: %{names}",
     "listLabel": "Имэйлийн шошгууд"

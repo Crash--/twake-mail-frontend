@@ -1,16 +1,16 @@
-import {
-  Check,
-  Eye,
-  EyeClosed,
-  Plus,
-  Trash,
-  InfoOutlined
-} from '@linagora/twake-icons'
+import { Eye, EyeClosed, Icon, Plus, Trash } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
+  Button,
   Checkbox,
+  FixedDialog,
   FormControlLabel,
+  IconButton,
+  MenuItem,
+  Stack,
+  TextField,
+  Tooltip,
   Typography
 } from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
@@ -22,20 +22,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { IconAction } from '@/ds/IconAction/IconAction'
-import {
-  SettingsFormBox,
-  SettingsFormDialog,
-  SettingsFormFieldButton,
-  SettingsFormLabel,
-  SettingsFormSelect,
-  SettingsFormStack,
-  SettingsFormText,
-  SettingsFormTextField,
-  SettingsOutlinedButton,
-  SettingsPreviewBanner,
-  SettingsPreviewToggle
-} from '@/ds/SettingsFormDialog/SettingsFormDialog'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import { validateIdentityName } from '@common/features/identities/identityForm'
@@ -107,6 +93,24 @@ function isKindTaken(
   )
 }
 
+const RULE_ROW_PROPS = {
+  role: 'group',
+  direction: 'row',
+  spacing: 1,
+  useFlexGap: true,
+  className: 'u-flex-items-center u-mt-half u-p-half',
+  // Grey in the Figma, and twake-mui has no prop for it
+  sx: { bgcolor: 'background.default' }
+} as const
+
+const RULE_FIELD_PROPS = {
+  size: 'small',
+  // White and body2 in the Figma, and twake-mui has no prop for it
+  sx: {
+    '& .MuiInputBase-root': { bgcolor: 'background.paper', typography: 'body2' }
+  }
+} as const
+
 /** The field a condition gets when `choice` is picked in its field select */
 function fieldOfChoice(
   choice: RuleFieldChoice,
@@ -136,11 +140,11 @@ export function RuleFormDialog({
   const { data: loadedMailboxes } = useMailboxes()
   const mailboxes = loadedMailboxes ?? []
   const isPhone = useScreenSize() === 'mobile'
-  const titleId = useId()
+  const formId = useId()
   const nameId = useId()
   const conditionsId = useId()
   const folderErrorId = useId()
-  const folderRef = useRef<HTMLButtonElement>(null)
+  const folderRef = useRef<{ focus: () => void }>(null)
   const [isPreviewShown, setIsPreviewShown] = useState(false)
   const nameRef = useRef<HTMLInputElement>(null)
   const spamId = mailboxes.find(mailbox => mailbox.role === 'junk')?.id ?? null
@@ -291,381 +295,540 @@ export function RuleFormDialog({
       .join(', ')
   })
 
-  // As tmail-flutter: the name above its field, then the conditions and
-  // the actions each in a light grey box, the buttons adding them as
-  // outlined pills
   return (
-    <SettingsFormDialog
+    <FixedDialog
+      open
       title={t(
         rule === null ? 'rules.form.createTitle' : 'rules.form.editTitle'
       )}
-      titleId={titleId}
-      onClose={onClose}
-      onSubmit={handleSubmit}
-      isBusy={isSaving}
-      labels={{
-        close: t('common.close'),
-        back: t('common.back'),
-        cancel: t('common.cancel'),
-        submit: t(rule === null ? 'rules.form.create' : 'rules.form.save')
-      }}
-      data-testid="rule-form-dialog"
-      submitTestId="create-rule-button"
-      cancelTestId="rule-cancel-button"
-    >
-      <SettingsFormLabel htmlFor={nameId} className="u-mb-1">
-        {t('rules.form.name')}
-      </SettingsFormLabel>
-      <SettingsFormTextField
-        id={nameId}
-        inputRef={nameRef}
-        autoFocus
-        required
-        placeholder={t('rules.form.namePlaceholder')}
-        value={draft.name}
-        onChange={event => {
-          update({ name: event.target.value })
-        }}
-        error={isTouched && nameProblem !== null}
-        helperText={
-          isTouched && nameProblem !== null ? t(nameProblem) : undefined
-        }
-        inputTestId="rule-name-input"
-      />
-      <Box role="group" aria-labelledby={conditionsId}>
-        {/* As tmail-flutter: "Preview" at the end of the label, on a
-            desktop and a tablet, says what the rule does in words */}
-        <Box className="u-flex u-flex-items-center u-flex-justify-between u-pv-1">
-          <SettingsFormLabel component="h3" id={conditionsId}>
-            {t('rules.form.conditions')}
-          </SettingsFormLabel>
-          {isPhone ? null : (
-            <SettingsPreviewToggle
-              label={t('rules.form.preview')}
-              isOn={isPreviewShown}
-              icons={{ on: EyeClosed, off: Eye }}
-              onToggle={() => {
-                setIsPreviewShown(shown => !shown)
-              }}
-              data-testid="rule-preview-toggle"
-            />
-          )}
-        </Box>
-        {isPreviewShown && !isPhone ? (
-          <SettingsPreviewBanner
-            kind="condition"
-            icon={InfoOutlined}
-            title={`${t('rules.form.preview')}:`}
-            message={conditionsPreview}
-            className="u-mb-1"
-            data-testid="rule-conditions-preview"
-          />
-        ) : null}
-        {/* As tmail-flutter: on a phone the select fills the row and what
-            follows it goes under it */}
-        <Box className="u-flex u-flex-items-center u-flex-wrap">
-          <SettingsFormText className="u-mr-1">
-            {t('rules.form.combinerBefore')}
-          </SettingsFormText>
-          <SettingsFormSelect
-            label={t('rules.form.combiner')}
-            width={isPhone ? undefined : 158}
-            value={draft.combiner}
-            onChange={event => {
-              update({ combiner: event.target.value === 'OR' ? 'OR' : 'AND' })
-            }}
-            inputTestId="rule-combiner-select"
+      fullScreen={isPhone}
+      // While saving: the dialog stays and its buttons wait
+      onClose={isSaving ? () => undefined : onClose}
+      actions={
+        <>
+          <Button
+            variant="outlined"
+            onClick={onClose}
+            disabled={isSaving}
+            data-testid="rule-cancel-button"
           >
-            <option value="AND">{t('rules.combiners.AND')}</option>
-            <option value="OR">{t('rules.combiners.OR')}</option>
-          </SettingsFormSelect>
-          {isPhone ? null : (
-            <SettingsFormText className="u-ml-1">
-              {t('rules.form.combinerAfter')}
-            </SettingsFormText>
-          )}
-        </Box>
-        {isPhone ? (
-          <SettingsFormText className="u-db u-mt-half">
-            {t('rules.form.combinerAfter')}
-          </SettingsFormText>
-        ) : null}
-        {draft.conditions.map((condition, index) => {
-          const position = index + 1
-          const fieldLabel = ruleFieldLabel(condition.field)
-          const comparatorLabel = ruleComparatorLabel(condition.comparator)
-          const problemKey = valueProblem(condition.value)
-          const headerName = ruleHeaderName(condition.field)
-          const headerProblem = isTouched ? headerNameProblem(condition) : null
-          return (
-            <SettingsFormBox
-              key={index}
-              label={t('rules.form.condition', { position })}
-              data-testid="rule-condition"
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            form={formId}
+            disabled={isSaving}
+            data-testid="create-rule-button"
+          >
+            {t(rule === null ? 'rules.form.create' : 'rules.form.save')}
+          </Button>
+        </>
+      }
+      data-testid="rule-form-dialog"
+      content={
+        <form id={formId} onSubmit={handleSubmit} noValidate>
+          <TextField
+            id={nameId}
+            inputRef={nameRef}
+            autoFocus
+            required
+            fullWidth
+            size="small"
+            label={t('rules.form.name')}
+            placeholder={t('rules.form.namePlaceholder')}
+            value={draft.name}
+            onChange={event => {
+              update({ name: event.target.value })
+            }}
+            error={isTouched && nameProblem !== null}
+            helperText={
+              isTouched && nameProblem !== null ? t(nameProblem) : undefined
+            }
+            slotProps={{ htmlInput: { 'data-testid': 'rule-name-input' } }}
+          />
+          <Box role="group" aria-labelledby={conditionsId}>
+            {/* As tmail-flutter: "Preview" at the end of the label, on a
+            desktop and a tablet, says what the rule does in words */}
+            <Box className="u-flex u-flex-items-center u-flex-justify-between u-pv-1">
+              <Typography component="h3" variant="body2" id={conditionsId}>
+                {t('rules.form.conditions')}
+              </Typography>
+              {isPhone ? null : (
+                <Button
+                  variant="text"
+                  size="small"
+                  aria-pressed={isPreviewShown}
+                  onClick={() => {
+                    setIsPreviewShown(shown => !shown)
+                  }}
+                  startIcon={
+                    <Icon
+                      icon={isPreviewShown ? EyeClosed : Eye}
+                      aria-hidden="true"
+                    />
+                  }
+                  data-testid="rule-preview-toggle"
+                >
+                  {t('rules.form.preview')}
+                </Button>
+              )}
+            </Box>
+            {isPreviewShown && !isPhone ? (
+              // A part of the form, not an event: no live region
+              <Alert
+                severity="info"
+                role="none"
+                className="u-mb-1"
+                data-testid="rule-conditions-preview"
+              >
+                <strong>{`${t('rules.form.preview')}:`}</strong>{' '}
+                {conditionsPreview}
+              </Alert>
+            ) : null}
+            {/* On a phone the select fills the row and what follows it goes
+            under it; elsewhere the sentence stays on one line */}
+            <Stack
+              direction="row"
+              spacing={1}
+              useFlexGap
+              className={`u-flex-items-center${isPhone ? ' u-flex-wrap' : ''}`}
             >
-              {/* As tmail-flutter: one under the other on a phone */}
-              <SettingsFormStack isStacked={isPhone}>
-                <SettingsFormSelect
-                  label={t('rules.form.field')}
-                  value={ruleFieldChoice(condition.field) ?? condition.field}
-                  onChange={event => {
-                    const choice = RULE_FIELD_CHOICES.find(
-                      candidate => candidate === event.target.value
-                    )
-                    if (choice === undefined) return
-                    updateCondition(index, {
-                      field: fieldOfChoice(choice, condition.field)
-                    })
-                  }}
-                  inputTestId="rule-condition-field-select"
-                >
-                  {fieldLabel === null ? (
-                    <option value={condition.field}>{condition.field}</option>
-                  ) : null}
-                  {RULE_FIELD_CHOICES.map(choice => (
-                    <option key={choice} value={choice}>
-                      {t(ruleFieldLabel(choice) ?? 'rules.fields.from')}
-                    </option>
-                  ))}
-                </SettingsFormSelect>
-                {headerName === null ? null : (
-                  <SettingsFormTextField
-                    isInRow
-                    required
-                    label={t('rules.form.headerName')}
-                    placeholder={t('rules.form.headerNamePlaceholder')}
-                    value={headerName}
-                    onChange={event => {
-                      updateCondition(index, {
-                        field: headerField(event.target.value)
-                      })
-                    }}
-                    error={headerProblem !== null}
-                    helperText={
-                      headerProblem === null ? undefined : t(headerProblem)
-                    }
-                    inputTestId="rule-condition-header-input"
-                  />
-                )}
-                <SettingsFormSelect
-                  label={t('rules.form.comparator')}
-                  value={condition.comparator}
-                  onChange={event => {
-                    updateCondition(index, {
-                      comparator:
-                        RULE_COMPARATORS.find(
-                          comparator => comparator === event.target.value
-                        ) ?? condition.comparator
-                    })
-                  }}
-                  inputTestId="rule-condition-comparator-select"
-                >
-                  {comparatorLabel === null ? (
-                    <option value={condition.comparator}>
-                      {condition.comparator}
-                    </option>
-                  ) : null}
-                  {RULE_COMPARATORS.map(comparator => (
-                    <option key={comparator} value={comparator}>
-                      {t(
-                        ruleComparatorLabel(comparator) ??
-                          'rules.comparators.contains'
-                      )}
-                    </option>
-                  ))}
-                </SettingsFormSelect>
-                <SettingsFormTextField
-                  isInRow
-                  required
-                  label={t('rules.form.value')}
-                  placeholder={t('rules.form.value')}
-                  value={condition.value}
-                  onChange={event => {
-                    updateCondition(index, { value: event.target.value })
-                  }}
-                  error={problemKey !== null}
-                  helperText={problemKey === null ? undefined : t(problemKey)}
-                  inputTestId="rule-condition-value-input"
-                />
-              </SettingsFormStack>
-              <IconAction
-                label={t('rules.form.removeCondition', { position })}
-                icon={Trash}
-                tone="icon"
-                size={36}
-                onClick={() => {
+              <Typography component="span" noWrap>
+                {t('rules.form.combinerBefore')}
+              </Typography>
+              <TextField
+                select
+                {...RULE_FIELD_PROPS}
+                fullWidth={isPhone}
+                value={draft.combiner}
+                onChange={event => {
                   update({
-                    conditions: draft.conditions.filter(
-                      (_condition, other) => other !== index
-                    )
+                    combiner: event.target.value === 'OR' ? 'OR' : 'AND'
                   })
                 }}
-                data-testid="rule-condition-remove-button"
-              />
-            </SettingsFormBox>
-          )
-        })}
-        <SettingsOutlinedButton
-          label={t('rules.form.addCondition')}
-          icon={Plus}
-          className="u-mt-1"
-          onClick={() => {
-            update({ conditions: [...draft.conditions, emptyCondition()] })
-          }}
-          data-testid="rule-add-condition-button"
-        />
-      </Box>
-      <Box component="fieldset" className="u-bdw-0 u-p-0 u-m-0 u-mt-1-half">
-        <SettingsFormLabel component="legend" className="u-pb-half">
-          {t('rules.form.actions')}
-        </SettingsFormLabel>
-        {isPreviewShown && !isPhone ? (
-          <SettingsPreviewBanner
-            kind="action"
-            icon={Check}
-            title={`${t('rules.form.preview')}:`}
-            message={actionsPreview}
-            className="u-mv-half"
-            data-testid="rule-actions-preview"
-          />
-        ) : null}
-        {draft.actions.map((action, index) => {
-          const position = index + 1
-          const folder = folderName(action.mailboxId)
-          return (
-            <SettingsFormBox
-              key={index}
-              label={t('rules.form.action', { position })}
-              kind="action"
-              data-testid="rule-action"
-            >
-              <SettingsFormSelect
-                label={t('rules.form.action', { position })}
-                value={action.kind ?? ''}
-                onChange={event => {
-                  const kind = RULE_ACTION_KINDS.find(
-                    candidate => candidate === event.target.value
-                  )
-                  updateAction(index, actionDraft(kind ?? null))
+                slotProps={{
+                  select: { native: true },
+                  htmlInput: {
+                    'aria-label': t('rules.form.combiner'),
+                    'data-testid': 'rule-combiner-select'
+                  }
                 }}
-                inputTestId="rule-action-select"
               >
-                <option value="" disabled>
-                  {t('rules.form.selectAction')}
-                </option>
-                {RULE_ACTION_KINDS.filter(
-                  kind => !isKindTaken(draft.actions, kind, index)
-                ).map(kind => (
-                  <option key={kind} value={kind}>
-                    {t(RULE_ACTION_LABELS[kind])}
-                  </option>
-                ))}
-              </SettingsFormSelect>
-              {action.kind === 'move' ? (
-                <>
-                  <SettingsFormText className="u-ellipsis">
-                    {t('rules.form.toFolder')}
-                  </SettingsFormText>
-                  <SettingsFormFieldButton
-                    value={folder}
-                    hint={t('rules.form.chooseFolder')}
-                    label={t('rules.form.chooseFolder')}
+                <option value="AND">{t('rules.combiners.AND')}</option>
+                <option value="OR">{t('rules.combiners.OR')}</option>
+              </TextField>
+              {isPhone ? null : (
+                <Typography component="span" noWrap>
+                  {t('rules.form.combinerAfter')}
+                </Typography>
+              )}
+            </Stack>
+            {isPhone ? (
+              <Typography component="span" className="u-db u-mt-half">
+                {t('rules.form.combinerAfter')}
+              </Typography>
+            ) : null}
+            {draft.conditions.map((condition, index) => {
+              const position = index + 1
+              const fieldLabel = ruleFieldLabel(condition.field)
+              const comparatorLabel = ruleComparatorLabel(condition.comparator)
+              const problemKey = valueProblem(condition.value)
+              const headerName = ruleHeaderName(condition.field)
+              const headerProblem = isTouched
+                ? headerNameProblem(condition)
+                : null
+              const removeButton = (
+                <Tooltip
+                  title={t('rules.form.removeCondition', { position })}
+                  disableInteractive
+                >
+                  <IconButton
+                    size="medium"
                     onClick={() => {
-                      handleChooseFolder(index)
-                    }}
-                    buttonRef={folderRef}
-                    error={
-                      problem === 'rules.errors.noFolder' &&
-                      isMoveWithoutFolder(action, folderIds)
-                        ? t(problem)
-                        : null
-                    }
-                    errorId={folderErrorId}
-                    data-testid="rule-action-folder-button"
-                  />
-                </>
-              ) : null}
-              {action.kind === 'forward' ? (
-                <>
-                  <SettingsFormTextField
-                    isInRow
-                    required
-                    label={t('rules.form.forwardAddresses')}
-                    placeholder={t('rules.form.forwardPlaceholder')}
-                    value={action.forwardAddresses}
-                    onChange={event => {
-                      updateAction(index, {
-                        forwardAddresses: event.target.value
+                      update({
+                        conditions: draft.conditions.filter(
+                          (_condition, other) => other !== index
+                        )
                       })
                     }}
-                    error={
-                      problem !== null && FORWARD_PROBLEMS.includes(problem)
-                    }
-                    inputMode="email"
-                    inputTestId="rule-action-forward-input"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={action.keepACopy}
+                    data-testid="rule-condition-remove-button"
+                  >
+                    <Icon icon={Trash} aria-hidden="true" />
+                  </IconButton>
+                </Tooltip>
+              )
+              return (
+                <Stack
+                  key={index}
+                  {...RULE_ROW_PROPS}
+                  aria-label={t('rules.form.condition', { position })}
+                  data-testid="rule-condition"
+                >
+                  <Stack useFlexGap spacing={1} className="u-flex-auto">
+                    {/* One under the other on a phone */}
+                    <Stack
+                      direction={isPhone ? 'column' : 'row'}
+                      useFlexGap
+                      spacing={1}
+                    >
+                      <TextField
+                        select
+                        fullWidth
+                        {...RULE_FIELD_PROPS}
+                        value={
+                          ruleFieldChoice(condition.field) ?? condition.field
+                        }
                         onChange={event => {
-                          updateAction(index, {
-                            keepACopy: event.target.checked
+                          const choice = RULE_FIELD_CHOICES.find(
+                            candidate => candidate === event.target.value
+                          )
+                          if (choice === undefined) return
+                          updateCondition(index, {
+                            field: fieldOfChoice(choice, condition.field)
                           })
                         }}
+                        slotProps={{
+                          select: { native: true },
+                          htmlInput: {
+                            'aria-label': t('rules.form.field'),
+                            'data-testid': 'rule-condition-field-select'
+                          }
+                        }}
+                      >
+                        {fieldLabel === null ? (
+                          <option value={condition.field}>
+                            {condition.field}
+                          </option>
+                        ) : null}
+                        {RULE_FIELD_CHOICES.map(choice => (
+                          <option key={choice} value={choice}>
+                            {t(ruleFieldLabel(choice) ?? 'rules.fields.from')}
+                          </option>
+                        ))}
+                      </TextField>
+                      {headerName === null ? null : (
+                        <TextField
+                          required
+                          fullWidth
+                          {...RULE_FIELD_PROPS}
+                          placeholder={t('rules.form.headerNamePlaceholder')}
+                          value={headerName}
+                          onChange={event => {
+                            updateCondition(index, {
+                              field: headerField(event.target.value)
+                            })
+                          }}
+                          error={headerProblem !== null}
+                          helperText={
+                            headerProblem === null
+                              ? undefined
+                              : t(headerProblem)
+                          }
+                          slotProps={{
+                            htmlInput: {
+                              'aria-label': t('rules.form.headerName'),
+                              'data-testid': 'rule-condition-header-input'
+                            }
+                          }}
+                        />
+                      )}
+                      <TextField
+                        select
+                        fullWidth
+                        {...RULE_FIELD_PROPS}
+                        value={condition.comparator}
+                        onChange={event => {
+                          updateCondition(index, {
+                            comparator:
+                              RULE_COMPARATORS.find(
+                                comparator => comparator === event.target.value
+                              ) ?? condition.comparator
+                          })
+                        }}
+                        slotProps={{
+                          select: { native: true },
+                          htmlInput: {
+                            'aria-label': t('rules.form.comparator'),
+                            'data-testid': 'rule-condition-comparator-select'
+                          }
+                        }}
+                      >
+                        {comparatorLabel === null ? (
+                          <option value={condition.comparator}>
+                            {condition.comparator}
+                          </option>
+                        ) : null}
+                        {RULE_COMPARATORS.map(comparator => (
+                          <option key={comparator} value={comparator}>
+                            {t(
+                              ruleComparatorLabel(comparator) ??
+                                'rules.comparators.contains'
+                            )}
+                          </option>
+                        ))}
+                      </TextField>
+                    </Stack>
+                    <Stack
+                      direction="row"
+                      useFlexGap
+                      spacing={1}
+                      className="u-flex-items-center"
+                    >
+                      <TextField
+                        required
+                        fullWidth
+                        {...RULE_FIELD_PROPS}
+                        placeholder={t('rules.form.value')}
+                        value={condition.value}
+                        onChange={event => {
+                          updateCondition(index, { value: event.target.value })
+                        }}
+                        error={problemKey !== null}
+                        helperText={
+                          problemKey === null ? undefined : t(problemKey)
+                        }
+                        slotProps={{
+                          htmlInput: {
+                            'aria-label': t('rules.form.value'),
+                            'data-testid': 'rule-condition-value-input'
+                          }
+                        }}
                       />
+                      {isPhone ? null : removeButton}
+                    </Stack>
+                  </Stack>
+                  {isPhone ? removeButton : null}
+                </Stack>
+              )
+            })}
+            <Button
+              variant="text"
+              className="u-mt-1"
+              startIcon={<Icon icon={Plus} aria-hidden="true" />}
+              onClick={() => {
+                update({ conditions: [...draft.conditions, emptyCondition()] })
+              }}
+              data-testid="rule-add-condition-button"
+            >
+              {t('rules.form.addCondition')}
+            </Button>
+          </Box>
+          <Box component="fieldset" className="u-bdw-0 u-p-0 u-m-0 u-mt-1-half">
+            <Typography
+              component="legend"
+              variant="body2"
+              className="u-pb-half"
+            >
+              {t('rules.form.actions')}
+            </Typography>
+            {isPreviewShown && !isPhone ? (
+              <Alert
+                severity="success"
+                role="none"
+                className="u-mv-half"
+                data-testid="rule-actions-preview"
+              >
+                <strong>{`${t('rules.form.preview')}:`}</strong>{' '}
+                {actionsPreview}
+              </Alert>
+            ) : null}
+            {draft.actions.map((action, index) => {
+              const position = index + 1
+              const folder = folderName(action.mailboxId)
+              const folderProblem =
+                problem === 'rules.errors.noFolder' &&
+                isMoveWithoutFolder(action, folderIds)
+                  ? t(problem)
+                  : null
+              return (
+                <Stack
+                  key={index}
+                  {...RULE_ROW_PROPS}
+                  // The folder goes to a next line when a language lacks room
+                  className={
+                    action.kind === 'move'
+                      ? `${RULE_ROW_PROPS.className} u-flex-wrap`
+                      : RULE_ROW_PROPS.className
+                  }
+                  aria-label={t('rules.form.action', { position })}
+                  data-testid="rule-action"
+                >
+                  <TextField
+                    select
+                    // As wide as its text next to a folder, as the Figma
+                    fullWidth={action.kind !== 'move'}
+                    className={
+                      action.kind === 'move' ? 'u-flex-auto' : undefined
                     }
-                    label={t('rules.form.keepACopy')}
-                    data-testid="rule-action-forward-keep-copy-checkbox"
-                  />
-                </>
-              ) : null}
-              {/* As tmail-flutter: an action can always be taken out, the
+                    {...RULE_FIELD_PROPS}
+                    value={action.kind ?? ''}
+                    onChange={event => {
+                      const kind = RULE_ACTION_KINDS.find(
+                        candidate => candidate === event.target.value
+                      )
+                      updateAction(index, actionDraft(kind ?? null))
+                    }}
+                    slotProps={{
+                      select: { native: true },
+                      htmlInput: {
+                        'aria-label': t('rules.form.action', { position }),
+                        'data-testid': 'rule-action-select'
+                      }
+                    }}
+                  >
+                    <option value="" disabled>
+                      {t('rules.form.selectAction')}
+                    </option>
+                    {RULE_ACTION_KINDS.filter(
+                      kind => !isKindTaken(draft.actions, kind, index)
+                    ).map(kind => (
+                      <option key={kind} value={kind}>
+                        {t(RULE_ACTION_LABELS[kind])}
+                      </option>
+                    ))}
+                  </TextField>
+                  {action.kind === 'move' ? (
+                    <>
+                      <Typography
+                        component="span"
+                        noWrap
+                        className="u-flex-shrink-0"
+                      >
+                        {t('rules.form.toFolder')}
+                      </Typography>
+                      {/* Never opens its own menu: opening it asks for the
+                          picker */}
+                      <TextField
+                        id={folderErrorId}
+                        select
+                        className="u-flex-auto"
+                        {...RULE_FIELD_PROPS}
+                        value={folder ?? ''}
+                        inputRef={folderRef}
+                        error={folderProblem !== null}
+                        helperText={folderProblem ?? undefined}
+                        slotProps={{
+                          select: {
+                            open: false,
+                            displayEmpty: true,
+                            onOpen: () => {
+                              handleChooseFolder(index)
+                            },
+                            renderValue: () =>
+                              folder ?? t('rules.form.chooseFolder'),
+                            SelectDisplayProps: {
+                              'aria-label':
+                                folder === null
+                                  ? t('rules.form.chooseFolder')
+                                  : `${t('rules.form.chooseFolder')}: ${folder}`,
+                              'aria-haspopup': 'dialog',
+                              'data-testid': 'rule-action-folder-button'
+                            } as Record<string, string>
+                          }
+                        }}
+                      >
+                        <MenuItem value={folder ?? ''}>{folder ?? ''}</MenuItem>
+                      </TextField>
+                    </>
+                  ) : null}
+                  {action.kind === 'forward' ? (
+                    <>
+                      <TextField
+                        required
+                        fullWidth
+                        {...RULE_FIELD_PROPS}
+                        placeholder={t('rules.form.forwardPlaceholder')}
+                        value={action.forwardAddresses}
+                        onChange={event => {
+                          updateAction(index, {
+                            forwardAddresses: event.target.value
+                          })
+                        }}
+                        error={
+                          problem !== null && FORWARD_PROBLEMS.includes(problem)
+                        }
+                        slotProps={{
+                          htmlInput: {
+                            'aria-label': t('rules.form.forwardAddresses'),
+                            inputMode: 'email',
+                            'data-testid': 'rule-action-forward-input'
+                          }
+                        }}
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={action.keepACopy}
+                            onChange={event => {
+                              updateAction(index, {
+                                keepACopy: event.target.checked
+                              })
+                            }}
+                          />
+                        }
+                        label={t('rules.form.keepACopy')}
+                        data-testid="rule-action-forward-keep-copy-checkbox"
+                      />
+                    </>
+                  ) : null}
+                  {/* As tmail-flutter: an action can always be taken out, the
                   last one too */}
-              <IconAction
-                label={t('rules.form.removeAction', { position })}
-                icon={Trash}
-                tone="icon"
-                size={36}
+                  <Tooltip
+                    title={t('rules.form.removeAction', { position })}
+                    disableInteractive
+                  >
+                    <IconButton
+                      size="medium"
+                      onClick={() => {
+                        update({
+                          actions: draft.actions.filter(
+                            (_action, other) => other !== index
+                          )
+                        })
+                      }}
+                      data-testid="rule-action-remove-button"
+                    >
+                      <Icon icon={Trash} aria-hidden="true" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              )
+            })}
+            {hasReject ? (
+              <Typography
+                variant="body2"
+                color="textPrimary"
+                className="u-mt-1"
+              >
+                {t('rules.form.rejectAlone')}
+              </Typography>
+            ) : draft.actions.length < MAX_ACTIONS ? (
+              <Button
+                variant="text"
+                className="u-mt-1"
+                startIcon={<Icon icon={Plus} aria-hidden="true" />}
                 onClick={() => {
                   update({
-                    actions: draft.actions.filter(
-                      (_action, other) => other !== index
-                    )
+                    actions: [...draft.actions, actionDraft()]
                   })
                 }}
-                data-testid="rule-action-remove-button"
-              />
-            </SettingsFormBox>
-          )
-        })}
-        {hasReject ? (
-          <Typography variant="body2" color="textPrimary" className="u-mt-1">
-            {t('rules.form.rejectAlone')}
-          </Typography>
-        ) : draft.actions.length < MAX_ACTIONS ? (
-          <SettingsOutlinedButton
-            label={t('rules.form.addAction')}
-            icon={Plus}
-            className="u-mt-1"
-            onClick={() => {
-              update({
-                actions: [...draft.actions, actionDraft()]
-              })
-            }}
-            data-testid="rule-add-action-button"
-          />
-        ) : null}
-      </Box>
-      {problem === null || problem === 'rules.errors.noFolder' ? null : (
-        <Alert
-          severity="error"
-          className="u-mt-1"
-          data-testid="rule-form-error"
-        >
-          {t(problem)}
-        </Alert>
-      )}
-    </SettingsFormDialog>
+                data-testid="rule-add-action-button"
+              >
+                {t('rules.form.addAction')}
+              </Button>
+            ) : null}
+          </Box>
+          {problem === null || problem === 'rules.errors.noFolder' ? null : (
+            <Alert
+              severity="error"
+              className="u-mt-1"
+              data-testid="rule-form-error"
+            >
+              {t(problem)}
+            </Alert>
+          )}
+        </form>
+      }
+    />
   )
 }

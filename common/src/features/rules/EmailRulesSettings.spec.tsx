@@ -346,15 +346,19 @@ describe('EmailRulesSettings', () => {
     await userEvent.click(
       within(picker).getByRole('button', { name: 'New folder' })
     )
+    const folderDialog = screen.getByRole('dialog', {
+      name: 'Create a New Folder'
+    })
     await userEvent.type(
-      within(
-        screen.getByRole('dialog', { name: 'Create a New Folder' })
-      ).getByRole('textbox', { name: 'Folder Name' }),
-      'Receipts{Enter}'
+      within(folderDialog).getByRole('textbox', { name: 'Folder Name' }),
+      'Receipts'
+    )
+    await userEvent.click(
+      within(folderDialog).getByRole('button', { name: 'Create folder' })
     )
 
     expect(
-      await screen.findByRole('button', { name: /Receipts/ })
+      await screen.findByRole('combobox', { name: /Receipts/ })
     ).toHaveAttribute('data-testid', 'rule-action-folder-button')
   })
 
@@ -444,7 +448,7 @@ describe('EmailRulesSettings', () => {
       await userEvent.click(
         within(picker).getByRole('option', { name: /Work/ })
       )
-      const chosen = await within(dialog).findByRole('button', {
+      const chosen = await within(dialog).findByRole('combobox', {
         name: 'Choose a folder: Work'
       })
       expect(chosen).not.toHaveAttribute('aria-invalid')

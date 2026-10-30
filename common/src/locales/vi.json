@@ -1092,7 +1092,7 @@
     "form": {
       "createTitle": "Tạo bộ lọc mới",
       "editTitle": "Sửa bộ lọc",
-      "create": "Tạo bộ lọc",
+      "create": "Tạo mới",
       "name": "Tên bộ lọc",
       "namePlaceholder": "Nhập tên bộ lọc",
       "conditions": "Điều kiện",
@@ -1315,12 +1315,9 @@
       "darkGrey": "Xám đậm",
       "grey": "Xám"
     },
-    "colorCustom": "Màu tùy chỉnh",
-    "colorCustomNamed": "Màu tùy chỉnh %{color}",
     "colorHex": "Màu tùy chỉnh (mã thập lục phân)",
     "colorHexHint": "Định dạng #RRGGBB, ví dụ #1A2B3C",
     "colorHexInvalid": "Nhập màu theo định dạng #RRGGBB, ví dụ #1A2B3C",
-    "colorPicker": "Mở bộ chọn màu",
     "removeFromEmail": "Gỡ nhãn %{name}",
     "moreNames": "%{smart_count} nhãn khác: %{names}",
     "listLabel": "Nhãn của email"

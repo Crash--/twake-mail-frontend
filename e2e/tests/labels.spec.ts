@@ -392,7 +392,7 @@ test.describe('LBL labels of a conversation', () => {
 
 test.describe('LBL label colours', () => {
   test(
-    'LBL-14 a label is created with a custom colour, typed as hexadecimal or picked, and the server keeps it as #RRGGBB',
+    'LBL-14 a label is created with a custom colour, typed as hexadecimal, and the server keeps it as #RRGGBB',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       const mailbox = await new LoginPage(page).loginAs(user)
@@ -404,8 +404,7 @@ test.describe('LBL label colours', () => {
       await labels.nameInput.fill('Custom tag')
 
       await expect(labels.customColorHexInput).toHaveCount(0)
-      await labels.customColorSwatch.check()
-      await expect(labels.customColorSwatch).toBeChecked()
+      await labels.customColorSwatch.click()
       // Not a colour: the form stays open and the field says why
       await labels.customColorHexInput.fill('#12')
       await labels.saveButton.click()
@@ -419,17 +418,8 @@ test.describe('LBL label colours', () => {
         'Enter a color as #RRGGBB'
       )
 
-      // The native picker updates the field, the swatch says the value
-      await labels.customColorNativeInput.fill('#1a2b3c')
-      await expect(labels.customColorHexInput).toHaveValue('#1A2B3C')
-      await expect(labels.customColorSwatch).toHaveAccessibleName(
-        'Custom color #1A2B3C'
-      )
       await expectNoA11yViolations(page)
       await labels.customColorHexInput.fill('c0ffee')
-      await expect(labels.customColorSwatch).toHaveAccessibleName(
-        'Custom color #C0FFEE'
-      )
       await labels.saveButton.click()
       await expect(labels.labelModal).toBeHidden()
 
@@ -457,9 +447,8 @@ test.describe('LBL label colours', () => {
 
       // tmail-backend refuses `color: null`: nothing offers to remove a colour
       await labels.runMenu('Edit custom', 'edit')
-      await expect(labels.customColorSwatch).toBeChecked()
       await expect(labels.customColorHexInput).toHaveValue('#1A2B3C')
-      await expect(labels.colorSwatch('No color')).toHaveCount(0)
+      await expect(labels.noColorButton).toHaveCount(0)
       await expectNoA11yViolations(page)
       await labels.customColorHexInput.fill('#e0465c')
       await labels.saveButton.click()
@@ -475,16 +464,21 @@ test.describe('LBL label colours', () => {
       // A label without colour keeps its "No color", and a swatch of the
       // palette still works
       await labels.runMenu('Edit plain', 'edit')
-      await expect(labels.colorSwatch('No color')).toBeChecked()
-      await expect(labels.customColorSwatch).not.toBeChecked()
-      await labels.colorSwatch('Navy blue').check()
+      await expect(labels.noColorButton).toHaveAttribute('aria-pressed', 'true')
       await expect(labels.customColorHexInput).toHaveCount(0)
-      // The arrows go round the group up to the custom swatch, which opens
-      // its field (No color, then the custom one before the first swatch)
-      await labels.colorSwatch('Navy blue').focus()
-      await page.keyboard.press('ArrowLeft')
-      await page.keyboard.press('ArrowLeft')
-      await expect(labels.customColorSwatch).toBeChecked()
+      await expect(labels.colorSwatch(0).locator('svg')).toHaveCount(0)
+      await labels.colorSwatch(0).focus()
+      await page.keyboard.press('Enter')
+      await expect(labels.colorSwatch(0).locator('svg')).toBeVisible()
+      await expect(labels.noColorButton).toHaveAttribute(
+        'aria-pressed',
+        'false'
+      )
+      await expect(labels.customColorHexInput).toHaveCount(0)
+      // The custom button opens its field, past "No color"
+      await labels.customColorSwatch.focus()
+      await page.keyboard.press('Enter')
+      await page.keyboard.press('Tab')
       await page.keyboard.press('Tab')
       await expect(labels.customColorHexInput).toBeFocused()
       await page.keyboard.press('Control+A')

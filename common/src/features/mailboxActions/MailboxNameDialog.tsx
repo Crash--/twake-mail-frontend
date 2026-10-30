@@ -1,5 +1,12 @@
 import { Icon, FolderOutlined } from '@linagora/twake-icons'
 import {
+  Button,
+  FixedDialog,
+  MenuItem,
+  TextField,
+  Typography
+} from '@linagora/twake-mui'
+import {
   useEffect,
   useId,
   useRef,
@@ -8,13 +15,6 @@ import {
   type ReactElement
 } from 'react'
 
-import {
-  ModalDialog,
-  ModalDialogButton,
-  ModalField,
-  ModalSelectButton,
-  ModalTextInput
-} from '@/ds/ModalDialog/ModalDialog'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 export interface MailboxNameDialogLocation {
@@ -50,10 +50,9 @@ export function MailboxNameDialog({
   onClose
 }: MailboxNameDialogProps): ReactElement {
   const { t } = useI18n()
-  const titleId = useId()
+  const formId = useId()
   const locationId = useId()
   const inputId = useId()
-  const errorId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(initialName)
   const [isTouched, setIsTouched] = useState(false)
@@ -80,10 +79,12 @@ export function MailboxNameDialog({
   }
 
   const field = (
-    <ModalTextInput
+    <TextField
       id={inputId}
       inputRef={inputRef}
       autoFocus
+      fullWidth
+      label={location === null ? undefined : t('folders.create.name')}
       placeholder={t('folders.create.placeholder')}
       value={name}
       onChange={event => {
@@ -93,76 +94,88 @@ export function MailboxNameDialog({
       onFocus={event => {
         event.target.select()
       }}
-      error={shownProblem === null ? null : t(shownProblem)}
-      errorId={errorId}
-      inputProps={{
-        'aria-label': location !== null ? undefined : t('folders.create.name'),
-        'aria-invalid': shownProblem !== null,
-        'aria-describedby': shownProblem === null ? undefined : errorId,
-        'data-testid': 'mailbox-name-input'
+      error={shownProblem !== null}
+      helperText={shownProblem === null ? undefined : t(shownProblem)}
+      slotProps={{
+        htmlInput: {
+          'aria-label':
+            location !== null ? undefined : t('folders.create.name'),
+          'data-testid': 'mailbox-name-input'
+        }
       }}
     />
   )
 
-  // As tmail-flutter: creating, the large modal with where the folder goes;
-  // renaming, the small one with the field alone
+  // Creating, the medium dialog with where the folder goes; renaming, the
+  // small one with the field alone
   const isCreating = location !== null
   return (
-    <ModalDialog
+    <FixedDialog
+      open
       title={title}
-      titleId={titleId}
-      subtitle={
-        location === null
-          ? undefined
-          : t('folders.create.subtitle', { folderName: location.path })
-      }
-      size={isCreating ? 'large' : 'small'}
-      closeLabel={t('common.close')}
+      size={isCreating ? 'medium' : 'small'}
+      fullScreen={false}
       onClose={onClose}
-      onSubmit={handleSubmit}
+      content={
+        <form id={formId} onSubmit={handleSubmit} noValidate>
+          {location === null ? null : (
+            <Typography component="p" className="u-mb-1">
+              {t('folders.create.subtitle', { folderName: location.path })}
+            </Typography>
+          )}
+          {field}
+          {location === null ? null : (
+            // Never opens its own menu: opening it asks for the picker
+            <TextField
+              id={locationId}
+              select
+              fullWidth
+              className="u-mt-1"
+              label={t('folders.create.location')}
+              value={location.path}
+              slotProps={{
+                select: {
+                  open: false,
+                  onOpen: location.onChange,
+                  renderValue: () => (
+                    <span className="u-flex u-flex-items-center">
+                      <Icon icon={FolderOutlined} aria-hidden="true" />
+                      <span className="u-ml-half u-ellipsis">
+                        {location.path}
+                      </span>
+                    </span>
+                  ),
+                  SelectDisplayProps: {
+                    'aria-haspopup': 'dialog',
+                    'data-testid': 'mailbox-name-location-button'
+                  } as Record<string, string>
+                }
+              }}
+            >
+              <MenuItem value={location.path}>{location.path}</MenuItem>
+            </TextField>
+          )}
+        </form>
+      }
       actions={
         <>
-          <ModalDialogButton
+          <Button
+            variant="outlined"
             onClick={onClose}
             data-testid="mailbox-name-cancel-button"
           >
             {t('common.cancel')}
-          </ModalDialogButton>
-          <ModalDialogButton
+          </Button>
+          <Button
             type="submit"
-            isMain
+            form={formId}
             data-testid="mailbox-name-submit-button"
           >
             {submitLabel}
-          </ModalDialogButton>
+          </Button>
         </>
       }
       data-testid="mailbox-name-dialog"
-    >
-      {isCreating ? (
-        <ModalField
-          label={t('folders.create.name')}
-          htmlFor={inputId}
-          spaceAbove={0}
-        >
-          {field}
-        </ModalField>
-      ) : (
-        field
-      )}
-      {location === null ? null : (
-        <ModalField label={t('folders.create.location')} id={locationId}>
-          <ModalSelectButton
-            icon={<Icon icon={FolderOutlined} size={20} />}
-            onClick={location.onChange}
-            aria-describedby={locationId}
-            aria-haspopup="dialog"
-            data-testid="mailbox-name-location-button"
-          >
-            {location.path}
-          </ModalSelectButton>
-        </ModalField>
-      )}
-    </ModalDialog>
+    />
   )
 }

@@ -287,9 +287,8 @@ describe('SearchField', () => {
       screen.getByRole('button', { name: 'Advanced search' })
     )
     const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
-    const folder = within(dialog).getByRole('button', {
-      name: 'Folder All email'
-    })
+    const folder = within(dialog).getByTestId('advanced-search-folder-select')
+    expect(folder).toHaveTextContent('All email')
     expect(folder).toHaveAttribute('aria-haspopup', 'dialog')
 
     await userEvent.click(folder)
@@ -308,7 +307,7 @@ describe('SearchField', () => {
     await waitFor(() => {
       expect(folder).toHaveFocus()
     })
-    expect(folder).toHaveAccessibleName('Folder Inbox')
+    expect(folder).toHaveTextContent('Inbox')
     await userEvent.click(
       within(dialog).getByRole('button', { name: 'Search' })
     )
@@ -423,8 +422,8 @@ describe('SearchField', () => {
     )
     const dialog = screen.getByRole('dialog', { name: 'Advanced search' })
     expect(
-      within(dialog).getByRole('button', { name: 'Folder All email' })
-    ).toBeVisible()
+      within(dialog).getByTestId('advanced-search-folder-select')
+    ).toHaveTextContent('All email')
 
     await userEvent.keyboard('{Escape}')
 

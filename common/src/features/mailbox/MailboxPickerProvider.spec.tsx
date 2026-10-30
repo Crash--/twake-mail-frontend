@@ -79,7 +79,10 @@ describe('MailboxPickerProvider', () => {
       'This folder name is already taken'
     )
     await userEvent.clear(field)
-    await userEvent.type(field, 'Projects{Enter}')
+    await userEvent.type(field, 'Projects')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Create folder' })
+    )
 
     expect(await screen.findByText('Picked mailbox-created-1')).toBeVisible()
     expect(
@@ -103,20 +106,22 @@ describe('MailboxPickerProvider', () => {
       within(dialog).getByRole('textbox', { name: 'Folder Name' }),
       'Clients'
     )
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'All folders' })
-    )
+    const location = within(dialog).getByRole('combobox', {
+      name: 'Select the folder location'
+    })
+    expect(location).toHaveTextContent('All folders')
+    await userEvent.click(location)
     await userEvent.click(
       within(
         await screen.findByRole('dialog', { name: 'Select parent folder' })
       ).getByRole('option', { name: 'Work' })
     )
     // Once the picker went
-    expect(
-      await within(dialog).findByRole('button', { name: 'Work' })
-    ).toBeVisible()
+    await waitFor(() => {
+      expect(location).toHaveTextContent('Work')
+    })
     await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Create folder' })
+      await within(dialog).findByRole('button', { name: 'Create folder' })
     )
 
     expect(await screen.findByText('Picked mailbox-created-1')).toBeVisible()

@@ -131,8 +131,7 @@ export function DateRangePickerDialog({
   'data-testid': testId,
   testIds = {}
 }: DateRangePickerDialogProps): ReactElement {
-  const screen = useScreenSize()
-  const isPhone = screen === 'mobile'
+  const isPhone = useScreenSize() === 'mobile'
   const titleId = useId()
   const sheetTitleId = useId()
   const startId = useId()
@@ -277,22 +276,17 @@ export function DateRangePickerDialog({
       onClose={onClose}
       aria-labelledby={titleId}
       slotProps={{
-        paper: {
-          sx: isPhone
-            ? {
+        paper: isPhone
+          ? {
+              sx: {
                 m: 0,
                 mt: 'auto',
                 width: '100%',
                 maxWidth: '100%',
                 borderRadius: SHEET_RADIUS
               }
-            : {
-                m: 2,
-                width: screen === 'desktop' ? 650 : 500,
-                maxWidth: 'calc(100% - 32px)',
-                maxHeight: 'calc(100% - 32px)'
-              }
-        },
+            }
+          : undefined,
         transition: { onExited }
       }}
       data-testid={testId}

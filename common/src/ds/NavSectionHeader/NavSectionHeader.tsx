@@ -83,7 +83,7 @@ export function NavSectionHeader({
             {title}
             <Icon
               icon={toggle.isExpanded ? Dropdown : Right}
-              size={16}
+              size={12}
               aria-hidden
             />
           </ButtonBase>

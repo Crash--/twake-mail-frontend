@@ -74,7 +74,7 @@ export function NavCategory({
           <Box component="span" sx={CHEVRON_SX}>
             <Icon
               icon={isExpanded ? Dropdown : Right}
-              size={16}
+              size={12}
               aria-hidden="true"
             />
           </Box>

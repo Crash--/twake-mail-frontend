@@ -26,6 +26,12 @@ const COMMON_IMPORT_PATTERNS = [
   }
 ]
 
+const CHECKBOX_GLYPHS_RESTRICTION = {
+  name: '@/ds/FlutterIcons/FlutterIcons',
+  importNames: ['CheckboxOff', 'CheckboxOn'],
+  message: "A checkbox is twake-mui's Checkbox, as it is."
+}
+
 const UI_IMPORT_RESTRICTIONS = {
   paths: [
     {
@@ -33,7 +39,8 @@ const UI_IMPORT_RESTRICTIONS = {
       importNames: ['styled'],
       message:
         'No styled components outside the design system: use @/ds/ (common/src/ds/README.md).'
-    }
+    },
+    CHECKBOX_GLYPHS_RESTRICTION
   ],
   patterns: [
     {
@@ -58,7 +65,8 @@ const DS_IMPORT_RESTRICTIONS = {
   paths: [
     { name: 'jmap-client-ts', message: DS_BUSINESS_MESSAGE },
     { name: 'react-router', message: DS_BUSINESS_MESSAGE },
-    { name: 'twake-i18n', message: DS_BUSINESS_MESSAGE }
+    { name: 'twake-i18n', message: DS_BUSINESS_MESSAGE },
+    CHECKBOX_GLYPHS_RESTRICTION
   ],
   patterns: [
     {
@@ -94,6 +102,16 @@ const SX_SYNTAX = {
 }
 
 const FORBIDDEN_SYNTAX = [
+  {
+    selector:
+      'JSXOpeningElement[name.name="Checkbox"] > JSXAttribute[name.name=/^(icon|checkedIcon|sx)$/]',
+    message: "A checkbox is twake-mui's Checkbox, as it is."
+  },
+  {
+    selector:
+      'ImportSpecifier[imported.name="Checkbox"][local.name!="Checkbox"], ImportNamespaceSpecifier[parent.source.value="@linagora/twake-mui"], VariableDeclarator[init.name="Checkbox"], JSXMemberExpression[property.name="Checkbox"]',
+    message: "A checkbox is twake-mui's Checkbox, as it is."
+  },
   {
     selector: 'ExportDefaultDeclaration',
     message: 'Named exports only (twake-javascript-conventions).'

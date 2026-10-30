@@ -12,7 +12,6 @@ const BUTTON_SX = {
   mx: '16px',
   width: 'calc(100% - 32px)',
   justifyContent: 'flex-start',
-  gap: '8px',
   minHeight: 36,
   pl: '8px',
   pr: '8px',
@@ -23,9 +22,9 @@ const BUTTON_SX = {
   '&:hover': { bgcolor: 'action.hover' }
 } as const
 
-/** The arrow, in the 24 px box tmail-flutter puts 4 px after the name */
 const CHEVRON_SX = {
   display: 'flex',
+  ml: 1,
   color: 'text.secondary'
 } as const
 
@@ -68,14 +67,14 @@ export function NavCategory({
           sx={BUTTON_SX}
           data-testid={toggleTestId}
         >
-          <Box component="span" className="u-flex">
+          <Box component="span" className="u-flex" sx={{ mr: 1.5 }}>
             <Icon icon={icon} size={16} aria-hidden="true" />
           </Box>
           <span id={titleId}>{title}</span>
           <Box component="span" sx={CHEVRON_SX}>
             <Icon
               icon={isExpanded ? Dropdown : Right}
-              size={16}
+              size={12}
               aria-hidden="true"
             />
           </Box>

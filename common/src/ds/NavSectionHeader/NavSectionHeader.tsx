@@ -51,8 +51,8 @@ export function NavSectionHeader({
   return (
     <Box
       className="u-flex u-flex-items-center"
-      // The actions are 24 px boxes around 16.67 px glyphs: their glyphs end
-      // 16 px before the edge, as tmail-flutter's
+      // The actions are 26 px boxes around 16 px glyphs: their glyphs end
+      // 17 px before the edge
       sx={{ minHeight: 24, mt: '24px', pl: 2, pr: '12px' }}
     >
       <Typography
@@ -75,7 +75,7 @@ export function NavSectionHeader({
               font: 'inherit',
               letterSpacing: 'inherit',
               color: 'inherit',
-              gap: '4px',
+              gap: 1,
               minHeight: 24,
               borderRadius: radius.sm
             }}
@@ -83,7 +83,7 @@ export function NavSectionHeader({
             {title}
             <Icon
               icon={toggle.isExpanded ? Dropdown : Right}
-              size={16}
+              size={12}
               aria-hidden
             />
           </ButtonBase>

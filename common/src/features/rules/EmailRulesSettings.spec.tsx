@@ -358,7 +358,7 @@ describe('EmailRulesSettings', () => {
     )
 
     expect(
-      await screen.findByRole('button', { name: /Receipts/ })
+      await screen.findByRole('combobox', { name: /Receipts/ })
     ).toHaveAttribute('data-testid', 'rule-action-folder-button')
   })
 
@@ -448,7 +448,7 @@ describe('EmailRulesSettings', () => {
       await userEvent.click(
         within(picker).getByRole('option', { name: /Work/ })
       )
-      const chosen = await within(dialog).findByRole('button', {
+      const chosen = await within(dialog).findByRole('combobox', {
         name: 'Choose a folder: Work'
       })
       expect(chosen).not.toHaveAttribute('aria-invalid')

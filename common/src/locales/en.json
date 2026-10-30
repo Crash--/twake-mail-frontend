@@ -1092,7 +1092,7 @@
     "form": {
       "createTitle": "Create a New Rule",
       "editTitle": "Edit Rule",
-      "create": "Create Rule",
+      "create": "Create",
       "name": "Rule Name",
       "namePlaceholder": "Enter the rule name",
       "conditions": "Condition",

@@ -1092,7 +1092,7 @@
     "form": {
       "createTitle": "Crear una regla nueva",
       "editTitle": "Editar regla",
-      "create": "Crear la regla",
+      "create": "Crear",
       "name": "Nombre de la regla",
       "namePlaceholder": "Introduzca el nombre de la regla",
       "conditions": "Condición",

@@ -1092,7 +1092,7 @@
     "form": {
       "createTitle": "Шинэ дүрэм үүсгэх",
       "editTitle": "Дүрэм засах",
-      "create": "Дүрэм үүсгэх",
+      "create": "Үүсгэх",
       "name": "Дүрмийн нэр",
       "namePlaceholder": "Дүрмийн нэрийг оруулна уу",
       "conditions": "Нөхцөл",

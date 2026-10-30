@@ -1092,7 +1092,7 @@
     "form": {
       "createTitle": "Tạo bộ lọc mới",
       "editTitle": "Sửa bộ lọc",
-      "create": "Tạo bộ lọc",
+      "create": "Tạo mới",
       "name": "Tên bộ lọc",
       "namePlaceholder": "Nhập tên bộ lọc",
       "conditions": "Điều kiện",

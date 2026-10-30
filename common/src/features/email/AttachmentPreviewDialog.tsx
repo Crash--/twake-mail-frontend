@@ -1,4 +1,10 @@
-import { Alert, CircularProgress } from '@linagora/twake-mui'
+import {
+  Alert,
+  Button,
+  CircularProgress,
+  ConfirmDialog,
+  Typography
+} from '@linagora/twake-mui'
 import type { EmailBodyPart } from 'jmap-client-ts'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
 import {
@@ -13,10 +19,6 @@ import {
   type MouseEvent
 } from 'react'
 
-import {
-  ConfirmDialogButton,
-  ConfirmDialogFrame
-} from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import {
   FilePreviewDialog,
   FilePreviewSurface
@@ -98,7 +100,6 @@ export function AttachmentPreviewDialog({
   const name = cleanFileName(part.name) ?? t('email.attachment')
   const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' })
   const [failed, setFailed] = useState(false)
-  const errorTitleId = useId()
   const errorMessageId = useId()
   const [openedPdf, setOpenedPdf] = useState<PDFDocumentProxy | null>(null)
   // The printing in progress, stopped when the preview closes
@@ -241,8 +242,9 @@ export function AttachmentPreviewDialog({
     if (loaded.status === 'error' || failed) {
       // As tmail-flutter: a dialog over the viewer says it, Close leaves
       return (
-        <ConfirmDialogFrame
+        <ConfirmDialog
           open
+          onClose={onClose}
           title={
             kind === 'pdf'
               ? t('email.preview.cannotPreviewPdf')
@@ -250,18 +252,19 @@ export function AttachmentPreviewDialog({
                 ? t('email.preview.cannotPreviewHtml')
                 : t('email.preview.noPreview')
           }
-          message={t('email.preview.failed')}
-          closeLabel={t('common.close')}
-          onClose={onClose}
-          titleId={errorTitleId}
-          messageId={errorMessageId}
-          hasCloseButton={false}
+          content={
+            <Typography id={errorMessageId} component="p">
+              {t('email.preview.failed')}
+            </Typography>
+          }
+          actions={
+            <Button fullWidth autoFocus onClick={onClose}>
+              {t('common.close')}
+            </Button>
+          }
+          aria-describedby={errorMessageId}
           data-testid="attachment-preview-error"
-        >
-          <ConfirmDialogButton isMain isFullWidth autoFocus onClick={onClose}>
-            {t('common.close')}
-          </ConfirmDialogButton>
-        </ConfirmDialogFrame>
+        />
       )
     }
     switch (kind) {

@@ -1,5 +1,6 @@
 import { Icon } from '@linagora/twake-icons'
 import {
+  Button,
   Checkbox,
   FormControlLabel,
   TextField,
@@ -17,7 +18,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { ConfirmDialogButton } from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
 import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import {
@@ -507,16 +507,16 @@ export function IdentityFormDialog({
       }
       actions={
         <>
-          <ConfirmDialogButton
+          <Button
+            variant="outlined"
             onClick={handleCancel}
             disabled={isSaving}
             data-testid="identity-cancel-button"
           >
             {t('common.cancel')}
-          </ConfirmDialogButton>
-          <ConfirmDialogButton
+          </Button>
+          <Button
             type="submit"
-            isMain
             disabled={isSaving}
             data-testid="save-identity-button"
           >
@@ -525,7 +525,7 @@ export function IdentityFormDialog({
                 ? 'identities.form.create'
                 : 'identities.form.save'
             )}
-          </ConfirmDialogButton>
+          </Button>
         </>
       }
       data-testid="identity-form-dialog"

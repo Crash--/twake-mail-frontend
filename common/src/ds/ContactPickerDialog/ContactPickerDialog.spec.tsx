@@ -51,9 +51,9 @@ describe('ContactPickerDialog', () => {
     const alice = screen.getByRole('checkbox', {
       name: /Alice Martin alice@example.com/
     })
-    expect(alice).toHaveAttribute('aria-checked', 'true')
+    expect(alice).toBeChecked()
     const bob = screen.getByRole('checkbox', { name: 'bob@example.com' })
-    expect(bob).toHaveAttribute('aria-checked', 'false')
+    expect(bob).not.toBeChecked()
 
     await userEvent.click(bob)
 

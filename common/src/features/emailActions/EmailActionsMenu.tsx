@@ -1,6 +1,7 @@
 import {
   Icon,
   type IconProps,
+  Check,
   Forward,
   Reply,
   ReplyAll
@@ -16,7 +17,6 @@ import {
 import type { ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
-import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'
 import { MenuSubmenuItem } from '@/ds/MenuSubmenu/MenuSubmenu'
 import { useComposer } from '@common/features/composer/ComposerProvider'
@@ -41,9 +41,6 @@ import {
 } from './emailActionItems'
 import type { TargetEmail } from './planEmailChanges'
 import { useRunEmailAction } from './useRunEmailAction'
-
-/** The ticked box is primary, the empty one keeps the colour of a menu icon */
-const LABEL_ON_COLOR = 'var(--twake-palette-primary-main)'
 
 const REPLY_MENU_IDS: Record<ReplyAction, string> = {
   reply: 'reply',
@@ -212,10 +209,7 @@ export function EmailActionsMenu({
               data-testid="email-action-label-item"
             >
               <ListItemIcon>
-                <Icon
-                  icon={isOn ? CheckboxOn : CheckboxOff}
-                  color={isOn ? LABEL_ON_COLOR : undefined}
-                />
+                {isOn ? <Icon icon={Check} aria-hidden="true" /> : null}
               </ListItemIcon>
               <MenuItemLabel label={labelDisplayName(label, t)} />
             </MenuItem>

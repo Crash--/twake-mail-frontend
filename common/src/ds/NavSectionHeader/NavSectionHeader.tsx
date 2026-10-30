@@ -75,7 +75,7 @@ export function NavSectionHeader({
               font: 'inherit',
               letterSpacing: 'inherit',
               color: 'inherit',
-              gap: '4px',
+              gap: 1,
               minHeight: 24,
               borderRadius: radius.sm
             }}

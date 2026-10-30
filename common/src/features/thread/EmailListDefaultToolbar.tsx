@@ -1,8 +1,7 @@
-import { RestoreStraight, SelectAll, Refresh } from '@linagora/twake-icons'
+import { Checkbox, RestoreStraight, Refresh } from '@linagora/twake-icons'
 import { Box, CircularProgress } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { CheckboxBlankIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
@@ -103,7 +102,7 @@ export function EmailListDefaultToolbar({
       {loadedCount === 0 && !isLoading ? null : isPhone ? (
         <IconAction
           label={selectAllLabel}
-          icon={SelectAll}
+          icon={Checkbox}
           disabled={loadedCount === 0}
           onClick={selection.selectLoaded}
           data-testid="list-select-all-button"
@@ -112,7 +111,7 @@ export function EmailListDefaultToolbar({
         <ToolbarButton
           label={selectAllLabel}
           tooltip={selectAllLabel}
-          icon={CheckboxBlankIcon}
+          icon={Checkbox}
           isAtMaxWidth
           disabled={loadedCount === 0}
           onClick={selection.selectLoaded}

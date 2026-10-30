@@ -186,7 +186,7 @@ export function ModalDialogButton({
 
 const LABEL_SX = {
   display: 'block',
-  mb: '16px',
+  mb: 1,
   typography: 'subtitle2',
   color: 'text.primary'
 } as const
@@ -194,9 +194,6 @@ const LABEL_SX = {
 const INLINE_LABEL_SX = {
   width: 112,
   flexShrink: 0,
-  minHeight: 40,
-  display: 'flex',
-  alignItems: 'center',
   typography: 'body1',
   color: 'text.primary'
 } as const
@@ -228,7 +225,7 @@ export function ModalField({
         sx={{
           mt: `${spaceAbove}px`,
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           gap: '12px'
         }}
       >
@@ -373,7 +370,7 @@ export function ModalSelectButton({
         color: 'text.primary',
         bgcolor: 'background.paper',
         '&:hover': { bgcolor: 'action.hover' },
-        '& .ModalSelectButton-icon': { display: 'flex', color: 'primary.main' },
+        '& .ModalSelectButton-icon': { display: 'flex', color: 'text.icon' },
         '& .ModalSelectButton-arrow': {
           display: 'flex',
           color: 'text.icon',

@@ -2,6 +2,22 @@ import { LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
+test.describe('MBX enter in a dialog form', () => {
+  test('MBX-63 Enter in the name field creates the folder', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.addFolderButton.click()
+    await mailbox.mailboxNameDialog
+      .getByTestId('mailbox-name-input')
+      .fill('by enter')
+    await page.keyboard.press('Enter')
+    await expect(mailbox.mailboxNameDialog).toBeHidden()
+    await expect(mailbox.toast).toContainText('by enter')
+  })
+})
+
 test.describe('MBX folders', () => {
   test('MBX-01 "New folder" creates a personal folder in the sidebar', async ({
     page,

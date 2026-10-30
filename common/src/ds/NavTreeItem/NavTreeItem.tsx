@@ -31,7 +31,7 @@ const LEVEL_STEP = 8
 const ROW_PADDING = 8
 /** The icon, and the gap after it */
 const ICON_SIZE = 16
-const ICON_GAP = 8
+const ICON_GAP = 12
 /** Height of the name line and of the second line, and the gap between */
 const NAME_LINE = 18.4
 const SECONDARY_LINE = 16

@@ -1,4 +1,3 @@
-import { Icon } from '@linagora/twake-icons'
 import {
   Button,
   Checkbox,
@@ -20,7 +19,6 @@ import {
 } from 'react'
 
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
-import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
@@ -484,9 +482,6 @@ export function IdentityFormDialog({
           onChange={event => {
             setIsDefault(event.target.checked)
           }}
-          // tmail-flutter's own boxes
-          icon={<Icon icon={CheckboxOff} size={20} />}
-          checkedIcon={<Icon icon={CheckboxOn} size={20} />}
         />
       }
       label={t('identities.form.setDefault')}

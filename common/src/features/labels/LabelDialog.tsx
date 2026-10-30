@@ -1,4 +1,10 @@
-import { Box } from '@linagora/twake-mui'
+import {
+  Box,
+  Button,
+  FixedDialog,
+  TextField,
+  Typography
+} from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Label } from 'jmap-client-ts/linagora'
 import {
@@ -11,12 +17,6 @@ import {
 } from 'react'
 
 import { ColorSwatchPicker } from '@/ds/ColorSwatchPicker/ColorSwatchPicker'
-import {
-  ModalDialog,
-  ModalDialogButton,
-  ModalField,
-  ModalTextInput
-} from '@/ds/ModalDialog/ModalDialog'
 import { validateIdentityName } from '@common/features/identities/identityForm'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
@@ -67,9 +67,8 @@ export function LabelDialog({
   const { accountId } = useJmapSession()
   const { notify } = useNotify()
   const labels = useLabels().data?.list ?? []
-  const titleId = useId()
+  const formId = useId()
   const nameId = useId()
-  const nameErrorId = useId()
   const descriptionId = useId()
   const nameRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(label?.displayName ?? '')
@@ -165,117 +164,119 @@ export function LabelDialog({
   }
 
   const nameField = (
-    <ModalField label={t('labels.form.name')} htmlFor={nameId} spaceAbove={0}>
-      <ModalTextInput
-        id={nameId}
-        inputRef={nameRef}
-        required
-        placeholder={t('labels.form.namePlaceholder')}
-        value={name}
-        onChange={event => {
-          setName(event.target.value)
-          setIsTouched(true)
-        }}
-        error={shownProblem === null ? null : t(shownProblem)}
-        errorId={nameErrorId}
-        inputProps={{
-          'aria-invalid': shownProblem !== null,
-          'aria-describedby': shownProblem === null ? undefined : nameErrorId,
-          'data-testid': 'label-name-input'
-        }}
-      />
-    </ModalField>
+    <TextField
+      id={nameId}
+      inputRef={nameRef}
+      required
+      fullWidth
+      label={t('labels.form.name')}
+      placeholder={t('labels.form.namePlaceholder')}
+      value={name}
+      onChange={event => {
+        setName(event.target.value)
+        setIsTouched(true)
+      }}
+      error={shownProblem !== null}
+      helperText={shownProblem === null ? undefined : t(shownProblem)}
+      slotProps={{ htmlInput: { 'data-testid': 'label-name-input' } }}
+    />
   )
 
-  // As tmail-flutter's label modal (`CreateNewLabelModal`)
   return (
-    <ModalDialog
+    <FixedDialog
+      open
       title={t(
         label === null ? 'labels.form.createTitle' : 'labels.form.editTitle'
       )}
-      titleId={titleId}
-      subtitle={t(
-        label === null
-          ? 'labels.form.createSubtitle'
-          : 'labels.form.editSubtitle'
-      )}
-      closeLabel={t('common.close')}
+      fullScreen={false}
       onClose={isSaving ? () => undefined : onClose}
-      onSubmit={handleSubmit}
+      content={
+        <form id={formId} onSubmit={handleSubmit} noValidate>
+          <Typography component="p" className="u-mb-1">
+            {t(
+              label === null
+                ? 'labels.form.createSubtitle'
+                : 'labels.form.editSubtitle'
+            )}
+          </Typography>
+          {nameField}
+          <TextField
+            id={descriptionId}
+            multiline
+            minRows={3}
+            fullWidth
+            className="u-mt-1"
+            label={t('labels.form.description')}
+            placeholder={t('labels.form.descriptionPlaceholder')}
+            value={description}
+            onChange={event => {
+              setDescription(event.target.value)
+            }}
+            slotProps={{
+              htmlInput: { 'data-testid': 'label-description-input' }
+            }}
+          />
+          <Box className="u-mt-1-half">
+            <ColorSwatchPicker
+              isLarge
+              legend={t('labels.form.color')}
+              swatches={LABEL_COLORS.map(({ name, value }) => ({
+                value,
+                label: t(`labels.colors.${name}`)
+              }))}
+              value={color}
+              onChange={setColor}
+              // tmail-backend refuses a null colour: a colour cannot be taken
+              // off, so "No color" is only offered to a label without one
+              noneLabel={
+                (label?.color ?? null) === null
+                  ? t('labels.colorNone')
+                  : undefined
+              }
+              custom={{
+                label: t('labels.colorCustom'),
+                valueLabel: value =>
+                  t('labels.colorCustomNamed', { color: value }),
+                hexLabel: t('labels.colorHex'),
+                hint: t('labels.colorHexHint'),
+                invalidMessage: t('labels.colorHexInvalid'),
+                pickerLabel: t('labels.colorPicker'),
+                showError: isSubmitted,
+                onValidityChange: setIsColorValid,
+                hexInputRef: hexRef,
+                testIds: {
+                  swatch: 'label-color-custom',
+                  hexInput: 'label-color-hex-input',
+                  nativeInput: 'label-color-native-input'
+                }
+              }}
+              data-testid="label-color-picker"
+            />
+          </Box>
+        </form>
+      }
       actions={
         <>
-          <ModalDialogButton
+          <Button
+            variant="outlined"
             onClick={onClose}
             disabled={isSaving}
             data-testid="label-cancel-button"
           >
             {t('common.cancel')}
-          </ModalDialogButton>
-          <ModalDialogButton
+          </Button>
+          <Button
             type="submit"
-            isMain
+            form={formId}
             // As tmail-flutter: greyed out until the label has a name
             disabled={isSaving || name.trim() === ''}
             data-testid="label-save-button"
           >
             {t(label === null ? 'labels.form.create' : 'common.save')}
-          </ModalDialogButton>
+          </Button>
         </>
       }
       data-testid="label-modal"
-    >
-      {nameField}
-      <ModalField
-        label={t('labels.form.description')}
-        htmlFor={descriptionId}
-        spaceAbove={16}
-      >
-        <ModalTextInput
-          id={descriptionId}
-          multiline
-          minRows={3}
-          placeholder={t('labels.form.descriptionPlaceholder')}
-          value={description}
-          onChange={event => {
-            setDescription(event.target.value)
-          }}
-          inputProps={{ 'data-testid': 'label-description-input' }}
-        />
-      </ModalField>
-      <Box className="u-mt-1-half">
-        <ColorSwatchPicker
-          isLarge
-          legend={t('labels.form.color')}
-          swatches={LABEL_COLORS.map(({ name, value }) => ({
-            value,
-            label: t(`labels.colors.${name}`)
-          }))}
-          value={color}
-          onChange={setColor}
-          // tmail-backend refuses a null colour: a colour cannot be taken
-          // off, so "No color" is only offered to a label without one
-          noneLabel={
-            (label?.color ?? null) === null ? t('labels.colorNone') : undefined
-          }
-          custom={{
-            label: t('labels.colorCustom'),
-            valueLabel: value => t('labels.colorCustomNamed', { color: value }),
-            hexLabel: t('labels.colorHex'),
-            hint: t('labels.colorHexHint'),
-            invalidMessage: t('labels.colorHexInvalid'),
-            pickerLabel: t('labels.colorPicker'),
-            showError: isSubmitted,
-            onValidityChange: setIsColorValid,
-            hexInputRef: hexRef,
-            testIds: {
-              swatch: 'label-color-custom',
-              hexInput: 'label-color-hex-input',
-              nativeInput: 'label-color-native-input'
-            }
-          }}
-          data-testid="label-color-picker"
-        />
-      </Box>
-    </ModalDialog>
+    />
   )
 }

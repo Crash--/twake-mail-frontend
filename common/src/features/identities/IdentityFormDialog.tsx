@@ -1,4 +1,3 @@
-import { Icon } from '@linagora/twake-icons'
 import {
   Checkbox,
   FormControlLabel,
@@ -19,7 +18,6 @@ import {
 
 import { ConfirmDialogButton } from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
-import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   FormDialogFrame,
   FormFieldRow
@@ -495,9 +493,6 @@ export function IdentityFormDialog({
                 onChange={event => {
                   setIsDefault(event.target.checked)
                 }}
-                // tmail-flutter's own boxes
-                icon={<Icon icon={CheckboxOff} size={20} />}
-                checkedIcon={<Icon icon={CheckboxOn} size={20} />}
               />
             }
             label={t('identities.form.setDefault')}

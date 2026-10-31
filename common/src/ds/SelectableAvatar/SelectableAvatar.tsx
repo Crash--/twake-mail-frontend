@@ -1,10 +1,10 @@
 // Upstream to twake-ui: no, the compact rows of the list: the avatar of the
-// sender is where a row is selected, and once selected it turns into a blue
-// disc of the same size with a white check, in the middle of a 48 px touch
-// target. The avatar is a checkbox of its own, reached by keyboard and named
-// by its label.
-import { Icon, Check } from '@linagora/twake-icons'
-import { Box, ButtonBase } from '@linagora/twake-mui'
+// sender is where a row is selected, and once selected it turns into
+// the glyph of twake-mui's checked `Checkbox`, in the middle of a 48 px touch
+// target. The avatar is a checkbox of its own, reached by keyboard and named by
+// its label.
+import { CheckSquare, Icon } from '@linagora/twake-icons'
+import { ButtonBase } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, ReactNode, Ref } from 'react'
 
 const BUTTON_SX = {
@@ -14,17 +14,6 @@ const BUTTON_SX = {
   flexShrink: 0
 } as const
 
-const CHECKED_SX = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 20,
-  height: 20,
-  borderRadius: '50%',
-  bgcolor: 'primary.main',
-  color: 'primary.contrastText'
-} as const
-
 export interface SelectableAvatarProps {
   /** The avatar, 20 px */
   avatar: ReactNode
@@ -32,18 +21,13 @@ export interface SelectableAvatarProps {
   onClick: (event: MouseEvent<HTMLElement>) => void
   /** Accessible name, e.g. "Select <subject>" */
   label: string
-  /**
-   * `small`: 32 px, a full blue disc once checked, as the recipients of
-   * tmail-flutter's forwarding (`ic_selected_recipient`)
-   */
+  /** `small`: 32 px, the recipients of the forwarding */
   size?: 'medium' | 'small'
   ref?: Ref<HTMLButtonElement>
   'data-testid'?: string
 }
 
 const SMALL_SX = { ...BUTTON_SX, width: 32, height: 32 } as const
-
-const SMALL_CHECKED_SX = { ...CHECKED_SX, width: 32, height: 32 } as const
 
 /** The avatar of a compact row, a checkbox selecting the row */
 export function SelectableAvatar({
@@ -67,9 +51,13 @@ export function SelectableAvatar({
       data-testid={testId}
     >
       {checked ? (
-        <Box component="span" sx={isSmall ? SMALL_CHECKED_SX : CHECKED_SX}>
-          <Icon icon={Check} size={isSmall ? 16 : 12} aria-hidden="true" />
-        </Box>
+        // The glyph of the checked Checkbox: a real one here would nest two
+        // controls, this button already is the checkbox
+        <Icon
+          icon={CheckSquare}
+          color="var(--twake-palette-primary-main)"
+          aria-hidden="true"
+        />
       ) : (
         avatar
       )}

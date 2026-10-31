@@ -2,6 +2,8 @@ import {
   Icon,
   type IconProps,
   Cross,
+  Checkbox,
+  CheckSquare,
   EmailNotification,
   Star,
   FolderMoveto
@@ -9,7 +11,6 @@ import {
 import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
-import { CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
@@ -220,10 +221,11 @@ export function EmailListToolbar({
       {isDesktop ? null : (
         <>
           <Box className="u-flex-auto" />
-          {/* tmail-flutter's "Select all": its ticked box */}
           <IconAction
             label={selectAllLabel}
-            icon={CheckboxOn}
+            icon={
+              isAllLoaded || selection.isAllInFolder ? CheckSquare : Checkbox
+            }
             tone="icon"
             size={36}
             aria-pressed={isAllLoaded || selection.isAllInFolder}

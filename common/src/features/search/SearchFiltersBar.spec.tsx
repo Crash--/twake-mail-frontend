@@ -162,7 +162,7 @@ describe('SearchFiltersBar', () => {
     // The chosen ones while nothing is typed
     expect(
       within(picker).getByRole('checkbox', { name: 'me@x.org' })
-    ).toHaveAttribute('aria-checked', 'true')
+    ).toBeChecked()
 
     await userEvent.type(
       within(picker).getByRole('searchbox', { name: 'Enter name or email' }),
@@ -194,7 +194,7 @@ describe('SearchFiltersBar', () => {
 
     expect(
       await within(picker).findByRole('checkbox', { name: 'nobody@x.org' })
-    ).toHaveAttribute('aria-checked', 'false')
+    ).not.toBeChecked()
 
     await userEvent.click(
       within(picker).getByRole('button', { name: 'Clear Filter' })

@@ -14,6 +14,7 @@ import {
   WarningCircle
 } from '@linagora/twake-icons'
 import {
+  Checkbox,
   Tooltip,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
@@ -30,7 +31,6 @@ import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
-import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
 import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowHoverSpace } from '@/ds/RowHoverActions/RowHoverSpace'
@@ -408,10 +408,17 @@ export function EmailCell({
   }
   const checkbox =
     selection === null ? null : (
-      <RowCheckbox
+      <Checkbox
         checked={isSelected}
         onClick={handleSelect}
-        label={t('thread.selection.select', { subject: email.subject ?? '' })}
+        size="small"
+        slotProps={{
+          input: {
+            'aria-label': t('thread.selection.select', {
+              subject: email.subject ?? ''
+            })
+          }
+        }}
         data-testid="email-list-item-checkbox"
       />
     )

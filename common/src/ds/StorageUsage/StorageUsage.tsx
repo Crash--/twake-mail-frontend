@@ -33,7 +33,7 @@ const CIRCLE_SX = {
   width: 64,
   height: 64,
   borderRadius: '50%',
-  bgcolor: 'primary.light',
+  bgcolor: 'background.default',
   color: 'primary.main'
 } as const
 

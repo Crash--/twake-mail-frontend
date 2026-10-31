@@ -1,7 +1,6 @@
 // Upstream to twake-ui: no. The buttons of the settings: the main action of
-// a section ("Create new identity", "Add rule"), a secondary one ("Cancel"),
-// and the action of a row ("Edit", "Delete"), twake-mui's `Button` with an
-// icon before the label.
+// a section ("Create new identity", "Add rule") and the action of a row
+// ("Edit", "Delete"), twake-mui's `Button` with an icon before the label.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
@@ -50,32 +49,6 @@ export function SettingsPrimaryButton({
         )
       }
       sx={isFullWidth ? undefined : PRIMARY_SX}
-      data-testid={testId}
-    >
-      {label}
-    </Button>
-  )
-}
-
-export interface SettingsTextButtonProps {
-  label: string
-  onClick: () => void
-  disabled?: boolean
-  'data-testid'?: string
-}
-
-/** A secondary action of a settings form, e.g. "Cancel": text only */
-export function SettingsTextButton({
-  label,
-  onClick,
-  disabled = false,
-  'data-testid': testId
-}: SettingsTextButtonProps): ReactElement {
-  return (
-    <Button
-      variant="text"
-      onClick={onClick}
-      disabled={disabled}
       data-testid={testId}
     >
       {label}

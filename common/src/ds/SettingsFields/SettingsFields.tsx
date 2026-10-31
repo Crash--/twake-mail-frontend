@@ -325,7 +325,9 @@ export function SettingsCount({
   )
 }
 
-const COLUMN_SX = { maxWidth: 660 } as const
+export const SETTINGS_FORM_WIDTH = 660
+
+const COLUMN_SX = { maxWidth: SETTINGS_FORM_WIDTH } as const
 
 const ROW_SX = {
   display: 'flex',
@@ -474,23 +476,35 @@ export interface SettingsFormRowProps {
   label: string
   /** Id of the field it labels */
   htmlFor?: string
-  /** The label at the top, beside a tall field */
-  alignTop?: boolean
+  /** The label above its field, as wide as the column */
+  isStacked?: boolean
   /** Its fields are disabled: the label fades */
   isDisabled?: boolean
   children: ReactNode
 }
 
-/** A row of a settings form: its label on the left, its fields after it */
+/** A row of a settings form: its label on the left or above, then its fields */
 export function SettingsFormRow({
   label,
   htmlFor,
-  alignTop = false,
+  isStacked = false,
   isDisabled = false,
   children
 }: SettingsFormRowProps): ReactElement {
   return (
-    <Box sx={alignTop ? { ...ROW_SX, alignItems: 'flex-start' } : ROW_SX}>
+    <Box
+      sx={
+        isStacked
+          ? {
+              ...ROW_SX,
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              gap: 1,
+              '& > div': { flex: 'none' }
+            }
+          : ROW_SX
+      }
+    >
       <SettingsFormRowLabel htmlFor={htmlFor} isDisabled={isDisabled}>
         {label}
       </SettingsFormRowLabel>

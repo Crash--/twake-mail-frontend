@@ -1,31 +1,30 @@
-// Upstream to twake-ui: yes. A destination picker: a 556 px dialog (the whole
-// screen of a phone), the close cross at the start of a 52 px bar and the
-// title in its middle, a filled search field, then the folders by blocks
-// (the system ones, "Personal folders", "Team-mailboxes", the last two
-// folding), 36 px rows with a 20 px blue icon and the subfolders folded
-// behind a chevron after the name. twake-mui has no such picker.
+// Upstream to twake-ui: yes. A destination picker in twake-mui's `FixedDialog`:
+// a `SearchBar`, then the folders by blocks (the system ones, "Personal
+// folders", "Team-mailboxes", the last two folding), 36 px rows with a 16 px
+// icon and the subfolders folded behind a chevron after the name. twake-mui
+// has no such tree.
 //
 // Accessibility: the search field is a combobox (ARIA 1.2) driving one
 // listbox per block; ArrowDown / ArrowUp move the active folder, ArrowRight
 // and ArrowLeft unfold and fold its subfolders, Enter picks it; a disabled
 // folder with subfolders is reached too (`aria-disabled`, Enter ignored) to
 // unfold it; the headers of the blocks are buttons (`aria-expanded`). An
-// optional "New folder" icon button, with its tooltip, ends the bar.
+// optional "New folder" icon button, with its tooltip, follows the search.
 import {
   Icon,
   type IconProps,
   Bottom,
   Check,
-  Magnifier,
   Right,
   Plus
 } from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
-  Dialog,
+  Divider,
+  FixedDialog,
   IconButton,
-  InputBase,
+  SearchBar,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
@@ -70,7 +69,6 @@ export interface FolderPickerSection {
 
 export interface FolderPickerLabels {
   title: string
-  close: string
   search: string
   /** Shown when no folder matches */
   empty: string
@@ -91,11 +89,10 @@ export interface FolderPickerProps {
   initiallyExpandedIds?: readonly string[]
   onSelect: (option: FolderPickerOption) => void
   onClose: () => void
-  /** A "New folder" button at the end of the bar (tf#899) */
+  /** A "New folder" button after the search (tf#899) */
   onCreate?: (() => void) | null
   testIds?: {
     dialog?: string
-    close?: string
     create?: string
     input?: string
     listbox?: string
@@ -103,95 +100,16 @@ export interface FolderPickerProps {
   }
 }
 
-function paperSx(isPhone: boolean): Record<string, unknown> {
-  return isPhone
-    ? { m: 0, mt: '12px' }
-    : {
-        width: 556,
-        maxWidth: 'calc(100% - 32px)',
-        height: 'min(656px, calc(100dvh - 24px))',
-        maxHeight: 'calc(100dvh - 24px)',
-        m: 0
-      }
-}
-
-const BAR_SX = {
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-  height: 52,
-  px: '56px',
-  borderBottom: '1px solid',
-  borderColor: 'divider'
-} as const
-
-const CLOSE_SX = {
-  position: 'absolute',
-  left: 8,
-  top: '50%',
-  transform: 'translateY(-50%)',
-  color: 'text.icon'
-} as const
-
-const CREATE_SX = {
-  ...CLOSE_SX,
-  left: 'auto',
-  right: 8,
-  color: 'primary.main'
-} as const
-
-const TITLE_SX = {
-  typography: 'h4',
-  color: 'text.primary',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis'
-} as const
-
-const BODY_SX = { flex: '1 1 auto', overflowY: 'auto', pb: '12px' } as const
-
-const SEARCH_SX = {
-  display: 'flex',
-  alignItems: 'center',
-  height: 44,
-  m: '16px',
-  borderRadius: '10px',
-  bgcolor: 'background.default',
-  color: 'text.secondary',
-  '& .MuiInputBase-root': {
-    flex: '1 1 auto',
-    typography: 'body1',
-    color: 'text.primary'
-  },
-  '& .MuiInputBase-input::placeholder': {
-    color: 'text.secondary',
-    opacity: 1
-  }
-} as const
-
-const MAGNIFIER_SX = { display: 'flex', px: '8px' } as const
-
 const HEADER_SX = {
   display: 'flex',
   alignItems: 'center',
-  gap: '6px',
-  px: '16px',
-  py: '8px',
-  typography: 'body1',
-  color: 'text.primary',
-  borderRadius: '8px'
+  gap: 1,
+  py: 1,
+  typography: 'caption',
+  color: 'text.secondary'
 } as const
 
-const SECTION_DIVIDER_SX = {
-  height: '1px',
-  bgcolor: 'divider',
-  mx: '6px',
-  my: '8px'
-} as const
-
-const LIST_SX = { listStyle: 'none', m: 0, px: '16px', py: 0 } as const
+const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 
 function rowSx(
   option: FolderPickerOption,
@@ -203,74 +121,59 @@ function rowSx(
   return {
     display: 'flex',
     alignItems: 'center',
-    gap: isPhone ? '8px' : '16px',
+    gap: 1.5,
     minHeight: tall ? 52 : isPhone ? 40 : 36,
-    px: '10px',
+    px: 1,
     ml: isSearching ? 0 : `${String((option.level - 1) * 14)}px`,
-    borderRadius: isPhone ? '10px' : '8px',
     cursor: option.disabled === true ? 'default' : 'pointer',
     opacity: option.disabled === true ? 0.3 : 1,
-    bgcolor: isActive ? 'action.selected' : 'transparent',
+    bgcolor:
+      isActive || option.isCurrent === true ? 'action.selected' : 'transparent',
     '&:hover': {
-      bgcolor: option.disabled === true ? undefined : 'action.hover'
+      bgcolor:
+        option.isCurrent === true
+          ? 'action.selected'
+          : option.disabled === true
+            ? undefined
+            : 'action.hover'
     }
   }
 }
 
 const ICON_SX = {
   display: 'flex',
-  color: 'primary.main',
+  color: 'text.icon',
   flexShrink: 0
 } as const
 
+const CHECK_SX = { ...ICON_SX, color: 'primary.main' } as const
+
 const TEXT_SX = { flex: '1 1 auto', minWidth: 0 } as const
 
-function nameSx(isCurrent: boolean): Record<string, unknown> {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-    typography: 'body1',
-    fontWeight: isCurrent ? 600 : 400,
-    color: 'text.primary'
-  }
-}
+const NAME_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+  typography: 'body2',
+  color: 'text.primary'
+} as const
 
 const SECONDARY_SX = {
   display: 'block',
-  typography: 'body1',
+  typography: 'caption',
   color: 'text.secondary',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
 } as const
 
+// 24 px to hit around a 12 px glyph: a click beside it picks the folder
 const CHEVRON_SX = {
   display: 'flex',
-  color: 'text.primary',
-  p: '3px'
+  color: 'text.secondary',
+  p: '6px',
+  m: '-6px'
 } as const
-
-/** `ic_composer_close`: two 2 px strokes, 24 px */
-function CloseIcon(): ReactElement {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M18 6L6 18M6 6l12 12"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
 
 function normalize(text: string): string {
   return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase()
@@ -325,7 +228,6 @@ export function FolderPicker({
   testIds = {}
 }: FolderPickerProps): ReactElement {
   const id = useId()
-  const titleId = `${id}-title`
   const isPhone = useScreenSize() === 'mobile'
   const [filter, setFilter] = useState('')
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -464,228 +366,218 @@ export function FolderPicker({
   const isEmpty = shownSections.every(section => section.options.length === 0)
 
   return (
-    <Dialog
+    <FixedDialog
       open={open}
       onClose={onClose}
-      fullScreen={isPhone}
+      title={labels.title}
+      // A search or a fold changes the height: the search field stays in place
+      align="top"
       // The search field takes the focus once the dialog is in
       disableAutoFocus
       slotProps={{
-        paper: { sx: paperSx(isPhone) },
         transition: {
           onEntered: () => {
             inputRef.current?.focus()
           }
         }
       }}
-      aria-labelledby={titleId}
       data-testid={testIds.dialog}
-    >
-      <Box sx={BAR_SX}>
-        <Tooltip title={labels.close}>
-          <IconButton
-            aria-label={labels.close}
-            onClick={onClose}
-            sx={CLOSE_SX}
-            data-testid={testIds.close}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Tooltip>
-        <Typography id={titleId} component="h2" sx={TITLE_SX}>
-          {labels.title}
-        </Typography>
-        {onCreate === null ? null : (
-          <Tooltip title={labels.create}>
-            <IconButton
-              aria-label={labels.create}
-              onClick={onCreate}
-              sx={CREATE_SX}
-              data-testid={testIds.create}
-            >
-              <Icon icon={Plus} size={24} aria-hidden="true" />
-            </IconButton>
-          </Tooltip>
-        )}
-      </Box>
-      <Box ref={bodyRef} sx={BODY_SX}>
-        <Box sx={SEARCH_SX}>
-          <Box component="span" sx={MAGNIFIER_SX}>
-            <Icon icon={Magnifier} size={24} aria-hidden="true" />
-          </Box>
-          <InputBase
-            inputRef={inputRef}
-            placeholder={labels.search}
-            value={filter}
-            onChange={event => {
-              setFilter(event.target.value)
-              setActiveId(null)
-              setHasNavigated(true)
-            }}
-            inputProps={{
-              role: 'combobox',
-              'aria-label': labels.search,
-              'aria-expanded': true,
-              'aria-controls': listboxIds.join(' ') || undefined,
-              'aria-autocomplete': 'list',
-              'aria-activedescendant':
-                active === null || !hasNavigated
-                  ? undefined
-                  : optionDomId(active),
-              autoComplete: 'off',
-              onKeyDown: handleKeyDown,
-              'data-testid': testIds.input
-            }}
-          />
-        </Box>
-        {shownSections.map((section, index) => {
-          const isFolded = foldedSections.has(section.id)
-          const headerId = `${id}-header-${section.id}`
-          return (
-            <Fragment key={section.id}>
-              {index > 0 ? <Box sx={SECTION_DIVIDER_SX} /> : null}
-              {section.label === null ? null : (
-                <ButtonBase
-                  id={headerId}
-                  aria-expanded={!isFolded}
-                  aria-controls={listboxDomId(section.id)}
-                  onClick={() => {
-                    setFoldedSections(current => {
-                      const next = new Set(current)
-                      if (isFolded) next.delete(section.id)
-                      else next.add(section.id)
-                      return next
-                    })
-                  }}
-                  sx={HEADER_SX}
+      content={
+        <Box ref={bodyRef}>
+          <Box className="u-flex u-flex-items-center u-mb-half">
+            <SearchBar
+              className="u-flex-auto"
+              elevation={0}
+              disabledClear
+              placeholder={labels.search}
+              value={filter}
+              onChange={event => {
+                setFilter(event.target.value)
+                setActiveId(null)
+                setHasNavigated(true)
+              }}
+              // This field can open over the form of another dialog
+              onSubmit={event => {
+                event.preventDefault()
+                event.stopPropagation()
+              }}
+              componentsProps={{
+                inputBase: {
+                  inputRef,
+                  inputProps: {
+                    role: 'combobox',
+                    'aria-label': labels.search,
+                    'aria-expanded': true,
+                    'aria-controls': listboxIds.join(' ') || undefined,
+                    'aria-autocomplete': 'list',
+                    'aria-activedescendant':
+                      active === null || !hasNavigated
+                        ? undefined
+                        : optionDomId(active),
+                    autoComplete: 'off',
+                    onKeyDown: handleKeyDown,
+                    'data-testid': testIds.input
+                  }
+                }
+              }}
+            />
+            {onCreate === null ? null : (
+              <Tooltip title={labels.create}>
+                <IconButton
+                  color="primary"
+                  size="medium"
+                  aria-label={labels.create}
+                  onClick={onCreate}
+                  data-testid={testIds.create}
                 >
-                  {section.label}
-                  <Box component="span" sx={CHEVRON_SX}>
-                    <Icon
-                      icon={isFolded ? Right : Bottom}
-                      size={17}
-                      aria-hidden="true"
-                    />
-                  </Box>
-                </ButtonBase>
-              )}
-              <Box
-                component="ul"
-                id={listboxDomId(section.id)}
-                role="listbox"
-                aria-labelledby={section.label === null ? titleId : headerId}
-                hidden={section.options.length === 0}
-                sx={LIST_SX}
-                data-testid={testIds.listbox}
-              >
-                {section.options.map(option => {
-                  const isActive = hasNavigated && option === active
-                  const isOpen = expanded.has(option.id)
-                  return (
-                    <Box
-                      component="li"
-                      key={option.id}
-                      id={optionDomId(option)}
-                      role="option"
-                      aria-selected={isActive}
-                      aria-disabled={isPickable(option) ? undefined : true}
-                      // Its state, out of its name: folded, current
-                      aria-describedby={
-                        [
-                          option.hasChildren && !isSearching
-                            ? `${id}-${isOpen ? 'expanded' : 'collapsed'}`
-                            : null,
-                          option.isCurrent === true ? `${id}-current` : null
-                        ]
-                          .filter(Boolean)
-                          .join(' ') || undefined
-                      }
-                      onMouseDown={event => {
-                        // The focus stays in the search field
-                        event.preventDefault()
-                      }}
-                      onClick={() => {
-                        if (isPickable(option)) onSelect(option)
-                      }}
-                      sx={rowSx(option, isActive, isPhone, isSearching)}
-                      data-testid={testIds.option}
-                      data-option-id={option.id}
-                    >
-                      {option.icon === undefined ||
-                      option.icon === null ? null : (
-                        <Box component="span" sx={ICON_SX}>
-                          <Icon
-                            icon={option.icon}
-                            size={20}
-                            aria-hidden="true"
-                          />
-                        </Box>
-                      )}
-                      <Box component="span" sx={TEXT_SX}>
-                        <Box
-                          component="span"
-                          sx={nameSx(option.isCurrent === true)}
-                        >
-                          {option.label}
-                          {option.hasChildren && !isSearching ? (
-                            <>
-                              <Box
-                                component="span"
-                                aria-hidden="true"
-                                sx={CHEVRON_SX}
-                                onClick={event => {
-                                  event.stopPropagation()
-                                  toggle(option.id, !isOpen)
-                                }}
-                              >
-                                <Icon
-                                  icon={isOpen ? Bottom : Right}
-                                  size={17}
-                                />
-                              </Box>
-                            </>
-                          ) : null}
-                        </Box>
-                        {option.subtitle === undefined ||
-                        option.subtitle === null ? null : (
-                          <Box component="span" sx={SECONDARY_SX}>
-                            {option.subtitle}
+                  <Icon icon={Plus} aria-hidden="true" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+          {shownSections.map((section, index) => {
+            const isFolded = foldedSections.has(section.id)
+            const headerId = `${id}-header-${section.id}`
+            return (
+              <Fragment key={section.id}>
+                {index > 0 ? <Divider className="u-mv-half" /> : null}
+                {section.label === null ? null : (
+                  <ButtonBase
+                    id={headerId}
+                    aria-expanded={!isFolded}
+                    aria-controls={listboxDomId(section.id)}
+                    onClick={() => {
+                      setFoldedSections(current => {
+                        const next = new Set(current)
+                        if (isFolded) next.delete(section.id)
+                        else next.add(section.id)
+                        return next
+                      })
+                    }}
+                    sx={HEADER_SX}
+                  >
+                    {section.label}
+                    <Box component="span" sx={CHEVRON_SX}>
+                      <Icon
+                        icon={isFolded ? Right : Bottom}
+                        size={12}
+                        aria-hidden="true"
+                      />
+                    </Box>
+                  </ButtonBase>
+                )}
+                <Box
+                  component="ul"
+                  id={listboxDomId(section.id)}
+                  role="listbox"
+                  aria-label={section.label === null ? labels.title : undefined}
+                  aria-labelledby={
+                    section.label === null ? undefined : headerId
+                  }
+                  hidden={section.options.length === 0}
+                  sx={LIST_SX}
+                  data-testid={testIds.listbox}
+                >
+                  {section.options.map(option => {
+                    const isActive = hasNavigated && option === active
+                    const isOpen = expanded.has(option.id)
+                    return (
+                      <Box
+                        component="li"
+                        key={option.id}
+                        id={optionDomId(option)}
+                        role="option"
+                        aria-selected={isActive}
+                        aria-disabled={isPickable(option) ? undefined : true}
+                        // Its state, out of its name: folded, current
+                        aria-describedby={
+                          [
+                            option.hasChildren && !isSearching
+                              ? `${id}-${isOpen ? 'expanded' : 'collapsed'}`
+                              : null,
+                            option.isCurrent === true ? `${id}-current` : null
+                          ]
+                            .filter(Boolean)
+                            .join(' ') || undefined
+                        }
+                        onMouseDown={event => {
+                          // The focus stays in the search field
+                          event.preventDefault()
+                        }}
+                        onClick={() => {
+                          if (isPickable(option)) onSelect(option)
+                        }}
+                        sx={rowSx(option, isActive, isPhone, isSearching)}
+                        data-testid={testIds.option}
+                        data-option-id={option.id}
+                      >
+                        {option.icon === undefined ||
+                        option.icon === null ? null : (
+                          <Box component="span" sx={ICON_SX}>
+                            <Icon icon={option.icon} aria-hidden="true" />
                           </Box>
                         )}
-                        {isSearching &&
-                        option.secondary !== undefined &&
-                        option.secondary !== null &&
-                        option.secondary !== option.subtitle ? (
-                          <Box component="span" sx={SECONDARY_SX}>
-                            {option.secondary}
+                        <Box component="span" sx={TEXT_SX}>
+                          <Box component="span" sx={NAME_SX}>
+                            {option.label}
+                            {option.hasChildren && !isSearching ? (
+                              <>
+                                <Box
+                                  component="span"
+                                  aria-hidden="true"
+                                  sx={CHEVRON_SX}
+                                  onClick={event => {
+                                    event.stopPropagation()
+                                    toggle(option.id, !isOpen)
+                                  }}
+                                >
+                                  <Icon
+                                    icon={isOpen ? Bottom : Right}
+                                    size={12}
+                                  />
+                                </Box>
+                              </>
+                            ) : null}
+                          </Box>
+                          {option.subtitle === undefined ||
+                          option.subtitle === null ? null : (
+                            <Box component="span" sx={SECONDARY_SX}>
+                              {option.subtitle}
+                            </Box>
+                          )}
+                          {isSearching &&
+                          option.secondary !== undefined &&
+                          option.secondary !== null &&
+                          option.secondary !== option.subtitle ? (
+                            <Box component="span" sx={SECONDARY_SX}>
+                              {option.secondary}
+                            </Box>
+                          ) : null}
+                        </Box>
+                        {option.isCurrent === true ? (
+                          <Box component="span" sx={CHECK_SX}>
+                            <Icon icon={Check} aria-hidden="true" />
                           </Box>
                         ) : null}
                       </Box>
-                      {option.isCurrent === true ? (
-                        <>
-                          <Box component="span" sx={ICON_SX}>
-                            <Icon icon={Check} size={20} aria-hidden="true" />
-                          </Box>
-                        </>
-                      ) : null}
-                    </Box>
-                  )
-                })}
-              </Box>
-            </Fragment>
-          )
-        })}
-        <Box component="span" hidden>
-          <span id={`${id}-expanded`}>{labels.expanded}</span>
-          <span id={`${id}-collapsed`}>{labels.collapsed}</span>
-          <span id={`${id}-current`}>{labels.current}</span>
+                    )
+                  })}
+                </Box>
+              </Fragment>
+            )
+          })}
+          <Box component="span" hidden>
+            <span id={`${id}-expanded`}>{labels.expanded}</span>
+            <span id={`${id}-collapsed`}>{labels.collapsed}</span>
+            <span id={`${id}-current`}>{labels.current}</span>
+          </Box>
+          {isEmpty ? (
+            <Typography role="status" variant="body2" className="u-ph-2 u-pv-1">
+              {labels.empty}
+            </Typography>
+          ) : null}
         </Box>
-        {isEmpty ? (
-          <Typography role="status" variant="body2" className="u-ph-2 u-pv-1">
-            {labels.empty}
-          </Typography>
-        ) : null}
-      </Box>
-    </Dialog>
+      }
+    />
   )
 }

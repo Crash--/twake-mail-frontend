@@ -11,7 +11,7 @@ import { CategoryTabs } from '@/ds/CategoryTabs/CategoryTabs'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SettingsSubheading } from '@/ds/SettingsHeading/SettingsHeading'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
-import { ShortcutList } from '@/ds/ShortcutList/ShortcutList'
+import { SHORTCUTS_WIDTH, ShortcutList } from '@/ds/ShortcutList/ShortcutList'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -63,6 +63,7 @@ export function ShortcutsPanel({
         title={t('shortcuts.enable')}
         isChecked={isEnabled}
         onChange={setEnabled}
+        endWidth={SHORTCUTS_WIDTH}
         data-testid="shortcuts-enabled-switch"
       />
       <Box className="u-mt-1">

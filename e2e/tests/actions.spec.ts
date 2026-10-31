@@ -156,6 +156,40 @@ test.describe('EML acting on an open email', () => {
       .toBe(false)
   })
 
+  test('MBX-64 a click 9 px from the chevron of a folder in the picker unfolds it and picks nothing', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const id = await seedOne(jmap, user, 'to move')
+    const parent = await jmap.createMailbox({ name: 'Projects' })
+    await jmap.createMailbox({ name: 'Alpha', parentId: parent.id })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const email = await mailbox.openEmail('to move')
+    await email.runAction('move')
+    await expect(mailbox.mailboxPicker).toBeVisible()
+    const row = mailbox.mailboxPicker.getByRole('option', { name: /^Projects/ })
+    // The dialog grows as it opens: the chevron has its place once it is over
+    await page.waitForFunction(() =>
+      document
+        .getAnimations()
+        .every(animation => animation.playState !== 'running')
+    )
+    const box = await row.locator('svg').last().boundingBox()
+    if (box === null) throw new Error('No chevron')
+    await page.mouse.click(
+      box.x + box.width / 2 + 9,
+      box.y + box.height / 2
+    )
+
+    await expect(mailbox.mailboxPicker).toBeVisible()
+    await expect(
+      mailbox.mailboxPicker.getByRole('option', { name: /^Alpha/ })
+    ).toBeVisible()
+    expect((await jmap.getEmail(id)).mailboxIds[parent.id]).toBeUndefined()
+  })
+
   test('EML-12 "Move message" to Templates in the picker takes it out of the Inbox', async ({
     page,
     user,

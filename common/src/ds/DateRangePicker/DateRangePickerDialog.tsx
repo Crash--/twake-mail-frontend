@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes, twake-mui has no date range picker. A dialog
 // with the quick ranges as square chips at the top, two months side by side,
-// and at the bottom the start and end fields (`dd/mm/yyyy`) joined by an
-// arrow, then "Cancel" and "Set date". On a phone it is a sheet at the
+// the start and end fields (`dd/mm/yyyy`) joined by an arrow, and at the
+// bottom "Cancel" and "Set date". On a phone it is a sheet at the
 // bottom with the quick ranges and the two fields only, each opening a one
 // month calendar sheet from its calendar icon.
 import { Icon, Calendar, Cross, Next } from '@linagora/twake-icons'
@@ -341,34 +341,26 @@ export function DateRangePickerDialog({
             </Box>
             <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />
             <Box sx={{ p: '16px' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'flex-end',
-                  gap: '12px'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
-                  {startField}
-                  <Box
-                    aria-hidden="true"
-                    sx={{
-                      height: 48,
-                      px: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      color: 'text.icon'
-                    }}
-                  >
-                    <Icon icon={Next} size={24} />
-                  </Box>
-                  {endField}
+              <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                {startField}
+                <Box
+                  aria-hidden="true"
+                  sx={{
+                    height: 56,
+                    px: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: 'text.icon'
+                  }}
+                >
+                  <Icon icon={Next} />
                 </Box>
-                {buttons}
+                {endField}
               </Box>
               {errors}
             </Box>
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />
+            <Box sx={{ display: 'flex', p: '16px' }}>{buttons}</Box>
           </>
         )}
       </Box>
@@ -497,7 +489,7 @@ interface DateFieldProps {
   describedBy: string | undefined
   inputRef: Ref<HTMLInputElement> | undefined
   isAutoFocus: boolean
-  /** The whole width (a phone), else 130 px */
+  /** The whole width (a phone), else its share of the row */
   isWide: boolean
   /** The calendar button inside the field, null for none */
   pickLabel: string | null
@@ -521,7 +513,11 @@ function DateField({
   'data-testid': testId
 }: DateFieldProps): ReactElement {
   return (
-    <Box sx={{ width: isWide ? '100%' : 130, pt: isWide ? '8px' : 0 }}>
+    <Box
+      sx={
+        isWide ? { width: '100%', pt: '8px' } : { flex: '1 1 0', minWidth: 0 }
+      }
+    >
       <Typography
         component="label"
         id={`${id}-label`}
@@ -613,7 +609,7 @@ function PickerButton({
   return (
     <Button
       type={type}
-      variant={isMain ? 'contained' : 'text'}
+      variant={isMain ? 'contained' : 'outlined'}
       onClick={onClick}
       sx={{ flex: isWide ? '1 1 0' : '0 0 auto', whiteSpace: 'nowrap' }}
       data-testid={testId}

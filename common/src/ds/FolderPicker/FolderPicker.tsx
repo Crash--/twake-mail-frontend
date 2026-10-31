@@ -370,6 +370,8 @@ export function FolderPicker({
       open={open}
       onClose={onClose}
       title={labels.title}
+      // A search or a fold changes the height: the search field stays in place
+      align="top"
       // The search field takes the focus once the dialog is in
       disableAutoFocus
       slotProps={{

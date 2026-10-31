@@ -218,6 +218,31 @@ describe('toJmapFilter', () => {
     })
   })
 
+  it('drops a custom bound a JMAP UTCDate cannot express', () => {
+    const range = filter({
+      scope: { kind: 'everywhere' },
+      dateRange: 'custom',
+      startDate: '2026-09-01',
+      endDate: '9999-12-31'
+    })
+
+    expect(toJmapFilter(range, CONTEXT)).toEqual({
+      after: midnight(2026, 9, 1)
+    })
+  })
+
+  it('reads a two-digit year as itself, not as a 1900s year', () => {
+    const range = filter({
+      scope: { kind: 'everywhere' },
+      dateRange: 'custom',
+      startDate: '0050-03-01'
+    })
+
+    expect(toJmapFilter(range, CONTEXT)).toEqual({
+      after: '0050-03-01T00:00:00Z'
+    })
+  })
+
   it('combines senders, recipients and excluded words with operators', () => {
     const advanced = filter({
       scope: { kind: 'everywhere' },
@@ -257,6 +282,21 @@ describe('toSearchRequest', () => {
     expect(
       toSearchRequest(filter({ sort: 'senderDescending' }), CONTEXT).sort
     ).toEqual([{ property: 'from', isAscending: false }])
+  })
+
+  it('never sends a date bound outside the 4-digit years of a JMAP UTCDate', () => {
+    const UTC_DATE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/
+    const params = new URLSearchParams(
+      'date=custom&start=0000-01-01&end=9999-12-31'
+    )
+    const { filter: jmapFilter } = toSearchRequest(
+      parseSearchParams(params),
+      CONTEXT
+    )
+    const bounds = JSON.stringify(jmapFilter).match(/"(after|before)":"[^"]*"/g)
+
+    expect(bounds).toEqual(['"after":"0000-01-01T00:00:00Z"'])
+    expect(bounds?.[0]?.split('":"')[1]?.slice(0, -1)).toMatch(UTC_DATE)
   })
 
   it('tells a search using what only the advanced search sets', () => {

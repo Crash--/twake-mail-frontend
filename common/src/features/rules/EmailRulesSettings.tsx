@@ -234,6 +234,7 @@ export function EmailRulesSettings({
         <SettingsPrimaryButton
           label={t('rules.add')}
           icon={Plus}
+          iconSize={12}
           onClick={openCreator}
           data-testid="add-rule-button"
         />

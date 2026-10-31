@@ -16,6 +16,8 @@ export interface SettingsPrimaryButtonProps {
   label: string
   /** Before the label, if any */
   icon?: IconProps['icon']
+  /** Of the icon, 16 px by default */
+  iconSize?: number
   /** Not needed for the submit button of a form */
   onClick?: () => void
   type?: 'button' | 'submit'
@@ -29,6 +31,7 @@ export interface SettingsPrimaryButtonProps {
 export function SettingsPrimaryButton({
   label,
   icon,
+  iconSize = 16,
   onClick,
   type = 'button',
   disabled = false,
@@ -43,7 +46,7 @@ export function SettingsPrimaryButton({
       fullWidth={isFullWidth}
       startIcon={
         icon === undefined ? undefined : (
-          <Icon icon={icon} size={16} aria-hidden="true" />
+          <Icon icon={icon} size={iconSize} aria-hidden="true" />
         )
       }
       sx={isFullWidth ? undefined : PRIMARY_SX}

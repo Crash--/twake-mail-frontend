@@ -12,11 +12,9 @@ import {
 } from 'react'
 
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
+import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {
-  SettingsPrimaryButton,
-  SettingsTextButton
-} from '@/ds/SettingsButtons/SettingsButtons'
-import {
+  SETTINGS_FORM_WIDTH,
   SettingsFormColumn,
   SettingsFormField,
   SettingsFormPair,
@@ -232,6 +230,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
           setIsEnabled(checked)
           setProblem(null)
         }}
+        endWidth={SETTINGS_FORM_WIDTH}
         data-testid="vacation-enable-toggle"
       />
       {/* As tmail-flutter: a column of labelled rows, 660 px wide at most */}
@@ -346,8 +345,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
         />
         {problemAlert(['endDate', 'endTime'])}
         <SettingsFormRow
-          label={`${t('vacation.subject')}:`}
+          label={t('vacation.subject')}
           htmlFor={subjectId}
+          isStacked
           isDisabled={isOff}
         >
           <SettingsFormField>
@@ -367,8 +367,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
           </SettingsFormField>
         </SettingsFormRow>
         <SettingsFormRow
-          label={`${t('vacation.message')}:`}
-          alignTop
+          label={t('vacation.message')}
+          isStacked
           isDisabled={isOff}
         >
           <SettingsFormField>
@@ -392,12 +392,15 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
         </SettingsFormRow>
         {problemAlert(['message'])}
         <Box className="u-flex u-flex-justify-end u-flex-items-center u-mt-1">
-          <SettingsTextButton
-            label={t('common.cancel')}
+          <Button
+            variant="outlined"
+            className="u-mr-half"
             disabled={isSaving}
             onClick={handleCancel}
             data-testid="vacation-cancel-button"
-          />
+          >
+            {t('common.cancel')}
+          </Button>
           <SettingsPrimaryButton
             type="submit"
             label={t('vacation.save')}

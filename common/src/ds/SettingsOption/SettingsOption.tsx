@@ -63,6 +63,8 @@ export interface SettingsSwitchRowProps {
   isChecked: boolean
   isDisabled?: boolean
   onChange: (isChecked: boolean) => void
+  /** The switch at the end of a row this wide at most, instead of first */
+  endWidth?: number
   /** On the switch */
   'data-testid'?: string
 }
@@ -77,6 +79,7 @@ export function SettingsSwitchRow({
   isChecked,
   isDisabled = false,
   onChange,
+  endWidth,
   'data-testid': testId
 }: SettingsSwitchRowProps): ReactElement {
   const switchId = useId()
@@ -87,7 +90,18 @@ export function SettingsSwitchRow({
   }
 
   return (
-    <Box sx={ROW_SX}>
+    <Box
+      sx={
+        endWidth === undefined
+          ? ROW_SX
+          : {
+              ...ROW_SX,
+              flexDirection: 'row-reverse',
+              justifyContent: 'space-between',
+              maxWidth: endWidth
+            }
+      }
+    >
       <Switch
         id={switchId}
         checked={isChecked}

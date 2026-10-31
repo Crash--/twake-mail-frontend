@@ -11,7 +11,7 @@ import {
 } from '@linagora/twake-mui'
 import { useId, type ChangeEvent, type ReactElement } from 'react'
 
-const SECTION_SX = { mb: '49px', '&:last-child': { mb: 0 } } as const
+const SECTION_SX = { mb: 3, '&:last-child': { mb: 0 } } as const
 
 const TITLE_SX = {
   m: 0,
@@ -20,7 +20,7 @@ const TITLE_SX = {
 } as const
 
 const DESCRIPTION_SX = {
-  my: '12px',
+  my: 0.5,
   typography: 'body1',
   color: 'text.secondary'
 } as const

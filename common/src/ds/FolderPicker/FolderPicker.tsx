@@ -127,9 +127,15 @@ function rowSx(
     ml: isSearching ? 0 : `${String((option.level - 1) * 14)}px`,
     cursor: option.disabled === true ? 'default' : 'pointer',
     opacity: option.disabled === true ? 0.3 : 1,
-    bgcolor: isActive ? 'action.selected' : 'transparent',
+    bgcolor:
+      isActive || option.isCurrent === true ? 'action.selected' : 'transparent',
     '&:hover': {
-      bgcolor: option.disabled === true ? undefined : 'action.hover'
+      bgcolor:
+        option.isCurrent === true
+          ? 'action.selected'
+          : option.disabled === true
+            ? undefined
+            : 'action.hover'
     }
   }
 }
@@ -144,16 +150,13 @@ const CHECK_SX = { ...ICON_SX, color: 'primary.main' } as const
 
 const TEXT_SX = { flex: '1 1 auto', minWidth: 0 } as const
 
-function nameSx(isCurrent: boolean): Record<string, unknown> {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 1,
-    typography: 'body2',
-    fontWeight: isCurrent ? 600 : undefined,
-    color: 'text.primary'
-  }
-}
+const NAME_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+  typography: 'body2',
+  color: 'text.primary'
+} as const
 
 const SECONDARY_SX = {
   display: 'block',
@@ -513,10 +516,7 @@ export function FolderPicker({
                           </Box>
                         )}
                         <Box component="span" sx={TEXT_SX}>
-                          <Box
-                            component="span"
-                            sx={nameSx(option.isCurrent === true)}
-                          >
+                          <Box component="span" sx={NAME_SX}>
                             {option.label}
                             {option.hasChildren && !isSearching ? (
                               <>

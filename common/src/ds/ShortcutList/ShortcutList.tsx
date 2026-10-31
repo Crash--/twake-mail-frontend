@@ -1,13 +1,15 @@
 // Upstream to twake-ui: no. The keyboard shortcuts: what the shortcut does,
-// its keys at the end of a row 440 px wide at most, each a key cap on
+// its keys at the end of a row 630 px wide at most, each a key cap on
 // `action.selected` with a `border.main` outline. A table for assistive
 // technologies, its header read but not shown.
 import { Box } from '@linagora/twake-mui'
 import { Fragment, type ReactElement } from 'react'
 
+export const SHORTCUTS_WIDTH = 630
+
 const TABLE_SX = {
   width: '100%',
-  maxWidth: 440,
+  maxWidth: SHORTCUTS_WIDTH,
   borderCollapse: 'collapse',
   '& th, & td': { p: 0, pt: '5px', pb: '21px', verticalAlign: 'middle' }
 } as const

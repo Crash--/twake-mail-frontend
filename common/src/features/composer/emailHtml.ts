@@ -118,11 +118,66 @@ export function toEmailHtml(editorHtml: string): string {
   return root.innerHTML
 }
 
+/** What ProseMirror's DOM parser reads as blocks (its `blockTags`) */
+const PARSER_BLOCK_SELECTOR =
+  'address, article, aside, blockquote, canvas, dd, div, dl, fieldset, ' +
+  'figcaption, figure, footer, form, h1, h2, h3, h4, h5, h6, header, ' +
+  'hgroup, hr, li, noscript, ol, output, p, pre, section, table, tfoot, ul'
+
+function holdsBlock(node: Node): boolean {
+  return (
+    node instanceof Element &&
+    (node.matches(PARSER_BLOCK_SELECTOR) ||
+      node.querySelector(PARSER_BLOCK_SELECTOR) !== null)
+  )
+}
+
+/** A copy of the `<pre>` holding `nodes`, null when they show nothing */
+function preRun(pre: Element, nodes: readonly Node[]): Element | null {
+  const showsSomething = nodes.some(
+    node =>
+      node instanceof Element || (node.textContent ?? '').trim().length > 0
+  )
+  if (!showsSomething) return null
+  const run = pre.cloneNode(false)
+  if (!(run instanceof Element)) return null
+  run.append(...nodes)
+  return run
+}
+
+/**
+ * Splits a `<pre>` around the blocks it holds: the editor's code block only
+ * holds text, so it writes those blocks after it, but parses their text with
+ * the whitespace of the `<pre>`, which the next load collapses (#780). Out
+ * of the `<pre>`, they are parsed as they are reloaded.
+ */
+function splitPreAroundBlocks(pre: Element): void {
+  if (!Array.from(pre.childNodes).some(holdsBlock)) return
+  const parts: Node[] = []
+  let run: Node[] = []
+  const closeRun = (): void => {
+    const element = preRun(pre, run)
+    if (element !== null) parts.push(element)
+    run = []
+  }
+  for (const child of Array.from(pre.childNodes)) {
+    if (holdsBlock(child)) {
+      closeRun()
+      parts.push(child)
+    } else {
+      run.push(child)
+    }
+  }
+  closeRun()
+  pre.replaceWith(...parts)
+}
+
 /**
  * The editor HTML of an email body: `cid:` images of the editor's own
  * content get their display URL back and keep their Content-ID in
- * `data-reference`. Kept HTML blocks stay in their `cid:` form (they map
- * Content-IDs to URLs only when displayed).
+ * `data-reference`; a `<pre>` holding blocks is split around them. Kept
+ * HTML blocks stay in their `cid:` form (they map Content-IDs to URLs only
+ * when displayed).
  *
  * @param urlFor display URL of a Content-ID, null when unknown
  */
@@ -131,6 +186,8 @@ export function fromEmailHtml(
   urlFor: (cid: string) => string | null
 ): string {
   const root = parse(html)
+  // Innermost first: a `<pre>` moved out of another one is split as well
+  editorElements(root, 'pre').reverse().forEach(splitPreAroundBlocks)
   for (const image of editorElements(root, 'img')) {
     const src = image.getAttribute('src') ?? ''
     const reference =

@@ -276,13 +276,11 @@ export function EmailCell({
   const handleToggleStar = (): void => {
     onToggleStar(email)
   }
-  // As tmail-flutter: the star of a wide row is a bare 20 px icon
   const wideStarButton = (
     <IconAction
       label={starLabel}
       icon={isStarred ? Star : StarOutline}
       tone={isStarred ? 'starred' : 'secondary'}
-      size={20}
       aria-pressed={isStarred}
       onClick={handleToggleStar}
       data-testid="email-list-item-star"

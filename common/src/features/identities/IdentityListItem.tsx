@@ -5,10 +5,9 @@ import {
   RadioUnchecked,
   RadioChecked
 } from '@linagora/twake-icons'
-import { Radio } from '@linagora/twake-mui'
+import { Button, Radio, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { SettingsRowButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {
   SettingsListHtml,
   SettingsListItem,
@@ -77,25 +76,35 @@ export function IdentityListItem({
       }
       actions={
         <>
-          <SettingsRowButton
-            label={t('common.edit')}
-            name={editLabel}
-            icon={Pen}
-            onClick={() => {
-              onEdit(identity)
-            }}
-            data-testid="identity-edit-button"
-          />
-          {identity.mayDelete ? (
-            <SettingsRowButton
-              label={t('common.delete')}
-              name={deleteLabel}
-              icon={Trash}
-              onClick={event => {
-                onDelete(identity, event.currentTarget)
+          <Tooltip title={editLabel}>
+            <Button
+              variant="text"
+              className="u-flex-shrink-0"
+              startIcon={<Icon icon={Pen} size={20} aria-hidden="true" />}
+              aria-label={editLabel}
+              onClick={() => {
+                onEdit(identity)
               }}
-              data-testid="identity-delete-button"
-            />
+              data-testid="identity-edit-button"
+            >
+              {t('common.edit')}
+            </Button>
+          </Tooltip>
+          {identity.mayDelete ? (
+            <Tooltip title={deleteLabel}>
+              <Button
+                variant="text"
+                className="u-flex-shrink-0"
+                startIcon={<Icon icon={Trash} size={20} aria-hidden="true" />}
+                aria-label={deleteLabel}
+                onClick={event => {
+                  onDelete(identity, event.currentTarget)
+                }}
+                data-testid="identity-delete-button"
+              >
+                {t('common.delete')}
+              </Button>
+            </Tooltip>
           ) : null}
         </>
       }

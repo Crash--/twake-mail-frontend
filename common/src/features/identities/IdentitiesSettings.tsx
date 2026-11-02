@@ -1,9 +1,8 @@
-import { Plus } from '@linagora/twake-icons'
+import { Icon, Plus } from '@linagora/twake-icons'
 import { Alert, Button, RadioGroup } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, type ChangeEvent, type ReactElement } from 'react'
 
-import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import { SettingsList } from '@/ds/SettingsList/SettingsList'
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
@@ -170,14 +169,16 @@ export function IdentitiesSettings({
     <SettingsSectionLayout
       section={section}
       actions={
-        <SettingsPrimaryButton
-          label={t('identities.create')}
-          icon={Plus}
+        <Button
+          className="u-flex-shrink-0"
+          startIcon={<Icon icon={Plus} aria-hidden="true" />}
           onClick={() => {
             setForm({ identity: null, draft: null })
           }}
           data-testid="create-new-identity-button"
-        />
+        >
+          {t('identities.create')}
+        </Button>
       }
     >
       {query.isPending ? (

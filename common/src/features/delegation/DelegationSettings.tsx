@@ -1,4 +1,4 @@
-import { Plus, Trash } from '@linagora/twake-icons'
+import { Icon, Plus, Trash } from '@linagora/twake-icons'
 import { Alert, Box, Button, Tab, Tabs, Typography } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId, useRef, useState, type ReactElement } from 'react'
@@ -10,7 +10,6 @@ import {
   PeopleList,
   type Person
 } from '@/ds/PeopleList/PeopleList'
-import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import {
   isTeamRoot,
@@ -295,14 +294,15 @@ export function DelegationSettings({
   ): Removal => ({ of, id: delegation.id, address: delegation.username })
 
   const addButton = (
-    <SettingsPrimaryButton
-      label={t('delegation.add.open')}
-      icon={Plus}
+    <Button
+      startIcon={<Icon icon={Plus} aria-hidden="true" />}
       onClick={() => {
         setIsAdding(true)
       }}
       data-testid="delegation-add-button"
-    />
+    >
+      {t('delegation.add.open')}
+    </Button>
   )
 
   const renderError = (retry: () => void): ReactElement => (

@@ -12,7 +12,6 @@ import {
 } from 'react'
 
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
-import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {
   SETTINGS_FORM_WIDTH,
   SettingsFormColumn,
@@ -401,12 +400,14 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
           >
             {t('common.cancel')}
           </Button>
-          <SettingsPrimaryButton
+          <Button
             type="submit"
-            label={t('vacation.save')}
+            className="u-flex-shrink-0"
             disabled={isSaving}
             data-testid="vacation-save-button"
-          />
+          >
+            {t('vacation.save')}
+          </Button>
         </Box>
       </SettingsFormColumn>
     </form>

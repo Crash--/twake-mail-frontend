@@ -1,4 +1,4 @@
-import { Plus } from '@linagora/twake-icons'
+import { Icon, Plus } from '@linagora/twake-icons'
 import { Alert, Button } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Rule } from 'jmap-client-ts/linagora'
@@ -6,7 +6,6 @@ import { useEffect, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { NoRules } from '@/ds/FlutterIcons/FlutterIcons'
-import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import { SettingsCardList } from '@/ds/SettingsCards/SettingsCards'
 import { SettingsEmptyState } from '@/ds/SettingsEmptyState/SettingsEmptyState'
 import { SettingsCount } from '@/ds/SettingsFields/SettingsFields'
@@ -231,13 +230,14 @@ export function EmailRulesSettings({
       section={section}
       actions={
         // As tmail-flutter: there with or without rules
-        <SettingsPrimaryButton
-          label={t('rules.add')}
-          icon={Plus}
-          iconSize={12}
+        <Button
+          className="u-flex-shrink-0"
+          startIcon={<Icon icon={Plus} size={12} aria-hidden="true" />}
           onClick={openCreator}
           data-testid="add-rule-button"
-        />
+        >
+          {t('rules.add')}
+        </Button>
       }
     >
       {query.isPending ? (

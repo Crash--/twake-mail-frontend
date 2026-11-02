@@ -27,7 +27,6 @@ import { IconAction } from '@/ds/IconAction/IconAction'
 import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
 import type { RecipientFieldActions } from '@/ds/RecipientField/RecipientField'
 import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
-import { SettingsPrimaryButton } from '@/ds/SettingsButtons/SettingsButtons'
 import {
   SettingsHeaderButton,
   SettingsListHeader,
@@ -391,14 +390,16 @@ export function ForwardSettings({
             </FormHelperText>
           )}
         </SettingsFieldSlot>
-        <SettingsPrimaryButton
+        <Button
           type="submit"
-          label={t('forward.add')}
-          icon={Plus}
+          className={isPhone ? undefined : 'u-flex-shrink-0'}
+          startIcon={<Icon icon={Plus} aria-hidden="true" />}
           disabled={isSaving}
-          isFullWidth={isPhone}
+          fullWidth={isPhone}
           data-testid="forward-add-button"
-        />
+        >
+          {t('forward.add')}
+        </Button>
       </Box>
       {forwards.length > 0 ? (
         <>

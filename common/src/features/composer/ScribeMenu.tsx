@@ -4,7 +4,7 @@ import {
   Bottom,
   Copy,
   Warning,
-  Cross,
+  CrossMedium,
   Refresh,
   Send,
   Assistant
@@ -377,7 +377,7 @@ export function ScribeMenu({
         icons={{
           sparkle: Assistant,
           warning: Warning,
-          close: Cross,
+          close: CrossMedium,
           copy: Copy,
           retry: Refresh,
           chevron: Bottom

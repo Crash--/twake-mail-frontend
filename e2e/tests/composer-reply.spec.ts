@@ -178,6 +178,29 @@ test.describe('CMP and EML: replying and forwarding', () => {
     }
   )
 
+  test('CMP-111 from the More menu of a reply with folded recipients, Reply to unfolds them and takes the focus', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.importEml('reply_email/without-reply-to.eml', 'inbox', {
+      replace: { 'bob@example.com': user.email }
+    })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const email = await openReceived(mailbox, 'Reply email without Reply-To')
+    const composer = await email.reply()
+    await expect(composer.root.getByTestId('composer-recipients-summary')).toBeVisible()
+
+    await composer.moreButton.click()
+    await page.getByTestId('composer-show-reply-to-item').click()
+
+    await expect(composer.root.getByTestId('composer-recipients-summary')).toBeHidden()
+    await expect(composer.recipientInput('reply-to')).toBeFocused()
+
+    await composer.openMoreMenu()
+    await expect(page.getByTestId('composer-show-reply-to-item')).toHaveCount(0)
+  })
+
   test('EML-15 Reply to an email with Reply-To answers the Reply-To address', async ({
     page,
     user,

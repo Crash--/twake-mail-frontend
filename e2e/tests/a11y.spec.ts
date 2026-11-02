@@ -183,7 +183,6 @@ test.describe('A11Y accessibility', () => {
     expect(stops.filter(stop => stop !== 'composer-show-from-button')).toEqual([
       'composer-show-cc-button',
       'composer-show-bcc-button',
-      'composer-show-reply-to-button',
       'composer-subject-input'
     ])
     await page.keyboard.type('Sent from the keyboard')

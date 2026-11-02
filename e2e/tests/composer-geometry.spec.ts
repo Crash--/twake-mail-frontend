@@ -77,13 +77,13 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
     const group = await boxOf(composer.toolbarButton('Bold').locator('..'))
     expect([group.width, group.height]).toEqual([114, 32])
 
-    // Footer: 32 px in, 40 px icon buttons 8 px apart, Send a 128 x 40 pill
+    // Footer: 32 px in, 36 px icon buttons 8 px apart, Send a 128 x 40 pill
     const footer = await Promise.all(
       [composer.formattingButton, composer.attachFileButton].map(boxOf)
     )
-    for (const box of footer) expect([box.width, box.height]).toEqual([40, 40])
+    for (const box of footer) expect([box.width, box.height]).toEqual([36, 36])
     const [formatting, attach] = footer as [Box, Box]
-    expect(attach.x - (formatting.x + 40)).toBe(8)
+    expect(attach.x - (formatting.x + 36)).toBe(8)
     expect(formatting.x - root.x).toBe(32)
     const send = await boxOf(composer.sendButton)
     expect([send.width, send.height]).toEqual([128, 40])
@@ -93,17 +93,20 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
   })
 
   test(
-    'CMP-85 the footer icon buttons are 40 px (44 on touch) round buttons, the toolbar boxes 32 px high (44 on touch), at every width',
+    'CMP-85 the footer icon buttons are 36 px (44 on touch) round buttons, the toolbar boxes 32 px high (44 on touch), at every width',
     { tag: '@mobile' },
     async ({ page, user }, testInfo) => {
-      // twake-mui's small icon buttons (a 24 px icon, 8 px around); touch
-      // screens enlarge the targets to 44 px (docs/accessibility.md)
-      const size = testInfo.project.name === 'chromium' ? 40 : 44
+      // twake-mui's small icon buttons (a 20 px icon, 8 px around), its medium
+      // one in the title bar; touch screens enlarge the targets to 44 px
+      // (docs/accessibility.md)
+      const isDesktop = testInfo.project.name === 'chromium'
+      const size = isDesktop ? 36 : 44
+      const closeSize = isDesktop ? 40 : 44
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
       await composer.showFormattingToolbar()
       const close = await boxOf(composer.closeButton)
-      expect([close.width, close.height]).toEqual([size, size])
+      expect([close.width, close.height]).toEqual([closeSize, closeSize])
       for (const button of [
         composer.formattingButton,
         composer.attachFileButton,
@@ -115,9 +118,9 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
         expect(await styleOf(button, 'border-top-left-radius')).toBe('50%')
       }
       const style = await boxOf(composer.toolbarButton('Text style Normal'))
-      expect(style.height).toBe(size === 40 ? 32 : 44)
+      expect(style.height).toBe(size === 36 ? 32 : 44)
       const toolbar = await boxOf(composer.toolbar)
-      if (size === 40) expect(toolbar.height).toBe(41)
+      if (size === 36) expect(toolbar.height).toBe(41)
       else expect(toolbar.height).toBeGreaterThanOrEqual(44)
     }
   )

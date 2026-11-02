@@ -6,15 +6,15 @@ import { forwardRef, type ReactElement } from 'react'
 
 export interface ActionIconButtonProps extends Omit<
   IconButtonProps,
-  'aria-label' | 'size' | 'sx' | 'title'
+  'aria-label' | 'sx' | 'title'
 > {
   /** Tooltip and accessible name */
   label: string
 }
 
 /**
- * A twake-mui small `IconButton` with its tooltip: 40 px around a 24 px
- * icon. A toggle that is on (`aria-pressed`) is drawn light blue.
+ * A twake-mui `IconButton`, small unless told otherwise, with its tooltip. A
+ * toggle that is on (`aria-pressed`) is drawn light blue.
  */
 export const ActionIconButton = forwardRef<
   HTMLButtonElement,

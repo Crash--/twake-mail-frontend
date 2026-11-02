@@ -24,6 +24,7 @@ import {
   type AiScribeMenuCategory
 } from '@/ds/AiScribeMenu/AiScribeMenu'
 import { AiScribePopover } from '@/ds/AiScribePopover/AiScribePopover'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   AiScribeSuggestion,
   type AiScribeSuggestionState
@@ -136,6 +137,7 @@ export function ScribeMenu({
   onExternalClose
 }: ScribeMenuProps): ReactElement | null {
   const { t } = useI18n()
+  const isPhone = useScreenSize() === 'mobile'
   const { notify } = useNotify()
   const service = useAuthService()
   const { session, accountId } = useJmapSession()
@@ -331,7 +333,11 @@ export function ScribeMenu({
         className="u-ml-half"
         data-testid="composer-scribe-button"
       >
-        <Icon icon={AssistantColor} size={24} aria-hidden="true" />
+        <Icon
+          icon={AssistantColor}
+          size={isPhone ? 24 : 20}
+          aria-hidden="true"
+        />
       </ActionIconButton>
       <AiScribePopover
         open={isMenuOpen}

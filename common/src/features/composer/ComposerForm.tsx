@@ -367,6 +367,7 @@ function LoadedComposerForm({
   const alert = useAlert()
   const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
   const isPhone = useScreenSize() === 'mobile'
+  const actionIconSize = isPhone ? 24 : 20
   const subjectId = useId()
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -1488,7 +1489,7 @@ function LoadedComposerForm({
       }}
       data-testid="composer-formatting-button"
     >
-      <Icon icon={FormatSize} size={isPhone ? 28 : 24} aria-hidden="true" />
+      <Icon icon={FormatSize} size={isPhone ? 28 : 20} aria-hidden="true" />
     </ActionIconButton>
   )
 
@@ -1513,7 +1514,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid="composer-attach-file-button"
     >
-      <Icon icon={Attachment} size={24} aria-hidden="true" />
+      <Icon icon={Attachment} size={actionIconSize} aria-hidden="true" />
     </ActionIconButton>
   )
   const imageButton = (
@@ -1523,7 +1524,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
     >
-      <Icon icon={Image} size={24} aria-hidden="true" />
+      <Icon icon={Image} size={actionIconSize} aria-hidden="true" />
     </ActionIconButton>
   )
   // On a phone the link is in the More menu, as the bar has no room for it
@@ -1534,7 +1535,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
     >
-      <Icon icon={Link} size={24} aria-hidden="true" />
+      <Icon icon={Link} size={actionIconSize} aria-hidden="true" />
     </ActionIconButton>
   )
   const driveButton = (
@@ -1596,7 +1597,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid="composer-more-button"
     >
-      <Icon icon={Dots} size={24} aria-hidden="true" />
+      <Icon icon={Dots} size={actionIconSize} aria-hidden="true" />
     </ActionIconButton>
   )
   // As tmail-flutter: "Save as draft" beside "Delete", the menu holds it
@@ -1608,7 +1609,7 @@ function LoadedComposerForm({
       className="u-ml-half"
       data-testid="composer-save-draft-button"
     >
-      <Icon icon={FileOutline} size={24} aria-hidden="true" />
+      <Icon icon={FileOutline} size={actionIconSize} aria-hidden="true" />
     </ActionIconButton>
   )
   // As tmail-flutter on phones: the arrow up in a primary disc, grey while
@@ -1788,7 +1789,7 @@ function LoadedComposerForm({
                 onClick={onRequestClose}
                 data-testid="composer-close-button"
               >
-                <Icon icon={Cross} size={24} aria-hidden="true" />
+                <Icon icon={Cross} size={actionIconSize} aria-hidden="true" />
               </ActionIconButton>
             }
           >
@@ -2013,7 +2014,7 @@ function LoadedComposerForm({
               onClick={handleDeleteDraft}
               data-testid="composer-delete-draft-button"
             >
-              <Icon icon={Trash} size={24} aria-hidden="true" />
+              <Icon icon={Trash} size={actionIconSize} aria-hidden="true" />
             </ActionIconButton>
             {saveDraftButton}
             <span className="u-ml-1">{sendButton}</span>

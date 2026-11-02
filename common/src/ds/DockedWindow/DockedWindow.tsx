@@ -146,7 +146,7 @@ interface TitleBarButtonProps {
   'data-testid'?: string
 }
 
-/** A button of the title bar: a 24 px icon in 40 px */
+/** A button of the title bar: a 16 px icon in 40 px */
 function TitleBarButton({
   label,
   icon,
@@ -154,8 +154,13 @@ function TitleBarButton({
   'data-testid': testId
 }: TitleBarButtonProps): ReactElement {
   return (
-    <ActionIconButton label={label} onClick={onClick} data-testid={testId}>
-      <Icon icon={icon} size={24} aria-hidden="true" />
+    <ActionIconButton
+      label={label}
+      size="medium"
+      onClick={onClick}
+      data-testid={testId}
+    >
+      <Icon icon={icon} aria-hidden="true" />
     </ActionIconButton>
   )
 }

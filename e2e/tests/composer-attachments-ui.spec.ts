@@ -123,7 +123,7 @@ test.describe('CMP: attachments, signature and recipient chips of the composer',
     })
   })
 
-  test('CMP-74 the signature is a card under a "Signature" pill that folds it', async ({
+  test('CMP-74 the signature is shown in the text of the message', async ({
     page,
     user,
     jmap
@@ -132,14 +132,8 @@ test.describe('CMP: attachments, signature and recipient chips of the composer',
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
 
-    const pill = composer.root.getByTestId('composer-signature-toggle')
-    await expect(pill).toHaveAttribute('aria-expanded', 'true')
     await expect(composer.root.getByText('CARD_SIGNATURE')).toBeVisible()
     await expectNoA11yViolations(page)
-    await pill.click()
-    await expect(pill).toHaveAttribute('aria-expanded', 'false')
-    await expect(composer.root.getByText('CARD_SIGNATURE')).toBeHidden()
-    // Folded in the view only: the message still carries it
     expect(await composer.editorHtml()).toContain('CARD_SIGNATURE')
   })
 

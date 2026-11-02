@@ -414,9 +414,12 @@ test.describe('LBL label colours', () => {
         'true'
       )
       await expect(labels.customColorHexInput).toBeFocused()
-      await expect(labels.labelModal.getByRole('alert')).toContainText(
-        'Enter a color as #RRGGBB'
-      )
+      // Beside the (empty) alert region of the toasts, drawn in the dialog
+      await expect(
+        labels.labelModal
+          .getByRole('alert')
+          .filter({ hasText: 'Enter a color as #RRGGBB' })
+      ).toBeVisible()
 
       await expectNoA11yViolations(page)
       await labels.customColorHexInput.fill('c0ffee')

@@ -92,9 +92,7 @@ export function EmailListDefaultToolbar({
           label={refreshLabel}
           icon={Refresh}
           iconSize={16}
-          // As tmail-flutter: its 26 x 24 drawing, 16 px high
-          iconWidth={(16 * 26) / 24}
-          tone="filled"
+          tone="icon"
           onClick={onRefresh}
           data-testid="list-refresh-button"
         />

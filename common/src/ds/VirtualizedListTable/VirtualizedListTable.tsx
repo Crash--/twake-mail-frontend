@@ -69,12 +69,7 @@ export interface RowLayout {
   paddingTop: number
   paddingBottom: number
   gap: number
-  /** The divider under the row starts after its first cell */
-  insetDivider?: boolean
-  /**
-   * The divider under the row keeps this margin on both sides instead
-   * (tmail-flutter's compact rows), in px
-   */
+  /** The divider under the row keeps this margin on both sides, in px */
   dividerMarginX?: number
   /** With `dividerMarginX`: the room of the divider stays, blank */
   hideDivider?: boolean
@@ -134,7 +129,6 @@ export function makeRowLayoutSx({
   paddingTop,
   paddingBottom,
   gap,
-  insetDivider = false,
   dividerMarginX,
   hideDivider = false
 }: RowLayout): Record<string, Record<string, string> | string> {
@@ -160,8 +154,7 @@ export function makeRowLayoutSx({
       borderBottomColor: ROW_DIVIDER_COLOR
     },
     '& .MuiTableCell-root:first-of-type': {
-      paddingLeft: `${paddingX}px`,
-      ...(insetDivider ? { borderBottomColor: 'transparent' } : {})
+      paddingLeft: `${paddingX}px`
     },
     '&.Mui-selected, &.Mui-selected:hover': { backgroundColor: 'transparent' },
     '&.Mui-selected .MuiTableCell-root, &.Mui-selected:hover .MuiTableCell-root':

@@ -643,9 +643,7 @@ export function EmailCell({
     }
     case 'trailing':
       return (
-        // As tmail-flutter: the actions 11 px apart, 16 px before the edge
         <RowHoverActions
-          endGap={16}
           replaces={
             <>
               {/* As tmail-flutter: the folder right before the attachment */}

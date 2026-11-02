@@ -156,7 +156,7 @@ import { removeSignatures, replaceSignature, signatureHtml } from './signature'
 import { DRAFT_IDLE_MS } from './draftPolicy'
 import { SEND_SLOW_MS } from './sendPolicy'
 import { getEditorHtml, getEditorStorageHtml } from './editorHtml'
-import { EmojiButton } from './EmojiButton'
+import { ComposerEmojiPicker } from './ComposerEmojiPicker'
 import { DriveAttachButton } from './DriveAttachButton'
 import { ScribeMenu, type ScribeInput } from './ScribeMenu'
 import {
@@ -413,6 +413,8 @@ function LoadedComposerForm({
   const [options, setOptions] = useState<SendOptions>(content.options)
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null)
   const moreButtonRef = useRef<HTMLButtonElement>(null)
+  const [emojiAnchor, setEmojiAnchor] = useState<HTMLElement | null>(null)
+  const [focusField, setFocusField] = useState<RecipientKind | null>(null)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   /**
@@ -965,6 +967,7 @@ function LoadedComposerForm({
   }
 
   const handleOpenMore = (event: MouseEvent<HTMLElement>): void => {
+    setFocusField(null)
     setMoreAnchor(event.currentTarget)
   }
 
@@ -1683,6 +1686,7 @@ function LoadedComposerForm({
     <Menu
       anchorEl={moreAnchor}
       open={moreAnchor !== null}
+      disableRestoreFocus={focusField !== null}
       onClose={() => {
         setMoreAnchor(null)
       }}
@@ -1706,6 +1710,30 @@ function LoadedComposerForm({
           <ListItemText inset primary={t('composer.saveAsDraft')} />
         </MenuItem>
       ) : null}
+      {isPhone ? null : (
+        <MenuItem
+          onClick={() => {
+            setMoreAnchor(null)
+            setEmojiAnchor(moreButtonRef.current)
+          }}
+          data-testid="composer-emoji-item"
+        >
+          <ListItemText inset primary={t('composer.emoji.open')} />
+        </MenuItem>
+      )}
+      {isPhone || shown.has('replyTo') ? null : (
+        <MenuItem
+          onClick={() => {
+            setMoreAnchor(null)
+            setShown(current => new Set([...current, 'replyTo']))
+            setIsCollapsed(false)
+            setFocusField('replyTo')
+          }}
+          data-testid="composer-show-reply-to-item"
+        >
+          <ListItemText inset primary={t('composer.fields.replyTo')} />
+        </MenuItem>
+      )}
       <MenuItem
         onClick={handleOpenTemplatePicker}
         data-testid="composer-insert-template-item"
@@ -1816,6 +1844,7 @@ function LoadedComposerForm({
               setInputs(current => ({ ...current, [kind]: value }))
             }}
             shown={shown}
+            focusField={focusField}
             onShow={kind => {
               setShown(current => new Set([...current, kind]))
             }}
@@ -1864,6 +1893,7 @@ function LoadedComposerForm({
             isCollapsed={isCollapsed}
             refused={refusedRecipients}
             onExpand={() => {
+              setFocusField(null)
               setIsCollapsed(false)
             }}
             autoFocusTo={autoFocus && !opensOnText}
@@ -1998,12 +2028,6 @@ function LoadedComposerForm({
             {attachButton}
             {imageButton}
             {linkButton}
-            <EmojiButton
-              onInsert={emoji => {
-                editorActions.current?.insertText(emoji)
-              }}
-              onDismiss={() => editorActions.current?.focus()}
-            />
             {driveButton}
             {scribeMenu}
             {moreButton}
@@ -2021,6 +2045,16 @@ function LoadedComposerForm({
           </Box>
         )}
         {moreMenu}
+        <ComposerEmojiPicker
+          anchor={emojiAnchor}
+          onClose={() => {
+            setEmojiAnchor(null)
+          }}
+          onInsert={emoji => {
+            editorActions.current?.insertText(emoji)
+          }}
+          onDismiss={() => editorActions.current?.focus()}
+        />
         {sendingDialog}
         {savingTemplateDialog}
         <TemplatePicker

@@ -264,13 +264,15 @@ for (const width of [360, 390, 820]) {
         }
         await expectInside(composer.identitySelect)
       } else {
-        for (const id of ['from', 'cc', 'bcc', 'reply-to']) {
+        for (const id of ['from', 'cc', 'bcc']) {
           await expectInside(composer.root.getByTestId(`composer-show-${id}-button`))
         }
-        for (const id of ['cc', 'bcc', 'reply-to'] as const) {
+        for (const id of ['cc', 'bcc'] as const) {
           await composer.root.getByTestId(`composer-show-${id}-button`).click()
           await expectInside(composer.recipientInput(id))
         }
+        await composer.showField('reply-to')
+        await expectInside(composer.recipientInput('reply-to'))
         await composer.root.getByTestId('composer-show-from-button').click()
         await expectInside(composer.identitySelect)
       }

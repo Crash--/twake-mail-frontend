@@ -795,7 +795,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `CMP-81` Each control of the toolbar (text style, size, font, colour, highlight, B/I/U/S, alignment, indentation) formats the text, the buttons say the current value, and the recipient receives the inline styles. — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.
-- [x] `CMP-82` The emoji picker (footer button, categories, search, recent) inserts the emoji at the caret, closes with Escape or a click outside, and gives the focus back to the text. — web app only: tmail-flutter has no emoji picker
+- [x] `CMP-82` The emoji picker (item of the More menu, categories, search, recent) inserts the emoji at the caret, closes with Escape or a click outside, and gives the focus back to the text. — web app only: tmail-flutter has no emoji picker
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `CMP-83` On a phone the footer of the composer stays on one line (Send is an icon, no emoji button) and the formatting toolbar is one line that scrolls sideways, its last button reachable (#55). — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.
@@ -1011,6 +1011,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/recovery.spec.ts`.
 - [x] `CMP-110` In dark mode (the `appearance.theme` setting of the account), the formatting toolbar of the composer is drawn on the dark paper, its font name and pressed toggles light, and each of its menus (text styles, sizes, fonts, alignments, lists) and colour popovers shows light entries on a dark paper (axe on each). — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.
+- [x] `CMP-111` From the More menu of a reply with folded recipients, Reply to unfolds them and takes the focus, and leaves the menu. — web app only, no Patrol test
+  - Spec: `tests/composer-reply.spec.ts`.
 - [x] `ATT-12` A password-protected PDF (RC4 128 bits, built by the spec) asks its password in the viewer, the field focused; a wrong one keeps the form ("Incorrect password", `aria-invalid`, focused again); the right one draws the page and leaves the focus on the Close button of the viewer, not the body (axe); one Escape closes the viewer only, gives the focus back to the card and keeps the email open (issue #667). — tmail-flutter `PDFViewer` (no Patrol test)
   - Spec: `tests/attachments.spec.ts`.
 - [x] `DLG-01` Settings → Delegation opens on "My delegates", empty ("No one has access yet", axe); "+ Add" opens "Delegate access", "Add" disabled; a contact of the domain picked by its name (the suggestions whole, below the field, not cut by the dialog) becomes a chip (axe), "Add", in one step, says "<name> has been added", lists the delegate, and the account is in the JMAP session of the delegate. — tmail-flutter#4977

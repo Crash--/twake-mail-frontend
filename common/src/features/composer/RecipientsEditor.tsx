@@ -101,6 +101,8 @@ export interface RecipientsEditorProps {
   autoFocusTo?: boolean
   /** The addresses the server refused to send to, flagged as invalid */
   refused?: readonly string[]
+  /** The field that takes the focus once shown, opened from outside */
+  focusField?: RecipientKind | null
 }
 
 /**
@@ -130,7 +132,8 @@ export function RecipientsEditor({
   isCollapsed,
   onExpand,
   autoFocusTo = false,
-  refused = []
+  refused = [],
+  focusField = null
 }: RecipientsEditorProps): ReactElement {
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
@@ -371,7 +374,7 @@ export function RecipientsEditor({
           onInputChange={value => {
             onInputChange(kind, value)
           }}
-          autoFocus={focused === kind}
+          autoFocus={focused === kind || focusField === kind}
           actions={kind === 'to' ? toRef : undefined}
           dnd={dndOf(kind, kinds)}
           refused={refused}
@@ -400,17 +403,20 @@ export function RecipientsEditor({
                       {t('composer.fields.from')}
                     </FieldTextButton>
                   )}
-                  {hidden.map(other => (
-                    <FieldTextButton
-                      key={other}
-                      onClick={() => {
-                        handleShow(other)
-                      }}
-                      data-testid={`composer-show-${FIELD_IDS[other]}-button`}
-                    >
-                      {t(LABEL_KEYS[other])}
-                    </FieldTextButton>
-                  ))}
+                  {/* Reply to is in the "More" menu of the composer */}
+                  {hidden
+                    .filter(other => other !== 'replyTo')
+                    .map(other => (
+                      <FieldTextButton
+                        key={other}
+                        onClick={() => {
+                          handleShow(other)
+                        }}
+                        data-testid={`composer-show-${FIELD_IDS[other]}-button`}
+                      >
+                        {t(LABEL_KEYS[other])}
+                      </FieldTextButton>
+                    ))}
                 </>
               )
             ) : (

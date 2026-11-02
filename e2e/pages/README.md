@@ -237,7 +237,7 @@ Conventions:
 | `toast` | the toast shown (`data-severity`); its message is announced by live regions always in the page (`role="status"`, `role="alert"` for errors) | — |
 | `toast-undo-button` / `toast-retry-button` / `toast-close-button` | its action ("Undo" after an action, "Retry" after a failure) and close | — |
 | `shortcuts-dialog` / `shortcuts-enabled-switch` | keyboard shortcuts list (`?`), the switch turning them off; its cross is twake-mui's: `getByRole('button', { name: 'Close' })` | `keyboardShortcuts` setting |
-| `email-list-item-avatar` | the 32 px gradient avatar of the sender, its first letter (decorative, `aria-hidden`), in a list row | — |
+| `email-list-item-avatar` | the gradient avatar of the sender, its first letter (decorative, `aria-hidden`), in a list row: 20 px on a desktop, 40 px on a compact row | — |
 | `search-row` / `settings-button` | desktop only: the row at the top of the page holding the search (`search-bar`) and, at its far end, the settings button (below the desktop size the search and `settings-button` are in `top-bar`) | `manage_account` item |
 | `list-toolbar` | the toolbar above the list while nothing is selected (a `section` named "List actions"); it becomes `selection-toolbar` once rows are selected | — |
 | `mailbox-item-address` / `folder-visibility-address` | the address of a team mailbox, beside the name of its root (sidebar, Settings > Folder visibility) | — |

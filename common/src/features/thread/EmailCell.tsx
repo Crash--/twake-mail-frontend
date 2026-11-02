@@ -39,7 +39,10 @@ import { RowLink } from '@/ds/RowLink/RowLink'
 import { ROW_AVATAR_SIZE, RowSender } from '@/ds/RowSender/RowSender'
 import { RowStateSlot } from '@/ds/RowStateSlot/RowStateSlot'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
-import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
+import {
+  COMPACT_AVATAR_SIZE,
+  SelectableAvatar
+} from '@/ds/SelectableAvatar/SelectableAvatar'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { hasCalendarEvent } from '@common/features/calendar/calendarHeader'
@@ -266,7 +269,7 @@ export function EmailCell({
     <GradientAvatar
       text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
       colorKey={avatarEmail}
-      size={ROW_AVATAR_SIZE}
+      size={column.id === 'select' ? COMPACT_AVATAR_SIZE : ROW_AVATAR_SIZE}
       data-testid="email-list-item-avatar"
     />
   )

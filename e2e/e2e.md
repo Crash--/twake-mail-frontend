@@ -893,6 +893,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/contact-card.spec.ts`.
 - [x] `LST-09` At 600, 720, 820, 1024, 1180, 1280 and 1440 px a list row (with a label) has its date clear of its subject and a subject more than 150 px wide: below the desktop size the rows are the two or three line rows of phones, with no permanent hover actions (tmail-flutter: the wide tile is for the web desktop only). — web app (tmail-flutter `thread_view.dart`, `EmailTileBuilder`)
   - Spec: `tests/list-rows.spec.ts`.
+- [x] `LST-10` A compact row draws its avatar at 40 px in its 48 px target. — design
+  - Spec: `tests/list-rows.spec.ts`.
 - [x] `TRE-01` Each folder tree (the system folders, the folders of the user, a team mailbox) is one tab stop, on the selected folder (else the first), the links and the buttons of the other rows being out of the tab sequence; Down / Up go to the next / previous visible folder (the subfolders of the Inbox, then Starred, then Drafts), Home / End to the first / last, and stop at the ends; the focused row becomes the tab stop; axe. Desktop and folder drawer. — web app, WAI-ARIA APG tree view (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `TRE-02` Right expands a collapsed folder (the focus stays on it), then goes to its first child; Left goes from a child to its parent, collapses an expanded folder; Right on a folder without children does nothing; `aria-level`, `aria-posinset`, `aria-setsize` and `aria-expanded` follow; Enter opens the folder and the drawer closes. — web app, WAI-ARIA APG tree view (issue #102)

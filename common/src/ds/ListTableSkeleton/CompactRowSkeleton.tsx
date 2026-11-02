@@ -1,9 +1,11 @@
 // Upstream to twake-ui: no, the shapes of the compact email row while the list
 // loads: the three lines (sender and date, subject, preview) of the text of
-// the real row, 18.4 px each and 2 px apart, beside the 20 px avatar in the
+// the real row, 18.4 px each and 2 px apart, beside the 40 px avatar in the
 // middle of its 48 px touch target.
 import { Box, Skeleton } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { COMPACT_AVATAR_SIZE } from '@/ds/SelectableAvatar/SelectableAvatar'
 
 const LINES_SX = {
   display: 'flex',
@@ -25,7 +27,11 @@ export function CompactAvatarSkeleton(): ReactElement {
       className="u-flex u-flex-items-center u-flex-justify-center"
       sx={TARGET_SX}
     >
-      <Skeleton variant="circular" width={20} height={20} />
+      <Skeleton
+        variant="circular"
+        width={COMPACT_AVATAR_SIZE}
+        height={COMPACT_AVATAR_SIZE}
+      />
     </Box>
   )
 }

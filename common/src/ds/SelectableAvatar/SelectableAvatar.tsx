@@ -7,6 +7,9 @@ import { CheckSquare, Icon } from '@linagora/twake-icons'
 import { ButtonBase } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, ReactNode, Ref } from 'react'
 
+/** The avatar of a compact row, in px */
+export const COMPACT_AVATAR_SIZE = 40
+
 const BUTTON_SX = {
   width: 48,
   height: 48,
@@ -15,7 +18,7 @@ const BUTTON_SX = {
 } as const
 
 export interface SelectableAvatarProps {
-  /** The avatar, 20 px */
+  /** The avatar: `COMPACT_AVATAR_SIZE` in a row, 32 px when `small` */
   avatar: ReactNode
   checked: boolean
   onClick: (event: MouseEvent<HTMLElement>) => void

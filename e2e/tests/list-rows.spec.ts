@@ -388,3 +388,25 @@ test.describe('LST list rows at every width', () => {
     }
   })
 })
+
+test.describe('LST compact rows', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('LST-10 a compact row draws its avatar at 40 px in its 48 px target', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'Compact', text: 'Hi' })
+    await jmap.waitForEmail({ subject: 'Compact' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRow('Compact')
+
+    const avatar = await row.getByTestId('email-list-item-avatar').boundingBox()
+    expect([avatar?.width, avatar?.height]).toEqual([40, 40])
+    const target = await row
+      .getByTestId('email-list-item-checkbox')
+      .boundingBox()
+    expect([target?.width, target?.height]).toEqual([48, 48])
+  })
+})

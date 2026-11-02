@@ -1295,6 +1295,9 @@
     "colorNone": "Өнгөгүй",
     "colors": {
       "navyBlue": "Хар хөх",
+      "skyBlue": "Тэнгэрийн цэнхэр",
+      "brightBlue": "Тод цэнхэр",
+      "royalBlue": "Хааны цэнхэр",
       "purple": "Нил ягаан",
       "lavender": "Лаванда",
       "indigo": "Индиго",

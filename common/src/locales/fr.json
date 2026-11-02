@@ -1295,6 +1295,9 @@
     "colorNone": "Sans couleur",
     "colors": {
       "navyBlue": "Bleu marine",
+      "skyBlue": "Bleu ciel",
+      "brightBlue": "Bleu vif",
+      "royalBlue": "Bleu roi",
       "purple": "Violet",
       "lavender": "Lavande",
       "indigo": "Indigo",

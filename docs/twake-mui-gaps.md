@@ -183,7 +183,6 @@ theme: the colours that had been darkened by hand (`ds/EventCard`,
 | `IconButton size="small"`, `NavItem`, `Chip` | (review, WCAG 2.5.5) | 32, 36 and 32 px high on touch screens | 44 px on coarse pointers. Worked around with `ds/TouchTargets` |
 | `DialogContentText` | `color-contrast` | text.secondary #868687 on white, 3.63:1 (confirmation dialogs) | Same theme fix |
 | `Button variant="outlined"` / `"text"` primary | `color-contrast` | #0a84ff on white, 3.64:1 | A darker primary for text. Worked around: `color="inherit"` (Cancel, "Select all N messages in this folder") |
-| `ColorList` (label dialog) | `aria-command-name`, `button-name` | Swatches and custom button have no name and the swatches no selected state, until twake-ui#223 is published: then pass `getColorLabel` | twake-ui#223 |
 | `DialogCloseButton`, `DialogBackButton` | (review) | No `mn` in the locales of `Dialogs`: in Mongolian the name of the cross is the key `Dialogs.closeButton` (read for the arrow, `Dialogs.backButton`) | `mn` in the locales of `Dialogs` |
 | `Checkbox indeterminate` | `aria-conditional-attr` | MUI puts `aria-checked="mixed"` on an input it leaves unchecked (it does not set the `indeterminate` property) | Set `input.indeterminate` instead of `aria-checked`. Worked around: the "Select all" checkbox of the selection toolbar is never indeterminate |
 | Theme `error.main` (#ff3347) as text | `color-contrast` | 3.61:1 on white ("Delete folder", "Delete permanently" in menus) | A darker `error.main` for text. Worked around: `error.dark` for the destructive menu items |

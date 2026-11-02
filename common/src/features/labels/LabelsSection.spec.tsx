@@ -29,7 +29,6 @@ function setup(
   return fake
 }
 
-/** ColorList names no button until twake-ui#223 is published */
 function colorButton(dialog: HTMLElement, position: number): HTMLElement {
   const button = within(
     within(dialog).getByTestId('label-color-picker')
@@ -91,8 +90,9 @@ describe('LabelsSection', () => {
       within(dialog).getByRole('textbox', { name: 'Label name' }),
       'Travel'
     )
-    // The colour saved below says which swatch this is
-    await userEvent.click(colorButton(dialog, 11))
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Magenta' })
+    )
     await userEvent.click(within(dialog).getByTestId('label-save-button'))
 
     expect(await screen.findByTestId('toast')).toHaveTextContent(

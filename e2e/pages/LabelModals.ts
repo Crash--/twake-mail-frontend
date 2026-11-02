@@ -31,8 +31,7 @@ export class LabelModals {
     this.descriptionInput = this.labelModal.getByTestId('label-description-input')
     this.saveButton = this.labelModal.getByTestId('label-save-button')
     this.colorPicker = this.labelModal.getByTestId('label-color-picker')
-    // ColorList names neither its swatches (`div` buttons) nor its custom
-    // button, the only real `button`, until twake-ui#223 is published
+    // The swatches of ColorList are `div` buttons: the custom one is the only `button`
     this.customColorSwatch = this.colorPicker.locator('button')
     this.noColorButton = this.labelModal.getByTestId('label-color-none')
     this.customColorHexInput = this.labelModal.getByTestId(

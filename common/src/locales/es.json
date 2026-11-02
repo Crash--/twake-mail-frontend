@@ -1295,6 +1295,9 @@
     "colorNone": "Sin color",
     "colors": {
       "navyBlue": "Azul marino",
+      "skyBlue": "Azul cielo",
+      "brightBlue": "Azul vivo",
+      "royalBlue": "Azul real",
       "purple": "Morado",
       "lavender": "Lavanda",
       "indigo": "Índigo",

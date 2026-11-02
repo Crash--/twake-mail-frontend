@@ -1295,6 +1295,9 @@
     "colorNone": "Без цвета",
     "colors": {
       "navyBlue": "Тёмно-синий",
+      "skyBlue": "Небесно-голубой",
+      "brightBlue": "Ярко-синий",
+      "royalBlue": "Королевский синий",
       "purple": "Фиолетовый",
       "lavender": "Лавандовый",
       "indigo": "Индиго",

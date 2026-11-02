@@ -1295,6 +1295,9 @@
     "colorNone": "Keine Farbe",
     "colors": {
       "navyBlue": "Marineblau",
+      "skyBlue": "Himmelblau",
+      "brightBlue": "Leuchtendes Blau",
+      "royalBlue": "Königsblau",
       "purple": "Lila",
       "lavender": "Lavendel",
       "indigo": "Indigo",

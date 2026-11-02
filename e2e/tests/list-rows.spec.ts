@@ -177,6 +177,40 @@ test.describe('LST email list rows', () => {
     const avatar = await box(row.getByTestId('email-list-item-avatar'))
     expect([avatar.width, avatar.height]).toEqual([20, 20])
   })
+
+  test('LST-11 selecting emails keeps the height of the toolbar and the place of the list', async ({
+    page,
+    user,
+    jmap
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'desktop toolbar')
+    await page.setViewportSize({ width: 1440, height: 900 })
+    for (const subject of ['Kept in place', 'Kept in place too']) {
+      await jmap.sendEmail({ to: user.email, subject, text: 'Hi' })
+    }
+    await jmap.waitForEmail({ subject: 'Kept in place too' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRow('Kept in place too')
+    await expect(row).toBeVisible()
+
+    const expectInPlace = async (toolbarId: string): Promise<void> => {
+      const toolbar = await page.getByTestId(toolbarId).boundingBox()
+      const rowBox = await row.boundingBox()
+      expect(toolbar?.height).toBe(65)
+      expect(rowBox?.y).toBe((toolbar?.y ?? 0) + 65)
+    }
+    const clear = page.getByTestId('selection-toolbar-clear')
+
+    await expectInPlace('list-toolbar')
+    await row.getByTestId('email-list-item-checkbox').click()
+    await expectInPlace('selection-toolbar')
+    await clear.click()
+    await expectInPlace('list-toolbar')
+    await page.getByTestId('list-select-all-button').click()
+    await expectInPlace('selection-toolbar')
+    await clear.click()
+    await expectInPlace('list-toolbar')
+  })
 })
 
 test.describe('LST labels in the list rows', () => {

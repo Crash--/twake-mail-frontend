@@ -1,5 +1,4 @@
 import {
-  Icon,
   type IconProps,
   Cross,
   Checkbox,
@@ -8,10 +7,11 @@ import {
   Star,
   FolderMoveto
 } from '@linagora/twake-icons'
-import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
+import { Box, Button } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -162,40 +162,24 @@ export function EmailListToolbar({
   const clearLabel = t('thread.selection.clear')
   const moreLabel = t('emailActions.menu.more')
 
+  const actionSizes = isDesktop
+    ? { size: 32, iconSize: 16 }
+    : { size: 36, iconSize: 20 }
+
   // tmail-flutter's `ic_cancel` before how many below the desktop size
-  const clearButton = !isDesktop ? (
+  const clearButton = (
     <IconAction
       label={clearLabel}
       icon={Cross}
       tone="icon"
-      size={36}
+      {...actionSizes}
       onClick={onDone}
       data-testid="selection-toolbar-clear"
     />
-  ) : (
-    <Tooltip title={clearLabel}>
-      <IconButton
-        aria-label={clearLabel}
-        onClick={onDone}
-        data-testid="selection-toolbar-clear"
-      >
-        <Icon icon={Cross} size={20} color="var(--twake-palette-text-icon)" />
-      </IconButton>
-    </Tooltip>
   )
 
-  return (
-    <Box
-      ref={toolbarRef}
-      component="section"
-      aria-label={t('thread.selection.toolbar')}
-      className={
-        isDesktop
-          ? 'u-flex u-flex-items-center u-flex-wrap u-ph-1'
-          : 'u-flex u-flex-items-center u-w-100 u-h-100'
-      }
-      data-testid="selection-toolbar"
-    >
+  const content = (
+    <>
       {/* As tmail-flutter's app bar below the desktop size: the cross
           first, then how many */}
       {isDesktop ? null : clearButton}
@@ -205,8 +189,7 @@ export function EmailListToolbar({
           : t('thread.selection.count', { count })}
       </SelectionCount>
       {isDesktop ? clearButton : null}
-      {/* As tmail-flutter: 30 px before the actions */}
-      {isDesktop ? <span className="u-mr-1-half" /> : null}
+      {isDesktop ? <span className="u-mr-1" /> : null}
       {canSelectFolder && isDesktop ? (
         <Button
           size="small"
@@ -242,7 +225,7 @@ export function EmailListToolbar({
           tone={
             item.id === 'delete-permanently' && !isDesktop ? 'danger' : 'icon'
           }
-          size={36}
+          {...actionSizes}
           onClick={() => {
             handleRun(item.id)
           }}
@@ -278,6 +261,27 @@ export function EmailListToolbar({
         onAction={onDone}
         data-testid="selection-toolbar-menu"
       />
+    </>
+  )
+
+  // On a desktop, the same toolbar as without a selection: the list stays put
+  return isDesktop ? (
+    <ListToolbar
+      ref={toolbarRef}
+      label={t('thread.selection.toolbar')}
+      data-testid="selection-toolbar"
+    >
+      <Box className="u-flex u-flex-items-center u-flex-wrap">{content}</Box>
+    </ListToolbar>
+  ) : (
+    <Box
+      ref={toolbarRef}
+      component="section"
+      aria-label={t('thread.selection.toolbar')}
+      className="u-flex u-flex-items-center u-w-100 u-h-100"
+      data-testid="selection-toolbar"
+    >
+      {content}
     </Box>
   )
 }

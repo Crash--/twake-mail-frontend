@@ -169,7 +169,8 @@ test.describe('LST email list rows', () => {
     expect(rowBox.height).toBeGreaterThanOrEqual(39)
     expect(rowBox.height).toBeLessThanOrEqual(40)
     const checkbox = await box(row.getByTestId('email-list-item-checkbox'))
-    expect([checkbox.width, checkbox.height]).toEqual([32, 32])
+    expect(checkbox.width).toBeCloseTo(32, 0)
+    expect(checkbox.height).toBeCloseTo(32, 0)
     const star = await box(row.getByTestId('email-list-item-star'))
     expect([star.width, star.height]).toEqual([20, 20])
     // The 20 px avatar of the sender

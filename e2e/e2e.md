@@ -708,7 +708,7 @@ finishes issue #112.
   - Spec: `tests/list-rows.spec.ts`.
 - [x] `LST-04` The hover actions open the email in a tab of its own, and open the folder picker to move it. — `chromium`
   - Spec: `tests/list-rows.spec.ts`.
-- [x] `LST-05` Measures of the design: 32 px icon buttons, 16 px between toolbar controls, rows about 44 px. — `chromium`
+- [x] `LST-05` Measures of the design: 32 px icon buttons, 16 px between toolbar controls, 44 px rows. — `chromium`
   - Spec: `tests/list-rows.spec.ts`.
 
 

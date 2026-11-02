@@ -164,15 +164,13 @@ test.describe('LST email list rows', () => {
     expect(selectAll.width).toBe(250)
     expect(selectAll.y - toolbarBox.y).toBe(16)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
-    // 39.5 px rows (the 32 px checkbox and the 3 px of padding around it, the
-    // 1 px divider), a bare 20 px star
-    expect(rowBox.height).toBeGreaterThanOrEqual(39)
-    expect(rowBox.height).toBeLessThanOrEqual(40)
+    // 44 px rows, the checkbox and the star in 32 px areas
+    expect(rowBox.height).toBe(44)
     const checkbox = await box(row.getByTestId('email-list-item-checkbox'))
     expect(checkbox.width).toBeCloseTo(32, 0)
     expect(checkbox.height).toBeCloseTo(32, 0)
     const star = await box(row.getByTestId('email-list-item-star'))
-    expect([star.width, star.height]).toEqual([20, 20])
+    expect([star.width, star.height]).toEqual([32, 32])
     // The 20 px avatar of the sender
     const avatar = await box(row.getByTestId('email-list-item-avatar'))
     expect([avatar.width, avatar.height]).toEqual([20, 20])

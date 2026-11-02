@@ -1961,12 +1961,6 @@ function LoadedComposerForm({
               fontSizes={fontSizes}
               fontFamilies={fontFamilies}
               onImageFiles={handleImageFiles}
-              htmlBlock={{
-                toggleLabel: kind =>
-                  kind === 'signature' ? t('composer.signature') : null,
-                toggleTestId: kind =>
-                  kind === 'signature' ? 'composer-signature-toggle' : undefined
-              }}
               selectionAction={
                 hasScribe
                   ? {

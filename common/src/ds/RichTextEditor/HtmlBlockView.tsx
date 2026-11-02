@@ -1,5 +1,4 @@
 // Upstream to twake-ui: with HtmlBlock (see htmlBlock.ts).
-import { Icon, Bottom, Top } from '@linagora/twake-icons'
 import { Box, Button } from '@linagora/twake-mui'
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
@@ -88,9 +87,6 @@ export function HtmlBlockView({
   const kind = String(node.attrs.kind)
   const html = String(node.attrs.html)
   const editLabel = options.editLabel(kind)
-  const toggleLabel =
-    node.attrs.display === 'inline' ? options.toggleLabel(kind) : null
-  const [isUnfolded, setIsUnfolded] = useState(true)
 
   const handleEdit = (): void => {
     const position = getPos()
@@ -109,47 +105,8 @@ export function HtmlBlockView({
           outlineColor: 'primary.main'
         }}
       >
-        {toggleLabel === null ? null : (
-          <Button
-            variant="outlined"
-            color="inherit"
-            aria-expanded={isUnfolded}
-            onClick={() => {
-              setIsUnfolded(unfolded => !unfolded)
-            }}
-            endIcon={<Icon icon={isUnfolded ? Top : Bottom} size={16} />}
-            sx={{
-              borderRadius: '100px',
-              borderColor: 'text.secondary',
-              color: 'text.secondary',
-              px: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              fontSize: 14,
-              lineHeight: '20px',
-              letterSpacing: '0.1px',
-              mb: 0.5
-            }}
-            data-testid={options.toggleTestId(kind)}
-          >
-            {toggleLabel}
-          </Button>
-        )}
         {node.attrs.display === 'inline' ? (
           <Box
-            hidden={!isUnfolded}
-            sx={
-              toggleLabel === null
-                ? undefined
-                : {
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: '8px',
-                    bgcolor: 'background.paper',
-                    p: 2,
-                    overflow: 'auto'
-                  }
-            }
             // Sanitized by whoever inserted the block (see HtmlBlock)
             dangerouslySetInnerHTML={{ __html: html }}
           />

@@ -368,7 +368,6 @@
     "send": "Enviar",
     "saveAsDraft": "Guardar como borrador",
     "print": "Imprimir",
-    "signature": "Firma",
     "fields": {
       "to": "A",
       "cc": "CC",

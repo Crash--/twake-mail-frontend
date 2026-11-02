@@ -286,7 +286,6 @@ Conventions:
 | `composer-attachments-toggle` | the "Show less" / "Show more (+N)" button folding the attached files (`aria-expanded`) | `showMoreAttachmentButton`, `MobileAttachmentComposerWidget` |
 | `composer-attachment-retry-button` | "Retry <file>" of a failed upload | none (new) |
 | `composer-upload-popup` (+ `-item`, `-remove-button`, `-retry-button`, `-close-button`) | the "Uploading N files" popup listing the uploads when there are more than nine, on a desktop or tablet | none (Figma) |
-| `composer-signature-toggle` | the "Signature" pill folding the signature card in the editor (`aria-expanded`) | none (Figma) |
 | `composer-show-more-fields-button` | on a phone, the chevron of the To line showing From, Cc, Bcc and Reply to together | `_buildExpandButton` of `RecipientComposerWidget` |
 | `email-view-previous-button` / `email-view-next-button` | batch D1: the email above / below in the folder, in the toolbar of an open email or conversation (disabled when there is none, same moves as `k` / `j`) | — |
 | `email-view-back-button` | batch D1: now says the folder ("Inbox", accessible name "Back to Inbox"), "Back" outside a folder | `EmailViewBackButton` |

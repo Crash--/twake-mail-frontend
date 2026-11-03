@@ -128,8 +128,6 @@ const OPEN_SX = {
   borderRadius: '4px'
 } as const
 
-const SIZE_SX = { flexShrink: 0, color: 'text.secondary' } as const
-
 /** The name cut in the middle ("Super Thur…pptx"): its end is kept */
 function MiddleEllipsis({ name }: { name: string }): ReactElement {
   const tail = name.length > TAIL_LENGTH * 2 ? name.slice(-TAIL_LENGTH) : ''
@@ -223,7 +221,7 @@ export function UploadChip({
       <Typography
         component="span"
         variant="overline"
-        sx={{ ...SIZE_SX, color: isFailed ? 'error.main' : 'text.secondary' }}
+        color={isFailed ? 'error' : 'textSecondary'}
       >
         {isFailed ? labels.failed : item.size}
       </Typography>

@@ -78,8 +78,8 @@ export function FieldLine({
         id={labelId}
         htmlFor={htmlFor}
         variant="body2"
+        color="textSecondary"
         className={isLabelHidden ? 'u-visuallyhidden' : undefined}
-        sx={isLabelHidden ? undefined : FIELD_LABEL_SX}
       >
         {label}
       </Typography>

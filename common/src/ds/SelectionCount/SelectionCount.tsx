@@ -3,12 +3,6 @@
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-const COUNT_SX = {
-  typography: 'subtitle1',
-  color: 'text.primary',
-  mr: 1
-} as const
-
 export interface SelectionCountProps {
   children: ReactNode
   'data-testid'?: string
@@ -20,7 +14,13 @@ export function SelectionCount({
   'data-testid': testId
 }: SelectionCountProps): ReactElement {
   return (
-    <Typography role="status" sx={COUNT_SX} data-testid={testId}>
+    <Typography
+      component="p"
+      variant="subtitle1"
+      color="textPrimary"
+      role="status"
+      data-testid={testId}
+    >
       {children}
     </Typography>
   )

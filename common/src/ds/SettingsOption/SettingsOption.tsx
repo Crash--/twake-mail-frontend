@@ -13,12 +13,6 @@ import { useId, type ChangeEvent, type ReactElement } from 'react'
 
 const SECTION_SX = { mb: 3, '&:last-child': { mb: 0 } } as const
 
-const DESCRIPTION_SX = {
-  my: 0.5,
-  typography: 'body1',
-  color: 'text.secondary'
-} as const
-
 const LABEL_SX = {
   display: 'flex',
   alignItems: 'center',
@@ -42,13 +36,6 @@ const ROW_TITLE_SX = {
   typography: 'body1',
   color: 'text.primary',
   cursor: 'pointer'
-} as const
-
-const ROW_DESCRIPTION_SX = {
-  mt: 1,
-  mb: 0,
-  typography: 'body1',
-  color: 'text.secondary'
 } as const
 
 export interface SettingsSwitchRowProps {
@@ -125,7 +112,7 @@ export function SettingsSwitchRow({
           {title}
         </Box>
         {description === undefined ? null : (
-          <Typography id={descriptionId} component="p" sx={ROW_DESCRIPTION_SX}>
+          <Typography id={descriptionId} component="p" color="textSecondary">
             {description}
           </Typography>
         )}
@@ -183,7 +170,7 @@ export function SettingsOption({
       >
         {title}
       </Typography>
-      <Typography id={descriptionId} component="p" sx={DESCRIPTION_SX}>
+      <Typography id={descriptionId} component="p" color="textSecondary">
         {description}
       </Typography>
       <Box component="label" sx={LABEL_SX}>
@@ -208,7 +195,7 @@ export function SettingsOption({
       {/* Kept in the page, so that the warning is announced as it appears */}
       <Box role="status">
         {warning === null ? null : (
-          <Typography id={warningId} component="p" sx={WARNING_SX}>
+          <Typography id={warningId} component="p" color="warning">
             {warning}
           </Typography>
         )}
@@ -216,14 +203,6 @@ export function SettingsOption({
     </Box>
   )
 }
-
-// A one line warning under the switch, in the orange of the theme's warning
-const WARNING_SX = {
-  mt: '8px',
-  mb: 0,
-  typography: 'body1',
-  color: 'warning.main'
-} as const
 
 const CHOICES_SX = { gap: '4px' } as const
 
@@ -281,7 +260,7 @@ export function SettingsChoiceOption<Value extends string>({
       >
         {title}
       </Typography>
-      <Typography id={descriptionId} component="p" sx={DESCRIPTION_SX}>
+      <Typography id={descriptionId} component="p" color="textSecondary">
         {description}
       </Typography>
       <RadioGroup

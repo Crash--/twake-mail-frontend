@@ -2,7 +2,7 @@
 // width cap; a `DropdownButton` would bring its own text layout and aria
 // (docs/twake-mui-gaps.md).
 import { Icon, type IconProps, Dropdown } from '@linagora/twake-icons'
-import { Box, Button, Tooltip } from '@linagora/twake-mui'
+import { Button, Tooltip, Typography } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
 
 export interface ToolbarButtonProps {
@@ -77,12 +77,9 @@ export function ToolbarButton({
         ...(isActive ? {} : { color: 'text.primary' })
       }}
     >
-      <Box
-        component="span"
-        sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
-      >
+      <Typography component="span" variant="inherit" noWrap>
         {label}
-      </Box>
+      </Typography>
     </Button>
   )
   return tooltip === undefined || disabled ? (

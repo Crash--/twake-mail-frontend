@@ -24,6 +24,7 @@ import {
   Divider,
   FixedDialog,
   IconButton,
+  List,
   SearchBar,
   Tooltip,
   Typography
@@ -108,8 +109,6 @@ const HEADER_SX = {
   typography: 'caption',
   color: 'text.secondary'
 } as const
-
-const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 
 function rowSx(
   option: FolderPickerOption,
@@ -466,8 +465,8 @@ export function FolderPicker({
                     </Box>
                   </ButtonBase>
                 )}
-                <Box
-                  component="ul"
+                <List
+                  disablePadding
                   id={listboxDomId(section.id)}
                   role="listbox"
                   aria-label={section.label === null ? labels.title : undefined}
@@ -475,7 +474,6 @@ export function FolderPicker({
                     section.label === null ? undefined : headerId
                   }
                   hidden={section.options.length === 0}
-                  sx={LIST_SX}
                   data-testid={testIds.listbox}
                 >
                   {section.options.map(option => {
@@ -562,7 +560,7 @@ export function FolderPicker({
                       </Box>
                     )
                   })}
-                </Box>
+                </List>
               </Fragment>
             )
           })}

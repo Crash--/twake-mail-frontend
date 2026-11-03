@@ -57,12 +57,6 @@ const DATE_MONTH_SX = {
   textTransform: 'uppercase'
 } as const
 
-const DATE_DAY_SX = {
-  flex: 1,
-  typography: 'h3',
-  color: 'text.primary'
-} as const
-
 const BADGE_SX = {
   alignSelf: 'flex-start',
   px: 1,
@@ -165,7 +159,9 @@ export function EventCard({
       {date ? (
         <Box sx={DATE_ICON_SX} aria-hidden="true">
           <Box sx={DATE_MONTH_SX}>{date.month}</Box>
-          <Box sx={DATE_DAY_SX}>{date.day}</Box>
+          <Typography component="div" variant="h3" color="textPrimary">
+            {date.day}
+          </Typography>
         </Box>
       ) : null}
       <Box

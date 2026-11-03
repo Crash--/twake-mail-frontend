@@ -1,7 +1,7 @@
 // Upstream to twake-ui: no, the look of tmail-flutter's AI suggestion
 // (`AiScribeSuggestionWidget`): a white card above the button that asked,
 // 482 px wide at most (90 % of a narrow screen), 96 to 587 px high, a 16 px
-// padding, a 6 px radius and a soft shadow; its title in Bold 14 and a close
+// padding, a 6 px radius and a soft shadow; its title in subtitle2 and a close
 // button; while waiting, a pulsing blue sparkle and "Generating response"
 // with dots counting; then the answer in Regular 14 / 22, "Copy" and "Retry"
 // icons, "Improve ⌄" on the left and "Replace", "Insert" pills on the right.
@@ -20,21 +20,6 @@ import { useId, type MouseEvent, type ReactElement } from 'react'
 
 const SCREEN_MARGIN = 16
 const ANCHOR_GAP = 8
-
-const TITLE_SX = {
-  flex: 1,
-  minWidth: 0,
-  m: 0,
-  fontSize: 14,
-  lineHeight: '22px',
-  letterSpacing: '0.4px',
-  fontWeight: 700,
-  color: 'text.primary',
-  overflow: 'hidden',
-  display: '-webkit-box',
-  WebkitLineClamp: 2,
-  WebkitBoxOrient: 'vertical'
-} as const
 
 const TEXT_SX = {
   fontSize: 14,
@@ -198,7 +183,12 @@ export function AiScribeSuggestion({
       }}
     >
       <Box className="u-flex u-flex-items-center" sx={{ gap: 1 }}>
-        <Typography id={titleId} component="h2" sx={TITLE_SX}>
+        <Typography
+          id={titleId}
+          component="h2"
+          variant="subtitle2"
+          color="textPrimary"
+        >
           {title}
         </Typography>
         <Tooltip title={labels.close}>

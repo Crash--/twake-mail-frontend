@@ -10,7 +10,6 @@
 // The menu holding it must let the focus go (`disableEnforceFocus`): the
 // submenu is drawn over it, outside it.
 import {
-  Box,
   ListItemIcon,
   ListItemText,
   MenuItem,
@@ -35,10 +34,6 @@ const PAPER_SX = {
   maxHeight: 400,
   overflowY: 'auto'
 } as const
-
-const LIST_SX = { py: 0 } as const
-
-const CARET_SX = { display: 'flex', color: 'text.icon', ml: '16px' } as const
 
 /** `ic_thumbs_up` of tmail-flutter: a small triangle pointing to the panel */
 function Caret(): ReactElement {
@@ -157,9 +152,9 @@ export function MenuSubmenuItem({
       {icon === undefined ? null : <ListItemIcon>{icon}</ListItemIcon>}
       <ListItemText primary={label} />
       {isOpen ? (
-        <Box component="span" sx={CARET_SX}>
+        <ListItemIcon>
           <Caret />
-        </Box>
+        </ListItemIcon>
       ) : null}
       <Popper
         open={isOpen}
@@ -184,7 +179,7 @@ export function MenuSubmenuItem({
             autoFocusItem={isOpen && isByKeyboard}
             aria-label={menuLabel}
             onKeyDown={handleSubmenuKeyDown}
-            sx={LIST_SX}
+            disablePadding
             data-testid={submenuTestId}
           >
             {children}

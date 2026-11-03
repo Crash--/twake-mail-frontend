@@ -324,21 +324,9 @@ export function AttachmentHeader({
       >
         <Icon icon={Attachment} size={14} />
       </Box>
-      <Box
-        component="h3"
-        className="u-ellipsis"
-        sx={{
-          flex: '1 1 auto',
-          minWidth: 0,
-          m: 0,
-          ml: 1,
-          mr: '3px',
-          typography: 'body1',
-          color: 'text.secondary'
-        }}
-      >
+      <Typography component="h3" variant="body1" color="textSecondary" noWrap>
         {title}
-      </Box>
+      </Typography>
       {action}
     </Box>
   )

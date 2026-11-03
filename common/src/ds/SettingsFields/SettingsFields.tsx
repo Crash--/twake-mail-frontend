@@ -263,8 +263,6 @@ export function SettingsMenuSelect({
   )
 }
 
-const LABEL_SX = { typography: 'subtitle2', color: 'text.primary' } as const
-
 const PILL_SX = {
   ml: 2,
   px: '12px',
@@ -293,7 +291,12 @@ export function SettingsLabelPill({
 }: SettingsLabelPillProps): ReactElement {
   return (
     <Box className="u-flex u-flex-items-center" sx={{ pt: '20px', pb: '36px' }}>
-      <Typography id={id} component={component} sx={{ ...LABEL_SX, m: 0 }}>
+      <Typography
+        id={id}
+        component={component}
+        variant="subtitle2"
+        color="textPrimary"
+      >
         {label}
       </Typography>
       <Box component="span" sx={PILL_SX}>
@@ -316,11 +319,11 @@ export function SettingsCount({
   return (
     // As tmail-flutter (`CountNameOfRulesWidget`): the list follows right
     // after it
-    <Typography component="p" sx={{ ...LABEL_SX, mt: 2, mb: 0 }}>
+    <Typography component="p" variant="subtitle2" color="textPrimary">
       {label}{' '}
-      <Box component="span" sx={{ fontWeight: 400 }}>
+      <Typography component="span" variant="body3">
         {count}
-      </Box>
+      </Typography>
     </Typography>
   )
 }

@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes, as the storage block of a `Nav` footer: a 24 px
 // icon, the name 8 px after it in caption text, a 24 px refresh button at
 // the end; 12 px under them a 3 px gauge, 12 px under it what is left.
-import { Box } from '@linagora/twake-mui'
+import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 const TEXT_SX = { m: 0, typography: 'caption' } as const
@@ -47,14 +47,15 @@ export function SidebarStorage({
         <Box component="span" aria-hidden="true" className="u-flex">
           {icon}
         </Box>
-        <Box
+        <Typography
           component="p"
           id={labelId}
+          variant="caption"
+          color="textSecondary"
           className="u-flex-auto u-ellipsis"
-          sx={{ ...TEXT_SX, color: 'text.secondary' }}
         >
           {label}
-        </Box>
+        </Typography>
         {action}
       </Box>
       {gauge}

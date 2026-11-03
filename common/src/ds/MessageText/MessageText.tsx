@@ -1,14 +1,11 @@
 import { Typography, type TypographyProps } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
-
 /**
  * `name`, `phoneName`, `compactName`: the sender (`h5`); `address`: its
  * address, `meta`: the date, `compact`: the time and preview of a
  * conversation message, `label`: "To:", "Cc:" (all `body2`, secondary
- * text); `recipient`: a recipient (`body2`, primary text, secondary on a
- * phone)
+ * text); `recipient`: a recipient (`body2`, primary text)
  */
 export type MessageTextVariant =
   | 'name'
@@ -20,8 +17,6 @@ export type MessageTextVariant =
   | 'label'
   | 'recipient'
 
-const PHONE = `@media ${SCREEN_QUERIES.mobile}`
-
 const STYLES = {
   name: { variant: 'h5' },
   phoneName: { variant: 'h5' },
@@ -30,10 +25,7 @@ const STYLES = {
   meta: { variant: 'body2', color: 'text.secondary' },
   compact: { variant: 'body2', color: 'text.secondary' },
   label: { variant: 'body2', color: 'text.secondary' },
-  recipient: {
-    variant: 'body2',
-    sx: { [PHONE]: { color: 'text.secondary' } }
-  }
+  recipient: { variant: 'body2' }
 } as const satisfies Record<MessageTextVariant, TypographyProps>
 
 export interface MessageTextProps {

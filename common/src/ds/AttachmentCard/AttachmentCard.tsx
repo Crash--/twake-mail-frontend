@@ -11,7 +11,8 @@ import {
   ButtonBase,
   IconButton,
   radius,
-  Tooltip
+  Tooltip,
+  Typography
 } from '@linagora/twake-mui'
 import {
   useEffect,
@@ -65,17 +66,6 @@ const NAME_SX = {
   minWidth: 0,
   typography: 'subtitle1',
   color: 'text.primary',
-  whiteSpace: 'nowrap'
-} as const
-
-const SIZE_SX = {
-  flexShrink: 0,
-  ml: 1,
-  mr: '3px',
-  typography: 'overline',
-  // The line height overline had before twake-mui 18.5, the Figma gives none
-  lineHeight: '16px',
-  color: 'text.secondary',
   whiteSpace: 'nowrap'
 } as const
 
@@ -171,9 +161,15 @@ export function AttachmentCard({
             {extension}
           </Box>
         </Box>
-        <Box component="span" sx={SIZE_SX} aria-hidden="true">
+        <Typography
+          component="span"
+          variant="overline"
+          color="textSecondary"
+          noWrap
+          aria-hidden="true"
+        >
           {size}
-        </Box>
+        </Typography>
       </ButtonBase>
       <Tooltip title={downloadLabel}>
         <IconButton

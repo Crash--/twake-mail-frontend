@@ -13,21 +13,6 @@ const LOGO_SX = {
   [`@media ${SCREEN_QUERIES.belowDesktop}`]: { pt: '67px' }
 } as const
 
-const TITLE_SX = {
-  pt: '67px',
-  typography: 'h2',
-  color: 'text.primary',
-  textAlign: 'center'
-} as const
-
-const MESSAGE_SX = {
-  pt: '11px',
-  pb: '36px',
-  px: '58px',
-  typography: 'body1',
-  textAlign: 'center'
-} as const
-
 const FIELDS_SX = {
   width: '100%',
   boxSizing: 'border-box',
@@ -104,16 +89,21 @@ export function LoginFormFrame({
       data-testid={testId}
     >
       <Box sx={LOGO_SX}>{logo}</Box>
-      <Typography component="h1" id={titleId} sx={TITLE_SX}>
+      <Typography
+        component="h1"
+        id={titleId}
+        variant="h2"
+        color="textPrimary"
+        align="center"
+      >
         {title}
       </Typography>
       <Typography
         component="p"
         role={isError ? 'alert' : undefined}
-        sx={{
-          ...MESSAGE_SX,
-          color: isError ? 'error.main' : 'text.primary'
-        }}
+        variant="body1"
+        color={isError ? 'error' : 'textPrimary'}
+        align="center"
         data-testid={isError ? errorTestId : undefined}
       >
         {message}

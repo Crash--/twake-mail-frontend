@@ -40,13 +40,6 @@ const NAME_SX = {
   whiteSpace: 'nowrap'
 } as const
 
-const ADDRESS_SX = {
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap'
-} as const
-
 export interface RecipientCardLabels {
   /** "Copy the email address": the name and tooltip of the copy button */
   copy: string
@@ -146,7 +139,7 @@ export function RecipientCard({
                 component="span"
                 color="text.secondary"
                 id={name === null || name === '' ? titleId : undefined}
-                sx={ADDRESS_SX}
+                noWrap
               >
                 {address}
               </Typography>

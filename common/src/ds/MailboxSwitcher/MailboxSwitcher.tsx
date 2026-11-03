@@ -66,20 +66,6 @@ const ITEM_SX = {
   '&.Mui-selected, &.Mui-selected:hover': { bgcolor: 'action.selected' }
 } as const
 
-const NAME_SX = {
-  typography: 'body2',
-  color: 'text.primary',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis'
-} as const
-
-const ADDRESS_SX = {
-  typography: 'caption',
-  color: 'text.secondary',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis'
-} as const
-
 export interface MailboxSwitcherItem {
   id: string
   name: string
@@ -234,10 +220,20 @@ export function MailboxSwitcher({
                       className="u-flex u-flex-column"
                       sx={{ minWidth: 0, flex: 1 }}
                     >
-                      <Typography component="span" sx={NAME_SX}>
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        color="textPrimary"
+                        noWrap
+                      >
                         {item.name}
                       </Typography>
-                      <Typography component="span" sx={ADDRESS_SX}>
+                      <Typography
+                        component="span"
+                        variant="caption"
+                        color="textSecondary"
+                        noWrap
+                      >
                         {item.address}
                       </Typography>
                     </Box>

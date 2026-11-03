@@ -1,6 +1,6 @@
 // Upstream to twake-ui: yes, as the `footer` of `Nav`. The foot of the
 // sidebar: 24 px of padding sides and bottom, the storage and its actions,
-// then, 12 px under them, the version centred in secondary overline text.
+// then the version centred in secondary overline text.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -27,12 +27,8 @@ export function SidebarFooter({
           variant="overline"
           component="p"
           align="center"
+          color="textSecondary"
           data-testid={versionTestId}
-          sx={{
-            m: 0,
-            '* + &': { mt: '12px' },
-            color: 'text.secondary'
-          }}
         >
           {version}
         </Typography>

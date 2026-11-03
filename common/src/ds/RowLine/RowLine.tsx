@@ -2,7 +2,7 @@
 // row where a title and its preview share the width: the title keeps its
 // natural width (up to a maximum), the preview takes what is left and is cut
 // first. Flex utilities cannot say it: both items would shrink alike.
-import { Box } from '@linagora/twake-mui'
+import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { ROW_MUTED_COLOR, rowTextSx } from './rowText'
@@ -41,10 +41,11 @@ export function RowLine({
   'data-testid': testId
 }: RowLineProps): ReactElement {
   return (
-    <Box
+    <Typography
       component="span"
+      variant="body3"
+      color="textPrimary"
       className="u-flex u-flex-items-center"
-      sx={rowTextSx(false)}
       data-testid={testId}
     >
       {leading}
@@ -79,6 +80,6 @@ export function RowLine({
         </Box>
       )}
       {trailing}
-    </Box>
+    </Typography>
   )
 }

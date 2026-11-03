@@ -3,7 +3,7 @@
 // 482 px wide at most (90 % of a narrow screen), 96 to 587 px high, a 16 px
 // padding, a 6 px radius and a soft shadow; its title in subtitle2 and a close
 // button; while waiting, a pulsing blue sparkle and "Generating response"
-// with dots counting; then the answer in Regular 14 / 22, "Copy" and "Retry"
+// with dots counting; then the answer in body3, "Copy" and "Retry"
 // icons, "Improve ⌄" on the left and "Replace", "Insert" pills on the right.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
@@ -20,14 +20,6 @@ import { useId, type MouseEvent, type ReactElement } from 'react'
 
 const SCREEN_MARGIN = 16
 const ANCHOR_GAP = 8
-
-const TEXT_SX = {
-  fontSize: 14,
-  lineHeight: '22px',
-  letterSpacing: '0.4px',
-  fontWeight: 400,
-  color: 'text.primary'
-} as const
 
 const PULSE_SX = {
   display: 'flex',
@@ -212,9 +204,14 @@ export function AiScribeSuggestion({
             <Box component="span" sx={PULSE_SX}>
               <Icon icon={icons.sparkle} size={22} aria-hidden="true" />
             </Box>
-            <Box component="span" sx={{ ...TEXT_SX, ...DOTS_SX }}>
+            <Typography
+              component="span"
+              variant="body3"
+              color="textPrimary"
+              sx={DOTS_SX}
+            >
               {labels.generating}
-            </Box>
+            </Typography>
           </Box>
         ) : null}
       </Box>
@@ -228,9 +225,9 @@ export function AiScribeSuggestion({
           <Box component="span" sx={{ display: 'flex', color: 'error.main' }}>
             <Icon icon={icons.warning} size={22} aria-hidden="true" />
           </Box>
-          <Box component="span" sx={TEXT_SX}>
+          <Typography component="span" variant="body3" color="textPrimary">
             {labels.failed}
-          </Box>
+          </Typography>
         </Box>
       ) : null}
       {state.status === 'done' ? (
@@ -238,13 +235,14 @@ export function AiScribeSuggestion({
           className="u-flex u-flex-column"
           sx={{ gap: 1, pb: 1, minHeight: 0 }}
         >
-          <Box
+          <Typography
+            component="div"
+            variant="body3"
+            color="textPrimary"
             role="region"
             aria-label={labels.result}
             tabIndex={0}
             sx={{
-              ...TEXT_SX,
-              color: 'text.primary',
               whiteSpace: 'pre-wrap',
               overflowWrap: 'anywhere',
               overflowY: 'auto',
@@ -254,7 +252,7 @@ export function AiScribeSuggestion({
             data-testid="ai-scribe-suggestion-result"
           >
             {state.text}
-          </Box>
+          </Typography>
           <Box className="u-flex" sx={{ gap: 0 }}>
             <Tooltip title={labels.copy}>
               <IconButton

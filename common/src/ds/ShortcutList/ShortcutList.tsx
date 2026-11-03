@@ -2,7 +2,7 @@
 // its keys at the end of a row 630 px wide at most, each a key cap on
 // `action.selected` with a `border.main` outline. A table for assistive
 // technologies, its header read but not shown.
-import { Box } from '@linagora/twake-mui'
+import { Box, Typography } from '@linagora/twake-mui'
 import { Fragment, type ReactElement } from 'react'
 
 export const SHORTCUTS_WIDTH = 630
@@ -39,12 +39,6 @@ const CAP_SX = {
   typography: 'caption',
   color: 'text.primary',
   textTransform: 'uppercase'
-} as const
-
-const OR_SX = {
-  ml: '4px',
-  typography: 'caption',
-  color: 'text.primary'
 } as const
 
 /** "Ctrl+Enter" → ["Ctrl", "Enter"]; "+" and "Ctrl++" keep their plus */
@@ -122,9 +116,13 @@ export function ShortcutList({
               {[row.keys, ...(row.alternatives ?? [])].map((keys, index) => (
                 <Fragment key={keys}>
                   {index > 0 ? (
-                    <Box component="span" sx={OR_SX}>
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      color="textPrimary"
+                    >
                       {` ${orLabel} `}
-                    </Box>
+                    </Typography>
                   ) : null}
                   <KeyCombination keys={keys} />
                 </Fragment>

@@ -45,8 +45,6 @@ const BUTTON_SX = {
   pb: '16px'
 } as const
 
-const FOOTER_SX = { typography: 'body2', textAlign: 'center' } as const
-
 // A build version can be one long word (a commit hash): it breaks anywhere
 // rather than scroll a narrow screen sideways
 const VERSION_SX = {
@@ -123,7 +121,7 @@ export function LoginFormFrame({
       <Box sx={FIELDS_SX}>{children}</Box>
       <Box sx={BUTTON_SX}>{button}</Box>
       {footer === null ? null : (
-        <Typography component="p" sx={FOOTER_SX}>
+        <Typography component="p" variant="body2" align="center">
           {footer}
         </Typography>
       )}

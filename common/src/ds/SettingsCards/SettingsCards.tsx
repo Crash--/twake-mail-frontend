@@ -3,7 +3,7 @@
 // then in a pill what the row does, and the actions at the end; the
 // recipients of the forwarding, narrower cards with an avatar, under a
 // header selecting them.
-import { Box, ButtonBase } from '@linagora/twake-mui'
+import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 const LIST_SX = { listStyle: 'none', m: 0, p: 0, pt: '12px', pb: 2 } as const
@@ -16,16 +16,6 @@ const CARD_SX = {
   px: 4,
   borderRadius: '10px',
   bgcolor: 'background.default'
-} as const
-
-const TITLE_SX = {
-  flexShrink: 0,
-  maxWidth: '50%',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  typography: 'body1',
-  color: 'text.primary'
 } as const
 
 const PILL_ROW_SX = {
@@ -243,17 +233,15 @@ export function SettingsCard({
 }: SettingsCardProps): ReactElement {
   return (
     <Box component="li" sx={CARD_SX} data-testid={testId} {...dataAttributes}>
-      <Box
+      <Typography
         component="span"
-        sx={
-          pill === null
-            ? { ...TITLE_SX, flex: '1 1 auto', maxWidth: 'none' }
-            : TITLE_SX
-        }
+        variant="body1"
+        color="textPrimary"
+        noWrap
         data-testid={titleTestId}
       >
         {title}
-      </Box>
+      </Typography>
       {pill === null ? null : (
         <Box component="span" sx={PILL_ROW_SX}>
           <Box component="span" sx={PILL_SX}>

@@ -6,6 +6,7 @@ import { Icon, Warning, Cross } from '@linagora/twake-icons'
 import {
   Box,
   InputBase,
+  List,
   Paper,
   Popper,
   radius,
@@ -79,7 +80,6 @@ const PAPER_SX = {
   bgcolor: 'background.paper',
   boxShadow: 8
 } as const
-const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 /** How close to the end of the suggestions scrolling asks for more, in px */
 const LOAD_MORE_THRESHOLD = 60
 /**
@@ -1031,12 +1031,11 @@ export function RecipientField({
             if (rest <= LOAD_MORE_THRESHOLD) onLoadMore?.()
           }}
         >
-          <Box
-            component="ul"
+          <List
+            disablePadding
             id={listboxId}
             role="listbox"
             aria-label={labels.suggestions}
-            sx={LIST_SX}
             data-testid={testIds.listbox}
           >
             {suggestions.map(suggestion => (
@@ -1054,7 +1053,7 @@ export function RecipientField({
                 }}
               />
             ))}
-          </Box>
+          </List>
         </Paper>
       </Popper>
       <Box id={chipHelpId} className="u-visuallyhidden">

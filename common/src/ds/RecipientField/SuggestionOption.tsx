@@ -1,10 +1,10 @@
 // Upstream to twake-ui: with RecipientField. A suggestion as tmail-flutter's
 // `RecipientSuggestionItemWidget`: 60 px, a 40 px light avatar holding the
-// initials, the name in 16 px black and the address in 13 px grey, what is
-// typed in bold; one already among the recipients sits in a grey rounded
+// initials, the name and the address as a twake-mui list text, what is typed
+// in bold; one already among the recipients sits in a grey rounded
 // box with a blue tick.
 import { Icon, CheckCircle } from '@linagora/twake-icons'
-import { Box } from '@linagora/twake-mui'
+import { Box, ListItemText } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { initialsOf, splitMatches } from './initials'
@@ -49,32 +49,6 @@ const AVATAR_SX = {
   lineHeight: 1,
   // Drawn, not written: the name of the option is its text
   '&::before': { content: 'attr(data-initials)' }
-} as const
-
-const LINES_SX = {
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  flex: 1,
-  minWidth: 0
-} as const
-
-const PRIMARY_SX = {
-  fontSize: 16,
-  lineHeight: '20px',
-  color: 'text.primary',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  '& b': { fontWeight: 700 }
-} as const
-
-const SECONDARY_SX = {
-  ...PRIMARY_SX,
-  fontSize: 13,
-  lineHeight: '16px',
-  color: 'text.secondary',
-  '& b': { fontWeight: 700, color: 'text.primary' }
 } as const
 
 function Highlighted({
@@ -138,16 +112,14 @@ export function SuggestionOption({
         data-initials={initialsOf(label)}
         sx={AVATAR_SX}
       />
-      <Box component="span" sx={LINES_SX}>
-        <Box component="span" sx={PRIMARY_SX}>
-          <Highlighted text={label} query={query} />
-        </Box>
-        {secondary === undefined ? null : (
-          <Box component="span" sx={SECONDARY_SX}>
+      <ListItemText
+        primary={<Highlighted text={label} query={query} />}
+        secondary={
+          secondary === undefined ? undefined : (
             <Highlighted text={secondary} query={query} />
-          </Box>
-        )}
-      </Box>
+          )
+        }
+      />
       {isAdded ? (
         <Box component="span" className="u-flex" sx={{ color: 'primary.main' }}>
           <Icon icon={CheckCircle} size={24} aria-hidden="true" />

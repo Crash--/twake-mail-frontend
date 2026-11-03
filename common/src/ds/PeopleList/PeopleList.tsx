@@ -4,7 +4,7 @@
 // its address under it in Regular 12, an action at the end), divided by
 // 1 px lines; and the card of a list still empty: its title, a text and
 // an action, centred.
-import { Box, Typography } from '@linagora/twake-mui'
+import { Box, ListItemText, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import {
@@ -33,22 +33,6 @@ const ROW_SX = {
   py: 1,
   boxSizing: 'border-box',
   '& + &': { borderTop: '1px solid', borderColor: 'divider' }
-} as const
-
-const NAME_SX = {
-  typography: 'body1',
-  color: 'text.primary',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap'
-} as const
-
-const ADDRESS_SX = {
-  typography: 'caption',
-  color: 'text.secondary',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap'
 } as const
 
 const EMPTY_SX = {
@@ -97,16 +81,7 @@ export function PersonSummary({ person }: { person: Person }): ReactElement {
         colorKey={person.avatarKey}
         size={32}
       />
-      <Box className="u-flex u-flex-column" sx={{ minWidth: 0, flex: 1 }}>
-        <Typography component="span" sx={NAME_SX}>
-          {person.name}
-        </Typography>
-        {person.address === null || person.address === undefined ? null : (
-          <Typography component="span" sx={ADDRESS_SX}>
-            {person.address}
-          </Typography>
-        )}
-      </Box>
+      <ListItemText primary={person.name} secondary={person.address} />
     </>
   )
 }

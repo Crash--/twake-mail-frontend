@@ -5,8 +5,6 @@ import type { ReactElement, ReactNode, Ref } from 'react'
 
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
-const TITLE_SX = { typography: 'h3', color: 'text.primary' } as const
-
 const DESCRIPTION_SX = {
   mt: '13px',
   mb: 0,
@@ -74,9 +72,10 @@ export function SettingsTitle({
       ref={ref}
       id={id}
       component="h1"
+      variant="h3"
+      color="textPrimary"
       tabIndex={-1}
       className={className}
-      sx={TITLE_SX}
     >
       {children}
     </Typography>

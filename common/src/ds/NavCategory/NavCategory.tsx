@@ -3,7 +3,7 @@
 // folder (a 16 px icon, the name, the chevron right after it) that expands
 // and collapses the tree under it, indented by 8 px.
 import { Icon, type IconProps, Dropdown, Right } from '@linagora/twake-icons'
-import { Box, ButtonBase, radius } from '@linagora/twake-mui'
+import { Box, ButtonBase, radius, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 const BUTTON_SX = {
@@ -59,7 +59,7 @@ export function NavCategory({
   return (
     <Box data-testid={testId}>
       {/* A heading under the one of its section, holding the toggle */}
-      <Box component="h3" sx={{ m: 0 }}>
+      <Typography component="h3" variant="inherit">
         <ButtonBase
           onClick={onToggle}
           aria-expanded={isExpanded}
@@ -79,7 +79,7 @@ export function NavCategory({
             />
           </Box>
         </ButtonBase>
-      </Box>
+      </Typography>
       <Box id={controlsId} hidden={!isExpanded} sx={{ pl: '8px' }}>
         {children}
       </Box>

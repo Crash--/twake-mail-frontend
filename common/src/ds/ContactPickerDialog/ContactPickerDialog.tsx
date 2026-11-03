@@ -13,13 +13,17 @@ import {
   Button,
   Checkbox,
   Dialog,
+  DialogContent,
+  Divider,
   IconButton,
   InputBase,
+  List,
+  ListItem,
   radius,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import { useId, useRef, type ReactElement } from 'react'
+import { Fragment, useId, useRef, type ReactElement } from 'react'
 
 import {
   firstLetterOf,
@@ -80,21 +84,6 @@ const SEARCH_SX = {
 const SEARCH_ICON_SX = { display: 'flex', mx: 2 } as const
 
 const CLEAR_SX = { mr: 1 } as const
-
-const LIST_SX = {
-  flex: '1 1 auto',
-  overflowY: 'auto',
-  listStyle: 'none',
-  m: 0,
-  p: 0,
-  '& > li + li::before': {
-    content: '""',
-    display: 'block',
-    height: '1px',
-    mx: '16px',
-    bgcolor: 'divider'
-  }
-} as const
 
 const ROW_SX = {
   display: 'flex',
@@ -277,48 +266,53 @@ export function ContactPickerDialog({
           </Tooltip>
         )}
       </Box>
-      <Box component="ul" id={listId} aria-label={labels.list} sx={LIST_SX}>
-        {items.map(item => {
-          const isChecked = chosen.has(item.address.toLowerCase())
-          const label = item.name ?? item.address
-          return (
-            <Box component="li" key={item.address}>
-              <Box
-                component="label"
-                className="u-c-pointer"
-                sx={ROW_SX}
-                data-testid={testIds.item}
-              >
-                <GradientAvatar
-                  text={firstLetterOf(label)}
-                  colorKey={item.address}
-                  size={40}
-                />
-                <Box component="span" sx={TEXT_SX}>
-                  <Typography component="span" variant="body1" sx={NAME_SX}>
-                    {label}
-                  </Typography>
-                  {item.name === null ? null : (
-                    <Typography
-                      component="span"
-                      variant="caption"
-                      sx={ADDRESS_SX}
-                    >
-                      {item.address}
-                    </Typography>
-                  )}
-                </Box>
-                <Checkbox
-                  checked={isChecked}
-                  onChange={() => {
-                    onToggle(item)
-                  }}
-                />
-              </Box>
-            </Box>
-          )
-        })}
-      </Box>
+      <DialogContent className="disableGutters">
+        <List id={listId} aria-label={labels.list} disablePadding>
+          {items.map((item, index) => {
+            const isChecked = chosen.has(item.address.toLowerCase())
+            const label = item.name ?? item.address
+            return (
+              <Fragment key={item.address}>
+                {index > 0 ? <Divider component="li" variant="middle" /> : null}
+                <ListItem disablePadding>
+                  <Box
+                    component="label"
+                    className="u-c-pointer"
+                    sx={ROW_SX}
+                    data-testid={testIds.item}
+                  >
+                    <GradientAvatar
+                      text={firstLetterOf(label)}
+                      colorKey={item.address}
+                      size={40}
+                    />
+                    <Box component="span" sx={TEXT_SX}>
+                      <Typography component="span" variant="body1" sx={NAME_SX}>
+                        {label}
+                      </Typography>
+                      {item.name === null ? null : (
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          sx={ADDRESS_SX}
+                        >
+                          {item.address}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Checkbox
+                      checked={isChecked}
+                      onChange={() => {
+                        onToggle(item)
+                      }}
+                    />
+                  </Box>
+                </ListItem>
+              </Fragment>
+            )
+          })}
+        </List>
+      </DialogContent>
       <Box sx={FOOTER_SX}>
         <Button
           variant="text"

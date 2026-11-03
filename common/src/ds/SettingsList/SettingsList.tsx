@@ -3,7 +3,7 @@
 // 280 px column on a desktop with the actions right after it (under it below
 // the desktop size), the name in `body1`, the details in `caption`, the
 // signature as it is written.
-import { Box, Typography } from '@linagora/twake-mui'
+import { Box, Typography, type TypographyProps } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
@@ -50,17 +50,6 @@ const ACTIONS_SX = {
   pt: '10px',
   [`@media ${SCREEN_QUERIES.belowDesktop}`]: { flexBasis: '100%', pt: 0 }
 } as const
-
-const NAME_SX = { typography: 'body1', color: 'text.primary', mb: 1 } as const
-
-const DETAIL_SX = {
-  typography: 'caption',
-  color: 'text.secondary',
-  mb: 1
-} as const
-
-/** The "--" before a signature */
-const MARK_SX = { typography: 'body1', color: 'text.primary' } as const
 
 /** A signature as the mail shows it, 150 px high at most */
 const HTML_SX = {
@@ -130,7 +119,11 @@ export interface SettingsListTextProps {
   'data-testid'?: string
 }
 
-const TEXT_SX = { name: NAME_SX, detail: DETAIL_SX, mark: MARK_SX } as const
+const TEXT_PROPS = {
+  name: { variant: 'body1', color: 'textPrimary' },
+  detail: { variant: 'caption', color: 'textSecondary' },
+  mark: { variant: 'body1', color: 'textPrimary' }
+} as const satisfies Record<SettingsListTextProps['variant'], TypographyProps>
 
 /** A line of the content of a settings row */
 export function SettingsListText({
@@ -143,8 +136,8 @@ export function SettingsListText({
     <Typography
       component="p"
       className={className}
-      sx={TEXT_SX[variant]}
       data-testid={testId}
+      {...TEXT_PROPS[variant]}
     >
       {children}
     </Typography>

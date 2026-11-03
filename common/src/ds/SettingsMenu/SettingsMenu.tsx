@@ -3,10 +3,8 @@
 // once selected. twake-mui's `NavigationList` is not used: its rows are not
 // links with `aria-current`.
 import { type IconProps, Icon } from '@linagora/twake-icons'
-import { Box, ButtonBase } from '@linagora/twake-mui'
+import { Box, ButtonBase, List } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
-
-const LIST_SX = { listStyle: 'none', m: 0, px: 1, py: 0 } as const
 
 function itemSx(isSelected: boolean): Record<string, unknown> {
   return {
@@ -83,11 +81,7 @@ export interface SettingsMenuListProps {
 export function SettingsMenuList({
   children
 }: SettingsMenuListProps): ReactElement {
-  return (
-    <Box component="ul" sx={LIST_SX}>
-      {children}
-    </Box>
-  )
+  return <List disablePadding>{children}</List>
 }
 
 export interface SettingsMenuItemProps {

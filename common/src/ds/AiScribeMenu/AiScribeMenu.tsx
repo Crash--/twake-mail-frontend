@@ -5,7 +5,7 @@
 // whose actions open in a second card 6 px to the right while the category
 // is hovered or opened from the keyboard.
 import { Icon, type IconProps, Right } from '@linagora/twake-icons'
-import { Box, ButtonBase } from '@linagora/twake-mui'
+import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import {
   useRef,
   useState,
@@ -54,13 +54,6 @@ function rowSx(inset: number): Record<string, unknown> {
     }
   }
 }
-
-const NAME_SX = {
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap'
-} as const
 
 export interface AiScribeMenuAction {
   id: string
@@ -229,9 +222,9 @@ export function AiScribeMenu({
               <span className="AiScribeMenu-icon">
                 <Icon icon={category.icon} size={20} aria-hidden="true" />
               </span>
-              <Box component="span" sx={NAME_SX}>
+              <Typography component="span" variant="body3" noWrap>
                 {category.label}
-              </Box>
+              </Typography>
               {hasSubmenu ? (
                 <span className="AiScribeMenu-chevron">
                   <Icon icon={Right} size={16} aria-hidden="true" />
@@ -274,9 +267,9 @@ export function AiScribeMenu({
                         <Icon icon={action.icon} size={20} aria-hidden="true" />
                       </span>
                     ) : null}
-                    <Box component="span" sx={NAME_SX}>
+                    <Typography component="span" variant="body3" noWrap>
                       {action.label}
-                    </Box>
+                    </Typography>
                   </ButtonBase>
                 ))}
               </Box>

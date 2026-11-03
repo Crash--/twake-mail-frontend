@@ -3,13 +3,11 @@
 // from MUI, whose summary is a full-width button but whose look (cards,
 // expand icon on the side, elevation) and missing keyboard moves between
 // items do not fit a message list.
-import { Box } from '@linagora/twake-mui'
+import { List } from '@linagora/twake-mui'
 import type { KeyboardEvent, ReactElement, ReactNode } from 'react'
 
 /** Attribute marking the toggles the arrows move between */
 export const MESSAGE_TOGGLE_ATTRIBUTE = 'data-message-toggle'
-
-const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
 
 /** Index of the toggle each key moves the focus to */
 const MOVES: Readonly<
@@ -59,14 +57,14 @@ export function MessageThread({
   }
 
   return (
-    <Box
+    <List
       component="ol"
+      disablePadding
       aria-label={label}
-      sx={LIST_SX}
       onKeyDown={handleKeyDown}
       data-testid={testId}
     >
       {children}
-    </Box>
+    </List>
   )
 }

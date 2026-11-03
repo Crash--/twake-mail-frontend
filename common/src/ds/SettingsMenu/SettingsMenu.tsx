@@ -3,7 +3,7 @@
 // once selected. twake-mui's `NavigationList` is not used: its rows are not
 // links with `aria-current`.
 import { type IconProps, Icon } from '@linagora/twake-icons'
-import { Box, ButtonBase } from '@linagora/twake-mui'
+import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
 
 const LIST_SX = { listStyle: 'none', m: 0, px: 1, py: 0 } as const
@@ -38,13 +38,6 @@ const NAME_SX = {
   whiteSpace: 'nowrap'
 } as const
 
-const TITLE_SX = {
-  m: 0,
-  p: 1,
-  typography: 'h5',
-  color: 'text.primary'
-} as const
-
 const DIVIDER_SX = {
   mt: '20px',
   mb: '12px',
@@ -64,9 +57,9 @@ export function SettingsMenuTitle({
   children
 }: SettingsMenuTitleProps): ReactElement {
   return (
-    <Box component="p" id={id} sx={TITLE_SX}>
+    <Typography component="p" id={id} variant="h5" color="textPrimary">
       {children}
-    </Box>
+    </Typography>
   )
 }
 

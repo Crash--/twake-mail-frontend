@@ -1,10 +1,10 @@
 import { FolderOutlined, EyeClosed, Eye } from '@linagora/twake-icons'
+import { List } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
 import { CollapsibleCategory } from '@/ds/CollapsibleCategory/CollapsibleCategory'
 import { FolderVisibilityRow } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
 import { NarrowColumn } from '@/ds/NarrowColumn/NarrowColumn'
-import { PlainList } from '@/ds/PlainList/PlainList'
 import { VisibilityToggleButton } from '@/ds/VisibilityToggleButton/VisibilityToggleButton'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
@@ -177,12 +177,13 @@ export function FolderVisibilitySettings({
   return (
     <SettingsSectionLayout section={section}>
       <NarrowColumn>
-        <PlainList
-          label={t('sidebar.mailboxes')}
+        <List
+          disablePadding
+          aria-label={t('sidebar.mailboxes')}
           data-testid="folder-visibility-personal"
         >
           {rows(system)}
-        </PlainList>
+        </List>
         {folders.length === 0 && team.length === 0 ? null : (
           <CollapsibleCategory
             title={t('sidebar.folders')}

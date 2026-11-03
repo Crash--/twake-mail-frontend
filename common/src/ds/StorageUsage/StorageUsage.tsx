@@ -40,13 +40,6 @@ const COLUMN_SX = { width: 351, maxWidth: '100%', minWidth: 0 } as const
 
 const PHONE_COLUMN_SX = { width: '100%', minWidth: 0 } as const
 
-const USED_SX = {
-  typography: 'h5',
-  color: 'text.primary'
-} as const
-
-const SMALL_SX = { typography: 'caption', color: 'text.primary' } as const
-
 export interface StorageUsageProps {
   /** The space used, e.g. "1.2 MB" */
   used: string
@@ -85,17 +78,17 @@ export function StorageUsage({
       <Box sx={isPhone ? PHONE_COLUMN_SX : COLUMN_SX}>
         <Box className="u-flex u-flex-items-baseline">
           <Typography id={labelId} component="p" sx={{ m: 0 }}>
-            <Box component="span" sx={USED_SX}>
+            <Typography component="span" variant="h5" color="textPrimary">
               {used}
-            </Box>{' '}
-            <Box component="span" sx={SMALL_SX}>
+            </Typography>{' '}
+            <Typography component="span" variant="caption" color="textPrimary">
               {ofLimit}
-            </Box>
+            </Typography>
           </Typography>
           <Box component="span" className="u-flex-auto" />
-          <Box component="span" sx={SMALL_SX}>
+          <Typography component="span" variant="caption" color="textPrimary">
             {available}
-          </Box>
+          </Typography>
         </Box>
         <StorageGauge
           value={percent}

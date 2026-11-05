@@ -16,7 +16,10 @@ import {
 } from 'react'
 
 import { FOCUS_RING } from '@/ds/FocusIndicator/focusIndicator'
-import type { ColorSwatch } from '@/ds/ColorSwatchPicker/ColorSwatchPicker'
+import {
+  sameColor,
+  type ColorSwatch
+} from '@/ds/ColorSwatchPicker/ColorSwatchPicker'
 
 export interface ColorPopoverPickerProps {
   /** Accessible name and tooltip of the button, saying the colour chosen */
@@ -43,10 +46,6 @@ const GAP = 5
 const COLUMNS = 7
 const NONE = ''
 const CUSTOM = 'custom'
-
-function sameColor(a: string | null, b: string): boolean {
-  return a !== null && a.toLowerCase() === b.toLowerCase()
-}
 
 // Not `instanceof`: the popover may be rendered in another document
 function inputOf(target: EventTarget): HTMLInputElement | null {
@@ -147,10 +146,10 @@ function Swatch({
 const CUSTOM_RING = {
   border: '1px solid transparent',
   backgroundImage:
-    'linear-gradient(#fff, #fff), conic-gradient(from 0deg, #FB2C36, #AD46FF, #2B7FFF, #FB2C36)',
+    'linear-gradient(var(--twake-palette-background-paper), var(--twake-palette-background-paper)), conic-gradient(from 0deg, #FB2C36, #AD46FF, #2B7FFF, #FB2C36)',
   backgroundOrigin: 'border-box',
   backgroundClip: 'padding-box, border-box',
-  color: '#000'
+  color: 'text.primary'
 }
 
 /**

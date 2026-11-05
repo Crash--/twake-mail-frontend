@@ -24,7 +24,7 @@ export interface ColorSwatchPickerProps {
 
 const SIZE = 28
 
-function sameColor(a: string | null, b: string): boolean {
+export function sameColor(a: string | null, b: string): boolean {
   return a !== null && a.toLowerCase() === b.toLowerCase()
 }
 

@@ -3,6 +3,7 @@
 // its actions, no line between them, the header and the actions of the
 // other dialogs (`ModalDialog`).
 import { ConfirmDialog } from '@linagora/twake-mui'
+import { mergeSlotProps } from '@mui/material/utils'
 import type { ComponentProps, ReactElement } from 'react'
 
 import { smallDialogPaperSx } from '@/ds/ModalDialog/modalDialogSx'
@@ -17,7 +18,10 @@ export function SmallDialog({
   return (
     <ConfirmDialog
       {...props}
-      slotProps={{ ...slotProps, paper: { sx: smallDialogPaperSx } }}
+      slotProps={{
+        ...slotProps,
+        paper: mergeSlotProps(slotProps?.paper, { sx: smallDialogPaperSx })
+      }}
     />
   )
 }

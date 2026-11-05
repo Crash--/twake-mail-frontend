@@ -2,6 +2,7 @@
 // `FixedDialog` in the frame of the Figma (`modalDialogSx`): the same
 // header, close button and actions in every dialog of the app.
 import { FixedDialog } from '@linagora/twake-mui'
+import { mergeSlotProps } from '@mui/material/utils'
 import type { ComponentProps, ReactElement } from 'react'
 
 import { modalDialogPaperSx } from './modalDialogSx'
@@ -19,7 +20,10 @@ export function ModalDialog({
   return (
     <FixedDialog
       {...props}
-      slotProps={{ ...slotProps, paper: { sx: modalDialogPaperSx } }}
+      slotProps={{
+        ...slotProps,
+        paper: mergeSlotProps(slotProps?.paper, { sx: modalDialogPaperSx })
+      }}
     />
   )
 }

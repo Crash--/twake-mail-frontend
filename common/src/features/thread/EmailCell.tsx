@@ -522,17 +522,19 @@ export function EmailCell({
   ) : null
 
   // As tmail-flutter: 8 px after the folder, the date 8 px after it
-  const wideAttachment = hasAttachment ? (
-    <span className="u-flex u-flex-shrink-0 u-ml-half">
-      <Icon
-        icon={AttachmentIcon}
-        size={20}
-        color={SECONDARY_ICON_COLOR}
-        role="img"
-        aria-label={t('email.attachment')}
-      />
-    </span>
-  ) : null
+  // 16 px in the line of a compact row, as the answered state
+  const attachmentMark = (size: 16 | 20): ReactElement | null =>
+    hasAttachment ? (
+      <span className="u-flex u-flex-shrink-0 u-ml-half">
+        <Icon
+          icon={AttachmentIcon}
+          size={size}
+          color={SECONDARY_ICON_COLOR}
+          role="img"
+          aria-label={t('email.attachment')}
+        />
+      </span>
+    ) : null
 
   switch (column.id as EmailColumnId) {
     case 'select':
@@ -654,7 +656,7 @@ export function EmailCell({
             <>
               {/* As tmail-flutter: the folder right before the attachment */}
               {mailboxLabel}
-              {wideAttachment}
+              {attachmentMark(20)}
               {wideDate}
             </>
           }
@@ -701,7 +703,7 @@ export function EmailCell({
               <>
                 {threadCount}
                 {answeredState(16)}
-                {wideAttachment}
+                {attachmentMark(16)}
                 {wideDate}
               </>
             }

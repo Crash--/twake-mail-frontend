@@ -152,8 +152,9 @@ export function RecoveryDialog({
             slotProps={{
               select: {
                 renderValue: () => periodLabel(period),
+                // Names the field and its listbox
+                labelId: `${id}-label`,
                 SelectDisplayProps: {
-                  'aria-labelledby': `${id}-label`,
                   'data-testid': `recovery-${field}-select`
                 } as Record<string, string>
               }

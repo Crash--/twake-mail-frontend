@@ -1253,6 +1253,7 @@
       "description": "Description (optional)",
       "descriptionPlaceholder": "Add a short description to explain what this label is for",
       "color": "Choose a label color",
+      "colorCurrent": "Label color: %{color}",
       "create": "Create label"
     },
     "errors": {

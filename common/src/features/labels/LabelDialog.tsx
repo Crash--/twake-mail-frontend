@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  ColorList,
-  COLORS,
-  TextField,
-  Typography
-} from '@linagora/twake-mui'
+import { Button, COLORS, TextField, Typography } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Label } from 'jmap-client-ts/linagora'
 import {
@@ -17,6 +10,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { ColorPopoverPicker } from '@/ds/ColorPopoverPicker/ColorPopoverPicker'
 import { normalizeHexColor } from '@/ds/ColorSwatchPicker/hexColor'
 import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { StackedField } from '@/ds/StackedField/StackedField'
@@ -105,7 +99,6 @@ export function LabelDialog({
   )
   const [hex, setHex] = useState(color ?? '')
   const isColorValid = !isCustom || normalizeHexColor(hex) !== null
-  const colorLegendId = useId()
   const [isTouched, setIsTouched] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const hexRef = useRef<HTMLInputElement>(null)
@@ -194,24 +187,57 @@ export function LabelDialog({
       })
   }
 
+  const colorName = (value: string): string => {
+    const key = COLOR_NAMES[value.toUpperCase()]
+    return key === undefined ? value : t(key)
+  }
+
   const nameField = (
     <StackedField label={t('labels.form.name')} htmlFor={nameId}>
-      <TextField
-        id={nameId}
-        inputRef={nameRef}
-        required
-        fullWidth
-        size="small"
-        placeholder={t('labels.form.namePlaceholder')}
-        value={name}
-        onChange={event => {
-          setName(event.target.value)
-          setIsTouched(true)
-        }}
-        error={shownProblem !== null}
-        helperText={shownProblem === null ? undefined : t(shownProblem)}
-        slotProps={{ htmlInput: { 'data-testid': 'label-name-input' } }}
-      />
+      <div className="u-flex u-flex-items-start">
+        <TextField
+          id={nameId}
+          inputRef={nameRef}
+          required
+          fullWidth
+          size="small"
+          placeholder={t('labels.form.namePlaceholder')}
+          value={name}
+          onChange={event => {
+            setName(event.target.value)
+            setIsTouched(true)
+          }}
+          error={shownProblem !== null}
+          helperText={shownProblem === null ? undefined : t(shownProblem)}
+          slotProps={{ htmlInput: { 'data-testid': 'label-name-input' } }}
+        />
+        <span className="u-ml-half u-flex">
+          <ColorPopoverPicker
+            buttonLabel={t('labels.form.colorCurrent', {
+              color: color === null ? t('labels.colorNone') : colorName(color)
+            })}
+            groupLabel={t('labels.form.color')}
+            swatches={COLORS.map(value => ({ value, label: colorName(value) }))}
+            value={color}
+            // tmail-backend refuses a null colour: a colour cannot be taken
+            // off, so "No color" is only offered to a label without one
+            noneLabel={
+              (label?.color ?? null) === null ? t('labels.colorNone') : null
+            }
+            customLabel={t('labels.colorHex')}
+            isCustom={isCustom}
+            onChange={picked => {
+              setIsCustom(false)
+              setColor(picked)
+            }}
+            onCustom={() => {
+              setIsCustom(true)
+              setHex(color ?? '')
+            }}
+            data-testid="label-color-picker"
+          />
+        </span>
+      </div>
     </StackedField>
   )
 
@@ -233,6 +259,32 @@ export function LabelDialog({
             )}
           </Typography>
           {nameField}
+          {isCustom ? (
+            <TextField
+              fullWidth
+              size="small"
+              className="u-mt-1"
+              label={t('labels.colorHex')}
+              value={hex}
+              inputRef={hexRef}
+              onChange={event => {
+                setHex(event.target.value)
+                const typed = normalizeHexColor(event.target.value)
+                if (typed !== null) setColor(typed)
+              }}
+              error={isSubmitted && !isColorValid}
+              helperText={t(
+                isSubmitted && !isColorValid
+                  ? 'labels.colorHexInvalid'
+                  : 'labels.colorHexHint'
+              )}
+              slotProps={{
+                htmlInput: { 'data-testid': 'label-color-hex-input' },
+                formHelperText:
+                  isSubmitted && !isColorValid ? { role: 'alert' } : undefined
+              }}
+            />
+          ) : null}
           <StackedField
             label={t('labels.form.description')}
             htmlFor={descriptionId}
@@ -253,79 +305,6 @@ export function LabelDialog({
               }}
             />
           </StackedField>
-          <Box className="u-mt-1-half">
-            <Typography
-              id={colorLegendId}
-              component="p"
-              variant="subtitle2"
-              className="u-mb-half"
-            >
-              {t('labels.form.color')}
-            </Typography>
-            <ColorList
-              aria-labelledby={colorLegendId}
-              selectedColor={isCustom ? undefined : (color ?? undefined)}
-              getColorLabel={swatch => {
-                const name = COLOR_NAMES[swatch]
-                return name === undefined ? swatch : t(name)
-              }}
-              onClick={picked => {
-                setIsCustom(false)
-                setColor(picked)
-              }}
-              customColorProps={{
-                enabled: true,
-                'aria-label': t('labels.colorHex'),
-                'aria-pressed': isCustom,
-                onClick: () => {
-                  setIsCustom(true)
-                  setHex(color ?? '')
-                }
-              }}
-              data-testid="label-color-picker"
-            />
-            {/* tmail-backend refuses a null colour: a colour cannot be taken
-                off, so "No color" is only offered to a label without one */}
-            {(label?.color ?? null) === null ? (
-              <Button
-                variant="text"
-                className="u-mt-half"
-                aria-pressed={!isCustom && color === null}
-                onClick={() => {
-                  setIsCustom(false)
-                  setColor(null)
-                }}
-                data-testid="label-color-none"
-              >
-                {t('labels.colorNone')}
-              </Button>
-            ) : null}
-            {isCustom ? (
-              <TextField
-                fullWidth
-                className="u-mt-1"
-                label={t('labels.colorHex')}
-                value={hex}
-                inputRef={hexRef}
-                onChange={event => {
-                  setHex(event.target.value)
-                  const typed = normalizeHexColor(event.target.value)
-                  if (typed !== null) setColor(typed)
-                }}
-                error={isSubmitted && !isColorValid}
-                helperText={t(
-                  isSubmitted && !isColorValid
-                    ? 'labels.colorHexInvalid'
-                    : 'labels.colorHexHint'
-                )}
-                slotProps={{
-                  htmlInput: { 'data-testid': 'label-color-hex-input' },
-                  formHelperText:
-                    isSubmitted && !isColorValid ? { role: 'alert' } : undefined
-                }}
-              />
-            ) : null}
-          </Box>
         </form>
       }
       actions={

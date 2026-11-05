@@ -404,7 +404,9 @@ test.describe('LBL label colours', () => {
       await labels.nameInput.fill('Custom tag')
 
       await expect(labels.customColorHexInput).toHaveCount(0)
-      await labels.customColorSwatch.click()
+      await labels.openColors()
+      await labels.customColorOption.click()
+      await expect(labels.colorOptions).toBeHidden()
       // Not a colour: the form stays open and the field says why
       await labels.customColorHexInput.fill('#12')
       await labels.saveButton.click()
@@ -448,7 +450,12 @@ test.describe('LBL label colours', () => {
       // tmail-backend refuses `color: null`: nothing offers to remove a colour
       await labels.runMenu('Edit custom', 'edit')
       await expect(labels.customColorHexInput).toHaveValue('#1A2B3C')
-      await expect(labels.noColorButton).toHaveCount(0)
+      await labels.openColors()
+      await expect(labels.customColorOption).toBeChecked()
+      await expect(labels.noColorOption).toHaveCount(0)
+      await page.keyboard.press('Escape')
+      await expect(labels.colorOptions).toBeHidden()
+      await expect(labels.colorPicker).toBeFocused()
       await expectNoA11yViolations(page)
       await labels.customColorHexInput.fill('#e0465c')
       await labels.saveButton.click()
@@ -464,21 +471,34 @@ test.describe('LBL label colours', () => {
       // A label without colour keeps its "No color", and a swatch of the
       // palette still works
       await labels.runMenu('Edit plain', 'edit')
-      await expect(labels.noColorButton).toHaveAttribute('aria-pressed', 'true')
-      await expect(labels.customColorHexInput).toHaveCount(0)
-      await expect(labels.colorSwatch(0).locator('svg')).toHaveCount(0)
-      await labels.colorSwatch(0).focus()
-      await page.keyboard.press('Enter')
-      await expect(labels.colorSwatch(0).locator('svg')).toBeVisible()
-      await expect(labels.noColorButton).toHaveAttribute(
-        'aria-pressed',
-        'false'
+      await expect(labels.colorPicker).toHaveAccessibleName(
+        'Label color: No color'
       )
       await expect(labels.customColorHexInput).toHaveCount(0)
-      // The custom button opens its field, past "No color"
-      await labels.customColorSwatch.focus()
+      await labels.colorPicker.focus()
       await page.keyboard.press('Enter')
-      await page.keyboard.press('Tab')
+      await expect(labels.noColorOption).toBeChecked()
+      await expect(labels.noColorOption).toBeFocused()
+      await expectNoA11yViolations(page)
+      // The arrows move the choice and keep the colours open, Enter closes
+      await page.keyboard.press('ArrowRight')
+      await expect(labels.colorOption('Navy blue')).toBeChecked()
+      await expect(labels.colorOptions).toBeVisible()
+      await page.keyboard.press('Enter')
+      await expect(labels.colorOptions).toBeHidden()
+      await expect(labels.colorPicker).toBeFocused()
+      await expect(labels.colorPicker).toHaveAccessibleName(
+        'Label color: Navy blue'
+      )
+      await expect(labels.customColorHexInput).toHaveCount(0)
+      // The custom colour is last: back past "No color", it opens its field
+      await page.keyboard.press('Enter')
+      await expect(labels.colorOption('Navy blue')).toBeFocused()
+      await page.keyboard.press('ArrowLeft')
+      await page.keyboard.press('ArrowLeft')
+      await expect(labels.customColorOption).toBeChecked()
+      await page.keyboard.press('Enter')
+      await expect(labels.colorOptions).toBeHidden()
       await page.keyboard.press('Tab')
       await expect(labels.customColorHexInput).toBeFocused()
       await page.keyboard.press('Control+A')

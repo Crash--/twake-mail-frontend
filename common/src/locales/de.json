@@ -1253,6 +1253,7 @@
       "description": "Beschreibung (optional)",
       "descriptionPlaceholder": "Fügen Sie eine kurze Beschreibung hinzu, wofür dieses Label gedacht ist",
       "color": "Farbe des Labels wählen",
+      "colorCurrent": "Farbe des Labels: %{color}",
       "create": "Label erstellen"
     },
     "errors": {

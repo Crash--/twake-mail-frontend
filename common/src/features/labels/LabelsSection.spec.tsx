@@ -29,12 +29,10 @@ function setup(
   return fake
 }
 
-function colorButton(dialog: HTMLElement, position: number): HTMLElement {
-  const button = within(
-    within(dialog).getByTestId('label-color-picker')
-  ).getAllByRole('button')[position]
-  if (button === undefined) throw new Error(`No colour at ${String(position)}`)
-  return button
+/** Opens the colours of the label modal, from the square beside the name */
+async function openColors(dialog: HTMLElement): Promise<HTMLElement> {
+  await userEvent.click(within(dialog).getByTestId('label-color-picker'))
+  return screen.findByRole('radiogroup', { name: 'Choose a label color' })
 }
 
 describe('LabelsSection', () => {
@@ -91,8 +89,14 @@ describe('LabelsSection', () => {
       'Travel'
     )
     await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Magenta' })
+      within(await openColors(dialog)).getByRole('radio', { name: 'Magenta' })
     )
+    await waitFor(() => {
+      expect(screen.queryByRole('radiogroup')).toBe(null)
+    })
+    expect(
+      within(dialog).getByRole('button', { name: 'Label color: Magenta' })
+    ).toHaveFocus()
     await userEvent.click(within(dialog).getByTestId('label-save-button'))
 
     expect(await screen.findByTestId('toast')).toHaveTextContent(
@@ -119,9 +123,12 @@ describe('LabelsSection', () => {
       within(dialog).getByRole('textbox', { name: 'Label name' }),
       'Travel'
     )
-    // After the 20 swatches, the custom colour
-    await userEvent.click(colorButton(dialog, 20))
-    const hex = within(dialog).getByRole('textbox', {
+    await userEvent.click(
+      within(await openColors(dialog)).getByRole('radio', {
+        name: 'Custom color (hexadecimal)'
+      })
+    )
+    const hex = await within(dialog).findByRole('textbox', {
       name: 'Custom color (hexadecimal)'
     })
     await userEvent.clear(hex)
@@ -153,8 +160,23 @@ describe('LabelsSection', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
     const dialog = screen.getByRole('dialog', { name: 'Edit label' })
 
-    expect(colorButton(dialog, 0).querySelector('svg')).not.toBe(null)
-    expect(colorButton(dialog, 1).querySelector('svg')).toBe(null)
+    const colors = await openColors(dialog)
+    expect(
+      within(colors).getByRole('radio', { name: 'Navy blue' })
+    ).toBeChecked()
+    expect(
+      within(colors).getByRole('radio', { name: 'Purple' })
+    ).not.toBeChecked()
+    // The arrows move the choice and keep the colours open; Escape closes them
+    await userEvent.keyboard('{ArrowRight}')
+    expect(within(colors).getByRole('radio', { name: 'Purple' })).toBeChecked()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('radiogroup')).toBe(null)
+    })
+    expect(
+      within(dialog).getByRole('button', { name: 'Label color: Purple' })
+    ).toHaveFocus()
     expect(
       within(dialog).queryByRole('textbox', {
         name: 'Custom color (hexadecimal)'
@@ -181,10 +203,14 @@ describe('LabelsSection', () => {
       await screen.findByRole('button', { name: 'Actions on Plain' })
     )
     await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
-    expect(screen.getByRole('button', { name: 'No color' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
+    const plain = screen.getByRole('dialog', { name: 'Edit label' })
+    expect(
+      within(await openColors(plain)).getByRole('radio', { name: 'No color' })
+    ).toBeChecked()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('radiogroup')).toBe(null)
+    })
     await userEvent.click(screen.getByTestId('label-cancel-button'))
 
     await userEvent.click(
@@ -192,9 +218,15 @@ describe('LabelsSection', () => {
     )
     await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
     const dialog = screen.getByRole('dialog', { name: 'Edit label' })
-    expect(within(dialog).queryByRole('button', { name: 'No color' })).toBe(
-      null
-    )
+    const colors = await openColors(dialog)
+    expect(within(colors).queryByRole('radio', { name: 'No color' })).toBe(null)
+    expect(
+      within(colors).getByRole('radio', { name: 'Custom color (hexadecimal)' })
+    ).toBeChecked()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('radiogroup')).toBe(null)
+    })
     const hex = within(dialog).getByRole('textbox', {
       name: 'Custom color (hexadecimal)'
     })

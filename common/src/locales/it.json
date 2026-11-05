@@ -1253,6 +1253,7 @@
       "description": "Descrizione (facoltativa)",
       "descriptionPlaceholder": "Aggiungi una breve descrizione per spiegare a cosa serve questa etichetta",
       "color": "Scegli un colore per l'etichetta",
+      "colorCurrent": "Colore dell'etichetta: %{color}",
       "create": "Crea l'etichetta"
     },
     "errors": {

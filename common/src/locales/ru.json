@@ -1253,6 +1253,7 @@
       "description": "Описание (опционально)",
       "descriptionPlaceholder": "Добавьте краткое описание метки",
       "color": "Выберите цвет метки",
+      "colorCurrent": "Цвет метки: %{color}",
       "create": "Создать метку"
     },
     "errors": {

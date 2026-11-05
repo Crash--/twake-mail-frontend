@@ -1253,6 +1253,7 @@
       "description": "Description (optionnel)",
       "descriptionPlaceholder": "Ajoutez une brève description pour expliquer à quoi sert ce libellé",
       "color": "Choisir une couleur de libellé",
+      "colorCurrent": "Couleur du libellé : %{color}",
       "create": "Créer un libellé"
     },
     "errors": {

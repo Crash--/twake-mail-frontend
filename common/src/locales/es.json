@@ -1253,6 +1253,7 @@
       "description": "Descripción (opcional)",
       "descriptionPlaceholder": "Añada una breve descripción para explicar para qué sirve esta etiqueta",
       "color": "Elegir un color para la etiqueta",
+      "colorCurrent": "Color de la etiqueta: %{color}",
       "create": "Crear la etiqueta"
     },
     "errors": {

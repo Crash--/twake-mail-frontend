@@ -1253,6 +1253,7 @@
       "description": "Mô tả (tuỳ chọn)",
       "descriptionPlaceholder": "Thêm thông tin mô tả cho Nhãn",
       "color": "Chọn màu nhãn",
+      "colorCurrent": "Màu nhãn: %{color}",
       "create": "Tạo nhãn"
     },
     "errors": {

@@ -55,8 +55,9 @@ function interFontFace(fontUrl: string): string {
 
 // The stylesheet of the email document, not of the app: twake-mui does not
 // reach inside the iframe. Images never overflow the reading pane, as in
-// tmail-flutter (EML-04). Its text style too (`HtmlTemplate.defaultFontStyle`):
-// Regular 14 in black, the default line height, paragraphs without margins.
+// tmail-flutter (EML-04). Its text style is the design's Regular one,
+// twake-mui's `body3` in `text.primary`, set on the body only so that any
+// style an email sets wins; paragraphs without margins, as tmail-flutter.
 // The document stays light whatever the colour scheme of the app: an email is
 // designed for a white page, and the colours it sets would not read on a dark
 // one.
@@ -67,8 +68,9 @@ body {
   font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   font-weight: 400;
-  line-height: normal;
-  color: #000000;
+  line-height: 1.313;
+  letter-spacing: 0.25px;
+  color: rgba(66, 66, 68, 0.9);
   overflow-wrap: anywhere;
   overflow-y: hidden;
 }
@@ -85,12 +87,7 @@ img { max-width: 100%; height: auto; }
 p { margin: 0; }
 /* tmail-flutter writes 16 px on phones (the frame is as wide as the screen) */
 @media (max-width: 599px) { body { font-size: 16px; } }
-pre, .tmail-plain-text { white-space: pre-wrap; font-family: inherit; margin: 0; }
-/* A plain text email in the design's Regular text style (twake-mui's
-   \`body3\` in \`text.primary\`); an HTML email keeps the defaults above, which
-   its own layout was designed against */
-.tmail-plain-text { line-height: 1.313; letter-spacing: 0.25px; color: rgba(66, 66, 68, 0.9); }
-blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid #c4c4c4; }
+pre, .tmail-plain-text { white-space: pre-wrap; font-family: inherit; margin: 0; }blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid #c4c4c4; }
 details.tmail-quoted-history > summary {
   display: inline-flex; align-items: center; justify-content: center; gap: 3px;
   width: 32px; height: 20px; margin: 8px 0 8px 4px; border-radius: 10px;

@@ -363,8 +363,12 @@ export function NavTreeItem({
       {...itemProps}
       {...longPress.handlers}
       onContextMenu={event => {
-        // A long press the browser reports as a context menu (Android)
-        longPress.cancel()
+        // A long press the browser reports as a context menu (Android):
+        // once only, when the timer did not open the menu already
+        if (longPress.cancel()) {
+          event.preventDefault()
+          return
+        }
         itemProps?.onContextMenu?.(event)
       }}
       onFocus={event => {

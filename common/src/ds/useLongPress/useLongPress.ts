@@ -17,8 +17,8 @@ export interface LongPress {
     onPointerUp: () => void
     onPointerCancel: () => void
   }
-  /** Forgets the press under way */
-  cancel: () => void
+  /** Forgets the press under way; true when it already opened the menu */
+  cancel: () => boolean
 }
 
 function swallowNextClick(): void {
@@ -30,10 +30,13 @@ function swallowNextClick(): void {
   const stop = (): void => {
     document.removeEventListener('click', swallow, true)
     document.removeEventListener('pointerdown', stop, true)
+    document.removeEventListener('keydown', stop, true)
   }
   document.addEventListener('click', swallow, true)
-  // No click follows when the finger moved: the next touch is another one
+  // No click follows when the finger moved, or on Android after its
+  // contextmenu: the next touch or key is another action
   document.addEventListener('pointerdown', stop, true)
+  document.addEventListener('keydown', stop, true)
 }
 
 /**
@@ -46,23 +49,33 @@ export function useLongPress(
 ): LongPress {
   const timer = useRef<number | null>(null)
   const start = useRef<{ x: number; y: number } | null>(null)
+  const hasFired = useRef(false)
 
-  const cancel = (): void => {
+  const cancel = (): boolean => {
     if (timer.current !== null) window.clearTimeout(timer.current)
     timer.current = null
     start.current = null
+    const fired = hasFired.current
+    hasFired.current = false
+    return fired
   }
 
-  useEffect(() => cancel, [])
+  useEffect(() => {
+    return (): void => {
+      cancel()
+    }
+  }, [])
 
   return {
     handlers: {
       onPointerDown: event => {
         if (onLongPress === undefined || event.pointerType !== 'touch') return
+        cancel()
         const element = event.currentTarget
         start.current = { x: event.clientX, y: event.clientY }
         timer.current = window.setTimeout(() => {
           timer.current = null
+          hasFired.current = true
           // The finger lifts on what opened meanwhile (the backdrop of a
           // menu): its click must neither close nor follow anything
           swallowNextClick()
@@ -79,8 +92,12 @@ export function useLongPress(
           cancel()
         }
       },
-      onPointerUp: cancel,
-      onPointerCancel: cancel
+      onPointerUp: () => {
+        cancel()
+      },
+      onPointerCancel: () => {
+        cancel()
+      }
     },
     cancel
   }

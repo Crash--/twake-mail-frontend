@@ -1,5 +1,5 @@
-// Upstream to twake-ui: yes. A colour field: a square showing the colour
-// chosen, opening twake-mui's `ColorList` look (21 px circles in rows of 7)
+// Upstream to twake-ui: yes. A colour field: an icon button showing the
+// colour chosen, opening twake-mui's `ColorList` look (21 px circles in rows of 7)
 // in a popover, with "no colour" first and a free colour last, as a radio
 // group. twake-mui's `ColorList` has neither and its swatches are buttons.
 import { Box, IconButton, Popover, Tooltip } from '@linagora/twake-mui'
@@ -215,13 +215,6 @@ export function ColorPopoverPicker({
             setAnchor(event.currentTarget)
           }}
           data-testid={testId}
-          sx={theme => ({
-            width: 47,
-            height: 47,
-            flexShrink: 0,
-            borderRadius: '4px',
-            border: `1px solid ${theme.vars.palette.border.main}`
-          })}
         >
           {value === null ? (
             <NoneMark />

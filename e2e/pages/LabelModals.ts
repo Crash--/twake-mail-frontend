@@ -31,7 +31,7 @@ export class LabelModals {
     this.nameInput = this.labelModal.getByTestId('label-name-input')
     this.descriptionInput = this.labelModal.getByTestId('label-description-input')
     this.saveButton = this.labelModal.getByTestId('label-save-button')
-    // The square beside the name; it opens the colours in a popover
+    // The icon button beside the name; it opens the colours in a popover
     this.colorPicker = this.labelModal.getByTestId('label-color-picker')
     this.colorOptions = page.getByTestId('label-color-picker-popover')
     this.customColorOption = this.colorOptions.getByRole('radio', {

@@ -13,7 +13,8 @@ const ROW_SX = {
   mb: 1
 } as const
 
-const LABEL_SX = { fontWeight: 400 } as const
+/** A long label ("Contiene las palabras") wraps 8 px before the field */
+const LABEL_SX = { fontWeight: 400, pr: 1 } as const
 
 /** The dense outlined field of the Figma: 9 px above and below a 14 px text */
 const CONTROL_SX = {

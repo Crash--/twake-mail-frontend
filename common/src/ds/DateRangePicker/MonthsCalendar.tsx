@@ -2,8 +2,9 @@
 // are not part of it). The month view of the date range picker: one month or
 // two side by side, the month name between the arrows, the week from Monday,
 // the start and the end of the range in primary discs joined by a pale
-// primary band, today on `action.selected`. A grid of days as the APG date picker dialog: arrows,
-// Home / End, Page Up / Page Down (a year with Shift), Enter or Space picks.
+// primary band, today on `action.selected`. A grid of days as the APG date
+// picker dialog: arrows, Home / End, Page Up / Page Down (a year with Shift),
+// Enter or Space picks.
 import { Icon, Left, Right } from '@linagora/twake-icons'
 import { Box, IconButton, type Theme, Tooltip } from '@linagora/twake-mui'
 import {
@@ -393,7 +394,9 @@ function DayCell({
       <Box
         component="span"
         sx={{
-          display: 'inline-flex',
+          // A block, not inline: no line box makes the row taller than 32 px
+          display: 'flex',
+          mx: 'auto',
           alignItems: 'center',
           justifyContent: 'center',
           width: CELL_SIZE,

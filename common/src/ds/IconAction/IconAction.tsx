@@ -11,7 +11,7 @@ import type { MouseEvent, ReactElement } from 'react'
  * The yellow of a filled (favorite) star, in every scheme: twake-mui has no
  * role for it, and `warning` stays for warnings
  */
-export const FAVORITE_COLOR = '#FFE082'
+export const FAVORITE_COLOR = '#FFCA28'
 
 const TONE_SX = {
   default: {},

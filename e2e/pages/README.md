@@ -67,8 +67,7 @@ Conventions:
 | `mailbox-more-button` | ⋮ button shown on hover or focus (always on touch screens), named "Actions on <folder>" | `UiKeys.mailboxMoreActionButton` |
 | `mailbox-context-menu` | folder actions menu (⋮, right click, menu key or Shift+F10); items `mailbox-action-<action>`: `new-subfolder`, `mark-as-read`, `empty-trash`, `empty-spam`, `move`, `rename`, `hide`, `show`, `delete` | — |
 | `add-new-folder-button` | "+" new folder in the "Folders" header | `UiKeys.addNewFolderButton` |
-| `show-hidden-folders-button` | toggle listing the hidden folders (`aria-pressed`), shown when some are hidden | — (Settings > Folder visibility in tmail-flutter) |
-| `mailbox-item-hidden` | "hidden" beside a hidden folder listed on demand (the row has `data-hidden="true"`) | — |
+| `mailbox-item-hidden` | "hidden" beside a hidden folder found by the folder search (the row has `data-hidden="true"`) | — |
 | `mailbox-name-dialog` / `mailbox-name-input` / `mailbox-name-location-button` / `mailbox-name-submit-button` / `mailbox-name-cancel-button` | the dialog naming a folder to create or rename it, and where it goes | `create_new_mailbox_*` |
 | `mailbox-search-button` | magnifier in the "Folders" header | `UiKeys.mailboxSearchButton` |
 | `team-mailboxes-section` | "Team-mailboxes" category of the Folders section and its tree, after the folders of the user; its roots have no icon and their address on a second line | — |

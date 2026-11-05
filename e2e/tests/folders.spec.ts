@@ -264,7 +264,7 @@ test.describe('MBX folders', () => {
     }
   )
 
-  test('MBX-29 a hidden folder shows again from the hidden folders, with the keyboard', async ({
+  test('MBX-29 a hidden folder shows again from the folder search, with the keyboard', async ({
     page,
     user,
     jmap
@@ -275,11 +275,7 @@ test.describe('MBX folders', () => {
     await mailbox.runFolderAction({ name: 'Rarely used' }, 'hide')
     await expect(mailbox.folder({ name: 'Rarely used' })).toBeHidden()
 
-    await mailbox.showHiddenFoldersButton.click()
-    await expect(mailbox.showHiddenFoldersButton).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
+    await mailbox.searchFolders('rarely')
     const hidden = mailbox.folder({ name: 'Rarely used' })
     await expect(hidden).toHaveAttribute('data-hidden', 'true')
     await hidden.focus()
@@ -290,7 +286,6 @@ test.describe('MBX folders', () => {
     await menu.getByTestId('mailbox-action-show').press('Enter')
 
     await expect(hidden).not.toHaveAttribute('data-hidden')
-    await expect(mailbox.showHiddenFoldersButton).toBeHidden()
   })
 
   test('MBX-30 a member of a team mailbox gets the actions their rights allow', async ({

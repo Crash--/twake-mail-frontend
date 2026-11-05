@@ -546,7 +546,7 @@ describe('Folder actions', () => {
     ).toBeEmptyDOMElement()
   })
 
-  it('hides a folder and its subfolders, then shows it on demand', async () => {
+  it('hides a folder and its subfolders, then shows it from the folder search', async () => {
     const server = makeServer()
     await renderTree(server)
 
@@ -561,9 +561,8 @@ describe('Folder actions', () => {
     expect(mailbox(server, 'work')?.isSubscribed).toBe(false)
     expect(mailbox(server, 'clients')?.isSubscribed).toBe(false)
 
-    const toggle = screen.getByRole('button', { name: 'Show hidden folders' })
-    await userEvent.click(toggle)
-    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByTestId('mailbox-search-button'))
+    await userEvent.type(screen.getByTestId('mailbox-search-input'), 'Work')
     expect(
       within(folder('Work')).getByTestId('mailbox-item-hidden')
     ).toHaveTextContent('hidden')

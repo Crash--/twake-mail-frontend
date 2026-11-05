@@ -144,7 +144,10 @@ describe('MailboxTree', () => {
       makeMailbox({ id: 'rare', name: 'Rarely used', isSubscribed: false })
     ])
     await screen.findAllByTestId('mailbox-item')
-    await userEvent.click(screen.getByTestId('show-hidden-folders-button'))
+    // Out of the tree: the folder search lists it
+    expect(screen.queryByText('Rarely used')).toBe(null)
+    await userEvent.click(screen.getByTestId('mailbox-search-button'))
+    await userEvent.type(screen.getByTestId('mailbox-search-input'), 'Rarely')
 
     const row = folder('Rarely used')
     expect(row).toHaveAttribute('data-hidden', 'true')

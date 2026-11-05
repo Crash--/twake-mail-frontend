@@ -2,9 +2,11 @@
 // ("Personal folders", "Team-mailboxes" under "Folders"): a 36 px row like a
 // folder (a 16 px icon, the name, the chevron right after it) that expands
 // and collapses the tree under it, indented by 8 px.
-import { Icon, type IconProps, Dropdown, Right } from '@linagora/twake-icons'
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, ButtonBase, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
+
+import { NavChevron } from '@/ds/NavChevron/NavChevron'
 
 const BUTTON_SX = {
   display: 'flex',
@@ -72,11 +74,7 @@ export function NavCategory({
           </Box>
           <span id={titleId}>{title}</span>
           <Box component="span" sx={CHEVRON_SX}>
-            <Icon
-              icon={isExpanded ? Dropdown : Right}
-              size={12}
-              aria-hidden="true"
-            />
+            <NavChevron isExpanded={isExpanded} />
           </Box>
         </ButtonBase>
       </Box>

@@ -4,7 +4,6 @@
 // puts the background on the row, indents by level without a cap, puts the
 // expand arrow after the label as a control of its own, and overlays the
 // actions on hover instead of reserving room for them.
-import { Icon, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { ListItem } from '@mui/material'
 import { NavLink } from '@/ds/NavLink/NavLink'
@@ -19,6 +18,7 @@ import {
 } from 'react'
 
 import { DropTarget } from '@/ds/DropTarget/DropTarget'
+import { NavChevron } from '@/ds/NavChevron/NavChevron'
 import {
   FOCUS_RING,
   FOCUS_RING_INSET
@@ -310,7 +310,7 @@ export function NavTreeItem({
               }
             }}
           >
-            <Icon icon={toggle.isExpanded ? Dropdown : Right} size={12} />
+            <NavChevron isExpanded={toggle.isExpanded} />
           </IconButton>
         </Tooltip>
       ) : null}

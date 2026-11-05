@@ -1,10 +1,4 @@
-import {
-  Eye,
-  EyeClosed,
-  Magnifier,
-  FolderOutlined,
-  Plus
-} from '@linagora/twake-icons'
+import { Magnifier, FolderOutlined, Plus } from '@linagora/twake-icons'
 import { Box, ListItem, ListItemText } from '@linagora/twake-mui'
 import {
   Fragment,
@@ -130,7 +124,8 @@ function TreeRows({
  * Starred virtual folder after the Inbox), then, when the user belongs to
  * team mailboxes, a "Team-mailboxes" section. Folders are collapsed, except
  * the ones leading to the selected folder, until the user toggles them.
- * Hidden folders show on demand; "+" creates a folder.
+ * Hidden folders show in the folder search and in Settings > Folder
+ * visibility; "+" creates a folder.
  */
 export function MailboxTree(): ReactElement {
   const { t } = useI18n()
@@ -147,7 +142,6 @@ export function MailboxTree(): ReactElement {
   const match = useMatch('/mailbox/:mailboxId/*')
   const selectedId = match?.params.mailboxId ?? null
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
-  const [showHidden, setShowHidden] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const searchButtonRef = useRef<HTMLButtonElement>(null)
   const searchId = useId()
@@ -157,8 +151,8 @@ export function MailboxTree(): ReactElement {
   } | null>(null)
 
   const sections = useMemo(
-    () => buildMailboxSections(query.data ?? [], showHidden),
-    [query.data, showHidden]
+    () => buildMailboxSections(query.data ?? [], false),
+    [query.data]
   )
   const selectedAncestors = useMemo(
     () =>
@@ -224,9 +218,6 @@ export function MailboxTree(): ReactElement {
     setIsSearching(false)
     searchButtonRef.current?.focus()
   }
-  const handleToggleHidden = (): void => {
-    setShowHidden(shown => !shown)
-  }
 
   let systemContent: ReactNode
   if (query.isError) {
@@ -259,7 +250,6 @@ export function MailboxTree(): ReactElement {
 
   const searchLabel = t('folders.search.label')
   const newFolderLabel = t('folders.newFolder')
-  const hiddenLabel = t('folders.hidden.show')
 
   // The titles stay outside the trees: a tree only holds tree items. Each
   // section is one named navigation landmark, the trees in it are not
@@ -299,15 +289,6 @@ export function MailboxTree(): ReactElement {
               data-testid="mailbox-tree-title"
               actions={
                 <>
-                  {sections.hiddenCount > 0 ? (
-                    <NavSectionAction
-                      label={hiddenLabel}
-                      icon={showHidden ? Eye : EyeClosed}
-                      aria-pressed={showHidden}
-                      onClick={handleToggleHidden}
-                      data-testid="show-hidden-folders-button"
-                    />
-                  ) : null}
                   <NavSectionAction
                     buttonRef={searchButtonRef}
                     label={searchLabel}

@@ -967,7 +967,6 @@
       "success": "Dieser Ordner wurde aus Ihrem Hauptordner ausgeblendet"
     },
     "hidden": {
-      "show": "Ausgeblendete Ordner anzeigen",
       "label": "ausgeblendet"
     },
     "show": {

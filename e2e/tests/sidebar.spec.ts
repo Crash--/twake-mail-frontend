@@ -105,8 +105,7 @@ test.describe('SBR sidebar rows and compose button', () => {
       await jmap.createMailbox({ name: 'A rarely used folder' })
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.runFolderAction({ name: 'A rarely used folder' }, 'hide')
-      await mailbox.showFolders()
-      await mailbox.showHiddenFoldersButton.click()
+      await mailbox.searchFolders('rarely')
 
       const row = mailbox.folder({ name: 'A rarely used folder' })
       await expect(row).toHaveAttribute('data-hidden', 'true')

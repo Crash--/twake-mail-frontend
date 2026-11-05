@@ -1,94 +1,204 @@
 // Upstream to twake-ui: no. The first level of the settings on phones and
-// tablets: a 24 px icon, the name, its explanation in `text.secondary` under
-// it, a chevron at the end, a divider between the entries within the side
-// margins (16 px on a phone, 32 px on a tablet).
-import { Icon, type IconProps, Right } from '@linagora/twake-icons'
-import { Box, ButtonBase } from '@linagora/twake-mui'
+// tablets (Figma "View mobile settings twake UI"): on the grey of the page,
+// who is signed in, centred under a round back button, then groups of
+// full-width rows on paper, each a 20 px icon in a 32 px box, the name in
+// body1, its explanation in caption under it, a 24 px chevron at the end,
+// the dividers starting under the name.
+import { Icon, type IconProps, Previous, Right } from '@linagora/twake-icons'
+import {
+  Box,
+  ButtonBase,
+  IconButton,
+  Tooltip,
+  Typography
+} from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
 
-import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+/** The icon box (32 px) and the gaps around it: where the dividers start */
+const TEXT_INSET = 16 + 32 + 16
 
-function sides(isPhone: boolean): string {
-  return isPhone ? '16px' : '32px'
-}
+const PAGE_SX = {
+  minHeight: '100%',
+  bgcolor: 'background.default',
+  pb: '24px'
+} as const
 
-function listSx(isPhone: boolean): Record<string, unknown> {
-  return {
-    listStyle: 'none',
-    m: 0,
-    p: 0,
-    // Under the account too, as tmail-flutter: a divider before each entry
-    '& > li::before': {
-      content: '""',
-      display: 'block',
-      height: '1px',
-      mx: sides(isPhone),
-      bgcolor: 'divider'
-    }
-  }
-}
+const ACCOUNT_SX = {
+  position: 'relative',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '2px',
+  pt: '27px',
+  pb: '18px',
+  // The back button stays above the name: the avatar alone is beside it
+  px: '16px',
+  textAlign: 'center'
+} as const
 
-function tileSx(isPhone: boolean): Record<string, unknown> {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    py: '24px',
-    px: sides(isPhone),
-    gap: '12px',
-    textAlign: 'start',
-    color: 'text.primary',
-    textDecoration: 'none'
-  }
-}
+const BACK_SX = {
+  position: 'absolute',
+  top: '8px',
+  insetInlineStart: '12px'
+} as const
 
 const NAME_SX = {
+  fontSize: '18px',
+  fontWeight: 600,
+  lineHeight: '22px',
+  color: 'text.primary',
+  wordBreak: 'break-word'
+} as const
+
+// A long address wraps, its button after its last letter
+const ADDRESS_SX = {
+  maxWidth: '100%',
+  typography: 'body2',
+  color: 'text.secondary',
+  wordBreak: 'break-all',
+  '& > button': { verticalAlign: 'middle', ml: '2px' }
+} as const
+
+const LIST_SX = {
+  listStyle: 'none',
+  m: 0,
+  p: 0,
+  bgcolor: 'background.paper',
+  '& + &': { mt: '24px' },
+  // Between the entries, from under the name to the end of the row
+  '& > li + li::before': {
+    content: '""',
+    display: 'block',
+    height: '1px',
+    ml: `${TEXT_INSET}px`,
+    bgcolor: 'divider'
+  }
+} as const
+
+const TILE_SX = {
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
-  typography: 'body1',
+  width: '100%',
+  minHeight: '56px',
+  py: '12px',
+  pl: '16px',
+  pr: '8px',
+  gap: '16px',
+  textAlign: 'start',
   color: 'text.primary',
-  '& svg': { color: 'primary.main', flexShrink: 0 }
+  textDecoration: 'none'
+} as const
+
+const ICON_BOX_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+  width: '32px',
+  height: '32px',
+  color: 'text.icon'
+} as const
+
+const TEXT_SX = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1px',
+  flex: '1 1 auto',
+  minWidth: 0
 } as const
 
 const EXPLANATION_SX = {
-  display: 'block',
-  mt: '12px',
-  ml: '36px',
-  typography: 'body3',
+  typography: 'caption',
   color: 'text.secondary'
 } as const
 
-const CHEVRON_SX = { display: 'flex', color: 'text.icon' } as const
+export interface SettingsTilesPageProps {
+  children: ReactNode
+}
 
-const ACCOUNT_SX = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '16px',
-  py: '12px',
-  typography: 'h5',
-  color: 'text.primary',
-  wordBreak: 'break-all'
-} as const
+/** The grey page holding the account and the groups of entries */
+export function SettingsTilesPage({
+  children
+}: SettingsTilesPageProps): ReactElement {
+  return <Box sx={PAGE_SX}>{children}</Box>
+}
 
 export interface SettingsAccountProps {
-  /** The avatar of the user, 51 px */
+  /** The avatar of the user, 48 px */
   avatar: ReactNode
+  /** The display name of the user */
+  name: string
   /** The address of the user */
-  children: ReactNode
+  address: string
+  /** After the address, e.g. an icon button copying it */
+  addressAction?: ReactNode
+  /** At the top left, e.g. the round button back to the mail */
+  back?: ReactNode
 }
 
 /** Who is signed in, above the entries */
 export function SettingsAccount({
   avatar,
-  children
+  name,
+  address,
+  addressAction,
+  back
 }: SettingsAccountProps): ReactElement {
-  const isPhone = useScreenSize() === 'mobile'
   return (
-    <Box sx={{ ...ACCOUNT_SX, px: sides(isPhone) }}>
+    <Box sx={ACCOUNT_SX}>
+      {back === undefined ? null : <Box sx={BACK_SX}>{back}</Box>}
       {avatar}
-      <span>{children}</span>
+      <Typography component="p" sx={NAME_SX}>
+        {name}
+      </Typography>
+      <Box sx={ADDRESS_SX}>
+        <span>{address}</span>
+        {addressAction}
+      </Box>
     </Box>
+  )
+}
+
+const BACK_BUTTON_SX = {
+  width: '56px',
+  height: '56px',
+  bgcolor: 'background.paper',
+  color: 'text.primary',
+  '&:hover': { bgcolor: 'background.paper' }
+} as const
+
+export interface SettingsBackButtonProps {
+  /** Tooltip and accessible name */
+  label: string
+  /** A link component (e.g. the router `Link`) and where it goes */
+  component: ElementType
+  to: string
+  /** Given to the link, e.g. the router `state` */
+  state?: unknown
+  'data-testid'?: string
+}
+
+/** The round button at the top left of the account, back to the mail */
+export function SettingsBackButton({
+  label,
+  component,
+  to,
+  state,
+  'data-testid': testId
+}: SettingsBackButtonProps): ReactElement {
+  return (
+    <Tooltip title={label}>
+      <IconButton
+        component={component}
+        to={to}
+        state={state}
+        aria-label={label}
+        sx={BACK_BUTTON_SX}
+        data-testid={testId}
+      >
+        <Icon icon={Previous} size={28} />
+      </IconButton>
+    </Tooltip>
   )
 }
 
@@ -96,13 +206,12 @@ export interface SettingsTileListProps {
   children: ReactNode
 }
 
-/** The entries of the settings, divided */
+/** A group of entries of the settings, divided */
 export function SettingsTileList({
   children
 }: SettingsTileListProps): ReactElement {
-  const isPhone = useScreenSize() === 'mobile'
   return (
-    <Box component="ul" sx={listSx(isPhone)}>
+    <Box component="ul" sx={LIST_SX}>
       {children}
     </Box>
   )
@@ -149,18 +258,19 @@ export function SettingsTile({
       : component === undefined
         ? {}
         : { component, to }
-  const isPhone = useScreenSize() === 'mobile'
   return (
     <Box component="li">
       <ButtonBase
         {...linkProps}
         onClick={onClick}
-        sx={tileSx(isPhone)}
+        sx={TILE_SX}
         data-testid={testId}
       >
-        <Box component="span" sx={{ flex: '1 1 auto', minWidth: 0 }}>
-          <Box component="span" sx={NAME_SX}>
-            <Icon icon={icon} size={24} aria-hidden="true" />
+        <Box component="span" sx={ICON_BOX_SX}>
+          <Icon icon={icon} size={20} aria-hidden="true" />
+        </Box>
+        <Box component="span" sx={TEXT_SX}>
+          <Box component="span" sx={{ typography: 'body1' }}>
             {title}
           </Box>
           {explanation === null ? null : (
@@ -169,8 +279,8 @@ export function SettingsTile({
             </Box>
           )}
         </Box>
-        <Box component="span" sx={CHEVRON_SX}>
-          <Icon icon={Right} size={20} aria-hidden="true" />
+        <Box component="span" sx={ICON_BOX_SX}>
+          <Icon icon={Right} size={24} aria-hidden="true" />
         </Box>
       </ButtonBase>
     </Box>

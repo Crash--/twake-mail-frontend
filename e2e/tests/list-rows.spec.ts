@@ -238,24 +238,14 @@ test.describe('LST labels in the list rows', () => {
       const mailbox = await new LoginPage(page).loginAs(user)
       const row = mailbox.emailRow('Three labels row')
 
-      const isDesktop = (page.viewportSize()?.width ?? 0) >= 1000
-      if (isDesktop) {
-        // As tmail-flutter: up to 3 tags on a desktop
-        await expect(row.getByTestId('label-chip')).toHaveText([
-          'Design',
-          'Personal',
-          'Urgent'
-        ])
-        await expect(row.getByTestId('label-chip-more')).toHaveCount(0)
-      } else {
-        await expect(row.getByTestId('label-chip')).toHaveCount(1)
-        await expect(row.getByTestId('label-chip')).toHaveText('Design')
-        await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
-        // The hidden labels are named for assistive technologies
-        await expect(
-          row.getByRole('list', { name: 'Labels of the email' })
-        ).toContainText('2 more labels: Personal, Urgent')
-      }
+      // As the Figma list: the first tag, the others behind "+N"
+      await expect(row.getByTestId('label-chip')).toHaveCount(1)
+      await expect(row.getByTestId('label-chip')).toHaveText('Design')
+      await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
+      // The hidden labels are named for assistive technologies
+      await expect(
+        row.getByRole('list', { name: 'Labels of the email' })
+      ).toContainText('2 more labels: Personal, Urgent')
       const rowBox = await row.boundingBox()
       const chipBox = await row
         .getByTestId('label-chip')

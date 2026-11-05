@@ -20,7 +20,7 @@ export function labelsOfEmail(
 
 export interface LabelChipsProps {
   labels: readonly Label[]
-  /** Shows that many, then "+N" (tmail-flutter: 3 on a desktop list) */
+  /** Shows that many, then "+N" (a list row: 1) */
   max?: number
   /** Gives each chip a × taking the label off */
   onRemove?: (label: Label) => void

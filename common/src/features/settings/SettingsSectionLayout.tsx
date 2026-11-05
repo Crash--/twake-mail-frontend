@@ -18,6 +18,8 @@ export interface SettingsSectionLayoutProps {
   actions?: ReactNode
   /** What the page is for, instead of the section's short description */
   description?: string
+  /** Beside the title, e.g. the state of the vacation */
+  status?: ReactNode
   children: ReactNode
 }
 
@@ -31,6 +33,7 @@ export function SettingsSectionLayout({
   section,
   actions,
   description: pageDescription,
+  status,
   children
 }: SettingsSectionLayoutProps): ReactElement {
   const { t } = useI18n()
@@ -70,9 +73,17 @@ export function SettingsSectionLayout({
       {isDesktop ? (
         <Box className="u-flex u-flex-items-start">
           <Box className="u-flex-auto u-mr-1">
-            <SettingsTitle ref={headingRef} id={`settings-${section.id}-title`}>
-              {title}
-            </SettingsTitle>
+            <Box className="u-flex u-flex-items-center">
+              <SettingsTitle
+                ref={headingRef}
+                id={`settings-${section.id}-title`}
+              >
+                {title}
+              </SettingsTitle>
+              {status === undefined ? null : (
+                <Box className="u-ml-1">{status}</Box>
+              )}
+            </Box>
             {description === null ? null : (
               <SettingsDescription>{description}</SettingsDescription>
             )}
@@ -90,6 +101,11 @@ export function SettingsSectionLayout({
           </SettingsTitle>
           {description === null ? null : (
             <SettingsDescription isCentered>{description}</SettingsDescription>
+          )}
+          {status === undefined ? null : (
+            <Box className="u-flex u-flex-justify-center u-mt-half">
+              {status}
+            </Box>
           )}
           {actions === undefined ? null : (
             <Box className="u-flex u-flex-justify-center u-mt-1">{actions}</Box>

@@ -352,6 +352,8 @@ export function SettingsFormColumn({
 export interface SettingsFormRowLabelProps {
   /** Id of the field it labels */
   htmlFor?: string
+  /** Its own id, for a group it names (`aria-labelledby`) */
+  id?: string
   /** Faded with its field */
   isDisabled?: boolean
   children: ReactNode
@@ -360,12 +362,14 @@ export interface SettingsFormRowLabelProps {
 /** The label of a field of a settings form row */
 export function SettingsFormRowLabel({
   htmlFor,
+  id,
   isDisabled = false,
   children
 }: SettingsFormRowLabelProps): ReactElement {
   return (
     <Box
-      component="label"
+      component={htmlFor === undefined ? 'span' : 'label'}
+      id={id}
       htmlFor={htmlFor}
       sx={
         isDisabled ? { ...ROW_LABEL_SX, color: 'text.disabled' } : ROW_LABEL_SX
@@ -454,6 +458,8 @@ export interface SettingsFormRowProps {
   label: string
   /** Id of the field it labels */
   htmlFor?: string
+  /** Id of the label, for a group it names instead of a field */
+  labelId?: string
   /** The label above its field, as wide as the column */
   isStacked?: boolean
   /** Its fields are disabled: the label fades */
@@ -465,6 +471,7 @@ export interface SettingsFormRowProps {
 export function SettingsFormRow({
   label,
   htmlFor,
+  labelId,
   isStacked = false,
   isDisabled = false,
   children
@@ -483,7 +490,11 @@ export function SettingsFormRow({
           : ROW_SX
       }
     >
-      <SettingsFormRowLabel htmlFor={htmlFor} isDisabled={isDisabled}>
+      <SettingsFormRowLabel
+        htmlFor={htmlFor}
+        id={labelId}
+        isDisabled={isDisabled}
+      >
         {label}
       </SettingsFormRowLabel>
       {children}

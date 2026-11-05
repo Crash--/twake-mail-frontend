@@ -1,4 +1,5 @@
-import { Alert, Box, Button } from '@linagora/twake-mui'
+import { CircleFilled, Icon } from '@linagora/twake-icons'
+import { Alert, Box, Button, Chip } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
 import type { VacationResponse } from 'jmap-client-ts'
@@ -12,6 +13,7 @@ import {
 } from 'react'
 
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
+import { SegmentedChoice } from '@/ds/SegmentedChoice/SegmentedChoice'
 import {
   SETTINGS_FORM_WIDTH,
   SettingsFormColumn,
@@ -88,9 +90,12 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const endDateRef = useRef<HTMLInputElement>(null)
   const endTimeRef = useRef<HTMLInputElement>(null)
   const editorRef = useRef<Editor | null>(null)
+  const startsId = useId()
+  const endsId = useId()
   const [start] = useState(() => startInputs(vacation.fromDate, new Date()))
   const end = toLocalInputs(vacation.toDate)
   const [isEnabled, setIsEnabled] = useState(vacation.isEnabled)
+  const [isRightAway, setIsRightAway] = useState(vacation.fromDate === null)
   const [startDate, setStartDate] = useState(start.date)
   const [startTime, setStartTime] = useState(start.time)
   const [hasEnd, setHasEnd] = useState(vacation.toDate !== null)
@@ -120,7 +125,10 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
 
   const values = (): VacationResponse | VacationProblem => {
     if (!isEnabled) return { id: 'singleton', ...disabledVacation(vacation) }
-    const fromDate = fromLocalInputs(startDate, startTime)
+    const now = startInputs(null, new Date())
+    const fromDate = isRightAway
+      ? fromLocalInputs(now.date, now.time)
+      : fromLocalInputs(startDate, startTime)
     if (fromDate === null) {
       return {
         key: 'vacation.errors.noStart',
@@ -188,6 +196,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
 
   const handleCancel = (): void => {
     setIsEnabled(vacation.isEnabled)
+    setIsRightAway(vacation.fromDate === null)
     setStartDate(start.date)
     setStartTime(start.time)
     setHasEnd(vacation.toDate !== null)
@@ -222,7 +231,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   return (
     <form onSubmit={handleSubmit} noValidate data-testid="vacation-form">
       <SettingsSwitchRow
-        title={t('vacation.enable')}
+        title={t('vacation.responder')}
+        description={t('vacation.enable')}
         isChecked={isEnabled}
         isDisabled={isSaving}
         onChange={checked => {
@@ -234,114 +244,147 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
       />
       {/* As tmail-flutter: a column of labelled rows, 660 px wide at most */}
       <SettingsFormColumn>
-        <SettingsFormPair
+        <SettingsFormRow
+          label={t('vacation.starts')}
+          labelId={startsId}
           isDisabled={isOff}
-          first={{
-            label: `${t('vacation.startDate')}:`,
-            htmlFor: startDateId,
-            field: (
-              <SettingsTextField
-                id={startDateId}
-                type="date"
-                size="form"
-                width={150}
-                label={t('vacation.startDate')}
-                value={startDate}
-                inputRef={startDateRef}
-                {...problemProps('startDate')}
-                disabled={isOff}
-                required={isEnabled}
-                onChange={event => {
-                  setStartDate(event.target.value)
-                }}
-                inputTestId="vacation-start-date-input"
-              />
-            )
-          }}
-          second={{
-            label: `${t('vacation.startTime')}:`,
-            htmlFor: startTimeId,
-            field: (
-              <SettingsTextField
-                id={startTimeId}
-                type="time"
-                size="form"
-                width={130}
-                label={t('vacation.startTime')}
-                value={startTime}
-                inputRef={startTimeRef}
-                {...problemProps('startTime')}
-                disabled={isOff}
-                onChange={event => {
-                  setStartTime(event.target.value)
-                }}
-                inputTestId="vacation-start-time-input"
-              />
-            )
-          }}
-        />
-        {problemAlert(['startDate', 'startTime'])}
-        {/* As tmail-flutter: apart from the start */}
-        <Box className="u-mt-1">
-          <SettingsSwitchRow
-            title={t('vacation.stops')}
-            isChecked={hasEnd}
+        >
+          <SegmentedChoice
+            labelledBy={startsId}
+            value={isRightAway ? 'now' : 'pick'}
+            choices={[
+              { value: 'now', label: t('vacation.rightAway') },
+              { value: 'pick', label: t('vacation.pickTime') }
+            ]}
             isDisabled={isOff}
-            onChange={checked => {
-              setHasEnd(checked)
+            onChange={choice => {
+              setIsRightAway(choice === 'now')
+              setProblem(null)
+            }}
+            data-testid="vacation-start-choice"
+          />
+        </SettingsFormRow>
+        {isRightAway ? null : (
+          <SettingsFormPair
+            isDisabled={isOff}
+            first={{
+              label: `${t('vacation.startDate')}:`,
+              htmlFor: startDateId,
+              field: (
+                <SettingsTextField
+                  id={startDateId}
+                  type="date"
+                  size="form"
+                  width={150}
+                  label={t('vacation.startDate')}
+                  value={startDate}
+                  inputRef={startDateRef}
+                  {...problemProps('startDate')}
+                  disabled={isOff}
+                  required={isEnabled}
+                  onChange={event => {
+                    setStartDate(event.target.value)
+                  }}
+                  inputTestId="vacation-start-date-input"
+                />
+              )
+            }}
+            second={{
+              label: `${t('vacation.startTime')}:`,
+              htmlFor: startTimeId,
+              field: (
+                <SettingsTextField
+                  id={startTimeId}
+                  type="time"
+                  size="form"
+                  width={130}
+                  label={t('vacation.startTime')}
+                  value={startTime}
+                  inputRef={startTimeRef}
+                  {...problemProps('startTime')}
+                  disabled={isOff}
+                  onChange={event => {
+                    setStartTime(event.target.value)
+                  }}
+                  inputTestId="vacation-start-time-input"
+                />
+              )
+            }}
+          />
+        )}
+        {problemAlert(['startDate', 'startTime'])}
+        <SettingsFormRow
+          label={t('vacation.ends')}
+          labelId={endsId}
+          isDisabled={isOff}
+        >
+          <SegmentedChoice
+            labelledBy={endsId}
+            value={hasEnd ? 'pick' : 'off'}
+            choices={[
+              { value: 'off', label: t('vacation.untilTurnedOff') },
+              { value: 'pick', label: t('vacation.pickTime') }
+            ]}
+            isDisabled={isOff}
+            onChange={choice => {
+              const isPicked = choice === 'pick'
+              setHasEnd(isPicked)
+              setProblem(null)
               // Safari shows today in an empty date input: fill the end with
               // the start, so that what is shown is what gets saved
-              setEndDate(checked ? startDate : '')
-              setEndTime(checked ? startTime : '')
+              setEndDate(isPicked ? startDate : '')
+              setEndTime(isPicked ? startTime : '')
             }}
-            data-testid="vacation-end-toggle"
+            data-testid="vacation-end-choice"
           />
-        </Box>
-        <SettingsFormPair
-          isDisabled={isOff || !hasEnd}
-          first={{
-            label: `${t('vacation.endDate')}:`,
-            htmlFor: endDateId,
-            field: (
-              <SettingsTextField
-                id={endDateId}
-                type="date"
-                size="form"
-                width={150}
-                label={t('vacation.endDate')}
-                value={endDate}
-                inputRef={endDateRef}
-                {...problemProps('endDate')}
-                disabled={isOff || !hasEnd}
-                onChange={event => {
-                  setEndDate(event.target.value)
-                }}
-                inputTestId="vacation-end-date-input"
-              />
-            )
-          }}
-          second={{
-            label: `${t('vacation.endTime')}:`,
-            htmlFor: endTimeId,
-            field: (
-              <SettingsTextField
-                id={endTimeId}
-                type="time"
-                size="form"
-                width={130}
-                label={t('vacation.endTime')}
-                value={endTime}
-                inputRef={endTimeRef}
-                {...problemProps('endTime')}
-                disabled={isOff || !hasEnd}
-                onChange={event => {
-                  setEndTime(event.target.value)
-                }}
-                inputTestId="vacation-end-time-input"
-              />
-            )
-          }}
-        />
+        </SettingsFormRow>
+        {!hasEnd ? null : (
+          <SettingsFormPair
+            isDisabled={isOff}
+            first={{
+              label: `${t('vacation.endDate')}:`,
+              htmlFor: endDateId,
+              field: (
+                <SettingsTextField
+                  id={endDateId}
+                  type="date"
+                  size="form"
+                  width={150}
+                  label={t('vacation.endDate')}
+                  value={endDate}
+                  inputRef={endDateRef}
+                  {...problemProps('endDate')}
+                  disabled={isOff}
+                  onChange={event => {
+                    setEndDate(event.target.value)
+                  }}
+                  inputTestId="vacation-end-date-input"
+                />
+              )
+            }}
+            second={{
+              label: `${t('vacation.endTime')}:`,
+              htmlFor: endTimeId,
+              field: (
+                <SettingsTextField
+                  id={endTimeId}
+                  type="time"
+                  size="form"
+                  width={130}
+                  label={t('vacation.endTime')}
+                  value={endTime}
+                  inputRef={endTimeRef}
+                  {...problemProps('endTime')}
+                  disabled={isOff}
+                  onChange={event => {
+                    setEndTime(event.target.value)
+                  }}
+                  inputTestId="vacation-end-time-input"
+                />
+              )
+            }}
+          />
+        )}
         {problemAlert(['endDate', 'endTime'])}
         <SettingsFormRow
           label={t('vacation.subject')}
@@ -415,18 +458,33 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
 }
 
 /**
- * Settings > Vacation (`VacationResponse`), as tmail-flutter: on or off,
- * from a date and time, until another one if wanted, with a subject and a
- * rich message
+ * Settings > Vacation (`VacationResponse`), as the Figma: its saved state
+ * beside the title, on or off, from now or from a date and time, until
+ * turned off or until another one, with a subject and a rich message
  */
 export function VacationSettings({
   section
 }: VacationSettingsProps): ReactElement {
   const { t } = useI18n()
   const query = useVacation()
+  const isOn = query.data?.isEnabled === true
 
   return (
-    <SettingsSectionLayout section={section}>
+    <SettingsSectionLayout
+      section={section}
+      status={
+        query.data === undefined ? undefined : (
+          <Chip
+            size="small"
+            variant="outlined"
+            color={isOn ? 'success' : 'default'}
+            icon={<Icon icon={CircleFilled} size={8} aria-hidden="true" />}
+            label={t(isOn ? 'vacation.statusOn' : 'vacation.statusOff')}
+            data-testid="vacation-status"
+          />
+        )
+      }
+    >
       {query.isPending ? (
         <LoadingListSkeleton count={3} />
       ) : query.isError ? (

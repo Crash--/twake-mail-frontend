@@ -1,17 +1,24 @@
 // Upstream to twake-ui: yes, as options of the platform bar
-// (`@linagora/twake-bar`): its margins.
+// (`@linagora/twake-bar`): its margins and its divider.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-/** 4 px of the page background before the sidebar and the page, as the design */
+const HEADER_SX = { borderBottom: 1, borderColor: 'divider' } as const
+
+/**
+ * A 1 px divider closes the bar, then 4 px of the page background before the
+ * sidebar and the page, as the design
+ */
 const BASE_SX = {
   flexShrink: 0,
-  mb: '4px'
+  mb: '4px',
+  '& > header': HEADER_SX
 } as const
 
 const FRAME_SX = {
   ...BASE_SX,
   '& > header': {
+    ...HEADER_SX,
     pl: '30px',
     pr: '30px'
   }
@@ -34,7 +41,7 @@ export interface AppBarFrameProps {
   isPlain?: boolean
 }
 
-/** Around the platform bar: its margins, the gap under it */
+/** Around the platform bar: its margins, its divider, the gap under it */
 export function AppBarFrame({
   children,
   isPlain = false

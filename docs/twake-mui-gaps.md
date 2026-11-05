@@ -535,3 +535,9 @@ in the app). What is missing around it:
 | `TwakeMuiThemeProvider` | The scheme before the first paint: the page starts light (`defaultMode="light"`) until React mounts, and its `mode` prop cannot say `system` | A dark page that never flashes white | An inline script of `public/index.html` (hashed in the CSP) sets `data-theme` and `color-scheme` from the copy of the account setting kept in this browser; `ColorSchemeSync` then calls `setMode()` from a layout effect | An `InitColorSchemeScript` of twake-mui (the MUI one is for SSR) and `mode="system"` |
 | Theme | Two values the palette does not carry in the dark scheme: a raised bar (`grey.100`, `grey.800`) and the text of a search match, which stays dark on `warning.light` | The overflow menu of the docked windows, the matches of a search | `theme.applyStyles('dark', …)` in `ds/DockedWindow/WindowOverflowMenu` and `ds/Highlight` | A background role for a raised surface, and a `warning.light` with its contrast text in both schemes |
 | `@linagora/twake-embed` | The `twake-space:theme` message of TwakeSpace is received but not exposed by `connectToTwakeSpace` | A framed facade coloured as the page framing it | Not followed: the facade follows the setting of the account | A `onTheme` handler (or the theme in `HelloMessage`) of the connection |
+
+## Reading view
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `@linagora/twake-icons` | No outline pencil: `Pen` is filled, the other icons of the email menu are outlines | "Edit as new email" in the email menu | `EditOutlineIcon` of `ds/ListIcons` (Material Icons' outlined `edit`, Apache-2.0) | Add an outline `PenOutline` |

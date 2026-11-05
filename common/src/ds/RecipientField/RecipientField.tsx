@@ -2,9 +2,10 @@
 // suggestions; Mail (recipients), Calendar (attendees) and Drive (sharing)
 // all need one. The ARIA 1.2 combobox of `SearchCombobox`, with the chips
 // of what was already entered before the input.
-import { Icon, Warning, Cross } from '@linagora/twake-icons'
+import { Icon, Warning, CrossSmall } from '@linagora/twake-icons'
 import {
   Box,
+  Chip,
   InputBase,
   Paper,
   Popper,
@@ -13,9 +14,6 @@ import {
   type PopperProps,
   type Theme
 } from '@linagora/twake-mui'
-// MUI's Chip: twake-mui's forwards the ref the keyboard needs since React 19
-// too, the switch is still to do (docs/twake-mui-gaps.md)
-import Chip from '@mui/material/Chip'
 import {
   useEffect,
   useId,
@@ -132,46 +130,7 @@ const CONTENT_SX = {
   minHeight: 28
 } as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
-/**
- * A recipient tag, the filled chip of the design system; selected while it
- * has the focus
- */
-export const RECIPIENT_CHIP_SX = {
-  height: 32,
-  maxWidth: 267,
-  boxSizing: 'border-box',
-  borderRadius: radius.md,
-  border: 0,
-  bgcolor: 'background.default',
-  color: 'text.primary',
-  pl: '4px',
-  pr: 1,
-  gap: '4px',
-  '&& .MuiChip-avatar, && .MuiChip-icon': { ml: 0, mr: 0 },
-  '&& .MuiChip-label': {
-    px: 0,
-    typography: 'caption'
-  },
-  '& .MuiChip-deleteIcon': {
-    color: 'text.icon',
-    flexShrink: 0,
-    m: 0,
-    width: 16,
-    height: 16
-  },
-  '&:focus, &.Mui-focusVisible': {
-    bgcolor: 'action.selected'
-  }
-} as const
-/** A tag being dragged, and the copy under the pointer: primary, with a contrast name */
-const DRAGGED_CHIP_SX = {
-  ...RECIPIENT_CHIP_SX,
-  bgcolor: 'primary.main',
-  color: 'primary.contrastText',
-  '&:focus, &.Mui-focusVisible': {
-    bgcolor: 'primary.main'
-  }
-} as const
+const CHIP_SX = { maxWidth: 267 } as const
 /** Tags that can be dragged show it (tmail-flutter's `grab` cursor) */
 const GRAB_SX = { cursor: 'grab' } as const
 /** A field a dragged tag (or email) may land in: a 1 px primary border, drawn inside so nothing moves */
@@ -215,15 +174,6 @@ const OUTLINED_CONTENT_SX = { ...CONTENT_SX, minHeight: 32 } as const
 const OUTLINED_ERROR_SX = {
   borderColor: 'error.main',
   '&:focus-within': { borderColor: 'error.main' }
-} as const
-
-/** An invalid tag: the paper colour, with an error border */
-export const INVALID_CHIP_SX = {
-  ...RECIPIENT_CHIP_SX,
-  border: 1,
-  borderColor: 'error.main',
-  bgcolor: 'background.paper',
-  '&& .MuiChip-icon': { ml: 0, mr: 0, color: 'error.main' }
 } as const
 
 /** Something already entered in the field */
@@ -883,8 +833,16 @@ export function RecipientField({
                   chipElements.current.set(chip.id, element)
                 }
               }}
-              size="small"
+              size="medium"
+              square
               variant={chip.isInvalid ? 'outlined' : 'filled'}
+              color={
+                draggedId === chip.id
+                  ? 'primary'
+                  : chip.isInvalid
+                    ? 'error'
+                    : 'default'
+              }
               avatar={
                 chip.isInvalid || chip.avatar === undefined ? undefined : (
                   <RecipientAvatar
@@ -896,15 +854,12 @@ export function RecipientField({
               icon={
                 // Not by its colour only: the icon says it too
                 chip.isInvalid ? (
-                  <Icon
-                    icon={Warning}
-                    size={16}
-                    color="var(--twake-palette-error-main)"
-                    aria-hidden="true"
-                  />
+                  <Icon icon={Warning} aria-hidden="true" />
                 ) : undefined
               }
-              deleteIcon={<Icon icon={Cross} size={16} aria-hidden="true" />}
+              // twake-mui's default is an IconButton: a second, tabbable
+              // button inside the chip
+              deleteIcon={<Icon icon={CrossSmall} aria-hidden="true" />}
               label={chip.label}
               title={chip.title ?? chip.label}
               aria-label={
@@ -957,14 +912,7 @@ export function RecipientField({
                       setDraggedId(null)
                     }
               }
-              sx={[
-                draggedId === chip.id
-                  ? DRAGGED_CHIP_SX
-                  : chip.isInvalid
-                    ? INVALID_CHIP_SX
-                    : RECIPIENT_CHIP_SX,
-                dnd === undefined ? false : GRAB_SX
-              ]}
+              sx={[CHIP_SX, dnd === undefined ? false : GRAB_SX]}
               data-testid={testIds.chip}
               data-invalid={chip.isInvalid ? 'true' : undefined}
             />

@@ -1,8 +1,6 @@
 // Upstream to twake-ui: with RecipientField.
 import { Icon, Warning } from '@linagora/twake-icons'
-import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
-// Not twake-mui's Chip, as in RecipientField (docs/twake-mui-gaps.md)
-import Chip from '@mui/material/Chip'
+import { Box, ButtonBase, Chip, Typography } from '@linagora/twake-mui'
 import {
   useCallback,
   useEffect,
@@ -15,11 +13,7 @@ import {
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
 
 import { RecipientAvatar } from './RecipientAvatar'
-import {
-  INVALID_CHIP_SX,
-  RECIPIENT_CHIP_SX,
-  type RecipientFieldChip
-} from './RecipientField'
+import type { RecipientFieldChip } from './RecipientField'
 
 /** Gap between the chips, and room kept for the "+N" counter, in px */
 const GAP = 8
@@ -42,29 +36,20 @@ function SummaryChip({ chip }: { chip: RecipientFieldChip }): ReactElement {
   return (
     <Chip
       component="span"
-      size="small"
+      size="medium"
+      square
       variant={chip.isInvalid ? 'outlined' : 'filled'}
+      color={chip.isInvalid ? 'error' : 'default'}
       avatar={
         chip.isInvalid || chip.avatar === undefined ? undefined : (
           <RecipientAvatar of={chip.avatar} />
         )
       }
       icon={
-        chip.isInvalid ? (
-          <Icon
-            icon={Warning}
-            color="var(--twake-palette-error-main)"
-            aria-hidden="true"
-          />
-        ) : undefined
+        chip.isInvalid ? <Icon icon={Warning} aria-hidden="true" /> : undefined
       }
       label={chip.label}
-      sx={{
-        ...(chip.isInvalid ? INVALID_CHIP_SX : RECIPIENT_CHIP_SX),
-        maxWidth: '100%',
-        flexShrink: 1,
-        minWidth: 0
-      }}
+      sx={{ maxWidth: '100%', flexShrink: 1, minWidth: 0 }}
     />
   )
 }

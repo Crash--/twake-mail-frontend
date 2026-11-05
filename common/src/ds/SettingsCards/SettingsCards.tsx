@@ -1,8 +1,8 @@
 // Upstream to twake-ui: no. The rows of the lists of the settings: the
 // rules, cards on `background.default` 72 px high, 8 px apart, the name,
 // then in a pill what the row does, and the actions at the end; the
-// recipients of the forwarding, narrower cards with an avatar, under a
-// header selecting them.
+// recipients of the forwarding, rows with an avatar ruled in one outlined
+// list, under a header selecting them, and that outlined box empty.
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -55,19 +55,105 @@ const ACTIONS_SX = {
   flexShrink: 0
 } as const
 
+const OUTLINED_SX = {
+  width: 628,
+  maxWidth: '100%',
+  m: 0,
+  p: 0,
+  listStyle: 'none',
+  border: 1,
+  borderColor: 'divider',
+  borderRadius: '12px',
+  overflow: 'hidden'
+} as const
+
 const RECIPIENT_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  width: 597,
-  maxWidth: '100%',
-  minHeight: 72,
-  mt: '4px',
+  minHeight: 64,
   px: 2,
-  borderRadius: '10px',
-  bgcolor: 'background.default',
+  '& + &': { borderTop: 1, borderColor: 'divider' },
   '&[data-selected="true"]': { bgcolor: 'action.selected' }
 } as const
+
+const EMPTY_SX = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  px: 3,
+  py: 3,
+  textAlign: 'center',
+  color: 'text.secondary',
+  typography: 'body2'
+} as const
+
+const EMPTY_ICON_SX = {
+  display: 'flex',
+  mb: 2,
+  color: 'primary.light'
+} as const
+
+const EMPTY_TITLE_SX = {
+  m: 0,
+  mb: 1,
+  typography: 'body1',
+  color: 'text.primary'
+} as const
+
+export interface SettingsRecipientListProps {
+  label: string
+  children: ReactNode
+  'data-testid'?: string
+}
+
+/** The recipients of the forwarding: a 628 px outlined list, rows ruled */
+export function SettingsRecipientList({
+  label,
+  children,
+  'data-testid': testId
+}: SettingsRecipientListProps): ReactElement {
+  return (
+    <Box
+      component="ul"
+      aria-label={label}
+      sx={OUTLINED_SX}
+      data-testid={testId}
+    >
+      {children}
+    </Box>
+  )
+}
+
+export interface SettingsRecipientEmptyProps {
+  /** A 64 px glyph, drawn in `primary.light` */
+  icon: ReactNode
+  title: string
+  text: string
+  'data-testid'?: string
+}
+
+/** In place of the outlined list while it has no recipient */
+export function SettingsRecipientEmpty({
+  icon,
+  title,
+  text,
+  'data-testid': testId
+}: SettingsRecipientEmptyProps): ReactElement {
+  return (
+    <Box sx={{ ...OUTLINED_SX, ...EMPTY_SX }} data-testid={testId}>
+      <Box component="span" sx={EMPTY_ICON_SX}>
+        {icon}
+      </Box>
+      <Box component="p" sx={EMPTY_TITLE_SX}>
+        {title}
+      </Box>
+      <Box component="p" sx={{ m: 0, maxWidth: 340 }}>
+        {text}
+      </Box>
+    </Box>
+  )
+}
 
 const RECIPIENT_NAME_SX = {
   flex: '1 1 auto',
@@ -105,9 +191,9 @@ export interface SettingsRecipientCardProps {
 }
 
 /**
- * A recipient of the forwarding: a card at most 597 px wide, its avatar, the
- * address and a primary status icon, the delete button at the end; on
- * `action.selected` once selected
+ * A recipient of the forwarding, a row of `SettingsRecipientList`: its
+ * avatar, the address and a primary status icon, the delete button at the
+ * end; on `action.selected` once selected
  */
 export function SettingsRecipientCard({
   avatar,

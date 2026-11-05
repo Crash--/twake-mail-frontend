@@ -2,6 +2,7 @@ import {
   Icon,
   Check,
   Cross,
+  Forward,
   Plus,
   Trash,
   InfoOutlined
@@ -30,10 +31,14 @@ import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
 import {
   SettingsHeaderButton,
   SettingsListHeader,
-  SettingsRecipientCard
+  SettingsRecipientCard,
+  SettingsRecipientEmpty,
+  SettingsRecipientList
 } from '@/ds/SettingsCards/SettingsCards'
 import {
   SettingsFieldSlot,
+  SettingsFormColumn,
+  SettingsFormRowLabel,
   SettingsLabelPill
 } from '@/ds/SettingsFields/SettingsFields'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
@@ -317,31 +322,11 @@ export function ForwardSettings({
 
   return (
     <SettingsSectionLayout section={section}>
-      {hasExternal ? (
-        <Alert
-          severity="warning"
-          className="u-mb-1"
-          data-testid="forward-warning-banner"
-        >
-          {configuredWarning ?? t('forward.externalBanner')}
-        </Alert>
-      ) : null}
-      {forwards.length > 0 ? (
-        <SettingsSwitchRow
-          title={t('forward.localCopy')}
-          description={t('forward.localCopyDescription')}
-          isChecked={query.data.localCopy}
-          isDisabled={isSaving}
-          onChange={handleLocalCopy}
-          data-testid="forward-local-copy-toggle"
-        />
-      ) : null}
-      <SettingsLabelPill
-        component="h2"
-        id={recipientsTitleId}
-        label={t('forward.recipients')}
-        pill={t('forward.recipientCount', { smart_count: forwards.length })}
-      />
+      <Box className="u-mb-half">
+        <SettingsFormRowLabel htmlFor={inputId}>
+          {t('forward.inputLabel')}
+        </SettingsFormRowLabel>
+      </Box>
       <Box
         component="form"
         ref={formRef}
@@ -359,10 +344,6 @@ export function ForwardSettings({
           isFullWidth={isPhone}
           className={isPhone ? 'u-mb-1' : 'u-mr-1 u-mb-half'}
         >
-          {/* The placeholder shows, the name of the field is said */}
-          <label htmlFor={inputId} className="u-visuallyhidden">
-            {t('forward.inputLabel')}
-          </label>
           <ForwardRecipientField
             inputId={inputId}
             values={pending}
@@ -377,10 +358,14 @@ export function ForwardSettings({
             }}
             forwards={forwards}
             hasError={problem !== null}
-            describedBy={problem === null ? undefined : problemId}
+            describedBy={problemId}
             actions={fieldRef}
           />
-          {problem === null ? null : (
+          {problem === null ? (
+            <FormHelperText id={problemId}>
+              {t('forward.pasteHint')}
+            </FormHelperText>
+          ) : (
             <FormHelperText
               error
               id={problemId}
@@ -401,6 +386,34 @@ export function ForwardSettings({
           {t('forward.add')}
         </Button>
       </Box>
+      <SettingsLabelPill
+        component="h2"
+        id={recipientsTitleId}
+        label={t('forward.recipients')}
+        pill={
+          forwards.length > 0
+            ? t('forward.recipientCount', { smart_count: forwards.length })
+            : null
+        }
+      />
+      {forwards.length > 0 ? (
+        <SettingsSwitchRow
+          title={t('forward.localCopy')}
+          description={t('forward.localCopyDescription')}
+          isChecked={query.data.localCopy}
+          isDisabled={isSaving}
+          onChange={handleLocalCopy}
+          endWidth={628}
+          data-testid="forward-local-copy-toggle"
+        />
+      ) : (
+        <SettingsRecipientEmpty
+          icon={<Icon icon={Forward} size={64} aria-hidden="true" />}
+          title={t('forward.emptyTitle')}
+          text={t('forward.emptyText')}
+          data-testid="forward-empty"
+        />
+      )}
       {forwards.length > 0 ? (
         <>
           {/* As tmail-flutter: "Select all", or once some are selected the
@@ -448,10 +461,8 @@ export function ForwardSettings({
               </span>
             ) : null}
           </SettingsListHeader>
-          <Box
-            component="ul"
-            aria-label={t('forward.listLabel')}
-            className="u-m-0 u-p-0 u-pb-2"
+          <SettingsRecipientList
+            label={t('forward.listLabel')}
             data-testid="forward-list"
           >
             {forwards.map(email => {
@@ -525,8 +536,19 @@ export function ForwardSettings({
                 />
               )
             })}
-          </Box>
+          </SettingsRecipientList>
         </>
+      ) : null}
+      {hasExternal ? (
+        <SettingsFormColumn>
+          <Alert
+            severity="warning"
+            className="u-mt-1-half"
+            data-testid="forward-warning-banner"
+          >
+            {configuredWarning ?? t('forward.externalBanner')}
+          </Alert>
+        </SettingsFormColumn>
       ) : null}
     </SettingsSectionLayout>
   )

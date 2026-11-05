@@ -266,19 +266,19 @@ export function SettingsMenuSelect({
 const LABEL_SX = { typography: 'subtitle2', color: 'text.primary' } as const
 
 const PILL_SX = {
-  ml: 2,
+  ml: '12px',
   px: '12px',
-  py: '4px',
+  py: '6px',
   borderRadius: '16px',
   bgcolor: 'action.hover',
-  typography: 'body1',
+  typography: 'caption',
   color: 'text.primary'
 } as const
 
 export interface SettingsLabelPillProps {
   label: string
-  /** In the grey pill after the label */
-  pill: string
+  /** In the grey pill after the label, none when null */
+  pill: string | null
   /** The label is a heading of the section */
   component?: 'h2' | 'p'
   id?: string
@@ -292,13 +292,18 @@ export function SettingsLabelPill({
   id
 }: SettingsLabelPillProps): ReactElement {
   return (
-    <Box className="u-flex u-flex-items-center" sx={{ pt: '20px', pb: '36px' }}>
+    <Box
+      className="u-flex u-flex-items-center"
+      sx={{ minHeight: 32, pt: 3, pb: 1 }}
+    >
       <Typography id={id} component={component} sx={{ ...LABEL_SX, m: 0 }}>
         {label}
       </Typography>
-      <Box component="span" sx={PILL_SX}>
-        {pill}
-      </Box>
+      {pill === null ? null : (
+        <Box component="span" sx={PILL_SX}>
+          {pill}
+        </Box>
+      )}
     </Box>
   )
 }

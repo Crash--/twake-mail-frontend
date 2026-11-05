@@ -303,28 +303,6 @@ export function SettingsLabelPill({
   )
 }
 
-export interface SettingsCountProps {
-  label: string
-  count: number
-}
-
-/** A label of the settings and a number after it ("Name of Rules 2") */
-export function SettingsCount({
-  label,
-  count
-}: SettingsCountProps): ReactElement {
-  return (
-    // As tmail-flutter (`CountNameOfRulesWidget`): the list follows right
-    // after it
-    <Typography component="p" sx={{ ...LABEL_SX, mt: 2, mb: 0 }}>
-      {label}{' '}
-      <Box component="span" sx={{ fontWeight: 400 }}>
-        {count}
-      </Box>
-    </Typography>
-  )
-}
-
 export const SETTINGS_FORM_WIDTH = 660
 
 const COLUMN_SX = { maxWidth: SETTINGS_FORM_WIDTH } as const

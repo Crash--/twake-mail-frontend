@@ -1157,7 +1157,6 @@
     "deleteOf": "Удалить %{name}",
     "listLabel": "Правила",
     "count": "%{smart_count} правило |||| %{smart_count} правила |||| %{smart_count} правил",
-    "nameOfRules": "Название правил",
     "moveUp": "Переместить вверх",
     "moveDown": "Переместить вниз",
     "moveUpOf": "Переместить %{name} вверх",

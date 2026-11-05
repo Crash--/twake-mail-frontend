@@ -1,14 +1,12 @@
-import { Icon, Plus } from '@linagora/twake-icons'
+import { Filter, Icon, Plus } from '@linagora/twake-icons'
 import { Alert, Button } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useEffect, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-import { NoRules } from '@/ds/FlutterIcons/FlutterIcons'
 import { SettingsCardList } from '@/ds/SettingsCards/SettingsCards'
 import { SettingsEmptyState } from '@/ds/SettingsEmptyState/SettingsEmptyState'
-import { SettingsCount } from '@/ds/SettingsFields/SettingsFields'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -259,24 +257,20 @@ export function EmailRulesSettings({
           {t('rules.errors.load')}
         </Alert>
       ) : rules.length === 0 ? (
-        <>
-          <SettingsCount label={t('rules.nameOfRules')} count={0} />
-          <SettingsEmptyState
-            icon={NoRules}
-            title={t('rules.empty.title')}
-            text={t('rules.empty.message')}
-            action={{
-              label: t('rules.empty.action'),
-              icon: Plus,
-              onClick: openCreator,
-              'data-testid': 'create-first-rule-button'
-            }}
-            data-testid="email-rules-empty"
-          />
-        </>
+        <SettingsEmptyState
+          icon={Filter}
+          title={t('rules.empty.title')}
+          text={t('rules.empty.message')}
+          action={{
+            label: t('rules.empty.action'),
+            icon: Plus,
+            onClick: openCreator,
+            'data-testid': 'create-first-rule-button'
+          }}
+          data-testid="email-rules-empty"
+        />
       ) : (
         <>
-          <SettingsCount label={t('rules.nameOfRules')} count={rules.length} />
           <SettingsCardList
             label={t('rules.listLabel')}
             data-testid="email-rule-list"

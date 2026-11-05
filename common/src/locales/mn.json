@@ -1157,7 +1157,6 @@
     "deleteOf": "%{name}-г устгах",
     "listLabel": "Дүрмүүд",
     "count": "%{smart_count} дүрэм |||| %{smart_count} дүрэм",
-    "nameOfRules": "Дүрмийн нэр",
     "moveUp": "Дээш зөөх",
     "moveDown": "Доош зөөх",
     "moveUpOf": "%{name}-г дээш зөөх",

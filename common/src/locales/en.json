@@ -1157,7 +1157,6 @@
     "deleteOf": "Delete %{name}",
     "listLabel": "Rules",
     "count": "%{smart_count} rule |||| %{smart_count} rules",
-    "nameOfRules": "Name of Rules",
     "moveUp": "Move up",
     "moveDown": "Move down",
     "moveUpOf": "Move %{name} up",

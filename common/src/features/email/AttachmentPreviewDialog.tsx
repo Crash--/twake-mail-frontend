@@ -2,7 +2,6 @@ import {
   Alert,
   Button,
   CircularProgress,
-  ConfirmDialog,
   Typography
 } from '@linagora/twake-mui'
 import type { EmailBodyPart } from 'jmap-client-ts'
@@ -23,6 +22,7 @@ import {
   FilePreviewDialog,
   FilePreviewSurface
 } from '@/ds/FilePreviewDialog/FilePreviewDialog'
+import { SmallDialog } from '@/ds/SmallDialog/SmallDialog'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { parseMailto } from '@common/features/composer/mailto'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -244,7 +244,7 @@ export function AttachmentPreviewDialog({
     if (loaded.status === 'error' || failed) {
       // As tmail-flutter: a dialog over the viewer says it, Close leaves
       return (
-        <ConfirmDialog
+        <SmallDialog
           open
           onClose={onClose}
           title={

@@ -541,3 +541,5 @@ in the app). What is missing around it:
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
 | `@linagora/twake-icons` | No outline pencil: `Pen` is filled, the other icons of the email menu are outlines | "Edit as new email" in the email menu | `EditOutlineIcon` of `ds/ListIcons` (Material Icons' outlined `edit`, Apache-2.0) | Add an outline `PenOutline` |
+| `FixedDialog`, `ConfirmDialog` | The dialog frame of the Figma (Teammail 1.1): 544 px wide, an h4 title in a 76 px header with a 40 px close or back button in its row, 32 px gutters, 128 px wide buttons 8 px apart; a confirmation without lines, 24 px between title, text and actions | Every dialog of the app (create a folder, rules, recovery, labels, move to, confirmations) | `ds/ModalDialog` (`FixedDialog`) and `ds/SmallDialog` (`ConfirmDialog`), one paper `sx` from desktop up in `ds/ModalDialog/modalDialogSx` | These sizes as the theme of twake-mui's dialogs |
+| `TextField` | A label above the field (body2, 8 px gap) instead of the floating one | The fields of the dialogs | `ds/StackedField` | A `labelPlacement="top"` of `TextField` |

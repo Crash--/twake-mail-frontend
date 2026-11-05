@@ -39,6 +39,8 @@ const SECONDARY_LINE = 16
 const SECONDARY_GAP = 2
 /** The box of the arrow, which sets the height of the name line it is on */
 const TOGGLE_SIZE = 24
+/** The row of the design, on every screen (touch included) */
+const ROW_HEIGHT = 36
 
 /**
  * How far a row of the given level (1 = top) moves in, as tmail-flutter's
@@ -189,7 +191,7 @@ export function NavTreeItem({
             flex: '0 1 auto',
             minWidth: 0,
             m: 0,
-            minHeight: 36,
+            minHeight: ROW_HEIGHT,
             height: 'auto',
             // A second line hangs under the name, as tmail-flutter, without
             // pushing the arrow after it: the arrow follows the name
@@ -308,12 +310,13 @@ export function NavTreeItem({
               color: 'text.secondary',
               // On the name line, when a second line hangs under it
               alignSelf: hasSecondary ? 'flex-start' : undefined,
-              // A 44 px target on touch screens, without moving the arrow nor
-              // spilling over the actions after it
+              // A wider target on touch screens, as tall as the 36 px row of
+              // the design, without moving the arrow nor spilling over the
+              // actions after it
               [TOUCH_MEDIA]: {
                 width: TOUCH_TARGET_SIZE,
-                height: TOUCH_TARGET_SIZE,
-                p: '14px',
+                height: ROW_HEIGHT,
+                p: '10px 14px',
                 m: '0 0 0 -10px'
               }
             }}
@@ -380,7 +383,7 @@ export function NavTreeItem({
         height: 'auto',
         minHeight: hasSecondary
           ? `${firstLine + SECONDARY_GAP + SECONDARY_LINE}px`
-          : 36,
+          : ROW_HEIGHT,
         mr: 2,
         ml: `${16 + levelIndent(level)}px`,
         width: 'auto',
@@ -420,8 +423,7 @@ export function NavTreeItem({
         // No callout nor text selection under a finger held for the menu
         ...(onLongPress
           ? { WebkitTouchCallout: 'none', userSelect: 'none' }
-          : {}),
-        [TOUCH_MEDIA]: { minHeight: TOUCH_TARGET_SIZE }
+          : {})
       }}
     >
       {drop ? (

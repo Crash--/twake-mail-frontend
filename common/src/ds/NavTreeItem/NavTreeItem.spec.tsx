@@ -122,15 +122,24 @@ describe('NavTreeItem', () => {
     expect(injectedCss()).toMatch(/\{min-width:0;[^}]*flex:01000auto;\}/)
   })
 
-  it('keeps the 44 px expand target of touch screens off the actions', () => {
+  it('widens the expand target of touch screens to 44 px within the 36 px row, off the actions', () => {
     renderItem({
       toggle: { label: 'Expand', isExpanded: false, onToggle: jest.fn() },
       actions: <button type="button">Actions on Inbox</button>
     })
 
     expect(injectedCss()).toMatch(
-      /@media\(pointer:coarse\),\(max-width:599\.95px\)\{\.css-[\w-]+\{width:44px;height:44px;padding:14px;margin:000-10px;\}/
+      /@media\(pointer:coarse\),\(max-width:599\.95px\)\{\.css-[\w-]+\{width:44px;height:36px;padding:10px14px;margin:000-10px;\}/
     )
+  })
+
+  it('keeps the 36 px row of the design on touch screens', () => {
+    renderItem()
+
+    expect(injectedCss()).not.toMatch(
+      /@media\(pointer:coarse\),\(max-width:599\.95px\)\{\.css-[\w-]+\{min-height:44px;\}/
+    )
+    expect(injectedCss()).toMatch(/min-height:36px;/)
   })
 
   it('marks the selected row', () => {

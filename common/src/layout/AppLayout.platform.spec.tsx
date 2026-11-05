@@ -148,6 +148,10 @@ function renderLayout({
       <>
         <Route index element={<p>Routed content</p>} />
         <Route path="mailbox/:mailboxId" element={<p>Folder content</p>} />
+        <Route
+          path="mailbox/:mailboxId/email/:emailId"
+          element={<p>Email content</p>}
+        />
         <Route path="settings/*" element={<p>Settings content</p>} />
       </>
     )
@@ -261,6 +265,16 @@ describe('AppLayout with the platform bar', () => {
       within(topBar).getByRole('button', { name: 'Settings' })
     )
     expect(await screen.findByText('Settings content')).toBeVisible()
+  })
+
+  it('gives an email open on a phone the screen under the platform bar', async () => {
+    mockViewport({ width: 390, touch: true })
+    mockPlatform()
+    renderLayout({ route: '/mailbox/mailbox-inbox/email/e1' })
+
+    expect(await screen.findByText('Email content')).toBeVisible()
+    expect(await screen.findByTestId('twake-bar')).toBeVisible()
+    expect(screen.queryByTestId('top-bar')).toBe(null)
   })
 
   it('puts the settings of a phone at the foot of the drawer, out of the bar of the mail', async () => {

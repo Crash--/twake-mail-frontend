@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { useLocation } from 'react-router'
 
 import { AppBarFrame, AppBarLeft } from '@/ds/AppBarFrame/AppBarFrame'
 import { SIDEBAR_WIDTH } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
@@ -7,6 +8,7 @@ import {
   usePlatformSdk,
   usePlatformStatus
 } from '@common/features/platform/PlatformProvider'
+import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { AppTitle } from '@injected/layout/AppTitle'
 
 import { AccountMenu } from './AccountMenu'
@@ -41,11 +43,19 @@ export function AppHeader({
 }: AppHeaderProps): ReactElement {
   const sdk = usePlatformSdk()
   const status = usePlatformStatus()
-  const isDesktop = useScreenSize() === 'desktop'
-  const mailBar =
-    isDesktop || (isEmailFullScreen && status === 'public') ? null : (
-      <TopBar onOpenFolders={onOpenFolders} />
-    )
+  const screenSize = useScreenSize()
+  const isDesktop = screenSize === 'desktop'
+  const isPhone = screenSize === 'mobile'
+  const { pathname } = useLocation()
+  // A phone gives an open email the whole screen under the platform bar
+  // too, and the menu of the settings draws its own header
+  const isMailBarHidden =
+    isDesktop ||
+    (isEmailFullScreen && (status === 'public' || isPhone)) ||
+    (isPhone && pathname === SETTINGS_PATH)
+  const mailBar = isMailBarHidden ? null : (
+    <TopBar onOpenFolders={onOpenFolders} />
+  )
 
   // Without the platform (basic sign-in, no Workplace), phones and tablets
   // have the bar of the mail alone, as tmail-flutter: the drawer holds the

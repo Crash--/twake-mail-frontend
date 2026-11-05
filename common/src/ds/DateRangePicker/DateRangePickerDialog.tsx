@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes, twake-mui has no date range picker. A dialog
-// with the quick ranges as square chips at the top, two months side by side,
-// the start and end fields (`dd/mm/yyyy`) joined by an arrow, and at the
-// bottom "Cancel" and "Set date". On a phone it is a sheet at the
+// with the quick ranges as square chips and a close button at the top, two
+// months side by side, the start and end fields (`dd/mm/yyyy`) joined by a
+// small arrow, and at the bottom "Cancel" and "Set date". On a phone it is a sheet at the
 // bottom with the quick ranges and the two fields only, each opening a one
 // month calendar sheet from its calendar icon.
 import { Icon, Calendar, Cross, Next } from '@linagora/twake-icons'
@@ -13,6 +13,7 @@ import {
   IconButton,
   radius,
   TextField,
+  type Theme,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
@@ -104,6 +105,25 @@ const VISUALLY_HIDDEN = {
 } as const
 
 const SHEET_RADIUS = `${radius.lg} ${radius.lg} 0 0`
+
+/** The Figma's quick range: the search filter chip, pale primary once picked */
+const PRESET_SX = (isSelected: boolean): Record<string, unknown> => ({
+  flexShrink: 0,
+  typography: 'caption',
+  fontWeight: 500,
+  '& .MuiChip-label': { px: 1.5 },
+  ...(isSelected
+    ? {
+        color: 'primary.main',
+        bgcolor: (theme: Theme) =>
+          `color-mix(in srgb, ${theme.vars.palette.primary.main} 8%, transparent)`,
+        '&:hover, &.Mui-focusVisible': {
+          bgcolor: (theme: Theme) =>
+            `color-mix(in srgb, ${theme.vars.palette.primary.main} 16%, transparent)`
+        }
+      }
+    : { bgcolor: 'background.default' })
+})
 
 /**
  * A range of days, picked on the calendar, typed in its two fields or taken
@@ -245,7 +265,7 @@ export function DateRangePickerDialog({
     <Box
       sx={{
         display: 'flex',
-        gap: isPhone ? '8px' : '12px',
+        gap: '8px',
         flex: isPhone ? '1 1 100%' : '0 0 auto',
         ml: isPhone ? 0 : 'auto'
       }}
@@ -301,11 +321,38 @@ export function DateRangePickerDialog({
         <Typography id={titleId} component="h2" sx={VISUALLY_HIDDEN}>
           {labels.dialog}
         </Typography>
-        <PresetRow
-          presets={presets}
-          selected={presetIndex}
-          onPick={pickPreset}
-        />
+        <Box
+          sx={
+            isPhone
+              ? undefined
+              : {
+                  display: 'flex',
+                  alignItems: 'center',
+                  py: '18px',
+                  pl: '32px',
+                  pr: '32px'
+                }
+          }
+        >
+          <PresetRow
+            presets={presets}
+            selected={presetIndex}
+            isPhone={isPhone}
+            onPick={pickPreset}
+          />
+          {isPhone ? null : (
+            <Tooltip title={labels.close}>
+              <IconButton
+                size="medium"
+                aria-label={labels.close}
+                onClick={onClose}
+                sx={{ ml: 'auto' }}
+              >
+                <Icon icon={Cross} size={16} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
         {isPhone ? (
           <Box sx={{ px: '16px', pb: '16px' }}>
             {startField}
@@ -317,7 +364,7 @@ export function DateRangePickerDialog({
         ) : (
           <>
             <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />
-            <Box sx={{ p: '16px', overflowY: 'auto' }}>
+            <Box sx={{ pt: '24px', px: '32px', overflowY: 'auto' }}>
               <MonthsCalendar
                 months={2}
                 displayMonth={displayMonth}
@@ -333,28 +380,28 @@ export function DateRangePickerDialog({
                 nextMonthLabel={labels.nextMonth}
               />
             </Box>
-            <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />
-            <Box sx={{ p: '16px' }}>
+            <Box sx={{ pt: '24px', px: '32px' }}>
               <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
                 {startField}
                 <Box
                   aria-hidden="true"
                   sx={{
-                    height: 56,
-                    px: '12px',
+                    height: 48,
+                    px: '24px',
                     display: 'flex',
                     alignItems: 'center',
                     color: 'text.icon'
                   }}
                 >
-                  <Icon icon={Next} />
+                  <Icon icon={Next} size={16} />
                 </Box>
                 {endField}
               </Box>
               {errors}
             </Box>
-            <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />
-            <Box sx={{ display: 'flex', p: '16px' }}>{buttons}</Box>
+            <Box sx={{ display: 'flex', py: '16px', px: '32px', mt: '8px' }}>
+              {buttons}
+            </Box>
           </>
         )}
       </Box>
@@ -437,22 +484,25 @@ export function DateRangePickerDialog({
 interface PresetRowProps {
   presets: readonly DateRangePreset[]
   selected: number | null
+  isPhone: boolean
   onPick: (index: number) => void
 }
 
 function PresetRow({
   presets,
   selected,
+  isPhone,
   onPick
 }: PresetRowProps): ReactElement {
   return (
     <Box
       sx={{
         display: 'flex',
-        gap: '8px',
-        p: '16px',
+        gap: '4px',
+        p: isPhone ? '16px' : 0,
         overflowX: 'auto',
-        flexShrink: 0
+        flexShrink: isPhone ? 0 : 1,
+        minWidth: 0
       }}
     >
       {presets.map((preset, index) => (
@@ -461,12 +511,11 @@ function PresetRow({
           square
           clickable
           label={preset.label}
-          color={index === selected ? 'primary' : 'default'}
           aria-pressed={index === selected}
           onClick={() => {
             onPick(index)
           }}
-          sx={{ flexShrink: 0 }}
+          sx={PRESET_SX(index === selected)}
         />
       ))}
     </Box>
@@ -517,7 +566,7 @@ function DateField({
         id={`${id}-label`}
         htmlFor={id}
         variant="body2"
-        color="text.secondary"
+        color="text.primary"
         sx={{ display: 'block', mb: 1 }}
       >
         {label}
@@ -525,6 +574,7 @@ function DateField({
       <TextField
         id={id}
         fullWidth
+        size="small"
         error={hasError}
         value={value}
         onChange={event => {
@@ -605,7 +655,11 @@ function PickerButton({
       type={type}
       variant={isMain ? 'contained' : 'outlined'}
       onClick={onClick}
-      sx={{ flex: isWide ? '1 1 0' : '0 0 auto', whiteSpace: 'nowrap' }}
+      sx={{
+        flex: isWide ? '1 1 0' : '0 0 auto',
+        minWidth: isWide ? undefined : 128,
+        whiteSpace: 'nowrap'
+      }}
       data-testid={testId}
     >
       {children}

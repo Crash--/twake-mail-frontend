@@ -1,11 +1,11 @@
 // Upstream to twake-ui: yes, twake-mui has no calendar (MUI X's date pickers
 // are not part of it). The month view of the date range picker: one month or
 // two side by side, the month name between the arrows, the week from Monday,
-// the start and the end of the range filled with the primary colour, today
-// on `action.selected`. A grid of days as the APG date picker dialog: arrows,
+// the start and the end of the range in primary discs joined by a pale
+// primary band, today on `action.selected`. A grid of days as the APG date picker dialog: arrows,
 // Home / End, Page Up / Page Down (a year with Shift), Enter or Space picks.
 import { Icon, Left, Right } from '@linagora/twake-icons'
-import { Box, IconButton, radius, Tooltip } from '@linagora/twake-mui'
+import { Box, IconButton, type Theme, Tooltip } from '@linagora/twake-mui'
 import {
   useEffect,
   useId,
@@ -46,7 +46,13 @@ export interface MonthsCalendarProps {
   'data-testid'?: string
 }
 
-const CELL_HEIGHT = 36
+/** The Figma's day: a 32 px square, the picked ones a disc */
+const CELL_SIZE = 32
+
+/** The band joining the days of the range, as the Figma: primary at 8 % */
+function bandColor(theme: Theme): string {
+  return `color-mix(in srgb, ${theme.vars.palette.primary.main} 8%, transparent)`
+}
 
 function isBetween(day: Day, from: Day | null, to: Day | null): boolean {
   return from !== null && to !== null && day >= from && day <= to
@@ -100,7 +106,7 @@ export function MonthsCalendar({
     month: 'long',
     year: 'numeric'
   })
-  const weekdayShort = new Intl.DateTimeFormat(locale, { weekday: 'short' })
+  const weekdayNarrow = new Intl.DateTimeFormat(locale, { weekday: 'narrow' })
   const weekdayLong = new Intl.DateTimeFormat(locale, { weekday: 'long' })
   // A week from Monday: 2024-01-01 was one
   const week = Array.from({ length: 7 }, (_, index) =>
@@ -179,7 +185,8 @@ export function MonthsCalendar({
           >
             <Box
               sx={{
-                height: 48,
+                height: CELL_SIZE,
+                mb: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between'
@@ -194,13 +201,13 @@ export function MonthsCalendar({
                   }}
                 />
               ) : (
-                <Box sx={{ width: 36 }} />
+                <Box sx={{ width: CELL_SIZE }} />
               )}
               <Box
                 id={titleId}
                 aria-live="polite"
                 sx={{
-                  typography: 'subtitle1',
+                  typography: 'h6',
                   color: 'text.primary',
                   textAlign: 'center',
                   '&::first-letter': { textTransform: 'uppercase' }
@@ -217,7 +224,7 @@ export function MonthsCalendar({
                   }}
                 />
               ) : (
-                <Box sx={{ width: 36 }} />
+                <Box sx={{ width: CELL_SIZE }} />
               )}
             </Box>
             <Box
@@ -226,8 +233,7 @@ export function MonthsCalendar({
               aria-labelledby={titleId}
               sx={{
                 width: '100%',
-                borderCollapse: 'separate',
-                borderSpacing: '0 2px',
+                borderCollapse: 'collapse',
                 tableLayout: 'fixed'
               }}
             >
@@ -240,17 +246,17 @@ export function MonthsCalendar({
                       scope="col"
                       abbr={weekdayLong.format(date)}
                       sx={{
-                        height: 32,
+                        height: CELL_SIZE,
                         p: 0,
-                        typography: 'subtitle2',
-                        color: 'text.primary',
+                        typography: 'caption',
+                        color: 'text.secondary',
                         textAlign: 'center',
                         overflow: 'hidden',
                         textOverflow: 'clip',
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      {weekdayShort.format(date)}
+                      {weekdayNarrow.format(date)}
                     </Box>
                   ))}
                 </tr>
@@ -266,7 +272,8 @@ export function MonthsCalendar({
                           key={day}
                           day={day}
                           label={dayName.format(dateOf(day))}
-                          isEdge={day === start || day === end}
+                          isStart={day === start}
+                          isEnd={day === end}
                           isInRange={isBetween(day, start, end)}
                           isToday={day === today}
                           isDisabled={isDisabled(day)}
@@ -305,7 +312,7 @@ function NavArrow({ label, isNext, onClick }: NavArrowProps): ReactElement {
   return (
     <Tooltip title={label}>
       <IconButton aria-label={label} onClick={onClick} size="small">
-        <Icon icon={isNext ? Right : Left} size={24} />
+        <Icon icon={isNext ? Right : Left} size={16} />
       </IconButton>
     </Tooltip>
   )
@@ -315,7 +322,8 @@ interface DayCellProps {
   day: Day
   /** The whole date, its accessible name */
   label: string
-  isEdge: boolean
+  isStart: boolean
+  isEnd: boolean
   isInRange: boolean
   isToday: boolean
   isDisabled: boolean
@@ -325,10 +333,32 @@ interface DayCellProps {
   onKeyDown: (event: KeyboardEvent) => void
 }
 
+/**
+ * The band behind a day: the whole cell inside the range, the half towards
+ * the other end on the start and the end of a range of several days
+ */
+function bandOf(
+  isStart: boolean,
+  isEnd: boolean,
+  isInRange: boolean
+): ((theme: Theme) => string) | undefined {
+  if (!isInRange || (isStart && isEnd)) return undefined
+  if (isStart) {
+    return theme =>
+      `linear-gradient(to right, transparent 50%, ${bandColor(theme)} 50%)`
+  }
+  if (isEnd) {
+    return theme =>
+      `linear-gradient(to left, transparent 50%, ${bandColor(theme)} 50%)`
+  }
+  return bandColor
+}
+
 function DayCell({
   day,
   label,
-  isEdge,
+  isStart,
+  isEnd,
   isInRange,
   isToday,
   isDisabled,
@@ -337,6 +367,7 @@ function DayCell({
   onPick,
   onKeyDown
 }: DayCellProps): ReactElement {
+  const isEdge = isStart || isEnd
   return (
     <Box
       component="td"
@@ -351,32 +382,40 @@ function DayCell({
       onClick={onPick}
       onKeyDown={onKeyDown}
       sx={{
-        height: CELL_HEIGHT,
+        height: CELL_SIZE,
         p: 0,
         textAlign: 'center',
-        typography: 'body2',
-        lineHeight: `${String(CELL_HEIGHT)}px`,
-        // A day inside the range joins its neighbours in one band
-        borderRadius: isInRange && !isEdge ? 0 : radius.sm,
         cursor: isDisabled ? 'default' : 'pointer',
         userSelect: 'none',
-        color: isEdge
-          ? 'primary.contrastText'
-          : isDisabled
-            ? 'text.disabled'
-            : 'text.primary',
-        bgcolor: theme =>
-          isEdge
-            ? theme.vars.palette.primary.main
-            : isInRange
-              ? `color-mix(in srgb, ${theme.vars.palette.primary.main} 16%, transparent)`
-              : isToday
-                ? theme.vars.palette.action.selected
-                : 'transparent',
-        '&:hover': isEdge || isDisabled ? {} : { bgcolor: 'action.hover' }
+        background: bandOf(isStart, isEnd, isInRange)
       }}
     >
-      {Number(day.slice(8))}
+      <Box
+        component="span"
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: CELL_SIZE,
+          height: CELL_SIZE,
+          borderRadius: '50%',
+          typography: 'caption',
+          fontWeight: 500,
+          color: isEdge
+            ? 'primary.contrastText'
+            : isDisabled
+              ? 'text.disabled'
+              : 'text.primary',
+          bgcolor: isEdge
+            ? 'primary.main'
+            : isToday && !isInRange
+              ? 'action.selected'
+              : 'transparent',
+          '&:hover': isEdge || isDisabled ? {} : { bgcolor: 'action.hover' }
+        }}
+      >
+        {Number(day.slice(8))}
+      </Box>
     </Box>
   )
 }

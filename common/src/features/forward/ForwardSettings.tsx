@@ -32,9 +32,9 @@ import {
   SettingsHeaderButton,
   SettingsListHeader,
   SettingsRecipientCard,
-  SettingsRecipientEmpty,
   SettingsRecipientList
 } from '@/ds/SettingsCards/SettingsCards'
+import { SettingsEmptyState } from '@/ds/SettingsEmptyState/SettingsEmptyState'
 import {
   SettingsFieldSlot,
   SettingsFormColumn,
@@ -407,8 +407,8 @@ export function ForwardSettings({
           data-testid="forward-local-copy-toggle"
         />
       ) : (
-        <SettingsRecipientEmpty
-          icon={<Icon icon={Forward} size={64} aria-hidden="true" />}
+        <SettingsEmptyState
+          icon={Forward}
           title={t('forward.emptyTitle')}
           text={t('forward.emptyText')}
           data-testid="forward-empty"

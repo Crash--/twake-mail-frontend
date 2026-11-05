@@ -2,7 +2,7 @@
 // rules, cards on `background.default` 72 px high, 8 px apart, the name,
 // then in a pill what the row does, and the actions at the end; the
 // recipients of the forwarding, rows with an avatar ruled in one outlined
-// list, under a header selecting them, and that outlined box empty.
+// list, under a header selecting them.
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -77,30 +77,6 @@ const RECIPIENT_SX = {
   '&[data-selected="true"]': { bgcolor: 'action.selected' }
 } as const
 
-const EMPTY_SX = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  px: 3,
-  py: 3,
-  textAlign: 'center',
-  color: 'text.secondary',
-  typography: 'body2'
-} as const
-
-const EMPTY_ICON_SX = {
-  display: 'flex',
-  mb: 2,
-  color: 'primary.light'
-} as const
-
-const EMPTY_TITLE_SX = {
-  m: 0,
-  mb: 1,
-  typography: 'body1',
-  color: 'text.primary'
-} as const
-
 export interface SettingsRecipientListProps {
   label: string
   children: ReactNode
@@ -121,36 +97,6 @@ export function SettingsRecipientList({
       data-testid={testId}
     >
       {children}
-    </Box>
-  )
-}
-
-export interface SettingsRecipientEmptyProps {
-  /** A 64 px glyph, drawn in `primary.light` */
-  icon: ReactNode
-  title: string
-  text: string
-  'data-testid'?: string
-}
-
-/** In place of the outlined list while it has no recipient */
-export function SettingsRecipientEmpty({
-  icon,
-  title,
-  text,
-  'data-testid': testId
-}: SettingsRecipientEmptyProps): ReactElement {
-  return (
-    <Box sx={{ ...OUTLINED_SX, ...EMPTY_SX }} data-testid={testId}>
-      <Box component="span" sx={EMPTY_ICON_SX}>
-        {icon}
-      </Box>
-      <Box component="p" sx={EMPTY_TITLE_SX}>
-        {title}
-      </Box>
-      <Box component="p" sx={{ m: 0, maxWidth: 340 }}>
-        {text}
-      </Box>
     </Box>
   )
 }

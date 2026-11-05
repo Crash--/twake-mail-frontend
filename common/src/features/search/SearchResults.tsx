@@ -37,8 +37,8 @@ function hasFocusTarget(state: unknown): boolean {
  * The results of a search (`/search?…`): a heading, the filters, and the
  * emails found, the matches highlighted. Each result opens at
  * `/search/email/:emailId?…`, which keeps the search; the back button goes
- * back to the mailboxes. On a desktop the layout shows the filters above
- * the card of the list (`SearchFiltersHeader`), as tmail-flutter.
+ * back to the mailboxes. On a desktop the layout shows the filters under
+ * the search, above the list (`SearchFiltersHeader`).
  */
 export function SearchResults({ filter }: SearchResultsProps): ReactElement {
   const { t } = useI18n()

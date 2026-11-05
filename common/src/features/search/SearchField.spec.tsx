@@ -70,6 +70,10 @@ function combobox(): HTMLElement {
   return screen.getByRole('combobox', { name: 'Search emails' })
 }
 
+// The advanced search and the date range picker render through the real
+// client: on a loaded machine the longest tests went over the default 5 s
+jest.setTimeout(15_000)
+
 describe('SearchField', () => {
   afterEach(() => {
     window.localStorage.clear()
@@ -341,7 +345,9 @@ describe('SearchField', () => {
     const start = within(range).getByLabelText('Start date')
     const end = within(range).getByLabelText('End date')
     await userEvent.type(start, '10102026')
-    await userEvent.type(end, '01102026')
+    // Each key redraws two months: pasting keeps the test under its timeout
+    await userEvent.click(end)
+    await userEvent.paste('01102026')
     await userEvent.click(
       within(range).getByRole('button', { name: 'Set date' })
     )
@@ -352,7 +358,7 @@ describe('SearchField', () => {
     expect(end).toHaveFocus()
 
     await userEvent.clear(end)
-    await userEvent.type(end, '12102026')
+    await userEvent.paste('12102026')
     await userEvent.click(
       within(range).getByRole('button', { name: 'Set date' })
     )

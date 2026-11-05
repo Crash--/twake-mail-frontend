@@ -13,6 +13,7 @@ import { useTeamMailboxScope } from '@common/features/teamMailboxEmbed/TeamMailb
 import { useI18n } from '@common/i18n/useI18n'
 
 import { DrawerHeader } from './DrawerHeader'
+import { DrawerSettingsItem } from './DrawerSettingsItem'
 import { MailSidebarFooter } from './MailSidebarFooter'
 
 export interface MailSidebarProps {
@@ -73,6 +74,7 @@ export function MailSidebar({
         >
           <MailboxTree onSearchChange={setIsSearchingFolders} />
           {isBoundToTeam || isSearchingFolders ? null : <LabelsSection />}
+          {screenSize === 'mobile' ? <DrawerSettingsItem /> : null}
         </Box>
         <MailSidebarFooter />
       </ResponsiveSidebar>

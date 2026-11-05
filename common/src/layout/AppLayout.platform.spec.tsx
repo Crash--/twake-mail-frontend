@@ -243,8 +243,8 @@ describe('AppLayout with the platform bar', () => {
     })
   })
 
-  it('keeps the bar of the mail under it below the desktop size, with the folders and a gear', async () => {
-    mockViewport({ width: 390, touch: true })
+  it('keeps the bar of the mail under it on a tablet, with the folders and a gear', async () => {
+    mockViewport({ width: 700, touch: true })
     mockPlatform()
     renderLayout({ route: '/mailbox/mailbox-inbox' })
 
@@ -259,6 +259,31 @@ describe('AppLayout with the platform bar', () => {
 
     await userEvent.click(
       within(topBar).getByRole('button', { name: 'Settings' })
+    )
+    expect(await screen.findByText('Settings content')).toBeVisible()
+  })
+
+  it('puts the settings of a phone at the foot of the drawer, out of the bar of the mail', async () => {
+    mockViewport({ width: 390, touch: true })
+    mockPlatform()
+    renderLayout({ route: '/mailbox/mailbox-inbox' })
+
+    expect(await screen.findByTestId('twake-bar')).toBeVisible()
+    const topBar = screen.getByTestId('top-bar')
+    expect(
+      await within(topBar).findByTestId('top-bar-folder-name')
+    ).toHaveTextContent('Inbox')
+    expect(within(topBar).queryByRole('button', { name: 'Settings' })).toBe(
+      null
+    )
+
+    await userEvent.click(
+      within(topBar).getByRole('button', { name: 'Show folders' })
+    )
+    await userEvent.click(
+      within(await screen.findByTestId('mailbox-drawer')).getByRole('link', {
+        name: 'Settings'
+      })
     )
     expect(await screen.findByText('Settings content')).toBeVisible()
   })

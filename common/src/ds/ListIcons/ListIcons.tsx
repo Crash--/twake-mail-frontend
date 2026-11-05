@@ -1,7 +1,7 @@
 // Upstream to twake-ui: yes, to @linagora/twake-icons, which does not have the
 // "More" of a row, three dots one above the other (ic_more_vertical.svg),
 // an outline pencil (its `Pen` is filled), the slanted paper clip of the Twake
-// Mail design (attachfile2), the empty box of "Select all" nor the outlined
+// Mail design (attachfile2), the empty box of "Select all", nor the outlined
 // reply arrow of a row (docs/twake-mui-gaps.md): drawn on the current text
 // colour so that `Icon` can size and colour them.
 import type { ReactElement, SVGAttributes } from 'react'

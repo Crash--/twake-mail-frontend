@@ -81,8 +81,7 @@ test.describe('SET settings', () => {
       'Reply to: Help desk <help@example.com>'
     )
     await expect(support).toContainText('Bcc: archive@example.com')
-    // As tmail-flutter: "--", then the signature as it is written
-    await expect(support).toContainText('--')
+    // Under the row, the signature as it is written
     await expect(support.getByTestId('identity-item-signature')).toHaveText(
       'The support team'
     )

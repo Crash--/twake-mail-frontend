@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
 import {
   FAKE_LINAGORA_CAPABILITIES,
@@ -37,6 +38,7 @@ async function openColors(dialog: HTMLElement): Promise<HTMLElement> {
 describe('LabelsSection', () => {
   afterEach(() => {
     window.localStorage.clear()
+    resetViewport()
   })
 
   it('lists the labels, each opening its emails', async () => {
@@ -257,6 +259,20 @@ describe('LabelsSection', () => {
     await waitFor(() => {
       expect(screen.queryByRole('link', { name: 'Work' })).toBe(null)
     })
+  })
+
+  it('opens the menu of a label from the keyboard on a phone, which has no ⋮', async () => {
+    mockViewport({ width: 390, touch: true })
+    setup()
+
+    const link = await screen.findByRole('link', { name: 'Work' })
+    expect(screen.queryByRole('button', { name: 'Actions on Work' })).toBe(null)
+    link.focus()
+    await userEvent.keyboard('{Shift>}{F10}{/Shift}')
+
+    expect(
+      await screen.findByRole('menu', { name: 'Actions on Work' })
+    ).toBeVisible()
   })
 
   it('is hidden when the user turned labels off', async () => {

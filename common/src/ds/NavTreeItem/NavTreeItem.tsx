@@ -24,6 +24,7 @@ import {
   FOCUS_RING_INSET
 } from '@/ds/FocusIndicator/focusIndicator'
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { useLongPress } from '@/ds/useLongPress/useLongPress'
 
 /** What each level below the first moves the whole row (tmail-flutter) */
 const LEVEL_STEP = 8
@@ -90,6 +91,11 @@ export interface NavTreeItemProps {
    * otherwise
    */
   actions?: ReactNode
+  /**
+   * A finger held on the row (no ⋮ button on a phone): opens its menu,
+   * anchored to the row, without following the link
+   */
+  onLongPress?: (row: HTMLElement) => void
   /** Makes the row a drop target */
   drop?: {
     accepts: (types: readonly string[]) => boolean
@@ -125,11 +131,13 @@ export function NavTreeItem({
   meta,
   secondary,
   actions,
+  onLongPress,
   drop,
   itemProps,
   'data-testid': testId,
   nameTestId
 }: NavTreeItemProps): ReactElement {
+  const longPress = useLongPress(onLongPress)
   const nameRef = useRef<HTMLSpanElement>(null)
   const linkId = useId()
   const [isTooltipOpen, setIsTooltipOpen] = useState(false)
@@ -343,6 +351,12 @@ export function NavTreeItem({
       // A row of a tree holds the focus: the buttons inside must not name it
       aria-labelledby={itemProps?.role === 'treeitem' ? linkId : undefined}
       {...itemProps}
+      {...longPress.handlers}
+      onContextMenu={event => {
+        // A long press the browser reports as a context menu (Android)
+        longPress.cancel()
+        itemProps?.onContextMenu?.(event)
+      }}
       onFocus={event => {
         itemProps?.onFocus?.(event)
         // A row of a tree holds the keyboard focus: a name cut by the width
@@ -402,6 +416,10 @@ export function NavTreeItem({
                   { display: 'none' }
               }
             }
+          : {}),
+        // No callout nor text selection under a finger held for the menu
+        ...(onLongPress
+          ? { WebkitTouchCallout: 'none', userSelect: 'none' }
           : {}),
         [TOUCH_MEDIA]: { minHeight: TOUCH_TARGET_SIZE }
       }}

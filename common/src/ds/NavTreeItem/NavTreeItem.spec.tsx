@@ -1,5 +1,5 @@
 import { Icon, Email } from '@linagora/twake-icons'
-import { screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { injectedCss } from '@/ds/testing/injectedCss'
@@ -21,6 +21,18 @@ function renderItem(props: Partial<NavTreeItemProps> = {}): void {
       />
     </ul>
   )
+}
+
+/** jsdom has no PointerEvent: a mouse event that says its pointer type */
+function pointer(
+  element: HTMLElement,
+  type: 'pointerdown' | 'pointermove',
+  pointerType: 'touch' | 'mouse',
+  clientY = 5
+): void {
+  const event = new MouseEvent(type, { bubbles: true, clientX: 5, clientY })
+  Object.defineProperty(event, 'pointerType', { value: pointerType })
+  fireEvent(element, event)
 }
 
 describe('levelIndent', () => {
@@ -127,5 +139,41 @@ describe('NavTreeItem', () => {
     expect(screen.getByRole('link', { name: 'Inbox' })).toHaveClass(
       'Mui-selected'
     )
+  })
+
+  it('opens the menu of a row a finger stays on, without following its link', () => {
+    jest.useFakeTimers()
+    const onLongPress = jest.fn<undefined, [HTMLElement]>()
+    const onClick = jest.fn()
+    renderItem({ onLongPress, itemProps: { role: 'treeitem', onClick } })
+    const row = screen.getByRole('treeitem')
+
+    pointer(row, 'pointerdown', 'touch')
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    fireEvent.pointerUp(row)
+    fireEvent.click(screen.getByRole('link', { name: 'Inbox' }))
+
+    expect(onLongPress).toHaveBeenCalledWith(row)
+    expect(onClick).not.toHaveBeenCalled()
+    jest.useRealTimers()
+  })
+
+  it('leaves a finger that scrolls, or a mouse, to the link', () => {
+    jest.useFakeTimers()
+    const onLongPress = jest.fn<undefined, [HTMLElement]>()
+    renderItem({ onLongPress })
+    const row = screen.getByRole('treeitem')
+
+    pointer(row, 'pointerdown', 'touch')
+    pointer(row, 'pointermove', 'touch', 40)
+    pointer(row, 'pointerdown', 'mouse')
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(onLongPress).not.toHaveBeenCalled()
+    jest.useRealTimers()
   })
 })

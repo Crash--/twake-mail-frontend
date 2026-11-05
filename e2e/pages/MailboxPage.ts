@@ -258,8 +258,15 @@ export class MailboxPage {
   /** Folder actions menu (⋮ on hover, or right-click): New subfolder, Rename, Move, Delete, Empty trash... */
   async openFolderMenu(ref: FolderRef): Promise<Locator> {
     await this.showFolders()
-    await this.folder(ref).hover()
-    await this.folder(ref).getByTestId('mailbox-more-button').click()
+    const more = this.folder(ref).getByTestId('mailbox-more-button')
+    if ((await more.count()) > 0) {
+      await this.folder(ref).hover()
+      await more.click()
+    } else {
+      // A phone has no ⋮: a long press, or the keyboard as here
+      await this.folder(ref).focus()
+      await this.page.keyboard.press('Shift+F10')
+    }
     const menu = this.page.getByTestId('mailbox-context-menu').getByRole('menu')
     await expect(menu).toBeVisible()
     return menu

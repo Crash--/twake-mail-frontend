@@ -16,6 +16,8 @@ import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { isMenuKey } from '@common/features/mailbox/MailboxTreeItem'
 import { useSidebarSections } from '@common/features/mailbox/SidebarSectionsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import {
@@ -38,6 +40,9 @@ function LabelItem({ label }: { label: Label }): ReactElement {
   const name = labelDisplayName(label, t)
   const menuLabel = t('labels.menuOf', { name })
   const canChange = label.readOnly !== true
+  // A phone has no ⋮: a long press, the menu key or Shift+F10 open the menu
+  const hasMenuButton = useScreenSize() !== 'mobile'
+  const opensFromRow = canChange && !hasMenuButton
 
   return (
     <NavTreeItem
@@ -48,26 +53,42 @@ function LabelItem({ label }: { label: Label }): ReactElement {
       to={labelPath(label.id)}
       isSelected={isSelected}
       data-testid="label-item"
+      onLongPress={opensFromRow ? setAnchor : undefined}
       itemProps={{
         'data-label-name': label.displayName,
-        'aria-current': isSelected ? 'page' : undefined
+        'aria-current': isSelected ? 'page' : undefined,
+        ...(opensFromRow
+          ? {
+              onContextMenu: event => {
+                event.preventDefault()
+                setAnchor(event.currentTarget)
+              },
+              onKeyDown: event => {
+                if (!isMenuKey(event)) return
+                event.preventDefault()
+                setAnchor(event.currentTarget)
+              }
+            }
+          : {})
       }}
       actions={
         canChange ? (
           <>
-            <Tooltip title={menuLabel}>
-              <IconButton
-                size="small"
-                aria-label={menuLabel}
-                aria-haspopup="menu"
-                onClick={event => {
-                  setAnchor(event.currentTarget)
-                }}
-                data-testid="label-item-menu-button"
-              >
-                <Icon icon={MoreVerticalIcon} />
-              </IconButton>
-            </Tooltip>
+            {hasMenuButton ? (
+              <Tooltip title={menuLabel}>
+                <IconButton
+                  size="small"
+                  aria-label={menuLabel}
+                  aria-haspopup="menu"
+                  onClick={event => {
+                    setAnchor(event.currentTarget)
+                  }}
+                  data-testid="label-item-menu-button"
+                >
+                  <Icon icon={MoreVerticalIcon} />
+                </IconButton>
+              </Tooltip>
+            ) : null}
             <Menu
               anchorEl={anchor}
               open={anchor !== null}

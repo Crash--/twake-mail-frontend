@@ -1,6 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { DRAGGED_EMAILS_TYPE } from '@common/features/thread/useEmailListActions'
 import type { SupportedLanguage } from '@common/i18n/languages'
 import {
@@ -137,6 +138,25 @@ describe('MailboxTree', () => {
     expect(within(folder('Spam')).getByRole('button', { name: 'Clean' })).toBe(
       buttons[0]
     )
+  })
+
+  it('keeps a phone drawer clear of ⋮, Clean and the eye', async () => {
+    mockViewport({ width: 390, touch: true })
+    renderTree('/mailbox/mailbox-inbox', 'en', [
+      makeMailbox({
+        id: 'mailbox-spam',
+        name: 'Spam',
+        role: 'junk',
+        totalEmails: 3
+      }),
+      makeMailbox({ id: 'rare', name: 'Rarely used', isSubscribed: false })
+    ])
+    await screen.findAllByTestId('mailbox-item')
+
+    expect(screen.queryByTestId('mailbox-more-button')).toBe(null)
+    expect(screen.queryByTestId('mailbox-clean-button')).toBe(null)
+    expect(screen.queryByTestId('show-hidden-folders-button')).toBe(null)
+    resetViewport()
   })
 
   it('says a hidden folder is hidden without a coloured badge', async () => {

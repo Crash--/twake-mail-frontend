@@ -16,6 +16,8 @@ export interface SettingsSectionLayoutProps {
   section: SettingsSection
   /** Buttons beside the title, e.g. "Create new identity" */
   actions?: ReactNode
+  /** What the page is for, instead of the section's short description */
+  description?: string
   children: ReactNode
 }
 
@@ -28,12 +30,16 @@ export interface SettingsSectionLayoutProps {
 export function SettingsSectionLayout({
   section,
   actions,
+  description: pageDescription,
   children
 }: SettingsSectionLayoutProps): ReactElement {
   const { t } = useI18n()
   const isDesktop = useScreenSize() === 'desktop'
   const headingRef = useRef<HTMLHeadingElement>(null)
   const title = t(section.title)
+  const description =
+    pageDescription ??
+    (section.description === null ? null : t(section.description))
   useDocumentTitle(`${title} - ${t('settings.title')}`)
 
   useEffect(() => {
@@ -67,10 +73,8 @@ export function SettingsSectionLayout({
             <SettingsTitle ref={headingRef} id={`settings-${section.id}-title`}>
               {title}
             </SettingsTitle>
-            {section.description === null ? null : (
-              <SettingsDescription>
-                {t(section.description)}
-              </SettingsDescription>
+            {description === null ? null : (
+              <SettingsDescription>{description}</SettingsDescription>
             )}
           </Box>
           {actions}
@@ -84,10 +88,8 @@ export function SettingsSectionLayout({
           >
             {title}
           </SettingsTitle>
-          {section.description === null ? null : (
-            <SettingsDescription isCentered>
-              {t(section.description)}
-            </SettingsDescription>
+          {description === null ? null : (
+            <SettingsDescription isCentered>{description}</SettingsDescription>
           )}
           {actions === undefined ? null : (
             <Box className="u-flex u-flex-justify-center u-mt-1">{actions}</Box>

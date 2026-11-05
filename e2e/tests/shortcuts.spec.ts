@@ -80,7 +80,7 @@ test.describe('KBD keyboard shortcuts', () => {
     await expect(dialog).toContainText('Open new message')
     // As tmail-flutter, by category: archiving is a matter of management
     await dialog
-      .getByRole('tab', { name: 'Message Management & Selection' })
+      .getByRole('tab', { name: 'Message & Selection' })
       .click()
     await expect(dialog).toContainText('Archive message')
     await expectNoA11yViolations(page)

@@ -31,7 +31,10 @@ const CATEGORY_ICONS: Record<ShortcutCategory, IconProps['icon']> = {
 }
 
 export interface ShortcutsPanelProps {
-  /** Id of the description, for the dialog or region showing the panel */
+  /**
+   * Id of the description, for the dialog showing the panel; without it the
+   * page around says what the shortcuts do
+   */
   descriptionId?: string
   /** Id of the heading naming the table */
   labelledBy: string
@@ -54,11 +57,13 @@ export function ShortcutsPanel({
 
   return (
     <>
-      <div id={descriptionId}>
-        <SecondaryText variant="body2" component="p" className="u-mb-1">
-          {t('shortcuts.description')}
-        </SecondaryText>
-      </div>
+      {descriptionId === undefined ? null : (
+        <div id={descriptionId}>
+          <SecondaryText variant="body2" component="p" className="u-mb-1">
+            {t('shortcuts.description')}
+          </SecondaryText>
+        </div>
+      )}
       <SettingsSwitchRow
         title={t('shortcuts.enable')}
         isChecked={isEnabled}
@@ -79,6 +84,7 @@ export function ShortcutsPanel({
             setCategory(id as ShortcutCategory)
           }}
           label={t('shortcuts.categories.label')}
+          barWidth={SHORTCUTS_WIDTH}
           data-testid="shortcuts-categories"
         >
           <ShortcutList

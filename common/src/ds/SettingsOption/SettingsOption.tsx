@@ -97,7 +97,9 @@ export function SettingsSwitchRow({
               ...ROW_SX,
               flexDirection: 'row-reverse',
               justifyContent: 'space-between',
-              maxWidth: endWidth
+              alignItems: 'center',
+              maxWidth: endWidth,
+              py: 1
             }
       }
     >

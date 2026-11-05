@@ -3,7 +3,6 @@ import {
   Alert,
   Button,
   Checkbox,
-  FixedDialog,
   FormControlLabel,
   IconButton,
   MenuItem,
@@ -20,6 +19,8 @@ import {
 } from 'react'
 
 import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
+import { FormRow } from '@/ds/FormRow/FormRow'
+import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { DayRangeDialog } from '@common/features/dateRange/DayRangeDialog'
 import type { DayRange } from '@common/features/dateRange/dayRange'
 import {
@@ -139,58 +140,61 @@ export function RecoveryDialog({
     const selectRef = field === 'deletion' ? deletionRef : receptionRef
     const id = field === 'deletion' ? deletionId : receptionId
     return (
-      <div className="u-flex u-flex-items-center u-mt-1">
-        <TextField
-          id={id}
-          select
-          fullWidth
-          label={label}
-          value={period.range}
-          inputRef={selectRef}
-          slotProps={{
-            select: {
-              renderValue: () => periodLabel(period),
-              SelectDisplayProps: {
-                'data-testid': `recovery-${field}-select`
-              } as Record<string, string>
-            }
-          }}
-        >
-          {ranges.map(range => (
-            <MenuItem
-              key={range}
-              value={range}
-              // On each pick: a custom range reopens when picked again
-              onClick={() => {
-                const preset = presetPeriod(range, ranges)
-                if (preset === null) {
-                  openRange(field, selectRef.current)
-                  return
-                }
-                setPeriod(preset)
-              }}
-            >
-              {t(RANGE_LABELS[range])}
-            </MenuItem>
-          ))}
-        </TextField>
-        <span className="u-ml-half u-flex">
-          <Tooltip title={t('dateRange.selectDate')}>
-            <IconButton
-              aria-label={t('dateRange.selectDate')}
-              aria-haspopup="dialog"
-              aria-describedby={`${id}-label`}
-              onClick={() => {
-                // It gets the focus back by itself
-                openRange(field, null)
-              }}
-              data-testid={`recovery-${field}-date-button`}
-            >
-              <Icon icon={Calendar} />
-            </IconButton>
-          </Tooltip>
-        </span>
-      </div>
+      <FormRow label={label} id={`${id}-label`}>
+        <div className="u-flex u-flex-items-center">
+          <TextField
+            id={id}
+            select
+            fullWidth
+            size="small"
+            value={period.range}
+            inputRef={selectRef}
+            slotProps={{
+              select: {
+                renderValue: () => periodLabel(period),
+                SelectDisplayProps: {
+                  'aria-labelledby': `${id}-label`,
+                  'data-testid': `recovery-${field}-select`
+                } as Record<string, string>
+              }
+            }}
+          >
+            {ranges.map(range => (
+              <MenuItem
+                key={range}
+                value={range}
+                // On each pick: a custom range reopens when picked again
+                onClick={() => {
+                  const preset = presetPeriod(range, ranges)
+                  if (preset === null) {
+                    openRange(field, selectRef.current)
+                    return
+                  }
+                  setPeriod(preset)
+                }}
+              >
+                {t(RANGE_LABELS[range])}
+              </MenuItem>
+            ))}
+          </TextField>
+          <span className="u-ml-half u-flex">
+            <Tooltip title={t('dateRange.selectDate')}>
+              <IconButton
+                aria-label={t('dateRange.selectDate')}
+                aria-haspopup="dialog"
+                aria-describedby={`${id}-label`}
+                onClick={() => {
+                  // It gets the focus back by itself
+                  openRange(field, null)
+                }}
+                data-testid={`recovery-${field}-date-button`}
+              >
+                <Icon icon={Calendar} />
+              </IconButton>
+            </Tooltip>
+          </span>
+        </div>
+      </FormRow>
     )
   }
 
@@ -230,7 +234,7 @@ export function RecoveryDialog({
 
   return (
     <>
-      <FixedDialog
+      <ModalDialog
         open
         title={t('recovery.title')}
         fullScreen={false}
@@ -238,7 +242,7 @@ export function RecoveryDialog({
         onClose={isSaving ? () => undefined : onClose}
         content={
           <form id={formId} onSubmit={handleSubmit} noValidate>
-            <Typography id={descriptionId} component="p">
+            <Typography id={descriptionId} component="p" className="u-mb-1">
               {t('recovery.horizon', { period: horizon })}
             </Typography>
             {periodField(
@@ -255,60 +259,64 @@ export function RecoveryDialog({
               RECEPTION_RANGES,
               setReception
             )}
-            <TextField
-              id={subjectId}
-              fullWidth
-              className="u-mt-1"
-              label={t('recovery.subject')}
-              placeholder={t('recovery.subjectPlaceholder')}
-              value={subject}
-              onChange={event => {
-                setSubject(event.target.value)
-              }}
-              slotProps={{
-                htmlInput: { 'data-testid': 'recovery-subject-input' }
-              }}
-            />
-            <TextField
-              id={recipientsId}
-              fullWidth
-              className="u-mt-1"
-              label={t('recovery.recipients')}
-              placeholder={t('recovery.addressPlaceholder')}
-              value={recipients}
-              onChange={event => {
-                setRecipients(event.target.value)
-              }}
-              error={recipientsProblem !== null}
-              helperText={t(recipientsProblem ?? 'recovery.addressesHelp')}
-              slotProps={{
-                htmlInput: {
-                  inputMode: 'email',
-                  'data-testid': 'recovery-recipients-input'
+            <FormRow label={t('recovery.subject')} htmlFor={subjectId}>
+              <TextField
+                id={subjectId}
+                fullWidth
+                size="small"
+                placeholder={t('recovery.subjectPlaceholder')}
+                value={subject}
+                onChange={event => {
+                  setSubject(event.target.value)
+                }}
+                slotProps={{
+                  htmlInput: { 'data-testid': 'recovery-subject-input' }
+                }}
+              />
+            </FormRow>
+            <FormRow label={t('recovery.recipients')} htmlFor={recipientsId}>
+              <TextField
+                id={recipientsId}
+                fullWidth
+                size="small"
+                placeholder={t('recovery.addressPlaceholder')}
+                value={recipients}
+                onChange={event => {
+                  setRecipients(event.target.value)
+                }}
+                error={recipientsProblem !== null}
+                helperText={t(recipientsProblem ?? 'recovery.addressesHelp')}
+                slotProps={{
+                  htmlInput: {
+                    inputMode: 'email',
+                    'data-testid': 'recovery-recipients-input'
+                  }
+                }}
+              />
+            </FormRow>
+            <FormRow label={t('recovery.sender')} htmlFor={senderId}>
+              <TextField
+                id={senderId}
+                fullWidth
+                size="small"
+                placeholder={t('recovery.addressPlaceholder')}
+                value={sender}
+                onChange={event => {
+                  setSender(event.target.value)
+                }}
+                error={senderProblem !== null}
+                helperText={
+                  senderProblem === null ? undefined : t(senderProblem)
                 }
-              }}
-            />
-            <TextField
-              id={senderId}
-              fullWidth
-              className="u-mt-1"
-              label={t('recovery.sender')}
-              placeholder={t('recovery.addressPlaceholder')}
-              value={sender}
-              onChange={event => {
-                setSender(event.target.value)
-              }}
-              error={senderProblem !== null}
-              helperText={senderProblem === null ? undefined : t(senderProblem)}
-              slotProps={{
-                htmlInput: {
-                  inputMode: 'email',
-                  'data-testid': 'recovery-sender-input'
-                }
-              }}
-            />
+                slotProps={{
+                  htmlInput: {
+                    inputMode: 'email',
+                    'data-testid': 'recovery-sender-input'
+                  }
+                }}
+              />
+            </FormRow>
             <FormControlLabel
-              className="u-mt-1"
               control={
                 <Checkbox
                   checked={hasAttachment}

@@ -1,4 +1,10 @@
-import { Copy, HelpOutlined, Icon, Logout } from '@linagora/twake-icons'
+import {
+  Copy,
+  HelpOutlined,
+  Icon,
+  Logout,
+  Previous
+} from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useEffect, useId, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
@@ -7,7 +13,6 @@ import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { initialsOf } from '@/ds/RecipientField/initials'
 import {
   SettingsAccount,
-  SettingsBackButton,
   SettingsTile,
   SettingsTileList,
   SettingsTilesPage
@@ -92,13 +97,17 @@ export function SettingsSectionList(): ReactElement {
         <SettingsAccount
           back={
             isPhone ? (
-              <SettingsBackButton
-                label={backLabel}
-                component={Link}
-                to={settingsExitPath}
-                state={SETTINGS_EXIT_STATE}
-                data-testid="settings-back-button"
-              />
+              <Tooltip title={backLabel}>
+                <IconButton
+                  component={Link}
+                  to={settingsExitPath}
+                  state={SETTINGS_EXIT_STATE}
+                  aria-label={backLabel}
+                  data-testid="settings-back-button"
+                >
+                  <Icon icon={Previous} />
+                </IconButton>
+              </Tooltip>
             ) : undefined
           }
           avatar={

@@ -1,17 +1,11 @@
 // Upstream to twake-ui: no. The first level of the settings on phones and
 // tablets (Figma "View mobile settings twake UI"): on the grey of the page,
-// who is signed in, centred under a round back button, then groups of
+// who is signed in, centred under a back button, then groups of
 // full-width rows on paper, each a 20 px icon in a 32 px box, the name in
 // body1, its explanation in caption under it, a 24 px chevron at the end,
 // the dividers starting under the name.
-import { Icon, type IconProps, Previous, Right } from '@linagora/twake-icons'
-import {
-  Box,
-  ButtonBase,
-  IconButton,
-  Tooltip,
-  Typography
-} from '@linagora/twake-mui'
+import { Icon, type IconProps, Right } from '@linagora/twake-icons'
+import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
 
 /** The icon box (32 px) and the gaps around it: where the dividers start */
@@ -132,7 +126,7 @@ export interface SettingsAccountProps {
   address: string
   /** After the address, e.g. an icon button copying it */
   addressAction?: ReactNode
-  /** At the top left, e.g. the round button back to the mail */
+  /** At the top left, e.g. the button back to the mail */
   back?: ReactNode
 }
 
@@ -156,49 +150,6 @@ export function SettingsAccount({
         {addressAction}
       </Box>
     </Box>
-  )
-}
-
-const BACK_BUTTON_SX = {
-  width: '56px',
-  height: '56px',
-  bgcolor: 'background.paper',
-  color: 'text.primary',
-  '&:hover': { bgcolor: 'background.paper' }
-} as const
-
-export interface SettingsBackButtonProps {
-  /** Tooltip and accessible name */
-  label: string
-  /** A link component (e.g. the router `Link`) and where it goes */
-  component: ElementType
-  to: string
-  /** Given to the link, e.g. the router `state` */
-  state?: unknown
-  'data-testid'?: string
-}
-
-/** The round button at the top left of the account, back to the mail */
-export function SettingsBackButton({
-  label,
-  component,
-  to,
-  state,
-  'data-testid': testId
-}: SettingsBackButtonProps): ReactElement {
-  return (
-    <Tooltip title={label}>
-      <IconButton
-        component={component}
-        to={to}
-        state={state}
-        aria-label={label}
-        sx={BACK_BUTTON_SX}
-        data-testid={testId}
-      >
-        <Icon icon={Previous} size={28} />
-      </IconButton>
-    </Tooltip>
   )
 }
 

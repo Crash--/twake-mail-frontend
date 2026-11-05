@@ -282,7 +282,7 @@ export function EmailCell({
     <IconAction
       label={starLabel}
       icon={isStarred ? Star : StarOutline}
-      tone={isStarred ? 'starred' : 'muted'}
+      tone={isStarred ? 'starred' : 'secondary'}
       size={20}
       aria-pressed={isStarred}
       onClick={handleToggleStar}
@@ -314,11 +314,12 @@ export function EmailCell({
           className="u-flex"
           data-testid="email-list-item-answered"
         >
-          {isAnswered ? (
-            <Icon icon={Reply} size={16} aria-hidden="true" />
-          ) : (
-            <Icon icon={Forward} size={16} aria-hidden="true" />
-          )}
+          <Icon
+            icon={isAnswered ? Reply : Forward}
+            size={16}
+            color={SECONDARY_ICON_COLOR}
+            aria-hidden="true"
+          />
         </span>
       </Tooltip>
     )

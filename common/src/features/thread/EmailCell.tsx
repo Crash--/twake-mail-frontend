@@ -1,17 +1,16 @@
 import {
   Icon,
-  Attachment,
   EmailNotification,
   EmailOpen,
   FolderMoveto,
   Forward,
+  InfoOutlined,
   Openwith,
   Reply,
   Right,
   Star,
   StarOutline,
-  Trash,
-  WarningCircle
+  Trash
 } from '@linagora/twake-icons'
 import {
   Checkbox,
@@ -27,7 +26,7 @@ import {
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { FAVORITE_COLOR, IconAction } from '@/ds/IconAction/IconAction'
-import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import { AttachmentIcon, MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
@@ -80,8 +79,8 @@ import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
 
-/** The attachment icon of a wide row */
-const ATTACHMENT_ICON_COLOR = 'var(--twake-palette-text-icon)'
+const CHEVRON_ICON_COLOR = 'var(--twake-palette-text-icon)'
+const SECONDARY_ICON_COLOR = 'var(--twake-palette-text-secondary)'
 
 /**
  * The columns of the email list, in their order, as tmail-flutter: `lead`
@@ -503,7 +502,6 @@ export function EmailCell({
   // before the subject, said in the name of the row link
   const eventMark = isEvent ? (
     <CalendarEventMark
-      isMuted={!isUnread}
       gap={screenSize === 'desktop' ? 12 : screenSize === 'mobile' ? 4 : 8}
       data-testid="email-list-item-event-icon"
     />
@@ -511,7 +509,9 @@ export function EmailCell({
   // Said in the name of the row link: the icon shows it to the eye
   const importantIcon = isImportant ? (
     <Icon
-      icon={WarningCircle}
+      icon={InfoOutlined}
+      size={20}
+      color={SECONDARY_ICON_COLOR}
       aria-hidden="true"
       className="u-mr-half u-flex-shrink-0"
       data-testid="important-flag-icon"
@@ -521,11 +521,10 @@ export function EmailCell({
   // As tmail-flutter: 8 px after the folder, the date 8 px after it
   const wideAttachment = hasAttachment ? (
     <span className="u-flex u-flex-shrink-0 u-ml-half">
-      {/* 16 px, in the icon colour */}
       <Icon
-        icon={Attachment}
-        size={16}
-        color={ATTACHMENT_ICON_COLOR}
+        icon={AttachmentIcon}
+        size={20}
+        color={SECONDARY_ICON_COLOR}
         role="img"
         aria-label={t('email.attachment')}
       />
@@ -629,7 +628,11 @@ export function EmailCell({
                 )}
                 {hasAttachment ? (
                   <span className="u-flex u-flex-shrink-0 u-ml-half">
-                    <Icon icon={Attachment} size={16} />
+                    <Icon
+                      icon={AttachmentIcon}
+                      size={20}
+                      color={SECONDARY_ICON_COLOR}
+                    />
                   </span>
                 ) : null}
                 <RowDate isStrong={isUnread}>
@@ -703,7 +706,7 @@ export function EmailCell({
               <Icon
                 icon={Right}
                 size={16}
-                color={ATTACHMENT_ICON_COLOR}
+                color={CHEVRON_ICON_COLOR}
                 aria-hidden="true"
                 className="u-flex-shrink-0"
               />

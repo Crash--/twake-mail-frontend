@@ -3,7 +3,6 @@ import {
   Button,
   ColorList,
   COLORS,
-  FixedDialog,
   TextField,
   Typography
 } from '@linagora/twake-mui'
@@ -19,6 +18,8 @@ import {
 } from 'react'
 
 import { normalizeHexColor } from '@/ds/ColorSwatchPicker/hexColor'
+import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
+import { StackedField } from '@/ds/StackedField/StackedField'
 import { validateIdentityName } from '@common/features/identities/identityForm'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
@@ -194,26 +195,28 @@ export function LabelDialog({
   }
 
   const nameField = (
-    <TextField
-      id={nameId}
-      inputRef={nameRef}
-      required
-      fullWidth
-      label={t('labels.form.name')}
-      placeholder={t('labels.form.namePlaceholder')}
-      value={name}
-      onChange={event => {
-        setName(event.target.value)
-        setIsTouched(true)
-      }}
-      error={shownProblem !== null}
-      helperText={shownProblem === null ? undefined : t(shownProblem)}
-      slotProps={{ htmlInput: { 'data-testid': 'label-name-input' } }}
-    />
+    <StackedField label={t('labels.form.name')} htmlFor={nameId}>
+      <TextField
+        id={nameId}
+        inputRef={nameRef}
+        required
+        fullWidth
+        size="small"
+        placeholder={t('labels.form.namePlaceholder')}
+        value={name}
+        onChange={event => {
+          setName(event.target.value)
+          setIsTouched(true)
+        }}
+        error={shownProblem !== null}
+        helperText={shownProblem === null ? undefined : t(shownProblem)}
+        slotProps={{ htmlInput: { 'data-testid': 'label-name-input' } }}
+      />
+    </StackedField>
   )
 
   return (
-    <FixedDialog
+    <ModalDialog
       open
       title={t(
         label === null ? 'labels.form.createTitle' : 'labels.form.editTitle'
@@ -222,7 +225,7 @@ export function LabelDialog({
       onClose={isSaving ? () => undefined : onClose}
       content={
         <form id={formId} onSubmit={handleSubmit} noValidate>
-          <Typography component="p" className="u-mb-1">
+          <Typography component="p" className="u-mb-1-half">
             {t(
               label === null
                 ? 'labels.form.createSubtitle'
@@ -230,22 +233,26 @@ export function LabelDialog({
             )}
           </Typography>
           {nameField}
-          <TextField
-            id={descriptionId}
-            multiline
-            minRows={3}
-            fullWidth
-            className="u-mt-1"
+          <StackedField
             label={t('labels.form.description')}
-            placeholder={t('labels.form.descriptionPlaceholder')}
-            value={description}
-            onChange={event => {
-              setDescription(event.target.value)
-            }}
-            slotProps={{
-              htmlInput: { 'data-testid': 'label-description-input' }
-            }}
-          />
+            htmlFor={descriptionId}
+            className="u-mt-1-half"
+          >
+            <TextField
+              id={descriptionId}
+              multiline
+              fullWidth
+              size="small"
+              placeholder={t('labels.form.descriptionPlaceholder')}
+              value={description}
+              onChange={event => {
+                setDescription(event.target.value)
+              }}
+              slotProps={{
+                htmlInput: { 'data-testid': 'label-description-input' }
+              }}
+            />
+          </StackedField>
           <Box className="u-mt-1-half">
             <Typography
               id={colorLegendId}

@@ -82,8 +82,9 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   const searchActions = useRef<AppTopBarSearchActions>(null)
   // As tmail-flutter: the selection bar takes the place of the app bar
   const selectionSlotRef = useSelectionBarSlotRef()
-  // Without the platform, and on phones, the settings open from the drawer, which "Back to
-  // mail" finds closed: the button that opened it takes the focus back
+  // Without the platform, and on phones, the settings open from the drawer,
+  // which "Back to mail" finds closed: the button that opened it takes the
+  // focus back
   const menuRef = useRef<HTMLButtonElement>(null)
   const location = useLocation()
   const isBackFromSettings = isSettingsExitState(location.state)
@@ -125,7 +126,7 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
       actions={
         <>
           <ListFilterSlot />
-          {/* Without the platform they are in the drawer, as tmail-flutter */}
+          {/* Without the platform, and on phones, they are in the drawer */}
           {hasBarActions ? (
             <>
               <HelpButton />

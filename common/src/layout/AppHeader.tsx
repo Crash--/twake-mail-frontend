@@ -46,7 +46,7 @@ export function AppHeader({
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const isPhone = screenSize === 'mobile'
-  // `/settings/` too
+  // Matches `/settings/` too, unlike a path comparison
   const isSettingsMenu = useMatch(SETTINGS_PATH) !== null
   // A phone gives an open email the whole screen under the platform bar
   // too, and the menu of the settings draws its own header

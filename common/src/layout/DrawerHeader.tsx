@@ -23,7 +23,6 @@ import { SettingsButton } from './SettingsButton'
 export function DrawerHeader(): ReactElement {
   const sdk = usePlatformSdk()
   const isPlatformActive = usePlatformStatus() !== 'public'
-  // A phone lists them at the foot of the drawer
   const isPhone = useScreenSize() === 'mobile'
 
   return (

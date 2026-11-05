@@ -1,10 +1,12 @@
 // Upstream to twake-ui: no, the sidebar categories
 // ("Personal folders", "Team-mailboxes" under "Folders"): a 36 px row like a
 // folder (a 16 px icon, the name, the chevron right after it) that expands
-// and collapses the tree under it, indented by 16 px as a nested level.
+// and collapses the tree under it, its rows one level deeper (16 px in).
 import { Icon, type IconProps, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, radius } from '@linagora/twake-mui'
-import type { ReactElement, ReactNode } from 'react'
+import { use, type ReactElement, type ReactNode } from 'react'
+
+import { NavTreeDepth } from '@/ds/NavTreeItem/NavTreeItem'
 
 const BUTTON_SX = {
   display: 'flex',
@@ -56,6 +58,7 @@ export function NavCategory({
   toggleTestId,
   'data-testid': testId
 }: NavCategoryProps): ReactElement {
+  const depth = use(NavTreeDepth)
   return (
     <Box data-testid={testId}>
       {/* A heading under the one of its section, holding the toggle */}
@@ -80,8 +83,8 @@ export function NavCategory({
           </Box>
         </ButtonBase>
       </Box>
-      <Box id={controlsId} hidden={!isExpanded} sx={{ pl: '16px' }}>
-        {children}
+      <Box id={controlsId} hidden={!isExpanded}>
+        <NavTreeDepth value={depth + 1}>{children}</NavTreeDepth>
       </Box>
     </Box>
   )

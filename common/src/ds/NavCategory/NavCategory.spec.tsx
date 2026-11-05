@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
-import { injectedCss } from '@/ds/testing/injectedCss'
+import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { NavCategory } from './NavCategory'
@@ -40,9 +40,30 @@ describe('NavCategory', () => {
     expect(screen.getByText('Projects')).not.toBeVisible()
   })
 
-  it('moves what it holds 16 px in, a nested level of the design', () => {
-    renderDs(<Harness />)
+  it('puts the rows it holds a level deeper, 16 px in, the background at full width', () => {
+    renderDs(
+      <NavCategory
+        title="Personal folders"
+        titleId="title"
+        icon={FolderOutlined}
+        isExpanded
+        onToggle={jest.fn()}
+        controlsId="content"
+      >
+        <ul>
+          <NavTreeItem
+            level={1}
+            icon={null}
+            label="Projects"
+            linkComponent="a"
+            to="/projects"
+          />
+        </ul>
+      </NavCategory>
+    )
 
-    expect(injectedCss()).toMatch(/\{padding-left:16px;\}/)
+    expect(window.getComputedStyle(screen.getByRole('listitem'))).toMatchObject(
+      { marginLeft: '16px', paddingLeft: '16px' }
+    )
   })
 })

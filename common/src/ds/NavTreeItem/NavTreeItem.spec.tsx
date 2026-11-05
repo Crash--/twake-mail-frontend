@@ -142,6 +142,14 @@ describe('NavTreeItem', () => {
     expect(injectedCss()).toMatch(/min-height:36px;/)
   })
 
+  it('moves the content of a nested row in, not its background', () => {
+    renderItem({ level: 3 })
+
+    expect(window.getComputedStyle(screen.getByRole('treeitem'))).toMatchObject(
+      { marginLeft: '16px', paddingLeft: '32px' }
+    )
+  })
+
   it('marks the selected row', () => {
     renderItem({ isSelected: true })
 

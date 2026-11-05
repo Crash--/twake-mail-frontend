@@ -9,6 +9,8 @@ import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { ListItem } from '@mui/material'
 import { NavLink } from '@/ds/NavLink/NavLink'
 import {
+  createContext,
+  use,
   useId,
   useRef,
   useState,
@@ -43,12 +45,16 @@ const TOGGLE_SIZE = 24
 const ROW_HEIGHT = 36
 
 /**
- * How far a row of the given level (1 = top) moves in, as the sidebar item
- * of the design: 16 px a level, background included, no cap
+ * How far the content of a row of the given level (1 = top) moves in, as the
+ * sidebar item of the design: 16 px a level, no cap. The background of the
+ * row keeps the whole width.
  */
 export function levelIndent(level: number): number {
   return Math.max(0, level - 1) * LEVEL_STEP
 }
+
+/** Levels the rows under it are nested in besides their own (`NavCategory`) */
+export const NavTreeDepth = createContext(0)
 
 type DataAttributes = Record<`data-${string}`, string | boolean | undefined>
 
@@ -140,6 +146,7 @@ export function NavTreeItem({
   nameTestId
 }: NavTreeItemProps): ReactElement {
   const longPress = useLongPress(onLongPress)
+  const indent = levelIndent(level + use(NavTreeDepth))
   const nameRef = useRef<HTMLSpanElement>(null)
   const linkId = useId()
   const [isTooltipOpen, setIsTooltipOpen] = useState(false)
@@ -256,7 +263,7 @@ export function NavTreeItem({
                 className="u-ellipsis"
                 sx={{
                   position: 'absolute',
-                  insetInlineStart: `${ROW_PADDING + (icon === null ? 0 : ICON_SIZE + ICON_GAP)}px`,
+                  insetInlineStart: `${indent + ROW_PADDING + (icon === null ? 0 : ICON_SIZE + ICON_GAP)}px`,
                   insetInlineEnd: '8px',
                   top: `${firstLine + SECONDARY_GAP}px`,
                   color: 'inherit',
@@ -385,7 +392,8 @@ export function NavTreeItem({
           ? `${firstLine + SECONDARY_GAP + SECONDARY_LINE}px`
           : ROW_HEIGHT,
         mr: 2,
-        ml: `${16 + levelIndent(level)}px`,
+        ml: '16px',
+        pl: `${indent}px`,
         width: 'auto',
         pr: '8px',
         borderRadius: '8px',

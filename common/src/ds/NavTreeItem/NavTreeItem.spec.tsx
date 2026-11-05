@@ -122,14 +122,13 @@ describe('NavTreeItem', () => {
     expect(injectedCss()).toMatch(/\{min-width:0;[^}]*flex:01000auto;\}/)
   })
 
-  it('widens the expand target of touch screens to 44 px within the 36 px row, off the actions', () => {
+  it('draws the expand arrow as the small icon button of twake-mui', () => {
     renderItem({
-      toggle: { label: 'Expand', isExpanded: false, onToggle: jest.fn() },
-      actions: <button type="button">Actions on Inbox</button>
+      toggle: { label: 'Expand', isExpanded: false, onToggle: jest.fn() }
     })
 
-    expect(injectedCss()).toMatch(
-      /@media\(pointer:coarse\),\(max-width:599\.95px\)\{\.css-[\w-]+\{width:44px;height:36px;padding:10px14px;margin:000-10px;\}/
+    expect(screen.getByRole('button', { name: 'Expand' })).toHaveClass(
+      'MuiIconButton-sizeSmall'
     )
   })
 

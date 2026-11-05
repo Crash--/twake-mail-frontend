@@ -25,7 +25,6 @@ import {
   FOCUS_RING,
   FOCUS_RING_INSET
 } from '@/ds/FocusIndicator/focusIndicator'
-import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 import { useLongPress } from '@/ds/useLongPress/useLongPress'
 
 /** What each level below the first moves the whole row (the design) */
@@ -39,8 +38,11 @@ const ICON_GAP = 12
 const NAME_LINE = 18.4
 const SECONDARY_LINE = 16
 const SECONDARY_GAP = 2
-/** The box of the arrow, which sets the height of the name line it is on */
-const TOGGLE_SIZE = 24
+/**
+ * The small `IconButton` of twake-mui around the 12 px arrow (8 px padding),
+ * which sets the height of the name line it is on
+ */
+const TOGGLE_SIZE = 28
 /** The row of the design, on every screen (touch included) */
 const ROW_HEIGHT = 36
 
@@ -303,29 +305,18 @@ export function NavTreeItem({
             data-testid={toggle['data-testid']}
             // What the Right and Left keys of a tree press
             data-nav-toggle=""
+            size="small"
             sx={{
               position: 'relative',
               zIndex: 1,
               flex: 'none',
-              boxSizing: 'border-box',
-              width: TOGGLE_SIZE,
-              height: TOGGLE_SIZE,
+              // Out of the 44 px minimum of `TouchTargets`: the row stays
+              // 36 px on touch screens, as the design
               minWidth: 0,
               minHeight: 0,
-              p: '4px',
               ml: '4px',
-              color: 'text.secondary',
               // On the name line, when a second line hangs under it
-              alignSelf: hasSecondary ? 'flex-start' : undefined,
-              // A wider target on touch screens, as tall as the 36 px row of
-              // the design, without moving the arrow nor spilling over the
-              // actions after it
-              [TOUCH_MEDIA]: {
-                width: TOUCH_TARGET_SIZE,
-                height: ROW_HEIGHT,
-                p: '10px 14px',
-                m: '0 0 0 -10px'
-              }
+              alignSelf: hasSecondary ? 'flex-start' : undefined
             }}
           >
             <Icon icon={toggle.isExpanded ? Dropdown : Right} size={12} />

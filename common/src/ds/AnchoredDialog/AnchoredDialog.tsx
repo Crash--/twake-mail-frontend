@@ -11,11 +11,6 @@ import { useId, useRef, type ReactElement, type ReactNode } from 'react'
 const MIN_WIDTH = 560
 /** Room kept on the sides of the panel on a narrow screen */
 const SCREEN_MARGIN = 16
-/**
- * Room kept above and below it: none, so that the panel covers an element
- * close to the top of the screen (the search field) exactly
- */
-const SCREEN_EDGE_MARGIN = 0
 /** The card of the Figma ("Search / Email"): 20 px corners, shadow 2 */
 const CARD_RADIUS = '20px'
 const CARD_ELEVATION = 2
@@ -76,7 +71,8 @@ export function AnchoredDialog({
       disableScrollLock
       // Pressing on an element of the page to drag it focuses it
       disableEnforceFocus
-      marginThreshold={SCREEN_EDGE_MARGIN}
+      // No room kept to the edges: the panel covers the search field exactly
+      marginThreshold={0}
       data-testid={testId}
       // A fade: the card keeps its size while it shows (no scale from a corner)
       slots={{ transition: Fade }}

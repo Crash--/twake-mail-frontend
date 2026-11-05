@@ -1,9 +1,9 @@
 // Upstream to twake-ui: yes, twake-mui has no date range picker. A dialog
 // with the quick ranges as square chips and a close button at the top, two
 // months side by side, the start and end fields (`dd/mm/yyyy`) joined by a
-// small arrow, and at the bottom "Cancel" and "Set date". On a phone it is a sheet at the
-// bottom with the quick ranges and the two fields only, each opening a one
-// month calendar sheet from its calendar icon.
+// small arrow, and at the bottom "Cancel" and "Set date". On a phone it is a
+// sheet at the bottom with the quick ranges and the two fields only, each
+// opening a one month calendar sheet from its calendar icon.
 import { Icon, Calendar, Cross, Next } from '@linagora/twake-icons'
 import {
   Box,
@@ -329,8 +329,7 @@ export function DateRangePickerDialog({
                   display: 'flex',
                   alignItems: 'center',
                   py: '18px',
-                  pl: '32px',
-                  pr: '32px'
+                  px: '32px'
                 }
           }
         >

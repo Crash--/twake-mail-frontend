@@ -12,7 +12,7 @@ const END_SX = { display: 'flex', color: 'text.secondary' } as const
 /** The cross of an applied filter takes its primary colour */
 const CROSS_SX = { display: 'flex' } as const
 
-// The Figma's "Chip filters": 12 px Medium label, 12 px side padding
+/** The Figma's "Chip filters": 12 px Medium label, 12 px side padding */
 const LABEL_SX = {
   '& .MuiChip-label': { typography: 'caption', fontWeight: 500 },
   '& .MuiChip-label:last-child': { pr: 1.5 }

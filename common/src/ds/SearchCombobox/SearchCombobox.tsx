@@ -87,7 +87,7 @@ const DETAIL_SX = {
   color: 'text.primary'
 } as const
 const SECONDARY_SX = { color: 'text.secondary' } as const
-/** The 40 px square icon buttons at the end of the field */
+/** As the Figma: a square as high as the field */
 const CLEAR_SX = { color: 'text.secondary', width: 40, height: 40 } as const
 
 const END_SX = {

@@ -1,8 +1,23 @@
-// Upstream to twake-ui: no. The "Back" of the settings: a square twake-mui
-// `Chip` with a chevron before its text.
+// Upstream to twake-ui: no. The "Back" of the settings, as the Figma's: a
+// 32 px button on `primary.light`, rounded 12 px (not the pill of
+// twake-mui's `Button`), a 16 px chevron before its text.
 import { Icon, Left } from '@linagora/twake-icons'
-import { Chip } from '@linagora/twake-mui'
+import { ButtonBase } from '@linagora/twake-mui'
 import type { ElementType, ReactElement } from 'react'
+
+const BUTTON_SX = {
+  gap: 1,
+  minHeight: 32,
+  px: 2,
+  py: 1,
+  boxSizing: 'border-box',
+  borderRadius: '12px',
+  bgcolor: 'primary.light',
+  color: 'text.primary',
+  typography: 'button',
+  lineHeight: '20px',
+  '&:hover': { filter: 'brightness(0.96)' }
+} as const
 
 export interface ChipBackButtonProps {
   /** What it shows, e.g. "Back" */
@@ -17,7 +32,7 @@ export interface ChipBackButtonProps {
   'data-testid'?: string
 }
 
-/** A small chip going back, the chevron before its text */
+/** A small button going back, the chevron before its text */
 export function ChipBackButton({
   children,
   label,
@@ -29,15 +44,15 @@ export function ChipBackButton({
 }: ChipBackButtonProps): ReactElement {
   const linkProps = component === undefined ? {} : { component, to, state }
   return (
-    <Chip
+    <ButtonBase
       {...linkProps}
-      className="square"
-      clickable
-      label={children}
-      icon={<Icon icon={Left} aria-hidden="true" />}
       onClick={onClick}
       aria-label={label}
+      sx={BUTTON_SX}
       data-testid={testId}
-    />
+    >
+      <Icon icon={Left} size={16} aria-hidden="true" />
+      {children}
+    </ButtonBase>
   )
 }

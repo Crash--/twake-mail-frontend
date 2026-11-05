@@ -1,31 +1,29 @@
-// Upstream to twake-ui: no. The settings menu: rows 4 px apart, an icon in
-// `primary.main`, the name in `body1`, semi bold on a selected background
-// once selected. twake-mui's `NavigationList` is not used: its rows are not
-// links with `aria-current`.
+// Upstream to twake-ui: no. The settings menu of the Figma ("SidebarSettingMail"):
+// groups 8 px apart under a `caption` title, rows of 36 px with a 16 px icon
+// and the name in `body2`, both in `primary.main` on `action.selected` once
+// selected. twake-mui's `NavigationList` is not used: its rows are not links
+// with `aria-current`.
 import { type IconProps, Icon } from '@linagora/twake-icons'
-import { Box, ButtonBase } from '@linagora/twake-mui'
+import { Box, ButtonBase, List } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
-
-const LIST_SX = { listStyle: 'none', m: 0, px: 1, py: 0 } as const
 
 function itemSx(isSelected: boolean): Record<string, unknown> {
   return {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 1,
+    gap: '12px',
     width: '100%',
-    height: 36,
+    minHeight: 36,
     boxSizing: 'border-box',
-    p: 1,
-    mt: '4px',
+    px: 1,
+    py: '5px',
     borderRadius: '8px',
     bgcolor: isSelected ? 'action.selected' : 'transparent',
-    color: 'text.primary',
-    typography: 'body1',
-    fontWeight: isSelected ? 600 : 400,
+    color: isSelected ? 'primary.main' : 'text.primary',
+    typography: 'body2',
     textAlign: 'start',
-    '& .SettingsMenu-icon': { color: 'primary.main', display: 'flex' },
+    '& .SettingsMenu-icon': { display: 'flex' },
     '&:hover': { bgcolor: isSelected ? 'action.selected' : 'action.hover' }
   }
 }
@@ -39,26 +37,24 @@ const NAME_SX = {
 } as const
 
 const TITLE_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  minHeight: 36,
+  boxSizing: 'border-box',
   m: 0,
-  p: 1,
-  typography: 'h5',
-  color: 'text.primary'
+  px: 1,
+  typography: 'caption',
+  color: 'text.secondary'
 } as const
 
-const DIVIDER_SX = {
-  mt: '20px',
-  mb: '12px',
-  border: 0,
-  borderTop: '1px solid',
-  borderColor: 'divider'
-} as const
+const GROUPS_SX = { display: 'flex', flexDirection: 'column', gap: 1 } as const
 
 export interface SettingsMenuTitleProps {
   id?: string
   children: ReactNode
 }
 
-/** The title above a settings menu, e.g. "Manage account" */
+/** The title above a group of a settings menu, e.g. "Manage account" */
 export function SettingsMenuTitle({
   id,
   children
@@ -70,9 +66,15 @@ export function SettingsMenuTitle({
   )
 }
 
-/** The line between the sections and the actions of a settings menu */
-export function SettingsMenuDivider(): ReactElement {
-  return <Box component="hr" sx={DIVIDER_SX} />
+export interface SettingsMenuGroupsProps {
+  children: ReactNode
+}
+
+/** The titles and lists of a settings menu, 8 px apart */
+export function SettingsMenuGroups({
+  children
+}: SettingsMenuGroupsProps): ReactElement {
+  return <Box sx={GROUPS_SX}>{children}</Box>
 }
 
 export interface SettingsMenuListProps {
@@ -83,11 +85,7 @@ export interface SettingsMenuListProps {
 export function SettingsMenuList({
   children
 }: SettingsMenuListProps): ReactElement {
-  return (
-    <Box component="ul" sx={LIST_SX}>
-      {children}
-    </Box>
-  )
+  return <List disablePadding>{children}</List>
 }
 
 export interface SettingsMenuItemProps {
@@ -140,7 +138,7 @@ export function SettingsMenuItem({
         data-testid={testId}
       >
         <span className="SettingsMenu-icon">
-          <Icon icon={icon} size={20} aria-hidden="true" />
+          <Icon icon={icon} size={16} aria-hidden="true" />
         </span>
         <Box component="span" sx={NAME_SX}>
           {label}

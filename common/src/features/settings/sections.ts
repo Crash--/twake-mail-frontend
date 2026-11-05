@@ -1,14 +1,14 @@
 import {
-  Peoples,
-  type IconProps,
+  Account,
+  CheckList,
   Filter,
-  Eye,
-  Send,
+  FolderOutlined,
+  Forward,
   Globe,
-  Setting,
-  Identities,
-  Cloud,
-  Plane
+  GraphCircle,
+  type IconProps,
+  Plane,
+  Team
 } from '@linagora/twake-icons'
 import { CAPABILITIES, type Session } from 'jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
@@ -54,7 +54,7 @@ function offers(capability: string): (session: Session) => boolean {
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   {
     id: 'profiles',
-    icon: Identities,
+    icon: Account,
     title: 'settings.sections.profiles.title',
     description: 'settings.sections.profiles.description'
   },
@@ -67,13 +67,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   },
   {
     id: 'preferences',
-    icon: Setting,
+    icon: CheckList,
     title: 'settings.sections.preferences.title',
     description: 'settings.sections.preferences.description'
   },
   {
     id: 'forwarding',
-    icon: Send,
+    icon: Forward,
     title: 'settings.sections.forwarding.title',
     description: 'settings.sections.forwarding.description',
     isAvailable: offers(LINAGORA_CAPABILITIES.forward)
@@ -87,7 +87,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   },
   {
     id: 'folder-visibility',
-    icon: Eye,
+    icon: FolderOutlined,
     title: 'settings.sections.folderVisibility.title',
     description: 'settings.sections.folderVisibility.description'
   },
@@ -109,7 +109,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   },
   {
     id: 'storage',
-    icon: Cloud,
+    icon: GraphCircle,
     title: 'settings.sections.storage.title',
     description: 'settings.sections.storage.description',
     isAvailable: offers(CAPABILITIES.quota)
@@ -117,7 +117,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   {
     // tmail-flutter#4977: below Storage
     id: 'delegation',
-    icon: Peoples,
+    icon: Team,
     title: 'settings.sections.delegation.title',
     description: 'settings.sections.delegation.description',
     isAvailable: offers(DELEGATION_CAPABILITY)

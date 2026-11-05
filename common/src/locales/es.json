@@ -783,6 +783,7 @@
   "settings": {
     "title": "Configuración",
     "manageAccount": "Gestionar cuenta",
+    "more": "Más",
     "sections": {
       "profiles": {
         "title": "Perfiles",

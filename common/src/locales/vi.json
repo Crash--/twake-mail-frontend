@@ -783,6 +783,7 @@
   "settings": {
     "title": "Cài đặt",
     "manageAccount": "Quản lý tài khoản",
+    "more": "Khác",
     "sections": {
       "profiles": {
         "title": "Hồ sơ",

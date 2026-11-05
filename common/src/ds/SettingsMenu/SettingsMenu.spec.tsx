@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import {
-  SettingsMenuDivider,
+  SettingsMenuGroups,
   SettingsMenuItem,
   SettingsMenuList,
   SettingsMenuTitle
@@ -16,16 +16,20 @@ describe('SettingsMenu', () => {
     const onClick = jest.fn()
     renderDs(
       <nav aria-labelledby="title">
-        <SettingsMenuTitle id="title">Manage account</SettingsMenuTitle>
-        <SettingsMenuList>
-          <SettingsMenuItem icon={Identities} label="Profiles" isSelected />
-          <SettingsMenuItem
-            icon={Identities}
-            label="Sign out"
-            onClick={onClick}
-          />
-        </SettingsMenuList>
-        <SettingsMenuDivider />
+        <SettingsMenuGroups>
+          <SettingsMenuTitle id="title">Manage account</SettingsMenuTitle>
+          <SettingsMenuList>
+            <SettingsMenuItem icon={Identities} label="Profiles" isSelected />
+          </SettingsMenuList>
+          <SettingsMenuTitle>More</SettingsMenuTitle>
+          <SettingsMenuList>
+            <SettingsMenuItem
+              icon={Identities}
+              label="Sign out"
+              onClick={onClick}
+            />
+          </SettingsMenuList>
+        </SettingsMenuGroups>
       </nav>
     )
 

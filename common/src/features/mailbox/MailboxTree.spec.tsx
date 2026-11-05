@@ -156,6 +156,8 @@ describe('MailboxTree', () => {
     expect(screen.queryByTestId('mailbox-more-button')).toBe(null)
     expect(screen.queryByTestId('mailbox-clean-button')).toBe(null)
     expect(screen.queryByTestId('show-hidden-folders-button')).toBe(null)
+    expect(folder('Spam')).toHaveAttribute('aria-haspopup', 'menu')
+    expect(folder('Spam')).toHaveAccessibleDescription('Long press for actions')
     resetViewport()
   })
 

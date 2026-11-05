@@ -141,6 +141,44 @@ describe('NavTreeItem', () => {
     expect(injectedCss()).toMatch(/min-height:36px;/)
   })
 
+  it('tells a screen reader of the long press menu on what holds the focus', () => {
+    renderItem({
+      onLongPress: jest.fn(),
+      longPressHint: 'Long press for actions'
+    })
+
+    const row = screen.getByRole('treeitem')
+    expect(row).toHaveAttribute('aria-haspopup', 'menu')
+    expect(row).toHaveAccessibleDescription('Long press for actions')
+    expect(screen.getByRole('link')).not.toHaveAttribute('aria-haspopup')
+  })
+
+  it('puts the long press hint on the link of a row outside a tree', () => {
+    renderDs(
+      <ul>
+        <NavTreeItem
+          level={1}
+          icon={<Icon icon={Email} />}
+          label="Work"
+          linkComponent="a"
+          to="/label/work"
+          onLongPress={jest.fn()}
+          longPressHint="Long press for actions"
+        />
+      </ul>
+    )
+
+    const link = screen.getByRole('link', { name: 'Work' })
+    expect(link).toHaveAttribute('aria-haspopup', 'menu')
+    expect(link).toHaveAccessibleDescription('Long press for actions')
+  })
+
+  it('gives no long press hint without a long press', () => {
+    renderItem({ longPressHint: 'Long press for actions' })
+
+    expect(screen.getByRole('treeitem')).not.toHaveAttribute('aria-haspopup')
+  })
+
   it('moves the content of a nested row in, not its background', () => {
     renderItem({ level: 3 })
 

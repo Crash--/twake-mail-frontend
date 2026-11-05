@@ -991,6 +991,7 @@
       "progress": "Déplacement des e-mails : %{moved} sur %{total}"
     },
     "clean": "Vider",
+    "longPressHint": "Appui long pour les actions",
     "progress": {
       "markAsRead": "Marquage de tous les messages de « %{folderName} » comme lus",
       "empty": "Vidage de « %{folderName} »"

@@ -54,6 +54,7 @@ function LabelItem({ label }: { label: Label }): ReactElement {
       isSelected={isSelected}
       data-testid="label-item"
       onLongPress={opensFromRow ? setAnchor : undefined}
+      longPressHint={t('folders.longPressHint')}
       itemProps={{
         'data-label-name': label.displayName,
         'aria-current': isSelected ? 'page' : undefined,

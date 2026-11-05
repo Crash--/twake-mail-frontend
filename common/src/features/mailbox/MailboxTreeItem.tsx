@@ -215,6 +215,7 @@ export function MailboxTreeItem({
             }
           : undefined
       }
+      longPressHint={t('folders.longPressHint')}
       actions={
         isPhone ? null : (
           <>

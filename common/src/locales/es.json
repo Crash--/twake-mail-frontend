@@ -991,6 +991,7 @@
       "progress": "Moviendo correos: %{moved} de %{total}"
     },
     "clean": "Limpiar",
+    "longPressHint": "Mantén pulsado para ver las acciones",
     "progress": {
       "markAsRead": "Marcando como leídos todos los mensajes de «%{folderName}»",
       "empty": "Vaciando «%{folderName}»"

@@ -267,6 +267,8 @@ describe('LabelsSection', () => {
 
     const link = await screen.findByRole('link', { name: 'Work' })
     expect(screen.queryByRole('button', { name: 'Actions on Work' })).toBe(null)
+    expect(link).toHaveAttribute('aria-haspopup', 'menu')
+    expect(link).toHaveAccessibleDescription('Long press for actions')
     link.focus()
     await userEvent.keyboard('{Shift>}{F10}{/Shift}')
 

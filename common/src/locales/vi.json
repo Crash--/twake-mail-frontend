@@ -991,6 +991,7 @@
       "progress": "Đang chuyển thư: %{moved}/%{total}"
     },
     "clean": "Dọn dẹp",
+    "longPressHint": "Nhấn giữ để xem thao tác",
     "progress": {
       "markAsRead": "Đang đánh dấu tất cả thư trong \"%{folderName}\" là đã đọc",
       "empty": "Đang dọn sạch \"%{folderName}\""

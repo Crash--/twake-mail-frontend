@@ -991,6 +991,7 @@
       "progress": "E-Mails werden verschoben: %{moved} von %{total}"
     },
     "clean": "Bereinigen",
+    "longPressHint": "Lange drücken für Aktionen",
     "progress": {
       "markAsRead": "Alle Nachrichten in „%{folderName}“ werden als gelesen markiert",
       "empty": "„%{folderName}“ wird geleert"

@@ -991,6 +991,7 @@
       "progress": "Имэйл зөөж байна: %{total}-с %{moved}"
     },
     "clean": "Цэвэрлэх",
+    "longPressHint": "Үйлдлүүдийг харахын тулд удаан дарна уу",
     "progress": {
       "markAsRead": "«%{folderName}» доторх бүх мессежийг уншсан гэж тэмдэглэж байна",
       "empty": "«%{folderName}»-г хоослож байна"

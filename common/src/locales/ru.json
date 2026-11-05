@@ -991,6 +991,7 @@
       "progress": "Перемещение писем: %{moved} из %{total}"
     },
     "clean": "Очистить",
+    "longPressHint": "Долгое нажатие для действий",
     "progress": {
       "markAsRead": "Все сообщения в «%{folderName}» отмечаются как прочитанные",
       "empty": "Очистка «%{folderName}»"

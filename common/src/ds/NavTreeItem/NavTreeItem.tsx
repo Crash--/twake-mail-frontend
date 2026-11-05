@@ -106,6 +106,12 @@ export interface NavTreeItemProps {
    * anchored to the row, without following the link
    */
   onLongPress?: (row: HTMLElement) => void
+  /**
+   * With `onLongPress`, what a screen reader says of it (e.g. "Long press
+   * for actions"), on what holds the focus, which then has a menu popup.
+   * VoiceOver and TalkBack turn a double tap held into a long press.
+   */
+  longPressHint?: string
   /** Makes the row a drop target */
   drop?: {
     accepts: (types: readonly string[]) => boolean
@@ -142,6 +148,7 @@ export function NavTreeItem({
   secondary,
   actions,
   onLongPress,
+  longPressHint,
   drop,
   itemProps,
   'data-testid': testId,
@@ -158,6 +165,11 @@ export function NavTreeItem({
   // Over a second line, the name line is as high as the arrow on it
   const firstLine = toggle ? TOGGLE_SIZE : NAME_LINE
   const isLink = linkComponent !== undefined && to !== undefined
+  const isTreeItem = itemProps?.role === 'treeitem'
+  const menuHint =
+    onLongPress !== undefined && longPressHint !== undefined
+      ? { 'aria-haspopup': 'menu' as const, 'aria-description': longPressHint }
+      : {}
 
   const handleTooltipOpen = (): void => {
     const name = nameRef.current
@@ -182,7 +194,7 @@ export function NavTreeItem({
         <NavLink
           id={linkId}
           {...(isLink
-            ? { component: linkComponent, to }
+            ? { component: linkComponent, to, ...(isTreeItem ? {} : menuHint) }
             : {
                 // Not a control of its own: the row holds the focus, its
                 // arrow is the control
@@ -350,7 +362,8 @@ export function NavTreeItem({
     <ListItem
       disablePadding
       // A row of a tree holds the focus: the buttons inside must not name it
-      aria-labelledby={itemProps?.role === 'treeitem' ? linkId : undefined}
+      aria-labelledby={isTreeItem ? linkId : undefined}
+      {...(isTreeItem ? menuHint : {})}
       {...itemProps}
       {...longPress.handlers}
       onContextMenu={event => {

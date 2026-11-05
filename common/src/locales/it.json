@@ -991,6 +991,7 @@
       "progress": "Spostamento delle email: %{moved} di %{total}"
     },
     "clean": "Pulisci",
+    "longPressHint": "Tieni premuto per le azioni",
     "progress": {
       "markAsRead": "Contrassegno come letti di tutti i messaggi in «%{folderName}»",
       "empty": "Svuotamento di «%{folderName}»"

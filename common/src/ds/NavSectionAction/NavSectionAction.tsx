@@ -7,17 +7,11 @@ import type { MouseEvent, ReactElement, Ref } from 'react'
 
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 
-const DESKTOP_GLYPH_SIZE = 10
-const TOUCH_GLYPH = { width: 16, height: 16 } as const
-
 export interface NavSectionActionProps {
   /** Tooltip and accessible name */
   label: string
   icon: IconProps['icon']
-  /**
-   * The glyph. By default the design's: 10 px in a 20 px button, 16 px on
-   * touch screens
-   */
+  /** The glyph, 16 px by default */
   iconSize?: number
   onClick: (event: MouseEvent<HTMLElement>) => void
   buttonRef?: Ref<HTMLButtonElement>
@@ -32,7 +26,7 @@ export interface NavSectionActionProps {
 export function NavSectionAction({
   label,
   icon,
-  iconSize,
+  iconSize = 16,
   onClick,
   buttonRef,
   disabled,
@@ -58,12 +52,11 @@ export function NavSectionAction({
             width: TOUCH_TARGET_SIZE,
             height: TOUCH_TARGET_SIZE,
             minWidth: TOUCH_TARGET_SIZE,
-            minHeight: TOUCH_TARGET_SIZE,
-            ...(iconSize === undefined ? { '& svg': TOUCH_GLYPH } : {})
+            minHeight: TOUCH_TARGET_SIZE
           }
         }}
       >
-        <Icon icon={icon} size={iconSize ?? DESKTOP_GLYPH_SIZE} />
+        <Icon icon={icon} size={iconSize} />
       </IconButton>
     </Tooltip>
   )

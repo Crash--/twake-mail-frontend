@@ -3,10 +3,9 @@
 // `role="tree"` it is put in) and `NavDesktopDropdown`, whose chevron is
 // pushed to the far end, shown only past `limit` children, with no room for
 // actions, and which renders nothing below `lg`.
+import { Icon, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
-
-import { NavChevron } from '@/ds/NavChevron/NavChevron'
 
 export interface NavSectionToggle {
   isExpanded: boolean
@@ -39,8 +38,8 @@ const TITLE_SX = {
  * The title of a section of a sidebar ("Folders", "Labels"), a heading in the
  * caption variant, in secondary text, outside the list it titles, and its actions, 24 px high
  * with 24 px above (what comes under it sets its own gap). With `toggle`,
- * the title is a button holding the arrow of the section, in a 16 px frame
- * 8 px after the text, that expands and collapses it.
+ * the title is a button holding the arrow of the section, in a 24 px box
+ * right after the text, that expands and collapses it.
  */
 export function NavSectionHeader({
   title,
@@ -52,9 +51,9 @@ export function NavSectionHeader({
   return (
     <Box
       className="u-flex u-flex-items-center"
-      // The actions are 20 px boxes around 10 px glyphs: their glyphs end
-      // 19 px before the edge, 3 px inside the 16 px margin, as the design
-      sx={{ minHeight: 24, mt: '24px', pl: 2, pr: '14px' }}
+      // The actions are 26 px boxes around 16 px glyphs: their glyphs end
+      // 17 px before the edge
+      sx={{ minHeight: 24, mt: '24px', pl: 2, pr: '12px' }}
     >
       <Typography
         id={titleId}
@@ -82,7 +81,11 @@ export function NavSectionHeader({
             }}
           >
             {title}
-            <NavChevron isExpanded={toggle.isExpanded} />
+            <Icon
+              icon={toggle.isExpanded ? Dropdown : Right}
+              size={12}
+              aria-hidden
+            />
           </ButtonBase>
         )}
       </Typography>

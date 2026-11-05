@@ -48,8 +48,7 @@ test.describe('A11Y composer', () => {
 
     // A named, non modal dialog; the title is a level 2 heading; the live regions are there
     // before anything is announced (a region added with its text is often missed)
-    // The Figma window: no More; the footer has "Aa" (the toolbar opens
-    // with it) and the insertions, then delete, save as draft and send
+    // The Figma window has no More
     await expect(composer.root).toMatchAriaSnapshot(`
       - dialog "New message":
         - heading "New message" [level=2]

@@ -198,7 +198,7 @@ Conventions:
 | `composer-to-suggestions` (… `-cc-`, `-bcc-`, `-reply-to-`) | the contact suggestions of a field (`role="listbox"`) | — |
 | `composer-to-input` / `composer-cc-input` / `composer-bcc-input` / `composer-reply-to-input` | recipient inputs | `prefix_to_recipient_composer_widget`… |
 | `composer-to-field` (… `-cc-`, `-bcc-`, `-reply-to-`) + `recipient-chip` | recipient chips of a field | — |
-| `composer-show-cc-button` / `composer-show-bcc-button` | reveal hidden fields (Reply to: the phone chevron only, the Figma window has no place for it) | `prefix_cc_recipient_expand_button`… |
+| `composer-show-cc-button` / `composer-show-bcc-button` | reveal hidden fields (Reply to: the phone chevron only, the Figma window has no place for it; `composer-show-reply-to-item` is its More menu item, desktop and tablet, unreachable until they get a More) | `prefix_cc_recipient_expand_button`… |
 | `composer-subject-input` | subject | — |
 | `composer-editor` | rich text editor (contenteditable) | `mobile_editor` |
 | `rich-text-<item>-button` (`undo`, `redo`, `bold`, `italic`, `underline`, `strike`, `color`, `size`, `align`, `bullet-list`, `ordered-list`, `blockquote`, `link`, `image`, `clear-formatting`) | buttons of the formatting toolbar (Alt+F10) | — |
@@ -281,7 +281,7 @@ Conventions:
 | `rich-text-text-style-button` / `rich-text-font-button` / `rich-text-highlight-button` / `rich-text-lists-button` | batch E1: formatting toolbar buttons "Aa" (paragraph, headings, quote, code), font, highlight colour, lists and indentation; menus except the highlight popover | `RichTextStyleType.headerStyle`, `fontName`, `textBackgroundColor`, `orderList` |
 | `rich-text-color-menu` / `rich-text-highlight-menu` | the colour popovers (`dialog`, a radio group of swatches, "Reset to default"/"No highlight" button, a free colour input) | `ColorDialogPicker` |
 | `rich-text-bullet-list-button` / `rich-text-ordered-list-button` / `rich-text-indent-button` / `rich-text-outdent-button` / `rich-text-blockquote-button` | correction of the earlier rows: they are items of the "Lists and indentation" menu (`rich-text-blockquote-button` an item of the "Text style" menu), no longer toolbar buttons; open the menu first (`ComposerPage.chooseFromMenu`) | `OrderListType`, `ParagraphType.indent`/`outdent`, `HeaderStyleType.blockquote` |
-| `composer-emoji-picker` (+ `-search`, `-tab-<group>`) | the emoji popover (`dialog` named "Emoji"); no way in since the Figma window (#819) | — (tmail-flutter has no emoji picker) |
+| `composer-emoji-picker` (+ `-search`, `-tab-<group>`) | the emoji popover (`dialog` named "Emoji"); no way in since the Figma window (#819); `composer-emoji-item` is its More menu item, desktop and tablet, unreachable until they get a More | — (tmail-flutter has no emoji picker) |
 | `composer-delete-draft-item` | on phones the delete button moves into the "More" menu (`composer-delete-draft-button` stays on tablets and desktops) | `delete_draft_button` |
 | `composer-attachments-toggle` | the "Show less" / "Show more (+N)" button folding the attached files (`aria-expanded`) | `showMoreAttachmentButton`, `MobileAttachmentComposerWidget` |
 | `composer-attachment-retry-button` | "Retry <file>" of a failed upload | none (new) |

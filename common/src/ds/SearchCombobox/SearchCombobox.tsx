@@ -4,14 +4,14 @@
 // Contacts) needs suggestions under its field; this is the ARIA 1.2
 // combobox pattern around `SearchBar`, with a free header (filters) above
 // the list.
-import { Icon, Magnifier, CrossCircle } from '@linagora/twake-icons'
+import { Icon, Magnifier, Cross } from '@linagora/twake-icons'
 import {
   Box,
+  Divider,
   IconButton,
   Paper,
   Popper,
   type PopperProps,
-  radius,
   SearchBar,
   type SxProps,
   type Theme,
@@ -36,8 +36,9 @@ import {
 const POPUP_SX = { zIndex: 'modal' } as const
 /** The field stays above the popup that starts behind it */
 const FIELD_OPEN_Z_INDEX = 1301
-/** The open panel rounds like twake-mui's large controls */
-const PANEL_RADIUS = radius.lg
+/** The open panel of the Figma ("Search / Email"): 20 px corners, shadow 2 */
+const PANEL_RADIUS = '20px'
+const PANEL_ELEVATION = 2
 type PopperModifier = NonNullable<PopperProps['modifiers']>[number]
 
 /** The popup is as wide as the field, whatever the layout does after the focus */
@@ -86,7 +87,8 @@ const DETAIL_SX = {
   color: 'text.primary'
 } as const
 const SECONDARY_SX = { color: 'text.secondary' } as const
-const CLEAR_SX = { color: 'text.secondary' } as const
+/** The 40 px square icon buttons at the end of the field */
+const CLEAR_SX = { color: 'text.secondary', width: 40, height: 40 } as const
 
 const END_SX = {
   display: 'flex',
@@ -416,7 +418,7 @@ export function SearchCombobox({
                       sx={CLEAR_SX}
                       data-testid={testIds.clear}
                     >
-                      <Icon icon={CrossCircle} size={16} />
+                      <Icon icon={Cross} size={12} />
                     </IconButton>
                   </Tooltip>
                 )}
@@ -451,10 +453,11 @@ export function SearchCombobox({
         sx={POPUP_SX}
       >
         <Paper
-          elevation={8}
+          elevation={PANEL_ELEVATION}
           sx={{ borderRadius: PANEL_RADIUS, pt: `${fieldHeight}px` }}
           onMouseDown={keepFocus}
         >
+          <Divider />
           <Box sx={SCROLL_SX}>
             {header}
             {hasOptions ? (
@@ -487,7 +490,7 @@ export function SearchCombobox({
                             component="li"
                             role="presentation"
                             id={`${id}-${group.id}`}
-                            variant="body2"
+                            variant="caption"
                             className={
                               group.isLabelHidden === true
                                 ? 'u-visuallyhidden'

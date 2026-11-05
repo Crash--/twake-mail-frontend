@@ -9,6 +9,9 @@ function buttonSx(
   isHidden: boolean
 ): Record<string, unknown> {
   return {
+    // As the Figma: 40 px square, the height of the field
+    width: 40,
+    height: 40,
     visibility: isHidden ? 'hidden' : undefined,
     color: isActive ? 'primary.main' : undefined
   }

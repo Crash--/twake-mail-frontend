@@ -13,7 +13,6 @@ import {
   IconButton,
   radius,
   TextField,
-  type Theme,
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
@@ -105,25 +104,6 @@ const VISUALLY_HIDDEN = {
 } as const
 
 const SHEET_RADIUS = `${radius.lg} ${radius.lg} 0 0`
-
-/** The Figma's quick range: the search filter chip, pale primary once picked */
-const PRESET_SX = (isSelected: boolean): Record<string, unknown> => ({
-  flexShrink: 0,
-  typography: 'caption',
-  fontWeight: 500,
-  '& .MuiChip-label': { px: 1.5 },
-  ...(isSelected
-    ? {
-        color: 'primary.main',
-        bgcolor: (theme: Theme) =>
-          `color-mix(in srgb, ${theme.vars.palette.primary.main} 8%, transparent)`,
-        '&:hover, &.Mui-focusVisible': {
-          bgcolor: (theme: Theme) =>
-            `color-mix(in srgb, ${theme.vars.palette.primary.main} 16%, transparent)`
-        }
-      }
-    : { bgcolor: 'background.default' })
-})
 
 /**
  * A range of days, picked on the calendar, typed in its two fields or taken
@@ -510,11 +490,12 @@ function PresetRow({
           square
           clickable
           label={preset.label}
+          color={index === selected ? 'primary' : 'default'}
           aria-pressed={index === selected}
           onClick={() => {
             onPick(index)
           }}
-          sx={PRESET_SX(index === selected)}
+          sx={{ flexShrink: 0 }}
         />
       ))}
     </Box>
@@ -654,11 +635,7 @@ function PickerButton({
       type={type}
       variant={isMain ? 'contained' : 'outlined'}
       onClick={onClick}
-      sx={{
-        flex: isWide ? '1 1 0' : '0 0 auto',
-        minWidth: isWide ? undefined : 128,
-        whiteSpace: 'nowrap'
-      }}
+      sx={{ flex: isWide ? '1 1 0' : '0 0 auto', whiteSpace: 'nowrap' }}
       data-testid={testId}
     >
       {children}

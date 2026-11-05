@@ -3,7 +3,7 @@
 // instead of in the middle of the screen with a dimmed backdrop. twake-mui's
 // `Dialog` and `StandardDialog` are always centred; MUI's `Popover` has the
 // placement but is not a dialog (no name, no role).
-import { Fade, Popover } from '@linagora/twake-mui'
+import { Fade, Popover, radius } from '@linagora/twake-mui'
 import { ClickAwayListener } from '@mui/material'
 import { useId, useRef, type ReactElement, type ReactNode } from 'react'
 
@@ -11,9 +11,6 @@ import { useId, useRef, type ReactElement, type ReactNode } from 'react'
 const MIN_WIDTH = 560
 /** Room kept on the sides of the panel on a narrow screen */
 const SCREEN_MARGIN = 16
-/** The card of the Figma ("Search / Email"): 20 px corners, shadow 2 */
-const CARD_RADIUS = '20px'
-const CARD_ELEVATION = 2
 
 export interface AnchoredDialogProps {
   open: boolean
@@ -81,7 +78,6 @@ export function AnchoredDialog({
         // The invisible backdrop would cover the page: let the pointer through
         root: { sx: { pointerEvents: 'none' } },
         paper: {
-          elevation: CARD_ELEVATION,
           role: 'dialog',
           'aria-labelledby': titleId,
           sx: {
@@ -89,7 +85,7 @@ export function AnchoredDialog({
             minWidth: `min(${MIN_WIDTH}px, calc(100% - ${2 * SCREEN_MARGIN}px))`,
             maxWidth: `calc(100% - ${2 * SCREEN_MARGIN}px)`,
             pointerEvents: 'auto',
-            borderRadius: CARD_RADIUS,
+            borderRadius: radius.lg,
             '@media (prefers-reduced-motion: reduce)': {
               transition: 'none !important'
             }

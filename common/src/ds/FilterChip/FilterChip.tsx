@@ -1,7 +1,6 @@
 // Upstream to twake-ui: yes. The search filters are twake-mui's filled
-// `square` `Chip` (32 px, 8 px corners, `background.default`), with an
-// optional chevron after the label, and the pale primary colour with a small
-// cross once applied.
+// `square` `Chip` (32 px, `action.selected`), with an optional chevron after
+// the label, and the pale primary colour with a small cross once applied.
 // twake-mui's `Chip` has no applied state short of a solid primary colour,
 // and needs `sx` for that tint (docs/twake-mui-gaps.md).
 import { Icon, type IconProps, Dropdown, Cross } from '@linagora/twake-icons'
@@ -12,16 +11,9 @@ const END_SX = { display: 'flex', color: 'text.secondary' } as const
 /** The cross of an applied filter takes its primary colour */
 const CROSS_SX = { display: 'flex' } as const
 
-/** The Figma's "Chip filters": 12 px Medium label, 12 px side padding */
-const LABEL_SX = {
-  '& .MuiChip-label': { typography: 'caption', fontWeight: 500 },
-  '& .MuiChip-label:last-child': { pr: 1.5 }
-} as const
-
 const CHIP_SX = (isSelected: boolean): SxProps<Theme> =>
   isSelected
     ? {
-        ...LABEL_SX,
         color: 'primary.main',
         bgcolor: theme =>
           `color-mix(in srgb, ${theme.vars.palette.primary.main} 8%, transparent)`,
@@ -29,13 +21,9 @@ const CHIP_SX = (isSelected: boolean): SxProps<Theme> =>
           bgcolor: theme =>
             `color-mix(in srgb, ${theme.vars.palette.primary.main} 16%, transparent)`
         },
-        '& .MuiChip-icon': { ml: 1.5, color: 'primary.main' }
+        '& .MuiChip-icon': { color: 'primary.main' }
       }
-    : {
-        ...LABEL_SX,
-        bgcolor: 'background.default',
-        '& .MuiChip-icon': { ml: 1.5, color: 'text.secondary' }
-      }
+    : { '& .MuiChip-icon': { color: 'text.secondary' } }
 
 export interface FilterChipProps {
   label: string
@@ -94,7 +82,7 @@ export function FilterChip({
       label={label}
       clickable
       variant="filled"
-      className="square"
+      square
       icon={
         leadingIcon === undefined ? undefined : (
           <Icon icon={leadingIcon} size={16} />

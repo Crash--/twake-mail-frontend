@@ -12,6 +12,7 @@ import {
   Paper,
   Popper,
   type PopperProps,
+  radius,
   SearchBar,
   type SxProps,
   type Theme,
@@ -36,9 +37,8 @@ import {
 const POPUP_SX = { zIndex: 'modal' } as const
 /** The field stays above the popup that starts behind it */
 const FIELD_OPEN_Z_INDEX = 1301
-/** The open panel of the Figma ("Search / Email"): 20 px corners, shadow 2 */
-const PANEL_RADIUS = '20px'
-const PANEL_ELEVATION = 2
+/** The open panel rounds like twake-mui's large controls */
+const PANEL_RADIUS = radius.lg
 type PopperModifier = NonNullable<PopperProps['modifiers']>[number]
 
 /** The popup is as wide as the field, whatever the layout does after the focus */
@@ -87,8 +87,7 @@ const DETAIL_SX = {
   color: 'text.primary'
 } as const
 const SECONDARY_SX = { color: 'text.secondary' } as const
-/** As the Figma: a square as high as the field */
-const CLEAR_SX = { color: 'text.secondary', width: 40, height: 40 } as const
+const CLEAR_SX = { color: 'text.secondary' } as const
 
 const END_SX = {
   display: 'flex',
@@ -412,13 +411,13 @@ export function SearchCombobox({
                 {value === '' ? null : (
                   <Tooltip title={clearLabel}>
                     <IconButton
-                      size="small"
+                      size="medium"
                       aria-label={clearLabel}
                       onClick={handleClear}
                       sx={CLEAR_SX}
                       data-testid={testIds.clear}
                     >
-                      <Icon icon={Cross} size={12} />
+                      <Icon icon={Cross} />
                     </IconButton>
                   </Tooltip>
                 )}
@@ -453,7 +452,7 @@ export function SearchCombobox({
         sx={POPUP_SX}
       >
         <Paper
-          elevation={PANEL_ELEVATION}
+          elevation={8}
           sx={{ borderRadius: PANEL_RADIUS, pt: `${fieldHeight}px` }}
           onMouseDown={keepFocus}
         >

@@ -1,5 +1,5 @@
 // Upstream to twake-ui: no, an icon button at the end of the search bar:
-// twake-mui's small `IconButton`, in primary while what it opens applies.
+// twake-mui's medium `IconButton`, in primary while what it opens applies.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@mui/material'
 import type { MouseEvent, ReactElement } from 'react'
@@ -9,9 +9,6 @@ function buttonSx(
   isHidden: boolean
 ): Record<string, unknown> {
   return {
-    // As the Figma: 40 px square, the height of the field
-    width: 40,
-    height: 40,
     visibility: isHidden ? 'hidden' : undefined,
     color: isActive ? 'primary.main' : undefined
   }
@@ -46,7 +43,7 @@ export function SearchBarAction({
   return (
     <Tooltip title={label}>
       <IconButton
-        size="small"
+        size="medium"
         aria-label={label}
         aria-haspopup={hasPopup}
         onClick={onClick}

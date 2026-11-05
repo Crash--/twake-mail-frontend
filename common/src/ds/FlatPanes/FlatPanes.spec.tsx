@@ -33,33 +33,18 @@ describe('FlatPanes', () => {
     expect(screen.getByRole('main')).toBe(screen.getByTestId('main'))
   })
 
-  it('makes the main pane a card with margins when inset', () => {
+  it('keeps the main pane flush, without rounded corners', () => {
     renderDs(
       <Layout withTopBar={false}>
-        <FlatMain inset data-testid="main">
+        <FlatMain data-testid="main">
           <FlatContent>Body</FlatContent>
         </FlatMain>
       </Layout>
     )
 
-    expect(screen.getByTestId('main')).toHaveStyle({
-      margin: '16px 16px 16px 0',
+    expect(screen.getByTestId('main')).not.toHaveStyle({
       borderRadius: '16px'
     })
-  })
-
-  it('puts a header above the card, inside the main landmark', () => {
-    renderDs(
-      <Layout withTopBar={false}>
-        <FlatMain inset header={<p>Filters</p>} data-testid="main">
-          <FlatContent>Body</FlatContent>
-        </FlatMain>
-      </Layout>
-    )
-
-    const main = screen.getByRole('main')
-    expect(main).toHaveTextContent('FiltersBody')
-    expect(main).toHaveStyle({ margin: '0 16px 16px 0' })
   })
 
   it('keeps the sx of the panes out of the DOM', () => {

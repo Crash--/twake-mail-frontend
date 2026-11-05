@@ -46,7 +46,7 @@ describe('AppLayout', () => {
     ).toBeVisible()
   })
 
-  it('puts the logotype, the search and the account menu in the platform bar, as tmail-flutter', async () => {
+  it('puts the logotype and the account menu in the platform bar, and the search in the page', async () => {
     mockViewport({ width: 1440 })
     renderLayout()
 
@@ -54,7 +54,8 @@ describe('AppLayout', () => {
     const bar = screen.getByTestId('twake-bar')
 
     expect(screen.queryByTestId('top-bar')).toBe(null)
-    expect(bar).toContainElement(row)
+    expect(bar).not.toContainElement(row)
+    expect(screen.getByRole('main')).toContainElement(row)
     expect(within(row).getByTestId('search-input')).toBeVisible()
     expect(within(bar).getByRole('img', { name: 'Twake Mail' })).toBeVisible()
     // As tmail-flutter: the settings behind the initial of the user

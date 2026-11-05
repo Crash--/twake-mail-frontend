@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { useLocation } from 'react-router'
+import { useMatch } from 'react-router'
 
 import { AppBarFrame, AppBarLeft } from '@/ds/AppBarFrame/AppBarFrame'
 import { SIDEBAR_WIDTH } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
@@ -46,13 +46,14 @@ export function AppHeader({
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const isPhone = screenSize === 'mobile'
-  const { pathname } = useLocation()
+  // `/settings/` too
+  const isSettingsMenu = useMatch(SETTINGS_PATH) !== null
   // A phone gives an open email the whole screen under the platform bar
   // too, and the menu of the settings draws its own header
   const isMailBarHidden =
     isDesktop ||
     (isEmailFullScreen && (status === 'public' || isPhone)) ||
-    (isPhone && pathname === SETTINGS_PATH)
+    (isPhone && isSettingsMenu)
   const mailBar = isMailBarHidden ? null : (
     <TopBar onOpenFolders={onOpenFolders} />
   )

@@ -283,7 +283,8 @@ export function EmailCell({
     <IconAction
       label={starLabel}
       icon={isStarred ? Star : StarOutline}
-      tone={isStarred ? 'starred' : 'secondary'}
+      tone={isStarred ? 'starred' : 'default'}
+      iconSize={16}
       aria-pressed={isStarred}
       onClick={handleToggleStar}
       data-testid="email-list-item-star"
@@ -305,9 +306,7 @@ export function EmailCell({
     : isForwarded
       ? t('email.forwardedState')
       : null
-  // 20 px as the star in the 32 px slot of a wide row, 16 px in the line of
-  // a compact row, which it must not make taller
-  const answeredState = (size: 16 | 20): ReactElement | null =>
+  const answeredState =
     answeredLabel === null ? null : (
       <Tooltip title={answeredLabel}>
         <span
@@ -318,7 +317,7 @@ export function EmailCell({
         >
           <Icon
             icon={isAnswered ? ReplyOutlineIcon : ForwardOutlineIcon}
-            size={size}
+            size={16}
             color={SECONDARY_ICON_COLOR}
             aria-hidden="true"
           />
@@ -555,7 +554,7 @@ export function EmailCell({
         <span className="u-flex u-flex-items-center">
           {checkbox}
           {wideStarButton}
-          <RowStateSlot>{answeredState(20)}</RowStateSlot>
+          <RowStateSlot>{answeredState}</RowStateSlot>
           <RowStateSlot>{framedDot}</RowStateSlot>
         </span>
       )
@@ -702,7 +701,7 @@ export function EmailCell({
             senderEnd={
               <>
                 {threadCount}
-                {answeredState(16)}
+                {answeredState}
                 {attachmentMark(16)}
                 {wideDate}
               </>

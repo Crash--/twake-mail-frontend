@@ -92,8 +92,7 @@ export function EmailListDefaultToolbar({
         <IconAction
           label={refreshLabel}
           icon={Restore}
-          iconSize={20}
-          tone="secondary"
+          iconSize={16}
           onClick={onRefresh}
           data-testid="list-refresh-button"
         />

@@ -163,9 +163,9 @@ export function EmailListToolbar({
   const moreLabel = t('emailActions.menu.more')
 
   const actionSizes = isDesktop
-    ? { size: 32, iconSize: 20 }
+    ? { size: 32, iconSize: 16 }
     : { size: 36, iconSize: 20 }
-  const iconTone = isDesktop ? 'secondary' : 'icon'
+  const iconTone = isDesktop ? 'default' : 'icon'
 
   // tmail-flutter's `ic_cancel` before how many below the desktop size
   const clearButton = (

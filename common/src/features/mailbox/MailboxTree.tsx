@@ -152,7 +152,6 @@ export function MailboxTree({
   const [isSearching, setIsSearching] = useState(false)
   const searchButtonRef = useRef<HTMLButtonElement>(null)
   const isRefocusPending = useRef(false)
-  const searchId = useId()
   const [menu, setMenu] = useState<{
     mailbox: MailboxSummary
     anchor: FolderMenuAnchor
@@ -226,14 +225,22 @@ export function MailboxTree({
     searchButtonRef.current?.focus()
   }, [isSearching])
 
+  // Also on unmount: a closed drawer unmounts the tree, not the sidebar that
+  // hides the labels
+  useEffect(() => {
+    if (!isSearching) return undefined
+    onSearchChange?.(true)
+    return () => {
+      onSearchChange?.(false)
+    }
+  }, [isSearching, onSearchChange])
+
   const handleOpenSearch = (): void => {
     setIsSearching(true)
-    onSearchChange?.(true)
   }
   const handleCloseSearch = (): void => {
     isRefocusPending.current = true
     setIsSearching(false)
-    onSearchChange?.(false)
   }
 
   let systemContent: ReactNode
@@ -281,7 +288,7 @@ export function MailboxTree({
             data-testid="mailbox-tree-loading"
           />
         ) : null}
-        {isSearching || query.isPending ? null : (
+        {(isSearching && boundRows === null) || query.isPending ? null : (
           <NavTree
             role="tree"
             aria-label={t('sidebar.mailboxes')}
@@ -292,7 +299,6 @@ export function MailboxTree({
         )}
         {boundRows !== null ? null : isSearching ? (
           <MailboxSearch
-            id={searchId}
             selectedId={selectedId}
             onClose={handleCloseSearch}
             onOpenMenu={handleOpenMenu}
@@ -335,7 +341,7 @@ export function MailboxTree({
               className="u-pt-1"
             >
               {/* As tmail-flutter: the folders of the user and the team
-                mailboxes are two categories of the "Folders" section */}
+                  mailboxes are two categories of the "Folders" section */}
               {folderRows.length > 0 ? (
                 <NavCategory
                   title={t('sidebar.personalFolders')}

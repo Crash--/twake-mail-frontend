@@ -355,4 +355,39 @@ describe('AppLayout on a phone', () => {
     })
     expect(screen.getByTestId('top-bar-folder-name')).toHaveTextContent('Sent')
   })
+
+  it('shows the labels again in a drawer closed during the folder search', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeLabels(server, [
+      { id: 'work', displayName: 'Work', keyword: 'work', color: null }
+    ])
+    renderWithProviders(<AppLayout />, {
+      route: '/mailbox/mailbox-inbox',
+      path: '*',
+      jmapServer: server,
+      withJmapSession: true,
+      childRoutes: (
+        <Route path="mailbox/:mailboxId" element={<p>Folder content</p>} />
+      )
+    })
+    const menuButton = await screen.findByRole('button', {
+      name: 'Show folders'
+    })
+    await userEvent.click(menuButton)
+    await screen.findByTestId('labels-section')
+    await userEvent.click(screen.getByTestId('mailbox-search-button'))
+    await userEvent.type(screen.getByTestId('mailbox-search-input'), 'Sent')
+    await userEvent.click(
+      within(screen.getByTestId('mailbox-search-results')).getByText('Sent')
+    )
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+
+    await userEvent.click(menuButton)
+
+    expect(await screen.findByTestId('labels-section')).toBeVisible()
+  })
 })

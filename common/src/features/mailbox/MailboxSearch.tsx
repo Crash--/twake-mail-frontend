@@ -30,8 +30,6 @@ import { useMailboxes } from './useMailboxes'
 import { useMailboxName } from './useMailboxName'
 
 export interface MailboxSearchProps {
-  /** Id of the panel, for the `aria-controls` of the magnifier */
-  id: string
   selectedId: string | null
   /** Back or Escape; the caller gives the focus back to the magnifier */
   onClose: () => void
@@ -48,7 +46,6 @@ export interface MailboxSearchProps {
  * goes down to the results and the count of folders found is announced.
  */
 export function MailboxSearch({
-  id,
   selectedId,
   onClose,
   onOpenMenu
@@ -126,7 +123,6 @@ export function MailboxSearch({
   return (
     <Box
       ref={panelRef}
-      id={id}
       role="search"
       aria-label={label}
       className="u-mh-1"

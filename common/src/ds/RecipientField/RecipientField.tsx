@@ -140,20 +140,20 @@ const DROP_OVER_SX = {
     `inset 0 0 0 1px ${theme.vars.palette.primary.main}`
 } as const
 /**
- * The outlined field of addresses (advanced search): 38 px high at least,
- * as the other fields of its form, a 1 px border (primary while it has the
- * focus or a tag is dragged over it), the chips 4 px apart
+ * The outlined field of addresses (advanced search): 40 px high at least,
+ * a 1 px border (primary while it has the focus or a tag is dragged over
+ * it), the chips 4 px apart
  */
 const OUTLINED_SX = {
   display: 'flex',
   alignItems: 'flex-start',
-  minHeight: 38,
+  minHeight: 40,
   boxSizing: 'border-box',
-  px: '15px',
-  py: '2px',
+  px: '12px',
+  py: '3px',
   border: 1,
   borderColor: 'border.main',
-  borderRadius: radius.sm,
+  borderRadius: radius.md,
   bgcolor: 'background.paper',
   '&:focus-within': { borderColor: 'primary.main' },
   // The row of a form outlines its inputs: not the one inside the field

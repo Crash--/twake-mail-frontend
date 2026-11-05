@@ -1,8 +1,7 @@
 // Upstream to twake-ui: yes. A form row with the label on the left and the
 // control after it, as the Figma advanced search: a 124 px label column
-// before the control, the outlined field 38 px high with a 14 px text.
-// twake-mui's `TextField` puts the label above or inside the field, and its
-// small field is 48 px high with a 16 px text.
+// before the control, the field as twake-mui draws it. twake-mui's
+// `TextField` puts the label above or inside the field.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -15,12 +14,6 @@ const ROW_SX = {
 
 /** A long label ("Contiene las palabras") wraps 8 px before the field */
 const LABEL_SX = { fontWeight: 400, pr: 1 } as const
-
-/** The dense outlined field of the Figma: 9 px above and below a 14 px text */
-const CONTROL_SX = {
-  '& .MuiOutlinedInput-root': { typography: 'body2' },
-  '& .MuiOutlinedInput-input': { py: '9px' }
-} as const
 
 export interface FormRowProps {
   /** Name of the field, visible; `htmlFor` ties it to the control */
@@ -50,7 +43,7 @@ export function FormRow({
       >
         {label}
       </Typography>
-      <Box sx={CONTROL_SX}>{children}</Box>
+      <Box>{children}</Box>
     </Box>
   )
 }

@@ -192,7 +192,7 @@ Conventions:
 | `data-testid` | Element | Flutter key |
 |---|---|---|
 | `composer` | a composer window (`role="dialog"` named by its subject; `data-mode`: `normal`, `minimized`, `fullscreen`), the newest first; `composer-dock` holds them | — |
-| `composer-minimize-button` / `composer-fullscreen-button` | minimize (then "Show"), full screen (then "Exit fullscreen"), desktop only | `minimize`, `fullscreen` buttons of `desktop_app_bar_composer_widget` |
+| `composer-minimize-button` / `composer-fullscreen-button` | minimize (then "Show"), full screen (then "Exit fullscreen"), desktop only; minimized, the title comes first, then show, full screen and close | `minimize`, `fullscreen` buttons of `desktop_app_bar_composer_widget` |
 | `composer-overflow-button` / `composer-overflow-menu` / `composer-overflow-item` | "+N messages", the composers left out for lack of room (at the start of the dock, or in the title bar of the composer filling the screen), its menu and its items | — (web app only) |
 | `composer-recipients-summary` | the recipient fields folded into one line (focus on the subject or the body), unfolds them | `RecipientsCollapsedComposerWidget` |
 | `composer-to-suggestions` (… `-cc-`, `-bcc-`, `-reply-to-`) | the contact suggestions of a field (`role="listbox"`) | — |
@@ -206,7 +206,7 @@ Conventions:
 | `rich-text-image-toolbar` + `rich-text-image-<item>-button` (`small`, `medium`, `large`, `original`, `smaller`, `larger`, `remove`) | toolbar of the selected image (arrows select it, Enter opens it) | — |
 | `composer-send-button` | send | `UiKeys.sendEmailButton` |
 | `composer-close-button` | close (saves a draft when dirty) | `UiKeys.closeComposerButton` |
-| `composer-more-button` + `composer-save-draft-item` (phones only), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu, after the link in the bottom bar as tmail-flutter (`…`) | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
+| `composer-more-button` + `composer-save-draft-item` (phones only), `composer-save-template-item`, `composer-read-receipt-item`, `composer-mark-important-item` | more menu (`…`): in the title bar on a desktop and a tablet (the Figma footer has none), in the top bar on a phone | `UiKeys.composerMoreButton`, `save_as_draft_popup_item`, `saveAsTemplatePopupItem`, `read_receipt_popup_item`, `mark_as_important_popup_item` |
 | `composer-attach-file-button` / `composer-file-input` | "Attach file" and its hidden file input | `attach_file` |
 | `composer-drive-button` | "Attach from Drive" (`TDRIVE_ENABLED`, signed in to the Workplace, with Drive) | `attachFromDrive` |
 | `composer-scribe-button` + `composer-scribe-menu` (`composer-scribe-actions`: `ai-scribe-category` with `data-category`, its `ai-scribe-submenu` of `ai-scribe-action` with `data-action`; `composer-scribe-task` the "Help me write" prompt, `composer-scribe-task-send`) | the AI assistant (with `com:linagora:params:jmap:aibot`) and what it opens above its button, as tmail-flutter: the menu of categories (alone "Help me write" when nothing is written) | `AiAssistantButton`, `AiScribeContextMenu`, `AIScribeBar` |

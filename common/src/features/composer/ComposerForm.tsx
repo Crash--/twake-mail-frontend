@@ -39,6 +39,7 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
+import { createPortal } from 'react-dom'
 
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
@@ -239,6 +240,11 @@ export interface ComposerFormProps {
   /** On a phone, more controls of the top bar, after the close button */
   topBarActions?: ReactNode
   /**
+   * Where the "More" button goes in the title bar of the window, null
+   * without one: it stays in the footer
+   */
+  moreSlot?: HTMLElement | null
+  /**
    * Closed with a draft made here, a toast offers to delete it; false when
    * the draft goes to another app (the intents page)
    */
@@ -349,6 +355,7 @@ function LoadedComposerForm({
   onDone,
   onRequestClose,
   topBarActions,
+  moreSlot = null,
   isDiscardOfferedOnClose = true,
   content,
   identities,
@@ -1589,6 +1596,9 @@ function LoadedComposerForm({
       </Box>
     </>
   )
+  // The Figma's footer has no "More": on a desktop or a tablet its menu
+  // (templates, print, options, emoji, Reply to) opens from the title bar
+  const isMoreInTitleBar = !isPhone && moreSlot !== null
   const moreButton = (
     <ActionIconButton
       ref={moreButtonRef}
@@ -1596,10 +1606,10 @@ function LoadedComposerForm({
       aria-haspopup="menu"
       aria-expanded={moreAnchor !== null}
       onClick={handleOpenMore}
-      className={gap}
+      className={isMoreInTitleBar ? undefined : gap}
       data-testid="composer-more-button"
     >
-      <Icon icon={Dots} size={24} aria-hidden="true" />
+      <Icon icon={Dots} size={isMoreInTitleBar ? 16 : 24} aria-hidden="true" />
     </ActionIconButton>
   )
   // As tmail-flutter: "Save as draft" beside "Delete", the menu holds it
@@ -2016,14 +2026,14 @@ function LoadedComposerForm({
           )}
         </Box>
         {isPhone ? null : (
-          <Box className="u-flex u-flex-items-center u-flex-shrink-0 u-flex-wrap u-pv-1 u-ph-2">
+          <Box className="u-flex u-flex-items-center u-flex-shrink-0 u-flex-wrap u-p-1">
             {formattingButton}
             {attachButton}
             {imageButton}
             {linkButton}
             {driveButton}
             {scribeMenu}
-            {moreButton}
+            {isMoreInTitleBar ? null : moreButton}
             {fileInput}
             {saveStatus}
             <ActionIconButton
@@ -2037,6 +2047,9 @@ function LoadedComposerForm({
             <span className="u-ml-1">{sendButton}</span>
           </Box>
         )}
+        {isPhone || moreSlot === null
+          ? null
+          : createPortal(moreButton, moreSlot)}
         {moreMenu}
         <ComposerEmojiPicker
           anchor={emojiAnchor}

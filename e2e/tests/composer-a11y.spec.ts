@@ -48,11 +48,12 @@ test.describe('A11Y composer', () => {
 
     // A named, non modal dialog; the title is a level 2 heading; the live regions are there
     // before anything is announced (a region added with its text is often missed)
-    // As tmail-flutter: the footer has "Aa" (the toolbar opens with it),
-    // the insertions and More, then delete, save as draft and send
+    // The Figma: More in the title bar; the footer has "Aa" (the toolbar
+    // opens with it) and the insertions, then delete, save as draft and send
     await expect(composer.root).toMatchAriaSnapshot(`
       - dialog "New message":
         - heading "New message" [level=2]
+        - button "More"
         - button "Minimize"
         - button "Fullscreen"
         - button "Close"
@@ -66,7 +67,6 @@ test.describe('A11Y composer', () => {
         - button "Attach file"
         - button "Insert image"
         - button "Insert link"
-        - button "More"
         - status
         - button "Delete draft"
         - button "Save as draft"
@@ -91,7 +91,6 @@ test.describe('A11Y composer', () => {
       'Attach file',
       'Insert image',
       'Insert link',
-      'More',
       'Delete draft',
       'Save as draft',
       'Send'
@@ -105,10 +104,10 @@ test.describe('A11Y composer', () => {
     await composer.expectMode('minimized')
     await expect(composer.root).toMatchAriaSnapshot(`
       - dialog "Quarterly numbers":
-        - button "Close"
-        - button "Fullscreen"
-        - button "Show"
         - 'button "Show: Quarterly numbers"'
+        - button "Show"
+        - button "Fullscreen"
+        - button "Close"
     `)
     await expect(
       composer.root.getByRole('button', { name: 'Show: Quarterly numbers' })

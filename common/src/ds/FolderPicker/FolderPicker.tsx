@@ -1,4 +1,4 @@
-// Upstream to twake-ui: yes. A destination picker in twake-mui's `FixedDialog`:
+// Upstream to twake-ui: yes. A destination picker in a `ModalDialog`:
 // a `SearchBar`, then the folders by blocks (the system ones, "Personal
 // folders", "Team-mailboxes", the last two folding), 36 px rows with a 16 px
 // icon and the subfolders folded behind a chevron after the name. twake-mui
@@ -14,7 +14,7 @@ import {
   Icon,
   type IconProps,
   Bottom,
-  Check,
+  CheckCircle,
   Right,
   Plus
 } from '@linagora/twake-icons'
@@ -22,11 +22,11 @@ import {
   Box,
   ButtonBase,
   Divider,
-  FixedDialog,
   IconButton,
   SearchBar,
   Tooltip,
-  Typography
+  Typography,
+  type Theme
 } from '@linagora/twake-mui'
 import {
   Fragment,
@@ -39,6 +39,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FolderPickerOption {
@@ -128,16 +129,26 @@ function rowSx(
     cursor: option.disabled === true ? 'default' : 'pointer',
     opacity: option.disabled === true ? 0.3 : 1,
     bgcolor:
-      isActive || option.isCurrent === true ? 'action.selected' : 'transparent',
+      option.isCurrent === true
+        ? currentBackground
+        : isActive
+          ? 'action.selected'
+          : 'transparent',
     '&:hover': {
       bgcolor:
         option.isCurrent === true
-          ? 'action.selected'
+          ? currentBackground
           : option.disabled === true
             ? undefined
             : 'action.hover'
     }
   }
+}
+
+/** The folder concerned, tinted with the primary colour as in the Figma */
+function currentBackground(theme: Theme): string {
+  const { palette } = theme.vars
+  return `rgba(${palette.primary.mainChannel} / ${String(palette.action.selectedOpacity)})`
 }
 
 const ICON_SX = {
@@ -366,7 +377,7 @@ export function FolderPicker({
   const isEmpty = shownSections.every(section => section.options.length === 0)
 
   return (
-    <FixedDialog
+    <ModalDialog
       open={open}
       onClose={onClose}
       title={labels.title}
@@ -556,7 +567,7 @@ export function FolderPicker({
                         </Box>
                         {option.isCurrent === true ? (
                           <Box component="span" sx={CHECK_SX}>
-                            <Icon icon={Check} aria-hidden="true" />
+                            <Icon icon={CheckCircle} aria-hidden="true" />
                           </Box>
                         ) : null}
                       </Box>

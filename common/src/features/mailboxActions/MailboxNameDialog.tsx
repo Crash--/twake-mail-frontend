@@ -1,11 +1,5 @@
 import { Icon, FolderOutlined } from '@linagora/twake-icons'
-import {
-  Button,
-  FixedDialog,
-  MenuItem,
-  TextField,
-  Typography
-} from '@linagora/twake-mui'
+import { Button, MenuItem, TextField, Typography } from '@linagora/twake-mui'
 import {
   useEffect,
   useId,
@@ -15,6 +9,8 @@ import {
   type ReactElement
 } from 'react'
 
+import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
+import { StackedField } from '@/ds/StackedField/StackedField'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 export interface MailboxNameDialogLocation {
@@ -52,6 +48,7 @@ export function MailboxNameDialog({
   const { t } = useI18n()
   const formId = useId()
   const locationId = useId()
+  const locationLabelId = useId()
   const inputId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(initialName)
@@ -84,7 +81,7 @@ export function MailboxNameDialog({
       inputRef={inputRef}
       autoFocus
       fullWidth
-      label={location === null ? undefined : t('folders.create.name')}
+      size="small"
       placeholder={t('folders.create.placeholder')}
       value={name}
       onChange={event => {
@@ -110,7 +107,7 @@ export function MailboxNameDialog({
   // small one with the field alone
   const isCreating = location !== null
   return (
-    <FixedDialog
+    <ModalDialog
       open
       title={title}
       size={isCreating ? 'medium' : 'small'}
@@ -118,42 +115,59 @@ export function MailboxNameDialog({
       onClose={onClose}
       content={
         <form id={formId} onSubmit={handleSubmit} noValidate>
-          {location === null ? null : (
-            <Typography component="p" className="u-mb-1">
-              {t('folders.create.subtitle', { folderName: location.path })}
-            </Typography>
+          {location === null ? (
+            field
+          ) : (
+            <>
+              <Typography component="p" className="u-mb-1-half">
+                {t('folders.create.subtitle', { folderName: location.path })}
+              </Typography>
+              <StackedField label={t('folders.create.name')} htmlFor={inputId}>
+                {field}
+              </StackedField>
+            </>
           )}
-          {field}
           {location === null ? null : (
-            // Never opens its own menu: opening it asks for the picker
-            <TextField
-              id={locationId}
-              select
-              fullWidth
-              className="u-mt-1"
+            <StackedField
               label={t('folders.create.location')}
-              value={location.path}
-              slotProps={{
-                select: {
-                  open: false,
-                  onOpen: location.onChange,
-                  renderValue: () => (
-                    <span className="u-flex u-flex-items-center">
-                      <Icon icon={FolderOutlined} aria-hidden="true" />
-                      <span className="u-ml-half u-ellipsis">
-                        {location.path}
-                      </span>
-                    </span>
-                  ),
-                  SelectDisplayProps: {
-                    'aria-haspopup': 'dialog',
-                    'data-testid': 'mailbox-name-location-button'
-                  } as Record<string, string>
-                }
-              }}
+              htmlFor={locationId}
+              id={locationLabelId}
+              className="u-mt-1-half"
             >
-              <MenuItem value={location.path}>{location.path}</MenuItem>
-            </TextField>
+              {/* Never opens its own menu: opening it asks for the picker */}
+              <TextField
+                id={locationId}
+                select
+                fullWidth
+                size="small"
+                value={location.path}
+                slotProps={{
+                  select: {
+                    open: false,
+                    onOpen: location.onChange,
+                    renderValue: () => (
+                      <span className="u-flex u-flex-items-center">
+                        <Icon
+                          icon={FolderOutlined}
+                          size={20}
+                          aria-hidden="true"
+                        />
+                        <span className="u-ml-half u-ellipsis">
+                          {location.path}
+                        </span>
+                      </span>
+                    ),
+                    SelectDisplayProps: {
+                      'aria-haspopup': 'dialog',
+                      'aria-labelledby': locationLabelId,
+                      'data-testid': 'mailbox-name-location-button'
+                    } as Record<string, string>
+                  }
+                }}
+              >
+                <MenuItem value={location.path}>{location.path}</MenuItem>
+              </TextField>
+            </StackedField>
           )}
         </form>
       }

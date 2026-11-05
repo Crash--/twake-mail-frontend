@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useState, type ReactElement } from 'react'
 
 import { EmojiPicker, type EmojiEntry } from '@/ds/EmojiPicker/EmojiPicker'
 import { useI18n } from '@common/i18n/useI18n'
@@ -36,6 +36,10 @@ export function ComposerEmojiPicker({
     list: EmojiEntry[]
   } | null>(null)
   const loadedLang = emojis?.lang
+  const recent = useMemo(
+    () => (anchor === null ? [] : readRecentEmojis()),
+    [anchor]
+  )
 
   useEffect(() => {
     if (anchor === null || loadedLang === lang) return
@@ -52,7 +56,7 @@ export function ComposerEmojiPicker({
     <EmojiPicker
       anchor={anchor}
       emojis={emojis?.lang === lang ? emojis.list : null}
-      recent={anchor === null ? [] : readRecentEmojis()}
+      recent={recent}
       labels={{
         title: t('composer.emoji.title'),
         search: t('composer.emoji.search'),

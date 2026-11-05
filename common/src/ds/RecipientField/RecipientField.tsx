@@ -133,10 +133,8 @@ const CONTENT_SX = {
 } as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
 /**
- * A recipient tag, the filled chip of the design system: 32 px high, no
- * border, on the default background, 4 px before its 24 px gradient avatar
- * and 8 px after its 16 px cross, `caption` text; selected while it has the
- * focus
+ * A recipient tag, the filled chip of the design system; selected while it
+ * has the focus
  */
 export const RECIPIENT_CHIP_SX = {
   height: 32,
@@ -168,12 +166,10 @@ export const RECIPIENT_CHIP_SX = {
 /** A tag being dragged, and the copy under the pointer: primary, with a contrast name */
 const DRAGGED_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
-  borderColor: 'primary.main',
   bgcolor: 'primary.main',
   color: 'primary.contrastText',
   '&:focus, &.Mui-focusVisible': {
-    bgcolor: 'primary.main',
-    borderColor: 'primary.main'
+    bgcolor: 'primary.main'
   }
 } as const
 /** Tags that can be dragged show it (tmail-flutter's `grab` cursor) */

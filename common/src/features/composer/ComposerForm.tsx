@@ -1096,6 +1096,7 @@ function LoadedComposerForm({
 
   const handleOpenTemplatePicker = (): void => {
     setMoreAnchor(null)
+    isMoreFocusDueRef.current = false
     setIsPickerOpen(true)
   }
 

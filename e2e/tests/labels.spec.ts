@@ -480,7 +480,6 @@ test.describe('LBL label colours', () => {
       await expect(labels.noColorOption).toBeChecked()
       await expect(labels.noColorOption).toBeFocused()
       await expectNoA11yViolations(page)
-      // The arrows move the choice and keep the colours open, Enter closes
       await page.keyboard.press('ArrowRight')
       await expect(labels.colorOption('Navy blue')).toBeChecked()
       await expect(labels.colorOptions).toBeVisible()

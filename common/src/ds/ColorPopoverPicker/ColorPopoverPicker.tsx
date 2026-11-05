@@ -253,7 +253,6 @@ export function ColorPopoverPicker({
             sx: { ml: 1.5, borderRadius: '16px' }
           },
           transition: {
-            // Into the group, on the colour chosen
             onEntered: () => {
               const inputs = Array.from(
                 groupRef.current?.querySelectorAll('input') ?? []

@@ -78,12 +78,10 @@ export class LabelModals {
     await expect(this.labelModal).toBeHidden()
   }
 
-  /** A colour of the open popover of the label modal, by its name */
   colorOption(name: string): Locator {
     return this.colorOptions.getByRole('radio', { name, exact: true })
   }
 
-  /** Opens the colours of the label modal */
   async openColors(): Promise<void> {
     await this.colorPicker.click()
     await expect(this.colorOptions).toBeVisible()

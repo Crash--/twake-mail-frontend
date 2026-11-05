@@ -29,7 +29,6 @@ function setup(
   return fake
 }
 
-/** Opens the colours of the label modal, from the square beside the name */
 async function openColors(dialog: HTMLElement): Promise<HTMLElement> {
   await userEvent.click(within(dialog).getByTestId('label-color-picker'))
   return screen.findByRole('radiogroup', { name: 'Choose a label color' })
@@ -167,7 +166,6 @@ describe('LabelsSection', () => {
     expect(
       within(colors).getByRole('radio', { name: 'Purple' })
     ).not.toBeChecked()
-    // The arrows move the choice and keep the colours open; Escape closes them
     await userEvent.keyboard('{ArrowRight}')
     expect(within(colors).getByRole('radio', { name: 'Purple' })).toBeChecked()
     await userEvent.keyboard('{Escape}')

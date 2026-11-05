@@ -152,7 +152,6 @@ export function RecoveryDialog({
             slotProps={{
               select: {
                 renderValue: () => periodLabel(period),
-                // Names the field and its listbox
                 labelId: `${id}-label`,
                 SelectDisplayProps: {
                   'data-testid': `recovery-${field}-select`

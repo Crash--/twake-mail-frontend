@@ -32,7 +32,12 @@ import {
 } from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
+import {
+  COMPACT_ROW_ASIDE_ROOM,
+  CompactRowAside
+} from '@/ds/CompactRowAside/CompactRowAside'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
+import { initialsOf } from '@/ds/RecipientField/initials'
 import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowHoverSpace } from '@/ds/RowHoverActions/RowHoverSpace'
@@ -214,6 +219,7 @@ export function EmailCell({
   const navigate = useNavigate()
   const ensureEmailViewReady = useEmailViewReady()
   const screenSize = useScreenSize()
+  const isPhone = screenSize === 'mobile'
   const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)
 
@@ -261,14 +267,15 @@ export function EmailCell({
       : t(showRecipients ? 'thread.row.noRecipient' : 'thread.row.noSender')
 
   // Decorative: the name of the sender is the text next to it. The first
-  // letter of the name, coloured from the address
+  // letter of the name (two initials on a phone), coloured from the address
   const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
   const avatarName =
     avatarAddress === null ? '' : addressDisplayName(avatarAddress)
   const avatarEmail = avatarAddress?.email ?? ''
+  const avatarText = avatarName === '' ? avatarEmail : avatarName
   const avatar = (
     <GradientAvatar
-      text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
+      text={isPhone ? initialsOf(avatarText) : firstLetterOf(avatarText)}
       colorKey={avatarEmail}
       size={column.id === 'select' ? COMPACT_AVATAR_SIZE : ROW_AVATAR_SIZE}
       data-testid="email-list-item-avatar"
@@ -676,8 +683,9 @@ export function EmailCell({
         isEvent ? t('calendar.eventMark') : null
       ].filter(state => state !== null)
       // As tmail-flutter's compact tile: sender, marks and date then a
-      // chevron; subject (the folder, the star); one line of preview
-      return (
+      // chevron; subject (the folder, the star); one line of preview. A
+      // phone has no chevron, and the star toggle ends the preview line
+      const link = (
         <RowLink
           href={href}
           onNavigate={handleNavigate}
@@ -707,13 +715,15 @@ export function EmailCell({
               </>
             }
             end={
-              <Icon
-                icon={Right}
-                size={16}
-                color={CHEVRON_ICON_COLOR}
-                aria-hidden="true"
-                className="u-flex-shrink-0"
-              />
+              isPhone ? null : (
+                <Icon
+                  icon={Right}
+                  size={16}
+                  color={CHEVRON_ICON_COLOR}
+                  aria-hidden="true"
+                  className="u-flex-shrink-0"
+                />
+              )
             }
             subject={
               <>
@@ -725,7 +735,7 @@ export function EmailCell({
             subjectEnd={
               <>
                 {mailboxLabel}
-                {isStarred ? (
+                {isStarred && !isPhone ? (
                   <Icon
                     icon={Star}
                     size={15}
@@ -738,6 +748,7 @@ export function EmailCell({
             }
             preview={preview}
             previewEnd={labelChips}
+            previewEndRoom={isPhone ? COMPACT_ROW_ASIDE_ROOM : 0}
             testIds={{
               sender: 'email-list-item-sender',
               subject: 'email-list-item-subject',
@@ -745,6 +756,11 @@ export function EmailCell({
             }}
           />
         </RowLink>
+      )
+      return isPhone ? (
+        <CompactRowAside aside={wideStarButton}>{link}</CompactRowAside>
+      ) : (
+        link
       )
     }
     default:

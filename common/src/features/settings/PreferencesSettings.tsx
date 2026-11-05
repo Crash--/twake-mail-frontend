@@ -2,7 +2,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
 
-import { SettingsChoiceOption } from '@/ds/SettingsOption/SettingsOption'
+import {
+  SettingsChoiceOption,
+  SettingsOptionGroup
+} from '@/ds/SettingsOption/SettingsOption'
 
 import { hasAiCapability } from '@common/features/ai/aiNeedsAction'
 import { useDriveSdk } from '@common/features/drive/useDrivePicker'
@@ -63,7 +66,8 @@ export interface PreferencesSettingsProps {
  * categorisation (setting of the account). Then the accessibility mode
  * (kept in this browser, not in tmail-flutter). First of all, the theme
  * (`appearance.theme` of the account, not in tmail-flutter), when the
- * server lets it change.
+ * server lets it change. The switches are grouped as the Figma's
+ * Preferences: privacy, inbox, smart features, writing, accessibility.
  */
 export function PreferencesSettings({
   section
@@ -124,6 +128,14 @@ export function PreferencesSettings({
     })
   }
 
+  const hasReadReceipts = serverOption('read.receipts.always')
+  const hasRemoteImages = serverOption(REMOTE_IMAGES_SETTING_KEY)
+  const hasErrorReporting =
+    errorReporting.isConfigured && errorReporting.canChoose
+  const hasLabelCategorization =
+    serverOption(AI_LABEL_CATEGORIZATION_KEY) &&
+    hasAiCapability(session, accountId)
+
   return (
     <SettingsSectionLayout section={section}>
       {serverOption(THEME_SETTING_KEY) ? (
@@ -140,134 +152,140 @@ export function PreferencesSettings({
           data-testid="theme-setting"
         />
       ) : null}
-      {serverOption('read.receipts.always') && settings !== null ? (
-        <PreferenceOption
-          title={t('settings.preferences.readReceipts')}
-          description={t('settings.preferences.readReceiptsDescription')}
-          toggleLabel={t('settings.preferences.readReceiptsToggle')}
-          isChecked={isAlwaysRequestingReadReceipts(settings)}
-          isDisabled={saving === 'read.receipts.always'}
-          onChange={isOn => {
-            changeServerSetting('read.receipts.always', String(isOn))
-          }}
-          data-testid="read-receipts-setting-toggle"
-        />
+      {settings !== null &&
+      (hasReadReceipts || hasRemoteImages || hasErrorReporting) ? (
+        <SettingsOptionGroup title={t('settings.preferences.groups.privacy')}>
+          {hasReadReceipts ? (
+            <PreferenceOption
+              description={t('settings.preferences.readReceiptsDescription')}
+              toggleLabel={t('settings.preferences.readReceiptsToggle')}
+              isChecked={isAlwaysRequestingReadReceipts(settings)}
+              isDisabled={saving === 'read.receipts.always'}
+              onChange={isOn => {
+                changeServerSetting('read.receipts.always', String(isOn))
+              }}
+              data-testid="read-receipts-setting-toggle"
+            />
+          ) : null}
+          {hasRemoteImages ? (
+            <PreferenceOption
+              description={t('settings.preferences.remoteImagesDescription')}
+              toggleLabel={t('settings.preferences.remoteImagesToggle')}
+              isChecked={isShowingRemoteImages(settings)}
+              warning={
+                isShowingRemoteImages(settings)
+                  ? t('settings.preferences.remoteImagesWarning')
+                  : null
+              }
+              isDisabled={saving === REMOTE_IMAGES_SETTING_KEY}
+              onChange={isOn => {
+                changeServerSetting(REMOTE_IMAGES_SETTING_KEY, String(isOn))
+              }}
+              data-testid="remote-images-setting-toggle"
+            />
+          ) : null}
+          {hasErrorReporting ? (
+            <PreferenceOption
+              description={t('settings.preferences.errorReportingDescription')}
+              toggleLabel={t('settings.preferences.errorReportingToggle')}
+              isChecked={errorReporting.isOptedIn}
+              isDisabled={saving === 'sentry.user-opt-in'}
+              onChange={isOn => {
+                changeServerSetting('sentry.user-opt-in', String(isOn))
+              }}
+              data-testid="error-reporting-setting-toggle"
+            />
+          ) : null}
+        </SettingsOptionGroup>
       ) : null}
-      {serverOption('display.sender.priority') && settings !== null ? (
+      <SettingsOptionGroup title={t('settings.preferences.groups.inbox')}>
         <PreferenceOption
-          title={t('settings.preferences.senderPriority')}
-          description={t('settings.preferences.senderPriorityDescription')}
-          toggleLabel={t('settings.preferences.senderPriorityToggle')}
-          isChecked={isShowingSenderPriority(settings)}
-          isDisabled={saving === 'display.sender.priority'}
-          onChange={isOn => {
-            changeServerSetting('display.sender.priority', String(isOn))
-          }}
-          data-testid="sender-priority-setting-toggle"
+          description={t('settings.preferences.threadDescription')}
+          toggleLabel={t('settings.preferences.threadToggle')}
+          isChecked={threadPreference.isEnabled}
+          onChange={threadPreference.setEnabled}
+          data-testid="thread-setting-toggle"
         />
-      ) : null}
-      {serverOption(REMOTE_IMAGES_SETTING_KEY) && settings !== null ? (
+        {hasLabels ? (
+          <PreferenceOption
+            description={t('settings.preferences.labelsDescription')}
+            toggleLabel={t('settings.preferences.labelsToggle')}
+            isChecked={isLabelVisible}
+            onChange={setLabelVisible}
+            data-testid="label-visibility-setting-toggle"
+          />
+        ) : null}
+        {serverOption('display.sender.priority') && settings !== null ? (
+          <PreferenceOption
+            description={t('settings.preferences.senderPriorityDescription')}
+            toggleLabel={t('settings.preferences.senderPriorityToggle')}
+            isChecked={isShowingSenderPriority(settings)}
+            isDisabled={saving === 'display.sender.priority'}
+            onChange={isOn => {
+              changeServerSetting('display.sender.priority', String(isOn))
+            }}
+            data-testid="sender-priority-setting-toggle"
+          />
+        ) : null}
         <PreferenceOption
-          title={t('settings.preferences.remoteImages')}
-          description={t('settings.preferences.remoteImagesDescription')}
-          toggleLabel={t('settings.preferences.remoteImagesToggle')}
-          isChecked={isShowingRemoteImages(settings)}
-          warning={
-            isShowingRemoteImages(settings)
-              ? t('settings.preferences.remoteImagesWarning')
-              : null
-          }
-          isDisabled={saving === REMOTE_IMAGES_SETTING_KEY}
-          onChange={isOn => {
-            changeServerSetting(REMOTE_IMAGES_SETTING_KEY, String(isOn))
-          }}
-          data-testid="remote-images-setting-toggle"
+          description={t('settings.preferences.spamReportsDescription')}
+          toggleLabel={t('settings.preferences.spamReportsToggle')}
+          isChecked={spamReport.isEnabled}
+          onChange={spamReport.setEnabled}
+          data-testid="spam-report-setting-toggle"
         />
-      ) : null}
-      <PreferenceOption
-        title={t('settings.preferences.thread')}
-        description={t('settings.preferences.threadDescription')}
-        toggleLabel={t('settings.preferences.threadToggle')}
-        isChecked={threadPreference.isEnabled}
-        onChange={threadPreference.setEnabled}
-        data-testid="thread-setting-toggle"
-      />
-      <PreferenceOption
-        title={t('settings.preferences.spamReports')}
-        description={t('settings.preferences.spamReportsDescription')}
-        toggleLabel={t('settings.preferences.spamReportsToggle')}
-        isChecked={spamReport.isEnabled}
-        onChange={spamReport.setEnabled}
-        data-testid="spam-report-setting-toggle"
-      />
-      {hasScribe ? (
-        <PreferenceOption
-          title={t('settings.preferences.aiScribe')}
-          description={t('settings.preferences.aiScribeDescription')}
-          toggleLabel={t('settings.preferences.aiScribeToggle')}
-          isChecked={isScribeOn}
-          onChange={setScribeOn}
-          data-testid="ai-scribe-setting-toggle"
-        />
-      ) : null}
-      {serverOption(AI_LABEL_CATEGORIZATION_KEY) &&
-      settings !== null &&
-      hasAiCapability(session, accountId) ? (
-        <PreferenceOption
-          title={t('settings.preferences.aiLabelCategorization')}
-          description={t(
-            'settings.preferences.aiLabelCategorizationDescription'
-          )}
-          toggleLabel={t('settings.preferences.aiLabelCategorizationToggle')}
-          isChecked={isLabelCategorizationOn(settings)}
-          isDisabled={saving === AI_LABEL_CATEGORIZATION_KEY}
-          onChange={isOn => {
-            changeServerSetting(AI_LABEL_CATEGORIZATION_KEY, String(isOn))
-          }}
-          data-testid="ai-label-categorization-setting-toggle"
-        />
-      ) : null}
-      {hasLabels ? (
-        <PreferenceOption
-          title={t('settings.preferences.labels')}
-          description={t('settings.preferences.labelsDescription')}
-          toggleLabel={t('settings.preferences.labelsToggle')}
-          isChecked={isLabelVisible}
-          onChange={setLabelVisible}
-          data-testid="label-visibility-setting-toggle"
-        />
+      </SettingsOptionGroup>
+      {hasScribe || hasLabelCategorization ? (
+        <SettingsOptionGroup
+          title={t('settings.preferences.groups.smartFeatures')}
+        >
+          {hasScribe ? (
+            <PreferenceOption
+              description={t('settings.preferences.aiScribeDescription')}
+              toggleLabel={t('settings.preferences.aiScribeToggle')}
+              isChecked={isScribeOn}
+              onChange={setScribeOn}
+              data-testid="ai-scribe-setting-toggle"
+            />
+          ) : null}
+          {hasLabelCategorization && settings !== null ? (
+            <PreferenceOption
+              description={t(
+                'settings.preferences.aiLabelCategorizationDescription'
+              )}
+              toggleLabel={t(
+                'settings.preferences.aiLabelCategorizationToggle'
+              )}
+              isChecked={isLabelCategorizationOn(settings)}
+              isDisabled={saving === AI_LABEL_CATEGORIZATION_KEY}
+              onChange={isOn => {
+                changeServerSetting(AI_LABEL_CATEGORIZATION_KEY, String(isOn))
+              }}
+              data-testid="ai-label-categorization-setting-toggle"
+            />
+          ) : null}
+        </SettingsOptionGroup>
       ) : null}
       {hasDrive ? (
-        <PreferenceOption
-          title={t('settings.preferences.driveAttachment')}
-          description={t('settings.preferences.driveAttachmentDescription')}
-          toggleLabel={t('settings.preferences.driveAttachmentToggle')}
-          isChecked={driveAttachment.isEnabled}
-          onChange={driveAttachment.setEnabled}
-          data-testid="drive-attachment-setting-toggle"
-        />
+        <SettingsOptionGroup title={t('settings.preferences.groups.writing')}>
+          <PreferenceOption
+            description={t('settings.preferences.driveAttachmentDescription')}
+            toggleLabel={t('settings.preferences.driveAttachmentToggle')}
+            isChecked={driveAttachment.isEnabled}
+            onChange={driveAttachment.setEnabled}
+            data-testid="drive-attachment-setting-toggle"
+          />
+        </SettingsOptionGroup>
       ) : null}
-      <PreferenceOption
-        title={t('settings.preferences.accessibility')}
-        description={t('settings.preferences.accessibilityDescription')}
-        toggleLabel={t('settings.preferences.accessibilityToggle')}
-        isChecked={accessibility.isEnabled}
-        onChange={accessibility.setEnabled}
-        data-testid="accessibility-setting-toggle"
-      />
-      {errorReporting.isConfigured && errorReporting.canChoose ? (
+      <SettingsOptionGroup title={t('settings.preferences.accessibility')}>
         <PreferenceOption
-          title={t('settings.preferences.errorReporting')}
-          description={t('settings.preferences.errorReportingDescription')}
-          toggleLabel={t('settings.preferences.errorReportingToggle')}
-          isChecked={errorReporting.isOptedIn}
-          isDisabled={saving === 'sentry.user-opt-in'}
-          onChange={isOn => {
-            changeServerSetting('sentry.user-opt-in', String(isOn))
-          }}
-          data-testid="error-reporting-setting-toggle"
+          description={t('settings.preferences.accessibilityDescription')}
+          toggleLabel={t('settings.preferences.accessibilityToggle')}
+          isChecked={accessibility.isEnabled}
+          onChange={accessibility.setEnabled}
+          data-testid="accessibility-setting-toggle"
         />
-      ) : null}
+      </SettingsOptionGroup>
     </SettingsSectionLayout>
   )
 }

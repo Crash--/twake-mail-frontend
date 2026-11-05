@@ -161,7 +161,7 @@ describe('Settings', () => {
     const toggle = await screen.findByRole('switch', { name: 'Enable thread' })
     expect(toggle).not.toBeChecked()
     expect(toggle).toHaveAccessibleDescription(
-      'Thread View multiple related emails like a conversation'
+      'View multiple related emails like a conversation'
     )
 
     await userEvent.click(toggle)

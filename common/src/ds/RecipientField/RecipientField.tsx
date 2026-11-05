@@ -133,37 +133,36 @@ const CONTENT_SX = {
 } as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
 /**
- * A recipient tag: a twake-mui square chip 32 px high, a 20 px gradient
- * avatar, a cross; selected with a primary border while it has the focus
+ * A recipient tag, the filled chip of the design system: 32 px high, no
+ * border, on the default background, 4 px before its 24 px gradient avatar
+ * and 8 px after its 16 px cross, `caption` text; selected while it has the
+ * focus
  */
 export const RECIPIENT_CHIP_SX = {
   height: 32,
   maxWidth: 267,
   boxSizing: 'border-box',
   borderRadius: radius.md,
-  border: 1,
-  borderColor: 'divider',
-  pl: 1,
-  pr: 0.5,
+  border: 0,
+  bgcolor: 'background.default',
+  color: 'text.primary',
+  pl: '4px',
+  pr: 1,
+  gap: '4px',
   '&& .MuiChip-avatar, && .MuiChip-icon': { ml: 0, mr: 0 },
   '&& .MuiChip-label': {
-    pl: '4px',
-    pr: '4px',
-    typography: 'body2'
+    px: 0,
+    typography: 'caption'
   },
   '& .MuiChip-deleteIcon': {
     color: 'text.icon',
     flexShrink: 0,
     m: 0,
-    p: '4px',
-    width: 28,
-    height: 28,
-    boxSizing: 'border-box',
-    borderRadius: '50%'
+    width: 16,
+    height: 16
   },
   '&:focus, &.Mui-focusVisible': {
-    bgcolor: 'action.selected',
-    borderColor: 'primary.main'
+    bgcolor: 'action.selected'
   }
 } as const
 /** A tag being dragged, and the copy under the pointer: primary, with a contrast name */
@@ -225,6 +224,7 @@ const OUTLINED_ERROR_SX = {
 /** An invalid tag: the paper colour, with an error border */
 export const INVALID_CHIP_SX = {
   ...RECIPIENT_CHIP_SX,
+  border: 1,
   borderColor: 'error.main',
   bgcolor: 'background.paper',
   '&& .MuiChip-icon': { ml: 0, mr: 0, color: 'error.main' }
@@ -902,13 +902,13 @@ export function RecipientField({
                 chip.isInvalid ? (
                   <Icon
                     icon={Warning}
-                    size={20}
+                    size={16}
                     color="var(--twake-palette-error-main)"
                     aria-hidden="true"
                   />
                 ) : undefined
               }
-              deleteIcon={<Icon icon={Cross} size={20} aria-hidden="true" />}
+              deleteIcon={<Icon icon={Cross} size={16} aria-hidden="true" />}
               label={chip.label}
               title={chip.title ?? chip.label}
               aria-label={

@@ -1,9 +1,8 @@
 // Upstream to twake-ui: no. A folder tile in Settings > Folder visibility: a
 // 40 px row (52 px with a second line), no divider, a 20 px folder icon 12 px
 // before the name, an expand button right after the name, the state at the
-// end, and
-// the subfolders 10 px further in. twake-mui's `ListItem` has neither the
-// metrics nor the nested expand button.
+// end, and the subfolders 10 px further in. twake-mui's `ListItem` has
+// neither the metrics nor the nested expand button.
 import { Icon, type IconProps, Bottom, Right } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'

@@ -81,7 +81,6 @@ describe('FolderVisibilitySettings', () => {
       within(row('Work')).getByRole('button', { name: 'Collapse' })
     ).toHaveAttribute('aria-expanded', 'true')
 
-    // Each group under its heading
     expect(
       within(screen.getByRole('region', { name: 'Folders' })).getByText('Work')
     ).toBeVisible()

@@ -64,6 +64,8 @@ export class LabelModals {
   /** Runs Edit or Delete from the ⋮ menu of a label */
   async runMenu(name: string, action: 'edit' | 'delete'): Promise<void> {
     const more = this.item(name).getByTestId('label-item-menu-button')
+    // count() does not wait: the row must be there first
+    await expect(this.item(name)).toBeVisible()
     if ((await more.count()) > 0) {
       // The button shows on hover, or on focus
       await this.item(name).hover()

@@ -259,6 +259,8 @@ export class MailboxPage {
   async openFolderMenu(ref: FolderRef): Promise<Locator> {
     await this.showFolders()
     const more = this.folder(ref).getByTestId('mailbox-more-button')
+    // count() does not wait: the row must be there first
+    await expect(this.folder(ref)).toBeVisible()
     if ((await more.count()) > 0) {
       await this.folder(ref).hover()
       await more.click()

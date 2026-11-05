@@ -1,12 +1,12 @@
 import {
   Icon,
   type IconProps,
-  Check,
   Forward,
   Reply,
   ReplyAll
 } from '@linagora/twake-icons'
 import {
+  Checkbox,
   Divider,
   ListItemIcon,
   Menu,
@@ -208,8 +208,16 @@ export function EmailActionsMenu({
               }}
               data-testid="email-action-label-item"
             >
+              {/* The item is the checkbox: this one only shows its state */}
               <ListItemIcon>
-                {isOn ? <Icon icon={Check} aria-hidden="true" /> : null}
+                <Checkbox
+                  checked={isOn}
+                  size="small"
+                  tabIndex={-1}
+                  disableRipple
+                  aria-hidden="true"
+                  slotProps={{ input: { tabIndex: -1 } }}
+                />
               </ListItemIcon>
               <MenuItemLabel label={labelDisplayName(label, t)} />
             </MenuItem>

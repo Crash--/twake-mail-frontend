@@ -163,117 +163,95 @@ export function EmailListToolbar({
   const moreLabel = t('emailActions.menu.more')
 
   const actionSizes = isDesktop
-    ? { size: 32, iconSize: 16 }
+    ? { size: 32, iconSize: 20 }
     : { size: 36, iconSize: 20 }
+  const iconTone = isDesktop ? 'secondary' : 'icon'
 
   // tmail-flutter's `ic_cancel` before how many below the desktop size
   const clearButton = (
     <IconAction
       label={clearLabel}
       icon={Cross}
-      tone="icon"
+      tone={iconTone}
       {...actionSizes}
       onClick={onDone}
       data-testid="selection-toolbar-clear"
     />
   )
-
-  const content = (
-    <>
-      {/* As tmail-flutter's app bar below the desktop size: the cross
-          first, then how many */}
-      {isDesktop ? null : clearButton}
-      <SelectionCount data-testid="selection-toolbar-count">
-        {selection.isAllInFolder
-          ? t('thread.selection.allInFolderSelected', { smart_count: count })
-          : t('thread.selection.count', { count })}
-      </SelectionCount>
-      {isDesktop ? clearButton : null}
-      {isDesktop ? <span className="u-mr-1" /> : null}
-      {canSelectFolder && isDesktop ? (
-        <Button
-          size="small"
-          variant="outlined"
-          color="inherit"
-          onClick={selection.selectAllInFolder}
-          data-testid="selection-toolbar-select-folder"
-        >
-          {t('thread.selection.selectAllInFolder', { smart_count: total })}
-        </Button>
-      ) : null}
-      {isDesktop ? null : (
-        <>
-          <Box className="u-flex-auto" />
-          <IconAction
-            label={selectAllLabel}
-            icon={
-              isAllLoaded || selection.isAllInFolder ? CheckSquare : Checkbox
-            }
-            tone="icon"
-            size={36}
-            aria-pressed={isAllLoaded || selection.isAllInFolder}
-            onClick={handleToggleAll}
-            data-testid="selection-toolbar-select-all"
-          />
-        </>
-      )}
-      {buttons.map(item => (
-        <IconAction
-          key={item.id}
-          label={t(item.label)}
-          icon={SELECTION_ICONS[item.id] ?? item.icon}
-          tone={
-            item.id === 'delete-permanently' && !isDesktop ? 'danger' : 'icon'
-          }
-          {...actionSizes}
-          onClick={() => {
-            handleRun(item.id)
-          }}
-          data-testid={`selected-email-action-${item.id}`}
-        />
-      ))}
-      {!isDesktop ? (
-        <IconAction
-          label={moreLabel}
-          icon={MoreVerticalIcon}
-          tone="icon"
-          size={36}
-          aria-haspopup="menu"
-          aria-expanded={moreAnchor !== null}
-          onClick={event => {
-            handleOpenMore(event.currentTarget)
-          }}
-          data-testid="selected-email-action-more"
-        />
-      ) : null}
-      <EmailActionsMenu
-        anchor={moreAnchor === null ? null : { element: moreAnchor }}
-        onClose={() => {
-          setMoreAnchor(null)
-        }}
-        emails={targets}
-        mailboxId={mailbox?.id ?? null}
-        // As tmail-flutter below the desktop size: all the actions on a
-        // selection (no answer), in a sheet from the bottom edge
-        exclude={isDesktop ? buttons.map(item => item.id) : ['edit-as-new']}
-        replies={[]}
-        asSheet={!isDesktop}
-        onAction={onDone}
-        data-testid="selection-toolbar-menu"
-      />
-    </>
+  const selectionCount = (
+    <SelectionCount data-testid="selection-toolbar-count">
+      {selection.isAllInFolder
+        ? t('thread.selection.allInFolderSelected', { smart_count: count })
+        : t('thread.selection.count', { count })}
+    </SelectionCount>
+  )
+  const actionButtons = buttons.map(item => (
+    <IconAction
+      key={item.id}
+      label={t(item.label)}
+      icon={SELECTION_ICONS[item.id] ?? item.icon}
+      tone={
+        item.id === 'delete-permanently' && !isDesktop ? 'danger' : iconTone
+      }
+      {...actionSizes}
+      onClick={() => {
+        handleRun(item.id)
+      }}
+      data-testid={`selected-email-action-${item.id}`}
+    />
+  ))
+  const actionsMenu = (
+    <EmailActionsMenu
+      anchor={moreAnchor === null ? null : { element: moreAnchor }}
+      onClose={() => {
+        setMoreAnchor(null)
+      }}
+      emails={targets}
+      mailboxId={mailbox?.id ?? null}
+      // As tmail-flutter below the desktop size: all the actions on a
+      // selection (no answer), in a sheet from the bottom edge
+      exclude={isDesktop ? buttons.map(item => item.id) : ['edit-as-new']}
+      replies={[]}
+      asSheet={!isDesktop}
+      onAction={onDone}
+      data-testid="selection-toolbar-menu"
+    />
   )
 
-  // On a desktop, the same toolbar as without a selection: the list stays put
-  return isDesktop ? (
-    <ListToolbar
-      ref={toolbarRef}
-      label={t('thread.selection.toolbar')}
-      data-testid="selection-toolbar"
-    >
-      <Box className="u-flex u-flex-items-center u-flex-wrap">{content}</Box>
-    </ListToolbar>
-  ) : (
+  // On a desktop, the same toolbar as without a selection: the list stays
+  // put. As the Figma bar: how many and the cross, then the actions side by
+  // side, the toolbar's 16 px between the groups
+  if (isDesktop) {
+    return (
+      <ListToolbar
+        ref={toolbarRef}
+        label={t('thread.selection.toolbar')}
+        data-testid="selection-toolbar"
+      >
+        <Box className="u-flex u-flex-items-center">
+          {selectionCount}
+          {clearButton}
+        </Box>
+        {canSelectFolder ? (
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            onClick={selection.selectAllInFolder}
+            data-testid="selection-toolbar-select-folder"
+          >
+            {t('thread.selection.selectAllInFolder', { smart_count: total })}
+          </Button>
+        ) : null}
+        <Box className="u-flex u-flex-items-center">{actionButtons}</Box>
+        {actionsMenu}
+      </ListToolbar>
+    )
+  }
+
+  // As tmail-flutter's app bar below the desktop size: the cross first,
+  // then how many
+  return (
     <Box
       ref={toolbarRef}
       component="section"
@@ -281,7 +259,32 @@ export function EmailListToolbar({
       className="u-flex u-flex-items-center u-w-100 u-h-100"
       data-testid="selection-toolbar"
     >
-      {content}
+      {clearButton}
+      {selectionCount}
+      <Box className="u-flex-auto" />
+      <IconAction
+        label={selectAllLabel}
+        icon={isAllLoaded || selection.isAllInFolder ? CheckSquare : Checkbox}
+        tone="icon"
+        size={36}
+        aria-pressed={isAllLoaded || selection.isAllInFolder}
+        onClick={handleToggleAll}
+        data-testid="selection-toolbar-select-all"
+      />
+      {actionButtons}
+      <IconAction
+        label={moreLabel}
+        icon={MoreVerticalIcon}
+        tone="icon"
+        size={36}
+        aria-haspopup="menu"
+        aria-expanded={moreAnchor !== null}
+        onClick={event => {
+          handleOpenMore(event.currentTarget)
+        }}
+        data-testid="selected-email-action-more"
+      />
+      {actionsMenu}
     </Box>
   )
 }

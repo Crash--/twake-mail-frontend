@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Checkbox,
-  FixedDialog,
   FormControlLabel,
   IconButton,
   MenuItem,
@@ -22,6 +21,8 @@ import {
   type ReactElement
 } from 'react'
 
+import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
+import { StackedField } from '@/ds/StackedField/StackedField'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import { validateIdentityName } from '@common/features/identities/identityForm'
@@ -296,7 +297,7 @@ export function RuleFormDialog({
   })
 
   return (
-    <FixedDialog
+    <ModalDialog
       open
       title={t(
         rule === null ? 'rules.form.createTitle' : 'rules.form.editTitle'
@@ -327,25 +328,26 @@ export function RuleFormDialog({
       data-testid="rule-form-dialog"
       content={
         <form id={formId} onSubmit={handleSubmit} noValidate>
-          <TextField
-            id={nameId}
-            inputRef={nameRef}
-            autoFocus
-            required
-            fullWidth
-            size="small"
-            label={t('rules.form.name')}
-            placeholder={t('rules.form.namePlaceholder')}
-            value={draft.name}
-            onChange={event => {
-              update({ name: event.target.value })
-            }}
-            error={isTouched && nameProblem !== null}
-            helperText={
-              isTouched && nameProblem !== null ? t(nameProblem) : undefined
-            }
-            slotProps={{ htmlInput: { 'data-testid': 'rule-name-input' } }}
-          />
+          <StackedField label={t('rules.form.name')} htmlFor={nameId}>
+            <TextField
+              id={nameId}
+              inputRef={nameRef}
+              autoFocus
+              required
+              fullWidth
+              size="small"
+              placeholder={t('rules.form.namePlaceholder')}
+              value={draft.name}
+              onChange={event => {
+                update({ name: event.target.value })
+              }}
+              error={isTouched && nameProblem !== null}
+              helperText={
+                isTouched && nameProblem !== null ? t(nameProblem) : undefined
+              }
+              slotProps={{ htmlInput: { 'data-testid': 'rule-name-input' } }}
+            />
+          </StackedField>
           <Box role="group" aria-labelledby={conditionsId}>
             {/* As tmail-flutter: "Preview" at the end of the label, on a
             desktop and a tablet, says what the rule does in words */}
@@ -364,6 +366,7 @@ export function RuleFormDialog({
                   startIcon={
                     <Icon
                       icon={isPreviewShown ? EyeClosed : Eye}
+                      size={12}
                       aria-hidden="true"
                     />
                   }
@@ -604,7 +607,7 @@ export function RuleFormDialog({
             <Button
               variant="text"
               className="u-mt-1"
-              startIcon={<Icon icon={Plus} aria-hidden="true" />}
+              startIcon={<Icon icon={Plus} size={12} aria-hidden="true" />}
               onClick={() => {
                 update({ conditions: [...draft.conditions, emptyCondition()] })
               }}
@@ -806,7 +809,7 @@ export function RuleFormDialog({
               <Button
                 variant="text"
                 className="u-mt-1"
-                startIcon={<Icon icon={Plus} aria-hidden="true" />}
+                startIcon={<Icon icon={Plus} size={12} aria-hidden="true" />}
                 onClick={() => {
                   update({
                     actions: [...draft.actions, actionDraft()]

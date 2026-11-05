@@ -8,6 +8,10 @@ import {
   makeFakeJmapServer,
   makeIdentity
 } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeLabels
+} from '@common/testing/fakeLinagora'
 import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -44,6 +48,31 @@ describe('AppLayout', () => {
     expect(
       within(screen.getByTestId('main-content')).getByText('Routed content')
     ).toBeVisible()
+  })
+
+  it('gives the place of the folders and the labels to the folder search, until back', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeLabels(server, [
+      { id: 'work', displayName: 'Work', keyword: 'work', color: null }
+    ])
+    renderWithProviders(<AppLayout />, {
+      path: '/',
+      jmapServer: server,
+      withJmapSession: true,
+      childRoutes: <Route index element={<p>Routed content</p>} />
+    })
+    expect(await screen.findByTestId('labels-section')).toBeVisible()
+
+    await userEvent.click(screen.getByTestId('mailbox-search-button'))
+    expect(
+      screen.getByRole('search', { name: 'Search for folders' })
+    ).toBeVisible()
+    expect(screen.queryByTestId('labels-section')).toBe(null)
+
+    await userEvent.click(screen.getByTestId('mailbox-search-back-button'))
+    expect(screen.getByTestId('labels-section')).toBeVisible()
   })
 
   it('puts the logotype and the account menu in the platform bar, and the search in the page', async () => {

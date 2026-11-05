@@ -1,7 +1,6 @@
-import { Icon, Cross, Eye } from '@linagora/twake-icons'
+import { Icon, Cross, Left } from '@linagora/twake-icons'
 import {
   Box,
-  Button,
   IconButton,
   SearchBar,
   Tooltip,
@@ -17,11 +16,10 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { NavTree } from '@/ds/NavTree/NavTree'
 import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderActionsMenu'
-import { settingsSectionPath } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { isTeamRoot } from './mailboxTree'
@@ -35,19 +33,19 @@ export interface MailboxSearchProps {
   /** Id of the panel, for the `aria-controls` of the magnifier */
   id: string
   selectedId: string | null
-  /** Escape; the caller gives the focus back to the magnifier */
+  /** Back or Escape; the caller gives the focus back to the magnifier */
   onClose: () => void
   onOpenMenu: (mailbox: MailboxSummary, anchor: FolderMenuAnchor) => void
 }
 
 /**
- * The search of folders of the sidebar, as tmail-flutter: a field and the
+ * The search of folders of the sidebar: a back button, a field and the
  * folders whose name matches, hidden ones included, with their path (the
  * address of a team mailbox), each with the menu of the folder, where a
- * hidden folder is shown again. It takes the place of the trees while it is
- * open. The focus starts in the field; Escape closes it from anywhere in the
- * panel, Enter opens the first folder found, ArrowDown goes down to the
- * results and the count of folders found is announced.
+ * hidden folder is shown again. It takes the place of the folders and the
+ * labels while it is open. The focus starts in the field; Escape closes it
+ * from anywhere in the panel, Enter opens the first folder found, ArrowDown
+ * goes down to the results and the count of folders found is announced.
  */
 export function MailboxSearch({
   id,
@@ -71,6 +69,7 @@ export function MailboxSearch({
   const isSearching = query.trim() !== ''
   const label = t('folders.search.label')
   const clearLabel = t('search.clear')
+  const backLabel = t('common.back')
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -133,41 +132,54 @@ export function MailboxSearch({
       className="u-mh-1"
       data-testid="mailbox-search"
     >
-      <SearchBar
-        size="small"
-        elevation={0}
-        className="u-w-100"
-        placeholder={label}
-        value={query}
-        disabledClear
-        onChange={handleChange}
-        componentsProps={{
-          inputBase: {
-            inputRef,
-            onKeyDown: handleKeyDown,
-            endAdornment:
-              query === '' ? null : (
-                <Tooltip title={clearLabel}>
-                  <IconButton
-                    size="small"
-                    aria-label={clearLabel}
-                    onClick={handleClear}
-                    data-testid="mailbox-search-clear-button"
-                  >
-                    <Icon icon={Cross} />
-                  </IconButton>
-                </Tooltip>
-              ),
-            inputProps: {
-              'aria-label': label,
-              'aria-describedby': statusId,
-              autoComplete: 'off',
-              enterKeyHint: 'search',
-              'data-testid': 'mailbox-search-input'
+      <Box className="u-flex u-flex-items-center">
+        <Tooltip title={backLabel}>
+          <IconButton
+            size="small"
+            className="u-mr-half"
+            aria-label={backLabel}
+            onClick={onClose}
+            data-testid="mailbox-search-back-button"
+          >
+            <Icon icon={Left} />
+          </IconButton>
+        </Tooltip>
+        <SearchBar
+          size="small"
+          elevation={0}
+          className="u-flex-auto"
+          placeholder={label}
+          value={query}
+          disabledClear
+          onChange={handleChange}
+          componentsProps={{
+            inputBase: {
+              inputRef,
+              onKeyDown: handleKeyDown,
+              endAdornment:
+                query === '' ? null : (
+                  <Tooltip title={clearLabel}>
+                    <IconButton
+                      size="small"
+                      aria-label={clearLabel}
+                      onClick={handleClear}
+                      data-testid="mailbox-search-clear-button"
+                    >
+                      <Icon icon={Cross} />
+                    </IconButton>
+                  </Tooltip>
+                ),
+              inputProps: {
+                'aria-label': label,
+                'aria-describedby': statusId,
+                autoComplete: 'off',
+                enterKeyHint: 'search',
+                'data-testid': 'mailbox-search-input'
+              }
             }
-          }
-        }}
-      />
+          }}
+        />
+      </Box>
       <Typography
         id={statusId}
         role="status"
@@ -198,17 +210,6 @@ export function MailboxSearch({
           ))}
         </NavTree>
       ) : null}
-      <Button
-        component={Link}
-        to={settingsSectionPath('folder-visibility')}
-        variant="text"
-        size="small"
-        color="inherit"
-        startIcon={<Icon icon={Eye} />}
-        data-testid="mailbox-search-visibility-link"
-      >
-        {t('settings.sections.folderVisibility.title')}
-      </Button>
     </Box>
   )
 }

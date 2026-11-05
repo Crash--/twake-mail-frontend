@@ -119,6 +119,11 @@ function TreeRows({
   )
 }
 
+export interface MailboxTreeProps {
+  /** The folder search opens or closes: it takes the place of the labels */
+  onSearchChange?: (isOpen: boolean) => void
+}
+
 /**
  * The folder trees of the sidebar: the folders of the user (with the
  * Starred virtual folder after the Inbox), then, when the user belongs to
@@ -127,7 +132,9 @@ function TreeRows({
  * Hidden folders show in the folder search and in Settings > Folder
  * visibility; "+" creates a folder.
  */
-export function MailboxTree(): ReactElement {
+export function MailboxTree({
+  onSearchChange
+}: MailboxTreeProps): ReactElement {
   const { t } = useI18n()
   const titleId = useId()
   const teamTitleId = useId()
@@ -144,6 +151,7 @@ export function MailboxTree(): ReactElement {
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
   const [isSearching, setIsSearching] = useState(false)
   const searchButtonRef = useRef<HTMLButtonElement>(null)
+  const isRefocusPending = useRef(false)
   const searchId = useId()
   const [menu, setMenu] = useState<{
     mailbox: MailboxSummary
@@ -211,12 +219,21 @@ export function MailboxTree(): ReactElement {
   const handleCreate = (): void => {
     folderActions.create(null)
   }
-  const handleToggleSearch = (): void => {
-    setIsSearching(searching => !searching)
+  // The magnifier mounts again with the header when the search closes
+  useEffect(() => {
+    if (isSearching || !isRefocusPending.current) return
+    isRefocusPending.current = false
+    searchButtonRef.current?.focus()
+  }, [isSearching])
+
+  const handleOpenSearch = (): void => {
+    setIsSearching(true)
+    onSearchChange?.(true)
   }
   const handleCloseSearch = (): void => {
+    isRefocusPending.current = true
     setIsSearching(false)
-    searchButtonRef.current?.focus()
+    onSearchChange?.(false)
   }
 
   let systemContent: ReactNode
@@ -273,7 +290,14 @@ export function MailboxTree(): ReactElement {
             {systemContent}
           </NavTree>
         )}
-        {boundRows !== null ? null : (
+        {boundRows !== null ? null : isSearching ? (
+          <MailboxSearch
+            id={searchId}
+            selectedId={selectedId}
+            onClose={handleCloseSearch}
+            onOpenMenu={handleOpenMenu}
+          />
+        ) : (
           <>
             <NavSectionHeader
               title={t('sidebar.folders')}
@@ -283,7 +307,7 @@ export function MailboxTree(): ReactElement {
                 onToggle: () => {
                   collapsible.toggle('folders')
                 },
-                controlsId: isSearching ? searchId : foldersContentId,
+                controlsId: foldersContentId,
                 'data-testid': 'folders-section-toggle'
               }}
               data-testid="mailbox-tree-title"
@@ -293,9 +317,7 @@ export function MailboxTree(): ReactElement {
                     buttonRef={searchButtonRef}
                     label={searchLabel}
                     icon={Magnifier}
-                    aria-expanded={isSearching}
-                    aria-controls={isSearching ? searchId : undefined}
-                    onClick={handleToggleSearch}
+                    onClick={handleOpenSearch}
                     data-testid="mailbox-search-button"
                   />
                   <NavSectionAction
@@ -307,72 +329,63 @@ export function MailboxTree(): ReactElement {
                 </>
               }
             />
-            {isSearching ? (
-              <MailboxSearch
-                id={searchId}
-                selectedId={selectedId}
-                onClose={handleCloseSearch}
-                onOpenMenu={handleOpenMenu}
-              />
-            ) : (
-              <div
-                id={foldersContentId}
-                hidden={!collapsible.isExpanded('folders')}
-                className="u-pt-1"
-              >
-                {/* As tmail-flutter: the folders of the user and the team
+            <div
+              id={foldersContentId}
+              hidden={!collapsible.isExpanded('folders')}
+              className="u-pt-1"
+            >
+              {/* As tmail-flutter: the folders of the user and the team
                 mailboxes are two categories of the "Folders" section */}
-                {folderRows.length > 0 ? (
-                  <NavCategory
-                    title={t('sidebar.personalFolders')}
-                    titleId={personalTitleId}
-                    icon={FolderOutlined}
-                    isExpanded={collapsible.isExpanded('personalFolders')}
-                    onToggle={() => {
-                      collapsible.toggle('personalFolders')
-                    }}
-                    controlsId={personalContentId}
-                    toggleTestId="personal-folders-section-toggle"
+              {folderRows.length > 0 ? (
+                <NavCategory
+                  title={t('sidebar.personalFolders')}
+                  titleId={personalTitleId}
+                  icon={FolderOutlined}
+                  isExpanded={collapsible.isExpanded('personalFolders')}
+                  onToggle={() => {
+                    collapsible.toggle('personalFolders')
+                  }}
+                  controlsId={personalContentId}
+                  toggleTestId="personal-folders-section-toggle"
+                >
+                  <NavTree
+                    role="tree"
+                    aria-labelledby={personalTitleId}
+                    data-testid="mailbox-folders-tree"
                   >
-                    <NavTree
-                      role="tree"
-                      aria-labelledby={personalTitleId}
-                      data-testid="mailbox-folders-tree"
-                    >
-                      <TreeRows
-                        rows={folderRows}
-                        selectedId={selectedId}
-                        onToggle={handleToggle}
-                        onOpenMenu={handleOpenMenu}
-                      />
-                    </NavTree>
-                  </NavCategory>
-                ) : null}
-                {teamRows.length > 0 ? (
-                  <NavCategory
-                    title={t('sidebar.teamMailboxes')}
-                    titleId={teamTitleId}
-                    icon={FolderOutlined}
-                    isExpanded={collapsible.isExpanded('teamMailboxes')}
-                    onToggle={() => {
-                      collapsible.toggle('teamMailboxes')
-                    }}
-                    controlsId={teamContentId}
-                    toggleTestId="team-mailboxes-section-toggle"
-                    data-testid="team-mailboxes-section"
-                  >
-                    <NavTree role="tree" aria-labelledby={teamTitleId}>
-                      <TreeRows
-                        rows={teamRows}
-                        selectedId={selectedId}
-                        onToggle={handleToggle}
-                        onOpenMenu={handleOpenMenu}
-                      />
-                    </NavTree>
-                  </NavCategory>
-                ) : null}
-              </div>
-            )}
+                    <TreeRows
+                      rows={folderRows}
+                      selectedId={selectedId}
+                      onToggle={handleToggle}
+                      onOpenMenu={handleOpenMenu}
+                    />
+                  </NavTree>
+                </NavCategory>
+              ) : null}
+              {teamRows.length > 0 ? (
+                <NavCategory
+                  title={t('sidebar.teamMailboxes')}
+                  titleId={teamTitleId}
+                  icon={FolderOutlined}
+                  isExpanded={collapsible.isExpanded('teamMailboxes')}
+                  onToggle={() => {
+                    collapsible.toggle('teamMailboxes')
+                  }}
+                  controlsId={teamContentId}
+                  toggleTestId="team-mailboxes-section-toggle"
+                  data-testid="team-mailboxes-section"
+                >
+                  <NavTree role="tree" aria-labelledby={teamTitleId}>
+                    <TreeRows
+                      rows={teamRows}
+                      selectedId={selectedId}
+                      onToggle={handleToggle}
+                      onOpenMenu={handleOpenMenu}
+                    />
+                  </NavTree>
+                </NavCategory>
+              ) : null}
+            </div>
           </>
         )}
       </Box>

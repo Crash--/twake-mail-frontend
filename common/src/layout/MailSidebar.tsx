@@ -1,6 +1,6 @@
 import { Pen } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 
 import { ComposeButton } from '@/ds/ComposeButton/ComposeButton'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
@@ -36,6 +36,7 @@ export function MailSidebar({
   const screenSize = useScreenSize()
   // Bound to a team mailbox: the labels gather emails of the whole account
   const isBoundToTeam = useTeamMailboxScope() !== null
+  const [isSearchingFolders, setIsSearchingFolders] = useState(false)
 
   return (
     <SidebarSectionsProvider>
@@ -70,8 +71,8 @@ export function MailSidebar({
           className={`u-flex-auto u-ov-auto ${screenSize === 'desktop' ? 'u-mt-1-half' : 'u-mt-1'}`}
           data-testid="sidebar-scroll"
         >
-          <MailboxTree />
-          {isBoundToTeam ? null : <LabelsSection />}
+          <MailboxTree onSearchChange={setIsSearchingFolders} />
+          {isBoundToTeam || isSearchingFolders ? null : <LabelsSection />}
         </Box>
         <MailSidebarFooter />
       </ResponsiveSidebar>

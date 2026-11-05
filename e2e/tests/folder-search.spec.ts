@@ -10,7 +10,8 @@ test.describe('MBX folder search of the sidebar', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
 
     await mailbox.searchFolders('Inbox')
-    await expect(mailbox.folderSearchButton).toHaveAttribute('aria-expanded', 'true')
+    await expect(mailbox.folderSearchButton).toBeHidden()
+    await expect(mailbox.folderSearchBackButton).toBeVisible()
     await expect(mailbox.folderSearchResults.getByTestId('mailbox-item')).toHaveCount(1)
     await expect(mailbox.folder({ role: 'inbox' })).toBeVisible()
     await expect(mailbox.folderSearchStatus).toHaveText('1 folder found')
@@ -85,22 +86,23 @@ test.describe('MBX folder search of the sidebar', () => {
     await mailbox.folderSearchInput.press('Escape')
     await expect(mailbox.folderSearch).toBeHidden()
     await expect(mailbox.folderSearchButton).toBeFocused()
-    await expect(mailbox.folderSearchButton).toHaveAttribute('aria-expanded', 'false')
     if (mailbox.hasFolderDrawer()) await expect(mailbox.folderDrawer).toBeVisible()
     await expect(mailbox.folder({ name: 'Rarely used' })).toBeVisible()
     await expectNoA11yViolations(page)
   })
 
-  test('MBX-33 the search leads to Settings > Folder visibility', { tag: '@mobile' }, async ({
+  test('MBX-33 the back button of the search returns to the folders', { tag: '@mobile' }, async ({
     page,
     user
   }) => {
     const mailbox = await new LoginPage(page).loginAs(user)
 
-    await mailbox.searchFolders('')
-    await mailbox.page.getByTestId('mailbox-search-visibility-link').click()
+    await mailbox.searchFolders('inbox')
+    await expect(mailbox.folderTree).toBeHidden()
+    await mailbox.folderSearchBackButton.click()
 
-    await expect(page).toHaveURL(/\/settings\/folder-visibility$/)
-    await expect(page.getByTestId('folder-visibility-personal')).toBeVisible()
+    await expect(mailbox.folderSearch).toBeHidden()
+    await expect(mailbox.folderTree).toBeVisible()
+    await expect(mailbox.folderSearchButton).toBeFocused()
   })
 })

@@ -634,7 +634,7 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/folder-search.spec.ts`.
 - [x] `MBX-32` A hidden folder is found by the folder search, marked hidden; with the keyboard (ArrowDown, Shift+F10) "Show folder" shows it again; Escape folds the search only (also in the drawer) and focuses the magnifier. axe. — web app only, no Patrol test
   - Spec: `tests/folder-search.spec.ts`.
-- [x] `MBX-33` The folder search links to Settings > Folder visibility. — web app only, no Patrol test
+- [x] `MBX-33` The back button of the folder search returns to the folders and focuses the magnifier. — web app only, no Patrol test
   - Spec: `tests/folder-search.spec.ts`.
 - [ ] `FBAR-01` The inbox toolbar offers refresh, "Select all messages of this page" and the three
   filters (menu); selecting all turns it into the selection bar; axe. — also on phones and tablets

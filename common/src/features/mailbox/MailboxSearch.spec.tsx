@@ -104,20 +104,18 @@ function result(name: string): HTMLElement {
 }
 
 describe('Folder search of the sidebar', () => {
-  it('opens a named field with the focus in it, in place of the trees', async () => {
+  it('opens a named field with the focus in it, in place of the trees and their header', async () => {
     await renderSidebar()
 
-    expect(magnifier()).toHaveAttribute('aria-expanded', 'false')
     await userEvent.click(magnifier())
 
-    expect(magnifier()).toHaveAttribute('aria-expanded', 'true')
     expect(field()).toHaveFocus()
     expect(screen.getByRole('search')).toBeVisible()
-    expect(magnifier()).toHaveAttribute(
-      'aria-controls',
-      screen.getByRole('search').id
-    )
     expect(screen.queryByTestId('mailbox-tree')).toBe(null)
+    expect(screen.queryByTestId('mailbox-tree-title')).toBe(null)
+    expect(screen.queryByRole('button', { name: 'Search for folders' })).toBe(
+      null
+    )
     expect(results()).toEqual([])
   })
 
@@ -288,7 +286,6 @@ describe('Folder search of the sidebar', () => {
 
     expect(screen.queryByRole('search')).toBe(null)
     expect(screen.getByTestId('mailbox-tree')).toBeVisible()
-    expect(magnifier()).toHaveAttribute('aria-expanded', 'false')
     expect(magnifier()).toHaveFocus()
   })
 
@@ -304,24 +301,17 @@ describe('Folder search of the sidebar', () => {
     expect(magnifier()).toHaveFocus()
   })
 
-  it('closes with the magnifier, and starts again from an empty field', async () => {
+  it('goes back to the folders with its back button, and starts again from an empty field', async () => {
     await renderSidebar()
     await userEvent.click(magnifier())
     await userEvent.type(field(), 'client')
 
-    await userEvent.click(magnifier())
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
     expect(screen.queryByRole('search')).toBe(null)
+    expect(screen.getByTestId('mailbox-tree')).toBeVisible()
+    expect(magnifier()).toHaveFocus()
 
     await userEvent.click(magnifier())
     expect(field()).toHaveValue('')
-  })
-
-  it('links to Settings > Folder visibility', async () => {
-    await renderSidebar()
-    await userEvent.click(magnifier())
-
-    expect(
-      screen.getByRole('link', { name: 'Folder visibility' })
-    ).toHaveAttribute('href', '/settings/folder-visibility')
   })
 })
